@@ -171,44 +171,107 @@ CREATE INDEX idx_contact_company ON crm.tb_contact(fk_company);
 CREATE INDEX idx_contact_status ON crm.tb_contact(status);
 ```
 
+**NEW RESPONSIBILITY (Post FraiseQL Response)**: Also generate `mutation_metadata` schema
+
+**One-Time Generation** (`migrations/000_mutation_metadata.sql`):
+```sql
+-- Metadata types for mutation impacts (FraiseQL composite type pattern)
+CREATE SCHEMA mutation_metadata;
+
+CREATE TYPE mutation_metadata.entity_impact AS (
+    entity_type TEXT,
+    operation TEXT,
+    modified_fields TEXT[]
+);
+
+CREATE TYPE mutation_metadata.cache_invalidation AS (
+    query_name TEXT,
+    filter_json JSONB,
+    strategy TEXT,
+    reason TEXT
+);
+
+CREATE TYPE mutation_metadata.mutation_impact_metadata AS (
+    primary_entity mutation_metadata.entity_impact,
+    actual_side_effects mutation_metadata.entity_impact[],
+    cache_invalidations mutation_metadata.cache_invalidation[]
+);
+
+-- FraiseQL annotations for auto-discovery
+COMMENT ON TYPE mutation_metadata.mutation_impact_metadata IS
+  '@fraiseql:type name=MutationImpactMetadata';
+COMMENT ON TYPE mutation_metadata.entity_impact IS
+  '@fraiseql:type name=EntityImpact';
+COMMENT ON TYPE mutation_metadata.cache_invalidation IS
+  '@fraiseql:type name=CacheInvalidation';
+```
+
+**Why**: FraiseQL team confirmed composite types are the best pattern for type-safe metadata
+
 **Status**: 🔴 Not Started (Week 2 focus)
 **Location**: `src/generators/schema/`
 **Test Command**: `make teamB-test`
+**Critical Test**: Week 2 Day 1-2 - Verify composite types work with FraiseQL (see `/docs/architecture/UPDATED_TEAM_PLANS_POST_FRAISEQL_RESPONSE.md`)
 
 ---
 
-### 🟠 Team C: Action Compiler (Business Logic → PL/pgSQL)
-**Mission**: SpecQL action steps → PostgreSQL functions with framework conventions
+### 🟠 Team C: Action Compiler (Business Logic → PL/pgSQL with FraiseQL Integration)
+**Mission**: SpecQL action steps → PostgreSQL functions returning FraiseQL-compatible `mutation_result`
 
-**Input**: Action definitions from AST
+**CRITICAL UPDATE (Post FraiseQL Response)**: Use PostgreSQL composite types for type-safe metadata!
+
+**Input**: Action definitions from AST (including impact declarations)
 
 **Generates**: PL/pgSQL functions with:
-1. **Standard Signature**: UUID inputs, jsonb output
+1. **FraiseQL Standard Return**: `mutation_result` type (not plain jsonb)
 2. **Trinity Resolution**: Auto-convert UUID → INTEGER for queries
 3. **Audit Updates**: Auto-update `updated_at`, `updated_by`
 4. **Event Emission**: Auto-emit events on state changes
-5. **Error Handling**: Standard exception patterns
+5. **Error Handling**: Standard exception patterns with typed errors
+6. **Full Object Returns**: Complete entities in `object_data` (not deltas)
+7. **Impact Metadata**: Runtime `_meta` field with actual side effects
+8. **Side Effect Tracking**: Secondary entities in `extra_metadata`
 
 **Example Transformation**:
 ```yaml
 # Input (SpecQL)
 actions:
   - name: qualify_lead
+
+    # Impact declaration (NEW)
+    impact:
+      primary:
+        entity: Contact
+        operation: update
+        fields: [status, updatedAt]
+        include_relations: [company]
+      side_effects:
+        - entity: Notification
+          operation: create
+          collection: createdNotifications
+      cache_invalidations:
+        - query: contacts
+          filter: { status: "lead" }
+          strategy: refetch
+      optimistic_safe: true
+
     steps:
       - validate: status = 'lead'
       - update: Contact SET status = 'qualified'
+      - notify: owner(email, "Contact qualified")
 ```
 
 ```sql
--- Output (Auto-generated Function)
+-- Output (Auto-generated FraiseQL-compatible Function)
 CREATE OR REPLACE FUNCTION crm.qualify_lead(
     p_contact_id UUID,
     p_caller_id UUID DEFAULT NULL
 )
-RETURNS jsonb AS $$
+RETURNS mutation_result AS $$  -- FraiseQL standard type
 DECLARE
     v_pk INTEGER;
     v_status TEXT;
+    v_result mutation_result;
 BEGIN
     -- Trinity resolution (AUTO)
     v_pk := crm.contact_pk(p_contact_id);
@@ -216,7 +279,19 @@ BEGIN
     -- Validation (from SpecQL)
     SELECT status INTO v_status FROM crm.tb_contact WHERE pk_contact = v_pk;
     IF v_status != 'lead' THEN
-        RAISE EXCEPTION 'validation_failed';
+        -- Error response
+        v_result.status := 'error';
+        v_result.message := 'Contact is not a lead';
+        v_result.object_data := (
+            -- Full Contact object for error case
+            SELECT jsonb_build_object(
+                '__typename', 'Contact',
+                'id', c.id,
+                'status', c.status
+            )
+            FROM crm.tb_contact c WHERE c.pk_contact = v_pk
+        );
+        RETURN v_result;
     END IF;
 
     -- Update (from SpecQL + AUTO audit)
@@ -226,27 +301,111 @@ BEGIN
         updated_by = p_caller_id
     WHERE pk_contact = v_pk;
 
+    -- Success response
+    v_result.id := gen_random_uuid();
+    v_result.status := 'success';
+    v_result.message := 'Contact qualified successfully';
+    v_result.updated_fields := ARRAY['status', 'updated_at'];
+
+    -- Primary entity with relationships (FULL object, not delta)
+    v_result.object_data := (
+        SELECT jsonb_build_object(
+            '__typename', 'Contact',
+            'id', c.id,
+            'email', c.email,
+            'status', c.status,
+            'updatedAt', c.updated_at,
+            'company', jsonb_build_object(
+                '__typename', 'Company',
+                'id', co.id,
+                'name', co.name
+            )
+        )
+        FROM crm.tb_contact c
+        LEFT JOIN management.tb_company co ON co.pk_company = c.fk_company
+        WHERE c.pk_contact = v_pk
+    );
+
+    -- Build impact metadata using composite types (TYPE-SAFE!)
+    DECLARE
+        v_meta mutation_metadata.mutation_impact_metadata;
+    BEGIN
+        -- Type-safe construction (PostgreSQL validates at compile time!)
+        v_meta.primary_entity := ROW(
+            'Contact',                          -- entity_type
+            'UPDATE',                           -- operation
+            ARRAY['status', 'updated_at']       -- modified_fields
+        )::mutation_metadata.entity_impact;
+
+        v_meta.actual_side_effects := ARRAY[
+            ROW(
+                'Notification',
+                'CREATE',
+                ARRAY['id', 'message', 'created_at']::TEXT[]
+            )::mutation_metadata.entity_impact
+        ];
+
+        v_meta.cache_invalidations := ARRAY[
+            ROW(
+                'contacts',                      -- query_name
+                '{"status": "lead"}'::jsonb,     -- filter_json
+                'REFETCH',                       -- strategy
+                'Contact removed from lead list' -- reason
+            )::mutation_metadata.cache_invalidation
+        ];
+
+        -- Side effects + impact metadata
+        v_result.extra_metadata := jsonb_build_object(
+            'createdNotifications', (
+                SELECT COALESCE(jsonb_agg(
+                    jsonb_build_object(
+                        '__typename', 'Notification',
+                        'id', n.id,
+                        'message', n.message,
+                        'createdAt', n.created_at
+                    )
+                ), '[]'::jsonb)
+                FROM core.tb_notification n
+                WHERE n.fk_contact = v_pk
+                  AND n.created_at > (now() - interval '1 second')
+            ),
+            '_meta', to_jsonb(v_meta)  -- Convert composite type to JSONB
+        );
+    END;
+
     -- Event emission (AUTO)
     PERFORM core.emit_event('contact.qualified', jsonb_build_object('id', p_contact_id));
 
-    -- Return (AUTO format)
-    RETURN jsonb_build_object('success', true, 'contact_id', p_contact_id);
+    RETURN v_result;
 END;
 $$ LANGUAGE plpgsql;
 ```
 
-**Status**: 🔴 Not Started (Week 3 focus)
+**Key Differences from Original Design:**
+- ✅ Returns `mutation_result` (FraiseQL standard) instead of plain `jsonb`
+- ✅ Includes FULL objects in `object_data` (not just modified fields)
+- ✅ Includes relationships (company) as specified in `impact.include_relations`
+- ✅ Tracks side effects in `extra_metadata.createdNotifications`
+- ✅ **Uses composite types for `_meta` (TYPE-SAFE!)** - FraiseQL recommended pattern
+- ✅ Tracks which fields changed in `updated_fields` array
+- ✅ Proper `__typename` for Apollo/Relay cache normalization
+
+**IMPORTANT**: Composite types provide compile-time validation - PostgreSQL will error if you use wrong types!
+
+**Status**: 🔴 Not Started (Week 3-4 focus - extra time for composite type integration)
 **Location**: `src/generators/actions/`
 **Test Command**: `make teamC-test`
 
 ---
 
-### 🟣 Team D: FraiseQL Metadata Generator
-**Mission**: Generate `@fraiseql:*` COMMENT annotations for GraphQL auto-discovery
+### 🟣 Team D: FraiseQL Metadata Generator + Impact Documentation
+**Mission**: Generate `@fraiseql:*` COMMENT annotations for GraphQL auto-discovery + mutation impact metadata
 
-**Input**: Entity AST + Generated SQL (from Teams B & C)
+**Input**: Entity AST + Generated SQL (from Teams B & C) + Impact declarations
 
-**Output**: SQL COMMENT statements
+**Generates Three Outputs**:
+
+#### 1. SQL COMMENT Annotations (FraiseQL Discovery)
 ```sql
 -- Table metadata
 COMMENT ON TABLE crm.tb_contact IS
@@ -260,16 +419,169 @@ COMMENT ON COLUMN crm.tb_contact.fk_company IS
 COMMENT ON COLUMN crm.tb_contact.status IS
   '@fraiseql:field name=status,type=ContactStatus,enum=true';
 
--- Mutation metadata
+-- Mutation metadata with impact hints
 COMMENT ON FUNCTION crm.qualify_lead IS
-  '@fraiseql:mutation name=qualifyLead,input=QualifyLeadInput,output=Contact';
+  '@fraiseql:mutation
+   name=qualifyLead
+   input=QualifyLeadInput
+   success_type=QualifyLeadSuccess
+   error_type=QualifyLeadError
+   primary_entity=Contact
+   metadata_mapping={
+     "createdNotifications": "Notification[]",
+     "_meta": "MutationImpactMetadata"
+   }
+   impact={
+     "primary": "Contact",
+     "operations": ["UPDATE"],
+     "side_effects": ["Notification"],
+     "optimistic_safe": true
+   }';
 ```
 
-**FraiseQL Then**:
-- Introspects these comments
-- Auto-generates GraphQL schema
-- Maps functions → mutations
-- Creates types, queries, filters
+#### 2. Static Impact Metadata File (`mutation-impacts.json`)
+```json
+{
+  "version": "1.0.0",
+  "generatedAt": "2025-11-08T16:00:00Z",
+  "mutations": {
+    "qualifyLead": {
+      "description": "Qualifies a lead by updating their status",
+      "input": {
+        "contactId": { "type": "UUID", "required": true }
+      },
+      "impact": {
+        "primary": {
+          "entity": "Contact",
+          "operation": "UPDATE",
+          "fields": ["status", "updatedAt"],
+          "relationships": ["company"]
+        },
+        "sideEffects": [
+          {
+            "entity": "Notification",
+            "operation": "CREATE",
+            "fields": ["id", "message", "createdAt"],
+            "collection": "createdNotifications"
+          }
+        ],
+        "cacheInvalidations": [
+          {
+            "query": "contacts",
+            "filter": { "status": "lead" },
+            "strategy": "REFETCH",
+            "reason": "Contact removed from lead status list"
+          },
+          {
+            "query": "dashboardStats",
+            "strategy": "EVICT",
+            "reason": "Lead count changed"
+          }
+        ],
+        "permissions": ["can_edit_contact"],
+        "optimisticUpdateSafe": true,
+        "idempotent": false,
+        "estimatedDuration": 150
+      },
+      "examples": [
+        {
+          "name": "Successful qualification",
+          "input": { "contactId": "uuid-here" },
+          "expectedResult": {
+            "__typename": "QualifyLeadSuccess",
+            "contact": { "status": "qualified" }
+          }
+        }
+      ],
+      "errors": [
+        {
+          "code": "validation_failed",
+          "condition": "Contact is not a lead",
+          "recovery": "Check contact status before calling"
+        }
+      ]
+    }
+  }
+}
+```
+
+#### 3. TypeScript Type Definitions (`mutation-impacts.d.ts`)
+```typescript
+// Auto-generated types for mutation impacts
+
+export interface MutationImpact {
+  description: string;
+  input: Record<string, { type: string; required: boolean }>;
+  impact: {
+    primary: EntityImpact;
+    sideEffects: EntityImpact[];
+    cacheInvalidations: CacheInvalidation[];
+    permissions: string[];
+    optimisticUpdateSafe: boolean;
+    idempotent: boolean;
+    estimatedDuration: number;
+  };
+  examples: MutationExample[];
+  errors: MutationError[];
+}
+
+export interface EntityImpact {
+  entity: string;
+  operation: 'CREATE' | 'UPDATE' | 'DELETE' | 'UPSERT';
+  fields: string[];
+  relationships?: string[];
+  collection?: string;
+}
+
+export interface CacheInvalidation {
+  query: string;
+  filter?: Record<string, any>;
+  strategy: 'REFETCH' | 'EVICT' | 'UPDATE';
+  reason: string;
+}
+
+export const MUTATION_IMPACTS: {
+  qualifyLead: MutationImpact;
+  // ... other mutations
+};
+```
+
+**FraiseQL Integration**:
+- Introspects `@fraiseql:mutation` comments
+- Auto-generates GraphQL schema with proper types
+- Maps `object_data` → primary entity field (e.g., `contact: Contact!`)
+- Maps `extra_metadata.createdNotifications` → `createdNotifications: [Notification!]!`
+- Maps `extra_metadata._meta` → `_meta: MutationImpactMetadata!`
+- Exposes `updated_fields` as `updatedFields: [String!]!`
+
+**Generated GraphQL Schema** (by FraiseQL):
+```graphql
+type QualifyLeadSuccess {
+  status: String!
+  message: String!
+  updatedFields: [String!]!
+  contact: Contact!
+  createdNotifications: [Notification!]!
+  _meta: MutationImpactMetadata!
+}
+
+type MutationImpactMetadata {
+  primaryEntity: EntityImpact!
+  actualSideEffects: [EntityImpact!]!
+}
+
+union QualifyLeadPayload = QualifyLeadSuccess | QualifyLeadError
+
+type Mutation {
+  qualifyLead(input: QualifyLeadInput!): QualifyLeadPayload!
+}
+```
+
+**Frontend Code Generation**:
+Team D also generates frontend-consumable artifacts:
+- `mutation-impacts.json` - Static metadata for build-time consumption
+- `mutation-impacts.d.ts` - TypeScript types
+- `mutations.ts` - Pre-configured hooks with impact-based cache handling
 
 **Status**: 🔴 Not Started (Week 5 focus)
 **Location**: `src/generators/fraiseql/`
@@ -277,40 +589,205 @@ COMMENT ON FUNCTION crm.qualify_lead IS
 
 ---
 
-### 🔴 Team E: CLI & Orchestration
-**Mission**: Developer tools + pipeline orchestration
+### 🔴 Team E: CLI & Orchestration + Frontend Codegen
+**Mission**: Developer tools + pipeline orchestration + frontend code generation
 
 **CLI Commands**:
 ```bash
 # Generate complete migration from SpecQL
 specql generate entities/contact.yaml
-# Output: migrations/001_contact.sql (schema + functions + metadata)
+# Output:
+#   - migrations/001_contact.sql (schema + functions + metadata)
+#   - generated/mutation-impacts.json (impact metadata)
+#   - generated/mutation-impacts.d.ts (TypeScript types)
 
-# Validate SpecQL syntax
-specql validate entities/*.yaml
+# Generate with impact metadata for frontend
+specql generate entities/*.yaml --with-impacts --output-frontend=../frontend/src/generated
+
+# Validate SpecQL syntax and impact declarations
+specql validate entities/*.yaml --check-impacts
 
 # Show what would change
 specql diff entities/contact.yaml
+
+# Generate documentation from impacts
+specql docs entities/*.yaml --format=markdown --output=docs/mutations.md
+
+# Validate runtime impacts match declarations
+specql validate-impacts --database-url=postgres://...
 ```
 
-**Orchestration**: Coordinates Teams B + C + D:
+**Orchestration**: Coordinates Teams B + C + D + Frontend Codegen:
 ```python
-def generate(yaml_file):
+def generate(yaml_file, with_impacts=False, output_frontend=None):
     # Team A: Parse
     entity = SpecQLParser().parse(yaml_file)
 
     # Team B: Generate schema
     schema_sql = SchemaGenerator().generate(entity)
 
-    # Team C: Compile actions
-    action_sql = ActionCompiler().compile(entity.actions)
+    # Team C: Compile actions (with impact metadata if declared)
+    action_sql = ActionCompiler().compile(entity.actions, include_impacts=with_impacts)
 
-    # Team D: Add FraiseQL metadata
+    # Team D: Add FraiseQL metadata + impact documentation
     metadata_sql = FraiseQLAnnotator().annotate(entity)
 
     # Combine into migration
     migration = combine(schema_sql, action_sql, metadata_sql)
     write_migration(migration)
+
+    # NEW: Generate frontend artifacts
+    if with_impacts:
+        # Generate mutation-impacts.json
+        impacts = extract_impacts(entity.actions)
+        write_json('generated/mutation-impacts.json', impacts)
+
+        # Generate TypeScript types
+        ts_types = generate_typescript_types(impacts)
+        write_file('generated/mutation-impacts.d.ts', ts_types)
+
+        # Generate pre-configured mutation hooks
+        if output_frontend:
+            hooks = generate_mutation_hooks(impacts, entity.actions)
+            write_file(f'{output_frontend}/mutations.ts', hooks)
+
+        # Generate documentation
+        docs = generate_mutation_docs(impacts, entity.actions)
+        write_file('docs/mutations.md', docs)
+```
+
+**Frontend Code Generation**:
+
+Generates pre-configured hooks with impact-based cache handling:
+
+```typescript
+// generated/mutations.ts (auto-generated)
+
+import { useMutation, MutationHookOptions } from '@apollo/client';
+import { MUTATION_IMPACTS } from './mutation-impacts';
+import { QUALIFY_LEAD } from './graphql/mutations';
+
+export function useQualifyLead(options?: MutationHookOptions) {
+    const impact = MUTATION_IMPACTS.qualifyLead;
+
+    return useMutation(QUALIFY_LEAD, {
+        ...options,
+
+        // Auto-configured from impact.cacheInvalidations
+        refetchQueries: [
+            ...impact.impact.cacheInvalidations
+                .filter(i => i.strategy === 'REFETCH')
+                .map(i => i.query),
+            ...(options?.refetchQueries || [])
+        ],
+
+        // Auto-configured cache evictions
+        update: (cache, result) => {
+            // Evict queries marked with EVICT strategy
+            impact.impact.cacheInvalidations
+                .filter(i => i.strategy === 'EVICT')
+                .forEach(i => cache.evict({ fieldName: i.query }));
+
+            // Call user-provided update
+            options?.update?.(cache, result);
+        },
+
+        // Auto-configured optimistic response (if safe)
+        ...(impact.impact.optimisticUpdateSafe && {
+            optimisticResponse: (vars) => ({
+                __typename: 'Mutation',
+                qualifyLead: {
+                    __typename: 'QualifyLeadSuccess',
+                    status: 'success',
+                    message: 'Contact qualified',
+                    updatedFields: impact.impact.primary.fields,
+                    contact: {
+                        __typename: 'Contact',
+                        // User can override via options.optimisticResponse
+                        ...(options?.variables || {})
+                    },
+                    createdNotifications: [],
+                    _meta: {
+                        primaryEntity: {
+                            entityType: impact.impact.primary.entity,
+                            operation: impact.impact.primary.operation,
+                            modifiedFields: impact.impact.primary.fields
+                        },
+                        actualSideEffects: []
+                    }
+                }
+            })
+        })
+    });
+}
+
+// Export all mutation impacts for reference
+export { MUTATION_IMPACTS } from './mutation-impacts';
+```
+
+**Documentation Generation**:
+
+```bash
+$ specql docs entities/*.yaml --format=markdown
+
+# Generates docs/mutations.md:
+```
+
+````markdown
+# Mutation Reference
+
+## qualifyLead
+
+**Description**: Qualifies a lead by updating their status to 'qualified'
+
+**Input**:
+- `contactId` (UUID, required)
+
+**Primary Impact**:
+- **Entity**: Contact
+- **Operation**: UPDATE
+- **Modified Fields**: status, updatedAt
+- **Relationships Included**: company
+
+**Side Effects**:
+- Creates Notification(s) in `createdNotifications` field
+
+**Cache Impact**:
+- ⚠️ **Refetch** `contacts` query (filter: `{status: "lead"}`)
+  - *Reason*: Contact removed from lead status list
+- ⚠️ **Evict** `dashboardStats` query
+  - *Reason*: Lead count changed
+
+**Optimistic Updates**: ✅ Safe
+
+**Example Usage**:
+```typescript
+import { useQualifyLead } from '@/generated/mutations';
+
+const [qualifyLead, { loading }] = useQualifyLead();
+
+await qualifyLead({ variables: { contactId: '...' } });
+```
+
+**Possible Errors**:
+- `validation_failed`: Contact is not a lead
+  - *Recovery*: Check contact status before calling
+```
+````
+
+**Impact Validation**:
+
+```bash
+# Runtime validation - compares actual vs declared impacts
+$ specql validate-impacts --database-url=postgres://localhost/mydb
+
+# Executes each mutation in test mode
+# Compares result._meta.actualSideEffects vs. declared impact.sideEffects
+# Reports mismatches
+
+✓ qualifyLead: Actual impacts match declaration
+✗ createContact: Expected 1 Notification, got 0
+  → Check: Notification creation logic may have conditions
 ```
 
 **Status**: 🔴 Not Started (Week 7 focus)

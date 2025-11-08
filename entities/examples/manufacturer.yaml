@@ -7,8 +7,14 @@
 entity:
   name: manufacturer
   schema: catalog
-  table_code: "013211"
   description: "Lists recognized printer/copier manufacturers (e.g., Canon, HP, Xerox), with internal identifiers and display attributes."
+
+  # ============================================================================
+  # Organization (Numbering System)
+  # ============================================================================
+  organization:
+    table_code: "013211"
+    domain_name: "catalog"
 
   # ============================================================================
   # Fields (Trinity Pattern: pk_* INTEGER and id UUID auto-generated)

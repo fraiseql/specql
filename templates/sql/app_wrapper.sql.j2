@@ -1,0 +1,56 @@
+-- ============================================================================
+-- APP WRAPPER: {{ app_function_name }}
+-- API Entry Point (GraphQL/REST)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.{{ app_function_name }}(
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
+    input_payload JSONB               -- User input (GraphQL/REST)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+{%- if needs_composite_type %}
+    input_data {{ composite_type_name }};
+{%- endif %}
+BEGIN
+{%- if needs_composite_type %}
+    -- Convert JSONB → Typed Composite
+    input_data := jsonb_populate_record(
+        NULL::{{ composite_type_name }},
+        input_payload
+    );
+
+    -- Delegate to core business logic
+    RETURN {{ core_schema }}.{{ core_function_name }}(
+        auth_tenant_id,
+        input_data,
+        input_payload,
+        auth_user_id
+    );
+{%- else %}
+    -- No composite type needed for {{ action_type }} actions
+    -- Delegate to core business logic
+    RETURN {{ core_schema }}.{{ core_function_name }}(
+        auth_tenant_id,
+        input_payload,
+        auth_user_id
+    );
+{%- endif %}
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle unexpected errors
+        RETURN ROW(
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            ARRAY[]::TEXT[],
+            'failed:unexpected_error',
+            'An unexpected error occurred',
+            NULL::JSONB,
+            jsonb_build_object('error', SQLERRM, 'detail', SQLSTATE)
+        )::app.mutation_result;
+END;
+$$;
+
+-- FraiseQL Metadata
+COMMENT ON FUNCTION app.{{ app_function_name }} IS
+  '@fraiseql:mutation name={{ graphql_name }},input={{ graphql_name | title }}Input,output=MutationResult';

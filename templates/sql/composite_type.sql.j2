@@ -1,0 +1,21 @@
+{# Composite Type Template #}
+-- ============================================================================
+-- INPUT TYPE: {{ type_name }}
+-- For action: {{ action_name }}
+-- ============================================================================
+CREATE TYPE app.{{ type_name }} AS (
+{% for field_name, field_def in fields.items() %}
+    {{ field_name }} {{ field_def.pg_type }}{{ "," if not loop.last else "" }}
+{% endfor %}
+);
+
+-- FraiseQL metadata
+COMMENT ON TYPE app.{{ type_name }} IS
+  '@fraiseql:input name={{ graphql_name }}';
+
+{% if field_comments %}
+-- Field metadata
+{% for comment in field_comments %}
+{{ comment }}
+{% endfor %}
+{% endif %}

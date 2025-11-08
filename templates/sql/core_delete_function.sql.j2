@@ -1,0 +1,62 @@
+-- ============================================================================
+-- CORE LOGIC: {{ entity.schema }}.delete_{{ entity.name | lower }}
+-- Soft Delete with Audit Trail
+-- ============================================================================
+CREATE OR REPLACE FUNCTION {{ entity.schema }}.delete_{{ entity.name | lower }}(
+    auth_tenant_id UUID,
+    input_entity_id UUID,
+    auth_user_id UUID
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_entity_id UUID;
+    v_{{ entity.pk_column }} INTEGER;
+BEGIN
+    -- === VALIDATION ===
+    -- Check if entity exists and belongs to tenant
+    SELECT id, {{ entity.pk_column }}
+    INTO v_entity_id, v_{{ entity.pk_column }}
+    FROM {{ entity.schema }}.{{ entity.table_name }}
+    WHERE id = input_entity_id
+      AND tenant_id = auth_tenant_id
+      AND deleted_at IS NULL;  -- Not already soft deleted
+
+    IF v_entity_id IS NULL THEN
+        RETURN {{ entity.schema }}.log_and_return_mutation(
+            auth_tenant_id,
+            auth_user_id,
+            '{{ entity.name | lower }}',
+            input_entity_id,
+            'NOOP',
+            'failed:entity_not_found',
+            ARRAY['entity_id']::TEXT[],
+            '{{ entity.name }} not found or already deleted',
+            NULL, NULL,
+            jsonb_build_object('entity_id', input_entity_id)
+        );
+    END IF;
+
+    -- === BUSINESS LOGIC: SOFT DELETE ===
+    UPDATE {{ entity.schema }}.{{ entity.table_name }}
+    SET
+        deleted_at = now(),
+        deleted_by = auth_user_id
+    WHERE id = v_entity_id
+      AND tenant_id = auth_tenant_id;
+
+    -- === AUDIT & RETURN ===
+    RETURN {{ entity.schema }}.log_and_return_mutation(
+        auth_tenant_id,
+        auth_user_id,
+        '{{ entity.name | lower }}',
+        v_entity_id,
+        'DELETE',
+        'success',
+        ARRAY['entity_id']::TEXT[],
+        '{{ entity.name }} deleted successfully',
+        (SELECT row_to_json(t.*) FROM {{ entity.schema }}.{{ entity.table_name }} t WHERE t.id = v_entity_id)::JSONB,
+        NULL
+    );
+END;
+$$;

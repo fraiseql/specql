@@ -1,0 +1,105 @@
+-- ============================================================================
+-- CORE LOGIC: {{ entity.schema }}.update_{{ entity.name | lower }}
+-- Business Rules & Data Manipulation
+-- ============================================================================
+CREATE OR REPLACE FUNCTION {{ entity.schema }}.update_{{ entity.name | lower }}(
+    auth_tenant_id UUID,
+    input_data {{ composite_type }},
+    input_payload JSONB,
+    auth_user_id UUID
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_entity_id UUID;
+    v_{{ entity.pk_column }} INTEGER;
+{%- for resolution in fk_resolutions %}
+    {{ resolution.variable }} INTEGER;
+{%- endfor %}
+BEGIN
+    -- === VALIDATION ===
+    -- Check if entity exists and belongs to tenant
+    SELECT id, {{ entity.pk_column }}
+    INTO v_entity_id, v_{{ entity.pk_column }}
+    FROM {{ entity.schema }}.{{ entity.table_name }}
+    WHERE id = input_data.id::UUID
+      AND tenant_id = auth_tenant_id;
+
+    IF v_entity_id IS NULL THEN
+        RETURN {{ entity.schema }}.log_and_return_mutation(
+            auth_tenant_id,
+            auth_user_id,
+            '{{ entity.name | lower }}',
+            input_data.id::UUID,
+            'NOOP',
+            'failed:entity_not_found',
+            ARRAY['id']::TEXT[],
+            '{{ entity.name }} not found',
+            NULL, NULL,
+            jsonb_build_object('entity_id', input_data.id)
+        );
+    END IF;
+
+{%- for validation in validations %}
+    IF {{ validation.check }} THEN
+            RETURN {{ entity.schema }}.log_and_return_mutation(
+                auth_tenant_id,
+                auth_user_id,
+                '{{ entity.name | lower }}',
+                v_entity_id,
+                'NOOP',
+                '{{ validation.error }}',
+                ARRAY['{{ validation.field }}']::TEXT[],
+                '{{ validation.message }}',
+                NULL, NULL,
+                jsonb_build_object('reason', 'validation_{{ validation.field }}_null')
+            );
+    END IF;
+{%- endfor %}
+
+    -- === UUID → INTEGER RESOLUTION (Trinity Helpers) ===
+{%- for resolution in fk_resolutions %}
+    IF input_data.{{ resolution.input_field }} IS NOT NULL THEN
+        {{ resolution.variable }} := {{ resolution.helper_call }};
+
+        IF {{ resolution.variable }} IS NULL THEN
+                RETURN {{ entity.schema }}.log_and_return_mutation(
+                    auth_tenant_id,
+                    auth_user_id,
+                    '{{ entity.name | lower }}',
+                    v_entity_id,
+                    'NOOP',
+                    'failed:{{ resolution.field }}_not_found',
+                    ARRAY['{{ resolution.input_field }}']::TEXT[],
+                    '{{ resolution.target_entity }} not found',
+                    NULL, NULL,
+                    jsonb_build_object('{{ resolution.input_field }}', input_data.{{ resolution.input_field }})
+                );
+        END IF;
+    END IF;
+{%- endfor %}
+
+    -- === BUSINESS LOGIC: UPDATE ===
+    UPDATE {{ entity.schema }}.{{ entity.table_name }}
+    SET
+{%- for assignment in update_fields.assignments %}
+        {{ assignment }}{{ "," if not loop.last else "" }}
+{%- endfor %}
+    WHERE id = v_entity_id
+      AND tenant_id = auth_tenant_id;
+
+    -- === AUDIT & RETURN ===
+    RETURN {{ entity.schema }}.log_and_return_mutation(
+        auth_tenant_id,
+        auth_user_id,
+        '{{ entity.name | lower }}',
+        v_entity_id,
+        'UPDATE',
+        'success',
+        ARRAY(SELECT jsonb_object_keys(input_payload)),
+        '{{ entity.name }} updated successfully',
+        (SELECT row_to_json(t.*) FROM {{ entity.schema }}.{{ entity.table_name }} t WHERE t.id = v_entity_id)::JSONB,
+        NULL
+    );
+END;
+$$;

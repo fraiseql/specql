@@ -1,0 +1,356 @@
+"""Tests for composite type generation (Team B)"""
+
+import pytest
+from src.core.ast_models import Entity, Action, FieldDefinition
+from src.generators.composite_type_generator import CompositeTypeGenerator
+from src.generators.schema_orchestrator import SchemaOrchestrator
+
+
+class TestCompositeTypeGenerator:
+    """Test composite type generation for app/core pattern"""
+
+    @pytest.fixture
+    def generator(self):
+        """Create composite type generator"""
+        return CompositeTypeGenerator()
+
+    def test_generate_basic_composite_type(self, generator):
+        """Generate composite type from action with simple fields"""
+        # Given: Entity with create action
+        entity = Entity(
+            name="Contact",
+            schema="crm",
+            fields={
+                "email": FieldDefinition(name="email", type="text", nullable=False),
+                "company": FieldDefinition(
+                    name="company", type="ref", target_entity="Company", nullable=True
+                ),
+                "status": FieldDefinition(
+                    name="status", type="enum", values=["lead", "qualified"], nullable=False
+                ),
+            },
+            actions=[Action(name="create_contact", steps=[])],
+        )
+
+        # When: Generate composite type
+        sql = generator.generate_input_type(entity, entity.actions[0])
+
+        # Then: Composite type includes all fields
+        assert "CREATE TYPE app.type_create_contact_input AS (" in sql
+        assert "email TEXT" in sql
+        assert "company_id UUID" in sql  # ✅ FK is UUID (external API contract)
+        assert "status TEXT" in sql
+        # FraiseQL annotation
+        assert "COMMENT ON TYPE app.type_create_contact_input IS" in sql
+        assert "@fraiseql:input name=CreateContactInput" in sql
+
+    def test_generate_composite_type_with_nullable_fields(self, generator):
+        """Nullable fields in composite types"""
+        # Given: Action with nullable fields
+        entity = Entity(
+            name="Contact",
+            schema="crm",
+            fields={
+                "email": FieldDefinition(name="email", type="text", nullable=False),
+                "company": FieldDefinition(
+                    name="company", type="ref", target_entity="Company", nullable=True
+                ),
+                "status": FieldDefinition(
+                    name="status", type="enum", values=["lead", "qualified"], nullable=False
+                ),
+            },
+            actions=[Action(name="create_contact", steps=[])],
+        )
+
+        # When: Generate
+        sql = generator.generate_input_type(entity, entity.actions[0])
+
+        # Then: FraiseQL annotations include required/optional info
+        assert "@fraiseql:field name=email,type=String,required=true" in sql
+        assert (
+            "@fraiseql:field name=company_id,type=UUID,references=Company" in sql
+        )  # optional (no required=true)
+        assert (
+            "@fraiseql:field name=status,type=String,required=true,enumValues=lead|qualified" in sql
+        )
+
+    def test_generate_composite_type_with_nested_fields(self, generator):
+        """Handle complex field types (arrays, lists)"""
+        # Given: Entity with list field
+        entity = Entity(
+            name="Contact",
+            schema="crm",
+            fields={"tags": FieldDefinition(name="tags", type="list", item_type="text")},
+            actions=[Action(name="create_contact", steps=[])],
+        )
+
+        # When: Generate
+        sql = generator.generate_input_type(entity, entity.actions[0])
+
+        # Then: Array type used
+        assert "tags TEXT[]" in sql
+
+    def test_skip_composite_type_for_actions_without_input(self, generator):
+        """Some actions (like delete) may not need input types"""
+        # Given: Delete action (only needs ID)
+        entity = Entity(
+            name="Contact",
+            schema="crm",
+            fields={},
+            actions=[Action(name="delete_contact", steps=[])],
+        )
+
+        # When: Generate
+        sql = generator.generate_input_type(entity, entity.actions[0])
+
+        # Then: Returns empty or uses standard deletion input type
+        assert sql == "" or "type_deletion_input" in sql
+
+    def test_generate_mutation_result_type(self, generator):
+        """Generate standard mutation_result composite type"""
+        # When: Generate
+        sql = generator.generate_mutation_result_type()
+
+        # Then: Standard structure
+        assert "CREATE TYPE app.mutation_result AS (" in sql
+        assert "id UUID" in sql
+        assert "updated_fields TEXT[]" in sql
+        assert "status TEXT" in sql
+        assert "message TEXT" in sql
+        assert "object_data JSONB" in sql
+        assert "extra_metadata JSONB" in sql
+        assert "@fraiseql:type name=MutationResult" in sql
+
+    def test_mutation_result_generated_only_once(self, generator):
+        """Ensure mutation_result is not duplicated"""
+        # When: Generate multiple times
+        sql1 = generator.generate_mutation_result_type()
+        sql2 = generator.generate_mutation_result_type()
+
+        # Then: Only first call returns SQL, others return empty
+        assert sql1 != ""
+        assert sql2 == ""
+
+    def test_generate_common_types(self, generator):
+        """Generate all common types needed across schema"""
+        # When: Generate common types
+        sql = generator.generate_common_types()
+
+        # Then: Contains mutation_result
+        assert "CREATE TYPE app.mutation_result AS (" in sql
+        assert "@fraiseql:type name=MutationResult" in sql
+
+    def test_mutation_result_supports_impact_metadata(self, generator):
+        """Test that mutation_result type supports mutation impact metadata pattern"""
+        # When: Generate mutation result type
+        sql = generator.generate_mutation_result_type()
+
+        # Then: Supports mutation impact metadata requirements
+        # 1. updated_fields exposed for change tracking
+        assert "updated_fields TEXT[]" in sql
+        assert "@fraiseql:field name=updatedFields,type=[String]" in sql
+
+        # 2. extra_metadata JSONB supports _meta field for impact metadata
+        assert "extra_metadata JSONB" in sql
+        assert "@fraiseql:field name=extra,type=JSON" in sql
+
+        # 3. FraiseQL type annotation for GraphQL mapping
+        assert "@fraiseql:type name=MutationResult" in sql
+
+        # 4. Status field for success/error indication
+        assert "status TEXT" in sql
+
+        # 5. Message field for human-readable feedback
+        assert "message TEXT" in sql
+        assert "@fraiseql:field name=message,type=String" in sql
+
+        # 6. object_data JSONB for full entity data
+        assert "object_data JSONB" in sql
+        assert "@fraiseql:field name=object,type=JSON" in sql
+
+        # 7. id UUID for entity identifier
+        assert "id UUID" in sql
+        assert "@fraiseql:field name=id,type=UUID" in sql
+
+
+class TestSchemaOrchestrator:
+    """Test schema orchestration (tables + types)"""
+
+    @pytest.fixture
+    def orchestrator(self):
+        """Create schema orchestrator"""
+        return SchemaOrchestrator()
+
+    @pytest.fixture
+    def generator(self):
+        """Create composite type generator"""
+        return CompositeTypeGenerator()
+
+    def test_generate_complete_schema(self, orchestrator):
+        """Generate complete schema: tables + types"""
+        # Given: Entity with actions
+        entity = Entity(
+            name="Contact",
+            schema="crm",
+            fields={
+                "email": FieldDefinition(name="email", type="text", nullable=False),
+                "company": FieldDefinition(
+                    name="company", type="ref", target_entity="Company", nullable=True
+                ),
+                "status": FieldDefinition(
+                    name="status", type="enum", values=["lead", "qualified"], nullable=False
+                ),
+            },
+            actions=[Action(name="create_contact", steps=[])],
+        )
+
+        # When: Generate complete schema
+        sql = orchestrator.generate_complete_schema(entity)
+
+        # Then: Contains tables + types
+        assert "CREATE TABLE crm.tb_contact" in sql
+        assert "CREATE TYPE app.type_create_contact_input" in sql
+        assert "CREATE TYPE app.mutation_result" in sql
+        assert "CREATE INDEX" in sql or "ADD CONSTRAINT" in sql  # indexes or constraints
+
+    def test_schema_summary(self, orchestrator):
+        """Generate schema summary"""
+        # Given: Entity with fields
+        entity = Entity(
+            name="Contact",
+            schema="crm",
+            fields={
+                "email": FieldDefinition(name="email", type="text", nullable=False),
+            },
+            actions=[Action(name="create_contact", steps=[])],
+        )
+
+        # When: Generate summary
+        summary = orchestrator.generate_schema_summary(entity)
+
+        # Then: Contains expected structure
+        assert summary["entity"] == "Contact"
+        assert summary["table"] == "crm.tb_contact"
+        assert "app.type_create_contact_input" in summary["types"]
+
+    def test_fraiseql_annotations_comprehensive(self, generator):
+        """Test comprehensive FraiseQL annotations for different field types"""
+        # Given: Entity with various field types
+        entity = Entity(
+            name="Product",
+            schema="catalog",
+            fields={
+                "name": FieldDefinition(name="name", type="text", nullable=False),
+                "price": FieldDefinition(name="price", type="decimal", nullable=False),
+                "in_stock": FieldDefinition(name="in_stock", type="boolean", nullable=False),
+                "category": FieldDefinition(
+                    name="category", type="ref", target_entity="Category", nullable=True
+                ),
+                "tags": FieldDefinition(name="tags", type="list", item_type="text", nullable=True),
+                "status": FieldDefinition(
+                    name="status",
+                    type="enum",
+                    values=["active", "inactive", "discontinued"],
+                    nullable=False,
+                ),
+            },
+            actions=[Action(name="create_product", steps=[])],
+        )
+
+        # When: Generate composite type
+        sql = generator.generate_input_type(entity, entity.actions[0])
+
+        # Then: FraiseQL annotations are comprehensive
+        assert "@fraiseql:field name=name,type=String,required=true" in sql
+        assert "@fraiseql:field name=price,type=Float,required=true" in sql
+        assert "@fraiseql:field name=in_stock,type=Boolean,required=true" in sql
+        assert "@fraiseql:field name=category_id,type=UUID,references=Category" in sql
+        assert "@fraiseql:field name=tags,type=[TEXT]" in sql
+        assert (
+            "@fraiseql:field name=status,type=String,required=true,enumValues=active|inactive|discontinued"
+            in sql
+        )
+
+    def test_update_action_field_filtering(self, generator):
+        """Test that update actions exclude audit fields"""
+        # Given: Entity with audit fields
+        entity = Entity(
+            name="Contact",
+            schema="crm",
+            fields={
+                "email": FieldDefinition(name="email", type="text", nullable=False),
+                "created_at": FieldDefinition(name="created_at", type="timestamp", nullable=False),
+                "created_by": FieldDefinition(name="created_by", type="uuid", nullable=True),
+                "updated_at": FieldDefinition(name="updated_at", type="timestamp", nullable=False),
+                "updated_by": FieldDefinition(name="updated_by", type="uuid", nullable=True),
+            },
+            actions=[Action(name="update_contact", steps=[])],
+        )
+
+        # When: Generate for update action
+        sql = generator.generate_input_type(entity, entity.actions[0])
+
+        # Then: Only non-audit fields included
+        assert "email TEXT" in sql
+        assert "created_at" not in sql
+        assert "created_by" not in sql
+        assert "updated_at" not in sql
+        assert "updated_by" not in sql
+
+    def test_custom_action_field_analysis(self, generator):
+        """Test custom actions include all fields (for now)"""
+        # Given: Custom action
+        entity = Entity(
+            name="Contact",
+            schema="crm",
+            fields={
+                "email": FieldDefinition(name="email", type="text", nullable=False),
+            },
+            actions=[Action(name="custom_action", steps=[])],
+        )
+
+        # When: Generate for custom action
+        sql = generator.generate_input_type(entity, entity.actions[0])
+
+        # Then: All fields included (TODO: implement step analysis)
+        assert "email TEXT" in sql
+        assert "type_custom_action_input" in sql
+
+    def test_empty_entity_no_types_generated(self, generator):
+        """Test that entities with no fields don't generate types"""
+        # Given: Entity with no fields
+        entity = Entity(
+            name="Empty", schema="test", fields={}, actions=[Action(name="create_empty", steps=[])]
+        )
+
+        # When: Generate
+        sql = generator.generate_input_type(entity, entity.actions[0])
+
+        # Then: No type generated
+        assert sql == ""
+
+    def test_multiple_actions_generate_multiple_types(self, generator):
+        """Test multiple actions generate multiple input types"""
+        # Given: Entity with multiple actions
+        entity = Entity(
+            name="Contact",
+            schema="crm",
+            fields={
+                "email": FieldDefinition(name="email", type="text", nullable=False),
+            },
+            actions=[
+                Action(name="create_contact", steps=[]),
+                Action(name="update_contact", steps=[]),
+                Action(name="delete_contact", steps=[]),  # Should not generate type
+            ],
+        )
+
+        # When: Generate all types
+        create_sql = generator.generate_input_type(entity, entity.actions[0])
+        update_sql = generator.generate_input_type(entity, entity.actions[1])
+        delete_sql = generator.generate_input_type(entity, entity.actions[2])
+
+        # Then: Create and update generate types, delete doesn't
+        assert "type_create_contact_input" in create_sql
+        assert "type_update_contact_input" in update_sql
+        assert delete_sql == ""

@@ -1,158 +1,45 @@
 {# ============================================================================ #}
-{# Jinja2 Template: Trinity Pattern Helper Functions #}
+{# Jinja2 Template: Trinity Helper Functions #}
 {# ============================================================================ #}
 -- ============================================================================
--- Trinity Pattern Helpers: {{ entity.name }}
+-- Trinity Helper: {{ entity.schema }}.{{ entity.name | lower }}_{{ function_type }}()
 -- ============================================================================
--- Entity: {{ entity.schema }}.tb_{{ entity.name }}
--- Description: {{ entity.description }}
+-- Converts between UUID and INTEGER representations
 -- ============================================================================
 
-{%- set helpers = entity.trinity_helpers.helpers %}
-
-{%- for helper in helpers %}
-{%- if helper.name == entity.name + '_pk' %}
--- ============================================================================
--- Trinity Pattern Helper: {{ entity.name }}_pk
--- ============================================================================
--- PURPOSE: Converts {{ entity.name }} business identifier to INTEGER primary key
---          Part of Trinity Pattern: business keys → INTEGER PK → UUID
---
--- USAGE: Called at start of mutation functions to resolve identifiers to PKs
---        Store result in variable for subsequent use in INSERT/UPDATE
---
--- EXAMPLES:
-{%- if entity.trinity_helpers.lookup_by == 'identifier' %}
---   v_{{ entity.name }}_pk := core.{{ entity.name }}_pk('{{ entity.name }}_example');
+{%- if function_type == "pk" %}
+-- UUID/identifier/text → INTEGER (pk)
+{%- if is_tenant_specific %}
+CREATE OR REPLACE FUNCTION {{ entity.schema }}.{{ entity.name | lower }}_pk(p_identifier TEXT, p_tenant_id UUID)
+{%- else %}
+CREATE OR REPLACE FUNCTION {{ entity.schema }}.{{ entity.name | lower }}_pk(p_identifier TEXT)
 {%- endif %}
---
--- RETURNS: INTEGER primary key or NULL if not found
--- ============================================================================
-
-CREATE OR REPLACE FUNCTION core.{{ helper.name }}(
-{%- for param in helper.params %}
-    p_{{ param }} TEXT{% if not loop.last %},{% endif %}
-{%- endfor %}
-)
-RETURNS {{ helper.returns }}
-LANGUAGE sql
-STABLE
+RETURNS INTEGER
+LANGUAGE sql STABLE
 AS $$
-    SELECT pk_{{ entity.name }}
-    FROM {{ entity.schema }}.tb_{{ entity.name }}
-    WHERE {{ entity.trinity_helpers.lookup_by }} = p_{{ entity.trinity_helpers.lookup_by }}
-      AND deleted_at IS NULL
+    SELECT {{ entity.pk_column }}
+    FROM {{ entity.schema }}.{{ entity.table_name }}
+    WHERE (id::TEXT = p_identifier
+        OR identifier = p_identifier
+        OR {{ entity.pk_column }}::TEXT = p_identifier)
+{%- if is_tenant_specific %}
+      AND tenant_id = p_tenant_id
+{%- endif %}
     LIMIT 1;
 $$;
 
-COMMENT ON FUNCTION core.{{ helper.name }}({% for param in helper.params %}TEXT{% if not loop.last %}, {% endif %}{% endfor %}) IS
-'Trinity Pattern: {{ helper.description }}';
-
-{%- elif helper.name == entity.name + '_id' %}
-
--- ============================================================================
--- Trinity Pattern Helper: {{ entity.name }}_id (INTEGER → UUID)
--- ============================================================================
--- PURPOSE: Converts {{ entity.name }} INTEGER PK to UUID identifier
---          Part of Trinity Pattern: INTEGER PK → UUID (for external APIs)
---
--- USAGE: Called in sync functions and internal operations that need to
---        expose UUIDs to external systems (GraphQL, REST APIs, exports)
---
--- EXAMPLES:
---   v_{{ entity.name }}_uuid := core.{{ entity.name }}_id(v_{{ entity.name }}_pk);
---
---   SELECT core.{{ entity.name }}_id(pk_{{ entity.name }}) as {{ entity.name }}_id
---   FROM {{ entity.schema }}.tb_{{ entity.name }};
---
--- RETURNS: UUID identifier or NULL if PK not found or deleted
--- ============================================================================
-
-CREATE OR REPLACE FUNCTION core.{{ helper.name }}(
-    p_pk_{{ entity.name }} INTEGER
-)
+COMMENT ON FUNCTION {{ entity.schema }}.{{ entity.name | lower }}_pk(TEXT) IS
+  'Trinity Pattern: Resolve entity identifier (UUID, identifier, or pk) to internal INTEGER primary key';
+{%- elif function_type == "id" %}
+-- INTEGER (pk) → UUID
+CREATE OR REPLACE FUNCTION {{ entity.schema }}.{{ entity.name | lower }}_id(p_pk INTEGER)
 RETURNS UUID
-LANGUAGE sql
-STABLE
+LANGUAGE sql STABLE
 AS $$
-    SELECT id
-    FROM {{ entity.schema }}.tb_{{ entity.name }}
-    WHERE pk_{{ entity.name }} = p_pk_{{ entity.name }}
-      AND deleted_at IS NULL;
+    SELECT id FROM {{ entity.schema }}.{{ entity.table_name }}
+    WHERE {{ entity.pk_column }} = p_pk;
 $$;
 
-COMMENT ON FUNCTION core.{{ helper.name }}(INTEGER) IS
-'Trinity Pattern: {{ helper.description }}';
-
-{%- elif helper.name == entity.name + '_name' %}
-
--- ============================================================================
--- Trinity Pattern Helper: {{ entity.name }}_name (INTEGER → TEXT)
--- ============================================================================
--- PURPOSE: Converts {{ entity.name }} INTEGER PK to name (TEXT)
---          Part of Trinity Pattern: INTEGER PK → TEXT values (for comparisons)
---
--- USAGE: Called in UPDATE functions to resolve current FK values for comparison
---        with input values
---
--- EXAMPLES:
---   v_current_name := core.{{ entity.name }}_name(v_curr.fk_{{ entity.name }});
---
---   IF input_data.{{ entity.name }}_name IS DISTINCT FROM v_current_name THEN
---       -- Update the {{ entity.name }}
---   END IF;
---
--- RETURNS: Name (TEXT) or NULL if PK not found or deleted
--- ============================================================================
-
-CREATE OR REPLACE FUNCTION core.{{ helper.name }}(
-    p_pk_{{ entity.name }} INTEGER
-)
-RETURNS TEXT
-LANGUAGE sql
-STABLE
-AS $$
-    SELECT name
-    FROM {{ entity.schema }}.tb_{{ entity.name }}
-    WHERE pk_{{ entity.name }} = p_pk_{{ entity.name }}
-      AND deleted_at IS NULL;
-$$;
-
-COMMENT ON FUNCTION core.{{ helper.name }}(INTEGER) IS
-'Trinity Pattern: {{ helper.description }}';
-
-{%- elif helper.name == entity.name + '_abbreviation' %}
-
--- ============================================================================
--- Trinity Pattern Helper: {{ entity.name }}_abbreviation (INTEGER → TEXT)
--- ============================================================================
--- PURPOSE: Converts {{ entity.name }} INTEGER PK to abbreviation (TEXT)
---          Part of Trinity Pattern: INTEGER PK → TEXT values (for comparisons)
---
--- USAGE: Called in UPDATE functions to resolve current FK values for comparison
---        with input values
---
--- EXAMPLES:
---   v_current_abbrev := core.{{ entity.name }}_abbreviation(v_curr.fk_{{ entity.name }});
---
--- RETURNS: Abbreviation (TEXT) or NULL if PK not found or deleted
--- ============================================================================
-
-CREATE OR REPLACE FUNCTION core.{{ helper.name }}(
-    p_pk_{{ entity.name }} INTEGER
-)
-RETURNS TEXT
-LANGUAGE sql
-STABLE
-AS $$
-    SELECT abbreviation
-    FROM {{ entity.schema }}.tb_{{ entity.name }}
-    WHERE pk_{{ entity.name }} = p_pk_{{ entity.name }}
-      AND deleted_at IS NULL;
-$$;
-
-COMMENT ON FUNCTION core.{{ helper.name }}(INTEGER) IS
-'Trinity Pattern: {{ helper.description }}';
-
+COMMENT ON FUNCTION {{ entity.schema }}.{{ entity.name | lower }}_id(INTEGER) IS
+  'Trinity Pattern: Convert internal INTEGER primary key to external UUID identifier';
 {%- endif %}
-{%- endfor %}
