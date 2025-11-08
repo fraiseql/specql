@@ -40,7 +40,14 @@ class FieldDefinition:
 
         # Rich types
         if self.is_rich_type():
-            return registry.get_postgres_type(self.type)
+            base_type = registry.get_postgres_type(self.type)
+
+            # Handle money type with custom precision
+            if self.type == "money" and self.type_metadata and "precision" in self.type_metadata:
+                precision = self.type_metadata["precision"]
+                return f"NUMERIC(19,{precision})"
+
+            return base_type
 
         # Basic types
         basic_type_map = {

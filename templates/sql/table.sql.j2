@@ -64,9 +64,9 @@ CREATE TABLE {{ entity.schema }}.tb_{{ entity.name | lower }} (
 {%- if field_def.get('unique') %}
     ,CONSTRAINT tb_{{ entity.name | lower }}_{{ field_name }}_key UNIQUE ({{ field_name }})
 {%- endif %}
-{%- if field_def.get('check_constraint') %}
-    ,{{ field_def.check_constraint }}
-{%- endif %}
+{%- endfor %}
+{%- for constraint in entity.constraints %}
+    ,{{ constraint }}
 {%- endfor %}
 );
 

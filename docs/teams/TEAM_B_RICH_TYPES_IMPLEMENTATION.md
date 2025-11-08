@@ -8,16 +8,19 @@
 
 ## 🎯 Objective
 
-Extend the Schema Generator to create PostgreSQL DDL with appropriate storage types, CHECK constraints, and validation for FraiseQL rich types.
+Extend the Schema Generator to create PostgreSQL DDL with appropriate storage types, CHECK constraints, validation, and **descriptive COMMENT statements** for FraiseQL rich types.
 
 **Success Criteria**:
 - ✅ Maps rich types to optimal PostgreSQL types
 - ✅ Generates CHECK constraints for validated types (email, url, phone)
 - ✅ Uses PostgreSQL native types where available (INET, MACADDR, UUID)
+- ✅ **Generates COMMENT ON statements for field descriptions** (NEW!)
 - ✅ Generates indexes appropriate for rich types
 - ✅ Maintains backward compatibility
 - ✅ Generated SQL is valid and efficient
 - ✅ 90%+ test coverage
+
+**NEW in FraiseQL**: PostgreSQL `COMMENT ON` statements automatically become GraphQL descriptions! This means field-level documentation is now database-driven.
 
 ---
 
@@ -486,7 +489,384 @@ uv run pytest tests/unit/schema/ --cov=src/generators/schema/ --cov-report=term-
 
 ---
 
-## 📋 PHASE 2: Index Generation for Rich Types
+## 📋 PHASE 2: PostgreSQL COMMENT Generation (NEW!)
+
+**Duration**: 1-2 hours
+
+### 🎯 Why This Matters
+
+**FraiseQL v1.3.4+** automatically converts PostgreSQL `COMMENT ON` statements to GraphQL descriptions. This means:
+- ✅ Database is the single source of truth for API documentation
+- ✅ Zero configuration needed
+- ✅ GraphQL Playground shows rich field descriptions
+- ✅ No annotation duplication
+
+### 🔴 RED Phase: Write Failing Tests
+
+**Test File**: `tests/unit/schema/test_comment_generation.py`
+
+```python
+import pytest
+from src.generators.schema.schema_generator import SchemaGenerator
+from src.core.ast_models import Entity, FieldDefinition
+
+
+def test_email_field_generates_descriptive_comment():
+    """Test: email type generates descriptive COMMENT"""
+    field = FieldDefinition(name="email", type="email", nullable=False)
+    entity = Entity(name="Contact", schema="crm", fields={"email": field})
+
+    generator = SchemaGenerator()
+    comments = generator.generate_field_comments(entity)
+
+    # Expected: COMMENT ON COLUMN with rich type description
+    assert any("COMMENT ON COLUMN crm.tb_contact.email" in c for c in comments)
+    assert any("email address" in c.lower() or "Email" in c for c in comments)
+
+
+def test_url_field_generates_descriptive_comment():
+    """Test: url type generates descriptive COMMENT"""
+    field = FieldDefinition(name="website", type="url")
+    entity = Entity(name="Contact", schema="crm", fields={"website": field})
+
+    generator = SchemaGenerator()
+    comments = generator.generate_field_comments(entity)
+
+    assert any("COMMENT ON COLUMN crm.tb_contact.website" in c for c in comments)
+    assert any("URL" in c or "website" in c.lower() for c in comments)
+
+
+def test_coordinates_field_generates_descriptive_comment():
+    """Test: coordinates type generates descriptive COMMENT"""
+    field = FieldDefinition(name="location", type="coordinates")
+    entity = Entity(name="Place", fields={"location": field})
+
+    generator = SchemaGenerator()
+    comments = generator.generate_field_comments(entity)
+
+    assert any("COMMENT ON COLUMN" in c for c in comments)
+    assert any("coordinates" in c.lower() or "geographic" in c.lower() for c in comments)
+
+
+def test_money_field_generates_descriptive_comment():
+    """Test: money type generates descriptive COMMENT"""
+    field = FieldDefinition(name="price", type="money")
+    entity = Entity(name="Product", fields={"price": field})
+
+    generator = SchemaGenerator()
+    comments = generator.generate_field_comments(entity)
+
+    assert any("COMMENT ON COLUMN" in c for c in comments)
+    assert any("money" in c.lower() or "monetary" in c.lower() for c in comments)
+
+
+def test_rich_type_comment_includes_validation_info():
+    """Test: Comments include validation information"""
+    field = FieldDefinition(name="email", type="email")
+    entity = Entity(name="Contact", fields={"email": field})
+
+    generator = SchemaGenerator()
+    comments = generator.generate_field_comments(entity)
+
+    # Should mention it's validated
+    assert any("validated" in c.lower() or "format" in c.lower() for c in comments)
+
+
+def test_complete_entity_generates_all_comments():
+    """Test: All fields get COMMENT statements"""
+    entity = Entity(
+        name="Contact",
+        schema="crm",
+        fields={
+            "email": FieldDefinition(name="email", type="email"),
+            "website": FieldDefinition(name="website", type="url"),
+            "phone": FieldDefinition(name="phone", type="phoneNumber"),
+            "first_name": FieldDefinition(name="first_name", type="text"),
+        }
+    )
+
+    generator = SchemaGenerator()
+    comments = generator.generate_field_comments(entity)
+
+    # Should have comment for each field
+    assert len(comments) == 4
+    assert any("email" in c for c in comments)
+    assert any("website" in c for c in comments)
+    assert any("phone" in c for c in comments)
+    assert any("first_name" in c for c in comments)
+```
+
+**Run Tests**:
+```bash
+uv run pytest tests/unit/schema/test_comment_generation.py -v
+# Expected: FAILED (not implemented)
+```
+
+### 🟢 GREEN Phase: Implementation
+
+**File**: `src/generators/schema/comment_generator.py`
+
+```python
+"""
+PostgreSQL COMMENT Generator
+Generates descriptive COMMENT ON statements for FraiseQL autodiscovery
+"""
+
+from typing import List, Dict
+from src.core.ast_models import Entity, FieldDefinition
+from src.core.type_registry import get_type_registry
+
+
+class CommentGenerator:
+    """Generates PostgreSQL COMMENT statements for rich types"""
+
+    def __init__(self):
+        self.type_registry = get_type_registry()
+        self._type_descriptions = self._build_type_descriptions()
+
+    def _build_type_descriptions(self) -> Dict[str, str]:
+        """Build human-readable descriptions for rich types"""
+        return {
+            # String-based
+            "email": "Email address (validated format)",
+            "url": "URL/website address (validated format)",
+            "phone": "Phone number in E.164 format",
+            "phoneNumber": "Phone number in E.164 format",
+            "ipAddress": "IP address (IPv4 or IPv6)",
+            "macAddress": "MAC address (hardware identifier)",
+            "markdown": "Markdown-formatted text content",
+            "html": "HTML content",
+            "slug": "URL-friendly identifier (lowercase with hyphens)",
+            "color": "Color hex code (e.g., #FF5733)",
+
+            # Numeric
+            "money": "Monetary value (precise decimal)",
+            "percentage": "Percentage value (0-100)",
+
+            # Date/Time
+            "date": "Date (YYYY-MM-DD format)",
+            "datetime": "Date and time with timezone",
+            "time": "Time of day",
+            "duration": "Time duration/interval",
+
+            # Geographic
+            "coordinates": "Geographic coordinates (latitude, longitude)",
+            "latitude": "Latitude (-90 to 90 degrees)",
+            "longitude": "Longitude (-180 to 180 degrees)",
+
+            # Media
+            "image": "Image URL or file path",
+            "file": "File URL or file path",
+
+            # Identifiers
+            "uuid": "Universally unique identifier (UUID)",
+
+            # Structured
+            "json": "JSON object data",
+
+            # Basic types
+            "text": "Text string",
+            "integer": "Integer number",
+            "boolean": "True or false value",
+            "jsonb": "JSON object (binary format)",
+        }
+
+    def generate_field_comment(self, field: FieldDefinition, entity: Entity) -> str:
+        """Generate COMMENT ON COLUMN for a field"""
+
+        table_name = f"{entity.schema}.tb_{entity.name.lower()}"
+
+        # Get description based on type
+        description = self._get_field_description(field)
+
+        # Add nullable info if relevant
+        if not field.nullable:
+            description += " (required)"
+
+        return f"COMMENT ON COLUMN {table_name}.{field.name} IS '{description}';"
+
+    def _get_field_description(self, field: FieldDefinition) -> str:
+        """Get human-readable description for field"""
+
+        # Use type description from registry
+        description = self._type_descriptions.get(field.type, "")
+
+        if not description:
+            # Fallback for unknown types
+            description = f"{field.type.capitalize()} value"
+
+        # Add special notes for specific types
+        if field.type == "enum" and field.values:
+            description += f" (options: {', '.join(field.values)})"
+
+        elif field.type == "ref" and field.target_entity:
+            description += f" → {field.target_entity}"
+
+        elif field.type == "money" and field.type_metadata:
+            currency = field.type_metadata.get("currency")
+            if currency:
+                description += f" ({currency})"
+
+        return description
+
+    def generate_all_field_comments(self, entity: Entity) -> List[str]:
+        """Generate COMMENT statements for all fields"""
+        comments = []
+
+        for field_name, field_def in entity.fields.items():
+            comment = self.generate_field_comment(field_def, entity)
+            comments.append(comment)
+
+        return comments
+```
+
+**Update `SchemaGenerator`**:
+
+```python
+from src.generators.schema.comment_generator import CommentGenerator
+
+class SchemaGenerator:
+    """Generates PostgreSQL DDL with rich type support"""
+
+    def __init__(self):
+        self.rich_type_mapper = RichTypeMapper()
+        self.comment_generator = CommentGenerator()  # NEW!
+
+    def generate_complete_ddl(self, entity: Entity) -> str:
+        """Generate complete DDL including table, indexes, and comments"""
+
+        ddl_parts = []
+
+        # 1. CREATE TABLE
+        ddl_parts.append(self.generate_table_ddl(entity))
+
+        # 2. CREATE INDEX statements
+        indexes = self.generate_indexes(entity)
+        ddl_parts.extend(indexes)
+
+        # 3. COMMENT ON statements (NEW!)
+        comments = self.comment_generator.generate_all_field_comments(entity)
+        ddl_parts.extend(comments)
+
+        return "\n\n".join(ddl_parts)
+```
+
+**Example Generated SQL**:
+
+```sql
+-- CREATE TABLE crm.tb_contact (...);
+
+-- Indexes
+CREATE INDEX idx_contact_email ON crm.tb_contact(email);
+
+-- Comments (auto-discovered by FraiseQL!)
+COMMENT ON COLUMN crm.tb_contact.email IS 'Email address (validated format) (required)';
+COMMENT ON COLUMN crm.tb_contact.website IS 'URL/website address (validated format)';
+COMMENT ON COLUMN crm.tb_contact.phone IS 'Phone number in E.164 format';
+COMMENT ON COLUMN crm.tb_contact.location IS 'Geographic coordinates (latitude, longitude)';
+```
+
+**FraiseQL Auto-Generates GraphQL**:
+
+```graphql
+type Contact {
+  """Email address (validated format) (required)"""
+  email: Email!
+
+  """URL/website address (validated format)"""
+  website: Url
+
+  """Phone number in E.164 format"""
+  phone: PhoneNumber
+
+  """Geographic coordinates (latitude, longitude)"""
+  location: Coordinates
+}
+```
+
+### 🔧 REFACTOR Phase
+
+**Improvements**:
+
+1. **Customizable descriptions**:
+
+```python
+def generate_field_comment(
+    self,
+    field: FieldDefinition,
+    entity: Entity,
+    custom_description: Optional[str] = None
+) -> str:
+    """Generate COMMENT with optional custom description"""
+
+    if custom_description:
+        description = custom_description
+    else:
+        description = self._get_field_description(field)
+
+    # ...
+```
+
+2. **Entity-level comments**:
+
+```python
+def generate_table_comment(self, entity: Entity) -> str:
+    """Generate COMMENT ON TABLE"""
+    table_name = f"{entity.schema}.tb_{entity.name.lower()}"
+
+    description = entity.description or f"{entity.name} entity"
+
+    return f"COMMENT ON TABLE {table_name} IS '{description}';"
+```
+
+### ✅ QA Phase
+
+```bash
+# Unit tests
+uv run pytest tests/unit/schema/test_comment_generation.py -v
+
+# Verify comments appear in PostgreSQL
+uv run pytest tests/integration/schema/test_comments_in_postgres.py -v
+
+# Coverage
+uv run pytest tests/unit/schema/ --cov=src/generators/schema/ --cov-report=term-missing
+```
+
+**Integration Test**:
+
+```python
+def test_fraiseql_autodiscovers_comments(db_connection):
+    """Integration: FraiseQL uses PostgreSQL comments as GraphQL descriptions"""
+
+    # Generate and apply DDL
+    entity = Entity(
+        name="Contact",
+        schema="public",
+        fields={
+            "email": FieldDefinition(name="email", type="email", nullable=False)
+        }
+    )
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_complete_ddl(entity)
+
+    cursor = db_connection.cursor()
+    cursor.execute(ddl)
+    db_connection.commit()
+
+    # Run FraiseQL introspection
+    schema = run_fraiseql_introspection()
+
+    # Verify GraphQL type has description from PostgreSQL comment
+    contact_type = schema["types"]["Contact"]
+    email_field = contact_type["fields"]["email"]
+
+    assert email_field["description"] == "Email address (validated format) (required)"
+```
+
+---
+
+## 📋 PHASE 3: Index Generation for Rich Types
 
 **Duration**: 1 hour
 

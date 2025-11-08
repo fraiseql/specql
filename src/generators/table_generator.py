@@ -3,11 +3,12 @@ PostgreSQL Table Generator (Team B)
 Generates DDL for Trinity pattern tables from Entity AST
 """
 
-from typing import Dict
+from typing import Dict, List
 
 from jinja2 import Environment, FileSystemLoader
 
 from src.core.ast_models import Entity
+from src.generators.constraint_generator import ConstraintGenerator
 
 
 class TableGenerator:
@@ -31,6 +32,7 @@ class TableGenerator:
         self.env = Environment(
             loader=FileSystemLoader(templates_dir), trim_blocks=True, lstrip_blocks=True
         )
+        self.constraint_generator = ConstraintGenerator()
 
     def generate_table_ddl(self, entity: Entity) -> str:
         """
@@ -58,6 +60,9 @@ class TableGenerator:
         # Convert fields to template format (dict format expected by template)
         business_fields = {}
         foreign_keys = {}
+        table_constraints = []
+
+        table_name = f"{entity.schema}.tb_{entity.name.lower()}"
 
         for field_name, field_def in entity.fields.items():
             if field_def.type == "ref" and field_def.target_entity:
@@ -75,22 +80,32 @@ class TableGenerator:
             elif field_def.type == "enum" and field_def.values:
                 # Enum field - add CHECK constraint
                 enum_values = ", ".join(f"'{v}'" for v in field_def.values)
+                constraint_name = f"chk_tb_{entity.name.lower()}_{field_name}_enum"
+                table_constraints.append(
+                    f"CONSTRAINT {constraint_name} CHECK ({field_name} IN ({enum_values}))"
+                )
                 business_fields[field_name] = {
                     "name": field_name,
                     "type": "TEXT",
                     "nullable": field_def.nullable,
-                    "check_constraint": f"CHECK ({field_name} IN ({enum_values}))",
                     "description": f"Enum field: {field_name}",
                 }
             else:
-                # Regular field
-                sql_type = self.TYPE_MAPPINGS.get(field_def.type, "TEXT")
-                business_fields[field_name] = {
+                # Regular field (including rich types)
+                sql_type = field_def.get_postgres_type()
+                field_dict = {
                     "name": field_name,
                     "type": sql_type,
                     "nullable": field_def.nullable,
                     "description": f"Business field: {field_name}",
                 }
+
+                # Generate named constraints for rich types
+                constraint = self.constraint_generator.generate_constraint(field_def, table_name)
+                if constraint:
+                    table_constraints.append(constraint)
+
+                business_fields[field_name] = field_dict
 
         # Build context
         context = {
@@ -103,6 +118,7 @@ class TableGenerator:
                 "description": entity.description or f"{entity.name} entity",
                 "fields": business_fields,
                 "foreign_keys": foreign_keys,
+                "constraints": table_constraints,
                 "multi_tenant": is_tenant_specific,
                 "translations": {
                     "enabled": entity.translations.enabled if entity.translations else False,
