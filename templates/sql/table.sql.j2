@@ -102,15 +102,9 @@ COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.tenant_id IS 
 -- COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.fk_organization IS 'Optional business FK to organization unit (uncomment if needed).';
 {%- endif %}
 
--- Business field columns
-{%- for field_name, field_def in entity.fields.items() %}
-COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.{{ field_name }} IS '{{ field_def.description }}';
-{%- endfor %}
+-- Business field columns (comments handled by CommentGenerator)
 
--- Foreign key columns
-{%- for fk_name, fk_def in entity.foreign_keys.items() %}
-COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.{{ fk_name }} IS '{{ fk_def.description }}';
-{%- endfor %}
+-- Foreign key columns (comments handled by CommentGenerator)
 
 -- Audit field columns
 COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.created_at IS 'Timestamp when the record was created.';

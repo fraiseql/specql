@@ -3,12 +3,14 @@ PostgreSQL Table Generator (Team B)
 Generates DDL for Trinity pattern tables from Entity AST
 """
 
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from jinja2 import Environment, FileSystemLoader
 
 from src.core.ast_models import Entity
+from src.generators.comment_generator import CommentGenerator
 from src.generators.constraint_generator import ConstraintGenerator
+from src.generators.index_generator import IndexGenerator
 
 
 class TableGenerator:
@@ -33,6 +35,8 @@ class TableGenerator:
             loader=FileSystemLoader(templates_dir), trim_blocks=True, lstrip_blocks=True
         )
         self.constraint_generator = ConstraintGenerator()
+        self.comment_generator = CommentGenerator()
+        self.index_generator = IndexGenerator()
 
     def generate_table_ddl(self, entity: Entity) -> str:
         """
@@ -51,7 +55,7 @@ class TableGenerator:
         template = self.env.get_template("table.sql.j2")
         return template.render(**context)
 
-    def _prepare_template_context(self, entity: Entity) -> Dict:
+    def _prepare_template_context(self, entity: Entity) -> Dict[str, Any]:
         """Prepare context dictionary for Jinja2 template"""
 
         # Determine multi-tenancy requirements based on schema
@@ -97,7 +101,6 @@ class TableGenerator:
                     "name": field_name,
                     "type": sql_type,
                     "nullable": field_def.nullable,
-                    "description": f"Business field: {field_name}",
                 }
 
                 # Generate named constraints for rich types
@@ -137,8 +140,8 @@ class TableGenerator:
         Tenant-specific schemas: tenant, crm, management, operations
         Common schemas: common, catalog, public
         """
-        TENANT_SCHEMAS = ["tenant", "crm", "management", "operations"]
-        return schema in TENANT_SCHEMAS
+        tenant_schemas = ["tenant", "crm", "management", "operations"]
+        return schema in tenant_schemas
 
     def generate_foreign_keys_ddl(self, entity: Entity) -> str:
         """
@@ -204,3 +207,40 @@ class TableGenerator:
     ON {entity.schema}.tb_{entity_name_lower} USING btree ({field_name});""")
 
         return "\n\n".join(indexes)
+
+    def generate_field_comments(self, entity: Entity) -> List[str]:
+        """Generate COMMENT ON COLUMN statements for all fields"""
+        return self.comment_generator.generate_all_field_comments(entity)
+
+    def generate_indexes_for_rich_types(self, entity: Entity) -> List[str]:
+        """Generate indexes for rich type fields"""
+        return self.index_generator.generate_indexes_for_rich_types(entity)
+
+    def generate_complete_ddl(self, entity: Entity) -> str:
+        """Generate complete DDL including table, indexes, and comments"""
+
+        ddl_parts = []
+
+        # 1. CREATE TABLE
+        ddl_parts.append(self.generate_table_ddl(entity))
+
+        # 2. CREATE INDEX statements (standard indexes)
+        indexes = self.generate_indexes_ddl(entity)
+        if indexes:
+            ddl_parts.append(indexes)
+
+        # 3. CREATE INDEX statements (rich type indexes)
+        rich_type_indexes = self.generate_indexes_for_rich_types(entity)
+        if rich_type_indexes:
+            ddl_parts.append("\n\n".join(rich_type_indexes))
+
+        # 4. COMMENT ON statements
+        comments = self.comment_generator.generate_all_field_comments(entity)
+        if comments:
+            ddl_parts.extend(comments)
+
+        # 5. Table comment
+        table_comment = self.comment_generator.generate_table_comment(entity)
+        ddl_parts.append(table_comment)
+
+        return "\n\n".join(ddl_parts)

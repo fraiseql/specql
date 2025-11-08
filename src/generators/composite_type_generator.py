@@ -3,7 +3,7 @@ Composite Type Generator (Team B)
 Generates PostgreSQL composite types for action inputs
 """
 
-from typing import Dict, List
+from typing import Any, Dict, List
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -113,7 +113,7 @@ class CompositeTypeGenerator:
 
     def _prepare_fields(
         self, fields: Dict[str, FieldDefinition], type_name: str
-    ) -> Dict[str, Dict]:
+    ) -> Dict[str, Dict[str, Any]]:
         """Prepare fields for template rendering"""
         prepared = {}
         for field_name, field_def in fields.items():

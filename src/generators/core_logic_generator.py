@@ -3,7 +3,7 @@ Core Logic Generator (Team C)
 Generates core.* business logic functions
 """
 
-from typing import Dict, List
+from typing import Any, Dict, List
 from jinja2 import Environment, FileSystemLoader
 from src.core.ast_models import Entity, FieldDefinition
 
@@ -90,7 +90,7 @@ class CoreLogicGenerator:
         template = self.env.get_template("core_delete_function.sql.j2")
         return template.render(**context)
 
-    def _prepare_insert_fields(self, entity: Entity) -> Dict:
+    def _prepare_insert_fields(self, entity: Entity) -> Dict[str, List[str]]:
         """Prepare field list for INSERT statement"""
         insert_fields = []
         insert_values = []
@@ -124,7 +124,7 @@ class CoreLogicGenerator:
             "insert_values": insert_values,
         }
 
-    def _prepare_update_fields(self, entity: Entity) -> Dict:
+    def _prepare_update_fields(self, entity: Entity) -> Dict[str, List[str]]:
         """Prepare field list for UPDATE statement"""
         update_assignments = []
 
@@ -145,7 +145,7 @@ class CoreLogicGenerator:
             "assignments": update_assignments,
         }
 
-    def _generate_validations(self, entity: Entity) -> List[Dict]:
+    def _generate_validations(self, entity: Entity) -> List[Dict[str, str]]:
         """Generate validation checks for required fields"""
         validations = []
         for field_name, field_def in entity.fields.items():
@@ -161,7 +161,7 @@ class CoreLogicGenerator:
                 )
         return validations
 
-    def _generate_fk_resolutions(self, entity: Entity) -> List[Dict]:
+    def _generate_fk_resolutions(self, entity: Entity) -> List[Dict[str, Any]]:
         """Generate UUID → INTEGER FK resolutions using Trinity helpers"""
         resolutions = []
         is_tenant_specific = self._is_tenant_specific_schema(entity.schema)
