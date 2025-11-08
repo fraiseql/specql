@@ -2,7 +2,7 @@
 
 import pytest
 from src.generators.core_logic_generator import CoreLogicGenerator
-from src.core.ast_models import Entity, FieldDefinition
+from src.core.ast_models import Entity, FieldDefinition, ActionStep
 
 
 def test_generate_core_create_function():
@@ -130,3 +130,48 @@ def test_core_function_uses_trinity_naming():
     assert "v_contact_pk INTEGER" in sql
     assert "auth_tenant_id UUID" in sql
     assert "auth_user_id UUID" in sql
+
+
+def test_detect_action_pattern():
+    """Test action pattern detection"""
+    generator = CoreLogicGenerator()
+
+    # Test CRUD patterns
+    assert generator.detect_action_pattern("create_contact") == "create"
+    assert generator.detect_action_pattern("update_user") == "update"
+    assert generator.detect_action_pattern("delete_task") == "delete"
+
+    # Test custom patterns
+    assert generator.detect_action_pattern("qualify_lead") == "custom"
+    assert generator.detect_action_pattern("send_notification") == "custom"
+    assert generator.detect_action_pattern("process_payment") == "custom"
+
+
+def test_generate_custom_action_basic():
+    """Generate custom action with basic structure"""
+    # Given: Entity with custom action
+    entity = Entity(
+        name="Contact",
+        schema="crm",
+        fields={"email": FieldDefinition(name="email", type_name="text", nullable=False)},
+    )
+
+    # Mock action (simplified for testing)
+    class MockAction:
+        def __init__(self):
+            self.name = "qualify_lead"
+            self.description = "Qualify a lead contact"
+            self.steps = []  # Empty for now
+
+    action = MockAction()
+
+    # When: Generate custom action
+    generator = CoreLogicGenerator()
+    sql = generator.generate_core_custom_action(entity, action)
+
+    # Then: Custom action pattern
+    assert "CREATE OR REPLACE FUNCTION crm.qualify_lead(" in sql
+    assert "input_data app.type_qualify_lead_input" in sql
+    assert "v_contact_id UUID := gen_random_uuid()" in sql
+    assert "v_contact_pk INTEGER" in sql
+    assert "RETURN app.log_and_return_mutation" in sql

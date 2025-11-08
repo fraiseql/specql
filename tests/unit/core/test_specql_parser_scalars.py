@@ -93,7 +93,7 @@ def test_parse_entity_with_actions():
 
 
 def test_parse_boolean_field():
-    """Test parsing boolean scalar type"""
+    """Test parsing boolean basic type"""
     yaml_content = """
     entity: Task
     fields:
@@ -106,7 +106,8 @@ def test_parse_boolean_field():
     field = entity.fields["completed"]
     from src.core.ast_models import FieldTier
 
-    assert field.tier == FieldTier.SCALAR
+    # Boolean is a BASIC type, not a scalar type
+    assert field.tier == FieldTier.BASIC
     assert field.nullable is False
     assert field.postgres_type == "BOOLEAN"
     assert field.fraiseql_type == "Boolean"

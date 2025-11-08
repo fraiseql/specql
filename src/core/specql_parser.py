@@ -61,15 +61,34 @@ class SpecQLParser:
         if "entity" not in data:
             raise ParseError("Missing 'entity' key")
 
-        # Parse entity metadata
+        # Parse entity metadata - supports both formats:
+        # Lightweight: entity: EntityName
+        # Complex: entity: {name: entity_name, schema: schema_name, description: "..."}
+        if isinstance(data["entity"], dict):
+            # Complex format
+            entity_name = data["entity"]["name"]
+            entity_schema = data["entity"].get("schema", data.get("schema", "public"))
+            entity_description = data["entity"].get("description", data.get("description", ""))
+        else:
+            # Lightweight format
+            entity_name = data["entity"]
+            entity_schema = data.get("schema", "public")
+            entity_description = data.get("description", "")
+
         entity = EntityDefinition(
-            name=data["entity"],
-            schema=data.get("schema", "public"),
-            description=data.get("description", ""),
+            name=entity_name,
+            schema=entity_schema,
+            description=entity_description,
         )
 
-        # Parse fields
-        fields_data = data.get("fields", {})
+        # Parse fields - check both root level and inside entity dict (for complex format)
+        if isinstance(data["entity"], dict) and "fields" in data["entity"]:
+            # Complex format: fields are inside entity dict
+            fields_data = data["entity"]["fields"]
+        else:
+            # Lightweight format: fields at root level
+            fields_data = data.get("fields", {})
+
         for field_name, field_spec in fields_data.items():
             field = self._parse_field(field_name, field_spec)
             entity.fields[field_name] = field

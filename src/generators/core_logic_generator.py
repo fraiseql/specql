@@ -6,6 +6,7 @@ Generates core.* business logic functions
 from typing import Any, Dict, List
 from jinja2 import Environment, FileSystemLoader
 from src.core.ast_models import Entity, FieldDefinition, FieldTier
+from src.generators.actions.action_orchestrator import ActionOrchestrator
 
 
 class CoreLogicGenerator:
@@ -150,13 +151,15 @@ class CoreLogicGenerator:
         validations = []
         for field_name, field_def in entity.fields.items():
             if not field_def.nullable:
-                # Generate validation for required field
+                # Generate validation for required field using structured error codes
+                error_code = "validation:required_field"
+                error_message = f"{field_name.capitalize()} is required"
                 validations.append(
                     {
                         "field": field_name,
                         "check": f"input_data.{field_name} IS NULL",
-                        "error": f"failed:missing_{field_name}",
-                        "message": f"{field_name.capitalize()} is required",
+                        "error": error_code,
+                        "message": error_message,
                     }
                 )
         return validations
@@ -197,3 +200,67 @@ class CoreLogicGenerator:
         """
         TENANT_SCHEMAS = ["tenant", "crm", "management", "operations"]
         return schema in TENANT_SCHEMAS
+
+    def detect_action_pattern(self, action_name: str) -> str:
+        """
+        Detect action pattern from name or explicit type
+
+        Returns: 'create', 'update', 'delete', 'custom'
+        """
+        name_lower = action_name.lower()
+        if name_lower.startswith("create"):
+            return "create"
+        elif name_lower.startswith("update"):
+            return "update"
+        elif name_lower.startswith("delete"):
+            return "delete"
+        else:
+            return "custom"
+
+    def generate_core_custom_action(self, entity: Entity, action) -> str:
+        """
+        Generate core function for custom business action
+
+        For now, generates a basic template. Full step compilation to be implemented.
+        """
+        # Extract variable declarations
+        declarations = self._extract_declarations(action, entity)
+
+        # For now, create a simple placeholder for compiled steps
+        # TODO: Implement full step compilation using step compilers
+        compiled_steps = [
+            "-- TODO: Implement step compilation for custom actions",
+            f"-- Action: {action.name}",
+            f"-- Steps: {[step.type for step in action.steps]}",
+        ]
+
+        context = {
+            "entity": {
+                "name": entity.name,
+                "schema": entity.schema,
+                "table_name": f"tb_{entity.name.lower()}",
+            },
+            "action": action,
+            "composite_type": f"app.type_{action.name}_input",
+            "declarations": declarations,
+            "compiled_steps": compiled_steps,
+        }
+
+        template = self.env.get_template("core_custom_action.sql.j2")
+        return template.render(**context)
+
+    def _extract_declarations(self, action, entity) -> List[str]:
+        """
+        Extract variable declarations needed for the action
+        """
+        declarations = [
+            f"v_{entity.name.lower()}_id UUID := gen_random_uuid()",
+            f"v_{entity.name.lower()}_pk INTEGER",
+        ]
+
+        # Add declarations for FK resolutions
+        for field_name, field_def in entity.fields.items():
+            if field_def.tier == FieldTier.REFERENCE:
+                declarations.append(f"v_fk_{field_name} INTEGER")
+
+        return declarations

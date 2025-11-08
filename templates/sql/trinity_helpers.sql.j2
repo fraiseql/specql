@@ -8,6 +8,7 @@
 -- ============================================================================
 
 {%- if function_type == "pk" %}
+
 -- UUID/identifier/text → INTEGER (pk)
 {%- if is_tenant_specific %}
 CREATE OR REPLACE FUNCTION {{ entity.schema }}.{{ entity.name | lower }}_pk(p_identifier TEXT, p_tenant_id UUID)
@@ -20,7 +21,6 @@ AS $$
     SELECT {{ entity.pk_column }}
     FROM {{ entity.schema }}.{{ entity.table_name }}
     WHERE (id::TEXT = p_identifier
-        OR identifier = p_identifier
         OR {{ entity.pk_column }}::TEXT = p_identifier)
 {%- if is_tenant_specific %}
       AND tenant_id = p_tenant_id
@@ -28,9 +28,10 @@ AS $$
     LIMIT 1;
 $$;
 
-COMMENT ON FUNCTION {{ entity.schema }}.{{ entity.name | lower }}_pk(TEXT) IS
+COMMENT ON FUNCTION {{ entity.schema }}.{{ entity.name | lower }}_pk(TEXT, UUID) IS
   'Trinity Pattern: Resolve entity identifier (UUID, identifier, or pk) to internal INTEGER primary key';
 {%- elif function_type == "id" %}
+
 -- INTEGER (pk) → UUID
 CREATE OR REPLACE FUNCTION {{ entity.schema }}.{{ entity.name | lower }}_id(p_pk INTEGER)
 RETURNS UUID

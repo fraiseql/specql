@@ -174,5 +174,7 @@ def test_multiple_entities_integration():
     assert "projects.tb_task" in task_sql
 
     # Verify functions
-    assert "crm.update_contact" in contact_sql
-    assert "projects.update_task" in task_sql
+    assert "crm.create_contact" in contact_sql
+    assert "crm.qualify_lead" in contact_sql
+    assert "projects.assign_task" in task_sql
+    assert "projects.complete_task" in task_sql

@@ -39,14 +39,18 @@ class SchemaOrchestrator:
         if app_foundation:
             parts.append("-- App Schema Foundation\n" + app_foundation)
 
-        # 2. Common types (mutation_result, etc.) - now handled by app foundation
+        # 2. Create schema if needed
+        schema_creation = f"CREATE SCHEMA IF NOT EXISTS {entity.schema};"
+        parts.append(f"-- Create schema\n{schema_creation}")
+
+        # 3. Common types (mutation_result, etc.) - now handled by app foundation
         # Note: generate_common_types() is still called for backward compatibility
         # but app foundation takes precedence
         common_types = self.type_gen.generate_common_types()
         if common_types and not app_foundation:
             parts.append("-- Common Types\n" + common_types)
 
-        # 3. Entity table (Trinity pattern)
+        # 4. Entity table (Trinity pattern)
         table_sql = self.table_gen.generate_table_ddl(entity)
         parts.append("-- Entity Table\n" + table_sql)
 
@@ -69,13 +73,17 @@ class SchemaOrchestrator:
         # 7. Core logic functions
         core_functions = []
         if entity.actions:
-            # Generate core functions for each action
-            # TODO: For now, generate a generic action function for each action
-            # This will be refined to generate specific function types based on action analysis
+            # Generate core functions for each action based on detected pattern
             for action in entity.actions:
-                # For now, generate update-style functions for all actions
-                # This is a temporary implementation until action analysis is complete
-                core_functions.append(self.core_gen.generate_core_update_function(entity))
+                action_pattern = self.core_gen.detect_action_pattern(action.name)
+                if action_pattern == "create":
+                    core_functions.append(self.core_gen.generate_core_create_function(entity))
+                elif action_pattern == "update":
+                    core_functions.append(self.core_gen.generate_core_update_function(entity))
+                elif action_pattern == "delete":
+                    core_functions.append(self.core_gen.generate_core_delete_function(entity))
+                else:  # custom
+                    core_functions.append(self.core_gen.generate_core_custom_action(entity, action))
 
         if core_functions:
             parts.append("-- Core Logic Functions\n" + "\n\n".join(core_functions))

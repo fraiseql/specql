@@ -47,9 +47,9 @@ BEGIN
                 '{{ entity.name | lower }}',
                 '00000000-0000-0000-0000-000000000000'::UUID,
                 'NOOP',
-                'failed:{{ resolution.field }}_not_found',
+                 'validation:reference_not_found',
                 ARRAY['{{ resolution.input_field }}']::TEXT[],
-                '{{ resolution.target_entity }} not found',
+                 'Referenced {{ resolution.target_entity | lower }} not found',
                 NULL, NULL,
                 jsonb_build_object('{{ resolution.input_field }}', input_data.{{ resolution.input_field }})
             );

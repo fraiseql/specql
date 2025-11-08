@@ -21,12 +21,12 @@ class TestCompositeTypeGenerator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type="text", nullable=False),
+                "email": FieldDefinition(name="email", type_name="text", nullable=False),
                 "company": FieldDefinition(
-                    name="company", type="ref", target_entity="Company", nullable=True
+                    name="company", type_name="ref", reference_entity="Company", nullable=True
                 ),
                 "status": FieldDefinition(
-                    name="status", type="enum", values=["lead", "qualified"], nullable=False
+                    name="status", type_name="enum", values=["lead", "qualified"], nullable=False
                 ),
             },
             actions=[Action(name="create_contact", steps=[])],
@@ -51,12 +51,12 @@ class TestCompositeTypeGenerator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type="text", nullable=False),
+                "email": FieldDefinition(name="email", type_name="text", nullable=False),
                 "company": FieldDefinition(
-                    name="company", type="ref", target_entity="Company", nullable=True
+                    name="company", type_name="ref", reference_entity="Company", nullable=True
                 ),
                 "status": FieldDefinition(
-                    name="status", type="enum", values=["lead", "qualified"], nullable=False
+                    name="status", type_name="enum", values=["lead", "qualified"], nullable=False
                 ),
             },
             actions=[Action(name="create_contact", steps=[])],
@@ -80,7 +80,7 @@ class TestCompositeTypeGenerator:
         entity = Entity(
             name="Contact",
             schema="crm",
-            fields={"tags": FieldDefinition(name="tags", type="list", item_type="text")},
+            fields={"tags": FieldDefinition(name="tags", type_name="list", item_type="text")},
             actions=[Action(name="create_contact", steps=[])],
         )
 
@@ -193,12 +193,12 @@ class TestSchemaOrchestrator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type="text", nullable=False),
+                "email": FieldDefinition(name="email", type_name="text", nullable=False),
                 "company": FieldDefinition(
-                    name="company", type="ref", target_entity="Company", nullable=True
+                    name="company", type_name="ref", reference_entity="Company", nullable=True
                 ),
                 "status": FieldDefinition(
-                    name="status", type="enum", values=["lead", "qualified"], nullable=False
+                    name="status", type_name="enum", values=["lead", "qualified"], nullable=False
                 ),
             },
             actions=[Action(name="create_contact", steps=[])],
@@ -220,7 +220,7 @@ class TestSchemaOrchestrator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type="text", nullable=False),
+                "email": FieldDefinition(name="email", type_name="text", nullable=False),
             },
             actions=[Action(name="create_contact", steps=[])],
         )
@@ -240,16 +240,18 @@ class TestSchemaOrchestrator:
             name="Product",
             schema="catalog",
             fields={
-                "name": FieldDefinition(name="name", type="text", nullable=False),
-                "price": FieldDefinition(name="price", type="decimal", nullable=False),
-                "in_stock": FieldDefinition(name="in_stock", type="boolean", nullable=False),
+                "name": FieldDefinition(name="name", type_name="text", nullable=False),
+                "price": FieldDefinition(name="price", type_name="decimal", nullable=False),
+                "in_stock": FieldDefinition(name="in_stock", type_name="boolean", nullable=False),
                 "category": FieldDefinition(
-                    name="category", type="ref", target_entity="Category", nullable=True
+                    name="category", type_name="ref", reference_entity="Category", nullable=True
                 ),
-                "tags": FieldDefinition(name="tags", type="list", item_type="text", nullable=True),
+                "tags": FieldDefinition(
+                    name="tags", type_name="list", item_type="text", nullable=True
+                ),
                 "status": FieldDefinition(
                     name="status",
-                    type="enum",
+                    type_name="enum",
                     values=["active", "inactive", "discontinued"],
                     nullable=False,
                 ),
@@ -278,11 +280,15 @@ class TestSchemaOrchestrator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type="text", nullable=False),
-                "created_at": FieldDefinition(name="created_at", type="timestamp", nullable=False),
-                "created_by": FieldDefinition(name="created_by", type="uuid", nullable=True),
-                "updated_at": FieldDefinition(name="updated_at", type="timestamp", nullable=False),
-                "updated_by": FieldDefinition(name="updated_by", type="uuid", nullable=True),
+                "email": FieldDefinition(name="email", type_name="text", nullable=False),
+                "created_at": FieldDefinition(
+                    name="created_at", type_name="timestamp", nullable=False
+                ),
+                "created_by": FieldDefinition(name="created_by", type_name="uuid", nullable=True),
+                "updated_at": FieldDefinition(
+                    name="updated_at", type_name="timestamp", nullable=False
+                ),
+                "updated_by": FieldDefinition(name="updated_by", type_name="uuid", nullable=True),
             },
             actions=[Action(name="update_contact", steps=[])],
         )
@@ -304,7 +310,7 @@ class TestSchemaOrchestrator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type="text", nullable=False),
+                "email": FieldDefinition(name="email", type_name="text", nullable=False),
             },
             actions=[Action(name="custom_action", steps=[])],
         )
@@ -336,7 +342,7 @@ class TestSchemaOrchestrator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type="text", nullable=False),
+                "email": FieldDefinition(name="email", type_name="text", nullable=False),
             },
             actions=[
                 Action(name="create_contact", steps=[]),

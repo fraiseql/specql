@@ -73,7 +73,7 @@ class TableGenerator:
                 # Foreign key field - add to FK dict
                 fk_name = f"fk_{field_name}"
                 target_entity_lower = field_def.reference_entity.lower()
-                references = f"{entity.schema}.tb_{target_entity_lower}(pk_{target_entity_lower})"
+                references = f"{entity.schema}.tb_{target_entity_lower}"
                 foreign_keys[fk_name] = {
                     "name": fk_name,
                     "references": references,
@@ -125,7 +125,11 @@ class TableGenerator:
                 "multi_tenant": is_tenant_specific,
                 "translations": {
                     "enabled": entity.translations.enabled if entity.translations else False,
-                    "table_name": entity.translations.table_name if entity.translations else None,
+                    "table_name": (
+                        entity.translations.table_name
+                        if entity.translations and entity.translations.table_name
+                        else f"tl_{entity.name.lower()}"  # Default to tl_ prefix
+                    ),
                     "fields": entity.translations.fields if entity.translations else [],
                 },
             }

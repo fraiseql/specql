@@ -11,6 +11,7 @@ This package contains compilers for individual action step types:
 
 from .call_compiler import CallStepCompiler
 from .delete_compiler import DeleteStepCompiler
+from .foreach_compiler import ForEachStepCompiler
 from .if_compiler import IfStepCompiler
 from .insert_compiler import InsertStepCompiler
 from .notify_compiler import NotifyStepCompiler
@@ -23,6 +24,7 @@ __all__ = [
     "InsertStepCompiler",
     "DeleteStepCompiler",
     "IfStepCompiler",
+    "ForEachStepCompiler",
     "CallStepCompiler",
     "NotifyStepCompiler",
 ]

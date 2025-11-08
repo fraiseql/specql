@@ -58,6 +58,7 @@ class ExpressionCompiler:
         "SUBSTRING",
         "POSITION",
         "CONCAT",
+        "EXISTS",
     }
 
     # SQL injection patterns to block
@@ -118,65 +119,134 @@ class ExpressionCompiler:
 
     def _parse_expression(self, expression: str) -> dict:
         """
-        Parse expression into AST-like structure
+        Parse expression into AST-like structure with support for advanced expressions
 
-        This is a simplified parser for basic expressions.
-        For complex expressions, consider using a proper SQL parser.
+        Supports:
+        - Nested function calls: UPPER(TRIM(email))
+        - Complex expressions: (a AND b) OR (c AND d)
+        - Subqueries: field IN (SELECT ...)
         """
         # Remove extra whitespace
         expression = expression.strip()
 
-        # Handle parentheses
+        # Handle parentheses for grouping FIRST (before binary operations)
         if expression.startswith("(") and expression.endswith(")"):
-            # Recursively parse inner expression
-            inner = self._parse_expression(expression[1:-1])
-            return {"type": "group", "inner": inner}
+            # Check if these are matching outer parentheses
+            # We need to verify that the opening '(' matches the closing ')'
+            # by ensuring the inner expression is balanced
+            paren_depth = 0
+            in_string = False
+            string_char = None
+            matches_at_end = True
 
-        # Handle function calls
-        func_match = re.match(r"^(\w+)\s*\((.*)\)$", expression)
-        if func_match:
-            func_name = func_match.group(1).upper()
-            args_str = func_match.group(2).strip()
+            for i, char in enumerate(expression[1:-1], start=1):
+                if in_string:
+                    if char == string_char:
+                        in_string = False
+                        string_char = None
+                elif char in ("'", '"'):
+                    in_string = True
+                    string_char = char
+                elif char == "(":
+                    paren_depth += 1
+                elif char == ")":
+                    paren_depth -= 1
+                    if paren_depth < 0:
+                        # The opening '(' and closing ')' don't match
+                        # Example: "(status = 'lead') AND (score > 50)"
+                        # The '(' belongs to the first group, not the outer expression
+                        matches_at_end = False
+                        break
 
-            if func_name in self.SAFE_FUNCTIONS:
-                args = self._parse_function_args(args_str)
-                return {"type": "function", "name": func_name, "args": args}
-            else:
-                raise SecurityError(f"Function '{func_name}' not allowed")
+            # Only treat as grouping if outer parens actually match
+            if matches_at_end and paren_depth == 0:
+                inner_expr = expression[1:-1].strip()
 
-        # Handle binary operations
-        for op in [
-            "AND",
-            "OR",
-            "NOT",
-            "=",
-            "!=",
-            "<",
-            ">",
-            "<=",
-            ">=",
-            "LIKE",
-            "ILIKE",
-            "IN",
-            "IS",
-        ]:
-            if f" {op} " in expression.upper():
-                parts = re.split(rf"\s{re.escape(op)}\s", expression, flags=re.IGNORECASE)
-                if len(parts) == 2:
-                    return {
-                        "type": "binary",
-                        "operator": op.upper(),
-                        "left": self._parse_expression(parts[0]),
-                        "right": self._parse_expression(parts[1]),
-                    }
+                # Handle empty parentheses
+                if not inner_expr:
+                    return {"type": "literal", "value": "()"}
 
-        # Handle unary operations
+                # Check if inner expression starts with SELECT (subquery)
+                if inner_expr.upper().startswith("SELECT"):
+                    return {"type": "subquery", "query": expression}
+
+                # Check if this looks like a function call
+                paren_pos = inner_expr.find("(")
+                if paren_pos > 0 and inner_expr.endswith(")"):
+                    potential_func = inner_expr[:paren_pos].strip()
+                    if potential_func.upper() in self.SAFE_FUNCTIONS:
+                        # This is a function call inside parentheses
+                        func_name = potential_func.upper()
+                        args_str = inner_expr[paren_pos + 1 : -1].strip()
+                        args = self._parse_function_args(args_str)
+                        return {"type": "function", "name": func_name, "args": args}
+
+                # Just parentheses for grouping
+                inner = self._parse_expression(inner_expr)
+                return {"type": "group", "inner": inner}
+
+        # Handle function calls (without outer parentheses)
+        # Use proper parentheses matching instead of greedy regex
+        func_start_match = re.match(r"^(\w+)\s*\(", expression)
+        if func_start_match:
+            func_name = func_start_match.group(1).upper()
+            # Find the matching closing parenthesis
+            start_pos = func_start_match.end() - 1  # Position of opening '('
+            closing_pos = self._find_matching_paren(expression, start_pos)
+
+            if closing_pos == len(expression) - 1:
+                # This is a complete function call
+                args_str = expression[start_pos + 1 : closing_pos].strip()
+
+                if func_name in self.SAFE_FUNCTIONS:
+                    args = self._parse_function_args(args_str)
+                    return {"type": "function", "name": func_name, "args": args}
+                elif func_name == "SELECT":
+                    # Subquery
+                    return {"type": "subquery", "query": expression}
+                else:
+                    raise SecurityError(f"Function '{func_name}' not allowed")
+
+        # Handle binary operations with proper precedence
+        # Process operators in order of precedence (lowest to highest)
+        operators_by_precedence = [
+            ("OR",),  # Lowest precedence
+            ("AND",),
+            ("=", "!=", "<", ">", "<=", ">=", "LIKE", "ILIKE", "IN", "IS", "IS NOT"),
+        ]
+
+        for op_group in operators_by_precedence:
+            for op in op_group:
+                # Find operator with proper word boundaries, but respect parentheses
+                pattern = rf"\s{re.escape(op)}\s"
+                matches = list(re.finditer(pattern, expression, re.IGNORECASE))
+
+                # Find the rightmost operator at the top level (not inside parentheses)
+                for match in reversed(matches):
+                    pos = match.start()
+                    # Check if this operator is at the top level (not inside parentheses)
+                    if self._is_top_level_operator(expression, pos, len(match.group())):
+                        left_part = expression[:pos].strip()
+                        right_part = expression[pos + len(match.group()) :].strip()
+
+                        return {
+                            "type": "binary",
+                            "operator": op.upper(),
+                            "left": self._parse_expression(left_part),
+                            "right": self._parse_expression(right_part),
+                        }
+
+        # Handle unary NOT
         if expression.upper().startswith("NOT "):
             return {
                 "type": "unary",
                 "operator": "NOT",
                 "operand": self._parse_expression(expression[4:]),
             }
+
+        # Check for subqueries (SELECT statements)
+        if expression.upper().startswith("SELECT"):
+            return {"type": "subquery", "query": f"({expression})"}
 
         # Handle literals and identifiers
         if self._is_string_literal(expression):
@@ -190,16 +260,143 @@ class ExpressionCompiler:
             return {"type": "identifier", "name": expression}
 
     def _parse_function_args(self, args_str: str) -> List[dict]:
-        """Parse function arguments"""
+        """Parse function arguments with support for nested functions and subqueries"""
         if not args_str:
             return []
 
-        # Simple comma splitting (doesn't handle nested functions well)
+        # Special handling for EXISTS - it takes a single subquery argument
+        if args_str.strip().startswith("(") and args_str.strip().endswith(")"):
+            inner = args_str.strip()[1:-1].strip()
+            if inner.upper().startswith("SELECT"):
+                return [{"type": "subquery", "query": f"({inner})"}]
+
         args = []
-        for arg in args_str.split(","):
-            args.append(self._parse_expression(arg.strip()))
+        current_arg = ""
+        paren_depth = 0
+        in_string = False
+        string_char = None
+
+        i = 0
+        while i < len(args_str):
+            char = args_str[i]
+
+            if in_string:
+                if char == string_char:
+                    in_string = False
+                    string_char = None
+                current_arg += char
+            elif char in ("'", '"'):
+                in_string = True
+                string_char = char
+                current_arg += char
+            elif char == "(":
+                paren_depth += 1
+                current_arg += char
+            elif char == ")":
+                paren_depth -= 1
+                current_arg += char
+            elif char == "," and paren_depth == 0:
+                # End of argument
+                if current_arg.strip():
+                    args.append(self._parse_expression(current_arg.strip()))
+                current_arg = ""
+            else:
+                current_arg += char
+
+            i += 1
+
+        # Add the last argument
+        if current_arg.strip():
+            args.append(self._parse_expression(current_arg.strip()))
 
         return args
+
+    def _find_matching_paren(self, expression: str, start_pos: int) -> int:
+        """
+        Find the matching closing parenthesis for the opening paren at start_pos
+
+        Args:
+            expression: The expression string
+            start_pos: Position of the opening parenthesis
+
+        Returns:
+            Position of the matching closing parenthesis, or -1 if not found
+        """
+        if start_pos >= len(expression) or expression[start_pos] != "(":
+            return -1
+
+        depth = 0
+        in_string = False
+        string_char = None
+
+        for i in range(start_pos, len(expression)):
+            char = expression[i]
+
+            if in_string:
+                if char == string_char:
+                    in_string = False
+                    string_char = None
+            elif char in ("'", '"'):
+                in_string = True
+                string_char = char
+            elif char == "(":
+                depth += 1
+            elif char == ")":
+                depth -= 1
+                if depth == 0:
+                    return i
+
+        return -1  # No matching paren found
+
+    def _is_top_level_operator(self, expression: str, op_start: int, op_length: int) -> bool:
+        """Check if operator at given position is at the top level (not inside parentheses or strings)"""
+        paren_depth = 0
+        in_string = False
+        string_char = None
+
+        # Check parentheses and string literal balance up to the start of the operator
+        for i in range(op_start):
+            char = expression[i]
+
+            if in_string:
+                if char == string_char:
+                    in_string = False
+                    string_char = None
+            elif char in ("'", '"'):
+                in_string = True
+                string_char = char
+            elif char == "(":
+                paren_depth += 1
+            elif char == ")":
+                paren_depth -= 1
+                if paren_depth < 0:
+                    return False  # Unbalanced parentheses
+
+        # Operator must be at top level (paren_depth == 0) AND not inside a string
+        return paren_depth == 0 and not in_string
+
+    def _are_parentheses_balanced(self, expr: str) -> bool:
+        """Check if parentheses are balanced in the expression"""
+        paren_depth = 0
+        in_string = False
+        string_char = None
+
+        for char in expr:
+            if in_string:
+                if char == string_char:
+                    in_string = False
+                    string_char = None
+            elif char in ("'", '"'):
+                in_string = True
+                string_char = char
+            elif char == "(":
+                paren_depth += 1
+            elif char == ")":
+                paren_depth -= 1
+                if paren_depth < 0:
+                    return False
+
+        return paren_depth == 0
 
     def _is_string_literal(self, expr: str) -> bool:
         """Check if expression is a string literal"""
@@ -243,6 +440,14 @@ class ExpressionCompiler:
             for arg in ast["args"]:
                 self._validate_safety(arg, entity)
 
+        elif ast["type"] == "subquery":
+            # Basic subquery validation - only allow SELECT
+            query = ast["query"].strip().upper()
+            if not (query.startswith("(") and "SELECT" in query):
+                raise SecurityError("Subqueries must contain SELECT statements")
+            # Note: We skip detailed field validation for subqueries since they
+            # can reference columns from their own tables, not just entity fields
+
         elif ast["type"] == "identifier":
             # Check if identifier is a valid field name
             field_name = ast["name"]
@@ -279,6 +484,10 @@ class ExpressionCompiler:
         elif ast["type"] == "function":
             args = [self._ast_to_sql(arg, entity) for arg in ast["args"]]
             return f"{ast['name']}({', '.join(args)})"
+
+        elif ast["type"] == "subquery":
+            # Return the subquery as-is (already validated)
+            return ast["query"]
 
         elif ast["type"] == "identifier":
             # Convert field names to variable names

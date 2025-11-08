@@ -20,12 +20,15 @@ def mock_contact_entity() -> Entity:
         description="CRM contact entity",
         organization=Organization(table_code="CON", domain_name="Contacts"),
         fields={
-            "email": FieldDefinition(name="email", type="text", nullable=False),
+            "email": FieldDefinition(name="email", type_name="text", nullable=False),
             "status": FieldDefinition(
-                name="status", type="enum", values=["lead", "qualified", "customer"], nullable=False
+                name="status",
+                type_name="enum",
+                values=["lead", "qualified", "customer"],
+                nullable=False,
             ),
             "company": FieldDefinition(
-                name="company", type="ref", target_entity="Company", nullable=True
+                name="company", type_name="ref", reference_entity="Company", nullable=True
             ),
         },
         actions=[
@@ -53,8 +56,8 @@ def mock_company_entity() -> Entity:
         description="CRM company entity",
         organization=Organization(table_code="CMP", domain_name="Companies"),
         fields={
-            "name": FieldDefinition(name="name", type="text", nullable=False),
-            "industry": FieldDefinition(name="industry", type="text", nullable=True),
+            "name": FieldDefinition(name="name", type_name="text", nullable=False),
+            "industry": FieldDefinition(name="industry", type_name="text", nullable=True),
         },
     )
 
@@ -66,8 +69,8 @@ def mock_simple_entity() -> Entity:
         schema="inventory",
         description="Simple product entity",
         fields={
-            "name": FieldDefinition(name="name", type="text", nullable=False),
-            "price": FieldDefinition(name="price", type="integer", nullable=False),
+            "name": FieldDefinition(name="name", type_name="text", nullable=False),
+            "price": FieldDefinition(name="price", type_name="integer", nullable=False),
         },
         operations=OperationConfig(create=True, update=True, delete="soft"),
     )

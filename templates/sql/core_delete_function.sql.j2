@@ -29,9 +29,9 @@ BEGIN
             '{{ entity.name | lower }}',
             input_entity_id,
             'NOOP',
-            'failed:entity_not_found',
+             'validation:reference_not_found',
             ARRAY['entity_id']::TEXT[],
-            '{{ entity.name }} not found or already deleted',
+             'Referenced {{ entity.name | lower }} not found',
             NULL, NULL,
             jsonb_build_object('entity_id', input_entity_id)
         );

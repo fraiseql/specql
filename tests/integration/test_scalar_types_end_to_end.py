@@ -13,7 +13,7 @@ from src.core.specql_parser import SpecQLParser
 
 
 def test_all_23_scalar_types_parseable():
-    """Test that all 23 scalar types can be parsed"""
+    """Test that all 22 rich scalar types + boolean can be parsed"""
     yaml_content = """
     entity: AllScalarTypes
     schema: test
@@ -57,7 +57,7 @@ def test_all_23_scalar_types_parseable():
       # Structured
       metadata: json
 
-      # Boolean
+      # Basic type (not a rich scalar)
       is_active: boolean!
     """
 
@@ -66,9 +66,10 @@ def test_all_23_scalar_types_parseable():
 
     assert len(entity.fields) == 23
 
-    # Verify each field has correct metadata
+    # Verify each field has correct metadata (boolean is basic, not scalar)
     for field_name, field in entity.fields.items():
-        assert field.is_rich_scalar()
+        if field_name != "is_active":  # boolean is a basic type
+            assert field.is_rich_scalar()
         assert field.postgres_type is not None
         assert field.fraiseql_type is not None
 
@@ -189,12 +190,13 @@ def test_parser_handles_mixed_field_types():
     # Basic types should be BASIC tier
     assert entity.fields["basic_text"].tier.name == "BASIC"
     assert entity.fields["basic_int"].tier.name == "BASIC"
+    # Boolean is also a BASIC type, not a rich scalar
+    assert entity.fields["rich_bool"].tier.name == "BASIC"
 
     # Rich types should be SCALAR tier
     assert entity.fields["rich_email"].tier.name == "SCALAR"
     assert entity.fields["rich_money"].tier.name == "SCALAR"
     assert entity.fields["rich_date"].tier.name == "SCALAR"
-    assert entity.fields["rich_bool"].tier.name == "SCALAR"
     assert entity.fields["coords"].tier.name == "SCALAR"
     assert entity.fields["lat"].tier.name == "SCALAR"
 

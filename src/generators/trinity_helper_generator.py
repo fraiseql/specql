@@ -14,7 +14,7 @@ class TrinityHelperGenerator:
         """Initialize with Jinja2 templates"""
         self.templates_dir = templates_dir
         self.env = Environment(
-            loader=FileSystemLoader(templates_dir), trim_blocks=True, lstrip_blocks=True
+            loader=FileSystemLoader(templates_dir), trim_blocks=False, lstrip_blocks=False
         )
 
     def generate_entity_pk_function(self, entity: Entity) -> str:

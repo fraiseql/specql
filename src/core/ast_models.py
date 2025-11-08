@@ -175,6 +175,15 @@ class FieldDefinition:
 
 
 @dataclass
+class TranslationConfig:
+    """Configuration for i18n translation tables"""
+
+    enabled: bool = False
+    table_name: Optional[str] = None  # e.g., "tl_manufacturer"
+    fields: List[str] = field(default_factory=list)  # Fields to translate
+
+
+@dataclass
 class EntityDefinition:
     """Represents an entity in SpecQL"""
 
@@ -199,6 +208,9 @@ class EntityDefinition:
 
     # Metadata
     is_catalog_table: bool = False  # True for Country, Industry, etc.
+
+    # i18n translations
+    translations: Optional[TranslationConfig] = None
 
 
 @dataclass
@@ -240,6 +252,15 @@ class ActionStep:
     function_name: Optional[str] = None
     arguments: Optional[Dict[str, Any]] = None
     store_result: Optional[str] = None
+
+    # For foreach steps
+    foreach_expr: Optional[str] = None
+    iterator_var: Optional[str] = None
+    collection: Optional[str] = None
+
+    # For notify steps
+    recipient: Optional[str] = None
+    channel: Optional[str] = None
 
 
 @dataclass

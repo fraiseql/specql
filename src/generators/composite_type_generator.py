@@ -83,12 +83,14 @@ class CompositeTypeGenerator:
         if action.name.startswith("create"):
             base_fields = entity.fields
         elif action.name.startswith("update"):
-            # Exclude audit fields
+            # Exclude audit fields but include id for record identification
             base_fields = {
                 k: v
                 for k, v in entity.fields.items()
                 if k not in ["created_at", "created_by", "updated_at", "updated_by"]
             }
+            # Add id field for update operations
+            base_fields["id"] = FieldDefinition(name="id", type_name="uuid", nullable=False)
         elif action.name.startswith("delete"):
             # Delete actions typically don't need input types (just ID)
             return {}

@@ -92,15 +92,18 @@ def test_complete_entity_with_all_field_types():
     # Test Tier 3: Reference types
     assert entity.fields["ceo"].tier.value == "reference"
     assert entity.fields["ceo"].nullable is False
-    assert entity.fields["ceo"].postgres_type == "UUID"
+    # Trinity Pattern: FK columns are INTEGER (reference pk_*), not UUID
+    assert entity.fields["ceo"].postgres_type == "INTEGER"
     assert entity.fields["ceo"].fraiseql_type == "ID"
     assert entity.fields["ceo"].reference_entity == "Person"
 
     assert entity.fields["parent_company"].tier.value == "reference"
     assert entity.fields["parent_company"].reference_entity == "Company"
+    assert entity.fields["parent_company"].postgres_type == "INTEGER"
 
     assert entity.fields["industry"].tier.value == "reference"
     assert entity.fields["industry"].reference_entity == "Industry"
+    assert entity.fields["industry"].postgres_type == "INTEGER"
 
 
 def test_composite_type_field_validation():
@@ -187,7 +190,8 @@ def test_polymorphic_references():
     for field_name in ["actor", "subject", "target"]:
         field = entity.fields[field_name]
         assert field.is_reference()
-        assert field.postgres_type == "UUID"
+        # Trinity Pattern: FK columns are INTEGER (reference pk_*), not UUID
+        assert field.postgres_type == "INTEGER"
         assert field.fraiseql_type == "ID"
 
     # Actor (non-nullable)

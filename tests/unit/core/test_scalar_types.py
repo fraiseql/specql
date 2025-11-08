@@ -29,7 +29,8 @@ def test_scalar_types_registry_complete():
         "color",
         "uuid",
         "json",
-        "boolean",
+        # Note: "boolean" is NOT a scalar type - it's a basic type
+        # handled by _parse_basic_field() in the parser
     ]
 
     for type_name in required_types:

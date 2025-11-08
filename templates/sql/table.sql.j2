@@ -19,6 +19,7 @@ CREATE TABLE {{ entity.schema }}.tb_{{ entity.name | lower }} (
     id UUID DEFAULT gen_random_uuid() NOT NULL,
 
 {%- if entity.multi_tenant %}
+
     -- ========================================================================
     -- Multi-Tenancy: Denormalized from JWT (CRITICAL for security)
     -- ========================================================================
@@ -36,6 +37,7 @@ CREATE TABLE {{ entity.schema }}.tb_{{ entity.name | lower }} (
     -- Business Fields
     -- ========================================================================
 {%- for field_name, field_def in entity.fields.items() %}
+
     {{ field_name }} {{ field_def.type }}{% if not field_def.nullable %} NOT NULL{% endif %},
 {%- endfor %}
 
@@ -62,10 +64,12 @@ CREATE TABLE {{ entity.schema }}.tb_{{ entity.name | lower }} (
     CONSTRAINT tb_{{ entity.name | lower }}_id_key UNIQUE (id)
 {%- for field_name, field_def in entity.fields.items() %}
 {%- if field_def.get('unique') %}
+
     ,CONSTRAINT tb_{{ entity.name | lower }}_{{ field_name }}_key UNIQUE ({{ field_name }})
 {%- endif %}
 {%- endfor %}
 {%- for constraint in entity.constraints %}
+
     ,{{ constraint }}
 {%- endfor %}
 );
@@ -95,8 +99,8 @@ COMMENT ON TABLE {{ entity.schema }}.tb_{{ entity.name | lower }} IS '[Table: {{
 -- Trinity Pattern columns
 COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.pk_{{ entity.name | lower }} IS 'Internal INTEGER primary key used in joins and foreign keys.';
 COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.id IS 'Public UUID identifier for external APIs and GraphQL.';
-
 {%- if entity.multi_tenant %}
+
 -- Multi-Tenancy columns
 COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.tenant_id IS 'Denormalized tenant identifier from JWT token (security context).';
 -- COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.fk_organization IS 'Optional business FK to organization unit (uncomment if needed).';

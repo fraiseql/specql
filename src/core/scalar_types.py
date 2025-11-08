@@ -325,14 +325,8 @@ SCALAR_TYPES: Dict[str, ScalarTypeDef] = {
         input_type="text",
         placeholder="550e8400-e29b-41d4-a716-446655440000",
     ),
-    "boolean": ScalarTypeDef(
-        name="boolean",
-        postgres_type=PostgreSQLType.BOOLEAN,
-        fraiseql_scalar_name="Boolean",
-        description="True or false value",
-        example="true",
-        input_type="checkbox",
-    ),
+    # NOTE: "boolean" is a BASIC type, not a scalar type
+    # It is handled by _parse_basic_field() in the parser
     # Structured types
     "json": ScalarTypeDef(
         name="json",
