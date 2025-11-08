@@ -35,9 +35,9 @@ fields:
         assert entity.description == "Customer contact information"
         assert len(entity.fields) == 3
         assert "email" in entity.fields
-        assert entity.fields["email"].type == "text"
-        assert entity.fields["first_name"].type == "text"
-        assert entity.fields["last_name"].type == "text"
+        assert entity.fields["email"].type_name == "text"
+        assert entity.fields["first_name"].type_name == "text"
+        assert entity.fields["last_name"].type_name == "text"
 
     def test_parse_enum_field(self):
         """Test parsing enum field type"""
@@ -50,9 +50,9 @@ fields:
 
         entity = self.parser.parse(yaml_content)
 
-        assert entity.fields["status"].type == "enum"
+        assert entity.fields["status"].type_name == "enum"
         assert entity.fields["status"].values == ["lead", "qualified", "customer"]
-        assert entity.fields["priority"].type == "enum"
+        assert entity.fields["priority"].type_name == "enum"
         assert entity.fields["priority"].values == ["low", "medium", "high"]
 
     def test_parse_ref_field(self):
@@ -66,10 +66,10 @@ fields:
 
         entity = self.parser.parse(yaml_content)
 
-        assert entity.fields["company"].type == "ref"
-        assert entity.fields["company"].target_entity == "Company"
-        assert entity.fields["owner"].type == "ref"
-        assert entity.fields["owner"].target_entity == "User"
+        assert entity.fields["company"].type_name == "ref"
+        assert entity.fields["company"].reference_entity == "Company"
+        assert entity.fields["owner"].type_name == "ref"
+        assert entity.fields["owner"].reference_entity == "User"
 
     def test_parse_list_field(self):
         """Test parsing list field type"""
@@ -82,9 +82,9 @@ fields:
 
         entity = self.parser.parse(yaml_content)
 
-        assert entity.fields["tags"].type == "list"
+        assert entity.fields["tags"].type_name == "list"
         assert entity.fields["tags"].item_type == "text"
-        assert entity.fields["skills"].type == "list"
+        assert entity.fields["skills"].type_name == "list"
         assert entity.fields["skills"].item_type == "ref(Skill)"
 
     def test_parse_field_with_default(self):
@@ -354,7 +354,7 @@ fields:
         assert entity.name == "User"
         assert entity.schema == "public"  # default
         assert len(entity.fields) == 1
-        assert entity.fields["username"].type == "text"
+        assert entity.fields["username"].type_name == "text"
 
     def test_parse_error_invalid_yaml(self):
         """Test error handling for invalid YAML"""

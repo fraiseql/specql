@@ -1,92 +1,134 @@
 """
-SpecQL AST Models
-Data classes representing parsed SpecQL entities
+AST Models for SpecQL Entities
+
+Extended to support:
+- Tier 1: Scalar rich types
+- Tier 2: Composite types (JSONB)
+- Tier 3: Entity references (FK)
 """
 
 from dataclasses import dataclass, field
-from typing import Any, Dict, List, Optional
-from src.core.type_registry import get_type_registry
+from typing import Optional, List, Dict, Any
+from enum import Enum
+
+# Import from scalar_types
+from src.core.scalar_types import ScalarTypeDef, CompositeTypeDef
+
+
+class FieldTier(Enum):
+    """Which tier this field belongs to"""
+
+    BASIC = "basic"  # text, integer, etc.
+    SCALAR = "scalar"  # email, money, etc. (Tier 1)
+    COMPOSITE = "composite"  # SimpleAddress, MoneyAmount (Tier 2)
+    REFERENCE = "reference"  # ref(Entity) (Tier 3)
+
+
+@dataclass
+class CompositeTypeDef:
+    """Placeholder for composite type definition (Phase 2)"""
+
+    name: str
+    fields: Dict[str, "FieldDefinition"] = field(default_factory=dict)
 
 
 @dataclass
 class FieldDefinition:
-    """Parsed field definition with rich type support"""
+    """Represents a field in an entity"""
 
+    # Core attributes
     name: str
-    type: str  # NOW SUPPORTS: text, integer, email, url, phone, coordinates, etc.
+    type_name: str
     nullable: bool = True
     default: Optional[Any] = None
+    description: str = ""
 
-    # Type metadata (for complex types like money(currency='USD'))
-    type_metadata: Optional[Dict[str, Any]] = None
+    # Tier classification
+    tier: FieldTier = FieldTier.BASIC
 
     # For enum fields
     values: Optional[List[str]] = None
 
-    # For ref fields
-    target_entity: Optional[str] = None
-
     # For list fields
     item_type: Optional[str] = None
 
-    def is_rich_type(self) -> bool:
-        """Check if this field uses a FraiseQL rich type"""
-        registry = get_type_registry()
-        return registry.is_rich_type(self.type)
+    # Tier 1: Scalar rich type metadata
+    scalar_def: Optional[ScalarTypeDef] = None
 
-    def get_postgres_type(self) -> str:
-        """Get underlying PostgreSQL storage type"""
-        registry = get_type_registry()
+    # Tier 2: Composite type metadata (set in Phase 2)
+    composite_def: Optional["CompositeTypeDef"] = None
 
-        # Rich types
-        if self.is_rich_type():
-            base_type = registry.get_postgres_type(self.type)
+    # Tier 3: Reference metadata (set in Phase 3)
+    reference_entity: Optional[str] = None
+    reference_schema: Optional[str] = None
 
-            # Handle money type with custom precision
-            if self.type == "money" and self.type_metadata and "precision" in self.type_metadata:
-                precision = self.type_metadata["precision"]
-                return f"NUMERIC(19,{precision})"
+    # PostgreSQL generation metadata (for Team B)
+    postgres_type: Optional[str] = None
+    postgres_precision: Optional[tuple] = None
+    validation_pattern: Optional[str] = None
+    min_value: Optional[float] = None
+    max_value: Optional[float] = None
 
-            return base_type
+    # FraiseQL metadata (for Team D)
+    fraiseql_type: Optional[str] = None
+    fraiseql_relation: Optional[str] = None  # "many-to-one", "one-to-many"
+    fraiseql_schema: Optional[Dict[str, str]] = None  # For composites
 
-        # Basic types
-        basic_type_map = {
-            "text": "TEXT",
-            "integer": "INTEGER",
-            "boolean": "BOOLEAN",
-            "jsonb": "JSONB",
-            "timestamp": "TIMESTAMPTZ",
-        }
+    # UI hints (future)
+    input_type: str = "text"
+    placeholder: Optional[str] = None
+    example: Optional[str] = None
 
-        return basic_type_map.get(self.type, "TEXT")
+    def is_rich_scalar(self) -> bool:
+        """Check if this is a rich scalar type"""
+        return self.tier == FieldTier.SCALAR
 
-    def get_graphql_scalar(self) -> str:
-        """Get GraphQL scalar type name"""
-        registry = get_type_registry()
+    def is_composite(self) -> bool:
+        """Check if this is a composite type"""
+        return self.tier == FieldTier.COMPOSITE
 
-        # Rich types
-        if self.is_rich_type():
-            scalar = registry.get_graphql_scalar(self.type)
-            return f"{scalar}!" if not self.nullable else scalar
+    def is_reference(self) -> bool:
+        """Check if this is a reference to another entity"""
+        return self.tier == FieldTier.REFERENCE
 
-        # Basic types
-        basic_scalar_map = {
-            "text": "String",
-            "integer": "Int",
-            "boolean": "Boolean",
-            "jsonb": "JSON",
-        }
 
-        scalar = basic_scalar_map.get(self.type, "String")
-        return f"{scalar}!" if not self.nullable else scalar
+@dataclass
+class EntityDefinition:
+    """Represents an entity in SpecQL"""
 
-    def get_validation_pattern(self) -> Optional[str]:
-        """Get regex validation pattern (if applicable)"""
-        if not self.is_rich_type():
-            return None
+    name: str
+    schema: str
+    description: str = ""
 
-        registry = get_type_registry()
-        return registry.get_validation_pattern(self.type)
+    # Fields
+    fields: Dict[str, FieldDefinition] = field(default_factory=dict)
+
+    # Actions (for Team C)
+    actions: List["ActionDefinition"] = field(default_factory=list)
+
+    # AI agents
+    agents: List["Agent"] = field(default_factory=list)
+
+    # Organization (numbering system)
+    organization: Optional["Organization"] = None
+
+    # Trinity pattern fields (auto-generated by Team B)
+    has_trinity_pattern: bool = True
+
+    # Metadata
+    is_catalog_table: bool = False  # True for Country, Industry, etc.
+
+
+@dataclass
+class ActionDefinition:
+    """Represents an action in SpecQL"""
+
+    name: str
+    description: str = ""
+    steps: List["ActionStep"] = field(default_factory=list)
+
+    # Impact metadata (for Team C)
+    impact: Optional[Dict[str, Any]] = None
 
 
 @dataclass
