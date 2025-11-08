@@ -1,0 +1,31 @@
+# Lightweight SpecQL Example: Contact
+# Business logic ONLY - framework handles all technical details
+
+entity: Contact
+schema: crm
+description: "Customer contact information"
+
+fields:
+  email: text
+  first_name: text
+  last_name: text
+  company: ref(Company)
+  status: enum(lead, qualified, customer)
+  phone: text
+
+actions:
+  - name: qualify_lead
+    requires: caller.can_edit_contact
+    steps:
+      - validate: status = 'lead'
+        error: "not_a_lead"
+      - update: Contact SET status = 'qualified'
+      - notify: owner(email, "Contact qualified")
+
+  - name: create_contact
+    steps:
+      - validate: email MATCHES email_pattern
+        error: "invalid_email"
+      - validate: first_name IS NOT NULL
+        error: "first_name_required"
+      - insert: Contact

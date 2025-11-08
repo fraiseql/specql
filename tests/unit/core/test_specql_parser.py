@@ -376,3 +376,50 @@ fields:
 
         with pytest.raises(ParseError, match="Missing 'entity' key"):
             self.parser.parse(yaml_content)
+
+    def test_validate_enum_literal_in_expression(self):
+        """Test validation allows enum literals in expressions"""
+        yaml_content = """
+entity: Contact
+fields:
+  status: enum(lead, qualified, customer)
+actions:
+  - name: qualify_lead
+    steps:
+      - validate: status = 'lead'
+        error: "not_a_lead"
+"""
+
+        entity = self.parser.parse(yaml_content)
+
+        assert len(entity.actions) == 1
+        action = entity.actions[0]
+        assert action.name == "qualify_lead"
+        assert len(action.steps) == 1
+
+        step = action.steps[0]
+        assert step.type == "validate"
+        assert step.expression == "status = 'lead'"
+        assert step.error == "not_a_lead"
+
+    def test_parse_notify_action(self):
+        """Test parsing notify action step"""
+        yaml_content = """
+entity: Contact
+actions:
+  - name: notify_owner
+    steps:
+      - notify: owner(email, "Contact qualified")
+"""
+
+        entity = self.parser.parse(yaml_content)
+
+        assert len(entity.actions) == 1
+        action = entity.actions[0]
+        assert action.name == "notify_owner"
+        assert len(action.steps) == 1
+
+        step = action.steps[0]
+        assert step.type == "notify"
+        assert step.function_name == "owner"
+        assert step.arguments == {"channel": "email", "message": "Contact qualified"}

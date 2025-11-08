@@ -1,0 +1,30 @@
+# Lightweight SpecQL Example: Task
+# Simple entity with conditional logic
+
+entity: Task
+schema: projects
+description: "Project task management"
+
+fields:
+  title: text
+  description: text
+  assignee: ref(User)
+  status: enum(todo, in_progress, done)
+  priority: enum(low, medium, high)
+  due_date: date
+
+actions:
+  - name: assign_task
+    steps:
+      - validate: assignee IS NOT NULL
+      - update: Task SET assignee = input.assignee
+      - notify: assignee(email, "Task assigned to you")
+
+  - name: complete_task
+    steps:
+      - validate: status = 'in_progress'
+        error: "task_not_in_progress"
+      - update: Task SET status = 'done'
+      - if: assignee IS NOT NULL
+        then:
+          - call: increment_user_tasks_completed(assignee)

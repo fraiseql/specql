@@ -1,486 +1,775 @@
-# Claude Code Instructions - SpecQL Schema Generator
+# Claude Code Instructions - SpecQL → PostgreSQL → GraphQL Generator
 
-**Project**: Business-focused YAML → PostgreSQL + GraphQL Backend
+**Project**: Lightweight Business DSL → Production Database + Auto-GraphQL API
 **Status**: 🚧 Active Development - Parallel Team Execution
 **Context Window Optimization**: This file provides instant project context for AI assistants
 
 ---
 
-## 🎯 Project Mission
+## 🎯 Project Vision
 
-Transform 40 lines of SpecQL YAML into production-ready PostgreSQL schema + GraphQL API.
+**Transform 20 lines of business-focused YAML into production-ready PostgreSQL + GraphQL API.**
 
-**Example**:
+### Core Principle: **Business Domain ONLY in YAML**
+
+Users write **ONLY** business logic. Framework handles ALL technical details automatically.
+
+**Example Input** (20 lines):
 ```yaml
 entity: Contact
-  fields: {email: text, status: enum(lead, qualified)}
-  actions:
-    - name: create_contact
-      steps: [validate, insert]
+schema: crm
+
+fields:
+  email: text
+  company: ref(Company)          # Framework auto-creates FK
+  status: enum(lead, qualified)
+
+actions:
+  - name: qualify_lead
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+      - notify: owner(email, "Contact qualified")
 ```
-→ Generates 2000+ lines of SQL, GraphQL, TypeScript, tests
+
+**Auto-Generated Output** (2000+ lines):
+- ✅ PostgreSQL table with Trinity pattern (pk_*, id, identifier)
+- ✅ Auto-generated foreign keys and indexes
+- ✅ PL/pgSQL function for `qualify_lead` action
+- ✅ FraiseQL metadata comments for GraphQL
+- ✅ Complete GraphQL API (queries, mutations, types)
+
+**Result**: **100x code leverage** - Business logic in YAML, framework handles implementation.
 
 ---
 
-## 🏗️ Repository Architecture (5-Team Parallel Structure)
+## 🏗️ Pipeline Architecture
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│  LIGHTWEIGHT SpecQL (Business Only - 20 lines)              │
+│  - Entities & relationships                                  │
+│  - Business actions & validations                            │
+│  - NO infrastructure details                                 │
+└──────────────────┬───────────────────────────────────────────┘
+                   │
+    ┌──────────────┴──────────────┐
+    │  TEAM A: SpecQL Parser      │
+    │  Parse DSL → Business AST   │
+    └──────────────┬──────────────┘
+                   │
+                   ▼
+    ┌────────────────────────────────────┐
+    │   Business Entity AST               │
+    │   (No infrastructure details)       │
+    └──────────────┬─────────────────────┘
+                   │
+    ┌──────────────┼──────────────┐
+    │              │              │
+    ▼              ▼              ▼
+┌─────────┐  ┌─────────┐  ┌──────────────┐
+│ TEAM B  │  │ TEAM C  │  │  TEAM D      │
+│ Schema  │  │ Action  │  │  FraiseQL    │
+│ Gen     │  │ Compiler│  │  Metadata    │
+└────┬────┘  └────┬────┘  └──────┬───────┘
+     │            │               │
+     └────────────┼───────────────┘
+                  │
+                  ▼
+    ┌──────────────────────────┐
+    │  TEAM E: Orchestrator    │
+    │  Combine → Migration SQL │
+    └──────────────┬───────────┘
+                   │
+                   ▼
+    ┌──────────────────────────────────┐
+    │  PostgreSQL Database             │
+    │  - Tables (Trinity pattern)      │
+    │  - Functions (business actions)  │
+    │  - FraiseQL metadata comments    │
+    └──────────────┬───────────────────┘
+                   │
+                   ▼
+    ┌──────────────────────────────────┐
+    │  FraiseQL Auto-Discovery         │
+    │  (External tool - introspects)   │
+    └──────────────┬───────────────────┘
+                   │
+                   ▼
+    ┌──────────────────────────────────┐
+    │  GraphQL API (Auto-Generated)    │
+    │  - Types, Queries, Mutations     │
+    └──────────────────────────────────┘
+```
+
+---
+
+## 👥 TEAM STRUCTURE (5 Teams, Clear Separation of Concerns)
+
+### 🔵 Team A: SpecQL Parser (Business DSL)
+**Mission**: Parse lightweight business YAML → Business AST (NO infrastructure details)
+
+**Parses**:
+- ✅ Entity name, schema, description
+- ✅ Fields: name, type (text, integer, ref, enum, list)
+- ✅ Actions: name, steps (validate, if/then, insert, update, call, notify)
+- ✅ Business validation rules
+- ✅ AI agent definitions
+
+**Does NOT Parse** (Framework handles):
+- ❌ Trinity pattern syntax (pk_*, id, identifier) - Auto-generated by Team B
+- ❌ Foreign key syntax (fk_*, REFERENCES) - Inferred from ref(Entity)
+- ❌ Index definitions - Auto-generated by Team B
+- ❌ Constraint details - Inferred from types
+- ❌ GraphQL metadata - Generated by Team D
+
+**Status**: ✅ **90% Complete** (Current implementation is correct!)
+**Location**: `src/core/`
+**Test Command**: `make teamA-test`
+
+---
+
+### 🟢 Team B: Schema Generator (Convention-Based DDL)
+**Mission**: Business AST → PostgreSQL DDL with **automatic framework conventions**
+
+**Input**: Business Entity AST (from Team A)
+
+**Applies Conventions** (Automatically):
+1. **Trinity Pattern**: Every table gets `pk_*`, `id`, `identifier`
+2. **Naming**: `tb_{entity}` tables, `fk_{entity}` foreign keys
+3. **Audit Fields**: `created_at`, `created_by`, `updated_at`, `updated_by`, `deleted_at`
+4. **Auto-Indexes**: FK columns, enum fields, common query patterns
+5. **Constraints**: NOT NULL inference, CHECK for enums, UNIQUE where appropriate
+
+**Example Transformation**:
+```yaml
+# Input (SpecQL)
+fields:
+  company: ref(Company)
+  status: enum(lead, qualified)
+```
+
+```sql
+-- Output (Auto-generated DDL)
+CREATE TABLE crm.tb_contact (
+    -- Trinity Pattern (AUTO)
+    pk_contact INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+    identifier TEXT UNIQUE,
+
+    -- Business fields + AUTO conventions
+    fk_company INTEGER REFERENCES management.tb_company(pk_company),  -- AUTO FK
+    status TEXT CHECK (status IN ('lead', 'qualified')),              -- AUTO CHECK
+
+    -- Audit fields (AUTO)
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Auto-generated indexes
+CREATE INDEX idx_contact_company ON crm.tb_contact(fk_company);
+CREATE INDEX idx_contact_status ON crm.tb_contact(status);
+```
+
+**Status**: 🔴 Not Started (Week 2 focus)
+**Location**: `src/generators/schema/`
+**Test Command**: `make teamB-test`
+
+---
+
+### 🟠 Team C: Action Compiler (Business Logic → PL/pgSQL)
+**Mission**: SpecQL action steps → PostgreSQL functions with framework conventions
+
+**Input**: Action definitions from AST
+
+**Generates**: PL/pgSQL functions with:
+1. **Standard Signature**: UUID inputs, jsonb output
+2. **Trinity Resolution**: Auto-convert UUID → INTEGER for queries
+3. **Audit Updates**: Auto-update `updated_at`, `updated_by`
+4. **Event Emission**: Auto-emit events on state changes
+5. **Error Handling**: Standard exception patterns
+
+**Example Transformation**:
+```yaml
+# Input (SpecQL)
+actions:
+  - name: qualify_lead
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+```
+
+```sql
+-- Output (Auto-generated Function)
+CREATE OR REPLACE FUNCTION crm.qualify_lead(
+    p_contact_id UUID,
+    p_caller_id UUID DEFAULT NULL
+)
+RETURNS jsonb AS $$
+DECLARE
+    v_pk INTEGER;
+    v_status TEXT;
+BEGIN
+    -- Trinity resolution (AUTO)
+    v_pk := crm.contact_pk(p_contact_id);
+
+    -- Validation (from SpecQL)
+    SELECT status INTO v_status FROM crm.tb_contact WHERE pk_contact = v_pk;
+    IF v_status != 'lead' THEN
+        RAISE EXCEPTION 'validation_failed';
+    END IF;
+
+    -- Update (from SpecQL + AUTO audit)
+    UPDATE crm.tb_contact
+    SET status = 'qualified',
+        updated_at = now(),
+        updated_by = p_caller_id
+    WHERE pk_contact = v_pk;
+
+    -- Event emission (AUTO)
+    PERFORM core.emit_event('contact.qualified', jsonb_build_object('id', p_contact_id));
+
+    -- Return (AUTO format)
+    RETURN jsonb_build_object('success', true, 'contact_id', p_contact_id);
+END;
+$$ LANGUAGE plpgsql;
+```
+
+**Status**: 🔴 Not Started (Week 3 focus)
+**Location**: `src/generators/actions/`
+**Test Command**: `make teamC-test`
+
+---
+
+### 🟣 Team D: FraiseQL Metadata Generator
+**Mission**: Generate `@fraiseql:*` COMMENT annotations for GraphQL auto-discovery
+
+**Input**: Entity AST + Generated SQL (from Teams B & C)
+
+**Output**: SQL COMMENT statements
+```sql
+-- Table metadata
+COMMENT ON TABLE crm.tb_contact IS
+  '@fraiseql:type name=Contact,schema=crm';
+
+-- Field metadata
+COMMENT ON COLUMN crm.tb_contact.email IS
+  '@fraiseql:field name=email,type=String!';
+COMMENT ON COLUMN crm.tb_contact.fk_company IS
+  '@fraiseql:field name=company,type=Company,relation=many-to-one';
+COMMENT ON COLUMN crm.tb_contact.status IS
+  '@fraiseql:field name=status,type=ContactStatus,enum=true';
+
+-- Mutation metadata
+COMMENT ON FUNCTION crm.qualify_lead IS
+  '@fraiseql:mutation name=qualifyLead,input=QualifyLeadInput,output=Contact';
+```
+
+**FraiseQL Then**:
+- Introspects these comments
+- Auto-generates GraphQL schema
+- Maps functions → mutations
+- Creates types, queries, filters
+
+**Status**: 🔴 Not Started (Week 5 focus)
+**Location**: `src/generators/fraiseql/`
+**Test Command**: `make teamD-test`
+
+---
+
+### 🔴 Team E: CLI & Orchestration
+**Mission**: Developer tools + pipeline orchestration
+
+**CLI Commands**:
+```bash
+# Generate complete migration from SpecQL
+specql generate entities/contact.yaml
+# Output: migrations/001_contact.sql (schema + functions + metadata)
+
+# Validate SpecQL syntax
+specql validate entities/*.yaml
+
+# Show what would change
+specql diff entities/contact.yaml
+```
+
+**Orchestration**: Coordinates Teams B + C + D:
+```python
+def generate(yaml_file):
+    # Team A: Parse
+    entity = SpecQLParser().parse(yaml_file)
+
+    # Team B: Generate schema
+    schema_sql = SchemaGenerator().generate(entity)
+
+    # Team C: Compile actions
+    action_sql = ActionCompiler().compile(entity.actions)
+
+    # Team D: Add FraiseQL metadata
+    metadata_sql = FraiseQLAnnotator().annotate(entity)
+
+    # Combine into migration
+    migration = combine(schema_sql, action_sql, metadata_sql)
+    write_migration(migration)
+```
+
+**Status**: 🔴 Not Started (Week 7 focus)
+**Location**: `src/cli/`
+**Test Command**: `make teamE-test`
+
+---
+
+## 📊 TEAM PROGRESS DASHBOARD
+
+### Overall Project: 10% Complete (Week 1 of 10)
+
+| Team | Focus | Week 1 Goal | Progress | Status |
+|------|-------|-------------|----------|--------|
+| **Team A** | SpecQL Parser | Parse lightweight DSL | **90%** | ✅ ON TRACK |
+| **Team B** | Schema Gen | Not started yet | **0%** | ⏸️ WAITING |
+| **Team C** | Action Compiler | Not started yet | **0%** | ⏸️ WAITING |
+| **Team D** | FraiseQL Meta | Not started yet | **0%** | ⏸️ WAITING |
+| **Team E** | CLI Tools | Not started yet | **0%** | ⏸️ WAITING |
+
+### Week-by-Week Plan
+
+**Week 1** (Current): Team A - SpecQL Parser
+- ✅ Parse entity definitions (DONE)
+- ✅ Parse field types (DONE)
+- ✅ Parse actions and steps (DONE)
+- 🚧 Minor refinements (in progress)
+
+**Week 2**: Team B - Schema Generator
+- Convention-based DDL generation
+- Trinity pattern application
+- Auto FK and index generation
+
+**Week 3**: Team C - Action Compiler
+- Basic step compilation (validate, insert, update)
+- Conditional logic (if/then/else)
+- Function scaffolding
+
+**Week 4**: Integration Testing
+- End-to-end: SpecQL → SQL → Database
+- Performance testing
+- Bug fixes
+
+**Week 5-6**: Team D - FraiseQL Integration
+- Metadata annotation generation
+- GraphQL schema validation
+- End-to-end with FraiseQL
+
+**Week 7-8**: Team E - CLI & Developer Experience
+- Command-line tools
+- Migration management
+- Documentation
+
+**Week 9-10**: Production Readiness
+- Advanced features
+- Security hardening
+- Performance optimization
+
+---
+
+## 🎯 CRITICAL: What Makes SpecQL "Lightweight"
+
+### Users Write (Business Domain)
+```yaml
+entity: Contact
+fields:
+  email: text
+  company: ref(Company)  # Just say "ref" - framework figures out FK
+  status: enum(lead, qualified)
+
+actions:
+  - name: qualify_lead
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+```
+
+**Total: 12 lines**
+
+### Framework Auto-Generates (Technical Implementation)
+- ✅ Trinity pattern (pk_contact, id, identifier)
+- ✅ Foreign key: `fk_company INTEGER REFERENCES tb_company(pk_company)`
+- ✅ Enum constraint: `CHECK (status IN ('lead', 'qualified'))`
+- ✅ Indexes on fk_company, status, email
+- ✅ Audit fields (created_at, updated_at, etc.)
+- ✅ Helper functions (contact_pk, contact_id, contact_identifier)
+- ✅ PL/pgSQL function for qualify_lead with:
+  - Trinity resolution
+  - Validation logic
+  - Audit updates
+  - Event emission
+  - Error handling
+- ✅ FraiseQL comments for GraphQL auto-discovery
+- ✅ GraphQL types, queries, mutations
+
+**Total: 2000+ lines auto-generated**
+
+### What Users DON'T Write
+- ❌ No SQL DDL syntax
+- ❌ No foreign key syntax
+- ❌ No index definitions
+- ❌ No constraint syntax
+- ❌ No PL/pgSQL code
+- ❌ No GraphQL schema
+- ❌ No resolver functions
+- ❌ No type definitions
+
+**Result**: 99% less code, 100% production-ready
+
+---
+
+## 📁 Repository Structure
 
 ```
 src/
-├── core/           → Team A: SpecQL Parser
-├── generators/     → Team B: SQL Generators
-├── numbering/      → Team C: Hierarchical Organization
-├── integration/    → Team D: FraiseQL + GraphQL
-└── cli/            → Team E: Developer Tools
+├── core/              # Team A: SpecQL Parser
+│   ├── ast_models.py       # ✅ Business Entity AST
+│   ├── specql_parser.py    # ✅ YAML → AST parser
+│   └── README.md
+│
+├── generators/
+│   ├── schema/        # Team B: Schema Generator
+│   │   ├── schema_generator.py
+│   │   ├── trinity_pattern.py
+│   │   ├── naming_conventions.py
+│   │   └── index_strategy.py
+│   │
+│   ├── actions/       # Team C: Action Compiler
+│   │   ├── action_compiler.py
+│   │   ├── expression_to_sql.py
+│   │   └── step_generators/
+│   │
+│   └── fraiseql/      # Team D: FraiseQL Metadata
+│       ├── annotator.py
+│       ├── graphql_mapper.py
+│       └── metadata_gen.py
+│
+├── cli/               # Team E: CLI & Orchestration
+│   ├── generate.py
+│   ├── validate.py
+│   └── orchestrator.py
+│
+└── templates/
+    ├── sql/           # DDL templates
+    └── plpgsql/       # Function templates
+
+tests/
+├── unit/
+│   ├── core/          # Team A tests ✅
+│   ├── schema/        # Team B tests
+│   ├── actions/       # Team C tests
+│   ├── fraiseql/      # Team D tests
+│   └── cli/           # Team E tests
+│
+└── integration/       # End-to-end tests
+
+entities/
+└── examples/
+    ├── contact.yaml   # Simple example
+    └── machine_item.yaml  # Complex example
 ```
 
 ---
 
-## 👥 TEAM STATUS & PROGRESS
+## 🧪 Testing Strategy
 
-### 🔵 Team A: Core Parser (`src/core/`)
-**Mission**: Parse SpecQL YAML → Entity AST
-**Status**: 🟡 In Progress (10%)
+### TDD Discipline (Mandatory)
 
-**Components**:
-- ✅ `ast_models.py` - Data classes (Entity, FieldDefinition, Action, ActionStep, Agent)
-- 🚧 `specql_parser.py` - YAML parser (TODO)
-- 🚧 `validators.py` - Business rule validation (TODO)
-- 🚧 `expression_parser.py` - SpecQL expression → SQL (TODO)
+Every feature follows: **RED → GREEN → REFACTOR → QA**
 
-**Current Work**:
-- Implementing `SpecQLParser.parse()` method
-- Parsing field definitions (text, enum, ref, list)
-- Parsing action steps (validate, if/then, insert, update)
-
-**Dependencies**: None (can start immediately)
-**Blocks**: Teams B, C, D, E (waiting for Entity AST)
-
-**Test Coverage**: 0% (no implementation yet)
-**Test Command**: `make teamA-test`
-
-**Next Task**: Write failing test for `test_parse_simple_entity()` → Implement parser
-
----
-
-### 🟢 Team B: SQL Generators (`src/generators/`)
-**Mission**: Generate PostgreSQL DDL + Functions from Entity AST
-**Status**: 🔴 Blocked (0% - waiting for Team A)
-
-**Components**:
-- 🚧 `table_generator.py` - Trinity pattern tables (TODO)
-- 🚧 `view_generator.py` - FraiseQL views (TODO)
-- 🚧 `function_generator.py` - CRUD functions (TODO)
-- 🚧 `action_generator.py` - SpecQL actions → PL/pgSQL (TODO)
-- 🚧 `trigger_generator.py` - Group leader triggers (TODO)
-- 🚧 `sql_utils.py` - SQL formatting utilities (TODO)
-
-**Current Work**:
-- Can start with **mock Entity objects** from `tests/fixtures/mock_entities.py`
-- Developing table generation templates
-- Setting up Jinja2 template infrastructure
-
-**Dependencies**: Team A (Entity AST) - **CAN USE MOCKS FOR NOW**
-**Blocks**: None
-
-**Test Coverage**: 0%
-**Test Command**: `make teamB-test`
-
-**Next Task**: Create mock Entity → Generate Trinity pattern table → Write test
-
----
-
-### 🟠 Team C: Numbering System (`src/numbering/`)
-**Mission**: Hierarchical 6-digit codes + Manifest generation
-**Status**: 🔴 Not Started (0%)
-
-**Components**:
-- 🚧 `numbering_parser.py` - Parse 6-digit table codes (TODO)
-- 🚧 `directory_generator.py` - Create directory hierarchy (TODO)
-- 🚧 `manifest_generator.py` - Execution order manifest (TODO)
-- 🚧 `dependency_resolver.py` - Topological sort (TODO)
-
-**Current Work**: Not started
-
-**Dependencies**: None (standalone component)
-**Blocks**: None
-
-**Test Coverage**: 0%
-**Test Command**: `make teamC-test`
-
-**Next Task**: Implement `NumberingParser.parse_table_code("013211")` → Parse into components
-
----
-
-### 🟣 Team D: Integration Layer (`src/integration/`)
-**Mission**: FraiseQL + GraphQL + TypeScript generation
-**Status**: 🔴 Not Started (0%)
-
-**Components**:
-- 🚧 `fraiseql_adapter.py` - COMMENT annotations for FraiseQL (TODO)
-- 🚧 `testfoundry_adapter.py` - TestFoundry metadata (TODO)
-- 🚧 `graphql_schema_gen.py` - GraphQL schema generation (TODO)
-- 🚧 `typescript_gen.py` - TypeScript type generation (TODO)
-
-**Current Work**: Not started
-
-**Dependencies**: Team A (Entity AST), Team B (SQL output) - **CAN USE MOCKS**
-**Blocks**: None
-
-**Test Coverage**: 0%
-**Test Command**: `make teamD-test`
-
-**Next Task**: Generate FraiseQL COMMENT annotations from mock Entity
-
----
-
-### 🔴 Team E: CLI & Tooling (`src/cli/`)
-**Mission**: Developer experience tools
-**Status**: 🔴 Not Started (0%)
-
-**Components**:
-- 🚧 `generate.py` - Main generation CLI (TODO)
-- 🚧 `validate.py` - YAML validation CLI (TODO)
-- 🚧 `migrate.py` - SQL → YAML migration (TODO)
-- 🚧 `healthcheck.py` - Health check system (TODO)
-- 🚧 `diff.py` - Schema diff tool (TODO)
-
-**Current Work**: Not started
-
-**Dependencies**: All teams (orchestration layer) - **CAN USE MOCKS**
-**Blocks**: None
-
-**Test Coverage**: 0%
-**Test Command**: `make teamE-test`
-
-**Next Task**: Create basic CLI structure with Click → Test `specql generate --help`
-
----
-
-## 📊 Overall Project Progress
-
-### Phase 1: Core Parser + SQL Generators (Weeks 1-2)
-**Timeline**: Week 1-2 of 10
-**Overall Progress**: 5%
-
-**Completed**:
-- ✅ Repository structure
-- ✅ Development tooling
-- ✅ Testing infrastructure
-- ✅ AST models foundation
-
-**In Progress**:
-- 🚧 Team A: SpecQL parser (10%)
-- 🚧 Team B: Can start with mocks (0%)
-- 🔴 Teams C, D, E: Not started (0%)
-
-**Week 1 Goals** (Current):
-- [ ] Team A: Parse simple entities (contact.yaml)
-- [ ] Team B: Generate Trinity pattern tables
-- [ ] Team C: Parse 6-digit table codes
-- [ ] Team D: FraiseQL COMMENT generation
-- [ ] Team E: Basic CLI scaffold
-
-**Week 2 Goals**:
-- [ ] Team A: Parse complex entities (reservation.yaml with actions)
-- [ ] Team B: SpecQL action compilation to PL/pgSQL
-- [ ] Team C: Manifest generation with dependencies
-- [ ] Team D: GraphQL schema generation
-- [ ] Team E: Validation and health checks
-
-**Integration Point**: End of Week 2 - Full pipeline (YAML → SQL → Database)
-
----
-
-## 🔄 Critical Paths & Blockers
-
-### Critical Path (Longest Dependencies)
-```
-Team A (Parser) → Team B (SQL Gen) → Team D (GraphQL) → Team E (CLI)
-```
-
-### Current Blockers
-1. **Team A blocks everyone** - No Entity AST yet
-   - **Mitigation**: Teams B/D/E use mock data (see below)
-   - **Priority**: HIGH - Team A must deliver Week 1
-
-2. **No blockers for Teams C** - Standalone component
-
-### Unblocking Strategy
-```python
-# teams/fixtures/mock_entities.py
-def mock_contact_entity() -> Entity:
-    """Mock Entity for parallel development"""
-    return Entity(
-        name='Contact',
-        schema='crm',
-        fields={'email': FieldDefinition(name='email', type='text')},
-        actions=[Action(name='create_contact', steps=[...])]
-    )
-```
-
-Teams B/D/E can develop against mocks, then integrate when Team A delivers.
-
----
-
-## 🧪 Testing Status
-
-### Test Coverage by Team
-- **Team A**: 0% (no tests written)
-- **Team B**: 0% (no tests written)
-- **Team C**: 0% (no tests written)
-- **Team D**: 0% (no tests written)
-- **Team E**: 0% (no tests written)
-
-**Overall Coverage**: 0% (baseline)
-**Target Coverage**: 90% (by end of Week 2)
-
-### Test Commands
 ```bash
-make test              # All tests
-make test-unit         # Unit tests only
-make test-integration  # Integration tests (Week 2+)
+# RED: Write failing test
+vim tests/unit/schema/test_schema_generator.py
+uv run pytest tests/unit/schema/ -v  # Should fail
 
-# Team-specific
-make teamA-test        # Core parser tests
-make teamB-test        # SQL generator tests
-make teamC-test        # Numbering system tests
-make teamD-test        # Integration layer tests
-make teamE-test        # CLI tests
+# GREEN: Minimal implementation
+vim src/generators/schema/schema_generator.py
+uv run pytest tests/unit/schema/ -v  # Should pass
+
+# REFACTOR: Clean up
+vim src/generators/schema/schema_generator.py
+uv run pytest tests/unit/schema/ -v  # Still pass
+
+# QA: Quality checks
+make lint && make typecheck && make test
+```
+
+### Team-Specific Test Commands
+
+```bash
+make teamA-test  # Core parser tests
+make teamB-test  # Schema generator tests
+make teamC-test  # Action compiler tests
+make teamD-test  # FraiseQL metadata tests
+make teamE-test  # CLI tests
+
+make test        # All tests
+make integration # Integration tests
+make coverage    # Coverage report (target: 90%+)
 ```
 
 ---
 
-## 📁 Key Files for AI Context
-
-### Essential Reading (High Priority)
-1. **`GETTING_STARTED.md`** - Team onboarding guide
-2. **`REPOSITORY_STRUCTURE.md`** - Full architecture & parallelization strategy
-3. **`docs/architecture/IMPLEMENTATION_PLAN_SPECQL.md`** - 10-week roadmap with TDD cycles
-4. **`src/core/ast_models.py`** - Foundation data classes (COMPLETE)
-
-### Team-Specific Context
-- **Team A**: `src/core/README.md` + `docs/architecture/SPECQL_BUSINESS_LOGIC_REFINED.md`
-- **Team B**: `src/generators/README.md` + `templates/sql/*.j2`
-- **Team C**: `docs/architecture/INTEGRATION_PROPOSAL.md` (numbering system section)
-- **Team D**: `docs/analysis/FRAISEQL_INTEGRATION_REQUIREMENTS.md`
-- **Team E**: `CONTRIBUTING.md` (CLI workflow)
-
-### Reference Documentation
-- **SpecQL DSL**: `docs/architecture/SPECQL_BUSINESS_LOGIC_REFINED.md`
-- **Trinity Pattern**: Explained in `docs/analysis/POC_RESULTS.md`
-- **Group Leaders**: `docs/architecture/INTEGRATION_PROPOSAL.md`
-
----
-
-## 🎯 AI Assistant Instructions
+## 🚀 Getting Started (For AI Assistants)
 
 ### When Asked About Progress
-1. Check **team status sections above** (🔵🟢🟠🟣🔴 indicators)
-2. Report current % completion per team
-3. Identify blockers and critical path
-4. Suggest next actionable task
+1. Check **TEAM PROGRESS DASHBOARD** above
+2. Report current week and focus
+3. Identify what's blocking next steps
 
-### When Asked to Help a Team
-1. Read team's `README.md` in `src/{team}/`
-2. Check `tests/unit/{team}/` for existing tests
+### When Asked to Help a Specific Team
+1. Read team's section above for mission and focus
+2. Check `src/{team}/README.md` for detailed specs
 3. Follow **TDD cycle**: RED → GREEN → REFACTOR → QA
-4. Use mocks from `tests/fixtures/` if dependencies not ready
+4. Use templates from `templates/` directory
 
 ### When Suggesting Work
-1. **Always prioritize Team A** (blocks everyone)
-2. Suggest teams use **mock data** for parallel work
-3. Ensure **one team-specific task at a time**
-4. Follow test-first approach (write test, then implementation)
-
-### Code Quality Standards
-- Type hints required (`mypy` passing)
-- Linting passing (`ruff check`)
-- Test coverage > 80% per module
-- Docstrings for all public functions
+1. **Prioritize current week's focus** (Week 1 = Team A only)
+2. **Follow sequential team dependencies**:
+   - Team A must finish before B/C/D start
+   - Teams B/C/D can work in parallel (Week 2-6)
+   - Team E orchestrates in Week 7+
+3. **One team-specific task at a time**
+4. **Test-first always** (write test before implementation)
 
 ---
 
-## 🔧 Common Development Commands
+## 💡 Example: Complete SpecQL → GraphQL Flow
 
+### Step 1: User Writes SpecQL (20 lines)
+```yaml
+# entities/contact.yaml
+entity: Contact
+schema: crm
+
+fields:
+  email: text
+  company: ref(Company)
+  status: enum(lead, qualified, customer)
+
+actions:
+  - name: qualify_lead
+    requires: caller.can_edit_contact
+    steps:
+      - validate: status = 'lead'
+        error: "not_a_lead"
+      - update: Contact SET status = 'qualified'
+      - notify: owner(email, "Contact qualified")
+```
+
+### Step 2: Run Generator
 ```bash
-# Setup (once)
-uv venv && source .venv/bin/activate && make install
+specql generate entities/contact.yaml
 
-# TDD Cycle (daily)
-vim tests/unit/core/test_specql_parser.py  # RED: Write failing test
-uv run pytest tests/unit/core/ -v          # Verify it fails
-vim src/core/specql_parser.py              # GREEN: Make it pass
-uv run pytest tests/unit/core/ -v          # Verify it passes
-vim src/core/specql_parser.py              # REFACTOR: Clean up
-make teamA-test                            # Verify still passes
-make lint && make typecheck                # QA: Quality checks
+# Output:
+# ✓ Parsing SpecQL...
+# ✓ Generating schema (Team B)...
+#   - tb_contact table (Trinity pattern)
+#   - 3 auto-indexes
+#   - 4 helper functions
+# ✓ Compiling actions (Team C)...
+#   - qualify_lead() function
+# ✓ Adding FraiseQL metadata (Team D)...
+#   - 8 COMMENT annotations
+# ✓ Writing: migrations/001_contact.sql (1,847 lines)
+# ✓ Complete!
+```
 
-# Before commit
-make lint && make typecheck && make test
-git add . && git commit -m "feat(core): implement SpecQL parser"
+### Step 3: Apply to Database
+```bash
+psql < migrations/001_contact.sql
+# Contact table created with Trinity pattern
+# Functions created
+# FraiseQL metadata attached
+```
+
+### Step 4: FraiseQL Auto-Discovery
+```bash
+# FraiseQL introspects database
+# Finds @fraiseql:* comments
+# Auto-generates GraphQL schema
+```
+
+### Step 5: GraphQL API Ready!
+```graphql
+# Auto-generated types
+type Contact {
+  id: UUID!
+  email: String!
+  company: Company
+  status: ContactStatus!
+}
+
+# Auto-generated queries
+query {
+  contact(id: "...") { email, company { name } }
+  contacts(filter: {status: LEAD}) { id, email }
+}
+
+# Auto-generated mutations (from qualify_lead function)
+mutation {
+  qualifyLead(contactId: "...") {
+    success
+    contact { id, status }
+  }
+}
+```
+
+**Total User Code**: 20 lines YAML
+**Total Generated Code**: 2000+ lines (SQL + GraphQL)
+**Code Leverage**: **100x**
+
+---
+
+## 🎯 Key Principles for AI Assistants
+
+### 1. **Lightweight SpecQL Above All**
+- If implementation requires users to write SQL/DDL → ❌ Wrong
+- If implementation requires users to write GraphQL → ❌ Wrong
+- Users write ONLY business domain → ✅ Correct
+
+### 2. **Convention Over Configuration**
+- Trinity pattern is ALWAYS applied → Not configurable
+- Naming conventions are ALWAYS applied → Not configurable
+- Audit fields are ALWAYS added → Not configurable
+- Users specify business logic, framework handles the rest
+
+### 3. **Test-Driven Development is Mandatory**
+- Every feature starts with a failing test
+- No implementation without tests
+- 90%+ coverage target
+
+### 4. **Clear Team Boundaries**
+- Team A: Parse business DSL (NO infrastructure details)
+- Team B: Apply DDL conventions (Trinity, indexes, constraints)
+- Team C: Compile business actions to PL/pgSQL
+- Team D: Add FraiseQL metadata
+- Team E: Orchestrate everything
+
+### 5. **Sequential Team Dependencies**
+- Week 1: Team A only (parse SpecQL)
+- Week 2+: Teams B/C/D (need Team A's AST)
+- Week 7+: Team E (needs B/C/D output)
+
+---
+
+## 📚 Essential Documentation
+
+### For Team A (SpecQL Parser)
+- `docs/architecture/SPECQL_BUSINESS_LOGIC_REFINED.md` - Lightweight DSL spec
+- `src/core/README.md` - Parser implementation guide
+
+### For Team B (Schema Generator)
+- `docs/analysis/POC_RESULTS.md` - Trinity pattern examples
+- `docs/architecture/INTEGRATION_PROPOSAL.md` - Conventions to apply
+
+### For Team C (Action Compiler)
+- `docs/architecture/SPECQL_BUSINESS_LOGIC_REFINED.md` - Action step syntax
+- Examples in `entities/examples/`
+
+### For Team D (FraiseQL)
+- `docs/analysis/FRAISEQL_INTEGRATION_REQUIREMENTS.md` - Metadata format
+- FraiseQL documentation (external)
+
+### For Team E (CLI)
+- `CONTRIBUTING.md` - CLI workflow
+- `docs/guides/` - User-facing docs (to be written)
+
+---
+
+## 🚨 Common Mistakes to Avoid
+
+### ❌ Don't Parse Infrastructure Details in Team A
+```yaml
+# ❌ BAD - Don't parse this in SpecQL
+foreign_keys:
+  fk_company:
+    references: tb_company
+    on: pk_company
+```
+**Why**: Team B infers FKs from `ref(Company)` automatically
+
+### ❌ Don't Make Users Write SQL Syntax
+```yaml
+# ❌ BAD - Don't require SQL syntax
+fields:
+  status: "TEXT CHECK (status IN ('lead', 'qualified'))"
+```
+```yaml
+# ✅ GOOD - Simple business domain
+fields:
+  status: enum(lead, qualified)
+```
+
+### ❌ Don't Make Trinity Pattern Configurable
+```yaml
+# ❌ BAD - Don't let users configure Trinity
+trinity_pattern:
+  pk_field: custom_pk  # NO!
+  id_field: custom_id  # NO!
+```
+**Why**: Consistency across all tables is critical
+
+### ❌ Don't Skip Tests
+```python
+# ❌ BAD - Writing code without tests first
+def generate_schema(entity):
+    # Implementation without test
+```
+
+```python
+# ✅ GOOD - Test-first development
+def test_generate_schema_with_trinity_pattern():
+    entity = Entity(name='Contact', ...)
+    sql = SchemaGenerator().generate(entity)
+    assert 'pk_contact' in sql
+    assert 'id UUID' in sql
 ```
 
 ---
 
-## 📈 Success Metrics
+## 📞 Questions for AI to Ask
 
-### Week 1 Targets (Current Week)
-- [ ] Team A: 50% (simple entity parsing working)
-- [ ] Team B: 30% (table generation with mocks)
-- [ ] Team C: 40% (numbering parser working)
-- [ ] Team D: 20% (FraiseQL comments with mocks)
-- [ ] Team E: 20% (CLI scaffold)
+When uncertain, AI should ask:
 
-### Week 2 Targets
-- [ ] Team A: 100% (complex entity parsing)
-- [ ] Team B: 70% (action compilation)
-- [ ] Team C: 80% (manifest generation)
-- [ ] Team D: 60% (GraphQL schema gen)
-- [ ] Team E: 50% (validation tools)
+### About Requirements
+- "Does this feature belong in SpecQL (business), or is it a framework convention?"
+- "Should this be auto-generated, or user-specified?"
+- "Is this simplifying the user's YAML, or making it more complex?"
 
-### Integration Milestone (End of Week 2)
-- [ ] Full pipeline: YAML → Entity AST → SQL → Database
-- [ ] End-to-end test passing
-- [ ] 80%+ test coverage overall
+### About Implementation
+- "Which team owns this functionality?"
+- "Does Team A's AST support this, or do we need to extend it?"
+- "Can we infer this from existing data, or must user specify?"
+
+### About Testing
+- "What's the failing test for this feature?"
+- "Have we covered edge cases in tests?"
+- "Does this maintain 90%+ coverage?"
 
 ---
 
-## 🚨 Important Constraints
-
-### Development Methodology
-- **TDD is mandatory**: RED → GREEN → REFACTOR → QA
-- **No skipping tests**: Every feature needs tests first
-- **Small PRs**: < 500 lines per PR
-- **Team isolation Week 1**: Use mocks, not cross-team imports
-
-### Performance Targets
-- Parse 100 entities: < 5 seconds
-- Generate SQL for 1 entity: < 100ms
-- Full pipeline (1 entity): < 500ms
-
-### Code Standards
-- Python 3.8+ compatibility
-- Type hints everywhere
-- Comprehensive docstrings
-- 80%+ test coverage minimum
+**Last Updated**: 2025-11-08 (Post-Architecture Revision)
+**Project Phase**: Week 1 - Team A (SpecQL Parser)
+**Overall Progress**: 10% (1 of 10 weeks)
+**Next Milestone**: Week 2 - Team B starts Schema Generation
 
 ---
 
-## 🎓 AI Learning Resources
+## 🤖 AI Quick Reference Card
 
-When helping with specific technologies:
+**Project Goal**: 20 lines YAML → 2000 lines production code (100x leverage)
 
-### SpecQL DSL
-- See: `docs/architecture/SPECQL_BUSINESS_LOGIC_REFINED.md`
-- Action steps: validate, if/then, insert, update, call, find
-- Framework handles: audit, events, permissions (auto-generated)
+**Current Focus**: Week 1 - Team A - SpecQL Parser (90% done)
 
-### PostgreSQL Trinity Pattern
-- `pk_*` INTEGER PRIMARY KEY (fast joins)
-- `id` UUID (stable external ID)
-- `identifier` TEXT (human-readable key)
-- See: `docs/analysis/POC_RESULTS.md`
+**Key Principle**: Users write business domain ONLY, framework handles ALL technical details
 
-### Group Leader Pattern
-- Auto-populate dependent fields via triggers
-- Ensures data coherence (e.g., company address matches company)
-- See: `docs/architecture/INTEGRATION_PROPOSAL.md`
+**Critical Path**: Team A → Teams B/C/D → Team E → FraiseQL
 
----
+**Test Command**: `make test`
 
-## 💡 Quick Reference: What Each Team Needs
-
-### Team A Needs
-- YAML parsing (PyYAML)
-- Regex for expression parsing
-- AST design patterns
-- **Currently working on**: Basic entity parsing
-
-### Team B Needs
-- Jinja2 templates
-- PostgreSQL DDL knowledge
-- PL/pgSQL for functions
-- **Currently working on**: Mock-based table generation
-
-### Team C Needs
-- Graph algorithms (topological sort)
-- File system operations
-- Dependency resolution
-- **Currently working on**: Numbering parser
-
-### Team D Needs
-- GraphQL schema knowledge
-- FraiseQL introspection format
-- TypeScript type generation
-- **Currently working on**: Not started (can use mocks)
-
-### Team E Needs
-- Click (CLI framework)
-- Rich (terminal UI)
-- Orchestration patterns
-- **Currently working on**: Not started
-
----
-
-## 🎯 Recommended Next Actions (for AI to Suggest)
-
-### Immediate (This Session)
-1. **Team A**: Implement `SpecQLParser.parse()` for simple entities
-   - Start with failing test in `tests/unit/core/test_specql_parser.py`
-   - Parse basic fields (text, integer types)
-   - Return Entity AST
-
-2. **Team B**: Create mock Entity → Generate table SQL
-   - Use `tests/fixtures/mock_entities.py`
-   - Implement `table_generator.py` with Trinity pattern
-   - Test with `make teamB-test`
-
-### Short-term (This Week)
-3. **Team C**: Implement numbering parser
-4. **Team D**: FraiseQL COMMENT generation with mocks
-5. **Team E**: CLI scaffold with Click
-
-### Medium-term (Week 2)
-6. Integration testing across teams
-7. Complex entity parsing (actions with steps)
-8. Full pipeline demo
-
----
-
-## 📞 Getting Help
-
-When AI needs clarification:
-1. Check team's `README.md` first
-2. Review `REPOSITORY_STRUCTURE.md` for interfaces
-3. Look at existing test fixtures for examples
-4. Suggest reading `IMPLEMENTATION_PLAN_SPECQL.md` for detailed specs
-
----
-
-**Last Updated**: 2025-11-08
-**Project Phase**: 1 (Core Parser + SQL Generators)
-**Overall Progress**: 5%
-**Next Milestone**: Week 1 completion (simple entity → SQL pipeline working)
-
----
-
-## 🤖 AI Optimization Notes
-
-This file is designed for efficient AI context loading:
-- **Team status**: Quick visual indicators (🔵🟢🟠🟣🔴)
-- **Progress tracking**: % completion per team
-- **Blocker visibility**: Critical path clearly marked
-- **Actionable next steps**: Specific tasks for each team
-- **File references**: Direct pointers to relevant documentation
-
-**AI should prioritize**:
-1. Team A (blocks everyone)
-2. Teams with no blockers (B/C/D/E can use mocks)
-3. Test-first development (TDD mandatory)
-4. Small, incremental progress over large changes
-
-**AI should avoid**:
-1. Suggesting work across multiple teams simultaneously
-2. Skipping test writing
-3. Large refactorings before basic functionality works
-4. Cross-team imports during Week 1 (use mocks instead)
+**When in Doubt**: Keep SpecQL lightweight, move complexity to framework

@@ -42,7 +42,7 @@ entity:
   foreign_keys:
     fk_company:
       references: management.tb_organization
-      on: pk_organization
+      "on": pk_organization
       nullable: true
       description: "Foreign key to the corresponding company in tb_organization."
       # Lookup function would be: core.organization_pk(identifier)

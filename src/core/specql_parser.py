@@ -8,7 +8,24 @@ from typing import Any, Dict, List
 
 import yaml
 
-from src.core.ast_models import Action, ActionStep, Agent, Entity, FieldDefinition, Organization
+from src.core.ast_models import (
+    Action,
+    ActionStep,
+    Agent,
+    DeduplicationRule,
+    DeduplicationStrategy,
+    Entity,
+    FieldDefinition,
+    ForeignKey,
+    GraphQLSchema,
+    Index,
+    OperationConfig,
+    Organization,
+    TranslationConfig,
+    TrinityHelper,
+    TrinityHelpers,
+    ValidationRule,
+)
 
 
 class ParseError(Exception):
@@ -90,6 +107,7 @@ class SpecQLParser:
             name=entity_name,
             schema=entity_config.get("schema", "public"),
             table=entity_config.get("table"),
+            table_code=entity_config.get("table_code"),
             description=entity_config.get("description", ""),
         )
 
@@ -103,6 +121,42 @@ class SpecQLParser:
         # Parse fields
         if "fields" in entity_config:
             entity.fields = self._parse_fields(entity_config["fields"])
+
+        # Parse foreign keys
+        if "foreign_keys" in entity_config:
+            entity.foreign_keys = self._parse_foreign_keys(entity_config["foreign_keys"])
+
+        # Parse indexes
+        if "indexes" in entity_config:
+            entity.indexes = self._parse_indexes(entity_config["indexes"])
+
+        # Parse validation rules
+        if "validation" in entity_config:
+            entity.validation = self._parse_validation_rules(entity_config["validation"])
+
+        # Parse deduplication strategy
+        if "deduplication" in entity_config:
+            entity.deduplication = self._parse_deduplication(entity_config["deduplication"])
+
+        # Parse operations config
+        if "operations" in entity_config:
+            entity.operations = self._parse_operations(entity_config["operations"])
+
+        # Parse trinity helpers
+        if "trinity_helpers" in entity_config:
+            entity.trinity_helpers = self._parse_trinity_helpers(entity_config["trinity_helpers"])
+
+        # Parse GraphQL schema
+        if "graphql" in entity_config:
+            entity.graphql = self._parse_graphql(entity_config["graphql"])
+
+        # Parse translations
+        if "translations" in entity_config:
+            entity.translations = self._parse_translations(entity_config["translations"])
+
+        # Parse notes
+        if "notes" in entity_config:
+            entity.notes = entity_config["notes"]
 
         # Parse actions
         if "actions" in entity_config:
@@ -325,6 +379,31 @@ class SpecQLParser:
         elif "reject" in step_data:
             return ActionStep(type="reject", error=step_data["reject"])
 
+        # Notify step
+        elif "notify" in step_data:
+            notify_spec = step_data["notify"]
+
+            # Parse: notify: recipient(channel, "message")
+            match = self.CALL_PATTERN.match(notify_spec)
+            if match:
+                recipient = match.group(1)
+                args_str = match.group(2)
+
+                # Parse arguments: channel, "message"
+                arguments = {}
+                if args_str:
+                    parts = [
+                        arg.strip() for arg in args_str.split(",", 1)
+                    ]  # Split only on first comma
+                    if len(parts) >= 1:
+                        arguments["channel"] = parts[0].strip().strip("\"'")
+                    if len(parts) >= 2:
+                        arguments["message"] = parts[1].strip().strip("\"'")
+
+                return ActionStep(type="notify", function_name=recipient, arguments=arguments)
+            else:
+                raise ParseError(f"Invalid notify syntax: {notify_spec}")
+
         else:
             raise ParseError(f"Unknown step type: {step_data}")
 
@@ -332,8 +411,9 @@ class SpecQLParser:
         self, expression: str, entity_fields: Dict[str, FieldDefinition]
     ) -> None:
         """Validate that fields referenced in expression exist"""
-        # Extract potential field names (simple heuristic: words before operators)
-        potential_fields = re.findall(r"\b([a-z_][a-z0-9_]*)\b", expression.lower())
+        # Remove quoted strings before extracting field names
+        expression_without_quotes = re.sub(r"['\"]([^'\"]*)['\"]", "", expression)
+        potential_fields = re.findall(r"\b([a-z_][a-z0-9_]*)\b", expression_without_quotes.lower())
 
         # Additional allowed terms (patterns, functions, etc.)
         allowed_terms = {
@@ -368,6 +448,110 @@ class SpecQLParser:
                         f"Field '{field_name}' referenced in expression not found in entity. "
                         f"Available fields: {', '.join(entity_fields.keys())}"
                     )
+
+    def _parse_foreign_keys(self, foreign_keys_data: Dict) -> List[ForeignKey]:
+        """Parse foreign key definitions"""
+        foreign_keys = []
+
+        for fk_name, fk_spec in foreign_keys_data.items():
+            foreign_key = ForeignKey(
+                name=fk_name,
+                references=fk_spec["references"],
+                on=fk_spec["on"],
+                nullable=fk_spec.get("nullable", True),
+                description=fk_spec.get("description", ""),
+            )
+            foreign_keys.append(foreign_key)
+
+        return foreign_keys
+
+    def _parse_indexes(self, indexes_data: List[Dict]) -> List[Index]:
+        """Parse index definitions"""
+        indexes = []
+
+        for index_data in indexes_data:
+            index = Index(
+                columns=index_data["columns"],
+                type=index_data.get("type", "btree"),
+                name=index_data.get("name"),
+            )
+            indexes.append(index)
+
+        return indexes
+
+    def _parse_validation_rules(self, validation_data: List[Dict]) -> List[ValidationRule]:
+        """Parse validation rule definitions"""
+        rules = []
+
+        for rule_data in validation_data:
+            rule = ValidationRule(
+                name=rule_data["name"],
+                condition=rule_data["condition"],
+                error=rule_data["error"],
+            )
+            rules.append(rule)
+
+        return rules
+
+    def _parse_deduplication(self, deduplication_data: Dict) -> DeduplicationStrategy:
+        """Parse deduplication strategy"""
+        strategy = DeduplicationStrategy(strategy=deduplication_data["strategy"])
+
+        if "rules" in deduplication_data:
+            for rule_data in deduplication_data["rules"]:
+                rule = DeduplicationRule(
+                    fields=rule_data["fields"],
+                    when=rule_data.get("when"),
+                    priority=rule_data.get("priority", 1),
+                    message=rule_data.get("message", ""),
+                )
+                strategy.rules.append(rule)
+
+        return strategy
+
+    def _parse_operations(self, operations_data: Dict) -> OperationConfig:
+        """Parse operations configuration"""
+        return OperationConfig(
+            create=operations_data.get("create", True),
+            update=operations_data.get("update", True),
+            delete=operations_data.get("delete", "soft"),
+            recalcid=operations_data.get("recalcid", True),
+        )
+
+    def _parse_trinity_helpers(self, helpers_data: Dict) -> TrinityHelpers:
+        """Parse trinity helpers configuration"""
+        helpers = TrinityHelpers(
+            generate=helpers_data.get("generate", True),
+            lookup_by=helpers_data.get("lookup_by"),
+        )
+
+        if "helpers" in helpers_data:
+            for helper_data in helpers_data["helpers"]:
+                helper = TrinityHelper(
+                    name=helper_data["name"],
+                    params=helper_data["params"],
+                    returns=helper_data["returns"],
+                    description=helper_data.get("description", ""),
+                )
+                helpers.helpers.append(helper)
+
+        return helpers
+
+    def _parse_graphql(self, graphql_data: Dict) -> GraphQLSchema:
+        """Parse GraphQL schema configuration"""
+        return GraphQLSchema(
+            type_name=graphql_data["type_name"],
+            queries=graphql_data.get("queries", []),
+            mutations=graphql_data.get("mutations", []),
+        )
+
+    def _parse_translations(self, translations_data: Dict) -> TranslationConfig:
+        """Parse translations configuration"""
+        return TranslationConfig(
+            enabled=translations_data.get("enabled", False),
+            table_name=translations_data.get("table_name"),
+            fields=translations_data.get("fields", []),
+        )
 
     def _parse_agents(self, agents_data: List[Dict]) -> List[Agent]:
         """Parse AI agent definitions"""
