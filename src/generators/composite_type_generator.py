@@ -128,29 +128,53 @@ class CompositeTypeGenerator:
     def _generate_field_comments(
         self, type_name: str, fields: Dict[str, FieldDefinition]
     ) -> List[str]:
-        """Generate FraiseQL field-level comments with metadata"""
+        """Generate FraiseQL field-level comments with YAML metadata"""
         comments = []
         for field_name, field_def in fields.items():
             # Generate GraphQL type for FraiseQL
             graphql_type = self._map_to_graphql_type(field_def)
 
-            # Build FraiseQL annotation
-            annotation_parts = [f"@fraiseql:field name={field_name},type={graphql_type}"]
+            # Build description
+            description = self._generate_field_description(field_name, field_def)
 
-            if not field_def.nullable:
-                annotation_parts.append("required=true")
+            # Build YAML annotation
+            yaml_parts = [
+                f"name: {field_name}",
+                f"type: {graphql_type}{'' if field_def.nullable else '!'}",
+                f"required: {str(not field_def.nullable).lower()}",
+            ]
 
             if field_def.type_name == "ref":
-                annotation_parts.append(f"references={field_def.reference_entity}")
+                yaml_parts.append(f"references: {field_def.reference_entity}")
 
             if field_def.type_name == "enum" and field_def.values:
-                values_str = "|".join(field_def.values)
-                annotation_parts.append(f"enumValues={values_str}")
+                values_str = ", ".join(field_def.values)
+                yaml_parts.append(f"enumValues: {values_str}")
 
-            annotation = ",".join(annotation_parts)
+            yaml_content = "\n".join(yaml_parts)
 
-            comments.append(f"COMMENT ON COLUMN app.{type_name}.{field_name} IS '{annotation}';")
+            comment = f"""COMMENT ON COLUMN app.{type_name}.{field_name} IS
+'{description}
+
+@fraiseql:field
+{yaml_content}';"""
+
+            comments.append(comment)
         return comments
+
+    def _generate_field_description(self, field_name: str, field_def: FieldDefinition) -> str:
+        """Generate human-readable description for field"""
+        base_name = field_name.replace("_id", "") if field_name.endswith("_id") else field_name
+
+        if field_def.type_name == "ref":
+            return f"{base_name.title()} reference ({'required' if not field_def.nullable else 'optional'})."
+        elif field_def.type_name == "email":
+            return f"Email address ({'required' if not field_def.nullable else 'optional'})."
+        elif field_def.type_name == "enum":
+            values = ", ".join(field_def.values) if field_def.values else "values"
+            return f"{base_name.title()} ({values})."
+        else:
+            return f"{base_name.title()} ({'required' if not field_def.nullable else 'optional'})."
 
     def _map_to_graphql_type(self, field_def: FieldDefinition) -> str:
         """Map SpecQL field type to GraphQL type for FraiseQL"""

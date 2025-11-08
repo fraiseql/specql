@@ -51,39 +51,8 @@ class AppSchemaGenerator:
 
     def _generate_mutation_result_type(self) -> str:
         """Generate the standard mutation_result composite type"""
-        return """-- ============================================================================
--- MUTATION RESULT TYPE
--- Standard output type for all mutations
--- ============================================================================
-CREATE TYPE app.mutation_result AS (
-    id UUID,
-    updated_fields TEXT[],
-    status TEXT,
-    message TEXT,
-    object_data JSONB,
-    extra_metadata JSONB
-);
-
-COMMENT ON TYPE app.mutation_result IS
-  '@fraiseql:type name=MutationResult';
-
-COMMENT ON COLUMN app.mutation_result.id IS
-  '@fraiseql:field name=id,type=UUID,description=Entity identifier';
-
-COMMENT ON COLUMN app.mutation_result.updated_fields IS
-  '@fraiseql:field name=updatedFields,type=[String],description=Fields that were modified in this mutation';
-
-COMMENT ON COLUMN app.mutation_result.status IS
-  'Status: success, failed:*, warning:*';
-
-COMMENT ON COLUMN app.mutation_result.message IS
-  '@fraiseql:field name=message,type=String,description=Human-readable success or error message';
-
-COMMENT ON COLUMN app.mutation_result.object_data IS
-  '@fraiseql:field name=object,type=JSON,description=Complete entity data after mutation';
-
-COMMENT ON COLUMN app.mutation_result.extra_metadata IS
-  '@fraiseql:field name=extra,type=JSON,description=Additional metadata including side effects and impact information';"""
+        template = self.env.get_template("mutation_result_type.sql.j2")
+        return template.render()
 
     def _generate_audit_log_table(self) -> str:
         """Generate the mutation audit log table"""

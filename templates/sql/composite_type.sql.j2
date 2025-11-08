@@ -11,7 +11,11 @@ CREATE TYPE app.{{ type_name }} AS (
 
 -- FraiseQL metadata
 COMMENT ON TYPE app.{{ type_name }} IS
-  '@fraiseql:input name={{ graphql_name }}';
+'Input parameters for {{ action_name | replace("_", " ") | title }}.
+
+@fraiseql:composite
+name: {{ graphql_name }}
+tier: 2';
 
 {% if field_comments %}
 -- Field metadata

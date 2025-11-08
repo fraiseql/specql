@@ -49,6 +49,30 @@ class TestTableGenerator:
         assert "status TEXT NOT NULL" in ddl
         assert "fk_company INTEGER" in ddl
 
+    def test_table_comments_with_fraiseql_yaml_format(self, generator):
+        """Table and column comments should use FraiseQL YAML format"""
+        entity = mock_contact_entity()
+
+        ddl = generator.generate_table_ddl(entity)
+
+        # Check table comment with @fraiseql:type
+        expected_table_comment = """COMMENT ON TABLE crm.tb_contact IS
+'CRM contact entity.
+
+@fraiseql:type
+trinity: true';"""
+        assert expected_table_comment in ddl
+
+        # Check column comment with @fraiseql:field
+        expected_id_comment = """COMMENT ON COLUMN crm.tb_contact.id IS
+'Public UUID identifier for external APIs and GraphQL.
+
+@fraiseql:field
+name: id
+type: UUID!
+required: true';"""
+        assert expected_id_comment in ddl
+
         # Check enum constraint
         assert "CHECK (status IN ('lead', 'qualified', 'customer'))" in ddl
 

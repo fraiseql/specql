@@ -1,0 +1,71 @@
+{# Mutation Result Type Template #}
+-- ============================================================================
+-- MUTATION RESULT TYPE
+-- Standard output type for all mutations
+-- ============================================================================
+CREATE TYPE app.mutation_result AS (
+    id UUID,
+    updated_fields TEXT[],
+    status TEXT,
+    message TEXT,
+    object_data JSONB,
+    extra_metadata JSONB
+);
+
+COMMENT ON TYPE app.mutation_result IS
+'Standard mutation result for all operations.
+Returns entity data, status, and optional metadata.
+
+@fraiseql:composite
+name: MutationResult
+tier: 1
+storage: composite';
+
+COMMENT ON COLUMN app.mutation_result.id IS
+'Unique identifier of the affected entity.
+
+@fraiseql:field
+name: id
+type: UUID!
+required: true';
+
+COMMENT ON COLUMN app.mutation_result.updated_fields IS
+'Fields that were modified in this mutation.
+
+@fraiseql:field
+name: updatedFields
+type: [String]
+required: false';
+
+COMMENT ON COLUMN app.mutation_result.status IS
+'Operation status indicator.
+Values: success, failed:error_code
+
+@fraiseql:field
+name: status
+type: String!
+required: true';
+
+COMMENT ON COLUMN app.mutation_result.message IS
+'Human-readable success or error message.
+
+@fraiseql:field
+name: message
+type: String
+required: false';
+
+COMMENT ON COLUMN app.mutation_result.object_data IS
+'Complete entity data after mutation.
+
+@fraiseql:field
+name: object
+type: JSON
+required: false';
+
+COMMENT ON COLUMN app.mutation_result.extra_metadata IS
+'Additional metadata including side effects and impact information.
+
+@fraiseql:field
+name: extra
+type: JSON
+required: false';

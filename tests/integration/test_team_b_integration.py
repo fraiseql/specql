@@ -225,14 +225,18 @@ class TestSchemaOrchestratorIntegration:
         assert "company_id UUID" in sql  # External UUID reference
         assert "status TEXT" in sql
 
-        # Verify FraiseQL annotations
-        assert "@fraiseql:input name=CreateContactInput" in sql
-        assert "@fraiseql:field name=email,type=String" in sql  # email is nullable by default
-        assert "@fraiseql:field name=company_id,type=UUID,references=Company" in sql
+        # Verify FraiseQL annotations (YAML format)
+        assert "@fraiseql:composite" in sql
+        assert "name: CreateContactInput" in sql
+        assert "@fraiseql:field" in sql
+        assert "name: email" in sql
+        assert "name: company_id" in sql
+        assert "references: Company" in sql
 
         # Verify common types
         assert "CREATE TYPE app.mutation_result" in sql
-        assert "@fraiseql:type name=MutationResult" in sql
+        assert "@fraiseql:composite" in sql  # YAML format
+        assert "name: MutationResult" in sql
 
         # Verify indexes
         assert "CREATE INDEX idx_tb_contact_id" in sql
@@ -257,8 +261,9 @@ class TestSchemaOrchestratorIntegration:
         assert "CREATE TYPE app.type_assign_task_input" in sql
         assert "assignee_id UUID" in sql  # External API uses UUID
 
-        # Verify FraiseQL annotations
-        assert "@fraiseql:input name=AssignTaskInput" in sql
+        # Verify FraiseQL annotations (YAML format)
+        assert "@fraiseql:composite" in sql
+        assert "name: AssignTaskInput" in sql
 
     def test_generated_sql_is_valid_postgresql(self, parser, orchestrator):
         """Test that generated SQL is syntactically valid PostgreSQL"""

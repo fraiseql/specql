@@ -29,7 +29,8 @@ AS $$
 $$;
 
 COMMENT ON FUNCTION {{ entity.schema }}.{{ entity.name | lower }}_pk(TEXT, UUID) IS
-  'Trinity Pattern: Resolve entity identifier (UUID, identifier, or pk) to internal INTEGER primary key';
+'Trinity Pattern: Resolve entity identifier to internal INTEGER primary key.
+Accepts UUID, text identifier, or integer pk and returns {{ entity.pk_column }}.';
 {%- elif function_type == "id" %}
 
 -- INTEGER (pk) → UUID
@@ -42,5 +43,5 @@ AS $$
 $$;
 
 COMMENT ON FUNCTION {{ entity.schema }}.{{ entity.name | lower }}_id(INTEGER) IS
-  'Trinity Pattern: Convert internal INTEGER primary key to external UUID identifier';
+'Trinity Pattern: Convert internal INTEGER primary key to external UUID identifier.';
 {%- endif %}

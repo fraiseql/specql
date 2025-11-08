@@ -94,11 +94,21 @@ CREATE INDEX idx_tb_{{ entity.name | lower }}_tenant ON {{ entity.schema }}.tb_{
 -- ============================================================================
 -- Documentation
 -- ============================================================================
-COMMENT ON TABLE {{ entity.schema }}.tb_{{ entity.name | lower }} IS '[Table: {{ entity.table_code }} | {{ entity.description }}]';
+COMMENT ON TABLE {{ entity.schema }}.tb_{{ entity.name | lower }} IS
+'{{ entity.description }}.
+
+@fraiseql:type
+trinity: true';
 
 -- Trinity Pattern columns
 COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.pk_{{ entity.name | lower }} IS 'Internal INTEGER primary key used in joins and foreign keys.';
-COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.id IS 'Public UUID identifier for external APIs and GraphQL.';
+COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.id IS
+'Public UUID identifier for external APIs and GraphQL.
+
+@fraiseql:field
+name: id
+type: UUID!
+required: true';
 {%- if entity.multi_tenant %}
 
 -- Multi-Tenancy columns

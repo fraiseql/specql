@@ -53,4 +53,11 @@ $$;
 
 -- FraiseQL Metadata
 COMMENT ON FUNCTION app.{{ app_function_name }} IS
-  '@fraiseql:mutation name={{ graphql_name }},input={{ input_type_name }},output=MutationResult';
+'Creates a new {{ app_function_name | replace("_", " ") | title | replace("Create ", "") }} record.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: {{ graphql_name }}
+input_type: app.type_{{ app_function_name }}_input
+success_type: {{ input_type_name | replace("Input", "Success") }}
+failure_type: {{ input_type_name | replace("Input", "Error") }}';

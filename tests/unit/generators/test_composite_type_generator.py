@@ -42,7 +42,9 @@ class TestCompositeTypeGenerator:
         assert "status TEXT" in sql
         # FraiseQL annotation
         assert "COMMENT ON TYPE app.type_create_contact_input IS" in sql
-        assert "@fraiseql:input name=CreateContactInput" in sql
+        assert "@fraiseql:composite" in sql
+        assert "name: CreateContactInput" in sql
+        assert "tier: 2" in sql
 
     def test_generate_composite_type_with_nullable_fields(self, generator):
         """Nullable fields in composite types"""
@@ -66,13 +68,12 @@ class TestCompositeTypeGenerator:
         sql = generator.generate_input_type(entity, entity.actions[0])
 
         # Then: FraiseQL annotations include required/optional info
-        assert "@fraiseql:field name=email,type=String,required=true" in sql
-        assert (
-            "@fraiseql:field name=company_id,type=UUID,references=Company" in sql
-        )  # optional (no required=true)
-        assert (
-            "@fraiseql:field name=status,type=String,required=true,enumValues=lead|qualified" in sql
-        )
+        assert "@fraiseql:field" in sql
+        assert "name: email" in sql
+        assert "type: String!" in sql
+        assert "required: true" in sql
+        assert "references: Company" in sql
+        assert "enumValues: lead, qualified" in sql
 
     def test_generate_composite_type_with_nested_fields(self, generator):
         """Handle complex field types (arrays, lists)"""
@@ -89,6 +90,39 @@ class TestCompositeTypeGenerator:
 
         # Then: Array type used
         assert "tags TEXT[]" in sql
+
+    def test_generate_input_composite_with_yaml_comments(self, generator):
+        """Generated input composites should have YAML comments"""
+        entity = Entity(
+            name="Contact",
+            schema="crm",
+            fields={
+                "email": FieldDefinition(name="email", type_name="email", nullable=False),
+            },
+        )
+        action = Action(name="create_contact", steps=[])
+
+        generator = CompositeTypeGenerator()
+        sql = generator.generate_input_type(entity, action)
+
+        # Should have type-level comment
+        expected_type_comment = """COMMENT ON TYPE app.type_create_contact_input IS
+'Input parameters for Create Contact.
+
+@fraiseql:composite
+name: CreateContactInput
+tier: 2';"""
+        assert expected_type_comment in sql
+
+        # Should have field-level comments
+        expected_field_comment = """COMMENT ON COLUMN app.type_create_contact_input.email IS
+'Email address (required).
+
+@fraiseql:field
+name: email
+type: String!
+required: true';"""
+        assert expected_field_comment in sql
 
     def test_skip_composite_type_for_actions_without_input(self, generator):
         """Some actions (like delete) may not need input types"""
@@ -263,15 +297,19 @@ class TestSchemaOrchestrator:
         sql = generator.generate_input_type(entity, entity.actions[0])
 
         # Then: FraiseQL annotations are comprehensive
-        assert "@fraiseql:field name=name,type=String,required=true" in sql
-        assert "@fraiseql:field name=price,type=Float,required=true" in sql
-        assert "@fraiseql:field name=in_stock,type=Boolean,required=true" in sql
-        assert "@fraiseql:field name=category_id,type=UUID,references=Category" in sql
-        assert "@fraiseql:field name=tags,type=[TEXT]" in sql
-        assert (
-            "@fraiseql:field name=status,type=String,required=true,enumValues=active|inactive|discontinued"
-            in sql
-        )
+        assert "@fraiseql:field" in sql
+        assert "name: name" in sql
+        assert "type: String!" in sql
+        assert "name: price" in sql
+        assert "type: Float!" in sql
+        assert "name: in_stock" in sql
+        assert "type: Boolean!" in sql
+        assert "name: category_id" in sql
+        assert "references: Category" in sql
+        assert "name: tags" in sql
+        assert "type: [TEXT]" in sql
+        assert "name: status" in sql
+        assert "enumValues: active, inactive, discontinued" in sql
 
     def test_update_action_field_filtering(self, generator):
         """Test that update actions exclude audit fields"""

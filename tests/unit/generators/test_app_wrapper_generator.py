@@ -39,6 +39,31 @@ def test_generate_app_wrapper_for_create_action():
     assert "@fraiseql:mutation" in sql
 
 
+def test_app_wrapper_fraiseql_comment_yaml_format():
+    """App wrapper function should have YAML comment format"""
+    # Given: Entity with create action
+    entity = Entity(
+        name="Contact", schema="crm", fields={}, actions=[Action(name="create_contact")]
+    )
+
+    # When: Generate app wrapper
+    generator = AppWrapperGenerator()
+    sql = generator.generate_app_wrapper(entity, entity.actions[0])
+
+    # Then: Function comment uses YAML format
+    expected_comment = """COMMENT ON FUNCTION app.create_contact IS
+'Creates a new Contact record.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: createContact
+input_type: app.type_create_contact_input
+success_type: CreateContactSuccess
+failure_type: CreateContactError';"""
+
+    assert expected_comment in sql
+
+
 def test_app_wrapper_jwt_context_parameters():
     """App wrapper extracts JWT context"""
     # Given: Entity with action
@@ -159,6 +184,7 @@ def test_app_wrapper_fraiseql_annotation():
     # Then: FraiseQL annotation
     assert "COMMENT ON FUNCTION app.create_contact IS" in sql
     assert "@fraiseql:mutation" in sql
-    assert "name=createContact" in sql
-    assert "input=CreateContactInput" in sql
-    assert "output=MutationResult" in sql
+    assert "name: createContact" in sql
+    assert "input_type: app.type_create_contact_input" in sql
+    assert "success_type: CreateContactSuccess" in sql
+    assert "failure_type: CreateContactError" in sql
