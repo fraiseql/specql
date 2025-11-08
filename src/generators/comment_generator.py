@@ -5,14 +5,12 @@ Generates descriptive COMMENT ON statements for FraiseQL autodiscovery
 
 from typing import List, Dict, Optional
 from src.core.ast_models import Entity, FieldDefinition
-from src.core.type_registry import get_type_registry
 
 
 class CommentGenerator:
     """Generates PostgreSQL COMMENT statements for rich types"""
 
     def __init__(self) -> None:
-        self.type_registry = get_type_registry()
         self._type_descriptions = self._build_type_descriptions()
 
     def _build_type_descriptions(self) -> Dict[str, str]:
@@ -78,23 +76,18 @@ class CommentGenerator:
         """Get human-readable description for field"""
 
         # Use type description from registry
-        description = self._type_descriptions.get(field.type, "")
+        description = self._type_descriptions.get(field.type_name, "")
 
         if not description:
             # Fallback for unknown types
-            description = f"{field.type.capitalize()} value"
+            description = f"{field.type_name.capitalize()} value"
 
         # Add special notes for specific types
-        if field.type == "enum" and field.values:
+        if field.type_name == "enum" and field.values:
             description += f" (options: {', '.join(field.values)})"
 
-        elif field.type == "ref" and field.target_entity:
-            description += f" → {field.target_entity}"
-
-        elif field.type == "money" and field.type_metadata:
-            currency = field.type_metadata.get("currency")
-            if currency:
-                description += f" ({currency})"
+        elif field.type_name == "ref" and field.reference_entity:
+            description += f" → {field.reference_entity}"
 
         return description
 
@@ -104,7 +97,7 @@ class CommentGenerator:
 
         for field_name, field_def in entity.fields.items():
             # For ref() fields, use actual database column name (fk_*)
-            if field_def.type == "ref":
+            if field_def.type_name == "ref":
                 # Create temp field with correct column name
                 from dataclasses import replace
 

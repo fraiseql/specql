@@ -4,8 +4,7 @@ Tests that generated SQL actually works in PostgreSQL database
 """
 
 import pytest
-import psycopg2
-from psycopg2.extras import execute_values
+import psycopg
 from src.generators.table_generator import TableGenerator
 from src.core.ast_models import Entity, FieldDefinition
 
@@ -14,14 +13,17 @@ from src.core.ast_models import Entity, FieldDefinition
 def test_db():
     """PostgreSQL test database connection"""
     # Use test database - adjust connection string as needed
-    conn = psycopg2.connect(
-        host="localhost", database="test_specql", user="postgres", password="postgres"
-    )
-    # Enable pg_trgm extension for URL indexes
-    conn.cursor().execute("CREATE EXTENSION IF NOT EXISTS pg_trgm;")
-    conn.commit()
-    yield conn
-    conn.close()
+    try:
+        conn = psycopg.connect(
+            host="localhost", dbname="test_specql", user="postgres", password="postgres"
+        )
+        # Enable pg_trgm extension for URL indexes
+        conn.cursor().execute("CREATE EXTENSION IF NOT EXISTS pg_trgm;")
+        conn.commit()
+        yield conn
+        conn.close()
+    except psycopg.OperationalError:
+        pytest.skip("PostgreSQL not available for integration tests")
 
 
 def create_contact_entity_with_email():
@@ -30,8 +32,8 @@ def create_contact_entity_with_email():
         name="Contact",
         schema="crm",
         fields={
-            "name": FieldDefinition(name="name", type="text", nullable=False),
-            "email": FieldDefinition(name="email", type="email", nullable=False),
+            "name": FieldDefinition(name="name", type_name="text", nullable=False),
+            "email": FieldDefinition(name="email", type_name="email", nullable=False),
         },
     )
 
@@ -42,11 +44,13 @@ def create_contact_entity_with_rich_types():
         name="Contact",
         schema="crm",
         fields={
-            "name": FieldDefinition(name="name", type="text", nullable=False),
-            "email": FieldDefinition(name="email", type="email", nullable=False),
-            "website": FieldDefinition(name="website", type="url", nullable=True),
-            "phone": FieldDefinition(name="phone", type="phoneNumber", nullable=True),
-            "coordinates": FieldDefinition(name="coordinates", type="coordinates", nullable=True),
+            "name": FieldDefinition(name="name", type_name="text", nullable=False),
+            "email": FieldDefinition(name="email", type_name="email", nullable=False),
+            "website": FieldDefinition(name="website", type_name="url", nullable=True),
+            "phone": FieldDefinition(name="phone", type_name="phoneNumber", nullable=True),
+            "coordinates": FieldDefinition(
+                name="coordinates", type_name="coordinates", nullable=True
+            ),
         },
     )
 
@@ -77,7 +81,7 @@ def test_email_constraint_validates_format(test_db):
     test_db.commit()  # Should succeed
 
     # Test invalid email - should raise CheckViolation
-    with pytest.raises(psycopg2.errors.CheckViolation):
+    with pytest.raises(psycopg.errors.CheckViolation):
         cursor.execute(
             "INSERT INTO crm.tb_contact (id, tenant_id, name, email) VALUES (%s, %s, %s, %s)",
             (
@@ -207,9 +211,8 @@ def test_url_pattern_matching_with_gin_index(test_db):
         ),
     ]
 
-    execute_values(
-        cursor,
-        "INSERT INTO crm.tb_contact (id, tenant_id, name, email, website, phone, coordinates) VALUES %s",
+    cursor.executemany(
+        "INSERT INTO crm.tb_contact (id, tenant_id, name, email, website, phone, coordinates) VALUES (%s, %s, %s, %s, %s, %s, %s)",
         test_data,
     )
     test_db.commit()
@@ -270,9 +273,8 @@ def test_coordinates_gist_index_for_spatial_queries(test_db):
         ),
     ]
 
-    execute_values(
-        cursor,
-        "INSERT INTO crm.tb_contact (id, tenant_id, name, email, website, phone, coordinates) VALUES %s",
+    cursor.executemany(
+        "INSERT INTO crm.tb_contact (id, tenant_id, name, email, website, phone, coordinates) VALUES (%s, %s, %s, %s, %s, %s, %s)",
         test_data,
     )
     test_db.commit()
@@ -299,9 +301,9 @@ def test_enum_constraints_work(test_db):
         name="Task",
         schema="public",
         fields={
-            "title": FieldDefinition(name="title", type="text", nullable=False),
+            "title": FieldDefinition(name="title", type_name="text", nullable=False),
             "status": FieldDefinition(
-                name="status", type="enum", values=["pending", "in_progress", "completed"]
+                name="status", type_name="enum", values=["pending", "in_progress", "completed"]
             ),
         },
     )
@@ -321,7 +323,7 @@ def test_enum_constraints_work(test_db):
     test_db.commit()  # Should succeed
 
     # Test invalid enum value - should raise CheckViolation
-    with pytest.raises(psycopg2.errors.CheckViolation):
+    with pytest.raises(psycopg.errors.CheckViolation):
         cursor.execute(
             "INSERT INTO public.tb_task (id, title, status) VALUES (%s, %s, %s)",
             ("550e8400-e29b-41d4-a716-446655440001", "Another Task", "invalid_status"),
@@ -339,7 +341,7 @@ def test_foreign_key_constraints_work(test_db):
         name="Company",
         schema="crm",
         fields={
-            "name": FieldDefinition(name="name", type="text", nullable=False),
+            "name": FieldDefinition(name="name", type_name="text", nullable=False),
         },
     )
 
@@ -348,8 +350,8 @@ def test_foreign_key_constraints_work(test_db):
         name="Contact",
         schema="crm",
         fields={
-            "name": FieldDefinition(name="name", type="text", nullable=False),
-            "company": FieldDefinition(name="company", type="ref", target_entity="Company"),
+            "name": FieldDefinition(name="name", type_name="text", nullable=False),
+            "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company"),
         },
     )
 
@@ -389,7 +391,7 @@ def test_foreign_key_constraints_work(test_db):
     test_db.commit()  # Should succeed
 
     # Try to insert child with invalid FK - should raise ForeignKeyViolation
-    with pytest.raises(psycopg2.errors.ForeignKeyViolation):
+    with pytest.raises(psycopg.errors.ForeignKeyViolation):
         cursor.execute(
             "INSERT INTO crm.tb_contact (id, tenant_id, name, fk_company) VALUES (%s, %s, %s, %s)",
             (

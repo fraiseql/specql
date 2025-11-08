@@ -63,21 +63,21 @@ class IndexGenerator:
         index_name = f"idx_tb_{entity.name.lower()}_{field.name}"
 
         # Different index types based on rich type
-        if field.type in ("email", "phoneNumber", "macAddress", "slug", "color", "money"):
+        if field.type_name in ("email", "phoneNumber", "macAddress", "slug", "color", "money"):
             # B-tree indexes for exact lookups and range queries
             return [f"CREATE INDEX {index_name} ON {table_name} USING btree ({field.name});"]
 
-        elif field.type == "url":
+        elif field.type_name == "url":
             # GIN index with trigram ops for pattern matching
             return [
                 f"CREATE INDEX {index_name} ON {table_name} USING gin ({field.name} gin_trgm_ops);"
             ]
 
-        elif field.type in ("coordinates", "latitude", "longitude"):
+        elif field.type_name in ("coordinates", "latitude", "longitude"):
             # GiST indexes for spatial operations
             return [f"CREATE INDEX {index_name} ON {table_name} USING gist ({field.name});"]
 
-        elif field.type == "ipAddress":
+        elif field.type_name == "ipAddress":
             # GiST index with inet ops for network operations
             return [
                 f"CREATE INDEX {index_name} ON {table_name} USING gist ({field.name} inet_ops);"

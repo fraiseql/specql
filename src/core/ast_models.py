@@ -12,7 +12,13 @@ from typing import Optional, List, Dict, Any
 from enum import Enum
 
 # Import from scalar_types
-from src.core.scalar_types import ScalarTypeDef, CompositeTypeDef
+from src.core.scalar_types import (
+    ScalarTypeDef,
+    CompositeTypeDef,
+    get_scalar_type,
+    is_scalar_type,
+    is_composite_type,
+)
 
 
 class FieldTier(Enum):
@@ -79,6 +85,32 @@ class FieldDefinition:
     placeholder: Optional[str] = None
     example: Optional[str] = None
 
+    def __post_init__(self):
+        """Initialize field based on type_name"""
+        # Set tier and scalar_def based on type_name
+        if is_scalar_type(self.type_name):
+            self.tier = FieldTier.SCALAR
+            self.scalar_def = get_scalar_type(self.type_name)
+            if self.scalar_def:
+                self.postgres_type = self.scalar_def.get_postgres_type_with_precision()
+                self.validation_pattern = self.scalar_def.validation_pattern
+                self.min_value = self.scalar_def.min_value
+                self.max_value = self.scalar_def.max_value
+                self.postgres_precision = self.scalar_def.postgres_precision
+                self.input_type = self.scalar_def.input_type
+                self.placeholder = self.scalar_def.placeholder
+        elif is_composite_type(self.type_name):
+            self.tier = FieldTier.COMPOSITE
+            # composite_def will be set in Phase 2
+        elif self.type_name == "ref":
+            self.tier = FieldTier.REFERENCE
+        elif self.values:
+            # Enum field
+            pass  # Keep as BASIC
+        else:
+            # Basic type
+            pass
+
     def is_rich_scalar(self) -> bool:
         """Check if this is a rich scalar type"""
         return self.tier == FieldTier.SCALAR
@@ -90,6 +122,56 @@ class FieldDefinition:
     def is_reference(self) -> bool:
         """Check if this is a reference to another entity"""
         return self.tier == FieldTier.REFERENCE
+
+    def get_postgres_type(self) -> str:
+        """Get the PostgreSQL type for this field"""
+        from src.core.scalar_types import get_scalar_type
+
+        # If we have a cached postgres_type, use it
+        if self.postgres_type:
+            return self.postgres_type
+
+        # For scalar types, get from registry
+        if self.scalar_def:
+            return self.scalar_def.get_postgres_type_with_precision()
+
+        # For basic types, map directly
+        basic_mappings = {
+            "text": "TEXT",
+            "integer": "INTEGER",
+            "boolean": "BOOLEAN",
+            "date": "DATE",
+            "timestamp": "TIMESTAMPTZ",
+            "uuid": "UUID",
+            "json": "JSONB",
+            "decimal": "DECIMAL",
+        }
+
+        if self.type_name in basic_mappings:
+            return basic_mappings[self.type_name]
+
+        # For enum types
+        if self.values:
+            return "TEXT"
+
+        # For ref types (foreign keys)
+        if self.type_name == "ref":
+            return "INTEGER"  # FK to pk_* column
+
+        # Fallback
+        return "TEXT"
+
+    def get_validation_pattern(self) -> Optional[str]:
+        """Get validation regex pattern for this field"""
+        if self.scalar_def and self.scalar_def.validation_pattern:
+            return self.scalar_def.validation_pattern
+        return None
+
+    def is_rich_type(self) -> bool:
+        """Check if this field uses a rich type"""
+        from src.core.scalar_types import is_rich_type
+
+        return is_rich_type(self.type_name) or bool(self.scalar_def)
 
 
 @dataclass

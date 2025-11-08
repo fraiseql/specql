@@ -69,19 +69,19 @@ class TableGenerator:
         table_name = f"{entity.schema}.tb_{entity.name.lower()}"
 
         for field_name, field_def in entity.fields.items():
-            if field_def.type == "ref" and field_def.target_entity:
+            if field_def.type_name == "ref" and field_def.reference_entity:
                 # Foreign key field - add to FK dict
                 fk_name = f"fk_{field_name}"
-                target_entity_lower = field_def.target_entity.lower()
+                target_entity_lower = field_def.reference_entity.lower()
                 references = f"{entity.schema}.tb_{target_entity_lower}(pk_{target_entity_lower})"
                 foreign_keys[fk_name] = {
                     "name": fk_name,
                     "references": references,
                     "on": f"pk_{target_entity_lower}",
                     "nullable": field_def.nullable,
-                    "description": f"Reference to {field_def.target_entity}",
+                    "description": f"Reference to {field_def.reference_entity}",
                 }
-            elif field_def.type == "enum" and field_def.values:
+            elif field_def.type_name == "enum" and field_def.values:
                 # Enum field - add CHECK constraint
                 enum_values = ", ".join(f"'{v}'" for v in field_def.values)
                 constraint_name = f"chk_tb_{entity.name.lower()}_{field_name}_enum"
@@ -159,10 +159,10 @@ class TableGenerator:
         fk_statements = []
 
         for field_name, field_def in entity.fields.items():
-            if field_def.type == "ref" and field_def.target_entity:
+            if field_def.type_name == "ref" and field_def.reference_entity:
                 fk_name = f"fk_{field_name}"
                 entity_name_lower = entity.name.lower()
-                target_entity_lower = field_def.target_entity.lower()
+                target_entity_lower = field_def.reference_entity.lower()
                 table_name = f"{entity.schema}.tb_{entity_name_lower}"
                 ref_table = f"{entity.schema}.tb_{target_entity_lower}"
                 ref_column = f"pk_{target_entity_lower}"
@@ -195,14 +195,14 @@ class TableGenerator:
 
         # Index on foreign keys
         for field_name, field_def in entity.fields.items():
-            if field_def.type == "ref" and field_def.target_entity:
+            if field_def.type_name == "ref" and field_def.reference_entity:
                 fk_name = f"fk_{field_name}"
                 indexes.append(f"""CREATE INDEX idx_tb_{entity_name_lower}_{field_name}
     ON {entity.schema}.tb_{entity_name_lower} USING btree ({fk_name});""")
 
         # Index on enum fields (for filtering)
         for field_name, field_def in entity.fields.items():
-            if field_def.type == "enum" and field_def.values:
+            if field_def.type_name == "enum" and field_def.values:
                 indexes.append(f"""CREATE INDEX idx_tb_{entity_name_lower}_{field_name}
     ON {entity.schema}.tb_{entity_name_lower} USING btree ({field_name});""")
 

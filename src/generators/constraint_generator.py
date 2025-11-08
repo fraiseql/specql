@@ -23,7 +23,7 @@ class ConstraintGenerator:
             return f"CONSTRAINT {constraint_name} CHECK ({field.name} ~* '{pattern}')"
 
         # Special constraints for specific types
-        if field.type == "coordinates":
+        if field.type_name == "coordinates":
             constraint_name = self._generate_constraint_name(table_name, field.name, "bounds")
             return f"CONSTRAINT {constraint_name} CHECK ({field.name}[0] BETWEEN -90 AND 90 AND {field.name}[1] BETWEEN -180 AND 180)"
 

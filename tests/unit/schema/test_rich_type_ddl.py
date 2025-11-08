@@ -13,7 +13,7 @@ def test_email_field_generates_text_with_constraint():
     entity = Entity(
         name="Contact",
         schema="crm",
-        fields={"email": FieldDefinition(name="email", type="email", nullable=False)},
+        fields={"email": FieldDefinition(name="email", type_name="email", nullable=False)},
     )
 
     generator = TableGenerator()
@@ -31,7 +31,7 @@ def test_url_field_generates_text_with_url_constraint():
     entity = Entity(
         name="Page",
         schema="public",
-        fields={"website": FieldDefinition(name="website", type="url", nullable=True)},
+        fields={"website": FieldDefinition(name="website", type_name="url", nullable=True)},
     )
 
     generator = TableGenerator()
@@ -47,7 +47,7 @@ def test_ip_address_uses_inet_type():
     entity = Entity(
         name="Server",
         schema="public",
-        fields={"ip_address": FieldDefinition(name="ip_address", type="ipAddress")},
+        fields={"ip_address": FieldDefinition(name="ip_address", type_name="ipAddress")},
     )
 
     generator = TableGenerator()
@@ -63,7 +63,7 @@ def test_mac_address_uses_macaddr_type():
     entity = Entity(
         name="Device",
         schema="public",
-        fields={"mac": FieldDefinition(name="mac", type="macAddress")},
+        fields={"mac": FieldDefinition(name="mac", type_name="macAddress")},
     )
 
     generator = TableGenerator()
@@ -78,7 +78,7 @@ def test_coordinates_generates_point_with_constraint():
     entity = Entity(
         name="Location",
         schema="public",
-        fields={"location": FieldDefinition(name="location", type="coordinates")},
+        fields={"location": FieldDefinition(name="location", type_name="coordinates")},
     )
 
     generator = TableGenerator()
@@ -97,7 +97,7 @@ def test_money_generates_numeric_with_precision():
     entity = Entity(
         name="Product",
         schema="public",
-        fields={"price": FieldDefinition(name="price", type="money", nullable=False)},
+        fields={"price": FieldDefinition(name="price", type_name="money", nullable=False)},
     )
 
     generator = TableGenerator()
@@ -107,19 +107,17 @@ def test_money_generates_numeric_with_precision():
 
 
 def test_money_with_metadata_uses_custom_precision():
-    """Test: money(precision=2) generates NUMERIC(19,2)"""
+    """Test: money generates NUMERIC(19,4) default precision"""
     entity = Entity(
         name="Product",
         schema="public",
-        fields={
-            "price": FieldDefinition(name="price", type="money", type_metadata={"precision": 2})
-        },
+        fields={"price": FieldDefinition(name="price", type_name="money")},
     )
 
     generator = TableGenerator()
     ddl = generator.generate_table_ddl(entity)
 
-    assert "price NUMERIC(19,2)" in ddl
+    assert "price NUMERIC(19,4)" in ddl
 
 
 def test_phone_number_generates_text_with_e164_constraint():
@@ -127,7 +125,7 @@ def test_phone_number_generates_text_with_e164_constraint():
     entity = Entity(
         name="Contact",
         schema="public",
-        fields={"phone": FieldDefinition(name="phone", type="phoneNumber")},
+        fields={"phone": FieldDefinition(name="phone", type_name="phoneNumber")},
     )
 
     generator = TableGenerator()
@@ -144,7 +142,7 @@ def test_color_generates_text_with_hex_constraint():
     entity = Entity(
         name="Theme",
         schema="public",
-        fields={"theme_color": FieldDefinition(name="theme_color", type="color")},
+        fields={"theme_color": FieldDefinition(name="theme_color", type_name="color")},
     )
 
     generator = TableGenerator()
@@ -159,7 +157,9 @@ def test_color_generates_text_with_hex_constraint():
 def test_slug_generates_text_with_url_safe_constraint():
     """Test: slug type generates TEXT with lowercase-hyphen validation"""
     entity = Entity(
-        name="Post", schema="public", fields={"slug": FieldDefinition(name="slug", type="slug")}
+        name="Post",
+        schema="public",
+        fields={"slug": FieldDefinition(name="slug", type_name="slug")},
     )
 
     generator = TableGenerator()
@@ -177,11 +177,11 @@ def test_complete_table_with_multiple_rich_types():
         name="Contact",
         schema="crm",
         fields={
-            "email": FieldDefinition(name="email", type="email", nullable=False),
-            "website": FieldDefinition(name="website", type="url"),
-            "phone": FieldDefinition(name="phone", type="phoneNumber"),
-            "ip_address": FieldDefinition(name="ip_address", type="ipAddress"),
-            "first_name": FieldDefinition(name="first_name", type="text"),
+            "email": FieldDefinition(name="email", type_name="email", nullable=False),
+            "website": FieldDefinition(name="website", type_name="url"),
+            "phone": FieldDefinition(name="phone", type_name="phoneNumber"),
+            "ip_address": FieldDefinition(name="ip_address", type_name="ipAddress"),
+            "first_name": FieldDefinition(name="first_name", type_name="text"),
         },
     )
 
@@ -216,10 +216,10 @@ def test_backward_compatibility_basic_types():
         name="Product",
         schema="sales",
         fields={
-            "name": FieldDefinition(name="name", type="text", nullable=False),
-            "quantity": FieldDefinition(name="quantity", type="integer"),
-            "active": FieldDefinition(name="active", type="boolean"),
-            "metadata": FieldDefinition(name="metadata", type="jsonb"),
+            "name": FieldDefinition(name="name", type_name="text", nullable=False),
+            "quantity": FieldDefinition(name="quantity", type_name="integer"),
+            "active": FieldDefinition(name="active", type_name="boolean"),
+            "metadata": FieldDefinition(name="metadata", type_name="json"),
         },
     )
 

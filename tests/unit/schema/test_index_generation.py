@@ -13,7 +13,7 @@ def test_email_field_gets_btree_index():
     entity = Entity(
         name="Contact",
         schema="crm",
-        fields={"email": FieldDefinition(name="email", type="email", nullable=False)},
+        fields={"email": FieldDefinition(name="email", type_name="email", nullable=False)},
     )
 
     generator = TableGenerator()
@@ -27,7 +27,7 @@ def test_email_field_gets_btree_index():
 def test_url_field_gets_gin_index_for_pattern_search():
     """Test: URL fields get GIN indexes for pattern matching"""
     entity = Entity(
-        name="Page", schema="public", fields={"url": FieldDefinition(name="url", type="url")}
+        name="Page", schema="public", fields={"url": FieldDefinition(name="url", type_name="url")}
     )
 
     generator = TableGenerator()
@@ -44,7 +44,7 @@ def test_coordinates_field_gets_gist_index():
     entity = Entity(
         name="Location",
         schema="public",
-        fields={"coordinates": FieldDefinition(name="coordinates", type="coordinates")},
+        fields={"coordinates": FieldDefinition(name="coordinates", type_name="coordinates")},
     )
 
     generator = TableGenerator()
@@ -60,7 +60,7 @@ def test_ip_address_field_gets_gist_index():
     entity = Entity(
         name="Server",
         schema="public",
-        fields={"ip_address": FieldDefinition(name="ip_address", type="ipAddress")},
+        fields={"ip_address": FieldDefinition(name="ip_address", type_name="ipAddress")},
     )
 
     generator = TableGenerator()
@@ -77,7 +77,7 @@ def test_mac_address_field_gets_btree_index():
     entity = Entity(
         name="Device",
         schema="public",
-        fields={"mac": FieldDefinition(name="mac", type="macAddress")},
+        fields={"mac": FieldDefinition(name="mac", type_name="macAddress")},
     )
 
     generator = TableGenerator()
@@ -93,7 +93,7 @@ def test_phone_field_gets_btree_index():
     entity = Entity(
         name="Contact",
         schema="public",
-        fields={"phone": FieldDefinition(name="phone", type="phoneNumber")},
+        fields={"phone": FieldDefinition(name="phone", type_name="phoneNumber")},
     )
 
     generator = TableGenerator()
@@ -107,7 +107,7 @@ def test_phone_field_gets_btree_index():
 def test_slug_field_gets_btree_index():
     """Test: Slug fields get btree indexes"""
     entity = Entity(
-        name="Post", schema="public", fields={"slug": FieldDefinition(name="slug", type="slug")}
+        name="Post", schema="public", fields={"slug": FieldDefinition(name="slug", type_name="slug")}
     )
 
     generator = TableGenerator()
@@ -121,7 +121,7 @@ def test_slug_field_gets_btree_index():
 def test_color_field_gets_btree_index():
     """Test: Color fields get btree indexes"""
     entity = Entity(
-        name="Theme", schema="public", fields={"color": FieldDefinition(name="color", type="color")}
+        name="Theme", schema="public", fields={"color": FieldDefinition(name="color", type_name="color")}
     )
 
     generator = TableGenerator()
@@ -137,7 +137,7 @@ def test_money_field_gets_btree_index():
     entity = Entity(
         name="Product",
         schema="public",
-        fields={"price": FieldDefinition(name="price", type="money")},
+        fields={"price": FieldDefinition(name="price", type_name="money")},
     )
 
     generator = TableGenerator()
@@ -154,10 +154,10 @@ def test_multiple_rich_types_get_multiple_indexes():
         name="Contact",
         schema="crm",
         fields={
-            "email": FieldDefinition(name="email", type="email"),
-            "website": FieldDefinition(name="website", type="url"),
-            "phone": FieldDefinition(name="phone", type="phoneNumber"),
-            "coordinates": FieldDefinition(name="coordinates", type="coordinates"),
+            "email": FieldDefinition(name="email", type_name="email"),
+            "website": FieldDefinition(name="website", type_name="url"),
+            "phone": FieldDefinition(name="phone", type_name="phoneNumber"),
+            "coordinates": FieldDefinition(name="coordinates", type_name="coordinates"),
         },
     )
 
@@ -178,8 +178,8 @@ def test_no_rich_types_returns_empty_list():
         name="Simple",
         schema="public",
         fields={
-            "name": FieldDefinition(name="name", type="text"),
-            "count": FieldDefinition(name="count", type="integer"),
+            "name": FieldDefinition(name="name", type_name="text"),
+            "count": FieldDefinition(name="count", type_name="integer"),
         },
     )
 
@@ -196,8 +196,8 @@ def test_latitude_longitude_get_gist_indexes():
         name="Place",
         schema="public",
         fields={
-            "lat": FieldDefinition(name="lat", type="latitude"),
-            "lng": FieldDefinition(name="lng", type="longitude"),
+            "lat": FieldDefinition(name="lat", type_name="latitude"),
+            "lng": FieldDefinition(name="lng", type_name="longitude"),
         },
     )
 

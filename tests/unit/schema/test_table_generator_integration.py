@@ -13,7 +13,7 @@ def test_complete_ddl_with_foreign_keys():
     entity = Entity(
         name="Contact",
         schema="crm",
-        fields={"company": FieldDefinition(name="company", type="ref", target_entity="Company")},
+        fields={"company": FieldDefinition(name="company", type_name="ref", reference_entity="Company")},
     )
 
     generator = TableGenerator()
@@ -31,7 +31,7 @@ def test_complete_ddl_with_enum_constraints():
         schema="public",
         fields={
             "status": FieldDefinition(
-                name="status", type="enum", values=["pending", "in_progress", "completed"]
+                name="status", type_name="enum", values=["pending", "in_progress", "completed"]
             )
         },
     )
@@ -48,7 +48,7 @@ def test_generate_indexes_ddl_with_foreign_keys():
     entity = Entity(
         name="Contact",
         schema="crm",
-        fields={"company": FieldDefinition(name="company", type="ref", target_entity="Company")},
+        fields={"company": FieldDefinition(name="company", type_name="ref", reference_entity="Company")},
     )
 
     generator = TableGenerator()
@@ -66,7 +66,7 @@ def test_generate_indexes_ddl_with_enum_fields():
         name="Task",
         schema="public",
         fields={
-            "status": FieldDefinition(name="status", type="enum", values=["pending", "completed"])
+            "status": FieldDefinition(name="status", type_name="enum", values=["pending", "completed"])
         },
     )
 
@@ -84,10 +84,10 @@ def test_generate_complete_ddl_orchestration():
         name="Contact",
         schema="crm",
         fields={
-            "name": FieldDefinition(name="name", type="text", nullable=False),
-            "email": FieldDefinition(name="email", type="email", nullable=False),
-            "company": FieldDefinition(name="company", type="ref", target_entity="Company"),
-            "status": FieldDefinition(name="status", type="enum", values=["active", "inactive"]),
+            "name": FieldDefinition(name="name", type_name="text", nullable=False),
+            "email": FieldDefinition(name="email", type_name="email", nullable=False),
+            "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company"),
+            "status": FieldDefinition(name="status", type_name="enum", values=["active", "inactive"]),
         },
     )
 
@@ -123,7 +123,7 @@ def test_tenant_specific_schema_gets_multi_tenant_fields():
         name="Contact",
         schema="crm",  # tenant-specific schema
         fields={
-            "name": FieldDefinition(name="name", type="text", nullable=False),
+            "name": FieldDefinition(name="name", type_name="text", nullable=False),
         },
     )
 
@@ -141,7 +141,7 @@ def test_common_schema_skips_multi_tenant_fields():
         name="Locale",
         schema="common",  # common schema
         fields={
-            "code": FieldDefinition(name="code", type="text", nullable=False),
+            "code": FieldDefinition(name="code", type_name="text", nullable=False),
         },
     )
 
@@ -158,10 +158,10 @@ def test_rich_types_in_complete_ddl():
         name="Contact",
         schema="crm",
         fields={
-            "email": FieldDefinition(name="email", type="email", nullable=False),
-            "website": FieldDefinition(name="website", type="url", nullable=True),
-            "phone": FieldDefinition(name="phone", type="phoneNumber", nullable=True),
-            "coordinates": FieldDefinition(name="coordinates", type="coordinates", nullable=True),
+            "email": FieldDefinition(name="email", type_name="email", nullable=False),
+            "website": FieldDefinition(name="website", type_name="url", nullable=True),
+            "phone": FieldDefinition(name="phone", type_name="phoneNumber", nullable=True),
+            "coordinates": FieldDefinition(name="coordinates", type_name="coordinates", nullable=True),
         },
     )
 
@@ -193,8 +193,8 @@ def test_no_duplicate_comments_in_complete_ddl():
         name="Contact",
         schema="crm",
         fields={
-            "email": FieldDefinition(name="email", type="email", nullable=False),
-            "name": FieldDefinition(name="name", type="text", nullable=False),
+            "email": FieldDefinition(name="email", type_name="email", nullable=False),
+            "name": FieldDefinition(name="name", type_name="text", nullable=False),
         },
     )
 
@@ -226,7 +226,7 @@ def test_audit_fields_always_present():
         name="Simple",
         schema="public",
         fields={
-            "name": FieldDefinition(name="name", type="text", nullable=False),
+            "name": FieldDefinition(name="name", type_name="text", nullable=False),
         },
     )
 
