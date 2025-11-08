@@ -10,7 +10,8 @@
 
 | Prompt File | Team | Priority | Timeline | Status |
 |-------------|------|----------|----------|--------|
-| [`team_b_auth_context.md`](./team_b_auth_context.md) | Team B: Schema Generator | 🔴 HIGH | Week 2, Days 1-2 | ⏳ Pending |
+| [`team_b_auth_context.md`](./team_b_auth_context.md) | Team B: Schema Generator (App/Core) | ✅ DONE | Week 2, Days 1-2 | ✅ Complete |
+| [`team_b_legacy_generator_fix.md`](./team_b_legacy_generator_fix.md) | Team B: Legacy Generator Fix | 🔴 HIGH | Week 2, Days 1-2 | ⏳ Pending |
 | [`team_c_auth_context.md`](./team_c_auth_context.md) | Team C: Action Compiler | 🔴 HIGH | Week 2, Days 3-4 | ⏳ Pending |
 | [`team_d_auth_context.md`](./team_d_auth_context.md) | Team D: FraiseQL Metadata | 🔴 HIGH | Week 2, Day 5 | ⏳ Pending |
 | [`team_e_auth_context.md`](./team_e_auth_context.md) | Team E: Documentation | 🟡 MEDIUM | Week 3, Day 3 | ⏳ Pending |
@@ -45,18 +46,34 @@ CREATE FUNCTION crm.qualify_lead(
 ## 👥 Team Responsibilities
 
 ### 🟢 Team B: Schema Generator (PRIMARY)
-**What**: Update function signature templates to use `auth_*`
+
+#### ✅ App/Core Pattern (COMPLETE)
+**Status**: Already correct! No changes needed.
 
 **Files**:
-- `src/generators/schema/schema_generator.py`
-- `src/generators/schema/audit_fields.py`
-
-**Key Changes**:
-- Function signatures: `auth_tenant_id TEXT`, `auth_user_id UUID`
-- Audit fields: `updated_by = auth_user_id`
-- Tenant checks: `auth_tenant_id IS NOT NULL`
+- ✅ `src/generators/core_logic_generator.py` - Uses `auth_*` throughout
+- ✅ `templates/sql/app_wrapper.sql.j2` - Correct signatures
+- ✅ `templates/sql/core_create_function.sql.j2` - Correct
+- ✅ `templates/sql/core_update_function.sql.j2` - Correct
+- ✅ `templates/sql/core_delete_function.sql.j2` - Correct
 
 **Read**: [`team_b_auth_context.md`](./team_b_auth_context.md)
+
+---
+
+#### ⚠️ Legacy Generator (NEEDS FIX)
+**Status**: 60% complete - Requires auth context implementation
+
+**File**: `src/generators/function_generator.py`
+
+**Key Issues**:
+- ❌ Missing `auth_tenant_id` / `auth_user_id` in function signatures
+- ❌ Hardcoded `null` for audit fields (`created_by`, `updated_by`, `deleted_by`)
+- ❌ No tenant context for multi-tenancy
+
+**Lines to Fix**: 98, 123-131, 167, 221, 246, 257, 259, 298, 320-388
+
+**Read**: [`team_b_legacy_generator_fix.md`](./team_b_legacy_generator_fix.md)
 
 ---
 
