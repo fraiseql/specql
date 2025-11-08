@@ -1,0 +1,178 @@
+# ============================================================================
+# Entity: Manufacturer
+# ============================================================================
+# Lists recognized printer/copier manufacturers (e.g., Canon, HP, Xerox)
+# ============================================================================
+
+entity:
+  name: manufacturer
+  schema: catalog
+  table_code: "013211"
+  description: "Lists recognized printer/copier manufacturers (e.g., Canon, HP, Xerox), with internal identifiers and display attributes."
+
+  # ============================================================================
+  # Fields (Trinity Pattern: pk_* INTEGER and id UUID auto-generated)
+  # ============================================================================
+  fields:
+    identifier:
+      type: TEXT
+      nullable: false
+      unique: true
+      description: "Internal stable identifier (e.g., 'canon', 'ricoh')."
+
+    name:
+      type: TEXT
+      nullable: true
+      description: "Optional display name (can be localized)."
+
+    abbreviation:
+      type: CHAR(2)
+      nullable: false
+      unique: true
+      description: "Short 2-letter code for referencing or color themes (e.g., 'CN', 'HP')."
+
+    color_name:
+      type: TEXT
+      nullable: false
+      description: "CSS-compatible color name or code (e.g., 'red', '#FF6600') used in UI."
+
+  # ============================================================================
+  # Foreign Keys (Trinity Pattern: INTEGER references)
+  # ============================================================================
+  foreign_keys:
+    fk_company:
+      references: management.tb_organization
+      on: pk_organization
+      nullable: true
+      description: "Foreign key to the corresponding company in tb_organization."
+      # Lookup function would be: core.organization_pk(identifier)
+      # Not used in create function (manufacturer is reference data)
+
+  # ============================================================================
+  # Indexes (beyond auto-generated FK indexes)
+  # ============================================================================
+  indexes:
+    - columns: [identifier]
+      type: btree
+      name: idx_manufacturer_identifier
+    - columns: [abbreviation]
+      type: btree
+      name: idx_manufacturer_abbreviation
+
+  # ============================================================================
+  # Validation Rules
+  # ============================================================================
+  validation:
+    - name: identifier_format
+      condition: "identifier ~ '^[a-z0-9_-]+$'"
+      error: "Identifier must be lowercase alphanumeric with dashes/underscores only"
+
+    - name: abbreviation_uppercase
+      condition: "abbreviation ~ '^[A-Z]{2}$'"
+      error: "Abbreviation must be exactly 2 uppercase letters"
+
+    - name: color_name_valid
+      condition: "color_name IS NOT NULL AND LENGTH(TRIM(color_name)) > 0"
+      error: "Color name cannot be empty"
+
+  # ============================================================================
+  # Deduplication Strategy
+  # ============================================================================
+  deduplication:
+    strategy: identifier_based
+    rules:
+      # Primary: exact identifier match
+      - fields: [identifier]
+        when: input_data.identifier IS NOT NULL
+        priority: 1
+        message: "Manufacturer with this identifier already exists"
+
+      # Secondary: abbreviation match
+      - fields: [abbreviation]
+        when: input_data.abbreviation IS NOT NULL
+        priority: 2
+        message: "Manufacturer with this abbreviation already exists"
+
+  # ============================================================================
+  # Operations (which functions to generate)
+  # ============================================================================
+  operations:
+    create: true
+    update: true
+    delete: soft  # Use deleted_at
+    recalcid: true
+    # Note: manufacturer is reference data, typically seeded not created via API
+
+  # ============================================================================
+  # Trinity Pattern Helpers
+  # ============================================================================
+  trinity_helpers:
+    generate: true
+    lookup_by: identifier  # core.manufacturer_pk('canon') -> INTEGER
+    helpers:
+      - name: manufacturer_pk
+        params: [identifier]
+        returns: INTEGER
+        description: "Resolve manufacturer identifier to INTEGER primary key"
+
+      - name: manufacturer_id
+        params: [pk_manufacturer]
+        returns: UUID
+        description: "Resolve INTEGER primary key to UUID identifier"
+
+      - name: manufacturer_name
+        params: [pk_manufacturer]
+        returns: TEXT
+        description: "Resolve INTEGER primary key to display name"
+
+      - name: manufacturer_abbreviation
+        params: [pk_manufacturer]
+        returns: TEXT
+        description: "Resolve INTEGER primary key to abbreviation"
+
+  # ============================================================================
+  # GraphQL Schema (future)
+  # ============================================================================
+  graphql:
+    type_name: Manufacturer
+    queries:
+      - manufacturer       # Single by id (UUID)
+      - manufacturers      # List with filtering
+    mutations:
+      - createManufacturer   # Usually admin-only
+      - updateManufacturer
+      - deleteManufacturer
+
+  # ============================================================================
+  # Translations (i18n support)
+  # ============================================================================
+  translations:
+    enabled: true
+    table_name: tb_manufacturer_translation
+    fields:
+      - name
+      - color_name
+    # Translation table auto-generated when enabled
+
+  # ============================================================================
+  # Audit Fields (auto-generated by Trinity Pattern)
+  # ============================================================================
+  # created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  # created_by UUID
+  # updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  # updated_by UUID
+  # deleted_at TIMESTAMPTZ
+  # deleted_by UUID
+
+  # ============================================================================
+  # Notes
+  # ============================================================================
+  notes: |
+    Manufacturer is reference data, typically:
+    - Seeded from seed files
+    - Rarely created via API
+    - Updated for corrections or new manufacturers
+    - Soft-deleted to preserve historical data
+
+    The fk_company field links to the corporate entity when applicable
+    (e.g., Canon Inc. as a company, Canon as a manufacturer brand).

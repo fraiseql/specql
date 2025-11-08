@@ -1,0 +1,74 @@
+[project]
+name = "specql-generator"
+version = "0.1.0-alpha"
+description = "SpecQL schema generator - Business-focused YAML to PostgreSQL + GraphQL"
+authors = [
+    {name = "PrintOptim Team"}
+]
+requires-python = ">=3.8"
+dependencies = [
+    "pyyaml>=6.0",
+    "jinja2>=3.1.2",
+    "click>=8.1.0",
+    "rich>=13.0.0",
+    "psycopg2-binary>=2.9.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-cov>=4.1.0",
+    "pytest-asyncio>=0.21.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    "black>=23.0.0",
+    "types-pyyaml>=6.0.0",
+]
+
+[project.scripts]
+specql = "src.cli.generate:main"
+specql-validate = "src.cli.validate:main"
+specql-migrate = "src.cli.migrate:main"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = "test_*.py"
+python_classes = "Test*"
+python_functions = "test_*"
+addopts = "-v --tb=short --strict-markers"
+markers = [
+    "unit: Unit tests (fast, isolated)",
+    "integration: Integration tests (slower, requires DB)",
+    "benchmark: Performance benchmarks",
+]
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["tests/*", "**/__pycache__/*"]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py38"
+select = ["E", "F", "I", "N", "W", "UP"]
+ignore = ["E501"]  # Line too long (handled by formatter)
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+ignore_missing_imports = true
+
+[tool.black]
+line-length = 100
+target-version = ['py38']
