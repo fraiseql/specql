@@ -5,7 +5,7 @@ Generates core.* business logic functions
 
 from typing import Any, Dict, List
 from jinja2 import Environment, FileSystemLoader
-from src.core.ast_models import Entity, FieldDefinition, FieldTier
+from src.core.ast_models import Entity, FieldDefinition, FieldTier, Action
 from src.generators.actions.action_orchestrator import ActionOrchestrator
 
 
@@ -244,17 +244,91 @@ class CoreLogicGenerator:
             "composite_type": f"app.type_{action.name}_input",
             "declarations": declarations,
             "compiled_steps": compiled_steps,
+            "camel_name": self._to_camel_case(action.name),
         }
 
         template = self.env.get_template("core_custom_action.sql.j2")
         return template.render(**context)
+
+    def generate_custom_action(self, entity: Entity, action: Action) -> str:
+        """
+        Generate custom business action with step compilation
+        """
+        # Compile action steps
+        compiled_steps = self._compile_action_steps(action, entity)
+
+        # Extract variable declarations
+        declarations = self._extract_declarations(action, entity)
+
+        context = {
+            "entity": {
+                "name": entity.name,
+                "schema": entity.schema,
+                "table_name": f"tb_{entity.name.lower()}",
+            },
+            "action": action,
+            "composite_type": f"app.type_{action.name}_input",
+            "declarations": declarations,
+            "compiled_steps": compiled_steps,
+            "camel_name": self._to_camel_case(action.name),
+        }
+
+        template = self.env.get_template("core_custom_action.sql.j2")
+        return template.render(**context)
+
+    def _compile_action_steps(self, action: Action, entity: Entity) -> List[str]:
+        """
+        Compile action steps into SQL statements
+        """
+        compiled = []
+
+        for step in action.steps:
+            if step.type == "validate" and step.expression:
+                # Replace field references with v_current_* variables
+                expression = step.expression
+                for field_name in entity.fields.keys():
+                    if field_name == "status":
+                        expression = expression.replace(field_name, "v_current_status")
+                    # Add other fields as needed
+
+                compiled.append(f"-- Validate: {step.expression}")
+                compiled.append(f"IF NOT ({expression}) THEN")
+                compiled.append("    RETURN app.log_and_return_mutation(")
+                compiled.append(
+                    "        auth_tenant_id, auth_user_id, "
+                    + f"'{entity.name.lower()}', v_{entity.name.lower()}_id,"
+                )
+                compiled.append("        'CUSTOM', 'failed:validation_error',")
+                compiled.append("        ARRAY[]::TEXT[], 'Validation failed', NULL, NULL")
+                compiled.append("    );")
+                compiled.append("END IF;")
+
+            elif step.type == "update":
+                entity_name = step.entity or entity.name
+                compiled.append(f"-- Update {entity_name}")
+                table_name = f"{entity.schema}.tb_{entity_name.lower()}"
+                assignments = []
+                if step.fields:
+                    assignments = [
+                        f"{field} = {repr(value)}" for field, value in step.fields.items()
+                    ]
+                compiled.append(f"UPDATE {table_name} SET {', '.join(assignments)}")
+                compiled.append("WHERE id = v_contact_id;")
+
+            elif step.type == "call":
+                compiled.append(f"-- Call: {step.expression}")
+                # TODO: Implement proper call compilation when emit_event is available
+                compiled.append(
+                    f"-- PERFORM {step.expression};"
+                )  # Commented out until emit_event exists
+
+        return compiled
 
     def _extract_declarations(self, action, entity) -> List[str]:
         """
         Extract variable declarations needed for the action
         """
         declarations = [
-            f"v_{entity.name.lower()}_id UUID := gen_random_uuid()",
             f"v_{entity.name.lower()}_pk INTEGER",
         ]
 
@@ -264,3 +338,8 @@ class CoreLogicGenerator:
                 declarations.append(f"v_fk_{field_name} INTEGER")
 
         return declarations
+
+    def _to_camel_case(self, snake_str: str) -> str:
+        """Convert snake_case to camelCase"""
+        components = snake_str.split("_")
+        return components[0] + "".join(word.capitalize() for word in components[1:])

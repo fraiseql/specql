@@ -1,139 +1,262 @@
 #!/usr/bin/env python3
 """
-SQL Generation Engine - Trinity Pattern
-Generates PostgreSQL tables and functions from YAML entity definitions
+SpecQL SQL Generation CLI
+Generates complete PostgreSQL schema from YAML entity definitions
 """
 
+import argparse
 from pathlib import Path
 import yaml
-from jinja2 import Environment, FileSystemLoader
 import sys
+from typing import List, Optional
+
+# Add src to path for imports
+sys.path.insert(0, str(Path(__file__).parent / "src"))
+
+from src.core.ast_models import Entity, FieldDefinition, Action, ActionStep
+from src.generators.schema_orchestrator import SchemaOrchestrator
 
 
-class SQLGenerator:
-    """Generate SQL from YAML entity definitions using Jinja2 templates"""
+class SpecQLGenerator:
+    """Generate complete SQL from SpecQL YAML entity definitions"""
 
-    def __init__(self, templates_dir='templates', entities_dir='entities', output_dir='generated'):
-        self.templates_dir = Path(templates_dir)
-        self.entities_dir = Path(entities_dir)
+    def __init__(self, output_dir: str = "generated"):
         self.output_dir = Path(output_dir)
+        self.output_dir.mkdir(parents=True, exist_ok=True)
 
-        # Create Jinja2 environment
-        self.env = Environment(
-            loader=FileSystemLoader(str(self.templates_dir)),
-            trim_blocks=True,
-            lstrip_blocks=True
+    def load_entity_from_yaml(self, yaml_file: Path) -> Entity:
+        """Load entity definition from YAML file and convert to SpecQL Entity"""
+        with open(yaml_file, "r") as f:
+            data = yaml.safe_load(f)
+
+        # Parse entity name, schema, description
+        entity_info = data.get("entity")
+        if isinstance(entity_info, dict):
+            # Format: entity: {name: ..., schema: ..., description: ...}
+            entity_name = entity_info.get("name")
+            schema = entity_info.get("schema", "public")
+            description = entity_info.get("description", "")
+        else:
+            # Format: entity: Name, schema: ..., description: ...
+            entity_name = entity_info
+            schema = data.get("schema", "public")
+            description = data.get("description", "")
+
+        if not entity_name:
+            raise ValueError(f"Entity name not found in YAML file {yaml_file}")
+
+        # Convert fields with type annotations
+        fields = {}
+        for field_name, type_annotation in data.get("fields", {}).items():
+            field_def = self._parse_field_type(field_name, type_annotation)
+            fields[field_name] = field_def
+
+        # Convert actions
+        actions = []
+        for action_data in data.get("actions", []):
+            steps = []
+            for step_item in action_data.get("steps", []):
+                # Handle different step formats
+                if isinstance(step_item, str):
+                    # Simple step like "validate: status = 'lead'"
+                    step_type, expression = step_item.split(":", 1)
+                    step = ActionStep(type=step_type.strip(), expression=expression.strip())
+                elif isinstance(step_item, dict):
+                    # Complex step with additional properties
+                    step = ActionStep(
+                        type=step_item.get("type") or list(step_item.keys())[0],
+                        expression=step_item.get("validate") or step_item.get("expression"),
+                        entity=step_item.get("entity"),
+                        fields=step_item.get("fields"),
+                    )
+                else:
+                    continue
+
+                steps.append(step)
+
+            actions.append(
+                Action(
+                    name=action_data["name"],
+                    steps=steps,
+                )
+            )
+
+        return Entity(
+            name=entity_name, schema=schema, description=description, fields=fields, actions=actions
         )
 
-        # Ensure output directories exist
-        (self.output_dir / 'tables').mkdir(parents=True, exist_ok=True)
-        (self.output_dir / 'functions').mkdir(parents=True, exist_ok=True)
+    def _parse_field_type(self, field_name: str, type_annotation: str) -> FieldDefinition:
+        """Parse SpecQL type annotation into FieldDefinition"""
+        type_annotation = type_annotation.strip()
 
-    def load_entity(self, entity_file):
-        """Load entity definition from YAML file"""
-        with open(entity_file, 'r') as f:
-            data = yaml.safe_load(f)
-        return data['entity']
+        # Handle ref(Type) syntax
+        if type_annotation.startswith("ref(") and type_annotation.endswith(")"):
+            ref_entity = type_annotation[4:-1]
+            return FieldDefinition(
+                name=field_name,
+                type_name="ref",
+                nullable=True,  # refs are typically nullable
+                reference_entity=ref_entity,
+            )
 
-    def generate_table(self, entity):
-        """Generate CREATE TABLE statement from template"""
-        template = self.env.get_template('table.sql.j2')
-        return template.render(entity=entity)
+        # Handle enum(value1, value2, ...) syntax
+        elif type_annotation.startswith("enum(") and type_annotation.endswith(")"):
+            enum_values = [v.strip() for v in type_annotation[5:-1].split(",")]
+            return FieldDefinition(
+                name=field_name, type_name="enum", nullable=True, values=enum_values
+            )
 
-    def generate_trinity_helpers(self, entity):
-        """Generate core.*_pk(), core.*_id() helper functions"""
-        if not entity.get('trinity_helpers', {}).get('generate'):
-            return None
-
-        template = self.env.get_template('trinity_helpers.sql.j2')
-        return template.render(entity=entity)
-
-    def generate_entity(self, entity_file):
-        """Generate all SQL for a single entity"""
-        print(f"\n{'='*80}")
-        print(f"Processing: {entity_file.name}")
-        print(f"{'='*80}")
-
-        # Load entity definition
-        entity = self.load_entity(entity_file)
-        entity_name = entity['name']
-
-        print(f"Entity: {entity['schema']}.{entity_name}")
-        print(f"Description: {entity['description']}")
-
-        results = {}
-
-        # Generate table SQL
-        print(f"\n[1/2] Generating table SQL...")
-        table_sql = self.generate_table(entity)
-        results['table'] = table_sql
-
-        # Write table SQL
-        table_file = self.output_dir / 'tables' / f'tb_{entity_name}.sql'
-        table_file.write_text(table_sql)
-        print(f"      ✓ Written: {table_file}")
-        print(f"        Size: {len(table_sql)} bytes")
-        print(f"        Lines: {len(table_sql.splitlines())}")
-
-        # Generate trinity helpers if enabled
-        if entity.get('trinity_helpers', {}).get('generate'):
-            print(f"\n[2/2] Generating trinity helper functions...")
-            trinity_sql = self.generate_trinity_helpers(entity)
-            results['trinity'] = trinity_sql
-
-            # Write trinity helpers
-            trinity_file = self.output_dir / 'functions' / f'{entity_name}_trinity_helpers.sql'
-            trinity_file.write_text(trinity_sql)
-            print(f"      ✓ Written: {trinity_file}")
-            print(f"        Size: {len(trinity_sql)} bytes")
-            print(f"        Lines: {len(trinity_sql.splitlines())}")
+        # Simple types
         else:
-            print(f"\n[2/2] Skipping trinity helpers (not enabled)")
+            return FieldDefinition(name=field_name, type_name=type_annotation, nullable=True)
 
-        return results
+        # Convert actions
+        actions = []
+        for action_data in entity_data.get("actions", []):
+            steps = []
+            for step_data in action_data.get("steps", []):
+                steps.append(
+                    ActionStep(
+                        type=step_data["type"],
+                        expression=step_data.get("expression"),
+                        entity=step_data.get("entity"),
+                        fields=step_data.get("fields"),
+                    )
+                )
 
-    def generate_all(self):
-        """Generate SQL for all entities in entities/ directory"""
-        entity_files = sorted(self.entities_dir.glob('*.yaml'))
+            actions.append(
+                Action(
+                    name=action_data["name"],
+                    steps=steps,
+                )
+            )
 
-        if not entity_files:
-            print(f"❌ No entity YAML files found in {self.entities_dir}")
+        return Entity(
+            name=entity_data["name"],
+            schema=entity_data["schema"],
+            description=entity_data["description"],
+            fields=fields,
+            actions=actions,
+        )
+
+    def generate_entity_sql(self, entity: Entity) -> str:
+        """Generate complete SQL for an entity using SchemaOrchestrator"""
+        orchestrator = SchemaOrchestrator()
+        return orchestrator.generate_complete_schema(entity)
+
+    def generate_single_entity(self, yaml_file: Path) -> None:
+        """Generate SQL for a single entity"""
+        print(f"\n{'=' * 80}")
+        print(f"Processing: {yaml_file.name}")
+        print(f"{'=' * 80}")
+
+        try:
+            # Load and convert entity
+            entity = self.load_entity_from_yaml(yaml_file)
+            print(f"Entity: {entity.schema}.{entity.name}")
+            print(f"Description: {entity.description}")
+            print(f"Fields: {len(entity.fields)}")
+            print(f"Actions: {len(entity.actions)}")
+
+            # Generate complete SQL
+            print(f"\nGenerating complete SQL schema...")
+            sql = self.generate_entity_sql(entity)
+
+            # Write output
+            output_file = self.output_dir / f"{entity.schema}_{entity.name}.sql"
+            output_file.write_text(sql)
+
+            print(f"✓ Generated: {output_file}")
+            print(f"  Size: {len(sql)} bytes")
+            print(f"  Lines: {len(sql.splitlines())}")
+
+        except Exception as e:
+            print(f"❌ Error processing {yaml_file.name}: {e}")
+            import traceback
+
+            traceback.print_exc()
+
+    def generate_all_entities(self, entities_dir: Path) -> None:
+        """Generate SQL for all entities in directory"""
+        yaml_files = sorted(entities_dir.glob("*.yaml"))
+
+        if not yaml_files:
+            print(f"❌ No YAML files found in {entities_dir}")
             return
 
-        print(f"\n{'='*80}")
-        print(f"SQL Generator - Trinity Pattern")
-        print(f"{'='*80}")
-        print(f"Entities directory: {self.entities_dir}")
-        print(f"Templates directory: {self.templates_dir}")
+        print(f"\n{'=' * 80}")
+        print(f"SpecQL SQL Generator")
+        print(f"{'=' * 80}")
+        print(f"Entities directory: {entities_dir}")
         print(f"Output directory: {self.output_dir}")
-        print(f"Found {len(entity_files)} entity definition(s)")
+        print(f"Found {len(yaml_files)} entity definition(s)")
 
-        for entity_file in entity_files:
-            try:
-                self.generate_entity(entity_file)
-            except Exception as e:
-                print(f"\n❌ Error processing {entity_file.name}: {e}")
-                import traceback
-                traceback.print_exc()
-                continue
+        for yaml_file in yaml_files:
+            self.generate_single_entity(yaml_file)
 
-        print(f"\n{'='*80}")
+        print(f"\n{'=' * 80}")
         print(f"✅ Generation complete!")
-        print(f"{'='*80}")
-        print(f"Output:")
-        print(f"  Tables: {self.output_dir / 'tables'}")
-        print(f"  Functions: {self.output_dir / 'functions'}")
+        print(f"{'=' * 80}")
+        print(f"Output: {self.output_dir}")
         print(f"\nNext steps:")
-        print(f"  1. Review generated SQL in {self.output_dir}")
-        print(f"  2. Compare with existing SQL")
-        print(f"  3. Test in database")
+        print(f"  1. Review generated SQL files")
+        print(f"  2. Test in PostgreSQL database")
+        print(f"  3. Apply migrations as needed")
 
 
 def main():
-    """Main entry point"""
-    generator = SQLGenerator()
-    generator.generate_all()
+    """Main CLI entry point"""
+    parser = argparse.ArgumentParser(
+        description="SpecQL SQL Generator - Generate PostgreSQL schema from YAML entity definitions",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Generate SQL for all entities
+  python generate_sql.py
+
+  # Generate SQL for specific entity
+  python generate_sql.py entities/contact.yaml
+
+  # Generate to custom output directory
+  python generate_sql.py --output /tmp/sql
+        """,
+    )
+
+    parser.add_argument(
+        "entity_file", nargs="?", help="Specific YAML entity file to process (optional)"
+    )
+
+    parser.add_argument(
+        "--entities-dir",
+        default="entities",
+        help="Directory containing YAML entity definitions (default: entities)",
+    )
+
+    parser.add_argument(
+        "--output",
+        default="generated",
+        help="Output directory for generated SQL files (default: generated)",
+    )
+
+    args = parser.parse_args()
+
+    generator = SpecQLGenerator(output_dir=args.output)
+
+    if args.entity_file:
+        # Generate single entity
+        yaml_file = Path(args.entity_file)
+        if not yaml_file.exists():
+            print(f"❌ Entity file not found: {yaml_file}")
+            sys.exit(1)
+        generator.generate_single_entity(yaml_file)
+    else:
+        # Generate all entities
+        entities_dir = Path(args.entities_dir)
+        if not entities_dir.exists():
+            print(f"❌ Entities directory not found: {entities_dir}")
+            sys.exit(1)
+        generator.generate_all_entities(entities_dir)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

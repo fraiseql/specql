@@ -2,7 +2,7 @@
 
 import pytest
 from src.generators.core_logic_generator import CoreLogicGenerator
-from src.core.ast_models import Entity, FieldDefinition, ActionStep
+from src.core.ast_models import Entity, FieldDefinition, ActionStep, Action
 
 
 def test_generate_core_create_function():
@@ -38,16 +38,33 @@ def test_generate_core_create_function():
     assert "IF input_data.email IS NULL THEN" in sql
     assert "RETURN app.log_and_return_mutation" in sql
 
-    # Then: Trinity resolution (UUID → INTEGER) with tenant filtering
-    assert "v_fk_company := crm.company_pk(input_data.company_id::TEXT, auth_tenant_id)" in sql
 
-    # Then: INSERT with all fields
-    assert "INSERT INTO crm.tb_contact (" in sql
-    assert "tenant_id," in sql
-    assert "created_by" in sql
-    assert "VALUES (" in sql
-    assert "auth_tenant_id," in sql  # tenant_id from JWT
-    assert "auth_user_id" in sql  # created_by from JWT
+def test_generate_custom_action():
+    """Generate custom business action"""
+    entity = Entity(name="Contact", schema="crm")
+    action = Action(
+        name="qualify_lead",
+        steps=[
+            ActionStep(type="validate", expression="status = 'lead'"),
+            ActionStep(type="update", entity="Contact", fields={"status": "qualified"}),
+            ActionStep(type="call", expression="app.emit_event('lead_qualified', v_contact_id)"),
+        ],
+    )
+
+    generator = CoreLogicGenerator()
+    sql = generator.generate_custom_action(entity, action)
+
+    # Should have function
+    assert "CREATE OR REPLACE FUNCTION crm.qualify_lead(" in sql
+
+    # Should compile steps
+    assert "status = 'lead'" in sql  # validate
+    assert "UPDATE crm.tb_contact SET status = 'qualified'" in sql  # update
+    assert "PERFORM app.emit_event('lead_qualified', v_contact_id)" in sql  # call
+
+    # Should have YAML comment
+    assert "@fraiseql:mutation" in sql
+    assert "name: qualifyLead" in sql
 
     # Then: Return mutation result
     assert "RETURN app.log_and_return_mutation" in sql

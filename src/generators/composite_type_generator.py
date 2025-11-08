@@ -95,8 +95,8 @@ class CompositeTypeGenerator:
             # Delete actions typically don't need input types (just ID)
             return {}
         else:
-            # Custom action - analyze steps (TODO: implement step analysis)
-            base_fields = entity.fields
+            # Custom action - analyze steps to determine required fields
+            base_fields = self._analyze_custom_action_fields(action, entity)
 
         # Transform field names for external API
         api_fields = {}
@@ -220,6 +220,23 @@ class CompositeTypeGenerator:
             return f"{base_type}[]"
         else:
             return self.TYPE_MAPPINGS.get(field_def.type_name, "TEXT")
+
+    def _analyze_custom_action_fields(
+        self, action: Action, entity: Entity
+    ) -> Dict[str, FieldDefinition]:
+        """
+        Analyze custom action steps to determine required input fields
+
+        For custom actions, we typically only need:
+        - 'id' field for record identification
+        - Any fields that are parameters to the action (not validated against database state)
+
+        Validation expressions check database state, not input parameters.
+        Update fields are set to literal values, not taken from input.
+        """
+        # For now, custom actions only need the id field to identify the record
+        # Future: analyze for action parameters beyond just record identification
+        return {"id": FieldDefinition(name="id", type_name="uuid", nullable=False)}
 
     def _to_pascal_case(self, snake_str: str) -> str:
         """Convert snake_case to PascalCase"""

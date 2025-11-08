@@ -10,6 +10,7 @@ import psycopg
 from pathlib import Path
 from src.generators.schema_orchestrator import SchemaOrchestrator
 from src.generators.function_generator import FunctionGenerator
+from src.generators.core_logic_generator import CoreLogicGenerator
 from src.core.ast_models import Entity, FieldDefinition, Action, ActionStep
 
 
@@ -55,6 +56,45 @@ def create_simple_contact_entity():
     )
 
 
+def create_contact_entity_with_custom_action():
+    """Create a contact entity with custom qualify_lead action"""
+    return Entity(
+        name="Contact",
+        schema="crm",
+        description="Test contact entity with custom action",
+        fields={
+            "email": FieldDefinition(name="email", type_name="text", nullable=False),
+            "status": FieldDefinition(
+                name="status",
+                type_name="enum",
+                values=["lead", "qualified", "customer"],
+                nullable=False,
+            ),
+        },
+        actions=[
+            Action(
+                name="create_contact",
+                steps=[
+                    ActionStep(
+                        type="validate", expression="email IS NOT NULL", error="missing_email"
+                    ),
+                    ActionStep(type="insert", entity="Contact"),
+                ],
+            ),
+            Action(
+                name="qualify_lead",
+                steps=[
+                    ActionStep(type="validate", expression="status = 'lead'"),
+                    ActionStep(type="update", entity="Contact", fields={"status": "qualified"}),
+                    ActionStep(
+                        type="call", expression="app.emit_event('lead_qualified', v_contact_id)"
+                    ),
+                ],
+            ),
+        ],
+    )
+
+
 @pytest.fixture
 def test_db():
     """PostgreSQL test database connection"""
@@ -95,6 +135,11 @@ def test_create_contact_action_database_execution(test_db):
         cursor.execute("CREATE SCHEMA IF NOT EXISTS crm;")
         # Clean any existing test data
         cursor.execute("DROP TABLE IF EXISTS crm.tb_contact CASCADE;")
+        # Also delete any existing data (ignore if table doesn't exist)
+        try:
+            cursor.execute("DELETE FROM crm.tb_contact WHERE email = 'lead@example.com';")
+        except:
+            pass
 
         # Execute schema SQL
         test_db.execute(schema_sql)
@@ -354,3 +399,95 @@ def test_soft_delete_database_execution(test_db):
     # In a real implementation, deleted_at would be set
 
     # Note: In real implementation, contact would not be visible due to deleted_at IS NULL filter
+
+
+def test_custom_action_database_execution(test_db):
+    """Custom action executes in PostgreSQL"""
+    import uuid
+
+    unique_id = str(uuid.uuid4())[:8]
+    email = f"lead_{unique_id}@example.com"
+
+    # Given: Entity with custom qualify_lead action
+    entity = create_contact_entity_with_custom_action()
+
+    # When: Generate and apply schema/functions
+    orchestrator = SchemaOrchestrator()
+    schema_sql = orchestrator.generate_complete_schema(entity)
+
+    function_gen = FunctionGenerator()
+    function_sql = function_gen.generate_action_functions(entity)
+
+    core_gen = CoreLogicGenerator()
+    custom_sql = core_gen.generate_custom_action(entity, entity.actions[1])  # qualify_lead action
+
+    cursor = test_db.cursor()
+    try:
+        test_db.execute(schema_sql)
+        test_db.execute(function_sql)
+        test_db.execute(custom_sql)
+        test_db.commit()
+    except Exception as e:
+        test_db.rollback()
+        raise Exception(
+            f"SQL execution failed: {e}\nSchema SQL:\n{schema_sql}\n\nFunction SQL:\n{function_sql}\n\nCustom SQL:\n{custom_sql}"
+        )
+
+    # When: Create a lead contact first
+    cursor = test_db.cursor()
+    cursor.execute(
+        "SELECT (crm.create_contact(%s, ROW(%s, %s)::app.type_create_contact_input, %s, %s)).*",
+        [
+            TEST_TENANT_ID,
+            email,
+            "lead",
+            f'{{"email": "{email}", "status": "lead"}}',
+            TEST_USER_ID,
+        ],
+    )
+    result = cursor.fetchone()
+    contact_id = result[0]  # entity_id from result
+
+    # Verify contact was created as lead
+    cursor = test_db.cursor()
+    cursor.execute(
+        "SELECT status, tenant_id FROM crm.tb_contact WHERE id = %s",
+        (contact_id,),
+    )
+    contact = cursor.fetchone()
+    print(f"Created contact: id={contact_id}, status={contact[0]}, tenant_id={contact[1]}")
+    assert contact[0] == "lead"
+    assert str(contact[1]) == TEST_TENANT_ID
+
+    # Check status right before qualify_lead
+    cursor = test_db.cursor()
+    cursor.execute("SELECT status FROM crm.tb_contact WHERE id = %s", (contact_id,))
+    status_before = cursor.fetchone()
+    print(f"Status right before qualify_lead: {status_before[0]}")
+
+    # When: Execute custom qualify_lead action
+    cursor = test_db.cursor()
+    cursor.execute(
+        "SELECT (crm.qualify_lead(%s, ROW(%s)::app.type_qualify_lead_input, %s, %s)).*",
+        [
+            TEST_TENANT_ID,
+            contact_id,  # contact_id as UUID input
+            f'{{"id": "{contact_id}"}}',
+            TEST_USER_ID,
+        ],
+    )
+    result = cursor.fetchone()
+    print(f"Function result: {result}")
+
+    # Then: Custom action successful
+    assert result[2] == "success"  # status
+    assert "Qualify Lead completed" in result[3]  # message
+
+    # Then: Contact status updated to qualified
+    cursor = test_db.cursor()
+    cursor.execute(
+        "SELECT status FROM crm.tb_contact WHERE id = %s",
+        (contact_id,),
+    )
+    contact = cursor.fetchone()
+    assert contact[0] == "qualified"

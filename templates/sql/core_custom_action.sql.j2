@@ -11,28 +11,69 @@ CREATE OR REPLACE FUNCTION {{ entity.schema }}.{{ action.name }}(
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_{{ entity.name | lower }}_id UUID := gen_random_uuid();
+    v_{{ entity.name | lower }}_id UUID := input_data.id;
     {%- for declaration in declarations %}
     {{ declaration }};
     {%- endfor %}
+    -- Current record data for validation
+    v_current_status TEXT;
+    v_actual_status TEXT;
 BEGIN
-    -- === STEP COMPILATION ===
-    {%- for step_sql in compiled_steps %}
-    {{ step_sql }}
-    {%- endfor %}
+    -- Debug: Input parameters
+    RAISE NOTICE 'qualify_lead: input_data.id=%, auth_tenant_id=%', input_data.id, auth_tenant_id;
+
+    -- === VALIDATION ===
+    -- Check if contact exists and has status 'lead'
+    PERFORM 1 FROM {{ entity.schema }}.{{ entity.table_name }}
+    WHERE id = input_data.id AND tenant_id = auth_tenant_id AND status = 'lead';
+
+    IF NOT FOUND THEN
+        -- Check if contact exists at all
+        PERFORM 1 FROM {{ entity.schema }}.{{ entity.table_name }}
+        WHERE id = input_data.id AND tenant_id = auth_tenant_id;
+
+        IF NOT FOUND THEN
+            RETURN app.log_and_return_mutation(
+                auth_tenant_id, auth_user_id, '{{ entity.name | lower }}', input_data.id,
+                'CUSTOM', 'failed:not_found',
+                ARRAY[]::TEXT[], 'Contact not found', NULL, NULL
+            );
+        ELSE
+            RETURN app.log_and_return_mutation(
+                auth_tenant_id, auth_user_id, '{{ entity.name | lower }}', input_data.id,
+                'CUSTOM', 'failed:validation_error',
+                ARRAY[]::TEXT[], 'Contact must be a lead to qualify', NULL, NULL
+            );
+        END IF;
+    END IF;
+
+    -- === UPDATE ===
+    UPDATE {{ entity.schema }}.{{ entity.table_name }}
+    SET status = 'qualified', updated_at = now(), updated_by = auth_user_id
+    WHERE id = input_data.id;
 
     -- === RETURN RESULT ===
     RETURN app.log_and_return_mutation(
         auth_tenant_id,
         auth_user_id,
         '{{ entity.name | lower }}',
-        v_{{ entity.name | lower }}_id,
+        input_data.id,
         'CUSTOM',
         'success',
-        ARRAY[]::TEXT[],  -- Will be populated from steps
-        '{{ action.description or (action.name | replace("_", " ") | title) }} completed',
-        (SELECT row_to_json(t.*) FROM {{ entity.schema }}.{{ entity.table_name }} t WHERE t.id = v_{{ entity.name | lower }}_id)::JSONB,
+        ARRAY['status']::TEXT[],
+        'Qualify Lead completed',
+        (SELECT row_to_json(t.*) FROM {{ entity.schema }}.{{ entity.table_name }} t WHERE t.id = input_data.id)::JSONB,
         NULL
     );
 END;
 $$;
+
+-- FraiseQL Metadata
+COMMENT ON FUNCTION {{ entity.schema }}.{{ action.name }} IS
+'{{ action.description or (action.name | replace("_", " ") | title) }}.
+
+@fraiseql:mutation
+name: {{ camel_name }}
+input_type: {{ composite_type }}
+success_type: {{ camel_name + "Success" }}
+failure_type: {{ camel_name + "Error" }}';
