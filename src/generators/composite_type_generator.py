@@ -99,7 +99,7 @@ class CompositeTypeGenerator:
         # Transform field names for external API
         api_fields = {}
         for field_name, field_def in base_fields.items():
-            if field_def.type == "ref":
+            if field_def.type_name == "ref":
                 # ref fields: append "_id" for external API
                 # "company" → "company_id"
                 api_field_name = f"{field_name}_id"
@@ -138,10 +138,10 @@ class CompositeTypeGenerator:
             if not field_def.nullable:
                 annotation_parts.append("required=true")
 
-            if field_def.type == "ref":
-                annotation_parts.append(f"references={field_def.target_entity}")
+            if field_def.type_name == "ref":
+                annotation_parts.append(f"references={field_def.reference_entity}")
 
-            if field_def.type == "enum" and field_def.values:
+            if field_def.type_name == "enum" and field_def.values:
                 values_str = "|".join(field_def.values)
                 annotation_parts.append(f"enumValues={values_str}")
 
@@ -152,17 +152,17 @@ class CompositeTypeGenerator:
 
     def _map_to_graphql_type(self, field_def: FieldDefinition) -> str:
         """Map SpecQL field type to GraphQL type for FraiseQL"""
-        if field_def.type == "ref":
+        if field_def.type_name == "ref":
             # References become UUID in GraphQL (external API contract)
             return "UUID"
-        elif field_def.type == "enum":
+        elif field_def.type_name == "enum":
             return "String"  # Enums are strings in GraphQL
-        elif field_def.type == "list":
+        elif field_def.type_name == "list":
             base_type = self.TYPE_MAPPINGS.get(field_def.item_type or "text", "String")
             return f"[{base_type}]"
         else:
             # Map PostgreSQL types to GraphQL types
-            pg_type = self.TYPE_MAPPINGS.get(field_def.type, "String")
+            pg_type = self.TYPE_MAPPINGS.get(field_def.type_name, "String")
             graphql_mappings = {
                 "TEXT": "String",
                 "INTEGER": "Int",
@@ -183,17 +183,17 @@ class CompositeTypeGenerator:
         - Foreign keys: UUID (not INTEGER - GraphQL uses UUIDs)
         - Core layer handles UUID → INTEGER resolution
         """
-        if field_def.type == "ref":
+        if field_def.type_name == "ref":
             # ✅ Foreign keys are UUIDs in API input (not INTEGER!)
             # Core layer will resolve UUID → INTEGER when inserting
             return "UUID"
-        elif field_def.type == "enum":
+        elif field_def.type_name == "enum":
             return "TEXT"
-        elif field_def.type == "list":
+        elif field_def.type_name == "list":
             base_type = self.TYPE_MAPPINGS.get(field_def.item_type or "text", "TEXT")
             return f"{base_type}[]"
         else:
-            return self.TYPE_MAPPINGS.get(field_def.type, "TEXT")
+            return self.TYPE_MAPPINGS.get(field_def.type_name, "TEXT")
 
     def _to_pascal_case(self, snake_str: str) -> str:
         """Convert snake_case to PascalCase"""

@@ -29,6 +29,7 @@ class AppWrapperGenerator:
         action_type = self._detect_action_type(action.name)
         composite_type_name = f"app.type_{action.name}_input"
         graphql_name = self._to_camel_case(action.name)
+        input_type_name = self._to_pascal_case(action.name) + "Input"
 
         # For delete actions, we might not need a composite type
         needs_composite_type = action_type != "delete"
@@ -39,6 +40,7 @@ class AppWrapperGenerator:
             "core_schema": entity.schema,
             "core_function_name": action.name,
             "graphql_name": graphql_name,
+            "input_type_name": input_type_name,
             "action_type": action_type,
             "needs_composite_type": needs_composite_type,
         }
@@ -69,3 +71,8 @@ class AppWrapperGenerator:
         """Convert snake_case to camelCase"""
         components = snake_str.split("_")
         return components[0] + "".join(x.capitalize() for x in components[1:])
+
+    def _to_pascal_case(self, snake_str: str) -> str:
+        """Convert snake_case to PascalCase"""
+        components = snake_str.split("_")
+        return "".join(x.capitalize() for x in components)

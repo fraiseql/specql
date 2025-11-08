@@ -71,3 +71,94 @@ def test_app_wrapper_uses_team_b_composite_type():
 
     # Then: Uses correct composite type name
     assert "app.type_create_contact_input" in sql
+
+
+def test_app_wrapper_for_update_action():
+    """Generate app wrapper for update action"""
+    # Given: Entity with update action
+    entity = Entity(
+        name="Contact", schema="crm", fields={}, actions=[Action(name="update_contact")]
+    )
+
+    # When: Generate app wrapper
+    generator = AppWrapperGenerator()
+    sql = generator.generate_app_wrapper(entity, entity.actions[0])
+
+    # Then: App wrapper function with correct signature
+    assert "CREATE OR REPLACE FUNCTION app.update_contact(" in sql
+    assert "auth_tenant_id UUID" in sql
+    assert "auth_user_id UUID" in sql
+    assert "input_payload JSONB" in sql
+    assert "RETURNS app.mutation_result" in sql
+
+    # Then: Uses correct composite type for update
+    assert "app.type_update_contact_input" in sql
+
+    # Then: Delegation to core layer
+    assert "RETURN crm.update_contact(" in sql
+
+
+def test_app_wrapper_for_delete_action():
+    """Generate app wrapper for delete action (no composite type)"""
+    # Given: Entity with delete action
+    entity = Entity(
+        name="Contact", schema="crm", fields={}, actions=[Action(name="delete_contact")]
+    )
+
+    # When: Generate app wrapper
+    generator = AppWrapperGenerator()
+    sql = generator.generate_app_wrapper(entity, entity.actions[0])
+
+    # Then: App wrapper function with correct signature
+    assert "CREATE OR REPLACE FUNCTION app.delete_contact(" in sql
+    assert "auth_tenant_id UUID" in sql
+    assert "auth_user_id UUID" in sql
+    assert "input_payload JSONB" in sql
+    assert "RETURNS app.mutation_result" in sql
+
+    # Then: No composite type declaration for delete
+    assert "input_data app.type_delete_contact_input" not in sql
+
+    # Then: Delegation to core layer (different signature for delete)
+    assert "RETURN crm.delete_contact(" in sql
+    assert "auth_tenant_id," in sql
+    assert "input_payload," in sql
+    assert "auth_user_id" in sql
+
+
+def test_app_wrapper_error_handling():
+    """App wrapper includes error handling"""
+    # Given: Any action
+    entity = Entity(
+        name="Contact", schema="crm", fields={}, actions=[Action(name="create_contact")]
+    )
+
+    # When: Generate
+    generator = AppWrapperGenerator()
+    sql = generator.generate_app_wrapper(entity, entity.actions[0])
+
+    # Then: Includes exception handling
+    assert "EXCEPTION" in sql
+    assert "WHEN OTHERS THEN" in sql
+    assert "failed:unexpected_error" in sql
+    assert "SQLERRM" in sql
+    assert "SQLSTATE" in sql
+
+
+def test_app_wrapper_fraiseql_annotation():
+    """App wrapper includes FraiseQL mutation annotation"""
+    # Given: Action with name "create_contact"
+    entity = Entity(
+        name="Contact", schema="crm", fields={}, actions=[Action(name="create_contact")]
+    )
+
+    # When: Generate
+    generator = AppWrapperGenerator()
+    sql = generator.generate_app_wrapper(entity, entity.actions[0])
+
+    # Then: FraiseQL annotation
+    assert "COMMENT ON FUNCTION app.create_contact IS" in sql
+    assert "@fraiseql:mutation" in sql
+    assert "name=createContact" in sql
+    assert "input=CreateContactInput" in sql
+    assert "output=MutationResult" in sql

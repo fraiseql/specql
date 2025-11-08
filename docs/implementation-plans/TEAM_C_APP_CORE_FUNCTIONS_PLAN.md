@@ -120,8 +120,8 @@ CREATE FUNCTION crm.company_pk(TEXT) RETURNS INTEGER ...;
 -- APP LAYER: API Wrapper
 -- ================================================================
 CREATE OR REPLACE FUNCTION app.create_contact(
-    input_pk_organization UUID,      -- JWT context: tenant_id
-    input_created_by UUID,            -- JWT context: user_id
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
     input_payload JSONB               -- User input (GraphQL)
 ) RETURNS app.mutation_result
 LANGUAGE plpgsql
@@ -152,23 +152,23 @@ COMMENT ON FUNCTION app.create_contact IS
 -- CORE LAYER: Business Logic
 -- ================================================================
 CREATE OR REPLACE FUNCTION crm.create_contact(
-    input_pk_organization UUID,                   -- Tenant context
+    auth_tenant_id UUID,                          -- Tenant context
     input_data app.type_create_contact_input,     -- Typed input
     input_payload JSONB,                          -- Original (audit)
-    input_created_by UUID                         -- User context
+    auth_user_id UUID                             -- User context
 ) RETURNS app.mutation_result
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_id UUID := gen_random_uuid();
-    v_pk_contact INTEGER;
+    v_contact_id UUID := gen_random_uuid();
+    v_contact_pk INTEGER;
     v_fk_company INTEGER;
 BEGIN
     -- === VALIDATION ===
     IF input_data.email IS NULL THEN
         RETURN crm.log_and_return_mutation(
-            input_pk_organization,
-            input_created_by,
+            auth_tenant_id,
+            auth_user_id,
             'contact',
             '00000000-0000-0000-0000-000000000000'::UUID,
             'NOOP',
@@ -210,27 +210,27 @@ BEGIN
         created_at,
         created_by             -- ✅ From JWT
     ) VALUES (
-        v_id,
-        input_pk_organization, -- ✅ JWT tenant_id → denormalized column
+        v_contact_id,
+        auth_tenant_id,        -- ✅ JWT tenant_id → denormalized column
         input_data.email,
         v_fk_company,          -- ✅ Resolved UUID → INTEGER
         input_data.status,
         now(),
-        input_created_by       -- ✅ JWT user_id
+        auth_user_id           -- ✅ JWT user_id
     )
-    RETURNING pk_contact INTO v_pk_contact;
+    RETURNING pk_contact INTO v_contact_pk;
 
     -- === AUDIT & RETURN ===
     RETURN crm.log_and_return_mutation(
-        input_pk_organization,
-        input_created_by,
+        auth_tenant_id,
+        auth_user_id,
         'contact',
-        v_id,
+        v_contact_id,
         'INSERT',
         'success',
         ARRAY(SELECT jsonb_object_keys(input_payload)),
         'Contact created successfully',
-        (SELECT row_to_json(c.*) FROM crm.tb_contact c WHERE c.id = v_id)::JSONB,
+        (SELECT row_to_json(c.*) FROM crm.tb_contact c WHERE c.id = v_contact_id)::JSONB,
         NULL
     );
 END;
@@ -270,8 +270,8 @@ def test_generate_app_wrapper_for_create_action():
 
     # Then: App wrapper function with correct signature
     assert "CREATE OR REPLACE FUNCTION app.create_contact(" in sql
-    assert "input_pk_organization UUID" in sql
-    assert "input_created_by UUID" in sql
+    assert "auth_tenant_id UUID" in sql
+    assert "auth_user_id UUID" in sql
     assert "input_payload JSONB" in sql
     assert "RETURNS app.mutation_result" in sql
 
@@ -281,10 +281,10 @@ def test_generate_app_wrapper_for_create_action():
 
     # Then: Delegation to core layer
     assert "RETURN crm.create_contact(" in sql
-    assert "input_pk_organization," in sql
+    assert "auth_tenant_id," in sql
     assert "input_data," in sql
     assert "input_payload," in sql
-    assert "input_created_by" in sql
+    assert "auth_user_id" in sql
 
     # Then: FraiseQL annotation
     assert "COMMENT ON FUNCTION app.create_contact IS" in sql
@@ -297,8 +297,8 @@ def test_app_wrapper_jwt_context_parameters():
     sql = generator.generate_app_wrapper(entity, action)
 
     # Then: Context parameters are first two params
-    assert "input_pk_organization UUID" in sql
-    assert "input_created_by UUID" in sql
+    assert "auth_tenant_id UUID" in sql
+    assert "auth_user_id UUID" in sql
     # Then: Payload is third param
     assert "input_payload JSONB" in sql
 
@@ -379,8 +379,8 @@ class AppWrapperGenerator:
 -- API Entry Point (GraphQL/REST)
 -- ============================================================================
 CREATE OR REPLACE FUNCTION app.{{ app_function_name }}(
-    input_pk_organization UUID,      -- JWT context: tenant_id
-    input_created_by UUID,            -- JWT context: user_id
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
     input_payload JSONB               -- User input (GraphQL/REST)
 ) RETURNS app.mutation_result
 LANGUAGE plpgsql
@@ -396,10 +396,10 @@ BEGIN
 
     -- Delegate to core business logic
     RETURN {{ core_schema }}.{{ core_function_name }}(
-        input_pk_organization,
+        auth_tenant_id,
         input_data,
         input_payload,
-        input_created_by
+        auth_user_id
     );
 END;
 $$;
@@ -465,10 +465,10 @@ def test_generate_core_create_function():
 
     # Then: Correct signature
     assert "CREATE OR REPLACE FUNCTION crm.create_contact(" in sql
-    assert "input_pk_organization UUID" in sql
+    assert "auth_tenant_id UUID" in sql
     assert "input_data app.type_create_contact_input" in sql
     assert "input_payload JSONB" in sql
-    assert "input_created_by UUID" in sql
+    assert "auth_user_id UUID" in sql
     assert "RETURNS app.mutation_result" in sql
 
     # Then: Validation logic
@@ -476,15 +476,15 @@ def test_generate_core_create_function():
     assert "RETURN crm.log_and_return_mutation" in sql
 
     # Then: Trinity resolution (UUID → INTEGER)
-    assert "v_fk_company := crm.company_pk(input_data.company_id::TEXT)" in sql
+    assert "v_fk_company := crm.company_pk(input_data.company_id::TEXT, auth_tenant_id)" in sql
 
     # Then: INSERT with all fields
     assert "INSERT INTO crm.tb_contact (" in sql
     assert "tenant_id," in sql
     assert "created_by" in sql
     assert "VALUES (" in sql
-    assert "input_pk_organization," in sql  # tenant_id from JWT
-    assert "input_created_by" in sql        # created_by from JWT
+    assert "auth_tenant_id," in sql  # tenant_id from JWT
+    assert "auth_user_id" in sql     # created_by from JWT
 
     # Then: Return mutation result
     assert "RETURN crm.log_and_return_mutation" in sql
@@ -513,7 +513,7 @@ def test_core_function_populates_audit_fields():
     assert "created_by," in sql
     # Then: Values from JWT and now()
     assert "now()" in sql
-    assert "input_created_by" in sql
+    assert "auth_user_id" in sql
 
 
 def test_core_function_populates_tenant_id():
@@ -524,7 +524,7 @@ def test_core_function_populates_tenant_id():
     # Then: tenant_id in INSERT
     assert "tenant_id," in sql
     # Then: Value from JWT context
-    assert "input_pk_organization" in sql
+    assert "auth_tenant_id" in sql
 ```
 
 **Expected Outcome**: All tests FAIL (no `CoreLogicGenerator` exists yet)
@@ -589,11 +589,11 @@ class CoreLogicGenerator:
 
         # Trinity fields
         insert_fields.append("id")
-        insert_values.append("v_id")
+        insert_values.append(f"v_{entity.name.lower()}_id")
 
         # Multi-tenancy
         insert_fields.append("tenant_id")
-        insert_values.append("input_pk_organization")
+        insert_values.append("auth_tenant_id")
 
         # Business fields
         for field_name, field_def in entity.fields.items():
@@ -609,7 +609,7 @@ class CoreLogicGenerator:
 
         # Audit fields
         insert_fields.extend(["created_at", "created_by"])
-        insert_values.extend(["now()", "input_created_by"])
+        insert_values.extend(["now()", "auth_user_id"])
 
         return {
             "columns": insert_fields,
@@ -653,16 +653,16 @@ class CoreLogicGenerator:
 -- Business Rules & Data Manipulation
 -- ============================================================================
 CREATE OR REPLACE FUNCTION {{ entity.schema }}.create_{{ entity.name | lower }}(
-    input_pk_organization UUID,
+    auth_tenant_id UUID,
     input_data {{ composite_type }},
     input_payload JSONB,
-    input_created_by UUID
+    auth_user_id UUID
 ) RETURNS app.mutation_result
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_id UUID := gen_random_uuid();
-    v_{{ entity.pk_column }} INTEGER;
+    v_{{ entity.name | lower }}_id UUID := gen_random_uuid();
+    v_{{ entity.name | lower }}_pk INTEGER;
 {%- for resolution in fk_resolutions %}
     {{ resolution.variable }} INTEGER;
 {%- endfor %}
@@ -671,8 +671,8 @@ BEGIN
 {%- for validation in validations %}
     IF {{ validation.check }} THEN
         RETURN {{ entity.schema }}.log_and_return_mutation(
-            input_pk_organization,
-            input_created_by,
+            auth_tenant_id,
+            auth_user_id,
             '{{ entity.name | lower }}',
             '00000000-0000-0000-0000-000000000000'::UUID,
             'NOOP',
@@ -692,8 +692,8 @@ BEGIN
 
         IF {{ resolution.variable }} IS NULL THEN
             RETURN {{ entity.schema }}.log_and_return_mutation(
-                input_pk_organization,
-                input_created_by,
+                auth_tenant_id,
+                auth_user_id,
                 '{{ entity.name | lower }}',
                 '00000000-0000-0000-0000-000000000000'::UUID,
                 'NOOP',
@@ -717,19 +717,19 @@ BEGIN
         {{ value }}{{ "," if not loop.last else "" }}
 {%- endfor %}
     )
-    RETURNING {{ entity.pk_column }} INTO v_{{ entity.pk_column }};
+    RETURNING pk_{{ entity.name | lower }} INTO v_{{ entity.name | lower }}_pk;
 
     -- === AUDIT & RETURN ===
     RETURN {{ entity.schema }}.log_and_return_mutation(
-        input_pk_organization,
-        input_created_by,
+        auth_tenant_id,
+        auth_user_id,
         '{{ entity.name | lower }}',
-        v_id,
+        v_{{ entity.name | lower }}_id,
         'INSERT',
         'success',
         ARRAY(SELECT jsonb_object_keys(input_payload)),
         '{{ entity.name }} created successfully',
-        (SELECT row_to_json(t.*) FROM {{ entity.schema }}.{{ entity.table_name }} t WHERE t.id = v_id)::JSONB,
+        (SELECT row_to_json(t.*) FROM {{ entity.schema }}.{{ entity.table_name }} t WHERE t.id = v_{{ entity.name | lower }}_id)::JSONB,
         NULL
     );
 END;

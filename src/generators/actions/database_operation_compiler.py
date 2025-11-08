@@ -26,10 +26,10 @@ class ObjectBuilder:
 
         # Primary fields
         for field_name, field_def in entity.fields.items():
-            if field_def.type == "ref":
+            if field_def.type_name == "ref":
                 # Handle relationship
                 if include_relations and field_name in include_relations:
-                    target = field_def.target_entity or field_name
+                    target = field_def.reference_entity or field_name
                     fields.append(
                         f"'{field_name}', {self._build_relation_object(field_name, target)}"
                     )
@@ -92,12 +92,12 @@ class DatabaseOperationCompiler:
         field_vals = []
 
         for field_name, field_def in entity.fields.items():
-            col_name = f"fk_{field_name}" if field_def.type == "ref" else field_name
+            col_name = f"fk_{field_name}" if field_def.type_name == "ref" else field_name
             field_cols.append(col_name)
 
-            if field_def.type == "ref":
+            if field_def.type_name == "ref":
                 # Resolve ref to pk
-                target = field_def.target_entity or field_name
+                target = field_def.reference_entity or field_name
                 field_vals.append(f"{entity.schema}.{target.lower()}_pk(p_{field_name}_id)")
             else:
                 field_vals.append(f"p_{field_name}")

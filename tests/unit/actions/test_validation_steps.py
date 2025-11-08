@@ -4,6 +4,7 @@ Phase 2: Validation Step Compilation
 """
 
 import pytest
+
 from src.core.ast_models import ActionStep, Entity, FieldDefinition
 from src.generators.actions.validation_step_compiler import ValidationStepCompiler
 
@@ -23,9 +24,9 @@ class TestValidationSteps:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type="text"),
-                "status": FieldDefinition(name="status", type="text"),
-                "company": FieldDefinition(name="company", type="ref", target_entity="Company"),
+                "email": FieldDefinition(name="email", type_name="text"),
+                "status": FieldDefinition(name="status", type_name="text"),
+                "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company"),
             },
         )
 

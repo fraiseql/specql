@@ -5,7 +5,7 @@ Generates core.* business logic functions
 
 from typing import Any, Dict, List
 from jinja2 import Environment, FileSystemLoader
-from src.core.ast_models import Entity, FieldDefinition
+from src.core.ast_models import Entity, FieldDefinition, FieldTier
 
 
 class CoreLogicGenerator:
@@ -97,7 +97,7 @@ class CoreLogicGenerator:
 
         # Trinity fields
         insert_fields.append("id")
-        insert_values.append("v_id")
+        insert_values.append(f"v_{entity.name.lower()}_id")
 
         # Multi-tenancy
         insert_fields.append("tenant_id")
@@ -105,7 +105,7 @@ class CoreLogicGenerator:
 
         # Business fields
         for field_name, field_def in entity.fields.items():
-            if field_def.type == "ref":
+            if field_def.tier == FieldTier.REFERENCE:
                 # Foreign key (INTEGER)
                 fk_name = f"fk_{field_name}"
                 insert_fields.append(fk_name)
@@ -130,7 +130,7 @@ class CoreLogicGenerator:
 
         # Business fields
         for field_name, field_def in entity.fields.items():
-            if field_def.type == "ref":
+            if field_def.tier == FieldTier.REFERENCE:
                 # Foreign key (INTEGER)
                 fk_name = f"fk_{field_name}"
                 update_assignments.append(f"{fk_name} = v_{fk_name}")
@@ -167,12 +167,12 @@ class CoreLogicGenerator:
         is_tenant_specific = self._is_tenant_specific_schema(entity.schema)
 
         for field_name, field_def in entity.fields.items():
-            if field_def.type == "ref" and field_def.target_entity:
+            if field_def.tier == FieldTier.REFERENCE and field_def.reference_entity:
                 # Check if target entity is in tenant-specific schema
                 target_is_tenant_specific = self._is_tenant_specific_schema(entity.schema)
 
                 input_field_ref = f"input_data.{field_name}_id::TEXT"
-                helper_function_name = f"{entity.schema}.{field_def.target_entity.lower()}_pk"
+                helper_function_name = f"{entity.schema}.{field_def.reference_entity.lower()}_pk"
 
                 if target_is_tenant_specific:
                     helper_call = f"{helper_function_name}({input_field_ref}, auth_tenant_id)"
@@ -182,7 +182,7 @@ class CoreLogicGenerator:
                 resolutions.append(
                     {
                         "field": field_name,
-                        "target_entity": field_def.target_entity,
+                        "target_entity": field_def.reference_entity,
                         "variable": f"v_fk_{field_name}",
                         "helper_call": helper_call,
                         "input_field": f"{field_name}_id",  # Composite type uses company_id

@@ -43,10 +43,10 @@ class ParameterGenerator:
         """Generate parameters for entity fields"""
         params = []
         for field_name, field_def in entity.fields.items():
-            if field_def.type == "ref":
+            if field_def.type_name == "ref":
                 params.append(f"p_{field_name}_id UUID DEFAULT NULL")
             else:
-                pg_type = self._map_specql_type(field_def.type)
+                pg_type = self._map_specql_type(field_def.type_name)
                 params.append(f"p_{field_name} {pg_type} DEFAULT NULL")
         return params
 

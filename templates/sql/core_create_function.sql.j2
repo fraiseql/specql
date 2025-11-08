@@ -11,8 +11,8 @@ CREATE OR REPLACE FUNCTION {{ entity.schema }}.create_{{ entity.name | lower }}(
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_id UUID := gen_random_uuid();
-    v_{{ entity.pk_column }} INTEGER;
+    v_{{ entity.name | lower }}_id UUID := gen_random_uuid();
+    v_{{ entity.name | lower }}_pk INTEGER;
 {%- for resolution in fk_resolutions %}
     {{ resolution.variable }} INTEGER;
 {%- endfor %}
@@ -20,7 +20,7 @@ BEGIN
     -- === VALIDATION ===
 {%- for validation in validations %}
     IF {{ validation.check }} THEN
-        RETURN {{ entity.schema }}.log_and_return_mutation(
+        RETURN app.log_and_return_mutation(
             auth_tenant_id,
             auth_user_id,
             '{{ entity.name | lower }}',
@@ -41,7 +41,7 @@ BEGIN
         {{ resolution.variable }} := {{ resolution.helper_call }};
 
         IF {{ resolution.variable }} IS NULL THEN
-            RETURN {{ entity.schema }}.log_and_return_mutation(
+            RETURN app.log_and_return_mutation(
                 auth_tenant_id,
                 auth_user_id,
                 '{{ entity.name | lower }}',
@@ -67,19 +67,19 @@ BEGIN
         {{ value }}{{ "," if not loop.last else "" }}
 {%- endfor %}
     )
-    RETURNING {{ entity.pk_column }} INTO v_{{ entity.pk_column }};
+    RETURNING pk_{{ entity.name | lower }} INTO v_{{ entity.name | lower }}_pk;
 
     -- === AUDIT & RETURN ===
-    RETURN {{ entity.schema }}.log_and_return_mutation(
+    RETURN app.log_and_return_mutation(
         auth_tenant_id,
         auth_user_id,
         '{{ entity.name | lower }}',
-        v_id,
+        v_{{ entity.name | lower }}_id,
         'INSERT',
         'success',
         ARRAY(SELECT jsonb_object_keys(input_payload)),
         '{{ entity.name }} created successfully',
-        (SELECT row_to_json(t.*) FROM {{ entity.schema }}.{{ entity.table_name }} t WHERE t.id = v_id)::JSONB,
+        (SELECT row_to_json(t.*) FROM {{ entity.schema }}.{{ entity.table_name }} t WHERE t.id = v_{{ entity.name | lower }}_id)::JSONB,
         NULL
     );
 END;

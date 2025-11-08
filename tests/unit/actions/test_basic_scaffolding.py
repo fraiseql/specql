@@ -4,6 +4,7 @@ Phase 1: Function Scaffolding & Basic Returns
 """
 
 import pytest
+
 from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
 from src.generators.actions.action_compiler import ActionCompiler
 
@@ -23,8 +24,8 @@ class TestBasicScaffolding:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type="text"),
-                "company": FieldDefinition(name="company", type="ref", target_entity="Company"),
+                "email": FieldDefinition(name="email", type_name="text"),
+                "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company"),
             },
         )
 
@@ -45,8 +46,8 @@ class TestBasicScaffolding:
         entity = Entity(
             name="Contact",
             fields={
-                "email": FieldDefinition(name="email", type="text"),
-                "company": FieldDefinition(name="company", type="ref", target_entity="Company"),
+                "email": FieldDefinition(name="email", type_name="text"),
+                "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company"),
             },
         )
 

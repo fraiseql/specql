@@ -4,6 +4,7 @@ Phase 4: Conditional Logic (if/then/else, switch)
 """
 
 import pytest
+
 from src.core.ast_models import ActionStep, Entity, FieldDefinition
 from src.generators.actions.conditional_compiler import ConditionalCompiler
 
@@ -23,10 +24,10 @@ class TestConditionalLogic:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type="text"),
-                "status": FieldDefinition(name="status", type="text"),
-                "lead_score": FieldDefinition(name="lead_score", type="integer"),
-                "source_type": FieldDefinition(name="source_type", type="text"),
+                "email": FieldDefinition(name="email", type_name="text"),
+                "status": FieldDefinition(name="status", type_name="text"),
+                "lead_score": FieldDefinition(name="lead_score", type_name="integer"),
+                "source_type": FieldDefinition(name="source_type", type_name="text"),
             },
         )
 
@@ -42,7 +43,7 @@ class TestConditionalLogic:
 
         sql = compiler.compile(step, contact_entity)
 
-        assert "IF (status = 'lead') THEN" in sql
+        assert "IF (v_status = 'lead') THEN" in sql
         assert "UPDATE crm.tb_contact" in sql
         assert "END IF;" in sql
 
@@ -57,7 +58,7 @@ class TestConditionalLogic:
 
         sql = compiler.compile(step, contact_entity)
 
-        assert "IF (lead_score >= 70) THEN" in sql
+        assert "IF (v_lead_score >= 70) THEN" in sql
         assert "ELSE" in sql
         assert "END IF;" in sql
 

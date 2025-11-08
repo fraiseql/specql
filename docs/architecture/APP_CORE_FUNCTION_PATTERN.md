@@ -26,8 +26,8 @@ Based on `../printoptim_backend/db/0_schema/03_functions/`, the architecture use
 -- LAYER 1: APP WRAPPER (API Entry Point)
 -- ============================================================================
 CREATE OR REPLACE FUNCTION app.create_reservation(
-    input_pk_organization UUID,      -- Tenant context
-    input_created_by UUID,            -- User context
+    auth_tenant_id UUID,              -- Tenant context
+    auth_user_id UUID,                -- User context
     input_payload JSONB               -- Raw API input (GraphQL/REST)
 ) RETURNS app.mutation_result         -- Standard response
 LANGUAGE plpgsql
@@ -43,10 +43,10 @@ BEGIN
 
     -- Delegate to core logic
     RETURN core.create_reservation(
-        input_pk_organization,
+        auth_tenant_id,
         input_data,          -- ✅ Typed input
         input_payload,       -- Original for audit
-        input_created_by
+        auth_user_id
     );
 END;
 $$;
@@ -56,10 +56,10 @@ $$;
 -- LAYER 2: CORE LOGIC (Business Rules)
 -- ============================================================================
 CREATE OR REPLACE FUNCTION core.create_reservation(
-    input_pk_organization UUID,
+    auth_tenant_id UUID,
     input_data app.type_reservation_input,  -- ✅ Typed input
     input_payload JSONB,                     -- Original for audit
-    input_created_by UUID
+    auth_user_id UUID
 ) RETURNS app.mutation_result
 LANGUAGE plpgsql
 AS $$
@@ -72,8 +72,8 @@ BEGIN
     -- === INPUT VALIDATION ===
     IF input_data.machine_id IS NULL THEN
         RETURN core.log_and_return_mutation(
-            input_pk_organization,
-            input_created_by,
+            auth_tenant_id,
+            auth_user_id,
             'allocation',
             '00000000-0000-0000-0000-000000000000'::UUID,
             'NOOP',
@@ -104,7 +104,7 @@ BEGIN
         ...
     ) VALUES (
         v_id,
-        input_pk_organization,
+        auth_tenant_id,
         input_data.machine_id,
         COALESCE(input_data.reserved_from, CURRENT_DATE + INTERVAL '1 year'),
         COALESCE(input_data.reserved_until, '2099-12-31'::DATE),
@@ -113,8 +113,8 @@ BEGIN
 
     -- === AUDIT & RETURN ===
     RETURN core.log_and_return_mutation(
-        input_pk_organization,
-        input_created_by,
+        auth_tenant_id,
+        auth_user_id,
         'allocation',
         v_id,
         'INSERT',
@@ -354,8 +354,8 @@ class AppWrapperGenerator:
 
         return f"""
 CREATE OR REPLACE FUNCTION app.{action.name}(
-    input_pk_organization UUID,
-    input_created_by UUID,
+    auth_tenant_id UUID,
+    auth_user_id UUID,
     input_payload JSONB
 ) RETURNS app.mutation_result
 LANGUAGE plpgsql
@@ -371,10 +371,10 @@ BEGIN
 
     -- Delegate to core logic
     RETURN {schema}.{action.name}(
-        input_pk_organization,
+        auth_tenant_id,
         input_data,
         input_payload,
-        input_created_by
+        auth_user_id
     );
 END;
 $$;
@@ -396,10 +396,10 @@ class CoreLogicGenerator:
 
         return f"""
 CREATE OR REPLACE FUNCTION {schema}.{action.name}(
-    input_pk_organization UUID,
+    auth_tenant_id UUID,
     input_data app.type_{action.name}_input,
     input_payload JSONB,
-    input_created_by UUID
+    auth_user_id UUID
 ) RETURNS app.mutation_result
 LANGUAGE plpgsql
 AS $$
@@ -417,8 +417,8 @@ BEGIN
 
     -- === AUDIT & RETURN ===
     RETURN {schema}.log_and_return_mutation(
-        input_pk_organization,
-        input_created_by,
+        auth_tenant_id,
+        auth_user_id,
         v_entity,
         v_id,
         'INSERT',  -- or 'UPDATE', 'DELETE'

@@ -53,4 +53,4 @@ $$;
 
 -- FraiseQL Metadata
 COMMENT ON FUNCTION app.{{ app_function_name }} IS
-  '@fraiseql:mutation name={{ graphql_name }},input={{ graphql_name | title }}Input,output=MutationResult';
+  '@fraiseql:mutation name={{ graphql_name }},input={{ input_type_name }},output=MutationResult';

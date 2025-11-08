@@ -11,22 +11,22 @@ CREATE OR REPLACE FUNCTION {{ entity.schema }}.update_{{ entity.name | lower }}(
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_entity_id UUID;
-    v_{{ entity.pk_column }} INTEGER;
+    v_{{ entity.name | lower }}_id UUID;
+    v_{{ entity.name | lower }}_pk INTEGER;
 {%- for resolution in fk_resolutions %}
     {{ resolution.variable }} INTEGER;
 {%- endfor %}
 BEGIN
     -- === VALIDATION ===
     -- Check if entity exists and belongs to tenant
-    SELECT id, {{ entity.pk_column }}
-    INTO v_entity_id, v_{{ entity.pk_column }}
+    SELECT id, pk_{{ entity.name | lower }}
+    INTO v_{{ entity.name | lower }}_id, v_{{ entity.name | lower }}_pk
     FROM {{ entity.schema }}.{{ entity.table_name }}
     WHERE id = input_data.id::UUID
       AND tenant_id = auth_tenant_id;
 
-    IF v_entity_id IS NULL THEN
-        RETURN {{ entity.schema }}.log_and_return_mutation(
+    IF v_{{ entity.name | lower }}_id IS NULL THEN
+        RETURN app.log_and_return_mutation(
             auth_tenant_id,
             auth_user_id,
             '{{ entity.name | lower }}',
@@ -42,11 +42,11 @@ BEGIN
 
 {%- for validation in validations %}
     IF {{ validation.check }} THEN
-            RETURN {{ entity.schema }}.log_and_return_mutation(
+            RETURN app.log_and_return_mutation(
                 auth_tenant_id,
                 auth_user_id,
                 '{{ entity.name | lower }}',
-                v_entity_id,
+                v_{{ entity.name | lower }}_id,
                 'NOOP',
                 '{{ validation.error }}',
                 ARRAY['{{ validation.field }}']::TEXT[],
@@ -63,11 +63,11 @@ BEGIN
         {{ resolution.variable }} := {{ resolution.helper_call }};
 
         IF {{ resolution.variable }} IS NULL THEN
-                RETURN {{ entity.schema }}.log_and_return_mutation(
+                RETURN app.log_and_return_mutation(
                     auth_tenant_id,
                     auth_user_id,
                     '{{ entity.name | lower }}',
-                    v_entity_id,
+                    v_{{ entity.name | lower }}_id,
                     'NOOP',
                     'failed:{{ resolution.field }}_not_found',
                     ARRAY['{{ resolution.input_field }}']::TEXT[],
@@ -85,20 +85,20 @@ BEGIN
 {%- for assignment in update_fields.assignments %}
         {{ assignment }}{{ "," if not loop.last else "" }}
 {%- endfor %}
-    WHERE id = v_entity_id
+    WHERE id = v_{{ entity.name | lower }}_id
       AND tenant_id = auth_tenant_id;
 
     -- === AUDIT & RETURN ===
-    RETURN {{ entity.schema }}.log_and_return_mutation(
+    RETURN app.log_and_return_mutation(
         auth_tenant_id,
         auth_user_id,
         '{{ entity.name | lower }}',
-        v_entity_id,
+        v_{{ entity.name | lower }}_id,
         'UPDATE',
         'success',
         ARRAY(SELECT jsonb_object_keys(input_payload)),
         '{{ entity.name }} updated successfully',
-        (SELECT row_to_json(t.*) FROM {{ entity.schema }}.{{ entity.table_name }} t WHERE t.id = v_entity_id)::JSONB,
+        (SELECT row_to_json(t.*) FROM {{ entity.schema }}.{{ entity.table_name }} t WHERE t.id = v_{{ entity.name | lower }}_id)::JSONB,
         NULL
     );
 END;
