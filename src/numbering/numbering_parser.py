@@ -1,6 +1,6 @@
 """
 Numbering System Parser
-Parses 6-digit table codes into hierarchical components
+Parses 6-character hexadecimal table codes into hierarchical components
 """
 
 import re
@@ -12,11 +12,11 @@ from typing import Dict
 class TableCodeComponents:
     """Structured representation of parsed table code components"""
 
-    schema_layer: str  # 2 digits: schema type (01=write_side, etc.)
-    domain_code: str  # 1 digit: domain (1=core, 2=management, etc.)
-    entity_group: str  # 1 digit: entity group
-    entity_code: str  # 1 digit: entity code
-    file_sequence: str  # 1 digit: file sequence
+    schema_layer: str  # 2 hex chars: schema type (01=write_side, etc.)
+    domain_code: str  # 1 hex char: domain (0-F)
+    entity_group: str  # 1 hex char: entity group
+    entity_code: str  # 1 hex char: entity code
+    file_sequence: str  # 1 hex char: file sequence
 
     @property
     def full_domain(self) -> str:
@@ -35,8 +35,8 @@ class TableCodeComponents:
 
     @property
     def table_code(self) -> str:
-        """Reconstruct the full 6-digit table code"""
-        return f"{self.schema_layer}{self.domain_code}{self.entity_group}{self.entity_code}{self.file_sequence}"
+        """Reconstruct the full 6-character hexadecimal table code"""
+        return f"{self.schema_layer}{self.domain_code}{self.entity_group}{self.entity_code}{self.file_sequence}".upper()
 
 
 class NumberingParser:
@@ -49,7 +49,7 @@ class NumberingParser:
     DOMAIN_CODES = {"1": "core", "2": "management", "3": "catalog", "4": "tenant"}
 
     def parse_table_code(self, table_code: str) -> Dict[str, str]:
-        """Parse 6-digit table code into hierarchical components"""
+        """Parse 6-character hexadecimal table code into hierarchical components"""
         components = self.parse_table_code_detailed(table_code)
 
         return {
@@ -65,10 +65,10 @@ class NumberingParser:
 
     def parse_table_code_detailed(self, table_code: str) -> TableCodeComponents:
         """
-        Parse 6-digit table code into structured components
+        Parse 6-character hexadecimal table code into structured components
 
         Args:
-            table_code: 6-digit string representing the table code
+            table_code: 6-character hexadecimal string (case-insensitive)
 
         Returns:
             TableCodeComponents: Structured representation of the code
@@ -82,8 +82,15 @@ class NumberingParser:
         if not isinstance(table_code, str):
             raise ValueError(f"table_code must be a string, got {type(table_code)}")
 
-        if not re.match(r"^\d{6}$", table_code):
-            raise ValueError(f"Invalid table_code: {table_code}. Must be exactly 6 digits.")
+        # Normalize to uppercase
+        table_code = table_code.upper()
+
+        # Accept hexadecimal characters (0-9, A-F)
+        if not re.match(r"^[0-9A-F]{6}$", table_code):
+            raise ValueError(
+                f"Invalid table_code: {table_code}. "
+                f"Must be exactly 6 hexadecimal characters (0-9, A-F)."
+            )
 
         return TableCodeComponents(
             schema_layer=table_code[0:2],
