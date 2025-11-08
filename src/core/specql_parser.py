@@ -4,7 +4,7 @@ Parses business-focused YAML into Entity AST
 """
 
 import re
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional, Tuple
 
 import yaml
 
@@ -26,6 +26,7 @@ from src.core.ast_models import (
     TrinityHelpers,
     ValidationRule,
 )
+from src.core.type_registry import get_type_registry
 
 
 class ParseError(Exception):
@@ -44,6 +45,9 @@ class SpecQLParser:
     INSERT_PATTERN = re.compile(r"(\w+)\((.*)\)")
     UPDATE_PATTERN = re.compile(r"(\w+)\s+SET\s+(.*?)(?:\s+WHERE\s+(.*))?$", re.IGNORECASE)
     CALL_PATTERN = re.compile(r"(\w+)\((.*)\)")
+
+    def __init__(self) -> None:
+        self.type_registry = get_type_registry()
 
     # Reserved keywords for expression validation
     KEYWORDS = {
@@ -67,6 +71,10 @@ class SpecQLParser:
         "from",
         "where",
     }
+
+    def parse_string(self, yaml_content: str) -> Entity:
+        """Parse YAML string into Entity AST (alias for parse)"""
+        return self.parse(yaml_content)
 
     def parse(self, yaml_content: str) -> Entity:
         """
@@ -180,59 +188,178 @@ class SpecQLParser:
 
     def _parse_field_spec(self, name: str, spec: Any) -> FieldDefinition:
         """
-        Parse individual field specification
+        Parse individual field specification with rich type support
 
         Formats:
         - field_name: text
+        - field_name: email
+        - field_name: money(currency=USD)
         - field_name: ref(Entity)
         - field_name: enum(val1, val2)
         - field_name: list(type)
         - field_name: text = default_value
         """
-        # Handle default values (text = "default")
-        if isinstance(spec, str) and " = " in spec:
-            type_part, default_part = spec.split(" = ", 1)
-            spec = type_part.strip()
-            default = default_part.strip().strip("\"'")
-        else:
-            default = None
-
-        # Simple type
+        # Handle simple string type: "email: email"
         if isinstance(spec, str):
-            # Check for ref(Entity)
-            ref_match = self.REF_PATTERN.match(spec)
-            if ref_match:
-                return FieldDefinition(
-                    name=name, type="ref", target_entity=ref_match.group(1), default=default
-                )
+            return self._parse_simple_field_spec(name, spec)
 
-            # Check for enum(val1, val2, ...)
-            enum_match = self.ENUM_PATTERN.match(spec)
-            if enum_match:
-                values = [v.strip() for v in enum_match.group(1).split(",")]
-                return FieldDefinition(name=name, type="enum", values=values, default=default)
-
-            # Check for list(type)
-            list_match = self.LIST_PATTERN.match(spec)
-            if list_match:
-                item_spec = list_match.group(1)
-                return FieldDefinition(name=name, type="list", item_type=item_spec, default=default)
-
-            # Simple type (text, integer, etc.)
-            return FieldDefinition(name=name, type=spec, default=default)
-
-        # Complex specification (dict)
+        # Handle dict with options: "email: {type: email, nullable: false}"
         elif isinstance(spec, dict):
+            return self._parse_complex_field_spec(name, spec)
+
+        else:
+            raise ParseError(f"Invalid field specification for '{name}': {spec}")
+
+    def _parse_simple_field_spec(self, name: str, type_spec: str) -> FieldDefinition:
+        """Parse simple field type string with rich type support"""
+
+        # Check for nullable marker: "email!"
+        nullable = True
+        if type_spec.endswith("!"):
+            nullable = False
+            type_spec = type_spec[:-1]
+
+        # Check for default value: "color = '#000000'"
+        default = None
+        if " = " in type_spec:
+            type_spec, default_str = type_spec.split(" = ", 1)
+            default = default_str.strip().strip("'\"")
+
+        # Check for special types first (enum, ref, list)
+        # Check for ref(Entity)
+        ref_match = self.REF_PATTERN.match(type_spec)
+        if ref_match:
             return FieldDefinition(
                 name=name,
-                type=spec.get("type", "text"),
-                nullable=spec.get("nullable", True),
-                default=spec.get("default"),
-                values=spec.get("values"),
-                target_entity=spec.get("ref"),
+                type="ref",
+                target_entity=ref_match.group(1),
+                nullable=nullable,
+                default=default,
             )
 
-        raise ParseError(f"Invalid field specification for '{name}': {spec}")
+        # Check for enum(val1, val2, ...)
+        enum_match = self.ENUM_PATTERN.match(type_spec)
+        if enum_match:
+            values = [v.strip() for v in enum_match.group(1).split(",")]
+            return FieldDefinition(
+                name=name, type="enum", values=values, nullable=nullable, default=default
+            )
+
+        # Check for list(type)
+        list_match = self.LIST_PATTERN.match(type_spec)
+        if list_match:
+            item_spec = list_match.group(1)
+            return FieldDefinition(
+                name=name, type="list", item_type=item_spec, nullable=nullable, default=default
+            )
+
+        # Parse regular/rich types with metadata: "money(currency=USD)"
+        type_name, type_metadata = self._parse_type_with_metadata(type_spec)
+
+        # Validate type exists
+        self._validate_type(type_name)
+
+        return FieldDefinition(
+            name=name,
+            type=type_name,
+            nullable=nullable,
+            default=default,
+            type_metadata=type_metadata,
+        )
+
+    def _parse_complex_field_spec(self, name: str, field_dict: Dict[str, Any]) -> FieldDefinition:
+        """Parse complex field definition with explicit options"""
+
+        type_spec = field_dict.get("type")
+        if not type_spec:
+            raise ParseError(f"Missing 'type' for field {name}")
+
+        type_name, type_metadata = self._parse_type_with_metadata(type_spec)
+
+        # Validate type
+        self._validate_type(type_name)
+
+        return FieldDefinition(
+            name=name,
+            type=type_name,
+            nullable=field_dict.get("nullable", True),
+            default=field_dict.get("default"),
+            type_metadata=type_metadata,
+        )
+
+    def _parse_type_with_metadata(self, type_spec: str) -> Tuple[str, Optional[Dict[str, Any]]]:
+        """Parse type with optional metadata: money(currency=USD, precision=2)"""
+
+        # Check for metadata: "money(currency=USD)"
+        match = re.match(r"(\w+)\((.*)\)", type_spec)
+        if match:
+            type_name = match.group(1)
+            metadata_str = match.group(2)
+
+            # Parse metadata key=value pairs
+            metadata = {}
+            for pair in metadata_str.split(","):
+                if "=" in pair:
+                    key, value = pair.split("=", 1)
+                    key = key.strip()
+                    value = value.strip().strip("'\"")
+
+                    # Try to parse as number
+                    try:
+                        value = int(value)
+                    except ValueError:
+                        try:
+                            value = float(value)
+                        except ValueError:
+                            pass  # Keep as string
+
+                    metadata[key] = value
+
+            return type_name, metadata
+
+        # No metadata, just type name
+        return type_spec, None
+
+    def _validate_type(self, type_name: str) -> None:
+        """Validate type with helpful error messages"""
+        # Check rich types
+        if self.type_registry.is_rich_type(type_name):
+            return
+
+        # Check basic types
+        basic_types = {"text", "integer", "boolean", "jsonb", "timestamp", "uuid"}
+        if type_name in basic_types:
+            return
+
+        # Check special types
+        if type_name in {"ref", "list", "enum"}:
+            return
+
+        # Unknown type - find similar suggestions
+        similar = self._find_similar_types(type_name)
+        suggestion = f" Did you mean: {', '.join(similar)}?" if similar else ""
+
+        raise ValueError(f"Unknown type: {type_name}.{suggestion}")
+
+    def _find_similar_types(self, type_name: str) -> List[str]:
+        """Find similar type names for typo suggestions"""
+        import difflib
+
+        all_types = self.type_registry.get_all_rich_types() | {
+            "text",
+            "integer",
+            "boolean",
+            "jsonb",
+            "timestamp",
+            "uuid",
+            "ref",
+            "list",
+            "enum",
+        }
+
+        # Find close matches (ratio > 0.6)
+        matches = difflib.get_close_matches(type_name, all_types, n=3, cutoff=0.6)
+        return matches
 
     def _parse_actions(
         self, actions_data: List[Dict], entity_fields: Dict[str, FieldDefinition]

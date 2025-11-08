@@ -1,0 +1,27 @@
+entity: Contact
+schema: crm
+description: "Contact with FraiseQL rich types"
+
+fields:
+  # Rich types
+  email: email!
+  website: url
+  phone: phoneNumber
+  avatar: image
+
+  # Basic types (backward compatibility)
+  first_name: text!
+  last_name: text!
+  notes: text
+
+  # Relationships
+  company: ref(Company)
+
+  # Enums
+  status: enum(lead, qualified, customer)
+
+actions:
+  - name: create_contact
+    steps:
+      # Rich types auto-validate!
+      - insert: Contact
