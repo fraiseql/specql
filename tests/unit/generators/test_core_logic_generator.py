@@ -12,12 +12,12 @@ def test_generate_core_create_function():
         name="Contact",
         schema="crm",
         fields={
-            "email": FieldDefinition(name="email", type="text", nullable=False),
+            "email": FieldDefinition(name="email", type_name="text", nullable=False),
             "company": FieldDefinition(
-                name="company", type="ref", target_entity="Company", nullable=True
+                name="company", type_name="ref", reference_entity="Company", nullable=True
             ),
             "status": FieldDefinition(
-                name="status", type="enum", values=["lead", "qualified"], nullable=False
+                name="status", type_name="enum", values=["lead", "qualified"], nullable=False
             ),
         },
     )
@@ -36,7 +36,7 @@ def test_generate_core_create_function():
 
     # Then: Validation logic
     assert "IF input_data.email IS NULL THEN" in sql
-    assert "RETURN crm.log_and_return_mutation" in sql
+    assert "RETURN app.log_and_return_mutation" in sql
 
     # Then: Trinity resolution (UUID → INTEGER) with tenant filtering
     assert "v_fk_company := crm.company_pk(input_data.company_id::TEXT, auth_tenant_id)" in sql
@@ -50,7 +50,7 @@ def test_generate_core_create_function():
     assert "auth_user_id" in sql  # created_by from JWT
 
     # Then: Return mutation result
-    assert "RETURN crm.log_and_return_mutation" in sql
+    assert "RETURN app.log_and_return_mutation" in sql
 
 
 def test_core_function_uses_trinity_helpers():
@@ -59,7 +59,9 @@ def test_core_function_uses_trinity_helpers():
     entity = Entity(
         name="Contact",
         schema="crm",
-        fields={"company": FieldDefinition(name="company", type="ref", target_entity="Company")},
+        fields={
+            "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company")
+        },
     )
 
     # When: Generate
@@ -76,7 +78,7 @@ def test_core_function_populates_audit_fields():
     entity = Entity(
         name="Contact",
         schema="crm",
-        fields={"email": FieldDefinition(name="email", type="text", nullable=False)},
+        fields={"email": FieldDefinition(name="email", type_name="text", nullable=False)},
     )
 
     # When: Generate
@@ -97,7 +99,7 @@ def test_core_function_populates_tenant_id():
     entity = Entity(
         name="Contact",
         schema="crm",
-        fields={"email": FieldDefinition(name="email", type="text", nullable=False)},
+        fields={"email": FieldDefinition(name="email", type_name="text", nullable=False)},
     )
 
     # When: Generate
@@ -108,3 +110,23 @@ def test_core_function_populates_tenant_id():
     assert "tenant_id," in sql
     # Then: Value from JWT context
     assert "auth_tenant_id" in sql
+
+
+def test_core_function_uses_trinity_naming():
+    """Core function uses Trinity pattern variable names"""
+    # Given: Entity
+    entity = Entity(
+        name="Contact",
+        schema="crm",
+        fields={"email": FieldDefinition(name="email", type_name="text", nullable=False)},
+    )
+
+    # When: Generate core create function
+    generator = CoreLogicGenerator()
+    sql = generator.generate_core_create_function(entity)
+
+    # Then: Uses Trinity pattern variable names
+    assert "v_contact_id UUID := gen_random_uuid()" in sql
+    assert "v_contact_pk INTEGER" in sql
+    assert "auth_tenant_id UUID" in sql
+    assert "auth_user_id UUID" in sql
