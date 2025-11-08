@@ -2,8 +2,8 @@
 SpecQL AST Models
 Data classes representing parsed SpecQL entities
 """
-from typing import Dict, List, Any, Optional
 from dataclasses import dataclass, field
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
