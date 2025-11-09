@@ -1,0 +1,39 @@
+# SpecQL stdlib Entity: PostalCodeCity
+# Category: geo
+# Version: 1.1.0
+# Standard: N/A
+# Description: Junction table linking postal codes to administrative units
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/geo/postal_code_city
+#
+#   # Or extend with customizations:
+#   entity: MyPostalCodeCity
+#   extends:
+#     from: stdlib/geo/postal_code_city
+#   fields:
+#     custom_field: text
+
+entity: PostalCodeCity
+schema: common
+description: |
+  Associates postal codes with administrative units (e.g., cities or communes).
+  Supports many-to-many relationships between postal codes and cities.
+
+fields:
+  postal_code: ref(PostalCode)
+  administrative_unit: ref(AdministrativeUnit)
+
+actions:
+  - name: create_postal_code_city
+  - name: update_postal_code_city
+  - name: delete_postal_code_city
+
+  # Business actions
+  - name: validate_city
+  - name: get_postal_codes
+  - name: check_administrative_unit

@@ -1,0 +1,41 @@
+# SpecQL stdlib Entity: LocationType
+# Category: geo
+# Version: 1.1.0
+# Standard: N/A
+# Description: Classification of location types
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/geo/location_type
+#
+#   # Or extend with customizations:
+#   entity: MyLocationType
+#   extends:
+#     from: stdlib/geo/location_type
+#   fields:
+#     custom_field: text
+
+entity: LocationType
+schema: common
+description: |
+  Defines the classification of locations, such as legal address, postal address, or geographic location.
+
+fields:
+  name: text
+
+translations:
+  enabled: true
+  fields: [name]
+
+actions:
+  - name: create_location_type
+  - name: update_location_type
+  - name: delete_location_type
+
+  # Business actions
+  - name: activate_type
+  - name: deactivate_type
+  - name: update_name

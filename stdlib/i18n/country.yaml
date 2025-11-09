@@ -1,0 +1,51 @@
+# SpecQL stdlib Entity: Country
+# Category: i18n
+# Version: 1.1.0
+# Standard: ISO 3166-1
+# Description: Country reference data with ISO codes
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/i18n/country
+#
+#   # Or extend with customizations:
+#   entity: MyCountry
+#   extends:
+#     from: stdlib/i18n/country
+#   fields:
+#     custom_field: text
+
+entity: Country
+schema: common
+description: |
+  List of countries identified by ISO 3166-1 alpha-2 codes.
+
+fields:
+  name: text
+  iso_code:
+    type: text
+    nullable: false
+    description: |
+      ISO 3166-1 alpha-2 country code (2 uppercase letters).
+      Examples: 'US', 'FR', 'GB', 'DE'
+      Pattern: ^[A-Z]{2}$
+
+  continent: ref(Continent)
+
+translations:
+  enabled: true
+  fields: [name, abbreviation, short_name, official_name]
+
+actions:
+  - name: create_country
+  - name: update_country
+  - name: delete_country
+
+  # Business actions
+  - name: activate_country
+  - name: deactivate_country
+  - name: update_iso_code
+  - name: change_continent

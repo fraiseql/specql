@@ -6,6 +6,7 @@ Generates app.* API wrapper functions
 from jinja2 import Environment, FileSystemLoader
 
 from src.core.ast_models import Action, Entity
+from src.generators.fraiseql.mutation_annotator import MutationAnnotator
 
 
 class AppWrapperGenerator:
@@ -24,7 +25,7 @@ class AppWrapperGenerator:
             action: Action to generate wrapper for
 
         Returns:
-            SQL for app wrapper function
+            SQL for app wrapper function with FraiseQL comments
         """
         action_type = self._detect_action_type(action.name)
         composite_type_name = f"app.type_{action.name}_input"
@@ -46,7 +47,13 @@ class AppWrapperGenerator:
         }
 
         template = self.env.get_template("app_wrapper.sql.j2")
-        return template.render(**context)
+        function_sql = template.render(**context)
+
+        # Add FraiseQL annotation (Team D) - IN SAME FILE as function
+        annotator = MutationAnnotator("app", entity.name)
+        annotation_sql = annotator.generate_app_mutation_annotation(action)
+
+        return f"{function_sql}\n\n{annotation_sql}"
 
     def _detect_action_type(self, action_name: str) -> str:
         """

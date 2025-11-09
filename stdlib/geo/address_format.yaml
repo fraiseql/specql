@@ -1,0 +1,50 @@
+# SpecQL stdlib Entity: AddressFormat
+# Category: geo
+# Version: 1.1.0
+# Standard: N/A
+# Description: Address formatting rules by country and language
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/geo/address_format
+#
+#   # Or extend with customizations:
+#   entity: MyAddressFormat
+#   extends:
+#     from: stdlib/geo/address_format
+#   fields:
+#     custom_field: text
+
+entity: AddressFormat
+schema: common
+description: |
+  Defines how postal addresses should be formatted for a given country and language combination.
+
+fields:
+  format_inline: text
+  format_multiline: text
+  format_web: text
+
+  # Foreign keys
+  country: ref(Country)
+  language: ref(Language)
+
+  # Administrative level references for address formatting
+  admin_level_0: ref(AdministrativeLevel)
+  admin_level_1: ref(AdministrativeLevel)
+  admin_level_2: ref(AdministrativeLevel)
+  admin_level_3: ref(AdministrativeLevel)
+
+actions:
+  - name: create_address_format
+  - name: update_address_format
+  - name: delete_address_format
+
+  # Business actions
+  - name: activate_format
+  - name: deactivate_format
+  - name: test_formatting
+  - name: update_locale_support

@@ -8,6 +8,7 @@ from jinja2 import Environment, FileSystemLoader
 from src.core.ast_models import Entity, FieldDefinition, FieldTier, Action
 from src.generators.actions.action_orchestrator import ActionOrchestrator
 from src.generators.schema.schema_registry import SchemaRegistry
+from src.utils.safe_slug import safe_slug, safe_table_name
 
 
 class CoreLogicGenerator:
@@ -35,8 +36,8 @@ class CoreLogicGenerator:
             "entity": {
                 "name": entity.name,
                 "schema": entity.schema,
-                "table_name": f"tb_{entity.name.lower()}",
-                "pk_column": f"pk_{entity.name.lower()}",
+                "table_name": safe_table_name(entity.name),
+                "pk_column": f"pk_{safe_slug(entity.name)}",
             },
             "composite_type": f"app.type_create_{entity.name.lower()}_input",
             "fields": fields,
@@ -63,8 +64,8 @@ class CoreLogicGenerator:
             "entity": {
                 "name": entity.name,
                 "schema": entity.schema,
-                "table_name": f"tb_{entity.name.lower()}",
-                "pk_column": f"pk_{entity.name.lower()}",
+                "table_name": safe_table_name(entity.name),
+                "pk_column": f"pk_{safe_slug(entity.name)}",
             },
             "composite_type": f"app.type_update_{entity.name.lower()}_input",
             "update_fields": update_fields,
@@ -85,8 +86,8 @@ class CoreLogicGenerator:
             "entity": {
                 "name": entity.name,
                 "schema": entity.schema,
-                "table_name": f"tb_{entity.name.lower()}",
-                "pk_column": f"pk_{entity.name.lower()}",
+                "table_name": safe_table_name(entity.name),
+                "pk_column": f"pk_{safe_slug(entity.name)}",
             },
         }
 
@@ -172,7 +173,7 @@ class CoreLogicGenerator:
         is_tenant_specific = self._is_tenant_specific_schema(entity.schema)
 
         for field_name, field_def in entity.fields.items():
-            if field_def.tier == FieldTier.REFERENCE and field_def.reference_entity:
+            if field_def.type_name == "ref" and field_def.reference_entity:
                 # Check if target entity is in tenant-specific schema
                 target_is_tenant_specific = self._is_tenant_specific_schema(entity.schema)
 
@@ -261,7 +262,7 @@ class CoreLogicGenerator:
             "entity": {
                 "name": entity.name,
                 "schema": entity.schema,
-                "table_name": f"tb_{entity.name.lower()}",
+                "table_name": safe_table_name(entity.name),
             },
             "action": action,
             "composite_type": f"app.type_{action.name}_input",
@@ -286,7 +287,7 @@ class CoreLogicGenerator:
 
                 # Fetch current values for validation
                 if fields_in_validation:
-                    table_name = f"{entity.schema}.tb_{entity.name.lower()}"
+                    table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
                     select_fields = ", ".join(fields_in_validation)
                     select_into = ", ".join(f"v_current_{field}" for field in fields_in_validation)
 

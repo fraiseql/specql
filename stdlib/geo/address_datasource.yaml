@@ -1,0 +1,45 @@
+# SpecQL stdlib Entity: AddressDatasource
+# Category: geo
+# Version: 1.1.0
+# Standard: N/A
+# Description: External data sources for addresses
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/geo/address_datasource
+#
+#   # Or extend with customizations:
+#   entity: MyAddressDatasource
+#   extends:
+#     from: stdlib/geo/address_datasource
+#   fields:
+#     custom_field: text
+
+entity: AddressDatasource
+schema: common
+description: |
+  Table containing external data sources for addresses.
+
+fields:
+  name: text
+  description: text
+  website:
+    type: url
+    nullable: true
+    description: "Website URL of the address data source"
+
+  country: ref(Country)
+
+actions:
+  - name: create_address_datasource
+  - name: update_address_datasource
+  - name: delete_address_datasource
+
+  # Business actions
+  - name: activate_datasource
+  - name: deactivate_datasource
+  - name: test_connectivity
+  - name: update_website

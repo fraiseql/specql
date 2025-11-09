@@ -1,0 +1,47 @@
+# SpecQL stdlib Entity: Industry
+# Category: common
+# Version: 1.1.0
+# Standard: N/A
+# Description: Hierarchical industry/business sector classification
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/common/industry
+#
+#   # Or extend with customizations:
+#   entity: MyIndustry
+#   extends:
+#     from: stdlib/common/industry
+#   fields:
+#     custom_field: text
+
+entity: Industry
+schema: common
+hierarchical: true
+description: |
+  Represents a hierarchical classification of industries (e.g., "Healthcare", "Manufacturing > Automotive").
+  Used to categorize organizations by their business sector with nomenclature support.
+
+fields:
+  name: text
+  nomenclature: text
+
+  parent: ref(Industry)
+
+translations:
+  enabled: true
+  fields: [name]
+
+actions:
+  - name: create_industry
+  - name: update_industry
+  - name: delete_industry
+
+  # Business actions
+  - name: activate_industry
+  - name: deactivate_industry
+  - name: change_parent
+  - name: update_nomenclature

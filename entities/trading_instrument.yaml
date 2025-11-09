@@ -1,0 +1,19 @@
+# Trading Instrument Entity
+# Trading instruments using normalized references
+
+entity: TradingInstrument
+schema: trading
+description: "Trading instruments using normalized references"
+
+fields:
+  pair: ref(TradingPair)!
+  exchange_rate: exchangeRate
+  volume_24h: money
+  last_updated: datetime
+
+# Benefits:
+# - Single pair reference instead of multiple scalar types
+# - Master data management for financial units
+# - Flexible for new pair types
+# - Better reporting/analytics capabilities
+# - Validation against master lists

@@ -5,6 +5,7 @@ Generates CHECK constraints for FraiseQL rich types
 
 from typing import Optional
 from src.core.ast_models import FieldDefinition
+from src.utils.safe_slug import safe_slug
 
 
 class ConstraintGenerator:
@@ -35,7 +36,8 @@ class ConstraintGenerator:
         """Generate consistent constraint names"""
         # Remove schema prefix if present
         table_short = table_name.split(".")[-1] if "." in table_name else table_name
-        return f"chk_{table_short}_{field_name}_{constraint_type}"
+        # Keep the full table short name including "tb_" prefix for constraint names
+        return f"chk_{safe_slug(table_short)}_{safe_slug(field_name)}_{constraint_type}"
 
     # Specific constraint generators for better organization
     def generate_email_constraint(self, field_name: str, table_name: str) -> str:

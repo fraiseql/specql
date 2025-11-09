@@ -1,0 +1,46 @@
+# SpecQL stdlib Entity: LocationLevel
+# Category: geo
+# Version: 1.1.0
+# Standard: N/A
+# Description: Hierarchical levels within location structures
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/geo/location_level
+#
+#   # Or extend with customizations:
+#   entity: MyLocationLevel
+#   extends:
+#     from: stdlib/geo/location_level
+#   fields:
+#     custom_field: text
+
+entity: LocationLevel
+schema: common
+hierarchical: true
+description: |
+  Represents the levels within a location hierarchy (e.g., country level, region level).
+  Defines the structure of location hierarchies with localized naming.
+
+fields:
+  name: text
+
+  parent: ref(LocationLevel)
+
+translations:
+  enabled: true
+  fields: [name]
+
+actions:
+  - name: create_location_level
+  - name: update_location_level
+  - name: delete_location_level
+
+  # Business actions
+  - name: activate_level
+  - name: deactivate_level
+  - name: change_parent
+  - name: update_name

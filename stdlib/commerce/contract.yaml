@@ -1,0 +1,93 @@
+# SpecQL stdlib Entity: Contract
+# Category: commerce
+# Version: 1.1.0
+# Standard: N/A
+# Description: Generic contract management between organizations
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/commerce/contract
+#
+#   # Or extend with customizations:
+#   entity: MyContract
+#   extends:
+#     from: stdlib/commerce/contract
+#   fields:
+#     custom_field: text
+
+entity: Contract
+schema: management
+description: |
+  Contract entity representing agreements between customer and provider organizations.
+  Defines the commercial terms, duration, and parties involved in a business agreement.
+
+fields:
+  contract_identifier:
+    type: text
+    nullable: false
+    description: "Unique contract identifier"
+
+  customer_contract_id:
+    type: text
+    description: "Customer's reference identifier for this contract"
+
+  provider_contract_id:
+    type: text
+    description: "Provider's reference identifier for this contract"
+
+  signature_date:
+    type: date
+    description: "Date when the contract was signed"
+
+  start_date:
+    type: date
+    description: "Contract effective start date"
+
+  end_date:
+    type: date
+    description: "Contract expiration date"
+
+  name:
+    type: text
+    nullable: false
+    description: "Human-readable contract name"
+
+  duration_source:
+    type: enum(contract_end, original_duration)
+    default: original_duration
+    description: "Source for determining contract duration"
+
+  customer_org:
+    type: ref(Organization)
+    nullable: false
+    description: "Customer organization party to the contract"
+
+  provider_org:
+    type: ref(Organization)
+    nullable: false
+    description: "Provider organization party to the contract"
+
+  currency:
+    type: ref(Currency)
+    schema: common
+    nullable: false
+    description: "Currency used for pricing in this contract"
+
+actions:
+  - name: create_contract
+  - name: update_contract
+  - name: delete_contract
+
+  # Business actions
+  - name: activate_contract
+  - name: suspend_contract
+  - name: terminate_contract
+  - name: renew_contract
+  - name: amend_contract
+  - name: change_currency
+  - name: update_terms
+  - name: add_financing_condition
+  - name: remove_financing_condition

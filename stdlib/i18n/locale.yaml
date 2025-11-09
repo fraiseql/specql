@@ -1,0 +1,56 @@
+# SpecQL stdlib Entity: Locale
+# Category: i18n
+# Version: 1.1.0
+# Standard: BCP 47
+# Description: Locale definitions with language and regional settings
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/i18n/locale
+#
+#   # Or extend with customizations:
+#   entity: MyLocale
+#   extends:
+#     from: stdlib/i18n/locale
+#   fields:
+#     custom_field: text
+
+entity: Locale
+schema: common
+description: |
+  Defines supported locales (language + regional variant), such as "en-US" or "fr-CA".
+  Used for translation, formatting, and regional settings.
+
+fields:
+  code: text
+  name: text
+  flag: text
+
+  # Formatting patterns
+  numeric_pattern: text
+  decimal_separator: text
+  grouping_separator: text
+  currency_pattern: text
+
+  # Status flags
+  is_default: boolean
+  is_active: boolean
+  is_rtl: boolean
+
+  # Foreign key to language
+  language: ref(Language)
+
+actions:
+  - name: create_locale
+  - name: update_locale
+  - name: delete_locale
+
+  # Business actions
+  - name: activate_locale
+  - name: deactivate_locale
+  - name: update_formatting
+  - name: change_language
+  - name: set_as_default

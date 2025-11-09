@@ -1,0 +1,53 @@
+# SpecQL stdlib Entity: Currency
+# Category: i18n
+# Version: 1.1.0
+# Standard: ISO 4217
+# Description: Currency reference data with ISO codes and symbols
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/i18n/currency
+#
+#   # Or extend with customizations:
+#   entity: MyCurrency
+#   extends:
+#     from: stdlib/i18n/currency
+#   fields:
+#     custom_field: text
+
+entity: Currency
+schema: common
+description: |
+  Reference table for currencies used in the system.
+  Stores ISO code, symbol, and human-readable name.
+
+fields:
+  code:
+    type: text
+    nullable: false
+    description: |
+      ISO 4217 alphabetic currency code (3 uppercase letters).
+      Examples: 'USD', 'EUR', 'GBP', 'JPY'
+      Pattern: ^[A-Z]{3}$
+
+  symbol:
+    type: text
+    description: "Currency symbol (e.g., '$', '€', '£', '¥')"
+
+translations:
+  enabled: true
+  fields: [name]  # e.g., "Euro", "US Dollar"
+
+actions:
+  - name: create_currency
+  - name: update_currency
+  - name: delete_currency
+
+  # Business actions
+  - name: activate_currency
+  - name: deactivate_currency
+  - name: update_symbol
+  - name: get_exchange_rate

@@ -1,0 +1,54 @@
+# SpecQL stdlib Entity: PublicAddress
+# Category: geo
+# Version: 1.1.0
+# Standard: N/A
+# Description: Geolocated public addresses with administrative and postal references
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/geo/public_address
+#
+#   # Or extend with customizations:
+#   entity: MyPublicAddress
+#   extends:
+#     from: stdlib/geo/public_address
+#   fields:
+#     custom_field: text
+
+entity: PublicAddress
+schema: common
+description: |
+  Stores geolocated public addresses tied to administrative units, postal codes, and optional national address identifiers.
+  Uses PostgreSQL POINT type for coordinates to enable spatial queries.
+
+fields:
+  street_number: text
+  street_suffix: text
+  street_name: text
+  coordinates:
+    type: coordinates
+    nullable: true
+    description: "Geographic coordinates (latitude, longitude) stored as PostgreSQL POINT"
+  national_address_id: text  # Renamed from ban_identifier for generic use
+  external_address_id: text
+
+  # Foreign keys
+  street_type: ref(StreetType)
+  country: ref(Country)
+  administrative_unit: ref(AdministrativeUnit)
+  postal_code: ref(PostalCode)
+  address_datasource: ref(AddressDatasource)
+
+actions:
+  - name: create_public_address
+  - name: update_public_address
+  - name: delete_public_address
+
+  # Business actions
+  - name: validate_address
+  - name: geocode_address
+  - name: format_address
+  - name: check_address_completeness

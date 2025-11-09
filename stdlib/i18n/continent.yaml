@@ -1,0 +1,42 @@
+# SpecQL stdlib Entity: Continent
+# Category: i18n
+# Version: 1.1.0
+# Standard: UN M49
+# Description: Continent reference data for geographical grouping
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/i18n/continent
+#
+#   # Or extend with customizations:
+#   entity: MyContinent
+#   extends:
+#     from: stdlib/i18n/continent
+#   fields:
+#     custom_field: text
+
+entity: Continent
+schema: common
+description: |
+  List of world continents used to group countries (e.g., "Europe", "Asia", "Oceania").
+
+fields:
+  iso_code: text
+  name: text
+
+translations:
+  enabled: true
+  fields: [name]
+
+actions:
+  - name: create_continent
+  - name: update_continent
+  - name: delete_continent
+
+  # Business actions
+  - name: activate_continent
+  - name: deactivate_continent
+  - name: update_iso_code

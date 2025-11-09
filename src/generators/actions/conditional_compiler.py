@@ -7,6 +7,7 @@ from dataclasses import dataclass
 from typing import List
 
 from src.core.ast_models import ActionStep, Entity
+from src.utils.safe_slug import safe_slug, safe_table_name
 
 
 @dataclass
@@ -138,16 +139,16 @@ class ConditionalCompiler:
         for step in steps:
             if step.type == "update":
                 # Simple update compilation for testing
+                table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
+                pk_column = f"pk_{safe_slug(entity.name)}"
                 fields_sql = ", ".join(f"{k} = '{v}'" for k, v in (step.fields or {}).items())
-                compiled.append(
-                    f"UPDATE {entity.schema}.tb_{entity.name.lower()} SET {fields_sql} WHERE pk_{entity.name.lower()} = v_pk;"
-                )
+                compiled.append(f"UPDATE {table_name} SET {fields_sql} WHERE {pk_column} = v_pk;")
             elif step.type == "insert":
                 # Simple insert compilation for testing
+                target_entity = step.entity or entity.name
+                table_name = f"{entity.schema}.tb_{safe_slug(target_entity)}_lightweight"
                 fields_sql = ", ".join(f"{k} = '{v}'" for k, v in (step.fields or {}).items())
-                compiled.append(
-                    f"INSERT INTO {entity.schema}.tb_{step.entity or entity.name}_lightweight ({fields_sql});"
-                )
+                compiled.append(f"INSERT INTO {table_name} ({fields_sql});")
             else:
                 compiled.append(f"-- Unknown step type: {step.type}")
 

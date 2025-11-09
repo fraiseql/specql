@@ -70,10 +70,6 @@ def test_generate_custom_action(generator):
     # Note: call step may not be implemented yet
     # assert "PERFORM app.emit_event('lead_qualified', v_contact_id)" in sql  # call
 
-    # Should have YAML comment
-    assert "@fraiseql:mutation" in sql
-    assert "name: qualifyLead" in sql
-
     # Then: Return mutation result
     assert "RETURN app.log_and_return_mutation" in sql
 

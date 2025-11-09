@@ -186,7 +186,9 @@ def test_generate_unified_view_ddl():
     assert "n.path_updated_at," in ddl
     assert "n.path_updated_by" in ddl
     assert "WHERE n.deleted_at IS NULL;" in ddl
-    assert "@fraiseql:type name=TestEntity,schema=test" in ddl
+    assert "@fraiseql:type" in ddl
+    assert "name: TestEntity" in ddl
+    assert "schema: test" in ddl
 
 
 def test_generate_node_info_split_ddl():

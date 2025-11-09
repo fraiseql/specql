@@ -1,0 +1,47 @@
+# SpecQL stdlib Entity: AdministrativeLevel
+# Category: geo
+# Version: 1.1.0
+# Standard: N/A
+# Description: Hierarchical administrative levels within countries
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/geo/administrative_level
+#
+#   # Or extend with customizations:
+#   entity: MyAdministrativeLevel
+#   extends:
+#     from: stdlib/geo/administrative_level
+#   fields:
+#     custom_field: text
+
+entity: AdministrativeLevel
+schema: common
+hierarchical: true
+description: |
+  Defines the hierarchical structure of administrative levels within a country.
+  Includes both structural hierarchy and localized naming information.
+
+fields:
+  name: text
+
+  country: ref(Country)
+  parent: ref(AdministrativeLevel)
+
+translations:
+  enabled: true
+  fields: [name]
+
+actions:
+  - name: create_administrative_level
+  - name: update_administrative_level
+  - name: delete_administrative_level
+
+  # Business actions
+  - name: activate_level
+  - name: deactivate_level
+  - name: change_parent
+  - name: update_country

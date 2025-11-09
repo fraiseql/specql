@@ -1,7 +1,7 @@
 """
 Scalar Rich Type Registry
 
-Defines all 23 built-in scalar types with:
+Defines all 49 built-in scalar types with:
 - PostgreSQL type mapping
 - FraiseQL scalar name
 - Validation patterns (regex, ranges)
@@ -325,6 +325,300 @@ SCALAR_TYPES: Dict[str, ScalarTypeDef] = {
         input_type="text",
         placeholder="550e8400-e29b-41d4-a716-446655440000",
     ),
+    # i18n types
+    "languageCode": ScalarTypeDef(
+        name="languageCode",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="LanguageCode",
+        validation_pattern=r"^[a-z]{2}$",  # ISO 639-1: exactly 2 lowercase letters
+        description="ISO 639-1 two-letter language code",
+        example="en",
+        input_type="text",
+        placeholder="en",
+    ),
+    "localeCode": ScalarTypeDef(
+        name="localeCode",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="LocaleCode",
+        validation_pattern=r"^[a-z]{2}(-[A-Z]{2})?$",  # BCP 47: language or language-REGION
+        description="BCP 47 locale code for regional formatting",
+        example="en-US",
+        input_type="text",
+        placeholder="en-US",
+    ),
+    "timezone": ScalarTypeDef(
+        name="timezone",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="Timezone",
+        validation_pattern=r"^[A-Z][a-zA-Z_]+(/[A-Z][a-zA-Z_]+){1,2}$",  # IANA format
+        description="IANA timezone database identifier",
+        example="America/New_York",
+        input_type="text",
+        placeholder="America/New_York",
+    ),
+    # Business/financial types
+    "currencyCode": ScalarTypeDef(
+        name="currencyCode",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="CurrencyCode",
+        validation_pattern=r"^[A-Z]{3}$",  # ISO 4217: exactly 3 uppercase letters
+        description="ISO 4217 currency code",
+        example="USD",
+        input_type="text",
+        placeholder="USD",
+    ),
+    "countryCode": ScalarTypeDef(
+        name="countryCode",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="CountryCode",
+        validation_pattern=r"^[A-Z]{2}$",  # ISO 3166-1 alpha-2: exactly 2 uppercase letters
+        description="ISO 3166-1 alpha-2 country code",
+        example="US",
+        input_type="text",
+        placeholder="US",
+    ),
+    # Technical types
+    "mimeType": ScalarTypeDef(
+        name="mimeType",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="MimeType",
+        validation_pattern=r"^[a-zA-Z][a-zA-Z0-9][a-zA-Z0-9\!\#\$\&\-\^]*\/[a-zA-Z0-9][a-zA-Z0-9\!\#\$\&\-\^]*$",
+        description="MIME type (e.g., application/json, image/png)",
+        example="application/json",
+        input_type="text",
+        placeholder="application/json",
+    ),
+    "semanticVersion": ScalarTypeDef(
+        name="semanticVersion",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="SemanticVersion",
+        validation_pattern=r"^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$",
+        description="Semantic versioning (semver) format",
+        example="1.2.3",
+        input_type="text",
+        placeholder="1.0.0",
+    ),
+    # Financial/stocks types
+    "stockSymbol": ScalarTypeDef(
+        name="stockSymbol",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="StockSymbol",
+        validation_pattern=r"^[A-Z]{1,5}(\.[A-Z]{1,2})?$",  # Stock ticker format (e.g., AAPL, BRK.A)
+        description="Stock ticker symbol (1-5 uppercase letters, optional class suffix)",
+        example="AAPL",
+        input_type="text",
+        placeholder="AAPL",
+    ),
+    "isin": ScalarTypeDef(
+        name="isin",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="ISIN",
+        validation_pattern=r"^[A-Z]{2}[A-Z0-9]{9}[0-9]$",  # ISIN format: 2 letters + 9 alphanum + 1 digit
+        description="International Securities Identification Number (12 characters)",
+        example="US0378331005",
+        input_type="text",
+        placeholder="US0378331005",
+    ),
+    "cusip": ScalarTypeDef(
+        name="cusip",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="CUSIP",
+        validation_pattern=r"^[0-9]{6}[0-9A-Z]{2}[0-9]$",  # CUSIP format: 6 digits + 2 alphanum + 1 digit
+        description="Committee on Uniform Security Identification Procedures (9 characters, primarily US)",
+        example="037833100",
+        input_type="text",
+        placeholder="037833100",
+    ),
+    "sedol": ScalarTypeDef(
+        name="sedol",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="SEDOL",
+        validation_pattern=r"^[0-9A-Z]{6}[0-9]$",  # SEDOL format: 6 alphanum + 1 check digit
+        description="Stock Exchange Daily Official List (7 characters, UK-based)",
+        example="B02LC96",
+        input_type="text",
+        placeholder="B02LC96",
+    ),
+    "lei": ScalarTypeDef(
+        name="lei",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="LEI",
+        validation_pattern=r"^[0-9A-Z]{18}[0-9]{2}$",  # LEI format: 18 alphanum + 2 check digits
+        description="Legal Entity Identifier (20 characters, global standard)",
+        example="54930084UKLVMY22DS16",
+        input_type="text",
+        placeholder="54930084UKLVMY22DS16",
+    ),
+    "mic": ScalarTypeDef(
+        name="mic",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="MIC",
+        validation_pattern=r"^[A-Z0-9]{4}$",  # MIC format: 4 characters
+        description="Market Identifier Code (ISO 10383, identifies trading venues)",
+        example="XNYS",
+        input_type="text",
+        placeholder="XNYS",
+    ),
+    "exchangeCode": ScalarTypeDef(
+        name="exchangeCode",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="ExchangeCode",
+        validation_pattern=r"^[A-Z]{2,6}$",  # Exchange codes (NYSE, NASDAQ, LSE, etc.)
+        description="Stock exchange code (2-6 uppercase letters)",
+        example="NYSE",
+        input_type="text",
+        placeholder="NYSE",
+    ),
+    # NOTE: forexPair and cryptoPair removed in favor of ref(TradingPair) entities
+    # This provides better normalization and flexibility for financial data
+    "exchangeRate": ScalarTypeDef(
+        name="exchangeRate",
+        postgres_type=PostgreSQLType.NUMERIC,
+        postgres_precision=(19, 8),  # High precision for exchange rates
+        fraiseql_scalar_name="ExchangeRate",
+        min_value=0.0,
+        description="Currency exchange rate (high precision decimal)",
+        example="1.23456789",
+        input_type="number",
+        placeholder="1.23456789",
+    ),
+    # Logistics/shipping types
+    "trackingNumber": ScalarTypeDef(
+        name="trackingNumber",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="TrackingNumber",
+        validation_pattern=r"^[A-Z0-9]{8,30}$",  # Generic tracking number format
+        description="Shipping tracking number (8-30 alphanumeric characters)",
+        example="1Z999AA1234567890",
+        input_type="text",
+        placeholder="1Z999AA1234567890",
+    ),
+    "containerNumber": ScalarTypeDef(
+        name="containerNumber",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="ContainerNumber",
+        validation_pattern=r"^[A-Z]{3}[UJZ]\d{6}\d$",  # ISO 6346 container number format
+        description="Shipping container number (ISO 6346 format: 3 letters + U/J/Z + 6 digits + check digit)",
+        example="MSKU1234567",
+        input_type="text",
+        placeholder="MSKU1234567",
+    ),
+    "licensePlate": ScalarTypeDef(
+        name="licensePlate",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="LicensePlate",
+        validation_pattern=r"^[A-Z0-9\s\-]{1,20}$",  # International license plate format (letters, numbers, spaces, hyphens)
+        description="Vehicle license plate number (international format: alphanumeric with spaces/hyphens)",
+        example="ABC-123",
+        input_type="text",
+        placeholder="ABC-123",
+    ),
+    "vin": ScalarTypeDef(
+        name="vin",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="VIN",
+        validation_pattern=r"^[A-HJ-NPR-Z0-9]{17}$",  # VIN format: 17 characters, no I,O,Q
+        description="Vehicle Identification Number (17 characters, ISO 3779/3780)",
+        example="1HGCM82633A123456",
+        input_type="text",
+        placeholder="1HGCM82633A123456",
+    ),
+    "flightNumber": ScalarTypeDef(
+        name="flightNumber",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="FlightNumber",
+        validation_pattern=r"^[A-Z]{2,3}\d{1,4}[A-Z]?$",  # Airline code + number + optional suffix
+        description="Flight number (IATA airline code + 1-4 digits + optional letter)",
+        example="AA1234",
+        input_type="text",
+        placeholder="AA1234",
+    ),
+    "portCode": ScalarTypeDef(
+        name="portCode",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="PortCode",
+        validation_pattern=r"^[A-Z]{5}$",  # UN/LOCODE format: 5 letters
+        description="Port/terminal code (UN/LOCODE: 5 letters)",
+        example="USNYC",
+        input_type="text",
+        placeholder="USNYC",
+    ),
+    "postalCode": ScalarTypeDef(
+        name="postalCode",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="PostalCode",
+        validation_pattern=r"^[A-Z0-9\s\-]{3,12}$",  # International postal code format
+        description="Postal/ZIP code (international format: alphanumeric with spaces/hyphens)",
+        example="12345",
+        input_type="text",
+        placeholder="12345",
+    ),
+    # Airport codes (separate from port codes)
+    "airportCode": ScalarTypeDef(
+        name="airportCode",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="AirportCode",
+        validation_pattern=r"^[A-Z]{3}$",  # IATA airport code: 3 letters
+        description="Airport code (IATA format: 3 uppercase letters)",
+        example="JFK",
+        input_type="text",
+        placeholder="JFK",
+    ),
+    # Domain names and web identifiers
+    "domainName": ScalarTypeDef(
+        name="domainName",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="DomainName",
+        validation_pattern=r"^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$",
+        description="Domain name (RFC compliant)",
+        example="example.com",
+        input_type="text",
+        placeholder="example.com",
+    ),
+    # API keys and tokens
+    "apiKey": ScalarTypeDef(
+        name="apiKey",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="ApiKey",
+        validation_pattern=r"^[A-Za-z0-9_\-]{20,128}$",  # API key format
+        description="API key or access token (alphanumeric with hyphens/underscores)",
+        example="sk-1234567890abcdef",
+        input_type="password",
+        placeholder="sk-...",
+    ),
+    # Hash values
+    "hashSHA256": ScalarTypeDef(
+        name="hashSHA256",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="HashSHA256",
+        validation_pattern=r"^[a-f0-9]{64}$",  # SHA256 hex format
+        description="SHA256 hash (64 hexadecimal characters)",
+        example="a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3",
+        input_type="text",
+        placeholder="a665a459...",
+    ),
+    # IBAN (International Bank Account Number)
+    "iban": ScalarTypeDef(
+        name="iban",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="IBAN",
+        validation_pattern=r"^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$",  # IBAN format
+        description="International Bank Account Number (ISO 13616)",
+        example="GB29 NWBK 6016 1331 9268 19",
+        input_type="text",
+        placeholder="GB29 NWBK 6016 1331 9268 19",
+    ),
+    # SWIFT/BIC codes
+    "swiftCode": ScalarTypeDef(
+        name="swiftCode",
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name="SwiftCode",
+        validation_pattern=r"^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$",  # SWIFT/BIC format
+        description="SWIFT/BIC bank identifier code (8 or 11 characters)",
+        example="CHASUS33",
+        input_type="text",
+        placeholder="CHASUS33",
+    ),
     # NOTE: "boolean" is a BASIC type, not a scalar type
     # It is handled by _parse_basic_field() in the parser
     # Structured types
@@ -583,14 +877,7 @@ COMPOSITE_TYPES: Dict[str, CompositeTypeDef] = {
                 "notes", "markdown", nullable=True, description="Additional notes"
             ),
         },
-        example={
-            "name": "Jane Smith",
-            "email": "jane.smith@example.com",
-            "phone": "+14155551234",
-            "relationship": "Manager",
-            "company": "Acme Corp",
-            "job_title": "VP of Operations",
-        },
+        example='{"name": "Jane Smith", "email": "jane.smith@example.com", "phone": "+14155551234", "relationship": "Manager", "company": "Acme Corp", "job_title": "VP of Operations"}',
     ),
     "Company": CompositeTypeDef(
         name="Company",
@@ -661,15 +948,29 @@ COMPOSITE_TYPES: Dict[str, CompositeTypeDef] = {
                 "timestamp", "datetime", nullable=False, description="Location timestamp"
             ),
         },
-        example={
-            "latitude": 37.7749,
-            "longitude": -122.4194,
-            "altitude": 15,
-            "accuracy": 5,
-            "heading": 90,
-            "speed": 2.5,
-            "timestamp": "2025-11-08T14:30:00Z",
+        example='{"latitude": 37.7749, "longitude": -122.4194, "altitude": 15, "accuracy": 5, "heading": 90, "speed": 2.5, "timestamp": "2025-11-08T14:30:00Z"}',
+    ),
+    "CurrencyExchange": CompositeTypeDef(
+        name="CurrencyExchange",
+        description="Currency exchange rate information",
+        fields={
+            "baseCurrency": CompositeFieldDef(
+                "baseCurrency", "currencyCode", nullable=False, description="Base currency code"
+            ),
+            "quoteCurrency": CompositeFieldDef(
+                "quoteCurrency", "currencyCode", nullable=False, description="Quote currency code"
+            ),
+            "rate": CompositeFieldDef(
+                "rate", "exchangeRate", nullable=False, description="Exchange rate (base to quote)"
+            ),
+            "timestamp": CompositeFieldDef(
+                "timestamp", "datetime", nullable=False, description="Rate timestamp"
+            ),
+            "source": CompositeFieldDef(
+                "source", "text", nullable=True, description="Data source/provider"
+            ),
         },
+        example='{"baseCurrency": "USD", "quoteCurrency": "EUR", "rate": 0.85, "timestamp": "2025-11-08T14:30:00Z", "source": "ECB"}',
     ),
 }
 

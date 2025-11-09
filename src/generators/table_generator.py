@@ -12,6 +12,7 @@ from src.generators.comment_generator import CommentGenerator
 from src.generators.constraint_generator import ConstraintGenerator
 from src.generators.index_generator import IndexGenerator
 from src.generators.schema.schema_registry import SchemaRegistry
+from src.utils.safe_slug import safe_slug, safe_table_name
 
 
 class TableGenerator:
@@ -68,7 +69,7 @@ class TableGenerator:
         foreign_keys = {}
         table_constraints = []
 
-        table_name = f"{entity.schema}.tb_{entity.name.lower()}"
+        table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
 
         for field_name, field_def in entity.fields.items():
             if field_def.type_name == "ref" and field_def.reference_entity:
@@ -86,7 +87,7 @@ class TableGenerator:
             elif field_def.type_name == "enum" and field_def.values:
                 # Enum field - add CHECK constraint
                 enum_values = ", ".join(f"'{v}'" for v in field_def.values)
-                constraint_name = f"chk_tb_{entity.name.lower()}_{field_name}_enum"
+                constraint_name = f"chk_{safe_slug(entity.name)}_{safe_slug(field_name)}_enum"
                 table_constraints.append(
                     f"CONSTRAINT {constraint_name} CHECK ({field_name} IN ({enum_values}))"
                 )
@@ -191,24 +192,25 @@ class TableGenerator:
         """
         indexes = []
 
-        entity_name_lower = entity.name.lower()
+        entity_name_slug = safe_slug(entity.name)
 
         # Index on UUID (for external API lookups)
-        indexes.append(f"""CREATE INDEX idx_tb_{entity_name_lower}_id
-    ON {entity.schema}.tb_{entity_name_lower} USING btree (id);""")
+        # Index naming follows table convention: idx_tb_{entity}_{field}
+        indexes.append(f"""CREATE INDEX idx_tb_{entity_name_slug}_id
+    ON {entity.schema}.{safe_table_name(entity.name)} USING btree (id);""")
 
         # Index on foreign keys
         for field_name, field_def in entity.fields.items():
             if field_def.type_name == "ref" and field_def.reference_entity:
                 fk_name = f"fk_{field_name}"
-                indexes.append(f"""CREATE INDEX idx_tb_{entity_name_lower}_{field_name}
-    ON {entity.schema}.tb_{entity_name_lower} USING btree ({fk_name});""")
+                indexes.append(f"""CREATE INDEX idx_tb_{entity_name_slug}_{safe_slug(field_name)}
+    ON {entity.schema}.{safe_table_name(entity.name)} USING btree ({fk_name});""")
 
         # Index on enum fields (for filtering)
         for field_name, field_def in entity.fields.items():
             if field_def.type_name == "enum" and field_def.values:
-                indexes.append(f"""CREATE INDEX idx_tb_{entity_name_lower}_{field_name}
-    ON {entity.schema}.tb_{entity_name_lower} USING btree ({field_name});""")
+                indexes.append(f"""CREATE INDEX idx_tb_{entity_name_slug}_{safe_slug(field_name)}
+    ON {entity.schema}.{safe_table_name(entity.name)} USING btree ({field_name});""")
 
         return "\n\n".join(indexes)
 

@@ -1,10 +1,10 @@
 -- ============================================================================
--- Table: projects.tb_task
+-- Table: crm.tb_task
 -- ============================================================================
--- [Table: TAS | Project task management]
+-- [Table: TAS | Task entity for CRM]
 -- ============================================================================
 
-CREATE TABLE projects.tb_task (
+CREATE TABLE crm.tb_task (
     -- ========================================================================
     -- Trinity Pattern: INTEGER primary key for performance
     -- ========================================================================
@@ -30,12 +30,10 @@ CREATE TABLE projects.tb_task (
     -- ========================================================================
     title TEXT,
     description TEXT,
-    status TEXT,
     priority TEXT,
-    due_date DATE,
     -- ========================================================================
     -- Foreign Keys (Trinity Pattern: INTEGER references)
-    -- ========================================================================    fk_assignee INTEGER,
+    -- ========================================================================
     -- ========================================================================
     -- Audit Fields (Trinity Pattern standard)
     -- ========================================================================
@@ -50,30 +48,26 @@ CREATE TABLE projects.tb_task (
     -- Constraints
     -- ========================================================================
     CONSTRAINT tb_task_id_key UNIQUE (id)
-    ,CONSTRAINT chk_tb_task_status_enum CHECK (status IN ('todo', 'in_progress', 'done'))
-    ,CONSTRAINT chk_tb_task_priority_enum CHECK (priority IN ('low', 'medium', 'high')));
+    ,CONSTRAINT chk_task_priority_enum CHECK (priority IN ('low', 'medium', 'high')));
 
 -- ============================================================================
 -- Foreign Key Constraints (defined after table creation)
--- ============================================================================
-ALTER TABLE ONLY projects.tb_task
-    ADD CONSTRAINT tb_task_fk_assignee_fkey
-    FOREIGN KEY (fk_assignee) REFERENCES projects.tb_user(pk_user);-- ============================================================================
+-- ============================================================================-- ============================================================================
 -- Multi-Tenancy Indexes (CRITICAL for performance & RLS)
 -- ============================================================================
-CREATE INDEX idx_tb_task_tenant ON projects.tb_task(tenant_id);
+CREATE INDEX idx_tb_task_tenant ON crm.tb_task(tenant_id);
 -- ============================================================================
 -- Documentation
 -- ============================================================================
-COMMENT ON TABLE projects.tb_task IS
-'Project task management.
+COMMENT ON TABLE crm.tb_task IS
+'Task entity for CRM.
 
 @fraiseql:type
 trinity: true';
 
 -- Trinity Pattern columns
-COMMENT ON COLUMN projects.tb_task.pk_task IS 'Internal INTEGER primary key used in joins and foreign keys.';
-COMMENT ON COLUMN projects.tb_task.id IS
+COMMENT ON COLUMN crm.tb_task.pk_task IS 'Internal INTEGER primary key used in joins and foreign keys.';
+COMMENT ON COLUMN crm.tb_task.id IS
 'Public UUID identifier for external APIs and GraphQL.
 
 @fraiseql:field
@@ -81,16 +75,16 @@ name: id
 type: UUID!
 required: true';
 -- Multi-Tenancy columns
-COMMENT ON COLUMN projects.tb_task.tenant_id IS 'Denormalized tenant identifier from JWT token (security context).';
--- COMMENT ON COLUMN projects.tb_task.fk_organization IS 'Optional business FK to organization unit (uncomment if needed).';
+COMMENT ON COLUMN crm.tb_task.tenant_id IS 'Denormalized tenant identifier from JWT token (security context).';
+-- COMMENT ON COLUMN crm.tb_task.fk_organization IS 'Optional business FK to organization unit (uncomment if needed).';
 -- Business field columns (comments handled by CommentGenerator)
 
 -- Foreign key columns (comments handled by CommentGenerator)
 
 -- Audit field columns
-COMMENT ON COLUMN projects.tb_task.created_at IS 'Timestamp when the record was created.';
-COMMENT ON COLUMN projects.tb_task.created_by IS 'User or system who created the record.';
-COMMENT ON COLUMN projects.tb_task.updated_at IS 'Timestamp when the record was last updated.';
-COMMENT ON COLUMN projects.tb_task.updated_by IS 'User or system who last updated the record.';
-COMMENT ON COLUMN projects.tb_task.deleted_at IS 'Timestamp of soft deletion.';
-COMMENT ON COLUMN projects.tb_task.deleted_by IS 'User or system who deleted the record.';
+COMMENT ON COLUMN crm.tb_task.created_at IS 'Timestamp when the record was created.';
+COMMENT ON COLUMN crm.tb_task.created_by IS 'User or system who created the record.';
+COMMENT ON COLUMN crm.tb_task.updated_at IS 'Timestamp when the record was last updated.';
+COMMENT ON COLUMN crm.tb_task.updated_by IS 'User or system who last updated the record.';
+COMMENT ON COLUMN crm.tb_task.deleted_at IS 'Timestamp of soft deletion.';
+COMMENT ON COLUMN crm.tb_task.deleted_by IS 'User or system who deleted the record.';

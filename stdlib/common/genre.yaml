@@ -1,0 +1,44 @@
+# SpecQL stdlib Entity: Genre
+# Category: common
+# Version: 1.1.0
+# Standard: N/A
+# Description: Gender/genre reference data
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/common/genre
+#
+#   # Or extend with customizations:
+#   entity: MyGenre
+#   extends:
+#     from: stdlib/common/genre
+#   fields:
+#     custom_field: text
+
+entity: Genre
+schema: common
+description: Gender/genre reference table
+
+fields:
+  code:
+    type: text
+    nullable: false
+    description: "Short code (e.g., M, F, NB)"
+
+  label:
+    type: text
+    nullable: false
+    description: "Display label (e.g., Male, Female, Non-binary)"
+
+actions:
+  - name: create_genre
+  - name: update_genre
+  - name: delete_genre
+
+  # Business actions
+  - name: activate_genre
+  - name: deactivate_genre
+  - name: update_label

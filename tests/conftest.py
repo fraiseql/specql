@@ -7,6 +7,7 @@ from typing import Any, Dict
 
 import pytest
 import psycopg
+import uuid
 
 
 @pytest.fixture
@@ -77,22 +78,150 @@ def temp_output_dir(tmp_path: Path) -> Path:
     return output_dir
 
 
-@pytest.fixture
-def db():
-    """PostgreSQL test database connection"""
-    try:
-        import psycopg
+def get_db_config():
+    """Get database configuration from environment or defaults"""
+    import os
 
-        conn = psycopg.connect(
-            host="localhost", dbname="test_specql", user="postgres", password="postgres"
-        )
-        # Enable required extensions
-        conn.cursor().execute("CREATE EXTENSION IF NOT EXISTS ltree;")
-        conn.commit()
+    return {
+        "host": os.getenv("TEST_DB_HOST", "localhost"),
+        "port": int(os.getenv("TEST_DB_PORT", "5432")),
+        "dbname": os.getenv("TEST_DB_NAME", "specql_test"),
+        "user": os.getenv("TEST_DB_USER", os.getenv("USER")),
+        "password": os.getenv("TEST_DB_PASSWORD", ""),
+    }
+
+
+@pytest.fixture(scope="session")
+def db_config():
+    """Database configuration"""
+    return get_db_config()
+
+
+@pytest.fixture(scope="session")
+def test_db_connection(db_config):
+    """
+    Session-scoped PostgreSQL connection for integration tests
+
+    Environment variables (optional):
+    - TEST_DB_HOST: Database host (default: localhost)
+    - TEST_DB_PORT: Database port (default: 5432)
+    - TEST_DB_NAME: Database name (default: specql_test)
+    - TEST_DB_USER: Database user (default: current user)
+    - TEST_DB_PASSWORD: Database password (default: empty)
+
+    To skip database tests:
+        pytest -m "not database"
+    """
+    try:
+        # Build connection string
+        conn_parts = [
+            f"host={db_config['host']}",
+            f"port={db_config['port']}",
+            f"dbname={db_config['dbname']}",
+            f"user={db_config['user']}",
+        ]
+
+        if db_config["password"]:
+            conn_parts.append(f"password={db_config['password']}")
+
+        conn_string = " ".join(conn_parts)
+
+        # Connect with autocommit=False for transaction control
+        conn = psycopg.connect(conn_string, autocommit=False)
+
+        # Verify connection
+        with conn.cursor() as cur:
+            cur.execute("SELECT version()")
+            result = cur.fetchone()
+            if result:
+                version = result[0]
+                print(f"\n✅ Database connected: {version[:70]}...")
+            else:
+                print("\n✅ Database connected (version unknown)")
+
+        # Install extensions if needed
+        try:
+            with conn.cursor() as cur:
+                cur.execute("CREATE EXTENSION IF NOT EXISTS pg_trgm;")
+                cur.execute("CREATE EXTENSION IF NOT EXISTS postgis;")
+            conn.commit()
+            print("✅ PostgreSQL extensions installed (pg_trgm, postgis)")
+        except Exception as e:
+            conn.rollback()
+            print(f"⚠️  Could not install extensions: {e}")
+            print("   (Some tests may be skipped)")
+
         yield conn
+
+        # Cleanup
         conn.close()
+
+    except psycopg.OperationalError as e:
+        pytest.skip(
+            f"PostgreSQL database not available: {e}\n\n"
+            f"To run database tests:\n"
+            f"  1. Create database: createdb {db_config['dbname']}\n"
+            f"  2. Load schema: psql {db_config['dbname']} < tests/schema/setup.sql\n"
+            f"  3. Or set ENABLE_DB_TESTS=0 to skip\n\n"
+            f"Connection attempted:\n"
+            f"  Host: {db_config['host']}\n"
+            f"  Database: {db_config['dbname']}\n"
+            f"  User: {db_config['user']}\n"
+        )
+
+
+@pytest.fixture
+def test_db(test_db_connection):
+    """
+    Function-scoped database fixture with transaction rollback
+
+    Each test gets a fresh transaction that's rolled back after the test.
+    This ensures test isolation without needing to delete data.
+    """
+    # Start a transaction
+    test_db_connection.rollback()  # Ensure clean state
+
+    yield test_db_connection
+
+    # Rollback transaction to clean up
+    test_db_connection.rollback()
+
+
+@pytest.fixture
+def isolated_schema(test_db_connection):
+    """
+    Create unique schema per test for DDL isolation
+
+    DDL operations (CREATE TABLE, CREATE TYPE) auto-commit in PostgreSQL
+    and cannot be rolled back. This fixture creates a unique schema for each
+    test to prevent object name conflicts between tests.
+
+    Usage:
+        def test_something(test_db, isolated_schema):
+            ddl = ddl.replace("CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}")
+            cursor = test_db.cursor()
+            cursor.execute(ddl)
+            test_db.commit()
+            # ... test logic
+    """
+    # Generate unique schema name
+    schema_name = f"test_{uuid.uuid4().hex[:8]}"
+
+    # Create schema
+    with test_db_connection.cursor() as cur:
+        cur.execute(f"CREATE SCHEMA {schema_name}")
+    test_db_connection.commit()
+
+    yield schema_name
+
+    # Cleanup: Drop schema and all its objects
+    try:
+        with test_db_connection.cursor() as cur:
+            cur.execute(f"DROP SCHEMA {schema_name} CASCADE")
+        test_db_connection.commit()
     except Exception:
-        pytest.skip("PostgreSQL not available for integration tests")
+        # Ignore cleanup errors (schema might already be gone)
+        test_db_connection.rollback()
 
 
 def execute_sql(db, query, *args):

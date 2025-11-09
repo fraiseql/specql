@@ -22,34 +22,28 @@ class MutationAnnotator:
 
     def generate_mutation_annotation(self, action: Action) -> str:
         """
-        Generate @fraiseql:mutation annotation for a PL/pgSQL function
+        Generate descriptive comment for core layer functions (NO @fraiseql:mutation!)
+
+        Core layer functions are internal business logic and should NOT be exposed
+        to GraphQL. Only app.* functions get @fraiseql:mutation annotations.
 
         Args:
             action: The parsed action definition
 
         Returns:
-            SQL COMMENT statement with @fraiseql:mutation annotation
+            SQL COMMENT statement with descriptive comment (no FraiseQL annotation)
         """
         function_name = f"{self.schema}.{action.name}"
-        graphql_name = self._to_camel_case(action.name)
 
-        # Build metadata mapping if impact exists
-        metadata_mapping = self._build_metadata_mapping(action.impact)
+        # Get action description with core layer context
+        description = self._get_core_action_description(action)
 
-        # Generate the annotation
-        pascal_name = graphql_name[0].upper() + graphql_name[1:] if graphql_name else ""
-        annotation_lines = [
+        comment_lines = [
             f"COMMENT ON FUNCTION {function_name} IS",
-            "  '@fraiseql:mutation",
-            f"   name={graphql_name}",
-            f"   input={pascal_name}Input",
-            f"   success_type={pascal_name}Success",
-            f"   error_type={pascal_name}Error",
-            f"   primary_entity={self.entity_name}",
-            f"   metadata_mapping={metadata_mapping}';",
+            f"'{description}';",
         ]
 
-        return "\n".join(annotation_lines)
+        return "\n".join(comment_lines)
 
     def generate_app_mutation_annotation(self, action: Action) -> str:
         """
@@ -85,13 +79,13 @@ class MutationAnnotator:
 
     def _get_action_description(self, action: Action) -> str:
         """
-        Get human-readable description for action
+        Get human-readable description for app layer action
 
         Args:
             action: The action to describe
 
         Returns:
-            Description string
+            Description string for app layer functions
         """
         action_type = self._detect_action_type(action.name)
         entity_name = self.entity_name
@@ -104,6 +98,54 @@ class MutationAnnotator:
             return f"Deletes an existing {entity_name} record.\nValidates permissions and delegates to core business logic."
         else:
             return f"Performs {action.name.replace('_', ' ')} operation on {entity_name}.\nValidates input and delegates to core business logic."
+
+    def _get_core_action_description(self, action: Action) -> str:
+        """
+        Get descriptive comment for core layer functions (NO FraiseQL annotations!)
+
+        Core layer functions contain internal business logic and are called by
+        app layer functions. They should have descriptive comments but no
+        @fraiseql:mutation annotations.
+
+        Args:
+            action: The action to describe
+
+        Returns:
+            Descriptive comment for core layer functions
+        """
+        action_type = self._detect_action_type(action.name)
+        entity_name = self.entity_name
+
+        # Build validation list (simplified for now)
+        validations = ["Input validation", "Permission checks"]
+
+        # Determine operation type
+        operation = self._get_operation_type(action_type)
+
+        description_lines = [
+            f"Core business logic for {action.name.replace('_', ' ')}.",
+            "",
+            "Validation:",
+        ]
+
+        # Add validation items
+        for validation in validations:
+            description_lines.append(f"- {validation}")
+
+        description_lines.extend(
+            [
+                "",
+                "Operations:",
+                "- Trinity FK resolution (UUID → INTEGER)",
+                f"- {operation} operation on {self.schema}.tb_{entity_name.lower()}",
+                "- Audit logging via app.log_and_return_mutation",
+                "",
+                f"Called by: app.{action.name} (GraphQL mutation)",
+                "Returns: app.mutation_result (success/failure status)",
+            ]
+        )
+
+        return "\n".join(description_lines)
 
     def _detect_action_type(self, action_name: str) -> str:
         """
@@ -123,6 +165,25 @@ class MutationAnnotator:
             return "delete"
         else:
             return "custom"
+
+    def _get_operation_type(self, action_type: str) -> str:
+        """
+        Get SQL operation type from action type
+
+        Args:
+            action_type: The detected action type
+
+        Returns:
+            SQL operation: 'INSERT', 'UPDATE', 'DELETE', or 'OPERATION'
+        """
+        if action_type == "create":
+            return "INSERT"
+        elif action_type == "update":
+            return "UPDATE"
+        elif action_type == "delete":
+            return "DELETE"
+        else:
+            return "OPERATION"
 
     def _build_metadata_mapping(self, impact: Optional[ActionImpact] = None) -> str:
         """

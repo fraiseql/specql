@@ -1,0 +1,55 @@
+# SpecQL stdlib Entity: Organization
+# Category: crm
+# Version: 1.1.0
+# Standard: N/A
+# Description: Hierarchical organization/company management
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/crm/organization
+#
+#   # Or extend with customizations:
+#   entity: MyOrganization
+#   extends:
+#     from: stdlib/crm/organization
+#   fields:
+#     custom_field: text
+
+entity: Organization
+schema: management
+hierarchical: true
+description: |
+  Represents an organization (e.g. client, department, provider) that may belong to a parent-child hierarchy.
+  Includes detailed company information: identity, domain, type, industry, and compliance identifiers.
+
+fields:
+  name: text
+  domain_name: text
+  domain_tld: text
+  legal_identifier_type: text
+  legal_identifier: text
+  vat_identifier: text
+  stock_location_ids: json  # Array of UUIDs for inventory/stock management
+
+  # Foreign keys
+  industry: ref(Industry)
+  organization_type: ref(OrganizationType)
+  parent: ref(Organization)
+
+actions:
+  - name: create_organization
+  - name: update_organization
+  - name: delete_organization
+
+  # Business actions
+  - name: activate_organization
+  - name: deactivate_organization
+  - name: change_domain
+  - name: update_legal_info
+  - name: change_industry
+  - name: update_vat_identifier
+  - name: add_stock_location
+  - name: remove_stock_location

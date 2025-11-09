@@ -1,0 +1,74 @@
+# SpecQL stdlib Entity: Price
+# Category: commerce
+# Version: 1.1.0
+# Standard: N/A
+# Description: Time-based pricing for contract items
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/commerce/price
+#
+#   # Or extend with customizations:
+#   entity: MyPrice
+#   extends:
+#     from: stdlib/commerce/price
+#   fields:
+#     custom_field: text
+
+entity: Price
+schema: management
+description: |
+  Price definitions for contract items, including amount, currency, and validity period.
+  Supports time-based pricing with start and end dates.
+
+fields:
+  price_identifier:
+    type: text
+    nullable: false
+    description: "Unique identifier for this price record."
+
+   amount:
+     type: money
+     nullable: false
+     description: "Price amount with currency semantics"
+
+  start_date:
+    type: date
+    description: "Date from which this price becomes effective."
+
+  end_date:
+    type: date
+    description: "Date until which this price remains valid."
+
+  customer_org:
+    type: ref(Organization)
+    description: "Customer organization this price applies to."
+
+  contract:
+    type: ref(Contract)
+    description: "Contract this price is associated with."
+
+  contract_item:
+    type: ref(ContractItem)
+    description: "Contract item this price applies to."
+
+  currency:
+    type: ref(Currency)
+    schema: common
+    description: "Currency in which the price amount is expressed."
+
+actions:
+  - name: create_price
+  - name: update_price
+  - name: delete_price
+
+  # Business actions
+  - name: activate_price
+  - name: deactivate_price
+  - name: change_amount
+  - name: extend_validity
+  - name: create_price_revision
+  - name: apply_bulk_price_change

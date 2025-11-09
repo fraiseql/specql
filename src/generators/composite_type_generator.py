@@ -265,25 +265,55 @@ CREATE TYPE app.mutation_result AS (
 );
 
 COMMENT ON TYPE app.mutation_result IS
-  '@fraiseql:type name=MutationResult';
+'Standard mutation result for all operations.
+
+@fraiseql:composite
+name: MutationResult
+tier: 1
+storage: composite';
 
 COMMENT ON COLUMN app.mutation_result.id IS
-  '@fraiseql:field name=id,type=UUID,description=Entity identifier';
+'Unique identifier of the affected entity.
+
+@fraiseql:field
+name: id
+type: UUID!
+required: true';
 
 COMMENT ON COLUMN app.mutation_result.updated_fields IS
-  '@fraiseql:field name=updatedFields,type=[String],description=Fields that were modified in this mutation';
+'Fields that were modified in this mutation.
+
+@fraiseql:field
+name: updatedFields
+type: [String]
+required: false';
 
 COMMENT ON COLUMN app.mutation_result.status IS
   'Status: success, failed:*, warning:*';
 
 COMMENT ON COLUMN app.mutation_result.message IS
-  '@fraiseql:field name=message,type=String,description=Human-readable success or error message';
+'Human-readable success or error message.
+
+@fraiseql:field
+name: message
+type: String
+required: false';
 
 COMMENT ON COLUMN app.mutation_result.object_data IS
-  '@fraiseql:field name=object,type=JSON,description=Complete entity data after mutation';
+'Complete entity data after mutation.
+
+@fraiseql:field
+name: object
+type: JSON
+required: false';
 
 COMMENT ON COLUMN app.mutation_result.extra_metadata IS
-  '@fraiseql:field name=extra,type=JSON,description=Additional metadata including side effects and impact information';
+'Additional metadata including side effects and impact information.
+
+@fraiseql:field
+name: extra
+type: JSON
+required: false';
 """
 
     def generate_common_types(self) -> str:
@@ -308,5 +338,8 @@ CREATE TYPE app.type_deletion_input AS (
 );
 
 COMMENT ON TYPE app.type_deletion_input IS
-  '@fraiseql:input name=DeletionInput';
+'Input type for deletion operations.
+
+@fraiseql:input
+name: DeletionInput';
 """

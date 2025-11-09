@@ -30,6 +30,24 @@ Team D has **THREE distinct responsibilities**:
 2. **tv_ Table FraiseQL Annotations** (Week 7, 2-3 days) - CQRS read-optimized tables metadata
 3. **Mutation Impact Annotations** (Week 7, 4-6 hours) - Optional mutation metadata
 
+### **IMPORTANT: Annotation Layer Separation**
+
+**CRITICAL RULE**: Only annotate **app layer** functions!
+
+- ✅ `app.*` functions → Add `@fraiseql:mutation` (GraphQL-exposed)
+- ❌ `schema.*` functions → NO annotations (internal business logic)
+
+**Example**:
+```sql
+-- ✅ App layer - HAS annotation
+COMMENT ON FUNCTION app.create_contact IS '@fraiseql:mutation...';
+
+-- ✅ Core layer - NO annotation, descriptive comment instead
+COMMENT ON FUNCTION crm.create_contact IS 'Core business logic...';
+```
+
+This ensures FraiseQL only discovers the GraphQL API layer, not internal functions.
+
 ---
 
 ## 🎯 PHASED IMPLEMENTATION PLAN

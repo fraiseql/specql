@@ -1,0 +1,72 @@
+# SpecQL stdlib Entity: OrganizationalUnit
+# Category: org
+# Version: 1.1.0
+# Standard: N/A
+# Description: Hierarchical organizational units within companies
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/org/organizational_unit
+#
+#   # Or extend with customizations:
+#   entity: MyOrganizationalUnit
+#   extends:
+#     from: stdlib/org/organizational_unit
+#   fields:
+#     custom_field: text
+
+entity: OrganizationalUnit
+schema: tenant
+hierarchical: true
+description: |
+  Defines a recursive tree structure of organizational units (e.g., department, division, site)
+  within an organization. Includes localized naming and hierarchical structure.
+
+fields:
+   abbreviation:
+     type: text
+     description: "Optional abbreviation (e.g., 'HR', 'IT')."
+
+   short_name:
+     type: text
+     description: "Optional short name of the unit."
+
+   name:
+     type: text
+     description: "Full name of the organizational unit."
+
+   customer_org:
+     type: ref(Organization)
+     schema: management
+     nullable: false
+     description: "Reference to the owning organization."
+
+   organizational_unit_level:
+     type: ref(OrganizationalUnitLevel)
+     schema: common
+     nullable: false
+     description: "Indicates this unit's level in the hierarchy."
+
+   parent_organizational_unit:
+     type: ref(OrganizationalUnit)
+     description: "Recursive reference to the parent organizational unit."
+
+actions:
+  - name: create_organizational_unit
+  - name: update_organizational_unit
+  - name: delete_organizational_unit
+
+  # Business actions
+  - name: activate_unit
+  - name: deactivate_unit
+  - name: change_parent
+  - name: update_abbreviation
+  - name: reorder_siblings
+  - name: merge_units
+
+translations:
+  enabled: true
+  fields: [name, short_name]

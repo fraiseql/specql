@@ -1,0 +1,42 @@
+# SpecQL stdlib Entity: OrganizationType
+# Category: crm
+# Version: 1.1.0
+# Standard: N/A
+# Description: Organization type classification (prospect, client, provider)
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/crm/organization_type
+#
+#   # Or extend with customizations:
+#   entity: MyOrganizationType
+#   extends:
+#     from: stdlib/crm/organization_type
+#   fields:
+#     custom_field: text
+
+entity: OrganizationType
+schema: management
+description: |
+  Defines the type of an organization: "prospect", "client", or "provider".
+  Used for classification and business logic.
+
+fields:
+  name: text
+
+translations:
+  enabled: true
+  fields: [name]
+
+actions:
+  - name: create_organization_type
+  - name: update_organization_type
+  - name: delete_organization_type
+
+  # Business actions
+  - name: activate_type
+  - name: deactivate_type
+  - name: update_description

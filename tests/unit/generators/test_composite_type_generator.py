@@ -153,7 +153,8 @@ required: true';"""
         assert "message TEXT" in sql
         assert "object_data JSONB" in sql
         assert "extra_metadata JSONB" in sql
-        assert "@fraiseql:type name=MutationResult" in sql
+        assert "@fraiseql:composite" in sql
+        assert "name: MutationResult" in sql
 
     def test_mutation_result_generated_only_once(self, generator):
         """Ensure mutation_result is not duplicated"""
@@ -172,7 +173,8 @@ required: true';"""
 
         # Then: Contains mutation_result
         assert "CREATE TYPE app.mutation_result AS (" in sql
-        assert "@fraiseql:type name=MutationResult" in sql
+        assert "@fraiseql:composite" in sql
+        assert "name: MutationResult" in sql
 
     def test_mutation_result_supports_impact_metadata(self, generator):
         """Test that mutation_result type supports mutation impact metadata pattern"""
@@ -182,29 +184,38 @@ required: true';"""
         # Then: Supports mutation impact metadata requirements
         # 1. updated_fields exposed for change tracking
         assert "updated_fields TEXT[]" in sql
-        assert "@fraiseql:field name=updatedFields,type=[String]" in sql
+        assert "@fraiseql:field" in sql
+        assert "name: updatedFields" in sql
+        assert "type: [String]" in sql
 
         # 2. extra_metadata JSONB supports _meta field for impact metadata
         assert "extra_metadata JSONB" in sql
-        assert "@fraiseql:field name=extra,type=JSON" in sql
+        assert "name: extra" in sql
+        assert "type: JSON" in sql
 
         # 3. FraiseQL type annotation for GraphQL mapping
-        assert "@fraiseql:type name=MutationResult" in sql
+        assert "@fraiseql:composite" in sql
+        assert "name: MutationResult" in sql
 
         # 4. Status field for success/error indication
         assert "status TEXT" in sql
 
         # 5. Message field for human-readable feedback
         assert "message TEXT" in sql
-        assert "@fraiseql:field name=message,type=String" in sql
+        assert "name: message" in sql
+        assert "type: String" in sql
 
         # 6. object_data JSONB for full entity data
         assert "object_data JSONB" in sql
-        assert "@fraiseql:field name=object,type=JSON" in sql
+        assert "@fraiseql:field" in sql
+        assert "name: object" in sql
+        assert "type: JSON" in sql
 
         # 7. id UUID for entity identifier
         assert "id UUID" in sql
-        assert "@fraiseql:field name=id,type=UUID" in sql
+        assert "@fraiseql:field" in sql
+        assert "name: id" in sql
+        assert "type: UUID!" in sql
 
 
 class TestSchemaOrchestrator:

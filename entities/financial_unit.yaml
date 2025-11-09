@@ -1,0 +1,19 @@
+# Financial Unit Entity
+# Master list of financial units (currencies, crypto, stocks)
+
+entity: FinancialUnit
+schema: trading
+description: "Master list of financial units (currencies, crypto, stocks)"
+
+fields:
+  code: text!
+  name: text!
+  type: enum(currency, cryptocurrency, stock, commodity)!
+  symbol: text
+  decimals: integer
+
+actions:
+  - name: create_unit
+    steps:
+      - validate: code IS UNIQUE
+      - insert: FinancialUnit

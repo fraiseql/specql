@@ -25,6 +25,7 @@ from src.generators.schema.node_info_split import (
     should_split_entity,
     generate_node_info_split_ddl,
 )
+from src.utils.safe_slug import safe_slug, safe_table_name
 
 
 class SchemaGenerator:
@@ -51,7 +52,7 @@ class SchemaGenerator:
             return "\n\n".join(ddl_statements)
 
         # Standard single table generation
-        table_name = f"{entity.schema}.tb_{entity.name.lower()}"
+        table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
 
         ddl_parts = []
 
@@ -232,7 +233,7 @@ class SchemaGenerator:
                 # GIN indexes for JSONB fields
                 composite_ddl = self.composite_mapper.map_field(field_def)
                 index_sql = self.composite_mapper.generate_gin_index(
-                    entity.schema, f"tb_{entity.name.lower()}", composite_ddl
+                    entity.schema, safe_table_name(entity.name), composite_ddl
                 )
                 indexes.append(index_sql)
 
@@ -240,7 +241,7 @@ class SchemaGenerator:
                 # B-tree indexes for foreign key fields
                 fk_ddl = self.fk_generator.map_field(field_def)
                 index_sql = self.fk_generator.generate_index(
-                    entity.schema, f"tb_{entity.name.lower()}", fk_ddl
+                    entity.schema, safe_table_name(entity.name), fk_ddl
                 )
                 indexes.append(index_sql)
 
@@ -306,7 +307,7 @@ $$ LANGUAGE SQL STABLE;""")
 
     def _generate_trinity_indexes(self, entity: EntityDefinition) -> List[str]:
         """Generate Trinity Pattern indexes for the entity"""
-        table_name = f"{entity.schema}.tb_{entity.name.lower()}"
+        table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
         entity_lower = entity.name.lower()
 
         indexes = []

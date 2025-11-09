@@ -1,318 +1,271 @@
-# ============================================================================
-# SpecQL Domain Registry
-# ============================================================================
-# Central source of truth for table numbering and entity organization
-#
-# Table Code Format: SSDSSE (6 hexadecimal characters, case-insensitive)
-# - SS: Schema layer (00=common, 01=write_side, 02=read_side, 03=functions)
-# - D:  Domain code (0-F = 16 possible domains)
-# - SS: Subdomain code (00-FF = 256 possible subdomains)
-# - E:  Entity sequence within subdomain (0-F = 16 entities per subdomain)
-#
-# Hexadecimal Benefits:
-# - UUID compatibility (natural hex encoding)
-# - More flexibility: 16 domains vs 10, 256 subdomains vs 100
-# - Case-insensitive: 01A2B3 = 01a2b3
-#
-# Example: 012A31
-#   01 = write_side layer
-#   2  = crm domain
-#   A3 = subdomain code (163 in decimal)
-#   1  = entity sequence
-#
-# Materialized Path: Each level represents hierarchy
-#   File: 01_write_side/012_crm/012A_subdomain/012A3_entity_group/012A31_tb_contact.sql
-# ============================================================================
-
-version: "1.0.0"
-last_updated: "2025-11-09T00:00:00Z"
-
-# ============================================================================
-# Schema Layers (Fixed) - Materialized Path Hierarchy
-# ============================================================================
-# Maps to migration directory structure: generated/migrations/{layer}/
+version: 1.0.0
+last_updated: '2025-11-09T22:04:00.804069'
 schema_layers:
-  "00": common        # 00_common/ - Shared schemas, types, extensions
-  "01": write_side    # 01_write_side/ - Base tables (tb_{entity})
-  "02": read_side     # 02_read_side/ - Views (v_{entity}, tv_{entity})
-  "03": functions     # 03_functions/ - Functions (fn_{entity})
-
-# ============================================================================
-# Domains & Subdomains
-# ============================================================================
+  '00': common
+  '01': write_side
+  '02': read_side
+  '03': functions
 domains:
-  # --------------------------------------------------------------------------
-  # Domain 1: Core Infrastructure
-  # --------------------------------------------------------------------------
-  "1":
+  '1':
     name: core
-    description: "Core infrastructure (i18n, auth, events, workflow)"
-    multi_tenant: false  # Framework schema (mixed behavior)
+    description: Core infrastructure (i18n, auth, events, workflow)
+    multi_tenant: false
     subdomains:
-        "01":
-          name: i18n
-          description: "Internationalization & translation management"
-          next_entity_sequence: 1
-          entities: {}
-
-        "02":
-          name: auth
-          description: "Authentication, authorization & access control"
-          next_entity_sequence: 1
-          entities: {}
-
-        "03":
-          name: events
-          description: "Event system, audit logging & notifications"
-          next_entity_sequence: 1
-          entities: {}
-
-        "04":
-          name: workflow
-          description: "Workflow engine & state machines"
-          next_entity_sequence: 1
-          entities: {}
-
-        "05":
-          name: config
-          description: "System configuration & settings"
-          next_entity_sequence: 1
-          entities: {}
-
-  # --------------------------------------------------------------------------
-  # Domain 2: CRM (Customer Relationship Management)
-  # --------------------------------------------------------------------------
-  "2":
+      '01':
+        name: i18n
+        description: Internationalization & translation management
+        next_entity_sequence: 1
+        entities: {}
+      '02':
+        name: auth
+        description: Authentication, authorization & access control
+        next_entity_sequence: 1
+        entities: {}
+      '03':
+        name: events
+        description: Event system, audit logging & notifications
+        next_entity_sequence: 1
+        entities: {}
+      '04':
+        name: workflow
+        description: Workflow engine & state machines
+        next_entity_sequence: 1
+        entities: {}
+      '05':
+        name: config
+        description: System configuration & settings
+        next_entity_sequence: 1
+        entities: {}
+  '2':
     name: crm
-    description: "Customer relationship management & organizational structure"
-    aliases: ["management"]
-    multi_tenant: true  # Multi-tenant domain
+    description: Customer relationship management & organizational structure
+    aliases:
+    - management
+    multi_tenant: true
     subdomains:
-      "01":
+      '01':
         name: core
-        description: "Core organization entities (organization, user, team)"
+        description: Core organization entities (organization, user, team)
         next_entity_sequence: 1
         entities: {}
-
-      "02":
+      '02':
         name: sales
-        description: "Sales process entities (opportunity, quote, pipeline)"
+        description: Sales process entities (opportunity, quote, pipeline)
         next_entity_sequence: 1
         entities: {}
-
-      "03":
+      '03':
         name: customer
-        description: "Customer contact entities (contact, company, account)"
-        next_entity_sequence: 1
+        description: Customer contact entities (contact, company, account)
+        next_entity_sequence: 48
         entities:
-          # Example registered entity (will be auto-populated on generation)
-          # Contact:
-          #   table_code: "012311"
-          #   entity_code: "CON"
-          #   assigned_at: "2025-11-09T00:00:00Z"
-
-      "04":
+          Contact:
+            table_code: '012036'
+            entity_code: CNT
+            assigned_at: '2025-11-09T22:04:00.804056'
+      '04':
         name: support
-        description: "Customer support entities (ticket, case, knowledge_base)"
+        description: Customer support entities (ticket, case, knowledge_base)
         next_entity_sequence: 1
         entities: {}
-
-      "05":
+      '05':
         name: marketing
-        description: "Marketing entities (campaign, lead_source, email_template)"
+        description: Marketing entities (campaign, lead_source, email_template)
         next_entity_sequence: 1
         entities: {}
-
-  # --------------------------------------------------------------------------
-  # Domain 3: Catalog (Product & Manufacturer Data)
-  # --------------------------------------------------------------------------
-  "3":
+  '3':
     name: catalog
-    description: "Product catalog, manufacturer data & inventory"
-    multi_tenant: false  # Shared reference data (PrintOptim-specific)
+    description: Product catalog, manufacturer data & inventory
+    multi_tenant: false
     subdomains:
-      "01":
+      '01':
         name: classification
-        description: "Product classification, categories & taxonomies"
+        description: Product classification, categories & taxonomies
         next_entity_sequence: 1
         entities: {}
-
-      "02":
+      '02':
         name: manufacturer
-        description: "Manufacturer-related entities (brand, model, range)"
+        description: Manufacturer-related entities (brand, model, range)
         next_entity_sequence: 2
         entities:
           Manufacturer:
-            table_code: "013211"
-            entity_code: "MAN"
-            assigned_at: "2025-11-09T00:00:00Z"
-
-      "03":
+            table_code: '013211'
+            entity_code: MAN
+            assigned_at: '2025-11-09T00:00:00Z'
+      '03':
         name: product
-        description: "Product entities, SKUs & variants"
+        description: Product entities, SKUs & variants
         next_entity_sequence: 1
         entities: {}
-
-      "04":
+      '04':
         name: generic
-        description: "Generic product data & specifications"
+        description: Generic product data & specifications
         next_entity_sequence: 1
         entities: {}
-
-      "05":
+      '05':
         name: financing
-        description: "Financing options, pricing & payment terms"
+        description: Financing options, pricing & payment terms
         next_entity_sequence: 1
         entities: {}
-
-      "06":
+      '06':
         name: inventory
-        description: "Inventory management & stock tracking"
+        description: Inventory management & stock tracking
         next_entity_sequence: 1
         entities: {}
-
-  # --------------------------------------------------------------------------
-  # Domain 4: Projects & Tenant Data
-  # --------------------------------------------------------------------------
-  "4":
+  '4':
     name: projects
-    description: "Project management & tenant-specific entities"
-    aliases: ["tenant", "dim"]
-    multi_tenant: true  # Multi-tenant domain
+    description: Project management & tenant-specific entities
+    aliases:
+    - tenant
+    - dim
+    multi_tenant: true
     subdomains:
-      "01":
+      '01':
         name: core
-        description: "Core project entities (project, task, milestone)"
+        description: Core project entities (project, task, milestone)
         next_entity_sequence: 1
         entities: {}
-
-      "02":
+      '02':
         name: location
-        description: "Geographic entities (location, address, region)"
+        description: Geographic entities (location, address, region)
         next_entity_sequence: 1
         entities: {}
-
-      "03":
+      '03':
         name: network
-        description: "Network configuration & infrastructure"
+        description: Network configuration & infrastructure
         next_entity_sequence: 1
         entities: {}
-
-      "04":
+      '04':
         name: contract
-        description: "Contract management & SLAs"
+        description: Contract management & SLAs
         next_entity_sequence: 1
         entities: {}
-
-      "05":
+      '05':
         name: machine
-        description: "Machine/equipment tracking & maintenance"
+        description: Machine/equipment tracking & maintenance
         next_entity_sequence: 1
         entities: {}
-
-      "06":
+      '06':
         name: allocation
-        description: "Resource allocation & assignments"
+        description: Resource allocation & assignments
         next_entity_sequence: 1
         entities: {}
-
-  # --------------------------------------------------------------------------
-  # Domain 5: Analytics & Reporting
-  # --------------------------------------------------------------------------
-  "5":
+  '5':
     name: analytics
-    description: "Analytics, reporting & business intelligence"
-    multi_tenant: false  # Shared reference data
+    description: Analytics, reporting & business intelligence
+    multi_tenant: false
     subdomains:
-      "01":
+      '01':
         name: metrics
-        description: "Metrics, KPIs & performance indicators"
+        description: Metrics, KPIs & performance indicators
         next_entity_sequence: 1
         entities: {}
-
-      "02":
+      '02':
         name: reports
-        description: "Report definitions & templates"
+        description: Report definitions & templates
         next_entity_sequence: 1
         entities: {}
-
-      "03":
+      '03':
         name: dashboards
-        description: "Dashboard configurations & widgets"
+        description: Dashboard configurations & widgets
         next_entity_sequence: 1
         entities: {}
-
-  # --------------------------------------------------------------------------
-  # Domain 6: Finance & Billing
-  # --------------------------------------------------------------------------
-  "6":
+  '6':
     name: finance
-    description: "Financial management, billing & accounting"
-    multi_tenant: false  # Shared reference data
+    description: Financial management, billing & accounting
+    multi_tenant: false
     subdomains:
-      "01":
+      '01':
         name: billing
-        description: "Billing, invoices & payments"
+        description: Billing, invoices & payments
         next_entity_sequence: 1
         entities: {}
-
-      "02":
+      '02':
         name: accounting
-        description: "Accounting, ledgers & financial records"
+        description: Accounting, ledgers & financial records
         next_entity_sequence: 1
         entities: {}
-
-      "03":
+      '03':
         name: pricing
-        description: "Pricing models, discounts & promotions"
+        description: Pricing models, discounts & promotions
         next_entity_sequence: 1
         entities: {}
-
-# ============================================================================
-# Reserved Codes (Cannot Be Auto-Assigned)
-# ============================================================================
 reserved_codes:
-  - "000000"  # Invalid
-  - "999999"  # Reserved for system use
-
-# ============================================================================
-# Validation Rules
-# ============================================================================
+- '000000'
+- '999999'
 validation:
-  enforce_uniqueness: true          # Prevent duplicate table codes
-  allow_manual_override: true       # Allow manual table_code specification
-  require_subdomain: false          # Subdomain is optional (auto-inferred if missing)
-  warn_on_inference: true           # Warn when subdomain is auto-inferred
-
-# ============================================================================
-# Subdomain Inference Rules (Heuristics)
-# ============================================================================
-# Used when entity doesn't specify subdomain and cannot be inferred from name
+  enforce_uniqueness: true
+  allow_manual_override: true
+  require_subdomain: false
+  warn_on_inference: true
 subdomain_inference:
   crm:
     customer:
-      patterns: ["contact", "company", "person", "account", "customer"]
+      patterns:
+      - contact
+      - company
+      - person
+      - account
+      - customer
     sales:
-      patterns: ["opportunity", "deal", "quote", "proposal", "pipeline"]
+      patterns:
+      - opportunity
+      - deal
+      - quote
+      - proposal
+      - pipeline
     support:
-      patterns: ["ticket", "case", "issue", "support"]
+      patterns:
+      - ticket
+      - case
+      - issue
+      - support
     marketing:
-      patterns: ["campaign", "lead", "email_template", "segment"]
-
+      patterns:
+      - campaign
+      - lead
+      - email_template
+      - segment
   catalog:
     manufacturer:
-      patterns: ["manufacturer", "brand", "model", "range"]
+      patterns:
+      - manufacturer
+      - brand
+      - model
+      - range
     product:
-      patterns: ["product", "sku", "item", "variant"]
+      patterns:
+      - product
+      - sku
+      - item
+      - variant
     classification:
-      patterns: ["category", "taxonomy", "classification", "generic"]
-
+      patterns:
+      - category
+      - taxonomy
+      - classification
+      - generic
   projects:
     core:
-      patterns: ["project", "task", "milestone", "sprint"]
+      patterns:
+      - project
+      - task
+      - milestone
+      - sprint
     location:
-      patterns: ["location", "address", "site", "region", "geo"]
+      patterns:
+      - location
+      - address
+      - site
+      - region
+      - geo
     contract:
-      patterns: ["contract", "sla", "agreement"]
+      patterns:
+      - contract
+      - sla
+      - agreement
     machine:
-      patterns: ["machine", "equipment", "device", "asset"]
+      patterns:
+      - machine
+      - equipment
+      - device
+      - asset

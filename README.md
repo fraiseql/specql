@@ -29,28 +29,147 @@ make install
 # 1. Create entity definition
 cat > entities/examples/contact.yaml <<'EOF'
 entity: Contact
-  schema: crm
-  fields:
-    email: text
-    status: enum(lead, qualified, customer)
-  actions:
-    - name: create_contact
-      steps:
-        - validate: email MATCHES email_pattern
-        - insert: Contact
+schema: crm
+description: "Customer contact information"
+fields:
+  email: text
+  first_name: text
+  last_name: text
+  status: enum(lead, qualified, customer)
+actions:
+  - name: create_contact
+    steps:
+      - validate: email MATCHES email_pattern
+      - insert: Contact
+  - name: qualify_lead
+    requires: caller.can_edit_contact
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
 EOF
 
-# 2. Generate SQL
-python -m src.cli.generate --entity entities/examples/contact.yaml
+# 2. Generate schema files and build migration
+specql generate entities/examples/contact.yaml
 
 # 3. View generated files
-ls -R generated/
+ls -R db/schema/
+ls db/generated/
 
 # 4. Apply to database
-python scripts/apply_manifest.py generated/manifest.yaml --db postgres://localhost/mydb
+confiture migrate up --env local
 ```
 
 **Result**: Working PostgreSQL schema + GraphQL API in < 10 minutes! 🎉
+
+---
+
+## 🛠️ CLI Commands
+
+### SpecQL Commands
+
+```bash
+# Generate schema from entity files
+specql generate entities/examples/*.yaml
+
+# Generate for specific environment
+specql generate --env production entities/examples/*.yaml
+
+# Validate entity files
+specql validate entities/examples/*.yaml
+
+# Show differences between entity and existing schema
+specql diff entities/examples/contact.yaml --compare db/schema/10_tables/contact.sql
+```
+
+### Confiture Commands
+
+```bash
+# Build migration from generated schema files
+confiture build --env local
+
+# Apply migration to database
+confiture migrate up --env local
+
+# Check migration status
+confiture migrate status --env local
+
+# Rollback migration
+confiture migrate down --env local
+```
+
+### Development Commands
+
+```bash
+# Run all tests
+make test
+
+# Run linting and type checking
+make lint
+make typecheck
+
+# Generate documentation
+make docs
+```
+
+### Running Tests
+
+#### Full Test Suite
+
+```bash
+# Run all tests (including database tests)
+make test
+
+# Run without database tests
+uv run pytest -m "not database"
+```
+
+#### Database Tests
+
+Database integration tests require PostgreSQL:
+
+```bash
+# 1. Create test database
+createdb specql_test
+
+# 2. Load schema
+psql specql_test < tests/schema/setup.sql
+
+# 3. Run database tests
+uv run pytest -m database -v
+```
+
+**Environment Variables** (optional):
+
+```bash
+# Configure database connection
+export TEST_DB_HOST=localhost
+export TEST_DB_PORT=5432
+export TEST_DB_NAME=specql_test
+export TEST_DB_USER=$USER
+export TEST_DB_PASSWORD=
+
+# Run tests
+make test
+```
+
+**CI/CD Setup**:
+
+```yaml
+# GitHub Actions example
+- name: Setup PostgreSQL
+  run: |
+    sudo apt-get install postgresql postgresql-contrib
+    sudo -u postgres createdb specql_test
+    sudo -u postgres psql specql_test < tests/schema/setup.sql
+
+- name: Run Tests
+  env:
+    TEST_DB_HOST: localhost
+    TEST_DB_NAME: specql_test
+    TEST_DB_USER: postgres
+    TEST_DB_PASSWORD: postgres
+  run: uv run pytest -v
+```
 
 ---
 
@@ -106,6 +225,13 @@ CREATE VIEW crm.v_contact AS ...
 ```
 
 ### ✅ GraphQL API (via FraiseQL)
+
+**Two-Layer Architecture**:
+- **App Layer** (`app.*`): GraphQL API entry points with `@fraiseql:mutation`
+- **Core Layer** (`schema.*`): Internal business logic, NO annotations
+
+FraiseQL introspects **only** the app layer for GraphQL schema generation.
+
 ```graphql
 type Contact {
   id: UUID!

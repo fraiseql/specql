@@ -1,0 +1,21 @@
+# Trading Pair Entity
+# Trading pairs composed of financial units
+
+entity: TradingPair
+schema: trading
+description: "Trading pairs composed of financial units"
+
+fields:
+  base_unit: ref(FinancialUnit)!
+  quote_unit: ref(FinancialUnit)!
+  symbol: text!
+  pair_type: enum(forex, crypto, stock, crypto_fx)!
+  is_active: boolean = true
+
+actions:
+  - name: create_pair
+    steps:
+      - validate: base_unit != quote_unit
+      - validate: symbol IS UNIQUE
+      - update: TradingPair SET symbol = CONCAT(base_unit.code, '/', quote_unit.code)
+      - insert: TradingPair

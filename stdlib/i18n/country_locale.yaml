@@ -1,0 +1,40 @@
+# SpecQL stdlib Entity: CountryLocale
+# Category: i18n
+# Version: 1.1.0
+# Standard: N/A
+# Description: Junction table linking countries to supported locales
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/i18n/country_locale
+#
+#   # Or extend with customizations:
+#   entity: MyCountryLocale
+#   extends:
+#     from: stdlib/i18n/country_locale
+#   fields:
+#     custom_field: text
+
+entity: CountryLocale
+schema: common
+description: |
+  Links countries to locales and marks default locale for each country.
+
+fields:
+  is_default: boolean
+
+  country: ref(Country)
+  locale: ref(Locale)
+
+actions:
+  - name: create_country_locale
+  - name: update_country_locale
+  - name: delete_country_locale
+
+  # Business actions
+  - name: set_as_default
+  - name: activate_locale
+  - name: deactivate_locale

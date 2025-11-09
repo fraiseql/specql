@@ -1,0 +1,100 @@
+# SpecQL stdlib Entity: Contact
+# Category: crm
+# Version: 1.1.0
+# Standard: N/A
+# Description: Individual contact information for CRM
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/crm/contact
+#
+#   # Or extend with customizations:
+#   entity: MyContact
+#   extends:
+#     from: stdlib/crm/contact
+#   fields:
+#     custom_field: text
+
+entity: Contact
+schema: tenant
+description: |
+  Individual contact information linked to an organization.
+  Includes roles, communication details, and authentication.
+
+fields:
+  # Personal Information
+  first_name:
+    type: text
+    description: "First name of the contact"
+
+  last_name:
+    type: text
+    description: "Last name of the contact"
+
+  email_address:
+    type: email
+    nullable: false
+    description: "Primary email address (unique)"
+
+  # Phone Numbers
+  office_phone:
+    type: phone
+    description: "Landline or office phone number"
+
+  mobile_phone:
+    type: phone
+    description: "Mobile phone number"
+
+  # Role & Position
+  job_title:
+    type: text
+    description: "Job title or function (e.g., 'Purchasing Manager')"
+
+  position:
+    type: text
+    description: "Organizational position (e.g., 'Director', 'Executive Board')"
+
+  # Localization
+  lang:
+    type: text
+    description: "Preferred language code (e.g., 'fr', 'en', 'de')"
+
+  locale:
+    type: text
+    description: "Locale code for formatting (e.g., 'fr-FR', 'en-US')"
+
+  timezone:
+    type: text
+    description: "IANA timezone name (e.g., 'Europe/Paris', 'Pacific/Noumea')"
+
+  # External Handles & Authentication
+  handles:
+    type: json
+    description: "External handles or account references (e.g., {'linkedin': '...'})"
+
+  password_hash:
+    type: text
+    description: "Hashed password if contact is also a system user"
+
+  # Relationships
+  customer_org: ref(Organization)
+  genre: ref(Genre)
+
+actions:
+  - name: create_contact
+  - name: update_contact
+  - name: delete_contact
+
+  # Business actions
+  - name: activate_contact
+  - name: deactivate_contact
+  - name: change_email_address
+  - name: change_office_phone
+  - name: change_mobile_phone
+  - name: update_job_title
+  - name: update_position
+  - name: change_timezone
+  - name: update_password

@@ -13,7 +13,9 @@ def test_complete_ddl_with_foreign_keys(table_generator):
     entity = Entity(
         name="Contact",
         schema="crm",
-        fields={"company": FieldDefinition(name="company", type_name="ref", reference_entity="Company")},
+        fields={
+            "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company")
+        },
     )
 
     fk_ddl = table_generator.generate_foreign_keys_ddl(entity)
@@ -37,7 +39,7 @@ def test_complete_ddl_with_enum_constraints(table_generator):
 
     ddl = table_generator.generate_table_ddl(entity)
 
-    assert "CONSTRAINT chk_tb_task_status_enum CHECK" in ddl
+    assert "CONSTRAINT chk_task_status_enum CHECK" in ddl
     assert "status IN ('pending', 'in_progress', 'completed')" in ddl
 
 
@@ -46,7 +48,9 @@ def test_generate_indexes_ddl_with_foreign_keys(table_generator):
     entity = Entity(
         name="Contact",
         schema="crm",
-        fields={"company": FieldDefinition(name="company", type_name="ref", reference_entity="Company")},
+        fields={
+            "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company")
+        },
     )
 
     index_ddl = table_generator.generate_indexes_ddl(entity)
@@ -63,7 +67,9 @@ def test_generate_indexes_ddl_with_enum_fields(table_generator):
         name="Task",
         schema="public",
         fields={
-            "status": FieldDefinition(name="status", type_name="enum", values=["pending", "completed"])
+            "status": FieldDefinition(
+                name="status", type_name="enum", values=["pending", "completed"]
+            )
         },
     )
 
@@ -83,7 +89,9 @@ def test_generate_complete_ddl_orchestration(table_generator):
             "name": FieldDefinition(name="name", type_name="text", nullable=False),
             "email": FieldDefinition(name="email", type_name="email", nullable=False),
             "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company"),
-            "status": FieldDefinition(name="status", type_name="enum", values=["active", "inactive"]),
+            "status": FieldDefinition(
+                name="status", type_name="enum", values=["active", "inactive"]
+            ),
         },
     )
 
@@ -98,7 +106,7 @@ def test_generate_complete_ddl_orchestration(table_generator):
 
     # Should have constraints
     assert "CONSTRAINT chk_tb_contact_email_check" in complete_ddl
-    assert "CONSTRAINT chk_tb_contact_status_enum" in complete_ddl
+    assert "CONSTRAINT chk_contact_status_enum" in complete_ddl
 
     # Should have indexes
     assert "CREATE INDEX idx_tb_contact_id" in complete_ddl
@@ -154,7 +162,9 @@ def test_rich_types_in_complete_ddl(table_generator):
             "email": FieldDefinition(name="email", type_name="email", nullable=False),
             "website": FieldDefinition(name="website", type_name="url", nullable=True),
             "phone": FieldDefinition(name="phone", type_name="phoneNumber", nullable=True),
-            "coordinates": FieldDefinition(name="coordinates", type_name="coordinates", nullable=True),
+            "coordinates": FieldDefinition(
+                name="coordinates", type_name="coordinates", nullable=True
+            ),
         },
     )
 

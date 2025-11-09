@@ -1,0 +1,43 @@
+# SpecQL stdlib Entity: StreetType
+# Category: geo
+# Version: 1.1.0
+# Standard: N/A
+# Description: Types of streets or thoroughfares
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/geo/street_type
+#
+#   # Or extend with customizations:
+#   entity: MyStreetType
+#   extends:
+#     from: stdlib/geo/street_type
+#   fields:
+#     custom_field: text
+
+entity: StreetType
+schema: common
+description: |
+  Defines types of streets or thoroughfares (e.g., Avenue, Rue, Boulevard),
+  including optional abbreviations.
+
+fields:
+  name: text
+  abbreviation: text
+
+translations:
+  enabled: true
+  fields: [name, abbreviation]
+
+actions:
+  - name: create_street_type
+  - name: update_street_type
+  - name: delete_street_type
+
+  # Business actions
+  - name: activate_type
+  - name: deactivate_type
+  - name: update_abbreviation

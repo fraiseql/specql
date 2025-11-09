@@ -6,6 +6,7 @@ from dataclasses import dataclass
 from typing import Any, List, Optional
 
 from src.core.ast_models import ActionStep, Entity
+from src.utils.safe_slug import safe_slug, safe_table_name
 
 
 class ObjectBuilder:
@@ -17,12 +18,14 @@ class ObjectBuilder:
         """Build SELECT query for full object with relationships"""
         fields = []
         joins = []
+        table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
+        pk_column = f"pk_{safe_slug(entity.name)}"
 
         # __typename (for Apollo cache)
         fields.append(f"'__typename', '{entity.name}'")
 
         # ID field
-        fields.append(f"'id', c.pk_{entity.name.lower()}")
+        fields.append(f"'id', c.{pk_column}")
 
         # Primary fields
         for field_name, field_def in entity.fields.items():
@@ -52,9 +55,9 @@ class ObjectBuilder:
         SELECT jsonb_build_object(
             {fields_sql}
         )
-        FROM {entity.schema}.tb_{entity.name.lower()} c
+        FROM {table_name} c
         {join_sql}
-        WHERE c.pk_{entity.name.lower()} = v_pk
+        WHERE c.{pk_column} = v_pk
     );
 """
 
@@ -85,7 +88,8 @@ class DatabaseOperationCompiler:
 
     def compile_insert(self, step: ActionStep, entity: Entity) -> str:
         """Generate INSERT statement with RETURNING"""
-        table = f"{entity.schema}.tb_{entity.name.lower()}"
+        table = f"{entity.schema}.{safe_table_name(entity.name)}"
+        pk_column = f"pk_{safe_slug(entity.name)}"
 
         # Get field columns (exclude Trinity pattern fields - auto-generated)
         field_cols = []
@@ -112,12 +116,14 @@ class DatabaseOperationCompiler:
         {", ".join(field_cols)}
     ) VALUES (
         {", ".join(field_vals)}
-    ) RETURNING pk_{entity.name.lower()} INTO v_pk;
+    ) RETURNING {pk_column} INTO v_pk;
 """
 
     def compile_update(self, step: ActionStep, entity: Entity) -> str:
         """Generate UPDATE statement with auto-audit fields"""
         set_clauses = []
+        table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
+        pk_column = f"pk_{safe_slug(entity.name)}"
 
         # User-specified fields
         for field_name, value in (step.fields or {}).items():
@@ -128,10 +134,10 @@ class DatabaseOperationCompiler:
 
         return f"""
     -- Update {entity.name}
-    UPDATE {entity.schema}.tb_{entity.name.lower()}
+    UPDATE {table_name}
     SET {", ".join(set_clauses)}
-    WHERE pk_{entity.name.lower()} = v_pk;
-"""
+    WHERE {pk_column} = v_pk;
+    """
 
     def generate_object_return(
         self, step: ActionStep, entity: Entity, impact: Optional[Any] = None

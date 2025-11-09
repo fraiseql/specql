@@ -5,7 +5,7 @@ description = "SpecQL schema generator - Business-focused YAML to PostgreSQL + G
 authors = [
     {name = "PrintOptim Team"}
 ]
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 dependencies = [
     "pyyaml>=6.0",
     "jinja2>=3.1.2",
@@ -13,6 +13,8 @@ dependencies = [
     "rich>=13.0.0",
     "psycopg2-binary>=2.9.0",
     "psycopg>=3.2.12",
+    "fraiseql-confiture>=0.3.0",
+    "faker>=37.12.0",
 ]
 
 [project.optional-dependencies]
@@ -27,9 +29,7 @@ dev = [
 ]
 
 [project.scripts]
-specql = "src.cli.generate:main"
-specql-validate = "src.cli.validate:main"
-specql-migrate = "src.cli.migrate:main"
+specql = "src.cli.confiture_extensions:specql"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -37,10 +37,13 @@ python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
 addopts = "-v --tb=short --strict-markers"
+# Exclude archived/deprecated tests
+norecursedirs = ["archived", ".git", "__pycache__"]
 markers = [
     "unit: Unit tests (fast, isolated)",
     "integration: Integration tests (slower, requires DB)",
     "benchmark: Performance benchmarks",
+    "database: marks tests as requiring database (deselect with '-m \"not database\"')",
 ]
 
 [tool.coverage.run]
@@ -59,12 +62,12 @@ exclude_lines = [
 
 [tool.ruff]
 line-length = 100
-target-version = "py38"
+target-version = "py311"
 select = ["E", "F", "I", "N", "W", "UP"]
 ignore = ["E501"]  # Line too long (handled by formatter)
 
 [tool.mypy]
-python_version = "3.8"
+python_version = "3.11"
 warn_return_any = true
 warn_unused_configs = true
 disallow_untyped_defs = true
@@ -72,4 +75,4 @@ ignore_missing_imports = true
 
 [tool.black]
 line-length = 100
-target-version = ['py38']
+target-version = ['py311']

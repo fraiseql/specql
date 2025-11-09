@@ -1,0 +1,45 @@
+# SpecQL stdlib Entity: Language
+# Category: i18n
+# Version: 1.1.0
+# Standard: ISO 639-1/639-2
+# Description: Language reference data with ISO codes
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/i18n/language
+#
+#   # Or extend with customizations:
+#   entity: MyLanguage
+#   extends:
+#     from: stdlib/i18n/language
+#   fields:
+#     custom_field: text
+
+entity: Language
+schema: common
+description: |
+  Defines supported languages, following ISO 639-1/639-2 standards.
+  Used for translation, formatting, and localization.
+
+fields:
+  name: text
+  iso_code:
+    type: text
+    nullable: false
+    description: |
+      ISO 639-1 alpha-2 language code (2 lowercase letters).
+      Examples: 'en', 'fr', 'de', 'es'
+      Pattern: ^[a-z]{2}$
+
+actions:
+  - name: create_language
+  - name: update_language
+  - name: delete_language
+
+  # Business actions
+  - name: activate_language
+  - name: deactivate_language
+  - name: update_iso_code

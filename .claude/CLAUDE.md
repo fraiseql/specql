@@ -271,6 +271,7 @@ actions:
 ### Conventions (NOT Configurable):
 - ✅ Trinity pattern is ALWAYS applied
 - ✅ Naming conventions are ALWAYS applied
+- ✅ Index naming: `idx_tb_{entity}_{field}` (tables) / `idx_tv_{entity}_{field}` (views)
 - ✅ Audit fields are ALWAYS added
 - ✅ Consistency > flexibility
 

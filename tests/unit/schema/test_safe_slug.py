@@ -3,100 +3,82 @@ Tests for safe_slug utility function
 Tests that safe_slug function handles all edge cases correctly
 """
 
-import psycopg
 import pytest
+from src.utils.safe_slug import safe_slug, safe_identifier, safe_table_name
 
 
-@pytest.fixture
-def test_db():
-    """PostgreSQL test database connection"""
-    try:
-        conn = psycopg.connect(
-            host="localhost", dbname="test_specql", user="postgres", password="postgres"
-        )
-        # Enable required extensions
-        conn.cursor().execute("CREATE EXTENSION IF NOT EXISTS unaccent;")
-        conn.commit()
-        yield conn
-        conn.close()
-    except psycopg.OperationalError:
-        pytest.skip("PostgreSQL not available for integration tests")
+def test_normal_text():
+    """Test: Normal text converts to lowercase with underscores"""
+    assert safe_slug("Hello World") == "hello_world"
 
 
-def execute_sql(db, query):
-    """Helper to execute SQL and return single result"""
-    cursor = db.cursor()
-    cursor.execute(query)
-    result = cursor.fetchone()
-    return result[0] if result else None
+def test_unicode_unaccent():
+    """Test: Unicode characters are converted to ASCII equivalents"""
+    assert safe_slug("Café résumé") == "cafe_resume"
 
 
-class TestSafeSlug:
-    """Test safe_slug utility function."""
+def test_special_characters():
+    """Test: Special characters are replaced with separators"""
+    assert safe_slug("Hello@World!#$") == "hello_world"
 
-    def test_normal_text(self, test_db):
-        # First create the function
-        test_db.cursor().execute("""
-            CREATE OR REPLACE FUNCTION public.safe_slug(
-                value TEXT,
-                fallback TEXT DEFAULT 'unnamed'
-            ) RETURNS TEXT AS $$
-            DECLARE
-                result TEXT;
-            BEGIN
-                -- Handle NULL or empty input
-                IF value IS NULL OR trim(value) = '' THEN
-                    RETURN fallback;
-                END IF;
 
-                -- Convert to slug: lowercase + unaccent + replace non-alphanumeric with '-'
-                result := trim(BOTH '-' FROM regexp_replace(
-                    lower(unaccent(value)),
-                    '[^a-z0-9]+', '-', 'gi'
-                ));
+def test_empty_string():
+    """Test: Empty string returns fallback"""
+    assert safe_slug("", fallback="default") == "default"
 
-                -- Handle edge cases
-                IF result = '' THEN
-                    -- All characters were stripped (e.g., "---" or "###")
-                    RETURN fallback;
-                ELSIF result ~ '^[0-9]+$' THEN
-                    -- All digits (e.g., "123") - prefix with 'n-' to avoid LTREE issues
-                    RETURN 'n-' || result;
-                ELSE
-                    RETURN result;
-                END IF;
-            END;
-            $$ LANGUAGE plpgsql IMMUTABLE STRICT;
-        """)
-        test_db.commit()
 
-        result = execute_sql(test_db, "SELECT safe_slug('Normal Text')")
-        assert result == "normal-text"
+def test_consecutive_separators():
+    """Test: Multiple spaces/special chars become single separator"""
+    assert safe_slug("Hello    World!!!") == "hello_world"
 
-    def test_unicode_unaccent(self, test_db):
-        result = execute_sql(test_db, "SELECT safe_slug('Café Straße')")
-        assert result == "cafe-strasse"
 
-    def test_special_characters(self, test_db):
-        result = execute_sql(test_db, "SELECT safe_slug('Building #1')")
-        assert result == "building-1"
+def test_mixed_case():
+    """Test: Mixed case converts to lowercase with camelCase splitting"""
+    assert safe_slug("CamelCaseText") == "camel_case_text"
 
-    def test_all_digits(self, test_db):
-        result = execute_sql(test_db, "SELECT safe_slug('123')")
-        assert result == "n-123"
 
-    def test_empty_string(self, test_db):
-        result = execute_sql(test_db, "SELECT safe_slug('')")
-        assert result == "unnamed"
+def test_max_length():
+    """Test: Truncation to max_length"""
+    assert safe_slug("very_long_text_here", max_length=10) == "very_long"
 
-    def test_all_special(self, test_db):
-        result = execute_sql(test_db, "SELECT safe_slug('---')")
-        assert result == "unnamed"
 
-    def test_custom_fallback(self, test_db):
-        result = execute_sql(test_db, "SELECT safe_slug('', 'default')")
-        assert result == "default"
+def test_custom_separator():
+    """Test: Custom separator character"""
+    assert safe_slug("Hello World", separator="-") == "hello-world"
 
-    def test_null_input(self, test_db):
-        result = execute_sql(test_db, "SELECT safe_slug(NULL)")
-        assert result == "unnamed"
+
+def test_safe_identifier_function():
+    """Test: safe_identifier ensures valid Python identifier"""
+    assert safe_identifier("First Name") == "first_name"
+    assert safe_identifier("123-field") == "field_123_field"
+
+
+def test_safe_table_name_function():
+    """Test: safe_table_name adds prefix"""
+    assert safe_table_name("Contact") == "tb_contact"
+    assert safe_table_name("TaskItem") == "tb_task_item"
+
+
+def test_none_input():
+    """Test: None input returns fallback"""
+    assert safe_slug(None, fallback="default") == "default"
+
+
+def test_whitespace_only():
+    """Test: Whitespace-only input returns fallback"""
+    assert safe_slug("   \t\n   ", fallback="default") == "default"
+
+
+def test_starts_with_digit():
+    """Test: Text starting with digit gets fallback prefix"""
+    assert safe_slug("123 Numbers", fallback="n") == "n_123_numbers"
+
+
+def test_all_digits():
+    """Test: All digits gets fallback prefix"""
+    assert safe_slug("123", fallback="n") == "n_123"
+
+
+def test_max_length_with_separator():
+    """Test: max_length trims at separator boundary"""
+    assert safe_slug("very_long_text_here", max_length=12) == "very_long_te"

@@ -1,0 +1,43 @@
+# SpecQL stdlib Entity: OperatingSystem
+# Category: tech
+# Version: 1.1.0
+# Standard: N/A
+# Description: Operating system versions with lifecycle information
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/tech/operating_system
+#
+#   # Or extend with customizations:
+#   entity: MyOperatingSystem
+#   extends:
+#     from: stdlib/tech/operating_system
+#   fields:
+#     custom_field: text
+
+entity: OperatingSystem
+schema: common
+description: |
+  Lists specific operating system versions (e.g., macOS 12, Windows 11, Debian Buster).
+  Used to manage compatibility and support lifecycle information.
+
+fields:
+  name: text
+  release_date: date
+  endoflife_date: date
+
+  operating_system_platform: ref(OperatingSystemPlatform)
+
+actions:
+  - name: create_operating_system
+  - name: update_operating_system
+  - name: delete_operating_system
+
+  # Business actions
+  - name: activate_os
+  - name: deactivate_os
+  - name: mark_end_of_life
+  - name: update_release_date

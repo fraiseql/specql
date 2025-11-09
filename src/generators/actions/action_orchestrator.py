@@ -7,6 +7,7 @@ Handles multi-entity operations, side effects, and transaction management.
 
 from typing import List, Dict, Any, Optional
 from src.core.ast_models import ActionDefinition, EntityDefinition
+from src.utils.safe_slug import safe_slug, safe_table_name
 
 
 class ActionOrchestrator:
@@ -180,11 +181,12 @@ $$;
         Returns:
             PL/pgSQL for primary insert
         """
+        table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
         return f"""
     -- Primary insert: {entity.name}
     v_primary_id := gen_random_uuid();
 
-    INSERT INTO {entity.schema}.tb_{entity.name.lower()} (
+    INSERT INTO {table_name} (
         id,
         tenant_id,
         -- TODO: Add other fields
@@ -209,12 +211,13 @@ $$;
         Returns:
             PL/pgSQL for related insert
         """
+        table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
         return f"""
     -- Related insert: {entity.name}
-    INSERT INTO {entity.schema}.tb_{entity.name.lower()} (
+    INSERT INTO {table_name} (
         id,
         tenant_id,
-        fk_{entity.name.lower()}_id,  -- Reference to primary entity
+        fk_{safe_slug(entity.name)}_id,  -- Reference to primary entity
         -- TODO: Add other fields
         created_at,
         created_by
@@ -238,9 +241,10 @@ $$;
         Returns:
             PL/pgSQL for update
         """
+        table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
         return f"""
     -- Update: {entity.name}
-    UPDATE {entity.schema}.tb_{entity.name.lower()}
+    UPDATE {table_name}
     SET
         -- TODO: Map update fields
         updated_at = now(),

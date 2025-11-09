@@ -1,0 +1,39 @@
+# SpecQL stdlib Entity: PostalCode
+# Category: geo
+# Version: 1.1.0
+# Standard: N/A
+# Description: Postal codes by country
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/geo/postal_code
+#
+#   # Or extend with customizations:
+#   entity: MyPostalCode
+#   extends:
+#     from: stdlib/geo/postal_code
+#   fields:
+#     custom_field: text
+
+entity: PostalCode
+schema: common
+description: |
+  Stores postal codes by country. Each row represents a single normalized postal code unit.
+
+fields:
+  postal_code: text
+
+  country: ref(Country)
+
+actions:
+  - name: create_postal_code
+  - name: update_postal_code
+  - name: delete_postal_code
+
+  # Business actions
+  - name: validate_postal_code
+  - name: get_city_info
+  - name: check_format

@@ -101,7 +101,9 @@ def test_phone_field_gets_btree_index(table_generator):
 def test_slug_field_gets_btree_index(table_generator):
     """Test: Slug fields get btree indexes"""
     entity = Entity(
-        name="Post", schema="public", fields={"slug": FieldDefinition(name="slug", type_name="slug")}
+        name="Post",
+        schema="public",
+        fields={"slug": FieldDefinition(name="slug", type_name="slug")},
     )
 
     indexes = table_generator.generate_indexes_for_rich_types(entity)
@@ -114,7 +116,9 @@ def test_slug_field_gets_btree_index(table_generator):
 def test_color_field_gets_btree_index(table_generator):
     """Test: Color fields get btree indexes"""
     entity = Entity(
-        name="Theme", schema="public", fields={"color": FieldDefinition(name="color", type_name="color")}
+        name="Theme",
+        schema="public",
+        fields={"color": FieldDefinition(name="color", type_name="color")},
     )
 
     indexes = table_generator.generate_indexes_for_rich_types(entity)

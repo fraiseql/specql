@@ -1,0 +1,85 @@
+# SpecQL stdlib Entity: Order
+# Category: commerce
+# Version: 1.1.0
+# Standard: N/A
+# Description: Generic B2B order management
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/commerce/order
+#
+#   # Or extend with customizations:
+#   entity: MyOrder
+#   extends:
+#     from: stdlib/commerce/order
+#   fields:
+#     custom_field: text
+
+entity: Order
+schema: management
+description: |
+  Purchase orders representing customer requests for products and services under contracts.
+  Tracks order lifecycle from placement through fulfillment.
+
+fields:
+  order_identifier:
+    type: text
+    nullable: false
+    description: "Unique order identifier."
+
+  order_date:
+    type: date
+    description: "Date when the order was placed."
+
+  invoice_date:
+    type: date
+    description: "Date when the order was invoiced."
+
+  customer_order_id:
+    type: text
+    description: "Customer's reference identifier for this order."
+
+  customer_commitment_id:
+    type: text
+    description: "Customer's commitment or purchase order reference."
+
+  provider_order_id:
+    type: text
+    description: "Provider's internal order identifier."
+
+  sequential_number:
+    type: integer
+    description: "Sequential number for ordering within a customer/provider context."
+
+  customer_org:
+    type: ref(Organization)
+    nullable: false
+    description: "Customer organization placing the order."
+
+  provider_org:
+    type: ref(Organization)
+    nullable: false
+    description: "Provider organization fulfilling the order."
+
+  contract:
+    type: ref(Contract)
+    description: "Contract under which this order is placed."
+
+actions:
+  - name: create_order
+  - name: update_order
+  - name: delete_order
+
+  # Business actions
+  - name: submit_order
+  - name: approve_order
+  - name: reject_order
+  - name: ship_order
+  - name: deliver_order
+  - name: cancel_order
+  - name: add_order_line
+  - name: remove_order_line
+  - name: update_quantity

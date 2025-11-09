@@ -6,6 +6,7 @@ Generates entity_pk() and entity_id() helper functions for UUID ↔ INTEGER reso
 from jinja2 import Environment, FileSystemLoader
 from src.core.ast_models import Entity
 from src.generators.schema.schema_registry import SchemaRegistry
+from src.utils.safe_slug import safe_slug, safe_table_name
 
 
 class TrinityHelperGenerator:
@@ -32,8 +33,8 @@ class TrinityHelperGenerator:
             "entity": {
                 "name": entity.name,
                 "schema": entity.schema,
-                "table_name": f"tb_{entity.name.lower()}",
-                "pk_column": f"pk_{entity.name.lower()}",
+                "table_name": safe_table_name(entity.name),
+                "pk_column": f"pk_{safe_slug(entity.name)}",
             },
             "is_tenant_specific": is_tenant_specific,
         }
@@ -51,8 +52,8 @@ class TrinityHelperGenerator:
             "entity": {
                 "name": entity.name,
                 "schema": entity.schema,
-                "table_name": f"tb_{entity.name.lower()}",
-                "pk_column": f"pk_{entity.name.lower()}",
+                "table_name": safe_table_name(entity.name),
+                "pk_column": f"pk_{safe_slug(entity.name)}",
             }
         }
 

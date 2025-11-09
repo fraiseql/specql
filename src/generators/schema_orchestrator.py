@@ -4,18 +4,42 @@ Coordinates table + type generation for complete schema
 """
 
 from typing import Dict, List, Union
+from dataclasses import dataclass
 from src.generators.table_generator import TableGenerator
 from src.generators.composite_type_generator import CompositeTypeGenerator
 from src.generators.trinity_helper_generator import TrinityHelperGenerator
 from src.generators.app_schema_generator import AppSchemaGenerator
 from src.generators.core_logic_generator import CoreLogicGenerator
+from src.generators.app_wrapper_generator import AppWrapperGenerator
 from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.schema_registry import SchemaRegistry
 from src.generators.schema.table_view_generator import TableViewGenerator
+from src.utils.safe_slug import safe_table_name
 from src.generators.schema.table_view_dependency import TableViewDependencyResolver
 from src.generators.fraiseql.table_view_annotator import TableViewAnnotator
 from src.generators.fraiseql.mutation_annotator import MutationAnnotator
 from src.core.ast_models import Entity, EntityDefinition
+
+
+@dataclass
+class MutationFunctionPair:
+    """One mutation = 2 functions + FraiseQL comments (ALL IN ONE FILE)"""
+
+    action_name: str
+    app_wrapper_sql: str  # app.{action_name}()
+    core_logic_sql: str  # core.{action_name}()
+    fraiseql_comments_sql: str  # COMMENT ON FUNCTION statements (Team D)
+
+
+@dataclass
+class SchemaOutput:
+    """Split output for Confiture directory structure"""
+
+    table_sql: str  # → db/schema/10_tables/{entity}.sql (includes FraiseQL COMMENT)
+    helpers_sql: str  # → db/schema/20_helpers/{entity}_helpers.sql
+    mutations: List[
+        MutationFunctionPair
+    ]  # → db/schema/30_functions/{action_name}.sql (ONE FILE EACH!)
 
 
 class SchemaOrchestrator:
@@ -121,6 +145,55 @@ class SchemaOrchestrator:
 
         return "\n\n".join(parts)
 
+    def generate_split_schema(self, entity: Entity) -> SchemaOutput:
+        """
+        Generate schema split by component
+
+        CRITICAL: Each action generates a SEPARATE file with 2 functions + comments
+        """
+        # Team B: Table definition
+        table_ddl = self.table_gen.generate_table_ddl(entity)
+        table_sql = table_ddl  # For now, no table comments
+
+        # Team B: Helper functions (Trinity pattern utilities)
+        helpers_sql = self.helper_gen.generate_all_helpers(entity)
+
+        # Team C + Team D: ONE FILE PER MUTATION (app + core + comments)
+        mutations = []
+        app_wrapper_gen = AppWrapperGenerator()
+
+        for action in entity.actions:
+            # Detect action pattern for core function generation
+            action_pattern = self.core_gen.detect_action_pattern(action.name)
+
+            # Generate core function based on pattern
+            if action_pattern == "create":
+                core_sql = self.core_gen.generate_core_create_function(entity)
+            elif action_pattern == "update":
+                core_sql = self.core_gen.generate_core_update_function(entity)
+            elif action_pattern == "delete":
+                core_sql = self.core_gen.generate_core_delete_function(entity)
+            else:  # custom
+                core_sql = self.core_gen.generate_core_custom_action(entity, action)
+
+            # Generate app wrapper
+            app_sql = app_wrapper_gen.generate_app_wrapper(entity, action)
+
+            # Generate FraiseQL comments
+            annotator = MutationAnnotator(entity.schema, entity.name)
+            comments_sql = annotator.generate_mutation_annotation(action)
+
+            mutations.append(
+                MutationFunctionPair(
+                    action_name=action.name,
+                    app_wrapper_sql=app_sql,
+                    core_logic_sql=core_sql,
+                    fraiseql_comments_sql=comments_sql,
+                )
+            )
+
+        return SchemaOutput(table_sql=table_sql, helpers_sql=helpers_sql, mutations=mutations)
+
     def generate_table_views(self, entities: List[EntityDefinition]) -> str:
         """
         Generate tv_ tables for all entities in dependency order.
@@ -181,7 +254,7 @@ class SchemaOrchestrator:
         types_list: List[str] = []
         summary: Dict[str, Union[str, List[str]]] = {
             "entity": entity.name,
-            "table": f"{entity.schema}.tb_{entity.name.lower()}",
+            "table": f"{entity.schema}.{safe_table_name(entity.name)}",
             "types": types_list,
             "indexes": [],
             "constraints": [],

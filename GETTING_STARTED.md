@@ -147,11 +147,11 @@ cd src/cli/
 make teamE-test
 
 # Start coding
-vim tests/unit/cli/test_generate.py
-vim src/cli/generate.py
+vim tests/unit/cli/test_confiture_extensions.py
+vim src/cli/confiture_extensions.py
 ```
 
-**First Task**: Create `specql generate` CLI command
+**First Task**: Create `specql generate` CLI command with Confiture integration
 
 ---
 

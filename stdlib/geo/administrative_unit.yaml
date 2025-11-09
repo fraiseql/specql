@@ -1,0 +1,48 @@
+# SpecQL stdlib Entity: AdministrativeUnit
+# Category: geo
+# Version: 1.1.0
+# Standard: N/A
+# Description: Actual administrative units within countries
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/geo/administrative_unit
+#
+#   # Or extend with customizations:
+#   entity: MyAdministrativeUnit
+#   extends:
+#     from: stdlib/geo/administrative_unit
+#   fields:
+#     custom_field: text
+
+entity: AdministrativeUnit
+schema: common
+hierarchical: true
+description: |
+  Stores actual administrative units (e.g., France > Bretagne > Ille-et-Vilaine > Rennes).
+  Organized as a hierarchical tree structure with localized naming and administrative codes.
+
+fields:
+  name: text
+  administrative_code: text
+
+  administrative_level: ref(AdministrativeLevel)
+  parent: ref(AdministrativeUnit)
+
+translations:
+  enabled: true
+  fields: [name]
+
+actions:
+  - name: create_administrative_unit
+  - name: update_administrative_unit
+  - name: delete_administrative_unit
+
+  # Business actions
+  - name: activate_unit
+  - name: deactivate_unit
+  - name: change_parent
+  - name: update_administrative_code

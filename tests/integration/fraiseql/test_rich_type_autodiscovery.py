@@ -5,6 +5,9 @@ Tests that PostgreSQL comments → GraphQL descriptions automatically
 
 import pytest
 
+# Mark all tests as requiring database
+pytestmark = pytest.mark.database
+
 from src.core.ast_models import Action, Entity
 from src.core.specql_parser import SpecQLParser
 from src.generators.schema_orchestrator import SchemaOrchestrator
@@ -35,7 +38,7 @@ def convert_entity_definition_to_entity(entity_def):
 
 
 @pytest.fixture
-def test_db_with_rich_types(db):
+def test_db_with_rich_types(test_db, isolated_schema):
     """Generate schema with rich types and apply to database"""
     # Parse the entity file
     parser = SpecQLParser()
@@ -49,11 +52,23 @@ def test_db_with_rich_types(db):
     orchestrator = SchemaOrchestrator()
     migration = orchestrator.generate_complete_schema(entity)
 
-    cursor = db.cursor()
-    cursor.execute(migration)
-    db.commit()
+    # Replace schema references with isolated schema
+    migration = migration.replace("CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}")
+    migration = migration.replace("crm.", f"{isolated_schema}.")
+    migration = migration.replace("CREATE SCHEMA app", f"CREATE SCHEMA {isolated_schema}")
+    migration = migration.replace("app.", f"{isolated_schema}.")
+    migration = migration.replace("CREATE SCHEMA catalog", f"CREATE SCHEMA {isolated_schema}")
+    migration = migration.replace("catalog.", f"{isolated_schema}.")
+    migration = migration.replace("CREATE SCHEMA core", f"CREATE SCHEMA {isolated_schema}")
+    migration = migration.replace("core.", f"{isolated_schema}.")
+    migration = migration.replace("CREATE SCHEMA management", f"CREATE SCHEMA {isolated_schema}")
+    migration = migration.replace("management.", f"{isolated_schema}.")
 
-    return db
+    cursor = test_db.cursor()
+    cursor.execute(migration)
+    test_db.commit()
+
+    return test_db, isolated_schema
 
 
 class TestRichTypeAutodiscovery:
@@ -61,11 +76,12 @@ class TestRichTypeAutodiscovery:
 
     def test_email_field_has_check_constraint(self, test_db_with_rich_types):
         """Test: email field has CHECK constraint for validation"""
-        cursor = test_db_with_rich_types.cursor()
-        cursor.execute("""
+        test_db, schema_name = test_db_with_rich_types
+        cursor = test_db.cursor()
+        cursor.execute(f"""
             SELECT pg_get_constraintdef(oid)
             FROM pg_constraint
-            WHERE conrelid = 'crm.tb_contact'::regclass
+            WHERE conrelid = '{schema_name}.tb_contact'::regclass
               AND conname LIKE '%email%check%'
         """)
         constraint = cursor.fetchone()
@@ -74,11 +90,12 @@ class TestRichTypeAutodiscovery:
 
     def test_email_field_has_comment(self, test_db_with_rich_types):
         """Test: email field has PostgreSQL comment (becomes GraphQL description)"""
-        cursor = test_db_with_rich_types.cursor()
-        cursor.execute("""
-            SELECT col_description('crm.tb_contact'::regclass, attnum)
+        test_db, schema_name = test_db_with_rich_types
+        cursor = test_db.cursor()
+        cursor.execute(f"""
+            SELECT col_description('{schema_name}.tb_contact'::regclass, attnum)
             FROM pg_attribute
-            WHERE attrelid = 'crm.tb_contact'::regclass
+            WHERE attrelid = '{schema_name}.tb_contact'::regclass
               AND attname = 'email'
         """)
         comment = cursor.fetchone()
@@ -88,11 +105,12 @@ class TestRichTypeAutodiscovery:
 
     def test_url_field_has_check_constraint(self, test_db_with_rich_types):
         """Test: url field has CHECK constraint"""
-        cursor = test_db_with_rich_types.cursor()
-        cursor.execute("""
+        test_db, schema_name = test_db_with_rich_types
+        cursor = test_db.cursor()
+        cursor.execute(f"""
             SELECT pg_get_constraintdef(oid)
             FROM pg_constraint
-            WHERE conrelid = 'crm.tb_contact'::regclass
+            WHERE conrelid = '{schema_name}.tb_contact'::regclass
               AND conname LIKE '%website%check%'
         """)
         constraint = cursor.fetchone()
@@ -101,11 +119,12 @@ class TestRichTypeAutodiscovery:
 
     def test_phone_field_has_check_constraint(self, test_db_with_rich_types):
         """Test: phoneNumber field has CHECK constraint"""
-        cursor = test_db_with_rich_types.cursor()
-        cursor.execute("""
+        test_db, schema_name = test_db_with_rich_types
+        cursor = test_db.cursor()
+        cursor.execute(f"""
             SELECT pg_get_constraintdef(oid)
             FROM pg_constraint
-            WHERE conrelid = 'crm.tb_contact'::regclass
+            WHERE conrelid = '{schema_name}.tb_contact'::regclass
               AND conname LIKE '%phone%check%'
         """)
         constraint = cursor.fetchone()
@@ -113,11 +132,12 @@ class TestRichTypeAutodiscovery:
 
     def test_money_field_uses_numeric_type(self, test_db_with_rich_types):
         """Test: money field uses NUMERIC(19,4)"""
-        cursor = test_db_with_rich_types.cursor()
-        cursor.execute("""
+        test_db, schema_name = test_db_with_rich_types
+        cursor = test_db.cursor()
+        cursor.execute(f"""
             SELECT data_type, numeric_precision, numeric_scale
             FROM information_schema.columns
-            WHERE table_schema = 'catalog'
+            WHERE table_schema = '{schema_name}'
               AND table_name = 'tb_product'
               AND column_name = 'price'
         """)
@@ -129,11 +149,12 @@ class TestRichTypeAutodiscovery:
 
     def test_ipaddress_field_uses_inet_type(self, test_db_with_rich_types):
         """Test: ipAddress field uses INET PostgreSQL type"""
-        cursor = test_db_with_rich_types.cursor()
-        cursor.execute("""
+        test_db, schema_name = test_db_with_rich_types
+        cursor = test_db.cursor()
+        cursor.execute(f"""
             SELECT data_type
             FROM information_schema.columns
-            WHERE table_schema = 'core'
+            WHERE table_schema = '{schema_name}'
               AND table_name = 'tb_device'
               AND column_name = 'ip_address'
         """)
@@ -143,11 +164,12 @@ class TestRichTypeAutodiscovery:
 
     def test_coordinates_field_uses_point_type(self, test_db_with_rich_types):
         """Test: coordinates field uses POINT PostgreSQL type"""
-        cursor = test_db_with_rich_types.cursor()
-        cursor.execute("""
+        test_db, schema_name = test_db_with_rich_types
+        cursor = test_db.cursor()
+        cursor.execute(f"""
             SELECT udt_name
             FROM information_schema.columns
-            WHERE table_schema = 'management'
+            WHERE table_schema = '{schema_name}'
               AND table_name = 'tb_location'
               AND column_name = 'coordinates'
         """)
@@ -157,15 +179,16 @@ class TestRichTypeAutodiscovery:
 
     def test_all_rich_type_fields_have_comments(self, test_db_with_rich_types):
         """Test: All rich type fields have descriptive comments"""
-        cursor = test_db_with_rich_types.cursor()
-        cursor.execute("""
+        test_db, schema_name = test_db_with_rich_types
+        cursor = test_db.cursor()
+        cursor.execute(f"""
             SELECT
                 c.table_schema,
                 c.table_name,
                 c.column_name,
                 col_description((c.table_schema || '.' || c.table_name)::regclass, c.ordinal_position) as comment
             FROM information_schema.columns c
-            WHERE c.table_schema IN ('crm', 'catalog', 'core', 'management')
+            WHERE c.table_schema = '{schema_name}'
               AND c.column_name IN ('email', 'website', 'phone', 'price', 'ip_address', 'coordinates')
         """)
         results = cursor.fetchall()

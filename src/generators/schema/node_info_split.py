@@ -272,7 +272,11 @@ WHERE n.deleted_at IS NULL;
 
 -- FraiseQL metadata
 COMMENT ON VIEW {schema}.v_{entity_lower} IS
-'@fraiseql:type name={entity.name},schema={schema}';"""
+'Table view for {entity.name} entity.
+
+@fraiseql:type
+name: {entity.name}
+schema: {schema}';"""
 
     return ddl
 

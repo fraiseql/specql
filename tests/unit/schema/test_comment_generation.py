@@ -88,23 +88,25 @@ def test_complete_entity_generates_all_comments(table_generator):
 
 
 def test_nullable_field_comment_includes_required_note(table_generator):
-    """Test: Non-nullable fields include (required) in comment"""
+    """Test: Non-nullable fields have required: true in YAML comment"""
     field = FieldDefinition(name="email", type_name="email", nullable=False)
     entity = Entity(name="Contact", fields={"email": field})
 
     comments = table_generator.generate_field_comments(entity)
 
-    assert any("required" in c.lower() for c in comments)
+    # In YAML format, non-nullable fields should have "required: true"
+    assert any("required: true" in c for c in comments)
 
 
 def test_nullable_field_comment_omits_required_note(table_generator):
-    """Test: Nullable fields don't include (required) in comment"""
+    """Test: Nullable fields have required: false in YAML comment"""
     field = FieldDefinition(name="website", type_name="url", nullable=True)
     entity = Entity(name="Contact", fields={"website": field})
 
     comments = table_generator.generate_field_comments(entity)
 
-    assert not any("required" in c.lower() for c in comments)
+    # In YAML format, nullable fields should have "required: false"
+    assert any("required: false" in c for c in comments)
 
 
 def test_enum_field_comment_includes_options(table_generator):

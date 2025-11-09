@@ -3,16 +3,19 @@
 import pytest
 from tests.utils.db_test import execute_sql, execute_query
 
+# Mark all tests as requiring database
+pytestmark = pytest.mark.database
+
 
 class TestCompositeHierarchicalE2E:
     """Test complete allocation-style composite identifiers."""
 
     @pytest.fixture
-    def allocation_schema(self, db):
+    def allocation_schema(self, test_db):
         """Create allocation schema with dependencies."""
         # Create all dependent entities
         execute_sql(
-            db,
+            test_db,
             """
             CREATE SCHEMA tenant;
             CREATE SCHEMA management;
@@ -77,19 +80,19 @@ class TestCompositeHierarchicalE2E:
         """,
         )
         yield
-        execute_sql(db, "DROP SCHEMA tenant CASCADE; DROP SCHEMA management CASCADE;")
+        execute_sql(test_db, "DROP SCHEMA tenant CASCADE; DROP SCHEMA management CASCADE;")
 
-    def test_allocation_composite_identifier(self, db, allocation_schema):
+    def test_allocation_composite_identifier(self, test_db, allocation_schema):
         """Should generate allocation identifier with composition separator."""
         # Generate recalculate function (from SpecQL)
         # ... generator creates this function ...
 
         # Execute recalculation
-        execute_sql(db, "SELECT tenant.recalculate_allocation_identifier()")
+        execute_sql(test_db, "SELECT tenant.recalculate_allocation_identifier()")
 
-        # Verify composite identifier
+        # Verify result
         result = execute_query(
-            db,
+            test_db,
             """
             SELECT identifier, base_identifier
             FROM tenant.tb_allocation

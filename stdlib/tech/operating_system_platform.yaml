@@ -1,0 +1,38 @@
+# SpecQL stdlib Entity: OperatingSystemPlatform
+# Category: tech
+# Version: 1.1.0
+# Standard: N/A
+# Description: Operating system platform categories
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/tech/operating_system_platform
+#
+#   # Or extend with customizations:
+#   entity: MyOperatingSystemPlatform
+#   extends:
+#     from: stdlib/tech/operating_system_platform
+#   fields:
+#     custom_field: text
+
+entity: OperatingSystemPlatform
+schema: common
+description: |
+  List of operating system platforms (e.g., macOS, Linux, Windows, Android, iOS).
+  Used for compatibility and categorization of operating systems.
+
+fields:
+  name: text
+
+actions:
+  - name: create_operating_system_platform
+  - name: update_operating_system_platform
+  - name: delete_operating_system_platform
+
+  # Business actions
+  - name: activate_platform
+  - name: deactivate_platform
+  - name: update_name

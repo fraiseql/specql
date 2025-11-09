@@ -1,0 +1,84 @@
+# SpecQL stdlib Entity: Calendar
+# Category: time
+# Version: 1.1.0
+# Standard: N/A
+# Description: Date dimension table for temporal analytics
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/time/calendar
+#
+#   # Or extend with customizations:
+#   entity: MyCalendar
+#   extends:
+#     from: stdlib/time/calendar
+#   fields:
+#     custom_field: text
+
+entity: Calendar
+schema: common
+description: |
+  Table storing calendar data with various time periods (week, half-month, month, quarter, semester, and year).
+  This is a date dimension table that provides temporal analysis capabilities.
+
+fields:
+  # Primary date field
+  reference_date: date
+
+  # Time period identifiers
+  week: integer
+  half_month: integer
+  month: integer
+  quarter: integer
+  semester: integer
+  year: integer
+
+  # Period day counts
+  week_n_days: integer
+  half_month_n_days: integer
+  month_n_days: integer
+  quarter_n_days: integer
+  semester_n_days: integer
+  year_n_days: integer
+
+  # Reference dates for periods
+  week_reference_date: date
+  half_month_reference_date: date
+  month_reference_date: date
+  quarter_reference_date: date
+  semester_reference_date: date
+  year_reference_date: date
+
+  # Reference date flags
+  is_week_reference_date: boolean
+  is_half_month_reference_date: boolean
+  is_month_reference_date: boolean
+  is_quarter_reference_date: boolean
+  is_semester_reference_date: boolean
+  is_year_reference_date: boolean
+
+  # JSON metadata (computed fields)
+  date_info: json
+  week_info: json
+  half_month_info: json
+  month_info: json
+  quarter_info: json
+  semester_info: json
+  year_info: json
+
+  # Array of interval dates
+  array_interval_dates: json  # Note: SQL uses DATE[] but SpecQL uses json for arrays
+
+actions:
+  - name: create_calendar
+  - name: update_calendar
+  - name: delete_calendar
+
+  # Business actions
+  - name: calculate_date_ranges
+  - name: get_business_days
+  - name: check_holiday
+  - name: get_fiscal_period

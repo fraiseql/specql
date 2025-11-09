@@ -133,7 +133,7 @@ Validation:
 
 Operations:
 - Trinity FK resolution (UUID → INTEGER)
-- UPDATE operation on crm.tb_contact
+- OPERATION operation on crm.tb_contact
 - Audit logging via app.log_and_return_mutation
 
 Called by: app.update (GraphQL mutation)

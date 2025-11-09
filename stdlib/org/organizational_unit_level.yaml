@@ -1,0 +1,46 @@
+# SpecQL stdlib Entity: OrganizationalUnitLevel
+# Category: org
+# Version: 1.1.0
+# Standard: N/A
+# Description: Types of organizational levels in hierarchies
+#
+# This entity is part of the SpecQL standard library, extracted from
+# PrintOptim production system and generalized for universal reuse.
+#
+# Usage:
+#   # Import as-is:
+#   import: stdlib/org/organizational_unit_level
+#
+#   # Or extend with customizations:
+#   entity: MyOrganizationalUnitLevel
+#   extends:
+#     from: stdlib/org/organizational_unit_level
+#   fields:
+#     custom_field: text
+
+entity: OrganizationalUnitLevel
+schema: common
+hierarchical: true
+description: |
+  Defines types of organizational levels (e.g., team, department, division).
+  Acts as a vocabulary for structuring organizational hierarchies with localized naming.
+
+fields:
+  name: text
+
+  parent: ref(OrganizationalUnitLevel)
+
+translations:
+  enabled: true
+  fields: [name]
+
+actions:
+  - name: create_organizational_unit_level
+  - name: update_organizational_unit_level
+  - name: delete_organizational_unit_level
+
+  # Business actions
+  - name: activate_level
+  - name: deactivate_level
+  - name: change_parent
+  - name: update_name
