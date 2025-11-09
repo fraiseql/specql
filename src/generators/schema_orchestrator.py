@@ -11,7 +11,9 @@ from src.generators.app_schema_generator import AppSchemaGenerator
 from src.generators.core_logic_generator import CoreLogicGenerator
 from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.schema_registry import SchemaRegistry
-from src.core.ast_models import Entity
+from src.generators.schema.table_view_generator import TableViewGenerator
+from src.generators.schema.table_view_dependency import TableViewDependencyResolver
+from src.core.ast_models import Entity, EntityDefinition
 
 
 class SchemaOrchestrator:
@@ -100,6 +102,37 @@ class SchemaOrchestrator:
         # 8. Trinity helper functions
         helpers = self.helper_gen.generate_all_helpers(entity)
         parts.append("-- Trinity Helper Functions\n" + helpers)
+
+        return "\n\n".join(parts)
+
+    def generate_table_views(self, entities: List[EntityDefinition]) -> str:
+        """
+        Generate tv_ tables for all entities in dependency order.
+
+        Args:
+            entities: All entities to generate tv_ tables for
+
+        Returns:
+            Complete SQL for all tv_ tables and refresh functions
+        """
+        if not entities:
+            return ""
+
+        # Resolve dependency order for generation
+        resolver = TableViewDependencyResolver(entities)
+        generation_order = resolver.get_generation_order()
+
+        parts = []
+
+        # Generate tv_ tables in dependency order
+        for entity_name in generation_order:
+            entity = next(e for e in entities if e.name == entity_name)
+            generator = TableViewGenerator(entity, {e.name: e for e in entities})
+            tv_schema = generator.generate_schema()
+            if tv_schema:
+                parts.append(
+                    f"-- Table View: {entity.schema}.tv_{entity.name.lower()}\n" + tv_schema
+                )
 
         return "\n\n".join(parts)
 

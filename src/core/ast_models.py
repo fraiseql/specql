@@ -178,7 +178,7 @@ class FieldDefinition:
         elif is_composite_type(self.type_name):
             self.tier = FieldTier.COMPOSITE
             # composite_def will be set in Phase 2
-        elif self.type_name == "ref":
+        elif self.type_name.startswith("ref(") and self.type_name.endswith(")"):
             self.tier = FieldTier.REFERENCE
         elif self.values:
             # Enum field
