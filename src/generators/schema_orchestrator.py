@@ -13,6 +13,8 @@ from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.schema_registry import SchemaRegistry
 from src.generators.schema.table_view_generator import TableViewGenerator
 from src.generators.schema.table_view_dependency import TableViewDependencyResolver
+from src.generators.fraiseql.table_view_annotator import TableViewAnnotator
+from src.generators.fraiseql.mutation_annotator import MutationAnnotator
 from src.core.ast_models import Entity, EntityDefinition
 
 
@@ -99,7 +101,21 @@ class SchemaOrchestrator:
         if core_functions:
             parts.append("-- Core Logic Functions\n" + "\n\n".join(core_functions))
 
-        # 8. Trinity helper functions
+        # 8. FraiseQL mutation annotations (Team D)
+        mutation_annotations = []
+        if entity.actions:
+            for action in entity.actions:
+                annotator = MutationAnnotator(entity.schema, entity.name)
+                annotation = annotator.generate_mutation_annotation(action)
+                if annotation:
+                    mutation_annotations.append(annotation)
+
+        if mutation_annotations:
+            parts.append(
+                "-- FraiseQL Mutation Annotations (Team D)\n" + "\n\n".join(mutation_annotations)
+            )
+
+        # 9. Trinity helper functions
         helpers = self.helper_gen.generate_all_helpers(entity)
         parts.append("-- Trinity Helper Functions\n" + helpers)
 
@@ -133,6 +149,16 @@ class SchemaOrchestrator:
                 parts.append(
                     f"-- Table View: {entity.schema}.tv_{entity.name.lower()}\n" + tv_schema
                 )
+
+            # Generate FraiseQL annotations for tv_ table
+            if entity.table_views:
+                annotator = TableViewAnnotator(entity)
+                annotations = annotator.generate_annotations()
+                if annotations:
+                    parts.append(
+                        f"-- FraiseQL Annotations: {entity.schema}.tv_{entity.name.lower()}\n"
+                        + annotations
+                    )
 
         return "\n\n".join(parts)
 

@@ -38,13 +38,3 @@ BEGIN
     );
 END;
 $$;
-
--- FraiseQL Metadata
-COMMENT ON FUNCTION {{ entity.schema }}.{{ action.name }} IS
-'{{ action.description or (action.name | replace("_", " ") | title) }}.
-
-@fraiseql:mutation
-name: {{ camel_name }}
-input_type: {{ composite_type }}
-success_type: {{ camel_name + "Success" }}
-failure_type: {{ camel_name + "Error" }}';

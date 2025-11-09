@@ -1,0 +1,43 @@
+name: Review
+schema: library
+description: Book review with denormalized author and book data
+
+fields:
+  author:
+    type: ref(User)
+    description: Review author
+  book:
+    type: ref(Book)
+    description: Book being reviewed
+  rating:
+    type: integer
+    description: Rating from 1-5 stars
+  content:
+    type: text
+    description: Review text content
+  created_at:
+    type: timestamp
+    description: When review was created
+
+actions:
+  - name: create
+    description: Create a new review
+  - name: update
+    description: Update review content/rating
+  - name: delete
+    description: Delete a review
+
+table_views:
+  mode: auto
+  include_relations:
+    - entity_name: User
+      fields: [name, email, avatar_url]
+    - entity_name: Book
+      fields: [title, isbn, published_year, genre]
+  extra_filter_columns:
+    - name: rating
+      type: INTEGER
+      index_type: btree
+    - name: created_at
+      type: TIMESTAMPTZ
+      index_type: btree
