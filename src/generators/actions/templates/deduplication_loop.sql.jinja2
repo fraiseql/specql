@@ -1,0 +1,32 @@
+-- Deduplicate identifiers (WITHIN TENANT if applicable)
+FOR v_record IN
+    SELECT pk_{{ entity_lower }}, base_identifier
+    FROM tmp_{{ entity_lower }}_identifiers
+LOOP
+    v_new_identifier := v_record.base_identifier;
+    v_suffix := 1;
+
+    -- Find unique identifier
+    LOOP
+        EXIT WHEN NOT EXISTS (
+            SELECT 1 FROM {{ schema }}.tb_{{ entity_lower }}
+            WHERE identifier = v_new_identifier
+              AND pk_{{ entity_lower }} != v_record.pk_{{ entity_lower }}
+              AND deleted_at IS NULL
+        ) AND NOT EXISTS (
+            SELECT 1 FROM tmp_{{ entity_lower }}_identifiers
+            WHERE unique_identifier = v_new_identifier
+              AND pk_{{ entity_lower }} != v_record.pk_{{ entity_lower }}
+        );
+
+        v_suffix := v_suffix + 1;
+        v_new_identifier := v_record.base_identifier || '{{ dedup_separator }}' || v_suffix;
+    END LOOP;
+
+    -- Update temp table
+    UPDATE tmp_{{ entity_lower }}_identifiers
+    SET
+        unique_identifier = v_new_identifier,
+        sequence_number = v_suffix
+    WHERE pk_{{ entity_lower }} = v_record.pk_{{ entity_lower }};
+END LOOP;
