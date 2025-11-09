@@ -1,0 +1,1 @@
+# Frontend generators integration tests

@@ -1,0 +1,23 @@
+# confiture.yaml - Confiture v0.3.0 Configuration
+schema_dirs:
+  - path: db/schema/00_foundation
+    order: 0
+  - path: db/schema/10_tables
+    order: 10
+  - path: db/schema/20_helpers
+    order: 20
+  - path: db/schema/30_functions
+    order: 30
+
+environments:
+  local:
+    database_url: postgresql://localhost/specql_local
+    migrations_dir: db/migrations
+
+  test:
+    database_url: postgresql://localhost/specql_test
+    migrations_dir: db/migrations
+
+  production:
+    database_url: ${DATABASE_URL}
+    migrations_dir: db/migrations

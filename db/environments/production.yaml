@@ -1,0 +1,7 @@
+database_url: ${DATABASE_URL}
+migrations_dir: db/migrations
+include_dirs:
+  - db/schema/00_foundation
+  - db/schema/10_tables
+  - db/schema/20_helpers
+  - db/schema/30_functions
