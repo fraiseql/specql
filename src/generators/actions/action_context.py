@@ -7,7 +7,8 @@ Provides compilation context from SpecQL AST to guide PL/pgSQL generation.
 from dataclasses import dataclass
 from typing import List, Optional, Dict, Any
 
-from src.core.ast_models import ActionDefinition, ActionStep, Entity
+from typing import Any
+from src.core.ast_models import ActionDefinition, ActionStep
 
 
 @dataclass
@@ -17,12 +18,13 @@ class ActionContext:
     function_name: str
     entity_schema: str
     entity_name: str
+    entity: Any  # Full entity definition for table view checks
     steps: List[ActionStep]
     impact: Optional[Dict[str, Any]]  # Impact metadata dict
     has_impact_metadata: bool
 
     @classmethod
-    def from_ast(cls, action_ast: ActionDefinition, entity_ast: Entity) -> "ActionContext":
+    def from_ast(cls, action_ast: ActionDefinition, entity_ast: Any) -> "ActionContext":
         """Create compilation context from action and entity AST"""
         # Validate inputs
         if not action_ast.name:
@@ -36,6 +38,7 @@ class ActionContext:
             function_name=f"{entity_ast.schema}.{action_ast.name}",
             entity_schema=entity_ast.schema,
             entity_name=entity_ast.name,
+            entity=entity_ast,
             steps=action_ast.steps,
             impact=action_ast.impact,
             has_impact_metadata=action_ast.impact is not None,

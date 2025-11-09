@@ -9,10 +9,15 @@ from src.generators.actions.success_response_generator import SuccessResponseGen
 
 def create_test_context():
     """Create a test ActionContext"""
+    from src.core.ast_models import EntityDefinition
+
+    entity = EntityDefinition(name="Contact", schema="crm", fields={})
+
     return ActionContext(
         function_name="crm.qualify_lead",
         entity_schema="crm",
         entity_name="Contact",
+        entity=entity,
         steps=[],
         impact=None,
         has_impact_metadata=False,
@@ -21,10 +26,15 @@ def create_test_context():
 
 def create_test_context_with_impact():
     """Create a test ActionContext with impact metadata"""
+    from src.core.ast_models import EntityDefinition
+
+    entity = EntityDefinition(name="Contact", schema="crm", fields={})
+
     return ActionContext(
         function_name="crm.qualify_lead",
         entity_schema="crm",
         entity_name="Contact",
+        entity=entity,
         steps=[],
         impact={
             "primary": {
@@ -39,6 +49,10 @@ def create_test_context_with_impact():
 
 def test_generates_object_data_with_relationships():
     """Generate object_data with relationships from impact.include_relations"""
+    from src.core.ast_models import EntityDefinition
+
+    entity = EntityDefinition(name="Contact", schema="crm", fields={})
+
     impact = {
         "primary": {
             "entity": "Contact",
@@ -51,6 +65,7 @@ def test_generates_object_data_with_relationships():
         function_name="crm.qualify_lead",
         entity_schema="crm",
         entity_name="Contact",
+        entity=entity,
         steps=[],
         impact=impact,
         has_impact_metadata=True,

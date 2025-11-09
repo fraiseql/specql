@@ -22,6 +22,7 @@ from src.core.ast_models import (
     IdentifierConfig,
     IncludeRelation,
     Organization,
+    RefreshScope,
     TableViewConfig,
     TableViewMode,
 )
@@ -405,6 +406,8 @@ class SpecQLParser:
             return self._parse_notify_step(step_data)
         elif "reject" in step_data:
             return self._parse_reject_step(step_data)
+        elif "refresh_table_view" in step_data:
+            return self._parse_refresh_table_view_step(step_data)
         else:
             raise ParseError(f"Unknown step type: {step_data}")
 
@@ -543,6 +546,38 @@ class SpecQLParser:
         reject_spec = step_data["reject"]
 
         return ActionStep(type="reject", error=reject_spec)
+
+    def _parse_refresh_table_view_step(self, step_data: dict) -> ActionStep:
+        """Parse refresh_table_view step"""
+        refresh_config = step_data["refresh_table_view"]
+
+        # Parse scope
+        scope_str = refresh_config.get("scope", "self")
+        try:
+            scope = RefreshScope(scope_str)
+        except ValueError:
+            raise ParseError(
+                f"Invalid refresh scope: {scope_str}. Must be: self, related, propagate, batch"
+            )
+
+        # Parse propagate entities
+        propagate_entities = refresh_config.get("propagate", [])
+        if not isinstance(propagate_entities, list):
+            raise ParseError("refresh_table_view.propagate must be a list of entity names")
+
+        # Parse strategy
+        strategy = refresh_config.get("strategy", "immediate")
+        if strategy not in ["immediate", "deferred"]:
+            raise ParseError(
+                f"Invalid refresh strategy: {strategy}. Must be: immediate or deferred"
+            )
+
+        return ActionStep(
+            type="refresh_table_view",
+            refresh_scope=scope,
+            propagate_entities=propagate_entities,
+            refresh_strategy=strategy,
+        )
 
     def _validate_expression_fields(
         self, expression: str, entity_fields: Dict[str, FieldDefinition]

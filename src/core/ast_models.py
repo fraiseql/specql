@@ -41,6 +41,15 @@ class TableViewMode(Enum):
     DISABLE = "disable"  # Never generate
 
 
+class RefreshScope(Enum):
+    """Scope for table view refresh."""
+
+    SELF = "self"  # Only this entity
+    RELATED = "related"  # This entity + all that reference it
+    PROPAGATE = "propagate"  # This entity + explicit list
+    BATCH = "batch"  # Deferred refresh (bulk operations)
+
+
 @dataclass
 class IncludeRelation:
     """Specification for including a related entity in table view."""
@@ -59,6 +68,15 @@ class IncludeRelation:
             pass  # All fields, resolved during generation
         elif not all(isinstance(f, str) for f in self.fields):
             raise ValueError(f"Fields must be strings in {self.entity_name}")
+
+
+@dataclass
+class RefreshTableViewStep:
+    """Action step for refreshing table views."""
+
+    scope: RefreshScope = RefreshScope.SELF
+    propagate: List[str] = field(default_factory=list)  # Entity names to refresh
+    strategy: str = "immediate"  # immediate | deferred
 
 
 @dataclass
@@ -392,6 +410,11 @@ class ActionStep:
     # For notify steps
     recipient: Optional[str] = None
     channel: Optional[str] = None
+
+    # For refresh_table_view steps
+    refresh_scope: Optional[RefreshScope] = None
+    propagate_entities: List[str] = field(default_factory=list)
+    refresh_strategy: str = "immediate"
 
 
 @dataclass

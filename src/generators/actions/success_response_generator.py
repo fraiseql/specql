@@ -24,31 +24,49 @@ class SuccessResponseGenerator:
         """
         entity_name = context.entity_name
         schema = context.entity_schema
-        table_name = f"{schema}.tb_{entity_name.lower()}"
+        entity_lower = entity_name.lower()
 
-        # Build basic object structure
-        object_parts = [f"'__typename', '{entity_name}'", "'id', c.id"]
+        # Check if entity should use table view (denormalized data)
+        if (
+            hasattr(context.entity, "should_generate_table_view")
+            and context.entity.should_generate_table_view
+        ):
+            # Return from tv_ (denormalized data)
+            table_name = f"{schema}.tv_{entity_lower}"
+            object_sql = f"""
+    -- Build result from table view (denormalized)
+    SELECT data  -- JSONB from tv_
+    FROM {table_name}
+    WHERE pk_{entity_lower} = v_pk
+    INTO v_result.object_data;
+"""
+        else:
+            # Return from tb_ (normalized, build JSONB)
+            table_name = f"{schema}.tb_{entity_lower}"
 
-        # Add fields from impact declaration
-        if context.impact and "primary" in context.impact:
-            primary = context.impact["primary"]
-            if "fields" in primary:
-                for field in primary["fields"]:
-                    object_parts.append(f"'{field}', c.{field}")
+            # Build basic object structure
+            object_parts = [f"'__typename', '{entity_name}'", "'id', c.id"]
 
-        # Handle relationships if specified
-        if context.impact and "primary" in context.impact:
-            primary = context.impact["primary"]
-            if "include_relations" in primary:
-                for relation in primary["include_relations"]:
-                    # For now, add placeholder - real implementation would need FK resolution
-                    object_parts.append(
-                        f"'{relation}', null  -- TODO: Implement {relation} relationship"
-                    )
+            # Add fields from impact declaration
+            if context.impact and "primary" in context.impact:
+                primary = context.impact["primary"]
+                if "fields" in primary:
+                    for field in primary["fields"]:
+                        object_parts.append(f"'{field}', c.{field}")
 
-        # Build the JSONB construction
-        separator = ",\n        "
-        object_sql = f"""
+            # Handle relationships if specified
+            if context.impact and "primary" in context.impact:
+                primary = context.impact["primary"]
+                if "include_relations" in primary:
+                    for relation in primary["include_relations"]:
+                        # For now, add placeholder - real implementation would need FK resolution
+                        object_parts.append(
+                            f"'{relation}', null  -- TODO: Implement {relation} relationship"
+                        )
+
+            # Build the JSONB construction
+            separator = ",\n        "
+            object_sql = f"""
     -- Build complete object data with relationships
     SELECT jsonb_build_object(
         {separator.join(object_parts)}

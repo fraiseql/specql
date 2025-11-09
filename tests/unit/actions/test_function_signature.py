@@ -9,10 +9,16 @@ from src.generators.actions.action_context import ActionContext
 
 def create_test_context():
     """Create a test ActionContext"""
+    from src.core.ast_models import EntityDefinition
+
+    # Create minimal entity
+    entity = EntityDefinition(name="Contact", schema="crm", fields={})
+
     return ActionContext(
         function_name="crm.qualify_lead",
         entity_schema="crm",
         entity_name="Contact",
+        entity=entity,
         steps=[],
         impact=None,
         has_impact_metadata=False,
@@ -46,10 +52,15 @@ def test_generate_declare_block():
 
 def test_generate_declare_block_with_impact():
     """Generate DECLARE block with impact metadata when needed"""
+    from src.core.ast_models import EntityDefinition
+
+    entity = EntityDefinition(name="Contact", schema="crm", fields={})
+
     context = ActionContext(
         function_name="crm.qualify_lead",
         entity_schema="crm",
         entity_name="Contact",
+        entity=entity,
         steps=[],
         impact={"primary": {"entity": "Contact", "operation": "UPDATE"}},
         has_impact_metadata=True,

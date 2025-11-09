@@ -1,0 +1,28 @@
+{# Template for refresh_table_view step #}
+
+{% if step.refresh_scope == 'self' %}
+-- Refresh table view (self)
+PERFORM {{ entity.schema }}.refresh_tv_{{ entity.name|lower }}(v_pk_{{ entity.name|lower }});
+
+{% elif step.refresh_scope == 'propagate' %}
+-- Refresh table view (self + propagate)
+PERFORM {{ entity.schema }}.refresh_tv_{{ entity.name|lower }}(v_pk_{{ entity.name|lower }});
+
+{% for rel_entity in step.propagate_entities %}
+{%- set fk_var = 'v_fk_' + rel_entity|lower -%}
+PERFORM {{ get_entity_schema(rel_entity) }}.refresh_tv_{{ rel_entity|lower }}({{ fk_var }});
+{% endfor %}
+
+{% elif step.refresh_scope == 'related' %}
+-- Refresh table view (self + all related)
+PERFORM {{ entity.schema }}.refresh_tv_{{ entity.name|lower }}(v_pk_{{ entity.name|lower }});
+
+{% for rel_entity in dependent_entities %}
+PERFORM {{ rel_entity.schema }}.refresh_tv_{{ rel_entity.name|lower }}_by_{{ entity.name|lower }}(v_pk_{{ entity.name|lower }});
+{% endfor %}
+
+{% elif step.refresh_scope == 'batch' %}
+-- Queue for batch refresh
+INSERT INTO pg_temp.tv_refresh_queue VALUES ('{{ entity.name }}', v_pk_{{ entity.name|lower }});
+
+{% endif %}

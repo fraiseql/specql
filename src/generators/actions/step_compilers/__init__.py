@@ -15,6 +15,7 @@ from .foreach_compiler import ForEachStepCompiler
 from .if_compiler import IfStepCompiler
 from .insert_compiler import InsertStepCompiler
 from .notify_compiler import NotifyStepCompiler
+from .refresh_table_view_compiler import RefreshTableViewStepCompiler
 from .update_compiler import UpdateStepCompiler
 from .validate_compiler import ValidateStepCompiler
 
@@ -27,4 +28,5 @@ __all__ = [
     "ForEachStepCompiler",
     "CallStepCompiler",
     "NotifyStepCompiler",
+    "RefreshTableViewStepCompiler",
 ]

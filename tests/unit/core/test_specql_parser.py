@@ -423,3 +423,41 @@ actions:
         assert step.type == "notify"
         assert step.function_name == "owner"
         assert step.arguments == {"channel": "email", "message": "Contact qualified"}
+
+    def test_parse_refresh_table_view_action(self):
+        """Test parsing refresh_table_view action step"""
+        from src.core.ast_models import RefreshScope
+
+        yaml_content = """
+entity: Review
+schema: library
+
+fields:
+  rating: integer!
+  comment: text
+  author: ref(User)
+  book: ref(Book)
+
+actions:
+  - name: update_rating
+    steps:
+      - validate: rating >= 1 AND rating <= 5
+      - update: Review SET rating = 5
+      - refresh_table_view:
+          scope: self
+          propagate: [author]
+"""
+
+        entity = self.parser.parse(yaml_content)
+
+        assert len(entity.actions) == 1
+        action = entity.actions[0]
+        assert action.name == "update_rating"
+        assert len(action.steps) == 3
+
+        # Check the refresh step
+        refresh_step = action.steps[2]
+        assert refresh_step.type == "refresh_table_view"
+        assert refresh_step.refresh_scope == RefreshScope.SELF
+        assert refresh_step.propagate_entities == ["author"]
+        assert refresh_step.refresh_strategy == "immediate"

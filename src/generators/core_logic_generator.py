@@ -355,6 +355,51 @@ class CoreLogicGenerator:
                     f"-- PERFORM {step.expression};"
                 )  # Commented out until emit_event exists
 
+            elif step.type == "refresh_table_view":
+                # Handle refresh_table_view step
+                compiled.extend(self._compile_refresh_table_view_step(step, entity))
+
+        return compiled
+
+    def _compile_refresh_table_view_step(self, step, entity: Entity) -> List[str]:
+        """
+        Compile refresh_table_view step to PL/pgSQL PERFORM calls
+        """
+        compiled = []
+        entity_lower = entity.name.lower()
+        pk_var = f"v_pk_{entity_lower}"
+
+        if hasattr(step, "refresh_scope") and step.refresh_scope.value == "self":
+            # Refresh only this entity's tv_ row
+            compiled.append(f"-- Refresh table view (self)")
+            compiled.append(f"PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});")
+
+        elif hasattr(step, "refresh_scope") and step.refresh_scope.value == "propagate":
+            # Refresh this entity + specific related entities
+            compiled.append(f"-- Refresh table view (self + propagate)")
+            compiled.append(f"PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});")
+
+            # Refresh specified related entities
+            if hasattr(step, "propagate_entities") and step.propagate_entities:
+                for rel_entity_name in step.propagate_entities:
+                    # For simplicity, assume same schema and basic FK naming
+                    rel_lower = rel_entity_name.lower()
+                    fk_var = f"v_fk_{rel_entity_name.lower()}"
+                    compiled.append(f"PERFORM {entity.schema}.refresh_tv_{rel_lower}({fk_var});")
+
+        elif hasattr(step, "refresh_scope") and step.refresh_scope.value == "related":
+            # Refresh this entity + all entities that reference it
+            compiled.append(f"-- Refresh table view (self + all related)")
+            compiled.append(f"PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});")
+            # TODO: Implement finding dependent entities
+
+        elif hasattr(step, "refresh_scope") and step.refresh_scope.value == "batch":
+            # Deferred refresh (collect PKs, refresh at end)
+            compiled.append(f"-- Queue for batch refresh (deferred)")
+            compiled.append(
+                f"INSERT INTO pg_temp.tv_refresh_queue VALUES ('{entity.name}', {pk_var});"
+            )
+
         return compiled
 
     def _extract_fields_from_expression(self, expression: str, entity: Entity) -> List[str]:
