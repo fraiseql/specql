@@ -47,36 +47,37 @@ domains:
   "1":
     name: core
     description: "Core infrastructure (i18n, auth, events, workflow)"
+    multi_tenant: false  # Framework schema (mixed behavior)
     subdomains:
-      "01":
-        name: i18n
-        description: "Internationalization & translation management"
-        next_entity_sequence: 1
-        entities: {}
+        "01":
+          name: i18n
+          description: "Internationalization & translation management"
+          next_entity_sequence: 1
+          entities: {}
 
-      "02":
-        name: auth
-        description: "Authentication, authorization & access control"
-        next_entity_sequence: 1
-        entities: {}
+        "02":
+          name: auth
+          description: "Authentication, authorization & access control"
+          next_entity_sequence: 1
+          entities: {}
 
-      "03":
-        name: events
-        description: "Event system, audit logging & notifications"
-        next_entity_sequence: 1
-        entities: {}
+        "03":
+          name: events
+          description: "Event system, audit logging & notifications"
+          next_entity_sequence: 1
+          entities: {}
 
-      "04":
-        name: workflow
-        description: "Workflow engine & state machines"
-        next_entity_sequence: 1
-        entities: {}
+        "04":
+          name: workflow
+          description: "Workflow engine & state machines"
+          next_entity_sequence: 1
+          entities: {}
 
-      "05":
-        name: config
-        description: "System configuration & settings"
-        next_entity_sequence: 1
-        entities: {}
+        "05":
+          name: config
+          description: "System configuration & settings"
+          next_entity_sequence: 1
+          entities: {}
 
   # --------------------------------------------------------------------------
   # Domain 2: CRM (Customer Relationship Management)
@@ -85,6 +86,7 @@ domains:
     name: crm
     description: "Customer relationship management & organizational structure"
     aliases: ["management"]
+    multi_tenant: true  # Multi-tenant domain
     subdomains:
       "01":
         name: core
@@ -127,6 +129,7 @@ domains:
   "3":
     name: catalog
     description: "Product catalog, manufacturer data & inventory"
+    multi_tenant: false  # Shared reference data (PrintOptim-specific)
     subdomains:
       "01":
         name: classification
@@ -175,6 +178,7 @@ domains:
     name: projects
     description: "Project management & tenant-specific entities"
     aliases: ["tenant", "dim"]
+    multi_tenant: true  # Multi-tenant domain
     subdomains:
       "01":
         name: core
@@ -218,6 +222,7 @@ domains:
   "5":
     name: analytics
     description: "Analytics, reporting & business intelligence"
+    multi_tenant: false  # Shared reference data
     subdomains:
       "01":
         name: metrics
@@ -243,6 +248,7 @@ domains:
   "6":
     name: finance
     description: "Financial management, billing & accounting"
+    multi_tenant: false  # Shared reference data
     subdomains:
       "01":
         name: billing

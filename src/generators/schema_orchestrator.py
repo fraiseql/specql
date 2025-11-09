@@ -9,18 +9,27 @@ from src.generators.composite_type_generator import CompositeTypeGenerator
 from src.generators.trinity_helper_generator import TrinityHelperGenerator
 from src.generators.app_schema_generator import AppSchemaGenerator
 from src.generators.core_logic_generator import CoreLogicGenerator
+from src.generators.schema.naming_conventions import NamingConventions
+from src.generators.schema.schema_registry import SchemaRegistry
 from src.core.ast_models import Entity
 
 
 class SchemaOrchestrator:
     """Orchestrates complete schema generation: tables + types + indexes + constraints"""
 
-    def __init__(self) -> None:
+    def __init__(self, naming_conventions: NamingConventions = None) -> None:
+        # Create naming conventions if not provided
+        if naming_conventions is None:
+            naming_conventions = NamingConventions()
+
+        # Create schema registry
+        schema_registry = SchemaRegistry(naming_conventions.registry)
+
         self.app_gen = AppSchemaGenerator()
-        self.table_gen = TableGenerator()
+        self.table_gen = TableGenerator(schema_registry)
         self.type_gen = CompositeTypeGenerator()
-        self.helper_gen = TrinityHelperGenerator()
-        self.core_gen = CoreLogicGenerator()
+        self.helper_gen = TrinityHelperGenerator(schema_registry)
+        self.core_gen = CoreLogicGenerator(schema_registry)
 
     def generate_complete_schema(self, entity: Entity) -> str:
         """

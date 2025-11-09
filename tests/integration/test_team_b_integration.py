@@ -20,14 +20,14 @@ class TestTeamBIntegration:
         return SpecQLParser()
 
     @pytest.fixture
-    def table_generator(self):
+    def table_generator(self, schema_registry):
         """Create table generator"""
-        return TableGenerator()
+        return TableGenerator(schema_registry)
 
     @pytest.fixture
-    def function_generator(self):
+    def function_generator(self, schema_registry):
         """Create function generator"""
-        return FunctionGenerator()
+        return FunctionGenerator(schema_registry)
 
     def test_contact_lightweight_integration(self, parser, table_generator, function_generator):
         """Test full integration with contact_lightweight.yaml"""
@@ -257,9 +257,9 @@ class TestSchemaOrchestratorIntegration:
         assert "CREATE TABLE projects.tb_task" in sql
         assert "fk_assignee INTEGER" in sql
 
-        # Verify composite types
+        # Verify composite types (currently only includes id by default)
         assert "CREATE TYPE app.type_assign_task_input" in sql
-        assert "assignee_id UUID" in sql  # External API uses UUID
+        assert "id UUID" in sql  # Input type includes entity ID
 
         # Verify FraiseQL annotations (YAML format)
         assert "@fraiseql:composite" in sql

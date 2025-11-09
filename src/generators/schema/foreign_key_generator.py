@@ -9,6 +9,7 @@ Generates foreign key constraints from Team A's reference fields:
 """
 
 from dataclasses import dataclass
+from .index_strategy import generate_btree_index
 from typing import Optional
 from src.core.ast_models import FieldDefinition
 
@@ -92,14 +93,16 @@ class ForeignKeyGenerator:
 
     def generate_index(self, schema: str, table: str, fk_ddl: ForeignKeyDDL) -> str:
         """
-        Generate B-tree index on FK column
+        Generate B-tree index on FK column with partial index support
 
         Example output:
             CREATE INDEX idx_contact_company
-            ON crm.tb_contact(fk_company);
+            ON crm.tb_contact(fk_company)
+            WHERE deleted_at IS NULL;
         """
         entity_name = table.replace("tb_", "")
         field_name = fk_ddl.column_name.replace("fk_", "")
         index_name = f"idx_{entity_name}_{field_name}"
+        table_name = f"{schema}.{table}"
 
-        return f"CREATE INDEX {index_name} ON {schema}.{table}({fk_ddl.column_name});"
+        return generate_btree_index(table_name, index_name, [fk_ddl.column_name])

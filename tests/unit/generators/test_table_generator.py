@@ -4,6 +4,8 @@ Tests for Table Generator (Team B)
 
 import pytest
 from src.generators.table_generator import TableGenerator
+from src.generators.schema.naming_conventions import NamingConventions
+from src.generators.schema.schema_registry import SchemaRegistry
 from tests.fixtures.mock_entities import (
     mock_contact_entity,
     mock_company_entity,
@@ -17,7 +19,9 @@ class TestTableGenerator:
     @pytest.fixture
     def generator(self):
         """Create table generator instance"""
-        return TableGenerator()
+        naming_conventions = NamingConventions()
+        schema_registry = SchemaRegistry(naming_conventions.registry)
+        return TableGenerator(schema_registry)
 
     def test_generate_simple_table(self, generator):
         """Test generating DDL for simple entity"""

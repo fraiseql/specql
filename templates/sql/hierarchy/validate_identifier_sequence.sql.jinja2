@@ -1,0 +1,107 @@
+-- Validate identifier sequence BEFORE insert/update
+-- Returns NULL if valid, error object if limit exceeded
+
+CREATE OR REPLACE FUNCTION core.validate_identifier_sequence(
+    entity TEXT,
+    identifier TEXT,
+    sequence_number INTEGER,
+    tenant_id UUID DEFAULT NULL,  -- For tenant-scoped entities
+    max_duplicates INTEGER DEFAULT 100  -- Framework config
+) RETURNS core.hierarchy_validation_error AS $$
+DECLARE
+    v_schema TEXT;
+    v_table TEXT;
+    v_current_count INTEGER;
+    v_error core.hierarchy_validation_error;
+    dyn_sql TEXT;
+BEGIN
+    IF entity IS NULL THEN
+        RAISE EXCEPTION 'Parameter "entity" must not be NULL';
+    END IF;
+
+    -- Construct dynamic identifiers
+    v_table := format('tb_%s', entity);
+
+    -- Find schema dynamically
+    SELECT table_schema INTO v_schema
+    FROM information_schema.tables
+    WHERE table_name = v_table
+      AND table_schema IN ('core', 'management', 'catalog', 'tenant', 'test_schema')
+    LIMIT 1;
+
+    IF v_schema IS NULL THEN
+        v_error.error_code := 'table_not_found';
+        v_error.error_message := format('Table "tb_%s" not found', entity);
+        RETURN v_error;
+    END IF;
+
+    -- Count existing sequences for this identifier
+    IF tenant_id IS NOT NULL THEN
+        -- Tenant-scoped count
+        dyn_sql := format($q$
+            SELECT COUNT(*)
+            FROM %I.%I
+            WHERE tenant_id = $1
+              AND identifier = $2;
+        $q$, v_schema, v_table);
+        EXECUTE dyn_sql INTO v_current_count USING tenant_id, identifier;
+    ELSE
+        -- Global count
+        dyn_sql := format($q$
+            SELECT COUNT(*)
+            FROM %I.%I
+            WHERE identifier = $1;
+        $q$, v_schema, v_table);
+        EXECUTE dyn_sql INTO v_current_count USING identifier;
+    END IF;
+
+    -- Check hard limit
+    IF sequence_number > max_duplicates THEN
+        v_error.error_code := 'sequence_limit_exceeded';
+        v_error.error_message := format(
+            'Identifier sequence limit exceeded: "%s" has %s variants (max: %s)',
+            identifier, sequence_number, max_duplicates
+        );
+        v_error.hint := format(
+            'Current variant: %s#%s. Use more descriptive naming to reduce collisions.',
+            identifier, sequence_number
+        );
+        v_error.detail := jsonb_build_object(
+            'identifier', identifier,
+            'sequence_number', sequence_number,
+            'current_count', v_current_count,
+            'max_duplicates', max_duplicates
+        );
+        RETURN v_error;
+    END IF;
+
+    -- Soft warning at 50% threshold
+    IF sequence_number > (max_duplicates * 0.5) THEN
+        RAISE WARNING 'High identifier duplication: "%" has % variants (limit: %)',
+            identifier, sequence_number, max_duplicates;
+    END IF;
+
+    -- Valid
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION core.validate_identifier_sequence IS
+'Validate identifier sequence numbers BEFORE insert/update.
+
+Explicit over Implicit: NO TRIGGERS! Mutations call this explicitly.
+
+Returns NULL if valid, returns error object if limit exceeded.
+
+Example usage:
+  v_validation_error := core.validate_identifier_sequence(
+      ''location'',
+      ''warehouse-a'',
+      42,
+      tenant_id => v_tenant_id,
+      max_duplicates => 100
+  );
+
+  IF v_validation_error IS NOT NULL THEN
+      RETURN error response;
+  END IF;';

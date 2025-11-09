@@ -1,0 +1,214 @@
+-- Generic identifier recalculation for ANY entity
+-- Pattern: Concatenate parent identifier + safe_slug(name)
+-- NO TRIGGERS - Called explicitly from mutations!
+
+CREATE OR REPLACE FUNCTION core.recalculate_identifier(
+    entity TEXT,
+    ctx core.recalculation_context DEFAULT ROW(NULL, NULL, NULL)::core.recalculation_context
+) RETURNS INTEGER AS $$
+DECLARE
+    v_schema TEXT;
+    v_table TEXT;
+    v_pk_column TEXT;
+    v_parent_column TEXT;
+    v_updated_count INTEGER := 0;
+    v_root_pk INTEGER;
+    dyn_sql TEXT;
+BEGIN
+    IF entity IS NULL THEN
+        RAISE EXCEPTION 'Parameter "entity" must not be NULL';
+    END IF;
+
+    -- Construct dynamic identifiers
+    v_table := format('tb_%s', entity);
+    v_pk_column := format('pk_%s', entity);
+    v_parent_column := format('fk_parent_%s', entity);
+
+    -- Find schema dynamically
+    SELECT table_schema INTO v_schema
+    FROM information_schema.tables
+    WHERE table_name = v_table
+      AND table_schema IN ('core', 'management', 'catalog', 'tenant', 'test_schema')
+    LIMIT 1;
+
+    IF v_schema IS NULL THEN
+        RAISE EXCEPTION 'Table "tb_%" not found in any expected schema', entity;
+    END IF;
+
+    -- MODE 1: Subtree recalculation (ctx.pk set)
+    IF ctx.pk IS NOT NULL THEN
+        -- Find root of subtree
+        dyn_sql := format($q$
+            WITH RECURSIVE t_chain AS (
+                SELECT %1$I AS pk, %2$I AS parent
+                FROM %3$I.%4$I
+                WHERE id = $1
+
+                UNION ALL
+
+                SELECT t.%1$I, t.%2$I
+                FROM %3$I.%4$I t
+                JOIN t_chain ON t.%1$I = t_chain.parent
+            )
+            SELECT pk FROM t_chain WHERE parent IS NULL LIMIT 1;
+        $q$, v_pk_column, v_parent_column, v_schema, v_table);
+
+        EXECUTE dyn_sql INTO v_root_pk USING ctx.pk;
+
+        IF v_root_pk IS NULL THEN
+            -- Given node IS the root
+            dyn_sql := format($q$
+                SELECT %1$I FROM %2$I.%3$I WHERE id = $1;
+            $q$, v_pk_column, v_schema, v_table);
+            EXECUTE dyn_sql INTO v_root_pk USING ctx.pk;
+        END IF;
+
+        -- Recalculate subtree identifiers
+        dyn_sql := format($q$
+            WITH RECURSIVE hierarchy AS (
+                -- Root: identifier = safe_slug(name)
+                SELECT
+                    t.%1$I AS pk,
+                    public.safe_slug(t.name) AS new_identifier
+                FROM %2$I.%3$I t
+                WHERE t.%1$I = $1
+
+                UNION ALL
+
+                -- Children: parent_identifier + '_' + safe_slug(name)
+                SELECT
+                    c.%1$I,
+                    h.new_identifier || '_' || public.safe_slug(c.name)
+                FROM %2$I.%3$I c
+                JOIN hierarchy h ON c.%4$I = h.pk
+            ),
+            updated AS (
+                UPDATE %2$I.%3$I t
+                SET
+                    identifier = h.new_identifier,
+                    display_identifier = CASE
+                        WHEN t.sequence_number > 1
+                        THEN h.new_identifier || '#' || t.sequence_number
+                        ELSE h.new_identifier
+                    END,
+                    identifier_recalculated_at = now(),
+                    identifier_recalculated_by = $2
+                FROM hierarchy h
+                WHERE t.%1$I = h.pk
+                  AND t.identifier IS DISTINCT FROM h.new_identifier  -- Idempotent
+                RETURNING t.%1$I
+            )
+            SELECT COUNT(*) FROM updated;
+        $q$, v_pk_column, v_schema, v_table, v_parent_column);
+
+        EXECUTE dyn_sql INTO v_updated_count USING v_root_pk, ctx.updated_by;
+
+    -- MODE 2: Tenant-scoped recalculation
+    ELSIF ctx.pk_tenant IS NOT NULL THEN
+        dyn_sql := format($q$
+            WITH RECURSIVE hierarchy AS (
+                -- Roots in tenant
+                SELECT
+                    t.%1$I AS pk,
+                    public.safe_slug(t.name) AS new_identifier
+                FROM %2$I.%3$I t
+                WHERE t.tenant_id = $1 AND t.%4$I IS NULL
+
+                UNION ALL
+
+                -- Children
+                SELECT
+                    c.%1$I,
+                    h.new_identifier || '_' || public.safe_slug(c.name)
+                FROM %2$I.%3$I c
+                JOIN hierarchy h ON c.%4$I = h.pk
+            ),
+            updated AS (
+                UPDATE %2$I.%3$I t
+                SET
+                    identifier = h.new_identifier,
+                    display_identifier = CASE
+                        WHEN t.sequence_number > 1
+                        THEN h.new_identifier || '#' || t.sequence_number
+                        ELSE h.new_identifier
+                    END,
+                    identifier_recalculated_at = now(),
+                    identifier_recalculated_by = $2
+                FROM hierarchy h
+                WHERE t.%1$I = h.pk
+                  AND t.identifier IS DISTINCT FROM h.new_identifier
+                RETURNING t.%1$I
+            )
+            SELECT COUNT(*) FROM updated;
+        $q$, v_pk_column, v_schema, v_table, v_parent_column);
+
+        EXECUTE dyn_sql INTO v_updated_count USING ctx.pk_tenant, ctx.updated_by;
+
+    -- MODE 3: Global recalculation
+    ELSE
+        dyn_sql := format($q$
+            WITH RECURSIVE hierarchy AS (
+                -- All roots
+                SELECT
+                    t.%1$I AS pk,
+                    public.safe_slug(t.name) AS new_identifier
+                FROM %2$I.%3$I t
+                WHERE t.%4$I IS NULL
+
+                UNION ALL
+
+                -- All children
+                SELECT
+                    c.%1$I,
+                    h.new_identifier || '_' || public.safe_slug(c.name)
+                FROM %2$I.%3$I c
+                JOIN hierarchy h ON c.%4$I = h.pk
+            ),
+            updated AS (
+                UPDATE %2$I.%3$I t
+                SET
+                    identifier = h.new_identifier,
+                    display_identifier = CASE
+                        WHEN t.sequence_number > 1
+                        THEN h.new_identifier || '#' || t.sequence_number
+                        ELSE h.new_identifier
+                    END,
+                    identifier_recalculated_at = now(),
+                    identifier_recalculated_by = $1
+                FROM hierarchy h
+                WHERE t.%1$I = h.pk
+                  AND t.identifier IS DISTINCT FROM h.new_identifier
+                RETURNING t.%1$I
+            )
+            SELECT COUNT(*) FROM updated;
+        $q$, v_pk_column, v_schema, v_table, v_parent_column);
+
+        EXECUTE dyn_sql INTO v_updated_count USING ctx.updated_by;
+    END IF;
+
+    RETURN v_updated_count;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION core.recalculate_identifier IS
+'Generic identifier recalculation for any entity using hierarchical naming.
+
+Explicit over Implicit: NO TRIGGERS! Mutations call this explicitly.
+
+Pattern: parent_identifier + ''_'' + safe_slug(name)
+Example: ''building-a_floor-1_room-101''
+
+Three modes:
+1. Subtree (ctx.pk set): Recalculate from given node down
+2. Tenant (ctx.pk_tenant set, ctx.pk NULL): Recalculate all trees in tenant
+3. Global (both NULL): Recalculate entire entity
+
+Returns: Number of rows updated
+
+Example usage in mutations:
+  v_count := core.recalculate_identifier(
+      ''location'',
+      ROW(v_location_id, NULL, p_caller_id)::core.recalculation_context
+  );
+
+Based on explicit pattern from recalculate_tree_path().';

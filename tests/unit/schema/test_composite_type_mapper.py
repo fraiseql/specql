@@ -136,7 +136,7 @@ def test_generate_gin_index():
     mapper = CompositeTypeMapper()
     index_sql = mapper.generate_gin_index("crm", "tb_order", ddl)
 
-    expected = (
-        "CREATE INDEX idx_tb_order_shipping_address ON crm.tb_order USING GIN (shipping_address);"
-    )
+    expected = """CREATE INDEX idx_tb_order_shipping_address
+    ON crm.tb_order USING gin(shipping_address)
+    WHERE deleted_at IS NULL;"""
     assert index_sql == expected

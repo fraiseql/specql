@@ -28,10 +28,13 @@ def test_parse_invalid_code():
     parser = NumberingParser()
 
     with pytest.raises(ValueError, match="Invalid table_code"):
-        parser.parse_table_code("12345")  # 5 digits
+        parser.parse_table_code("12345")  # 5 digits - wrong length
 
     with pytest.raises(ValueError, match="Invalid table_code"):
-        parser.parse_table_code("ABC123")  # Non-numeric
+        parser.parse_table_code("GGGGGG")  # Invalid hex (G is not valid hex)
+
+    with pytest.raises(ValueError, match="Invalid table_code"):
+        parser.parse_table_code("12-456")  # Contains invalid character
 
 
 def test_generate_directory_path():

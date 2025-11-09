@@ -7,12 +7,14 @@ from typing import Any, Dict, List
 from jinja2 import Environment, FileSystemLoader
 from src.core.ast_models import Entity, FieldDefinition, FieldTier, Action
 from src.generators.actions.action_orchestrator import ActionOrchestrator
+from src.generators.schema.schema_registry import SchemaRegistry
 
 
 class CoreLogicGenerator:
     """Generates core layer business logic functions"""
 
-    def __init__(self, templates_dir: str = "templates/sql"):
+    def __init__(self, schema_registry: SchemaRegistry, templates_dir: str = "templates/sql"):
+        self.schema_registry = schema_registry
         self.templates_dir = templates_dir
         self.env = Environment(loader=FileSystemLoader(templates_dir))
 
@@ -197,9 +199,10 @@ class CoreLogicGenerator:
     def _is_tenant_specific_schema(self, schema: str) -> bool:
         """
         Determine if schema is tenant-specific (needs tenant_id filtering)
+
+        Uses schema registry to check multi_tenant flag
         """
-        TENANT_SCHEMAS = ["tenant", "crm", "management", "operations"]
-        return schema in TENANT_SCHEMAS
+        return self.schema_registry.is_multi_tenant(schema)
 
     def detect_action_pattern(self, action_name: str) -> str:
         """
@@ -219,20 +222,13 @@ class CoreLogicGenerator:
 
     def generate_core_custom_action(self, entity: Entity, action) -> str:
         """
-        Generate core function for custom business action
-
-        For now, generates a basic template. Full step compilation to be implemented.
+        Generate core function for custom business action with step compilation
         """
+        # Compile action steps
+        compiled_steps = self._compile_action_steps(action, entity)
+
         # Extract variable declarations
         declarations = self._extract_declarations(action, entity)
-
-        # For now, create a simple placeholder for compiled steps
-        # TODO: Implement full step compilation using step compilers
-        compiled_steps = [
-            "-- TODO: Implement step compilation for custom actions",
-            f"-- Action: {action.name}",
-            f"-- Steps: {[step.type for step in action.steps]}",
-        ]
 
         context = {
             "entity": {
@@ -256,6 +252,7 @@ class CoreLogicGenerator:
         """
         # Compile action steps
         compiled_steps = self._compile_action_steps(action, entity)
+        print(f"DEBUG: compiled_steps for {action.name}: {compiled_steps}")
 
         # Extract variable declarations
         declarations = self._extract_declarations(action, entity)
@@ -284,14 +281,43 @@ class CoreLogicGenerator:
 
         for step in action.steps:
             if step.type == "validate" and step.expression:
+                # Extract fields used in validation
+                fields_in_validation = self._extract_fields_from_expression(step.expression, entity)
+
+                # Fetch current values for validation
+                if fields_in_validation:
+                    table_name = f"{entity.schema}.tb_{entity.name.lower()}"
+                    select_fields = ", ".join(fields_in_validation)
+                    select_into = ", ".join(f"v_current_{field}" for field in fields_in_validation)
+
+                    compiled.append(f"-- Fetch current values for validation: {step.expression}")
+                    compiled.append(
+                        f"RAISE NOTICE 'Before SELECT: v_{entity.name.lower()}_id=%, auth_tenant_id=%', v_{entity.name.lower()}_id, auth_tenant_id;"
+                    )
+                    compiled.append(f"SELECT {select_fields} INTO {select_into}")
+                    compiled.append(
+                        f"FROM {table_name} WHERE id = v_{entity.name.lower()}_id AND tenant_id = auth_tenant_id;"
+                    )
+                    compiled.append(
+                        f"RAISE NOTICE 'After SELECT: v_current_{fields_in_validation[0]}=%', v_current_{fields_in_validation[0]};"
+                    )
+
                 # Replace field references with v_current_* variables
                 expression = step.expression
-                for field_name in entity.fields.keys():
-                    if field_name == "status":
-                        expression = expression.replace(field_name, "v_current_status")
-                    # Add other fields as needed
+                for field_name in fields_in_validation:
+                    expression = expression.replace(field_name, f"v_current_{field_name}")
+
+                # Use custom error message if provided, otherwise default
+                error_message = (
+                    step.error
+                    or f"{step.expression.replace(chr(39), chr(39) * 2)} validation failed"
+                )
 
                 compiled.append(f"-- Validate: {step.expression}")
+                if fields_in_validation:
+                    compiled.append(
+                        f"RAISE NOTICE 'Before validation: v_current_{fields_in_validation[0]}=%', v_current_{fields_in_validation[0]};"
+                    )
                 compiled.append(f"IF NOT ({expression}) THEN")
                 compiled.append("    RETURN app.log_and_return_mutation(")
                 compiled.append(
@@ -299,7 +325,7 @@ class CoreLogicGenerator:
                     + f"'{entity.name.lower()}', v_{entity.name.lower()}_id,"
                 )
                 compiled.append("        'CUSTOM', 'failed:validation_error',")
-                compiled.append("        ARRAY[]::TEXT[], 'Validation failed', NULL, NULL")
+                compiled.append(f"        ARRAY[]::TEXT[], '{error_message}', NULL, NULL")
                 compiled.append("    );")
                 compiled.append("END IF;")
 
@@ -309,11 +335,18 @@ class CoreLogicGenerator:
                 table_name = f"{entity.schema}.tb_{entity_name.lower()}"
                 assignments = []
                 if step.fields:
-                    assignments = [
-                        f"{field} = {repr(value)}" for field, value in step.fields.items()
-                    ]
+                    for field, value in step.fields.items():
+                        if field == "raw_set":
+                            # Raw SQL SET clause
+                            assignments.append(value)
+                        else:
+                            assignments.append(f"{field} = {repr(value)}")
+
+                    # Add audit fields
+                    assignments.extend(["updated_at = now()", "updated_by = auth_user_id"])
+
                 compiled.append(f"UPDATE {table_name} SET {', '.join(assignments)}")
-                compiled.append("WHERE id = v_contact_id;")
+                compiled.append(f"WHERE id = v_{entity.name.lower()}_id;")
 
             elif step.type == "call":
                 compiled.append(f"-- Call: {step.expression}")
@@ -324,13 +357,59 @@ class CoreLogicGenerator:
 
         return compiled
 
+    def _extract_fields_from_expression(self, expression: str, entity: Entity) -> List[str]:
+        """
+        Extract field names referenced in a validation expression
+        """
+        import re
+
+        field_names = list(entity.fields.keys())
+        fields_in_expr = []
+
+        for field_name in field_names:
+            if re.search(rf"\b{re.escape(field_name)}\b", expression):
+                fields_in_expr.append(field_name)
+
+        return fields_in_expr
+
+    def _map_field_type_to_pg_type(self, specql_type: str) -> str:
+        """
+        Map SpecQL field types to PostgreSQL types for variable declarations
+        """
+        mapping = {
+            "text": "TEXT",
+            "integer": "INTEGER",
+            "boolean": "BOOLEAN",
+            "timestamp": "TIMESTAMPTZ",
+            "date": "DATE",
+            "jsonb": "JSONB",
+            "uuid": "UUID",
+        }
+        return mapping.get(specql_type, "TEXT")
+
     def _extract_declarations(self, action, entity) -> List[str]:
         """
         Extract variable declarations needed for the action
         """
         declarations = [
             f"v_{entity.name.lower()}_pk INTEGER",
+            # v_{entity.name.lower()}_id is declared in the template
         ]
+
+        # Add declarations for current field values used in validation
+        fields_in_validation = set()
+        for step in action.steps:
+            if step.type == "validate" and step.expression:
+                fields_in_validation.update(
+                    self._extract_fields_from_expression(step.expression, entity)
+                )
+
+        for field_name in fields_in_validation:
+            field_def = entity.fields.get(field_name)
+            if field_def:
+                # Map field type to PostgreSQL type
+                pg_type = self._map_field_type_to_pg_type(field_def.type_name)
+                declarations.append(f"v_current_{field_name} {pg_type}")
 
         # Add declarations for FK resolutions
         for field_name, field_def in entity.fields.items():

@@ -1,0 +1,41 @@
+-- Recursively recalculate paths for all descendants
+CREATE OR REPLACE FUNCTION {{ schema }}.recalculate_{{ entity_lower }}_descendant_paths(
+    p_pk_{{ entity_lower }} INTEGER
+) RETURNS INTEGER AS $$
+DECLARE
+    v_updated_count INTEGER := 0;
+BEGIN
+    -- Use CTE to find and update all descendants
+    WITH RECURSIVE subtree AS (
+        -- Base: Direct children
+        SELECT
+            pk_{{ entity_lower }},
+            {{ schema }}.calculate_{{ entity_lower }}_path(pk_{{ entity_lower }}) AS new_path
+        FROM {{ schema }}.tb_{{ entity_lower }}
+        WHERE fk_parent_{{ entity_lower }} = p_pk_{{ entity_lower }}
+
+        UNION ALL
+
+        -- Recursive: Children of children
+        SELECT
+            l.pk_{{ entity_lower }},
+            {{ schema }}.calculate_{{ entity_lower }}_path(l.pk_{{ entity_lower }}) AS new_path
+        FROM {{ schema }}.tb_{{ entity_lower }} l
+        INNER JOIN subtree s ON l.fk_parent_{{ entity_lower }} = s.pk_{{ entity_lower }}
+    ),
+    updated_rows AS (
+        UPDATE {{ schema }}.tb_{{ entity_lower }} l
+        SET
+            path = s.new_path,
+            path_updated_at = now(),
+            path_updated_by = current_setting('app.user_id', true)::UUID
+        FROM subtree s
+        WHERE l.pk_{{ entity_lower }} = s.pk_{{ entity_lower }}
+          AND l.path IS DISTINCT FROM s.new_path  -- Idempotent
+        RETURNING l.pk_{{ entity_lower }}
+    )
+    SELECT COUNT(*) INTO v_updated_count FROM updated_rows;
+
+    RETURN v_updated_count;
+END;
+$$ LANGUAGE plpgsql;

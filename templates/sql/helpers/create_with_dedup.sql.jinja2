@@ -1,0 +1,37 @@
+-- Safe concurrent insertion with automatic deduplication
+CREATE OR REPLACE FUNCTION {{ schema }}.create_{{ entity_lower }}_with_dedup(
+    p_tenant_id UUID,
+    p_identifier TEXT,
+    p_data JSONB
+) RETURNS UUID AS $$
+DECLARE
+    v_pk_{{ entity_lower }} INTEGER;
+    v_id UUID;
+    v_sequence_number INTEGER;
+BEGIN
+    -- Find next available sequence number (concurrency-safe)
+    SELECT COALESCE(MAX(sequence_number), 0) + 1
+    INTO v_sequence_number
+    FROM {{ schema }}.tb_{{ entity_lower }}
+    WHERE tenant_id = p_tenant_id
+      AND identifier = p_identifier
+    FOR UPDATE;  -- Lock to prevent race conditions
+
+    -- Insert with calculated sequence
+    INSERT INTO {{ schema }}.tb_{{ entity_lower }} (
+        tenant_id,
+        identifier,
+        sequence_number,
+        -- ... other fields from p_data
+    )
+    VALUES (
+        p_tenant_id,
+        p_identifier,
+        v_sequence_number,
+        -- ... extract from p_data
+    )
+    RETURNING pk_{{ entity_lower }}, id INTO v_pk_{{ entity_lower }}, v_id;
+
+    RETURN v_id;
+END;
+$$ LANGUAGE plpgsql;

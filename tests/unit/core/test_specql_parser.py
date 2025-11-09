@@ -295,7 +295,7 @@ organization:
   domain_name: "catalog"
 
 fields:
-  identifier: text
+  code: text
 """
 
         entity = self.parser.parse(yaml_content)

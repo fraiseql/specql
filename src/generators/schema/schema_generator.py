@@ -7,24 +7,37 @@ Generates complete PostgreSQL DDL from Team A's AST:
 - Audit fields
 - Indexes
 - Constraints
+- Table code integration with NamingConventions registry
 """
 
-from typing import List
-from src.core.ast_models import EntityDefinition, FieldDefinition, FieldTier
+from typing import List, Optional
+from src.core.ast_models import EntityDefinition, FieldDefinition, FieldTier, Organization
 from src.generators.schema.composite_type_mapper import CompositeTypeMapper
 from src.generators.schema.foreign_key_generator import ForeignKeyGenerator
+from src.generators.schema.naming_conventions import NamingConventions
+from src.generators.schema.deduplication import (
+    generate_deduplication_fields,
+    generate_deduplication_indexes,
+)
+from src.generators.schema.audit_fields import generate_audit_fields
+from src.generators.schema.tenant_indexes import generate_tenant_indexes
+from src.generators.schema.node_info_split import (
+    should_split_entity,
+    generate_node_info_split_ddl,
+)
 
 
 class SchemaGenerator:
     """Generates PostgreSQL schema DDL from EntityDefinition AST"""
 
-    def __init__(self):
+    def __init__(self, registry_path: str = "registry/domain_registry.yaml"):
         self.composite_mapper = CompositeTypeMapper()
         self.fk_generator = ForeignKeyGenerator()
+        self.naming = NamingConventions(registry_path)
 
     def generate_table(self, entity: EntityDefinition) -> str:
         """
-        Generate complete CREATE TABLE statement
+        Generate complete CREATE TABLE statement or node+info split DDL
 
         Args:
             entity: EntityDefinition from Team A
@@ -32,6 +45,12 @@ class SchemaGenerator:
         Returns:
             Complete DDL including table, indexes, comments, and helper functions
         """
+        # Check if entity should use node+info split pattern
+        if should_split_entity(entity):
+            ddl_statements = generate_node_info_split_ddl(entity, entity.schema)
+            return "\n\n".join(ddl_statements)
+
+        # Standard single table generation
         table_name = f"{entity.schema}.tb_{entity.name.lower()}"
 
         ddl_parts = []
@@ -49,6 +68,12 @@ class SchemaGenerator:
             ddl_parts.append(f"    {field},")
         ddl_parts.append("")
 
+        # Deduplication fields (3-field pattern)
+        dedup_fields = generate_deduplication_fields(entity)
+        ddl_parts.append("    -- Deduplication Fields")
+        ddl_parts.append(f"    {dedup_fields},")
+        ddl_parts.append("")
+
         # Business fields
         ddl_parts.append("    -- Business fields")
         for field_name, field_def in entity.fields.items():
@@ -56,11 +81,22 @@ class SchemaGenerator:
             ddl_parts.append(f"    {field_ddl},")
         ddl_parts.append("")
 
-        # Remove last comma
+        # Audit fields (separate recalculation tracking)
+        is_hierarchical = self._is_entity_hierarchical(entity)
+        audit_fields = generate_audit_fields(is_hierarchical=is_hierarchical)
+        ddl_parts.append("    -- Audit Fields")
+        ddl_parts.append(audit_fields)
+
+        # Remove last comma from audit fields
         ddl_parts[-1] = ddl_parts[-1].rstrip(",")
 
         ddl_parts.append(");")
         ddl_parts.append("")
+
+        # Add explicit validation pattern comment for hierarchical entities
+        if self._is_entity_hierarchical(entity):
+            ddl_parts.append(self._generate_explicit_validation_comment(entity))
+            ddl_parts.append("")
 
         # Validation functions for composites
         validation_functions = self._generate_validation_functions(entity)
@@ -83,12 +119,29 @@ class SchemaGenerator:
             ddl_parts.extend(trinity_indexes)
             ddl_parts.append("")
 
+        # Deduplication indexes and constraints
+        dedup_indexes = generate_deduplication_indexes(entity, entity.schema)
+        if dedup_indexes:
+            ddl_parts.append("-- Deduplication Indexes & Constraints")
+            ddl_parts.append(dedup_indexes)
+            ddl_parts.append("")
+
         # Indexes for composites and foreign keys
         indexes = self._generate_indexes(entity)
         if indexes:
             ddl_parts.append("-- Indexes")
             ddl_parts.extend(indexes)
             ddl_parts.append("")
+
+        # Tenant-scoped composite indexes
+        tenant_indexes = generate_tenant_indexes(entity, entity.schema)
+        if tenant_indexes:
+            ddl_parts.append("-- Tenant Indexes")
+            ddl_parts.extend(tenant_indexes)
+            ddl_parts.append("")
+
+        # NOTE: Explicit validation pattern replaces safety constraint triggers
+        # Validation is now handled explicitly in mutation functions, not via triggers
 
         return "\n".join(ddl_parts)
 
@@ -128,6 +181,47 @@ class SchemaGenerator:
                     )
 
         return functions
+
+    def _is_entity_hierarchical(self, entity: EntityDefinition) -> bool:
+        """Determine if an entity is hierarchical by checking for self-referencing parent fields."""
+        for field_name, field_def in entity.fields.items():
+            if field_def.is_reference():
+                # Check if this field references the same entity (parent relationship)
+                if field_def.reference_entity == entity.name:
+                    return True
+        return False
+
+    def _generate_explicit_validation_comment(self, entity: EntityDefinition) -> str:
+        """Generate comment explaining explicit validation pattern."""
+        entity_lower = entity.name.lower()
+        schema = entity.schema
+
+        return f"""-- ════════════════════════════════════════════════════════════════
+-- VALIDATION PATTERN: Explicit over Implicit (NO TRIGGERS!)
+-- ════════════════════════════════════════════════════════════════
+--
+-- This entity uses EXPLICIT validation instead of database triggers.
+-- Mutations call validation functions directly (visible in code).
+--
+-- Available validation functions:
+--   • core.validate_hierarchy_change('{entity_lower}', node_pk, new_parent_pk)
+--   • core.validate_identifier_sequence('{entity_lower}', identifier, seq_num)
+--
+-- Available recalculation functions:
+--   • core.recalculate_tree_path('{entity_lower}', context)
+--   • core.recalculate_identifier('{entity_lower}', context)
+--
+-- Example mutation usage:
+--   v_error := core.validate_hierarchy_change('{entity_lower}', ...);
+--   IF v_error IS NOT NULL THEN RETURN error_response(v_error); END IF;
+--
+--   UPDATE {schema}.tb_{entity_lower} SET fk_parent_{entity_lower} = ...;
+--
+--   PERFORM core.recalculate_tree_path('{entity_lower}', ...);
+--   PERFORM core.recalculate_identifier('{entity_lower}', ...);
+--
+-- Benefits: Visible, debuggable, testable, controllable
+-- ════════════════════════════════════════════════════════════════""".strip()
 
     def _generate_indexes(self, entity: EntityDefinition) -> List[str]:
         """Generate indexes for composite and reference fields"""

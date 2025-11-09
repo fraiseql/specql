@@ -32,6 +32,7 @@ from src.numbering.numbering_parser import NumberingParser, TableCodeComponents
 # Data Models
 # ============================================================================
 
+
 @dataclass
 class EntityRegistryEntry:
     """Entity entry in registry"""
@@ -64,11 +65,13 @@ class DomainInfo:
     description: str
     subdomains: Dict[str, SubdomainInfo]
     aliases: List[str]
+    multi_tenant: bool
 
 
 # ============================================================================
 # Domain Registry
 # ============================================================================
+
 
 class DomainRegistry:
     """
@@ -96,7 +99,7 @@ class DomainRegistry:
                 f"Create it by copying registry/domain_registry.yaml.example"
             )
 
-        with open(self.registry_path, 'r') as f:
+        with open(self.registry_path, "r") as f:
             self.registry = yaml.safe_load(f)
 
         # Build entity index for quick lookup
@@ -106,23 +109,23 @@ class DomainRegistry:
         """Build index of all registered entities for O(1) lookup"""
         self.entities_index = {}
 
-        for domain_code, domain in self.registry.get('domains', {}).items():
-            domain_name = domain['name']
+        for domain_code, domain in self.registry.get("domains", {}).items():
+            domain_name = domain["name"]
 
-            for subdomain_code, subdomain in domain.get('subdomains', {}).items():
-                subdomain_name = subdomain['name']
+            for subdomain_code, subdomain in domain.get("subdomains", {}).items():
+                subdomain_name = subdomain["name"]
 
                 # Handle case where entities might be None or {}
-                entities = subdomain.get('entities') or {}
+                entities = subdomain.get("entities") or {}
 
                 for entity_name, entity_data in entities.items():
                     self.entities_index[entity_name.lower()] = EntityRegistryEntry(
                         entity_name=entity_name,
-                        table_code=entity_data['table_code'],
-                        entity_code=entity_data['entity_code'],
-                        assigned_at=entity_data['assigned_at'],
+                        table_code=entity_data["table_code"],
+                        entity_code=entity_data["entity_code"],
+                        assigned_at=entity_data["assigned_at"],
                         subdomain=subdomain_name,
-                        domain=domain_name
+                        domain=domain_name,
                     )
 
     def get_entity(self, entity_name: str) -> Optional[EntityRegistryEntry]:
@@ -148,46 +151,43 @@ class DomainRegistry:
             DomainInfo if found, None otherwise
         """
         # Try by code first
-        if domain_identifier in self.registry.get('domains', {}):
+        if domain_identifier in self.registry.get("domains", {}):
             return self._build_domain_info(domain_identifier)
 
         # Try by name or alias
-        for code, domain_data in self.registry.get('domains', {}).items():
-            if domain_data['name'] == domain_identifier:
+        for code, domain_data in self.registry.get("domains", {}).items():
+            if domain_data["name"] == domain_identifier:
                 return self._build_domain_info(code)
-            if domain_identifier in domain_data.get('aliases', []):
+            if domain_identifier in domain_data.get("aliases", []):
                 return self._build_domain_info(code)
 
         return None
 
     def _build_domain_info(self, domain_code: str) -> DomainInfo:
         """Build DomainInfo from registry data"""
-        domain_data = self.registry['domains'][domain_code]
+        domain_data = self.registry["domains"][domain_code]
 
         # Build subdomain info
         subdomains = {}
-        for subdomain_code, subdomain_data in domain_data.get('subdomains', {}).items():
+        for subdomain_code, subdomain_data in domain_data.get("subdomains", {}).items():
             subdomains[subdomain_code] = SubdomainInfo(
                 subdomain_code=subdomain_code,
-                subdomain_name=subdomain_data['name'],
-                description=subdomain_data['description'],
-                next_entity_sequence=subdomain_data['next_entity_sequence'],
-                entities=subdomain_data.get('entities', {})
+                subdomain_name=subdomain_data["name"],
+                description=subdomain_data["description"],
+                next_entity_sequence=subdomain_data["next_entity_sequence"],
+                entities=subdomain_data.get("entities", {}),
             )
 
         return DomainInfo(
             domain_code=domain_code,
-            domain_name=domain_data['name'],
-            description=domain_data['description'],
+            domain_name=domain_data["name"],
+            description=domain_data["description"],
             subdomains=subdomains,
-            aliases=domain_data.get('aliases', [])
+            aliases=domain_data.get("aliases", []),
+            multi_tenant=domain_data.get("multi_tenant", False),
         )
 
-    def get_subdomain(
-        self,
-        domain_code: str,
-        subdomain_identifier: str
-    ) -> Optional[SubdomainInfo]:
+    def get_subdomain(self, domain_code: str, subdomain_identifier: str) -> Optional[SubdomainInfo]:
         """
         Get subdomain by code or name
 
@@ -226,7 +226,9 @@ class DomainRegistry:
             ValueError: If domain or subdomain not found
         """
         try:
-            return self.registry['domains'][domain_code]['subdomains'][subdomain_code]['next_entity_sequence']
+            return self.registry["domains"][domain_code]["subdomains"][subdomain_code][
+                "next_entity_sequence"
+            ]
         except KeyError:
             raise ValueError(f"Subdomain {subdomain_code} not found in domain {domain_code}")
 
@@ -241,7 +243,7 @@ class DomainRegistry:
             True if available, False if already assigned or reserved
         """
         # Check reserved codes
-        reserved = self.registry.get('reserved_codes', [])
+        reserved = self.registry.get("reserved_codes", [])
         if table_code in reserved:
             return False
 
@@ -258,7 +260,7 @@ class DomainRegistry:
         table_code: str,
         entity_code: str,
         domain_code: str,
-        subdomain_code: str
+        subdomain_code: str,
     ):
         """
         Register new entity in registry and save to file
@@ -274,34 +276,32 @@ class DomainRegistry:
             ValueError: If domain or subdomain not found
         """
         # Validate domain and subdomain exist
-        if domain_code not in self.registry.get('domains', {}):
+        if domain_code not in self.registry.get("domains", {}):
             raise ValueError(f"Domain {domain_code} not found in registry")
 
-        if subdomain_code not in self.registry['domains'][domain_code].get('subdomains', {}):
-            raise ValueError(
-                f"Subdomain {subdomain_code} not found in domain {domain_code}"
-            )
+        if subdomain_code not in self.registry["domains"][domain_code].get("subdomains", {}):
+            raise ValueError(f"Subdomain {subdomain_code} not found in domain {domain_code}")
 
         # Add to in-memory registry
-        subdomain = self.registry['domains'][domain_code]['subdomains'][subdomain_code]
+        subdomain = self.registry["domains"][domain_code]["subdomains"][subdomain_code]
 
         # Handle case where entities is None
-        if subdomain.get('entities') is None:
-            subdomain['entities'] = {}
-        elif 'entities' not in subdomain:
-            subdomain['entities'] = {}
+        if subdomain.get("entities") is None:
+            subdomain["entities"] = {}
+        elif "entities" not in subdomain:
+            subdomain["entities"] = {}
 
-        subdomain['entities'][entity_name] = {
-            'table_code': table_code,
-            'entity_code': entity_code,
-            'assigned_at': datetime.now().isoformat()
+        subdomain["entities"][entity_name] = {
+            "table_code": table_code,
+            "entity_code": entity_code,
+            "assigned_at": datetime.now().isoformat(),
         }
 
         # Increment next_entity_sequence
-        subdomain['next_entity_sequence'] += 1
+        subdomain["next_entity_sequence"] += 1
 
         # Update last_updated
-        self.registry['last_updated'] = datetime.now().isoformat()
+        self.registry["last_updated"] = datetime.now().isoformat()
 
         # Save to file
         self.save()
@@ -311,19 +311,16 @@ class DomainRegistry:
 
     def save(self):
         """Save registry to YAML file"""
-        with open(self.registry_path, 'w') as f:
+        with open(self.registry_path, "w") as f:
             yaml.dump(
-                self.registry,
-                f,
-                default_flow_style=False,
-                sort_keys=False,
-                allow_unicode=True
+                self.registry, f, default_flow_style=False, sort_keys=False, allow_unicode=True
             )
 
 
 # ============================================================================
 # Naming Conventions
 # ============================================================================
+
 
 class NamingConventions:
     """
@@ -376,10 +373,7 @@ class NamingConventions:
         return self.derive_table_code(entity, schema_layer=schema_layer)
 
     def derive_table_code(
-        self,
-        entity: Entity,
-        schema_layer: str = "01",
-        subdomain: Optional[str] = None
+        self, entity: Entity, schema_layer: str = "01", subdomain: Optional[str] = None
     ) -> str:
         """
         Automatically derive table code from entity
@@ -459,12 +453,12 @@ class NamingConventions:
         entity_name_lower = entity.name.lower()
 
         # Load inference rules from registry
-        inference_rules = self.registry.registry.get('subdomain_inference', {})
+        inference_rules = self.registry.registry.get("subdomain_inference", {})
         domain_rules = inference_rules.get(domain_info.domain_name, {})
 
         # Try to match patterns
         for subdomain_name, rules in domain_rules.items():
-            patterns = rules.get('patterns', [])
+            patterns = rules.get("patterns", [])
             for pattern in patterns:
                 if pattern in entity_name_lower:
                     return subdomain_name
@@ -472,8 +466,8 @@ class NamingConventions:
         # Default: use 'core' subdomain
         # Check if 'core' exists in this domain
         for subdomain in domain_info.subdomains.values():
-            if subdomain.subdomain_name == 'core':
-                return 'core'
+            if subdomain.subdomain_name == "core":
+                return "core"
 
         # Fallback: first subdomain
         if domain_info.subdomains:
@@ -504,7 +498,7 @@ class NamingConventions:
         table_code = table_code.upper()
 
         # Format check: 6 hexadecimal characters
-        if not re.match(r'^[0-9A-F]{6}$', table_code):
+        if not re.match(r"^[0-9A-F]{6}$", table_code):
             raise ValueError(
                 f"Invalid table code format: {table_code}. "
                 f"Must be exactly 6 hexadecimal characters (0-9, A-F)."
@@ -514,7 +508,7 @@ class NamingConventions:
         components = self.parser.parse_table_code_detailed(table_code)
 
         # Schema layer check
-        schema_layers = self.registry.registry.get('schema_layers', {})
+        schema_layers = self.registry.registry.get("schema_layers", {})
         if components.schema_layer not in schema_layers:
             raise ValueError(
                 f"Invalid schema layer: {components.schema_layer}\n"
@@ -522,7 +516,7 @@ class NamingConventions:
             )
 
         # Domain code check
-        domains = self.registry.registry.get('domains', {})
+        domains = self.registry.registry.get("domains", {})
         if components.domain_code not in domains:
             raise ValueError(
                 f"Invalid domain code: {components.domain_code}\n"
@@ -531,8 +525,9 @@ class NamingConventions:
 
         # Domain consistency check
         domain_info = domains[components.domain_code]
-        if (entity.schema != domain_info['name'] and
-                entity.schema not in domain_info.get('aliases', [])):
+        if entity.schema != domain_info["name"] and entity.schema not in domain_info.get(
+            "aliases", []
+        ):
             raise ValueError(
                 f"Table code domain '{domain_info['name']}' doesn't match "
                 f"entity schema '{entity.schema}'"
@@ -545,9 +540,7 @@ class NamingConventions:
             return
 
         if not self.registry.is_code_available(table_code):
-            raise ValueError(
-                f"Table code {table_code} already assigned to another entity"
-            )
+            raise ValueError(f"Table code {table_code} already assigned to another entity")
 
     def derive_entity_code(self, entity_name: str) -> str:
         """
@@ -574,10 +567,10 @@ class NamingConventions:
         name_upper = entity_name.upper()
 
         # Build code starting with first letter
-        code = name_upper[0] if len(name_upper) > 0 else ''
+        code = name_upper[0] if len(name_upper) > 0 else ""
 
         # Extract consonants (excluding Y and first letter)
-        consonants = [c for c in name_upper[1:] if c.isalpha() and c not in 'AEIOUY']
+        consonants = [c for c in name_upper[1:] if c.isalpha() and c not in "AEIOUY"]
 
         # Add consonants
         for c in consonants:
@@ -587,7 +580,7 @@ class NamingConventions:
 
         # Add vowels if needed
         if len(code) < 3:
-            vowels = [c for c in name_upper[1:] if c in 'AEIOUY']
+            vowels = [c for c in name_upper[1:] if c in "AEIOUY"]
             for v in vowels:
                 if len(code) >= 3:
                     break
@@ -646,7 +639,7 @@ class NamingConventions:
         entity: Entity,
         table_code: str,
         file_type: str = "table",
-        base_dir: str = "generated/migrations"
+        base_dir: str = "generated/migrations",
     ) -> str:
         """
         Generate hierarchical file path for entity
@@ -675,21 +668,20 @@ class NamingConventions:
         components = self.parser.parse_table_code_detailed(table_code)
 
         # Schema layer directory
-        schema_layer_name = self.registry.registry['schema_layers'].get(
-            components.schema_layer,
-            f"schema_{components.schema_layer}"
+        schema_layer_name = self.registry.registry["schema_layers"].get(
+            components.schema_layer, f"schema_{components.schema_layer}"
         )
         schema_dir = f"{components.schema_layer}_{schema_layer_name}"
 
         # Domain directory
-        domain_data = self.registry.registry['domains'].get(components.domain_code, {})
-        domain_name = domain_data.get('name', f"domain_{components.domain_code}")
+        domain_data = self.registry.registry["domains"].get(components.domain_code, {})
+        domain_name = domain_data.get("name", f"domain_{components.domain_code}")
         domain_dir = f"{components.full_domain}_{domain_name}"
 
         # Subdomain directory (2 digits)
         subdomain_code = f"{components.entity_group}{components.entity_code}"[:2]
-        subdomain_data = domain_data.get('subdomains', {}).get(subdomain_code, {})
-        subdomain_name = subdomain_data.get('name', f"subdomain_{subdomain_code}")
+        subdomain_data = domain_data.get("subdomains", {}).get(subdomain_code, {})
+        subdomain_name = subdomain_data.get("name", f"subdomain_{subdomain_code}")
         subdomain_dir = f"{components.full_domain}{subdomain_code}_{subdomain_name}"
 
         # Entity group directory
@@ -699,33 +691,36 @@ class NamingConventions:
 
         # File name
         file_extensions = {
-            'table': 'sql',
-            'function': 'sql',
-            'comment': 'sql',
-            'test': 'sql',
-            'yaml': 'yaml',
-            'json': 'json'
+            "table": "sql",
+            "function": "sql",
+            "comment": "sql",
+            "test": "sql",
+            "yaml": "yaml",
+            "json": "json",
         }
-        ext = file_extensions.get(file_type, 'sql')
+        ext = file_extensions.get(file_type, "sql")
 
         file_prefixes = {
-            'table': f'tb_{entity_lower}',
-            'function': f'fn_{entity_lower}',
-            'comment': f'comments_{entity_lower}',
-            'test': f'test_{entity_lower}',
-            'yaml': entity_lower,
-            'json': entity_lower
+            "table": f"tb_{entity_lower}",
+            "function": f"fn_{entity_lower}",
+            "comment": f"comments_{entity_lower}",
+            "test": f"test_{entity_lower}",
+            "yaml": entity_lower,
+            "json": entity_lower,
         }
         filename = file_prefixes.get(file_type, entity_lower)
 
         # Complete path
-        return str(Path(base_dir) / schema_dir / domain_dir / subdomain_dir / entity_group_dir / f"{table_code}_{filename}.{ext}")
+        return str(
+            Path(base_dir)
+            / schema_dir
+            / domain_dir
+            / subdomain_dir
+            / entity_group_dir
+            / f"{table_code}_{filename}.{ext}"
+        )
 
-    def register_entity_auto(
-        self,
-        entity: Entity,
-        table_code: str
-    ):
+    def register_entity_auto(self, entity: Entity, table_code: str):
         """
         Automatically register entity in registry after generation
 
@@ -747,7 +742,7 @@ class NamingConventions:
             table_code=table_code,
             entity_code=entity_code,
             domain_code=components.domain_code,
-            subdomain_code=subdomain_code
+            subdomain_code=subdomain_code,
         )
 
     def get_all_entities(self) -> List[EntityRegistryEntry]:
@@ -770,14 +765,11 @@ class NamingConventions:
             List of entities in the domain
         """
         return [
-            entry for entry in self.registry.entities_index.values()
-            if entry.domain == domain_name
+            entry for entry in self.registry.entities_index.values() if entry.domain == domain_name
         ]
 
     def get_entities_by_subdomain(
-        self,
-        domain_name: str,
-        subdomain_name: str
+        self, domain_name: str, subdomain_name: str
     ) -> List[EntityRegistryEntry]:
         """
         Get all entities in a subdomain
@@ -790,6 +782,7 @@ class NamingConventions:
             List of entities in the subdomain
         """
         return [
-            entry for entry in self.registry.entities_index.values()
+            entry
+            for entry in self.registry.entities_index.values()
             if entry.domain == domain_name and entry.subdomain == subdomain_name
         ]

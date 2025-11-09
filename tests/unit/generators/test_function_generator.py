@@ -12,9 +12,9 @@ class TestFunctionGenerator:
     """Test function generation"""
 
     @pytest.fixture
-    def generator(self):
+    def generator(self, schema_registry):
         """Create function generator instance"""
-        return FunctionGenerator()
+        return FunctionGenerator(schema_registry)
 
     def test_function_generator_produces_app_core_layers(self, generator):
         """Function generator produces both app and core layers"""

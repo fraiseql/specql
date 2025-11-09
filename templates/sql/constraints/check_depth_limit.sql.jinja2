@@ -1,0 +1,47 @@
+-- Check hierarchy depth limit to prevent overly deep trees
+CREATE OR REPLACE FUNCTION {{ schema }}.check_{{ entity_lower }}_depth_limit()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_depth INTEGER;
+    v_max_depth INTEGER := 20;  -- From framework config
+    v_warn_threshold INTEGER := 15;
+BEGIN
+    -- Calculate depth from LTREE path
+    v_depth := nlevel(NEW.path);
+
+    IF v_depth > v_max_depth THEN
+        RAISE EXCEPTION
+            'Hierarchy depth limit exceeded: % levels (max: %)',
+            v_depth,
+            v_max_depth
+        USING
+            ERRCODE = '23514',
+            HINT = 'Flatten the hierarchy or increase max_depth in framework config',
+            DETAIL = FORMAT('Path: %s', NEW.path);
+    ELSIF v_depth > v_warn_threshold THEN
+        RAISE WARNING
+            'Approaching hierarchy depth limit: % of % levels (path: %)',
+            v_depth,
+            v_max_depth,
+            NEW.path;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_{{ entity_lower }}_depth_limit
+    BEFORE INSERT OR UPDATE OF path
+    ON {{ schema }}.tb_{{ entity_lower }}
+    FOR EACH ROW
+    EXECUTE FUNCTION {{ schema }}.check_{{ entity_lower }}_depth_limit();
+
+COMMENT ON FUNCTION {{ schema }}.check_{{ entity_lower }}_depth_limit() IS
+'Safety trigger: Prevents overly deep hierarchies.
+
+Limits the depth of hierarchical trees to prevent performance issues
+and maintain reasonable data structures.
+
+Configurable limits: 20 levels max, warning at 15 levels.
+
+Used by: BEFORE INSERT/UPDATE on path';

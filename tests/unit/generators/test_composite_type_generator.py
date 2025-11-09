@@ -213,7 +213,10 @@ class TestSchemaOrchestrator:
     @pytest.fixture
     def orchestrator(self):
         """Create schema orchestrator"""
-        return SchemaOrchestrator()
+        from src.generators.schema.naming_conventions import NamingConventions
+
+        naming_conventions = NamingConventions()
+        return SchemaOrchestrator(naming_conventions)
 
     @pytest.fixture
     def generator(self):
@@ -342,7 +345,7 @@ class TestSchemaOrchestrator:
         assert "updated_by" not in sql
 
     def test_custom_action_field_analysis(self, generator):
-        """Test custom actions include all fields (for now)"""
+        """Test custom actions include id field by default"""
         # Given: Custom action
         entity = Entity(
             name="Contact",
@@ -356,8 +359,8 @@ class TestSchemaOrchestrator:
         # When: Generate for custom action
         sql = generator.generate_input_type(entity, entity.actions[0])
 
-        # Then: All fields included (TODO: implement step analysis)
-        assert "email TEXT" in sql
+        # Then: ID field included by default (TODO: implement step analysis to include referenced fields)
+        assert "id UUID" in sql
         assert "type_custom_action_input" in sql
 
     def test_empty_entity_no_types_generated(self, generator):

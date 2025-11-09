@@ -11,6 +11,7 @@ from src.core.ast_models import Entity
 from src.generators.comment_generator import CommentGenerator
 from src.generators.constraint_generator import ConstraintGenerator
 from src.generators.index_generator import IndexGenerator
+from src.generators.schema.schema_registry import SchemaRegistry
 
 
 class TableGenerator:
@@ -28,8 +29,9 @@ class TableGenerator:
         "decimal": "DECIMAL",
     }
 
-    def __init__(self, templates_dir: str = "templates/sql"):
-        """Initialize with Jinja2 templates"""
+    def __init__(self, schema_registry: SchemaRegistry, templates_dir: str = "templates/sql"):
+        """Initialize with Jinja2 templates and schema registry"""
+        self.schema_registry = schema_registry
         self.templates_dir = templates_dir
         self.env = Environment(
             loader=FileSystemLoader(templates_dir), trim_blocks=True, lstrip_blocks=True
@@ -141,11 +143,9 @@ class TableGenerator:
         """
         Determine if schema is tenant-specific (needs tenant_id) or common (shared)
 
-        Tenant-specific schemas: tenant, crm, management, operations
-        Common schemas: common, catalog, public
+        Uses domain registry to check multi_tenant flag
         """
-        tenant_schemas = ["tenant", "crm", "management", "operations"]
-        return schema in tenant_schemas
+        return self.schema_registry.is_multi_tenant(schema)
 
     def generate_foreign_keys_ddl(self, entity: Entity) -> str:
         """

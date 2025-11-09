@@ -22,18 +22,21 @@ Generated PL/pgSQL:
 """
 
 from src.core.ast_models import EntityDefinition
+from src.generators.schema.naming_conventions import NamingConventions
 
 
 class ForeignKeyResolver:
     """Resolves foreign key references for Tier 3 entity relationships using Trinity helpers"""
 
-    def __init__(self, tenant_var: str = "auth_tenant_id"):
+    def __init__(self, naming_conventions: NamingConventions, tenant_var: str = "auth_tenant_id"):
         """
-        Initialize with tenant variable name
+        Initialize with naming conventions and tenant variable name
 
         Args:
+            naming_conventions: Naming conventions with domain registry
             tenant_var: Variable name containing tenant_id (default: auth_tenant_id)
         """
+        self.naming_conventions = naming_conventions
         self.tenant_var = tenant_var
 
     def resolve_fk_reference(
@@ -99,7 +102,7 @@ class ForeignKeyResolver:
         """
         # Target entity details
         target_lower = target_entity.lower()
-        target_schema = self._infer_schema(target_entity)
+        target_schema = self._resolve_entity_schema(target_entity)
         target_pk = f"pk_{target_lower}"
 
         # Variable to store the resolved FK
@@ -116,21 +119,51 @@ class ForeignKeyResolver:
         RETURN v_result;
     END IF;"""
 
-    def _infer_schema(self, entity_name: str) -> str:
+    def _resolve_entity_schema(self, entity_name: str) -> str:
         """
-        Infer the schema for an entity
+        Resolve entity name to schema name using registry
 
-        For now, use simple heuristics. This could be made configurable.
+        Checks:
+        1. Domain registry for registered entities
+        2. Inference heuristics if not registered
+
+        Returns canonical schema name (resolves aliases)
         """
-        # Simple mapping - could be made configurable
-        schema_map = {
-            "Contact": "crm",
-            "Task": "crm",
-            "Manufacturer": "product",
-            "Product": "product",
-        }
+        # Check if entity is registered
+        entry = self.naming_conventions.registry.get_entity(entity_name)
+        if entry:
+            # Get domain from registry entry
+            domain_code = entry.domain
+            domain = self.naming_conventions.registry.get_domain(domain_code)
+            return (
+                domain.domain_name if domain else "public"
+            )  # Use canonical domain name (not alias)
 
-        return schema_map.get(entity_name, "public")
+        # Fallback to inference (for backward compatibility)
+        return self._infer_schema_from_entity_name(entity_name)
+
+    def _infer_schema_from_entity_name(self, entity_name: str) -> str:
+        """
+        Infer schema from entity name using common patterns
+
+        This is a fallback for entities not yet registered
+        """
+        name_lower = entity_name.lower()
+
+        # CRM/Management entities
+        if any(x in name_lower for x in ["contact", "company", "person", "account", "customer"]):
+            return "crm"
+
+        # Catalog entities
+        if any(x in name_lower for x in ["manufacturer", "product", "brand", "model"]):
+            return "catalog"
+
+        # Project entities
+        if any(x in name_lower for x in ["project", "task", "milestone"]):
+            return "projects"
+
+        # Default to entity's own schema (will be validated elsewhere)
+        return name_lower
 
     def generate_fk_assignment(
         self,

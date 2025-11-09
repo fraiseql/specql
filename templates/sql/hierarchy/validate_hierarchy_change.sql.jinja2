@@ -1,0 +1,167 @@
+-- Validate hierarchy changes BEFORE they happen
+-- Returns NULL if valid, error object if invalid
+-- NO TRIGGERS - Called explicitly from mutations!
+
+CREATE OR REPLACE FUNCTION core.validate_hierarchy_change(
+    entity TEXT,
+    node_pk INTEGER,                    -- Node being modified
+    new_parent_pk INTEGER DEFAULT NULL, -- New parent (NULL for root)
+    max_depth INTEGER DEFAULT 20,       -- Framework config
+    check_cycle BOOLEAN DEFAULT TRUE,   -- Skip for performance if known safe
+    check_depth BOOLEAN DEFAULT TRUE    -- Skip for performance if known safe
+) RETURNS core.hierarchy_validation_error AS $$
+DECLARE
+    v_schema TEXT;
+    v_table TEXT;
+    v_pk_column TEXT;
+    v_parent_column TEXT;
+    v_node_path ltree;
+    v_parent_path ltree;
+    v_new_depth INTEGER;
+    v_error core.hierarchy_validation_error;
+    dyn_sql TEXT;
+BEGIN
+    IF entity IS NULL THEN
+        RAISE EXCEPTION 'Parameter "entity" must not be NULL';
+    END IF;
+
+    -- Construct dynamic identifiers
+    v_table := format('tb_%s', entity);
+    v_pk_column := format('pk_%s', entity);
+    v_parent_column := format('fk_parent_%s', entity);
+
+    -- Find schema dynamically (search expected schemas)
+    SELECT table_schema INTO v_schema
+    FROM information_schema.tables
+    WHERE table_name = v_table
+      AND table_schema IN ('core', 'management', 'catalog', 'tenant', 'test_schema')
+    LIMIT 1;
+
+    IF v_schema IS NULL THEN
+        v_error.error_code := 'table_not_found';
+        v_error.error_message := format('Table "tb_%s" not found in any expected schema', entity);
+        v_error.hint := 'Verify entity name is correct';
+        RETURN v_error;
+    END IF;
+
+    -- Get current node's path
+    dyn_sql := format($q$
+        SELECT path FROM %I.%I WHERE %I = $1;
+    $q$, v_schema, v_table, v_pk_column);
+    EXECUTE dyn_sql INTO v_node_path USING node_pk;
+
+    IF v_node_path IS NULL THEN
+        v_error.error_code := 'node_not_found';
+        v_error.error_message := format('%s with pk=%s not found', entity, node_pk);
+        v_error.hint := 'Verify the node exists and is not deleted';
+        v_error.detail := jsonb_build_object('node_pk', node_pk);
+        RETURN v_error;
+    END IF;
+
+    -- If making root node, no further validation needed
+    IF new_parent_pk IS NULL THEN
+        RETURN NULL;  -- Valid (root node)
+    END IF;
+
+    -- Get new parent's path
+    dyn_sql := format($q$
+        SELECT path FROM %I.%I WHERE %I = $1;
+    $q$, v_schema, v_table, v_pk_column);
+    EXECUTE dyn_sql INTO v_parent_path USING new_parent_pk;
+
+    IF v_parent_path IS NULL THEN
+        v_error.error_code := 'parent_not_found';
+        v_error.error_message := format('Parent %s with pk=%s not found', entity, new_parent_pk);
+        v_error.hint := 'Verify the parent exists and is not deleted';
+        v_error.detail := jsonb_build_object('parent_pk', new_parent_pk);
+        RETURN v_error;
+    END IF;
+
+    -- VALIDATION 1: Check for circular reference (parent is descendant of node)
+    IF check_cycle THEN
+        IF v_parent_path <@ v_node_path THEN
+            v_error.error_code := 'circular_reference';
+            v_error.error_message := format(
+                'Circular reference: %s (pk=%s) cannot be moved under its own descendant (pk=%s)',
+                entity, node_pk, new_parent_pk
+            );
+            v_error.hint := 'Choose a parent that is not a descendant of this node';
+            v_error.detail := jsonb_build_object(
+                'node_path', v_node_path::text,
+                'parent_path', v_parent_path::text,
+                'node_pk', node_pk,
+                'parent_pk', new_parent_pk
+            );
+            RETURN v_error;
+        END IF;
+    END IF;
+
+    -- VALIDATION 2: Check depth limit (new parent path + 1 level)
+    IF check_depth THEN
+        v_new_depth := nlevel(v_parent_path) + 1;
+
+        IF v_new_depth > max_depth THEN
+            v_error.error_code := 'depth_limit_exceeded';
+            v_error.error_message := format(
+                'Depth limit exceeded: moving %s (pk=%s) would create depth %s (max: %s)',
+                entity, node_pk, v_new_depth, max_depth
+            );
+            v_error.hint := 'Flatten the hierarchy or increase max_depth in framework config';
+            v_error.detail := jsonb_build_object(
+                'current_depth', nlevel(v_node_path),
+                'new_depth', v_new_depth,
+                'max_depth', max_depth,
+                'parent_path', v_parent_path::text
+            );
+            RETURN v_error;
+        ELSIF v_new_depth > (max_depth * 0.75) THEN
+            -- Soft warning at 75% threshold
+            RAISE WARNING 'Approaching depth limit: % of % levels (path: %)',
+                v_new_depth, max_depth, v_parent_path || node_pk::text;
+        END IF;
+    END IF;
+
+    -- All validations passed
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION core.validate_hierarchy_change IS
+'Validate hierarchy parent changes BEFORE they happen.
+
+Explicit over Implicit: NO TRIGGERS! Mutations call this explicitly.
+
+Returns NULL if valid, returns error object if invalid.
+
+Validations:
+1. Circular reference check (parent is not descendant of node)
+2. Depth limit check (new depth would not exceed max)
+
+Performance Notes:
+- Uses existing path indexes (GIST indexes on ltree columns)
+- check_cycle/check_depth parameters allow skipping expensive checks when safe
+- Dynamic schema lookup allows reuse across entities
+
+Example usage in mutations:
+  DECLARE
+    v_validation_error core.hierarchy_validation_error;
+  BEGIN
+    -- Validate before UPDATE
+    v_validation_error := core.validate_hierarchy_change(
+        ''location'',
+        v_location_pk,
+        v_new_parent_pk,
+        max_depth => 20,
+        check_cycle => true,
+        check_depth => true
+    );
+
+    IF v_validation_error IS NOT NULL THEN
+        -- Return error response
+        RETURN error_response(v_validation_error);
+    END IF;
+
+    -- Safe to proceed with UPDATE
+  END;
+
+Based on explicit pattern from recalculate_tree_path().';

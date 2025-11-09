@@ -37,7 +37,7 @@ def test_all_23_scalar_types_parseable():
 
       # Date/Time
       start_date: date
-      created_at: datetime!
+      registration_datetime: datetime!
       opening_time: time
       work_duration: duration
 
@@ -141,7 +141,7 @@ def test_parser_handles_nullability_correctly():
     yaml_content = """
     entity: User
     fields:
-      id: uuid!
+      external_id: uuid!
       email: email!
       phone: phoneNumber  # nullable by default
       name: text!
@@ -151,7 +151,7 @@ def test_parser_handles_nullability_correctly():
     entity = parser.parse(yaml_content)
 
     # Non-nullable fields
-    assert entity.fields["id"].nullable is False
+    assert entity.fields["external_id"].nullable is False
     assert entity.fields["email"].nullable is False
     assert entity.fields["name"].nullable is False
 

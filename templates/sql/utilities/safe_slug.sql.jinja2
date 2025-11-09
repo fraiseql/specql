@@ -1,0 +1,46 @@
+-- safe_slug: Convert text to URL-safe slug
+-- Based on printoptim_backend implementation
+-- Handles edge cases: empty strings, all digits, special chars
+
+CREATE OR REPLACE FUNCTION public.safe_slug(
+    value TEXT,
+    fallback TEXT DEFAULT 'unnamed'
+) RETURNS TEXT AS $$
+DECLARE
+    result TEXT;
+BEGIN
+    -- Handle NULL or empty input
+    IF value IS NULL OR trim(value) = '' THEN
+        RETURN fallback;
+    END IF;
+
+    -- Convert to slug: lowercase + unaccent + replace non-alphanumeric with '-'
+    result := trim(BOTH '-' FROM regexp_replace(
+        lower(unaccent(value)),
+        '[^a-z0-9]+', '-', 'gi'
+    ));
+
+    -- Handle edge cases
+    IF result = '' THEN
+        -- All characters were stripped (e.g., "---" or "###")
+        RETURN fallback;
+    ELSIF result ~ '^[0-9]+$' THEN
+        -- All digits (e.g., "123") - prefix with 'n-' to avoid LTREE issues
+        RETURN 'n-' || result;
+    ELSE
+        RETURN result;
+    END IF;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE STRICT;
+
+-- Framework metadata
+COMMENT ON FUNCTION public.safe_slug(TEXT, TEXT) IS '@specql:utility Converts text to URL-safe slug with edge case handling';
+
+-- Examples
+COMMENT ON FUNCTION public.safe_slug(TEXT, TEXT) IS E'@specql:examples
+safe_slug(''Café Straße'') → ''cafe-strasse''
+safe_slug(''Building #1'') → ''building-1''
+safe_slug(''123'') → ''n-123''
+safe_slug('''') → ''unnamed''
+safe_slug(''---'') → ''unnamed''
+';

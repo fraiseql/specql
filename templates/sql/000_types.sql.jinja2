@@ -1,0 +1,76 @@
+-- Context for path recalculation operations
+-- Based on printoptim_backend pattern
+CREATE TYPE core.recalculation_context AS (
+    pk UUID,           -- Entity id to recalculate (subtree mode)
+    pk_tenant UUID,    -- Tenant scope (tenant mode)
+    updated_by UUID    -- Audit tracking
+);
+
+COMMENT ON TYPE core.recalculation_context IS
+'Composite type for path/identifier recalculation operations.
+
+Fields:
+- pk (UUID): Entity id to recalculate. When set, recalculation is scoped to this subtree.
+- pk_tenant (UUID): Tenant scope. When set (and pk is NULL), recalculates all trees in tenant.
+- updated_by (UUID): Audit field to track who triggered the recalculation.
+
+Usage modes:
+1. Subtree: pk set → recalculate from node down
+2. Tenant: pk_tenant set (pk NULL) → recalculate all tenant trees
+3. Global: both NULL → recalculate entire entity globally
+
+Used by: core.recalculate_tree_path(), mutation functions';
+
+-- Validation error type for explicit validation functions
+CREATE TYPE core.hierarchy_validation_error AS (
+    error_code TEXT,
+    error_message TEXT,
+    hint TEXT,
+    detail JSONB
+);
+
+COMMENT ON TYPE core.hierarchy_validation_error IS
+'Return type for validation functions. NULL indicates validation passed.
+
+Fields:
+- error_code: Machine-readable error code (e.g., ''circular_reference'')
+- error_message: Human-readable error message
+- hint: Suggestion for fixing the error
+- detail: Additional context as JSONB
+
+Used by:
+- core.validate_hierarchy_change()
+- core.validate_identifier_sequence()
+
+Example usage:
+  v_error := core.validate_hierarchy_change(...);
+  IF v_error IS NOT NULL THEN
+    -- Handle error
+    RETURN error_response(v_error);
+  END IF;';
+
+-- Helper to convert validation error to JSONB
+CREATE OR REPLACE FUNCTION core.validation_error_to_jsonb(
+    error core.hierarchy_validation_error
+) RETURNS JSONB AS $$
+BEGIN
+    IF error IS NULL THEN
+        RETURN NULL;
+    END IF;
+
+    RETURN jsonb_build_object(
+        'code', error.error_code,
+        'message', error.error_message,
+        'hint', error.hint,
+        'detail', error.detail
+    );
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+COMMENT ON FUNCTION core.validation_error_to_jsonb IS
+'Convert validation error to JSONB for API responses.
+
+Returns NULL if error is NULL (validation passed).
+Otherwise returns structured JSONB with code, message, hint, and detail fields.
+
+Used by mutation functions to return structured error responses.';

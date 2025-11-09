@@ -1,0 +1,71 @@
+# Impact Metadata Types Template
+# FraiseQL composite types for mutation impact tracking
+
+CREATE SCHEMA IF NOT EXISTS mutation_metadata;
+
+COMMENT ON SCHEMA mutation_metadata IS
+'FraiseQL mutation impact metadata types.
+Used for tracking side effects and cache invalidations in mutations.
+
+@fraiseql:schema
+name: MutationMetadata
+description: Mutation impact tracking types';
+
+-- Entity impact composite type
+CREATE TYPE mutation_metadata.entity_impact AS (
+    entity_type TEXT,
+    operation TEXT,
+    modified_fields TEXT[]
+);
+
+COMMENT ON TYPE mutation_metadata.entity_impact IS
+'Impact of a mutation on a specific entity.
+
+@fraiseql:composite
+name: EntityImpact
+tier: 1
+
+Fields:
+- entity_type: Name of the affected entity
+- operation: CRUD operation (CREATE, UPDATE, DELETE)
+- modified_fields: Array of field names that were modified';
+
+-- Cache invalidation composite type
+CREATE TYPE mutation_metadata.cache_invalidation AS (
+    query TEXT,
+    filter JSONB,
+    strategy TEXT,
+    reason TEXT
+);
+
+COMMENT ON TYPE mutation_metadata.cache_invalidation IS
+'Cache invalidation specification for Apollo cache management.
+
+@fraiseql:composite
+name: CacheInvalidation
+tier: 1
+
+Fields:
+- query: GraphQL query name to invalidate
+- filter: Filter conditions for selective invalidation
+- strategy: Invalidation strategy (REFETCH, REMOVE, UPDATE)
+- reason: Human-readable reason for invalidation';
+
+-- Main impact metadata composite type
+CREATE TYPE mutation_metadata.mutation_impact_metadata AS (
+    primary_entity mutation_metadata.entity_impact,
+    actual_side_effects mutation_metadata.entity_impact[],
+    cache_invalidations mutation_metadata.cache_invalidation[]
+);
+
+COMMENT ON TYPE mutation_metadata.mutation_impact_metadata IS
+'Complete mutation impact metadata for FraiseQL integration.
+
+@fraiseql:composite
+name: MutationImpactMetadata
+tier: 1
+
+Fields:
+- primary_entity: The main entity affected by the mutation
+- actual_side_effects: Array of side effects on other entities
+- cache_invalidations: Cache invalidation specifications';

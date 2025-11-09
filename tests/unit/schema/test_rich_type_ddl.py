@@ -8,7 +8,7 @@ from src.generators.table_generator import TableGenerator
 from src.core.ast_models import Entity, FieldDefinition
 
 
-def test_email_field_generates_text_with_constraint():
+def test_email_field_generates_text_with_constraint(table_generator):
     """Test: email type generates TEXT with CHECK constraint"""
     entity = Entity(
         name="Contact",
@@ -16,8 +16,7 @@ def test_email_field_generates_text_with_constraint():
         fields={"email": FieldDefinition(name="email", type_name="email", nullable=False)},
     )
 
-    generator = TableGenerator()
-    ddl = generator.generate_table_ddl(entity)
+    ddl = table_generator.generate_table_ddl(entity)
 
     # Expected: TEXT with email validation
     assert "email TEXT NOT NULL" in ddl
@@ -26,7 +25,7 @@ def test_email_field_generates_text_with_constraint():
     assert "@" in ddl  # Email pattern
 
 
-def test_url_field_generates_text_with_url_constraint():
+def test_url_field_generates_text_with_url_constraint(table_generator):
     """Test: url type generates TEXT with URL validation"""
     entity = Entity(
         name="Page",
@@ -34,15 +33,14 @@ def test_url_field_generates_text_with_url_constraint():
         fields={"website": FieldDefinition(name="website", type_name="url", nullable=True)},
     )
 
-    generator = TableGenerator()
-    ddl = generator.generate_table_ddl(entity)
+    ddl = table_generator.generate_table_ddl(entity)
 
     assert "website TEXT" in ddl
     assert "CHECK" in ddl
     assert "https?" in ddl
 
 
-def test_ip_address_uses_inet_type():
+def test_ip_address_uses_inet_type(table_generator):
     """Test: ipAddress type uses PostgreSQL INET (no CHECK needed)"""
     entity = Entity(
         name="Server",
@@ -50,15 +48,14 @@ def test_ip_address_uses_inet_type():
         fields={"ip_address": FieldDefinition(name="ip_address", type_name="ipAddress")},
     )
 
-    generator = TableGenerator()
-    ddl = generator.generate_table_ddl(entity)
+    ddl = table_generator.generate_table_ddl(entity)
 
     # Expected: PostgreSQL INET type (built-in validation)
     assert "ip_address INET" in ddl
     assert "CHECK" not in ddl  # INET has built-in validation
 
 
-def test_mac_address_uses_macaddr_type():
+def test_mac_address_uses_macaddr_type(table_generator):
     """Test: macAddress type uses PostgreSQL MACADDR"""
     entity = Entity(
         name="Device",
@@ -66,14 +63,13 @@ def test_mac_address_uses_macaddr_type():
         fields={"mac": FieldDefinition(name="mac", type_name="macAddress")},
     )
 
-    generator = TableGenerator()
-    ddl = generator.generate_table_ddl(entity)
+    ddl = table_generator.generate_table_ddl(entity)
 
     assert "mac MACADDR" in ddl
     assert "CHECK" not in ddl  # MACADDR has built-in validation
 
 
-def test_coordinates_generates_point_with_constraint():
+def test_coordinates_generates_point_with_constraint(table_generator):
     """Test: coordinates type generates POINT with lat/lng validation"""
     entity = Entity(
         name="Location",
@@ -81,8 +77,7 @@ def test_coordinates_generates_point_with_constraint():
         fields={"location": FieldDefinition(name="location", type_name="coordinates")},
     )
 
-    generator = TableGenerator()
-    ddl = generator.generate_table_ddl(entity)
+    ddl = table_generator.generate_table_ddl(entity)
 
     # Expected: POINT type with bounds check
     assert "location POINT" in ddl
@@ -92,7 +87,7 @@ def test_coordinates_generates_point_with_constraint():
     assert "-180" in ddl and "180" in ddl
 
 
-def test_money_generates_numeric_with_precision():
+def test_money_generates_numeric_with_precision(table_generator):
     """Test: money type generates NUMERIC(19,4)"""
     entity = Entity(
         name="Product",
@@ -100,13 +95,12 @@ def test_money_generates_numeric_with_precision():
         fields={"price": FieldDefinition(name="price", type_name="money", nullable=False)},
     )
 
-    generator = TableGenerator()
-    ddl = generator.generate_table_ddl(entity)
+    ddl = table_generator.generate_table_ddl(entity)
 
     assert "price NUMERIC(19,4) NOT NULL" in ddl
 
 
-def test_money_with_metadata_uses_custom_precision():
+def test_money_with_metadata_uses_custom_precision(table_generator):
     """Test: money generates NUMERIC(19,4) default precision"""
     entity = Entity(
         name="Product",
@@ -114,13 +108,12 @@ def test_money_with_metadata_uses_custom_precision():
         fields={"price": FieldDefinition(name="price", type_name="money")},
     )
 
-    generator = TableGenerator()
-    ddl = generator.generate_table_ddl(entity)
+    ddl = table_generator.generate_table_ddl(entity)
 
     assert "price NUMERIC(19,4)" in ddl
 
 
-def test_phone_number_generates_text_with_e164_constraint():
+def test_phone_number_generates_text_with_e164_constraint(table_generator):
     """Test: phoneNumber type generates TEXT with E.164 validation"""
     entity = Entity(
         name="Contact",
@@ -128,8 +121,7 @@ def test_phone_number_generates_text_with_e164_constraint():
         fields={"phone": FieldDefinition(name="phone", type_name="phoneNumber")},
     )
 
-    generator = TableGenerator()
-    ddl = generator.generate_table_ddl(entity)
+    ddl = table_generator.generate_table_ddl(entity)
 
     assert "phone TEXT" in ddl
     assert "CHECK" in ddl
@@ -137,7 +129,7 @@ def test_phone_number_generates_text_with_e164_constraint():
     assert r"\+?" in ddl or "+" in ddl
 
 
-def test_color_generates_text_with_hex_constraint():
+def test_color_generates_text_with_hex_constraint(table_generator):
     """Test: color type generates TEXT with hex code validation"""
     entity = Entity(
         name="Theme",
@@ -145,8 +137,7 @@ def test_color_generates_text_with_hex_constraint():
         fields={"theme_color": FieldDefinition(name="theme_color", type_name="color")},
     )
 
-    generator = TableGenerator()
-    ddl = generator.generate_table_ddl(entity)
+    ddl = table_generator.generate_table_ddl(entity)
 
     assert "theme_color TEXT" in ddl
     assert "CHECK" in ddl
@@ -154,7 +145,7 @@ def test_color_generates_text_with_hex_constraint():
     assert "[0-9A-Fa-f]" in ddl
 
 
-def test_slug_generates_text_with_url_safe_constraint():
+def test_slug_generates_text_with_url_safe_constraint(table_generator):
     """Test: slug type generates TEXT with lowercase-hyphen validation"""
     entity = Entity(
         name="Post",
@@ -162,8 +153,7 @@ def test_slug_generates_text_with_url_safe_constraint():
         fields={"slug": FieldDefinition(name="slug", type_name="slug")},
     )
 
-    generator = TableGenerator()
-    ddl = generator.generate_table_ddl(entity)
+    ddl = table_generator.generate_table_ddl(entity)
 
     assert "slug TEXT" in ddl
     assert "CHECK" in ddl
@@ -171,7 +161,7 @@ def test_slug_generates_text_with_url_safe_constraint():
     assert "[-]" in ddl or "-" in ddl
 
 
-def test_complete_table_with_multiple_rich_types():
+def test_complete_table_with_multiple_rich_types(table_generator):
     """Test: Generate complete table with multiple rich types"""
     entity = Entity(
         name="Contact",
@@ -185,8 +175,7 @@ def test_complete_table_with_multiple_rich_types():
         },
     )
 
-    generator = TableGenerator()
-    ddl = generator.generate_table_ddl(entity)
+    ddl = table_generator.generate_table_ddl(entity)
 
     # Verify table structure
     assert "CREATE TABLE crm.tb_contact" in ddl
@@ -210,7 +199,7 @@ def test_complete_table_with_multiple_rich_types():
     assert "first_name TEXT" in ddl
 
 
-def test_backward_compatibility_basic_types():
+def test_backward_compatibility_basic_types(table_generator):
     """Test: Existing basic types still work correctly"""
     entity = Entity(
         name="Product",
@@ -223,8 +212,7 @@ def test_backward_compatibility_basic_types():
         },
     )
 
-    generator = TableGenerator()
-    ddl = generator.generate_table_ddl(entity)
+    ddl = table_generator.generate_table_ddl(entity)
 
     assert "name TEXT NOT NULL" in ddl
     assert "quantity INTEGER" in ddl

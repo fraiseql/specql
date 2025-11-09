@@ -1,0 +1,45 @@
+-- Prevent circular references in hierarchical entities
+CREATE OR REPLACE FUNCTION {{ schema }}.prevent_{{ entity_lower }}_cycle()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_ancestor_path ltree;
+BEGIN
+    -- Skip check if no parent (root node)
+    IF NEW.fk_parent_{{ entity_lower }} IS NULL THEN
+        RETURN NEW;
+    END IF;
+
+    -- Get parent's path
+    SELECT path INTO v_ancestor_path
+    FROM {{ schema }}.tb_{{ entity_lower }}
+    WHERE pk_{{ entity_lower }} = NEW.fk_parent_{{ entity_lower }};
+
+    -- Check if parent is a descendant of current node
+    IF v_ancestor_path <@ NEW.path THEN
+        RAISE EXCEPTION
+            'Circular reference detected: {{ entity }} (%) cannot be its own ancestor (parent path: %, current path: %)',
+            NEW.id,
+            v_ancestor_path,
+            NEW.path
+        USING
+            ERRCODE = '23514',  -- check_violation
+            HINT = 'Choose a parent that is not a descendant of this {{ entity_lower }}';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_prevent_{{ entity_lower }}_cycle
+    BEFORE INSERT OR UPDATE OF fk_parent_{{ entity_lower }}
+    ON {{ schema }}.tb_{{ entity_lower }}
+    FOR EACH ROW
+    EXECUTE FUNCTION {{ schema }}.prevent_{{ entity_lower }}_cycle();
+
+COMMENT ON FUNCTION {{ schema }}.prevent_{{ entity_lower }}_cycle() IS
+'Safety trigger: Prevents circular references in {{ entity }} hierarchy.
+
+Checks that a {{ entity_lower }} cannot be set as its own ancestor by ensuring
+the proposed parent is not a descendant of the current node in the hierarchy.
+
+Used by: BEFORE INSERT/UPDATE on fk_parent_{{ entity_lower }}';

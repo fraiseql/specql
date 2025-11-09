@@ -5,6 +5,8 @@ Action Compiler - Transform SpecQL actions to PL/pgSQL functions
 from enum import Enum
 from typing import List
 
+from jinja2 import Environment, FileSystemLoader
+
 from src.core.ast_models import Action, Entity
 
 
@@ -80,9 +82,24 @@ class ActionCompiler:
     with proper type safety, Trinity pattern resolution, and mutation metadata.
     """
 
-    def __init__(self) -> None:
+    def __init__(self, templates_dir: str = "templates/sql") -> None:
         """Initialize the action compiler with helper components"""
         self.param_generator = ParameterGenerator()
+        self.templates_dir = templates_dir
+
+        self.env = Environment(
+            loader=FileSystemLoader(templates_dir), trim_blocks=True, lstrip_blocks=True
+        )
+
+    def generate_base_types(self) -> str:
+        """Generate mutation_result composite type using Jinja2 template"""
+        template = self.env.get_template("mutation_result_type.sql.j2")
+        return template.render()
+
+    def generate_metadata_types(self) -> str:
+        """Generate FraiseQL impact metadata composite types using Jinja2 template"""
+        template = self.env.get_template("impact_metadata_types.sql.jinja2")
+        return template.render()
 
     def compile_action(self, action: Action, entity: Entity) -> str:
         """

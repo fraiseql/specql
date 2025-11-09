@@ -210,6 +210,10 @@ COMMENT ON TYPE mutation_metadata.cache_invalidation IS
 
 **Status**: 🔴 Not Started (Week 2 focus)
 **Location**: `src/generators/schema/`
+**Key Components**:
+- `schema_registry.py`: Central schema classification (replaces hardcoded lists)
+- `table_generator.py`: DDL generation with registry-driven tenant_id logic
+- `trinity_helper_generator.py`: Helper functions with tenant-aware parameters
 **Test Command**: `make teamB-test`
 **Critical Test**: Week 2 Day 1-2 - Verify composite types work with FraiseQL (see `/docs/architecture/UPDATED_TEAM_PLANS_POST_FRAISEQL_RESPONSE.md`)
 
@@ -793,6 +797,75 @@ $ specql validate-impacts --database-url=postgres://localhost/mydb
 **Status**: 🔴 Not Started (Week 7 focus)
 **Location**: `src/cli/`
 **Test Command**: `make teamE-test`
+
+---
+
+## 🏗️ Schema Organization (3 Tiers)
+
+### Three-Tier Schema Model
+
+The framework uses a **three-tier schema organization** to support any business domain while maintaining clear separation:
+
+#### **Tier 1: Framework Schemas** (Universal, Hardcoded)
+Built-in schemas that exist in every deployment:
+- **`common`**: Shared reference data (countries, languages, currencies, timezones)
+- **`app`**: GraphQL API types (composite types, mutation_result)
+- **`core`**: Framework business functions & helpers
+
+#### **Tier 2: Multi-Tenant Schemas** (User-Defined, Configurable)
+Business domains that need tenant isolation:
+- **`crm`**: Customer relationship management
+- **`projects`**: Project management & tenant-specific entities
+- **Custom**: Users can add `sales`, `hr`, `legal`, etc.
+
+**Behavior**: Automatic `tenant_id UUID NOT NULL` column, RLS policies, Trinity helpers accept `tenant_id` parameter.
+
+#### **Tier 3: Shared Schemas** (User-Defined, Domain-Specific)
+Application-specific reference data (no tenant isolation):
+- **`catalog`**: Product catalog (PrintOptim-specific)
+- **`analytics`**: Analytics & reporting data
+- **`finance`**: Financial reference data
+
+**Behavior**: NO `tenant_id` column, shared across all tenants.
+
+### Schema Registry
+
+**Central Source of Truth**: `src/generators/schema/schema_registry.py`
+
+Replaces hardcoded `TENANT_SCHEMAS` lists with registry-driven lookups:
+```python
+schema_registry = SchemaRegistry(domain_registry)
+
+# Check if schema needs tenant_id
+if schema_registry.is_multi_tenant("crm"):  # True
+    add_tenant_id_column()
+
+# Resolve aliases
+canonical = schema_registry.get_canonical_schema_name("management")  # "crm"
+```
+
+### Examples: Different Application Types
+
+**PrintOptim (Current)**:
+```yaml
+framework_schemas: [common, app, core]
+multi_tenant_domains: [crm, projects]
+shared_domains: [catalog]
+```
+
+**HR Management System**:
+```yaml
+framework_schemas: [common, app, core]
+multi_tenant_domains: [hr, payroll, recruiting]
+shared_domains: [legal, benefits]
+```
+
+**Healthcare Platform**:
+```yaml
+framework_schemas: [common, app, core]
+multi_tenant_domains: [patients, appointments]
+shared_domains: [medical_codes, medications]
+```
 
 ---
 

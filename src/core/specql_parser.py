@@ -15,11 +15,15 @@ from src.core.ast_models import (
     ActionStep,
     Agent,
     EntityDefinition,
+    ExtraFilterColumn,
     FieldDefinition,
     FieldTier,
     IdentifierComponent,
     IdentifierConfig,
+    IncludeRelation,
     Organization,
+    TableViewConfig,
+    TableViewMode,
 )
 from src.core.exceptions import SpecQLValidationError
 from src.core.reserved_fields import get_reserved_field_error_message, is_reserved_field_name
@@ -126,6 +130,10 @@ class SpecQLParser:
 
         # Parse identifier configuration (NEW)
         entity.identifier = self._parse_identifier_config(data)
+
+        # Parse table_views configuration (CQRS)
+        if "table_views" in data:
+            entity.table_views = self._parse_table_views(data["table_views"], entity_name)
 
         return entity
 
@@ -622,3 +630,107 @@ class SpecQLParser:
                 )
 
         return result
+
+    def _parse_table_views(self, config: dict, entity_name: str) -> TableViewConfig:
+        """Parse table_views configuration block."""
+
+        # Parse mode
+        mode_str = config.get("mode", "auto")
+        try:
+            mode = TableViewMode(mode_str)
+        except ValueError:
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message=f"Invalid table_views.mode: '{mode_str}'. Must be: auto, force, or disable",
+            )
+
+        # Parse include_relations
+        include_relations = []
+        if "include_relations" in config:
+            for rel_config in config["include_relations"]:
+                rel = self._parse_include_relation(rel_config, entity_name)
+                include_relations.append(rel)
+
+        # Parse extra_filter_columns
+        extra_filter_columns = []
+        if "extra_filter_columns" in config:
+            for col_config in config["extra_filter_columns"]:
+                col = self._parse_extra_filter_column(col_config, entity_name)
+                extra_filter_columns.append(col)
+
+        # Parse refresh (always explicit for now)
+        refresh = config.get("refresh", "explicit")
+        if refresh != "explicit":
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message=f"Only 'explicit' refresh strategy is supported (got '{refresh}')",
+            )
+
+        return TableViewConfig(
+            mode=mode,
+            include_relations=include_relations,
+            extra_filter_columns=extra_filter_columns,
+            refresh=refresh,
+        )
+
+    def _parse_include_relation(self, config: dict, entity_name: str) -> IncludeRelation:
+        """Parse include_relations entry."""
+
+        # Format: - entity_name: { fields: [...], include_relations: [...] }
+        if not isinstance(config, dict) or len(config) != 1:
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message="Invalid include_relations format. Expected single-key dict.",
+            )
+
+        relation_entity = list(config.keys())[0]
+        relation_config = config[relation_entity]
+
+        # Parse fields (required)
+        if "fields" not in relation_config:
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message=f"include_relations.{relation_entity} must specify 'fields'",
+            )
+
+        fields = relation_config["fields"]
+        if not isinstance(fields, list):
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message=f"include_relations.{relation_entity}.fields must be a list",
+            )
+
+        # Parse nested include_relations (recursive)
+        nested_relations = []
+        if "include_relations" in relation_config:
+            for nested_config in relation_config["include_relations"]:
+                nested = self._parse_include_relation(nested_config, entity_name)
+                nested_relations.append(nested)
+
+        return IncludeRelation(
+            entity_name=relation_entity, fields=fields, include_relations=nested_relations
+        )
+
+    def _parse_extra_filter_column(self, config, entity_name: str) -> ExtraFilterColumn:
+        """Parse extra_filter_columns entry."""
+
+        # Simple string format
+        if isinstance(config, str):
+            return ExtraFilterColumn.from_string(config)
+
+        # Dict format with options
+        elif isinstance(config, dict):
+            if len(config) != 1:
+                raise SpecQLValidationError(
+                    entity=entity_name, message="Invalid extra_filter_columns format"
+                )
+
+            col_name = list(config.keys())[0]
+            col_config = config[col_name]
+
+            return ExtraFilterColumn.from_dict(col_name, col_config)
+
+        else:
+            raise SpecQLValidationError(
+                entity=entity_name, message="extra_filter_columns must be string or dict"
+            )

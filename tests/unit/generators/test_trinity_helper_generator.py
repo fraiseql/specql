@@ -4,6 +4,8 @@ Tests for Trinity Helper Generator (Team B)
 
 import pytest
 from src.generators.trinity_helper_generator import TrinityHelperGenerator
+from src.generators.schema.naming_conventions import NamingConventions
+from src.generators.schema.schema_registry import SchemaRegistry
 from tests.fixtures.mock_entities import mock_contact_entity
 
 
@@ -13,7 +15,9 @@ class TestTrinityHelperGenerator:
     @pytest.fixture
     def generator(self):
         """Create trinity helper generator instance"""
-        return TrinityHelperGenerator()
+        naming_conventions = NamingConventions()
+        schema_registry = SchemaRegistry(naming_conventions.registry)
+        return TrinityHelperGenerator(schema_registry)
 
     def test_trinity_helper_comments(self, generator):
         """Trinity helper functions should have descriptive comments"""

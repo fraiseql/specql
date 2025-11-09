@@ -5,13 +5,15 @@ Generates entity_pk() and entity_id() helper functions for UUID ↔ INTEGER reso
 
 from jinja2 import Environment, FileSystemLoader
 from src.core.ast_models import Entity
+from src.generators.schema.schema_registry import SchemaRegistry
 
 
 class TrinityHelperGenerator:
     """Generates Trinity helper functions for entity resolution"""
 
-    def __init__(self, templates_dir: str = "templates/sql"):
-        """Initialize with Jinja2 templates"""
+    def __init__(self, schema_registry: SchemaRegistry, templates_dir: str = "templates/sql"):
+        """Initialize with Jinja2 templates and schema registry"""
+        self.schema_registry = schema_registry
         self.templates_dir = templates_dir
         self.env = Environment(
             loader=FileSystemLoader(templates_dir), trim_blocks=False, lstrip_blocks=False
@@ -60,9 +62,10 @@ class TrinityHelperGenerator:
     def _is_tenant_specific_schema(self, schema: str) -> bool:
         """
         Determine if schema is tenant-specific (needs tenant_id filtering)
+
+        Uses schema registry to check multi_tenant flag
         """
-        TENANT_SCHEMAS = ["tenant", "crm", "management", "operations"]
-        return schema in TENANT_SCHEMAS
+        return self.schema_registry.is_multi_tenant(schema)
 
     def generate_all_helpers(self, entity: Entity) -> str:
         """

@@ -33,12 +33,85 @@ class FieldTier(Enum):
     REFERENCE = "reference"  # ref(Entity) (Tier 3)
 
 
+class TableViewMode(Enum):
+    """Mode for table view generation."""
+
+    AUTO = "auto"  # Generate if has foreign keys
+    FORCE = "force"  # Always generate
+    DISABLE = "disable"  # Never generate
+
+
 @dataclass
-class CompositeTypeDef:
-    """Placeholder for composite type definition (Phase 2)"""
+class IncludeRelation:
+    """Specification for including a related entity in table view."""
+
+    entity_name: str
+    fields: List[str]  # Which fields to include from related entity
+    include_relations: List["IncludeRelation"] = field(default_factory=list)  # Nested
+
+    def __post_init__(self):
+        """Validate field list."""
+        if not self.fields:
+            raise ValueError(f"include_relations.{self.entity_name} must specify fields")
+
+        # Special case: '*' means all fields
+        if self.fields == ["*"]:
+            pass  # All fields, resolved during generation
+        elif not all(isinstance(f, str) for f in self.fields):
+            raise ValueError(f"Fields must be strings in {self.entity_name}")
+
+
+@dataclass
+class ExtraFilterColumn:
+    """Extra filter column specification."""
 
     name: str
-    fields: Dict[str, "FieldDefinition"] = field(default_factory=dict)
+    source: Optional[str] = None  # e.g., "author.name" for nested extraction
+    type: Optional[str] = None  # Explicit type override
+    index_type: str = "btree"  # btree | gin | gin_trgm | gist
+
+    @classmethod
+    def from_string(cls, name: str) -> "ExtraFilterColumn":
+        """Create from simple string (e.g., 'rating')."""
+        return cls(name=name)
+
+    @classmethod
+    def from_dict(cls, name: str, config: dict) -> "ExtraFilterColumn":
+        """Create from dict config (e.g., {source: 'author.name', type: 'text'})."""
+        return cls(
+            name=name,
+            source=config.get("source"),
+            type=config.get("type"),
+            index_type=config.get("index", "btree"),
+        )
+
+
+@dataclass
+class TableViewConfig:
+    """Configuration for table view (tv_) generation."""
+
+    # Generation mode
+    mode: TableViewMode = TableViewMode.AUTO
+
+    # Explicit relation inclusion
+    include_relations: List[IncludeRelation] = field(default_factory=list)
+
+    # Performance-optimized filter columns
+    extra_filter_columns: List[ExtraFilterColumn] = field(default_factory=list)
+
+    # Refresh strategy (always explicit for now)
+    refresh: str = "explicit"
+
+    @property
+    def should_generate(self) -> bool:
+        """Check if table view should be generated (resolved during generation)."""
+        # This will be resolved by Team B based on mode and entity characteristics
+        return self.mode != TableViewMode.DISABLE
+
+    @property
+    def has_explicit_relations(self) -> bool:
+        """Check if explicit relations are specified."""
+        return len(self.include_relations) > 0
 
 
 @dataclass
@@ -242,6 +315,28 @@ class EntityDefinition:
 
     # i18n translations
     translations: Optional[TranslationConfig] = None
+
+    # NEW: Table views configuration
+    table_views: Optional[TableViewConfig] = None
+
+    @property
+    def has_foreign_keys(self) -> bool:
+        """Check if entity has any foreign key fields."""
+        return any(field.is_reference() for field in self.fields.values())
+
+    @property
+    def should_generate_table_view(self) -> bool:
+        """Determine if table view should be generated."""
+        if self.table_views is None:
+            # Default: auto mode
+            return self.has_foreign_keys
+
+        if self.table_views.mode == TableViewMode.DISABLE:
+            return False
+        elif self.table_views.mode == TableViewMode.FORCE:
+            return True
+        else:  # AUTO
+            return self.has_foreign_keys
 
 
 @dataclass
@@ -456,15 +551,6 @@ class Organization:
 
     table_code: str
     domain_name: Optional[str] = None
-
-
-@dataclass
-class TranslationConfig:
-    """Translation configuration"""
-
-    enabled: bool = False
-    table_name: Optional[str] = None
-    fields: List[str] = field(default_factory=list)
 
 
 @dataclass

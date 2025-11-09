@@ -107,7 +107,9 @@ def test_generate_index():
     generator = ForeignKeyGenerator()
     index_sql = generator.generate_index("crm", "tb_contact", fk_ddl)
 
-    expected = "CREATE INDEX idx_contact_company ON crm.tb_contact(fk_company);"
+    expected = """CREATE INDEX idx_contact_company
+    ON crm.tb_contact (fk_company)
+    WHERE deleted_at IS NULL;"""
     assert index_sql == expected
 
 
@@ -120,5 +122,7 @@ def test_generate_index_with_complex_names():
     generator = ForeignKeyGenerator()
     index_sql = generator.generate_index("auth", "tb_user", fk_ddl)
 
-    expected = "CREATE INDEX idx_user_organization_unit ON auth.tb_user(fk_organization_unit);"
+    expected = """CREATE INDEX idx_user_organization_unit
+    ON auth.tb_user (fk_organization_unit)
+    WHERE deleted_at IS NULL;"""
     assert index_sql == expected

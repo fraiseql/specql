@@ -11,6 +11,7 @@ from pathlib import Path
 from src.generators.schema_orchestrator import SchemaOrchestrator
 from src.generators.function_generator import FunctionGenerator
 from src.generators.core_logic_generator import CoreLogicGenerator
+
 from src.core.ast_models import Entity, FieldDefinition, Action, ActionStep
 
 
@@ -103,9 +104,19 @@ def test_db():
             host="localhost", port=5433, dbname="test_specql", user="postgres", password="postgres"
         )
         # Clean up any existing test data
-        conn.cursor().execute("DROP SCHEMA IF EXISTS crm CASCADE;")
-        conn.cursor().execute("DROP SCHEMA IF EXISTS management CASCADE;")
-        conn.cursor().execute("DROP SCHEMA IF EXISTS app CASCADE;")
+        cursor = conn.cursor()
+        try:
+            cursor.execute("DROP SCHEMA IF EXISTS crm CASCADE;")
+        except:
+            pass  # Ignore errors
+        try:
+            cursor.execute("DROP SCHEMA IF EXISTS management CASCADE;")
+        except:
+            pass  # Ignore errors
+        try:
+            cursor.execute("DROP SCHEMA IF EXISTS app CASCADE;")
+        except:
+            pass  # Ignore errors
         conn.commit()
 
         # Note: Foundation migration is included in SchemaOrchestrator output
@@ -116,7 +127,7 @@ def test_db():
         pytest.skip("PostgreSQL test database not available")
 
 
-def test_create_contact_action_database_execution(test_db):
+def test_create_contact_action_database_execution(test_db, function_generator):
     """Generate SQL and execute in database"""
     # Given: Entity with create_contact action
     entity = create_simple_contact_entity()
@@ -125,8 +136,7 @@ def test_create_contact_action_database_execution(test_db):
     orchestrator = SchemaOrchestrator()
     schema_sql = orchestrator.generate_complete_schema(entity)
 
-    function_gen = FunctionGenerator()
-    function_sql = function_gen.generate_action_functions(entity)
+    function_sql = function_generator.generate_action_functions(entity)
 
     # When: Apply to database
     cursor = test_db.cursor()
@@ -135,16 +145,14 @@ def test_create_contact_action_database_execution(test_db):
         cursor.execute("CREATE SCHEMA IF NOT EXISTS crm;")
         # Clean any existing test data
         cursor.execute("DROP TABLE IF EXISTS crm.tb_contact CASCADE;")
-        # Also delete any existing data (ignore if table doesn't exist)
-        try:
-            cursor.execute("DELETE FROM crm.tb_contact WHERE email = 'lead@example.com';")
-        except:
-            pass
+        test_db.commit()  # Commit schema cleanup before executing new SQL
 
-        # Execute schema SQL
-        test_db.execute(schema_sql)
-        # Execute function SQL
-        test_db.execute(function_sql)
+        # Execute schema SQL (entire block at once to handle $$ delimited functions)
+        cursor.execute(schema_sql)
+
+        # Execute function SQL (entire block at once to handle $$ delimited functions)
+        cursor.execute(function_sql)
+
         test_db.commit()
     except Exception as e:
         test_db.rollback()
@@ -156,7 +164,7 @@ def test_create_contact_action_database_execution(test_db):
     cursor = test_db.cursor()
     print(f"Calling with tenant_id: {TEST_TENANT_ID}, user_id: {TEST_USER_ID}")
     cursor.execute(
-        "SELECT (crm.create_contact(%s, ROW(%s, %s)::app.type_create_contact_input, %s, %s)).*",
+        "SELECT * FROM crm.create_contact(%s, ROW(%s, %s)::app.type_create_contact_input, %s, %s)",
         [
             TEST_TENANT_ID,
             "test@example.com",
@@ -181,7 +189,7 @@ def test_create_contact_action_database_execution(test_db):
     assert str(contact[6]) == TEST_USER_ID  # created_by
 
 
-def test_validation_error_database_execution(test_db):
+def test_validation_error_database_execution(test_db, function_generator):
     """Validation errors return correct response"""
     # Given: Entity with create_contact action
     entity = create_simple_contact_entity()
@@ -190,8 +198,7 @@ def test_validation_error_database_execution(test_db):
     orchestrator = SchemaOrchestrator()
     schema_sql = orchestrator.generate_complete_schema(entity)
 
-    function_gen = FunctionGenerator()
-    function_sql = function_gen.generate_action_functions(entity)
+    function_sql = function_generator.generate_action_functions(entity)
 
     cursor = test_db.cursor()
     try:
@@ -207,7 +214,7 @@ def test_validation_error_database_execution(test_db):
     # When: Call with missing required field
     cursor = test_db.cursor()
     cursor.execute(
-        "SELECT (crm.create_contact(%s, ROW(NULL, %s)::app.type_create_contact_input, %s, %s)).*",
+        "SELECT * FROM crm.create_contact(%s, ROW(NULL, %s)::app.type_create_contact_input, %s, %s)",
         [TEST_TENANT_ID, "lead", '{"status": "lead"}', TEST_USER_ID],  # Missing email
     )
     result = cursor.fetchone()
@@ -217,7 +224,7 @@ def test_validation_error_database_execution(test_db):
     assert "Email is required" in result[3]  # message
 
 
-def test_trinity_resolution_database_execution(test_db):
+def test_trinity_resolution_database_execution(test_db, function_generator):
     """Basic create with Trinity pattern works"""
     # Given: Contact entity
     entity = create_simple_contact_entity()
@@ -226,8 +233,7 @@ def test_trinity_resolution_database_execution(test_db):
     orchestrator = SchemaOrchestrator()
     schema_sql = orchestrator.generate_complete_schema(entity)
 
-    function_gen = FunctionGenerator()
-    function_sql = function_gen.generate_action_functions(entity)
+    function_sql = function_generator.generate_action_functions(entity)
 
     # Execute SQL directly
     try:
@@ -243,7 +249,7 @@ def test_trinity_resolution_database_execution(test_db):
     # When: Create contact
     cursor = test_db.cursor()
     cursor.execute(
-        "SELECT (app.create_contact(%s, %s, %s)).*",
+        "SELECT * FROM app.create_contact(%s, %s, %s)",
         [
             TEST_TENANT_ID,
             TEST_USER_ID,
@@ -268,7 +274,7 @@ def test_trinity_resolution_database_execution(test_db):
     assert str(contact[2]) == TEST_TENANT_ID  # tenant_id
 
 
-def test_update_action_database_execution(test_db):
+def test_update_action_database_execution(test_db, function_generator):
     """Update action with audit trail"""
     # Given: Contact exists
     entity = create_simple_contact_entity()
@@ -277,8 +283,7 @@ def test_update_action_database_execution(test_db):
     orchestrator = SchemaOrchestrator()
     schema_sql = orchestrator.generate_complete_schema(entity)
 
-    function_gen = FunctionGenerator()
-    function_sql = function_gen.generate_action_functions(entity)
+    function_sql = function_generator.generate_action_functions(entity)
 
     # Execute SQL directly
     try:
@@ -294,7 +299,7 @@ def test_update_action_database_execution(test_db):
     # When: Create contact first
     cursor = test_db.cursor()
     cursor.execute(
-        "SELECT (crm.create_contact(%s, ROW(%s, %s)::app.type_create_contact_input, %s, %s)).*",
+        "SELECT * FROM crm.create_contact(%s, ROW(%s, %s)::app.type_create_contact_input, %s, %s)",
         [
             TEST_TENANT_ID,
             "old@example.com",
@@ -309,7 +314,7 @@ def test_update_action_database_execution(test_db):
     # When: Update contact
     cursor = test_db.cursor()
     cursor.execute(
-        "SELECT (app.update_contact(%s, %s, %s)).*",
+        "SELECT * FROM app.update_contact(%s, %s, %s)",
         [
             TEST_TENANT_ID,
             TEST_USER_ID,
@@ -336,7 +341,7 @@ def test_update_action_database_execution(test_db):
     assert contact[2] >= contact[3]  # updated_at >= created_at
 
 
-def test_soft_delete_database_execution(test_db):
+def test_soft_delete_database_execution(test_db, function_generator):
     """Soft delete preserves data"""
     # Given: Contact exists
     entity = create_simple_contact_entity()
@@ -345,8 +350,7 @@ def test_soft_delete_database_execution(test_db):
     orchestrator = SchemaOrchestrator()
     schema_sql = orchestrator.generate_complete_schema(entity)
 
-    function_gen = FunctionGenerator()
-    function_sql = function_gen.generate_action_functions(entity)
+    function_sql = function_generator.generate_action_functions(entity)
 
     # Execute SQL directly
     try:
@@ -362,7 +366,7 @@ def test_soft_delete_database_execution(test_db):
     # When: Create contact first
     cursor = test_db.cursor()
     cursor.execute(
-        "SELECT (app.create_contact(%s, %s, %s)).*",
+        "SELECT * FROM app.create_contact(%s, %s, %s)",
         [
             TEST_TENANT_ID,
             TEST_USER_ID,
@@ -401,7 +405,7 @@ def test_soft_delete_database_execution(test_db):
     # Note: In real implementation, contact would not be visible due to deleted_at IS NULL filter
 
 
-def test_custom_action_database_execution(test_db):
+def test_custom_action_database_execution(test_db, function_generator, core_logic_generator):
     """Custom action executes in PostgreSQL"""
     import uuid
 
@@ -415,11 +419,13 @@ def test_custom_action_database_execution(test_db):
     orchestrator = SchemaOrchestrator()
     schema_sql = orchestrator.generate_complete_schema(entity)
 
-    function_gen = FunctionGenerator()
-    function_sql = function_gen.generate_action_functions(entity)
+    function_sql = function_generator.generate_action_functions(entity)
 
-    core_gen = CoreLogicGenerator()
-    custom_sql = core_gen.generate_custom_action(entity, entity.actions[1])  # qualify_lead action
+    custom_sql = core_logic_generator.generate_custom_action(
+        entity, entity.actions[1]
+    )  # qualify_lead action
+
+    print(f"Custom SQL:\n{custom_sql}")
 
     cursor = test_db.cursor()
     try:
@@ -436,7 +442,7 @@ def test_custom_action_database_execution(test_db):
     # When: Create a lead contact first
     cursor = test_db.cursor()
     cursor.execute(
-        "SELECT (crm.create_contact(%s, ROW(%s, %s)::app.type_create_contact_input, %s, %s)).*",
+        "SELECT * FROM crm.create_contact(%s, ROW(%s, %s)::app.type_create_contact_input, %s, %s)",
         [
             TEST_TENANT_ID,
             email,
@@ -447,6 +453,7 @@ def test_custom_action_database_execution(test_db):
     )
     result = cursor.fetchone()
     contact_id = result[0]  # entity_id from result
+    test_db.commit()  # Commit the contact creation
 
     # Verify contact was created as lead
     cursor = test_db.cursor()
@@ -468,7 +475,7 @@ def test_custom_action_database_execution(test_db):
     # When: Execute custom qualify_lead action
     cursor = test_db.cursor()
     cursor.execute(
-        "SELECT (crm.qualify_lead(%s, ROW(%s)::app.type_qualify_lead_input, %s, %s)).*",
+        "SELECT * FROM crm.qualify_lead(%s, ROW(%s)::app.type_qualify_lead_input, %s, %s)",
         [
             TEST_TENANT_ID,
             contact_id,  # contact_id as UUID input

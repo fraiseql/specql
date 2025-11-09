@@ -13,9 +13,9 @@ class TestForeignKeyResolver:
     """Test FK resolution for Tier 3 entity references"""
 
     @pytest.fixture
-    def resolver(self):
+    def resolver(self, naming_conventions):
         """Create FK resolver instance"""
-        return ForeignKeyResolver()
+        return ForeignKeyResolver(naming_conventions)
 
     @pytest.fixture
     def task_entity(self):
@@ -78,9 +78,9 @@ class TestForeignKeyResolver:
         with pytest.raises(ValueError, match="Invalid reference format"):
             resolver._parse_reference_expr("ref(Contact)")
 
-    def test_infer_schema(self, resolver):
-        """Test schema inference"""
-        assert resolver._infer_schema("Contact") == "crm"
-        assert resolver._infer_schema("Task") == "crm"
-        assert resolver._infer_schema("Manufacturer") == "product"
-        assert resolver._infer_schema("Unknown") == "public"
+    def test_resolve_entity_schema(self, resolver):
+        """Test schema resolution"""
+        assert resolver._resolve_entity_schema("Contact") == "crm"
+        assert resolver._resolve_entity_schema("Task") == "projects"
+        assert resolver._resolve_entity_schema("Manufacturer") == "catalog"
+        assert resolver._resolve_entity_schema("Unknown") == "unknown"

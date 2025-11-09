@@ -1,0 +1,181 @@
+-- Generic path recalculation for ANY hierarchical entity
+-- Based on printoptim_backend implementation
+-- NO TRIGGERS - Called explicitly from mutations!
+
+CREATE OR REPLACE FUNCTION core.recalculate_tree_path(
+    entity TEXT,
+    ctx core.recalculation_context DEFAULT ROW(NULL, NULL, NULL)::core.recalculation_context
+) RETURNS INTEGER AS $$
+DECLARE
+    v_schema TEXT;
+    v_table TEXT;
+    v_pk_column TEXT;
+    v_parent_column TEXT;
+    v_updated_count INTEGER := 0;
+    v_root_pk INTEGER;
+    dyn_sql TEXT;
+BEGIN
+    IF entity IS NULL THEN
+        RAISE EXCEPTION 'Parameter "entity" must not be NULL';
+    END IF;
+
+    -- Construct dynamic identifiers
+    v_table := format('tb_%s', entity);
+    v_pk_column := format('pk_%s', entity);
+    v_parent_column := format('fk_parent_%s', entity);
+
+    -- Find schema dynamically
+    SELECT table_schema INTO v_schema
+    FROM information_schema.tables
+    WHERE table_name = v_table
+      AND table_schema IN ('core', 'management', 'catalog', 'tenant')
+    LIMIT 1;
+
+    IF v_schema IS NULL THEN
+        RAISE EXCEPTION 'Table "tb_%" not found in any expected schema', entity;
+    END IF;
+
+    -- MODE 1: Subtree recalculation (ctx.pk set)
+    IF ctx.pk IS NOT NULL THEN
+        -- Find root of subtree (walk up to find root or use given node)
+        dyn_sql := format($q$
+            WITH RECURSIVE t_chain AS (
+                SELECT %1$I AS pk, %2$I AS parent
+                FROM %3$I.%4$I
+                WHERE id = $1
+
+                UNION ALL
+
+                SELECT t.%1$I, t.%2$I
+                FROM %3$I.%4$I t
+                JOIN t_chain ON t.%1$I = t_chain.parent
+            )
+            SELECT pk FROM t_chain WHERE parent IS NULL LIMIT 1;
+        $q$, v_pk_column, v_parent_column, v_schema, v_table);
+
+        EXECUTE dyn_sql INTO v_root_pk USING ctx.pk;
+
+        IF v_root_pk IS NULL THEN
+            -- Given node IS the root, get its pk
+            dyn_sql := format($q$
+                SELECT %1$I FROM %2$I.%3$I WHERE id = $1;
+            $q$, v_pk_column, v_schema, v_table);
+            EXECUTE dyn_sql INTO v_root_pk USING ctx.pk;
+        END IF;
+
+        -- Recalculate subtree using INTEGER pk paths
+        dyn_sql := format($q$
+            WITH RECURSIVE hierarchy AS (
+                SELECT t.%1$I AS pk, t.%1$I::TEXT AS path_str
+                FROM %2$I.%3$I t
+                WHERE t.%1$I = $1
+
+                UNION ALL
+
+                SELECT c.%1$I, CONCAT(h.path_str, '.', c.%1$I::TEXT)
+                FROM %2$I.%3$I c
+                JOIN hierarchy h ON c.%4$I = h.pk
+            ),
+            updated AS (
+                UPDATE %2$I.%3$I t
+                SET
+                    path = h.path_str::ltree,
+                    path_updated_at = now(),
+                    path_updated_by = $2
+                FROM hierarchy h
+                WHERE t.%1$I = h.pk
+                  AND t.path IS DISTINCT FROM h.path_str::ltree  -- Idempotent
+                RETURNING t.%1$I
+            )
+            SELECT COUNT(*) FROM updated;
+        $q$, v_pk_column, v_schema, v_table, v_parent_column);
+
+        EXECUTE dyn_sql INTO v_updated_count USING v_root_pk, ctx.updated_by;
+
+    -- MODE 2: Tenant-scoped recalculation (ctx.pk_tenant set)
+    ELSIF ctx.pk_tenant IS NOT NULL THEN
+        dyn_sql := format($q$
+            WITH RECURSIVE hierarchy AS (
+                SELECT t.%1$I AS pk, t.%1$I::TEXT AS path_str
+                FROM %2$I.%3$I t
+                WHERE t.tenant_id = $1 AND t.%4$I IS NULL
+
+                UNION ALL
+
+                SELECT c.%1$I, CONCAT(h.path_str, '.', c.%1$I::TEXT)
+                FROM %2$I.%3$I c
+                JOIN hierarchy h ON c.%4$I = h.pk
+            ),
+            updated AS (
+                UPDATE %2$I.%3$I t
+                SET
+                    path = h.path_str::ltree,
+                    path_updated_at = now(),
+                    path_updated_by = $2
+                FROM hierarchy h
+                WHERE t.%1$I = h.pk
+                  AND t.path IS DISTINCT FROM h.path_str::ltree
+                RETURNING t.%1$I
+            )
+            SELECT COUNT(*) FROM updated;
+        $q$, v_pk_column, v_schema, v_table, v_parent_column);
+
+        EXECUTE dyn_sql INTO v_updated_count USING ctx.pk_tenant, ctx.updated_by;
+
+    -- MODE 3: Global recalculation (both NULL)
+    ELSE
+        dyn_sql := format($q$
+            WITH RECURSIVE hierarchy AS (
+                SELECT t.%1$I AS pk, t.%1$I::TEXT AS path_str
+                FROM %2$I.%3$I t
+                WHERE t.%4$I IS NULL
+
+                UNION ALL
+
+                SELECT c.%1$I, CONCAT(h.path_str, '.', c.%1$I::TEXT)
+                FROM %2$I.%3$I c
+                JOIN hierarchy h ON c.%4$I = h.pk
+            ),
+            updated AS (
+                UPDATE %2$I.%3$I t
+                SET
+                    path = h.path_str::ltree,
+                    path_updated_at = now(),
+                    path_updated_by = $1
+                FROM hierarchy h
+                WHERE t.%1$I = h.pk
+                  AND t.path IS DISTINCT FROM h.path_str::ltree
+                RETURNING t.%1$I
+            )
+            SELECT COUNT(*) FROM updated;
+        $q$, v_pk_column, v_schema, v_table, v_parent_column);
+
+        EXECUTE dyn_sql INTO v_updated_count USING ctx.updated_by;
+    END IF;
+
+    RETURN v_updated_count;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION core.recalculate_tree_path(TEXT, core.recalculation_context) IS
+'Generic path recalculation for any hierarchical entity using INTEGER pk-based LTREE paths.
+
+Explicit over Implicit: NO TRIGGERS! Mutations call this explicitly.
+
+Path Format: Pure INTEGER pk values (e.g., ''1.5.23.47'')
+
+Three modes:
+1. Subtree (ctx.pk set): Recalculate from given node down
+2. Tenant (ctx.pk_tenant set, ctx.pk NULL): Recalculate all trees in tenant
+3. Global (both NULL): Recalculate entire entity
+
+Returns: Number of rows updated
+
+Example usage in mutations:
+  -- Use INTEGER pk variable (e.g., v_location_pk)
+  v_count := core.recalculate_tree_path(
+      ''location'',
+      ROW(v_location_pk, NULL, p_caller_id)::core.recalculation_context
+  );
+
+Based on printoptim_backend pattern.';

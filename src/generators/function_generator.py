@@ -15,14 +15,24 @@ from src.generators.core_logic_generator import CoreLogicGenerator
 class FunctionGenerator:
     """Generates PostgreSQL functions for CRUD operations and SpecQL actions"""
 
-    def __init__(self, templates_dir: str = "templates/sql"):
-        """Initialize with Jinja2 templates"""
+    def __init__(self, schema_registry, templates_dir: str = "templates/sql"):
+        """
+        Initialize with schema registry and Jinja2 templates
+
+        Args:
+            schema_registry: SchemaRegistry instance for multi-tenant detection
+            templates_dir: Path to SQL templates directory
+        """
         self.templates_dir = templates_dir
+        self.schema_registry = schema_registry
+
         self.env = Environment(
             loader=FileSystemLoader(templates_dir), trim_blocks=True, lstrip_blocks=True
         )
+
+        # Initialize sub-generators with schema_registry
         self.app_gen = AppWrapperGenerator(templates_dir)
-        self.core_gen = CoreLogicGenerator(templates_dir)
+        self.core_gen = CoreLogicGenerator(schema_registry, templates_dir)
 
     def generate_action_functions(self, entity: Entity) -> str:
         """

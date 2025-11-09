@@ -1,0 +1,33 @@
+-- Calculate LTREE path using INTEGER pk_{{ entity_lower }}
+-- Format: Pure digits (e.g., '1.5.23.47')
+CREATE OR REPLACE FUNCTION {{ schema }}.calculate_{{ entity_lower }}_path(
+    p_pk_{{ entity_lower }} INTEGER
+) RETURNS ltree AS $$
+DECLARE
+    v_parent_path ltree;
+    v_fk_parent INTEGER;
+BEGIN
+    -- Get parent's primary key
+    SELECT fk_parent_{{ entity_lower }}
+    INTO v_fk_parent
+    FROM {{ schema }}.tb_{{ entity_lower }}
+    WHERE pk_{{ entity_lower }} = p_pk_{{ entity_lower }};
+
+    -- If no parent, this is a root node
+    IF v_fk_parent IS NULL THEN
+        RETURN p_pk_{{ entity_lower }}::text::ltree;
+    END IF;
+
+    -- Get parent's path
+    SELECT path
+    INTO v_parent_path
+    FROM {{ schema }}.tb_{{ entity_lower }}
+    WHERE pk_{{ entity_lower }} = v_fk_parent;
+
+    -- Concatenate: parent_path.current_pk
+    RETURN (v_parent_path::text || '.' || p_pk_{{ entity_lower }}::text)::ltree;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+
+COMMENT ON FUNCTION {{ schema }}.calculate_{{ entity_lower }}_path(INTEGER) IS
+'@specql:hierarchy Calculates LTREE path using INTEGER primary keys (format: 1.5.23.47)';

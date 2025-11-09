@@ -15,54 +15,25 @@ DECLARE
     {%- for declaration in declarations %}
     {{ declaration }};
     {%- endfor %}
-    -- Current record data for validation
-    v_current_status TEXT;
-    v_actual_status TEXT;
 BEGIN
     -- Debug: Input parameters
-    RAISE NOTICE 'qualify_lead: input_data.id=%, auth_tenant_id=%', input_data.id, auth_tenant_id;
+    RAISE NOTICE '{{ action.name }}: input_data.id=%, auth_tenant_id=%', input_data.id, auth_tenant_id;
 
-    -- === VALIDATION ===
-    -- Check if contact exists and has status 'lead'
-    PERFORM 1 FROM {{ entity.schema }}.{{ entity.table_name }}
-    WHERE id = input_data.id AND tenant_id = auth_tenant_id AND status = 'lead';
+    {%- for step in compiled_steps %}
+    {{ step }}
+    {%- endfor %}
 
-    IF NOT FOUND THEN
-        -- Check if contact exists at all
-        PERFORM 1 FROM {{ entity.schema }}.{{ entity.table_name }}
-        WHERE id = input_data.id AND tenant_id = auth_tenant_id;
-
-        IF NOT FOUND THEN
-            RETURN app.log_and_return_mutation(
-                auth_tenant_id, auth_user_id, '{{ entity.name | lower }}', input_data.id,
-                'CUSTOM', 'failed:not_found',
-                ARRAY[]::TEXT[], 'Contact not found', NULL, NULL
-            );
-        ELSE
-            RETURN app.log_and_return_mutation(
-                auth_tenant_id, auth_user_id, '{{ entity.name | lower }}', input_data.id,
-                'CUSTOM', 'failed:validation_error',
-                ARRAY[]::TEXT[], 'Contact must be a lead to qualify', NULL, NULL
-            );
-        END IF;
-    END IF;
-
-    -- === UPDATE ===
-    UPDATE {{ entity.schema }}.{{ entity.table_name }}
-    SET status = 'qualified', updated_at = now(), updated_by = auth_user_id
-    WHERE id = input_data.id;
-
-    -- === RETURN RESULT ===
+    -- === SUCCESS RESPONSE ===
     RETURN app.log_and_return_mutation(
         auth_tenant_id,
         auth_user_id,
         '{{ entity.name | lower }}',
-        input_data.id,
+        v_{{ entity.name | lower }}_id,
         'CUSTOM',
         'success',
-        ARRAY['status']::TEXT[],
-        'Qualify Lead completed',
-        (SELECT row_to_json(t.*) FROM {{ entity.schema }}.{{ entity.table_name }} t WHERE t.id = input_data.id)::JSONB,
+        ARRAY[]::TEXT[],
+        '{{ action.name | replace("_", " ") | title }} completed',
+        (SELECT row_to_json(t.*) FROM {{ entity.schema }}.{{ entity.table_name }} t WHERE t.id = v_{{ entity.name | lower }}_id)::JSONB,
         NULL
     );
 END;

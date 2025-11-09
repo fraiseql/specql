@@ -20,7 +20,7 @@ entity:
   # Fields (Trinity Pattern: pk_* INTEGER and id UUID auto-generated)
   # ============================================================================
   fields:
-    identifier:
+    slug:
       type: TEXT
       nullable: false
       unique: true
@@ -58,9 +58,9 @@ entity:
   # Indexes (beyond auto-generated FK indexes)
   # ============================================================================
   indexes:
-    - columns: [identifier]
+    - columns: [slug]
       type: btree
-      name: idx_manufacturer_identifier
+      name: idx_manufacturer_slug
     - columns: [abbreviation]
       type: btree
       name: idx_manufacturer_abbreviation

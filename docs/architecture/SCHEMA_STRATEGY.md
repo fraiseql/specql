@@ -78,16 +78,67 @@ CREATE FUNCTION core.contact_pk(identifier TEXT) RETURNS INTEGER;
 - Indexes: Performance optimization
 - Constraints: Data integrity
 
-**Multi-Tenancy Classification**:
+**Schema Tiers & Multi-Tenancy Classification**:
 
-| Schema | Type | tenant_id | RLS | Purpose |
-|--------|------|-----------|-----|---------|
-| `crm` | Tenant-Specific | ✅ REQUIRED | ✅ YES | Customer data |
-| `management` | Tenant-Specific | ✅ REQUIRED | ✅ YES | Organization structure |
-| `operations` | Tenant-Specific | ✅ REQUIRED | ✅ YES | Operational data |
-| `common` | Shared | ❌ NONE | ❌ NO | Reference data (countries, currencies) |
-| `catalog` | Shared | ❌ NONE | ❌ NO | Product catalogs |
-| `app` | API Contract | ❌ NONE | ❌ NO | Type definitions |
+| Schema | Type | tenant_id | RLS | Purpose | Tier |
+|--------|------|-----------|-----|---------|------|
+| `common` | Framework | ❌ NONE | ❌ NO | Reference data | **Tier 1** |
+| `app` | Framework | ❌ NONE | ❌ NO | API types | **Tier 1** |
+| `core` | Framework | Mixed | Mixed | Business functions | **Tier 1** |
+| `crm` | Multi-Tenant | ✅ REQUIRED | ✅ YES | Customer data | **Tier 2** |
+| `projects` | Multi-Tenant | ✅ REQUIRED | ✅ YES | Projects/tasks | **Tier 2** |
+| `catalog` | Shared (App-Specific) | ❌ NONE | ❌ NO | Product catalog (PrintOptim) | **Tier 3** |
+| `analytics` | Shared (App-Specific) | ❌ NONE | ❌ NO | Analytics data | **Tier 3** |
+| `finance` | Shared (App-Specific) | ❌ NONE | ❌ NO | Financial data | **Tier 3** |
+
+### Schema Registry Pattern
+
+**Central Source of Truth**: Domain registry (`registry/domain_registry.yaml`) + SchemaRegistry class
+
+```yaml
+# registry/domain_registry.yaml
+domains:
+  "2":
+    name: crm
+    aliases: [management]
+    multi_tenant: true  # ← EXPLICIT FLAG
+    description: "Customer relationship management"
+```
+
+```python
+# src/generators/schema/schema_registry.py
+schema_registry = SchemaRegistry(domain_registry)
+
+# Check multi-tenancy
+if schema_registry.is_multi_tenant("crm"):  # True
+    add_tenant_id_column()
+
+# Resolve aliases
+canonical = schema_registry.get_canonical_schema_name("management")  # "crm"
+```
+
+### Adding Custom Domains
+
+Users can extend the framework with custom domains:
+
+```yaml
+# Add to registry/domain_registry.yaml
+domains:
+  "7":
+    name: sales
+    multi_tenant: true   # Tenant-specific sales data
+    description: "Sales pipeline and opportunities"
+
+  "8":
+    name: hr
+    multi_tenant: true   # Employee records
+    description: "Human resources management"
+
+  "9":
+    name: legal
+    multi_tenant: false  # Shared legal documents
+    description: "Legal templates and contracts"
+```
 
 ---
 

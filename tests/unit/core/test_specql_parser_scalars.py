@@ -119,7 +119,7 @@ def test_parse_datetime_fields():
     entity: Event
     fields:
       start_date: date
-      created_at: datetime!
+      event_timestamp: datetime!
       duration: duration
     """
 
@@ -132,7 +132,7 @@ def test_parse_datetime_fields():
     assert date_field.fraiseql_type == "Date"
 
     # Datetime field
-    datetime_field = entity.fields["created_at"]
+    datetime_field = entity.fields["event_timestamp"]
     assert datetime_field.postgres_type == "TIMESTAMPTZ"
     assert datetime_field.fraiseql_type == "DateTime"
     assert datetime_field.nullable is False

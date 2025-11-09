@@ -8,68 +8,63 @@ from src.generators.table_generator import TableGenerator
 from src.core.ast_models import Entity, FieldDefinition
 
 
-def test_email_field_generates_descriptive_comment():
+def test_email_field_generates_descriptive_comment(table_generator):
     """Test: email type generates descriptive COMMENT"""
     field = FieldDefinition(name="email", type_name="email", nullable=False)
     entity = Entity(name="Contact", schema="crm", fields={"email": field})
 
-    generator = TableGenerator()
-    comments = generator.generate_field_comments(entity)
+    comments = table_generator.generate_field_comments(entity)
 
     # Expected: COMMENT ON COLUMN with rich type description
     assert any("COMMENT ON COLUMN crm.tb_contact.email" in c for c in comments)
     assert any("email address" in c.lower() or "Email" in c for c in comments)
 
 
-def test_url_field_generates_descriptive_comment():
+def test_url_field_generates_descriptive_comment(table_generator):
     """Test: url type generates descriptive COMMENT"""
     field = FieldDefinition(name="website", type_name="url")
     entity = Entity(name="Contact", schema="crm", fields={"website": field})
 
-    generator = TableGenerator()
-    comments = generator.generate_field_comments(entity)
+    comments = table_generator.generate_field_comments(entity)
 
     assert any("COMMENT ON COLUMN crm.tb_contact.website" in c for c in comments)
     assert any("URL" in c or "website" in c.lower() for c in comments)
 
 
-def test_coordinates_field_generates_descriptive_comment():
+def test_coordinates_field_generates_descriptive_comment(table_generator):
     """Test: coordinates type generates descriptive COMMENT"""
     field = FieldDefinition(name="location", type_name="coordinates")
     entity = Entity(name="Place", fields={"location": field})
 
-    generator = TableGenerator()
-    comments = generator.generate_field_comments(entity)
+    comments = table_generator.generate_field_comments(entity)
 
     assert any("COMMENT ON COLUMN" in c for c in comments)
     assert any("coordinates" in c.lower() or "geographic" in c.lower() for c in comments)
 
 
-def test_money_field_generates_descriptive_comment():
+def test_money_field_generates_descriptive_comment(table_generator):
     """Test: money type generates descriptive COMMENT"""
     field = FieldDefinition(name="price", type_name="money")
     entity = Entity(name="Product", fields={"price": field})
 
-    generator = TableGenerator()
-    comments = generator.generate_field_comments(entity)
+    comments = table_generator.generate_field_comments(entity)
 
     assert any("COMMENT ON COLUMN" in c for c in comments)
     assert any("money" in c.lower() or "monetary" in c.lower() for c in comments)
 
 
-def test_rich_type_comment_includes_validation_info():
+def test_rich_type_comment_includes_validation_info(table_generator):
     """Test: Comments include validation information"""
     field = FieldDefinition(name="email", type_name="email")
     entity = Entity(name="Contact", fields={"email": field})
 
-    generator = TableGenerator()
-    comments = generator.generate_field_comments(entity)
+    comments = table_generator.generate_field_comments(entity)
 
     # Should mention it's validated
     assert any("validated" in c.lower() or "format" in c.lower() for c in comments)
 
 
-def test_complete_entity_generates_all_comments():
+def test_complete_entity_generates_all_comments(table_generator):
     """Test: All fields get COMMENT statements"""
     entity = Entity(
         name="Contact",
@@ -82,8 +77,7 @@ def test_complete_entity_generates_all_comments():
         },
     )
 
-    generator = TableGenerator()
-    comments = generator.generate_field_comments(entity)
+    comments = table_generator.generate_field_comments(entity)
 
     # Should have comment for each field
     assert len(comments) == 4
@@ -93,37 +87,34 @@ def test_complete_entity_generates_all_comments():
     assert any("first_name" in c for c in comments)
 
 
-def test_nullable_field_comment_includes_required_note():
+def test_nullable_field_comment_includes_required_note(table_generator):
     """Test: Non-nullable fields include (required) in comment"""
     field = FieldDefinition(name="email", type_name="email", nullable=False)
     entity = Entity(name="Contact", fields={"email": field})
 
-    generator = TableGenerator()
-    comments = generator.generate_field_comments(entity)
+    comments = table_generator.generate_field_comments(entity)
 
     assert any("required" in c.lower() for c in comments)
 
 
-def test_nullable_field_comment_omits_required_note():
+def test_nullable_field_comment_omits_required_note(table_generator):
     """Test: Nullable fields don't include (required) in comment"""
     field = FieldDefinition(name="website", type_name="url", nullable=True)
     entity = Entity(name="Contact", fields={"website": field})
 
-    generator = TableGenerator()
-    comments = generator.generate_field_comments(entity)
+    comments = table_generator.generate_field_comments(entity)
 
     assert not any("required" in c.lower() for c in comments)
 
 
-def test_enum_field_comment_includes_options():
+def test_enum_field_comment_includes_options(table_generator):
     """Test: Enum fields include available options in comment"""
     field = FieldDefinition(
         name="status", type_name="enum", values=["active", "inactive", "pending"]
     )
     entity = Entity(name="Task", fields={"status": field})
 
-    generator = TableGenerator()
-    comments = generator.generate_field_comments(entity)
+    comments = table_generator.generate_field_comments(entity)
 
     comment = next(c for c in comments if "status" in c)
     assert "active" in comment
@@ -131,46 +122,42 @@ def test_enum_field_comment_includes_options():
     assert "pending" in comment
 
 
-def test_ref_field_comment_includes_target():
+def test_ref_field_comment_includes_target(table_generator):
     """Test: Reference fields include target entity in comment"""
     field = FieldDefinition(name="company", type_name="ref", reference_entity="Company")
     entity = Entity(name="Contact", fields={"company": field})
 
-    generator = TableGenerator()
-    comments = generator.generate_field_comments(entity)
+    comments = table_generator.generate_field_comments(entity)
 
     assert any("Company" in c for c in comments)
 
 
-def test_money_field_with_currency_metadata():
+def test_money_field_with_currency_metadata(table_generator):
     """Test: Money fields generate descriptive comments"""
     field = FieldDefinition(name="price", type_name="money")
     entity = Entity(name="Product", fields={"price": field})
 
-    generator = TableGenerator()
-    comments = generator.generate_field_comments(entity)
+    comments = table_generator.generate_field_comments(entity)
 
     assert any("money" in c.lower() or "monetary" in c.lower() for c in comments)
 
 
-def test_unknown_type_gets_generic_description():
+def test_unknown_type_gets_generic_description(table_generator):
     """Test: Unknown types get generic description"""
     field = FieldDefinition(name="custom_field", type_name="customType")
     entity = Entity(name="Entity", fields={"custom_field": field})
 
-    generator = TableGenerator()
-    comments = generator.generate_field_comments(entity)
+    comments = table_generator.generate_field_comments(entity)
 
     assert any("Customtype value" in c for c in comments)
 
 
-def test_ref_field_comment_uses_correct_column_name():
+def test_ref_field_comment_uses_correct_column_name(table_generator):
     """Test: Reference fields use fk_* column name, not business field name"""
     field = FieldDefinition(name="company", type_name="ref", reference_entity="Company")
     entity = Entity(name="Contact", schema="crm", fields={"company": field})
 
-    generator = TableGenerator()
-    comments = generator.generate_field_comments(entity)
+    comments = table_generator.generate_field_comments(entity)
 
     # Should use fk_company (actual column), NOT company (business field)
     assert any("fk_company" in c for c in comments), (

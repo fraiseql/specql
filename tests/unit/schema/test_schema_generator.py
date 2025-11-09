@@ -2,6 +2,7 @@ import pytest
 from src.generators.schema.schema_generator import SchemaGenerator
 from src.core.ast_models import EntityDefinition, FieldDefinition, FieldTier
 from src.core.scalar_types import get_composite_type
+from unittest.mock import patch
 
 
 def test_generate_table_with_composite_field():
@@ -218,3 +219,41 @@ def test_generate_table_with_trinity_helpers():
     assert "auth.user_pk(p_id UUID, p_tenant_id UUID DEFAULT NULL)" in ddl
     assert "auth.user_id(p_pk INTEGER)" in ddl
     assert "auth.user_identifier(p_pk INTEGER)" in ddl
+
+
+@patch("src.generators.schema.schema_generator.should_split_entity")
+def test_generate_table_with_node_info_split(mock_should_split):
+    """Test that schema generator uses node+info split when should_split_entity returns True"""
+    # Mock should_split_entity to return True
+    mock_should_split.return_value = True
+
+    entity = EntityDefinition(
+        name="ComplexEntity",
+        schema="test",
+        fields={
+            "path": FieldDefinition(name="path", type_name="ltree", nullable=False),
+            "fk_parent_complexentity": FieldDefinition(
+                name="fk_parent_complexentity",
+                type_name="ref",
+                nullable=True,
+                reference_entity="ComplexEntity",
+            ),
+            "business_field1": FieldDefinition(
+                name="business_field1", type_name="text", nullable=False
+            ),
+            "business_field2": FieldDefinition(
+                name="business_field2", type_name="text", nullable=True
+            ),
+        },
+    )
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_table(entity)
+
+    # Should contain node table, info table, and view
+    assert "CREATE TABLE test.tb_complexentity_node" in ddl
+    assert "CREATE TABLE test.tb_complexentity_info" in ddl
+    assert "CREATE VIEW test.v_complexentity AS" in ddl
+
+    # Should not contain single table creation (exact match)
+    assert "CREATE TABLE test.tb_complexentity (" not in ddl

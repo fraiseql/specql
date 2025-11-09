@@ -11,6 +11,7 @@ from dataclasses import dataclass
 from typing import Optional, Dict, Any
 from src.core.ast_models import FieldDefinition
 from src.core.scalar_types import CompositeTypeDef, get_composite_type
+from .index_strategy import generate_gin_index
 
 
 @dataclass
@@ -173,14 +174,14 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
     def generate_gin_index(self, schema: str, table: str, composite_ddl: CompositeDDL) -> str:
         """
-        Generate GIN index for JSONB queryability
+        Generate GIN index for JSONB queryability with partial index support
 
         Example output:
             CREATE INDEX idx_order_shipping_address
-            ON crm.tb_order USING GIN (shipping_address);
+            ON crm.tb_order USING GIN (shipping_address)
+            WHERE deleted_at IS NULL;
         """
         index_name = f"idx_{table}_{composite_ddl.column_name}"
-        return (
-            f"CREATE INDEX {index_name} "
-            f"ON {schema}.{table} USING GIN ({composite_ddl.column_name});"
-        )
+        table_name = f"{schema}.{table}"
+
+        return generate_gin_index(table_name, index_name, [composite_ddl.column_name])
