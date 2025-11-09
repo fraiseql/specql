@@ -5,25 +5,31 @@ Extended to parse:
 - Tier 1: Scalar rich types
 """
 
-import yaml
 import re
-from typing import Any, Optional, Dict
+from typing import Any, Dict, List, Optional
+
+import yaml
 
 from src.core.ast_models import (
-    EntityDefinition,
-    FieldDefinition,
-    FieldTier,
     ActionDefinition,
     ActionStep,
     Agent,
+    EntityDefinition,
+    FieldDefinition,
+    FieldTier,
+    IdentifierComponent,
+    IdentifierConfig,
     Organization,
 )
+from src.core.exceptions import SpecQLValidationError
+from src.core.reserved_fields import get_reserved_field_error_message, is_reserved_field_name
 from src.core.scalar_types import (
-    get_scalar_type,
-    is_scalar_type,
     get_composite_type,
+    get_scalar_type,
     is_composite_type,
+    is_scalar_type,
 )
+from src.core.separators import Separators
 
 
 class ParseError(Exception):
@@ -90,6 +96,12 @@ class SpecQLParser:
             fields_data = data.get("fields", {})
 
         for field_name, field_spec in fields_data.items():
+            # VALIDATION: Check if field name is reserved
+            if is_reserved_field_name(field_name):
+                raise SpecQLValidationError(
+                    entity=entity_name, message=get_reserved_field_error_message(field_name)
+                )
+
             field = self._parse_field(field_name, field_spec)
             entity.fields[field_name] = field
 
@@ -111,6 +123,9 @@ class SpecQLParser:
         # Parse organization
         if "organization" in data:
             entity.organization = self._parse_organization(data["organization"])
+
+        # Parse identifier configuration (NEW)
+        entity.identifier = self._parse_identifier_config(data)
 
         return entity
 
@@ -559,3 +574,51 @@ class SpecQLParser:
                     f"Field '{field_name}' referenced in expression not found in entity. "
                     f"Available fields: {', '.join(sorted(entity_fields.keys()))}"
                 )
+
+    def _parse_identifier_config(self, yaml_data: dict) -> Optional[IdentifierConfig]:
+        """Parse identifier configuration from YAML."""
+
+        if "identifier" not in yaml_data:
+            return None
+
+        id_config = yaml_data["identifier"]
+
+        # Parse separators
+        hierarchy_separator = id_config.get("separator", Separators.HIERARCHY)
+        composition_separator = id_config.get("composition_separator", Separators.COMPOSITION)
+        internal_separator = id_config.get("internal_separator", Separators.INTERNAL)
+
+        # Parse components
+        components = self._parse_identifier_components(id_config.get("components", []))
+
+        return IdentifierConfig(
+            strategy=id_config.get("strategy", "simple"),
+            separator=hierarchy_separator,
+            composition_separator=composition_separator,
+            internal_separator=internal_separator,
+            components=components,
+        )
+
+    def _parse_identifier_components(self, components: list[Any]) -> list[IdentifierComponent]:
+        """Parse identifier components (with strip_tenant_prefix support)."""
+
+        result = []
+
+        for comp in components:
+            if isinstance(comp, str):
+                # Shorthand
+                result.append(IdentifierComponent(field=comp, transform="slugify"))
+            else:
+                # Detailed config
+                result.append(
+                    IdentifierComponent(
+                        field=comp["field"],
+                        transform=comp.get("transform", "slugify"),
+                        format=comp.get("format"),
+                        separator=comp.get("separator", ""),
+                        replace=comp.get("replace"),
+                        strip_tenant_prefix=comp.get("strip_tenant_prefix", False),  # NEW
+                    )
+                )
+
+        return result

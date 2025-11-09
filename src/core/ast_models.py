@@ -20,6 +20,9 @@ from src.core.scalar_types import (
     is_composite_type,
 )
 
+# Import separators
+from src.core.separators import Separators
+
 
 class FieldTier(Enum):
     """Which tier this field belongs to"""
@@ -175,6 +178,34 @@ class FieldDefinition:
 
 
 @dataclass
+class IdentifierComponent:
+    """Component of identifier calculation."""
+
+    field: str
+    transform: str = "slugify"
+    format: Optional[str] = None
+    separator: str = ""
+    replace: Optional[Dict[str, str]] = None
+    strip_tenant_prefix: bool = False  # NEW: Strip tenant prefix from referenced identifiers
+
+
+@dataclass
+class IdentifierConfig:
+    """Identifier calculation strategy."""
+
+    strategy: str
+
+    # Components
+    prefix: List[IdentifierComponent] = field(default_factory=list)
+    components: List[IdentifierComponent] = field(default_factory=list)
+
+    # Separators (NEW)
+    separator: str = Separators.HIERARCHY  # Default changed from "_" to "."
+    composition_separator: str = Separators.COMPOSITION  # For composite_hierarchical
+    internal_separator: str = Separators.INTERNAL  # For intra-entity flat components
+
+
+@dataclass
 class TranslationConfig:
     """Configuration for i18n translation tables"""
 
@@ -223,6 +254,11 @@ class ActionDefinition:
 
     # Impact metadata (for Team C)
     impact: Optional[Dict[str, Any]] = None
+
+    # Hierarchy impact (for explicit path recalculation)
+    hierarchy_impact: Optional[str] = (
+        None  # 'recalculate_subtree', 'recalculate_tenant', 'recalculate_global'
+    )
 
 
 @dataclass
@@ -300,6 +336,7 @@ class Action:
     requires: Optional[str] = None  # Permission expression
     steps: List[ActionStep] = field(default_factory=list)
     impact: Optional[ActionImpact] = None  # Impact metadata
+    hierarchy_impact: Optional[str] = None  # Explicit path recalculation scope
 
 
 @dataclass
@@ -320,6 +357,12 @@ class Entity:
     # Database schema
     foreign_keys: List["ForeignKey"] = field(default_factory=list)
     indexes: List["Index"] = field(default_factory=list)
+
+    # Hierarchical entity support
+    hierarchical: bool = False  # True if entity has parent/path structure
+
+    # Identifier configuration (NEW)
+    identifier: Optional[IdentifierConfig] = None
 
     # Business logic
     validation: List["ValidationRule"] = field(default_factory=list)
