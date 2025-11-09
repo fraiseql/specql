@@ -798,6 +798,12 @@ $ specql validate-impacts --database-url=postgres://localhost/mydb
 **Location**: `src/cli/`
 **Test Command**: `make teamE-test`
 
+**CRITICAL FILE PATTERN** ⚠️:
+- **ONE FILE PER MUTATION** in `30_functions/`
+- Each file contains exactly 2 functions: `app.{action}()` + `core.{action}()`
+- Utility functions (Trinity helpers) in separate `20_helpers/` directory
+- See: `/docs/architecture/ONE_FILE_PER_MUTATION_PATTERN.md`
+
 ---
 
 ## 🏗️ Schema Organization (3 Tiers)
