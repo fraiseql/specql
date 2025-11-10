@@ -1,0 +1,398 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="description" content="None" />
+      <link rel="shortcut icon" href="img/favicon.ico" />
+    <title>SpecQL Documentation</title>
+    <link rel="stylesheet" href="css/theme.css" />
+    <link rel="stylesheet" href="css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Home";
+        var mkdocs_page_input_path = "README.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="./search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul class="current">
+                <li class="toctree-l1 current"><a class="reference internal current" href="#">Home</a>
+    <ul class="current">
+    <li class="toctree-l2"><a class="reference internal" href="#what-is-specql">🎯 What is SpecQL?</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#quick-start">🚀 Quick Start</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#documentation-sections">📚 Documentation Sections</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#getting-started">Getting Started</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#guides">Guides</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#reference">Reference</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#examples">Examples</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#tutorials">Tutorials</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#best-practices">Best Practices</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#troubleshooting">Troubleshooting</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#key-concepts">💡 Key Concepts</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#yaml-specifications">YAML Specifications</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#generated-output">Generated Output</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#who-should-use-specql">🎯 Who Should Use SpecQL?</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#perfect-for">✅ Perfect For</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#use-cases">🚀 Use Cases</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#installation">🔧 Installation</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#why-specql">📈 Why SpecQL?</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#productivity">⚡ Productivity</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#quality">🛡️ Quality</a>
+    </li>
+    <li class="toctree-l3"><a class="reference internal" href="#maintainability">🔧 Maintainability</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#contributing">🤝 Contributing</a>
+        <ul>
+    <li class="toctree-l3"><a class="reference internal" href="#documentation-contributions">Documentation Contributions</a>
+    </li>
+        </ul>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#license">📄 License</a>
+    </li>
+    <li class="toctree-l2"><a class="reference internal" href="#next-steps">🎯 Next Steps</a>
+    </li>
+    </ul>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href=".">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Home</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="specql-documentation">SpecQL Documentation</h1>
+<p>Welcome to the comprehensive documentation for SpecQL, a powerful framework for building business logic libraries with automatic test generation and CLI tools.</p>
+<h2 id="what-is-specql">🎯 What is SpecQL?</h2>
+<p>SpecQL is a code generation framework that transforms YAML entity definitions into:
+- <strong>27 Reusable Mutation Patterns</strong> for common business logic operations
+- <strong>Automatic Test Generation</strong> for pgTAP and pytest
+- <strong>Complete CLI Tooling</strong> for development workflows</p>
+<h2 id="quick-start">🚀 Quick Start</h2>
+<p>New to SpecQL? Get started in 5 minutes:</p>
+<ol>
+<li><strong><a href="getting-started/installation/">Install SpecQL</a></strong></li>
+<li><strong><a href="getting-started/first-entity/">Create Your First Entity</a></strong></li>
+<li><strong><a href="getting-started/first-pattern/">Use Your First Pattern</a></strong></li>
+<li><strong><a href="getting-started/first-tests/">Generate Your First Tests</a></strong></li>
+</ol>
+<h2 id="documentation-sections">📚 Documentation Sections</h2>
+<h3 id="getting-started">Getting Started</h3>
+<ul>
+<li><strong><a href="getting-started/installation/">Installation Guide</a></strong> - Set up SpecQL in your environment</li>
+<li><strong><a href="getting-started/first-entity/">First Entity</a></strong> - Define your first business entity</li>
+<li><strong><a href="getting-started/first-pattern/">First Pattern</a></strong> - Use a mutation pattern</li>
+<li><strong><a href="getting-started/first-tests/">First Tests</a></strong> - Generate automatic tests</li>
+</ul>
+<h3 id="guides">Guides</h3>
+<ul>
+<li><strong><a href="guides/mutation-patterns/">Mutation Patterns</a></strong> - Complete library of 27 reusable patterns</li>
+<li><a href="guides/mutation-patterns/state-machines/">State Machines</a> - Workflow management</li>
+<li><a href="guides/mutation-patterns/multi-entity/">Multi-Entity Operations</a> - Cross-entity logic</li>
+<li><a href="guides/mutation-patterns/batch-operations/">Batch Operations</a> - Bulk processing</li>
+<li><a href="guides/mutation-patterns/validation/">Validation</a> - Data validation patterns</li>
+<li>
+<p><a href="guides/mutation-patterns/composing-patterns/">Composing Patterns</a> - Advanced combinations</p>
+</li>
+<li>
+<p><strong><a href="guides/test-generation/">Test Generation</a></strong> - Automatic testing capabilities</p>
+</li>
+<li><a href="guides/test-generation/pgtap-tests/">pgTAP Tests</a> - PostgreSQL native testing</li>
+<li><a href="guides/test-generation/pytest-tests/">pytest Tests</a> - Python integration testing</li>
+<li><a href="guides/test-generation/performance-tests/">Performance Testing</a> - Benchmarking</li>
+<li>
+<p><a href="guides/test-generation/ci-cd-integration.md">CI/CD Integration</a> - Automated pipelines</p>
+</li>
+<li>
+<p><strong><a href="guides/cli/">CLI Tools</a></strong> - Command-line interface</p>
+</li>
+<li><a href="guides/cli/generate.md">Generate Commands</a> - Code generation</li>
+<li><a href="guides/cli/validate.md">Validate Commands</a> - Schema validation</li>
+<li><a href="guides/cli/test.md">Test Commands</a> - Test execution</li>
+<li><a href="guides/cli/performance.md">Performance Commands</a> - Benchmarking</li>
+<li><a href="guides/cli/workflows.md">Common Workflows</a> - Development patterns</li>
+</ul>
+<h3 id="reference">Reference</h3>
+<ul>
+<li><strong><a href="reference/cli-reference/">CLI Reference</a></strong> - Complete command reference</li>
+<li><strong><a href="reference/pattern-library-api.md">Pattern Library API</a></strong> - All 27 patterns documented</li>
+<li><strong><a href="reference/test-generation-api.md">Test Generation API</a></strong> - Testing framework details</li>
+<li><strong><a href="reference/yaml-schema.md">YAML Schema</a></strong> - Entity definition format</li>
+<li><strong><a href="reference/error-codes.md">Error Codes</a></strong> - Troubleshooting reference</li>
+</ul>
+<h3 id="examples">Examples</h3>
+<ul>
+<li><strong><a href="examples/basic/">Basic Examples</a></strong> - Simple use cases</li>
+<li><a href="examples/basic/simple-crud.md">Simple CRUD</a></li>
+<li><a href="examples/basic/state-machine.md">State Machine</a></li>
+<li>
+<p><a href="examples/basic/validation.md">Validation</a></p>
+</li>
+<li>
+<p><strong><a href="examples/intermediate/">Intermediate Examples</a></strong> - Real-world scenarios</p>
+</li>
+<li><a href="examples/intermediate/multi-entity.md">Multi-Entity Operations</a></li>
+<li><a href="examples/intermediate/batch-operations.md">Batch Processing</a></li>
+<li>
+<p><a href="examples/intermediate/workflows.md">Business Workflows</a></p>
+</li>
+<li>
+<p><strong><a href="examples/advanced/">Advanced Examples</a></strong> - Complex patterns</p>
+</li>
+<li><a href="examples/advanced/saga-pattern.md">Saga Pattern</a></li>
+<li><a href="examples/advanced/event-driven.md">Event-Driven Architecture</a></li>
+<li><a href="examples/advanced/performance-tuning.md">Performance Tuning</a></li>
+</ul>
+<h3 id="tutorials">Tutorials</h3>
+<ul>
+<li><strong><a href="tutorials/01-hello-specql.md">01: Hello SpecQL</a></strong> - 5-minute introduction</li>
+<li><strong><a href="tutorials/02-building-crm.md">02: Building a CRM</a></strong> - Complete application (30 min)</li>
+<li><strong><a href="tutorials/03-state-machines.md">03: State Machines</a></strong> - Workflow implementation (45 min)</li>
+<li><strong><a href="tutorials/04-testing.md">04: Testing</a></strong> - Test generation and execution (30 min)</li>
+<li><strong><a href="tutorials/05-production.md">05: Production</a></strong> - Deployment and monitoring (60 min)</li>
+</ul>
+<h3 id="best-practices">Best Practices</h3>
+<ul>
+<li><strong><a href="best-practices/pattern-selection.md">Pattern Selection</a></strong> - Choosing the right patterns</li>
+<li><strong><a href="best-practices/entity-design.md">Entity Design</a></strong> - Designing effective entities</li>
+<li><strong><a href="best-practices/testing-strategy.md">Testing Strategy</a></strong> - Comprehensive testing approaches</li>
+<li><strong><a href="best-practices/performance.md">Performance</a></strong> - Optimization techniques</li>
+<li><strong><a href="best-practices/security.md">Security</a></strong> - Security considerations</li>
+</ul>
+<h3 id="troubleshooting">Troubleshooting</h3>
+<ul>
+<li><strong><a href="troubleshooting/common-issues.md">Common Issues</a></strong> - Frequently encountered problems</li>
+<li><strong><a href="troubleshooting/pattern-errors.md">Pattern Errors</a></strong> - Pattern-specific issues</li>
+<li><strong><a href="troubleshooting/test-generation-errors.md">Test Generation Errors</a></strong> - Testing problems</li>
+<li><strong><a href="troubleshooting/debugging.md">Debugging</a></strong> - Debugging techniques</li>
+</ul>
+<h2 id="key-concepts">💡 Key Concepts</h2>
+<h3 id="yaml-specifications">YAML Specifications</h3>
+<p>SpecQL uses simple YAML files to define your data models and business logic:</p>
+<pre><code class="language-yaml"># Example entity with patterns
+name: order
+fields:
+  id: uuid
+  status: string
+  total: decimal
+patterns:
+  - name: state_machine
+    states: [pending, confirmed, shipped, delivered]
+    transitions:
+      - from: pending
+        to: confirmed
+        trigger: confirm
+</code></pre>
+<h3 id="generated-output">Generated Output</h3>
+<p>From this simple spec, SpecQL generates:
+- <strong>Database Schema</strong> - Tables, constraints, indexes
+- <strong>Business Logic</strong> - Functions, triggers, views
+- <strong>Tests</strong> - Comprehensive test coverage
+- <strong>Documentation</strong> - API docs and guides</p>
+<h2 id="who-should-use-specql">🎯 Who Should Use SpecQL?</h2>
+<h3 id="perfect-for">✅ Perfect For</h3>
+<ul>
+<li><strong>Startups</strong> - Rapid prototyping and MVP development</li>
+<li><strong>Enterprises</strong> - Consistent, scalable business logic</li>
+<li><strong>Developers</strong> - Focus on business logic, not boilerplate</li>
+<li><strong>Teams</strong> - Standardized patterns across projects</li>
+</ul>
+<h3 id="use-cases">🚀 Use Cases</h3>
+<ul>
+<li><strong>E-commerce</strong> - Order management, inventory, payments</li>
+<li><strong>SaaS Applications</strong> - User management, subscriptions, billing</li>
+<li><strong>Financial Systems</strong> - Account management, transactions, compliance</li>
+<li><strong>Workflow Applications</strong> - Approval processes, state machines</li>
+</ul>
+<h2 id="installation">🔧 Installation</h2>
+<pre><code class="language-bash"># Install via pip (recommended)
+pip install specql
+
+# Or install from source
+git clone https://github.com/your-org/specql
+cd specql
+pip install -e .
+</code></pre>
+<h2 id="why-specql">📈 Why SpecQL?</h2>
+<h3 id="productivity">⚡ Productivity</h3>
+<ul>
+<li><strong>10x faster</strong> development with patterns</li>
+<li><strong>Zero-effort testing</strong> with auto-generation</li>
+<li><strong>Consistent architecture</strong> across projects</li>
+</ul>
+<h3 id="quality">🛡️ Quality</h3>
+<ul>
+<li><strong>Battle-tested patterns</strong> from real applications</li>
+<li><strong>Comprehensive testing</strong> out of the box</li>
+<li><strong>Performance optimized</strong> SQL generation</li>
+</ul>
+<h3 id="maintainability">🔧 Maintainability</h3>
+<ul>
+<li><strong>YAML specifications</strong> are easy to read and modify</li>
+<li><strong>Version control friendly</strong> - text-based specs</li>
+<li><strong>Documentation auto-generated</strong> from code</li>
+</ul>
+<h2 id="contributing">🤝 Contributing</h2>
+<p>We welcome contributions! See our <a href="../CONTRIBUTING.md">Contributing Guide</a> for details.</p>
+<h3 id="documentation-contributions">Documentation Contributions</h3>
+<ul>
+<li>Found an error? <a href="https://github.com/your-org/specql/issues">Open an issue</a></li>
+<li>Have an example? <a href="https://github.com/your-org/specql/pulls">Submit a PR</a></li>
+<li>Need help? <a href="https://discord.gg/specql">Join our Discord</a></li>
+</ul>
+<h2 id="license">📄 License</h2>
+<p>SpecQL is open source software licensed under the MIT License.</p>
+<hr />
+<h2 id="next-steps">🎯 Next Steps</h2>
+<ol>
+<li><strong><a href="getting-started/">Get Started</a></strong> - Install and create your first entity</li>
+<li><strong><a href="guides/mutation-patterns/">Explore Patterns</a></strong> - See what's possible</li>
+<li><strong><a href="examples/">Try Examples</a></strong> - Learn by doing</li>
+<li><strong><a href="https://discord.gg/specql">Join Community</a></strong> - Get help and share ideas</li>
+</ol>
+<p><strong>Ready to build something amazing? Let's get started! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = ".";</script>
+    <script src="js/theme_extra.js"></script>
+    <script src="js/theme.js"></script>
+      <script src="search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
+
+<!--
+MkDocs version : 1.6.1
+Build Date UTC : 2025-11-10 15:46:46.734908+00:00
+-->

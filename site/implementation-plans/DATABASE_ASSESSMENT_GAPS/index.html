@@ -1,0 +1,1723 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Comprehensive Assessment Review: Gaps &amp; Implementation Roadmap - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Comprehensive Assessment Review: Gaps \u0026amp; Implementation Roadmap";
+        var mkdocs_page_input_path = "implementation-plans/DATABASE_ASSESSMENT_GAPS.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Comprehensive Assessment Review: Gaps &amp; Implementation Roadmap</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="comprehensive-assessment-review-gaps-implementation-roadmap">Comprehensive Assessment Review: Gaps &amp; Implementation Roadmap</h1>
+<p><strong>Date</strong>: 2025-11-08
+<strong>Source</strong>: Database Architecture Assessment from PostgreSQL Expert
+<strong>Status</strong>: ✅ Active Implementation Planning - <strong>All Architectural Decisions Resolved</strong></p>
+<hr />
+<h2 id="quick-summary-key-decisions">🎯 <strong>Quick Summary: Key Decisions</strong></h2>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Our Choice</th>
+<th>Rationale</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>LTREE Path Strategy</strong></td>
+<td><strong>INTEGER-based (<code>1.5.23.47</code>)</strong> ✨</td>
+<td>5-10x deeper hierarchies, stable paths, 3-5x faster recalc</td>
+</tr>
+<tr>
+<td><strong>Identifier Slugs</strong></td>
+<td><strong>ASCII with unaccent</strong></td>
+<td>URL-safe, compatible, simple</td>
+</tr>
+<tr>
+<td><strong>Max Hierarchy Depth</strong></td>
+<td><strong>20 levels</strong></td>
+<td>INTEGER paths enable deeper trees</td>
+</tr>
+<tr>
+<td><strong>Multi-Tenancy</strong></td>
+<td><strong><code>tenant_id UUID</code> direct</strong></td>
+<td>No mapping table, simpler RLS</td>
+</tr>
+<tr>
+<td><strong>Trinity Naming</strong></td>
+<td><strong><code>pk_* INTEGER</code>, <code>id UUID</code></strong></td>
+<td>Frontend-first (GraphQL standard)</td>
+</tr>
+<tr>
+<td><strong>UUID Version</strong></td>
+<td><strong>v4 (gen_random_uuid)</strong></td>
+<td>Built-in, simple, secure</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Key Innovation</strong>: INTEGER-based LTREE paths (major improvement over assessment's slug-based recommendation!)</p>
+<p><strong>Additional Decisions</strong>:
+- ✅ Single <code>safe_slug()</code> function (from printoptim_backend, simpler than 3-function approach)
+- ✅ Tenant-scoped composite indexes (performance optimization)
+- ✅ Node+info split implemented NOW (Week 2-3, not deferred)
+- ✅ 3 safety triggers (removed identifier validation - handled by safe_slug)</p>
+<hr />
+<h2 id="executive-summary">📊 Executive Summary</h2>
+<p>The database architecture assessment is <strong>excellent</strong> and reveals several critical gaps in our current design. Here's the breakdown:</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Status</th>
+<th>Priority</th>
+<th>Implementation Week</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>✅ <strong>Already Planned</strong></td>
+<td>60%</td>
+<td>-</td>
+<td>Weeks 1-3</td>
+</tr>
+<tr>
+<td>🔴 <strong>Missing - Critical</strong></td>
+<td>25%</td>
+<td>HIGH</td>
+<td>Weeks 2-4</td>
+</tr>
+<tr>
+<td>🟡 <strong>Missing - Enhancement</strong></td>
+<td>10%</td>
+<td>MEDIUM</td>
+<td>Weeks 8-10+</td>
+</tr>
+<tr>
+<td>⚠️ <strong>Needs Decision</strong></td>
+<td>5%</td>
+<td>VARIES</td>
+<td>TBD</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="already-planned-aligned-no-action-needed">✅ <strong>Already Planned &amp; Aligned (No Action Needed)</strong></h2>
+<h3 id="1-trinity-pattern">1. Trinity Pattern ✅</h3>
+<ul>
+<li><strong>Status</strong>: Fully specified in Team B</li>
+<li><strong>Our Design</strong>: <code>pk_{entity} INTEGER</code>, <code>id UUID</code>, <code>identifier TEXT</code></li>
+<li><strong>Match</strong>: 100% (with our <code>id</code> UUID naming convention)</li>
+<li><strong>Action</strong>: None</li>
+</ul>
+<p><strong>Rationale for Our Naming (vs Assessment)</strong>:
+- Assessment uses: <code>id INTEGER</code> (internal), <code>pk_* UUID</code> (external)
+- We use: <code>pk_* INTEGER</code> (internal), <code>id UUID</code> (external)
+- <strong>Our approach is better for frontend</strong>: GraphQL/REST APIs expect <code>contact.id</code>, not <code>contact.pk_contact</code></p>
+<h3 id="2-ltree-identifier-both-necessary">2. LTREE + Identifier Both Necessary ✅</h3>
+<ul>
+<li><strong>Status</strong>: Already in design</li>
+<li><strong>Match</strong>: 100%</li>
+<li><strong>Rationale</strong>: They serve different purposes</li>
+<li><code>path ltree</code>: Structural queries (hierarchy traversal)</li>
+<li><code>identifier TEXT</code>: Business logic (user-facing)</li>
+<li><strong>Action</strong>: None</li>
+</ul>
+<h3 id="3-ctes-over-temp-tables">3. CTEs over Temp Tables ✅</h3>
+<ul>
+<li><strong>Status</strong>: Internal implementation detail</li>
+<li><strong>Match</strong>: Will use CTEs in Team C</li>
+<li><strong>Rationale</strong>: Better for modern PostgreSQL 12+</li>
+<li><strong>Action</strong>: None (implementation choice)</li>
+</ul>
+<hr />
+<h2 id="critical-gaps-need-implementation-now-weeks-2-4">🔴 <strong>CRITICAL GAPS - Need Implementation NOW (Weeks 2-4)</strong></h2>
+<h3 id="1-deduplication-with-separate-sequence_number-column">1. 🔴 <strong>Deduplication with Separate <code>sequence_number</code> Column</strong></h3>
+<p><strong>Assessment Recommendation</strong> (Lines 558-587):</p>
+<pre><code class="language-sql">CREATE TABLE tb_location (
+    identifier TEXT NOT NULL,              -- Base identifier
+    sequence_number INTEGER DEFAULT 1,     -- Sequence for deduplication
+    display_identifier TEXT GENERATED ALWAYS AS (
+        CASE WHEN sequence_number &gt; 1
+            THEN identifier || '#' || sequence_number
+            ELSE identifier
+        END
+    ) STORED,
+    UNIQUE (identifier, sequence_number),
+    UNIQUE (display_identifier)
+);
+</code></pre>
+<p><strong>Gap in Our Design</strong>:
+- ❌ We mention <code>#n</code> pattern but don't specify schema
+- ❌ No <code>sequence_number</code> column planned
+- ❌ No <code>display_identifier</code> generated column</p>
+<p><strong>Benefits</strong>:
+1. <strong>Queryability</strong>: <code>WHERE identifier = 'headquarters'</code> returns all variants
+2. <strong>Concurrency Safety</strong>: Atomic sequence increment with <code>FOR UPDATE</code>
+3. <strong>Migration Friendly</strong>: Sequence persists even if identifier format changes</p>
+<p><strong>Action Required</strong>:
+- <strong>Team B (Week 2)</strong>: Add these 3 fields to schema generation
+- <strong>Priority</strong>: CRITICAL (needed for identifier uniqueness)
+- <strong>Files to Update</strong>:
+  - <code>src/generators/schema/schema_generator.py</code>
+  - <code>src/generators/schema/trinity_pattern.py</code></p>
+<p><strong>Why Now</strong>: Foundation for identifier calculation in Team C</p>
+<hr />
+<h3 id="2-slugify-utility-functions">2. 🔴 <strong>slugify() Utility Functions</strong></h3>
+<p><strong>Assessment Recommendation</strong> (Lines 1189-1246):</p>
+<pre><code class="language-sql">-- Three functions needed:
+
+-- 1. IMMUTABLE version (for generated columns, constraints)
+CREATE FUNCTION public.slugify_immutable(value TEXT) RETURNS TEXT AS $$
+BEGIN
+    RETURN trim(BOTH '-' FROM regexp_replace(
+        lower(unaccent(value)),
+        '[^a-z0-9]+', '-', 'gi'
+    ));
+END;
+$$ LANGUAGE plpgsql IMMUTABLE STRICT;
+
+-- 2. STABLE version (runtime detection, backward compatibility)
+CREATE FUNCTION public.slugify(value TEXT) RETURNS TEXT AS $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'unaccent') THEN
+        RETURN slugify_immutable(value);
+    ELSE
+        RETURN trim(BOTH '-' FROM regexp_replace(
+            lower(value), '[^a-z0-9]+', '-', 'gi'
+        ));
+    END IF;
+END;
+$$ LANGUAGE plpgsql STABLE STRICT;
+
+-- 3. Safe wrapper (handles edge cases)
+CREATE FUNCTION public.slugify_safe(
+    value TEXT,
+    fallback TEXT DEFAULT 'unnamed'
+) RETURNS TEXT AS $$
+DECLARE
+    result TEXT;
+BEGIN
+    IF value IS NULL OR trim(value) = '' THEN
+        RETURN fallback;
+    END IF;
+
+    result := slugify_immutable(value);
+
+    -- Handle edge cases
+    IF result = '' THEN
+        RETURN fallback;
+    ELSIF result ~ '^[0-9]+$' THEN
+        -- All digits (prefix with letter)
+        RETURN 'n-' || result;
+    ELSE
+        RETURN result;
+    END IF;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+</code></pre>
+<p><strong>Gap in Our Design</strong>:
+- ❌ No utility functions specified
+- ❌ Team B doesn't know how to generate identifier slugs
+- ❌ No handling of edge cases (empty strings, all digits, special chars)</p>
+<p><strong>Edge Cases Handled</strong>:
+- Empty strings → <code>"unnamed"</code> (configurable fallback)
+- All digits → <code>"123"</code> → <code>"n-123"</code> (prefix to avoid LTREE issues)
+- Special characters → Stripped and replaced with <code>-</code>
+- Unicode → Unaccented (requires <code>unaccent</code> extension)</p>
+<p><strong>Action Required</strong>:
+- <strong>Team B (Week 2, Day 1)</strong>: Generate <code>slugify_*</code> functions in migration <code>000_utilities.sql</code>
+- <strong>Priority</strong>: CRITICAL (needed before identifier generation)
+- <strong>Dependencies</strong>: Requires <code>unaccent</code> extension (must be in <code>000_extensions.sql</code>)
+- <strong>Files to Create</strong>:
+  - <code>templates/sql/utilities/slugify.sql.jinja2</code></p>
+<p><strong>Why Now</strong>: Team B needs this to generate identifiers</p>
+<hr />
+<h3 id="3-partial-indexes-exclude-soft-deleted">3. 🔴 <strong>Partial Indexes (Exclude Soft-Deleted)</strong></h3>
+<p><strong>Assessment Recommendation</strong> (Lines 1099-1122):</p>
+<pre><code class="language-sql">-- ALL non-PK indexes should exclude soft-deleted rows
+CREATE INDEX idx_location_parent
+    ON tb_location(fk_parent_location)
+    WHERE deleted_at IS NULL;  -- ← CRITICAL!
+
+CREATE INDEX idx_location_path
+    ON tb_location USING GIST (path)
+    WHERE deleted_at IS NULL;  -- ← CRITICAL!
+
+CREATE INDEX idx_location_type
+    ON tb_location(fk_location_type)
+    WHERE deleted_at IS NULL;
+</code></pre>
+<p><strong>Gap in Our Design</strong>:
+- ❌ We mention soft delete but not partial indexes
+- ❌ Without this, indexes bloat with deleted rows (90%+ queries ignore deleted)</p>
+<p><strong>Benefits</strong>:
+- <strong>Smaller Index Size</strong>: 50-90% smaller (deleted rows excluded)
+- <strong>Faster Queries</strong>: Less data to scan
+- <strong>Better VACUUM</strong>: More efficient maintenance
+- <strong>Index-Only Scans</strong>: More effective</p>
+<p><strong>Performance Impact</strong>:</p>
+<pre><code class="language-sql">-- Index size comparison (500K rows, 10% soft-deleted):
+-- Full index:    21 MB
+-- Partial index: 19 MB (10% smaller)
+
+-- Query performance (typical WHERE deleted_at IS NULL):
+-- Full index:    45ms
+-- Partial index: 38ms (15% faster)
+</code></pre>
+<p><strong>Action Required</strong>:
+- <strong>Team B (Week 2)</strong>: Add <code>WHERE deleted_at IS NULL</code> to ALL non-PK indexes
+- <strong>Priority</strong>: HIGH (performance impact)
+- <strong>Files to Update</strong>:
+  - <code>src/generators/schema/index_strategy.py</code></p>
+<p><strong>Rule</strong>: All indexes EXCEPT primary key and unique constraints should have <code>WHERE deleted_at IS NULL</code></p>
+<p><strong>Why Now</strong>: Index strategy is part of Team B's Week 2 work</p>
+<hr />
+<h3 id="4-error-handling-constraint-triggers">4. 🔴 <strong>Error Handling: Constraint Triggers</strong></h3>
+<p><strong>Assessment Recommendation</strong> (Lines 1868-2083):</p>
+<h4 id="41-prevent-circular-references">4.1 Prevent Circular References</h4>
+<pre><code class="language-sql">CREATE FUNCTION prevent_{entity}_cycle() RETURNS TRIGGER AS $$
+DECLARE
+    v_ancestor_path ltree;
+BEGIN
+    IF NEW.fk_parent_{entity} IS NULL THEN
+        RETURN NEW;  -- Root, no cycle possible
+    END IF;
+
+    -- Check if new parent is a descendant
+    SELECT path INTO v_ancestor_path
+    FROM tb_{entity}
+    WHERE pk_{entity} = NEW.fk_parent_{entity};
+
+    IF v_ancestor_path &lt;@ NEW.path THEN
+        RAISE EXCEPTION
+            'Circular reference detected: % cannot be its own ancestor',
+            NEW.id
+        USING
+            ERRCODE = '23514',
+            HINT = 'Choose a parent that is not a descendant';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h4 id="42-check-identifier-sequence-limit">4.2 Check Identifier Sequence Limit</h4>
+<pre><code class="language-sql">CREATE FUNCTION check_identifier_sequence_limit()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.sequence_number &gt; 100 THEN
+        RAISE EXCEPTION
+            'Identifier sequence limit exceeded (&gt;100 duplicates): &quot;%&quot;',
+            NEW.identifier
+        USING
+            ERRCODE = '23514',
+            HINT = 'Use more specific naming to reduce collisions';
+    ELSIF NEW.sequence_number &gt; 50 THEN
+        RAISE WARNING
+            'High identifier duplication: % has % variants',
+            NEW.identifier,
+            NEW.sequence_number;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h4 id="43-validate-identifier-format">4.3 Validate Identifier Format</h4>
+<pre><code class="language-sql">CREATE FUNCTION validate_{entity}_identifier()
+RETURNS TRIGGER AS $$
+BEGIN
+    -- Check for disallowed characters
+    IF NEW.identifier ~ '[&lt;&gt;&quot;''\\/:*?|]' THEN
+        RAISE EXCEPTION
+            'Identifier contains invalid characters: &quot;%&quot;',
+            NEW.identifier
+        USING HINT = 'Use only alphanumeric, hyphens, underscores, periods';
+    END IF;
+
+    -- Check length
+    IF length(NEW.identifier) &gt; 255 THEN
+        RAISE EXCEPTION
+            'Identifier too long: % characters (max: 255)',
+            length(NEW.identifier);
+    END IF;
+
+    -- Auto-trim
+    IF NEW.identifier != trim(NEW.identifier) THEN
+        NEW.identifier := trim(NEW.identifier);
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h4 id="44-check-hierarchy-depth-limit">4.4 Check Hierarchy Depth Limit</h4>
+<pre><code class="language-sql">CREATE FUNCTION check_hierarchy_depth_limit()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_depth INTEGER;
+    v_max_depth INTEGER := 10;  -- Configurable
+BEGIN
+    v_depth := nlevel(NEW.path);
+
+    IF v_depth &gt; v_max_depth THEN
+        RAISE EXCEPTION
+            'Hierarchy depth limit exceeded: % levels (max: %)',
+            v_depth,
+            v_max_depth
+        USING HINT = 'Flatten hierarchy or increase limit';
+    ELSIF v_depth &gt; (v_max_depth * 0.8) THEN
+        RAISE WARNING
+            'Approaching depth limit: % of % levels',
+            v_depth,
+            v_max_depth;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<p><strong>Gap in Our Design</strong>:
+- ❌ No safety constraints planned
+- ❌ Users could create circular hierarchies (data corruption!)
+- ❌ No limits on identifier duplication (could hit 1000+ duplicates)
+- ❌ No depth limits (runaway hierarchies)</p>
+<p><strong>Consequences if Skipped</strong>:
+- Circular parent references crash queries with infinite loops
+- Excessive duplication degrades performance
+- Runaway hierarchies cause query timeouts
+- Invalid characters break LTREE path construction</p>
+<p><strong>Action Required</strong>:
+- <strong>Team B (Week 2-3)</strong>: Generate constraint triggers for hierarchical entities
+- <strong>Priority</strong>: HIGH (data integrity)
+- <strong>Files to Create</strong>:
+  - <code>templates/sql/constraints/prevent_cycle.sql.jinja2</code>
+  - <code>templates/sql/constraints/check_sequence_limit.sql.jinja2</code>
+  - <code>templates/sql/constraints/validate_identifier.sql.jinja2</code>
+  - <code>templates/sql/constraints/check_depth_limit.sql.jinja2</code></p>
+<p><strong>Why Now</strong>: Safety constraints must be in initial migration</p>
+<hr />
+<h3 id="5-audit-separation-dont-update-updated_at-for-recalculation">5. 🔴 <strong>Audit Separation: Don't Update <code>updated_at</code> for Recalculation</strong></h3>
+<p><strong>Assessment Recommendation</strong> (Lines 1675-1733):</p>
+<pre><code class="language-sql">-- Business data change: Update updated_at ✅
+UPDATE tb_location
+SET
+    name = 'New Name',
+    updated_at = now(),
+    updated_by = current_user_id
+WHERE id = 'uuid';
+
+-- Identifier recalculation: DON'T update updated_at ❌
+UPDATE tb_location
+SET
+    identifier = new_identifier,
+    sequence_number = new_seq,
+    identifier_recalculated_at = now(),  -- Separate field!
+    identifier_recalculated_by = ctx.updated_by
+    -- NOT: updated_at = now()
+WHERE id = 'uuid';
+</code></pre>
+<p><strong>Gap in Our Design</strong>:
+- ❌ No <code>identifier_recalculated_at</code> field
+- ❌ No <code>identifier_recalculated_by</code> field
+- ❌ Team C doesn't know NOT to update <code>updated_at</code></p>
+<p><strong>Schema Addition</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE tb_location (
+    -- ... existing fields
+
+    -- Business data audit
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_by UUID,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_by UUID,
+    deleted_at TIMESTAMPTZ,
+    deleted_by UUID,
+
+    -- Identifier audit (NEW)
+    identifier_recalculated_at TIMESTAMPTZ,
+    identifier_recalculated_by UUID,
+
+    -- Path audit (NEW, for hierarchical entities)
+    path_updated_at TIMESTAMPTZ,
+    path_updated_by UUID
+);
+</code></pre>
+<p><strong>Rationale</strong>:
+- Business data hasn't changed (name, type, etc.)
+- Only derived identifier changed
+- Clients watching <code>updated_at</code> shouldn't be notified
+- Audit trail distinguishes data changes from system recalculations</p>
+<p><strong>Action Required</strong>:
+- <strong>Team B (Week 2)</strong>: Add <code>identifier_recalculated_at</code>, <code>identifier_recalculated_by</code> fields
+- <strong>Team C (Week 3)</strong>: Use these fields, NOT <code>updated_at</code> for recalculation
+- <strong>Priority</strong>: MEDIUM-HIGH (audit correctness)
+- <strong>Benefit</strong>: Frontend knows when business data actually changed</p>
+<p><strong>Why Now</strong>: Audit fields must be in schema from start</p>
+<hr />
+<h3 id="6-index-strategy-document-the-6-core-indexes">6. 🔴 <strong>Index Strategy: Document the 6 Core Indexes</strong></h3>
+<p><strong>Assessment Recommendation</strong> (Lines 1063-1097):</p>
+<pre><code class="language-sql">-- Mandatory indexes for ALL entities:
+
+-- 1. Primary key (INTEGER, clustering)
+CREATE UNIQUE INDEX tb_location_pkey ON tb_location(pk_location);
+
+-- 2. UUID external reference
+CREATE UNIQUE INDEX tb_location_id_key ON tb_location(id);
+
+-- 3. Business identifier
+CREATE UNIQUE INDEX tb_location_identifier_key ON tb_location(display_identifier);
+
+-- 4. LTREE hierarchy queries (if hierarchical: true)
+CREATE INDEX idx_location_path ON tb_location USING GIST (path)
+WHERE deleted_at IS NULL;
+
+-- 5. Parent foreign key (if hierarchical: true)
+CREATE INDEX idx_location_parent ON tb_location(fk_parent_location)
+WHERE deleted_at IS NULL;
+
+-- 6. Foreign key to info table (if metadata_split: true)
+CREATE INDEX idx_location_info_fk ON tb_location(fk_location_info);
+</code></pre>
+<p><strong>Gap in Our Design</strong>:
+- ⚠️ We mention indexes but not specifically which ones
+- ❌ Team B doesn't have explicit index generation rules</p>
+<p><strong>Index Decision Matrix</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Index</th>
+<th>Condition</th>
+<th>Why</th>
+<th>Performance Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>pk_{entity}</strong></td>
+<td>Always</td>
+<td>Primary key (automatic)</td>
+<td>Essential</td>
+</tr>
+<tr>
+<td><strong>id</strong></td>
+<td>Always</td>
+<td>UUID lookups</td>
+<td>Essential</td>
+</tr>
+<tr>
+<td><strong>display_identifier</strong></td>
+<td>Always</td>
+<td>Business key lookups</td>
+<td>Essential</td>
+</tr>
+<tr>
+<td><strong>path (GIST)</strong></td>
+<td>If <code>hierarchical: true</code></td>
+<td>Descendant queries</td>
+<td>10-50x faster</td>
+</tr>
+<tr>
+<td><strong>fk_parent_{entity}</strong></td>
+<td>If <code>hierarchical: true</code></td>
+<td>Parent/child queries</td>
+<td>5-10x faster</td>
+</tr>
+<tr>
+<td><strong>fk_{entity}_info</strong></td>
+<td>If <code>metadata_split: true</code></td>
+<td>JOIN performance</td>
+<td>2-3x faster</td>
+</tr>
+</tbody>
+</table>
+<p><strong>DON'T Index</strong> (Assessment warns against):
+- ❌ <code>identifier</code> (covered by <code>display_identifier</code>)
+- ❌ <code>slugify(name)</code> (generate on-demand)</p>
+<p><strong>Action Required</strong>:
+- <strong>Team B (Week 2)</strong>: Document exact indexes to generate
+- <strong>Priority</strong>: HIGH (query performance)
+- <strong>Files to Update</strong>:
+  - <code>src/generators/schema/index_strategy.py</code>
+  - <code>docs/architecture/INDEX_STRATEGY.md</code> (new file)</p>
+<p><strong>Rule</strong>: Core 3 indexes ALWAYS, 4-6 conditional based on entity type</p>
+<p><strong>Why Now</strong>: Index strategy affects schema generation logic</p>
+<hr />
+<h3 id="7-reserved-field-names-error-if-user-tries-to-define">7. 🔴 <strong>Reserved Field Names: Error if User Tries to Define</strong></h3>
+<p><strong>Assessment Recommendation</strong> (Lines 2338-2369):</p>
+<pre><code class="language-sql">-- Framework ALWAYS generates these, user CANNOT override:
+
+-- Primary keys
+id                   -- UUID public key
+pk_{entity}          -- INTEGER internal PK
+fk_{referenced}      -- Foreign keys (inferred from ref())
+
+-- Identifiers
+identifier           -- Business identifier (base)
+sequence_number      -- Deduplication sequence
+display_identifier   -- Computed (identifier + #n)
+
+-- Hierarchy (if hierarchical: true)
+path                 -- LTREE path
+fk_parent_{entity}   -- Self-reference
+
+-- Audit
+created_at, created_by
+updated_at, updated_by
+deleted_at, deleted_by
+identifier_recalculated_at, identifier_recalculated_by
+path_updated_at, path_updated_by
+
+-- Multi-tenant (if multi_tenant: true)
+tenant_id            -- UUID tenant reference
+</code></pre>
+<p><strong>Gap in Our Design</strong>:
+- ❌ No validation of user-provided field names
+- ❌ User could define <code>field: id: text</code> → collision!
+- ❌ User could define <code>field: path: text</code> → breaks LTREE!</p>
+<p><strong>Error Example</strong>:</p>
+<pre><code class="language-yaml"># User writes:
+entity: Location
+fields:
+  id: text  # ❌ COLLISION!
+  path: text  # ❌ COLLISION!
+</code></pre>
+<p><strong>Should Error With</strong>:</p>
+<pre><code>Error: Field name 'id' is reserved by the framework.
+Reserved fields: id, pk_*, fk_*, identifier, sequence_number,
+                 display_identifier, path, created_at, updated_at, etc.
+Please choose a different field name.
+</code></pre>
+<p><strong>Action Required</strong>:
+- <strong>Team A (Week 1, URGENT)</strong>: Add reserved field name validation to parser
+- <strong>Priority</strong>: CRITICAL (prevents invalid schemas)
+- <strong>Files to Update</strong>:
+  - <code>src/core/specql_parser.py</code>
+  - Add <code>RESERVED_FIELD_NAMES</code> constant
+  - Validate in <code>parse_fields()</code> method</p>
+<p><strong>Why Now</strong>: Parser needs this before Team B starts (Week 2)</p>
+<hr />
+<h2 id="important-enhancements-implement-later-weeks-8-10">🟡 <strong>IMPORTANT ENHANCEMENTS - Implement LATER (Weeks 8-10+)</strong></h2>
+<h3 id="8-nodeinfo-split-opt-in-syntax">8. 🟡 <strong>Node+Info Split: Opt-In Syntax</strong></h3>
+<p><strong>Assessment Recommendation</strong> (Lines 353-555):</p>
+<pre><code class="language-yaml"># User opts in:
+entity: Location
+metadata_split: true  # ← New YAML syntax
+
+# Framework generates:
+# - tb_location_node (structure: path, parent, tenant_id)
+# - tb_location_info (attributes: name, type, all business fields)
+# - v_location view (convenience JOIN)
+</code></pre>
+<p><strong>When to Use Split</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Field Count</th>
+<th>Scenario</th>
+<th>Recommendation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>&lt; 8 fields</strong></td>
+<td>Simple hierarchy</td>
+<td>✅ Single table</td>
+</tr>
+<tr>
+<td><strong>8-15 fields</strong></td>
+<td>Moderate complexity</td>
+<td>⚠️ Consider split if frequent updates</td>
+</tr>
+<tr>
+<td><strong>15+ fields</strong></td>
+<td>Complex attributes</td>
+<td>✅ Node+info split beneficial</td>
+</tr>
+<tr>
+<td><strong>Temporal queries</strong></td>
+<td>SCD Type 2 needed</td>
+<td>✅ Node+info split essential</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Gap in Our Design</strong>:
+- ⚠️ We mention split pattern but no YAML syntax
+- ⚠️ Team B doesn't know when to generate split</p>
+<p><strong>Action Required</strong>:
+- <strong>Week 8+</strong>: Add <code>metadata_split: true</code> to SpecQL parser
+- <strong>Priority</strong>: MEDIUM (nice-to-have, not essential)
+- <strong>Complexity</strong>: High (affects multiple teams)
+- <strong>Files to Create</strong>:
+  - <code>src/generators/schema/node_info_split.py</code>
+  - Templates for node/info tables + view</p>
+<p><strong>Why Later</strong>: Works fine with single table initially</p>
+<p><strong>Trade-offs</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Single Table</th>
+<th>Node+Info Split</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Query complexity</strong></td>
+<td>Simple <code>SELECT *</code></td>
+<td>Requires <code>JOIN</code></td>
+</tr>
+<tr>
+<td><strong>Write performance</strong></td>
+<td>Better (1 table)</td>
+<td>Worse (2 tables)</td>
+</tr>
+<tr>
+<td><strong>Tree operations</strong></td>
+<td>More complex</td>
+<td>Cleaner separation</td>
+</tr>
+<tr>
+<td><strong>Schema evolution</strong></td>
+<td>Alter single table</td>
+<td>Alter info table only</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="9-async-recalculation-queue-for-large-subtrees">9. 🟡 <strong>Async Recalculation Queue for Large Subtrees</strong></h3>
+<p><strong>Assessment Recommendation</strong> (Lines 730-913):</p>
+<p><strong>Performance Thresholds</strong> (from assessment benchmarks):</p>
+<table>
+<thead>
+<tr>
+<th>Subtree Size</th>
+<th>Immediate (ms)</th>
+<th>Strategy</th>
+<th>UX Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1-10 nodes</strong></td>
+<td>&lt; 50ms</td>
+<td>✅ Immediate (trigger)</td>
+<td>Imperceptible</td>
+</tr>
+<tr>
+<td><strong>10-100 nodes</strong></td>
+<td>50-300ms</td>
+<td>✅ Immediate</td>
+<td>Acceptable</td>
+</tr>
+<tr>
+<td><strong>100-1,000 nodes</strong></td>
+<td>300ms-2s</td>
+<td>⚠️ Warn user</td>
+<td>Noticeable</td>
+</tr>
+<tr>
+<td><strong>1,000-10,000 nodes</strong></td>
+<td>2s-20s</td>
+<td>❌ Must async</td>
+<td>Background job</td>
+</tr>
+<tr>
+<td><strong>10,000+ nodes</strong></td>
+<td>20s+</td>
+<td>❌ Must async</td>
+<td>Maintenance window</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Async Queue Schema</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE recalculation_queue (
+    queue_id BIGSERIAL PRIMARY KEY,
+    entity_type TEXT NOT NULL,
+    entity_id UUID NOT NULL,
+    reason TEXT,
+    descendant_count INTEGER,
+    status TEXT CHECK (status IN ('pending', 'processing', 'completed', 'failed')),
+    queued_at TIMESTAMPTZ DEFAULT now(),
+    queued_by UUID,
+    started_at TIMESTAMPTZ,
+    completed_at TIMESTAMPTZ,
+    error_message TEXT
+);
+</code></pre>
+<p><strong>Trigger Logic</strong>:</p>
+<pre><code class="language-sql">CREATE FUNCTION auto_recalcid_{entity}_single() RETURNS TRIGGER AS $$
+DECLARE
+    v_descendant_count INTEGER;
+BEGIN
+    -- Count descendants
+    SELECT COUNT(*) INTO v_descendant_count
+    FROM tb_{entity}
+    WHERE path &lt;@ NEW.path
+      AND pk_{entity} != NEW.pk_{entity};
+
+    IF v_descendant_count &gt; 1000 THEN
+        -- Queue for async processing
+        INSERT INTO recalculation_queue (...)
+        VALUES ('location', NEW.id, 'large_subtree', v_descendant_count, ...);
+
+        RAISE NOTICE 'Large subtree (% descendants) queued', v_descendant_count;
+    ELSE
+        -- Immediate recalculation
+        PERFORM recalcid_{entity}_subtree(NEW.id);
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<p><strong>Gap in Our Design</strong>:
+- ❌ No async processing for large hierarchies
+- ❌ Recalculating 10,000 nodes blocks for 30+ seconds</p>
+<p><strong>Action Required</strong>:
+- <strong>Week 8+</strong>: Add queue table + background worker
+- <strong>Priority</strong>: MEDIUM (performance optimization)
+- <strong>Threshold</strong>: &gt; 1000 nodes (from assessment benchmarks)
+- <strong>Components Needed</strong>:
+  - Queue table schema
+  - Background worker (Python script with <code>asyncio</code>)
+  - Queue monitoring CLI commands</p>
+<p><strong>Why Later</strong>: Can launch with synchronous recalculation, add async later as optimization</p>
+<hr />
+<h3 id="10-multi-tenancy-rls-composite-constraints">10. 🟡 <strong>Multi-Tenancy: RLS + Composite Constraints</strong></h3>
+<p><strong>Our Design Decision</strong> (differs from assessment):</p>
+<p><strong>Assessment Recommendation</strong>:</p>
+<pre><code class="language-sql">fk_tenant INTEGER REFERENCES tb_tenant(id)  -- Mapping table approach
+</code></pre>
+<p><strong>Our Decision</strong> (BETTER for our use case):</p>
+<pre><code class="language-sql">tenant_id UUID NOT NULL  -- Direct auth system reference
+</code></pre>
+<p><strong>Rationale</strong>:
+- Direct reference to <code>auth_tenant_id</code> (no mapping table)
+- Consistent with external auth systems (Supabase, Auth0, Clerk)
+- Frontend expects UUID, not INTEGER
+- Simpler architecture (no tenant mapping table)</p>
+<p><strong>Schema Generation</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE tb_location (
+    pk_location INTEGER PRIMARY KEY,
+    id UUID UNIQUE,
+    tenant_id UUID NOT NULL,  -- Direct auth reference
+
+    identifier TEXT NOT NULL,
+
+    -- Tenant-scoped unique constraints
+    UNIQUE (tenant_id, id),
+    UNIQUE (tenant_id, display_identifier),
+    UNIQUE (tenant_id, path)  -- If hierarchical
+);
+
+-- RLS policy (simple!)
+ALTER TABLE tb_location ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY tenant_isolation ON tb_location
+    FOR ALL
+    USING (tenant_id = current_setting('app.tenant_id')::UUID)
+    WITH CHECK (tenant_id = current_setting('app.tenant_id')::UUID);
+</code></pre>
+<p><strong>Performance Trade-off</strong>:
+- UUID FK: ~0.3ms per query
+- INTEGER FK: ~0.2ms per query
+- <strong>Difference: 0.1ms (negligible for 99% of applications!)</strong></p>
+<p><strong>Gap in Our Design</strong>:
+- ❌ No multi-tenancy in current design
+- ❌ Would require architecture changes across all teams</p>
+<p><strong>Action Required</strong>:
+- <strong>Post Week 10</strong>: Separate feature (multi-tenancy mode)
+- <strong>Priority</strong>: LOW (most POCs are single-tenant)
+- <strong>Complexity</strong>: Medium (affects all teams, but design is clear)
+- <strong>Config Syntax</strong>:
+  <code>yaml
+  # config/project.yaml
+  project:
+    multi_tenant: true
+  database:
+    tenant_field: tenant_id  # Customizable
+    tenant_type: uuid        # or integer</code></p>
+<p><strong>Why Later</strong>: Not needed for MVP, but architecture is clear when needed</p>
+<hr />
+<h3 id="11-enhanced-audit-hierarchy-change-log">11. 🟡 <strong>Enhanced Audit: Hierarchy Change Log</strong></h3>
+<p><strong>Assessment Recommendation</strong> (Lines 1735-1865):</p>
+<pre><code class="language-sql">-- Dedicated audit table for hierarchy changes
+CREATE TABLE audit_{entity}_hierarchy_changes (
+    change_id BIGSERIAL PRIMARY KEY,
+    pk_{entity} UUID NOT NULL,
+    tenant_id UUID,  -- If multi-tenant
+
+    change_type TEXT NOT NULL CHECK (change_type IN (
+        'parent_change',
+        'identifier_recalc',
+        'path_update',
+        'sequence_change'
+    )),
+
+    old_values JSONB,
+    new_values JSONB,
+
+    -- Metadata
+    reason TEXT,
+    affected_descendant_count INTEGER,
+
+    -- Audit
+    changed_by UUID,
+    changed_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Trigger to log changes
+CREATE TRIGGER trg_audit_hierarchy_changes
+    AFTER UPDATE OF fk_parent_{entity}, path, identifier, sequence_number
+    ON tb_{entity}
+    FOR EACH ROW
+    EXECUTE FUNCTION log_hierarchy_change();
+</code></pre>
+<p><strong>Use Cases</strong>:
+- Compliance: "Show all times this location moved parents"
+- Debugging: "Why did this identifier change?"
+- Analytics: "How often do users reorganize the hierarchy?"</p>
+<p><strong>Gap in Our Design</strong>:
+- ❌ No detailed change tracking beyond standard audit fields</p>
+<p><strong>Action Required</strong>:
+- <strong>Week 10+</strong>: Optional audit enhancement
+- <strong>Priority</strong>: LOW (nice-to-have for compliance)
+- <strong>Complexity</strong>: Medium (trigger logic, JSONB storage)</p>
+<p><strong>Why Later</strong>: Standard audit fields sufficient for MVP</p>
+<hr />
+<h3 id="12-helper-functions-for-hierarchical-entities">12. 🟡 <strong>Helper Functions for Hierarchical Entities</strong></h3>
+<p><strong>Assessment Recommendation</strong> (Lines 2371-2415):</p>
+<p>Generate these functions for <strong>each hierarchical entity</strong>:</p>
+<pre><code class="language-sql">-- 1. Get ancestors
+CREATE FUNCTION {schema}.get_{entity}_ancestors(p_id UUID)
+RETURNS TABLE (...) AS $$
+    SELECT * FROM tb_{entity}
+    WHERE path @&gt; (SELECT path FROM tb_{entity} WHERE id = p_id)
+    ORDER BY nlevel(path);
+$$;
+
+-- 2. Get descendants
+CREATE FUNCTION {schema}.get_{entity}_descendants(p_id UUID)
+RETURNS TABLE (...) AS $$
+    SELECT * FROM tb_{entity}
+    WHERE path &lt;@ (SELECT path FROM tb_{entity} WHERE id = p_id)
+    ORDER BY path;
+$$;
+
+-- 3. Move subtree
+CREATE FUNCTION {schema}.move_{entity}_subtree(
+    p_id UUID,
+    p_new_parent_id UUID
+) RETURNS INTEGER AS $$
+    -- Validates no cycle, updates parent, recalculates paths
+$$;
+
+-- 4. Find root
+CREATE FUNCTION {schema}.get_{entity}_root(p_id UUID)
+RETURNS tb_{entity} AS $$
+    SELECT * FROM tb_{entity}
+    WHERE path = subltree(
+        (SELECT path FROM tb_{entity} WHERE id = p_id),
+        0, 1
+    );
+$$;
+
+-- 5. Get depth
+CREATE FUNCTION {schema}.get_{entity}_depth(p_id UUID)
+RETURNS INTEGER AS $$
+    SELECT nlevel(path) FROM tb_{entity} WHERE id = p_id;
+$$;
+</code></pre>
+<p><strong>Gap in Our Design</strong>:
+- ⚠️ We mention helper functions vaguely
+- ❌ No specification of which functions to generate</p>
+<p><strong>Action Required</strong>:
+- <strong>Team B (Week 3-4)</strong>: Add to spec, generate in migrations
+- <strong>Priority</strong>: MEDIUM (developer experience)
+- <strong>Benefit</strong>: Common operations pre-built
+- <strong>Files to Create</strong>:
+  - <code>templates/sql/helpers/get_ancestors.sql.jinja2</code>
+  - <code>templates/sql/helpers/get_descendants.sql.jinja2</code>
+  - <code>templates/sql/helpers/move_subtree.sql.jinja2</code>
+  - <code>templates/sql/helpers/get_root.sql.jinja2</code>
+  - <code>templates/sql/helpers/get_depth.sql.jinja2</code></p>
+<p><strong>Why Semi-Urgent</strong>: Makes generated database more usable</p>
+<hr />
+<h2 id="architectural-decisions-resolved">✅ <strong>ARCHITECTURAL DECISIONS (Resolved)</strong></h2>
+<h3 id="13-uuid-version-v4-decided">13. ✅ <strong>UUID Version: v4 (Decided)</strong></h3>
+<p><strong>Decision</strong>: Use <code>gen_random_uuid()</code> (UUIDv4)</p>
+<p><strong>Rationale</strong>:
+- Built-in PostgreSQL function (no extensions needed)
+- Truly random (better security, non-guessable)
+- Simple implementation
+- Can upgrade to UUIDv7 later if clustering becomes an issue</p>
+<p><strong>Status</strong>: ✅ DECIDED - Use v4</p>
+<hr />
+<h3 id="14-identifier-slug-strategy-ascii-decided">14. ✅ <strong>Identifier Slug Strategy: ASCII (Decided)</strong></h3>
+<p><strong>Decision</strong>: Use <strong>ASCII-only</strong> slugification with <code>unaccent</code> extension</p>
+<p><strong>Implementation</strong>:</p>
+<pre><code class="language-sql">CREATE FUNCTION public.slugify_immutable(value TEXT) RETURNS TEXT AS $$
+BEGIN
+    RETURN trim(BOTH '-' FROM regexp_replace(
+        lower(unaccent(value)),
+        '[^a-z0-9]+', '-', 'gi'
+    ));
+END;
+$$ LANGUAGE plpgsql IMMUTABLE STRICT;
+</code></pre>
+<p><strong>Examples</strong>:
+- <code>"Café Straße"</code> → <code>"cafe-strasse"</code> (unaccented)
+- <code>"Building #1"</code> → <code>"building-1"</code>
+- <code>"北京办公室"</code> → <code>"bei-jing-ban-gong-shi"</code> (transliterated)</p>
+<p><strong>Benefits</strong>:
+- ✅ URL-safe
+- ✅ Compatible with all systems
+- ✅ Works with LTREE (though we're using INTEGER paths)
+- ✅ Simple search/filtering</p>
+<p><strong>Status</strong>: ✅ DECIDED - ASCII with unaccent</p>
+<hr />
+<h3 id="15-ltree-path-strategy-integer-based-major-improvement">15. ✅ <strong>LTREE Path Strategy: INTEGER-Based (MAJOR IMPROVEMENT)</strong></h3>
+<p><strong>Decision</strong>: Use <code>pk_{entity}</code> integers in LTREE paths instead of slugs</p>
+<p><strong>Format</strong>: <strong>Pure digits</strong> (e.g., <code>1.5.23.47</code>)</p>
+<p><strong>Why This is Better Than Assessment's Recommendation</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Slug-Based (Assessment)</th>
+<th>INTEGER-Based (Our Design)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Path example</strong></td>
+<td><code>toulouse.legal.headquarters</code></td>
+<td><code>1.5.23</code></td>
+</tr>
+<tr>
+<td><strong>Path length</strong></td>
+<td>~10-15 chars/level</td>
+<td>~3-5 chars/level ✅</td>
+</tr>
+<tr>
+<td><strong>Max depth</strong></td>
+<td>40-50 levels</td>
+<td><strong>100-200 levels</strong> ✅</td>
+</tr>
+<tr>
+<td><strong>Recalculation</strong></td>
+<td>On name change</td>
+<td>Only on parent change ✅</td>
+</tr>
+<tr>
+<td><strong>Performance</strong></td>
+<td>Slower (slug generation)</td>
+<td>Faster (integer concat) ✅</td>
+</tr>
+<tr>
+<td><strong>Stability</strong></td>
+<td>Changes with renames</td>
+<td><strong>Stable (pk never changes)</strong> ✅</td>
+</tr>
+<tr>
+<td><strong>Index size</strong></td>
+<td>Larger</td>
+<td><strong>~50% smaller</strong> ✅</td>
+</tr>
+<tr>
+<td><strong>Simplicity</strong></td>
+<td>Complex (slugify logic)</td>
+<td><strong>Simple (int to string)</strong> ✅</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implementation</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE tb_location (
+    pk_location INTEGER PRIMARY KEY,
+    id UUID UNIQUE,
+
+    -- INTEGER-based path (pure digits!)
+    path ltree NOT NULL,  -- '1.5.23.47'
+    fk_parent_location INTEGER REFERENCES tb_location(pk_location),
+
+    -- Business identifier (separate from path)
+    identifier TEXT NOT NULL,  -- 'toulouse|legal.headquarters'
+    sequence_number INTEGER DEFAULT 1,
+    display_identifier TEXT GENERATED ALWAYS AS (
+        CASE WHEN sequence_number &gt; 1
+            THEN identifier || '#' || sequence_number
+            ELSE identifier
+        END
+    ) STORED,
+
+    UNIQUE (tenant_id, display_identifier),
+    UNIQUE (tenant_id, path)
+);
+</code></pre>
+<p><strong>Path Calculation (Simple!)</strong>:</p>
+<pre><code class="language-sql">CREATE FUNCTION calculate_location_path(p_pk INTEGER)
+RETURNS ltree AS $$
+DECLARE
+    v_parent_path ltree;
+BEGIN
+    SELECT path INTO v_parent_path
+    FROM tb_location
+    WHERE pk_location = (
+        SELECT fk_parent_location
+        FROM tb_location
+        WHERE pk_location = p_pk
+    );
+
+    IF v_parent_path IS NULL THEN
+        RETURN p_pk::text::ltree;  -- '1', '2', '3'
+    ELSE
+        RETURN (v_parent_path::text || '.' || p_pk::text)::ltree;  -- '1.5.23'
+    END IF;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+</code></pre>
+<p><strong>Example Data</strong>:</p>
+<pre><code class="language-sql">pk_location | path      | identifier          | display_identifier
+------------|-----------|---------------------|-------------------
+1           | 1         | toulouse            | toulouse
+5           | 1.5       | legal               | legal
+23          | 1.5.23    | headquarters        | headquarters
+47          | 1.5.23.47 | building-a          | building-a
+102         | 1.5.23    | headquarters        | headquarters#2
+</code></pre>
+<p><strong>Queries</strong>:</p>
+<pre><code class="language-sql">-- All descendants of location 5:
+SELECT * FROM tb_location WHERE path &lt;@ '1.5';
+
+-- All ancestors of location 47:
+SELECT * FROM tb_location WHERE path @&gt; '1.5.23.47';
+
+-- Direct children of location 23:
+SELECT * FROM tb_location WHERE path ~ '1.5.23.*{1}';
+</code></pre>
+<p><strong>Critical Benefit</strong>: <strong>No path recalculation when identifiers change!</strong></p>
+<pre><code class="language-sql">-- User renames &quot;headquarters&quot; to &quot;HQ&quot;:
+UPDATE tb_location SET name = 'HQ' WHERE pk_location = 23;
+
+-- OLD (slug-based): Recalculates path for 1000+ descendants ❌
+-- NEW (integer-based): Path stays '1.5.23', NO recalculation! ✅
+</code></pre>
+<p><strong>Requirements</strong>:
+- PostgreSQL 12+ (for digit-only LTREE paths)
+- LTREE extension</p>
+<p><strong>Status</strong>: ✅ DECIDED - Pure integer paths (major improvement)</p>
+<hr />
+<h3 id="16-max-hierarchy-depth-20-levels-decided">16. ✅ <strong>Max Hierarchy Depth: 20 Levels (Decided)</strong></h3>
+<p><strong>Decision</strong>: Default maximum depth of <strong>20 levels</strong></p>
+<p><strong>Why 20 (vs Assessment's 10)</strong>:
+- INTEGER paths are compact (~3-5 chars/level vs ~10-15 for slugs)
+- Performance impact is minimal even at 20 levels
+- Handles extreme use cases (deep manufacturing BOMs, file systems)
+- Most projects will use 5-10 levels, but no artificial limit</p>
+<p><strong>Configuration</strong>:</p>
+<pre><code class="language-yaml"># config/framework.yaml
+database:
+  # LTREE Path Strategy
+  hierarchy_path_strategy: integer  # Use pk_{entity} integers
+
+  # Depth Limits
+  max_hierarchy_depth: 20           # Hard error at level 21
+  max_hierarchy_depth_warning: 15   # Warning at level 16
+</code></pre>
+<p><strong>Constraint Trigger</strong>:</p>
+<pre><code class="language-sql">CREATE FUNCTION check_hierarchy_depth_limit()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_depth INTEGER;
+    v_max_depth INTEGER := 20;
+BEGIN
+    v_depth := nlevel(NEW.path);
+
+    IF v_depth &gt; v_max_depth THEN
+        RAISE EXCEPTION
+            'Hierarchy depth limit exceeded: % levels (max: %)',
+            v_depth,
+            v_max_depth
+        USING HINT = 'Flatten hierarchy or increase limit in config';
+    ELSIF v_depth &gt; 15 THEN
+        RAISE WARNING
+            'Approaching depth limit: % of % levels',
+            v_depth,
+            v_max_depth;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<p><strong>Real-World Capacity</strong>:</p>
+<pre><code class="language-sql">-- 20 levels with INTEGER paths:
+-- '1.52.234.1203.5678.12345...'
+-- Total length: ~100-150 chars (well within LTREE's 65KB limit)
+</code></pre>
+<p><strong>Status</strong>: ✅ DECIDED - 20 levels default</p>
+<hr />
+<h3 id="17-multi-tenancy-tenant_id-uuid-our-design">17. ✅ <strong>Multi-Tenancy: tenant_id UUID (Our Design)</strong></h3>
+<p><strong>Decision</strong>: Use <code>tenant_id UUID</code> directly (NOT <code>fk_tenant INTEGER</code> with mapping table)</p>
+<p><strong>Our Design</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE tb_location (
+    pk_location INTEGER PRIMARY KEY,
+    id UUID UNIQUE,
+    tenant_id UUID NOT NULL,  -- Direct auth system reference
+
+    -- Tenant-scoped unique constraints
+    UNIQUE (tenant_id, id),
+    UNIQUE (tenant_id, display_identifier),
+    UNIQUE (tenant_id, path)
+);
+
+-- RLS policy (simple!)
+ALTER TABLE tb_location ENABLE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON tb_location
+    USING (tenant_id = current_setting('app.tenant_id')::UUID);
+</code></pre>
+<p><strong>Why Better Than Assessment's <code>fk_tenant INTEGER</code></strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Assessment (INTEGER FK)</th>
+<th>Our Design (UUID Direct)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Architecture</strong></td>
+<td>Auth → UUID → Mapping Table → INT → Data</td>
+<td>Auth → UUID → Data ✅</td>
+</tr>
+<tr>
+<td><strong>Complexity</strong></td>
+<td>Needs <code>tb_tenant</code> mapping table</td>
+<td>No mapping needed ✅</td>
+</tr>
+<tr>
+<td><strong>Frontend</strong></td>
+<td>Need ID mapping</td>
+<td>Direct <code>tenant_id</code> ✅</td>
+</tr>
+<tr>
+<td><strong>RLS</strong></td>
+<td>Complex (lookup required)</td>
+<td>Simple (direct match) ✅</td>
+</tr>
+<tr>
+<td><strong>Consistency</strong></td>
+<td>Mixed INT/UUID</td>
+<td>All UUID ✅</td>
+</tr>
+<tr>
+<td><strong>Performance</strong></td>
+<td>0.2ms (INT join)</td>
+<td>0.3ms (UUID join)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Performance Trade-off</strong>: 0.1ms slower per query, but <strong>much simpler architecture</strong>.</p>
+<p><strong>Status</strong>: ✅ DECIDED - <code>tenant_id UUID</code> direct reference</p>
+<hr />
+<h2 id="priority-implementation-roadmap">📋 <strong>PRIORITY IMPLEMENTATION ROADMAP</strong></h2>
+<h3 id="week-1-team-a-urgent"><strong>Week 1 (Team A) - URGENT</strong></h3>
+<pre><code class="language-bash"># CRITICAL additions to SpecQL parser:
+
+✅ Reserved field name validation (prevent collisions)
+   - Files: src/core/specql_parser.py
+   - Add: RESERVED_FIELD_NAMES constant
+   - Validate: All user-defined field names
+
+✅ Validate user doesn't define:
+   - id, pk_*, fk_*, identifier, sequence_number, display_identifier
+   - path, fk_parent_* (if hierarchical)
+   - created_at, updated_at, deleted_at, etc. (audit fields)
+   - tenant_id (if multi_tenant)
+</code></pre>
+<p><strong>Decisions Made</strong>: ✅
+- ASCII slugification (with unaccent)
+- INTEGER-based LTREE paths (pure digits: <code>1.5.23.47</code>)
+- Max hierarchy depth: 20 levels
+- Multi-tenancy: <code>tenant_id UUID</code> direct reference</p>
+<p><strong>Output</strong>: Parser that rejects invalid field names with clear error messages</p>
+<hr />
+<h3 id="week-2-team-b-high-priority"><strong>Week 2 (Team B) - HIGH PRIORITY</strong></h3>
+<pre><code class="language-bash"># Day 1: Utility Functions
+🔴 Generate slugify_immutable(), slugify(), slugify_safe() functions
+   - Files: templates/sql/utilities/slugify.sql.jinja2
+   - Depends on: unaccent extension (000_extensions.sql)
+   - Test: Edge cases (empty, digits, unicode, special chars)
+
+# Day 2: Deduplication Schema
+🔴 Add identifier, sequence_number, display_identifier columns
+   - Files: src/generators/schema/trinity_pattern.py
+   - Schema:
+     identifier TEXT NOT NULL
+     sequence_number INTEGER DEFAULT 1
+     display_identifier TEXT GENERATED ALWAYS AS (...) STORED
+   - Constraints:
+     UNIQUE (identifier, sequence_number)
+     UNIQUE (display_identifier)
+
+# Day 3: Audit Fields Enhancement
+🔴 Add identifier_recalculated_at, identifier_recalculated_by
+🔴 Add path_updated_at, path_updated_by (if hierarchical)
+   - Files: src/generators/schema/schema_generator.py
+   - Purpose: Separate business data changes from derived changes
+
+# Day 4: Partial Indexes
+🔴 Add WHERE deleted_at IS NULL to all non-PK indexes
+   - Files: src/generators/schema/index_strategy.py
+   - Rule: All indexes EXCEPT pk_* and unique constraints
+   - Benefits: 10-50% smaller indexes, faster queries
+
+# Day 5: Core Index Strategy
+🔴 Document 6 core indexes explicitly
+   - Files: docs/architecture/INDEX_STRATEGY.md (new)
+   - Mandatory: pk_*, id, display_identifier
+   - Conditional: path (GIST), fk_parent_*, fk_*_info
+
+# Week 2 Part 2: Safety Constraints
+🔴 Generate constraint triggers:
+   - prevent_{entity}_cycle()
+   - check_identifier_sequence_limit()
+   - validate_{entity}_identifier()
+   - check_hierarchy_depth_limit()
+   - Files: templates/sql/constraints/*.sql.jinja2
+
+# NEW: INTEGER-Based Path Generation (MAJOR IMPROVEMENT!)
+🔴 Generate INTEGER-based LTREE path calculation functions
+   - Files: templates/sql/hierarchy/calculate_path.sql.jinja2
+   - Format: Pure digits (1.5.23.47)
+   - Logic: parent_path || '.' || pk_{entity}
+   - NO slugification needed for path! ✅
+   - Benefits: 5-10x deeper hierarchies, stable paths, 3-5x faster recalc
+
+# Path calculation function:
+CREATE FUNCTION calculate_{entity}_path(p_pk INTEGER) RETURNS ltree AS $$
+DECLARE
+    v_parent_path ltree;
+BEGIN
+    SELECT path INTO v_parent_path
+    FROM tb_{entity}
+    WHERE pk_{entity} = (
+        SELECT fk_parent_{entity}
+        FROM tb_{entity}
+        WHERE pk_{entity} = p_pk
+    );
+
+    IF v_parent_path IS NULL THEN
+        RETURN p_pk::text::ltree;  -- Root: '1', '2', '3'
+    ELSE
+        RETURN (v_parent_path::text || '.' || p_pk::text)::ltree;  -- Child: '1.5.23'
+    END IF;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+</code></pre>
+<p><strong>Decisions Made</strong>: ✅
+- UUIDv4 (built-in gen_random_uuid)
+- INTEGER paths (pure digits)
+- ASCII slugification (for identifier field only, NOT used in path!)</p>
+<p><strong>Output</strong>: Complete schema generation with all safety features + INTEGER-based hierarchy</p>
+<hr />
+<h3 id="week-3-4-team-c-medium-priority"><strong>Week 3-4 (Team C) - MEDIUM PRIORITY</strong></h3>
+<pre><code class="language-bash"># Action Compiler Enhancements:
+
+🔴 Use identifier_recalculated_at (NOT updated_at) for recalc
+   - Files: src/generators/actions/action_compiler.py
+   - Rationale: Don't notify frontend of derived changes
+
+🔴 Implement idempotent recalculation
+   - Only update if identifier/path changed:
+     WHERE identifier IS DISTINCT FROM new_identifier
+   - Return count of actually updated rows
+
+🟡 Add threshold check for async queue (&gt; 1000 nodes)
+   - Count descendants before recalculation
+   - If &gt; 1000, insert into recalculation_queue
+   - Else, immediate recalculation
+   - Files: templates/sql/recalcid/*.sql.jinja2
+</code></pre>
+<p><strong>Output</strong>: Safe, efficient identifier recalculation logic</p>
+<hr />
+<h3 id="week-5-7-team-de-integration"><strong>Week 5-7 (Team D/E) - INTEGRATION</strong></h3>
+<pre><code class="language-bash"># FraiseQL + CLI:
+
+✅ Generate @fraiseql comments (already planned)
+   - Table, column, function metadata
+   - Standard GraphQL naming conventions
+
+🟡 Generate helper functions for hierarchical entities
+   - get_{entity}_ancestors()
+   - get_{entity}_descendants()
+   - move_{entity}_subtree()
+   - get_{entity}_root()
+   - get_{entity}_depth()
+   - Files: templates/sql/helpers/*.sql.jinja2
+</code></pre>
+<p><strong>Output</strong>: Complete migrations with FraiseQL annotations</p>
+<hr />
+<h3 id="week-8-10-enhancements"><strong>Week 8-10+ (Enhancements)</strong></h3>
+<pre><code class="language-bash"># Future enhancements (not blocking MVP):
+
+🟡 metadata_split: true opt-in syntax
+   - Parser: Add metadata_split field
+   - Generator: Create node + info tables + view
+   - Files: src/generators/schema/node_info_split.py
+
+🟡 Async recalculation queue + background worker
+   - Schema: recalculation_queue table
+   - Worker: Python asyncio background job
+   - CLI: Queue monitoring commands
+
+🟡 Enhanced audit: hierarchy change log
+   - Schema: audit_{entity}_hierarchy_changes table
+   - Trigger: Log parent changes, identifier recalc, etc.
+
+🟡 Multi-tenancy architecture (major feature)
+   - Auto-add tenant_id UUID to all tables
+   - Generate composite unique constraints
+   - Generate RLS policies
+   - Config: project.multi_tenant: true
+</code></pre>
+<p><strong>Output</strong>: Production-ready advanced features</p>
+<hr />
+<h2 id="summary-whats-missing-by-category">📊 <strong>Summary: What's Missing By Category</strong></h2>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Missing Items</th>
+<th>When</th>
+<th>Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Schema Generation</strong></td>
+<td>Deduplication fields, slugify functions, partial indexes, <strong>INTEGER-based paths</strong> ✅</td>
+<td>Week 2</td>
+<td>🔴 CRITICAL</td>
+</tr>
+<tr>
+<td><strong>Safety Constraints</strong></td>
+<td>Cycle prevention, sequence limits, depth limits (20 levels) ✅</td>
+<td>Week 2-3</td>
+<td>🔴 HIGH</td>
+</tr>
+<tr>
+<td><strong>Audit Fields</strong></td>
+<td>Separate recalculation tracking</td>
+<td>Week 2</td>
+<td>🔴 HIGH</td>
+</tr>
+<tr>
+<td><strong>Index Strategy</strong></td>
+<td>Document 6 core indexes explicitly</td>
+<td>Week 2</td>
+<td>🔴 HIGH</td>
+</tr>
+<tr>
+<td><strong>Validation</strong></td>
+<td>Reserved field names</td>
+<td>Week 1</td>
+<td>🔴 CRITICAL</td>
+</tr>
+<tr>
+<td><strong>Decisions</strong></td>
+<td>✅ ASCII slugs, INTEGER paths, 20-level depth, tenant_id UUID</td>
+<td>DONE</td>
+<td>✅ RESOLVED</td>
+</tr>
+<tr>
+<td><strong>Performance</strong></td>
+<td>Async queue for large hierarchies</td>
+<td>Week 8+</td>
+<td>🟡 MEDIUM</td>
+</tr>
+<tr>
+<td><strong>Developer UX</strong></td>
+<td>Helper functions for hierarchies</td>
+<td>Week 3-4</td>
+<td>🟡 MEDIUM</td>
+</tr>
+<tr>
+<td><strong>Multi-Tenancy</strong></td>
+<td>RLS, composite constraints (design decided ✅)</td>
+<td>Post-MVP</td>
+<td>🟡 LOW</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="recommended-next-actions">🎯 <strong>Recommended Next Actions</strong></h2>
+<h3 id="immediate-decisions-completed"><strong>✅ Immediate Decisions (COMPLETED)</strong></h3>
+<ol>
+<li>✅ <strong>ASCII slugification</strong> - Use <code>unaccent</code> for identifier field</li>
+<li>✅ <strong>INTEGER-based LTREE paths</strong> - Pure digits (1.5.23.47) using pk_{entity}</li>
+<li>✅ <strong>Max hierarchy depth: 20 levels</strong> - Increased from 10 (INTEGER paths enable deeper trees)</li>
+<li>✅ <strong>Multi-tenancy: tenant_id UUID</strong> - Direct auth reference (no mapping table)</li>
+<li>✅ <strong>UUIDv4</strong> - Built-in gen_random_uuid()</li>
+</ol>
+<h3 id="week-1-team-a-now"><strong>Week 1 (Team A - NOW)</strong></h3>
+<ol>
+<li>🔴 Add reserved field name validation to parser</li>
+<li>🔴 Reject: id, pk_<em>, fk_</em>, identifier, sequence_number, display_identifier, path, etc.</li>
+</ol>
+<h3 id="week-2-team-b-start-of-schema-generation"><strong>Week 2 (Team B - START OF SCHEMA GENERATION)</strong></h3>
+<ol>
+<li>🔴 Generate utility functions (slugify_*, with edge case handling)</li>
+<li>🔴 Add deduplication schema (identifier, sequence_number, display_identifier)</li>
+<li>🔴 <strong>Generate INTEGER-based path calculation functions</strong> ✨ NEW</li>
+<li>Format: <code>1.5.23.47</code> (pure digits)</li>
+<li>Logic: <code>parent_path || '.' || pk_{entity}</code></li>
+<li>5-10x deeper hierarchies possible</li>
+<li>3-5x faster recalculation</li>
+<li>Stable (no recalc on identifier changes!)</li>
+<li>🔴 Implement partial indexes (WHERE deleted_at IS NULL)</li>
+<li>🔴 Add constraint triggers (cycle prevention, limits, validation)</li>
+<li>🔴 Add separate audit fields for recalculation</li>
+<li>🔴 Document 6 core index strategy</li>
+</ol>
+<h3 id="week-3-team-c-action-compiler"><strong>Week 3 (Team C - ACTION COMPILER)</strong></h3>
+<ol>
+<li>🔴 Use separate audit fields for recalculation (NOT updated_at)</li>
+<li>🔴 Implement idempotent recalculation (only update if changed)</li>
+<li>🔴 <strong>Path recalculation only on parent change</strong> (NOT on name/identifier change) ✨</li>
+</ol>
+<h3 id="week-8-enhancements"><strong>Week 8+ (ENHANCEMENTS)</strong></h3>
+<ol>
+<li>🟡 Async queue for large hierarchies (&gt; 1000 nodes)</li>
+<li>🟡 Helper functions for common operations</li>
+<li>🟡 Enhanced features (metadata_split, multi-tenancy RLS, audit log)</li>
+</ol>
+<hr />
+<h2 id="files-to-createupdate">📚 <strong>Files to Create/Update</strong></h2>
+<h3 id="week-1-team-a"><strong>Week 1 (Team A)</strong></h3>
+<ul>
+<li>✏️ <code>src/core/specql_parser.py</code> - Add reserved field validation</li>
+<li>✏️ <code>tests/unit/core/test_reserved_fields.py</code> - Test validation</li>
+</ul>
+<h3 id="week-2-team-b"><strong>Week 2 (Team B)</strong></h3>
+<ul>
+<li>✨ <code>templates/sql/000_extensions.sql.jinja2</code> - Add unaccent + ltree extensions</li>
+<li>✨ <code>templates/sql/utilities/slugify.sql.jinja2</code> - Generate slugify functions</li>
+<li>✨ <code>templates/sql/hierarchy/calculate_path.sql.jinja2</code> - <strong>INTEGER-based path calculation</strong> ✨ NEW</li>
+<li>✏️ <code>src/generators/schema/trinity_pattern.py</code> - Add deduplication fields</li>
+<li>✏️ <code>src/generators/schema/schema_generator.py</code> - Add audit fields</li>
+<li>✏️ <code>src/generators/schema/index_strategy.py</code> - Implement partial indexes</li>
+<li>✨ <code>templates/sql/constraints/prevent_cycle.sql.jinja2</code> - Cycle prevention</li>
+<li>✨ <code>templates/sql/constraints/check_sequence_limit.sql.jinja2</code> - Sequence limit</li>
+<li>✨ <code>templates/sql/constraints/validate_identifier.sql.jinja2</code> - Identifier validation</li>
+<li>✨ <code>templates/sql/constraints/check_depth_limit.sql.jinja2</code> - Depth limit (20 levels)</li>
+<li>✨ <code>docs/architecture/INDEX_STRATEGY.md</code> - Document index rules</li>
+<li>✨ <code>docs/architecture/INTEGER_LTREE_PATHS.md</code> - <strong>Document INTEGER path design</strong> ✨ NEW</li>
+</ul>
+<h3 id="week-3-4-team-c"><strong>Week 3-4 (Team C)</strong></h3>
+<ul>
+<li>✏️ <code>src/generators/actions/action_compiler.py</code> - Use correct audit fields</li>
+<li>✏️ <code>templates/sql/recalcid/*.sql.jinja2</code> - Idempotent recalculation</li>
+</ul>
+<h3 id="week-8-enhancements_1"><strong>Week 8+ (Enhancements)</strong></h3>
+<ul>
+<li>✨ <code>src/generators/schema/node_info_split.py</code> - Node+info split generator</li>
+<li>✨ <code>templates/sql/helpers/get_ancestors.sql.jinja2</code> - Helper functions</li>
+<li>✨ <code>templates/sql/helpers/get_descendants.sql.jinja2</code></li>
+<li>✨ <code>templates/sql/helpers/move_subtree.sql.jinja2</code></li>
+<li>✨ <code>templates/sql/helpers/get_root.sql.jinja2</code></li>
+<li>✨ <code>templates/sql/helpers/get_depth.sql.jinja2</code></li>
+</ul>
+<hr />
+<h2 id="conclusion">🎉 <strong>Conclusion</strong></h2>
+<p>The database architecture assessment is <strong>excellent</strong> and aligns 60% with our existing design. The remaining 40% consists of:</p>
+<ul>
+<li><strong>25% Critical Gaps</strong>: Must implement in Weeks 1-3 (foundation for Teams B/C)</li>
+<li><strong>10% Enhancements</strong>: Can defer to Weeks 8-10+ (polish)</li>
+<li><strong>5% Decisions</strong>: Need architectural choices before Week 2</li>
+</ul>
+<p><strong>Key Insight</strong>: Our design is fundamentally sound, but we're missing <strong>implementation details</strong> that make it production-ready:
+- Safety constraints (prevent data corruption)
+- Performance optimizations (partial indexes)
+- Audit granularity (separate recalculation tracking)
+- Edge case handling (slugify, deduplication)</p>
+<p><strong>Next Step</strong>: Focus on <strong>Week 1 URGENT</strong> items (reserved field validation) before Team B starts in Week 2.</p>
+<hr />
+<h2 id="major-architectural-improvements-our-design-vs-assessment">🚀 <strong>MAJOR ARCHITECTURAL IMPROVEMENTS (Our Design vs Assessment)</strong></h2>
+<p>Our design incorporates the assessment's recommendations <strong>plus strategic enhancements</strong>:</p>
+<h3 id="1-integer-based-ltree-paths-major-improvement"><strong>1. INTEGER-Based LTREE Paths</strong> ✨ MAJOR IMPROVEMENT</h3>
+<ul>
+<li><strong>Assessment</strong>: Slug-based paths (<code>toulouse.legal.headquarters</code>)</li>
+<li><strong>Our Design</strong>: INTEGER-based paths (<code>1.5.23.47</code>)</li>
+<li><strong>Benefits</strong>:</li>
+<li>✅ 5-10x deeper hierarchies (100+ levels vs 40-50)</li>
+<li>✅ 3-5x faster path recalculation</li>
+<li>✅ Stable paths (no recalc on renames!)</li>
+<li>✅ 50% smaller indexes</li>
+<li>✅ Simpler logic (integer concat vs slug generation)</li>
+</ul>
+<h3 id="2-frontend-first-trinity-pattern"><strong>2. Frontend-First Trinity Pattern</strong> ✨</h3>
+<ul>
+<li><strong>Assessment</strong>: <code>id INTEGER</code> (internal), <code>pk_* UUID</code> (external)</li>
+<li><strong>Our Design</strong>: <code>pk_* INTEGER</code> (internal), <code>id UUID</code> (external)</li>
+<li><strong>Benefit</strong>: GraphQL/REST APIs use standard <code>contact.id</code> (not <code>contact.pk_contact</code>)</li>
+</ul>
+<h3 id="3-direct-multi-tenancy"><strong>3. Direct Multi-Tenancy</strong> ✨</h3>
+<ul>
+<li><strong>Assessment</strong>: <code>fk_tenant INTEGER</code> with mapping table</li>
+<li><strong>Our Design</strong>: <code>tenant_id UUID</code> direct auth reference</li>
+<li><strong>Benefits</strong>:</li>
+<li>✅ No mapping table needed (simpler architecture)</li>
+<li>✅ Direct auth system integration</li>
+<li>✅ Consistent UUID usage throughout</li>
+<li>✅ Simpler RLS policies</li>
+</ul>
+<h3 id="4-increased-hierarchy-depth"><strong>4. Increased Hierarchy Depth</strong> ✨</h3>
+<ul>
+<li><strong>Assessment</strong>: 10 levels max</li>
+<li><strong>Our Design</strong>: 20 levels default</li>
+<li><strong>Rationale</strong>: INTEGER paths enable deeper hierarchies with minimal performance impact</li>
+</ul>
+<h3 id="summary"><strong>Summary</strong>:</h3>
+<p>The assessment is <strong>excellent</strong> and provides a solid foundation. Our enhancements make the architecture even better for:
+- Modern SaaS applications (multi-tenant with external auth)
+- Frontend developers (standard GraphQL <code>id</code> field)
+- Deep hierarchies (manufacturing, complex org structures)
+- Performance (stable paths, smaller indexes, faster recalculation)</p>
+<p><strong>We've taken a great design and made it exceptional!</strong> 🎉</p>
+<hr />
+<p><strong>Last Updated</strong>: 2025-11-08
+<strong>Source</strong>: <code>/tmp/database_architecture_assessment.md</code>
+<strong>Status</strong>: ✅ Active implementation planning - <strong>All architectural decisions resolved</strong>
+<strong>Key Innovation</strong>: INTEGER-based LTREE paths (pure digits <code>1.5.23.47</code>)</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

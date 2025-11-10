@@ -1,0 +1,962 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Naming Conventions &amp; Registry - Phased Implementation Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Naming Conventions \u0026amp; Registry - Phased Implementation Plan";
+        var mkdocs_page_input_path = "implementation-plans/naming-conventions-registry/01_PHASED_IMPLEMENTATION.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Naming Conventions &amp; Registry - Phased Implementation Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="naming-conventions-registry-phased-implementation-plan">Naming Conventions &amp; Registry - Phased Implementation Plan</h1>
+<p><strong>Timeline</strong>: 7-10 days (Week 1.5, before Team T)
+<strong>TDD Discipline</strong>: RED → GREEN → REFACTOR → QA for each phase</p>
+<hr />
+<h2 id="implementation-timeline">📅 Implementation Timeline</h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Focus</th>
+<th>Duration</th>
+<th>Critical Path</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Phase 1</strong></td>
+<td>Domain Registry Schema</td>
+<td>Day 1-2</td>
+<td>✅ Foundation</td>
+</tr>
+<tr>
+<td><strong>Phase 2</strong></td>
+<td>DomainRegistry Class</td>
+<td>Day 2-3</td>
+<td>✅ Core</td>
+</tr>
+<tr>
+<td><strong>Phase 3</strong></td>
+<td>NamingConventions Module</td>
+<td>Day 3-5</td>
+<td>✅ Core</td>
+</tr>
+<tr>
+<td><strong>Phase 4</strong></td>
+<td>Generator Integration</td>
+<td>Day 5-6</td>
+<td>Integration</td>
+</tr>
+<tr>
+<td><strong>Phase 5</strong></td>
+<td>CLI Commands</td>
+<td>Day 6-7</td>
+<td>User Interface</td>
+</tr>
+<tr>
+<td><strong>Phase 6</strong></td>
+<td>Migration &amp; Validation</td>
+<td>Day 7-8</td>
+<td>Quality</td>
+</tr>
+<tr>
+<td><strong>Phase 7</strong></td>
+<td>Documentation &amp; Examples</td>
+<td>Day 8-10</td>
+<td>Polish</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="phase-1-domain-registry-schema-day-1-2">🔴 Phase 1: Domain Registry Schema (Day 1-2)</h2>
+<p><strong>Objective</strong>: Create domain registry YAML schema and initial data</p>
+<h3 id="red-write-failing-test">RED: Write Failing Test</h3>
+<pre><code class="language-python"># tests/unit/registry/test_domain_registry.py
+
+import pytest
+from pathlib import Path
+import yaml
+
+def test_domain_registry_file_exists():
+    &quot;&quot;&quot;Domain registry YAML should exist&quot;&quot;&quot;
+    registry_path = Path(&quot;registry/domain_registry.yaml&quot;)
+    assert registry_path.exists(), &quot;registry/domain_registry.yaml not found&quot;
+
+def test_domain_registry_has_version():
+    &quot;&quot;&quot;Registry should have version field&quot;&quot;&quot;
+    with open(&quot;registry/domain_registry.yaml&quot;) as f:
+        registry = yaml.safe_load(f)
+
+    assert 'version' in registry
+    assert registry['version'] == &quot;1.0.0&quot;
+
+def test_domain_registry_has_schema_layers():
+    &quot;&quot;&quot;Registry should define schema layers&quot;&quot;&quot;
+    with open(&quot;registry/domain_registry.yaml&quot;) as f:
+        registry = yaml.safe_load(f)
+
+    assert 'schema_layers' in registry
+    assert '01' in registry['schema_layers']
+    assert registry['schema_layers']['01'] == 'write_side'
+
+def test_domain_registry_has_domains():
+    &quot;&quot;&quot;Registry should define domains&quot;&quot;&quot;
+    with open(&quot;registry/domain_registry.yaml&quot;) as f:
+        registry = yaml.safe_load(f)
+
+    assert 'domains' in registry
+    assert '2' in registry['domains']  # CRM domain
+    assert registry['domains']['2']['name'] == 'crm'
+
+def test_crm_domain_has_subdomains():
+    &quot;&quot;&quot;CRM domain should have subdomains&quot;&quot;&quot;
+    with open(&quot;registry/domain_registry.yaml&quot;) as f:
+        registry = yaml.safe_load(f)
+
+    crm = registry['domains']['2']
+    assert 'subdomains' in crm
+    assert '3' in crm['subdomains']  # customer subdomain
+    assert crm['subdomains']['3']['name'] == 'customer'
+</code></pre>
+<h3 id="green-minimal-implementation">GREEN: Minimal Implementation</h3>
+<pre><code class="language-bash"># Create registry directory
+mkdir -p registry
+</code></pre>
+<pre><code class="language-yaml"># registry/domain_registry.yaml
+
+version: &quot;1.0.0&quot;
+last_updated: &quot;2025-11-08&quot;
+
+schema_layers:
+  &quot;01&quot;: write_side
+  &quot;02&quot;: read_side
+  &quot;03&quot;: analytics
+
+domains:
+  &quot;1&quot;:
+    name: core
+    description: &quot;Core infrastructure&quot;
+    subdomains:
+      &quot;1&quot;:
+        name: i18n
+        description: &quot;Internationalization&quot;
+        next_entity_sequence: 1
+
+  &quot;2&quot;:
+    name: crm
+    description: &quot;Customer relationship management&quot;
+    aliases: [&quot;management&quot;]
+    subdomains:
+      &quot;1&quot;:
+        name: core
+        description: &quot;Core organization&quot;
+        next_entity_sequence: 1
+      &quot;3&quot;:
+        name: customer
+        description: &quot;Customer contacts&quot;
+        next_entity_sequence: 1
+
+  &quot;3&quot;:
+    name: catalog
+    description: &quot;Product catalog&quot;
+    subdomains:
+      &quot;2&quot;:
+        name: manufacturer
+        description: &quot;Manufacturers&quot;
+        next_entity_sequence: 1
+
+  &quot;4&quot;:
+    name: projects
+    description: &quot;Project management&quot;
+    aliases: [&quot;tenant&quot;]
+    subdomains:
+      &quot;1&quot;:
+        name: core
+        description: &quot;Core project entities&quot;
+        next_entity_sequence: 1
+
+validation:
+  enforce_uniqueness: true
+  allow_manual_override: true
+</code></pre>
+<h3 id="refactor-complete-registry">REFACTOR: Complete Registry</h3>
+<p>Add all subdomains based on PrintOptim Backend reference:</p>
+<pre><code class="language-yaml">domains:
+  &quot;1&quot;:
+    name: core
+    description: &quot;Core infrastructure (i18n, auth, events)&quot;
+    subdomains:
+      &quot;1&quot;:
+        name: i18n
+        description: &quot;Internationalization &amp; translations&quot;
+        next_entity_sequence: 1
+      &quot;2&quot;:
+        name: auth
+        description: &quot;Authentication &amp; authorization&quot;
+        next_entity_sequence: 1
+      &quot;3&quot;:
+        name: events
+        description: &quot;Event system &amp; audit logging&quot;
+        next_entity_sequence: 1
+      &quot;4&quot;:
+        name: workflow
+        description: &quot;Workflow engine&quot;
+        next_entity_sequence: 1
+
+  &quot;2&quot;:
+    name: crm
+    description: &quot;Customer relationship management &amp; organizational structure&quot;
+    aliases: [&quot;management&quot;]
+    subdomains:
+      &quot;1&quot;:
+        name: core
+        description: &quot;Core organization entities (organization, user)&quot;
+        next_entity_sequence: 1
+      &quot;2&quot;:
+        name: sales
+        description: &quot;Sales process entities (opportunity, quote)&quot;
+        next_entity_sequence: 1
+      &quot;3&quot;:
+        name: customer
+        description: &quot;Customer contact entities (contact, company)&quot;
+        next_entity_sequence: 1
+      &quot;4&quot;:
+        name: support
+        description: &quot;Customer support entities (ticket, case)&quot;
+        next_entity_sequence: 1
+
+  &quot;3&quot;:
+    name: catalog
+    description: &quot;Product catalog &amp; manufacturer data&quot;
+    subdomains:
+      &quot;1&quot;:
+        name: classification
+        description: &quot;Product classification &amp; categories&quot;
+        next_entity_sequence: 1
+      &quot;2&quot;:
+        name: manufacturer
+        description: &quot;Manufacturer-related entities&quot;
+        next_entity_sequence: 1
+      &quot;3&quot;:
+        name: product
+        description: &quot;Product entities &amp; SKUs&quot;
+        next_entity_sequence: 1
+      &quot;4&quot;:
+        name: generic
+        description: &quot;Generic product data&quot;
+        next_entity_sequence: 1
+      &quot;5&quot;:
+        name: financing
+        description: &quot;Financing &amp; pricing&quot;
+        next_entity_sequence: 1
+
+  &quot;4&quot;:
+    name: projects
+    description: &quot;Project management &amp; tenant-specific entities&quot;
+    aliases: [&quot;tenant&quot;, &quot;dim&quot;]
+    subdomains:
+      &quot;1&quot;:
+        name: core
+        description: &quot;Core project entities (task, project)&quot;
+        next_entity_sequence: 1
+      &quot;2&quot;:
+        name: location
+        description: &quot;Geographic entities (location, address)&quot;
+        next_entity_sequence: 1
+      &quot;3&quot;:
+        name: network
+        description: &quot;Network configuration&quot;
+        next_entity_sequence: 1
+      &quot;4&quot;:
+        name: contract
+        description: &quot;Contract management&quot;
+        next_entity_sequence: 1
+      &quot;5&quot;:
+        name: machine
+        description: &quot;Machine/equipment tracking&quot;
+        next_entity_sequence: 1
+
+reserved_codes:
+  - &quot;000000&quot;
+  - &quot;999999&quot;
+</code></pre>
+<h3 id="qa-verify">QA: Verify</h3>
+<pre><code class="language-bash"># Run tests
+uv run pytest tests/unit/registry/test_domain_registry.py -v
+
+# Validate YAML syntax
+python -c &quot;import yaml; yaml.safe_load(open('registry/domain_registry.yaml'))&quot;
+
+# Check for duplicate codes
+python -c &quot;
+import yaml
+with open('registry/domain_registry.yaml') as f:
+    registry = yaml.safe_load(f)
+
+# Check domain codes unique
+assert len(set(registry['domains'].keys())) == len(registry['domains'])
+print('✓ All domain codes unique')
+&quot;
+</code></pre>
+<hr />
+<h2 id="phase-2-domainregistry-class-day-2-3">🟢 Phase 2: DomainRegistry Class (Day 2-3)</h2>
+<p><strong>Objective</strong>: Implement DomainRegistry class for loading/managing registry</p>
+<h3 id="red-write-failing-test_1">RED: Write Failing Test</h3>
+<pre><code class="language-python"># tests/unit/registry/test_domain_registry_class.py
+
+from src.generators.schema.naming_conventions import DomainRegistry
+
+def test_load_registry():
+    &quot;&quot;&quot;Should load registry from YAML&quot;&quot;&quot;
+    registry = DomainRegistry(&quot;registry/domain_registry.yaml&quot;)
+
+    assert registry.registry is not None
+    assert 'domains' in registry.registry
+
+def test_get_entity_not_found():
+    &quot;&quot;&quot;Should return None for unregistered entity&quot;&quot;&quot;
+    registry = DomainRegistry()
+
+    entity = registry.get_entity(&quot;NonExistent&quot;)
+    assert entity is None
+
+def test_get_domain_by_code():
+    &quot;&quot;&quot;Should get domain by code&quot;&quot;&quot;
+    registry = DomainRegistry()
+
+    domain = registry.get_domain(&quot;2&quot;)
+    assert domain is not None
+    assert domain.domain_name == &quot;crm&quot;
+
+def test_get_domain_by_name():
+    &quot;&quot;&quot;Should get domain by name&quot;&quot;&quot;
+    registry = DomainRegistry()
+
+    domain = registry.get_domain(&quot;crm&quot;)
+    assert domain is not None
+    assert domain.domain_code == &quot;2&quot;
+
+def test_get_domain_by_alias():
+    &quot;&quot;&quot;Should get domain by alias&quot;&quot;&quot;
+    registry = DomainRegistry()
+
+    domain = registry.get_domain(&quot;management&quot;)  # alias for crm
+    assert domain is not None
+    assert domain.domain_name == &quot;crm&quot;
+
+def test_is_code_available():
+    &quot;&quot;&quot;Should check if code is available&quot;&quot;&quot;
+    registry = DomainRegistry()
+
+    # Reserved code
+    assert not registry.is_code_available(&quot;000000&quot;)
+
+    # Unassigned code
+    assert registry.is_code_available(&quot;012399&quot;)
+</code></pre>
+<h3 id="green-minimal-implementation_1">GREEN: Minimal Implementation</h3>
+<pre><code class="language-python"># src/generators/schema/naming_conventions.py
+
+from pathlib import Path
+import yaml
+from typing import Optional, Dict
+from dataclasses import dataclass
+
+@dataclass
+class DomainInfo:
+    domain_code: str
+    domain_name: str
+    description: str
+    subdomains: Dict
+    aliases: list
+
+class DomainRegistry:
+    def __init__(self, registry_path: str = &quot;registry/domain_registry.yaml&quot;):
+        self.registry_path = Path(registry_path)
+        self.registry: Dict = {}
+        self.entities_index: Dict = {}
+        self.load()
+
+    def load(self):
+        &quot;&quot;&quot;Load registry from YAML&quot;&quot;&quot;
+        if not self.registry_path.exists():
+            raise FileNotFoundError(f&quot;Domain registry not found: {self.registry_path}&quot;)
+
+        with open(self.registry_path, 'r') as f:
+            self.registry = yaml.safe_load(f)
+
+        self._build_entity_index()
+
+    def _build_entity_index(self):
+        &quot;&quot;&quot;Build index of all registered entities&quot;&quot;&quot;
+        # Implementation from overview
+        pass
+
+    def get_entity(self, entity_name: str) -&gt; Optional[dict]:
+        &quot;&quot;&quot;Get entity from registry&quot;&quot;&quot;
+        return self.entities_index.get(entity_name.lower())
+
+    def get_domain(self, domain_identifier: str) -&gt; Optional[DomainInfo]:
+        &quot;&quot;&quot;Get domain by code, name, or alias&quot;&quot;&quot;
+        # Try by code
+        if domain_identifier in self.registry.get('domains', {}):
+            domain_data = self.registry['domains'][domain_identifier]
+            return DomainInfo(
+                domain_code=domain_identifier,
+                domain_name=domain_data['name'],
+                description=domain_data['description'],
+                subdomains=domain_data.get('subdomains', {}),
+                aliases=domain_data.get('aliases', [])
+            )
+
+        # Try by name or alias
+        for code, domain_data in self.registry.get('domains', {}).items():
+            if domain_data['name'] == domain_identifier:
+                return self.get_domain(code)
+            if domain_identifier in domain_data.get('aliases', []):
+                return self.get_domain(code)
+
+        return None
+
+    def is_code_available(self, table_code: str) -&gt; bool:
+        &quot;&quot;&quot;Check if code is available&quot;&quot;&quot;
+        reserved = self.registry.get('reserved_codes', [])
+        if table_code in reserved:
+            return False
+
+        for entity in self.entities_index.values():
+            if entity.get('table_code') == table_code:
+                return False
+
+        return True
+</code></pre>
+<h3 id="refactor-complete-implementation">REFACTOR: Complete Implementation</h3>
+<p>Add remaining methods:
+- <code>get_next_entity_sequence()</code>
+- <code>register_entity()</code>
+- <code>save()</code>
+- Proper <code>_build_entity_index()</code> implementation</p>
+<h3 id="qa-verify_1">QA: Verify</h3>
+<pre><code class="language-bash">uv run pytest tests/unit/registry/test_domain_registry_class.py -v
+</code></pre>
+<hr />
+<h2 id="phase-3-namingconventions-module-day-3-5">🔵 Phase 3: NamingConventions Module (Day 3-5)</h2>
+<p><strong>Objective</strong>: Implement core naming conventions functions</p>
+<h3 id="phase-31-derive_entity_code-half-day">Phase 3.1: derive_entity_code() (Half Day)</h3>
+<h4 id="red">RED</h4>
+<pre><code class="language-python">def test_derive_entity_code_contact():
+    nc = NamingConventions()
+    assert nc.derive_entity_code(&quot;Contact&quot;) == &quot;CON&quot;
+
+def test_derive_entity_code_manufacturer():
+    nc = NamingConventions()
+    assert nc.derive_entity_code(&quot;Manufacturer&quot;) == &quot;MNF&quot;
+</code></pre>
+<h4 id="green">GREEN</h4>
+<pre><code class="language-python">def derive_entity_code(self, entity_name: str) -&gt; str:
+    name_upper = entity_name.upper()
+    consonants = [c for c in name_upper if c.isalpha() and c not in 'AEIOUY']
+    return (''.join(consonants) + name_upper)[:3]
+</code></pre>
+<h4 id="refactor">REFACTOR</h4>
+<p>Improve algorithm for edge cases</p>
+<h4 id="qa">QA</h4>
+<pre><code class="language-bash">uv run pytest tests/unit/schema/test_naming_conventions.py::test_derive_entity_code -v
+</code></pre>
+<h3 id="phase-32-validate_table_code-half-day">Phase 3.2: validate_table_code() (Half Day)</h3>
+<h4 id="red_1">RED</h4>
+<pre><code class="language-python">def test_validate_format():
+    nc = NamingConventions()
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;)
+
+    nc.validate_table_code(&quot;012321&quot;, entity)  # Valid
+
+    with pytest.raises(ValueError):
+        nc.validate_table_code(&quot;123&quot;, entity)  # Too short
+</code></pre>
+<h4 id="green_1">GREEN</h4>
+<pre><code class="language-python">def validate_table_code(self, table_code: str, entity: Entity):
+    if not re.match(r'^\d{6}$', table_code):
+        raise ValueError(f&quot;Invalid format: {table_code}&quot;)
+</code></pre>
+<h4 id="refactor_1">REFACTOR</h4>
+<p>Add all validation checks (schema layer, domain, uniqueness)</p>
+<h4 id="qa_1">QA</h4>
+<p>Run validation tests</p>
+<h3 id="phase-33-derive_table_code-day">Phase 3.3: derive_table_code() (Day)</h3>
+<h4 id="red_2">RED</h4>
+<pre><code class="language-python">def test_derive_table_code_crm_contact():
+    nc = NamingConventions()
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;)
+
+    code = nc.derive_table_code(entity)
+
+    # Should start with 012 (write_side + crm)
+    assert code.startswith(&quot;012&quot;)
+    assert len(code) == 6
+</code></pre>
+<h4 id="green_2">GREEN</h4>
+<p>Implement basic derivation logic</p>
+<h4 id="refactor_2">REFACTOR</h4>
+<p>Add subdomain inference, handle edge cases</p>
+<h4 id="qa_2">QA</h4>
+<p>Test with multiple entities</p>
+<h3 id="phase-34-generate_file_path-half-day">Phase 3.4: generate_file_path() (Half Day)</h3>
+<h4 id="red_3">RED</h4>
+<pre><code class="language-python">def test_generate_file_path():
+    nc = NamingConventions()
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;)
+
+    path = nc.generate_file_path(entity, &quot;012321&quot;, &quot;table&quot;)
+
+    assert &quot;01_write_side&quot; in path
+    assert &quot;012_crm&quot; in path
+    assert &quot;012321_tb_contact.sql&quot; in path
+</code></pre>
+<h4 id="green_3">GREEN</h4>
+<p>Implement path generation</p>
+<h4 id="refactor_3">REFACTOR</h4>
+<p>Use proper directory hierarchy</p>
+<h4 id="qa_3">QA</h4>
+<p>Test multiple file types</p>
+<hr />
+<h2 id="phase-4-generator-integration-day-5-6">🟡 Phase 4: Generator Integration (Day 5-6)</h2>
+<p><strong>Objective</strong>: Integrate NamingConventions with Team B schema generator</p>
+<h3 id="red-write-integration-test">RED: Write Integration Test</h3>
+<pre><code class="language-python"># tests/integration/schema/test_naming_conventions_integration.py
+
+from src.core.specql_parser import SpecQLParser
+from src.generators.table_generator import TableGenerator
+from src.generators.schema.naming_conventions import NamingConventions
+
+def test_generate_contact_with_auto_table_code():
+    &quot;&quot;&quot;Should auto-assign table code during generation&quot;&quot;&quot;
+    yaml_content = &quot;&quot;&quot;
+    entity: Contact
+    schema: crm
+    fields:
+      email: email!
+    &quot;&quot;&quot;
+
+    parser = SpecQLParser()
+    entity = parser.parse(yaml_content)
+
+    generator = TableGenerator()
+    sql = generator.generate_table_ddl(entity)
+
+    # Should have generated with auto table code
+    assert &quot;CREATE TABLE crm.tb_contact&quot; in sql
+
+    # Check registry was updated
+    nc = NamingConventions()
+    registry_entry = nc.registry.get_entity(&quot;Contact&quot;)
+    assert registry_entry is not None
+    assert len(registry_entry.table_code) == 6
+</code></pre>
+<h3 id="green-modify-tablegenerator">GREEN: Modify TableGenerator</h3>
+<pre><code class="language-python"># src/generators/table_generator.py
+
+from src.generators.schema.naming_conventions import NamingConventions
+
+class TableGenerator:
+    def __init__(self):
+        self.naming = NamingConventions()
+
+    def generate_table_ddl(self, entity: Entity) -&gt; str:
+        # Get table code (manual or auto)
+        table_code = self.naming.get_table_code(entity)
+
+        # Register in registry if new
+        if not self.naming.registry.get_entity(entity.name):
+            entity_code = self.naming.derive_entity_code(entity.name)
+            components = self.naming.parser.parse_table_code_detailed(table_code)
+            self.naming.registry.register_entity(
+                entity.name,
+                table_code,
+                entity_code,
+                components.domain_code,
+                components.entity_group
+            )
+
+        # Continue with existing generation logic
+        # ... existing code ...
+</code></pre>
+<h3 id="refactor_4">REFACTOR</h3>
+<ul>
+<li>Add proper error handling</li>
+<li>Update all generators (Team C, D)</li>
+<li>Add file path organization</li>
+</ul>
+<h3 id="qa_4">QA</h3>
+<pre><code class="language-bash">uv run pytest tests/integration/schema/test_naming_conventions_integration.py -v
+make test-integration
+</code></pre>
+<hr />
+<h2 id="phase-5-cli-commands-day-6-7">🟣 Phase 5: CLI Commands (Day 6-7)</h2>
+<p><strong>Objective</strong>: Add CLI commands for registry management</p>
+<h3 id="red-write-cli-test">RED: Write CLI Test</h3>
+<pre><code class="language-python"># tests/integration/cli/test_registry_commands.py
+
+from click.testing import CliRunner
+from src.cli.registry import registry_cli
+
+def test_registry_list():
+    &quot;&quot;&quot;Should list all registered entities&quot;&quot;&quot;
+    runner = CliRunner()
+    result = runner.invoke(registry_cli, ['list'])
+
+    assert result.exit_code == 0
+    assert 'Contact' in result.output
+    assert '012321' in result.output
+
+def test_registry_check_available():
+    &quot;&quot;&quot;Should check if code is available&quot;&quot;&quot;
+    runner = CliRunner()
+    result = runner.invoke(registry_cli, ['check', '012399'])
+
+    assert result.exit_code == 0
+    assert 'available' in result.output.lower()
+</code></pre>
+<h3 id="green-implement-cli">GREEN: Implement CLI</h3>
+<pre><code class="language-python"># src/cli/registry.py
+
+import click
+from src.generators.schema.naming_conventions import NamingConventions
+
+@click.group()
+def registry_cli():
+    &quot;&quot;&quot;Registry management commands&quot;&quot;&quot;
+    pass
+
+@registry_cli.command()
+def list():
+    &quot;&quot;&quot;List all registered entities&quot;&quot;&quot;
+    nc = NamingConventions()
+
+    click.echo(&quot;Registered Entities:&quot;)
+    click.echo(&quot;-&quot; * 60)
+
+    for entity_name, entry in nc.registry.entities_index.items():
+        click.echo(f&quot;{entity_name:20} {entry.table_code:10} {entry.domain}/{entry.subdomain}&quot;)
+
+@registry_cli.command()
+@click.argument('table_code')
+def check(table_code):
+    &quot;&quot;&quot;Check if table code is available&quot;&quot;&quot;
+    nc = NamingConventions()
+
+    if nc.registry.is_code_available(table_code):
+        click.echo(f&quot;✓ Code {table_code} is available&quot;)
+    else:
+        click.echo(f&quot;✗ Code {table_code} is already assigned&quot;)
+
+@registry_cli.command()
+def manifest():
+    &quot;&quot;&quot;Generate execution manifest&quot;&quot;&quot;
+    # Implementation using ManifestGenerator
+    pass
+</code></pre>
+<h3 id="refactor_5">REFACTOR</h3>
+<p>Add more commands:
+- <code>specql registry validate</code> - Validate registry consistency
+- <code>specql registry export</code> - Export as JSON/CSV
+- <code>specql registry stats</code> - Show statistics</p>
+<h3 id="qa_5">QA</h3>
+<pre><code class="language-bash">uv run pytest tests/integration/cli/test_registry_commands.py -v
+specql registry list
+specql registry check 012399
+</code></pre>
+<hr />
+<h2 id="phase-6-migration-validation-day-7-8">🔴 Phase 6: Migration &amp; Validation (Day 7-8)</h2>
+<p><strong>Objective</strong>: Migrate existing entities to registry, validate consistency</p>
+<h3 id="red-write-migration-test">RED: Write Migration Test</h3>
+<pre><code class="language-python">def test_migrate_existing_entities():
+    &quot;&quot;&quot;Should migrate existing entities to registry&quot;&quot;&quot;
+    from src.cli.migrate import migrate_existing_entities
+
+    # Before: registry has 0 entities
+    nc = NamingConventions()
+    assert len(nc.registry.entities_index) == 0
+
+    # Migrate
+    migrated_count = migrate_existing_entities('entities/examples/')
+
+    # After: registry has entities
+    nc.load()  # Reload
+    assert len(nc.registry.entities_index) &gt; 0
+    assert migrated_count &gt; 0
+</code></pre>
+<h3 id="green-implement-migration">GREEN: Implement Migration</h3>
+<pre><code class="language-python"># src/cli/migrate.py
+
+def migrate_existing_entities(entities_dir: str) -&gt; int:
+    &quot;&quot;&quot;Migrate existing SpecQL entities to registry&quot;&quot;&quot;
+    from pathlib import Path
+    from src.core.specql_parser import SpecQLParser
+    from src.generators.schema.naming_conventions import NamingConventions
+
+    parser = SpecQLParser()
+    nc = NamingConventions()
+    migrated = 0
+
+    for yaml_file in Path(entities_dir).rglob('*.yaml'):
+        entity = parser.parse(yaml_file.read_text())
+
+        # Skip if already registered
+        if nc.registry.get_entity(entity.name):
+            continue
+
+        # Get or derive table code
+        if entity.organization and entity.organization.table_code:
+            table_code = entity.organization.table_code
+        else:
+            table_code = nc.derive_table_code(entity)
+
+        # Register
+        entity_code = nc.derive_entity_code(entity.name)
+        components = nc.parser.parse_table_code_detailed(table_code)
+        nc.registry.register_entity(
+            entity.name,
+            table_code,
+            entity_code,
+            components.domain_code,
+            components.entity_group
+        )
+
+        migrated += 1
+        click.echo(f&quot;✓ Migrated {entity.name} → {table_code}&quot;)
+
+    return migrated
+</code></pre>
+<h3 id="refactor_6">REFACTOR</h3>
+<p>Add validation:
+- Check for conflicts
+- Validate subdomain assignments
+- Detect potential duplicates</p>
+<h3 id="qa_6">QA</h3>
+<pre><code class="language-bash">specql migrate entities/examples/
+specql registry validate
+</code></pre>
+<hr />
+<h2 id="phase-7-documentation-examples-day-8-10">📘 Phase 7: Documentation &amp; Examples (Day 8-10)</h2>
+<p><strong>Objective</strong>: Complete documentation and working examples</p>
+<h3 id="deliverables">Deliverables</h3>
+<ol>
+<li><strong>User Guide</strong> (<code>docs/guides/naming-conventions.md</code>)</li>
+<li>How to use manual table codes</li>
+<li>How automatic derivation works</li>
+<li>Registry management</li>
+<li>
+<p>Subdomain organization</p>
+</li>
+<li>
+<p><strong>API Reference</strong> (<code>docs/api/naming-conventions-api.md</code>)</p>
+</li>
+<li>All public functions</li>
+<li>Parameters and return types</li>
+<li>
+<p>Examples</p>
+</li>
+<li>
+<p><strong>Migration Guide</strong> (<code>docs/guides/migration-to-registry.md</code>)</p>
+</li>
+<li>How to migrate existing projects</li>
+<li>Troubleshooting</li>
+<li>
+<p>Best practices</p>
+</li>
+<li>
+<p><strong>Examples</strong></p>
+</li>
+<li>Simple entity with auto code</li>
+<li>Manual code specification</li>
+<li>Complex multi-subdomain project</li>
+</ol>
+<h3 id="qa_7">QA</h3>
+<ul>
+<li>All documentation reviewed</li>
+<li>Examples run successfully</li>
+<li>CLI help text clear</li>
+<li>README updated</li>
+</ul>
+<hr />
+<h2 id="success-criteria">✅ Success Criteria</h2>
+<h3 id="must-have">Must Have</h3>
+<ul>
+<li>✅ Registry YAML with all domains/subdomains</li>
+<li>✅ DomainRegistry class loads and manages registry</li>
+<li>✅ NamingConventions derives and validates codes</li>
+<li>✅ Team B integration working</li>
+<li>✅ Registry automatically updated on generation</li>
+<li>✅ CLI commands for list/check/validate</li>
+<li>✅ Existing entities migrated</li>
+<li>✅ 50+ unit tests passing</li>
+<li>✅ 10+ integration tests passing</li>
+</ul>
+<h3 id="should-have">Should Have</h3>
+<ul>
+<li>✅ Hierarchical file organization</li>
+<li>✅ Subdomain inference working</li>
+<li>✅ Manifest generation</li>
+<li>✅ Registry export/import</li>
+<li>✅ Validation warnings for potential issues</li>
+</ul>
+<h3 id="nice-to-have">Nice to Have</h3>
+<ul>
+<li>🔄 Visual registry browser</li>
+<li>🔄 Auto-detect subdomain from entity patterns</li>
+<li>🔄 Registry version control integration</li>
+<li>🔄 Conflict resolution UI</li>
+</ul>
+<hr />
+<h2 id="getting-started">🚀 Getting Started</h2>
+<pre><code class="language-bash"># Day 1: Start with Phase 1
+mkdir -p registry tests/unit/registry
+touch registry/domain_registry.yaml
+
+# Create basic test
+vim tests/unit/registry/test_domain_registry.py
+
+# Run RED phase
+uv run pytest tests/unit/registry/ -v
+# Should fail - no registry yet
+
+# Create registry (GREEN)
+vim registry/domain_registry.yaml
+
+# Tests should pass
+uv run pytest tests/unit/registry/ -v
+</code></pre>
+<hr />
+<p><strong>Next Steps</strong>: Once this is complete, Team T (Testing Infrastructure) can begin with confident table code generation for UUID encoding!</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

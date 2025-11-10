@@ -1,0 +1,1160 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Identifier Strategies in SpecQL - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Identifier Strategies in SpecQL";
+        var mkdocs_page_input_path = "architecture/IDENTIFIER_STRATEGIES_SPECQL.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Identifier Strategies in SpecQL</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="identifier-strategies-in-specql">Identifier Strategies in SpecQL</h1>
+<p><strong>Status</strong>: 🎯 Architectural Design
+<strong>Impact</strong>: Team A (Parser), Team B (Schema), Team C (Actions)
+<strong>Related</strong>: <code>IDENTIFIER_CALCULATION_PATTERNS.md</code>, <code>EXPLICIT_VALIDATION_IMPLEMENTATION_PLAN.md</code></p>
+<hr />
+<h2 id="current-state-analysis">📋 Current State Analysis</h2>
+<h3 id="what-we-have-now">What We Have Now</h3>
+<p><strong>Automatic Identifier Field</strong> (Team B generates):</p>
+<pre><code class="language-sql">CREATE TABLE schema.tb_entity (
+    identifier TEXT UNIQUE,  -- Simple, no strategy
+    ...
+);
+</code></pre>
+<p><strong>No Calculation Logic</strong>: Currently just an empty TEXT field that users must populate manually.</p>
+<p><strong>Deduplication Pattern Exists</strong> (<code>src/generators/schema/deduplication.py</code>):</p>
+<pre><code class="language-sql">identifier TEXT NOT NULL,
+sequence_number INTEGER NOT NULL DEFAULT 1,
+display_identifier TEXT GENERATED ALWAYS AS (
+    CASE
+        WHEN sequence_number &gt; 1
+        THEN identifier || '#' || sequence_number
+        ELSE identifier
+    END
+) STORED
+</code></pre>
+<p>But <strong>no automatic calculation</strong> of the base <code>identifier</code> value!</p>
+<hr />
+<h2 id="problem-statement">🎯 Problem Statement</h2>
+<p>Users need identifiers to be:
+1. <strong>Automatically calculated</strong> (not manually entered)
+2. <strong>Human-readable</strong> (e.g., <code>warehouse-a_floor-1_zone-3</code>)
+3. <strong>Unique</strong> (with automatic deduplication: <code>#2</code>, <code>#3</code>)
+4. <strong>Hierarchical</strong> (for tree structures)
+5. <strong>Configurable</strong> (different strategies for different entities)</p>
+<hr />
+<h2 id="proposed-solution-declarative-identifier-strategies">✅ Proposed Solution: Declarative Identifier Strategies</h2>
+<h3 id="philosophy">Philosophy</h3>
+<p><strong>Sane defaults</strong> with <strong>optional customization</strong></p>
+<ul>
+<li>✅ <strong>Default</strong>: Simple slug from <code>name</code> field (90% of entities)</li>
+<li>✅ <strong>Custom</strong>: Declare strategy when needed (hierarchical, composite, etc.)</li>
+<li>✅ <strong>Explicit</strong>: Clear what identifier will look like</li>
+<li>✅ <strong>Automatic</strong>: Generated and maintained by framework</li>
+</ul>
+<hr />
+<h2 id="specql-syntax-design">🏗️ SpecQL Syntax Design</h2>
+<h3 id="multi-tenant-entities-automatic-tenant-prefix"><strong>Multi-Tenant Entities: Automatic Tenant Prefix</strong> 🎯</h3>
+<p><strong>IMPORTANT</strong>: All entities in tenant-scoped schemas (<code>tenant.*</code>, etc.) <strong>automatically get tenant prefix</strong>.</p>
+<p><strong>SpecQL</strong> (no explicit config needed):</p>
+<pre><code class="language-yaml">entity: Product
+schema: tenant  # Multi-tenant schema
+
+fields:
+  name: text
+</code></pre>
+<p><strong>Generated Identifier</strong>: <code>{tenant_identifier}|{slug}</code> with deduplication
+- Tenant "acme-corp", Product "Coffee Maker" → <code>acme-corp|coffee-maker</code>
+- Tenant "acme-corp", Product "Coffee Maker" (duplicate) → <code>acme-corp|coffee-maker#2</code>
+- Tenant "globex", Product "Coffee Maker" → <code>globex|coffee-maker</code> (different tenant, no conflict)</p>
+<p><strong>Why Automatic</strong>:
+- ✅ Human-readable identifiers show ownership
+- ✅ External sharing (exports, APIs, integrations)
+- ✅ Debugging (immediately see tenant)
+- ✅ Natural partitioning in logs/monitoring
+- ✅ Uniqueness across tenants (even without RLS)</p>
+<p><strong>Tenant Field Detection</strong>:
+Framework automatically detects tenant field:
+1. Look for <code>tenant_id</code> field (Trinity pattern)
+2. Look for <code>fk_tenant</code> or <code>fk_organization</code> field
+3. Use that entity's identifier as prefix</p>
+<hr />
+<h3 id="strategy-1-default-simple-slug-90-of-entities"><strong>Strategy 1: Default (Simple Slug)</strong> - 90% of entities</h3>
+<h4 id="1a-global-entities-no-tenant"><strong>1a. Global Entities</strong> (no tenant)</h4>
+<p><strong>SpecQL</strong> (catalog, reference data):</p>
+<pre><code class="language-yaml">entity: Country
+schema: catalog  # Global schema
+
+fields:
+  name: text
+</code></pre>
+<p><strong>Generated Identifier</strong>: <code>safe_slug(name)</code> with deduplication
+- <code>"United States"</code> → <code>united-states</code>
+- <code>"United States"</code> (duplicate) → <code>united-states#2</code></p>
+<h4 id="1b-tenant-scoped-entities-automatic-tenant-prefix"><strong>1b. Tenant-Scoped Entities</strong> (automatic tenant prefix)</h4>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">entity: Product
+schema: tenant  # Multi-tenant schema
+
+fields:
+  name: text
+</code></pre>
+<p><strong>Generated Identifier</strong>: <code>{tenant}|{slug}</code> with deduplication
+- Tenant "acme-corp": <code>acme-corp|coffee-maker</code>
+- Tenant "globex": <code>globex|coffee-maker</code></p>
+<p><strong>Implementation</strong>:
+- Team B: Generates <code>identifier</code>, <code>sequence_number</code>, <code>display_identifier</code> fields
+- Team C: Generates <code>recalculate_identifier()</code> function with <strong>automatic tenant prefix</strong>
+- Automatically recalculated on INSERT/UPDATE of <code>name</code> or tenant change
+- Deduplication scoped <strong>within tenant</strong> (each tenant can have <code>coffee-maker</code>)</p>
+<hr />
+<h3 id="strategy-2-hierarchical-slug-tree-structures"><strong>Strategy 2: Hierarchical Slug</strong> - Tree structures</h3>
+<h4 id="2a-tenant-scoped-hierarchical-automatic-tenant-prefix"><strong>2a. Tenant-Scoped Hierarchical</strong> (automatic tenant prefix)</h4>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">entity: Location
+schema: tenant
+hierarchical: true  # Enables parent field
+
+fields:
+  name: text
+  location_type: ref(LocationType)
+  parent: ref(Location)
+
+identifier:
+  strategy: hierarchical_slug
+  components:
+    - name  # Will be slugified
+  separator: &quot;_&quot;  # Default for hierarchy
+</code></pre>
+<p><strong>Generated Identifier</strong>: <code>{tenant}|{hierarchical_path}</code>
+- Tenant "acme-corp", Root: <code>acme-corp|warehouse-a</code>
+- Tenant "acme-corp", Child: <code>acme-corp|warehouse-a_floor-1</code>
+- Tenant "acme-corp", Grandchild: <code>acme-corp|warehouse-a_floor-1_room-101</code>
+- Tenant "globex", Root: <code>globex|warehouse-a</code> (different tenant, different namespace)</p>
+<p><strong>Tenant Prefix Behavior</strong>:
+- ✅ Added <strong>only to root nodes</strong> (not repeated in children)
+- ✅ Children inherit tenant from path hierarchy
+- ✅ Deduplication scoped <strong>within tenant</strong></p>
+<h4 id="2b-global-hierarchical-no-tenant-rare"><strong>2b. Global Hierarchical</strong> (no tenant, rare)</h4>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">entity: IndustryClassification
+schema: catalog  # Global reference data
+hierarchical: true
+
+fields:
+  name: text
+</code></pre>
+<p><strong>Generated Identifier</strong>: Pure hierarchical (no tenant prefix)
+- Root: <code>manufacturing</code>
+- Child: <code>manufacturing_automotive</code>
+- Grandchild: <code>manufacturing_automotive_electric-vehicles</code></p>
+<p><strong>Implementation</strong>:
+- Recursive CTE to build hierarchy
+- Concatenate parent identifier + separator + current slug
+- Deduplication at each level</p>
+<hr />
+<h3 id="strategy-3-hierarchical-with-type-prefix"><strong>Strategy 3: Hierarchical with Type Prefix</strong></h3>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">entity: Location
+schema: tenant
+hierarchical: true
+
+fields:
+  name: text
+  location_type: ref(LocationType)
+  parent: ref(Location)
+
+identifier:
+  strategy: hierarchical_slug
+  type_prefix:  # Applied after tenant prefix
+    - field: location_type.identifier
+      transform: none  # Don't slugify (already slug)
+  components:
+    - name
+  separator: &quot;.&quot;
+</code></pre>
+<p><strong>Generated Identifier</strong>: <code>{tenant}|{type}.{hierarchical_path}</code>
+- Tenant "acme-corp":
+  - <code>acme-corp|legal.headquarters</code>
+  - <code>acme-corp|legal.headquarters.building-a</code>
+  - <code>acme-corp|legal.headquarters.building-a.floor-1</code>
+- Tenant "globex":
+  - <code>globex|operational.warehouse</code>
+  - <code>globex|operational.warehouse.loading-dock</code></p>
+<p><strong>Pattern</strong>: Tenant prefix <code>|</code> Type prefix <code>.</code> Hierarchy</p>
+<hr />
+<h3 id="strategy-4-hierarchical-with-ordering"><strong>Strategy 4: Hierarchical with Ordering</strong></h3>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">entity: Location
+schema: tenant
+hierarchical: true
+
+fields:
+  name: text
+  int_ordered: integer  # Sort order
+  parent: ref(Location)
+
+identifier:
+  strategy: hierarchical_slug
+  components:
+    - field: int_ordered
+      format: &quot;LPAD({value}::TEXT, 3, '0')&quot;  # 001, 002, 003
+      separator: &quot;-&quot;
+    - name
+  separator: &quot;.&quot;
+</code></pre>
+<p><strong>Generated Identifier</strong>: <code>ordered-slug.ordered-slug</code>
+- <code>001-headquarters</code>
+- <code>001-headquarters.002-building-a</code>
+- <code>001-headquarters.002-building-a.003-floor-1</code></p>
+<p><strong>Sort Order</strong>: Natural alphabetical sorting works: <code>001-</code> comes before <code>002-</code></p>
+<hr />
+<h3 id="strategy-5-composite-key-natural-unique-identifiers"><strong>Strategy 5: Composite Key</strong> - Natural unique identifiers</h3>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">entity: Machine
+schema: tenant
+
+fields:
+  model: ref(Model)
+  serial_number: text
+
+identifier:
+  strategy: composite
+  components:
+    - field: model.identifier
+      transform: none
+      replace: {&quot;|&quot;: &quot;.&quot;}  # Replace pipes with dots
+    - field: serial_number
+      transform: none
+  separator: &quot;.&quot;
+  deduplication: false  # Serial numbers are already unique
+</code></pre>
+<p><strong>Generated Identifier</strong>: <code>{tenant}|{model}.{serial}</code> (tenant prefix automatic)
+- Tenant "acme-corp": <code>acme-corp|hp.laserjet-pro-4001n.ABC123XYZ</code>
+- Tenant "globex": <code>globex|canon.pixma-ts8320.XYZ789ABC</code></p>
+<p><strong>No Deduplication</strong>: Serial numbers should be naturally unique</p>
+<p><strong>Global Composite</strong> (catalog entities):</p>
+<pre><code class="language-yaml">entity: Model
+schema: catalog  # No tenant
+
+fields:
+  manufacturer: ref(Manufacturer)
+  name: text
+
+identifier:
+  strategy: composite
+  components:
+    - field: manufacturer.identifier
+    - name
+</code></pre>
+<p><strong>Generated</strong>: <code>hp|laserjet-pro-4001n</code> (no tenant prefix for catalog)</p>
+<hr />
+<h3 id="strategy-6-template-based-full-control"><strong>Strategy 6: Template-Based</strong> - Full control</h3>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">entity: Contract
+schema: tenant
+
+fields:
+  organization: ref(Organization)
+  contract_number: text
+  year: integer
+
+identifier:
+  strategy: template
+  template: &quot;{organization.identifier}|{year}-{contract_number}&quot;
+  transforms:
+    organization.identifier: none
+    contract_number: uppercase
+  deduplication: false
+</code></pre>
+<p><strong>Generated Identifier</strong>: <code>org + "|" + year + "-" + contract_number</code>
+- <code>acme-corp|2025-CNT-001</code></p>
+<p><strong>Custom Transforms</strong>:
+- <code>none</code>: Use as-is
+- <code>slugify</code>: Convert to slug
+- <code>uppercase</code>: Convert to uppercase
+- <code>lowercase</code>: Convert to lowercase
+- Custom SQL expression</p>
+<hr />
+<h2 id="complete-specql-identifier-config-reference">📚 Complete SpecQL Identifier Config Reference</h2>
+<h3 id="identifier-configuration-block">Identifier Configuration Block</h3>
+<pre><code class="language-yaml">identifier:
+  # Strategy selection (required if declaring identifier config)
+  strategy: simple | hierarchical_slug | composite | template
+
+  # Tenant prefix (AUTOMATIC for tenant-scoped schemas)
+  # Override only if you want to disable or customize
+  tenant_prefix:
+    enabled: true  # Default: true for tenant.*, false for catalog.*
+    field: tenant_id  # Default: auto-detected (tenant_id, fk_tenant, fk_organization)
+    separator: &quot;|&quot;  # Default: &quot;|&quot;
+
+  # Type prefix (applied AFTER tenant prefix, before components)
+  type_prefix:
+    - field: location_type.identifier
+      transform: none | slugify | uppercase | lowercase
+      separator: &quot;.&quot;  # Separator AFTER type prefix
+
+  # Main components
+  components:
+    - name  # Shorthand for field: name, transform: slugify
+    # OR detailed:
+    - field: name
+      transform: slugify
+      format: &quot;LPAD({value}::TEXT, 3, '0')&quot;  # Optional SQL formatting
+      separator: &quot;-&quot;  # Separator AFTER this component
+      replace: {&quot;|&quot;: &quot;.&quot;, &quot; &quot;: &quot;-&quot;}  # Character replacements
+
+  # Hierarchy separator (for hierarchical_slug strategy)
+  separator: &quot;_&quot; | &quot;.&quot; | &quot;-&quot;
+
+  # Template (for template strategy)
+  # NOTE: Tenant prefix still applied automatically!
+  # Template generates: {tenant}|{template_result}
+  template: &quot;{year}-{contract_number}&quot;
+
+  # Transforms (for template strategy)
+  transforms:
+    field_name: none | slugify | uppercase | lowercase
+
+  # Deduplication
+  deduplication: true | false  # Default: true
+  deduplication_suffix: &quot;#&quot;  # Default: &quot;#&quot;
+  deduplication_scope: tenant | global  # Default: tenant (for tenant schemas)
+
+  # Recalculation triggers
+  recalculate:
+    on: [insert, update, parent_change, related_change, tenant_change]
+    fields: [name, type_id]  # Which field changes trigger recalc
+    cascade: none | descendants | subtree  # For hierarchical entities
+</code></pre>
+<h3 id="tenant-prefix-defaults-by-schema"><strong>Tenant Prefix Defaults by Schema</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Schema</th>
+<th>Tenant Prefix</th>
+<th>Deduplication Scope</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tenant.*</code></td>
+<td>✅ Automatic</td>
+<td>Within tenant</td>
+<td><code>acme-corp\|product</code></td>
+</tr>
+<tr>
+<td><code>management.*</code></td>
+<td>✅ Automatic</td>
+<td>Within tenant</td>
+<td><code>acme-corp\|location</code></td>
+</tr>
+<tr>
+<td><code>catalog.*</code></td>
+<td>❌ Disabled</td>
+<td>Global</td>
+<td><code>hp\|laserjet</code></td>
+</tr>
+<tr>
+<td><code>core.*</code></td>
+<td>❌ Disabled</td>
+<td>Global</td>
+<td><code>admin\|system-user</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Override Tenant Prefix</strong> (rare):</p>
+<pre><code class="language-yaml">identifier:
+  tenant_prefix:
+    enabled: false  # Disable for tenant schema (unusual!)
+  # OR customize:
+  tenant_prefix:
+    field: fk_organization  # Use different field
+    separator: &quot;:&quot;  # Use different separator
+</code></pre>
+<hr />
+<h2 id="implementation-details">🔧 Implementation Details</h2>
+<h3 id="team-a-parser-updates">Team A: Parser Updates</h3>
+<p><strong>File</strong>: <code>src/core/ast_models.py</code> (UPDATE)</p>
+<pre><code class="language-python">@dataclass
+class IdentifierComponent:
+    &quot;&quot;&quot;Component of identifier calculation.&quot;&quot;&quot;
+    field: str  # Field name or path (e.g., &quot;name&quot; or &quot;organization.identifier&quot;)
+    transform: str = &quot;slugify&quot;  # none, slugify, uppercase, lowercase
+    format: Optional[str] = None  # SQL formatting expression
+    separator: str = &quot;&quot;  # Separator after this component
+    replace: Optional[Dict[str, str]] = None  # Character replacements
+
+@dataclass
+class IdentifierConfig:
+    &quot;&quot;&quot;Identifier calculation strategy.&quot;&quot;&quot;
+    strategy: str  # simple, hierarchical_slug, composite, template
+
+    # Components
+    prefix: List[IdentifierComponent] = field(default_factory=list)
+    components: List[IdentifierComponent] = field(default_factory=list)
+
+    # Hierarchy
+    separator: str = &quot;_&quot;  # For hierarchical strategies
+
+    # Template
+    template: Optional[str] = None  # For template strategy
+    transforms: Optional[Dict[str, str]] = None
+
+    # Deduplication
+    deduplication: bool = True
+    deduplication_suffix: str = &quot;#&quot;
+
+    # Recalculation
+    recalculate_on: List[str] = field(default_factory=lambda: [&quot;insert&quot;, &quot;update&quot;])
+    recalculate_fields: List[str] = field(default_factory=list)
+    recalculate_cascade: str = &quot;none&quot;  # none, descendants, subtree
+
+@dataclass
+class EntityDefinition:
+    &quot;&quot;&quot;Represents an entity in SpecQL&quot;&quot;&quot;
+
+    name: str
+    schema: str
+    description: str = &quot;&quot;
+
+    # Fields
+    fields: Dict[str, FieldDefinition] = field(default_factory=dict)
+
+    # Actions
+    actions: List[&quot;ActionDefinition&quot;] = field(default_factory=list)
+
+    # Identifier strategy (NEW)
+    identifier: Optional[IdentifierConfig] = None
+
+    # ... existing fields ...
+</code></pre>
+<p><strong>File</strong>: <code>src/core/specql_parser.py</code> (UPDATE)</p>
+<pre><code class="language-python">class SpecQLParser:
+    def _parse_identifier_config(self, yaml_data: dict) -&gt; Optional[IdentifierConfig]:
+        &quot;&quot;&quot;Parse identifier configuration from YAML.&quot;&quot;&quot;
+
+        if &quot;identifier&quot; not in yaml_data:
+            return None  # Use default strategy
+
+        id_config = yaml_data[&quot;identifier&quot;]
+
+        # Parse strategy
+        strategy = id_config.get(&quot;strategy&quot;, &quot;simple&quot;)
+
+        # Parse components
+        prefix = self._parse_identifier_components(id_config.get(&quot;prefix&quot;, []))
+        components = self._parse_identifier_components(id_config.get(&quot;components&quot;, []))
+
+        # If components is empty but we have a name field, use it as default
+        if not components and &quot;name&quot; in self.entity.fields:
+            components = [IdentifierComponent(field=&quot;name&quot;, transform=&quot;slugify&quot;)]
+
+        return IdentifierConfig(
+            strategy=strategy,
+            prefix=prefix,
+            components=components,
+            separator=id_config.get(&quot;separator&quot;, &quot;_&quot;),
+            template=id_config.get(&quot;template&quot;),
+            transforms=id_config.get(&quot;transforms&quot;),
+            deduplication=id_config.get(&quot;deduplication&quot;, True),
+            deduplication_suffix=id_config.get(&quot;deduplication_suffix&quot;, &quot;#&quot;),
+            recalculate_on=id_config.get(&quot;recalculate&quot;, {}).get(&quot;on&quot;, [&quot;insert&quot;, &quot;update&quot;]),
+            recalculate_fields=id_config.get(&quot;recalculate&quot;, {}).get(&quot;fields&quot;, []),
+            recalculate_cascade=id_config.get(&quot;recalculate&quot;, {}).get(&quot;cascade&quot;, &quot;none&quot;)
+        )
+
+    def _parse_identifier_components(
+        self,
+        components: List[Union[str, dict]]
+    ) -&gt; List[IdentifierComponent]:
+        &quot;&quot;&quot;Parse identifier components (shorthand or detailed).&quot;&quot;&quot;
+
+        result = []
+
+        for comp in components:
+            if isinstance(comp, str):
+                # Shorthand: just field name
+                result.append(IdentifierComponent(field=comp, transform=&quot;slugify&quot;))
+            else:
+                # Detailed config
+                result.append(IdentifierComponent(
+                    field=comp[&quot;field&quot;],
+                    transform=comp.get(&quot;transform&quot;, &quot;slugify&quot;),
+                    format=comp.get(&quot;format&quot;),
+                    separator=comp.get(&quot;separator&quot;, &quot;&quot;),
+                    replace=comp.get(&quot;replace&quot;)
+                ))
+
+        return result
+</code></pre>
+<hr />
+<h3 id="team-b-schema-generator-updates">Team B: Schema Generator Updates</h3>
+<p><strong>File</strong>: <code>src/generators/schema/schema_generator.py</code> (UPDATE)</p>
+<pre><code class="language-python">def _generate_identifier_fields(self, entity: EntityDefinition) -&gt; List[str]:
+    &quot;&quot;&quot;Generate identifier fields based on strategy.&quot;&quot;&quot;
+
+    fields = []
+
+    if entity.identifier and entity.identifier.strategy != &quot;simple&quot;:
+        # Complex strategy: identifier + base_identifier + sequence
+        fields.extend([
+            &quot;identifier TEXT NOT NULL&quot;,
+            &quot;base_identifier TEXT&quot;,
+            &quot;sequence_number INTEGER NOT NULL DEFAULT 1&quot;,
+            &quot;display_identifier TEXT GENERATED ALWAYS AS (&quot;,
+            &quot;    CASE&quot;,
+            &quot;        WHEN sequence_number &gt; 1&quot;,
+            &quot;        THEN identifier || '#' || sequence_number&quot;,
+            &quot;        ELSE identifier&quot;,
+            &quot;    END&quot;,
+            &quot;) STORED&quot;
+        ])
+    else:
+        # Simple strategy: just identifier with deduplication
+        fields.extend([
+            &quot;identifier TEXT NOT NULL&quot;,
+            &quot;sequence_number INTEGER NOT NULL DEFAULT 1&quot;,
+            &quot;display_identifier TEXT GENERATED ALWAYS AS (&quot;,
+            &quot;    CASE&quot;,
+            &quot;        WHEN sequence_number &gt; 1&quot;,
+            &quot;        THEN identifier || '#' || sequence_number&quot;,
+            &quot;        ELSE identifier&quot;,
+            &quot;    END&quot;,
+            &quot;) STORED&quot;
+        ])
+
+    # Recalculation audit fields
+    fields.extend([
+        &quot;identifier_recalculated_at TIMESTAMPTZ&quot;,
+        &quot;identifier_recalculated_by UUID&quot;
+    ])
+
+    return fields
+</code></pre>
+<hr />
+<h3 id="tenant-prefix-auto-detection-logic">Tenant Prefix Auto-Detection Logic</h3>
+<p><strong>File</strong>: <code>src/generators/actions/identifier_recalc_generator.py</code> (NEW)</p>
+<pre><code class="language-python">class IdentifierRecalcGenerator:
+    &quot;&quot;&quot;Generate identifier recalculation functions.&quot;&quot;&quot;
+
+    def _detect_tenant_field(self, entity: EntityDefinition) -&gt; Optional[str]:
+        &quot;&quot;&quot;Auto-detect tenant field for prefix.&quot;&quot;&quot;
+
+        # Check if entity is in tenant-scoped schema
+        tenant_schemas = ['tenant', 'management']
+        if entity.schema not in tenant_schemas:
+            return None  # No tenant prefix for catalog/core
+
+        # Priority order for tenant field detection
+        candidates = [
+            'tenant_id',           # Primary (Trinity pattern)
+            'fk_tenant',           # Alternative FK
+            'fk_organization',     # Organization as tenant
+            'fk_customer_org'      # Customer org as tenant
+        ]
+
+        for field_name in candidates:
+            if field_name in entity.fields:
+                return field_name
+
+        # Warn if tenant-scoped schema has no tenant field
+        logger.warning(
+            f&quot;Entity '{entity.name}' in tenant schema '{entity.schema}' &quot;
+            f&quot;has no tenant field. Identifiers will not have tenant prefix.&quot;
+        )
+        return None
+
+    def _should_apply_tenant_prefix(
+        self,
+        entity: EntityDefinition
+    ) -&gt; bool:
+        &quot;&quot;&quot;Determine if tenant prefix should be applied.&quot;&quot;&quot;
+
+        # Explicit override
+        if entity.identifier and entity.identifier.tenant_prefix:
+            return entity.identifier.tenant_prefix.get('enabled', True)
+
+        # Auto-detect based on schema
+        return self._detect_tenant_field(entity) is not None
+
+    def _get_tenant_identifier_expression(
+        self,
+        entity: EntityDefinition
+    ) -&gt; Optional[str]:
+        &quot;&quot;&quot;Get SQL expression for tenant identifier lookup.&quot;&quot;&quot;
+
+        tenant_field = self._detect_tenant_field(entity)
+        if not tenant_field:
+            return None
+
+        # Determine reference entity
+        field_def = entity.fields[tenant_field]
+        if hasattr(field_def, 'reference'):
+            # e.g., ref(Organization) → tb_organization
+            ref_entity = field_def.reference.lower()
+            ref_table = f&quot;tb_{ref_entity}&quot;
+
+            return f&quot;&quot;&quot;
+            (SELECT identifier
+             FROM management.{ref_table}
+             WHERE pk_{ref_entity} = t.{tenant_field})
+            &quot;&quot;&quot;
+        else:
+            # Direct UUID field - need to look up
+            # Assume tenant_id → tb_tenant
+            return f&quot;&quot;&quot;
+            (SELECT identifier
+             FROM management.tb_tenant
+             WHERE id = t.{tenant_field})
+            &quot;&quot;&quot;
+</code></pre>
+<hr />
+<h3 id="team-c-identifier-recalculation-function-generator">Team C: Identifier Recalculation Function Generator</h3>
+<p><strong>NEW File</strong>: <code>src/generators/actions/identifier_recalc_generator.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;Generate recalculate_identifier() functions based on strategy.&quot;&quot;&quot;
+
+from src.core.ast_models import EntityDefinition, IdentifierConfig
+
+class IdentifierRecalcGenerator:
+    &quot;&quot;&quot;Generate identifier recalculation functions.&quot;&quot;&quot;
+
+    def generate(self, entity: EntityDefinition) -&gt; str:
+        &quot;&quot;&quot;Generate recalculate_identifier function for entity.&quot;&quot;&quot;
+
+        if not entity.identifier:
+            # Default simple strategy
+            return self._generate_simple_strategy(entity)
+
+        strategy = entity.identifier.strategy
+
+        if strategy == &quot;simple&quot;:
+            return self._generate_simple_strategy(entity)
+        elif strategy == &quot;hierarchical_slug&quot;:
+            return self._generate_hierarchical_strategy(entity)
+        elif strategy == &quot;composite&quot;:
+            return self._generate_composite_strategy(entity)
+        elif strategy == &quot;template&quot;:
+            return self._generate_template_strategy(entity)
+        else:
+            raise ValueError(f&quot;Unknown identifier strategy: {strategy}&quot;)
+
+    def _generate_simple_strategy(self, entity: EntityDefinition) -&gt; str:
+        &quot;&quot;&quot;Generate simple slug-based identifier recalculation.&quot;&quot;&quot;
+
+        entity_lower = entity.name.lower()
+        schema = entity.schema
+
+        # Determine source field (default to 'name')
+        source_field = &quot;name&quot;
+        if entity.identifier and entity.identifier.components:
+            source_field = entity.identifier.components[0].field
+
+        # Check for tenant prefix
+        has_tenant_prefix = self._should_apply_tenant_prefix(entity)
+        tenant_expr = &quot;&quot;
+        if has_tenant_prefix:
+            tenant_lookup = self._get_tenant_identifier_expression(entity)
+            tenant_expr = f&quot;{tenant_lookup} || '|' || &quot;
+
+        return f&quot;&quot;&quot;
+-- Recalculate identifiers for {entity.name} (simple slug strategy)
+-- Tenant prefix: {'YES - ' + tenant_expr if has_tenant_prefix else 'NO (catalog/global entity)'}
+CREATE OR REPLACE FUNCTION {schema}.recalculate_{entity_lower}_identifier(
+    ctx core.recalculation_context DEFAULT ROW(NULL, NULL, NULL)::core.recalculation_context
+) RETURNS INTEGER AS $$
+DECLARE
+    v_updated_count INTEGER := 0;
+    v_record RECORD;
+    v_new_identifier TEXT;
+    v_suffix INTEGER;
+    v_final_identifier TEXT;
+BEGIN
+    -- Create temp table for new identifiers
+    DROP TABLE IF EXISTS tmp_{entity_lower}_identifiers;
+    CREATE TEMP TABLE tmp_{entity_lower}_identifiers (
+        pk_{entity_lower} INTEGER,
+        base_identifier TEXT,
+        unique_identifier TEXT,
+        sequence_number INTEGER
+    ) ON COMMIT DROP;
+
+    -- Calculate base identifiers (WITH TENANT PREFIX if applicable)
+    INSERT INTO tmp_{entity_lower}_identifiers (pk_{entity_lower}, base_identifier)
+    SELECT
+        t.pk_{entity_lower},
+        {tenant_expr}public.safe_slug(t.{source_field})
+    FROM {schema}.tb_{entity_lower} t
+    WHERE
+        CASE
+            WHEN ctx.pk IS NOT NULL THEN t.id = ctx.pk
+            WHEN ctx.pk_tenant IS NOT NULL THEN t.tenant_id = ctx.pk_tenant
+            ELSE true
+        END;
+
+    -- Deduplicate (WITHIN TENANT if applicable)
+    FOR v_record IN
+        SELECT pk_{entity_lower}, base_identifier
+        FROM tmp_{entity_lower}_identifiers
+    LOOP
+        v_new_identifier := v_record.base_identifier;
+        v_suffix := 1;
+
+        -- Find unique identifier (scoped to tenant if tenant prefix exists)
+        LOOP
+            EXIT WHEN NOT EXISTS (
+                SELECT 1 FROM {schema}.tb_{entity_lower}
+                WHERE identifier = v_new_identifier
+                  AND pk_{entity_lower} != v_record.pk_{entity_lower}
+                  AND deleted_at IS NULL
+                  -- Tenant scoping: identifiers are already prefixed with tenant,
+                  -- so exact match on identifier ensures within-tenant uniqueness
+            ) AND NOT EXISTS (
+                SELECT 1 FROM tmp_{entity_lower}_identifiers
+                WHERE unique_identifier = v_new_identifier
+                  AND pk_{entity_lower} != v_record.pk_{entity_lower}
+            );
+
+            v_suffix := v_suffix + 1;
+            v_new_identifier := v_record.base_identifier || '#' || v_suffix;
+        END LOOP;
+
+        -- Update temp table
+        UPDATE tmp_{entity_lower}_identifiers
+        SET
+            unique_identifier = v_new_identifier,
+            sequence_number = v_suffix
+        WHERE pk_{entity_lower} = v_record.pk_{entity_lower};
+    END LOOP;
+
+    -- Apply to live table
+    UPDATE {schema}.tb_{entity_lower} t
+    SET
+        identifier = tmp.unique_identifier,
+        sequence_number = tmp.sequence_number,
+        identifier_recalculated_at = now(),
+        identifier_recalculated_by = ctx.updated_by
+    FROM tmp_{entity_lower}_identifiers tmp
+    WHERE t.pk_{entity_lower} = tmp.pk_{entity_lower}
+      AND (
+          t.identifier IS DISTINCT FROM tmp.unique_identifier OR
+          t.sequence_number IS DISTINCT FROM tmp.sequence_number
+      );
+
+    GET DIAGNOSTICS v_updated_count = ROW_COUNT;
+
+    RETURN v_updated_count;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION {schema}.recalculate_{entity_lower}_identifier IS
+'Recalculate simple slug-based identifiers for {entity.name}.
+Strategy: simple (slug from {source_field})
+Pattern: safe_slug({source_field}) + deduplication';
+&quot;&quot;&quot;.strip()
+
+    def _generate_hierarchical_strategy(self, entity: EntityDefinition) -&gt; str:
+        &quot;&quot;&quot;Generate hierarchical slug-based identifier recalculation.&quot;&quot;&quot;
+
+        # Similar to simple, but with recursive CTE
+        # See IDENTIFIER_CALCULATION_PATTERNS.md for full implementation
+
+        entity_lower = entity.name.lower()
+        schema = entity.schema
+        parent_field = f&quot;fk_parent_{entity_lower}&quot;
+
+        # Build component expression
+        component_expr = self._build_component_expression(
+            entity.identifier.components
+        )
+
+        return f&quot;&quot;&quot;
+-- Recalculate identifiers for {entity.name} (hierarchical slug strategy)
+CREATE OR REPLACE FUNCTION {schema}.recalculate_{entity_lower}_identifier(
+    ctx core.recalculation_context DEFAULT ROW(NULL, NULL, NULL)::core.recalculation_context
+) RETURNS INTEGER AS $$
+DECLARE
+    v_updated_count INTEGER := 0;
+    v_root_pk INTEGER;
+BEGIN
+    -- Find root if ctx.pk provided
+    -- (Find root logic - walk up to NULL parent)
+
+    -- Create temp table
+    DROP TABLE IF EXISTS tmp_{entity_lower}_identifiers;
+    CREATE TEMP TABLE tmp_{entity_lower}_identifiers (
+        pk_{entity_lower} INTEGER,
+        base_identifier TEXT,
+        unique_identifier TEXT,
+        sequence_number INTEGER
+    ) ON COMMIT DROP;
+
+    -- Build hierarchical base identifiers using recursive CTE
+    WITH RECURSIVE hierarchy AS (
+        -- Anchor: Root nodes
+        SELECT
+            pk_{entity_lower},
+            {component_expr} AS base_identifier
+        FROM {schema}.tb_{entity_lower}
+        WHERE {parent_field} IS NULL
+
+        UNION ALL
+
+        -- Recursive: Child nodes
+        SELECT
+            child.pk_{entity_lower},
+            parent.base_identifier || '{entity.identifier.separator}' || {component_expr}
+        FROM {schema}.tb_{entity_lower} child
+        JOIN hierarchy parent ON child.{parent_field} = parent.pk_{entity_lower}
+    )
+    INSERT INTO tmp_{entity_lower}_identifiers (pk_{entity_lower}, base_identifier)
+    SELECT pk_{entity_lower}, base_identifier
+    FROM hierarchy;
+
+    -- Deduplicate (same loop as simple strategy)
+    -- ... deduplication logic ...
+
+    -- Apply to live table (same as simple strategy)
+    -- ... update logic ...
+
+    RETURN v_updated_count;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION {schema}.recalculate_{entity_lower}_identifier IS
+'Recalculate hierarchical slug-based identifiers for {entity.name}.
+Strategy: hierarchical_slug
+Pattern: parent_identifier + &quot;{entity.identifier.separator}&quot; + current_slug + deduplication';
+&quot;&quot;&quot;.strip()
+
+    def _build_component_expression(
+        self,
+        components: List[IdentifierComponent]
+    ) -&gt; str:
+        &quot;&quot;&quot;Build SQL expression for identifier components.&quot;&quot;&quot;
+
+        parts = []
+
+        for comp in components:
+            # Get field value
+            field_expr = comp.field
+
+            # Apply format if specified
+            if comp.format:
+                field_expr = comp.format.replace(&quot;{value}&quot;, field_expr)
+
+            # Apply transform
+            if comp.transform == &quot;slugify&quot;:
+                field_expr = f&quot;public.safe_slug({field_expr})&quot;
+            elif comp.transform == &quot;uppercase&quot;:
+                field_expr = f&quot;UPPER({field_expr})&quot;
+            elif comp.transform == &quot;lowercase&quot;:
+                field_expr = f&quot;LOWER({field_expr})&quot;
+            # else: none - use as-is
+
+            # Apply character replacements
+            if comp.replace:
+                for old_char, new_char in comp.replace.items():
+                    field_expr = f&quot;REPLACE({field_expr}, '{old_char}', '{new_char}')&quot;
+
+            parts.append(field_expr)
+
+            # Add separator after component
+            if comp.separator:
+                parts.append(f&quot;'{comp.separator}'&quot;)
+
+        # Concatenate all parts
+        return &quot; || &quot;.join(parts)
+</code></pre>
+<hr />
+<h2 id="default-behavior-summary">📊 Default Behavior Summary</h2>
+<h3 id="tenant-scoped-entities-automatic-tenant-prefix"><strong>Tenant-Scoped Entities</strong> (automatic tenant prefix)</h3>
+<h4 id="if-no-identifier-section-declared">If NO <code>identifier:</code> section declared:</h4>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">entity: Product
+schema: tenant  # Multi-tenant
+
+fields:
+  name: text
+</code></pre>
+<p><strong>Generated</strong>:
+- Schema: <code>identifier</code>, <code>sequence_number</code>, <code>display_identifier</code> fields
+- Function: <code>recalculate_product_identifier()</code> with <strong>tenant prefix + simple slug</strong>
+- Pattern: <code>{tenant_identifier}|{safe_slug(name)}</code></p>
+<p><strong>Result Examples</strong>:
+- Tenant "acme-corp", Product "Coffee Maker" → <code>acme-corp|coffee-maker</code>
+- Tenant "acme-corp", duplicate → <code>acme-corp|coffee-maker#2</code>
+- Tenant "globex", Product "Coffee Maker" → <code>globex|coffee-maker</code> (different tenant)</p>
+<hr />
+<h4 id="if-hierarchical-true-but-no-identifier-section">If <code>hierarchical: true</code> but NO <code>identifier:</code> section:</h4>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">entity: Location
+schema: tenant  # Multi-tenant
+hierarchical: true
+
+fields:
+  name: text
+</code></pre>
+<p><strong>Generated</strong>:
+- Uses hierarchical strategy automatically
+- Pattern: <code>{tenant}|{parent_slug}_{current_slug}</code></p>
+<p><strong>Result Examples</strong>:
+- Tenant "acme-corp", Root "Warehouse A" → <code>acme-corp|warehouse-a</code>
+- Tenant "acme-corp", Child "Floor 1" → <code>acme-corp|warehouse-a_floor-1</code>
+- Tenant "globex", Root "Warehouse A" → <code>globex|warehouse-a</code> (different namespace)</p>
+<p><strong>Auto-Detection</strong>: Framework knows to:
+1. Add tenant prefix (schema = tenant)
+2. Use hierarchical strategy (hierarchical = true)</p>
+<hr />
+<h3 id="global-entities-no-tenant-prefix"><strong>Global Entities</strong> (no tenant prefix)</h3>
+<h4 id="catalogreference-data">Catalog/Reference Data:</h4>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">entity: Country
+schema: catalog  # Global
+
+fields:
+  name: text
+</code></pre>
+<p><strong>Generated</strong>:
+- Pattern: <code>safe_slug(name)</code> (NO tenant prefix)</p>
+<p><strong>Result Examples</strong>:
+- "United States" → <code>united-states</code>
+- "United Kingdom" → <code>united-kingdom</code></p>
+<p><strong>Deduplication</strong>: Global scope (across all tenants)</p>
+<hr />
+<h2 id="benefits-of-this-design">✅ Benefits of This Design</h2>
+<ol>
+<li><strong>Sane Defaults</strong>: Works without configuration (90% of cases)</li>
+<li><strong>Declarative</strong>: Clear what identifier will look like</li>
+<li><strong>Flexible</strong>: Supports simple to complex patterns</li>
+<li><strong>Type-Safe</strong>: Validated by Team A parser</li>
+<li><strong>Automatic</strong>: Recalculated by framework</li>
+<li><strong>Human-Readable</strong>: Slugs, not UUIDs</li>
+<li><strong>Unique</strong>: Automatic deduplication</li>
+<li><strong>Hierarchical</strong>: Natural support for trees</li>
+</ol>
+<hr />
+<h2 id="testing-strategy">🧪 Testing Strategy</h2>
+<h3 id="unit-tests-team-a-parser">Unit Tests (Team A - Parser)</h3>
+<pre><code class="language-python">def test_parse_simple_identifier_strategy():
+    yaml_content = &quot;&quot;&quot;
+entity: Product
+identifier:
+  strategy: simple
+  components: [name]
+&quot;&quot;&quot;
+    parser = SpecQLParser()
+    entity = parser.parse(yaml_content)
+
+    assert entity.identifier is not None
+    assert entity.identifier.strategy == &quot;simple&quot;
+    assert len(entity.identifier.components) == 1
+    assert entity.identifier.components[0].field == &quot;name&quot;
+
+def test_parse_hierarchical_identifier_with_ordering():
+    yaml_content = &quot;&quot;&quot;
+entity: Location
+hierarchical: true
+identifier:
+  strategy: hierarchical_slug
+  components:
+    - field: int_ordered
+      format: &quot;LPAD({value}::TEXT, 3, '0')&quot;
+      separator: &quot;-&quot;
+    - name
+  separator: &quot;.&quot;
+&quot;&quot;&quot;
+    parser = SpecQLParser()
+    entity = parser.parse(yaml_content)
+
+    assert entity.identifier.strategy == &quot;hierarchical_slug&quot;
+    assert entity.identifier.separator == &quot;.&quot;
+    assert len(entity.identifier.components) == 2
+</code></pre>
+<h3 id="integration-tests-team-c-generator">Integration Tests (Team C - Generator)</h3>
+<pre><code class="language-python">def test_generate_simple_identifier_recalc_function():
+    entity = EntityDefinition(
+        name=&quot;Product&quot;,
+        schema=&quot;catalog&quot;,
+        identifier=IdentifierConfig(
+            strategy=&quot;simple&quot;,
+            components=[IdentifierComponent(field=&quot;name&quot;)]
+        )
+    )
+
+    generator = IdentifierRecalcGenerator()
+    sql = generator.generate(entity)
+
+    assert &quot;CREATE OR REPLACE FUNCTION catalog.recalculate_product_identifier&quot; in sql
+    assert &quot;public.safe_slug(name)&quot; in sql
+    assert &quot;v_suffix := v_suffix + 1&quot; in sql  # Deduplication
+</code></pre>
+<hr />
+<h2 id="migration-path">📝 Migration Path</h2>
+<h3 id="existing-code">Existing Code</h3>
+<p>Currently <code>identifier</code> is just an empty TEXT field. Users must:
+1. Manually calculate identifiers
+2. Manually ensure uniqueness
+3. Manually update when dependencies change</p>
+<h3 id="with-this-implementation">With This Implementation</h3>
+<ol>
+<li><strong>Add <code>identifier:</code> section</strong> to SpecQL YAML</li>
+<li><strong>Run code generator</strong> → Creates <code>recalculate_*_identifier()</code> function</li>
+<li><strong>Call recalculation</strong> → Populates identifiers automatically</li>
+</ol>
+<pre><code class="language-sql">-- Initial population
+SELECT catalog.recalculate_product_identifier();
+
+-- Ongoing: Automatic via mutation functions
+-- (Team C generates explicit calls in mutations)
+</code></pre>
+<hr />
+<h2 id="acceptance-criteria">🎯 Acceptance Criteria</h2>
+<ul>
+<li>[ ] Parser supports <code>identifier:</code> configuration</li>
+<li>[ ] Default simple strategy works without config</li>
+<li>[ ] Hierarchical strategy auto-detected for <code>hierarchical: true</code></li>
+<li>[ ] All 6 strategies implemented</li>
+<li>[ ] Deduplication works (#2, #3, etc.)</li>
+<li>[ ] Recalculation functions generated</li>
+<li>[ ] Integration with mutation functions (explicit calls)</li>
+<li>[ ] Comprehensive tests (90%+ coverage)</li>
+<li>[ ] Documentation complete</li>
+</ul>
+<hr />
+<p><strong>Status</strong>: 🎯 Ready for Implementation
+<strong>Priority</strong>: HIGH (needed for Team B/C Week 2-3)
+<strong>Dependencies</strong>: Team A parser, <code>safe_slug()</code> function</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

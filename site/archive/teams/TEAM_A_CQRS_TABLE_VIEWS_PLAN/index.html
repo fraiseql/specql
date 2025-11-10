@@ -1,0 +1,1001 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team A: CQRS Table Views Implementation Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team A: CQRS Table Views Implementation Plan";
+        var mkdocs_page_input_path = "archive/teams/TEAM_A_CQRS_TABLE_VIEWS_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team A: CQRS Table Views Implementation Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-a-cqrs-table-views-implementation-plan">Team A: CQRS Table Views Implementation Plan</h1>
+<p><strong>Team</strong>: Parser &amp; AST
+<strong>Impact</strong>: MEDIUM (new table_views configuration parsing)
+<strong>Timeline</strong>: Week 2-3 (3-4 days)
+<strong>Status</strong>: 🟡 MEDIUM PRIORITY - Extends Team A base work</p>
+<hr />
+<h2 id="overview">📋 Overview</h2>
+<p>Team A must extend the SpecQL parser to support <strong>table_views configuration</strong> for CQRS read-side optimization.</p>
+<p><strong>New Capabilities</strong>:
+1. ✅ Parse <code>table_views</code> configuration block
+2. ✅ Parse <code>include_relations</code> (explicit field selection)
+3. ✅ Parse <code>extra_filter_columns</code> (performance optimization)
+4. ✅ Parse <code>mode: auto/force/disable</code>
+5. ✅ Add TableViewConfig to Entity AST</p>
+<p><strong>Total Effort</strong>: 3-4 days</p>
+<hr />
+<h2 id="phase-1-ast-models-for-table-views-day-1">🎯 Phase 1: AST Models for Table Views (Day 1)</h2>
+<h3 id="objective-define-ast-classes-for-table_views-configuration"><strong>Objective</strong>: Define AST classes for table_views configuration</h3>
+<h3 id="11-tableviewconfig-model"><strong>1.1: TableViewConfig Model</strong></h3>
+<p><strong>File</strong>: <code>src/core/ast_models.py</code></p>
+<pre><code class="language-python">from dataclasses import dataclass, field
+from typing import Optional, List, Dict
+from enum import Enum
+
+class TableViewMode(Enum):
+    &quot;&quot;&quot;Mode for table view generation.&quot;&quot;&quot;
+    AUTO = &quot;auto&quot;      # Generate if has foreign keys
+    FORCE = &quot;force&quot;    # Always generate
+    DISABLE = &quot;disable&quot;  # Never generate
+
+@dataclass
+class IncludeRelation:
+    &quot;&quot;&quot;Specification for including a related entity in table view.&quot;&quot;&quot;
+    entity_name: str
+    fields: List[str]  # Which fields to include from related entity
+    include_relations: List['IncludeRelation'] = field(default_factory=list)  # Nested
+
+    def __post_init__(self):
+        &quot;&quot;&quot;Validate field list.&quot;&quot;&quot;
+        if not self.fields:
+            raise ValueError(f&quot;include_relations.{self.entity_name} must specify fields&quot;)
+
+        # Special case: '*' means all fields
+        if self.fields == ['*']:
+            pass  # All fields, resolved during generation
+        elif not all(isinstance(f, str) for f in self.fields):
+            raise ValueError(f&quot;Fields must be strings in {self.entity_name}&quot;)
+
+@dataclass
+class ExtraFilterColumn:
+    &quot;&quot;&quot;Extra filter column specification.&quot;&quot;&quot;
+    name: str
+    source: Optional[str] = None  # e.g., &quot;author.name&quot; for nested extraction
+    type: Optional[str] = None    # Explicit type override
+    index_type: str = &quot;btree&quot;     # btree | gin | gin_trgm | gist
+
+    @classmethod
+    def from_string(cls, name: str) -&gt; 'ExtraFilterColumn':
+        &quot;&quot;&quot;Create from simple string (e.g., 'rating').&quot;&quot;&quot;
+        return cls(name=name)
+
+    @classmethod
+    def from_dict(cls, name: str, config: dict) -&gt; 'ExtraFilterColumn':
+        &quot;&quot;&quot;Create from dict config (e.g., {source: 'author.name', type: 'text'}).&quot;&quot;&quot;
+        return cls(
+            name=name,
+            source=config.get('source'),
+            type=config.get('type'),
+            index_type=config.get('index', 'btree')
+        )
+
+@dataclass
+class TableViewConfig:
+    &quot;&quot;&quot;Configuration for table view (tv_) generation.&quot;&quot;&quot;
+
+    # Generation mode
+    mode: TableViewMode = TableViewMode.AUTO
+
+    # Explicit relation inclusion
+    include_relations: List[IncludeRelation] = field(default_factory=list)
+
+    # Performance-optimized filter columns
+    extra_filter_columns: List[ExtraFilterColumn] = field(default_factory=list)
+
+    # Refresh strategy (always explicit for now)
+    refresh: str = &quot;explicit&quot;
+
+    @property
+    def should_generate(self) -&gt; bool:
+        &quot;&quot;&quot;Check if table view should be generated (resolved during generation).&quot;&quot;&quot;
+        # This will be resolved by Team B based on mode and entity characteristics
+        return self.mode != TableViewMode.DISABLE
+
+    @property
+    def has_explicit_relations(self) -&gt; bool:
+        &quot;&quot;&quot;Check if explicit relations are specified.&quot;&quot;&quot;
+        return len(self.include_relations) &gt; 0
+
+# Extend EntityAST
+@dataclass
+class EntityAST:
+    &quot;&quot;&quot;Entity AST with table_views support.&quot;&quot;&quot;
+    name: str
+    schema: str
+    fields: List[FieldDefinition]
+    actions: List[ActionDefinition]
+    hierarchical: bool = False
+    metadata_split: bool = False
+
+    # NEW: Table views configuration
+    table_views: Optional[TableViewConfig] = None
+
+    @property
+    def has_foreign_keys(self) -&gt; bool:
+        &quot;&quot;&quot;Check if entity has any foreign key fields.&quot;&quot;&quot;
+        return any(
+            field.field_type.startswith('ref(')
+            for field in self.fields
+        )
+
+    @property
+    def should_generate_table_view(self) -&gt; bool:
+        &quot;&quot;&quot;Determine if table view should be generated.&quot;&quot;&quot;
+        if self.table_views is None:
+            # Default: auto mode
+            return self.has_foreign_keys
+
+        if self.table_views.mode == TableViewMode.DISABLE:
+            return False
+        elif self.table_views.mode == TableViewMode.FORCE:
+            return True
+        else:  # AUTO
+            return self.has_foreign_keys
+</code></pre>
+<hr />
+<h3 id="12-test-ast-models"><strong>1.2: Test AST Models</strong></h3>
+<p><strong>File</strong>: <code>tests/unit/core/test_table_view_ast.py</code></p>
+<pre><code class="language-python">import pytest
+from src.core.ast_models import (
+    TableViewMode, TableViewConfig, IncludeRelation,
+    ExtraFilterColumn, EntityAST, FieldDefinition
+)
+
+class TestTableViewConfig:
+    &quot;&quot;&quot;Test TableViewConfig model.&quot;&quot;&quot;
+
+    def test_default_mode_is_auto(self):
+        &quot;&quot;&quot;Test default mode is AUTO.&quot;&quot;&quot;
+        config = TableViewConfig()
+        assert config.mode == TableViewMode.AUTO
+        assert config.refresh == &quot;explicit&quot;
+
+    def test_include_relation_requires_fields(self):
+        &quot;&quot;&quot;Test IncludeRelation requires fields.&quot;&quot;&quot;
+        with pytest.raises(ValueError):
+            IncludeRelation(entity_name=&quot;User&quot;, fields=[])
+
+    def test_include_relation_with_wildcard(self):
+        &quot;&quot;&quot;Test wildcard '*' for all fields.&quot;&quot;&quot;
+        rel = IncludeRelation(entity_name=&quot;User&quot;, fields=['*'])
+        assert rel.fields == ['*']
+
+    def test_nested_include_relations(self):
+        &quot;&quot;&quot;Test nested include_relations.&quot;&quot;&quot;
+        rel = IncludeRelation(
+            entity_name=&quot;Book&quot;,
+            fields=[&quot;title&quot;, &quot;isbn&quot;],
+            include_relations=[
+                IncludeRelation(
+                    entity_name=&quot;Publisher&quot;,
+                    fields=[&quot;name&quot;, &quot;country&quot;]
+                )
+            ]
+        )
+        assert len(rel.include_relations) == 1
+        assert rel.include_relations[0].entity_name == &quot;Publisher&quot;
+
+    def test_extra_filter_column_from_string(self):
+        &quot;&quot;&quot;Test creating filter column from string.&quot;&quot;&quot;
+        col = ExtraFilterColumn.from_string(&quot;rating&quot;)
+        assert col.name == &quot;rating&quot;
+        assert col.source is None
+        assert col.index_type == &quot;btree&quot;
+
+    def test_extra_filter_column_from_dict(self):
+        &quot;&quot;&quot;Test creating filter column from dict.&quot;&quot;&quot;
+        col = ExtraFilterColumn.from_dict(
+            &quot;author_name&quot;,
+            {&quot;source&quot;: &quot;author.name&quot;, &quot;type&quot;: &quot;text&quot;, &quot;index&quot;: &quot;gin_trgm&quot;}
+        )
+        assert col.name == &quot;author_name&quot;
+        assert col.source == &quot;author.name&quot;
+        assert col.type == &quot;text&quot;
+        assert col.index_type == &quot;gin_trgm&quot;
+
+class TestEntityASTWithTableViews:
+    &quot;&quot;&quot;Test EntityAST with table_views.&quot;&quot;&quot;
+
+    def test_entity_without_table_views_config(self):
+        &quot;&quot;&quot;Test entity with no table_views (defaults to auto).&quot;&quot;&quot;
+        entity = EntityAST(
+            name=&quot;Review&quot;,
+            schema=&quot;library&quot;,
+            fields=[
+                FieldDefinition(name=&quot;author&quot;, field_type=&quot;ref(User)&quot;)
+            ],
+            actions=[],
+            table_views=None  # No config
+        )
+
+        assert entity.has_foreign_keys is True
+        assert entity.should_generate_table_view is True  # Auto mode
+
+    def test_entity_with_force_mode(self):
+        &quot;&quot;&quot;Test entity with force mode (no foreign keys).&quot;&quot;&quot;
+        entity = EntityAST(
+            name=&quot;AuditLog&quot;,
+            schema=&quot;core&quot;,
+            fields=[
+                FieldDefinition(name=&quot;message&quot;, field_type=&quot;text&quot;)
+            ],
+            actions=[],
+            table_views=TableViewConfig(mode=TableViewMode.FORCE)
+        )
+
+        assert entity.has_foreign_keys is False
+        assert entity.should_generate_table_view is True  # Forced
+
+    def test_entity_with_disable_mode(self):
+        &quot;&quot;&quot;Test entity with disable mode (has foreign keys but disabled).&quot;&quot;&quot;
+        entity = EntityAST(
+            name=&quot;SessionToken&quot;,
+            schema=&quot;auth&quot;,
+            fields=[
+                FieldDefinition(name=&quot;user&quot;, field_type=&quot;ref(User)&quot;)
+            ],
+            actions=[],
+            table_views=TableViewConfig(mode=TableViewMode.DISABLE)
+        )
+
+        assert entity.has_foreign_keys is True
+        assert entity.should_generate_table_view is False  # Disabled
+</code></pre>
+<hr />
+<h2 id="phase-2-parser-implementation-day-2-3">🎯 Phase 2: Parser Implementation (Day 2-3)</h2>
+<h3 id="objective-parse-table_views-configuration-from-yaml"><strong>Objective</strong>: Parse table_views configuration from YAML</h3>
+<h3 id="21-parse-table_views-block"><strong>2.1: Parse table_views Block</strong></h3>
+<p><strong>File</strong>: <code>src/core/specql_parser.py</code></p>
+<pre><code class="language-python">from .ast_models import (
+    EntityAST, TableViewConfig, TableViewMode,
+    IncludeRelation, ExtraFilterColumn
+)
+
+class SpecQLParser:
+    def parse_entity(self, yaml_content: dict) -&gt; EntityAST:
+        &quot;&quot;&quot;Parse entity with table_views support.&quot;&quot;&quot;
+
+        # ... existing parsing (name, schema, fields, actions)
+
+        # NEW: Parse table_views
+        table_views_config = None
+        if 'table_views' in yaml_content:
+            table_views_config = self._parse_table_views(
+                yaml_content['table_views'],
+                entity_name
+            )
+
+        return EntityAST(
+            name=entity_name,
+            schema=schema,
+            fields=fields,
+            actions=actions,
+            hierarchical=hierarchical,
+            table_views=table_views_config
+        )
+
+    def _parse_table_views(
+        self,
+        config: dict,
+        entity_name: str
+    ) -&gt; TableViewConfig:
+        &quot;&quot;&quot;Parse table_views configuration block.&quot;&quot;&quot;
+
+        # Parse mode
+        mode_str = config.get('mode', 'auto')
+        try:
+            mode = TableViewMode(mode_str)
+        except ValueError:
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message=f&quot;Invalid table_views.mode: '{mode_str}'. &quot;
+                        f&quot;Must be: auto, force, or disable&quot;
+            )
+
+        # Parse include_relations
+        include_relations = []
+        if 'include_relations' in config:
+            for rel_config in config['include_relations']:
+                rel = self._parse_include_relation(rel_config, entity_name)
+                include_relations.append(rel)
+
+        # Parse extra_filter_columns
+        extra_filter_columns = []
+        if 'extra_filter_columns' in config:
+            for col_config in config['extra_filter_columns']:
+                col = self._parse_extra_filter_column(col_config, entity_name)
+                extra_filter_columns.append(col)
+
+        # Parse refresh (always explicit for now)
+        refresh = config.get('refresh', 'explicit')
+        if refresh != 'explicit':
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message=f&quot;Only 'explicit' refresh strategy is supported (got '{refresh}')&quot;
+            )
+
+        return TableViewConfig(
+            mode=mode,
+            include_relations=include_relations,
+            extra_filter_columns=extra_filter_columns,
+            refresh=refresh
+        )
+
+    def _parse_include_relation(
+        self,
+        config: dict,
+        entity_name: str
+    ) -&gt; IncludeRelation:
+        &quot;&quot;&quot;Parse include_relations entry.&quot;&quot;&quot;
+
+        # Format: - entity_name: { fields: [...], include_relations: [...] }
+        if not isinstance(config, dict) or len(config) != 1:
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message=f&quot;Invalid include_relations format. Expected single-key dict.&quot;
+            )
+
+        relation_entity = list(config.keys())[0]
+        relation_config = config[relation_entity]
+
+        # Parse fields (required)
+        if 'fields' not in relation_config:
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message=f&quot;include_relations.{relation_entity} must specify 'fields'&quot;
+            )
+
+        fields = relation_config['fields']
+        if not isinstance(fields, list):
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message=f&quot;include_relations.{relation_entity}.fields must be a list&quot;
+            )
+
+        # Parse nested include_relations (recursive)
+        nested_relations = []
+        if 'include_relations' in relation_config:
+            for nested_config in relation_config['include_relations']:
+                nested = self._parse_include_relation(nested_config, entity_name)
+                nested_relations.append(nested)
+
+        return IncludeRelation(
+            entity_name=relation_entity,
+            fields=fields,
+            include_relations=nested_relations
+        )
+
+    def _parse_extra_filter_column(
+        self,
+        config,
+        entity_name: str
+    ) -&gt; ExtraFilterColumn:
+        &quot;&quot;&quot;Parse extra_filter_columns entry.&quot;&quot;&quot;
+
+        # Simple string format
+        if isinstance(config, str):
+            return ExtraFilterColumn.from_string(config)
+
+        # Dict format with options
+        elif isinstance(config, dict):
+            if len(config) != 1:
+                raise SpecQLValidationError(
+                    entity=entity_name,
+                    message=f&quot;Invalid extra_filter_columns format&quot;
+                )
+
+            col_name = list(config.keys())[0]
+            col_config = config[col_name]
+
+            return ExtraFilterColumn.from_dict(col_name, col_config)
+
+        else:
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message=f&quot;extra_filter_columns must be string or dict&quot;
+            )
+</code></pre>
+<hr />
+<h3 id="22-test-parser"><strong>2.2: Test Parser</strong></h3>
+<p><strong>File</strong>: <code>tests/unit/core/test_table_views_parsing.py</code></p>
+<pre><code class="language-python">import pytest
+from src.core.specql_parser import SpecQLParser
+from src.core.exceptions import SpecQLValidationError
+from src.core.ast_models import TableViewMode
+
+class TestTableViewsParsing:
+    &quot;&quot;&quot;Test parsing table_views configuration.&quot;&quot;&quot;
+
+    def setup_method(self):
+        self.parser = SpecQLParser()
+
+    def test_parse_minimal_table_views(self):
+        &quot;&quot;&quot;Test parsing minimal table_views config.&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: Review
+        schema: library
+        fields:
+          rating: integer
+          author: ref(User)
+
+        table_views:
+          mode: auto
+        &quot;&quot;&quot;
+
+        entity = self.parser.parse_yaml(yaml_content)
+        assert entity.table_views is not None
+        assert entity.table_views.mode == TableViewMode.AUTO
+
+    def test_parse_include_relations(self):
+        &quot;&quot;&quot;Test parsing include_relations.&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: Review
+        schema: library
+        fields:
+          author: ref(User)
+          book: ref(Book)
+
+        table_views:
+          include_relations:
+            - author:
+                fields: [name, email]
+            - book:
+                fields: [title, isbn]
+        &quot;&quot;&quot;
+
+        entity = self.parser.parse_yaml(yaml_content)
+        assert len(entity.table_views.include_relations) == 2
+
+        author_rel = entity.table_views.include_relations[0]
+        assert author_rel.entity_name == &quot;author&quot;
+        assert author_rel.fields == [&quot;name&quot;, &quot;email&quot;]
+
+        book_rel = entity.table_views.include_relations[1]
+        assert book_rel.entity_name == &quot;book&quot;
+        assert book_rel.fields == [&quot;title&quot;, &quot;isbn&quot;]
+
+    def test_parse_nested_include_relations(self):
+        &quot;&quot;&quot;Test parsing nested include_relations.&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: Review
+        fields:
+          book: ref(Book)
+
+        table_views:
+          include_relations:
+            - book:
+                fields: [title, isbn]
+                include_relations:
+                  - publisher:
+                      fields: [name, country]
+        &quot;&quot;&quot;
+
+        entity = self.parser.parse_yaml(yaml_content)
+        book_rel = entity.table_views.include_relations[0]
+        assert len(book_rel.include_relations) == 1
+
+        publisher_rel = book_rel.include_relations[0]
+        assert publisher_rel.entity_name == &quot;publisher&quot;
+        assert publisher_rel.fields == [&quot;name&quot;, &quot;country&quot;]
+
+    def test_parse_extra_filter_columns_simple(self):
+        &quot;&quot;&quot;Test parsing simple extra_filter_columns.&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: Review
+        fields:
+          rating: integer
+          created_at: timestamp
+
+        table_views:
+          extra_filter_columns:
+            - rating
+            - created_at
+        &quot;&quot;&quot;
+
+        entity = self.parser.parse_yaml(yaml_content)
+        assert len(entity.table_views.extra_filter_columns) == 2
+        assert entity.table_views.extra_filter_columns[0].name == &quot;rating&quot;
+        assert entity.table_views.extra_filter_columns[1].name == &quot;created_at&quot;
+
+    def test_parse_extra_filter_columns_advanced(self):
+        &quot;&quot;&quot;Test parsing advanced extra_filter_columns.&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: Review
+        fields:
+          author: ref(User)
+
+        table_views:
+          extra_filter_columns:
+            - rating
+            - author_name:
+                source: author.name
+                type: text
+                index: gin_trgm
+        &quot;&quot;&quot;
+
+        entity = self.parser.parse_yaml(yaml_content)
+        assert len(entity.table_views.extra_filter_columns) == 2
+
+        # Simple column
+        assert entity.table_views.extra_filter_columns[0].name == &quot;rating&quot;
+
+        # Advanced column
+        col = entity.table_views.extra_filter_columns[1]
+        assert col.name == &quot;author_name&quot;
+        assert col.source == &quot;author.name&quot;
+        assert col.type == &quot;text&quot;
+        assert col.index_type == &quot;gin_trgm&quot;
+
+    def test_parse_force_mode(self):
+        &quot;&quot;&quot;Test parsing force mode.&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: AuditLog
+        fields:
+          message: text
+
+        table_views:
+          mode: force
+        &quot;&quot;&quot;
+
+        entity = self.parser.parse_yaml(yaml_content)
+        assert entity.table_views.mode == TableViewMode.FORCE
+        assert entity.should_generate_table_view is True
+
+    def test_parse_disable_mode(self):
+        &quot;&quot;&quot;Test parsing disable mode.&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: SessionToken
+        fields:
+          user: ref(User)
+
+        table_views:
+          mode: disable
+        &quot;&quot;&quot;
+
+        entity = self.parser.parse_yaml(yaml_content)
+        assert entity.table_views.mode == TableViewMode.DISABLE
+        assert entity.should_generate_table_view is False
+
+    def test_invalid_mode(self):
+        &quot;&quot;&quot;Test invalid mode raises error.&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: Review
+        table_views:
+          mode: invalid_mode
+        &quot;&quot;&quot;
+
+        with pytest.raises(SpecQLValidationError) as exc_info:
+            self.parser.parse_yaml(yaml_content)
+
+        assert &quot;Invalid table_views.mode&quot; in str(exc_info.value)
+
+    def test_include_relations_requires_fields(self):
+        &quot;&quot;&quot;Test include_relations requires fields.&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: Review
+        fields:
+          author: ref(User)
+
+        table_views:
+          include_relations:
+            - author: {}  # Missing fields!
+        &quot;&quot;&quot;
+
+        with pytest.raises(SpecQLValidationError) as exc_info:
+            self.parser.parse_yaml(yaml_content)
+
+        assert &quot;must specify 'fields'&quot; in str(exc_info.value)
+
+    def test_entity_without_table_views_block(self):
+        &quot;&quot;&quot;Test entity without table_views block (defaults).&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: Review
+        fields:
+          author: ref(User)
+        &quot;&quot;&quot;
+
+        entity = self.parser.parse_yaml(yaml_content)
+        assert entity.table_views is None
+        assert entity.should_generate_table_view is True  # Auto mode default
+</code></pre>
+<hr />
+<h2 id="phase-3-integration-documentation-day-4">🎯 Phase 3: Integration &amp; Documentation (Day 4)</h2>
+<h3 id="objective-integrate-with-existing-parser-and-document-usage"><strong>Objective</strong>: Integrate with existing parser and document usage</h3>
+<h3 id="31-integration-tests"><strong>3.1: Integration Tests</strong></h3>
+<p><strong>File</strong>: <code>tests/integration/test_table_views_end_to_end.py</code></p>
+<pre><code class="language-python">import pytest
+from src.core.specql_parser import SpecQLParser
+
+class TestTableViewsEndToEnd:
+    &quot;&quot;&quot;End-to-end tests for table_views.&quot;&quot;&quot;
+
+    def test_complete_review_example(self):
+        &quot;&quot;&quot;Test complete Review entity with table_views.&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: Review
+        schema: library
+
+        fields:
+          rating: integer
+          comment: text
+          author: ref(User)
+          book: ref(Book)
+          created_at: timestamp
+
+        table_views:
+          include_relations:
+            - author:
+                fields: [name, email, avatarUrl]
+
+            - book:
+                fields: [title, isbn, publishedYear]
+                include_relations:
+                  - publisher:
+                      fields: [name, country]
+
+          extra_filter_columns:
+            - rating
+            - created_at
+        &quot;&quot;&quot;
+
+        parser = SpecQLParser()
+        entity = parser.parse_yaml(yaml_content)
+
+        # Verify entity structure
+        assert entity.name == &quot;Review&quot;
+        assert entity.schema == &quot;library&quot;
+        assert entity.should_generate_table_view is True
+
+        # Verify table_views config
+        tv = entity.table_views
+        assert tv.mode == TableViewMode.AUTO
+        assert len(tv.include_relations) == 2
+        assert len(tv.extra_filter_columns) == 2
+
+        # Verify author relation
+        author = tv.include_relations[0]
+        assert author.entity_name == &quot;author&quot;
+        assert set(author.fields) == {&quot;name&quot;, &quot;email&quot;, &quot;avatarUrl&quot;}
+
+        # Verify book relation (with nested publisher)
+        book = tv.include_relations[1]
+        assert book.entity_name == &quot;book&quot;
+        assert set(book.fields) == {&quot;title&quot;, &quot;isbn&quot;, &quot;publishedYear&quot;}
+        assert len(book.include_relations) == 1
+
+        publisher = book.include_relations[0]
+        assert publisher.entity_name == &quot;publisher&quot;
+        assert set(publisher.fields) == {&quot;name&quot;, &quot;country&quot;}
+
+        # Verify filter columns
+        assert tv.extra_filter_columns[0].name == &quot;rating&quot;
+        assert tv.extra_filter_columns[1].name == &quot;created_at&quot;
+</code></pre>
+<hr />
+<h3 id="32-documentation"><strong>3.2: Documentation</strong></h3>
+<p><strong>File</strong>: <code>docs/guides/TABLE_VIEWS_CONFIGURATION.md</code></p>
+<pre><code class="language-markdown"># Table Views Configuration Guide
+
+## Overview
+
+Table views (`tv_` tables) provide read-optimized denormalized data for FraiseQL.
+
+## Basic Usage
+
+### Auto Mode (Default)
+
+No configuration needed - generates tv_ if entity has foreign keys:
+
+\`\`\`yaml
+entity: Review
+fields:
+  author: ref(User)
+  book: ref(Book)
+
+# Automatically generates tv_review
+\`\`\`
+
+### Explicit Field Selection
+
+Control which fields to include from related entities:
+
+\`\`\`yaml
+entity: Review
+fields:
+  author: ref(User)
+  book: ref(Book)
+
+table_views:
+  include_relations:
+    - author:
+        fields: [name, email]  # Only these fields
+
+    - book:
+        fields: [title, isbn]
+\`\`\`
+
+### Performance Optimization
+
+Add extra filter columns for high-volume queries:
+
+\`\`\`yaml
+table_views:
+  extra_filter_columns:
+    - rating       # Frequently filtered
+    - created_at   # Date range queries
+\`\`\`
+
+### Force Generation
+
+Generate tv_ even without foreign keys:
+
+\`\`\`yaml
+entity: AuditLog
+fields:
+  message: text
+
+table_views:
+  mode: force  # Generate tv_auditlog
+\`\`\`
+
+### Disable Generation
+
+Prevent tv_ generation for write-heavy tables:
+
+\`\`\`yaml
+entity: SessionToken
+fields:
+  user: ref(User)
+
+table_views:
+  mode: disable  # No tv_sessiontoken
+\`\`\`
+
+## Advanced Features
+
+### Nested Relations
+
+\`\`\`yaml
+table_views:
+  include_relations:
+    - book:
+        fields: [title, isbn]
+        include_relations:
+          - publisher:
+              fields: [name, country]
+\`\`\`
+
+### Nested Field Extraction
+
+\`\`\`yaml
+table_views:
+  extra_filter_columns:
+    - author_name:
+        source: author.name
+        type: text
+        index: gin_trgm  # For ILIKE queries
+\`\`\`
+</code></pre>
+<hr />
+<h2 id="summary-team-a-deliverables">📊 Summary: Team A Deliverables</h2>
+<h3 id="files-to-create"><strong>Files to Create</strong></h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+<th>Lines</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src/core/ast_models.py</code></td>
+<td>TableViewConfig, IncludeRelation models</td>
+<td>+150</td>
+</tr>
+<tr>
+<td><code>src/core/specql_parser.py</code></td>
+<td>Parse table_views block</td>
+<td>+200</td>
+</tr>
+<tr>
+<td><code>tests/unit/core/test_table_view_ast.py</code></td>
+<td>AST model tests</td>
+<td>150</td>
+</tr>
+<tr>
+<td><code>tests/unit/core/test_table_views_parsing.py</code></td>
+<td>Parser tests</td>
+<td>300</td>
+</tr>
+<tr>
+<td><code>tests/integration/test_table_views_end_to_end.py</code></td>
+<td>Integration tests</td>
+<td>100</td>
+</tr>
+<tr>
+<td><code>docs/guides/TABLE_VIEWS_CONFIGURATION.md</code></td>
+<td>User documentation</td>
+<td>200</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total</strong>: ~1,100 lines of code + documentation</p>
+<hr />
+<h3 id="timeline"><strong>Timeline</strong></h3>
+<ul>
+<li><strong>Day 1</strong>: AST models + model tests</li>
+<li><strong>Day 2</strong>: Parser implementation (parse_table_views)</li>
+<li><strong>Day 3</strong>: Parser tests + edge cases</li>
+<li><strong>Day 4</strong>: Integration tests + documentation</li>
+</ul>
+<p><strong>Total</strong>: 4 days</p>
+<hr />
+<h2 id="acceptance-criteria">✅ Acceptance Criteria</h2>
+<ul>
+<li>[ ] TableViewConfig AST model created</li>
+<li>[ ] IncludeRelation AST model created (supports nesting)</li>
+<li>[ ] ExtraFilterColumn AST model created (simple + advanced)</li>
+<li>[ ] Parser handles table_views.mode (auto/force/disable)</li>
+<li>[ ] Parser handles include_relations (with nesting)</li>
+<li>[ ] Parser handles extra_filter_columns (simple + dict format)</li>
+<li>[ ] Parser validates required fields</li>
+<li>[ ] Parser provides helpful error messages</li>
+<li>[ ] All unit tests pass (100% coverage)</li>
+<li>[ ] Integration tests pass</li>
+<li>[ ] Documentation complete</li>
+</ul>
+<hr />
+<h2 id="dependencies">🔗 Dependencies</h2>
+<p><strong>Depends On</strong>:
+- Phase 1 (Reserved field validation) - Must complete first</p>
+<p><strong>Blocks</strong>:
+- Team B Phase 9 (tv_ generation) - Needs TableViewConfig AST
+- Team C (tv_ refresh in mutations) - Needs AST structure
+- Team D (tv_ annotations) - Needs AST structure</p>
+<hr />
+<p><strong>Status</strong>: 🟡 READY TO START (after Phase 1)
+<strong>Priority</strong>: MEDIUM (enables CQRS)
+<strong>Effort</strong>: 4 days
+<strong>Start</strong>: Week 2-3</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

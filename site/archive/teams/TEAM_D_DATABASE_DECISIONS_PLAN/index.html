@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team D: Database Decisions Implementation Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team D: Database Decisions Implementation Plan";
+        var mkdocs_page_input_path = "archive/teams/TEAM_D_DATABASE_DECISIONS_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team D: Database Decisions Implementation Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-d-database-decisions-implementation-plan">Team D: Database Decisions Implementation Plan</h1>
+<p><strong>Team</strong>: FraiseQL Metadata Generator
+<strong>Impact</strong>: LOW (metadata annotations only)
+<strong>Timeline</strong>: Week 5 (2-3 days)
+<strong>Status</strong>: 🟢 LOW PRIORITY - Metadata layer</p>
+<hr />
+<h2 id="overview">📋 Overview</h2>
+<p>Team D has <strong>minimal impact</strong> from database decisions. The changes are mostly <strong>additive metadata annotations</strong>.</p>
+<p><strong>Changes</strong>:
+1. ✅ Annotate deduplication fields (identifier, sequence_number, display_identifier)
+2. ✅ Annotate recalculation audit fields
+3. ✅ Annotate node+info split views
+4. ✅ Document INTEGER-based path format</p>
+<p><strong>Total Effort</strong>: 2-3 days</p>
+<hr />
+<h2 id="phase-1-deduplication-field-annotations-day-1">🎯 Phase 1: Deduplication Field Annotations (Day 1)</h2>
+<h3 id="objective-add-fraiseql-metadata-for-3-field-deduplication"><strong>Objective</strong>: Add FraiseQL metadata for 3-field deduplication</h3>
+<h3 id="11-field-annotations"><strong>1.1: Field Annotations</strong></h3>
+<p><strong>File</strong>: <code>src/generators/fraiseql/field_annotations.py</code></p>
+<pre><code class="language-python">def generate_deduplication_annotations(entity: EntityAST, schema: str) -&gt; str:
+    &quot;&quot;&quot;Generate FraiseQL annotations for deduplication fields.&quot;&quot;&quot;
+
+    entity_name = entity.name
+    entity_lower = entity.name.lower()
+    table_name = f&quot;{schema}.tb_{entity_lower}&quot;
+
+    return f&quot;&quot;&quot;
+-- Deduplication Field Annotations
+
+-- Base identifier (internal, not exposed directly)
+COMMENT ON COLUMN {table_name}.identifier IS
+'@fraiseql:field name=_baseIdentifier,type=String!,internal=true,description=Base identifier before deduplication suffix';
+
+-- Sequence number (internal, not exposed directly)
+COMMENT ON COLUMN {table_name}.sequence_number IS
+'@fraiseql:field name=_sequenceNumber,type=Int!,internal=true,description=Deduplication sequence number';
+
+-- Display identifier (exposed as &quot;identifier&quot; in GraphQL)
+COMMENT ON COLUMN {table_name}.display_identifier IS
+'@fraiseql:field name=identifier,type=String!,description=Unique identifier with optional #n suffix for duplicates';
+&quot;&quot;&quot;.strip()
+</code></pre>
+<p><strong>Generated GraphQL</strong>:</p>
+<pre><code class="language-graphql">type Location {
+  id: UUID!
+  identifier: String!  # Exposed (display_identifier)
+  # _baseIdentifier: String!  # Internal (not exposed)
+  # _sequenceNumber: Int!      # Internal (not exposed)
+}
+</code></pre>
+<hr />
+<h3 id="12-deduplication-metadata-in-mutations"><strong>1.2: Deduplication Metadata in Mutations</strong></h3>
+<p><strong>File</strong>: <code>templates/fraiseql/mutation_metadata.sql.jinja2</code></p>
+<pre><code class="language-sql">-- Mutation impact: Identifier may change due to deduplication
+COMMENT ON FUNCTION {{ schema }}.create_{{ entity_lower }}(...) IS
+'@fraiseql:mutation
+name=create{{ entity }}
+input=Create{{ entity }}Input
+success_type=Create{{ entity }}Success
+metadata_mapping={
+  &quot;_identifierInfo&quot;: &quot;IdentifierDeduplicationInfo&quot;
+}
+impact={
+  &quot;identifierDeduplication&quot;: true,
+  &quot;description&quot;: &quot;Identifier may have #n suffix if duplicate&quot;
+}';
+</code></pre>
+<p><strong>GraphQL Type</strong>:</p>
+<pre><code class="language-graphql">type IdentifierDeduplicationInfo {
+  baseIdentifier: String!
+  sequenceNumber: Int!
+  finalIdentifier: String!
+  wasDeduplicated: Boolean!
+}
+
+type CreateLocationSuccess {
+  status: String!
+  message: String!
+  location: Location!
+  _identifierInfo: IdentifierDeduplicationInfo
+}
+</code></pre>
+<hr />
+<h2 id="phase-2-recalculation-audit-annotations-day-2">🎯 Phase 2: Recalculation Audit Annotations (Day 2)</h2>
+<h3 id="objective-annotate-separate-audit-fields"><strong>Objective</strong>: Annotate separate audit fields</h3>
+<h3 id="21-audit-field-annotations"><strong>2.1: Audit Field Annotations</strong></h3>
+<p><strong>File</strong>: <code>src/generators/fraiseql/audit_annotations.py</code></p>
+<pre><code class="language-python">def generate_recalculation_audit_annotations(entity: EntityAST, schema: str) -&gt; str:
+    &quot;&quot;&quot;Generate annotations for recalculation audit fields.&quot;&quot;&quot;
+
+    entity_lower = entity.name.lower()
+    table_name = f&quot;{schema}.tb_{entity_lower}&quot;
+
+    annotations = []
+
+    # Standard audit fields
+    annotations.append(f&quot;&quot;&quot;
+-- Standard Business Audit
+COMMENT ON COLUMN {table_name}.created_at IS
+'@fraiseql:field name=createdAt,type=DateTime!';
+
+COMMENT ON COLUMN {table_name}.updated_at IS
+'@fraiseql:field name=updatedAt,type=DateTime!,description=Last business data change';
+
+COMMENT ON COLUMN {table_name}.deleted_at IS
+'@fraiseql:field name=deletedAt,type=DateTime,internal=true';
+&quot;&quot;&quot;)
+
+    # Recalculation audit (internal, not exposed in main type)
+    annotations.append(f&quot;&quot;&quot;
+-- Identifier Recalculation Audit (internal)
+COMMENT ON COLUMN {table_name}.identifier_recalculated_at IS
+'@fraiseql:field name=_identifierRecalculatedAt,type=DateTime,internal=true';
+
+COMMENT ON COLUMN {table_name}.identifier_recalculated_by IS
+'@fraiseql:field name=_identifierRecalculatedBy,type=UUID,internal=true';
+&quot;&quot;&quot;)
+
+    if entity.hierarchical:
+        # Path audit (internal)
+        annotations.append(f&quot;&quot;&quot;
+-- Path Recalculation Audit (internal)
+COMMENT ON COLUMN {table_name}.path_updated_at IS
+'@fraiseql:field name=_pathUpdatedAt,type=DateTime,internal=true';
+
+COMMENT ON COLUMN {table_name}.path_updated_by IS
+'@fraiseql:field name=_pathUpdatedBy,type=UUID,internal=true';
+&quot;&quot;&quot;)
+
+    return '\n'.join(annotations)
+</code></pre>
+<p><strong>Result</strong>: Recalculation audit fields are marked <code>internal=true</code> (not exposed in GraphQL)</p>
+<hr />
+<h2 id="phase-3-nodeinfo-split-annotations-day-3">🎯 Phase 3: Node+Info Split Annotations (Day 3)</h2>
+<h3 id="objective-annotate-nodeinfo-split-views"><strong>Objective</strong>: Annotate node+info split views</h3>
+<h3 id="31-view-annotations"><strong>3.1: View Annotations</strong></h3>
+<p><strong>File</strong>: <code>src/generators/fraiseql/view_annotations.py</code></p>
+<pre><code class="language-python">def generate_split_view_annotations(entity: EntityAST, schema: str) -&gt; str:
+    &quot;&quot;&quot;Generate FraiseQL annotations for node+info split views.&quot;&quot;&quot;
+
+    if not entity.metadata_split:
+        return &quot;&quot;
+
+    entity_name = entity.name
+    entity_lower = entity.name.lower()
+
+    return f&quot;&quot;&quot;
+-- View combines node + info tables
+COMMENT ON VIEW {schema}.v_{entity_lower} IS
+'@fraiseql:type name={entity_name},schema={schema},source=view,description=Combined view of {entity_name} structure and attributes';
+
+-- Indicate this is the primary GraphQL type
+COMMENT ON VIEW {schema}.v_{entity_lower} IS
+'@fraiseql:primary_type Expose this view as the main {entity_name} type in GraphQL';
+
+-- Node table (internal structure, not exposed directly)
+COMMENT ON TABLE {schema}.tb_{entity_lower}_node IS
+'@fraiseql:internal Structure table for {entity_name} (not exposed in GraphQL)';
+
+-- Info table (internal attributes, not exposed directly)
+COMMENT ON TABLE {schema}.tb_{entity_lower}_info IS
+'@fraiseql:internal Attributes table for {entity_name} (not exposed in GraphQL)';
+&quot;&quot;&quot;.strip()
+</code></pre>
+<p><strong>Result</strong>: FraiseQL exposes the VIEW as the GraphQL type, hides internal tables</p>
+<hr />
+<h2 id="phase-4-integer-path-documentation-day-3">🎯 Phase 4: INTEGER Path Documentation (Day 3)</h2>
+<h3 id="objective-document-integer-based-path-format-in-metadata"><strong>Objective</strong>: Document INTEGER-based path format in metadata</h3>
+<h3 id="41-path-field-annotation"><strong>4.1: Path Field Annotation</strong></h3>
+<p><strong>File</strong>: <code>src/generators/fraiseql/hierarchy_annotations.py</code></p>
+<pre><code class="language-python">def generate_hierarchy_annotations(entity: EntityAST, schema: str) -&gt; str:
+    &quot;&quot;&quot;Generate annotations for hierarchical fields.&quot;&quot;&quot;
+
+    if not entity.hierarchical:
+        return &quot;&quot;
+
+    entity_lower = entity.name.lower()
+    table_name = f&quot;{schema}.tb_{entity_lower}&quot;
+
+    return f&quot;&quot;&quot;
+-- LTREE path field (INTEGER-based format)
+COMMENT ON COLUMN {table_name}.path IS
+'@fraiseql:field name=_path,type=String!,internal=true,format=ltree_integer,description=Hierarchical path using INTEGER primary keys (e.g., 1.5.23.47)';
+
+-- Parent foreign key
+COMMENT ON COLUMN {table_name}.fk_parent_{entity_lower} IS
+'@fraiseql:field name=parentId,type=UUID,relation=many-to-one,target={entity.name},description=Parent {entity.name}';
+
+-- Rich hierarchy queries via helper functions
+COMMENT ON FUNCTION {schema}.get_{entity_lower}_ancestors(UUID) IS
+'@fraiseql:query name={entity_lower}Ancestors,description=Get all ancestor nodes,useHelperFunction=true';
+
+COMMENT ON FUNCTION {schema}.get_{entity_lower}_descendants(UUID) IS
+'@fraiseql:query name={entity_lower}Descendants,description=Get all descendant nodes,useHelperFunction=true';
+&quot;&quot;&quot;.strip()
+</code></pre>
+<p><strong>Generated GraphQL</strong> (via FraiseQL rich filters):</p>
+<pre><code class="language-graphql">type Location {
+  id: UUID!
+  identifier: String!
+  parentId: UUID
+  parent: Location  # Auto-resolved via parentId
+
+  # Rich hierarchy queries
+  ancestors: [Location!]!  # Uses get_location_ancestors()
+  descendants: [Location!]!  # Uses get_location_descendants()
+}
+
+input LocationFilter {
+  # Standard filters
+  id: UUIDFilter
+  identifier: StringFilter
+
+  # Hierarchy filters (FraiseQL auto-generates from LTREE)
+  isDescendantOf: UUID
+  isAncestorOf: UUID
+  isChildOf: UUID
+  depth: IntFilter
+}
+</code></pre>
+<hr />
+<h2 id="summary-team-d-deliverables">📊 Summary: Team D Deliverables</h2>
+<h3 id="files-to-modify"><strong>Files to Modify</strong></h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+<th>Changes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src/generators/fraiseql/field_annotations.py</code></td>
+<td>Deduplication</td>
+<td>Add annotations</td>
+</tr>
+<tr>
+<td><code>src/generators/fraiseql/audit_annotations.py</code></td>
+<td>Audit fields</td>
+<td>Add internal markers</td>
+</tr>
+<tr>
+<td><code>src/generators/fraiseql/view_annotations.py</code></td>
+<td>Node+info split</td>
+<td>Add view annotations</td>
+</tr>
+<tr>
+<td><code>src/generators/fraiseql/hierarchy_annotations.py</code></td>
+<td>INTEGER paths</td>
+<td>Document format</td>
+</tr>
+</tbody>
+</table>
+<h3 id="new-annotations"><strong>New Annotations</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Annotation Type</th>
+<th>Count</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Deduplication fields</td>
+<td>3</td>
+<td>identifier, sequence_number, display_identifier</td>
+</tr>
+<tr>
+<td>Recalculation audit</td>
+<td>4</td>
+<td>identifier_recalculated_at/by, path_updated_at/by</td>
+</tr>
+<tr>
+<td>Node+info views</td>
+<td>3</td>
+<td>v_{entity}, tb_{entity}<em>node, tb</em>{entity}_info</td>
+</tr>
+<tr>
+<td>Hierarchy helpers</td>
+<td>5</td>
+<td>get_ancestors, get_descendants, etc.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="timeline"><strong>Timeline</strong></h3>
+<ul>
+<li><strong>Day 1</strong>: Deduplication annotations</li>
+<li><strong>Day 2</strong>: Recalculation audit annotations</li>
+<li><strong>Day 3</strong>: Node+info split + INTEGER path docs</li>
+</ul>
+<p><strong>Total</strong>: 3 days</p>
+<hr />
+<h2 id="acceptance-criteria">✅ Acceptance Criteria</h2>
+<ul>
+<li>[ ] Deduplication fields annotated correctly</li>
+<li>[ ] display_identifier exposed as <code>identifier</code> in GraphQL</li>
+<li>[ ] Internal fields marked with <code>internal=true</code></li>
+<li>[ ] Recalculation audit fields not exposed in GraphQL</li>
+<li>[ ] Node+info views annotated (view exposed, tables internal)</li>
+<li>[ ] INTEGER path format documented</li>
+<li>[ ] Helper functions annotated for FraiseQL discovery</li>
+</ul>
+<hr />
+<h2 id="dependencies">🔗 Dependencies</h2>
+<p><strong>Depends On</strong>:
+- Team B Phase 2 (deduplication schema)
+- Team B Phase 5 (audit fields)
+- Team B Phase 8 (node+info split)</p>
+<p><strong>Blocks</strong>:
+- None (metadata layer is final step)</p>
+<hr />
+<p><strong>Status</strong>: 🟢 WAITING ON TEAM B
+<strong>Priority</strong>: LOW (metadata only)
+<strong>Effort</strong>: 3 days
+<strong>Start</strong>: After Team B completes all phases</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

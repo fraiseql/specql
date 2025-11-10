@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Index Naming Convention Fix Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Index Naming Convention Fix Plan";
+        var mkdocs_page_input_path = "INDEX_NAMING_CONVENTION_FIX_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Index Naming Convention Fix Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="index-naming-convention-fix-plan">Index Naming Convention Fix Plan</h1>
+<h2 id="executive-summary">Executive Summary</h2>
+<p><strong>Problem</strong>: Inconsistent index naming across codebase - some use <code>idx_{entity}_{field}</code> while convention should be <code>idx_tb_{entity}_{field}</code> to match table prefixes.</p>
+<p><strong>Decision</strong>: Include <code>tb_</code> prefix in ALL index names for consistency and clarity.</p>
+<p><strong>Rationale</strong>:
+- Tables use <code>tb_</code> prefix (e.g., <code>tb_contact</code>, <code>tb_task</code>)
+- Table views use <code>tv_</code> prefix (e.g., <code>tv_contact_active</code>)
+- Indexes should mirror the object they index: <code>idx_tb_contact_email</code> clearly indicates it indexes <code>tb_contact.email</code>
+- When we have both tables and views, this prevents ambiguity
+- Future-proof: if we add indexes on table views, they'd be <code>idx_tv_{view}_{field}</code></p>
+<p><strong>Scope</strong>: 26 failing tests due to partial implementation of this convention.</p>
+<hr />
+<h2 id="phase-1-update-code-generators-completed">Phase 1: Update Code Generators ✅ (COMPLETED)</h2>
+<h3 id="files-modified">Files Modified:</h3>
+<ol>
+<li>✅ <code>src/generators/table_generator.py</code> - Lines 199, 206, 212</li>
+<li>Changed <code>idx_{entity}_id</code> → <code>idx_tb_{entity}_id</code></li>
+<li>Changed <code>idx_{entity}_{field}</code> → <code>idx_tb_{entity}_{field}</code> (FK indexes)</li>
+<li>
+<p>Changed <code>idx_{entity}_{field}</code> → <code>idx_tb_{entity}_{field}</code> (enum indexes)</p>
+</li>
+<li>
+<p>✅ <code>src/generators/index_generator.py</code> - Line 65</p>
+</li>
+<li>Changed <code>idx_{entity}_{field}</code> → <code>idx_tb_{entity}_{field}</code> (rich type indexes)</li>
+</ol>
+<hr />
+<h2 id="phase-2-update-unit-tests-todo">Phase 2: Update Unit Tests (TODO)</h2>
+<h3 id="test-files-to-fix">Test Files to Fix:</h3>
+<h4 id="a-testsunitschematest_index_generationpy-10-tests">A. <code>tests/unit/schema/test_index_generation.py</code> (10 tests)</h4>
+<p><strong>Status</strong>: Partially fixed (1/10 done)</p>
+<p>Replace ALL occurrences of <code>idx_{entity}_</code> with <code>idx_tb_{entity}_</code>:</p>
+<pre><code class="language-bash"># Pattern to find and replace:
+OLD: assert any(&quot;idx_{entity}_{field}&quot; in idx for idx in indexes)
+NEW: assert any(&quot;idx_tb_{entity}_{field}&quot; in idx for idx in indexes)
+</code></pre>
+<p><strong>Specific fixes needed</strong>:
+- Line 22: ✅ <code>idx_contact_email</code> → <code>idx_tb_contact_email</code> (DONE)
+- Line 35: <code>idx_page_url</code> → <code>idx_tb_page_url</code> (DONE)
+- Line 50: <code>idx_location_coordinates</code> → <code>idx_tb_location_coordinates</code>
+- Line 65: <code>idx_server_ip_address</code> → <code>idx_tb_server_ip_address</code>
+- Line 80: <code>idx_device_mac</code> → <code>idx_tb_device_mac</code>
+- Line 95: <code>idx_contact_phone</code> → <code>idx_tb_contact_phone</code>
+- Line 110: <code>idx_article_slug</code> → <code>idx_tb_article_slug</code>
+- Line 125: <code>idx_brand_color</code> → <code>idx_tb_brand_color</code>
+- Line 140: <code>idx_product_price</code> → <code>idx_tb_product_price</code></p>
+<h4 id="b-testsunitgeneratorstest_table_generatorpy">B. <code>tests/unit/generators/test_table_generator.py</code></h4>
+<p><strong>Search for</strong>: <code>idx_contact_</code>, <code>idx_task_</code>, etc.
+<strong>Replace with</strong>: <code>idx_tb_contact_</code>, <code>idx_tb_task_</code>, etc.</p>
+<p><strong>Expected assertions to update</strong>:</p>
+<pre><code class="language-python"># Example pattern:
+assert &quot;CREATE INDEX idx_contact_id&quot; in ddl
+# Should become:
+assert &quot;CREATE INDEX idx_tb_contact_id&quot; in ddl
+</code></pre>
+<h4 id="c-testsunitschematest_table_generator_integrationpy-4-tests">C. <code>tests/unit/schema/test_table_generator_integration.py</code> (4 tests)</h4>
+<p><strong>Pattern</strong>: Same as above - replace <code>idx_</code> with <code>idx_tb_</code></p>
+<p><strong>Specific tests</strong>:
+1. <code>test_generate_indexes_ddl_with_foreign_keys</code>
+2. <code>test_generate_indexes_ddl_with_enum_fields</code>
+3. <code>test_generate_complete_ddl_orchestration</code>
+4. <code>test_rich_types_in_complete_ddl</code></p>
+<hr />
+<h2 id="phase-3-update-integration-tests-todo">Phase 3: Update Integration Tests (TODO)</h2>
+<h3 id="test-files-to-fix_1">Test Files to Fix:</h3>
+<h4 id="a-testsintegrationschematest_rich_types_postgrespy-7-tests">A. <code>tests/integration/schema/test_rich_types_postgres.py</code> (7 tests)</h4>
+<p><strong>Issue</strong>: Database isolation + index naming</p>
+<p>These tests fail with "DuplicateTable" errors AND will fail on index names once DB isolation is fixed.</p>
+<p><strong>Tests affected</strong>:
+1. <code>test_email_constraint_validates_format</code>
+2. <code>test_indexes_created_correctly</code> ← Primary index test
+3. <code>test_comments_appear_in_postgresql</code>
+4. <code>test_url_pattern_matching_with_gin_index</code>
+5. <code>test_coordinates_gist_index_for_spatial_queries</code>
+6. <code>test_enum_constraints_work</code>
+7. <code>test_foreign_key_constraints_work</code></p>
+<p><strong>Action</strong>:
+1. Fix DB isolation first (see Phase 4)
+2. Then update index assertions to use <code>idx_tb_</code> prefix</p>
+<h4 id="b-testsintegrationfraiseqltest_mutation_annotations_e2epy-4-tests">B. <code>tests/integration/fraiseql/test_mutation_annotations_e2e.py</code> (4 tests)</h4>
+<p><strong>Issue</strong>: Similar DB isolation issues</p>
+<p><strong>Tests affected</strong>:
+1. <code>test_annotations_apply_to_database</code>
+2. <code>test_function_comments_contain_fraiseql_annotations</code>
+3. <code>test_metadata_mapping_includes_impact_details</code>
+4. <code>test_actions_without_impact_get_basic_annotations</code></p>
+<p><strong>Action</strong>: Fix DB isolation (see Phase 4)</p>
+<hr />
+<h2 id="phase-4-fix-database-isolation-issues-critical">Phase 4: Fix Database Isolation Issues (CRITICAL)</h2>
+<h3 id="root-cause-analysis">Root Cause Analysis:</h3>
+<p>The integration tests are failing with:</p>
+<pre><code>psycopg.errors.DuplicateTable: relation &quot;tb_contact&quot; already exists
+psycopg.errors.DuplicateObject: type &quot;mutation_result&quot; already exists
+</code></pre>
+<p><strong>Why this happens</strong>:
+- Tests execute DDL (CREATE TABLE, CREATE TYPE) directly
+- The session-scoped <code>test_db_connection</code> fixture shares state
+- The function-scoped <code>test_db</code> fixture does transaction rollback BUT:
+  - DDL is NOT transactional in PostgreSQL (AUTO-COMMITS)
+  - Rollback doesn't undo CREATE TABLE/TYPE statements</p>
+<h3 id="solution-options">Solution Options:</h3>
+<h4 id="option-a-use-temporary-schemas-recommended">Option A: Use Temporary Schemas (RECOMMENDED)</h4>
+<pre><code class="language-python">@pytest.fixture
+def isolated_schema(test_db):
+    &quot;&quot;&quot;Create unique schema per test&quot;&quot;&quot;
+    schema_name = f&quot;test_{uuid.uuid4().hex[:8]}&quot;
+    with test_db.cursor() as cur:
+        cur.execute(f&quot;CREATE SCHEMA {schema_name}&quot;)
+    test_db.commit()
+
+    yield schema_name
+
+    # Cleanup
+    with test_db.cursor() as cur:
+        cur.execute(f&quot;DROP SCHEMA {schema_name} CASCADE&quot;)
+    test_db.commit()
+</code></pre>
+<p><strong>Usage</strong>:</p>
+<pre><code class="language-python">def test_something(test_db, isolated_schema):
+    # Replace schema in DDL
+    ddl = ddl.replace(&quot;CREATE SCHEMA crm&quot;, f&quot;CREATE SCHEMA {isolated_schema}&quot;)
+    cursor.execute(ddl)
+</code></pre>
+<h4 id="option-b-drop-objects-after-test">Option B: Drop Objects After Test</h4>
+<pre><code class="language-python">@pytest.fixture
+def test_db_with_cleanup(test_db):
+    &quot;&quot;&quot;Clean up DDL objects after test&quot;&quot;&quot;
+    objects_created = []
+
+    yield test_db, objects_created
+
+    # Drop all created objects
+    with test_db.cursor() as cur:
+        for obj_type, obj_name in reversed(objects_created):
+            cur.execute(f&quot;DROP {obj_type} IF EXISTS {obj_name} CASCADE&quot;)
+    test_db.commit()
+</code></pre>
+<h4 id="option-c-use-test-database-per-session-slowest">Option C: Use Test Database Per Session (SLOWEST)</h4>
+<ul>
+<li>Create/drop entire test database per test</li>
+<li>Very slow, not recommended</li>
+</ul>
+<h3 id="recommended-approach-option-a-smart-parsing">Recommended Approach: Option A + Smart Parsing</h3>
+<ol>
+<li>Create <code>isolated_schema</code> fixture in <code>tests/conftest.py</code></li>
+<li>Update integration tests to:</li>
+<li>Use isolated schema</li>
+<li>Parse DDL to replace schema names</li>
+<li>Execute DDL in isolated schema</li>
+<li>Schema is automatically dropped after test</li>
+</ol>
+<p><strong>Files to update</strong>:
+- <code>tests/conftest.py</code> - Add <code>isolated_schema</code> fixture
+- <code>tests/integration/schema/test_rich_types_postgres.py</code> - Use fixture
+- <code>tests/integration/fraiseql/test_mutation_annotations_e2e.py</code> - Use fixture
+- <code>tests/integration/fraiseql/test_rich_type_autodiscovery.py</code> - Use fixture</p>
+<hr />
+<h2 id="phase-5-update-action-orchestrator-test-todo">Phase 5: Update Action Orchestrator Test (TODO)</h2>
+<h3 id="file-testsunitactionstest_action_orchestratorpy">File: <code>tests/unit/actions/test_action_orchestrator.py</code></h3>
+<p><strong>Test</strong>: <code>test_compile_multi_entity_action_basic_structure</code></p>
+<p><strong>Issue</strong>: Unknown - need to investigate</p>
+<p><strong>Action</strong>:
+1. Run test in isolation: <code>uv run pytest tests/unit/actions/test_action_orchestrator.py::TestActionOrchestrator::test_compile_multi_entity_action_basic_structure -xvs</code>
+2. Read error message
+3. Determine if it's index naming or something else
+4. Fix accordingly</p>
+<hr />
+<h2 id="phase-6-verification-cleanup-todo">Phase 6: Verification &amp; Cleanup (TODO)</h2>
+<h3 id="a-run-full-test-suite">A. Run Full Test Suite</h3>
+<pre><code class="language-bash">uv run pytest --tb=short -v
+</code></pre>
+<p><strong>Expected result</strong>:</p>
+<pre><code>============= 874 passed, 3 skipped in ~20s =============
+</code></pre>
+<h3 id="b-update-documentation">B. Update Documentation</h3>
+<p><strong>Files to update</strong>:
+1. <code>.claude/CLAUDE.md</code> - Document index naming convention
+2. <code>docs/architecture/NAMING_CONVENTIONS.md</code> - Add index naming rules
+3. <code>GETTING_STARTED.md</code> - Add example with indexes</p>
+<p><strong>Convention to document</strong>:</p>
+<pre><code class="language-markdown">## Index Naming Convention
+
+**Format**: `idx_{table_prefix}_{entity}_{field}`
+
+**Examples**:
+- Tables: `idx_tb_contact_email`, `idx_tb_task_status`
+- Table Views: `idx_tv_contact_active_email` (future)
+
+**Rationale**: Mirrors table naming to prevent ambiguity when indexing both tables and views.
+</code></pre>
+<h3 id="c-regenerate-schema-files">C. Regenerate Schema Files</h3>
+<p>If any committed schema files exist in <code>db/schema/</code>, regenerate them:</p>
+<pre><code class="language-bash"># Regenerate all schema files
+specql generate entities/*.yaml --output db/schema/
+</code></pre>
+<hr />
+<h2 id="test-execution-strategy">Test Execution Strategy</h2>
+<h3 id="run-tests-in-phases-to-verify-progress">Run tests in phases to verify progress:</h3>
+<pre><code class="language-bash"># Phase 2: Unit tests
+uv run pytest tests/unit/schema/test_index_generation.py -v
+uv run pytest tests/unit/generators/test_table_generator.py -v
+uv run pytest tests/unit/schema/test_table_generator_integration.py -v
+
+# Phase 3 + 4: Integration tests (after DB isolation fix)
+uv run pytest tests/integration/schema/test_rich_types_postgres.py -v
+uv run pytest tests/integration/fraiseql/ -v
+
+# Phase 5: Action orchestrator
+uv run pytest tests/unit/actions/test_action_orchestrator.py -v
+
+# Phase 6: Full suite
+uv run pytest --tb=short
+</code></pre>
+<hr />
+<h2 id="success-criteria">Success Criteria</h2>
+<p>✅ <strong>All tests passing</strong>: 874+ passed, 3 skipped, 0 failed, 0 errors
+✅ <strong>Consistent naming</strong>: All indexes use <code>idx_tb_</code> or <code>idx_tv_</code> prefix
+✅ <strong>DB isolation</strong>: Integration tests don't interfere with each other
+✅ <strong>Documentation</strong>: Convention clearly documented
+✅ <strong>Schema files</strong>: Regenerated with correct naming</p>
+<hr />
+<h2 id="estimated-effort">Estimated Effort</h2>
+<ul>
+<li><strong>Phase 2</strong>: 30 minutes (systematic find/replace in tests)</li>
+<li><strong>Phase 3</strong>: 15 minutes (update assertions)</li>
+<li><strong>Phase 4</strong>: 45 minutes (implement isolated_schema fixture)</li>
+<li><strong>Phase 5</strong>: 15 minutes (investigate + fix)</li>
+<li><strong>Phase 6</strong>: 30 minutes (verification + docs)</li>
+</ul>
+<p><strong>Total</strong>: ~2.5 hours</p>
+<hr />
+<h2 id="current-status">Current Status</h2>
+<ul>
+<li>✅ Phase 1: COMPLETED (code generators fixed)</li>
+<li>🔄 Phase 2: IN PROGRESS (2/10 tests in test_index_generation.py fixed)</li>
+<li>⏳ Phase 3: PENDING</li>
+<li>⏳ Phase 4: PENDING (CRITICAL PATH)</li>
+<li>⏳ Phase 5: PENDING</li>
+<li>⏳ Phase 6: PENDING</li>
+</ul>
+<p><strong>Next Action</strong>: Complete Phase 2 OR prioritize Phase 4 (DB isolation) first since it blocks Phase 3.</p>
+<hr />
+<h2 id="notes-for-agent">Notes for Agent</h2>
+<ol>
+<li><strong>Convention is FINAL</strong>: Always use <code>idx_tb_</code> prefix for table indexes</li>
+<li><strong>DB isolation is critical</strong>: Without it, integration tests will always fail</li>
+<li><strong>Test in phases</strong>: Don't try to fix everything at once</li>
+<li><strong>Verify incrementally</strong>: Run relevant tests after each phase</li>
+<li><strong>Document changes</strong>: Update CLAUDE.md when done</li>
+</ol>
+<p><strong>Quick Command Reference</strong>:</p>
+<pre><code class="language-bash"># Run specific test file
+uv run pytest tests/unit/schema/test_index_generation.py -v
+
+# Run all unit tests
+uv run pytest tests/unit/ -v
+
+# Run all tests
+uv run pytest --tb=short
+
+# Check test count
+uv run pytest --collect-only -q | tail -3
+</code></pre>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

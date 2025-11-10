@@ -1,36 +1,325 @@
 # SpecQL CLI Reference
 
-## Installation
+This guide covers the essential SpecQL command-line interface commands for generating schemas, validating specifications, and running tests.
 
-### Via UV (Recommended)
-```bash
-uv add specql-generator
-```
+## 🎯 Quick Start Commands
 
-### Via Git (Development)
+### Installation
 ```bash
-git clone https://github.com/fraiseql/specql
-cd specql
-uv sync
-```
+# Install SpecQL
+pip install specql
 
-### Verify Installation
-```bash
+# Verify installation
 specql --version
-specql --help
 ```
 
----
+### Basic Workflow
+```bash
+# 1. Validate your YAML
+specql validate entities/user.yaml
 
-## Commands Overview
+# 2. Generate database schema
+specql generate schema entities/user.yaml
 
-| Command | Purpose | Priority |
-|---------|---------|----------|
-| `generate` | Generate SQL from YAML | HIGH |
-| `validate` | Validate YAML syntax | HIGH |
-| `check-codes` | Check table code uniqueness | MEDIUM |
-| `diff` | Compare generated vs existing SQL | LOW |
-| `docs` | Generate documentation | LOW |
+# 3. Generate tests
+specql generate tests entities/user.yaml
+
+# 4. Run tests
+specql test run --type pgtap entities/user.yaml
+specql test run --type pytest entities/user.yaml
+```
+
+## 📋 Command Reference
+
+### `specql generate`
+
+Generate database schemas, functions, and tests from YAML specifications.
+
+#### Generate Schema
+```bash
+specql generate schema [OPTIONS] ENTITY_FILES...
+```
+
+**Examples:**
+```bash
+# Generate schema for one entity
+specql generate schema entities/user.yaml
+
+# Generate schema for multiple entities
+specql generate schema entities/user.yaml entities/company.yaml
+
+# Generate schema for all entities in directory
+specql generate schema entities/*.yaml
+```
+
+#### Generate Tests
+```bash
+specql generate tests [OPTIONS] ENTITY_FILES...
+```
+
+**Examples:**
+```bash
+# Generate all test types
+specql generate tests entities/user.yaml
+
+# Generate only pgTAP tests
+specql generate tests --type pgtap entities/user.yaml
+
+# Generate only pytest tests
+specql generate tests --type pytest entities/user.yaml
+```
+
+**Options:**
+- `--type [pgtap|pytest|performance]` - Test type to generate (default: all)
+
+### `specql validate`
+
+Validate YAML entity specifications for syntax errors and consistency.
+
+```bash
+specql validate [OPTIONS] ENTITY_FILES...
+```
+
+**Examples:**
+```bash
+# Validate single file
+specql validate entities/user.yaml
+
+# Validate multiple files
+specql validate entities/user.yaml entities/company.yaml
+
+# Validate all entities
+specql validate entities/*.yaml
+
+# Verbose output
+specql validate entities/*.yaml --verbose
+```
+
+**Exit Codes:**
+- `0` - All files valid
+- `1` - Validation errors found
+
+### `specql test run`
+
+Execute generated tests against your database.
+
+```bash
+specql test run --type TYPE [OPTIONS] ENTITY_FILES...
+```
+
+**Examples:**
+```bash
+# Run pgTAP tests
+specql test run --type pgtap entities/user.yaml
+
+# Run pytest tests
+specql test run --type pytest entities/user.yaml
+
+# Run all test types
+specql test run entities/user.yaml
+
+# Run tests for multiple entities
+specql test run entities/*.yaml
+```
+
+**Test Types:**
+- `pgtap` - PostgreSQL native tests (fast, database-only)
+- `pytest` - Python integration tests (comprehensive, slower)
+- `performance` - Benchmarking tests (measure performance)
+
+### `specql test coverage`
+
+Generate test coverage reports.
+
+```bash
+specql test coverage [OPTIONS] ENTITY_FILES...
+```
+
+**Examples:**
+```bash
+# Generate coverage report
+specql test coverage entities/user.yaml
+
+# Export to HTML
+specql test coverage entities/user.yaml --format html --output coverage.html
+```
+
+## ⚙️ Global Options
+
+### Environment
+- `--env TEXT` - Environment to use (default: local)
+- `--config PATH` - Path to config file (default: confiture.yaml)
+
+### Output
+- `--verbose, -v` - Verbose output
+- `--quiet, -q` - Suppress output
+- `--output PATH` - Output directory
+
+### Database
+- `--database-url URL` - Database connection URL
+- Uses `DATABASE_URL` environment variable if not specified
+
+## 🔧 Common Workflows
+
+### Development Cycle
+```bash
+# Edit your YAML
+vim entities/user.yaml
+
+# Validate changes
+specql validate entities/user.yaml
+
+# Generate updated schema
+specql generate schema entities/user.yaml
+
+# Apply to database
+psql $DATABASE_URL -f db/schema/10_tables/user.sql
+
+# Generate and run tests
+specql generate tests entities/user.yaml
+specql test run entities/user.yaml
+```
+
+### CI/CD Pipeline
+```yaml
+# .github/workflows/test.yml
+name: Test
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install SpecQL
+        run: pip install specql
+
+      - name: Validate Entities
+        run: specql validate entities/*.yaml
+
+      - name: Generate Schema
+        run: specql generate schema entities/*.yaml
+
+      - name: Apply Schema
+        run: |
+          psql postgresql://postgres:postgres@localhost:5432/postgres -f db/schema/00_foundation/*.sql
+          psql postgresql://postgres:postgres@localhost:5432/postgres -f db/schema/10_tables/*.sql
+
+      - name: Generate Tests
+        run: specql generate tests entities/*.yaml
+
+      - name: Run pgTAP Tests
+        run: specql test run --type pgtap entities/*.yaml
+
+      - name: Run pytest Tests
+        run: specql test run --type pytest entities/*.yaml
+```
+
+### Multi-Environment Setup
+```bash
+# Local development
+export DATABASE_URL="postgresql://localhost/specql_dev"
+specql generate schema entities/*.yaml --env local
+
+# Staging deployment
+export DATABASE_URL="postgresql://staging-db/specql_staging"
+specql generate schema entities/*.yaml --env staging
+
+# Production deployment
+export DATABASE_URL="postgresql://prod-db/specql_prod"
+specql generate schema entities/*.yaml --env production
+```
+
+## 🆘 Troubleshooting
+
+### "Command not found: specql"
+```bash
+# Check if installed
+pip list | grep specql
+
+# Reinstall
+pip install --upgrade specql
+
+# Add to PATH
+export PATH="$HOME/.local/bin:$PATH"
+```
+
+### "Database connection failed"
+```bash
+# Check DATABASE_URL
+echo $DATABASE_URL
+
+# Test connection manually
+psql $DATABASE_URL -c "SELECT 1;"
+
+# Check PostgreSQL is running
+sudo systemctl status postgresql  # Linux
+brew services list | grep postgres  # macOS
+```
+
+### "Validation errors"
+```bash
+# Get detailed error information
+specql validate entities/user.yaml --verbose
+
+# Common issues:
+# - Invalid YAML syntax
+# - Unknown field types
+# - Missing required fields
+# - Invalid pattern configuration
+```
+
+### "Tests failing"
+```bash
+# Check test output
+specql test run entities/user.yaml --verbose
+
+# Common issues:
+# - Schema not applied to database
+# - Test data conflicts
+# - Environment differences
+# - Database permissions
+```
+
+### "Permission denied"
+```bash
+# Grant database permissions
+psql $DATABASE_URL -c "GRANT ALL ON SCHEMA public TO specql_user;"
+
+# Check file permissions
+ls -la entities/
+```
+
+## 📚 Related Documentation
+
+- **[Getting Started](../getting-started/)** - Step-by-step tutorials
+- **[YAML Schema](yaml-schema.md)** - Entity specification format
+- **[Troubleshooting](../troubleshooting/)** - Common issues and solutions
+- **[Best Practices](../best-practices/)** - Recommended patterns
+
+## 🎯 Next Steps
+
+- **[Explore Patterns](../guides/mutation-patterns/)** - Learn about business logic patterns
+- **[Test Generation](../guides/test-generation/)** - Advanced testing features
+- **[CI/CD Integration](../guides/test-generation/ci-cd-integration.md)** - Production deployment
+
+**Ready to build more complex applications? Check out the guides! 🚀**
 
 ---
 

@@ -1,0 +1,445 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Team C Generators API Reference - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team C Generators API Reference";
+        var mkdocs_page_input_path = "api/team-c-generators.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team C Generators API Reference</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-c-generators-api-reference">Team C Generators API Reference</h1>
+<p>This document provides technical details for the Team C action compilation system.</p>
+<h2 id="core-classes">Core Classes</h2>
+<h3 id="corelogicgenerator">CoreLogicGenerator</h3>
+<p>Generates core layer business logic functions.</p>
+<h4 id="methods">Methods</h4>
+<h5 id="generate_core_create_functionentity-entity-str"><code>generate_core_create_function(entity: Entity) -&gt; str</code></h5>
+<p>Generates a core CREATE function.</p>
+<p><strong>Parameters:</strong>
+- <code>entity</code>: Entity definition with fields and actions</p>
+<p><strong>Returns:</strong> SQL string for the core create function</p>
+<p><strong>Example:</strong></p>
+<pre><code class="language-python">generator = CoreLogicGenerator()
+sql = generator.generate_core_create_function(contact_entity)
+# Returns: CREATE OR REPLACE FUNCTION crm.create_contact(...) ...
+</code></pre>
+<h5 id="generate_core_update_functionentity-entity-str"><code>generate_core_update_function(entity: Entity) -&gt; str</code></h5>
+<p>Generates a core UPDATE function.</p>
+<p><strong>Parameters:</strong>
+- <code>entity</code>: Entity definition</p>
+<p><strong>Returns:</strong> SQL string for the core update function</p>
+<h5 id="generate_core_delete_functionentity-entity-str"><code>generate_core_delete_function(entity: Entity) -&gt; str</code></h5>
+<p>Generates a core soft DELETE function.</p>
+<p><strong>Parameters:</strong>
+- <code>entity</code>: Entity definition</p>
+<p><strong>Returns:</strong> SQL string for the core delete function</p>
+<h5 id="generate_core_custom_actionentity-entity-action-str"><code>generate_core_custom_action(entity: Entity, action) -&gt; str</code></h5>
+<p>Generates a core custom business action function.</p>
+<p><strong>Parameters:</strong>
+- <code>entity</code>: Entity definition
+- <code>action</code>: Action definition with steps</p>
+<p><strong>Returns:</strong> SQL string for the custom action function</p>
+<h5 id="detect_action_patternaction_name-str-str"><code>detect_action_pattern(action_name: str) -&gt; str</code></h5>
+<p>Detects the action pattern from the name.</p>
+<p><strong>Parameters:</strong>
+- <code>action_name</code>: Name of the action</p>
+<p><strong>Returns:</strong> One of: 'create', 'update', 'delete', 'custom'</p>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-python">detect_action_pattern(&quot;create_contact&quot;)  # → &quot;create&quot;
+detect_action_pattern(&quot;qualify_lead&quot;)    # → &quot;custom&quot;
+</code></pre>
+<h2 id="appwrappergenerator">AppWrapperGenerator</h2>
+<p>Generates app layer wrapper functions that handle JSONB input/output.</p>
+<h4 id="methods_1">Methods</h4>
+<h5 id="generate_app_wrapper_for_createentity-entity-str"><code>generate_app_wrapper_for_create(entity: Entity) -&gt; str</code></h5>
+<p>Generates app wrapper for CREATE actions.</p>
+<p><strong>Parameters:</strong>
+- <code>entity</code>: Entity definition</p>
+<p><strong>Returns:</strong> SQL string for app.create_* function</p>
+<h5 id="generate_app_wrapper_for_updateentity-entity-str"><code>generate_app_wrapper_for_update(entity: Entity) -&gt; str</code></h5>
+<p>Generates app wrapper for UPDATE actions.</p>
+<p><strong>Parameters:</strong>
+- <code>entity</code>: Entity definition</p>
+<p><strong>Returns:</strong> SQL string for app.update_* function</p>
+<h5 id="generate_app_wrapper_for_deleteentity-entity-str"><code>generate_app_wrapper_for_delete(entity: Entity) -&gt; str</code></h5>
+<p>Generates app wrapper for DELETE actions.</p>
+<p><strong>Parameters:</strong>
+- <code>entity</code>: Entity definition</p>
+<p><strong>Returns:</strong> SQL string for app.delete_* function</p>
+<h5 id="generate_app_wrapper_for_custom_actionentity-entity-action-str"><code>generate_app_wrapper_for_custom_action(entity: Entity, action) -&gt; str</code></h5>
+<p>Generates app wrapper for custom actions.</p>
+<p><strong>Parameters:</strong>
+- <code>entity</code>: Entity definition
+- <code>action</code>: Action definition</p>
+<p><strong>Returns:</strong> SQL string for app.custom_action function</p>
+<h2 id="actionvalidator">ActionValidator</h2>
+<p>Validates action definitions and provides warnings.</p>
+<h4 id="methods_2">Methods</h4>
+<h5 id="validate_actionaction-entity-liststr"><code>validate_action(action, entity) -&gt; List[str]</code></h5>
+<p>Validates an action definition.</p>
+<p><strong>Parameters:</strong>
+- <code>action</code>: Action to validate
+- <code>entity</code>: Entity context</p>
+<p><strong>Returns:</strong> List of validation error messages</p>
+<h5 id="validate_entity_actionsentity-dictstr-liststr"><code>validate_entity_actions(entity) -&gt; Dict[str, List[str]]</code></h5>
+<p>Validates all actions for an entity.</p>
+<p><strong>Parameters:</strong>
+- <code>entity</code>: Entity with actions</p>
+<p><strong>Returns:</strong> Dict mapping action names to error lists</p>
+<h2 id="actionorchestrator">ActionOrchestrator</h2>
+<p>Coordinates complex actions involving multiple entities.</p>
+<h4 id="methods_3">Methods</h4>
+<h5 id="compile_multi_entity_actionaction-primary_entity-related_entities-str"><code>compile_multi_entity_action(action, primary_entity, related_entities) -&gt; str</code></h5>
+<p>Compiles actions that affect multiple entities.</p>
+<p><strong>Parameters:</strong>
+- <code>action</code>: Multi-entity action definition
+- <code>primary_entity</code>: Main entity being acted upon
+- <code>related_entities</code>: Related entities involved</p>
+<p><strong>Returns:</strong> Complete PL/pgSQL function with transaction management</p>
+<h2 id="step-compilers">Step Compilers</h2>
+<p>Individual compilers for each step type.</p>
+<h3 id="validatestepcompiler">ValidateStepCompiler</h3>
+<p>Compiles validation steps.</p>
+<h4 id="compilestep-entity-context-str"><code>compile(step, entity, context) -&gt; str</code></h4>
+<p><strong>Parameters:</strong>
+- <code>step</code>: Validation step with expression and error
+- <code>entity</code>: Entity context
+- <code>context</code>: Compilation context</p>
+<p><strong>Returns:</strong> PL/pgSQL validation code</p>
+<h3 id="insertstepcompiler">InsertStepCompiler</h3>
+<p>Compiles insert operations.</p>
+<h4 id="compilestep-entity-context-str_1"><code>compile(step, entity, context) -&gt; str</code></h4>
+<p><strong>Returns:</strong> INSERT statement with Trinity pattern</p>
+<h3 id="updatestepcompiler">UpdateStepCompiler</h3>
+<p>Compiles update operations.</p>
+<h4 id="compilestep-entity-context-str_2"><code>compile(step, entity, context) -&gt; str</code></h4>
+<p><strong>Returns:</strong> UPDATE statement with audit fields</p>
+<h3 id="deletestepcompiler">DeleteStepCompiler</h3>
+<p>Compiles soft delete operations.</p>
+<h4 id="compilestep-entity-context-str_3"><code>compile(step, entity, context) -&gt; str</code></h4>
+<p><strong>Returns:</strong> UPDATE statement setting deleted_at/deleted_by</p>
+<h3 id="ifstepcompiler">IfStepCompiler</h3>
+<p>Compiles conditional logic.</p>
+<h4 id="compilestep-entity-context-str_4"><code>compile(step, entity, context) -&gt; str</code></h4>
+<p><strong>Returns:</strong> IF/THEN/ELSE PL/pgSQL block</p>
+<h3 id="foreachstepcompiler">ForEachStepCompiler</h3>
+<p>Compiles iteration over collections.</p>
+<h4 id="compilestep-entity-context-str_5"><code>compile(step, entity, context) -&gt; str</code></h4>
+<p><strong>Returns:</strong> FOR loop over collection</p>
+<h3 id="callstepcompiler">CallStepCompiler</h3>
+<p>Compiles function calls.</p>
+<h4 id="compilestep-entity-context-str_6"><code>compile(step, entity, context) -&gt; str</code></h4>
+<p><strong>Returns:</strong> PERFORM or SELECT statement</p>
+<h3 id="notifystepcompiler">NotifyStepCompiler</h3>
+<p>Compiles notification emissions.</p>
+<h4 id="compilestep-entity-context-str_7"><code>compile(step, entity, context) -&gt; str</code></h4>
+<p><strong>Returns:</strong> Event emission code</p>
+<h2 id="support-classes">Support Classes</h2>
+<h3 id="expressioncompiler">ExpressionCompiler</h3>
+<p>Compiles SpecQL expressions to SQL.</p>
+<h4 id="compile_expressionexpr-str-entity-str"><code>compile_expression(expr: str, entity) -&gt; str</code></h4>
+<p><strong>Parameters:</strong>
+- <code>expr</code>: SpecQL expression (e.g., "email MATCHES email_pattern")
+- <code>entity</code>: Entity for field resolution</p>
+<p><strong>Returns:</strong> SQL WHERE clause fragment</p>
+<h3 id="trinityresolver">TrinityResolver</h3>
+<p>Handles UUID → INTEGER foreign key resolution.</p>
+<h4 id="generate_trinity_helpersentity-str"><code>generate_trinity_helpers(entity) -&gt; str</code></h4>
+<p><strong>Returns:</strong> Helper functions for FK resolution</p>
+<h4 id="resolve_foreign_keysentity-listdict"><code>resolve_foreign_keys(entity) -&gt; List[Dict]</code></h4>
+<p><strong>Returns:</strong> FK resolution metadata</p>
+<h3 id="impactmetadatacompiler">ImpactMetadataCompiler</h3>
+<p>Generates FraiseQL mutation impact metadata.</p>
+<h4 id="compile_impact_metadataaction-entity-dict"><code>compile_impact_metadata(action, entity) -&gt; Dict</code></h4>
+<p><strong>Returns:</strong> Metadata for GraphQL schema generation</p>
+<h3 id="compositetypebuilder">CompositeTypeBuilder</h3>
+<p>Creates PostgreSQL composite types.</p>
+<h4 id="build_input_typeaction-entity-str"><code>build_input_type(action, entity) -&gt; str</code></h4>
+<p><strong>Returns:</strong> CREATE TYPE statement for input</p>
+<h4 id="build_result_type-str"><code>build_result_type() -&gt; str</code></h4>
+<p><strong>Returns:</strong> Standard mutation_result type</p>
+<h2 id="functiongenerator">FunctionGenerator</h2>
+<p>High-level generator that orchestrates the complete function generation.</p>
+<h4 id="methods_4">Methods</h4>
+<h5 id="generate_action_functionsentity-str"><code>generate_action_functions(entity) -&gt; str</code></h5>
+<p>Generates all functions for an entity's actions.</p>
+<p><strong>Parameters:</strong>
+- <code>entity</code>: Entity with actions</p>
+<p><strong>Returns:</strong> Complete SQL with all functions</p>
+<h5 id="generate_migration_fileentity-output_path-str"><code>generate_migration_file(entity, output_path) -&gt; str</code></h5>
+<p>Generates a complete migration file.</p>
+<p><strong>Parameters:</strong>
+- <code>entity</code>: Entity to generate for
+- <code>output_path</code>: Where to write the file</p>
+<p><strong>Returns:</strong> Path to generated migration file</p>
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="error-codes">Error Codes</h3>
+<p>Standardized error codes used throughout:</p>
+<ul>
+<li><code>validation:required_field</code> - Missing required field</li>
+<li><code>validation:invalid_enum</code> - Invalid enum value</li>
+<li><code>validation:reference_not_found</code> - FK not found</li>
+<li><code>constraint:unique_violation</code> - Unique constraint violation</li>
+<li><code>security:tenant_isolation</code> - Tenant access violation</li>
+</ul>
+<h3 id="structured-errors">Structured Errors</h3>
+<p>All errors return consistent format:</p>
+<pre><code class="language-sql">RETURN app.log_and_return_mutation(
+    auth_tenant_id, auth_user_id,
+    'entity_name', entity_id,
+    'operation', 'failed:error_code',
+    ARRAY['field'], 'Error message',
+    NULL, jsonb_build_object(
+        'code', 'error_code',
+        'user_action', 'What user should do',
+        'field', 'field_name',
+        'entity', 'EntityName'
+    )
+);
+</code></pre>
+<h2 id="templates">Templates</h2>
+<h3 id="core-function-templates">Core Function Templates</h3>
+<p>Located in <code>templates/sql/</code>:</p>
+<ul>
+<li><code>core_create_function.sql.j2</code> - CREATE pattern</li>
+<li><code>core_update_function.sql.j2</code> - UPDATE pattern</li>
+<li><code>core_delete_function.sql.j2</code> - DELETE pattern</li>
+<li><code>core_custom_action.sql.j2</code> - Custom actions</li>
+</ul>
+<h3 id="app-wrapper-templates">App Wrapper Templates</h3>
+<ul>
+<li><code>app_wrapper.sql.j2</code> - JSONB → composite type conversion</li>
+</ul>
+<h2 id="dependencies">Dependencies</h2>
+<h3 id="required-components">Required Components</h3>
+<ul>
+<li><strong>Team B</strong>: Schema foundation, Trinity helpers</li>
+<li><strong>Team A</strong>: Scalar types and validation</li>
+<li><strong>Team D</strong>: FraiseQL integration (optional)</li>
+</ul>
+<h3 id="generated-dependencies">Generated Dependencies</h3>
+<p>Functions reference:</p>
+<ul>
+<li><code>app.log_and_return_mutation()</code> - Audit logging</li>
+<li><code>app.mutation_result</code> - Return type</li>
+<li><code>schema.entity_pk(uuid, tenant)</code> - Trinity helpers</li>
+<li><code>app.type_*_input</code> - Composite types</li>
+</ul>
+<h2 id="testing">Testing</h2>
+<h3 id="unit-tests">Unit Tests</h3>
+<p>Located in <code>tests/unit/generators/</code>:</p>
+<ul>
+<li><code>test_core_logic_generator.py</code> - Core function generation</li>
+<li><code>test_app_wrapper_generator.py</code> - App wrapper generation</li>
+<li><code>test_function_generator.py</code> - Integration tests</li>
+</ul>
+<h3 id="integration-tests">Integration Tests</h3>
+<p>Located in <code>tests/integration/actions/</code>:</p>
+<ul>
+<li><code>test_full_action_compilation.py</code> - End-to-end compilation</li>
+<li><code>test_database_roundtrip.py</code> - Database execution tests</li>
+</ul>
+<h3 id="test-fixtures">Test Fixtures</h3>
+<ul>
+<li><code>tests/fixtures/mock_entities.py</code> - Test entity definitions</li>
+<li><code>tests/conftest.py</code> - Shared test configuration</li>
+</ul>
+<h2 id="configuration">Configuration</h2>
+<h3 id="template-directories">Template Directories</h3>
+<pre><code class="language-python">generator = CoreLogicGenerator(templates_dir=&quot;custom/templates&quot;)
+</code></pre>
+<h3 id="output-customization">Output Customization</h3>
+<p>Override templates by placing custom versions in the templates directory.</p>
+<h3 id="debug-mode">Debug Mode</h3>
+<p>Enable verbose SQL comments:</p>
+<pre><code class="language-python"># Set in environment or config
+DEBUG_MODE = True
+</code></pre>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<h3 id="compilation-speed">Compilation Speed</h3>
+<ul>
+<li>Templates cached after first load</li>
+<li>Expression compilation optimized</li>
+<li>Minimal object creation</li>
+</ul>
+<h3 id="generated-sql-performance">Generated SQL Performance</h3>
+<ul>
+<li>Parameterized queries prevent SQL injection</li>
+<li>Trinity pattern optimizes FK lookups</li>
+<li>Automatic indexes on audit fields</li>
+<li>Tenant filtering prevents table scans</li>
+</ul>
+<h3 id="memory-usage">Memory Usage</h3>
+<ul>
+<li>Templates loaded once per generator instance</li>
+<li>AST models are lightweight</li>
+<li>No external dependencies for generation</li>
+</ul>
+<h2 id="extension-points">Extension Points</h2>
+<h3 id="adding-step-types">Adding Step Types</h3>
+<ol>
+<li>Create step compiler class</li>
+<li>Implement <code>compile(step, entity, context)</code> method</li>
+<li>Register in ActionOrchestrator step registry</li>
+<li>Add template if needed</li>
+<li>Write tests</li>
+</ol>
+<h3 id="custom-validation">Custom Validation</h3>
+<p>Override <code>ActionValidator</code> methods for custom rules.</p>
+<h3 id="template-customization">Template Customization</h3>
+<p>Modify Jinja2 templates in <code>templates/sql/</code> directory.</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="common-issues">Common Issues</h3>
+<ol>
+<li><strong>Template not found</strong>: Check templates directory path</li>
+<li><strong>Type errors</strong>: Verify Entity and Action definitions</li>
+<li><strong>SQL syntax errors</strong>: Check generated SQL manually</li>
+<li><strong>Missing dependencies</strong>: Ensure Team B components generated first</li>
+</ol>
+<h3 id="debug-output">Debug Output</h3>
+<pre><code class="language-python"># Enable debug logging
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+generator = CoreLogicGenerator()
+sql = generator.generate_core_create_function(entity)
+print(sql)  # Inspect generated SQL
+</code></pre>
+<h3 id="validation">Validation</h3>
+<pre><code class="language-python">validator = ActionValidator()
+errors = validator.validate_entity_actions(entity)
+for action_name, action_errors in errors.items():
+    print(f&quot;{action_name}: {action_errors}&quot;)
+</code></pre>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

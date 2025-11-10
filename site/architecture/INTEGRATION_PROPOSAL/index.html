@@ -1,0 +1,858 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Integration Proposal: Numbering System + Group Leader Pattern + FraiseQL - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Integration Proposal: Numbering System + Group Leader Pattern + FraiseQL";
+        var mkdocs_page_input_path = "architecture/INTEGRATION_PROPOSAL.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Integration Proposal: Numbering System + Group Leader Pattern + FraiseQL</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="integration-proposal-numbering-system-group-leader-pattern-fraiseql">Integration Proposal: Numbering System + Group Leader Pattern + FraiseQL</h1>
+<p><strong>Date</strong>: November 8, 2025
+<strong>Status</strong>: Proposal
+<strong>Integration Goal</strong>: Unified YAML → Numbered DDL → FraiseQL GraphQL with Group Leader Pattern</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>This proposal integrates <strong>three powerful concepts</strong> into the YAML-to-SQL templating system:</p>
+<ol>
+<li><strong>Materialized Numbering System</strong> (from printoptim_backend/db/)</li>
+<li><strong>Group Leader Pattern</strong> (from TestFoundry)</li>
+<li><strong>FraiseQL Integration</strong> (from FRAISEQL_INTEGRATION_REQUIREMENTS.md)</li>
+</ol>
+<p><strong>Result</strong>: A production-ready, AI-discoverable, self-organizing backend generation pipeline.</p>
+<hr />
+<h2 id="1-materialized-numbering-system-integration">1. Materialized Numbering System Integration</h2>
+<h3 id="current-pattern-analysis">Current Pattern Analysis</h3>
+<p>From <code>../printoptim_backend/db/</code>, the numbering system follows:</p>
+<pre><code>Level 1 (Top):     0_schema/, 1_seed_common/, 2_seed_backend/
+Level 2 (Schema):  00_common/, 01_write_side/, 02_query_side/, 03_functions/
+Level 3 (Domain):  010_i18n/, 011_common_dim/, 013_catalog/, 014_dim/
+Level 4 (Group):   0132_manufacturer/, 0141_location/
+Level 5 (Entity):  01321_manufacturer/
+Level 6 (Files):   013211_tb_manufacturer.sql, 013212_fn_manufacturer_pk.sql
+</code></pre>
+<h3 id="enhanced-yaml-schema">Enhanced YAML Schema</h3>
+<pre><code class="language-yaml">entity:
+  name: manufacturer
+  schema: catalog
+  description: &quot;Printer/copier manufacturers&quot;
+
+  # ============================================================================
+  # NEW: Numbering &amp; Organization
+  # ============================================================================
+  organization:
+    # Materialized numbering (6-digit hierarchical code)
+    table_code: &quot;013211&quot;         # Used for all file prefixes
+
+    # Directory structure (auto-generated from table_code)
+    schema_layer: &quot;01&quot;            # write_side (01), query_side (02), functions (03)
+    domain_code: &quot;013&quot;            # catalog domain
+    entity_group_code: &quot;0132&quot;     # manufacturer group
+    entity_code: &quot;01321&quot;          # specific manufacturer entity
+
+    # Alternative: Let generator parse table_code automatically
+    # parse_table_code: true      # Auto-extract: 01|3|2|1|1
+
+    # Execution order metadata
+    execution_order: 13211        # Numeric for sorting
+    depends_on:                   # Dependencies (lower numbers)
+      - &quot;012111&quot;                  # organization table
+      - &quot;010111&quot;                  # language table
+
+  # ============================================================================
+  # Group Leader Pattern (TestFoundry Integration)
+  # ============================================================================
+  field_groups:
+    # Define groups of fields that must be generated together
+    - group_name: &quot;location_coherence&quot;
+      group_leader: &quot;country&quot;     # This field triggers group generation
+      dependent_fields:           # These fields come from same source record
+        - postal_code
+        - city_code
+        - administrative_unit
+      description: &quot;Ensures postal codes, cities, and countries match&quot;
+
+    - group_name: &quot;manufacturer_company&quot;
+      group_leader: &quot;fk_company&quot;
+      dependent_fields:
+        - company_country
+        - company_address
+      description: &quot;Links manufacturer to company location&quot;
+
+  # ============================================================================
+  # Fields (with Group Leader annotations)
+  # ============================================================================
+  fields:
+    identifier:
+      type: TEXT
+      nullable: false
+      unique: true
+      description: &quot;Internal stable identifier (e.g., 'canon', 'ricoh')&quot;
+
+      # NEW: Group leader configuration
+      group_leader: false         # Not a group leader
+      generator_group: null       # Not part of a group
+
+      # FraiseQL metadata
+      fraiseql:
+        filter_operators: [eq, neq, in, nin, contains, startsWith, endsWith]
+        sortable: true
+
+    name:
+      type: TEXT
+      nullable: true
+      description: &quot;Display name&quot;
+
+    abbreviation:
+      type: CHAR(2)
+      nullable: false
+      unique: true
+      description: &quot;2-letter code&quot;
+
+    color_name:
+      type: TEXT
+      nullable: false
+      description: &quot;CSS color for UI&quot;
+
+  # ============================================================================
+  # Foreign Keys (with Group Leader support)
+  # ============================================================================
+  foreign_keys:
+    fk_company:
+      references: management.tb_organization
+      on: pk_organization
+      nullable: true
+      description: &quot;Company entity link&quot;
+
+      # NEW: Group leader configuration
+      group_leader: true                    # This FK is a group leader
+      generator_group: &quot;manufacturer_company&quot;
+      group_dependency_fields:              # Fields to fetch with this FK
+        - company_country                   # Will be populated from same record
+        - company_address
+
+      # TestFoundry FK mapping
+      testfoundry:
+        mapping_key: &quot;organization&quot;
+        from_expression: &quot;management.tb_organization&quot;
+        select_field: &quot;pk_organization&quot;
+        random_pk_field: &quot;pk_organization&quot;
+        random_value_field: &quot;name&quot;
+        random_select_where: &quot;deleted_at IS NULL&quot;
+
+  # ============================================================================
+  # FraiseQL Integration
+  # ============================================================================
+  fraiseql:
+    enabled: true
+
+    type:
+      generate_view: true
+      trinity: true
+      use_projection: false
+      expose_fields: [id, identifier, name, abbreviation, color_name]
+
+    queries:
+      find_one: true
+      find_one_by_identifier: true
+      find_many: true
+      connection: true
+
+    mutations:
+      create:
+        enabled: true
+        function_name: fn_create_manufacturer
+        input_fields: [identifier, name, abbreviation, color_name, fk_company]
+        success_type: Manufacturer
+        failure_type: ValidationError
+
+      update:
+        enabled: true
+        function_name: fn_update_manufacturer
+        input_fields: [name, abbreviation, color_name]
+        success_type: Manufacturer
+        failure_type: ValidationError
+
+      delete:
+        enabled: true
+        function_name: fn_delete_manufacturer
+        soft: true
+        success_type: DeleteResult
+        failure_type: ValidationError
+
+  # ============================================================================
+  # Trinity Helpers
+  # ============================================================================
+  trinity_helpers:
+    generate: true
+    lookup_by: identifier
+    helpers:
+      - name: manufacturer_pk
+        params: [identifier]
+        returns: INTEGER
+        description: &quot;Resolve identifier to PK&quot;
+
+      - name: manufacturer_id
+        params: [pk_manufacturer]
+        returns: UUID
+        description: &quot;Resolve PK to UUID&quot;
+
+  # ============================================================================
+  # TestFoundry Integration
+  # ============================================================================
+  testfoundry:
+    enabled: true
+
+    # Input type mapping
+    input_type: &quot;manufacturer_input&quot;
+
+    # Field mappings for test generation
+    field_mappings:
+      identifier:
+        generator_type: random
+        random_function: testfoundry_random_identifier
+        required: true
+
+      name:
+        generator_type: random
+        random_function: testfoundry_random_company_name
+        required: false
+
+      abbreviation:
+        generator_type: random
+        random_function: testfoundry_random_abbreviation
+        required: true
+
+      fk_company:
+        generator_type: resolve_fk
+        fk_mapping_key: organization
+        required: false
+        group_leader: true                    # Triggers group generation
+        group_dependency_fields: [company_country, company_address]
+
+    # Test scenarios to generate
+    test_scenarios:
+      - happy_create
+      - duplicate_create
+      - fk_violation
+      - soft_delete
+      - authorization
+</code></pre>
+<hr />
+<h2 id="2-generated-output-structure">2. Generated Output Structure</h2>
+<p>With numbering + group leaders + FraiseQL:</p>
+<pre><code>generated/
+├── manifest.yaml                           # Execution order manifest
+├── README.md                               # Auto-generated overview
+│
+├── 01_write_side/                          # Schema layer 01
+│   └── 013_catalog/                        # Domain 013
+│       └── 0132_manufacturer/              # Entity group 0132
+│           ├── README.md                   # Auto-generated entity docs
+│           │
+│           └── 01321_manufacturer/         # Specific entity 01321
+│               ├── 013211_tb_manufacturer.sql              # Table
+│               ├── 013212_fn_manufacturer_pk.sql           # Trinity helper
+│               ├── 013213_fn_manufacturer_id.sql           # Trinity helper
+│               ├── 013214_fn_manufacturer_name.sql         # Trinity helper
+│               └── 013215_fn_manufacturer_abbreviation.sql # Trinity helper
+│
+├── 02_query_side/                          # Schema layer 02
+│   └── 023_catalog/                        # Domain 023 (query side)
+│       └── 0232_manufacturer/
+│           └── 02321_manufacturer/
+│               └── 023211_v_manufacturer.sql               # FraiseQL view
+│
+├── 03_functions/                           # Schema layer 03
+│   └── 033_catalog/                        # Domain 033 (functions)
+│       └── 0332_manufacturer/
+│           └── 03321_manufacturer_mutations/
+│               ├── 033211_fn_create_manufacturer.sql       # CREATE mutation
+│               ├── 033212_fn_update_manufacturer.sql       # UPDATE mutation
+│               └── 033213_fn_delete_manufacturer.sql       # DELETE mutation
+│
+└── 09_testfoundry/                         # Schema layer 09 (testing)
+    └── 093_catalog/
+        └── 0932_manufacturer/
+            └── 09321_manufacturer_tests/
+                ├── 093211_test_happy_create.sql            # Happy path test
+                ├── 093212_test_duplicate_create.sql        # Duplicate test
+                ├── 093213_test_fk_violation.sql            # FK test
+                └── 093214_metadata_mappings.sql            # TestFoundry metadata
+</code></pre>
+<hr />
+<h2 id="3-manifest-generation">3. Manifest Generation</h2>
+<p>Auto-generated <code>manifest.yaml</code> for execution order:</p>
+<pre><code class="language-yaml"># Auto-generated by scripts/dev/generate_sql.py
+# DO NOT EDIT MANUALLY
+
+metadata:
+  generated_at: &quot;2025-11-08T11:30:00Z&quot;
+  generator_version: &quot;2.0.0&quot;
+  total_entities: 1
+  total_files: 15
+
+execution_order:
+  # Tables first (layer 01)
+  - code: &quot;013211&quot;
+    path: &quot;01_write_side/013_catalog/0132_manufacturer/01321_manufacturer/013211_tb_manufacturer.sql&quot;
+    entity: manufacturer
+    type: table
+    schema: catalog
+    layer: write_side
+    dependencies: []
+
+  # Trinity helpers (layer 01)
+  - code: &quot;013212&quot;
+    path: &quot;01_write_side/013_catalog/0132_manufacturer/01321_manufacturer/013212_fn_manufacturer_pk.sql&quot;
+    entity: manufacturer
+    type: function
+    schema: core
+    layer: write_side
+    dependencies: [&quot;013211&quot;]
+
+  - code: &quot;013213&quot;
+    path: &quot;01_write_side/013_catalog/0132_manufacturer/01321_manufacturer/013213_fn_manufacturer_id.sql&quot;
+    entity: manufacturer
+    type: function
+    schema: core
+    layer: write_side
+    dependencies: [&quot;013211&quot;]
+
+  # Views second (layer 02)
+  - code: &quot;023211&quot;
+    path: &quot;02_query_side/023_catalog/0232_manufacturer/02321_manufacturer/023211_v_manufacturer.sql&quot;
+    entity: manufacturer
+    type: view
+    schema: catalog
+    layer: query_side
+    dependencies: [&quot;013211&quot;]
+
+  # Mutations third (layer 03)
+  - code: &quot;033211&quot;
+    path: &quot;03_functions/033_catalog/0332_manufacturer/03321_manufacturer_mutations/033211_fn_create_manufacturer.sql&quot;
+    entity: manufacturer
+    type: mutation
+    schema: catalog
+    layer: functions
+    dependencies: [&quot;013211&quot;, &quot;023211&quot;]
+
+  # Tests last (layer 09)
+  - code: &quot;093211&quot;
+    path: &quot;09_testfoundry/093_catalog/0932_manufacturer/09321_manufacturer_tests/093211_test_happy_create.sql&quot;
+    entity: manufacturer
+    type: test
+    schema: testfoundry
+    layer: testing
+    dependencies: [&quot;033211&quot;]
+
+# Entity index for AI discoverability
+entities:
+  manufacturer:
+    table_code: &quot;013211&quot;
+    schema: catalog
+    domain: catalog
+    description: &quot;Printer/copier manufacturers&quot;
+
+    files:
+      table: &quot;013211_tb_manufacturer.sql&quot;
+
+      trinity_helpers:
+        - &quot;013212_fn_manufacturer_pk.sql&quot;
+        - &quot;013213_fn_manufacturer_id.sql&quot;
+        - &quot;013214_fn_manufacturer_name.sql&quot;
+        - &quot;013215_fn_manufacturer_abbreviation.sql&quot;
+
+      views:
+        - &quot;023211_v_manufacturer.sql&quot;
+
+      mutations:
+        - &quot;033211_fn_create_manufacturer.sql&quot;
+        - &quot;033212_fn_update_manufacturer.sql&quot;
+        - &quot;033213_fn_delete_manufacturer.sql&quot;
+
+      tests:
+        - &quot;093211_test_happy_create.sql&quot;
+        - &quot;093212_test_duplicate_create.sql&quot;
+        - &quot;093213_test_fk_violation.sql&quot;
+        - &quot;093214_metadata_mappings.sql&quot;
+
+    dependencies:
+      - organization
+      - language
+
+    dependents:
+      - product
+      - accessory
+
+    field_groups:
+      - name: manufacturer_company
+        leader: fk_company
+        members: [company_country, company_address]
+</code></pre>
+<hr />
+<h2 id="4-group-leader-pattern-implementation">4. Group Leader Pattern Implementation</h2>
+<h3 id="in-table-template">In Table Template</h3>
+<pre><code class="language-jinja2">{# templates/table.sql.j2 #}
+
+-- ============================================================================
+-- Table: {{ entity.schema }}.tb_{{ entity.name }}
+-- Code: {{ entity.organization.table_code }}
+-- ============================================================================
+
+CREATE TABLE {{ entity.schema }}.tb_{{ entity.name }} (
+    pk_{{ entity.name }} INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() NOT NULL,
+
+    -- Business Fields
+    {%- for field_name, field_def in entity.fields.items() %}
+    {{ field_name }} {{ field_def.type }}{% if not field_def.nullable %} NOT NULL{% endif %},
+    {%- endfor %}
+
+    -- Foreign Keys
+    {%- for fk_name, fk_def in entity.foreign_keys.items() %}
+    {{ fk_name }} INTEGER{% if not fk_def.nullable %} NOT NULL{% endif %},
+    {%- endfor %}
+
+    -- Group Leader Dependent Fields (auto-populated by triggers)
+    {%- for group in entity.field_groups %}
+    {%- for dep_field in group.dependent_fields %}
+    {{ dep_field }} TEXT,  -- Populated by group leader {{ group.group_leader }}
+    {%- endfor %}
+    {%- endfor %}
+
+    -- Audit Fields
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    deleted_at TIMESTAMPTZ
+);
+
+{%- if entity.field_groups %}
+
+-- ============================================================================
+-- Group Leader Triggers
+-- ============================================================================
+
+{%- for group in entity.field_groups %}
+
+-- Group: {{ group.group_name }}
+-- Leader: {{ group.group_leader }}
+-- Dependents: {{ group.dependent_fields | join(', ') }}
+
+CREATE OR REPLACE FUNCTION {{ entity.schema }}.fn_populate_{{ group.group_name }}()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_source_record RECORD;
+BEGIN
+    -- When {{ group.group_leader }} is set, fetch dependent fields from source
+    IF NEW.{{ group.group_leader }} IS NOT NULL THEN
+        SELECT
+            {%- for dep_field in group.dependent_fields %}
+            {{ dep_field }}{% if not loop.last %},{% endif %}
+            {%- endfor %}
+        INTO v_source_record
+        FROM {{ entity.foreign_keys[group.group_leader].references }}
+        WHERE {{ entity.foreign_keys[group.group_leader].on }} = NEW.{{ group.group_leader }};
+
+        -- Populate dependent fields
+        {%- for dep_field in group.dependent_fields %}
+        NEW.{{ dep_field }} := v_source_record.{{ dep_field }};
+        {%- endfor %}
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_populate_{{ group.group_name }}
+    BEFORE INSERT OR UPDATE ON {{ entity.schema }}.tb_{{ entity.name }}
+    FOR EACH ROW
+    EXECUTE FUNCTION {{ entity.schema }}.fn_populate_{{ group.group_name }}();
+
+{%- endfor %}
+{%- endif %}
+</code></pre>
+<h3 id="in-testfoundry-metadata-template">In TestFoundry Metadata Template</h3>
+<pre><code class="language-jinja2">{# templates/testfoundry_metadata.sql.j2 #}
+
+-- ============================================================================
+-- TestFoundry Metadata: {{ entity.name }}
+-- Code: 09{{ entity.organization.table_code[2:] }}
+-- ============================================================================
+
+-- Input field mappings
+INSERT INTO testfoundry.testfoundry_tb_input_field_mapping
+(input_type, field_name, generator_type, fk_mapping_key, random_function, required,
+ generator_group, group_leader, group_dependency_fields)
+VALUES
+{%- for field_name, field_mapping in entity.testfoundry.field_mappings.items() %}
+(
+    '{{ entity.testfoundry.input_type }}',
+    '{{ field_name }}',
+    '{{ field_mapping.generator_type }}',
+    {{ &quot;'&quot; + field_mapping.fk_mapping_key + &quot;'&quot; if field_mapping.fk_mapping_key else 'NULL' }},
+    {{ &quot;'&quot; + field_mapping.random_function + &quot;'&quot; if field_mapping.random_function else 'NULL' }},
+    {{ field_mapping.required | default(true) }},
+    {{ &quot;'&quot; + field_mapping.generator_group + &quot;'&quot; if field_mapping.generator_group else 'NULL' }},
+    {{ field_mapping.group_leader | default(false) }},
+    {{ 'ARRAY[' + (field_mapping.group_dependency_fields | map('quote') | join(', ')) + ']' if field_mapping.group_dependency_fields else 'NULL' }}
+){% if not loop.last %},{% endif %}
+{%- endfor %};
+
+COMMENT ON TABLE testfoundry.testfoundry_tb_input_field_mapping IS
+'TestFoundry metadata for {{ entity.name }} - auto-generated from YAML';
+</code></pre>
+<hr />
+<h2 id="5-ai-discoverability-features">5. AI Discoverability Features</h2>
+<h3 id="auto-generated-readme-per-entity">Auto-Generated README per Entity</h3>
+<pre><code class="language-markdown"># 01321 - Manufacturer
+
+**Table Code**: 013211
+**Schema**: catalog
+**Layer**: write_side
+**Domain**: catalog (013)
+
+## Description
+
+Lists recognized printer/copier manufacturers (e.g., Canon, HP, Xerox), with internal
+identifiers and display attributes.
+
+## Files
+
+### Tables (01_write_side)
+- `013211_tb_manufacturer.sql` - Base table definition with Trinity pattern
+
+### Trinity Helpers (01_write_side)
+- `013212_fn_manufacturer_pk.sql` - Resolve identifier → INTEGER PK
+- `013213_fn_manufacturer_id.sql` - Resolve PK → UUID
+- `013214_fn_manufacturer_name.sql` - Resolve PK → display name
+- `013215_fn_manufacturer_abbreviation.sql` - Resolve PK → abbreviation
+
+### Views (02_query_side)
+- `023211_v_manufacturer.sql` - FraiseQL GraphQL type view
+
+### Mutations (03_functions)
+- `033211_fn_create_manufacturer.sql` - Create new manufacturer
+- `033212_fn_update_manufacturer.sql` - Update existing manufacturer
+- `033213_fn_delete_manufacturer.sql` - Soft delete manufacturer
+
+### Tests (09_testfoundry)
+- `093211_test_happy_create.sql` - Happy path creation test
+- `093212_test_duplicate_create.sql` - Duplicate identifier test
+- `093213_test_fk_violation.sql` - Foreign key violation test
+- `093214_metadata_mappings.sql` - TestFoundry field mappings
+
+## Dependencies
+
+This entity depends on:
+- `012111` - management.tb_organization (for fk_company)
+- `010111` - i18n.tb_language (for translations)
+
+## Dependents
+
+These entities depend on manufacturer:
+- `014311` - catalog.tb_product
+- `013311` - catalog.tb_accessory
+
+## Field Groups
+
+### manufacturer_company
+**Group Leader**: `fk_company`
+**Dependent Fields**: `company_country`, `company_address`
+**Purpose**: Ensures manufacturer company data is coherent
+
+When `fk_company` is set, the following fields are automatically populated from the
+organization record:
+- `company_country` - Country of the company
+- `company_address` - Address of the company
+
+This prevents impossible combinations like a Canon manufacturer with HP company location.
+
+## GraphQL API
+
+### Queries
+- `manufacturer(id: UUID!)` - Find one by UUID
+- `manufacturerByIdentifier(identifier: String!)` - Find one by identifier
+- `manufacturers(where: ManufacturerWhereInput)` - Find many with filters
+- `manufacturersConnection(...)` - Paginated query with cursors
+
+### Mutations
+- `createManufacturer(input: CreateManufacturerInput!)` - Create new
+- `updateManufacturer(id: UUID!, input: UpdateManufacturerInput!)` - Update existing
+- `deleteManufacturer(id: UUID!)` - Soft delete
+
+## Execution Order
+
+Apply SQL files in this order:
+
+1. `013211_tb_manufacturer.sql` (table first)
+2. `013212_fn_manufacturer_pk.sql` (trinity helpers)
+3. `013213_fn_manufacturer_id.sql`
+4. `013214_fn_manufacturer_name.sql`
+5. `013215_fn_manufacturer_abbreviation.sql`
+6. `023211_v_manufacturer.sql` (view)
+7. `033211_fn_create_manufacturer.sql` (mutations)
+8. `033212_fn_update_manufacturer.sql`
+9. `033213_fn_delete_manufacturer.sql`
+10. `093211_test_happy_create.sql` (tests)
+11. `093212_test_duplicate_create.sql`
+12. `093213_test_fk_violation.sql`
+13. `093214_metadata_mappings.sql`
+
+## Generated
+
+This documentation was auto-generated from `entities/manufacturer.yaml` on 2025-11-08.
+</code></pre>
+<hr />
+<h2 id="6-implementation-roadmap">6. Implementation Roadmap</h2>
+<h3 id="phase-1-numbering-system-week-1">Phase 1: Numbering System (Week 1)</h3>
+<p><strong>Tasks</strong>:
+1. Extend YAML schema with <code>organization</code> section
+2. Create <code>NumberingParser</code> class to parse table_code
+3. Update <code>SQLGenerator</code> to create directory hierarchy
+4. Generate <code>manifest.yaml</code> from all entities
+5. Generate entity README.md files</p>
+<p><strong>Deliverable</strong>: Hierarchical output with numbered files</p>
+<h3 id="phase-2-group-leader-pattern-week-2">Phase 2: Group Leader Pattern (Week 2)</h3>
+<p><strong>Tasks</strong>:
+1. Extend YAML schema with <code>field_groups</code> section
+2. Create <code>group_leader_trigger.sql.j2</code> template
+3. Update table template to include dependent fields
+4. Generate TestFoundry metadata with group leaders
+5. Create validation for group leader consistency</p>
+<p><strong>Deliverable</strong>: Group leader triggers generated</p>
+<h3 id="phase-3-testfoundry-integration-week-3">Phase 3: TestFoundry Integration (Week 3)</h3>
+<p><strong>Tasks</strong>:
+1. Extend YAML schema with <code>testfoundry</code> section
+2. Create <code>testfoundry_metadata.sql.j2</code> template
+3. Create <code>testfoundry_test_happy_create.sql.j2</code> template
+4. Create <code>testfoundry_test_duplicate.sql.j2</code> template
+5. Generate complete test suite</p>
+<p><strong>Deliverable</strong>: Full test generation from YAML</p>
+<h3 id="phase-4-documentation-polish-week-4">Phase 4: Documentation &amp; Polish (Week 4)</h3>
+<p><strong>Tasks</strong>:
+1. Auto-generate entity README.md
+2. Auto-generate top-level README.md
+3. Create migration guide from existing entities
+4. Add CLI commands for validation
+5. Complete integration testing</p>
+<p><strong>Deliverable</strong>: Production-ready system</p>
+<hr />
+<h2 id="7-benefits-summary">7. Benefits Summary</h2>
+<h3 id="for-ai-discoverability">For AI Discoverability</h3>
+<p>✅ <strong>Hierarchical paths</strong> tell the complete story
+✅ <strong>Numbered files</strong> ensure execution order
+✅ <strong>Auto-generated manifests</strong> provide programmatic access
+✅ <strong>Entity READMEs</strong> give context at every level
+✅ <strong>Cross-reference index</strong> enables dependency tracking</p>
+<h3 id="for-data-integrity">For Data Integrity</h3>
+<p>✅ <strong>Group leader pattern</strong> prevents impossible data combinations
+✅ <strong>Automatic population</strong> of dependent fields via triggers
+✅ <strong>Test generation</strong> validates group leader behavior
+✅ <strong>Declarative configuration</strong> in YAML</p>
+<h3 id="for-development-speed">For Development Speed</h3>
+<p>✅ <strong>Single YAML source</strong> generates 15+ files
+✅ <strong>Complete test suite</strong> auto-generated
+✅ <strong>FraiseQL integration</strong> gives instant GraphQL API
+✅ <strong>Trinity helpers</strong> auto-generated
+✅ <strong>Documentation</strong> auto-generated</p>
+<h3 id="for-maintainability">For Maintainability</h3>
+<p>✅ <strong>One place to change</strong> (YAML)
+✅ <strong>Consistent patterns</strong> across all entities
+✅ <strong>Version controlled</strong> manifests
+✅ <strong>Clear dependencies</strong> in manifest
+✅ <strong>Migration tools</strong> for existing entities</p>
+<hr />
+<h2 id="8-example-complete-workflow">8. Example: Complete Workflow</h2>
+<h3 id="step-1-define-in-yaml-5-minutes">Step 1: Define in YAML (5 minutes)</h3>
+<pre><code class="language-yaml"># entities/manufacturer.yaml
+entity:
+  name: manufacturer
+  organization:
+    table_code: &quot;013211&quot;
+  field_groups:
+    - group_name: &quot;manufacturer_company&quot;
+      group_leader: &quot;fk_company&quot;
+      dependent_fields: [company_country, company_address]
+  # ... rest of entity definition
+</code></pre>
+<h3 id="step-2-generate-30-seconds">Step 2: Generate (30 seconds)</h3>
+<pre><code class="language-bash">python scripts/dev/generate_sql.py --entity manufacturer
+</code></pre>
+<p><strong>Output</strong>:</p>
+<pre><code>✅ Generated 15 files for manufacturer entity
+✅ Created directory hierarchy: 01_write_side/013_catalog/0132_manufacturer/01321_manufacturer/
+✅ Generated manifest.yaml with execution order
+✅ Generated entity README.md
+</code></pre>
+<h3 id="step-3-apply-to-database-2-minutes">Step 3: Apply to Database (2 minutes)</h3>
+<pre><code class="language-bash"># Use manifest for correct execution order
+python apply_manifest.py --manifest generated/manifest.yaml
+</code></pre>
+<h3 id="step-4-start-graphql-api-1-minute">Step 4: Start GraphQL API (1 minute)</h3>
+<pre><code class="language-bash">uvicorn app:app --reload
+</code></pre>
+<h3 id="step-5-query-via-graphql-instant">Step 5: Query via GraphQL (instant)</h3>
+<pre><code class="language-graphql">mutation {
+  createManufacturer(input: {
+    identifier: &quot;canon&quot;
+    name: &quot;Canon Inc.&quot;
+    abbreviation: &quot;CN&quot;
+    colorName: &quot;#E60012&quot;
+    fkCompany: 42  # Group leader triggers population of:
+                   # - company_country
+                   # - company_address
+  }) {
+    ... on Manufacturer {
+      id
+      identifier
+      companyCountry  # Auto-populated!
+      companyAddress  # Auto-populated!
+    }
+  }
+}
+</code></pre>
+<p><strong>Total Time</strong>: &lt; 10 minutes from YAML to working GraphQL API with group leader validation!</p>
+<hr />
+<h2 id="9-next-steps">9. Next Steps</h2>
+<p>Would you like me to:</p>
+<ol>
+<li><strong>Implement the numbering system</strong> integration first?</li>
+<li><strong>Implement the group leader pattern</strong> integration?</li>
+<li><strong>Create a complete example</strong> with manufacturer entity?</li>
+<li><strong>Build the manifest generator</strong> first?</li>
+<li><strong>All of the above</strong> in phased approach?</li>
+</ol>
+<p>Let me know which direction you'd like to take, and I can start implementing immediately!</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

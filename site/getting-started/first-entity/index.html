@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Create Your First Entity - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Create Your First Entity";
+        var mkdocs_page_input_path = "getting-started/first-entity.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Create Your First Entity</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="create-your-first-entity">Create Your First Entity</h1>
+<p>Learn how to define your first SpecQL entity and generate a complete database schema with relationships, constraints, and indexes.</p>
+<h2 id="what-youll-learn">🎯 What You'll Learn</h2>
+<ul>
+<li>Define entity structure in YAML</li>
+<li>Understand field types and relationships</li>
+<li>Generate database schema automatically</li>
+<li>Apply schema to PostgreSQL</li>
+<li>Query your generated tables</li>
+</ul>
+<h2 id="prerequisites">📋 Prerequisites</h2>
+<ul>
+<li><a href="../installation/">SpecQL installed</a></li>
+<li>PostgreSQL database running</li>
+<li>Basic YAML knowledge</li>
+</ul>
+<h2 id="step-1-create-project-structure">🏗️ Step 1: Create Project Structure</h2>
+<pre><code class="language-bash"># Create project directory
+mkdir my-first-specql-app
+cd my-first-specql-app
+
+# Create entities directory
+mkdir entities
+
+# Verify structure
+tree .
+# .
+# └── entities/
+</code></pre>
+<h2 id="step-2-define-your-first-entity">📝 Step 2: Define Your First Entity</h2>
+<p>Create <code>entities/user.yaml</code>:</p>
+<pre><code class="language-yaml"># entities/user.yaml
+name: user
+description: &quot;User account with profile information&quot;
+
+fields:
+  id: uuid
+  email: string
+  first_name: string
+  last_name: string
+  phone: string?
+  date_of_birth: date?
+  is_active: boolean
+  created_at: timestamp
+  updated_at: timestamp
+</code></pre>
+<h3 id="field-types-available">Field Types Available</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uuid</code></td>
+<td>Universally unique identifier</td>
+<td><code>user_id: uuid</code></td>
+</tr>
+<tr>
+<td><code>string</code></td>
+<td>Text string (up to 255 chars)</td>
+<td><code>email: string</code></td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td>Long text (unlimited)</td>
+<td><code>description: text</code></td>
+</tr>
+<tr>
+<td><code>integer</code></td>
+<td>Whole numbers</td>
+<td><code>age: integer</code></td>
+</tr>
+<tr>
+<td><code>decimal</code></td>
+<td>Decimal numbers</td>
+<td><code>price: decimal</code></td>
+</tr>
+<tr>
+<td><code>boolean</code></td>
+<td>True/false values</td>
+<td><code>is_active: boolean</code></td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td>Date only</td>
+<td><code>birth_date: date</code></td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td>Date and time</td>
+<td><code>created_at: timestamp</code></td>
+</tr>
+<tr>
+<td><code>json</code></td>
+<td>JSON data</td>
+<td><code>metadata: json</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="optional-fields">Optional Fields</h3>
+<p>Add <code>?</code> to make fields nullable:</p>
+<pre><code class="language-yaml">fields:
+  required_field: string      # NOT NULL
+  optional_field: string?     # NULL allowed
+</code></pre>
+<h2 id="step-3-add-relationships">🔗 Step 3: Add Relationships</h2>
+<p>Create a related entity and add foreign keys:</p>
+<pre><code class="language-yaml"># entities/company.yaml
+name: company
+description: &quot;Company information&quot;
+
+fields:
+  id: uuid
+  name: string
+  website: string?
+  industry: string
+  created_at: timestamp
+</code></pre>
+<p>Update user to reference company:</p>
+<pre><code class="language-yaml"># entities/user.yaml (updated)
+name: user
+description: &quot;User account with profile information&quot;
+
+fields:
+  id: uuid
+  email: string
+  first_name: string
+  last_name: string
+  company_id: uuid?           # Foreign key field
+  phone: string?
+  date_of_birth: date?
+  is_active: boolean
+  created_at: timestamp
+  updated_at: timestamp
+
+relationships:
+  company:
+    type: belongs_to
+    entity: company
+    foreign_key: company_id
+</code></pre>
+<h2 id="step-4-validate-your-entities">✅ Step 4: Validate Your Entities</h2>
+<pre><code class="language-bash"># Validate syntax
+specql validate entities/user.yaml entities/company.yaml
+
+# Expected output:
+# ✅ entities/user.yaml: Valid
+# ✅ entities/company.yaml: Valid
+</code></pre>
+<h2 id="step-5-generate-database-schema">🔧 Step 5: Generate Database Schema</h2>
+<pre><code class="language-bash"># Generate schema for both entities
+specql generate schema entities/user.yaml entities/company.yaml
+
+# Check generated files
+ls -la db/schema/
+# 00_foundation/
+# 10_tables/
+# ├── company.sql
+# └── user.sql
+# 20_constraints/
+# 30_indexes/
+# 40_functions/
+</code></pre>
+<h2 id="step-6-review-generated-sql">📄 Step 6: Review Generated SQL</h2>
+<pre><code class="language-bash"># View the user table
+cat db/schema/10_tables/user.sql
+</code></pre>
+<p><strong>Generated SQL includes:</strong></p>
+<pre><code class="language-sql">-- Auto-generated user table
+CREATE TABLE user (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  email VARCHAR(255) NOT NULL UNIQUE,
+  first_name VARCHAR(255) NOT NULL,
+  last_name VARCHAR(255) NOT NULL,
+  company_id UUID,
+  phone VARCHAR(255),
+  date_of_birth DATE,
+  is_active BOOLEAN NOT NULL DEFAULT true,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+-- Foreign key constraint
+ALTER TABLE user
+ADD CONSTRAINT fk_user_company_id
+FOREIGN KEY (company_id) REFERENCES company(id);
+
+-- Indexes for performance
+CREATE INDEX idx_user_email ON user(email);
+CREATE INDEX idx_user_company_id ON user(company_id);
+CREATE INDEX idx_user_created_at ON user(created_at);
+</code></pre>
+<h2 id="step-7-apply-to-database">🗄️ Step 7: Apply to Database</h2>
+<pre><code class="language-bash"># Apply foundation schema
+psql $DATABASE_URL -f db/schema/00_foundation/*.sql
+
+# Apply tables
+psql $DATABASE_URL -f db/schema/10_tables/company.sql
+psql $DATABASE_URL -f db/schema/10_tables/user.sql
+
+# Apply constraints and indexes
+psql $DATABASE_URL -f db/schema/20_constraints/*.sql
+psql $DATABASE_URL -f db/schema/30_indexes/*.sql
+</code></pre>
+<h2 id="step-8-test-your-schema">🧪 Step 8: Test Your Schema</h2>
+<pre><code class="language-bash"># Connect to database
+psql $DATABASE_URL
+
+# Check tables exist
+\d
+
+# Insert test data
+INSERT INTO company (name, industry) VALUES
+  ('Acme Corp', 'Technology'),
+  ('Globex Inc', 'Manufacturing');
+
+INSERT INTO user (email, first_name, last_name, company_id) VALUES
+  ('john@acme.com', 'John', 'Doe', (SELECT id FROM company WHERE name = 'Acme Corp')),
+  ('jane@globex.com', 'Jane', 'Smith', (SELECT id FROM company WHERE name = 'Globex Inc'));
+
+# Query with joins
+SELECT u.first_name, u.last_name, u.email, c.name as company
+FROM user u
+LEFT JOIN company c ON u.company_id = c.id;
+</code></pre>
+<p><strong>Expected output:</strong></p>
+<pre><code> first_name | last_name |     email      |   company
+------------+-----------+----------------+-------------
+ John       | Doe       | john@acme.com  | Acme Corp
+ Jane       | Smith     | jane@globex.com| Globex Inc
+</code></pre>
+<h2 id="best-practices">🎯 Best Practices</h2>
+<h3 id="entity-design">Entity Design</h3>
+<ul>
+<li><strong>Use snake_case</strong> for field names: <code>first_name</code>, not <code>firstName</code></li>
+<li><strong>Add descriptions</strong> for clarity</li>
+<li><strong>Use appropriate types</strong> - <code>string</code> for short text, <code>text</code> for long content</li>
+<li><strong>Make fields optional</strong> when appropriate with <code>?</code></li>
+</ul>
+<h3 id="relationships">Relationships</h3>
+<ul>
+<li><strong>Use UUIDs for foreign keys</strong> for consistency</li>
+<li><strong>Name foreign key fields</strong> as <code>{entity}_id</code></li>
+<li><strong>Add relationship metadata</strong> for clarity</li>
+</ul>
+<h3 id="schema-evolution">Schema Evolution</h3>
+<ul>
+<li><strong>Version control</strong> your YAML files</li>
+<li><strong>Test migrations</strong> before applying to production</li>
+<li><strong>Use constraints</strong> to maintain data integrity</li>
+</ul>
+<h2 id="advanced-features">🚀 Advanced Features</h2>
+<h3 id="custom-constraints">Custom Constraints</h3>
+<pre><code class="language-yaml">fields:
+  email: string
+  age: integer
+
+constraints:
+  - name: check_age_positive
+    expression: &quot;age &gt; 0&quot;
+  - name: unique_email_active
+    expression: &quot;UNIQUE(email) WHERE is_active = true&quot;
+</code></pre>
+<h3 id="indexes">Indexes</h3>
+<pre><code class="language-yaml">indexes:
+  - name: idx_user_email_active
+    fields: [email]
+    where: &quot;is_active = true&quot;
+  - name: idx_user_name
+    fields: [first_name, last_name]
+</code></pre>
+<h3 id="triggers">Triggers</h3>
+<pre><code class="language-yaml">triggers:
+  - name: update_timestamp
+    timing: before
+    event: update
+    function: |
+      NEW.updated_at = NOW();
+      RETURN NEW;
+</code></pre>
+<h2 id="troubleshooting">🆘 Troubleshooting</h2>
+<h3 id="table-already-exists">"Table already exists"</h3>
+<pre><code class="language-bash"># Drop and recreate
+psql $DATABASE_URL -c &quot;DROP TABLE IF EXISTS user CASCADE;&quot;
+
+# Or use migration tools
+specql migrate up entities/user.yaml
+</code></pre>
+<h3 id="foreign-key-constraint-violation">"Foreign key constraint violation"</h3>
+<pre><code class="language-bash"># Check referenced data exists
+SELECT id FROM company WHERE id = 'your-uuid';
+
+# Insert parent records first
+INSERT INTO company (name) VALUES ('Parent Company');
+</code></pre>
+<h3 id="permission-denied">"Permission denied"</h3>
+<pre><code class="language-bash"># Grant permissions
+psql $DATABASE_URL -c &quot;GRANT ALL ON SCHEMA public TO your_user;&quot;
+
+# Or check connection string
+echo $DATABASE_URL
+</code></pre>
+<h2 id="congratulations">🎉 Congratulations!</h2>
+<p>You've created your first SpecQL entities with:
+- ✅ Basic field types and constraints
+- ✅ Relationships between entities
+- ✅ Auto-generated database schema
+- ✅ Indexes for performance
+- ✅ Working PostgreSQL tables</p>
+<h2 id="whats-next">🚀 What's Next?</h2>
+<ul>
+<li><strong><a href="../first-pattern/">Use Your First Pattern</a></strong> - Add business logic</li>
+<li><strong><a href="../first-tests/">Generate Tests</a></strong> - Automated testing</li>
+<li><strong><a href="../best-practices/entity-design.md">Entity Design Guide</a></strong> - Advanced patterns</li>
+</ul>
+<h2 id="related-topics">📚 Related Topics</h2>
+<ul>
+<li><strong><a href="../reference/yaml-schema.md">YAML Schema Reference</a></strong> - Complete syntax</li>
+<li><strong><a href="../reference/yaml-schema.md#field-types">Field Types</a></strong> - All available types</li>
+<li><strong><a href="../../guides/mutation-patterns/multi-entity/">Relationships</a></strong> - Advanced relationships</li>
+</ul>
+<p><strong>Ready to add some business logic? Let's continue! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

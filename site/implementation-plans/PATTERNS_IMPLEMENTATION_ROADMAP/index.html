@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Missing Patterns Implementation Roadmap - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Missing Patterns Implementation Roadmap";
+        var mkdocs_page_input_path = "implementation-plans/PATTERNS_IMPLEMENTATION_ROADMAP.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Missing Patterns Implementation Roadmap</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="missing-patterns-implementation-roadmap">Missing Patterns Implementation Roadmap</h1>
+<p><strong>Purpose</strong>: Master roadmap for implementing the three missing patterns from PrintOptim backend
+<strong>Status</strong>: Ready for execution
+<strong>Timeline</strong>: 6 weeks total</p>
+<hr />
+<h2 id="documentation-overview">📚 Documentation Overview</h2>
+<p>This roadmap ties together three complementary documents:</p>
+<h3 id="1-missing_patterns_implementationmd">1. <a href="../MISSING_PATTERNS_IMPLEMENTATION/">MISSING_PATTERNS_IMPLEMENTATION.md</a></h3>
+<p><strong>Complete phased implementation plans</strong> with TDD cycles for:
+- Pattern 1: Identifier Recalculation (recalcid functions)
+- Pattern 2: LTREE Hierarchical Data
+- Pattern 3: Node + Info Two-Table Split</p>
+<p><strong>Contains</strong>:
+- Detailed RED → GREEN → REFACTOR → QA cycles
+- Test specifications
+- Code examples
+- Quality gates</p>
+<h3 id="2-identifier_calculation_patternsmd">2. <a href="../IDENTIFIER_CALCULATION_PATTERNS/">IDENTIFIER_CALCULATION_PATTERNS.md</a></h3>
+<p><strong>Real-world analysis</strong> from PrintOptim backend showing:
+- How identifiers are actually calculated
+- Slug-based hierarchical patterns
+- Deduplication strategies
+- Production code examples</p>
+<p><strong>Contains</strong>:
+- 4 production patterns (Location, OrgUnit, Machine, Model)
+- Slugify implementation
+- SpecQL integration proposals
+- Code generation strategy</p>
+<h3 id="3-this-roadmap">3. This Roadmap</h3>
+<p><strong>High-level coordination</strong> and decision points</p>
+<hr />
+<h2 id="strategic-priorities">🎯 Strategic Priorities</h2>
+<h3 id="sql-architect-validation">SQL Architect Validation</h3>
+<blockquote>
+<p>"For hierarchical entities, this 'node + info' split is a <strong>good, intentional design</strong>, not over-engineering."</p>
+</blockquote>
+<p><strong>Key Insight</strong>: All three patterns work together:
+- <strong>LTREE</strong>: Structural hierarchy (<code>path</code> for queries)
+- <strong>Node+Info</strong>: Separation of concerns (structure vs attributes)
+- <strong>recalcid</strong>: Keep identifiers consistent with hierarchy</p>
+<p><strong>Decision</strong>: Implement all three as integrated framework features</p>
+<hr />
+<h2 id="6-week-implementation-plan">📅 6-Week Implementation Plan</h2>
+<h3 id="weeks-1-2-pattern-1-identifier-recalculation-foundation">Weeks 1-2: Pattern 1 - Identifier Recalculation (Foundation)</h3>
+<p><strong>Why First</strong>: Other patterns depend on identifier infrastructure</p>
+<p><strong>Deliverables</strong>:
+- ✅ <code>recalculation_context</code> composite type (migration 000)
+- ✅ <code>slugify()</code> functions (migration 000)
+- ✅ <code>identifier</code> and <code>base_identifier</code> fields in schema (Team B)
+- ✅ Identifier config in SpecQL AST (Team A)
+- ✅ Basic <code>recalcid_{entity}()</code> generation (Team C)
+- ✅ Hierarchical slug strategy working (Team C)</p>
+<p><strong>Critical Path</strong>:</p>
+<pre><code>Day 1-2:   Foundation types (recalculation_context, slugify)
+Day 3-4:   AST support for identifier config
+Day 5-7:   Basic recalcid generation (flat entities)
+Day 8-10:  Hierarchical recalcid (with recursive CTE)
+</code></pre>
+<p><strong>Success Criteria</strong>:
+- [ ] Can parse <code>identifier:</code> section in SpecQL YAML
+- [ ] Generates <code>recalcid_{entity}()</code> for hierarchical entities
+- [ ] Slug-based identifiers calculated correctly
+- [ ] Deduplication works (adds <code>#2</code>, <code>#3</code> suffixes)
+- [ ] Integration test: Location identifiers recalculated on name change</p>
+<p><strong>Reference</strong>: See <code>IDENTIFIER_CALCULATION_PATTERNS.md</code> for production examples</p>
+<hr />
+<h3 id="weeks-3-4-pattern-2-ltree-hierarchical-data">Weeks 3-4: Pattern 2 - LTREE Hierarchical Data</h3>
+<p><strong>Why Second</strong>: Complements identifier work, enables efficient queries</p>
+<p><strong>Deliverables</strong>:
+- ✅ LTREE extension in migration 000
+- ✅ Auto-detect hierarchical entities (<code>parent: ref(self)</code>)
+- ✅ Generate <code>path LTREE</code> column
+- ✅ Generate GIST index on path
+- ✅ Generate path maintenance trigger
+- ✅ Handle node moves (update descendant paths)
+- ✅ Helper functions (ancestors, descendants, children, depth)</p>
+<p><strong>Critical Path</strong>:</p>
+<pre><code>Day 1-2:   LTREE extension + detection logic
+Day 3-5:   Schema generation (path column, GIST index)
+Day 6-7:   Path maintenance trigger
+Day 8-9:   Helper functions
+Day 10:    Integration testing + documentation
+</code></pre>
+<p><strong>Success Criteria</strong>:
+- [ ] LTREE paths automatically maintained on INSERT/UPDATE
+- [ ] Moving nodes updates all descendant paths
+- [ ] Can query: "Find all descendants of node X"
+- [ ] Can query: "Get ancestors of node Y"
+- [ ] Integration test: 1000-node tree with moves</p>
+<p><strong>Key Decision</strong>:
+- <strong>Path vs Identifier</strong>: Path is structural (<code>USA.CA.SF</code>), identifier is business logic (<code>toulouse|legal.hq</code>)
+- They can differ! Path for queries, identifier for display</p>
+<hr />
+<h3 id="weeks-5-6-pattern-3-node-info-two-table-split">Weeks 5-6: Pattern 3 - Node + Info Two-Table Split</h3>
+<p><strong>Why Last</strong>: Most complex, builds on LTREE and recalcid</p>
+<p><strong>Deliverables</strong>:
+- ✅ <code>metadata_split: true</code> flag in SpecQL
+- ✅ Field classifier (node vs info)
+- ✅ Generate <code>tb_{entity}</code> node table (structure only)
+- ✅ Generate <code>tb_{entity}_info</code> table (attributes)
+- ✅ FK from node to info
+- ✅ LTREE path in node table
+- ✅ Convenience view <code>v_{entity}</code> (joins both)
+- ✅ FraiseQL annotations on view
+- ✅ recalcid updates both tables</p>
+<p><strong>Critical Path</strong>:</p>
+<pre><code>Day 1-2:   AST support (metadata_split flag)
+Day 3-4:   Field classification logic
+Day 5-6:   Node table generation
+Day 7-8:   Info table generation
+Day 9:     Convenience view generation
+Day 10:    FraiseQL integration
+Day 11-12: Testing + documentation
+</code></pre>
+<p><strong>Success Criteria</strong>:
+- [ ] Can query through view: <code>SELECT * FROM v_location</code>
+- [ ] View exposes both structural (path, parent) and domain (name, type) fields
+- [ ] recalcid updates both tables correctly
+- [ ] FraiseQL exposes view as GraphQL type
+- [ ] Integration test: Complex Location hierarchy with 3-level depth</p>
+<p><strong>Architecture Decision</strong>:</p>
+<pre><code class="language-sql">-- Node table (structure - reusable across all hierarchies)
+CREATE TABLE tenant.tb_location (
+    pk_location INTEGER PRIMARY KEY,
+    id UUID UNIQUE,
+    identifier TEXT UNIQUE,
+    path LTREE,                           -- For hierarchy queries
+    fk_parent_location INTEGER,           -- Self-reference
+    fk_location_info INTEGER NOT NULL,    -- Link to attributes
+    -- Audit fields
+);
+
+-- Info table (domain-specific attributes)
+CREATE TABLE tenant.tb_location_info (
+    pk_location_info INTEGER PRIMARY KEY,
+    id UUID UNIQUE,
+    fk_location_type INTEGER,
+    legal_name TEXT,
+    tax_id TEXT,
+    -- No hierarchy fields here
+);
+
+-- Convenience view (for queries)
+CREATE VIEW v_location AS
+SELECT
+    n.pk_location,
+    n.path,
+    n.fk_parent_location AS parent_id,
+    i.legal_name,
+    i.tax_id
+FROM tb_location n
+JOIN tb_location_info i ON n.fk_location_info = i.pk_location_info;
+</code></pre>
+<hr />
+<h2 id="pattern-integration">🔗 Pattern Integration</h2>
+<h3 id="how-they-work-together">How They Work Together</h3>
+<p><strong>Example: Location Entity</strong></p>
+<pre><code class="language-yaml"># SpecQL Definition
+entity: Location
+schema: tenant
+
+hierarchical: true          # Triggers LTREE path
+metadata_split: true        # Triggers node+info split
+
+fields:
+  parent: ref(Location)     # Self-reference for hierarchy
+
+  # Domain attributes (go in info table)
+  location_type: ref(LocationType)
+  name: text
+  legal_name: text
+  public_address: ref(PublicAddress)
+  int_ordered: integer
+
+# Identifier calculation
+identifier:
+  strategy: hierarchical_slug
+  components:
+    - field: public_address.identifier
+      prefix: true
+    - field: location_type.identifier
+      transform: slugify
+      separator: &quot;.&quot;
+    - field: int_ordered
+      format: &quot;LPAD({value}, 3, '0')&quot;
+      separator: &quot;-&quot;
+    - field: name
+      transform: slugify
+  deduplication: suffix
+  recalculate:
+    on: [insert, update, parent_change]
+    cascade: descendants
+
+operations:
+  recalcid: true
+</code></pre>
+<p><strong>Generated SQL</strong> (2000+ lines):</p>
+<ol>
+<li><strong>Node Table</strong> (<code>tb_location</code>):</li>
+</ol>
+<pre><code class="language-sql">CREATE TABLE tenant.tb_location (
+    pk_location INTEGER PRIMARY KEY,
+    id UUID UNIQUE,
+    identifier TEXT UNIQUE,              -- &quot;toulouse|legal.001-hq#2&quot;
+    base_identifier TEXT,                 -- &quot;toulouse|legal.001-hq&quot;
+    path LTREE NOT NULL,                  -- &quot;toulouse.legal.hq&quot; (for queries)
+    fk_parent_location INTEGER REFERENCES tb_location,
+    fk_location_info INTEGER NOT NULL REFERENCES tb_location_info
+);
+
+CREATE INDEX idx_location_path_gist ON tb_location USING GIST (path);
+CREATE INDEX idx_location_base_identifier ON tb_location(base_identifier);
+</code></pre>
+<ol>
+<li><strong>Info Table</strong> (<code>tb_location_info</code>):</li>
+</ol>
+<pre><code class="language-sql">CREATE TABLE tenant.tb_location_info (
+    pk_location_info INTEGER PRIMARY KEY,
+    id UUID UNIQUE,
+    identifier TEXT,                      -- Base identifier (no suffix)
+    fk_location_type INTEGER,
+    name TEXT,
+    legal_name TEXT,
+    fk_public_address INTEGER,
+    int_ordered INTEGER
+);
+</code></pre>
+<ol>
+<li><strong>Path Maintenance Trigger</strong>:</li>
+</ol>
+<pre><code class="language-sql">CREATE FUNCTION update_location_path() RETURNS TRIGGER AS $$
+BEGIN
+    IF NEW.fk_parent_location IS NULL THEN
+        NEW.path := text2ltree(NEW.identifier);
+    ELSE
+        SELECT path || text2ltree(NEW.identifier)
+        INTO NEW.path
+        FROM tb_location
+        WHERE pk_location = NEW.fk_parent_location;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_location_path
+    BEFORE INSERT OR UPDATE OF fk_parent_location, identifier
+    ON tb_location
+    FOR EACH ROW EXECUTE FUNCTION update_location_path();
+</code></pre>
+<ol>
+<li><strong>Identifier Recalculation Function</strong>:</li>
+</ol>
+<pre><code class="language-sql">CREATE FUNCTION core.recalcid_location(
+    ctx core.recalculation_context
+) RETURNS VOID AS $$
+BEGIN
+    -- Recursive CTE to build hierarchy
+    WITH RECURSIVE t_hierarchy AS (
+        -- Root locations
+        SELECT
+            l.pk_location,
+            l.fk_location_info,
+            pa.identifier || '|' ||
+            slugify(lt.identifier) || '.' ||
+            LPAD(COALESCE(li.int_ordered, 10)::text, 3, '0') || '-' ||
+            slugify(li.name) AS base_identifier
+        FROM tb_location l
+        JOIN tb_location_info li ON l.fk_location_info = li.pk_location_info
+        JOIN tb_location_type lt ON li.fk_location_type = lt.pk_location_type
+        JOIN tb_public_address pa ON li.fk_public_address = pa.pk_public_address
+        WHERE l.fk_parent_location IS NULL
+
+        UNION ALL
+
+        -- Child locations
+        SELECT
+            child.pk_location,
+            child.fk_location_info,
+            parent.base_identifier || '.' ||
+            LPAD(COALESCE(child_info.int_ordered, 10)::text, 3, '0') || '-' ||
+            slugify(child_info.name)
+        FROM tb_location child
+        JOIN tb_location_info child_info ON child.fk_location_info = child_info.pk_location_info
+        JOIN t_hierarchy parent ON child.fk_parent_location = parent.pk_location
+    )
+    -- Deduplicate and update both tables
+    -- ... (see IDENTIFIER_CALCULATION_PATTERNS.md for full code)
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<ol>
+<li><strong>Convenience View</strong>:</li>
+</ol>
+<pre><code class="language-sql">CREATE VIEW v_location AS
+SELECT
+    n.pk_location,
+    n.id,
+    n.identifier,
+    n.path,
+    n.fk_parent_location AS parent_id,
+    i.name,
+    i.legal_name,
+    i.fk_location_type
+FROM tb_location n
+JOIN tb_location_info i ON n.fk_location_info = i.pk_location_info
+WHERE n.deleted_at IS NULL;
+
+COMMENT ON VIEW v_location IS '@fraiseql:type name=Location';
+</code></pre>
+<ol>
+<li><strong>FraiseQL GraphQL Schema</strong> (auto-generated):</li>
+</ol>
+<pre><code class="language-graphql">type Location {
+  id: UUID!
+  identifier: String!
+  path: String!
+  parentId: Int
+  name: String!
+  legalName: String
+  locationType: LocationType!
+
+  # Hierarchy helpers (from LTREE functions)
+  ancestors: [Location!]!
+  descendants: [Location!]!
+  children: [Location!]!
+  depth: Int!
+}
+
+query {
+  location(id: &quot;...&quot;) { name, path, parent { name } }
+  locations(filter: { pathStartsWith: &quot;toulouse.legal&quot; }) { name }
+}
+</code></pre>
+<p><strong>Result</strong>: 20 lines YAML → 2000+ lines production SQL + GraphQL</p>
+<hr />
+<h2 id="testing-strategy">🧪 Testing Strategy</h2>
+<h3 id="unit-tests-per-pattern">Unit Tests (Per Pattern)</h3>
+<p><strong>Pattern 1: Recalcid</strong></p>
+<pre><code class="language-python"># Test slug generation
+def test_hierarchical_slug_format()
+def test_flat_slug_format()
+def test_deduplication_adds_suffix()
+
+# Test recalcid function generation
+def test_generate_recalcid_for_hierarchical_entity()
+def test_generate_recalcid_for_flat_entity()
+def test_skip_recalcid_if_no_identifier_config()
+</code></pre>
+<p><strong>Pattern 2: LTREE</strong></p>
+<pre><code class="language-python"># Test path column generation
+def test_generate_ltree_path_column()
+def test_generate_gist_index()
+
+# Test trigger generation
+def test_generate_path_maintenance_trigger()
+def test_handle_root_nodes()
+def test_handle_child_nodes()
+</code></pre>
+<p><strong>Pattern 3: Node+Info</strong></p>
+<pre><code class="language-python"># Test table generation
+def test_generate_node_table()
+def test_generate_info_table()
+def test_generate_convenience_view()
+
+# Test field classification
+def test_classify_structural_vs_domain_fields()
+def test_respect_explicit_table_placement()
+</code></pre>
+<hr />
+<h3 id="integration-tests-end-to-end">Integration Tests (End-to-End)</h3>
+<p><strong>Scenario 1: Create Location Hierarchy</strong></p>
+<pre><code class="language-python">def test_location_hierarchy_full_lifecycle(test_db):
+    &quot;&quot;&quot;Test complete location lifecycle with all patterns&quot;&quot;&quot;
+
+    # 1. Create root location
+    test_db.execute(&quot;&quot;&quot;
+        INSERT INTO v_location (name, location_type, public_address)
+        VALUES ('Headquarters', 'legal', 'toulouse-address')
+    &quot;&quot;&quot;)
+
+    # 2. Verify tables updated
+    # - tb_location (node) has path, identifier
+    # - tb_location_info has attributes
+    # - identifier is &quot;toulouse|legal.001-headquarters&quot;
+    # - path is &quot;toulouse.legal.headquarters&quot;
+
+    # 3. Create child location
+    test_db.execute(&quot;&quot;&quot;
+        INSERT INTO v_location (name, parent_id, ...)
+        VALUES ('Building A', root_id, ...)
+    &quot;&quot;&quot;)
+
+    # 4. Verify child
+    # - identifier is &quot;toulouse|legal.001-headquarters.002-building-a&quot;
+    # - path is &quot;toulouse.legal.headquarters.building-a&quot;
+
+    # 5. Rename parent
+    test_db.execute(&quot;&quot;&quot;
+        UPDATE v_location SET name = 'HQ'
+        WHERE id = root_id
+    &quot;&quot;&quot;)
+
+    # 6. Verify recalcid cascaded
+    # - Parent identifier: &quot;toulouse|legal.001-hq&quot;
+    # - Child identifier: &quot;toulouse|legal.001-hq.002-building-a&quot;
+
+    # 7. Move child to different parent
+    test_db.execute(&quot;&quot;&quot;
+        UPDATE v_location SET parent_id = other_id
+        WHERE id = child_id
+    &quot;&quot;&quot;)
+
+    # 8. Verify path updated
+    # - Child path now reflects new parent
+    # - recalcid recalculated identifier
+
+    # 9. Query hierarchy
+    result = test_db.execute(&quot;&quot;&quot;
+        SELECT name FROM v_location
+        WHERE path &lt;@ 'toulouse.legal'
+    &quot;&quot;&quot;)
+    # Should return all descendants
+</code></pre>
+<p><strong>Scenario 2: Deduplication</strong></p>
+<pre><code class="language-python">def test_identifier_deduplication(test_db):
+    &quot;&quot;&quot;Test automatic deduplication with #n suffix&quot;&quot;&quot;
+
+    # Create two locations with same name
+    test_db.execute(&quot;&quot;&quot;
+        INSERT INTO v_location (name, ...) VALUES ('Office', ...)
+    &quot;&quot;&quot;)
+    test_db.execute(&quot;&quot;&quot;
+        INSERT INTO v_location (name, ...) VALUES ('Office', ...)
+    &quot;&quot;&quot;)
+
+    # Call recalcid
+    test_db.execute(&quot;SELECT core.recalcid_location()&quot;)
+
+    # Verify identifiers
+    identifiers = test_db.execute(&quot;&quot;&quot;
+        SELECT identifier FROM v_location WHERE name = 'Office'
+    &quot;&quot;&quot;).fetchall()
+
+    assert identifiers[0] == &quot;toulouse|legal.001-office&quot;
+    assert identifiers[1] == &quot;toulouse|legal.001-office#2&quot;
+</code></pre>
+<hr />
+<h2 id="knowledge-transfer">🎓 Knowledge Transfer</h2>
+<h3 id="for-team-a-specql-parser">For Team A (SpecQL Parser)</h3>
+<p><strong>New Responsibilities</strong>:
+1. Parse <code>hierarchical: true</code> flag → set <code>entity.is_hierarchical</code>
+2. Parse <code>metadata_split: true</code> flag → set <code>entity.metadata_split</code>
+3. Parse <code>identifier:</code> section → create <code>IdentifierConfig</code> object
+4. Validate: <code>metadata_split</code> requires <code>hierarchical</code></p>
+<p><strong>New AST Models</strong>:</p>
+<pre><code class="language-python">@dataclass
+class IdentifierConfig:
+    strategy: str  # &quot;hierarchical_slug&quot;, &quot;flat_slug&quot;, &quot;composite_key&quot;
+    components: List[IdentifierComponent]
+    deduplication: str  # &quot;suffix&quot;, &quot;none&quot;
+    recalculate: RecalculateConfig
+
+@dataclass
+class IdentifierComponent:
+    field: str  # Field path (e.g., &quot;public_address.identifier&quot;)
+    transform: Optional[str]  # &quot;slugify&quot;, None
+    prefix: bool = False  # Is this the tenant prefix?
+    format: Optional[str] = None  # Custom format string
+    separator: Optional[str] = None  # Separator after this component
+</code></pre>
+<hr />
+<h3 id="for-team-b-schema-generator">For Team B (Schema Generator)</h3>
+<p><strong>New Responsibilities</strong>:
+1. Generate <code>slugify()</code> functions in migration 000
+2. Add <code>identifier</code> and <code>base_identifier</code> columns to all entities
+3. Generate <code>path LTREE</code> column for hierarchical entities
+4. Generate GIST index on <code>path</code>
+5. Generate path maintenance triggers
+6. For <code>metadata_split</code> entities:
+   - Generate <code>tb_{entity}</code> node table
+   - Generate <code>tb_{entity}_info</code> table
+   - Generate <code>v_{entity}</code> convenience view
+7. Generate helper functions (<code>ancestors</code>, <code>descendants</code>, etc.)</p>
+<p><strong>New Generators</strong>:</p>
+<pre><code class="language-python">class LtreeGenerator:
+    def generate_path_column() -&gt; str
+    def generate_gist_index() -&gt; str
+    def generate_path_trigger() -&gt; str
+    def generate_helper_functions() -&gt; str
+
+class MetadataSplitGenerator:
+    def generate_node_table() -&gt; str
+    def generate_info_table() -&gt; str
+    def generate_convenience_view() -&gt; str
+
+class FieldClassifier:
+    def classify() -&gt; Tuple[List[Field], List[Field]]
+</code></pre>
+<hr />
+<h3 id="for-team-c-action-compiler">For Team C (Action Compiler)</h3>
+<p><strong>New Responsibilities</strong>:
+1. Generate <code>recalcid_{entity}()</code> functions based on <code>IdentifierConfig</code>
+2. Build recursive CTEs for hierarchical entities
+3. Generate slug expression from components
+4. Generate deduplication loop
+5. Generate two-table updates (node + info)
+6. Integrate with cascade updates</p>
+<p><strong>New Generators</strong>:</p>
+<pre><code class="language-python">class RecalcidGenerator:
+    def generate() -&gt; str
+    def _build_hierarchy_cte() -&gt; str
+    def _build_slug_expression() -&gt; str
+    def _build_deduplication_loop() -&gt; str
+    def _build_update_statements() -&gt; str
+
+# Strategies
+class HierarchicalSlugStrategy:
+    def generate_cte() -&gt; str
+
+class FlatSlugStrategy:
+    def generate_select() -&gt; str
+
+class CompositeKeyStrategy:
+    def generate_select() -&gt; str
+</code></pre>
+<hr />
+<h2 id="progress-tracking">📊 Progress Tracking</h2>
+<h3 id="week-1-2-identifier-recalculation">Week 1-2: Identifier Recalculation</h3>
+<ul>
+<li>[ ] Migration 000: <code>recalculation_context</code> type</li>
+<li>[ ] Migration 000: <code>slugify()</code> functions</li>
+<li>[ ] AST: <code>IdentifierConfig</code> model</li>
+<li>[ ] Parser: Parse <code>identifier:</code> section</li>
+<li>[ ] Schema: Add identifier columns</li>
+<li>[ ] Schema: Add identifier indexes</li>
+<li>[ ] Generator: Basic recalcid template</li>
+<li>[ ] Generator: Hierarchical slug strategy</li>
+<li>[ ] Tests: Unit tests (20+ tests)</li>
+<li>[ ] Tests: Integration test (Location)</li>
+<li>[ ] Docs: SpecQL syntax guide</li>
+</ul>
+<h3 id="week-3-4-ltree-hierarchical-data">Week 3-4: LTREE Hierarchical Data</h3>
+<ul>
+<li>[ ] Migration 000: LTREE extension</li>
+<li>[ ] Parser: Detect <code>hierarchical: true</code></li>
+<li>[ ] Schema: Generate <code>path LTREE</code> column</li>
+<li>[ ] Schema: Generate GIST index</li>
+<li>[ ] Generator: Path maintenance trigger</li>
+<li>[ ] Generator: Descendant path updates</li>
+<li>[ ] Generator: Helper functions</li>
+<li>[ ] Tests: Unit tests (15+ tests)</li>
+<li>[ ] Tests: Integration test (1000-node tree)</li>
+<li>[ ] Docs: LTREE usage examples</li>
+</ul>
+<h3 id="week-5-6-node-info-split">Week 5-6: Node + Info Split</h3>
+<ul>
+<li>[ ] Parser: Parse <code>metadata_split: true</code></li>
+<li>[ ] Generator: Field classifier</li>
+<li>[ ] Schema: Node table generation</li>
+<li>[ ] Schema: Info table generation</li>
+<li>[ ] Schema: FK constraints</li>
+<li>[ ] Schema: Convenience view</li>
+<li>[ ] Generator: View FraiseQL annotations</li>
+<li>[ ] Generator: Two-table recalcid</li>
+<li>[ ] Tests: Unit tests (25+ tests)</li>
+<li>[ ] Tests: Integration test (Complex hierarchy)</li>
+<li>[ ] Docs: Node+info pattern guide</li>
+</ul>
+<hr />
+<h2 id="getting-started">🚀 Getting Started</h2>
+<h3 id="phase-0-preparation-before-week-1">Phase 0: Preparation (Before Week 1)</h3>
+<ol>
+<li><strong>Review documentation</strong>:</li>
+<li>Read <code>MISSING_PATTERNS_IMPLEMENTATION.md</code> (implementation plans)</li>
+<li>Read <code>IDENTIFIER_CALCULATION_PATTERNS.md</code> (production examples)</li>
+<li>
+<p>Review PrintOptim backend code (optional)</p>
+</li>
+<li>
+<p><strong>Set up test database</strong>:
+   <code>bash
+   # Install PostgreSQL 14+
+   # Enable extensions
+   CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
+   CREATE EXTENSION IF NOT EXISTS "ltree";
+   CREATE EXTENSION IF NOT EXISTS "unaccent";  # Optional but recommended</code></p>
+</li>
+<li>
+<p><strong>Create test data fixtures</strong>:
+   <code>bash
+   # Sample organizations
+   # Sample addresses
+   # Sample location types
+   # Sample manufacturers</code></p>
+</li>
+<li>
+<p><strong>Team alignment</strong>:</p>
+</li>
+<li>Team A: Review AST changes needed</li>
+<li>Team B: Review schema generation patterns</li>
+<li>Team C: Review recalcid generation requirements</li>
+</ol>
+<hr />
+<h3 id="phase-1-week-1-day-1-kickoff">Phase 1: Week 1, Day 1 (Kickoff)</h3>
+<p><strong>Morning</strong>:
+1. Create migration 000 file: <code>migrations/000_framework_foundations.sql</code>
+2. Add <code>recalculation_context</code> type (copy from implementation plan)
+3. Add <code>slugify()</code> functions (copy from identifier patterns doc)
+4. Add LTREE extension
+5. Run migration: <code>psql &lt; migrations/000_framework_foundations.sql</code></p>
+<p><strong>Afternoon</strong>:
+1. Write test: <code>test_recalculation_context_type_exists()</code>
+2. Write test: <code>test_slugify_function_works()</code>
+3. Run tests: <code>uv run pytest tests/integration/test_foundation_types.py -v</code>
+4. ✅ All tests pass</p>
+<p><strong>Evening</strong>: Commit and push</p>
+<hr />
+<h2 id="monitoring-success">🔍 Monitoring Success</h2>
+<h3 id="key-metrics">Key Metrics</h3>
+<p><strong>Code Coverage</strong>: 90%+ for all new code
+<strong>Test Pass Rate</strong>: 100% (all tests must pass)
+<strong>Integration Success</strong>: All patterns work together
+<strong>Performance</strong>: Hierarchical queries &lt; 100ms for 10k nodes</p>
+<h3 id="weekly-demo">Weekly Demo</h3>
+<p><strong>End of each 2-week cycle</strong>:
+1. Live demo of new functionality
+2. Show generated SQL
+3. Run integration tests
+4. Show GraphQL queries (FraiseQL)
+5. Performance benchmarks</p>
+<hr />
+<h2 id="support-questions">📞 Support &amp; Questions</h2>
+<p><strong>For Implementation Questions</strong>:
+- Check implementation plan first
+- Check identifier patterns doc for examples
+- Review PrintOptim backend code (if accessible)</p>
+<p><strong>For Architectural Decisions</strong>:
+- Create ADR (Architecture Decision Record)
+- Get team consensus
+- Document in <code>/docs/architecture/</code></p>
+<p><strong>For Bugs/Issues</strong>:
+- Create failing test first
+- Debug with isolated reproduction
+- Fix and verify test passes</p>
+<hr />
+<h2 id="success-criteria">🎉 Success Criteria</h2>
+<p><strong>Pattern 1 (Identifier Recalculation)</strong>:
+✅ Location identifiers: <code>toulouse|legal.001-hq.002-building-a</code>
+✅ Deduplication works: <code>office#2</code>, <code>office#3</code>
+✅ Hierarchical recalculation cascades to children</p>
+<p><strong>Pattern 2 (LTREE)</strong>:
+✅ Paths auto-maintained: <code>toulouse.legal.hq.building_a</code>
+✅ Query all descendants: <code>WHERE path &lt;@ 'toulouse.legal'</code>
+✅ Move nodes updates descendant paths</p>
+<p><strong>Pattern 3 (Node+Info)</strong>:
+✅ Two tables generated: <code>tb_location</code> + <code>tb_location_info</code>
+✅ View joins both: <code>SELECT * FROM v_location</code>
+✅ FraiseQL exposes as GraphQL type</p>
+<p><strong>Overall</strong>:
+✅ 20 lines YAML → 2000+ lines production SQL
+✅ All tests pass (90%+ coverage)
+✅ GraphQL API works through FraiseQL
+✅ Performance acceptable (&lt; 100ms queries)
+✅ Documentation complete</p>
+<hr />
+<p><strong>Ready to start? Begin with Week 1, Day 1 tasks above! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>CQRS Table Views Implementation - Complete Architecture - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "CQRS Table Views Implementation - Complete Architecture";
+        var mkdocs_page_input_path = "architecture/CQRS_TABLE_VIEWS_IMPLEMENTATION.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">CQRS Table Views Implementation - Complete Architecture</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="cqrs-table-views-implementation-complete-architecture">CQRS Table Views Implementation - Complete Architecture</h1>
+<p><strong>Status</strong>: 🔴 APPROVED - Ready for Implementation
+<strong>Date</strong>: 2025-11-09
+<strong>Impact</strong>: HIGH - New read-optimized layer for FraiseQL integration</p>
+<hr />
+<h2 id="executive-summary">📋 Executive Summary</h2>
+<p>SpecQL implements a <strong>three-layer CQRS architecture</strong>:</p>
+<ol>
+<li><strong>tb_ tables</strong> (Write Side) - Normalized storage for transactional integrity</li>
+<li><strong>tv_ tables</strong> (Read Side) - Denormalized JSONB for FraiseQL exposure</li>
+<li><strong>FraiseQL</strong> (Query Layer) - Auto-generates GraphQL from tv_ structure</li>
+</ol>
+<p><strong>Key Innovation</strong>: <code>tv_</code> tables compose JSONB data from related <code>tv_</code> tables (not <code>tb_</code> tables), creating a cascading denormalization strategy.</p>
+<hr />
+<h2 id="three-layer-architecture">🎯 Three-Layer Architecture</h2>
+<h3 id="layer-1-tb_-tables-write-side-normalized"><strong>Layer 1: tb_ Tables (Write Side - Normalized)</strong></h3>
+<p><strong>Purpose</strong>: Transactional integrity, normalized storage, write operations</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE library.tb_review (
+    -- Trinity pattern
+    pk_review INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+    tenant_id UUID NOT NULL,
+    identifier TEXT UNIQUE,
+
+    -- Business fields
+    rating INTEGER NOT NULL,
+    comment TEXT,
+
+    -- Foreign keys (normalized)
+    fk_author INTEGER NOT NULL REFERENCES crm.tb_user(pk_user),
+    fk_book INTEGER NOT NULL REFERENCES library.tb_book(pk_book),
+
+    -- Audit fields
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    deleted_at TIMESTAMPTZ,
+    deleted_by UUID
+);
+</code></pre>
+<p><strong>Characteristics</strong>:
+- ✅ Normalized (3NF)
+- ✅ Foreign key constraints
+- ✅ Audit trail
+- ✅ Soft delete support
+- ✅ Trinity pattern (pk_*, id, identifier)</p>
+<hr />
+<h3 id="layer-2-tv_-tables-read-side-denormalized"><strong>Layer 2: tv_ Tables (Read Side - Denormalized)</strong></h3>
+<p><strong>Purpose</strong>: Expose denormalized data to FraiseQL in optimized JSONB format</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE library.tv_review (
+    -- Primary identification
+    pk_review INTEGER PRIMARY KEY,
+    id UUID NOT NULL UNIQUE,
+    tenant_id UUID NOT NULL,
+
+    -- Foreign keys (INTEGER) for JOINs during refresh
+    fk_author INTEGER NOT NULL,
+    fk_book INTEGER NOT NULL,
+
+    -- UUID foreign keys for external filtering
+    author_id UUID NOT NULL,
+    book_id UUID NOT NULL,
+
+    -- Performance-optimized filter columns
+    rating INTEGER,              -- Promoted for high-volume queries
+    created_at TIMESTAMPTZ,      -- Promoted for date range queries
+
+    -- Denormalized JSONB payload (FraiseQL reads this!)
+    data JSONB NOT NULL,
+
+    -- Metadata
+    refreshed_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Performance indexes
+CREATE INDEX idx_tv_review_tenant ON library.tv_review(tenant_id);
+CREATE INDEX idx_tv_review_author_id ON library.tv_review(author_id);
+CREATE INDEX idx_tv_review_book_id ON library.tv_review(book_id);
+CREATE INDEX idx_tv_review_rating ON library.tv_review(rating);  -- Hot path
+CREATE INDEX idx_tv_review_created ON library.tv_review(created_at);  -- Hot path
+CREATE INDEX idx_tv_review_data ON library.tv_review USING GIN(data);  -- JSONB queries
+</code></pre>
+<p><strong>tv_review.data structure</strong>:</p>
+<pre><code class="language-jsonb">{
+  &quot;id&quot;: &quot;550e8400-e29b-41d4-a716-446655440000&quot;,
+  &quot;rating&quot;: 5,
+  &quot;comment&quot;: &quot;Excellent book on PostgreSQL!&quot;,
+  &quot;createdAt&quot;: &quot;2024-01-15T10:00:00Z&quot;,
+
+  &quot;author&quot;: {
+    &quot;id&quot;: &quot;author-uuid&quot;,
+    &quot;name&quot;: &quot;John Doe&quot;,
+    &quot;email&quot;: &quot;john@example.com&quot;,
+    &quot;avatarUrl&quot;: &quot;https://example.com/avatar.jpg&quot;
+  },
+
+  &quot;book&quot;: {
+    &quot;id&quot;: &quot;book-uuid&quot;,
+    &quot;title&quot;: &quot;PostgreSQL Deep Dive&quot;,
+    &quot;isbn&quot;: &quot;978-1234567890&quot;,
+    &quot;publishedYear&quot;: 2024,
+
+    &quot;publisher&quot;: {
+      &quot;id&quot;: &quot;publisher-uuid&quot;,
+      &quot;name&quot;: &quot;Tech Books Inc&quot;,
+      &quot;country&quot;: &quot;USA&quot;
+    }
+  }
+}
+</code></pre>
+<p><strong>Characteristics</strong>:
+- ✅ Denormalized (flattened relationships)
+- ✅ JSONB for flexible querying
+- ✅ Promoted columns for high-performance filtering
+- ✅ Composed from related tv_ tables
+- ✅ No foreign key constraints (read-only)</p>
+<hr />
+<h3 id="layer-3-fraiseql-auto-generated-graphql"><strong>Layer 3: FraiseQL (Auto-Generated GraphQL)</strong></h3>
+<p><strong>Purpose</strong>: Auto-discover tv_ structure and generate GraphQL API</p>
+<p><strong>FraiseQL Introspection</strong>:</p>
+<pre><code class="language-sql">-- FraiseQL reads tv_review table
+-- Discovers data JSONB structure
+-- Auto-generates GraphQL types
+</code></pre>
+<p><strong>Auto-Generated GraphQL</strong>:</p>
+<pre><code class="language-graphql">type Review {
+  id: UUID!
+  rating: Int!
+  comment: String
+  createdAt: DateTime!
+  author: ReviewAuthor!
+  book: ReviewBook!
+}
+
+type ReviewAuthor {
+  id: UUID!
+  name: String!
+  email: String!
+  avatarUrl: String
+}
+
+type ReviewBook {
+  id: UUID!
+  title: String!
+  isbn: String!
+  publishedYear: Int!
+  publisher: ReviewPublisher!
+}
+
+type ReviewPublisher {
+  id: UUID!
+  name: String!
+  country: String!
+}
+
+type Query {
+  # Uses tv_review directly (no JOINs!)
+  review(id: UUID!): Review
+
+  # Uses author_id index
+  reviewsByAuthor(authorId: UUID!): [Review!]!
+
+  # Uses book_id index
+  reviewsByBook(bookId: UUID!): [Review!]!
+
+  # Uses rating column (fast B-tree)
+  reviewsWithRating(minRating: Int!): [Review!]!
+
+  # Uses JSONB GIN index (slower but works)
+  reviewsWithComment(search: String!): [Review!]!
+}
+</code></pre>
+<p><strong>Characteristics</strong>:
+- ✅ Auto-generated from tv_ structure
+- ✅ No manual schema definition
+- ✅ Reads directly from tv_ (no JOINs)
+- ✅ Can filter on any JSONB field
+- ✅ Optimized queries on promoted columns</p>
+<hr />
+<h2 id="jsonb-composition-strategy">🔄 JSONB Composition Strategy</h2>
+<h3 id="key-innovation-compose-from-tv_-not-tb_"><strong>Key Innovation: Compose from tv_, not tb_</strong></h3>
+<p><strong>OLD Approach</strong> (❌ Don't do this):</p>
+<pre><code class="language-sql">-- Refresh tv_review by JOINing tb_ tables
+INSERT INTO library.tv_review (data)
+SELECT
+    jsonb_build_object(
+        'author', jsonb_build_object(
+            'name', u.name,      -- From tb_user
+            'email', u.email     -- From tb_user
+        ),
+        'book', jsonb_build_object(
+            'title', b.title     -- From tb_book
+        )
+    )
+FROM library.tb_review r
+INNER JOIN crm.tb_user u ON u.pk_user = r.fk_author
+INNER JOIN library.tb_book b ON b.pk_book = r.fk_book;
+</code></pre>
+<p><strong>Problem</strong>: Duplicates data, inconsistent with tv_user and tv_book</p>
+<hr />
+<p><strong>NEW Approach</strong> (✅ Composition):</p>
+<pre><code class="language-sql">-- Refresh tv_review by composing from tv_ tables
+CREATE OR REPLACE FUNCTION library.refresh_tv_review(
+    p_pk_review INTEGER DEFAULT NULL
+) RETURNS void AS $$
+BEGIN
+    DELETE FROM library.tv_review
+    WHERE p_pk_review IS NULL OR pk_review = p_pk_review;
+
+    INSERT INTO library.tv_review (
+        pk_review, id, tenant_id,
+        fk_author, fk_book,
+        author_id, book_id,
+        rating, created_at,  -- Promoted filter columns
+        data
+    )
+    SELECT
+        r.pk_review,
+        r.id,
+        r.tenant_id,
+        r.fk_author,
+        r.fk_book,
+        tv_u.id AS author_id,  -- From tv_user
+        tv_b.id AS book_id,    -- From tv_book
+        r.rating,
+        r.created_at,
+
+        -- Compose JSONB from tv_ tables ✅
+        jsonb_build_object(
+            'id', r.id,
+            'rating', r.rating,
+            'comment', r.comment,
+            'createdAt', r.created_at,
+
+            -- Extract selected fields from tv_user.data
+            'author', jsonb_build_object(
+                'id', tv_u.data-&gt;&gt;'id',
+                'name', tv_u.data-&gt;&gt;'name',
+                'email', tv_u.data-&gt;&gt;'email',
+                'avatarUrl', tv_u.data-&gt;&gt;'avatarUrl'
+            ),
+
+            -- Extract selected fields from tv_book.data
+            'book', jsonb_build_object(
+                'id', tv_b.data-&gt;&gt;'id',
+                'title', tv_b.data-&gt;&gt;'title',
+                'isbn', tv_b.data-&gt;&gt;'isbn',
+                'publishedYear', (tv_b.data-&gt;&gt;'publishedYear')::integer,
+
+                -- Nested: publisher already composed in tv_book.data
+                'publisher', tv_b.data-&gt;'publisher'  -- ✅ Reuse nested composition
+            )
+        ) AS data
+
+    FROM library.tb_review r
+    INNER JOIN crm.tv_user tv_u ON tv_u.pk_user = r.fk_author
+    INNER JOIN library.tv_book tv_b ON tv_b.pk_book = r.fk_book
+    WHERE r.deleted_at IS NULL
+      AND (p_pk_review IS NULL OR r.pk_review = p_pk_review);
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<p><strong>Benefits</strong>:
+1. ✅ <strong>Consistency</strong>: Author data in tv_review matches tv_user exactly
+2. ✅ <strong>Reuse</strong>: Nested publisher already composed in tv_book
+3. ✅ <strong>Cascading Updates</strong>: When tv_user refreshes, tv_review can pick up changes
+4. ✅ <strong>Single Source</strong>: tv_user.data is the source of truth for User data</p>
+<hr />
+<h3 id="dependency-graph"><strong>Dependency Graph</strong></h3>
+<pre><code>tv_publisher (depth 0)
+    ↓
+tv_book (depth 1, composes publisher from tv_publisher.data)
+    ↓
+tv_review (depth 2, composes book from tv_book.data)
+
+tv_user (depth 0)
+    ↓
+tv_review (depth 1, composes author from tv_user.data)
+</code></pre>
+<p><strong>Refresh Order</strong>:
+1. Refresh leaf entities first (tv_publisher, tv_user)
+2. Refresh intermediate entities (tv_book)
+3. Refresh root entities (tv_review)</p>
+<p><strong>Cascading Updates</strong>:</p>
+<pre><code class="language-sql">-- User's email changes
+UPDATE crm.tb_user SET email = 'newemail@example.com' WHERE pk_user = 123;
+
+-- Mutation refreshes tv_user
+PERFORM crm.refresh_tv_user(123);
+-- Now tv_user.data has new email
+
+-- Also refresh dependent entities
+PERFORM library.refresh_tv_review_by_author(123);
+-- Now all reviews by this author have updated email in data.author.email
+</code></pre>
+<hr />
+<h2 id="performance-optimization-strategy">📊 Performance Optimization Strategy</h2>
+<h3 id="two-tier-filtering"><strong>Two-Tier Filtering</strong></h3>
+<p>FraiseQL can filter on <strong>any</strong> JSONB field, but direct columns are 100-500x faster.</p>
+<h4 id="tier-1-direct-columns-fast-b-tree-indexes"><strong>Tier 1: Direct Columns (Fast - B-tree indexes)</strong></h4>
+<pre><code class="language-sql">-- Queries: 1000/day
+SELECT * FROM library.tv_review WHERE rating &gt;= 4;
+-- Uses: idx_tv_review_rating (B-tree)
+-- Performance: ~0.1ms
+
+-- Queries: 500/day
+SELECT * FROM library.tv_review
+WHERE created_at &gt; '2024-01-01';
+-- Uses: idx_tv_review_created (B-tree)
+-- Performance: ~0.1ms
+</code></pre>
+<hr />
+<h4 id="tier-2-jsonb-columns-slower-gin-indexes"><strong>Tier 2: JSONB Columns (Slower - GIN indexes)</strong></h4>
+<pre><code class="language-sql">-- Queries: 10/day
+SELECT * FROM library.tv_review
+WHERE data-&gt;&gt;'comment' ILIKE '%excellent%';
+-- Uses: idx_tv_review_data (GIN)
+-- Performance: ~50ms
+
+-- Queries: 1/week
+SELECT * FROM library.tv_review
+WHERE data-&gt;'book'-&gt;&gt;'title' = 'PostgreSQL Deep Dive';
+-- Uses: idx_tv_review_data (GIN) or sequential scan
+-- Performance: ~100ms
+</code></pre>
+<hr />
+<h3 id="auto-inferred-filter-columns"><strong>Auto-Inferred Filter Columns</strong></h3>
+<p>SpecQL <strong>automatically</strong> promotes these to direct columns:</p>
+<pre><code class="language-yaml">entity: Review
+fields:
+  author: ref(User)
+  book: ref(Book)
+</code></pre>
+<p><strong>Auto-generates</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE library.tv_review (
+    -- Auto-inferred (always high-value)
+    tenant_id UUID NOT NULL,   -- Multi-tenant filtering
+    author_id UUID NOT NULL,   -- Foreign key filtering
+    book_id UUID NOT NULL,     -- Foreign key filtering
+
+    -- User's business fields still in JSONB
+    data JSONB
+);
+
+-- Auto-indexed
+CREATE INDEX idx_tv_review_tenant ON library.tv_review(tenant_id);
+CREATE INDEX idx_tv_review_author_id ON library.tv_review(author_id);
+CREATE INDEX idx_tv_review_book_id ON library.tv_review(book_id);
+</code></pre>
+<p><strong>Rationale</strong>: Foreign key filtering is <strong>always</strong> a hot path in queries.</p>
+<hr />
+<h3 id="explicit-filter-columns"><strong>Explicit Filter Columns</strong></h3>
+<p>User specifies additional hot paths:</p>
+<pre><code class="language-yaml">entity: Review
+fields:
+  rating: integer
+  comment: text
+  author: ref(User)
+  book: ref(Book)
+  created_at: timestamp
+
+table_views:
+  # Based on query analytics
+  extra_filter_columns:
+    - rating       # 1000 queries/day
+    - created_at   # 500 queries/day
+    # NOT comment (only 10 queries/day, JSONB GIN is fine)
+</code></pre>
+<p><strong>Generates</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE library.tv_review (
+    -- Auto-inferred
+    tenant_id UUID,
+    author_id UUID,
+    book_id UUID,
+
+    -- Explicit (user-optimized)
+    rating INTEGER,
+    created_at TIMESTAMPTZ,
+
+    -- Everything still in JSONB
+    data JSONB  -- { rating: 5, comment: &quot;...&quot;, createdAt: &quot;...&quot; }
+);
+
+-- Performance indexes
+CREATE INDEX idx_tv_review_rating ON library.tv_review(rating);
+CREATE INDEX idx_tv_review_created ON library.tv_review(created_at);
+</code></pre>
+<p><strong>Trade-off</strong>:
+- ✅ Fast queries on rating, created_at (B-tree)
+- ✅ Acceptable performance on comment (GIN)
+- ❌ Slight storage overhead (data duplicated in column + JSONB)</p>
+<hr />
+<h3 id="advanced-nested-field-extraction"><strong>Advanced: Nested Field Extraction</strong></h3>
+<pre><code class="language-yaml">table_views:
+  extra_filter_columns:
+    - author_name:
+        source: author.name  # Extract from nested JSONB
+        type: text
+        index: gin_trgm      # Trigram for partial matching
+</code></pre>
+<p><strong>Generates</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE library.tv_review (
+    ...
+    author_name TEXT,  -- Extracted from data-&gt;'author'-&gt;&gt;'name'
+    data JSONB
+);
+
+-- Trigram index for ILIKE queries
+CREATE INDEX idx_tv_review_author_name
+ON library.tv_review
+USING GIN(author_name gin_trgm_ops);
+</code></pre>
+<p><strong>Refresh function</strong>:</p>
+<pre><code class="language-sql">INSERT INTO library.tv_review (
+    ...,
+    author_name,  -- Extract during refresh
+    data
+)
+SELECT
+    ...,
+    tv_u.data-&gt;&gt;'name' AS author_name,  -- From tv_user.data
+    jsonb_build_object(
+        'author', tv_u.data,  -- Full author still in JSONB
+        ...
+    )
+FROM ...;
+</code></pre>
+<hr />
+<h2 id="specql-configuration">🎯 SpecQL Configuration</h2>
+<h3 id="global-config-specqlconfigyaml"><strong>Global Config</strong> (<code>specql.config.yaml</code>)</h3>
+<pre><code class="language-yaml">version: 1.0
+
+defaults:
+  # Table Views (tv_ tables)
+  table_views:
+    mode: auto              # auto | force | disable
+    auto_generate: true     # Generate tv_ when has foreign keys
+    auto_filter_columns: true  # Auto-infer tenant_id, {entity}_id
+    refresh: explicit       # No triggers, explicit calls only
+
+  # Calculated fields
+  calculated_fields:
+    enabled: true
+    max_depth: 3            # Max tables a calculation can span
+    cache_by_default: true
+
+  # Extensions
+  extensions:
+    jsonb_updater: postgresql  # postgresql | rust_extension (future)
+</code></pre>
+<hr />
+<h3 id="entity-level-configuration"><strong>Entity-Level Configuration</strong></h3>
+<h4 id="example-1-auto-default"><strong>Example 1: Auto (Default)</strong></h4>
+<pre><code class="language-yaml">entity: Review
+schema: library
+
+fields:
+  rating: integer
+  comment: text
+  author: ref(User)
+  book: ref(Book)
+
+# NO table_views block needed
+# ✅ Auto-generates tv_review (has foreign keys)
+# ✅ Includes ALL fields from author and book
+# ✅ Auto-infers: tenant_id, author_id, book_id
+</code></pre>
+<hr />
+<h4 id="example-2-explicit-field-selection"><strong>Example 2: Explicit Field Selection</strong></h4>
+<pre><code class="language-yaml">entity: Review
+schema: library
+
+fields:
+  rating: integer
+  comment: text
+  author: ref(User)
+  book: ref(Book)
+  created_at: timestamp
+
+table_views:
+  # Explicit: which fields to include from related entities
+  include_relations:
+    - author:
+        fields: [name, email, avatarUrl]  # Only these from User
+
+    - book:
+        fields: [title, isbn, publishedYear]
+        include_relations:
+          - publisher:
+              fields: [name, country]  # Only these from Publisher
+
+  # Performance optimization
+  extra_filter_columns:
+    - rating       # High-volume queries
+    - created_at   # Date range queries
+</code></pre>
+<p><strong>Generated tv_review.data</strong>:</p>
+<pre><code class="language-jsonb">{
+  &quot;id&quot;: &quot;...&quot;,
+  &quot;rating&quot;: 5,
+  &quot;comment&quot;: &quot;...&quot;,
+  &quot;createdAt&quot;: &quot;...&quot;,
+
+  &quot;author&quot;: {
+    &quot;id&quot;: &quot;...&quot;,
+    &quot;name&quot;: &quot;...&quot;,        // ✅ Included
+    &quot;email&quot;: &quot;...&quot;,       // ✅ Included
+    &quot;avatarUrl&quot;: &quot;...&quot;    // ✅ Included
+    // ❌ NO bio, phoneNumber (not in fields list)
+  },
+
+  &quot;book&quot;: {
+    &quot;id&quot;: &quot;...&quot;,
+    &quot;title&quot;: &quot;...&quot;,       // ✅ Included
+    &quot;isbn&quot;: &quot;...&quot;,        // ✅ Included
+    &quot;publishedYear&quot;: ..., // ✅ Included
+
+    &quot;publisher&quot;: {
+      &quot;id&quot;: &quot;...&quot;,
+      &quot;name&quot;: &quot;...&quot;,      // ✅ Included
+      &quot;country&quot;: &quot;...&quot;    // ✅ Included
+      // ❌ NO website, foundedYear
+    }
+    // ❌ NO pageCount, description
+  }
+}
+</code></pre>
+<hr />
+<h4 id="example-3-force-tv_-without-foreign-keys"><strong>Example 3: Force tv_ Without Foreign Keys</strong></h4>
+<pre><code class="language-yaml">entity: AuditLog
+schema: core
+
+fields:
+  message: text
+  metadata: jsonb
+  created_at: timestamp
+
+table_views:
+  mode: force  # Generate tv_ even without foreign keys
+
+  extra_filter_columns:
+    - created_at  # Time-based queries
+
+# ✅ Generates tv_auditlog for fast JSONB + time filtering
+</code></pre>
+<hr />
+<h4 id="example-4-disable-tv_-despite-foreign-keys"><strong>Example 4: Disable tv_ Despite Foreign Keys</strong></h4>
+<pre><code class="language-yaml">entity: SessionToken
+schema: auth
+
+fields:
+  user: ref(User)
+  token: text
+  expires_at: timestamp
+
+table_views:
+  mode: disable  # Don't generate tv_ (write-heavy table)
+
+# ✅ Only generates v_sessiontoken (regular view)
+# ❌ No tv_sessiontoken
+</code></pre>
+<hr />
+<h4 id="example-5-hierarchical-entity"><strong>Example 5: Hierarchical Entity</strong></h4>
+<pre><code class="language-yaml">entity: Location
+schema: management
+hierarchical: true
+
+fields:
+  name: text
+  parent: ref(Location)  # Self-reference
+  location_type: ref(LocationType)
+
+table_views:
+  # Auto-infers: path column (LTREE)
+  include_relations:
+    - parent:
+        fields: [name]  # Parent location name only
+
+    - location_type:
+        fields: [name, color]
+
+  extra_filter_columns:
+    - name  # For name searches
+</code></pre>
+<p><strong>Generated tv_location</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE management.tv_location (
+    pk_location INTEGER PRIMARY KEY,
+    id UUID,
+    tenant_id UUID,
+
+    -- Foreign keys
+    fk_parent_location INTEGER,
+    fk_location_type INTEGER,
+
+    -- UUID filters (auto-inferred)
+    parent_id UUID,
+    location_type_id UUID,
+
+    -- Hierarchy (auto-inferred because hierarchical: true)
+    path LTREE NOT NULL,
+
+    -- Explicit filter column
+    name TEXT,
+
+    -- Denormalized data
+    data JSONB
+);
+
+-- Indexes
+CREATE INDEX idx_tv_location_path ON management.tv_location USING GIST(path);
+CREATE INDEX idx_tv_location_name ON management.tv_location(name);
+</code></pre>
+<hr />
+<h2 id="mutation-integration-team-c">🔄 Mutation Integration (Team C)</h2>
+<h3 id="write-operation-flow"><strong>Write Operation Flow</strong></h3>
+<pre><code>User GraphQL Mutation
+    ↓
+PL/pgSQL Function (Team C)
+    ↓
+1. Write to tb_review (normalized)
+    ↓
+2. Explicit refresh_tv_review() call
+    ↓
+3. FraiseQL serves updated data
+</code></pre>
+<hr />
+<h3 id="mutation-example"><strong>Mutation Example</strong></h3>
+<pre><code class="language-yaml">entity: Review
+
+actions:
+  - name: update_rating
+    steps:
+      - validate: rating &gt;= 1 AND rating &lt;= 5
+      - update: Review SET rating = $new_rating
+
+      # Explicit tv_ refresh (Team C generates this)
+      - refresh_table_view:
+          scope: self              # Only this review
+          propagate: [author]      # Also refresh author's avg rating
+</code></pre>
+<p><strong>Generated PL/pgSQL</strong>:</p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION library.update_review_rating(
+    p_review_id UUID,
+    p_new_rating INTEGER,
+    p_caller_id UUID DEFAULT NULL
+) RETURNS mutation_result AS $$
+DECLARE
+    v_pk INTEGER;
+    v_author_pk INTEGER;
+    v_result mutation_result;
+BEGIN
+    v_pk := library.review_pk(p_review_id);
+
+    -- Get author PK for propagation
+    SELECT fk_author INTO v_author_pk
+    FROM library.tb_review
+    WHERE pk_review = v_pk;
+
+    -- Write to tb_review (normalized)
+    UPDATE library.tb_review
+    SET rating = p_new_rating,
+        updated_at = now(),
+        updated_by = p_caller_id
+    WHERE pk_review = v_pk;
+
+    -- Refresh tv_review (self scope) ✅
+    PERFORM library.refresh_tv_review(v_pk);
+
+    -- Propagate to author (recalculate average_rating) ✅
+    PERFORM crm.refresh_tv_user(v_author_pk);
+
+    -- Build result from tv_review.data
+    v_result.status := 'success';
+    v_result.message := 'Review rating updated';
+    v_result.object_data := (
+        SELECT data  -- Return denormalized data from tv_
+        FROM library.tv_review
+        WHERE pk_review = v_pk
+    );
+
+    RETURN v_result;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<hr />
+<h3 id="refresh-scopes"><strong>Refresh Scopes</strong></h3>
+<h4 id="scope-self-default"><strong>Scope: self</strong> (Default)</h4>
+<pre><code class="language-yaml">- refresh_table_view:
+    scope: self
+</code></pre>
+<p>Only refresh this entity's tv_ row.</p>
+<hr />
+<h4 id="scope-related"><strong>Scope: related</strong></h4>
+<pre><code class="language-yaml">- refresh_table_view:
+    scope: related
+</code></pre>
+<p>Refresh this entity + all entities that reference it.</p>
+<hr />
+<h4 id="scope-propagate-explicit"><strong>Scope: propagate</strong> (Explicit)</h4>
+<pre><code class="language-yaml">- refresh_table_view:
+    scope: self
+    propagate: [author, book]  # Only refresh these
+</code></pre>
+<p>Refresh this entity + specified related entities.</p>
+<hr />
+<h4 id="scope-batch-bulk-operations"><strong>Scope: batch</strong> (Bulk operations)</h4>
+<pre><code class="language-yaml">- refresh_table_view:
+    scope: batch
+    strategy: deferred  # Collect PKs, refresh at end
+</code></pre>
+<p>For bulk imports, collect all affected PKs and refresh once.</p>
+<hr />
+<h2 id="fraiseql-integration-team-d">📊 FraiseQL Integration (Team D)</h2>
+<h3 id="annotations-on-tv_-tables"><strong>Annotations on tv_ Tables</strong></h3>
+<pre><code class="language-sql">-- Table annotation
+COMMENT ON TABLE library.tv_review IS
+  '@fraiseql:table source=materialized,refresh=explicit,primary=true';
+
+-- UUID filters (for GraphQL WHERE clauses)
+COMMENT ON COLUMN library.tv_review.author_id IS
+  '@fraiseql:filter type=UUID,relation=author,index=btree';
+
+COMMENT ON COLUMN library.tv_review.book_id IS
+  '@fraiseql:filter type=UUID,relation=book,index=btree';
+
+-- Promoted filter columns
+COMMENT ON COLUMN library.tv_review.rating IS
+  '@fraiseql:filter type=Int,index=btree,performance=optimized';
+
+COMMENT ON COLUMN library.tv_review.created_at IS
+  '@fraiseql:filter type=DateTime,index=btree,performance=optimized';
+
+-- JSONB data column (FraiseQL extracts GraphQL types from this)
+COMMENT ON COLUMN library.tv_review.data IS
+  '@fraiseql:jsonb expand=true,description=Denormalized review with author and book data';
+</code></pre>
+<hr />
+<h3 id="fraiseql-auto-discovery"><strong>FraiseQL Auto-Discovery</strong></h3>
+<p>FraiseQL reads these annotations:
+1. Finds <code>library.tv_review</code> table
+2. Sees <code>@fraiseql:jsonb expand=true</code> on data column
+3. Introspects JSONB structure from sample rows
+4. Auto-generates GraphQL types</p>
+<p><strong>Example Auto-Discovery</strong>:</p>
+<pre><code class="language-sql">-- FraiseQL samples data column
+SELECT data FROM library.tv_review LIMIT 100;
+
+-- Discovers structure:
+-- {
+--   &quot;id&quot;: UUID,
+--   &quot;rating&quot;: Int,
+--   &quot;author&quot;: { &quot;id&quot;: UUID, &quot;name&quot;: String, &quot;email&quot;: String },
+--   &quot;book&quot;: { &quot;id&quot;: UUID, &quot;title&quot;: String, &quot;isbn&quot;: String, &quot;publisher&quot;: {...} }
+-- }
+
+-- Auto-generates GraphQL:
+type Review {
+  id: UUID!
+  rating: Int!
+  author: ReviewAuthor!
+  book: ReviewBook!
+}
+
+type ReviewAuthor {
+  id: UUID!
+  name: String!
+  email: String!
+}
+
+type ReviewBook {
+  id: UUID!
+  title: String!
+  isbn: String!
+  publisher: ReviewPublisher!
+}
+</code></pre>
+<hr />
+<h2 id="implementation-roadmap">📋 Implementation Roadmap</h2>
+<h3 id="phase-1-team-a-parser-extensions-week-2-3-3-4-days"><strong>Phase 1: Team A - Parser Extensions</strong> (Week 2-3, 3-4 days)</h3>
+<p><strong>Add to SpecQL Parser</strong>:
+1. Parse <code>table_views</code> configuration block
+2. Parse <code>include_relations</code> (nested field selection)
+3. Parse <code>extra_filter_columns</code>
+4. Parse <code>mode: auto/force/disable</code>
+5. Add to Entity AST</p>
+<p><strong>Deliverables</strong>:
+- <code>src/core/ast_models.py</code> - TableViewConfig, IncludeRelation classes
+- <code>src/core/specql_parser.py</code> - Parse table_views block
+- Tests in <code>tests/unit/core/test_table_views_parsing.py</code></p>
+<hr />
+<h3 id="phase-2-team-b-tv_-generation-week-3-5-7-8-days"><strong>Phase 2: Team B - tv_ Generation</strong> (Week 3-5, 7-8 days)</h3>
+<p><strong>New Phase 9: Table View Generation</strong></p>
+<p><strong>Generates</strong>:
+1. <code>tv_{entity}</code> table schema
+2. Auto-infer filter columns (tenant_id, {entity}_id, path)
+3. Explicit filter columns (from extra_filter_columns)
+4. GIN index on data column
+5. B-tree indexes on filter columns
+6. <code>refresh_tv_{entity}()</code> function with JSONB composition</p>
+<p><strong>Templates</strong>:
+- <code>templates/schema/table_view.sql.jinja2</code>
+- <code>templates/schema/refresh_table_view.sql.jinja2</code></p>
+<p><strong>Key Innovation</strong>: Compose from tv_ tables, not tb_ tables</p>
+<hr />
+<h3 id="phase-3-team-c-mutation-integration-week-5-6-3-4-days"><strong>Phase 3: Team C - Mutation Integration</strong> (Week 5-6, 3-4 days)</h3>
+<p><strong>Update Action Compiler</strong>:
+1. Detect <code>refresh_table_view</code> action step
+2. Generate <code>PERFORM refresh_tv_{entity}()</code> calls
+3. Handle scopes (self, related, propagate, batch)
+4. Return data from tv_ in mutation result</p>
+<p><strong>Templates</strong>:
+- <code>templates/actions/refresh_table_view.sql.jinja2</code></p>
+<hr />
+<h3 id="phase-4-team-d-fraiseql-annotations-week-6-7-2-3-days"><strong>Phase 4: Team D - FraiseQL Annotations</strong> (Week 6-7, 2-3 days)</h3>
+<p><strong>Generate Annotations</strong>:
+1. <code>@fraiseql:table</code> on tv_ tables
+2. <code>@fraiseql:filter</code> on filter columns
+3. <code>@fraiseql:jsonb expand=true</code> on data column</p>
+<p><strong>Templates</strong>:
+- <code>templates/fraiseql/table_view_annotations.sql.jinja2</code></p>
+<hr />
+<h3 id="phase-5-integration-testing-week-7-2-3-days"><strong>Phase 5: Integration Testing</strong> (Week 7, 2-3 days)</h3>
+<p><strong>End-to-End Tests</strong>:
+1. SpecQL → tb_ + tv_ generation
+2. Mutation → tb_ write + tv_ refresh
+3. FraiseQL → GraphQL query from tv_
+4. Performance validation (B-tree vs GIN)</p>
+<hr />
+<h2 id="acceptance-criteria">✅ Acceptance Criteria</h2>
+<h3 id="team-a-parser"><strong>Team A (Parser)</strong></h3>
+<ul>
+<li>[ ] Parse <code>table_views.mode: auto/force/disable</code></li>
+<li>[ ] Parse <code>table_views.include_relations</code> (nested)</li>
+<li>[ ] Parse <code>table_views.extra_filter_columns</code></li>
+<li>[ ] Add TableViewConfig to Entity AST</li>
+<li>[ ] All parsing tests pass</li>
+</ul>
+<hr />
+<h3 id="team-b-schema-generator"><strong>Team B (Schema Generator)</strong></h3>
+<ul>
+<li>[ ] Generate tv_ tables with correct schema</li>
+<li>[ ] Auto-infer filter columns (tenant_id, {entity}_id, path)</li>
+<li>[ ] Generate explicit filter columns</li>
+<li>[ ] Generate refresh functions that compose from tv_ tables</li>
+<li>[ ] Generate correct indexes (B-tree on filters, GIN on data)</li>
+<li>[ ] Handle hierarchical entities (auto-add path column)</li>
+<li>[ ] All schema generation tests pass</li>
+</ul>
+<hr />
+<h3 id="team-c-action-compiler"><strong>Team C (Action Compiler)</strong></h3>
+<ul>
+<li>[ ] Compile <code>refresh_table_view</code> action step</li>
+<li>[ ] Handle scope: self, related, propagate, batch</li>
+<li>[ ] Generate correct PERFORM calls in mutations</li>
+<li>[ ] Return tv_.data in mutation results</li>
+<li>[ ] All action compilation tests pass</li>
+</ul>
+<hr />
+<h3 id="team-d-fraiseql-annotations"><strong>Team D (FraiseQL Annotations)</strong></h3>
+<ul>
+<li>[ ] Generate @fraiseql:table annotations</li>
+<li>[ ] Generate @fraiseql:filter annotations</li>
+<li>[ ] Generate @fraiseql:jsonb annotations</li>
+<li>[ ] All annotation tests pass</li>
+</ul>
+<hr />
+<h3 id="integration"><strong>Integration</strong></h3>
+<ul>
+<li>[ ] End-to-end: SpecQL → SQL → Database → FraiseQL</li>
+<li>[ ] Performance: B-tree filters 100x faster than GIN</li>
+<li>[ ] JSONB composition: tv_review.data.author matches tv_user.data</li>
+<li>[ ] Cascading refresh: user update propagates to reviews</li>
+<li>[ ] FraiseQL auto-generates correct GraphQL types</li>
+</ul>
+<hr />
+<h2 id="summary">🎯 Summary</h2>
+<p><strong>Three-Layer Architecture</strong>:
+1. <strong>tb_</strong> - Normalized storage (write side)
+2. <strong>tv_</strong> - Denormalized JSONB (read side, exposes to FraiseQL)
+3. <strong>FraiseQL</strong> - Auto-generated GraphQL (query layer)</p>
+<p><strong>Key Innovations</strong>:
+1. ✅ JSONB composition from tv_ tables (not tb_)
+2. ✅ Two-tier filtering (B-tree for hot paths, GIN for everything else)
+3. ✅ Auto-inference + explicit optimization
+4. ✅ Explicit field selection (no depth parameter)
+5. ✅ Storage/query separation (tv_ stores, FraiseQL exposes)</p>
+<p><strong>Total Timeline</strong>: 4-5 weeks (parallel with other Team B work)</p>
+<p><strong>Status</strong>: 🔴 APPROVED - Ready for Implementation</p>
+<hr />
+<p><strong>Last Updated</strong>: 2025-11-09
+<strong>Document Version</strong>: 1.0</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

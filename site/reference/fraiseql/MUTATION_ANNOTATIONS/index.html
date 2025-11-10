@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>FraiseQL Mutation Annotations - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "FraiseQL Mutation Annotations";
+        var mkdocs_page_input_path = "reference/fraiseql/MUTATION_ANNOTATIONS.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">FraiseQL Mutation Annotations</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="fraiseql-mutation-annotations">FraiseQL Mutation Annotations</h1>
+<p><strong>Status</strong>: ✅ Implemented
+<strong>Team</strong>: Team D (FraiseQL Integration)
+<strong>Purpose</strong>: Enable GraphQL mutations for SpecQL actions with impact metadata</p>
+<hr />
+<h2 id="overview">Overview</h2>
+<p>Mutation annotations tell FraiseQL how to expose PostgreSQL functions as GraphQL mutations. They include:</p>
+<ul>
+<li>GraphQL mutation name mapping</li>
+<li>Input/output type specifications</li>
+<li>Primary entity identification</li>
+<li>Impact metadata for cache invalidation</li>
+</ul>
+<p><strong>Key Insight</strong>: Annotations are generated automatically from SpecQL action definitions with impact metadata.</p>
+<hr />
+<h2 id="how-it-works">How It Works</h2>
+<h3 id="1-specql-action-definition">1. SpecQL Action Definition</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+
+actions:
+  - name: qualify_lead
+    impact:
+      primary:
+        entity: Contact
+        operation: update
+        fields: [status, qualified_at]
+</code></pre>
+<h3 id="2-generated-postgresql-function">2. Generated PostgreSQL Function</h3>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION crm.qualify_lead(
+    auth_tenant_id UUID,
+    input_data app.type_qualify_lead_input,
+    input_payload JSONB,
+    auth_user_id UUID
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+-- Business logic here
+$$;
+</code></pre>
+<h3 id="3-fraiseql-mutation-annotation-auto-generated">3. FraiseQL Mutation Annotation (Auto-Generated)</h3>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.qualify_lead IS
+  '@fraiseql:mutation
+   name=qualifyLead
+   input=QualifyLeadInput
+   success_type=QualifyLeadSuccess
+   error_type=QualifyLeadError
+   primary_entity=Contact
+   metadata_mapping={&quot;_meta&quot;: &quot;MutationImpactMetadata&quot;, &quot;primary_impact&quot;: {&quot;entity&quot;: &quot;Contact&quot;, &quot;operation&quot;: &quot;update&quot;, &quot;fields&quot;: [&quot;status&quot;, &quot;qualified_at&quot;]}}';
+</code></pre>
+<h3 id="4-graphql-schema-auto-generated">4. GraphQL Schema (Auto-Generated)</h3>
+<pre><code class="language-graphql">type Mutation {
+  qualifyLead(input: QualifyLeadInput!): QualifyLeadPayload!
+}
+
+type QualifyLeadPayload {
+  success: QualifyLeadSuccess
+  error: QualifyLeadError
+}
+
+type QualifyLeadSuccess {
+  # Success fields
+}
+
+type QualifyLeadError {
+  # Error fields
+}
+</code></pre>
+<hr />
+<h2 id="annotation-structure">Annotation Structure</h2>
+<h3 id="required-fields">Required Fields</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>name</code></td>
+<td>GraphQL mutation name (camelCase)</td>
+<td><code>qualifyLead</code></td>
+</tr>
+<tr>
+<td><code>input</code></td>
+<td>GraphQL input type name</td>
+<td><code>QualifyLeadInput</code></td>
+</tr>
+<tr>
+<td><code>success_type</code></td>
+<td>GraphQL success type name</td>
+<td><code>QualifyLeadSuccess</code></td>
+</tr>
+<tr>
+<td><code>error_type</code></td>
+<td>GraphQL error type name</td>
+<td><code>QualifyLeadError</code></td>
+</tr>
+<tr>
+<td><code>primary_entity</code></td>
+<td>Primary entity being mutated</td>
+<td><code>Contact</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="optional-fields">Optional Fields</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>metadata_mapping</code></td>
+<td>JSON with impact metadata</td>
+<td><code>{"_meta": "MutationImpactMetadata", ...}</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="impact-metadata">Impact Metadata</h2>
+<p>The <code>metadata_mapping</code> field includes impact information for frontend cache invalidation:</p>
+<pre><code class="language-json">{
+  &quot;_meta&quot;: &quot;MutationImpactMetadata&quot;,
+  &quot;primary_impact&quot;: {
+    &quot;entity&quot;: &quot;Contact&quot;,
+    &quot;operation&quot;: &quot;update&quot;,
+    &quot;fields&quot;: [&quot;status&quot;, &quot;qualified_at&quot;]
+  },
+  &quot;side_effects&quot;: [
+    {
+      &quot;entity&quot;: &quot;AuditLog&quot;,
+      &quot;operation&quot;: &quot;create&quot;,
+      &quot;fields&quot;: [&quot;action&quot;, &quot;timestamp&quot;]
+    }
+  ]
+}
+</code></pre>
+<h3 id="impact-structure">Impact Structure</h3>
+<ul>
+<li><strong><code>primary_impact</code></strong>: Main entity and operation</li>
+<li><code>entity</code>: Entity name</li>
+<li><code>operation</code>: <code>create</code>, <code>update</code>, <code>delete</code></li>
+<li>
+<p><code>fields</code>: Affected field names</p>
+</li>
+<li>
+<p><strong><code>side_effects</code></strong>: Secondary impacts (optional)</p>
+</li>
+<li>Array of impact objects for related entities</li>
+</ul>
+<hr />
+<h2 id="generation-process">Generation Process</h2>
+<h3 id="1-action-analysis">1. Action Analysis</h3>
+<p>The <code>MutationAnnotator</code> analyzes each SpecQL action:</p>
+<pre><code class="language-python">from src.generators.fraiseql.mutation_annotator import MutationAnnotator
+
+annotator = MutationAnnotator(&quot;crm&quot;, &quot;Contact&quot;)
+sql = annotator.generate_mutation_annotation(action)
+</code></pre>
+<h3 id="2-name-conversion">2. Name Conversion</h3>
+<ul>
+<li>PostgreSQL: <code>qualify_lead</code> (snake_case)</li>
+<li>GraphQL: <code>qualifyLead</code> (camelCase)</li>
+<li>Types: <code>QualifyLeadInput</code>, <code>QualifyLeadSuccess</code>, <code>QualifyLeadError</code> (PascalCase)</li>
+</ul>
+<h3 id="3-metadata-extraction">3. Metadata Extraction</h3>
+<p>Impact metadata is extracted from the action's <code>impact</code> field and serialized to JSON.</p>
+<h3 id="4-sql-comment-generation">4. SQL Comment Generation</h3>
+<p>The complete annotation is formatted as a PostgreSQL <code>COMMENT ON FUNCTION</code> statement.</p>
+<hr />
+<h2 id="integration-points">Integration Points</h2>
+<h3 id="schema-orchestrator">Schema Orchestrator</h3>
+<p>Mutation annotations are automatically added by the <code>SchemaOrchestrator</code>:</p>
+<pre><code class="language-python"># In src/generators/schema_orchestrator.py
+if entity.actions:
+    for action in entity.actions:
+        annotator = MutationAnnotator(entity.schema, entity.name)
+        annotation = annotator.generate_mutation_annotation(action)
+        # Added to migration SQL
+</code></pre>
+<h3 id="no-manual-configuration">No Manual Configuration</h3>
+<p><strong>Before (Manual)</strong>:</p>
+<pre><code class="language-sql">-- Developer had to write this manually
+COMMENT ON FUNCTION crm.qualify_lead IS
+'@fraiseql:mutation
+ name=qualifyLead
+ input=QualifyLeadInput
+ ...';
+</code></pre>
+<p><strong>After (Automatic)</strong>:</p>
+<pre><code class="language-yaml"># Just write SpecQL - annotations generated automatically
+actions:
+  - name: qualify_lead
+    impact:
+      primary:
+        entity: Contact
+        operation: update
+</code></pre>
+<hr />
+<h2 id="examples">Examples</h2>
+<h3 id="simple-update-action">Simple Update Action</h3>
+<pre><code class="language-yaml">actions:
+  - name: update_profile
+    impact:
+      primary:
+        entity: User
+        operation: update
+        fields: [name, email]
+</code></pre>
+<p><strong>Generated Annotation</strong>:</p>
+<pre><code class="language-sql">COMMENT ON FUNCTION auth.update_profile IS
+  '@fraiseql:mutation
+   name=updateProfile
+   input=UpdateProfileInput
+   success_type=UpdateProfileSuccess
+   error_type=UpdateProfileError
+   primary_entity=User
+   metadata_mapping={&quot;_meta&quot;: &quot;MutationImpactMetadata&quot;, &quot;primary_impact&quot;: {&quot;entity&quot;: &quot;User&quot;, &quot;operation&quot;: &quot;update&quot;, &quot;fields&quot;: [&quot;name&quot;, &quot;email&quot;]}}';
+</code></pre>
+<h3 id="complex-action-with-side-effects">Complex Action with Side Effects</h3>
+<pre><code class="language-yaml">actions:
+  - name: transfer_ownership
+    impact:
+      primary:
+        entity: Account
+        operation: update
+        fields: [owner_id]
+      side_effects:
+        - entity: User
+          operation: update
+          fields: [account_count]
+        - entity: AuditLog
+          operation: create
+          fields: [action, old_owner, new_owner]
+</code></pre>
+<p><strong>Generated Annotation</strong>:</p>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.transfer_ownership IS
+  '@fraiseql:mutation
+   name=transferOwnership
+   input=TransferOwnershipInput
+   success_type=TransferOwnershipSuccess
+   error_type=TransferOwnershipError
+   primary_entity=Account
+   metadata_mapping={&quot;_meta&quot;: &quot;MutationImpactMetadata&quot;, &quot;primary_impact&quot;: {&quot;entity&quot;: &quot;Account&quot;, &quot;operation&quot;: &quot;update&quot;, &quot;fields&quot;: [&quot;owner_id&quot;]}, &quot;side_effects&quot;: [{&quot;entity&quot;: &quot;User&quot;, &quot;operation&quot;: &quot;update&quot;, &quot;fields&quot;: [&quot;account_count&quot;]}, {&quot;entity&quot;: &quot;AuditLog&quot;, &quot;operation&quot;: &quot;create&quot;, &quot;fields&quot;: [&quot;action&quot;, &quot;old_owner&quot;, &quot;new_owner&quot;]}]}';
+</code></pre>
+<h3 id="action-without-impact">Action Without Impact</h3>
+<pre><code class="language-yaml">actions:
+  - name: send_notification
+    # No impact specified
+</code></pre>
+<p><strong>Generated Annotation</strong>:</p>
+<pre><code class="language-sql">COMMENT ON FUNCTION app.send_notification IS
+  '@fraiseql:mutation
+   name=sendNotification
+   input=SendNotificationInput
+   success_type=SendNotificationSuccess
+   error_type=SendNotificationError
+   primary_entity=Contact
+   metadata_mapping={}'';
+</code></pre>
+<hr />
+<h2 id="benefits">Benefits</h2>
+<h3 id="1-zero-configuration">1. Zero Configuration</h3>
+<ul>
+<li>✅ No manual <code>@fraiseql:mutation</code> annotations needed</li>
+<li>✅ Automatic GraphQL type generation</li>
+<li>✅ Impact metadata for cache invalidation</li>
+</ul>
+<h3 id="2-type-safety">2. Type Safety</h3>
+<ul>
+<li>✅ PostgreSQL functions become GraphQL mutations</li>
+<li>✅ Input validation at GraphQL layer</li>
+<li>✅ Type-safe frontend integration</li>
+</ul>
+<h3 id="3-cache-invalidation">3. Cache Invalidation</h3>
+<ul>
+<li>✅ Frontend can invalidate affected queries</li>
+<li>✅ Based on actual mutation impact</li>
+<li>✅ Automatic cache management</li>
+</ul>
+<h3 id="4-developer-experience">4. Developer Experience</h3>
+<ul>
+<li>✅ GraphQL Playground shows mutations</li>
+<li>✅ Auto-complete for mutation inputs</li>
+<li>✅ Inline documentation from PostgreSQL comments</li>
+</ul>
+<hr />
+<h2 id="testing">Testing</h2>
+<h3 id="unit-tests">Unit Tests</h3>
+<pre><code class="language-bash"># Test mutation annotator logic
+uv run pytest tests/unit/fraiseql/test_mutation_annotator.py -v
+</code></pre>
+<h3 id="integration-tests">Integration Tests</h3>
+<pre><code class="language-bash"># Test end-to-end annotation generation
+uv run pytest tests/integration/fraiseql/test_mutation_annotations_e2e.py -v
+</code></pre>
+<h3 id="manual-verification">Manual Verification</h3>
+<pre><code class="language-bash"># Generate schema with actions
+uv run python -m src.cli.generate entities/examples/contact_with_actions.yaml
+
+# Check generated annotations
+grep &quot;@fraiseql:mutation&quot; generated/*.sql
+</code></pre>
+<hr />
+<h2 id="architecture-notes">Architecture Notes</h2>
+<h3 id="separation-of-concerns">Separation of Concerns</h3>
+<ul>
+<li><strong>Core Functions</strong>: Business logic (generated by Team C)</li>
+<li><strong>FraiseQL Annotations</strong>: GraphQL integration (generated by Team D)</li>
+<li><strong>Input Types</strong>: Parameter validation (generated by Team B)</li>
+</ul>
+<h3 id="no-duplication">No Duplication</h3>
+<ul>
+<li>Annotations are generated once per function</li>
+<li>No duplicate comments or conflicting metadata</li>
+<li>Single source of truth: SpecQL action definitions</li>
+</ul>
+<h3 id="extensibility">Extensibility</h3>
+<ul>
+<li>Impact metadata can be extended for complex cache invalidation</li>
+<li>Side effects support for multi-entity operations</li>
+<li>Custom metadata fields can be added as needed</li>
+</ul>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="missing-annotations">Missing Annotations</h3>
+<p><strong>Problem</strong>: Function doesn't appear in GraphQL schema</p>
+<p><strong>Check</strong>:
+1. Does the action have an <code>impact</code> field?
+2. Is the function generated in the migration?
+3. Are there any SQL syntax errors?</p>
+<p><strong>Solution</strong>: Add impact metadata to the action definition</p>
+<h3 id="incorrect-types">Incorrect Types</h3>
+<p><strong>Problem</strong>: GraphQL types don't match expected names</p>
+<p><strong>Check</strong>:
+1. Is the action name in snake_case?
+2. Is the entity name correct?</p>
+<p><strong>Solution</strong>: Verify naming conventions in SpecQL</p>
+<h3 id="cache-issues">Cache Issues</h3>
+<p><strong>Problem</strong>: Frontend cache not invalidating properly</p>
+<p><strong>Check</strong>:
+1. Is <code>metadata_mapping</code> present in the annotation?
+2. Does it include the correct impact information?</p>
+<p><strong>Solution</strong>: Verify impact metadata in action definition</p>
+<hr />
+<h2 id="future-enhancements">Future Enhancements</h2>
+<h3 id="1-advanced-cache-invalidation">1. Advanced Cache Invalidation</h3>
+<ul>
+<li>Query-specific invalidation rules</li>
+<li>Dependency graph analysis</li>
+<li>Automatic cache key generation</li>
+</ul>
+<h3 id="2-subscription-support">2. Subscription Support</h3>
+<ul>
+<li>Real-time updates for mutated entities</li>
+<li>WebSocket integration</li>
+<li>Live query invalidation</li>
+</ul>
+<h3 id="3-authorization-integration">3. Authorization Integration</h3>
+<ul>
+<li>Permission-based field exposure</li>
+<li>Row-level security mapping</li>
+<li>GraphQL directive generation</li>
+</ul>
+<hr />
+<p><strong>Status</strong>: ✅ Complete
+<strong>Implementation</strong>: <code>src/generators/fraiseql/mutation_annotator.py</code>
+<strong>Tests</strong>: <code>tests/unit/fraiseql/test_mutation_annotator.py</code>
+<strong>Integration</strong>: <code>tests/integration/fraiseql/test_mutation_annotations_e2e.py</code></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

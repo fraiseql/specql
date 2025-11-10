@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>FraiseQL Annotation Layers Guide - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "FraiseQL Annotation Layers Guide";
+        var mkdocs_page_input_path = "guides/FRAISEQL_ANNOTATION_LAYERS.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">FraiseQL Annotation Layers Guide</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="fraiseql-annotation-layers-guide">FraiseQL Annotation Layers Guide</h1>
+<p><strong>Purpose</strong>: Comprehensive guide on when to annotate vs. when not to annotate functions for FraiseQL GraphQL auto-discovery.</p>
+<hr />
+<h2 id="core-principle">🎯 Core Principle</h2>
+<p><strong>FraiseQL introspects ONLY the GraphQL API layer</strong>, not internal business logic.</p>
+<hr />
+<h2 id="two-layer-architecture">🏗️ Two-Layer Architecture</h2>
+<h3 id="layer-1-app-layer-app-functions"><strong>Layer 1: App Layer</strong> (<code>app.*</code> functions)</h3>
+<ul>
+<li><strong>Purpose</strong>: GraphQL API entry points</li>
+<li><strong>Annotation</strong>: ✅ <code>@fraiseql:mutation</code> REQUIRED</li>
+<li><strong>Discovery</strong>: ✅ Exposed to GraphQL schema</li>
+<li><strong>Example</strong>: <code>app.create_contact()</code></li>
+</ul>
+<h3 id="layer-2-core-layer-schema-functions"><strong>Layer 2: Core Layer</strong> (<code>schema.*</code> functions)</h3>
+<ul>
+<li><strong>Purpose</strong>: Internal business logic</li>
+<li><strong>Annotation</strong>: ❌ NO <code>@fraiseql:mutation</code></li>
+<li><strong>Discovery</strong>: ❌ Hidden from GraphQL</li>
+<li><strong>Example</strong>: <code>crm.create_contact()</code></li>
+</ul>
+<hr />
+<h2 id="annotation-rules">📋 Annotation Rules</h2>
+<h3 id="when-to-annotate">✅ <strong>WHEN TO ANNOTATE</strong></h3>
+<h4 id="app-layer-functions-app"><strong>App Layer Functions</strong> (<code>app.*</code>)</h4>
+<pre><code class="language-sql">COMMENT ON FUNCTION app.create_contact IS
+'Creates a new Contact record.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: createContact
+input_type: app.type_create_contact_input
+success_type: CreateContactSuccess
+failure_type: CreateContactError';
+</code></pre>
+<p><strong>Why</strong>: These are the GraphQL API endpoints that users call.</p>
+<h4 id="composite-types-apptype_"><strong>Composite Types</strong> (<code>app.type_*</code>)</h4>
+<pre><code class="language-sql">COMMENT ON TYPE app.type_create_contact_input IS
+'@fraiseql:composite
+name: CreateContactInput
+tier: 1
+storage: composite';
+</code></pre>
+<p><strong>Why</strong>: FraiseQL needs to know about input/output types.</p>
+<h4 id="table-columns-for-field-mapping"><strong>Table Columns</strong> (for field mapping)</h4>
+<pre><code class="language-sql">COMMENT ON COLUMN crm.tb_contact.email IS
+'@fraiseql:field name=email,type=String!';
+</code></pre>
+<p><strong>Why</strong>: Maps PostgreSQL columns to GraphQL fields.</p>
+<h3 id="when-not-to-annotate">❌ <strong>WHEN NOT TO ANNOTATE</strong></h3>
+<h4 id="core-layer-functions-crm-projects-etc"><strong>Core Layer Functions</strong> (<code>crm.*</code>, <code>projects.*</code>, etc.)</h4>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.create_contact IS
+'Core business logic for creating Contact records.
+
+Validation:
+- Validates company_id exists (if provided)
+- Checks tenant_id context
+
+Operations:
+- Resolves company UUID → INTEGER (Trinity pattern)
+- Inserts new contact record
+- Logs audit trail
+
+Called by: app.create_contact (GraphQL mutation)
+Returns: app.mutation_result with success/failure status';
+</code></pre>
+<p><strong>Why</strong>: These are internal implementation details, not API endpoints.</p>
+<h4 id="helper-functions-trinity-utilities"><strong>Helper Functions</strong> (Trinity utilities)</h4>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.contact_pk(TEXT, UUID) IS
+'Trinity Pattern: Resolve entity identifier to internal INTEGER primary key.
+Accepts UUID, text identifier, or integer pk and returns pk_contact.';
+</code></pre>
+<p><strong>Why</strong>: Utilities don't need GraphQL exposure.</p>
+<hr />
+<h2 id="how-fraiseql-discovers-schema">🔍 How FraiseQL Discovers Schema</h2>
+<h3 id="discovery-process"><strong>Discovery Process</strong></h3>
+<ol>
+<li><strong>Scans</strong> all <code>COMMENT ON FUNCTION</code> statements</li>
+<li><strong>Finds</strong> functions with <code>@fraiseql:mutation</code></li>
+<li><strong>Extracts</strong> GraphQL schema from annotations</li>
+<li><strong>Ignores</strong> functions without annotations</li>
+</ol>
+<h3 id="result"><strong>Result</strong></h3>
+<ul>
+<li><strong>Annotated functions</strong> → GraphQL mutations</li>
+<li><strong>Non-annotated functions</strong> → Hidden from GraphQL</li>
+</ul>
+<hr />
+<h2 id="implementation-examples">📝 Implementation Examples</h2>
+<h3 id="complete-mutation-pair"><strong>Complete Mutation Pair</strong></h3>
+<pre><code class="language-sql">-- ============================================================================
+-- MUTATION: create_contact
+-- Entity: Contact
+-- Pattern: App Wrapper + Core Logic + FraiseQL Metadata
+-- ============================================================================
+
+-- ============================================================================
+-- APP WRAPPER: create_contact
+-- API Entry Point (GraphQL/REST)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.create_contact(
+    auth_tenant_id UUID,
+    auth_user_id UUID,
+    input_payload JSONB
+) RETURNS app.mutation_result AS $$
+BEGIN
+    -- Delegate to core business logic
+    RETURN crm.create_contact(auth_tenant_id, input_data, input_payload, auth_user_id);
+END;
+$$ LANGUAGE plpgsql;
+
+-- ✅ ANNOTATED: GraphQL API endpoint
+COMMENT ON FUNCTION app.create_contact IS
+'Creates a new Contact record.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: createContact
+input_type: app.type_create_contact_input
+success_type: CreateContactSuccess
+failure_type: CreateContactError';
+
+-- ============================================================================
+-- CORE LOGIC: crm.create_contact
+-- Business Rules &amp; Data Manipulation
+-- ============================================================================
+CREATE OR REPLACE FUNCTION crm.create_contact(
+    auth_tenant_id UUID,
+    input_data app.type_create_contact_input,
+    input_payload JSONB,
+    auth_user_id UUID
+) RETURNS app.mutation_result AS $$
+BEGIN
+    -- Business logic implementation
+    INSERT INTO crm.tb_contact (...) VALUES (...);
+    RETURN app.log_and_return_mutation(...);
+END;
+$$ LANGUAGE plpgsql;
+
+-- ❌ NOT ANNOTATED: Internal business logic
+COMMENT ON FUNCTION crm.create_contact IS
+'Core business logic for creating Contact records.
+
+Validation:
+- Validates company_id exists (if provided)
+- Checks tenant_id context
+
+Operations:
+- Trinity FK resolution (UUID → INTEGER)
+- Inserts new contact record
+- Logs audit trail
+
+Called by: app.create_contact (GraphQL mutation)
+Returns: app.mutation_result';
+</code></pre>
+<hr />
+<h2 id="common-mistakes">🚨 Common Mistakes</h2>
+<h3 id="mistake-annotating-core-functions">❌ <strong>Mistake: Annotating Core Functions</strong></h3>
+<pre><code class="language-sql">-- WRONG: Core function should not have @fraiseql:mutation
+COMMENT ON FUNCTION crm.create_contact IS
+'@fraiseql:mutation
+ name=createContact
+ ...';
+</code></pre>
+<p><strong>Problem</strong>: FraiseQL will try to expose internal functions as GraphQL mutations.</p>
+<h3 id="mistake-missing-app-layer-annotations">❌ <strong>Mistake: Missing App Layer Annotations</strong></h3>
+<pre><code class="language-sql">-- WRONG: App function missing @fraiseql:mutation
+COMMENT ON FUNCTION app.create_contact IS
+'Creates a new Contact record.';
+</code></pre>
+<p><strong>Problem</strong>: GraphQL mutation won't be discovered.</p>
+<h3 id="mistake-wrong-function-names">❌ <strong>Mistake: Wrong Function Names</strong></h3>
+<pre><code class="language-sql">-- WRONG: Annotated wrong function
+COMMENT ON FUNCTION crm.create_contact IS
+'@fraiseql:mutation...';
+
+-- App function not annotated
+COMMENT ON FUNCTION app.create_contact IS
+'Creates a contact.';
+</code></pre>
+<p><strong>Problem</strong>: GraphQL API exposes internal function instead of API wrapper.</p>
+<hr />
+<h2 id="troubleshooting">🔧 Troubleshooting</h2>
+<h3 id="graphql-mutation-not-found"><strong>GraphQL Mutation Not Found</strong></h3>
+<p><strong>Symptoms</strong>: Mutation doesn't appear in GraphQL schema.</p>
+<p><strong>Checks</strong>:
+1. ✅ App function has <code>@fraiseql:mutation</code> annotation
+2. ✅ Function name matches <code>app.*</code> pattern
+3. ✅ Annotation syntax is correct
+4. ✅ FraiseQL has scanned the database</p>
+<h3 id="internal-functions-exposed"><strong>Internal Functions Exposed</strong></h3>
+<p><strong>Symptoms</strong>: Core business logic functions appear as GraphQL mutations.</p>
+<p><strong>Checks</strong>:
+1. ❌ Core functions have NO <code>@fraiseql:mutation</code> annotations
+2. ✅ Only app functions have annotations
+3. ✅ Annotations are on <code>app.*</code> functions only</p>
+<h3 id="validation"><strong>Validation</strong></h3>
+<pre><code class="language-bash"># Check for incorrectly annotated core functions
+grep -r &quot;@fraiseql:mutation&quot; db/schema/30_functions/ | grep -v &quot;app\.&quot;
+
+# Should return NO results
+
+# Check that app functions are annotated
+grep -r &quot;@fraiseql:mutation&quot; db/schema/30_functions/ | grep &quot;app\.&quot;
+
+# Should return app.* functions
+</code></pre>
+<hr />
+<h2 id="related-documentation">📚 Related Documentation</h2>
+<ul>
+<li><code>docs/TICKET_REMOVE_FRAISEQL_ANNOTATIONS_FROM_CORE_FUNCTIONS.md</code> - Original issue</li>
+<li><code>docs/teams/TEAM_D_PHASED_IMPLEMENTATION_PLAN.md</code> - Team D implementation</li>
+<li><code>src/generators/fraiseql/mutation_annotator.py</code> - Implementation code</li>
+</ul>
+<hr />
+<h2 id="key-takeaways">🎯 Key Takeaways</h2>
+<ol>
+<li><strong>App layer</strong> = GraphQL API (annotate with <code>@fraiseql:mutation</code>)</li>
+<li><strong>Core layer</strong> = Business logic (NO annotations, descriptive comments)</li>
+<li><strong>FraiseQL discovers only annotated functions</strong></li>
+<li><strong>Separation ensures clean GraphQL schema</strong></li>
+</ol>
+<p><strong>Result</strong>: GraphQL API exposes only the intended public interface, not internal implementation details.</content>
+</xai:function_call: write>
+<parameter name="filePath">docs/guides/FRAISEQL_ANNOTATION_LAYERS.md</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

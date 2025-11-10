@@ -1,0 +1,673 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team E Implementation Plan - Revised Post-Confiture v0.2.0 (v2) - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team E Implementation Plan - Revised Post-Confiture v0.2.0 (v2)";
+        var mkdocs_page_input_path = "archive/plans/TEAM_E_REVISED_PLAN_POST_CONFITURE_V2.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team E Implementation Plan - Revised Post-Confiture v0.2.0 (v2)</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-e-implementation-plan-revised-post-confiture-v020-v2">Team E Implementation Plan - Revised Post-Confiture v0.2.0 (v2)</h1>
+<p><strong>Date</strong>: November 9, 2025
+<strong>Status</strong>: 🟢 IN PROGRESS - Phase 3.2 Complete, Moving to Phase 3.3
+<strong>Previous Version</strong>: TEAM_E_REVISED_PLAN_POST_CONFITURE.md
+<strong>Current Progress</strong>: ~70% complete (Confiture integration working!)</p>
+<hr />
+<h2 id="progress-update">🎉 Progress Update</h2>
+<h3 id="what-team-e-has-already-completed">✅ What Team E Has ALREADY Completed</h3>
+<p><strong>Phase 1</strong>: Cleanup &amp; Confiture Integration (DONE!)
+- ✅ Confiture v0.2.0 installed (<code>fraiseql-confiture</code> dependency)
+- ✅ Confiture directory structure created (<code>db/schema/</code>)
+- ✅ <code>confiture_extensions.py</code> created (SpecQL CLI wrapper)
+- ✅ Orchestrator updated for Confiture output
+- ✅ Tests passing</p>
+<p><strong>Phase 2</strong>: Dual-Mode Output (DONE!)
+- ✅ Confiture-compatible output format working
+- ✅ Files written to <code>db/schema/10_tables/</code>, <code>30_functions/</code>, <code>40_metadata/</code>
+- ✅ Registry integration functional (<code>use_registry</code> parameter)</p>
+<p><strong>Phase 3.1-3.2</strong>: Confiture Integration (DONE!)
+- ✅ <code>db/schema/</code> directory structure created with all layers
+- ✅ <code>confiture_extensions.py</code> provides SpecQL commands
+- ✅ End-to-end workflow working: SpecQL → Confiture → SQL</p>
+<p><strong>Current Files</strong>:</p>
+<pre><code>src/cli/
+├── confiture_extensions.py  ✅ (97 lines - SpecQL CLI wrapper)
+├── orchestrator.py          ✅ (310 lines - Updated for Confiture)
+├── generate.py              ✅ (139 lines - Original CLI still works)
+├── validate.py              ✅ (84 lines - SpecQL validation)
+├── docs.py                  ✅ (221 lines - Doc generation)
+├── diff.py                  ✅ (149 lines - SpecQL diff)
+└── migrate.py               ⚠️  (91 lines - Wrapper around Confiture)
+
+db/schema/
+├── 00_foundation/           ✅ (App foundation layer)
+├── 10_tables/               ✅ (Team B DDL output)
+├── 20_helpers/              ✅ (Trinity helper functions)
+├── 30_functions/            ✅ (Team C actions output)
+└── 40_metadata/             ✅ (Team D FraiseQL annotations)
+</code></pre>
+<hr />
+<h2 id="what-remains-phases-33-4">🎯 What Remains: Phases 3.3 - 4</h2>
+<h3 id="phase-33-fraiseql-annotation-cleanup-new-from-ticket"><strong>Phase 3.3: FraiseQL Annotation Cleanup</strong> (NEW - From Ticket)</h3>
+<p><strong>Context</strong>: Found ticket <code>docs/TICKET_REMOVE_FRAISEQL_ANNOTATIONS_FROM_CORE_FUNCTIONS.md</code></p>
+<p><strong>Issue</strong>: Core layer functions (e.g., <code>crm.create_contact</code>) have <code>@fraiseql:mutation</code> annotations, but they shouldn't because:
+- Only <strong>app layer</strong> functions (<code>app.*</code>) are exposed to GraphQL
+- Core layer functions are <strong>internal business logic</strong>, called by app layer
+- Annotations are misleading (suggest GraphQL exposure when they're internal)</p>
+<p><strong>Correct Pattern</strong>:</p>
+<pre><code class="language-sql">-- ✅ App layer (GraphQL-exposed) - KEEP @fraiseql:mutation
+COMMENT ON FUNCTION app.create_contact IS
+'Creates a new Contact record.
+
+@fraiseql:mutation
+name: createContact
+input_type: app.type_create_contact_input
+success_type: CreateContactSuccess
+failure_type: CreateContactError';
+
+-- ✅ Core layer (Internal) - REMOVE @fraiseql:mutation
+COMMENT ON FUNCTION crm.create_contact IS
+'Core business logic for creating Contact records.
+
+Validation:
+- Validates company_id exists (if provided)
+- Checks tenant_id context
+
+Operations:
+- Resolves company UUID → INTEGER (Trinity pattern)
+- Inserts new contact record
+- Logs audit trail
+
+Called by: app.create_contact (GraphQL mutation)
+Returns: app.mutation_result with success/failure status';
+</code></pre>
+<p><strong>Action Items</strong>:</p>
+<ol>
+<li><strong>Update Team D</strong> (FraiseQL Metadata Generator)</li>
+<li><code>src/generators/fraiseql/mutation_annotator.py</code></li>
+<li><strong>ONLY</strong> annotate <code>app.*</code> functions with <code>@fraiseql:mutation</code></li>
+<li><strong>SKIP</strong> annotations for <code>schema.*</code> (core) functions</li>
+<li>
+<p>Add descriptive comments for core functions instead</p>
+</li>
+<li>
+<p><strong>Update existing generated SQL</strong> (10-15 min manual cleanup)
+   ```bash
+   # Find core functions with annotations
+   grep -r "@fraiseql:mutation" db/schema/30_functions/ | grep -v "app."</p>
+</li>
+</ol>
+<p># Expected files to update:
+   # - db/schema/30_functions/create_contact.sql (crm.create_contact)
+   # - db/schema/30_functions/qualify_lead.sql (crm.qualify_lead)
+   # - Any other core functions
+   ```</p>
+<ol>
+<li><strong>Update mutation_annotator.py logic</strong>:
+   ```python
+   # src/generators/fraiseql/mutation_annotator.py</li>
+</ol>
+<p>def generate_mutation_comment(self, action: Action, entity: Entity) -&gt; str:
+       """Generate COMMENT for both app and core layer functions"""</p>
+<pre><code>   # App layer function (GraphQL-exposed)
+   app_comment = f"""
+</code></pre>
+<p>COMMENT ON FUNCTION app.{action.name} IS
+   '{action.description}</p>
+<p>@fraiseql:mutation
+   name: {to_camel_case(action.name)}
+   input_type: app.type_{action.name}_input
+   success_type: {to_pascal_case(action.name)}Success
+   failure_type: {to_pascal_case(action.name)}Error';
+   """</p>
+<pre><code>   # Core layer function (Internal - NO @fraiseql annotation!)
+   core_comment = f"""
+</code></pre>
+<p>COMMENT ON FUNCTION {entity.schema}.{action.name} IS
+   'Core business logic for {action.description}.</p>
+<p>Validation:
+   - {self._generate_validation_list(action)}</p>
+<p>Operations:
+   - Trinity FK resolution (UUID → INTEGER)
+   - {action.operation_type} operation
+   - Audit logging</p>
+<p>Called by: app.{action.name} (GraphQL mutation)
+   Returns: app.mutation_result';
+   """</p>
+<pre><code>   return app_comment + "\n\n" + core_comment
+</code></pre>
+<p>```</p>
+<p><strong>Testing</strong>:</p>
+<pre><code class="language-bash"># After fix, verify no core functions have annotations
+grep -r &quot;@fraiseql:mutation&quot; db/schema/30_functions/ | grep -v &quot;app\.&quot;
+# Expected: No results
+
+# Verify app functions still have them
+grep -r &quot;@fraiseql:mutation&quot; db/schema/30_functions/ | grep &quot;app\.&quot;
+# Expected: Only app.* functions
+</code></pre>
+<p><strong>Estimated Time</strong>: 4 hours
+- 1h: Update <code>mutation_annotator.py</code>
+- 1h: Regenerate affected SQL files
+- 1h: Manual cleanup of existing files
+- 1h: Testing + verification</p>
+<hr />
+<h3 id="phase-34-documentation-updates-1-day"><strong>Phase 3.4: Documentation Updates</strong> (1 day)</h3>
+<p><strong>Files to Update</strong>:</p>
+<ol>
+<li><strong><code>.claude/CLAUDE.md</code></strong> - Team D section (FraiseQL Metadata)
+   ```markdown
+   ## Team D: FraiseQL Metadata Generator</li>
+</ol>
+<p><strong>IMPORTANT</strong>: Only annotate <strong>app layer</strong> functions!</p>
+<p><strong>Annotation Rules</strong>:
+   - ✅ <code>app.*</code> functions → Add <code>@fraiseql:mutation</code> (GraphQL-exposed)
+   - ❌ <code>schema.*</code> functions → NO annotations (internal business logic)
+   - ✅ Composite types → Add <code>@fraiseql:composite</code> (FraiseQL introspects these)
+   - ✅ Table columns → Add <code>@fraiseql:field</code> (for GraphQL field mapping)</p>
+<p><strong>Example</strong>:
+   ```sql
+   -- ✅ App layer - HAS annotation
+   COMMENT ON FUNCTION app.create_contact IS '@fraiseql:mutation...';</p>
+<p>-- ✅ Core layer - NO annotation, descriptive comment instead
+   COMMENT ON FUNCTION crm.create_contact IS 'Core business logic...';
+   <code></code></p>
+<ol>
+<li><strong><code>README.md</code></strong> - Update quick start to mention annotation separation
+   ```markdown
+   ### FraiseQL Integration</li>
+</ol>
+<p><strong>Two-Layer Architecture</strong>:
+   - <strong>App Layer</strong> (<code>app.*</code>): GraphQL API entry points with <code>@fraiseql:mutation</code>
+   - <strong>Core Layer</strong> (<code>schema.*</code>): Internal business logic, NO annotations</p>
+<p>FraiseQL introspects <strong>only</strong> the app layer for GraphQL schema generation.
+   ```</p>
+<ol>
+<li><strong><code>docs/teams/TEAM_D_PHASED_IMPLEMENTATION_PLAN.md</code></strong></li>
+<li>Add note about annotation layer separation</li>
+<li>
+<p>Update examples to show both layers</p>
+</li>
+<li>
+<p><strong>New Guide</strong>: <code>docs/guides/FRAISEQL_ANNOTATION_LAYERS.md</code></p>
+</li>
+<li>Comprehensive guide on when to annotate vs. when not to</li>
+<li>Examples of both app and core layer patterns</li>
+<li>Troubleshooting guide</li>
+</ol>
+<p><strong>Estimated Time</strong>: 6 hours</p>
+<hr />
+<h3 id="phase-4-frontend-code-generation-already-planned-no-changes"><strong>Phase 4: Frontend Code Generation</strong> (Already Planned, No Changes)</h3>
+<p>This phase was correctly planned in the original document. No changes needed.</p>
+<p><strong>Estimated Time</strong>: 12 hours (2 days)</p>
+<hr />
+<h2 id="revised-timeline-from-current-state">📅 Revised Timeline (From Current State)</h2>
+<h3 id="week-1-remaining-work-nov-9-15"><strong>Week 1: Remaining Work</strong> (Nov 9-15)</h3>
+<p><strong>Day 1</strong>: FraiseQL Annotation Cleanup - Code (4h)
+- Update <code>mutation_annotator.py</code>
+- Regenerate affected SQL
+- Test annotation separation</p>
+<p><strong>Day 2</strong>: FraiseQL Annotation Cleanup - Verification (4h)
+- Manual cleanup of existing files
+- Comprehensive testing
+- Verify FraiseQL introspection works correctly (if available)</p>
+<p><strong>Day 3</strong>: Documentation Updates (6h)
+- Update all Team D documentation
+- Create annotation layers guide
+- Update README and CLAUDE.md</p>
+<p><strong>Day 4</strong>: Buffer + Integration Testing (6h)
+- Full end-to-end testing
+- Verify no regressions
+- Document known issues</p>
+<p><strong>Total Week 1</strong>: 20 hours (remaining work from 70% → 80%)</p>
+<hr />
+<h3 id="week-2-frontend-code-generation-nov-16-22"><strong>Week 2: Frontend Code Generation</strong> (Nov 16-22)</h3>
+<p><strong>Day 5-6</strong>: Mutation Impacts Generator (12h)
+- <code>src/generators/frontend/mutation_impacts_generator.py</code>
+- <code>src/generators/frontend/typescript_types_generator.py</code>
+- <code>src/generators/frontend/apollo_hooks_generator.py</code>
+- <code>src/generators/frontend/mutation_docs_generator.py</code></p>
+<p><strong>Day 7</strong>: CLI Integration (4h)
+- Add <code>--with-impacts</code> flag to <code>generate</code> command
+- Add <code>--output-frontend</code> option
+- Integration testing</p>
+<p><strong>Day 8</strong>: Polish &amp; Final Testing (4h)
+- Documentation
+- Examples
+- Final QA</p>
+<p><strong>Total Week 2</strong>: 20 hours (80% → 95%)</p>
+<hr />
+<h3 id="grand-total-remaining-40-hours-5-days-8hday"><strong>Grand Total Remaining</strong>: 40 hours (5 days @ 8h/day)</h3>
+<p><strong>Previous Total</strong>: 10 weeks (80 hours)
+<strong>Completed</strong>: ~70% (56 hours)
+<strong>Remaining</strong>: ~30% (40 hours - revised up due to annotation cleanup)</p>
+<hr />
+<h2 id="updated-success-criteria">🎯 Updated Success Criteria</h2>
+<h3 id="phase-33-fraiseql-annotation-cleanup">Phase 3.3: FraiseQL Annotation Cleanup ✅</h3>
+<ul>
+<li>[ ] <code>mutation_annotator.py</code> updated to skip core function annotations</li>
+<li>[ ] Existing SQL files cleaned up (no <code>@fraiseql:mutation</code> on core functions)</li>
+<li>[ ] App layer functions still have annotations</li>
+<li>[ ] Core layer functions have descriptive comments</li>
+<li>[ ] Tests passing</li>
+<li>[ ] FraiseQL introspection only finds app layer functions (verified if FraiseQL available)</li>
+</ul>
+<h3 id="phase-34-documentation-updates">Phase 3.4: Documentation Updates ✅</h3>
+<ul>
+<li>[ ] <code>.claude/CLAUDE.md</code> updated (Team D section)</li>
+<li>[ ] <code>README.md</code> updated (annotation section)</li>
+<li>[ ] <code>docs/teams/TEAM_D_PHASED_IMPLEMENTATION_PLAN.md</code> updated</li>
+<li>[ ] New guide: <code>docs/guides/FRAISEQL_ANNOTATION_LAYERS.md</code></li>
+</ul>
+<h3 id="phase-4-frontend-code-generation">Phase 4: Frontend Code Generation ✅</h3>
+<ul>
+<li>[ ] <code>mutation-impacts.json</code> generator working</li>
+<li>[ ] TypeScript type definitions generator working</li>
+<li>[ ] Apollo/React hooks generator working</li>
+<li>[ ] Mutation documentation generator working</li>
+<li>[ ] <code>--with-impacts</code> flag working</li>
+<li>[ ] <code>--output-frontend</code> option working</li>
+</ul>
+<hr />
+<h2 id="file-structure-updated-with-annotation-cleanup">📊 File Structure (Updated with Annotation Cleanup)</h2>
+<h3 id="generated-sql-structure">Generated SQL Structure</h3>
+<pre><code>db/schema/
+├── 00_foundation/
+│   └── app_foundation.sql              ✅ (App layer types, helper functions)
+│
+├── 10_tables/
+│   └── contact.sql                     ✅ (Team B DDL)
+│       -- CREATE TABLE crm.tb_contact
+│       -- COMMENT ON TABLE: @fraiseql:type (correct!)
+│       -- COMMENT ON COLUMN: @fraiseql:field (correct!)
+│
+├── 20_helpers/
+│   └── contact_helpers.sql             ✅ (Trinity helper functions)
+│       -- contact_pk(), contact_id(), etc.
+│       -- NO @fraiseql annotations (utilities)
+│
+├── 30_functions/
+│   └── contact.sql                     ⚠️  (Needs cleanup!)
+│       -- App layer (GraphQL-exposed)
+│       COMMENT ON FUNCTION app.create_contact IS
+│         '@fraiseql:mutation...'       ✅ KEEP
+│
+│       -- Core layer (Internal)
+│       COMMENT ON FUNCTION crm.create_contact IS
+│         '@fraiseql:mutation...'       ❌ REMOVE! (This is the issue)
+│
+│       -- Should be:
+│       COMMENT ON FUNCTION crm.create_contact IS
+│         'Core business logic...'      ✅ CORRECT
+│
+└── 40_metadata/
+    └── contact.sql                     ✅ (Team D FraiseQL annotations)
+        -- COMMENT ON TABLE: Additional metadata
+        -- COMMENT ON COLUMN: Additional field metadata
+</code></pre>
+<hr />
+<h2 id="annotation-cleanup-implementation">🔧 Annotation Cleanup Implementation</h2>
+<h3 id="step-1-update-mutation_annotatorpy"><strong>Step 1: Update mutation_annotator.py</strong></h3>
+<p><strong>File</strong>: <code>src/generators/fraiseql/mutation_annotator.py</code></p>
+<p><strong>Changes</strong>:</p>
+<pre><code class="language-python"># src/generators/fraiseql/mutation_annotator.py
+
+class MutationAnnotator:
+    &quot;&quot;&quot;Generate FraiseQL annotations for mutations&quot;&quot;&quot;
+
+    def annotate_mutation(self, action: Action, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;
+        Generate COMMENT statements for both app and core layer functions
+
+        IMPORTANT: Only app layer gets @fraiseql:mutation annotation!
+        Core layer gets descriptive human-readable comment instead.
+        &quot;&quot;&quot;
+        annotations = []
+
+        # 1. App layer function (GraphQL-exposed) - WITH annotation
+        app_comment = self._generate_app_layer_comment(action, entity)
+        annotations.append(app_comment)
+
+        # 2. Core layer function (Internal) - WITHOUT annotation
+        core_comment = self._generate_core_layer_comment(action, entity)
+        annotations.append(core_comment)
+
+        return &quot;\n\n&quot;.join(annotations)
+
+    def _generate_app_layer_comment(self, action: Action, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate @fraiseql:mutation annotation for app layer&quot;&quot;&quot;
+
+        mutation_name = to_camel_case(action.name)
+        success_type = f&quot;{to_pascal_case(action.name)}Success&quot;
+        error_type = f&quot;{to_pascal_case(action.name)}Error&quot;
+
+        return f&quot;&quot;&quot;COMMENT ON FUNCTION app.{action.name} IS
+'{action.description or f&quot;Performs {action.name} operation on {entity.name}&quot;}.
+
+@fraiseql:mutation
+name: {mutation_name}
+input_type: app.type_{action.name}_input
+success_type: {success_type}
+failure_type: {error_type}';&quot;&quot;&quot;
+
+    def _generate_core_layer_comment(self, action: Action, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate descriptive comment for core layer (NO @fraiseql annotation!)&quot;&quot;&quot;
+
+        # Build validation list
+        validations = self._extract_validations(action)
+        validation_text = &quot;\n&quot;.join(f&quot;- {v}&quot; for v in validations) if validations else &quot;- Input validation&quot;
+
+        # Build operation description
+        operation = self._get_operation_type(action)  # &quot;INSERT&quot;, &quot;UPDATE&quot;, &quot;DELETE&quot;
+
+        return f&quot;&quot;&quot;COMMENT ON FUNCTION {entity.schema}.{action.name} IS
+'Core business logic for {action.description or action.name}.
+
+Validation:
+{validation_text}
+
+Operations:
+- Trinity FK resolution (UUID → INTEGER)
+- {operation} operation on {entity.schema}.tb_{entity.name.lower()}
+- Audit logging via app.log_and_return_mutation
+
+Called by: app.{action.name} (GraphQL mutation)
+Returns: app.mutation_result (success/failure status)';&quot;&quot;&quot;
+
+    def _extract_validations(self, action: Action) -&gt; List[str]:
+        &quot;&quot;&quot;Extract validation steps from action&quot;&quot;&quot;
+        validations = []
+        for step in action.steps:
+            if step.get(&quot;validate&quot;):
+                validations.append(step[&quot;validate&quot;])
+        return validations
+
+    def _get_operation_type(self, action: Action) -&gt; str:
+        &quot;&quot;&quot;Determine operation type from action steps&quot;&quot;&quot;
+        for step in action.steps:
+            if &quot;insert&quot; in step:
+                return &quot;INSERT&quot;
+            elif &quot;update&quot; in step:
+                return &quot;UPDATE&quot;
+            elif &quot;delete&quot; in step:
+                return &quot;DELETE&quot;
+        return &quot;OPERATION&quot;
+</code></pre>
+<hr />
+<h3 id="step-2-regenerate-affected-sql-files"><strong>Step 2: Regenerate Affected SQL Files</strong></h3>
+<pre><code class="language-bash"># Regenerate all entities to apply new annotation logic
+python -m src.cli.generate entities/examples/*.yaml --output-dir db/schema
+
+# Verify changes
+git diff db/schema/30_functions/
+
+# Expected changes:
+# - App layer functions: Still have @fraiseql:mutation ✅
+# - Core layer functions: @fraiseql:mutation removed, descriptive comment added ✅
+</code></pre>
+<hr />
+<h3 id="step-3-manual-cleanup-if-needed"><strong>Step 3: Manual Cleanup (If Needed)</strong></h3>
+<p>If any core functions still have old annotations:</p>
+<pre><code class="language-bash"># Find affected files
+grep -r &quot;@fraiseql:mutation&quot; db/schema/30_functions/ | grep -v &quot;app\.&quot; &gt; /tmp/cleanup_list.txt
+
+# For each file in cleanup_list.txt:
+# 1. Open file
+# 2. Find COMMENT ON FUNCTION schema.function_name
+# 3. Replace @fraiseql:mutation block with descriptive comment
+# 4. Save
+
+# Example fix:
+# Before:
+COMMENT ON FUNCTION crm.create_contact IS
+  '@fraiseql:mutation
+   name=createContact
+   input=CreateContactInput
+   success_type=CreateContactSuccess
+   error_type=CreateContactError';
+
+# After:
+COMMENT ON FUNCTION crm.create_contact IS
+'Core business logic for creating Contact records.
+
+Validation:
+- Validates company_id exists (if provided)
+- Checks tenant_id context
+
+Operations:
+- Resolves company UUID → INTEGER (Trinity pattern)
+- Inserts new contact record
+- Logs audit trail
+
+Called by: app.create_contact (GraphQL mutation)
+Returns: app.mutation_result';
+</code></pre>
+<hr />
+<h3 id="step-4-verify-cleanup"><strong>Step 4: Verify Cleanup</strong></h3>
+<pre><code class="language-bash"># Test 1: No core functions should have @fraiseql:mutation
+grep -r &quot;@fraiseql:mutation&quot; db/schema/30_functions/ | grep -v &quot;app\.&quot;
+# Expected: No results ✅
+
+# Test 2: App functions should still have annotations
+grep -r &quot;@fraiseql:mutation&quot; db/schema/30_functions/ | grep &quot;app\.&quot;
+# Expected: All app.* functions listed ✅
+
+# Test 3: Verify core functions have descriptive comments
+grep -A 10 &quot;COMMENT ON FUNCTION crm\.&quot; db/schema/30_functions/create_contact.sql
+# Expected: Should see descriptive comment, NOT @fraiseql:mutation ✅
+
+# Test 4: Run all tests
+uv run pytest tests/ -v
+# Expected: All tests pass ✅
+</code></pre>
+<hr />
+<h2 id="key-takeaways">🎯 Key Takeaways</h2>
+<h3 id="what-changed-from-original-plan"><strong>What Changed from Original Plan</strong></h3>
+<ol>
+<li><strong>Added Phase 3.3</strong>: FraiseQL Annotation Cleanup (from ticket)</li>
+<li>Team D needs to differentiate app vs. core layer annotations</li>
+<li>
+<p>~4 hours of work</p>
+</li>
+<li>
+<p><strong>Team E Already 70% Done</strong>!</p>
+</li>
+<li>Confiture integration working</li>
+<li>Directory structure created</li>
+<li>
+<p>CLI commands functional</p>
+</li>
+<li>
+<p><strong>Only 40 Hours Remaining</strong> (down from 80)</p>
+</li>
+<li>Annotation cleanup: 4h</li>
+<li>Documentation: 6h</li>
+<li>Frontend codegen: 20h</li>
+<li>Polish + buffer: 10h</li>
+</ol>
+<hr />
+<h2 id="related-tickets-documentation">📚 Related Tickets &amp; Documentation</h2>
+<p><strong>Tickets</strong>:
+- <code>docs/TICKET_REMOVE_FRAISEQL_ANNOTATIONS_FROM_CORE_FUNCTIONS.md</code> ⚠️ (NEW - Must address)</p>
+<p><strong>Implementation Plans</strong>:
+- <code>docs/implementation-plans/TEAM_E_REVISED_PLAN_POST_CONFITURE.md</code> (v1 - superseded by this)
+- <code>docs/implementation-plans/CLEANUP_OPPORTUNITY_POST_CONFITURE.md</code> (cleanup guide)
+- <code>docs/implementation-plans/EXECUTIVE_SUMMARY_CONFITURE_INTEGRATION.md</code> (ROI analysis)</p>
+<p><strong>Team Docs</strong>:
+- <code>docs/teams/TEAM_E_CURRENT_STATE.md</code> (update status to 70%)
+- <code>docs/teams/TEAM_D_PHASED_IMPLEMENTATION_PLAN.md</code> (update for annotation layers)</p>
+<hr />
+<h2 id="final-checklist">✅ Final Checklist</h2>
+<h3 id="phase-33-fraiseql-annotation-cleanup_1">Phase 3.3: FraiseQL Annotation Cleanup</h3>
+<ul>
+<li>[ ] Update <code>mutation_annotator.py</code> to skip core annotations</li>
+<li>[ ] Regenerate SQL files with new logic</li>
+<li>[ ] Manual cleanup of existing files (if needed)</li>
+<li>[ ] Verify no core functions have <code>@fraiseql:mutation</code></li>
+<li>[ ] Verify app functions still have annotations</li>
+<li>[ ] All tests passing</li>
+</ul>
+<h3 id="phase-34-documentation">Phase 3.4: Documentation</h3>
+<ul>
+<li>[ ] Update <code>.claude/CLAUDE.md</code> (Team D)</li>
+<li>[ ] Update <code>README.md</code></li>
+<li>[ ] Update Team D plan</li>
+<li>[ ] Create annotation layers guide</li>
+</ul>
+<h3 id="phase-4-frontend-codegen">Phase 4: Frontend Codegen</h3>
+<ul>
+<li>[ ] Mutation impacts generator</li>
+<li>[ ] TypeScript types generator</li>
+<li>[ ] Apollo hooks generator</li>
+<li>[ ] Mutation docs generator</li>
+<li>[ ] CLI integration (<code>--with-impacts</code>, <code>--output-frontend</code>)</li>
+<li>[ ] Examples working</li>
+</ul>
+<h3 id="final-qa">Final QA</h3>
+<ul>
+<li>[ ] All tests passing</li>
+<li>[ ] Documentation complete</li>
+<li>[ ] Examples working</li>
+<li>[ ] Team E marked 95% complete</li>
+</ul>
+<hr />
+<p><strong>Status</strong>: 🟢 READY TO CONTINUE (Phase 3.3 - Annotation Cleanup)
+<strong>Current Progress</strong>: 70% → Target: 95%
+<strong>Remaining Time</strong>: 40 hours (5 days)
+<strong>Next Action</strong>: Update <code>mutation_annotator.py</code> for annotation layer separation</p>
+<hr />
+<p><em>Last Updated</em>: November 9, 2025
+<em>Version</em>: 2.0 (Reflects current state + annotation cleanup ticket)
+<em>Author</em>: Claude Code</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

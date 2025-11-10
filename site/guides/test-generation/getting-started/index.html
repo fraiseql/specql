@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Getting Started with Test Generation - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Getting Started with Test Generation";
+        var mkdocs_page_input_path = "guides/test-generation/getting-started.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Getting Started with Test Generation</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="getting-started-with-test-generation">Getting Started with Test Generation</h1>
+<p>Learn how SpecQL automatically generates comprehensive tests from your YAML specifications. Get instant test coverage for business logic, data validation, and performance - without writing any test code.</p>
+<h2 id="what-youll-learn">🎯 What You'll Learn</h2>
+<ul>
+<li>How automatic test generation works</li>
+<li>Generate and run your first tests</li>
+<li>Understand test coverage and results</li>
+<li>Integrate testing into your workflow</li>
+<li>Customize test generation</li>
+</ul>
+<h2 id="prerequisites">📋 Prerequisites</h2>
+<ul>
+<li><a href="../getting-started/installation.md">SpecQL installed</a></li>
+<li><a href="../getting-started/first-entity.md">Entity with patterns created</a></li>
+<li>PostgreSQL database running</li>
+<li>Basic understanding of testing concepts</li>
+</ul>
+<h2 id="how-test-generation-works">💡 How Test Generation Works</h2>
+<h3 id="from-yaml-to-tests">From YAML to Tests</h3>
+<p><strong>SpecQL analyzes your entity specifications and generates:</strong></p>
+<pre><code class="language-yaml"># entities/user.yaml
+name: user
+fields:
+  id: uuid
+  email: string
+  status: string
+
+patterns:
+  - name: state_machine
+    states: [inactive, active, suspended]
+    transitions:
+      - from: inactive
+        to: active
+        trigger: activate
+</code></pre>
+<p><strong>Generates:</strong>
+- <strong>pgTAP tests</strong> - Database-level validation
+- <strong>pytest tests</strong> - Application-level testing
+- <strong>Performance tests</strong> - Benchmarking and profiling</p>
+<h3 id="test-categories">Test Categories</h3>
+<table>
+<thead>
+<tr>
+<th>Test Type</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Business Logic</strong></td>
+<td>Pattern behavior</td>
+<td>State machine transitions</td>
+</tr>
+<tr>
+<td><strong>Data Validation</strong></td>
+<td>Constraints &amp; rules</td>
+<td>Email format, required fields</td>
+</tr>
+<tr>
+<td><strong>Integration</strong></td>
+<td>Cross-entity operations</td>
+<td>Multi-table transactions</td>
+</tr>
+<tr>
+<td><strong>Performance</strong></td>
+<td>Speed &amp; scalability</td>
+<td>Query execution time</td>
+</tr>
+<tr>
+<td><strong>Edge Cases</strong></td>
+<td>Boundary conditions</td>
+<td>Invalid inputs, error states</td>
+</tr>
+</tbody>
+</table>
+<h2 id="step-1-generate-your-first-tests">🚀 Step 1: Generate Your First Tests</h2>
+<h3 id="create-a-test-entity">Create a Test Entity</h3>
+<pre><code class="language-bash"># Create entities directory
+mkdir -p entities
+
+# Create user entity with patterns
+cat &gt; entities/user.yaml &lt;&lt; 'EOF'
+name: user
+description: &quot;User account management&quot;
+
+fields:
+  id: uuid
+  email: string
+  first_name: string
+  last_name: string
+  status: string
+  created_at: timestamp
+
+patterns:
+  - name: state_machine
+    description: &quot;User account lifecycle&quot;
+    initial_state: inactive
+    states: [inactive, active, suspended]
+    transitions:
+      - from: inactive
+        to: active
+        trigger: activate
+      - from: active
+        to: suspended
+        trigger: suspend
+      - from: suspended
+        to: active
+        trigger: reactivate
+
+  - name: validation
+    description: &quot;User data validation&quot;
+    rules:
+      - name: email_required
+        field: email
+        rule: &quot;email IS NOT NULL&quot;
+        message: &quot;Email is required&quot;
+      - name: email_format
+        field: email
+        rule: &quot;email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'&quot;
+        message: &quot;Email must be in valid format&quot;
+EOF
+</code></pre>
+<h3 id="generate-schema">Generate Schema</h3>
+<pre><code class="language-bash"># Generate database schema
+specql generate schema entities/user.yaml
+
+# Apply to database
+psql $DATABASE_URL -f db/schema/10_tables/user.sql
+psql $DATABASE_URL -f db/schema/20_constraints/user_constraints.sql
+psql $DATABASE_URL -f db/schema/40_functions/user_state_machine.sql
+</code></pre>
+<h3 id="generate-tests">Generate Tests</h3>
+<pre><code class="language-bash"># Generate all test types
+specql generate tests entities/user.yaml
+
+# Check generated files
+tree tests/
+# tests/
+# ├── pgtap/
+# │   ├── user_state_machine_test.sql
+# │   └── user_validation_test.sql
+# └── pytest/
+#     ├── test_user_state_machine.py
+#     └── test_user_validation.py
+</code></pre>
+<h2 id="step-2-run-pgtap-tests">🧪 Step 2: Run pgTAP Tests</h2>
+<h3 id="install-pgtap">Install pgTAP</h3>
+<pre><code class="language-bash"># Install pgTAP extension (one-time setup)
+psql $DATABASE_URL -c &quot;CREATE EXTENSION IF NOT EXISTS pgtap;&quot;
+
+# Verify installation
+psql $DATABASE_URL -c &quot;SELECT pgtap.version();&quot;
+</code></pre>
+<h3 id="run-tests">Run Tests</h3>
+<pre><code class="language-bash"># Run pgTAP tests
+specql test run --type pgtap entities/user.yaml
+
+# Expected output:
+# user_state_machine_test.sql
+# 1..8
+# ok 1 - User starts in inactive state
+# ok 2 - Can transition from inactive to active
+# ok 3 - State changes correctly after transition
+# ok 4 - Cannot transition from invalid state
+# ok 5 - Guard conditions are enforced
+# ok 6 - Actions execute on transition
+# ok 7 - Events are emitted
+# ok 8 - Error handling works correctly
+</code></pre>
+<h3 id="manual-test-execution">Manual Test Execution</h3>
+<pre><code class="language-bash"># Run tests directly with psql
+psql $DATABASE_URL -f tests/pgtap/user_state_machine_test.sql
+
+# Run specific test file
+psql $DATABASE_URL -f tests/pgtap/user_validation_test.sql
+</code></pre>
+<h2 id="step-3-run-pytest-tests">🐍 Step 3: Run pytest Tests</h2>
+<h3 id="install-dependencies">Install Dependencies</h3>
+<pre><code class="language-bash"># Install Python testing dependencies
+pip install pytest psycopg2-binary
+
+# Optional: Install pytest plugins
+pip install pytest-cov pytest-xdist pytest-html
+</code></pre>
+<h3 id="run-tests_1">Run Tests</h3>
+<pre><code class="language-bash"># Run pytest tests
+specql test run --type pytest entities/user.yaml
+
+# Expected output:
+# tests/pytest/test_user_state_machine.py::TestUserStateMachine::test_initial_state_is_inactive
+# PASSED
+# tests/pytest/test_user_state_machine.py::test_successful_activation
+# PASSED
+# tests/pytest/test_user_state_machine.py::test_invalid_transition_fails
+# PASSED
+# tests/pytest/test_user_validation.py::test_email_validation
+# PASSED
+</code></pre>
+<h3 id="advanced-pytest-options">Advanced pytest Options</h3>
+<pre><code class="language-bash"># Run with coverage
+specql test run --type pytest entities/user.yaml --cov --cov-report html
+
+# Run in parallel
+specql test run --type pytest entities/user.yaml --parallel 4
+
+# Generate HTML report
+specql test run --type pytest entities/user.yaml --html-report results.html
+
+# Run specific test
+specql test run --type pytest entities/user.yaml --filter &quot;test_state_machine&quot;
+</code></pre>
+<h2 id="step-4-check-test-coverage">📊 Step 4: Check Test Coverage</h2>
+<h3 id="generate-coverage-report">Generate Coverage Report</h3>
+<pre><code class="language-bash"># Generate coverage report
+specql test coverage entities/user.yaml
+
+# Output formats
+specql test coverage entities/user.yaml --format html --output coverage.html
+specql test coverage entities/user.yaml --format json --output coverage.json
+</code></pre>
+<h3 id="coverage-metrics">Coverage Metrics</h3>
+<p><strong>What gets tested:</strong>
+- ✅ <strong>Pattern Logic</strong> - All state machine transitions and guards
+- ✅ <strong>Validation Rules</strong> - All business rules and constraints
+- ✅ <strong>Data Integrity</strong> - Foreign keys, uniqueness, types
+- ✅ <strong>Error Conditions</strong> - Invalid inputs and edge cases
+- ✅ <strong>Performance</strong> - Query execution time and scalability</p>
+<p><strong>Coverage Goals:</strong>
+- <strong>Line Coverage</strong>: &gt;95% of generated code
+- <strong>Branch Coverage</strong>: &gt;90% of conditional logic
+- <strong>Pattern Coverage</strong>: 100% of declared patterns
+- <strong>Edge Case Coverage</strong>: All boundary conditions</p>
+<h2 id="step-5-understand-test-results">🔍 Step 5: Understand Test Results</h2>
+<h3 id="pgtap-test-structure">pgTAP Test Structure</h3>
+<pre><code class="language-sql">-- Generated pgTAP test
+BEGIN;
+
+-- Setup test data
+INSERT INTO user (id, email, status)
+VALUES ('test-user-id', 'test@example.com', 'inactive');
+
+-- Test 1: Initial state
+SELECT ok(
+    (SELECT status FROM user WHERE id = 'test-user-id') = 'inactive',
+    'User starts in inactive state'
+);
+
+-- Test 2: Valid transition
+SELECT ok(
+    user_activate('test-user-id') IS NOT NULL,
+    'Can activate user from inactive state'
+);
+
+-- Test 3: State change
+SELECT ok(
+    (SELECT status FROM user WHERE id = 'test-user-id') = 'active',
+    'State changes to active after activation'
+);
+
+-- Cleanup
+DELETE FROM user WHERE id = 'test-user-id';
+
+ROLLBACK;
+</code></pre>
+<h3 id="pytest-test-structure">pytest Test Structure</h3>
+<pre><code class="language-python"># Generated pytest test
+import pytest
+import psycopg2
+from specql.testing.fixtures import database_connection
+
+class TestUserStateMachine:
+    @pytest.fixture
+    def db_conn(self, database_connection):
+        return database_connection
+
+    @pytest.fixture
+    def test_user(self, db_conn):
+        &quot;&quot;&quot;Create test user and return ID&quot;&quot;&quot;
+        with db_conn.cursor() as cursor:
+            cursor.execute(&quot;&quot;&quot;
+                INSERT INTO user (email, first_name, status)
+                VALUES (%s, %s, %s)
+                RETURNING id
+            &quot;&quot;&quot;, ('test@example.com', 'Test', 'inactive'))
+            user_id = cursor.fetchone()[0]
+            db_conn.commit()
+            yield user_id
+
+            # Cleanup
+            cursor.execute(&quot;DELETE FROM user WHERE id = %s&quot;, (user_id,))
+            db_conn.commit()
+
+    def test_initial_state_is_inactive(self, db_conn, test_user):
+        &quot;&quot;&quot;Test user starts in inactive state&quot;&quot;&quot;
+        with db_conn.cursor() as cursor:
+            cursor.execute(
+                &quot;SELECT status FROM user WHERE id = %s&quot;,
+                (test_user,)
+            )
+            status = cursor.fetchone()[0]
+            assert status == 'inactive'
+
+    def test_successful_activation(self, db_conn, test_user):
+        &quot;&quot;&quot;Test successful user activation&quot;&quot;&quot;
+        with db_conn.cursor() as cursor:
+            cursor.execute(
+                &quot;SELECT user_activate(%s)&quot;,
+                (test_user,)
+            )
+            result = cursor.fetchone()[0]
+            assert result is not None
+
+            # Verify state change
+            cursor.execute(
+                &quot;SELECT status FROM user WHERE id = %s&quot;,
+                (test_user,)
+            )
+            status = cursor.fetchone()[0]
+            assert status == 'active'
+</code></pre>
+<h2 id="step-6-customize-test-generation">⚙️ Step 6: Customize Test Generation</h2>
+<h3 id="test-configuration">Test Configuration</h3>
+<pre><code class="language-yaml"># Add to your entity YAML
+name: user
+# ... fields and patterns ...
+
+test_config:
+  # Enable/disable test generation
+  enabled: true
+
+  # Test types to generate
+  types: [pgtap, pytest, performance]
+
+  # Test data configuration
+  fixtures:
+    - name: basic_user
+      email: &quot;test@example.com&quot;
+      first_name: &quot;Test&quot;
+      last_name: &quot;User&quot;
+      status: &quot;inactive&quot;
+
+    - name: edge_cases
+      email: &quot;&quot;  # Invalid email
+      first_name: &quot;&quot;  # Empty name
+      status: &quot;invalid_status&quot;
+
+  # Performance test settings
+  performance:
+    enabled: true
+    iterations: 100
+    concurrency: 5
+    timeout: &quot;30 seconds&quot;
+
+  # Coverage requirements
+  coverage:
+    minimum: 95
+    exclude_patterns: [&quot;debug_*&quot;, &quot;temp_*&quot;]
+</code></pre>
+<h3 id="custom-test-data">Custom Test Data</h3>
+<pre><code class="language-yaml">test_config:
+  fixtures:
+    # Realistic user data
+    - name: premium_user
+      email: &quot;premium@example.com&quot;
+      first_name: &quot;Premium&quot;
+      last_name: &quot;User&quot;
+      status: &quot;active&quot;
+      subscription_level: &quot;premium&quot;
+
+    # Bulk test data
+    - name: bulk_users
+      count: 1000
+      template:
+        email: &quot;user_{index}@example.com&quot;
+        first_name: &quot;User&quot;
+        last_name: &quot;{index}&quot;
+        status: &quot;active&quot;
+</code></pre>
+<h2 id="step-7-integrate-into-development-workflow">🔄 Step 7: Integrate into Development Workflow</h2>
+<h3 id="development-cycle">Development Cycle</h3>
+<pre><code class="language-bash"># 1. Edit entity specification
+vim entities/user.yaml
+
+# 2. Validate YAML
+specql validate entities/user.yaml
+
+# 3. Generate schema
+specql generate schema entities/user.yaml
+
+# 4. Apply schema changes
+psql $DATABASE_URL -f db/schema/10_tables/user.sql
+
+# 5. Generate tests
+specql generate tests entities/user.yaml
+
+# 6. Run tests
+specql test run entities/user.yaml
+
+# 7. Check coverage
+specql test coverage entities/user.yaml
+</code></pre>
+<h3 id="pre-commit-hook">Pre-commit Hook</h3>
+<pre><code class="language-bash"># .git/hooks/pre-commit
+#!/bin/bash
+
+# Run tests before committing
+specql validate entities/*.yaml
+specql generate tests entities/*.yaml
+specql test run entities/*.yaml
+
+if [ $? -ne 0 ]; then
+    echo &quot;Tests failed! Fix issues before committing.&quot;
+    exit 1
+fi
+</code></pre>
+<h3 id="ide-integration">IDE Integration</h3>
+<pre><code class="language-json">// .vscode/tasks.json
+{
+  &quot;version&quot;: &quot;2.0.0&quot;,
+  &quot;tasks&quot;: [
+    {
+      &quot;label&quot;: &quot;Generate Tests&quot;,
+      &quot;type&quot;: &quot;shell&quot;,
+      &quot;command&quot;: &quot;specql&quot;,
+      &quot;args&quot;: [&quot;generate&quot;, &quot;tests&quot;, &quot;entities/*.yaml&quot;],
+      &quot;group&quot;: &quot;build&quot;
+    },
+    {
+      &quot;label&quot;: &quot;Run Tests&quot;,
+      &quot;type&quot;: &quot;shell&quot;,
+      &quot;command&quot;: &quot;specql&quot;,
+      &quot;args&quot;: [&quot;test&quot;, &quot;run&quot;, &quot;entities/*.yaml&quot;],
+      &quot;group&quot;: &quot;test&quot;
+    }
+  ]
+}
+</code></pre>
+<h2 id="troubleshooting">🆘 Troubleshooting</h2>
+<h3 id="tests-not-generating">"Tests not generating"</h3>
+<pre><code class="language-bash"># Check YAML syntax
+specql validate entities/user.yaml
+
+# Force regeneration
+specql generate tests entities/user.yaml --force
+
+# Check file permissions
+ls -la tests/
+</code></pre>
+<h3 id="pgtap-tests-failing">"pgTAP tests failing"</h3>
+<pre><code class="language-bash"># Check pgTAP installation
+psql $DATABASE_URL -c &quot;SELECT * FROM pg_extension WHERE extname = 'pgtap';&quot;
+
+# Run tests manually for debugging
+psql $DATABASE_URL -f tests/pgtap/user_test.sql -v
+
+# Check database connection
+psql $DATABASE_URL -c &quot;SELECT 1;&quot;
+</code></pre>
+<h3 id="pytest-tests-failing">"pytest tests failing"</h3>
+<pre><code class="language-bash"># Check Python dependencies
+pip list | grep pytest
+
+# Run tests directly
+pytest tests/pytest/ -v -s
+
+# Check database connection in tests
+python -c &quot;import psycopg2; psycopg2.connect('$DATABASE_URL')&quot;
+</code></pre>
+<h3 id="coverage-report-empty">"Coverage report empty"</h3>
+<pre><code class="language-bash"># Run tests first
+specql test run entities/user.yaml
+
+# Generate coverage with verbose output
+specql test coverage entities/user.yaml --verbose
+
+# Check coverage data exists
+ls -la coverage/
+</code></pre>
+<h3 id="performance-tests-timeout">"Performance tests timeout"</h3>
+<pre><code class="language-bash"># Reduce test data size
+specql generate tests entities/user.yaml --performance-data-size 100
+
+# Increase timeout
+specql test run --type performance entities/user.yaml --timeout 300
+
+# Run performance tests separately
+specql test run --type performance entities/user.yaml --concurrency 1
+</code></pre>
+<h2 id="best-practices">🎯 Best Practices</h2>
+<h3 id="test-generation">Test Generation</h3>
+<ul>
+<li><strong>Generate tests immediately</strong> after creating entities</li>
+<li><strong>Run tests frequently</strong> during development</li>
+<li><strong>Check coverage regularly</strong> to maintain quality</li>
+<li><strong>Use realistic test data</strong> that matches production</li>
+</ul>
+<h3 id="test-maintenance">Test Maintenance</h3>
+<ul>
+<li><strong>Regenerate tests</strong> when specifications change</li>
+<li><strong>Review test failures</strong> to understand root causes</li>
+<li><strong>Update test expectations</strong> for intentional changes</li>
+<li><strong>Archive obsolete tests</strong> to keep suites clean</li>
+</ul>
+<h3 id="performance-testing">Performance Testing</h3>
+<ul>
+<li><strong>Set realistic targets</strong> based on production requirements</li>
+<li><strong>Monitor performance trends</strong> over time</li>
+<li><strong>Profile bottlenecks</strong> to optimize slow operations</li>
+<li><strong>Test at production scale</strong> when possible</li>
+</ul>
+<h3 id="cicd-integration">CI/CD Integration</h3>
+<ul>
+<li><strong>Run tests on every commit</strong> for fast feedback</li>
+<li><strong>Use parallel execution</strong> to speed up test suites</li>
+<li><strong>Block deployments</strong> on test failures</li>
+<li><strong>Store test artifacts</strong> for analysis and debugging</li>
+</ul>
+<h2 id="congratulations">🎉 Congratulations!</h2>
+<p>You've successfully:
+- ✅ <strong>Generated comprehensive tests</strong> from YAML specifications
+- ✅ <strong>Run pgTAP tests</strong> in PostgreSQL
+- ✅ <strong>Run pytest tests</strong> with Python
+- ✅ <strong>Checked test coverage</strong> and quality metrics
+- ✅ <strong>Integrated testing</strong> into your development workflow</p>
+<h2 id="whats-next">🚀 What's Next?</h2>
+<ul>
+<li><strong><a href="../pgtap-tests/">pgTAP Tests</a></strong> - Deep dive into PostgreSQL testing</li>
+<li><strong><a href="../pytest-tests/">pytest Tests</a></strong> - Python integration testing</li>
+<li><strong><a href="../performance-tests/">Performance Tests</a></strong> - Benchmarking and optimization</li>
+<li><strong><a href="ci-cd-integration.md">CI/CD Integration</a></strong> - Automated testing pipelines</li>
+</ul>
+<p><strong>Ready to achieve 100% test coverage? Let's explore the test types! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

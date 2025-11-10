@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>SpecQL CLI Reference - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "SpecQL CLI Reference";
+        var mkdocs_page_input_path = "reference/cli-reference.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">SpecQL CLI Reference</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="specql-cli-reference">SpecQL CLI Reference</h1>
+<p>This guide covers the essential SpecQL command-line interface commands for generating schemas, validating specifications, and running tests.</p>
+<h2 id="quick-start-commands">🎯 Quick Start Commands</h2>
+<h3 id="installation">Installation</h3>
+<pre><code class="language-bash"># Install SpecQL
+pip install specql
+
+# Verify installation
+specql --version
+</code></pre>
+<h3 id="basic-workflow">Basic Workflow</h3>
+<pre><code class="language-bash"># 1. Validate your YAML
+specql validate entities/user.yaml
+
+# 2. Generate database schema
+specql generate schema entities/user.yaml
+
+# 3. Generate tests
+specql generate tests entities/user.yaml
+
+# 4. Run tests
+specql test run --type pgtap entities/user.yaml
+specql test run --type pytest entities/user.yaml
+</code></pre>
+<h2 id="command-reference">📋 Command Reference</h2>
+<h3 id="specql-generate"><code>specql generate</code></h3>
+<p>Generate database schemas, functions, and tests from YAML specifications.</p>
+<h4 id="generate-schema">Generate Schema</h4>
+<pre><code class="language-bash">specql generate schema [OPTIONS] ENTITY_FILES...
+</code></pre>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-bash"># Generate schema for one entity
+specql generate schema entities/user.yaml
+
+# Generate schema for multiple entities
+specql generate schema entities/user.yaml entities/company.yaml
+
+# Generate schema for all entities in directory
+specql generate schema entities/*.yaml
+</code></pre>
+<h4 id="generate-tests">Generate Tests</h4>
+<pre><code class="language-bash">specql generate tests [OPTIONS] ENTITY_FILES...
+</code></pre>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-bash"># Generate all test types
+specql generate tests entities/user.yaml
+
+# Generate only pgTAP tests
+specql generate tests --type pgtap entities/user.yaml
+
+# Generate only pytest tests
+specql generate tests --type pytest entities/user.yaml
+</code></pre>
+<p><strong>Options:</strong>
+- <code>--type [pgtap|pytest|performance]</code> - Test type to generate (default: all)</p>
+<h3 id="specql-validate"><code>specql validate</code></h3>
+<p>Validate YAML entity specifications for syntax errors and consistency.</p>
+<pre><code class="language-bash">specql validate [OPTIONS] ENTITY_FILES...
+</code></pre>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-bash"># Validate single file
+specql validate entities/user.yaml
+
+# Validate multiple files
+specql validate entities/user.yaml entities/company.yaml
+
+# Validate all entities
+specql validate entities/*.yaml
+
+# Verbose output
+specql validate entities/*.yaml --verbose
+</code></pre>
+<p><strong>Exit Codes:</strong>
+- <code>0</code> - All files valid
+- <code>1</code> - Validation errors found</p>
+<h3 id="specql-test-run"><code>specql test run</code></h3>
+<p>Execute generated tests against your database.</p>
+<pre><code class="language-bash">specql test run --type TYPE [OPTIONS] ENTITY_FILES...
+</code></pre>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-bash"># Run pgTAP tests
+specql test run --type pgtap entities/user.yaml
+
+# Run pytest tests
+specql test run --type pytest entities/user.yaml
+
+# Run all test types
+specql test run entities/user.yaml
+
+# Run tests for multiple entities
+specql test run entities/*.yaml
+</code></pre>
+<p><strong>Test Types:</strong>
+- <code>pgtap</code> - PostgreSQL native tests (fast, database-only)
+- <code>pytest</code> - Python integration tests (comprehensive, slower)
+- <code>performance</code> - Benchmarking tests (measure performance)</p>
+<h3 id="specql-test-coverage"><code>specql test coverage</code></h3>
+<p>Generate test coverage reports.</p>
+<pre><code class="language-bash">specql test coverage [OPTIONS] ENTITY_FILES...
+</code></pre>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-bash"># Generate coverage report
+specql test coverage entities/user.yaml
+
+# Export to HTML
+specql test coverage entities/user.yaml --format html --output coverage.html
+</code></pre>
+<h2 id="global-options">⚙️ Global Options</h2>
+<h3 id="environment">Environment</h3>
+<ul>
+<li><code>--env TEXT</code> - Environment to use (default: local)</li>
+<li><code>--config PATH</code> - Path to config file (default: confiture.yaml)</li>
+</ul>
+<h3 id="output">Output</h3>
+<ul>
+<li><code>--verbose, -v</code> - Verbose output</li>
+<li><code>--quiet, -q</code> - Suppress output</li>
+<li><code>--output PATH</code> - Output directory</li>
+</ul>
+<h3 id="database">Database</h3>
+<ul>
+<li><code>--database-url URL</code> - Database connection URL</li>
+<li>Uses <code>DATABASE_URL</code> environment variable if not specified</li>
+</ul>
+<h2 id="common-workflows">🔧 Common Workflows</h2>
+<h3 id="development-cycle">Development Cycle</h3>
+<pre><code class="language-bash"># Edit your YAML
+vim entities/user.yaml
+
+# Validate changes
+specql validate entities/user.yaml
+
+# Generate updated schema
+specql generate schema entities/user.yaml
+
+# Apply to database
+psql $DATABASE_URL -f db/schema/10_tables/user.sql
+
+# Generate and run tests
+specql generate tests entities/user.yaml
+specql test run entities/user.yaml
+</code></pre>
+<h3 id="cicd-pipeline">CI/CD Pipeline</h3>
+<pre><code class="language-yaml"># .github/workflows/test.yml
+name: Test
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: &gt;-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install SpecQL
+        run: pip install specql
+
+      - name: Validate Entities
+        run: specql validate entities/*.yaml
+
+      - name: Generate Schema
+        run: specql generate schema entities/*.yaml
+
+      - name: Apply Schema
+        run: |
+          psql postgresql://postgres:postgres@localhost:5432/postgres -f db/schema/00_foundation/*.sql
+          psql postgresql://postgres:postgres@localhost:5432/postgres -f db/schema/10_tables/*.sql
+
+      - name: Generate Tests
+        run: specql generate tests entities/*.yaml
+
+      - name: Run pgTAP Tests
+        run: specql test run --type pgtap entities/*.yaml
+
+      - name: Run pytest Tests
+        run: specql test run --type pytest entities/*.yaml
+</code></pre>
+<h3 id="multi-environment-setup">Multi-Environment Setup</h3>
+<pre><code class="language-bash"># Local development
+export DATABASE_URL=&quot;postgresql://localhost/specql_dev&quot;
+specql generate schema entities/*.yaml --env local
+
+# Staging deployment
+export DATABASE_URL=&quot;postgresql://staging-db/specql_staging&quot;
+specql generate schema entities/*.yaml --env staging
+
+# Production deployment
+export DATABASE_URL=&quot;postgresql://prod-db/specql_prod&quot;
+specql generate schema entities/*.yaml --env production
+</code></pre>
+<h2 id="troubleshooting">🆘 Troubleshooting</h2>
+<h3 id="command-not-found-specql">"Command not found: specql"</h3>
+<pre><code class="language-bash"># Check if installed
+pip list | grep specql
+
+# Reinstall
+pip install --upgrade specql
+
+# Add to PATH
+export PATH=&quot;$HOME/.local/bin:$PATH&quot;
+</code></pre>
+<h3 id="database-connection-failed">"Database connection failed"</h3>
+<pre><code class="language-bash"># Check DATABASE_URL
+echo $DATABASE_URL
+
+# Test connection manually
+psql $DATABASE_URL -c &quot;SELECT 1;&quot;
+
+# Check PostgreSQL is running
+sudo systemctl status postgresql  # Linux
+brew services list | grep postgres  # macOS
+</code></pre>
+<h3 id="validation-errors">"Validation errors"</h3>
+<pre><code class="language-bash"># Get detailed error information
+specql validate entities/user.yaml --verbose
+
+# Common issues:
+# - Invalid YAML syntax
+# - Unknown field types
+# - Missing required fields
+# - Invalid pattern configuration
+</code></pre>
+<h3 id="tests-failing">"Tests failing"</h3>
+<pre><code class="language-bash"># Check test output
+specql test run entities/user.yaml --verbose
+
+# Common issues:
+# - Schema not applied to database
+# - Test data conflicts
+# - Environment differences
+# - Database permissions
+</code></pre>
+<h3 id="permission-denied">"Permission denied"</h3>
+<pre><code class="language-bash"># Grant database permissions
+psql $DATABASE_URL -c &quot;GRANT ALL ON SCHEMA public TO specql_user;&quot;
+
+# Check file permissions
+ls -la entities/
+</code></pre>
+<h2 id="related-documentation">📚 Related Documentation</h2>
+<ul>
+<li><strong><a href="../getting-started/">Getting Started</a></strong> - Step-by-step tutorials</li>
+<li><strong><a href="yaml-schema.md">YAML Schema</a></strong> - Entity specification format</li>
+<li><strong><a href="../troubleshooting/">Troubleshooting</a></strong> - Common issues and solutions</li>
+<li><strong><a href="../best-practices/">Best Practices</a></strong> - Recommended patterns</li>
+</ul>
+<h2 id="next-steps">🎯 Next Steps</h2>
+<ul>
+<li><strong><a href="../guides/mutation-patterns/">Explore Patterns</a></strong> - Learn about business logic patterns</li>
+<li><strong><a href="../guides/test-generation/">Test Generation</a></strong> - Advanced testing features</li>
+<li><strong><a href="../guides/test-generation/ci-cd-integration.md">CI/CD Integration</a></strong> - Production deployment</li>
+</ul>
+<p><strong>Ready to build more complex applications? Check out the guides! 🚀</strong></p>
+<hr />
+<h2 id="specql-generate_1"><code>specql generate</code></h2>
+<p>Generate PostgreSQL schema and functions from SpecQL YAML files.</p>
+<h3 id="syntax">Syntax</h3>
+<pre><code class="language-bash">specql generate [OPTIONS] ENTITY_FILES...
+</code></pre>
+<h3 id="arguments">Arguments</h3>
+<ul>
+<li><code>ENTITY_FILES...</code> - One or more YAML entity files or glob patterns</li>
+</ul>
+<h3 id="options">Options</h3>
+<h4 id="-foundation-only"><code>--foundation-only</code></h4>
+<p>Generate only the app foundation SQL (types, schemas).</p>
+<p><strong>Use case</strong>: Initialize database before adding entities.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql generate entities/contact.yaml --foundation-only
+</code></pre>
+<p><strong>Output</strong>: <code>db/schema/00_foundation/000_app_foundation.sql</code></p>
+<h4 id="-include-tv"><code>--include-tv</code></h4>
+<p>Generate table views (CQRS read-side).</p>
+<p><strong>Use case</strong>: Enable read-optimized views for queries.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql generate entities/**/*.yaml --include-tv
+</code></pre>
+<p><strong>Output</strong>:
+- <code>db/schema/10_tables/</code> - Tables
+- <code>db/schema/10_tables/views/</code> - Table views</p>
+<h4 id="-env-text"><code>--env TEXT</code></h4>
+<p>Specify Confiture environment (default: <code>local</code>).</p>
+<p><strong>Use case</strong>: Generate for different environments (local, staging, prod).</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql generate entities/**/*.yaml --env staging
+</code></pre>
+<p><strong>Config</strong>: Uses <code>confiture.yaml</code> environment settings.</p>
+<h4 id="-with-impacts"><code>--with-impacts</code></h4>
+<p>Generate FraiseQL impact metadata (JSON).</p>
+<p><strong>Use case</strong>: Frontend integration, GraphQL client codegen.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql generate entities/**/*.yaml --with-impacts
+</code></pre>
+<p><strong>Output</strong>: <code>db/metadata/mutation_impacts.json</code></p>
+<h4 id="-output-frontend-path"><code>--output-frontend PATH</code></h4>
+<p>Generate frontend code (TypeScript types, Apollo hooks).</p>
+<p><strong>Use case</strong>: Full-stack codegen from YAML.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql generate entities/**/*.yaml \
+  --with-impacts \
+  --output-frontend=src/generated
+</code></pre>
+<p><strong>Output</strong>:
+- <code>src/generated/types.ts</code> - TypeScript types
+- <code>src/generated/mutations.ts</code> - Apollo hooks
+- <code>src/generated/docs/</code> - Markdown documentation</p>
+<h4 id="-output-format-flathierarchical"><code>--output-format [flat|hierarchical]</code></h4>
+<p>Control output directory structure.</p>
+<p><strong>Use case</strong>: Organize generated files by domain/subdomain.</p>
+<p><strong>Options</strong>:
+- <code>flat</code> (default): All files in single directory
+- <code>hierarchical</code>: Organize by <code>organization.domain</code> / <code>organization.subdomain</code></p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql generate entities/**/*.yaml --output-format hierarchical
+</code></pre>
+<p><strong>Output (flat)</strong>:</p>
+<pre><code>db/schema/10_tables/
+├── contact.sql
+├── company.sql
+└── order.sql
+</code></pre>
+<p><strong>Output (hierarchical)</strong>:</p>
+<pre><code>db/schema/10_tables/
+├── CRM/
+│   ├── Customer/
+│   │   └── 012311_contact.sql
+│   └── Account/
+│       └── 012312_company.sql
+└── Commerce/
+    └── Orders/
+        └── 042001_order.sql
+</code></pre>
+<h3 id="examples">Examples</h3>
+<h4 id="single-entity">Single Entity</h4>
+<pre><code class="language-bash">specql generate entities/contact.yaml
+</code></pre>
+<h4 id="multiple-entities">Multiple Entities</h4>
+<pre><code class="language-bash">specql generate entities/contact.yaml entities/company.yaml
+</code></pre>
+<h4 id="all-entities-in-directory">All Entities in Directory</h4>
+<pre><code class="language-bash">specql generate entities/**/*.yaml
+</code></pre>
+<h4 id="specific-schema">Specific Schema</h4>
+<pre><code class="language-bash">specql generate entities/crm/*.yaml
+</code></pre>
+<h4 id="foundation-only">Foundation Only</h4>
+<pre><code class="language-bash">specql generate entities/contact.yaml --foundation-only
+</code></pre>
+<h4 id="with-frontend-codegen">With Frontend Codegen</h4>
+<pre><code class="language-bash">specql generate entities/**/*.yaml \
+  --with-impacts \
+  --output-frontend=src/generated
+</code></pre>
+<h3 id="output-structure">Output Structure</h3>
+<pre><code>db/schema/
+├── 00_foundation/
+│   └── 000_app_foundation.sql  # Types, schemas
+├── 10_tables/
+│   ├── contact.sql             # Table DDL
+│   └── company.sql
+├── 20_helpers/
+│   ├── contact_helpers.sql     # Helper functions
+│   └── company_helpers.sql
+├── 30_functions/
+│   ├── qualify_lead.sql        # Business actions
+│   └── create_company.sql
+└── 40_metadata/
+    ├── contact_metadata.sql    # FraiseQL annotations
+    └── company_metadata.sql
+</code></pre>
+<hr />
+<h2 id="specql-validate_1"><code>specql validate</code></h2>
+<p>Validate SpecQL YAML entity files for syntax errors and consistency.</p>
+<h3 id="syntax_1">Syntax</h3>
+<pre><code class="language-bash">specql validate [OPTIONS] ENTITY_FILES...
+</code></pre>
+<h3 id="arguments_1">Arguments</h3>
+<ul>
+<li><code>ENTITY_FILES...</code> - One or more YAML files or glob patterns</li>
+</ul>
+<h3 id="options_1">Options</h3>
+<h4 id="-v-verbose"><code>-v, --verbose</code></h4>
+<p>Show detailed validation output.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql validate entities/**/*.yaml --verbose
+</code></pre>
+<h4 id="-check-impacts"><code>--check-impacts</code></h4>
+<p>Validate impact declarations are complete and consistent.</p>
+<p><strong>Use case</strong>: Ensure mutations declare all side effects.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql validate entities/**/*.yaml --check-impacts
+</code></pre>
+<p><strong>Checks</strong>:
+- All entities in <code>write:</code> exist
+- All entities in <code>read:</code> exist
+- No circular dependencies
+- No missing declarations</p>
+<h3 id="examples_1">Examples</h3>
+<h4 id="single-file">Single File</h4>
+<pre><code class="language-bash">specql validate entities/contact.yaml
+</code></pre>
+<h4 id="all-entities">All Entities</h4>
+<pre><code class="language-bash">specql validate entities/**/*.yaml
+</code></pre>
+<h4 id="with-impact-checking">With Impact Checking</h4>
+<pre><code class="language-bash">specql validate entities/**/*.yaml --check-impacts
+</code></pre>
+<h3 id="exit-codes">Exit Codes</h3>
+<ul>
+<li><code>0</code> - All files valid</li>
+<li><code>1</code> - Validation errors found</li>
+</ul>
+<h3 id="example-output">Example Output</h3>
+<p><strong>Success</strong>:</p>
+<pre><code>✅ entities/contact.yaml: Valid
+✅ entities/company.yaml: Valid
+✅ All 2 entities validated successfully
+</code></pre>
+<p><strong>Errors</strong>:</p>
+<pre><code>❌ entities/contact.yaml: Parse error
+  Line 5: Unknown field type 'string' (use 'text')
+
+❌ entities/order.yaml: Validation error
+  Action 'ship_order': References undefined entity 'Shipment'
+
+❌ 2 files have errors
+</code></pre>
+<hr />
+<h2 id="specql-check-codes"><code>specql check-codes</code></h2>
+<p>Verify uniqueness of table codes across all entities.</p>
+<h3 id="syntax_2">Syntax</h3>
+<pre><code class="language-bash">specql check-codes [OPTIONS] ENTITY_FILES...
+</code></pre>
+<h3 id="arguments_2">Arguments</h3>
+<ul>
+<li><code>ENTITY_FILES...</code> - YAML files or directories</li>
+</ul>
+<h3 id="options_2">Options</h3>
+<h4 id="-format-textjsoncsv"><code>--format [text|json|csv]</code></h4>
+<p>Output format (default: <code>text</code>).</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql check-codes entities/ --format json
+</code></pre>
+<h4 id="-export-path"><code>--export PATH</code></h4>
+<p>Export results to file.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql check-codes entities/ --format csv --export codes.csv
+</code></pre>
+<h3 id="examples_2">Examples</h3>
+<h4 id="check-all-entities">Check All Entities</h4>
+<pre><code class="language-bash">specql check-codes entities/**/*.yaml
+</code></pre>
+<h4 id="export-to-json">Export to JSON</h4>
+<pre><code class="language-bash">specql check-codes entities/ --format json --export table_codes.json
+</code></pre>
+<h4 id="export-to-csv">Export to CSV</h4>
+<pre><code class="language-bash">specql check-codes entities/ --format csv --export codes.csv
+</code></pre>
+<h3 id="output_1">Output</h3>
+<p><strong>Text Format</strong>:</p>
+<pre><code>📊 Table Code Report
+
+✅ All codes are unique
+
+Entities with table codes:
+  • 012311 - Contact (entities/crm/contact.yaml)
+  • 012312 - Company (entities/crm/company.yaml)
+  • 042001 - Order (entities/commerce/order.yaml)
+
+📈 Summary:
+  Total entities: 15
+  With table codes: 3
+  Without table codes: 12
+</code></pre>
+<p><strong>JSON Format</strong>:</p>
+<pre><code class="language-json">{
+  &quot;valid&quot;: true,
+  &quot;codes&quot;: [
+    {
+      &quot;code&quot;: &quot;012311&quot;,
+      &quot;entity&quot;: &quot;Contact&quot;,
+      &quot;file&quot;: &quot;entities/crm/contact.yaml&quot;
+    }
+  ],
+  &quot;duplicates&quot;: [],
+  &quot;summary&quot;: {
+    &quot;total&quot;: 15,
+    &quot;with_codes&quot;: 3,
+    &quot;without_codes&quot;: 12
+  }
+}
+</code></pre>
+<p><strong>Error (Duplicates)</strong>:</p>
+<pre><code>❌ Duplicate table codes found
+
+⚠️  Code 012311 assigned to multiple entities:
+  • Contact (entities/crm/contact.yaml)
+  • Customer (entities/crm/customer.yaml)
+
+❌ 1 duplicate code(s) found
+</code></pre>
+<hr />
+<h2 id="specql-diff"><code>specql diff</code></h2>
+<p>Compare generated SQL with existing schema files.</p>
+<h3 id="syntax_3">Syntax</h3>
+<pre><code class="language-bash">specql diff [OPTIONS] ENTITY_FILES...
+</code></pre>
+<h3 id="options_3">Options</h3>
+<h4 id="-compare-path"><code>--compare PATH</code></h4>
+<p>Path to existing SQL file(s) to compare against.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql diff entities/contact.yaml --compare db/schema/10_tables/contact.sql
+</code></pre>
+<h4 id="-ignore-whitespace"><code>--ignore-whitespace</code></h4>
+<p>Ignore whitespace differences.</p>
+<h4 id="-ignore-comments"><code>--ignore-comments</code></h4>
+<p>Ignore SQL comment differences.</p>
+<h3 id="examples_3">Examples</h3>
+<h4 id="compare-single-entity">Compare Single Entity</h4>
+<pre><code class="language-bash">specql diff entities/contact.yaml \
+  --compare db/schema/10_tables/contact.sql
+</code></pre>
+<h4 id="compare-all-entities">Compare All Entities</h4>
+<pre><code class="language-bash">specql diff entities/**/*.yaml \
+  --compare db/schema/10_tables/
+</code></pre>
+<h3 id="output_2">Output</h3>
+<pre><code class="language-diff">Comparing: entities/contact.yaml → db/schema/10_tables/contact.sql
+
+--- Generated
++++ Existing
+@@ -12,6 +12,7 @@
+   company INTEGER NOT NULL REFERENCES crm.tb_company(id),
+   status TEXT NOT NULL CHECK (status IN ('lead', 'qualified', 'customer')),
++  priority TEXT,  -- Added in existing, not in YAML
+
+✅ 1 file compared
+⚠️  1 difference found
+</code></pre>
+<hr />
+<h2 id="specql-docs"><code>specql docs</code></h2>
+<p>Generate documentation from entity files.</p>
+<h3 id="syntax_4">Syntax</h3>
+<pre><code class="language-bash">specql docs [OPTIONS] ENTITY_FILES...
+</code></pre>
+<h3 id="options_4">Options</h3>
+<h4 id="-output-dir-path"><code>--output-dir PATH</code></h4>
+<p>Output directory for docs (default: <code>docs/generated</code>).</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql docs entities/**/*.yaml --output-dir docs/entities
+</code></pre>
+<h4 id="-format-markdownhtml"><code>--format [markdown|html]</code></h4>
+<p>Documentation format (default: <code>markdown</code>).</p>
+<h3 id="examples_4">Examples</h3>
+<h4 id="generate-entity-docs">Generate Entity Docs</h4>
+<pre><code class="language-bash">specql docs entities/**/*.yaml
+</code></pre>
+<h4 id="output-to-custom-directory">Output to Custom Directory</h4>
+<pre><code class="language-bash">specql docs entities/ --output-dir docs/entities
+</code></pre>
+<h3 id="output_3">Output</h3>
+<pre><code>docs/generated/
+├── entities/
+│   ├── contact.md
+│   ├── company.md
+│   └── order.md
+└── index.md
+</code></pre>
+<hr />
+<h2 id="configuration">Configuration</h2>
+<h3 id="confitureyaml"><code>confiture.yaml</code></h3>
+<p>SpecQL uses Confiture for configuration.</p>
+<p><strong>Location</strong>: Project root (<code>confiture.yaml</code>)</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-yaml">schema_dirs:
+  - path: db/schema/00_foundation
+    order: 0
+  - path: db/schema/10_tables
+    order: 10
+  - path: db/schema/20_helpers
+    order: 20
+  - path: db/schema/30_functions
+    order: 30
+  - path: db/schema/40_metadata
+    order: 40
+
+environments:
+  local:
+    database_url: postgresql://localhost:5432/myapp_dev
+    migrations_dir: db/migrations
+
+  staging:
+    database_url: ${DATABASE_URL}
+    migrations_dir: db/migrations
+
+  production:
+    database_url: ${DATABASE_URL}
+    migrations_dir: db/migrations
+</code></pre>
+<h3 id="environment-variables">Environment Variables</h3>
+<h4 id="database_url"><code>DATABASE_URL</code></h4>
+<p>PostgreSQL connection string.</p>
+<p><strong>Format</strong>: <code>postgresql://user:password@host:port/database</code></p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">export DATABASE_URL=&quot;postgresql://localhost:5432/myapp&quot;
+</code></pre>
+<h4 id="specql_env"><code>SPECQL_ENV</code></h4>
+<p>Override environment (overrides <code>--env</code> flag).</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">export SPECQL_ENV=staging
+specql generate entities/**/*.yaml
+</code></pre>
+<hr />
+<h2 id="exit-codes_1">Exit Codes</h2>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0</code></td>
+<td>Success</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>General error (validation, parse, etc.)</td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td>File not found</td>
+</tr>
+<tr>
+<td><code>3</code></td>
+<td>Configuration error</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="common-workflows_1">Common Workflows</h2>
+<h3 id="initial-setup">Initial Setup</h3>
+<pre><code class="language-bash"># 1. Install
+uv add specql-generator
+
+# 2. Verify
+specql --version
+
+# 3. Create first entity
+mkdir -p entities
+cat &gt; entities/contact.yaml &lt;&lt; 'EOF'
+entity: Contact
+schema: crm
+fields:
+  email: text
+  name: text
+EOF
+
+# 4. Generate foundation
+specql generate entities/contact.yaml --foundation-only
+
+# 5. Generate tables
+specql generate entities/contact.yaml
+</code></pre>
+<h3 id="development-loop">Development Loop</h3>
+<pre><code class="language-bash"># 1. Edit YAML
+vim entities/contact.yaml
+
+# 2. Validate
+specql validate entities/contact.yaml
+
+# 3. Generate
+specql generate entities/contact.yaml
+
+# 4. Apply to DB
+psql myapp -f db/schema/10_tables/contact.sql
+
+# 5. Test
+psql myapp -c &quot;SELECT * FROM crm.tb_contact;&quot;
+</code></pre>
+<h3 id="full-codegen-backend-frontend">Full Codegen (Backend + Frontend)</h3>
+<pre><code class="language-bash"># Generate everything
+specql generate entities/**/*.yaml \
+  --with-impacts \
+  --output-frontend=src/generated
+
+# Output:
+# - db/schema/ (PostgreSQL)
+# - db/metadata/ (GraphQL metadata)
+# - src/generated/types.ts (TypeScript)
+# - src/generated/mutations.ts (Apollo hooks)
+</code></pre>
+<h3 id="cicd-pipeline_1">CI/CD Pipeline</h3>
+<pre><code class="language-bash">#!/bin/bash
+# .github/workflows/generate-schema.yml
+
+# 1. Validate all entities
+specql validate entities/**/*.yaml || exit 1
+
+# 2. Check table codes
+specql check-codes entities/**/*.yaml || exit 1
+
+# 3. Generate schema
+specql generate entities/**/*.yaml --env production
+
+# 4. Run migrations
+confiture migrate up --env production
+</code></pre>
+<hr />
+<h2 id="troubleshooting_1">Troubleshooting</h2>
+<p>See: <code>docs/guides/troubleshooting.md</code></p>
+<h3 id="common-issues">Common Issues</h3>
+<h4 id="command-not-found-specql_1">"Command not found: specql"</h4>
+<p><strong>Solution</strong>:</p>
+<pre><code class="language-bash"># Ensure UV environment is activated
+uv sync
+uv run specql --version
+</code></pre>
+<h4 id="no-such-file-or-directory">"No such file or directory"</h4>
+<p><strong>Solution</strong>: Use absolute paths or run from project root</p>
+<pre><code class="language-bash">cd /path/to/project
+specql generate entities/contact.yaml
+</code></pre>
+<h4 id="confiture-build-failed">"Confiture build failed"</h4>
+<p><strong>Solution</strong>: Install Confiture</p>
+<pre><code class="language-bash">uv add fraiseql-confiture
+</code></pre>
+<hr />
+<h2 id="reference">Reference</h2>
+<h3 id="related-documentation_1">Related Documentation</h3>
+<ul>
+<li><strong>YAML Reference</strong>: <code>docs/reference/yaml-reference.md</code></li>
+<li><strong>Migration Guide</strong>: <code>docs/guides/migration-guide.md</code></li>
+<li><strong>Troubleshooting</strong>: <code>docs/guides/troubleshooting.md</code></li>
+<li><strong>Examples</strong>: <code>examples/entities/</code></li>
+</ul>
+<h3 id="external-tools">External Tools</h3>
+<ul>
+<li><strong>UV</strong>: https://github.com/astral-sh/uv</li>
+<li><strong>Confiture</strong>: https://github.com/fraiseql/confiture</li>
+<li><strong>PostgreSQL</strong>: https://www.postgresql.org/docs/</li>
+</ul>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

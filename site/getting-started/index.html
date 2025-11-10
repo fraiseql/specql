@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Getting Started with SpecQL - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Getting Started with SpecQL";
+        var mkdocs_page_input_path = "getting-started/README.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="./">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Getting Started with SpecQL</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="getting-started-with-specql">Getting Started with SpecQL</h1>
+<p>Welcome! This guide will get you up and running with SpecQL in <strong>5 minutes</strong>. By the end, you'll have created your first entity, used a mutation pattern, and generated automated tests.</p>
+<h2 id="what-youll-learn">🎯 What You'll Learn</h2>
+<ul>
+<li>Install SpecQL</li>
+<li>Create your first entity</li>
+<li>Use a mutation pattern</li>
+<li>Generate and run tests</li>
+<li>Apply changes to a database</li>
+</ul>
+<h2 id="prerequisites">📋 Prerequisites</h2>
+<ul>
+<li>Python 3.8+</li>
+<li>PostgreSQL 12+</li>
+<li>Basic command-line knowledge</li>
+</ul>
+<h2 id="step-1-install-specql-1-minute">🚀 Step 1: Install SpecQL (1 minute)</h2>
+<pre><code class="language-bash"># Install SpecQL
+pip install specql
+
+# Verify installation
+specql --version
+</code></pre>
+<p><strong>Expected output:</strong></p>
+<pre><code>SpecQL v1.0.0
+</code></pre>
+<h2 id="step-2-create-your-first-entity-2-minutes">🏗️ Step 2: Create Your First Entity (2 minutes)</h2>
+<p>Create a new directory for your project and define your first entity:</p>
+<pre><code class="language-bash"># Create project directory
+mkdir my-specql-project
+cd my-specql-project
+
+# Create entities directory
+mkdir entities
+</code></pre>
+<p>Create <code>entities/user.yaml</code>:</p>
+<pre><code class="language-yaml"># entities/user.yaml
+name: user
+description: &quot;User account management&quot;
+
+fields:
+  id: uuid
+  email: string
+  name: string
+  status: string
+  created_at: timestamp
+  updated_at: timestamp
+
+patterns:
+  - name: state_machine
+    states: [inactive, active, suspended]
+    initial_state: inactive
+    transitions:
+      - from: inactive
+        to: active
+        trigger: activate
+      - from: active
+        to: suspended
+        trigger: suspend
+      - from: suspended
+        to: active
+        trigger: reactivate
+</code></pre>
+<h2 id="step-3-generate-schema-1-minute">🔧 Step 3: Generate Schema (1 minute)</h2>
+<p>Generate the database schema from your entity:</p>
+<pre><code class="language-bash"># Generate schema
+specql generate schema entities/user.yaml
+
+# Check what was generated
+ls -la db/schema/
+</code></pre>
+<p><strong>Expected output:</strong></p>
+<pre><code>db/schema/
+├── 00_foundation/
+├── 10_tables/
+│   └── user.sql
+├── 20_constraints/
+│   └── user_constraints.sql
+├── 30_indexes/
+│   └── user_indexes.sql
+└── 40_functions/
+    └── user_state_machine.sql
+</code></pre>
+<h2 id="step-4-generate-tests-30-seconds">🧪 Step 4: Generate Tests (30 seconds)</h2>
+<p>Generate comprehensive tests automatically:</p>
+<pre><code class="language-bash"># Generate tests
+specql generate tests entities/user.yaml
+
+# Check generated tests
+ls -la tests/
+</code></pre>
+<p><strong>Expected output:</strong></p>
+<pre><code>tests/
+├── pgtap/
+│   └── user_state_machine_test.sql
+└── pytest/
+    └── test_user_state_machine.py
+</code></pre>
+<h2 id="step-5-apply-to-database-30-seconds">🗄️ Step 5: Apply to Database (30 seconds)</h2>
+<p>Set up a PostgreSQL database and apply your schema:</p>
+<pre><code class="language-bash"># Create database (if needed)
+createdb specql_demo
+
+# Apply schema
+psql specql_demo -f db/schema/10_tables/user.sql
+psql specql_demo -f db/schema/20_constraints/user_constraints.sql
+psql specql_demo -f db/schema/30_indexes/user_indexes.sql
+psql specql_demo -f db/schema/40_functions/user_state_machine.sql
+</code></pre>
+<h2 id="step-6-verify-everything-works-30-seconds">✅ Step 6: Verify Everything Works (30 seconds)</h2>
+<p>Run the generated tests to verify everything works:</p>
+<pre><code class="language-bash"># Run pgTAP tests
+specql test run --type pgtap entities/user.yaml
+
+# Run pytest tests
+specql test run --type pytest entities/user.yaml
+</code></pre>
+<p><strong>Expected output:</strong></p>
+<pre><code>✅ All tests passed!
+</code></pre>
+<h2 id="congratulations">🎉 Congratulations!</h2>
+<p>You've successfully:
+- ✅ Installed SpecQL
+- ✅ Created your first entity with a state machine pattern
+- ✅ Generated database schema and functions
+- ✅ Generated comprehensive tests
+- ✅ Applied changes to PostgreSQL
+- ✅ Verified everything works with automated tests</p>
+<h2 id="whats-next">🚀 What's Next?</h2>
+<p>Now that you have the basics, explore more advanced features:</p>
+<h3 id="create-more-entities"><a href="first-entity/">Create More Entities</a></h3>
+<p>Learn about relationships, validation, and complex field types.</p>
+<h3 id="use-more-patterns"><a href="first-pattern/">Use More Patterns</a></h3>
+<p>Explore the 27 available mutation patterns for common business logic.</p>
+<h3 id="generate-more-tests"><a href="first-tests/">Generate More Tests</a></h3>
+<p>Set up CI/CD pipelines with automated testing.</p>
+<h3 id="cli-reference"><a href="../reference/cli-reference/">CLI Reference</a></h3>
+<p>Master the command-line interface for advanced workflows.</p>
+<h2 id="pro-tips">💡 Pro Tips</h2>
+<ul>
+<li><strong>Start Simple</strong>: Begin with basic entities, add patterns as needed</li>
+<li><strong>Test Early</strong>: Generate tests immediately after creating entities</li>
+<li><strong>Version Control</strong>: Commit your YAML specs alongside generated code</li>
+<li><strong>Iterate Quickly</strong>: YAML changes → Generate → Test → Deploy</li>
+</ul>
+<h2 id="need-help">🆘 Need Help?</h2>
+<ul>
+<li><strong>Installation Issues</strong>: Check <a href="installation/">Installation Guide</a></li>
+<li><strong>Pattern Questions</strong>: See <a href="../guides/mutation-patterns/getting-started/">Pattern Basics</a></li>
+<li><strong>Community Support</strong>: Join our <a href="https://discord.gg/specql">Discord</a></li>
+</ul>
+<p><strong>Ready to build something amazing? Let's continue! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,1200 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>SpecQL stdlib Integration - Phased Implementation Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "SpecQL stdlib Integration - Phased Implementation Plan";
+        var mkdocs_page_input_path = "implementation-plans/STDLIB_INTEGRATION_PHASED_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">SpecQL stdlib Integration - Phased Implementation Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="specql-stdlib-integration-phased-implementation-plan">SpecQL stdlib Integration - Phased Implementation Plan</h1>
+<p><strong>Project</strong>: printoptim_backend_poc
+<strong>Task</strong>: Integrate 30 battle-tested entities from SpecQL stdlib v1.1.0
+<strong>Complexity</strong>: Complex | <strong>Phased TDD Approach</strong>
+<strong>Document Created</strong>: 2025-11-09</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>Integrate the SpecQL standard library (30 production-ready entities) into printoptim_backend_poc to demonstrate the framework's ability to generate production-quality code from real-world entity definitions. The stdlib showcases advanced FraiseQL features including rich scalar types (coordinates, email, phone, money, url), hierarchical entities, and complex business actions.</p>
+<p><strong>Key Challenge</strong>: The stdlib uses rich types that are already defined in <code>src/core/scalar_types.py</code> but may not be fully integrated across all generators (Team B: Schema, Team C: Actions, Team D: FraiseQL).</p>
+<p><strong>Success Criteria</strong>:
+- All 30 stdlib entities generate valid PostgreSQL DDL
+- Rich types correctly map to PostgreSQL types with validation constraints
+- Spatial types (coordinates) generate proper GIST indexes
+- Generated code matches PrintOptim production patterns
+- Full test coverage for rich type handling</p>
+<hr />
+<h2 id="current-state-analysis">Current State Analysis</h2>
+<h3 id="whats-already-implemented">✅ What's Already Implemented</h3>
+<ol>
+<li><strong>Rich Type Registry</strong> (<code>src/core/scalar_types.py</code>):</li>
+<li>49 scalar types defined (email, phone, url, coordinates, money, etc.)</li>
+<li>PostgreSQL type mappings complete</li>
+<li>Validation patterns (regex) defined</li>
+<li>
+<p>Composite types defined (MoneyAmount, ContactInfo, etc.)</p>
+</li>
+<li>
+<p><strong>Team A (Parser)</strong>:</p>
+</li>
+<li>Should already parse stdlib YAML files</li>
+<li>
+<p>Needs validation for rich types</p>
+</li>
+<li>
+<p><strong>Team B (Schema Generator)</strong>:</p>
+</li>
+<li>Basic table generation works</li>
+<li>
+<p>Rich type handling may be incomplete</p>
+</li>
+<li>
+<p><strong>Team C (Action Compiler)</strong>:</p>
+</li>
+<li>Basic action compilation works</li>
+<li>
+<p>Rich type handling in expressions may be incomplete</p>
+</li>
+<li>
+<p><strong>Team D (FraiseQL)</strong>:</p>
+</li>
+<li>Metadata generation works</li>
+<li>Rich type GraphQL scalar mapping may be incomplete</li>
+</ol>
+<h3 id="whats-missing">❌ What's Missing</h3>
+<ol>
+<li><strong>Rich Type Validation</strong> in Parser (Team A)</li>
+<li><strong>Rich Type PostgreSQL Generation</strong> in Schema Generator (Team B):</li>
+<li>CHECK constraints for validated types (email, phone, url)</li>
+<li>GIST indexes for spatial types (coordinates)</li>
+<li>Proper NUMERIC precision for money, percentage, etc.</li>
+<li><strong>Rich Type Expression Handling</strong> in Action Compiler (Team C)</li>
+<li><strong>GraphQL Scalar Definitions</strong> for FraiseQL (Team D)</li>
+<li><strong>End-to-End Tests</strong> with stdlib entities</li>
+<li><strong>Migration Scripts</strong> for stdlib deployment</li>
+</ol>
+<hr />
+<h2 id="phase-1-rich-type-foundation-parser-validation">PHASE 1: Rich Type Foundation - Parser &amp; Validation</h2>
+<p><strong>Objective</strong>: Ensure Team A parser correctly validates all rich types used in stdlib entities</p>
+<p><strong>Estimated Time</strong>: 3-4 hours</p>
+<h3 id="tdd-cycle-11-parse-stdlib-entities-with-rich-types">TDD Cycle 1.1: Parse stdlib entities with rich types</h3>
+<h4 id="red-write-failing-test-for-rich-type-parsing">🔴 RED: Write failing test for rich type parsing</h4>
+<p><strong>Test file</strong>: <code>tests/unit/core/test_rich_type_parsing.py</code></p>
+<pre><code class="language-python">def test_parse_contact_entity_with_email_phone_rich_types():
+    &quot;&quot;&quot;Contact entity uses email and phone rich types&quot;&quot;&quot;
+    yaml_content = &quot;&quot;&quot;
+entity: Contact
+schema: tenant
+fields:
+  email_address:
+    type: email
+    nullable: false
+  mobile_phone:
+    type: phone
+&quot;&quot;&quot;
+    result = parse_specql_yaml(yaml_content)
+
+    # Should recognize 'email' and 'phone' as rich scalar types
+    assert result.fields['email_address'].type_name == 'email'
+    assert result.fields['email_address'].is_rich_type == True
+    assert result.fields['mobile_phone'].type_name == 'phone'
+</code></pre>
+<p><strong>Expected failure</strong>: <code>AttributeError: 'FieldDef' object has no attribute 'is_rich_type'</code></p>
+<h4 id="green-implement-minimal-rich-type-detection">🟢 GREEN: Implement minimal rich type detection</h4>
+<p><strong>Files to modify</strong>:
+- <code>src/core/ast_models.py</code> - Add <code>is_rich_type</code> property to FieldDef
+- <code>src/core/parser.py</code> - Detect rich types using <code>scalar_types.is_scalar_type()</code></p>
+<p><strong>Minimal implementation</strong>:</p>
+<pre><code class="language-python"># In ast_models.py
+from src.core.scalar_types import is_rich_type
+
+@dataclass
+class FieldDef:
+    name: str
+    type_name: str
+    # ... existing fields ...
+
+    @property
+    def is_rich_type(self) -&gt; bool:
+        &quot;&quot;&quot;Check if field uses a rich type (scalar or composite)&quot;&quot;&quot;
+        return is_rich_type(self.type_name)
+</code></pre>
+<p><strong>Run test</strong>: <code>uv run pytest tests/unit/core/test_rich_type_parsing.py::test_parse_contact_entity_with_email_phone_rich_types -v</code></p>
+<h4 id="refactor-clean-up-rich-type-detection">🔧 REFACTOR: Clean up rich type detection</h4>
+<ul>
+<li>Add comprehensive rich type validation</li>
+<li>Add helpful error messages for unknown types</li>
+<li>Follow existing parser patterns</li>
+</ul>
+<p><strong>Run broader tests</strong>: <code>uv run pytest tests/unit/core/ -v</code></p>
+<h4 id="qa-verify-phase-completion">✅ QA: Verify phase completion</h4>
+<pre><code class="language-bash"># All parser tests pass
+uv run pytest tests/unit/core/ -v
+
+# Parse real stdlib entities
+uv run python -c &quot;
+from src.core.parser import parse_specql_file
+result = parse_specql_file('stdlib/crm/contact.yaml')
+print(f'Parsed {result.entity_name} with {len(result.fields)} fields')
+&quot;
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] All parser tests pass
+- [ ] Real stdlib entities parse without errors
+- [ ] Rich types correctly identified
+- [ ] Clear error messages for invalid types</p>
+<hr />
+<h2 id="phase-2-rich-type-postgresql-generation-team-b">PHASE 2: Rich Type PostgreSQL Generation (Team B)</h2>
+<p><strong>Objective</strong>: Generate correct PostgreSQL DDL for all rich scalar types</p>
+<p><strong>Estimated Time</strong>: 6-8 hours</p>
+<h3 id="tdd-cycle-21-generate-email-type-with-validation">TDD Cycle 2.1: Generate email type with validation</h3>
+<h4 id="red-write-failing-test-for-email-validation">🔴 RED: Write failing test for email validation</h4>
+<p><strong>Test file</strong>: <code>tests/unit/generators/test_rich_type_schema_generation.py</code></p>
+<pre><code class="language-python">def test_generate_email_field_with_check_constraint():
+    &quot;&quot;&quot;Email rich type should generate TEXT with email validation CHECK constraint&quot;&quot;&quot;
+    field = FieldDef(
+        name='email_address',
+        type_name='email',
+        nullable=False
+    )
+
+    sql = generate_field_ddl(field)
+
+    # Should generate TEXT with email regex CHECK constraint
+    assert 'email_address TEXT NOT NULL' in sql
+    assert 'CHECK (' in sql
+    assert '@' in sql  # Email regex pattern
+</code></pre>
+<p><strong>Expected failure</strong>: <code>AssertionError: 'CHECK (' not in sql</code></p>
+<h4 id="green-implement-email-field-generation">🟢 GREEN: Implement email field generation</h4>
+<p><strong>Files to modify</strong>:
+- <code>src/generators/table_generator.py</code> - Use <code>scalar_types.get_scalar_type()</code> for rich types</p>
+<p><strong>Minimal implementation</strong>:</p>
+<pre><code class="language-python">from src.core.scalar_types import get_scalar_type, is_scalar_type
+
+def generate_field_ddl(field: FieldDef) -&gt; str:
+    if is_scalar_type(field.type_name):
+        scalar_def = get_scalar_type(field.type_name)
+
+        # Get PostgreSQL type with precision
+        pg_type = scalar_def.get_postgres_type_with_precision()
+
+        # Build DDL
+        parts = [f&quot;{field.name} {pg_type}&quot;]
+
+        if not field.nullable:
+            parts.append(&quot;NOT NULL&quot;)
+
+        # Add validation constraint if defined
+        if scalar_def.validation_pattern:
+            parts.append(f&quot;CHECK ({field.name} ~* '{scalar_def.validation_pattern}')&quot;)
+
+        return ' '.join(parts)
+
+    # ... existing logic for basic types ...
+</code></pre>
+<p><strong>Run test</strong>: <code>uv run pytest tests/unit/generators/test_rich_type_schema_generation.py::test_generate_email_field_with_check_constraint -v</code></p>
+<h4 id="refactor-clean-up-and-extend-to-all-validated-types">🔧 REFACTOR: Clean up and extend to all validated types</h4>
+<ul>
+<li>Handle phone, url, slug, etc.</li>
+<li>Extract validation constraint generation to helper function</li>
+<li>Add tests for min_value, max_value constraints (money, percentage)</li>
+</ul>
+<h4 id="qa-verify-email-and-phone-generation">✅ QA: Verify email and phone generation</h4>
+<pre><code class="language-bash">uv run pytest tests/unit/generators/test_rich_type_schema_generation.py -v
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] Email fields generate with regex validation
+- [ ] Phone fields generate with E.164 validation
+- [ ] URL fields generate with URL validation
+- [ ] Code follows existing table generator patterns</p>
+<hr />
+<h3 id="tdd-cycle-22-generate-coordinates-type-with-gist-index">TDD Cycle 2.2: Generate coordinates type with GIST index</h3>
+<h4 id="red-write-failing-test-for-coordinates-spatial-index">🔴 RED: Write failing test for coordinates spatial index</h4>
+<p><strong>Test file</strong>: <code>tests/unit/generators/test_rich_type_schema_generation.py</code></p>
+<pre><code class="language-python">def test_generate_coordinates_field_with_gist_index():
+    &quot;&quot;&quot;Coordinates rich type should generate POINT type with GIST spatial index&quot;&quot;&quot;
+    entity = EntityDef(
+        entity_name='PublicAddress',
+        schema='common',
+        fields={
+            'coordinates': FieldDef(
+                name='coordinates',
+                type_name='coordinates',
+                nullable=True
+            )
+        }
+    )
+
+    sql = generate_table_ddl(entity)
+
+    # Should generate POINT type
+    assert 'coordinates POINT' in sql
+
+    # Should generate GIST spatial index
+    assert 'CREATE INDEX' in sql
+    assert 'USING GIST (coordinates)' in sql
+</code></pre>
+<p><strong>Expected failure</strong>: <code>AssertionError: 'USING GIST (coordinates)' not in sql</code></p>
+<h4 id="green-implement-spatial-index-generation">🟢 GREEN: Implement spatial index generation</h4>
+<p><strong>Files to modify</strong>:
+- <code>src/generators/index_generator.py</code> - Add spatial index detection</p>
+<p><strong>Minimal implementation</strong>:</p>
+<pre><code class="language-python">from src.core.scalar_types import get_scalar_type, PostgreSQLType
+
+def generate_indexes(entity: EntityDef) -&gt; List[str]:
+    indexes = []
+
+    # ... existing index logic ...
+
+    # Add spatial indexes for POINT types
+    for field_name, field in entity.fields.items():
+        if is_scalar_type(field.type_name):
+            scalar_def = get_scalar_type(field.type_name)
+            if scalar_def.postgres_type == PostgreSQLType.POINT:
+                index_name = f&quot;idx_tb_{entity.entity_name.lower()}_{field_name}&quot;
+                indexes.append(
+                    f&quot;CREATE INDEX {index_name} ON {entity.schema}.tb_{entity.entity_name.lower()} &quot;
+                    f&quot;USING GIST ({field_name});&quot;
+                )
+
+    return indexes
+</code></pre>
+<p><strong>Run test</strong>: <code>uv run pytest tests/unit/generators/test_rich_type_schema_generation.py::test_generate_coordinates_field_with_gist_index -v</code></p>
+<h4 id="refactor-clean-up-spatial-index-generation">🔧 REFACTOR: Clean up spatial index generation</h4>
+<ul>
+<li>Extract to helper function</li>
+<li>Add configuration for spatial index types (GIST, BRIN, etc.)</li>
+<li>Handle nullable vs non-nullable spatial fields</li>
+</ul>
+<h4 id="qa-verify-spatial-index-generation">✅ QA: Verify spatial index generation</h4>
+<pre><code class="language-bash">uv run pytest tests/unit/generators/ -k spatial -v
+uv run pytest tests/unit/schema/ -v
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] Coordinates fields generate POINT type
+- [ ] GIST indexes created for spatial fields
+- [ ] Index naming follows conventions
+- [ ] All schema generator tests pass</p>
+<hr />
+<h3 id="tdd-cycle-23-generate-money-type-with-precision">TDD Cycle 2.3: Generate money type with precision</h3>
+<h4 id="red-write-failing-test-for-money-precision">🔴 RED: Write failing test for money precision</h4>
+<p><strong>Test file</strong>: <code>tests/unit/generators/test_rich_type_schema_generation.py</code></p>
+<pre><code class="language-python">def test_generate_money_field_with_numeric_precision():
+    &quot;&quot;&quot;Money rich type should generate NUMERIC(19,4)&quot;&quot;&quot;
+    field = FieldDef(
+        name='amount',
+        type_name='money',
+        nullable=False
+    )
+
+    sql = generate_field_ddl(field)
+
+    # Should generate NUMERIC with (19,4) precision
+    assert 'amount NUMERIC(19,4) NOT NULL' in sql
+</code></pre>
+<p><strong>Expected failure</strong>: <code>AssertionError: 'NUMERIC(19,4)' not in sql</code></p>
+<h4 id="green-implement-precision-handling">🟢 GREEN: Implement precision handling</h4>
+<p><strong>Implementation</strong>: Already handled by <code>get_postgres_type_with_precision()</code> in Cycle 2.1</p>
+<p><strong>Run test</strong>: <code>uv run pytest tests/unit/generators/test_rich_type_schema_generation.py::test_generate_money_field_with_numeric_precision -v</code></p>
+<h4 id="refactor-test-all-precision-types">🔧 REFACTOR: Test all precision types</h4>
+<ul>
+<li>Test percentage (5,2)</li>
+<li>Test latitude (10,8)</li>
+<li>Test longitude (11,8)</li>
+<li>Test exchangeRate (19,8)</li>
+</ul>
+<h4 id="qa-verify-all-numeric-precision-types">✅ QA: Verify all numeric precision types</h4>
+<pre><code class="language-bash">uv run pytest tests/unit/generators/ -k precision -v
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] Money generates NUMERIC(19,4)
+- [ ] Percentage generates NUMERIC(5,2)
+- [ ] All numeric types have correct precision
+- [ ] Min/max constraints generated where defined</p>
+<hr />
+<h2 id="phase-3-stdlib-entity-end-to-end-tests">PHASE 3: stdlib Entity End-to-End Tests</h2>
+<p><strong>Objective</strong>: Verify complete DDL generation for real stdlib entities</p>
+<p><strong>Estimated Time</strong>: 4-6 hours</p>
+<h3 id="tdd-cycle-31-generate-contact-entity-crm">TDD Cycle 3.1: Generate Contact entity (crm)</h3>
+<h4 id="red-write-failing-e2e-test-for-contact">🔴 RED: Write failing E2E test for Contact</h4>
+<p><strong>Test file</strong>: <code>tests/integration/stdlib/test_stdlib_contact_generation.py</code></p>
+<pre><code class="language-python">def test_generate_contact_entity_full_ddl():
+    &quot;&quot;&quot;Generate complete DDL for stdlib Contact entity&quot;&quot;&quot;
+    entity = parse_specql_file('stdlib/crm/contact.yaml')
+
+    ddl = generate_complete_schema(entity)
+
+    # Verify table creation
+    assert 'CREATE TABLE tenant.tb_contact' in ddl
+
+    # Verify rich type fields
+    assert 'email_address TEXT NOT NULL CHECK' in ddl  # Email validation
+    assert 'office_phone TEXT CHECK' in ddl  # Phone validation
+    assert 'mobile_phone TEXT CHECK' in ddl
+
+    # Verify foreign keys
+    assert 'REFERENCES tenant.tb_organization' in ddl
+    assert 'REFERENCES common.tb_genre' in ddl
+
+    # Verify Trinity pattern
+    assert 'pk_contact INTEGER PRIMARY KEY' in ddl
+    assert 'id UUID NOT NULL DEFAULT gen_random_uuid()' in ddl
+    assert 'identifier TEXT NOT NULL' in ddl
+
+    # Verify audit fields
+    assert 'created_at TIMESTAMPTZ NOT NULL DEFAULT now()' in ddl
+    assert 'updated_at TIMESTAMPTZ NOT NULL DEFAULT now()' in ddl
+</code></pre>
+<p><strong>Expected failure</strong>: Email/phone CHECK constraints not generated</p>
+<h4 id="green-ensure-schema-generator-handles-contact">🟢 GREEN: Ensure schema generator handles Contact</h4>
+<p><strong>Files to verify</strong>:
+- <code>src/generators/schema_orchestrator.py</code> - Orchestrate full generation
+- <code>src/generators/table_generator.py</code> - Rich type handling from Phase 2</p>
+<p><strong>Run test</strong>: <code>uv run pytest tests/integration/stdlib/test_stdlib_contact_generation.py::test_generate_contact_entity_full_ddl -v</code></p>
+<h4 id="refactor-add-validation-helpers">🔧 REFACTOR: Add validation helpers</h4>
+<ul>
+<li>Extract DDL assertion helpers</li>
+<li>Add snapshot testing for generated SQL</li>
+<li>Verify against PrintOptim production schema</li>
+</ul>
+<h4 id="qa-full-contact-entity-generation">✅ QA: Full Contact entity generation</h4>
+<pre><code class="language-bash"># Run integration test
+uv run pytest tests/integration/stdlib/test_stdlib_contact_generation.py -v
+
+# Generate actual SQL file
+uv run python -c &quot;
+from src.core.parser import parse_specql_file
+from src.generators.schema_orchestrator import generate_complete_schema
+
+entity = parse_specql_file('stdlib/crm/contact.yaml')
+ddl = generate_complete_schema(entity)
+print(ddl)
+&quot; &gt; /tmp/contact_generated.sql
+
+# Validate SQL syntax
+psql -d postgres -f /tmp/contact_generated.sql --dry-run
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] Contact entity generates complete DDL
+- [ ] Email and phone validation constraints present
+- [ ] Foreign keys correctly generated
+- [ ] Trinity pattern applied
+- [ ] SQL is syntactically valid</p>
+<hr />
+<h3 id="tdd-cycle-32-generate-publicaddress-entity-geo">TDD Cycle 3.2: Generate PublicAddress entity (geo)</h3>
+<h4 id="red-write-failing-e2e-test-for-publicaddress">🔴 RED: Write failing E2E test for PublicAddress</h4>
+<p><strong>Test file</strong>: <code>tests/integration/stdlib/test_stdlib_public_address_generation.py</code></p>
+<pre><code class="language-python">def test_generate_public_address_with_coordinates():
+    &quot;&quot;&quot;Generate complete DDL for stdlib PublicAddress with spatial coordinates&quot;&quot;&quot;
+    entity = parse_specql_file('stdlib/geo/public_address.yaml')
+
+    ddl = generate_complete_schema(entity)
+
+    # Verify POINT type for coordinates
+    assert 'coordinates POINT' in ddl
+
+    # Verify GIST spatial index
+    assert 'CREATE INDEX idx_tb_publicaddress_coordinates' in ddl
+    assert 'USING GIST (coordinates)' in ddl
+
+    # Verify foreign keys to geo entities
+    assert 'REFERENCES common.tb_country' in ddl
+    assert 'REFERENCES common.tb_postalcode' in ddl
+</code></pre>
+<p><strong>Expected failure</strong>: GIST index not generated</p>
+<h4 id="green-ensure-spatial-index-generation-works">🟢 GREEN: Ensure spatial index generation works</h4>
+<p><strong>Files to verify</strong>:
+- <code>src/generators/index_generator.py</code> - Spatial index logic from Phase 2.2</p>
+<p><strong>Run test</strong>: <code>uv run pytest tests/integration/stdlib/test_stdlib_public_address_generation.py::test_generate_public_address_with_coordinates -v</code></p>
+<h4 id="refactor-verify-postgis-compatibility">🔧 REFACTOR: Verify PostGIS compatibility</h4>
+<ul>
+<li>Test on PostgreSQL with PostGIS extension</li>
+<li>Validate POINT vs GEOMETRY types</li>
+<li>Add comments explaining spatial choices</li>
+</ul>
+<h4 id="qa-full-publicaddress-generation">✅ QA: Full PublicAddress generation</h4>
+<pre><code class="language-bash">uv run pytest tests/integration/stdlib/test_stdlib_public_address_generation.py -v
+
+# Test with PostGIS if available
+createdb test_spatial
+psql test_spatial -c &quot;CREATE EXTENSION postgis;&quot;
+psql test_spatial -f /tmp/public_address_generated.sql
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] PublicAddress generates with POINT type
+- [ ] GIST index created
+- [ ] Works with and without PostGIS
+- [ ] Spatial queries functional</p>
+<hr />
+<h3 id="tdd-cycle-33-generate-all-30-stdlib-entities">TDD Cycle 3.3: Generate all 30 stdlib entities</h3>
+<h4 id="red-write-parameterized-test-for-all-stdlib-entities">🔴 RED: Write parameterized test for all stdlib entities</h4>
+<p><strong>Test file</strong>: <code>tests/integration/stdlib/test_stdlib_full_generation.py</code></p>
+<pre><code class="language-python">import pytest
+from pathlib import Path
+
+STDLIB_ENTITIES = [
+    'i18n/country.yaml',
+    'i18n/currency.yaml',
+    'crm/contact.yaml',
+    'crm/organization.yaml',
+    'geo/public_address.yaml',
+    # ... all 30 entities
+]
+
+@pytest.mark.parametrize('entity_path', STDLIB_ENTITIES)
+def test_generate_stdlib_entity(entity_path):
+    &quot;&quot;&quot;Generate DDL for all stdlib entities without errors&quot;&quot;&quot;
+    entity = parse_specql_file(f'stdlib/{entity_path}')
+
+    # Should not raise any exceptions
+    ddl = generate_complete_schema(entity)
+
+    # Should generate non-empty DDL
+    assert len(ddl) &gt; 100
+    assert 'CREATE TABLE' in ddl
+</code></pre>
+<p><strong>Expected failure</strong>: Some entities fail due to missing dependencies or edge cases</p>
+<h4 id="green-fix-failing-entities-one-by-one">🟢 GREEN: Fix failing entities one by one</h4>
+<p><strong>Approach</strong>:
+1. Run test to identify failing entities
+2. Fix parser, generator, or entity definition
+3. Repeat until all pass</p>
+<p><strong>Run test</strong>: <code>uv run pytest tests/integration/stdlib/test_stdlib_full_generation.py -v</code></p>
+<h4 id="refactor-add-comprehensive-validation">🔧 REFACTOR: Add comprehensive validation</h4>
+<ul>
+<li>Validate all foreign key references exist</li>
+<li>Check for circular dependencies</li>
+<li>Validate schema assignments (common vs tenant)</li>
+</ul>
+<h4 id="qa-all-30-entities-generate-successfully">✅ QA: All 30 entities generate successfully</h4>
+<pre><code class="language-bash"># Generate all entities
+uv run pytest tests/integration/stdlib/test_stdlib_full_generation.py -v
+
+# Generate full stdlib schema
+uv run python scripts/generate_stdlib_schema.py &gt; db/schema/stdlib_full.sql
+
+# Validate SQL syntax
+psql -d test_db -f db/schema/stdlib_full.sql
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] All 30 entities parse successfully
+- [ ] All 30 entities generate valid DDL
+- [ ] No missing dependencies
+- [ ] Full schema deploys to PostgreSQL</p>
+<hr />
+<h2 id="phase-4-action-compilation-with-rich-types-team-c">PHASE 4: Action Compilation with Rich Types (Team C)</h2>
+<p><strong>Objective</strong>: Ensure action compiler handles rich type expressions correctly</p>
+<p><strong>Estimated Time</strong>: 4-6 hours</p>
+<h3 id="tdd-cycle-41-compile-action-with-email-validation">TDD Cycle 4.1: Compile action with email validation</h3>
+<h4 id="red-write-failing-test-for-email-validation-in-action">🔴 RED: Write failing test for email validation in action</h4>
+<p><strong>Test file</strong>: <code>tests/unit/actions/test_rich_type_action_compilation.py</code></p>
+<pre><code class="language-python">def test_compile_action_with_email_validation():
+    &quot;&quot;&quot;Action with email field should compile correctly&quot;&quot;&quot;
+    action = ActionDef(
+        name='update_email',
+        steps=[
+            ValidateStep(
+                condition=&quot;email_address ~* '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$'&quot;
+            ),
+            UpdateStep(
+                table='Contact',
+                set_clause=&quot;email_address = new_email&quot;
+            )
+        ]
+    )
+
+    sql = compile_action(action, entity)
+
+    # Should compile email regex validation
+    assert &quot;~*&quot; in sql  # Regex operator
+</code></pre>
+<p><strong>Expected failure</strong>: Regex operator escaping issues</p>
+<h4 id="green-ensure-expression-compiler-handles-regex">🟢 GREEN: Ensure expression compiler handles regex</h4>
+<p><strong>Files to verify</strong>:
+- <code>src/generators/actions/expression_compiler.py</code> - Regex operator support</p>
+<p><strong>Run test</strong>: <code>uv run pytest tests/unit/actions/test_rich_type_action_compilation.py::test_compile_action_with_email_validation -v</code></p>
+<h4 id="refactor-add-rich-type-helpers-for-actions">🔧 REFACTOR: Add rich type helpers for actions</h4>
+<ul>
+<li>Create helper functions for common validations</li>
+<li>Extract email/phone validation to reusable snippets</li>
+</ul>
+<h4 id="qa-rich-type-action-compilation">✅ QA: Rich type action compilation</h4>
+<pre><code class="language-bash">uv run pytest tests/unit/actions/ -k rich_type -v
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] Email validation in actions compiles
+- [ ] Phone validation in actions compiles
+- [ ] Expression compiler handles regex operators
+- [ ] All action tests pass</p>
+<hr />
+<h3 id="tdd-cycle-42-compile-stdlib-actions">TDD Cycle 4.2: Compile stdlib actions</h3>
+<h4 id="red-write-test-for-contact-actions">🔴 RED: Write test for Contact actions</h4>
+<p><strong>Test file</strong>: <code>tests/integration/stdlib/test_stdlib_action_compilation.py</code></p>
+<pre><code class="language-python">def test_compile_contact_change_email_action():
+    &quot;&quot;&quot;Compile Contact.change_email_address action&quot;&quot;&quot;
+    entity = parse_specql_file('stdlib/crm/contact.yaml')
+
+    # Assume action definition exists (or mock it)
+    action = entity.actions['change_email_address']
+
+    sql = compile_action(action, entity)
+
+    # Should generate PL/pgSQL function
+    assert 'CREATE OR REPLACE FUNCTION' in sql
+    assert 'tenant.change_email_address' in sql
+    assert 'RETURNS app.mutation_result' in sql
+</code></pre>
+<p><strong>Expected failure</strong>: Actions in stdlib are placeholders (name-only)</p>
+<h4 id="green-add-action-implementations-to-stdlib">🟢 GREEN: Add action implementations to stdlib</h4>
+<p><strong>Files to modify</strong>:
+- <code>stdlib/crm/contact.yaml</code> - Add full action definitions with steps</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-yaml">actions:
+  - name: change_email_address
+    description: &quot;Update contact email address with validation&quot;
+    steps:
+      - validate: email_address IS NOT NULL
+      - validate: new_email ~* '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+      - update: Contact SET email_address = new_email WHERE pk_contact = contact_pk
+</code></pre>
+<p><strong>Run test</strong>: <code>uv run pytest tests/integration/stdlib/test_stdlib_action_compilation.py::test_compile_contact_change_email_action -v</code></p>
+<h4 id="refactor-add-business-logic-to-stdlib-actions">🔧 REFACTOR: Add business logic to stdlib actions</h4>
+<ul>
+<li>Implement all actions in Contact</li>
+<li>Implement actions in PublicAddress (geocode, validate, etc.)</li>
+<li>Add comprehensive validation steps</li>
+</ul>
+<h4 id="qa-all-stdlib-actions-compile">✅ QA: All stdlib actions compile</h4>
+<pre><code class="language-bash">uv run pytest tests/integration/stdlib/test_stdlib_action_compilation.py -v
+
+# Generate all action functions
+uv run python scripts/generate_stdlib_actions.py &gt; db/schema/stdlib_actions.sql
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] All Contact actions have full implementations
+- [ ] All PublicAddress actions compile
+- [ ] Actions follow FraiseQL standard (mutation_result)
+- [ ] Trinity resolution works correctly</p>
+<hr />
+<h2 id="phase-5-fraiseql-metadata-for-rich-types-team-d">PHASE 5: FraiseQL Metadata for Rich Types (Team D)</h2>
+<p><strong>Objective</strong>: Generate correct GraphQL scalar definitions for rich types</p>
+<p><strong>Estimated Time</strong>: 3-4 hours</p>
+<h3 id="tdd-cycle-51-generate-graphql-scalar-for-email">TDD Cycle 5.1: Generate GraphQL scalar for Email</h3>
+<h4 id="red-write-failing-test-for-email-scalar">🔴 RED: Write failing test for Email scalar</h4>
+<p><strong>Test file</strong>: <code>tests/unit/fraiseql/test_rich_type_graphql_scalars.py</code></p>
+<pre><code class="language-python">def test_generate_email_graphql_scalar():
+    &quot;&quot;&quot;Email rich type should generate GraphQL Email scalar&quot;&quot;&quot;
+    field = FieldDef(name='email_address', type_name='email')
+
+    graphql_type = get_graphql_type(field)
+
+    assert graphql_type == 'Email'  # FraiseQL scalar name
+</code></pre>
+<p><strong>Expected failure</strong>: Returns 'String' instead of 'Email'</p>
+<h4 id="green-implement-graphql-scalar-mapping">🟢 GREEN: Implement GraphQL scalar mapping</h4>
+<p><strong>Files to modify</strong>:
+- <code>src/generators/fraiseql/type_mapper.py</code> - Map rich types to GraphQL scalars</p>
+<p><strong>Minimal implementation</strong>:</p>
+<pre><code class="language-python">from src.core.scalar_types import is_scalar_type, get_scalar_type
+
+def get_graphql_type(field: FieldDef) -&gt; str:
+    if is_scalar_type(field.type_name):
+        scalar_def = get_scalar_type(field.type_name)
+        return scalar_def.fraiseql_scalar_name  # e.g., 'Email'
+
+    # ... existing logic for basic types ...
+</code></pre>
+<p><strong>Run test</strong>: <code>uv run pytest tests/unit/fraiseql/test_rich_type_graphql_scalars.py::test_generate_email_graphql_scalar -v</code></p>
+<h4 id="refactor-generate-scalar-type-definitions">🔧 REFACTOR: Generate scalar type definitions</h4>
+<ul>
+<li>Generate GraphQL scalar type definitions file</li>
+<li>Add validation logic for each scalar</li>
+<li>Document each scalar in GraphQL schema</li>
+</ul>
+<h4 id="qa-all-rich-type-graphql-scalars">✅ QA: All rich type GraphQL scalars</h4>
+<pre><code class="language-bash">uv run pytest tests/unit/fraiseql/ -k scalar -v
+
+# Generate GraphQL scalar definitions
+uv run python scripts/generate_graphql_scalars.py &gt; frontend/graphql/scalars.graphql
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] All rich types map to GraphQL scalars
+- [ ] Scalar definitions generated
+- [ ] FraiseQL annotations include scalar info
+- [ ] Frontend can use custom scalars</p>
+<hr />
+<h3 id="tdd-cycle-52-generate-mutation-impacts-with-rich-types">TDD Cycle 5.2: Generate mutation impacts with rich types</h3>
+<h4 id="red-write-test-for-mutation-impact-with-email">🔴 RED: Write test for mutation impact with email</h4>
+<p><strong>Test file</strong>: <code>tests/integration/fraiseql/test_rich_type_mutation_impacts.py</code></p>
+<pre><code class="language-python">def test_generate_mutation_impact_with_email_field():
+    &quot;&quot;&quot;Mutation impact metadata should include Email scalar type&quot;&quot;&quot;
+    action = ActionDef(name='update_email', ...)
+    entity = EntityDef(name='Contact', fields={'email_address': email_field})
+
+    impact = generate_mutation_impact(action, entity)
+
+    # Impact should specify Email scalar
+    assert impact['fields']['email_address']['type'] == 'Email'
+</code></pre>
+<p><strong>Expected failure</strong>: Returns 'String' instead of 'Email'</p>
+<h4 id="green-update-mutation-impact-generator">🟢 GREEN: Update mutation impact generator</h4>
+<p><strong>Files to modify</strong>:
+- <code>src/generators/frontend/mutation_impacts_generator.py</code> - Use GraphQL type mapper</p>
+<p><strong>Run test</strong>: <code>uv run pytest tests/integration/fraiseql/test_rich_type_mutation_impacts.py::test_generate_mutation_impact_with_email_field -v</code></p>
+<h4 id="refactor-complete-mutation-impact-metadata">🔧 REFACTOR: Complete mutation impact metadata</h4>
+<ul>
+<li>Include validation rules in metadata</li>
+<li>Add example values from scalar type definitions</li>
+<li>Generate TypeScript types with custom scalars</li>
+</ul>
+<h4 id="qa-full-mutation-impact-generation">✅ QA: Full mutation impact generation</h4>
+<pre><code class="language-bash">uv run pytest tests/integration/fraiseql/ -k impact -v
+
+# Generate mutation impacts for stdlib
+uv run python scripts/generate_stdlib_impacts.py &gt; frontend/generated/stdlib_impacts.json
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] Mutation impacts include rich type info
+- [ ] TypeScript types use custom scalars
+- [ ] Frontend receives validation metadata
+- [ ] All FraiseQL tests pass</p>
+<hr />
+<h2 id="phase-6-cli-integration-documentation">PHASE 6: CLI Integration &amp; Documentation</h2>
+<p><strong>Objective</strong>: Enable CLI to generate stdlib entities and document usage</p>
+<p><strong>Estimated Time</strong>: 2-3 hours</p>
+<h3 id="tdd-cycle-61-cli-generate-command-for-stdlib">TDD Cycle 6.1: CLI generate command for stdlib</h3>
+<h4 id="red-write-test-for-cli-stdlib-generation">🔴 RED: Write test for CLI stdlib generation</h4>
+<p><strong>Test file</strong>: <code>tests/unit/cli/test_stdlib_generation.py</code></p>
+<pre><code class="language-python">def test_cli_generate_stdlib_entity():
+    &quot;&quot;&quot;CLI should generate schema from stdlib entity&quot;&quot;&quot;
+    result = run_cli(['generate', 'stdlib/crm/contact.yaml'])
+
+    assert result.exit_code == 0
+    assert 'Generated schema for Contact' in result.output
+</code></pre>
+<p><strong>Expected failure</strong>: CLI doesn't recognize stdlib/ paths</p>
+<h4 id="green-update-cli-to-support-stdlib-paths">🟢 GREEN: Update CLI to support stdlib paths</h4>
+<p><strong>Files to modify</strong>:
+- <code>src/cli/generate.py</code> - Resolve stdlib/ paths</p>
+<p><strong>Run test</strong>: <code>uv run pytest tests/unit/cli/test_stdlib_generation.py::test_cli_generate_stdlib_entity -v</code></p>
+<h4 id="refactor-add-stdlib-specific-commands">🔧 REFACTOR: Add stdlib-specific commands</h4>
+<ul>
+<li><code>specql generate-stdlib</code> - Generate all stdlib entities</li>
+<li><code>specql validate-stdlib</code> - Validate all stdlib entities</li>
+<li><code>specql list-stdlib</code> - List available stdlib entities</li>
+</ul>
+<h4 id="qa-cli-stdlib-integration">✅ QA: CLI stdlib integration</h4>
+<pre><code class="language-bash"># Test CLI commands
+specql generate stdlib/crm/contact.yaml
+specql generate-stdlib --category=crm
+specql validate-stdlib
+specql list-stdlib
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] CLI generates stdlib entities
+- [ ] Stdlib paths resolve correctly
+- [ ] All CLI tests pass
+- [ ] Help documentation updated</p>
+<hr />
+<h3 id="tdd-cycle-62-documentation-and-examples">TDD Cycle 6.2: Documentation and examples</h3>
+<h4 id="red-write-test-for-generated-documentation">🔴 RED: Write test for generated documentation</h4>
+<p><strong>Test file</strong>: <code>tests/unit/cli/test_stdlib_docs.py</code></p>
+<pre><code class="language-python">def test_generate_stdlib_documentation():
+    &quot;&quot;&quot;CLI should generate markdown docs for stdlib&quot;&quot;&quot;
+    result = run_cli(['docs', 'stdlib/crm/contact.yaml'])
+
+    assert result.exit_code == 0
+    assert '## Entity: Contact' in result.output
+    assert '### Fields' in result.output
+</code></pre>
+<p><strong>Expected failure</strong>: <code>docs</code> command doesn't exist or doesn't support stdlib</p>
+<h4 id="green-implement-docs-generation">🟢 GREEN: Implement docs generation</h4>
+<p><strong>Files to modify</strong>:
+- <code>src/cli/docs.py</code> - Add stdlib documentation support</p>
+<h4 id="refactor-generate-comprehensive-docs">🔧 REFACTOR: Generate comprehensive docs</h4>
+<ul>
+<li>Field type documentation with examples</li>
+<li>Action documentation with step-by-step logic</li>
+<li>Rich type usage examples</li>
+</ul>
+<h4 id="qa-complete-documentation">✅ QA: Complete documentation</h4>
+<pre><code class="language-bash"># Generate all stdlib docs
+specql docs stdlib/ --output=docs/stdlib/
+
+# Verify docs are complete and accurate
+ls -la docs/stdlib/
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] Documentation generated for all entities
+- [ ] Rich type examples included
+- [ ] Action logic documented
+- [ ] README updated with stdlib usage</p>
+<hr />
+<h2 id="phase-7-migration-deployment-scripts">PHASE 7: Migration &amp; Deployment Scripts</h2>
+<p><strong>Objective</strong>: Create deployment scripts for stdlib in production</p>
+<p><strong>Estimated Time</strong>: 2-3 hours</p>
+<h3 id="tdd-cycle-71-generate-migration-script">TDD Cycle 7.1: Generate migration script</h3>
+<h4 id="red-write-test-for-migration-generation">🔴 RED: Write test for migration generation</h4>
+<p><strong>Test file</strong>: <code>tests/unit/cli/test_stdlib_migration.py</code></p>
+<pre><code class="language-python">def test_generate_stdlib_migration():
+    &quot;&quot;&quot;Generate PostgreSQL migration for stdlib&quot;&quot;&quot;
+    result = run_cli(['generate-migration', 'stdlib/', '--output=migrations/'])
+
+    assert result.exit_code == 0
+    assert os.path.exists('migrations/002_stdlib.sql')
+</code></pre>
+<p><strong>Expected failure</strong>: <code>generate-migration</code> command doesn't exist</p>
+<h4 id="green-implement-migration-generator">🟢 GREEN: Implement migration generator</h4>
+<p><strong>Files to create</strong>:
+- <code>src/cli/migrate.py</code> - Migration generation logic
+- <code>scripts/generate_stdlib_migration.py</code> - Standalone script</p>
+<p><strong>Migration script structure</strong>:</p>
+<pre><code class="language-sql">-- Migration: 002_stdlib.sql
+-- Description: SpecQL stdlib entities (30 entities)
+-- Version: 1.1.0
+
+BEGIN;
+
+-- Framework schemas (if not exists)
+CREATE SCHEMA IF NOT EXISTS common;
+CREATE SCHEMA IF NOT EXISTS app;
+
+-- Create entities in dependency order
+\ir stdlib/i18n/country.sql
+\ir stdlib/i18n/currency.sql
+-- ... all 30 entities ...
+
+COMMIT;
+</code></pre>
+<h4 id="refactor-add-dependency-resolution">🔧 REFACTOR: Add dependency resolution</h4>
+<ul>
+<li>Automatically order entities by foreign key dependencies</li>
+<li>Detect circular dependencies</li>
+<li>Generate rollback scripts</li>
+</ul>
+<h4 id="qa-migration-deployment">✅ QA: Migration deployment</h4>
+<pre><code class="language-bash"># Generate migration
+specql generate-migration stdlib/ --output=migrations/002_stdlib.sql
+
+# Test migration
+createdb test_stdlib
+psql test_stdlib -f migrations/000_app_foundation.sql
+psql test_stdlib -f migrations/002_stdlib.sql
+
+# Verify all tables created
+psql test_stdlib -c &quot;\dt common.*&quot;
+psql test_stdlib -c &quot;\dt tenant.*&quot;
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] Migration script generated
+- [ ] Dependencies correctly ordered
+- [ ] Migration deploys successfully
+- [ ] Rollback script works</p>
+<hr />
+<h2 id="phase-8-performance-production-readiness">PHASE 8: Performance &amp; Production Readiness</h2>
+<p><strong>Objective</strong>: Ensure stdlib generation is production-ready</p>
+<p><strong>Estimated Time</strong>: 3-4 hours</p>
+<h3 id="tdd-cycle-81-performance-testing">TDD Cycle 8.1: Performance testing</h3>
+<h4 id="red-write-performance-test">🔴 RED: Write performance test</h4>
+<p><strong>Test file</strong>: <code>tests/performance/test_stdlib_generation_performance.py</code></p>
+<pre><code class="language-python">def test_generate_all_stdlib_entities_performance():
+    &quot;&quot;&quot;Generate all 30 stdlib entities in under 5 seconds&quot;&quot;&quot;
+    import time
+
+    start = time.time()
+    for entity_path in STDLIB_ENTITIES:
+        entity = parse_specql_file(f'stdlib/{entity_path}')
+        ddl = generate_complete_schema(entity)
+    end = time.time()
+
+    elapsed = end - start
+    assert elapsed &lt; 5.0, f&quot;Generation took {elapsed:.2f}s (should be &lt; 5s)&quot;
+</code></pre>
+<p><strong>Expected failure</strong>: Takes too long (&gt; 5 seconds)</p>
+<h4 id="green-optimize-generation-performance">🟢 GREEN: Optimize generation performance</h4>
+<p><strong>Optimizations</strong>:
+- Cache parsed entities
+- Parallelize generation
+- Optimize regex compilation</p>
+<h4 id="refactor-add-caching-layer">🔧 REFACTOR: Add caching layer</h4>
+<ul>
+<li>Cache scalar type lookups</li>
+<li>Cache parsed YAML</li>
+<li>Memoize expensive operations</li>
+</ul>
+<h4 id="qa-performance-benchmarks">✅ QA: Performance benchmarks</h4>
+<pre><code class="language-bash"># Run performance tests
+uv run pytest tests/performance/ -v
+
+# Profile generation
+uv run python -m cProfile -o stdlib_gen.prof scripts/generate_stdlib_schema.py
+python -m pstats stdlib_gen.prof
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] All entities generate in &lt; 5 seconds
+- [ ] No performance regressions
+- [ ] Memory usage acceptable
+- [ ] Caching works correctly</p>
+<hr />
+<h3 id="tdd-cycle-82-production-validation">TDD Cycle 8.2: Production validation</h3>
+<h4 id="red-write-production-validation-test">🔴 RED: Write production validation test</h4>
+<p><strong>Test file</strong>: <code>tests/integration/test_stdlib_production_readiness.py</code></p>
+<pre><code class="language-python">def test_stdlib_schema_matches_production():
+    &quot;&quot;&quot;Generated stdlib schema should match PrintOptim production patterns&quot;&quot;&quot;
+
+    # Generate Contact entity
+    contact_ddl = generate_entity_schema('stdlib/crm/contact.yaml')
+
+    # Compare against known production schema
+    production_contact = load_production_schema('contact')
+
+    # Key patterns should match
+    assert 'pk_contact INTEGER PRIMARY KEY' in contact_ddl
+    assert 'email_address TEXT NOT NULL CHECK' in contact_ddl
+    # ... more assertions ...
+</code></pre>
+<p><strong>Expected failure</strong>: Generated schema differs from production</p>
+<h4 id="green-align-generated-schema-with-production">🟢 GREEN: Align generated schema with production</h4>
+<p><strong>Adjustments</strong>:
+- Fix naming conventions
+- Adjust constraint formats
+- Match production index patterns</p>
+<h4 id="refactor-add-schema-comparison-tool">🔧 REFACTOR: Add schema comparison tool</h4>
+<ul>
+<li>Automated diff between generated and production</li>
+<li>Highlight breaking changes</li>
+<li>Generate migration paths</li>
+</ul>
+<h4 id="qa-production-deployment-readiness">✅ QA: Production deployment readiness</h4>
+<pre><code class="language-bash"># Compare all entities
+uv run python scripts/compare_with_production.py
+
+# Generate production-ready schema
+uv run python scripts/generate_stdlib_schema.py --production &gt; db/schema/stdlib_production.sql
+
+# Deploy to staging
+psql staging_db -f db/schema/stdlib_production.sql
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] Schema matches production patterns
+- [ ] No breaking changes
+- [ ] Staging deployment successful
+- [ ] All validations pass</p>
+<hr />
+<h2 id="success-criteria-summary">Success Criteria Summary</h2>
+<h3 id="phase-completion-checklist">✅ Phase Completion Checklist</h3>
+<ul>
+<li>[ ] <strong>Phase 1</strong>: Parser validates all rich types used in stdlib</li>
+<li>[ ] <strong>Phase 2</strong>: Schema generator produces correct DDL for all rich types</li>
+<li>[ ] <strong>Phase 3</strong>: All 30 stdlib entities generate valid SQL</li>
+<li>[ ] <strong>Phase 4</strong>: Actions with rich types compile correctly</li>
+<li>[ ] <strong>Phase 5</strong>: FraiseQL metadata includes rich type info</li>
+<li>[ ] <strong>Phase 6</strong>: CLI supports stdlib generation and docs</li>
+<li>[ ] <strong>Phase 7</strong>: Migration scripts deploy successfully</li>
+<li>[ ] <strong>Phase 8</strong>: Performance and production validation pass</li>
+</ul>
+<h3 id="final-deliverables">🎯 Final Deliverables</h3>
+<ol>
+<li><strong>Generated Code</strong>:</li>
+<li><code>db/schema/stdlib_full.sql</code> - All 30 entities DDL</li>
+<li><code>db/schema/stdlib_actions.sql</code> - All action functions</li>
+<li><code>frontend/generated/stdlib_impacts.json</code> - Mutation metadata</li>
+<li>
+<p><code>frontend/graphql/scalars.graphql</code> - GraphQL scalar definitions</p>
+</li>
+<li>
+<p><strong>Tests</strong>:</p>
+</li>
+<li>100+ new tests for rich type handling</li>
+<li>End-to-end tests for all 30 entities</li>
+<li>
+<p>Performance benchmarks</p>
+</li>
+<li>
+<p><strong>Documentation</strong>:</p>
+</li>
+<li><code>docs/stdlib/README.md</code> - stdlib usage guide</li>
+<li><code>docs/stdlib/RICH_TYPES.md</code> - Rich type reference</li>
+<li>
+<p>Entity-specific docs for all 30 entities</p>
+</li>
+<li>
+<p><strong>CLI Enhancements</strong>:</p>
+</li>
+<li><code>specql generate-stdlib</code> - Batch generation</li>
+<li><code>specql validate-stdlib</code> - Validation</li>
+<li><code>specql list-stdlib</code> - Entity browser</li>
+</ol>
+<hr />
+<h2 id="estimated-timeline">Estimated Timeline</h2>
+<p><strong>Total Estimated Time</strong>: 27-38 hours</p>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Description</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Rich Type Parsing</td>
+<td>3-4h</td>
+</tr>
+<tr>
+<td>2</td>
+<td>PostgreSQL Generation</td>
+<td>6-8h</td>
+</tr>
+<tr>
+<td>3</td>
+<td>E2E Entity Tests</td>
+<td>4-6h</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Action Compilation</td>
+<td>4-6h</td>
+</tr>
+<tr>
+<td>5</td>
+<td>FraiseQL Metadata</td>
+<td>3-4h</td>
+</tr>
+<tr>
+<td>6</td>
+<td>CLI &amp; Documentation</td>
+<td>2-3h</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Migration Scripts</td>
+<td>2-3h</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Production Readiness</td>
+<td>3-4h</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommended Schedule</strong>: 4-5 days of focused development with TDD discipline</p>
+<hr />
+<h2 id="risk-mitigation">Risk Mitigation</h2>
+<h3 id="known-risks">Known Risks</h3>
+<ol>
+<li><strong>Rich Type Edge Cases</strong>: Some stdlib entities may use rich types in unexpected ways</li>
+<li>
+<p><strong>Mitigation</strong>: Comprehensive test coverage, validate against production</p>
+</li>
+<li>
+<p><strong>Dependency Ordering</strong>: 30 entities with complex foreign key relationships</p>
+</li>
+<li>
+<p><strong>Mitigation</strong>: Topological sort for dependency resolution, detect cycles early</p>
+</li>
+<li>
+<p><strong>Performance</strong>: Generating 30 entities with actions and metadata could be slow</p>
+</li>
+<li>
+<p><strong>Mitigation</strong>: Performance testing in Phase 8, optimize early if issues arise</p>
+</li>
+<li>
+<p><strong>Production Alignment</strong>: Generated schema must match PrintOptim production</p>
+</li>
+<li><strong>Mitigation</strong>: Compare with production schemas, iterate until aligned</li>
+</ol>
+<hr />
+<h2 id="appendix-stdlib-entity-inventory">Appendix: stdlib Entity Inventory</h2>
+<h3 id="category-i18n-6-entities">Category: i18n (6 entities)</h3>
+<ul>
+<li>Country (ISO 3166)</li>
+<li>Currency (ISO 4217)</li>
+<li>Language (ISO 639)</li>
+<li>Locale (BCP 47)</li>
+<li>Territory</li>
+<li>CurrencyFormat</li>
+</ul>
+<h3 id="category-geo-11-entities">Category: geo (11 entities)</h3>
+<ul>
+<li>PublicAddress ⭐ (coordinates rich type)</li>
+<li>Location ⭐ (coordinates rich type)</li>
+<li>Country</li>
+<li>AdministrativeUnit</li>
+<li>PostalCode</li>
+<li>StreetType</li>
+<li>AddressDatasource (url rich type)</li>
+<li>GeocodingResult</li>
+<li>Timezone</li>
+<li>Continent</li>
+<li>Region</li>
+</ul>
+<h3 id="category-crm-3-entities">Category: crm (3 entities)</h3>
+<ul>
+<li>Contact ⭐ (email, phone rich types)</li>
+<li>Organization ⭐ (hierarchical)</li>
+<li>Interaction</li>
+</ul>
+<h3 id="category-org-2-entities">Category: org (2 entities)</h3>
+<ul>
+<li>OrganizationalUnit (hierarchical)</li>
+<li>Department</li>
+</ul>
+<h3 id="category-commerce-3-entities">Category: commerce (3 entities)</h3>
+<ul>
+<li>Contract</li>
+<li>Order</li>
+<li>Price ⭐ (money rich type)</li>
+</ul>
+<h3 id="category-tech-2-entities">Category: tech (2 entities)</h3>
+<ul>
+<li>OperatingSystem</li>
+<li>Browser</li>
+</ul>
+<h3 id="category-time-1-entity">Category: time (1 entity)</h3>
+<ul>
+<li>Calendar</li>
+</ul>
+<h3 id="category-common-2-entities">Category: common (2 entities)</h3>
+<ul>
+<li>Genre</li>
+<li>Industry</li>
+</ul>
+<p><strong>Legend</strong>: ⭐ = High-priority for testing (uses advanced features)</p>
+<hr />
+<p><strong>Document Version</strong>: 1.0
+<strong>Last Updated</strong>: 2025-11-09
+<strong>Next Review</strong>: After Phase 1 completion</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

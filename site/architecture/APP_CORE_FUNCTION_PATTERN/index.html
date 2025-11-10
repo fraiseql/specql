@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>App/Core Function Pattern - Architecture Decision - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "App/Core Function Pattern - Architecture Decision";
+        var mkdocs_page_input_path = "architecture/APP_CORE_FUNCTION_PATTERN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">App/Core Function Pattern - Architecture Decision</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="appcore-function-pattern-architecture-decision">App/Core Function Pattern - Architecture Decision</h1>
+<p><strong>Date</strong>: 2025-11-08
+<strong>Status</strong>: ✅ <strong>RECOMMENDED APPROACH</strong>
+<strong>Source</strong>: Existing PrintOptim Backend Pattern</p>
+<hr />
+<h2 id="pattern-overview">🎯 Pattern Overview</h2>
+<p>Based on <code>../printoptim_backend/db/0_schema/03_functions/</code>, the architecture uses a <strong>two-layer function pattern</strong>:</p>
+<ol>
+<li><strong><code>app.*</code> schema</strong> - API wrapper functions (thin, handles type conversion)</li>
+<li><strong><code>core.*</code> schema</strong> - Business logic functions (thick, contains all logic)</li>
+</ol>
+<hr />
+<h2 id="architecture-pattern">📐 Architecture Pattern</h2>
+<h3 id="example-create-reservation">Example: Create Reservation</h3>
+<p><strong>File</strong>: <code>035_scd/03502_reservation/035021_create_reservation.sql</code></p>
+<pre><code class="language-sql">-- ============================================================================
+-- LAYER 1: APP WRAPPER (API Entry Point)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.create_reservation(
+    auth_tenant_id UUID,              -- Tenant context
+    auth_user_id UUID,                -- User context
+    input_payload JSONB               -- Raw API input (GraphQL/REST)
+) RETURNS app.mutation_result         -- Standard response
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_reservation_input;  -- Typed structure
+BEGIN
+    -- Convert JSONB → Custom Type
+    input_data := jsonb_populate_record(
+        NULL::app.type_reservation_input,
+        input_payload
+    );
+
+    -- Delegate to core logic
+    RETURN core.create_reservation(
+        auth_tenant_id,
+        input_data,          -- ✅ Typed input
+        input_payload,       -- Original for audit
+        auth_user_id
+    );
+END;
+$$;
+
+
+-- ============================================================================
+-- LAYER 2: CORE LOGIC (Business Rules)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION core.create_reservation(
+    auth_tenant_id UUID,
+    input_data app.type_reservation_input,  -- ✅ Typed input
+    input_payload JSONB,                     -- Original for audit
+    auth_user_id UUID
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_id UUID := gen_random_uuid();
+    v_status TEXT;
+    v_message TEXT;
+    -- ... business logic variables ...
+BEGIN
+    -- === INPUT VALIDATION ===
+    IF input_data.machine_id IS NULL THEN
+        RETURN core.log_and_return_mutation(
+            auth_tenant_id,
+            auth_user_id,
+            'allocation',
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            'NOOP',
+            'failed:missing_machine_id',
+            ARRAY['machine_id']::TEXT[],
+            'Machine ID is required',
+            NULL, NULL,
+            jsonb_build_object('reason', 'validation_machine_id_null')
+        );
+    END IF;
+
+    -- Check machine exists
+    IF NOT EXISTS (
+        SELECT 1 FROM public.tv_machine
+        WHERE id = input_data.machine_id
+          AND tenant_id = input_pk_organization
+    ) THEN
+        RETURN core.log_and_return_mutation(...'failed:machine_not_found'...);
+    END IF;
+
+    -- === BUSINESS LOGIC ===
+    INSERT INTO public.tb_allocation (
+        id,
+        tenant_id,
+        fk_machine,
+        reserved_from,
+        reserved_until,
+        ...
+    ) VALUES (
+        v_id,
+        auth_tenant_id,
+        input_data.machine_id,
+        COALESCE(input_data.reserved_from, CURRENT_DATE + INTERVAL '1 year'),
+        COALESCE(input_data.reserved_until, '2099-12-31'::DATE),
+        ...
+    );
+
+    -- === AUDIT &amp; RETURN ===
+    RETURN core.log_and_return_mutation(
+        auth_tenant_id,
+        auth_user_id,
+        'allocation',
+        v_id,
+        'INSERT',
+        'success',
+        ARRAY(SELECT jsonb_object_keys(input_payload)),
+        'Reservation created successfully',
+        row_to_json(...)::JSONB,
+        NULL
+    );
+END;
+$$;
+</code></pre>
+<hr />
+<h2 id="why-this-pattern-is-excellent">🎯 Why This Pattern is EXCELLENT</h2>
+<h3 id="1-clear-separation-of-concerns">1. <strong>Clear Separation of Concerns</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Responsibility</th>
+<th>Changes When</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>app.*</code></strong></td>
+<td>API contract, type conversion</td>
+<td>API format changes (GraphQL→REST)</td>
+</tr>
+<tr>
+<td><strong><code>core.*</code></strong></td>
+<td>Business logic, validation</td>
+<td>Business rules change</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Benefit</strong>: Change API layer without touching business logic</p>
+<hr />
+<h3 id="2-fraiseql-perfect-integration">2. <strong>FraiseQL Perfect Integration</strong> ✅</h3>
+<pre><code class="language-sql">-- FraiseQL introspects app.* layer
+COMMENT ON FUNCTION app.create_reservation IS
+  '@fraiseql:mutation name=createReservation,input=ReservationInput,output=MutationResult';
+
+COMMENT ON TYPE app.type_reservation_input IS
+  '@fraiseql:input name=ReservationInput';
+</code></pre>
+<p><strong>FraiseQL auto-generates</strong>:</p>
+<pre><code class="language-graphql">input ReservationInput {
+  machineId: UUID!
+  reservedFrom: Date
+  reservedUntil: Date
+  organizationalUnitId: UUID
+  # ... all fields from type_reservation_input
+}
+
+type Mutation {
+  createReservation(input: ReservationInput!): MutationResult!
+}
+</code></pre>
+<p><strong>Core layer is invisible to GraphQL</strong> - pure business logic!</p>
+<hr />
+<h3 id="3-type-safety-throughout">3. <strong>Type Safety Throughout</strong></h3>
+<pre><code class="language-sql">-- Input types (app.type_*_input)
+CREATE TYPE app.type_reservation_input AS (
+    machine_id UUID,
+    reserved_from DATE,
+    reserved_until DATE,
+    organizational_unit_id UUID,
+    location_id UUID,
+    is_provisionnal BOOLEAN
+);
+
+-- Output types (app.mutation_result)
+CREATE TYPE app.mutation_result AS (
+    id UUID,
+    updated_fields TEXT[],
+    status TEXT,              -- 'success', 'failed:*', 'warning:*'
+    message TEXT,
+    object_data JSONB,
+    extra_metadata JSONB
+);
+</code></pre>
+<p><strong>Benefits</strong>:
+- ✅ PostgreSQL validates types before execution
+- ✅ IDE autocomplete for all fields
+- ✅ FraiseQL generates exact GraphQL types
+- ✅ No manual JSONB extraction in core logic</p>
+<hr />
+<h3 id="4-audit-trail-built-in">4. <strong>Audit Trail Built-In</strong></h3>
+<pre><code class="language-sql">-- App layer preserves original input
+RETURN core.create_reservation(
+    input_pk_organization,
+    input_data,          -- Parsed typed input
+    input_payload,       -- ✅ Original JSONB for audit!
+    input_created_by
+);
+
+-- Core layer logs everything
+RETURN core.log_and_return_mutation(
+    input_pk_organization,
+    input_created_by,
+    v_entity,
+    v_id,
+    v_op,                    -- 'INSERT', 'UPDATE', 'DELETE', 'NOOP'
+    v_status,                -- 'success', 'failed:*'
+    v_updated_fields,        -- Which fields changed
+    v_message,
+    v_object_data,           -- Final state
+    v_extra_metadata         -- Debug info
+);
+</code></pre>
+<p><strong>Result</strong>: Complete audit trail of every mutation</p>
+<hr />
+<h3 id="5-testability">5. <strong>Testability</strong></h3>
+<pre><code class="language-sql">-- Test core logic directly (no API noise)
+SELECT core.create_reservation(
+    'tenant-uuid'::UUID,
+    ROW('machine-uuid', '2025-01-01', '2025-12-31', NULL, NULL, FALSE)::app.type_reservation_input,
+    '{}'::JSONB,
+    'user-uuid'::UUID
+);
+
+-- Test app wrapper separately
+SELECT app.create_reservation(
+    'tenant-uuid'::UUID,
+    'user-uuid'::UUID,
+    '{&quot;machine_id&quot;: &quot;...&quot;}'::JSONB
+);
+</code></pre>
+<p><strong>Benefit</strong>: Unit test business logic independent of API layer</p>
+<hr />
+<h3 id="6-multiple-api-frontends">6. <strong>Multiple API Frontends</strong></h3>
+<pre><code class="language-sql">-- GraphQL frontend (FraiseQL)
+app.create_reservation(tenant, user, graphql_input)
+
+-- REST frontend (future)
+app_rest.create_reservation_v1(tenant, user, rest_input)
+
+-- gRPC frontend (future)
+app_grpc.create_reservation(tenant, user, protobuf_input)
+
+-- All call same core logic!
+core.create_reservation(tenant, typed_data, audit_json, user)
+</code></pre>
+<p><strong>Benefit</strong>: Add new API protocols without changing business logic</p>
+<hr />
+<h3 id="7-standard-return-types">7. <strong>Standard Return Types</strong></h3>
+<pre><code class="language-sql">-- ALL mutations return the same structure
+CREATE TYPE app.mutation_result AS (
+    id UUID,              -- Created/updated entity ID
+    updated_fields TEXT[],  -- For change tracking
+    status TEXT,            -- 'success', 'failed:reason', 'warning:reason'
+    message TEXT,           -- Human-readable message
+    object_data JSONB,      -- Full entity state
+    extra_metadata JSONB    -- Debug/context info
+);
+</code></pre>
+<p><strong>Benefits</strong>:
+- ✅ Consistent error handling across all APIs
+- ✅ FraiseQL generates predictable GraphQL types
+- ✅ Frontend code can handle all mutations uniformly
+- ✅ Easy to add instrumentation/monitoring</p>
+<hr />
+<h2 id="generator-implementation-strategy">🏗️ Generator Implementation Strategy</h2>
+<h3 id="team-b-schema-generator">Team B: Schema Generator</h3>
+<p><strong>Generate Input Types</strong>:</p>
+<pre><code class="language-python"># src/generators/types_generator.py
+
+class TypesGenerator:
+    def generate_input_type(self, entity: Entity, action: Action) -&gt; str:
+        &quot;&quot;&quot;Generate app.type_{action_name}_input&quot;&quot;&quot;
+        fields = self._gather_action_fields(entity, action)
+
+        return f&quot;&quot;&quot;
+CREATE TYPE app.type_{action.name}_input AS (
+{self._format_fields(fields)}
+);
+
+COMMENT ON TYPE app.type_{action.name}_input IS
+  '@fraiseql:input name={self._to_pascal_case(action.name)}Input';
+&quot;&quot;&quot;
+</code></pre>
+<p><strong>Generate Common Output Type</strong> (once):</p>
+<pre><code class="language-sql">-- Auto-generated once in 00_common/
+CREATE TYPE app.mutation_result AS (
+    id UUID,
+    updated_fields TEXT[],
+    status TEXT,
+    message TEXT,
+    object_data JSONB,
+    extra_metadata JSONB
+);
+
+COMMENT ON TYPE app.mutation_result IS
+  '@fraiseql:type name=MutationResult';
+</code></pre>
+<hr />
+<h3 id="team-c-action-compiler">Team C: Action Compiler</h3>
+<p><strong>Generate App Wrapper</strong>:</p>
+<pre><code class="language-python"># src/generators/actions/app_wrapper_generator.py
+
+class AppWrapperGenerator:
+    def generate_app_wrapper(self, entity: Entity, action: Action) -&gt; str:
+        &quot;&quot;&quot;Generate app.{action_name} wrapper function&quot;&quot;&quot;
+        schema = entity.schema
+
+        return f&quot;&quot;&quot;
+CREATE OR REPLACE FUNCTION app.{action.name}(
+    auth_tenant_id UUID,
+    auth_user_id UUID,
+    input_payload JSONB
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_{action.name}_input;
+BEGIN
+    -- Convert JSONB → Typed structure
+    input_data := jsonb_populate_record(
+        NULL::app.type_{action.name}_input,
+        input_payload
+    );
+
+    -- Delegate to core logic
+    RETURN {schema}.{action.name}(
+        auth_tenant_id,
+        input_data,
+        input_payload,
+        auth_user_id
+    );
+END;
+$$;
+
+COMMENT ON FUNCTION app.{action.name} IS
+  '@fraiseql:mutation name={self._to_camel_case(action.name)},input={self._to_pascal_case(action.name)}Input,output=MutationResult';
+&quot;&quot;&quot;
+</code></pre>
+<p><strong>Generate Core Logic</strong>:</p>
+<pre><code class="language-python"># src/generators/actions/core_logic_generator.py
+
+class CoreLogicGenerator:
+    def generate_core_function(self, entity: Entity, action: Action) -&gt; str:
+        &quot;&quot;&quot;Generate core.{action_name} with business logic&quot;&quot;&quot;
+        schema = entity.schema
+        entity_lower = entity.name.lower()
+
+        return f&quot;&quot;&quot;
+CREATE OR REPLACE FUNCTION {schema}.{action.name}(
+    auth_tenant_id UUID,
+    input_data app.type_{action.name}_input,
+    input_payload JSONB,
+    auth_user_id UUID
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_id UUID := gen_random_uuid();
+    v_entity TEXT := '{entity_lower}';
+    v_status TEXT;
+    v_message TEXT;
+BEGIN
+    -- === VALIDATION ===
+    {self._compile_validation_steps(action.steps)}
+
+    -- === BUSINESS LOGIC ===
+    {self._compile_action_steps(entity, action.steps)}
+
+    -- === AUDIT &amp; RETURN ===
+    RETURN {schema}.log_and_return_mutation(
+        auth_tenant_id,
+        auth_user_id,
+        v_entity,
+        v_id,
+        'INSERT',  -- or 'UPDATE', 'DELETE'
+        'success',
+        ARRAY(SELECT jsonb_object_keys(input_payload)),
+        '{entity.name} {action.name} completed successfully',
+        row_to_json(...)::JSONB,
+        NULL
+    );
+END;
+$$;
+&quot;&quot;&quot;
+</code></pre>
+<hr />
+<h2 id="directory-structure">📊 Directory Structure</h2>
+<pre><code>generated/
+├── 00_common/
+│   └── 004_input_types/
+│       ├── 00402_type_mutation_result.sql     # ✅ Standard output type
+│       └── 00403_type_deletion_input.sql      # ✅ Standard delete input
+│
+├── 032_crm/
+│   ├── 00_types/
+│   │   ├── 03201_type_create_contact_input.sql    # ✅ Input type
+│   │   └── 03202_type_update_contact_input.sql
+│   │
+│   ├── 03_functions/
+│   │   └── 03201_contact/
+│   │       ├── 0320101_create_contact.sql         # ✅ app + core functions
+│   │       ├── 0320102_update_contact.sql
+│   │       └── 0320103_delete_contact.sql
+│   │
+│   └── 04_fraiseql/
+│       └── 03201_contact_metadata.sql             # ✅ FraiseQL annotations
+</code></pre>
+<hr />
+<h2 id="benefits-summary">🎯 Benefits Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Benefit</th>
+<th>App/Core Pattern</th>
+<th>JSONB Only</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>FraiseQL Auto-Discovery</strong></td>
+<td>✅ <strong>Perfect</strong></td>
+<td>❌ Manual annotations</td>
+</tr>
+<tr>
+<td><strong>Type Safety</strong></td>
+<td>✅ <strong>Database level</strong></td>
+<td>❌ Runtime only</td>
+</tr>
+<tr>
+<td><strong>API Flexibility</strong></td>
+<td>✅ <strong>Multiple frontends</strong></td>
+<td>❌ Tied to one API</td>
+</tr>
+<tr>
+<td><strong>Testability</strong></td>
+<td>✅ <strong>Easy unit tests</strong></td>
+<td>⚠️ Harder to isolate</td>
+</tr>
+<tr>
+<td><strong>Code Clarity</strong></td>
+<td>✅ <strong>Thin wrapper + clean logic</strong></td>
+<td>❌ Mixed concerns</td>
+</tr>
+<tr>
+<td><strong>Audit Trail</strong></td>
+<td>✅ <strong>Built-in</strong></td>
+<td>⚠️ Manual</td>
+</tr>
+<tr>
+<td><strong>Error Messages</strong></td>
+<td>✅ <strong>Consistent</strong></td>
+<td>❌ Ad-hoc</td>
+</tr>
+<tr>
+<td><strong>Performance</strong></td>
+<td>✅ <strong>Native types</strong></td>
+<td>⚠️ JSONB parsing</td>
+</tr>
+<tr>
+<td><strong>IDE Support</strong></td>
+<td>✅ <strong>Autocomplete</strong></td>
+<td>❌ No schema</td>
+</tr>
+<tr>
+<td><strong>Migration Safety</strong></td>
+<td>✅ <strong>Type checks</strong></td>
+<td>❌ Silent failures</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="recommendation-adopt-appcore-pattern">✅ Recommendation: ADOPT APP/CORE PATTERN</h2>
+<h3 id="why-this-is-perfect-for-specql">Why This is Perfect for SpecQL</h3>
+<ol>
+<li><strong>FraiseQL Integration</strong>: Type introspection works perfectly</li>
+<li><strong>Clean Separation</strong>: Business logic (core) separate from API (app)</li>
+<li><strong>Proven Pattern</strong>: Already working in production (printoptim_backend)</li>
+<li><strong>Type Safety</strong>: PostgreSQL validates before execution</li>
+<li><strong>Multi-API</strong>: Support GraphQL, REST, gRPC with same core</li>
+<li><strong>Audit Built-In</strong>: Complete mutation tracking</li>
+<li><strong>Testable</strong>: Core logic testable without API noise</li>
+</ol>
+<hr />
+<h2 id="implementation-checklist">📋 Implementation Checklist</h2>
+<h3 id="team-b-schema-generator_1">Team B (Schema Generator)</h3>
+<ul>
+<li>[ ] Generate <code>app.type_{action}_input</code> custom types</li>
+<li>[ ] Generate standard <code>app.mutation_result</code> type (once)</li>
+<li>[ ] Add FraiseQL comments to types</li>
+<li>[ ] Document type→GraphQL mapping</li>
+</ul>
+<h3 id="team-c-action-compiler_1">Team C (Action Compiler)</h3>
+<ul>
+<li>[ ] Generate <code>app.{action}</code> wrapper functions</li>
+<li>[ ] Generate <code>core.{action}</code> business logic functions</li>
+<li>[ ] Compile SpecQL steps → PL/pgSQL</li>
+<li>[ ] Add validation, audit, error handling</li>
+<li>[ ] Generate FraiseQL mutation comments</li>
+</ul>
+<h3 id="team-d-fraiseql-metadata">Team D (FraiseQL Metadata)</h3>
+<ul>
+<li>[ ] Annotate input types</li>
+<li>[ ] Annotate app wrapper functions</li>
+<li>[ ] Verify FraiseQL discovers types correctly</li>
+</ul>
+<hr />
+<h2 id="next-steps">🎯 Next Steps</h2>
+<ol>
+<li><strong>Update generator design</strong> to produce app/core layers</li>
+<li><strong>Create type generator</strong> (Team B)</li>
+<li><strong>Update action compiler</strong> (Team C) for two-layer output</li>
+<li><strong>Test with FraiseQL</strong> to verify auto-discovery</li>
+</ol>
+<hr />
+<p><strong>Verdict</strong>: ✅ <strong>STRONGLY RECOMMENDED</strong></p>
+<p>This pattern is <strong>production-proven</strong>, <strong>FraiseQL-optimized</strong>, and provides <strong>excellent separation of concerns</strong>. It's the right architecture for the SpecQL generator.</p>
+<p><strong>Estimated Impact</strong>: +2 days implementation, but <strong>massive long-term benefits</strong> for maintainability, API flexibility, and FraiseQL integration.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

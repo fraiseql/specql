@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Use Your First Pattern - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Use Your First Pattern";
+        var mkdocs_page_input_path = "getting-started/first-pattern.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Use Your First Pattern</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="use-your-first-pattern">Use Your First Pattern</h1>
+<p>Learn how to add business logic to your entities using SpecQL's mutation patterns. Patterns are reusable templates for common operations like state machines, validation, and multi-entity transactions.</p>
+<h2 id="what-youll-learn">🎯 What You'll Learn</h2>
+<ul>
+<li>Understand mutation patterns</li>
+<li>Add a state machine pattern</li>
+<li>Configure pattern options</li>
+<li>Generate and test pattern logic</li>
+<li>Use patterns in your applications</li>
+</ul>
+<h2 id="prerequisites">📋 Prerequisites</h2>
+<ul>
+<li><a href="../first-entity/">First entity created</a></li>
+<li>Basic understanding of YAML</li>
+<li>PostgreSQL database ready</li>
+</ul>
+<h2 id="step-1-understand-mutation-patterns">🔄 Step 1: Understand Mutation Patterns</h2>
+<p>SpecQL provides 27+ reusable patterns for common business logic:</p>
+<h3 id="available-patterns">Available Patterns</h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Purpose</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>state_machine</strong></td>
+<td>Manage entity states</td>
+<td>Order workflow, user status</td>
+</tr>
+<tr>
+<td><strong>validation</strong></td>
+<td>Data validation rules</td>
+<td>Business constraints</td>
+</tr>
+<tr>
+<td><strong>multi_entity</strong></td>
+<td>Cross-table operations</td>
+<td>Order with line items</td>
+</tr>
+<tr>
+<td><strong>batch_operations</strong></td>
+<td>Bulk data processing</td>
+<td>Mass updates</td>
+</tr>
+<tr>
+<td><strong>audit_trail</strong></td>
+<td>Change tracking</td>
+<td>Compliance logging</td>
+</tr>
+<tr>
+<td><strong>soft_delete</strong></td>
+<td>Safe deletion</td>
+<td>Data recovery</td>
+</tr>
+<tr>
+<td><strong>versioning</strong></td>
+<td>Data versioning</td>
+<td>Historical records</td>
+</tr>
+</tbody>
+</table>
+<h2 id="step-2-add-state-machine-pattern">🏗️ Step 2: Add State Machine Pattern</h2>
+<p>Let's add a user account lifecycle to your user entity:</p>
+<pre><code class="language-yaml"># entities/user.yaml
+name: user
+description: &quot;User account with profile information&quot;
+
+fields:
+  id: uuid
+  email: string
+  first_name: string
+  last_name: string
+  status: string          # Will be managed by state machine
+  company_id: uuid?
+  phone: string?
+  date_of_birth: date?
+  is_active: boolean
+  created_at: timestamp
+  updated_at: timestamp
+
+patterns:
+  - name: state_machine
+    description: &quot;User account lifecycle management&quot;
+    states:
+      - inactive
+      - pending_verification
+      - active
+      - suspended
+      - deactivated
+    initial_state: inactive
+    transitions:
+      - from: inactive
+        to: pending_verification
+        trigger: request_verification
+        guard: &quot;email IS NOT NULL&quot;
+      - from: pending_verification
+        to: active
+        trigger: verify_email
+        action: &quot;send_welcome_email&quot;
+      - from: active
+        to: suspended
+        trigger: suspend
+        reason: &quot;Violation of terms&quot;
+      - from: suspended
+        to: active
+        trigger: reactivate
+      - from: active
+        to: deactivated
+        trigger: deactivate
+        guard: &quot;is_active = false&quot;
+</code></pre>
+<h2 id="step-3-configure-pattern-options">⚙️ Step 3: Configure Pattern Options</h2>
+<h3 id="state-machine-configuration">State Machine Configuration</h3>
+<pre><code class="language-yaml">patterns:
+  - name: state_machine
+    # Basic settings
+    initial_state: inactive    # Starting state
+    allow_self_transitions: false  # Can transition to same state?
+
+    # State definitions with metadata
+    states:
+      - name: inactive
+        description: &quot;Account created but not verified&quot;
+        color: &quot;gray&quot;
+      - name: active
+        description: &quot;Fully active account&quot;
+        color: &quot;green&quot;
+      - name: suspended
+        description: &quot;Temporarily disabled&quot;
+        color: &quot;red&quot;
+
+    # Transition rules
+    transitions:
+      - from: inactive
+        to: pending_verification
+        trigger: request_verification
+        guard: &quot;email IS NOT NULL&quot;          # Condition must be true
+        action: &quot;send_verification_email&quot;   # Function to call
+        events: [&quot;user_verification_requested&quot;]  # Events to emit
+</code></pre>
+<h3 id="common-pattern-options">Common Pattern Options</h3>
+<table>
+<thead>
+<tr>
+<th>Option</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>guard</code></td>
+<td>Precondition check</td>
+<td><code>"balance &gt; 0"</code></td>
+</tr>
+<tr>
+<td><code>action</code></td>
+<td>Function to execute</td>
+<td><code>"send_notification"</code></td>
+</tr>
+<tr>
+<td><code>events</code></td>
+<td>Events to emit</td>
+<td><code>["order_created"]</code></td>
+</tr>
+<tr>
+<td><code>timeout</code></td>
+<td>Time limit</td>
+<td><code>"30 minutes"</code></td>
+</tr>
+<tr>
+<td><code>retries</code></td>
+<td>Retry attempts</td>
+<td><code>3</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="step-4-generate-pattern-code">🔧 Step 4: Generate Pattern Code</h2>
+<pre><code class="language-bash"># Validate the pattern configuration
+specql validate entities/user.yaml
+
+# Generate the schema with patterns
+specql generate schema entities/user.yaml
+
+# Check generated files
+ls -la db/schema/
+# 00_foundation/
+# 10_tables/
+# ├── user.sql
+# 20_constraints/
+# 30_indexes/
+# 40_functions/
+# └── user_state_machine.sql
+</code></pre>
+<h2 id="step-5-review-generated-functions">📄 Step 5: Review Generated Functions</h2>
+<pre><code class="language-bash"># View the state machine functions
+cat db/schema/40_functions/user_state_machine.sql
+</code></pre>
+<p><strong>Generated functions include:</strong></p>
+<pre><code class="language-sql">-- State transition functions
+CREATE FUNCTION user_request_verification(user_id UUID)
+RETURNS user_state_transition_result AS $$
+-- Validate guard: email IS NOT NULL
+-- Execute transition: inactive -&gt; pending_verification
+-- Call action: send_verification_email
+-- Emit events: user_verification_requested
+$$ LANGUAGE plpgsql;
+
+CREATE FUNCTION user_verify_email(user_id UUID, token TEXT)
+RETURNS user_state_transition_result AS $$
+-- Validate token
+-- Execute transition: pending_verification -&gt; active
+-- Call action: send_welcome_email
+-- Update user status
+$$ LANGUAGE plpgsql;
+
+-- State query functions
+CREATE FUNCTION user_get_available_transitions(user_id UUID)
+RETURNS TABLE(transition_name TEXT, from_state TEXT, to_state TEXT) AS $$
+-- Return possible transitions from current state
+$$ LANGUAGE sql;
+
+CREATE FUNCTION user_can_transition(user_id UUID, transition TEXT)
+RETURNS BOOLEAN AS $$
+-- Check if transition is allowed
+$$ LANGUAGE sql;
+</code></pre>
+<h2 id="step-6-apply-to-database">🗄️ Step 6: Apply to Database</h2>
+<pre><code class="language-bash"># Apply all schema components
+psql $DATABASE_URL -f db/schema/00_foundation/*.sql
+psql $DATABASE_URL -f db/schema/10_tables/user.sql
+psql $DATABASE_URL -f db/schema/20_constraints/*.sql
+psql $DATABASE_URL -f db/schema/30_indexes/*.sql
+psql $DATABASE_URL -f db/schema/40_functions/user_state_machine.sql
+</code></pre>
+<h2 id="step-7-test-the-state-machine">🧪 Step 7: Test the State Machine</h2>
+<pre><code class="language-bash"># Connect to database
+psql $DATABASE_URL
+
+# Create a test user
+INSERT INTO user (email, first_name, last_name)
+VALUES ('john@example.com', 'John', 'Doe')
+RETURNING id;
+
+# Check initial state
+SELECT id, email, status FROM user;
+
+# Try invalid transition (should fail)
+SELECT user_verify_email(user_id, 'invalid-token');
+
+# Request verification
+SELECT user_request_verification(user_id);
+
+# Check available transitions
+SELECT * FROM user_get_available_transitions(user_id);
+
+# Complete verification
+SELECT user_verify_email(user_id, 'valid-token');
+
+# Check final state
+SELECT id, email, status, updated_at FROM user;
+</code></pre>
+<p><strong>Expected workflow:</strong></p>
+<pre><code>1. User created: status = 'inactive'
+2. Request verification: status = 'pending_verification'
+3. Verify email: status = 'active'
+</code></pre>
+<h2 id="step-8-use-in-application-code">🎯 Step 8: Use in Application Code</h2>
+<h3 id="direct-sql-calls">Direct SQL Calls</h3>
+<pre><code class="language-python">import psycopg2
+
+def activate_user(user_id, token):
+    with psycopg2.connect(DATABASE_URL) as conn:
+        with conn.cursor() as cursor:
+            cursor.execute(&quot;&quot;&quot;
+                SELECT user_verify_email(%s, %s)
+            &quot;&quot;&quot;, (user_id, token))
+            result = cursor.fetchone()
+            return result[0]  # Success/failure
+</code></pre>
+<h3 id="graphql-integration">GraphQL Integration</h3>
+<pre><code class="language-graphql">mutation VerifyUserEmail($userId: UUID!, $token: String!) {
+  verifyUserEmail(userId: $userId, token: $token) {
+    success
+    newState
+    transitionedAt
+    errors {
+      message
+      code
+    }
+  }
+}
+</code></pre>
+<h3 id="rest-api">REST API</h3>
+<pre><code class="language-javascript">// POST /api/users/{userId}/verify-email
+app.post('/api/users/:userId/verify-email', async (req, res) =&gt; {
+  const { userId } = req.params;
+  const { token } = req.body;
+
+  try {
+    const result = await db.query(
+      'SELECT user_verify_email($1, $2)',
+      [userId, token]
+    );
+    res.json(result.rows[0]);
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+});
+</code></pre>
+<h2 id="step-9-add-more-patterns">🚀 Step 9: Add More Patterns</h2>
+<h3 id="combine-multiple-patterns">Combine Multiple Patterns</h3>
+<pre><code class="language-yaml">patterns:
+  # State machine for status
+  - name: state_machine
+    states: [inactive, active, suspended]
+    transitions:
+      - from: inactive
+        to: active
+        trigger: activate
+
+  # Validation for data integrity
+  - name: validation
+    rules:
+      - name: email_format
+        field: email
+        rule: &quot;email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'&quot;
+      - name: age_positive
+        field: date_of_birth
+        rule: &quot;date_of_birth IS NULL OR date_of_birth &lt; CURRENT_DATE - INTERVAL '13 years'&quot;
+
+  # Audit trail for compliance
+  - name: audit_trail
+    track_fields: [status, email]
+    track_changes: true
+</code></pre>
+<h3 id="pattern-interactions">Pattern Interactions</h3>
+<p>Patterns can work together:
+- <strong>State machines</strong> trigger <strong>validation</strong> checks
+- <strong>Audit trails</strong> record <strong>state transitions</strong>
+- <strong>Multi-entity</strong> operations use <strong>state machines</strong></p>
+<h2 id="best-practices">🎯 Best Practices</h2>
+<h3 id="pattern-selection">Pattern Selection</h3>
+<ul>
+<li><strong>Start simple</strong>: Use basic patterns first</li>
+<li><strong>Combine thoughtfully</strong>: Don't over-engineer</li>
+<li><strong>Test thoroughly</strong>: Each pattern adds complexity</li>
+</ul>
+<h3 id="state-machine-design">State Machine Design</h3>
+<ul>
+<li><strong>Clear states</strong>: Use descriptive names</li>
+<li><strong>Minimal transitions</strong>: Avoid complex flows</li>
+<li><strong>Guards</strong>: Protect against invalid transitions</li>
+<li><strong>Actions</strong>: Keep side effects minimal</li>
+</ul>
+<h3 id="error-handling">Error Handling</h3>
+<ul>
+<li><strong>Validate inputs</strong>: Check data before transitions</li>
+<li><strong>Handle failures</strong>: Plan for transition failures</li>
+<li><strong>Log events</strong>: Track state changes for debugging</li>
+</ul>
+<h2 id="troubleshooting">🆘 Troubleshooting</h2>
+<h3 id="pattern-validation-failed">"Pattern validation failed"</h3>
+<pre><code class="language-bash"># Check pattern syntax
+specql validate entities/user.yaml --verbose
+
+# Common issues:
+# - Invalid state names (use lowercase, underscores)
+# - Missing required fields
+# - Circular transitions
+</code></pre>
+<h3 id="function-does-not-exist">"Function does not exist"</h3>
+<pre><code class="language-bash"># Regenerate after pattern changes
+specql generate schema entities/user.yaml --force
+
+# Apply the new functions
+psql $DATABASE_URL -f db/schema/40_functions/user_state_machine.sql
+</code></pre>
+<h3 id="guard-condition-failed">"Guard condition failed"</h3>
+<pre><code class="language-bash"># Check the guard logic
+# Guards must be valid SQL WHERE clauses
+SELECT * FROM user WHERE email IS NOT NULL AND id = 'your-id';
+</code></pre>
+<h3 id="transition-not-allowed">"Transition not allowed"</h3>
+<pre><code class="language-bash"># Check current state
+SELECT status FROM user WHERE id = 'your-id';
+
+# Check available transitions
+SELECT * FROM user_get_available_transitions('your-id');
+</code></pre>
+<h2 id="congratulations">🎉 Congratulations!</h2>
+<p>You've successfully:
+- ✅ Added a state machine pattern to your entity
+- ✅ Configured states, transitions, and guards
+- ✅ Generated database functions automatically
+- ✅ Tested state transitions
+- ✅ Integrated patterns into your application</p>
+<h2 id="whats-next">🚀 What's Next?</h2>
+<ul>
+<li><strong><a href="../first-tests/">Generate Tests</a></strong> - Automated testing for patterns</li>
+<li><strong><a href="../../guides/mutation-patterns/multi-entity/">Multi-Entity Patterns</a></strong> - Cross-table operations</li>
+<li><strong><a href="../guides/mutation-patterns/custom-patterns.md">Custom Patterns</a></strong> - Build your own patterns</li>
+</ul>
+<h2 id="related-topics">📚 Related Topics</h2>
+<ul>
+<li><strong><a href="../guides/mutation-patterns/">All Patterns</a></strong> - Complete pattern catalog</li>
+<li><strong><a href="../../guides/mutation-patterns/state-machines/">State Machines</a></strong> - Advanced state machine features</li>
+<li><strong><a href="../../guides/mutation-patterns/composing-patterns/">Pattern Composition</a></strong> - Combining multiple patterns</li>
+</ul>
+<p><strong>Ready to test your patterns? Let's continue! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

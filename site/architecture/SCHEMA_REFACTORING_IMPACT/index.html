@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Schema Refactoring Impact Analysis - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Schema Refactoring Impact Analysis";
+        var mkdocs_page_input_path = "architecture/SCHEMA_REFACTORING_IMPACT.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Schema Refactoring Impact Analysis</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="schema-refactoring-impact-analysis">Schema Refactoring Impact Analysis</h1>
+<p><strong>Date</strong>: 2025-11-09
+<strong>Context</strong>: Complete list of files affected by schema organization refactoring</p>
+<hr />
+<h2 id="summary">Summary</h2>
+<p>This refactoring moves from <strong>hardcoded schema lists</strong> to <strong>registry-driven schema classification</strong>.</p>
+<p><strong>Key Changes</strong>:
+1. Add <code>multi_tenant</code> flag to domain registry
+2. Create central <code>SchemaRegistry</code> class
+3. Replace 3+ hardcoded <code>TENANT_SCHEMAS</code> lists
+4. Fix FK resolver bug (Manufacturer → catalog)
+5. Update documentation</p>
+<hr />
+<h2 id="files-requiring-changes">Files Requiring Changes</h2>
+<h3 id="critical-core-implementation-files">🔴 CRITICAL: Core Implementation Files</h3>
+<h4 id="1-registrydomain_registryyaml">1. <code>registry/domain_registry.yaml</code></h4>
+<p><strong>Change</strong>: Add <code>multi_tenant</code> flag to all domains</p>
+<p><strong>Current</strong>:</p>
+<pre><code class="language-yaml">&quot;2&quot;:
+  name: crm
+  aliases: [management]
+  description: &quot;CRM&quot;
+</code></pre>
+<p><strong>New</strong>:</p>
+<pre><code class="language-yaml">&quot;2&quot;:
+  name: crm
+  aliases: [management]
+  description: &quot;CRM&quot;
+  multi_tenant: true  # ← NEW FIELD
+</code></pre>
+<p><strong>Lines to Update</strong>: All domain entries (domains 1-6)</p>
+<p><strong>Effort</strong>: 5 minutes (add one field per domain)</p>
+<hr />
+<h4 id="2-srcgeneratorsschemaschema_registrypy-new-file">2. <code>src/generators/schema/schema_registry.py</code> (NEW FILE)</h4>
+<p><strong>Change</strong>: Create central schema registry</p>
+<p><strong>Lines</strong>: ~150 lines (new file)</p>
+<p><strong>Effort</strong>: 30 minutes</p>
+<p><strong>Contents</strong>:
+- <code>is_multi_tenant()</code> - Replace hardcoded lists
+- <code>get_canonical_schema_name()</code> - Resolve aliases
+- <code>is_framework_schema()</code> - Check if common/app/core
+- <code>is_shared_reference_schema()</code> - Check if shared data</p>
+<hr />
+<h4 id="3-srcgeneratorstable_generatorpy">3. <code>src/generators/table_generator.py</code></h4>
+<p><strong>Change</strong>: Replace hardcoded list with registry lookup</p>
+<p><strong>Current</strong> (line 140-148):</p>
+<pre><code class="language-python">def _is_tenant_specific_schema(self, schema: str) -&gt; bool:
+    &quot;&quot;&quot;
+    Determine if schema is tenant-specific (needs tenant_id) or common (shared)
+
+    Tenant-specific schemas: tenant, crm, management, operations
+    Common schemas: common, catalog, public
+    &quot;&quot;&quot;
+    tenant_schemas = [&quot;tenant&quot;, &quot;crm&quot;, &quot;management&quot;, &quot;operations&quot;]
+    return schema in tenant_schemas
+</code></pre>
+<p><strong>New</strong>:</p>
+<pre><code class="language-python">def _is_tenant_specific_schema(self, schema: str) -&gt; bool:
+    &quot;&quot;&quot;
+    Determine if schema is tenant-specific (needs tenant_id) or common (shared)
+
+    Uses domain registry to check multi_tenant flag
+    &quot;&quot;&quot;
+    return self.schema_registry.is_multi_tenant(schema)
+</code></pre>
+<p><strong>Also Add</strong> (in <code>__init__</code>):</p>
+<pre><code class="language-python">from src.generators.schema.schema_registry import SchemaRegistry
+
+def __init__(self):
+    # ... existing init ...
+    self.schema_registry = SchemaRegistry(self.naming_conventions.registry)
+</code></pre>
+<p><strong>Lines to Change</strong>: 2 (replace hardcoded list, add registry init)</p>
+<p><strong>Effort</strong>: 10 minutes</p>
+<hr />
+<h4 id="4-srcgeneratorstrinity_helper_generatorpy">4. <code>src/generators/trinity_helper_generator.py</code></h4>
+<p><strong>Change</strong>: Replace hardcoded <code>TENANT_SCHEMAS</code> constant</p>
+<p><strong>Current</strong> (line 64):</p>
+<pre><code class="language-python">TENANT_SCHEMAS = [&quot;tenant&quot;, &quot;crm&quot;, &quot;management&quot;, &quot;operations&quot;]
+</code></pre>
+<p><strong>Search for Usage</strong>:</p>
+<pre><code class="language-bash"># Find all references to TENANT_SCHEMAS in this file
+grep -n &quot;TENANT_SCHEMAS&quot; src/generators/trinity_helper_generator.py
+</code></pre>
+<p><strong>Replacement Pattern</strong>:</p>
+<pre><code class="language-python"># BEFORE
+if entity.schema in TENANT_SCHEMAS:
+    # Add tenant_id parameter
+
+# AFTER
+if self.schema_registry.is_multi_tenant(entity.schema):
+    # Add tenant_id parameter
+</code></pre>
+<p><strong>Lines to Change</strong>: ~5-10 (everywhere TENANT_SCHEMAS is used)</p>
+<p><strong>Effort</strong>: 15 minutes</p>
+<hr />
+<h4 id="5-srcgeneratorscore_logic_generatorpy">5. <code>src/generators/core_logic_generator.py</code></h4>
+<p><strong>Change</strong>: Replace hardcoded <code>TENANT_SCHEMAS</code> constant</p>
+<p><strong>Current</strong> (line 201):</p>
+<pre><code class="language-python">TENANT_SCHEMAS = [&quot;tenant&quot;, &quot;crm&quot;, &quot;management&quot;, &quot;operations&quot;]
+</code></pre>
+<p><strong>Same replacement pattern as trinity_helper_generator.py</strong></p>
+<p><strong>Lines to Change</strong>: ~5-10</p>
+<p><strong>Effort</strong>: 15 minutes</p>
+<hr />
+<h4 id="6-srcgeneratorsactionsstep_compilersfk_resolverpy">6. <code>src/generators/actions/step_compilers/fk_resolver.py</code></h4>
+<p><strong>Change</strong>: Replace hardcoded schema map with registry lookup</p>
+<p><strong>Current</strong> (line 127):</p>
+<pre><code class="language-python">schema_map = {
+    &quot;Contact&quot;: &quot;crm&quot;,
+    &quot;Task&quot;: &quot;crm&quot;,
+    &quot;Manufacturer&quot;: &quot;product&quot;,  # ← BUG! Should be &quot;catalog&quot;
+    &quot;Product&quot;: &quot;product&quot;,
+}
+</code></pre>
+<p><strong>New</strong>:</p>
+<pre><code class="language-python">def _resolve_entity_schema(self, entity_name: str) -&gt; str:
+    &quot;&quot;&quot;
+    Resolve entity name to schema name using registry
+
+    Checks:
+    1. Domain registry for registered entities
+    2. Inference heuristics if not registered
+
+    Returns canonical schema name (resolves aliases)
+    &quot;&quot;&quot;
+    # Check if entity is registered
+    entry = self.naming_conventions.registry.get_entity(entity_name)
+    if entry:
+        # Get domain from registry entry
+        domain_code = entry.domain_code
+        domain = self.naming_conventions.registry.get_domain(domain_code)
+        return domain.name  # Use canonical domain name (not alias)
+
+    # Fallback to inference (for backward compatibility)
+    return self._infer_schema_from_entity_name(entity_name)
+
+def _infer_schema_from_entity_name(self, entity_name: str) -&gt; str:
+    &quot;&quot;&quot;
+    Infer schema from entity name using common patterns
+
+    This is a fallback for entities not yet registered
+    &quot;&quot;&quot;
+    name_lower = entity_name.lower()
+
+    # CRM/Management entities
+    if any(x in name_lower for x in [&quot;contact&quot;, &quot;company&quot;, &quot;account&quot;, &quot;customer&quot;]):
+        return &quot;crm&quot;
+
+    # Catalog entities
+    if any(x in name_lower for x in [&quot;manufacturer&quot;, &quot;product&quot;, &quot;brand&quot;, &quot;model&quot;]):
+        return &quot;catalog&quot;
+
+    # Project entities
+    if any(x in name_lower for x in [&quot;project&quot;, &quot;task&quot;, &quot;milestone&quot;]):
+        return &quot;projects&quot;
+
+    # Default to entity's own schema (will be validated elsewhere)
+    return name_lower
+</code></pre>
+<p><strong>Lines to Change</strong>: Replace entire schema_map dict (~10 lines) with new logic (~40 lines)</p>
+<p><strong>Effort</strong>: 20 minutes</p>
+<p><strong>🐛 BUG FIX</strong>: This also fixes the Manufacturer → "product" bug!</p>
+<hr />
+<h3 id="moderate-documentation-files">🟡 MODERATE: Documentation Files</h3>
+<h4 id="7-claudeclaudemd">7. <code>.claude/CLAUDE.md</code></h4>
+<p><strong>Changes</strong>:
+1. Remove "catalog" from universal schema examples
+2. Add Tier 1/2/3 explanation
+3. Update Team B section with schema registry
+4. Add examples for different app types</p>
+<p><strong>Sections to Update</strong>:
+- "TEAM STRUCTURE" → Team B description (add schema_registry mention)
+- Add new section: "Schema Organization (3 Tiers)"
+- Update examples to show catalog as PrintOptim-specific</p>
+<p><strong>Lines to Change</strong>: ~50 lines (mostly additions)</p>
+<p><strong>Effort</strong>: 20 minutes</p>
+<hr />
+<h4 id="8-docsarchitectureschema_strategymd">8. <code>docs/architecture/SCHEMA_STRATEGY.md</code></h4>
+<p><strong>Changes</strong>:
+1. Add "Schema Tiers" section
+2. Explain <code>multi_tenant</code> flag
+3. Update multi-tenancy table
+4. Add schema registry pattern</p>
+<p><strong>Current</strong> (line 83-91):</p>
+<pre><code class="language-markdown">| Schema | Type | tenant_id | RLS | Purpose |
+|--------|------|-----------|-----|---------|
+| `crm` | Tenant-Specific | ✅ REQUIRED | ✅ YES | Customer data |
+| `management` | Tenant-Specific | ✅ REQUIRED | ✅ YES | Organization structure |
+| `operations` | Tenant-Specific | ✅ REQUIRED | ✅ YES | Operational data |
+| `common` | Shared | ❌ NONE | ❌ NO | Reference data (countries, currencies) |
+| `catalog` | Shared | ❌ NONE | ❌ NO | Product catalogs |
+</code></pre>
+<p><strong>New</strong>:</p>
+<pre><code class="language-markdown">| Schema | Type | tenant_id | RLS | Purpose | Tier |
+|--------|------|-----------|-----|---------|------|
+| `common` | Framework | ❌ NONE | ❌ NO | Reference data | **Tier 1** |
+| `app` | Framework | ❌ NONE | ❌ NO | API types | **Tier 1** |
+| `core` | Framework | Mixed | Mixed | Business functions | **Tier 1** |
+| `crm` | Multi-Tenant | ✅ REQUIRED | ✅ YES | Customer data | **Tier 2** |
+| `projects` | Multi-Tenant | ✅ REQUIRED | ✅ YES | Projects/tasks | **Tier 2** |
+| `catalog` | Shared (App-Specific) | ❌ NONE | ❌ NO | Product catalog (PrintOptim) | **Tier 3** |
+</code></pre>
+<p><strong>Lines to Change</strong>: ~100 lines (add sections, update table)</p>
+<p><strong>Effort</strong>: 30 minutes</p>
+<hr />
+<h4 id="9-docsguidesadding_custom_domainsmd-new-file">9. <code>docs/guides/ADDING_CUSTOM_DOMAINS.md</code> (NEW FILE)</h4>
+<p><strong>Change</strong>: Create user guide for adding custom schemas</p>
+<p><strong>Lines</strong>: ~200 lines (new file)</p>
+<p><strong>Effort</strong>: 45 minutes</p>
+<p><strong>Contents</strong>:
+- How to add multi-tenant domain
+- How to add shared domain
+- Examples (sales, hr, legal, healthcare)
+- Common pitfalls</p>
+<hr />
+<h3 id="low-priority-test-files">🟢 LOW PRIORITY: Test Files</h3>
+<h4 id="10-test-files-using-hardcoded-schemas">10. Test Files Using Hardcoded Schemas</h4>
+<p><strong>Files</strong>:
+- <code>tests/unit/numbering/test_numbering_parser.py</code>
+- <code>tests/integration/test_team_b_integration.py</code>
+- <code>tests/unit/registry/test_naming_conventions.py</code>
+- <code>tests/unit/generators/test_composite_type_generator.py</code>
+- <code>tests/unit/schema/test_foreign_key_generator.py</code></p>
+<p><strong>Change</strong>: Update assertions to use schema_registry</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-python"># BEFORE
+assert entity.schema == &quot;catalog&quot;
+
+# AFTER
+assert schema_registry.get_canonical_schema_name(entity.schema) == &quot;catalog&quot;
+</code></pre>
+<p><strong>Lines to Change</strong>: ~20 lines across all test files</p>
+<p><strong>Effort</strong>: 30 minutes</p>
+<hr />
+<h4 id="11-new-test-file-testsunitschematest_schema_registrypy">11. New Test File: <code>tests/unit/schema/test_schema_registry.py</code></h4>
+<p><strong>Change</strong>: Create comprehensive tests for SchemaRegistry</p>
+<p><strong>Lines</strong>: ~150 lines (new file)</p>
+<p><strong>Effort</strong>: 45 minutes</p>
+<p><strong>Test Cases</strong>:
+- Multi-tenant flag respected
+- Alias resolution
+- Framework schemas unchanged
+- FK resolver uses registry
+- Canonical name resolution</p>
+<hr />
+<h3 id="cleanup-deprecated-code">🔵 CLEANUP: Deprecated Code</h3>
+<h4 id="12-remove-hardcoded-lists-post-migration">12. Remove Hardcoded Lists (Post-Migration)</h4>
+<p><strong>Files</strong>:
+- <code>src/generators/table_generator.py</code> - Remove <code>tenant_schemas</code> list
+- <code>src/generators/trinity_helper_generator.py</code> - Remove <code>TENANT_SCHEMAS</code> constant
+- <code>src/generators/core_logic_generator.py</code> - Remove <code>TENANT_SCHEMAS</code> constant</p>
+<p><strong>Effort</strong>: 5 minutes (delete lines)</p>
+<hr />
+<h2 id="implementation-order">Implementation Order</h2>
+<h3 id="phase-1-foundation-1-hour">Phase 1: Foundation (1 hour)</h3>
+<ol>
+<li>✅ Add <code>multi_tenant</code> flag to <code>domain_registry.yaml</code> (5 min)</li>
+<li>✅ Create <code>SchemaRegistry</code> class (30 min)</li>
+<li>✅ Write tests for <code>SchemaRegistry</code> (45 min)</li>
+</ol>
+<h3 id="phase-2-generator-updates-1-hour">Phase 2: Generator Updates (1 hour)</h3>
+<ol>
+<li>✅ Update <code>table_generator.py</code> (10 min)</li>
+<li>✅ Update <code>trinity_helper_generator.py</code> (15 min)</li>
+<li>✅ Update <code>core_logic_generator.py</code> (15 min)</li>
+<li>✅ Update <code>fk_resolver.py</code> (20 min)</li>
+</ol>
+<h3 id="phase-3-testing-30-minutes">Phase 3: Testing (30 minutes)</h3>
+<ol>
+<li>✅ Update existing test files (30 min)</li>
+<li>✅ Run full test suite (validate no regressions)</li>
+</ol>
+<h3 id="phase-4-documentation-15-hours">Phase 4: Documentation (1.5 hours)</h3>
+<ol>
+<li>✅ Update <code>.claude/CLAUDE.md</code> (20 min)</li>
+<li>✅ Update <code>SCHEMA_STRATEGY.md</code> (30 min)</li>
+<li>✅ Create <code>ADDING_CUSTOM_DOMAINS.md</code> (45 min)</li>
+</ol>
+<h3 id="phase-5-cleanup-15-minutes">Phase 5: Cleanup (15 minutes)</h3>
+<ol>
+<li>✅ Remove deprecated hardcoded lists (5 min)</li>
+<li>✅ Final validation (10 min)</li>
+</ol>
+<p><strong>Total Effort</strong>: ~4 hours</p>
+<hr />
+<h2 id="risk-assessment">Risk Assessment</h2>
+<h3 id="high-risk-breaking-changes">🔴 HIGH RISK: Breaking Changes</h3>
+<p><strong>Risk</strong>: Existing code relies on hardcoded schema names</p>
+<p><strong>Mitigation</strong>:
+- ✅ Keep backward compatibility (fallback to inference)
+- ✅ Comprehensive test suite before deployment
+- ✅ Phase implementation (feature flag if needed)</p>
+<h3 id="medium-risk-migration-complexity">🟡 MEDIUM RISK: Migration Complexity</h3>
+<p><strong>Risk</strong>: Users with custom schemas may need to update registry</p>
+<p><strong>Mitigation</strong>:
+- ✅ Migration script to auto-add <code>multi_tenant</code> flag
+- ✅ Clear documentation for users
+- ✅ Validation to catch missing flags</p>
+<h3 id="low-risk-performance-impact">🟢 LOW RISK: Performance Impact</h3>
+<p><strong>Risk</strong>: Registry lookups add overhead</p>
+<p><strong>Mitigation</strong>:
+- ✅ Registry lookups are fast (dict lookups)
+- ✅ Only called during generation (not runtime)
+- ✅ Can cache if needed</p>
+<hr />
+<h2 id="success-criteria">Success Criteria</h2>
+<h3 id="functional">Functional</h3>
+<ul>
+<li>[ ] All generators use <code>SchemaRegistry</code> (no hardcoded lists)</li>
+<li>[ ] Alias resolution works ("management" → "crm")</li>
+<li>[ ] Multi-tenant flag controls tenant_id behavior</li>
+<li>[ ] FK resolver bug fixed (Manufacturer → catalog)</li>
+</ul>
+<h3 id="quality">Quality</h3>
+<ul>
+<li>[ ] All existing tests pass</li>
+<li>[ ] New tests for <code>SchemaRegistry</code> (90%+ coverage)</li>
+<li>[ ] No regressions in integration tests</li>
+</ul>
+<h3 id="documentation">Documentation</h3>
+<ul>
+<li>[ ] <code>.claude/CLAUDE.md</code> updated with schema tiers</li>
+<li>[ ] <code>SCHEMA_STRATEGY.md</code> reflects new model</li>
+<li>[ ] User guide for custom domains complete</li>
+</ul>
+<h3 id="cleanup">Cleanup</h3>
+<ul>
+<li>[ ] All hardcoded <code>TENANT_SCHEMAS</code> lists removed</li>
+<li>[ ] No references to old schema map in FK resolver</li>
+<li>[ ] Validation rules enforce <code>multi_tenant</code> flag</li>
+</ul>
+<hr />
+<h2 id="rollback-plan">Rollback Plan</h2>
+<p><strong>If issues arise</strong>:</p>
+<ol>
+<li><strong>Keep old code commented</strong> (don't delete immediately)</li>
+<li><strong>Feature flag</strong>: <code>USE_SCHEMA_REGISTRY = True/False</code></li>
+<li><strong>Fallback</strong>: Registry lookups fall back to hardcoded lists</li>
+<li><strong>Validation</strong>: Warn but don't error on missing <code>multi_tenant</code> flag</li>
+</ol>
+<p><strong>Rollback Steps</strong>:</p>
+<pre><code class="language-python"># In generators:
+if USE_SCHEMA_REGISTRY:
+    is_tenant = self.schema_registry.is_multi_tenant(schema)
+else:
+    is_tenant = schema in TENANT_SCHEMAS  # Old hardcoded list
+</code></pre>
+<hr />
+<h2 id="post-migration-benefits">Post-Migration Benefits</h2>
+<h3 id="for-framework-developers">For Framework Developers</h3>
+<ul>
+<li>✅ One place to update schema logic (<code>SchemaRegistry</code>)</li>
+<li>✅ No scattered hardcoded lists</li>
+<li>✅ Easier to add new domains</li>
+</ul>
+<h3 id="for-users">For Users</h3>
+<ul>
+<li>✅ Can define custom multi-tenant schemas</li>
+<li>✅ Can use schema aliases ("crm" or "management")</li>
+<li>✅ Clear documentation for adding domains</li>
+</ul>
+<h3 id="for-code-quality">For Code Quality</h3>
+<ul>
+<li>✅ Single source of truth (domain registry)</li>
+<li>✅ Type-safe schema classification</li>
+<li>✅ Better test coverage</li>
+</ul>
+<hr />
+<h2 id="next-actions">Next Actions</h2>
+<ol>
+<li><strong>Review</strong> this impact analysis</li>
+<li><strong>Create subtasks</strong> in task tracker</li>
+<li><strong>Assign priority</strong> (High - affects Week 2 Team B work)</li>
+<li><strong>Schedule implementation</strong> (Before Team B starts)</li>
+<li><strong>Set up feature branch</strong> (<code>feature/schema-registry</code>)</li>
+</ol>
+<hr />
+<p><strong>Status</strong>: 📋 READY FOR IMPLEMENTATION
+<strong>Effort</strong>: ~4 hours
+<strong>Priority</strong>: High (blocks Team B improvements)
+<strong>Risk</strong>: Medium (breaking changes, but mitigated)</p>
+<p><strong>Last Updated</strong>: 2025-11-09</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

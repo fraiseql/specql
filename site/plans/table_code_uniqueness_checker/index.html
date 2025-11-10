@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>CLI Command: Table Code Uniqueness Checker - COMPLEX - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "CLI Command: Table Code Uniqueness Checker - COMPLEX";
+        var mkdocs_page_input_path = "plans/table_code_uniqueness_checker.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">CLI Command: Table Code Uniqueness Checker - COMPLEX</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="cli-command-table-code-uniqueness-checker-complex">CLI Command: Table Code Uniqueness Checker - COMPLEX</h1>
+<p><strong>Complexity</strong>: Complex | <strong>Phased TDD Approach</strong></p>
+<h2 id="executive-summary">Executive Summary</h2>
+<p>Add a new CLI command <code>specql check-codes</code> that validates the uniqueness of user-defined <code>table_code</code> fields across multiple SpecQL YAML files. This is critical for large migrations (like PrintOptim with 74+ entities) where explicit table codes are used and developers need to ensure no collisions exist before generation.</p>
+<h2 id="background">Background</h2>
+<p>With the recent fix for Issue #1, SpecQL now supports explicit <code>table_code</code> fields that skip validation. This is essential for migrations from external systems, but it creates a new problem: users can accidentally use duplicate codes across different YAML files, leading to database conflicts.</p>
+<p><strong>User Need</strong>: Before running <code>specql generate</code>, users need a way to verify that all their explicit table codes are unique.</p>
+<h2 id="phases">PHASES</h2>
+<h3 id="phase-1-core-uniqueness-detection">Phase 1: Core Uniqueness Detection</h3>
+<p><strong>Objective</strong>: Implement basic duplicate detection logic that scans YAML files and reports collisions.</p>
+<h4 id="tdd-cycle">TDD Cycle:</h4>
+<ol>
+<li><strong>RED</strong>: Write failing test for duplicate detection</li>
+<li>Test file: <code>tests/unit/cli/test_check_codes.py</code></li>
+<li>Expected failure: Test expects duplicate codes to be detected</li>
+<li>
+<p>Test case: Two entities with same <code>table_code: "013211"</code></p>
+</li>
+<li>
+<p><strong>GREEN</strong>: Implement minimal code to pass</p>
+</li>
+<li>Files to create:<ul>
+<li><code>src/cli/commands/check_codes.py</code> - Core uniqueness checker</li>
+<li>Add function <code>check_table_code_uniqueness(entity_files: List[Path]) -&gt; Dict[str, List[str]]</code></li>
+</ul>
+</li>
+<li>
+<p>Minimal implementation:</p>
+<ul>
+<li>Parse each YAML file</li>
+<li>Extract <code>table_code</code> field (both top-level and <code>organization.table_code</code>)</li>
+<li>Build dict: <code>{code: [entity_names]}</code></li>
+<li>Return codes with len &gt; 1</li>
+</ul>
+</li>
+<li>
+<p><strong>REFACTOR</strong>: Clean up and optimize</p>
+</li>
+<li>Use SpecQL parser instead of raw YAML parsing</li>
+<li>Add proper error handling for malformed files</li>
+<li>
+<p>Extract reusable functions</p>
+</li>
+<li>
+<p><strong>QA</strong>: Verify phase completion</p>
+</li>
+<li>[ ] Basic duplicate detection works</li>
+<li>[ ] Handles both <code>table_code</code> formats (top-level and nested)</li>
+<li>[ ] Returns structured results</li>
+<li>[ ] No false positives</li>
+</ol>
+<hr />
+<h3 id="phase-2-cli-integration">Phase 2: CLI Integration</h3>
+<p><strong>Objective</strong>: Add <code>specql check-codes</code> command with proper argument parsing and output formatting.</p>
+<h4 id="tdd-cycle_1">TDD Cycle:</h4>
+<ol>
+<li><strong>RED</strong>: Write failing test for CLI command</li>
+<li>Test file: <code>tests/unit/cli/test_check_codes.py</code></li>
+<li>Expected failure: CLI command doesn't exist yet</li>
+<li>
+<p>Test case: Run <code>specql check-codes entities/*.yaml</code></p>
+</li>
+<li>
+<p><strong>GREEN</strong>: Implement CLI command</p>
+</li>
+<li>Files to modify:<ul>
+<li><code>src/cli/commands/check_codes.py</code> - Add Click command</li>
+<li><code>src/cli/main.py</code> - Register new command (if not auto-discovered)</li>
+</ul>
+</li>
+<li>
+<p>Minimal implementation:
+     <code>python
+     @click.command()
+     @click.argument('entity_files', nargs=-1, type=click.Path(exists=True))
+     def check_codes(entity_files):
+         """Check uniqueness of table codes across entities"""
+         # Call core function from Phase 1
+         # Print results</code></p>
+</li>
+<li>
+<p><strong>REFACTOR</strong>: Improve user experience</p>
+</li>
+<li>Add colored output (green = OK, red = duplicates)</li>
+<li>Add <code>--format</code> option (text, json, csv)</li>
+<li>Add glob pattern support (<code>entities/**/*.yaml</code>)</li>
+<li>
+<p>Add progress indicator for large file sets</p>
+</li>
+<li>
+<p><strong>QA</strong>: Verify phase completion</p>
+</li>
+<li>[ ] Command runs successfully</li>
+<li>[ ] Accepts multiple file patterns</li>
+<li>[ ] Output is clear and actionable</li>
+<li>[ ] Exit code: 0 (no duplicates), 1 (duplicates found)</li>
+</ol>
+<hr />
+<h3 id="phase-3-registry-integration-optional-but-recommended">Phase 3: Registry Integration (Optional but Recommended)</h3>
+<p><strong>Objective</strong>: Check for collisions between explicit codes and registry-assigned codes.</p>
+<h4 id="tdd-cycle_2">TDD Cycle:</h4>
+<ol>
+<li><strong>RED</strong>: Write failing test for registry collision detection</li>
+<li>Test file: <code>tests/unit/cli/test_check_codes.py</code></li>
+<li>Expected failure: Doesn't check registry yet</li>
+<li>
+<p>Test case: Explicit code <code>013029</code> collides with Manufacturer in registry</p>
+</li>
+<li>
+<p><strong>GREEN</strong>: Implement registry checking</p>
+</li>
+<li>Files to modify:<ul>
+<li><code>src/cli/commands/check_codes.py</code> - Add <code>--check-registry</code> flag</li>
+</ul>
+</li>
+<li>
+<p>Minimal implementation:</p>
+<ul>
+<li>Load <code>DomainRegistry</code></li>
+<li>Check if explicit codes are already assigned in registry</li>
+<li>Report potential collisions</li>
+</ul>
+</li>
+<li>
+<p><strong>REFACTOR</strong>: Smart collision detection</p>
+</li>
+<li>Distinguish between:<ul>
+<li><strong>Hard collisions</strong>: Same code, different entity name</li>
+<li><strong>Soft warnings</strong>: Same code, same entity name (OK - re-generation)</li>
+</ul>
+</li>
+<li>
+<p>Add <code>--ignore-registry</code> option to skip registry checks</p>
+</li>
+<li>
+<p><strong>QA</strong>: Verify phase completion</p>
+</li>
+<li>[ ] Registry collisions detected</li>
+<li>[ ] Hard vs soft collisions distinguished</li>
+<li>[ ] Clear warnings for each collision type</li>
+<li>[ ] Works with and without registry</li>
+</ol>
+<hr />
+<h3 id="phase-4-detailed-reporting">Phase 4: Detailed Reporting</h3>
+<p><strong>Objective</strong>: Provide comprehensive reports with file locations, entity details, and suggested fixes.</p>
+<h4 id="tdd-cycle_3">TDD Cycle:</h4>
+<ol>
+<li><strong>RED</strong>: Write failing test for detailed reports</li>
+<li>Test file: <code>tests/unit/cli/test_check_codes.py</code></li>
+<li>Expected failure: Report doesn't include file paths</li>
+<li>
+<p>Test case: Verify report contains YAML file paths for each duplicate</p>
+</li>
+<li>
+<p><strong>GREEN</strong>: Implement detailed reporting</p>
+</li>
+<li>Files to modify:<ul>
+<li><code>src/cli/commands/check_codes.py</code> - Enhance result structure</li>
+</ul>
+</li>
+<li>
+<p>Minimal implementation:</p>
+<ul>
+<li>Store <code>(entity_name, file_path, line_number)</code> for each code</li>
+<li>Report format:
+   ```
+   ❌ Duplicate code: 013211<ul>
+<li>Contact (entities/crm/contact.yaml:3)</li>
+<li>Company (entities/crm/company.yaml:3)
+   ```</li>
+</ul>
+</li>
+</ul>
+</li>
+<li>
+<p><strong>REFACTOR</strong>: Enhanced reporting</p>
+</li>
+<li>Add summary section:
+     <code>📊 Summary:
+       Total files scanned: 74
+       Unique codes found: 72
+       Duplicate codes: 2
+       Registry collisions: 1</code></li>
+<li>Add <code>--fix</code> option that suggests new codes (use registry auto-derivation)</li>
+<li>
+<p>Add <code>--export</code> option to save report to file</p>
+</li>
+<li>
+<p><strong>QA</strong>: Verify phase completion</p>
+</li>
+<li>[ ] Reports include all necessary context</li>
+<li>[ ] File paths and line numbers accurate</li>
+<li>[ ] Summary is helpful</li>
+<li>[ ] Fix suggestions are actionable</li>
+</ol>
+<hr />
+<h3 id="phase-5-integration-testing-documentation">Phase 5: Integration Testing &amp; Documentation</h3>
+<p><strong>Objective</strong>: End-to-end testing with real-world scenarios and complete documentation.</p>
+<h4 id="tdd-cycle_4">TDD Cycle:</h4>
+<ol>
+<li><strong>RED</strong>: Write failing integration test</li>
+<li>Test file: <code>tests/integration/test_check_codes_integration.py</code></li>
+<li>Expected failure: Full PrintOptim scenario not tested</li>
+<li>
+<p>Test case: 74 entities with 2 duplicates, verify exact output</p>
+</li>
+<li>
+<p><strong>GREEN</strong>: Ensure integration works</p>
+</li>
+<li>Files to test:<ul>
+<li>Create fixture directory with realistic entity files</li>
+<li>Test all command flags in combination</li>
+</ul>
+</li>
+<li>
+<p>Validate:</p>
+<ul>
+<li>Large file sets (100+ entities)</li>
+<li>Edge cases (no table_code, malformed YAML, etc.)</li>
+</ul>
+</li>
+<li>
+<p><strong>REFACTOR</strong>: Polish and performance</p>
+</li>
+<li>Optimize for large codebases (parallel file parsing)</li>
+<li>Add caching for repeated checks</li>
+<li>
+<p>Memory efficiency for 1000+ entities</p>
+</li>
+<li>
+<p><strong>QA</strong>: Verify phase completion</p>
+</li>
+<li>[ ] Integration tests pass</li>
+<li>[ ] Performance acceptable (&lt; 5s for 100 entities)</li>
+<li>[ ] Documentation complete</li>
+<li>[ ] Help text clear (<code>specql check-codes --help</code>)</li>
+</ol>
+<hr />
+<h2 id="technical-design">Technical Design</h2>
+<h3 id="core-data-structures">Core Data Structures</h3>
+<pre><code class="language-python">@dataclass
+class TableCodeOccurrence:
+    &quot;&quot;&quot;Single occurrence of a table code&quot;&quot;&quot;
+    entity_name: str
+    file_path: Path
+    line_number: int
+    code: str
+    schema: str
+
+@dataclass
+class DuplicateReport:
+    &quot;&quot;&quot;Report of duplicate table codes&quot;&quot;&quot;
+    code: str
+    occurrences: List[TableCodeOccurrence]
+    collision_type: str  # &quot;duplicate&quot;, &quot;registry_collision&quot;
+
+@dataclass
+class CheckResult:
+    &quot;&quot;&quot;Overall check result&quot;&quot;&quot;
+    total_files: int
+    total_codes: int
+    duplicates: List[DuplicateReport]
+    success: bool
+</code></pre>
+<h3 id="cli-command-structure">CLI Command Structure</h3>
+<pre><code class="language-python"># src/cli/commands/check_codes.py
+
+@click.command(&quot;check-codes&quot;)
+@click.argument('entity_files', nargs=-1, type=click.Path())
+@click.option('--check-registry/--no-check-registry', default=True,
+              help='Check for collisions with registry codes')
+@click.option('--format', type=click.Choice(['text', 'json', 'csv']),
+              default='text', help='Output format')
+@click.option('--export', type=click.Path(), help='Export report to file')
+@click.option('--fix', is_flag=True, help='Suggest fixes for duplicates')
+def check_codes(entity_files, check_registry, format, export, fix):
+    &quot;&quot;&quot;
+    Check uniqueness of table codes across entity files.
+
+    Examples:
+        specql check-codes entities/*.yaml
+        specql check-codes entities/**/*.yaml --format json
+        specql check-codes entities/ --check-registry --fix
+    &quot;&quot;&quot;
+    # Implementation from phases 1-4
+</code></pre>
+<h3 id="output-examples">Output Examples</h3>
+<h4 id="success-case">Success Case</h4>
+<pre><code>✅ Table code uniqueness check PASSED
+
+📊 Summary:
+  Total files scanned: 74
+  Unique codes found: 74
+  Duplicate codes: 0
+  Registry collisions: 0
+
+All table codes are unique! 🎉
+</code></pre>
+<h4 id="failure-case">Failure Case</h4>
+<pre><code>❌ Table code uniqueness check FAILED
+
+🔴 Duplicate Codes:
+
+  Code: 013211
+    - Contact (entities/crm/contact.yaml:3)
+    - Company (entities/crm/company.yaml:4)
+
+  Code: 014511
+    - Machine (entities/projects/machine.yaml:2)
+    - Device (entities/projects/device.yaml:2)
+
+⚠️  Registry Collisions:
+
+  Code: 013029 (Manufacturer)
+    - Used in: NewEntity (entities/catalog/new_entity.yaml:3)
+    - Registry: Manufacturer (catalog.manufacturer.MNF)
+    - Warning: Code already assigned in registry
+
+📊 Summary:
+  Total files scanned: 74
+  Unique codes found: 72
+  Duplicate codes: 2
+  Registry collisions: 1
+
+❌ Fix duplicates before running 'specql generate'
+
+Exit code: 1
+</code></pre>
+<hr />
+<h2 id="implementation-files">Implementation Files</h2>
+<h3 id="new-files">New Files</h3>
+<ul>
+<li><code>src/cli/commands/check_codes.py</code> - Main command implementation</li>
+<li><code>tests/unit/cli/test_check_codes.py</code> - Unit tests</li>
+<li><code>tests/integration/test_check_codes_integration.py</code> - Integration tests</li>
+<li><code>tests/fixtures/check_codes/</code> - Test fixtures with sample entities</li>
+</ul>
+<h3 id="modified-files">Modified Files</h3>
+<ul>
+<li><code>src/cli/main.py</code> - Register new command (if needed)</li>
+<li><code>docs/cli/CHECK_CODES.md</code> - Command documentation</li>
+</ul>
+<hr />
+<h2 id="success-criteria">Success Criteria</h2>
+<ul>
+<li>[ ] All tests pass (unit + integration)</li>
+<li>[ ] Command detects 100% of duplicate codes</li>
+<li>[ ] Registry collision detection accurate</li>
+<li>[ ] Performance: &lt; 5s for 100 entities</li>
+<li>[ ] Clear, actionable output</li>
+<li>[ ] Documentation complete with examples</li>
+<li>[ ] Exit codes correct (0 = success, 1 = duplicates)</li>
+<li>[ ] Works with glob patterns (<code>**/*.yaml</code>)</li>
+</ul>
+<hr />
+<h2 id="open-questions">Open Questions</h2>
+<ol>
+<li><strong>Should we check for "similar" codes?</strong> (e.g., <code>013211</code> vs <code>013212</code> - potential typo)</li>
+<li><strong>Should we validate code format?</strong> (6-digit hex) or assume SpecQL parser handles this?</li>
+<li><strong>Should we support auto-fixing?</strong> (e.g., <code>--fix</code> flag that modifies YAML files)</li>
+<li><strong>Should we integrate with <code>specql validate</code>?</strong> Or keep as separate command?</li>
+</ol>
+<hr />
+<h2 id="dependencies">Dependencies</h2>
+<ul>
+<li>SpecQL parser (<code>src/core/specql_parser.py</code>) - Already supports <code>table_code</code> parsing</li>
+<li>Domain Registry (<code>src/generators/schema/naming_conventions.py</code>) - For registry collision checks</li>
+<li>Click CLI framework - Already used throughout SpecQL</li>
+</ul>
+<hr />
+<h2 id="estimated-effort">Estimated Effort</h2>
+<ul>
+<li><strong>Phase 1</strong>: 2-3 hours (core logic)</li>
+<li><strong>Phase 2</strong>: 1-2 hours (CLI integration)</li>
+<li><strong>Phase 3</strong>: 2-3 hours (registry checking)</li>
+<li><strong>Phase 4</strong>: 2-3 hours (reporting)</li>
+<li><strong>Phase 5</strong>: 2-3 hours (integration + docs)</li>
+</ul>
+<p><strong>Total</strong>: 9-14 hours (1-2 days of focused work)</p>
+<hr />
+<h2 id="notes-for-implementation">Notes for Implementation</h2>
+<ol>
+<li><strong>Reuse existing parsers</strong>: Don't parse YAML directly - use <code>SpecQLParser</code> from <code>src/core/specql_parser.py</code></li>
+<li><strong>Follow SpecQL CLI patterns</strong>: Look at <code>src/cli/commands/validate.py</code> for similar structure</li>
+<li><strong>Test with real PrintOptim data</strong>: The 74-entity PrintOptim migration is the perfect test case</li>
+<li><strong>Consider performance</strong>: Use generator patterns for large file sets</li>
+<li><strong>Clear error messages</strong>: Users should know exactly which files to fix</li>
+</ol>
+<hr />
+<p><strong>Last Updated</strong>: 2025-11-10
+<strong>Status</strong>: Ready for implementation
+<strong>Related Issues</strong>: #1 (Explicit table_code support)</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

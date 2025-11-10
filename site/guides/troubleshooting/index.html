@@ -1,0 +1,681 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Troubleshooting Guide - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Troubleshooting Guide";
+        var mkdocs_page_input_path = "guides/troubleshooting.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Troubleshooting Guide</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="troubleshooting-guide">Troubleshooting Guide</h1>
+<p>Quick solutions to common SpecQL issues.</p>
+<p><strong>Can't find your issue?</strong> Search existing issues or create a new one: https://github.com/fraiseql/specql/issues</p>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#parse-errors">Parse Errors</a></li>
+<li><a href="#validation-errors">Validation Errors</a></li>
+<li><a href="#generation-errors">Generation Errors</a></li>
+<li><a href="#database-errors">Database Errors</a></li>
+<li><a href="#cli-issues">CLI Issues</a></li>
+<li><a href="#performance-issues">Performance Issues</a></li>
+<li><a href="#getting-help">Getting Help</a></li>
+</ol>
+<hr />
+<h2 id="parse-errors">Parse Errors</h2>
+<h3 id="missing-entity-key">"Missing 'entity' key"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>Failed to parse entities/contact.yaml: Missing required key 'entity'
+</code></pre>
+<p><strong>Cause</strong>: File uses <code>import:</code> instead of <code>entity:</code> (import-only file).</p>
+<p><strong>Solution</strong>: Import files reference stdlib and don't generate directly.</p>
+<pre><code class="language-yaml"># ❌ Import-only (doesn't generate)
+import: stdlib/crm/contact
+
+# ✅ Full entity (generates SQL)
+entity: Contact
+schema: crm
+fields:
+  email: text
+</code></pre>
+<p><strong>When to use imports</strong>: Extending stdlib entities with custom fields.</p>
+<hr />
+<h3 id="unknown-field-type">"Unknown field type"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>Parse Error: Unknown field type 'string' at line 5
+</code></pre>
+<p><strong>Cause</strong>: SpecQL uses different type names than some SQL dialects.</p>
+<p><strong>Solution</strong>: Use SpecQL type names</p>
+<table>
+<thead>
+<tr>
+<th>❌ Don't Use</th>
+<th>✅ Use Instead</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>string</code></td>
+<td><code>text</code></td>
+</tr>
+<tr>
+<td><code>int</code></td>
+<td><code>integer</code></td>
+</tr>
+<tr>
+<td><code>bool</code></td>
+<td><code>boolean</code></td>
+</tr>
+<tr>
+<td><code>varchar</code></td>
+<td><code>text</code></td>
+</tr>
+<tr>
+<td><code>numeric</code></td>
+<td><code>decimal</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Reference</strong>: <code>docs/reference/yaml-reference.md#scalar-types</code></p>
+<hr />
+<h3 id="invalid-yaml-syntax">"Invalid YAML syntax"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>yaml.scanner.ScannerError: mapping values are not allowed here
+</code></pre>
+<p><strong>Cause</strong>: YAML indentation or syntax error.</p>
+<p><strong>Solution</strong>: Check YAML formatting</p>
+<pre><code class="language-yaml"># ❌ Invalid (missing colon)
+entity Contact
+schema crm
+
+# ✅ Valid
+entity: Contact
+schema: crm
+
+# ❌ Invalid (inconsistent indentation)
+fields:
+ email: text
+   name: text
+
+# ✅ Valid (2-space indentation)
+fields:
+  email: text
+  name: text
+</code></pre>
+<p><strong>Tools</strong>: Use YAML linter (e.g., <code>yamllint</code>)</p>
+<pre><code class="language-bash">uv add --dev yamllint
+yamllint entities/contact.yaml
+</code></pre>
+<hr />
+<h3 id="duplicate-key">"Duplicate key"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>yaml.constructor.ConstructorError: found duplicate key 'email'
+</code></pre>
+<p><strong>Cause</strong>: Same field name appears twice.</p>
+<p><strong>Solution</strong>: Remove duplicate or rename one field</p>
+<pre><code class="language-yaml"># ❌ Duplicate
+fields:
+  email: text
+  email: email  # Duplicate key
+
+# ✅ Fixed
+fields:
+  email: text
+  alternate_email: email
+</code></pre>
+<hr />
+<h2 id="validation-errors">Validation Errors</h2>
+<h3 id="table-code-already-assigned">"Table code already assigned"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>ValueError: Table code '012311' already assigned to Contact
+</code></pre>
+<p><strong>Cause</strong>: Multiple entities have the same <code>organization.table_code</code>.</p>
+<p><strong>Solution</strong>: Check uniqueness</p>
+<pre><code class="language-bash">specql check-codes entities/**/*.yaml
+</code></pre>
+<p><strong>Output</strong>:</p>
+<pre><code>❌ Duplicate table codes found
+
+⚠️  Code 012311 assigned to:
+  • Contact (entities/crm/contact.yaml)
+  • Customer (entities/crm/customer.yaml)
+</code></pre>
+<p><strong>Fix</strong>: Assign unique codes or remove <code>table_code</code> if not needed.</p>
+<hr />
+<h3 id="referenced-entity-not-found">"Referenced entity not found"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>Validation Error: Field 'company' references undefined entity 'Company'
+</code></pre>
+<p><strong>Cause</strong>: <code>ref(Company)</code> but no <code>Company</code> entity exists.</p>
+<p><strong>Solution</strong>:
+1. Create referenced entity first
+2. Or fix typo in reference name</p>
+<pre><code class="language-yaml"># ❌ References missing entity
+entity: Contact
+fields:
+  company: ref(Company)  # Company.yaml doesn't exist
+
+# ✅ Option 1: Create Company.yaml
+# entities/company.yaml
+entity: Company
+schema: crm
+fields:
+  name: text
+
+# ✅ Option 2: Fix typo
+entity: Contact
+fields:
+  company: ref(Organization)  # Correct entity name
+</code></pre>
+<hr />
+<h3 id="invalid-enum-value">"Invalid enum value"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>Validation Error: Enum must have at least 2 values
+</code></pre>
+<p><strong>Cause</strong>: <code>enum()</code> with 0 or 1 value.</p>
+<p><strong>Solution</strong>: Enums need 2+ values</p>
+<pre><code class="language-yaml"># ❌ Invalid
+status: enum(active)  # Only 1 value
+
+# ✅ Valid
+status: enum(active, inactive)  # 2+ values
+
+# ✅ Alternative: Use boolean
+active: boolean
+</code></pre>
+<hr />
+<h3 id="circular-reference-detected">"Circular reference detected"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>Validation Error: Circular reference: Contact → Company → Contact
+</code></pre>
+<p><strong>Cause</strong>: Entities reference each other in a loop.</p>
+<p><strong>Solution</strong>: Break circle with nullable reference</p>
+<pre><code class="language-yaml"># ❌ Circular
+# Contact → Company
+entity: Contact
+fields:
+  company: ref(Company)
+
+# Company → Contact
+entity: Company
+fields:
+  primary_contact: ref(Contact)  # Circular!
+
+# ✅ Fixed: Make one nullable
+entity: Company
+fields:
+  primary_contact: ref(Contact)?  # Optional breaks circle
+</code></pre>
+<hr />
+<h2 id="generation-errors">Generation Errors</h2>
+<h3 id="no-such-file-or-directory">"No such file or directory"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>Error: Invalid value for 'ENTITY_FILES': Path 'entities/contact.yaml' does not exist
+</code></pre>
+<p><strong>Cause</strong>: File path is wrong or command run from wrong directory.</p>
+<p><strong>Solution</strong>: Use absolute paths or run from project root</p>
+<pre><code class="language-bash"># ❌ Wrong directory
+cd /tmp
+specql generate entities/contact.yaml  # Fails
+
+# ✅ Run from project root
+cd /path/to/project
+specql generate entities/contact.yaml
+
+# ✅ Or use absolute path
+specql generate /path/to/project/entities/contact.yaml
+</code></pre>
+<hr />
+<h3 id="confiture-build-failed">"Confiture build failed"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>❌ Confiture build failed: No such file 'confiture.yaml'
+</code></pre>
+<p><strong>Cause</strong>: Confiture not configured or not installed.</p>
+<p><strong>Solution</strong>:</p>
+<pre><code class="language-bash"># 1. Install Confiture
+uv add fraiseql-confiture
+
+# 2. Create confiture.yaml
+cat &gt; confiture.yaml &lt;&lt; 'EOF'
+schema_dirs:
+  - path: db/schema/10_tables
+    order: 10
+
+environments:
+  local:
+    database_url: postgresql://localhost/mydb
+EOF
+
+# 3. Verify
+specql generate entities/contact.yaml
+</code></pre>
+<hr />
+<h3 id="schema-not-in-domain-registry">"Schema not in domain registry"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>ValueError: Schema 'crm' not found in domain registry
+</code></pre>
+<p><strong>Cause</strong>: Schema not registered in <code>registry/domain_registry.yaml</code>.</p>
+<p><strong>Solution</strong>: Add schema to registry</p>
+<pre><code class="language-yaml"># registry/domain_registry.yaml
+domains:
+  crm:
+    type: multi_tenant
+    description: &quot;Customer relationship management&quot;
+</code></pre>
+<hr />
+<h3 id="output-directory-not-found">"Output directory not found"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>FileNotFoundError: Directory 'db/schema/10_tables' does not exist
+</code></pre>
+<p><strong>Cause</strong>: Output directories not created.</p>
+<p><strong>Solution</strong>: Create directory structure</p>
+<pre><code class="language-bash">mkdir -p db/schema/{00_foundation,10_tables,20_helpers,30_functions,40_metadata}
+</code></pre>
+<hr />
+<h2 id="database-errors">Database Errors</h2>
+<h3 id="relation-does-not-exist">"relation does not exist"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code class="language-sql">psql: ERROR: relation &quot;crm.tb_contact&quot; does not exist
+</code></pre>
+<p><strong>Cause</strong>: Schema not applied to database.</p>
+<p><strong>Solution</strong>: Apply generated SQL files</p>
+<pre><code class="language-bash"># Apply foundation first
+psql mydb -f db/schema/00_foundation/000_app_foundation.sql
+
+# Apply tables
+psql mydb -f db/schema/10_tables/*.sql
+
+# Or use Confiture
+confiture migrate up --env local
+</code></pre>
+<hr />
+<h3 id="constraint-violation">"constraint violation"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code class="language-sql">ERROR: insert or update on table &quot;tb_contact&quot; violates foreign key constraint &quot;fk_tb_contact_company&quot;
+DETAIL: Key (company)=(999) is not present in table &quot;tb_company&quot;.
+</code></pre>
+<p><strong>Cause</strong>: Referenced record doesn't exist.</p>
+<p><strong>Solution</strong>: Insert parent records first</p>
+<pre><code class="language-sql">-- Insert in dependency order
+INSERT INTO crm.tb_company (name) VALUES ('Acme Corp');
+INSERT INTO crm.tb_contact (email, company) VALUES ('john@acme.com', 1);
+</code></pre>
+<hr />
+<h3 id="column-does-not-exist">"column does not exist"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code class="language-sql">ERROR: column &quot;company_id&quot; does not exist
+</code></pre>
+<p><strong>Cause</strong>: SpecQL uses different column naming (no <code>_id</code> suffix for ref fields).</p>
+<p><strong>Solution</strong>: Use correct column name</p>
+<pre><code class="language-sql"># ❌ Wrong (old naming)
+SELECT * FROM crm.tb_contact WHERE company_id = 1;
+
+# ✅ Correct (SpecQL naming)
+SELECT * FROM crm.tb_contact WHERE company = 1;
+</code></pre>
+<p><strong>YAML</strong>:</p>
+<pre><code class="language-yaml">fields:
+  company: ref(Company)  # Column name is 'company' (NOT 'company_id')
+</code></pre>
+<hr />
+<h3 id="permission-denied">"permission denied"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code class="language-sql">ERROR: permission denied for schema crm
+</code></pre>
+<p><strong>Cause</strong>: Database user lacks permissions.</p>
+<p><strong>Solution</strong>: Grant permissions</p>
+<pre><code class="language-sql">-- As superuser
+GRANT USAGE ON SCHEMA crm TO myapp_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA crm TO myapp_user;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA crm TO myapp_user;
+</code></pre>
+<hr />
+<h2 id="cli-issues">CLI Issues</h2>
+<h3 id="command-not-found-specql">"Command not found: specql"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code class="language-bash">$ specql
+command not found: specql
+</code></pre>
+<p><strong>Cause</strong>: SpecQL not installed or UV environment not activated.</p>
+<p><strong>Solution</strong>:</p>
+<pre><code class="language-bash"># Option 1: Use uv run
+uv run specql --version
+
+# Option 2: Install globally
+uv add specql-generator
+specql --version
+
+# Option 3: Check PATH
+which specql
+echo $PATH
+</code></pre>
+<hr />
+<h3 id="permission-denied_1">"Permission denied"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code class="language-bash">$ specql generate entities/contact.yaml
+Permission denied: db/schema/10_tables/contact.sql
+</code></pre>
+<p><strong>Cause</strong>: File permissions issue.</p>
+<p><strong>Solution</strong>:</p>
+<pre><code class="language-bash"># Check permissions
+ls -la db/schema/10_tables/
+
+# Fix permissions
+chmod 644 db/schema/10_tables/*.sql
+chmod 755 db/schema/10_tables/
+</code></pre>
+<hr />
+<h3 id="timeout-during-generation">"Timeout during generation"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>TimeoutError: Generation took longer than 30 seconds
+</code></pre>
+<p><strong>Cause</strong>: Very large number of entities or complex actions.</p>
+<p><strong>Solution</strong>: Generate in batches</p>
+<pre><code class="language-bash"># ❌ All at once (slow)
+specql generate entities/**/*.yaml
+
+# ✅ By schema (faster)
+specql generate entities/crm/*.yaml
+specql generate entities/commerce/*.yaml
+
+# ✅ Parallel generation
+find entities -name '*.yaml' | xargs -P 4 -n 1 specql generate
+</code></pre>
+<hr />
+<h2 id="performance-issues">Performance Issues</h2>
+<h3 id="generation-is-slow">"Generation is slow"</h3>
+<p><strong>Symptom</strong>: <code>specql generate</code> takes &gt;10 seconds for small number of entities.</p>
+<p><strong>Causes &amp; Solutions</strong>:</p>
+<ol>
+<li><strong>Too many glob patterns</strong>
+   ```bash
+   # ❌ Slow
+   specql generate entities/<em>/</em>.yaml</li>
+</ol>
+<p># ✅ Faster
+   specql generate entities/*<em>/</em>.yaml
+   ```</p>
+<ol>
+<li>
+<p><strong>Confiture rebuilding</strong>
+   <code>bash
+   # Skip Confiture if not needed
+   specql generate entities/contact.yaml --skip-confiture</code></p>
+</li>
+<li>
+<p><strong>Large number of actions</strong></p>
+</li>
+<li>Profile generation: <code>specql generate --profile</code></li>
+<li>Split complex actions into smaller ones</li>
+</ol>
+<hr />
+<h3 id="database-queries-are-slow">"Database queries are slow"</h3>
+<p><strong>Symptom</strong>: Queries on generated tables are slow.</p>
+<p><strong>Causes &amp; Solutions</strong>:</p>
+<ol>
+<li>
+<p><strong>Missing indexes</strong>
+   <code>sql
+   -- Add custom index
+   CREATE INDEX idx_tb_contact_email ON crm.tb_contact(email);</code></p>
+</li>
+<li>
+<p><strong>Large JSON columns</strong>
+   <code>sql
+   -- Add GIN index (auto-generated for json fields, but verify)
+   CREATE INDEX idx_tb_contact_metadata ON crm.tb_contact USING GIN (metadata);</code></p>
+</li>
+<li>
+<p><strong>Soft-deleted records</strong>
+   <code>sql
+   -- Filter deleted records
+   SELECT * FROM crm.tb_contact WHERE deleted_at IS NULL;</code></p>
+</li>
+</ol>
+<hr />
+<h2 id="getting-help">Getting Help</h2>
+<h3 id="before-creating-an-issue">Before Creating an Issue</h3>
+<ol>
+<li><strong>Search existing issues</strong>: https://github.com/fraiseql/specql/issues</li>
+<li><strong>Check documentation</strong>:</li>
+<li>YAML Reference: <code>docs/reference/yaml-reference.md</code></li>
+<li>CLI Reference: <code>docs/reference/cli-reference.md</code></li>
+<li>Migration Guide: <code>docs/guides/migration-guide.md</code></li>
+<li><strong>Run validation</strong>: <code>specql validate entities/**/*.yaml --verbose</code></li>
+</ol>
+<h3 id="creating-a-good-issue">Creating a Good Issue</h3>
+<p>Include:</p>
+<ol>
+<li>
+<p><strong>SpecQL version</strong>:
+   <code>bash
+   specql --version
+   # Or: git rev-parse HEAD</code></p>
+</li>
+<li>
+<p><strong>Minimal YAML example</strong>:
+   <code>yaml
+   entity: Contact
+   schema: crm
+   fields:
+     email: text</code></p>
+</li>
+<li>
+<p><strong>Complete error message</strong>:
+   <code>[Copy full error output]</code></p>
+</li>
+<li>
+<p><strong>Steps to reproduce</strong>:
+   ```bash</p>
+</li>
+<li>Create entities/contact.yaml with above content</li>
+<li>Run: specql generate entities/contact.yaml</li>
+<li>
+<p>Error occurs
+   ```</p>
+</li>
+<li>
+<p><strong>Expected vs actual behavior</strong>:</p>
+</li>
+<li>Expected: Should generate table</li>
+<li>Actual: Parse error</li>
+</ol>
+<h3 id="community-resources">Community Resources</h3>
+<ul>
+<li><strong>GitHub Issues</strong>: https://github.com/fraiseql/specql/issues</li>
+<li><strong>Documentation</strong>: <code>docs/</code></li>
+<li><strong>Examples</strong>: <code>examples/entities/</code></li>
+<li><strong>Stdlib</strong>: <code>stdlib/</code> (reference implementations)</li>
+</ul>
+<hr />
+<h2 id="debug-mode">Debug Mode</h2>
+<p>Enable verbose logging for troubleshooting:</p>
+<pre><code class="language-bash"># Set log level
+export SPECQL_LOG_LEVEL=DEBUG
+
+# Run with verbose output
+specql generate entities/contact.yaml --verbose
+
+# Check logs
+tail -f /tmp/specql.log
+</code></pre>
+<hr />
+<h2 id="common-gotchas">Common Gotchas</h2>
+<h3 id="1-auto-generated-fields">1. Auto-Generated Fields</h3>
+<p>❌ <strong>Don't include</strong> in YAML: <code>id</code>, <code>created_at</code>, <code>updated_at</code>, <code>tenant_id</code>
+✅ <strong>These are automatic</strong> - SpecQL adds them</p>
+<h3 id="2-field-names-vs-column-names">2. Field Names vs Column Names</h3>
+<pre><code class="language-yaml">company: ref(Company)  # Field name is 'company'
+# Column name is also 'company' (NOT 'company_id')
+</code></pre>
+<h3 id="3-enum-values-are-case-sensitive">3. Enum Values Are Case-Sensitive</h3>
+<pre><code class="language-yaml">status: enum(Active, Inactive)  # Capital A, I
+# ❌ INSERT: status = 'active'  (lowercase fails)
+# ✅ INSERT: status = 'Active'
+</code></pre>
+<h3 id="4-nullable-references">4. Nullable References</h3>
+<pre><code class="language-yaml"># ❌ Circular reference
+company: ref(Company)
+# Company also refs Contact
+
+# ✅ Break circle
+company: ref(Company)?  # Nullable
+</code></pre>
+<h3 id="5-import-vs-entity">5. Import vs Entity</h3>
+<pre><code class="language-yaml"># Import = reference only (doesn't generate)
+import: stdlib/crm/contact
+
+# Entity = full definition (generates SQL)
+entity: Contact
+</code></pre>
+<hr />
+<h2 id="diagnostic-commands">Diagnostic Commands</h2>
+<h3 id="check-entity-validity">Check Entity Validity</h3>
+<pre><code class="language-bash">specql validate entities/contact.yaml --verbose
+</code></pre>
+<h3 id="check-table-codes">Check Table Codes</h3>
+<pre><code class="language-bash">specql check-codes entities/**/*.yaml
+</code></pre>
+<h3 id="compare-generated-vs-existing">Compare Generated vs Existing</h3>
+<pre><code class="language-bash">specql diff entities/contact.yaml --compare db/schema/10_tables/contact.sql
+</code></pre>
+<h3 id="test-database-connection">Test Database Connection</h3>
+<pre><code class="language-bash">psql $DATABASE_URL -c &quot;SELECT version();&quot;
+</code></pre>
+<h3 id="check-confiture-config">Check Confiture Config</h3>
+<pre><code class="language-bash">confiture validate confiture.yaml
+</code></pre>
+<hr />
+<p><strong>Still stuck?</strong> Create a detailed issue: https://github.com/fraiseql/specql/issues/new</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

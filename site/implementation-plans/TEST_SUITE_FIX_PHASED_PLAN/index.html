@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Test Suite Fix - Phased Implementation Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Test Suite Fix - Phased Implementation Plan";
+        var mkdocs_page_input_path = "implementation-plans/TEST_SUITE_FIX_PHASED_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Test Suite Fix - Phased Implementation Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="test-suite-fix-phased-implementation-plan">Test Suite Fix - Phased Implementation Plan</h1>
+<p><strong>Project</strong>: printoptim_backend_poc
+<strong>Task</strong>: Fix 27 remaining test failures (18 failed, 9 errors)
+<strong>Complexity</strong>: Complex | <strong>Phased TDD Approach</strong>
+<strong>Document Created</strong>: 2025-11-09
+<strong>Current Status</strong>: 880/910 tests passing (96.7%)</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>Fix remaining test failures to achieve 100% test suite pass rate. Current failures fall into three categories:</p>
+<ol>
+<li><strong>Rich Type Validation Issues</strong> (13 failures) - Minor description string mismatches in scalar type definitions</li>
+<li><strong>Missing Database Dependencies</strong> (9 errors) - Test fixtures missing required tables/types</li>
+<li><strong>Schema Generation Gaps</strong> (5 failures) - Rich type CHECK constraints not being generated</li>
+</ol>
+<p><strong>Root Causes</strong>:
+- Recent refactoring of scalar type descriptions added "(validated format, ...)" text
+- Integration tests expect database tables that don't exist in fixtures
+- Table generator not applying CHECK constraints for rich scalar types</p>
+<p><strong>Success Criteria</strong>:
+- 910/910 tests passing (100%)
+- No skipped tests (except intentional DB-dependent tests)
+- All rich types generate proper constraints
+- All integration tests have proper fixtures</p>
+<hr />
+<h2 id="current-state-analysis">Current State Analysis</h2>
+<h3 id="test-failure-breakdown">Test Failure Breakdown</h3>
+<h4 id="category-1-scalar-type-description-mismatches-13-failures">Category 1: Scalar Type Description Mismatches (13 failures)</h4>
+<pre><code>FAILED tests/unit/core/test_scalar_types.py::test_mime_type_validation
+FAILED tests/unit/core/test_scalar_types.py::test_stock_symbol_validation
+FAILED tests/unit/core/test_scalar_types.py::test_cusip_validation
+FAILED tests/unit/core/test_scalar_types.py::test_sedol_validation
+FAILED tests/unit/core/test_scalar_types.py::test_domain_name_validation
+FAILED tests/unit/core/test_scalar_types.py::test_api_key_validation
+FAILED tests/unit/core/test_scalar_types.py::test_hash_sha256_validation
+</code></pre>
+<p><strong>Issue</strong>: Tests expect old description format, but code has new format with "(validated format, ...)"</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-python"># Expected: &quot;MIME type (e.g., application/json, image/png)&quot;
+# Actual:   &quot;MIME type (validated format, e.g., application/json, image/png)&quot;
+</code></pre>
+<h4 id="category-2-missing-database-fixtures-9-errors">Category 2: Missing Database Fixtures (9 errors)</h4>
+<pre><code>ERROR tests/integration/fraiseql/test_rich_type_autodiscovery.py::TestRichTypeAutodiscovery::test_email_field_has_check_constraint
+ERROR tests/integration/fraiseql/test_rich_type_autodiscovery.py::TestRichTypeAutodiscovery::test_email_field_has_comment
+ERROR tests/integration/fraiseql/test_rich_type_autodiscovery.py::TestRichTypeAutodiscovery::test_url_field_has_check_constraint
+ERROR tests/integration/fraiseql/test_rich_type_autodiscovery.py::TestRichTypeAutodiscovery::test_phone_field_has_check_constraint
+ERROR tests/integration/fraiseql/test_rich_type_autodiscovery.py::TestRichTypeAutodiscovery::test_money_field_uses_numeric_type
+ERROR tests/integration/fraiseql/test_rich_type_autodiscovery.py::TestRichTypeAutodiscovery::test_ipaddress_field_uses_inet_type
+ERROR tests/integration/fraiseql/test_rich_type_autodiscovery.py::TestRichTypeAutodiscovery::test_coordinates_field_uses_point_type
+ERROR tests/integration/fraiseql/test_rich_type_autodiscovery.py::TestRichTypeAutodiscovery::test_all_rich_type_fields_have_comments
+ERROR tests/integration/test_composite_hierarchical_e2e.py::TestCompositeHierarchicalE2E::test_allocation_composite_identifier
+</code></pre>
+<p><strong>Issue</strong>: Test fixtures reference <code>tb_company</code> and other tables that don't exist in test database setup</p>
+<p><strong>Example</strong>:</p>
+<pre><code>psycopg.errors.UndefinedTable: relation &quot;test_3a92bda3.tb_company&quot; does not exist
+</code></pre>
+<h4 id="category-3-rich-type-check-constraints-not-generated-5-failures">Category 3: Rich Type CHECK Constraints Not Generated (5 failures)</h4>
+<pre><code>FAILED tests/unit/schema/test_rich_type_ddl.py::test_slug_generates_text_with_url_safe_constraint
+FAILED tests/unit/schema/test_table_generator_integration.py::test_generate_complete_ddl_orchestration
+FAILED tests/unit/schema/test_table_generator_integration.py::test_rich_types_in_complete_ddl
+FAILED tests/integration/schema/test_rich_types_postgres.py::test_url_pattern_matching_with_gin_index
+FAILED tests/integration/schema/test_rich_types_postgres.py::test_foreign_key_constraints_work
+</code></pre>
+<p><strong>Issue</strong>: Table generator creates <code>slug TEXT</code> without <code>CHECK</code> constraint for validation pattern</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-sql">-- Generated (WRONG):
+slug TEXT,
+
+-- Expected (RIGHT):
+slug TEXT CHECK (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'),
+</code></pre>
+<h4 id="category-4-fraiseql-mutation-annotations-4-failures">Category 4: FraiseQL Mutation Annotations (4 failures)</h4>
+<pre><code>FAILED tests/integration/fraiseql/test_mutation_annotations_e2e.py::TestMutationAnnotationsEndToEnd::test_annotations_apply_to_database
+FAILED tests/integration/fraiseql/test_mutation_annotations_e2e.py::TestMutationAnnotationsEndToEnd::test_function_comments_contain_fraiseql_annotations
+FAILED tests/integration/fraiseql/test_mutation_annotations_e2e.py::TestMutationAnnotationsEndToEnd::test_metadata_mapping_includes_impact_details
+FAILED tests/integration/fraiseql/test_mutation_annotations_e2e.py::TestMutationAnnotationsEndToEnd::test_actions_without_impact_get_basic_annotations
+</code></pre>
+<p><strong>Issue</strong>: Missing input types for mutations</p>
+<pre><code>psycopg.errors.UndefinedObject: type test_ca1a1765.type_create_contact_input does not exist
+</code></pre>
+<h4 id="category-5-other-issues-1-failure">Category 5: Other Issues (1 failure)</h4>
+<pre><code>FAILED tests/integration/stdlib/test_stdlib_contact_generation.py::test_generate_contact_entity_snapshot
+FAILED tests/unit/actions/test_validation_steps.py::TestValidationSteps::test_pattern_match_validation
+</code></pre>
+<p><strong>Issue</strong>: Snapshot mismatch or validation logic change</p>
+<hr />
+<h2 id="phase-1-fix-scalar-type-description-mismatches">PHASE 1: Fix Scalar Type Description Mismatches</h2>
+<p><strong>Objective</strong>: Update test expectations to match new description format</p>
+<p><strong>Estimated Time</strong>: 30 minutes</p>
+<h3 id="tdd-cycle-11-update-scalar-type-test-expectations">TDD Cycle 1.1: Update scalar type test expectations</h3>
+<h4 id="red-tests-currently-failing">🔴 RED: Tests currently failing</h4>
+<p><strong>Test file</strong>: <code>tests/unit/core/test_scalar_types.py</code></p>
+<p><strong>Current state</strong>: 7 tests failing due to description mismatch</p>
+<h4 id="green-update-test-expectations">🟢 GREEN: Update test expectations</h4>
+<p><strong>Files to modify</strong>:
+- <code>tests/unit/core/test_scalar_types.py</code></p>
+<p><strong>Approach</strong>:
+Two options:
+1. <strong>Option A (Recommended)</strong>: Update <code>src/core/scalar_types.py</code> to remove "(validated format, ...)" additions
+2. <strong>Option B</strong>: Update all test assertions to expect new format</p>
+<p><strong>Recommended: Option A</strong> - Keep descriptions simple and consistent with original design</p>
+<p><strong>Implementation</strong>:</p>
+<pre><code class="language-python"># In src/core/scalar_types.py
+# BEFORE:
+&quot;mimeType&quot;: ScalarTypeDef(
+    name=&quot;mimeType&quot;,
+    postgres_type=PostgreSQLType.TEXT,
+    fraiseql_scalar_name=&quot;MimeType&quot;,
+    validation_pattern=r&quot;^[a-zA-Z]...&quot;,
+    description=&quot;MIME type (validated format, e.g., application/json, image/png)&quot;,  # ❌
+    ...
+),
+
+# AFTER:
+&quot;mimeType&quot;: ScalarTypeDef(
+    name=&quot;mimeType&quot;,
+    postgres_type=PostgreSQLType.TEXT,
+    fraiseql_scalar_name=&quot;MimeType&quot;,
+    validation_pattern=r&quot;^[a-zA-Z]...&quot;,
+    description=&quot;MIME type (e.g., application/json, image/png)&quot;,  # ✅
+    ...
+),
+</code></pre>
+<p><strong>Affected types</strong>:
+- mimeType
+- stockSymbol
+- cusip
+- sedol
+- domainName
+- apiKey
+- hashSHA256</p>
+<p><strong>Run test</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/core/test_scalar_types.py -v
+</code></pre>
+<h4 id="refactor-ensure-consistency">🔧 REFACTOR: Ensure consistency</h4>
+<ul>
+<li>Verify all scalar type descriptions follow same format</li>
+<li>No "(validated format, ...)" additions</li>
+<li>Keep descriptions concise and informative</li>
+</ul>
+<h4 id="qa-all-scalar-type-tests-pass">✅ QA: All scalar type tests pass</h4>
+<pre><code class="language-bash">uv run pytest tests/unit/core/test_scalar_types.py -v
+# Expected: 46 tests passing
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] All 7 failing scalar type tests now pass
+- [ ] Description format consistent across all 49 scalar types
+- [ ] No regression in other tests
+- [ ] Documentation still accurate</p>
+<hr />
+<h2 id="phase-2-fix-rich-type-check-constraint-generation">PHASE 2: Fix Rich Type CHECK Constraint Generation</h2>
+<p><strong>Objective</strong>: Ensure table generator applies CHECK constraints for rich scalar types</p>
+<p><strong>Estimated Time</strong>: 2-3 hours</p>
+<h3 id="tdd-cycle-21-implement-check-constraint-generation">TDD Cycle 2.1: Implement CHECK constraint generation</h3>
+<h4 id="red-tests-expecting-check-constraints">🔴 RED: Tests expecting CHECK constraints</h4>
+<p><strong>Test file</strong>: <code>tests/unit/schema/test_rich_type_ddl.py::test_slug_generates_text_with_url_safe_constraint</code></p>
+<p><strong>Current failure</strong>:</p>
+<pre><code class="language-sql">-- Generated:
+slug TEXT,
+
+-- Expected:
+slug TEXT CHECK (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$'),
+</code></pre>
+<h4 id="green-implement-constraint-generation">🟢 GREEN: Implement constraint generation</h4>
+<p><strong>Files to modify</strong>:
+- <code>src/generators/table_generator.py</code> - Add CHECK constraint logic
+- <code>src/generators/constraint_generator.py</code> - Handle rich type constraints</p>
+<p><strong>Root cause analysis</strong>:</p>
+<pre><code class="language-bash"># Check current table_generator implementation
+grep -n &quot;CHECK&quot; src/generators/table_generator.py
+</code></pre>
+<p><strong>Expected</strong>: Table generator should:
+1. Detect rich scalar types
+2. Get validation pattern from <code>scalar_types.SCALAR_TYPES</code>
+3. Generate <code>CHECK (field_name ~ 'pattern')</code> constraint</p>
+<p><strong>Implementation</strong>:</p>
+<pre><code class="language-python"># In src/generators/table_generator.py
+
+from src.core.scalar_types import is_scalar_type, get_scalar_type
+
+def _generate_field_definition(field: FieldDefinition) -&gt; str:
+    &quot;&quot;&quot;Generate PostgreSQL field definition with constraints&quot;&quot;&quot;
+
+    parts = []
+
+    # Get PostgreSQL type
+    if is_scalar_type(field.type_name):
+        scalar_def = get_scalar_type(field.type_name)
+        pg_type = scalar_def.get_postgres_type_with_precision()
+    else:
+        pg_type = _get_basic_postgres_type(field.type_name)
+
+    parts.append(f&quot;{field.name} {pg_type}&quot;)
+
+    # Add NOT NULL if required
+    if not field.nullable:
+        parts.append(&quot;NOT NULL&quot;)
+
+    # Add CHECK constraint for validated scalar types
+    if is_scalar_type(field.type_name):
+        scalar_def = get_scalar_type(field.type_name)
+        if scalar_def.validation_pattern:
+            # Use ~ for regex matching in PostgreSQL
+            parts.append(f&quot;CHECK ({field.name} ~ '{scalar_def.validation_pattern}')&quot;)
+
+        # Add range constraints for numeric types
+        if scalar_def.min_value is not None or scalar_def.max_value is not None:
+            range_parts = []
+            if scalar_def.min_value is not None:
+                range_parts.append(f&quot;{field.name} &gt;= {scalar_def.min_value}&quot;)
+            if scalar_def.max_value is not None:
+                range_parts.append(f&quot;{field.name} &lt;= {scalar_def.max_value}&quot;)
+            parts.append(f&quot;CHECK ({' AND '.join(range_parts)})&quot;)
+
+    return &quot; &quot;.join(parts)
+</code></pre>
+<p><strong>Run test</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/schema/test_rich_type_ddl.py::test_slug_generates_text_with_url_safe_constraint -v
+</code></pre>
+<h4 id="refactor-handle-all-rich-type-constraints">🔧 REFACTOR: Handle all rich type constraints</h4>
+<p><strong>Additional test cases</strong>:</p>
+<pre><code class="language-bash"># Test email constraint
+uv run pytest tests/unit/schema/test_rich_type_ddl.py -k email -v
+
+# Test phone constraint
+uv run pytest tests/unit/schema/test_rich_type_ddl.py -k phone -v
+
+# Test money range constraint
+uv run pytest tests/unit/schema/test_rich_type_ddl.py -k money -v
+
+# Test percentage range constraint
+uv run pytest tests/unit/schema/test_rich_type_ddl.py -k percentage -v
+</code></pre>
+<p><strong>Edge cases to handle</strong>:
+1. Nullable fields with constraints (CHECK allows NULL)
+2. Multiple constraints on same field (min/max + pattern)
+3. Regex escaping for PostgreSQL
+4. Case-insensitive patterns (use <code>~*</code> operator)</p>
+<h4 id="qa-all-rich-type-ddl-tests-pass">✅ QA: All rich type DDL tests pass</h4>
+<pre><code class="language-bash"># Run all rich type DDL tests
+uv run pytest tests/unit/schema/test_rich_type_ddl.py -v
+
+# Run table generator integration tests
+uv run pytest tests/unit/schema/test_table_generator_integration.py -v
+
+# Verify complete DDL generation
+uv run pytest tests/unit/schema/ -v
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] slug generates CHECK constraint
+- [ ] email generates CHECK constraint
+- [ ] phone generates CHECK constraint
+- [ ] url generates CHECK constraint
+- [ ] money generates range CHECK constraint
+- [ ] percentage generates range CHECK constraint
+- [ ] All schema generator tests pass
+- [ ] No regression in existing DDL generation</p>
+<hr />
+<h2 id="phase-3-fix-database-integration-test-fixtures">PHASE 3: Fix Database Integration Test Fixtures</h2>
+<p><strong>Objective</strong>: Ensure integration tests have proper database fixtures</p>
+<p><strong>Estimated Time</strong>: 2-3 hours</p>
+<h3 id="tdd-cycle-31-fix-rich-type-autodiscovery-test-fixtures">TDD Cycle 3.1: Fix rich type autodiscovery test fixtures</h3>
+<h4 id="red-tests-failing-due-to-missing-tables">🔴 RED: Tests failing due to missing tables</h4>
+<p><strong>Test file</strong>: <code>tests/integration/fraiseql/test_rich_type_autodiscovery.py</code></p>
+<p><strong>Current error</strong>:</p>
+<pre><code>psycopg.errors.UndefinedTable: relation &quot;test_3a92bda3.tb_company&quot; does not exist
+</code></pre>
+<h4 id="green-create-complete-test-fixtures">🟢 GREEN: Create complete test fixtures</h4>
+<p><strong>Files to modify</strong>:
+- <code>tests/integration/fraiseql/test_rich_type_autodiscovery.py</code> - Update fixture
+- Create fixture entity definitions</p>
+<p><strong>Root cause</strong>: Test uses entity with references that don't exist in fixture</p>
+<p><strong>Investigation</strong>:</p>
+<pre><code class="language-bash"># Find what entities the test expects
+grep -A 20 &quot;test_db_with_rich_types&quot; tests/integration/fraiseql/test_rich_type_autodiscovery.py
+</code></pre>
+<p><strong>Solution approach</strong>:
+1. Identify all entities referenced in test
+2. Create minimal entity definitions
+3. Generate complete migration with dependencies
+4. Update fixture to load all dependencies</p>
+<p><strong>Implementation</strong>:</p>
+<pre><code class="language-python"># In tests/integration/fraiseql/test_rich_type_autodiscovery.py
+
+@pytest.fixture
+def test_db_with_rich_types(test_db):
+    &quot;&quot;&quot;Database with rich type test entities&quot;&quot;&quot;
+    cursor = test_db.cursor()
+
+    # Create minimal entities needed for test
+    entities = [
+        # First create referenced entities (no dependencies)
+        &quot;&quot;&quot;
+        entity: Company
+        schema: tenant
+        fields:
+          name: text!
+          domain: domainName
+        &quot;&quot;&quot;,
+
+        # Then create entity with rich types
+        &quot;&quot;&quot;
+        entity: Contact
+        schema: tenant
+        fields:
+          email_address: email!
+          mobile_phone: phone
+          website: url
+          company: ref(Company)
+        &quot;&quot;&quot;,
+    ]
+
+    # Generate and execute migration for all entities
+    from src.core.specql_parser import SpecQLParser
+    from src.generators.schema_orchestrator import SchemaOrchestrator
+
+    parser = SpecQLParser()
+    orchestrator = SchemaOrchestrator()
+
+    for entity_yaml in entities:
+        entity = parser.parse_yaml_string(entity_yaml)
+        migration = orchestrator.generate_complete_schema(entity)
+        cursor.execute(migration)
+
+    test_db.commit()
+
+    yield cursor
+
+    # Cleanup handled by test_db fixture
+</code></pre>
+<p><strong>Run test</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/fraiseql/test_rich_type_autodiscovery.py::TestRichTypeAutodiscovery::test_email_field_has_check_constraint -v
+</code></pre>
+<h4 id="refactor-create-reusable-test-fixtures">🔧 REFACTOR: Create reusable test fixtures</h4>
+<p><strong>Extract to conftest.py</strong>:</p>
+<pre><code class="language-python"># In tests/integration/conftest.py
+
+@pytest.fixture
+def rich_type_test_schema(test_db):
+    &quot;&quot;&quot;Complete schema with all rich types for testing&quot;&quot;&quot;
+    # Generate once, reuse across tests
+    # Include: email, phone, url, money, coordinates, etc.
+    pass
+</code></pre>
+<p><strong>Benefits</strong>:
+- Faster test execution (create once per session)
+- Consistent test data across all integration tests
+- Easier to maintain</p>
+<h4 id="qa-all-rich-type-autodiscovery-tests-pass">✅ QA: All rich type autodiscovery tests pass</h4>
+<pre><code class="language-bash"># Run all autodiscovery tests
+uv run pytest tests/integration/fraiseql/test_rich_type_autodiscovery.py -v
+
+# Expected: 8 tests passing (currently 8 errors)
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] All referenced entities exist in fixture
+- [ ] Foreign key dependencies resolved correctly
+- [ ] All 8 autodiscovery tests pass
+- [ ] Fixture is efficient (no unnecessary data)</p>
+<hr />
+<h3 id="tdd-cycle-32-fix-composite-hierarchical-test-fixture">TDD Cycle 3.2: Fix composite hierarchical test fixture</h3>
+<h4 id="red-test-failing-due-to-missing-allocation-entity">🔴 RED: Test failing due to missing allocation entity</h4>
+<p><strong>Test file</strong>: <code>tests/integration/test_composite_hierarchical_e2e.py::test_allocation_composite_identifier</code></p>
+<p><strong>Current error</strong>:</p>
+<pre><code>psycopg.errors.UndefinedTable: relation does not exist
+</code></pre>
+<h4 id="green-create-allocation-entity-fixture">🟢 GREEN: Create allocation entity fixture</h4>
+<p><strong>Investigation</strong>:</p>
+<pre><code class="language-bash"># Check what entity the test expects
+grep -B 5 -A 10 &quot;test_allocation_composite_identifier&quot; tests/integration/test_composite_hierarchical_e2e.py
+</code></pre>
+<p><strong>Implementation</strong>:
+Similar to Cycle 3.1, create complete entity definition and fixture</p>
+<p><strong>Run test</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/test_composite_hierarchical_e2e.py::TestCompositeHierarchicalE2E::test_allocation_composite_identifier -v
+</code></pre>
+<h4 id="qa-composite-hierarchical-test-passes">✅ QA: Composite hierarchical test passes</h4>
+<pre><code class="language-bash">uv run pytest tests/integration/test_composite_hierarchical_e2e.py -v
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] Allocation entity defined
+- [ ] Hierarchical identifier logic works
+- [ ] Test passes
+- [ ] No side effects on other tests</p>
+<hr />
+<h2 id="phase-4-fix-fraiseql-mutation-annotation-tests">PHASE 4: Fix FraiseQL Mutation Annotation Tests</h2>
+<p><strong>Objective</strong>: Generate proper input types for mutations</p>
+<p><strong>Estimated Time</strong>: 3-4 hours</p>
+<h3 id="tdd-cycle-41-generate-mutation-input-types">TDD Cycle 4.1: Generate mutation input types</h3>
+<h4 id="red-tests-failing-due-to-missing-input-types">🔴 RED: Tests failing due to missing input types</h4>
+<p><strong>Test file</strong>: <code>tests/integration/fraiseql/test_mutation_annotations_e2e.py</code></p>
+<p><strong>Current error</strong>:</p>
+<pre><code>psycopg.errors.UndefinedObject: type test_ca1a1765.type_create_contact_input does not exist
+</code></pre>
+<h4 id="green-implement-input-type-generation">🟢 GREEN: Implement input type generation</h4>
+<p><strong>Root cause</strong>: Mutation functions expect input types to exist, but generator doesn't create them</p>
+<p><strong>Files to modify</strong>:
+- <code>src/generators/fraiseql/mutation_annotator.py</code> - Add input type generation
+- <code>src/generators/schema_orchestrator.py</code> - Include input types in schema</p>
+<p><strong>Investigation</strong>:</p>
+<pre><code class="language-bash"># Check what the test expects
+grep -A 20 &quot;test_annotations_apply_to_database&quot; tests/integration/fraiseql/test_mutation_annotations_e2e.py
+</code></pre>
+<p><strong>Analysis</strong>: The generated function likely has:</p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION crm.create_contact(
+    input type_create_contact_input  -- ❌ Type doesn't exist
+)
+</code></pre>
+<p><strong>Solution</strong>: Generate input type definitions</p>
+<p><strong>Implementation</strong>:</p>
+<pre><code class="language-python"># In src/generators/fraiseql/mutation_annotator.py or new file input_type_generator.py
+
+def generate_mutation_input_type(action: ActionDef, entity: EntityDef) -&gt; str:
+    &quot;&quot;&quot;
+    Generate PostgreSQL composite type for mutation input
+
+    Example output:
+    CREATE TYPE crm.type_create_contact_input AS (
+        email_address TEXT,
+        mobile_phone TEXT,
+        first_name TEXT,
+        last_name TEXT
+    );
+    &quot;&quot;&quot;
+
+    schema = entity.schema_name
+    type_name = f&quot;type_{action.name}_input&quot;
+
+    # Determine which fields are inputs for this mutation
+    # (based on action steps, impact declarations, etc.)
+    input_fields = _extract_input_fields(action, entity)
+
+    field_defs = []
+    for field in input_fields:
+        pg_type = _get_postgres_type_for_field(field)
+        field_defs.append(f&quot;    {field.name} {pg_type}&quot;)
+
+    sql = f&quot;&quot;&quot;-- Mutation input type for {action.name}
+CREATE TYPE {schema}.{type_name} AS (
+{','.join(field_defs)}
+);
+
+COMMENT ON TYPE {schema}.{type_name} IS
+'Input type for {action.name} mutation.
+
+@fraiseql:input_type
+mutation: {action.name}
+entity: {entity.entity_name}';
+&quot;&quot;&quot;
+
+    return sql
+</code></pre>
+<p><strong>Run test</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/fraiseql/test_mutation_annotations_e2e.py::TestMutationAnnotationsEndToEnd::test_annotations_apply_to_database -v
+</code></pre>
+<h4 id="refactor-integrate-into-schema-orchestrator">🔧 REFACTOR: Integrate into schema orchestrator</h4>
+<p><strong>Files to modify</strong>:
+- <code>src/generators/schema_orchestrator.py</code></p>
+<p><strong>Changes</strong>:</p>
+<pre><code class="language-python"># In schema_orchestrator.py
+
+def generate_complete_schema(self, entity: EntityDef) -&gt; str:
+    &quot;&quot;&quot;Generate complete schema including input types&quot;&quot;&quot;
+
+    parts = []
+
+    # 1. Foundation (schemas, app types)
+    parts.append(self._generate_foundation())
+
+    # 2. Tables
+    parts.append(self.table_generator.generate(entity))
+
+    # 3. Helper functions
+    parts.append(self.helper_generator.generate(entity))
+
+    # 4. Mutation input types (NEW)
+    for action in entity.actions:
+        parts.append(self.input_type_generator.generate(action, entity))
+
+    # 5. Action functions
+    for action in entity.actions:
+        parts.append(self.action_generator.generate(action, entity))
+
+    return &quot;\n\n&quot;.join(parts)
+</code></pre>
+<h4 id="qa-all-mutation-annotation-tests-pass">✅ QA: All mutation annotation tests pass</h4>
+<pre><code class="language-bash"># Run all mutation annotation tests
+uv run pytest tests/integration/fraiseql/test_mutation_annotations_e2e.py -v
+
+# Expected: 8 tests passing (currently 4 failures)
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] Input types generated for all mutations
+- [ ] Types created before functions that use them
+- [ ] FraiseQL annotations present on types
+- [ ] All 4 failing tests now pass
+- [ ] No regression in other tests</p>
+<hr />
+<h2 id="phase-5-fix-remaining-integration-tests">PHASE 5: Fix Remaining Integration Tests</h2>
+<p><strong>Objective</strong>: Fix final integration test issues</p>
+<p><strong>Estimated Time</strong>: 1-2 hours</p>
+<h3 id="tdd-cycle-51-fix-url-gin-index-test">TDD Cycle 5.1: Fix URL GIN index test</h3>
+<h4 id="red-test-failing-for-url-pattern-matching">🔴 RED: Test failing for URL pattern matching</h4>
+<p><strong>Test file</strong>: <code>tests/integration/schema/test_rich_types_postgres.py::test_url_pattern_matching_with_gin_index</code></p>
+<p><strong>Investigation</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/schema/test_rich_types_postgres.py::test_url_pattern_matching_with_gin_index -v --tb=short
+</code></pre>
+<p><strong>Likely issue</strong>: Test expects GIN index for text pattern matching, but generator creates wrong index type or no index</p>
+<h4 id="green-fix-index-generation">🟢 GREEN: Fix index generation</h4>
+<p><strong>Files to check</strong>:
+- <code>src/generators/index_generator.py</code> - GIN index for text patterns</p>
+<p><strong>Implementation</strong> (if needed):</p>
+<pre><code class="language-python"># For text pattern matching, create GIN index with pg_trgm extension
+
+# Option 1: GIN index for pattern matching
+CREATE INDEX idx_tb_contact_website_gin
+    ON tenant.tb_contact USING GIN (website gin_trgm_ops);
+
+# Option 2: Regular index (simpler, may be what test expects)
+CREATE INDEX idx_tb_contact_website
+    ON tenant.tb_contact (website);
+</code></pre>
+<p><strong>Run test</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/schema/test_rich_types_postgres.py::test_url_pattern_matching_with_gin_index -v
+</code></pre>
+<h4 id="qa-test-passes">✅ QA: Test passes</h4>
+<pre><code class="language-bash">uv run pytest tests/integration/schema/test_rich_types_postgres.py -v
+</code></pre>
+<hr />
+<h3 id="tdd-cycle-52-fix-foreign-key-constraint-test">TDD Cycle 5.2: Fix foreign key constraint test</h3>
+<h4 id="red-foreign-key-test-failing">🔴 RED: Foreign key test failing</h4>
+<p><strong>Test file</strong>: <code>tests/integration/schema/test_rich_types_postgres.py::test_foreign_key_constraints_work</code></p>
+<p><strong>Investigation</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/schema/test_rich_types_postgres.py::test_foreign_key_constraints_work -v --tb=short
+</code></pre>
+<p><strong>Likely issue</strong>: Missing referenced table or incorrect FK generation</p>
+<h4 id="green-fix-fk-generation-or-test-fixture">🟢 GREEN: Fix FK generation or test fixture</h4>
+<p><strong>Run test</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/schema/test_rich_types_postgres.py::test_foreign_key_constraints_work -v
+</code></pre>
+<h4 id="qa-all-schema-integration-tests-pass">✅ QA: All schema integration tests pass</h4>
+<pre><code class="language-bash">uv run pytest tests/integration/schema/ -v
+</code></pre>
+<hr />
+<h3 id="tdd-cycle-53-fix-stdlib-contact-snapshot-test">TDD Cycle 5.3: Fix stdlib contact snapshot test</h3>
+<h4 id="red-snapshot-mismatch">🔴 RED: Snapshot mismatch</h4>
+<p><strong>Test file</strong>: <code>tests/integration/stdlib/test_stdlib_contact_generation.py::test_generate_contact_entity_snapshot</code></p>
+<p><strong>Investigation</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/stdlib/test_stdlib_contact_generation.py::test_generate_contact_entity_snapshot -v --tb=short
+</code></pre>
+<p><strong>Likely issue</strong>: Generated DDL changed due to CHECK constraint additions</p>
+<h4 id="green-update-snapshot">🟢 GREEN: Update snapshot</h4>
+<p><strong>Options</strong>:
+1. Regenerate snapshot with new expected output
+2. Fix generator if output is wrong</p>
+<p><strong>Run test</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/stdlib/test_stdlib_contact_generation.py::test_generate_contact_entity_snapshot -v
+</code></pre>
+<h4 id="qa-stdlib-tests-pass">✅ QA: Stdlib tests pass</h4>
+<pre><code class="language-bash">uv run pytest tests/integration/stdlib/ -v
+</code></pre>
+<hr />
+<h3 id="tdd-cycle-54-fix-validation-step-pattern-matching-test">TDD Cycle 5.4: Fix validation step pattern matching test</h3>
+<h4 id="red-pattern-validation-test-failing">🔴 RED: Pattern validation test failing</h4>
+<p><strong>Test file</strong>: <code>tests/unit/actions/test_validation_steps.py::TestValidationSteps::test_pattern_match_validation</code></p>
+<p><strong>Investigation</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/actions/test_validation_steps.py::TestValidationSteps::test_pattern_match_validation -v --tb=short
+</code></pre>
+<p><strong>Likely issue</strong>: Validation step compiler changed regex handling</p>
+<h4 id="green-fix-validation-logic-or-test">🟢 GREEN: Fix validation logic or test</h4>
+<p><strong>Run test</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/actions/test_validation_steps.py::TestValidationSteps::test_pattern_match_validation -v
+</code></pre>
+<h4 id="qa-all-action-validation-tests-pass">✅ QA: All action validation tests pass</h4>
+<pre><code class="language-bash">uv run pytest tests/unit/actions/test_validation_steps.py -v
+</code></pre>
+<hr />
+<h2 id="phase-6-final-qa-and-verification">PHASE 6: Final QA and Verification</h2>
+<p><strong>Objective</strong>: Ensure 100% test pass rate and no regressions</p>
+<p><strong>Estimated Time</strong>: 1 hour</p>
+<h3 id="tdd-cycle-61-full-test-suite-verification">TDD Cycle 6.1: Full test suite verification</h3>
+<h4 id="run-complete-test-suite">✅ Run complete test suite</h4>
+<pre><code class="language-bash"># Run ALL tests
+uv run pytest --tb=short -v
+
+# Expected output:
+# ======================== 910 passed in XX.XXs ========================
+</code></pre>
+<p><strong>Verification checklist</strong>:
+- [ ] 910/910 tests passing
+- [ ] No errors
+- [ ] No unexpected skips
+- [ ] All test categories covered:
+  - [ ] Unit tests (parser, generators, actions)
+  - [ ] Integration tests (schema, actions, fraiseql, frontend)
+  - [ ] E2E tests (database roundtrip, performance)</p>
+<hr />
+<h3 id="tdd-cycle-62-code-quality-verification">TDD Cycle 6.2: Code quality verification</h3>
+<h4 id="verify-code-quality">✅ Verify code quality</h4>
+<pre><code class="language-bash"># Run linting (fix auto-fixable issues)
+uv run ruff check --fix
+
+# Run type checking (if configured)
+uv run mypy src/ --ignore-missing-imports
+
+# Check for unused imports
+uv run ruff check --select F401
+</code></pre>
+<p><strong>Quality checklist</strong>:
+- [ ] No critical linting errors
+- [ ] Type hints where appropriate
+- [ ] No unused imports
+- [ ] Consistent code style</p>
+<hr />
+<h3 id="tdd-cycle-63-integration-verification">TDD Cycle 6.3: Integration verification</h3>
+<h4 id="verify-full-pipeline">✅ Verify full pipeline</h4>
+<pre><code class="language-bash"># Test full generation pipeline
+python -m src.cli.generate entities entities/contact.yaml --output=test_output/
+
+# Verify generated files
+ls -la test_output/
+
+# Test validation
+python -m src.cli.validate entities/*.yaml
+
+# Test with Confiture (if available)
+cd test_output &amp;&amp; confiture build
+</code></pre>
+<p><strong>Integration checklist</strong>:
+- [ ] CLI generates complete schema
+- [ ] All rich types have CHECK constraints
+- [ ] FraiseQL annotations present
+- [ ] Confiture can build migrations
+- [ ] No warnings or errors</p>
+<hr />
+<h2 id="success-criteria-summary">Success Criteria Summary</h2>
+<h3 id="phase-completion-checklist">✅ Phase Completion Checklist</h3>
+<ul>
+<li>[ ] <strong>Phase 1</strong>: All scalar type description tests pass (7 tests)</li>
+<li>[ ] <strong>Phase 2</strong>: Rich type CHECK constraints generated (5 tests)</li>
+<li>[ ] <strong>Phase 3</strong>: Database fixtures complete (9 tests)</li>
+<li>[ ] <strong>Phase 4</strong>: Mutation input types generated (4 tests)</li>
+<li>[ ] <strong>Phase 5</strong>: All integration tests pass (2 tests)</li>
+<li>[ ] <strong>Phase 6</strong>: 910/910 tests passing, quality verified</li>
+</ul>
+<h3 id="final-deliverables">🎯 Final Deliverables</h3>
+<ol>
+<li><strong>100% Test Pass Rate</strong>: 910/910 tests passing</li>
+<li><strong>Complete Rich Type Support</strong>: All 49 scalar types generate proper constraints</li>
+<li><strong>Robust Test Fixtures</strong>: All integration tests have proper database setup</li>
+<li><strong>FraiseQL Compliance</strong>: All mutations have input types and annotations</li>
+<li><strong>Production Ready</strong>: Full pipeline verified end-to-end</li>
+</ol>
+<hr />
+<h2 id="estimated-timeline">Estimated Timeline</h2>
+<p><strong>Total Estimated Time</strong>: 10-14 hours</p>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Description</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Scalar Type Descriptions</td>
+<td>0.5h</td>
+</tr>
+<tr>
+<td>2</td>
+<td>CHECK Constraint Generation</td>
+<td>2-3h</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Database Fixtures</td>
+<td>2-3h</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Mutation Input Types</td>
+<td>3-4h</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Remaining Integration Tests</td>
+<td>1-2h</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Final QA &amp; Verification</td>
+<td>1h</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Recommended Schedule</strong>: 2 days of focused development with TDD discipline</p>
+<hr />
+<h2 id="risk-mitigation">Risk Mitigation</h2>
+<h3 id="known-risks">Known Risks</h3>
+<ol>
+<li><strong>Database-dependent tests</strong>: Some tests require PostgreSQL extensions (PostGIS)</li>
+<li>
+<p><strong>Mitigation</strong>: Skip gracefully if extension unavailable, document requirements</p>
+</li>
+<li>
+<p><strong>Snapshot tests</strong>: May need updates after constraint generation changes</p>
+</li>
+<li>
+<p><strong>Mitigation</strong>: Review snapshots carefully, ensure changes are intentional</p>
+</li>
+<li>
+<p><strong>Performance impact</strong>: Adding CHECK constraints to all fields could slow inserts</p>
+</li>
+<li>
+<p><strong>Mitigation</strong>: Performance tests should verify acceptable overhead</p>
+</li>
+<li>
+<p><strong>Regex escaping</strong>: PostgreSQL regex syntax differs from Python</p>
+</li>
+<li><strong>Mitigation</strong>: Comprehensive testing of all validation patterns</li>
+</ol>
+<hr />
+<h2 id="appendix-quick-reference">Appendix: Quick Reference</h2>
+<h3 id="fast-test-commands">Fast Test Commands</h3>
+<pre><code class="language-bash"># Run specific phase tests
+uv run pytest tests/unit/core/test_scalar_types.py -v              # Phase 1
+uv run pytest tests/unit/schema/test_rich_type_ddl.py -v           # Phase 2
+uv run pytest tests/integration/fraiseql/test_rich_type_autodiscovery.py -v  # Phase 3
+uv run pytest tests/integration/fraiseql/test_mutation_annotations_e2e.py -v # Phase 4
+
+# Run by category
+uv run pytest tests/unit/ -v                    # All unit tests
+uv run pytest tests/integration/ -v             # All integration tests
+uv run pytest -k &quot;rich_type&quot; -v                 # All rich type tests
+
+# Run with coverage
+uv run pytest --cov=src --cov-report=html
+
+# Run only failures from last run
+uv run pytest --lf -v
+</code></pre>
+<h3 id="key-files-to-modify">Key Files to Modify</h3>
+<pre><code>Phase 1:
+- src/core/scalar_types.py (remove &quot;validated format&quot; text)
+
+Phase 2:
+- src/generators/table_generator.py (add CHECK constraints)
+- src/generators/constraint_generator.py (rich type constraint logic)
+
+Phase 3:
+- tests/integration/fraiseql/test_rich_type_autodiscovery.py (fixtures)
+- tests/integration/conftest.py (shared fixtures)
+
+Phase 4:
+- src/generators/fraiseql/input_type_generator.py (NEW file)
+- src/generators/schema_orchestrator.py (integrate input types)
+
+Phase 5:
+- Various integration test files (case-by-case fixes)
+</code></pre>
+<hr />
+<p><strong>Document Version</strong>: 1.0
+<strong>Last Updated</strong>: 2025-11-09
+<strong>Next Review</strong>: After each phase completion
+<strong>Expected Completion</strong>: Phase 6 complete = 100% test coverage</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

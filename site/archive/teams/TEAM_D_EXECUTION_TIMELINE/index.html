@@ -1,0 +1,1278 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team D: Detailed Execution Timeline - 3 Phases - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team D: Detailed Execution Timeline - 3 Phases";
+        var mkdocs_page_input_path = "archive/teams/TEAM_D_EXECUTION_TIMELINE.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team D: Detailed Execution Timeline - 3 Phases</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-d-detailed-execution-timeline-3-phases">Team D: Detailed Execution Timeline - 3 Phases</h1>
+<p><strong>Team</strong>: FraiseQL Metadata &amp; Integration
+<strong>Status</strong>: Ready to Execute
+<strong>Total Duration</strong>: 3-4 days (spread across Week 5 &amp; Week 7)
+<strong>Last Updated</strong>: 2025-11-09</p>
+<hr />
+<h2 id="timeline-overview">📅 Timeline Overview</h2>
+<pre><code>Week 5          Week 6          Week 7
+Day 1           [Gap]           Day 1    Day 2    Day 3
+┌─────┐                        ┌─────┬─────┬─────┐
+│  P1 │         Wait           │ P2  │ P2  │ P3  │
+└─────┘                        └─────┴─────┴─────┘
+1-2h                           8h    8h    4-6h
+
+P1 = Phase 1: Rich Types Verification
+P2 = Phase 2: tv_ Table Annotations
+P3 = Phase 3: Mutation Annotations (optional)
+</code></pre>
+<p><strong>Total Effort</strong>:
+- Phase 1: 1-2 hours
+- Phase 2: 2-3 days (16 hours)
+- Phase 3: 4-6 hours (optional)
+- <strong>Grand Total</strong>: 21-26 hours (3-4 work days)</p>
+<hr />
+<h2 id="phase-1-rich-types-fraiseql-verification">🎯 PHASE 1: Rich Types FraiseQL Verification</h2>
+<p><strong>Timeline</strong>: Week 5, Day 1
+<strong>Duration</strong>: 1-2 hours
+<strong>Priority</strong>: ⚡ <strong>CRITICAL</strong> (blocks understanding of FraiseQL integration)</p>
+<hr />
+<h3 id="day-plan-week-5-day-1"><strong>Day Plan: Week 5, Day 1</strong></h3>
+<h4 id="morning-block-900-am-1100-am-2-hours-max"><strong>Morning Block (9:00 AM - 11:00 AM)</strong> - 2 hours max</h4>
+<hr />
+<h3 id="hour-1-red-phase-900-930-am-30-minutes"><strong>Hour 1: RED Phase (9:00 - 9:30 AM)</strong> - 30 minutes</h3>
+<p><strong>Objective</strong>: Write failing integration tests</p>
+<p><strong>Tasks</strong>:
+1. <strong>[5 min]</strong> Create test directory structure
+   <code>bash
+   mkdir -p tests/integration/fraiseql
+   touch tests/integration/fraiseql/__init__.py</code></p>
+<ol>
+<li><strong>[10 min]</strong> Create test fixture entity
+   ```bash
+   # Create entities/examples/contact_with_rich_types.yaml
+   cat &gt; entities/examples/contact_with_rich_types.yaml &lt;&lt;'EOF'
+   entity: Contact
+   schema: crm</li>
+</ol>
+<p>fields:
+     email: email!
+     website: url
+     phone: phoneNumber</p>
+<p>actions: []
+   EOF
+   ```</p>
+<ol>
+<li><strong>[15 min]</strong> Write first failing test
+   <code>bash
+   # Create tests/integration/fraiseql/test_rich_type_autodiscovery.py
+   # Write test_email_field_has_check_constraint
+   # Write test_email_field_has_comment</code></li>
+</ol>
+<p><strong>Milestone</strong>: Tests written, should fail with ImportError</p>
+<p><strong>Verification</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/fraiseql/test_rich_type_autodiscovery.py -v
+# Expected: FAILED or ImportError
+</code></pre>
+<hr />
+<h3 id="hour-1-green-phase-930-1000-am-30-minutes"><strong>Hour 1: GREEN Phase (9:30 - 10:00 AM)</strong> - 30 minutes</h3>
+<p><strong>Objective</strong>: Create minimal compatibility checker</p>
+<p><strong>Tasks</strong>:
+1. <strong>[5 min]</strong> Create package structure
+   <code>bash
+   mkdir -p src/generators/fraiseql
+   touch src/generators/fraiseql/__init__.py</code></p>
+<ol>
+<li><strong>[20 min]</strong> Implement compatibility_checker.py</li>
+<li>Create CompatibilityChecker class</li>
+<li>Implement check_all_types_compatible()</li>
+<li>Implement get_incompatible_types()</li>
+<li>
+<p>Implement get_compatibility_report()</p>
+</li>
+<li>
+<p><strong>[5 min]</strong> Run tests
+   <code>bash
+   uv run pytest tests/integration/fraiseql/test_rich_type_autodiscovery.py -v
+   # Expected: PASSED (all tests pass)</code></p>
+</li>
+</ol>
+<p><strong>Milestone</strong>: Tests pass, FraiseQL autodiscovery confirmed</p>
+<hr />
+<h3 id="hour-2-refactor-phase-1000-1030-am-30-minutes"><strong>Hour 2: REFACTOR Phase (10:00 - 10:30 AM)</strong> - 30 minutes</h3>
+<p><strong>Objective</strong>: Add documentation</p>
+<p><strong>Tasks</strong>:
+1. <strong>[20 min]</strong> Write docs/fraiseql/RICH_TYPES_INTEGRATION.md
+   - Overview section
+   - How It Works (3 steps)
+   - Rich Type Mappings table
+   - Benefits section
+   - Testing instructions</p>
+<ol>
+<li><strong>[10 min]</strong> Add unit tests for compatibility checker
+   <code>bash
+   # Create tests/unit/fraiseql/test_compatibility_checker.py
+   # Write test_check_all_types_compatible
+   # Write test_get_compatibility_report</code></li>
+</ol>
+<p><strong>Milestone</strong>: Documentation complete</p>
+<hr />
+<h3 id="hour-2-qa-phase-1030-1100-am-30-minutes"><strong>Hour 2: QA Phase (10:30 - 11:00 AM)</strong> - 30 minutes</h3>
+<p><strong>Objective</strong>: Full verification</p>
+<p><strong>Tasks</strong>:
+1. <strong>[10 min]</strong> Run all tests
+   <code>bash
+   uv run pytest tests/integration/fraiseql/ -v
+   uv run pytest tests/unit/fraiseql/ -v</code></p>
+<ol>
+<li>
+<p><strong>[10 min]</strong> Code quality checks
+   <code>bash
+   uv run ruff check src/generators/fraiseql/
+   uv run mypy src/generators/fraiseql/</code></p>
+</li>
+<li>
+<p><strong>[5 min]</strong> Generate schema and verify
+   ```bash
+   # Generate test schema
+   uv run python -m src.cli.orchestrator generate entities/examples/contact_with_rich_types.yaml</p>
+</li>
+</ol>
+<p># Check output has comments
+   grep -A 5 "COMMENT ON COLUMN" generated/migration.sql
+   ```</p>
+<ol>
+<li><strong>[5 min]</strong> Git commit
+   <code>bash
+   git add src/generators/fraiseql/ tests/ entities/examples/ docs/fraiseql/RICH_TYPES_INTEGRATION.md
+   git commit -m "feat(Team D Phase 1): Rich Types FraiseQL Verification Complete"</code></li>
+</ol>
+<p><strong>Milestone</strong>: Phase 1 complete! ✅</p>
+<hr />
+<h3 id="phase-1-deliverables"><strong>Phase 1 Deliverables</strong>:</h3>
+<p><strong>Files Created</strong> (8 files):
+- ✅ src/generators/fraiseql/<strong>init</strong>.py
+- ✅ src/generators/fraiseql/compatibility_checker.py
+- ✅ tests/unit/fraiseql/test_compatibility_checker.py
+- ✅ tests/integration/fraiseql/test_rich_type_autodiscovery.py
+- ✅ tests/integration/fraiseql/<strong>init</strong>.py
+- ✅ tests/unit/fraiseql/<strong>init</strong>.py
+- ✅ docs/fraiseql/RICH_TYPES_INTEGRATION.md
+- ✅ entities/examples/contact_with_rich_types.yaml</p>
+<p><strong>Lines of Code</strong>: ~805 lines</p>
+<p><strong>Acceptance Criteria</strong>:
+- ✅ All integration tests pass
+- ✅ Compatibility checker confirms 100% compatibility
+- ✅ No manual annotations needed
+- ✅ Documentation complete
+- ✅ Code quality checks pass</p>
+<hr />
+<h2 id="phase-2-tv_-table-fraiseql-annotations">🎯 PHASE 2: tv_ Table FraiseQL Annotations</h2>
+<p><strong>Timeline</strong>: Week 7, Days 1-2
+<strong>Duration</strong>: 2-3 days (16 hours)
+<strong>Priority</strong>: 🟡 <strong>HIGH</strong> (core CQRS functionality)</p>
+<hr />
+<h3 id="day-1-plan-week-7-day-1-8-hours"><strong>Day 1 Plan: Week 7, Day 1 (8 hours)</strong></h3>
+<hr />
+<h4 id="morning-session-red-phase-900-am-1200-pm-3-hours"><strong>Morning Session: RED Phase (9:00 AM - 12:00 PM)</strong> - 3 hours</h4>
+<p><strong>Objective</strong>: Write comprehensive unit tests</p>
+<p><strong>Hour 1 (9:00 - 10:00 AM): Basic Annotation Tests</strong></p>
+<p><strong>Tasks</strong>:
+1. <strong>[10 min]</strong> Create test file structure
+   <code>bash
+   touch tests/unit/fraiseql/test_table_view_annotator.py</code></p>
+<ol>
+<li><strong>[50 min]</strong> Write basic annotation tests</li>
+<li>TestTableAnnotation class<ul>
+<li>test_generates_table_annotation</li>
+<li>test_skips_annotation_if_no_table_views</li>
+</ul>
+</li>
+<li>TestInternalColumnAnnotations class<ul>
+<li>test_marks_primary_key_as_internal</li>
+<li>test_marks_foreign_keys_as_internal</li>
+<li>test_marks_refreshed_at_as_internal</li>
+</ul>
+</li>
+</ol>
+<p><strong>Hour 2 (10:00 - 11:00 AM): Filter Column Tests</strong></p>
+<p><strong>Tasks</strong>:
+1. <strong>[50 min]</strong> Write filter column tests
+   - TestFilterColumnAnnotations class
+     - test_annotates_tenant_id_as_filter
+     - test_annotates_uuid_foreign_keys_as_filters
+     - test_annotates_extra_filter_columns
+     - test_hierarchical_path_annotation</p>
+<ol>
+<li><strong>[10 min]</strong> Run tests (should fail)
+   <code>bash
+   uv run pytest tests/unit/fraiseql/test_table_view_annotator.py -v
+   # Expected: ImportError (TableViewAnnotator doesn't exist)</code></li>
+</ol>
+<p><strong>Hour 3 (11:00 AM - 12:00 PM): Data Column &amp; SQL Mapping Tests</strong></p>
+<p><strong>Tasks</strong>:
+1. <strong>[30 min]</strong> Write data column tests
+   - TestDataColumnAnnotation class
+     - test_annotates_data_column_with_expand
+   - TestSQLTypeMapping class
+     - test_maps_sql_types_to_graphql</p>
+<ol>
+<li><strong>[20 min]</strong> Create test fixture entity
+   ```bash
+   cat &gt; entities/examples/review_with_table_views.yaml &lt;&lt;'EOF'
+   entity: Review
+   schema: library</li>
+</ol>
+<p>fields:
+     rating: integer!
+     comment: text
+     author: ref(User)
+     book: ref(Book)</p>
+<p>table_views:
+     include_relations:
+       - author:
+           fields: [name, email]
+       - book:
+           fields: [title, isbn]
+     extra_filter_columns:
+       - rating
+       - created_at</p>
+<p>actions: []
+   EOF
+   ```</p>
+<ol>
+<li><strong>[10 min]</strong> Run all tests
+   <code>bash
+   uv run pytest tests/unit/fraiseql/test_table_view_annotator.py -v
+   # Expected: All FAILED (no implementation yet)</code></li>
+</ol>
+<p><strong>Milestone</strong>: Comprehensive test suite written (should have ~10-12 tests)</p>
+<hr />
+<h4 id="lunch-break-1200-pm-100-pm-1-hour"><strong>Lunch Break (12:00 PM - 1:00 PM)</strong> - 1 hour</h4>
+<hr />
+<h4 id="afternoon-session-green-phase-100-pm-500-pm-4-hours"><strong>Afternoon Session: GREEN Phase (1:00 PM - 5:00 PM)</strong> - 4 hours</h4>
+<p><strong>Objective</strong>: Implement TableViewAnnotator</p>
+<p><strong>Hour 4 (1:00 - 2:00 PM): Core Implementation</strong></p>
+<p><strong>Tasks</strong>:
+1. <strong>[10 min]</strong> Create implementation file
+   <code>bash
+   touch src/generators/fraiseql/table_view_annotator.py</code></p>
+<ol>
+<li><strong>[50 min]</strong> Implement core class structure</li>
+<li>TableViewAnnotator class</li>
+<li><strong>init</strong> method</li>
+<li>generate_annotations method</li>
+<li>
+<p>_annotate_table method</p>
+</li>
+<li>
+<p><strong>[5 min]</strong> Run tests (some should pass now)
+   <code>bash
+   uv run pytest tests/unit/fraiseql/test_table_view_annotator.py::TestTableAnnotation -v
+   # Expected: 2/2 PASSED</code></p>
+</li>
+</ol>
+<p><strong>Hour 5 (2:00 - 3:00 PM): Internal Columns Implementation</strong></p>
+<p><strong>Tasks</strong>:
+1. <strong>[45 min]</strong> Implement <em>annotate_internal_columns method
+   - Mark pk</em><em> as internal
+   - Mark fk_</em> as internal
+   - Mark refreshed_at as internal
+   - Helper: _extract_ref_entity</p>
+<ol>
+<li><strong>[15 min]</strong> Run tests
+   <code>bash
+   uv run pytest tests/unit/fraiseql/test_table_view_annotator.py::TestInternalColumnAnnotations -v
+   # Expected: 3/3 PASSED</code></li>
+</ol>
+<p><strong>Hour 6 (3:00 - 4:00 PM): Filter Columns Implementation</strong></p>
+<p><strong>Tasks</strong>:
+1. <strong>[50 min]</strong> Implement _annotate_filter_columns method
+   - Annotate tenant_id
+   - Annotate UUID FK filters
+   - Annotate extra filter columns
+   - Handle hierarchical path
+   - Helper: _map_sql_type_to_graphql</p>
+<ol>
+<li><strong>[10 min]</strong> Run tests
+   <code>bash
+   uv run pytest tests/unit/fraiseql/test_table_view_annotator.py::TestFilterColumnAnnotations -v
+   # Expected: 4/4 PASSED</code></li>
+</ol>
+<p><strong>Hour 7 (4:00 - 5:00 PM): Data Column &amp; Final Tests</strong></p>
+<p><strong>Tasks</strong>:
+1. <strong>[15 min]</strong> Implement _annotate_data_column method</p>
+<ol>
+<li>
+<p><strong>[10 min]</strong> Run all unit tests
+   <code>bash
+   uv run pytest tests/unit/fraiseql/test_table_view_annotator.py -v
+   # Expected: ALL PASSED (12/12)</code></p>
+</li>
+<li>
+<p><strong>[20 min]</strong> Update package exports
+   ```python
+   # src/generators/fraiseql/<strong>init</strong>.py
+   from .compatibility_checker import CompatibilityChecker
+   from .table_view_annotator import TableViewAnnotator</p>
+</li>
+</ol>
+<p><strong>all</strong> = ["CompatibilityChecker", "TableViewAnnotator"]
+   ```</p>
+<ol>
+<li><strong>[15 min]</strong> Quick manual test
+   ```bash
+   # Test in Python REPL
+   from src.core.ast_models import EntityAST, TableViewConfig
+   from src.generators.fraiseql.table_view_annotator import TableViewAnnotator</li>
+</ol>
+<p>entity = EntityAST(name="Review", schema="library", fields=[], actions=[], table_views=TableViewConfig(include_relations=["author"]))
+   annotator = TableViewAnnotator(entity)
+   print(annotator.generate_annotations())
+   ```</p>
+<p><strong>Milestone</strong>: Core implementation complete, all unit tests passing!</p>
+<hr />
+<h4 id="end-of-day-1-summary"><strong>End of Day 1 Summary</strong>:</h4>
+<ul>
+<li>✅ 12 unit tests written</li>
+<li>✅ TableViewAnnotator implemented (300 lines)</li>
+<li>✅ All unit tests passing</li>
+<li>⏳ Integration pending (Day 2)</li>
+</ul>
+<hr />
+<h3 id="day-2-plan-week-7-day-2-8-hours"><strong>Day 2 Plan: Week 7, Day 2 (8 hours)</strong></h3>
+<hr />
+<h4 id="morning-session-refactor-phase-900-am-1200-pm-3-hours"><strong>Morning Session: REFACTOR Phase (9:00 AM - 12:00 PM)</strong> - 3 hours</h4>
+<p><strong>Objective</strong>: Integration with orchestrator + integration tests</p>
+<p><strong>Hour 1 (9:00 - 10:00 AM): Orchestrator Integration</strong></p>
+<p><strong>Tasks</strong>:
+1. <strong>[30 min]</strong> Update schema_orchestrator.py
+   ```python
+   # Add import
+   from src.generators.fraiseql.table_view_annotator import TableViewAnnotator</p>
+<p># Add to generate_migration method
+   if entity.table_views:
+       annotator = TableViewAnnotator(entity)
+       annotations = annotator.generate_annotations()
+       if annotations:
+           parts.append(
+               f"-- FraiseQL Annotations: {entity.schema}.tv_{entity.name.lower()}\n"
+               + annotations
+           )
+   ```</p>
+<ol>
+<li><strong>[20 min]</strong> Test integration manually
+   ```bash
+   # Generate complete schema with tv_ + annotations
+   uv run python -m src.cli.orchestrator generate entities/examples/review_with_table_views.yaml</li>
+</ol>
+<p># Verify annotations present
+   grep -A 10 "FraiseQL Annotations" generated/migration.sql
+   grep "@fraiseql:table" generated/migration.sql
+   grep "@fraiseql:filter" generated/migration.sql
+   grep "@fraiseql:jsonb expand=true" generated/migration.sql
+   ```</p>
+<ol>
+<li><strong>[10 min]</strong> Commit integration
+   <code>bash
+   git add src/generators/schema_orchestrator.py
+   git commit -m "integrate: Team D table view annotator with schema orchestrator"</code></li>
+</ol>
+<p><strong>Hour 2 (10:00 - 11:00 AM): Integration Tests</strong></p>
+<p><strong>Tasks</strong>:
+1. <strong>[40 min]</strong> Write integration test
+   ```bash
+   # Create tests/integration/fraiseql/test_tv_annotations_e2e.py</p>
+<p># Tests:
+   # - test_migration_includes_fraiseql_annotations
+   # - test_annotations_apply_to_database
+   # - test_filter_column_comments_exist
+   # - test_internal_columns_marked
+   # - test_data_column_has_expand_annotation
+   ```</p>
+<ol>
+<li><strong>[20 min]</strong> Run integration tests
+   <code>bash
+   uv run pytest tests/integration/fraiseql/test_tv_annotations_e2e.py -v
+   # Expected: ALL PASSED (5/5)</code></li>
+</ol>
+<p><strong>Hour 3 (11:00 AM - 12:00 PM): Documentation</strong></p>
+<p><strong>Tasks</strong>:
+1. <strong>[40 min]</strong> Write docs/fraiseql/TV_ANNOTATIONS.md
+   - Overview section
+   - Annotation patterns (4 types)
+   - Implementation by day
+   - Complete example
+   - Acceptance criteria</p>
+<ol>
+<li><strong>[20 min]</strong> Add code comments and docstrings</li>
+<li>Add module docstring to table_view_annotator.py</li>
+<li>Add detailed method docstrings</li>
+<li>Add inline comments for complex logic</li>
+</ol>
+<p><strong>Milestone</strong>: Integration complete, documentation written</p>
+<hr />
+<h4 id="lunch-break-1200-pm-100-pm-1-hour_1"><strong>Lunch Break (12:00 PM - 1:00 PM)</strong> - 1 hour</h4>
+<hr />
+<h4 id="afternoon-session-qa-phase-100-pm-500-pm-4-hours"><strong>Afternoon Session: QA Phase (1:00 PM - 5:00 PM)</strong> - 4 hours</h4>
+<p><strong>Objective</strong>: Comprehensive testing and quality assurance</p>
+<p><strong>Hour 4 (1:00 - 2:00 PM): Test Suite Execution</strong></p>
+<p><strong>Tasks</strong>:
+1. <strong>[20 min]</strong> Run all unit tests
+   <code>bash
+   uv run pytest tests/unit/fraiseql/ -v --tb=short
+   # Target: ALL PASSED</code></p>
+<ol>
+<li>
+<p><strong>[20 min]</strong> Run all integration tests
+   <code>bash
+   uv run pytest tests/integration/fraiseql/ -v --tb=short
+   # Target: ALL PASSED</code></p>
+</li>
+<li>
+<p><strong>[20 min]</strong> Run with coverage
+   <code>bash
+   uv run pytest tests/unit/fraiseql/ tests/integration/fraiseql/ \
+     --cov=src/generators/fraiseql \
+     --cov-report=term-missing \
+     --cov-report=html
+   # Target: ≥ 90% coverage</code></p>
+</li>
+</ol>
+<p><strong>Hour 5 (2:00 - 3:00 PM): Code Quality Checks</strong></p>
+<p><strong>Tasks</strong>:
+1. <strong>[15 min]</strong> Linting
+   <code>bash
+   uv run ruff check src/generators/fraiseql/
+   # Fix any issues
+   uv run ruff check src/generators/fraiseql/ --fix</code></p>
+<ol>
+<li>
+<p><strong>[15 min]</strong> Type checking
+   <code>bash
+   uv run mypy src/generators/fraiseql/
+   # Fix any type issues</code></p>
+</li>
+<li>
+<p><strong>[15 min]</strong> Format code
+   <code>bash
+   uv run ruff format src/generators/fraiseql/
+   uv run ruff format tests/unit/fraiseql/
+   uv run ruff format tests/integration/fraiseql/</code></p>
+</li>
+<li>
+<p><strong>[15 min]</strong> Security check
+   <code>bash
+   uv run bandit -r src/generators/fraiseql/</code></p>
+</li>
+</ol>
+<p><strong>Hour 6 (3:00 - 4:00 PM): Database Testing</strong></p>
+<p><strong>Tasks</strong>:
+1. <strong>[20 min]</strong> Apply to real database
+   ```bash
+   # Create test database
+   createdb test_specql_teamd</p>
+<p># Generate migration
+   uv run python -m src.cli.orchestrator generate entities/examples/review_with_table_views.yaml -o generated/teamd_phase2.sql</p>
+<p># Apply migration
+   psql test_specql_teamd &lt; generated/teamd_phase2.sql
+   ```</p>
+<ol>
+<li><strong>[20 min]</strong> Verify in database
+   ```bash
+   # Check table exists
+   psql test_specql_teamd -c "\d+ library.tv_review"</li>
+</ol>
+<p># Check table comment
+   psql test_specql_teamd -c "SELECT obj_description('library.tv_review'::regclass);"</p>
+<p># Check column comments
+   psql test_specql_teamd -c "
+     SELECT
+       attname,
+       col_description('library.tv_review'::regclass, attnum)
+     FROM pg_attribute
+     WHERE attrelid = 'library.tv_review'::regclass
+       AND attnum &gt; 0
+     ORDER BY attnum;
+   "
+   ```</p>
+<ol>
+<li><strong>[20 min]</strong> Verify annotations
+   ```bash
+   # Check for @fraiseql annotations
+   psql test_specql_teamd -c "
+     SELECT obj_description('library.tv_review'::regclass);
+   " | grep "@fraiseql"</li>
+</ol>
+<p># Should see:
+   # - @fraiseql:table
+   # - @fraiseql:field internal=true (multiple)
+   # - @fraiseql:filter (multiple)
+   # - @fraiseql:jsonb expand=true
+   ```</p>
+<p><strong>Hour 7 (4:00 - 5:00 PM): Final Review &amp; Commit</strong></p>
+<p><strong>Tasks</strong>:
+1. <strong>[15 min]</strong> Review all changes
+   <code>bash
+   git status
+   git diff --cached</code></p>
+<ol>
+<li>
+<p><strong>[10 min]</strong> Run final test suite
+   <code>bash
+   make test  # or uv run pytest</code></p>
+</li>
+<li>
+<p><strong>[10 min]</strong> Clean up database
+   <code>bash
+   dropdb test_specql_teamd</code></p>
+</li>
+<li>
+<p><strong>[25 min]</strong> Create comprehensive commit
+   ```bash
+   git add .
+   git commit -m "feat(Team D Phase 2): tv_ Table FraiseQL Annotations Complete</p>
+</li>
+<li>
+<p>TableViewAnnotator implementation (300 lines)</p>
+</li>
+<li>Comprehensive unit tests (12 tests)</li>
+<li>Integration tests with database verification</li>
+<li>Complete documentation</li>
+<li>Schema orchestrator integration</li>
+<li>90%+ test coverage</li>
+</ol>
+<p>Annotations generated:
+   - @fraiseql:table for tv_ tables
+   - @fraiseql:field internal=true for pk_<em>, fk_</em>
+   - @fraiseql:filter for UUID columns and extra filters
+   - @fraiseql:jsonb expand=true for data column</p>
+<p>Ready for FraiseQL introspection!"
+   ```</p>
+<p><strong>Milestone</strong>: Phase 2 complete! ✅</p>
+<hr />
+<h3 id="phase-2-deliverables"><strong>Phase 2 Deliverables</strong>:</h3>
+<p><strong>Files Created</strong> (5 files):
+- ✅ src/generators/fraiseql/table_view_annotator.py (300 lines)
+- ✅ tests/unit/fraiseql/test_table_view_annotator.py (350 lines)
+- ✅ tests/integration/fraiseql/test_tv_annotations_e2e.py (150 lines)
+- ✅ docs/fraiseql/TV_ANNOTATIONS.md (200 lines)
+- ✅ entities/examples/review_with_table_views.yaml (30 lines)</p>
+<p><strong>Files Modified</strong> (2 files):
+- ✅ src/generators/schema_orchestrator.py (+15 lines)
+- ✅ src/generators/fraiseql/<strong>init</strong>.py (+2 lines)</p>
+<p><strong>Total Lines</strong>: ~1,047 lines</p>
+<p><strong>Acceptance Criteria</strong>:
+- ✅ Table annotations generated with @fraiseql:table
+- ✅ Internal columns marked internal=true
+- ✅ Filter columns annotated with type/index/performance
+- ✅ JSONB data column annotated with expand=true
+- ✅ All unit tests pass (12/12)
+- ✅ All integration tests pass (5/5)
+- ✅ Code quality checks pass (ruff, mypy, bandit)
+- ✅ Test coverage ≥ 90%
+- ✅ Annotations apply correctly to PostgreSQL
+- ✅ Documentation complete</p>
+<hr />
+<h2 id="phase-3-mutation-impact-annotations-optional">🎯 PHASE 3: Mutation Impact Annotations (OPTIONAL)</h2>
+<p><strong>Timeline</strong>: Week 7, Day 3
+<strong>Duration</strong>: 4-6 hours
+<strong>Priority</strong>: 🟢 <strong>LOW</strong> (optional enhancement)</p>
+<hr />
+<h3 id="day-plan-week-7-day-3-half-day"><strong>Day Plan: Week 7, Day 3 (Half Day)</strong></h3>
+<hr />
+<h4 id="morning-session-900-am-100-pm-4-hours"><strong>Morning Session (9:00 AM - 1:00 PM)</strong> - 4 hours</h4>
+<p><strong>Note</strong>: This phase is OPTIONAL. If time is constrained or Phase 2 took longer, skip this phase. Core functionality (Phases 1-2) works without it.</p>
+<hr />
+<h3 id="hour-1-red-phase-900-1000-am-1-hour"><strong>Hour 1: RED Phase (9:00 - 10:00 AM)</strong> - 1 hour</h3>
+<p><strong>Objective</strong>: Write failing tests for mutation annotations</p>
+<p><strong>Tasks</strong>:
+1. <strong>[10 min]</strong> Create test file
+   <code>bash
+   touch tests/unit/fraiseql/test_mutation_annotator.py</code></p>
+<ol>
+<li><strong>[40 min]</strong> Write unit tests</li>
+<li>
+<p>TestMutationAnnotation class</p>
+<ul>
+<li>test_generates_mutation_annotation</li>
+<li>test_includes_metadata_mapping</li>
+<li>test_camel_case_conversion</li>
+<li>test_handles_actions_without_impact</li>
+</ul>
+</li>
+<li>
+<p><strong>[10 min]</strong> Run tests
+   <code>bash
+   uv run pytest tests/unit/fraiseql/test_mutation_annotator.py -v
+   # Expected: FAILED (MutationAnnotator doesn't exist)</code></p>
+</li>
+</ol>
+<p><strong>Milestone</strong>: Test suite ready for mutation annotations</p>
+<hr />
+<h3 id="hour-2-green-phase-1000-1100-am-1-hour"><strong>Hour 2: GREEN Phase (10:00 - 11:00 AM)</strong> - 1 hour</h3>
+<p><strong>Objective</strong>: Implement MutationAnnotator</p>
+<p><strong>Tasks</strong>:
+1. <strong>[10 min]</strong> Create implementation file
+   <code>bash
+   touch src/generators/fraiseql/mutation_annotator.py</code></p>
+<ol>
+<li><strong>[40 min]</strong> Implement MutationAnnotator class</li>
+<li><strong>init</strong> method</li>
+<li>generate_mutation_annotation method</li>
+<li>_to_camel_case helper</li>
+<li>
+<p>_build_metadata_mapping helper</p>
+</li>
+<li>
+<p><strong>[10 min]</strong> Run tests
+   <code>bash
+   uv run pytest tests/unit/fraiseql/test_mutation_annotator.py -v
+   # Expected: ALL PASSED (4/4)</code></p>
+</li>
+</ol>
+<p><strong>Milestone</strong>: Basic implementation complete</p>
+<hr />
+<h3 id="hour-3-refactor-phase-1100-am-1200-pm-1-hour"><strong>Hour 3: REFACTOR Phase (11:00 AM - 12:00 PM)</strong> - 1 hour</h3>
+<p><strong>Objective</strong>: Integration and documentation</p>
+<p><strong>Tasks</strong>:
+1. <strong>[20 min]</strong> Update schema_orchestrator.py
+   ```python
+   from src.generators.fraiseql.mutation_annotator import MutationAnnotator</p>
+<p># Add after action compilation
+   if entity.actions:
+       for action in entity.actions:
+           annotator = MutationAnnotator(entity.schema, entity.name)
+           annotation = annotator.generate_mutation_annotation(action)
+           if annotation:
+               mutation_annotations.append(annotation)
+   ```</p>
+<ol>
+<li>
+<p><strong>[20 min]</strong> Write integration test
+   <code>bash
+   # Create tests/integration/fraiseql/test_mutation_annotations_e2e.py
+   # Test end-to-end mutation annotation generation</code></p>
+</li>
+<li>
+<p><strong>[20 min]</strong> Write docs/fraiseql/MUTATION_ANNOTATIONS.md</p>
+</li>
+<li>Quick overview</li>
+<li>Example annotation</li>
+<li>Integration with Team C</li>
+</ol>
+<p><strong>Milestone</strong>: Integration complete, basic docs written</p>
+<hr />
+<h3 id="hour-4-qa-phase-1200-100-pm-1-hour"><strong>Hour 4: QA Phase (12:00 - 1:00 PM)</strong> - 1 hour</h3>
+<p><strong>Objective</strong>: Testing and commit</p>
+<p><strong>Tasks</strong>:
+1. <strong>[20 min]</strong> Run all tests
+   <code>bash
+   uv run pytest tests/unit/fraiseql/ tests/integration/fraiseql/ -v
+   # Target: ALL PASSED</code></p>
+<ol>
+<li>
+<p><strong>[10 min]</strong> Code quality
+   <code>bash
+   uv run ruff check src/generators/fraiseql/
+   uv run mypy src/generators/fraiseql/</code></p>
+</li>
+<li>
+<p><strong>[15 min]</strong> Manual verification
+   ```bash
+   # Generate schema with actions
+   uv run python -m src.cli.orchestrator generate entities/examples/contact_with_actions.yaml</p>
+</li>
+</ol>
+<p># Check for mutation annotations
+   grep -A 10 "@fraiseql:mutation" generated/migration.sql
+   ```</p>
+<ol>
+<li>
+<p><strong>[15 min]</strong> Commit
+   ```bash
+   git add .
+   git commit -m "feat(Team D Phase 3): Mutation Impact Annotations Complete (Optional)</p>
+</li>
+<li>
+<p>MutationAnnotator implementation</p>
+</li>
+<li>Unit and integration tests</li>
+<li>Schema orchestrator integration</li>
+<li>Documentation</li>
+</ol>
+<p>This phase is optional and adds mutation metadata for frontend cache invalidation."
+   ```</p>
+<p><strong>Milestone</strong>: Phase 3 complete! ✅</p>
+<hr />
+<h3 id="phase-3-deliverables"><strong>Phase 3 Deliverables</strong>:</h3>
+<p><strong>Files Created</strong> (4 files):
+- ✅ src/generators/fraiseql/mutation_annotator.py (150 lines)
+- ✅ tests/unit/fraiseql/test_mutation_annotator.py (100 lines)
+- ✅ tests/integration/fraiseql/test_mutation_annotations_e2e.py (100 lines)
+- ✅ docs/fraiseql/MUTATION_ANNOTATIONS.md (100 lines)</p>
+<p><strong>Files Modified</strong> (2 files):
+- ✅ src/generators/schema_orchestrator.py (+10 lines)
+- ✅ src/generators/fraiseql/<strong>init</strong>.py (+1 line)</p>
+<p><strong>Total Lines</strong>: ~461 lines</p>
+<p><strong>Acceptance Criteria</strong>:
+- ✅ Mutation annotations generated
+- ✅ metadata_mapping includes _meta field
+- ✅ Integration with action compiler works
+- ✅ All tests pass
+- ✅ Code quality checks pass
+- ✅ Documentation complete</p>
+<hr />
+<h2 id="complete-timeline-summary">📊 Complete Timeline Summary</h2>
+<h3 id="week-5"><strong>Week 5</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Day</th>
+<th>Phase</th>
+<th>Duration</th>
+<th>Tasks</th>
+<th>Deliverables</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Day 1</strong></td>
+<td>Phase 1</td>
+<td>1-2h</td>
+<td>Rich Types Verification</td>
+<td>8 files, 805 lines</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Outcome</strong>: ✅ FraiseQL autodiscovery confirmed working</p>
+<hr />
+<h3 id="week-6"><strong>Week 6</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Week</th>
+<th>Status</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Week 6</strong></td>
+<td>⏸️ <strong>PAUSE</strong></td>
+<td>Gap between phases, work on other teams or projects</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="week-7"><strong>Week 7</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Day</th>
+<th>Phase</th>
+<th>Duration</th>
+<th>Tasks</th>
+<th>Deliverables</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Day 1</strong></td>
+<td>Phase 2 (Part 1)</td>
+<td>8h</td>
+<td>RED + GREEN phases</td>
+<td>TableViewAnnotator implemented, tests passing</td>
+</tr>
+<tr>
+<td><strong>Day 2</strong></td>
+<td>Phase 2 (Part 2)</td>
+<td>8h</td>
+<td>REFACTOR + QA</td>
+<td>Integration complete, docs written, QA verified</td>
+</tr>
+<tr>
+<td><strong>Day 3</strong></td>
+<td>Phase 3 (Optional)</td>
+<td>4-6h</td>
+<td>All phases</td>
+<td>Mutation annotations complete</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Outcome</strong>: ✅ Complete FraiseQL integration ready for production</p>
+<hr />
+<h2 id="daily-checklists">📋 Daily Checklists</h2>
+<h3 id="week-5-day-1-checklist-phase-1"><strong>Week 5, Day 1 Checklist</strong> (Phase 1)</h3>
+<h4 id="morning-900-1100-am">Morning (9:00 - 11:00 AM)</h4>
+<p><strong>RED Phase</strong> (30 min):
+- [ ] Create test directories
+- [ ] Create contact_with_rich_types.yaml fixture
+- [ ] Write test_email_field_has_check_constraint
+- [ ] Write test_email_field_has_comment
+- [ ] Run tests (should fail)</p>
+<p><strong>GREEN Phase</strong> (30 min):
+- [ ] Create fraiseql package
+- [ ] Implement CompatibilityChecker class
+- [ ] Run tests (should pass)</p>
+<p><strong>REFACTOR Phase</strong> (30 min):
+- [ ] Write RICH_TYPES_INTEGRATION.md
+- [ ] Add unit tests for CompatibilityChecker
+- [ ] Run all tests</p>
+<p><strong>QA Phase</strong> (30 min):
+- [ ] Run all fraiseql tests
+- [ ] Run ruff and mypy
+- [ ] Generate sample schema
+- [ ] Verify comments in output
+- [ ] Git commit</p>
+<p><strong>End of Day</strong>:
+- [ ] Phase 1 complete
+- [ ] 8 files created
+- [ ] All tests passing
+- [ ] Documentation written</p>
+<hr />
+<h3 id="week-7-day-1-checklist-phase-2-part-1"><strong>Week 7, Day 1 Checklist</strong> (Phase 2 - Part 1)</h3>
+<h4 id="morning-900-am-1200-pm">Morning (9:00 AM - 12:00 PM)</h4>
+<p><strong>RED Phase</strong> (3 hours):
+- [ ] Create test_table_view_annotator.py
+- [ ] Write TestTableAnnotation tests (2 tests)
+- [ ] Write TestInternalColumnAnnotations tests (3 tests)
+- [ ] Write TestFilterColumnAnnotations tests (4 tests)
+- [ ] Write TestDataColumnAnnotation tests (1 test)
+- [ ] Write TestSQLTypeMapping tests (1 test)
+- [ ] Create review_with_table_views.yaml fixture
+- [ ] Run tests (all should fail)</p>
+<h4 id="afternoon-100-pm-500-pm">Afternoon (1:00 PM - 5:00 PM)</h4>
+<p><strong>GREEN Phase</strong> (4 hours):
+- [ ] Create table_view_annotator.py
+- [ ] Implement TableViewAnnotator class
+- [ ] Implement generate_annotations method
+- [ ] Implement _annotate_table method
+- [ ] Implement _annotate_internal_columns method
+- [ ] Implement _annotate_filter_columns method
+- [ ] Implement _annotate_data_column method
+- [ ] Implement helper methods
+- [ ] Run unit tests (all should pass)
+- [ ] Update <strong>init</strong>.py exports
+- [ ] Manual REPL test</p>
+<p><strong>End of Day</strong>:
+- [ ] 12 unit tests written
+- [ ] TableViewAnnotator implemented (300 lines)
+- [ ] All unit tests passing</p>
+<hr />
+<h3 id="week-7-day-2-checklist-phase-2-part-2"><strong>Week 7, Day 2 Checklist</strong> (Phase 2 - Part 2)</h3>
+<h4 id="morning-900-am-1200-pm_1">Morning (9:00 AM - 12:00 PM)</h4>
+<p><strong>REFACTOR Phase</strong> (3 hours):
+- [ ] Update schema_orchestrator.py
+- [ ] Test orchestrator integration manually
+- [ ] Commit orchestrator integration
+- [ ] Write test_tv_annotations_e2e.py (5 tests)
+- [ ] Run integration tests (all should pass)
+- [ ] Write TV_ANNOTATIONS.md documentation
+- [ ] Add docstrings to table_view_annotator.py</p>
+<h4 id="afternoon-100-pm-500-pm_1">Afternoon (1:00 PM - 5:00 PM)</h4>
+<p><strong>QA Phase</strong> (4 hours):
+- [ ] Run all unit tests
+- [ ] Run all integration tests
+- [ ] Generate coverage report (≥90%)
+- [ ] Run ruff linter (fix issues)
+- [ ] Run mypy type checker (fix issues)
+- [ ] Format all code
+- [ ] Run bandit security check
+- [ ] Apply migration to test database
+- [ ] Verify table structure in DB
+- [ ] Verify column comments in DB
+- [ ] Verify @fraiseql annotations
+- [ ] Review all changes
+- [ ] Run final test suite
+- [ ] Clean up test database
+- [ ] Create comprehensive commit
+- [ ] <strong>Phase 2 complete!</strong></p>
+<p><strong>End of Day</strong>:
+- [ ] Phase 2 complete
+- [ ] 5 new files created
+- [ ] 2 files modified
+- [ ] All tests passing
+- [ ] ≥90% coverage
+- [ ] Code quality verified
+- [ ] Database verification complete</p>
+<hr />
+<h3 id="week-7-day-3-checklist-phase-3-optional"><strong>Week 7, Day 3 Checklist</strong> (Phase 3 - Optional)</h3>
+<h4 id="morning-900-am-100-pm">Morning (9:00 AM - 1:00 PM)</h4>
+<p><strong>RED Phase</strong> (1 hour):
+- [ ] Create test_mutation_annotator.py
+- [ ] Write TestMutationAnnotation tests (4 tests)
+- [ ] Run tests (should fail)</p>
+<p><strong>GREEN Phase</strong> (1 hour):
+- [ ] Create mutation_annotator.py
+- [ ] Implement MutationAnnotator class
+- [ ] Implement generate_mutation_annotation method
+- [ ] Implement helper methods
+- [ ] Run tests (should pass)</p>
+<p><strong>REFACTOR Phase</strong> (1 hour):
+- [ ] Update schema_orchestrator.py
+- [ ] Write test_mutation_annotations_e2e.py
+- [ ] Write MUTATION_ANNOTATIONS.md</p>
+<p><strong>QA Phase</strong> (1 hour):
+- [ ] Run all tests
+- [ ] Code quality checks
+- [ ] Manual verification
+- [ ] Git commit
+- [ ] <strong>Phase 3 complete!</strong></p>
+<p><strong>End of Day</strong>:
+- [ ] Phase 3 complete (optional)
+- [ ] 4 new files created
+- [ ] 2 files modified
+- [ ] All tests passing</p>
+<hr />
+<h2 id="success-metrics">🎯 Success Metrics</h2>
+<h3 id="phase-1-success-criteria"><strong>Phase 1 Success Criteria</strong>:</h3>
+<ul>
+<li>✅ Tests execute in &lt; 5 seconds</li>
+<li>✅ 100% test pass rate</li>
+<li>✅ Zero manual annotations required</li>
+<li>✅ CompatibilityChecker confirms 100% compatibility</li>
+<li>✅ Documentation reviewed and approved</li>
+</ul>
+<h3 id="phase-2-success-criteria"><strong>Phase 2 Success Criteria</strong>:</h3>
+<ul>
+<li>✅ All 12 unit tests pass</li>
+<li>✅ All 5 integration tests pass</li>
+<li>✅ Test coverage ≥ 90%</li>
+<li>✅ Zero linting errors</li>
+<li>✅ Zero type errors</li>
+<li>✅ Annotations visible in database</li>
+<li>✅ FraiseQL can introspect (manual verification)</li>
+</ul>
+<h3 id="phase-3-success-criteria-optional"><strong>Phase 3 Success Criteria</strong> (Optional):</h3>
+<ul>
+<li>✅ All 4 unit tests pass</li>
+<li>✅ Integration test passes</li>
+<li>✅ Annotations generated for all actions</li>
+<li>✅ Documentation complete</li>
+</ul>
+<hr />
+<h2 id="risk-management-contingencies">🚨 Risk Management &amp; Contingencies</h2>
+<h3 id="phase-1-risks"><strong>Phase 1 Risks</strong>:</h3>
+<p><strong>Risk</strong>: FraiseQL autodiscovery doesn't work
+- <strong>Likelihood</strong>: Very Low
+- <strong>Impact</strong>: High
+- <strong>Mitigation</strong>: Test immediately in Phase 1
+- <strong>Contingency</strong>: Add manual annotations in compatibility_checker (adds 2-3 hours)</p>
+<p><strong>Risk</strong>: PostgreSQL comments not generated by Team B
+- <strong>Likelihood</strong>: Low
+- <strong>Impact</strong>: Medium
+- <strong>Mitigation</strong>: Verify Team B output has comments
+- <strong>Contingency</strong>: Coordinate with Team B to add comments (1 hour)</p>
+<hr />
+<h3 id="phase-2-risks"><strong>Phase 2 Risks</strong>:</h3>
+<p><strong>Risk</strong>: Complex SQL type mapping edge cases
+- <strong>Likelihood</strong>: Medium
+- <strong>Impact</strong>: Low
+- <strong>Mitigation</strong>: Comprehensive test coverage
+- <strong>Contingency</strong>: Add specialized type handlers (adds 1-2 hours)</p>
+<p><strong>Risk</strong>: Integration with schema_orchestrator breaks existing functionality
+- <strong>Likelihood</strong>: Low
+- <strong>Impact</strong>: High
+- <strong>Mitigation</strong>: Run full test suite after integration
+- <strong>Contingency</strong>: Isolate Team D code in separate section (1 hour)</p>
+<p><strong>Risk</strong>: FraiseQL cannot parse generated annotations
+- <strong>Likelihood</strong>: Low
+- <strong>Impact</strong>: High
+- <strong>Mitigation</strong>: Manual FraiseQL introspection test in QA phase
+- <strong>Contingency</strong>: Adjust annotation format based on FraiseQL docs (2-3 hours)</p>
+<hr />
+<h3 id="phase-3-risks"><strong>Phase 3 Risks</strong>:</h3>
+<p><strong>Risk</strong>: Time constraint - cannot complete Phase 3
+- <strong>Likelihood</strong>: Medium
+- <strong>Impact</strong>: Low (Phase 3 is optional)
+- <strong>Mitigation</strong>: Clear prioritization, Phase 3 is optional
+- <strong>Contingency</strong>: Defer Phase 3 entirely (saves 4-6 hours)</p>
+<p><strong>Risk</strong>: Action impact metadata format changes
+- <strong>Likelihood</strong>: Low
+- <strong>Impact</strong>: Medium
+- <strong>Mitigation</strong>: Follow established patterns from Team C
+- <strong>Contingency</strong>: Adjust format, update tests (1-2 hours)</p>
+<hr />
+<h2 id="progress-tracking">📈 Progress Tracking</h2>
+<h3 id="daily-stand-up-template"><strong>Daily Stand-up Template</strong>:</h3>
+<pre><code class="language-markdown">## Team D Daily Stand-up - [Date]
+
+### Yesterday:
+- [x] Completed X
+- [x] Completed Y
+- [ ] Blocked on Z
+
+### Today:
+- [ ] Plan to complete A
+- [ ] Plan to complete B
+
+### Blockers:
+- None / [Describe blocker]
+
+### On Track:
+- ✅ Yes, on schedule
+- ⚠️ At risk (reason)
+- 🔴 Behind schedule (reason)
+</code></pre>
+<hr />
+<h3 id="phase-completion-report-template"><strong>Phase Completion Report Template</strong>:</h3>
+<pre><code class="language-markdown">## Phase [N] Completion Report
+
+**Date**: [Date]
+**Duration**: [Actual hours] (Planned: [X] hours)
+**Status**: ✅ Complete / ⚠️ Partial / 🔴 Blocked
+
+### Deliverables:
+- [x] File 1 created
+- [x] File 2 created
+- [x] Tests written (X/X passing)
+- [x] Documentation complete
+
+### Metrics:
+- Test coverage: [X]%
+- Lines of code: [X]
+- Tests passing: [X]/[X]
+
+### Issues Encountered:
+- [None / List issues]
+
+### Lessons Learned:
+- [Key takeaways]
+
+### Next Steps:
+- [Next phase / tasks]
+</code></pre>
+<hr />
+<h2 id="learning-opportunities">🎓 Learning Opportunities</h2>
+<h3 id="phase-1-learning"><strong>Phase 1 Learning</strong>:</h3>
+<ul>
+<li>FraiseQL autodiscovery capabilities</li>
+<li>PostgreSQL comment introspection</li>
+<li>Integration testing strategies</li>
+</ul>
+<h3 id="phase-2-learning"><strong>Phase 2 Learning</strong>:</h3>
+<ul>
+<li>Complex annotation generation</li>
+<li>SQL type mapping</li>
+<li>Database metadata patterns</li>
+<li>CQRS read-layer optimization</li>
+</ul>
+<h3 id="phase-3-learning"><strong>Phase 3 Learning</strong>:</h3>
+<ul>
+<li>Mutation impact tracking</li>
+<li>Frontend cache invalidation patterns</li>
+<li>GraphQL metadata best practices</li>
+</ul>
+<hr />
+<h2 id="reference-materials">📚 Reference Materials</h2>
+<h3 id="quick-links"><strong>Quick Links</strong>:</h3>
+<ul>
+<li>Phase 1 Plan: <code>docs/teams/TEAM_D_PHASED_IMPLEMENTATION_PLAN.md</code> (lines 39-353)</li>
+<li>Phase 2 Plan: <code>docs/teams/TEAM_D_PHASED_IMPLEMENTATION_PLAN.md</code> (lines 355-1729)</li>
+<li>Phase 3 Plan: <code>docs/teams/TEAM_D_PHASED_IMPLEMENTATION_PLAN.md</code> (lines 1731-1872)</li>
+</ul>
+<h3 id="documentation"><strong>Documentation</strong>:</h3>
+<ul>
+<li>FraiseQL Integration: <code>docs/fraiseql/RICH_TYPES_INTEGRATION.md</code></li>
+<li>tv_ Annotations: <code>docs/fraiseql/TV_ANNOTATIONS.md</code></li>
+<li>Mutation Annotations: <code>docs/fraiseql/MUTATION_ANNOTATIONS.md</code></li>
+</ul>
+<h3 id="test-examples"><strong>Test Examples</strong>:</h3>
+<ul>
+<li>Rich types: <code>entities/examples/contact_with_rich_types.yaml</code></li>
+<li>Table views: <code>entities/examples/review_with_table_views.yaml</code></li>
+</ul>
+<hr />
+<h2 id="final-checklist-all-phases-complete">🎯 Final Checklist (All Phases Complete)</h2>
+<h3 id="implementation"><strong>Implementation</strong>:</h3>
+<ul>
+<li>[ ] Phase 1: compatibility_checker.py</li>
+<li>[ ] Phase 2: table_view_annotator.py</li>
+<li>[ ] Phase 3: mutation_annotator.py (optional)</li>
+</ul>
+<h3 id="tests"><strong>Tests</strong>:</h3>
+<ul>
+<li>[ ] Phase 1: Unit + integration tests passing</li>
+<li>[ ] Phase 2: Unit + integration tests passing (≥90% coverage)</li>
+<li>[ ] Phase 3: Unit + integration tests passing (optional)</li>
+</ul>
+<h3 id="documentation_1"><strong>Documentation</strong>:</h3>
+<ul>
+<li>[ ] Phase 1: RICH_TYPES_INTEGRATION.md</li>
+<li>[ ] Phase 2: TV_ANNOTATIONS.md</li>
+<li>[ ] Phase 3: MUTATION_ANNOTATIONS.md (optional)</li>
+</ul>
+<h3 id="integration"><strong>Integration</strong>:</h3>
+<ul>
+<li>[ ] schema_orchestrator.py updated</li>
+<li>[ ] All generators exported in <strong>init</strong>.py</li>
+<li>[ ] No breaking changes to existing code</li>
+</ul>
+<h3 id="quality"><strong>Quality</strong>:</h3>
+<ul>
+<li>[ ] All tests passing</li>
+<li>[ ] Code coverage ≥ 90%</li>
+<li>[ ] Ruff linting clean</li>
+<li>[ ] Mypy type checking clean</li>
+<li>[ ] Bandit security check clean</li>
+<li>[ ] Database verification complete</li>
+</ul>
+<h3 id="git"><strong>Git</strong>:</h3>
+<ul>
+<li>[ ] Phase 1 committed</li>
+<li>[ ] Phase 2 committed</li>
+<li>[ ] Phase 3 committed (if completed)</li>
+<li>[ ] All commit messages descriptive</li>
+</ul>
+<hr />
+<h2 id="ready-to-execute">🚀 Ready to Execute!</h2>
+<p><strong>Total Timeline</strong>: 3-4 days across Week 5 and Week 7</p>
+<p><strong>Estimated Completion</strong>:
+- Phase 1: 1-2 hours
+- Phase 2: 2 days
+- Phase 3: Half day (optional)</p>
+<p><strong>Success Rate</strong>: High (clear plan, comprehensive tests, well-documented)</p>
+<p><strong>Risk Level</strong>: Low (incremental phases, optional Phase 3, comprehensive QA)</p>
+<hr />
+<p><strong>Team D is ready to execute this detailed timeline!</strong> 🎉</p>
+<p>Each phase has:
+- ✅ Hour-by-hour breakdown
+- ✅ Clear tasks and milestones
+- ✅ Test-first approach (TDD)
+- ✅ Quality gates at each step
+- ✅ Comprehensive checklists
+- ✅ Risk mitigation strategies
+- ✅ Progress tracking templates</p>
+<p><strong>Follow this timeline for predictable, high-quality delivery!</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

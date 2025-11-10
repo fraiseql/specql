@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team D: Rich Types Implementation - FraiseQL Metadata Annotations - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team D: Rich Types Implementation - FraiseQL Metadata Annotations";
+        var mkdocs_page_input_path = "archive/teams/TEAM_D_RICH_TYPES_IMPLEMENTATION.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team D: Rich Types Implementation - FraiseQL Metadata Annotations</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-d-rich-types-implementation-fraiseql-metadata-annotations">Team D: Rich Types Implementation - FraiseQL Metadata Annotations</h1>
+<p><strong>Epic</strong>: Add FraiseQL Rich Type Annotations
+<strong>Timeline</strong>: Week 5, Days 1-2 (after Teams B &amp; C complete)
+<strong>Complexity</strong>: Low-Medium (annotation generation)</p>
+<hr />
+<h2 id="objective">🎯 Objective</h2>
+<p>Generate FraiseQL <code>@fraiseql:field</code> comments that map rich types to GraphQL scalars, enabling FraiseQL to auto-discover and expose properly typed GraphQL fields.</p>
+<p><strong>Success Criteria</strong>:
+- ✅ Generate correct scalar names for all rich types
+- ✅ FraiseQL introspection discovers rich type scalars
+- ✅ GraphQL schema includes typed fields (Email, Url, PhoneNumber, etc.)
+- ✅ Nullable markers correct (!  for non-null)
+- ✅ Field names properly camelCased
+- ✅ All tests pass
+- ✅ 95%+ test coverage</p>
+<hr />
+<h2 id="phase-1-rich-type-to-graphql-scalar-mapping">📋 PHASE 1: Rich Type to GraphQL Scalar Mapping</h2>
+<p><strong>Duration</strong>: 2 hours</p>
+<h3 id="red-phase-write-failing-tests">🔴 RED Phase: Write Failing Tests</h3>
+<p><strong>Test File</strong>: <code>tests/unit/fraiseql/test_rich_type_annotations.py</code></p>
+<pre><code class="language-python">import pytest
+from src.generators.fraiseql.annotator import FraiseQLAnnotator
+from src.core.ast_models import Entity, FieldDefinition
+
+
+def test_email_field_annotation():
+    &quot;&quot;&quot;Test: Email field gets Email scalar&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;email&quot;, type=&quot;email&quot;, nullable=False)
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;, fields={&quot;email&quot;: field})
+
+    annotator = FraiseQLAnnotator()
+    annotation = annotator.generate_field_annotation(field, entity)
+
+    # Expected: @fraiseql:field with Email scalar
+    assert &quot;@fraiseql:field&quot; in annotation
+    assert &quot;name=email&quot; in annotation
+    assert &quot;type=Email!&quot; in annotation  # Non-nullable
+    assert &quot;COMMENT ON COLUMN crm.tb_contact.email&quot; in annotation
+
+
+def test_nullable_url_field_annotation():
+    &quot;&quot;&quot;Test: Nullable URL field has no ! marker&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;website&quot;, type=&quot;url&quot;, nullable=True)
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;, fields={&quot;website&quot;: field})
+
+    annotator = FraiseQLAnnotator()
+    annotation = annotator.generate_field_annotation(field, entity)
+
+    assert &quot;type=Url&quot; in annotation
+    assert &quot;type=Url!&quot; not in annotation  # Should be nullable
+
+
+def test_phone_number_field_annotation():
+    &quot;&quot;&quot;Test: phoneNumber type maps to PhoneNumber scalar&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;phone&quot;, type=&quot;phoneNumber&quot;)
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;, fields={&quot;phone&quot;: field})
+
+    annotator = FraiseQLAnnotator()
+    annotation = annotator.generate_field_annotation(field, entity)
+
+    assert &quot;type=PhoneNumber&quot; in annotation
+
+
+def test_ip_address_field_annotation():
+    &quot;&quot;&quot;Test: ipAddress type maps to IpAddress scalar&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;ip_address&quot;, type=&quot;ipAddress&quot;)
+    entity = Entity(name=&quot;Server&quot;, schema=&quot;infra&quot;, fields={&quot;ip_address&quot;: field})
+
+    annotator = FraiseQLAnnotator()
+    annotation = annotator.generate_field_annotation(field, entity)
+
+    # Field name should be camelCased
+    assert &quot;name=ipAddress&quot; in annotation
+    assert &quot;type=IpAddress&quot; in annotation
+
+
+def test_coordinates_field_annotation():
+    &quot;&quot;&quot;Test: coordinates type maps to Coordinates scalar&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;location&quot;, type=&quot;coordinates&quot;)
+    entity = Entity(name=&quot;Place&quot;, fields={&quot;location&quot;: field})
+
+    annotator = FraiseQLAnnotator()
+    annotation = annotator.generate_field_annotation(field, entity)
+
+    assert &quot;type=Coordinates&quot; in annotation
+
+
+def test_money_field_annotation():
+    &quot;&quot;&quot;Test: money type maps to Money scalar&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;price&quot;, type=&quot;money&quot;, nullable=False)
+    entity = Entity(name=&quot;Product&quot;, fields={&quot;price&quot;: field})
+
+    annotator = FraiseQLAnnotator()
+    annotation = annotator.generate_field_annotation(field, entity)
+
+    assert &quot;type=Money!&quot; in annotation
+
+
+def test_mac_address_field_annotation():
+    &quot;&quot;&quot;Test: macAddress type maps to MacAddress scalar&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;mac_address&quot;, type=&quot;macAddress&quot;)
+    entity = Entity(name=&quot;Device&quot;, fields={&quot;mac_address&quot;: field})
+
+    annotator = FraiseQLAnnotator()
+    annotation = annotator.generate_field_annotation(field, entity)
+
+    assert &quot;name=macAddress&quot; in annotation
+    assert &quot;type=MacAddress&quot; in annotation
+
+
+def test_color_field_annotation():
+    &quot;&quot;&quot;Test: color type maps to Color scalar&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;theme_color&quot;, type=&quot;color&quot;)
+    entity = Entity(name=&quot;Settings&quot;, fields={&quot;theme_color&quot;: field})
+
+    annotator = FraiseQLAnnotator()
+    annotation = annotator.generate_field_annotation(field, entity)
+
+    assert &quot;name=themeColor&quot; in annotation
+    assert &quot;type=Color&quot; in annotation
+
+
+def test_slug_field_annotation():
+    &quot;&quot;&quot;Test: slug type maps to Slug scalar&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;slug&quot;, type=&quot;slug&quot;)
+    entity = Entity(name=&quot;Post&quot;, fields={&quot;slug&quot;: field})
+
+    annotator = FraiseQLAnnotator()
+    annotation = annotator.generate_field_annotation(field, entity)
+
+    assert &quot;type=Slug&quot; in annotation
+
+
+def test_markdown_field_annotation():
+    &quot;&quot;&quot;Test: markdown type maps to Markdown scalar&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;content&quot;, type=&quot;markdown&quot;)
+    entity = Entity(name=&quot;Post&quot;, fields={&quot;content&quot;: field})
+
+    annotator = FraiseQLAnnotator()
+    annotation = annotator.generate_field_annotation(field, entity)
+
+    assert &quot;type=Markdown&quot; in annotation
+
+
+def test_percentage_field_annotation():
+    &quot;&quot;&quot;Test: percentage type maps to Percentage scalar&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;completion_rate&quot;, type=&quot;percentage&quot;)
+    entity = Entity(name=&quot;Task&quot;, fields={&quot;completion_rate&quot;: field})
+
+    annotator = FraiseQLAnnotator()
+    annotation = annotator.generate_field_annotation(field, entity)
+
+    assert &quot;name=completionRate&quot; in annotation
+    assert &quot;type=Percentage&quot; in annotation
+
+
+def test_complete_entity_with_mixed_types():
+    &quot;&quot;&quot;Test: Entity with basic and rich types gets correct annotations&quot;&quot;&quot;
+    entity = Entity(
+        name=&quot;Contact&quot;,
+        schema=&quot;crm&quot;,
+        fields={
+            &quot;first_name&quot;: FieldDefinition(name=&quot;first_name&quot;, type=&quot;text&quot;, nullable=False),
+            &quot;email&quot;: FieldDefinition(name=&quot;email&quot;, type=&quot;email&quot;, nullable=False),
+            &quot;website&quot;: FieldDefinition(name=&quot;website&quot;, type=&quot;url&quot;),
+            &quot;phone&quot;: FieldDefinition(name=&quot;phone&quot;, type=&quot;phoneNumber&quot;),
+            &quot;age&quot;: FieldDefinition(name=&quot;age&quot;, type=&quot;integer&quot;),
+        }
+    )
+
+    annotator = FraiseQLAnnotator()
+    annotations = annotator.generate_all_field_annotations(entity)
+
+    # Check each field has correct annotation
+    assert any(&quot;name=firstName&quot; in a and &quot;type=String!&quot; in a for a in annotations)
+    assert any(&quot;name=email&quot; in a and &quot;type=Email!&quot; in a for a in annotations)
+    assert any(&quot;name=website&quot; in a and &quot;type=Url&quot; in a for a in annotations)
+    assert any(&quot;name=phone&quot; in a and &quot;type=PhoneNumber&quot; in a for a in annotations)
+    assert any(&quot;name=age&quot; in a and &quot;type=Int&quot; in a for a in annotations)
+
+
+def test_backward_compatibility_basic_types():
+    &quot;&quot;&quot;Test: Basic types still get correct GraphQL scalars&quot;&quot;&quot;
+    entity = Entity(
+        name=&quot;Product&quot;,
+        fields={
+            &quot;name&quot;: FieldDefinition(name=&quot;name&quot;, type=&quot;text&quot;),
+            &quot;quantity&quot;: FieldDefinition(name=&quot;quantity&quot;, type=&quot;integer&quot;),
+            &quot;active&quot;: FieldDefinition(name=&quot;active&quot;, type=&quot;boolean&quot;),
+        }
+    )
+
+    annotator = FraiseQLAnnotator()
+    annotations = annotator.generate_all_field_annotations(entity)
+
+    assert any(&quot;type=String&quot; in a for a in annotations)
+    assert any(&quot;type=Int&quot; in a for a in annotations)
+    assert any(&quot;type=Boolean&quot; in a for a in annotations)
+</code></pre>
+<p><strong>Run Tests</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/fraiseql/test_rich_type_annotations.py -v
+# Expected: FAILED (not implemented)
+</code></pre>
+<hr />
+<h3 id="green-phase-minimal-implementation">🟢 GREEN Phase: Minimal Implementation</h3>
+<p><strong>File</strong>: <code>src/generators/fraiseql/scalar_mapper.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;
+FraiseQL Scalar Mapper
+Maps SpecQL rich types to FraiseQL/GraphQL scalar names
+&quot;&quot;&quot;
+
+from typing import Dict
+from src.core.type_registry import get_type_registry
+
+
+class ScalarMapper:
+    &quot;&quot;&quot;Maps rich types to GraphQL scalar names&quot;&quot;&quot;
+
+    def __init__(self):
+        self.type_registry = get_type_registry()
+        self._scalar_map = self._build_scalar_map()
+
+    def _build_scalar_map(self) -&gt; Dict[str, str]:
+        &quot;&quot;&quot;Build mapping of SpecQL types to GraphQL scalars&quot;&quot;&quot;
+        return {
+            # String-based rich types
+            &quot;email&quot;: &quot;Email&quot;,
+            &quot;url&quot;: &quot;Url&quot;,
+            &quot;phone&quot;: &quot;PhoneNumber&quot;,
+            &quot;phoneNumber&quot;: &quot;PhoneNumber&quot;,
+            &quot;ipAddress&quot;: &quot;IpAddress&quot;,
+            &quot;macAddress&quot;: &quot;MacAddress&quot;,
+            &quot;markdown&quot;: &quot;Markdown&quot;,
+            &quot;html&quot;: &quot;Html&quot;,
+            &quot;slug&quot;: &quot;Slug&quot;,
+            &quot;color&quot;: &quot;Color&quot;,
+
+            # Numeric rich types
+            &quot;money&quot;: &quot;Money&quot;,
+            &quot;percentage&quot;: &quot;Percentage&quot;,
+
+            # Date/Time rich types
+            &quot;date&quot;: &quot;Date&quot;,
+            &quot;datetime&quot;: &quot;DateTime&quot;,
+            &quot;time&quot;: &quot;Time&quot;,
+            &quot;duration&quot;: &quot;Duration&quot;,
+
+            # Geographic rich types
+            &quot;coordinates&quot;: &quot;Coordinates&quot;,
+            &quot;latitude&quot;: &quot;Latitude&quot;,
+            &quot;longitude&quot;: &quot;Longitude&quot;,
+
+            # Media rich types
+            &quot;image&quot;: &quot;Image&quot;,
+            &quot;file&quot;: &quot;File&quot;,
+
+            # Identifier rich types
+            &quot;uuid&quot;: &quot;UUID&quot;,
+
+            # Structured rich types
+            &quot;json&quot;: &quot;JSON&quot;,
+
+            # Basic types (backward compatibility)
+            &quot;text&quot;: &quot;String&quot;,
+            &quot;integer&quot;: &quot;Int&quot;,
+            &quot;boolean&quot;: &quot;Boolean&quot;,
+            &quot;jsonb&quot;: &quot;JSON&quot;,
+            &quot;timestamp&quot;: &quot;DateTime&quot;,
+        }
+
+    def get_graphql_scalar(self, specql_type: str, nullable: bool = True) -&gt; str:
+        &quot;&quot;&quot;Get GraphQL scalar name for SpecQL type&quot;&quot;&quot;
+
+        # Get base scalar name
+        scalar = self._scalar_map.get(specql_type)
+
+        if not scalar:
+            # Unknown type, default to String
+            scalar = &quot;String&quot;
+
+        # Add non-null marker if needed
+        if not nullable:
+            scalar += &quot;!&quot;
+
+        return scalar
+
+    def is_rich_scalar(self, specql_type: str) -&gt; bool:
+        &quot;&quot;&quot;Check if type maps to a FraiseQL rich scalar&quot;&quot;&quot;
+        return self.type_registry.is_rich_type(specql_type)
+</code></pre>
+<hr />
+<p><strong>File</strong>: <code>src/generators/fraiseql/annotator.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;
+FraiseQL Annotator with Rich Type Support
+&quot;&quot;&quot;
+
+import re
+from typing import List
+from src.core.ast_models import Entity, FieldDefinition
+from src.generators.fraiseql.scalar_mapper import ScalarMapper
+
+
+class FraiseQLAnnotator:
+    &quot;&quot;&quot;Generates FraiseQL metadata annotations&quot;&quot;&quot;
+
+    def __init__(self):
+        self.scalar_mapper = ScalarMapper()
+
+    def generate_field_annotation(self, field: FieldDefinition, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate @fraiseql:field annotation for a field&quot;&quot;&quot;
+
+        table_name = f&quot;{entity.schema}.tb_{entity.name.lower()}&quot;
+
+        # Get GraphQL field name (camelCase)
+        graphql_name = self._to_camel_case(field.name)
+
+        # Get GraphQL scalar type
+        graphql_type = self.scalar_mapper.get_graphql_scalar(field.type, field.nullable)
+
+        return f&quot;&quot;&quot;
+COMMENT ON COLUMN {table_name}.{field.name} IS
+  '@fraiseql:field
+   name={graphql_name}
+   type={graphql_type}';
+&quot;&quot;&quot;
+
+    def generate_all_field_annotations(self, entity: Entity) -&gt; List[str]:
+        &quot;&quot;&quot;Generate annotations for all fields in entity&quot;&quot;&quot;
+        annotations = []
+
+        for field_name, field_def in entity.fields.items():
+            annotation = self.generate_field_annotation(field_def, entity)
+            annotations.append(annotation)
+
+        return annotations
+
+    def _to_camel_case(self, snake_str: str) -&gt; str:
+        &quot;&quot;&quot;Convert snake_case to camelCase&quot;&quot;&quot;
+        components = snake_str.split('_')
+        return components[0] + ''.join(x.title() for x in components[1:])
+</code></pre>
+<hr />
+<h3 id="refactor-phase">🔧 REFACTOR Phase</h3>
+<p><strong>Improvements</strong>:</p>
+<ol>
+<li><strong>Add description support</strong>:</li>
+</ol>
+<pre><code class="language-python">def generate_field_annotation(self, field: FieldDefinition, entity: Entity) -&gt; str:
+    &quot;&quot;&quot;Generate annotation with optional description&quot;&quot;&quot;
+
+    annotation_parts = [
+        f&quot;name={self._to_camel_case(field.name)}&quot;,
+        f&quot;type={self.scalar_mapper.get_graphql_scalar(field.type, field.nullable)}&quot;
+    ]
+
+    # Add description if available
+    if field.description:
+        annotation_parts.append(f&quot;description=\&quot;{field.description}\&quot;&quot;)
+
+    annotation_text = &quot;\n   &quot;.join(annotation_parts)
+
+    return f&quot;&quot;&quot;
+COMMENT ON COLUMN {table_name}.{field.name} IS
+  '@fraiseql:field
+   {annotation_text}';
+&quot;&quot;&quot;
+</code></pre>
+<ol>
+<li><strong>Add validation hints</strong>:</li>
+</ol>
+<pre><code class="language-python">def generate_field_annotation_with_validation(self, field: FieldDefinition, entity: Entity) -&gt; str:
+    &quot;&quot;&quot;Generate annotation with validation metadata&quot;&quot;&quot;
+
+    if field.is_rich_type():
+        validation_pattern = field.get_validation_pattern()
+        if validation_pattern:
+            # Include validation pattern in metadata
+            annotation_parts.append(f&quot;validation=\&quot;{validation_pattern}\&quot;&quot;)
+</code></pre>
+<hr />
+<h3 id="qa-phase">✅ QA Phase</h3>
+<pre><code class="language-bash"># Unit tests
+uv run pytest tests/unit/fraiseql/test_rich_type_annotations.py -v
+
+# Test with existing functionality
+uv run pytest tests/unit/fraiseql/ -v
+
+# Coverage
+uv run pytest tests/unit/fraiseql/ --cov=src/generators/fraiseql/ --cov-report=term-missing
+# Target: 95%+
+</code></pre>
+<hr />
+<h2 id="phase-2-integration-testing-with-fraiseql">📋 PHASE 2: Integration Testing with FraiseQL</h2>
+<p><strong>Duration</strong>: 1 hour</p>
+<h3 id="integration-tests">Integration Tests</h3>
+<p><strong>Test File</strong>: <code>tests/integration/fraiseql/test_rich_scalars_discovery.py</code></p>
+<pre><code class="language-python">import pytest
+from src.cli.orchestrator import Orchestrator
+
+
+@pytest.fixture
+def fraiseql_schema():
+    &quot;&quot;&quot;Generate schema and run FraiseQL introspection&quot;&quot;&quot;
+    # Generate complete migration from SpecQL
+    orchestrator = Orchestrator()
+    migration = orchestrator.generate_from_file(&quot;entities/examples/contact_with_rich_types.yaml&quot;)
+
+    # Apply to test database
+    apply_migration(migration)
+
+    # Run FraiseQL introspection
+    schema = run_fraiseql_introspection()
+
+    return schema
+
+
+def test_email_field_exposed_as_email_scalar(fraiseql_schema):
+    &quot;&quot;&quot;Integration: Email field uses Email scalar in GraphQL&quot;&quot;&quot;
+    contact_type = fraiseql_schema[&quot;types&quot;][&quot;Contact&quot;]
+
+    # Check email field
+    email_field = contact_type[&quot;fields&quot;][&quot;email&quot;]
+    assert email_field[&quot;type&quot;] == &quot;Email!&quot;
+
+
+def test_url_field_exposed_as_url_scalar(fraiseql_schema):
+    &quot;&quot;&quot;Integration: URL field uses Url scalar&quot;&quot;&quot;
+    contact_type = fraiseql_schema[&quot;types&quot;][&quot;Contact&quot;]
+
+    website_field = contact_type[&quot;fields&quot;][&quot;website&quot;]
+    assert website_field[&quot;type&quot;] == &quot;Url&quot;  # Nullable
+
+
+def test_phone_field_exposed_as_phone_number_scalar(fraiseql_schema):
+    &quot;&quot;&quot;Integration: Phone field uses PhoneNumber scalar&quot;&quot;&quot;
+    contact_type = fraiseql_schema[&quot;types&quot;][&quot;Contact&quot;]
+
+    phone_field = contact_type[&quot;fields&quot;][&quot;phone&quot;]
+    assert phone_field[&quot;type&quot;] == &quot;PhoneNumber&quot;
+
+
+def test_coordinates_field_exposed_as_coordinates_scalar(fraiseql_schema):
+    &quot;&quot;&quot;Integration: Coordinates field uses Coordinates scalar&quot;&quot;&quot;
+    place_type = fraiseql_schema[&quot;types&quot;][&quot;Place&quot;]
+
+    location_field = place_type[&quot;fields&quot;][&quot;location&quot;]
+    assert location_field[&quot;type&quot;] == &quot;Coordinates&quot;
+
+
+def test_money_field_exposed_as_money_scalar(fraiseql_schema):
+    &quot;&quot;&quot;Integration: Money field uses Money scalar&quot;&quot;&quot;
+    product_type = fraiseql_schema[&quot;types&quot;][&quot;Product&quot;]
+
+    price_field = product_type[&quot;fields&quot;][&quot;price&quot;]
+    assert price_field[&quot;type&quot;] == &quot;Money!&quot;
+
+
+def test_fraiseql_provides_custom_scalars(fraiseql_schema):
+    &quot;&quot;&quot;Integration: FraiseQL schema includes custom scalar definitions&quot;&quot;&quot;
+
+    # Check that FraiseQL provides these scalars
+    scalars = fraiseql_schema[&quot;scalars&quot;]
+
+    expected_scalars = [
+        &quot;Email&quot;, &quot;Url&quot;, &quot;PhoneNumber&quot;, &quot;IpAddress&quot;, &quot;MacAddress&quot;,
+        &quot;Coordinates&quot;, &quot;Money&quot;, &quot;Percentage&quot;, &quot;Markdown&quot;, &quot;Color&quot;, &quot;Slug&quot;
+    ]
+
+    for scalar in expected_scalars:
+        assert scalar in scalars
+
+
+def test_graphql_query_with_rich_types(fraiseql_schema):
+    &quot;&quot;&quot;Integration: GraphQL query returns properly typed data&quot;&quot;&quot;
+
+    # Execute GraphQL query
+    result = execute_graphql_query(&quot;&quot;&quot;
+        query {
+          contact(id: &quot;...&quot;) {
+            email
+            website
+            phone
+          }
+        }
+    &quot;&quot;&quot;)
+
+    # FraiseQL should validate and format rich types
+    assert &quot;@&quot; in result[&quot;contact&quot;][&quot;email&quot;]  # Email validated
+    assert result[&quot;contact&quot;][&quot;website&quot;].startswith(&quot;http&quot;)  # URL validated
+</code></pre>
+<hr />
+<h2 id="phase-3-documentation-generation">📋 PHASE 3: Documentation Generation</h2>
+<p><strong>Duration</strong>: 30 minutes</p>
+<h3 id="generate-rich-type-documentation">Generate Rich Type Documentation</h3>
+<p><strong>File</strong>: <code>src/generators/fraiseql/documentation_generator.py</code></p>
+<pre><code class="language-python">class DocumentationGenerator:
+    &quot;&quot;&quot;Generates documentation for rich type fields&quot;&quot;&quot;
+
+    def generate_field_documentation(self, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate markdown documentation for entity fields&quot;&quot;&quot;
+
+        docs = [f&quot;# {entity.name} Fields\n&quot;]
+
+        for field_name, field_def in entity.fields.items():
+            # Field name and type
+            docs.append(f&quot;## {field_name}&quot;)
+            docs.append(f&quot;**Type**: `{field_def.type}`&quot;)
+
+            # GraphQL scalar
+            if field_def.is_rich_type():
+                scalar = self.scalar_mapper.get_graphql_scalar(field_def.type, field_def.nullable)
+                docs.append(f&quot;**GraphQL Scalar**: `{scalar}`&quot;)
+
+                # Validation info
+                pattern = field_def.get_validation_pattern()
+                if pattern:
+                    docs.append(f&quot;**Validation**: `{pattern}`&quot;)
+
+            # PostgreSQL type
+            docs.append(f&quot;**PostgreSQL**: `{field_def.get_postgres_type()}`&quot;)
+
+            docs.append(&quot;&quot;)  # Blank line
+
+        return &quot;\n&quot;.join(docs)
+</code></pre>
+<hr />
+<h2 id="acceptance-criteria">📊 Acceptance Criteria</h2>
+<h3 id="must-have">Must Have</h3>
+<ul>
+<li>✅ All rich types map to correct GraphQL scalars</li>
+<li>✅ Nullable markers correct (! for non-null)</li>
+<li>✅ Field names properly camelCased</li>
+<li>✅ FraiseQL discovers all rich type fields</li>
+<li>✅ GraphQL schema includes typed scalars</li>
+<li>✅ Backward compatible with basic types</li>
+<li>✅ All tests pass (unit + integration)</li>
+<li>✅ 95%+ test coverage</li>
+</ul>
+<h3 id="nice-to-have">Nice to Have</h3>
+<ul>
+<li>✅ Validation metadata in annotations</li>
+<li>✅ Field descriptions in annotations</li>
+<li>✅ Auto-generated documentation</li>
+<li>✅ Examples in documentation</li>
+</ul>
+<hr />
+<h2 id="definition-of-done">🎯 Definition of Done</h2>
+<ul>
+<li>[ ] <code>ScalarMapper</code> class created</li>
+<li>[ ] <code>FraiseQLAnnotator</code> updated for rich types</li>
+<li>[ ] All rich types generate correct annotations</li>
+<li>[ ] FraiseQL introspection discovers rich scalars</li>
+<li>[ ] GraphQL queries work with typed fields</li>
+<li>[ ] Integration tests pass</li>
+<li>[ ] Backward compatibility verified</li>
+<li>[ ] 95%+ code coverage</li>
+<li>[ ] Documentation generated</li>
+<li>[ ] Examples added</li>
+<li>[ ] Code reviewed</li>
+<li>[ ] Merged to main</li>
+</ul>
+<hr />
+<h2 id="rich-type-to-graphql-scalar-mappings">📚 Rich Type to GraphQL Scalar Mappings</h2>
+<table>
+<thead>
+<tr>
+<th>SpecQL Type</th>
+<th>GraphQL Scalar</th>
+<th>FraiseQL Provides</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>email</td>
+<td>Email</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>url</td>
+<td>Url</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>phoneNumber</td>
+<td>PhoneNumber</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>ipAddress</td>
+<td>IpAddress</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>macAddress</td>
+<td>MacAddress</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>coordinates</td>
+<td>Coordinates</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>money</td>
+<td>Money</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>percentage</td>
+<td>Percentage</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>markdown</td>
+<td>Markdown</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>color</td>
+<td>Color</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>slug</td>
+<td>Slug</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>date</td>
+<td>Date</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>datetime</td>
+<td>DateTime</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>uuid</td>
+<td>UUID</td>
+<td>✅ Yes</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="example-output">🔍 Example Output</h2>
+<h3 id="input-specql-yaml">Input (SpecQL YAML)</h3>
+<pre><code class="language-yaml">entity: Contact
+  fields:
+    email: email!
+    website: url
+    phone: phoneNumber
+</code></pre>
+<h3 id="output-fraiseql-annotations">Output (FraiseQL Annotations)</h3>
+<pre><code class="language-sql">COMMENT ON COLUMN crm.tb_contact.email IS
+  '@fraiseql:field
+   name=email
+   type=Email!';
+
+COMMENT ON COLUMN crm.tb_contact.website IS
+  '@fraiseql:field
+   name=website
+   type=Url';
+
+COMMENT ON COLUMN crm.tb_contact.phone IS
+  '@fraiseql:field
+   name=phone
+   type=PhoneNumber';
+</code></pre>
+<h3 id="result-graphql-schema">Result (GraphQL Schema)</h3>
+<pre><code class="language-graphql">type Contact {
+  email: Email!
+  website: Url
+  phone: PhoneNumber
+}
+
+scalar Email
+scalar Url
+scalar PhoneNumber
+</code></pre>
+<hr />
+<p><strong>Team D: FraiseQL rich type annotations ready to implement!</strong> 🚀</p>
+<p>This provides everything Team D needs to generate proper FraiseQL annotations that map rich types to GraphQL scalars, completing the end-to-end rich type integration.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

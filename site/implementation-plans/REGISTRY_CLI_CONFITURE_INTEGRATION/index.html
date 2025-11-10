@@ -1,0 +1,1258 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Registry + CLI + Confiture Integration - Phased Implementation Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Registry + CLI + Confiture Integration - Phased Implementation Plan";
+        var mkdocs_page_input_path = "implementation-plans/REGISTRY_CLI_CONFITURE_INTEGRATION.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Registry + CLI + Confiture Integration - Phased Implementation Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="registry-cli-confiture-integration-phased-implementation-plan">Registry + CLI + Confiture Integration - Phased Implementation Plan</h1>
+<p><strong>Objective</strong>: Integrate the existing hexadecimal registry system with Team E's CLI orchestrator and Confiture migration tool</p>
+<p><strong>Current State</strong>:
+- ✅ Hexadecimal registry system fully implemented (<code>naming_conventions.py</code>, <code>domain_registry.yaml</code>)
+- ✅ CLI orchestrator working with flat <code>migrations/</code> directory
+- ❌ No integration between registry and CLI
+- ❌ Confiture not yet adopted</p>
+<p><strong>Target State</strong>:
+- ✅ CLI generates files using registry's hierarchical structure
+- ✅ Confiture builds from hierarchical <code>db/schema/</code> directories
+- ✅ Hexadecimal table codes enforced across the pipeline
+- ✅ Automatic directory creation based on registry</p>
+<p><strong>Timeline</strong>: 2 weeks (10 working days)
+<strong>Approach</strong>: TDD with RED → GREEN → REFACTOR → QA cycles</p>
+<hr />
+<h2 id="overview-three-systems-to-integrate">📊 Overview: Three Systems to Integrate</h2>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│  SYSTEM 1: Registry (Hexadecimal Naming)                        │
+│  ✅ COMPLETE                                                     │
+│  - naming_conventions.py (795 lines)                            │
+│  - domain_registry.yaml (312 lines)                             │
+│  - 63 tests (100% passing)                                      │
+│  Generates: generated/migrations/01_write_side/012_crm/...      │
+└─────────────────────────────────────────────────────────────────┘
+                            │
+                            ▼ (INTEGRATE)
+┌─────────────────────────────────────────────────────────────────┐
+│  SYSTEM 2: CLI Orchestrator                                     │
+│  ✅ 85% COMPLETE                                                │
+│  - orchestrator.py (139 lines)                                  │
+│  - generate.py (139 lines)                                      │
+│  - Tests: 1,209 lines                                           │
+│  Generates: migrations/100_contact.sql (flat)                   │
+└─────────────────────────────────────────────────────────────────┘
+                            │
+                            ▼ (INTEGRATE)
+┌─────────────────────────────────────────────────────────────────┐
+│  SYSTEM 3: Confiture Migration Tool                             │
+│  ❌ NOT INTEGRATED                                              │
+│  - External tool (production-ready)                             │
+│  - Expects: db/schema/ hierarchy                                │
+│  - Builds: Final migrations from multiple directories           │
+└─────────────────────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="integration-goals">🎯 Integration Goals</h2>
+<h3 id="phase-1-registry-cli-days-1-3">Phase 1: Registry → CLI (Days 1-3)</h3>
+<p>Connect <code>NamingConventions</code> to <code>CLIOrchestrator</code> so generated files use hexadecimal codes and hierarchical paths</p>
+<h3 id="phase-2-dual-mode-output-days-4-5">Phase 2: Dual-Mode Output (Days 4-5)</h3>
+<p>Support BOTH hierarchical (registry) and flat (Confiture) output formats</p>
+<h3 id="phase-3-confiture-integration-days-6-8">Phase 3: Confiture Integration (Days 6-8)</h3>
+<p>Adopt Confiture for migration building and execution</p>
+<h3 id="phase-4-cli-enhancement-days-9-10">Phase 4: CLI Enhancement (Days 9-10)</h3>
+<p>Add registry-aware commands and validation</p>
+<hr />
+<h2 id="detailed-implementation-timeline">📅 Detailed Implementation Timeline</h2>
+<hr />
+<h2 id="phase-1-registry-integration-with-cli-days-1-3">🔴 Phase 1: Registry Integration with CLI (Days 1-3)</h2>
+<h3 id="objective-make-cli-orchestrator-use-registrys-hexadecimal-naming-and-hierarchical-structure"><strong>Objective</strong>: Make CLI orchestrator use registry's hexadecimal naming and hierarchical structure</h3>
+<hr />
+<h3 id="day-1-registry-adapter-layer-red-green"><strong>Day 1: Registry Adapter Layer</strong> (RED → GREEN)</h3>
+<h4 id="red-write-failing-tests">RED: Write Failing Tests</h4>
+<pre><code class="language-python"># tests/unit/cli/test_registry_integration.py
+
+import pytest
+from pathlib import Path
+from src.cli.orchestrator import CLIOrchestrator
+from src.core.ast_models import Entity, Field
+
+def test_orchestrator_uses_registry_table_codes():
+    &quot;&quot;&quot;Orchestrator should derive table codes from registry&quot;&quot;&quot;
+    orchestrator = CLIOrchestrator(use_registry=True)
+
+    # Create test entity
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;, fields=[])
+
+    # Generate should use registry to get table code
+    table_code = orchestrator.get_table_code(entity)
+
+    # Should be hexadecimal, 6 chars
+    assert len(table_code) == 6
+    assert all(c in '0123456789ABCDEF' for c in table_code.upper())
+
+def test_orchestrator_generates_hierarchical_paths():
+    &quot;&quot;&quot;Orchestrator should generate hierarchical file paths&quot;&quot;&quot;
+    orchestrator = CLIOrchestrator(use_registry=True)
+
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;, fields=[])
+    table_code = &quot;012311&quot;
+
+    # Should generate multi-level path
+    file_path = orchestrator.generate_file_path(entity, table_code)
+
+    # Should have hierarchy: layer/domain/subdomain/group/file
+    parts = Path(file_path).parts
+    assert len(parts) &gt;= 5
+    assert &quot;01_write_side&quot; in parts
+    assert any(&quot;012_crm&quot; in p for p in parts)
+
+def test_orchestrator_creates_directories():
+    &quot;&quot;&quot;Orchestrator should create all required directories&quot;&quot;&quot;
+    orchestrator = CLIOrchestrator(use_registry=True)
+
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;, fields=[])
+
+    result = orchestrator.generate_from_files(
+        [&quot;entities/contact.yaml&quot;],
+        output_dir=&quot;test_output&quot;
+    )
+
+    # Should create hierarchical directories
+    assert Path(&quot;test_output/01_write_side&quot;).exists()
+    assert Path(&quot;test_output/01_write_side/012_crm&quot;).exists()
+</code></pre>
+<p><strong>Run:</strong></p>
+<pre><code class="language-bash">uv run pytest tests/unit/cli/test_registry_integration.py -v
+# Expected: FAILED (orchestrator doesn't have registry integration yet)
+</code></pre>
+<hr />
+<h4 id="green-minimal-implementation">GREEN: Minimal Implementation</h4>
+<p><strong>File to modify</strong>: <code>src/cli/orchestrator.py</code></p>
+<pre><code class="language-python"># src/cli/orchestrator.py (enhanced)
+
+from pathlib import Path
+from typing import List, Optional
+from dataclasses import dataclass
+
+from src.core.specql_parser import SpecQLParser
+from src.generators.schema_orchestrator import SchemaOrchestrator
+from src.generators.schema.naming_conventions import NamingConventions  # NEW
+from src.core.ast_models import EntityDefinition
+
+@dataclass
+class MigrationFile:
+    &quot;&quot;&quot;Represents a generated migration file&quot;&quot;&quot;
+    number: int  # Kept for backward compatibility
+    name: str
+    content: str
+    path: Optional[Path] = None
+    table_code: Optional[str] = None  # NEW: Hexadecimal table code
+
+@dataclass
+class GenerationResult:
+    &quot;&quot;&quot;Result of generation process&quot;&quot;&quot;
+    migrations: List[MigrationFile]
+    errors: List[str]
+    warnings: List[str]
+
+class CLIOrchestrator:
+    &quot;&quot;&quot;Orchestrate all Teams for CLI commands&quot;&quot;&quot;
+
+    def __init__(self, use_registry: bool = False):
+        self.parser = SpecQLParser()
+        self.schema_orchestrator = SchemaOrchestrator()
+
+        # NEW: Registry integration
+        self.use_registry = use_registry
+        if use_registry:
+            self.naming = NamingConventions()
+        else:
+            self.naming = None
+
+    def get_table_code(self, entity) -&gt; str:
+        &quot;&quot;&quot;
+        Derive table code from registry
+
+        Returns:
+            6-character hexadecimal table code (e.g., &quot;012311&quot;)
+        &quot;&quot;&quot;
+        if not self.use_registry or not self.naming:
+            raise ValueError(&quot;Registry not enabled. Use CLIOrchestrator(use_registry=True)&quot;)
+
+        return self.naming.derive_table_code(entity)
+
+    def generate_file_path(
+        self,
+        entity,
+        table_code: str,
+        file_type: str = &quot;table&quot;,
+        base_dir: str = &quot;generated/migrations&quot;
+    ) -&gt; str:
+        &quot;&quot;&quot;
+        Generate file path (registry-aware or legacy flat)
+
+        Args:
+            entity: Entity AST model
+            table_code: 6-digit hexadecimal table code
+            file_type: Type of file ('table', 'function', 'comment')
+            base_dir: Base directory for output
+
+        Returns:
+            File path (hierarchical if registry enabled, flat otherwise)
+        &quot;&quot;&quot;
+        if self.use_registry and self.naming:
+            # Use registry's hierarchical path
+            return self.naming.generate_file_path(
+                entity=entity,
+                table_code=table_code,
+                file_type=file_type,
+                base_dir=base_dir
+            )
+        else:
+            # Legacy flat path
+            return str(Path(base_dir) / f&quot;{table_code}_{entity.name.lower()}.sql&quot;)
+
+    def generate_from_files(
+        self,
+        entity_files: List[str],
+        output_dir: str = &quot;migrations&quot;,
+        with_impacts: bool = False,
+        include_tv: bool = False,
+        foundation_only: bool = False
+    ) -&gt; GenerationResult:
+        &quot;&quot;&quot;
+        Generate migrations from SpecQL files (registry-aware)
+
+        When use_registry=True:
+        - Derives hexadecimal table codes
+        - Creates hierarchical directory structure
+        - Registers entities in domain_registry.yaml
+
+        When use_registry=False:
+        - Uses legacy flat numbering (000, 100, 200)
+        - Single directory output
+        &quot;&quot;&quot;
+        result = GenerationResult(migrations=[], errors=[], warnings=[])
+
+        # Parse all entities
+        entity_defs = []
+        for entity_file in entity_files:
+            try:
+                content = Path(entity_file).read_text()
+                entity_def = self.parser.parse(content)
+                entity_defs.append(entity_def)
+            except Exception as e:
+                result.errors.append(f&quot;Failed to parse {entity_file}: {e}&quot;)
+
+        # Generate entity migrations
+        for entity_def in entity_defs:
+            try:
+                from src.cli.generate import convert_entity_definition_to_entity
+                entity = convert_entity_definition_to_entity(entity_def)
+
+                if self.use_registry:
+                    # Registry-based generation
+                    table_code = self.get_table_code(entity)
+
+                    # Generate schema
+                    migration_sql = self.schema_orchestrator.generate_complete_schema(entity)
+
+                    # Hierarchical file path
+                    file_path = self.generate_file_path(
+                        entity=entity,
+                        table_code=table_code,
+                        file_type=&quot;table&quot;,
+                        base_dir=output_dir
+                    )
+
+                    # Create all parent directories
+                    Path(file_path).parent.mkdir(parents=True, exist_ok=True)
+
+                    migration = MigrationFile(
+                        number=int(table_code, 16),  # Convert hex to decimal for sorting
+                        name=entity.name.lower(),
+                        content=migration_sql,
+                        path=Path(file_path),
+                        table_code=table_code
+                    )
+
+                    # Register entity in domain registry
+                    self.naming.register_entity_auto(entity, table_code)
+
+                else:
+                    # Legacy flat generation (current behavior)
+                    output_path = Path(output_dir)
+                    output_path.mkdir(parents=True, exist_ok=True)
+
+                    migration_sql = self.schema_orchestrator.generate_complete_schema(entity)
+
+                    # Use sequential numbering
+                    entity_number = 100 + len(result.migrations)
+
+                    migration = MigrationFile(
+                        number=entity_number,
+                        name=entity.name.lower(),
+                        content=migration_sql,
+                        path=output_path / f&quot;{entity_number:03d}_{entity.name.lower()}.sql&quot;
+                    )
+
+                result.migrations.append(migration)
+
+            except Exception as e:
+                result.errors.append(f&quot;Failed to generate {entity_def.name}: {e}&quot;)
+
+        # Write migrations to disk
+        for migration in result.migrations:
+            if migration.path:
+                migration.path.write_text(migration.content)
+
+        return result
+</code></pre>
+<p><strong>Run:</strong></p>
+<pre><code class="language-bash">uv run pytest tests/unit/cli/test_registry_integration.py -v
+# Expected: PASSED (basic integration working)
+</code></pre>
+<hr />
+<h4 id="refactor-clean-up">REFACTOR: Clean Up</h4>
+<p><strong>Refactoring checklist</strong>:
+- ✅ Extract directory creation to helper method
+- ✅ Add type hints
+- ✅ Add docstrings
+- ✅ Handle edge cases (entity without schema, invalid table codes)</p>
+<hr />
+<h4 id="qa-full-testing">QA: Full Testing</h4>
+<pre><code class="language-bash"># Test registry integration
+uv run pytest tests/unit/cli/test_registry_integration.py -v
+
+# Test backward compatibility (legacy mode)
+uv run pytest tests/unit/cli/test_orchestrator.py -v
+
+# Full test suite
+uv run pytest tests/unit/cli/ -v
+
+# Lint
+uv run ruff check src/cli/orchestrator.py
+</code></pre>
+<hr />
+<h3 id="day-2-update-cli-commands-green-refactor"><strong>Day 2: Update CLI Commands</strong> (GREEN → REFACTOR)</h3>
+<h4 id="objective-add-use-registry-flag-to-cli-commands">Objective: Add <code>--use-registry</code> flag to CLI commands</h4>
+<p><strong>File to modify</strong>: <code>src/cli/generate.py</code></p>
+<pre><code class="language-python"># src/cli/generate.py (enhanced)
+
+import click
+from pathlib import Path
+from src.cli.orchestrator import CLIOrchestrator
+
+@click.command()
+@click.argument(&quot;subcommand&quot;, type=click.Choice([&quot;entities&quot;]))
+@click.argument(&quot;entity_files&quot;, nargs=-1, type=click.Path(exists=True), required=True)
+@click.option(&quot;--output-dir&quot;, default=&quot;migrations&quot;, help=&quot;Output directory&quot;)
+@click.option(&quot;--foundation-only&quot;, is_flag=True, help=&quot;Generate only app foundation&quot;)
+@click.option(&quot;--include-tv&quot;, is_flag=True, help=&quot;Generate table views&quot;)
+@click.option(&quot;--use-registry&quot;, is_flag=True, help=&quot;Use hexadecimal registry for table codes and paths&quot;)  # NEW
+def generate(
+    subcommand: str,
+    entity_files: tuple,
+    output_dir: str,
+    foundation_only: bool,
+    include_tv: bool,
+    use_registry: bool  # NEW
+):
+    &quot;&quot;&quot;Generate PostgreSQL migrations from SpecQL YAML files&quot;&quot;&quot;
+
+    if subcommand != &quot;entities&quot;:
+        click.secho(f&quot;Unknown subcommand: {subcommand}&quot;, fg=&quot;red&quot;)
+        return 1
+
+    # Create orchestrator with registry support
+    orchestrator = CLIOrchestrator(use_registry=use_registry)
+
+    # Generate migrations
+    result = orchestrator.generate_from_files(
+        entity_files=list(entity_files),
+        output_dir=output_dir,
+        foundation_only=foundation_only,
+        include_tv=include_tv
+    )
+
+    # Report results
+    if result.errors:
+        click.secho(f&quot;❌ {len(result.errors)} error(s):&quot;, fg=&quot;red&quot;, bold=True)
+        for error in result.errors:
+            click.echo(f&quot;  {error}&quot;)
+        return 1
+
+    if use_registry:
+        click.secho(
+            f&quot;✅ Generated {len(result.migrations)} file(s) with hexadecimal codes&quot;,
+            fg=&quot;green&quot;,
+            bold=True
+        )
+
+        # Show hierarchical structure
+        click.echo(&quot;\nGenerated files:&quot;)
+        for migration in result.migrations:
+            click.echo(f&quot;  [{migration.table_code}] {migration.path}&quot;)
+    else:
+        click.secho(
+            f&quot;✅ Generated {len(result.migrations)} migration(s)&quot;,
+            fg=&quot;green&quot;,
+            bold=True
+        )
+
+    if result.warnings:
+        click.secho(f&quot;\n⚠️  {len(result.warnings)} warning(s):&quot;, fg=&quot;yellow&quot;)
+        for warning in result.warnings:
+            click.echo(f&quot;  {warning}&quot;)
+
+    return 0
+</code></pre>
+<p><strong>Test:</strong></p>
+<pre><code class="language-bash"># Legacy mode (flat structure)
+python -m src.cli.generate entities entities/examples/contact.yaml --output-dir test_legacy
+# → test_legacy/100_contact.sql
+
+# Registry mode (hierarchical structure)
+python -m src.cli.generate entities entities/examples/contact.yaml --output-dir test_registry --use-registry
+# → test_registry/01_write_side/012_crm/0123_customer/01231_contact_group/012311_tb_contact.sql
+</code></pre>
+<hr />
+<h3 id="day-3-split-schema-output-by-component-refactor"><strong>Day 3: Split Schema Output by Component</strong> (REFACTOR)</h3>
+<h4 id="objective-generate-separate-files-for-tables-functions-metadata">Objective: Generate separate files for tables, functions, metadata</h4>
+<p><strong>Current behavior</strong>: One SQL file with everything combined
+<strong>Target behavior</strong>: Separate files for Team B (tables), Team C (functions), Team D (metadata)</p>
+<p><strong>File to modify</strong>: <code>src/generators/schema_orchestrator.py</code></p>
+<pre><code class="language-python"># src/generators/schema_orchestrator.py (enhanced)
+
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class SchemaOutput:
+    &quot;&quot;&quot;Split output for registry-based generation&quot;&quot;&quot;
+    tables_sql: str        # Team B output
+    functions_sql: str     # Team C output
+    metadata_sql: str      # Team D output
+
+class SchemaOrchestrator:
+    &quot;&quot;&quot;Orchestrate schema generation across Teams B, C, D&quot;&quot;&quot;
+
+    def __init__(self):
+        # Existing initialization
+        self.table_generator = TableGenerator()
+        self.action_compiler = ActionCompiler()
+        self.fraiseql_annotator = FraiseQLAnnotator()
+
+    def generate_complete_schema(self, entity) -&gt; str:
+        &quot;&quot;&quot;
+        Generate complete schema (legacy - all in one file)
+
+        DEPRECATED: Use generate_split_schema() for registry mode
+        &quot;&quot;&quot;
+        sql = []
+        sql.append(self.table_generator.generate(entity))
+
+        if entity.actions:
+            sql.append(self.action_compiler.compile(entity.actions))
+
+        sql.append(self.fraiseql_annotator.annotate(entity))
+
+        return &quot;\n\n&quot;.join(sql)
+
+    def generate_split_schema(self, entity) -&gt; SchemaOutput:
+        &quot;&quot;&quot;
+        Generate schema split by component (for registry mode)
+
+        Returns:
+            SchemaOutput with separate tables/functions/metadata SQL
+        &quot;&quot;&quot;
+        # Team B: Tables
+        tables_sql = self.table_generator.generate(entity)
+
+        # Team C: Functions
+        functions_sql = &quot;&quot;
+        if entity.actions:
+            functions_sql = self.action_compiler.compile(entity.actions)
+
+        # Team D: Metadata
+        metadata_sql = self.fraiseql_annotator.annotate(entity)
+
+        return SchemaOutput(
+            tables_sql=tables_sql,
+            functions_sql=functions_sql,
+            metadata_sql=metadata_sql
+        )
+</code></pre>
+<p><strong>Update orchestrator to use split output:</strong></p>
+<pre><code class="language-python"># src/cli/orchestrator.py (enhanced for split output)
+
+def generate_from_files(self, entity_files, output_dir=&quot;migrations&quot;, ...):
+    # ... (entity parsing) ...
+
+    for entity_def in entity_defs:
+        entity = convert_entity_definition_to_entity(entity_def)
+
+        if self.use_registry:
+            # Get table code
+            table_code = self.get_table_code(entity)
+
+            # Generate SPLIT schema
+            schema_output = self.schema_orchestrator.generate_split_schema(entity)
+
+            # Write to separate files using registry paths
+
+            # 1. Tables (layer 01)
+            table_path = self.naming.generate_file_path(
+                entity, table_code, file_type=&quot;table&quot;, base_dir=output_dir
+            )
+            Path(table_path).parent.mkdir(parents=True, exist_ok=True)
+            Path(table_path).write_text(schema_output.tables_sql)
+
+            # 2. Functions (layer 03)
+            if schema_output.functions_sql:
+                # Derive function code from table code (change layer to 03)
+                function_code = self.naming.derive_function_code(table_code)
+                function_path = self.naming.generate_file_path(
+                    entity, function_code, file_type=&quot;function&quot;, base_dir=output_dir
+                )
+                Path(function_path).parent.mkdir(parents=True, exist_ok=True)
+                Path(function_path).write_text(schema_output.functions_sql)
+
+            # 3. Metadata (layer 01, comment file)
+            metadata_path = self.naming.generate_file_path(
+                entity, table_code, file_type=&quot;comment&quot;, base_dir=output_dir
+            )
+            Path(metadata_path).parent.mkdir(parents=True, exist_ok=True)
+            Path(metadata_path).write_text(schema_output.metadata_sql)
+
+            # Track all files
+            migration = MigrationFile(
+                number=int(table_code, 16),
+                name=entity.name.lower(),
+                content=schema_output.tables_sql,  # Primary content
+                path=Path(table_path),
+                table_code=table_code
+            )
+            result.migrations.append(migration)
+
+        else:
+            # Legacy mode (combined file)
+            # ... (existing code) ...
+</code></pre>
+<p><strong>Test split output:</strong></p>
+<pre><code class="language-bash">python -m src.cli.generate entities entities/examples/contact.yaml --use-registry --output-dir test_split
+
+# Should create:
+# test_split/01_write_side/.../012311_tb_contact.sql      (tables)
+# test_split/03_functions/.../032311_fn_contact.sql       (functions)
+# test_split/01_write_side/.../012311_comments_contact.sql (metadata)
+</code></pre>
+<hr />
+<h2 id="phase-2-dual-mode-output-days-4-5_1">🟢 Phase 2: Dual-Mode Output (Days 4-5)</h2>
+<h3 id="objective-support-both-hierarchical-registry-and-confiture-compatible-flat-output"><strong>Objective</strong>: Support both hierarchical (registry) and Confiture-compatible flat output</h3>
+<hr />
+<h3 id="day-4-confiture-output-mode-green"><strong>Day 4: Confiture Output Mode</strong> (GREEN)</h3>
+<h4 id="add-output-format-option">Add <code>--output-format</code> option</h4>
+<pre><code class="language-python"># src/cli/generate.py
+
+@click.option(
+    &quot;--output-format&quot;,
+    type=click.Choice([&quot;hierarchical&quot;, &quot;confiture&quot;]),
+    default=&quot;hierarchical&quot;,
+    help=&quot;Output format: hierarchical (full registry paths) or confiture (db/schema/ flat)&quot;
+)
+def generate(subcommand, entity_files, output_format, ...):
+    orchestrator = CLIOrchestrator(
+        use_registry=True,
+        output_format=output_format
+    )
+</code></pre>
+<p><strong>Confiture mode mapping:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Registry Layer</th>
+<th>Confiture Directory</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>01_write_side</code></td>
+<td><code>db/schema/10_tables</code></td>
+<td><code>10_tables/contact.sql</code></td>
+</tr>
+<tr>
+<td><code>03_functions</code></td>
+<td><code>db/schema/30_functions</code></td>
+<td><code>30_functions/contact_actions.sql</code></td>
+</tr>
+<tr>
+<td><code>01_write_side</code> (comments)</td>
+<td><code>db/schema/40_metadata</code></td>
+<td><code>40_metadata/contact_fraiseql.sql</code></td>
+</tr>
+<tr>
+<td><code>00_common</code></td>
+<td><code>db/schema/00_foundation</code></td>
+<td><code>00_foundation/app_foundation.sql</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Implementation:</strong></p>
+<pre><code class="language-python"># src/cli/orchestrator.py
+
+class CLIOrchestrator:
+    def __init__(self, use_registry=False, output_format=&quot;hierarchical&quot;):
+        self.use_registry = use_registry
+        self.output_format = output_format
+        # ...
+
+    def generate_file_path_confiture(self, entity, file_type):
+        &quot;&quot;&quot;
+        Generate Confiture-compatible flat paths
+
+        Maps registry layers to Confiture directories:
+        - 01_write_side → db/schema/10_tables
+        - 03_functions → db/schema/30_functions
+        - metadata → db/schema/40_metadata
+        &quot;&quot;&quot;
+        confiture_map = {
+            &quot;table&quot;: &quot;10_tables&quot;,
+            &quot;function&quot;: &quot;30_functions&quot;,
+            &quot;comment&quot;: &quot;40_metadata&quot;
+        }
+
+        dir_name = confiture_map.get(file_type, &quot;10_tables&quot;)
+        filename = f&quot;{entity.name.lower()}.sql&quot;
+
+        return f&quot;db/schema/{dir_name}/{filename}&quot;
+</code></pre>
+<p><strong>Test:</strong></p>
+<pre><code class="language-bash"># Hierarchical mode (full registry paths)
+python -m src.cli.generate entities contact.yaml --use-registry --output-format hierarchical
+# → generated/migrations/01_write_side/012_crm/.../012311_tb_contact.sql
+
+# Confiture mode (flat)
+python -m src.cli.generate entities contact.yaml --use-registry --output-format confiture
+# → db/schema/10_tables/contact.sql
+# → db/schema/30_functions/contact_actions.sql
+# → db/schema/40_metadata/contact_fraiseql.sql
+</code></pre>
+<hr />
+<h3 id="day-5-registry-validation-qa"><strong>Day 5: Registry Validation</strong> (QA)</h3>
+<h4 id="add-validation-commands">Add validation commands</h4>
+<p><strong>New file</strong>: <code>src/cli/registry_commands.py</code></p>
+<pre><code class="language-python"># src/cli/registry_commands.py
+
+import click
+from src.generators.schema.naming_conventions import NamingConventions, DomainRegistry
+
+@click.group()
+def registry():
+    &quot;&quot;&quot;Registry management commands&quot;&quot;&quot;
+    pass
+
+@registry.command()
+def validate():
+    &quot;&quot;&quot;Validate domain registry for conflicts and consistency&quot;&quot;&quot;
+
+    naming = NamingConventions()
+
+    click.echo(&quot;Validating domain registry...&quot;)
+
+    # Check for duplicate table codes
+    errors = []
+    all_codes = set()
+
+    for domain_code, domain in naming.registry.registry[&quot;domains&quot;].items():
+        for subdomain_code, subdomain in domain.get(&quot;subdomains&quot;, {}).items():
+            for entity_name, entity_data in subdomain.get(&quot;entities&quot;, {}).items():
+                table_code = entity_data.get(&quot;table_code&quot;)
+                if table_code in all_codes:
+                    errors.append(f&quot;Duplicate table code {table_code} for entity {entity_name}&quot;)
+                all_codes.add(table_code)
+
+    if errors:
+        click.secho(f&quot;❌ {len(errors)} error(s) found:&quot;, fg=&quot;red&quot;)
+        for error in errors:
+            click.echo(f&quot;  {error}&quot;)
+        return 1
+    else:
+        click.secho(f&quot;✅ Registry valid ({len(all_codes)} entities registered)&quot;, fg=&quot;green&quot;)
+        return 0
+
+@registry.command()
+@click.argument(&quot;entity_name&quot;)
+def lookup(entity_name):
+    &quot;&quot;&quot;Look up entity in registry&quot;&quot;&quot;
+
+    naming = NamingConventions()
+    entry = naming.registry.get_entity(entity_name)
+
+    if entry:
+        click.echo(f&quot;Entity: {entry.entity_name}&quot;)
+        click.echo(f&quot;Table Code: {entry.table_code}&quot;)
+        click.echo(f&quot;Entity Code: {entry.entity_code}&quot;)
+        click.echo(f&quot;Domain: {entry.domain}&quot;)
+        click.echo(f&quot;Subdomain: {entry.subdomain}&quot;)
+        click.echo(f&quot;Assigned: {entry.assigned_at}&quot;)
+    else:
+        click.secho(f&quot;❌ Entity '{entity_name}' not found in registry&quot;, fg=&quot;red&quot;)
+        return 1
+
+@registry.command()
+def list_codes():
+    &quot;&quot;&quot;List all assigned table codes&quot;&quot;&quot;
+
+    naming = NamingConventions()
+
+    click.echo(&quot;Registered table codes:\n&quot;)
+
+    for domain_code, domain in naming.registry.registry[&quot;domains&quot;].items():
+        domain_name = domain[&quot;name&quot;]
+        click.secho(f&quot;Domain {domain_code}: {domain_name}&quot;, fg=&quot;cyan&quot;, bold=True)
+
+        for subdomain_code, subdomain in domain.get(&quot;subdomains&quot;, {}).items():
+            subdomain_name = subdomain[&quot;name&quot;]
+
+            entities = subdomain.get(&quot;entities&quot;, {})
+            if entities:
+                click.echo(f&quot;  Subdomain {subdomain_code}: {subdomain_name}&quot;)
+                for entity_name, entity_data in entities.items():
+                    table_code = entity_data[&quot;table_code&quot;]
+                    entity_code = entity_data[&quot;entity_code&quot;]
+                    click.echo(f&quot;    [{table_code}] {entity_name} ({entity_code})&quot;)
+
+        click.echo()
+</code></pre>
+<p><strong>Register commands:</strong></p>
+<pre><code class="language-python"># src/cli/generate.py (add registry group)
+
+from src.cli.registry_commands import registry
+
+@click.group()
+def cli():
+    &quot;&quot;&quot;SpecQL CLI&quot;&quot;&quot;
+    pass
+
+cli.add_command(generate)
+cli.add_command(registry)
+
+if __name__ == &quot;__main__&quot;:
+    cli()
+</code></pre>
+<p><strong>Test registry commands:</strong></p>
+<pre><code class="language-bash"># Validate registry
+python -m src.cli.generate registry validate
+
+# Look up entity
+python -m src.cli.generate registry lookup Contact
+
+# List all codes
+python -m src.cli.generate registry list-codes
+</code></pre>
+<hr />
+<h2 id="phase-3-confiture-integration-days-6-8_1">🔵 Phase 3: Confiture Integration (Days 6-8)</h2>
+<h3 id="day-6-install-confiture-green"><strong>Day 6: Install Confiture</strong> (GREEN)</h3>
+<p>Follow the Confiture integration plan from <code>TEAM_E_IMPLEMENTATION_PLAN.md</code>:</p>
+<pre><code class="language-bash"># Add dependency
+uv add fraiseql-confiture
+
+# Initialize
+uv run confiture init
+
+# Test
+echo &quot;CREATE TABLE test (id INTEGER);&quot; &gt; db/schema/test.sql
+uv run confiture build --env local
+</code></pre>
+<hr />
+<h3 id="day-7-create-confitureyaml-green"><strong>Day 7: Create confiture.yaml</strong> (GREEN)</h3>
+<pre><code class="language-yaml"># confiture.yaml
+
+environments:
+  local:
+    database_url: postgresql://localhost/specql_local
+    schema_dirs:
+      # Foundation
+      - path: db/schema/00_foundation
+        order: 0
+
+      # Tables (from registry layer 01)
+      - path: db/schema/10_tables
+        order: 10
+
+      # Functions (from registry layer 03)
+      - path: db/schema/30_functions
+        order: 30
+
+      # Metadata (FraiseQL comments)
+      - path: db/schema/40_metadata
+        order: 40
+
+    migrations_dir: db/migrations
+
+  test:
+    database_url: postgresql://localhost/specql_test
+    schema_dirs:
+      - path: db/schema/00_foundation
+        order: 0
+      - path: db/schema/10_tables
+        order: 10
+      - path: db/schema/30_functions
+        order: 30
+      - path: db/schema/40_metadata
+        order: 40
+
+  production:
+    database_url: ${DATABASE_URL}
+    schema_dirs:
+      - path: db/schema/00_foundation
+        order: 0
+      - path: db/schema/10_tables
+        order: 10
+      - path: db/schema/30_functions
+        order: 30
+      - path: db/schema/40_metadata
+        order: 40
+</code></pre>
+<p><strong>Test end-to-end:</strong></p>
+<pre><code class="language-bash"># 1. Generate with registry (Confiture format)
+python -m src.cli.generate entities entities/examples/*.yaml --use-registry --output-format confiture
+
+# 2. Build with Confiture
+uv run confiture build --env local --output migrations/001_complete.sql
+
+# 3. Verify output contains all parts
+grep &quot;CREATE TABLE&quot; migrations/001_complete.sql
+grep &quot;CREATE FUNCTION&quot; migrations/001_complete.sql
+grep &quot;@fraiseql&quot; migrations/001_complete.sql
+</code></pre>
+<hr />
+<h3 id="day-8-update-documentation-refactor"><strong>Day 8: Update Documentation</strong> (REFACTOR)</h3>
+<p>Update all documentation to reflect registry + Confiture integration:</p>
+<p><strong>Files to update:</strong>
+1. <code>README.md</code> - Quick start with registry
+2. <code>.claude/CLAUDE.md</code> - Team E section
+3. <code>docs/teams/TEAM_E_IMPLEMENTATION_PLAN.md</code> - Mark phases complete
+4. <code>docs/implementation-plans/naming-conventions-registry/01_PHASED_IMPLEMENTATION.md</code> - Add Phase 4</p>
+<p><strong>Example README update:</strong></p>
+<pre><code class="language-markdown"># Quick Start
+
+## Generate Schema from SpecQL (with Registry)
+
+```bash
+# 1. Write SpecQL YAML
+cat &gt; entities/contact.yaml &lt;&lt; EOF
+entity: Contact
+schema: crm
+fields:
+  email: text
+  status: enum(lead, qualified)
+EOF
+
+# 2. Generate with hexadecimal registry
+python -m src.cli.generate entities entities/contact.yaml --use-registry --output-format confiture
+
+# Generated files:
+#   db/schema/10_tables/contact.sql
+#   db/schema/30_functions/contact_actions.sql
+#   db/schema/40_metadata/contact_fraiseql.sql
+
+# 3. Build final migration with Confiture
+uv run confiture build --env local
+
+# 4. Apply to database
+uv run confiture migrate up --env local
+</code></pre>
+<h2 id="commands">Commands</h2>
+<ul>
+<li><code>specql generate entities *.yaml --use-registry</code> - Generate with hexadecimal codes</li>
+<li><code>specql registry validate</code> - Validate registry for conflicts</li>
+<li><code>specql registry lookup Contact</code> - Look up entity table code</li>
+<li><code>confiture build --env local</code> - Build final migration</li>
+<li><code>confiture migrate up</code> - Apply migrations</li>
+</ul>
+<pre><code>
+---
+
+## 🟣 Phase 4: CLI Enhancement (Days 9-10)
+
+### **Day 9: Make Registry Default** (REFACTOR)
+
+Update CLI to use registry by default:
+
+```python
+# src/cli/generate.py
+
+@click.option(&quot;--use-registry/--no-registry&quot;, default=True, help=&quot;Use hexadecimal registry (default: True)&quot;)
+@click.option(&quot;--output-format&quot;, default=&quot;confiture&quot;, ...)
+def generate(..., use_registry=True, output_format=&quot;confiture&quot;, ...):
+    # Now defaults to registry + Confiture mode
+</code></pre>
+<p><strong>Migration path for existing users:</strong></p>
+<pre><code class="language-bash"># Old behavior (flat migrations)
+python -m src.cli.generate entities *.yaml --no-registry
+
+# New default (registry + Confiture)
+python -m src.cli.generate entities *.yaml
+</code></pre>
+<hr />
+<h3 id="day-10-integration-tests-qa"><strong>Day 10: Integration Tests</strong> (QA)</h3>
+<p><strong>File</strong>: <code>tests/integration/test_registry_confiture_integration.py</code></p>
+<pre><code class="language-python">import subprocess
+import pytest
+from pathlib import Path
+
+def test_full_pipeline_with_registry():
+    &quot;&quot;&quot;Test: SpecQL → Registry → Confiture → Database&quot;&quot;&quot;
+
+    # 1. Generate with registry
+    result = subprocess.run([
+        &quot;python&quot;, &quot;-m&quot;, &quot;src.cli.generate&quot;,
+        &quot;entities&quot;, &quot;entities/examples/contact.yaml&quot;,
+        &quot;--use-registry&quot;,
+        &quot;--output-format&quot;, &quot;confiture&quot;
+    ], capture_output=True)
+
+    assert result.returncode == 0
+
+    # 2. Verify files created in Confiture structure
+    assert Path(&quot;db/schema/10_tables/contact.sql&quot;).exists()
+    assert Path(&quot;db/schema/30_functions/contact_actions.sql&quot;).exists()
+    assert Path(&quot;db/schema/40_metadata/contact_fraiseql.sql&quot;).exists()
+
+    # 3. Verify table codes are hexadecimal
+    content = Path(&quot;db/schema/10_tables/contact.sql&quot;).read_text()
+    # Should contain table name with registry code
+    assert &quot;tb_contact&quot; in content
+
+    # 4. Build with Confiture
+    result = subprocess.run([
+        &quot;confiture&quot;, &quot;build&quot;, &quot;--env&quot;, &quot;test&quot;, &quot;--output&quot;, &quot;migrations/001_test.sql&quot;
+    ], capture_output=True)
+
+    assert result.returncode == 0
+    assert Path(&quot;migrations/001_test.sql&quot;).exists()
+
+    # 5. Verify combined migration
+    migration = Path(&quot;migrations/001_test.sql&quot;).read_text()
+    assert &quot;CREATE TABLE&quot; in migration
+    assert &quot;CREATE FUNCTION&quot; in migration
+    assert &quot;@fraiseql&quot; in migration
+
+    # 6. Verify table code in registry
+    from src.generators.schema.naming_conventions import NamingConventions
+    naming = NamingConventions()
+    entry = naming.registry.get_entity(&quot;Contact&quot;)
+
+    assert entry is not None
+    assert entry.table_code is not None
+    assert len(entry.table_code) == 6
+    assert all(c in '0123456789ABCDEF' for c in entry.table_code.upper())
+
+def test_hierarchical_vs_confiture_output():
+    &quot;&quot;&quot;Test both output formats produce valid SQL&quot;&quot;&quot;
+
+    # Hierarchical
+    subprocess.run([
+        &quot;python&quot;, &quot;-m&quot;, &quot;src.cli.generate&quot;,
+        &quot;entities&quot;, &quot;entities/examples/contact.yaml&quot;,
+        &quot;--use-registry&quot;,
+        &quot;--output-format&quot;, &quot;hierarchical&quot;,
+        &quot;--output-dir&quot;, &quot;test_hierarchical&quot;
+    ])
+
+    # Confiture
+    subprocess.run([
+        &quot;python&quot;, &quot;-m&quot;, &quot;src.cli.generate&quot;,
+        &quot;entities&quot;, &quot;entities/examples/contact.yaml&quot;,
+        &quot;--use-registry&quot;,
+        &quot;--output-format&quot;, &quot;confiture&quot;
+    ])
+
+    # Both should produce valid SQL
+    # (content comparison tests)
+</code></pre>
+<hr />
+<h2 id="success-criteria">📊 Success Criteria</h2>
+<h3 id="phase-1-registry-integration-days-1-3">Phase 1: Registry Integration (Days 1-3)</h3>
+<ul>
+<li>[ ] <code>CLIOrchestrator</code> uses <code>NamingConventions</code> to derive table codes</li>
+<li>[ ] Hierarchical file paths generated from registry</li>
+<li>[ ] <code>--use-registry</code> flag working</li>
+<li>[ ] Split output (tables/functions/metadata) working</li>
+<li>[ ] Tests passing (registry integration + backward compatibility)</li>
+</ul>
+<h3 id="phase-2-dual-mode-output-days-4-5_2">Phase 2: Dual-Mode Output (Days 4-5)</h3>
+<ul>
+<li>[ ] <code>--output-format</code> option (hierarchical vs confiture)</li>
+<li>[ ] Confiture-compatible flat output working</li>
+<li>[ ] Registry validation commands (<code>validate</code>, <code>lookup</code>, <code>list-codes</code>)</li>
+<li>[ ] Documentation updated</li>
+</ul>
+<h3 id="phase-3-confiture-integration-days-6-8_2">Phase 3: Confiture Integration (Days 6-8)</h3>
+<ul>
+<li>[ ] Confiture dependency added</li>
+<li>[ ] <code>confiture.yaml</code> configured</li>
+<li>[ ] End-to-end pipeline working (SpecQL → Registry → Confiture → SQL)</li>
+<li>[ ] Migration to <code>db/schema/</code> complete</li>
+<li>[ ] Old <code>migrations/</code> directory deprecated</li>
+</ul>
+<h3 id="phase-4-cli-enhancement-days-9-10_1">Phase 4: CLI Enhancement (Days 9-10)</h3>
+<ul>
+<li>[ ] Registry mode is default</li>
+<li>[ ] Integration tests passing</li>
+<li>[ ] All documentation updated</li>
+<li>[ ] Examples working</li>
+<li>[ ] Migration guide for existing users</li>
+</ul>
+<hr />
+<h2 id="development-commands">🔧 Development Commands</h2>
+<pre><code class="language-bash"># Generate with registry (Confiture format)
+python -m src.cli.generate entities entities/*.yaml
+
+# Generate with registry (full hierarchical)
+python -m src.cli.generate entities entities/*.yaml --output-format hierarchical
+
+# Legacy mode (no registry)
+python -m src.cli.generate entities entities/*.yaml --no-registry
+
+# Registry commands
+python -m src.cli.generate registry validate
+python -m src.cli.generate registry lookup Contact
+python -m src.cli.generate registry list-codes
+
+# Confiture commands
+uv run confiture build --env local
+uv run confiture migrate up --env local
+uv run confiture migrate status
+
+# Tests
+uv run pytest tests/unit/cli/test_registry_integration.py -v
+uv run pytest tests/integration/test_registry_confiture_integration.py -v
+uv run pytest --cov=src/cli --cov=src/generators/schema
+</code></pre>
+<hr />
+<h2 id="final-file-structure">📁 Final File Structure</h2>
+<pre><code>registry/
+└── domain_registry.yaml              # ✅ EXISTS (Central registry)
+
+src/
+├── generators/schema/
+│   └── naming_conventions.py         # ✅ EXISTS (795 lines)
+│
+└── cli/
+    ├── orchestrator.py               # ✅ ENHANCE (add registry integration)
+    ├── generate.py                   # ✅ ENHANCE (add --use-registry flag)
+    ├── registry_commands.py          # ❌ NEW (validate, lookup, list-codes)
+    └── confiture_extensions.py       # ❌ NEW (from TEAM_E plan)
+
+db/
+├── schema/                           # ❌ NEW (Confiture structure)
+│   ├── 00_foundation/
+│   ├── 10_tables/                    # Maps to registry layer 01
+│   ├── 30_functions/                 # Maps to registry layer 03
+│   └── 40_metadata/                  # FraiseQL comments
+└── migrations/                       # Confiture Python migrations
+
+generated/migrations/                 # ❌ NEW (Full hierarchical output)
+    ├── 01_write_side/
+    │   └── 012_crm/
+    │       └── 0123_customer/
+    │           └── 01231_contact_group/
+    │               └── 012311_tb_contact.sql
+    └── 03_functions/
+        └── 032_crm/
+            └── 0323_customer/
+                └── 03231_contact_group/
+                    └── 032311_fn_qualify_lead.sql
+
+migrations/                           # ❌ DEPRECATED (Old flat structure)
+    ├── 000_app_foundation.sql
+    └── 100_contact.sql
+
+confiture.yaml                        # ❌ NEW (Confiture config)
+
+tests/
+├── unit/
+│   ├── cli/
+│   │   └── test_registry_integration.py  # ❌ NEW
+│   └── registry/
+│       ├── test_domain_registry.py       # ✅ EXISTS (21 tests)
+│       └── test_naming_conventions.py    # ✅ EXISTS (42 tests)
+│
+└── integration/
+    └── test_registry_confiture_integration.py  # ❌ NEW
+</code></pre>
+<hr />
+<h2 id="related-documentation">📚 Related Documentation</h2>
+<p><strong>Existing</strong>:
+- <code>/docs/implementation-plans/naming-conventions-registry/00_OVERVIEW.md</code>
+- <code>/docs/implementation-plans/naming-conventions-registry/01_PHASED_IMPLEMENTATION.md</code>
+- <code>/docs/teams/TEAM_E_IMPLEMENTATION_PLAN.md</code></p>
+<p><strong>To Create</strong>:
+- Migration guide for existing users
+- Registry best practices
+- Hexadecimal table code reference</p>
+<p><strong>To Update</strong>:
+- <code>.claude/CLAUDE.md</code> - Team E section
+- <code>README.md</code> - Quick start
+- <code>CONTRIBUTING.md</code> - Development workflow</p>
+<hr />
+<h2 id="summary">🎉 Summary</h2>
+<p><strong>What This Achieves</strong>:
+- ✅ <strong>Registry-based table codes</strong>: Hexadecimal, 6-char, UUID-compatible
+- ✅ <strong>Hierarchical file organization</strong>: Multi-level directories based on registry
+- ✅ <strong>Dual output modes</strong>: Full hierarchical OR Confiture-compatible flat
+- ✅ <strong>Confiture integration</strong>: Production-ready migration tool
+- ✅ <strong>Backward compatibility</strong>: Legacy flat mode still available
+- ✅ <strong>Registry validation</strong>: Commands to check conflicts and consistency</p>
+<p><strong>Benefits</strong>:
+- <strong>Scalability</strong>: 16 domains × 256 subdomains × 16 entities = 65,536 possible entities
+- <strong>Clarity</strong>: File paths reflect domain hierarchy
+- <strong>Flexibility</strong>: Support both deep hierarchy and Confiture flat mode
+- <strong>Consistency</strong>: Single source of truth (registry) for all naming
+- <strong>Production-ready</strong>: Confiture handles migration execution</p>
+<p><strong>Timeline</strong>: 10 days (2 weeks)
+<strong>Complexity</strong>: MEDIUM-HIGH (integration of 3 systems)
+<strong>ROI</strong>: High - unified registry + production migration tool + hexadecimal codes</p>
+<hr />
+<p><strong>Status</strong>: 🟢 READY TO START
+<strong>Dependencies</strong>:
+- ✅ Registry system (COMPLETE)
+- ✅ CLI orchestrator (85% complete)
+- ❌ Confiture (to be added)</p>
+<p><strong>Next Action</strong>: Start Phase 1 Day 1 - Registry Adapter Layer</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

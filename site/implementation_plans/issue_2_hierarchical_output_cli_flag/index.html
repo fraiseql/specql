@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Implementation Plan: Add --output-format hierarchical CLI Flag - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Implementation Plan: Add --output-format hierarchical CLI Flag";
+        var mkdocs_page_input_path = "implementation_plans/issue_2_hierarchical_output_cli_flag.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Implementation Plan: Add --output-format hierarchical CLI Flag</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="implementation-plan-add-output-format-hierarchical-cli-flag">Implementation Plan: Add <code>--output-format hierarchical</code> CLI Flag</h1>
+<p><strong>Issue</strong>: #2 - Request for <code>--output-format hierarchical</code> CLI option
+<strong>Date</strong>: 2025-11-10
+<strong>Status</strong>: Ready for Implementation
+<strong>Estimated Time</strong>: ~30 minutes</p>
+<hr />
+<h2 id="context">📊 Context</h2>
+<p><strong>Current State</strong>:
+- Hierarchical generation code already exists in <code>CLIOrchestrator</code>
+- Currently hardcoded to <code>output_format="confiture"</code> in <code>confiture_extensions.py:29</code>
+- Registry-based hierarchical structure fully implemented but not accessible via CLI</p>
+<p><strong>Goal</strong>: Expose existing hierarchical output functionality through CLI flag</p>
+<hr />
+<h2 id="complexity-assessment">🎯 Complexity Assessment</h2>
+<p><strong>Classification</strong>: <strong>SIMPLE</strong> - Single file modification, adding CLI parameter</p>
+<p><strong>Rationale</strong>:
+- No new architecture needed - code already exists
+- Single file change (<code>src/cli/confiture_extensions.py</code>)
+- Existing test coverage for underlying functionality
+- Low risk - defaults to current behavior</p>
+<p><strong>Approach</strong>: Direct implementation (no phased TDD needed)</p>
+<hr />
+<h2 id="implementation-steps">📝 Implementation Steps</h2>
+<h3 id="step-1-add-cli-options-5-minutes">Step 1: Add CLI Options (5 minutes)</h3>
+<p><strong>File</strong>: <code>src/cli/confiture_extensions.py</code></p>
+<p><strong>Changes</strong>:</p>
+<pre><code class="language-python">@specql.command()
+@click.argument(&quot;entity_files&quot;, nargs=-1, type=click.Path(exists=True), required=True)
+@click.option(&quot;--foundation-only&quot;, is_flag=True, help=&quot;Generate only app foundation&quot;)
+@click.option(&quot;--include-tv&quot;, is_flag=True, help=&quot;Generate table views&quot;)
+@click.option(&quot;--env&quot;, default=&quot;local&quot;, help=&quot;Confiture environment to use&quot;)
+@click.option(
+    &quot;--output-format&quot;,
+    type=click.Choice([&quot;confiture&quot;, &quot;hierarchical&quot;], case_sensitive=False),
+    default=&quot;confiture&quot;,
+    help=&quot;Output format: confiture (flat) or hierarchical (hex directories)&quot;,
+)
+@click.option(
+    &quot;--output-dir&quot;,
+    default=None,  # Will be set based on output_format
+    help=&quot;Output directory (defaults: db/schema for confiture, migrations/ for hierarchical)&quot;,
+)
+def generate(entity_files, foundation_only, include_tv, env, output_format, output_dir):
+    &quot;&quot;&quot;Generate PostgreSQL schema from SpecQL YAML files&quot;&quot;&quot;
+</code></pre>
+<h3 id="step-2-update-orchestrator-instantiation-5-minutes">Step 2: Update Orchestrator Instantiation (5 minutes)</h3>
+<p><strong>File</strong>: <code>src/cli/confiture_extensions.py</code></p>
+<p><strong>Changes</strong>:</p>
+<pre><code class="language-python">def generate(entity_files, foundation_only, include_tv, env, output_format, output_dir):
+    &quot;&quot;&quot;Generate PostgreSQL schema from SpecQL YAML files&quot;&quot;&quot;
+
+    # Determine default output directory
+    if output_dir is None:
+        output_dir = &quot;db/schema&quot; if output_format == &quot;confiture&quot; else &quot;migrations&quot;
+
+    # Use registry when hierarchical format requested
+    use_registry = (output_format == &quot;hierarchical&quot;)
+
+    # Create orchestrator with requested format
+    orchestrator = CLIOrchestrator(
+        use_registry=use_registry,
+        output_format=output_format
+    )
+
+    # Generate schema
+    result = orchestrator.generate_from_files(
+        entity_files=list(entity_files),
+        output_dir=output_dir,
+        foundation_only=foundation_only,
+        include_tv=include_tv,
+    )
+</code></pre>
+<h3 id="step-3-update-success-messages-5-minutes">Step 3: Update Success Messages (5 minutes)</h3>
+<p><strong>File</strong>: <code>src/cli/confiture_extensions.py</code></p>
+<p><strong>Changes</strong>:</p>
+<pre><code class="language-python">    # Success messaging
+    click.secho(f&quot;✅ Generated {len(result.migrations)} schema file(s)&quot;, fg=&quot;green&quot;)
+
+    # Confiture build (only for confiture format)
+    if output_format == &quot;confiture&quot; and not foundation_only:
+        click.echo(&quot;\nBuilding final migration with Confiture...&quot;)
+        try:
+            from confiture.core.builder import SchemaBuilder
+            builder = SchemaBuilder(env=env)
+            builder.build()
+
+            output_path = Path(f&quot;db/generated/schema_{env}.sql&quot;)
+            click.secho(f&quot;✅ Complete! Migration written to: {output_path}&quot;, fg=&quot;green&quot;, bold=True)
+            click.echo(&quot;\nNext steps:&quot;)
+            click.echo(f&quot;  1. Review: cat {output_path}&quot;)
+            click.echo(f&quot;  2. Apply: confiture migrate up --env {env}&quot;)
+            click.echo(&quot;  3. Status: confiture migrate status&quot;)
+        except ImportError:
+            click.secho(&quot;⚠️  Confiture not available, generated schema files only&quot;, fg=&quot;yellow&quot;)
+        except Exception as e:
+            click.secho(f&quot;❌ Confiture build failed: {e}&quot;, fg=&quot;red&quot;)
+            return 1
+
+    elif output_format == &quot;hierarchical&quot;:
+        click.secho(f&quot;\n📁 Hierarchical output written to: {output_dir}/&quot;, fg=&quot;blue&quot;, bold=True)
+        click.echo(&quot;\nStructure:&quot;)
+        click.echo(&quot;  migrations/&quot;)
+        click.echo(&quot;    └── 01_write_side/&quot;)
+        click.echo(&quot;        └── [domain]/&quot;)
+        click.echo(&quot;            └── [subdomain]/&quot;)
+        click.echo(&quot;                └── [entity]/&quot;)
+        click.echo(&quot;\nNext steps:&quot;)
+        click.echo(f&quot;  1. Review structure: tree {output_dir}/&quot;)
+        click.echo(f&quot;  2. Apply manually or integrate with custom migration tool&quot;)
+        if use_registry:
+            click.echo(f&quot;  3. Check registry: cat registry/domain_registry.yaml&quot;)
+
+    return 0
+</code></pre>
+<hr />
+<h2 id="success-criteria">✅ Success Criteria</h2>
+<ol>
+<li><strong>CLI flag works correctly</strong>:
+   ```bash
+   # Default (confiture) - should work as before
+   ./specql-generate entities/tenant/machine.yaml</li>
+</ol>
+<p># Hierarchical output
+   ./specql-generate entities/tenant/machine.yaml --output-format hierarchical</p>
+<p># Custom output directory
+   ./specql-generate entities/*<em>/</em>.yaml --output-format hierarchical --output-dir reference/
+   ```</p>
+<ol>
+<li><strong>Output structure correct</strong>:</li>
+<li>Confiture: Flat structure in <code>db/schema/10_tables/</code>, <code>30_functions/</code>, etc.</li>
+<li>
+<p>Hierarchical: Nested structure using hex codes</p>
+</li>
+<li>
+<p><strong>Backward compatibility maintained</strong>:</p>
+</li>
+<li>Existing commands work unchanged</li>
+<li>
+<p>Default behavior unchanged</p>
+</li>
+<li>
+<p><strong>Error handling</strong>:</p>
+</li>
+<li>Clear error if registry not found (hierarchical mode)</li>
+<li>Helpful messages for each mode</li>
+</ol>
+<hr />
+<h2 id="testing-strategy">🧪 Testing Strategy</h2>
+<h3 id="manual-testing">Manual Testing</h3>
+<pre><code class="language-bash"># Test 1: Default behavior (should work as before)
+./specql-generate entities/tenant/machine.yaml
+ls db/schema/10_tables/
+
+# Test 2: Hierarchical output
+./specql-generate entities/tenant/machine.yaml --output-format hierarchical
+tree migrations/
+
+# Test 3: Custom output directory
+./specql-generate entities/tenant/machine.yaml --output-format hierarchical --output-dir test_output/
+tree test_output/
+
+# Test 4: Multiple entities
+./specql-generate entities/**/*.yaml --output-format hierarchical
+</code></pre>
+<h3 id="integration-test-optional">Integration Test (Optional)</h3>
+<p>Add test to <code>tests/integration/test_confiture_integration.py</code>:</p>
+<pre><code class="language-python">def test_hierarchical_output_format(tmp_path):
+    &quot;&quot;&quot;Test --output-format hierarchical generates correct structure&quot;&quot;&quot;
+    # Test implementation
+</code></pre>
+<hr />
+<h2 id="deliverables">📦 Deliverables</h2>
+<ol>
+<li><strong>Modified File</strong>: <code>src/cli/confiture_extensions.py</code> (3 sections changed)</li>
+<li><strong>Updated Help Text</strong>: <code>./specql-generate --help</code> shows new options</li>
+<li><strong>Documentation</strong>: Usage examples in help text</li>
+</ol>
+<hr />
+<h2 id="estimated-time">⚡ Estimated Time</h2>
+<ul>
+<li><strong>Implementation</strong>: 15 minutes</li>
+<li><strong>Testing</strong>: 10 minutes</li>
+<li><strong>Documentation review</strong>: 5 minutes</li>
+<li><strong>Total</strong>: ~30 minutes</li>
+</ul>
+<hr />
+<h2 id="benefits">🎯 Benefits</h2>
+<ol>
+<li><strong>Low Risk</strong>: Uses existing, tested code</li>
+<li><strong>High Value</strong>: Enables PrintOptim migration validation workflow</li>
+<li><strong>User Choice</strong>: Doesn't change defaults, opt-in via flag</li>
+<li><strong>Extensible</strong>: Easy to add more formats later if needed</li>
+</ol>
+<hr />
+<h2 id="use-case-printoptim-migration">🚀 Use Case: PrintOptim Migration</h2>
+<p><strong>Context</strong>: Migrating PrintOptim backend (74 entities with explicit table codes) to SpecQL</p>
+<p><strong>Current Workflow</strong>:</p>
+<pre><code class="language-bash"># Generates flat structure in db/schema/10_tables/
+./specql-generate entities/**/*.yaml
+# Output: 429 files in flat Confiture structure
+</code></pre>
+<p><strong>Desired Workflow</strong>:</p>
+<pre><code class="language-bash"># Generate hierarchical structure matching backend
+./specql-generate entities/**/*.yaml --output-format hierarchical --output-dir reference_comparison/
+
+# Compare with backend
+diff -r reference_sql/0_schema/ reference_comparison/
+</code></pre>
+<p><strong>Benefits</strong>:
+1. <strong>Validation</strong>: Verify generated SQL matches backend structure
+2. <strong>Migration</strong>: Easier to map generated files to original backend files
+3. <strong>Organization</strong>: Logical grouping by domain (CRM, Catalog, etc.)
+4. <strong>Traceability</strong>: Table codes visible in directory hierarchy</p>
+<hr />
+<h2 id="implementation-checklist">📋 Implementation Checklist</h2>
+<ul>
+<li>[ ] Add <code>--output-format</code> CLI option</li>
+<li>[ ] Add <code>--output-dir</code> CLI option with smart defaults</li>
+<li>[ ] Update orchestrator instantiation logic</li>
+<li>[ ] Update success messages for hierarchical mode</li>
+<li>[ ] Test default (confiture) mode still works</li>
+<li>[ ] Test hierarchical mode generates correct structure</li>
+<li>[ ] Test custom output directory</li>
+<li>[ ] Update <code>--help</code> text</li>
+<li>[ ] Run existing test suite to ensure no regressions</li>
+</ul>
+<hr />
+<p><strong>Last Updated</strong>: 2025-11-10
+<strong>Ready for Implementation</strong>: Yes
+<strong>Blocked By</strong>: None</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

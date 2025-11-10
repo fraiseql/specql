@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Database Architecture: Final Decisions - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Database Architecture: Final Decisions";
+        var mkdocs_page_input_path = "implementation-plans/DATABASE_DECISIONS_FINAL.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Database Architecture: Final Decisions</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="database-architecture-final-decisions">Database Architecture: Final Decisions</h1>
+<p><strong>Date</strong>: 2025-11-08
+<strong>Status</strong>: ✅ ALL DECISIONS MADE - Ready for Implementation</p>
+<hr />
+<h2 id="approved-decisions">✅ <strong>APPROVED DECISIONS</strong></h2>
+<h3 id="core-architecture"><strong>Core Architecture</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Decision</th>
+<th>Approved Choice</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>UUID Version</strong></td>
+<td>v4 (gen_random_uuid)</td>
+<td>Built-in, simple, secure</td>
+</tr>
+<tr>
+<td><strong>LTREE Path Strategy</strong></td>
+<td>INTEGER-based (<code>1.5.23.47</code>)</td>
+<td>Uses pk_{entity}, pure digits</td>
+</tr>
+<tr>
+<td><strong>Identifier Slugs</strong></td>
+<td>ASCII with unaccent</td>
+<td>safe_slug from printoptim_backend</td>
+</tr>
+<tr>
+<td><strong>Max Hierarchy Depth</strong></td>
+<td>20 levels</td>
+<td>Enabled by INTEGER paths</td>
+</tr>
+<tr>
+<td><strong>Multi-Tenancy</strong></td>
+<td>tenant_id UUID direct</td>
+<td>No mapping table</td>
+</tr>
+<tr>
+<td><strong>Trinity Naming</strong></td>
+<td>pk_* INTEGER, id UUID</td>
+<td>Frontend-first</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h3 id="1-deduplication-3-field-pattern"><strong>1. ✅ Deduplication: 3-Field Pattern</strong></h3>
+<p><strong>APPROVED</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE tb_location (
+    identifier TEXT NOT NULL,              -- Base: &quot;headquarters&quot;
+    sequence_number INTEGER DEFAULT 1,     -- Sequence: 1, 2, 3...
+    display_identifier TEXT GENERATED ALWAYS AS (
+        CASE WHEN sequence_number &gt; 1
+            THEN identifier || '#' || sequence_number
+            ELSE identifier
+        END
+    ) STORED,                              -- Display: &quot;headquarters#2&quot;
+
+    UNIQUE (identifier, sequence_number),
+    UNIQUE (display_identifier)
+);
+</code></pre>
+<p><strong>Details</strong>:
+- ✅ Use <code>#</code> as separator
+- ✅ First instance has no suffix (sequence starts at 1)
+- ✅ Generated column for display</p>
+<hr />
+<h3 id="2-slugify-safe_slug-pattern"><strong>2. ✅ slugify(): safe_slug Pattern</strong></h3>
+<p><strong>APPROVED</strong>: Use <code>safe_slug</code> from printoptim_backend</p>
+<p><strong>Generate ONLY ONE function</strong>:</p>
+<pre><code class="language-sql">CREATE FUNCTION public.safe_slug(
+    value TEXT,
+    fallback TEXT DEFAULT 'unnamed'
+) RETURNS TEXT AS $$
+DECLARE
+    result TEXT;
+BEGIN
+    IF value IS NULL OR trim(value) = '' THEN
+        RETURN fallback;
+    END IF;
+
+    -- Unaccent + lowercase + replace non-alphanumeric
+    result := trim(BOTH '-' FROM regexp_replace(
+        lower(unaccent(value)),
+        '[^a-z0-9]+', '-', 'gi'
+    ));
+
+    -- Handle edge cases
+    IF result = '' THEN
+        RETURN fallback;
+    ELSIF result ~ '^[0-9]+$' THEN
+        -- All digits: prefix with 'n-'
+        RETURN 'n-' || result;
+    ELSE
+        RETURN result;
+    END IF;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE;
+</code></pre>
+<p><strong>Edge Cases</strong>:
+- ✅ Empty strings → "unnamed"
+- ✅ All digits → "n-123"
+- ✅ All special chars → "unnamed"
+- ✅ Unicode → Unaccented (ASCII)</p>
+<p><strong>NO other slugify variants</strong> (slugify_immutable, slugify) - Keep it simple!</p>
+<hr />
+<h3 id="3-partial-indexes-where-deleted_at-is-null"><strong>3. ✅ Partial Indexes: WHERE deleted_at IS NULL</strong></h3>
+<p><strong>APPROVED</strong>: Add to ALL non-PK indexes</p>
+<pre><code class="language-sql">CREATE INDEX idx_location_parent
+    ON tb_location(fk_parent_location)
+    WHERE deleted_at IS NULL;
+
+CREATE INDEX idx_location_path
+    ON tb_location USING GIST (path)
+    WHERE deleted_at IS NULL;
+
+CREATE INDEX idx_location_type
+    ON tb_location(fk_location_type)
+    WHERE deleted_at IS NULL;
+</code></pre>
+<p><strong>Benefits</strong>: 10-50% smaller indexes, 10-20% faster queries</p>
+<hr />
+<h3 id="4-safety-triggers-3-of-4-triggers"><strong>4. ✅ Safety Triggers: 3 of 4 Triggers</strong></h3>
+<p><strong>APPROVED TRIGGERS</strong>:</p>
+<h4 id="a-prevent-circular-references">A. ✅ Prevent Circular References</h4>
+<pre><code class="language-sql">CREATE TRIGGER trg_prevent_{entity}_cycle
+    BEFORE INSERT OR UPDATE OF fk_parent_{entity}
+    ON tb_{entity}
+    FOR EACH ROW
+    EXECUTE FUNCTION prevent_{entity}_cycle();
+</code></pre>
+<h4 id="b-check-identifier-sequence-limit">B. ✅ Check Identifier Sequence Limit</h4>
+<pre><code class="language-sql">CREATE TRIGGER trg_check_sequence_limit
+    BEFORE INSERT OR UPDATE OF sequence_number
+    ON tb_{entity}
+    FOR EACH ROW
+    EXECUTE FUNCTION check_identifier_sequence_limit();
+</code></pre>
+<p><strong>Limit</strong>: 100 duplicates max</p>
+<h4 id="c-validate-identifier-format-removed">C. ❌ Validate Identifier Format - <strong>REMOVED</strong></h4>
+<p><strong>Rationale</strong>: <code>safe_slug()</code> already handles this (sanitizes input)</p>
+<h4 id="d-check-hierarchy-depth-limit">D. ✅ Check Hierarchy Depth Limit</h4>
+<pre><code class="language-sql">CREATE TRIGGER trg_check_depth_limit
+    BEFORE INSERT OR UPDATE OF path
+    ON tb_{entity}
+    FOR EACH ROW
+    EXECUTE FUNCTION check_hierarchy_depth_limit();
+</code></pre>
+<p><strong>Limit</strong>: 20 levels max</p>
+<p><strong>Total</strong>: 3 safety triggers per hierarchical entity</p>
+<hr />
+<h3 id="5-separate-audit-fields-for-recalculation"><strong>5. ✅ Separate Audit Fields for Recalculation</strong></h3>
+<p><strong>APPROVED</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE tb_location (
+    -- Business data audit
+    created_at TIMESTAMPTZ DEFAULT now(),
+    created_by UUID,
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    updated_by UUID,
+    deleted_at TIMESTAMPTZ,
+    deleted_by UUID,
+
+    -- Identifier recalculation audit (NEW)
+    identifier_recalculated_at TIMESTAMPTZ,
+    identifier_recalculated_by UUID,
+
+    -- Path recalculation audit (NEW)
+    path_updated_at TIMESTAMPTZ,
+    path_updated_by UUID
+);
+</code></pre>
+<p><strong>Rule</strong>:
+- Business data changes → Update <code>updated_at</code>
+- Identifier recalculation → Update <code>identifier_recalculated_at</code> (NOT updated_at)
+- Path recalculation → Update <code>path_updated_at</code> (NOT updated_at)</p>
+<hr />
+<h3 id="6-index-strategy-6-mandatory-tenant-indexes"><strong>6. ✅ Index Strategy: 6 Mandatory + Tenant Indexes</strong></h3>
+<p><strong>APPROVED</strong>: 6 core indexes + tenant-scoped indexes</p>
+<h4 id="core-indexes-all-entities">Core Indexes (ALL entities):</h4>
+<pre><code class="language-sql">1. PRIMARY KEY (pk_{entity})           -- INTEGER (automatic)
+2. UNIQUE (id)                         -- UUID
+3. UNIQUE (display_identifier)         -- TEXT
+</code></pre>
+<h4 id="hierarchical-indexes-if-hierarchical-true">Hierarchical Indexes (if hierarchical: true):</h4>
+<pre><code class="language-sql">4. GIST (path)                         -- LTREE hierarchy queries
+   WHERE deleted_at IS NULL
+
+5. INDEX (fk_parent_{entity})          -- Parent lookups
+   WHERE deleted_at IS NULL
+</code></pre>
+<h4 id="split-indexes-if-metadata_split-true">Split Indexes (if metadata_split: true):</h4>
+<pre><code class="language-sql">6. INDEX (fk_{entity}_info)            -- Join optimization
+</code></pre>
+<h4 id="new-tenant-scoped-indexes-if-multi_tenant-true"><strong>NEW: Tenant-Scoped Indexes</strong> (if multi_tenant: true):</h4>
+<pre><code class="language-sql">7. INDEX (tenant_id)                   -- Tenant isolation
+   WHERE deleted_at IS NULL
+
+8. INDEX (tenant_id, path)             -- Tenant + hierarchy queries
+   WHERE deleted_at IS NULL
+
+9. INDEX (tenant_id, fk_parent_{entity})  -- Tenant + parent queries
+   WHERE deleted_at IS NULL
+</code></pre>
+<p><strong>Total</strong>: Up to 9 indexes per entity (depending on type)</p>
+<p><strong>Benefits</strong>:
+- ✅ Tenant queries 5-10x faster
+- ✅ RLS policies use tenant_id index efficiently
+- ✅ Composite indexes prevent full table scans</p>
+<hr />
+<h3 id="7-reserved-field-names-hard-block"><strong>7. ✅ Reserved Field Names: Hard Block</strong></h3>
+<p><strong>APPROVED</strong>: Error if user tries to define these</p>
+<p><strong>Reserved Names</strong>:</p>
+<pre><code class="language-python">RESERVED_FIELD_NAMES = {
+    # Primary/Foreign Keys
+    'id', 'pk_*', 'fk_*',
+
+    # Deduplication
+    'identifier', 'sequence_number', 'display_identifier',
+
+    # Hierarchy
+    'path', 'fk_parent_*',
+
+    # Business Audit
+    'created_at', 'created_by',
+    'updated_at', 'updated_by',
+    'deleted_at', 'deleted_by',
+
+    # Recalculation Audit
+    'identifier_recalculated_at', 'identifier_recalculated_by',
+    'path_updated_at', 'path_updated_by',
+
+    # Multi-Tenancy
+    'tenant_id',
+}
+</code></pre>
+<p><strong>Error Message</strong>:</p>
+<pre><code>Error: Field name 'path' is reserved by the framework.
+Reserved fields: id, pk_*, fk_*, identifier, path, created_at, updated_at, ...
+Please choose a different field name.
+</code></pre>
+<hr />
+<h3 id="8-async-recalculation-queue-deferred"><strong>8. ⏸️ Async Recalculation Queue: DEFERRED</strong></h3>
+<p><strong>DECISION</strong>: Defer to Week 8+</p>
+<p><strong>Rationale</strong>: Most hierarchies &lt; 1000 nodes, can add later as optimization</p>
+<hr />
+<h3 id="9-helper-functions-generate-if-facilitates-function-generation"><strong>9. ✅ Helper Functions: Generate if Facilitates Function Generation</strong></h3>
+<p><strong>APPROVED</strong>: Auto-generate these convenience functions</p>
+<pre><code class="language-sql">-- For each hierarchical entity, generate:
+
+get_{entity}_ancestors(p_id UUID)      -- Get all ancestor nodes
+get_{entity}_descendants(p_id UUID)    -- Get all descendant nodes
+move_{entity}_subtree(p_id UUID, p_new_parent UUID)  -- Move subtree
+get_{entity}_root(p_id UUID)           -- Find root node
+get_{entity}_depth(p_id UUID)          -- Get depth in tree
+</code></pre>
+<p><strong>Rationale</strong>:
+- ✅ FraiseQL provides rich LTREE filters
+- ✅ But these functions make it easier for Team C to generate business logic
+- ✅ Pre-built, tested, reusable patterns</p>
+<p><strong>When to Generate</strong>: Automatically for ALL hierarchical entities</p>
+<hr />
+<h3 id="10-nodeinfo-split-implement-now"><strong>10. ✅ Node+Info Split: IMPLEMENT NOW</strong></h3>
+<p><strong>APPROVED</strong>: Implement in Week 2-3 (not deferred!)</p>
+<p><strong>YAML Syntax</strong>:</p>
+<pre><code class="language-yaml">entity: Location
+hierarchical: true
+metadata_split: true  # ← User opts in
+
+fields:
+  name: text
+  description: text
+  # ... 10+ business fields
+</code></pre>
+<p><strong>Generated Schema</strong>:</p>
+<pre><code class="language-sql">-- Structure table (hierarchy only)
+CREATE TABLE tb_location_node (
+    pk_location INTEGER PRIMARY KEY,
+    id UUID UNIQUE,
+    tenant_id UUID,
+
+    -- Hierarchy fields
+    path ltree NOT NULL,
+    fk_parent_location INTEGER REFERENCES tb_location_node(pk_location),
+
+    -- Foreign key to info
+    fk_location_info INTEGER NOT NULL,
+
+    -- Audit
+    created_at TIMESTAMPTZ DEFAULT now(),
+    deleted_at TIMESTAMPTZ,
+
+    UNIQUE (tenant_id, id),
+    UNIQUE (tenant_id, path)
+);
+
+-- Attributes table (business data)
+CREATE TABLE tb_location_info (
+    pk_location_info INTEGER PRIMARY KEY,
+    id UUID UNIQUE,
+    tenant_id UUID,
+
+    -- Deduplication
+    identifier TEXT NOT NULL,
+    sequence_number INTEGER DEFAULT 1,
+    display_identifier TEXT GENERATED ALWAYS AS (...) STORED,
+
+    -- Business fields
+    name TEXT,
+    description TEXT,
+    fk_location_type INTEGER,
+
+    -- Audit
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    updated_by UUID,
+
+    UNIQUE (tenant_id, display_identifier)
+);
+
+-- Convenience view
+CREATE VIEW v_location AS
+SELECT
+    n.pk_location,
+    n.id,
+    n.tenant_id,
+    n.path,
+    n.fk_parent_location,
+    i.identifier,
+    i.sequence_number,
+    i.display_identifier,
+    i.name,
+    i.description,
+    i.fk_location_type,
+    n.created_at,
+    i.updated_at,
+    i.updated_by,
+    n.deleted_at
+FROM tb_location_node n
+JOIN tb_location_info i ON i.pk_location_info = n.fk_location_info
+WHERE n.deleted_at IS NULL;
+</code></pre>
+<p><strong>Benefits</strong>:
+- ✅ Cleaner separation (structure vs attributes)
+- ✅ Easier versioning (info table can have multiple versions)
+- ✅ Better schema evolution (alter info without touching structure)
+- ✅ Reusable hierarchy patterns across entities</p>
+<p><strong>When to Use</strong>:
+- Complex entities (10+ business fields)
+- Frequent attribute updates
+- Temporal/versioning requirements</p>
+<p><strong>Default</strong>: Single table (simpler), opt-in to split via <code>metadata_split: true</code></p>
+<hr />
+<h2 id="implementation-summary">📋 <strong>IMPLEMENTATION SUMMARY</strong></h2>
+<h3 id="core-schema-pattern"><strong>Core Schema Pattern</strong>:</h3>
+<pre><code class="language-sql">CREATE TABLE tb_{entity} (
+    -- Trinity Pattern
+    pk_{entity} INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() NOT NULL UNIQUE,
+
+    -- Multi-Tenancy
+    tenant_id UUID NOT NULL,
+
+    -- Hierarchy (if hierarchical: true)
+    path ltree NOT NULL,  -- INTEGER-based: '1.5.23.47'
+    fk_parent_{entity} INTEGER REFERENCES tb_{entity}(pk_{entity}),
+
+    -- Deduplication
+    identifier TEXT NOT NULL,
+    sequence_number INTEGER DEFAULT 1,
+    display_identifier TEXT GENERATED ALWAYS AS (
+        CASE WHEN sequence_number &gt; 1
+            THEN identifier || '#' || sequence_number
+            ELSE identifier
+        END
+    ) STORED,
+
+    -- Business fields
+    name TEXT,
+    -- ... user-defined fields
+
+    -- Business Audit
+    created_at TIMESTAMPTZ DEFAULT now(),
+    created_by UUID,
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    updated_by UUID,
+    deleted_at TIMESTAMPTZ,
+    deleted_by UUID,
+
+    -- Recalculation Audit
+    identifier_recalculated_at TIMESTAMPTZ,
+    identifier_recalculated_by UUID,
+    path_updated_at TIMESTAMPTZ,
+    path_updated_by UUID,
+
+    -- Constraints
+    UNIQUE (tenant_id, id),
+    UNIQUE (tenant_id, display_identifier),
+    UNIQUE (tenant_id, path),
+    UNIQUE (identifier, sequence_number)
+);
+
+-- Core Indexes
+CREATE INDEX idx_{entity}_tenant ON tb_{entity}(tenant_id)
+    WHERE deleted_at IS NULL;
+CREATE INDEX idx_{entity}_tenant_path ON tb_{entity}(tenant_id, path)
+    WHERE deleted_at IS NULL;
+CREATE INDEX idx_{entity}_parent ON tb_{entity}(fk_parent_{entity})
+    WHERE deleted_at IS NULL;
+CREATE INDEX idx_{entity}_path ON tb_{entity} USING GIST (path)
+    WHERE deleted_at IS NULL;
+
+-- Utility Functions
+CREATE FUNCTION public.safe_slug(value TEXT, fallback TEXT DEFAULT 'unnamed')
+    RETURNS TEXT AS $$ ... $$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Path Calculation
+CREATE FUNCTION calculate_{entity}_path(p_pk INTEGER)
+    RETURNS ltree AS $$ ... $$ LANGUAGE plpgsql IMMUTABLE;
+
+-- Safety Triggers (3)
+CREATE TRIGGER trg_prevent_{entity}_cycle ...;
+CREATE TRIGGER trg_check_sequence_limit ...;
+CREATE TRIGGER trg_check_depth_limit ...;
+
+-- Helper Functions (5)
+CREATE FUNCTION get_{entity}_ancestors(p_id UUID) ...;
+CREATE FUNCTION get_{entity}_descendants(p_id UUID) ...;
+CREATE FUNCTION move_{entity}_subtree(p_id UUID, p_new_parent UUID) ...;
+CREATE FUNCTION get_{entity}_root(p_id UUID) ...;
+CREATE FUNCTION get_{entity}_depth(p_id UUID) ...;
+</code></pre>
+<hr />
+<h2 id="implementation-priority">🎯 <strong>IMPLEMENTATION PRIORITY</strong></h2>
+<h3 id="week-1-team-a"><strong>Week 1 (Team A)</strong> ✅</h3>
+<ul>
+<li>[x] Reserved field name validation</li>
+<li>[x] All architectural decisions made</li>
+</ul>
+<h3 id="week-2-team-b-next"><strong>Week 2 (Team B)</strong> 🔴 NEXT</h3>
+<ol>
+<li>Generate <code>safe_slug()</code> utility function</li>
+<li>Implement 3-field deduplication pattern</li>
+<li>Generate INTEGER-based path calculation functions</li>
+<li>Implement partial indexes (<code>WHERE deleted_at IS NULL</code>)</li>
+<li>Add separate audit fields (identifier/path recalculation)</li>
+<li>Generate tenant-scoped indexes</li>
+<li>Implement 3 safety triggers</li>
+<li><strong>NEW</strong>: Implement node+info split pattern (opt-in)</li>
+</ol>
+<h3 id="week-3-4-team-c"><strong>Week 3-4 (Team C)</strong></h3>
+<ul>
+<li>Use correct audit fields for recalculation</li>
+<li>Generate helper functions for hierarchical entities</li>
+<li>Idempotent recalculation logic</li>
+</ul>
+<h3 id="week-8-enhancements"><strong>Week 8+ (Enhancements)</strong></h3>
+<ul>
+<li>Async recalculation queue (deferred)</li>
+</ul>
+<hr />
+<h2 id="ready-for-implementation">✅ <strong>READY FOR IMPLEMENTATION</strong></h2>
+<p>All critical decisions are now <strong>approved and documented</strong>.</p>
+<p><strong>Next Steps</strong>:
+1. Update <code>DATABASE_ASSESSMENT_GAPS.md</code> with these final decisions
+2. Create implementation specs for Team B
+3. Begin Week 2 implementation</p>
+<hr />
+<p><strong>Last Updated</strong>: 2025-11-08
+<strong>Status</strong>: ✅ ALL DECISIONS FINAL - Ready for Team B
+<strong>Key Changes from Assessment</strong>:
+- ✅ INTEGER-based LTREE paths (major improvement)
+- ✅ Single <code>safe_slug()</code> function (simpler)
+- ✅ Tenant-scoped indexes (performance)
+- ✅ Node+info split NOW (not deferred)
+- ✅ 3 safety triggers (not 4)</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

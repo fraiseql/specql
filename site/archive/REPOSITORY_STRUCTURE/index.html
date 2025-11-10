@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Repository Structure - Parallelization Guide - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Repository Structure - Parallelization Guide";
+        var mkdocs_page_input_path = "archive/REPOSITORY_STRUCTURE.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Repository Structure - Parallelization Guide</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="repository-structure-parallelization-guide">Repository Structure - Parallelization Guide</h1>
+<p><strong>Project</strong>: PrintOptim Backend - SpecQL Schema Generator
+<strong>Date</strong>: November 8, 2025
+<strong>Purpose</strong>: Organize codebase for maximum team parallelization</p>
+<hr />
+<h2 id="parallelization-strategy">🎯 Parallelization Strategy</h2>
+<p>This repository is organized into <strong>5 independent work streams</strong> that can be developed in parallel:</p>
+<ol>
+<li><strong>Core Parser</strong> (Team A) - SpecQL YAML parsing</li>
+<li><strong>SQL Generators</strong> (Team B) - Table/function/view generation</li>
+<li><strong>Numbering System</strong> (Team C) - Hierarchical organization</li>
+<li><strong>Integration Layer</strong> (Team D) - FraiseQL + TestFoundry</li>
+<li><strong>Tooling &amp; CLI</strong> (Team E) - Developer tools</li>
+</ol>
+<p>Each stream has:
+- ✅ <strong>Clear interfaces</strong> - Well-defined APIs between components
+- ✅ <strong>Independent tests</strong> - Can test in isolation
+- ✅ <strong>Mock data</strong> - Fixtures for integration testing
+- ✅ <strong>Minimal dependencies</strong> - Reduced blocking</p>
+<hr />
+<h2 id="directory-structure">📁 Directory Structure</h2>
+<pre><code>printoptim_backend_poc/
+│
+├── README.md                           # Quick start guide
+├── CONTRIBUTING.md                     # Development guidelines
+├── pyproject.toml                      # Python dependencies
+├── .gitignore                          # Git ignore patterns
+├── Makefile                            # Common commands
+│
+├── docs/                               # 📚 Documentation
+│   ├── architecture/
+│   │   ├── IMPLEMENTATION_PLAN_SPECQL.md
+│   │   ├── INTEGRATION_PROPOSAL.md
+│   │   └── SPECQL_BUSINESS_LOGIC_REFINED.md
+│   ├── analysis/
+│   │   ├── TEMPLATING_SYSTEM_ANALYSIS.md
+│   │   ├── FRAISEQL_INTEGRATION_REQUIREMENTS.md
+│   │   └── COMPLEX_BUSINESS_LOGIC_YAML_ANALYSIS.md
+│   ├── guides/
+│   │   ├── getting-started.md
+│   │   ├── writing-entities.md
+│   │   └── specql-dsl-reference.md
+│   └── adr/                            # Architecture Decision Records
+│       ├── 001-specql-vs-manual-sql.md
+│       └── 002-numbering-system.md
+│
+├── src/                                # 🔧 Source Code
+│   ├── __init__.py
+│   │
+│   ├── core/                           # TEAM A: Core Parser
+│   │   ├── __init__.py
+│   │   ├── specql_parser.py            # SpecQL YAML → AST
+│   │   ├── ast_models.py               # Data classes (Entity, Action, etc.)
+│   │   ├── validators.py               # Business rule validation
+│   │   └── expression_parser.py        # Parse SpecQL expressions
+│   │
+│   ├── generators/                     # TEAM B: SQL Generators
+│   │   ├── __init__.py
+│   │   ├── table_generator.py          # Trinity pattern tables
+│   │   ├── view_generator.py           # FraiseQL views
+│   │   ├── function_generator.py       # CRUD functions
+│   │   ├── action_generator.py         # SpecQL action → SQL
+│   │   ├── trigger_generator.py        # Group leader triggers
+│   │   └── sql_utils.py                # SQL formatting utilities
+│   │
+│   ├── numbering/                      # TEAM C: Numbering System
+│   │   ├── __init__.py
+│   │   ├── numbering_parser.py         # Parse 6-digit codes
+│   │   ├── directory_generator.py      # Create hierarchy
+│   │   ├── manifest_generator.py       # Execution order manifest
+│   │   └── dependency_resolver.py      # Topological sort
+│   │
+│   ├── integration/                    # TEAM D: Integration Layer
+│   │   ├── __init__.py
+│   │   ├── fraiseql_adapter.py         # FraiseQL COMMENT annotations
+│   │   ├── testfoundry_adapter.py      # TestFoundry metadata
+│   │   ├── graphql_schema_gen.py       # GraphQL schema generation
+│   │   └── typescript_gen.py           # TypeScript type generation
+│   │
+│   ├── agents/                         # TEAM D: AI Agent Runtime (Phase 4)
+│   │   ├── __init__.py
+│   │   ├── agent_runtime.py            # Agent sandbox
+│   │   ├── llm_integration.py          # OpenAI/Anthropic
+│   │   └── event_observer.py           # Event triggering
+│   │
+│   ├── cli/                            # TEAM E: CLI Tools
+│   │   ├── __init__.py
+│   │   ├── generate.py                 # Main generation CLI
+│   │   ├── validate.py                 # YAML validation CLI
+│   │   ├── migrate.py                  # SQL → YAML migration
+│   │   ├── healthcheck.py              # Health check system
+│   │   └── diff.py                     # Schema diff tool
+│   │
+│   └── utils/                          # Shared Utilities
+│       ├── __init__.py
+│       ├── yaml_loader.py              # YAML loading with validation
+│       ├── file_utils.py               # File I/O helpers
+│       ├── sql_formatter.py            # SQL pretty-printing
+│       └── logger.py                   # Logging configuration
+│
+├── tests/                              # 🧪 Test Suite
+│   ├── __init__.py
+│   ├── conftest.py                     # Pytest fixtures
+│   │
+│   ├── unit/                           # Unit tests (fast, isolated)
+│   │   ├── core/
+│   │   │   ├── test_specql_parser.py
+│   │   │   ├── test_ast_models.py
+│   │   │   └── test_validators.py
+│   │   ├── generators/
+│   │   │   ├── test_table_generator.py
+│   │   │   ├── test_action_generator.py
+│   │   │   └── test_trigger_generator.py
+│   │   ├── numbering/
+│   │   │   ├── test_numbering_parser.py
+│   │   │   └── test_manifest_generator.py
+│   │   └── integration/
+│   │       ├── test_fraiseql_adapter.py
+│   │       └── test_testfoundry_adapter.py
+│   │
+│   ├── integration/                    # Integration tests (slower)
+│   │   ├── test_end_to_end_generation.py
+│   │   ├── test_database_execution.py
+│   │   └── test_graphql_integration.py
+│   │
+│   ├── fixtures/                       # Test data
+│   │   ├── entities/
+│   │   │   ├── simple_contact.yaml
+│   │   │   ├── complex_reservation.yaml
+│   │   │   └── with_agents.yaml
+│   │   ├── expected_sql/
+│   │   │   ├── contact_table.sql
+│   │   │   └── contact_create_function.sql
+│   │   └── mock_schemas/
+│   │       └── existing_database.sql
+│   │
+│   └── benchmarks/                     # Performance tests
+│       ├── test_parser_performance.py
+│       └── test_generation_speed.py
+│
+├── templates/                          # 📝 Jinja2 Templates
+│   ├── sql/
+│   │   ├── table.sql.j2                # Trinity pattern table
+│   │   ├── view.sql.j2                 # FraiseQL view
+│   │   ├── function_crud.sql.j2        # CRUD functions
+│   │   ├── action_function.sql.j2      # SpecQL action function
+│   │   ├── group_leader_trigger.sql.j2 # Group leader triggers
+│   │   └── testfoundry_metadata.sql.j2 # TestFoundry metadata
+│   │
+│   ├── graphql/
+│   │   ├── type.graphql.j2             # GraphQL type
+│   │   └── mutation.graphql.j2         # GraphQL mutation
+│   │
+│   ├── typescript/
+│   │   ├── entity_type.ts.j2           # TypeScript entity
+│   │   └── api_client.ts.j2            # API client
+│   │
+│   └── docs/
+│       ├── entity_readme.md.j2         # Entity README
+│       └── api_docs.md.j2              # API documentation
+│
+├── entities/                           # 📦 Entity Definitions
+│   ├── examples/                       # Example entities
+│   │   ├── contact.yaml                # CRM contact
+│   │   ├── manufacturer.yaml           # Existing POC entity
+│   │   ├── reservation.yaml            # Complex temporal logic
+│   │   └── machine_item.yaml           # Complex workflow
+│   │
+│   └── schemas/                        # JSON schemas for validation
+│       └── specql_entity_schema.json   # JSON Schema for SpecQL YAML
+│
+├── generated/                          # 🎨 Generated Output
+│   ├── .gitignore                      # Ignore generated files
+│   ├── manifest.yaml                   # Execution order
+│   ├── README.md                       # Auto-generated overview
+│   │
+│   ├── 01_write_side/                  # Schema layer 01
+│   │   └── 013_catalog/
+│   │       └── 0132_manufacturer/
+│   │           └── 01321_manufacturer/
+│   │               ├── README.md
+│   │               ├── 013211_tb_manufacturer.sql
+│   │               ├── 013212_fn_manufacturer_pk.sql
+│   │               └── 013213_fn_manufacturer_id.sql
+│   │
+│   ├── 02_query_side/                  # Schema layer 02
+│   │   └── 023_catalog/
+│   │       └── 0232_manufacturer/
+│   │           └── 02321_manufacturer/
+│   │               └── 023211_v_manufacturer.sql
+│   │
+│   ├── 03_functions/                   # Schema layer 03
+│   │   └── 033_catalog/
+│   │       └── 0332_manufacturer/
+│   │           └── 03321_manufacturer_mutations/
+│   │               ├── 033211_fn_create_manufacturer.sql
+│   │               └── 033212_fn_update_manufacturer.sql
+│   │
+│   └── 09_testfoundry/                 # Schema layer 09
+│       └── 093_catalog/
+│           └── 0932_manufacturer/
+│               └── 09321_manufacturer_tests/
+│                   └── 093211_metadata_mappings.sql
+│
+├── scripts/                            # 🛠️ Development Scripts
+│   ├── setup_dev.sh                    # Setup development environment
+│   ├── run_tests.sh                    # Run test suite
+│   ├── apply_manifest.py               # Apply SQL to database
+│   ├── validate_all.sh                 # Run all validators
+│   └── benchmark.py                    # Performance benchmarking
+│
+├── database/                           # 🗄️ Database Utilities
+│   ├── migrations/                     # Database migrations
+│   ├── seed_data/                      # Seed data for testing
+│   └── test_db_setup.sql               # Test database schema
+│
+└── .github/                            # 🤖 CI/CD
+    └── workflows/
+        ├── test.yml                    # Run tests on PR
+        ├── lint.yml                    # Code quality checks
+        └── benchmark.yml               # Performance regression tests
+</code></pre>
+<hr />
+<h2 id="work-stream-dependencies">🔀 Work Stream Dependencies</h2>
+<h3 id="stream-dependency-graph">Stream Dependency Graph</h3>
+<pre><code>┌─────────────────┐
+│   TEAM A        │
+│  Core Parser    │
+│  (src/core/)    │
+└────────┬────────┘
+         │
+         │ Provides: Entity AST
+         │
+    ┌────┴──────────────────┬──────────────────┬─────────────┐
+    ▼                       ▼                  ▼             ▼
+┌─────────────┐    ┌────────────────┐  ┌──────────────┐  ┌──────────┐
+│  TEAM B     │    │   TEAM C       │  │   TEAM D     │  │ TEAM E   │
+│SQL Gens     │    │   Numbering    │  │ Integration  │  │  CLI     │
+│(generators/)│    │  (numbering/)  │  │(integration/)│  │  (cli/)  │
+└─────────────┘    └────────────────┘  └──────────────┘  └──────────┘
+     │                      │                  │                │
+     └──────────────────────┴──────────────────┴────────────────┘
+                            │
+                            ▼
+                   ┌────────────────┐
+                   │  Integration   │
+                   │  (Week 2-3)    │
+                   └────────────────┘
+</code></pre>
+<h3 id="phase-1-week-1-2-parallel-development">Phase 1 (Week 1-2): Parallel Development</h3>
+<table>
+<thead>
+<tr>
+<th>Team</th>
+<th>Component</th>
+<th>Deliverable</th>
+<th>Depends On</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A</strong></td>
+<td>Core Parser</td>
+<td>Entity AST, Validators</td>
+<td>None ✅</td>
+</tr>
+<tr>
+<td><strong>B</strong></td>
+<td>SQL Generators</td>
+<td>Table/Function templates</td>
+<td>None ✅ (uses mock AST)</td>
+</tr>
+<tr>
+<td><strong>C</strong></td>
+<td>Numbering System</td>
+<td>Directory hierarchy</td>
+<td>None ✅ (standalone)</td>
+</tr>
+<tr>
+<td><strong>D</strong></td>
+<td>FraiseQL Adapter</td>
+<td>COMMENT annotations</td>
+<td>None ✅ (uses mock AST)</td>
+</tr>
+<tr>
+<td><strong>E</strong></td>
+<td>CLI Tools</td>
+<td>Basic CLI structure</td>
+<td>None ✅ (uses mocks)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>All teams can start Day 1</strong> with mock interfaces!</p>
+<h3 id="phase-2-week-3-integration">Phase 2 (Week 3): Integration</h3>
+<table>
+<thead>
+<tr>
+<th>Team</th>
+<th>Task</th>
+<th>Integration Point</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A+B</strong></td>
+<td>Parser → Generators</td>
+<td>Entity AST → SQL</td>
+</tr>
+<tr>
+<td><strong>A+C</strong></td>
+<td>Parser → Numbering</td>
+<td>Entity metadata → Paths</td>
+</tr>
+<tr>
+<td><strong>B+D</strong></td>
+<td>Generators → FraiseQL</td>
+<td>SQL → COMMENT annotations</td>
+</tr>
+<tr>
+<td><strong>E</strong></td>
+<td>CLI → All</td>
+<td>Orchestrate full pipeline</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="interface-contracts">🔧 Interface Contracts</h2>
+<h3 id="1-core-parser-sql-generators">1. Core Parser → SQL Generators</h3>
+<p><strong>Interface</strong>: <code>Entity</code> AST</p>
+<pre><code class="language-python"># src/core/ast_models.py
+@dataclass
+class Entity:
+    name: str
+    schema: str
+    fields: Dict[str, FieldDefinition]
+    actions: List[Action]
+    # ... etc
+</code></pre>
+<p><strong>Contract</strong>: All generators consume <code>Entity</code> AST, never raw YAML.</p>
+<p><strong>Mock for Team B</strong>:</p>
+<pre><code class="language-python"># tests/fixtures/mock_entities.py
+def mock_contact_entity() -&gt; Entity:
+    return Entity(
+        name='Contact',
+        schema='crm',
+        fields={'email': FieldDefinition(name='email', type='text')},
+        actions=[]
+    )
+</code></pre>
+<hr />
+<h3 id="2-sql-generators-numbering-system">2. SQL Generators → Numbering System</h3>
+<p><strong>Interface</strong>: File metadata</p>
+<pre><code class="language-python"># src/generators/base.py
+@dataclass
+class GeneratedFile:
+    table_code: str
+    entity_name: str
+    file_type: str  # 'table', 'view', 'function'
+    content: str
+    dependencies: List[str]
+</code></pre>
+<p><strong>Contract</strong>: Generators return <code>GeneratedFile</code> objects with numbering metadata.</p>
+<hr />
+<h3 id="3-numbering-system-file-system">3. Numbering System → File System</h3>
+<p><strong>Interface</strong>: Directory paths</p>
+<pre><code class="language-python"># src/numbering/numbering_parser.py
+class NumberingParser:
+    def generate_file_path(
+        self,
+        table_code: str,
+        entity_name: str,
+        file_type: str
+    ) -&gt; str:
+        &quot;&quot;&quot;Returns: 01_write_side/.../013211_tb_manufacturer.sql&quot;&quot;&quot;
+</code></pre>
+<p><strong>Contract</strong>: Pure function, no side effects.</p>
+<hr />
+<h3 id="4-all-components-manifest">4. All Components → Manifest</h3>
+<p><strong>Interface</strong>: Manifest entries</p>
+<pre><code class="language-python"># src/numbering/manifest_generator.py
+class ManifestGenerator:
+    def add_file(self, file_metadata: Dict) -&gt; None:
+        &quot;&quot;&quot;Add file to execution order&quot;&quot;&quot;
+</code></pre>
+<p><strong>Contract</strong>: Thread-safe accumulator pattern.</p>
+<hr />
+<h2 id="testing-strategy-for-parallelization">🧪 Testing Strategy for Parallelization</h2>
+<h3 id="unit-tests-each-team-independently">Unit Tests (Each team independently)</h3>
+<pre><code class="language-bash"># Team A
+uv run pytest tests/unit/core/ -v
+
+# Team B
+uv run pytest tests/unit/generators/ -v
+
+# Team C
+uv run pytest tests/unit/numbering/ -v
+
+# Team D
+uv run pytest tests/unit/integration/ -v
+
+# Team E
+uv run pytest tests/unit/cli/ -v
+</code></pre>
+<h3 id="integration-tests-week-3">Integration Tests (Week 3)</h3>
+<pre><code class="language-bash"># End-to-end pipeline
+uv run pytest tests/integration/test_end_to_end_generation.py -v
+
+# Database execution
+uv run pytest tests/integration/test_database_execution.py -v --db=postgres://localhost/test
+</code></pre>
+<hr />
+<h2 id="development-workflow">📦 Development Workflow</h2>
+<h3 id="day-1-setup-all-teams">Day 1 Setup (All Teams)</h3>
+<pre><code class="language-bash"># Clone and setup
+git clone &lt;repo&gt;
+cd printoptim_backend_poc
+
+# Create virtual environment
+uv venv
+source .venv/bin/activate  # or `.venv/bin/activate.fish` on fish shell
+
+# Install dependencies
+uv pip install -e &quot;.[dev]&quot;
+
+# Verify setup
+make test
+</code></pre>
+<h3 id="daily-development-each-team">Daily Development (Each Team)</h3>
+<pre><code class="language-bash"># Create feature branch
+git checkout -b teamA/specql-parser
+
+# Write tests (RED phase)
+vim tests/unit/core/test_specql_parser.py
+
+# Run tests (should fail)
+uv run pytest tests/unit/core/ -v
+
+# Implement feature (GREEN phase)
+vim src/core/specql_parser.py
+
+# Run tests (should pass)
+uv run pytest tests/unit/core/ -v
+
+# Refactor (REFACTOR phase)
+vim src/core/specql_parser.py
+
+# Final QA
+make lint
+make test
+make typecheck
+
+# Commit and push
+git add .
+git commit -m &quot;feat(core): implement SpecQL parser&quot;
+git push origin teamA/specql-parser
+
+# Create PR
+gh pr create --title &quot;SpecQL Parser Implementation&quot;
+</code></pre>
+<h3 id="integration-day-week-3">Integration Day (Week 3)</h3>
+<pre><code class="language-bash"># Merge all feature branches
+git checkout main
+git merge teamA/specql-parser
+git merge teamB/sql-generators
+git merge teamC/numbering-system
+git merge teamD/fraiseql-adapter
+git merge teamE/cli-tools
+
+# Run integration tests
+uv run pytest tests/integration/ -v
+
+# Fix integration issues
+# ... debug and fix
+
+# Tag release
+git tag v0.1.0-alpha
+git push --tags
+</code></pre>
+<hr />
+<h2 id="team-assignments">🎯 Team Assignments</h2>
+<h3 id="team-a-core-parser-srccore">Team A: Core Parser (src/core/)</h3>
+<p><strong>Skills</strong>: Python, YAML, AST design
+<strong>Priority</strong>: Critical path - everyone depends on this
+<strong>Deliverables</strong>:
+- [ ] <code>specql_parser.py</code> - Parse YAML to AST
+- [ ] <code>ast_models.py</code> - Entity, Action, Field dataclasses
+- [ ] <code>validators.py</code> - Business rule validation
+- [ ] <code>expression_parser.py</code> - Parse SpecQL expressions</p>
+<p><strong>Estimated</strong>: 50 hours (2 developers × 1 week)</p>
+<hr />
+<h3 id="team-b-sql-generators-srcgenerators">Team B: SQL Generators (src/generators/)</h3>
+<p><strong>Skills</strong>: PostgreSQL, Jinja2, SQL optimization
+<strong>Priority</strong>: High - core functionality
+<strong>Deliverables</strong>:
+- [ ] <code>table_generator.py</code> - Trinity pattern tables
+- [ ] <code>action_generator.py</code> - SpecQL actions → SQL functions
+- [ ] <code>view_generator.py</code> - FraiseQL views
+- [ ] <code>trigger_generator.py</code> - Group leader triggers</p>
+<p><strong>Estimated</strong>: 60 hours (2 developers × 1.5 weeks)</p>
+<hr />
+<h3 id="team-c-numbering-system-srcnumbering">Team C: Numbering System (src/numbering/)</h3>
+<p><strong>Skills</strong>: Python, file systems, graph algorithms
+<strong>Priority</strong>: Medium - can integrate later
+<strong>Deliverables</strong>:
+- [ ] <code>numbering_parser.py</code> - Parse 6-digit codes
+- [ ] <code>directory_generator.py</code> - Create hierarchy
+- [ ] <code>manifest_generator.py</code> - Execution order
+- [ ] <code>dependency_resolver.py</code> - Topological sort</p>
+<p><strong>Estimated</strong>: 40 hours (1 developer × 2 weeks)</p>
+<hr />
+<h3 id="team-d-integration-layer-srcintegration">Team D: Integration Layer (src/integration/)</h3>
+<p><strong>Skills</strong>: GraphQL, FraiseQL, TypeScript
+<strong>Priority</strong>: Medium - nice-to-have for Phase 1
+<strong>Deliverables</strong>:
+- [ ] <code>fraiseql_adapter.py</code> - COMMENT annotations
+- [ ] <code>testfoundry_adapter.py</code> - Test metadata
+- [ ] <code>graphql_schema_gen.py</code> - GraphQL schema
+- [ ] <code>typescript_gen.py</code> - TypeScript types</p>
+<p><strong>Estimated</strong>: 50 hours (2 developers × 1 week)</p>
+<hr />
+<h3 id="team-e-cli-tooling-srccli">Team E: CLI &amp; Tooling (src/cli/)</h3>
+<p><strong>Skills</strong>: Python CLI, DevOps, documentation
+<strong>Priority</strong>: Medium - developer experience
+<strong>Deliverables</strong>:
+- [ ] <code>generate.py</code> - Main generation CLI
+- [ ] <code>validate.py</code> - YAML validation
+- [ ] <code>healthcheck.py</code> - Health checks
+- [ ] <code>migrate.py</code> - SQL → YAML migration</p>
+<p><strong>Estimated</strong>: 40 hours (1 developer × 2 weeks)</p>
+<hr />
+<h2 id="progress-tracking">📊 Progress Tracking</h2>
+<h3 id="week-1-goals">Week 1 Goals</h3>
+<ul>
+<li>[ ] <strong>Team A</strong>: Parser parses simple entities (contact.yaml)</li>
+<li>[ ] <strong>Team B</strong>: Generates tables and basic CRUD functions</li>
+<li>[ ] <strong>Team C</strong>: Numbering parser works, creates directories</li>
+<li>[ ] <strong>Team D</strong>: FraiseQL annotations generated</li>
+<li>[ ] <strong>Team E</strong>: CLI scaffolding complete</li>
+</ul>
+<h3 id="week-2-goals">Week 2 Goals</h3>
+<ul>
+<li>[ ] <strong>Team A</strong>: Parser handles complex entities (reservation.yaml)</li>
+<li>[ ] <strong>Team B</strong>: SpecQL action steps compile to SQL</li>
+<li>[ ] <strong>Team C</strong>: Manifest generator with dependency resolution</li>
+<li>[ ] <strong>Team D</strong>: GraphQL schema generation</li>
+<li>[ ] <strong>Team E</strong>: Validation and health checks working</li>
+</ul>
+<h3 id="week-3-goals-integration">Week 3 Goals (Integration)</h3>
+<ul>
+<li>[ ] <strong>All teams</strong>: Integration tests passing</li>
+<li>[ ] <strong>All teams</strong>: End-to-end demo (YAML → SQL → Database)</li>
+<li>[ ] <strong>All teams</strong>: Documentation complete</li>
+<li>[ ] <strong>Release</strong>: v0.1.0-alpha</li>
+</ul>
+<hr />
+<h2 id="quick-start-commands">🚀 Quick Start Commands</h2>
+<h3 id="generate-from-yaml">Generate from YAML</h3>
+<pre><code class="language-bash">python -m src.cli.generate --entity entities/examples/contact.yaml
+</code></pre>
+<h3 id="validate-yaml">Validate YAML</h3>
+<pre><code class="language-bash">python -m src.cli.validate entities/examples/*.yaml
+</code></pre>
+<h3 id="apply-to-database">Apply to Database</h3>
+<pre><code class="language-bash">python scripts/apply_manifest.py generated/manifest.yaml --db postgres://localhost/printoptim
+</code></pre>
+<h3 id="run-tests">Run Tests</h3>
+<pre><code class="language-bash">make test              # All tests
+make test-unit         # Unit tests only
+make test-integration  # Integration tests only
+</code></pre>
+<h3 id="health-check">Health Check</h3>
+<pre><code class="language-bash">python -m src.cli.healthcheck generated/
+</code></pre>
+<hr />
+<h2 id="git-strategy">📝 Git Strategy</h2>
+<h3 id="branch-naming">Branch Naming</h3>
+<ul>
+<li><code>main</code> - Stable releases</li>
+<li><code>develop</code> - Integration branch</li>
+<li><code>teamA/&lt;feature&gt;</code> - Team A features</li>
+<li><code>teamB/&lt;feature&gt;</code> - Team B features</li>
+<li>etc.</li>
+</ul>
+<h3 id="pr-requirements">PR Requirements</h3>
+<ul>
+<li>[ ] All tests pass</li>
+<li>[ ] Code coverage &gt; 80%</li>
+<li>[ ] Linting passes (ruff)</li>
+<li>[ ] Type checking passes (mypy)</li>
+<li>[ ] Documentation updated</li>
+<li>[ ] CHANGELOG.md updated</li>
+</ul>
+<h3 id="cicd-pipeline">CI/CD Pipeline</h3>
+<pre><code class="language-yaml"># .github/workflows/test.yml
+on: [pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - run: uv pip install -e &quot;.[dev]&quot;
+      - run: make test
+      - run: make lint
+      - run: make typecheck
+</code></pre>
+<hr />
+<p><strong>This structure enables 5 teams to work in parallel with minimal blocking!</strong> 🚀</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

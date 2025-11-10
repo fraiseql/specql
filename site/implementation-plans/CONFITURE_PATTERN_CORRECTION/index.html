@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Confiture Integration Pattern Correction - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Confiture Integration Pattern Correction";
+        var mkdocs_page_input_path = "implementation-plans/CONFITURE_PATTERN_CORRECTION.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Confiture Integration Pattern Correction</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="confiture-integration-pattern-correction">Confiture Integration Pattern Correction</h1>
+<p><strong>Date</strong>: 2025-11-09
+<strong>Issue</strong>: Implementation plans did not account for "one file per mutation" pattern
+<strong>Status</strong>: ✅ <strong>CORRECTED</strong></p>
+<hr />
+<h2 id="problem-identified">🚨 Problem Identified</h2>
+<p>The Team E implementation plan specified generating SQL in a way that <strong>bundled all mutations together</strong>, which contradicts the established <strong>App/Core two-layer pattern</strong> from the existing PrintOptim backend.</p>
+<h3 id="what-was-wrong">What Was Wrong ❌</h3>
+<p><strong>Original Plan</strong> (from <code>TEAM_E_IMPLEMENTATION_PLAN.md</code>):</p>
+<pre><code class="language-python">@dataclass
+class SchemaOutput:
+    &quot;&quot;&quot;Split output for Confiture directory structure&quot;&quot;&quot;
+    tables_sql: str        # → db/schema/10_tables/
+    functions_sql: str     # → db/schema/30_functions/  ❌ ALL ACTIONS BUNDLED!
+    metadata_sql: str      # → db/schema/40_metadata/
+</code></pre>
+<p><strong>File Structure</strong>:</p>
+<pre><code>30_functions/
+└── contact_actions.sql    # ❌ Contains ALL mutations for Contact
+</code></pre>
+<p><strong>Problem</strong>: All mutations for an entity were bundled into one file, making it:
+- Hard to version control (large diffs)
+- Difficult to review (multiple mutations in one PR)
+- Impossible to track which specific mutations changed
+- Against the established pattern from PrintOptim backend</p>
+<hr />
+<h2 id="corrected-pattern">✅ Corrected Pattern</h2>
+<h3 id="correct-implementation">Correct Implementation</h3>
+<p><strong>New Plan</strong> (corrected):</p>
+<pre><code class="language-python">@dataclass
+class MutationFunctionPair:
+    &quot;&quot;&quot;One mutation = 2 functions (app wrapper + core logic)&quot;&quot;&quot;
+    action_name: str
+    app_wrapper_sql: str      # app.{action_name}()
+    core_logic_sql: str       # core.{action_name}()
+
+@dataclass
+class SchemaOutput:
+    &quot;&quot;&quot;Split output for Confiture directory structure&quot;&quot;&quot;
+    table_sql: str                           # → db/schema/10_tables/{entity}.sql
+    helpers_sql: str                         # → db/schema/20_helpers/{entity}_helpers.sql
+    mutations: List[MutationFunctionPair]    # → db/schema/30_functions/{action_name}.sql (ONE FILE EACH!)
+    table_metadata_sql: str                  # → db/schema/40_metadata/{entity}_table_metadata.sql
+    mutations_metadata_sql: str              # → db/schema/40_metadata/{entity}_mutations_metadata.sql
+</code></pre>
+<p><strong>File Structure</strong>:</p>
+<pre><code>db/schema/
+├── 10_tables/
+│   └── contact.sql               # Table definition
+├── 20_helpers/
+│   └── contact_helpers.sql       # Trinity helpers (contact_pk, contact_id, etc.)
+├── 30_functions/                 # ✅ ONE FILE PER MUTATION
+│   ├── create_contact.sql        # app.create_contact() + core.create_contact()
+│   ├── update_contact.sql        # app.update_contact() + core.update_contact()
+│   └── qualify_lead.sql          # app.qualify_lead() + core.qualify_lead()
+└── 40_metadata/
+    ├── contact_table_metadata.sql
+    └── contact_mutations_metadata.sql
+</code></pre>
+<hr />
+<h2 id="files-updated">📝 Files Updated</h2>
+<h3 id="1-docsteamsteam_e_implementation_planmd">1. <code>/docs/teams/TEAM_E_IMPLEMENTATION_PLAN.md</code></h3>
+<p><strong>Changes</strong>:
+- ✅ Updated directory structure to show 5 layers (00, 10, 20, 30, 40)
+- ✅ Added <code>20_helpers/</code> layer for utility functions
+- ✅ Clarified that <code>30_functions/</code> has <strong>ONE FILE PER MUTATION</strong>
+- ✅ Updated <code>SchemaOutput</code> dataclass specification
+- ✅ Added <code>MutationFunctionPair</code> dataclass
+- ✅ Updated orchestrator logic to write one file per mutation
+- ✅ Updated <code>confiture.yaml</code> example with 5 layers
+- ✅ Updated file structure section with detailed examples</p>
+<h3 id="2-claudeclaudemd">2. <code>/.claude/CLAUDE.md</code></h3>
+<p><strong>Changes</strong>:
+- ✅ Added <strong>CRITICAL FILE PATTERN</strong> warning to Team E section
+- ✅ Referenced new architecture document</p>
+<h3 id="3-docsarchitectureone_file_per_mutation_patternmd-new">3. <code>/docs/architecture/ONE_FILE_PER_MUTATION_PATTERN.md</code> (NEW)</h3>
+<p><strong>Content</strong>:
+- ✅ Detailed specification of the pattern
+- ✅ Complete file structure examples
+- ✅ Example SQL file content
+- ✅ Anti-patterns (what NOT to do)
+- ✅ Implementation requirements for SchemaOrchestrator
+- ✅ Implementation requirements for CLIOrchestrator
+- ✅ Benefits and rationale
+- ✅ Migration steps from current implementation</p>
+<hr />
+<h2 id="key-takeaways">🎯 Key Takeaways</h2>
+<h3 id="pattern-requirements">Pattern Requirements</h3>
+<p><strong>MUST DO</strong> ✅:
+1. Each mutation gets its own SQL file
+2. Each file contains exactly 2 functions:
+   - <code>app.{action_name}()</code> - App wrapper (JSONB → typed input, delegates)
+   - <code>core.{action_name}()</code> - Core logic (business rules, validation, audit)
+3. File name matches action name (e.g., <code>qualify_lead.sql</code>)
+4. Utility functions (Trinity helpers) in separate <code>20_helpers/</code> directory</p>
+<p><strong>MUST NOT DO</strong> ❌:
+1. Bundle multiple mutations in one file
+2. Mix helper functions with mutation functions
+3. Separate app wrapper and core logic into different files</p>
+<h3 id="benefits">Benefits</h3>
+<table>
+<thead>
+<tr>
+<th>Benefit</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Modularity</strong></td>
+<td>Each mutation is independent</td>
+</tr>
+<tr>
+<td><strong>Version Control</strong></td>
+<td>Git diffs focus on single mutations</td>
+</tr>
+<tr>
+<td><strong>Code Review</strong></td>
+<td>Reviewers see complete mutation in one place</td>
+</tr>
+<tr>
+<td><strong>Testing</strong></td>
+<td>Can test mutations in isolation</td>
+</tr>
+<tr>
+<td><strong>Debugging</strong></td>
+<td>Easy to locate specific mutation code</td>
+</tr>
+<tr>
+<td><strong>Refactoring</strong></td>
+<td>Safe to refactor one mutation without risk</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="implementation-impact">🔧 Implementation Impact</h2>
+<h3 id="components-affected">Components Affected</h3>
+<ol>
+<li><strong><code>SchemaOrchestrator.generate_split_schema()</code></strong></li>
+<li>Must iterate over actions</li>
+<li>Generate separate <code>app_wrapper_sql</code> + <code>core_logic_sql</code> for each</li>
+<li>
+<p>Return <code>List[MutationFunctionPair]</code> not single <code>functions_sql</code></p>
+</li>
+<li>
+<p><strong><code>CLIOrchestrator.generate_from_files()</code></strong></p>
+</li>
+<li>Must loop over mutations</li>
+<li>Write one file per mutation</li>
+<li>
+<p>Create proper directory structure</p>
+</li>
+<li>
+<p><strong><code>AppWrapperGenerator</code></strong></p>
+</li>
+<li>
+<p>Already generates per-action (✅ no change needed)</p>
+</li>
+<li>
+<p><strong><code>CoreLogicGenerator</code></strong></p>
+</li>
+<li>
+<p>Already generates per-action (✅ no change needed)</p>
+</li>
+<li>
+<p><strong>Tests</strong></p>
+</li>
+<li>Must verify correct file structure</li>
+<li>Check that each mutation has its own file</li>
+<li>Verify 2 functions per file</li>
+</ol>
+<hr />
+<h2 id="before-vs-after">📊 Before vs After</h2>
+<h3 id="before-wrong">Before (WRONG ❌)</h3>
+<p><strong>Entity: Contact with 3 actions (create, update, qualify_lead)</strong></p>
+<p>Generated Files:</p>
+<pre><code>30_functions/
+└── contact_actions.sql    # 6 functions bundled together
+</code></pre>
+<p>Problems:
+- Hard to see what changed in version control
+- Code review difficult (too much in one file)
+- Can't track individual mutation history</p>
+<h3 id="after-correct">After (CORRECT ✅)</h3>
+<p><strong>Entity: Contact with 3 actions (create, update, qualify_lead)</strong></p>
+<p>Generated Files:</p>
+<pre><code>20_helpers/
+└── contact_helpers.sql           # 3 utility functions
+
+30_functions/
+├── create_contact.sql            # 2 functions
+├── update_contact.sql            # 2 functions
+└── qualify_lead.sql              # 2 functions
+</code></pre>
+<p>Benefits:
+- Clear version history per mutation
+- Easy code review (one mutation at a time)
+- Individual mutation can be rolled back
+- Helpers separated from business logic</p>
+<hr />
+<h2 id="next-steps">🚀 Next Steps</h2>
+<h3 id="for-implementation">For Implementation</h3>
+<ol>
+<li><strong>Update <code>SchemaOrchestrator</code></strong>:</li>
+<li>Modify <code>generate_split_schema()</code> to return <code>List[MutationFunctionPair]</code></li>
+<li>
+<p>Iterate over actions, generate separate SQL for each</p>
+</li>
+<li>
+<p><strong>Update <code>CLIOrchestrator</code></strong>:</p>
+</li>
+<li>Loop over mutations in <code>SchemaOutput.mutations</code></li>
+<li>
+<p>Write one file per mutation to <code>30_functions/{action_name}.sql</code></p>
+</li>
+<li>
+<p><strong>Update Tests</strong>:</p>
+</li>
+<li>Verify file count matches action count</li>
+<li>Check each file has exactly 2 functions</li>
+<li>
+<p>Validate file naming convention</p>
+</li>
+<li>
+<p><strong>Update Documentation</strong>:</p>
+</li>
+<li>✅ DONE: Implementation plans corrected</li>
+<li>✅ DONE: Architecture document created</li>
+<li>✅ DONE: CLAUDE.md updated</li>
+</ol>
+<hr />
+<h2 id="references">📚 References</h2>
+<ul>
+<li><strong>Architecture Spec</strong>: <code>/docs/architecture/ONE_FILE_PER_MUTATION_PATTERN.md</code></li>
+<li><strong>App/Core Pattern</strong>: <code>/docs/architecture/APP_CORE_FUNCTION_PATTERN.md</code></li>
+<li><strong>Team E Plan</strong>: <code>/docs/teams/TEAM_E_IMPLEMENTATION_PLAN.md</code></li>
+<li><strong>PrintOptim Backend</strong>: <code>../printoptim_backend/db/0_schema/03_functions/</code> (reference implementation)</li>
+</ul>
+<hr />
+<h2 id="verification-checklist">✅ Verification Checklist</h2>
+<p>When implementing, verify:</p>
+<ul>
+<li>[ ] <code>generate_split_schema()</code> returns <code>List[MutationFunctionPair]</code></li>
+<li>[ ] Each <code>MutationFunctionPair</code> has <code>app_wrapper_sql</code> + <code>core_logic_sql</code></li>
+<li>[ ] Orchestrator writes one file per mutation</li>
+<li>[ ] File name matches action name exactly</li>
+<li>[ ] Each file has comment header with mutation info</li>
+<li>[ ] Helper functions in separate <code>20_helpers/</code> directory</li>
+<li>[ ] Confiture can build from 5-layer structure</li>
+<li>[ ] Tests verify correct file structure</li>
+<li>[ ] Git diff shows individual mutations clearly</li>
+</ul>
+<hr />
+<p><strong>Status</strong>: 📋 <strong>DOCUMENTED</strong> - Ready for implementation
+<strong>Priority</strong>: 🔴 <strong>CRITICAL</strong> - Required for proper version control and modularity
+<strong>Owner</strong>: Team E (CLI &amp; Orchestration)</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

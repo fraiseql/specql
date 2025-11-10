@@ -1,0 +1,694 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Business Logic Library - Documentation - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Business Logic Library - Documentation";
+        var mkdocs_page_input_path = "business_logic_library/README.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Business Logic Library - Documentation</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="business-logic-library-documentation">Business Logic Library - Documentation</h1>
+<p><strong>Status</strong>: 📋 Planning Complete - Ready for Implementation
+<strong>Created</strong>: 2025-11-10
+<strong>Related GitHub Issue</strong>: https://github.com/fraiseql/specql/issues/4</p>
+<hr />
+<h2 id="documentation-overview">📚 Documentation Overview</h2>
+<p>This directory contains the complete implementation plan for a <strong>domain-agnostic business logic pattern library</strong> for SpecQL, inspired by the PrintOptim backend reference implementation.</p>
+<h3 id="documents-in-this-directory">Documents in This Directory</h3>
+<ol>
+<li><strong><a href="IMPLEMENTATION_PLAN_RECONCILIATION/">IMPLEMENTATION_PLAN_RECONCILIATION.md</a></strong> 🎯 <strong>START HERE</strong></li>
+<li><strong>Type</strong>: Strategy Document (NEW)</li>
+<li><strong>Audience</strong>: All Stakeholders, Decision Makers</li>
+<li>
+<p><strong>Contents</strong>:</p>
+<ul>
+<li>Reconciles Business Logic Library plan with Issue #4 plan</li>
+<li>Hybrid phased approach (best of both)</li>
+<li>Immediate value (Week 4) + Long-term value (Week 20)</li>
+<li>Decision points and flexibility</li>
+<li><strong>Recommendation</strong>: Read this first to understand the unified strategy</li>
+</ul>
+</li>
+<li>
+<p><strong><a href="BUSINESS_LOGIC_LIBRARY/">BUSINESS_LOGIC_LIBRARY.md</a></strong> ⭐ <strong>EXECUTIVE SUMMARY</strong></p>
+</li>
+<li><strong>Type</strong>: Executive Summary (15 pages)</li>
+<li><strong>Audience</strong>: Stakeholders, Product Managers, Decision Makers</li>
+<li>
+<p><strong>Contents</strong>:</p>
+<ul>
+<li>Vision and problem statement</li>
+<li>Before/After comparisons</li>
+<li>ROI analysis (180% return in Year 1)</li>
+<li>Financial projections ($1.54M 3-year value)</li>
+<li>Success criteria</li>
+<li>Next steps</li>
+</ul>
+</li>
+<li>
+<p><strong><a href="BUSINESS_LOGIC_LIBRARY_PLAN/">BUSINESS_LOGIC_LIBRARY_PLAN.md</a></strong></p>
+</li>
+<li><strong>Type</strong>: Detailed Implementation Plan (70+ pages)</li>
+<li><strong>Audience</strong>: Developers, Architects, Team Leads</li>
+<li>
+<p><strong>Contents</strong>:</p>
+<ul>
+<li>Complete architecture (3-layer system)</li>
+<li>27 pattern definitions with examples</li>
+<li>6-phase implementation roadmap (20 weeks)</li>
+<li>Pattern definition schemas</li>
+<li>SQL generation templates</li>
+<li>Testing strategy (800+ tests)</li>
+<li>Team assignments and responsibilities</li>
+<li>Success metrics and KPIs</li>
+</ul>
+</li>
+<li>
+<p><strong><a href="BUSINESS_LOGIC_LIBRARY_ROADMAP/">BUSINESS_LOGIC_LIBRARY_ROADMAP.md</a></strong></p>
+</li>
+<li><strong>Type</strong>: Visual Roadmap (35+ pages)</li>
+<li><strong>Audience</strong>: Project Managers, Developers, Stakeholders</li>
+<li>
+<p><strong>Contents</strong>:</p>
+<ul>
+<li>20-week visual timeline</li>
+<li>Pattern catalog overview (27 patterns)</li>
+<li>Key milestones and deliverables</li>
+<li>Before/After code comparisons</li>
+<li>Success metrics dashboard</li>
+<li>ROI projection charts</li>
+<li>Quick start guide (post-launch)</li>
+</ul>
+</li>
+<li>
+<p><strong><a href="mutation_pattern_library_proposal/">mutation_pattern_library_proposal.md</a></strong></p>
+</li>
+<li><strong>Type</strong>: GitHub Issue Content</li>
+<li><strong>Audience</strong>: SpecQL Framework Developers</li>
+<li><strong>Contents</strong>:<ul>
+<li>Current state analysis</li>
+<li>6 critical gaps identified</li>
+<li>Detailed examples for each gap</li>
+<li>Proposed YAML syntax</li>
+<li>Implementation recommendations</li>
+<li><strong>Posted to</strong>: https://github.com/fraiseql/specql/issues/4</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="quick-summary">🎯 Quick Summary</h2>
+<h3 id="the-problem">The Problem</h3>
+<p><strong>177 business functions</strong> in PrintOptim backend, totaling <strong>~38,000 lines of manual SQL</strong>:
+- Inconsistent patterns across entities
+- 2-4 hours per business action
+- Easy to miss edge cases
+- High maintenance burden
+- Slow developer onboarding (2+ weeks)</p>
+<h3 id="the-solution">The Solution</h3>
+<p><strong>Pattern Library</strong>: 27 reusable patterns covering 95%+ of business logic</p>
+<pre><code>stdlib/patterns/
+├── core/           # CRUD enhancements (4 patterns)
+├── state_machine/  # State transitions (3 patterns)
+├── multi_entity/   # Cross-entity ops (4 patterns)
+├── validation/     # Validation chains (3 patterns)
+├── batch/          # Bulk operations (3 patterns)
+├── conditional/    # If-then-else (3 patterns)
+├── temporal/       # Time-based ops (3 patterns)
+└── common/         # Utilities (4 patterns)
+</code></pre>
+<h3 id="the-impact">The Impact</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Before</th>
+<th>After</th>
+<th>Improvement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Code per action</strong></td>
+<td>150-400 lines SQL</td>
+<td>10-20 lines YAML</td>
+<td><strong>95% reduction</strong></td>
+</tr>
+<tr>
+<td><strong>Time per action</strong></td>
+<td>2-4 hours</td>
+<td>15-30 minutes</td>
+<td><strong>10-20x faster</strong></td>
+</tr>
+<tr>
+<td><strong>Onboarding</strong></td>
+<td>2+ weeks</td>
+<td>2 hours</td>
+<td><strong>40x faster</strong></td>
+</tr>
+<tr>
+<td><strong>Consistency</strong></td>
+<td>Manual (varies)</td>
+<td>100% consistent</td>
+<td><strong>Perfect</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="the-roi">The ROI</h3>
+<ul>
+<li><strong>Investment</strong>: $260K (54 person-weeks)</li>
+<li><strong>Year 1 Return</strong>: $600K (5,000 hours saved)</li>
+<li><strong>Net Profit</strong>: $340K (180% ROI)</li>
+<li><strong>Break-even</strong>: Week 5 of usage (~50 new actions)</li>
+<li><strong>3-Year Value</strong>: $1.54M</li>
+</ul>
+<hr />
+<h2 id="reading-guide">📖 Reading Guide</h2>
+<h3 id="for-decision-makers-45-minutes">For Decision Makers (45 minutes) 🎯</h3>
+<ol>
+<li>Read <strong><a href="IMPLEMENTATION_PLAN_RECONCILIATION/">IMPLEMENTATION_PLAN_RECONCILIATION.md</a></strong> (15 min)</li>
+<li>Understand the hybrid phased approach</li>
+<li>See immediate value (Week 4) vs long-term value (Week 20)</li>
+<li>
+<p>Review decision points and flexibility</p>
+</li>
+<li>
+<p>Read <strong><a href="BUSINESS_LOGIC_LIBRARY/">BUSINESS_LOGIC_LIBRARY.md</a></strong> (20 min)</p>
+</li>
+<li>Understand vision and ROI</li>
+<li>Review financial projections</li>
+<li>
+<p>Check success criteria</p>
+</li>
+<li>
+<p><strong>Decision</strong>: Approve hybrid approach and Phase 0 budget? (10 min)</p>
+</li>
+</ol>
+<h3 id="for-project-managers-25-hours">For Project Managers (2.5 hours)</h3>
+<ol>
+<li>Read <strong><a href="IMPLEMENTATION_PLAN_RECONCILIATION/">IMPLEMENTATION_PLAN_RECONCILIATION.md</a></strong> (30 min)</li>
+<li>Understand phased approach</li>
+<li>Note decision points (Week 4, Week 13)</li>
+<li>
+<p>Review unified timeline</p>
+</li>
+<li>
+<p>Read <strong><a href="BUSINESS_LOGIC_LIBRARY/">BUSINESS_LOGIC_LIBRARY.md</a></strong> (30 min)</p>
+</li>
+<li>Overall vision and goals</li>
+<li>
+<p>Success metrics</p>
+</li>
+<li>
+<p>Review <strong><a href="BUSINESS_LOGIC_LIBRARY_ROADMAP/">BUSINESS_LOGIC_LIBRARY_ROADMAP.md</a></strong> (60 min)</p>
+</li>
+<li>Detailed timeline and milestones</li>
+<li>
+<p>Phase deliverables</p>
+</li>
+<li>
+<p><strong>Action</strong>: Plan Phase 0 (CRUD gaps) team and resources (30 min)</p>
+</li>
+</ol>
+<h3 id="for-developers-5-hours">For Developers (5 hours)</h3>
+<ol>
+<li>Read <strong><a href="IMPLEMENTATION_PLAN_RECONCILIATION/">IMPLEMENTATION_PLAN_RECONCILIATION.md</a></strong> (30 min)</li>
+<li>Understand why Phase 0 comes first</li>
+<li>
+<p>See how it leads to pattern library</p>
+</li>
+<li>
+<p>Read <strong><a href="mutation_pattern_library_proposal/">mutation_pattern_library_proposal.md</a></strong> (60 min)</p>
+</li>
+<li>Understand the 6 critical CRUD gaps</li>
+<li>Study reference SQL examples</li>
+<li>
+<p>Review proposed solutions</p>
+</li>
+<li>
+<p>Study <strong><a href="BUSINESS_LOGIC_LIBRARY_PLAN/">BUSINESS_LOGIC_LIBRARY_PLAN.md</a></strong> Phase 0-2 (2 hours)</p>
+</li>
+<li>Phase 0: CRUD gap implementations</li>
+<li>Phase 1: Pattern infrastructure</li>
+<li>
+<p>Phase 2: Core patterns</p>
+</li>
+<li>
+<p>Review relevant code (90 min)</p>
+</li>
+<li>Current SpecQL action compilers</li>
+<li>Reference SQL examples</li>
+<li>
+<p>Test infrastructure</p>
+</li>
+<li>
+<p><strong>Action</strong>: Prepare for Phase 0 implementation</p>
+</li>
+</ol>
+<h3 id="for-architects-10-hours">For Architects (10 hours)</h3>
+<ol>
+<li>Read <strong><a href="IMPLEMENTATION_PLAN_RECONCILIATION/">IMPLEMENTATION_PLAN_RECONCILIATION.md</a></strong> (60 min)</li>
+<li>Full understanding of hybrid approach</li>
+<li>Technical rationale for phasing</li>
+<li>
+<p>Architecture evolution</p>
+</li>
+<li>
+<p>Read all main documents (4 hours)</p>
+</li>
+<li>Executive summary</li>
+<li>Complete plan</li>
+<li>
+<p>Visual roadmap</p>
+</li>
+<li>
+<p>Deep dive into architecture (3 hours)</p>
+</li>
+<li>Three-layer system</li>
+<li>Pattern definition schemas</li>
+<li>SQL generation templates</li>
+<li>
+<p>Pattern dependencies</p>
+</li>
+<li>
+<p>Evaluate approach (2 hours)</p>
+</li>
+<li>Technical feasibility</li>
+<li>Risk assessment</li>
+<li>Alternative approaches</li>
+<li>
+<p>Recommendations</p>
+</li>
+<li>
+<p><strong>Action</strong>: Technical review and sign-off</p>
+</li>
+</ol>
+<h3 id="for-specql-framework-developers-3-hours">For SpecQL Framework Developers (3 hours) ⚡</h3>
+<ol>
+<li><strong>START</strong>: Read <strong><a href="IMPLEMENTATION_PLAN_RECONCILIATION/">IMPLEMENTATION_PLAN_RECONCILIATION.md</a></strong> (20 min)</li>
+<li>Understand Phase 0 priority</li>
+<li>
+<p>See how Issue #4 fits into larger vision</p>
+</li>
+<li>
+<p>Read <strong><a href="mutation_pattern_library_proposal/">mutation_pattern_library_proposal.md</a></strong> (60 min)</p>
+</li>
+<li>The 6 critical gaps from Issue #4</li>
+<li>Detailed reference SQL examples</li>
+<li>
+<p>Proposed YAML syntax</p>
+</li>
+<li>
+<p>Review <strong>GitHub Issue #4</strong>: https://github.com/fraiseql/specql/issues/4 (20 min)</p>
+</li>
+<li>Community discussion</li>
+<li>PrintOptim team needs</li>
+<li>
+<p>Timeline expectations</p>
+</li>
+<li>
+<p>Study current codebase (60 min)</p>
+</li>
+<li><code>src/generators/actions/</code> - Action compilers</li>
+<li><code>src/generators/actions/step_compilers/</code> - Step compilers</li>
+<li><code>src/generators/actions/identifier_recalc_generator.py</code> - Exists!</li>
+<li>
+<p><code>src/generators/actions/step_compilers/refresh_table_view_compiler.py</code> - Exists!</p>
+</li>
+<li>
+<p><strong>Action</strong>: Begin Phase 0 Week 1 (Partial Updates)</p>
+</li>
+</ol>
+<hr />
+<h2 id="architecture-overview">🏗️ Architecture Overview</h2>
+<h3 id="three-layer-system">Three-Layer System</h3>
+<pre><code>┌──────────────────────────────────────────────────┐
+│  LAYER 1: Business Logic (YAML)                  │
+│  - entities/tenant/machine.yaml                  │
+│  - Declares business operations                  │
+│  - References pattern library                    │
+└──────────────────────────────────────────────────┘
+                    ▼
+┌──────────────────────────────────────────────────┐
+│  LAYER 2: Pattern Library (YAML + Templates)     │
+│  - stdlib/patterns/{category}/{pattern}.yaml     │
+│  - Reusable pattern abstractions                 │
+│  - SQL generation templates (Jinja2)             │
+└──────────────────────────────────────────────────┘
+                    ▼
+┌──────────────────────────────────────────────────┐
+│  LAYER 3: Code Generator (Python)                │
+│  - Team C implementation                         │
+│  - Parses YAML + patterns                        │
+│  - Generates PL/pgSQL                            │
+└──────────────────────────────────────────────────┘
+                    ▼
+              PostgreSQL Functions
+</code></pre>
+<hr />
+<h2 id="implementation-timeline">🗓️ Implementation Timeline</h2>
+<h3 id="20-week-roadmap">20-Week Roadmap</h3>
+<pre><code>Phase 1 (Weeks 1-4):   Core CRUD Enhancements
+                       ✅ Closes Priority 1 gaps
+
+Phase 2 (Weeks 5-7):   State Machine Patterns
+                       ✅ Business workflows declarative
+
+Phase 3 (Weeks 8-10):  Multi-Entity Patterns
+                       ✅ Complex operations simplified
+
+Phase 4 (Weeks 11-13): Validation &amp; Batch Patterns
+                       ✅ All CRUD scenarios covered
+
+Phase 5 (Weeks 14-16): Advanced Patterns
+                       ✅ Full pattern library
+
+Phase 6 (Weeks 17-20): Migration &amp; Optimization
+                       ✅ Production ready
+</code></pre>
+<p><strong>Key Milestones</strong>:
+- Week 4: Core CRUD complete (Priority 1 gaps closed)
+- Week 7: State machines ready
+- Week 10: Multi-entity working
+- Week 16: All patterns implemented
+- Week 20: Production deployment</p>
+<hr />
+<h2 id="pattern-catalog-preview">📊 Pattern Catalog Preview</h2>
+<h3 id="core-patterns-priority-1">Core Patterns (Priority 1)</h3>
+<ol>
+<li><strong>partial_update</strong> - Update only fields in payload (CASE expressions)</li>
+<li><strong>duplicate_check</strong> - Business uniqueness validation before INSERT</li>
+<li><strong>identifier_recalc</strong> - Auto-calculate business identifiers</li>
+<li><strong>projection_refresh</strong> - Sync GraphQL materialized views</li>
+</ol>
+<h3 id="state-machine-patterns-priority-2">State Machine Patterns (Priority 2)</h3>
+<ol>
+<li><strong>simple_transition</strong> - State changes with guards and side effects</li>
+<li><strong>multi_step_workflow</strong> - Orchestrate multi-step operations</li>
+<li><strong>guarded_transition</strong> - Complex guard conditions</li>
+</ol>
+<h3 id="multi-entity-patterns-priority-2">Multi-Entity Patterns (Priority 2)</h3>
+<ol>
+<li><strong>coordinated_update</strong> - Update multiple entities in transaction</li>
+<li><strong>parent_child_cascade</strong> - Cascade operations to children</li>
+<li><strong>get_or_create</strong> - Get existing or create if missing</li>
+<li><strong>transactional_group</strong> - Group operations in transaction</li>
+</ol>
+<h3 id="validation-patterns-priority-3">Validation Patterns (Priority 3)</h3>
+<ol>
+<li><strong>validation_chain</strong> - Chain multiple validation rules</li>
+<li><strong>dependency_check</strong> - Check referential integrity</li>
+<li><strong>business_rule</strong> - Custom business logic validation</li>
+</ol>
+<h3 id="batch-patterns-priority-3">Batch Patterns (Priority 3)</h3>
+<ol>
+<li><strong>bulk_operation</strong> - Process multiple records efficiently</li>
+<li><strong>batch_import</strong> - Import data with error handling</li>
+<li><strong>error_handling</strong> - Consistent error management</li>
+</ol>
+<h3 id="advanced-patterns-priority-4">Advanced Patterns (Priority 4)</h3>
+<p>18-27. Conditional, temporal, and utility patterns</p>
+<p><strong>Total</strong>: 27 patterns covering 95%+ of business logic</p>
+<hr />
+<h2 id="example-machine-decommissioning">💡 Example: Machine Decommissioning</h2>
+<h3 id="before-manual-sql">Before (Manual SQL)</h3>
+<pre><code class="language-sql">-- reference_sql/.../decommission_machine.sql
+-- 150+ lines of PL/pgSQL
+CREATE OR REPLACE FUNCTION core.decommission_machine(...)
+RETURNS app.mutation_result AS $$
+DECLARE
+    v_machine tenant.tb_machine%ROWTYPE;
+    v_active_allocations INTEGER;
+    -- ... 20+ more variables ...
+BEGIN
+    -- Load current machine (10+ lines)
+    -- Check current status (15+ lines)
+    -- Check for active allocations (20+ lines)
+    -- Update machine status (10+ lines)
+    -- Archive related data (15+ lines)
+    -- Log event (10+ lines)
+    -- Refresh projection (10+ lines)
+    -- Return result (20+ lines)
+END;
+$$;
+</code></pre>
+<p><strong>Total</strong>: ~150 lines | <strong>Time</strong>: 2-4 hours | <strong>Tests</strong>: Manual (1-2 hours)</p>
+<h3 id="after-pattern-library">After (Pattern Library)</h3>
+<pre><code class="language-yaml"># entities/tenant/machine.yaml
+actions:
+  - name: decommission_machine
+    pattern: stdlib/patterns/state_machine/simple_transition
+    from_states: [active, maintenance]
+    to_state: decommissioned
+
+    validations:
+      - type: dependency_check
+        entity: Allocation
+        field: machine
+        condition: &quot;status = 'active'&quot;
+        error_code: &quot;has_active_allocations&quot;
+        error_message: &quot;Cannot decommission machine with active allocations&quot;
+
+    side_effects:
+      - type: update_field
+        field: decommission_date
+        value: now()
+      - type: update_related
+        entity: MachineItem
+        relationship: machine
+        updates: {status: archived}
+      - type: insert_event
+        entity: MachineEvent
+        event_data: {event_type: decommissioned}
+
+    input_fields:
+      decommission_date: {type: date, required: true}
+      decommission_reason: {type: text, required: true}
+</code></pre>
+<p><strong>Total</strong>: ~20 lines YAML | <strong>Time</strong>: 15-30 minutes | <strong>Tests</strong>: Auto-generated</p>
+<p><strong>Result</strong>: 87% code reduction, 87% time savings, 100% consistent</p>
+<hr />
+<h2 id="success-metrics">🎯 Success Metrics</h2>
+<h3 id="quantitative-targets">Quantitative Targets</h3>
+<ul>
+<li><strong>Code Reduction</strong>: 95% (38K lines → 2K lines)</li>
+<li><strong>Pattern Coverage</strong>: 95% (business logic expressible)</li>
+<li><strong>Migration Complete</strong>: 100% (all entities)</li>
+<li><strong>Test Coverage</strong>: 90%+ (pattern library)</li>
+<li><strong>Performance</strong>: No regression vs reference SQL</li>
+<li><strong>Query Performance</strong>: &lt;50ms p95</li>
+<li><strong>Throughput</strong>: 100+ TPS</li>
+</ul>
+<h3 id="qualitative-goals">Qualitative Goals</h3>
+<ul>
+<li>Developers express business logic without writing SQL</li>
+<li>New patterns added without breaking existing code</li>
+<li>Generated SQL readable and debuggable</li>
+<li>Error messages clear and actionable</li>
+<li>Documentation comprehensive and current</li>
+<li>Pattern library intuitive to use</li>
+<li>Onboarding: 2 days → 2 hours</li>
+</ul>
+<hr />
+<h2 id="getting-started-post-implementation">🚀 Getting Started (Post-Implementation)</h2>
+<p>When the pattern library is ready (Week 20+):</p>
+<pre><code class="language-bash"># 1. Read pattern catalog
+open docs/patterns/pattern_catalog.md
+
+# 2. Watch quick start video
+open docs/videos/pattern_library_quickstart.mp4
+
+# 3. Try example
+cd examples/migration/
+./migrate_simple_entity.sh
+
+# 4. Implement first action
+# Edit entities/tenant/my_entity.yaml
+
+# 5. Generate and test
+specql generate entities/tenant/my_entity.yaml
+specql test entities/tenant/my_entity.yaml
+</code></pre>
+<hr />
+<h2 id="support-resources">📞 Support &amp; Resources</h2>
+<h3 id="documentation">Documentation</h3>
+<p>All documentation in this directory:
+- Executive summary (this directory)
+- Implementation plan (this directory)
+- Visual roadmap (this directory)
+- GitHub issue (SpecQL repo)</p>
+<h3 id="related-resources">Related Resources</h3>
+<p><strong>SpecQL Framework</strong>:
+- Repository: https://github.com/fraiseql/specql
+- Enhancement Issue: https://github.com/fraiseql/specql/issues/4
+- Documentation: See SpecQL docs/</p>
+<p><strong>PrintOptim Context</strong>:
+- Reference SQL: <code>../../../reference_sql/0_schema/03_functions/</code>
+- Current entities: <code>../../../entities/</code>
+- Analysis docs: <code>../../../docs/mutation_*</code></p>
+<h3 id="questions">Questions?</h3>
+<ul>
+<li><strong>Technical</strong>: pattern-library@printoptim.com</li>
+<li><strong>Business</strong>: Contact project stakeholders</li>
+<li><strong>GitHub</strong>: https://github.com/fraiseql/specql/issues/4</li>
+</ul>
+<hr />
+<h2 id="next-steps">✅ Next Steps</h2>
+<h3 id="for-stakeholders">For Stakeholders</h3>
+<ol>
+<li>Review <strong>BUSINESS_LOGIC_LIBRARY.md</strong></li>
+<li>Evaluate ROI and financial projections</li>
+<li>Approve budget (~$260K) and timeline (20 weeks)</li>
+<li>Assign Team C developers (2-3 people)</li>
+</ol>
+<h3 id="for-project-managers">For Project Managers</h3>
+<ol>
+<li>Review <strong>BUSINESS_LOGIC_LIBRARY_ROADMAP.md</strong></li>
+<li>Plan team assignments</li>
+<li>Set up project infrastructure</li>
+<li>Schedule kickoff meeting</li>
+</ol>
+<h3 id="for-developers">For Developers</h3>
+<ol>
+<li>Study <strong>BUSINESS_LOGIC_LIBRARY_PLAN.md</strong> (Phase 1)</li>
+<li>Understand pattern architecture</li>
+<li>Review reference SQL examples</li>
+<li>Prepare development environment</li>
+</ol>
+<h3 id="for-everyone">For Everyone</h3>
+<p>Stay tuned for updates as implementation progresses!</p>
+<hr />
+<p><strong>Status</strong>: 📋 <strong>Planning Complete</strong> - Ready for Implementation Review
+<strong>Created</strong>: 2025-11-10
+<strong>Next Review</strong>: [TBD]</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

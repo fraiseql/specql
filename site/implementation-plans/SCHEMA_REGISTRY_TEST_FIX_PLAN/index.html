@@ -1,0 +1,1189 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Schema Registry Test Fix Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Schema Registry Test Fix Plan";
+        var mkdocs_page_input_path = "implementation-plans/SCHEMA_REGISTRY_TEST_FIX_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Schema Registry Test Fix Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="schema-registry-test-fix-plan">Schema Registry Test Fix Plan</h1>
+<p><strong>Date</strong>: 2025-11-09
+<strong>Status</strong>: 🔴 CRITICAL - 47 Tests Failing
+<strong>Agent Task</strong>: Fix all failing tests after SchemaRegistry implementation
+<strong>Estimated Time</strong>: 2-3 hours</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>The SchemaRegistry implementation is <strong>architecturally excellent</strong> but introduced a <strong>breaking API change</strong>:</p>
+<p><strong>Old API</strong>:</p>
+<pre><code class="language-python">generator = TableGenerator()  # No parameters
+</code></pre>
+<p><strong>New API</strong>:</p>
+<pre><code class="language-python">schema_registry = SchemaRegistry(domain_registry)
+generator = TableGenerator(schema_registry)  # Requires schema_registry!
+</code></pre>
+<p><strong>Impact</strong>: 47 tests are failing because they use the old API.</p>
+<p><strong>Your Mission</strong>: Systematically update all failing tests to use the new API.</p>
+<hr />
+<h2 id="test-failure-summary">Test Failure Summary</h2>
+<h3 id="total-failures-47-tests-across-5-files">Total Failures: 47 tests across 5 files</h3>
+<table>
+<thead>
+<tr>
+<th>Test File</th>
+<th>Failures</th>
+<th>Root Cause</th>
+<th>Fix Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>test_comment_generation.py</code></td>
+<td>13</td>
+<td>Missing <code>schema_registry</code> param</td>
+<td>Add fixture</td>
+</tr>
+<tr>
+<td><code>test_constraint_generation.py</code></td>
+<td>9</td>
+<td>Missing <code>schema_registry</code> param</td>
+<td>Add fixture</td>
+</tr>
+<tr>
+<td><code>test_index_generation.py</code></td>
+<td>6</td>
+<td>Missing <code>schema_registry</code> param</td>
+<td>Add fixture</td>
+</tr>
+<tr>
+<td><code>test_rich_type_ddl.py</code></td>
+<td>12</td>
+<td>Missing <code>schema_registry</code> param</td>
+<td>Add fixture</td>
+</tr>
+<tr>
+<td><code>test_table_generator_integration.py</code></td>
+<td>10</td>
+<td>Missing <code>schema_registry</code> param</td>
+<td>Add fixture</td>
+</tr>
+<tr>
+<td><code>test_fk_resolver.py</code></td>
+<td>~5</td>
+<td>Wrong API + expectations</td>
+<td>Update API + assertions</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="phase-1-create-shared-fixtures-15-minutes">Phase 1: Create Shared Fixtures (15 minutes)</h2>
+<h3 id="goal">Goal</h3>
+<p>Create reusable pytest fixtures so tests don't duplicate setup code.</p>
+<h3 id="task-11-add-fixtures-to-testsconftestpy">Task 1.1: Add Fixtures to <code>tests/conftest.py</code></h3>
+<p><strong>File</strong>: <code>tests/conftest.py</code></p>
+<p><strong>Add this code</strong> (at the end of the file):</p>
+<pre><code class="language-python"># ============================================================================
+# Schema Registry Fixtures (for tests using new API)
+# ============================================================================
+
+@pytest.fixture
+def naming_conventions():
+    &quot;&quot;&quot;
+    Shared NamingConventions instance with domain registry
+
+    Use this when tests need access to the naming conventions or domain registry
+    &quot;&quot;&quot;
+    from src.numbering.naming_conventions import NamingConventions
+    return NamingConventions()
+
+
+@pytest.fixture
+def schema_registry(naming_conventions):
+    &quot;&quot;&quot;
+    Shared SchemaRegistry instance
+
+    Use this fixture in any test that needs to create generators:
+
+    Example:
+        def test_something(schema_registry):
+            generator = TableGenerator(schema_registry)
+            # ... rest of test
+    &quot;&quot;&quot;
+    from src.generators.schema.schema_registry import SchemaRegistry
+    return SchemaRegistry(naming_conventions.registry)
+
+
+@pytest.fixture
+def table_generator(schema_registry):
+    &quot;&quot;&quot;
+    Pre-configured TableGenerator with SchemaRegistry
+
+    Use this when you just need a TableGenerator instance:
+
+    Example:
+        def test_table_ddl(table_generator):
+            result = table_generator.generate(entity)
+            assert &quot;CREATE TABLE&quot; in result
+    &quot;&quot;&quot;
+    from src.generators.table_generator import TableGenerator
+    return TableGenerator(schema_registry)
+
+
+@pytest.fixture
+def trinity_helper_generator(schema_registry):
+    &quot;&quot;&quot;
+    Pre-configured TrinityHelperGenerator with SchemaRegistry
+    &quot;&quot;&quot;
+    from src.generators.trinity_helper_generator import TrinityHelperGenerator
+    return TrinityHelperGenerator(schema_registry)
+
+
+@pytest.fixture
+def core_logic_generator(schema_registry):
+    &quot;&quot;&quot;
+    Pre-configured CoreLogicGenerator with SchemaRegistry
+    &quot;&quot;&quot;
+    from src.generators.core_logic_generator import CoreLogicGenerator
+    return CoreLogicGenerator(schema_registry)
+</code></pre>
+<p><strong>Why</strong>: This eliminates code duplication. Every test can just use <code>table_generator</code> fixture instead of manually creating it.</p>
+<p><strong>Validation</strong>:</p>
+<pre><code class="language-bash"># Check the file was updated correctly
+cat tests/conftest.py | grep -A 5 &quot;schema_registry&quot;
+</code></pre>
+<hr />
+<h2 id="phase-2-fix-tablegenerator-tests-90-minutes">Phase 2: Fix TableGenerator Tests (90 minutes)</h2>
+<h3 id="overview">Overview</h3>
+<p>5 test files instantiate <code>TableGenerator()</code> without the required <code>schema_registry</code> parameter.</p>
+<h3 id="general-fix-pattern">General Fix Pattern</h3>
+<p><strong>Before</strong> (failing):</p>
+<pre><code class="language-python">def test_something():
+    generator = TableGenerator()
+    result = generator.generate(entity)
+    assert &quot;expected&quot; in result
+</code></pre>
+<p><strong>After</strong> (passing):</p>
+<pre><code class="language-python">def test_something(table_generator):  # ← Add fixture parameter
+    # generator = TableGenerator()  ← DELETE this line
+    result = table_generator.generate(entity)  # ← Use fixture
+    assert &quot;expected&quot; in result
+</code></pre>
+<hr />
+<h3 id="task-21-fix-testsunitgeneratorstest_comment_generationpy-20-minutes">Task 2.1: Fix <code>tests/unit/generators/test_comment_generation.py</code> (20 minutes)</h3>
+<p><strong>File</strong>: <code>tests/unit/generators/test_comment_generation.py</code>
+<strong>Failures</strong>: 13 tests</p>
+<p><strong>Steps</strong>:</p>
+<ol>
+<li>
+<p><strong>Find all test functions</strong> that create <code>TableGenerator()</code>:
+   <code>bash
+   grep -n "TableGenerator()" tests/unit/generators/test_comment_generation.py</code></p>
+</li>
+<li>
+<p><strong>For each test function</strong>, apply this transformation:</p>
+</li>
+</ol>
+<p><strong>Pattern A: Tests with local generator instantiation</strong>
+   ```python
+   # BEFORE
+   def test_entity_comment():
+       generator = TableGenerator()
+       # ... test code</p>
+<p># AFTER
+   def test_entity_comment(table_generator):
+       # ... test code (use table_generator instead of generator)
+   ```</p>
+<p><strong>Pattern B: Tests that need both fixture AND custom entity</strong>
+   ```python
+   # BEFORE
+   def test_field_comment():
+       generator = TableGenerator()
+       entity = Entity(name="Contact", schema="crm", ...)
+       result = generator.generate_comments(entity)</p>
+<p># AFTER
+   def test_field_comment(table_generator):
+       entity = Entity(name="Contact", schema="crm", ...)
+       result = table_generator.generate_comments(entity)
+   ```</p>
+<ol>
+<li>
+<p><strong>Update ALL 13 test functions</strong> in this file</p>
+</li>
+<li>
+<p><strong>Run tests to verify</strong>:
+   <code>bash
+   uv run pytest tests/unit/generators/test_comment_generation.py -v</code></p>
+</li>
+</ol>
+<p><strong>Expected Result</strong>: All 13 tests should pass ✅</p>
+<hr />
+<h3 id="task-22-fix-testsunitgeneratorstest_constraint_generationpy-15-minutes">Task 2.2: Fix <code>tests/unit/generators/test_constraint_generation.py</code> (15 minutes)</h3>
+<p><strong>File</strong>: <code>tests/unit/generators/test_constraint_generation.py</code>
+<strong>Failures</strong>: 9 tests</p>
+<p><strong>Same pattern as Task 2.1</strong>:</p>
+<ol>
+<li>Find all <code>TableGenerator()</code> instantiations</li>
+<li>Replace with <code>table_generator</code> fixture parameter</li>
+<li>Update test function signatures</li>
+<li>Run tests:
+   <code>bash
+   uv run pytest tests/unit/generators/test_constraint_generation.py -v</code></li>
+</ol>
+<p><strong>Expected Result</strong>: All 9 tests should pass ✅</p>
+<hr />
+<h3 id="task-23-fix-testsunitgeneratorstest_index_generationpy-15-minutes">Task 2.3: Fix <code>tests/unit/generators/test_index_generation.py</code> (15 minutes)</h3>
+<p><strong>File</strong>: <code>tests/unit/generators/test_index_generation.py</code>
+<strong>Failures</strong>: 6 tests</p>
+<p><strong>Same pattern</strong>:</p>
+<ol>
+<li>Replace <code>TableGenerator()</code> with fixture</li>
+<li>Update function signatures</li>
+<li>Run tests:
+   <code>bash
+   uv run pytest tests/unit/generators/test_index_generation.py -v</code></li>
+</ol>
+<p><strong>Expected Result</strong>: All 6 tests should pass ✅</p>
+<hr />
+<h3 id="task-24-fix-testsunitgeneratorstest_rich_type_ddlpy-20-minutes">Task 2.4: Fix <code>tests/unit/generators/test_rich_type_ddl.py</code> (20 minutes)</h3>
+<p><strong>File</strong>: <code>tests/unit/generators/test_rich_type_ddl.py</code>
+<strong>Failures</strong>: 12 tests</p>
+<p><strong>Same pattern</strong>:</p>
+<ol>
+<li>Replace <code>TableGenerator()</code> with fixture</li>
+<li>Update function signatures</li>
+<li>Run tests:
+   <code>bash
+   uv run pytest tests/unit/generators/test_rich_type_ddl.py -v</code></li>
+</ol>
+<p><strong>Expected Result</strong>: All 12 tests should pass ✅</p>
+<hr />
+<h3 id="task-25-fix-testsintegrationtest_table_generator_integrationpy-20-minutes">Task 2.5: Fix <code>tests/integration/test_table_generator_integration.py</code> (20 minutes)</h3>
+<p><strong>File</strong>: <code>tests/integration/test_table_generator_integration.py</code>
+<strong>Failures</strong>: 10 tests</p>
+<p><strong>Same pattern</strong>:</p>
+<ol>
+<li>Replace <code>TableGenerator()</code> with fixture</li>
+<li>Update function signatures</li>
+<li>Run tests:
+   <code>bash
+   uv run pytest tests/integration/test_table_generator_integration.py -v</code></li>
+</ol>
+<p><strong>Expected Result</strong>: All 10 tests should pass ✅</p>
+<hr />
+<h2 id="phase-3-fix-fk-resolver-tests-30-minutes">Phase 3: Fix FK Resolver Tests (30 minutes)</h2>
+<h3 id="task-31-update-fk-resolver-test-api">Task 3.1: Update FK Resolver Test API</h3>
+<p><strong>File</strong>: <code>tests/unit/actions/test_fk_resolver.py</code></p>
+<p><strong>Problem 1: Wrong API</strong></p>
+<p>The test creates <code>ForeignKeyResolver()</code> with no arguments, but the new API requires <code>NamingConventions</code>:</p>
+<p><strong>Before</strong> (failing):</p>
+<pre><code class="language-python">def test_resolve_fk():
+    resolver = ForeignKeyResolver()
+    # ...
+</code></pre>
+<p><strong>After</strong> (passing):</p>
+<pre><code class="language-python">def test_resolve_fk(naming_conventions):  # ← Add fixture
+    resolver = ForeignKeyResolver(naming_conventions)
+    # ...
+</code></pre>
+<p><strong>Problem 2: Wrong Expectations</strong></p>
+<p>The test expects <code>Manufacturer</code> → <code>product</code> schema, but it should now be <code>catalog</code>:</p>
+<p><strong>Before</strong> (failing):</p>
+<pre><code class="language-python">def test_manufacturer_schema():
+    resolver = ForeignKeyResolver()
+    schema = resolver._resolve_entity_schema(&quot;Manufacturer&quot;)
+    assert schema == &quot;product&quot;  # ← WRONG!
+</code></pre>
+<p><strong>After</strong> (passing):</p>
+<pre><code class="language-python">def test_manufacturer_schema(naming_conventions):
+    resolver = ForeignKeyResolver(naming_conventions)
+    schema = resolver._resolve_entity_schema(&quot;Manufacturer&quot;)
+    assert schema == &quot;catalog&quot;  # ← CORRECT!
+</code></pre>
+<p><strong>Steps</strong>:</p>
+<ol>
+<li>
+<p><strong>Find all test functions</strong> in <code>test_fk_resolver.py</code>:
+   <code>bash
+   grep -n "def test_" tests/unit/actions/test_fk_resolver.py</code></p>
+</li>
+<li>
+<p><strong>Update each test</strong>:</p>
+</li>
+<li>Add <code>naming_conventions</code> fixture parameter</li>
+<li>Pass to <code>ForeignKeyResolver(naming_conventions)</code></li>
+<li>
+<p>Update any assertions expecting <code>product</code> → change to <code>catalog</code></p>
+</li>
+<li>
+<p><strong>Run tests</strong>:
+   <code>bash
+   uv run pytest tests/unit/actions/test_fk_resolver.py -v</code></p>
+</li>
+</ol>
+<p><strong>Expected Result</strong>: All FK resolver tests pass ✅</p>
+<hr />
+<h2 id="phase-4-add-end-to-end-integration-test-30-minutes">Phase 4: Add End-to-End Integration Test (30 minutes)</h2>
+<h3 id="task-41-create-comprehensive-integration-test">Task 4.1: Create Comprehensive Integration Test</h3>
+<p><strong>File</strong>: <code>tests/integration/test_schema_registry_integration.py</code> (NEW FILE)</p>
+<p><strong>Create this file</strong> with the following content:</p>
+<pre><code class="language-python">&quot;&quot;&quot;
+Integration tests for SchemaRegistry across the full pipeline
+
+Tests that schema_registry properly affects:
+- Table generation (tenant_id column)
+- Trinity helpers (tenant-aware parameters)
+- FK resolution (correct schema mapping)
+- Alias resolution (management → crm)
+&quot;&quot;&quot;
+
+import pytest
+from src.core.ast_models import Entity, FieldDefinition
+from src.generators.table_generator import TableGenerator
+from src.generators.trinity_helper_generator import TrinityHelperGenerator
+from src.generators.actions.step_compilers.fk_resolver import ForeignKeyResolver
+from src.numbering.naming_conventions import NamingConventions
+from src.generators.schema.schema_registry import SchemaRegistry
+
+
+@pytest.fixture
+def crm_entity():
+    &quot;&quot;&quot;Test entity in multi-tenant schema (crm)&quot;&quot;&quot;
+    return Entity(
+        name=&quot;Contact&quot;,
+        schema=&quot;crm&quot;,  # Multi-tenant domain
+        description=&quot;Customer contact&quot;,
+        fields={
+            &quot;email&quot;: FieldDefinition(
+                name=&quot;email&quot;,
+                type_name=&quot;text&quot;,
+                required=True
+            ),
+            &quot;company&quot;: FieldDefinition(
+                name=&quot;company&quot;,
+                type_name=&quot;ref&quot;,
+                reference_entity=&quot;Company&quot;
+            )
+        }
+    )
+
+
+@pytest.fixture
+def catalog_entity():
+    &quot;&quot;&quot;Test entity in shared schema (catalog)&quot;&quot;&quot;
+    return Entity(
+        name=&quot;Manufacturer&quot;,
+        schema=&quot;catalog&quot;,  # Shared reference data
+        description=&quot;Product manufacturer&quot;,
+        fields={
+            &quot;name&quot;: FieldDefinition(
+                name=&quot;name&quot;,
+                type_name=&quot;text&quot;,
+                required=True
+            )
+        }
+    )
+
+
+class TestMultiTenantSchemaGeneration:
+    &quot;&quot;&quot;Test that multi-tenant schemas get tenant_id column&quot;&quot;&quot;
+
+    def test_crm_entity_has_tenant_id(self, table_generator, crm_entity):
+        &quot;&quot;&quot;CRM schema (multi_tenant=true) should generate tenant_id column&quot;&quot;&quot;
+        result = table_generator.generate(crm_entity)
+
+        # Should have tenant_id column
+        assert &quot;tenant_id UUID NOT NULL&quot; in result
+
+        # Should reference tenant table
+        assert &quot;REFERENCES&quot; in result and &quot;tenant&quot; in result.lower()
+
+    def test_catalog_entity_no_tenant_id(self, table_generator, catalog_entity):
+        &quot;&quot;&quot;Catalog schema (multi_tenant=false) should NOT have tenant_id&quot;&quot;&quot;
+        result = table_generator.generate(catalog_entity)
+
+        # Should NOT have tenant_id column
+        assert &quot;tenant_id&quot; not in result.lower()
+
+
+class TestAliasResolution:
+    &quot;&quot;&quot;Test that schema aliases resolve correctly&quot;&quot;&quot;
+
+    def test_management_alias_resolves_to_crm(self, schema_registry):
+        &quot;&quot;&quot;'management' is alias for 'crm' domain&quot;&quot;&quot;
+        assert schema_registry.is_multi_tenant(&quot;management&quot;) is True
+        assert schema_registry.get_canonical_schema_name(&quot;management&quot;) == &quot;crm&quot;
+
+    def test_tenant_alias_resolves_to_projects(self, schema_registry):
+        &quot;&quot;&quot;'tenant' is alias for 'projects' domain&quot;&quot;&quot;
+        assert schema_registry.is_multi_tenant(&quot;tenant&quot;) is True
+        assert schema_registry.get_canonical_schema_name(&quot;tenant&quot;) == &quot;projects&quot;
+
+    def test_dim_alias_resolves_to_projects(self, schema_registry):
+        &quot;&quot;&quot;'dim' is alias for 'projects' domain&quot;&quot;&quot;
+        assert schema_registry.is_multi_tenant(&quot;dim&quot;) is True
+        assert schema_registry.get_canonical_schema_name(&quot;dim&quot;) == &quot;projects&quot;
+
+    def test_management_entity_generates_with_tenant_id(self, table_generator):
+        &quot;&quot;&quot;Entity with schema='management' should get tenant_id (via crm)&quot;&quot;&quot;
+        entity = Entity(
+            name=&quot;Contact&quot;,
+            schema=&quot;management&quot;,  # Alias for crm
+            fields={}
+        )
+
+        result = table_generator.generate(entity)
+        assert &quot;tenant_id UUID NOT NULL&quot; in result
+
+
+class TestFKResolverIntegration:
+    &quot;&quot;&quot;Test FK resolver uses registry for schema mapping&quot;&quot;&quot;
+
+    def test_manufacturer_resolves_to_catalog(self, naming_conventions):
+        &quot;&quot;&quot;Manufacturer should map to 'catalog' schema (not 'product')&quot;&quot;&quot;
+        resolver = ForeignKeyResolver(naming_conventions)
+
+        schema = resolver._resolve_entity_schema(&quot;Manufacturer&quot;)
+
+        # Should be catalog (from registry), not product (old bug)
+        assert schema == &quot;catalog&quot;
+
+    def test_contact_resolves_to_crm(self, naming_conventions):
+        &quot;&quot;&quot;Contact should map to 'crm' schema&quot;&quot;&quot;
+        resolver = ForeignKeyResolver(naming_conventions)
+
+        schema = resolver._resolve_entity_schema(&quot;Contact&quot;)
+
+        assert schema == &quot;crm&quot;
+
+    def test_unregistered_entity_uses_inference(self, naming_conventions):
+        &quot;&quot;&quot;Unregistered entities should fall back to inference&quot;&quot;&quot;
+        resolver = ForeignKeyResolver(naming_conventions)
+
+        # UnknownEntity not in registry
+        schema = resolver._resolve_entity_schema(&quot;UnknownEntity&quot;)
+
+        # Should return inferred schema (lowercase entity name)
+        assert schema == &quot;unknownentity&quot;
+
+
+class TestFrameworkSchemas:
+    &quot;&quot;&quot;Test framework schemas (common, app, core) behavior&quot;&quot;&quot;
+
+    def test_common_is_framework_schema(self, schema_registry):
+        &quot;&quot;&quot;'common' should be recognized as framework schema&quot;&quot;&quot;
+        assert schema_registry.is_framework_schema(&quot;common&quot;) is True
+        assert schema_registry.is_multi_tenant(&quot;common&quot;) is False
+
+    def test_app_is_framework_schema(self, schema_registry):
+        &quot;&quot;&quot;'app' should be recognized as framework schema&quot;&quot;&quot;
+        assert schema_registry.is_framework_schema(&quot;app&quot;) is True
+        assert schema_registry.is_multi_tenant(&quot;app&quot;) is False
+
+    def test_core_is_framework_schema(self, schema_registry):
+        &quot;&quot;&quot;'core' should be recognized as framework schema&quot;&quot;&quot;
+        assert schema_registry.is_framework_schema(&quot;core&quot;) is True
+        assert schema_registry.is_multi_tenant(&quot;core&quot;) is False
+
+
+class TestTrinityHelperGeneration:
+    &quot;&quot;&quot;Test Trinity helpers respect multi-tenant flag&quot;&quot;&quot;
+
+    def test_multi_tenant_helpers_have_tenant_param(self, trinity_helper_generator, crm_entity):
+        &quot;&quot;&quot;Multi-tenant entities should have tenant_id in helper functions&quot;&quot;&quot;
+        result = trinity_helper_generator.generate(crm_entity)
+
+        # Should have tenant_id parameter in pk/id/identifier helpers
+        assert &quot;tenant_id UUID&quot; in result
+
+    def test_shared_helpers_no_tenant_param(self, trinity_helper_generator, catalog_entity):
+        &quot;&quot;&quot;Shared entities should NOT have tenant_id in helpers&quot;&quot;&quot;
+        result = trinity_helper_generator.generate(catalog_entity)
+
+        # Should NOT have tenant_id parameter
+        # (Check that tenant_id is not in function signatures)
+        lines = result.split('\n')
+        function_lines = [l for l in lines if 'CREATE FUNCTION' in l or 'CREATE OR REPLACE FUNCTION' in l]
+
+        for line in function_lines:
+            # tenant_id should not appear in function parameters
+            if 'tenant_id' in line.lower():
+                pytest.fail(f&quot;Shared schema function should not have tenant_id: {line}&quot;)
+</code></pre>
+<p><strong>Run the integration tests</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/test_schema_registry_integration.py -v
+</code></pre>
+<p><strong>Expected Result</strong>: All integration tests pass ✅</p>
+<hr />
+<h2 id="phase-5-validation-verification-15-minutes">Phase 5: Validation &amp; Verification (15 minutes)</h2>
+<h3 id="task-51-run-full-test-suite">Task 5.1: Run Full Test Suite</h3>
+<p><strong>Run all tests</strong> to ensure nothing broke:</p>
+<pre><code class="language-bash"># Run all unit tests
+uv run pytest tests/unit/ -v
+
+# Run all integration tests
+uv run pytest tests/integration/ -v
+
+# Run specific schema-related tests
+uv run pytest tests/unit/schema/ -v
+uv run pytest tests/unit/generators/ -v
+uv run pytest tests/unit/actions/ -v
+
+# Full test suite
+uv run pytest --tb=short
+</code></pre>
+<p><strong>Expected Result</strong>:
+- ✅ All previously failing tests now pass
+- ✅ No new test failures introduced
+- ✅ Test count should be ~100+ passing tests</p>
+<hr />
+<h3 id="task-52-verify-test-coverage">Task 5.2: Verify Test Coverage</h3>
+<p><strong>Check coverage</strong> for SchemaRegistry and related code:</p>
+<pre><code class="language-bash">uv run pytest --cov=src/generators/schema/schema_registry --cov-report=term-missing
+</code></pre>
+<p><strong>Expected Result</strong>:
+- ✅ SchemaRegistry: 100% coverage
+- ✅ No uncovered lines in schema registry logic</p>
+<hr />
+<h3 id="task-53-manual-smoke-test">Task 5.3: Manual Smoke Test</h3>
+<p><strong>Generate SQL for a test entity</strong> to ensure end-to-end works:</p>
+<pre><code class="language-python"># Create test script: test_manual_generation.py
+from src.core.ast_models import Entity, FieldDefinition
+from src.generators.table_generator import TableGenerator
+from src.generators.schema.schema_registry import SchemaRegistry
+from src.numbering.naming_conventions import NamingConventions
+
+# Setup
+naming_conventions = NamingConventions()
+schema_registry = SchemaRegistry(naming_conventions.registry)
+generator = TableGenerator(schema_registry)
+
+# Test multi-tenant entity
+crm_entity = Entity(
+    name=&quot;Contact&quot;,
+    schema=&quot;crm&quot;,
+    fields={
+        &quot;email&quot;: FieldDefinition(name=&quot;email&quot;, type_name=&quot;text&quot;)
+    }
+)
+
+# Test shared entity
+catalog_entity = Entity(
+    name=&quot;Manufacturer&quot;,
+    schema=&quot;catalog&quot;,
+    fields={
+        &quot;name&quot;: FieldDefinition(name=&quot;name&quot;, type_name=&quot;text&quot;)
+    }
+)
+
+# Generate and verify
+print(&quot;=== CRM Entity (should have tenant_id) ===&quot;)
+crm_sql = generator.generate(crm_entity)
+print(crm_sql)
+assert &quot;tenant_id UUID NOT NULL&quot; in crm_sql, &quot;CRM entity missing tenant_id!&quot;
+
+print(&quot;\n=== Catalog Entity (should NOT have tenant_id) ===&quot;)
+catalog_sql = generator.generate(catalog_entity)
+print(catalog_sql)
+assert &quot;tenant_id&quot; not in catalog_sql.lower(), &quot;Catalog entity should not have tenant_id!&quot;
+
+print(&quot;\n✅ Manual smoke test PASSED!&quot;)
+</code></pre>
+<p><strong>Run it</strong>:</p>
+<pre><code class="language-bash">uv run python test_manual_generation.py
+</code></pre>
+<p><strong>Expected Output</strong>:</p>
+<pre><code>=== CRM Entity (should have tenant_id) ===
+CREATE TABLE crm.tb_contact (
+    pk_contact INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+    identifier TEXT UNIQUE,
+    tenant_id UUID NOT NULL,  -- ✅ PRESENT
+    email TEXT,
+    ...
+
+=== Catalog Entity (should NOT have tenant_id) ===
+CREATE TABLE catalog.tb_manufacturer (
+    pk_manufacturer INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+    identifier TEXT UNIQUE,
+    name TEXT,
+    ...  -- ✅ NO tenant_id
+
+✅ Manual smoke test PASSED!
+</code></pre>
+<hr />
+<h2 id="phase-6-documentation-cleanup-15-minutes">Phase 6: Documentation &amp; Cleanup (15 minutes)</h2>
+<h3 id="task-61-update-migration-guide">Task 6.1: Update Migration Guide</h3>
+<p><strong>File</strong>: <code>docs/guides/SCHEMA_REGISTRY_MIGRATION.md</code> (NEW FILE)</p>
+<p><strong>Create this file</strong>:</p>
+<pre><code class="language-markdown"># Schema Registry Migration Guide
+
+**Date**: 2025-11-09
+**Breaking Change**: TableGenerator, TrinityHelperGenerator, CoreLogicGenerator now require `schema_registry` parameter
+
+---
+
+## What Changed
+
+### Old API (Before SchemaRegistry)
+
+```python
+from src.generators.table_generator import TableGenerator
+
+# Generators had no parameters
+generator = TableGenerator()
+result = generator.generate(entity)
+</code></pre>
+<h3 id="new-api-after-schemaregistry">New API (After SchemaRegistry)</h3>
+<pre><code class="language-python">from src.generators.table_generator import TableGenerator
+from src.generators.schema.schema_registry import SchemaRegistry
+from src.numbering.naming_conventions import NamingConventions
+
+# Setup schema registry
+naming_conventions = NamingConventions()
+schema_registry = SchemaRegistry(naming_conventions.registry)
+
+# Pass to generator
+generator = TableGenerator(schema_registry)
+result = generator.generate(entity)
+</code></pre>
+<hr />
+<h2 id="why-this-change">Why This Change</h2>
+<p><strong>Before</strong>: Multi-tenancy was determined by hardcoded lists:</p>
+<pre><code class="language-python">TENANT_SCHEMAS = [&quot;tenant&quot;, &quot;crm&quot;, &quot;management&quot;, &quot;operations&quot;]
+</code></pre>
+<p><strong>After</strong>: Multi-tenancy is determined by domain registry metadata:</p>
+<pre><code class="language-yaml"># registry/domain_registry.yaml
+&quot;2&quot;:
+  name: crm
+  multi_tenant: true  # ← Explicit flag
+</code></pre>
+<p><strong>Benefits</strong>:
+- ✅ Single source of truth (domain registry)
+- ✅ Support for schema aliases ("management" → "crm")
+- ✅ Easy to add new multi-tenant domains
+- ✅ No hardcoded lists to maintain</p>
+<hr />
+<h2 id="migration-steps">Migration Steps</h2>
+<h3 id="for-test-code">For Test Code</h3>
+<p><strong>Use pytest fixtures</strong> (recommended):</p>
+<pre><code class="language-python"># Add to conftest.py or use existing fixtures
+@pytest.fixture
+def table_generator(schema_registry):
+    return TableGenerator(schema_registry)
+
+# In your test
+def test_something(table_generator):
+    result = table_generator.generate(entity)
+    assert &quot;expected&quot; in result
+</code></pre>
+<h3 id="for-production-code">For Production Code</h3>
+<p><strong>Setup once, reuse</strong>:</p>
+<pre><code class="language-python"># In your application initialization
+naming_conventions = NamingConventions()
+schema_registry = SchemaRegistry(naming_conventions.registry)
+
+# Create generators
+table_gen = TableGenerator(schema_registry)
+trinity_gen = TrinityHelperGenerator(schema_registry)
+core_logic_gen = CoreLogicGenerator(schema_registry)
+
+# Use throughout your application
+result = table_gen.generate(my_entity)
+</code></pre>
+<hr />
+<h2 id="affected-components">Affected Components</h2>
+<p>All three generators now require <code>schema_registry</code>:</p>
+<ol>
+<li><code>TableGenerator(schema_registry)</code></li>
+<li><code>TrinityHelperGenerator(schema_registry)</code></li>
+<li><code>CoreLogicGenerator(schema_registry)</code></li>
+</ol>
+<p>FK resolver requires <code>NamingConventions</code>:</p>
+<ol>
+<li><code>ForeignKeyResolver(naming_conventions)</code></li>
+</ol>
+<hr />
+<h2 id="common-errors">Common Errors</h2>
+<h3 id="error-missing-required-argument-schema_registry">Error: "Missing required argument 'schema_registry'"</h3>
+<pre><code class="language-python"># ❌ WRONG
+generator = TableGenerator()
+
+# ✅ CORRECT
+schema_registry = SchemaRegistry(naming_conventions.registry)
+generator = TableGenerator(schema_registry)
+</code></pre>
+<h3 id="error-manufacturer-maps-to-product-instead-of-catalog">Error: "Manufacturer maps to 'product' instead of 'catalog'"</h3>
+<p><strong>This was a bug that is now FIXED</strong>.</p>
+<p>FK resolver now correctly uses domain registry:
+- Manufacturer → <code>catalog</code> ✅ (was <code>product</code> ❌)</p>
+<hr />
+<h2 id="questions">Questions?</h2>
+<p>See:
+- <code>docs/architecture/SCHEMA_ORGANIZATION_STRATEGY.md</code> - Full schema strategy
+- <code>docs/architecture/SCHEMA_REFACTORING_IMPACT.md</code> - Impact analysis
+- <code>tests/conftest.py</code> - Example fixtures</p>
+<pre><code>
+---
+
+### Task 6.2: Add Usage Examples to Generator README Files
+
+**Files to Update**:
+1. `src/generators/README.md`
+2. `src/generators/schema/README.md`
+
+**Add section to each**:
+
+```markdown
+## Usage
+
+### With SchemaRegistry (Required)
+
+```python
+from src.generators.table_generator import TableGenerator
+from src.generators.schema.schema_registry import SchemaRegistry
+from src.numbering.naming_conventions import NamingConventions
+
+# Initialize
+naming_conventions = NamingConventions()
+schema_registry = SchemaRegistry(naming_conventions.registry)
+
+# Create generator
+generator = TableGenerator(schema_registry)
+
+# Generate SQL
+entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;, ...)
+sql = generator.generate(entity)
+</code></pre>
+<h3 id="multi-tenant-behavior">Multi-Tenant Behavior</h3>
+<p>The schema registry determines if entities get <code>tenant_id</code> column based on domain metadata:</p>
+<pre><code class="language-yaml"># registry/domain_registry.yaml
+&quot;2&quot;:
+  name: crm
+  multi_tenant: true  # ← Entities get tenant_id
+
+&quot;3&quot;:
+  name: catalog
+  multi_tenant: false  # ← Shared, no tenant_id
+</code></pre>
+<pre><code>
+---
+
+## Phase 7: Final Verification (10 minutes)
+
+### Task 7.1: Run Complete Test Suite
+
+**Full test run** with coverage:
+
+```bash
+# Clean test run
+uv run pytest --cache-clear --tb=short -v
+
+# With coverage
+uv run pytest --cov=src --cov-report=term --cov-report=html
+
+# Check coverage report
+open htmlcov/index.html  # Or: firefox htmlcov/index.html
+</code></pre>
+<p><strong>Expected Results</strong>:
+- ✅ 0 test failures
+- ✅ ~100+ tests passing
+- ✅ Coverage &gt; 85% overall
+- ✅ SchemaRegistry: 100% coverage</p>
+<hr />
+<h3 id="task-72-git-status-check">Task 7.2: Git Status Check</h3>
+<p><strong>Verify all changes are captured</strong>:</p>
+<pre><code class="language-bash">git status
+
+# Should show:
+# Modified:
+#   - tests/conftest.py
+#   - tests/unit/generators/test_comment_generation.py
+#   - tests/unit/generators/test_constraint_generation.py
+#   - tests/unit/generators/test_index_generation.py
+#   - tests/unit/generators/test_rich_type_ddl.py
+#   - tests/integration/test_table_generator_integration.py
+#   - tests/unit/actions/test_fk_resolver.py
+#
+# New files:
+#   - tests/integration/test_schema_registry_integration.py
+#   - docs/guides/SCHEMA_REGISTRY_MIGRATION.md
+</code></pre>
+<hr />
+<h3 id="task-73-create-summary-report">Task 7.3: Create Summary Report</h3>
+<p><strong>File</strong>: <code>docs/implementation-plans/SCHEMA_REGISTRY_TEST_FIX_REPORT.md</code></p>
+<p><strong>Create final report</strong>:</p>
+<pre><code class="language-markdown"># Schema Registry Test Fix - Completion Report
+
+**Date**: 2025-11-09
+**Status**: ✅ COMPLETE
+
+---
+
+## Summary
+
+Fixed 47 failing tests after SchemaRegistry implementation by:
+1. Adding shared fixtures to `conftest.py`
+2. Updating 5 test files to use new API
+3. Fixing FK resolver tests
+4. Adding comprehensive integration tests
+5. Updating documentation
+
+---
+
+## Test Results
+
+### Before
+- ❌ 47 failing tests
+- ❌ Broken FK resolver tests
+- ⚠️ No integration tests
+
+### After
+- ✅ 0 failing tests
+- ✅ 100+ passing tests
+- ✅ Comprehensive integration test coverage
+- ✅ All generators using SchemaRegistry
+
+---
+
+## Files Modified
+
+### Tests Fixed (6 files)
+1. `tests/conftest.py` - Added shared fixtures
+2. `tests/unit/generators/test_comment_generation.py` - 13 tests fixed
+3. `tests/unit/generators/test_constraint_generation.py` - 9 tests fixed
+4. `tests/unit/generators/test_index_generation.py` - 6 tests fixed
+5. `tests/unit/generators/test_rich_type_ddl.py` - 12 tests fixed
+6. `tests/integration/test_table_generator_integration.py` - 10 tests fixed
+7. `tests/unit/actions/test_fk_resolver.py` - Updated for new API
+
+### Tests Added (1 file)
+8. `tests/integration/test_schema_registry_integration.py` - Comprehensive integration tests
+
+### Documentation (2 files)
+9. `docs/guides/SCHEMA_REGISTRY_MIGRATION.md` - Migration guide
+10. `src/generators/README.md` - Usage examples
+
+---
+
+## Validation
+
+✅ Full test suite passes
+✅ Coverage maintained &gt; 85%
+✅ No regressions introduced
+✅ Integration tests verify end-to-end behavior
+
+---
+
+## Time Spent
+
+- Phase 1 (Fixtures): 15 minutes
+- Phase 2 (TableGenerator tests): 90 minutes
+- Phase 3 (FK resolver): 30 minutes
+- Phase 4 (Integration tests): 30 minutes
+- Phase 5 (Validation): 15 minutes
+- Phase 6 (Documentation): 15 minutes
+- Phase 7 (Final verification): 10 minutes
+
+**Total**: ~3 hours
+
+---
+
+**Implementation Quality**: ⭐⭐⭐⭐⭐
+**Test Coverage**: ⭐⭐⭐⭐⭐
+**Production Ready**: ✅ YES
+</code></pre>
+<hr />
+<h2 id="success-criteria-checklist">Success Criteria Checklist</h2>
+<p>Use this checklist to verify completion:</p>
+<h3 id="phase-1-fixtures">Phase 1: Fixtures</h3>
+<ul>
+<li>[ ] <code>tests/conftest.py</code> updated with schema_registry fixtures</li>
+<li>[ ] Fixtures include: <code>naming_conventions</code>, <code>schema_registry</code>, <code>table_generator</code>, <code>trinity_helper_generator</code>, <code>core_logic_generator</code></li>
+</ul>
+<h3 id="phase-2-tablegenerator-tests">Phase 2: TableGenerator Tests</h3>
+<ul>
+<li>[ ] <code>test_comment_generation.py</code> - All 13 tests passing</li>
+<li>[ ] <code>test_constraint_generation.py</code> - All 9 tests passing</li>
+<li>[ ] <code>test_index_generation.py</code> - All 6 tests passing</li>
+<li>[ ] <code>test_rich_type_ddl.py</code> - All 12 tests passing</li>
+<li>[ ] <code>test_table_generator_integration.py</code> - All 10 tests passing</li>
+</ul>
+<h3 id="phase-3-fk-resolver">Phase 3: FK Resolver</h3>
+<ul>
+<li>[ ] <code>test_fk_resolver.py</code> updated for new API</li>
+<li>[ ] All assertions updated (Manufacturer → catalog)</li>
+<li>[ ] All FK resolver tests passing</li>
+</ul>
+<h3 id="phase-4-integration-tests">Phase 4: Integration Tests</h3>
+<ul>
+<li>[ ] <code>test_schema_registry_integration.py</code> created</li>
+<li>[ ] Tests cover multi-tenant behavior</li>
+<li>[ ] Tests cover alias resolution</li>
+<li>[ ] Tests cover FK resolver integration</li>
+<li>[ ] Tests cover framework schemas</li>
+</ul>
+<h3 id="phase-5-validation">Phase 5: Validation</h3>
+<ul>
+<li>[ ] Full test suite passes (<code>uv run pytest</code>)</li>
+<li>[ ] No test failures</li>
+<li>[ ] Coverage &gt; 85%</li>
+<li>[ ] Manual smoke test passes</li>
+</ul>
+<h3 id="phase-6-documentation">Phase 6: Documentation</h3>
+<ul>
+<li>[ ] <code>SCHEMA_REGISTRY_MIGRATION.md</code> created</li>
+<li>[ ] Generator README files updated with examples</li>
+<li>[ ] Migration guide covers common errors</li>
+</ul>
+<h3 id="phase-7-final-verification">Phase 7: Final Verification</h3>
+<ul>
+<li>[ ] Clean test run with no failures</li>
+<li>[ ] Coverage report generated</li>
+<li>[ ] Git status shows expected changes</li>
+<li>[ ] Completion report written</li>
+</ul>
+<hr />
+<h2 id="emergency-rollback-if-needed">Emergency Rollback (If Needed)</h2>
+<p>If you encounter blocking issues:</p>
+<ol>
+<li>
+<p><strong>Identify the problem</strong>:
+   <code>bash
+   uv run pytest --tb=short -x  # Stop at first failure</code></p>
+</li>
+<li>
+<p><strong>Check specific test</strong>:
+   <code>bash
+   uv run pytest tests/path/to/test.py::test_name -vv</code></p>
+</li>
+<li>
+<p><strong>If stuck</strong>, document:</p>
+</li>
+<li>Which phase you're on</li>
+<li>Which test is failing</li>
+<li>Error message</li>
+<li>
+<p>What you tried</p>
+</li>
+<li>
+<p><strong>Ask for help</strong> with this info:
+   ```markdown
+   ## Stuck on Phase X, Task Y</p>
+</li>
+</ol>
+<p><strong>Test</strong>: <code>tests/path/to/test.py::test_name</code></p>
+<p><strong>Error</strong>:
+   <code>[paste error message]</code></p>
+<p><strong>What I tried</strong>:
+   - [list attempts]</p>
+<p><strong>Current status</strong>:
+   - [what works, what doesn't]
+   ```</p>
+<hr />
+<h2 id="estimated-timeline">Estimated Timeline</h2>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Tasks</th>
+<th>Time</th>
+<th>Cumulative</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Create fixtures</td>
+<td>15 min</td>
+<td>15 min</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Fix 5 test files</td>
+<td>90 min</td>
+<td>105 min</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Fix FK resolver</td>
+<td>30 min</td>
+<td>135 min</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Integration tests</td>
+<td>30 min</td>
+<td>165 min</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Validation</td>
+<td>15 min</td>
+<td>180 min</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Documentation</td>
+<td>15 min</td>
+<td>195 min</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Final verification</td>
+<td>10 min</td>
+<td>205 min</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td></td>
+<td><strong>~3.5 hours</strong></td>
+<td></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="tips-for-success">Tips for Success</h2>
+<ol>
+<li><strong>Work sequentially</strong> - Don't skip phases</li>
+<li><strong>Test frequently</strong> - Run tests after each file update</li>
+<li><strong>Use fixtures</strong> - Don't duplicate setup code</li>
+<li><strong>Copy patterns</strong> - Once you fix one test file, others are similar</li>
+<li><strong>Commit often</strong> - Commit after each phase completes</li>
+<li><strong>Ask questions</strong> - If stuck &gt; 15 minutes, ask for help</li>
+</ol>
+<hr />
+<p><strong>Good luck! You've got this! 🚀</strong></p>
+<p>The implementation is excellent - this is just cleanup work to align tests with the new API. The pattern is simple and repetitive, so once you fix the first few tests, the rest will go quickly.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

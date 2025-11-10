@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>🤖 AGENT: Schema Registry Test Fixes - Your Mission - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "\ud83e\udd16 AGENT: Schema Registry Test Fixes - Your Mission";
+        var mkdocs_page_input_path = "archive/AGENT_INSTRUCTIONS.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">🤖 AGENT: Schema Registry Test Fixes - Your Mission</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="agent-schema-registry-test-fixes-your-mission">🤖 AGENT: Schema Registry Test Fixes - Your Mission</h1>
+<p><strong>Status</strong>: 🔴 CRITICAL - 47 Tests Failing
+<strong>Your Task</strong>: Fix all failing tests after SchemaRegistry implementation
+<strong>Time Estimate</strong>: 2-3 hours
+<strong>Difficulty</strong>: ⭐⭐ (Medium - repetitive pattern)</p>
+<hr />
+<h2 id="quick-summary">📋 Quick Summary</h2>
+<p><strong>What Happened</strong>: The SchemaRegistry implementation is excellent, but it introduced a breaking API change. Generators now require a <code>schema_registry</code> parameter, but tests weren't updated.</p>
+<p><strong>Your Mission</strong>: Update all failing tests to use the new API.</p>
+<p><strong>Detailed Plan</strong>: See <code>docs/implementation-plans/SCHEMA_REGISTRY_TEST_FIX_PLAN.md</code></p>
+<hr />
+<h2 id="the-fix-pattern-very-simple">🎯 The Fix Pattern (Very Simple!)</h2>
+<p><strong>Old Code</strong> (failing):</p>
+<pre><code class="language-python">def test_something():
+    generator = TableGenerator()  # ❌ Missing required parameter
+    result = generator.generate(entity)
+</code></pre>
+<p><strong>New Code</strong> (passing):</p>
+<pre><code class="language-python">def test_something(table_generator):  # ✅ Use fixture
+    result = table_generator.generate(entity)
+</code></pre>
+<p><strong>That's it!</strong> You need to apply this pattern to 47 tests across 5 files.</p>
+<hr />
+<h2 id="your-step-by-step-checklist">📝 Your Step-by-Step Checklist</h2>
+<h3 id="phase-1-create-shared-fixtures-15-min">✅ Phase 1: Create Shared Fixtures (15 min)</h3>
+<ul>
+<li>[ ] Update <code>tests/conftest.py</code> with new fixtures</li>
+<li>[ ] Add: <code>schema_registry</code>, <code>table_generator</code>, <code>trinity_helper_generator</code>, <code>core_logic_generator</code></li>
+<li>[ ] <strong>See plan</strong>: Section "Phase 1: Create Shared Fixtures"</li>
+</ul>
+<h3 id="phase-2-fix-tablegenerator-tests-90-min">✅ Phase 2: Fix TableGenerator Tests (90 min)</h3>
+<ul>
+<li>[ ] Fix <code>tests/unit/generators/test_comment_generation.py</code> (13 tests)</li>
+<li>[ ] Fix <code>tests/unit/generators/test_constraint_generation.py</code> (9 tests)</li>
+<li>[ ] Fix <code>tests/unit/generators/test_index_generation.py</code> (6 tests)</li>
+<li>[ ] Fix <code>tests/unit/generators/test_rich_type_ddl.py</code> (12 tests)</li>
+<li>[ ] Fix <code>tests/integration/test_table_generator_integration.py</code> (10 tests)</li>
+<li>[ ] <strong>Pattern</strong>: Replace <code>TableGenerator()</code> with <code>table_generator</code> fixture</li>
+<li>[ ] <strong>See plan</strong>: Section "Phase 2: Fix TableGenerator Tests"</li>
+</ul>
+<h3 id="phase-3-fix-fk-resolver-tests-30-min">✅ Phase 3: Fix FK Resolver Tests (30 min)</h3>
+<ul>
+<li>[ ] Update <code>tests/unit/actions/test_fk_resolver.py</code></li>
+<li>[ ] Add <code>naming_conventions</code> fixture parameter</li>
+<li>[ ] Pass to <code>ForeignKeyResolver(naming_conventions)</code></li>
+<li>[ ] Change assertions: <code>product</code> → <code>catalog</code> (bug fix!)</li>
+<li>[ ] <strong>See plan</strong>: Section "Phase 3: Fix FK Resolver Tests"</li>
+</ul>
+<h3 id="phase-4-add-integration-tests-30-min">✅ Phase 4: Add Integration Tests (30 min)</h3>
+<ul>
+<li>[ ] Create <code>tests/integration/test_schema_registry_integration.py</code></li>
+<li>[ ] Test multi-tenant behavior (crm has tenant_id, catalog doesn't)</li>
+<li>[ ] Test alias resolution (management → crm)</li>
+<li>[ ] Test FK resolver uses registry</li>
+<li>[ ] <strong>See plan</strong>: Section "Phase 4: Add End-to-End Integration Test"</li>
+</ul>
+<h3 id="phase-5-validation-15-min">✅ Phase 5: Validation (15 min)</h3>
+<ul>
+<li>[ ] Run full test suite: <code>uv run pytest --tb=short</code></li>
+<li>[ ] Verify: 0 failures, 100+ passing</li>
+<li>[ ] Check coverage: <code>uv run pytest --cov=src</code></li>
+<li>[ ] <strong>See plan</strong>: Section "Phase 5: Validation &amp; Verification"</li>
+</ul>
+<h3 id="phase-6-documentation-15-min">✅ Phase 6: Documentation (15 min)</h3>
+<ul>
+<li>[ ] Create <code>docs/guides/SCHEMA_REGISTRY_MIGRATION.md</code></li>
+<li>[ ] Update <code>src/generators/README.md</code> with usage examples</li>
+<li>[ ] <strong>See plan</strong>: Section "Phase 6: Documentation &amp; Cleanup"</li>
+</ul>
+<h3 id="phase-7-final-report-10-min">✅ Phase 7: Final Report (10 min)</h3>
+<ul>
+<li>[ ] Run clean test suite</li>
+<li>[ ] Create completion report</li>
+<li>[ ] Verify git status</li>
+<li>[ ] <strong>See plan</strong>: Section "Phase 7: Final Verification"</li>
+</ul>
+<hr />
+<h2 id="quick-start">🚀 Quick Start</h2>
+<p><strong>Step 1</strong>: Read the detailed plan</p>
+<pre><code class="language-bash">cat docs/implementation-plans/SCHEMA_REGISTRY_TEST_FIX_PLAN.md
+</code></pre>
+<p><strong>Step 2</strong>: Start with Phase 1 (fixtures)</p>
+<pre><code class="language-bash"># Open conftest.py and add the fixtures from the plan
+vim tests/conftest.py
+</code></pre>
+<p><strong>Step 3</strong>: Fix tests one file at a time</p>
+<pre><code class="language-bash"># Example: Fix first test file
+vim tests/unit/generators/test_comment_generation.py
+
+# Pattern: Replace TableGenerator() with table_generator fixture
+# Run tests to verify
+uv run pytest tests/unit/generators/test_comment_generation.py -v
+</code></pre>
+<p><strong>Step 4</strong>: Repeat for all 5 test files</p>
+<p><strong>Step 5</strong>: Complete remaining phases</p>
+<hr />
+<h2 id="key-concepts">🎓 Key Concepts</h2>
+<h3 id="why-this-change-happened">Why This Change Happened</h3>
+<p><strong>Before</strong> (hardcoded):</p>
+<pre><code class="language-python"># Generators had hardcoded list
+TENANT_SCHEMAS = [&quot;tenant&quot;, &quot;crm&quot;, &quot;management&quot;, &quot;operations&quot;]
+</code></pre>
+<p><strong>After</strong> (registry-driven):</p>
+<pre><code class="language-yaml"># Domain registry has metadata
+&quot;2&quot;:
+  name: crm
+  multi_tenant: true  # ← Determines tenant_id behavior
+</code></pre>
+<p><strong>Benefits</strong>:
+- ✅ Single source of truth
+- ✅ Supports aliases (management → crm)
+- ✅ Easy to add new domains
+- ✅ Fixed bug: Manufacturer now maps to <code>catalog</code> (not <code>product</code>)</p>
+<h3 id="the-fixture-pattern">The Fixture Pattern</h3>
+<pre><code class="language-python"># In conftest.py (you create this):
+@pytest.fixture
+def table_generator(schema_registry):
+    return TableGenerator(schema_registry)
+
+# In test files (you use this):
+def test_something(table_generator):  # ← Pytest auto-injects
+    result = table_generator.generate(entity)
+    assert &quot;expected&quot; in result
+</code></pre>
+<p><strong>Why</strong>: Eliminates code duplication, ensures consistent setup.</p>
+<hr />
+<h2 id="pro-tips">💡 Pro Tips</h2>
+<ol>
+<li><strong>Work Phase by Phase</strong> - Don't skip ahead</li>
+<li><strong>Test Frequently</strong> - Run tests after each file</li>
+<li><strong>Copy the Pattern</strong> - Once you fix one test file, others are identical</li>
+<li><strong>Use Search/Replace</strong> - <code>TableGenerator()</code> → <code>table_generator</code> (fixture param)</li>
+<li><strong>Commit Often</strong> - Git commit after each phase</li>
+<li><strong>Ask If Stuck</strong> - If blocked &gt; 15 min, document and ask for help</li>
+</ol>
+<hr />
+<h2 id="progress-tracking">📊 Progress Tracking</h2>
+<p>Create a checklist as you work:</p>
+<pre><code class="language-markdown">## My Progress
+
+- [x] Read detailed plan
+- [x] Phase 1: Fixtures created
+- [ ] Phase 2.1: test_comment_generation.py (13 tests)
+- [ ] Phase 2.2: test_constraint_generation.py (9 tests)
+- [ ] Phase 2.3: test_index_generation.py (6 tests)
+- [ ] Phase 2.4: test_rich_type_ddl.py (12 tests)
+- [ ] Phase 2.5: test_table_generator_integration.py (10 tests)
+- [ ] Phase 3: FK resolver tests
+- [ ] Phase 4: Integration tests
+- [ ] Phase 5: Validation
+- [ ] Phase 6: Documentation
+- [ ] Phase 7: Final report
+
+**Current Status**: Working on Phase X
+**Tests Fixed**: X/47
+**Estimated Completion**: X hours remaining
+</code></pre>
+<hr />
+<h2 id="if-you-get-stuck">🆘 If You Get Stuck</h2>
+<h3 id="common-issues">Common Issues</h3>
+<p><strong>Issue 1</strong>: Import errors</p>
+<pre><code class="language-python"># Make sure imports are correct
+from src.generators.table_generator import TableGenerator
+from src.generators.schema.schema_registry import SchemaRegistry
+</code></pre>
+<p><strong>Issue 2</strong>: Fixture not found</p>
+<pre><code class="language-python"># Did you add the fixture to conftest.py?
+# Check: grep &quot;def table_generator&quot; tests/conftest.py
+</code></pre>
+<p><strong>Issue 3</strong>: Tests still failing after update</p>
+<pre><code class="language-python"># Run with verbose output to see error
+uv run pytest tests/path/to/test.py::test_name -vv
+
+# Check you removed the old TableGenerator() line
+# Check you added the fixture parameter
+</code></pre>
+<h3 id="get-help-template">Get Help Template</h3>
+<p>If stuck &gt; 15 minutes, document:</p>
+<pre><code class="language-markdown">## 🆘 STUCK - Need Help
+
+**Phase**: X
+**Task**: Y
+**File**: tests/path/to/test.py
+
+**Error**:
+</code></pre>
+<p>[paste error message]</p>
+<pre><code>
+**What I tried**:
+1. [attempt 1]
+2. [attempt 2]
+
+**Current code**:
+```python
+[paste relevant test code]
+</code></pre>
+<p>```</p>
+<hr />
+<h2 id="success-criteria">✅ Success Criteria</h2>
+<p>You're done when:</p>
+<ol>
+<li>✅ All 47 tests are passing</li>
+<li>✅ Integration tests created and passing</li>
+<li>✅ Full test suite runs clean: <code>uv run pytest</code></li>
+<li>✅ Coverage &gt; 85%</li>
+<li>✅ Documentation created</li>
+<li>✅ Completion report written</li>
+</ol>
+<hr />
+<h2 id="resources">📚 Resources</h2>
+<ul>
+<li><strong>Detailed Plan</strong>: <code>docs/implementation-plans/SCHEMA_REGISTRY_TEST_FIX_PLAN.md</code> ← START HERE</li>
+<li><strong>QA Report</strong>: <code>docs/architecture/SCHEMA_REFACTORING_IMPACT.md</code></li>
+<li><strong>Strategy Doc</strong>: <code>docs/architecture/SCHEMA_ORGANIZATION_STRATEGY.md</code></li>
+</ul>
+<hr />
+<p><strong>You've got this!</strong> 🚀</p>
+<p>The implementation is excellent - you're just updating tests to use the new API. The pattern is simple and repetitive, so it will go quickly once you get into the rhythm.</p>
+<p><strong>Estimated time</strong>: 2-3 hours for all phases.</p>
+<p>Start with Phase 1 in the detailed plan!</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

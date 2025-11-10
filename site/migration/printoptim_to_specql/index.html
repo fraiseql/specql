@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Migrating PrintOptim to SpecQL Patterns - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Migrating PrintOptim to SpecQL Patterns";
+        var mkdocs_page_input_path = "migration/printoptim_to_specql.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Migrating PrintOptim to SpecQL Patterns</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="migrating-printoptim-to-specql-patterns">Migrating PrintOptim to SpecQL Patterns</h1>
+<p>This guide shows how to migrate your PrintOptim production backend from manual PL/pgSQL to declarative SpecQL YAML using the new action patterns.</p>
+<h2 id="migration-overview">🎯 Migration Overview</h2>
+<p><strong>Before</strong>: Manual PL/pgSQL functions with complex business logic
+<strong>After</strong>: Declarative YAML patterns that generate identical SQL</p>
+<p><strong>Timeline</strong>: &lt;2 weeks for full migration
+<strong>Risk</strong>: Low - patterns generate tested, production-ready SQL
+<strong>Rollback</strong>: Instant - revert to manual functions anytime</p>
+<h2 id="current-state-analysis">📊 Current State Analysis</h2>
+<h3 id="what-printoptim-currently-has">What PrintOptim Currently Has</h3>
+<p>Based on your production reference implementation:</p>
+<ol>
+<li><strong>Complex CRUD Operations</strong></li>
+<li>Partial updates with field tracking</li>
+<li>Duplicate detection on create</li>
+<li>Identifier recalculation (Trinity pattern)</li>
+<li>
+<p>GraphQL projection sync</p>
+</li>
+<li>
+<p><strong>Business Logic Patterns</strong></p>
+</li>
+<li>State machine transitions (Machine lifecycle)</li>
+<li>Multi-entity operations (Allocation workflow)</li>
+<li>
+<p>Batch operations (Contract item updates)</p>
+</li>
+<li>
+<p><strong>Manual PL/pgSQL Functions</strong></p>
+</li>
+<li>200+ lines for complex workflows</li>
+<li>Inconsistent error handling</li>
+<li>Difficult to maintain and test</li>
+</ol>
+<h3 id="migration-benefits">Migration Benefits</h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Before</th>
+<th>After</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Code Volume</strong></td>
+<td>200 lines PL/pgSQL</td>
+<td>20 lines YAML</td>
+</tr>
+<tr>
+<td><strong>Development Time</strong></td>
+<td>1 week</td>
+<td>1 hour</td>
+</tr>
+<tr>
+<td><strong>Testing</strong></td>
+<td>Manual SQL testing</td>
+<td>Auto-generated + pattern tests</td>
+</tr>
+<tr>
+<td><strong>Maintenance</strong></td>
+<td>Update multiple functions</td>
+<td>Update pattern once</td>
+</tr>
+<tr>
+<td><strong>Consistency</strong></td>
+<td>Team-dependent</td>
+<td>Enforced by patterns</td>
+</tr>
+<tr>
+<td><strong>Documentation</strong></td>
+<td>Code comments</td>
+<td>Self-documenting YAML</td>
+</tr>
+</tbody>
+</table>
+<h2 id="migration-timeline">🗓️ Migration Timeline</h2>
+<h3 id="week-1-core-crud-migration">Week 1: Core CRUD Migration</h3>
+<p><strong>Day 1-2: Contract CRUD</strong>
+- Migrate basic CRUD to enhanced patterns
+- Add constraints and projections
+- Test generated SQL matches reference</p>
+<p><strong>Day 3-4: Machine CRUD</strong>
+- Migrate machine lifecycle to state machine pattern
+- Implement decommissioning workflow
+- Verify state transitions work</p>
+<p><strong>Day 5: Testing &amp; Validation</strong>
+- End-to-end testing of CRUD operations
+- SQL comparison with reference implementation
+- Performance validation</p>
+<h3 id="week-2-business-logic-migration">Week 2: Business Logic Migration</h3>
+<p><strong>Day 1-2: Allocation Workflow</strong>
+- Migrate multi-entity allocation patterns
+- Implement stock/production allocation logic
+- Test transaction handling</p>
+<p><strong>Day 3-4: Batch Operations</strong>
+- Migrate bulk price updates
+- Implement error handling strategies
+- Test batch processing performance</p>
+<p><strong>Day 5: Final Integration</strong>
+- Full system testing
+- Performance optimization
+- Documentation updates</p>
+<h2 id="step-by-step-migration">🔄 Step-by-Step Migration</h2>
+<h3 id="phase-1-enhanced-crud-operations">Phase 1: Enhanced CRUD Operations</h3>
+<h4 id="11-add-constraints-and-identifiers">1.1 Add Constraints and Identifiers</h4>
+<p><strong>Before</strong> (manual SQL):</p>
+<pre><code class="language-sql">-- Manual duplicate check
+SELECT id INTO v_existing_id
+FROM tenant.tb_contract
+WHERE customer_contract_id = input_data.customer_contract_id;
+
+IF v_existing_id IS NOT NULL THEN
+    -- Return duplicate error
+END IF;
+</code></pre>
+<p><strong>After</strong> (SpecQL YAML):</p>
+<pre><code class="language-yaml">entity: Contract
+constraints:
+  - name: unique_customer_contract
+    type: unique
+    fields: [customer_org, provider_org, customer_contract_id]
+    check_on_create: true
+    error_message: &quot;Contract already exists&quot;
+
+identifier:
+  pattern: &quot;CONTRACT-{signature_date:YYYY}-{sequence:03d}&quot;
+  recalculate_on: [create, update]
+</code></pre>
+<h4 id="12-add-projection-sync">1.2 Add Projection Sync</h4>
+<p><strong>Before</strong> (manual SQL):</p>
+<pre><code class="language-sql">-- Manual projection refresh
+DELETE FROM tenant.v_contract_projection WHERE id = v_contract_id;
+INSERT INTO tenant.v_contract_projection SELECT ... FROM tenant.tb_contract c
+LEFT JOIN management.tb_organization co ON c.customer_org = co.id
+-- Complex JOIN logic
+</code></pre>
+<p><strong>After</strong> (SpecQL YAML):</p>
+<pre><code class="language-yaml">projections:
+  - name: contract_projection
+    refresh_on: [create, update]
+    includes:
+      - customer_org: [id, name, code]
+      - provider_org: [id, name, code]
+      - currency: [iso_code, symbol]
+</code></pre>
+<h4 id="13-enable-partial-updates">1.3 Enable Partial Updates</h4>
+<p><strong>Before</strong> (manual SQL):</p>
+<pre><code class="language-sql">-- Full update of all fields
+UPDATE tenant.tb_contract SET
+    customer_contract_id = input_data.customer_contract_id,
+    provider_contract_id = input_data.provider_contract_id,
+    -- ALL fields updated regardless of input
+WHERE id = v_contract_id;
+</code></pre>
+<p><strong>After</strong> (SpecQL YAML):</p>
+<pre><code class="language-yaml">actions:
+  - name: update_contract
+    partial_updates: true
+    track_updated_fields: true
+</code></pre>
+<h3 id="phase-2-state-machine-patterns">Phase 2: State Machine Patterns</h3>
+<h4 id="21-machine-lifecycle-migration">2.1 Machine Lifecycle Migration</h4>
+<p><strong>Before</strong> (200 lines PL/pgSQL):</p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION app.decommission_machine(...) RETURNS mutation_result AS $$
+DECLARE
+    v_current_status TEXT;
+    v_allocation_count INTEGER;
+BEGIN
+    -- Check current status
+    SELECT status INTO v_current_status FROM tenant.tb_machine WHERE id = v_machine_id;
+
+    -- Validate no active allocations
+    SELECT COUNT(*) INTO v_allocation_count FROM tenant.tb_allocation
+    WHERE machine_id = v_machine_id AND status = 'active';
+
+    IF v_allocation_count &gt; 0 THEN
+        RETURN error_response('Cannot decommission with allocations');
+    END IF;
+
+    -- Update machine status
+    UPDATE tenant.tb_machine SET status = 'decommissioned', ... WHERE id = v_machine_id;
+
+    -- Archive machine items
+    UPDATE tenant.tb_machine_item SET status = 'archived' WHERE machine_id = v_machine_id;
+
+    -- Log event
+    INSERT INTO tenant.tb_machine_event (...) VALUES (...);
+
+    RETURN success_response();
+END;
+$$;
+</code></pre>
+<p><strong>After</strong> (20 lines YAML):</p>
+<pre><code class="language-yaml">actions:
+  - name: decommission_machine
+    pattern: state_machine/transition
+    config:
+      from_states: [active, maintenance]
+      to_state: decommissioned
+      input_fields:
+        - name: decommission_date
+          type: date
+          required: true
+        - name: decommission_reason
+          type: text
+          required: true
+      validation_checks:
+        - condition: &quot;NOT EXISTS (SELECT 1 FROM tenant.tb_allocation WHERE machine_id = v_machine_id AND status = 'active')&quot;
+          error: &quot;Cannot decommission machine with active allocations&quot;
+      side_effects:
+        - entity: MachineItem
+          set: {status: archived}
+          where: &quot;machine_id = v_machine_id&quot;
+        - entity: MachineEvent
+          set:
+            event_type: decommissioned
+            event_data: $input_payload
+          where: &quot;machine_id = v_machine_id&quot;
+      refresh_projection: machine_projection
+</code></pre>
+<h3 id="phase-3-multi-entity-operations">Phase 3: Multi-Entity Operations</h3>
+<h4 id="31-allocation-workflow-migration">3.1 Allocation Workflow Migration</h4>
+<p><strong>Before</strong> (manual transaction):</p>
+<pre><code class="language-sql">BEGIN;
+    -- Get or create stock location
+    SELECT id INTO v_location_id FROM tenant.tb_location
+    WHERE code = 'STOCK';
+
+    IF v_location_id IS NULL THEN
+        INSERT INTO tenant.tb_location (code, name) VALUES ('STOCK', 'Stock')
+        RETURNING id INTO v_location_id;
+    END IF;
+
+    -- Create allocation
+    INSERT INTO tenant.tb_allocation (...) VALUES (...);
+
+    -- Update machine
+    UPDATE tenant.tb_machine SET status = 'in_stock' WHERE id = v_machine_id;
+
+COMMIT;
+</code></pre>
+<p><strong>After</strong> (declarative pattern):</p>
+<pre><code class="language-yaml">actions:
+  - name: allocate_to_stock
+    pattern: multi_entity/coordinated_update
+    config:
+      operations:
+        - action: get_or_create
+          entity: Location
+          where: {code: 'STOCK'}
+          create_if_missing:
+            code: STOCK
+            name: 'Stock Location'
+            location_type: warehouse
+          store_as: stock_location_id
+
+        - action: insert
+          entity: Allocation
+          values:
+            machine_id: $input.machine_id
+            location_id: $stock_location_id
+            allocation_type: stock
+            status: active
+
+        - action: update
+          entity: Machine
+          set: {status: in_stock, location_id: $stock_location_id}
+          where: {id: $input.machine_id}
+</code></pre>
+<h3 id="phase-4-batch-operations">Phase 4: Batch Operations</h3>
+<h4 id="41-bulk-price-updates-migration">4.1 Bulk Price Updates Migration</h4>
+<p><strong>Before</strong> (manual loop):</p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION app.bulk_update_prices(price_updates JSONB) RETURNS mutation_result AS $$
+DECLARE
+    v_item JSONB;
+    v_updated_count INTEGER := 0;
+    v_failed_count INTEGER := 0;
+BEGIN
+    FOR v_item IN SELECT * FROM jsonb_array_elements(price_updates)
+    LOOP
+        BEGIN
+            UPDATE tenant.tb_contract_item
+            SET unit_price = (v_item-&gt;&gt;'unit_price')::DECIMAL
+            WHERE id = (v_item-&gt;&gt;'id')::UUID;
+
+            v_updated_count := v_updated_count + 1;
+        EXCEPTION WHEN OTHERS THEN
+            v_failed_count := v_failed_count + 1;
+        END;
+    END LOOP;
+
+    RETURN success_response(v_updated_count || ' updated, ' || v_failed_count || ' failed');
+END;
+$$;
+</code></pre>
+<p><strong>After</strong> (pattern-based):</p>
+<pre><code class="language-yaml">actions:
+  - name: bulk_update_prices
+    pattern: batch/bulk_operation
+    config:
+      batch_input: price_updates
+      operation:
+        action: update
+        entity: ContractItem
+        set:
+          unit_price: $item.unit_price
+          total_price: $item.unit_price * quantity
+        where: {id: $item.id}
+      error_handling: continue_on_error
+      return_summary:
+        processed_count: v_processed_count
+        failed_count: v_failed_count
+        failed_items: v_failed_items
+</code></pre>
+<h2 id="testing-strategy">🧪 Testing Strategy</h2>
+<h3 id="1-sql-comparison-testing">1. SQL Comparison Testing</h3>
+<p>Compare generated SQL with reference implementation:</p>
+<pre><code class="language-bash"># Generate SpecQL SQL
+specql generate --entity contract
+
+# Compare with reference
+diff generated_contract.sql reference_contract.sql
+</code></pre>
+<h3 id="2-functional-testing">2. Functional Testing</h3>
+<p>Test that patterns produce identical results:</p>
+<pre><code class="language-sql">-- Test duplicate detection
+SELECT * FROM app.create_contract('{&quot;customer_contract_id&quot;: &quot;DUPE&quot;}');
+
+-- Should return NOOP with conflict details in both implementations
+</code></pre>
+<h3 id="3-performance-testing">3. Performance Testing</h3>
+<p>Ensure patterns don't introduce performance regressions:</p>
+<pre><code class="language-sql">-- Benchmark pattern-generated functions
+EXPLAIN ANALYZE SELECT * FROM app.create_contract(input_data);
+</code></pre>
+<h3 id="4-integration-testing">4. Integration Testing</h3>
+<p>Test end-to-end workflows:</p>
+<pre><code class="language-yaml"># Test machine lifecycle
+1. Create machine
+2. Allocate to stock
+3. Move to production
+4. Start maintenance
+5. End maintenance
+6. Decommission
+</code></pre>
+<h2 id="migration-checklist">🚨 Migration Checklist</h2>
+<h3 id="pre-migration">Pre-Migration</h3>
+<ul>
+<li>[ ] Backup production database</li>
+<li>[ ] Document current manual functions</li>
+<li>[ ] Set up test environment</li>
+<li>[ ] Train team on pattern syntax</li>
+</ul>
+<h3 id="crud-migration">CRUD Migration</h3>
+<ul>
+<li>[ ] Add entity constraints</li>
+<li>[ ] Configure identifiers</li>
+<li>[ ] Set up projections</li>
+<li>[ ] Enable partial updates</li>
+<li>[ ] Test CRUD operations</li>
+</ul>
+<h3 id="business-logic-migration">Business Logic Migration</h3>
+<ul>
+<li>[ ] Identify state machines</li>
+<li>[ ] Convert to state_machine/transition patterns</li>
+<li>[ ] Identify multi-entity operations</li>
+<li>[ ] Convert to multi_entity/coordinated_update patterns</li>
+<li>[ ] Identify batch operations</li>
+<li>[ ] Convert to batch/bulk_operation patterns</li>
+</ul>
+<h3 id="testing-validation">Testing &amp; Validation</h3>
+<ul>
+<li>[ ] SQL equivalence testing</li>
+<li>[ ] Functional testing</li>
+<li>[ ] Performance testing</li>
+<li>[ ] Integration testing</li>
+<li>[ ] User acceptance testing</li>
+</ul>
+<h3 id="go-live">Go-Live</h3>
+<ul>
+<li>[ ] Deploy to staging</li>
+<li>[ ] Run parallel with old system</li>
+<li>[ ] Monitor performance and errors</li>
+<li>[ ] Gradual rollout to production</li>
+<li>[ ] Remove old manual functions</li>
+</ul>
+<h2 id="rollback-plan">🆘 Rollback Plan</h2>
+<p>If issues arise during migration:</p>
+<h3 id="immediate-rollback">Immediate Rollback</h3>
+<pre><code class="language-sql">-- Revert to manual functions
+DROP FUNCTION app.create_contract(uuid, uuid, jsonb);
+-- Restore backup of manual function
+</code></pre>
+<h3 id="gradual-rollback">Gradual Rollback</h3>
+<pre><code class="language-sql">-- Route some traffic to old functions
+-- while fixing pattern issues
+</code></pre>
+<h3 id="pattern-fixes">Pattern Fixes</h3>
+<pre><code class="language-yaml"># Fix pattern configuration
+actions:
+  - name: create_contract
+    # Add missing validation
+    duplicate_detection: true
+</code></pre>
+<h2 id="support-during-migration">📞 Support During Migration</h2>
+<h3 id="real-time-support">Real-time Support</h3>
+<ul>
+<li><strong>Slack Channel</strong>: #specql-migration</li>
+<li><strong>Daily Check-ins</strong>: 30-minute sync meetings</li>
+<li><strong>Pair Programming</strong>: Remote sessions for complex migrations</li>
+</ul>
+<h3 id="resources-provided">Resources Provided</h3>
+<ul>
+<li><strong>Migration Scripts</strong>: Automated SQL comparison tools</li>
+<li><strong>Example Migrations</strong>: Complete before/after examples</li>
+<li><strong>Testing Framework</strong>: Automated test generation</li>
+<li><strong>Documentation</strong>: Updated as you migrate</li>
+</ul>
+<h3 id="success-metrics">Success Metrics</h3>
+<ul>
+<li>[ ] All CRUD operations migrated (&lt; 1 week)</li>
+<li>[ ] All business logic patterns migrated (&lt; 1 week)</li>
+<li>[ ] 100% test coverage maintained</li>
+<li>[ ] Performance meets or exceeds current system</li>
+<li>[ ] Team comfortable with pattern-based development</li>
+</ul>
+<h2 id="post-migration-benefits">🎯 Post-Migration Benefits</h2>
+<h3 id="development-speed">Development Speed</h3>
+<ul>
+<li><strong>Complex workflows</strong>: 1 hour instead of 1 week</li>
+<li><strong>Bug fixes</strong>: Update pattern once, regenerate everywhere</li>
+<li><strong>New features</strong>: Copy proven patterns, customize for needs</li>
+</ul>
+<h3 id="code-quality">Code Quality</h3>
+<ul>
+<li><strong>Consistency</strong>: All similar operations use same patterns</li>
+<li><strong>Testing</strong>: Pattern library tested, your usage auto-tested</li>
+<li><strong>Documentation</strong>: YAML is self-documenting</li>
+</ul>
+<h3 id="maintenance">Maintenance</h3>
+<ul>
+<li><strong>Pattern updates</strong>: Improve pattern, all usages benefit</li>
+<li><strong>Team onboarding</strong>: Learn patterns, not PL/pgSQL</li>
+<li><strong>Code reviews</strong>: Focus on business logic, not SQL boilerplate</li>
+</ul>
+<h2 id="roi-timeline">📈 ROI Timeline</h2>
+<table>
+<thead>
+<tr>
+<th>Timeframe</th>
+<th>Benefit</th>
+<th>Impact</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Week 1</strong></td>
+<td>CRUD migration complete</td>
+<td>50% less manual SQL</td>
+</tr>
+<tr>
+<td><strong>Week 2</strong></td>
+<td>Business logic migrated</td>
+<td>80% less manual SQL</td>
+</tr>
+<tr>
+<td><strong>Month 1</strong></td>
+<td>New features faster</td>
+<td>10x development speed</td>
+</tr>
+<tr>
+<td><strong>Month 3</strong></td>
+<td>Maintenance easier</td>
+<td>5x fewer bugs</td>
+</tr>
+<tr>
+<td><strong>Month 6</strong></td>
+<td>Team productivity</td>
+<td>3x more features delivered</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>Ready to start?</strong> Let's schedule your migration kickoff call and begin the transformation from manual PL/pgSQL to declarative, maintainable SpecQL patterns!</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

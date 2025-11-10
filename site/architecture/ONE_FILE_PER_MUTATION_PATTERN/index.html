@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>One File Per Mutation Pattern - Architecture Specification - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "One File Per Mutation Pattern - Architecture Specification";
+        var mkdocs_page_input_path = "architecture/ONE_FILE_PER_MUTATION_PATTERN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">One File Per Mutation Pattern - Architecture Specification</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="one-file-per-mutation-pattern-architecture-specification">One File Per Mutation Pattern - Architecture Specification</h1>
+<p><strong>Date</strong>: 2025-11-09
+<strong>Status</strong>: ✅ <strong>REQUIRED PATTERN</strong>
+<strong>Applies To</strong>: Team E (CLI Orchestrator) + Schema Orchestrator</p>
+<hr />
+<h2 id="core-principle">🎯 Core Principle</h2>
+<p><strong>Each mutation/action MUST have its own SQL file containing EXACTLY 2 functions:</strong>
+1. <code>app.{action_name}()</code> - App wrapper (API layer)
+2. <code>core.{action_name}()</code> - Core logic (business layer)</p>
+<p><strong>Utility functions</strong> (Trinity helpers) go in <strong>separate helper files</strong>.</p>
+<hr />
+<h2 id="directory-structure">📂 Directory Structure</h2>
+<pre><code>db/schema/
+├── 00_foundation/
+│   └── app_foundation.sql              # Composite types (mutation_result, etc.)
+│
+├── 10_tables/                          # ONE FILE PER ENTITY
+│   ├── contact.sql                     # Table DDL + FraiseQL COMMENT annotations
+│   ├── company.sql                     # Table DDL + FraiseQL COMMENT annotations
+│   └── machine_item.sql                # Table DDL + FraiseQL COMMENT annotations
+│
+├── 20_helpers/                         # ONE FILE PER ENTITY (utility functions)
+│   ├── contact_helpers.sql             # Trinity helpers: contact_pk(), contact_id(), etc.
+│   ├── company_helpers.sql
+│   └── machine_item_helpers.sql
+│
+└── 30_functions/                       # ONE FILE PER MUTATION ⚠️ CRITICAL!
+    ├── create_contact.sql              # app + core functions + FraiseQL COMMENT annotations
+    ├── update_contact.sql              # app + core functions + FraiseQL COMMENT annotations
+    ├── delete_contact.sql              # app + core functions + FraiseQL COMMENT annotations
+    ├── qualify_lead.sql                # app + core functions + FraiseQL COMMENT annotations
+    ├── create_company.sql
+    ├── update_company.sql
+    └── create_reservation.sql
+</code></pre>
+<hr />
+<h2 id="file-content-example">📄 File Content Example</h2>
+<h3 id="file-dbschema30_functionsqualify_leadsql">File: <code>db/schema/30_functions/qualify_lead.sql</code></h3>
+<pre><code class="language-sql">-- ============================================================================
+-- Mutation: qualify_lead
+-- Entity: Contact
+-- Pattern: App Wrapper + Core Logic
+-- Generated: 2025-11-09
+-- ============================================================================
+
+-- ============================================================================
+-- LAYER 1: APP WRAPPER (API Entry Point)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.qualify_lead(
+    auth_tenant_id UUID,              -- Tenant context (from JWT)
+    auth_user_id UUID,                -- User context (from JWT)
+    input_payload JSONB               -- Raw API input (GraphQL/REST)
+) RETURNS app.mutation_result         -- Standard response
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_qualify_lead_input;  -- Typed structure
+BEGIN
+    -- Convert JSONB → Composite Type
+    input_data := jsonb_populate_record(
+        NULL::app.type_qualify_lead_input,
+        input_payload
+    );
+
+    -- Delegate to core logic
+    RETURN core.qualify_lead(
+        auth_tenant_id,
+        input_data,          -- ✅ Typed input
+        input_payload,       -- Original for audit
+        auth_user_id
+    );
+END;
+$$;
+
+-- FraiseQL metadata (Team D) - IN SAME FILE as function
+COMMENT ON FUNCTION app.qualify_lead IS
+  '@fraiseql:mutation name=qualifyLead,input=QualifyLeadInput,output=MutationResult';
+
+
+-- ============================================================================
+-- LAYER 2: CORE LOGIC (Business Rules)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION core.qualify_lead(
+    auth_tenant_id UUID,
+    input_data app.type_qualify_lead_input,  -- ✅ Typed input
+    input_payload JSONB,                      -- Original for audit
+    auth_user_id UUID
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_contact_pk INTEGER;
+    v_status TEXT;
+BEGIN
+    -- === Trinity Resolution (UUID → INTEGER) ===
+    v_contact_pk := crm.contact_pk(input_data.contact_id);
+
+    IF v_contact_pk IS NULL THEN
+        RETURN app.log_and_return_mutation(
+            auth_tenant_id,
+            auth_user_id,
+            'contact',
+            input_data.contact_id,
+            'NOOP',
+            'failed:contact_not_found',
+            ARRAY['contact_id']::TEXT[],
+            'Contact not found',
+            NULL,
+            NULL
+        );
+    END IF;
+
+    -- === Business Validation ===
+    SELECT status INTO v_status
+    FROM crm.tb_contact
+    WHERE pk_contact = v_contact_pk
+      AND tenant_id = auth_tenant_id;
+
+    IF v_status != 'lead' THEN
+        RETURN app.log_and_return_mutation(
+            auth_tenant_id,
+            auth_user_id,
+            'contact',
+            input_data.contact_id,
+            'NOOP',
+            'failed:not_a_lead',
+            ARRAY['status']::TEXT[],
+            'Contact is not a lead',
+            NULL,
+            jsonb_build_object('current_status', v_status)
+        );
+    END IF;
+
+    -- === Business Logic ===
+    UPDATE crm.tb_contact
+    SET status = 'qualified',
+        updated_at = now(),
+        updated_by = auth_user_id
+    WHERE pk_contact = v_contact_pk
+      AND tenant_id = auth_tenant_id;
+
+    -- === Success Response ===
+    RETURN app.log_and_return_mutation(
+        auth_tenant_id,
+        auth_user_id,
+        'contact',
+        input_data.contact_id,
+        'UPDATE',
+        'success',
+        ARRAY['status', 'updated_at', 'updated_by']::TEXT[],
+        'Lead qualified successfully',
+        (
+            SELECT row_to_json(c)::JSONB
+            FROM crm.tv_contact c
+            WHERE c.id = input_data.contact_id
+        ),
+        NULL
+    );
+END;
+$$;
+
+-- FraiseQL metadata (Team D) - IN SAME FILE as function
+COMMENT ON FUNCTION core.qualify_lead IS
+  '@fraiseql:core_logic for=qualifyLead';
+</code></pre>
+<hr />
+<h2 id="key-patterns">🔑 Key Patterns</h2>
+<h3 id="1-app-wrapper-responsibilities">1. App Wrapper Responsibilities</h3>
+<p>✅ <strong>ONLY handles</strong>:
+- JSONB → Composite Type conversion
+- Delegation to core layer
+- FraiseQL annotation</p>
+<p>❌ <strong>Does NOT contain</strong>:
+- Business logic
+- Validation
+- Database operations</p>
+<h3 id="2-core-logic-responsibilities">2. Core Logic Responsibilities</h3>
+<p>✅ <strong>Handles</strong>:
+- Trinity resolution (UUID → INTEGER)
+- Business validation
+- Database operations (INSERT, UPDATE, DELETE)
+- Audit field population
+- Error handling
+- Success/failure responses</p>
+<h3 id="3-file-naming">3. File Naming</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Naming Pattern</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tables</strong></td>
+<td><code>{entity_name}.sql</code></td>
+<td><code>contact.sql</code></td>
+</tr>
+<tr>
+<td><strong>Helpers</strong></td>
+<td><code>{entity_name}_helpers.sql</code></td>
+<td><code>contact_helpers.sql</code></td>
+</tr>
+<tr>
+<td><strong>Mutations</strong></td>
+<td><code>{action_name}.sql</code></td>
+<td><code>qualify_lead.sql</code></td>
+</tr>
+<tr>
+<td><strong>Table Metadata</strong></td>
+<td><code>{entity_name}_table_metadata.sql</code></td>
+<td><code>contact_table_metadata.sql</code></td>
+</tr>
+<tr>
+<td><strong>Mutations Metadata</strong></td>
+<td><code>{entity_name}_mutations_metadata.sql</code></td>
+<td><code>contact_mutations_metadata.sql</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="anti-patterns-wrong">🚫 Anti-Patterns (WRONG ❌)</h2>
+<h3 id="wrong-all-actions-in-one-file">❌ WRONG: All actions in one file</h3>
+<pre><code>30_functions/
+└── contact_actions.sql    # ❌ Contains ALL actions for Contact
+    ├── app.create_contact()
+    ├── core.create_contact()
+    ├── app.update_contact()
+    ├── core.update_contact()
+    ├── app.qualify_lead()
+    └── core.qualify_lead()
+</code></pre>
+<p><strong>Problem</strong>: Hard to manage, review, and version control. Changes to one mutation affect all others.</p>
+<hr />
+<h3 id="wrong-functions-mixed-with-helpers">❌ WRONG: Functions mixed with helpers</h3>
+<pre><code>30_functions/
+└── contact.sql    # ❌ Mixes mutations + helpers
+    ├── app.create_contact()
+    ├── core.create_contact()
+    ├── contact_pk()           # ← Helper function!
+    ├── contact_id()           # ← Helper function!
+    └── app.update_contact()
+</code></pre>
+<p><strong>Problem</strong>: Helpers have different lifecycle than mutations. Helpers are stable, mutations change frequently.</p>
+<hr />
+<h3 id="wrong-one-file-per-function-too-granular">❌ WRONG: One file per function (too granular)</h3>
+<pre><code>30_functions/
+├── app_create_contact.sql       # ❌ Only app wrapper
+├── core_create_contact.sql      # ❌ Only core logic
+├── app_update_contact.sql
+└── core_update_contact.sql
+</code></pre>
+<p><strong>Problem</strong>: App wrapper and core logic are tightly coupled. They should be together.</p>
+<hr />
+<h2 id="correct-pattern-right">✅ Correct Pattern (RIGHT ✅)</h2>
+<h3 id="right-one-file-per-mutation-2-functions-per-file">✅ RIGHT: One file per mutation, 2 functions per file</h3>
+<pre><code>30_functions/
+├── create_contact.sql           # ✅ app.create_contact() + core.create_contact()
+├── update_contact.sql           # ✅ app.update_contact() + core.update_contact()
+├── delete_contact.sql           # ✅ app.delete_contact() + core.delete_contact()
+└── qualify_lead.sql             # ✅ app.qualify_lead() + core.qualify_lead()
+
+20_helpers/
+└── contact_helpers.sql          # ✅ Separate file for utility functions
+    ├── contact_pk()
+    ├── contact_id()
+    └── contact_identifier()
+</code></pre>
+<p><strong>Benefits</strong>:
+- ✅ Each mutation is self-contained
+- ✅ Easy to review changes (one mutation at a time)
+- ✅ Clear separation of concerns
+- ✅ Helpers are reusable across mutations
+- ✅ Version control friendly (small, focused commits)</p>
+<hr />
+<h2 id="implementation-requirements">🛠️ Implementation Requirements</h2>
+<h3 id="for-schemaorchestratorgenerate_split_schema">For <code>SchemaOrchestrator.generate_split_schema()</code></h3>
+<p><strong>MUST return</strong>:</p>
+<pre><code class="language-python">@dataclass
+class MutationFunctionPair:
+    &quot;&quot;&quot;One mutation = 2 functions + FraiseQL comments (ALL IN ONE FILE)&quot;&quot;&quot;
+    action_name: str
+    app_wrapper_sql: str         # app.{action_name}()
+    core_logic_sql: str          # core.{action_name}()
+    fraiseql_comments_sql: str   # COMMENT ON FUNCTION statements (Team D)
+
+@dataclass
+class SchemaOutput:
+    &quot;&quot;&quot;Split output&quot;&quot;&quot;
+    table_sql: str                           # → 10_tables/{entity}.sql (includes FraiseQL COMMENT)
+    helpers_sql: str                         # → 20_helpers/{entity}_helpers.sql
+    mutations: List[MutationFunctionPair]    # → 30_functions/{action_name}.sql (ONE FILE EACH!)
+</code></pre>
+<h3 id="for-cliorchestratorgenerate_from_files">For <code>CLIOrchestrator.generate_from_files()</code></h3>
+<p><strong>MUST write</strong>:</p>
+<pre><code class="language-python"># For each entity
+for entity in entities:
+    schema_output = orchestrator.generate_split_schema(entity)
+
+    # 1. Write table (ONE file per entity)
+    write_file(f&quot;10_tables/{entity.name}.sql&quot;, schema_output.table_sql)
+
+    # 2. Write helpers (ONE file per entity)
+    write_file(f&quot;20_helpers/{entity.name}_helpers.sql&quot;, schema_output.helpers_sql)
+
+    # 3. Write mutations (ONE FILE PER MUTATION! ✅)
+    for mutation in schema_output.mutations:
+        content = f&quot;&quot;&quot;
+-- ============================================================================
+-- Mutation: {mutation.action_name}
+-- Entity: {entity.name}
+-- Pattern: App Wrapper + Core Logic + FraiseQL Metadata
+-- ============================================================================
+
+{mutation.app_wrapper_sql}
+
+{mutation.core_logic_sql}
+
+{mutation.fraiseql_comments_sql}
+&quot;&quot;&quot;
+        write_file(f&quot;30_functions/{mutation.action_name}.sql&quot;, content)
+</code></pre>
+<hr />
+<h2 id="benefits-of-this-pattern">📊 Benefits of This Pattern</h2>
+<table>
+<thead>
+<tr>
+<th>Benefit</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Modularity</strong></td>
+<td>Each mutation is independent, can be modified without affecting others</td>
+</tr>
+<tr>
+<td><strong>Version Control</strong></td>
+<td>Git diffs are focused on single mutations, easy to review</td>
+</tr>
+<tr>
+<td><strong>Testing</strong></td>
+<td>Can test each mutation in isolation</td>
+</tr>
+<tr>
+<td><strong>Debugging</strong></td>
+<td>Easy to locate specific mutation code</td>
+</tr>
+<tr>
+<td><strong>Code Review</strong></td>
+<td>Reviewers see complete mutation (app + core) in one file</td>
+</tr>
+<tr>
+<td><strong>Migration Management</strong></td>
+<td>Confiture can track which mutations changed</td>
+</tr>
+<tr>
+<td><strong>Refactoring</strong></td>
+<td>Safe to refactor one mutation without risk to others</td>
+</tr>
+<tr>
+<td><strong>Documentation</strong></td>
+<td>Each file is self-documenting with header comments</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="migration-from-current-implementation">🚀 Migration from Current Implementation</h2>
+<p><strong>Current State (WRONG ❌)</strong>:
+- <code>generate_split_schema()</code> returns <code>functions_sql</code> as one blob
+- All actions bundled together</p>
+<p><strong>Target State (RIGHT ✅)</strong>:
+- <code>generate_split_schema()</code> returns <code>List[MutationFunctionPair]</code>
+- Each action has separate <code>app_wrapper_sql</code> + <code>core_logic_sql</code>
+- Orchestrator writes one file per mutation</p>
+<p><strong>Implementation Steps</strong>:
+1. Update <code>SchemaOutput</code> dataclass (add <code>MutationFunctionPair</code>)
+2. Modify <code>generate_split_schema()</code> to iterate actions
+3. Update <code>CLIOrchestrator</code> to write one file per mutation
+4. Update tests to expect multiple files
+5. Verify with integration test</p>
+<hr />
+<h2 id="success-criteria">🎯 Success Criteria</h2>
+<ul>
+<li>[ ] Each mutation has its own SQL file in <code>30_functions/</code></li>
+<li>[ ] Each file contains exactly 2 functions (app + core)</li>
+<li>[ ] Helper functions are in separate <code>20_helpers/</code> directory</li>
+<li>[ ] File names match action names (e.g., <code>qualify_lead.sql</code>)</li>
+<li>[ ] Confiture can build from split files</li>
+<li>[ ] Git diff shows only changed mutations</li>
+<li>[ ] Tests verify correct file structure</li>
+</ul>
+<hr />
+<p><strong>Status</strong>: ⚠️ <strong>NOT IMPLEMENTED</strong> - Current code bundles all actions together
+<strong>Priority</strong>: 🔴 <strong>CRITICAL</strong> - Breaks modularity and version control
+<strong>Owner</strong>: Team E (CLI Orchestrator)</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

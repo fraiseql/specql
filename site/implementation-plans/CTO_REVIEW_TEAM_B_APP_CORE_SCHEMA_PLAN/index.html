@@ -1,0 +1,1125 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>CTO Review: Team B Implementation Plan - App/Core Schema Pattern - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "CTO Review: Team B Implementation Plan - App/Core Schema Pattern";
+        var mkdocs_page_input_path = "implementation-plans/CTO_REVIEW_TEAM_B_APP_CORE_SCHEMA_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">CTO Review: Team B Implementation Plan - App/Core Schema Pattern</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="cto-review-team-b-implementation-plan-appcore-schema-pattern">CTO Review: Team B Implementation Plan - App/Core Schema Pattern</h1>
+<p><strong>Reviewer</strong>: CTO
+<strong>Date</strong>: 2025-11-08
+<strong>Document</strong>: <code>docs/implementation-plans/TEAM_B_APP_CORE_SCHEMA_PLAN.md</code>
+<strong>Status</strong>: 🔴 <strong>CONCERNS IDENTIFIED - Requires Revisions</strong></p>
+<hr />
+<h2 id="executive-summary">📋 Executive Summary</h2>
+<p><strong>Overall Assessment</strong>: ⚠️ <strong>GOOD FOUNDATION, BUT CRITICAL GAPS</strong></p>
+<p>The Team B plan demonstrates strong understanding of the app/core pattern and FraiseQL integration requirements. However, there are several <strong>architectural concerns</strong> and <strong>missing requirements</strong> that must be addressed before implementation begins.</p>
+<p><strong>Recommendation</strong>: 🔴 <strong>DO NOT PROCEED</strong> without addressing the issues below.</p>
+<hr />
+<h2 id="key-pattern-jwt-context-denormalized-multi-tenancy">🔑 Key Pattern: JWT Context + Denormalized Multi-Tenancy</h2>
+<p><strong>CRITICAL UNDERSTANDING</strong>:</p>
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│ Security Context (JWT Token - Server Enforced)              │
+├──────────────────────────────────────────────────────────────┤
+│ • tenant_id: &quot;tenant-uuid&quot;  → Database: tenant_id UUID       │
+│ • sub: &quot;user-uuid&quot;          → Database: created_by UUID      │
+│ • NEVER in composite types (security!)                       │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│ Business Data (User Input - Validated)                       │
+├──────────────────────────────────────────────────────────────┤
+│ • organization_id UUID      → Database: fk_organization INT  │
+│ • company_id UUID           → Database: fk_company INT       │
+│ • email TEXT                → Database: email TEXT           │
+│ • IN composite types (user provides)                         │
+└──────────────────────────────────────────────────────────────┘
+
+Table Structure:
+┌──────────────────────────────────────────────────────────────┐
+│ CREATE TABLE crm.tb_contact (                                │
+│   -- Trinity Pattern                                         │
+│   pk_contact INTEGER PRIMARY KEY,                            │
+│   id UUID UNIQUE,                                            │
+│   identifier TEXT UNIQUE,                                    │
+│                                                              │
+│   -- SECURITY: Denormalized from JWT (ALWAYS)               │
+│   tenant_id UUID NOT NULL,  ← FROM JWT, NOT user input!    │
+│                                                              │
+│   -- BUSINESS: Optional FK (domain-specific)                 │
+│   fk_organization INTEGER,  ← FROM user input (optional)    │
+│                                                              │
+│   -- BUSINESS: User data                                     │
+│   email TEXT,                                                │
+│   fk_company INTEGER,                                        │
+│                                                              │
+│   -- AUDIT: From JWT                                         │
+│   created_by UUID,          ← FROM JWT &quot;sub&quot;                │
+│   updated_by UUID,          ← FROM JWT &quot;sub&quot;                │
+│   deleted_by UUID                                            │
+│ );                                                           │
+│                                                              │
+│ -- CRITICAL: Index on denormalized tenant_id                │
+│ CREATE INDEX idx_contact_tenant ON tb_contact(tenant_id);   │
+└──────────────────────────────────────────────────────────────┘
+</code></pre>
+<p><strong>Why Denormalize <code>tenant_id</code>?</strong>
+- ⚡ <strong>Performance</strong>: Fast filtering without JOINs
+- 🔒 <strong>RLS</strong>: Simple row-level security policies
+- 🛠️ <strong>Utility</strong>: Easy filtering in helper functions</p>
+<hr />
+<h2 id="schema-organization-tenant-vs-common-data">🗂️ Schema Organization: Tenant vs. Common Data</h2>
+<p><strong>CRITICAL DISTINCTION</strong>:</p>
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│ TENANT-SPECIFIC SCHEMAS (Multi-tenant data)                 │
+├──────────────────────────────────────────────────────────────┤
+│ • tenant.*         - Tenant business data                    │
+│ • crm.*            - Customer relationship management        │
+│ • management.*     - Organization/hierarchy                  │
+│ • operations.*     - Operational data                        │
+│                                                              │
+│ ALL tables in these schemas MUST have:                       │
+│ ✅ tenant_id UUID NOT NULL                                   │
+│ ✅ INDEX on tenant_id                                        │
+│ ✅ RLS policies for tenant isolation                         │
+└──────────────────────────────────────────────────────────────┘
+
+┌──────────────────────────────────────────────────────────────┐
+│ COMMON/CATALOG SCHEMAS (Shared across all tenants)          │
+├──────────────────────────────────────────────────────────────┤
+│ • common.*         - Shared reference data                   │
+│ • catalog.*        - Product catalogs, SKUs                  │
+│ • public.*         - PostgreSQL default (avoid using)        │
+│                                                              │
+│ Tables in these schemas:                                     │
+│ ❌ NO tenant_id (data is shared!)                            │
+│ ❌ NO tenant-specific RLS                                    │
+│ ✅ Read-only or admin-only access                            │
+│                                                              │
+│ Examples:                                                    │
+│ • common.tb_country (list of countries)                      │
+│ • catalog.tb_product_category (global categories)           │
+│ • common.tb_currency (currency definitions)                 │
+└──────────────────────────────────────────────────────────────┘
+</code></pre>
+<p><strong>Team B Implementation Impact</strong>:</p>
+<ol>
+<li><strong>Schema Detection Strategy</strong>:
+   ```python
+   # In TableGenerator
+   TENANT_SCHEMAS = ['tenant', 'crm', 'management', 'operations']
+   COMMON_SCHEMAS = ['common', 'catalog', 'public']</li>
+</ol>
+<p>def generate_table_ddl(self, entity: Entity) -&gt; str:
+       is_tenant_specific = entity.schema in TENANT_SCHEMAS</p>
+<pre><code>   if is_tenant_specific:
+       # ✅ Add tenant_id, RLS policies
+       context['multi_tenant'] = True
+   else:
+       # ❌ Skip tenant_id, no RLS
+       context['multi_tenant'] = False
+</code></pre>
+<p>```</p>
+<ol>
+<li><strong>Conditional Fields</strong>:
+   ```sql
+   -- Tenant-specific table (crm.tb_contact):
+   CREATE TABLE crm.tb_contact (
+       pk_contact INTEGER PRIMARY KEY,
+       id UUID UNIQUE,
+       tenant_id UUID NOT NULL,  -- ✅ Required
+       ...
+   );</li>
+</ol>
+<p>-- Common table (common.tb_country):
+   CREATE TABLE common.tb_country (
+       pk_country INTEGER PRIMARY KEY,
+       id UUID UNIQUE,
+       -- ❌ NO tenant_id
+       code TEXT UNIQUE,
+       name TEXT,
+       ...
+   );
+   ```</p>
+<ol>
+<li>
+<p><strong>Index Generation</strong>:
+   ```python
+   def generate_indexes_ddl(self, entity: Entity) -&gt; str:
+       indexes = []</p>
+<p># Always index UUID
+   indexes.append(f"CREATE INDEX idx_{entity.name}_id ...")</p>
+<p># Only add tenant_id index for tenant-specific schemas
+   if entity.schema in TENANT_SCHEMAS:
+       indexes.append(f"CREATE INDEX idx_{entity.name}<em>tenant ON {entity.schema}.tb</em>{entity.name}(tenant_id);")
+   ```</p>
+</li>
+</ol>
+<p><strong>Action Required</strong>:
+1. Add schema classification logic to <code>TableGenerator</code>
+2. Document which schemas are tenant-specific vs. common
+3. Make <code>tenant_id</code> conditional based on schema
+4. Update tests for both patterns</p>
+<hr />
+<h2 id="strengths">✅ Strengths</h2>
+<h3 id="1-clear-uuid-vs-integer-separation">1. <strong>Clear UUID vs INTEGER Separation</strong> ✅</h3>
+<p>The plan correctly identifies that:
+- Composite types use <strong>UUID</strong> for external API
+- Database tables use <strong>INTEGER</strong> for internal FKs
+- Resolution happens in core layer</p>
+<p><strong>Evidence</strong>: Lines 37-84 clearly document this critical architectural decision.</p>
+<h3 id="2-fraiseql-integration-well-understood">2. <strong>FraiseQL Integration Well Understood</strong> ✅</h3>
+<p>The plan demonstrates excellent understanding of:
+- Composite type field comments work (verified with PostgreSQL test)
+- <code>@fraiseql:input</code> annotations
+- Field-level metadata via <code>COMMENT ON COLUMN</code></p>
+<p><strong>Evidence</strong>: Phase 4 (lines 646-689) shows proper FraiseQL annotation strategy.</p>
+<h3 id="3-tdd-discipline">3. <strong>TDD Discipline</strong> ✅</h3>
+<p>Follows RED → GREEN → REFACTOR → QA cycle consistently.</p>
+<p><strong>Evidence</strong>: All 4 phases follow proper TDD methodology.</p>
+<h3 id="4-team-c-coordination">4. <strong>Team C Coordination</strong> ✅</h3>
+<p>Clear interface contract defined for handoff to Team C.</p>
+<p><strong>Evidence</strong>: Lines 713-739 document exactly what Team B provides.</p>
+<hr />
+<h2 id="critical-issues">🔴 Critical Issues</h2>
+<h3 id="issue-1-missing-multi-tenancy-pattern-jwt-context-denormalized-tenant_id"><strong>Issue #1: Missing Multi-Tenancy Pattern (JWT Context + Denormalized tenant_id)</strong></h3>
+<p><strong>Severity</strong>: 🔴 <strong>CRITICAL</strong></p>
+<p><strong>Problem</strong>: The composite types and table schema don't implement the full multi-tenancy pattern with JWT token context and denormalized <code>tenant_id</code>.</p>
+<p><strong>Current Plan</strong> (Line 94-97):</p>
+<pre><code class="language-sql">CREATE TYPE app.type_create_contact_input AS (
+    email TEXT,
+    company_id UUID,
+    status TEXT
+);
+</code></pre>
+<p><strong>Database Table</strong> (Line 118-127):</p>
+<pre><code class="language-sql">CREATE TABLE crm.tb_contact (
+    pk_contact INTEGER,
+    id UUID,
+    identifier TEXT,
+    email TEXT,
+    fk_company INTEGER,
+    status TEXT,
+    -- ❌ MISSING: tenant_id denormalization
+    -- ❌ MISSING: fk_organization/fk_tenant
+</code></pre>
+<p><strong>Correct Multi-Tenancy Pattern</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE crm.tb_contact (
+    pk_contact INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+    identifier TEXT UNIQUE,
+
+    -- ✅ MULTI-TENANT CONTEXT (CRITICAL!)
+    -- Denormalized for performance - extracted from JWT token
+    tenant_id UUID NOT NULL,
+
+    -- ✅ OPTIONAL: Explicit FK to organization/tenant table
+    -- (Some tables have this, some don't - depends on domain model)
+    fk_organization INTEGER,  -- References management.tb_organization(pk_organization)
+
+    -- Business fields
+    email TEXT,
+    fk_company INTEGER,
+    status TEXT,
+
+    -- Audit fields
+    created_at TIMESTAMPTZ DEFAULT now(),
+    created_by UUID,        -- From JWT token (sub claim)
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    updated_by UUID,        -- From JWT token
+    deleted_at TIMESTAMPTZ,
+    deleted_by UUID
+);
+
+-- ✅ CRITICAL INDEX: tenant_id for filtering &amp; RLS
+CREATE INDEX idx_tb_contact_tenant ON crm.tb_contact(tenant_id);
+
+-- ✅ If FK to organization exists, index it too
+CREATE INDEX idx_tb_contact_organization ON crm.tb_contact(fk_organization);
+</code></pre>
+<p><strong>Why This Pattern?</strong></p>
+<ol>
+<li>
+<p><strong>JWT Token Context</strong>:
+   <code>javascript
+   // JWT payload contains:
+   {
+     "sub": "user-uuid",           // → created_by, updated_by
+     "tenant_id": "tenant-uuid",   // → tenant_id column
+     "organization_id": "org-uuid" // → fk_organization (if needed)
+   }</code></p>
+</li>
+<li>
+<p><strong>Denormalized <code>tenant_id</code></strong>:</p>
+</li>
+<li><strong>Performance</strong>: Fast filtering without JOIN to organization table</li>
+<li><strong>RLS (Row-Level Security)</strong>: Direct comparison in policies</li>
+<li><strong>Utility Functions</strong>: Filter by tenant easily</li>
+</ol>
+<p>```sql
+   -- Fast query (uses index on tenant_id):
+   SELECT * FROM crm.tb_contact
+   WHERE tenant_id = current_setting('app.current_tenant_id')::UUID;</p>
+<p>-- Slow query (requires JOIN):
+   SELECT c.* FROM crm.tb_contact c
+   JOIN management.tb_organization o ON c.fk_organization = o.pk_organization
+   WHERE o.id = current_setting('app.current_tenant_id')::UUID;
+   ```</p>
+<ol>
+<li><strong>Optional FK to Organization</strong>:</li>
+<li><strong>Some tables</strong> have explicit <code>fk_organization</code> for business logic</li>
+<li><strong>Some tables</strong> only have <code>tenant_id</code> for isolation</li>
+<li>Example: <code>tb_contact</code> might need <code>fk_organization</code> if contacts belong to specific org units</li>
+<li>Example: <code>tb_system_config</code> only needs <code>tenant_id</code> for tenant isolation</li>
+</ol>
+<p><strong>Core Layer Function Pattern</strong>:</p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION crm.create_contact(
+    input_pk_organization UUID,      -- From JWT: tenant_id
+    input_data app.type_create_contact_input,
+    input_payload JSONB,
+    input_created_by UUID            -- From JWT: sub (user ID)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_id UUID := gen_random_uuid();
+    v_fk_organization INTEGER;
+BEGIN
+    -- ✅ Resolve organization UUID → INTEGER (if table has FK)
+    -- Note: Some tables won't have this step
+    IF input_data.organization_id IS NOT NULL THEN
+        v_fk_organization := management.organization_pk(input_data.organization_id);
+    END IF;
+
+    -- ✅ INSERT with JWT context
+    INSERT INTO crm.tb_contact (
+        id,
+        tenant_id,              -- ✅ From JWT (denormalized)
+        fk_organization,        -- ✅ From user input (if applicable)
+        email,
+        fk_company,
+        status,
+        created_at,
+        created_by              -- ✅ From JWT
+    ) VALUES (
+        v_id,
+        input_pk_organization,  -- ✅ JWT tenant_id → denormalized column
+        v_fk_organization,      -- ✅ Business FK (may be NULL)
+        input_data.email,
+        crm.company_pk(input_data.company_id),
+        input_data.status,
+        now(),
+        input_created_by        -- ✅ JWT user_id
+    );
+
+    RETURN crm.log_and_return_mutation(...);
+END;
+$$;
+</code></pre>
+<p><strong>Why Composite Types Don't Need tenant_id</strong>:
+- ✅ <code>tenant_id</code> comes from <strong>JWT token</strong> (via <code>input_pk_organization</code> parameter)
+- ✅ <strong>NOT</strong> from user input (security - users can't fake their tenant!)
+- ✅ App wrapper extracts from JWT and passes to core layer
+- ✅ Core layer injects into INSERT</p>
+<p><strong>Composite Type MAY Include organization_id (Business Logic)</strong>:</p>
+<pre><code class="language-sql">-- If Contact belongs to specific organizational unit (business requirement)
+CREATE TYPE app.type_create_contact_input AS (
+    email TEXT,
+    company_id UUID,
+    organization_id UUID,     -- ✅ OPTIONAL: Business FK to org unit
+    status TEXT
+);
+</code></pre>
+<p><strong>Key Distinction</strong>:
+- <strong><code>tenant_id</code></strong>: Security/isolation context (from JWT, ALWAYS present, denormalized)
+- <strong><code>fk_organization</code></strong>: Business relationship (from user input, OPTIONAL, depends on domain)</p>
+<p><strong>Impact</strong>:
+- ❌ No tenant isolation → data leakage risk
+- ❌ No RLS support → security vulnerability
+- ❌ Slow queries → JOIN required for filtering
+- ❌ Non-compliant with PrintOptim pattern</p>
+<p><strong>Action Required</strong>:
+1. ✅ Add <code>tenant_id UUID NOT NULL</code> to ALL tables (denormalized)
+2. ✅ Add <code>tenant_id</code> index for performance
+3. ✅ Add <code>fk_organization INTEGER</code> to tables where business logic requires it
+4. ✅ Document JWT token → database column mapping
+5. ✅ Update app wrapper to extract JWT claims
+6. ✅ Document which tables need <code>fk_organization</code> vs. only <code>tenant_id</code></p>
+<hr />
+<h3 id="issue-2-missing-audit-fields-in-table-generation"><strong>Issue #2: Missing Audit Fields in Table Generation</strong></h3>
+<p><strong>Severity</strong>: 🔴 <strong>CRITICAL</strong></p>
+<p><strong>Problem</strong>: The table example (line 118-127) shows minimal audit fields, but PrintOptim requires comprehensive audit trail.</p>
+<p><strong>Current Plan</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE crm.tb_contact (
+    ...
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+</code></pre>
+<p><strong>PrintOptim Reality</strong> (from actual production schema):</p>
+<pre><code class="language-sql">CREATE TABLE crm.tb_contact (
+    ...
+    -- FULL AUDIT TRAIL (Required!)
+    created_at TIMESTAMPTZ DEFAULT now(),
+    created_by UUID,                      -- ✅ WHO created
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    updated_by UUID,                      -- ✅ WHO updated
+    deleted_at TIMESTAMPTZ,               -- ✅ Soft delete timestamp
+    deleted_by UUID                       -- ✅ WHO deleted
+);
+</code></pre>
+<p><strong>Impact</strong>:
+- ❌ No audit trail for compliance
+- ❌ Can't track who made changes
+- ❌ Soft delete not supported
+- ❌ Non-compliant with enterprise requirements</p>
+<p><strong>Action Required</strong>:
+1. Update <code>TableGenerator._prepare_template_context()</code> to include all audit fields
+2. Add <code>created_by</code>, <code>updated_by</code>, <code>deleted_at</code>, <code>deleted_by</code> as standard
+3. Document that these are NOT in composite types (injected by core layer)</p>
+<hr />
+<h3 id="issue-3-schema-assumption-not-always-app"><strong>Issue #3: Schema Assumption - Not Always <code>app</code></strong></h3>
+<p><strong>Severity</strong>: ⚠️ <strong>MEDIUM</strong></p>
+<p><strong>Problem</strong>: Plan hardcodes composite types in <code>app</code> schema, but this may not be correct.</p>
+<p><strong>Current Plan</strong> (Line 261):</p>
+<pre><code class="language-python">type_name = f&quot;type_{action.name}_input&quot;
+# Implicitly: app.type_create_contact_input
+</code></pre>
+<p><strong>Question</strong>: What if action is in <code>crm</code> schema? Where should composite type go?</p>
+<p><strong>PrintOptim Pattern</strong> (from APP_CORE_FUNCTION_PATTERN.md):
+- ✅ <strong>App functions</strong>: <code>app.create_organizational_unit()</code>
+- ✅ <strong>Core functions</strong>: <code>core.create_organizational_unit()</code> (NOTE: <code>core</code>, not entity schema!)
+- ✅ <strong>Composite types</strong>: <code>app.type_organizational_unit_input</code></p>
+<p><strong>Observation</strong>: PrintOptim uses <code>core</code> schema for business logic, not entity schema (<code>crm</code>, <code>management</code>, etc.).</p>
+<p><strong>Potential Issue</strong>: SpecQL uses entity schema (<code>crm</code>, <code>management</code>). This differs from PrintOptim.</p>
+<p><strong>Questions for Team</strong>:
+1. Should we follow PrintOptim's <code>app</code> + <code>core</code> pattern exactly?
+2. Or use <code>app</code> + entity schema (e.g., <code>crm</code>, <code>management</code>)?
+3. Do we need <code>core</code> schema at all, or is entity schema fine?</p>
+<p><strong>Recommendation</strong>:
+- <strong>Composite types</strong>: Always <code>app</code> schema (public API contract) ✅
+- <strong>Core functions</strong>: Need decision - <code>core</code> schema (PrintOptim) or entity schema (<code>crm</code>, <code>management</code>)?</p>
+<p><strong>Action Required</strong>:
+1. Document schema strategy in architecture docs
+2. Update Team C plan to match decision
+3. Consider configurability if different projects have different conventions</p>
+<hr />
+<h3 id="issue-4-missing-trinity-helper-functions"><strong>Issue #4: Missing Trinity Helper Functions</strong></h3>
+<p><strong>Severity</strong>: 🔴 <strong>CRITICAL</strong></p>
+<p><strong>Problem</strong>: Plan doesn't include generation of <code>entity_pk()</code> and <code>entity_id()</code> helper functions.</p>
+<p><strong>Current Plan</strong>: ❌ No mention of helper functions</p>
+<p><strong>PrintOptim Requires</strong> (from APP_CORE_FUNCTION_PATTERN.md):</p>
+<pre><code class="language-sql">-- UUID → INTEGER (pk)
+CREATE OR REPLACE FUNCTION crm.contact_pk(p_identifier TEXT)
+RETURNS INTEGER
+LANGUAGE sql STABLE
+AS $$
+    SELECT pk_contact
+    FROM crm.tb_contact
+    WHERE id::TEXT = p_identifier
+       OR identifier = p_identifier
+       OR pk_contact::TEXT = p_identifier
+    LIMIT 1;
+$$;
+
+-- INTEGER (pk) → UUID
+CREATE OR REPLACE FUNCTION crm.contact_id(p_pk INTEGER)
+RETURNS UUID
+LANGUAGE sql STABLE
+AS $$
+    SELECT id FROM crm.tb_contact WHERE pk_contact = p_pk;
+$$;
+</code></pre>
+<p><strong>Impact</strong>:
+- ❌ Team C can't resolve UUID → INTEGER
+- ❌ Core layer INSERT statements will fail
+- ❌ Pattern incomplete</p>
+<p><strong>Required in Team B Deliverables</strong>:
+1. <code>entity_pk(TEXT) → INTEGER</code> - Accepts UUID, identifier, or pk as text
+2. <code>entity_id(INTEGER) → UUID</code> - Converts pk → UUID
+3. Optional: <code>entity_identifier(INTEGER) → TEXT</code></p>
+<p><strong>Action Required</strong>:
+1. Add Phase 2.5: "Trinity Helper Function Generation"
+2. Create <code>TrinityHelperGenerator</code> class
+3. Generate for EVERY entity (part of schema generation)
+4. Test that Team C can use these in INSERT statements</p>
+<hr />
+<h3 id="issue-5-field-naming-inconsistency"><strong>Issue #5: Field Naming Inconsistency</strong></h3>
+<p><strong>Severity</strong>: ⚠️ <strong>MEDIUM</strong></p>
+<p><strong>Problem</strong>: Field naming transformation is inconsistent and may cause confusion.</p>
+<p><strong>Current Plan</strong> (Line 340-348):</p>
+<pre><code class="language-python">if field_def.type == &quot;ref&quot;:
+    # ref fields: append &quot;_id&quot; for external API
+    # &quot;company&quot; → &quot;company_id&quot;
+    api_field_name = f&quot;{field_name}_id&quot;
+else:
+    # Regular fields: keep name as-is
+    api_field_name = field_name
+</code></pre>
+<p><strong>Concern</strong>: SpecQL field is <code>company</code>, but composite type field is <code>company_id</code>. GraphQL field will be <code>companyId</code>.</p>
+<p><strong>Transformation Chain</strong>:</p>
+<pre><code>SpecQL:           company: ref(Company)
+↓
+Composite Type:   company_id UUID
+↓
+GraphQL:          companyId: UUID
+↓
+Database Table:   fk_company INTEGER
+</code></pre>
+<p><strong>Question</strong>: Is this mapping documented clearly enough for users?</p>
+<p><strong>Potential Confusion</strong>:
+- User writes <code>company</code> in YAML
+- GraphQL mutation needs <code>companyId</code>
+- Database has <code>fk_company</code>
+- Three different names for the same concept!</p>
+<p><strong>Recommendation</strong>:
+1. ✅ Keep the convention (it's correct for GraphQL)
+2. ⚠️ Document the transformation clearly in user-facing docs
+3. ⚠️ Consider generating a mapping table for debugging</p>
+<p><strong>Action Required</strong>:
+1. Add documentation section: "Field Name Transformations"
+2. Include table showing SpecQL → Composite → GraphQL → Database
+3. Generate comments in SQL explaining the mapping</p>
+<hr />
+<h3 id="issue-6-missing-validation-logic"><strong>Issue #6: Missing Validation Logic</strong></h3>
+<p><strong>Severity</strong>: ⚠️ <strong>MEDIUM</strong></p>
+<p><strong>Problem</strong>: No validation for edge cases and conflicts.</p>
+<p><strong>Missing Validations</strong>:</p>
+<ol>
+<li>
+<p><strong>Type name conflicts</strong>: What if two actions generate same composite type name?
+   <code>python
+   # action: create_contact → type_create_contact_input
+   # action: create_contact_async → type_create_contact_async_input
+   # What if user has both create_contact and update_contact?</code></p>
+</li>
+<li>
+<p><strong>Reserved names</strong>: What if user names field <code>id</code>, <code>pk</code>, or <code>tenant_id</code>?
+   <code>yaml
+   fields:
+     id: text  # ❌ Conflicts with Trinity pattern!</code></p>
+</li>
+<li>
+<p><strong>Circular references</strong>: What if Entity A refs Entity B, and B refs A?
+   ```yaml
+   # entities/user.yaml
+   fields:
+     team: ref(Team)</p>
+</li>
+</ol>
+<p># entities/team.yaml
+   fields:
+     owner: ref(User)  # Circular!
+   ```</p>
+<ol>
+<li><strong>Schema existence</strong>: Does target schema exist before generating types?</li>
+</ol>
+<p><strong>Action Required</strong>:
+1. Add validation phase before generation
+2. Detect and error on reserved field names
+3. Warn on potential circular dependencies
+4. Validate schema existence</p>
+<hr />
+<h2 id="medium-priority-issues">⚠️ Medium Priority Issues</h2>
+<h3 id="issue-7-missing-enterprise-features"><strong>Issue #7: Missing Enterprise Features</strong></h3>
+<p><strong>Severity</strong>: ⚠️ <strong>MEDIUM</strong> (can be phased)</p>
+<p><strong>Missing from Plan</strong>:</p>
+<ol>
+<li><strong>Row-Level Security (RLS)</strong>:
+   ```sql
+   -- PrintOptim has RLS on all tables
+   ALTER TABLE crm.tb_contact ENABLE ROW LEVEL SECURITY;</li>
+</ol>
+<p>CREATE POLICY tenant_isolation ON crm.tb_contact
+   FOR ALL
+   TO authenticated_user
+   USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+   ```</p>
+<ol>
+<li>
+<p><strong>Partition Strategy</strong>: For high-volume tables
+   <code>sql
+   -- Partition by tenant_id for large tables?
+   CREATE TABLE crm.tb_contact PARTITION BY LIST (tenant_id);</code></p>
+</li>
+<li>
+<p><strong>Triggers</strong>: Audit trail triggers, timestamp updates</p>
+</li>
+<li>
+<p><strong>Constraints</strong>: UNIQUE constraints, CHECK constraints beyond enums</p>
+</li>
+</ol>
+<p><strong>Recommendation</strong>: Phase 2 features, but should be in roadmap.</p>
+<p><strong>Action Required</strong>:
+1. Add "Future Enhancements" section to plan
+2. Document RLS strategy for later implementation
+3. Consider partitioning for scale</p>
+<hr />
+<h3 id="issue-8-template-organization"><strong>Issue #8: Template Organization</strong></h3>
+<p><strong>Severity</strong>: 🟡 <strong>LOW</strong></p>
+<p><strong>Problem</strong>: Template structure not fully specified.</p>
+<p><strong>Current</strong>: <code>templates/sql/composite_type.sql.j2</code></p>
+<p><strong>Needed</strong>:
+- <code>templates/sql/composite_type.sql.j2</code> ✅
+- <code>templates/sql/trinity_helpers.sql.j2</code> ❌
+- <code>templates/sql/table_with_audit.sql.j2</code> ❌ (update existing <code>table.sql.j2</code>)</p>
+<p><strong>Action Required</strong>:
+1. Document complete template structure
+2. Ensure templates handle all edge cases
+3. Add template tests</p>
+<hr />
+<h2 id="recommendations">💡 Recommendations</h2>
+<h3 id="recommendation-1-add-schema-strategy-document"><strong>Recommendation #1: Add Schema Strategy Document</strong></h3>
+<p>Create: <code>docs/architecture/SCHEMA_STRATEGY.md</code></p>
+<p><strong>Contents</strong>:
+- Which schemas are used for what (<code>app</code>, <code>core</code>, entity schemas)
+- Multi-tenancy strategy (tenant_id placement)
+- Audit field requirements
+- Security (RLS, policies)
+- Naming conventions (comprehensive)</p>
+<h3 id="recommendation-2-expand-phase-2-to-include-trinity-helpers"><strong>Recommendation #2: Expand Phase 2 to Include Trinity Helpers</strong></h3>
+<p><strong>Current</strong>: Phase 2 only generates <code>mutation_result</code></p>
+<p><strong>Should Be</strong>:
+- Standard types (<code>mutation_result</code>)
+- <strong>Trinity helper functions</strong> (<code>entity_pk</code>, <code>entity_id</code>)
+- Standard deletion input type</p>
+<h3 id="recommendation-3-add-pre-generation-validation-phase"><strong>Recommendation #3: Add Pre-Generation Validation Phase</strong></h3>
+<p><strong>Before</strong> generating any SQL:
+1. Validate entity names (no conflicts)
+2. Validate field names (no reserved words)
+3. Check schema exists
+4. Detect circular refs
+5. Validate action names (unique composite types)</p>
+<h3 id="recommendation-4-document-field-transformation-chain"><strong>Recommendation #4: Document Field Transformation Chain</strong></h3>
+<p>Add to plan:</p>
+<pre><code>SpecQL Field → Composite Type Field → GraphQL Field → Database Column
+
+company      → company_id (UUID)    → companyId    → fk_company (INTEGER)
+status       → status (TEXT)        → status       → status (TEXT)
+created_at   → (not in composite)   → (hidden)     → created_at (TIMESTAMPTZ)
+</code></pre>
+<h3 id="recommendation-5-consider-performance-implications"><strong>Recommendation #5: Consider Performance Implications</strong></h3>
+<p><strong>Question</strong>: For entities with 50+ fields, should composite types include ALL fields?</p>
+<p><strong>Optimization</strong>:
+- Create action could need all fields
+- Update action might only need subset
+- Delete action only needs ID</p>
+<p><strong>Recommendation</strong>: Support <strong>action-specific field selection</strong> in Phase 3.</p>
+<hr />
+<h2 id="risk-assessment">📊 Risk Assessment</h2>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Severity</th>
+<th>Likelihood</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Missing tenant_id</strong></td>
+<td>🔴 CRITICAL</td>
+<td>HIGH</td>
+<td>Add to table generator immediately</td>
+</tr>
+<tr>
+<td><strong>Missing audit fields</strong></td>
+<td>🔴 CRITICAL</td>
+<td>HIGH</td>
+<td>Add <code>created_by</code>, <code>updated_by</code>, <code>deleted_at</code>, <code>deleted_by</code></td>
+</tr>
+<tr>
+<td><strong>Missing helper functions</strong></td>
+<td>🔴 CRITICAL</td>
+<td>HIGH</td>
+<td>Add Trinity helper generation to Phase 2</td>
+</tr>
+<tr>
+<td><strong>Schema confusion</strong></td>
+<td>⚠️ MEDIUM</td>
+<td>MEDIUM</td>
+<td>Document schema strategy clearly</td>
+</tr>
+<tr>
+<td><strong>Field naming confusion</strong></td>
+<td>⚠️ MEDIUM</td>
+<td>MEDIUM</td>
+<td>Add comprehensive docs</td>
+</tr>
+<tr>
+<td><strong>Type name conflicts</strong></td>
+<td>⚠️ MEDIUM</td>
+<td>LOW</td>
+<td>Add validation phase</td>
+</tr>
+<tr>
+<td><strong>Missing RLS</strong></td>
+<td>⚠️ MEDIUM</td>
+<td>LOW</td>
+<td>Phase 2 feature</td>
+</tr>
+<tr>
+<td><strong>Performance at scale</strong></td>
+<td>🟡 LOW</td>
+<td>LOW</td>
+<td>Monitor and optimize later</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="required-changes-before-approval">✅ Required Changes Before Approval</h2>
+<h3 id="must-have-blocking"><strong>Must-Have (Blocking)</strong>:</h3>
+<ol>
+<li>✅ Add <code>tenant_id UUID NOT NULL</code> to all tables</li>
+<li>✅ Add complete audit fields (<code>created_by</code>, <code>updated_by</code>, <code>deleted_at</code>, <code>deleted_by</code>)</li>
+<li>✅ Add Trinity helper function generation (<code>entity_pk</code>, <code>entity_id</code>)</li>
+<li>✅ Add tenant index: <code>CREATE INDEX idx_tb_{entity}_tenant ON {schema}.tb_{entity}(tenant_id)</code></li>
+<li>✅ Document schema strategy (<code>app</code> vs entity schema for core functions)</li>
+<li>✅ Add field transformation documentation</li>
+</ol>
+<h3 id="should-have-recommended"><strong>Should-Have (Recommended)</strong>:</h3>
+<ol>
+<li>⚠️ Add validation phase (reserved names, conflicts)</li>
+<li>⚠️ Expand error handling for edge cases</li>
+<li>⚠️ Document future enterprise features (RLS, partitioning)</li>
+</ol>
+<h3 id="nice-to-have-future"><strong>Nice-to-Have (Future)</strong>:</h3>
+<ol>
+<li>🟡 Action-specific field selection (optimization)</li>
+<li>🟡 Template organization documentation</li>
+<li>🟡 Performance testing plan</li>
+</ol>
+<hr />
+<h2 id="updated-deliverables-list">📝 Updated Deliverables List</h2>
+<h3 id="team-b-must-deliver"><strong>Team B Must Deliver</strong>:</h3>
+<ol>
+<li>✅ <code>CompositeTypeGenerator</code> - Input types</li>
+<li>✅ <code>StandardTypesGenerator</code> - <code>mutation_result</code>, etc.</li>
+<li>✅ <strong><code>TrinityHelperGenerator</code></strong> - <code>entity_pk()</code>, <code>entity_id()</code> functions</li>
+<li>✅ <code>TableGenerator</code> (updated) - With <code>tenant_id</code> and full audit fields</li>
+<li>✅ <code>SchemaOrchestrator</code> - Coordinates all generators</li>
+<li>✅ Templates for all above</li>
+<li>✅ Comprehensive tests (90%+ coverage)</li>
+<li>✅ <strong>Schema strategy documentation</strong></li>
+<li>✅ <strong>Field transformation mapping documentation</strong></li>
+</ol>
+<hr />
+<h2 id="verdict">🎯 Verdict</h2>
+<p><strong>Status</strong>: 🔴 <strong>REVISE REQUIRED</strong></p>
+<p><strong>Approval Conditions</strong>:
+1. Address all 🔴 CRITICAL issues (#1, #2, #4)
+2. Document schema strategy (#3)
+3. Add field naming documentation (#5)
+4. Include validation strategy (#6)</p>
+<p><strong>Estimated Time to Address</strong>: +1-2 days</p>
+<p><strong>Next Review</strong>: After critical issues are addressed</p>
+<hr />
+<h2 id="cto-comments">💬 CTO Comments</h2>
+<p><strong>Positive</strong>:</p>
+<blockquote>
+<p>"The team demonstrates excellent understanding of the app/core pattern and FraiseQL integration. The UUID vs INTEGER separation is handled correctly, and the TDD discipline is commendable."</p>
+</blockquote>
+<p><strong>Concerns</strong>:</p>
+<blockquote>
+<p>"Multi-tenancy is NOT OPTIONAL in enterprise systems. Every table must have <code>tenant_id</code> for data isolation. This is a security requirement, not a feature."</p>
+<p>"Trinity helper functions are the glue between app layer (UUID) and database layer (INTEGER). Without them, Team C will be blocked."</p>
+<p>"Audit trail is compliance requirement. We need to know WHO did WHAT and WHEN. Missing <code>created_by</code>, <code>updated_by</code>, <code>deleted_by</code> is unacceptable."</p>
+</blockquote>
+<p><strong>Direction</strong>:</p>
+<blockquote>
+<p>"Fix the critical issues first. Multi-tenancy, audit trail, and helper functions are foundational - they can't be added later without breaking changes. Get these right in Phase 1."</p>
+<p>"Schema strategy needs clarity. Are we following PrintOptim's <code>core</code> schema pattern, or using entity schemas? This affects Team C's work. Decide now, document clearly."</p>
+<p>"Once critical issues are resolved, this plan will be excellent. The foundation is solid - we just need to ensure it's complete."</p>
+</blockquote>
+<hr />
+<h2 id="next-steps">📞 Next Steps</h2>
+<ol>
+<li><strong>Team B</strong>: Address critical issues (#1, #2, #4)</li>
+<li><strong>Architecture Team</strong>: Document schema strategy</li>
+<li><strong>Team B</strong>: Add validation and field naming docs</li>
+<li><strong>CTO</strong>: Re-review updated plan</li>
+<li><strong>Proceed</strong>: Once approved, begin implementation</li>
+</ol>
+<hr />
+<p><strong>Review Completed</strong>: 2025-11-08
+<strong>Reviewer</strong>: CTO
+<strong>Next Review Date</strong>: TBD (after revisions submitted)</p>
+<hr />
+<h2 id="appendix-a-jwt-token-pattern-security-vs-business-data">Appendix A: JWT Token Pattern - Security vs Business Data</h2>
+<h3 id="the-golden-rule-never-trust-user-input-for-security-context"><strong>The Golden Rule</strong>: Never Trust User Input for Security Context</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────┐
+│  JWT Token (Verified by Auth Middleware)                   │
+├─────────────────────────────────────────────────────────────┤
+│  {                                                          │
+│    &quot;sub&quot;: &quot;user-uuid-123&quot;,        ← WHO (authenticated)   │
+│    &quot;tenant_id&quot;: &quot;tenant-uuid-456&quot; ← WHERE (authorized)    │
+│  }                                                          │
+└───────────────┬─────────────────────────────────────────────┘
+                │
+                ▼
+┌─────────────────────────────────────────────────────────────┐
+│  GraphQL Context (Injected by Server)                      │
+├─────────────────────────────────────────────────────────────┤
+│  context = {                                                │
+│    tenant_id: jwt.tenant_id,      ← Extracted from JWT    │
+│    user_id: jwt.sub               ← Extracted from JWT    │
+│  }                                                          │
+└───────────────┬─────────────────────────────────────────────┘
+                │
+                ▼
+┌─────────────────────────────────────────────────────────────┐
+│  App Wrapper Function Call                                  │
+├─────────────────────────────────────────────────────────────┤
+│  app.create_contact(                                        │
+│    input_pk_organization := context.tenant_id, ← JWT      │
+│    input_created_by := context.user_id,        ← JWT      │
+│    input_payload := mutation_input             ← User data │
+│  )                                                          │
+└───────────────┬─────────────────────────────────────────────┘
+                │
+                ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Database INSERT                                            │
+├─────────────────────────────────────────────────────────────┤
+│  INSERT INTO crm.tb_contact (                               │
+│    tenant_id,        ← FROM JWT (security)                 │
+│    created_by,       ← FROM JWT (audit)                    │
+│    fk_organization,  ← FROM USER INPUT (business, OPTIONAL)│
+│    email,            ← FROM USER INPUT (business)          │
+│    ...                                                      │
+│  ) VALUES (                                                 │
+│    input_pk_organization,     -- JWT tenant_id             │
+│    input_created_by,          -- JWT user_id               │
+│    v_fk_organization,         -- User-provided org         │
+│    input_data.email,          -- User-provided email       │
+│    ...                                                      │
+│  )                                                          │
+└─────────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="key-distinction"><strong>Key Distinction</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Source</th>
+<th>Purpose</th>
+<th>In Composite Type?</th>
+<th>Can User Fake?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>tenant_id</code></td>
+<td>JWT token</td>
+<td>Security isolation</td>
+<td>❌ NO</td>
+<td>❌ NO - Server enforces</td>
+</tr>
+<tr>
+<td><code>created_by</code></td>
+<td>JWT token</td>
+<td>Audit trail</td>
+<td>❌ NO</td>
+<td>❌ NO - Server enforces</td>
+</tr>
+<tr>
+<td><code>fk_organization</code></td>
+<td>User input</td>
+<td>Business relationship</td>
+<td>✅ YES (optional)</td>
+<td>✅ YES - But validated by core layer</td>
+</tr>
+<tr>
+<td><code>email</code></td>
+<td>User input</td>
+<td>Business data</td>
+<td>✅ YES</td>
+<td>✅ YES - Validated by business logic</td>
+</tr>
+</tbody>
+</table>
+<h3 id="why-denormalize-tenant_id"><strong>Why Denormalize tenant_id?</strong></h3>
+<p><strong>Performance</strong>:</p>
+<pre><code class="language-sql">-- ✅ FAST (index on tenant_id):
+SELECT * FROM crm.tb_contact
+WHERE tenant_id = 'tenant-uuid-456'
+  AND status = 'active';
+
+-- Uses: idx_tb_contact_tenant (tenant_id)
+
+-- ❌ SLOW (requires JOIN):
+SELECT c.* FROM crm.tb_contact c
+JOIN management.tb_organization o ON c.fk_organization = o.pk_organization
+WHERE o.id = 'tenant-uuid-456'
+  AND c.status = 'active';
+
+-- Needs JOIN + multiple index lookups
+</code></pre>
+<p><strong>Row-Level Security (RLS)</strong>:</p>
+<pre><code class="language-sql">-- ✅ SIMPLE RLS POLICY:
+CREATE POLICY tenant_isolation ON crm.tb_contact
+FOR ALL
+TO authenticated_user
+USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+
+-- ❌ COMPLEX RLS (with JOIN):
+CREATE POLICY tenant_isolation ON crm.tb_contact
+FOR ALL
+TO authenticated_user
+USING (
+  EXISTS (
+    SELECT 1 FROM management.tb_organization o
+    WHERE o.pk_organization = tb_contact.fk_organization
+      AND o.id = current_setting('app.current_tenant_id')::UUID
+  )
+);
+-- Slower, harder to maintain
+</code></pre>
+<h3 id="when-to-add-fk_organization"><strong>When to Add fk_organization?</strong></h3>
+<p><strong>Add <code>fk_organization</code> when</strong>:
+- Entity logically belongs to an organizational unit (not just tenant)
+- Business queries need to filter by organization
+- Organizational hierarchy matters for the entity</p>
+<p><strong>Examples</strong>:</p>
+<pre><code class="language-sql">-- ✅ HAS fk_organization (belongs to specific org unit):
+CREATE TABLE crm.tb_contact (
+  tenant_id UUID NOT NULL,           -- Isolation
+  fk_organization INTEGER,            -- Which org unit owns this contact
+  ...
+);
+
+-- ✅ NO fk_organization (tenant-level only):
+CREATE TABLE system.tb_configuration (
+  tenant_id UUID NOT NULL,           -- Isolation (enough!)
+  config_key TEXT,
+  config_value JSONB,
+  ...
+);
+</code></pre>
+<hr />
+<h2 id="appendix-b-reference-checklist">Appendix B: Reference Checklist</h2>
+<p>Use this checklist when generating tables:</p>
+<pre><code class="language-python"># Table Generation Checklist (Team B)
+
+✅ Trinity Pattern:
+   - pk_{entity} INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY
+   - id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE
+   - identifier TEXT UNIQUE
+
+✅ Multi-Tenancy (JWT Token Context):
+   - tenant_id UUID NOT NULL              -- Denormalized from JWT (ALWAYS)
+   - fk_organization INTEGER               -- Business FK (OPTIONAL, depends on domain)
+   - INDEX on tenant_id (CRITICAL!)
+   - INDEX on fk_organization (if present)
+
+✅ Business Fields:
+   - All entity fields
+   - Foreign keys as fk_{field} INTEGER (not UUID!)
+   - Enums with CHECK constraints
+
+✅ Audit Trail (JWT Token Context):
+   - created_at TIMESTAMPTZ DEFAULT now()
+   - created_by UUID                       -- From JWT &quot;sub&quot; claim
+   - updated_at TIMESTAMPTZ DEFAULT now()
+   - updated_by UUID                       -- From JWT &quot;sub&quot; claim
+   - deleted_at TIMESTAMPTZ                -- Soft delete timestamp
+   - deleted_by UUID                       -- Who deleted (from JWT)
+
+✅ Indexes:
+   - id (UUID lookups)
+   - tenant_id (multi-tenancy - CRITICAL!)
+   - fk_organization (if present)
+   - All FK fields
+   - All enum fields
+
+✅ Constraints:
+   - Primary key
+   - Foreign keys (via ALTER TABLE)
+   - CHECK constraints for enums
+   - NOT NULL where appropriate
+
+✅ Helper Functions (Trinity Resolution):
+   - {schema}.{entity}_pk(TEXT) → INTEGER  -- Accepts UUID/identifier/pk as text
+   - {schema}.{entity}_id(INTEGER) → UUID  -- Converts pk → UUID
+
+✅ FraiseQL Annotations:
+   - Table comment with @fraiseql:type
+   - Column comments for special fields
+
+✅ JWT Token Mapping:
+   - JWT &quot;tenant_id&quot; → tenant_id column (security context)
+   - JWT &quot;sub&quot; → created_by, updated_by (user context)
+   - JWT &quot;organization_id&quot; → MAY map to fk_organization (business logic)
+</code></pre>
+<p>Use this for composite types:</p>
+<pre><code class="language-python"># Composite Type Generation Checklist (Team B)
+
+✅ Type Structure:
+   - app.type_{action}_input
+   - Fields use UUID for refs (not INTEGER!)
+   - Field names: {field}_id for refs
+   - Correct PostgreSQL types
+
+✅ FraiseQL Annotations:
+   - Type comment: @fraiseql:input name={PascalCase}Input
+   - Field comments: @fraiseql:field with type info
+   - Nullable indicators: required=true/false
+
+✅ NOT in Composite Type (JWT Context - Security):
+   - tenant_id (from JWT &quot;tenant_id&quot;, NOT user input)
+   - created_by (from JWT &quot;sub&quot;, NOT user input)
+   - updated_by (from JWT &quot;sub&quot;, NOT user input)
+   - audit fields (added by core layer)
+   - pk_{entity} (internal only, never exposed)
+
+✅ MAY be in Composite Type (Business Logic):
+   - organization_id UUID (if entity belongs to org unit - business FK)
+   - Other business relationships (e.g., team_id, department_id)
+   - These are USER-PROVIDED, not from JWT context
+
+✅ Naming Convention:
+   - SpecQL: company
+   - Composite: company_id UUID
+   - GraphQL: companyId
+   - Database: fk_company INTEGER
+
+✅ Security Principle:
+   - JWT context (tenant_id, user_id) → Function parameters → NOT in composite type
+   - Business data (organization_id, company_id) → Composite type → From user input
+   - Rule: Users can't fake their tenant/identity via API!
+</code></pre>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,767 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Composing Patterns - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Composing Patterns";
+        var mkdocs_page_input_path = "guides/mutation-patterns/composing-patterns.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Composing Patterns</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="composing-patterns">Composing Patterns</h1>
+<p><strong>Pattern composition</strong> combines multiple mutation patterns to create complex business logic. Learn how to effectively combine patterns like state machines, validation, and multi-entity operations for comprehensive solutions.</p>
+<h2 id="what-youll-learn">🎯 What You'll Learn</h2>
+<ul>
+<li>Pattern composition concepts and strategies</li>
+<li>Combining multiple patterns effectively</li>
+<li>Pattern interaction and conflict resolution</li>
+<li>Complex business logic implementation</li>
+<li>Testing composed patterns</li>
+</ul>
+<h2 id="prerequisites">📋 Prerequisites</h2>
+<ul>
+<li><a href="../getting-started/">Pattern basics</a></li>
+<li>Understanding of individual patterns</li>
+<li>Knowledge of business process modeling</li>
+</ul>
+<h2 id="composition-concepts">💡 Composition Concepts</h2>
+<h3 id="why-compose-patterns">Why Compose Patterns?</h3>
+<p><strong>Individual patterns</strong> solve specific problems:
+- State machines manage status transitions
+- Validation enforces data rules
+- Multi-entity handles cross-table operations</p>
+<p><strong>Pattern composition</strong> creates complete solutions:</p>
+<pre><code class="language-yaml"># Complex order processing combining multiple patterns
+patterns:
+  # State management
+  - name: state_machine
+    states: [pending, confirmed, shipped, delivered]
+
+  # Data validation
+  - name: validation
+    rules:
+      - name: valid_shipping
+        rule: &quot;shipping_address IS NOT NULL OR digital_delivery = true&quot;
+
+  # Cross-table operations
+  - name: multi_entity
+    operation: process_order_fulfillment
+    entities: [order, order_item, inventory, shipment]
+</code></pre>
+<p><strong>Benefits:</strong>
+- <strong>Holistic solutions</strong> - Address complete business processes
+- <strong>Consistency</strong> - Unified rules across operations
+- <strong>Maintainability</strong> - Declarative complex logic
+- <strong>Testing</strong> - Comprehensive coverage of interactions</p>
+<h3 id="composition-strategies">Composition Strategies</h3>
+<table>
+<thead>
+<tr>
+<th>Strategy</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Sequential</strong></td>
+<td>Step-by-step workflow</td>
+<td>Order: validate → confirm → ship</td>
+</tr>
+<tr>
+<td><strong>Parallel</strong></td>
+<td>Independent validations</td>
+<td>User: email format + age check + uniqueness</td>
+</tr>
+<tr>
+<td><strong>Conditional</strong></td>
+<td>Context-dependent logic</td>
+<td>Premium users get different validation</td>
+</tr>
+<tr>
+<td><strong>Hierarchical</strong></td>
+<td>Nested operations</td>
+<td>Order contains line items with their own patterns</td>
+</tr>
+</tbody>
+</table>
+<h2 id="basic-composition">🏗️ Basic Composition</h2>
+<h3 id="order-processing-example">Order Processing Example</h3>
+<pre><code class="language-yaml"># entities/order.yaml
+name: order
+fields:
+  id: uuid
+  customer_id: uuid
+  status: string
+  total_amount: decimal
+  shipping_address: text?
+  digital_delivery: boolean
+
+patterns:
+  # 1. State Machine - Order lifecycle
+  - name: state_machine
+    description: &quot;Order processing workflow&quot;
+    initial_state: pending
+    states: [pending, confirmed, processing, shipped, delivered, cancelled]
+
+    transitions:
+      - from: pending
+        to: confirmed
+        trigger: confirm_order
+        guard: &quot;total_amount &gt; 0&quot;
+        action: &quot;send_order_confirmation&quot;
+
+      - from: confirmed
+        to: processing
+        trigger: start_processing
+        action: &quot;reserve_inventory&quot;
+
+      - from: processing
+        to: shipped
+        trigger: ship_order
+        guard: &quot;shipping_address IS NOT NULL OR digital_delivery = true&quot;
+        action: &quot;create_shipment&quot;
+
+      - from: shipped
+        to: delivered
+        trigger: mark_delivered
+        action: &quot;send_delivery_notification&quot;
+
+  # 2. Validation - Business rules
+  - name: validation
+    description: &quot;Order data integrity&quot;
+    rules:
+      - name: positive_total
+        field: total_amount
+        rule: &quot;total_amount &gt; 0&quot;
+        message: &quot;Order total must be positive&quot;
+
+      - name: shipping_required
+        fields: [shipping_address, digital_delivery]
+        rule: &quot;digital_delivery = true OR shipping_address IS NOT NULL&quot;
+        message: &quot;Shipping address required for physical delivery&quot;
+
+      - name: customer_exists
+        field: customer_id
+        rule: &quot;EXISTS(SELECT 1 FROM customer WHERE id = customer_id)&quot;
+        message: &quot;Customer not found&quot;
+
+  # 3. Multi-Entity - Complex operations
+  - name: multi_entity
+    description: &quot;Complete order fulfillment&quot;
+    operation: fulfill_order
+    entities: [order, order_item, inventory, shipment]
+
+    steps:
+      - validate: order
+        condition: &quot;status = 'confirmed'&quot;
+
+      - update: order
+        data:
+          status: processing
+        where: &quot;id = :order_id&quot;
+
+      - update: order_item
+        data:
+          status: processing
+        where: &quot;order_id = :order_id&quot;
+
+      - update: inventory
+        for_each: &quot;SELECT product_id, quantity FROM order_item WHERE order_id = :order_id&quot;
+        data:
+          quantity: &quot;quantity - :item.quantity&quot;
+        where: &quot;product_id = :item.product_id&quot;
+
+      - create: shipment
+        condition: &quot;NOT :digital_delivery&quot;
+        data:
+          order_id: :order_id
+          status: pending
+          address: :shipping_address
+</code></pre>
+<h2 id="advanced-composition">⚙️ Advanced Composition</h2>
+<h3 id="conditional-pattern-application">Conditional Pattern Application</h3>
+<pre><code class="language-yaml">patterns:
+  # Base validation for all orders
+  - name: validation
+    description: &quot;Basic order validation&quot;
+    rules:
+      - name: total_positive
+        field: total_amount
+        rule: &quot;total_amount &gt; 0&quot;
+
+  # Additional validation for premium customers
+  - name: validation
+    description: &quot;Premium customer validation&quot;
+    condition: &quot;is_premium_customer(customer_id)&quot;  # Only apply if true
+    rules:
+      - name: credit_check
+        fields: [customer_id, total_amount]
+        rule: &quot;get_customer_credit_limit(customer_id) &gt;= total_amount&quot;
+        message: &quot;Order exceeds credit limit&quot;
+
+  # Different processing for digital vs physical
+  - name: state_machine
+    description: &quot;Digital order workflow&quot;
+    condition: &quot;digital_delivery = true&quot;
+    states: [pending, confirmed, delivered]
+    transitions:
+      - from: pending
+        to: confirmed
+        trigger: confirm
+      - from: confirmed
+        to: delivered
+        trigger: deliver_digital
+        action: &quot;send_download_link&quot;
+
+  - name: state_machine
+    description: &quot;Physical order workflow&quot;
+    condition: &quot;digital_delivery = false&quot;
+    states: [pending, confirmed, processing, shipped, delivered]
+    transitions:
+      - from: pending
+        to: confirmed
+        trigger: confirm
+      - from: confirmed
+        to: processing
+        trigger: process
+      - from: processing
+        to: shipped
+        trigger: ship
+      - from: shipped
+        to: delivered
+        trigger: deliver
+</code></pre>
+<h3 id="pattern-dependencies">Pattern Dependencies</h3>
+<pre><code class="language-yaml">patterns:
+  # 1. Validation runs first
+  - name: validation
+    description: &quot;Pre-checks&quot;
+    priority: 1
+    rules:
+      - name: basic_checks
+        rule: &quot;data_is_valid()&quot;
+
+  # 2. State machine depends on validation
+  - name: state_machine
+    description: &quot;Status transitions&quot;
+    priority: 2
+    depends_on: [validation]  # Must pass validation first
+    transitions:
+      - from: pending
+        to: approved
+        guard: &quot;validation_passed = true&quot;
+
+  # 3. Multi-entity runs after state change
+  - name: multi_entity
+    description: &quot;Business operations&quot;
+    priority: 3
+    depends_on: [state_machine]
+    steps:
+      - condition: &quot;status = 'approved'&quot;  # Only if approved
+</code></pre>
+<h3 id="cross-pattern-data-flow">Cross-Pattern Data Flow</h3>
+<pre><code class="language-yaml">patterns:
+  # Validation collects metadata
+  - name: validation
+    description: &quot;Data quality checks&quot;
+    collect_metadata: true
+    rules:
+      - name: quality_score
+        field: data_quality
+        rule: &quot;calculate_quality_score(ALL_FIELDS) &gt; 0.8&quot;
+
+  # State machine uses validation results
+  - name: state_machine
+    description: &quot;Quality-based routing&quot;
+    transitions:
+      - from: pending
+        to: approved
+        guard: &quot;validation_metadata.quality_score &gt; 0.9&quot;
+      - from: pending
+        to: review
+        guard: &quot;validation_metadata.quality_score BETWEEN 0.7 AND 0.9&quot;
+      - from: pending
+        to: rejected
+        guard: &quot;validation_metadata.quality_score &lt; 0.7&quot;
+
+  # Multi-entity operation varies by path
+  - name: multi_entity
+    description: &quot;Path-specific processing&quot;
+    steps:
+      - condition: &quot;status = 'approved'&quot;
+        then:
+          - action: process_high_quality_order
+      - condition: &quot;status = 'review'&quot;
+        then:
+          - action: queue_for_manual_review
+      - condition: &quot;status = 'rejected'&quot;
+        then:
+          - action: send_rejection_notification
+</code></pre>
+<h2 id="pattern-interaction-patterns">🔄 Pattern Interaction Patterns</h2>
+<h3 id="state-machine-validation">State Machine + Validation</h3>
+<pre><code class="language-yaml">patterns:
+  - name: state_machine
+    description: &quot;Application approval process&quot;
+    states: [draft, submitted, under_review, approved, rejected]
+
+    transitions:
+      - from: draft
+        to: submitted
+        trigger: submit
+        # Validation runs automatically before transition
+        validations: [required_fields, business_rules]
+
+      - from: submitted
+        to: under_review
+        trigger: start_review
+        validations: [compliance_check]
+
+      - from: under_review
+        to: approved
+        trigger: approve
+        validations: [final_approval_check]
+
+  - name: validation
+    description: &quot;Application validation rules&quot;
+    rules:
+      - name: required_fields
+        rule: &quot;application_is_complete()&quot;
+        message: &quot;All required fields must be filled&quot;
+
+      - name: business_rules
+        rule: &quot;meets_business_criteria()&quot;
+        message: &quot;Application does not meet business requirements&quot;
+
+      - name: compliance_check
+        rule: &quot;passes_compliance_review()&quot;
+        message: &quot;Application failed compliance review&quot;
+</code></pre>
+<h3 id="multi-entity-state-machine">Multi-Entity + State Machine</h3>
+<pre><code class="language-yaml">patterns:
+  - name: state_machine
+    description: &quot;Order fulfillment states&quot;
+    states: [confirmed, processing, shipped, delivered]
+
+    transitions:
+      - from: confirmed
+        to: processing
+        trigger: start_processing
+        # Triggers multi-entity operation
+        action: fulfill_order
+
+      - from: processing
+        to: shipped
+        trigger: mark_shipped
+        action: update_shipping_status
+
+  - name: multi_entity
+    description: &quot;Order fulfillment process&quot;
+    operation: fulfill_order
+    entities: [order, order_item, inventory, shipment]
+
+    steps:
+      # Update order status
+      - update: order
+        data:
+          status: processing
+        where: &quot;id = :order_id&quot;
+
+      # Process each item
+      - for_each: order_items
+        do:
+          - update: inventory
+            data:
+              quantity: &quot;quantity - :item.quantity&quot;
+            where: &quot;product_id = :item.product_id&quot;
+
+      # Create shipment
+      - create: shipment
+        data:
+          order_id: :order_id
+          items: :order_items
+          status: pending
+</code></pre>
+<h3 id="validation-multi-entity">Validation + Multi-Entity</h3>
+<pre><code class="language-yaml">patterns:
+  - name: validation
+    description: &quot;Pre-operation validation&quot;
+    rules:
+      - name: inventory_available
+        rule: &quot;all_items_in_stock(:order_items)&quot;
+        message: &quot;Some items are out of stock&quot;
+
+      - name: payment_cleared
+        rule: &quot;payment_is_cleared(:payment_id)&quot;
+        message: &quot;Payment has not cleared&quot;
+
+      - name: shipping_possible
+        rule: &quot;shipping_address_valid(:shipping_address)&quot;
+        message: &quot;Shipping address is invalid&quot;
+
+  - name: multi_entity
+    description: &quot;Order placement&quot;
+    operation: place_order
+    entities: [order, order_item, payment, shipment]
+    # Validation runs before any changes
+    precondition_validations: [inventory_available, payment_cleared, shipping_possible]
+
+    steps:
+      - create: order
+        data:
+          customer_id: :customer_id
+          total: :total
+          status: confirmed
+
+      - create: order_item
+        for_each: :items
+        data:
+          order_id: :order.id
+          product_id: :item.product_id
+          quantity: :item.quantity
+
+      - update: payment
+        data:
+          status: captured
+        where: &quot;id = :payment_id&quot;
+
+      - create: shipment
+        data:
+          order_id: :order.id
+          address: :shipping_address
+          status: pending
+</code></pre>
+<h2 id="testing-composed-patterns">🧪 Testing Composed Patterns</h2>
+<h3 id="integration-testing">Integration Testing</h3>
+<pre><code class="language-bash"># Generate tests for all patterns
+specql generate tests entities/order.yaml
+
+# Run comprehensive test suite
+specql test run entities/order.yaml
+
+# Run specific pattern tests
+specql test run --pattern state_machine entities/order.yaml
+specql test run --pattern validation entities/order.yaml
+specql test run --pattern multi_entity entities/order.yaml
+</code></pre>
+<p><strong>Test Coverage:</strong>
+- ✅ <strong>Pattern interactions</strong> - How patterns work together
+- ✅ <strong>Data flow</strong> - Information passing between patterns
+- ✅ <strong>Conflict resolution</strong> - When patterns have conflicting rules
+- ✅ <strong>Error propagation</strong> - How errors flow through composed patterns
+- ✅ <strong>Performance</strong> - Impact of multiple patterns</p>
+<h3 id="manual-integration-testing">Manual Integration Testing</h3>
+<pre><code class="language-sql">-- Test complete order workflow
+SELECT place_order(
+  customer_id := 'customer-uuid'::UUID,
+  items := '[
+    {&quot;product_id&quot;: &quot;prod-1&quot;, &quot;quantity&quot;: 2},
+    {&quot;product_id&quot;: &quot;prod-2&quot;, &quot;quantity&quot;: 1}
+  ]'::JSONB,
+  payment_id := 'payment-uuid'::UUID,
+  shipping_address := '123 Main St'
+);
+
+-- Verify state machine progression
+SELECT status FROM order WHERE customer_id = 'customer-uuid';
+
+-- Verify validation rules applied
+-- (Should fail if invalid data provided)
+
+-- Verify multi-entity operation completed
+SELECT * FROM order_item WHERE order_id IN (
+  SELECT id FROM order WHERE customer_id = 'customer-uuid'
+);
+</code></pre>
+<h2 id="real-world-examples">🚀 Real-World Examples</h2>
+<h3 id="e-commerce-order-management">E-commerce Order Management</h3>
+<pre><code class="language-yaml">patterns:
+  # State machine for order lifecycle
+  - name: state_machine
+    states: [cart, pending, confirmed, processing, shipped, delivered, cancelled, refunded]
+
+  # Validation for business rules
+  - name: validation
+    rules:
+      - name: inventory_check
+        rule: &quot;all_items_available(order_items)&quot;
+      - name: payment_validation
+        rule: &quot;payment_amount_matches_order_total(payment, order)&quot;
+      - name: shipping_validation
+        rule: &quot;shipping_address_complete(order)&quot;
+
+  # Multi-entity for order fulfillment
+  - name: multi_entity
+    operation: fulfill_order
+    entities: [order, order_item, inventory, shipment, payment]
+
+  # Audit trail for compliance
+  - name: audit_trail
+    track_fields: [status, total_amount]
+    track_changes: true
+</code></pre>
+<h3 id="user-onboarding-process">User Onboarding Process</h3>
+<pre><code class="language-yaml">patterns:
+  # State machine for onboarding steps
+  - name: state_machine
+    states: [registered, email_verified, profile_complete, payment_setup, active]
+
+  # Validation at each step
+  - name: validation
+    rules:
+      - name: email_verification
+        condition: &quot;status = 'registered'&quot;
+        rule: &quot;email_verified = true&quot;
+      - name: profile_completion
+        condition: &quot;status = 'email_verified'&quot;
+        rule: &quot;profile_is_complete(user_profile)&quot;
+      - name: payment_setup
+        condition: &quot;status = 'profile_complete'&quot;
+        rule: &quot;payment_method_configured(user)&quot;
+
+  # Multi-entity for account setup
+  - name: multi_entity
+    operation: complete_onboarding
+    entities: [user, user_profile, payment_method, notification_settings]
+</code></pre>
+<h3 id="content-publishing-workflow">Content Publishing Workflow</h3>
+<pre><code class="language-yaml">patterns:
+  # State machine for content states
+  - name: state_machine
+    states: [draft, review, approved, published, archived]
+
+  # Validation for content quality
+  - name: validation
+    rules:
+      - name: content_quality
+        rule: &quot;content_meets_quality Standards(title, body, tags)&quot;
+      - name: editorial_approval
+        condition: &quot;status = 'review'&quot;
+        rule: &quot;editorial_review_passed(content)&quot;
+
+  # Multi-entity for publishing process
+  - name: multi_entity
+    operation: publish_content
+    entities: [content, content_version, author, category, tags]
+
+  # Versioning for content history
+  - name: versioning
+    track_changes: true
+    keep_versions: 10
+</code></pre>
+<h2 id="best-practices">🎯 Best Practices</h2>
+<h3 id="composition-design">Composition Design</h3>
+<ul>
+<li><strong>Start simple</strong> - Add patterns incrementally</li>
+<li><strong>Clear separation</strong> - Each pattern has single responsibility</li>
+<li><strong>Explicit dependencies</strong> - Define pattern execution order</li>
+<li><strong>Test interactions</strong> - Verify pattern combinations work</li>
+</ul>
+<h3 id="conflict-resolution">Conflict Resolution</h3>
+<ul>
+<li><strong>Priority system</strong> - Higher priority patterns override lower ones</li>
+<li><strong>Condition scoping</strong> - Apply patterns only when relevant</li>
+<li><strong>Override mechanisms</strong> - Allow specific pattern customization</li>
+<li><strong>Documentation</strong> - Explain why patterns are combined</li>
+</ul>
+<h3 id="performance-considerations">Performance Considerations</h3>
+<ul>
+<li><strong>Execution order</strong> - Fast validations first</li>
+<li><strong>Caching</strong> - Cache expensive validation results</li>
+<li><strong>Batch operations</strong> - Group similar validations</li>
+<li><strong>Lazy evaluation</strong> - Only run patterns when needed</li>
+</ul>
+<h3 id="maintenance">Maintenance</h3>
+<ul>
+<li><strong>Modular patterns</strong> - Easy to add/remove patterns</li>
+<li><strong>Version compatibility</strong> - Track pattern version compatibility</li>
+<li><strong>Rollback planning</strong> - Know how to undo complex operations</li>
+<li><strong>Monitoring</strong> - Track pattern performance and errors</li>
+</ul>
+<h2 id="troubleshooting">🆘 Troubleshooting</h2>
+<h3 id="pattern-conflicts">"Pattern conflicts"</h3>
+<pre><code class="language-yaml"># Use conditions to avoid conflicts
+patterns:
+  - name: validation
+    condition: &quot;user_type = 'regular'&quot;
+    rules: [...]
+  - name: validation
+    condition: &quot;user_type = 'admin'&quot;
+    rules: [...]  # Different rules for admins
+</code></pre>
+<h3 id="performance-degradation">"Performance degradation"</h3>
+<pre><code class="language-yaml"># Optimize execution order
+patterns:
+  - name: validation
+    priority: 1  # Fast checks first
+    rules: [...]
+  - name: multi_entity
+    priority: 2  # Complex operations later
+    steps: [...]
+</code></pre>
+<h3 id="unexpected-validation-failures">"Unexpected validation failures"</h3>
+<pre><code class="language-bash"># Debug pattern interactions
+specql validate entities/order.yaml --verbose --debug-patterns
+
+# Check pattern execution order
+specql generate schema entities/order.yaml --show-pattern-order
+</code></pre>
+<h3 id="state-machine-not-progressing">"State machine not progressing"</h3>
+<pre><code class="language-sql">-- Check guard conditions
+SELECT
+  status,
+  total_amount &gt; 0 as valid_total,
+  payment_received = true as payment_cleared
+FROM order WHERE id = 'order-id';
+
+-- Check validation status
+SELECT * FROM validation_results
+WHERE entity_id = 'order-id';
+</code></pre>
+<h2 id="summary">🎉 Summary</h2>
+<p>Pattern composition enables:
+- ✅ <strong>Complex business logic</strong> - Combine simple patterns into sophisticated workflows
+- ✅ <strong>Consistent behavior</strong> - Unified rules across all operations
+- ✅ <strong>Maintainable code</strong> - Declarative approach to complex processes
+- ✅ <strong>Comprehensive testing</strong> - Full coverage of pattern interactions
+- ✅ <strong>Flexible architecture</strong> - Adapt to changing business needs</p>
+<h2 id="whats-next">🚀 What's Next?</h2>
+<ul>
+<li><strong><a href="../../examples/">Examples</a></strong> - Real-world composed pattern implementations</li>
+<li><strong><a href="custom-patterns.md">Custom Patterns</a></strong> - Create your own patterns</li>
+<li><strong><a href="../best-practices/performance.md">Performance Tuning</a></strong> - Optimize pattern execution</li>
+<li><strong><a href="../troubleshooting/">Troubleshooting</a></strong> - Debug pattern issues</li>
+</ul>
+<p><strong>Ready to build complex business systems? Let's continue! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Integration Plan: Testing Infrastructure + Existing Teams - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Integration Plan: Testing Infrastructure + Existing Teams";
+        var mkdocs_page_input_path = "implementation-plans/testing-and-seed-generation/05_INTEGRATION.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Integration Plan: Testing Infrastructure + Existing Teams</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="integration-plan-testing-infrastructure-existing-teams">Integration Plan: Testing Infrastructure + Existing Teams</h1>
+<p><strong>Status</strong>: Planning Phase
+<strong>Timeline</strong>: Week 6 (Integration) + Week 7 (Polish)
+<strong>Priority</strong>: Critical - Ties everything together</p>
+<hr />
+<h2 id="mission">🎯 Mission</h2>
+<p><strong>Integrate Team T (Testing) with existing Teams A-E to create seamless test/seed generation pipeline.</strong></p>
+<p>End result: <code>specql generate contact.yaml --with-tests --with-seed</code> produces:
+- Schema + functions SQL
+- Test metadata SQL
+- Seed data SQL (100 records)
+- pgTAP tests (50+ test cases)
+- Pytest integration tests (10+ tests)
+- Property-based tests</p>
+<hr />
+<h2 id="integration-points">🔗 Integration Points</h2>
+<pre><code>┌──────────────────────────────────────────────────────────────┐
+│  User: specql generate contact.yaml --with-tests --with-seed │
+└────────────────────────┬─────────────────────────────────────┘
+                         │
+                         ▼
+┌───────────────────────────────────────────────────────────────┐
+│  Team E: CLI Orchestrator (EXTENDED)                          │
+│  - Parse flags: --with-tests, --with-seed                     │
+│  - Coordinate all teams                                       │
+└──┬────────┬─────────┬──────────┬──────────┬───────────┬───────┘
+   │        │         │          │          │           │
+   │        │         │          │          │           │
+   ▼        ▼         ▼          ▼          ▼           ▼
+┌──────┐┌──────┐┌──────────┐┌─────────┐┌─────────┐┌──────────┐
+│Team A││Team B││ Team C   ││ Team D  ││ Team T  ││ Output   │
+│Parse ││Schema││ Actions  ││FraiseQL ││ Testing ││Combiner  │
+└──┬───┘└──┬───┘└────┬─────┘└────┬────┘└────┬────┘└────┬─────┘
+   │       │         │           │          │          │
+   │       │         │           │          │          │
+   └───────┴─────────┴───────────┴──────────┴──────────┘
+                         │
+                         ▼
+            ┌────────────────────────────┐
+            │  Generated Output Files:   │
+            │  - migrations/001_*.sql    │
+            │  - seed/001_*.sql          │
+            │  - tests/pgtap/001_*.sql   │
+            │  - tests/pytest/test_*.py  │
+            └────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="integration-1-team-e-cli-extensions">📦 Integration 1: Team E (CLI) Extensions</h2>
+<p><strong>File</strong>: <code>src/cli/generate.py</code> (EXTENDED)</p>
+<h3 id="new-cli-flags">New CLI Flags</h3>
+<pre><code class="language-python">@click.command()
+@click.argument('specql_file', type=click.Path(exists=True))
+@click.option('--with-tests', is_flag=True, help='Generate test suites (pgTAP + Pytest)')
+@click.option('--with-seed', is_flag=True, help='Generate seed data')
+@click.option('--seed-count', default=10, help='Number of seed records')
+@click.option('--seed-scenarios', default='0', help='Comma-separated scenario codes')
+@click.option('--output-dir', default='generated/', help='Output directory')
+@click.option('--validate-db', type=str, help='Database URL for validation')
+def generate(
+    specql_file: str,
+    with_tests: bool,
+    with_seed: bool,
+    seed_count: int,
+    seed_scenarios: str,
+    output_dir: str,
+    validate_db: str
+):
+    &quot;&quot;&quot;
+    Generate SQL schema, functions, tests, and seed data from SpecQL YAML
+
+    Examples:
+        specql generate contact.yaml
+        specql generate contact.yaml --with-tests --with-seed
+        specql generate contact.yaml --with-seed --seed-count=100 --seed-scenarios=0,1000,2000
+    &quot;&quot;&quot;
+    click.echo(f&quot;Generating from {specql_file}...&quot;)
+
+    # Team A: Parse YAML → AST
+    entity = parse_specql(specql_file)
+    click.echo(f&quot;✓ Parsed entity: {entity.name}&quot;)
+
+    # Team B: Generate schema
+    schema_sql = generate_schema(entity)
+    click.echo(f&quot;✓ Generated schema ({len(schema_sql)} lines)&quot;)
+
+    # Team C: Generate actions
+    action_sql = generate_actions(entity)
+    click.echo(f&quot;✓ Generated {len(entity.actions)} actions&quot;)
+
+    # Team D: Generate FraiseQL metadata
+    fraiseql_sql = generate_fraiseql_metadata(entity)
+    click.echo(f&quot;✓ Generated FraiseQL metadata&quot;)
+
+    # Combine SQL
+    migration_sql = combine_sql(schema_sql, action_sql, fraiseql_sql)
+    migration_path = write_migration(migration_sql, output_dir)
+    click.echo(f&quot;✓ Wrote migration: {migration_path}&quot;)
+
+    # NEW: Team T - Testing Infrastructure
+    if with_tests or with_seed:
+        click.echo(&quot;\\nGenerating testing infrastructure...&quot;)
+
+        # Team T-Meta: Generate test metadata
+        test_metadata_sql = generate_test_metadata(entity)
+        metadata_path = write_file(test_metadata_sql, f&quot;{output_dir}/test_metadata/{entity.name}_metadata.sql&quot;)
+        click.echo(f&quot;✓ Generated test metadata: {metadata_path}&quot;)
+
+        # Team T-Seed: Generate seed data
+        if with_seed:
+            scenarios = [int(s.strip()) for s in seed_scenarios.split(',')]
+            for scenario in scenarios:
+                seed_sql = generate_seed_data(
+                    entity,
+                    scenario=scenario,
+                    count=seed_count,
+                    db_url=validate_db  # For FK/group leader resolution
+                )
+                seed_path = write_file(
+                    seed_sql,
+                    f&quot;{output_dir}/seed/{entity.name}_scenario_{scenario}.sql&quot;
+                )
+                click.echo(f&quot;✓ Generated seed (scenario {scenario}): {seed_path}&quot;)
+
+        # Team T-Test: Generate test suites
+        if with_tests:
+            # pgTAP tests
+            pgtap_sql = generate_pgtap_tests(entity)
+            pgtap_path = write_file(pgtap_sql, f&quot;{output_dir}/tests/pgtap/{entity.name}_test.sql&quot;)
+            click.echo(f&quot;✓ Generated pgTAP tests: {pgtap_path}&quot;)
+
+            # Pytest tests
+            pytest_code = generate_pytest_tests(entity)
+            pytest_path = write_file(pytest_code, f&quot;{output_dir}/tests/pytest/test_{entity.name.lower()}.py&quot;)
+            click.echo(f&quot;✓ Generated Pytest tests: {pytest_path}&quot;)
+
+            # Property tests
+            property_code = generate_property_tests(entity)
+            property_path = write_file(property_code, f&quot;{output_dir}/tests/property/test_{entity.name.lower()}_properties.py&quot;)
+            click.echo(f&quot;✓ Generated property tests: {property_path}&quot;)
+
+    # Optional: Validate against database
+    if validate_db:
+        click.echo(&quot;\\nValidating against database...&quot;)
+        validate_generated_sql(migration_sql, validate_db)
+        click.echo(&quot;✓ SQL validation passed&quot;)
+
+    click.echo(f&quot;\\n✅ Generation complete!&quot;)
+    click.echo(f&quot;   Migration: {migration_path}&quot;)
+    if with_seed:
+        click.echo(f&quot;   Seed data: {len(scenarios)} scenario(s)&quot;)
+    if with_tests:
+        click.echo(f&quot;   Tests: pgTAP + Pytest + Property&quot;)
+</code></pre>
+<h3 id="new-helper-functions">New Helper Functions</h3>
+<pre><code class="language-python">def generate_test_metadata(entity: Entity) -&gt; str:
+    &quot;&quot;&quot;Generate test metadata SQL (Team T-Meta)&quot;&quot;&quot;
+    from src.testing.metadata.metadata_generator import TestMetadataGenerator
+
+    gen = TestMetadataGenerator()
+
+    # Derive table code from entity (simple: hash entity name)
+    table_code = derive_table_code(entity)
+
+    sql_parts = []
+    sql_parts.append(gen.generate_entity_config(entity, table_code))
+
+    for field in entity.fields.values():
+        sql_parts.append(gen.generate_field_mapping(entity_config_id=1, field=field))
+
+    # Auto-generate default scenarios
+    sql_parts.append(gen.generate_default_scenarios(entity))
+
+    return '\\n\\n'.join(sql_parts)
+
+
+def generate_seed_data(
+    entity: Entity,
+    scenario: int,
+    count: int,
+    db_url: str = None
+) -&gt; str:
+    &quot;&quot;&quot;Generate seed data SQL (Team T-Seed)&quot;&quot;&quot;
+    from src.testing.seed.seed_generator import EntitySeedGenerator
+    from src.testing.seed.sql_generator import SeedSQLGenerator
+
+    # Load metadata
+    entity_config = load_entity_config(entity.name)  # From test_metadata if DB available
+    field_mappings = load_field_mappings(entity.name)
+
+    # Connect to DB for FK resolution (if URL provided)
+    db_conn = connect_db(db_url) if db_url else None
+
+    # Generate entities
+    seed_gen = EntitySeedGenerator(entity_config, field_mappings, db_conn)
+    entities = seed_gen.generate_batch(count=count, scenario=scenario)
+
+    # Convert to SQL
+    sql_gen = SeedSQLGenerator(entity_config)
+    return sql_gen.generate_file(entities, scenario=scenario)
+
+
+def generate_pgtap_tests(entity: Entity) -&gt; str:
+    &quot;&quot;&quot;Generate pgTAP tests (Team T-Test)&quot;&quot;&quot;
+    from src.testing.pgtap.pgtap_generator import PgTAPGenerator
+
+    gen = PgTAPGenerator()
+
+    tests = []
+    tests.append(gen.generate_structure_tests(entity))
+    tests.append(gen.generate_crud_tests(entity))
+    tests.append(gen.generate_action_tests(entity))
+    tests.append(gen.generate_constraint_tests(entity))
+
+    return '\\n\\n'.join(tests)
+
+
+def generate_pytest_tests(entity: Entity) -&gt; str:
+    &quot;&quot;&quot;Generate Pytest integration tests (Team T-Test)&quot;&quot;&quot;
+    from src.testing.pytest.pytest_generator import PytestGenerator
+
+    gen = PytestGenerator()
+    return gen.generate_integration_tests(entity)
+
+
+def generate_property_tests(entity: Entity) -&gt; str:
+    &quot;&quot;&quot;Generate Hypothesis property tests (Team T-Prop)&quot;&quot;&quot;
+    from src.testing.property.property_generator import PropertyTestGenerator
+
+    gen = PropertyTestGenerator()
+    return gen.generate_all_properties(entity)
+</code></pre>
+<hr />
+<h2 id="integration-2-metadata-from-existing-teams">📦 Integration 2: Metadata from Existing Teams</h2>
+<h3 id="team-a-team-t-meta">Team A → Team T-Meta</h3>
+<p><strong>Data Flow</strong>: <code>Entity</code> AST → Test metadata</p>
+<pre><code class="language-python"># src/testing/metadata/metadata_generator.py
+
+def from_entity_ast(entity: Entity) -&gt; Dict[str, Any]:
+    &quot;&quot;&quot;Extract test metadata from Entity AST&quot;&quot;&quot;
+
+    return {
+        'entity_name': entity.name,
+        'schema_name': entity.schema,
+        'table_name': f'tb_{entity.name.lower()}',
+        'table_code': derive_table_code(entity),
+        'entity_code': derive_entity_code(entity.name),
+        'is_tenant_scoped': entity.schema not in ['catalog', 'core'],
+        'enable_dedup_tests': has_unique_constraints(entity),
+        'field_mappings': [
+            {
+                'field_name': field.name,
+                'field_type': field.type_name,
+                'postgres_type': field.postgres_type,
+                'generator_type': infer_generator_type(field),
+                'nullable': field.nullable,
+                # ... more metadata
+            }
+            for field in entity.fields.values()
+        ],
+        'actions': entity.actions
+    }
+</code></pre>
+<h3 id="team-b-team-t-meta">Team B → Team T-Meta</h3>
+<p><strong>Data Flow</strong>: Table codes for UUID encoding</p>
+<pre><code class="language-python"># Team B already assigns table codes during schema generation
+# Team T-Meta reads these codes
+
+def get_table_code_from_schema_generator(entity: Entity) -&gt; int:
+    &quot;&quot;&quot;Get table code assigned by Team B&quot;&quot;&quot;
+    from src.generators.schema.naming_conventions import derive_table_number
+
+    return derive_table_number(entity.schema, entity.name)
+</code></pre>
+<h3 id="team-c-team-t-meta">Team C → Team T-Meta</h3>
+<p><strong>Data Flow</strong>: Function numbers for UUID encoding</p>
+<pre><code class="language-python"># Team C assigns function numbers during action compilation
+# Team T-Meta uses these for mutation test UUIDs
+
+def get_function_number(action_name: str) -&gt; int:
+    &quot;&quot;&quot;Get function number assigned by Team C&quot;&quot;&quot;
+    from src.generators.actions.function_scaffolding import get_function_metadata
+
+    metadata = get_function_metadata(action_name)
+    return metadata['function_number']
+</code></pre>
+<hr />
+<h2 id="integration-3-database-fixtures-for-testing">📦 Integration 3: Database Fixtures for Testing</h2>
+<p><strong>File</strong>: <code>tests/conftest.py</code> (EXTENDED)</p>
+<pre><code class="language-python">import pytest
+import psycopg
+from pathlib import Path
+
+@pytest.fixture(scope=&quot;session&quot;)
+def test_db_connection():
+    &quot;&quot;&quot;PostgreSQL connection for integration tests&quot;&quot;&quot;
+    conn = psycopg.connect(
+        &quot;postgresql://test:test@localhost:5433/specql_test&quot;
+    )
+    yield conn
+    conn.close()
+
+
+@pytest.fixture(scope=&quot;session&quot;)
+def test_db_schema(test_db_connection):
+    &quot;&quot;&quot;Initialize test database with schemas&quot;&quot;&quot;
+    with test_db_connection.cursor() as cur:
+        # Create test_metadata schema
+        cur.execute(open('migrations/test_metadata_schema.sql').read())
+
+        # Create app schema (mutation_result type, etc.)
+        cur.execute(open('generated/app_schema.sql').read())
+
+    test_db_connection.commit()
+    yield test_db_connection
+
+
+@pytest.fixture
+def clean_db(test_db_schema):
+    &quot;&quot;&quot;Clean database before each test&quot;&quot;&quot;
+    conn = test_db_schema
+
+    with conn.cursor() as cur:
+        # Truncate all test tables
+        cur.execute(&quot;&quot;&quot;
+            SELECT table_schema || '.' || table_name
+            FROM information_schema.tables
+            WHERE table_schema IN ('crm', 'projects', 'catalog')
+              AND table_type = 'BASE TABLE'
+        &quot;&quot;&quot;)
+        tables = [row[0] for row in cur.fetchall()]
+
+        for table in tables:
+            cur.execute(f&quot;TRUNCATE TABLE {table} CASCADE&quot;)
+
+    conn.commit()
+    yield conn
+    conn.rollback()
+
+
+@pytest.fixture
+def entity_config_fixture():
+    &quot;&quot;&quot;Fixture for test metadata entity config&quot;&quot;&quot;
+    return {
+        'entity_name': 'Contact',
+        'schema_name': 'crm',
+        'table_name': 'tb_contact',
+        'table_code': 123210,
+        'entity_code': 'CON',
+        'base_uuid_prefix': '012321',
+        'default_tenant_id': '22222222-2222-2222-2222-222222222222',
+        'default_user_id': '01232022-0000-0000-0000-000000000001',
+        'is_tenant_scoped': True
+    }
+</code></pre>
+<hr />
+<h2 id="integration-4-docker-compose-for-test-database">📦 Integration 4: Docker Compose for Test Database</h2>
+<p><strong>File</strong>: <code>docker-compose.yml</code> (NEW)</p>
+<pre><code class="language-yaml">version: '3.8'
+
+services:
+  test-db:
+    image: postgres:16
+    container_name: specql_test_db
+    environment:
+      POSTGRES_DB: specql_test
+      POSTGRES_USER: test
+      POSTGRES_PASSWORD: test
+    ports:
+      - &quot;5433:5432&quot;
+    volumes:
+      - test_db_data:/var/lib/postgresql/data
+      - ./migrations:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: [&quot;CMD-SHELL&quot;, &quot;pg_isready -U test&quot;]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # pgTAP for database testing
+  pgtap:
+    image: postgres:16
+    depends_on:
+      test-db:
+        condition: service_healthy
+    volumes:
+      - ./tests/pgtap:/tests
+    command: &gt;
+      sh -c &quot;
+        apt-get update &amp;&amp;
+        apt-get install -y postgresql-16-pgtap &amp;&amp;
+        pg_prove -h test-db -U test -d specql_test /tests/*.sql
+      &quot;
+
+volumes:
+  test_db_data:
+</code></pre>
+<p><strong>Usage</strong>:</p>
+<pre><code class="language-bash"># Start test database
+docker-compose up -d test-db
+
+# Run pgTAP tests
+docker-compose run pgtap
+
+# Run pytest tests
+uv run pytest tests/integration/ --db-url=postgresql://test:test@localhost:5433/specql_test
+</code></pre>
+<hr />
+<h2 id="integration-5-makefile-commands">📦 Integration 5: Makefile Commands</h2>
+<p><strong>File</strong>: <code>Makefile</code> (EXTENDED)</p>
+<pre><code class="language-makefile"># Existing targets
+test:
+    uv run pytest tests/unit/ -v
+
+# NEW: Testing infrastructure targets
+test-meta:
+    uv run pytest tests/unit/testing/test_metadata_*.py -v
+
+test-seed:
+    uv run pytest tests/unit/testing/test_*seed*.py -v
+
+test-pgtap-gen:
+    uv run pytest tests/unit/testing/test_pgtap_generator.py -v
+
+test-pytest-gen:
+    uv run pytest tests/unit/testing/test_pytest_generator.py -v
+
+# Integration tests (require Docker)
+test-integration:
+    docker-compose up -d test-db
+    uv run pytest tests/integration/testing/ -v --db-url=postgresql://test:test@localhost:5433/specql_test
+
+# Run generated pgTAP tests
+test-pgtap:
+    docker-compose run pgtap
+
+# Generate everything for Contact example
+generate-example:
+    uv run python -m src.cli.generate entities/examples/contact_lightweight.yaml \\
+        --with-tests --with-seed --seed-count=100 --output-dir=generated/
+
+# Full test suite
+test-all: test test-meta test-seed test-pgtap-gen test-integration test-pgtap
+    @echo &quot;✅ All tests passed!&quot;
+</code></pre>
+<hr />
+<h2 id="success-criteria">📊 Success Criteria</h2>
+<h3 id="week-6-integration">Week 6 Integration</h3>
+<ul>
+<li>✅ CLI <code>--with-tests</code> flag working</li>
+<li>✅ CLI <code>--with-seed</code> flag working</li>
+<li>✅ All teams coordinated by Team E</li>
+<li>✅ Docker Compose test database</li>
+<li>✅ End-to-end: YAML → SQL + Tests + Seed</li>
+<li>✅ Contact example fully generated</li>
+<li>✅ All generated tests pass</li>
+</ul>
+<h3 id="week-7-polish">Week 7 Polish</h3>
+<ul>
+<li>✅ Documentation updated</li>
+<li>✅ Example gallery (Contact, Task, Manufacturer)</li>
+<li>✅ Performance optimization (&lt; 5s for full generation)</li>
+<li>✅ Error handling and validation</li>
+<li>✅ CI/CD integration guide</li>
+</ul>
+<hr />
+<h2 id="complete-example-workflow">📝 Complete Example Workflow</h2>
+<pre><code class="language-bash"># 1. Start test database
+docker-compose up -d test-db
+
+# 2. Generate everything from SpecQL
+specql generate entities/contact.yaml \\
+    --with-tests \\
+    --with-seed \\
+    --seed-count=100 \\
+    --seed-scenarios=0,1000,2000 \\
+    --output-dir=generated/ \\
+    --validate-db=postgresql://test:test@localhost:5433/specql_test
+
+# Output:
+# ✓ Parsed entity: Contact
+# ✓ Generated schema (247 lines)
+# ✓ Generated 3 actions
+# ✓ Generated FraiseQL metadata
+# ✓ Wrote migration: generated/migrations/001_contact.sql
+#
+# Generating testing infrastructure...
+# ✓ Generated test metadata: generated/test_metadata/Contact_metadata.sql
+# ✓ Generated seed (scenario 0): generated/seed/Contact_scenario_0.sql
+# ✓ Generated seed (scenario 1000): generated/seed/Contact_scenario_1000.sql
+# ✓ Generated seed (scenario 2000): generated/seed/Contact_scenario_2000.sql
+# ✓ Generated pgTAP tests: generated/tests/pgtap/Contact_test.sql
+# ✓ Generated Pytest tests: generated/tests/pytest/test_contact.py
+# ✓ Generated property tests: generated/tests/property/test_contact_properties.py
+#
+# Validating against database...
+# ✓ SQL validation passed
+#
+# ✅ Generation complete!
+#    Migration: generated/migrations/001_contact.sql (1847 lines)
+#    Seed data: 3 scenario(s), 300 total records
+#    Tests: pgTAP (52 tests) + Pytest (12 tests) + Property (5 properties)
+
+# 3. Apply to database
+psql postgresql://test:test@localhost:5433/specql_test &lt; generated/migrations/001_contact.sql
+psql postgresql://test:test@localhost:5433/specql_test &lt; generated/test_metadata/Contact_metadata.sql
+psql postgresql://test:test@localhost:5433/specql_test &lt; generated/seed/Contact_scenario_0.sql
+
+# 4. Run tests
+docker-compose run pgtap  # Run pgTAP tests
+uv run pytest generated/tests/pytest/  # Run Pytest tests
+
+# Output:
+# pgTAP: 52/52 tests passed
+# Pytest: 12/12 tests passed
+# ✅ All tests passed!
+</code></pre>
+<hr />
+<h2 id="final-deliverables">🎯 Final Deliverables</h2>
+<h3 id="code">Code</h3>
+<ul>
+<li><code>src/testing/</code> - Complete testing infrastructure (1500+ lines)</li>
+<li><code>tests/unit/testing/</code> - 50+ unit tests</li>
+<li><code>tests/integration/testing/</code> - 15+ integration tests</li>
+</ul>
+<h3 id="sql">SQL</h3>
+<ul>
+<li><code>migrations/test_metadata_schema.sql</code> - Test metadata schema</li>
+<li><code>migrations/test_metadata_functions.sql</code> - Query API functions</li>
+</ul>
+<h3 id="documentation">Documentation</h3>
+<ul>
+<li>Implementation plans (this directory)</li>
+<li>User guide for test/seed generation</li>
+<li>API reference for testing utilities</li>
+</ul>
+<h3 id="examples">Examples</h3>
+<ul>
+<li>Contact entity: Full generation showcase</li>
+<li>Task entity: Complex relationships</li>
+<li>Manufacturer entity: Advanced features</li>
+</ul>
+<hr />
+<h2 id="beyond-week-7-future-enhancements">🚀 Beyond Week 7: Future Enhancements</h2>
+<h3 id="short-term-week-8-10">Short Term (Week 8-10)</h3>
+<ul>
+<li>Performance benchmarking suite</li>
+<li>Visual test reports</li>
+<li>GraphQL query test generation</li>
+<li>Mutation testing (test the tests)</li>
+</ul>
+<h3 id="medium-term-month-2-3">Medium Term (Month 2-3)</h3>
+<ul>
+<li>AI-powered test case suggestions</li>
+<li>Snapshot testing for SQL</li>
+<li>Visual regression testing</li>
+<li>Load testing framework</li>
+</ul>
+<h3 id="long-term-beyond">Long Term (Beyond)</h3>
+<ul>
+<li>Production data anonymization for seed</li>
+<li>ML-based realistic data generation</li>
+<li>Continuous test optimization</li>
+<li>Integration with monitoring/observability</li>
+</ul>
+<hr />
+<p><strong>🎉 With this integration complete, SpecQL achieves true 150x code leverage: Business logic → Production code → Comprehensive tests → Realistic seed data, all from 20 lines of YAML!</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,833 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>SpecQL YAML Syntax Reference - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "SpecQL YAML Syntax Reference";
+        var mkdocs_page_input_path = "reference/yaml-syntax.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">SpecQL YAML Syntax Reference</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="specql-yaml-syntax-reference">SpecQL YAML Syntax Reference</h1>
+<p><strong>Complete DSL specification for defining business entities</strong> 📋</p>
+<h2 id="overview">Overview</h2>
+<p>SpecQL uses a YAML-based domain-specific language (DSL) to define business entities. The YAML is declarative, focusing on business logic rather than implementation details.</p>
+<p><strong>Key Principles:</strong>
+- <strong>Business-focused</strong>: Define what, not how
+- <strong>Type-safe</strong>: Rich scalar types with automatic validation
+- <strong>Relationship-aware</strong>: Automatic foreign keys and constraints
+- <strong>Action-oriented</strong>: Business logic as composable steps</p>
+<h2 id="document-structure">Document Structure</h2>
+<h3 id="basic-entity">Basic Entity</h3>
+<pre><code class="language-yaml">entity: Contact                    # Entity name (PascalCase)
+schema: crm                        # PostgreSQL schema
+description: &quot;Customer contacts&quot;   # Human-readable description
+
+fields:                            # Data fields
+  first_name: text!                # Field definition
+  last_name: text!
+  email: email!
+
+actions:                           # Business operations
+  - name: create_contact          # Action definition
+    steps:
+      - insert: Contact
+</code></pre>
+<h3 id="complete-entity">Complete Entity</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: tenant                     # Multi-tenant schema
+description: &quot;Customer contact information with validation&quot;
+
+fields:
+  # Basic information
+  first_name: text!
+  last_name: text!
+  email: email!
+
+  # Rich types with validation
+  phone: phone
+  website: url
+  avatar: image
+
+  # Relationships
+  organization: ref(Organization)
+  manager: ref(Contact)            # Self-reference
+
+  # Enums
+  status: enum(lead, qualified, customer)
+  priority: enum(low, medium, high)
+
+  # Computed fields
+  full_name: text                  # Auto-computed
+
+actions:
+  - name: create_contact
+    description: &quot;Create a new contact&quot;
+    steps:
+      - validate: email IS NOT NULL
+      - insert: Contact
+
+  - name: qualify_lead
+    description: &quot;Convert lead to qualified prospect&quot;
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+
+  - name: transfer_contact
+    description: &quot;Move contact to different organization&quot;
+    steps:
+      - validate: new_org_id IS NOT NULL
+      - update: Contact SET organization_id = ?
+</code></pre>
+<h2 id="entity-definition">Entity Definition</h2>
+<h3 id="entity-required">entity (required)</h3>
+<p><strong>Type</strong>: <code>string</code> (PascalCase)
+<strong>Description</strong>: The entity name, used for table names, function names, etc.</p>
+<pre><code class="language-yaml">entity: Contact           # ✅ Good
+entity: contact           # ❌ Bad - not PascalCase
+entity: CustomerContact   # ✅ Good - compound words
+</code></pre>
+<h3 id="schema-required">schema (required)</h3>
+<p><strong>Type</strong>: <code>string</code>
+<strong>Description</strong>: PostgreSQL schema name. Affects multi-tenancy and access patterns.</p>
+<pre><code class="language-yaml">schema: tenant   # Multi-tenant business data
+schema: common   # Shared reference data
+schema: app      # Application-global data
+schema: crm      # Domain-specific schema
+</code></pre>
+<h3 id="description-optional">description (optional)</h3>
+<p><strong>Type</strong>: <code>string</code>
+<strong>Description</strong>: Human-readable description used for documentation and GraphQL.</p>
+<pre><code class="language-yaml">description: &quot;Customer contact information&quot;
+description: |
+  Multi-line description
+  with detailed explanation
+</code></pre>
+<h3 id="extends-optional">extends (optional)</h3>
+<p><strong>Type</strong>: <code>object</code>
+<strong>Description</strong>: Inherit from another entity (stdlib or custom).</p>
+<pre><code class="language-yaml">extends:
+  from: stdlib/crm/contact    # Import stdlib entity
+  # or
+  from: entities/base_entity  # Import custom entity
+</code></pre>
+<h2 id="fields-definition">Fields Definition</h2>
+<h3 id="field-syntax">Field Syntax</h3>
+<pre><code>field_name: type[!][modifiers]
+</code></pre>
+<p><strong>Components:</strong>
+- <code>field_name</code>: snake_case identifier
+- <code>type</code>: Scalar type or reference
+- <code>!</code>: NOT NULL constraint (optional)
+- <code>modifiers</code>: Additional constraints (optional)</p>
+<h3 id="scalar-types">Scalar Types</h3>
+<h4 id="basic-types">Basic Types</h4>
+<pre><code class="language-yaml"># Text types
+name: text              # VARCHAR without length limit
+code: text!             # NOT NULL text
+description: text       # Optional long text
+
+# Numeric types
+count: integer          # INTEGER
+price: decimal          # DECIMAL(10,2)
+percentage: numeric     # NUMERIC with validation
+
+# Boolean
+active: boolean         # TRUE/FALSE
+
+# Binary
+data: bytea             # BYTEA for binary data
+
+# JSON
+metadata: json          # JSONB
+settings: jsonb         # JSONB (explicit)
+</code></pre>
+<h4 id="rich-types-49-validated-types">Rich Types (49 validated types)</h4>
+<pre><code class="language-yaml"># Contact
+email: email!           # Email validation
+phone: phone            # E.164 phone format
+
+# Web
+website: url            # URL validation
+domain: domainName      # Domain name validation
+slug: slug              # URL-friendly string
+
+# Content
+content: markdown       # Markdown text
+html_content: html      # HTML content
+
+# Financial
+price: money            # Monetary amount
+rate: percentage        # 0-100 percentage
+currency: currencyCode  # ISO currency code
+
+# Temporal
+birth_date: date        # Date only
+created_at: datetime    # Date and time
+duration: duration      # Time duration
+
+# Geographic
+location: coordinates   # PostgreSQL POINT
+latitude: latitude      # -90 to 90
+longitude: longitude    # -180 to 180
+
+# Technical
+ip: ipAddress           # IPv4/IPv6
+mac: macAddress        # MAC address
+uuid_field: uuid        # UUID validation
+
+# Business
+stock: stockSymbol      # Stock ticker
+isin: isin              # ISIN code
+vin: vin                # Vehicle VIN
+</code></pre>
+<h3 id="reference-types">Reference Types</h3>
+<pre><code class="language-yaml"># Single reference
+organization: ref(Organization)           # Foreign key
+manager: ref(Contact)                     # Self-reference
+
+# Multiple references
+tags: ref(Tag, many: true)               # Many-to-many
+categories: ref(Category, many: true)
+
+# Polymorphic reference
+owner: ref(User|Organization)            # Union type
+</code></pre>
+<h3 id="enum-types">Enum Types</h3>
+<pre><code class="language-yaml"># Simple enum
+status: enum(active, inactive, suspended)
+
+# Enum with default
+priority: enum(low, medium, high) = 'medium'
+
+# Complex enum with validation
+type: enum(
+  individual,     # Person
+  organization,   # Company
+  department      # Internal dept
+)
+</code></pre>
+<h3 id="field-modifiers">Field Modifiers</h3>
+<h4 id="nullability">Nullability</h4>
+<pre><code class="language-yaml">required_field: text!    # NOT NULL
+optional_field: text     # NULL allowed
+</code></pre>
+<h4 id="default-values">Default Values</h4>
+<pre><code class="language-yaml">status: enum(active, inactive) = 'active'
+count: integer = 0
+name: text = 'Unknown'
+</code></pre>
+<h4 id="custom-validation">Custom Validation</h4>
+<pre><code class="language-yaml">age: integer(min: 0, max: 150)           # Range validation
+length: decimal(precision: 10, scale: 2) # Precision
+code: text(maxLength: 10)                # Length limit
+</code></pre>
+<h4 id="field-descriptions">Field Descriptions</h4>
+<pre><code class="language-yaml">email:
+  type: email!
+  description: &quot;Primary email address - must be unique&quot;
+
+phone:
+  type: phone
+  description: &quot;Business phone in E.164 format&quot;
+</code></pre>
+<h3 id="advanced-field-syntax">Advanced Field Syntax</h3>
+<h4 id="complex-field-definition">Complex Field Definition</h4>
+<pre><code class="language-yaml">email:
+  type: email
+  nullable: false
+  description: &quot;Primary contact email&quot;
+  unique: true
+  index: true
+
+score:
+  type: percentage
+  min: 0
+  max: 100
+  default: 50
+  description: &quot;Lead scoring percentage&quot;
+</code></pre>
+<h4 id="computed-fields">Computed Fields</h4>
+<pre><code class="language-yaml">full_name:
+  type: text
+  computed: &quot;first_name || ' ' || last_name&quot;
+  description: &quot;Auto-computed full name&quot;
+
+total_value:
+  type: money
+  computed: &quot;SUM(order_amounts)&quot;
+  description: &quot;Total order value&quot;
+</code></pre>
+<h2 id="actions-definition">Actions Definition</h2>
+<h3 id="action-structure">Action Structure</h3>
+<pre><code class="language-yaml">actions:
+  - name: action_name
+    description: &quot;What this action does&quot;
+    security: permission_required
+    steps:
+      - step_type: parameters
+</code></pre>
+<h3 id="action-types">Action Types</h3>
+<h4 id="crud-actions-auto-generated">CRUD Actions (Auto-generated)</h4>
+<pre><code class="language-yaml">actions:
+  - name: create_entity    # Auto-generated INSERT
+  - name: update_entity    # Auto-generated UPDATE
+  - name: delete_entity    # Auto-generated soft DELETE
+  - name: get_entity       # Auto-generated SELECT
+  - name: list_entities    # Auto-generated SELECT with filters
+</code></pre>
+<h4 id="custom-business-actions">Custom Business Actions</h4>
+<pre><code class="language-yaml">actions:
+  - name: qualify_lead
+    description: &quot;Convert marketing lead to sales qualified&quot;
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified', qualified_at = now()
+      - notify: sales_team &quot;New qualified lead&quot;
+
+  - name: transfer_customer
+    description: &quot;Move customer to different organization&quot;
+    steps:
+      - validate: new_org_id IS NOT NULL
+      - validate: has_permission('transfer_customers')
+      - update: Contact SET organization_id = ?
+      - log: &quot;Customer transferred to {new_org}&quot;
+</code></pre>
+<h3 id="step-types">Step Types</h3>
+<h4 id="validation-steps">Validation Steps</h4>
+<pre><code class="language-yaml">steps:
+  - validate: email IS NOT NULL
+  - validate: status IN ('lead', 'qualified')
+  - validate: age &gt;= 18
+  - validate: email MATCHES '^[^@]+@[^@]+\.[^@]+$'
+  - validate: UNIQUE(email, organization_id)  # Composite unique
+</code></pre>
+<h4 id="data-manipulation">Data Manipulation</h4>
+<pre><code class="language-yaml">steps:
+  - insert: Contact                    # Insert current entity
+  - insert: ContactLog VALUES (...)    # Insert related record
+
+  - update: Contact SET status = ?     # Update current entity
+  - update: Organization SET updated_at = now() WHERE id = ?
+
+  - delete: Contact WHERE status = 'inactive'  # Soft delete
+</code></pre>
+<h4 id="control-flow">Control Flow</h4>
+<pre><code class="language-yaml">steps:
+  - if: status = 'lead'
+    then:
+      - update: Contact SET qualified_at = now()
+    else:
+      - error: &quot;Contact already qualified&quot;
+
+  - foreach: active_contacts
+    do:
+      - send_email: welcome_email(contact.email)
+
+  - try:
+      - call: external_api_sync()
+    catch:
+      - log: &quot;API sync failed: {error}&quot;
+      - retry: 3
+</code></pre>
+<h4 id="external-integration">External Integration</h4>
+<pre><code class="language-yaml">steps:
+  - call: send_welcome_email(email, first_name)
+  - notify: sales_team &quot;New customer signed up&quot;
+  - webhook: https://crm.example.com/webhook
+  - schedule: follow_up_email DELAY '24 hours'
+</code></pre>
+<h3 id="action-modifiers">Action Modifiers</h3>
+<h4 id="security">Security</h4>
+<pre><code class="language-yaml">actions:
+  - name: delete_customer
+    security: admin_only
+    steps: [...]
+
+  - name: view_sensitive_data
+    security: role('manager', 'supervisor')
+    steps: [...]
+</code></pre>
+<h4 id="transactions">Transactions</h4>
+<pre><code class="language-yaml">actions:
+  - name: process_order
+    transaction: required  # Auto-wrap in transaction
+    steps:
+      - validate: inventory_available
+      - update: Inventory SET quantity = quantity - ?
+      - insert: Order
+      - call: payment_processor()
+
+  - name: bulk_import
+    transaction: each     # Transaction per item
+    steps: [...]
+</code></pre>
+<h4 id="error-handling">Error Handling</h4>
+<pre><code class="language-yaml">actions:
+  - name: create_user
+    on_error: rollback   # Default
+    steps:
+      - validate: email_unique
+      - insert: User
+      - error: &quot;Email already exists&quot; WHEN duplicate_key
+
+  - name: send_notification
+    on_error: continue   # Don't fail whole action
+    steps:
+      - call: email_service()
+</code></pre>
+<h2 id="advanced-features">Advanced Features</h2>
+<h3 id="inheritance">Inheritance</h3>
+<pre><code class="language-yaml"># Base entity
+entity: BaseEntity
+fields:
+  created_at: datetime!
+  updated_at: datetime!
+
+# Extended entity
+entity: Contact
+extends:
+  from: BaseEntity
+fields:
+  name: text!
+  email: email!
+</code></pre>
+<h3 id="mixins">Mixins</h3>
+<pre><code class="language-yaml"># Mixin definition
+mixin: Auditable
+fields:
+  created_by: ref(User)
+  updated_by: ref(User)
+
+# Usage
+entity: Contact
+mixins: [Auditable, SoftDelete]
+fields:
+  name: text!
+</code></pre>
+<h3 id="templates">Templates</h3>
+<pre><code class="language-yaml"># Template for common patterns
+template: StandardEntity
+fields:
+  id: uuid!
+  name: text!
+  active: boolean = true
+
+# Usage
+entity: Product
+template: StandardEntity
+fields:
+  price: money
+</code></pre>
+<h3 id="imports">Imports</h3>
+<pre><code class="language-yaml"># Import stdlib entities
+import: stdlib/crm/contact
+import: stdlib/i18n/country
+
+# Import custom entities
+import: entities/base_types
+
+entity: ExtendedContact
+extends:
+  from: stdlib/crm/contact
+fields:
+  custom_field: text
+</code></pre>
+<h2 id="schema-organization">Schema Organization</h2>
+<h3 id="multi-tenant-schemas">Multi-Tenant Schemas</h3>
+<pre><code class="language-yaml"># Business data per tenant
+entity: Customer
+schema: tenant
+
+# Shared reference data
+entity: Country
+schema: common
+
+# Application configuration
+entity: AppSettings
+schema: app
+</code></pre>
+<h3 id="domain-schemas">Domain Schemas</h3>
+<pre><code class="language-yaml"># CRM domain
+entity: Contact
+schema: crm
+
+entity: Organization
+schema: crm
+
+# Billing domain
+entity: Invoice
+schema: billing
+
+entity: Payment
+schema: billing
+</code></pre>
+<h2 id="validation-rules">Validation Rules</h2>
+<h3 id="naming-conventions">Naming Conventions</h3>
+<ul>
+<li><strong>Entities</strong>: PascalCase (<code>Contact</code>, <code>OrderItem</code>)</li>
+<li><strong>Fields</strong>: snake_case (<code>first_name</code>, <code>email_address</code>)</li>
+<li><strong>Actions</strong>: snake_case (<code>create_contact</code>, <code>process_payment</code>)</li>
+<li><strong>Schemas</strong>: lowercase (<code>crm</code>, <code>tenant</code>, <code>common</code>)</li>
+</ul>
+<h3 id="type-consistency">Type Consistency</h3>
+<pre><code class="language-yaml"># ✅ Consistent types
+entity: User
+fields:
+  email: email!     # Rich type
+  phone: phone      # Rich type
+
+# ❌ Mixed types
+entity: User
+fields:
+  email: text       # Generic type
+  phone: text       # Generic type - loses validation
+</code></pre>
+<h3 id="relationship-patterns">Relationship Patterns</h3>
+<pre><code class="language-yaml"># ✅ Clear relationships
+entity: Order
+fields:
+  customer: ref(Customer)
+  items: ref(OrderItem, many: true)
+
+# ❌ Unclear relationships
+entity: Order
+fields:
+  customer_id: integer  # Magic number, no constraint
+  item_ids: json        # No referential integrity
+</code></pre>
+<h2 id="examples">Examples</h2>
+<h3 id="simple-entity">Simple Entity</h3>
+<pre><code class="language-yaml">entity: Tag
+schema: common
+description: &quot;Content tags&quot;
+
+fields:
+  name: text!
+  color: text
+  slug: slug!
+
+actions:
+  - name: create_tag
+  - name: update_tag
+  - name: delete_tag
+</code></pre>
+<h3 id="complex-entity">Complex Entity</h3>
+<pre><code class="language-yaml">entity: Order
+schema: tenant
+description: &quot;Customer orders with line items&quot;
+
+fields:
+  order_number: text!
+  customer: ref(Customer)
+  status: enum(pending, confirmed, shipped, delivered)
+  total_amount: money!
+  shipping_address: ref(Address)
+
+  # Computed field
+  item_count:
+    type: integer
+    computed: &quot;COUNT(order_items)&quot;
+
+actions:
+  - name: create_order
+    steps:
+      - validate: customer IS NOT NULL
+      - validate: item_count &gt; 0
+      - insert: Order
+
+  - name: add_item
+    description: &quot;Add item to order&quot;
+    steps:
+      - validate: order.status = 'pending'
+      - insert: OrderItem
+
+  - name: ship_order
+    description: &quot;Mark order as shipped&quot;
+    steps:
+      - validate: status = 'confirmed'
+      - update: Order SET status = 'shipped', shipped_at = now()
+      - notify: customer &quot;Your order has shipped&quot;
+</code></pre>
+<h3 id="multi-tenant-saas-entity">Multi-Tenant SaaS Entity</h3>
+<pre><code class="language-yaml">entity: Project
+schema: tenant
+description: &quot;User projects with team collaboration&quot;
+
+fields:
+  name: text!
+  description: text
+  owner: ref(User)
+  team_members: ref(User, many: true)
+  status: enum(active, archived, deleted)
+  settings: json
+
+actions:
+  - name: create_project
+    security: authenticated
+    steps:
+      - insert: Project
+
+  - name: invite_member
+    description: &quot;Invite user to project&quot;
+    steps:
+      - validate: has_permission('manage_team')
+      - validate: user_not_already_member
+      - insert: ProjectMember
+      - send_email: invitation_email
+
+  - name: archive_project
+    description: &quot;Archive completed project&quot;
+    steps:
+      - validate: owner = current_user
+      - update: Project SET status = 'archived'
+</code></pre>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="1-use-rich-types">1. Use Rich Types</h3>
+<pre><code class="language-yaml"># ✅ Semantic types with validation
+fields:
+  email: email!
+  phone: phone
+  website: url
+
+# ❌ Generic types lose validation
+fields:
+  email: text
+  phone: text
+  website: text
+</code></pre>
+<h3 id="2-descriptive-names">2. Descriptive Names</h3>
+<pre><code class="language-yaml"># ✅ Clear intent
+entity: CustomerOrder
+fields:
+  shipping_address: ref(Address)
+  billing_address: ref(Address)
+
+# ❌ Unclear
+entity: Order
+fields:
+  address1: ref(Address)
+  address2: ref(Address)
+</code></pre>
+<h3 id="3-consistent-patterns">3. Consistent Patterns</h3>
+<pre><code class="language-yaml"># ✅ Consistent action naming
+actions:
+  - name: create_customer
+  - name: update_customer
+  - name: delete_customer
+
+# ❌ Inconsistent
+actions:
+  - name: add_customer
+  - name: modify_customer
+  - name: remove_customer
+</code></pre>
+<h3 id="4-validation-first">4. Validation First</h3>
+<pre><code class="language-yaml"># ✅ Validate before action
+actions:
+  - name: process_payment
+    steps:
+      - validate: amount &gt; 0
+      - validate: payment_method_valid
+      - validate: sufficient_funds
+      - call: payment_processor()
+
+# ❌ Action then validation
+actions:
+  - name: process_payment
+    steps:
+      - call: payment_processor()  # Might fail
+      - validate: success = true
+</code></pre>
+<h2 id="migration-guide">Migration Guide</h2>
+<h3 id="from-sql-ddl">From SQL DDL</h3>
+<pre><code class="language-sql">-- Old SQL approach
+CREATE TABLE contacts (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR NOT NULL,
+  created_at TIMESTAMP DEFAULT now()
+);
+</code></pre>
+<pre><code class="language-yaml"># New SpecQL approach
+entity: Contact
+fields:
+  email: email!  # Automatic validation + NOT NULL
+  # created_at added automatically
+</code></pre>
+<h3 id="from-orm-models">From ORM Models</h3>
+<pre><code class="language-python"># Old ORM approach
+class Contact(Model):
+    email = CharField(validators=[EmailValidator()])
+    created_at = DateTimeField(default=datetime.now)
+</code></pre>
+<pre><code class="language-yaml"># New SpecQL approach
+entity: Contact
+fields:
+  email: email!  # Validation built-in
+  # created_at automatic
+</code></pre>
+<h2 id="error-reference">Error Reference</h2>
+<h3 id="common-syntax-errors">Common Syntax Errors</h3>
+<pre><code>❌ entity: contact          # Must be PascalCase
+✅ entity: Contact
+
+❌ fields:
+    FirstName: text        # Must be snake_case
+✅ fields:
+    first_name: text
+
+❌ actions:
+    - CreateContact        # Must be snake_case
+✅ actions:
+    - name: create_contact
+</code></pre>
+<h3 id="validation-errors">Validation Errors</h3>
+<pre><code>❌ email: email!            # Invalid - no such type
+✅ email: email!
+
+❌ status: enum             # Missing values
+✅ status: enum(active, inactive)
+
+❌ ref(UnknownEntity)      # Entity not found
+✅ ref(Contact)
+</code></pre>
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li><strong>Read Rich Types Guide</strong>: Complete type reference in <code>docs/guides/rich-types-guide.md</code></li>
+<li><strong>Check Actions Guide</strong>: Business logic patterns in <code>docs/guides/actions-guide.md</code></li>
+<li><strong>Browse Examples</strong>: Real implementations in <code>examples/</code></li>
+<li><strong>Generate Code</strong>: Run <code>specql generate entities/*.yaml</code></li>
+</ul>
+<hr />
+<p><strong>YAML that defines your business, generates your backend.</strong> 🚀</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

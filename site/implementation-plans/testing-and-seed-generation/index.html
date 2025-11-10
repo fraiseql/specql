@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Testing &amp; Seed Generation - Implementation Plans - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Testing \u0026amp; Seed Generation - Implementation Plans";
+        var mkdocs_page_input_path = "implementation-plans/testing-and-seed-generation/README.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Testing &amp; Seed Generation - Implementation Plans</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="testing-seed-generation-implementation-plans">Testing &amp; Seed Generation - Implementation Plans</h1>
+<p><strong>Project</strong>: SpecQL Testing Infrastructure
+<strong>Status</strong>: Planning Complete - Ready for Implementation
+<strong>Timeline</strong>: Weeks 2-7 (6 weeks, parallel with Teams B/C/D)</p>
+<hr />
+<h2 id="documentation-index">📚 Documentation Index</h2>
+<p>Read the implementation plans in this order:</p>
+<h3 id="1-overview-start-here">1. <a href="00_OVERVIEW/">Overview</a> - <strong>START HERE</strong></h3>
+<p>High-level architecture, vision, and integration timeline for the testing infrastructure.</p>
+<p><strong>Key Topics</strong>:
+- 150x code leverage (YAML → SQL + Tests + Seed)
+- UUID encoding for traceability
+- Group leader pattern for consistency
+- Multi-layer testing strategy</p>
+<h3 id="2-team-t-meta-test-metadata">2. <a href="01_TEAM_T_META/">Team T-Meta: Test Metadata</a></h3>
+<p>PostgreSQL schema and generators for test metadata (the "control plane" for testing).</p>
+<p><strong>Deliverables</strong>:
+- <code>test_metadata</code> schema (3 tables)
+- Metadata generator from SpecQL AST
+- Group leader detection
+- Query API functions</p>
+<p><strong>Timeline</strong>: Week 2 (5 days)</p>
+<h3 id="3-team-t-seed-seed-data-generation">3. <a href="02_TEAM_T_SEED/">Team T-Seed: Seed Data Generation</a></h3>
+<p>Realistic, traceable seed data generation with UUID encoding.</p>
+<p><strong>Deliverables</strong>:
+- UUID generator utility
+- Field value generators (Faker integration)
+- FK resolver + group leader executor
+- SQL file generator</p>
+<p><strong>Timeline</strong>: Week 3 (5 days)</p>
+<h3 id="4-team-t-test-test-suite-generation">4. <a href="03_TEAM_T_TEST/">Team T-Test: Test Suite Generation</a></h3>
+<p>Auto-generate pgTAP and Pytest test suites from SpecQL definitions.</p>
+<p><strong>Deliverables</strong>:
+- pgTAP test generator (structure, CRUD, actions, constraints)
+- Pytest integration test generator
+- Test templates for all scenarios</p>
+<p><strong>Timeline</strong>: Week 4 (5 days)</p>
+<h3 id="5-team-t-prop-property-based-testing">5. <a href="04_TEAM_T_PROP/">Team T-Prop: Property-Based Testing</a></h3>
+<p>Hypothesis-powered property tests to find edge cases automatically.</p>
+<p><strong>Deliverables</strong>:
+- Hypothesis strategies for all field types
+- Idempotency property tests
+- Constraint property tests
+- State machine tests</p>
+<p><strong>Timeline</strong>: Week 5 (5 days)</p>
+<h3 id="6-integration-plan">6. <a href="05_INTEGRATION/">Integration Plan</a></h3>
+<p>How Team T integrates with existing Teams A-E, CLI extensions, and complete workflow.</p>
+<p><strong>Deliverables</strong>:
+- Extended CLI with <code>--with-tests</code>, <code>--with-seed</code> flags
+- Docker Compose test database
+- End-to-end example workflow
+- Makefile commands</p>
+<p><strong>Timeline</strong>: Week 6-7 (10 days)</p>
+<hr />
+<h2 id="quick-reference">🎯 Quick Reference</h2>
+<h3 id="key-innovations">Key Innovations</h3>
+<table>
+<thead>
+<tr>
+<th>Innovation</th>
+<th>Inspiration</th>
+<th>Benefit</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>UUID Encoding</strong></td>
+<td>PrintOptim Backend</td>
+<td>Every test record traceable to entity/scenario/instance</td>
+</tr>
+<tr>
+<td><strong>Group Leader Pattern</strong></td>
+<td>TestFoundry</td>
+<td>Related fields (address, location) stay consistent</td>
+</tr>
+<tr>
+<td><strong>Metadata-Driven</strong></td>
+<td>TestFoundry</td>
+<td>Single source → multiple test/seed outputs</td>
+</tr>
+<tr>
+<td><strong>Multi-Layer Testing</strong></td>
+<td>SpecQL Philosophy</td>
+<td>pgTAP + Pytest + Property tests auto-generated</td>
+</tr>
+</tbody>
+</table>
+<h3 id="architecture-at-a-glance">Architecture at a Glance</h3>
+<pre><code>SpecQL YAML (20 lines)
+    ↓
+Team A: Parse → AST
+    ↓
+Team T-Meta: AST → Test Metadata (PostgreSQL)
+    ↓
+    ├─► Team T-Seed → Seed SQL (100s of records)
+    ├─► Team T-Test → pgTAP Tests (50+ tests)
+    ├─► Team T-Test → Pytest Tests (10+ tests)
+    └─► Team T-Prop → Hypothesis Tests (edge cases)
+    ↓
+Result: 2000+ lines SQL + 500+ lines tests + unlimited seed data
+</code></pre>
+<h3 id="uuid-encoding-pattern">UUID Encoding Pattern</h3>
+<pre><code>EEEEETTF-FFFF-0SSS-TTTT-00000000IIII
+│      ││ │    │    │    │
+│      ││ │    │    │    └─ Instance (1, 2, 3...)
+│      ││ │    │    └────── Test case number
+│      ││ │    └─────────── Scenario (0=default, 1000=dedup, etc.)
+│      ││ └──────────────── Function number (0000 for seed)
+│      │└─────────────────── Function last digit
+│      └──────────────────── Test type (21=seed, 22=mutation, 23=query)
+└─────────────────────────── Entity code (012321 = Contact)
+</code></pre>
+<p><strong>Example</strong>: <code>01232121-0000-0001-0001-000000000005</code>
+- Entity: Contact (012321)
+- Test type: General seed (21)
+- Scenario: 1000 (deduplication test)
+- Instance: 5</p>
+<h3 id="success-metrics">Success Metrics</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Target</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Code Leverage</strong></td>
+<td>150x (20 YAML → 3000+ total)</td>
+<td>Planning</td>
+</tr>
+<tr>
+<td><strong>Test Coverage</strong></td>
+<td>Auto-generate 50+ tests per entity</td>
+<td>Planning</td>
+</tr>
+<tr>
+<td><strong>Seed Data</strong></td>
+<td>100 realistic records in &lt; 1 sec</td>
+<td>Planning</td>
+</tr>
+<tr>
+<td><strong>Integration</strong></td>
+<td>YAML → SQL + Tests + Seed in single command</td>
+<td>Planning</td>
+</tr>
+<tr>
+<td><strong>Traceability</strong></td>
+<td>100% of test records have encoded UUIDs</td>
+<td>Planning</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="getting-started">🚀 Getting Started</h2>
+<h3 id="for-developers">For Developers</h3>
+<ol>
+<li><strong>Read the overview first</strong>: <a href="00_OVERVIEW/">00_OVERVIEW.md</a></li>
+<li><strong>Pick a team based on your skills</strong>:</li>
+<li>Database/SQL → Team T-Meta</li>
+<li>Data generation/Faker → Team T-Seed</li>
+<li>Testing frameworks → Team T-Test</li>
+<li>Advanced testing → Team T-Prop</li>
+<li><strong>Follow TDD discipline</strong>: RED → GREEN → REFACTOR → QA</li>
+<li><strong>Run tests frequently</strong>: <code>make test-meta</code>, <code>make test-seed</code>, etc.</li>
+</ol>
+<h3 id="for-project-managers">For Project Managers</h3>
+<ul>
+<li><strong>Week 2</strong>: Team T-Meta (foundation) - CRITICAL PATH</li>
+<li><strong>Week 3</strong>: Team T-Seed (can start once T-Meta has basic schema)</li>
+<li><strong>Week 4</strong>: Team T-Test (depends on T-Meta + T-Seed)</li>
+<li><strong>Week 5</strong>: Team T-Prop (can run in parallel with Week 4)</li>
+<li><strong>Week 6-7</strong>: Integration and polish</li>
+</ul>
+<h3 id="for-users">For Users</h3>
+<p>Once implemented, you'll be able to:</p>
+<pre><code class="language-bash"># Generate everything from one YAML file
+specql generate contact.yaml --with-tests --with-seed
+
+# Output:
+# ✓ migrations/001_contact.sql (schema + functions)
+# ✓ test_metadata/001_contact_metadata.sql (test config)
+# ✓ seed/contact_scenario_0.sql (100 realistic records)
+# ✓ tests/pgtap/contact_test.sql (52 pgTAP tests)
+# ✓ tests/pytest/test_contact.py (12 integration tests)
+# ✓ tests/property/test_contact_properties.py (edge case tests)
+
+# Apply to database
+psql &lt; migrations/001_contact.sql
+psql &lt; seed/contact_scenario_0.sql
+
+# Run tests
+docker-compose run pgtap
+uv run pytest tests/pytest/
+</code></pre>
+<hr />
+<h2 id="additional-resources">📖 Additional Resources</h2>
+<h3 id="related-documentation">Related Documentation</h3>
+<ul>
+<li><a href="../../../README.md">Main SpecQL README</a></li>
+<li><a href="../../../.claude/CLAUDE.md">Main Project CLAUDE.md</a></li>
+<li><a href="../">Team A-E Implementation Status</a></li>
+</ul>
+<h3 id="inspirations">Inspirations</h3>
+<ul>
+<li><strong>TestFoundry</strong> (<code>~/code/testfoundry</code>): Metadata-driven testing, group leader pattern</li>
+<li><strong>PrintOptim Backend</strong> (<code>../printoptim_backend/db/2_seed_backend</code>): UUID encoding, seed organization</li>
+<li><strong>SpecQL Philosophy</strong>: Convention over configuration, 100x code leverage</li>
+</ul>
+<h3 id="external-tools">External Tools</h3>
+<ul>
+<li><a href="https://hypothesis.readthedocs.io/">Hypothesis</a> - Property-based testing</li>
+<li><a href="https://faker.readthedocs.io/">Faker</a> - Realistic data generation</li>
+<li><a href="https://pgtap.org/">pgTAP</a> - PostgreSQL testing framework</li>
+<li><a href="https://pytest.org/">Pytest</a> - Python testing framework</li>
+</ul>
+<hr />
+<h2 id="key-learnings">🎓 Key Learnings</h2>
+<h3 id="what-were-building">What We're Building</h3>
+<p>A <strong>testing and seed data generation system</strong> that:
+1. Automatically generates test metadata from SpecQL YAML
+2. Creates realistic, traceable seed data using UUID encoding
+3. Auto-generates comprehensive test suites (pgTAP + Pytest + Property)
+4. Integrates seamlessly with existing SpecQL code generation pipeline</p>
+<h3 id="why-it-matters">Why It Matters</h3>
+<ul>
+<li><strong>Confidence</strong>: Every generated function has auto-generated tests</li>
+<li><strong>Speed</strong>: No manual test writing, no manual seed data creation</li>
+<li><strong>Quality</strong>: Property-based testing finds edge cases humans miss</li>
+<li><strong>Traceability</strong>: UUID encoding makes debugging trivial</li>
+<li><strong>Consistency</strong>: Group leader pattern prevents data mismatches</li>
+</ul>
+<h3 id="whats-different">What's Different</h3>
+<ul>
+<li><strong>Not a testing framework</strong>: We generate tests, not run them</li>
+<li><strong>Not a mock library</strong>: We generate real data, not mocks</li>
+<li><strong>Not a test runner</strong>: We output pgTAP/Pytest that you run</li>
+<li><strong>Not a seed generator</strong>: We're metadata-driven, not hardcoded</li>
+</ul>
+<hr />
+<h2 id="faq">❓ FAQ</h2>
+<p><strong>Q: Why PostgreSQL-specific testing?</strong>
+A: SpecQL generates PostgreSQL functions. We test at the database layer to validate business logic, constraints, and triggers.</p>
+<p><strong>Q: Why UUID encoding instead of sequential IDs?</strong>
+A: Traceability. Decode any UUID to see which entity/scenario/test created it. Critical for debugging.</p>
+<p><strong>Q: Why group leader pattern?</strong>
+A: Consistency. Ensures related fields (country + postal + city) come from same record, avoiding mismatches.</p>
+<p><strong>Q: Why auto-generate tests instead of writing them?</strong>
+A: Scalability. With 100s of entities, manual testing doesn't scale. Auto-generation ensures every entity gets comprehensive coverage.</p>
+<p><strong>Q: Can I customize generated tests?</strong>
+A: Yes! Generated tests are starting points. You can extend them, or add custom scenarios to test metadata.</p>
+<p><strong>Q: What if I don't want tests/seed?</strong>
+A: Optional. Use <code>specql generate contact.yaml</code> without flags to get only schema/functions.</p>
+<hr />
+<h2 id="contact">📞 Contact</h2>
+<p>Questions about implementation plans? See:
+- Main project docs: <a href="../../../.claude/CLAUDE.md">CLAUDE.md</a>
+- Team coordination: Check project board
+- Technical questions: Open GitHub issue</p>
+<hr />
+<p><strong>Status</strong>: ✅ All implementation plans complete - Ready to begin Week 2 development!</p>
+<p><strong>Next Step</strong>: Start with <a href="01_TEAM_T_META/">Team T-Meta</a> - Foundation for all testing infrastructure.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

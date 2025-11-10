@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team T-Test: Test Suite Generation (pgTAP + Pytest) - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team T-Test: Test Suite Generation (pgTAP + Pytest)";
+        var mkdocs_page_input_path = "implementation-plans/testing-and-seed-generation/03_TEAM_T_TEST.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team T-Test: Test Suite Generation (pgTAP + Pytest)</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-t-test-test-suite-generation-pgtap-pytest">Team T-Test: Test Suite Generation (pgTAP + Pytest)</h1>
+<p><strong>Status</strong>: Planning Phase
+<strong>Timeline</strong>: Week 4 (5 days)
+<strong>Priority</strong>: High - Enables automated validation
+<strong>Team Size</strong>: 1-2 developers
+<strong>Dependencies</strong>: Team T-Meta, Team T-Seed complete</p>
+<hr />
+<h2 id="mission">🎯 Mission</h2>
+<p><strong>Auto-generate comprehensive test suites (pgTAP + Pytest) from SpecQL definitions and test metadata.</strong></p>
+<p>Generate tests for:
+- CRUD operations (create, update, delete)
+- Custom actions (qualify_lead, etc.)
+- Constraint violations (unique, FK, check)
+- Deduplication scenarios
+- Multi-tenant isolation</p>
+<hr />
+<h2 id="test-coverage-matrix">📋 Test Coverage Matrix</h2>
+<table>
+<thead>
+<tr>
+<th>Test Type</th>
+<th>Tool</th>
+<th>What We Test</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Schema Structure</strong></td>
+<td>pgTAP</td>
+<td>Tables, columns, constraints exist</td>
+<td><code>has_table('crm', 'tb_contact')</code></td>
+</tr>
+<tr>
+<td><strong>CRUD Functions</strong></td>
+<td>pgTAP</td>
+<td>app.create/update/delete work</td>
+<td><code>app.create_contact(...)</code> succeeds</td>
+</tr>
+<tr>
+<td><strong>Custom Actions</strong></td>
+<td>pgTAP</td>
+<td>Business logic functions</td>
+<td><code>crm.qualify_lead(...)</code> updates status</td>
+</tr>
+<tr>
+<td><strong>Constraints</strong></td>
+<td>pgTAP</td>
+<td>Unique, FK, CHECK enforced</td>
+<td>Duplicate email fails</td>
+</tr>
+<tr>
+<td><strong>Integration</strong></td>
+<td>Pytest</td>
+<td>End-to-end Python client</td>
+<td>Full create → read → update flow</td>
+</tr>
+<tr>
+<td><strong>GraphQL</strong></td>
+<td>Pytest</td>
+<td>FraiseQL queries/mutations</td>
+<td>🔄 Future</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="architecture">🏗️ Architecture</h2>
+<pre><code>Test Metadata (Team T-Meta)
+    ↓
+pgTAP Generator → .sql test files
+    ├─ Structure tests
+    ├─ CRUD tests
+    ├─ Action tests
+    └─ Constraint tests
+    ↓
+Pytest Generator → .py test files
+    ├─ Integration tests
+    ├─ Multi-step workflows
+    └─ Performance tests
+    ↓
+Output:
+    tests/pgtap/contact_test.sql
+    tests/pytest/test_contact.py
+</code></pre>
+<hr />
+<h2 id="component-1-pgtap-test-generator">📦 Component 1: pgTAP Test Generator</h2>
+<p><strong>File</strong>: <code>src/testing/pgtap/pgtap_generator.py</code></p>
+<h3 id="structure-test-template">Structure Test Template</h3>
+<pre><code class="language-python">def generate_structure_tests(entity_config: Dict) -&gt; str:
+    &quot;&quot;&quot;Generate schema structure validation tests&quot;&quot;&quot;
+    entity = entity_config['entity_name']
+    schema = entity_config['schema_name']
+    table = entity_config['table_name']
+
+    return f&quot;&quot;&quot;
+-- Structure Tests for {entity}
+BEGIN;
+SELECT plan(10);
+
+-- Table exists
+SELECT has_table(
+    '{schema}'::name,
+    '{table}'::name,
+    '{entity} table should exist'
+);
+
+-- Trinity pattern columns
+SELECT has_column('{schema}', '{table}', 'pk_{entity.lower()}', 'Has INTEGER PK');
+SELECT has_column('{schema}', '{table}', 'id', 'Has UUID id');
+SELECT has_column('{schema}', '{table}', 'identifier', 'Has TEXT identifier');
+
+-- Audit columns
+SELECT has_column('{schema}', '{table}', 'created_at', 'Has created_at');
+SELECT has_column('{schema}', '{table}', 'updated_at', 'Has updated_at');
+SELECT has_column('{schema}', '{table}', 'deleted_at', 'Has deleted_at for soft delete');
+
+-- Primary key constraint
+SELECT col_is_pk('{schema}', '{table}', 'pk_{entity.lower()}', 'pk_{entity.lower()} is primary key');
+
+-- UUID unique constraint
+SELECT col_is_unique('{schema}', '{table}', 'id', 'id is unique');
+
+SELECT * FROM finish();
+ROLLBACK;
+&quot;&quot;&quot;
+</code></pre>
+<h3 id="crud-test-template">CRUD Test Template</h3>
+<pre><code class="language-python">def generate_crud_tests(entity_config: Dict, field_mappings: List[Dict]) -&gt; str:
+    &quot;&quot;&quot;Generate CRUD operation tests&quot;&quot;&quot;
+    entity = entity_config['entity_name']
+    schema = entity_config['schema_name']
+
+    # Build sample input JSON from field mappings
+    input_fields = {}
+    for field in field_mappings:
+        if field['generator_type'] in ('random', 'fixed'):
+            if field['field_type'] == 'email':
+                input_fields[field['field_name']] = 'test@example.com'
+            elif field['field_type'].startswith('enum('):
+                values = field['enum_values'] or field['field_type'][5:-1].split(',')
+                input_fields[field['field_name']] = values[0].strip()
+            # ... handle other types
+
+    input_json = json.dumps(input_fields)
+
+    return f&quot;&quot;&quot;
+-- CRUD Tests for {entity}
+BEGIN;
+SELECT plan(15);
+
+-- Test: CREATE succeeds
+PREPARE create_test AS
+    SELECT app.create_{entity.lower()}(
+        '{entity_config['default_tenant_id']}'::UUID,
+        '{entity_config['default_user_id']}'::UUID,
+        '{input_json}'::JSONB
+    );
+
+SELECT lives_ok(
+    'create_test',
+    'create_{entity.lower()} should execute without error'
+);
+
+-- Test: CREATE returns success
+DO $$
+DECLARE
+    v_result app.mutation_result;
+BEGIN
+    v_result := app.create_{entity.lower()}(
+        '{entity_config['default_tenant_id']}'::UUID,
+        '{entity_config['default_user_id']}'::UUID,
+        '{input_json}'::JSONB
+    );
+
+    PERFORM ok(
+        v_result.status = 'success',
+        'CREATE should return success status'
+    );
+
+    PERFORM ok(
+        v_result.object_data IS NOT NULL,
+        'CREATE should return object_data'
+    );
+
+    PERFORM ok(
+        (v_result.object_data-&gt;&gt;'id') IS NOT NULL,
+        'object_data should contain id'
+    );
+END $$;
+
+-- Test: Record exists in database
+DO $$
+DECLARE
+    v_result app.mutation_result;
+    v_id UUID;
+    v_count INTEGER;
+BEGIN
+    v_result := app.create_{entity.lower()}(
+        '{entity_config['default_tenant_id']}'::UUID,
+        '{entity_config['default_user_id']}'::UUID,
+        '{input_json}'::JSONB
+    );
+    v_id := (v_result.object_data-&gt;&gt;'id')::UUID;
+
+    SELECT COUNT(*) INTO v_count
+    FROM {schema}.{entity_config['table_name']}
+    WHERE id = v_id;
+
+    PERFORM is(v_count, 1, 'Record should exist in table');
+END $$;
+
+SELECT * FROM finish();
+ROLLBACK;
+&quot;&quot;&quot;
+</code></pre>
+<h3 id="constraint-violation-test-template">Constraint Violation Test Template</h3>
+<pre><code class="language-python">def generate_constraint_tests(entity_config: Dict, scenarios: List[Dict]) -&gt; str:
+    &quot;&quot;&quot;Generate constraint violation tests from scenarios&quot;&quot;&quot;
+    tests = []
+
+    for scenario in scenarios:
+        if scenario['scenario_type'] == 'constraint_violation':
+            test = f&quot;&quot;&quot;
+-- Constraint Test: {scenario['scenario_name']}
+DO $$
+DECLARE
+    v_result app.mutation_result;
+BEGIN
+    -- First insert (should succeed)
+    v_result := app.create_{entity_config['entity_name'].lower()}(
+        '{entity_config['default_tenant_id']}'::UUID,
+        '{entity_config['default_user_id']}'::UUID,
+        '{json.dumps(scenario['input_overrides'])}'::JSONB
+    );
+
+    PERFORM ok(
+        v_result.status = 'success',
+        'First insert should succeed'
+    );
+
+    -- Duplicate insert (should fail)
+    v_result := app.create_{entity_config['entity_name'].lower()}(
+        '{entity_config['default_tenant_id']}'::UUID,
+        '{entity_config['default_user_id']}'::UUID,
+        '{json.dumps(scenario['input_overrides'])}'::JSONB
+    );
+
+    PERFORM like(
+        v_result.status,
+        'failed:%',
+        '{scenario['scenario_name']} should fail with error'
+    );
+
+    PERFORM like(
+        v_result.message,
+        '%{scenario.get('expected_error_code', 'duplicate')}%',
+        'Error message should mention constraint violation'
+    );
+END $$;
+&quot;&quot;&quot;
+            tests.append(test)
+
+    return '\n\n'.join(tests)
+</code></pre>
+<h3 id="custom-action-test-template">Custom Action Test Template</h3>
+<pre><code class="language-python">def generate_action_tests(entity_config: Dict, actions: List[Dict], scenarios: List[Dict]) -&gt; str:
+    &quot;&quot;&quot;Generate tests for custom actions&quot;&quot;&quot;
+    tests = []
+
+    for action in actions:
+        action_name = action['name']
+        schema = entity_config['schema_name']
+
+        # Find scenarios for this action
+        action_scenarios = [s for s in scenarios if s.get('target_action') == action_name]
+
+        for scenario in action_scenarios:
+            test = f&quot;&quot;&quot;
+-- Action Test: {action_name} - {scenario['scenario_name']}
+BEGIN;
+SELECT plan(5);
+
+{scenario.get('setup_sql', '')}
+
+-- Execute action
+DO $$
+DECLARE
+    v_contact_id UUID := '01232122-0000-0000-2000-000000000001';
+    v_result app.mutation_result;
+BEGIN
+    v_result := {schema}.{action_name}(
+        v_contact_id,
+        '{entity_config['default_user_id']}'::UUID
+    );
+
+    -- Verify expected result
+    PERFORM {&quot;ok&quot; if scenario['expected_result'] == 'success' else &quot;isnt&quot;}(
+        v_result.status,
+        'success',
+        '{action_name} should {&quot;succeed&quot; if scenario['expected_result'] == 'success' else &quot;fail&quot;}'
+    );
+
+    -- Verify updated_fields
+    PERFORM ok(
+        array_length(v_result.updated_fields, 1) &gt; 0,
+        'updated_fields should not be empty'
+    );
+
+    -- Verify object_data
+    PERFORM ok(
+        v_result.object_data IS NOT NULL,
+        'object_data should contain result'
+    );
+END $$;
+
+SELECT * FROM finish();
+ROLLBACK;
+&quot;&quot;&quot;
+            tests.append(test)
+
+    return '\n\n'.join(tests)
+</code></pre>
+<hr />
+<h2 id="component-2-pytest-integration-test-generator">📦 Component 2: Pytest Integration Test Generator</h2>
+<p><strong>File</strong>: <code>src/testing/pytest/pytest_generator.py</code></p>
+<h3 id="integration-test-template">Integration Test Template</h3>
+<pre><code class="language-python">def generate_pytest_integration_tests(entity_config: Dict, actions: List[Dict]) -&gt; str:
+    &quot;&quot;&quot;Generate pytest integration tests&quot;&quot;&quot;
+    entity = entity_config['entity_name']
+    schema = entity_config['schema_name']
+
+    return f'''
+&quot;&quot;&quot;Integration tests for {entity} entity&quot;&quot;&quot;
+
+import pytest
+from uuid import UUID
+import psycopg
+
+class Test{entity}Integration:
+    &quot;&quot;&quot;Integration tests for {entity} CRUD and actions&quot;&quot;&quot;
+
+    @pytest.fixture
+    def clean_db(self, test_db_connection):
+        &quot;&quot;&quot;Clean {entity} table before test&quot;&quot;&quot;
+        with test_db_connection.cursor() as cur:
+            cur.execute(&quot;DELETE FROM {schema}.{entity_config['table_name']}&quot;)
+        test_db_connection.commit()
+        yield test_db_connection
+
+    def test_create_{entity.lower()}_happy_path(self, clean_db):
+        &quot;&quot;&quot;Test creating {entity} via app.create function&quot;&quot;&quot;
+        tenant_id = UUID(&quot;{entity_config['default_tenant_id']}&quot;)
+        user_id = UUID(&quot;{entity_config['default_user_id']}&quot;)
+
+        with clean_db.cursor() as cur:
+            cur.execute(
+                &quot;&quot;&quot;
+                SELECT app.create_{entity.lower()}(
+                    %s::UUID,
+                    %s::UUID,
+                    %s::JSONB
+                )
+                &quot;&quot;&quot;,
+                (tenant_id, user_id, {{&quot;email&quot;: &quot;test@example.com&quot;, &quot;status&quot;: &quot;lead&quot;}})
+            )
+            result = cur.fetchone()[0]
+
+        assert result['status'] == 'success'
+        assert result['object_data']['id'] is not None
+        assert result['object_data']['email'] == 'test@example.com'
+
+    def test_create_duplicate_{entity.lower()}_fails(self, clean_db):
+        &quot;&quot;&quot;Test duplicate {entity} fails with proper error&quot;&quot;&quot;
+        tenant_id = UUID(&quot;{entity_config['default_tenant_id']}&quot;)
+        user_id = UUID(&quot;{entity_config['default_user_id']}&quot;)
+        input_data = {{&quot;email&quot;: &quot;duplicate@example.com&quot;, &quot;status&quot;: &quot;lead&quot;}}
+
+        with clean_db.cursor() as cur:
+            # First insert
+            cur.execute(
+                &quot;SELECT app.create_{entity.lower()}(%s, %s, %s)&quot;,
+                (tenant_id, user_id, input_data)
+            )
+            result1 = cur.fetchone()[0]
+            assert result1['status'] == 'success'
+
+            # Duplicate insert
+            cur.execute(
+                &quot;SELECT app.create_{entity.lower()}(%s, %s, %s)&quot;,
+                (tenant_id, user_id, input_data)
+            )
+            result2 = cur.fetchone()[0]
+
+        assert result2['status'].startswith('failed:')
+        assert 'duplicate' in result2['message'].lower()
+
+{&quot;&quot;.join([self._generate_action_test(action, entity_config) for action in actions])}
+'''
+
+    def _generate_action_test(self, action: Dict, entity_config: Dict) -&gt; str:
+        &quot;&quot;&quot;Generate test for custom action&quot;&quot;&quot;
+        action_name = action['name']
+        entity = entity_config['entity_name']
+
+        return f'''
+    def test_{action_name}(self, clean_db):
+        &quot;&quot;&quot;Test {action_name} action&quot;&quot;&quot;
+        tenant_id = UUID(&quot;{entity_config['default_tenant_id']}&quot;)
+        user_id = UUID(&quot;{entity_config['default_user_id']}&quot;)
+
+        with clean_db.cursor() as cur:
+            # Setup: Create {entity} with appropriate status
+            cur.execute(
+                &quot;SELECT app.create_{entity.lower()}(%s, %s, %s)&quot;,
+                (tenant_id, user_id, {{&quot;email&quot;: &quot;qualify@example.com&quot;, &quot;status&quot;: &quot;lead&quot;}})
+            )
+            create_result = cur.fetchone()[0]
+            contact_id = UUID(create_result['object_data']['id'])
+
+            # Execute action
+            cur.execute(
+                &quot;SELECT {entity_config['schema_name']}.{action_name}(%s, %s)&quot;,
+                (contact_id, user_id)
+            )
+            action_result = cur.fetchone()[0]
+
+        assert action_result['status'] == 'success'
+        assert action_result['object_data']['status'] == 'qualified'
+'''
+</code></pre>
+<hr />
+<h2 id="testing-strategy">🧪 Testing Strategy</h2>
+<h3 id="self-testing-tests">Self-Testing Tests</h3>
+<pre><code class="language-python"># tests/unit/testing/test_pgtap_generator.py
+
+def test_generate_structure_tests():
+    &quot;&quot;&quot;pgTAP generator should create structure tests&quot;&quot;&quot;
+    gen = PgTAPGenerator()
+    entity_config = {...}
+
+    sql = gen.generate_structure_tests(entity_config)
+
+    assert &quot;has_table&quot; in sql
+    assert &quot;has_column&quot; in sql
+    assert &quot;col_is_pk&quot; in sql
+
+def test_generate_crud_tests():
+    &quot;&quot;&quot;pgTAP generator should create CRUD tests&quot;&quot;&quot;
+    gen = PgTAPGenerator()
+    entity_config = {...}
+
+    sql = gen.generate_crud_tests(entity_config, [])
+
+    assert &quot;app.create_contact&quot; in sql
+    assert &quot;lives_ok&quot; in sql
+</code></pre>
+<hr />
+<h2 id="success-criteria">📊 Success Criteria</h2>
+<h3 id="week-4-completion">Week 4 Completion</h3>
+<ul>
+<li>✅ pgTAP generator for structure tests</li>
+<li>✅ pgTAP generator for CRUD tests</li>
+<li>✅ pgTAP generator for action tests</li>
+<li>✅ pgTAP generator for constraint tests</li>
+<li>✅ Pytest generator for integration tests</li>
+<li>✅ Generated tests run successfully</li>
+<li>✅ Contact entity has 50+ auto-generated test cases</li>
+<li>✅ 10+ unit tests for generators</li>
+<li>✅ All generated tests pass</li>
+</ul>
+<hr />
+<h2 id="example-output">📝 Example Output</h2>
+<p><strong>File</strong>: <code>tests/pgtap/contact_test.sql</code></p>
+<pre><code class="language-sql">-- Auto-generated tests for Contact entity
+-- Generated: 2025-11-08T15:00:00
+
+-- Structure Tests
+BEGIN;
+SELECT plan(10);
+SELECT has_table('crm', 'tb_contact', 'Contact table exists');
+SELECT has_column('crm', 'tb_contact', 'pk_contact', 'Has INTEGER PK');
+-- ... 8 more structure tests
+SELECT * FROM finish();
+ROLLBACK;
+
+-- CRUD Tests
+BEGIN;
+SELECT plan(15);
+-- Test CREATE
+DO $$
+DECLARE v_result app.mutation_result;
+BEGIN
+    v_result := app.create_contact(...);
+    PERFORM ok(v_result.status = 'success', 'CREATE succeeds');
+END $$;
+-- ... 14 more CRUD tests
+SELECT * FROM finish();
+ROLLBACK;
+
+-- Constraint Tests
+BEGIN;
+SELECT plan(5);
+-- Test duplicate email
+-- ... constraint tests
+SELECT * FROM finish();
+ROLLBACK;
+
+-- Action Tests
+BEGIN;
+SELECT plan(10);
+-- Test qualify_lead action
+-- ... action tests
+SELECT * FROM finish();
+ROLLBACK;
+</code></pre>
+<hr />
+<p><strong>Next</strong>: <a href="../04_TEAM_T_PROP/">Team T-Prop: Property-Based Testing</a></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

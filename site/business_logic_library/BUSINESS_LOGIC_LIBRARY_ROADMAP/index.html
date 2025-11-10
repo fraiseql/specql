@@ -1,0 +1,787 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Business Logic Library - Visual Roadmap - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Business Logic Library - Visual Roadmap";
+        var mkdocs_page_input_path = "business_logic_library/BUSINESS_LOGIC_LIBRARY_ROADMAP.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Business Logic Library - Visual Roadmap</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="business-logic-library-visual-roadmap">Business Logic Library - Visual Roadmap</h1>
+<p><strong>Project</strong>: PrintOptim Domain-Agnostic Business Logic Library
+<strong>Timeline</strong>: 20 Weeks (5 Months)
+<strong>Team</strong>: 2-3 Developers (Team C)
+<strong>ROI</strong>: 180% in Year 1</p>
+<hr />
+<h2 id="20-week-roadmap">📅 20-Week Roadmap</h2>
+<pre><code>┌─────────────────────────────────────────────────────────────────────┐
+│  PHASE 1: Core CRUD Enhancements (Weeks 1-4)                        │
+├─────────────────────────────────────────────────────────────────────┤
+│  Week 1-2: Partial Updates + Duplicate Detection                    │
+│  └─ Deliverables:                                                   │
+│     • partial_update.yaml pattern                                   │
+│     • duplicate_check.yaml pattern                                  │
+│     • SQL generation templates                                      │
+│     • 20+ unit tests                                                │
+│                                                                      │
+│  Week 3: Identifier Recalculation                                   │
+│  └─ Deliverables:                                                   │
+│     • identifier_recalc.yaml pattern                                │
+│     • Sequence management                                           │
+│     • Pattern DSL for identifiers                                   │
+│     • 15+ unit tests                                                │
+│                                                                      │
+│  Week 4: Projection Refresh                                         │
+│  └─ Deliverables:                                                   │
+│     • projection_refresh.yaml pattern                               │
+│     • Materialized view support                                     │
+│     • Refresh strategies (immediate/deferred/async)                 │
+│     • Integration tests with Contract, Machine                      │
+│                                                                      │
+│  ✅ Milestone: All Priority 1 gaps closed                           │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  PHASE 2: State Machine Patterns (Weeks 5-7)                        │
+├─────────────────────────────────────────────────────────────────────┤
+│  Week 5: Simple State Transitions                                   │
+│  └─ Deliverables:                                                   │
+│     • simple_transition.yaml pattern                                │
+│     • Validation framework                                          │
+│     • Side effects engine                                           │
+│     • 20+ unit tests                                                │
+│                                                                      │
+│  Week 6: Multi-Step Workflows                                       │
+│  └─ Deliverables:                                                   │
+│     • multi_step_workflow.yaml pattern                              │
+│     • Rollback support                                              │
+│     • Step orchestration                                            │
+│     • 15+ unit tests                                                │
+│                                                                      │
+│  Week 7: Guarded Transitions + Integration                          │
+│  └─ Deliverables:                                                   │
+│     • guarded_transition.yaml pattern                               │
+│     • Complex guard conditions                                      │
+│     • Real-world examples (Machine, Contract)                       │
+│     • State machine visualization tools                             │
+│                                                                      │
+│  ✅ Milestone: State machine patterns production-ready              │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  PHASE 3: Multi-Entity Patterns (Weeks 8-10)                        │
+├─────────────────────────────────────────────────────────────────────┤
+│  Week 8: Coordinated Updates                                        │
+│  └─ Deliverables:                                                   │
+│     • coordinated_update.yaml pattern                               │
+│     • Transaction management                                        │
+│     • Variable storage ($store_result_as)                           │
+│     • 20+ unit tests                                                │
+│                                                                      │
+│  Week 9: Parent-Child Cascades                                      │
+│  └─ Deliverables:                                                   │
+│     • parent_child_cascade.yaml pattern                             │
+│     • Cascade strategies                                            │
+│     • Iteration over arrays                                         │
+│     • 15+ unit tests                                                │
+│                                                                      │
+│  Week 10: Get-or-Create + Integration                               │
+│  └─ Deliverables:                                                   │
+│     • get_or_create.yaml pattern                                    │
+│     • transactional_group.yaml pattern                              │
+│     • Real-world examples (Allocation, Contract+Items)              │
+│     • Performance benchmarks                                        │
+│                                                                      │
+│  ✅ Milestone: Multi-entity coordination working                    │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  PHASE 4: Validation &amp; Batch Patterns (Weeks 11-13)                 │
+├─────────────────────────────────────────────────────────────────────┤
+│  Week 11: Validation Chain                                          │
+│  └─ Deliverables:                                                   │
+│     • validation_chain.yaml pattern                                 │
+│     • dependency_check.yaml pattern                                 │
+│     • business_rule.yaml pattern                                    │
+│     • 15+ unit tests                                                │
+│                                                                      │
+│  Week 12: Bulk Operations                                           │
+│  └─ Deliverables:                                                   │
+│     • bulk_operation.yaml pattern                                   │
+│     • batch_import.yaml pattern                                     │
+│     • Error handling strategies                                     │
+│     • Performance optimization                                      │
+│                                                                      │
+│  Week 13: Integration + Performance Tuning                          │
+│  └─ Deliverables:                                                   │
+│     • Batch performance benchmarks                                  │
+│     • Real-world examples (bulk_update_prices)                      │
+│     • 20+ unit tests                                                │
+│     • Documentation                                                 │
+│                                                                      │
+│  ✅ Milestone: Validation &amp; batch patterns complete                 │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  PHASE 5: Advanced Patterns (Weeks 14-16)                           │
+├─────────────────────────────────────────────────────────────────────┤
+│  Week 14: Conditional Logic Patterns                                │
+│  └─ Deliverables:                                                   │
+│     • if_then_else.yaml pattern                                     │
+│     • switch_case.yaml pattern                                      │
+│     • guard_clause.yaml pattern                                     │
+│                                                                      │
+│  Week 15: Temporal Logic Patterns                                   │
+│  └─ Deliverables:                                                   │
+│     • effective_dating.yaml pattern                                 │
+│     • expiration_check.yaml pattern                                 │
+│     • version_control.yaml pattern                                  │
+│                                                                      │
+│  Week 16: Common Utility Patterns                                   │
+│  └─ Deliverables:                                                   │
+│     • event_logging.yaml pattern                                    │
+│     • notification.yaml pattern                                     │
+│     • audit_trail.yaml pattern                                      │
+│     • soft_delete.yaml pattern                                      │
+│                                                                      │
+│  ✅ Milestone: All patterns implemented                             │
+└─────────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────────┐
+│  PHASE 6: Migration &amp; Optimization (Weeks 17-20)                    │
+├─────────────────────────────────────────────────────────────────────┤
+│  Week 17-18: Entity Migration                                       │
+│  └─ Tasks:                                                          │
+│     • Migrate 74 entities to pattern library                        │
+│     • common/ (23 entities)                                         │
+│     • tenant/ (24 entities)                                         │
+│     • catalog/ (26 entities)                                        │
+│     • management/ (1 entity)                                        │
+│     • Test each migration                                           │
+│     • Document migration process                                    │
+│                                                                      │
+│  Week 19: Performance Optimization                                  │
+│  └─ Tasks:                                                          │
+│     • Query performance tuning                                      │
+│     • Index optimization                                            │
+│     • Batch operation efficiency                                    │
+│     • Transaction throughput                                        │
+│     • Projection refresh speed                                      │
+│     • Benchmark vs reference SQL                                    │
+│                                                                      │
+│  Week 20: Testing &amp; Documentation                                   │
+│  └─ Tasks:                                                          │
+│     • Comprehensive test suite (800+ tests)                         │
+│     • Performance benchmarks                                        │
+│     • Regression tests                                              │
+│     • Load testing                                                  │
+│     • Complete documentation                                        │
+│     • Migration guide                                               │
+│     • API reference                                                 │
+│                                                                      │
+│  ✅ Milestone: Production-ready library                             │
+└─────────────────────────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="pattern-catalog-overview">📊 Pattern Catalog Overview</h2>
+<h3 id="core-patterns-4">Core Patterns (4)</h3>
+<pre><code>stdlib/patterns/core/
+├── partial_update.yaml          ⭐ Priority 1
+├── duplicate_check.yaml         ⭐ Priority 1
+├── identifier_recalc.yaml       ⭐ Priority 1
+└── projection_refresh.yaml      ⭐ Priority 1
+</code></pre>
+<h3 id="state-machine-patterns-3">State Machine Patterns (3)</h3>
+<pre><code>stdlib/patterns/state_machine/
+├── simple_transition.yaml       ⭐ Priority 2
+├── multi_step_workflow.yaml     ⭐ Priority 2
+└── guarded_transition.yaml      ⭐ Priority 2
+</code></pre>
+<h3 id="multi-entity-patterns-4">Multi-Entity Patterns (4)</h3>
+<pre><code>stdlib/patterns/multi_entity/
+├── coordinated_update.yaml      ⭐ Priority 2
+├── parent_child_cascade.yaml    ⭐ Priority 2
+├── get_or_create.yaml           ⭐ Priority 2
+└── transactional_group.yaml     ⭐ Priority 2
+</code></pre>
+<h3 id="validation-patterns-3">Validation Patterns (3)</h3>
+<pre><code>stdlib/patterns/validation/
+├── validation_chain.yaml        ⭐ Priority 3
+├── dependency_check.yaml        ⭐ Priority 3
+└── business_rule.yaml           ⭐ Priority 3
+</code></pre>
+<h3 id="batch-patterns-3">Batch Patterns (3)</h3>
+<pre><code>stdlib/patterns/batch/
+├── bulk_operation.yaml          ⭐ Priority 3
+├── batch_import.yaml            ⭐ Priority 3
+└── error_handling.yaml          ⭐ Priority 3
+</code></pre>
+<h3 id="conditional-patterns-3">Conditional Patterns (3)</h3>
+<pre><code>stdlib/patterns/conditional/
+├── if_then_else.yaml            ⭐ Priority 4
+├── switch_case.yaml             ⭐ Priority 4
+└── guard_clause.yaml            ⭐ Priority 4
+</code></pre>
+<h3 id="temporal-patterns-3">Temporal Patterns (3)</h3>
+<pre><code>stdlib/patterns/temporal/
+├── effective_dating.yaml        ⭐ Priority 4
+├── expiration_check.yaml        ⭐ Priority 4
+└── version_control.yaml         ⭐ Priority 4
+</code></pre>
+<h3 id="common-utilities-4">Common Utilities (4)</h3>
+<pre><code>stdlib/patterns/common/
+├── event_logging.yaml           ⭐ Priority 4
+├── notification.yaml            ⭐ Priority 4
+├── audit_trail.yaml             ⭐ Priority 4
+└── soft_delete.yaml             ⭐ Priority 4
+</code></pre>
+<p><strong>Total</strong>: <strong>27 patterns</strong> covering <strong>95%+ of business logic</strong></p>
+<hr />
+<h2 id="key-milestones">🎯 Key Milestones</h2>
+<pre><code>Week 4:  ✅ Core CRUD Enhanced (Priority 1 gaps closed)
+Week 7:  ✅ State Machines Ready (Business workflows declarative)
+Week 10: ✅ Multi-Entity Working (Complex operations simplified)
+Week 13: ✅ Validation &amp; Batch Complete (All CRUD scenarios covered)
+Week 16: ✅ All Patterns Implemented (Full pattern library)
+Week 18: ✅ Migration Complete (All 74 entities migrated)
+Week 20: ✅ Production Ready (Tested, optimized, documented)
+</code></pre>
+<hr />
+<h2 id="impact-timeline">📈 Impact Timeline</h2>
+<h3 id="week-4-core-crud-benefits">Week 4: Core CRUD Benefits</h3>
+<ul>
+<li>✅ Partial updates working</li>
+<li>✅ Duplicate detection prevents data issues</li>
+<li>✅ Identifiers auto-calculate</li>
+<li>✅ GraphQL projections stay fresh</li>
+<li><strong>Impact</strong>: Basic CRUD operations 5x faster</li>
+</ul>
+<h3 id="week-7-state-machine-benefits">Week 7: State Machine Benefits</h3>
+<ul>
+<li>✅ Business workflows declarative</li>
+<li>✅ Complex state transitions simplified</li>
+<li>✅ Validation guards prevent invalid states</li>
+<li><strong>Impact</strong>: Workflow development 10x faster</li>
+</ul>
+<h3 id="week-10-multi-entity-benefits">Week 10: Multi-Entity Benefits</h3>
+<ul>
+<li>✅ Coordinated operations simplified</li>
+<li>✅ Parent-child relationships automated</li>
+<li>✅ Transactional integrity guaranteed</li>
+<li><strong>Impact</strong>: Complex operations 15x faster</li>
+</ul>
+<h3 id="week-13-batch-validation-benefits">Week 13: Batch &amp; Validation Benefits</h3>
+<ul>
+<li>✅ Bulk operations efficient</li>
+<li>✅ Validation chains reusable</li>
+<li>✅ Error handling consistent</li>
+<li><strong>Impact</strong>: Data operations 20x faster</li>
+</ul>
+<h3 id="week-16-full-library-available">Week 16: Full Library Available</h3>
+<ul>
+<li>✅ All patterns implemented</li>
+<li>✅ Any business logic expressible</li>
+<li>✅ Pattern composition working</li>
+<li><strong>Impact</strong>: Development 10-20x faster across the board</li>
+</ul>
+<h3 id="week-20-production-deployment">Week 20: Production Deployment</h3>
+<ul>
+<li>✅ All entities migrated</li>
+<li>✅ Performance optimized</li>
+<li>✅ Comprehensive documentation</li>
+<li><strong>Impact</strong>: 95% code reduction, 180% ROI</li>
+</ul>
+<hr />
+<h2 id="roi-projection">💰 ROI Projection</h2>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│  Investment vs. Return (Person-Weeks)                   │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  Investment:  ████████████████  54 person-weeks         │
+│  (20 weeks × 2.5 devs + 4 weeks migration)              │
+│                                                          │
+│  Return:      ████████████████████████████████████████  │
+│               █████████████                              │
+│               97.5 person-weeks saved                    │
+│               (600 actions × 6.5 hours saved)            │
+│                                                          │
+│  Net Benefit: ████████████████████████████  44 weeks    │
+│                                                          │
+│  ROI:         180%                                       │
+│  Break-even:  Week 5 of usage (~50 new actions)         │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+</code></pre>
+<h3 id="cumulative-savings-over-time">Cumulative Savings Over Time</h3>
+<pre><code>Person-Weeks Saved
+│
+100 │                                           ●
+    │                                      ●
+ 80 │                                 ●
+    │                            ●
+ 60 │                       ●
+    │                  ●
+ 40 │             ●                Break-even (Week 5)
+    │        ●                             ▼
+ 20 │   ●                                  │
+    │ ●                                    │
+  0 ├──●────────────────────────────────────────────
+    │   ●                                  │
+-20 │    ●●                                │
+    │      ●●●                             │
+-40 │         ●●●●                         │
+    │             ●●●●●●●                  │
+-54 │                   ●●●●●●●●●●●────────┘
+    │                             Investment
+    └────────────────────────────────────────────
+     Wk1  5   10   15   20  25   30   35   40
+</code></pre>
+<hr />
+<h2 id="architecture-layers">🏗️ Architecture Layers</h2>
+<pre><code>┌──────────────────────────────────────────────────────────┐
+│  LAYER 1: Business Logic (YAML)                          │
+│  What: Declare business operations                       │
+│  Who: Product developers, domain experts                 │
+│                                                           │
+│  Example:                                                │
+│    actions:                                              │
+│      - name: decommission_machine                        │
+│        pattern: state_machine/simple_transition          │
+│        from_states: [active, maintenance]                │
+│        to_state: decommissioned                          │
+└──────────────────────────────────────────────────────────┘
+                            ▼
+┌──────────────────────────────────────────────────────────┐
+│  LAYER 2: Pattern Library (YAML + Templates)             │
+│  What: Reusable business logic patterns                  │
+│  Who: Framework developers, Team C                       │
+│                                                           │
+│  Contains:                                               │
+│    • Pattern definitions (27 patterns)                   │
+│    • SQL generation templates (Jinja2)                   │
+│    • Test suites (800+ tests)                            │
+│    • Documentation                                       │
+└──────────────────────────────────────────────────────────┘
+                            ▼
+┌──────────────────────────────────────────────────────────┐
+│  LAYER 3: Code Generator (Python)                        │
+│  What: Parse YAML → Generate SQL                         │
+│  Who: Team C (Parser + Generator)                        │
+│                                                           │
+│  Process:                                                │
+│    1. Parse entity YAML + pattern definitions            │
+│    2. Validate pattern usage and parameters              │
+│    3. Resolve dependencies and references                │
+│    4. Generate PL/pgSQL from Jinja2 templates            │
+│    5. Optimize SQL (index hints, query plans)            │
+│    6. Add FraiseQL metadata comments                     │
+└──────────────────────────────────────────────────────────┘
+                            ▼
+┌──────────────────────────────────────────────────────────┐
+│  LAYER 4: PostgreSQL Functions (Generated SQL)           │
+│  What: Production-ready database functions               │
+│  Who: Database engine                                    │
+│                                                           │
+│  Generated:                                              │
+│    • App wrapper functions (app.*)                       │
+│    • Core business logic (tenant.*, catalog.*)           │
+│    • Helper functions (Trinity, identifiers)             │
+│    • View refresh functions                              │
+│    • FraiseQL metadata                                   │
+└──────────────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="beforeafter-comparison">📊 Before/After Comparison</h2>
+<h3 id="before-pattern-library">Before Pattern Library</h3>
+<pre><code class="language-yaml"># entities/tenant/machine.yaml
+entity: Machine
+fields:
+  status: enum(available, in_stock, allocated, decommissioned)
+  decommission_date: date
+  decommission_reason: text
+
+actions:
+  - name: decommission_machine  # Just a name, no implementation
+</code></pre>
+<pre><code class="language-sql">-- reference_sql/.../decommission_machine.sql (150+ lines)
+CREATE OR REPLACE FUNCTION core.decommission_machine(...)
+RETURNS app.mutation_result AS $$
+DECLARE
+    v_machine tenant.tb_machine%ROWTYPE;
+    v_active_allocations INTEGER;
+    -- ... 20+ more variables ...
+BEGIN
+    -- Load current machine
+    SELECT * INTO v_machine FROM tenant.tb_machine WHERE ...;
+
+    -- Check current status
+    IF v_machine.status != 'active' THEN
+        RETURN NOOP with error;
+    END IF;
+
+    -- Check for active allocations (20+ lines)
+    -- Update machine status (10+ lines)
+    -- Archive related data (15+ lines)
+    -- Log event (10+ lines)
+    -- Refresh projection (10+ lines)
+    -- Return result (20+ lines)
+END;
+$$;
+</code></pre>
+<p><strong>Developer Experience</strong>:
+- ❌ Manual SQL implementation required
+- ❌ 2-4 hours per business action
+- ❌ Inconsistent patterns across entities
+- ❌ Easy to miss edge cases
+- ❌ Manual testing required</p>
+<hr />
+<h3 id="after-pattern-library">After Pattern Library</h3>
+<pre><code class="language-yaml"># entities/tenant/machine.yaml
+entity: Machine
+fields:
+  status: enum(available, in_stock, allocated, decommissioned)
+  decommission_date: date
+  decommission_reason: text
+
+actions:
+  # Full implementation in 20 lines of YAML
+  - name: decommission_machine
+    pattern: stdlib/patterns/state_machine/simple_transition
+    from_states: [active, maintenance]
+    to_state: decommissioned
+
+    validations:
+      - type: dependency_check
+        entity: Allocation
+        field: machine
+        condition: &quot;status = 'active'&quot;
+        error_code: &quot;has_active_allocations&quot;
+        error_message: &quot;Cannot decommission machine with active allocations&quot;
+
+    side_effects:
+      - type: update_field
+        field: decommission_date
+        value: now()
+      - type: update_related
+        entity: MachineItem
+        relationship: machine
+        updates: {status: archived}
+      - type: insert_event
+        entity: MachineEvent
+        event_data: {event_type: decommissioned}
+
+    input_fields:
+      decommission_date: {type: date, required: true}
+      decommission_reason: {type: text, required: true}
+</code></pre>
+<pre><code class="language-sql">-- Generated automatically (150+ lines, perfect quality)
+-- No manual SQL writing required!
+</code></pre>
+<p><strong>Developer Experience</strong>:
+- ✅ Declarative YAML only
+- ✅ 15-30 minutes per business action
+- ✅ 100% consistent patterns
+- ✅ Edge cases handled by pattern library
+- ✅ Auto-generated comprehensive tests</p>
+<p><strong>Code Reduction</strong>: 150 lines SQL → 20 lines YAML = <strong>87% reduction</strong>
+<strong>Time Reduction</strong>: 4 hours → 30 minutes = <strong>87% faster</strong></p>
+<hr />
+<h2 id="success-metrics-dashboard">🎯 Success Metrics Dashboard</h2>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│  QUANTITATIVE METRICS                                    │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  Code Reduction:           95% ████████████████████░    │
+│  Target: 95%  │  Current: 0%  │  Week 20: 95%          │
+│                                                          │
+│  Pattern Coverage:         95% ████████████████████░    │
+│  Target: 95%  │  Current: 0%  │  Week 16: 95%          │
+│                                                          │
+│  Migration Progress:      100% ████████████████████     │
+│  Target: 74/74 entities   │  Week 18: 100%             │
+│                                                          │
+│  Test Coverage:            90% █████████████████████    │
+│  Target: 90%  │  Week 20: 90%                          │
+│                                                          │
+│  Performance:         No Regression ████████████████    │
+│  Target: &lt;50ms p95   │  Week 19: Optimized             │
+│                                                          │
+│  Generation Time:         &lt;5 sec ███████████████████    │
+│  Target: &lt;5 sec  │  Week 20: Optimized                 │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────┐
+│  QUALITATIVE METRICS                                     │
+├─────────────────────────────────────────────────────────┤
+│                                                          │
+│  ✅ Developers can express business logic without SQL   │
+│  ✅ New patterns can be added without breaking code     │
+│  ✅ Generated SQL is readable and debuggable            │
+│  ✅ Error messages are clear and actionable             │
+│  ✅ Documentation is comprehensive and up-to-date       │
+│  ✅ Pattern library is intuitive to use                 │
+│  ✅ Onboarding time reduced (2 days → 2 hours)          │
+│                                                          │
+└─────────────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="documentation-deliverables">📚 Documentation Deliverables</h2>
+<h3 id="week-4-phase-1-complete">Week 4 (Phase 1 Complete)</h3>
+<ul>
+<li>[ ] Core CRUD pattern guide</li>
+<li>[ ] Partial update examples</li>
+<li>[ ] Duplicate detection guide</li>
+<li>[ ] Identifier recalculation guide</li>
+<li>[ ] Projection refresh guide</li>
+</ul>
+<h3 id="week-7-phase-2-complete">Week 7 (Phase 2 Complete)</h3>
+<ul>
+<li>[ ] State machine pattern guide</li>
+<li>[ ] Workflow orchestration examples</li>
+<li>[ ] Guard condition reference</li>
+<li>[ ] State machine visualization tools</li>
+</ul>
+<h3 id="week-10-phase-3-complete">Week 10 (Phase 3 Complete)</h3>
+<ul>
+<li>[ ] Multi-entity pattern guide</li>
+<li>[ ] Coordinated update examples</li>
+<li>[ ] Parent-child cascade guide</li>
+<li>[ ] Transaction management guide</li>
+</ul>
+<h3 id="week-13-phase-4-complete">Week 13 (Phase 4 Complete)</h3>
+<ul>
+<li>[ ] Validation pattern guide</li>
+<li>[ ] Batch operation guide</li>
+<li>[ ] Error handling strategies</li>
+<li>[ ] Performance tuning guide</li>
+</ul>
+<h3 id="week-16-phase-5-complete">Week 16 (Phase 5 Complete)</h3>
+<ul>
+<li>[ ] Complete pattern catalog</li>
+<li>[ ] Advanced pattern examples</li>
+<li>[ ] Pattern composition guide</li>
+<li>[ ] Custom pattern development guide</li>
+</ul>
+<h3 id="week-20-production-ready">Week 20 (Production Ready)</h3>
+<ul>
+<li>[ ] Migration guide (reference SQL → patterns)</li>
+<li>[ ] API reference (auto-generated)</li>
+<li>[ ] Troubleshooting guide</li>
+<li>[ ] Video tutorials (10+ screencasts)</li>
+<li>[ ] Best practices guide</li>
+</ul>
+<hr />
+<h2 id="quick-start-week-20">🚀 Quick Start (Week 20+)</h2>
+<h3 id="for-new-developers">For New Developers</h3>
+<pre><code class="language-bash"># 1. Read the pattern catalog (15 minutes)
+open docs/patterns/pattern_catalog.md
+
+# 2. Watch quick start video (10 minutes)
+open docs/videos/pattern_library_quickstart.mp4
+
+# 3. Try example migration (30 minutes)
+cd examples/migration/
+./migrate_simple_entity.sh
+
+# 4. Implement first business action (30 minutes)
+# Add action to entities/tenant/my_entity.yaml using patterns
+
+# 5. Generate and test (10 minutes)
+specql generate entities/tenant/my_entity.yaml
+specql test entities/tenant/my_entity.yaml
+
+# Total: ~2 hours to productivity
+</code></pre>
+<p><strong>Before</strong>: 2 days of SQL training + 1 week of practice = 2.5 weeks
+<strong>After</strong>: 2 hours to first working business action = <strong>100x faster onboarding</strong></p>
+<hr />
+<h2 id="support-resources">📞 Support &amp; Resources</h2>
+<h3 id="documentation">Documentation</h3>
+<ul>
+<li><strong>Pattern Catalog</strong>: All available patterns with examples</li>
+<li><strong>API Reference</strong>: Auto-generated from pattern definitions</li>
+<li><strong>Migration Guide</strong>: Step-by-step reference SQL → pattern conversion</li>
+<li><strong>Video Tutorials</strong>: Screen recordings for common scenarios</li>
+</ul>
+<h3 id="support-channels">Support Channels</h3>
+<ul>
+<li><strong>Slack</strong>: #pattern-library (real-time Q&amp;A)</li>
+<li><strong>GitHub Issues</strong>: Bug reports and feature requests</li>
+<li><strong>Office Hours</strong>: Weekly 1-hour session with maintainers</li>
+<li><strong>Email</strong>: pattern-library@printoptim.com</li>
+</ul>
+<h3 id="sla-commitments">SLA Commitments</h3>
+<ul>
+<li><strong>P0</strong> (Production down): 1-hour response, 4-hour resolution</li>
+<li><strong>P1</strong> (Major bug): 4-hour response, 24-hour resolution</li>
+<li><strong>P2</strong> (Minor bug): 24-hour response, 1-week resolution</li>
+<li><strong>P3</strong> (Enhancement): 1-week response, best effort</li>
+</ul>
+<hr />
+<h2 id="launch-checklist">✅ Launch Checklist</h2>
+<h3 id="technical-readiness">Technical Readiness</h3>
+<ul>
+<li>[ ] All Priority 1 patterns implemented</li>
+<li>[ ] All Priority 2 patterns implemented</li>
+<li>[ ] 800+ tests passing</li>
+<li>[ ] Performance benchmarks meet targets</li>
+<li>[ ] 74 entities migrated and tested</li>
+<li>[ ] Zero regression from reference SQL</li>
+<li>[ ] Documentation complete</li>
+<li>[ ] Video tutorials recorded</li>
+</ul>
+<h3 id="operational-readiness">Operational Readiness</h3>
+<ul>
+<li>[ ] Support channels set up</li>
+<li>[ ] SLA commitments defined</li>
+<li>[ ] Monitoring and alerting configured</li>
+<li>[ ] Runbook created</li>
+<li>[ ] Incident response plan</li>
+<li>[ ] Training materials prepared</li>
+<li>[ ] Onboarding guide finalized</li>
+</ul>
+<h3 id="business-readiness">Business Readiness</h3>
+<ul>
+<li>[ ] Stakeholder approval</li>
+<li>[ ] Budget approved</li>
+<li>[ ] Timeline communicated</li>
+<li>[ ] Team C assigned</li>
+<li>[ ] Success metrics defined</li>
+<li>[ ] ROI tracking in place</li>
+</ul>
+<hr />
+<p><strong>Status</strong>: 📋 <strong>Ready for Kickoff</strong>
+<strong>Next Step</strong>: Review with stakeholders and get approval to begin Phase 1</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

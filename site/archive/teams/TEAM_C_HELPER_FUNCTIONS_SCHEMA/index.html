@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team C: Helper Functions Schema Correction - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team C: Helper Functions Schema Correction";
+        var mkdocs_page_input_path = "archive/teams/TEAM_C_HELPER_FUNCTIONS_SCHEMA.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team C: Helper Functions Schema Correction</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-c-helper-functions-schema-correction">Team C: Helper Functions Schema Correction</h1>
+<p><strong>Date</strong>: 2025-11-08
+<strong>Status</strong>: 🚨 CRITICAL ARCHITECTURE DECISION
+<strong>Priority</strong>: HIGH - Must decide before Team C implementation</p>
+<hr />
+<h2 id="issue-where-should-log_and_return_mutation-live">🎯 Issue: Where Should <code>log_and_return_mutation</code> Live?</h2>
+<h3 id="current-inconsistent-pattern">Current (Inconsistent) Pattern</h3>
+<p>The implementation plans show <strong>TWO different approaches</strong>:</p>
+<h4 id="approach-1-schema-specific-wrong-for-specql">Approach 1: Schema-Specific (WRONG for SpecQL)</h4>
+<pre><code class="language-sql">-- From TEAM_C_APP_CORE_FUNCTIONS_PLAN.md
+RETURN crm.log_and_return_mutation(...)
+RETURN management.log_and_return_mutation(...)
+</code></pre>
+<p><strong>Problem</strong>: Every schema (crm, management, inventory, etc.) would need its own copy!</p>
+<h4 id="approach-2-core-schema-printoptim-pattern">Approach 2: Core Schema (PrintOptim Pattern)</h4>
+<pre><code class="language-sql">-- From APP_CORE_FUNCTION_PATTERN.md (existing PrintOptim)
+RETURN core.log_and_return_mutation(...)
+</code></pre>
+<p><strong>Problem</strong>: PrintOptim uses <code>core.*</code> for business logic functions, not utilities</p>
+<hr />
+<h2 id="recommended-solution-utility-schema-pattern">✅ Recommended Solution: Utility Schema Pattern</h2>
+<h3 id="architecture-decision-use-app-schema-for-shared-utilities"><strong>Architecture Decision: Use <code>app.*</code> Schema for Shared Utilities</strong></h3>
+<p>The <code>app.*</code> schema should contain:
+1. <strong>Type Definitions</strong> - <code>app.mutation_result</code>, <code>app.type_*_input</code>
+2. <strong>API Wrappers</strong> - <code>app.create_contact()</code>, <code>app.update_contact()</code>
+3. <strong>Shared Utilities</strong> - <code>app.log_and_return_mutation()</code></p>
+<p><strong>Rationale</strong>:
+- ✅ <strong>Already exists</strong> - Team B generates <code>app.*</code> schema
+- ✅ <strong>Single location</strong> - All mutations use <code>app.mutation_result</code> type
+- ✅ <strong>Logical grouping</strong> - App layer concerns (API, types, utilities)
+- ✅ <strong>No duplication</strong> - One function serves all business schemas
+- ✅ <strong>Clear separation</strong> - Business schemas (<code>crm</code>, <code>management</code>) only have business logic</p>
+<hr />
+<h2 id="schema-organization">📋 Schema Organization</h2>
+<h3 id="proposed-schema-structure"><strong>Proposed Schema Structure</strong></h3>
+<pre><code>┌─────────────────────────────────────────────────────┐
+│  app.* - Application Layer (Cross-Cutting)         │
+├─────────────────────────────────────────────────────┤
+│  - app.mutation_result (type)                       │
+│  - app.type_*_input (composite types)              │
+│  - app.create_contact() (API wrapper)              │
+│  - app.update_contact() (API wrapper)              │
+│  - app.log_and_return_mutation() ✅ UTILITY         │
+│  - app.build_error_response() ✅ UTILITY            │
+│  - app.emit_event() ✅ UTILITY                      │
+└─────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│  crm.* - CRM Business Domain                        │
+├─────────────────────────────────────────────────────┤
+│  - crm.tb_contact (table)                          │
+│  - crm.contact_pk() (Trinity helper)               │
+│  - crm.create_contact() (business logic)           │
+│  - crm.update_contact() (business logic)           │
+│  - crm.qualify_lead() (business action)            │
+└─────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│  management.* - Management Domain                   │
+├─────────────────────────────────────────────────────┤
+│  - management.tb_company (table)                    │
+│  - management.company_pk() (Trinity helper)         │
+│  - management.create_company() (business logic)     │
+└─────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────┐
+│  mutation_metadata.* - FraiseQL Metadata Types     │
+├─────────────────────────────────────────────────────┤
+│  - mutation_metadata.entity_impact (type)          │
+│  - mutation_metadata.cache_invalidation (type)     │
+│  - mutation_metadata.mutation_impact_metadata      │
+└─────────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="corrected-function-pattern">🔄 Corrected Function Pattern</h2>
+<h3 id="1-utility-function-in-app-schema"><strong>1. Utility Function in <code>app.*</code> Schema</strong></h3>
+<pre><code class="language-sql">-- ============================================================================
+-- SHARED UTILITY: app.log_and_return_mutation
+-- Used by ALL business schemas
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.log_and_return_mutation(
+    p_tenant_id UUID,
+    p_user_id UUID,
+    p_entity TEXT,
+    p_entity_id UUID,
+    p_operation TEXT,
+    p_status TEXT,
+    p_updated_fields TEXT[],
+    p_message TEXT,
+    p_object_data JSONB,
+    p_extra_metadata JSONB DEFAULT NULL
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_result app.mutation_result;
+BEGIN
+    -- TODO: Insert into audit log table (future Phase)
+    -- INSERT INTO app.tb_mutation_log (...)
+
+    -- Build standardized result
+    v_result.id := p_entity_id;
+    v_result.updated_fields := p_updated_fields;
+    v_result.status := p_status;
+    v_result.message := p_message;
+    v_result.object_data := p_object_data;
+    v_result.extra_metadata := COALESCE(p_extra_metadata, '{}'::jsonb);
+
+    RETURN v_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.log_and_return_mutation IS
+  'Shared utility for building mutation_result responses. Used by all business schemas.';
+</code></pre>
+<h3 id="2-usage-in-business-logic"><strong>2. Usage in Business Logic</strong></h3>
+<pre><code class="language-sql">-- ============================================================================
+-- BUSINESS LOGIC: crm.create_contact
+-- Uses app.log_and_return_mutation (shared utility)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION crm.create_contact(
+    auth_tenant_id UUID,
+    input_data app.type_create_contact_input,
+    input_payload JSONB,
+    auth_user_id UUID
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_contact_id UUID := gen_random_uuid();
+    v_contact_pk INTEGER;
+BEGIN
+    -- === VALIDATION ===
+    IF input_data.email IS NULL THEN
+        -- ✅ Use app.log_and_return_mutation (shared utility)
+        RETURN app.log_and_return_mutation(
+            auth_tenant_id,
+            auth_user_id,
+            'contact',
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            'NOOP',
+            'failed:missing_email',
+            ARRAY['email']::TEXT[],
+            'Email is required',
+            NULL,
+            jsonb_build_object('reason', 'validation_email_null')
+        );
+    END IF;
+
+    -- === INSERT ===
+    INSERT INTO crm.tb_contact (...) VALUES (...);
+
+    -- === SUCCESS RESPONSE ===
+    -- ✅ Use app.log_and_return_mutation (shared utility)
+    RETURN app.log_and_return_mutation(
+        auth_tenant_id,
+        auth_user_id,
+        'contact',
+        v_contact_id,
+        'INSERT',
+        'success',
+        ARRAY(SELECT jsonb_object_keys(input_payload)),
+        'Contact created successfully',
+        (SELECT row_to_json(c.*) FROM crm.tb_contact c WHERE c.id = v_contact_id)::JSONB,
+        NULL
+    );
+END;
+$$;
+</code></pre>
+<h3 id="3-usage-in-other-schemas-same-pattern"><strong>3. Usage in Other Schemas (Same Pattern)</strong></h3>
+<pre><code class="language-sql">-- management.create_company also uses app.log_and_return_mutation
+CREATE OR REPLACE FUNCTION management.create_company(...)
+RETURNS app.mutation_result
+AS $$
+BEGIN
+    -- Validation
+    IF input_data.name IS NULL THEN
+        RETURN app.log_and_return_mutation(...);  -- ✅ Shared utility
+    END IF;
+
+    -- Business logic
+    INSERT INTO management.tb_company (...) VALUES (...);
+
+    -- Success
+    RETURN app.log_and_return_mutation(...);  -- ✅ Shared utility
+END;
+$$;
+</code></pre>
+<hr />
+<h2 id="benefits-of-app-schema-for-utilities">📊 Benefits of <code>app.*</code> Schema for Utilities</h2>
+<h3 id="1-single-source-of-truth"><strong>1. Single Source of Truth</strong></h3>
+<pre><code class="language-sql">-- ✅ ONE function in app schema
+CREATE FUNCTION app.log_and_return_mutation(...) ...
+
+-- ❌ NOT multiple copies per schema
+-- CREATE FUNCTION crm.log_and_return_mutation(...) ...
+-- CREATE FUNCTION management.log_and_return_mutation(...) ...
+-- CREATE FUNCTION inventory.log_and_return_mutation(...) ...
+</code></pre>
+<h3 id="2-easy-maintenance"><strong>2. Easy Maintenance</strong></h3>
+<pre><code class="language-sql">-- ✅ Update logic in ONE place
+ALTER FUNCTION app.log_and_return_mutation ...
+
+-- Add audit logging:
+INSERT INTO app.tb_mutation_log (
+    tenant_id,
+    user_id,
+    entity,
+    entity_id,
+    operation,
+    status,
+    timestamp
+) VALUES (
+    p_tenant_id,
+    p_user_id,
+    p_entity,
+    p_entity_id,
+    p_operation,
+    p_status,
+    now()
+);
+</code></pre>
+<h3 id="3-consistent-behavior"><strong>3. Consistent Behavior</strong></h3>
+<p>All mutations across all schemas return identically structured responses.</p>
+<h3 id="4-clear-architecture"><strong>4. Clear Architecture</strong></h3>
+<pre><code>app.*         → Cross-cutting concerns (types, wrappers, utilities)
+{entity}.*    → Domain-specific business logic
+mutation_metadata.* → FraiseQL type metadata
+</code></pre>
+<hr />
+<h2 id="additional-shared-utilities-future">🔧 Additional Shared Utilities (Future)</h2>
+<p>Once established, <code>app.*</code> can host other shared utilities:</p>
+<h3 id="error-response-builder"><strong>Error Response Builder</strong></h3>
+<pre><code class="language-sql">CREATE FUNCTION app.build_error_response(
+    p_error_code TEXT,
+    p_message TEXT,
+    p_details JSONB DEFAULT NULL
+) RETURNS app.mutation_result
+AS $$
+BEGIN
+    RETURN ROW(
+        '00000000-0000-0000-0000-000000000000'::UUID,
+        ARRAY[]::TEXT[],
+        p_error_code,
+        p_message,
+        NULL::JSONB,
+        COALESCE(p_details, '{}'::jsonb)
+    )::app.mutation_result;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h3 id="event-emitter"><strong>Event Emitter</strong></h3>
+<pre><code class="language-sql">CREATE FUNCTION app.emit_event(
+    p_tenant_id UUID,
+    p_event_type TEXT,
+    p_payload JSONB
+) RETURNS VOID
+AS $$
+BEGIN
+    INSERT INTO app.tb_event_log (tenant_id, event_type, payload, timestamp)
+    VALUES (p_tenant_id, p_event_type, p_payload, now());
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h3 id="audit-logger"><strong>Audit Logger</strong></h3>
+<pre><code class="language-sql">CREATE FUNCTION app.log_mutation(
+    p_tenant_id UUID,
+    p_user_id UUID,
+    p_entity TEXT,
+    p_entity_id UUID,
+    p_operation TEXT,
+    p_changed_fields TEXT[],
+    p_old_data JSONB,
+    p_new_data JSONB
+) RETURNS VOID
+AS $$
+BEGIN
+    INSERT INTO app.tb_mutation_audit (...)
+    VALUES (...);
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<hr />
+<h2 id="template-updates-required">📝 Template Updates Required</h2>
+<h3 id="core-function-templates"><strong>Core Function Templates</strong></h3>
+<p>All templates must use <code>app.log_and_return_mutation</code>:</p>
+<pre><code class="language-diff"> -- templates/sql/core_create_function.sql.j2
+
+     IF {{ validation.check }} THEN
+-        RETURN {{ entity.schema }}.log_and_return_mutation(
++        RETURN app.log_and_return_mutation(
+             auth_tenant_id,
+             auth_user_id,
+             ...
+         );
+     END IF;
+
+     -- Success response
+-    RETURN {{ entity.schema }}.log_and_return_mutation(
++    RETURN app.log_and_return_mutation(
+         auth_tenant_id,
+         auth_user_id,
+         ...
+     );
+</code></pre>
+<p>Same for:
+- <code>templates/sql/core_update_function.sql.j2</code>
+- <code>templates/sql/core_delete_function.sql.j2</code></p>
+<hr />
+<h2 id="team-b-deliverable">🎯 Team B Deliverable</h2>
+<p><strong>Team B should generate ONE shared utility function</strong>:</p>
+<pre><code class="language-sql">-- Migration: 001_app_schema.sql
+-- Generated by Team B ONCE (not per entity)
+
+CREATE SCHEMA IF NOT EXISTS app;
+
+-- Mutation result type (already planned)
+CREATE TYPE app.mutation_result AS (...);
+
+-- Shared utility function (NEW)
+CREATE OR REPLACE FUNCTION app.log_and_return_mutation(
+    p_tenant_id UUID,
+    p_user_id UUID,
+    p_entity TEXT,
+    p_entity_id UUID,
+    p_operation TEXT,
+    p_status TEXT,
+    p_updated_fields TEXT[],
+    p_message TEXT,
+    p_object_data JSONB,
+    p_extra_metadata JSONB DEFAULT NULL
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_result app.mutation_result;
+BEGIN
+    -- Build standardized result
+    v_result.id := p_entity_id;
+    v_result.updated_fields := p_updated_fields;
+    v_result.status := p_status;
+    v_result.message := p_message;
+    v_result.object_data := p_object_data;
+    v_result.extra_metadata := COALESCE(p_extra_metadata, '{}'::jsonb);
+
+    RETURN v_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.log_and_return_mutation IS
+  '@fraiseql:utility Used by mutations to build standardized responses';
+</code></pre>
+<p><strong>Location</strong>: Should be in the <strong>base app schema migration</strong>, not entity-specific migrations.</p>
+<hr />
+<h2 id="decision-summary">✅ Decision Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Decision</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Schema</strong></td>
+<td><code>app.*</code> (application layer)</td>
+</tr>
+<tr>
+<td><strong>Function Name</strong></td>
+<td><code>app.log_and_return_mutation</code></td>
+</tr>
+<tr>
+<td><strong>Ownership</strong></td>
+<td>Team B generates once in base migration</td>
+</tr>
+<tr>
+<td><strong>Usage</strong></td>
+<td>All business schemas call this shared utility</td>
+</tr>
+<tr>
+<td><strong>Benefit</strong></td>
+<td>Single source of truth, no duplication</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="implementation-impact">🚀 Implementation Impact</h2>
+<h3 id="team-b-schema-generator"><strong>Team B</strong> (Schema Generator)</h3>
+<ul>
+<li>✅ Generate <code>app.log_and_return_mutation()</code> in base app schema</li>
+<li>✅ Include in <code>migrations/000_app_foundation.sql</code> (before entity migrations)</li>
+<li>✅ Document as shared utility</li>
+</ul>
+<h3 id="team-c-action-compiler"><strong>Team C</strong> (Action Compiler)</h3>
+<ul>
+<li>✅ Update templates to call <code>app.log_and_return_mutation(...)</code></li>
+<li>✅ <strong>NOT</strong> <code>{entity.schema}.log_and_return_mutation(...)</code></li>
+<li>✅ All validations, errors, and success responses use this utility</li>
+</ul>
+<h3 id="team-e-cli"><strong>Team E</strong> (CLI)</h3>
+<ul>
+<li>✅ Ensure <code>app.*</code> foundation is generated before entity migrations</li>
+<li>✅ Order: <code>000_app_foundation.sql</code> → <code>001_contact.sql</code> → ...</li>
+</ul>
+<hr />
+<h2 id="reference-architecture">📚 Reference Architecture</h2>
+<pre><code>Migration Order:
+├── 000_app_foundation.sql
+│   ├── CREATE SCHEMA app
+│   ├── CREATE TYPE app.mutation_result
+│   ├── CREATE FUNCTION app.log_and_return_mutation()  ✅
+│   └── (Other shared utilities)
+│
+├── 001_mutation_metadata.sql
+│   ├── CREATE SCHEMA mutation_metadata
+│   └── CREATE TYPE mutation_metadata.* (FraiseQL types)
+│
+├── 100_crm_contact.sql
+│   ├── CREATE TABLE crm.tb_contact
+│   ├── CREATE FUNCTION crm.contact_pk()
+│   ├── CREATE FUNCTION crm.create_contact()  → calls app.log_and_return_mutation()
+│   └── CREATE FUNCTION crm.update_contact()  → calls app.log_and_return_mutation()
+│
+└── 200_management_company.sql
+    ├── CREATE TABLE management.tb_company
+    ├── CREATE FUNCTION management.company_pk()
+    └── CREATE FUNCTION management.create_company()  → calls app.log_and_return_mutation()
+</code></pre>
+<hr />
+<p><strong>Decision</strong>: Use <code>app.log_and_return_mutation()</code> as a shared utility function.</p>
+<p><strong>Status</strong>: Ready for implementation
+<strong>Priority</strong>: Must update before Team C starts
+<strong>Impact</strong>: Cleaner architecture, easier maintenance, no code duplication</p>
+<hr />
+<p><strong>Last Updated</strong>: 2025-11-08
+<strong>Approved By</strong>: Architecture Review</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,419 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team B: Quick Start Guide - Phase 9 Table Views - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team B: Quick Start Guide - Phase 9 Table Views";
+        var mkdocs_page_input_path = "archive/teams/TEAM_B_QUICK_START.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team B: Quick Start Guide - Phase 9 Table Views</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-b-quick-start-guide-phase-9-table-views">Team B: Quick Start Guide - Phase 9 Table Views</h1>
+<p><strong>Date</strong>: 2025-11-09
+<strong>Status</strong>: 🟢 READY TO START - Team A has unblocked you!</p>
+<hr />
+<h2 id="your-mission">🎯 Your Mission</h2>
+<p>Generate <code>tv_{entity}</code> tables and <code>refresh_tv_{entity}()</code> functions from the parsed <code>table_views</code> configuration that Team A just delivered.</p>
+<hr />
+<h2 id="what-team-a-delivered">📦 What Team A Delivered</h2>
+<h3 id="1-parsed-ast-available"><strong>1. Parsed AST Available</strong></h3>
+<p>You now have access to <code>entity.table_views</code> with this structure:</p>
+<pre><code class="language-python">from src.core.specql_parser import SpecQLParser
+
+parser = SpecQLParser()
+entity = parser.parse(yaml_content)
+
+# Check if tv_ should be generated
+if entity.should_generate_table_view:
+    tv_config = entity.table_views  # Can be None (auto mode)
+
+    # Check mode
+    if tv_config:
+        mode = tv_config.mode  # TableViewMode.AUTO | FORCE | DISABLE
+
+    # Get explicit relations
+    if tv_config and tv_config.has_explicit_relations:
+        for rel in tv_config.include_relations:
+            print(f&quot;Relation: {rel.entity_name}&quot;)
+            print(f&quot;Fields: {rel.fields}&quot;)
+            print(f&quot;Nested: {rel.include_relations}&quot;)
+
+    # Get filter columns
+    if tv_config:
+        for col in tv_config.extra_filter_columns:
+            print(f&quot;Filter column: {col.name}&quot;)
+            print(f&quot;  Source: {col.source}&quot;)  # e.g., &quot;author.name&quot;
+            print(f&quot;  Type: {col.type}&quot;)
+            print(f&quot;  Index: {col.index_type}&quot;)  # btree | gin | gin_trgm
+</code></pre>
+<h3 id="2-test-coverage"><strong>2. Test Coverage</strong></h3>
+<p>Team A created 11 tests covering all edge cases. You can use these as examples:</p>
+<p><strong>Location</strong>: <code>tests/unit/core/test_table_views_parsing.py</code></p>
+<p><strong>Key Examples</strong>:
+- <code>test_parse_minimal_table_views</code> - Simplest case (just mode)
+- <code>test_parse_include_relations</code> - Flat field selection
+- <code>test_parse_nested_include_relations</code> - Multi-level nesting
+- <code>test_parse_extra_filter_columns_advanced</code> - Performance optimization
+- <code>test_complete_table_views_example</code> - Full integration</p>
+<hr />
+<h2 id="what-you-need-to-generate">🏗️ What You Need to Generate</h2>
+<h3 id="1-tv_-table-ddl"><strong>1. tv_ Table DDL</strong></h3>
+<p>For an entity with <code>table_views</code> config, generate:</p>
+<pre><code class="language-sql">CREATE TABLE library.tv_review (
+    -- Primary key (same as tb_review)
+    pk_review INTEGER PRIMARY KEY,
+
+    -- Identifiers (for filtering)
+    id UUID NOT NULL,
+    review_id TEXT NOT NULL,
+    tenant_id TEXT,
+    path TEXT,  -- If hierarchical
+
+    -- Foreign keys (for JOINs during refresh)
+    fk_author INTEGER REFERENCES core.tb_user(pk_user),
+    fk_book INTEGER REFERENCES library.tb_book(pk_book),
+    author_id UUID,  -- For GraphQL filtering
+    book_id UUID,    -- For GraphQL filtering
+
+    -- Auto-inferred filter columns (high-volume queries)
+    -- These come from tb_review directly
+
+    -- Explicit filter columns (from extra_filter_columns)
+    rating INTEGER,           -- From: extra_filter_columns: [rating]
+    review_date TIMESTAMPTZ,  -- From: extra_filter_columns: [review_date]
+
+    -- Denormalized JSONB data
+    data JSONB NOT NULL,
+
+    -- Metadata
+    refreshed_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- B-tree indexes (exact match, range queries - 100-500x faster)
+CREATE INDEX idx_tv_review_tenant ON library.tv_review(tenant_id);
+CREATE INDEX idx_tv_review_author_id ON library.tv_review(author_id);
+CREATE INDEX idx_tv_review_rating ON library.tv_review(rating);
+CREATE INDEX idx_tv_review_review_date ON library.tv_review(review_date);
+
+-- GIN index (JSONB queries - slower but flexible)
+CREATE INDEX idx_tv_review_data ON library.tv_review USING GIN(data);
+</code></pre>
+<h3 id="2-refresh_tv_review-function"><strong>2. refresh_tv_review() Function</strong></h3>
+<p>Generate a function that composes JSONB from <code>tv_</code> tables (NOT <code>tb_</code> tables!):</p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION library.refresh_tv_review(p_pk INTEGER)
+RETURNS void AS $$
+BEGIN
+    INSERT INTO library.tv_review (
+        pk_review, id, review_id, tenant_id,
+        fk_author, fk_book, author_id, book_id,
+        rating, review_date,  -- Filter columns
+        data
+    )
+    SELECT
+        r.pk_review,
+        r.id,
+        r.identifier AS review_id,
+        r.tenant_id,
+        r.fk_author,
+        r.fk_book,
+        u.id AS author_id,
+        b.id AS book_id,
+
+        -- Filter columns
+        r.rating,
+        r.review_date,
+
+        -- Compose JSONB from tv_ tables (cascading denormalization!)
+        jsonb_build_object(
+            '__typename', 'Review',
+            'id', r.id,
+            'rating', r.rating,
+            'comment', r.comment,
+            'reviewDate', r.review_date,
+
+            -- From tv_user (NOT tb_user!)
+            'author', jsonb_build_object(
+                '__typename', 'User',
+                'id', tv_user.data-&gt;&gt;'id',
+                'name', tv_user.data-&gt;&gt;'name',
+                'email', tv_user.data-&gt;&gt;'email'
+            ),
+
+            -- From tv_book (which already has publisher nested!)
+            'book', jsonb_build_object(
+                '__typename', 'Book',
+                'id', tv_book.data-&gt;&gt;'id',
+                'title', tv_book.data-&gt;&gt;'title',
+                'isbn', tv_book.data-&gt;&gt;'isbn',
+                'publisher', tv_book.data-&gt;'publisher'  -- Already composed in tv_book!
+            )
+        ) AS data
+    FROM library.tb_review r
+    INNER JOIN core.tv_user ON tv_user.pk_user = r.fk_author
+    INNER JOIN library.tv_book ON tv_book.pk_book = r.fk_book
+    WHERE r.pk_review = p_pk
+    ON CONFLICT (pk_review) DO UPDATE SET
+        data = EXCLUDED.data,
+        rating = EXCLUDED.rating,
+        review_date = EXCLUDED.review_date,
+        refreshed_at = now();
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<p><strong>Key Points</strong>:
+- ✅ Compose from <code>tv_user</code> and <code>tv_book</code> (NOT <code>tb_user</code>/<code>tb_book</code>)
+- ✅ This creates cascading denormalization (publisher is already in <code>tv_book.data</code>)
+- ✅ Include only fields specified in <code>include_relations.fields</code>
+- ✅ Use <code>ON CONFLICT ... DO UPDATE</code> for upsert behavior</p>
+<hr />
+<h2 id="implementation-steps">🎯 Implementation Steps</h2>
+<h3 id="phase-91-basic-tv_-table-generation-day-1-2"><strong>Phase 9.1: Basic tv_ Table Generation</strong> (Day 1-2)</h3>
+<ol>
+<li>Create <code>src/generators/schema/table_view_generator.py</code></li>
+<li>Implement <code>generate_tv_table()</code>:</li>
+<li>Auto-infer filter columns (tenant_id, {entity}_id, path)</li>
+<li>Add explicit filter columns from <code>extra_filter_columns</code></li>
+<li>Generate B-tree indexes for filter columns</li>
+<li>Generate GIN index for <code>data</code> JSONB</li>
+</ol>
+<p><strong>Test</strong>: Generate <code>tv_review</code> table DDL and verify schema</p>
+<h3 id="phase-92-refresh-function-generation-day-3-5"><strong>Phase 9.2: Refresh Function Generation</strong> (Day 3-5)</h3>
+<ol>
+<li>Implement <code>generate_refresh_function()</code>:</li>
+<li>Build <code>jsonb_build_object()</code> from <code>include_relations</code></li>
+<li>Compose from <code>tv_</code> tables (cascading)</li>
+<li>Handle nested relations recursively</li>
+<li>Use <code>ON CONFLICT</code> for upsert</li>
+</ol>
+<p><strong>Test</strong>: Generate <code>refresh_tv_review()</code> and verify JSONB structure</p>
+<h3 id="phase-93-dependency-ordering-day-6-7"><strong>Phase 9.3: Dependency Ordering</strong> (Day 6-7)</h3>
+<ol>
+<li>Topological sort of entities by FK dependencies</li>
+<li>Generate tv_ tables in correct order</li>
+<li>Ensure <code>tv_user</code> and <code>tv_book</code> exist before <code>tv_review</code></li>
+</ol>
+<p><strong>Test</strong>: Generate multiple related entities and verify order</p>
+<h3 id="phase-94-integration-testing-day-8"><strong>Phase 9.4: Integration Testing</strong> (Day 8)</h3>
+<ol>
+<li>End-to-end: SpecQL → tv_ table + refresh function</li>
+<li>Execute in test database</li>
+<li>Verify JSONB composition works</li>
+<li>Performance validation (B-tree vs GIN)</li>
+</ol>
+<hr />
+<h2 id="key-references">📚 Key References</h2>
+<h3 id="documentation"><strong>Documentation</strong></h3>
+<ul>
+<li><code>docs/architecture/CQRS_TABLE_VIEWS_IMPLEMENTATION.md</code> - Complete architecture</li>
+<li><code>docs/teams/TEAM_B_PHASE_9_TABLE_VIEWS.md</code> - Your detailed implementation plan</li>
+<li><code>docs/teams/TEAM_A_COMPLETION_STATUS.md</code> - What Team A delivered</li>
+</ul>
+<h3 id="code-examples"><strong>Code Examples</strong></h3>
+<ul>
+<li><code>tests/unit/core/test_table_views_parsing.py</code> - See how table_views is parsed</li>
+<li><code>src/core/ast_models.py</code> lines 36-115 - AST model definitions</li>
+</ul>
+<h3 id="test-command"><strong>Test Command</strong></h3>
+<pre><code class="language-bash"># Run your Team B tests
+make teamB-test
+
+# Run all tests (including Team A)
+make test
+</code></pre>
+<hr />
+<h2 id="critical-decisions">🚨 Critical Decisions</h2>
+<h3 id="1-compose-from-tv_-tables-not-tb_-tables"><strong>1. Compose from tv_ tables, NOT tb_ tables</strong></h3>
+<p>❌ <strong>WRONG</strong>:</p>
+<pre><code class="language-sql">-- Don't do this!
+SELECT jsonb_build_object('author', jsonb_build_object('name', tb_user.name))
+FROM tb_review r
+INNER JOIN tb_user ON tb_user.pk_user = r.fk_author
+</code></pre>
+<p>✅ <strong>CORRECT</strong>:</p>
+<pre><code class="language-sql">-- Do this instead!
+SELECT jsonb_build_object('author', tv_user.data)
+FROM tb_review r
+INNER JOIN tv_user ON tv_user.pk_user = r.fk_author
+</code></pre>
+<p><strong>Why</strong>: Cascading denormalization. If <code>tv_user</code> has nested company data, it's already composed in <code>tv_user.data</code>. Reusing it ensures consistency.</p>
+<h3 id="2-filter-columns-b-tree-jsonb-gin"><strong>2. Filter Columns = B-tree, JSONB = GIN</strong></h3>
+<ul>
+<li><strong>B-tree</strong>: For exact match and range queries (100-500x faster)</li>
+<li>Auto: tenant_id, {entity}_id, path</li>
+<li>Explicit: extra_filter_columns</li>
+<li><strong>GIN</strong>: For JSONB queries (slower but flexible)</li>
+<li>Always on <code>data</code> column</li>
+</ul>
+<h3 id="3-field-selection"><strong>3. Field Selection</strong></h3>
+<p>If <code>include_relations</code> specifies <code>fields: [name, email]</code>:</p>
+<pre><code class="language-sql">-- Only include specified fields
+jsonb_build_object(
+    'name', tv_user.data-&gt;&gt;'name',
+    'email', tv_user.data-&gt;&gt;'email'
+    -- NOT all fields from tv_user.data!
+)
+</code></pre>
+<hr />
+<h2 id="acceptance-criteria">✅ Acceptance Criteria</h2>
+<ul>
+<li>[ ] Generate tv_ table DDL with correct schema</li>
+<li>[ ] Auto-infer filter columns (tenant_id, {entity}_id, path)</li>
+<li>[ ] Generate explicit filter columns from <code>extra_filter_columns</code></li>
+<li>[ ] Generate refresh functions that compose from tv_ tables</li>
+<li>[ ] Generate correct indexes (B-tree + GIN)</li>
+<li>[ ] Handle dependency ordering (topological sort)</li>
+<li>[ ] All tests pass (no regressions)</li>
+<li>[ ] Performance validation (B-tree 100x faster than GIN)</li>
+</ul>
+<hr />
+<h2 id="youre-ready">🚀 You're Ready!</h2>
+<p>Team A has delivered a clean, tested AST. You have:</p>
+<ul>
+<li>✅ Access to <code>entity.table_views</code> configuration</li>
+<li>✅ Properties: <code>should_generate_table_view</code>, <code>has_foreign_keys</code></li>
+<li>✅ 11 test examples to learn from</li>
+<li>✅ Complete architecture documentation</li>
+</ul>
+<p><strong>Next Command</strong>:</p>
+<pre><code class="language-bash"># Start with Day 1 work
+mkdir -p src/generators/schema
+touch src/generators/schema/table_view_generator.py
+make teamB-test  # Create your first test!
+</code></pre>
+<p><strong>Remember</strong>: Follow TDD (RED → GREEN → REFACTOR → QA)</p>
+<p>Good luck! 🎉</p>
+<hr />
+<p><strong>Status</strong>: 🟢 READY FOR TEAM B
+<strong>Unblocked By</strong>: Team A (2025-11-09)
+<strong>Estimated Duration</strong>: 7-8 days (per original plan)</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

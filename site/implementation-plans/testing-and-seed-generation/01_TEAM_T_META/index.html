@@ -1,0 +1,817 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team T-Meta: Test Metadata Schema &amp; Generation - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team T-Meta: Test Metadata Schema \u0026amp; Generation";
+        var mkdocs_page_input_path = "implementation-plans/testing-and-seed-generation/01_TEAM_T_META.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team T-Meta: Test Metadata Schema &amp; Generation</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-t-meta-test-metadata-schema-generation">Team T-Meta: Test Metadata Schema &amp; Generation</h1>
+<p><strong>Status</strong>: Planning Phase
+<strong>Timeline</strong>: Week 2 (5 days)
+<strong>Priority</strong>: Critical - Foundation for all testing infrastructure
+<strong>Team Size</strong>: 1-2 developers</p>
+<hr />
+<h2 id="mission">🎯 Mission</h2>
+<p><strong>Generate and manage test metadata that drives automatic seed data and test generation from SpecQL definitions.</strong></p>
+<p>Test metadata is the "control plane" for testing:
+- Describes how to generate each field
+- Defines test scenarios
+- Configures UUID encoding
+- Enables group leader pattern</p>
+<hr />
+<h2 id="responsibilities">📋 Responsibilities</h2>
+<h3 id="core">Core</h3>
+<ol>
+<li><strong>Design <code>test_metadata</code> schema</strong> - PostgreSQL tables for test configuration</li>
+<li><strong>Generate test metadata from SpecQL AST</strong> - Parse Entity → Populate metadata</li>
+<li><strong>Implement group leader pattern</strong> - Related field dependencies</li>
+<li><strong>Provide metadata query API</strong> - Functions to retrieve test config</li>
+</ol>
+<h3 id="integration">Integration</h3>
+<ul>
+<li>Consume: Team A's <code>Entity</code>, <code>FieldDefinition</code>, <code>Action</code> AST models</li>
+<li>Provide: Metadata for Team T-Seed, Team T-Test</li>
+<li>Coordinate: Team B for entity codes, Team C for function numbers</li>
+</ul>
+<hr />
+<h2 id="architecture">🏗️ Architecture</h2>
+<pre><code>SpecQL YAML
+    ↓
+Team A: Parse → AST (Entity, Fields, Actions)
+    ↓
+Team T-Meta: AST → Test Metadata
+    ↓
+PostgreSQL: test_metadata schema
+    ├─ tb_entity_test_config
+    ├─ tb_field_generator_mapping
+    ├─ tb_test_scenarios
+    └─ tb_group_leader_config
+    ↓
+Query API Functions
+    ├─ test_meta_get_entity_config()
+    ├─ test_meta_get_field_generators()
+    └─ test_meta_get_scenarios()
+    ↓
+Team T-Seed: Generate seed data
+Team T-Test: Generate tests
+</code></pre>
+<hr />
+<h2 id="data-model">📊 Data Model</h2>
+<h3 id="table-1-test_metadatatb_entity_test_config">Table 1: <code>test_metadata.tb_entity_test_config</code></h3>
+<p><strong>Purpose</strong>: High-level configuration for each entity's testing</p>
+<pre><code class="language-sql">CREATE TABLE test_metadata.tb_entity_test_config (
+    -- Primary key
+    pk_entity_test_config INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+
+    -- Entity identification
+    entity_name TEXT NOT NULL UNIQUE,           -- &quot;Contact&quot;
+    schema_name TEXT NOT NULL,                  -- &quot;crm&quot;
+    table_name TEXT NOT NULL,                   -- &quot;tb_contact&quot;
+
+    -- UUID encoding configuration
+    table_code INTEGER NOT NULL,                -- 123210 (for UUID encoding)
+    entity_code TEXT NOT NULL,                  -- &quot;CON&quot; (3-char abbreviation)
+    base_uuid_prefix TEXT NOT NULL,             -- &quot;012321&quot; (6-digit prefix)
+
+    -- Multi-tenancy
+    is_tenant_scoped BOOLEAN DEFAULT TRUE,
+    default_tenant_id UUID DEFAULT '22222222-2222-2222-2222-222222222222',
+    default_user_id UUID DEFAULT '01232022-0000-0000-0000-000000000001',
+
+    -- Seed data defaults
+    default_seed_count INTEGER DEFAULT 10,
+    seed_strategy TEXT DEFAULT 'realistic',     -- 'realistic', 'edge_cases', 'performance', 'minimal'
+
+    -- Test generation flags
+    enable_crud_tests BOOLEAN DEFAULT TRUE,
+    enable_action_tests BOOLEAN DEFAULT TRUE,
+    enable_constraint_tests BOOLEAN DEFAULT TRUE,
+    enable_dedup_tests BOOLEAN DEFAULT FALSE,
+    enable_fk_tests BOOLEAN DEFAULT TRUE,
+
+    -- Metadata
+    source_yaml_path TEXT,                      -- Path to SpecQL file
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW(),
+
+    -- Indexes
+    CONSTRAINT valid_seed_strategy CHECK (seed_strategy IN ('realistic', 'edge_cases', 'performance', 'minimal'))
+);
+
+CREATE INDEX idx_entity_test_config_entity_name ON test_metadata.tb_entity_test_config(entity_name);
+CREATE INDEX idx_entity_test_config_schema ON test_metadata.tb_entity_test_config(schema_name);
+</code></pre>
+<p><strong>Example Row</strong>:</p>
+<pre><code class="language-sql">INSERT INTO test_metadata.tb_entity_test_config
+(entity_name, schema_name, table_name, table_code, entity_code, base_uuid_prefix, enable_dedup_tests)
+VALUES
+('Contact', 'crm', 'tb_contact', 123210, 'CON', '012321', TRUE);
+</code></pre>
+<hr />
+<h3 id="table-2-test_metadatatb_field_generator_mapping">Table 2: <code>test_metadata.tb_field_generator_mapping</code></h3>
+<p><strong>Purpose</strong>: Describes how to generate value for each field</p>
+<pre><code class="language-sql">CREATE TABLE test_metadata.tb_field_generator_mapping (
+    -- Primary key
+    pk_field_gen INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+
+    -- Foreign key to entity
+    fk_entity_test_config INTEGER NOT NULL REFERENCES test_metadata.tb_entity_test_config(pk_entity_test_config),
+
+    -- Field identification
+    field_name TEXT NOT NULL,
+    field_type TEXT NOT NULL,                   -- &quot;text&quot;, &quot;email&quot;, &quot;ref(Company)&quot;, &quot;enum(lead,qualified)&quot;
+    postgres_type TEXT NOT NULL,                -- &quot;TEXT&quot;, &quot;INTEGER&quot;, &quot;NUMERIC(19,4)&quot;
+
+    -- Generator strategy
+    generator_type TEXT NOT NULL,               -- 'random', 'fk_resolve', 'group_leader', 'group_dependent', 'fixed', 'sequence'
+    generator_function TEXT,                    -- SQL function name: 'test_random_email'
+    generator_params JSONB,                     -- Parameters for generator
+
+    -- For FK resolution
+    fk_target_entity TEXT,                      -- &quot;Company&quot;
+    fk_target_schema TEXT,                      -- &quot;crm&quot;
+    fk_target_table TEXT,                       -- &quot;tb_company&quot;
+    fk_target_pk_field TEXT,                    -- &quot;pk_company&quot;
+    fk_resolution_query TEXT,                   -- Custom query for FK lookup
+    fk_filter_conditions TEXT,                  -- WHERE conditions for FK query
+    fk_dependencies TEXT[],                     -- Other fields needed for FK resolution (e.g., ['tenant_id'])
+
+    -- Group leader pattern
+    generator_group TEXT,                       -- &quot;address_group&quot;, &quot;location_group&quot;
+    is_group_leader BOOLEAN DEFAULT FALSE,      -- This field executes the query
+    group_leader_field TEXT,                    -- Name of group leader (if this is dependent)
+    group_dependency_fields TEXT[],             -- Fields returned by group leader query
+
+    -- Constraints &amp; validation
+    nullable BOOLEAN DEFAULT TRUE,
+    unique_constraint BOOLEAN DEFAULT FALSE,
+    validation_pattern TEXT,                    -- Regex for validation
+    check_constraint TEXT,                      -- SQL CHECK expression
+
+    -- Seed data hints
+    example_values TEXT[],                      -- Example values for seed
+    seed_distribution JSONB,                    -- Statistical distribution: {&quot;min&quot;: 1, &quot;max&quot;: 100, &quot;mean&quot;: 50}
+    enum_values TEXT[],                         -- For enum types
+
+    -- Metadata
+    priority_order INTEGER DEFAULT 100,         -- Generation order (lower = earlier)
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+
+    -- Constraints
+    UNIQUE (fk_entity_test_config, field_name),
+    CONSTRAINT valid_generator_type CHECK (generator_type IN ('random', 'fk_resolve', 'group_leader', 'group_dependent', 'fixed', 'sequence'))
+);
+
+CREATE INDEX idx_field_gen_entity ON test_metadata.tb_field_generator_mapping(fk_entity_test_config);
+CREATE INDEX idx_field_gen_type ON test_metadata.tb_field_generator_mapping(generator_type);
+CREATE INDEX idx_field_gen_group ON test_metadata.tb_field_generator_mapping(generator_group) WHERE generator_group IS NOT NULL;
+</code></pre>
+<p><strong>Example Rows</strong>:</p>
+<pre><code class="language-sql">-- Random field
+INSERT INTO test_metadata.tb_field_generator_mapping
+(fk_entity_test_config, field_name, field_type, postgres_type, generator_type, generator_function, priority_order)
+VALUES
+(1, 'email', 'email', 'TEXT', 'random', 'test_random_email', 10);
+
+-- FK resolution
+INSERT INTO test_metadata.tb_field_generator_mapping
+(fk_entity_test_config, field_name, field_type, postgres_type, generator_type, fk_target_entity, fk_target_schema, fk_target_table, fk_target_pk_field, fk_dependencies, priority_order)
+VALUES
+(1, 'fk_company', 'ref(Company)', 'INTEGER', 'fk_resolve', 'Company', 'crm', 'tb_company', 'pk_company', ARRAY['tenant_id'], 20);
+
+-- Group leader
+INSERT INTO test_metadata.tb_field_generator_mapping
+(fk_entity_test_config, field_name, field_type, postgres_type, generator_type, is_group_leader, generator_group, group_dependency_fields, generator_params, priority_order)
+VALUES
+(1, 'country_code', 'text', 'TEXT', 'group_leader', TRUE, 'address_group', ARRAY['country_code', 'postal_code', 'city_code'],
+ '{&quot;leader_query&quot;: &quot;SELECT country_code, postal_code, city_code FROM dim.tb_address WHERE deleted_at IS NULL ORDER BY RANDOM() LIMIT 1&quot;}'::JSONB, 15);
+
+-- Group dependent
+INSERT INTO test_metadata.tb_field_generator_mapping
+(fk_entity_test_config, field_name, field_type, postgres_type, generator_type, generator_group, group_leader_field, priority_order)
+VALUES
+(1, 'postal_code', 'text', 'TEXT', 'group_dependent', 'address_group', 'country_code', 15),
+(1, 'city_code', 'text', 'TEXT', 'group_dependent', 'address_group', 'country_code', 15);
+</code></pre>
+<hr />
+<h3 id="table-3-test_metadatatb_test_scenarios">Table 3: <code>test_metadata.tb_test_scenarios</code></h3>
+<p><strong>Purpose</strong>: Define test scenarios for each entity</p>
+<pre><code class="language-sql">CREATE TABLE test_metadata.tb_test_scenarios (
+    -- Primary key
+    pk_scenario INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+
+    -- Foreign key to entity
+    fk_entity_test_config INTEGER NOT NULL REFERENCES test_metadata.tb_entity_test_config(pk_entity_test_config),
+
+    -- Scenario identification
+    scenario_code INTEGER NOT NULL,             -- 0, 1000, 2000, etc. (for UUID encoding)
+    scenario_name TEXT NOT NULL,                -- &quot;happy_path_create&quot;, &quot;duplicate_email&quot;
+    scenario_type TEXT NOT NULL,                -- 'happy_path', 'constraint_violation', 'dedup', 'custom_action', 'fk_violation'
+
+    -- Test generation
+    test_function_name TEXT,                    -- &quot;test_create_contact_duplicate_email&quot;
+    target_action TEXT,                         -- For action tests: &quot;qualify_lead&quot;
+    input_overrides JSONB,                      -- Override default field values: {&quot;email&quot;: &quot;duplicate@example.com&quot;}
+    expected_result TEXT NOT NULL,              -- 'success', 'error'
+    expected_error_code TEXT,                   -- 'duplicate_key_violation', 'fk_violation'
+    expected_status_pattern TEXT,               -- Regex: 'failed:.*'
+
+    -- Seed data
+    seed_count INTEGER DEFAULT 1,
+    requires_dependencies BOOLEAN DEFAULT TRUE, -- Need parent entities seeded?
+    dependency_entities TEXT[],                 -- [&quot;Company&quot;, &quot;User&quot;] - need these first
+
+    -- Test execution
+    setup_sql TEXT,                             -- SQL to run before test
+    teardown_sql TEXT,                          -- SQL to run after test
+
+    -- Metadata
+    description TEXT,
+    test_category TEXT,                         -- 'crud', 'action', 'constraint', 'performance'
+    enabled BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+
+    -- Constraints
+    UNIQUE (fk_entity_test_config, scenario_code),
+    CONSTRAINT valid_scenario_type CHECK (scenario_type IN ('happy_path', 'constraint_violation', 'dedup', 'custom_action', 'fk_violation', 'performance')),
+    CONSTRAINT valid_expected_result CHECK (expected_result IN ('success', 'error'))
+);
+
+CREATE INDEX idx_scenario_entity ON test_metadata.tb_test_scenarios(fk_entity_test_config);
+CREATE INDEX idx_scenario_type ON test_metadata.tb_test_scenarios(scenario_type);
+CREATE INDEX idx_scenario_enabled ON test_metadata.tb_test_scenarios(enabled) WHERE enabled = TRUE;
+</code></pre>
+<p><strong>Example Rows</strong>:</p>
+<pre><code class="language-sql">-- Scenario 0: Happy path
+INSERT INTO test_metadata.tb_test_scenarios
+(fk_entity_test_config, scenario_code, scenario_name, scenario_type, expected_result, description)
+VALUES
+(1, 0, 'happy_path_create', 'happy_path', 'success', 'Standard contact creation');
+
+-- Scenario 1000: Duplicate test
+INSERT INTO test_metadata.tb_test_scenarios
+(fk_entity_test_config, scenario_code, scenario_name, scenario_type, input_overrides, expected_result, expected_error_code, seed_count)
+VALUES
+(1, 1000, 'duplicate_email', 'dedup', '{&quot;email&quot;: &quot;duplicate@example.com&quot;}'::JSONB, 'error', 'duplicate_key_violation', 2);
+
+-- Scenario 2000: Custom action
+INSERT INTO test_metadata.tb_test_scenarios
+(fk_entity_test_config, scenario_code, scenario_name, scenario_type, target_action, expected_result, setup_sql)
+VALUES
+(1, 2000, 'qualify_lead_action', 'custom_action', 'qualify_lead', 'success',
+ 'INSERT INTO crm.tb_contact (id, tenant_id, email, status) VALUES (''01232022-0000-0000-2000-000000000001'', ''22222222-2222-2222-2222-222222222222'', ''qualify@example.com'', ''lead'')');
+</code></pre>
+<hr />
+<h2 id="implementation-phases">🔧 Implementation Phases</h2>
+<h3 id="phase-1-schema-definition-day-1"><strong>Phase 1: Schema Definition</strong> (Day 1)</h3>
+<p><strong>Objective</strong>: Create <code>test_metadata</code> schema in PostgreSQL</p>
+<h4 id="red-write-failing-test">RED: Write Failing Test</h4>
+<pre><code class="language-python"># tests/unit/testing/test_metadata_schema.py
+
+def test_test_metadata_schema_exists(db_connection):
+    &quot;&quot;&quot;Test metadata schema should exist&quot;&quot;&quot;
+    result = db_connection.execute(
+        &quot;SELECT schema_name FROM information_schema.schemata WHERE schema_name = 'test_metadata'&quot;
+    ).fetchone()
+    assert result is not None
+
+def test_entity_test_config_table_exists(db_connection):
+    &quot;&quot;&quot;Entity test config table should exist&quot;&quot;&quot;
+    result = db_connection.execute(
+        &quot;SELECT table_name FROM information_schema.tables WHERE table_schema = 'test_metadata' AND table_name = 'tb_entity_test_config'&quot;
+    ).fetchone()
+    assert result is not None
+</code></pre>
+<h4 id="green-minimal-implementation">GREEN: Minimal Implementation</h4>
+<pre><code class="language-sql">-- migrations/test_metadata_schema.sql
+
+CREATE SCHEMA IF NOT EXISTS test_metadata;
+
+CREATE TABLE test_metadata.tb_entity_test_config (
+    pk_entity_test_config INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    entity_name TEXT NOT NULL UNIQUE,
+    schema_name TEXT NOT NULL,
+    table_name TEXT NOT NULL,
+    table_code INTEGER NOT NULL,
+    entity_code TEXT NOT NULL,
+    base_uuid_prefix TEXT NOT NULL,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Similar for other tables...
+</code></pre>
+<h4 id="refactor-add-full-schema">REFACTOR: Add Full Schema</h4>
+<ul>
+<li>Add all columns from data model above</li>
+<li>Add indexes</li>
+<li>Add constraints</li>
+<li>Add comments</li>
+</ul>
+<h4 id="qa-verify">QA: Verify</h4>
+<pre><code class="language-bash">uv run pytest tests/unit/testing/test_metadata_schema.py -v
+</code></pre>
+<hr />
+<h3 id="phase-2-metadata-generator-from-ast-day-2-3"><strong>Phase 2: Metadata Generator from AST</strong> (Day 2-3)</h3>
+<p><strong>Objective</strong>: Convert SpecQL AST → Test metadata SQL</p>
+<h4 id="red-write-failing-test_1">RED: Write Failing Test</h4>
+<pre><code class="language-python"># tests/unit/testing/test_metadata_generator.py
+
+from src.core.ast_models import Entity, FieldDefinition
+from src.testing.metadata.metadata_generator import TestMetadataGenerator
+
+def test_generate_entity_config():
+    &quot;&quot;&quot;Should generate entity test config SQL&quot;&quot;&quot;
+    entity = Entity(
+        name=&quot;Contact&quot;,
+        schema=&quot;crm&quot;,
+        fields={}
+    )
+
+    generator = TestMetadataGenerator()
+    sql = generator.generate_entity_config(entity, table_code=123210)
+
+    assert &quot;INSERT INTO test_metadata.tb_entity_test_config&quot; in sql
+    assert &quot;'Contact'&quot; in sql
+    assert &quot;'crm'&quot; in sql
+    assert &quot;123210&quot; in sql
+
+def test_generate_field_mapping_for_email():
+    &quot;&quot;&quot;Should generate field mapping for email field&quot;&quot;&quot;
+    field = FieldDefinition(
+        name=&quot;email&quot;,
+        type_name=&quot;email&quot;,
+        nullable=False
+    )
+
+    generator = TestMetadataGenerator()
+    sql = generator.generate_field_mapping(entity_config_id=1, field=field)
+
+    assert &quot;INSERT INTO test_metadata.tb_field_generator_mapping&quot; in sql
+    assert &quot;'email'&quot; in sql
+    assert &quot;'random'&quot; in sql  # email fields use random generator
+</code></pre>
+<h4 id="green-minimal-implementation_1">GREEN: Minimal Implementation</h4>
+<pre><code class="language-python"># src/testing/metadata/metadata_generator.py
+
+from typing import Dict, Any
+from src.core.ast_models import Entity, FieldDefinition, Action
+
+class TestMetadataGenerator:
+    &quot;&quot;&quot;Generate test metadata SQL from SpecQL AST&quot;&quot;&quot;
+
+    def generate_entity_config(self, entity: Entity, table_code: int) -&gt; str:
+        &quot;&quot;&quot;Generate entity test config INSERT statement&quot;&quot;&quot;
+
+        entity_code = self._derive_entity_code(entity.name)
+        base_uuid_prefix = str(table_code).zfill(6)
+
+        return f&quot;&quot;&quot;
+INSERT INTO test_metadata.tb_entity_test_config
+(entity_name, schema_name, table_name, table_code, entity_code, base_uuid_prefix)
+VALUES
+('{entity.name}', '{entity.schema}', 'tb_{entity.name.lower()}', {table_code}, '{entity_code}', '{base_uuid_prefix}');
+&quot;&quot;&quot;
+
+    def generate_field_mapping(self, entity_config_id: int, field: FieldDefinition) -&gt; str:
+        &quot;&quot;&quot;Generate field generator mapping INSERT statement&quot;&quot;&quot;
+
+        generator_type = self._infer_generator_type(field)
+        generator_function = self._get_generator_function(field)
+
+        return f&quot;&quot;&quot;
+INSERT INTO test_metadata.tb_field_generator_mapping
+(fk_entity_test_config, field_name, field_type, postgres_type, generator_type, generator_function)
+VALUES
+({entity_config_id}, '{field.name}', '{field.type_name}', '{field.postgres_type}', '{generator_type}', '{generator_function}');
+&quot;&quot;&quot;
+
+    def _derive_entity_code(self, entity_name: str) -&gt; str:
+        &quot;&quot;&quot;Derive 3-char entity code from name&quot;&quot;&quot;
+        # Simple: take first 3 uppercase letters
+        code = ''.join([c for c in entity_name if c.isupper()])[:3]
+        if len(code) &lt; 3:
+            code = entity_name[:3].upper()
+        return code
+
+    def _infer_generator_type(self, field: FieldDefinition) -&gt; str:
+        &quot;&quot;&quot;Infer generator type from field type&quot;&quot;&quot;
+        if field.type_name.startswith('ref('):
+            return 'fk_resolve'
+        else:
+            return 'random'
+
+    def _get_generator_function(self, field: FieldDefinition) -&gt; str:
+        &quot;&quot;&quot;Get SQL function name for random generation&quot;&quot;&quot;
+        # Map field types to generator functions
+        GENERATOR_MAP = {
+            'email': 'test_random_email',
+            'phoneNumber': 'test_random_phone',
+            'url': 'test_random_url',
+            'text': 'test_random_text',
+            'integer': 'test_random_integer',
+        }
+        return GENERATOR_MAP.get(field.type_name, 'test_random_value')
+</code></pre>
+<h4 id="refactor-complete-implementation">REFACTOR: Complete Implementation</h4>
+<ul>
+<li>Handle all field types (enums, composites, lists)</li>
+<li>Handle FK resolution with dependencies</li>
+<li>Detect group leader candidates (address, location fields)</li>
+<li>Generate default test scenarios</li>
+<li>Add proper error handling</li>
+<li>Use parameterized queries (avoid SQL injection)</li>
+</ul>
+<h4 id="qa-verify_1">QA: Verify</h4>
+<pre><code class="language-bash">uv run pytest tests/unit/testing/test_metadata_generator.py -v
+</code></pre>
+<hr />
+<h3 id="phase-3-group-leader-pattern-day-4"><strong>Phase 3: Group Leader Pattern</strong> (Day 4)</h3>
+<p><strong>Objective</strong>: Implement group leader detection and configuration</p>
+<h4 id="red-write-failing-test_2">RED: Write Failing Test</h4>
+<pre><code class="language-python">def test_detect_address_group_leader():
+    &quot;&quot;&quot;Should detect address fields as group leader&quot;&quot;&quot;
+    entity = Entity(
+        name=&quot;Contact&quot;,
+        schema=&quot;crm&quot;,
+        fields={
+            &quot;country_code&quot;: FieldDefinition(name=&quot;country_code&quot;, type_name=&quot;text&quot;),
+            &quot;postal_code&quot;: FieldDefinition(name=&quot;postal_code&quot;, type_name=&quot;text&quot;),
+            &quot;city_code&quot;: FieldDefinition(name=&quot;city_code&quot;, type_name=&quot;text&quot;),
+        }
+    )
+
+    detector = GroupLeaderDetector()
+    groups = detector.detect_groups(entity)
+
+    assert 'address_group' in groups
+    assert groups['address_group']['leader'] == 'country_code'
+    assert set(groups['address_group']['dependents']) == {'postal_code', 'city_code'}
+</code></pre>
+<h4 id="green-minimal-implementation_2">GREEN: Minimal Implementation</h4>
+<pre><code class="language-python"># src/testing/metadata/group_leader_detector.py
+
+from typing import Dict, List, Set
+from src.core.ast_models import Entity
+
+class GroupLeaderDetector:
+    &quot;&quot;&quot;Detect field groups that should use group leader pattern&quot;&quot;&quot;
+
+    # Known field group patterns
+    ADDRESS_FIELDS = {'country_code', 'postal_code', 'city_code', 'country', 'postal', 'city'}
+    LOCATION_FIELDS = {'latitude', 'longitude', 'elevation'}
+    PERSON_FIELDS = {'first_name', 'last_name', 'gender', 'birth_date'}
+
+    def detect_groups(self, entity: Entity) -&gt; Dict[str, Dict[str, any]]:
+        &quot;&quot;&quot;Detect field groups in entity&quot;&quot;&quot;
+        groups = {}
+
+        # Detect address group
+        address_fields = set(entity.fields.keys()) &amp; self.ADDRESS_FIELDS
+        if len(address_fields) &gt;= 2:
+            leader = self._pick_leader(address_fields, ['country_code', 'country'])
+            groups['address_group'] = {
+                'leader': leader,
+                'dependents': [f for f in address_fields if f != leader],
+                'query_template': self._get_address_query_template()
+            }
+
+        # Detect location group
+        location_fields = set(entity.fields.keys()) &amp; self.LOCATION_FIELDS
+        if len(location_fields) &gt;= 2:
+            groups['location_group'] = {
+                'leader': 'latitude',
+                'dependents': [f for f in location_fields if f != 'latitude'],
+                'query_template': self._get_location_query_template()
+            }
+
+        return groups
+
+    def _pick_leader(self, fields: Set[str], priority: List[str]) -&gt; str:
+        &quot;&quot;&quot;Pick group leader based on priority&quot;&quot;&quot;
+        for candidate in priority:
+            if candidate in fields:
+                return candidate
+        return list(fields)[0]
+
+    def _get_address_query_template(self) -&gt; str:
+        &quot;&quot;&quot;Get SQL query template for address group&quot;&quot;&quot;
+        return &quot;SELECT country_code, postal_code, city_code FROM dim.tb_address WHERE deleted_at IS NULL ORDER BY RANDOM() LIMIT 1&quot;
+</code></pre>
+<h4 id="refactor-enhanced-detection">REFACTOR: Enhanced Detection</h4>
+<ul>
+<li>Support custom group definitions in SpecQL YAML</li>
+<li>Support multiple groups per entity</li>
+<li>Generate optimized queries</li>
+<li>Handle missing dependency tables gracefully</li>
+</ul>
+<h4 id="qa-verify_2">QA: Verify</h4>
+<pre><code class="language-bash">uv run pytest tests/unit/testing/test_group_leader_detector.py -v
+</code></pre>
+<hr />
+<h3 id="phase-4-metadata-query-api-day-5"><strong>Phase 4: Metadata Query API</strong> (Day 5)</h3>
+<p><strong>Objective</strong>: Create SQL functions to query test metadata</p>
+<h4 id="red-write-failing-test_3">RED: Write Failing Test</h4>
+<pre><code class="language-python">def test_get_entity_config(db_connection):
+    &quot;&quot;&quot;Should retrieve entity config by name&quot;&quot;&quot;
+    result = db_connection.execute(
+        &quot;SELECT test_metadata.get_entity_config('Contact')&quot;
+    ).fetchone()
+
+    assert result is not None
+    config = result[0]  # Returns JSONB
+    assert config['entity_name'] == 'Contact'
+    assert config['schema_name'] == 'crm'
+</code></pre>
+<h4 id="green-minimal-implementation_3">GREEN: Minimal Implementation</h4>
+<pre><code class="language-sql">-- migrations/test_metadata_functions.sql
+
+CREATE OR REPLACE FUNCTION test_metadata.get_entity_config(p_entity_name TEXT)
+RETURNS JSONB AS $$
+BEGIN
+    RETURN (
+        SELECT jsonb_build_object(
+            'entity_name', entity_name,
+            'schema_name', schema_name,
+            'table_name', table_name,
+            'table_code', table_code,
+            'entity_code', entity_code,
+            'base_uuid_prefix', base_uuid_prefix,
+            'default_tenant_id', default_tenant_id,
+            'default_seed_count', default_seed_count
+        )
+        FROM test_metadata.tb_entity_test_config
+        WHERE entity_name = p_entity_name
+    );
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE FUNCTION test_metadata.get_field_generators(p_entity_name TEXT)
+RETURNS TABLE (
+    field_name TEXT,
+    field_type TEXT,
+    generator_type TEXT,
+    generator_function TEXT,
+    generator_params JSONB,
+    fk_target_entity TEXT,
+    is_group_leader BOOLEAN,
+    generator_group TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        fg.field_name,
+        fg.field_type,
+        fg.generator_type,
+        fg.generator_function,
+        fg.generator_params,
+        fg.fk_target_entity,
+        fg.is_group_leader,
+        fg.generator_group
+    FROM test_metadata.tb_field_generator_mapping fg
+    JOIN test_metadata.tb_entity_test_config ec ON ec.pk_entity_test_config = fg.fk_entity_test_config
+    WHERE ec.entity_name = p_entity_name
+    ORDER BY fg.priority_order, fg.field_name;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+CREATE OR REPLACE FUNCTION test_metadata.get_scenarios(p_entity_name TEXT)
+RETURNS TABLE (
+    scenario_code INTEGER,
+    scenario_name TEXT,
+    scenario_type TEXT,
+    expected_result TEXT,
+    input_overrides JSONB
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        s.scenario_code,
+        s.scenario_name,
+        s.scenario_type,
+        s.expected_result,
+        s.input_overrides
+    FROM test_metadata.tb_test_scenarios s
+    JOIN test_metadata.tb_entity_test_config ec ON ec.pk_entity_test_config = s.fk_entity_test_config
+    WHERE ec.entity_name = p_entity_name
+      AND s.enabled = TRUE
+    ORDER BY s.scenario_code;
+END;
+$$ LANGUAGE plpgsql STABLE;
+</code></pre>
+<h4 id="refactor-add-more-queries">REFACTOR: Add More Queries</h4>
+<ul>
+<li><code>get_group_leader_config(entity_name, group_name)</code></li>
+<li><code>get_fk_dependencies(entity_name, field_name)</code></li>
+<li><code>get_test_scenarios_by_type(entity_name, scenario_type)</code></li>
+</ul>
+<h4 id="qa-verify_3">QA: Verify</h4>
+<pre><code class="language-bash">uv run pytest tests/integration/testing/test_metadata_api.py -v
+</code></pre>
+<hr />
+<h2 id="testing-strategy">🧪 Testing Strategy</h2>
+<h3 id="unit-tests">Unit Tests</h3>
+<pre><code class="language-python"># tests/unit/testing/
+
+test_metadata_generator.py         # AST → SQL generation
+test_group_leader_detector.py      # Group detection logic
+test_entity_code_derivation.py     # Entity code generation
+</code></pre>
+<h3 id="integration-tests">Integration Tests</h3>
+<pre><code class="language-python"># tests/integration/testing/
+
+test_metadata_schema.py             # Schema creation
+test_metadata_population.py         # Full Contact → metadata
+test_metadata_query_api.py          # Query functions work
+</code></pre>
+<h3 id="test-coverage-target">Test Coverage Target</h3>
+<ul>
+<li><strong>Unit tests</strong>: 95%+</li>
+<li><strong>Integration tests</strong>: 100% of public API</li>
+</ul>
+<hr />
+<h2 id="success-criteria">📊 Success Criteria</h2>
+<h3 id="week-2-completion">Week 2 Completion</h3>
+<ul>
+<li>✅ <code>test_metadata</code> schema created in PostgreSQL</li>
+<li>✅ All 3 tables (entity_config, field_mapping, scenarios) created</li>
+<li>✅ TestMetadataGenerator generates SQL from AST</li>
+<li>✅ Group leader detection works for address/location</li>
+<li>✅ Metadata query API functions work</li>
+<li>✅ Full Contact entity example in metadata</li>
+<li>✅ 15+ unit tests passing</li>
+<li>✅ 5+ integration tests passing</li>
+</ul>
+<hr />
+<h2 id="integration-points">🔗 Integration Points</h2>
+<h3 id="consumes-inputs">Consumes (Inputs)</h3>
+<ul>
+<li><strong>Team A</strong>: <code>Entity</code>, <code>FieldDefinition</code>, <code>Action</code> AST models</li>
+<li><strong>SpecQL YAML</strong>: Entity definitions with optional test hints</li>
+</ul>
+<h3 id="provides-outputs">Provides (Outputs)</h3>
+<ul>
+<li><strong>Team T-Seed</strong>: Entity config, field generators, scenarios</li>
+<li><strong>Team T-Test</strong>: Test scenarios, expected results</li>
+<li><strong>PostgreSQL</strong>: <code>test_metadata</code> schema populated</li>
+</ul>
+<h3 id="coordinates-with">Coordinates With</h3>
+<ul>
+<li><strong>Team B</strong>: Table codes for UUID encoding</li>
+<li><strong>Team C</strong>: Function numbers for UUID encoding</li>
+<li><strong>Team E</strong>: CLI integration for metadata generation</li>
+</ul>
+<hr />
+<h2 id="example-output">📝 Example Output</h2>
+<p>For <code>contact.yaml</code>:</p>
+<pre><code class="language-sql">-- Generated test metadata
+
+-- Entity config
+INSERT INTO test_metadata.tb_entity_test_config VALUES
+(1, 'Contact', 'crm', 'tb_contact', 123210, 'CON', '012321', TRUE, '22222222-2222-2222-2222-222222222222', 10, 'realistic', TRUE, TRUE, TRUE, TRUE, TRUE, 'entities/contact.yaml', NOW(), NOW());
+
+-- Field generators
+INSERT INTO test_metadata.tb_field_generator_mapping VALUES
+(1, 1, 'email', 'email', 'TEXT', 'random', 'test_random_email', NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, NULL, FALSE, NULL, NULL, TRUE, TRUE, NULL, NULL, NULL, NULL, 10, NOW()),
+(2, 1, 'fk_company', 'ref(Company)', 'INTEGER', 'fk_resolve', NULL, NULL, 'Company', 'crm', 'tb_company', 'pk_company', 'SELECT pk_company FROM crm.tb_company WHERE tenant_id = $tenant_id ORDER BY RANDOM() LIMIT 1', NULL, ARRAY['tenant_id'], NULL, FALSE, NULL, NULL, FALSE, FALSE, NULL, NULL, NULL, NULL, 20, NOW());
+
+-- Scenarios
+INSERT INTO test_metadata.tb_test_scenarios VALUES
+(1, 1, 0, 'happy_path_create', 'happy_path', 'test_create_contact_happy_path', NULL, NULL, 'success', NULL, NULL, 1, TRUE, NULL, NULL, NULL, 'Standard contact creation', 'crud', TRUE, NOW()),
+(2, 1, 1000, 'duplicate_email', 'dedup', 'test_create_contact_duplicate', NULL, '{&quot;email&quot;: &quot;duplicate@example.com&quot;}'::JSONB, 'error', 'duplicate_key_violation', 'failed:.*', 2, TRUE, NULL, NULL, NULL, 'Duplicate email constraint test', 'constraint', TRUE, NOW());
+</code></pre>
+<hr />
+<p><strong>Next</strong>: <a href="../02_TEAM_T_SEED/">Team T-Seed: Seed Data Generation</a></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

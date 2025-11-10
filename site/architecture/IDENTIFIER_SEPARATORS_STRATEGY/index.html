@@ -1,0 +1,685 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Identifier Separators Strategy - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Identifier Separators Strategy";
+        var mkdocs_page_input_path = "architecture/IDENTIFIER_SEPARATORS_STRATEGY.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Identifier Separators Strategy</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="identifier-separators-strategy">Identifier Separators Strategy</h1>
+<p><strong>Status</strong>: 🎯 Architectural Decision
+<strong>Impact</strong>: All identifier generation
+<strong>Related</strong>: <code>IDENTIFIER_STRATEGIES_SPECQL.md</code>, PrintOptim allocation pattern</p>
+<hr />
+<h2 id="problem-multiple-levels-of-separation">📋 Problem: Multiple Levels of Separation</h2>
+<p>Identifiers need to distinguish between <strong>3 levels of structure</strong>:</p>
+<ol>
+<li><strong>Tenant scoping</strong> - Separate tenant from entity data</li>
+<li><strong>Hierarchy depth</strong> - Separate parent from child within one hierarchy</li>
+<li><strong>Cross-hierarchy composition</strong> - Combine identifiers from multiple hierarchies</li>
+</ol>
+<p><strong>Example</strong>: Allocation combines machine, location, organizational_unit, network_config
+- All are hierarchical entities
+- Each has own tree structure
+- Need to combine them in one identifier</p>
+<hr />
+<h2 id="separator-strategy-printoptim-production-pattern">✅ Separator Strategy (PrintOptim Production Pattern)</h2>
+<h3 id="3-level-separator-hierarchy"><strong>3-Level Separator Hierarchy</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Separator</th>
+<th>Unicode</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>1. Tenant</strong></td>
+<td><code>\|</code> (pipe)</td>
+<td>U+007C</td>
+<td>Separate tenant from entity</td>
+<td><code>acme-corp\|...</code></td>
+</tr>
+<tr>
+<td><strong>2. Hierarchy</strong></td>
+<td><code>.</code> (dot)</td>
+<td>U+002E</td>
+<td>Parent-child within one tree</td>
+<td><code>warehouse.floor1.room101</code></td>
+</tr>
+<tr>
+<td><strong>3. Composition</strong></td>
+<td><code>∘</code> (ring)</td>
+<td>U+2218</td>
+<td>Combine multiple hierarchies</td>
+<td><code>machine∘location∘org-unit</code></td>
+</tr>
+<tr>
+<td><strong>4. Internal</strong></td>
+<td><code>—</code> (em dash)</td>
+<td>U+2014</td>
+<td>Internal components within entity</td>
+<td><code>router—gateway—ip</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="visual-clarity"><strong>Visual Clarity</strong></h3>
+<pre><code>acme-corp | 2025-Q1 ∘ hp.laser.s123 ∘ warehouse.floor1 ∘ sales.west ∘ router1—gw1—192.168.1.100
+    ↑           ↑           ↑                   ↑              ↑               ↑
+  Tenant      Date      Machine              Location       Org Unit     Network Config
+    |                  (hierarchy)          (hierarchy)    (hierarchy)    (internal comp)
+                          (.)                 (.)            (.)              (—)
+               ↑________________________ Composed with ∘ ________________________↑
+</code></pre>
+<p><strong>4-Level Separator Hierarchy</strong>:
+1. <strong><code>|</code> (Pipe)</strong>: Tenant scoping
+2. <strong><code>.</code> (Dot)</strong>: Hierarchy depth (parent-child)
+3. <strong><code>∘</code> (Ring)</strong>: Cross-hierarchy composition
+4. <strong><code>—</code> (Em Dash)</strong>: Internal components (flat list)</p>
+<hr />
+<h2 id="detailed-separator-rules">🏗️ Detailed Separator Rules</h2>
+<h3 id="rule-1-tenant-prefix-separator-pipe"><strong>Rule 1: Tenant Prefix Separator = <code>|</code> (Pipe)</strong></h3>
+<p><strong>Always</strong> use pipe to separate tenant from entity identifier.</p>
+<p><strong>Examples</strong>:</p>
+<pre><code>acme-corp|coffee-maker
+acme-corp|warehouse.floor1
+acme-corp|2025-Q1∘machine∘location
+</code></pre>
+<p><strong>Why Pipe</strong>:
+- ✅ Visually distinct from dot
+- ✅ Rare in natural text
+- ✅ URL-safe (no encoding needed)
+- ✅ Sortable (ASCII 124)
+- ✅ Industry standard for namespace separation</p>
+<hr />
+<h3 id="rule-2-hierarchy-separator-dot"><strong>Rule 2: Hierarchy Separator = <code>.</code> (Dot)</strong></h3>
+<p><strong>Within a single hierarchical entity</strong>, use dot to separate levels.</p>
+<p><strong>Examples</strong>:</p>
+<pre><code>warehouse.floor1.room101.desk5
+legal.headquarters.building-a.floor-3
+manufacturing.automotive.electric-vehicles
+</code></pre>
+<p><strong>Why Dot</strong> (your preference!):
+- ✅ Natural hierarchy notation (like DNS: <code>subdomain.domain.tld</code>)
+- ✅ More readable than underscore
+- ✅ Familiar to developers (package names: <code>com.acme.product</code>)
+- ✅ URL-safe
+- ✅ Shorter than underscore (less visual clutter)</p>
+<p><strong>Previous Default</strong>: Underscore <code>_</code>
+<strong>New Default</strong>: Dot <code>.</code> ← <strong>Updated per your preference</strong></p>
+<hr />
+<h3 id="rule-3-composition-separator-ring-operator"><strong>Rule 3: Composition Separator = <code>∘</code> (Ring Operator)</strong></h3>
+<p><strong>When combining identifiers from DIFFERENT hierarchies</strong>, use ring operator.</p>
+<p><strong>Example - Allocation</strong>:</p>
+<pre><code>acme-corp|2025-Q1∘hp.laser.s123∘warehouse.floor1∘sales.west∘net-a
+             ↑        ↑              ↑              ↑          ↑
+          daterange  machine       location     org-unit   network
+                    (each is its own hierarchy tree)
+</code></pre>
+<p><strong>Why Ring Operator (<code>∘</code>)</strong>:
+- ✅ Visually distinct from both pipe and dot
+- ✅ Mathematical meaning: composition of functions (f ∘ g)
+- ✅ Rarely appears in natural text
+- ✅ Unicode-safe (UTF-8)
+- ✅ Copy-paste safe
+- ✅ Clear semantic: "this combines multiple things"</p>
+<p><strong>Alternative</strong>: If <code>∘</code> causes issues (encoding, fonts, etc.), fallback to <code>~</code> (tilde)</p>
+<hr />
+<h2 id="complete-example-breakdown">📊 Complete Example Breakdown</h2>
+<h3 id="simple-entity-no-hierarchy-tenant-scoped"><strong>Simple Entity</strong> (no hierarchy, tenant-scoped)</h3>
+<p><strong>Entity</strong>: Product
+<strong>Pattern</strong>: <code>{tenant}|{slug}</code>
+<strong>Example</strong>: <code>acme-corp|coffee-maker</code></p>
+<p><strong>Separators Used</strong>:
+- <code>|</code> - Tenant prefix</p>
+<hr />
+<h3 id="hierarchical-entity-single-hierarchy-tenant-scoped"><strong>Hierarchical Entity</strong> (single hierarchy, tenant-scoped)</h3>
+<p><strong>Entity</strong>: Location
+<strong>Pattern</strong>: <code>{tenant}|{parent}.{parent}.{current}</code>
+<strong>Example</strong>: <code>acme-corp|warehouse.floor1.room101</code></p>
+<p><strong>Separators Used</strong>:
+- <code>|</code> - Tenant prefix
+- <code>.</code> - Hierarchy levels (3 levels deep)</p>
+<hr />
+<h3 id="hierarchical-with-type-prefix"><strong>Hierarchical with Type Prefix</strong></h3>
+<p><strong>Entity</strong>: Location (with location_type)
+<strong>Pattern</strong>: <code>{tenant}|{type}.{parent}.{current}</code>
+<strong>Example</strong>: <code>acme-corp|legal.headquarters.building-a.floor-3</code></p>
+<p><strong>Separators Used</strong>:
+- <code>|</code> - Tenant prefix
+- <code>.</code> - Type prefix AND hierarchy levels</p>
+<p><strong>Note</strong>: Type prefix uses same separator as hierarchy (both are "tree-like")</p>
+<hr />
+<h3 id="cross-hierarchy-composition-allocation-pattern"><strong>Cross-Hierarchy Composition</strong> (allocation pattern)</h3>
+<p><strong>Entity</strong>: Allocation
+<strong>Pattern</strong>: <code>{tenant}|{daterange}∘{machine}∘{location}∘{org-unit}∘{netconf}</code>
+<strong>Example</strong>: <code>acme-corp|2025-Q1∘hp.laser.s123∘warehouse.floor1∘sales.west∘router1—gw1—192.168.1.100</code></p>
+<p><strong>Separators Used</strong>:
+- <code>|</code> - Tenant prefix
+- <code>∘</code> - Composition (combines 5 different hierarchies)
+- <code>.</code> - Within each component's hierarchy
+- <code>—</code> - Within network_configuration internal components</p>
+<p><strong>Component Breakdown</strong>:
+1. <code>acme-corp</code> - Tenant
+2. <code>2025-Q1</code> - Date range (flat, no hierarchy)
+3. <code>hp.laser.s123</code> - Machine (hierarchy: manufacturer.model.serial)
+4. <code>warehouse.floor1</code> - Location (hierarchy: building.floor)
+5. <code>sales.west</code> - Org unit (hierarchy: department.region)
+6. <code>router1—gw1—192.168.1.100</code> - Network config (<strong>internal composition</strong> with em dash)</p>
+<hr />
+<h3 id="internal-composition-network_configuration-pattern"><strong>Internal Composition</strong> (network_configuration pattern)</h3>
+<p><strong>Entity</strong>: NetworkConfiguration
+<strong>Pattern</strong>: <code>{tenant}|{router}—{gateway}—{ip_address}</code>
+<strong>Example</strong>: <code>acme-corp|router1—192.168.1.1—192.168.1.100</code></p>
+<p><strong>Separators Used</strong>:
+- <code>|</code> - Tenant prefix
+- <code>—</code> - Internal components (not a hierarchy, just a flat list)</p>
+<p><strong>Why Em Dash (<code>—</code>) Instead of Ring (<code>∘</code>)</strong>:
+- ✅ NetworkConfiguration is <strong>one entity</strong>, not a composition of multiple entities
+- ✅ Components (router, gateway, IP) are <strong>flat list</strong>, not hierarchies
+- ✅ Em dash visually distinguishes "internal parts" from "cross-entity composition"
+- ✅ When used in allocation, already has ring separator at entity level</p>
+<p><strong>When Used in Allocation</strong>:</p>
+<pre><code>acme-corp|2025-Q1∘machine∘location∘router1—gw1—192.168.1.100
+                  ↑_____↑_____↑________________↑
+                  Cross-entity (∘)     Internal (—)
+</code></pre>
+<p><strong>2-Level Composition</strong>:
+1. <strong>Outer level</strong> (<code>∘</code>): Combines different entities (machine, location, network_config)
+2. <strong>Inner level</strong> (<code>—</code>): Parts within NetworkConfiguration entity</p>
+<hr />
+<h2 id="specql-syntax">🔧 SpecQL Syntax</h2>
+<h3 id="default-hierarchical-dot-separator"><strong>Default Hierarchical</strong> (dot separator)</h3>
+<pre><code class="language-yaml">entity: Location
+schema: tenant
+hierarchical: true
+
+fields:
+  name: text
+
+# No identifier section needed - uses defaults:
+# - Tenant prefix: &quot;|&quot;
+# - Hierarchy separator: &quot;.&quot; ← NEW DEFAULT
+</code></pre>
+<p><strong>Generated</strong>: <code>acme-corp|warehouse.floor1.room101</code></p>
+<hr />
+<h3 id="explicit-separator-override-rare"><strong>Explicit Separator Override</strong> (rare)</h3>
+<pre><code class="language-yaml">entity: Location
+hierarchical: true
+
+identifier:
+  separator: &quot;_&quot;  # Override to underscore if needed
+</code></pre>
+<p><strong>Generated</strong>: <code>acme-corp|warehouse_floor1_room101</code></p>
+<hr />
+<h3 id="internal-composition-network_configuration-pattern_1"><strong>Internal Composition</strong> (network_configuration pattern)</h3>
+<pre><code class="language-yaml">entity: NetworkConfiguration
+schema: tenant
+
+fields:
+  router: ref(Router)
+  gateway: ref(Gateway)
+  ip_address: inet
+
+identifier:
+  strategy: composite_flat  # NEW: Flat composition (not hierarchical)
+  internal_separator: &quot;—&quot;  # Em dash for internal components
+  components:
+    - field: router.hostname  # Or router.ip_address if hostname is null
+      transform: none
+    - field: gateway.ip_address
+      transform: none
+    - field: ip_address
+      transform: none
+  deduplication: true
+</code></pre>
+<p><strong>Generated</strong>:</p>
+<pre><code>acme-corp|router1—192.168.1.1—192.168.1.100
+</code></pre>
+<p><strong>Key Features</strong>:
+- ✅ Tenant prefix added automatically
+- ✅ Em dash <code>—</code> separates internal components
+- ✅ NOT cross-entity composition (all from same entity's fields)
+- ✅ Flat list (no hierarchy)</p>
+<hr />
+<h3 id="cross-hierarchy-composition-allocation-pattern_1"><strong>Cross-Hierarchy Composition</strong> (allocation pattern)</h3>
+<pre><code class="language-yaml">entity: Allocation
+schema: tenant
+
+fields:
+  allocation_daterange: text
+  machine: ref(Machine)
+  location: ref(Location)
+  organizational_unit: ref(OrganizationalUnit)
+  network_configuration: ref(NetworkConfiguration)
+
+identifier:
+  strategy: composite_hierarchical  # Cross-entity composition
+  composition_separator: &quot;∘&quot;  # Ring for cross-entity
+  components:
+    - field: allocation_daterange
+      transform: none
+    - field: machine.identifier
+      strip_tenant_prefix: true  # Remove &quot;acme-corp|&quot; from machine identifier
+    - field: location.identifier
+      strip_tenant_prefix: true
+    - field: organizational_unit.identifier
+      strip_tenant_prefix: true
+    - field: network_configuration.identifier
+      strip_tenant_prefix: true  # Keeps internal &quot;—&quot; separator!
+  deduplication: true
+</code></pre>
+<p><strong>Generated</strong>:</p>
+<pre><code>acme-corp|2025-Q1∘hp.laser.s123∘warehouse.floor1∘sales.west∘router1—gw1—192.168.1.100
+</code></pre>
+<p><strong>Key Features</strong>:
+- ✅ Tenant prefix added once at start
+- ✅ Each component's tenant prefix stripped (<code>acme-corp|warehouse.floor1</code> → <code>warehouse.floor1</code>)
+- ✅ Components joined with <code>∘</code> (composition separator)
+- ✅ Each component retains internal structure:
+  - Hierarchies use <code>.</code> (dot): <code>hp.laser.s123</code>, <code>warehouse.floor1</code>
+  - Internal use <code>—</code> (em dash): <code>router1—gw1—192.168.1.100</code>
+- ✅ <strong>2-level composition</strong>: outer <code>∘</code> + inner <code>.</code> or <code>—</code></p>
+<hr />
+<h2 id="separator-reference-table">📚 Separator Reference Table</h2>
+<h3 id="when-to-use-each-separator"><strong>When to Use Each Separator</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Scenario</th>
+<th>Separator</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tenant from entity</td>
+<td><code>\|</code></td>
+<td><code>acme-corp\|product</code></td>
+</tr>
+<tr>
+<td>Parent from child (same tree)</td>
+<td><code>.</code></td>
+<td><code>parent.child.grandchild</code></td>
+</tr>
+<tr>
+<td>Type prefix from entity</td>
+<td><code>.</code></td>
+<td><code>legal.headquarters</code></td>
+</tr>
+<tr>
+<td>Combine different entities</td>
+<td><code>∘</code></td>
+<td><code>machine∘location∘org-unit</code></td>
+</tr>
+<tr>
+<td>Internal components (flat)</td>
+<td><code>—</code></td>
+<td><code>router—gateway—ip</code></td>
+</tr>
+<tr>
+<td>Deduplication suffix</td>
+<td><code>#</code></td>
+<td><code>identifier#2</code></td>
+</tr>
+<tr>
+<td>Ordering prefix</td>
+<td><code>-</code></td>
+<td><code>001-name</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="character-properties"><strong>Character Properties</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Character</th>
+<th>Unicode</th>
+<th>ASCII</th>
+<th>URL-Safe</th>
+<th>SQL-Safe</th>
+<th>Human-Readable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>\|</code> Pipe</td>
+<td>U+007C</td>
+<td>124</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>.</code> Dot</td>
+<td>U+002E</td>
+<td>46</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>∘</code> Ring</td>
+<td>U+2218</td>
+<td>N/A</td>
+<td>✅ (UTF-8)</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>—</code> Em Dash</td>
+<td>U+2014</td>
+<td>N/A</td>
+<td>✅ (UTF-8)</td>
+<td>✅</td>
+<td>✅</td>
+</tr>
+<tr>
+<td><code>_</code> Underscore</td>
+<td>U+005F</td>
+<td>95</td>
+<td>✅</td>
+<td>✅</td>
+<td>⚠️ (less readable)</td>
+</tr>
+<tr>
+<td><code>~</code> Tilde</td>
+<td>U+007E</td>
+<td>126</td>
+<td>✅</td>
+<td>✅</td>
+<td>✅ (fallback for ∘)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="implementation-guidance">🎯 Implementation Guidance</h2>
+<h3 id="team-b-schema-generator"><strong>Team B: Schema Generator</strong></h3>
+<p>No changes needed - separator is metadata, not schema.</p>
+<hr />
+<h3 id="team-c-identifier-recalculation-generator"><strong>Team C: Identifier Recalculation Generator</strong></h3>
+<h4 id="simple-hierarchical-updated-default"><strong>Simple Hierarchical</strong> (updated default)</h4>
+<pre><code class="language-python">def _generate_hierarchical_strategy(self, entity: EntityDefinition) -&gt; str:
+    # Default separator changed from &quot;_&quot; to &quot;.&quot;
+    separator = entity.identifier.separator if entity.identifier else &quot;.&quot;
+
+    return f&quot;&quot;&quot;
+    -- Hierarchical identifier with dot separator
+    WITH RECURSIVE hierarchy AS (
+        SELECT
+            pk,
+            safe_slug(name) AS base_identifier
+        FROM tb_entity
+        WHERE fk_parent IS NULL
+
+        UNION ALL
+
+        SELECT
+            child.pk,
+            parent.base_identifier || '{separator}' || safe_slug(child.name)
+        FROM tb_entity child
+        JOIN hierarchy parent ON child.fk_parent = parent.pk
+    )
+    ...
+    &quot;&quot;&quot;
+</code></pre>
+<h4 id="composite-hierarchical-allocation-pattern"><strong>Composite Hierarchical</strong> (allocation pattern)</h4>
+<pre><code class="language-python">def _generate_composite_hierarchical_strategy(self, entity: EntityDefinition) -&gt; str:
+    composition_sep = entity.identifier.composition_separator or &quot;∘&quot;
+
+    # Build component expressions
+    component_exprs = []
+    for comp in entity.identifier.components:
+        expr = comp.field
+
+        # Strip tenant prefix if requested
+        if comp.strip_tenant_prefix:
+            tenant_field = self._detect_tenant_field(entity)
+            if tenant_field:
+                tenant_lookup = self._get_tenant_identifier_expression(entity)
+                expr = f&quot;&quot;&quot;REGEXP_REPLACE(
+                    {expr},
+                    '^' || {tenant_lookup} || '\\|',
+                    ''
+                )&quot;&quot;&quot;
+
+        component_exprs.append(expr)
+
+    # Join with composition separator
+    base_identifier = f&quot; || '{composition_sep}' || &quot;.join(component_exprs)
+
+    return f&quot;&quot;&quot;
+    -- Composite hierarchical identifier
+    INSERT INTO tmp_identifiers (pk, base_identifier)
+    SELECT
+        pk,
+        {tenant_expr}{base_identifier}
+    FROM tb_entity;
+    &quot;&quot;&quot;
+</code></pre>
+<hr />
+<h2 id="updated-defaults-summary">✅ Updated Defaults Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Old Default</th>
+<th>New Default</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Tenant prefix</strong></td>
+<td><code>\|</code></td>
+<td><code>\|</code></td>
+<td>✅ No change (industry standard)</td>
+</tr>
+<tr>
+<td><strong>Hierarchy separator</strong></td>
+<td><code>_</code></td>
+<td><code>.</code></td>
+<td>✅ <strong>Your preference</strong> - more readable</td>
+</tr>
+<tr>
+<td><strong>Composition separator</strong></td>
+<td>N/A</td>
+<td><code>∘</code></td>
+<td>✅ <strong>New feature</strong> - allocation pattern (cross-entity)</td>
+</tr>
+<tr>
+<td><strong>Internal separator</strong></td>
+<td>N/A</td>
+<td><code>—</code></td>
+<td>✅ <strong>New feature</strong> - network_config pattern (intra-entity)</td>
+</tr>
+<tr>
+<td><strong>Deduplication suffix</strong></td>
+<td><code>#</code></td>
+<td><code>#</code></td>
+<td>✅ No change (clear semantic)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="examples-with-new-defaults">🧪 Examples with New Defaults</h2>
+<h3 id="before-underscore-hierarchy"><strong>Before</strong> (underscore hierarchy)</h3>
+<pre><code>acme-corp|warehouse_floor1_room101
+acme-corp|legal_headquarters_building-a
+</code></pre>
+<h3 id="after-dot-hierarchy"><strong>After</strong> (dot hierarchy)</h3>
+<pre><code>acme-corp|warehouse.floor1.room101
+acme-corp|legal.headquarters.building-a
+</code></pre>
+<h3 id="composition-new-pattern"><strong>Composition</strong> (new pattern)</h3>
+<pre><code>acme-corp|2025-Q1∘hp.laser.s123∘warehouse.floor1∘sales.west∘net-a
+</code></pre>
+<p><strong>Benefits</strong>:
+- ✅ Cleaner, more familiar notation (like DNS, package names)
+- ✅ Easier to parse visually
+- ✅ Industry-standard feel
+- ✅ Cross-hierarchy composition clearly distinguished</p>
+<hr />
+<h2 id="migration-path">🚀 Migration Path</h2>
+<h3 id="existing-code"><strong>Existing Code</strong></h3>
+<p>If you have code using underscore:</p>
+<pre><code class="language-yaml">identifier:
+  separator: &quot;_&quot;  # Explicit override
+</code></pre>
+<h3 id="new-code"><strong>New Code</strong></h3>
+<p>Default is now dot:</p>
+<pre><code class="language-yaml"># No separator specified = dot
+hierarchical: true
+</code></pre>
+<p>Generates: <code>parent.child.grandchild</code></p>
+<hr />
+<h2 id="acceptance-criteria">📝 Acceptance Criteria</h2>
+<ul>
+<li>[ ] Default hierarchy separator changed to <code>.</code> (dot)</li>
+<li>[ ] Tenant prefix remains <code>|</code> (pipe)</li>
+<li>[ ] New composition separator <code>∘</code> (ring) for cross-hierarchy</li>
+<li>[ ] <code>strip_tenant_prefix</code> option works for composite components</li>
+<li>[ ] All examples updated in documentation</li>
+<li>[ ] Tests pass with new defaults</li>
+<li>[ ] Migration guide for existing underscore usage</li>
+</ul>
+<hr />
+<p><strong>Status</strong>: 🎯 Ready for Implementation
+<strong>Priority</strong>: HIGH (affects all identifier generation)
+<strong>Dependencies</strong>: None (backward compatible via explicit override)</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

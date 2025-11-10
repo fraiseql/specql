@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team B Implementation Plan: App/Core Schema Pattern - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team B Implementation Plan: App/Core Schema Pattern";
+        var mkdocs_page_input_path = "archive/plans/TEAM_B_APP_CORE_SCHEMA_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team B Implementation Plan: App/Core Schema Pattern</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-b-implementation-plan-appcore-schema-pattern">Team B Implementation Plan: App/Core Schema Pattern</h1>
+<p><strong>Date</strong>: 2025-11-08
+<strong>Status</strong>: 🚧 Ready for Implementation
+<strong>Priority</strong>: HIGH
+<strong>Dependencies</strong>: Team A Complete (✅)
+<strong>Estimated Time</strong>: 3-4 days (phased TDD approach)</p>
+<hr />
+<h2 id="mission">🎯 Mission</h2>
+<p>Transform Team B's schema generator to produce the <strong>App/Core pattern</strong> with:
+1. <strong>Composite Type Generation</strong> (<code>app.type_*_input</code>)
+2. <strong>Standard Output Types</strong> (<code>app.mutation_result</code>)
+3. <strong>Trinity Pattern Tables</strong> (existing, enhance)
+4. <strong>FraiseQL Metadata</strong> for composite types</p>
+<hr />
+<h2 id="current-state-analysis">📊 Current State Analysis</h2>
+<h3 id="what-exists">What Exists (✅)</h3>
+<ul>
+<li><code>src/generators/table_generator.py</code> - Trinity pattern DDL generation</li>
+<li><code>src/generators/sql_utils.py</code> - SQL formatting utilities</li>
+<li>Templates in <code>templates/sql/</code> for tables</li>
+<li>Tests in <code>tests/unit/generators/test_table_generator.py</code></li>
+</ul>
+<h3 id="whats-missing">What's Missing (🔴)</h3>
+<ul>
+<li><strong>Composite type generation</strong> for action inputs</li>
+<li><strong>Standard output type generation</strong> (<code>app.mutation_result</code>)</li>
+<li><strong>Type-level FraiseQL annotations</strong></li>
+<li><strong>Integration with action definitions</strong> (needs Team C coordination)</li>
+</ul>
+<hr />
+<h2 id="critical-uuid-vs-integer-external-vs-internal">⚠️ CRITICAL: UUID vs INTEGER - External vs Internal</h2>
+<h3 id="the-two-worlds">The Two Worlds</h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Purpose</th>
+<th>Foreign Key Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Composite Types</strong> (<code>app.type_*_input</code>)</td>
+<td>External API contract (GraphQL)</td>
+<td><strong>UUID</strong></td>
+<td><code>company_id UUID</code></td>
+</tr>
+<tr>
+<td><strong>Database Tables</strong> (<code>tb_*</code>)</td>
+<td>Internal storage</td>
+<td><strong>INTEGER</strong></td>
+<td><code>fk_company INTEGER</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="field-naming-convention">Field Naming Convention</h3>
+<p><strong>SpecQL (User writes)</strong>:</p>
+<pre><code class="language-yaml">fields:
+  company: ref(Company)  # Just &quot;company&quot;
+</code></pre>
+<p><strong>Composite Type (Team B generates)</strong>:</p>
+<pre><code class="language-sql">CREATE TYPE app.type_create_contact_input AS (
+    company_id UUID  -- ✅ Appends &quot;_id&quot;, uses UUID
+);
+</code></pre>
+<p><strong>Database Table (Team B generates)</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE crm.tb_contact (
+    fk_company INTEGER  -- ✅ Prefixes &quot;fk_&quot;, uses INTEGER
+);
+</code></pre>
+<p><strong>Core Layer Resolution (Team C generates)</strong>:</p>
+<pre><code class="language-sql">-- Convert UUID → INTEGER during INSERT
+INSERT INTO crm.tb_contact (fk_company, ...)
+VALUES (
+    core.company_pk(input_data.company_id),  -- ✅ UUID → INTEGER
+    ...
+);
+</code></pre>
+<h3 id="why-this-matters">Why This Matters</h3>
+<ol>
+<li><strong>GraphQL API uses UUIDs</strong> - External clients never see INTEGER keys</li>
+<li><strong>Database uses INTEGERs</strong> - Efficient joins, smaller indexes</li>
+<li><strong>Trinity Pattern</strong> - Every entity has both <code>pk_* INTEGER</code> (internal) and <code>id UUID</code> (external)</li>
+<li><strong>Resolution Functions</strong> - <code>core.entity_pk(UUID) → INTEGER</code> converts at query time</li>
+</ol>
+<hr />
+<h2 id="architecture-pattern-reference">🏗️ Architecture Pattern (Reference)</h2>
+<p>Based on <code>docs/architecture/APP_CORE_FUNCTION_PATTERN.md</code>:</p>
+<pre><code class="language-sql">-- 1. INPUT COMPOSITE TYPE (Team B generates)
+-- ⚠️ CRITICAL: Uses UUIDs for external references (GraphQL API contract)
+CREATE TYPE app.type_create_contact_input AS (
+    email TEXT,
+    company_id UUID,      -- ✅ UUID (external API uses UUIDs)
+    status TEXT
+);
+
+COMMENT ON TYPE app.type_create_contact_input IS
+  '@fraiseql:input name=CreateContactInput';
+
+-- 2. OUTPUT COMPOSITE TYPE (Team B generates ONCE)
+CREATE TYPE app.mutation_result AS (
+    id UUID,
+    updated_fields TEXT[],
+    status TEXT,
+    message TEXT,
+    object_data JSONB,
+    extra_metadata JSONB
+);
+
+COMMENT ON TYPE app.mutation_result IS
+  '@fraiseql:type name=MutationResult';
+
+-- 3. TABLE (Team B existing - Trinity pattern)
+-- ⚠️ INTERNAL: Uses INTEGER foreign keys (database internal structure)
+CREATE TABLE crm.tb_contact (
+    pk_contact INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+    identifier TEXT UNIQUE,
+    email TEXT,
+    fk_company INTEGER,  -- ✅ INTEGER (internal FK, not exposed to API)
+    status TEXT CHECK (status IN ('lead', 'qualified')),
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- 4. UUID → INTEGER RESOLUTION (Team C handles in core layer)
+-- Core layer converts: input_data.company_id (UUID) → core.company_pk(UUID) → INTEGER
+-- Example:
+--   INSERT INTO crm.tb_contact (fk_company, ...)
+--   VALUES (core.company_pk(input_data.company_id), ...)
+</code></pre>
+<hr />
+<h2 id="implementation-phases-tdd-discipline">📋 Implementation Phases (TDD Discipline)</h2>
+<hr />
+<h3 id="phase-1-composite-type-generator-foundation"><strong>Phase 1: Composite Type Generator Foundation</strong></h3>
+<p><strong>Objective</strong>: Generate <code>app.type_*_input</code> composite types from action definitions</p>
+<h4 id="red-write-failing-tests">🔴 RED: Write Failing Tests</h4>
+<p><strong>Test File</strong>: <code>tests/unit/generators/test_composite_type_generator.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;Tests for composite type generation (Team B)&quot;&quot;&quot;
+
+def test_generate_basic_composite_type():
+    &quot;&quot;&quot;Generate composite type from action with simple fields&quot;&quot;&quot;
+    # Given: Entity with create action
+    entity = Entity(
+        name=&quot;Contact&quot;,
+        schema=&quot;crm&quot;,
+        fields={
+            &quot;email&quot;: FieldDefinition(type=&quot;text&quot;, nullable=False),
+            &quot;company&quot;: FieldDefinition(type=&quot;ref&quot;, target_entity=&quot;Company&quot;, nullable=True),
+            &quot;status&quot;: FieldDefinition(type=&quot;enum&quot;, values=[&quot;lead&quot;, &quot;qualified&quot;], nullable=False)
+        },
+        actions=[
+            Action(
+                name=&quot;create_contact&quot;,
+                steps=[...]
+            )
+        ]
+    )
+
+    # When: Generate composite type
+    generator = CompositeTypeGenerator()
+    sql = generator.generate_input_type(entity, entity.actions[0])
+
+    # Then: Composite type includes all fields
+    assert &quot;CREATE TYPE app.type_create_contact_input AS (&quot; in sql
+    assert &quot;email TEXT&quot; in sql
+    assert &quot;company_id UUID&quot; in sql  # ✅ FK is UUID (external API contract)
+    assert &quot;status TEXT&quot; in sql
+    # FraiseQL annotation
+    assert &quot;COMMENT ON TYPE app.type_create_contact_input IS&quot; in sql
+    assert &quot;@fraiseql:input name=CreateContactInput&quot; in sql
+
+
+def test_generate_composite_type_with_nullable_fields():
+    &quot;&quot;&quot;Nullable fields in composite types&quot;&quot;&quot;
+    # Given: Action with nullable fields
+    entity = Entity(...)
+
+    # When: Generate
+    sql = generator.generate_input_type(entity, action)
+
+    # Then: Nullable indicators preserved (via comments or conventions)
+    # Note: PostgreSQL composite types don't have NOT NULL
+    # We'll use comments to indicate required vs optional
+    assert &quot;COMMENT ON COLUMN app.type_create_contact_input.email IS 'Required field'&quot; in sql
+
+
+def test_generate_composite_type_with_nested_fields():
+    &quot;&quot;&quot;Handle complex field types (arrays, lists)&quot;&quot;&quot;
+    # Given: Entity with list field
+    entity = Entity(
+        fields={
+            &quot;tags&quot;: FieldDefinition(type=&quot;list&quot;, item_type=&quot;text&quot;)
+        }
+    )
+
+    # When: Generate
+    sql = generator.generate_input_type(entity, action)
+
+    # Then: Array type used
+    assert &quot;tags TEXT[]&quot; in sql
+
+
+def test_skip_composite_type_for_actions_without_input():
+    &quot;&quot;&quot;Some actions (like delete) may not need input types&quot;&quot;&quot;
+    # Given: Delete action (only needs ID)
+    action = Action(name=&quot;delete_contact&quot;, steps=[...])
+
+    # When: Generate
+    sql = generator.generate_input_type(entity, action)
+
+    # Then: Returns empty or uses standard deletion input type
+    assert sql == &quot;&quot; or &quot;type_deletion_input&quot; in sql
+</code></pre>
+<p><strong>Expected Outcome</strong>: All tests FAIL (no <code>CompositeTypeGenerator</code> exists yet)</p>
+<hr />
+<h4 id="green-minimal-implementation">🟢 GREEN: Minimal Implementation</h4>
+<p><strong>Create</strong>: <code>src/generators/composite_type_generator.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;
+Composite Type Generator (Team B)
+Generates PostgreSQL composite types for action inputs
+&quot;&quot;&quot;
+
+from typing import Dict, List, Optional
+from src.core.ast_models import Entity, Action, FieldDefinition
+
+
+class CompositeTypeGenerator:
+    &quot;&quot;&quot;Generates app.type_*_input composite types from actions&quot;&quot;&quot;
+
+    # Field type mappings: SpecQL → PostgreSQL composite type fields
+    TYPE_MAPPINGS = {
+        &quot;text&quot;: &quot;TEXT&quot;,
+        &quot;integer&quot;: &quot;INTEGER&quot;,
+        &quot;boolean&quot;: &quot;BOOLEAN&quot;,
+        &quot;date&quot;: &quot;DATE&quot;,
+        &quot;timestamp&quot;: &quot;TIMESTAMPTZ&quot;,
+        &quot;uuid&quot;: &quot;UUID&quot;,
+        &quot;json&quot;: &quot;JSONB&quot;,
+        &quot;decimal&quot;: &quot;DECIMAL&quot;,
+    }
+
+    def generate_input_type(self, entity: Entity, action: Action) -&gt; str:
+        &quot;&quot;&quot;
+        Generate composite type for action input
+
+        Args:
+            entity: Entity containing the action
+            action: Action to generate input type for
+
+        Returns:
+            SQL for composite type creation
+        &quot;&quot;&quot;
+        # Determine fields needed for this action
+        fields = self._determine_action_fields(entity, action)
+
+        if not fields:
+            return &quot;&quot;  # No input type needed
+
+        type_name = f&quot;type_{action.name}_input&quot;
+        graphql_name = self._to_pascal_case(action.name) + &quot;Input&quot;
+
+        # Build field definitions
+        field_defs = []
+        field_comments = []
+
+        for field_name, field_def in fields.items():
+            pg_type = self._map_field_type(field_def)
+            field_defs.append(f&quot;    {field_name} {pg_type}&quot;)
+
+            # Track nullable info in comments (composite types don't support NOT NULL)
+            if not field_def.nullable:
+                field_comments.append(
+                    f&quot;COMMENT ON COLUMN app.{type_name}.{field_name} IS 'Required field';&quot;
+                )
+
+        # Build composite type
+        sql_parts = []
+        sql_parts.append(f&quot;CREATE TYPE app.{type_name} AS (&quot;)
+        sql_parts.append(&quot;,\n&quot;.join(field_defs))
+        sql_parts.append(&quot;);&quot;)
+
+        # FraiseQL annotation
+        sql_parts.append(f&quot;\nCOMMENT ON TYPE app.{type_name} IS&quot;)
+        sql_parts.append(f&quot;  '@fraiseql:input name={graphql_name}';&quot;)
+
+        # Field comments
+        if field_comments:
+            sql_parts.append(&quot;\n&quot; + &quot;\n&quot;.join(field_comments))
+
+        return &quot;\n&quot;.join(sql_parts)
+
+    def _determine_action_fields(self, entity: Entity, action: Action) -&gt; Dict[str, FieldDefinition]:
+        &quot;&quot;&quot;
+        Determine which fields are needed for action input
+
+        Strategy:
+        - For create actions: all entity fields
+        - For update actions: all mutable fields
+        - For custom actions: parse action steps to identify referenced fields
+
+        Returns:
+            Dict mapping API field name → field definition
+            ⚠️ Field names are transformed for external API:
+              - &quot;company&quot; (ref) → &quot;company_id&quot; (UUID in composite type)
+              - Regular fields keep their names
+        &quot;&quot;&quot;
+        # Get base fields
+        if action.name.startswith(&quot;create&quot;):
+            base_fields = entity.fields
+        elif action.name.startswith(&quot;update&quot;):
+            # Exclude audit fields
+            base_fields = {k: v for k, v in entity.fields.items()
+                          if k not in [&quot;created_at&quot;, &quot;created_by&quot;]}
+        else:
+            # Custom action - analyze steps (TODO: implement step analysis)
+            base_fields = entity.fields
+
+        # Transform field names for external API
+        api_fields = {}
+        for field_name, field_def in base_fields.items():
+            if field_def.type == &quot;ref&quot;:
+                # ref fields: append &quot;_id&quot; for external API
+                # &quot;company&quot; → &quot;company_id&quot;
+                api_field_name = f&quot;{field_name}_id&quot;
+            else:
+                # Regular fields: keep name as-is
+                api_field_name = field_name
+
+            api_fields[api_field_name] = field_def
+
+        return api_fields
+
+    def _map_field_type(self, field_def: FieldDefinition) -&gt; str:
+        &quot;&quot;&quot;
+        Map SpecQL field type to PostgreSQL composite type field
+
+        ⚠️ CRITICAL: Composite types represent EXTERNAL API contract
+        - Foreign keys: UUID (not INTEGER - GraphQL uses UUIDs)
+        - Core layer handles UUID → INTEGER resolution
+        &quot;&quot;&quot;
+        if field_def.type == &quot;ref&quot;:
+            # ✅ Foreign keys are UUIDs in API input (not INTEGER!)
+            # Core layer will resolve UUID → INTEGER when inserting
+            return &quot;UUID&quot;
+        elif field_def.type == &quot;enum&quot;:
+            return &quot;TEXT&quot;
+        elif field_def.type == &quot;list&quot;:
+            base_type = self.TYPE_MAPPINGS.get(field_def.item_type, &quot;TEXT&quot;)
+            return f&quot;{base_type}[]&quot;
+        else:
+            return self.TYPE_MAPPINGS.get(field_def.type, &quot;TEXT&quot;)
+
+    def _to_pascal_case(self, snake_str: str) -&gt; str:
+        &quot;&quot;&quot;Convert snake_case to PascalCase&quot;&quot;&quot;
+        return ''.join(word.capitalize() for word in snake_str.split('_'))
+</code></pre>
+<p><strong>Run Tests</strong>: <code>uv run pytest tests/unit/generators/test_composite_type_generator.py -v</code></p>
+<p><strong>Expected</strong>: Tests PASS (minimal implementation works)</p>
+<hr />
+<h4 id="refactor-enhance-and-clean">🔧 REFACTOR: Enhance and Clean</h4>
+<p><strong>Improvements</strong>:
+1. Add template-based rendering (use Jinja2 like table generator)
+2. Improve field determination logic (parse action steps)
+3. Handle UUID vs INTEGER for composite types (FraiseQL introspection needs)
+4. Add validation for type name conflicts
+5. Support action-specific field subsets</p>
+<p><strong>Create Template</strong>: <code>templates/sql/composite_type.sql.j2</code></p>
+<pre><code class="language-sql">{# Composite Type Template #}
+-- ============================================================================
+-- INPUT TYPE: {{ type_name }}
+-- For action: {{ action_name }}
+-- ============================================================================
+CREATE TYPE app.{{ type_name }} AS (
+{% for field_name, field_def in fields.items() %}
+    {{ field_name }} {{ field_def.pg_type }}{{ &quot;,&quot; if not loop.last else &quot;&quot; }}
+{% endfor %}
+);
+
+-- FraiseQL metadata
+COMMENT ON TYPE app.{{ type_name }} IS
+  '@fraiseql:input name={{ graphql_name }}';
+
+{% if field_comments %}
+-- Field metadata
+{% for comment in field_comments %}
+{{ comment }}
+{% endfor %}
+{% endif %}
+</code></pre>
+<p><strong>Updated Implementation</strong>: Use template rendering</p>
+<pre><code class="language-python">class CompositeTypeGenerator:
+    def __init__(self, templates_dir: str = &quot;templates/sql&quot;):
+        self.templates_dir = templates_dir
+        self.env = Environment(loader=FileSystemLoader(templates_dir))
+
+    def generate_input_type(self, entity: Entity, action: Action) -&gt; str:
+        fields = self._determine_action_fields(entity, action)
+        if not fields:
+            return &quot;&quot;
+
+        type_name = f&quot;type_{action.name}_input&quot;
+        context = {
+            &quot;type_name&quot;: type_name,
+            &quot;action_name&quot;: action.name,
+            &quot;graphql_name&quot;: self._to_pascal_case(action.name) + &quot;Input&quot;,
+            &quot;fields&quot;: self._prepare_fields(fields),
+            &quot;field_comments&quot;: self._generate_field_comments(type_name, fields)
+        }
+
+        template = self.env.get_template(&quot;composite_type.sql.j2&quot;)
+        return template.render(**context)
+</code></pre>
+<p><strong>Run Tests</strong>: All tests still PASS, code is cleaner</p>
+<hr />
+<h4 id="qa-quality-verification">✅ QA: Quality Verification</h4>
+<pre><code class="language-bash"># Full test suite
+uv run pytest tests/unit/generators/ -v
+
+# Type checking
+uv run mypy src/generators/composite_type_generator.py
+
+# Linting
+uv run ruff check src/generators/
+
+# Integration test (with real entity)
+uv run pytest tests/integration/test_composite_type_generation.py -v
+</code></pre>
+<p><strong>Acceptance Criteria</strong>:
+- ✅ Generates composite types for all action types (create, update, custom)
+- ✅ Correctly maps SpecQL types to PostgreSQL types
+- ✅ Handles ref → INTEGER conversion
+- ✅ Adds FraiseQL annotations
+- ✅ All tests pass
+- ✅ Code quality checks pass</p>
+<hr />
+<h3 id="phase-2-standard-output-type-generation"><strong>Phase 2: Standard Output Type Generation</strong></h3>
+<p><strong>Objective</strong>: Generate <code>app.mutation_result</code> once per schema</p>
+<h4 id="red-write-test">🔴 RED: Write Test</h4>
+<pre><code class="language-python">def test_generate_standard_mutation_result_type():
+    &quot;&quot;&quot;Generate standard mutation_result composite type&quot;&quot;&quot;
+    # When: Generate
+    generator = CompositeTypeGenerator()
+    sql = generator.generate_mutation_result_type()
+
+    # Then: Standard structure
+    assert &quot;CREATE TYPE app.mutation_result AS (&quot; in sql
+    assert &quot;id UUID&quot; in sql
+    assert &quot;updated_fields TEXT[]&quot; in sql
+    assert &quot;status TEXT&quot; in sql
+    assert &quot;message TEXT&quot; in sql
+    assert &quot;object_data JSONB&quot; in sql
+    assert &quot;extra_metadata JSONB&quot; in sql
+    assert &quot;@fraiseql:type name=MutationResult&quot; in sql
+
+
+def test_mutation_result_generated_only_once():
+    &quot;&quot;&quot;Ensure mutation_result is not duplicated&quot;&quot;&quot;
+    # Given: Multiple entities
+    entities = [Entity(...), Entity(...)]
+
+    # When: Generate for all
+    generator = CompositeTypeGenerator()
+    results = [generator.generate_common_types() for e in entities]
+
+    # Then: Only first call returns SQL, others return empty
+    assert results[0] != &quot;&quot;
+    assert all(r == &quot;&quot; for r in results[1:])
+</code></pre>
+<h4 id="green-implementation">🟢 GREEN: Implementation</h4>
+<pre><code class="language-python">class CompositeTypeGenerator:
+    _mutation_result_generated = False  # Class variable to track
+
+    def generate_mutation_result_type(self) -&gt; str:
+        &quot;&quot;&quot;Generate standard mutation_result composite type (once)&quot;&quot;&quot;
+        if CompositeTypeGenerator._mutation_result_generated:
+            return &quot;&quot;
+
+        CompositeTypeGenerator._mutation_result_generated = True
+
+        return &quot;&quot;&quot;
+CREATE TYPE app.mutation_result AS (
+    id UUID,
+    updated_fields TEXT[],
+    status TEXT,
+    message TEXT,
+    object_data JSONB,
+    extra_metadata JSONB
+);
+
+COMMENT ON TYPE app.mutation_result IS
+  '@fraiseql:type name=MutationResult';
+
+COMMENT ON COLUMN app.mutation_result.status IS
+  'Status: success, failed:*, warning:*';
+&quot;&quot;&quot;
+
+    def generate_common_types(self) -&gt; str:
+        &quot;&quot;&quot;Generate all common types needed across schema&quot;&quot;&quot;
+        types = []
+
+        # Mutation result
+        result_type = self.generate_mutation_result_type()
+        if result_type:
+            types.append(result_type)
+
+        # Standard deletion input (if needed)
+        types.append(self._generate_deletion_input_type())
+
+        return &quot;\n\n&quot;.join(types)
+</code></pre>
+<h4 id="qa-verify">✅ QA: Verify</h4>
+<pre><code class="language-bash">uv run pytest tests/unit/generators/test_composite_type_generator.py::test_mutation_result -v
+</code></pre>
+<hr />
+<h3 id="phase-3-integration-with-table-generator"><strong>Phase 3: Integration with Table Generator</strong></h3>
+<p><strong>Objective</strong>: Coordinate table + type generation for complete schema</p>
+<h4 id="red-test">🔴 RED: Test</h4>
+<pre><code class="language-python">def test_complete_entity_schema_generation():
+    &quot;&quot;&quot;Generate complete schema: tables + types&quot;&quot;&quot;
+    # Given: Entity with actions
+    entity = Entity(
+        name=&quot;Contact&quot;,
+        schema=&quot;crm&quot;,
+        fields={...},
+        actions=[Action(name=&quot;create_contact&quot;, ...)]
+    )
+
+    # When: Generate complete schema
+    orchestrator = SchemaOrchestrator()
+    sql = orchestrator.generate_complete_schema(entity)
+
+    # Then: Contains tables + types
+    assert &quot;CREATE TABLE crm.tb_contact&quot; in sql
+    assert &quot;CREATE TYPE app.type_create_contact_input&quot; in sql
+    assert &quot;CREATE TYPE app.mutation_result&quot; in sql
+</code></pre>
+<h4 id="green-implementation_1">🟢 GREEN: Implementation</h4>
+<p>Create: <code>src/generators/schema_orchestrator.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;
+Schema Orchestrator (Team B)
+Coordinates table + type generation
+&quot;&quot;&quot;
+
+from src.generators.table_generator import TableGenerator
+from src.generators.composite_type_generator import CompositeTypeGenerator
+
+
+class SchemaOrchestrator:
+    &quot;&quot;&quot;Orchestrates complete schema generation&quot;&quot;&quot;
+
+    def __init__(self):
+        self.table_gen = TableGenerator()
+        self.type_gen = CompositeTypeGenerator()
+
+    def generate_complete_schema(self, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate tables + types for entity&quot;&quot;&quot;
+        parts = []
+
+        # 1. Common types (mutation_result, etc.)
+        common_types = self.type_gen.generate_common_types()
+        if common_types:
+            parts.append(&quot;-- Common Types\n&quot; + common_types)
+
+        # 2. Entity table (Trinity pattern)
+        table_sql = self.table_gen.generate_table_ddl(entity)
+        parts.append(&quot;-- Entity Table\n&quot; + table_sql)
+
+        # 3. Input types for actions
+        for action in entity.actions:
+            input_type = self.type_gen.generate_input_type(entity, action)
+            if input_type:
+                parts.append(f&quot;-- Input Type: {action.name}\n&quot; + input_type)
+
+        # 4. Indexes
+        indexes = self.table_gen.generate_indexes_ddl(entity)
+        parts.append(&quot;-- Indexes\n&quot; + indexes)
+
+        # 5. Foreign keys
+        fks = self.table_gen.generate_foreign_keys_ddl(entity)
+        if fks:
+            parts.append(&quot;-- Foreign Keys\n&quot; + fks)
+
+        return &quot;\n\n&quot;.join(parts)
+</code></pre>
+<hr />
+<h3 id="phase-4-fraiseql-metadata-enhancement"><strong>Phase 4: FraiseQL Metadata Enhancement</strong></h3>
+<p><strong>Objective</strong>: Add complete FraiseQL annotations for introspection</p>
+<h4 id="red-test_1">🔴 RED: Test</h4>
+<pre><code class="language-python">def test_fraiseql_annotations_for_composite_types():
+    &quot;&quot;&quot;Verify FraiseQL can introspect generated types&quot;&quot;&quot;
+    # Given: Generated composite type
+    sql = generator.generate_input_type(entity, action)
+
+    # When: Parse FraiseQL annotations
+    annotations = FraiseQLParser.parse_type_annotations(sql)
+
+    # Then: Correct metadata
+    assert annotations['type'] == 'input'
+    assert annotations['name'] == 'CreateContactInput'
+    assert len(annotations['fields']) == 3
+</code></pre>
+<h4 id="green-enhanced-annotations">🟢 GREEN: Enhanced Annotations</h4>
+<p>Update composite type generator to add field-level metadata:</p>
+<pre><code class="language-python">def _generate_field_annotations(self, type_name: str, fields: Dict[str, FieldDefinition]) -&gt; List[str]:
+    &quot;&quot;&quot;Generate FraiseQL field annotations&quot;&quot;&quot;
+    annotations = []
+
+    for field_name, field_def in fields.items():
+        graphql_type = self._map_to_graphql_type(field_def)
+
+        comment = f&quot;COMMENT ON COLUMN app.{type_name}.{field_name} IS &quot; \
+                  f&quot;'@fraiseql:field name={field_name},type={graphql_type}&quot;
+
+        if not field_def.nullable:
+            comment += &quot;,required=true&quot;
+
+        comment += &quot;';&quot;
+        annotations.append(comment)
+
+    return annotations
+</code></pre>
+<hr />
+<h2 id="team-b-deliverables">🎯 Team B Deliverables</h2>
+<h3 id="code-modules">Code Modules</h3>
+<ol>
+<li>✅ <code>src/generators/composite_type_generator.py</code> - Input type generation</li>
+<li>✅ <code>src/generators/schema_orchestrator.py</code> - Coordination layer</li>
+<li>✅ <code>templates/sql/composite_type.sql.j2</code> - Type template</li>
+<li>✅ Enhanced <code>table_generator.py</code> - Integration hooks</li>
+</ol>
+<h3 id="tests">Tests</h3>
+<ol>
+<li>✅ <code>tests/unit/generators/test_composite_type_generator.py</code> (15+ tests)</li>
+<li>✅ <code>tests/integration/test_schema_orchestration.py</code> (E2E tests)</li>
+<li>✅ Coverage: 90%+ for new code</li>
+</ol>
+<h3 id="documentation">Documentation</h3>
+<ol>
+<li>✅ API docs for <code>CompositeTypeGenerator</code></li>
+<li>✅ Examples of generated types</li>
+<li>✅ FraiseQL annotation guide</li>
+</ol>
+<hr />
+<h2 id="team-c-coordination-points">🔗 Team C Coordination Points</h2>
+<p><strong>Team B Provides to Team C</strong>:
+1. <strong>Composite type names</strong> for each action (e.g., <code>app.type_create_contact_input</code>)
+2. <strong>Field mappings</strong> (SpecQL field → composite type field)
+3. <strong>Standard output type</strong> (<code>app.mutation_result</code>)</p>
+<p><strong>Team C Uses</strong>:
+- References composite types in function signatures
+- Returns <code>app.mutation_result</code> from all mutations
+- Maps JSONB payload to composite type in app wrapper</p>
+<p><strong>Interface Contract</strong>:</p>
+<pre><code class="language-python"># Team B generates composite type
+composite_type_name = f&quot;app.type_{action.name}_input&quot;
+
+# Team C uses in function signature
+def generate_app_wrapper(action: Action):
+    return f&quot;&quot;&quot;
+    CREATE FUNCTION app.{action.name}(
+        input_pk_organization UUID,
+        input_created_by UUID,
+        input_payload JSONB  -- Maps to {composite_type_name}
+    ) RETURNS app.mutation_result
+    &quot;&quot;&quot;
+</code></pre>
+<hr />
+<h2 id="success-metrics">📊 Success Metrics</h2>
+<ul>
+<li>[ ] ✅ Generate composite types for all action types</li>
+<li>[ ] ✅ Standard <code>mutation_result</code> type created once</li>
+<li>[ ] ✅ FraiseQL annotations complete and parseable</li>
+<li>[ ] ✅ Integration with table generation seamless</li>
+<li>[ ] ✅ All tests pass (90%+ coverage)</li>
+<li>[ ] ✅ Team C can reference generated types</li>
+<li>[ ] ✅ Generated SQL matches PrintOptim pattern</li>
+</ul>
+<hr />
+<h2 id="getting-started">🚀 Getting Started</h2>
+<pre><code class="language-bash"># Create branch
+git checkout -b feature/team-b-composite-types
+
+# Phase 1: Composite type generation
+# 1. Write tests
+vim tests/unit/generators/test_composite_type_generator.py
+
+# 2. Run tests (should fail)
+uv run pytest tests/unit/generators/test_composite_type_generator.py -v
+
+# 3. Implement
+vim src/generators/composite_type_generator.py
+
+# 4. Run tests (should pass)
+uv run pytest tests/unit/generators/test_composite_type_generator.py -v
+
+# Continue with Phase 2, 3, 4...
+</code></pre>
+<hr />
+<h2 id="reference-documents">📚 Reference Documents</h2>
+<ol>
+<li><strong>Architecture</strong>: <code>docs/architecture/APP_CORE_FUNCTION_PATTERN.md</code></li>
+<li><strong>Composite Types</strong>: <code>/tmp/specql-composite-type-input-generation-issue.md</code></li>
+<li><strong>PrintOptim Example</strong>: <code>../printoptim_backend/db/0_schema/03_functions/</code></li>
+<li><strong>Team A AST</strong>: <code>src/core/ast_models.py</code></li>
+</ol>
+<hr />
+<p><strong>Last Updated</strong>: 2025-11-08
+<strong>Status</strong>: Ready for Development
+<strong>Estimated Duration</strong>: 3-4 days (with TDD discipline)</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

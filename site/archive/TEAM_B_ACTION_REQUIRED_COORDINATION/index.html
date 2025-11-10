@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Team B Action Required - Team C Coordination - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team B Action Required - Team C Coordination";
+        var mkdocs_page_input_path = "archive/TEAM_B_ACTION_REQUIRED_COORDINATION.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team B Action Required - Team C Coordination</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-b-action-required-team-c-coordination">Team B Action Required - Team C Coordination</h1>
+<p><strong>Date</strong>: 2025-11-08
+<strong>Priority</strong>: 🔴 <strong>CRITICAL BLOCKER</strong>
+<strong>Blocking</strong>: Team C integration testing and production deployment
+<strong>Effort</strong>: 1 day (Team B work)</p>
+<hr />
+<h2 id="critical-issue">🚨 Critical Issue</h2>
+<p>Team C has completed 85% of the action compiler implementation (78 tests passing, 3,348 lines of code) but is <strong>blocked</strong> because Team B has not yet generated the <code>app.log_and_return_mutation()</code> helper function that all Team C generated code depends on.</p>
+<hr />
+<h2 id="what-team-b-needs-to-provide">📋 What Team B Needs to Provide</h2>
+<h3 id="1-helper-function-applog_and_return_mutation">1. Helper Function: <code>app.log_and_return_mutation()</code></h3>
+<p><strong>Location</strong>: <code>migrations/000_app_foundation.sql</code>
+<strong>Schema</strong>: <code>app</code>
+<strong>Purpose</strong>: Audit logging and standardized mutation result builder</p>
+<pre><code class="language-sql">-- ============================================================================
+-- REQUIRED BY TEAM C: Audit Logger and Mutation Result Builder
+-- This function is called by ALL app/core functions for:
+--   - Success responses
+--   - Validation errors
+--   - FK resolution errors
+--   - Audit trail logging
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION app.log_and_return_mutation(
+    -- JWT Context
+    p_tenant_id UUID,              -- From auth.tenant_id
+    p_user_id UUID,                -- From auth.user_id
+
+    -- Mutation Identity
+    p_entity TEXT,                 -- 'contact', 'company', etc.
+    p_entity_id UUID,              -- UUID of affected entity
+    p_operation TEXT,              -- 'INSERT', 'UPDATE', 'DELETE', 'NOOP'
+
+    -- Result Details
+    p_status TEXT,                 -- 'success', 'failed:*'
+    p_updated_fields TEXT[],       -- ['email', 'status']
+    p_message TEXT,                -- User-facing message
+
+    -- Response Data
+    p_object_data JSONB,           -- Full entity object (for success)
+    p_extra_metadata JSONB DEFAULT NULL,  -- Side effects, impacts
+    p_error_context JSONB DEFAULT NULL    -- Error details (for failures)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_audit_id UUID := gen_random_uuid();
+BEGIN
+    -- Log to audit table (for compliance, debugging, analytics)
+    INSERT INTO app.tb_mutation_audit_log (
+        id,
+        tenant_id,
+        user_id,
+        entity_type,
+        entity_id,
+        operation,
+        status,
+        updated_fields,
+        message,
+        object_data,
+        extra_metadata,
+        error_context,
+        created_at
+    ) VALUES (
+        v_audit_id,
+        p_tenant_id,
+        p_user_id,
+        p_entity,
+        p_entity_id,
+        p_operation,
+        p_status,
+        p_updated_fields,
+        p_message,
+        p_object_data,
+        p_extra_metadata,
+        p_error_context,
+        now()
+    );
+
+    -- Return standardized mutation result (FraiseQL compatible)
+    RETURN ROW(
+        p_entity_id,
+        p_updated_fields,
+        p_status,
+        p_message,
+        p_object_data,
+        p_extra_metadata
+    )::app.mutation_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.log_and_return_mutation IS
+  'Audit logger and standardized mutation result builder. Used by all app/core functions to ensure consistent audit trail and response format. Required by Team C generated functions.';
+</code></pre>
+<hr />
+<h3 id="2-audit-log-table-apptb_mutation_audit_log">2. Audit Log Table: <code>app.tb_mutation_audit_log</code></h3>
+<p><strong>Location</strong>: <code>migrations/000_app_foundation.sql</code>
+<strong>Purpose</strong>: Store complete audit trail of all mutations</p>
+<pre><code class="language-sql">-- ============================================================================
+-- AUDIT LOG TABLE
+-- Stores complete history of all mutations (success and failures)
+-- Used for: compliance, debugging, analytics, security
+-- ============================================================================
+
+CREATE TABLE app.tb_mutation_audit_log (
+    -- Primary Key
+    id UUID PRIMARY KEY,
+
+    -- Multi-Tenancy
+    tenant_id UUID NOT NULL,
+
+    -- User Context
+    user_id UUID NOT NULL,
+
+    -- Mutation Identity
+    entity_type TEXT NOT NULL,     -- 'contact', 'company', 'order', etc.
+    entity_id UUID NOT NULL,       -- UUID of affected entity
+
+    -- Operation Details
+    operation TEXT NOT NULL,       -- 'INSERT', 'UPDATE', 'DELETE', 'NOOP'
+    status TEXT NOT NULL,          -- 'success', 'failed:validation', 'failed:not_found', etc.
+    updated_fields TEXT[],         -- Which fields were changed
+
+    -- Response Data
+    message TEXT,                  -- User-facing message
+    object_data JSONB,             -- Full entity object (for success)
+    extra_metadata JSONB,          -- Side effects, impact metadata
+    error_context JSONB,           -- Error details (for failures)
+
+    -- Audit Trail
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Indexes for common query patterns
+CREATE INDEX idx_audit_tenant_time ON app.tb_mutation_audit_log(tenant_id, created_at DESC);
+CREATE INDEX idx_audit_entity ON app.tb_mutation_audit_log(entity_type, entity_id);
+CREATE INDEX idx_audit_user ON app.tb_mutation_audit_log(user_id, created_at DESC);
+CREATE INDEX idx_audit_status ON app.tb_mutation_audit_log(status, created_at DESC);
+CREATE INDEX idx_audit_operation ON app.tb_mutation_audit_log(operation, created_at DESC);
+
+-- Optional: Partial index for failures only (for monitoring)
+CREATE INDEX idx_audit_failures ON app.tb_mutation_audit_log(tenant_id, created_at DESC)
+WHERE status LIKE 'failed:%';
+
+COMMENT ON TABLE app.tb_mutation_audit_log IS
+  'Complete audit trail of all mutations. Provides compliance, debugging, and analytics capabilities.';
+</code></pre>
+<hr />
+<h2 id="why-this-is-critical">🔍 Why This Is Critical</h2>
+<h3 id="team-c-usage-pattern">Team C Usage Pattern</h3>
+<p>Every single function generated by Team C calls <code>app.log_and_return_mutation()</code>:</p>
+<p><strong>Example - Success Response</strong>:</p>
+<pre><code class="language-sql">-- Core CREATE function (Team C generates this)
+CREATE OR REPLACE FUNCTION crm.create_contact(...)
+RETURNS app.mutation_result
+AS $$
+BEGIN
+    -- ... business logic ...
+
+    INSERT INTO crm.tb_contact (...) VALUES (...);
+
+    -- ✅ Team C calls app.log_and_return_mutation() here
+    RETURN app.log_and_return_mutation(
+        auth_tenant_id,
+        auth_user_id,
+        'contact',
+        v_contact_id,
+        'INSERT',
+        'success',
+        ARRAY(SELECT jsonb_object_keys(input_payload)),
+        'Contact created successfully',
+        (SELECT row_to_json(c.*) FROM crm.tb_contact c WHERE c.id = v_contact_id)::JSONB,
+        NULL
+    );
+END;
+$$;
+</code></pre>
+<p><strong>Example - Validation Error</strong>:</p>
+<pre><code class="language-sql">-- Core CREATE function with validation (Team C generates this)
+BEGIN
+    IF input_data.email IS NULL THEN
+        -- ✅ Team C calls app.log_and_return_mutation() for errors too
+        RETURN app.log_and_return_mutation(
+            auth_tenant_id,
+            auth_user_id,
+            'contact',
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            'NOOP',
+            'failed:missing_email',
+            ARRAY['email']::TEXT[],
+            'Email is required',
+            NULL,
+            NULL,
+            jsonb_build_object('reason', 'validation_email_null')
+        );
+    END IF;
+    ...
+END;
+</code></pre>
+<p><strong>Without This Function</strong>:
+- ❌ All Team C generated SQL will fail with "function app.log_and_return_mutation does not exist"
+- ❌ Cannot run integration tests
+- ❌ Cannot deploy to database
+- ❌ No audit trail
+- ❌ Blocks Team C from moving to production</p>
+<hr />
+<h2 id="impact-analysis">📊 Impact Analysis</h2>
+<h3 id="what-works-now">What Works Now</h3>
+<ul>
+<li>✅ Team C code compiles and generates correct SQL</li>
+<li>✅ All 78 Team C tests pass (mocked database)</li>
+<li>✅ Templates are correct and reference the right function signature</li>
+</ul>
+<h3 id="whats-blocked">What's Blocked</h3>
+<ul>
+<li>❌ <strong>Database integration tests</strong> - Cannot execute generated SQL</li>
+<li>❌ <strong>End-to-end testing</strong> - SQL fails when applied to database</li>
+<li>❌ <strong>Production deployment</strong> - Missing critical dependency</li>
+<li>❌ <strong>Team D integration</strong> - FraiseQL can't test with broken SQL</li>
+<li>❌ <strong>Team E integration</strong> - CLI can't generate working migrations</li>
+</ul>
+<h3 id="timeline-impact">Timeline Impact</h3>
+<ul>
+<li><strong>If added today</strong>: Team C can complete integration testing this week</li>
+<li><strong>If delayed 1 week</strong>: Team C blocked, 2-3 week delay to production</li>
+<li><strong>If not added</strong>: Complete redesign required (4+ weeks)</li>
+</ul>
+<hr />
+<h2 id="acceptance-criteria">✅ Acceptance Criteria</h2>
+<p>Team C will verify the following after Team B delivers:</p>
+<h3 id="1-function-signature-validation">1. Function Signature Validation</h3>
+<pre><code class="language-bash"># Connect to test database
+psql test_db
+
+# Verify function exists
+\df app.log_and_return_mutation
+
+# Expected output:
+#  Schema | Name                     | Result data type      | Argument data types
+# --------+--------------------------+-----------------------+---------------------
+#  app    | log_and_return_mutation  | app.mutation_result   | p_tenant_id uuid, ...
+</code></pre>
+<h3 id="2-return-type-validation">2. Return Type Validation</h3>
+<pre><code class="language-sql">-- Verify return type matches app.mutation_result
+SELECT pg_get_function_result('app.log_and_return_mutation'::regproc);
+
+-- Expected: app.mutation_result
+</code></pre>
+<h3 id="3-audit-table-exists">3. Audit Table Exists</h3>
+<pre><code class="language-sql">-- Verify table structure
+\d app.tb_mutation_audit_log
+
+-- Expected columns:
+-- id, tenant_id, user_id, entity_type, entity_id, operation, status,
+-- updated_fields, message, object_data, extra_metadata, error_context, created_at
+</code></pre>
+<h3 id="4-indexes-exist">4. Indexes Exist</h3>
+<pre><code class="language-sql">-- Verify indexes
+\di app.idx_audit_*
+
+-- Expected:
+-- idx_audit_tenant_time, idx_audit_entity, idx_audit_user,
+-- idx_audit_status, idx_audit_operation, idx_audit_failures
+</code></pre>
+<h3 id="5-functional-test">5. Functional Test</h3>
+<pre><code class="language-sql">-- Call function and verify it works
+SELECT app.log_and_return_mutation(
+    'test-tenant-id'::UUID,
+    'test-user-id'::UUID,
+    'test_entity',
+    gen_random_uuid(),
+    'INSERT',
+    'success',
+    ARRAY['field1', 'field2']::TEXT[],
+    'Test message',
+    '{&quot;key&quot;: &quot;value&quot;}'::JSONB,
+    NULL,
+    NULL
+);
+
+-- Expected: Returns app.mutation_result composite type
+-- Verify: Row inserted into app.tb_mutation_audit_log
+</code></pre>
+<hr />
+<h2 id="proposed-timeline">🗓️ Proposed Timeline</h2>
+<h3 id="day-1-today-2-hours">Day 1 (Today - 2 hours)</h3>
+<ul>
+<li>[ ] Team B reviews this specification</li>
+<li>[ ] Team B asks any clarification questions</li>
+<li>[ ] Team B and Team C align on signature</li>
+</ul>
+<h3 id="day-2-tomorrow-4-hours">Day 2 (Tomorrow - 4 hours)</h3>
+<ul>
+<li>[ ] Team B adds function to <code>000_app_foundation.sql</code></li>
+<li>[ ] Team B adds audit table to <code>000_app_foundation.sql</code></li>
+<li>[ ] Team B runs migration on test database</li>
+<li>[ ] Team B notifies Team C: "Ready for testing"</li>
+</ul>
+<h3 id="day-3-day-after-1-hour">Day 3 (Day After - 1 hour)</h3>
+<ul>
+<li>[ ] Team C runs acceptance tests (above)</li>
+<li>[ ] Team C runs first database roundtrip test</li>
+<li>[ ] Team C provides feedback (if any issues)</li>
+<li>[ ] <strong>BLOCKER RESOLVED</strong> ✅</li>
+</ul>
+<hr />
+<h2 id="coordination">📞 Coordination</h2>
+<h3 id="team-b-contact">Team B Contact</h3>
+<p><strong>Lead</strong>: [To be assigned]
+<strong>Channel</strong>: #team-b-schema-generator
+<strong>Priority</strong>: 🔴 CRITICAL BLOCKER</p>
+<h3 id="team-c-contact">Team C Contact</h3>
+<p><strong>Lead</strong>: [To be assigned]
+<strong>Channel</strong>: #team-c-action-compiler
+<strong>Availability</strong>: Immediate for questions</p>
+<h3 id="questions-to-resolve">Questions to Resolve</h3>
+<ol>
+<li>❓ Should <code>error_context</code> be separate parameter or part of <code>extra_metadata</code>?</li>
+<li><strong>Team C Preference</strong>: Separate (clearer semantics)</li>
+<li>
+<p><strong>Decision</strong>: Team B to confirm</p>
+</li>
+<li>
+<p>❓ Should audit log have retention policy?</p>
+</li>
+<li><strong>Suggestion</strong>: Partition by month, retain 12 months</li>
+<li>
+<p><strong>Decision</strong>: Can be added later (not blocking)</p>
+</li>
+<li>
+<p>❓ Should we capture execution time?</p>
+</li>
+<li><strong>Suggestion</strong>: Add <code>execution_time_ms INTEGER</code> column</li>
+<li><strong>Decision</strong>: Nice to have, not blocking</li>
+</ol>
+<hr />
+<h2 id="related-documents">🔗 Related Documents</h2>
+<ol>
+<li><strong>Team C Full Plan</strong>: <code>docs/implementation-plans/TEAM_C_REMAINING_WORK_PLAN.md</code></li>
+<li><strong>App/Core Pattern</strong>: <code>docs/architecture/APP_CORE_FUNCTION_PATTERN.md</code></li>
+<li><strong>Team C Implementation Plan</strong>: <code>docs/implementation-plans/TEAM_C_APP_CORE_FUNCTIONS_PLAN.md</code></li>
+</ol>
+<hr />
+<h2 id="notes">📝 Notes</h2>
+<h3 id="why-not-generate-this-in-team-c">Why Not Generate This in Team C?</h3>
+<p><strong>Q</strong>: Why can't Team C just add this function themselves?</p>
+<p><strong>A</strong>: Because it belongs in the <code>app</code> schema foundation layer:
+- Used by <strong>all</strong> entities (Contact, Company, Order, Machine, etc.)
+- Should be created <strong>once</strong> in <code>000_app_foundation.sql</code>
+- Team B owns the <code>app</code> schema foundation
+- Team C generates entity-specific functions that <strong>use</strong> app.log_and_return_mutation()</p>
+<p><strong>Analogy</strong>: Team B builds the foundation (app.mutation_result, app.log_and_return_mutation), Team C builds the house on top (crm.create_contact, management.create_company).</p>
+<h3 id="alternative-not-recommended">Alternative (Not Recommended)</h3>
+<p>If Team B is blocked, Team C could:
+1. Create a temporary <code>001_team_c_helpers.sql</code> with this function
+2. Continue integration testing
+3. Move to Team B's migration later</p>
+<p><strong>Why Not Recommended</strong>:
+- Creates migration ordering issues
+- Duplicates responsibility
+- Harder to maintain
+- Team B should own <code>app</code> schema</p>
+<hr />
+<p><strong>Created</strong>: 2025-11-08
+<strong>Urgency</strong>: 🔴 <strong>CRITICAL</strong> - Blocking Team C production readiness
+<strong>Expected Resolution</strong>: 1-2 days
+<strong>Status</strong>: ⏸️ <strong>WAITING ON TEAM B</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

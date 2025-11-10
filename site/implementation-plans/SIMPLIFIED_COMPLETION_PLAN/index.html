@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Simplified SpecQL Completion Plan - Single Agent TDD - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Simplified SpecQL Completion Plan - Single Agent TDD";
+        var mkdocs_page_input_path = "implementation-plans/SIMPLIFIED_COMPLETION_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Simplified SpecQL Completion Plan - Single Agent TDD</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="simplified-specql-completion-plan-single-agent-tdd">Simplified SpecQL Completion Plan - Single Agent TDD</h1>
+<p><strong>Key Insight</strong>: FraiseQL now reads PostgreSQL COMMENT metadata directly!</p>
+<p><strong>Impact</strong>: Team D work is <strong>90% done</strong> already. We just need to enhance comments.</p>
+<p><strong>Revised Timeline</strong>: <strong>2 weeks</strong> instead of 4 weeks</p>
+<hr />
+<h2 id="whats-already-working">🎯 What's Already Working</h2>
+<h3 id="team-a-parser-95-complete">✅ Team A: Parser (95% complete)</h3>
+<ul>
+<li>Complete SpecQL parsing</li>
+<li>All field types supported</li>
+<li>Action parsing complete</li>
+</ul>
+<h3 id="team-b-schema-generation-90-complete">✅ Team B: Schema Generation (90% complete)</h3>
+<ul>
+<li>Trinity pattern fully implemented</li>
+<li>Table generation with audit fields</li>
+<li>Foreign keys, indexes, constraints</li>
+<li>Rich scalar type support</li>
+<li>Already generating <code>COMMENT ON TABLE</code> and <code>COMMENT ON COLUMN</code></li>
+</ul>
+<h3 id="team-c-action-compilation-85-complete">✅ Team C: Action Compilation (85% complete)</h3>
+<ul>
+<li>CRUD operations working</li>
+<li>App/Core two-layer pattern</li>
+<li>Expression compiler complete</li>
+<li>Database roundtrip tests passing</li>
+<li>Already generating <code>COMMENT ON FUNCTION app.function_name</code> with <code>@fraiseql:mutation</code></li>
+</ul>
+<h3 id="team-d-fraiseql-metadata-70-complete">✅ Team D: FraiseQL Metadata (70% complete!)</h3>
+<p><strong>Already generating</strong>:
+- ✅ <code>@fraiseql:type</code> for composite types
+- ✅ <code>@fraiseql:field</code> for composite type fields
+- ✅ <code>@fraiseql:mutation</code> for app wrapper functions
+- ✅ Table and column comments</p>
+<p><strong>What's Missing</strong> (30%):
+- Enhanced mutation metadata (impact, cache hints)
+- Table/column FraiseQL annotations
+- Documentation of metadata format</p>
+<hr />
+<h2 id="revised-progress-assessment">📊 Revised Progress Assessment</h2>
+<table>
+<thead>
+<tr>
+<th>Team</th>
+<th>Previous Estimate</th>
+<th>Actual Status</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Team A</td>
+<td>95%</td>
+<td><strong>95%</strong></td>
+<td>Accurate</td>
+</tr>
+<tr>
+<td>Team B</td>
+<td>90%</td>
+<td><strong>90%</strong></td>
+<td>Accurate</td>
+</tr>
+<tr>
+<td>Team C</td>
+<td>85%</td>
+<td><strong>85%</strong></td>
+<td>Accurate</td>
+</tr>
+<tr>
+<td>Team D</td>
+<td>50%</td>
+<td><strong>70%</strong></td>
+<td>Basic FraiseQL comments already working!</td>
+</tr>
+<tr>
+<td>Team E</td>
+<td>30%</td>
+<td><strong>30%</strong></td>
+<td>Accurate</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Overall Project</strong>: <strong>80-85% complete</strong> (not 70-75%!)</p>
+<p><strong>Remaining Work</strong>: <strong>15-20%</strong> (not 25-30%)</p>
+<hr />
+<h2 id="simplified-2-week-plan">🚀 SIMPLIFIED 2-WEEK PLAN</h2>
+<h3 id="week-1-polish-fraiseql-custom-actions-5-days">Week 1: Polish FraiseQL + Custom Actions (5 days)</h3>
+<p><strong>Goal</strong>: Complete Team C &amp; D to 100%</p>
+<h3 id="week-2-cli-documentation-5-days">Week 2: CLI &amp; Documentation (5 days)</h3>
+<p><strong>Goal</strong>: Ship production-ready system</p>
+<hr />
+<h1 id="week-1-fraiseql-polish-custom-actions">WEEK 1: FraiseQL Polish + Custom Actions</h1>
+<h2 id="day-1-enhanced-fraiseql-mutation-metadata">Day 1: Enhanced FraiseQL Mutation Metadata</h2>
+<p><strong>Objective</strong>: Add impact metadata to @fraiseql:mutation comments</p>
+<h3 id="tdd-cycle-1-add-impact-metadata-to-mutation-comments-3-hours">TDD Cycle 1: Add Impact Metadata to Mutation Comments (3 hours)</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python"># tests/unit/generators/test_app_wrapper_generator.py
+def test_mutation_comment_includes_impact_metadata():
+    &quot;&quot;&quot;Mutation comment should include impact and cache hints&quot;&quot;&quot;
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;)
+    action = Action(
+        name=&quot;qualify_lead&quot;,
+        # In future, we might parse impact from action analysis
+    )
+
+    generator = AppWrapperGenerator()
+    sql = generator.generate(entity, action)
+
+    # Should have enhanced metadata
+    assert &quot;@fraiseql:mutation&quot; in sql
+    assert &quot;primaryEntity=Contact&quot; in sql
+    assert &quot;primaryOperation=UPDATE&quot; in sql
+    assert &quot;affectedFields=[status,updatedAt]&quot; in sql
+    # Optional: cache hints
+    assert &quot;invalidates=[contacts]&quot; in sql
+</code></pre>
+<p>Run: <code>uv run pytest tests/unit/generators/test_app_wrapper_generator.py::test_mutation_comment_includes_impact_metadata -v</code>
+Expected: <strong>FAIL</strong></p>
+<p><strong>🟢 GREEN</strong> (1.5 hours)
+1. Update <code>src/generators/app_wrapper_generator.py</code>
+2. Add method to analyze action and extract impact metadata
+3. Update template to include enhanced metadata</p>
+<pre><code class="language-python"># In app_wrapper_generator.py
+def _analyze_action_impact(self, entity: Entity, action: Action) -&gt; dict:
+    &quot;&quot;&quot;Analyze action to determine impact metadata&quot;&quot;&quot;
+    impact = {
+        &quot;primary_entity&quot;: entity.name,
+        &quot;primary_operation&quot;: self._infer_operation(action),
+        &quot;affected_fields&quot;: self._extract_affected_fields(action),
+        &quot;invalidates&quot;: self._infer_cache_invalidations(entity, action)
+    }
+    return impact
+
+def _infer_operation(self, action: Action) -&gt; str:
+    &quot;&quot;&quot;Infer operation type from action steps&quot;&quot;&quot;
+    if any(step.type == &quot;insert&quot; for step in action.steps):
+        return &quot;CREATE&quot;
+    elif any(step.type == &quot;update&quot; for step in action.steps):
+        return &quot;UPDATE&quot;
+    elif any(step.type == &quot;delete&quot; for step in action.steps):
+        return &quot;DELETE&quot;
+    return &quot;CUSTOM&quot;
+</code></pre>
+<p><strong>🔧 REFACTOR</strong> (45 min)
+- Clean up impact analysis logic
+- Add unit tests for helper methods
+- Document metadata format</p>
+<p><strong>✅ QA</strong> (30 min)
+- Run full test suite
+- Verify comments format correctly
+- Check no regressions</p>
+<hr />
+<h3 id="tdd-cycle-2-table-and-field-fraiseql-annotations-2-hours">TDD Cycle 2: Table and Field FraiseQL Annotations (2 hours)</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python"># tests/unit/generators/test_comment_generator.py
+def test_table_comment_includes_fraiseql_type():
+    &quot;&quot;&quot;Table comment should include @fraiseql:type&quot;&quot;&quot;
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;, description=&quot;Customer contact&quot;)
+
+    generator = CommentGenerator()
+    comment = generator.generate_table_comment_with_fraiseql(entity)
+
+    assert &quot;COMMENT ON TABLE crm.tb_contact&quot; in comment
+    assert &quot;@fraiseql:type name=Contact&quot; in comment
+    assert &quot;schema=crm&quot; in comment
+</code></pre>
+<p><strong>🟢 GREEN</strong> (1 hour)
+Implement <code>generate_table_comment_with_fraiseql()</code> method</p>
+<p><strong>🔧 REFACTOR</strong> (20 min)
+Clean up</p>
+<p><strong>✅ QA</strong> (10 min)
+Test suite</p>
+<hr />
+<h3 id="tdd-cycle-3-field-level-fraiseql-annotations-2-hours">TDD Cycle 3: Field-level FraiseQL Annotations (2 hours)</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python">def test_field_comment_includes_fraiseql_metadata():
+    &quot;&quot;&quot;Field comments should include @fraiseql:field metadata&quot;&quot;&quot;
+    field = FieldDefinition(
+        name=&quot;email&quot;,
+        type_name=&quot;email&quot;,
+        nullable=False,
+        postgres_type=&quot;TEXT&quot;,
+        fraiseql_type=&quot;Email&quot;
+    )
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;)
+
+    generator = CommentGenerator()
+    comment = generator.generate_field_comment_with_fraiseql(field, entity)
+
+    assert &quot;COMMENT ON COLUMN crm.tb_contact.email&quot; in comment
+    assert &quot;@fraiseql:field name=email&quot; in comment
+    assert &quot;type=Email&quot; in comment
+    assert &quot;required=true&quot; in comment  # Because nullable=False
+</code></pre>
+<p><strong>🟢 GREEN</strong> (1 hour)
+Implement field-level annotations</p>
+<p><strong>🔧 REFACTOR</strong> (20 min)
+Template optimization</p>
+<p><strong>✅ QA</strong> (10 min)
+Test suite</p>
+<p><strong>END OF DAY 1</strong>: Enhanced FraiseQL comments complete</p>
+<hr />
+<h2 id="day-2-custom-actions-team-c-completion">Day 2: Custom Actions (Team C Completion)</h2>
+<p><strong>Objective</strong>: Support non-CRUD custom actions</p>
+<h3 id="tdd-cycle-1-custom-action-pattern-detection-1-hour">TDD Cycle 1: Custom Action Pattern Detection (1 hour)</h3>
+<p><strong>🔴 RED</strong> (20 min)</p>
+<pre><code class="language-python"># tests/unit/generators/test_core_logic_generator.py
+def test_detect_custom_action():
+    &quot;&quot;&quot;Detect custom actions vs CRUD&quot;&quot;&quot;
+    action_crud = Action(name=&quot;create_contact&quot;, steps=[...])
+    action_custom = Action(name=&quot;qualify_lead&quot;, steps=[...])
+
+    generator = CoreLogicGenerator()
+
+    assert generator.is_custom_action(action_crud) == False
+    assert generator.is_custom_action(action_custom) == True
+</code></pre>
+<p><strong>🟢 GREEN</strong> (30 min)
+Implement detection logic</p>
+<p><strong>🔧 REFACTOR</strong> (10 min)
+Clean up</p>
+<p><strong>✅ QA</strong> (5 min)
+Test</p>
+<hr />
+<h3 id="tdd-cycle-2-custom-action-template-3-hours">TDD Cycle 2: Custom Action Template (3 hours)</h3>
+<p><strong>🔴 RED</strong> (45 min)</p>
+<pre><code class="language-python">def test_generate_custom_action_function():
+    &quot;&quot;&quot;Generate custom action PL/pgSQL function&quot;&quot;&quot;
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;)
+    action = Action(
+        name=&quot;qualify_lead&quot;,
+        steps=[
+            ActionStep(type=&quot;validate&quot;, expression=&quot;status = 'lead'&quot;),
+            ActionStep(type=&quot;update&quot;, entity=&quot;Contact&quot;, fields={&quot;status&quot;: &quot;qualified&quot;})
+        ]
+    )
+
+    generator = CoreLogicGenerator()
+    sql = generator.generate_custom_action(entity, action)
+
+    # Should have function
+    assert &quot;CREATE FUNCTION crm.qualify_lead(&quot; in sql
+    # Should compile steps
+    assert &quot;status = 'lead'&quot; in sql
+    assert &quot;UPDATE crm.tb_contact&quot; in sql
+    # Should return mutation_result
+    assert &quot;RETURNS app.mutation_result&quot; in sql
+</code></pre>
+<p><strong>🟢 GREEN</strong> (1.5 hours)
+1. Create custom action generation logic
+2. Reuse existing step compilers
+3. Generate proper function signature</p>
+<p><strong>🔧 REFACTOR</strong> (45 min)
+Clean up template, error handling</p>
+<p><strong>✅ QA</strong> (30 min)
+Test suite</p>
+<hr />
+<h3 id="tdd-cycle-3-database-roundtrip-for-custom-action-2-hours">TDD Cycle 3: Database Roundtrip for Custom Action (2 hours)</h3>
+<p><strong>🔴 RED</strong> (45 min)</p>
+<pre><code class="language-python"># tests/integration/actions/test_custom_actions_database.py
+def test_custom_action_executes_in_database(test_db):
+    &quot;&quot;&quot;Custom action qualify_lead works in real PostgreSQL&quot;&quot;&quot;
+    # Generate SQL
+    entity = create_contact_entity_with_custom_action()
+    orchestrator = SchemaOrchestrator()
+    sql = orchestrator.generate_complete_schema(entity)
+
+    # Apply to database
+    test_db.execute(sql)
+    test_db.commit()
+
+    # Create a lead
+    contact_id = test_db.create_contact(status=&quot;lead&quot;)
+
+    # Call custom action
+    result = test_db.call_mutation(&quot;app.qualify_lead&quot;, {
+        &quot;contactId&quot;: str(contact_id)
+    })
+
+    # Verify success
+    assert result[&quot;status&quot;] == &quot;success&quot;
+
+    # Verify database updated
+    contact = test_db.get_contact(contact_id)
+    assert contact[&quot;status&quot;] == &quot;qualified&quot;
+</code></pre>
+<p><strong>🟢 GREEN</strong> (45 min)
+Fix any issues found</p>
+<p><strong>🔧 REFACTOR</strong> (20 min)
+Improve SQL quality</p>
+<p><strong>✅ QA</strong> (10 min)
+Full test suite</p>
+<p><strong>END OF DAY 2</strong>: Custom actions complete</p>
+<hr />
+<h2 id="day-3-integration-testing">Day 3: Integration Testing</h2>
+<p><strong>Objective</strong>: Verify complete SpecQL → PostgreSQL → FraiseQL pipeline</p>
+<h3 id="tdd-cycle-1-complete-pipeline-test-3-hours">TDD Cycle 1: Complete Pipeline Test (3 hours)</h3>
+<p><strong>🔴 RED</strong> (1 hour)</p>
+<pre><code class="language-python"># tests/integration/test_complete_fraiseql_pipeline.py
+def test_specql_to_fraiseql_complete():
+    &quot;&quot;&quot;Test SpecQL → SQL with FraiseQL comments → (manual FraiseQL introspection)&quot;&quot;&quot;
+    yaml_content = &quot;&quot;&quot;
+    entity: Contact
+    schema: crm
+    fields:
+      email: email!
+      company: ref(Company)
+      status: enum(lead, qualified, customer)
+    actions:
+      - name: create_contact
+        steps:
+          - validate: email IS NOT NULL
+          - insert: Contact
+      - name: qualify_lead
+        steps:
+          - validate: status = 'lead'
+          - update: Contact SET status = 'qualified'
+    &quot;&quot;&quot;
+
+    # Parse
+    parser = SpecQLParser()
+    entity = parser.parse(yaml_content)
+
+    # Generate
+    orchestrator = SchemaOrchestrator()
+    sql = orchestrator.generate_complete_schema(entity)
+
+    # Verify SQL has all FraiseQL metadata
+    assert &quot;CREATE TABLE crm.tb_contact&quot; in sql
+    assert &quot;COMMENT ON TABLE crm.tb_contact&quot; in sql
+    assert &quot;@fraiseql:type name=Contact&quot; in sql
+
+    assert &quot;CREATE FUNCTION app.create_contact&quot; in sql
+    assert &quot;@fraiseql:mutation name=createContact&quot; in sql
+    assert &quot;primaryEntity=Contact&quot; in sql
+
+    assert &quot;CREATE FUNCTION app.qualify_lead&quot; in sql
+    assert &quot;@fraiseql:mutation name=qualifyLead&quot; in sql
+    assert &quot;primaryOperation=UPDATE&quot; in sql
+
+    # Apply to test database
+    test_db.execute(sql)
+    test_db.commit()
+
+    # Verify functions work
+    result = test_db.call_mutation(&quot;app.create_contact&quot;, {
+        &quot;email&quot;: &quot;test@example.com&quot;,
+        &quot;status&quot;: &quot;lead&quot;
+    })
+    assert result[&quot;status&quot;] == &quot;success&quot;
+
+    result = test_db.call_mutation(&quot;app.qualify_lead&quot;, {
+        &quot;contactId&quot;: result[&quot;id&quot;]
+    })
+    assert result[&quot;status&quot;] == &quot;success&quot;
+</code></pre>
+<p><strong>🟢 GREEN</strong> (1.5 hours)
+Fix integration issues</p>
+<p><strong>🔧 REFACTOR</strong> (30 min)
+Clean up</p>
+<p><strong>✅ QA</strong> (30 min)
+Run multiple times</p>
+<hr />
+<h3 id="tdd-cycle-2-document-fraiseql-metadata-format-2-hours">TDD Cycle 2: Document FraiseQL Metadata Format (2 hours)</h3>
+<p><strong>Non-TDD Task</strong>: Write documentation</p>
+<p>Create <code>docs/architecture/FRAISEQL_METADATA_FORMAT.md</code>:</p>
+<pre><code class="language-markdown"># FraiseQL Metadata Format
+
+This document describes the PostgreSQL COMMENT metadata format used for FraiseQL auto-discovery.
+
+## Table Metadata
+
+```sql
+COMMENT ON TABLE schema.tb_entity IS
+  'Entity description text
+
+  @fraiseql:type name=Entity,schema=schema';
+</code></pre>
+<h2 id="column-metadata">Column Metadata</h2>
+<pre><code class="language-sql">COMMENT ON COLUMN schema.tb_entity.field_name IS
+  'Field description text
+
+  @fraiseql:field name=fieldName,type=GraphQLType,required=true';
+</code></pre>
+<h2 id="mutation-metadata">Mutation Metadata</h2>
+<pre><code class="language-sql">COMMENT ON FUNCTION app.mutation_name IS
+  '@fraiseql:mutation name=mutationName,input=InputType,output=OutputType,primaryEntity=Entity,primaryOperation=UPDATE,affectedFields=[field1,field2],invalidates=[queryName]';
+</code></pre>
+<p>... (continue with full specification)</p>
+<pre><code>
+**END OF DAY 3**: FraiseQL integration complete and documented
+
+---
+
+## Days 4-5: Buffer / Polish
+
+**Objective**: Clean up any rough edges
+
+### Day 4 Morning: Code Review
+- Review all new code
+- Fix TODOs
+- Improve error messages
+
+### Day 4 Afternoon: Performance
+- Profile generation speed
+- Optimize slow parts
+- Add benchmarks
+
+### Day 5: Edge Cases
+- Handle edge cases found in testing
+- Add missing validations
+- Polish error messages
+
+**END OF WEEK 1**: Teams C &amp; D complete at 100%
+
+---
+
+# WEEK 2: CLI &amp; Documentation
+
+## Day 6: CLI Generate Command
+
+**Objective**: Production-ready `specql generate` command
+
+### TDD Cycle 1: Basic Generate Command (3 hours)
+
+**🔴 RED** (45 min)
+```python
+# tests/unit/cli/test_generate_command.py
+def test_generate_command_creates_migration():
+    &quot;&quot;&quot;Test specql generate command&quot;&quot;&quot;
+    # Mock file system
+    with temp_directory() as tmp:
+        # Create test entity file
+        write_file(f&quot;{tmp}/entities/contact.yaml&quot;, CONTACT_YAML)
+
+        # Run CLI
+        result = cli_runner.invoke(generate_command, [
+            &quot;entities/contact.yaml&quot;,
+            f&quot;--output={tmp}/migrations&quot;
+        ])
+
+        assert result.exit_code == 0
+        assert &quot;✓ Generated: migrations/001_contact.sql&quot; in result.output
+        assert Path(f&quot;{tmp}/migrations/001_contact.sql&quot;).exists()
+</code></pre>
+<p><strong>🟢 GREEN</strong> (1.5 hours)
+Implement generate command with:
+- File reading
+- Error handling
+- Progress output
+- Migration numbering</p>
+<p><strong>🔧 REFACTOR</strong> (45 min)
+Add colors, better formatting</p>
+<p><strong>✅ QA</strong> (30 min)
+Manual testing</p>
+<hr />
+<h3 id="tdd-cycle-2-batch-generation-2-hours">TDD Cycle 2: Batch Generation (2 hours)</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python">def test_generate_multiple_entities():
+    &quot;&quot;&quot;Generate from multiple YAML files&quot;&quot;&quot;
+    result = cli_runner.invoke(generate_command, [
+        &quot;entities/*.yaml&quot;,
+        &quot;--output=migrations&quot;
+    ])
+
+    assert result.exit_code == 0
+    assert &quot;✓ Generated 3 migrations&quot; in result.output
+</code></pre>
+<p><strong>🟢 GREEN</strong> (1 hour)
+Implement glob pattern support</p>
+<p><strong>🔧 REFACTOR</strong> (20 min)
+Clean up</p>
+<p><strong>✅ QA</strong> (10 min)
+Test</p>
+<hr />
+<h2 id="day-7-cli-validate-docs-commands">Day 7: CLI Validate &amp; Docs Commands</h2>
+<h3 id="tdd-cycle-1-validate-command-2-hours">TDD Cycle 1: Validate Command (2 hours)</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python">def test_validate_command():
+    &quot;&quot;&quot;Test specql validate command&quot;&quot;&quot;
+    result = cli_runner.invoke(validate_command, [&quot;entities/contact.yaml&quot;])
+
+    assert result.exit_code == 0
+    assert &quot;✓ contact.yaml is valid&quot; in result.output
+</code></pre>
+<p><strong>🟢 GREEN</strong> (1 hour)
+Implement validation</p>
+<p><strong>🔧 REFACTOR</strong> (20 min)
+Error formatting</p>
+<p><strong>✅ QA</strong> (10 min)
+Test</p>
+<hr />
+<h3 id="tdd-cycle-2-docs-command-2-hours">TDD Cycle 2: Docs Command (2 hours)</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python">def test_docs_command():
+    &quot;&quot;&quot;Test specql docs command&quot;&quot;&quot;
+    result = cli_runner.invoke(docs_command, [
+        &quot;entities/contact.yaml&quot;,
+        &quot;--output=docs/&quot;
+    ])
+
+    assert result.exit_code == 0
+    assert Path(&quot;docs/contact.md&quot;).exists()
+</code></pre>
+<p><strong>🟢 GREEN</strong> (1 hour)
+Generate markdown docs</p>
+<p><strong>🔧 REFACTOR</strong> (20 min)
+Format templates</p>
+<p><strong>✅ QA</strong> (10 min)
+Review output</p>
+<hr />
+<h2 id="day-8-user-documentation">Day 8: User Documentation</h2>
+<p><strong>Objective</strong>: Complete user-facing documentation</p>
+<h3 id="morning-4-hours-core-guides">Morning (4 hours): Core Guides</h3>
+<p>Write:
+1. <strong>Getting Started Guide</strong> (<code>docs/guides/getting-started.md</code>)
+   - Installation
+   - First entity
+   - Running migrations
+   - Connecting FraiseQL</p>
+<ol>
+<li><strong>SpecQL Language Reference</strong> (<code>docs/reference/specql-syntax.md</code>)</li>
+<li>All field types</li>
+<li>Action syntax</li>
+<li>
+<p>Examples</p>
+</li>
+<li>
+<p><strong>FraiseQL Integration Guide</strong> (<code>docs/guides/fraiseql-integration.md</code>)</p>
+</li>
+<li>How metadata works</li>
+<li>What FraiseQL discovers</li>
+<li>GraphQL schema generation</li>
+</ol>
+<h3 id="afternoon-4-hours-examples">Afternoon (4 hours): Examples</h3>
+<p>Create working examples:
+1. <strong>Simple CRM</strong> (<code>examples/crm/</code>)
+   - Contact, Company entities
+   - CRUD + custom actions
+   - Complete migration
+   - README with instructions</p>
+<ol>
+<li><strong>E-commerce</strong> (<code>examples/ecommerce/</code>)</li>
+<li>Product, Order, Customer</li>
+<li>Complex workflows</li>
+<li>Custom actions</li>
+</ol>
+<hr />
+<h2 id="day-9-polish-testing">Day 9: Polish &amp; Testing</h2>
+<h3 id="morning-4-hours-polish">Morning (4 hours): Polish</h3>
+<ul>
+<li>Fix all TODOs</li>
+<li>Improve error messages</li>
+<li>Add helpful CLI output</li>
+<li>Code formatting</li>
+</ul>
+<h3 id="afternoon-4-hours-testing-marathon">Afternoon (4 hours): Testing Marathon</h3>
+<ul>
+<li>Run test suite 20 times</li>
+<li>Fix flaky tests</li>
+<li>Test on different machines</li>
+<li>Document known issues</li>
+</ul>
+<hr />
+<h2 id="day-10-release-preparation">Day 10: Release Preparation</h2>
+<h3 id="morning-4-hours-release-artifacts">Morning (4 hours): Release Artifacts</h3>
+<ol>
+<li>Version bump to 1.0.0</li>
+<li>Update CHANGELOG.md</li>
+<li>Tag release</li>
+<li>Write release notes</li>
+</ol>
+<h3 id="afternoon-4-hours-demo-announcement">Afternoon (4 hours): Demo &amp; Announcement</h3>
+<ol>
+<li>Record demo video</li>
+<li>Create example repository</li>
+<li>Write blog post</li>
+<li>Prepare stakeholder presentation</li>
+</ol>
+<hr />
+<h2 id="success-criteria">🎯 SUCCESS CRITERIA</h2>
+<h3 id="functionality">Functionality ✅</h3>
+<ul>
+<li>[x] SpecQL → PostgreSQL (already working)</li>
+<li>[ ] Enhanced FraiseQL metadata</li>
+<li>[ ] Custom actions</li>
+<li>[ ] CLI commands</li>
+<li>[ ] 320+ tests passing</li>
+</ul>
+<h3 id="quality">Quality ✅</h3>
+<ul>
+<li>[ ] No critical bugs</li>
+<li>[ ] Performance &lt;5s for 10 entities</li>
+<li>[ ] Helpful error messages</li>
+<li>[ ] Complete documentation</li>
+</ul>
+<h3 id="deliverables">Deliverables ✅</h3>
+<ul>
+<li>[ ] Enhanced <code>@fraiseql:*</code> comments in SQL</li>
+<li>[ ] Custom action support</li>
+<li>[ ] CLI tools (<code>generate</code>, <code>validate</code>, <code>docs</code>)</li>
+<li>[ ] User documentation</li>
+<li>[ ] Working examples</li>
+</ul>
+<hr />
+<h2 id="daily-progress-tracking">📊 DAILY PROGRESS TRACKING</h2>
+<pre><code class="language-markdown">### Day 1 (YYYY-MM-DD) - Enhanced FraiseQL Metadata
+- [ ] Cycle 1: Impact metadata in mutation comments
+- [ ] Cycle 2: Table annotations
+- [ ] Cycle 3: Field annotations
+- Tests: ___/320 passing
+- Blockers: ___
+
+### Day 2 (YYYY-MM-DD) - Custom Actions
+- [ ] Cycle 1: Detection logic
+- [ ] Cycle 2: Generation template
+- [ ] Cycle 3: Database roundtrip
+- Tests: ___/325 passing
+- Blockers: ___
+
+... (continue for all 10 days)
+</code></pre>
+<hr />
+<h2 id="key-simplifications">🎉 KEY SIMPLIFICATIONS</h2>
+<h3 id="what-changed-from-original-plan">What Changed from Original Plan?</h3>
+<table>
+<thead>
+<tr>
+<th>Original (4 weeks)</th>
+<th>Simplified (2 weeks)</th>
+<th>Reason</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Generate mutation-impacts.json</td>
+<td>❌ REMOVED</td>
+<td>FraiseQL reads SQL comments directly</td>
+</tr>
+<tr>
+<td>Generate TypeScript .d.ts</td>
+<td>❌ REMOVED</td>
+<td>FraiseQL generates this from SQL</td>
+</tr>
+<tr>
+<td>Generate React hooks</td>
+<td>❌ REMOVED</td>
+<td>FraiseQL generates this from SQL</td>
+</tr>
+<tr>
+<td>Frontend codegen</td>
+<td>❌ REMOVED</td>
+<td>FraiseQL handles this</td>
+</tr>
+<tr>
+<td>Complex JSON schemas</td>
+<td>❌ REMOVED</td>
+<td>SQL comments are sufficient</td>
+</tr>
+<tr>
+<td>20 days of work</td>
+<td>✅ 10 days</td>
+<td>50% reduction!</td>
+</tr>
+</tbody>
+</table>
+<h3 id="what-were-keeping">What We're Keeping</h3>
+<table>
+<thead>
+<tr>
+<th>Task</th>
+<th>Why Essential</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Enhanced SQL comments</td>
+<td>FraiseQL needs this metadata</td>
+</tr>
+<tr>
+<td>Custom actions</td>
+<td>Core feature missing</td>
+</tr>
+<tr>
+<td>CLI tools</td>
+<td>Developer experience</td>
+</tr>
+<tr>
+<td>Documentation</td>
+<td>User needs</td>
+</tr>
+<tr>
+<td>Examples</td>
+<td>User needs</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="ready-to-start">🚀 READY TO START?</h2>
+<p><strong>Next Action</strong>: Start Day 1, TDD Cycle 1 - Enhanced FraiseQL mutation metadata</p>
+<p>This plan is:
+- ✅ <strong>50% shorter</strong> (2 weeks vs 4 weeks)
+- ✅ <strong>More focused</strong> (what actually matters)
+- ✅ <strong>Less code</strong> (no redundant frontend generation)
+- ✅ <strong>Same outcome</strong> (complete working system)</p>
+<p>FraiseQL doing the heavy lifting of frontend code generation means we can focus on what matters: <strong>great SQL generation with rich metadata</strong>.</p>
+<hr />
+<p><strong>Timeline</strong>: 10 days (2 weeks)
+<strong>Estimated Completion</strong>: Week 1 = Teams C &amp; D complete, Week 2 = Ship
+<strong>Risk Level</strong>: LOW (most code already working)
+<strong>Confidence</strong>: HIGH (building on solid foundation)</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

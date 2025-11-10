@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Metadata Layer for Stdlib Entities - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Metadata Layer for Stdlib Entities";
+        var mkdocs_page_input_path = "reference/fraiseql/METADATA_LAYER_STDLIB_ENTITIES.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Metadata Layer for Stdlib Entities</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="metadata-layer-for-stdlib-entities">Metadata Layer for Stdlib Entities</h1>
+<p><strong>Status</strong>: ✅ Complete
+<strong>Purpose</strong>: Automatic FraiseQL metadata generation for rich types
+<strong>Mechanism</strong>: <code>CommentGenerator</code> + <code>SCALAR_TYPES</code> registry</p>
+<hr />
+<h2 id="overview">Overview</h2>
+<p>Stdlib entities (like <code>Contact</code>, <code>Organization</code>, etc.) automatically get rich FraiseQL metadata through a layered approach:</p>
+<ol>
+<li><strong>SCALAR_TYPES Registry</strong> - Central definition of all rich types</li>
+<li><strong>CommentGenerator</strong> - Dynamic comment generation from registry</li>
+<li><strong>Schema Orchestrator</strong> - Integration into complete DDL</li>
+</ol>
+<p><strong>Result</strong>: Zero manual work, full GraphQL type safety! 🎉</p>
+<hr />
+<h2 id="how-it-works">How It Works</h2>
+<h3 id="1-scalar_types-registry-foundation">1. SCALAR_TYPES Registry (Foundation)</h3>
+<pre><code class="language-python"># src/core/scalar_types.py
+SCALAR_TYPES = {
+    &quot;email&quot;: ScalarTypeDef(
+        name=&quot;email&quot;,
+        postgres_type=PostgreSQLType.TEXT,
+        fraiseql_scalar_name=&quot;Email&quot;,  # ← GraphQL scalar name
+        validation_pattern=r&quot;^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$&quot;,
+        description=&quot;Valid email address (RFC 5322 simplified)&quot;,  # ← Human description
+        example=&quot;user@example.com&quot;,
+    ),
+    # ... 49 more rich types
+}
+</code></pre>
+<p><strong>Key Properties</strong>:
+- <code>fraiseql_scalar_name</code>: Maps to GraphQL scalar (e.g., "Email" → <code>scalar Email</code>)
+- <code>description</code>: Becomes GraphQL field description
+- <code>validation_pattern</code>: Ensures data quality at database level</p>
+<h3 id="2-commentgenerator-dynamic-generation">2. CommentGenerator (Dynamic Generation)</h3>
+<pre><code class="language-python"># src/generators/comment_generator.py
+class CommentGenerator:
+    def generate_field_comment(self, field: FieldDefinition, entity: Entity) -&gt; str:
+        # 1. Check if field uses rich type
+        scalar_def = get_scalar_type(field.type_name)
+
+        if scalar_def:
+            # Use registry description + validation note
+            description = scalar_def.description
+            if scalar_def.validation_pattern:
+                description += &quot; (validated format)&quot;
+
+            # Map to GraphQL scalar
+            graphql_type = scalar_def.fraiseql_scalar_name
+        else:
+            # Fallback to basic types
+            description = self._get_basic_description(field)
+            graphql_type = self._map_basic_type(field)
+
+        # Generate FraiseQL annotation
+        return f&quot;&quot;&quot;COMMENT ON COLUMN {table}.{field.name} IS
+'{description}
+
+@fraiseql:field
+name: {field.name}
+type: {graphql_type}{&quot;!&quot; if not field.nullable else &quot;&quot;}
+required: {str(not field.nullable).lower()}';&quot;&quot;&quot;
+</code></pre>
+<h3 id="3-schema-orchestrator-integration">3. Schema Orchestrator Integration</h3>
+<pre><code class="language-python"># src/generators/schema_orchestrator.py
+def generate_complete_schema(self, entity: Entity) -&gt; str:
+    # Generate table DDL (includes basic comments)
+    table_sql = self.table_gen.generate_table_ddl(entity)
+
+    # Add rich type field comments
+    field_comments = self.table_gen.generate_field_comments(entity)
+    if field_comments:
+        parts.append(&quot;-- Field Comments for FraiseQL\n&quot; + &quot;\n\n&quot;.join(field_comments))
+
+    return &quot;\n\n&quot;.join(parts)
+</code></pre>
+<hr />
+<h2 id="generated-output-example">Generated Output Example</h2>
+<h3 id="input-stdlib-contact-entity">Input: Stdlib Contact Entity</h3>
+<pre><code class="language-yaml"># stdlib/crm/contact.yaml
+entity: Contact
+schema: tenant
+
+fields:
+  email_address: email!
+  office_phone: phoneNumber
+  website: url
+</code></pre>
+<h3 id="generated-postgresql-comments">Generated PostgreSQL Comments</h3>
+<pre><code class="language-sql">-- Basic table comment
+COMMENT ON TABLE tenant.tb_contact IS
+'Individual contact information linked to an organization.
+Includes roles, communication details, and authentication.
+
+@fraiseql:type
+trinity: true';
+
+-- Rich type field comments (auto-generated)
+COMMENT ON COLUMN tenant.tb_contact.email_address IS
+'Valid email address (RFC 5322 simplified) (validated format)
+
+@fraiseql:field
+name: email_address
+type: Email!
+required: true';
+
+COMMENT ON COLUMN tenant.tb_contact.office_phone IS
+'International phone number (E.164 format) (validated format)
+
+@fraiseql:field
+name: office_phone
+type: PhoneNumber
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.website IS
+'Valid URL
+
+@fraiseql:field
+name: website
+type: Url
+required: false';
+</code></pre>
+<h3 id="fraiseql-autodiscovery-result">FraiseQL Autodiscovery Result</h3>
+<pre><code class="language-graphql">type Contact {
+  &quot;&quot;&quot;Individual contact information linked to an organization.
+Includes roles, communication details, and authentication.&quot;&quot;&quot;
+  id: UUID!
+  tenantId: UUID!
+
+  &quot;&quot;&quot;Valid email address (RFC 5322 simplified) (validated format)&quot;&quot;&quot;
+  emailAddress: Email!
+
+  &quot;&quot;&quot;International phone number (E.164 format) (validated format)&quot;&quot;&quot;
+  officePhone: PhoneNumber
+
+  &quot;&quot;&quot;Valid URL&quot;&quot;&quot;
+  website: Url
+
+  createdAt: DateTime!
+  updatedAt: DateTime!
+}
+</code></pre>
+<hr />
+<h2 id="metadata-flow-diagram">Metadata Flow Diagram</h2>
+<pre><code>┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  SCALAR_TYPES   │───▶│ CommentGenerator │───▶│ PostgreSQL DDL  │
+│   Registry      │    │                  │    │                 │
+│ • descriptions  │    │ • Dynamic        │    │ • COMMENT ON    │
+│ • GraphQL names │    │   comments       │    │   COLUMN        │
+│ • validation    │    │ • FraiseQL       │    │ • @fraiseql:field│
+└─────────────────┘    │   annotations    │    └─────────────────┘
+                       └──────────────────┘             │
+                                                        ▼
+┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
+│  FraiseQL       │───▶│ GraphQL Schema   │───▶│ TypeScript      │
+│  Autodiscovery  │    │                  │    │ Types           │
+│ • Introspects   │    │ • type Contact   │    │                 │
+│   PostgreSQL    │    │ • scalar Email   │    │ interface       │
+│ • Reads comments│    │ • field descs    │    │ Contact {       │
+└─────────────────┘    └──────────────────┘    │   email: string │
+                                                └─────────────────┘
+</code></pre>
+<hr />
+<h2 id="key-benefits">Key Benefits</h2>
+<h3 id="1-single-source-of-truth">1. Single Source of Truth</h3>
+<ul>
+<li><strong>Registry</strong>: One place defines rich type behavior</li>
+<li><strong>Automatic</strong>: Descriptions, GraphQL names, validation all sync</li>
+<li><strong>DRY</strong>: No duplication between database and API layers</li>
+</ul>
+<h3 id="2-zero-maintenance-overhead">2. Zero Maintenance Overhead</h3>
+<ul>
+<li><strong>Add new type</strong>: Update <code>SCALAR_TYPES</code> → Everything updates automatically</li>
+<li><strong>Change description</strong>: Edit registry → GraphQL docs update instantly</li>
+<li><strong>New validation</strong>: Add pattern → Database + GraphQL both enforce</li>
+</ul>
+<h3 id="3-type-safety-end-to-end">3. Type Safety End-to-End</h3>
+<ul>
+<li><strong>Database</strong>: CHECK constraints validate on INSERT/UPDATE</li>
+<li><strong>GraphQL</strong>: Custom scalars provide input validation</li>
+<li><strong>Frontend</strong>: Generated TypeScript types prevent runtime errors</li>
+</ul>
+<h3 id="4-developer-experience">4. Developer Experience</h3>
+<ul>
+<li><strong>GraphQL Playground</strong>: Rich field descriptions from PostgreSQL comments</li>
+<li><strong>Auto-complete</strong>: FraiseQL provides full schema introspection</li>
+<li><strong>Documentation</strong>: Always up-to-date, no manual sync needed</li>
+</ul>
+<hr />
+<h2 id="testing-the-metadata-layer">Testing the Metadata Layer</h2>
+<h3 id="unit-tests">Unit Tests</h3>
+<pre><code class="language-bash"># Test CommentGenerator with rich types
+uv run pytest tests/unit/generators/test_comment_generator.py -v
+
+# Test SCALAR_TYPES registry
+uv run pytest tests/unit/core/test_scalar_types.py -v
+</code></pre>
+<h3 id="integration-tests">Integration Tests</h3>
+<pre><code class="language-bash"># End-to-end GraphQL generation
+uv run pytest tests/integration/fraiseql/test_rich_type_graphql_generation.py -v
+
+# Verify FraiseQL autodiscovery
+uv run pytest tests/integration/fraiseql/test_rich_type_autodiscovery.py -v
+</code></pre>
+<h3 id="manual-verification">Manual Verification</h3>
+<pre><code class="language-python">from src.core.scalar_types import get_scalar_type
+from src.generators.comment_generator import CommentGenerator
+
+# Verify registry has all types
+assert len(SCALAR_TYPES) == 50
+
+# Test comment generation
+gen = CommentGenerator()
+email_type = get_scalar_type(&quot;email&quot;)
+comment = gen.generate_field_comment(email_field, contact_entity)
+
+assert &quot;Valid email address&quot; in comment
+assert &quot;type: Email!&quot; in comment
+assert &quot;@fraiseql:field&quot; in comment
+</code></pre>
+<hr />
+<h2 id="maintenance-guidelines">Maintenance Guidelines</h2>
+<h3 id="adding-new-rich-types">Adding New Rich Types</h3>
+<ol>
+<li><strong>Add to SCALAR_TYPES</strong>:</li>
+</ol>
+<pre><code class="language-python">&quot;new_type&quot;: ScalarTypeDef(
+    name=&quot;new_type&quot;,
+    postgres_type=PostgreSQLType.TEXT,
+    fraiseql_scalar_name=&quot;NewType&quot;,
+    validation_pattern=r&quot;...&quot;,
+    description=&quot;Human readable description (validated format)&quot;,
+    example=&quot;example value&quot;,
+),
+</code></pre>
+<ol>
+<li><strong>Update tests</strong>:</li>
+<li>Add to <code>test_rich_type_scalar_mappings_complete</code></li>
+<li>Add to <code>test_postgresql_types_support_fraiseql_autodiscovery</code></li>
+<li>
+<p>Add to <code>test_validation_patterns_produce_meaningful_comments</code></p>
+</li>
+<li>
+<p><strong>Verify integration</strong>:</p>
+</li>
+<li>Run full test suite</li>
+<li>Check GraphQL schema generation</li>
+<li>Test with stdlib entity</li>
+</ol>
+<h3 id="updating-existing-types">Updating Existing Types</h3>
+<ol>
+<li><strong>Modify SCALAR_TYPES entry</strong></li>
+<li><strong>Run tests</strong> to ensure no regressions</li>
+<li><strong>Check GraphQL output</strong> updates automatically</li>
+</ol>
+<hr />
+<h2 id="conclusion">Conclusion</h2>
+<p>The metadata layer provides a robust, automated system for rich type GraphQL integration:</p>
+<p>✅ <strong>Automatic</strong>: Registry → Comments → GraphQL
+✅ <strong>Maintainable</strong>: Single source of truth
+✅ <strong>Tested</strong>: Comprehensive coverage
+✅ <strong>Extensible</strong>: Easy to add new types</p>
+<p><strong>Result</strong>: Rich types "just work" in GraphQL with zero manual configuration! 🎉</p>
+<hr />
+<p><strong>Status</strong>: ✅ Complete
+<strong>Next</strong>: Phase 6 - CLI Integration with Rich Types</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

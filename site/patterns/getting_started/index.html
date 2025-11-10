@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Getting Started with Action Patterns - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Getting Started with Action Patterns";
+        var mkdocs_page_input_path = "patterns/getting_started.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Getting Started with Action Patterns</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="getting-started-with-action-patterns">Getting Started with Action Patterns</h1>
+<p>Welcome to SpecQL Action Patterns! This guide will get you up and running with declarative business logic in under 30 minutes.</p>
+<h2 id="what-youll-learn">🎯 What You'll Learn</h2>
+<p>By the end of this guide, you'll be able to:
+- Create entities with enhanced CRUD operations
+- Implement state machine transitions
+- Build multi-entity workflows
+- Process batch operations
+- Generate production-ready SQL from YAML</p>
+<h2 id="prerequisites">🛠️ Prerequisites</h2>
+<ul>
+<li>Basic SpecQL knowledge (entities, fields, actions)</li>
+<li>Understanding of your business domain</li>
+<li>30 minutes of focused time</li>
+</ul>
+<h2 id="quick-start-tutorial">🚀 Quick Start Tutorial</h2>
+<h3 id="step-1-create-your-first-enhanced-entity">Step 1: Create Your First Enhanced Entity</h3>
+<p>Let's start with a simple <code>Product</code> entity that uses enhanced CRUD features.</p>
+<p><strong>Create</strong> <code>entities/product.yaml</code>:</p>
+<pre><code class="language-yaml">entity: Product
+schema: tenant
+description: &quot;Products in our catalog&quot;
+
+fields:
+  code:
+    type: text!
+    description: &quot;Unique product code&quot;
+
+  name:
+    type: text!
+    description: &quot;Product name&quot;
+
+  price:
+    type: decimal(10,2)!
+    description: &quot;Product price&quot;
+
+  status:
+    type: enum(active, discontinued)
+    default: active
+    description: &quot;Product status&quot;
+
+# Business constraint: no duplicate product codes
+constraints:
+  - name: unique_product_code
+    type: unique
+    fields: [code]
+    check_on_create: true
+    error_message: &quot;Product code already exists&quot;
+
+# GraphQL projection with formatted data
+projections:
+  - name: product_projection
+    materialize: true
+    refresh_on: [create, update]
+    includes: []  # Add related entities later
+
+actions:
+  # Enhanced CRUD operations
+  - name: create_product
+    duplicate_detection: true  # Check constraints before insert
+    refresh_projection: product_projection
+
+  - name: update_product
+    partial_updates: true      # Only update provided fields
+    track_updated_fields: true # Track what changed
+    refresh_projection: product_projection
+
+  - name: delete_product
+</code></pre>
+<p><strong>Generate and test:</strong></p>
+<pre><code class="language-bash"># Generate SQL functions
+specql generate --entity product
+
+# Check generated SQL
+cat generated/product.sql
+
+# Test the functions
+specql test --entity product
+</code></pre>
+<h3 id="step-2-add-state-machine-transitions">Step 2: Add State Machine Transitions</h3>
+<p>Now let's add product lifecycle management using the state machine pattern.</p>
+<p><strong>Update</strong> <code>entities/product.yaml</code>:</p>
+<pre><code class="language-yaml">actions:
+  # ... existing CRUD actions ...
+
+  # State machine: discontinue product
+  - name: discontinue_product
+    pattern: state_machine/transition
+    config:
+      from_states: [active]
+      to_state: discontinued
+      input_fields:
+        - name: discontinued_reason
+          type: text
+          required: true
+      validation_checks:
+        - condition: &quot;NOT EXISTS (SELECT 1 FROM order_items WHERE product_id = v_product_id AND status = 'pending')&quot;
+          error: &quot;Cannot discontinue product with pending orders&quot;
+      refresh_projection: product_projection
+
+  # State machine: reactivate product
+  - name: reactivate_product
+    pattern: state_machine/transition
+    config:
+      from_states: [discontinued]
+      to_state: active
+      side_effects:
+        - entity: ProductEvent
+          set:
+            event_type: reactivated
+            event_data: $input_payload
+          where: &quot;product_id = v_product_id&quot;
+      refresh_projection: product_projection
+</code></pre>
+<p><strong>What this generates:</strong>
+- Automatic state validation
+- Input field handling
+- Business rule enforcement
+- Audit logging
+- Projection updates</p>
+<h3 id="step-3-create-multi-entity-workflows">Step 3: Create Multi-Entity Workflows</h3>
+<p>Let's add order creation that coordinates between Order and OrderItem entities.</p>
+<p><strong>Create</strong> <code>entities/order.yaml</code>:</p>
+<pre><code class="language-yaml">entity: Order
+schema: tenant
+description: &quot;Customer orders&quot;
+
+fields:
+  order_number:
+    type: text!
+    description: &quot;Unique order number&quot;
+
+  customer_id:
+    type: uuid!
+    description: &quot;Customer placing the order&quot;
+
+  status:
+    type: enum(pending, confirmed, shipped, delivered, cancelled)
+    default: pending
+
+  total_amount:
+    type: decimal(10,2)!
+    description: &quot;Order total&quot;
+
+# Auto-generated order numbers
+identifier:
+  pattern: &quot;ORD-{created_at:YYYYMMDD}-{sequence:04d}&quot;
+  sequence:
+    scope: [customer_id]  # Per-customer sequence
+    group_by: [created_at:YYYYMMDD]  # Reset daily
+  recalculate_on: [create]
+
+projections:
+  - name: order_projection
+    materialize: true
+    refresh_on: [create, update]
+    includes:
+      - customer: [id, name, email]
+      - order_items: [id, product_id, quantity, unit_price]
+
+actions:
+  # Multi-entity: create order with items
+  - name: create_order_with_items
+    pattern: multi_entity/coordinated_update
+    config:
+      primary_entity: Order
+      operations:
+        # Create the order
+        - action: insert
+          entity: Order
+          values:
+            customer_id: $input_data.customer_id
+            status: pending
+            total_amount: $input_data.total_amount
+          store_as: order_id
+
+        # Create order items
+        - action: insert
+          entity: OrderItem
+          values:
+            order_id: $order_id
+            product_id: $item.product_id
+            quantity: $item.quantity
+            unit_price: $item.unit_price
+            total_price: $item.quantity * $item.unit_price
+          # Note: This would be in a loop for multiple items
+
+        # Update product inventory (if you had inventory)
+        # - action: update
+        #   entity: Product
+        #   set: {stock_quantity: stock_quantity - $item.quantity}
+        #   where: {id: $item.product_id}
+
+      refresh_projections:
+        - order_projection
+        - product_projection
+</code></pre>
+<h3 id="step-4-add-batch-operations">Step 4: Add Batch Operations</h3>
+<p>Finally, let's add bulk price updates using the batch operation pattern.</p>
+<p><strong>Update</strong> <code>entities/product.yaml</code>:</p>
+<pre><code class="language-yaml">actions:
+  # ... existing actions ...
+
+  # Batch: bulk price updates
+  - name: bulk_update_prices
+    pattern: batch/bulk_operation
+    config:
+      batch_input: price_updates
+      operation:
+        action: update
+        entity: Product
+        set:
+          price: $item.new_price
+        where: &quot;id = $item.id AND tenant_id = $auth_tenant_id&quot;
+      error_handling: continue_on_error
+      batch_size: 50
+      refresh_projections:
+        - product_projection
+      return_summary:
+        updated_count: v_processed_count
+        failed_count: v_failed_count
+        failed_updates: v_failed_items
+</code></pre>
+<h2 id="testing-your-patterns">🧪 Testing Your Patterns</h2>
+<h3 id="1-generate-sql">1. Generate SQL</h3>
+<pre><code class="language-bash"># Generate all entities
+specql generate
+
+# Generate specific entity
+specql generate --entity product
+
+# Check generated functions
+ls generated/
+</code></pre>
+<h3 id="2-run-tests">2. Run Tests</h3>
+<pre><code class="language-bash"># Run all tests
+specql test
+
+# Run entity-specific tests
+specql test --entity product
+
+# Run integration tests
+specql test --integration
+</code></pre>
+<h3 id="3-manual-testing">3. Manual Testing</h3>
+<p>Test your generated functions directly:</p>
+<pre><code class="language-sql">-- Test duplicate detection
+SELECT * FROM tenant.create_product(
+    '550e8400-e29b-41d4-a716-446655440000'::UUID,  -- tenant_id
+    '550e8400-e29b-41d4-a716-446655440001'::UUID,  -- user_id
+    '{&quot;code&quot;: &quot;DUPE&quot;, &quot;name&quot;: &quot;Duplicate Product&quot;, &quot;price&quot;: 29.99}'::JSONB
+);
+
+-- Should return NOOP with conflict details
+
+-- Test state transition
+SELECT * FROM tenant.discontinue_product(
+    '550e8400-e29b-41d4-a716-446655440000'::UUID,
+    '550e8400-e29b-41d4-a716-446655440001'::UUID,
+    '{&quot;id&quot;: &quot;550e8400-e29b-41d4-a716-446655440002&quot;, &quot;discontinued_reason&quot;: &quot;End of life&quot;}'::JSONB
+);
+
+-- Test batch operation
+SELECT * FROM tenant.bulk_update_prices(
+    '550e8400-e29b-41d4-a716-446655440000'::UUID,
+    '550e8400-e29b-41d4-a716-446655440001'::UUID,
+    '{&quot;price_updates&quot;: [
+        {&quot;id&quot;: &quot;550e8400-e29b-41d4-a716-446655440002&quot;, &quot;new_price&quot;: 24.99},
+        {&quot;id&quot;: &quot;550e8400-e29b-41d4-a716-446655440003&quot;, &quot;new_price&quot;: 19.99}
+    ]}'::JSONB
+);
+</code></pre>
+<h2 id="common-patterns-recipes">🎯 Common Patterns &amp; Recipes</h2>
+<h3 id="user-registration-with-profile">User Registration with Profile</h3>
+<pre><code class="language-yaml">actions:
+  - name: register_user
+    pattern: multi_entity/coordinated_update
+    config:
+      operations:
+        - action: insert
+          entity: User
+          values:
+            email: $input.email
+            password_hash: $input.password_hash
+          store_as: user_id
+
+        - action: insert
+          entity: UserProfile
+          values:
+            user_id: $user_id
+            first_name: $input.first_name
+            last_name: $input.last_name
+
+        - action: insert
+          entity: UserPreferences
+          values:
+            user_id: $user_id
+            theme: 'light'
+            notifications: true
+</code></pre>
+<h3 id="order-status-workflow">Order Status Workflow</h3>
+<pre><code class="language-yaml">actions:
+  - name: ship_order
+    pattern: state_machine/transition
+    config:
+      from_states: [confirmed]
+      to_state: shipped
+      validation_checks:
+        - condition: &quot;EXISTS (SELECT 1 FROM order_items WHERE order_id = v_order_id)&quot;
+          error: &quot;Cannot ship order without items&quot;
+      side_effects:
+        - entity: OrderItem
+          set: {shipped_at: NOW()}
+          where: &quot;order_id = v_order_id&quot;
+
+  - name: deliver_order
+    pattern: state_machine/transition
+    config:
+      from_states: [shipped]
+      to_state: delivered
+      side_effects:
+        - entity: Customer
+          set: {last_order_date: NOW()}
+          where: &quot;id = (SELECT customer_id FROM orders WHERE id = v_order_id)&quot;
+</code></pre>
+<h3 id="bulk-status-updates">Bulk Status Updates</h3>
+<pre><code class="language-yaml">actions:
+  - name: bulk_activate_products
+    pattern: batch/bulk_operation
+    config:
+      batch_input: product_ids
+      operation:
+        action: update
+        entity: Product
+        set: {status: 'active'}
+        where: &quot;id = $item AND status = 'discontinued'&quot;
+      return_summary:
+        activated_count: v_processed_count
+        already_active: v_failed_count
+</code></pre>
+<h2 id="troubleshooting">🚨 Troubleshooting</h2>
+<h3 id="pattern-not-found-error">"Pattern not found" Error</h3>
+<pre><code class="language-yaml"># Check pattern name spelling
+pattern: state_machine/transition  # ✅ Correct
+pattern: state_machine_transition  # ❌ Wrong
+</code></pre>
+<h3 id="field-not-found-error">"Field not found" Error</h3>
+<pre><code class="language-yaml"># Check field references in expressions
+condition: &quot;status = 'active'&quot;  # ✅ Entity field
+condition: &quot;user_status = 'active'&quot;  # ❌ Not an entity field
+</code></pre>
+<h3 id="template-expansion-failed-error">"Template expansion failed" Error</h3>
+<pre><code class="language-yaml"># Check YAML syntax and indentation
+config:
+  from_states: [active]  # ✅ Correct
+  from_states: active   # ❌ Should be array
+</code></pre>
+<h3 id="sql-generation-issues">SQL Generation Issues</h3>
+<pre><code class="language-bash"># Regenerate after config changes
+specql generate --clean
+specql generate --entity your_entity
+</code></pre>
+<h2 id="next-steps">📚 Next Steps</h2>
+<h3 id="advanced-topics">Advanced Topics</h3>
+<ul>
+<li><a href="../patterns/custom_patterns.md">Custom Patterns</a> - Create your own patterns</li>
+<li><a href="performance.md">Performance Tuning</a> - Optimize generated SQL</li>
+<li><a href="testing.md">Testing Strategies</a> - Comprehensive testing approaches</li>
+</ul>
+<h3 id="real-world-examples">Real-World Examples</h3>
+<ul>
+<li><a href="../../entities/examples/ecommerce/">E-commerce</a> - Complete online store</li>
+<li><a href="../../entities/examples/saas-multi-tenant/">SaaS Multi-tenant</a> - B2B application</li>
+<li><a href="../../migration/printoptim_to_specql.md">PrintOptim Migration</a> - Production migration</li>
+</ul>
+<h3 id="community-support">Community &amp; Support</h3>
+<ul>
+<li><strong>Documentation</strong>: Full API reference and guides</li>
+<li><strong>Examples</strong>: 10+ complete working entities</li>
+<li><strong>Migration Support</strong>: Step-by-step migration assistance</li>
+</ul>
+<hr />
+<p><strong>Congratulations!</strong> 🎉 You've successfully created your first SpecQL entities with action patterns. Your YAML now generates production-ready SQL with complex business logic, validation, and error handling.</p>
+<p><strong>What's next?</strong>
+1. Explore the <a href="../">full pattern library</a>
+2. Check out <a href="../../entities/examples/">complete examples</a>
+3. Start migrating your existing manual SQL using the <a href="../../migration/printoptim_to_specql.md">migration guide</a></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

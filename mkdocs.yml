@@ -1,0 +1,24 @@
+site_name: SpecQL Documentation
+theme:
+  name: readthedocs
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - search.suggest
+    - content.code.copy
+
+plugins:
+  - search
+
+nav:
+  - Home: README.md
+  - Getting Started: getting-started/
+  - Guides:
+      - Mutation Patterns: guides/mutation-patterns/
+      - Test Generation: guides/test-generation/
+      - CLI: guides/cli/
+  - Reference: reference/
+  - Examples: examples/
+  - Tutorials: tutorials/
+  - Best Practices: best-practices/
+  - Troubleshooting: troubleshooting/

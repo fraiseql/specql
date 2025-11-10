@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Your First Entity - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Your First Entity";
+        var mkdocs_page_input_path = "getting-started/your-first-entity.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Your First Entity</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="your-first-entity">Your First Entity</h1>
+<h2 id="overview">Overview</h2>
+<p>In this guide, you'll create your first SpecQL entity and generate a PostgreSQL table with GraphQL integration.</p>
+<p><strong>Time</strong>: 5 minutes
+<strong>Prerequisites</strong>: <a href="../installation/">Installation</a> complete</p>
+<h2 id="step-1-create-entity-directory">Step 1: Create Entity Directory</h2>
+<pre><code class="language-bash"># Create entities directory
+mkdir -p entities
+
+# Verify structure
+tree entities/
+# entities/
+</code></pre>
+<h2 id="step-2-create-contact-entity">Step 2: Create Contact Entity</h2>
+<p>Create <code>entities/contact.yaml</code>:</p>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+description: &quot;Customer contact information&quot;
+
+fields:
+  email: text
+  first_name: text
+  last_name: text
+  company: text?
+  notes: text?
+</code></pre>
+<p><strong>What this defines</strong>:
+- <strong>Entity</strong>: <code>Contact</code> (PascalCase, singular)
+- <strong>Schema</strong>: <code>crm</code> (snake_case, must be in domain registry)
+- <strong>Fields</strong>: Business data fields
+- <strong>Modifiers</strong>: <code>?</code> makes fields nullable</p>
+<h2 id="step-3-validate-syntax">Step 3: Validate Syntax</h2>
+<pre><code class="language-bash"># Check for syntax errors
+specql validate entities/contact.yaml
+
+# Expected output:
+# ✅ entities/contact.yaml: Valid
+</code></pre>
+<h2 id="step-4-generate-schema">Step 4: Generate Schema</h2>
+<pre><code class="language-bash"># Generate PostgreSQL schema
+specql generate entities/contact.yaml
+
+# Check output
+ls -la db/schema/10_tables/
+# contact.sql
+</code></pre>
+<h2 id="step-5-review-generated-sql">Step 5: Review Generated SQL</h2>
+<pre><code class="language-bash"># View the generated table
+cat db/schema/10_tables/contact.sql
+</code></pre>
+<p><strong>What SpecQL generates</strong>:</p>
+<pre><code class="language-sql">-- Auto-generated table with Trinity pattern
+CREATE TABLE crm.tb_contact (
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  pk_contact UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+  identifier TEXT UNIQUE NOT NULL,
+
+  -- Your fields
+  email TEXT NOT NULL,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  company TEXT,
+  notes TEXT,
+
+  -- Auto-generated audit fields
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  created_by UUID NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  updated_by UUID NOT NULL,
+  deleted_at TIMESTAMP WITH TIME ZONE,
+  deleted_by UUID
+);
+
+-- Auto-generated indexes
+CREATE UNIQUE INDEX idx_tb_contact_email ON crm.tb_contact(email);
+CREATE INDEX idx_tb_contact_company ON crm.tb_contact(company);
+</code></pre>
+<h2 id="step-6-apply-to-database">Step 6: Apply to Database</h2>
+<pre><code class="language-bash"># Apply foundation (types, schemas)
+psql $DATABASE_URL -f db/schema/00_foundation/000_app_foundation.sql
+
+# Apply your table
+psql $DATABASE_URL -f db/schema/10_tables/contact.sql
+
+# Apply helpers and functions
+psql $DATABASE_URL -f db/schema/20_helpers/contact_helpers.sql
+psql $DATABASE_URL -f db/schema/30_functions/*.sql
+</code></pre>
+<h2 id="step-7-test-your-table">Step 7: Test Your Table</h2>
+<pre><code class="language-bash"># Connect to database
+psql $DATABASE_URL
+
+# Check table exists
+\d crm.tb_contact
+
+# Insert test data
+INSERT INTO crm.tb_contact (email, first_name, last_name)
+VALUES ('john@example.com', 'John', 'Doe');
+
+# Query data
+SELECT * FROM crm.tb_contact;
+
+# Use helper functions
+SELECT crm.contact_pk(uuid_column) FROM crm.tb_contact;
+</code></pre>
+<h2 id="understanding-the-trinity-pattern">Understanding the Trinity Pattern</h2>
+<p>SpecQL automatically adds three identifiers to every entity:</p>
+<ol>
+<li><strong><code>id</code></strong> - INTEGER primary key (internal use)</li>
+<li><strong><code>pk_contact</code></strong> - UUID stable identifier (external APIs)</li>
+<li><strong><code>identifier</code></strong> - TEXT human-readable slug (URLs, exports)</li>
+</ol>
+<pre><code class="language-sql">-- Example data
+SELECT id, pk_contact, identifier, email FROM crm.tb_contact;
+
+-- Output:
+-- id | pk_contact | identifier | email
+-- ---|-----------|------------|--------
+-- 1  | a1b2c3... | john-doe   | john@example.com
+</code></pre>
+<h2 id="adding-relationships">Adding Relationships</h2>
+<p>Let's add a relationship to a Company entity:</p>
+<pre><code class="language-yaml"># entities/company.yaml
+entity: Company
+schema: crm
+fields:
+  name: text
+  website: text?
+
+# entities/contact.yaml (updated)
+entity: Contact
+schema: crm
+fields:
+  email: text
+  first_name: text
+  last_name: text
+  company: ref(Company)  # Foreign key reference
+  notes: text?
+</code></pre>
+<p><strong>Generated foreign key</strong>:</p>
+<pre><code class="language-sql">-- Auto-generated constraint
+ALTER TABLE crm.tb_contact
+ADD CONSTRAINT fk_tb_contact_company
+FOREIGN KEY (company) REFERENCES crm.tb_company(id);
+</code></pre>
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li><a href="../your-first-action/">Add your first action</a></li>
+<li><a href="../../reference/yaml-reference.md#scalar-types">Learn about field types</a></li>
+<li><a href="../../guides/multi-tenancy.md">Set up multi-tenancy</a></li>
+<li><a href="../../guides/migration-guide.md">Migrate existing data</a></li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p><strong>"Schema 'crm' not found in domain registry"</strong></p>
+<pre><code class="language-bash"># Add to registry/domain_registry.yaml
+domains:
+  crm:
+    type: multi_tenant
+</code></pre>
+<p><strong>"Command not found: specql"</strong></p>
+<pre><code class="language-bash"># Use uv run
+uv run specql validate entities/contact.yaml
+</code></pre>
+<p><strong>"Permission denied"</strong></p>
+<pre><code class="language-bash"># Check database permissions
+psql $DATABASE_URL -c &quot;\dn&quot;  # List schemas
+psql $DATABASE_URL -c &quot;\dt crm.*&quot;  # List tables
+</code></pre>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
