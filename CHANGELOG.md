@@ -8,7 +8,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Initial SemVer and GitHub versioning system
+- Production-ready example with CRM entities
+- Comprehensive test suite with >95% coverage
+- CI/CD pipeline with GitHub Actions
+- Structured logging support
+- Custom exception classes with helpful error messages
+- Semantic versioning setup
+
+### Changed
+- Documentation updated to use flexible metrics
+- Repository cleaned to <50MB
+- Improved error handling and logging infrastructure
+
+### Fixed
+- Missing `faker` test dependency
+- Test collection errors
 
 ## [0.1.0] - 2025-11-10
 
