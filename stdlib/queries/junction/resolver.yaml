@@ -1,0 +1,30 @@
+pattern: junction/resolver
+description: Resolve N-to-N relationships through junction tables
+parameters:
+  source_entity:
+    type: entity_reference
+    required: true
+    description: Starting entity in N-to-N relationship
+  junction_tables:
+    type: array
+    required: true
+    description: Intermediate junction tables with join keys
+    items:
+      table: string
+      schema: string
+      left_key: string
+      right_key: string
+      description: Junction table configuration
+  target_entity:
+    type: entity_reference
+    required: true
+    description: Final entity to resolve to
+  output_fields:
+    type: array
+    items: string
+    default: [pk_*, tenant_id]
+    description: Fields to include in output (supports wildcards)
+  schema:
+    type: string
+    default: tenant
+    description: Target schema for the view

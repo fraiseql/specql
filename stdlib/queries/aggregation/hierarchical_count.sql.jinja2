@@ -1,0 +1,61 @@
+-- @fraiseql:view
+-- @fraiseql:description Hierarchical count of {{ counted_entity.name }} by {{ grouped_by_entity.name }}
+CREATE OR REPLACE VIEW {{ schema }}.{{ name }} AS
+SELECT
+    {{ grouped_by_entity.pk_field }} AS pk_{{ grouped_by_entity.name | lower }},
+{% for metric in metrics %}
+{% if metric.direct %}
+    COUNT(CASE WHEN child.{{ grouped_by_entity.name | lower }}_id = parent.{{ grouped_by_entity.pk_field }} THEN 1 END) AS {{ metric.name }}_direct,
+{% endif %}
+{% if metric.hierarchical %}
+    COUNT(CASE WHEN parent.{{ path_field }} @> child.{{ grouped_by_entity.name | lower }}_{{ path_field }} THEN 1 END) AS {{ metric.name }}_total,
+{% endif %}
+{% endfor %}
+{% if has_hierarchical %}
+    parent.{{ path_field }}
+{% endif %}
+FROM {{ grouped_by_entity.table }} parent
+LEFT JOIN {{ counted_entity.table }} child
+    ON child.{{ grouped_by_entity.name | lower }}_id = parent.{{ grouped_by_entity.pk_field }}
+WHERE parent.deleted_at IS NULL
+  AND (child.deleted_at IS NULL OR child.{{ counted_entity.pk_field }} IS NULL)
+{% if grouped_by_entity.is_multi_tenant %}
+  AND parent.tenant_id = CURRENT_SETTING('app.current_tenant_id')::uuid
+{% endif %}
+GROUP BY parent.{{ grouped_by_entity.pk_field }}{% if has_hierarchical %}, parent.{{ path_field }}{% endif %};
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_{{ name }}_{{ grouped_by_entity.name | lower }}
+    ON {{ schema }}.{{ name }}(pk_{{ grouped_by_entity.name | lower }});
+{% if has_hierarchical %}
+CREATE INDEX IF NOT EXISTS idx_{{ name }}_{{ path_field }}
+    ON {{ schema }}.{{ name }} USING GIST ({{ path_field }});
+{% endif %}
+{% if performance.materialized %}
+
+-- Materialized view for hierarchical aggregations
+CREATE MATERIALIZED VIEW {{ schema }}.m{{ name }} AS
+SELECT * FROM {{ schema }}.{{ name }};
+
+-- GIST index for path operations
+CREATE INDEX IF NOT EXISTS idx_m{{ name }}_path
+    ON {{ schema }}.m{{ name }} USING GIST ({{ path_field }});
+
+-- Additional performance indexes
+{% for index in performance.indexes %}
+CREATE INDEX IF NOT EXISTS idx_m{{ name }}_{{ index.name | default('perf_' + loop.index) }}
+    ON {{ schema }}.m{{ name }}({{ index.fields | join(', ') }});
+{% endfor %}
+
+-- Refresh function
+CREATE OR REPLACE FUNCTION {{ schema }}.refresh_m{{ name }}()
+RETURNS void AS $$
+BEGIN
+  {% if performance.refresh_strategy == 'concurrent' %}
+  REFRESH MATERIALIZED VIEW CONCURRENTLY {{ schema }}.m{{ name }};
+  {% else %}
+  REFRESH MATERIALIZED VIEW {{ schema }}.m{{ name }};
+  {% endif %}
+END;
+$$ LANGUAGE plpgsql;
+{% endif %}

@@ -1,0 +1,46 @@
+pattern: temporal/temporal_range
+description: Queries over temporal ranges (effective dates, validity periods)
+category: temporal
+complexity: low
+
+parameters:
+  entity:
+    type: entity_reference
+    required: true
+
+  start_date_field:
+    type: string
+    required: true
+
+  end_date_field:
+    type: string
+    required: false
+    description: NULL means ongoing/infinite
+
+  filter_mode:
+    type: enum
+    enum: [current, future, historical, custom_range]
+    default: current
+
+  custom_date_range:
+    type: object
+    required: false
+    properties:
+      start: string
+      end: string
+
+examples:
+  - name: Current Contracts
+    description: Contracts currently in effect
+    config:
+      entity: Contract
+      start_date_field: effective_date
+      end_date_field: expiration_date
+      filter_mode: current
+
+  - name: Future Contracts
+    description: Contracts that will become effective
+    config:
+      entity: Contract
+      start_date_field: effective_date
+      filter_mode: future

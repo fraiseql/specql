@@ -1,0 +1,21 @@
+entity: Location
+schema: tenant
+description: "Location entity with query patterns for testing"
+
+fields:
+  code: text!
+  name: text!
+  location_type: enum(warehouse, production, office)
+  active: boolean = true
+
+query_patterns:
+  - name: count_allocations_by_location
+    pattern: aggregation/hierarchical_count
+    config:
+      counted_entity: Allocation
+      grouped_by_entity: Location
+      metrics:
+        - name: direct
+          direct: true
+        - name: total
+          hierarchical: true

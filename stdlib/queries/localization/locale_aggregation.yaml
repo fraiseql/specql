@@ -1,0 +1,53 @@
+pattern: localization/locale_aggregation
+description: Aggregations grouped by translated fields
+category: localization
+complexity: medium
+
+parameters:
+  entity:
+    type: entity_reference
+    required: true
+    description: Entity to aggregate
+
+  group_by_field:
+    type: string
+    required: true
+    description: Translatable field to group by
+
+  aggregations:
+    type: array
+    items:
+      metric: string
+      function: enum[COUNT, SUM, AVG, MAX, MIN]
+      field: string
+    required: true
+    description: Aggregation operations to perform
+
+  fallback_locale:
+    type: string
+    default: en_US
+    description: Fallback locale when translation missing
+
+  translation_table:
+    type: string
+    required: true
+    description: Translation table name (tl_*)
+
+  current_locale_source:
+    type: string
+    default: "CURRENT_SETTING('app.current_locale')"
+    description: How to determine user's locale
+
+examples:
+  - name: Product category summary by locale
+    description: Count products by translated category name
+    config:
+      entity: Product
+      group_by_field: category
+      aggregations:
+        - metric: product_count
+          function: COUNT
+          field: pk_product
+        - metric: avg_price
+          function: AVG
+          field: price

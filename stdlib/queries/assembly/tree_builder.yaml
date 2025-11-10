@@ -1,0 +1,74 @@
+pattern: assembly/tree_builder
+description: Build deeply nested hierarchies with multi-CTE composition
+parameters:
+  root_entity:
+    type: entity_reference
+    required: true
+    description: The root entity in the hierarchy
+  hierarchy:
+    type: array
+    required: true
+    description: Definition of hierarchy levels and their relationships
+    items:
+      level:
+        type: string
+        required: true
+        description: Name of this CTE level
+      source:
+        type: string
+        required: true
+        description: Table or view to source data from
+      group_by:
+        type: array
+        required: true
+        description: Fields to group by for aggregation
+        items:
+          type: string
+      child_levels:
+        type: array
+        description: Child levels that aggregate into this level
+        items:
+          level:
+            type: string
+            required: true
+          source:
+            type: string
+            required: true
+          group_by:
+            type: array
+            required: true
+            items:
+              type: string
+          array_field:
+            type: string
+            required: true
+            description: Name of the JSONB array field
+          fields:
+            type: array
+            required: true
+            description: Fields to include in each array element
+            items:
+              name:
+                type: string
+                required: true
+              expression:
+                type: string
+                required: true
+      fields:
+        type: array
+        description: Fields for this level
+        items:
+          name:
+            type: string
+            required: true
+          expression:
+            type: string
+            required: true
+  max_depth:
+    type: integer
+    default: 4
+    description: Maximum depth of hierarchy
+  schema:
+    type: string
+    default: tenant
+    description: Target schema for the view

@@ -1,0 +1,56 @@
+{# stdlib/queries/temporal/temporal_range.sql.jinja2 #}
+# @fraiseql:view
+# @fraiseql:description Temporal range filtered {{ name }}
+# @fraiseql:pattern temporal/temporal_range
+
+CREATE OR REPLACE VIEW {{ schema }}.{{ name }} AS
+SELECT
+    t.*,
+
+    -- Computed validity range
+    {% if end_date_field %}
+    daterange({{ start_date_field }}, {{ end_date_field }}, '[)') AS validity_range,
+    {% else %}
+    daterange({{ start_date_field }}, NULL, '[)') AS validity_range,  -- Infinite end
+    {% endif %}
+
+    -- Convenience flags
+    CASE
+        WHEN {{ start_date_field }} <= CURRENT_DATE
+            AND ({{ end_date_field }} IS NULL OR {{ end_date_field }} >= CURRENT_DATE)
+        THEN true
+        ELSE false
+    END AS is_currently_valid,
+
+    CASE
+        WHEN {{ start_date_field }} > CURRENT_DATE THEN true
+        ELSE false
+    END AS is_future,
+
+    CASE
+        WHEN {{ end_date_field }} IS NOT NULL AND {{ end_date_field }} < CURRENT_DATE
+        THEN true
+        ELSE false
+    END AS is_historical
+
+FROM {{ schema }}.{{ table }} t
+WHERE t.deleted_at IS NULL
+{% if filter_mode == 'current' %}
+  AND {{ start_date_field }} <= CURRENT_DATE
+  AND ({{ end_date_field }} IS NULL OR {{ end_date_field }} >= CURRENT_DATE)
+{% elif filter_mode == 'future' %}
+  AND {{ start_date_field }} > CURRENT_DATE
+{% elif filter_mode == 'historical' %}
+  AND {{ end_date_field }} IS NOT NULL
+  AND {{ end_date_field }} < CURRENT_DATE
+{% elif filter_mode == 'custom_range' %}
+  AND daterange({{ start_date_field }}, {{ end_date_field }}, '[)') &&
+      daterange('{{ custom_date_range.start }}'::date, '{{ custom_date_range.end }}'::date, '[)')
+{% endif %};
+
+-- Temporal range index (GiST for range operations)
+CREATE INDEX IF NOT EXISTS idx_{{ name }}_validity_range
+    ON {{ schema }}.{{ name }} USING GIST (validity_range);
+
+COMMENT ON VIEW {{ schema }}.{{ name }} IS
+    'Temporal range filtered {{ name }} ({{ filter_mode }}). Query ranges: WHERE validity_range && daterange(...)::daterange';

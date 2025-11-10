@@ -1,0 +1,64 @@
+# @fraiseql:view
+# @fraiseql:description Localized {{ name }} with {{ fallback_locale }} fallback
+# @fraiseql:pattern localization/translated_view
+
+CREATE OR REPLACE VIEW {{ schema }}.{{ name }} AS
+SELECT
+    t.{{ pk_field }},
+
+    -- Non-translatable fields (passthrough)
+    {% for field in fields %}
+    {% if field.name not in translatable_fields %}
+    t.{{ field.name }},
+    {% endif %}
+    {% endfor %}
+
+    -- Translatable fields with fallback
+    {% for field in translatable_fields %}
+    COALESCE(
+        current_locale.{{ field }},  -- Prefer current locale
+        fallback_locale.{{ field }}  -- Fall back to default
+    ) AS {{ field }},
+    {% endfor %}
+
+    {% if include_all_locales %}
+    -- All translations as JSONB object
+    (
+        SELECT jsonb_object_agg(tl.locale, jsonb_build_object(
+            {% for field in translatable_fields %}
+            '{{ field }}', tl.{{ field }}{% if not loop.last %},{% endif %}
+            {% endfor %}
+        ))
+        FROM {{ schema }}.{{ translation_table }} tl
+        WHERE tl.{{ fk_field }} = t.{{ pk_field }}
+          AND tl.deleted_at IS NULL
+    ) AS all_translations,
+    {% endif %}
+
+    -- Metadata
+    {{ current_locale_source }}::text AS current_locale,
+    '{{ fallback_locale }}' AS fallback_locale,
+    current_locale.locale IS NOT NULL AS has_translation_for_locale
+
+FROM {{ schema }}.{{ table }} t
+
+-- Join base locale (fallback)
+INNER JOIN {{ schema }}.{{ translation_table }} fallback_locale
+    ON fallback_locale.{{ fk_field }} = t.{{ pk_field }}
+    AND fallback_locale.locale = '{{ fallback_locale }}'
+    AND fallback_locale.deleted_at IS NULL
+
+-- Join current locale (preferred)
+LEFT JOIN {{ schema }}.{{ translation_table }} current_locale
+    ON current_locale.{{ fk_field }} = t.{{ pk_field }}
+    AND current_locale.locale = {{ current_locale_source }}::text
+    AND current_locale.deleted_at IS NULL
+
+WHERE t.deleted_at IS NULL;
+
+-- Index for locale lookup
+CREATE INDEX IF NOT EXISTS idx_{{ translation_table }}_locale
+    ON {{ schema }}.{{ translation_table }}({{ fk_field }}, locale);
+
+COMMENT ON VIEW {{ schema }}.{{ name }} IS
+    'Localized {{ name }} with automatic fallback to {{ fallback_locale }}. Set locale via SET app.current_locale = ''fr_FR'';';

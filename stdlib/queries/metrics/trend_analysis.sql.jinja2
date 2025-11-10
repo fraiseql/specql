@@ -1,0 +1,60 @@
+-- @fraiseql:view
+-- @fraiseql:description Trend analysis for {{ base_metric_view }}
+-- @fraiseql:pattern metrics/trend_analysis
+
+CREATE OR REPLACE VIEW {{ schema }}.{{ name }} AS
+WITH historical_data AS (
+    SELECT
+        date_trunc('day', calculated_at) AS metric_date,
+        {% for metric in trend_metrics %}
+        AVG({{ metric.metric }}) AS {{ metric.metric }}_daily_avg,
+        {% endfor %}
+    FROM {{ base_metric_view }}
+    WHERE calculated_at >= CURRENT_DATE - INTERVAL '90 days'
+    GROUP BY date_trunc('day', calculated_at)
+),
+moving_averages AS (
+    SELECT
+        metric_date,
+        {% for metric in trend_metrics %}
+        {% for period in metric.periods %}
+        AVG({{ metric.metric }}_daily_avg) OVER (
+            ORDER BY metric_date
+            ROWS BETWEEN {{ period - 1 }} PRECEDING AND CURRENT ROW
+        ) AS {{ metric.metric }}_ma{{ period }},
+        {% endfor %}
+        {% endfor %}
+    FROM historical_data
+)
+SELECT
+    *,
+
+    -- Trend detection
+    {% if trend_detection.enabled %}
+    {% for metric in trend_metrics %}
+    CASE
+        {% if trend_detection.sensitivity == 'low' %}
+        WHEN {{ metric.metric }}_ma7 > {{ metric.metric }}_ma30 * 1.05 THEN 'INCREASING'
+        WHEN {{ metric.metric }}_ma7 < {{ metric.metric }}_ma30 * 0.95 THEN 'DECREASING'
+        {% elif trend_detection.sensitivity == 'medium' %}
+        WHEN {{ metric.metric }}_ma7 > {{ metric.metric }}_ma30 * 1.1 THEN 'INCREASING'
+        WHEN {{ metric.metric }}_ma7 < {{ metric.metric }}_ma30 * 0.9 THEN 'DECREASING'
+        {% elif trend_detection.sensitivity == 'high' %}
+        WHEN {{ metric.metric }}_ma7 > {{ metric.metric }}_ma30 * 1.2 THEN 'INCREASING'
+        WHEN {{ metric.metric }}_ma7 < {{ metric.metric }}_ma30 * 0.8 THEN 'DECREASING'
+        {% endif %}
+        ELSE 'STABLE'
+    END AS {{ metric.metric }}_trend
+    {% if not loop.last %},{% endif %}
+    {% endfor %}
+    {% endif %}
+
+FROM moving_averages
+ORDER BY metric_date DESC;
+
+-- Index for date-based queries
+CREATE INDEX IF NOT EXISTS idx_{{ name }}_date
+    ON {{ schema }}.{{ name }}(metric_date DESC);
+
+COMMENT ON VIEW {{ schema }}.{{ name }} IS
+    'Trend analysis with moving averages for {{ base_metric_view }}.{% if trend_detection.enabled %} Trend detection sensitivity: {{ trend_detection.sensitivity }}.{% endif %}';

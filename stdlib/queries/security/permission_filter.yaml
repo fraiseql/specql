@@ -1,0 +1,62 @@
+pattern: security/permission_filter
+description: Row-level permission filtering based on user context
+category: security
+complexity: high
+
+parameters:
+  base_entity:
+    type: entity_reference
+    required: true
+    description: Entity to apply permission filtering to
+
+  permission_checks:
+    type: array
+    required: true
+    items:
+      type: object
+      properties:
+        type:
+          type: enum
+          enum: [ownership, organizational_hierarchy, role_based, custom]
+          required: true
+        field:
+          type: string
+          description: Field to check for ownership/organizational checks
+        allowed_roles:
+          type: array
+          items: string
+          description: Roles that have access for role_based checks
+        custom_condition:
+          type: string
+          description: Custom SQL condition for custom checks
+      required: [type]
+    description: Permission checks to apply
+
+  user_context_source:
+    type: string
+    default: "CURRENT_SETTING('app.current_user_id')"
+    description: How to get the current user ID
+
+  deny_by_default:
+    type: boolean
+    default: true
+    description: Deny access unless explicitly permitted
+
+  enable_rls:
+    type: boolean
+    default: false
+    description: Enable PostgreSQL Row Level Security on base table
+
+examples:
+  - name: Contract Access Control
+    description: Users see contracts they own or from their org
+    config:
+      base_entity: Contract
+      permission_checks:
+        - type: ownership
+          field: created_by
+        - type: organizational_hierarchy
+          field: organization_id
+        - type: role_based
+          allowed_roles: [admin, contract_manager]
+      deny_by_default: true

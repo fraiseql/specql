@@ -1,5 +1,7 @@
 """Tests for CLI generate command."""
 
+from pathlib import Path
+
 from src.cli.generate import cli, convert_entity_definition_to_entity
 
 
@@ -160,3 +162,46 @@ class TestGenerateCLI:
         assert result.exit_code == 0
         assert output_dir.exists()
         assert (output_dir / "000_app_foundation.sql").exists()
+
+    def test_entities_with_query_patterns_integration(self, cli_runner, temp_dir):
+        """Test that --with-query-patterns flag should generate query patterns but doesn't yet."""
+        output_dir = temp_dir / "migrations"
+        entity_file = temp_dir / "test_entity.yaml"
+        entity_file.write_text("""
+entity: TestEntity
+schema: tenant
+fields:
+  name: text!
+query_patterns:
+  - name: test_view
+    pattern: aggregation/hierarchical_count
+    config:
+      counted_entity: Allocation
+      grouped_by_entity: Location
+      metrics:
+        - name: direct
+          direct: true
+""")
+
+        result = cli_runner.invoke(
+            cli,
+            [
+                "entities",
+                str(entity_file),
+                "--with-query-patterns",
+                "--output-dir",
+                str(output_dir),
+            ],
+        )
+
+        # CLI should succeed (flag is accepted)
+        assert result.exit_code == 0
+        assert output_dir.exists()
+
+        # Check that regular files are generated
+        sql_files = list(output_dir.glob("*.sql"))
+        assert len(sql_files) >= 1  # at least foundation
+
+        # Query pattern files should now be generated (GREEN phase - integration implemented)
+        query_pattern_files = list(Path("db/schema/02_query_side/tenant").glob("v_test_view.sql"))
+        assert len(query_pattern_files) == 1

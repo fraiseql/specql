@@ -1,0 +1,26 @@
+-- @fraiseql:view
+-- @fraiseql:description Complete result set wrapper for {{ materialized_view }}
+CREATE OR REPLACE VIEW {{ schema }}.{{ name }} AS
+-- Include all results from materialized view
+SELECT * FROM {{ mv_schema }}.{{ mv_name }}
+{% if ensure_zero_count_entities %}
+
+UNION ALL
+
+-- Include missing entities with default values
+SELECT
+    base.{{ key_field }}{% if default_values %},{% endif %}
+    {% for field, default in default_values.items() %}
+    {{ default }} AS {{ field }}{% if not loop.last %},{% endif %}
+    {% endfor %}
+FROM {{ base_schema }}.{{ base_name }} base
+WHERE NOT EXISTS (
+    SELECT 1
+    FROM {{ mv_schema }}.{{ mv_name }} mv
+    WHERE mv.{{ key_field }} = base.{{ key_field }}
+)
+AND base.deleted_at IS NULL;
+{% endif %}
+
+COMMENT ON VIEW {{ schema }}.{{ name }} IS
+    'Wraps {{ materialized_view }} to include all {{ base_table }} entities, even those with zero counts';

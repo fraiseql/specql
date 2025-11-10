@@ -1,0 +1,49 @@
+-- @fraiseql:view
+-- @fraiseql:description Count {{ counted_entity.name }} entities grouped by {{ grouped_by_entity.name }}
+CREATE OR REPLACE VIEW {{ schema }}.{{ name }} AS
+SELECT
+    {{ grouped_by_entity.pk_field }} AS pk_{{ grouped_by_entity.name | lower }},
+{% for metric in metrics %}
+    COUNT(CASE WHEN {{ metric.condition }} THEN 1 END) AS {{ metric.name }}{% if not loop.last %},{% endif %}
+{% endfor %}
+FROM {{ grouped_by_entity.table }} {{ grouped_by_entity.alias }}
+LEFT JOIN {{ counted_entity.table }} {{ counted_entity.alias }}
+{% if join_condition %}
+    ON {{ join_condition }}
+{% else %}
+    ON {{ counted_entity.alias }}.{{ grouped_by_entity.name | lower }}_id = {{ grouped_by_entity.alias }}.{{ grouped_by_entity.pk_field }}
+{% endif %}
+WHERE {{ grouped_by_entity.alias }}.deleted_at IS NULL
+  AND ({{ counted_entity.alias }}.deleted_at IS NULL OR {{ counted_entity.alias }}.{{ counted_entity.pk_field }} IS NULL)
+{% if grouped_by_entity.is_multi_tenant %}
+  AND {{ grouped_by_entity.alias }}.tenant_id = CURRENT_SETTING('app.current_tenant_id')::uuid
+{% endif %}
+GROUP BY {{ grouped_by_entity.alias }}.{{ grouped_by_entity.pk_field }};
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_{{ name }}_{{ grouped_by_entity.name | lower }}
+    ON {{ schema }}.{{ name }}(pk_{{ grouped_by_entity.name | lower }});
+{% if performance.materialized %}
+
+-- Materialized view for better performance
+CREATE MATERIALIZED VIEW {{ schema }}.m{{ name }} AS
+SELECT * FROM {{ schema }}.{{ name }};
+
+-- Additional indexes on materialized view
+{% for index in performance.indexes %}
+CREATE INDEX IF NOT EXISTS idx_m{{ name }}_{{ index.name | default('perf_' + loop.index) }}
+    ON {{ schema }}.m{{ name }}({{ index.fields | join(', ') }});
+{% endfor %}
+
+-- Refresh function
+CREATE OR REPLACE FUNCTION {{ schema }}.refresh_m{{ name }}()
+RETURNS void AS $$
+BEGIN
+  {% if performance.refresh_strategy == 'concurrent' %}
+  REFRESH MATERIALIZED VIEW CONCURRENTLY {{ schema }}.m{{ name }};
+  {% else %}
+  REFRESH MATERIALIZED VIEW {{ schema }}.m{{ name }};
+  {% endif %}
+END;
+$$ LANGUAGE plpgsql;
+{% endif %}

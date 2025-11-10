@@ -1,0 +1,61 @@
+pattern: aggregation/count_aggregation
+description: Count child entities grouped by parent
+category: aggregation
+complexity: medium
+
+parameters:
+  counted_entity:
+    type: entity_reference
+    required: true
+    description: Entity being counted (child in relationship)
+
+  grouped_by_entity:
+    type: entity_reference
+    required: true
+    description: Entity to group by (parent in relationship)
+
+  join_condition:
+    type: string
+    required: false
+    description: Custom JOIN condition between entities
+
+  metrics:
+    type: array
+    required: true
+    description: Metrics to calculate
+    items:
+      name:
+        type: string
+        required: true
+        description: Column name for the metric
+      condition:
+        type: string
+        required: true
+        description: SQL WHERE condition for counting
+
+  schema:
+    type: string
+    required: false
+    default: tenant
+    description: Target schema for the view
+
+examples:
+  - name: v_count_allocations_by_network
+    description: Count allocations grouped by network configuration
+    config:
+      counted_entity: Allocation
+      grouped_by_entity: NetworkConfiguration
+      metrics:
+        - name: total_allocations
+          condition: "TRUE"
+        - name: active_allocations
+          condition: "allocation.status = 'active'"
+
+  - name: v_count_contracts_by_location
+    description: Count active contracts by location
+    config:
+      counted_entity: Contract
+      grouped_by_entity: Location
+      metrics:
+        - name: active_contracts
+          condition: "contract.status = 'active' AND contract.start_date <= CURRENT_DATE AND (contract.end_date IS NULL OR contract.end_date >= CURRENT_DATE)"

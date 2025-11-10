@@ -1,0 +1,32 @@
+pattern: hierarchical/path_expander
+description: Expand ltree paths to arrays of ancestor data
+parameters:
+  source_entity:
+    type: string
+    required: true
+    description: Entity containing the hierarchical data
+  path_field:
+    type: string
+    required: true
+    description: Ltree field containing the hierarchical path
+  expanded_fields:
+    type: array
+    required: true
+    items:
+      type: string
+      enum: [ancestor_ids, ancestor_names, breadcrumb_labels]
+    description: Which ancestor data to expand
+  max_depth:
+    type: integer
+    description: Optional maximum depth to expand (for performance)
+examples:
+  - name: v_location_ancestor_names
+    config:
+      source_entity: Location
+      path_field: path
+      expanded_fields: [ancestor_names, ancestor_ids]
+  - name: v_org_unit_ancestors
+    config:
+      source_entity: OrganizationalUnit
+      path_field: tree_path
+      expanded_fields: [ancestor_names, ancestor_ids, breadcrumb_labels]

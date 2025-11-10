@@ -94,6 +94,11 @@ def cli():
     type=click.Path(),
     help="Generate frontend code (TypeScript types, Apollo hooks, docs) to specified directory",
 )  # NEW
+@click.option(
+    "--with-query-patterns",
+    is_flag=True,
+    help="Generate SQL views from query patterns defined in entity YAML",
+)  # NEW
 def entities(
     entity_files: tuple,
     output_dir: str,
@@ -103,6 +108,7 @@ def entities(
     output_format: str,  # NEW
     with_impacts: bool,  # NEW
     output_frontend: str,  # NEW
+    with_query_patterns: bool,  # NEW
 ):
     """Generate PostgreSQL migrations from SpecQL YAML files"""
 
@@ -115,6 +121,7 @@ def entities(
         output_dir=output_dir,
         foundation_only=foundation_only,
         include_tv=include_tv,
+        with_query_patterns=with_query_patterns,
     )
 
     # Generate frontend code if requested

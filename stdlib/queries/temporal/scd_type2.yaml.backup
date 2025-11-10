@@ -1,0 +1,40 @@
+pattern: temporal/scd_type2
+description: Slowly Changing Dimension Type 2 (full history)
+category: temporal
+complexity: medium
+
+parameters:
+  entity:
+    type: entity_reference
+    required: true
+
+  effective_date_field:
+    type: string
+    default: effective_date
+
+  end_date_field:
+    type: string
+    default: end_date
+
+  is_current_field:
+    type: string
+    default: is_current
+
+  version_number_field:
+    type: string
+    default: version_number
+
+  surrogate_key_field:
+    type: string
+    required: false
+    description: Surrogate key for SCD (default: auto-generate)
+
+examples:
+  - name: Customer Address History
+    description: Track customer address changes over time
+    config:
+      entity: Customer
+      effective_date_field: effective_date
+      end_date_field: end_date
+      is_current_field: is_current
+      version_number_field: version_number

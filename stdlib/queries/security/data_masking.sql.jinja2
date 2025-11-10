@@ -1,0 +1,56 @@
+-- @fraiseql:view
+-- @fraiseql:description Masked {{ base_entity.name }} with sensitive data protection
+-- @fraiseql:pattern security/data_masking
+
+CREATE OR REPLACE VIEW {{ schema }}.{{ name }} AS
+SELECT
+    {{ base_entity.alias }}.{{ base_entity.pk_field }},
+
+    -- Non-sensitive fields (passthrough)
+    {% for field in base_entity.fields %}
+    {% if field.name not in masked_fields|map(attribute='field') %}
+    {{ base_entity.alias }}.{{ field.name }},
+    {% endif %}
+    {% endfor %}
+
+    -- Masked fields
+    {% for masked in masked_fields %}
+    CASE
+        {% if masked.unmasked_roles %}
+        -- Unmasked for specific roles
+        WHEN EXISTS (
+            SELECT 1 FROM app.tb_user_role ur
+            WHERE ur.user_id = CURRENT_SETTING('app.current_user_id')::uuid
+              AND ur.role IN ({% for role in masked.unmasked_roles %}'{{ role }}'{% if not loop.last %}, {% endif %}{% endfor %})
+              AND ur.deleted_at IS NULL
+        ) THEN {{ base_entity.alias }}.{{ masked.field }}
+        {% endif %}
+
+        {% if masked.mask_type == 'redact' %}
+        -- Full redaction
+        ELSE '[REDACTED]'
+
+        {% elif masked.mask_type == 'partial' %}
+        -- Partial masking
+        ELSE
+            SUBSTRING({{ base_entity.alias }}.{{ masked.field }}, 1, {{ masked.partial_config.show_first }}) ||
+            REPEAT('{{ masked.partial_config.mask_char }}', GREATEST(0, LENGTH({{ base_entity.alias }}.{{ masked.field }}) - {{ masked.partial_config.show_first }} - {{ masked.partial_config.show_last }})) ||
+            SUBSTRING({{ base_entity.alias }}.{{ masked.field }}, LENGTH({{ base_entity.alias }}.{{ masked.field }}) - {{ masked.partial_config.show_last }} + 1)
+
+        {% elif masked.mask_type == 'hash' %}
+        -- Hash
+        ELSE MD5({{ base_entity.alias }}.{{ masked.field }})
+
+        {% elif masked.mask_type == 'null' %}
+        -- NULL
+        ELSE NULL
+
+        {% endif %}
+    END AS {{ masked.field }}{% if not loop.last %},{% endif %}
+    {% endfor %}
+
+FROM {{ base_entity.schema }}.{{ base_entity.table }} {{ base_entity.alias }}
+WHERE {{ base_entity.alias }}.deleted_at IS NULL;
+
+COMMENT ON VIEW {{ schema }}.{{ name }} IS
+    'Masked view of {{ base_entity.name }} with sensitive data protection. Fields masked: {{ masked_fields|map(attribute="field")|join(", ") }}';

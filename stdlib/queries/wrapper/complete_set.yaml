@@ -1,0 +1,25 @@
+pattern: wrapper/complete_set
+description: Wrap materialized view to ensure complete result sets (zero-count entities)
+parameters:
+  materialized_view:
+    type: string
+    required: true
+    description: Name of the materialized view to wrap (can include schema prefix)
+  base_table:
+    type: string
+    required: true
+    description: Base table to check for missing entities (can include schema prefix)
+  key_field:
+    type: string
+    required: true
+    description: Primary key field name used for matching
+  default_values:
+    type: object
+    required: false
+    default: {}
+    description: Default values for fields when entity has zero count
+  ensure_zero_count_entities:
+    type: boolean
+    required: false
+    default: true
+    description: Whether to include entities with zero counts in results

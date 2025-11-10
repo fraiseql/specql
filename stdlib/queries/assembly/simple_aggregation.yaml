@@ -1,0 +1,45 @@
+pattern: assembly/simple_aggregation
+description: Simple nested aggregation with subquery
+parameters:
+  parent_entity:
+    type: entity_reference
+    required: true
+    description: The parent entity
+  child_entity:
+    type: entity_reference
+    required: true
+    description: The child entity to aggregate
+  child_array_field:
+    type: string
+    required: true
+    description: Name of the JSONB array field
+  child_fields:
+    type: array
+    required: true
+    description: Fields to include in each child object
+    items:
+      name:
+        type: string
+        required: true
+      expression:
+        type: string
+        required: true
+  parent_fk:
+    type: string
+    description: Foreign key field name in child table (default: pk_{parent_entity})
+  parent_pk:
+    type: string
+    description: Primary key field name in parent table (default: pk_{parent_entity})
+  parent_entity_table:
+    type: string
+    description: Parent table name (default: tb_{parent_entity})
+  child_entity_table:
+    type: string
+    description: Child table name (default: tb_{child_entity})
+  order_by:
+    type: string
+    description: Optional ordering for child records
+  schema:
+    type: string
+    default: tenant
+    description: Target schema for the view
