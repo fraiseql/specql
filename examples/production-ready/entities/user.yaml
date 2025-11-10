@@ -1,0 +1,21 @@
+entity: User
+schema: auth
+description: User account information
+
+fields:
+  email: email!
+  first_name: text
+  last_name: text
+  role: enum(admin, manager, sales, support)
+  is_active: boolean
+
+actions:
+  - name: create_user
+    description: Create new user account
+    impacts:
+      inserts: [User]
+    steps:
+      - validate: email IS NOT NULL
+      - validate: |
+          NOT EXISTS(SELECT 1 FROM auth.tb_user WHERE email = email)
+      - insert: User

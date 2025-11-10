@@ -1,0 +1,20 @@
+entity: Company
+schema: management
+description: Company/organization information
+
+fields:
+  name: text!
+  domain: text
+  industry: text
+  size: enum(startup, small, medium, large, enterprise)
+  website: url
+  address: address
+
+actions:
+  - name: create_company
+    description: Create new company
+    impacts:
+      inserts: [Company]
+    steps:
+      - validate: name IS NOT NULL
+      - insert: Company

@@ -1,0 +1,64 @@
+entity: Contact
+schema: crm
+description: Customer contact information with full audit trail
+
+fields:
+  # Identity
+  email: email!
+  phone: phone
+
+  # Relationships
+  company: ref(Company)
+  owner: ref(User)
+
+  # Status tracking
+  status: enum(lead, qualified, customer, churned)
+  lifecycle_stage: enum(subscriber, lead, mql, sql, opportunity, customer)
+
+  # Contact details
+  contact_info: contact_info  # Rich type
+  address: address            # Rich type
+
+  # Preferences
+  communication_preferences: jsonb
+  tags: text[]
+
+  # Metadata
+  source: text  # Where did this contact come from?
+  notes: markdown
+  qualified_at: timestamp  # When was this lead qualified?
+  assigned_at: timestamp   # When was this contact assigned?
+
+actions:
+  - name: create_contact
+    description: Create new contact with validation
+    impacts:
+      inserts: [Contact]
+    steps:
+      - validate: |
+          email IS NOT NULL AND
+          email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$'
+      - insert: Contact
+
+  - name: qualify_lead
+    description: Move contact from lead to qualified status
+    impacts:
+      updates: [Contact]
+      notifications: [sales_team]
+    steps:
+      - validate: status = 'lead'
+      - validate: email IS NOT NULL
+      - update: Contact SET
+          status = 'qualified',
+          lifecycle_stage = 'sql',
+          qualified_at = NOW()
+      - notify: "sales_team(slack, \"New qualified lead: {email}\")"
+
+  - name: mark_assigned
+    description: Mark contact as assigned
+    impacts:
+      updates: [Contact]
+    steps:
+      - update: Contact SET
+          assigned_at = NOW()
+
