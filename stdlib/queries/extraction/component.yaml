@@ -1,0 +1,67 @@
+pattern: extraction/component
+description: Extract non-null components for efficient LEFT JOIN
+category: extraction
+complexity: medium
+
+parameters:
+  source_entity:
+    type: entity_reference
+    required: true
+    description: Entity containing the data to extract
+
+  source_table:
+    type: string
+    required: false
+    description: Specific table to extract from (defaults to entity table)
+
+  extracted_fields:
+    type: array
+    required: true
+    description: Fields to extract from the source
+    items:
+      name:
+        type: string
+        required: true
+        description: Field name in the source table
+      alias:
+        type: string
+        required: false
+        description: Optional alias for the extracted field
+
+  filter_condition:
+    type: string
+    required: false
+    description: SQL WHERE condition to filter extracted rows (e.g., "latitude IS NOT NULL AND longitude IS NOT NULL")
+
+  purpose:
+    type: string
+    required: false
+    description: Documentation string explaining why this extraction exists
+
+  schema:
+    type: string
+    required: false
+    default: tenant
+    description: Target schema for the view
+
+examples:
+  - name: v_location_coordinates
+    description: Extract locations with valid coordinates for efficient mapping queries
+    config:
+      source_entity: Location
+      extracted_fields:
+        - name: latitude
+        - name: longitude
+      filter_condition: "latitude IS NOT NULL AND longitude IS NOT NULL"
+      purpose: "Extract locations with coordinates to avoid NULL values in LEFT JOINs for mapping features"
+
+  - name: v_machine_active_allocations
+    description: Extract machines with current active allocations
+    config:
+      source_entity: Machine
+      extracted_fields:
+        - name: allocation_id
+        - name: start_date
+        - name: end_date
+      filter_condition: "allocation.status = 'active' AND allocation.start_date <= CURRENT_DATE AND (allocation.end_date IS NULL OR allocation.end_date >= CURRENT_DATE)"
+      purpose: "Extract active machine allocations for dashboard performance"

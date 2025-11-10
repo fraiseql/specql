@@ -1,0 +1,27 @@
+-- @fraiseql:view
+-- @fraiseql:description {{ purpose | default("Extract temporally filtered entities") }}
+CREATE OR REPLACE VIEW {{ schema }}.{{ view_name }} AS
+SELECT *
+FROM {{ schema }}.{{ source_table | default(table) }}
+WHERE deleted_at IS NULL
+{% if temporal_mode == 'current' %}
+  AND {{ date_field_start }} <= {{ reference_date }}
+  AND ({{ date_field_end }} IS NULL OR {{ date_field_end }} >= {{ reference_date }})
+{% elif temporal_mode == 'future' %}
+  AND {{ date_field_start }} > {{ reference_date }}
+{% elif temporal_mode == 'historical' %}
+  AND {{ date_field_end }} < {{ reference_date }}
+{% elif temporal_mode == 'date_range' %}
+  -- Custom date range filtering would be implemented here
+  -- This mode requires additional parameters for start/end range
+{% endif %}
+{% if is_multi_tenant %}
+  AND tenant_id = CURRENT_SETTING('app.current_tenant_id')::uuid
+{% endif %};
+
+-- Index for temporal queries
+CREATE INDEX IF NOT EXISTS idx_{{ view_name }}_{{ date_field_start }}
+    ON {{ schema }}.{{ view_name }}({{ date_field_start }})
+{% if date_field_end %}
+    INCLUDE ({{ date_field_end }})
+{% endif %};

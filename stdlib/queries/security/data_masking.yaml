@@ -1,0 +1,70 @@
+pattern: security/data_masking
+description: Mask sensitive data based on user role
+category: security
+complexity: medium
+
+parameters:
+  base_entity:
+    type: entity_reference
+    required: true
+    description: Entity containing sensitive data to mask
+
+  masked_fields:
+    type: array
+    required: true
+    items:
+      type: object
+      properties:
+        field:
+          type: string
+          required: true
+          description: Field name to mask
+        mask_type:
+          type: enum
+          enum: [redact, partial, hash, null]
+          required: true
+          description: Type of masking to apply
+        unmasked_roles:
+          type: array
+          items: string
+          description: Roles that can see unmasked data
+        partial_config:
+          type: object
+          description: Configuration for partial masking
+          properties:
+            show_first:
+              type: integer
+              default: 0
+              description: Number of characters to show at start
+            show_last:
+              type: integer
+              default: 0
+              description: Number of characters to show at end
+            mask_char:
+              type: string
+              default: "*"
+              description: Character to use for masking
+      required: [field, mask_type]
+    description: Fields to mask and their masking configuration
+
+examples:
+  - name: Contact with Masked PII
+    description: Mask email and phone for non-admin users
+    config:
+      base_entity: Contact
+      masked_fields:
+        - field: email
+          mask_type: partial
+          unmasked_roles: [admin, hr_manager]
+          partial_config:
+            show_first: 2
+            show_last: 0
+            mask_char: "*"
+        - field: phone
+          mask_type: partial
+          partial_config:
+            show_first: 0
+            show_last: 4
+        - field: ssn
+          mask_type: hash
+          unmasked_roles: [admin]

@@ -1,0 +1,22 @@
+-- @fraiseql:view
+-- @fraiseql:description Boolean status flags for {{ source_entity.name }}
+CREATE OR REPLACE VIEW {{ schema }}.{{ name }} AS
+SELECT
+    {{ source_entity.pk_field }} AS pk_{{ source_entity.name | lower }},
+{% for flag in flags %}
+    ({{ flag.condition }}) AS {{ flag.name }}{% if not loop.last %},{% endif %}
+{% endfor %}
+FROM {{ source_entity.table }} {{ source_entity.alias }}
+{% if needs_allocation_join %}
+LEFT JOIN tb_allocation allocation
+    ON allocation.machine_id = {{ source_entity.alias }}.{{ source_entity.pk_field }}
+    AND allocation.deleted_at IS NULL
+{% endif %}
+WHERE {{ source_entity.alias }}.deleted_at IS NULL
+{% if source_entity.is_multi_tenant %}
+  AND {{ source_entity.alias }}.tenant_id = CURRENT_SETTING('app.current_tenant_id')::uuid
+{% endif %};
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_{{ name }}_{{ source_entity.name | lower }}
+    ON {{ schema }}.{{ name }}(pk_{{ source_entity.name | lower }});

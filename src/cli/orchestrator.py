@@ -4,8 +4,10 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from src.core.specql_parser import SpecQLParser
+from src.generators.query_pattern_generator import QueryPatternGenerator
 from src.generators.schema.naming_conventions import NamingConventions  # NEW
 from src.generators.schema_orchestrator import SchemaOrchestrator
+from src.patterns.pattern_registry import PatternRegistry
 
 
 @dataclass
@@ -110,6 +112,7 @@ class CLIOrchestrator:
         with_impacts: bool = False,
         include_tv: bool = False,
         foundation_only: bool = False,
+        with_query_patterns: bool = False,
     ) -> GenerationResult:
         """
         Generate migrations from SpecQL files (registry-aware)
@@ -340,6 +343,62 @@ class CLIOrchestrator:
                     result.migrations.append(migration)
             except Exception as e:
                 result.errors.append(f"Failed to generate tv_ tables: {e}")
+
+        # Generate query patterns if requested
+        if with_query_patterns:
+            try:
+                import yaml
+                from src.generators.query_pattern_generator import QueryPatternGenerator
+                from src.patterns.pattern_registry import PatternRegistry
+
+                registry = PatternRegistry()
+                pattern_generator = QueryPatternGenerator(registry)
+
+                # Collect all query patterns from all entities
+                all_patterns = []
+                entity_pattern_map = {}  # pattern_name -> entity_data
+
+                for entity_file in entity_files:
+                    content = Path(entity_file).read_text()
+                    entity_data = yaml.safe_load(content)
+
+                    if "query_patterns" in entity_data and entity_data["query_patterns"]:
+                        for pattern_config in entity_data["query_patterns"]:
+                            all_patterns.append(pattern_config)
+                            entity_pattern_map[pattern_config["name"]] = entity_data
+
+                # Resolve dependencies and sort patterns
+                if all_patterns:
+                    from src.generators.schema.view_dependency import ViewDependencyResolver
+
+                    resolver = ViewDependencyResolver()
+                    sorted_pattern_names = resolver.sort(all_patterns)
+
+                    # Generate SQL files in dependency order
+                    for pattern_name in sorted_pattern_names:
+                        # Find the pattern config and entity
+                        pattern_config = next(p for p in all_patterns if p["name"] == pattern_name)
+                        entity_data = entity_pattern_map[pattern_name]
+
+                        # Generate SQL for this single pattern
+                        sql_files = pattern_generator.generate_single(entity_data, pattern_config)
+
+                        for sql_file in sql_files:
+                            # Write to db/schema/02_query_side/{schema}/ directory
+                            schema = entity_data.get("schema", "tenant")
+                            schema_dir = Path("db/schema/02_query_side") / schema
+                            schema_dir.mkdir(parents=True, exist_ok=True)
+                            file_path = schema_dir / sql_file.name
+
+                            migration = MigrationFile(
+                                number=300,  # After table views
+                                name=f"query_pattern_{sql_file.name}",
+                                content=sql_file.content,
+                                path=file_path,
+                            )
+                            result.migrations.append(migration)
+            except Exception as e:
+                result.errors.append(f"Failed to generate query patterns: {e}")
 
         # Write migrations to disk
         for migration in result.migrations:

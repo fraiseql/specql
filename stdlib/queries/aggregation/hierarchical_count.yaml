@@ -1,0 +1,69 @@
+pattern: aggregation/hierarchical_count
+description: Hierarchical aggregation using ltree paths
+category: aggregation
+complexity: medium
+
+parameters:
+  counted_entity:
+    type: entity_reference
+    required: true
+    description: Entity being counted (child in hierarchy)
+
+  grouped_by_entity:
+    type: entity_reference
+    required: true
+    description: Entity to group by (parent in hierarchy, must have ltree path)
+
+  path_field:
+    type: string
+    required: false
+    default: path
+    description: Name of the ltree path field in grouped_by_entity
+
+  metrics:
+    type: array
+    required: true
+    description: Metrics to calculate
+    items:
+      name:
+        type: string
+        required: true
+        description: Column name for the metric
+      direct:
+        type: boolean
+        required: false
+        default: false
+        description: Include count of direct children only
+      hierarchical:
+        type: boolean
+        required: false
+        default: false
+        description: Include count of all descendants
+
+  schema:
+    type: string
+    required: false
+    default: tenant
+    description: Target schema for the view
+
+examples:
+  - name: v_count_allocations_by_location
+    description: Count allocations by location hierarchy
+    config:
+      counted_entity: Allocation
+      grouped_by_entity: Location
+      metrics:
+        - name: total_allocations
+          direct: true
+          hierarchical: true
+
+  - name: v_count_contracts_by_org_unit
+    description: Count contracts by organizational unit hierarchy
+    config:
+      counted_entity: Contract
+      grouped_by_entity: OrganizationalUnit
+      path_field: hierarchy_path
+      metrics:
+        - name: contract_count
+          direct: true
+          hierarchical: true

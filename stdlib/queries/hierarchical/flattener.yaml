@@ -1,0 +1,42 @@
+pattern: hierarchical/flattener
+description: Flatten tree structures for frontend tree components
+parameters:
+  source_table:
+    type: string
+    required: true
+    description: Usually tv_* commodity table
+  extracted_fields:
+    type: array
+    required: true
+    items:
+      name: string
+      expression: string
+    description: Fields to extract from JSONB data
+  frontend_format:
+    type: string
+    enum: [rust_tree, react_tree, generic]
+    default: generic
+    description: Target frontend component format
+  label_field:
+    type: string
+    default: name
+    description: Field to use for tree node labels
+  value_field:
+    type: string
+    default: id
+    description: Field to use for tree node values
+  path_field:
+    type: string
+    description: Optional ltree path field for hierarchical indexing
+examples:
+  - name: v_flat_location_for_rust_tree
+    config:
+      source_table: tv_location
+      extracted_fields:
+        - {name: code, expression: "data->>'code'"}
+        - {name: name, expression: "data->>'name'"}
+        - {name: type, expression: "data->>'type'"}
+        - {name: is_active, expression: "(data->>'is_active')::boolean"}
+      frontend_format: rust_tree
+      label_field: name
+      path_field: path

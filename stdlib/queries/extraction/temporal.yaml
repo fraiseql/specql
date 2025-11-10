@@ -1,0 +1,75 @@
+pattern: extraction/temporal
+description: Extract temporally filtered entities (current, future, historical)
+category: extraction
+complexity: medium
+
+parameters:
+  source_entity:
+    type: entity_reference
+    required: true
+    description: Entity containing temporal data to filter
+
+  source_table:
+    type: string
+    required: false
+    description: Specific table to extract from (defaults to entity table)
+
+  temporal_mode:
+    type: string
+    required: true
+    enum: [current, future, historical, date_range]
+    description: Type of temporal filtering to apply
+
+  date_field_start:
+    type: string
+    required: true
+    description: Field containing the start date/time
+
+  date_field_end:
+    type: string
+    required: false
+    description: Field containing the end date/time (required for current/historical modes)
+
+  reference_date:
+    type: string
+    required: false
+    default: CURRENT_DATE
+    description: Date to use as reference point (defaults to CURRENT_DATE)
+
+  purpose:
+    type: string
+    required: false
+    description: Documentation string explaining why this temporal extraction exists
+
+  schema:
+    type: string
+    required: false
+    default: tenant
+    description: Target schema for the view
+
+examples:
+  - name: v_current_contracts
+    description: Extract contracts that are currently active
+    config:
+      source_entity: Contract
+      temporal_mode: current
+      date_field_start: start_date
+      date_field_end: end_date
+      purpose: "Extract currently active contracts for dashboard and reporting"
+
+  - name: v_future_contracts
+    description: Extract contracts that will become active in the future
+    config:
+      source_entity: Contract
+      temporal_mode: future
+      date_field_start: start_date
+      purpose: "Extract upcoming contracts for planning and forecasting"
+
+  - name: v_historical_contracts
+    description: Extract contracts that have expired
+    config:
+      source_entity: Contract
+      temporal_mode: historical
+      date_field_start: start_date
+      date_field_end: end_date
+      purpose: "Extract expired contracts for historical analysis"

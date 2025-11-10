@@ -1,0 +1,40 @@
+pattern: temporal/snapshot
+description: Point-in-time snapshot with temporal validity
+category: temporal
+complexity: medium
+
+parameters:
+  entity:
+    type: entity_reference
+    required: true
+    description: Entity to snapshot
+
+  effective_date_field:
+    type: string
+    required: true
+    description: When the version became effective
+
+  end_date_field:
+    type: string
+    required: false
+    description: When the version was superseded (NULL = current)
+
+  snapshot_mode:
+    type: enum
+    enum: [point_in_time, full_history, current_only]
+    default: point_in_time
+    description: Snapshot retrieval mode
+
+  include_validity_range:
+    type: boolean
+    default: true
+    description: Include tsrange column for validity period
+
+examples:
+  - name: Contract Version History
+    description: Track contract changes over time
+    config:
+      entity: Contract
+      effective_date_field: effective_date
+      end_date_field: superseded_date
+      snapshot_mode: full_history

@@ -1,0 +1,32 @@
+-- @fraiseql:view
+-- @fraiseql:description Polymorphic type resolver for {{ discriminator_field }}
+CREATE OR REPLACE VIEW {{ schema }}.{{ view_name }} AS
+{% for variant in variants %}
+SELECT
+    {{ variant.key_field }} AS {{ output_key }},
+    '{{ variant.class_value }}'::text AS {{ discriminator_field }}
+FROM {{ variant.entity.schema }}.{{ variant.entity.table }}
+WHERE deleted_at IS NULL
+{% if is_multi_tenant %}
+  AND tenant_id = {{ tenant_filter }}
+{% endif %}
+{% if not loop.last %}UNION ALL{% endif %}
+{% endfor %};
+
+{% if materialized %}
+-- Materialized version for performance
+CREATE MATERIALIZED VIEW {{ schema }}.m{{ view_name }} AS
+SELECT * FROM {{ schema }}.{{ view_name }};
+
+-- Unique index on materialized view
+CREATE UNIQUE INDEX IF NOT EXISTS idx_m{{ view_name }}_{{ output_key }}_{{ discriminator_field }}
+    ON {{ schema }}.m{{ view_name }}({{ output_key }}, {{ discriminator_field }});
+
+-- Refresh function
+CREATE OR REPLACE FUNCTION {{ schema }}.refresh_m{{ view_name }}()
+RETURNS void AS $$
+BEGIN
+  REFRESH MATERIALIZED VIEW CONCURRENTLY {{ schema }}.m{{ view_name }};
+END;
+$$ LANGUAGE plpgsql;
+{% endif %}

@@ -1,0 +1,83 @@
+# @fraiseql:view
+# @fraiseql:description Complete audit trail for {{ name }}
+# @fraiseql:pattern temporal/audit_trail
+
+CREATE OR REPLACE VIEW {{ schema }}.{{ name }} AS
+WITH audit_with_changes AS (
+    SELECT
+        audit.audit_id,
+        audit.{{ pk_field }},
+        audit.operation,  -- INSERT, UPDATE, DELETE
+        audit.changed_at,
+        audit.changed_by,
+
+        {% if include_user_info %}
+        u.data->>'email' AS changed_by_email,
+        u.data->>'name' AS changed_by_name,
+        {% endif %}
+
+        {% if include_diff %}
+        -- Compute changed fields
+        CASE
+            WHEN audit.operation = 'UPDATE' THEN
+                (
+                    SELECT jsonb_object_agg(key, jsonb_build_object(
+                        'old', audit.old_values->key,
+                        'new', audit.new_values->key
+                    ))
+                    FROM jsonb_each(audit.new_values) AS new_fields(key, value)
+                    WHERE audit.old_values->key IS DISTINCT FROM audit.new_values->key
+                )
+            WHEN audit.operation = 'INSERT' THEN
+                audit.new_values
+            WHEN audit.operation = 'DELETE' THEN
+                audit.old_values
+        END AS changes,
+        {% endif %}
+
+        -- Full snapshots
+        audit.old_values AS previous_state,
+        audit.new_values AS current_state,
+
+        -- Metadata
+        audit.transaction_id,
+        audit.application_name,
+        audit.client_addr
+
+    FROM {{ schema }}.{{ audit_table }} audit
+    {% if include_user_info %}
+    LEFT JOIN app.tb_user u ON u.id = audit.changed_by
+    {% endif %}
+    WHERE audit.changed_at >= CURRENT_DATE - INTERVAL '{{ retention_period }}'
+)
+SELECT
+    *,
+    -- Time since previous change
+    changed_at - LAG(changed_at) OVER (
+        PARTITION BY {{ pk_field }}
+        ORDER BY changed_at
+    ) AS time_since_last_change,
+
+    -- Change sequence number
+    ROW_NUMBER() OVER (
+        PARTITION BY {{ pk_field }}
+        ORDER BY changed_at
+    ) AS change_sequence
+
+FROM audit_with_changes
+ORDER BY {{ pk_field }}, changed_at DESC;
+
+-- Index for entity lookup
+CREATE INDEX IF NOT EXISTS idx_{{ name }}_entity
+    ON {{ schema }}.{{ name }}({{ pk_field }}, changed_at DESC);
+
+-- Index for user audit
+CREATE INDEX IF NOT EXISTS idx_{{ name }}_user
+    ON {{ schema }}.{{ name }}(changed_by, changed_at DESC);
+
+-- Index for time-based queries
+CREATE INDEX IF NOT EXISTS idx_{{ name }}_time
+    ON {{ schema }}.{{ name }}(changed_at DESC);
+
+COMMENT ON VIEW {{ schema }}.{{ name }} IS
+    'Complete audit trail for {{ name }} with change tracking and user information';

@@ -1,0 +1,27 @@
+-- @fraiseql:view
+-- @fraiseql:description Resolves {{ source_entity.name }} to {{ target_entity.name }} via {{ junction_tables|length }}-hop junction
+CREATE OR REPLACE VIEW {{ schema }}.{{ view_name }} AS
+SELECT DISTINCT
+{%- for field in output_fields %}
+    {{ field }}{% if not loop.last %},{% endif %}
+{%- endfor %}
+FROM {{ source_entity.schema }}.{{ source_entity.table }} {{ source_entity.alias }}
+{%- for junction in junction_tables %}
+INNER JOIN {{ junction.schema }}.{{ junction.table }} {{ junction.alias }}
+    ON {{ junction.alias }}.{{ junction.left_key }} = {% if loop.first %}{{ source_entity.alias }}.{{ source_entity.pk_field }}{% else %}{{ loop.previtem.alias }}.{{ loop.previtem.right_key }}{% endif %}
+{%- endfor %}
+WHERE {{ source_entity.alias }}.deleted_at IS NULL
+{%- for junction in junction_tables %}
+  AND {{ junction.alias }}.deleted_at IS NULL
+{%- endfor %}
+{%- if source_entity.is_multi_tenant %}
+  AND {{ source_entity.alias }}.tenant_id = CURRENT_SETTING('app.current_tenant_id')::uuid
+{%- endif %};
+
+-- Indexes for performance
+CREATE INDEX IF NOT EXISTS idx_{{ view_name }}_{{ source_entity.pk_field|replace('pk_', '') }}
+    ON {{ schema }}.{{ view_name }}({{ source_entity.pk_field }});
+{%- if target_entity.pk_field != source_entity.pk_field %}
+CREATE INDEX IF NOT EXISTS idx_{{ view_name }}_{{ target_entity.pk_field|replace('pk_', '') }}
+    ON {{ schema }}.{{ view_name }}({{ target_entity.pk_field }});
+{%- endif %}

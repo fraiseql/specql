@@ -1,0 +1,49 @@
+pattern: metrics/kpi_calculator
+description: Business KPI calculations with formulas
+category: metrics
+complexity: high
+
+parameters:
+  base_entity:
+    type: entity_reference
+    required: true
+    description: Entity to calculate KPIs for
+
+  time_window:
+    type: string
+    default: "30 days"
+    description: Time window for calculations
+
+  metrics:
+    type: array
+    required: true
+    items:
+      name: string
+      formula: string  # SQL expression
+      format: enum[percentage, currency, integer, decimal]
+      thresholds:
+        type: object
+        properties:
+          warning: number
+          critical: number
+
+  refresh_strategy:
+    type: enum
+    enum: [real_time, materialized, scheduled]
+    default: real_time
+
+  schema:
+    type: string
+    default: tenant
+
+examples:
+  - name: Machine Utilization Metrics
+    description: Track machine uptime and utilization
+    config:
+      base_entity: Machine
+      time_window: 30 days
+      metrics:
+        - name: utilization_rate
+          formula: "COUNT(DISTINCT a.allocation_date) FILTER (WHERE a.status = 'active') / 30.0"
+          format: percentage
+          thresholds: {warning: 0.5, critical: 0.3}

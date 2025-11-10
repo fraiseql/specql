@@ -1,0 +1,39 @@
+pattern: polymorphic/type_resolver
+description: Resolve ambiguous PKs to entity types
+parameters:
+  discriminator_field:
+    type: string
+    required: true
+    description: Field that discriminates between entity types (e.g., "class")
+  variants:
+    type: array
+    required: true
+    items:
+      entity:
+        type: entity_reference
+        required: true
+        description: Entity that this variant represents
+      key_field:
+        type: string
+        required: true
+        description: Primary key field name for this entity
+      class_value:
+        type: string
+        required: true
+        description: Value of discriminator field for this variant
+    description: List of entity variants that share the same PK space
+  output_key:
+    type: string
+    required: true
+    default: pk_value
+    description: Unified field name for the primary key
+  schema:
+    type: string
+    required: false
+    default: tenant
+    description: Schema where the view should be created
+  materialized:
+    type: boolean
+    required: false
+    default: false
+    description: Whether to create a materialized view for performance

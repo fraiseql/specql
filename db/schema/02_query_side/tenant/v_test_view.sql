@@ -1,0 +1,1 @@
+CREATE OR REPLACE VIEW tenant.v_test_view AS SELECT 1 as dummy_column;

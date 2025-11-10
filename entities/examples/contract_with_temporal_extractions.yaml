@@ -1,0 +1,44 @@
+entity: Contract
+schema: tenant
+description: Contracts with temporal extraction patterns
+
+fields:
+  contract_number: text
+  title: text
+  start_date: date
+  end_date: date
+  status: text
+  total_value: numeric
+
+query_patterns:
+  # Extract currently active contracts
+  - name: current_contracts
+    pattern: extraction/temporal
+    config:
+      source_entity: Contract
+      temporal_mode: current
+      date_field_start: start_date
+      date_field_end: end_date
+      reference_date: "CURRENT_DATE"
+      purpose: "Extract currently active contracts for dashboard and reporting"
+
+  # Extract contracts that will become active in the future
+  - name: upcoming_contracts
+    pattern: extraction/temporal
+    config:
+      source_entity: Contract
+      temporal_mode: future
+      date_field_start: start_date
+      reference_date: "CURRENT_DATE"
+      purpose: "Extract upcoming contracts for planning and forecasting"
+
+  # Extract expired contracts for historical analysis
+  - name: expired_contracts
+    pattern: extraction/temporal
+    config:
+      source_entity: Contract
+      temporal_mode: historical
+      date_field_start: start_date
+      date_field_end: end_date
+      reference_date: "CURRENT_DATE"
+      purpose: "Extract expired contracts for historical analysis"

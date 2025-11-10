@@ -1,0 +1,43 @@
+pattern: localization/translated_view
+description: Multi-language view with translation fallback
+category: localization
+complexity: medium
+
+parameters:
+  entity:
+    type: entity_reference
+    required: true
+    description: Entity to localize
+
+  translatable_fields:
+    type: array
+    items: string
+    required: true
+    description: Fields that have translations
+
+  translation_table:
+    type: string
+    required: true
+    description: Translation table name (tl_*)
+
+  fallback_locale:
+    type: string
+    default: en_US
+    description: Fallback locale when translation missing
+
+  current_locale_source:
+    type: string
+    default: "CURRENT_SETTING('app.current_locale')"
+    description: How to determine user's locale
+
+  include_all_locales:
+    type: boolean
+    default: false
+    description: Include all translations as JSONB object
+
+examples:
+  - name: Product with French/English fallback
+    config:
+      entity: Product
+      translatable_fields: [name, description]
+      fallback_locale: en_US

@@ -1,0 +1,82 @@
+pattern: aggregation/boolean_flags
+description: Derive boolean status flags from aggregations
+category: aggregation
+complexity: medium
+
+parameters:
+  source_entity:
+    type: entity_reference
+    required: true
+    description: Entity to generate boolean flags for
+
+  flags:
+    type: array
+    required: true
+    description: Boolean flag definitions
+    items:
+      name:
+        type: string
+        required: true
+        description: Column name for the boolean flag
+      condition:
+        type: string
+        required: true
+        description: SQL condition that evaluates to boolean
+
+  array_field:
+    type: string
+    required: false
+    description: Name of JSONB array field for related data
+
+  array_fields:
+    type: array
+    required: false
+    description: Fields to include in JSONB array aggregation
+    items: string
+
+  order_by:
+    type: string
+    required: false
+    description: ORDER BY clause for array aggregation
+
+  schema:
+    type: string
+    required: false
+    default: tenant
+    description: Target schema for the view
+
+examples:
+  - name: v_current_allocations_by_machine
+    description: Boolean flags for machine allocation status (9 flags!)
+    config:
+      source_entity: Machine
+      flags:
+        - name: has_active_allocations
+          condition: "EXISTS(SELECT 1 FROM tb_allocation a WHERE a.machine_id = machine.pk_machine AND a.status = 'active' AND a.deleted_at IS NULL)"
+        - name: has_pending_allocations
+          condition: "COUNT(CASE WHEN allocation.status = 'pending' THEN 1 END) > 0"
+        - name: is_fully_allocated
+          condition: "COUNT(allocation.pk_allocation) >= machine.capacity"
+        - name: has_primary_allocation
+          condition: "COUNT(CASE WHEN allocation.is_primary THEN 1 END) > 0"
+        - name: has_backup_allocation
+          condition: "COUNT(CASE WHEN allocation.is_backup THEN 1 END) > 0"
+        - name: has_temporary_allocation
+          condition: "COUNT(CASE WHEN allocation.type = 'temporary' THEN 1 END) > 0"
+        - name: has_permanent_allocation
+          condition: "COUNT(CASE WHEN allocation.type = 'permanent' THEN 1 END) > 0"
+        - name: is_overallocated
+          condition: "SUM(allocation.utilization) > machine.capacity"
+        - name: is_underallocated
+          condition: "SUM(allocation.utilization) < machine.min_utilization"
+
+  - name: v_machine_items
+    description: Boolean flags with JSONB array aggregation
+    config:
+      source_entity: Machine
+      flags:
+        - name: has_items
+          condition: "COUNT(item.pk_item) > 0"
+      array_field: items
+      array_fields: ["pk_item", "name", "quantity", "status"]
+      order_by: "item.created_at DESC"

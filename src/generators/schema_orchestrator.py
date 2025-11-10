@@ -12,6 +12,7 @@ from src.generators.composite_type_generator import CompositeTypeGenerator
 from src.generators.core_logic_generator import CoreLogicGenerator
 from src.generators.fraiseql.mutation_annotator import MutationAnnotator
 from src.generators.fraiseql.table_view_annotator import TableViewAnnotator
+from src.generators.query_pattern_generator import QueryPatternGenerator
 from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.schema_registry import SchemaRegistry
 from src.generators.schema.table_view_dependency import TableViewDependencyResolver

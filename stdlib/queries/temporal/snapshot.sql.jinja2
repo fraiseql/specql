@@ -1,0 +1,53 @@
+# @fraiseql:view
+# @fraiseql:description Point-in-time snapshot of {{ name }} with temporal validity
+# @fraiseql:pattern temporal/snapshot
+
+CREATE OR REPLACE VIEW {{ schema }}.{{ name }} AS
+SELECT
+    {{ pk_field }},
+    t.*,
+
+    {% if include_validity_range %}
+    -- Temporal validity range
+    tsrange(
+        {{ effective_date_field }},
+        LEAD({{ effective_date_field }}) OVER (
+            PARTITION BY {{ pk_field }}
+            ORDER BY {{ effective_date_field }}
+        ),
+        '[)'  -- Inclusive start, exclusive end
+    ) AS valid_period,
+    {% endif %}
+
+    -- Convenience flags
+    {% if end_date_field %}
+    {{ end_date_field }} IS NULL AS is_current,
+    {% else %}
+    true AS is_current,  -- No end date field, all records are current
+    {% endif %}
+    {{ effective_date_field }} AS version_effective_date,
+    LEAD({{ effective_date_field }}) OVER (
+        PARTITION BY {{ pk_field }}
+        ORDER BY {{ effective_date_field }}
+    ) AS version_superseded_date
+
+FROM {{ schema }}.{{ table }} t
+WHERE t.deleted_at IS NULL
+{% if snapshot_mode == 'current_only' and end_date_field %}
+  AND {{ end_date_field }} IS NULL
+{% endif %}
+ORDER BY {{ pk_field }}, {{ effective_date_field }} DESC;
+
+{% if include_validity_range %}
+-- Temporal index for point-in-time queries
+CREATE INDEX IF NOT EXISTS idx_{{ name }}_temporal
+    ON {{ schema }}.{{ name }} USING GIST ({{ pk_field }}, valid_period);
+{% endif %}
+
+-- Index for current version lookup
+CREATE INDEX IF NOT EXISTS idx_{{ name }}_current
+    ON {{ schema }}.{{ name }}({{ pk_field }})
+    WHERE is_current = true;
+
+COMMENT ON VIEW {{ schema }}.{{ name }} IS
+    'Temporal snapshot of {{ name }} with {% if include_validity_range %}validity ranges. Query as of date: WHERE valid_period @> ''2024-01-15''::date{% else %}version tracking{% endif %}';

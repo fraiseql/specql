@@ -1,0 +1,44 @@
+pattern: temporal/audit_trail
+description: Complete audit trail of entity changes
+category: temporal
+complexity: high
+
+parameters:
+  entity:
+    type: entity_reference
+    required: true
+
+  audit_table:
+    type: string
+    required: true
+    description: Audit table name (e.g., tb_contract_audit)
+
+  change_columns:
+    type: array
+    items: string
+    required: false
+    description: Columns to track
+
+  include_user_info:
+    type: boolean
+    default: true
+    description: Include user who made change
+
+  include_diff:
+    type: boolean
+    default: true
+    description: Include before/after diff
+
+  retention_period:
+    type: string
+    default: "7 years"
+    description: Audit retention period
+
+examples:
+  - name: Contract Audit Trail
+    description: Track all contract changes with user info
+    config:
+      entity: Contract
+      audit_table: tb_contract_audit
+      include_user_info: true
+      include_diff: true

@@ -1,0 +1,44 @@
+entity: Machine
+schema: tenant
+description: Machines with component extraction patterns
+
+fields:
+  serial_number: text
+  model: text
+  installation_date: date
+  warranty_end_date: date
+  location_id: uuid
+  status: text
+
+query_patterns:
+  # Extract machines with warranty information
+  - name: warranty_info
+    pattern: extraction/component
+    config:
+      source_entity: Machine
+      extracted_fields:
+        - name: warranty_end_date
+        - name: installation_date
+      filter_condition: "warranty_end_date IS NOT NULL"
+      purpose: "Extract machines with warranty information for service planning"
+
+  # Extract active machines (not decommissioned)
+  - name: active_machines
+    pattern: extraction/temporal
+    config:
+      source_entity: Machine
+      temporal_mode: current
+      date_field_start: installation_date
+      reference_date: "CURRENT_DATE"
+      purpose: "Extract currently active machines"
+
+  # Extract machines with expired warranty
+  - name: expired_warranty_machines
+    pattern: extraction/temporal
+    config:
+      source_entity: Machine
+      temporal_mode: historical
+      date_field_start: installation_date
+      date_field_end: warranty_end_date
+      reference_date: "CURRENT_DATE"
+      purpose: "Extract machines with expired warranty for maintenance"

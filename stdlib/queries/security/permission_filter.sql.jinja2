@@ -1,0 +1,81 @@
+-- @fraiseql:view
+-- @fraiseql:description Permission-filtered {{ base_entity.name }}
+-- @fraiseql:pattern security/permission_filter
+-- @fraiseql:security row_level
+
+CREATE OR REPLACE VIEW {{ schema }}.{{ name }} AS
+SELECT {{ base_entity.alias }}.*
+FROM {{ base_entity.schema }}.{{ base_entity.table }} {{ base_entity.alias }}
+
+{% for check in permission_checks %}
+{% if check.type == 'organizational_hierarchy' %}
+-- Join organizational hierarchy for permission check
+LEFT JOIN tenant.tb_organizational_unit user_ou
+    ON user_ou.deleted_at IS NULL
+LEFT JOIN tenant.tb_user current_user
+    ON current_user.id = {{ user_context_source }}::uuid
+    AND current_user.deleted_at IS NULL
+{% endif %}
+{% endfor %}
+
+WHERE {{ base_entity.alias }}.deleted_at IS NULL
+
+{% if deny_by_default %}
+AND (
+{% else %}
+OR (
+{% endif %}
+
+    {% for check in permission_checks %}
+
+    {% if check.type == 'ownership' %}
+    -- Ownership check
+    {{ base_entity.alias }}.{{ check.field }} = {{ user_context_source }}::uuid
+
+    {% elif check.type == 'organizational_hierarchy' %}
+    -- Organizational hierarchy check
+    {{ base_entity.alias }}.{{ check.field }} IN (
+        SELECT ou.pk_organizational_unit
+        FROM tenant.tb_organizational_unit ou
+        WHERE ou.path <@ current_user.organizational_unit_path
+          AND ou.deleted_at IS NULL
+    )
+
+    {% elif check.type == 'role_based' %}
+    -- Role-based check
+    EXISTS (
+        SELECT 1
+        FROM app.tb_user_role ur
+        WHERE ur.user_id = {{ user_context_source }}::uuid
+          AND ur.role IN ({% for role in check.allowed_roles %}'{{ role }}'{% if not loop.last %}, {% endif %}{% endfor %})
+          AND ur.deleted_at IS NULL
+    )
+
+    {% elif check.type == 'custom' %}
+    -- Custom permission logic
+    ({{ check.custom_condition }})
+
+    {% endif %}
+
+    {% if not loop.last %}OR{% endif %}
+
+    {% endfor %}
+);
+
+{% if enable_rls %}
+-- Enable RLS on base table (optional)
+ALTER TABLE {{ base_entity.schema }}.{{ base_entity.table }} ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY rls_{{ base_entity.table }}_access
+ON {{ base_entity.schema }}.{{ base_entity.table }}
+FOR SELECT
+USING (
+    {{ base_entity.pk_field }} IN (
+        SELECT {{ base_entity.pk_field }}
+        FROM {{ schema }}.{{ name }}
+    )
+);
+{% endif %}
+
+COMMENT ON VIEW {{ schema }}.{{ name }} IS
+    'Permission-filtered view of {{ base_entity.name }}. Access controlled by: {{ permission_checks|map(attribute='type')|join(', ') }}';

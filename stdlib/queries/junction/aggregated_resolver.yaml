@@ -1,0 +1,38 @@
+pattern: junction/aggregated_resolver
+description: Junction resolver with JSONB array aggregation for one-to-many relationships
+parameters:
+  source_entity:
+    type: entity_reference
+    required: true
+    description: Parent entity (one side of relationship)
+  junction_tables:
+    type: array
+    required: true
+    description: Junction tables to traverse
+    items:
+      table: string
+      schema: string
+      left_key: string
+      right_key: string
+  target_entity:
+    type: entity_reference
+    required: true
+    description: Child entity to aggregate (many side)
+  aggregate_into:
+    type: string
+    required: true
+    description: Name of JSONB array field for aggregated results
+  aggregation_fields:
+    type: array
+    items:
+      name: string
+      expression: string
+    description: Fields to include in each aggregated item
+  order_by:
+    type: array
+    items: string
+    description: Optional ordering for aggregated items
+  schema:
+    type: string
+    default: tenant
+    description: Target schema for the view

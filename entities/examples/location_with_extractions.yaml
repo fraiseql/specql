@@ -1,0 +1,32 @@
+entity: Location
+schema: tenant
+description: Geographic locations with coordinate extraction
+
+fields:
+  code: text
+  name: text
+  latitude: numeric
+  longitude: numeric
+  address: text
+
+query_patterns:
+  # Extract locations with valid coordinates for efficient mapping queries
+  - name: coordinates
+    pattern: extraction/component
+    config:
+      source_entity: Location
+      extracted_fields:
+        - name: latitude
+        - name: longitude
+      filter_condition: "latitude IS NOT NULL AND longitude IS NOT NULL"
+      purpose: "Extract locations with coordinates to avoid NULL values in LEFT JOINs for mapping features"
+
+  # Extract current locations (not deleted, active)
+  - name: active_locations
+    pattern: extraction/temporal
+    config:
+      source_entity: Location
+      temporal_mode: current
+      date_field_start: created_at
+      reference_date: "CURRENT_DATE"
+      purpose: "Extract currently active locations"

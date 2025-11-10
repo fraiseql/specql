@@ -1,0 +1,95 @@
+-- @fraiseql:view
+-- @fraiseql:description KPI dashboard for {{ base_entity.name }}
+-- @fraiseql:pattern metrics/kpi_calculator
+
+{% if refresh_strategy == 'materialized' %}
+CREATE MATERIALIZED VIEW {{ schema }}.{{ name }} AS
+{% else %}
+CREATE OR REPLACE VIEW {{ schema }}.{{ name }} AS
+{% endif %}
+
+WITH base_data AS (
+    -- Gather raw data for calculations
+    SELECT
+        {{ base_entity.pk_field }},
+        {{ base_entity.alias }}.*,
+
+        -- Time-windowed aggregations
+        {% for metric in metrics %}
+        {% if metric.requires_aggregation %}
+        {{ metric.aggregation_source }} AS {{ metric.name }}_source,
+        {% endif %}
+        {% endfor %}
+
+        -- Reference date range
+        CURRENT_DATE - INTERVAL '{{ time_window }}' AS window_start,
+        CURRENT_DATE AS window_end
+
+    FROM {{ base_entity.schema }}.{{ base_entity.table }} {{ base_entity.alias }}
+    {% for join in metric_joins %}
+    LEFT JOIN {{ join.table }} {{ join.alias }}
+        ON {{ join.condition }}
+        AND {{ join.alias }}.date_field BETWEEN CURRENT_DATE - INTERVAL '{{ time_window }}' AND CURRENT_DATE
+    {% endfor %}
+    WHERE {{ base_entity.alias }}.deleted_at IS NULL
+    GROUP BY {{ base_entity.pk_field }}
+),
+calculated_metrics AS (
+    SELECT
+        {{ base_entity.pk_field }},
+
+        -- Calculate KPIs
+        {% for metric in metrics %}
+        {{ metric.formula }} AS {{ metric.name }},
+        {% endfor %}
+
+        window_start,
+        window_end
+
+    FROM base_data
+)
+SELECT
+    cm.*,
+
+    -- Format metrics
+    {% for metric in metrics %}
+    {% if metric.format == 'percentage' %}
+    ROUND((cm.{{ metric.name }} * 100)::numeric, 2) AS {{ metric.name }}_pct,
+    {% elif metric.format == 'currency' %}
+    TO_CHAR(cm.{{ metric.name }}, 'FM$999,999,999.00') AS {{ metric.name }}_formatted,
+    {% endif %}
+    {% endfor %}
+
+    -- Threshold status
+    {% for metric in metrics %}
+    {% if metric.thresholds %}
+    CASE
+        WHEN cm.{{ metric.name }} < {{ metric.thresholds.critical }} THEN 'CRITICAL'
+        WHEN cm.{{ metric.name }} < {{ metric.thresholds.warning }} THEN 'WARNING'
+        ELSE 'OK'
+    END AS {{ metric.name }}_status,
+    {% endif %}
+    {% endfor %}
+
+    -- Metadata
+    NOW() AS calculated_at,
+    '{{ time_window }}' AS time_window
+
+FROM calculated_metrics cm;
+
+{% if refresh_strategy == 'materialized' %}
+-- Refresh function
+CREATE OR REPLACE FUNCTION {{ schema }}.refresh_{{ name }}()
+RETURNS void AS $$
+BEGIN
+    REFRESH MATERIALIZED VIEW CONCURRENTLY {{ schema }}.{{ name }};
+END;
+$$ LANGUAGE plpgsql;
+{% endif %}
+
+-- Index for entity lookup
+CREATE INDEX IF NOT EXISTS idx_{{ name }}_entity
+    ON {{ schema }}.{{ name }}({{ base_entity.pk_field }});
+
+COMMENT ON {% if refresh_strategy == 'materialized' %}MATERIALIZED VIEW{% else %}VIEW{% endif %} {{ schema }}.{{ name }} IS
+    'KPI metrics for {{ base_entity.name }} over {{ time_window }} window.{% if refresh_strategy == 'materialized' %} Refresh: SELECT refresh_{{ name }}();{% endif %}';

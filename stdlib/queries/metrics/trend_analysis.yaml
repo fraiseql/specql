@@ -1,0 +1,39 @@
+pattern: metrics/trend_analysis
+description: Time-series trend analysis with moving averages
+category: metrics
+complexity: high
+
+parameters:
+  base_metric_view:
+    type: string
+    required: true
+    description: View containing base metrics
+
+  trend_metrics:
+    type: array
+    required: true
+    items:
+      metric: string
+      periods: array  # [7, 30, 90] days
+      smoothing: enum[simple, weighted, exponential]
+
+  trend_detection:
+    enabled: boolean
+    sensitivity: enum[low, medium, high]
+
+  schema:
+    type: string
+    default: tenant
+
+examples:
+  - name: Machine Utilization Trends
+    description: Track utilization trends over time
+    config:
+      base_metric_view: v_machine_utilization_metrics
+      trend_metrics:
+        - metric: utilization_rate
+          periods: [7, 30, 90]
+          smoothing: simple
+      trend_detection:
+        enabled: true
+        sensitivity: medium
