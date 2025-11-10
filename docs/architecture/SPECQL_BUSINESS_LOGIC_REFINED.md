@@ -1,34 +1,49 @@
-# SpecQL Business Logic - Refined YAML Schema
+# SpecQL Business Logic Schema
 
-**Date**: November 8, 2025
-**Context**: Integration with SpecQL language for FraiseQL
-**Key Insight**: Framework handles boilerplate, YAML focuses on **business rules only**
+## Overview
 
----
+SpecQL separates framework concerns from business logic. The framework handles common patterns automatically, while YAML definitions focus on domain-specific rules.
 
-## Executive Summary
+## Framework Responsibilities
 
-After reviewing SpecQL language design, we can significantly **simplify the YAML schema** by leveraging framework-level features:
+The SpecQL framework automatically provides:
+- CRUD operation generation
+- Input validation and type checking
+- Permission checks
+- Audit logging
+- Event emission
+- Standard response formatting
+- Exception handling
 
-### **Framework Handles (SpecQL Layer)**
-- ✅ CRUD generation
-- ✅ Permission checks (`requires: caller.has_permission(...)`)
-- ✅ Audit logging (`audit: required`)
-- ✅ Event emission (`emit: event(...)`)
-- ✅ Notifications (`notify: user(email, ...)`)
-- ✅ Change detection (automatic)
-- ✅ Response structure (standard mutation_result)
-- ✅ Exception handling (standard patterns)
+## YAML Focus
 
-### **YAML Focuses On (Business Layer)**
-- 🎯 **Entity relationships** (refs, cascades)
-- 🎯 **Business validations** (domain rules)
-- 🎯 **Workflow steps** (multi-step actions)
-- 🎯 **Conflict detection** (domain-specific overlaps)
-- 🎯 **Conditional logic** (if/then business rules)
-- 🎯 **AI agents** (domain-specific automation)
+YAML definitions specify:
+- Entity relationships and references
+- Business validation rules
+- Multi-step workflows
+- Domain-specific logic
+- Conditional business rules
 
-**Result**: 70% reduction in YAML verbosity, clearer separation of concerns.
+## Example
+
+```yaml
+entity: Task
+fields:
+  title: text
+  assignee: ref(User)
+  status: enum(todo, in_progress, done)
+
+actions:
+  - name: create_task
+    steps:
+      - validate: title IS NOT NULL AND LENGTH(title) >= 3
+      - insert: Task
+
+  - name: complete_task
+    steps:
+      - validate: status = 'in_progress'
+      - update: Task SET status = 'done'
+```
 
 ---
 

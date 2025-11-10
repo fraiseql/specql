@@ -1,16 +1,60 @@
-# FraiseQL Bridges the Frontend Gap - Strategic Analysis
+# FraiseQL Integration
 
-## Executive Summary
+## Overview
 
-**FraiseQL DOES bridge the gap**, but needs one small enhancement to make it perfect.
+FraiseQL provides GraphQL integration for SpecQL-generated PostgreSQL functions. It uses a standardized `mutation_result` type to return structured data from database operations.
 
-FraiseQL's existing architecture solves 90% of the frontend pain points through:
-1. **Standardized MutationResult structure** with `object_data` JSONB field
-2. **Sophisticated parser** that auto-maps entities from `object_data`
-3. **Already-implemented selection_filter** (just needs integration)
-4. **`updated_fields` tracking** at database level
+## Mutation Result Structure
 
-**The Gap**: No integration of selection set filtering yet (1-2 hour fix).
+```sql
+CREATE TYPE mutation_result AS (
+    id UUID,
+    updated_fields TEXT[],
+    status TEXT,
+    message TEXT,
+    object_data JSONB,
+    extra_metadata JSONB
+);
+```
+
+## Generated Function Example
+
+```sql
+CREATE OR REPLACE FUNCTION crm.qualify_lead(
+    p_contact_id UUID,
+    p_caller_id UUID
+)
+RETURNS mutation_result AS $$
+DECLARE
+    v_pk INTEGER;
+    v_result mutation_result;
+BEGIN
+    -- Get primary key from UUID
+    v_pk := crm.contact_pk(p_contact_id);
+
+    -- Business validation
+    IF (SELECT status FROM crm.tb_contact WHERE pk_contact = v_pk) != 'lead' THEN
+        v_result.status := 'error';
+        v_result.message := 'Contact is not a lead';
+        RETURN v_result;
+    END IF;
+
+    -- Update operation
+    UPDATE crm.tb_contact
+    SET status = 'qualified',
+        updated_at = NOW(),
+        updated_by = p_caller_id
+    WHERE pk_contact = v_pk;
+
+    -- Return success result
+    v_result.id := p_contact_id;
+    v_result.status := 'success';
+    v_result.message := 'Lead qualified successfully';
+    v_result.updated_fields := ARRAY['status', 'updated_at', 'updated_by'];
+
+    RETURN v_result;
+END;
+$$ LANGUAGE plpgsql;
 
 ## How FraiseQL's Pattern Works
 
