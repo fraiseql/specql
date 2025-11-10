@@ -1,0 +1,166 @@
+# SpecQL stdlib Entity: ContractItem
+# Category: commerce
+# Version: 1.1.0
+# Standard: PrintOptim Production Reference
+# Description: Contract line items with bulk operations
+#
+# This entity implements PrintOptim's contract item management
+# using batch operation patterns for bulk updates.
+#
+# Usage:
+#   import: stdlib/commerce/contract_item
+
+entity: ContractItem
+schema: tenant
+description: |
+  Individual line items within a contract.
+  Supports bulk operations for price updates and status changes.
+
+fields:
+  contract_id:
+    type: uuid!
+    description: "Parent contract"
+
+  item_code:
+    type: text!
+    description: "Item code or SKU"
+
+  description:
+    type: text!
+    description: "Item description"
+
+  quantity:
+    type: integer!
+    description: "Quantity ordered"
+
+  unit_price:
+    type: decimal(10,2)!
+    description: "Price per unit"
+
+  total_price:
+    type: decimal(10,2)
+    description: "Calculated total price (quantity * unit_price)"
+
+  status:
+    type: enum(draft, approved, delivered, cancelled)
+    default: draft
+    description: "Item status"
+
+  delivery_date:
+    type: date
+    description: "Expected or actual delivery date"
+
+  notes:
+    type: text
+    description: "Item-specific notes"
+
+# GraphQL projection with contract data
+projections:
+  - name: contract_item_projection
+    materialize: true
+    refresh_on: [create, update]
+    includes:
+      - contract: [id, name, contract_identifier, status]
+
+actions:
+  # CRUD operations
+  - name: create_contract_item
+    refresh_projection: contract_item_projection
+
+  - name: update_contract_item
+    partial_updates: true
+    refresh_projection: contract_item_projection
+
+  - name: delete_contract_item
+
+  # Bulk operations using batch pattern
+  - name: bulk_update_prices
+    pattern: batch/bulk_operation
+    description: "Update prices for multiple contract items"
+    config:
+      batch_input: price_updates
+      operation:
+        action: update
+        entity: ContractItem
+        set:
+          unit_price: $item.unit_price
+          total_price: $item.unit_price * quantity
+        where:
+          id: $item.id
+          tenant_id: $auth_tenant_id
+      error_handling: continue_on_error
+      batch_size: 100
+      refresh_projections:
+        - contract_item_projection
+        - contract_projection
+      return_summary:
+        processed_count: v_processed_count
+        failed_count: v_failed_count
+        failed_items: v_failed_items
+
+  - name: bulk_approve_items
+    pattern: batch/bulk_operation
+    description: "Approve multiple contract items at once"
+    config:
+      batch_input: item_ids
+      operation:
+        action: update
+        entity: ContractItem
+        set:
+          status: approved
+          approved_at: NOW()
+          approved_by: $auth_user_id
+        where:
+          id: $item
+          status: draft
+          tenant_id: $auth_tenant_id
+      error_handling: continue_on_error
+      return_summary:
+        approved_count: v_processed_count
+        failed_count: v_failed_count
+        already_approved: v_failed_items
+
+  - name: bulk_deliver_items
+    pattern: batch/bulk_operation
+    description: "Mark multiple items as delivered"
+    config:
+      batch_input: deliveries
+      operation:
+        action: update
+        entity: ContractItem
+        set:
+          status: delivered
+          delivery_date: $item.delivery_date
+          delivered_at: NOW()
+          delivered_by: $auth_user_id
+        where:
+          id: $item.id
+          status: approved
+          tenant_id: $auth_tenant_id
+      error_handling: continue_on_error
+      return_summary:
+        delivered_count: v_processed_count
+        failed_count: v_failed_count
+        failed_deliveries: v_failed_items
+
+  - name: bulk_create_items
+    pattern: batch/bulk_operation
+    description: "Create multiple contract items from template"
+    config:
+      batch_input: items
+      operation:
+        action: insert
+        entity: ContractItem
+        values:
+          contract_id: $input_data.contract_id
+          item_code: $item.item_code
+          description: $item.description
+          quantity: $item.quantity
+          unit_price: $item.unit_price
+          total_price: $item.unit_price * $item.quantity
+          status: draft
+      error_handling: continue_on_error
+      return_summary:
+        created_count: v_processed_count
+        failed_count: v_failed_count
+        errors: v_failed_items

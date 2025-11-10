@@ -1,0 +1,317 @@
+pattern: multi_entity/saga_orchestrator
+version: 1.0
+description: "Implement saga pattern for distributed transactions across multiple entities with compensation logic"
+author: SpecQL Team
+
+parameters:
+  - name: saga_steps
+    type: array<object>
+    required: true
+    description: "Sequence of saga steps with compensation actions"
+
+  - name: compensation_strategy
+    type: enum[rollback_all, compensate_from_failure, partial_success]
+    default: rollback_all
+    description: "How to handle failures and rollbacks"
+
+  - name: timeout_seconds
+    type: number
+    default: 300
+    description: "Maximum time allowed for saga completion"
+
+  - name: monitoring
+    type: object
+    required: false
+    description: "Saga monitoring and logging configuration"
+
+template: |
+  steps:
+    # Initialize saga context
+    - raw_sql: |
+        -- Initialize saga tracking
+        v_saga_id := gen_random_uuid();
+        v_saga_status := 'running';
+        v_current_step := 0;
+        v_completed_steps := '{}'::jsonb;
+        v_failed_step := NULL;
+        v_saga_start_time := NOW();
+        v_saga_timeout := NOW() + INTERVAL '{{ timeout_seconds | default(300) }} seconds';
+
+    # Create saga log entry
+    - raw_sql: |
+        INSERT INTO app.tb_saga_log (
+            saga_id, entity_type, entity_id, saga_type, total_steps,
+            status, start_time, timeout_at, created_at, created_by, tenant_id
+        ) VALUES (
+            v_saga_id, '{{ entity.name }}', v_{{ entity.name | lower }}_id,
+            'distributed_transaction', {{ saga_steps | length }},
+            'running', v_saga_start_time, v_saga_timeout,
+            NOW(), auth_user_id, auth_tenant_id
+        );
+
+    {% for step in saga_steps %}
+    {% set step_num = loop.index %}
+
+    # Saga Step {{ step_num }}: {{ step.name }}
+    - raw_sql: |
+        -- Execute saga step {{ step_num }}
+        v_current_step := {{ step_num }};
+        v_step_start_time := NOW();
+
+        BEGIN
+            -- Log step start
+            INSERT INTO app.tb_saga_step_log (
+                saga_id, step_number, step_name, step_type, status,
+                start_time, created_at, created_by, tenant_id
+            ) VALUES (
+                v_saga_id, {{ step_num }}, '{{ step.name }}', 'forward',
+                'running', v_step_start_time, NOW(), auth_user_id, auth_tenant_id
+            );
+
+            -- Execute forward action
+            {% if step.forward_action.pattern == 'crud/create' %}
+            -- Forward: CRUD Create
+            INSERT INTO {{ step.forward_action.entity | schema_for }}.tb_{{ step.forward_action.entity | lower }} (
+                {% for field in step.forward_action.config.get('fields', []) %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                created_at, created_by, tenant_id
+            ) VALUES (
+                {% for field in step.forward_action.config.get('fields', []) %}input_data.{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                NOW(), auth_user_id, auth_tenant_id
+            ) RETURNING id INTO v_step_{{ step_num }}_id;
+
+            {% elif step.forward_action.pattern == 'crud/update' %}
+            -- Forward: CRUD Update
+            UPDATE {{ step.forward_action.entity | schema_for }}.tb_{{ step.forward_action.entity | lower }}
+            SET {% for field, value in step.forward_action.config.get('values', {}).items() %}{{ field }} = {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
+            WHERE {{ step.forward_action.config.get('where', 'id = v_' + entity.name | lower + '_id') }};
+
+            {% elif step.forward_action.pattern == 'state_machine/transition' %}
+            -- Forward: State Machine Transition
+            UPDATE {{ step.forward_action.entity | schema_for }}.tb_{{ step.forward_action.entity | lower }}
+            SET status = '{{ step.forward_action.config.to_state }}',
+                updated_at = NOW(),
+                updated_by = auth_user_id
+            WHERE id = v_{{ step.forward_action.entity | lower }}_id
+              AND tenant_id = auth_tenant_id
+              AND status IN ({% for state in step.forward_action.config.from_states %}'{{ state }}'{% if not loop.last %}, {% endif %}{% endfor %});
+
+            {% endif %}
+
+            -- Mark step as completed
+            UPDATE app.tb_saga_step_log
+            SET status = 'completed',
+                end_time = NOW(),
+                result_data = jsonb_build_object('step_id', COALESCE(v_step_{{ step_num }}_id, v_{{ entity.name | lower }}_id))
+            WHERE saga_id = v_saga_id AND step_number = {{ step_num }};
+
+            -- Add to completed steps
+            v_completed_steps := v_completed_steps || jsonb_build_object(
+                'step_{{ step_num }}', jsonb_build_object(
+                    'name', '{{ step.name }}',
+                    'completed_at', NOW(),
+                    'step_id', COALESCE(v_step_{{ step_num }}_id, v_{{ entity.name | lower }}_id)
+                )
+            );
+
+        EXCEPTION WHEN OTHERS THEN
+            -- Mark step as failed
+            v_failed_step := {{ step_num }};
+            v_saga_status := 'failed';
+
+            UPDATE app.tb_saga_step_log
+            SET status = 'failed',
+                end_time = NOW(),
+                error_message = SQLERRM,
+                error_code = SQLSTATE
+            WHERE saga_id = v_saga_id AND step_number = {{ step_num }};
+
+            UPDATE app.tb_saga_log
+            SET status = 'failed',
+                failed_step = {{ step_num }},
+                end_time = NOW(),
+                error_message = SQLERRM
+            WHERE saga_id = v_saga_id;
+
+            -- Execute compensation based on strategy
+            {% if compensation_strategy == 'rollback_all' %}
+            -- Compensate all completed steps in reverse order
+            {% for prev_step in saga_steps[:step_num] | reverse %}
+            {% set prev_num = loop.index %}
+            -- Compensate step {{ prev_num }}: {{ prev_step.name }}
+            BEGIN
+                {% if prev_step.compensation_action.pattern == 'crud/delete' %}
+                -- Compensation: Delete created record
+                DELETE FROM {{ prev_step.compensation_action.entity | schema_for }}.tb_{{ prev_step.compensation_action.entity | lower }}
+                WHERE id = (v_completed_steps->'step_{{ prev_num }}'->>'step_id')::uuid;
+
+                {% elif prev_step.compensation_action.pattern == 'crud/update' %}
+                -- Compensation: Revert update
+                UPDATE {{ prev_step.compensation_action.entity | schema_for }}.tb_{{ prev_step.compensation_action.entity | lower }}
+                SET {% for field, value in prev_step.compensation_action.config.get('values', {}).items() %}{{ field }} = {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
+                WHERE id = (v_completed_steps->'step_{{ prev_num }}'->>'step_id')::uuid;
+
+                {% elif prev_step.compensation_action.pattern == 'state_machine/transition' %}
+                -- Compensation: Revert state transition
+                UPDATE {{ prev_step.compensation_action.entity | schema_for }}.tb_{{ prev_step.compensation_action.entity | lower }}
+                SET status = '{{ prev_step.compensation_action.config.from_state }}',
+                    updated_at = NOW(),
+                    updated_by = auth_user_id
+                WHERE id = (v_completed_steps->'step_{{ prev_num }}'->>'step_id')::uuid;
+
+                {% endif %}
+
+                -- Log compensation
+                INSERT INTO app.tb_saga_compensation_log (
+                    saga_id, compensated_step, compensation_action,
+                    executed_at, created_by, tenant_id
+                ) VALUES (
+                    v_saga_id, {{ prev_num }}, '{{ prev_step.compensation_action.pattern }}',
+                    NOW(), auth_user_id, auth_tenant_id
+                );
+
+            EXCEPTION WHEN OTHERS THEN
+                -- Log compensation failure but continue
+                INSERT INTO app.tb_saga_compensation_log (
+                    saga_id, compensated_step, compensation_action,
+                    executed_at, error_message, created_by, tenant_id
+                ) VALUES (
+                    v_saga_id, {{ prev_num }}, 'compensation_failed',
+                    NOW(), SQLERRM, auth_user_id, auth_tenant_id
+                );
+            END;
+            {% endfor %}
+
+            {% elif compensation_strategy == 'compensate_from_failure' %}
+            -- Compensate only the failed step
+            {% if step.compensation_action %}
+            BEGIN
+                {% if step.compensation_action.pattern == 'crud/delete' %}
+                DELETE FROM {{ step.compensation_action.entity | schema_for }}.tb_{{ step.compensation_action.entity | lower }}
+                WHERE id = v_step_{{ step_num }}_id;
+                {% endif %}
+
+                INSERT INTO app.tb_saga_compensation_log (
+                    saga_id, compensated_step, compensation_action,
+                    executed_at, created_by, tenant_id
+                ) VALUES (
+                    v_saga_id, {{ step_num }}, '{{ step.compensation_action.pattern }}',
+                    NOW(), auth_user_id, auth_tenant_id
+                );
+            EXCEPTION WHEN OTHERS THEN
+                INSERT INTO app.tb_saga_compensation_log (
+                    saga_id, compensated_step, compensation_action,
+                    executed_at, error_message, created_by, tenant_id
+                ) VALUES (
+                    v_saga_id, {{ step_num }}, 'compensation_failed',
+                    NOW(), SQLERRM, auth_user_id, auth_tenant_id
+                );
+            END;
+            {% endif %}
+            {% endif %}
+
+            -- Raise original error to fail the transaction
+            RAISE;
+
+        END;
+
+    {% endfor %}
+
+    # Mark saga as completed
+    - raw_sql: |
+        UPDATE app.tb_saga_log
+        SET status = 'completed',
+            end_time = NOW(),
+            completed_steps = v_completed_steps
+        WHERE saga_id = v_saga_id;
+
+examples:
+  - name: order_fulfillment_saga
+    description: "Distributed saga for order fulfillment across inventory, payment, and shipping"
+    config:
+      saga_steps:
+        - name: "Reserve Inventory"
+          forward_action:
+            pattern: "crud/update"
+            entity: "Inventory"
+            config:
+              values:
+                reserved_quantity: "reserved_quantity + input_data.quantity"
+                updated_at: "NOW()"
+              where: "product_id = input_data.product_id"
+          compensation_action:
+            pattern: "crud/update"
+            entity: "Inventory"
+            config:
+              values:
+                reserved_quantity: "GREATEST(reserved_quantity - input_data.quantity, 0)"
+                updated_at: "NOW()"
+
+        - name: "Authorize Payment"
+          forward_action:
+            pattern: "state_machine/transition"
+            entity: "Payment"
+            config:
+              from_states: ["pending"]
+              to_state: "authorized"
+              input_fields:
+                - name: "authorization_code"
+                  value: "gen_random_uuid()::text"
+          compensation_action:
+            pattern: "state_machine/transition"
+            entity: "Payment"
+            config:
+              from_states: ["authorized"]
+              to_state: "cancelled"
+
+        - name: "Create Shipment"
+          forward_action:
+            pattern: "crud/create"
+            entity: "Shipment"
+            config:
+              fields: ["order_id", "items", "shipping_address", "carrier"]
+          compensation_action:
+            pattern: "crud/delete"
+            entity: "Shipment"
+
+      compensation_strategy: "rollback_all"
+      timeout_seconds: 600
+
+  - name: user_registration_saga
+    description: "Saga for user registration with profile creation and email verification"
+    config:
+      saga_steps:
+        - name: "Create User Account"
+          forward_action:
+            pattern: "crud/create"
+            entity: "User"
+            config:
+              fields: ["email", "password_hash", "registration_source"]
+          compensation_action:
+            pattern: "crud/delete"
+            entity: "User"
+
+        - name: "Create User Profile"
+          forward_action:
+            pattern: "crud/create"
+            entity: "UserProfile"
+            config:
+              fields: ["user_id", "first_name", "last_name", "preferences"]
+          compensation_action:
+            pattern: "crud/delete"
+            entity: "UserProfile"
+
+        - name: "Send Verification Email"
+          forward_action:
+            pattern: "crud/create"
+            entity: "EmailVerification"
+            config:
+              fields: ["user_id", "verification_token", "expires_at"]
+          compensation_action:
+            pattern: "crud/update"
+            entity: "EmailVerification"
+            config:
+              values:
+                status: "'cancelled'"
+
+      compensation_strategy: "compensate_from_failure"
+      timeout_seconds: 300

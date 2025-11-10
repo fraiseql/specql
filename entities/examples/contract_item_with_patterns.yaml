@@ -1,0 +1,85 @@
+# Example: ContractItem entity using batch operation pattern
+# Demonstrates bulk operations with error handling
+
+entity: ContractItem
+schema: tenant
+description: "Contract line items with bulk price updates"
+
+fields:
+  contract_id: uuid!
+  item_code: text!
+  description: text!
+  quantity: integer!
+  unit_price: decimal(10,2)!
+  total_price: decimal(10,2)
+  status: enum(draft, approved, delivered, cancelled)
+
+# Batch operation pattern for bulk updates
+actions:
+  - name: bulk_update_prices
+    pattern: batch/bulk_operation
+    description: "Update prices for multiple contract items"
+    config:
+      batch_input: price_updates
+      operation:
+        action: update
+        entity: ContractItem
+        set:
+          unit_price: $item.unit_price
+          total_price: $item.unit_price * quantity
+        where:
+          id: $item.id
+          tenant_id: $auth_tenant_id
+      error_handling: continue_on_error
+      batch_size: 100
+      refresh_projections:
+        - contract_projection
+        - contract_item_projection
+      return_summary:
+        processed_count: v_processed_count
+        failed_count: v_failed_count
+        failed_items: v_failed_items
+
+  - name: bulk_approve_items
+    pattern: batch/bulk_operation
+    description: "Approve multiple contract items at once"
+    config:
+      batch_input: item_ids
+      operation:
+        action: update
+        entity: ContractItem
+        set:
+          status: approved
+          approved_at: NOW()
+          approved_by: $auth_user_id
+        where:
+          id: $item
+          status: draft
+          tenant_id: $auth_tenant_id
+      error_handling: continue_on_error
+      return_summary:
+        approved_count: v_processed_count
+        failed_count: v_failed_count
+        already_approved: v_failed_items
+
+  - name: bulk_create_items
+    pattern: batch/bulk_operation
+    description: "Create multiple contract items from template"
+    config:
+      batch_input: items
+      operation:
+        action: insert
+        entity: ContractItem
+        values:
+          contract_id: $input_data.contract_id
+          item_code: $item.item_code
+          description: $item.description
+          quantity: $item.quantity
+          unit_price: $item.unit_price
+          total_price: $item.unit_price * $item.quantity
+          status: draft
+      error_handling: continue_on_error
+      return_summary:
+        created_count: v_processed_count
+        failed_count: v_failed_count
+        errors: v_failed_items

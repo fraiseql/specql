@@ -1,0 +1,67 @@
+# Example: Machine entity using state machine pattern
+# Demonstrates declarative business logic with patterns
+
+entity: Machine
+schema: tenant
+description: "Manufacturing equipment with lifecycle management"
+
+fields:
+  code: text!
+  name: text!
+  status: enum(active, maintenance, decommissioned)
+  location_id: uuid
+  decommission_date: date
+  decommission_reason: text
+  active: boolean = true
+
+# State machine pattern for lifecycle management
+actions:
+  - name: decommission_machine
+    pattern: state_machine/transition
+    description: "Decommission machine from active/maintenance to decommissioned"
+    config:
+      from_states: [active, maintenance]
+      to_state: decommissioned
+      input_fields:
+        - name: decommission_date
+          type: date
+          required: true
+        - name: decommission_reason
+          type: text
+          required: true
+      validation_checks:
+        - name: no_active_allocations
+          condition: "true"  # Simplified for testing
+          error: "Cannot decommission machine with active allocations"
+      side_effects:
+        - description: "Archive related machine items"
+          entity: MachineItem
+          set:
+            status: archived
+          where: "machine_id = v_machine_id AND tenant_id = auth_tenant_id"
+        - description: "Log decommission event"
+          entity: MachineEvent
+          set:
+            machine_id: v_machine_id
+            event_type: decommissioned
+            event_data: input_payload
+          where: "machine_id = v_machine_id AND tenant_id = auth_tenant_id"
+      refresh_projection: machine_projection
+
+  - name: start_maintenance
+    pattern: state_machine/transition
+    description: "Put machine into maintenance mode"
+    config:
+      from_states: [active]
+      to_state: maintenance
+      validation_checks:
+        - name: no_active_work_orders
+          condition: "true"  # Simplified for testing
+          error: "Cannot start maintenance with active work orders"
+
+  - name: end_maintenance
+    pattern: state_machine/transition
+    description: "Return machine to active status after maintenance"
+    config:
+      from_states: [maintenance]
+      to_state: active

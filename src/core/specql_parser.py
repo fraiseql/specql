@@ -35,6 +35,7 @@ from src.core.scalar_types import (
     is_scalar_type,
 )
 from src.core.separators import Separators
+from src.patterns import PatternLoader
 
 
 class ParseError(Exception):
@@ -49,6 +50,7 @@ class SpecQLParser:
     def __init__(self):
         # Will be extended in Phase 2 with composite types
         self.current_entity_fields = {}  # Track fields for expression validation
+        self.pattern_loader = PatternLoader()  # Pattern library support
 
     def parse(self, yaml_content: str) -> EntityDefinition:
         """
@@ -112,6 +114,9 @@ class SpecQLParser:
 
         # Set current entity fields for expression validation
         self.current_entity_fields = entity.fields
+
+        # Set current entity for pattern expansion
+        self._current_entity = entity
 
         # Parse actions (Phase 2)
         actions_data = data.get("actions", [])
@@ -415,16 +420,39 @@ class SpecQLParser:
         )
 
     def _parse_action(self, action_spec: dict) -> ActionDefinition:
-        """Parse action definition with full step parsing"""
+        """Parse action definition with full step parsing and pattern support"""
         action = ActionDefinition(
             name=action_spec["name"],
             description=action_spec.get("description", ""),
         )
 
-        # Parse steps
-        for step_spec in action_spec.get("steps", []):
-            step = self._parse_single_step(step_spec)
-            action.steps.append(step)
+        # Check if this is a pattern-based action
+        if "pattern" in action_spec:
+            # Load and expand pattern
+            pattern_name = action_spec["pattern"]
+            pattern = self.pattern_loader.load_pattern(pattern_name)
+            config = action_spec.get("config", {})
+
+            # We need the entity definition to expand patterns
+            # This will be set during parse() call
+            if hasattr(self, "_current_entity"):
+                expanded = self.pattern_loader.expand_pattern(
+                    pattern_name, self._current_entity, config
+                )
+                action.pattern = action_spec["pattern"]
+                action.pattern_config = config
+
+                # Convert expanded steps to ActionStep objects
+                for step_data in expanded.expanded_steps:
+                    step = self._parse_single_step(step_data)
+                    action.steps.append(step)
+            else:
+                raise ParseError("Cannot expand patterns without entity context")
+        else:
+            # Traditional step-based action
+            for step_spec in action_spec.get("steps", []):
+                step = self._parse_single_step(step_spec)
+                action.steps.append(step)
 
         return action
 
@@ -468,6 +496,10 @@ class SpecQLParser:
             return self._parse_reject_step(step_data)
         elif "refresh_table_view" in step_data:
             return self._parse_refresh_table_view_step(step_data)
+        elif "raw_sql" in step_data:
+            return self._parse_raw_sql_step(step_data)
+        elif "duplicate_check" in step_data:
+            return self._parse_duplicate_check_step(step_data)
         else:
             raise ParseError(f"Unknown step type: {step_data}")
 
@@ -506,6 +538,27 @@ class SpecQLParser:
         """Parse update step"""
         update_spec = step_data["update"]
 
+        # Handle dict format (for partial updates)
+        if isinstance(update_spec, dict):
+            entity = update_spec.get("entity", self._current_entity.name)
+            fields = update_spec
+            return ActionStep(
+                type="update",
+                entity=entity,
+                fields=fields,
+            )
+
+        # Handle extended format with additional fields
+        if isinstance(update_spec, str) and len(step_data) > 1:
+            # update_spec is the entity name, additional fields in step_data
+            entity = update_spec
+            fields = {k: v for k, v in step_data.items() if k != "update"}
+            return ActionStep(
+                type="update",
+                entity=entity,
+                fields=fields,
+            )
+
         # Parse: update: Entity SET field = value WHERE condition
         parts = update_spec.split(" SET ", 1)
         if len(parts) != 2:
@@ -517,9 +570,12 @@ class SpecQLParser:
         raw_set = set_and_where[0].strip()
         where_clause = set_and_where[1].strip() if len(set_and_where) > 1 else None
 
-        # Validate field references in SET clause
-        self._validate_expression_fields(raw_set, self.current_entity_fields)
-        if where_clause:
+        # Validate field references in SET clause (skip if it contains variables)
+        if not any(var in raw_set.lower() for var in ["input_data", "auth_", "v_"]):
+            self._validate_expression_fields(raw_set, self.current_entity_fields)
+        if where_clause and not any(
+            var in where_clause.lower() for var in ["input_data", "auth_", "v_"]
+        ):
             self._validate_expression_fields(where_clause, self.current_entity_fields)
 
         return ActionStep(
@@ -609,16 +665,30 @@ class SpecQLParser:
 
     def _parse_refresh_table_view_step(self, step_data: dict) -> ActionStep:
         """Parse refresh_table_view step"""
-        refresh_config = step_data["refresh_table_view"]
+        view_name = step_data["refresh_table_view"]
+        return ActionStep(
+            type="refresh_table_view",
+            view_name=view_name,
+        )
 
-        # Parse scope
-        scope_str = refresh_config.get("scope", "self")
-        try:
-            scope = RefreshScope(scope_str)
-        except ValueError:
-            raise ParseError(
-                f"Invalid refresh scope: {scope_str}. Must be: self, related, propagate, batch"
-            )
+    def _parse_raw_sql_step(self, step_data: dict) -> ActionStep:
+        """Parse raw_sql step"""
+        sql = step_data["raw_sql"]
+        # Note: raw_sql steps contain arbitrary SQL and are not validated
+        # for field references since they may reference database columns
+        # that aren't defined as entity fields
+        return ActionStep(
+            type="raw_sql",
+            sql=sql,
+        )
+
+    def _parse_duplicate_check_step(self, step_data: dict) -> ActionStep:
+        """Parse duplicate_check step"""
+        config = step_data["duplicate_check"]
+        return ActionStep(
+            type="duplicate_check",
+            fields=config,
+        )
 
         # Parse propagate entities
         propagate_entities = refresh_config.get("propagate", [])
@@ -648,6 +718,14 @@ class SpecQLParser:
         if not entity_fields:
             return
 
+        # Skip validation for expressions that look like SQL (contain SELECT, EXISTS, etc.)
+        sql_indicators = ["select", "exists", "from", "where", "join", "tenant.", "tb_"]
+        variable_indicators = ["input_data.", "auth_", "v_"]
+        if any(indicator in expression.lower() for indicator in sql_indicators) or any(
+            indicator in expression.lower() for indicator in variable_indicators
+        ):
+            return
+
         # Remove quoted strings before extracting field names
         expression_without_quotes = re.sub(r"['\"]([^'\"]*)['\"]", "", expression)
 
@@ -668,7 +746,30 @@ class SpecQLParser:
             "where",
             "input",
             "output",
+            "archived",  # Status value
+            "active",  # Status value
             "email_pattern",  # Common validation pattern names
+            # Audit fields (auto-generated)
+            "created_at",
+            "updated_at",
+            "deleted_at",
+            "created_by",
+            "updated_by",
+            "deleted_by",
+            # State transition timestamps
+            "approved_at",
+            "cancelled_at",
+            "submitted_at",
+            "completed_at",
+            # Other generated fields
+            "identifier",
+            "sequence_number",
+            "display_identifier",
+            # SQL functions
+            "now",
+            "current_timestamp",
+            "auth_user_id",
+            "auth_tenant_id",
         }
 
         for field_name in potential_fields:

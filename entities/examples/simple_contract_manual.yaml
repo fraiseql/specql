@@ -1,0 +1,39 @@
+entity: Contract
+schema: tenant
+
+fields:
+  customer_org: uuid
+  provider_org: uuid
+  customer_contract_id: text
+  status: enum[draft, approved, active]
+  total_value: decimal
+
+constraints:
+  - name: unique_customer_contract
+    type: unique
+    fields: [customer_org, customer_contract_id]
+
+actions:
+  - name: create_contract_manual
+    config:
+      duplicate_check:
+        fields: [customer_org, customer_contract_id]
+        error_message: "Contract already exists"
+
+  - name: update_contract_manual
+    config:
+      partial_updates: true
+      track_updated_fields: true
+
+  - name: approve_contract_manual
+    config:
+      from_states: [draft]
+      to_state: approved
+      validation_checks:
+        - condition: "input_data.total_value > 0"
+          error: "Contract value must be positive"
+      side_effects:
+        - entity: ContractEvent
+          insert:
+            contract_id: v_contract_id
+            event_type: approved

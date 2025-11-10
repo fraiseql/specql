@@ -1,0 +1,184 @@
+pattern: batch/bulk_operation
+version: 1.0
+description: "Process multiple records in a single transaction with error handling"
+author: SpecQL Team
+
+parameters:
+  - name: batch_input
+    type: string
+    required: true
+    description: "Field name containing array of items to process"
+
+  - name: operation
+    type: object
+    required: true
+    description: "The operation to perform on each item"
+
+  - name: error_handling
+    type: enum[stop_on_error, continue_on_error, rollback_on_any_error]
+    default: continue_on_error
+    description: "How to handle errors during batch processing"
+
+  - name: batch_size
+    type: integer
+    default: 100
+    description: "Maximum number of items to process"
+
+  - name: refresh_projections
+    type: array<string>
+    required: false
+    description: "Projections to refresh after batch processing"
+
+  - name: return_summary
+    type: object
+    required: true
+    description: "Summary fields to return"
+
+template: |
+  steps:
+    - raw_sql: |
+        DECLARE
+            v_item JSONB;
+            v_processed_count INTEGER := 0;
+            v_failed_count INTEGER := 0;
+            v_failed_items JSONB := '[]'::JSONB;
+        BEGIN
+            -- Iterate over batch items
+            FOR v_item IN
+                SELECT * FROM jsonb_array_elements(input_data.{{ batch_input }})
+                LIMIT {{ batch_size }}
+            LOOP
+                BEGIN
+                    {% if operation['action'] == 'update' %}
+                    -- Update {{ operation['entity'] }}
+                    UPDATE {{ operation['entity'] | schema_for }}.tb_{{ operation['entity'] | lower }}
+                    SET
+                        {% for field, value in operation['set'].items() %}
+                        {{ field }} = (v_item->>'{{ value | trim_prefix('$item.') }}')::{{ field | type_for }},
+                        {% endfor %}
+                        updated_at = NOW(),
+                        updated_by = auth_user_id
+                    WHERE {{ operation['where'] | format_where_with_item }}
+                      AND tenant_id = auth_tenant_id;
+
+                    IF FOUND THEN
+                        v_processed_count := v_processed_count + 1;
+                    ELSE
+                        v_failed_count := v_failed_count + 1;
+                        v_failed_items := v_failed_items || jsonb_build_object(
+                            'id', v_item->>'id',
+                            'reason', 'not_found'
+                        );
+                    END IF;
+
+                    {% elif operation['action'] == 'insert' %}
+                    -- Insert {{ operation['entity'] }}
+                    INSERT INTO {{ operation['entity'] | schema_for }}.tb_{{ operation['entity'] | lower }} (
+                        {% for field, value in operation['values'].items() %}
+                        {{ field }},
+                        {% endfor %}
+                        created_at, created_by, tenant_id
+                    ) VALUES (
+                        {% for field, value in operation['values'].items() %}
+                        (v_item->>'{{ value | trim_prefix('$item.') }}')::{{ field | type_for }},
+                        {% endfor %}
+                        NOW(), auth_user_id, auth_tenant_id
+                    );
+
+                    v_processed_count := v_processed_count + 1;
+
+                    {% elif operation['action'] == 'delete' %}
+                    -- Delete {{ operation['entity'] }}
+                    DELETE FROM {{ operation['entity'] | schema_for }}.tb_{{ operation['entity'] | lower }}
+                    WHERE {{ operation['where'] | format_where_with_item }}
+                      AND tenant_id = auth_tenant_id;
+
+                    IF FOUND THEN
+                        v_processed_count := v_processed_count + 1;
+                    ELSE
+                        v_failed_count := v_failed_count + 1;
+                        v_failed_items := v_failed_items || jsonb_build_object(
+                            'id', v_item->>'id',
+                            'reason', 'not_found'
+                        );
+                    END IF;
+
+                    {% endif %}
+
+                {% if error_handling == 'continue_on_error' %}
+                EXCEPTION WHEN OTHERS THEN
+                    v_failed_count := v_failed_count + 1;
+                    v_failed_items := v_failed_items || jsonb_build_object(
+                        'id', v_item->>'id',
+                        'reason', SQLERRM
+                    );
+                {% elif error_handling == 'stop_on_error' %}
+                EXCEPTION WHEN OTHERS THEN
+                    RAISE EXCEPTION 'Batch operation failed on item %s: %', v_item->>'id', SQLERRM;
+                {% endif %}
+                END;
+            END LOOP;
+
+            {% if refresh_projections %}
+            -- Refresh projections
+            {% for projection in refresh_projections %}
+            PERFORM {{ entity.schema }}.refresh_{{ projection }}(auth_tenant_id);
+            {% endfor %}
+            {% endif %}
+
+            -- Return summary
+            RETURN app.log_and_return_mutation(
+                auth_tenant_id,
+                auth_user_id,
+                '{{ operation['entity'] | lower }}',
+                '00000000-0000-0000-0000-000000000000'::UUID,
+                'BATCH_{{ operation['action'] | upper }}',
+                'success',
+                ARRAY[]::TEXT[],
+                format('Processed %s items, %s failed', v_processed_count, v_failed_count),
+                NULL,
+                jsonb_build_object(
+                    {% for key, expr in return_summary.items() %}
+                    '{{ key }}', {{ expr }}{% if not loop.last %},{% endif %}
+                    {% endfor %}
+                )
+            );
+        END;
+
+examples:
+  - name: bulk_update_prices
+    description: "Update prices for multiple contract items"
+    config:
+      batch_input: price_updates
+      operation:
+        action: update
+        entity: ContractItem
+        set:
+          unit_price: $item.unit_price
+        where:
+          id: $item.id
+          tenant_id: $auth_tenant_id
+      error_handling: continue_on_error
+      refresh_projections:
+        - contract_projection
+      return_summary:
+        processed_count: v_processed_count
+        failed_count: v_failed_count
+        failed_items: v_failed_items
+
+  - name: bulk_create_contacts
+    description: "Create multiple contacts from CSV import"
+    config:
+      batch_input: contacts
+      operation:
+        action: insert
+        entity: Contact
+        values:
+          first_name: $item.first_name
+          last_name: $item.last_name
+          email: $item.email
+      error_handling: continue_on_error
+      return_summary:
+        created_count: v_processed_count
+        failed_count: v_failed_count
+        errors: v_failed_items

@@ -1,0 +1,255 @@
+# Example: Inventory Management with Batch Operations
+# Demonstrates bulk inventory updates and stock level management
+
+entity: Product
+schema: tenant
+description: "Products with inventory management"
+
+fields:
+  sku:
+    type: text!
+    description: "Stock keeping unit"
+
+  name:
+    type: text!
+    description: "Product name"
+
+  description:
+    type: text
+    description: "Product description"
+
+  category:
+    type: text
+    description: "Product category"
+
+  price:
+    type: decimal(10,2)!
+    description: "Unit price"
+
+  cost:
+    type: decimal(10,2)
+    description: "Unit cost"
+
+  stock_quantity:
+    type: integer!
+    default: 0
+    description: "Current stock level"
+
+  reserved_quantity:
+    type: integer!
+    default: 0
+    description: "Quantity reserved in orders"
+
+  available_quantity:
+    type: integer
+    description: "Available for sale (computed)"
+
+  reorder_point:
+    type: integer
+    default: 10
+    description: "Reorder when stock drops below this"
+
+  reorder_quantity:
+    type: integer
+    default: 50
+    description: "Standard reorder quantity"
+
+  status:
+    type: enum(active, discontinued, out_of_stock)
+    default: active
+    description: "Product status"
+
+  last_inventory_update:
+    type: timestamptz
+    description: "Last inventory count"
+
+# Unique SKU constraint
+constraints:
+  - name: unique_sku
+    type: unique
+    fields: [sku]
+    check_on_create: true
+    error_message: "SKU already exists"
+
+projections:
+  - name: product_projection
+    materialize: true
+    refresh_on: [create, update]
+    includes:
+      - category: [id, name]
+      - supplier: [id, name, contact_email]
+
+actions:
+  # CRUD with inventory tracking
+  - name: create_product
+    duplicate_detection: true
+    refresh_projection: product_projection
+
+  - name: update_product
+    partial_updates: true
+    track_updated_fields: true
+    refresh_projection: product_projection
+
+  - name: delete_product
+
+  # Batch: bulk price updates
+  - name: bulk_update_prices
+    pattern: batch/bulk_operation
+    description: "Update prices for multiple products"
+    config:
+      batch_input: price_updates
+      operation:
+        action: update
+        entity: Product
+        set:
+          price: $item.new_price
+          last_price_update: NOW()
+          updated_by: $auth_user_id
+        where: "id = $item.id AND tenant_id = $auth_tenant_id"
+      error_handling: continue_on_error
+      batch_size: 100
+      refresh_projections:
+        - product_projection
+      return_summary:
+        updated_count: v_processed_count
+        failed_count: v_failed_count
+        failed_updates: v_failed_items
+
+  # Batch: bulk inventory adjustments
+  - name: bulk_inventory_adjustment
+    pattern: batch/bulk_operation
+    description: "Adjust inventory levels for multiple products"
+    config:
+      batch_input: adjustments
+      operation:
+        action: update
+        entity: Product
+        set:
+          stock_quantity: stock_quantity + $item.adjustment_quantity
+          last_inventory_update: NOW()
+          updated_by: $auth_user_id
+        where: "id = $item.id AND tenant_id = $auth_tenant_id"
+      error_handling: continue_on_error
+      refresh_projections:
+        - product_projection
+        - inventory_projection
+      return_summary:
+        adjusted_count: v_processed_count
+        failed_count: v_failed_count
+        adjustments: v_failed_items
+
+  # Batch: bulk status updates
+  - name: bulk_update_status
+    pattern: batch/bulk_operation
+    description: "Update status for multiple products"
+    config:
+      batch_input: status_updates
+      operation:
+        action: update
+        entity: Product
+        set:
+          status: $item.new_status
+          status_updated_at: NOW()
+          status_updated_by: $auth_user_id
+        where: "id = $item.id AND tenant_id = $auth_tenant_id"
+      error_handling: continue_on_error
+      return_summary:
+        updated_count: v_processed_count
+        failed_count: v_failed_count
+        failed_updates: v_failed_items
+
+  # Multi-entity: receive purchase order
+  - name: receive_purchase_order
+    pattern: multi_entity/coordinated_update
+    description: "Receive items from purchase order and update inventory"
+    config:
+      primary_entity: Product
+      operations:
+        # Update product stock levels
+        - action: update
+          entity: Product
+          set:
+            stock_quantity: stock_quantity + $item.received_quantity
+            last_inventory_update: NOW()
+            updated_by: $auth_user_id
+          where: "sku = $item.sku AND tenant_id = $auth_tenant_id"
+
+        # Update purchase order line status
+        - action: update
+          entity: PurchaseOrderLine
+          set:
+            received_quantity: received_quantity + $item.received_quantity
+            status: CASE WHEN received_quantity >= quantity THEN 'received' ELSE 'partial' END
+            last_received_at: NOW()
+          where: "id = $item.line_id AND tenant_id = $auth_tenant_id"
+
+        # Create inventory transaction record
+        - action: insert
+          entity: InventoryTransaction
+          values:
+            product_id: $product_id
+            transaction_type: 'purchase_receipt'
+            quantity: $item.received_quantity
+            reference_id: $input_data.purchase_order_id
+            notes: $input_data.notes
+
+        # Check if purchase order is complete
+        - action: update
+          entity: PurchaseOrder
+          set:
+            status: CASE WHEN NOT EXISTS (
+              SELECT 1 FROM purchase_order_lines
+              WHERE purchase_order_id = $input_data.purchase_order_id
+                AND status != 'received'
+            ) THEN 'received' ELSE status END
+          where: "id = $input_data.purchase_order_id AND tenant_id = $auth_tenant_id"
+
+      refresh_projections:
+        - product_projection
+        - purchase_order_projection
+        - inventory_projection
+
+  # State machine: mark out of stock
+  - name: mark_out_of_stock
+    pattern: state_machine/transition
+    config:
+      from_states: [active]
+      to_state: out_of_stock
+      validation_checks:
+        - condition: "stock_quantity - reserved_quantity <= 0"
+          error: "Cannot mark as out of stock while inventory available"
+      side_effects:
+        - entity: ProductAlert
+          set:
+            alert_type: 'out_of_stock'
+            message: name || ' is out of stock'
+            priority: 'high'
+          where: "product_id = v_product_id AND tenant_id = $auth_tenant_id"
+      refresh_projection: product_projection
+
+  # State machine: discontinue product
+  - name: discontinue_product
+    pattern: state_machine/transition
+    config:
+      from_states: [active, out_of_stock]
+      to_state: discontinued
+      input_fields:
+        - name: discontinued_reason
+          type: text
+          required: true
+      validation_checks:
+        - condition: "reserved_quantity = 0"
+          error: "Cannot discontinue product with reserved inventory"
+      side_effects:
+        - entity: Product
+          set:
+            discontinued_at: NOW()
+            discontinued_by: $auth_user_id
+          where: "id = v_product_id"
+        - entity: ProductAlert
+          set:
+            alert_type: 'discontinued'
+            message: name || ' has been discontinued'
+            priority: 'medium'
+          where: "product_id = v_product_id AND tenant_id = $auth_tenant_id"
+      refresh_projection: product_projection

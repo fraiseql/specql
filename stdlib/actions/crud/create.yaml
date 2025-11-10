@@ -1,0 +1,44 @@
+pattern: crud_create
+version: 1.0
+description: "Create entity with duplicate detection"
+author: SpecQL Team
+
+parameters:
+  - name: duplicate_check
+    type: object
+    required: false
+    description: "Duplicate detection configuration"
+
+template: |
+  steps:
+    {% if duplicate_check %}
+    # Check for duplicates
+    - duplicate_check:
+        fields: {{ duplicate_check['fields'] | list }}
+        error_message: "{{ duplicate_check['error_message'] | default('Record already exists') }}"
+        return_conflict_object: {{ duplicate_check['return_conflict_object'] | default(true) }}
+    {% endif %}
+
+    # Create the entity
+    - insert: {{ entity.name }}
+
+    {% if entity.identifier %}
+    # Recalculate identifier
+    - raw_sql: "PERFORM {{ entity.schema }}.recalcid_{{ entity.name | lower }}(v_{{ entity.name | lower }}_id, auth_tenant_id, auth_user_id);"
+    {% endif %}
+
+    {% if entity.projections %}
+    {% for projection in entity.projections %}
+    # Refresh projection
+    - refresh_table_view: {{ projection.name }}
+    {% endfor %}
+    {% endif %}
+
+examples:
+  - name: create_contract
+    description: "Create contract with duplicate detection"
+    config:
+      duplicate_check:
+        fields: [customer_org, provider_org, customer_contract_id]
+        error_message: "Contract already exists for this customer/provider/contract_id"
+        return_conflict_object: true

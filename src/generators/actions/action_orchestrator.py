@@ -242,6 +242,25 @@ $$;
         Returns:
             PL/pgSQL for update
         """
+        # Check if partial updates are requested
+        partial_updates = step.fields.get("partial_updates", False) if step.fields else False
+
+        if partial_updates:
+            # Use PartialUpdateCompiler for partial updates
+            partial_compiler = self.step_compiler_registry.get("partial_update")
+            if partial_compiler:
+                return partial_compiler.compile(step, entity, {})
+            else:
+                raise ValueError(
+                    "PartialUpdateCompiler not registered but partial_updates requested"
+                )
+
+        # Fall back to regular update compiler or basic implementation
+        update_compiler = self.step_compiler_registry.get("update")
+        if update_compiler:
+            return update_compiler.compile(step, entity, {})
+
+        # Basic fallback implementation
         table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
         return f"""
     -- Update: {entity.name}

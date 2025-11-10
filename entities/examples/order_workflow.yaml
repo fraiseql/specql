@@ -1,0 +1,253 @@
+# Example: E-commerce Order Workflow
+# Demonstrates complex order processing with state machines and multi-entity operations
+
+entity: Order
+schema: tenant
+description: "Customer orders with complete lifecycle management"
+
+fields:
+  order_number:
+    type: text!
+    description: "Unique order number"
+
+  customer_id:
+    type: uuid!
+    description: "Customer placing the order"
+
+  status:
+    type: enum(pending, confirmed, processing, shipped, delivered, cancelled, refunded)
+    default: pending
+    description: "Order status"
+
+  total_amount:
+    type: decimal(10,2)!
+    description: "Order total"
+
+  shipping_address:
+    type: jsonb
+    description: "Shipping address"
+
+  payment_status:
+    type: enum(pending, paid, failed, refunded)
+    default: pending
+    description: "Payment status"
+
+  shipped_at:
+    type: timestamptz
+    description: "When order was shipped"
+
+  delivered_at:
+    type: timestamptz
+    description: "When order was delivered"
+
+# Auto-generated order numbers
+identifier:
+  pattern: "ORD-{created_at:YYYY}-{sequence:06d}"
+  sequence:
+    scope: []  # Global sequence
+    group_by: [created_at:YYYY]  # Reset yearly
+  recalculate_on: [create]
+
+projections:
+  - name: order_projection
+    materialize: true
+    refresh_on: [create, update]
+    includes:
+      - customer: [id, email, name]
+      - order_items: [id, product_id, quantity, unit_price, product: [name, sku]]
+
+actions:
+  # Multi-entity: create order with items and payment
+  - name: create_order
+    pattern: multi_entity/coordinated_update
+    description: "Create complete order with items and payment intent"
+    config:
+      primary_entity: Order
+      operations:
+        # Create the order
+        - action: insert
+          entity: Order
+          values:
+            customer_id: $input_data.customer_id
+            status: pending
+            total_amount: $input_data.total_amount
+            shipping_address: $input_data.shipping_address
+          store_as: order_id
+
+        # Create order items (would be looped in real implementation)
+        - action: insert
+          entity: OrderItem
+          values:
+            order_id: $order_id
+            product_id: $item.product_id
+            quantity: $item.quantity
+            unit_price: $item.unit_price
+            total_price: $item.quantity * $item.unit_price
+          # Note: In real implementation, loop over $input_data.items
+
+        # Create payment intent
+        - action: insert
+          entity: PaymentIntent
+          values:
+            order_id: $order_id
+            amount: $input_data.total_amount
+            currency: 'USD'
+            status: 'pending'
+            payment_method_types: $input_data.payment_methods
+          store_as: payment_intent_id
+
+        # Reserve inventory
+        - action: update
+          entity: Product
+          set: {reserved_quantity: reserved_quantity + $item.quantity}
+          where: "id = $item.product_id"
+
+      refresh_projections:
+        - order_projection
+        - product_projection
+
+  # State machine: confirm order after payment
+  - name: confirm_order
+    pattern: state_machine/transition
+    config:
+      from_states: [pending]
+      to_state: confirmed
+      validation_checks:
+        - condition: "payment_status = 'paid'"
+          error: "Cannot confirm order without payment"
+        - condition: "EXISTS (SELECT 1 FROM order_items WHERE order_id = v_order_id)"
+          error: "Cannot confirm order without items"
+      side_effects:
+        - entity: InventoryTransaction
+          set:
+            order_id: v_order_id
+            transaction_type: 'reservation'
+            status: 'confirmed'
+          where: "order_id = v_order_id"
+      refresh_projection: order_projection
+
+  # State machine: process order
+  - name: start_processing
+    pattern: state_machine/transition
+    config:
+      from_states: [confirmed]
+      to_state: processing
+      validation_checks:
+        - condition: "EXISTS (SELECT 1 FROM inventory_reservations WHERE order_id = v_order_id AND status = 'available')"
+          error: "Cannot process order with insufficient inventory"
+      side_effects:
+        - entity: InventoryTransaction
+          set:
+            status: 'picked'
+            picked_at: NOW()
+            picked_by: $auth_user_id
+          where: "order_id = v_order_id AND transaction_type = 'reservation'"
+      refresh_projection: order_projection
+
+  # State machine: ship order
+  - name: ship_order
+    pattern: state_machine/transition
+    config:
+      from_states: [processing]
+      to_state: shipped
+      input_fields:
+        - name: tracking_number
+          type: text
+          required: true
+        - name: carrier
+          type: text
+          required: true
+      side_effects:
+        - entity: Order
+          set:
+            shipped_at: NOW()
+            tracking_number: $input_data.tracking_number
+            carrier: $input_data.carrier
+          where: "id = v_order_id"
+        - entity: Shipment
+          set:
+            order_id: v_order_id
+            tracking_number: $input_data.tracking_number
+            carrier: $input_data.carrier
+            status: 'shipped'
+            shipped_at: NOW()
+          where: "order_id = v_order_id"
+        - entity: InventoryTransaction
+          set:
+            status: 'shipped'
+            shipped_at: NOW()
+          where: "order_id = v_order_id"
+      refresh_projection: order_projection
+
+  # State machine: deliver order
+  - name: deliver_order
+    pattern: state_machine/transition
+    config:
+      from_states: [shipped]
+      to_state: delivered
+      side_effects:
+        - entity: Order
+          set: {delivered_at: NOW()}
+          where: "id = v_order_id"
+        - entity: Shipment
+          set:
+            status: 'delivered'
+            delivered_at: NOW()
+          where: "order_id = v_order_id"
+        - entity: InventoryTransaction
+          set:
+            status: 'delivered'
+            delivered_at: NOW()
+          where: "order_id = v_order_id"
+        - entity: Customer
+          set: {last_order_date: NOW()}
+          where: "id = (SELECT customer_id FROM orders WHERE id = v_order_id)"
+      refresh_projection: order_projection
+
+  # State machine: cancel order
+  - name: cancel_order
+    pattern: state_machine/transition
+    config:
+      from_states: [pending, confirmed, processing]
+      to_state: cancelled
+      input_fields:
+        - name: cancellation_reason
+          type: text
+          required: true
+      side_effects:
+        # Release inventory reservations
+        - entity: InventoryTransaction
+          set:
+            status: 'cancelled'
+            cancelled_at: NOW()
+          where: "order_id = v_order_id AND status IN ('confirmed', 'picked')"
+        # Restore inventory
+        - entity: Product
+          set: {reserved_quantity: reserved_quantity - $item.quantity}
+          where: "id = $item.product_id"
+        # Process refund if paid
+        - entity: PaymentIntent
+          set:
+            status: 'refunded'
+            refunded_at: NOW()
+            refund_reason: $input_data.cancellation_reason
+          where: "order_id = v_order_id AND status = 'paid'"
+      refresh_projection: order_projection
+
+  # Batch: bulk update order statuses
+  - name: bulk_update_status
+    pattern: batch/bulk_operation
+    config:
+      batch_input: status_updates
+      operation:
+        action: update
+        entity: Order
+        set: {status: $item.new_status}
+        where: "id = $item.id AND tenant_id = $auth_tenant_id"
+      error_handling: continue_on_error
+      refresh_projections:
+        - order_projection
+      return_summary:
+        updated_count: v_processed_count
+        failed_count: v_failed_count
+        failed_updates: v_failed_items

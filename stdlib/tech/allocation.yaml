@@ -1,0 +1,199 @@
+# SpecQL stdlib Entity: Allocation
+# Category: tech
+# Version: 1.1.0
+# Standard: PrintOptim Production Reference
+# Description: Machine allocation to locations with inventory management
+#
+# This entity implements PrintOptim's allocation workflow using
+# multi-entity patterns for coordinated operations.
+#
+# Usage:
+#   import: stdlib/tech/allocation
+
+entity: Allocation
+schema: tenant
+description: |
+  Machine allocation records tracking assignment of equipment to locations.
+  Manages inventory movement and allocation lifecycle.
+
+fields:
+  machine_id:
+    type: uuid!
+    description: "Machine being allocated"
+
+  location_id:
+    type: uuid!
+    description: "Location where machine is allocated"
+
+  allocation_type:
+    type: enum(stock, production, maintenance, storage)
+    default: stock
+    description: "Type of allocation"
+
+  status:
+    type: enum(active, completed, cancelled)
+    default: active
+    description: "Allocation status"
+
+  allocated_at:
+    type: timestamptz!
+    description: "When allocation was created"
+
+  completed_at:
+    type: timestamptz
+    description: "When allocation was completed"
+
+  allocated_by:
+    type: uuid
+    description: "User who created the allocation"
+
+  notes:
+    type: text
+    description: "Allocation notes or comments"
+
+# GraphQL projection with related data
+projections:
+  - name: allocation_projection
+    materialize: true
+    refresh_on: [create, update]
+    includes:
+      - machine: [id, code, name, status]
+      - location: [id, name, code, location_type]
+
+actions:
+  # CRUD operations
+  - name: create_allocation
+    refresh_projection: allocation_projection
+
+  - name: update_allocation
+    partial_updates: true
+    refresh_projection: allocation_projection
+
+  - name: delete_allocation
+
+  # Complex allocation workflows using multi-entity pattern
+  - name: allocate_to_stock
+    pattern: multi_entity/coordinated_update
+    description: "Allocate machine to stock location with automatic inventory tracking"
+    config:
+      primary_entity: Machine
+      operations:
+        # Get or create stock location
+        - action: get_or_create
+          entity: Location
+          where:
+            code: 'STOCK'
+            tenant_id: $auth_tenant_id
+          create_if_missing:
+            code: STOCK
+            name: Stock Location
+            location_type: warehouse
+            active: true
+          store_as: stock_location_id
+
+        # Create allocation record
+        - action: insert
+          entity: Allocation
+          values:
+            machine_id: $input_data.machine_id
+            location_id: $stock_location_id
+            allocation_type: stock
+            status: active
+            allocated_at: NOW()
+            allocated_by: $auth_user_id
+            notes: $input_data.notes
+          store_as: allocation_id
+
+        # Update machine status and location
+        - action: update
+          entity: Machine
+          where:
+            id: $input_data.machine_id
+            tenant_id: $auth_tenant_id
+          values:
+            status: in_stock
+            location_id: $stock_location_id
+            current_allocation_id: $allocation_id
+
+        # Log allocation event
+        - action: insert
+          entity: MachineEvent
+          values:
+            machine_id: $input_data.machine_id
+            event_type: allocated_to_stock
+            event_data: $input_payload
+            tenant_id: $auth_tenant_id
+
+      refresh_projections:
+        - machine_projection
+        - allocation_projection
+        - location_projection
+
+  - name: allocate_to_production
+    pattern: multi_entity/coordinated_update
+    description: "Allocate machine to production line"
+    config:
+      primary_entity: Machine
+      operations:
+        # End any existing allocation
+        - action: update
+          entity: Allocation
+          where:
+            machine_id: $input_data.machine_id
+            status: active
+            tenant_id: $auth_tenant_id
+          values:
+            status: completed
+            completed_at: NOW()
+
+        # Create new production allocation
+        - action: insert
+          entity: Allocation
+          values:
+            machine_id: $input_data.machine_id
+            location_id: $input_data.production_line_id
+            allocation_type: production
+            status: active
+            allocated_at: NOW()
+            allocated_by: $auth_user_id
+            notes: $input_data.notes
+          store_as: new_allocation_id
+
+        # Update machine status
+        - action: update
+          entity: Machine
+          where:
+            id: $input_data.machine_id
+            tenant_id: $auth_tenant_id
+          values:
+            status: allocated
+            location_id: $input_data.production_line_id
+            current_allocation_id: $new_allocation_id
+
+        # Log production allocation event
+        - action: insert
+          entity: MachineEvent
+          values:
+            machine_id: $input_data.machine_id
+            event_type: allocated_to_production
+            event_data: $input_payload
+            tenant_id: $auth_tenant_id
+
+      refresh_projections:
+        - machine_projection
+        - allocation_projection
+
+  - name: complete_allocation
+    pattern: state_machine/transition
+    description: "Mark allocation as completed"
+    config:
+      from_states: [active]
+      to_state: completed
+      side_effects:
+        - description: "Update machine status to available"
+          entity: Machine
+          set:
+            status: in_stock
+            current_allocation_id: NULL
+          where: "id = (SELECT machine_id FROM tenant.tb_allocation WHERE id = v_allocation_id) AND tenant_id = auth_tenant_id"
+      refresh_projection: allocation_projection

@@ -1,0 +1,337 @@
+pattern: composite/retry_orchestrator
+version: 1.0
+description: "Execute patterns with retry logic, error recovery, and fallback strategies"
+author: SpecQL Team
+
+parameters:
+  - name: primary_action
+    type: object
+    required: true
+    description: "The main pattern to execute with retry logic"
+
+  - name: retry_policy
+    type: object
+    required: false
+    description: "Retry configuration"
+    properties:
+      - name: max_attempts
+        type: integer
+        default: 3
+      - name: backoff_strategy
+        type: enum[fixed, exponential, linear]
+        default: exponential
+      - name: base_delay_seconds
+        type: number
+        default: 1.0
+      - name: max_delay_seconds
+        type: number
+        default: 60.0
+      - name: retry_on_errors
+        type: array<string>
+        default: ["transient_error", "timeout", "connection_error"]
+
+  - name: fallback_actions
+    type: array<object>
+    required: false
+    description: "Fallback patterns to execute if primary action fails"
+
+  - name: recovery_actions
+    type: array<object>
+    required: false
+    description: "Recovery patterns to execute after successful retry"
+
+  - name: monitoring
+    type: object
+    required: false
+    description: "Monitoring and logging configuration"
+
+template: |
+  steps:
+    # Initialize retry orchestrator
+    - raw_sql: |
+        -- Initialize retry tracking
+        v_attempt_count := 0;
+        v_max_attempts := {{ retry_policy.max_attempts | default(3) }};
+        v_success := false;
+        v_last_error := NULL;
+        v_retry_log := '[]'::jsonb;
+        v_start_time := NOW();
+
+    # Execute primary action with retry logic
+    - raw_sql: |
+        -- Retry loop for primary action
+        WHILE v_attempt_count < v_max_attempts AND NOT v_success LOOP
+            v_attempt_count := v_attempt_count + 1;
+
+            BEGIN
+                -- Calculate delay for exponential backoff
+                {% if retry_policy.backoff_strategy == 'exponential' %}
+                v_delay_seconds := LEAST(
+                    {{ retry_policy.base_delay_seconds | default(1.0) }} * POWER(2, v_attempt_count - 1),
+                    {{ retry_policy.max_delay_seconds | default(60.0) }}
+                );
+                {% elif retry_policy.backoff_strategy == 'linear' %}
+                v_delay_seconds := LEAST(
+                    {{ retry_policy.base_delay_seconds | default(1.0) }} * v_attempt_count,
+                    {{ retry_policy.max_delay_seconds | default(60.0) }}
+                );
+                {% else %}
+                v_delay_seconds := {{ retry_policy.base_delay_seconds | default(1.0) }};
+                {% endif %}
+
+                -- Add delay before retry (skip for first attempt)
+                IF v_attempt_count > 1 THEN
+                    PERFORM pg_sleep(v_delay_seconds);
+                END IF;
+
+                -- Log attempt start
+                v_retry_log := v_retry_log || jsonb_build_object(
+                    'attempt', v_attempt_count,
+                    'start_time', NOW(),
+                    'delay_seconds', v_delay_seconds
+                );
+
+                -- Execute primary action based on pattern
+                {% if primary_action.pattern == 'crud/create' %}
+                -- CRUD Create with retry
+                INSERT INTO {{ entity.schema }}.tb_{{ entity.name | lower }} (
+                    {% for field in primary_action.config.get('fields', []) %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                    created_at, created_by, tenant_id
+                ) VALUES (
+                    {% for field in primary_action.config.get('fields', []) %}input_data.{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                    NOW(), auth_user_id, auth_tenant_id
+                ) RETURNING id INTO v_{{ entity.name | lower }}_id;
+
+                {% elif primary_action.pattern == 'state_machine/transition' %}
+                -- State Machine Transition with retry
+                UPDATE {{ entity.schema }}.tb_{{ entity.name | lower }}
+                SET status = '{{ primary_action.config.to_state }}',
+                    updated_at = NOW(),
+                    updated_by = auth_user_id
+                    {% for field in primary_action.config.get('input_fields', []) %}
+                    , {{ field.name }} = input_data.{{ field.name }}
+                    {% endfor %}
+                WHERE id = v_{{ entity.name | lower }}_id
+                  AND tenant_id = auth_tenant_id
+                  AND status IN ({% for state in primary_action.config.from_states %}'{{ state }}'{% if not loop.last %}, {% endif %}{% endfor %});
+
+                IF NOT FOUND THEN
+                    RAISE EXCEPTION 'State transition failed';
+                END IF;
+
+                {% elif primary_action.pattern == 'multi_entity/coordinated_update' %}
+                -- Multi-Entity Update with retry
+                {% for op in primary_action.config.operations %}
+                {% if op.action == 'insert' %}
+                INSERT INTO {{ op.entity | schema_for }}.tb_{{ op.entity | lower }} (
+                    {% for field in op.values.keys() %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                    created_at, created_by, tenant_id
+                ) VALUES (
+                    {% for field, value in op.values.items() %}{{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
+                    NOW(), auth_user_id, auth_tenant_id
+                );
+                {% elif op.action == 'update' %}
+                UPDATE {{ op.entity | schema_for }}.tb_{{ op.entity | lower }}
+                SET {% for field, value in op.values.items() %}{{ field }} = {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
+                WHERE {{ op.where }};
+                {% endif %}
+                {% endfor %}
+
+                {% endif %}
+
+                -- Mark as successful
+                v_success := true;
+
+                -- Log successful attempt
+                v_retry_log := jsonb_set(
+                    v_retry_log,
+                    ARRAY['-1', 'result'],
+                    jsonb_build_object('status', 'success', 'end_time', NOW())
+                );
+
+            EXCEPTION WHEN OTHERS THEN
+                -- Log failed attempt
+                v_last_error := SQLERRM;
+                v_retry_log := jsonb_set(
+                    v_retry_log,
+                    ARRAY['-1', 'result'],
+                    jsonb_build_object(
+                        'status', 'error',
+                        'error_message', v_last_error,
+                        'end_time', NOW(),
+                        'error_code', SQLSTATE
+                    )
+                );
+
+                -- Check if error is retryable
+                {% if retry_policy.retry_on_errors %}
+                v_should_retry := SQLSTATE IN ({% for error in retry_policy.retry_on_errors %}'{{ error }}'{% if not loop.last %}, {% endif %}{% endfor %});
+                {% else %}
+                v_should_retry := SQLSTATE IN ('transient_error', 'timeout', 'connection_error');
+                {% endif %}
+
+                IF NOT v_should_retry OR v_attempt_count >= v_max_attempts THEN
+                    -- Exit retry loop on non-retryable error or max attempts reached
+                    EXIT;
+                END IF;
+
+            END;
+        END LOOP;
+
+    # Execute fallback actions if primary failed
+    {% if fallback_actions %}
+    - raw_sql: |
+        IF NOT v_success THEN
+            -- Execute fallback actions
+            v_fallback_executed := true;
+
+            {% for fallback in fallback_actions %}
+            BEGIN
+                -- Fallback: {{ fallback.name }}
+                {% if fallback.pattern == 'crud/create' %}
+                INSERT INTO {{ entity.schema }}.tb_{{ entity.name | lower }} (
+                    {% for field in fallback.config.get('fields', []) %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                    created_at, created_by, tenant_id
+                ) VALUES (
+                    {% for field in fallback.config.get('fields', []) %}input_data.{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                    NOW(), auth_user_id, auth_tenant_id
+                ) RETURNING id INTO v_{{ entity.name | lower }}_id;
+                {% endif %}
+
+            EXCEPTION WHEN OTHERS THEN
+                -- Log fallback failure but continue
+                v_fallback_errors := COALESCE(v_fallback_errors, '[]'::jsonb) || jsonb_build_object(
+                    'fallback', '{{ fallback.name }}',
+                    'error', SQLERRM,
+                    'timestamp', NOW()
+                );
+            END;
+            {% endfor %}
+        END IF;
+    {% endif %}
+
+    # Execute recovery actions if primary succeeded
+    {% if recovery_actions %}
+    - raw_sql: |
+        IF v_success THEN
+            -- Execute recovery actions
+            {% for recovery in recovery_actions %}
+            BEGIN
+                -- Recovery: {{ recovery.name }}
+                {% if recovery.pattern == 'crud/create' %}
+                INSERT INTO app.tb_recovery_log (
+                    entity_type, entity_id, recovery_action, recovery_data,
+                    created_at, created_by, tenant_id
+                ) VALUES (
+                    '{{ entity.name }}', v_{{ entity.name | lower }}_id, '{{ recovery.name }}',
+                    jsonb_build_object('primary_attempts', v_attempt_count, 'recovery_time', NOW()),
+                    NOW(), auth_user_id, auth_tenant_id
+                );
+                {% endif %}
+
+            EXCEPTION WHEN OTHERS THEN
+                -- Log recovery failure but don't fail the operation
+                NULL;
+            END;
+            {% endfor %}
+        END IF;
+    {% endif %}
+
+    # Final logging and error handling
+    - raw_sql: |
+        -- Log final retry orchestrator result
+        INSERT INTO app.tb_retry_orchestrator_log (
+            entity_type, entity_id, primary_action, attempt_count, success,
+            total_duration, retry_log, last_error, fallback_executed,
+            created_at, created_by, tenant_id
+        ) VALUES (
+            '{{ entity.name }}', v_{{ entity.name | lower }}_id, '{{ primary_action.name }}',
+            v_attempt_count, v_success, NOW() - v_start_time, v_retry_log,
+            v_last_error, COALESCE(v_fallback_executed, false),
+            NOW(), auth_user_id, auth_tenant_id
+        );
+
+        -- Return appropriate result
+        IF NOT v_success AND NOT COALESCE(v_fallback_executed, false) THEN
+            RETURN app.log_and_return_mutation(
+                auth_tenant_id, auth_user_id,
+                '{{ entity.name | lower }}', v_{{ entity.name | lower }}_id,
+                'NOOP', 'error:retry_orchestrator_failed',
+                ARRAY[]::TEXT[],
+                format('Primary action failed after %s attempts. Last error: %s', v_attempt_count, v_last_error),
+                NULL, NULL,
+                jsonb_build_object(
+                    'attempts', v_attempt_count,
+                    'last_error', v_last_error,
+                    'retry_log', v_retry_log
+                )
+            );
+        END IF;
+
+examples:
+  - name: payment_processing_with_retry
+    description: "Process payment with retry logic for transient failures"
+    config:
+      primary_action:
+        name: "Process Payment"
+        pattern: "multi_entity/coordinated_update"
+        config:
+          operations:
+            - action: "update"
+              entity: "Payment"
+              values:
+                status: "'processing'"
+              where: "id = v_payment_id"
+            - action: "insert"
+              entity: "PaymentProviderCall"
+              values:
+                payment_id: "v_payment_id"
+                provider_response: "call_payment_provider(input_data)"
+
+      retry_policy:
+        max_attempts: 3
+        backoff_strategy: "exponential"
+        base_delay_seconds: 1.0
+        retry_on_errors: ["timeout", "connection_error", "provider_unavailable"]
+
+      fallback_actions:
+        - name: "Offline Payment Queue"
+          pattern: "crud/create"
+          config:
+            fields: ["payment_id", "queue_status", "retry_after"]
+
+      recovery_actions:
+        - name: "Payment Success Notification"
+          pattern: "crud/create"
+          config:
+            fields: ["payment_id", "notification_type", "recipient"]
+
+  - name: email_delivery_with_retry
+    description: "Send email with retry logic and fallback to queue"
+    config:
+      primary_action:
+        name: "Send Email"
+        pattern: "crud/create"
+        config:
+          fields: ["recipient", "subject", "body", "send_status"]
+
+      retry_policy:
+        max_attempts: 5
+        backoff_strategy: "linear"
+        base_delay_seconds: 5.0
+        retry_on_errors: ["smtp_error", "timeout"]
+
+      fallback_actions:
+        - name: "Queue for Later Delivery"
+          pattern: "state_machine/transition"
+          config:
+            from_states: ["sending"]
+            to_state: "queued"
+            input_fields:
+              - name: "queue_reason"
+                value: "'SMTP temporarily unavailable'"
+
+      monitoring:
+        log_success: true
+        log_failures: true
+        alert_on_failure: true
