@@ -1,0 +1,811 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Implementation Plan: Fix Hex Hierarchical Generation with Explicit table_code Fields - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Implementation Plan: Fix Hex Hierarchical Generation with Explicit table_code Fields";
+        var mkdocs_page_input_path = "implementation_plans/issue_001_hex_hierarchical_explicit_table_codes.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Implementation Plan: Fix Hex Hierarchical Generation with Explicit table_code Fields</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="implementation-plan-fix-hex-hierarchical-generation-with-explicit-table_code-fields">Implementation Plan: Fix Hex Hierarchical Generation with Explicit table_code Fields</h1>
+<p><strong>GitHub Issue</strong>: #1
+<strong>Status</strong>: 📋 Planning Complete
+<strong>Priority</strong>: HIGH - Blocks migration of existing codebases
+<strong>Estimated Effort</strong>: 4-6 hours</p>
+<hr />
+<h2 id="issue-summary">🎯 Issue Summary</h2>
+<p><strong>Problem</strong>: When using <code>use_registry=True</code> with explicit <code>table_code</code> fields, the registry's uniqueness validation incorrectly rejects legitimate explicit table codes during generation, even though the user is intentionally providing pre-existing codes from a legacy system (PrintOptim with 74 entities).</p>
+<p><strong>Root Cause</strong>: Line 363 in <code>naming_conventions.py:get_table_code()</code> calls <code>validate_table_code()</code> which checks <code>is_code_available()</code>, causing false conflicts when multiple entities are processed in the same generation run.</p>
+<p><strong>User Impact</strong>:
+- Blocks hex hierarchical generation for migrations
+- Forces workaround using flat structure
+- Affects anyone migrating from systems with existing numbering schemes</p>
+<hr />
+<h2 id="current-flow-analysis-completed">🔍 Current Flow Analysis (COMPLETED ✅)</h2>
+<h3 id="file-structure">File Structure</h3>
+<ul>
+<li><code>src/generators/schema/naming_conventions.py:360-372</code> - <code>get_table_code()</code> method</li>
+<li><code>src/generators/schema/naming_conventions.py:479-543</code> - <code>validate_table_code()</code> method</li>
+<li><code>src/core/specql_parser.py:128-130</code> - Organization parsing</li>
+</ul>
+<h3 id="current-logic">Current Logic</h3>
+<p><strong><code>get_table_code()</code> Priority 1 (line 361-364)</strong>: Manual specification</p>
+<pre><code class="language-python">if entity.organization and entity.organization.table_code:
+    table_code = entity.organization.table_code
+    self.validate_table_code(table_code, entity)  # ← Problem!
+    return table_code
+</code></pre>
+<p><strong><code>validate_table_code()</code> (lines 535-542)</strong>: Uniqueness check</p>
+<pre><code class="language-python"># Uniqueness check (skip if entity already has this code in registry)
+registry_entry = self.registry.get_entity(entity.name)
+if registry_entry and registry_entry.table_code == table_code:
+    return
+
+if not self.registry.is_code_available(table_code):
+    raise ValueError(f&quot;Table code {table_code} already assigned to another entity&quot;)
+</code></pre>
+<h3 id="why-this-fails">Why This Fails</h3>
+<p><strong>Scenario:</strong>
+1. User provides <code>table_code: "013211"</code> for Manufacturer
+2. User provides <code>table_code: "013212"</code> for ManufacturerRange
+3. First entity processes fine, registers code
+4. Second entity fails uniqueness check despite being a different, legitimate code</p>
+<p><strong>Problem</strong>: The validation treats explicit codes the same as auto-derived codes, but they have different semantics:
+- <strong>Explicit codes</strong>: User-provided, from legacy system, trusted
+- <strong>Auto-derived codes</strong>: Framework-generated, must be unique</p>
+<hr />
+<h2 id="solution-design">✅ Solution Design</h2>
+<h3 id="option-1-skip-uniqueness-validation-for-explicit-codes-recommended">Option 1: Skip Uniqueness Validation for Explicit Codes (RECOMMENDED)</h3>
+<p><strong>Rationale:</strong>
+- Users providing explicit table codes know what they're doing (migration scenario)
+- Explicit codes are "trusted" - they come from existing systems
+- Only auto-derived codes need uniqueness validation
+- Maintains backward compatibility</p>
+<p><strong>Changes Required:</strong></p>
+<ol>
+<li><strong><code>naming_conventions.py:get_table_code()</code> (line 363)</strong></li>
+<li>Modify <code>validate_table_code()</code> call to skip uniqueness check</li>
+<li>Only validate format and domain consistency</li>
+<li>
+<p>Trust explicit codes completely</p>
+</li>
+<li>
+<p><strong><code>naming_conventions.py:validate_table_code()</code> (new parameter)</strong></p>
+</li>
+<li>Add <code>skip_uniqueness: bool = False</code> parameter</li>
+<li>When <code>skip_uniqueness=True</code>, skip lines 535-542</li>
+<li>Still validate format and domain consistency</li>
+</ol>
+<hr />
+<h3 id="option-2-support-top-level-table_code-field-bonus">Option 2: Support Top-Level <code>table_code</code> Field (BONUS)</h3>
+<p><strong>Rationale:</strong>
+- More intuitive YAML syntax
+- Reduces nesting for simple cases
+- Matches user expectations</p>
+<p><strong>Change Required:</strong></p>
+<p><strong><code>specql_parser.py:128-131</code></strong> - Add support for top-level <code>table_code</code>:</p>
+<pre><code class="language-python"># Current: Only supports organization: { table_code: &quot;...&quot; }
+if &quot;organization&quot; in data:
+    entity.organization = self._parse_organization(data[&quot;organization&quot;])
+# NEW: Support top-level table_code field
+elif &quot;table_code&quot; in data:
+    entity.organization = Organization(
+        table_code=data[&quot;table_code&quot;],
+        domain_name=data.get(&quot;domain_name&quot;)
+    )
+</code></pre>
+<p><strong>User Experience:</strong></p>
+<pre><code class="language-yaml"># Before (nested - still works)
+entity: Manufacturer
+organization:
+  table_code: &quot;013211&quot;
+
+# After (top-level - more intuitive)
+entity: Manufacturer
+table_code: &quot;013211&quot;
+</code></pre>
+<hr />
+<h2 id="implementation-tasks">🔧 Implementation Tasks</h2>
+<h3 id="phase-1-core-fix-option-1-high-priority">Phase 1: Core Fix (Option 1) - HIGH PRIORITY</h3>
+<h4 id="task-11-modify-get_table_code-validation">TASK 1.1: Modify <code>get_table_code()</code> validation</h4>
+<p><strong>File</strong>: <code>src/generators/schema/naming_conventions.py:360-364</code>
+<strong>Action</strong>: Remove uniqueness check for explicit codes</p>
+<p><strong>Change</strong>:</p>
+<pre><code class="language-python"># Priority 1: Manual specification (TRUSTED - no uniqueness validation)
+if entity.organization and entity.organization.table_code:
+    table_code = entity.organization.table_code
+    # Validate format &amp; domain consistency only (not uniqueness)
+    self.validate_table_code(table_code, entity, skip_uniqueness=True)
+    return table_code
+</code></pre>
+<p><strong>TDD Cycle</strong>:
+1. <strong>RED</strong>: Write test <code>test_explicit_table_code_skips_uniqueness_validation()</code>
+2. <strong>GREEN</strong>: Add <code>skip_uniqueness=True</code> parameter to call
+3. <strong>REFACTOR</strong>: Clean up comments
+4. <strong>QA</strong>: Run all schema tests</p>
+<hr />
+<h4 id="task-12-add-skip_uniqueness-parameter-to-validate_table_code">TASK 1.2: Add <code>skip_uniqueness</code> parameter to <code>validate_table_code()</code></h4>
+<p><strong>File</strong>: <code>src/generators/schema/naming_conventions.py:479</code>
+<strong>Action</strong>: Add optional parameter, conditionally skip uniqueness check</p>
+<p><strong>Change</strong>:</p>
+<pre><code class="language-python">def validate_table_code(
+    self,
+    table_code: str,
+    entity: Entity,
+    skip_uniqueness: bool = False
+):
+    &quot;&quot;&quot;
+    Validate table code format and consistency
+
+    Args:
+        table_code: 6-character hexadecimal code to validate
+        entity: Entity being validated
+        skip_uniqueness: If True, skip uniqueness validation (for explicit codes)
+
+    Raises:
+        ValueError: If validation fails
+    &quot;&quot;&quot;
+    # Normalize to uppercase for consistency
+    table_code = table_code.upper()
+
+    # Format check: 6 hexadecimal characters
+    if not re.match(r&quot;^[0-9A-F]{6}$&quot;, table_code):
+        raise ValueError(
+            f&quot;Invalid table code format: {table_code}. &quot;
+            f&quot;Must be exactly 6 hexadecimal characters (0-9, A-F).&quot;
+        )
+
+    # Parse components
+    components = self.parser.parse_table_code_detailed(table_code)
+
+    # Schema layer check
+    schema_layers = self.registry.registry.get(&quot;schema_layers&quot;, {})
+    if components.schema_layer not in schema_layers:
+        raise ValueError(
+            f&quot;Invalid schema layer: {components.schema_layer}\n&quot;
+            f&quot;Valid schema layers: {list(schema_layers.keys())}&quot;
+        )
+
+    # Domain code check
+    domains = self.registry.registry.get(&quot;domains&quot;, {})
+    if components.domain_code not in domains:
+        raise ValueError(
+            f&quot;Invalid domain code: {components.domain_code}\n&quot;
+            f&quot;Valid domain codes: {list(domains.keys())}&quot;
+        )
+
+    # Domain consistency check
+    domain_info = domains[components.domain_code]
+    if entity.schema != domain_info[&quot;name&quot;] and entity.schema not in domain_info.get(
+        &quot;aliases&quot;, []
+    ):
+        raise ValueError(
+            f&quot;Table code domain '{domain_info['name']}' doesn't match &quot;
+            f&quot;entity schema '{entity.schema}'&quot;
+        )
+
+    # Uniqueness check (SKIP for explicit codes)
+    if not skip_uniqueness:
+        registry_entry = self.registry.get_entity(entity.name)
+        if registry_entry and registry_entry.table_code == table_code:
+            return
+
+        if not self.registry.is_code_available(table_code):
+            raise ValueError(f&quot;Table code {table_code} already assigned to another entity&quot;)
+</code></pre>
+<p><strong>TDD Cycle</strong>:
+1. <strong>RED</strong>: Write test <code>test_validate_table_code_with_skip_uniqueness()</code>
+2. <strong>GREEN</strong>: Implement <code>skip_uniqueness</code> logic
+3. <strong>REFACTOR</strong>: Ensure backward compatibility (default <code>skip_uniqueness=False</code>)
+4. <strong>QA</strong>: Run all naming convention tests</p>
+<hr />
+<h3 id="phase-2-parser-enhancement-option-2-medium-priority">Phase 2: Parser Enhancement (Option 2) - MEDIUM PRIORITY</h3>
+<h4 id="task-21-add-top-level-table_code-support-to-parser">TASK 2.1: Add top-level <code>table_code</code> support to parser</h4>
+<p><strong>File</strong>: <code>src/core/specql_parser.py:128-131</code>
+<strong>Action</strong>: Support both <code>organization.table_code</code> AND top-level <code>table_code</code></p>
+<p><strong>Change</strong>:</p>
+<pre><code class="language-python"># Parse organization
+if &quot;organization&quot; in data:
+    entity.organization = self._parse_organization(data[&quot;organization&quot;])
+elif &quot;table_code&quot; in data:
+    # Support top-level table_code (more intuitive for simple cases)
+    entity.organization = Organization(
+        table_code=data[&quot;table_code&quot;],
+        domain_name=data.get(&quot;domain_name&quot;, None)
+    )
+</code></pre>
+<p><strong>TDD Cycle</strong>:
+1. <strong>RED</strong>: Write test <code>test_parse_top_level_table_code()</code>
+2. <strong>GREEN</strong>: Add <code>elif</code> clause for top-level <code>table_code</code>
+3. <strong>REFACTOR</strong>: Ensure nested format still takes priority
+4. <strong>QA</strong>: Run all parser tests</p>
+<hr />
+<h3 id="phase-3-testing-medium-priority">Phase 3: Testing - MEDIUM PRIORITY</h3>
+<h4 id="task-31-unit-tests-for-explicit-table_code-handling">TASK 3.1: Unit tests for explicit table_code handling</h4>
+<p><strong>File</strong>: <code>tests/unit/schema/test_naming_conventions.py</code></p>
+<p><strong>Tests to add</strong>:</p>
+<pre><code class="language-python">def test_explicit_table_code_skips_uniqueness_validation():
+    &quot;&quot;&quot;Explicit table codes should skip uniqueness validation&quot;&quot;&quot;
+    registry = DomainRegistry()
+    registry.load_from_yaml(&quot;registry/domain_registry.yaml&quot;)
+
+    conventions = NamingConventions(registry)
+
+    # Create entity with explicit table code
+    entity1 = Entity(name=&quot;Manufacturer&quot;, schema=&quot;catalog&quot;)
+    entity1.organization = Organization(table_code=&quot;013211&quot;)
+
+    # First entity should succeed
+    code1 = conventions.get_table_code(entity1)
+    assert code1 == &quot;013211&quot;
+
+    # Create second entity with different explicit code
+    entity2 = Entity(name=&quot;ManufacturerRange&quot;, schema=&quot;catalog&quot;)
+    entity2.organization = Organization(table_code=&quot;013212&quot;)
+
+    # Second entity should also succeed (no conflict)
+    code2 = conventions.get_table_code(entity2)
+    assert code2 == &quot;013212&quot;
+
+
+def test_explicit_table_code_validates_format():
+    &quot;&quot;&quot;Explicit table codes should still validate format&quot;&quot;&quot;
+    registry = DomainRegistry()
+    registry.load_from_yaml(&quot;registry/domain_registry.yaml&quot;)
+
+    conventions = NamingConventions(registry)
+
+    # Invalid format should raise error
+    entity = Entity(name=&quot;Test&quot;, schema=&quot;catalog&quot;)
+    entity.organization = Organization(table_code=&quot;INVALID&quot;)
+
+    with pytest.raises(ValueError, match=&quot;Invalid table code format&quot;):
+        conventions.get_table_code(entity)
+
+
+def test_explicit_table_code_validates_domain_consistency():
+    &quot;&quot;&quot;Explicit table codes should validate domain consistency&quot;&quot;&quot;
+    registry = DomainRegistry()
+    registry.load_from_yaml(&quot;registry/domain_registry.yaml&quot;)
+
+    conventions = NamingConventions(registry)
+
+    # Domain mismatch should raise error
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;)
+    entity.organization = Organization(table_code=&quot;013211&quot;)  # catalog domain
+
+    with pytest.raises(ValueError, match=&quot;doesn't match entity schema&quot;):
+        conventions.get_table_code(entity)
+
+
+def test_auto_derived_codes_still_validate_uniqueness():
+    &quot;&quot;&quot;Auto-derived codes should still check uniqueness&quot;&quot;&quot;
+    registry = DomainRegistry()
+    registry.load_from_yaml(&quot;registry/domain_registry.yaml&quot;)
+
+    conventions = NamingConventions(registry)
+
+    # Auto-derive code for entity 1
+    entity1 = Entity(name=&quot;TestEntity&quot;, schema=&quot;catalog&quot;)
+    code1 = conventions.get_table_code(entity1)
+
+    # Register entity 1
+    registry.register_entity_code(
+        entity_name=&quot;TestEntity&quot;,
+        table_code=code1,
+        domain_code=&quot;3&quot;,
+        subdomain_code=&quot;00&quot;
+    )
+
+    # Auto-derive code for entity 2 in same domain/subdomain
+    entity2 = Entity(name=&quot;TestEntity2&quot;, schema=&quot;catalog&quot;)
+    code2 = conventions.get_table_code(entity2)
+
+    # Codes should be different (uniqueness enforced)
+    assert code1 != code2
+</code></pre>
+<p><strong>TDD Cycle</strong>:
+1. <strong>RED</strong>: Run tests (should fail)
+2. <strong>GREEN</strong>: Implement Phase 1 fixes
+3. <strong>REFACTOR</strong>: Clean up test assertions
+4. <strong>QA</strong>: All tests pass</p>
+<hr />
+<h4 id="task-32-parser-tests-for-top-level-table_code">TASK 3.2: Parser tests for top-level table_code</h4>
+<p><strong>File</strong>: <code>tests/unit/core/test_specql_parser.py</code></p>
+<p><strong>Tests to add</strong>:</p>
+<pre><code class="language-python">def test_parse_top_level_table_code():
+    &quot;&quot;&quot;Parser should support top-level table_code field&quot;&quot;&quot;
+    yaml_content = &quot;&quot;&quot;
+entity: Manufacturer
+schema: catalog
+table_code: &quot;013211&quot;
+description: Test entity
+
+fields:
+  name: text
+&quot;&quot;&quot;
+    parser = SpecQLParser()
+    entity = parser.parse_entity(yaml_content)
+
+    assert entity.name == &quot;Manufacturer&quot;
+    assert entity.organization is not None
+    assert entity.organization.table_code == &quot;013211&quot;
+
+
+def test_parse_nested_table_code_takes_priority():
+    &quot;&quot;&quot;Nested organization.table_code should take priority over top-level&quot;&quot;&quot;
+    yaml_content = &quot;&quot;&quot;
+entity: Manufacturer
+schema: catalog
+table_code: &quot;013211&quot;
+organization:
+  table_code: &quot;013999&quot;
+  domain_name: catalog
+
+fields:
+  name: text
+&quot;&quot;&quot;
+    parser = SpecQLParser()
+    entity = parser.parse_entity(yaml_content)
+
+    # Nested format should win
+    assert entity.organization.table_code == &quot;013999&quot;
+
+
+def test_parse_table_code_without_domain_name():
+    &quot;&quot;&quot;Top-level table_code without domain_name should work&quot;&quot;&quot;
+    yaml_content = &quot;&quot;&quot;
+entity: Manufacturer
+schema: catalog
+table_code: &quot;013211&quot;
+
+fields:
+  name: text
+&quot;&quot;&quot;
+    parser = SpecQLParser()
+    entity = parser.parse_entity(yaml_content)
+
+    assert entity.organization.table_code == &quot;013211&quot;
+    assert entity.organization.domain_name is None
+</code></pre>
+<p><strong>TDD Cycle</strong>:
+1. <strong>RED</strong>: Run tests (should fail)
+2. <strong>GREEN</strong>: Implement Phase 2 parser changes
+3. <strong>REFACTOR</strong>: Handle edge cases
+4. <strong>QA</strong>: All parser tests pass</p>
+<hr />
+<h4 id="task-33-integration-test-with-printoptim-scenario">TASK 3.3: Integration test with PrintOptim scenario</h4>
+<p><strong>File</strong>: <code>tests/integration/test_hex_hierarchical_generation.py</code> (NEW)</p>
+<p><strong>Test</strong>: Generate 2+ entities with explicit table_codes in same run</p>
+<pre><code class="language-python">&quot;&quot;&quot;Integration tests for hex hierarchical generation with explicit table codes&quot;&quot;&quot;
+import pytest
+from pathlib import Path
+from src.cli.orchestrator import CLIOrchestrator
+
+
+def test_generate_multiple_entities_with_explicit_codes(tmp_path):
+    &quot;&quot;&quot;
+    Test generating multiple entities with explicit table codes in same run
+
+    Reproduces GitHub Issue #1 scenario:
+    - PrintOptim migration with 74 entities
+    - Each entity has pre-existing 6-digit hex code
+    - Hex hierarchical generation should succeed
+    &quot;&quot;&quot;
+    # Create test entity files
+    manufacturer_yaml = tmp_path / &quot;manufacturer.yaml&quot;
+    manufacturer_yaml.write_text(&quot;&quot;&quot;
+entity: Manufacturer
+schema: catalog
+table_code: &quot;013211&quot;
+description: Printer/copier manufacturers
+
+fields:
+  name: text
+  abbreviation: text
+&quot;&quot;&quot;)
+
+    manufacturer_range_yaml = tmp_path / &quot;manufacturer_range.yaml&quot;
+    manufacturer_range_yaml.write_text(&quot;&quot;&quot;
+entity: ManufacturerRange
+schema: catalog
+table_code: &quot;013212&quot;
+description: Product ranges from manufacturers
+
+fields:
+  name: text
+  manufacturer: ref(Manufacturer)
+&quot;&quot;&quot;)
+
+    # Generate with registry + hierarchical output
+    output_dir = tmp_path / &quot;generated&quot;
+    orchestrator = CLIOrchestrator(
+        use_registry=True,
+        output_format=&quot;hierarchical&quot;
+    )
+
+    result = orchestrator.generate_from_files(
+        entity_files=[
+            str(manufacturer_yaml),
+            str(manufacturer_range_yaml)
+        ],
+        output_dir=str(output_dir)
+    )
+
+    # Both entities should generate successfully
+    assert result.success
+    assert len(result.generated_entities) == 2
+
+    # Verify hierarchical structure created
+    # Expected: 01_write_side/013_catalog/.../013211_tb_manufacturer.sql
+    write_side_dir = output_dir / &quot;01_write_side&quot;
+    assert write_side_dir.exists()
+
+    catalog_dir = write_side_dir / &quot;013_catalog&quot;
+    assert catalog_dir.exists()
+
+    # Verify files exist (exact paths depend on subdomain structure)
+    manufacturer_files = list(catalog_dir.rglob(&quot;*manufacturer*.sql&quot;))
+    assert len(manufacturer_files) &gt; 0
+
+    range_files = list(catalog_dir.rglob(&quot;*manufacturerrange*.sql&quot;))
+    assert len(range_files) &gt; 0
+
+
+def test_explicit_codes_allow_same_prefix():
+    &quot;&quot;&quot;
+    Explicit table codes can share prefixes (different subdomains)
+
+    Example:
+    - 013211 = Catalog domain, manufacturer subdomain
+    - 013311 = Catalog domain, parts subdomain
+
+    These are both valid and should not conflict.
+    &quot;&quot;&quot;
+    # TODO: Implement test
+    pass
+
+
+def test_auto_derived_codes_still_enforce_uniqueness():
+    &quot;&quot;&quot;
+    Auto-derived codes (no explicit table_code) should still validate uniqueness
+
+    This ensures the fix doesn't break normal auto-derivation behavior.
+    &quot;&quot;&quot;
+    # TODO: Implement test
+    pass
+</code></pre>
+<p><strong>TDD Cycle</strong>:
+1. <strong>RED</strong>: Run test (should fail with "Table code already assigned")
+2. <strong>GREEN</strong>: Implement Phase 1 + 2 fixes
+3. <strong>REFACTOR</strong>: Test with 10+ entities
+4. <strong>QA</strong>: Full PrintOptim migration (74 entities)</p>
+<hr />
+<h2 id="success-criteria">📊 Success Criteria</h2>
+<h3 id="1-explicit-table-codes-are-trusted-without-uniqueness-validation">1. ✅ Explicit table codes are trusted without uniqueness validation</h3>
+<ul>
+<li>When <code>entity.organization.table_code</code> is set, skip <code>is_code_available()</code> check</li>
+<li>Format and domain consistency still validated</li>
+<li>No false conflicts between different explicit codes</li>
+</ul>
+<h3 id="2-multiple-entities-with-explicit-codes-can-be-generated-in-same-run">2. ✅ Multiple entities with explicit codes can be generated in same run</h3>
+<ul>
+<li>No "Table code already assigned" errors</li>
+<li>Registry doesn't block legitimate explicit codes</li>
+<li>Hex hierarchical structure created correctly</li>
+</ul>
+<h3 id="3-top-level-table_code-field-works-in-yaml-bonus">3. ✅ Top-level <code>table_code</code> field works in YAML (bonus)</h3>
+<ul>
+<li><code>table_code: "XXXXXX"</code> at entity root level</li>
+<li>Backward compatible with nested <code>organization.table_code</code></li>
+<li>More intuitive user experience</li>
+</ul>
+<h3 id="4-printoptim-migration-use-case-succeeds">4. ✅ PrintOptim migration use case succeeds</h3>
+<ul>
+<li>Generate 74 entities with pre-existing codes</li>
+<li>Hex hierarchical folder structure created correctly</li>
+<li>File naming matches legacy system</li>
+</ul>
+<h3 id="5-all-tests-pass">5. ✅ All tests pass</h3>
+<ul>
+<li>Unit tests for naming conventions ✅</li>
+<li>Parser tests for top-level field ✅</li>
+<li>Integration test with multi-entity generation ✅</li>
+<li>No regressions in existing functionality ✅</li>
+</ul>
+<h3 id="6-auto-derived-codes-still-work-correctly">6. ✅ Auto-derived codes still work correctly</h3>
+<ul>
+<li>Uniqueness validation still applies to auto-derived codes</li>
+<li>Registry tracking still functions</li>
+<li>No breaking changes to normal workflow</li>
+</ul>
+<hr />
+<h2 id="implementation-priority">🎯 Implementation Priority</h2>
+<h3 id="high-priority-blocking">HIGH PRIORITY (Blocking)</h3>
+<ul>
+<li><strong>Phase 1</strong>: Core Fix (Tasks 1.1, 1.2)</li>
+<li>Solves the blocker immediately</li>
+<li>Unblocks PrintOptim migration</li>
+<li>~2-3 hours</li>
+</ul>
+<h3 id="medium-priority-enhancement">MEDIUM PRIORITY (Enhancement)</h3>
+<ul>
+<li><strong>Phase 2</strong>: Parser Enhancement (Task 2.1)</li>
+<li>Nice UX improvement</li>
+<li>More intuitive YAML syntax</li>
+<li>
+<p>~1 hour</p>
+</li>
+<li>
+<p><strong>Phase 3</strong>: Testing (Tasks 3.1, 3.2, 3.3)</p>
+</li>
+<li>Ensures no regressions</li>
+<li>Validates fix comprehensively</li>
+<li>~2-3 hours</li>
+</ul>
+<hr />
+<h2 id="testing-strategy-tdd">📝 Testing Strategy (TDD)</h2>
+<h3 id="red-phase-write-failing-tests">RED Phase: Write failing tests</h3>
+<pre><code class="language-bash"># Test explicit table code handling
+uv run pytest tests/unit/schema/test_naming_conventions.py::test_explicit_table_code_skips_uniqueness_validation -v
+# Expected: FAILED (skip_uniqueness parameter doesn't exist yet)
+</code></pre>
+<h3 id="green-phase-implement-minimal-fix">GREEN Phase: Implement minimal fix</h3>
+<pre><code class="language-bash"># Add skip_uniqueness parameter
+uv run pytest tests/unit/schema/test_naming_conventions.py::test_explicit_table_code_skips_uniqueness_validation -v
+# Expected: PASSED (minimal implementation working)
+</code></pre>
+<h3 id="refactor-phase-clean-up-and-optimize">REFACTOR Phase: Clean up and optimize</h3>
+<pre><code class="language-bash"># Run broader schema tests
+uv run pytest tests/unit/schema/ -v
+# Expected: All passing, clean implementation
+</code></pre>
+<h3 id="qa-phase-full-validation">QA Phase: Full validation</h3>
+<pre><code class="language-bash"># Run complete test suite
+uv run pytest --tb=short
+
+# Test with actual PrintOptim entities
+uv run python -m src.cli.orchestrator generate \
+  entities/catalog/manufacturer.yaml \
+  entities/catalog/manufacturer_range.yaml \
+  --use-registry \
+  --output-format=hierarchical
+</code></pre>
+<hr />
+<h2 id="files-to-modify">🔗 Files to Modify</h2>
+<h3 id="phase-1-core-fix">Phase 1: Core Fix</h3>
+<ol>
+<li>✏️ <code>src/generators/schema/naming_conventions.py:363-364</code> - Modify validation call</li>
+<li>✏️ <code>src/generators/schema/naming_conventions.py:479</code> - Add <code>skip_uniqueness</code> parameter</li>
+<li>✏️ <code>src/generators/schema/naming_conventions.py:535-542</code> - Conditional uniqueness check</li>
+</ol>
+<h3 id="phase-2-parser-enhancement">Phase 2: Parser Enhancement</h3>
+<ol>
+<li>✏️ <code>src/core/specql_parser.py:128-131</code> - Add top-level <code>table_code</code> support</li>
+</ol>
+<h3 id="phase-3-testing">Phase 3: Testing</h3>
+<ol>
+<li>📝 <code>tests/unit/schema/test_naming_conventions.py</code> - Add explicit code tests</li>
+<li>📝 <code>tests/unit/core/test_specql_parser.py</code> - Add parser tests</li>
+<li>📝 <code>tests/integration/test_hex_hierarchical_generation.py</code> - NEW file (integration tests)</li>
+</ol>
+<hr />
+<h2 id="expected-impact">🚀 Expected Impact</h2>
+<h3 id="before-fix">Before Fix</h3>
+<pre><code>❌ Failed to generate Manufacturer: Table code 013211 already assigned.
+This is unexpected - registry may be corrupted.
+</code></pre>
+<h3 id="after-fix">After Fix</h3>
+<pre><code>✅ Generated Manufacturer → 01_write_side/013_catalog/0132_manufacturer/01321_manufacturer/013211_tb_manufacturer.sql
+✅ Generated ManufacturerRange → 01_write_side/013_catalog/0132_manufacturer/01321_range/013212_tb_manufacturerrange.sql
+✅ Generated 74 entities successfully
+</code></pre>
+<h3 id="unblocks">Unblocks</h3>
+<ul>
+<li>✅ PrintOptim migration (74 entities with pre-existing codes)</li>
+<li>✅ Any legacy system migration with existing numbering schemes</li>
+<li>✅ Hex hierarchical generation for real-world use cases</li>
+<li>✅ Multi-entity generation workflows</li>
+</ul>
+<hr />
+<h2 id="backward-compatibility">🔄 Backward Compatibility</h2>
+<h3 id="no-breaking-changes">No Breaking Changes</h3>
+<ul>
+<li>Default behavior unchanged (<code>skip_uniqueness=False</code>)</li>
+<li>Auto-derived codes still validate uniqueness</li>
+<li>Nested <code>organization.table_code</code> format still works</li>
+<li>Registry tracking still functions normally</li>
+</ul>
+<h3 id="additive-changes-only">Additive Changes Only</h3>
+<ul>
+<li>New parameter <code>skip_uniqueness</code> (optional, default=False)</li>
+<li>New top-level <code>table_code</code> field (optional, alternative to nested format)</li>
+<li>No changes to existing APIs or data structures</li>
+</ul>
+<hr />
+<h2 id="documentation-updates">📚 Documentation Updates</h2>
+<h3 id="files-to-update">Files to Update</h3>
+<ol>
+<li><code>docs/guides/migrations.md</code> - Add explicit table_code usage guide</li>
+<li><code>docs/architecture/SPECQL_BUSINESS_LOGIC_REFINED.md</code> - Document top-level table_code field</li>
+<li><code>CHANGELOG.md</code> - Document bug fix and enhancement</li>
+</ol>
+<h3 id="examples-to-add">Examples to Add</h3>
+<pre><code class="language-yaml"># Simple migration example
+entity: LegacyEntity
+schema: catalog
+table_code: &quot;013999&quot;  # Preserved from legacy system
+
+fields:
+  name: text
+</code></pre>
+<hr />
+<h2 id="test-coverage-goals">🧪 Test Coverage Goals</h2>
+<ul>
+<li><strong>Unit Tests</strong>: 100% coverage of modified functions</li>
+<li><strong>Integration Tests</strong>: Multi-entity generation scenarios</li>
+<li><strong>Edge Cases</strong>:</li>
+<li>Invalid format with explicit codes</li>
+<li>Domain mismatch with explicit codes</li>
+<li>Mixed explicit + auto-derived codes</li>
+<li>Top-level vs nested table_code priority</li>
+</ul>
+<hr />
+<h2 id="lessons-learned">🎓 Lessons Learned</h2>
+<h3 id="design-principle-violated">Design Principle Violated</h3>
+<p><strong>"Trust user-provided data over framework validation"</strong></p>
+<p>When users explicitly provide configuration (like table codes), the framework should trust their intent rather than apply the same validation rules as auto-generated values.</p>
+<h3 id="future-consideration">Future Consideration</h3>
+<p>Consider making this pattern more general:
+- <code>skip_validation</code> flags for other user-provided values
+- Clear distinction between "derived" vs "explicit" throughout codebase
+- Documentation on when validation should be relaxed</p>
+<hr />
+<h2 id="definition-of-done">✅ Definition of Done</h2>
+<ul>
+<li>[ ] All Phase 1 tasks completed (core fix)</li>
+<li>[ ] All Phase 2 tasks completed (parser enhancement)</li>
+<li>[ ] All Phase 3 tasks completed (testing)</li>
+<li>[ ] All tests passing (unit + integration)</li>
+<li>[ ] PrintOptim migration verified (74 entities)</li>
+<li>[ ] No regressions in existing functionality</li>
+<li>[ ] Documentation updated</li>
+<li>[ ] Code reviewed</li>
+<li>[ ] GitHub Issue #1 closed</li>
+</ul>
+<hr />
+<p><strong>Last Updated</strong>: 2025-11-10
+<strong>Estimated Completion</strong>: 4-6 hours (phased implementation)
+<strong>Next Steps</strong>: Begin Phase 1 (Core Fix) implementation</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

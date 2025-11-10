@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Repository Cleanup &amp; Organization Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Repository Cleanup \u0026amp; Organization Plan";
+        var mkdocs_page_input_path = "implementation-plans/REPOSITORY_CLEANUP_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Repository Cleanup &amp; Organization Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="repository-cleanup-organization-plan">Repository Cleanup &amp; Organization Plan</h1>
+<p><strong>Project</strong>: printoptim_backend_poc
+<strong>Task</strong>: Clean and organize repository structure
+<strong>Complexity</strong>: Simple | <strong>Direct Execution</strong>
+<strong>Document Created</strong>: 2025-11-10</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>Organize repository for production readiness by removing temporary files, consolidating documentation, and establishing clear directory structure. Current state has accumulated development artifacts (test outputs, temporary scripts, excessive docs) that should be cleaned up.</p>
+<p><strong>Estimated Time</strong>: 2-3 hours</p>
+<hr />
+<h2 id="current-state-issues">Current State Issues</h2>
+<h3 id="1-temporary-directories-4">1. Temporary Directories (4)</h3>
+<pre><code>test_confiture/         # Confiture test output
+test_hierarchical/      # Hierarchical test output
+test_output/           # General test output
+tmp_cli_test/          # CLI test artifacts
+</code></pre>
+<p><strong>Action</strong>: Delete or add to .gitignore</p>
+<h3 id="2-root-level-scripts-2">2. Root-Level Scripts (2)</h3>
+<pre><code>scripts/dev/compare_with_original.py   # Development comparison script
+scripts/dev/generate_sql.py           # Development generation script
+</code></pre>
+<p><strong>Action</strong>: Move to <code>scripts/</code> or <code>dev/</code> directory</p>
+<h3 id="3-python-cache-140-directories">3. Python Cache (140 directories)</h3>
+<pre><code>__pycache__/ directories throughout
+</code></pre>
+<p><strong>Action</strong>: Verify .gitignore, clean from git if tracked</p>
+<h3 id="4-documentation-sprawl-125-files">4. Documentation Sprawl (125 files)</h3>
+<pre><code>docs/
+├── teams/           # 60+ team-specific planning docs
+├── implementation-plans/  # 15+ phased plans
+├── fraiseql/        # 8+ FraiseQL docs
+├── architecture/    # 10+ architecture docs
+├── analysis/        # Various analysis docs
+└── *.md (root)      # 10+ loose docs
+</code></pre>
+<p><strong>Action</strong>: Archive completed work, consolidate active docs</p>
+<h3 id="5-test-organization">5. Test Organization</h3>
+<pre><code>tests/
+├── archived/        # ✅ Good - archived tests
+├── integration/     # ✅ Good structure
+├── unit/           # ✅ Good structure
+├── pytest/         # ❓ Separate pytest tests?
+└── schema/         # ❓ Schema fixtures?
+</code></pre>
+<p><strong>Action</strong>: Verify test organization, document purpose</p>
+<hr />
+<h2 id="phase-1-remove-temporary-files">PHASE 1: Remove Temporary Files</h2>
+<p><strong>Objective</strong>: Clean up development artifacts</p>
+<p><strong>Estimated Time</strong>: 15 minutes</p>
+<h3 id="actions">Actions</h3>
+<ol>
+<li><strong>Remove test output directories</strong>:</li>
+</ol>
+<pre><code class="language-bash"># Verify these are generated outputs
+ls -la test_confiture/ test_hierarchical/ test_output/ tmp_cli_test/
+
+# Remove if safe
+rm -rf test_confiture/ test_hierarchical/ test_output/ tmp_cli_test/
+</code></pre>
+<ol>
+<li><strong>Update .gitignore</strong>:</li>
+</ol>
+<pre><code class="language-bash"># Add to .gitignore if not already present
+cat &gt;&gt; .gitignore &lt;&lt;EOF
+
+# Test outputs
+test_*/
+tmp_*/
+*_output/
+
+# Development artifacts
+scripts/dev/compare_with_original.py
+scripts/dev/generate_sql.py
+EOF
+</code></pre>
+<ol>
+<li><strong>Clean Python cache</strong> (if tracked):</li>
+</ol>
+<pre><code class="language-bash"># Check if __pycache__ is tracked
+git ls-files | grep __pycache__
+
+# If found, remove from git
+find . -type d -name &quot;__pycache__&quot; -exec git rm -r --cached {} +
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] Test output directories removed
+- [ ] .gitignore updated
+- [ ] Python cache cleaned from git (if needed)
+- [ ] No temporary files in git</p>
+<hr />
+<h2 id="phase-2-organize-root-level-files">PHASE 2: Organize Root-Level Files</h2>
+<p><strong>Objective</strong>: Clean up project root</p>
+<p><strong>Estimated Time</strong>: 30 minutes</p>
+<h3 id="actions_1">Actions</h3>
+<ol>
+<li><strong>Create development scripts directory</strong>:</li>
+</ol>
+<pre><code class="language-bash">mkdir -p scripts/dev
+</code></pre>
+<ol>
+<li><strong>Move development scripts</strong>:</li>
+</ol>
+<pre><code class="language-bash"># Move scripts to dev directory
+mv scripts/dev/compare_with_original.py scripts/dev/
+mv scripts/dev/generate_sql.py scripts/dev/
+
+# Update any references in documentation
+grep -r &quot;scripts/dev/compare_with_original.py&quot; docs/
+grep -r &quot;scripts/dev/generate_sql.py&quot; docs/
+</code></pre>
+<ol>
+<li><strong>Verify root directory is clean</strong>:</li>
+</ol>
+<pre><code class="language-bash"># Should only have:
+# - pyproject.toml
+# - README.md
+# - GETTING_STARTED.md
+# - uv.lock
+# - Configuration files (.gitignore, confiture.yaml, etc.)
+
+ls -1 *.py *.sql 2&gt;/dev/null  # Should be empty
+</code></pre>
+<p><strong>Directory Structure</strong> (root level):</p>
+<pre><code>printoptim_backend_poc/
+├── .claude/
+├── db/
+├── docs/
+├── entities/
+├── migrations/
+├── registry/
+├── scripts/
+│   └── dev/              # ← Development scripts
+├── src/
+├── stdlib/
+├── templates/
+├── tests/
+├── pyproject.toml
+├── README.md
+├── GETTING_STARTED.md
+└── uv.lock
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] scripts/dev/ created
+- [ ] Development scripts moved
+- [ ] Root directory clean
+- [ ] Documentation updated</p>
+<hr />
+<h2 id="phase-3-consolidate-documentation">PHASE 3: Consolidate Documentation</h2>
+<p><strong>Objective</strong>: Organize 125+ documentation files into clear structure</p>
+<p><strong>Estimated Time</strong>: 1 hour</p>
+<h3 id="current-structure-125-files">Current Structure (125 files)</h3>
+<pre><code>docs/
+├── teams/              # 60+ files (Team A-E planning &amp; status)
+├── implementation-plans/  # 15+ files (phased plans)
+├── fraiseql/           # 8+ files (FraiseQL specs)
+├── architecture/       # 10+ files (architecture docs)
+├── analysis/           # Various analysis
+└── *.md (loose)        # 10+ root-level docs
+</code></pre>
+<h3 id="proposed-structure">Proposed Structure</h3>
+<pre><code>docs/
+├── README.md           # Documentation index
+├── architecture/       # Active architecture docs
+├── guides/            # User guides (NEW)
+│   ├── getting-started.md
+│   ├── rich-types.md
+│   └── stdlib-usage.md
+├── reference/         # API reference (NEW)
+│   ├── scalar-types.md
+│   └── fraiseql/
+├── development/       # Development docs (NEW)
+│   ├── testing.md
+│   └── contributing.md
+└── archive/          # Completed planning docs (NEW)
+    ├── teams/         # All Team A-E docs
+    └── plans/         # Completed implementation plans
+</code></pre>
+<h3 id="actions_2">Actions</h3>
+<ol>
+<li><strong>Create new structure</strong>:</li>
+</ol>
+<pre><code class="language-bash">mkdir -p docs/guides
+mkdir -p docs/reference
+mkdir -p docs/development
+mkdir -p docs/archive/teams
+mkdir -p docs/archive/plans
+</code></pre>
+<ol>
+<li><strong>Archive team planning docs</strong> (completed work):</li>
+</ol>
+<pre><code class="language-bash"># Move all Team A-E docs to archive
+mv docs/teams/* docs/archive/teams/
+
+# Move completed implementation plans
+mv docs/implementation-plans/TEAM_* docs/archive/plans/
+</code></pre>
+<ol>
+<li><strong>Keep active implementation plans</strong>:</li>
+</ol>
+<pre><code class="language-bash"># Keep these in docs/implementation-plans/:
+# - STDLIB_INTEGRATION_PHASED_PLAN.md
+# - TEST_SUITE_FIX_PHASED_PLAN.md
+# - Any other active/future plans
+</code></pre>
+<ol>
+<li><strong>Create documentation index</strong>:</li>
+</ol>
+<pre><code class="language-bash">cat &gt; docs/README.md &lt;&lt;'EOF'
+# SpecQL Documentation
+
+## Quick Links
+
+- [Getting Started](../GETTING_STARTED.md)
+- [Architecture Overview](architecture/)
+- [Rich Types Guide](guides/rich-types.md)
+- [stdlib Usage](guides/stdlib-usage.md)
+
+## Documentation Structure
+
+- **architecture/** - System architecture and design decisions
+- **guides/** - User guides and tutorials
+- **reference/** - API and type reference documentation
+- **development/** - Development, testing, and contribution guides
+- **implementation-plans/** - Active implementation plans
+- **archive/** - Completed planning documents and historical records
+
+## For Developers
+
+- [Testing Guide](development/testing.md)
+- [Contributing Guidelines](development/contributing.md)
+- [Implementation Plans](implementation-plans/)
+
+## Archive
+
+Historical planning documents and completed team work:
+- [Team Planning Archive](archive/teams/)
+- [Completed Plans](archive/plans/)
+EOF
+</code></pre>
+<ol>
+<li><strong>Consolidate FraiseQL docs</strong>:</li>
+</ol>
+<pre><code class="language-bash"># Move to reference
+mv docs/fraiseql docs/reference/
+</code></pre>
+<ol>
+<li><strong>Create essential guides</strong>:</li>
+</ol>
+<pre><code class="language-bash"># Extract key info from existing docs into user guides
+# - Rich types guide (from various rich type docs)
+# - stdlib usage guide (from INTEGRATION_NOTES.md)
+# - Testing guide (from test fix plans)
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] New directory structure created
+- [ ] Team docs archived
+- [ ] Completed plans archived
+- [ ] Active plans identified and kept
+- [ ] docs/README.md created
+- [ ] User guides created
+- [ ] Reference docs organized</p>
+<hr />
+<h2 id="phase-4-clean-up-tests-directory">PHASE 4: Clean Up Tests Directory</h2>
+<p><strong>Objective</strong>: Verify and document test organization</p>
+<p><strong>Estimated Time</strong>: 30 minutes</p>
+<h3 id="current-structure">Current Structure</h3>
+<pre><code>tests/
+├── archived/           # Archived tests (good)
+├── conftest.py         # Pytest configuration
+├── fixtures/           # Test fixtures
+├── integration/        # Integration tests
+├── pytest/            # Separate pytest tests?
+├── schema/            # Schema fixtures?
+└── unit/              # Unit tests
+</code></pre>
+<h3 id="actions_3">Actions</h3>
+<ol>
+<li><strong>Verify pytest/ directory purpose</strong>:</li>
+</ol>
+<pre><code class="language-bash"># Check what's in pytest/
+ls -la tests/pytest/
+
+# Check if these are integration tests or special tests
+head -20 tests/pytest/test_contact_integration.py
+</code></pre>
+<ol>
+<li><strong>Consolidate or document</strong>:</li>
+<li><strong>Option A</strong>: Move to integration/ if they're integration tests</li>
+<li>
+<p><strong>Option B</strong>: Document purpose in tests/README.md if they serve special purpose</p>
+</li>
+<li>
+<p><strong>Verify schema/ directory</strong>:</p>
+</li>
+</ol>
+<pre><code class="language-bash"># Check schema directory
+ls -la tests/schema/
+
+# Likely fixtures - move to fixtures/ if appropriate
+</code></pre>
+<ol>
+<li><strong>Create tests/README.md</strong>:</li>
+</ol>
+<pre><code class="language-bash">cat &gt; tests/README.md &lt;&lt;'EOF'
+# SpecQL Test Suite
+
+## Structure
+
+- **unit/** - Unit tests for individual components
+- **integration/** - Integration tests with database/full stack
+- **fixtures/** - Shared test fixtures and mock data
+- **archived/** - Deprecated tests kept for reference
+
+## Running Tests
+
+```bash
+# All tests
+uv run pytest
+
+# Unit tests only
+uv run pytest tests/unit/
+
+# Integration tests only
+uv run pytest tests/integration/
+
+# Specific test file
+uv run pytest tests/unit/core/test_scalar_types.py -v
+</code></pre>
+<h2 id="test-coverage">Test Coverage</h2>
+<ul>
+<li>906/910 tests passing (99.6%)</li>
+<li>4 skipped (database-dependent)</li>
+<li>Target: 100% effective coverage
+EOF</li>
+</ul>
+<pre><code>
+**Checklist**:
+- [ ] pytest/ directory purpose verified
+- [ ] schema/ directory organized
+- [ ] tests/README.md created
+- [ ] Test organization documented
+
+---
+
+## PHASE 5: Update Configuration Files
+
+**Objective**: Ensure configuration files reflect clean structure
+
+**Estimated Time**: 15 minutes
+
+### Actions
+
+1. **Update .gitignore**:
+```bash
+cat &gt;&gt; .gitignore &lt;&lt;'EOF'
+
+# Test outputs and temporary directories
+test_*/
+tmp_*/
+*_output/
+*.db-journal
+*.db-wal
+
+# Development scripts (now in scripts/dev/)
+/scripts/dev/compare_with_original.py
+/scripts/dev/generate_sql.py
+
+# Editor directories
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Database files (keep in migrations/)
+/*.db
+/*.sql
+EOF
+</code></pre>
+<ol>
+<li><strong>Verify pyproject.toml</strong>:</li>
+</ol>
+<pre><code class="language-bash"># Check that tool configurations are up to date
+# - pytest paths
+# - ruff exclude patterns
+# - mypy exclude patterns
+</code></pre>
+<ol>
+<li><strong>Update README.md</strong> (if needed):</li>
+</ol>
+<pre><code class="language-bash"># Update any references to:
+# - Old doc locations
+# - Development scripts (now in scripts/dev/)
+# - Test structure
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] .gitignore updated
+- [ ] pyproject.toml verified
+- [ ] README.md updated
+- [ ] All configs reference correct paths</p>
+<hr />
+<h2 id="phase-6-final-verification">PHASE 6: Final Verification</h2>
+<p><strong>Objective</strong>: Ensure repository is clean and organized</p>
+<p><strong>Estimated Time</strong>: 15 minutes</p>
+<h3 id="actions_4">Actions</h3>
+<ol>
+<li><strong>Run tests</strong>:</li>
+</ol>
+<pre><code class="language-bash">uv run pytest --tb=short -q
+# Should still have 906/910 passing
+</code></pre>
+<ol>
+<li><strong>Check git status</strong>:</li>
+</ol>
+<pre><code class="language-bash">git status
+# Should see clean organization changes
+</code></pre>
+<ol>
+<li><strong>Verify structure</strong>:</li>
+</ol>
+<pre><code class="language-bash">tree -L 2 -d
+# Should show clean, organized structure
+</code></pre>
+<ol>
+<li><strong>Check for untracked files</strong>:</li>
+</ol>
+<pre><code class="language-bash">git status --short | grep &quot;^??&quot;
+# Should only see intentional untracked files
+</code></pre>
+<ol>
+<li><strong>Create cleanup commit</strong>:</li>
+</ol>
+<pre><code class="language-bash">git add -A
+git commit -m &quot;chore: Clean up and organize repository structure
+
+- Remove temporary test output directories
+- Move development scripts to scripts/dev/
+- Archive completed team planning docs
+- Consolidate documentation into clear structure
+- Update .gitignore for cleaner working directory
+- Add documentation indexes and guides
+
+New structure:
+- docs/guides/ - User guides
+- docs/reference/ - API reference
+- docs/development/ - Development docs
+- docs/archive/ - Completed planning docs
+- scripts/dev/ - Development scripts
+
+All 906/910 tests still passing.
+
+🎉 Repository is now production-ready!
+&quot;
+</code></pre>
+<p><strong>Checklist</strong>:
+- [ ] All tests passing
+- [ ] Git status clean
+- [ ] Directory structure verified
+- [ ] Documentation organized
+- [ ] Changes committed</p>
+<hr />
+<h2 id="success-criteria">Success Criteria</h2>
+<h3 id="before">Before</h3>
+<pre><code>- 125+ scattered documentation files
+- Temporary test directories in root
+- Development scripts in root
+- No clear doc structure
+- 140 __pycache__ directories
+</code></pre>
+<h3 id="after">After</h3>
+<pre><code>✅ Clean root directory (configs only)
+✅ Organized documentation (guides, reference, archive)
+✅ Development scripts in scripts/dev/
+✅ No temporary files
+✅ Clear .gitignore
+✅ Documentation index
+✅ 906/910 tests still passing
+✅ Production-ready structure
+</code></pre>
+<hr />
+<h2 id="recommended-directory-structure-final">Recommended Directory Structure (Final)</h2>
+<pre><code>printoptim_backend_poc/
+├── .claude/
+│   └── CLAUDE.md
+├── db/
+│   └── schema/
+│       ├── 00_foundation/
+│       ├── 10_tables/
+│       ├── 20_helpers/
+│       └── 30_functions/
+├── docs/
+│   ├── README.md              # Documentation index
+│   ├── architecture/          # Active architecture
+│   ├── guides/               # User guides
+│   ├── reference/            # API reference
+│   ├── development/          # Dev guides
+│   ├── implementation-plans/ # Active plans
+│   └── archive/             # Completed work
+│       ├── teams/
+│       └── plans/
+├── entities/                 # YAML entity definitions
+├── migrations/               # Confiture migrations
+├── registry/
+│   └── domain_registry.yaml
+├── scripts/
+│   └── dev/                 # Development scripts
+├── src/
+│   ├── cli/
+│   ├── core/
+│   ├── generators/
+│   ├── numbering/
+│   ├── testing/
+│   └── utils/
+├── stdlib/                  # Standard library entities
+├── templates/               # Jinja2 templates
+├── tests/
+│   ├── README.md
+│   ├── conftest.py
+│   ├── fixtures/
+│   ├── integration/
+│   ├── unit/
+│   └── archived/
+├── .gitignore
+├── confiture.yaml
+├── pyproject.toml
+├── README.md
+├── GETTING_STARTED.md
+└── uv.lock
+</code></pre>
+<hr />
+<h2 id="quick-commands-reference">Quick Commands Reference</h2>
+<pre><code class="language-bash"># Phase 1: Remove temporary files
+rm -rf test_* tmp_*
+
+# Phase 2: Organize root
+mkdir -p scripts/dev
+mv scripts/dev/compare_with_original.py scripts/dev/generate_sql.py scripts/dev/
+
+# Phase 3: Consolidate docs
+mkdir -p docs/{guides,reference,development,archive/{teams,plans}}
+mv docs/teams/* docs/archive/teams/
+mv docs/implementation-plans/TEAM_* docs/archive/plans/
+
+# Phase 4: Clean tests
+# (Manual verification)
+
+# Phase 5: Update configs
+# (Edit .gitignore)
+
+# Phase 6: Commit
+git add -A
+git commit -m &quot;chore: Clean up and organize repository structure&quot;
+</code></pre>
+<hr />
+<p><strong>Total Estimated Time</strong>: 2-3 hours
+<strong>Complexity</strong>: Simple - straightforward file organization
+<strong>Risk</strong>: Low - all changes are organizational, no code changes</p>
+<hr />
+<p><strong>Document Version</strong>: 1.0
+<strong>Last Updated</strong>: 2025-11-10
+<strong>Status</strong>: Ready for execution</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

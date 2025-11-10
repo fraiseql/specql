@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Multi-Tenancy in SpecQL - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Multi-Tenancy in SpecQL";
+        var mkdocs_page_input_path = "guides/multi-tenancy.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Multi-Tenancy in SpecQL</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="multi-tenancy-in-specql">Multi-Tenancy in SpecQL</h1>
+<p><strong>Automatic tenant isolation with Row Level Security</strong> 🏢</p>
+<h2 id="overview">Overview</h2>
+<p>SpecQL makes multi-tenancy simple. Specify <code>schema: tenant</code> and get automatic tenant isolation, RLS policies, and cross-tenant security built-in.</p>
+<p><strong>What you get automatically:</strong>
+- ✅ <code>tenant_id UUID</code> foreign key on all tables
+- ✅ Row Level Security (RLS) policies
+- ✅ Tenant context in all functions
+- ✅ Cross-tenant relationship validation
+- ✅ Audit trails with tenant tracking</p>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="basic-multi-tenant-entity">Basic Multi-Tenant Entity</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: tenant  # This enables multi-tenancy
+description: &quot;Customer contacts&quot;
+
+fields:
+  first_name: text!
+  last_name: text!
+  email: email!
+  company: text
+
+actions:
+  - name: create_contact
+  - name: update_contact
+  - name: delete_contact
+</code></pre>
+<p><strong>Generated automatically:</strong></p>
+<pre><code class="language-sql">-- Table with tenant isolation
+CREATE TABLE tenant.tb_contact (
+  -- Trinity Pattern
+  pk_contact INTEGER PRIMARY KEY,
+  id UUID DEFAULT gen_random_uuid(),
+  identifier TEXT NOT NULL,
+
+  -- Automatic tenant isolation
+  tenant_id UUID NOT NULL,  -- Every record belongs to a tenant
+
+  -- Your fields
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  company TEXT,
+
+  -- Audit trails
+  created_at TIMESTAMPTZ DEFAULT now(),
+  created_by UUID,
+  updated_at TIMESTAMPTZ DEFAULT now(),
+  updated_by UUID,
+  deleted_at TIMESTAMPTZ,
+  deleted_by UUID
+);
+
+-- Row Level Security: Users only see their tenant's data
+ALTER TABLE tenant.tb_contact ENABLE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON tenant.tb_contact
+  USING (tenant_id = current_tenant_id());
+</code></pre>
+<h2 id="schema-types">Schema Types</h2>
+<h3 id="schema-tenant-multi-tenant-data"><code>schema: tenant</code> - Multi-Tenant Data</h3>
+<p>Business data that should be isolated per tenant:</p>
+<pre><code class="language-yaml">entity: Customer
+schema: tenant
+fields:
+  name: text!
+  industry: text
+</code></pre>
+<p><strong>Use for:</strong>
+- Customer data
+- Business transactions
+- User-generated content
+- Organization-specific settings</p>
+<h3 id="schema-common-shared-reference-data"><code>schema: common</code> - Shared Reference Data</h3>
+<p>Data shared across all tenants:</p>
+<pre><code class="language-yaml">entity: Country
+schema: common
+fields:
+  name: text!
+  iso_code: text!
+</code></pre>
+<p><strong>Use for:</strong>
+- Countries, currencies, languages
+- Industry classifications
+- System-wide reference data</p>
+<h3 id="schema-app-application-data"><code>schema: app</code> - Application Data</h3>
+<p>Global application configuration:</p>
+<pre><code class="language-yaml">entity: AppConfig
+schema: app
+fields:
+  setting_name: text!
+  setting_value: text
+</code></pre>
+<p><strong>Use for:</strong>
+- Application-wide settings
+- System configuration
+- Global reference data</p>
+<h2 id="tenant-context">Tenant Context</h2>
+<h3 id="automatic-context-propagation">Automatic Context Propagation</h3>
+<p>All generated functions automatically include tenant context:</p>
+<pre><code class="language-sql">-- Generated function with tenant awareness
+CREATE FUNCTION tenant.create_contact(
+  tenant_id UUID,  -- Automatic tenant parameter
+  first_name TEXT,
+  last_name TEXT,
+  email TEXT
+) RETURNS app.mutation_result AS $$
+BEGIN
+  -- Function automatically scoped to tenant
+  INSERT INTO tenant.tb_contact (
+    tenant_id, first_name, last_name, email
+  ) VALUES (
+    tenant_id, first_name, last_name, email
+  );
+
+  RETURN app.success_result('Contact created');
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+</code></pre>
+<h3 id="setting-tenant-context">Setting Tenant Context</h3>
+<pre><code class="language-sql">-- Set current tenant for session
+SELECT app.set_current_tenant('550e8400-e29b-41d4-a716-446655440000');
+
+-- All queries now automatically filtered to this tenant
+SELECT * FROM tenant.tb_contact;  -- Only shows this tenant's contacts
+</code></pre>
+<h2 id="relationships">Relationships</h2>
+<h3 id="same-tenant-relationships">Same-Tenant Relationships</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: tenant
+fields:
+  organization: ref(Organization)  # Same tenant automatically
+
+entity: Organization
+schema: tenant
+fields:
+  name: text!
+</code></pre>
+<p><strong>Generated:</strong></p>
+<pre><code class="language-sql">-- Foreign key with tenant enforcement
+ALTER TABLE tenant.tb_contact
+ADD CONSTRAINT fk_contact_organization
+FOREIGN KEY (tenant_id, organization_id)
+REFERENCES tenant.tb_organization(tenant_id, pk_organization);
+</code></pre>
+<h3 id="cross-schema-relationships">Cross-Schema Relationships</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: tenant
+fields:
+  country: ref(Country)  # References common schema
+
+entity: Country
+schema: common
+fields:
+  name: text!
+  iso_code: text!
+</code></pre>
+<p><strong>Generated:</strong></p>
+<pre><code class="language-sql">-- Foreign key to common schema (no tenant_id)
+ALTER TABLE tenant.tb_contact
+ADD CONSTRAINT fk_contact_country
+FOREIGN KEY (country_id)
+REFERENCES common.tb_country(pk_country);
+</code></pre>
+<h2 id="actions-business-logic">Actions &amp; Business Logic</h2>
+<h3 id="tenant-scoped-actions">Tenant-Scoped Actions</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: tenant
+actions:
+  - name: create_contact
+    description: &quot;Create a new contact for current tenant&quot;
+    steps:
+      - validate: email IS NOT NULL
+      - insert: Contact
+
+  - name: transfer_contact
+    description: &quot;Transfer contact to another organization&quot;
+    steps:
+      - validate: new_org_id IS NOT NULL
+      - validate: organization_id != new_org_id
+      - update: Contact SET organization_id = new_org_id
+</code></pre>
+<h3 id="cross-tenant-operations">Cross-Tenant Operations</h3>
+<p>For operations that need to span tenants (admin functions):</p>
+<pre><code class="language-yaml">entity: Contact
+schema: tenant
+actions:
+  - name: migrate_tenant_data
+    description: &quot;Admin: Migrate data between tenants&quot;
+    security: admin_only  # Custom security context
+    steps:
+      - call: admin.migrate_contact_data(source_tenant, target_tenant)
+</code></pre>
+<h2 id="security-model">Security Model</h2>
+<h3 id="row-level-security-rls">Row Level Security (RLS)</h3>
+<p>Automatic RLS policies ensure tenant isolation:</p>
+<pre><code class="language-sql">-- Automatic policy creation
+CREATE POLICY tenant_isolation ON tenant.tb_contact
+  USING (tenant_id = current_tenant_id());
+
+-- Users can only see/modify their tenant's data
+SELECT * FROM tenant.tb_contact;  -- Filtered automatically
+</code></pre>
+<h3 id="function-security">Function Security</h3>
+<pre><code class="language-sql">-- Generated functions run with tenant context
+CREATE FUNCTION tenant.create_contact(...) RETURNS app.mutation_result
+SECURITY DEFINER  -- Runs with elevated privileges
+SET search_path = tenant, app, common  -- Controlled schema access
+</code></pre>
+<h3 id="audit-trails">Audit Trails</h3>
+<p>All changes tracked with tenant context:</p>
+<pre><code class="language-sql">-- Audit table includes tenant information
+CREATE TABLE app.audit_log (
+  tenant_id UUID,  -- Which tenant made the change
+  table_name TEXT,
+  record_id UUID,
+  action TEXT,  -- INSERT, UPDATE, DELETE
+  old_values JSONB,
+  new_values JSONB,
+  changed_by UUID,
+  changed_at TIMESTAMPTZ DEFAULT now()
+);
+</code></pre>
+<h2 id="implementation-patterns">Implementation Patterns</h2>
+<h3 id="saas-application">SaaS Application</h3>
+<pre><code class="language-yaml"># Core tenant entity
+entity: Tenant
+schema: app
+fields:
+  name: text!
+  subdomain: text!
+  status: enum(active, suspended, cancelled)
+
+# Tenant-scoped business data
+entity: Customer
+schema: tenant
+fields:
+  name: text!
+  email: email!
+  tenant: ref(Tenant)  # Cross-schema reference
+
+entity: Project
+schema: tenant
+fields:
+  name: text!
+  customer: ref(Customer)
+  status: enum(active, completed, cancelled)
+</code></pre>
+<h3 id="multi-organization-enterprise">Multi-Organization Enterprise</h3>
+<pre><code class="language-yaml"># Top-level organization
+entity: Enterprise
+schema: app
+fields:
+  name: text!
+  industry: text
+
+# Departments within enterprise
+entity: Department
+schema: tenant
+fields:
+  name: text!
+  enterprise: ref(Enterprise)
+  manager: ref(Employee)
+
+# Employees in departments
+entity: Employee
+schema: tenant
+fields:
+  first_name: text!
+  last_name: text!
+  department: ref(Department)
+  email: email!
+</code></pre>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="1-use-tenant-schema-for-business-data">1. Use <code>tenant</code> Schema for Business Data</h3>
+<pre><code class="language-yaml"># ✅ Good: Business data is tenant-scoped
+entity: Invoice
+schema: tenant
+fields:
+  amount: money!
+  customer: ref(Customer)
+
+# ❌ Bad: Don't put business data in common schema
+entity: Invoice
+schema: common  # Wrong! Invoices should be per-tenant
+</code></pre>
+<h3 id="2-use-common-for-reference-data">2. Use <code>common</code> for Reference Data</h3>
+<pre><code class="language-yaml"># ✅ Good: Reference data shared across tenants
+entity: Currency
+schema: common
+fields:
+  code: text!  # USD, EUR, etc.
+  name: text!
+
+# ❌ Bad: Don't duplicate reference data per tenant
+entity: Currency
+schema: tenant  # Wrong! Currency codes are universal
+</code></pre>
+<h3 id="3-validate-cross-tenant-access">3. Validate Cross-Tenant Access</h3>
+<pre><code class="language-yaml">actions:
+  - name: share_customer
+    description: &quot;Share customer with another tenant&quot;
+    steps:
+      - validate: target_tenant_id IS NOT NULL
+      - validate: has_permission('share_customers')
+      - call: admin.create_tenant_sharing(customer_id, target_tenant_id)
+</code></pre>
+<h3 id="4-handle-tenant-context-properly">4. Handle Tenant Context Properly</h3>
+<pre><code class="language-yaml"># Always set tenant context at session start
+SELECT app.set_current_tenant(get_jwt_claim('tenant_id'));
+
+# Use tenant-aware functions
+SELECT tenant.create_customer(name := 'Acme Corp');
+</code></pre>
+<h2 id="migration-strategies">Migration Strategies</h2>
+<h3 id="adding-multi-tenancy-to-existing-data">Adding Multi-Tenancy to Existing Data</h3>
+<pre><code class="language-sql">-- 1. Add tenant_id column
+ALTER TABLE existing_table ADD COLUMN tenant_id UUID;
+
+-- 2. Set default tenant for existing data
+UPDATE existing_table SET tenant_id = 'default-tenant-id';
+
+-- 3. Make tenant_id NOT NULL
+ALTER TABLE existing_table ALTER COLUMN tenant_id SET NOT NULL;
+
+-- 4. Add RLS policy
+ALTER TABLE existing_table ENABLE ROW LEVEL SECURITY;
+CREATE POLICY tenant_isolation ON existing_table
+  USING (tenant_id = current_tenant_id());
+
+-- 5. Create tenant-aware functions
+-- (SpecQL generates these automatically)
+</code></pre>
+<h3 id="splitting-single-tenant-to-multi-tenant">Splitting Single-Tenant to Multi-Tenant</h3>
+<pre><code class="language-sql">-- Create tenant table
+CREATE TABLE app.tb_tenant (
+  pk_tenant INTEGER PRIMARY KEY,
+  id UUID DEFAULT gen_random_uuid(),
+  name TEXT NOT NULL
+);
+
+-- Migrate existing data to default tenant
+INSERT INTO app.tb_tenant (name) VALUES ('Default Tenant');
+
+-- Add tenant_id to existing tables
+-- Follow steps above for each table
+</code></pre>
+<h2 id="testing-multi-tenant-applications">Testing Multi-Tenant Applications</h2>
+<h3 id="unit-tests-with-tenant-context">Unit Tests with Tenant Context</h3>
+<pre><code class="language-sql">-- Set up test tenant
+INSERT INTO app.tb_tenant (id, name)
+VALUES ('test-tenant-id', 'Test Tenant');
+
+-- Set tenant context for test
+SELECT app.set_current_tenant('test-tenant-id');
+
+-- Run tenant-scoped tests
+SELECT tenant.create_customer(name := 'Test Customer');
+SELECT COUNT(*) FROM tenant.tb_customer;  -- Should be 1
+
+-- Switch tenant context
+SELECT app.set_current_tenant('other-tenant-id');
+SELECT COUNT(*) FROM tenant.tb_customer;  -- Should be 0
+</code></pre>
+<h3 id="integration-tests">Integration Tests</h3>
+<pre><code class="language-python">def test_tenant_isolation():
+    # Create two tenants
+    tenant1 = create_tenant(&quot;Tenant 1&quot;)
+    tenant2 = create_tenant(&quot;Tenant 2&quot;)
+
+    # Create customer in tenant 1
+    with tenant_context(tenant1):
+        customer = create_customer(&quot;Customer A&quot;)
+
+    # Verify isolation
+    with tenant_context(tenant1):
+        assert get_customers() == [customer]
+
+    with tenant_context(tenant2):
+        assert get_customers() == []
+</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="no-tenant-context-set-error">"No tenant context set" Error</h3>
+<pre><code class="language-sql">-- Set tenant context first
+SELECT app.set_current_tenant('your-tenant-id');
+
+-- Then run tenant operations
+SELECT tenant.create_contact(...);
+</code></pre>
+<h3 id="permission-denied-on-rls">"Permission denied" on RLS</h3>
+<pre><code class="language-sql">-- Check current tenant context
+SELECT current_tenant_id();
+
+-- Verify user has access to tenant
+SELECT * FROM app.tb_tenant WHERE id = current_tenant_id();
+</code></pre>
+<h3 id="cross-tenant-data-leakage">Cross-tenant data leakage</h3>
+<pre><code class="language-sql">-- Check RLS policies are enabled
+SELECT schemaname, tablename, rowsecurity
+FROM pg_tables
+WHERE schemaname = 'tenant';
+
+-- Verify policies exist
+SELECT * FROM pg_policies WHERE schemaname = 'tenant';
+</code></pre>
+<h2 id="advanced-patterns">Advanced Patterns</h2>
+<h3 id="tenant-specific-configuration">Tenant-Specific Configuration</h3>
+<pre><code class="language-yaml">entity: TenantConfig
+schema: tenant
+fields:
+  setting_name: text!
+  setting_value: text
+  data_type: enum(string, number, boolean)
+
+actions:
+  - name: get_setting
+    description: &quot;Get tenant-specific setting&quot;
+  - name: update_setting
+    description: &quot;Update tenant configuration&quot;
+</code></pre>
+<h3 id="tenant-user-management">Tenant User Management</h3>
+<pre><code class="language-yaml">entity: TenantUser
+schema: tenant
+fields:
+  user_id: ref(User)  # Global user
+  role: enum(admin, editor, viewer)
+  permissions: json
+
+entity: User
+schema: app  # Global users
+fields:
+  email: email!
+  password_hash: text
+</code></pre>
+<h3 id="multi-tenant-reporting">Multi-Tenant Reporting</h3>
+<pre><code class="language-yaml">entity: Report
+schema: tenant
+actions:
+  - name: generate_tenant_report
+    description: &quot;Generate report for current tenant&quot;
+    steps:
+      - call: reporting.generate_customer_summary()
+      - call: reporting.generate_revenue_report()
+</code></pre>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<h3 id="indexing-strategy">Indexing Strategy</h3>
+<pre><code class="language-sql">-- Automatic tenant-aware indexes
+CREATE INDEX idx_contact_tenant_email ON tenant.tb_contact(tenant_id, email);
+CREATE INDEX idx_contact_tenant_created ON tenant.tb_contact(tenant_id, created_at);
+</code></pre>
+<h3 id="query-optimization">Query Optimization</h3>
+<pre><code class="language-sql">-- Tenant-aware queries are automatically optimized
+SELECT * FROM tenant.tb_contact
+WHERE tenant_id = current_tenant_id()  -- Automatic filter
+  AND email LIKE '%@company.com';
+</code></pre>
+<h3 id="partitioning-strategy">Partitioning Strategy</h3>
+<p>For high-volume multi-tenant applications:</p>
+<pre><code class="language-sql">-- Partition by tenant for massive scale
+CREATE TABLE tenant.tb_contact PARTITION BY LIST (tenant_id);
+
+-- Create partition per tenant
+CREATE TABLE tenant.tb_contact_tenant1 PARTITION OF tenant.tb_contact
+  FOR VALUES IN ('tenant-1-id');
+</code></pre>
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li><strong>Read Actions Guide</strong>: Learn business logic patterns in <code>docs/guides/actions-guide.md</code></li>
+<li><strong>Check GraphQL Integration</strong>: See <code>docs/guides/graphql-integration.md</code> for API patterns</li>
+<li><strong>Browse Examples</strong>: See <code>examples/saas-multi-tenant/</code> for complete implementation</li>
+<li><strong>Security Best Practices</strong>: Read <code>docs/guides/security-best-practices.md</code></li>
+</ul>
+<hr />
+<p><strong>Multi-tenancy should be invisible to your business logic, but rock-solid in your data layer.</strong> 🔒</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

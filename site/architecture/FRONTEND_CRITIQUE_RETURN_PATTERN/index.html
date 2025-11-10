@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Frontend Developer Critique: Return Value Pattern - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Frontend Developer Critique: Return Value Pattern";
+        var mkdocs_page_input_path = "architecture/FRONTEND_CRITIQUE_RETURN_PATTERN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Frontend Developer Critique: Return Value Pattern</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="frontend-developer-critique-return-value-pattern">Frontend Developer Critique: Return Value Pattern</h1>
+<h2 id="the-proposed-pattern">The Proposed Pattern</h2>
+<pre><code class="language-json">{
+  &quot;success&quot;: true,
+  &quot;affected_entities&quot;: [
+    {
+      &quot;entity&quot;: &quot;Contact&quot;,
+      &quot;id&quot;: &quot;uuid-1&quot;,
+      &quot;modified_fields&quot;: {&quot;status&quot;: &quot;qualified&quot;, &quot;updated_at&quot;: &quot;...&quot;}
+    },
+    {
+      &quot;entity&quot;: &quot;Notification&quot;,
+      &quot;id&quot;: &quot;uuid-2&quot;,
+      &quot;operation&quot;: &quot;insert&quot;,
+      &quot;modified_fields&quot;: {&quot;message&quot;: &quot;Done&quot;, &quot;created_at&quot;: &quot;...&quot;}
+    }
+  ]
+}
+</code></pre>
+<h2 id="critical-issues-from-frontend-perspective">Critical Issues from Frontend Perspective</h2>
+<h3 id="issue-1-type-safety-is-destroyed">❌ Issue 1: Type Safety is Destroyed</h3>
+<p><strong>Problem:</strong> The <code>modified_fields</code> object is completely dynamic. TypeScript can't help you.</p>
+<pre><code class="language-typescript">// What the frontend gets:
+interface AffectedEntity {
+  entity: string;  // Just a string! Not a type!
+  id: string;
+  modified_fields: Record&lt;string, any&gt;;  // Any! Type safety gone!
+}
+
+// What the frontend dev has to write:
+const contact = affectedEntities.find(e =&gt; e.entity === 'Contact');
+if (contact) {
+  // No autocomplete here ↓
+  const status = contact.modified_fields['status'];  // string? number? who knows!
+  const email = contact.modified_fields['email'];    // Might not exist!
+}
+</code></pre>
+<p><strong>What they want:</strong></p>
+<pre><code class="language-typescript">// Fully typed response
+interface QualifyLeadResponse {
+  contact: Contact;  // Real type!
+  createdNotifications: Notification[];
+}
+
+// Beautiful autocomplete and type checking
+const { contact, createdNotifications } = result.data.qualifyLead;
+contact.status  // ✅ TypeScript knows this is ContactStatus enum
+contact.email   // ✅ TypeScript knows this is string
+</code></pre>
+<h3 id="issue-2-apollorelay-cache-updates-are-manual">❌ Issue 2: Apollo/Relay Cache Updates are MANUAL</h3>
+<p><strong>Problem:</strong> Apollo Client and Relay have sophisticated cache management that works automatically with standard GraphQL responses. Our pattern breaks this.</p>
+<pre><code class="language-typescript">// With our pattern - MANUAL HELL:
+const { data } = await qualifyLead({ variables: { contactId } });
+
+// Frontend dev has to manually update cache for EVERY entity type:
+data.affectedEntities.forEach(entity =&gt; {
+  switch(entity.entity) {
+    case 'Contact':
+      // Manual cache write
+      cache.writeFragment({
+        id: cache.identify({ __typename: 'Contact', id: entity.id }),
+        fragment: gql`fragment ContactFields on Contact {
+          ${Object.keys(entity.modified_fields).join(' ')}
+        }`,
+        data: entity.modified_fields
+      });
+      break;
+    case 'Notification':
+      // More manual cache writes...
+      // This is tedious and error-prone!
+      break;
+  }
+});
+</code></pre>
+<p><strong>What they want (Apollo does it automatically):</strong></p>
+<pre><code class="language-typescript">const { data } = await qualifyLead({ variables: { contactId } });
+// ✨ Cache is automatically updated! No extra code!
+</code></pre>
+<p>This works because Apollo uses <code>__typename</code> + <code>id</code> to automatically normalize and update the cache when you return full objects.</p>
+<h3 id="issue-3-partial-data-problem">❌ Issue 3: Partial Data Problem</h3>
+<p><strong>Problem:</strong> Frontend only gets modified fields. What about fields that are displayed but weren't modified?</p>
+<p><strong>Scenario:</strong></p>
+<pre><code class="language-tsx">// Frontend is displaying:
+function ContactCard({ contact }) {
+  return (
+    &lt;div&gt;
+      &lt;h2&gt;{contact.email}&lt;/h2&gt;           {/* Not modified */}
+      &lt;p&gt;Status: {contact.status}&lt;/p&gt;     {/* Modified */}
+      &lt;p&gt;Company: {contact.company.name}&lt;/p&gt;  {/* Not modified */}
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+<p><strong>After mutation with our pattern:</strong></p>
+<pre><code class="language-json">{
+  &quot;entity&quot;: &quot;Contact&quot;,
+  &quot;id&quot;: &quot;uuid-1&quot;,
+  &quot;modified_fields&quot;: {&quot;status&quot;: &quot;qualified&quot;, &quot;updated_at&quot;: &quot;...&quot;}
+}
+</code></pre>
+<p>Frontend only has <code>status</code> and <code>updated_at</code>. Where is:
+- ❌ <code>email</code> (needed for display)
+- ❌ <code>company.name</code> (needed for display)</p>
+<p><strong>Options (all bad):</strong>
+1. <strong>Refetch entire Contact</strong> - Extra roundtrip! Defeats the purpose!
+2. <strong>Merge with cache</strong> - Hope cache isn't stale
+3. <strong>Partial UI update</strong> - Half the component updates, half shows old data (janky UX)</p>
+<p><strong>What they want:</strong></p>
+<pre><code class="language-graphql">mutation QualifyLead($contactId: UUID!) {
+  qualifyLead(contactId: $contactId) {
+    contact {
+      id
+      email        # Get EVERYTHING needed for UI
+      status       # in ONE response
+      company {
+        id
+        name
+      }
+    }
+  }
+}
+</code></pre>
+<p>One roundtrip, complete data, UI fully updates.</p>
+<h3 id="issue-4-optimistic-ui-is-nearly-impossible">❌ Issue 4: Optimistic UI is Nearly Impossible</h3>
+<p><strong>Problem:</strong> Frontend can't predict the response structure to show optimistic updates.</p>
+<pre><code class="language-typescript">// With our pattern - how do you predict this?
+const [qualifyLead] = useMutation(QUALIFY_LEAD, {
+  optimisticResponse: {
+    qualifyLead: {
+      affectedEntities: [
+        {
+          entity: 'Contact',
+          id: contactId,
+          modified_fields: {
+            status: 'qualified',  // Ok, we can predict this
+            updated_at: ???,      // Don't know the timestamp
+            // What other fields will be here?
+          }
+        },
+        {
+          entity: 'Notification',  // Wait, will a notification be created?
+          id: ???,                  // Don't know the ID
+          modified_fields: ???      // Don't know what's in it
+        }
+      ]
+    }
+  }
+});
+</code></pre>
+<p><strong>What they want:</strong></p>
+<pre><code class="language-typescript">const [qualifyLead] = useMutation(QUALIFY_LEAD, {
+  optimisticResponse: {
+    qualifyLead: {
+      contact: {
+        __typename: 'Contact',
+        id: contactId,
+        status: 'qualified',  // Can predict this
+        ...currentContact     // Merge with current data
+      },
+      createdNotifications: []  // Know structure even if empty
+    }
+  }
+});
+</code></pre>
+<p>Predictable structure = good optimistic UI = smooth UX.</p>
+<h3 id="issue-5-breaks-graphql-conventions">❌ Issue 5: Breaks GraphQL Conventions</h3>
+<p><strong>Problem:</strong> Apollo and Relay expect specific response shapes. Our pattern breaks their assumptions.</p>
+<p><strong>Apollo/Relay expect:</strong></p>
+<pre><code class="language-graphql">type Contact {
+  __typename: String!  # For cache normalization
+  id: ID!              # For cache key
+  status: String!      # Fields at top level
+  email: String!
+}
+</code></pre>
+<p><strong>Our pattern gives:</strong></p>
+<pre><code class="language-json">{
+  &quot;entity&quot;: &quot;Contact&quot;,      // Not __typename!
+  &quot;id&quot;: &quot;...&quot;,
+  &quot;modified_fields&quot;: {      // Fields nested, not at top level!
+    &quot;status&quot;: &quot;qualified&quot;
+  }
+}
+</code></pre>
+<p>Apollo's cache key: <code>Contact:uuid-1</code>
+Our structure: Doesn't match! Cache key must be constructed manually.</p>
+<h3 id="issue-6-relationship-data-missing">❌ Issue 6: Relationship Data Missing</h3>
+<p><strong>Problem:</strong> Relationships aren't included unless they were modified.</p>
+<pre><code class="language-yaml"># SpecQL action:
+- update: Contact SET status = 'qualified'
+</code></pre>
+<pre><code class="language-json">// Response:
+{
+  &quot;entity&quot;: &quot;Contact&quot;,
+  &quot;modified_fields&quot;: {&quot;status&quot;: &quot;qualified&quot;}
+}
+</code></pre>
+<p>Frontend needs to display <code>contact.company.name</code>. It's not in the response!</p>
+<p><strong>Options:</strong>
+1. Make separate query for company (2 roundtrips total)
+2. Hope it's in Apollo cache (might be stale)
+3. Refetch entire contact (defeats purpose)</p>
+<p><strong>What they want:</strong></p>
+<pre><code class="language-graphql">mutation QualifyLead {
+  qualifyLead(contactId: $id) {
+    contact {
+      id
+      status
+      company {  # Can request relationships!
+        id
+        name
+      }
+    }
+  }
+}
+</code></pre>
+<h3 id="issue-7-array-of-heterogeneous-types">❌ Issue 7: Array of Heterogeneous Types</h3>
+<p><strong>Problem:</strong> <code>affected_entities</code> array can contain different entity types. GraphQL doesn't handle this elegantly without unions.</p>
+<pre><code class="language-json">{
+  &quot;affected_entities&quot;: [
+    {&quot;entity&quot;: &quot;Contact&quot;, ...},      // Different type
+    {&quot;entity&quot;: &quot;Notification&quot;, ...}, // Different type
+    {&quot;entity&quot;: &quot;Task&quot;, ...}          // Different type
+  ]
+}
+</code></pre>
+<p><strong>Frontend has to:</strong></p>
+<pre><code class="language-typescript">data.affectedEntities.forEach(entity =&gt; {
+  switch(entity.entity) {  // Manual type discrimination
+    case 'Contact':
+      // Handle Contact
+      break;
+    case 'Notification':
+      // Handle Notification
+      break;
+    // ... more cases
+  }
+});
+</code></pre>
+<p><strong>What they want (if using unions):</strong></p>
+<pre><code class="language-graphql">mutation QualifyLead {
+  qualifyLead(contactId: $id) {
+    affectedEntities {
+      __typename  # GraphQL's type discriminator
+      ... on Contact {
+        id
+        status
+      }
+      ... on Notification {
+        id
+        message
+      }
+    }
+  }
+}
+</code></pre>
+<p>TypeScript discriminated unions work automatically with <code>__typename</code>.</p>
+<h3 id="issue-8-error-handling-is-unclear">❌ Issue 8: Error Handling is Unclear</h3>
+<p><strong>Problem:</strong> What if step 2 succeeds but step 3 fails?</p>
+<pre><code class="language-json">{
+  &quot;success&quot;: false,  // or true? Partial success?
+  &quot;affected_entities&quot;: [
+    {&quot;entity&quot;: &quot;Contact&quot;, ...}  // This succeeded
+    // Notification creation failed - is it in array or not?
+  ],
+  &quot;errors&quot;: ???  // Where do errors go?
+}
+</code></pre>
+<p><strong>What they want:</strong></p>
+<pre><code class="language-graphql">type QualifyLeadPayload {
+  contact: Contact       # Null if failed
+  createdNotifications: [Notification!]!  # Empty if failed
+  errors: [MutationError!]!  # Always present
+}
+
+type MutationError {
+  code: String!
+  message: String!
+  field: String
+  path: [String!]
+}
+</code></pre>
+<p>Clear, typed error structure.</p>
+<h3 id="issue-9-performance-forced-to-over-fetch">❌ Issue 9: Performance - Forced to Over-fetch</h3>
+<p><strong>Problem:</strong> Frontend dev, scared of missing data, does this:</p>
+<pre><code class="language-typescript">// Step 1: Mutation
+const { data } = await qualifyLead({ variables: { contactId } });
+
+// Step 2: Immediately refetch to get complete data
+const { data: fullData } = await getContact({ variables: { id: contactId } });
+</code></pre>
+<p><strong>Two roundtrips instead of one!</strong> The partial data problem forces this.</p>
+<h2 id="what-real-world-graphql-apis-do">What Real-World GraphQL APIs Do</h2>
+<h3 id="pattern-a-action-specific-payloads-shopify-github-stripe">Pattern A: Action-Specific Payloads (Shopify, GitHub, Stripe)</h3>
+<pre><code class="language-graphql">mutation QualifyLead($input: QualifyLeadInput!) {
+  qualifyLead(input: $input) {
+    # Primary entity - full object
+    contact {
+      id
+      email
+      status
+      updatedAt
+      company {
+        id
+        name
+      }
+    }
+
+    # Side effects - full objects
+    createdNotifications {
+      id
+      message
+      createdAt
+    }
+
+    # Errors
+    errors {
+      code
+      message
+      field
+    }
+  }
+}
+</code></pre>
+<p><strong>Pros:</strong>
+- ✅ Fully typed
+- ✅ Apollo auto-cache
+- ✅ Easy optimistic UI
+- ✅ Complete data in one roundtrip
+- ✅ Clear primary vs. side effects</p>
+<p><strong>Cons:</strong>
+- Each mutation has unique shape (but that's OK! It matches business intent)</p>
+<h3 id="pattern-b-union-types-relay">Pattern B: Union Types (Relay)</h3>
+<pre><code class="language-graphql">mutation QualifyLead($input: QualifyLeadInput!) {
+  qualifyLead(input: $input) {
+    entities {
+      __typename
+      ... on Contact {
+        id
+        status
+        email
+        company { id name }
+      }
+      ... on Notification {
+        id
+        message
+        createdAt
+      }
+    }
+  }
+}
+</code></pre>
+<p><strong>Pros:</strong>
+- ✅ Typed (via unions)
+- ✅ Apollo handles <code>__typename</code> automatically
+- ✅ More flexible than bespoke shapes</p>
+<p><strong>Cons:</strong>
+- Less clear what's primary vs. side effect</p>
+<h2 id="recommended-solution-for-this-project">Recommended Solution for This Project</h2>
+<h3 id="generate-action-specific-return-types">Generate Action-Specific Return Types</h3>
+<p>Instead of generic <code>affected_entities</code>, generate typed responses per action:</p>
+<h4 id="1-enhanced-specql-to-declare-returns">1. Enhanced SpecQL to Declare Returns</h4>
+<pre><code class="language-yaml">actions:
+  - name: qualify_lead
+    returns:
+      primary: Contact  # Primary entity
+      includes:         # Related data to include
+        - company
+      side_effects:     # Secondary entities affected
+        - Notification
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+      - insert: Notification(user=Contact.owner, message='Lead qualified')
+</code></pre>
+<h4 id="2-generated-plpgsql-with-full-objects">2. Generated PL/pgSQL with Full Objects</h4>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION crm.qualify_lead(
+    p_contact_id UUID,
+    p_caller_id UUID DEFAULT NULL
+)
+RETURNS jsonb AS $$
+DECLARE
+    v_pk INTEGER;
+    v_notification_ids UUID[];
+BEGIN
+    -- Trinity resolution
+    v_pk := crm.contact_pk(p_contact_id);
+
+    -- Validation
+    IF (SELECT status FROM crm.tb_contact WHERE pk_contact = v_pk) != 'lead' THEN
+        RAISE EXCEPTION 'validation_failed';
+    END IF;
+
+    -- Update
+    UPDATE crm.tb_contact
+    SET status = 'qualified',
+        updated_at = now(),
+        updated_by = p_caller_id
+    WHERE pk_contact = v_pk;
+
+    -- Create notification
+    INSERT INTO core.tb_notification (fk_user, message, created_at)
+    SELECT fk_owner, 'Lead qualified', now()
+    FROM crm.tb_contact WHERE pk_contact = v_pk
+    RETURNING id INTO v_notification_ids;
+
+    -- Return FULL objects (not just deltas!)
+    RETURN jsonb_build_object(
+        'contact', (
+            SELECT jsonb_build_object(
+                '__typename', 'Contact',
+                'id', c.id,
+                'email', c.email,
+                'status', c.status,
+                'updatedAt', c.updated_at,
+                'company', jsonb_build_object(
+                    '__typename', 'Company',
+                    'id', co.id,
+                    'name', co.name
+                )
+            )
+            FROM crm.tb_contact c
+            LEFT JOIN management.tb_company co ON co.pk_company = c.fk_company
+            WHERE c.pk_contact = v_pk
+        ),
+        'createdNotifications', (
+            SELECT COALESCE(jsonb_agg(
+                jsonb_build_object(
+                    '__typename', 'Notification',
+                    'id', n.id,
+                    'message', n.message,
+                    'createdAt', n.created_at
+                )
+            ), '[]'::jsonb)
+            FROM core.tb_notification n
+            WHERE n.id = ANY(v_notification_ids)
+        ),
+        'errors', '[]'::jsonb
+    );
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h4 id="3-generated-graphql-schema">3. Generated GraphQL Schema</h4>
+<pre><code class="language-graphql">input QualifyLeadInput {
+  contactId: UUID!
+}
+
+type QualifyLeadPayload {
+  contact: Contact!
+  createdNotifications: [Notification!]!
+  errors: [MutationError!]!
+}
+
+type Mutation {
+  qualifyLead(input: QualifyLeadInput!): QualifyLeadPayload!
+}
+</code></pre>
+<h4 id="4-frontend-typescript-auto-generated">4. Frontend TypeScript (Auto-generated)</h4>
+<pre><code class="language-typescript">interface QualifyLeadPayload {
+  contact: Contact;  // Fully typed!
+  createdNotifications: Notification[];
+  errors: MutationError[];
+}
+
+// Usage with perfect types:
+const { data } = await qualifyLead({ variables: { contactId } });
+
+data.qualifyLead.contact.status  // ✅ TypeScript knows this is ContactStatus
+data.qualifyLead.contact.email   // ✅ TypeScript knows this is string
+data.qualifyLead.createdNotifications[0].message  // ✅ Fully typed
+</code></pre>
+<h4 id="5-apollo-cache-automatic">5. Apollo Cache - Automatic!</h4>
+<pre><code class="language-typescript">const [qualifyLead] = useMutation(QUALIFY_LEAD);
+
+await qualifyLead({ variables: { contactId } });
+
+// ✨ Apollo automatically updates cache for:
+// - Contact (from contact field)
+// - Company (from contact.company)
+// - Notifications (from createdNotifications)
+//
+// No manual cache writes needed!
+</code></pre>
+<h4 id="6-optimistic-ui-easy">6. Optimistic UI - Easy!</h4>
+<pre><code class="language-typescript">const [qualifyLead] = useMutation(QUALIFY_LEAD, {
+  optimisticResponse: {
+    __typename: 'Mutation',
+    qualifyLead: {
+      __typename: 'QualifyLeadPayload',
+      contact: {
+        __typename: 'Contact',
+        id: contactId,
+        status: 'qualified',  // Predictable!
+        ...currentContactData
+      },
+      createdNotifications: [],  // Know structure
+      errors: []
+    }
+  }
+});
+</code></pre>
+<h2 id="comparison-table">Comparison Table</h2>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Proposed Pattern (Delta)</th>
+<th>Recommended Pattern (Full Objects)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type Safety</strong></td>
+<td>❌ Lost (any)</td>
+<td>✅ Full TypeScript types</td>
+</tr>
+<tr>
+<td><strong>Apollo Auto-Cache</strong></td>
+<td>❌ Manual writes needed</td>
+<td>✅ Automatic</td>
+</tr>
+<tr>
+<td><strong>Optimistic UI</strong></td>
+<td>❌ Very difficult</td>
+<td>✅ Easy</td>
+</tr>
+<tr>
+<td><strong>Data Completeness</strong></td>
+<td>❌ Partial (modified only)</td>
+<td>✅ Full objects</td>
+</tr>
+<tr>
+<td><strong>Relationship Data</strong></td>
+<td>❌ Not included</td>
+<td>✅ Included</td>
+</tr>
+<tr>
+<td><strong>GraphQL Conventions</strong></td>
+<td>❌ Breaks them</td>
+<td>✅ Follows them</td>
+</tr>
+<tr>
+<td><strong>Error Handling</strong></td>
+<td>⚠️ Unclear</td>
+<td>✅ Clear typed errors</td>
+</tr>
+<tr>
+<td><strong>Code Generation</strong></td>
+<td>✅ Generic</td>
+<td>⚠️ Per-action (but better DX)</td>
+</tr>
+<tr>
+<td><strong>Network Efficiency</strong></td>
+<td>⚠️ Small responses, but often requires refetch</td>
+<td>✅ One roundtrip with complete data</td>
+</tr>
+</tbody>
+</table>
+<h2 id="team-c-responsibilities-updated">Team C Responsibilities (Updated)</h2>
+<h3 id="what-team-c-should-generate">What Team C Should Generate</h3>
+<ol>
+<li><strong>Action-Specific Return Structures</strong> (not generic)</li>
+<li><strong>Full Object Selection</strong> (not just modified fields)</li>
+<li><strong>Include Primary Entity + Related Data</strong> (as specified in SpecQL)</li>
+<li><strong>Include Side Effects</strong> (secondary entities created/updated)</li>
+<li><strong>Standard Error Structure</strong></li>
+<li><strong>Proper <code>__typename</code> fields</strong> (for Apollo/Relay)</li>
+</ol>
+<h3 id="example-specql-enhancement">Example SpecQL Enhancement</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+
+fields:
+  email: text
+  company: ref(Company)
+  status: enum(lead, qualified, customer)
+
+actions:
+  - name: qualify_lead
+
+    # NEW: Explicit return specification
+    returns:
+      primary: Contact
+      include_relations:
+        - company  # Automatically include company in response
+      side_effects:
+        - Notification  # Will be created during action
+
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+      - notify: owner(email, &quot;Contact qualified&quot;)
+</code></pre>
+<h2 id="conclusion">Conclusion</h2>
+<p><strong>The proposed <code>affected_entities</code> pattern is database-centric, not frontend-centric.</strong></p>
+<p>It optimizes for:
+- ✅ Easy code generation
+- ✅ Generic SQL patterns
+- ✅ Minimal complexity in action compiler</p>
+<p>But it causes pain for frontend developers:
+- ❌ Type safety lost
+- ❌ Manual cache management
+- ❌ Partial data problems
+- ❌ Extra queries/refetches needed
+- ❌ Breaks GraphQL conventions
+- ❌ Difficult optimistic UI</p>
+<p><strong>Recommendation:</strong></p>
+<p>Generate <strong>action-specific response types</strong> that return <strong>full objects</strong> (not deltas) for:
+- Primary entity with requested relationships
+- Side-effect entities (newly created/updated)
+- Typed error structures</p>
+<p>This is <strong>more work for Team C</strong> but provides <strong>vastly better developer experience</strong> and aligns with how GraphQL is actually used in production applications.</p>
+<p><strong>Trade-off:</strong> Less generic code generation, but that's OK because SpecQL is domain-specific anyway. Each action is unique, so unique response shapes make sense.</p>
+<hr />
+<p><strong>Bottom Line:</strong> Don't make frontend developers pay for backend convenience. Generate more code on the backend to give frontend devs the typed, complete, cache-friendly responses they expect from GraphQL.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

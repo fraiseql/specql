@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Identifier Calculation Patterns - Real-World Analysis - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Identifier Calculation Patterns - Real-World Analysis";
+        var mkdocs_page_input_path = "implementation-plans/IDENTIFIER_CALCULATION_PATTERNS.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Identifier Calculation Patterns - Real-World Analysis</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="identifier-calculation-patterns-real-world-analysis">Identifier Calculation Patterns - Real-World Analysis</h1>
+<p><strong>Source</strong>: PrintOptim Backend <code>/db</code> directory - Real production patterns
+<strong>Purpose</strong>: Complement the recalcid implementation plan with actual identifier calculation logic
+<strong>Date</strong>: 2025-11-08</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>After analyzing the PrintOptim backend codebase, identifier calculation follows a <strong>hierarchical, slug-based pattern</strong> with these characteristics:</p>
+<ol>
+<li><strong>Format</strong>: <code>{tenant}|{hierarchy-path}[#n]</code></li>
+<li><strong>Slug-based</strong>: Human-readable kebab-case slugs from meaningful data</li>
+<li><strong>Hierarchical</strong>: Dot-separated tree paths</li>
+<li><strong>Unique</strong>: Automatic deduplication with <code>#2</code>, <code>#3</code> suffixes</li>
+<li><strong>Two-tier storage</strong>: Both <code>identifier</code> (unique with suffix) and <code>base_identifier</code> (template)</li>
+</ol>
+<hr />
+<h2 id="core-patterns-discovered">Core Patterns Discovered</h2>
+<h3 id="pattern-1-hierarchical-location-identifier">Pattern 1: Hierarchical Location Identifier</h3>
+<p><strong>Format</strong>: <code>{address-identifier}|{location-type}.{ordered-name}.{child}[#n]</code></p>
+<p><strong>Example</strong>: <code>toulouse-rue-de-la-pomme|legal.001-headquarters.002-building-a.003-floor-1</code></p>
+<p><strong>Components</strong>:
+- <code>{address-identifier}</code>: From <code>tb_public_address.identifier</code> (NOT slugified - already canonical)
+- <code>{location-type}</code>: Slugified location type (e.g., <code>legal</code>, <code>operational</code>, <code>billing</code>)
+- <code>{ordered-name}</code>: <code>001-headquarters</code> format (3-digit order prefix + slugified name)
+- Hierarchy: Dot-separated child paths
+- Deduplication: <code>#2</code>, <code>#3</code> suffix if conflicts</p>
+<p><strong>Source</strong>: <code>/db/0_schema/03_functions/034_dim/0341_geo/03411_location/034114_recalcid_location.sql</code></p>
+<p><strong>Algorithm</strong>:</p>
+<pre><code class="language-sql">-- Root location
+base_identifier = address_identifier || '|' || type_slug || '.' || LPAD(int_ordered, 3, '0') || '-' || slugify(name)
+
+-- Child location
+base_identifier = parent.base_identifier || '.' || LPAD(int_ordered, 3, '0') || '-' || slugify(name)
+
+-- Deduplication
+identifier = base_identifier (if unique)
+identifier = base_identifier || '#' || suffix (if conflict)
+</code></pre>
+<p><strong>Key Features</strong>:
+- <strong>Ordered hierarchy</strong>: <code>int_ordered</code> field provides explicit sort order (defaults to 10)
+- <strong>Preserves address identifier</strong>: Address comes pre-formatted, not re-slugified
+- <strong>Cascading recalculation</strong>: Updates entire subtree when parent changes
+- <strong>Both tables updated</strong>: <code>tb_location.identifier</code> gets unique version, <code>tb_location_info.identifier</code> gets base version</p>
+<hr />
+<h3 id="pattern-2-organizational-unit-identifier">Pattern 2: Organizational Unit Identifier</h3>
+<p><strong>Format</strong>: <code>{org-slug}|{org-unit}.{child-unit}[#n]</code></p>
+<p><strong>Example</strong>: <code>acme-corp|sales.west-region.san-francisco</code></p>
+<p><strong>Components</strong>:
+- <code>{org-slug}</code>: Slugified organization identifier
+- Hierarchy: Dot-separated unit names (all slugified)
+- No ordering prefix (unlike location)
+- Deduplication: <code>#2</code>, <code>#3</code> suffix</p>
+<p><strong>Source</strong>: <code>/db/0_schema/03_functions/034_dim/0342_org/03421_organizational_unit/034214_recalcid_organizational_unit.sql</code></p>
+<p><strong>Algorithm</strong>:</p>
+<pre><code class="language-sql">-- Root organizational unit
+base_identifier = slugify(org.identifier) || '|' || slugify(ou_info.name)
+
+-- Child organizational unit
+base_identifier = parent.base_identifier || '.' || slugify(child_info.name)
+
+-- Fallback for NULL names
+base_identifier = 'fallback-unit-' || pk_organizational_unit::text (if name IS NULL)
+</code></pre>
+<p><strong>Key Features</strong>:
+- <strong>Simpler than location</strong>: No type prefix, no ordering
+- <strong>Robust NULL handling</strong>: Fallback identifiers for missing names
+- <strong>Recursive CTE</strong>: Builds hierarchy in single query
+- <strong>Two-table update</strong>: Both <code>tb_organizational_unit</code> and <code>tb_organizational_unit_info</code></p>
+<hr />
+<h3 id="pattern-3-machine-identifier">Pattern 3: Machine Identifier</h3>
+<p><strong>Format</strong>: <code>{org-identifier}|{model-identifier}.{serial-number}</code></p>
+<p><strong>Example</strong>: <code>acme-corp|hp.laserjet-pro-4001n.ABC123XYZ</code></p>
+<p><strong>Components</strong>:
+- <code>{org-identifier}</code>: Organization identifier (not slugified if already canonical)
+- <code>{model-identifier}</code>: Model identifier with dots replacing pipes
+- <code>{serial-number}</code>: Machine serial number
+- No deduplication (serial numbers should be naturally unique)</p>
+<p><strong>Source</strong>: <code>/db/0_schema/03_functions/034_dim/0345_mat/03451_machine/034515_recalcid_machine.sql</code></p>
+<p><strong>Algorithm</strong>:</p>
+<pre><code class="language-sql">identifier = CONCAT(
+    org.identifier,
+    '|',
+    replace(model.identifier, '|', '.'),
+    '.',
+    machine.machine_serial_number
+)
+</code></pre>
+<p><strong>Key Features</strong>:
+- <strong>Flat structure</strong>: No hierarchy (machines don't have parent machines)
+- <strong>Pipe replacement</strong>: Model identifiers may have pipes, convert to dots
+- <strong>No deduplication</strong>: Serial numbers are assumed unique
+- <strong>Updates materialized view</strong>: Also updates <code>tv_machine</code> denormalized view</p>
+<hr />
+<h3 id="pattern-4-model-identifier">Pattern 4: Model Identifier</h3>
+<p><strong>Format</strong>: <code>{manufacturer}|{range}-{model-name}[#n]</code> OR <code>{manufacturer}|{model-name}[#n]</code></p>
+<p><strong>Example</strong>:
+- With range: <code>hp|laserjet-pro-4001n</code>
+- Without range: <code>canon|pixma-ts8320#2</code></p>
+<p><strong>Components</strong>:
+- <code>{manufacturer}</code>: Manufacturer identifier
+- <code>{range}</code> (optional): Manufacturer range/series
+- <code>{model-name}</code>: Slugified model name
+- Deduplication: <code>#2</code>, <code>#3</code> suffix</p>
+<p><strong>Source</strong>: <code>/db/0_schema/03_functions/033_catalog/0332_manufacturer/03321_model/033214_recalcid_model.sql</code></p>
+<p><strong>Algorithm</strong>:</p>
+<pre><code class="language-sql">base_identifier = CASE
+    WHEN manufacturer_range.identifier IS NOT NULL
+        THEN manufacturer.identifier || '|' || manufacturer_range.identifier || '-' || slugify(model.name)
+    ELSE manufacturer.identifier || '|' || slugify(model.name)
+END
+</code></pre>
+<p><strong>Key Features</strong>:
+- <strong>Optional range</strong>: Two-tier product hierarchy (manufacturer → range → model)
+- <strong>Dry-run mode</strong>: Can preview identifier without persisting (<code>dry_run</code> parameter)
+- <strong>Deduplication</strong>: Uses <code>#n</code> suffix pattern</p>
+<hr />
+<h2 id="common-implementation-patterns">Common Implementation Patterns</h2>
+<h3 id="1-slugify-function">1. Slugify Function</h3>
+<p><strong>Purpose</strong>: Convert human-readable text to URL-safe kebab-case</p>
+<p><strong>Implementation</strong>:</p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION public.slugify(value TEXT)
+RETURNS TEXT AS $$
+BEGIN
+  -- With unaccent if available (removes accents: café → cafe)
+  IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'unaccent') THEN
+    RETURN trim(BOTH '-' FROM regexp_replace(
+      lower(unaccent(value)),
+      '[^a-z0-9]+',
+      '-',
+      'gi'
+    ));
+  ELSE
+    -- Simple version without accent removal
+    RETURN trim(BOTH '-' FROM regexp_replace(
+      lower(value),
+      '[^a-z0-9]+',
+      '-',
+      'gi'
+    ));
+  END IF;
+END;
+$$ LANGUAGE plpgsql STABLE STRICT;
+</code></pre>
+<p><strong>Examples</strong>:
+- <code>"San Francisco"</code> → <code>"san-francisco"</code>
+- <code>"Bâtiment A"</code> → <code>"batiment-a"</code> (with unaccent)
+- <code>"1st Floor (East)"</code> → <code>"1st-floor-east"</code></p>
+<p><strong>Note</strong>: <code>STABLE</code>, not <code>IMMUTABLE</code> - cannot use in generated columns</p>
+<hr />
+<h3 id="2-deduplication-pattern">2. Deduplication Pattern</h3>
+<p><strong>Common Loop</strong>:</p>
+<pre><code class="language-sql">v_identifier := base_identifier;
+v_suffix := 1;
+
+LOOP
+    EXIT WHEN
+        NOT EXISTS (
+            SELECT 1 FROM tb_entity
+            WHERE identifier = v_identifier
+              AND pk != current_pk
+              AND deleted_at IS NULL
+        )
+        AND NOT EXISTS (
+            SELECT 1 FROM tmp_new_identifiers
+            WHERE unique_identifier = v_identifier
+              AND pk != current_pk
+        );
+
+    v_suffix := v_suffix + 1;
+    v_identifier := base_identifier || '#' || v_suffix;
+END LOOP;
+</code></pre>
+<p><strong>Behavior</strong>:
+1. Start with <code>base_identifier</code>
+2. Check if unique across existing table AND temp table
+3. If conflict, append <code>#2</code>, <code>#3</code>, etc.
+4. Loop until unique</p>
+<p><strong>Edge Case</strong>: Excludes soft-deleted records (<code>deleted_at IS NULL</code>)</p>
+<hr />
+<h3 id="3-temporary-table-pattern">3. Temporary Table Pattern</h3>
+<p><strong>All recalcid functions use temp tables</strong>:</p>
+<pre><code class="language-sql">DROP TABLE IF EXISTS tmp_entity_identifiers;
+CREATE TEMP TABLE tmp_entity_identifiers (
+    pk_entity UUID,
+    fk_entity_info UUID,  -- If applicable
+    base_identifier TEXT,
+    unique_identifier TEXT
+) ON COMMIT DROP;
+
+-- Populate with new base identifiers
+INSERT INTO tmp_entity_identifiers
+SELECT pk, ..., calculated_base_identifier, NULL
+FROM ...;
+
+-- Deduplicate (see pattern above)
+-- ...
+
+-- Apply to live tables
+UPDATE tb_entity
+SET
+    identifier = tmp.unique_identifier,
+    base_identifier = tmp.base_identifier,
+    updated_by = COALESCE(ctx.updated_by, tb_entity.updated_by),
+    updated_at = NOW()
+FROM tmp_entity_identifiers tmp
+WHERE tb_entity.pk = tmp.pk
+  AND (
+      tb_entity.identifier IS DISTINCT FROM tmp.unique_identifier OR
+      tb_entity.base_identifier IS DISTINCT FROM tmp.base_identifier
+  );
+</code></pre>
+<p><strong>Benefits</strong>:
+- Safe calculation without locking main table
+- Atomic update (all or nothing)
+- Can validate before commit
+- Automatic cleanup (<code>ON COMMIT DROP</code>)</p>
+<hr />
+<h3 id="4-recalculation-context-usage">4. Recalculation Context Usage</h3>
+<p><strong>Type Definition</strong> (from production):</p>
+<pre><code class="language-sql">CREATE TYPE core.recalculation_context AS (
+    pk UUID,                -- Specific entity to recalculate
+    pk_organization INTEGER, -- Or all entities in this org
+    updated_by UUID         -- Audit trail
+);
+</code></pre>
+<p><strong>Usage Patterns</strong>:</p>
+<pre><code class="language-sql">-- Recalculate single entity and descendants
+SELECT core.recalcid_location(
+    ROW(
+        '123e4567-e89b-12d3-a456-426614174000'::UUID,  -- pk
+        NULL,                                           -- pk_organization
+        '987fcdeb-51a2-43f1-9c8d-123456789abc'::UUID   -- updated_by
+    )::core.recalculation_context
+);
+
+-- Recalculate all entities in organization
+SELECT core.recalcid_location(
+    ROW(
+        NULL,   -- pk
+        123,    -- pk_organization
+        'system-recalc'::UUID
+    )::core.recalculation_context
+);
+
+-- Recalculate ALL entities (dangerous - production maintenance only)
+SELECT core.recalcid_location(
+    ROW(NULL, NULL, NULL)::core.recalculation_context
+);
+</code></pre>
+<p><strong>Default Parameter</strong>:</p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION core.recalcid_entity(
+    ctx core.recalculation_context DEFAULT ROW(NULL, NULL, NULL)::core.recalculation_context
+)
+</code></pre>
+<p>This allows calling without parameters: <code>SELECT core.recalcid_entity();</code></p>
+<hr />
+<h3 id="5-two-table-identifier-storage">5. Two-Table Identifier Storage</h3>
+<p><strong>Node Table</strong> (<code>tb_location</code>):</p>
+<pre><code class="language-sql">identifier TEXT NOT NULL UNIQUE,      -- &quot;toulouse|legal.001-hq#2&quot; (with deduplication)
+base_identifier TEXT,                  -- &quot;toulouse|legal.001-hq&quot; (without suffix)
+</code></pre>
+<p><strong>Info Table</strong> (<code>tb_location_info</code>):</p>
+<pre><code class="language-sql">identifier TEXT,  -- Same as base_identifier (no suffix)
+</code></pre>
+<p><strong>Why Both?</strong>:
+- <code>identifier</code>: Globally unique, used for external references, queries
+- <code>base_identifier</code>: Template for regeneration, pattern matching
+- Info table gets base (no suffix) for cleaner presentation</p>
+<p><strong>Index Strategy</strong>:</p>
+<pre><code class="language-sql">CREATE INDEX idx_location_base_identifier ON tb_location(base_identifier);
+CREATE INDEX idx_location_slug ON tb_location(lower(slugify_simple(base_identifier)))
+    WHERE deleted_at IS NULL;
+</code></pre>
+<hr />
+<h2 id="hierarchical-patterns">Hierarchical Patterns</h2>
+<h3 id="recursive-cte-for-hierarchy-building">Recursive CTE for Hierarchy Building</h3>
+<p><strong>Standard Pattern</strong> (used in location, organizational_unit):</p>
+<pre><code class="language-sql">WITH RECURSIVE t_hierarchy AS (
+    -- Anchor: Root nodes
+    SELECT
+        pk,
+        fk_parent,
+        calculated_slug,
+        calculated_slug AS full_path
+    FROM tb_entity
+    WHERE fk_parent IS NULL
+      AND (context filtering...)
+
+    UNION ALL
+
+    -- Recursive: Child nodes
+    SELECT
+        child.pk,
+        child.fk_parent,
+        calculated_child_slug,
+        parent.full_path || '.' || calculated_child_slug
+    FROM tb_entity child
+    JOIN t_hierarchy parent ON child.fk_parent = parent.pk
+)
+SELECT * FROM t_hierarchy;
+</code></pre>
+<p><strong>Key Points</strong>:
+1. <strong>Anchor</strong>: Starts with root nodes (no parent)
+2. <strong>Context filtering</strong>: Respects <code>ctx.pk</code>, <code>ctx.pk_organization</code>
+3. <strong>Path building</strong>: Concatenates parent path with child slug
+4. <strong>Dot separator</strong>: Standard hierarchy delimiter</p>
+<hr />
+<h3 id="finding-root-of-subtree">Finding Root of Subtree</h3>
+<p><strong>When <code>ctx.pk</code> is provided</strong>, find its root to recalculate entire tree:</p>
+<pre><code class="language-sql">WITH RECURSIVE t_parent_chain AS (
+    -- Start from specified node
+    SELECT pk_entity, fk_parent_entity
+    FROM tb_entity
+    WHERE pk_entity = ctx.pk
+
+    UNION ALL
+
+    -- Walk up to root
+    SELECT parent.pk_entity, parent.fk_parent_entity
+    FROM tb_entity parent
+    JOIN t_parent_chain ON t_parent_chain.fk_parent_entity = parent.pk_entity
+)
+SELECT pk_entity INTO v_root_entity
+FROM t_parent_chain
+WHERE fk_parent_entity IS NULL
+LIMIT 1;
+</code></pre>
+<p><strong>Then recalculate from root downward</strong> to ensure consistency.</p>
+<hr />
+<h3 id="ltree-path-maintenance">LTREE Path Maintenance</h3>
+<p><strong>Not calculated in recalcid functions!</strong></p>
+<p>LTREE paths are maintained by <strong>triggers</strong> (separate from identifier calculation):</p>
+<pre><code class="language-sql">-- Trigger updates path when parent changes
+CREATE TRIGGER trg_location_update_path
+    BEFORE INSERT OR UPDATE OF fk_parent_location, identifier
+    ON tenant.tb_location
+    FOR EACH ROW
+    EXECUTE FUNCTION update_location_path();
+</code></pre>
+<p><strong>Path vs Identifier</strong>:
+- <strong><code>path</code> (LTREE)</strong>: Structural hierarchy for queries (<code>WHERE path &lt;@ 'root.child'</code>)
+- <strong><code>identifier</code> (TEXT)</strong>: Human-readable unique reference</p>
+<p><strong>They can differ!</strong> Path uses structural parent relationship, identifier uses business logic (address, type, etc.)</p>
+<hr />
+<h2 id="identifier-calculation-rules-specification-for-code-generation">Identifier Calculation Rules (Specification for Code Generation)</h2>
+<h3 id="rule-1-tenant-prefix-multi-tenant-entities">Rule 1: Tenant Prefix (Multi-Tenant Entities)</h3>
+<p><strong>Entities</strong>: Location, Machine, Organizational Unit, Allocation, etc.</p>
+<p><strong>Format</strong>: Always prefix with tenant/organization identifier</p>
+<pre><code>{org-identifier}|{entity-specific-parts}
+</code></pre>
+<p><strong>Why</strong>: Ensures identifiers are globally unique across tenants</p>
+<hr />
+<h3 id="rule-2-hierarchical-path-hierarchical-entities">Rule 2: Hierarchical Path (Hierarchical Entities)</h3>
+<p><strong>Entities</strong>: Location, Organizational Unit, Industry Classification, etc.</p>
+<p><strong>Format</strong>: Dot-separated hierarchy</p>
+<pre><code>{root-slug}.{child-slug}.{grandchild-slug}
+</code></pre>
+<p><strong>Rules</strong>:
+- Use slugified names (kebab-case)
+- Parent path + current slug
+- Optional ordering prefix: <code>001-name</code>, <code>002-name</code></p>
+<hr />
+<h3 id="rule-3-meaningful-components-all-entities">Rule 3: Meaningful Components (All Entities)</h3>
+<p><strong>Choose from entity's most identifying fields</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Entity</th>
+<th>Components</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Location</td>
+<td>address, location_type, name</td>
+</tr>
+<tr>
+<td>Machine</td>
+<td>organization, model, serial_number</td>
+</tr>
+<tr>
+<td>Model</td>
+<td>manufacturer, range (optional), name</td>
+</tr>
+<tr>
+<td>Organizational Unit</td>
+<td>organization, unit_name</td>
+</tr>
+<tr>
+<td>Contract</td>
+<td>organization, contract_number</td>
+</tr>
+<tr>
+<td>Allocation</td>
+<td>machine, organizational_unit, dates</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Prioritize</strong>:
+1. Tenant/org (for scoping)
+2. External identifiers (serial numbers, contract numbers)
+3. Meaningful names (location name, product name)
+4. Type/category (location type, product category)</p>
+<hr />
+<h3 id="rule-4-deduplication-strategy">Rule 4: Deduplication Strategy</h3>
+<p><strong>Always deduplicate</strong> with <code>#n</code> suffix:</p>
+<pre><code>base-identifier    → identifier (if unique)
+base-identifier    → base-identifier#2 (if conflict)
+base-identifier    → base-identifier#3 (if #2 also exists)
+</code></pre>
+<p><strong>Implementation</strong>:
+- Check against existing <code>tb_entity.identifier WHERE deleted_at IS NULL</code>
+- Check against temp table during batch recalculation
+- Increment suffix until unique</p>
+<hr />
+<h3 id="rule-5-update-strategy">Rule 5: Update Strategy</h3>
+<p><strong>Only update if changed</strong>:</p>
+<pre><code class="language-sql">UPDATE tb_entity
+SET
+    identifier = new_identifier,
+    base_identifier = new_base_identifier,
+    updated_by = ctx.updated_by,
+    updated_at = NOW()
+WHERE pk = ...
+  AND (
+      identifier IS DISTINCT FROM new_identifier OR
+      base_identifier IS DISTINCT FROM new_base_identifier
+  );
+</code></pre>
+<p><strong>Why</strong>: Avoids unnecessary triggers, updated_at changes</p>
+<hr />
+<h3 id="rule-6-two-table-update-nodeinfo-pattern">Rule 6: Two-Table Update (Node+Info Pattern)</h3>
+<p><strong>For entities with info table</strong>:</p>
+<pre><code class="language-sql">-- Update node table
+UPDATE tb_entity
+SET identifier = unique_identifier,
+    base_identifier = base_identifier
+WHERE ...;
+
+-- Update info table (base only)
+UPDATE tb_entity_info
+SET identifier = base_identifier
+WHERE ...;
+</code></pre>
+<p><strong>Info table gets base identifier</strong> (no <code>#n</code> suffix) for cleaner presentation.</p>
+<hr />
+<h2 id="specql-integration-proposal">SpecQL Integration Proposal</h2>
+<h3 id="option-1-declarative-identifier-rules">Option 1: Declarative Identifier Rules</h3>
+<pre><code class="language-yaml">entity: Location
+schema: tenant
+
+hierarchical: true
+metadata_split: true
+
+fields:
+  parent: ref(Location)
+  name: text
+  location_type: ref(LocationType)
+  public_address: ref(PublicAddress)
+  int_ordered: integer  # Sort order
+
+identifier:
+  format: hierarchical
+  components:
+    - field: public_address.identifier  # Don't slugify
+      prefix: true
+    - field: location_type.identifier
+      transform: slugify
+      separator: &quot;.&quot;
+    - field: int_ordered
+      format: &quot;LPAD({value}, 3, '0')&quot;
+      separator: &quot;-&quot;
+    - field: name
+      transform: slugify
+  deduplication: suffix  # Adds #2, #3, etc.
+  recalculate:
+    trigger: [insert, update]
+    cascade: descendants  # Recalculate child nodes
+</code></pre>
+<p><strong>Generated Function</strong>:
+- <code>core.recalcid_location(ctx)</code> based on rules
+- Hierarchical CTE builder
+- Deduplication loop
+- Two-table update (node + info)</p>
+<hr />
+<h3 id="option-2-template-based">Option 2: Template-Based</h3>
+<pre><code class="language-yaml">entity: Machine
+schema: tenant
+
+identifier:
+  template: &quot;{organization.identifier}|{model.identifier}.{machine_serial_number}&quot;
+  transforms:
+    model.identifier:
+      - replace: {&quot;|&quot;: &quot;.&quot;}
+  deduplication: none  # Serial numbers are unique
+  recalculate:
+    trigger: [insert, update]
+    fields: [fk_organization, fk_model, machine_serial_number]
+</code></pre>
+<p><strong>Simpler for non-hierarchical entities</strong></p>
+<hr />
+<h3 id="option-3-hybrid-recommended">Option 3: Hybrid (Recommended)</h3>
+<pre><code class="language-yaml">entity: Location
+schema: tenant
+
+hierarchical: true
+metadata_split: true
+
+identifier:
+  strategy: hierarchical_slug  # Built-in strategy
+  components:
+    tenant: public_address.identifier  # Tenant prefix (not slugified)
+    type: location_type.identifier     # Type classifier (slugified)
+    name: name                          # Entity name (slugified)
+    ordering: int_ordered               # Optional ordering
+  deduplication: suffix
+  recalculate:
+    on: [insert, update, parent_change]
+    cascade: descendants
+</code></pre>
+<p><strong>Framework provides</strong>:
+- <code>hierarchical_slug</code> strategy (generates CTE, deduplication, etc.)
+- <code>flat_slug</code> strategy (for non-hierarchical like Model)
+- <code>composite_key</code> strategy (for entities with natural unique keys like Machine)</p>
+<hr />
+<h2 id="code-generation-strategy">Code Generation Strategy</h2>
+<h3 id="phase-1-generate-slugify-function-team-b">Phase 1: Generate slugify Function (Team B)</h3>
+<p><strong>One-time in migration 000</strong>:</p>
+<pre><code class="language-sql">-- Simple slugify (no dependencies)
+CREATE OR REPLACE FUNCTION public.slugify_simple(value TEXT)
+RETURNS TEXT AS $$
+BEGIN
+  RETURN trim(BOTH '-' FROM regexp_replace(
+    lower(value),
+    '[^a-z0-9]+',
+    '-',
+    'gi'
+  ));
+END;
+$$ LANGUAGE plpgsql IMMUTABLE STRICT;
+
+-- Unaccent version (if extension available)
+CREATE OR REPLACE FUNCTION public.slugify_with_unaccent(value TEXT)
+RETURNS TEXT AS $$
+BEGIN
+  RETURN trim(BOTH '-' FROM regexp_replace(
+    lower(unaccent(value)),
+    '[^a-z0-9]+',
+    '-',
+    'gi'
+  ));
+END;
+$$ LANGUAGE plpgsql IMMUTABLE STRICT;
+
+-- Wrapper with runtime detection
+CREATE OR REPLACE FUNCTION public.slugify(value TEXT)
+RETURNS TEXT AS $$
+BEGIN
+  IF EXISTS (SELECT 1 FROM pg_extension WHERE extname = 'unaccent') THEN
+    RETURN slugify_with_unaccent(value);
+  ELSE
+    RETURN slugify_simple(value);
+  END IF;
+END;
+$$ LANGUAGE plpgsql STABLE STRICT;
+</code></pre>
+<hr />
+<h3 id="phase-2-generate-recalcid-function-template-team-c">Phase 2: Generate recalcid Function Template (Team C)</h3>
+<p><strong>Base Template</strong>:</p>
+<pre><code class="language-python"># src/generators/actions/recalcid_generator.py
+
+class RecalcidGenerator:
+    def generate(self, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate recalcid_{entity}() function&quot;&quot;&quot;
+
+        if not entity.identifier_config:
+            return &quot;&quot;  # No custom identifier logic
+
+        strategy = entity.identifier_config.strategy
+
+        if strategy == &quot;hierarchical_slug&quot;:
+            return self._generate_hierarchical_recalcid(entity)
+        elif strategy == &quot;flat_slug&quot;:
+            return self._generate_flat_recalcid(entity)
+        elif strategy == &quot;composite_key&quot;:
+            return self._generate_composite_recalcid(entity)
+        else:
+            raise ValueError(f&quot;Unknown identifier strategy: {strategy}&quot;)
+
+    def _generate_hierarchical_recalcid(self, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate hierarchical slug-based recalcid function&quot;&quot;&quot;
+
+        # Build recursive CTE
+        hierarchy_cte = self._build_hierarchy_cte(entity)
+
+        # Build slug expression
+        slug_expression = self._build_slug_expression(entity)
+
+        # Build deduplication loop
+        dedup_loop = self._build_deduplication_loop(entity)
+
+        # Build update statements
+        update_statements = self._build_update_statements(entity)
+
+        return f&quot;&quot;&quot;
+CREATE OR REPLACE FUNCTION {entity.schema}.recalcid_{entity.name.lower()}(
+    ctx core.recalculation_context DEFAULT ROW(NULL, NULL, NULL)::core.recalculation_context
+)
+RETURNS VOID
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_record RECORD;
+    v_identifier TEXT;
+    v_suffix INT;
+    v_root_{entity.name.lower()} UUID;
+BEGIN
+    -- Create temp table
+    DROP TABLE IF EXISTS tmp_{entity.name.lower()}_identifiers;
+    CREATE TEMP TABLE tmp_{entity.name.lower()}_identifiers (
+        pk_{entity.name.lower()} UUID,
+        {self._temp_table_columns(entity)},
+        base_identifier TEXT,
+        unique_identifier TEXT
+    ) ON COMMIT DROP;
+
+    -- Find root if ctx.pk provided
+    {self._find_root_logic(entity)}
+
+    -- Build hierarchy and base identifiers
+    {hierarchy_cte}
+
+    -- Deduplicate
+    {dedup_loop}
+
+    -- Apply updates
+    {update_statements}
+END;
+$$;
+
+COMMENT ON FUNCTION {entity.schema}.recalcid_{entity.name.lower()} IS
+  'Recalculates hierarchical slug-based identifiers for {entity.name}';
+&quot;&quot;&quot;
+</code></pre>
+<hr />
+<h3 id="phase-3-add-identifier-fields-to-schema-team-b">Phase 3: Add Identifier Fields to Schema (Team B)</h3>
+<p><strong>Auto-add to all entities</strong>:</p>
+<pre><code class="language-python"># src/generators/schema/schema_generator.py
+
+class SchemaGenerator:
+    def _generate_identifier_columns(self, entity: Entity) -&gt; List[str]:
+        &quot;&quot;&quot;Generate identifier columns based on strategy&quot;&quot;&quot;
+
+        columns = []
+
+        if entity.identifier_config:
+            # Unique identifier (with deduplication suffix)
+            columns.append(&quot;identifier TEXT NOT NULL UNIQUE&quot;)
+
+            # Base identifier (template without suffix)
+            columns.append(&quot;base_identifier TEXT&quot;)
+        else:
+            # Default: Trinity pattern identifier only
+            columns.append(&quot;identifier TEXT UNIQUE&quot;)
+
+        return columns
+</code></pre>
+<p><strong>Generate indexes</strong>:</p>
+<pre><code class="language-python">def _generate_identifier_indexes(self, entity: Entity) -&gt; str:
+    &quot;&quot;&quot;Generate indexes for identifier fields&quot;&quot;&quot;
+
+    indexes = []
+    table_name = f&quot;{entity.schema}.tb_{entity.name.lower()}&quot;
+
+    if entity.identifier_config:
+        # Base identifier index (for pattern matching)
+        indexes.append(f&quot;&quot;&quot;
+CREATE INDEX idx_{entity.name.lower()}_base_identifier
+    ON {table_name}(base_identifier);
+&quot;&quot;&quot;)
+
+        # Slug index (for search)
+        indexes.append(f&quot;&quot;&quot;
+CREATE INDEX idx_{entity.name.lower()}_slug
+    ON {table_name}(lower(slugify_simple(base_identifier)))
+    WHERE deleted_at IS NULL;
+&quot;&quot;&quot;)
+
+    return &quot;\n&quot;.join(indexes)
+</code></pre>
+<hr />
+<h2 id="testing-strategy">Testing Strategy</h2>
+<h3 id="unit-tests">Unit Tests</h3>
+<pre><code class="language-python"># tests/unit/actions/test_identifier_calculation.py
+
+def test_hierarchical_slug_generation():
+    &quot;&quot;&quot;Should generate hierarchical slugs with dot separator&quot;&quot;&quot;
+    entity = Entity(
+        name=&quot;Location&quot;,
+        identifier_config=IdentifierConfig(
+            strategy=&quot;hierarchical_slug&quot;,
+            components=[
+                IdentifierComponent(field=&quot;public_address.identifier&quot;, prefix=True),
+                IdentifierComponent(field=&quot;location_type.identifier&quot;, transform=&quot;slugify&quot;),
+                IdentifierComponent(field=&quot;name&quot;, transform=&quot;slugify&quot;)
+            ]
+        )
+    )
+
+    generator = RecalcidGenerator()
+    sql = generator.generate(entity)
+
+    # Should build hierarchical CTE
+    assert &quot;WITH RECURSIVE t_hierarchy&quot; in sql
+
+    # Should use slugify
+    assert &quot;slugify(&quot; in sql
+
+    # Should deduplicate
+    assert &quot;v_suffix := v_suffix + 1&quot; in sql
+    assert &quot;base_identifier || '#' || v_suffix&quot; in sql
+
+def test_flat_slug_without_hierarchy():
+    &quot;&quot;&quot;Non-hierarchical entities should not use recursive CTE&quot;&quot;&quot;
+    entity = Entity(
+        name=&quot;Model&quot;,
+        is_hierarchical=False,
+        identifier_config=IdentifierConfig(
+            strategy=&quot;flat_slug&quot;,
+            components=[
+                IdentifierComponent(field=&quot;manufacturer.identifier&quot;),
+                IdentifierComponent(field=&quot;name&quot;, transform=&quot;slugify&quot;)
+            ]
+        )
+    )
+
+    generator = RecalcidGenerator()
+    sql = generator.generate(entity)
+
+    # Should NOT have recursive CTE
+    assert &quot;WITH RECURSIVE&quot; not in sql
+
+    # Should have simple SELECT
+    assert &quot;SELECT&quot; in sql
+    assert &quot;slugify(&quot; in sql
+</code></pre>
+<hr />
+<h3 id="integration-tests">Integration Tests</h3>
+<pre><code class="language-python"># tests/integration/test_identifier_recalculation.py
+
+def test_location_identifier_recalculation(test_db):
+    &quot;&quot;&quot;Should recalculate location identifiers hierarchically&quot;&quot;&quot;
+
+    # Setup: Create organization, address, location type
+    test_db.execute(&quot;&quot;&quot;
+        INSERT INTO management.tb_organization (identifier)
+        VALUES ('acme-corp') RETURNING pk_organization
+    &quot;&quot;&quot;)
+    org_pk = test_db.fetchone()[0]
+
+    test_db.execute(&quot;&quot;&quot;
+        INSERT INTO common.tb_public_address (identifier)
+        VALUES ('123-main-st') RETURNING pk_public_address
+    &quot;&quot;&quot;)
+    address_pk = test_db.fetchone()[0]
+
+    # Create location info
+    test_db.execute(f&quot;&quot;&quot;
+        INSERT INTO tenant.tb_location_info (name, fk_location_type, fk_public_address)
+        VALUES ('Headquarters', 1, {address_pk}) RETURNING pk_location_info
+    &quot;&quot;&quot;)
+    info_pk = test_db.fetchone()[0]
+
+    # Create location (node)
+    test_db.execute(f&quot;&quot;&quot;
+        INSERT INTO tenant.tb_location (fk_customer_org, fk_location_info, identifier)
+        VALUES ({org_pk}, {info_pk}, 'temp') RETURNING pk_location
+    &quot;&quot;&quot;)
+    location_pk = test_db.fetchone()[0]
+
+    # Call recalcid
+    test_db.execute(f&quot;&quot;&quot;
+        SELECT core.recalcid_location(
+            ROW({location_pk}, NULL, NULL)::core.recalculation_context
+        )
+    &quot;&quot;&quot;)
+
+    # Verify identifier calculated correctly
+    test_db.execute(f&quot;&quot;&quot;
+        SELECT identifier
+        FROM tenant.tb_location
+        WHERE pk_location = {location_pk}
+    &quot;&quot;&quot;)
+
+    identifier = test_db.fetchone()[0]
+
+    # Should be: {address}|{type}.{name}
+    assert identifier.startswith('123-main-st|')
+    assert 'headquarters' in identifier
+
+def test_deduplication_adds_suffix(test_db):
+    &quot;&quot;&quot;Should add #2 suffix for duplicate identifiers&quot;&quot;&quot;
+
+    # Create two locations with same name
+    # ... setup code ...
+
+    # Both would generate 'acme|legal.headquarters'
+    # First should be 'acme|legal.headquarters'
+    # Second should be 'acme|legal.headquarters#2'
+
+    test_db.execute(&quot;SELECT core.recalcid_location()&quot;)
+
+    test_db.execute(&quot;&quot;&quot;
+        SELECT identifier
+        FROM tenant.tb_location
+        ORDER BY created_at
+    &quot;&quot;&quot;)
+
+    identifiers = [row[0] for row in test_db.fetchall()]
+    assert identifiers[0] == 'acme|legal.headquarters'
+    assert identifiers[1] == 'acme|legal.headquarters#2'
+</code></pre>
+<hr />
+<h2 id="summary-what-to-implement">Summary: What to Implement</h2>
+<h3 id="immediate-weeks-1-2-foundation">Immediate (Weeks 1-2) - Foundation</h3>
+<ol>
+<li>✅ <strong>slugify() functions</strong> (migration 000)</li>
+<li><code>slugify_simple()</code> - No dependencies</li>
+<li><code>slugify_with_unaccent()</code> - Requires unaccent extension</li>
+<li>
+<p><code>slugify()</code> - Wrapper with runtime detection</p>
+</li>
+<li>
+<p>✅ <strong>Identifier fields in schema</strong> (Team B)</p>
+</li>
+<li><code>identifier TEXT NOT NULL UNIQUE</code> - Final unique identifier</li>
+<li><code>base_identifier TEXT</code> - Template without suffix</li>
+<li>
+<p>Indexes on both</p>
+</li>
+<li>
+<p>✅ <strong>recalculation_context type</strong> (already in plan)</p>
+</li>
+</ol>
+<hr />
+<h3 id="short-term-weeks-3-4-basic-generation">Short-term (Weeks 3-4) - Basic Generation</h3>
+<ol>
+<li>✅ <strong>Identifier config in AST</strong> (Team A)</li>
+<li>Parse <code>identifier:</code> section in SpecQL</li>
+<li><code>strategy</code>, <code>components</code>, <code>deduplication</code> fields</li>
+<li>
+<p>Validation logic</p>
+</li>
+<li>
+<p>✅ <strong>Basic recalcid generation</strong> (Team C)</p>
+</li>
+<li>Template for hierarchical entities</li>
+<li>Recursive CTE builder</li>
+<li>Slug expression builder</li>
+<li>Deduplication loop generator</li>
+</ol>
+<hr />
+<h3 id="medium-term-weeks-5-6-complete-features">Medium-term (Weeks 5-6) - Complete Features</h3>
+<ol>
+<li>✅ <strong>Advanced strategies</strong> (Team C)</li>
+<li><code>hierarchical_slug</code> (Location, Org Unit)</li>
+<li><code>flat_slug</code> (Model, Product)</li>
+<li>
+<p><code>composite_key</code> (Machine with serial number)</p>
+</li>
+<li>
+<p>✅ <strong>Cascade integration</strong> (Team C)</p>
+</li>
+<li>Trigger recalcid on parent change</li>
+<li>Recalculate descendants</li>
+<li>
+<p>Handle circular dependencies</p>
+</li>
+<li>
+<p>✅ <strong>Two-table update</strong> (Team B + C)</p>
+</li>
+<li>Update both node and info tables</li>
+<li>info table gets base_identifier</li>
+</ol>
+<hr />
+<h2 id="open-questions">Open Questions</h2>
+<ol>
+<li><strong>Should identifier calculation be mandatory or optional?</strong></li>
+<li>Current thinking: Optional, defaults to simple Trinity <code>identifier</code> field</li>
+<li>
+<p>Entities with business logic needs can declare <code>identifier:</code> config</p>
+</li>
+<li>
+<p><strong>How to handle references to other entities?</strong></p>
+</li>
+<li>e.g., <code>public_address.identifier</code> - need to JOIN in recalcid function</li>
+<li>
+<p>Solution: Build JOIN chain from component field paths</p>
+</li>
+<li>
+<p><strong>When to trigger recalculation?</strong></p>
+</li>
+<li>INSERT (always)</li>
+<li>UPDATE (which fields?) - specified in <code>recalculate.fields</code></li>
+<li>Parent change (hierarchical entities)</li>
+<li>
+<p>Related entity change (e.g., address changes)</p>
+</li>
+<li>
+<p><strong>Performance with large hierarchies?</strong></p>
+</li>
+<li>10k+ locations could be slow</li>
+<li>Solution: Scope by organization (<code>ctx.pk_organization</code>)</li>
+<li>Consider batch processing / async jobs</li>
+</ol>
+<hr />
+<h2 id="conclusion">Conclusion</h2>
+<p>Identifier calculation in PrintOptim follows <strong>well-defined patterns</strong>:</p>
+<ol>
+<li><strong>Hierarchical slugs</strong> for tree structures (Location, Org Unit)</li>
+<li><strong>Composite keys</strong> for unique business identifiers (Machine = org + model + serial)</li>
+<li><strong>Flat slugs</strong> for catalog entities (Model, Product)</li>
+<li><strong>Automatic deduplication</strong> with <code>#n</code> suffixes</li>
+<li><strong>Two-tier storage</strong> (identifier + base_identifier)</li>
+</ol>
+<p><strong>Code generator should</strong>:
+- Provide <strong>built-in strategies</strong> (hierarchical_slug, flat_slug, composite_key)
+- Allow <strong>declarative configuration</strong> in SpecQL YAML
+- Generate <strong>recalcid functions</strong> automatically
+- Handle <strong>cascading recalculation</strong> for hierarchies
+- Ensure <strong>uniqueness</strong> with deduplication logic</p>
+<p>This complements the existing recalcid implementation plan with <strong>concrete, production-tested patterns</strong>.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

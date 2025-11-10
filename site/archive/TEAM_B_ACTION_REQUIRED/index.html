@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Team B: Action Required - Add app.log_and_return_mutation() Helper - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team B: Action Required - Add app.log_and_return_mutation() Helper";
+        var mkdocs_page_input_path = "archive/TEAM_B_ACTION_REQUIRED.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team B: Action Required - Add app.log_and_return_mutation() Helper</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-b-action-required-add-applog_and_return_mutation-helper">Team B: Action Required - Add <code>app.log_and_return_mutation()</code> Helper</h1>
+<p><strong>Date</strong>: 2025-11-08
+<strong>Priority</strong>: 🚨 <strong>CRITICAL</strong> - Blocking Team C Integration
+<strong>Status</strong>: NEEDS IMPLEMENTATION
+<strong>Estimated Time</strong>: 30 minutes</p>
+<hr />
+<h2 id="whats-needed">🎯 WHAT'S NEEDED</h2>
+<p>Team C's generated functions are <strong>already calling</strong> <code>app.log_and_return_mutation()</code>, but Team B hasn't <strong>generated</strong> this function yet.</p>
+<p><strong>Current State</strong>:
+- ✅ Team C templates correctly USE the function
+- ❌ Team B doesn't GENERATE the function
+- 🔴 Result: Generated SQL will fail to compile in PostgreSQL</p>
+<p><strong>Required Action</strong>: Add <code>app.log_and_return_mutation()</code> to Team B's base app schema generation.</p>
+<hr />
+<h2 id="background">📋 BACKGROUND</h2>
+<h3 id="why-this-function-exists">Why This Function Exists</h3>
+<p>Every mutation (create, update, delete) needs to return a standardized <code>app.mutation_result</code>. Rather than duplicating the result-building logic across every business schema (<code>crm.*</code>, <code>management.*</code>, <code>inventory.*</code>, etc.), we use a <strong>shared utility function</strong> in the <code>app.*</code> schema.</p>
+<h3 id="architecture-decision">Architecture Decision</h3>
+<pre><code>app.*           → Cross-cutting concerns (types, utilities, API wrappers)
+  ├── app.mutation_result (type) ✅ Already generated by Team B
+  └── app.log_and_return_mutation() ❌ MISSING - needs to be added
+
+crm.*           → Business logic (uses app utilities)
+  └── crm.create_contact() → calls app.log_and_return_mutation()
+
+management.*    → Business logic (uses app utilities)
+  └── management.create_company() → calls app.log_and_return_mutation()
+</code></pre>
+<h3 id="benefits">Benefits</h3>
+<ul>
+<li>✅ Single source of truth (one function, not duplicated per schema)</li>
+<li>✅ Easy maintenance (update logic in one place)</li>
+<li>✅ Consistent behavior (all mutations return identical structure)</li>
+<li>✅ Future extensibility (add audit logging in one place)</li>
+</ul>
+<p><strong>Reference</strong>: See <code>docs/teams/TEAM_C_HELPER_FUNCTIONS_SCHEMA.md</code> for full architectural rationale.</p>
+<hr />
+<h2 id="implementation">🔨 IMPLEMENTATION</h2>
+<h3 id="option-1-add-to-existing-schema-generator-recommended">Option 1: Add to Existing Schema Generator (Recommended)</h3>
+<p><strong>File</strong>: <code>src/generators/schema/schema_generator.py</code> or <code>src/generators/app_foundation_generator.py</code></p>
+<p><strong>Add this method</strong>:</p>
+<pre><code class="language-python">def generate_app_log_and_return_mutation(self) -&gt; str:
+    &quot;&quot;&quot;
+    Generate shared app.log_and_return_mutation utility function
+
+    This function is used by ALL business schemas (crm, management, etc.)
+    to build standardized mutation_result responses.
+
+    Returns:
+        SQL DDL for the helper function
+    &quot;&quot;&quot;
+    return &quot;&quot;&quot;
+-- ============================================================================
+-- SHARED UTILITY: app.log_and_return_mutation
+-- Used by ALL business schemas for standardized mutation responses
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.log_and_return_mutation(
+    p_tenant_id UUID,
+    p_user_id UUID,
+    p_entity TEXT,
+    p_entity_id UUID,
+    p_operation TEXT,
+    p_status TEXT,
+    p_updated_fields TEXT[],
+    p_message TEXT,
+    p_object_data JSONB,
+    p_extra_metadata JSONB DEFAULT NULL
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_result app.mutation_result;
+BEGIN
+    -- TODO Phase 2: Add audit logging to app.tb_mutation_audit
+    -- INSERT INTO app.tb_mutation_audit (
+    --     tenant_id, user_id, entity, entity_id, operation, status,
+    --     updated_fields, message, timestamp
+    -- ) VALUES (
+    --     p_tenant_id, p_user_id, p_entity, p_entity_id, p_operation, p_status,
+    --     p_updated_fields, p_message, now()
+    -- );
+
+    -- Build standardized result
+    v_result.id := p_entity_id;
+    v_result.updated_fields := p_updated_fields;
+    v_result.status := p_status;
+    v_result.message := p_message;
+    v_result.object_data := p_object_data;
+    v_result.extra_metadata := COALESCE(p_extra_metadata, '{}'::jsonb);
+
+    RETURN v_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.log_and_return_mutation IS
+  '@fraiseql:utility Shared utility for building mutation_result responses. Used by all business schemas (crm, management, inventory, etc.) to ensure consistent mutation return structure.';
+&quot;&quot;&quot;
+</code></pre>
+<p><strong>Then update the orchestration to include it</strong>:</p>
+<pre><code class="language-python">def generate_app_foundation(self) -&gt; str:
+    &quot;&quot;&quot;Generate base app schema with types and utilities&quot;&quot;&quot;
+    parts = [
+        &quot;-- App Schema Foundation&quot;,
+        &quot;CREATE SCHEMA IF NOT EXISTS app;&quot;,
+        &quot;&quot;,
+        self.generate_mutation_result_type(),  # Existing
+        &quot;&quot;,
+        self.generate_app_log_and_return_mutation(),  # NEW
+        &quot;&quot;,
+    ]
+    return &quot;\n&quot;.join(parts)
+</code></pre>
+<hr />
+<h3 id="option-2-create-dedicated-template-alternative">Option 2: Create Dedicated Template (Alternative)</h3>
+<p><strong>File</strong>: <code>templates/sql/app_helpers.sql.j2</code></p>
+<pre><code class="language-sql">{# App schema helper functions #}
+
+-- ============================================================================
+-- SHARED UTILITY: app.log_and_return_mutation
+-- Used by ALL business schemas for standardized mutation responses
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.log_and_return_mutation(
+    p_tenant_id UUID,
+    p_user_id UUID,
+    p_entity TEXT,
+    p_entity_id UUID,
+    p_operation TEXT,
+    p_status TEXT,
+    p_updated_fields TEXT[],
+    p_message TEXT,
+    p_object_data JSONB,
+    p_extra_metadata JSONB DEFAULT NULL
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_result app.mutation_result;
+BEGIN
+    -- Build standardized result
+    v_result.id := p_entity_id;
+    v_result.updated_fields := p_updated_fields;
+    v_result.status := p_status;
+    v_result.message := p_message;
+    v_result.object_data := p_object_data;
+    v_result.extra_metadata := COALESCE(p_extra_metadata, '{}'::jsonb);
+
+    RETURN v_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.log_and_return_mutation IS
+  '@fraiseql:utility Shared helper for mutation responses';
+</code></pre>
+<p><strong>Then load the template in your generator</strong>:</p>
+<pre><code class="language-python">def generate_app_helpers(self) -&gt; str:
+    &quot;&quot;&quot;Generate app schema helper functions&quot;&quot;&quot;
+    template = self.env.get_template(&quot;app_helpers.sql.j2&quot;)
+    return template.render()
+</code></pre>
+<hr />
+<h2 id="migration-placement">🏗️ MIGRATION PLACEMENT</h2>
+<h3 id="critical-must-be-in-base-app-schema-migration">Critical: Must Be in Base App Schema Migration</h3>
+<p>The helper function <strong>MUST</strong> be generated in <code>migrations/000_app_foundation.sql</code> <strong>BEFORE</strong> any entity-specific migrations.</p>
+<p><strong>Correct Order</strong>:</p>
+<pre><code>migrations/
+├── 000_app_foundation.sql
+│   ├── CREATE SCHEMA app;
+│   ├── CREATE TYPE app.mutation_result AS (...);  ✅ Existing
+│   └── CREATE FUNCTION app.log_and_return_mutation(...);  ❌ ADD THIS
+│
+├── 001_mutation_metadata.sql
+│   └── CREATE SCHEMA mutation_metadata;
+│
+├── 100_crm_contact.sql
+│   ├── CREATE TABLE crm.tb_contact (...);
+│   ├── CREATE FUNCTION crm.contact_pk(...);
+│   └── CREATE FUNCTION crm.create_contact(...);  → calls app.log_and_return_mutation()
+│
+└── 200_management_company.sql
+    └── CREATE FUNCTION management.create_company(...);  → calls app.log_and_return_mutation()
+</code></pre>
+<p><strong>Why This Matters</strong>: Entity migrations (100+) depend on this function. If it's not in the base migration, entity migrations will fail.</p>
+<hr />
+<h2 id="verification">🧪 VERIFICATION</h2>
+<h3 id="test-1-function-generation">Test 1: Function Generation</h3>
+<p>After implementing, verify the function is generated:</p>
+<pre><code class="language-bash"># Generate base app schema
+uv run python -m src.generators.schema.schema_generator
+
+# Check output includes the function
+grep -n &quot;app.log_and_return_mutation&quot; migrations/000_app_foundation.sql
+</code></pre>
+<p><strong>Expected</strong>: Should find the function definition.</p>
+<h3 id="test-2-postgresql-compilation">Test 2: PostgreSQL Compilation</h3>
+<p>Apply the migration to verify SQL is valid:</p>
+<pre><code class="language-bash"># Create test database
+createdb test_specql
+
+# Apply migration
+psql test_specql &lt; migrations/000_app_foundation.sql
+
+# Verify function exists
+psql test_specql -c &quot;\df app.log_and_return_mutation&quot;
+</code></pre>
+<p><strong>Expected</strong>: Function should be listed with correct signature.</p>
+<h3 id="test-3-team-c-integration">Test 3: Team C Integration</h3>
+<p>Generate a complete entity with Team C's functions:</p>
+<pre><code class="language-bash"># Generate entity (includes Team C functions)
+uv run python -m src.cli.generate entities/examples/contact_lightweight.yaml
+
+# Apply to database
+psql test_specql &lt; migrations/*.sql
+
+# Verify no errors
+echo $?  # Should be 0
+</code></pre>
+<p><strong>Expected</strong>: All migrations apply successfully without errors.</p>
+<h3 id="test-4-call-the-function">Test 4: Call the Function</h3>
+<p>Execute a simple test call:</p>
+<pre><code class="language-bash">psql test_specql -c &quot;
+SELECT app.log_and_return_mutation(
+    p_tenant_id := gen_random_uuid(),
+    p_user_id := gen_random_uuid(),
+    p_entity := 'contact',
+    p_entity_id := gen_random_uuid(),
+    p_operation := 'INSERT',
+    p_status := 'success',
+    p_updated_fields := ARRAY['email', 'status']::TEXT[],
+    p_message := 'Test message',
+    p_object_data := '{\&quot;test\&quot;: true}'::jsonb,
+    p_extra_metadata := null
+);
+&quot;
+</code></pre>
+<p><strong>Expected</strong>: Should return a properly structured <code>mutation_result</code>.</p>
+<hr />
+<h2 id="acceptance-criteria">📝 ACCEPTANCE CRITERIA</h2>
+<ul>
+<li>[ ] Function <code>app.log_and_return_mutation()</code> is generated</li>
+<li>[ ] Function is in <code>migrations/000_app_foundation.sql</code> (before entity migrations)</li>
+<li>[ ] Function has correct signature (10 parameters, returns <code>app.mutation_result</code>)</li>
+<li>[ ] Function includes FraiseQL annotation comment</li>
+<li>[ ] Migration applies to PostgreSQL without errors</li>
+<li>[ ] Function can be called successfully</li>
+<li>[ ] Team C's generated entity migrations compile without errors</li>
+<li>[ ] Tests pass: <code>uv run pytest tests/integration/</code></li>
+</ul>
+<hr />
+<h2 id="troubleshooting">🐛 TROUBLESHOOTING</h2>
+<h3 id="issue-function-applog_and_return_mutation-does-not-exist">Issue: "function app.log_and_return_mutation does not exist"</h3>
+<p><strong>Cause</strong>: Function not generated or in wrong migration file.</p>
+<p><strong>Fix</strong>: Ensure function is in <code>000_app_foundation.sql</code> and migrations are applied in order.</p>
+<h3 id="issue-type-appmutation_result-does-not-exist">Issue: "type app.mutation_result does not exist"</h3>
+<p><strong>Cause</strong>: Migration order problem - function created before type.</p>
+<p><strong>Fix</strong>: Ensure type is created <strong>before</strong> function in the same migration:</p>
+<pre><code class="language-sql">-- 1. Create type first
+CREATE TYPE app.mutation_result AS (...);
+
+-- 2. Then create function
+CREATE FUNCTION app.log_and_return_mutation(...) RETURNS app.mutation_result ...
+</code></pre>
+<h3 id="issue-column-v_resultid-does-not-exist">Issue: "column v_result.id does not exist"</h3>
+<p><strong>Cause</strong>: Incorrect composite type field assignment syntax.</p>
+<p><strong>Fix</strong>: Use correct syntax:</p>
+<pre><code class="language-sql">-- Correct:
+v_result.id := p_entity_id;
+
+-- Wrong:
+v_result['id'] := p_entity_id;  -- This is for JSONB, not composite types
+</code></pre>
+<hr />
+<h2 id="reference-documentation">📚 REFERENCE DOCUMENTATION</h2>
+<p><strong>Architecture</strong>:
+- <code>docs/teams/TEAM_C_HELPER_FUNCTIONS_SCHEMA.md</code> - Full architectural rationale</p>
+<p><strong>How Team C Uses It</strong>:
+- <code>templates/sql/core_create_function.sql.j2:23</code> - Validation errors
+- <code>templates/sql/core_create_function.sql.j2:44</code> - FK not found errors
+- <code>templates/sql/core_create_function.sql.j2:73</code> - Success response
+- <code>templates/sql/core_update_function.sql.j2</code> - Update operations
+- <code>templates/sql/core_delete_function.sql.j2</code> - Delete operations</p>
+<p><strong>Team C Status</strong>:
+- <code>TEAM_C_EXECUTIVE_SUMMARY.md</code> - Overview of Team C completion
+- <code>TEAM_C_VERIFICATION_AND_NEXT_STEPS.md</code> - Detailed next steps</p>
+<hr />
+<h2 id="implementation-checklist">🚀 IMPLEMENTATION CHECKLIST</h2>
+<h3 id="step-1-code-changes-20-min">Step 1: Code Changes (20 min)</h3>
+<ul>
+<li>[ ] Add <code>generate_app_log_and_return_mutation()</code> method to schema generator</li>
+<li>[ ] Update orchestration to include helper function in base migration</li>
+<li>[ ] Ensure function is generated <strong>after</strong> <code>app.mutation_result</code> type</li>
+</ul>
+<h3 id="step-2-testing-10-min">Step 2: Testing (10 min)</h3>
+<ul>
+<li>[ ] Run generation: <code>uv run python -m src.generators.schema.schema_generator</code></li>
+<li>[ ] Verify function in <code>migrations/000_app_foundation.sql</code></li>
+<li>[ ] Apply to test database: <code>psql test &lt; migrations/000_app_foundation.sql</code></li>
+<li>[ ] Call function to verify it works</li>
+</ul>
+<h3 id="step-3-integration-5-min">Step 3: Integration (5 min)</h3>
+<ul>
+<li>[ ] Generate test entity with Team C functions</li>
+<li>[ ] Verify entity migrations compile successfully</li>
+<li>[ ] Run integration tests: <code>uv run pytest tests/integration/</code></li>
+</ul>
+<h3 id="step-4-documentation-5-min">Step 4: Documentation (5 min)</h3>
+<ul>
+<li>[ ] Update Team B completion status</li>
+<li>[ ] Note function added to base migration</li>
+<li>[ ] Inform Team C blocker is resolved</li>
+</ul>
+<p><strong>Total Time</strong>: ~40 minutes</p>
+<hr />
+<h2 id="questions">💬 QUESTIONS?</h2>
+<p><strong>Q: Why not generate this per-schema (crm.log_and_return_mutation, management.log_and_return_mutation, etc.)?</strong></p>
+<p><strong>A</strong>: Code duplication. Every schema would have identical code. Updating logic would require changing N functions. The <code>app.*</code> schema is designed for cross-cutting utilities like this.</p>
+<p><strong>Q: Can I add audit logging now?</strong></p>
+<p><strong>A</strong>: The TODO comment is there for future Phase 2. For now, just build and return the result. Audit logging can be added later without breaking existing code.</p>
+<p><strong>Q: Does this need to be in Team B or could Team E do it?</strong></p>
+<p><strong>A</strong>: Team B owns schema generation and the <code>app.*</code> schema foundation. This logically belongs with the base schema setup. Team E orchestrates but doesn't generate schema-level utilities.</p>
+<p><strong>Q: What if we want different return logic per schema?</strong></p>
+<p><strong>A</strong>: That violates the standardization principle. All mutations should return the same structure. Schema-specific logic goes in the business functions (crm.create_contact), not the utility helper.</p>
+<hr />
+<h2 id="ready-to-implement">✅ READY TO IMPLEMENT?</h2>
+<p>This is a <strong>straightforward addition</strong> that unblocks Team C's integration testing. The function is simple, well-defined, and has clear test criteria.</p>
+<p><strong>Recommended Approach</strong>: Option 1 (add method to existing schema generator) for simplicity.</p>
+<p><strong>Next Steps After Implementation</strong>:
+1. ✅ Verify migrations generate correctly
+2. ✅ Test in PostgreSQL
+3. ✅ Notify Team C that blocker is resolved
+4. 🚀 Team C proceeds with integration tests</p>
+<hr />
+<p><strong>Status</strong>: 🔴 BLOCKING TEAM C
+<strong>Priority</strong>: CRITICAL
+<strong>Assignee</strong>: Team B
+<strong>Estimated Completion</strong>: 30-40 minutes
+<strong>Next Review</strong>: After implementation + testing</p>
+<hr />
+<p><strong>Last Updated</strong>: 2025-11-08
+<strong>Created By</strong>: Architecture Review + Team C Coordination
+<strong>Reference</strong>: TEAM_C_EXECUTIVE_SUMMARY.md, TEAM_C_HELPER_FUNCTIONS_SCHEMA.md</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

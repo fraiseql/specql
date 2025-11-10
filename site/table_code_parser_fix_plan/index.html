@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>SpecQL Parser table_code Field Fix - Implementation Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "SpecQL Parser table_code Field Fix - Implementation Plan";
+        var mkdocs_page_input_path = "table_code_parser_fix_plan.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">SpecQL Parser table_code Field Fix - Implementation Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="specql-parser-table_code-field-fix-implementation-plan">SpecQL Parser table_code Field Fix - Implementation Plan</h1>
+<p><strong>Objective</strong>: Fix the SpecQL parser to properly extract and use <code>table_code</code> from YAML entity definitions.</p>
+<p><strong>Date</strong>: 2025-11-10
+<strong>Status</strong>: ✅ COMPLETED
+<strong>Priority</strong>: HIGH
+<strong>Estimated Time</strong>: 30-45 minutes (Actual: ~25 minutes)
+<strong>Complexity</strong>: Low (single function, minimal changes)
+<strong>Location</strong>: <code>../printoptim_backend_poc</code></p>
+<hr />
+<h2 id="problem-analysis">🔍 Problem Analysis</h2>
+<h3 id="current-state">Current State</h3>
+<p>The SpecQL system has <strong>full support</strong> for table codes in the data model, but there's a <strong>critical gap</strong> in the conversion pipeline:</p>
+<pre><code>YAML file → EntityDefinition → Entity (conversion) → SQL Generation
+   ✅          ✅                 ❌                    ✅
+</code></pre>
+<p><strong>What Works:</strong>
+1. ✅ Parser reads <code>organization.table_code</code> from YAML
+2. ✅ <code>EntityDefinition.organization.table_code</code> stores the value
+3. ✅ <code>Entity.table_code</code> field exists and is used throughout codebase
+4. ✅ SQL templates reference <code>entity.table_code</code></p>
+<p><strong>What's Broken:</strong>
+❌ The conversion function <code>convert_entity_definition_to_entity()</code> doesn't extract <code>table_code</code> from <code>organization</code> and set it on the <code>Entity</code> object</p>
+<h3 id="impact">Impact</h3>
+<p><strong>Current Behavior:</strong>
+- <code>Entity.table_code</code> is always <code>None</code>
+- SQL comments don't include table codes: <code>-- [Table: None]</code>
+- Migration tracking doesn't work with explicit codes
+- Registry system auto-generates codes, ignoring YAML values</p>
+<p><strong>Affected Features:</strong>
+1. SQL table comments (missing table codes)
+2. Migration file naming
+3. Table code registry
+4. Documentation generation
+5. Cross-reference tooling</p>
+<hr />
+<h2 id="files-involved">📁 Files Involved</h2>
+<h3 id="primary-file-needs-fix">Primary File (Needs Fix)</h3>
+<p><strong>File</strong>: <code>../printoptim_backend_poc/src/cli/generate.py</code>
+- <strong>Function</strong>: <code>convert_entity_definition_to_entity()</code> (lines 18-39)
+- <strong>Change Type</strong>: Add 4 lines to extract table_code from organization
+- <strong>Risk Level</strong>: LOW (isolated function, well-tested)</p>
+<h3 id="related-files-context-only-no-changes">Related Files (Context Only - No Changes)</h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Lines</th>
+<th>Purpose</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src/core/specql_parser.py</code></td>
+<td>437-441</td>
+<td>Parses organization.table_code</td>
+<td>✅ Working</td>
+</tr>
+<tr>
+<td><code>src/core/ast_models.py</code></td>
+<td>574-579</td>
+<td>Organization class definition</td>
+<td>✅ Working</td>
+</tr>
+<tr>
+<td><code>src/core/ast_models.py</code></td>
+<td>463-502</td>
+<td>Entity class definition</td>
+<td>✅ Working</td>
+</tr>
+<tr>
+<td><code>templates/sql/table.sql.j2</code></td>
+<td>7</td>
+<td>Uses entity.table_code</td>
+<td>✅ Working</td>
+</tr>
+<tr>
+<td><code>src/migration/orchestrator.py</code></td>
+<td>243</td>
+<td>Uses table_code for files</td>
+<td>✅ Working</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="detailed-implementation-plan">🎯 Detailed Implementation Plan</h2>
+<h3 id="phase-1-verify-current-behavior-10-minutes">Phase 1: Verify Current Behavior (10 minutes)</h3>
+<h4 id="step-11-review-current-code">Step 1.1: Review Current Code</h4>
+<p><strong>Objective</strong>: Understand the exact current implementation</p>
+<p><strong>File</strong>: <code>../printoptim_backend_poc/src/cli/generate.py</code></p>
+<p><strong>Current Code</strong> (lines 18-39):</p>
+<pre><code class="language-python">def convert_entity_definition_to_entity(entity_def: EntityDefinition) -&gt; Entity:
+    &quot;&quot;&quot;Convert EntityDefinition to Entity for backward compatibility&quot;&quot;&quot;
+
+    # Convert ActionDefinition to Action
+    actions = []
+    for action_def in entity_def.actions:
+        action = Action(
+            name=action_def.name, steps=action_def.steps, impact=None
+        )
+        actions.append(action)
+
+    # Create Entity
+    entity = Entity(
+        name=entity_def.name,
+        schema=entity_def.schema,
+        description=entity_def.description,
+        fields=entity_def.fields,
+        actions=actions,
+        agents=entity_def.agents,
+        organization=entity_def.organization,  # ✅ Organization passed
+        # ❌ BUT: entity.table_code is NOT set!
+    )
+
+    return entity
+</code></pre>
+<p><strong>Problem Identified</strong>:
+- Line 35: <code>organization=entity_def.organization</code> passes the full organization object
+- Missing: Extraction of <code>table_code</code> from organization to set <code>Entity.table_code</code></p>
+<h4 id="step-12-test-current-behavior">Step 1.2: Test Current Behavior</h4>
+<p><strong>Create Test YAML</strong> (<code>test_entity.yaml</code>):</p>
+<pre><code class="language-yaml">entity: TestEntity
+schema: tenant
+
+organization:
+  table_code: &quot;012321&quot;
+  domain_name: &quot;CRM&quot;
+
+fields:
+  name: text
+</code></pre>
+<p><strong>Test Command</strong>:</p>
+<pre><code class="language-bash">cd ../printoptim_backend_poc
+python -m src.cli.generate test_entity.yaml --output test_output/
+</code></pre>
+<p><strong>Expected Current Behavior</strong>:
+- ❌ SQL comment: <code>-- [Table: None]</code> (should be <code>-- [Table: 012321]</code>)
+- ❌ <code>entity.table_code</code> is <code>None</code> in generated code</p>
+<p><strong>Verification</strong>:</p>
+<pre><code class="language-bash">grep &quot;Table:&quot; test_output/*.sql
+# Should show: -- [Table: None]
+</code></pre>
+<hr />
+<h3 id="phase-2-implement-fix-15-minutes">Phase 2: Implement Fix (15 minutes)</h3>
+<h4 id="step-21-update-conversion-function">Step 2.1: Update Conversion Function</h4>
+<p><strong>Objective</strong>: Extract <code>table_code</code> from <code>organization</code> and set it on <code>Entity</code></p>
+<p><strong>File</strong>: <code>../printoptim_backend_poc/src/cli/generate.py</code></p>
+<p><strong>Change Location</strong>: After line 27, before line 30</p>
+<p><strong>New Code to Add</strong>:</p>
+<pre><code class="language-python">def convert_entity_definition_to_entity(entity_def: EntityDefinition) -&gt; Entity:
+    &quot;&quot;&quot;Convert EntityDefinition to Entity for backward compatibility&quot;&quot;&quot;
+
+    # Convert ActionDefinition to Action
+    actions = []
+    for action_def in entity_def.actions:
+        action = Action(
+            name=action_def.name, steps=action_def.steps, impact=None
+        )
+        actions.append(action)
+
+    # ✅ NEW: Extract table_code from organization if present
+    table_code = None
+    if entity_def.organization and entity_def.organization.table_code:
+        table_code = entity_def.organization.table_code
+
+    # Create Entity
+    entity = Entity(
+        name=entity_def.name,
+        schema=entity_def.schema,
+        table_code=table_code,  # ✅ NEW: Set table_code
+        description=entity_def.description,
+        fields=entity_def.fields,
+        actions=actions,
+        agents=entity_def.agents,
+        organization=entity_def.organization,
+    )
+
+    return entity
+</code></pre>
+<p><strong>Lines Added</strong>: 4 (extraction logic + parameter)
+<strong>Lines Modified</strong>: 1 (add table_code parameter)</p>
+<h4 id="step-22-verify-no-breaking-changes">Step 2.2: Verify No Breaking Changes</h4>
+<p><strong>Check Entity Constructor</strong>:</p>
+<pre><code class="language-bash">cd ../printoptim_backend_poc
+grep -A 20 &quot;class Entity:&quot; src/core/ast_models.py | grep &quot;table_code&quot;
+</code></pre>
+<p><strong>Expected Output</strong>:</p>
+<pre><code class="language-python">table_code: str | None = None
+</code></pre>
+<p>This confirms <code>table_code</code> is an optional parameter with default <code>None</code>, so adding it won't break existing code.</p>
+<hr />
+<h3 id="phase-3-testing-15-minutes">Phase 3: Testing (15 minutes)</h3>
+<h4 id="step-31-unit-test">Step 3.1: Unit Test</h4>
+<p><strong>Create</strong>: <code>../printoptim_backend_poc/tests/test_table_code_conversion.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;Test table_code extraction from organization to entity&quot;&quot;&quot;
+import pytest
+from src.core.ast_models import EntityDefinition, Organization, Entity
+from src.cli.generate import convert_entity_definition_to_entity
+
+
+def test_table_code_extracted_from_organization():
+    &quot;&quot;&quot;Test that table_code is properly extracted from organization&quot;&quot;&quot;
+    # Create EntityDefinition with organization.table_code
+    org = Organization(table_code=&quot;012321&quot;, domain_name=&quot;CRM&quot;)
+    entity_def = EntityDefinition(
+        name=&quot;TestEntity&quot;,
+        schema=&quot;tenant&quot;,
+        description=&quot;Test entity&quot;,
+        fields={},
+        actions=[],
+        agents=[],
+        organization=org
+    )
+
+    # Convert to Entity
+    entity = convert_entity_definition_to_entity(entity_def)
+
+    # Verify table_code was extracted
+    assert entity.table_code == &quot;012321&quot;, \
+        f&quot;Expected table_code='012321', got '{entity.table_code}'&quot;
+    assert entity.organization is not None
+    assert entity.organization.table_code == &quot;012321&quot;
+
+
+def test_table_code_none_when_no_organization():
+    &quot;&quot;&quot;Test that table_code is None when organization is missing&quot;&quot;&quot;
+    entity_def = EntityDefinition(
+        name=&quot;TestEntity&quot;,
+        schema=&quot;tenant&quot;,
+        description=&quot;Test entity&quot;,
+        fields={},
+        actions=[],
+        agents=[],
+        organization=None
+    )
+
+    entity = convert_entity_definition_to_entity(entity_def)
+
+    assert entity.table_code is None
+    assert entity.organization is None
+
+
+def test_table_code_none_when_organization_has_no_code():
+    &quot;&quot;&quot;Test that table_code is None when organization exists but has no table_code&quot;&quot;&quot;
+    org = Organization(table_code=None, domain_name=&quot;CRM&quot;)
+    entity_def = EntityDefinition(
+        name=&quot;TestEntity&quot;,
+        schema=&quot;tenant&quot;,
+        description=&quot;Test entity&quot;,
+        fields={},
+        actions=[],
+        agents=[],
+        organization=org
+    )
+
+    entity = convert_entity_definition_to_entity(entity_def)
+
+    assert entity.table_code is None
+    assert entity.organization is not None
+
+
+if __name__ == &quot;__main__&quot;:
+    pytest.main([__file__, &quot;-v&quot;])
+</code></pre>
+<p><strong>Run Test</strong>:</p>
+<pre><code class="language-bash">cd ../printoptim_backend_poc
+pytest tests/test_table_code_conversion.py -v
+</code></pre>
+<p><strong>Expected Output</strong>:</p>
+<pre><code>test_table_code_extracted_from_organization PASSED
+test_table_code_none_when_no_organization PASSED
+test_table_code_none_when_organization_has_no_code PASSED
+</code></pre>
+<h4 id="step-32-integration-test">Step 3.2: Integration Test</h4>
+<p><strong>Test YAML</strong> (<code>test_machine.yaml</code>):</p>
+<pre><code class="language-yaml">entity: Machine
+schema: tenant
+
+organization:
+  table_code: &quot;014511&quot;
+  domain_name: &quot;Dimensions&quot;
+
+description: |
+  [014511 | Write-Side.Dimensions.Material.Machine]
+  Represents a physical printing device.
+
+fields:
+  code:
+    type: text
+    nullable: false
+    description: &quot;Machine identifier code&quot;
+
+  serial_number:
+    type: text
+    description: &quot;Manufacturer serial number&quot;
+</code></pre>
+<p><strong>Generate SQL</strong>:</p>
+<pre><code class="language-bash">cd ../printoptim_backend_poc
+python -m src.cli.generate test_machine.yaml --output test_output/
+</code></pre>
+<p><strong>Verify SQL Output</strong>:</p>
+<pre><code class="language-bash">grep &quot;Table:&quot; test_output/001_machine.sql
+</code></pre>
+<p><strong>Expected Output</strong>:</p>
+<pre><code class="language-sql">-- [Table: 014511 | Machine]
+COMMENT ON TABLE tenant.tb_machine IS '[Table: 014511] Represents a physical printing device.';
+</code></pre>
+<h4 id="step-33-regression-testing">Step 3.3: Regression Testing</h4>
+<p><strong>Run Full Test Suite</strong>:</p>
+<pre><code class="language-bash">cd ../printoptim_backend_poc
+pytest tests/ -v
+</code></pre>
+<p><strong>Expected</strong>: All existing tests should pass (no breaking changes)</p>
+<hr />
+<h3 id="phase-4-documentation-5-minutes">Phase 4: Documentation (5 minutes)</h3>
+<h4 id="step-41-update-function-docstring">Step 4.1: Update Function Docstring</h4>
+<p><strong>File</strong>: <code>../printoptim_backend_poc/src/cli/generate.py</code></p>
+<p><strong>Updated Docstring</strong>:</p>
+<pre><code class="language-python">def convert_entity_definition_to_entity(entity_def: EntityDefinition) -&gt; Entity:
+    &quot;&quot;&quot;Convert EntityDefinition to Entity for backward compatibility
+
+    This function bridges the gap between the parsed EntityDefinition
+    (from SpecQL YAML) and the Entity object used by code generators.
+
+    Key conversions:
+    - ActionDefinition → Action
+    - organization.table_code → entity.table_code (for numbering system)
+
+    Args:
+        entity_def: Parsed entity definition from SpecQL YAML
+
+    Returns:
+        Entity object ready for code generation
+
+    Note:
+        If entity_def.organization.table_code is present, it will be
+        extracted and set as entity.table_code for use in SQL comments,
+        migration naming, and the table numbering registry.
+    &quot;&quot;&quot;
+</code></pre>
+<h4 id="step-42-update-changelog">Step 4.2: Update CHANGELOG</h4>
+<p><strong>File</strong>: <code>../printoptim_backend_poc/CHANGELOG.md</code></p>
+<p><strong>Add Entry</strong>:</p>
+<pre><code class="language-markdown">## [Unreleased]
+
+### Fixed
+- **SpecQL Parser**: Extract `table_code` from `organization` field in YAML
+  - `convert_entity_definition_to_entity()` now properly sets `Entity.table_code`
+  - SQL table comments now include explicit table codes from YAML
+  - Migration file naming respects explicit table codes
+  - Fixes issue where YAML `organization.table_code` was parsed but not used
+  - Related files: `src/cli/generate.py`
+</code></pre>
+<hr />
+<h2 id="execution-checklist">🔄 Execution Checklist</h2>
+<h3 id="pre-implementation">Pre-Implementation</h3>
+<ul>
+<li>[ ] Backup current <code>src/cli/generate.py</code></li>
+<li>[ ] Review current code (lines 18-39)</li>
+<li>[ ] Create test YAML file</li>
+<li>[ ] Test current behavior (verify table_code is None)</li>
+</ul>
+<h3 id="implementation">Implementation</h3>
+<ul>
+<li>[ ] Add table_code extraction logic (4 lines)</li>
+<li>[ ] Add table_code parameter to Entity constructor</li>
+<li>[ ] Save changes</li>
+</ul>
+<h3 id="testing">Testing</h3>
+<ul>
+<li>[ ] Create unit test file</li>
+<li>[ ] Run unit tests (3 test cases)</li>
+<li>[ ] Create integration test YAML</li>
+<li>[ ] Generate SQL and verify table_code in comments</li>
+<li>[ ] Run full regression test suite</li>
+<li>[ ] Verify no breaking changes</li>
+</ul>
+<h3 id="documentation">Documentation</h3>
+<ul>
+<li>[ ] Update function docstring</li>
+<li>[ ] Update CHANGELOG.md</li>
+<li>[ ] Document change in commit message</li>
+</ul>
+<h3 id="deployment">Deployment</h3>
+<ul>
+<li>[ ] Create git commit with detailed message</li>
+<li>[ ] Run final validation</li>
+<li>[ ] Merge to main branch</li>
+</ul>
+<hr />
+<h2 id="expected-results">📊 Expected Results</h2>
+<h3 id="before-fix">Before Fix</h3>
+<pre><code class="language-yaml"># Input YAML
+organization:
+  table_code: &quot;012321&quot;
+</code></pre>
+<pre><code class="language-python"># Parsed Entity
+entity.table_code = None  # ❌ Lost during conversion
+entity.organization.table_code = &quot;012321&quot;  # ✓ But not used
+</code></pre>
+<pre><code class="language-sql">-- Generated SQL
+-- [Table: None]  ❌
+COMMENT ON TABLE tenant.tb_contact IS '[Table: None] ...';  ❌
+</code></pre>
+<h3 id="after-fix">After Fix</h3>
+<pre><code class="language-yaml"># Input YAML
+organization:
+  table_code: &quot;012321&quot;
+</code></pre>
+<pre><code class="language-python"># Parsed Entity
+entity.table_code = &quot;012321&quot;  # ✅ Properly extracted
+entity.organization.table_code = &quot;012321&quot;  # ✓ Also preserved
+</code></pre>
+<pre><code class="language-sql">-- Generated SQL
+-- [Table: 012321]  ✅
+COMMENT ON TABLE tenant.tb_contact IS '[Table: 012321] ...';  ✅
+</code></pre>
+<hr />
+<h2 id="edge-cases-considerations">🚨 Edge Cases &amp; Considerations</h2>
+<h3 id="1-backward-compatibility">1. Backward Compatibility</h3>
+<p><strong>Issue</strong>: Existing YAML files without <code>organization</code> field</p>
+<p><strong>Solution</strong>: Code already handles this with <code>if entity_def.organization</code> check</p>
+<pre><code class="language-python">table_code = None
+if entity_def.organization and entity_def.organization.table_code:
+    table_code = entity_def.organization.table_code
+</code></pre>
+<p><strong>Result</strong>: ✅ No breaking changes for existing files</p>
+<h3 id="2-auto-generated-table-codes">2. Auto-Generated Table Codes</h3>
+<p><strong>Issue</strong>: System has registry that auto-generates codes when <code>use_registry=True</code></p>
+<p><strong>Current Behavior</strong>: Auto-generation ignores YAML values</p>
+<p><strong>After Fix</strong>: Explicit YAML codes take precedence
+- If YAML has <code>organization.table_code</code>: Use it
+- If YAML has no code: Auto-generate (existing behavior)</p>
+<p><strong>No Conflict</strong>: This is the desired behavior (explicit beats implicit)</p>
+<h3 id="3-invalid-table-codes">3. Invalid Table Codes</h3>
+<p><strong>Issue</strong>: What if YAML has invalid table_code (not 6 digits)?</p>
+<p><strong>Current Validation</strong>: None in parser</p>
+<p><strong>Recommendation</strong>: Add validation in future PR</p>
+<pre><code class="language-python"># Future enhancement (separate PR)
+if table_code and not re.match(r'^\d{6}$', table_code):
+    logger.warning(f&quot;Invalid table_code format: {table_code}&quot;)
+</code></pre>
+<p><strong>For This PR</strong>: Accept any string value (same as current system)</p>
+<h3 id="4-duplicate-table-codes">4. Duplicate Table Codes</h3>
+<p><strong>Issue</strong>: Two entities with same table_code</p>
+<p><strong>Current System</strong>: Registry handles this (increments duplicate codes)</p>
+<p><strong>After Fix</strong>: No change in registry behavior</p>
+<p><strong>Result</strong>: ✅ Existing duplicate detection still works</p>
+<h3 id="5-migration-impact">5. Migration Impact</h3>
+<p><strong>Issue</strong>: Existing migrations generated with table_code=None</p>
+<p><strong>Impact</strong>: None - migrations are immutable once created</p>
+<p><strong>New Migrations</strong>: Will include proper table codes</p>
+<p><strong>Result</strong>: ✅ No impact on existing migrations</p>
+<hr />
+<h2 id="alternative-approaches-not-recommended">🔧 Alternative Approaches (Not Recommended)</h2>
+<h3 id="alternative-1-remove-duplicate-table_code-field">Alternative 1: Remove Duplicate table_code Field</h3>
+<p><strong>Approach</strong>: Remove <code>Entity.table_code</code> and always use <code>Entity.organization.table_code</code></p>
+<p><strong>Files to Change</strong>: ~10 files
+- <code>src/migration/orchestrator.py</code>
+- <code>templates/sql/table.sql.j2</code>
+- <code>src/naming/conventions.py</code>
+- All template files referencing <code>entity.table_code</code></p>
+<p><strong>Pros</strong>: Single source of truth</p>
+<p><strong>Cons</strong>:
+- Larger change surface
+- More risk of breaking changes
+- Requires template updates
+- Migration code complexity</p>
+<p><strong>Verdict</strong>: ❌ Not recommended (too invasive for the benefit)</p>
+<h3 id="alternative-2-make-organizationtable_code-the-primary-source">Alternative 2: Make organization.table_code the Primary Source</h3>
+<p><strong>Approach</strong>: Deprecate <code>Entity.table_code</code>, update all references to use <code>entity.organization.table_code</code></p>
+<p><strong>Pros</strong>: Clearer data model</p>
+<p><strong>Cons</strong>:
+- Breaks all templates
+- Requires null checks everywhere
+- More verbose code</p>
+<p><strong>Verdict</strong>: ❌ Not recommended (worse developer experience)</p>
+<h3 id="alternative-3-do-nothing">Alternative 3: Do Nothing</h3>
+<p><strong>Approach</strong>: Keep current behavior, document limitation</p>
+<p><strong>Pros</strong>: No code changes</p>
+<p><strong>Cons</strong>:
+- YAML table codes are ignored
+- SQL comments don't have codes
+- Migration naming doesn't work
+- Defeats purpose of table_code implementation in printoptim_specql</p>
+<p><strong>Verdict</strong>: ❌ Not acceptable (breaks traceability feature)</p>
+<hr />
+<h2 id="success-criteria">✅ Success Criteria</h2>
+<ol>
+<li>✅ <code>Entity.table_code</code> is populated from <code>organization.table_code</code></li>
+<li>✅ SQL comments include table codes: <code>-- [Table: 012321]</code></li>
+<li>✅ All unit tests pass</li>
+<li>✅ Integration test shows correct SQL output</li>
+<li>✅ No regression in existing test suite</li>
+<li>✅ Documentation updated</li>
+<li>✅ Change is backward compatible</li>
+</ol>
+<hr />
+<h2 id="commit-message-template">📝 Commit Message Template</h2>
+<pre><code>fix(parser): extract table_code from organization in entity conversion
+
+The SpecQL parser correctly parsed organization.table_code from YAML,
+but the conversion function didn't extract it to Entity.table_code.
+This caused SQL comments to show [Table: None] instead of actual codes.
+
+Changes:
+- src/cli/generate.py: Extract table_code from organization in
+  convert_entity_definition_to_entity()
+- tests/test_table_code_conversion.py: Add unit tests for extraction
+
+Impact:
+- SQL table comments now include proper table codes
+- Migration file naming respects explicit codes from YAML
+- Table numbering registry uses YAML codes when present
+
+Fixes: Table codes in printoptim_specql entities now properly flow
+through to generated SQL and migrations.
+
+Testing:
+- 3 new unit tests (all passing)
+- Integration test with sample YAML → SQL generation
+- Full regression test suite (all passing)
+- Backward compatible (no breaking changes)
+
+Related: printoptim_specql commit 47fce65 (table code implementation)
+</code></pre>
+<hr />
+<h2 id="next-steps-after-implementation">🎯 Next Steps After Implementation</h2>
+<ol>
+<li><strong>Apply to printoptim_specql entities</strong>: Regenerate SQL with proper table codes</li>
+<li><strong>Update templates</strong>: Enhance SQL comments to use table codes more extensively</li>
+<li><strong>Add validation</strong>: Validate table_code format (6 digits) in parser</li>
+<li><strong>Registry integration</strong>: Update registry to prefer YAML codes over auto-generated</li>
+<li><strong>Documentation</strong>: Update SpecQL spec to document organization.table_code field</li>
+</ol>
+<hr />
+<h2 id="references">📚 References</h2>
+<ul>
+<li><strong>SpecQL Parser</strong>: <code>../printoptim_backend_poc/src/core/specql_parser.py</code></li>
+<li><strong>AST Models</strong>: <code>../printoptim_backend_poc/src/core/ast_models.py</code></li>
+<li><strong>Generation CLI</strong>: <code>../printoptim_backend_poc/src/cli/generate.py</code></li>
+<li><strong>SQL Templates</strong>: <code>../printoptim_backend_poc/templates/sql/</code></li>
+<li><strong>Entity YAML Examples</strong>: <code>../printoptim_specql/entities/</code></li>
+</ul>
+<hr />
+<p><strong>Plan Version</strong>: 1.0
+<strong>Last Updated</strong>: 2025-11-10
+<strong>Author</strong>: Claude Code
+<strong>Estimated Effort</strong>: 30-45 minutes
+<strong>Risk Level</strong>: LOW
+<strong>Priority</strong>: HIGH</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Generate Your First Tests - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Generate Your First Tests";
+        var mkdocs_page_input_path = "getting-started/first-tests.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Generate Your First Tests</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="generate-your-first-tests">Generate Your First Tests</h1>
+<p>Learn how to automatically generate comprehensive tests for your SpecQL entities and patterns. SpecQL creates both pgTAP (PostgreSQL) and pytest (Python) tests with zero manual coding.</p>
+<h2 id="what-youll-learn">🎯 What You'll Learn</h2>
+<ul>
+<li>Generate automated tests from YAML specs</li>
+<li>Run pgTAP tests in PostgreSQL</li>
+<li>Run pytest tests with Python</li>
+<li>Understand test coverage</li>
+<li>Integrate tests into CI/CD</li>
+</ul>
+<h2 id="prerequisites">📋 Prerequisites</h2>
+<ul>
+<li><a href="../first-pattern/">Entity with patterns created</a></li>
+<li>PostgreSQL database with schema applied</li>
+<li>Python environment (for pytest)</li>
+</ul>
+<h2 id="step-1-understand-test-generation">🧪 Step 1: Understand Test Generation</h2>
+<p>SpecQL generates three types of tests:</p>
+<h3 id="1-pgtap-tests-postgresql-native">1. <strong>pgTAP Tests</strong> - PostgreSQL Native</h3>
+<ul>
+<li>Run directly in the database</li>
+<li>Test business logic and constraints</li>
+<li>Fast execution, no external dependencies</li>
+</ul>
+<h3 id="2-pytest-tests-python-integration">2. <strong>pytest Tests</strong> - Python Integration</h3>
+<ul>
+<li>Test from application code</li>
+<li>Integration with Python test frameworks</li>
+<li>API-level testing</li>
+</ul>
+<h3 id="3-performance-tests-benchmarking">3. <strong>Performance Tests</strong> - Benchmarking</h3>
+<ul>
+<li>Measure query performance</li>
+<li>Compare pattern implementations</li>
+<li>Identify optimization opportunities</li>
+</ul>
+<h2 id="step-2-generate-tests">🔧 Step 2: Generate Tests</h2>
+<pre><code class="language-bash"># Generate all test types for your entity
+specql generate tests entities/user.yaml
+
+# Check generated test files
+tree tests/
+# tests/
+# ├── pgtap/
+# │   ├── user_state_machine_test.sql
+# │   ├── user_validation_test.sql
+# │   └── user_constraints_test.sql
+# └── pytest/
+#     ├── test_user_state_machine.py
+#     ├── test_user_validation.py
+#     └── test_user_constraints.py
+</code></pre>
+<h2 id="step-3-review-generated-pgtap-tests">📄 Step 3: Review Generated pgTAP Tests</h2>
+<pre><code class="language-bash"># View the state machine tests
+cat tests/pgtap/user_state_machine_test.sql
+</code></pre>
+<p><strong>Generated pgTAP tests include:</strong></p>
+<pre><code class="language-sql">-- Auto-generated pgTAP tests for user state machine
+BEGIN;
+
+-- Setup test data
+INSERT INTO user (id, email, first_name, last_name, status)
+VALUES ('test-user-id', 'test@example.com', 'Test', 'User', 'inactive');
+
+-- Test 1: Initial state is correct
+SELECT ok(
+    (SELECT status FROM user WHERE id = 'test-user-id') = 'inactive',
+    'User starts in inactive state'
+);
+
+-- Test 2: Valid transition works
+SELECT ok(
+    user_request_verification('test-user-id') IS NOT NULL,
+    'Can request verification from inactive state'
+);
+
+-- Test 3: State changed correctly
+SELECT ok(
+    (SELECT status FROM user WHERE id = 'test-user-id') = 'pending_verification',
+    'State changed to pending_verification'
+);
+
+-- Test 4: Invalid transition fails
+SELECT ok(
+    user_verify_email('test-user-id', 'invalid-token') IS NULL,
+    'Invalid verification token is rejected'
+);
+
+-- Test 5: Valid verification works
+SELECT ok(
+    user_verify_email('test-user-id', 'valid-token') IS NOT NULL,
+    'Valid verification token works'
+);
+
+-- Test 6: Final state is active
+SELECT ok(
+    (SELECT status FROM user WHERE id = 'test-user-id') = 'active',
+    'User ends in active state after verification'
+);
+
+-- Cleanup
+DELETE FROM user WHERE id = 'test-user-id';
+
+ROLLBACK;
+</code></pre>
+<h2 id="step-4-run-pgtap-tests">🗄️ Step 4: Run pgTAP Tests</h2>
+<pre><code class="language-bash"># Install pgTAP in PostgreSQL (one-time setup)
+psql $DATABASE_URL -c &quot;
+CREATE EXTENSION IF NOT EXISTS pgtap;
+&quot;
+
+# Run the generated tests
+specql test run --type pgtap entities/user.yaml
+
+# Or run directly with psql
+psql $DATABASE_URL -f tests/pgtap/user_state_machine_test.sql
+</code></pre>
+<p><strong>Expected output:</strong></p>
+<pre><code>user_state_machine_test.sql
+1..6
+ok 1 - User starts in inactive state
+ok 2 - Can request verification from inactive state
+ok 3 - State changed to pending_verification
+ok 4 - Invalid verification token is rejected
+ok 5 - Valid verification token works
+ok 6 - User ends in active state after verification
+</code></pre>
+<h2 id="step-5-review-generated-pytest-tests">🐍 Step 5: Review Generated pytest Tests</h2>
+<pre><code class="language-bash"># View the Python tests
+cat tests/pytest/test_user_state_machine.py
+</code></pre>
+<p><strong>Generated pytest tests include:</strong></p>
+<pre><code class="language-python"># Auto-generated pytest tests for user state machine
+import pytest
+import psycopg2
+from specql.testing.fixtures import database_connection
+
+class TestUserStateMachine:
+    @pytest.fixture
+    def db_conn(self, database_connection):
+        return database_connection
+
+    @pytest.fixture
+    def test_user(self, db_conn):
+        &quot;&quot;&quot;Create a test user and return its ID&quot;&quot;&quot;
+        with db_conn.cursor() as cursor:
+            cursor.execute(&quot;&quot;&quot;
+                INSERT INTO user (email, first_name, last_name, status)
+                VALUES (%s, %s, %s, %s)
+                RETURNING id
+            &quot;&quot;&quot;, ('test@example.com', 'Test', 'User', 'inactive'))
+            user_id = cursor.fetchone()[0]
+            db_conn.commit()
+            yield user_id
+
+            # Cleanup
+            cursor.execute(&quot;DELETE FROM user WHERE id = %s&quot;, (user_id,))
+            db_conn.commit()
+
+    def test_initial_state_is_inactive(self, db_conn, test_user):
+        &quot;&quot;&quot;Test that user starts in inactive state&quot;&quot;&quot;
+        with db_conn.cursor() as cursor:
+            cursor.execute(
+                &quot;SELECT status FROM user WHERE id = %s&quot;,
+                (test_user,)
+            )
+            status = cursor.fetchone()[0]
+            assert status == 'inactive'
+
+    def test_request_verification_transition(self, db_conn, test_user):
+        &quot;&quot;&quot;Test requesting verification from inactive state&quot;&quot;&quot;
+        with db_conn.cursor() as cursor:
+            cursor.execute(
+                &quot;SELECT user_request_verification(%s)&quot;,
+                (test_user,)
+            )
+            result = cursor.fetchone()[0]
+            assert result is not None
+
+            # Check state changed
+            cursor.execute(
+                &quot;SELECT status FROM user WHERE id = %s&quot;,
+                (test_user,)
+            )
+            status = cursor.fetchone()[0]
+            assert status == 'pending_verification'
+
+    def test_invalid_verification_fails(self, db_conn, test_user):
+        &quot;&quot;&quot;Test that invalid verification token is rejected&quot;&quot;&quot;
+        # First request verification
+        with db_conn.cursor() as cursor:
+            cursor.execute(
+                &quot;SELECT user_request_verification(%s)&quot;,
+                (test_user,)
+            )
+
+            # Try invalid verification
+            cursor.execute(
+                &quot;SELECT user_verify_email(%s, %s)&quot;,
+                (test_user, 'invalid-token')
+            )
+            result = cursor.fetchone()[0]
+            assert result is None
+
+    def test_complete_verification_workflow(self, db_conn, test_user):
+        &quot;&quot;&quot;Test complete verification workflow&quot;&quot;&quot;
+        with db_conn.cursor() as cursor:
+            # Start verification
+            cursor.execute(
+                &quot;SELECT user_request_verification(%s)&quot;,
+                (test_user,)
+            )
+
+            # Complete verification
+            cursor.execute(
+                &quot;SELECT user_verify_email(%s, %s)&quot;,
+                (test_user, 'valid-token')
+            )
+            result = cursor.fetchone()[0]
+            assert result is not None
+
+            # Check final state
+            cursor.execute(
+                &quot;SELECT status FROM user WHERE id = %s&quot;,
+                (test_user,)
+            )
+            status = cursor.fetchone()[0]
+            assert status == 'active'
+</code></pre>
+<h2 id="step-6-run-pytest-tests">🧪 Step 6: Run pytest Tests</h2>
+<pre><code class="language-bash"># Install test dependencies
+pip install pytest psycopg2-binary
+
+# Set database URL for tests
+export DATABASE_URL=&quot;postgresql://user:pass@localhost:5432/test_db&quot;
+
+# Run the tests
+specql test run --type pytest entities/user.yaml
+
+# Or run directly with pytest
+pytest tests/pytest/test_user_state_machine.py -v
+</code></pre>
+<p><strong>Expected output:</strong></p>
+<pre><code>tests/pytest/test_user_state_machine.py::TestUserStateMachine::test_initial_state_is_inactive
+PASSED
+tests/pytest/test_user_state_machine.py::TestUserStateMachine::test_request_verification_transition
+PASSED
+tests/pytest/test_user_state_machine.py::TestUserStateMachine::test_invalid_verification_fails
+PASSED
+tests/pytest/test_user_state_machine.py::TestUserStateMachine::test_complete_verification_workflow
+PASSED
+</code></pre>
+<h2 id="step-7-check-test-coverage">📊 Step 7: Check Test Coverage</h2>
+<pre><code class="language-bash"># Generate coverage report
+specql test coverage entities/user.yaml
+
+# View detailed coverage
+cat reports/coverage/user_coverage.html
+</code></pre>
+<p><strong>Coverage includes:</strong>
+- ✅ <strong>State transitions</strong> - All valid and invalid paths
+- ✅ <strong>Guard conditions</strong> - Precondition validation
+- ✅ <strong>Actions</strong> - Side effect execution
+- ✅ <strong>Events</strong> - Notification emission
+- ✅ <strong>Constraints</strong> - Data integrity rules
+- ✅ <strong>Edge cases</strong> - Error conditions and boundaries</p>
+<h2 id="step-8-integrate-with-cicd">🔄 Step 8: Integrate with CI/CD</h2>
+<h3 id="github-actions-example">GitHub Actions Example</h3>
+<pre><code class="language-yaml"># .github/workflows/test.yml
+name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: &gt;-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+
+      - name: Install SpecQL
+        run: pip install specql
+
+      - name: Install pgTAP
+        run: |
+          psql postgresql://postgres:postgres@localhost:5432/postgres -c &quot;CREATE EXTENSION pgtap;&quot;
+
+      - name: Generate Schema
+        run: specql generate schema entities/user.yaml
+
+      - name: Apply Schema
+        run: |
+          psql postgresql://postgres:postgres@localhost:5432/postgres -f db/schema/00_foundation/*.sql
+          psql postgresql://postgres:postgres@localhost:5432/postgres -f db/schema/10_tables/*.sql
+          psql postgresql://postgres:postgres@localhost:5432/postgres -f db/schema/40_functions/*.sql
+
+      - name: Generate Tests
+        run: specql generate tests entities/user.yaml
+
+      - name: Run pgTAP Tests
+        run: specql test run --type pgtap entities/user.yaml
+
+      - name: Run pytest Tests
+        run: specql test run --type pytest entities/user.yaml
+</code></pre>
+<h3 id="local-development">Local Development</h3>
+<pre><code class="language-bash"># Quick test cycle
+make test        # Run all tests
+make test-pgtap  # Run only pgTAP tests
+make test-pytest # Run only pytest tests
+
+# Watch mode for development
+specql test watch entities/user.yaml
+</code></pre>
+<h2 id="step-9-customize-generated-tests">🎯 Step 9: Customize Generated Tests</h2>
+<h3 id="add-custom-test-cases">Add Custom Test Cases</h3>
+<pre><code class="language-yaml"># entities/user.yaml (add to patterns)
+patterns:
+  - name: state_machine
+    # ... existing config ...
+    custom_tests:
+      - name: test_admin_can_force_activate
+        description: &quot;Administrators can force user activation&quot;
+        setup: |
+          -- Create admin user
+          INSERT INTO user (email, status) VALUES ('admin@test.com', 'active');
+        test: |
+          -- Test admin force activation
+          SELECT ok(
+            user_admin_activate('test-user-id', 'admin-id') IS NOT NULL,
+            'Admin can force user activation'
+          );
+</code></pre>
+<h3 id="test-data-factories">Test Data Factories</h3>
+<pre><code class="language-python"># tests/fixtures/user_factory.py
+def create_test_user(db_conn, **overrides):
+    &quot;&quot;&quot;Factory for creating test users&quot;&quot;&quot;
+    defaults = {
+        'email': f'test-{uuid.uuid4()}@example.com',
+        'first_name': 'Test',
+        'last_name': 'User',
+        'status': 'inactive'
+    }
+    data = {**defaults, **overrides}
+
+    with db_conn.cursor() as cursor:
+        cursor.execute(&quot;&quot;&quot;
+            INSERT INTO user (email, first_name, last_name, status)
+            VALUES (%s, %s, %s, %s)
+            RETURNING id
+        &quot;&quot;&quot;, (data['email'], data['first_name'], data['last_name'], data['status']))
+        return cursor.fetchone()[0]
+</code></pre>
+<h2 id="step-10-performance-testing">📈 Step 10: Performance Testing</h2>
+<pre><code class="language-bash"># Generate performance tests
+specql generate tests --type performance entities/user.yaml
+
+# Run performance benchmarks
+specql test run --type performance entities/user.yaml
+
+# View performance report
+cat reports/performance/user_performance.html
+</code></pre>
+<p><strong>Performance tests measure:</strong>
+- ⏱️ <strong>Query execution time</strong>
+- 📊 <strong>Memory usage</strong>
+- 🔄 <strong>Concurrent user load</strong>
+- 📈 <strong>Scalability metrics</strong></p>
+<h2 id="best-practices">🎯 Best Practices</h2>
+<h3 id="test-organization">Test Organization</h3>
+<ul>
+<li><strong>Separate concerns</strong>: pgTAP for database logic, pytest for integration</li>
+<li><strong>Use fixtures</strong>: Reusable test data setup</li>
+<li><strong>Test edge cases</strong>: Invalid inputs, boundary conditions</li>
+<li><strong>Clean up</strong>: Always remove test data</li>
+</ul>
+<h3 id="cicd-integration">CI/CD Integration</h3>
+<ul>
+<li><strong>Fast feedback</strong>: Run tests on every commit</li>
+<li><strong>Parallel execution</strong>: Split test suites</li>
+<li><strong>Coverage requirements</strong>: Enforce minimum coverage</li>
+<li><strong>Performance gates</strong>: Fail builds on performance regressions</li>
+</ul>
+<h3 id="test-maintenance">Test Maintenance</h3>
+<ul>
+<li><strong>Regenerate regularly</strong>: Keep tests in sync with schema changes</li>
+<li><strong>Review failures</strong>: Understand why tests fail</li>
+<li><strong>Update expectations</strong>: When business logic changes intentionally</li>
+</ul>
+<h2 id="troubleshooting">🆘 Troubleshooting</h2>
+<h3 id="pgtap-extension-not-found">"pgTAP extension not found"</h3>
+<pre><code class="language-bash"># Install pgTAP
+sudo apt install postgresql-pgtap  # Ubuntu
+brew install pgtap                 # macOS
+
+# Or install manually
+psql $DATABASE_URL -f /path/to/pgtap.sql
+</code></pre>
+<h3 id="test-database-not-available">"Test database not available"</h3>
+<pre><code class="language-bash"># Create test database
+createdb specql_test
+
+# Set test-specific environment
+export DATABASE_URL_TEST=&quot;postgresql://localhost/specql_test&quot;
+</code></pre>
+<h3 id="tests-pass-locally-but-fail-in-ci">"Tests pass locally but fail in CI"</h3>
+<pre><code class="language-bash"># Check environment differences
+# - PostgreSQL version
+# - Extensions installed
+# - Database permissions
+# - Environment variables
+
+# Use same versions in CI as local
+</code></pre>
+<h3 id="performance-tests-are-slow">"Performance tests are slow"</h3>
+<pre><code class="language-bash"># Reduce test data size
+# Use faster hardware
+# Optimize test queries
+# Run performance tests separately
+</code></pre>
+<h2 id="congratulations">🎉 Congratulations!</h2>
+<p>You've successfully:
+- ✅ Generated comprehensive automated tests
+- ✅ Run pgTAP tests in PostgreSQL
+- ✅ Run pytest tests with Python
+- ✅ Integrated tests into CI/CD pipeline
+- ✅ Measured test coverage and performance</p>
+<h2 id="whats-next">🚀 What's Next?</h2>
+<ul>
+<li><strong><a href="../../reference/cli-reference/">CLI Reference</a></strong> - All SpecQL commands</li>
+<li><strong><a href="../guides/test-generation/">Test Generation Guide</a></strong> - Advanced testing features</li>
+<li><strong><a href="../guides/test-generation/ci-cd-integration.md">CI/CD Integration</a></strong> - Production pipelines</li>
+</ul>
+<h2 id="related-topics">📚 Related Topics</h2>
+<ul>
+<li><strong><a href="../../guides/test-generation/pgtap-tests/">pgTAP Guide</a></strong> - PostgreSQL testing</li>
+<li><strong><a href="../../guides/test-generation/pytest-tests/">pytest Guide</a></strong> - Python integration testing</li>
+<li><strong><a href="../../guides/test-generation/performance-tests/">Performance Testing</a></strong> - Benchmarking</li>
+</ul>
+<p><strong>Ready to explore more SpecQL features? Check out the guides! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

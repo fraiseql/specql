@@ -1,0 +1,2907 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Implementation Plan: Documentation Improvements (Issue #3) - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Implementation Plan: Documentation Improvements (Issue #3)";
+        var mkdocs_page_input_path = "implementation-plans/issue-3-documentation-improvements-plan.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Implementation Plan: Documentation Improvements (Issue #3)</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="implementation-plan-documentation-improvements-issue-3">Implementation Plan: Documentation Improvements (Issue #3)</h1>
+<p><strong>Issue</strong>: https://github.com/fraiseql/specql/issues/3
+<strong>Priority</strong>: Medium (User Experience Enhancement)
+<strong>Estimated Effort</strong>: 19-24 hours (2-3 days)
+<strong>Complexity</strong>: Simple - Multiple independent documentation files
+<strong>Status</strong>: Ready for Implementation</p>
+<hr />
+<h2 id="executive-summary">🎯 Executive Summary</h2>
+<p>Create comprehensive user-facing documentation to improve SpecQL's adoption and usability. Currently, SpecQL has excellent technical/implementation docs but lacks practical user guides, complete reference documentation, and migration resources.</p>
+<p><strong>Goal</strong>: Enable new users to get started in &lt;15 minutes and successfully migrate existing databases.</p>
+<hr />
+<h2 id="deliverables-overview">📋 Deliverables Overview</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Priority</th>
+<th>Effort</th>
+<th>Dependencies</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1. <code>docs/reference/yaml-reference.md</code></td>
+<td>HIGH</td>
+<td>4h</td>
+<td>None</td>
+</tr>
+<tr>
+<td>2. <code>docs/guides/migration-guide.md</code></td>
+<td>HIGH</td>
+<td>6h</td>
+<td>#1</td>
+</tr>
+<tr>
+<td>3. <code>docs/reference/cli-reference.md</code></td>
+<td>MEDIUM</td>
+<td>3h</td>
+<td>None</td>
+</tr>
+<tr>
+<td>4. <code>docs/guides/troubleshooting.md</code></td>
+<td>MEDIUM</td>
+<td>4h</td>
+<td>#1, #3</td>
+</tr>
+<tr>
+<td>5. <code>docs/QUICK_REFERENCE.md</code></td>
+<td>LOW</td>
+<td>2h</td>
+<td>#1</td>
+</tr>
+<tr>
+<td>6. Reorganize docs structure</td>
+<td>LOW</td>
+<td>3h</td>
+<td>All above</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total</strong>: ~22 hours across 6 tasks</p>
+<p><strong>Approach</strong>: Direct execution (no TDD needed for documentation)</p>
+<hr />
+<h2 id="task-1-complete-yaml-reference">📝 Task 1: Complete YAML Reference</h2>
+<p><strong>File</strong>: <code>docs/reference/yaml-reference.md</code>
+<strong>Priority</strong>: HIGH
+<strong>Effort</strong>: 4 hours
+<strong>Dependencies</strong>: None</p>
+<h3 id="objective">Objective</h3>
+<p>Create a comprehensive, searchable reference for all SpecQL YAML syntax options.</p>
+<h3 id="content-structure">Content Structure</h3>
+<pre><code class="language-markdown"># SpecQL YAML Complete Reference
+
+## Table of Contents
+1. Entity Structure Overview
+2. Top-Level Fields
+3. Fields Section
+4. Actions Section
+5. Organization Metadata
+6. Advanced Features
+
+## 1. Entity Structure Overview
+[Minimal example with all sections]
+
+## 2. Top-Level Fields
+
+### Required Fields
+- `entity` (string, PascalCase)
+  - Description: Entity name
+  - Example: `entity: Contact`
+  - Rules: Must be PascalCase, must be unique in schema
+
+- `schema` (string, snake_case)
+  - Description: PostgreSQL schema name
+  - Example: `schema: crm`
+  - Rules: Must be registered in domain registry
+
+- `fields` (object)
+  - Description: Field definitions
+  - See Fields Section below
+
+### Optional Fields
+- `description` (string)
+  - Purpose: Entity documentation
+  - Example: `description: &quot;Customer contact information&quot;`
+  - Impact: Added as PostgreSQL comment
+
+- `organization` (object)
+  - Purpose: Advanced metadata for migrations
+  - See Organization Metadata section
+  - When to use: Migrating from existing systems with numbering
+
+- `actions` (array)
+  - Purpose: Business logic definitions
+  - See Actions Section
+
+- `translations` (array)
+  - Purpose: i18n support
+  - Status: Implemented
+  - Reference: docs/guides/i18n-guide.md (if exists)
+
+- `hierarchical` (boolean)
+  - Purpose: Enable hierarchical identifiers
+  - Default: false
+  - Reference: docs/guides/hierarchical-entities.md
+
+## 3. Fields Section
+
+### Scalar Types
+
+#### text
+- SQL Type: TEXT
+- Use for: Free-form text, names, descriptions
+- Example: `name: text`
+- Auto-generated features: None
+- Validation: None (use rich types for validated text)
+
+#### integer
+- SQL Type: INTEGER
+- Use for: Whole numbers, counts, quantities
+- Example: `quantity: integer`
+- Auto-generated features: None
+- Validation: Must be whole number
+
+#### decimal
+- SQL Type: NUMERIC
+- Use for: Monetary values, precise calculations
+- Example: `price: decimal`
+- Auto-generated features: None
+- Validation: Precision depends on PostgreSQL defaults
+
+#### boolean
+- SQL Type: BOOLEAN
+- Use for: True/false flags
+- Example: `is_active: boolean`
+- Auto-generated features: None
+- Validation: Must be true/false
+
+#### timestamp
+- SQL Type: TIMESTAMP WITH TIME ZONE
+- Use for: Precise date-time values
+- Example: `delivered_at: timestamp`
+- Auto-generated features: None (except created_at/updated_at)
+- Validation: ISO 8601 format
+
+#### date
+- SQL Type: DATE
+- Use for: Dates without time component
+- Example: `birthday: date`
+- Auto-generated features: None
+- Validation: YYYY-MM-DD format
+
+#### json
+- SQL Type: JSONB
+- Use for: Semi-structured data, flexible schemas
+- Example: `metadata: json`
+- Auto-generated features: GIN index
+- Validation: Must be valid JSON
+
+### Rich Types (Composite Types)
+
+#### email
+- SQL Type: app.email (composite)
+- Use for: Email addresses
+- Example: `contact_email: email`
+- Structure: `{address: TEXT, display_name: TEXT}`
+- Validation: Basic email format
+
+#### phone
+- SQL Type: app.phone (composite)
+- Use for: Phone numbers
+- Example: `mobile: phone`
+- Structure: `{country_code: TEXT, number: TEXT, extension: TEXT}`
+- Validation: None (international format varies)
+
+#### money
+- SQL Type: app.money (composite)
+- Use for: Monetary values with currency
+- Example: `total_amount: money`
+- Structure: `{amount: NUMERIC, currency: TEXT}`
+- Validation: ISO 4217 currency codes
+
+#### dimensions
+- SQL Type: app.dimensions (composite)
+- Use for: Physical measurements
+- Example: `package_size: dimensions`
+- Structure: `{length: NUMERIC, width: NUMERIC, height: NUMERIC, unit: TEXT}`
+- Validation: None
+
+#### contact_info
+- SQL Type: app.contact_info (composite)
+- Use for: Complete contact details
+- Example: `primary_contact: contact_info`
+- Structure: `{email: email, phone: phone, address: address}`
+- Validation: Validates nested types
+
+### Relational Types
+
+#### ref(Entity)
+- SQL Type: INTEGER (FK to tb_entity.id)
+- Use for: Foreign key relationships
+- Example: `company: ref(Company)`
+- Auto-generated features:
+  - Foreign key constraint: `fk_tb_contact_company`
+  - Index: `idx_tb_contact_company`
+  - ON DELETE RESTRICT by default
+- Validation: Referenced entity must exist
+
+#### enum(value1, value2, ...)
+- SQL Type: TEXT with CHECK constraint
+- Use for: Fixed set of values
+- Example: `status: enum(lead, qualified, customer)`
+- Auto-generated features:
+  - CHECK constraint
+  - Index: `idx_tb_contact_status`
+- Validation: Must be one of listed values
+
+#### list(Type)
+- SQL Type: Type[] (PostgreSQL array)
+- Use for: Multiple values of same type
+- Example: `tags: list(text)`
+- Auto-generated features: GIN index
+- Validation: All elements must be valid Type
+
+### Field Modifiers
+
+#### nullable
+- Syntax: `field: text?` or `field: &quot;text | null&quot;`
+- Effect: Field can be NULL
+- Default: All fields are NOT NULL
+- Example: `middle_name: text?`
+
+#### required (default)
+- Syntax: `field: text` (no modifier)
+- Effect: Field must have value
+- Example: `email: text`
+
+## 4. Actions Section
+
+### Action Structure
+```yaml
+actions:
+  - name: action_name
+    description: &quot;What this action does&quot;
+    impacts:
+      entities: [Entity1, Entity2]
+      read: [Entity3]
+      write: [Entity1]
+    steps:
+      - [step definitions]
+</code></pre>
+<h3 id="step-types">Step Types</h3>
+<h4 id="validate">validate</h4>
+<ul>
+<li>Purpose: Check preconditions</li>
+<li>Syntax: <code>validate: &lt;expression&gt;</code></li>
+<li>Example: <code>validate: status = 'draft'</code></li>
+<li>On failure: Returns error, halts execution</li>
+<li>Expression syntax: SQL WHERE clause</li>
+</ul>
+<h4 id="if">if</h4>
+<ul>
+<li>Purpose: Conditional branching</li>
+<li>Syntax:
+  ```yaml</li>
+<li>if: <condition>
+    then:<ul>
+<li>[steps]
+else:</li>
+<li>[steps]
+  ```</li>
+</ul>
+</li>
+<li>Example:
+  ```yaml</li>
+<li>if: amount &gt; 1000
+    then:<ul>
+<li>update: Order SET requires_approval = true
+else:</li>
+<li>update: Order SET approved = true
+  ```</li>
+</ul>
+</li>
+</ul>
+<h4 id="insert">insert</h4>
+<ul>
+<li>Purpose: Create new record</li>
+<li>Syntax: <code>insert: Entity [SET field = value, ...]</code></li>
+<li>Example: <code>insert: AuditLog SET action = 'created'</code></li>
+<li>Returns: Complete inserted object</li>
+<li>Auto-generated: id, created_at, created_by</li>
+</ul>
+<h4 id="update">update</h4>
+<ul>
+<li>Purpose: Modify existing record</li>
+<li>Syntax: <code>update: Entity SET field = value [WHERE condition]</code></li>
+<li>Example: <code>update: Contact SET status = 'qualified' WHERE id = :contact_id</code></li>
+<li>Returns: Updated object</li>
+<li>Auto-generated: updated_at, updated_by</li>
+</ul>
+<h4 id="soft_delete">soft_delete</h4>
+<ul>
+<li>Purpose: Mark record as deleted</li>
+<li>Syntax: <code>soft_delete: Entity [WHERE condition]</code></li>
+<li>Example: <code>soft_delete: Contact WHERE id = :id</code></li>
+<li>Effect: Sets deleted_at = NOW(), deleted_by = current_user</li>
+<li>Returns: Deleted object</li>
+</ul>
+<h4 id="call">call</h4>
+<ul>
+<li>Purpose: Invoke another action</li>
+<li>Syntax: <code>call: schema.action_name(param1: value1, ...)</code></li>
+<li>Example: <code>call: crm.send_welcome_email(contact_id: :id)</code></li>
+<li>Returns: Result from called action</li>
+</ul>
+<h4 id="notify">notify</h4>
+<ul>
+<li>Purpose: Send notification/event</li>
+<li>Syntax: <code>notify: channel WITH payload</code></li>
+<li>Example: <code>notify: contact_created WITH {contact_id: :id}</code></li>
+<li>Effect: PostgreSQL NOTIFY</li>
+</ul>
+<h4 id="foreach">foreach</h4>
+<ul>
+<li>Purpose: Loop over collection</li>
+<li>Syntax:
+  ```yaml</li>
+<li>foreach: item IN <collection>
+    do:<ul>
+<li>[steps with :item available]
+  ```</li>
+</ul>
+</li>
+<li>Example:
+  ```yaml</li>
+<li>foreach: line IN order_lines
+    do:<ul>
+<li>update: Product SET stock = stock - :line.quantity WHERE id = :line.product_id
+  ```</li>
+</ul>
+</li>
+</ul>
+<h3 id="expression-syntax">Expression Syntax</h3>
+<h4 id="variables">Variables</h4>
+<ul>
+<li><code>:param_name</code> - Input parameter</li>
+<li><code>:item.field</code> - Foreach item field</li>
+<li><code>CURRENT_TIMESTAMP</code> - Current time</li>
+<li><code>CURRENT_USER</code> - Current user UUID</li>
+</ul>
+<h4 id="operators">Operators</h4>
+<ul>
+<li>Comparison: <code>=</code>, <code>!=</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code></li>
+<li>Logical: <code>AND</code>, <code>OR</code>, <code>NOT</code></li>
+<li>Null: <code>IS NULL</code>, <code>IS NOT NULL</code></li>
+<li>Pattern: <code>LIKE</code>, <code>ILIKE</code></li>
+<li>Membership: <code>IN (value1, value2)</code></li>
+</ul>
+<h4 id="functions">Functions</h4>
+<ul>
+<li>String: <code>LOWER()</code>, <code>UPPER()</code>, <code>TRIM()</code></li>
+<li>Date: <code>NOW()</code>, <code>CURRENT_DATE</code></li>
+<li>Math: <code>ABS()</code>, <code>ROUND()</code></li>
+<li>Aggregation: Use subqueries</li>
+</ul>
+<h2 id="5-organization-metadata">5. Organization Metadata</h2>
+<h3 id="purpose">Purpose</h3>
+<p>Advanced metadata for migrations and hierarchical output structure.</p>
+<h3 id="when-to-use">When to Use</h3>
+<ul>
+<li>✅ Migrating from existing system with file numbering (e.g., <code>012311_tb_contact.sql</code>)</li>
+<li>✅ Generating hierarchical directory structure with <code>--output-format hierarchical</code></li>
+<li>✅ Maintaining traceability to legacy database code</li>
+<li>❌ New projects (not needed)</li>
+<li>❌ Simple prototypes</li>
+</ul>
+<h3 id="fields">Fields</h3>
+<h4 id="table_code">table_code</h4>
+<ul>
+<li>Type: string (6-character hex)</li>
+<li>Format: <code>[0-9A-F]{6}</code></li>
+<li>Example: <code>table_code: "012311"</code></li>
+<li>Purpose: Unique identifier for migration files</li>
+<li>Validation: Must be unique across all entities</li>
+<li>Check with: <code>specql check-codes entities/**/*.yaml</code></li>
+</ul>
+<h4 id="domain">domain</h4>
+<ul>
+<li>Type: string</li>
+<li>Example: <code>domain: "CRM"</code></li>
+<li>Purpose: High-level business domain classification</li>
+<li>Use: Documentation and organization</li>
+</ul>
+<h4 id="subdomain">subdomain</h4>
+<ul>
+<li>Type: string</li>
+<li>Example: <code>subdomain: "Customer Management"</code></li>
+<li>Purpose: Functional area within domain</li>
+<li>Use: Documentation and hierarchical structure</li>
+</ul>
+<h3 id="example">Example</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+organization:
+  table_code: &quot;012311&quot;
+  domain: &quot;CRM&quot;
+  subdomain: &quot;Customer&quot;
+fields:
+  email: text
+</code></pre>
+<h3 id="output-impact">Output Impact</h3>
+<p>With <code>--output-format hierarchical</code>:</p>
+<pre><code>db/schema/10_tables/
+└── CRM/
+    └── Customer/
+        └── 012311_contact.sql
+</code></pre>
+<p>Without (default flat):</p>
+<pre><code>db/schema/10_tables/
+└── contact.sql
+</code></pre>
+<h2 id="6-advanced-features">6. Advanced Features</h2>
+<h3 id="hierarchical-entities">Hierarchical Entities</h3>
+<p>See: <code>docs/guides/hierarchical-entities.md</code></p>
+<p>Enables tree structures with parent-child relationships.</p>
+<pre><code class="language-yaml">entity: Category
+schema: catalog
+hierarchical: true
+fields:
+  name: text
+  parent: ref(Category)?
+</code></pre>
+<p>Generates:
+- <code>identifier</code> as hierarchical path (e.g., <code>electronics/computers/laptops</code>)
+- Helper functions for tree operations
+- Recursive queries</p>
+<h3 id="multi-tenancy">Multi-Tenancy</h3>
+<p>See: <code>docs/guides/multi-tenancy.md</code></p>
+<p>Automatic <code>tenant_id</code> for multi-tenant schemas.</p>
+<p><strong>Configuration</strong>: <code>registry/domain_registry.yaml</code></p>
+<pre><code class="language-yaml">domains:
+  crm:
+    type: multi_tenant  # Adds tenant_id to all tables
+  catalog:
+    type: shared        # No tenant_id
+</code></pre>
+<p><strong>Effect</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE crm.tb_contact (
+  id INTEGER PRIMARY KEY,
+  tenant_id UUID NOT NULL REFERENCES common.tb_tenant(id),
+  -- ... other fields
+);
+</code></pre>
+<h3 id="stdlib-imports">Stdlib Imports</h3>
+<p>See: <code>stdlib/</code> directory</p>
+<p>Reusable entity templates.</p>
+<pre><code class="language-yaml"># entities/contact.yaml
+import: stdlib/crm/contact
+schema: crm  # Override schema
+fields:
+  # Additional fields beyond stdlib
+  custom_field: text
+</code></pre>
+<h2 id="7-auto-generated-features">7. Auto-Generated Features</h2>
+<h3 id="trinity-pattern">Trinity Pattern</h3>
+<p>Every entity automatically gets:
+- <code>id</code> - INTEGER primary key (main identifier)
+- <code>pk_&lt;entity&gt;</code> - UUID unique identifier (stable external reference)
+- <code>identifier</code> - TEXT unique identifier (human-readable slug)</p>
+<p><strong>Don't include these in YAML</strong> - they're always generated.</p>
+<h3 id="audit-fields">Audit Fields</h3>
+<p>Automatically added to all entities:
+- <code>created_at</code> - TIMESTAMP WITH TIME ZONE
+- <code>created_by</code> - UUID (references user)
+- <code>updated_at</code> - TIMESTAMP WITH TIME ZONE
+- <code>updated_by</code> - UUID
+- <code>deleted_at</code> - TIMESTAMP WITH TIME ZONE (NULL unless soft-deleted)
+- <code>deleted_by</code> - UUID</p>
+<h3 id="indexes">Indexes</h3>
+<p>Automatically created for:
+- Foreign key columns: <code>idx_tb_&lt;entity&gt;_&lt;field&gt;</code>
+- Enum fields: <code>idx_tb_&lt;entity&gt;_&lt;field&gt;</code>
+- <code>tenant_id</code>: <code>idx_tb_&lt;entity&gt;_tenant_id</code>
+- JSONB fields: GIN index</p>
+<h3 id="helper-functions">Helper Functions</h3>
+<p>Generated in <code>db/schema/20_helpers/</code>:
+- <code>&lt;schema&gt;.&lt;entity&gt;_pk(uuid)</code> - Get INTEGER id from UUID
+- <code>&lt;schema&gt;.&lt;entity&gt;_id(integer)</code> - Get UUID from INTEGER id
+- <code>&lt;schema&gt;.&lt;entity&gt;_identifier(text)</code> - Get INTEGER id from identifier</p>
+<h3 id="naming-conventions">Naming Conventions</h3>
+<p><strong>Tables</strong>: <code>tb_&lt;entity&gt;</code> (lowercase, snake_case)
+<strong>Views</strong>: <code>tv_&lt;entity&gt;</code> (table views)
+<strong>Foreign Keys</strong>: <code>fk_tb_&lt;entity&gt;_&lt;field&gt;</code>
+<strong>Indexes</strong>: <code>idx_tb_&lt;entity&gt;_&lt;field&gt;</code>
+<strong>Functions</strong>: <code>&lt;schema&gt;.&lt;action_name&gt;</code>
+<strong>Wrappers</strong>: <code>app.&lt;action_name&gt;</code> (GraphQL entry point)</p>
+<hr />
+<h2 id="examples-section">📖 Examples Section</h2>
+<h3 id="complete-minimal-example">Complete Minimal Example</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+fields:
+  email: text
+  name: text
+</code></pre>
+<h3 id="complete-rich-example">Complete Rich Example</h3>
+<pre><code class="language-yaml">entity: Order
+schema: commerce
+description: &quot;Customer purchase orders&quot;
+organization:
+  table_code: &quot;042001&quot;
+  domain: &quot;Commerce&quot;
+  subdomain: &quot;Orders&quot;
+fields:
+  order_number: text
+  customer: ref(Customer)
+  status: enum(draft, confirmed, shipped, delivered, cancelled)
+  total_amount: money
+  shipping_address: json
+  notes: text?
+  delivered_at: timestamp?
+actions:
+  - name: confirm_order
+    description: &quot;Confirm a draft order&quot;
+    impacts:
+      write: [Order]
+      read: [Customer, Product]
+    steps:
+      - validate: status = 'draft'
+      - validate: total_amount.amount &gt; 0
+      - update: Order SET status = 'confirmed', confirmed_at = NOW()
+      - notify: order_confirmed WITH {order_id: :id}
+
+  - name: ship_order
+    description: &quot;Mark order as shipped&quot;
+    impacts:
+      write: [Order, OrderLine, Product]
+    steps:
+      - validate: status = 'confirmed'
+      - foreach: line IN (SELECT * FROM commerce.tb_order_line WHERE order_id = :id)
+        do:
+          - update: Product SET stock = stock - :line.quantity WHERE id = :line.product_id
+      - update: Order SET status = 'shipped', shipped_at = NOW()
+      - call: notifications.send_tracking_email(order_id: :id)
+</code></pre>
+<hr />
+<h2 id="reference">🔍 Reference</h2>
+<h3 id="related-documentation">Related Documentation</h3>
+<ul>
+<li><strong>Guides</strong>: <code>docs/guides/</code> - How-to tutorials</li>
+<li><strong>Architecture</strong>: <code>docs/architecture/</code> - Technical design</li>
+<li><strong>CLI Reference</strong>: <code>docs/reference/cli-reference.md</code></li>
+<li><strong>Troubleshooting</strong>: <code>docs/guides/troubleshooting.md</code></li>
+</ul>
+<h3 id="external-references">External References</h3>
+<ul>
+<li>PostgreSQL Data Types: https://www.postgresql.org/docs/current/datatype.html</li>
+<li>SQL Syntax: https://www.postgresql.org/docs/current/sql.html</li>
+<li>GraphQL: https://graphql.org/</li>
+</ul>
+<hr />
+<h2 id="validation-checklist">✅ Validation Checklist</h2>
+<p>Before finalizing this reference:
+- [ ] All field types documented with examples
+- [ ] All action step types explained
+- [ ] Organization section clearly marked as optional/advanced
+- [ ] Auto-generated features explicitly listed
+- [ ] Common gotchas addressed (e.g., text vs string)
+- [ ] Examples are copy-paste ready
+- [ ] Links to related docs work
+- [ ] Table of contents is accurate</p>
+<pre><code>
+### Implementation Steps
+
+1. **Create file structure**:
+   ```bash
+   mkdir -p docs/reference
+   touch docs/reference/yaml-reference.md
+   ```
+
+2. **Write content sections in order**:
+   - Start with Table of Contents
+   - Write Entity Structure Overview
+   - Document each field type (reference existing code in `src/core/models/field.py`)
+   - Document each action step (reference `src/generators/actions/step_compilers/`)
+   - Add examples from tests (`tests/unit/core/test_entity_parser.py`)
+
+3. **Validate examples**:
+   ```bash
+   # Extract YAML examples to temp files
+   # Run: specql validate &lt;temp-file&gt;
+   # Ensure all examples parse correctly
+   ```
+
+4. **Cross-reference existing docs**:
+   - Link to `docs/guides/actions-guide.md`
+   - Link to `docs/guides/multi-tenancy.md`
+   - Link to `docs/reference/scalar-types.md`
+
+### Quality Criteria
+- [ ] Every YAML key is documented
+- [ ] Every field type has an example
+- [ ] Every action step type has an example
+- [ ] All examples validate successfully
+- [ ] Clear distinction between required/optional
+- [ ] Clear marking of auto-generated features
+
+---
+
+## 📝 Task 2: Migration Guide
+
+**File**: `docs/guides/migration-guide.md`
+**Priority**: HIGH
+**Effort**: 6 hours
+**Dependencies**: Task 1 (YAML Reference)
+
+### Objective
+Enable teams to migrate existing PostgreSQL databases to SpecQL with clear, step-by-step instructions.
+
+### Content Structure
+
+```markdown
+# Migrating Existing Databases to SpecQL
+
+## Overview
+This guide helps you convert existing PostgreSQL schemas to SpecQL YAML definitions.
+
+**Time Estimate**: 1-2 hours per 10 tables
+**Difficulty**: Intermediate
+**Prerequisites**:
+- Existing PostgreSQL database
+- Understanding of your schema structure
+- SpecQL installed (`uv add specql-generator`)
+
+---
+
+## 🎯 Migration Strategy
+
+### 1. Inventory Phase (30 minutes)
+Understand what you have.
+
+### 2. Mapping Phase (1-2 hours per 10 tables)
+Convert SQL → YAML.
+
+### 3. Validation Phase (1 hour)
+Verify generated SQL matches intent.
+
+### 4. Testing Phase (1-2 hours)
+Test in development environment.
+
+---
+
+## Step 1: Export Current Schema
+
+### Export DDL
+```bash
+# Full schema dump
+pg_dump --schema-only mydb &gt; schema_export.sql
+
+# Specific schema only
+pg_dump --schema-only --schema=crm mydb &gt; crm_schema.sql
+
+# Exclude framework schemas
+pg_dump --schema-only \
+  --exclude-schema=information_schema \
+  --exclude-schema=pg_catalog \
+  mydb &gt; app_schema.sql
+</code></pre>
+<h3 id="analyze-schema">Analyze Schema</h3>
+<pre><code class="language-bash"># List all tables
+psql mydb -c &quot;\dt crm.*&quot;
+
+# Show table structure
+psql mydb -c &quot;\d crm.contacts&quot;
+
+# Show foreign keys
+psql mydb -c &quot;
+  SELECT
+    tc.table_name,
+    kcu.column_name,
+    ccu.table_name AS foreign_table_name,
+    ccu.column_name AS foreign_column_name
+  FROM information_schema.table_constraints AS tc
+  JOIN information_schema.key_column_usage AS kcu
+    ON tc.constraint_name = kcu.constraint_name
+  JOIN information_schema.constraint_column_usage AS ccu
+    ON ccu.constraint_name = tc.constraint_name
+  WHERE tc.constraint_type = 'FOREIGN KEY'
+    AND tc.table_schema = 'crm';
+&quot;
+</code></pre>
+<hr />
+<h2 id="step-2-map-tables-to-entities">Step 2: Map Tables to Entities</h2>
+<h3 id="mapping-rules">Mapping Rules</h3>
+<h4 id="table-names">Table Names</h4>
+<p><strong>SQL</strong>: <code>crm.contacts</code>, <code>crm.tb_contact</code>, <code>contact</code>
+<strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">entity: Contact  # Singular, PascalCase
+schema: crm      # Schema name
+</code></pre>
+<p><strong>Rule</strong>: Drop <code>tb_</code> prefix, singularize, PascalCase</p>
+<h4 id="column-types">Column Types</h4>
+<table>
+<thead>
+<tr>
+<th>SQL Type</th>
+<th>SpecQL Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TEXT</code>, <code>VARCHAR</code></td>
+<td><code>text</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>INTEGER</code>, <code>INT</code></td>
+<td><code>integer</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>NUMERIC</code>, <code>DECIMAL</code></td>
+<td><code>decimal</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>BOOLEAN</code></td>
+<td><code>boolean</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>TIMESTAMP</code></td>
+<td><code>timestamp</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>DATE</code></td>
+<td><code>date</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>JSONB</code>, <code>JSON</code></td>
+<td><code>json</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>TEXT[]</code></td>
+<td><code>list(text)</code></td>
+<td>Arrays</td>
+</tr>
+<tr>
+<td><code>INTEGER REFERENCES</code></td>
+<td><code>ref(Entity)</code></td>
+<td>Foreign keys</td>
+</tr>
+<tr>
+<td><code>TEXT CHECK (...)</code></td>
+<td><code>enum(...)</code></td>
+<td>Extract values</td>
+</tr>
+</tbody>
+</table>
+<h4 id="foreign-keys">Foreign Keys</h4>
+<p><strong>SQL</strong>:</p>
+<pre><code class="language-sql">company_id INTEGER REFERENCES companies(id)
+</code></pre>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">company: ref(Company)
+</code></pre>
+<p><strong>Rule</strong>:
+1. Drop <code>_id</code> suffix from column name
+2. Reference entity name in PascalCase
+3. SpecQL generates FK constraint automatically</p>
+<h4 id="enums-check-constraints">Enums (CHECK Constraints)</h4>
+<p><strong>SQL</strong>:</p>
+<pre><code class="language-sql">status TEXT CHECK (status IN ('lead', 'qualified', 'customer'))
+</code></pre>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">status: enum(lead, qualified, customer)
+</code></pre>
+<p><strong>Rule</strong>: Extract values from CHECK constraint</p>
+<h4 id="nullable-columns">Nullable Columns</h4>
+<p><strong>SQL</strong>:</p>
+<pre><code class="language-sql">middle_name TEXT NULL
+</code></pre>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">middle_name: text?
+</code></pre>
+<p><strong>Rule</strong>: Add <code>?</code> suffix for nullable fields</p>
+<hr />
+<h2 id="step-3-handle-auto-generated-fields">Step 3: Handle Auto-Generated Fields</h2>
+<h3 id="fields-to-exclude-from-yaml">Fields to EXCLUDE from YAML</h3>
+<p>SpecQL auto-generates these - <strong>do not include</strong>:</p>
+<h4 id="trinity-pattern_1">Trinity Pattern</h4>
+<pre><code class="language-sql">-- DON'T INCLUDE:
+id INTEGER PRIMARY KEY
+uuid UUID UNIQUE
+slug TEXT UNIQUE
+</code></pre>
+<p><strong>Reason</strong>: Trinity pattern is always generated</p>
+<h4 id="audit-fields_1">Audit Fields</h4>
+<pre><code class="language-sql">-- DON'T INCLUDE:
+created_at TIMESTAMP DEFAULT NOW()
+updated_at TIMESTAMP
+deleted_at TIMESTAMP
+created_by UUID
+updated_by UUID
+deleted_by UUID
+</code></pre>
+<p><strong>Reason</strong>: Audit fields are always generated</p>
+<h4 id="multi-tenant-fields">Multi-Tenant Fields</h4>
+<pre><code class="language-sql">-- DON'T INCLUDE (if schema is multi-tenant):
+tenant_id UUID REFERENCES tenants(id)
+</code></pre>
+<p><strong>Reason</strong>: Generated based on domain registry</p>
+<h4 id="indexes_1">Indexes</h4>
+<pre><code class="language-sql">-- DON'T INCLUDE:
+CREATE INDEX idx_contacts_company_id ON contacts(company_id);
+CREATE INDEX idx_contacts_status ON contacts(status);
+</code></pre>
+<p><strong>Reason</strong>: Indexes auto-generated for FKs and enums</p>
+<h3 id="fields-to-include">Fields to INCLUDE</h3>
+<p>Only include <strong>business domain fields</strong>:</p>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+fields:
+  # ✅ Include: Business fields
+  email: text
+  first_name: text
+  last_name: text
+  company: ref(Company)
+  status: enum(lead, qualified, customer)
+  notes: text?
+
+  # ❌ Don't include: Auto-generated
+  # id, uuid, slug, created_at, updated_at, tenant_id
+</code></pre>
+<hr />
+<h2 id="step-4-convert-business-logic">Step 4: Convert Business Logic</h2>
+<h3 id="triggers-actions">Triggers → Actions</h3>
+<p><strong>SQL Trigger</strong>:</p>
+<pre><code class="language-sql">CREATE FUNCTION qualify_lead() RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.status = 'qualified' AND OLD.status = 'lead' THEN
+    UPDATE contacts
+    SET qualified_at = NOW()
+    WHERE id = NEW.id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER qualify_lead_trigger
+  AFTER UPDATE ON contacts
+  FOR EACH ROW
+  EXECUTE FUNCTION qualify_lead();
+</code></pre>
+<p><strong>SpecQL Action</strong>:</p>
+<pre><code class="language-yaml">actions:
+  - name: qualify_lead
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified', qualified_at = NOW()
+</code></pre>
+<p><strong>Benefits</strong>:
+- No trigger syntax
+- Declarative steps
+- Automatic GraphQL integration
+- Built-in error handling</p>
+<h3 id="stored-procedures-actions">Stored Procedures → Actions</h3>
+<p><strong>SQL Procedure</strong>:</p>
+<pre><code class="language-sql">CREATE FUNCTION archive_contact(contact_id INTEGER)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE contacts
+  SET deleted_at = NOW(), deleted_by = current_user
+  WHERE id = contact_id;
+
+  INSERT INTO audit_log (entity_type, entity_id, action)
+  VALUES ('contact', contact_id, 'archived');
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<p><strong>SpecQL Action</strong>:</p>
+<pre><code class="language-yaml">actions:
+  - name: archive_contact
+    steps:
+      - soft_delete: Contact
+      - insert: AuditLog SET entity_type = 'contact', action = 'archived'
+</code></pre>
+<hr />
+<h2 id="step-5-preserve-existing-table-codes">Step 5: Preserve Existing Table Codes</h2>
+<p>If you have numbered migration files (e.g., <code>001_contacts.sql</code>, <code>002_companies.sql</code>):</p>
+<h3 id="extract-table-codes">Extract Table Codes</h3>
+<pre><code class="language-bash"># List migration files
+ls db/migrations/
+
+# Output:
+# 001_contacts.sql
+# 002_companies.sql
+# 003_orders.sql
+</code></pre>
+<h3 id="add-to-yaml">Add to YAML</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+organization:
+  table_code: &quot;000001&quot;  # Pad to 6 hex digits
+fields:
+  # ... fields
+</code></pre>
+<h3 id="validate-uniqueness">Validate Uniqueness</h3>
+<pre><code class="language-bash">specql check-codes entities/**/*.yaml
+</code></pre>
+<p><strong>Output</strong>:</p>
+<pre><code>✅ All table codes are unique
+📊 3 entities with table codes
+</code></pre>
+<hr />
+<h2 id="step-6-create-domain-registry">Step 6: Create Domain Registry</h2>
+<p>Configure schema types (multi-tenant vs shared):</p>
+<p><strong>File</strong>: <code>registry/domain_registry.yaml</code></p>
+<pre><code class="language-yaml">domains:
+  # Multi-tenant schemas (add tenant_id)
+  crm:
+    type: multi_tenant
+    description: &quot;Customer relationship management&quot;
+
+  projects:
+    type: multi_tenant
+    description: &quot;Project management&quot;
+
+  # Shared schemas (no tenant_id)
+  catalog:
+    type: shared
+    description: &quot;Product catalog&quot;
+
+  analytics:
+    type: shared
+    description: &quot;Cross-tenant analytics&quot;
+</code></pre>
+<hr />
+<h2 id="step-7-generate-and-compare">Step 7: Generate and Compare</h2>
+<h3 id="generate-specql-schema">Generate SpecQL Schema</h3>
+<pre><code class="language-bash"># Generate all entities
+specql generate entities/**/*.yaml
+
+# Output directory:
+# db/schema/10_tables/
+# db/schema/20_helpers/
+# db/schema/30_functions/
+</code></pre>
+<h3 id="compare-with-original">Compare with Original</h3>
+<pre><code class="language-bash"># Compare table structure
+diff -u schema_export.sql db/schema/10_tables/contact.sql
+
+# Focus on business logic (ignore auto-generated differences)
+</code></pre>
+<h3 id="expected-differences">Expected Differences</h3>
+<p>✅ <strong>Safe to ignore</strong>:
+- Trinity pattern columns (<code>id</code>, <code>pk_*</code>, <code>identifier</code>)
+- Audit fields (<code>created_at</code>, <code>updated_at</code>, etc.)
+- Auto-generated indexes
+- Naming conventions (<code>tb_</code> prefix vs original name)</p>
+<p>⚠️ <strong>Review carefully</strong>:
+- Missing business columns
+- Different field types
+- Missing foreign keys
+- Different constraints</p>
+<hr />
+<h2 id="step-8-test-in-development">Step 8: Test in Development</h2>
+<h3 id="apply-generated-schema">Apply Generated Schema</h3>
+<pre><code class="language-bash"># Create test database
+createdb specql_migration_test
+
+# Apply foundation
+psql specql_migration_test -f db/schema/00_foundation/000_app_foundation.sql
+
+# Apply tables
+psql specql_migration_test -f db/schema/10_tables/*.sql
+
+# Apply helpers
+psql specql_migration_test -f db/schema/20_helpers/*.sql
+
+# Apply actions
+psql specql_migration_test -f db/schema/30_functions/*.sql
+</code></pre>
+<h3 id="migrate-data">Migrate Data</h3>
+<pre><code class="language-bash"># Export data from original
+pg_dump --data-only --schema=crm mydb &gt; data_export.sql
+
+# Map column names if needed
+sed 's/company_id/company/g' data_export.sql &gt; data_mapped.sql
+
+# Import to test database
+psql specql_migration_test -f data_mapped.sql
+</code></pre>
+<h3 id="validate-data">Validate Data</h3>
+<pre><code class="language-sql">-- Check row counts
+SELECT 'contacts' as table, count(*) FROM crm.tb_contact
+UNION ALL
+SELECT 'companies', count(*) FROM crm.tb_company;
+
+-- Validate foreign keys
+SELECT count(*) FROM crm.tb_contact WHERE company IS NULL;
+
+-- Check constraints
+SELECT status, count(*) FROM crm.tb_contact GROUP BY status;
+</code></pre>
+<hr />
+<h2 id="common-migration-patterns">Common Migration Patterns</h2>
+<h3 id="pattern-1-serial-ids-trinity">Pattern 1: Serial IDs → Trinity</h3>
+<p><strong>Before</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE contacts (
+  id SERIAL PRIMARY KEY,
+  -- ...
+);
+</code></pre>
+<p><strong>After</strong> (auto-generated):</p>
+<pre><code class="language-sql">CREATE TABLE crm.tb_contact (
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  pk_contact UUID DEFAULT gen_random_uuid() UNIQUE,
+  identifier TEXT UNIQUE,
+  -- ...
+);
+</code></pre>
+<p><strong>Migration</strong>:
+- Keep original <code>id</code> values
+- Generate <code>pk_*</code> UUID for new external references
+- Generate <code>identifier</code> from business key (e.g., email, name)</p>
+<h3 id="pattern-2-manual-audit-automatic">Pattern 2: Manual Audit → Automatic</h3>
+<p><strong>Before</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE contacts (
+  -- ...
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP
+);
+
+CREATE TRIGGER update_timestamp
+  BEFORE UPDATE ON contacts
+  FOR EACH ROW
+  EXECUTE FUNCTION update_modified_column();
+</code></pre>
+<p><strong>After</strong> (auto-generated):</p>
+<pre><code class="language-sql">-- Fields added automatically
+-- Triggers added automatically
+-- updated_by tracking added automatically
+</code></pre>
+<p><strong>Migration</strong>:
+- Remove manual triggers
+- SpecQL handles updates automatically</p>
+<h3 id="pattern-3-check-constraints-enums">Pattern 3: CHECK Constraints → Enums</h3>
+<p><strong>Before</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE contacts (
+  status TEXT CHECK (status IN ('lead', 'qualified', 'customer')),
+  priority TEXT CHECK (priority IN ('low', 'medium', 'high'))
+);
+</code></pre>
+<p><strong>After</strong>:</p>
+<pre><code class="language-yaml">fields:
+  status: enum(lead, qualified, customer)
+  priority: enum(low, medium, high)
+</code></pre>
+<p><strong>Migration</strong>:
+- Extract enum values from CHECK constraints
+- Validate data matches enum values
+- SpecQL generates CHECK constraint automatically</p>
+<h3 id="pattern-4-composite-types">Pattern 4: Composite Types</h3>
+<p><strong>Before</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE contacts (
+  email_address TEXT,
+  email_display_name TEXT,
+  phone_country TEXT,
+  phone_number TEXT,
+  phone_extension TEXT
+);
+</code></pre>
+<p><strong>After</strong>:</p>
+<pre><code class="language-yaml">fields:
+  email: email  # Composite: {address, display_name}
+  phone: phone  # Composite: {country_code, number, extension}
+</code></pre>
+<p><strong>Migration</strong>:</p>
+<pre><code class="language-sql">-- Map existing columns to composite type
+UPDATE crm.tb_contact SET
+  email = ROW(email_address, email_display_name)::app.email,
+  phone = ROW(phone_country, phone_number, phone_extension)::app.phone;
+</code></pre>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="issue-table-code-already-assigned">Issue: "Table code already assigned"</h3>
+<p><strong>Symptom</strong>:</p>
+<pre><code>ValueError: Table code 012311 already assigned to Contact
+</code></pre>
+<p><strong>Solution</strong>:</p>
+<pre><code class="language-bash">specql check-codes entities/**/*.yaml
+</code></pre>
+<p>Each entity must have unique <code>table_code</code>.</p>
+<h3 id="issue-unknown-field-type">Issue: "Unknown field type"</h3>
+<p><strong>Symptom</strong>:</p>
+<pre><code>Parse Error: Unknown field type 'varchar'
+</code></pre>
+<p><strong>Solution</strong>: Use SpecQL type names
+- ❌ <code>varchar</code> → ✅ <code>text</code>
+- ❌ <code>int</code> → ✅ <code>integer</code>
+- ❌ <code>bool</code> → ✅ <code>boolean</code></p>
+<p>See: <code>docs/reference/yaml-reference.md#scalar-types</code></p>
+<h3 id="issue-foreign-key-references-wrong-column">Issue: Foreign key references wrong column</h3>
+<p><strong>Symptom</strong>:</p>
+<pre><code class="language-sql">-- Generated:
+FOREIGN KEY (company) REFERENCES crm.tb_company(id)
+-- But original was:
+FOREIGN KEY (company_id) REFERENCES companies(company_uuid)
+</code></pre>
+<p><strong>Solution</strong>: SpecQL always references <code>id</code> (INTEGER PK)
+- If original uses UUID: Map to new <code>pk_*</code> column
+- If original uses different PK: Requires manual migration</p>
+<h3 id="issue-missing-custom-indexes">Issue: Missing custom indexes</h3>
+<p><strong>Symptom</strong>: Original has <code>CREATE INDEX idx_contacts_email</code> but SpecQL doesn't generate it.</p>
+<p><strong>Solution</strong>:
+- SpecQL auto-indexes FKs and enums
+- For custom indexes, add manually to <code>db/schema/10_tables/contact.sql</code> after generation
+- Or request feature: Rich type with auto-index (e.g., <code>email: email</code> could auto-index)</p>
+<hr />
+<h2 id="migration-checklist">Migration Checklist</h2>
+<h3 id="pre-migration">Pre-Migration</h3>
+<ul>
+<li>[ ] Export current schema (<code>pg_dump --schema-only</code>)</li>
+<li>[ ] Document custom business logic (triggers, procedures)</li>
+<li>[ ] Identify table numbering scheme (if any)</li>
+<li>[ ] List all schemas (multi-tenant vs shared)</li>
+<li>[ ] Back up production data</li>
+</ul>
+<h3 id="mapping-phase">Mapping Phase</h3>
+<ul>
+<li>[ ] Create <code>entities/</code> directory structure</li>
+<li>[ ] Create domain registry (<code>registry/domain_registry.yaml</code>)</li>
+<li>[ ] Map each table → YAML entity</li>
+<li>[ ] Extract CHECK constraints → enums</li>
+<li>[ ] Convert foreign keys → ref()</li>
+<li>[ ] Add table codes if preserving numbering</li>
+<li>[ ] Validate all YAML files (<code>specql validate</code>)</li>
+</ul>
+<h3 id="generation-phase">Generation Phase</h3>
+<ul>
+<li>[ ] Generate schema (<code>specql generate entities/**/*.yaml</code>)</li>
+<li>[ ] Review generated SQL</li>
+<li>[ ] Compare with original schema</li>
+<li>[ ] Verify naming conventions applied</li>
+<li>[ ] Check auto-generated indexes</li>
+</ul>
+<h3 id="testing-phase">Testing Phase</h3>
+<ul>
+<li>[ ] Create test database</li>
+<li>[ ] Apply generated schema</li>
+<li>[ ] Migrate sample data</li>
+<li>[ ] Validate data integrity</li>
+<li>[ ] Test actions/business logic</li>
+<li>[ ] Performance test with real data volume</li>
+</ul>
+<h3 id="production-cutover">Production Cutover</h3>
+<ul>
+<li>[ ] Schedule maintenance window</li>
+<li>[ ] Final data export from old schema</li>
+<li>[ ] Apply new schema to production</li>
+<li>[ ] Migrate data with mapping scripts</li>
+<li>[ ] Validate foreign key constraints</li>
+<li>[ ] Smoke test critical workflows</li>
+<li>[ ] Monitor for errors</li>
+</ul>
+<hr />
+<h2 id="example-complete-migration">Example: Complete Migration</h2>
+<h3 id="original-schema">Original Schema</h3>
+<pre><code class="language-sql">-- Original: 42 lines SQL
+CREATE TABLE crm.contacts (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  first_name TEXT,
+  last_name TEXT,
+  company_id INTEGER REFERENCES companies(id),
+  status TEXT CHECK (status IN ('lead', 'qualified', 'customer')),
+  priority TEXT CHECK (priority IN ('low', 'medium', 'high')),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP,
+  deleted_at TIMESTAMP,
+  UNIQUE(email)
+);
+
+CREATE INDEX idx_contacts_company ON contacts(company_id);
+CREATE INDEX idx_contacts_status ON contacts(status);
+
+CREATE FUNCTION qualify_lead(contact_id INTEGER) RETURNS VOID AS $$
+BEGIN
+  UPDATE contacts
+  SET status = 'qualified', updated_at = NOW()
+  WHERE id = contact_id AND status = 'lead';
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h3 id="specql-yaml">SpecQL YAML</h3>
+<pre><code class="language-yaml"># Migrated: 15 lines YAML (3x less code)
+entity: Contact
+schema: crm
+organization:
+  table_code: &quot;012311&quot;
+fields:
+  email: text
+  first_name: text
+  last_name: text
+  company: ref(Company)
+  status: enum(lead, qualified, customer)
+  priority: enum(low, medium, high)
+  notes: text?
+actions:
+  - name: qualify_lead
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+</code></pre>
+<h3 id="generated-schema">Generated Schema</h3>
+<pre><code class="language-sql">-- Generated: 87 lines SQL (includes Trinity, audit, helpers, GraphQL)
+CREATE TABLE crm.tb_contact (
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  pk_contact UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+  identifier TEXT UNIQUE NOT NULL,
+  tenant_id UUID NOT NULL REFERENCES common.tb_tenant(pk_tenant),
+  email TEXT NOT NULL,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  company INTEGER NOT NULL REFERENCES crm.tb_company(id),
+  status TEXT NOT NULL CHECK (status IN ('lead', 'qualified', 'customer')),
+  priority TEXT NOT NULL CHECK (priority IN ('low', 'medium', 'high')),
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  created_by UUID NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  updated_by UUID NOT NULL,
+  deleted_at TIMESTAMP WITH TIME ZONE,
+  deleted_by UUID
+);
+
+CREATE UNIQUE INDEX idx_tb_contact_email ON crm.tb_contact(email);
+CREATE INDEX idx_tb_contact_company ON crm.tb_contact(company);
+CREATE INDEX idx_tb_contact_status ON crm.tb_contact(status);
+CREATE INDEX idx_tb_contact_tenant_id ON crm.tb_contact(tenant_id);
+
+-- Helper functions
+CREATE FUNCTION crm.contact_pk(uuid_val UUID) RETURNS INTEGER ...
+CREATE FUNCTION crm.contact_id(id_val INTEGER) RETURNS UUID ...
+
+-- Business action
+CREATE FUNCTION crm.qualify_lead(...) RETURNS app.mutation_result ...
+
+-- GraphQL wrapper
+CREATE FUNCTION app.qualify_lead(...) RETURNS app.mutation_result ...
+</code></pre>
+<p><strong>Result</strong>:
+- 15 lines YAML → 87 lines production SQL
+- <strong>6x code leverage</strong>
+- Trinity pattern included
+- GraphQL ready
+- Audit trail built-in</p>
+<hr />
+<h2 id="next-steps">Next Steps</h2>
+<p>After successful migration:
+1. <strong>Update CI/CD</strong>: Use <code>specql generate</code> in build pipeline
+2. <strong>Train team</strong>: Share YAML reference and guides
+3. <strong>Deprecate old migrations</strong>: Archive SQL files, use YAML as source of truth
+4. <strong>Add actions</strong>: Migrate remaining business logic to SpecQL actions
+5. <strong>Enable GraphQL</strong>: Configure FraiseQL for frontend integration</p>
+<hr />
+<h2 id="resources">Resources</h2>
+<ul>
+<li><strong>YAML Reference</strong>: <code>docs/reference/yaml-reference.md</code></li>
+<li><strong>CLI Reference</strong>: <code>docs/reference/cli-reference.md</code></li>
+<li><strong>Troubleshooting</strong>: <code>docs/guides/troubleshooting.md</code></li>
+<li><strong>Examples</strong>: <code>examples/entities/</code></li>
+<li><strong>Stdlib</strong>: <code>stdlib/</code> (reusable templates)</li>
+</ul>
+<hr />
+<h2 id="support">Support</h2>
+<p><strong>Questions?</strong>
+- Search issues: https://github.com/fraiseql/specql/issues
+- Create issue with:
+  - Original SQL schema
+  - Generated YAML
+  - Generated SQL
+  - Specific differences/questions</p>
+<pre><code>
+### Implementation Steps
+
+1. **Create file**:
+   ```bash
+   touch docs/guides/migration-guide.md
+   ```
+
+2. **Write content** following structure above
+
+3. **Create example migration**:
+   ```bash
+   mkdir -p examples/migration
+   # Add before.sql, after.yaml, comparison.md
+   ```
+
+4. **Test migration steps**:
+   - Create test database
+   - Follow guide step-by-step
+   - Document any issues
+   - Refine guide based on experience
+
+5. **Cross-reference**:
+   - Link to YAML reference
+   - Link to CLI reference
+   - Link to troubleshooting
+
+### Quality Criteria
+- [ ] Step-by-step instructions are clear
+- [ ] Common patterns documented
+- [ ] Complete example provided
+- [ ] Troubleshooting section comprehensive
+- [ ] Checklist is actionable
+- [ ] All steps tested in practice
+
+---
+
+## 📝 Task 3: CLI Reference
+
+**File**: `docs/reference/cli-reference.md`
+**Priority**: MEDIUM
+**Effort**: 3 hours
+**Dependencies**: None
+
+### Objective
+Document all CLI commands, options, and usage patterns.
+
+### Content Structure
+
+```markdown
+# SpecQL CLI Reference
+
+## Installation
+
+### Via UV (Recommended)
+```bash
+uv add specql-generator
+</code></pre>
+<h3 id="via-git-development">Via Git (Development)</h3>
+<pre><code class="language-bash">git clone https://github.com/fraiseql/specql
+cd specql
+uv sync
+</code></pre>
+<h3 id="verify-installation">Verify Installation</h3>
+<pre><code class="language-bash">specql --version
+specql --help
+</code></pre>
+<hr />
+<h2 id="commands-overview">Commands Overview</h2>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Purpose</th>
+<th>Priority</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>generate</code></td>
+<td>Generate SQL from YAML</td>
+<td>HIGH</td>
+</tr>
+<tr>
+<td><code>validate</code></td>
+<td>Validate YAML syntax</td>
+<td>HIGH</td>
+</tr>
+<tr>
+<td><code>check-codes</code></td>
+<td>Check table code uniqueness</td>
+<td>MEDIUM</td>
+</tr>
+<tr>
+<td><code>diff</code></td>
+<td>Compare generated vs existing SQL</td>
+<td>LOW</td>
+</tr>
+<tr>
+<td><code>docs</code></td>
+<td>Generate documentation</td>
+<td>LOW</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="specql-generate"><code>specql generate</code></h2>
+<p>Generate PostgreSQL schema and functions from SpecQL YAML files.</p>
+<h3 id="syntax">Syntax</h3>
+<pre><code class="language-bash">specql generate [OPTIONS] ENTITY_FILES...
+</code></pre>
+<h3 id="arguments">Arguments</h3>
+<ul>
+<li><code>ENTITY_FILES...</code> - One or more YAML entity files or glob patterns</li>
+</ul>
+<h3 id="options">Options</h3>
+<h4 id="-foundation-only"><code>--foundation-only</code></h4>
+<p>Generate only the app foundation SQL (types, schemas).</p>
+<p><strong>Use case</strong>: Initialize database before adding entities.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql generate entities/contact.yaml --foundation-only
+</code></pre>
+<p><strong>Output</strong>: <code>db/schema/00_foundation/000_app_foundation.sql</code></p>
+<h4 id="-include-tv"><code>--include-tv</code></h4>
+<p>Generate table views (CQRS read-side).</p>
+<p><strong>Use case</strong>: Enable read-optimized views for queries.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql generate entities/**/*.yaml --include-tv
+</code></pre>
+<p><strong>Output</strong>:
+- <code>db/schema/10_tables/</code> - Tables
+- <code>db/schema/10_tables/views/</code> - Table views</p>
+<h4 id="-env-text"><code>--env TEXT</code></h4>
+<p>Specify Confiture environment (default: <code>local</code>).</p>
+<p><strong>Use case</strong>: Generate for different environments (local, staging, prod).</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql generate entities/**/*.yaml --env staging
+</code></pre>
+<p><strong>Config</strong>: Uses <code>confiture.yaml</code> environment settings.</p>
+<h4 id="-with-impacts"><code>--with-impacts</code></h4>
+<p>Generate FraiseQL impact metadata (JSON).</p>
+<p><strong>Use case</strong>: Frontend integration, GraphQL client codegen.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql generate entities/**/*.yaml --with-impacts
+</code></pre>
+<p><strong>Output</strong>: <code>db/metadata/mutation_impacts.json</code></p>
+<h4 id="-output-frontend-path"><code>--output-frontend PATH</code></h4>
+<p>Generate frontend code (TypeScript types, Apollo hooks).</p>
+<p><strong>Use case</strong>: Full-stack codegen from YAML.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql generate entities/**/*.yaml \
+  --with-impacts \
+  --output-frontend=src/generated
+</code></pre>
+<p><strong>Output</strong>:
+- <code>src/generated/types.ts</code> - TypeScript types
+- <code>src/generated/mutations.ts</code> - Apollo hooks
+- <code>src/generated/docs/</code> - Markdown documentation</p>
+<h4 id="-output-format-flathierarchical"><code>--output-format [flat|hierarchical]</code></h4>
+<p>Control output directory structure.</p>
+<p><strong>Use case</strong>: Organize generated files by domain/subdomain.</p>
+<p><strong>Options</strong>:
+- <code>flat</code> (default): All files in single directory
+- <code>hierarchical</code>: Organize by <code>organization.domain</code> / <code>organization.subdomain</code></p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql generate entities/**/*.yaml --output-format hierarchical
+</code></pre>
+<p><strong>Output (flat)</strong>:</p>
+<pre><code>db/schema/10_tables/
+├── contact.sql
+├── company.sql
+└── order.sql
+</code></pre>
+<p><strong>Output (hierarchical)</strong>:</p>
+<pre><code>db/schema/10_tables/
+├── CRM/
+│   ├── Customer/
+│   │   └── 012311_contact.sql
+│   └── Account/
+│       └── 012312_company.sql
+└── Commerce/
+    └── Orders/
+        └── 042001_order.sql
+</code></pre>
+<h3 id="examples">Examples</h3>
+<h4 id="single-entity">Single Entity</h4>
+<pre><code class="language-bash">specql generate entities/contact.yaml
+</code></pre>
+<h4 id="multiple-entities">Multiple Entities</h4>
+<pre><code class="language-bash">specql generate entities/contact.yaml entities/company.yaml
+</code></pre>
+<h4 id="all-entities-in-directory">All Entities in Directory</h4>
+<pre><code class="language-bash">specql generate entities/**/*.yaml
+</code></pre>
+<h4 id="specific-schema">Specific Schema</h4>
+<pre><code class="language-bash">specql generate entities/crm/*.yaml
+</code></pre>
+<h4 id="foundation-only">Foundation Only</h4>
+<pre><code class="language-bash">specql generate entities/contact.yaml --foundation-only
+</code></pre>
+<h4 id="with-frontend-codegen">With Frontend Codegen</h4>
+<pre><code class="language-bash">specql generate entities/**/*.yaml \
+  --with-impacts \
+  --output-frontend=src/generated
+</code></pre>
+<h3 id="output-structure">Output Structure</h3>
+<pre><code>db/schema/
+├── 00_foundation/
+│   └── 000_app_foundation.sql  # Types, schemas
+├── 10_tables/
+│   ├── contact.sql             # Table DDL
+│   └── company.sql
+├── 20_helpers/
+│   ├── contact_helpers.sql     # Helper functions
+│   └── company_helpers.sql
+├── 30_functions/
+│   ├── qualify_lead.sql        # Business actions
+│   └── create_company.sql
+└── 40_metadata/
+    ├── contact_metadata.sql    # FraiseQL annotations
+    └── company_metadata.sql
+</code></pre>
+<hr />
+<h2 id="specql-validate"><code>specql validate</code></h2>
+<p>Validate SpecQL YAML entity files for syntax errors and consistency.</p>
+<h3 id="syntax_1">Syntax</h3>
+<pre><code class="language-bash">specql validate [OPTIONS] ENTITY_FILES...
+</code></pre>
+<h3 id="arguments_1">Arguments</h3>
+<ul>
+<li><code>ENTITY_FILES...</code> - One or more YAML files or glob patterns</li>
+</ul>
+<h3 id="options_1">Options</h3>
+<h4 id="-v-verbose"><code>-v, --verbose</code></h4>
+<p>Show detailed validation output.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql validate entities/**/*.yaml --verbose
+</code></pre>
+<h4 id="-check-impacts"><code>--check-impacts</code></h4>
+<p>Validate impact declarations are complete and consistent.</p>
+<p><strong>Use case</strong>: Ensure mutations declare all side effects.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql validate entities/**/*.yaml --check-impacts
+</code></pre>
+<p><strong>Checks</strong>:
+- All entities in <code>write:</code> exist
+- All entities in <code>read:</code> exist
+- No circular dependencies
+- No missing declarations</p>
+<h3 id="examples_1">Examples</h3>
+<h4 id="single-file">Single File</h4>
+<pre><code class="language-bash">specql validate entities/contact.yaml
+</code></pre>
+<h4 id="all-entities">All Entities</h4>
+<pre><code class="language-bash">specql validate entities/**/*.yaml
+</code></pre>
+<h4 id="with-impact-checking">With Impact Checking</h4>
+<pre><code class="language-bash">specql validate entities/**/*.yaml --check-impacts
+</code></pre>
+<h3 id="exit-codes">Exit Codes</h3>
+<ul>
+<li><code>0</code> - All files valid</li>
+<li><code>1</code> - Validation errors found</li>
+</ul>
+<h3 id="example-output">Example Output</h3>
+<p><strong>Success</strong>:</p>
+<pre><code>✅ entities/contact.yaml: Valid
+✅ entities/company.yaml: Valid
+✅ All 2 entities validated successfully
+</code></pre>
+<p><strong>Errors</strong>:</p>
+<pre><code>❌ entities/contact.yaml: Parse error
+  Line 5: Unknown field type 'string' (use 'text')
+
+❌ entities/order.yaml: Validation error
+  Action 'ship_order': References undefined entity 'Shipment'
+
+❌ 2 files have errors
+</code></pre>
+<hr />
+<h2 id="specql-check-codes"><code>specql check-codes</code></h2>
+<p>Verify uniqueness of table codes across all entities.</p>
+<h3 id="syntax_2">Syntax</h3>
+<pre><code class="language-bash">specql check-codes [OPTIONS] ENTITY_FILES...
+</code></pre>
+<h3 id="arguments_2">Arguments</h3>
+<ul>
+<li><code>ENTITY_FILES...</code> - YAML files or directories</li>
+</ul>
+<h3 id="options_2">Options</h3>
+<h4 id="-format-textjsoncsv"><code>--format [text|json|csv]</code></h4>
+<p>Output format (default: <code>text</code>).</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql check-codes entities/ --format json
+</code></pre>
+<h4 id="-export-path"><code>--export PATH</code></h4>
+<p>Export results to file.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql check-codes entities/ --format csv --export codes.csv
+</code></pre>
+<h3 id="examples_2">Examples</h3>
+<h4 id="check-all-entities">Check All Entities</h4>
+<pre><code class="language-bash">specql check-codes entities/**/*.yaml
+</code></pre>
+<h4 id="export-to-json">Export to JSON</h4>
+<pre><code class="language-bash">specql check-codes entities/ --format json --export table_codes.json
+</code></pre>
+<h4 id="export-to-csv">Export to CSV</h4>
+<pre><code class="language-bash">specql check-codes entities/ --format csv --export codes.csv
+</code></pre>
+<h3 id="output">Output</h3>
+<p><strong>Text Format</strong>:</p>
+<pre><code>📊 Table Code Report
+
+✅ All codes are unique
+
+Entities with table codes:
+  • 012311 - Contact (entities/crm/contact.yaml)
+  • 012312 - Company (entities/crm/company.yaml)
+  • 042001 - Order (entities/commerce/order.yaml)
+
+📈 Summary:
+  Total entities: 15
+  With table codes: 3
+  Without table codes: 12
+</code></pre>
+<p><strong>JSON Format</strong>:</p>
+<pre><code class="language-json">{
+  &quot;valid&quot;: true,
+  &quot;codes&quot;: [
+    {
+      &quot;code&quot;: &quot;012311&quot;,
+      &quot;entity&quot;: &quot;Contact&quot;,
+      &quot;file&quot;: &quot;entities/crm/contact.yaml&quot;
+    }
+  ],
+  &quot;duplicates&quot;: [],
+  &quot;summary&quot;: {
+    &quot;total&quot;: 15,
+    &quot;with_codes&quot;: 3,
+    &quot;without_codes&quot;: 12
+  }
+}
+</code></pre>
+<p><strong>Error (Duplicates)</strong>:</p>
+<pre><code>❌ Duplicate table codes found
+
+⚠️  Code 012311 assigned to multiple entities:
+  • Contact (entities/crm/contact.yaml)
+  • Customer (entities/crm/customer.yaml)
+
+❌ 1 duplicate code(s) found
+</code></pre>
+<hr />
+<h2 id="specql-diff"><code>specql diff</code></h2>
+<p>Compare generated SQL with existing schema files.</p>
+<h3 id="syntax_3">Syntax</h3>
+<pre><code class="language-bash">specql diff [OPTIONS] ENTITY_FILES...
+</code></pre>
+<h3 id="options_3">Options</h3>
+<h4 id="-compare-path"><code>--compare PATH</code></h4>
+<p>Path to existing SQL file(s) to compare against.</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql diff entities/contact.yaml --compare db/schema/10_tables/contact.sql
+</code></pre>
+<h4 id="-ignore-whitespace"><code>--ignore-whitespace</code></h4>
+<p>Ignore whitespace differences.</p>
+<h4 id="-ignore-comments"><code>--ignore-comments</code></h4>
+<p>Ignore SQL comment differences.</p>
+<h3 id="examples_3">Examples</h3>
+<h4 id="compare-single-entity">Compare Single Entity</h4>
+<pre><code class="language-bash">specql diff entities/contact.yaml \
+  --compare db/schema/10_tables/contact.sql
+</code></pre>
+<h4 id="compare-all-entities">Compare All Entities</h4>
+<pre><code class="language-bash">specql diff entities/**/*.yaml \
+  --compare db/schema/10_tables/
+</code></pre>
+<h3 id="output_1">Output</h3>
+<pre><code class="language-diff">Comparing: entities/contact.yaml → db/schema/10_tables/contact.sql
+
+--- Generated
++++ Existing
+@@ -12,6 +12,7 @@
+   company INTEGER NOT NULL REFERENCES crm.tb_company(id),
+   status TEXT NOT NULL CHECK (status IN ('lead', 'qualified', 'customer')),
++  priority TEXT,  -- Added in existing, not in YAML
+   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+
+✅ 1 file compared
+⚠️  1 difference found
+</code></pre>
+<hr />
+<h2 id="specql-docs"><code>specql docs</code></h2>
+<p>Generate documentation from entity files.</p>
+<h3 id="syntax_4">Syntax</h3>
+<pre><code class="language-bash">specql docs [OPTIONS] ENTITY_FILES...
+</code></pre>
+<h3 id="options_4">Options</h3>
+<h4 id="-output-dir-path"><code>--output-dir PATH</code></h4>
+<p>Output directory for docs (default: <code>docs/generated</code>).</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">specql docs entities/**/*.yaml --output-dir docs/entities
+</code></pre>
+<h4 id="-format-markdownhtml"><code>--format [markdown|html]</code></h4>
+<p>Documentation format (default: <code>markdown</code>).</p>
+<h3 id="examples_4">Examples</h3>
+<h4 id="generate-entity-docs">Generate Entity Docs</h4>
+<pre><code class="language-bash">specql docs entities/**/*.yaml
+</code></pre>
+<h4 id="output-to-custom-directory">Output to Custom Directory</h4>
+<pre><code class="language-bash">specql docs entities/ --output-dir docs/entities
+</code></pre>
+<h3 id="output_2">Output</h3>
+<pre><code>docs/generated/
+├── entities/
+│   ├── contact.md
+│   ├── company.md
+│   └── order.md
+└── index.md
+</code></pre>
+<hr />
+<h2 id="configuration">Configuration</h2>
+<h3 id="confitureyaml"><code>confiture.yaml</code></h3>
+<p>SpecQL uses Confiture for configuration.</p>
+<p><strong>Location</strong>: Project root (<code>confiture.yaml</code>)</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-yaml">schema_dirs:
+  - path: db/schema/00_foundation
+    order: 0
+  - path: db/schema/10_tables
+    order: 10
+  - path: db/schema/20_helpers
+    order: 20
+  - path: db/schema/30_functions
+    order: 30
+  - path: db/schema/40_metadata
+    order: 40
+
+environments:
+  local:
+    database_url: postgresql://localhost:5432/myapp_dev
+    migrations_dir: db/migrations
+
+  staging:
+    database_url: ${DATABASE_URL}
+    migrations_dir: db/migrations
+
+  production:
+    database_url: ${DATABASE_URL}
+    migrations_dir: db/migrations
+</code></pre>
+<h3 id="environment-variables">Environment Variables</h3>
+<h4 id="database_url"><code>DATABASE_URL</code></h4>
+<p>PostgreSQL connection string.</p>
+<p><strong>Format</strong>: <code>postgresql://user:password@host:port/database</code></p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">export DATABASE_URL=&quot;postgresql://localhost:5432/myapp&quot;
+</code></pre>
+<h4 id="specql_env"><code>SPECQL_ENV</code></h4>
+<p>Override environment (overrides <code>--env</code> flag).</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-bash">export SPECQL_ENV=staging
+specql generate entities/**/*.yaml
+</code></pre>
+<hr />
+<h2 id="exit-codes_1">Exit Codes</h2>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>0</code></td>
+<td>Success</td>
+</tr>
+<tr>
+<td><code>1</code></td>
+<td>General error (validation, parse, etc.)</td>
+</tr>
+<tr>
+<td><code>2</code></td>
+<td>File not found</td>
+</tr>
+<tr>
+<td><code>3</code></td>
+<td>Configuration error</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="common-workflows">Common Workflows</h2>
+<h3 id="initial-setup">Initial Setup</h3>
+<pre><code class="language-bash"># 1. Install
+uv add specql-generator
+
+# 2. Verify
+specql --version
+
+# 3. Create first entity
+mkdir -p entities
+cat &gt; entities/contact.yaml &lt;&lt; 'EOF'
+entity: Contact
+schema: crm
+fields:
+  email: text
+  name: text
+EOF
+
+# 4. Generate foundation
+specql generate entities/contact.yaml --foundation-only
+
+# 5. Generate tables
+specql generate entities/contact.yaml
+</code></pre>
+<h3 id="development-loop">Development Loop</h3>
+<pre><code class="language-bash"># 1. Edit YAML
+vim entities/contact.yaml
+
+# 2. Validate
+specql validate entities/contact.yaml
+
+# 3. Generate
+specql generate entities/contact.yaml
+
+# 4. Apply to DB
+psql myapp -f db/schema/10_tables/contact.sql
+
+# 5. Test
+psql myapp -c &quot;SELECT * FROM crm.tb_contact;&quot;
+</code></pre>
+<h3 id="full-codegen-backend-frontend">Full Codegen (Backend + Frontend)</h3>
+<pre><code class="language-bash"># Generate everything
+specql generate entities/**/*.yaml \
+  --with-impacts \
+  --output-frontend=src/generated
+
+# Output:
+# - db/schema/ (PostgreSQL)
+# - db/metadata/ (GraphQL metadata)
+# - src/generated/types.ts (TypeScript)
+# - src/generated/mutations.ts (Apollo hooks)
+</code></pre>
+<h3 id="cicd-pipeline">CI/CD Pipeline</h3>
+<pre><code class="language-bash">#!/bin/bash
+# .github/workflows/generate-schema.yml
+
+# 1. Validate all entities
+specql validate entities/**/*.yaml || exit 1
+
+# 2. Check table codes
+specql check-codes entities/**/*.yaml || exit 1
+
+# 3. Generate schema
+specql generate entities/**/*.yaml --env production
+
+# 4. Run migrations
+confiture migrate up --env production
+</code></pre>
+<hr />
+<h2 id="troubleshooting_1">Troubleshooting</h2>
+<p>See: <code>docs/guides/troubleshooting.md</code></p>
+<h3 id="common-issues">Common Issues</h3>
+<h4 id="command-not-found-specql">"Command not found: specql"</h4>
+<p><strong>Solution</strong>:</p>
+<pre><code class="language-bash"># Ensure UV environment is activated
+uv sync
+uv run specql --version
+</code></pre>
+<h4 id="no-such-file-or-directory">"No such file or directory"</h4>
+<p><strong>Solution</strong>: Use absolute paths or run from project root</p>
+<pre><code class="language-bash">cd /path/to/project
+specql generate entities/contact.yaml
+</code></pre>
+<h4 id="confiture-build-failed">"Confiture build failed"</h4>
+<p><strong>Solution</strong>: Install Confiture</p>
+<pre><code class="language-bash">uv add fraiseql-confiture
+</code></pre>
+<hr />
+<h2 id="reference_1">Reference</h2>
+<h3 id="related-documentation_1">Related Documentation</h3>
+<ul>
+<li><strong>YAML Reference</strong>: <code>docs/reference/yaml-reference.md</code></li>
+<li><strong>Migration Guide</strong>: <code>docs/guides/migration-guide.md</code></li>
+<li><strong>Troubleshooting</strong>: <code>docs/guides/troubleshooting.md</code></li>
+<li><strong>Examples</strong>: <code>examples/entities/</code></li>
+</ul>
+<h3 id="external-tools">External Tools</h3>
+<ul>
+<li><strong>UV</strong>: https://github.com/astral-sh/uv</li>
+<li><strong>Confiture</strong>: https://github.com/fraiseql/confiture</li>
+<li><strong>PostgreSQL</strong>: https://www.postgresql.org/docs/</li>
+</ul>
+<pre><code>
+### Implementation Steps
+
+1. **Create file**:
+   ```bash
+   touch docs/reference/cli-reference.md
+   ```
+
+2. **Document each command**:
+   - Run `specql --help`
+   - Run `specql generate --help`
+   - Run each command variant
+   - Document actual output
+
+3. **Test examples**:
+   - Create test entities
+   - Run each example command
+   - Verify output matches documentation
+
+4. **Add workflow examples**:
+   - Document common development patterns
+   - Add CI/CD examples
+   - Include troubleshooting
+
+### Quality Criteria
+- [ ] All commands documented
+- [ ] All options explained
+- [ ] Examples are tested and work
+- [ ] Exit codes documented
+- [ ] Common workflows included
+
+---
+
+## 📝 Task 4: Troubleshooting Guide
+
+**File**: `docs/guides/troubleshooting.md`
+**Priority**: MEDIUM
+**Effort**: 4 hours
+**Dependencies**: Task 1 (YAML Reference), Task 3 (CLI Reference)
+
+### Objective
+Provide quick solutions to common errors and issues users encounter.
+
+### Content Structure
+
+```markdown
+# Troubleshooting Guide
+
+Quick solutions to common SpecQL issues.
+
+**Can't find your issue?** Search existing issues or create a new one: https://github.com/fraiseql/specql/issues
+
+---
+
+## Table of Contents
+
+1. [Parse Errors](#parse-errors)
+2. [Validation Errors](#validation-errors)
+3. [Generation Errors](#generation-errors)
+4. [Database Errors](#database-errors)
+5. [CLI Issues](#cli-issues)
+6. [Performance Issues](#performance-issues)
+7. [Getting Help](#getting-help)
+
+---
+
+## Parse Errors
+
+### &quot;Missing 'entity' key&quot;
+
+**Error**:
+</code></pre>
+<p>Failed to parse entities/contact.yaml: Missing required key 'entity'</p>
+<pre><code>
+**Cause**: File uses `import:` instead of `entity:` (import-only file).
+
+**Solution**: Import files reference stdlib and don't generate directly.
+
+```yaml
+# ❌ Import-only (doesn't generate)
+import: stdlib/crm/contact
+
+# ✅ Full entity (generates SQL)
+entity: Contact
+schema: crm
+fields:
+  email: text
+</code></pre>
+<p><strong>When to use imports</strong>: Extending stdlib entities with custom fields.</p>
+<hr />
+<h3 id="unknown-field-type">"Unknown field type"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>Parse Error: Unknown field type 'string' at line 5
+</code></pre>
+<p><strong>Cause</strong>: SpecQL uses different type names than some SQL dialects.</p>
+<p><strong>Solution</strong>: Use SpecQL type names</p>
+<table>
+<thead>
+<tr>
+<th>❌ Don't Use</th>
+<th>✅ Use Instead</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>string</code></td>
+<td><code>text</code></td>
+</tr>
+<tr>
+<td><code>int</code></td>
+<td><code>integer</code></td>
+</tr>
+<tr>
+<td><code>bool</code></td>
+<td><code>boolean</code></td>
+</tr>
+<tr>
+<td><code>varchar</code></td>
+<td><code>text</code></td>
+</tr>
+<tr>
+<td><code>numeric</code></td>
+<td><code>decimal</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Reference</strong>: <code>docs/reference/yaml-reference.md#scalar-types</code></p>
+<hr />
+<h3 id="invalid-yaml-syntax">"Invalid YAML syntax"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>yaml.scanner.ScannerError: mapping values are not allowed here
+</code></pre>
+<p><strong>Cause</strong>: YAML indentation or syntax error.</p>
+<p><strong>Solution</strong>: Check YAML formatting</p>
+<pre><code class="language-yaml"># ❌ Invalid (missing colon)
+entity Contact
+schema crm
+
+# ✅ Valid
+entity: Contact
+schema: crm
+
+# ❌ Invalid (inconsistent indentation)
+fields:
+ email: text
+   name: text
+
+# ✅ Valid (2-space indentation)
+fields:
+  email: text
+  name: text
+</code></pre>
+<p><strong>Tools</strong>: Use YAML linter (e.g., <code>yamllint</code>)</p>
+<pre><code class="language-bash">uv add --dev yamllint
+yamllint entities/contact.yaml
+</code></pre>
+<hr />
+<h3 id="duplicate-key">"Duplicate key"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>yaml.constructor.ConstructorError: found duplicate key 'email'
+</code></pre>
+<p><strong>Cause</strong>: Same field name appears twice.</p>
+<p><strong>Solution</strong>: Remove duplicate or rename one field</p>
+<pre><code class="language-yaml"># ❌ Duplicate
+fields:
+  email: text
+  email: email  # Duplicate key
+
+# ✅ Fixed
+fields:
+  email: text
+  alternate_email: email
+</code></pre>
+<hr />
+<h2 id="validation-errors">Validation Errors</h2>
+<h3 id="table-code-already-assigned">"Table code already assigned"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>ValueError: Table code '012311' already assigned to Contact
+</code></pre>
+<p><strong>Cause</strong>: Multiple entities have the same <code>organization.table_code</code>.</p>
+<p><strong>Solution</strong>: Check uniqueness</p>
+<pre><code class="language-bash">specql check-codes entities/**/*.yaml
+</code></pre>
+<p><strong>Output</strong>:</p>
+<pre><code>❌ Duplicate table codes found
+
+⚠️  Code 012311 assigned to:
+  • Contact (entities/crm/contact.yaml)
+  • Customer (entities/crm/customer.yaml)
+</code></pre>
+<p><strong>Fix</strong>: Assign unique codes or remove <code>table_code</code> if not needed.</p>
+<hr />
+<h3 id="referenced-entity-not-found">"Referenced entity not found"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>Validation Error: Field 'company' references undefined entity 'Company'
+</code></pre>
+<p><strong>Cause</strong>: <code>ref(Company)</code> but no <code>Company</code> entity exists.</p>
+<p><strong>Solution</strong>:
+1. Create referenced entity first
+2. Or fix typo in reference name</p>
+<pre><code class="language-yaml"># ❌ References missing entity
+entity: Contact
+fields:
+  company: ref(Company)  # Company.yaml doesn't exist
+
+# ✅ Option 1: Create Company.yaml
+# entities/company.yaml
+entity: Company
+schema: crm
+fields:
+  name: text
+
+# ✅ Option 2: Fix typo
+entity: Contact
+fields:
+  company: ref(Organization)  # Correct entity name
+</code></pre>
+<hr />
+<h3 id="invalid-enum-value">"Invalid enum value"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>Validation Error: Enum must have at least 2 values
+</code></pre>
+<p><strong>Cause</strong>: <code>enum()</code> with 0 or 1 value.</p>
+<p><strong>Solution</strong>: Enums need 2+ values</p>
+<pre><code class="language-yaml"># ❌ Invalid
+status: enum(active)  # Only 1 value
+
+# ✅ Valid
+status: enum(active, inactive)  # 2+ values
+
+# ✅ Alternative: Use boolean
+active: boolean
+</code></pre>
+<hr />
+<h3 id="circular-reference-detected">"Circular reference detected"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>Validation Error: Circular reference: Contact → Company → Contact
+</code></pre>
+<p><strong>Cause</strong>: Entities reference each other in a loop.</p>
+<p><strong>Solution</strong>: Break circle with nullable reference</p>
+<pre><code class="language-yaml"># ❌ Circular
+# Contact → Company
+entity: Contact
+fields:
+  company: ref(Company)
+
+# Company → Contact
+entity: Company
+fields:
+  primary_contact: ref(Contact)  # Circular!
+
+# ✅ Fixed: Make one nullable
+entity: Company
+fields:
+  primary_contact: ref(Contact)?  # Optional breaks circle
+</code></pre>
+<hr />
+<h2 id="generation-errors">Generation Errors</h2>
+<h3 id="no-such-file-or-directory_1">"No such file or directory"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>Error: Invalid value for 'ENTITY_FILES': Path 'entities/contact.yaml' does not exist
+</code></pre>
+<p><strong>Cause</strong>: File path is wrong or command run from wrong directory.</p>
+<p><strong>Solution</strong>: Use absolute paths or run from project root</p>
+<pre><code class="language-bash"># ❌ Wrong directory
+cd /tmp
+specql generate entities/contact.yaml  # Fails
+
+# ✅ Run from project root
+cd /path/to/project
+specql generate entities/contact.yaml
+
+# ✅ Or use absolute path
+specql generate /path/to/project/entities/contact.yaml
+</code></pre>
+<hr />
+<h3 id="confiture-build-failed_1">"Confiture build failed"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>❌ Confiture build failed: No such file 'confiture.yaml'
+</code></pre>
+<p><strong>Cause</strong>: Confiture not configured or not installed.</p>
+<p><strong>Solution</strong>:</p>
+<pre><code class="language-bash"># 1. Install Confiture
+uv add fraiseql-confiture
+
+# 2. Create confiture.yaml
+cat &gt; confiture.yaml &lt;&lt; 'EOF'
+schema_dirs:
+  - path: db/schema/10_tables
+    order: 10
+
+environments:
+  local:
+    database_url: postgresql://localhost/mydb
+EOF
+
+# 3. Verify
+specql generate entities/contact.yaml
+</code></pre>
+<hr />
+<h3 id="schema-not-in-domain-registry">"Schema not in domain registry"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>ValueError: Schema 'crm' not found in domain registry
+</code></pre>
+<p><strong>Cause</strong>: Schema not registered in <code>registry/domain_registry.yaml</code>.</p>
+<p><strong>Solution</strong>: Add schema to registry</p>
+<pre><code class="language-yaml"># registry/domain_registry.yaml
+domains:
+  crm:
+    type: multi_tenant
+    description: &quot;Customer relationship management&quot;
+</code></pre>
+<hr />
+<h3 id="output-directory-not-found">"Output directory not found"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>FileNotFoundError: Directory 'db/schema/10_tables' does not exist
+</code></pre>
+<p><strong>Cause</strong>: Output directories not created.</p>
+<p><strong>Solution</strong>: Create directory structure</p>
+<pre><code class="language-bash">mkdir -p db/schema/{00_foundation,10_tables,20_helpers,30_functions,40_metadata}
+</code></pre>
+<hr />
+<h2 id="database-errors">Database Errors</h2>
+<h3 id="relation-does-not-exist">"relation does not exist"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code class="language-sql">psql: ERROR: relation &quot;crm.tb_contact&quot; does not exist
+</code></pre>
+<p><strong>Cause</strong>: Schema not applied to database.</p>
+<p><strong>Solution</strong>: Apply generated SQL files</p>
+<pre><code class="language-bash"># Apply foundation first
+psql mydb -f db/schema/00_foundation/000_app_foundation.sql
+
+# Apply tables
+psql mydb -f db/schema/10_tables/*.sql
+
+# Or use Confiture
+confiture migrate up --env local
+</code></pre>
+<hr />
+<h3 id="constraint-violation">"constraint violation"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code class="language-sql">ERROR: insert or update on table &quot;tb_contact&quot; violates foreign key constraint &quot;fk_tb_contact_company&quot;
+DETAIL: Key (company)=(999) is not present in table &quot;tb_company&quot;.
+</code></pre>
+<p><strong>Cause</strong>: Referenced record doesn't exist.</p>
+<p><strong>Solution</strong>: Insert parent records first</p>
+<pre><code class="language-sql">-- Insert in dependency order
+INSERT INTO crm.tb_company (name) VALUES ('Acme Corp');
+INSERT INTO crm.tb_contact (email, company) VALUES ('john@acme.com', 1);
+</code></pre>
+<hr />
+<h3 id="column-does-not-exist">"column does not exist"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code class="language-sql">ERROR: column &quot;company_id&quot; does not exist
+</code></pre>
+<p><strong>Cause</strong>: SpecQL uses different column naming (no <code>_id</code> suffix for ref fields).</p>
+<p><strong>Solution</strong>: Use correct column name</p>
+<pre><code class="language-sql"># ❌ Wrong (old naming)
+SELECT * FROM crm.tb_contact WHERE company_id = 1;
+
+# ✅ Correct (SpecQL naming)
+SELECT * FROM crm.tb_contact WHERE company = 1;
+</code></pre>
+<p><strong>YAML</strong>:</p>
+<pre><code class="language-yaml">fields:
+  company: ref(Company)  # Column name is 'company' (not 'company_id')
+</code></pre>
+<hr />
+<h3 id="permission-denied">"permission denied"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code class="language-sql">ERROR: permission denied for schema crm
+</code></pre>
+<p><strong>Cause</strong>: Database user lacks permissions.</p>
+<p><strong>Solution</strong>: Grant permissions</p>
+<pre><code class="language-sql">-- As superuser
+GRANT USAGE ON SCHEMA crm TO myapp_user;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA crm TO myapp_user;
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA crm TO myapp_user;
+</code></pre>
+<hr />
+<h2 id="cli-issues">CLI Issues</h2>
+<h3 id="command-not-found-specql_1">"Command not found: specql"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code class="language-bash">$ specql
+command not found: specql
+</code></pre>
+<p><strong>Cause</strong>: SpecQL not installed or UV environment not activated.</p>
+<p><strong>Solution</strong>:</p>
+<pre><code class="language-bash"># Option 1: Use uv run
+uv run specql --version
+
+# Option 2: Install globally
+uv add specql-generator
+specql --version
+
+# Option 3: Check PATH
+which specql
+echo $PATH
+</code></pre>
+<hr />
+<h3 id="permission-denied_1">"Permission denied"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code class="language-bash">$ specql generate entities/contact.yaml
+Permission denied: db/schema/10_tables/contact.sql
+</code></pre>
+<p><strong>Cause</strong>: File permissions issue.</p>
+<p><strong>Solution</strong>:</p>
+<pre><code class="language-bash"># Check permissions
+ls -la db/schema/10_tables/
+
+# Fix permissions
+chmod 644 db/schema/10_tables/*.sql
+chmod 755 db/schema/10_tables/
+</code></pre>
+<hr />
+<h3 id="timeout-during-generation">"Timeout during generation"</h3>
+<p><strong>Error</strong>:</p>
+<pre><code>TimeoutError: Generation took longer than 30 seconds
+</code></pre>
+<p><strong>Cause</strong>: Very large number of entities or complex actions.</p>
+<p><strong>Solution</strong>: Generate in batches</p>
+<pre><code class="language-bash"># ❌ All at once (slow)
+specql generate entities/**/*.yaml
+
+# ✅ By schema (faster)
+specql generate entities/crm/*.yaml
+specql generate entities/commerce/*.yaml
+
+# ✅ Parallel generation
+find entities -name '*.yaml' | xargs -P 4 -n 1 specql generate
+</code></pre>
+<hr />
+<h2 id="performance-issues">Performance Issues</h2>
+<h3 id="generation-is-slow">"Generation is slow"</h3>
+<p><strong>Symptom</strong>: <code>specql generate</code> takes &gt;10 seconds for small number of entities.</p>
+<p><strong>Causes &amp; Solutions</strong>:</p>
+<ol>
+<li><strong>Too many glob patterns</strong>
+   ```bash
+   # ❌ Slow
+   specql generate entities/<em>/</em>.yaml</li>
+</ol>
+<p># ✅ Faster
+   specql generate entities/*<em>/</em>.yaml
+   ```</p>
+<ol>
+<li>
+<p><strong>Confiture rebuilding</strong>
+   <code>bash
+   # Skip Confiture if not needed
+   specql generate entities/contact.yaml --skip-confiture</code></p>
+</li>
+<li>
+<p><strong>Large number of actions</strong></p>
+</li>
+<li>Profile generation: <code>specql generate --profile</code></li>
+<li>Split complex actions into smaller ones</li>
+</ol>
+<hr />
+<h3 id="database-queries-are-slow">"Database queries are slow"</h3>
+<p><strong>Symptom</strong>: Queries on generated tables are slow.</p>
+<p><strong>Causes &amp; Solutions</strong>:</p>
+<ol>
+<li>
+<p><strong>Missing indexes</strong>
+   <code>sql
+   -- Add custom index
+   CREATE INDEX idx_tb_contact_email ON crm.tb_contact(email);</code></p>
+</li>
+<li>
+<p><strong>Large JSON columns</strong>
+   <code>sql
+   -- Add GIN index (auto-generated for json fields, but verify)
+   CREATE INDEX idx_tb_contact_metadata ON crm.tb_contact USING GIN (metadata);</code></p>
+</li>
+<li>
+<p><strong>Soft-deleted records</strong>
+   <code>sql
+   -- Filter deleted records
+   SELECT * FROM crm.tb_contact WHERE deleted_at IS NULL;</code></p>
+</li>
+</ol>
+<hr />
+<h2 id="getting-help">Getting Help</h2>
+<h3 id="before-creating-an-issue">Before Creating an Issue</h3>
+<ol>
+<li><strong>Search existing issues</strong>: https://github.com/fraiseql/specql/issues</li>
+<li><strong>Check documentation</strong>:</li>
+<li>YAML Reference: <code>docs/reference/yaml-reference.md</code></li>
+<li>CLI Reference: <code>docs/reference/cli-reference.md</code></li>
+<li>Migration Guide: <code>docs/guides/migration-guide.md</code></li>
+<li><strong>Run validation</strong>: <code>specql validate entities/**/*.yaml --verbose</code></li>
+</ol>
+<h3 id="creating-a-good-issue">Creating a Good Issue</h3>
+<p>Include:</p>
+<ol>
+<li>
+<p><strong>SpecQL version</strong>:
+   <code>bash
+   specql --version
+   # Or: git rev-parse HEAD</code></p>
+</li>
+<li>
+<p><strong>Minimal YAML example</strong>:
+   <code>yaml
+   entity: Contact
+   schema: crm
+   fields:
+     email: text</code></p>
+</li>
+<li>
+<p><strong>Complete error message</strong>:
+   <code>[Copy full error output]</code></p>
+</li>
+<li>
+<p><strong>Steps to reproduce</strong>:
+   ```bash</p>
+</li>
+<li>Create entities/contact.yaml with above content</li>
+<li>Run: specql generate entities/contact.yaml</li>
+<li>
+<p>Error occurs
+   ```</p>
+</li>
+<li>
+<p><strong>Expected vs actual behavior</strong>:</p>
+</li>
+<li>Expected: Should generate table</li>
+<li>Actual: Parse error</li>
+</ol>
+<h3 id="community-resources">Community Resources</h3>
+<ul>
+<li><strong>GitHub Issues</strong>: https://github.com/fraiseql/specql/issues</li>
+<li><strong>Documentation</strong>: <code>docs/</code></li>
+<li><strong>Examples</strong>: <code>examples/entities/</code></li>
+<li><strong>Stdlib</strong>: <code>stdlib/</code> (reference implementations)</li>
+</ul>
+<hr />
+<h2 id="debug-mode">Debug Mode</h2>
+<p>Enable verbose logging for troubleshooting:</p>
+<pre><code class="language-bash"># Set log level
+export SPECQL_LOG_LEVEL=DEBUG
+
+# Run with verbose output
+specql generate entities/contact.yaml --verbose
+
+# Check logs
+tail -f /tmp/specql.log
+</code></pre>
+<hr />
+<h2 id="common-gotchas">Common Gotchas</h2>
+<h3 id="1-auto-generated-fields">1. Auto-Generated Fields</h3>
+<p>❌ <strong>Don't include</strong> in YAML: <code>id</code>, <code>created_at</code>, <code>updated_at</code>, <code>tenant_id</code>
+✅ <strong>These are automatic</strong> - SpecQL adds them</p>
+<h3 id="2-field-names-vs-column-names">2. Field Names vs Column Names</h3>
+<pre><code class="language-yaml">company: ref(Company)  # Field name is 'company'
+# Column name is also 'company' (NOT 'company_id')
+</code></pre>
+<h3 id="3-enum-values-are-case-sensitive">3. Enum Values Are Case-Sensitive</h3>
+<pre><code class="language-yaml">status: enum(Active, Inactive)  # Capital A, I
+# ❌ INSERT: status = 'active'  (lowercase fails)
+# ✅ INSERT: status = 'Active'
+</code></pre>
+<h3 id="4-nullable-references">4. Nullable References</h3>
+<pre><code class="language-yaml"># ❌ Circular reference
+company: ref(Company)
+# Company also refs Contact
+
+# ✅ Break circle
+company: ref(Company)?  # Nullable
+</code></pre>
+<h3 id="5-import-vs-entity">5. Import vs Entity</h3>
+<pre><code class="language-yaml"># Import = reference only (doesn't generate)
+import: stdlib/crm/contact
+
+# Entity = full definition (generates SQL)
+entity: Contact
+</code></pre>
+<hr />
+<h2 id="diagnostic-commands">Diagnostic Commands</h2>
+<h3 id="check-entity-validity">Check Entity Validity</h3>
+<pre><code class="language-bash">specql validate entities/contact.yaml --verbose
+</code></pre>
+<h3 id="check-table-codes">Check Table Codes</h3>
+<pre><code class="language-bash">specql check-codes entities/**/*.yaml
+</code></pre>
+<h3 id="compare-generated-vs-existing">Compare Generated vs Existing</h3>
+<pre><code class="language-bash">specql diff entities/contact.yaml --compare db/schema/10_tables/contact.sql
+</code></pre>
+<h3 id="test-database-connection">Test Database Connection</h3>
+<pre><code class="language-bash">psql $DATABASE_URL -c &quot;SELECT version();&quot;
+</code></pre>
+<h3 id="check-confiture-config">Check Confiture Config</h3>
+<pre><code class="language-bash">confiture validate confiture.yaml
+</code></pre>
+<hr />
+<p><strong>Still stuck?</strong> Create a detailed issue: https://github.com/fraiseql/specql/issues/new</p>
+<pre><code>
+### Implementation Steps
+
+1. **Collect common errors**:
+   ```bash
+   # Search existing issues
+   gh issue list --label bug --limit 100
+
+   # Review test failures
+   grep -r &quot;pytest.raises&quot; tests/
+   ```
+
+2. **Document each error**:
+   - Error message (exact text)
+   - Root cause
+   - Step-by-step solution
+   - Prevention tips
+
+3. **Test solutions**:
+   - Reproduce each error
+   - Verify solution works
+   - Document workarounds if no fix
+
+4. **Add diagnostic tools**:
+   - Debug mode instructions
+   - Validation commands
+   - Logging configuration
+
+### Quality Criteria
+- [ ] All common errors documented
+- [ ] Solutions are tested and work
+- [ ] Root causes explained
+- [ ] Prevention tips included
+- [ ] Diagnostic commands provided
+
+---
+
+## 📝 Task 5: Quick Reference Card
+
+**File**: `docs/QUICK_REFERENCE.md`
+**Priority**: LOW (High Value)
+**Effort**: 2 hours
+**Dependencies**: Task 1 (YAML Reference)
+
+### Objective
+Single-page cheat sheet for quick lookups while coding.
+
+### Content Structure
+
+[Content is concise version of YAML Reference - see issue for details]
+
+**Implementation**: Extract key examples from Task 1, format as cheat sheet.
+
+---
+
+## 📝 Task 6: Reorganize Documentation
+
+**File**: Multiple (restructure `docs/`)
+**Priority**: LOW
+**Effort**: 3 hours
+**Dependencies**: All above tasks
+
+### Objective
+Improve documentation discoverability by organizing into clear categories.
+
+### Current Structure
+</code></pre>
+<p>docs/
+├── architecture/      # Technical/implementation docs
+├── guides/            # Mixed user + developer guides
+├── implementation-plans/  # Development plans
+├── qa/                # Test reports
+└── reference/         # Limited reference material</p>
+<pre><code>
+### Proposed Structure
+</code></pre>
+<p>docs/
+├── README.md                    # Documentation index (NEW)
+├── getting-started/             # NEW: Beginner path
+│   ├── installation.md
+│   ├── your-first-entity.md
+│   └── your-first-action.md
+├── guides/                      # How-to guides (user-focused)
+│   ├── migration-guide.md       # NEW (Task 2)
+│   ├── actions-guide.md         # EXISTING
+│   ├── multi-tenancy.md         # EXISTING
+│   ├── hierarchical-entities.md # EXISTING
+│   └── troubleshooting.md       # NEW (Task 4)
+├── reference/                   # Complete references
+│   ├── yaml-reference.md        # NEW (Task 1)
+│   ├── cli-reference.md         # NEW (Task 3)
+│   ├── scalar-types.md          # EXISTING
+│   ├── generated-sql.md         # NEW
+│   └── api/                     # Future: Python API docs
+├── architecture/                # EXISTING: Keep as-is
+│   ├── SPECQL_BUSINESS_LOGIC_REFINED.md
+│   ├── INTEGRATION_PROPOSAL.md
+│   └── ... (technical design docs)
+├── contributing/                # NEW: Developer docs
+│   ├── CONTRIBUTING.md
+│   ├── team-structure.md
+│   └── testing.md
+├── implementation-plans/        # EXISTING: Keep as-is
+└── qa/                          # EXISTING: Keep as-is
+```</p>
+<h3 id="implementation-steps">Implementation Steps</h3>
+<ol>
+<li><strong>Create new documentation index</strong>:
+   ```markdown
+   # docs/README.md</li>
+</ol>
+<p># SpecQL Documentation</p>
+<p>## Getting Started
+   - <a href="getting-started/installation.md">Installation</a>
+   - <a href="getting-started/your-first-entity.md">Your First Entity</a>
+   - <a href="getting-started/your-first-action.md">Your First Action</a></p>
+<p>## User Guides
+   - <a href="guides/migration-guide.md">Migration Guide</a> - Migrate existing databases
+   - <a href="guides/actions-guide.md">Actions Guide</a> - Write business logic
+   - <a href="guides/multi-tenancy.md">Multi-Tenancy</a> - Multi-tenant architecture
+   - <a href="guides/troubleshooting.md">Troubleshooting</a> - Common issues</p>
+<p>## Reference
+   - <a href="reference/yaml-reference.md">YAML Reference</a> - Complete syntax
+   - <a href="reference/cli-reference.md">CLI Reference</a> - Command-line tools
+   - <a href="reference/scalar-types.md">Scalar Types</a> - Field types
+   - <a href="reference/generated-sql.md">Generated SQL</a> - What SpecQL produces</p>
+<p>## Architecture
+   - <a href="architecture/SPECQL_BUSINESS_LOGIC_REFINED.md">Business Logic Spec</a>
+   - <a href="architecture/INTEGRATION_PROPOSAL.md">Integration Proposal</a>
+   - <a href="architecture/TEAM_STRUCTURE.md">Team Structure</a></p>
+<p>## Contributing
+   - <a href="contributing/CONTRIBUTING.md">Contributing Guide</a>
+   - <a href="contributing/development-setup.md">Development Setup</a>
+   - <a href="contributing/testing.md">Testing Guide</a>
+   ```</p>
+<ol>
+<li><strong>Create getting-started guides</strong>:</li>
+<li>Extract from README</li>
+<li>Add step-by-step walkthroughs</li>
+<li>
+<p>Focus on first 15 minutes</p>
+</li>
+<li>
+<p><strong>Move files to new structure</strong>:
+   ```bash
+   mkdir -p docs/getting-started
+   mkdir -p docs/contributing</p>
+</li>
+</ol>
+<p># Create new files (don't move existing yet - preserve git history)
+   ```</p>
+<ol>
+<li><strong>Update all internal links</strong>:
+   ```bash
+   # Find all markdown links
+   grep -r "docs/" --include="*.md" .</li>
+</ol>
+<p># Update links to new structure
+   ```</p>
+<ol>
+<li><strong>Add navigation to each doc</strong>:
+   ```markdown
+   <!-- Add to top of each file --></li>
+</ol>
+<p>📚 <strong><a href="../../">Documentation Index</a></strong> |
+   ⬅️ <a href="../file.md">Previous: Topic</a> |
+   ➡️ <a href="file.md">Next: Topic</a>
+   ```</p>
+<h3 id="quality-criteria">Quality Criteria</h3>
+<ul>
+<li>[ ] All docs categorized logically</li>
+<li>[ ] Documentation index complete</li>
+<li>[ ] All internal links work</li>
+<li>[ ] Navigation aids added</li>
+<li>[ ] Getting started path clear</li>
+</ul>
+<hr />
+<h2 id="execution-strategy">🎯 Execution Strategy</h2>
+<h3 id="phase-1-core-references-high-priority-week-1">Phase 1: Core References (HIGH Priority - Week 1)</h3>
+<p><strong>Order</strong>:
+1. Task 1: YAML Reference (4h)
+2. Task 2: Migration Guide (6h)</p>
+<p><strong>Total</strong>: 10 hours / ~1.5 days</p>
+<p><strong>Rationale</strong>: These two docs provide the most immediate value for new users.</p>
+<h3 id="phase-2-support-documentation-medium-priority-week-2">Phase 2: Support Documentation (MEDIUM Priority - Week 2)</h3>
+<p><strong>Order</strong>:
+3. Task 3: CLI Reference (3h)
+4. Task 4: Troubleshooting (4h)</p>
+<p><strong>Total</strong>: 7 hours / ~1 day</p>
+<p><strong>Rationale</strong>: CLI reference enables self-service; troubleshooting reduces support burden.</p>
+<h3 id="phase-3-polish-low-priority-week-3">Phase 3: Polish (LOW Priority - Week 3)</h3>
+<p><strong>Order</strong>:
+5. Task 5: Quick Reference (2h)
+6. Task 6: Reorganize Structure (3h)</p>
+<p><strong>Total</strong>: 5 hours / ~0.5 days</p>
+<p><strong>Rationale</strong>: Nice-to-have improvements that enhance usability but aren't blocking.</p>
+<hr />
+<h2 id="success-criteria">✅ Success Criteria</h2>
+<h3 id="quantitative">Quantitative</h3>
+<ul>
+<li>[ ] 5-6 new documentation files created</li>
+<li>[ ] Documentation covers 100% of YAML syntax</li>
+<li>[ ] All CLI commands documented</li>
+<li>[ ] 20+ common errors with solutions</li>
+<li>[ ] New user can generate first entity in &lt;15 minutes</li>
+</ul>
+<h3 id="qualitative">Qualitative</h3>
+<ul>
+<li>[ ] Documentation is searchable (good TOCs)</li>
+<li>[ ] Examples are copy-paste ready</li>
+<li>[ ] Migration path is clear for existing projects</li>
+<li>[ ] Troubleshooting reduces issue volume</li>
+<li>[ ] Professional presentation</li>
+</ul>
+<hr />
+<h2 id="next-steps-after-completion">🚀 Next Steps After Completion</h2>
+<ol>
+<li><strong>Announce documentation updates</strong> in README changelog</li>
+<li><strong>Link from main README</strong> to docs/README.md</li>
+<li><strong>Create video walkthrough</strong> (5-10 minutes)</li>
+<li><strong>Gather feedback</strong> from new users</li>
+<li><strong>Iterate based on common questions</strong></li>
+</ol>
+<hr />
+<h2 id="estimated-impact">📊 Estimated Impact</h2>
+<p><strong>Before</strong>:
+- New users struggle with syntax
+- Migration unclear
+- Support burden high
+- Documentation fragmented</p>
+<p><strong>After</strong>:
+- Clear reference for all syntax
+- Step-by-step migration path
+- Self-service troubleshooting
+- Professional, organized docs
+- &lt;15 minute onboarding</p>
+<p><strong>ROI</strong>: ~22 hours of work → Significant reduction in support time + faster adoption</p>
+<hr />
+<h2 id="notes-for-implementation-agent">📝 Notes for Implementation Agent</h2>
+<h3 id="context-available">Context Available</h3>
+<ul>
+<li><strong>Existing docs</strong>: <code>docs/</code> directory has good architecture docs</li>
+<li><strong>Test examples</strong>: <code>tests/unit/</code> has comprehensive YAML examples</li>
+<li><strong>Code reference</strong>: <code>src/core/models/</code> defines all syntax</li>
+<li><strong>CLI code</strong>: <code>src/cli/</code> shows all commands</li>
+</ul>
+<h3 id="quality-guidelines">Quality Guidelines</h3>
+<ul>
+<li><strong>Copy-paste ready</strong>: All examples must work as-is</li>
+<li><strong>Tested examples</strong>: Validate YAML examples with <code>specql validate</code></li>
+<li><strong>Cross-referenced</strong>: Link related docs together</li>
+<li><strong>Searchable</strong>: Good table of contents in each doc</li>
+<li><strong>Professional tone</strong>: Clear, concise, helpful</li>
+</ul>
+<h3 id="validation-process">Validation Process</h3>
+<ol>
+<li><strong>Syntax check</strong>: All YAML examples validate</li>
+<li><strong>Command check</strong>: All CLI examples work</li>
+<li><strong>Link check</strong>: All internal links valid</li>
+<li><strong>Spell check</strong>: Run spell checker</li>
+<li><strong>Review</strong>: Read through as if you're a new user</li>
+</ol>
+<hr />
+<p><strong>Ready for implementation!</strong> This plan provides complete guidance for creating comprehensive user documentation for SpecQL.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

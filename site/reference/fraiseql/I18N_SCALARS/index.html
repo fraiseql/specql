@@ -1,0 +1,860 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>FraiseQL i18n Scalar Types - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "FraiseQL i18n Scalar Types";
+        var mkdocs_page_input_path = "reference/fraiseql/I18N_SCALARS.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">FraiseQL i18n Scalar Types</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="fraiseql-i18n-scalar-types">FraiseQL i18n Scalar Types</h1>
+<p><strong>Status</strong>: Implemented (FraiseQL Issue #127)
+<strong>Version</strong>: FraiseQL 0.x+
+<strong>Date</strong>: 2025-11-09</p>
+<hr />
+<h2 id="overview">Overview</h2>
+<p>FraiseQL now provides three specialized scalar types for internationalization (i18n) and localization support:</p>
+<ol>
+<li><strong><code>LanguageCode</code></strong> - ISO 639-1 two-letter language codes</li>
+<li><strong><code>LocaleCode</code></strong> - BCP 47 locale format (language-REGION)</li>
+<li><strong><code>Timezone</code></strong> - IANA timezone database identifiers</li>
+</ol>
+<p>These scalars provide type-safe validation for multi-language, multi-region applications and are essential for any global SaaS platform.</p>
+<hr />
+<h2 id="quick-reference">Quick Reference</h2>
+<h3 id="import">Import</h3>
+<pre><code class="language-python">from fraiseql.types import LanguageCode, LocaleCode, Timezone
+</code></pre>
+<h3 id="usage-examples">Usage Examples</h3>
+<pre><code class="language-python">from fraiseql.types import type, input, LanguageCode, LocaleCode, Timezone
+
+@type(sql_source=&quot;app.users&quot;)
+class User:
+    id: int
+    name: str
+    email: EmailAddress
+    preferred_language: LanguageCode  # e.g., &quot;en&quot;, &quot;fr&quot;, &quot;de&quot;
+    locale: LocaleCode                 # e.g., &quot;en-US&quot;, &quot;fr-FR&quot;
+    timezone: Timezone                 # e.g., &quot;America/New_York&quot;
+
+@input
+class UpdateUserPreferencesInput:
+    preferred_language: LanguageCode | None
+    locale: LocaleCode | None
+    timezone: Timezone | None
+</code></pre>
+<hr />
+<h2 id="languagecode">LanguageCode</h2>
+<p><strong>ISO 639-1 two-letter language codes</strong></p>
+<h3 id="validation-rules">Validation Rules</h3>
+<ul>
+<li><strong>Format</strong>: Exactly 2 lowercase letters (a-z)</li>
+<li><strong>Case-insensitive</strong>: Input normalized to lowercase</li>
+<li><strong>Standard</strong>: ISO 639-1</li>
+<li><strong>Examples</strong>: <code>en</code>, <code>fr</code>, <code>de</code>, <code>es</code>, <code>ja</code>, <code>zh</code>, <code>ar</code>, <code>ru</code>, <code>pt</code>, <code>it</code></li>
+</ul>
+<h3 id="python-usage">Python Usage</h3>
+<pre><code class="language-python">from fraiseql.types import LanguageCode
+
+# Valid
+lang = LanguageCode(&quot;en&quot;)      # &quot;en&quot;
+lang = LanguageCode(&quot;FR&quot;)      # &quot;fr&quot; (normalized)
+lang = LanguageCode(&quot;de&quot;)      # &quot;de&quot;
+
+# Invalid - raises ValueError
+LanguageCode(&quot;eng&quot;)           # Too long
+LanguageCode(&quot;e&quot;)             # Too short
+LanguageCode(&quot;en-US&quot;)         # Use LocaleCode instead
+LanguageCode(&quot;english&quot;)       # Must be 2 letters
+</code></pre>
+<h3 id="graphql-schema">GraphQL Schema</h3>
+<pre><code class="language-graphql">&quot;&quot;&quot;ISO 639-1 two-letter language code.&quot;&quot;&quot;
+scalar LanguageCode
+
+type User {
+  preferredLanguage: LanguageCode
+  fallbackLanguage: LanguageCode
+}
+
+input UserPreferencesInput {
+  language: LanguageCode
+}
+</code></pre>
+<h3 id="postgresql-integration">PostgreSQL Integration</h3>
+<pre><code class="language-sql">CREATE TABLE app.users (
+    id UUID PRIMARY KEY,
+    preferred_language TEXT
+        CHECK (preferred_language ~ '^[a-z]{2}$'),
+
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+COMMENT ON COLUMN app.users.preferred_language IS
+    'ISO 639-1 two-letter language code (e.g., en, fr, de)';
+</code></pre>
+<h3 id="use-cases">Use Cases</h3>
+<ul>
+<li><strong>Content Translation</strong>: Specify which language to serve content in</li>
+<li><strong>UI Localization</strong>: User interface language preference</li>
+<li><strong>Content Filtering</strong>: Filter articles/products by language</li>
+<li><strong>SEO</strong>: Language metadata for search engines</li>
+</ul>
+<hr />
+<h2 id="localecode">LocaleCode</h2>
+<p><strong>BCP 47 locale format for regional/cultural preferences</strong></p>
+<h3 id="validation-rules_1">Validation Rules</h3>
+<ul>
+<li><strong>Format</strong>: <code>language</code> OR <code>language-REGION</code></li>
+<li>Language: 2 lowercase letters (ISO 639-1)</li>
+<li>Region: 2 uppercase letters (ISO 3166-1 alpha-2)</li>
+<li><strong>Case-sensitive</strong>: Must match exact format (lowercase-UPPERCASE)</li>
+<li><strong>Standard</strong>: BCP 47</li>
+<li><strong>Examples</strong>: <code>en-US</code>, <code>en-GB</code>, <code>fr-FR</code>, <code>fr-CA</code>, <code>de-DE</code>, <code>es-ES</code>, <code>ja-JP</code>, <code>zh-CN</code>, <code>pt-BR</code></li>
+</ul>
+<h3 id="python-usage_1">Python Usage</h3>
+<pre><code class="language-python">from fraiseql.types import LocaleCode
+
+# Valid
+locale = LocaleCode(&quot;en-US&quot;)   # &quot;en-US&quot;
+locale = LocaleCode(&quot;fr-FR&quot;)   # &quot;fr-FR&quot;
+locale = LocaleCode(&quot;en&quot;)      # &quot;en&quot; (language-only accepted)
+
+# Invalid - raises ValueError
+LocaleCode(&quot;EN-us&quot;)           # Wrong case (must be lowercase-UPPERCASE)
+LocaleCode(&quot;en_US&quot;)           # Underscore not allowed (use hyphen)
+LocaleCode(&quot;en-USA&quot;)          # Region must be 2 letters
+LocaleCode(&quot;eng-US&quot;)          # Language must be 2 letters
+</code></pre>
+<h3 id="graphql-schema_1">GraphQL Schema</h3>
+<pre><code class="language-graphql">&quot;&quot;&quot;BCP 47 locale code (language-REGION format).&quot;&quot;&quot;
+scalar LocaleCode
+
+type User {
+  locale: LocaleCode!           # For formatting preferences
+  preferredLanguage: LanguageCode  # For content translation
+}
+
+input UpdateLocaleInput {
+  locale: LocaleCode!
+}
+</code></pre>
+<h3 id="postgresql-integration_1">PostgreSQL Integration</h3>
+<pre><code class="language-sql">CREATE TABLE app.users (
+    id UUID PRIMARY KEY,
+    locale TEXT
+        CHECK (locale ~ '^[a-z]{2}(-[A-Z]{2})?$'),
+
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+COMMENT ON COLUMN app.users.locale IS
+    'BCP 47 locale code for formatting (e.g., en-US, fr-FR)';
+</code></pre>
+<h3 id="use-cases_1">Use Cases</h3>
+<ul>
+<li><strong>Number Formatting</strong>: Display prices correctly ($1,234.56 vs 1.234,56 €)</li>
+<li><strong>Date Formatting</strong>: Regional date formats (MM/DD/YYYY vs DD/MM/YYYY)</li>
+<li><strong>Currency Display</strong>: Currency symbols and placement</li>
+<li><strong>Measurement Units</strong>: Imperial vs Metric</li>
+<li><strong>Address Formats</strong>: Regional address field ordering</li>
+</ul>
+<h3 id="languagecode-vs-localecode">LanguageCode vs LocaleCode</h3>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>LanguageCode</th>
+<th>LocaleCode</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Purpose</strong></td>
+<td>Content translation</td>
+<td>Formatting preferences</td>
+</tr>
+<tr>
+<td><strong>Format</strong></td>
+<td><code>en</code></td>
+<td><code>en-US</code>, <code>en-GB</code></td>
+</tr>
+<tr>
+<td><strong>Example</strong></td>
+<td>UI language</td>
+<td>Date/number format</td>
+</tr>
+<tr>
+<td><strong>Granularity</strong></td>
+<td>Language only</td>
+<td>Language + Region</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-python"># Canadian user who speaks French but prefers English UI
+class User:
+    preferred_language: LanguageCode = &quot;en&quot;  # Show UI in English
+    locale: LocaleCode = &quot;fr-CA&quot;              # Format dates/numbers Canadian French style
+</code></pre>
+<hr />
+<h2 id="timezone">Timezone</h2>
+<p><strong>IANA timezone database identifiers for timezone-aware applications</strong></p>
+<h3 id="validation-rules_2">Validation Rules</h3>
+<ul>
+<li><strong>Format</strong>: <code>Region/City</code> or <code>Region/City/Locality</code></li>
+<li>Each component starts with uppercase letter</li>
+<li>Can contain letters (a-z, A-Z) and underscores</li>
+<li><strong>Case-sensitive</strong>: Exact capitalization required</li>
+<li><strong>Standard</strong>: IANA Timezone Database (tz database)</li>
+<li><strong>Examples</strong>:</li>
+<li>Two-part: <code>America/New_York</code>, <code>Europe/Paris</code>, <code>Asia/Tokyo</code>, <code>Pacific/Auckland</code></li>
+<li>Three-part: <code>America/Argentina/Buenos_Aires</code>, <code>America/Indiana/Indianapolis</code></li>
+</ul>
+<h3 id="python-usage_2">Python Usage</h3>
+<pre><code class="language-python">from fraiseql.types import Timezone
+
+# Valid
+tz = Timezone(&quot;America/New_York&quot;)              # &quot;America/New_York&quot;
+tz = Timezone(&quot;Europe/Paris&quot;)                  # &quot;Europe/Paris&quot;
+tz = Timezone(&quot;Asia/Tokyo&quot;)                    # &quot;Asia/Tokyo&quot;
+tz = Timezone(&quot;America/Argentina/Buenos_Aires&quot;) # &quot;America/Argentina/Buenos_Aires&quot;
+
+# Invalid - raises ValueError
+Timezone(&quot;EST&quot;)                    # Abbreviations not supported
+Timezone(&quot;UTC+5&quot;)                  # Offsets not supported
+Timezone(&quot;GMT-8&quot;)                  # Offsets not supported
+Timezone(&quot;america/new_york&quot;)       # Wrong capitalization
+Timezone(&quot;NewYork&quot;)                # Must have Region/City format
+</code></pre>
+<h3 id="graphql-schema_2">GraphQL Schema</h3>
+<pre><code class="language-graphql">&quot;&quot;&quot;IANA timezone database identifier.&quot;&quot;&quot;
+scalar Timezone
+
+type User {
+  timezone: Timezone!
+}
+
+input ScheduleEventInput {
+  startTime: DateTime!
+  timezone: Timezone!  # For display in user's local time
+}
+</code></pre>
+<h3 id="postgresql-integration_2">PostgreSQL Integration</h3>
+<pre><code class="language-sql">CREATE TABLE app.users (
+    id UUID PRIMARY KEY,
+    timezone TEXT
+        CHECK (timezone ~ '^[A-Z][a-zA-Z_]+(/[A-Z][a-zA-Z_]+){1,2}$'),
+
+    created_at TIMESTAMPTZ DEFAULT now()
+);
+
+COMMENT ON COLUMN app.users.timezone IS
+    'IANA timezone identifier (e.g., America/New_York, Europe/Paris)';
+</code></pre>
+<h3 id="use-cases_2">Use Cases</h3>
+<ul>
+<li><strong>Timestamp Display</strong>: Show all times in user's local timezone</li>
+<li><strong>Scheduling</strong>: Event scheduling with correct DST handling</li>
+<li><strong>Email Notifications</strong>: Send emails at appropriate local times</li>
+<li><strong>Reporting</strong>: Generate reports in user's timezone</li>
+<li><strong>Meeting Coordination</strong>: Schedule meetings across timezones</li>
+</ul>
+<h3 id="why-iana-timezones-not-utc-offsets">Why IANA Timezones (Not UTC Offsets)</h3>
+<p>❌ <strong>UTC Offset</strong> (<code>UTC+5</code>, <code>GMT-8</code>):
+- Breaks during Daylight Saving Time transitions
+- Static offset doesn't adjust seasonally
+- Ambiguous (which regions use UTC+5?)</p>
+<p>✅ <strong>IANA Timezone</strong> (<code>America/New_York</code>):
+- Automatically handles DST transitions
+- Historical accuracy for past dates
+- Future-proof for DST rule changes
+- Clear geographic meaning</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-python"># BAD: UTC offset breaks with DST
+# New York is UTC-5 in winter, UTC-4 in summer
+user_offset = &quot;UTC-5&quot;  # Wrong half the year!
+
+# GOOD: IANA timezone handles DST automatically
+user_timezone = Timezone(&quot;America/New_York&quot;)  # Always correct
+</code></pre>
+<hr />
+<h2 id="integration-patterns">Integration Patterns</h2>
+<h3 id="multi-tenant-saas-platform">Multi-tenant SaaS Platform</h3>
+<pre><code class="language-python">from fraiseql.types import type, LanguageCode, LocaleCode, Timezone, EmailAddress
+
+@type(sql_source=&quot;app.users&quot;)
+class User:
+    id: UUID
+    email: EmailAddress
+    name: str
+
+    # i18n preferences
+    preferred_language: LanguageCode   # UI language
+    locale: LocaleCode                 # Formatting preferences
+    timezone: Timezone                 # Timestamp display
+
+    created_at: DateTime
+
+# GraphQL output
+&quot;&quot;&quot;
+type User {
+  id: UUID!
+  email: EmailAddress!
+  name: String!
+  preferredLanguage: LanguageCode!
+  locale: LocaleCode!
+  timezone: Timezone!
+  createdAt: DateTime!
+}
+&quot;&quot;&quot;
+</code></pre>
+<h3 id="content-management-system">Content Management System</h3>
+<pre><code class="language-python">@type(sql_source=&quot;app.articles&quot;)
+class Article:
+    id: int
+    title: str
+    content: str
+    language: LanguageCode    # Content language (for SEO/filtering)
+    published_at: DateTime
+
+@input
+class CreateArticleInput:
+    title: str
+    content: str
+    language: LanguageCode    # Required: which language is this content in?
+</code></pre>
+<h3 id="event-scheduling-platform">Event Scheduling Platform</h3>
+<pre><code class="language-python">@type(sql_source=&quot;app.events&quot;)
+class Event:
+    id: UUID
+    title: str
+    description: str
+    start_time: DateTime
+    end_time: DateTime
+    timezone: Timezone        # Event timezone (handles DST correctly)
+
+@input
+class CreateEventInput:
+    title: str
+    description: str
+    start_time: DateTime
+    end_time: DateTime
+    timezone: Timezone        # Required: event timezone
+
+# Example: Schedule event in New York
+mutation {
+  createEvent(input: {
+    title: &quot;Product Launch&quot;
+    description: &quot;Q1 2025 Product Launch Event&quot;
+    startTime: &quot;2025-03-15T14:00:00Z&quot;
+    timezone: &quot;America/New_York&quot;  # 2:00 PM EST/EDT (auto-adjusts)
+  }) {
+    id
+    startTime
+    timezone
+  }
+}
+</code></pre>
+<h3 id="e-commerce-platform">E-commerce Platform</h3>
+<pre><code class="language-python">@type(sql_source=&quot;app.customers&quot;)
+class Customer:
+    id: UUID
+    email: EmailAddress
+    name: str
+
+    # Formatting preferences
+    locale: LocaleCode        # For price/date formatting
+    timezone: Timezone        # For order confirmation emails
+
+    created_at: DateTime
+
+# Display price correctly based on locale
+# en-US: $1,234.56
+# fr-FR: 1 234,56 €
+# de-DE: 1.234,56 €
+</code></pre>
+<h3 id="user-preferences-update">User Preferences Update</h3>
+<pre><code class="language-python">@input
+class UpdateUserPreferencesInput:
+    preferred_language: LanguageCode | None
+    locale: LocaleCode | None
+    timezone: Timezone | None
+
+mutation UpdatePreferences {
+  updateUserPreferences(input: {
+    preferredLanguage: &quot;fr&quot;
+    locale: &quot;fr-CA&quot;
+    timezone: &quot;America/Toronto&quot;
+  }) {
+    id
+    preferredLanguage
+    locale
+    timezone
+  }
+}
+</code></pre>
+<hr />
+<h2 id="complete-database-schema-example">Complete Database Schema Example</h2>
+<pre><code class="language-sql">-- Multi-tenant SaaS users table with full i18n support
+CREATE TABLE app.users (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    email TEXT NOT NULL UNIQUE,
+    name TEXT NOT NULL,
+
+    -- i18n preferences with validation
+    preferred_language TEXT NOT NULL DEFAULT 'en'
+        CHECK (preferred_language ~ '^[a-z]{2}$'),
+
+    locale TEXT NOT NULL DEFAULT 'en-US'
+        CHECK (locale ~ '^[a-z]{2}(-[A-Z]{2})?$'),
+
+    timezone TEXT NOT NULL DEFAULT 'America/New_York'
+        CHECK (timezone ~ '^[A-Z][a-zA-Z_]+(/[A-Z][a-zA-Z_]+){1,2}$'),
+
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Add helpful column comments
+COMMENT ON COLUMN app.users.preferred_language IS
+    'ISO 639-1 two-letter language code for UI translation (e.g., en, fr, de)';
+
+COMMENT ON COLUMN app.users.locale IS
+    'BCP 47 locale code for date/number/currency formatting (e.g., en-US, fr-FR)';
+
+COMMENT ON COLUMN app.users.timezone IS
+    'IANA timezone identifier for timestamp display (e.g., America/New_York, Europe/Paris)';
+
+-- Index for common queries
+CREATE INDEX idx_users_language ON app.users(preferred_language);
+CREATE INDEX idx_users_locale ON app.users(locale);
+
+-- Example data
+INSERT INTO app.users (email, name, preferred_language, locale, timezone) VALUES
+    ('john@example.com', 'John Doe', 'en', 'en-US', 'America/New_York'),
+    ('marie@example.fr', 'Marie Dubois', 'fr', 'fr-FR', 'Europe/Paris'),
+    ('hans@example.de', 'Hans Schmidt', 'de', 'de-DE', 'Europe/Berlin'),
+    ('yuki@example.jp', 'Yuki Tanaka', 'ja', 'ja-JP', 'Asia/Tokyo');
+</code></pre>
+<hr />
+<h2 id="validation-examples">Validation Examples</h2>
+<h3 id="valid-values">Valid Values</h3>
+<pre><code class="language-python"># LanguageCode - ISO 639-1
+✅ LanguageCode(&quot;en&quot;)       # English
+✅ LanguageCode(&quot;FR&quot;)       # French (normalized to &quot;fr&quot;)
+✅ LanguageCode(&quot;de&quot;)       # German
+✅ LanguageCode(&quot;ja&quot;)       # Japanese
+✅ LanguageCode(&quot;zh&quot;)       # Chinese
+✅ LanguageCode(&quot;ar&quot;)       # Arabic
+
+# LocaleCode - BCP 47
+✅ LocaleCode(&quot;en-US&quot;)      # English (United States)
+✅ LocaleCode(&quot;en-GB&quot;)      # English (United Kingdom)
+✅ LocaleCode(&quot;fr-FR&quot;)      # French (France)
+✅ LocaleCode(&quot;fr-CA&quot;)      # French (Canada)
+✅ LocaleCode(&quot;en&quot;)         # English (language-only)
+
+# Timezone - IANA
+✅ Timezone(&quot;America/New_York&quot;)
+✅ Timezone(&quot;Europe/Paris&quot;)
+✅ Timezone(&quot;Asia/Tokyo&quot;)
+✅ Timezone(&quot;Pacific/Auckland&quot;)
+✅ Timezone(&quot;America/Argentina/Buenos_Aires&quot;)
+</code></pre>
+<h3 id="invalid-values">Invalid Values</h3>
+<pre><code class="language-python"># LanguageCode - Invalid
+❌ LanguageCode(&quot;eng&quot;)        # Too long (must be 2 letters)
+❌ LanguageCode(&quot;e&quot;)          # Too short
+❌ LanguageCode(&quot;en-US&quot;)      # Use LocaleCode for this
+❌ LanguageCode(&quot;english&quot;)    # Must be 2 letters
+❌ LanguageCode(&quot;e1&quot;)         # No numbers allowed
+
+# LocaleCode - Invalid
+❌ LocaleCode(&quot;EN-us&quot;)        # Wrong case (must be lowercase-UPPERCASE)
+❌ LocaleCode(&quot;en_US&quot;)        # Use hyphen, not underscore
+❌ LocaleCode(&quot;en-USA&quot;)       # Region must be 2 letters
+❌ LocaleCode(&quot;eng-US&quot;)       # Language must be 2 letters
+
+# Timezone - Invalid
+❌ Timezone(&quot;EST&quot;)            # Abbreviations not supported
+❌ Timezone(&quot;UTC+5&quot;)          # Offsets not supported
+❌ Timezone(&quot;GMT-8&quot;)          # Offsets not supported
+❌ Timezone(&quot;america/new_york&quot;) # Wrong capitalization
+❌ Timezone(&quot;NewYork&quot;)        # Must have slash (Region/City)
+</code></pre>
+<hr />
+<h2 id="error-messages">Error Messages</h2>
+<h3 id="graphql-errors">GraphQL Errors</h3>
+<pre><code class="language-graphql"># Invalid LanguageCode
+mutation {
+  updateUser(input: { language: &quot;eng&quot; })
+}
+# Error: &quot;Invalid language code: eng. Must be ISO 639-1 two-letter code (e.g., 'en', 'fr', 'de')&quot;
+
+# Invalid LocaleCode
+mutation {
+  updateUser(input: { locale: &quot;en_US&quot; })
+}
+# Error: &quot;Invalid locale code: en_US. Must be BCP 47 format (e.g., 'en-US', 'fr-FR', 'de-DE')&quot;
+
+# Invalid Timezone
+mutation {
+  updateUser(input: { timezone: &quot;EST&quot; })
+}
+# Error: &quot;Invalid timezone: EST. Must be IANA timezone identifier (e.g., 'America/New_York', 'Europe/Paris')&quot;
+</code></pre>
+<h3 id="python-errors">Python Errors</h3>
+<pre><code class="language-python">from fraiseql.types import LanguageCode, LocaleCode, Timezone
+
+# ValueError with clear message
+try:
+    LanguageCode(&quot;english&quot;)
+except ValueError as e:
+    print(e)
+    # &quot;Invalid language code: english. Must be ISO 639-1 two-letter code (e.g., 'en', 'fr', 'de')&quot;
+
+try:
+    LocaleCode(&quot;en_US&quot;)
+except ValueError as e:
+    print(e)
+    # &quot;Invalid locale code: en_US. Must be BCP 47 format (e.g., 'en-US', 'fr-FR', 'de-DE')&quot;
+
+try:
+    Timezone(&quot;EST&quot;)
+except ValueError as e:
+    print(e)
+    # &quot;Invalid timezone: EST. Must be IANA timezone identifier (e.g., 'America/New_York', 'Europe/Paris')&quot;
+</code></pre>
+<hr />
+<h2 id="benefits">Benefits</h2>
+<h3 id="1-type-safety">1. Type Safety</h3>
+<ul>
+<li>Prevent invalid language/locale/timezone values at API boundary</li>
+<li>Catch errors before database insert</li>
+<li>Better developer experience with IDE autocomplete</li>
+</ul>
+<h3 id="2-self-documenting">2. Self-Documenting</h3>
+<ul>
+<li>GraphQL schema shows valid formats and examples</li>
+<li>Clear scalar descriptions</li>
+<li>Reference links to standards</li>
+</ul>
+<h3 id="3-early-validation">3. Early Validation</h3>
+<ul>
+<li>Validate at GraphQL layer (before business logic)</li>
+<li>Consistent error messages</li>
+<li>Prevents storage of malformed data</li>
+</ul>
+<h3 id="4-postgresql-optimization">4. PostgreSQL Optimization</h3>
+<ul>
+<li>CHECK constraints enable query optimization</li>
+<li>Indexed text columns with guaranteed format</li>
+<li>Database-level validation as backup layer</li>
+</ul>
+<h3 id="5-universal-utility">5. Universal Utility</h3>
+<ul>
+<li>Every global application needs these types</li>
+<li>Common pattern across all multi-language/multi-region apps</li>
+<li>Reusable in any FraiseQL project</li>
+</ul>
+<hr />
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="1-use-appropriate-scalar-for-context">1. Use Appropriate Scalar for Context</h3>
+<pre><code class="language-python">class User:
+    # For content translation
+    preferred_language: LanguageCode  # &quot;en&quot;, &quot;fr&quot;, &quot;de&quot;
+
+    # For formatting preferences
+    locale: LocaleCode                # &quot;en-US&quot;, &quot;fr-FR&quot;, &quot;de-DE&quot;
+
+    # For timestamp display
+    timezone: Timezone                # &quot;America/New_York&quot;
+</code></pre>
+<h3 id="2-provide-sensible-defaults">2. Provide Sensible Defaults</h3>
+<pre><code class="language-sql">-- Set defaults based on your primary market
+CREATE TABLE app.users (
+    preferred_language TEXT DEFAULT 'en',
+    locale TEXT DEFAULT 'en-US',
+    timezone TEXT DEFAULT 'America/New_York'
+);
+</code></pre>
+<h3 id="3-allow-flexibility">3. Allow Flexibility</h3>
+<pre><code class="language-python">@input
+class UpdateUserPreferencesInput:
+    # Make all optional for partial updates
+    preferred_language: LanguageCode | None
+    locale: LocaleCode | None
+    timezone: Timezone | None
+</code></pre>
+<h3 id="4-combine-with-other-i18n-tools">4. Combine with Other i18n Tools</h3>
+<pre><code class="language-python"># Example: Full i18n user profile
+class User:
+    # Identity
+    id: UUID
+    email: EmailAddress
+
+    # i18n preferences
+    preferred_language: LanguageCode   # UI language
+    locale: LocaleCode                 # Formatting
+    timezone: Timezone                 # Timestamps
+
+    # Optional: Fallback languages
+    fallback_languages: list[LanguageCode] | None
+</code></pre>
+<h3 id="5-document-business-logic">5. Document Business Logic</h3>
+<pre><code class="language-python"># Clear documentation helps other developers
+@type(sql_source=&quot;app.users&quot;)
+class User:
+    &quot;&quot;&quot;User with full i18n support.
+
+    - preferred_language: Language for UI/content translation
+    - locale: Regional formatting for dates/numbers/currency
+    - timezone: Display all timestamps in user's local time
+
+    Example: French Canadian user
+    - preferred_language: &quot;fr&quot;
+    - locale: &quot;fr-CA&quot;
+    - timezone: &quot;America/Toronto&quot;
+    &quot;&quot;&quot;
+    preferred_language: LanguageCode
+    locale: LocaleCode
+    timezone: Timezone
+</code></pre>
+<hr />
+<h2 id="common-timezones-reference">Common Timezones Reference</h2>
+<h3 id="united-states">United States</h3>
+<ul>
+<li><code>America/New_York</code> - Eastern Time</li>
+<li><code>America/Chicago</code> - Central Time</li>
+<li><code>America/Denver</code> - Mountain Time</li>
+<li><code>America/Los_Angeles</code> - Pacific Time</li>
+<li><code>America/Phoenix</code> - Arizona (no DST)</li>
+<li><code>Pacific/Honolulu</code> - Hawaii</li>
+</ul>
+<h3 id="europe">Europe</h3>
+<ul>
+<li><code>Europe/London</code> - UK</li>
+<li><code>Europe/Paris</code> - France, Spain (CET)</li>
+<li><code>Europe/Berlin</code> - Germany (CET)</li>
+<li><code>Europe/Rome</code> - Italy (CET)</li>
+<li><code>Europe/Moscow</code> - Russia (MSK)</li>
+</ul>
+<h3 id="asia">Asia</h3>
+<ul>
+<li><code>Asia/Tokyo</code> - Japan</li>
+<li><code>Asia/Shanghai</code> - China</li>
+<li><code>Asia/Hong_Kong</code> - Hong Kong</li>
+<li><code>Asia/Singapore</code> - Singapore</li>
+<li><code>Asia/Dubai</code> - UAE</li>
+<li><code>Asia/Kolkata</code> - India</li>
+</ul>
+<h3 id="oceania">Oceania</h3>
+<ul>
+<li><code>Australia/Sydney</code> - Eastern Australia</li>
+<li><code>Australia/Melbourne</code> - Eastern Australia</li>
+<li><code>Pacific/Auckland</code> - New Zealand</li>
+</ul>
+<h3 id="latin-america">Latin America</h3>
+<ul>
+<li><code>America/Sao_Paulo</code> - Brazil</li>
+<li><code>America/Argentina/Buenos_Aires</code> - Argentina</li>
+<li><code>America/Mexico_City</code> - Mexico</li>
+</ul>
+<hr />
+<h2 id="references">References</h2>
+<ul>
+<li><strong>ISO 639-1 Language Codes</strong>: https://en.wikipedia.org/wiki/List_of_ISO_639-1_codes</li>
+<li><strong>BCP 47 Locale Format</strong>: https://tools.ietf.org/html/bcp47</li>
+<li><strong>IANA Timezone Database</strong>: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones</li>
+<li><strong>Full Timezone List</strong>: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones</li>
+<li><strong>FraiseQL Documentation</strong>: https://github.com/fraiseql/fraiseql</li>
+<li><strong>Implementation Plan</strong>: <code>/home/lionel/code/fraiseql/docs/implementation-plans/I18N_SCALARS_IMPLEMENTATION_PLAN.md</code></li>
+</ul>
+<hr />
+<h2 id="migration-guide">Migration Guide</h2>
+<h3 id="adding-i18n-support-to-existing-project">Adding i18n Support to Existing Project</h3>
+<h4 id="step-1-update-database-schema">Step 1: Update Database Schema</h4>
+<pre><code class="language-sql">-- Add columns to existing users table
+ALTER TABLE app.users
+    ADD COLUMN preferred_language TEXT DEFAULT 'en'
+        CHECK (preferred_language ~ '^[a-z]{2}$'),
+    ADD COLUMN locale TEXT DEFAULT 'en-US'
+        CHECK (locale ~ '^[a-z]{2}(-[A-Z]{2})?$'),
+    ADD COLUMN timezone TEXT DEFAULT 'America/New_York'
+        CHECK (timezone ~ '^[A-Z][a-zA-Z_]+(/[A-Z][a-zA-Z_]+){1,2}$');
+
+-- Add column comments
+COMMENT ON COLUMN app.users.preferred_language IS
+    'ISO 639-1 two-letter language code (e.g., en, fr, de)';
+COMMENT ON COLUMN app.users.locale IS
+    'BCP 47 locale code for formatting (e.g., en-US, fr-FR)';
+COMMENT ON COLUMN app.users.timezone IS
+    'IANA timezone identifier (e.g., America/New_York, Europe/Paris)';
+</code></pre>
+<h4 id="step-2-update-fraiseql-types">Step 2: Update FraiseQL Types</h4>
+<pre><code class="language-python">from fraiseql.types import type, LanguageCode, LocaleCode, Timezone
+
+@type(sql_source=&quot;app.users&quot;)
+class User:
+    id: UUID
+    email: EmailAddress
+    name: str
+
+    # NEW: i18n fields
+    preferred_language: LanguageCode
+    locale: LocaleCode
+    timezone: Timezone
+</code></pre>
+<h4 id="step-3-add-update-mutation">Step 3: Add Update Mutation</h4>
+<pre><code class="language-python">@input
+class UpdateUserPreferencesInput:
+    preferred_language: LanguageCode | None
+    locale: LocaleCode | None
+    timezone: Timezone | None
+
+# Mutation resolver will automatically validate
+</code></pre>
+<h4 id="step-4-populate-defaults">Step 4: Populate Defaults</h4>
+<pre><code class="language-sql">-- Set defaults for existing users based on IP geolocation or account settings
+UPDATE app.users SET
+    preferred_language = 'en',
+    locale = 'en-US',
+    timezone = 'America/New_York'
+WHERE preferred_language IS NULL;
+</code></pre>
+<hr />
+<p><strong>Document Version</strong>: 1.0
+<strong>Last Updated</strong>: 2025-11-09
+<strong>Related Issue</strong>: <a href="https://github.com/fraiseql/fraiseql/issues/127">FraiseQL #127</a></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

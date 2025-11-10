@@ -1,0 +1,1047 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team C Implementation Plan: App/Core Function Pattern - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team C Implementation Plan: App/Core Function Pattern";
+        var mkdocs_page_input_path = "archive/plans/TEAM_C_APP_CORE_FUNCTIONS_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team C Implementation Plan: App/Core Function Pattern</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-c-implementation-plan-appcore-function-pattern">Team C Implementation Plan: App/Core Function Pattern</h1>
+<p><strong>Date</strong>: 2025-11-08
+<strong>Status</strong>: 🚧 Ready for Implementation
+<strong>Priority</strong>: HIGH
+<strong>Dependencies</strong>: Team B Complete (✅)
+<strong>Estimated Time</strong>: 4-5 days (phased TDD approach)</p>
+<hr />
+<h2 id="mission">🎯 Mission</h2>
+<p>Transform Team C's function generator to produce the <strong>App/Core two-layer pattern</strong> with:
+1. <strong>App Layer Functions</strong> (<code>app.*</code> schema) - API wrappers with JSONB → Composite Type conversion
+2. <strong>Core Layer Functions</strong> (entity schema) - Business logic with typed inputs
+3. <strong>JWT Context Integration</strong> - tenant_id and user_id from JWT claims
+4. <strong>Audit Trail</strong> - Complete tracking with <code>created_by</code>, <code>updated_by</code>, <code>deleted_by</code>
+5. <strong>Trinity Resolution</strong> - Use Team B's helper functions for UUID → INTEGER
+6. <strong>FraiseQL Metadata</strong> - Annotations for GraphQL auto-discovery</p>
+<hr />
+<h2 id="current-state-analysis">📊 Current State Analysis</h2>
+<h3 id="what-exists">What Exists (✅)</h3>
+<ul>
+<li><code>src/generators/function_generator.py</code> - Basic CRUD and action generation</li>
+<li>Function templates in <code>templates/sql/</code></li>
+<li>Tests in <code>tests/unit/generators/test_function_generator.py</code></li>
+<li>7 tests passing (100%)</li>
+</ul>
+<h3 id="whats-missingneeds-adaptation">What's Missing/Needs Adaptation (🔴)</h3>
+<ul>
+<li>❌ <strong>App/Core two-layer pattern</strong> - Currently generates single-layer functions</li>
+<li>❌ <strong>Composite type integration</strong> - Needs to use Team B's generated types</li>
+<li>❌ <strong>JWT context parameters</strong> - Missing <code>input_pk_organization</code>, <code>input_created_by</code></li>
+<li>❌ <strong>tenant_id injection</strong> - Not populating denormalized tenant_id</li>
+<li>❌ <strong>Audit field population</strong> - created_by, updated_by, deleted_by not set</li>
+<li>❌ <strong>Trinity helper usage</strong> - Not using <code>entity_pk()</code> for UUID → INTEGER</li>
+<li>❌ <strong>app.mutation_result return type</strong> - Still returning JSONB</li>
+<li>❌ <strong>FraiseQL annotations</strong> - Missing mutation metadata</li>
+</ul>
+<hr />
+<h2 id="critical-appcore-pattern-overview">⚠️ CRITICAL: App/Core Pattern Overview</h2>
+<h3 id="the-two-layer-architecture"><strong>The Two-Layer Architecture</strong></h3>
+<pre><code>┌────────────────────────────────────────────────────────────┐
+│  LAYER 1: APP WRAPPER (GraphQL Entry Point)               │
+├────────────────────────────────────────────────────────────┤
+│  Schema: app.*                                             │
+│  Purpose: API contract, type conversion                    │
+│  Input:  JSONB (from GraphQL/REST)                        │
+│  Output: app.mutation_result                               │
+│                                                            │
+│  Responsibilities:                                         │
+│  - Extract JWT context (tenant_id, user_id)              │
+│  - Convert JSONB → Composite Type                         │
+│  - Delegate to core layer                                 │
+│  - NO business logic!                                      │
+└────────────────────────────────────────────────────────────┘
+                        │
+                        ▼
+┌────────────────────────────────────────────────────────────┐
+│  LAYER 2: CORE LOGIC (Business Rules)                     │
+├────────────────────────────────────────────────────────────┤
+│  Schema: {entity_schema}  (e.g., crm, management)        │
+│  Purpose: Business logic, validation, data manipulation    │
+│  Input:  Composite Type (typed, validated)                │
+│  Output: app.mutation_result                               │
+│                                                            │
+│  Responsibilities:                                         │
+│  - Validate business rules                                │
+│  - UUID → INTEGER resolution (Trinity helpers)            │
+│  - INSERT/UPDATE with tenant_id, audit fields            │
+│  - Error handling                                         │
+│  - Return standardized result                             │
+└────────────────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="architecture-pattern-reference">🏗️ Architecture Pattern (Reference)</h2>
+<p>Based on <code>docs/architecture/APP_CORE_FUNCTION_PATTERN.md</code>:</p>
+<h3 id="example-create_contact-action"><strong>Example: create_contact Action</strong></h3>
+<p><strong>Team B Generated</strong>:</p>
+<pre><code class="language-sql">-- Composite type (Team B)
+CREATE TYPE app.type_create_contact_input AS (
+    email TEXT,
+    company_id UUID,
+    status TEXT
+);
+
+-- Table (Team B)
+CREATE TABLE crm.tb_contact (
+    pk_contact INTEGER PRIMARY KEY,
+    id UUID UNIQUE,
+    tenant_id UUID NOT NULL,
+    email TEXT,
+    fk_company INTEGER,
+    status TEXT,
+    created_at TIMESTAMPTZ,
+    created_by UUID,
+    ...
+);
+
+-- Helper functions (Team B)
+CREATE FUNCTION crm.contact_pk(TEXT) RETURNS INTEGER ...;
+CREATE FUNCTION crm.company_pk(TEXT) RETURNS INTEGER ...;
+</code></pre>
+<p><strong>Team C Generates</strong>:</p>
+<pre><code class="language-sql">-- ================================================================
+-- APP LAYER: API Wrapper
+-- ================================================================
+CREATE OR REPLACE FUNCTION app.create_contact(
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
+    input_payload JSONB               -- User input (GraphQL)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_create_contact_input;
+BEGIN
+    -- Convert JSONB → Typed Composite
+    input_data := jsonb_populate_record(
+        NULL::app.type_create_contact_input,
+        input_payload
+    );
+
+    -- Delegate to core logic (NO business logic here!)
+    RETURN crm.create_contact(
+        input_pk_organization,
+        input_data,
+        input_payload,
+        input_created_by
+    );
+END;
+$$;
+
+COMMENT ON FUNCTION app.create_contact IS
+  '@fraiseql:mutation name=createContact,input=CreateContactInput,output=MutationResult';
+
+-- ================================================================
+-- CORE LAYER: Business Logic
+-- ================================================================
+CREATE OR REPLACE FUNCTION crm.create_contact(
+    auth_tenant_id UUID,                          -- Tenant context
+    input_data app.type_create_contact_input,     -- Typed input
+    input_payload JSONB,                          -- Original (audit)
+    auth_user_id UUID                             -- User context
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_contact_id UUID := gen_random_uuid();
+    v_contact_pk INTEGER;
+    v_fk_company INTEGER;
+BEGIN
+    -- === VALIDATION ===
+    IF input_data.email IS NULL THEN
+        RETURN crm.log_and_return_mutation(
+            auth_tenant_id,
+            auth_user_id,
+            'contact',
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            'NOOP',
+            'failed:missing_email',
+            ARRAY['email']::TEXT[],
+            'Email is required',
+            NULL, NULL,
+            jsonb_build_object('reason', 'validation_email_null')
+        );
+    END IF;
+
+    -- === UUID → INTEGER RESOLUTION (Trinity Helpers) ===
+    IF input_data.company_id IS NOT NULL THEN
+        v_fk_company := crm.company_pk(input_data.company_id::TEXT);
+
+        IF v_fk_company IS NULL THEN
+            RETURN crm.log_and_return_mutation(
+                input_pk_organization,
+                input_created_by,
+                'contact',
+                '00000000-0000-0000-0000-000000000000'::UUID,
+                'NOOP',
+                'failed:company_not_found',
+                ARRAY['company_id']::TEXT[],
+                'Company not found',
+                NULL, NULL,
+                jsonb_build_object('company_id', input_data.company_id)
+            );
+        END IF;
+    END IF;
+
+    -- === BUSINESS LOGIC: INSERT ===
+    INSERT INTO crm.tb_contact (
+        id,
+        tenant_id,              -- ✅ From JWT (denormalized)
+        email,
+        fk_company,            -- ✅ INTEGER (from Trinity helper)
+        status,
+        created_at,
+        created_by             -- ✅ From JWT
+    ) VALUES (
+        v_contact_id,
+        auth_tenant_id,        -- ✅ JWT tenant_id → denormalized column
+        input_data.email,
+        v_fk_company,          -- ✅ Resolved UUID → INTEGER
+        input_data.status,
+        now(),
+        auth_user_id           -- ✅ JWT user_id
+    )
+    RETURNING pk_contact INTO v_contact_pk;
+
+    -- === AUDIT &amp; RETURN ===
+    RETURN crm.log_and_return_mutation(
+        auth_tenant_id,
+        auth_user_id,
+        'contact',
+        v_contact_id,
+        'INSERT',
+        'success',
+        ARRAY(SELECT jsonb_object_keys(input_payload)),
+        'Contact created successfully',
+        (SELECT row_to_json(c.*) FROM crm.tb_contact c WHERE c.id = v_contact_id)::JSONB,
+        NULL
+    );
+END;
+$$;
+</code></pre>
+<hr />
+<h2 id="implementation-phases-tdd-discipline">📋 Implementation Phases (TDD Discipline)</h2>
+<hr />
+<h3 id="phase-1-app-wrapper-generator"><strong>Phase 1: App Wrapper Generator</strong></h3>
+<p><strong>Objective</strong>: Generate <code>app.*</code> wrapper functions with JSONB → Composite Type conversion</p>
+<h4 id="red-write-failing-tests">🔴 RED: Write Failing Tests</h4>
+<p><strong>Test File</strong>: <code>tests/unit/generators/test_app_wrapper_generator.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;Tests for App Wrapper Generator (Team C)&quot;&quot;&quot;
+
+def test_generate_app_wrapper_for_create_action():
+    &quot;&quot;&quot;Generate app wrapper for create action&quot;&quot;&quot;
+    # Given: Entity with create action
+    entity = Entity(
+        name=&quot;Contact&quot;,
+        schema=&quot;crm&quot;,
+        fields={...},
+        actions=[Action(name=&quot;create_contact&quot;, ...)]
+    )
+
+    # When: Generate app wrapper
+    generator = AppWrapperGenerator()
+    sql = generator.generate_app_wrapper(entity, entity.actions[0])
+
+    # Then: App wrapper function with correct signature
+    assert &quot;CREATE OR REPLACE FUNCTION app.create_contact(&quot; in sql
+    assert &quot;auth_tenant_id UUID&quot; in sql
+    assert &quot;auth_user_id UUID&quot; in sql
+    assert &quot;input_payload JSONB&quot; in sql
+    assert &quot;RETURNS app.mutation_result&quot; in sql
+
+    # Then: JSONB → Composite Type conversion
+    assert &quot;input_data app.type_create_contact_input&quot; in sql
+    assert &quot;jsonb_populate_record&quot; in sql
+
+    # Then: Delegation to core layer
+    assert &quot;RETURN crm.create_contact(&quot; in sql
+    assert &quot;auth_tenant_id,&quot; in sql
+    assert &quot;input_data,&quot; in sql
+    assert &quot;input_payload,&quot; in sql
+    assert &quot;auth_user_id&quot; in sql
+
+    # Then: FraiseQL annotation
+    assert &quot;COMMENT ON FUNCTION app.create_contact IS&quot; in sql
+    assert &quot;@fraiseql:mutation&quot; in sql
+
+
+def test_app_wrapper_jwt_context_parameters():
+    &quot;&quot;&quot;App wrapper extracts JWT context&quot;&quot;&quot;
+    # When: Generate
+    sql = generator.generate_app_wrapper(entity, action)
+
+    # Then: Context parameters are first two params
+    assert &quot;auth_tenant_id UUID&quot; in sql
+    assert &quot;auth_user_id UUID&quot; in sql
+    # Then: Payload is third param
+    assert &quot;input_payload JSONB&quot; in sql
+
+
+def test_app_wrapper_uses_team_b_composite_type():
+    &quot;&quot;&quot;App wrapper references Team B's composite type&quot;&quot;&quot;
+    # Given: Action name &quot;create_contact&quot;
+    action = Action(name=&quot;create_contact&quot;)
+
+    # When: Generate
+    sql = generator.generate_app_wrapper(entity, action)
+
+    # Then: Uses correct composite type name
+    assert &quot;app.type_create_contact_input&quot; in sql
+</code></pre>
+<p><strong>Expected Outcome</strong>: All tests FAIL (no <code>AppWrapperGenerator</code> exists yet)</p>
+<hr />
+<h4 id="green-minimal-implementation">🟢 GREEN: Minimal Implementation</h4>
+<p><strong>Create</strong>: <code>src/generators/app_wrapper_generator.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;
+App Wrapper Generator (Team C)
+Generates app.* API wrapper functions
+&quot;&quot;&quot;
+
+from jinja2 import Environment, FileSystemLoader
+from src.core.ast_models import Entity, Action
+
+
+class AppWrapperGenerator:
+    &quot;&quot;&quot;Generates app.* wrapper functions for GraphQL/REST API&quot;&quot;&quot;
+
+    def __init__(self, templates_dir: str = &quot;templates/sql&quot;):
+        self.templates_dir = templates_dir
+        self.env = Environment(loader=FileSystemLoader(templates_dir))
+
+    def generate_app_wrapper(self, entity: Entity, action: Action) -&gt; str:
+        &quot;&quot;&quot;
+        Generate app wrapper function for action
+
+        Args:
+            entity: Entity containing the action
+            action: Action to generate wrapper for
+
+        Returns:
+            SQL for app wrapper function
+        &quot;&quot;&quot;
+        composite_type_name = f&quot;app.type_{action.name}_input&quot;
+        graphql_name = self._to_camel_case(action.name)
+
+        context = {
+            &quot;app_function_name&quot;: action.name,
+            &quot;composite_type_name&quot;: composite_type_name,
+            &quot;core_schema&quot;: entity.schema,
+            &quot;core_function_name&quot;: action.name,
+            &quot;graphql_name&quot;: graphql_name,
+        }
+
+        template = self.env.get_template(&quot;app_wrapper.sql.j2&quot;)
+        return template.render(**context)
+
+    def _to_camel_case(self, snake_str: str) -&gt; str:
+        &quot;&quot;&quot;Convert snake_case to camelCase&quot;&quot;&quot;
+        components = snake_str.split('_')
+        return components[0] + ''.join(x.capitalize() for x in components[1:])
+</code></pre>
+<p><strong>Create Template</strong>: <code>templates/sql/app_wrapper.sql.j2</code></p>
+<pre><code class="language-sql">-- ============================================================================
+-- APP WRAPPER: {{ app_function_name }}
+-- API Entry Point (GraphQL/REST)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.{{ app_function_name }}(
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
+    input_payload JSONB               -- User input (GraphQL/REST)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data {{ composite_type_name }};
+BEGIN
+    -- Convert JSONB → Typed Composite
+    input_data := jsonb_populate_record(
+        NULL::{{ composite_type_name }},
+        input_payload
+    );
+
+    -- Delegate to core business logic
+    RETURN {{ core_schema }}.{{ core_function_name }}(
+        auth_tenant_id,
+        input_data,
+        input_payload,
+        auth_user_id
+    );
+END;
+$$;
+
+-- FraiseQL Metadata
+COMMENT ON FUNCTION app.{{ app_function_name }} IS
+  '@fraiseql:mutation name={{ graphql_name }},input={{ graphql_name | title }}Input,output=MutationResult';
+</code></pre>
+<p><strong>Run Tests</strong>: <code>uv run pytest tests/unit/generators/test_app_wrapper_generator.py -v</code></p>
+<p><strong>Expected</strong>: Tests PASS (minimal implementation works)</p>
+<hr />
+<h4 id="refactor-enhance-and-clean">🔧 REFACTOR: Enhance and Clean</h4>
+<p><strong>Improvements</strong>:
+1. Handle update actions (different parameter needs)
+2. Handle delete actions (may not need composite type)
+3. Add error handling
+4. Support custom action parameter detection</p>
+<hr />
+<h4 id="qa-quality-verification">✅ QA: Quality Verification</h4>
+<pre><code class="language-bash">uv run pytest tests/unit/generators/test_app_wrapper_generator.py -v
+uv run mypy src/generators/app_wrapper_generator.py
+uv run ruff check src/generators/
+</code></pre>
+<hr />
+<h3 id="phase-2-core-logic-generator"><strong>Phase 2: Core Logic Generator</strong></h3>
+<p><strong>Objective</strong>: Generate core business logic functions with validation, Trinity resolution, audit trail</p>
+<h4 id="red-write-failing-tests_1">🔴 RED: Write Failing Tests</h4>
+<p><strong>Test File</strong>: <code>tests/unit/generators/test_core_logic_generator.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;Tests for Core Logic Generator (Team C)&quot;&quot;&quot;
+
+def test_generate_core_create_function():
+    &quot;&quot;&quot;Generate core create function with full pattern&quot;&quot;&quot;
+    # Given: Entity with fields
+    entity = Entity(
+        name=&quot;Contact&quot;,
+        schema=&quot;crm&quot;,
+        fields={
+            &quot;email&quot;: FieldDefinition(type=&quot;text&quot;, nullable=False),
+            &quot;company&quot;: FieldDefinition(type=&quot;ref&quot;, target_entity=&quot;Company&quot;, nullable=True),
+            &quot;status&quot;: FieldDefinition(type=&quot;enum&quot;, values=[&quot;lead&quot;, &quot;qualified&quot;], nullable=False)
+        }
+    )
+
+    # When: Generate core function
+    generator = CoreLogicGenerator()
+    sql = generator.generate_core_create_function(entity)
+
+    # Then: Correct signature
+    assert &quot;CREATE OR REPLACE FUNCTION crm.create_contact(&quot; in sql
+    assert &quot;auth_tenant_id UUID&quot; in sql
+    assert &quot;input_data app.type_create_contact_input&quot; in sql
+    assert &quot;input_payload JSONB&quot; in sql
+    assert &quot;auth_user_id UUID&quot; in sql
+    assert &quot;RETURNS app.mutation_result&quot; in sql
+
+    # Then: Validation logic
+    assert &quot;IF input_data.email IS NULL THEN&quot; in sql
+    assert &quot;RETURN crm.log_and_return_mutation&quot; in sql
+
+    # Then: Trinity resolution (UUID → INTEGER)
+    assert &quot;v_fk_company := crm.company_pk(input_data.company_id::TEXT, auth_tenant_id)&quot; in sql
+
+    # Then: INSERT with all fields
+    assert &quot;INSERT INTO crm.tb_contact (&quot; in sql
+    assert &quot;tenant_id,&quot; in sql
+    assert &quot;created_by&quot; in sql
+    assert &quot;VALUES (&quot; in sql
+    assert &quot;auth_tenant_id,&quot; in sql  # tenant_id from JWT
+    assert &quot;auth_user_id&quot; in sql     # created_by from JWT
+
+    # Then: Return mutation result
+    assert &quot;RETURN crm.log_and_return_mutation&quot; in sql
+
+
+def test_core_function_uses_trinity_helpers():
+    &quot;&quot;&quot;Core function uses Team B's Trinity helpers&quot;&quot;&quot;
+    # Given: Entity with foreign key
+    entity = Entity(fields={&quot;company&quot;: FieldDefinition(type=&quot;ref&quot;, target_entity=&quot;Company&quot;)})
+
+    # When: Generate
+    sql = generator.generate_core_create_function(entity)
+
+    # Then: Uses entity_pk() helper
+    assert &quot;crm.company_pk(&quot; in sql
+    assert &quot;input_data.company_id::TEXT&quot; in sql
+
+
+def test_core_function_populates_audit_fields():
+    &quot;&quot;&quot;Core function populates all audit fields&quot;&quot;&quot;
+    # When: Generate
+    sql = generator.generate_core_create_function(entity)
+
+    # Then: All audit fields in INSERT
+    assert &quot;created_at,&quot; in sql
+    assert &quot;created_by,&quot; in sql
+    # Then: Values from JWT and now()
+    assert &quot;now()&quot; in sql
+    assert &quot;auth_user_id&quot; in sql
+
+
+def test_core_function_populates_tenant_id():
+    &quot;&quot;&quot;Core function populates denormalized tenant_id&quot;&quot;&quot;
+    # When: Generate
+    sql = generator.generate_core_create_function(entity)
+
+    # Then: tenant_id in INSERT
+    assert &quot;tenant_id,&quot; in sql
+    # Then: Value from JWT context
+    assert &quot;auth_tenant_id&quot; in sql
+</code></pre>
+<p><strong>Expected Outcome</strong>: All tests FAIL (no <code>CoreLogicGenerator</code> exists yet)</p>
+<hr />
+<h4 id="green-minimal-implementation_1">🟢 GREEN: Minimal Implementation</h4>
+<p><strong>Create</strong>: <code>src/generators/core_logic_generator.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;
+Core Logic Generator (Team C)
+Generates core.* business logic functions
+&quot;&quot;&quot;
+
+from typing import Dict, List
+from jinja2 import Environment, FileSystemLoader
+from src.core.ast_models import Entity, FieldDefinition
+
+
+class CoreLogicGenerator:
+    &quot;&quot;&quot;Generates core layer business logic functions&quot;&quot;&quot;
+
+    def __init__(self, templates_dir: str = &quot;templates/sql&quot;):
+        self.templates_dir = templates_dir
+        self.env = Environment(loader=FileSystemLoader(templates_dir))
+
+    def generate_core_create_function(self, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;
+        Generate core CREATE function with:
+        - Input validation
+        - Trinity resolution (UUID → INTEGER)
+        - tenant_id population
+        - Audit field population
+        &quot;&quot;&quot;
+        # Prepare field mappings
+        fields = self._prepare_insert_fields(entity)
+        validations = self._generate_validations(entity)
+        fk_resolutions = self._generate_fk_resolutions(entity)
+
+        context = {
+            &quot;entity&quot;: {
+                &quot;name&quot;: entity.name,
+                &quot;schema&quot;: entity.schema,
+                &quot;table_name&quot;: f&quot;tb_{entity.name.lower()}&quot;,
+                &quot;pk_column&quot;: f&quot;pk_{entity.name.lower()}&quot;,
+            },
+            &quot;composite_type&quot;: f&quot;app.type_create_{entity.name.lower()}_input&quot;,
+            &quot;fields&quot;: fields,
+            &quot;validations&quot;: validations,
+            &quot;fk_resolutions&quot;: fk_resolutions,
+        }
+
+        template = self.env.get_template(&quot;core_create_function.sql.j2&quot;)
+        return template.render(**context)
+
+    def _prepare_insert_fields(self, entity: Entity) -&gt; Dict:
+        &quot;&quot;&quot;Prepare field list for INSERT statement&quot;&quot;&quot;
+        insert_fields = []
+        insert_values = []
+
+        # Trinity fields
+        insert_fields.append(&quot;id&quot;)
+        insert_values.append(f&quot;v_{entity.name.lower()}_id&quot;)
+
+        # Multi-tenancy
+        insert_fields.append(&quot;tenant_id&quot;)
+        insert_values.append(&quot;auth_tenant_id&quot;)
+
+        # Business fields
+        for field_name, field_def in entity.fields.items():
+            if field_def.type == &quot;ref&quot;:
+                # Foreign key (INTEGER)
+                fk_name = f&quot;fk_{field_name}&quot;
+                insert_fields.append(fk_name)
+                insert_values.append(f&quot;v_{fk_name}&quot;)
+            else:
+                # Regular field
+                insert_fields.append(field_name)
+                insert_values.append(f&quot;input_data.{field_name}&quot;)
+
+        # Audit fields
+        insert_fields.extend([&quot;created_at&quot;, &quot;created_by&quot;])
+        insert_values.extend([&quot;now()&quot;, &quot;auth_user_id&quot;])
+
+        return {
+            &quot;columns&quot;: insert_fields,
+            &quot;values&quot;: insert_values,
+        }
+
+    def _generate_validations(self, entity: Entity) -&gt; List[str]:
+        &quot;&quot;&quot;Generate validation checks for required fields&quot;&quot;&quot;
+        validations = []
+        for field_name, field_def in entity.fields.items():
+            if not field_def.nullable:
+                # Generate validation for required field
+                validations.append({
+                    &quot;field&quot;: field_name,
+                    &quot;check&quot;: f&quot;input_data.{field_name} IS NULL&quot;,
+                    &quot;error&quot;: f&quot;failed:missing_{field_name}&quot;,
+                    &quot;message&quot;: f&quot;{field_name.capitalize()} is required&quot;,
+                })
+        return validations
+
+    def _generate_fk_resolutions(self, entity: Entity) -&gt; List[Dict]:
+        &quot;&quot;&quot;Generate UUID → INTEGER FK resolutions using Trinity helpers&quot;&quot;&quot;
+        resolutions = []
+        for field_name, field_def in entity.fields.items():
+            if field_def.type == &quot;ref&quot; and field_def.target_entity:
+                resolutions.append({
+                    &quot;field&quot;: field_name,
+                    &quot;target_entity&quot;: field_def.target_entity,
+                    &quot;variable&quot;: f&quot;v_fk_{field_name}&quot;,
+                    &quot;helper_function&quot;: f&quot;{entity.schema}.{field_def.target_entity.lower()}_pk&quot;,
+                    &quot;input_field&quot;: f&quot;{field_name}_id&quot;,  # Composite type uses company_id
+                })
+        return resolutions
+</code></pre>
+<p><strong>Create Template</strong>: <code>templates/sql/core_create_function.sql.j2</code></p>
+<pre><code class="language-sql">-- ============================================================================
+-- CORE LOGIC: {{ entity.schema }}.create_{{ entity.name | lower }}
+-- Business Rules &amp; Data Manipulation
+-- ============================================================================
+CREATE OR REPLACE FUNCTION {{ entity.schema }}.create_{{ entity.name | lower }}(
+    auth_tenant_id UUID,
+    input_data {{ composite_type }},
+    input_payload JSONB,
+    auth_user_id UUID
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_{{ entity.name | lower }}_id UUID := gen_random_uuid();
+    v_{{ entity.name | lower }}_pk INTEGER;
+{%- for resolution in fk_resolutions %}
+    {{ resolution.variable }} INTEGER;
+{%- endfor %}
+BEGIN
+    -- === VALIDATION ===
+{%- for validation in validations %}
+    IF {{ validation.check }} THEN
+        RETURN {{ entity.schema }}.log_and_return_mutation(
+            auth_tenant_id,
+            auth_user_id,
+            '{{ entity.name | lower }}',
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            'NOOP',
+            '{{ validation.error }}',
+            ARRAY['{{ validation.field }}']::TEXT[],
+            '{{ validation.message }}',
+            NULL, NULL,
+            jsonb_build_object('reason', 'validation_{{ validation.field }}_null')
+        );
+    END IF;
+{%- endfor %}
+
+    -- === UUID → INTEGER RESOLUTION (Trinity Helpers) ===
+{%- for resolution in fk_resolutions %}
+    IF input_data.{{ resolution.input_field }} IS NOT NULL THEN
+        {{ resolution.variable }} := {{ resolution.helper_function }}(input_data.{{ resolution.input_field }}::TEXT);
+
+        IF {{ resolution.variable }} IS NULL THEN
+            RETURN {{ entity.schema }}.log_and_return_mutation(
+                auth_tenant_id,
+                auth_user_id,
+                '{{ entity.name | lower }}',
+                '00000000-0000-0000-0000-000000000000'::UUID,
+                'NOOP',
+                'failed:{{ resolution.field }}_not_found',
+                ARRAY['{{ resolution.input_field }}']::TEXT[],
+                '{{ resolution.target_entity }} not found',
+                NULL, NULL,
+                jsonb_build_object('{{ resolution.input_field }}', input_data.{{ resolution.input_field }})
+            );
+        END IF;
+    END IF;
+{%- endfor %}
+
+    -- === BUSINESS LOGIC: INSERT ===
+    INSERT INTO {{ entity.schema }}.{{ entity.table_name }} (
+{%- for column in fields.columns %}
+        {{ column }}{{ &quot;,&quot; if not loop.last else &quot;&quot; }}
+{%- endfor %}
+    ) VALUES (
+{%- for value in fields.values %}
+        {{ value }}{{ &quot;,&quot; if not loop.last else &quot;&quot; }}
+{%- endfor %}
+    )
+    RETURNING pk_{{ entity.name | lower }} INTO v_{{ entity.name | lower }}_pk;
+
+    -- === AUDIT &amp; RETURN ===
+    RETURN {{ entity.schema }}.log_and_return_mutation(
+        auth_tenant_id,
+        auth_user_id,
+        '{{ entity.name | lower }}',
+        v_{{ entity.name | lower }}_id,
+        'INSERT',
+        'success',
+        ARRAY(SELECT jsonb_object_keys(input_payload)),
+        '{{ entity.name }} created successfully',
+        (SELECT row_to_json(t.*) FROM {{ entity.schema }}.{{ entity.table_name }} t WHERE t.id = v_{{ entity.name | lower }}_id)::JSONB,
+        NULL
+    );
+END;
+$$;
+</code></pre>
+<p><strong>Run Tests</strong>: <code>uv run pytest tests/unit/generators/test_core_logic_generator.py -v</code></p>
+<hr />
+<h4 id="refactor-support-update-and-delete">🔧 REFACTOR: Support Update and Delete</h4>
+<p><strong>Add</strong>:
+- <code>generate_core_update_function()</code> - Similar pattern but UPDATE instead of INSERT
+- <code>generate_core_delete_function()</code> - Soft delete with deleted_at, deleted_by</p>
+<hr />
+<h4 id="qa-quality-verification_1">✅ QA: Quality Verification</h4>
+<pre><code class="language-bash">uv run pytest tests/unit/generators/test_core_logic_generator.py -v
+uv run mypy src/generators/core_logic_generator.py
+</code></pre>
+<hr />
+<h3 id="phase-3-integration-with-function-generator"><strong>Phase 3: Integration with Function Generator</strong></h3>
+<p><strong>Objective</strong>: Update existing <code>FunctionGenerator</code> to use App+Core generators</p>
+<h4 id="red-update-tests">🔴 RED: Update Tests</h4>
+<pre><code class="language-python">def test_function_generator_produces_app_core_layers():
+    &quot;&quot;&quot;Function generator produces both app and core layers&quot;&quot;&quot;
+    # Given: Entity with create action
+    entity = Entity(...)
+
+    # When: Generate functions
+    generator = FunctionGenerator()
+    sql = generator.generate_action_functions(entity)
+
+    # Then: Contains app wrapper
+    assert &quot;CREATE OR REPLACE FUNCTION app.create_contact(&quot; in sql
+    # Then: Contains core logic
+    assert &quot;CREATE OR REPLACE FUNCTION crm.create_contact(&quot; in sql
+</code></pre>
+<h4 id="green-update-functiongenerator">🟢 GREEN: Update FunctionGenerator</h4>
+<pre><code class="language-python">class FunctionGenerator:
+    def __init__(self, templates_dir: str = &quot;templates/sql&quot;):
+        self.app_gen = AppWrapperGenerator(templates_dir)
+        self.core_gen = CoreLogicGenerator(templates_dir)
+
+    def generate_action_functions(self, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate both app and core layers for actions&quot;&quot;&quot;
+        functions = []
+
+        for action in entity.actions:
+            # App layer
+            app_wrapper = self.app_gen.generate_app_wrapper(entity, action)
+            functions.append(app_wrapper)
+
+            # Core layer
+            if action.name.startswith(&quot;create&quot;):
+                core_logic = self.core_gen.generate_core_create_function(entity)
+            elif action.name.startswith(&quot;update&quot;):
+                core_logic = self.core_gen.generate_core_update_function(entity)
+            elif action.name.startswith(&quot;delete&quot;):
+                core_logic = self.core_gen.generate_core_delete_function(entity)
+            else:
+                # Custom action
+                core_logic = self.core_gen.generate_core_custom_action(entity, action)
+
+            functions.append(core_logic)
+
+        return &quot;\n\n&quot;.join(functions)
+</code></pre>
+<hr />
+<h3 id="phase-4-log_and_return_mutation-helper"><strong>Phase 4: log_and_return_mutation Helper</strong></h3>
+<p><strong>Objective</strong>: Generate the audit logging helper function</p>
+<h4 id="red-write-test">🔴 RED: Write Test</h4>
+<pre><code class="language-python">def test_generate_log_and_return_mutation_helper():
+    &quot;&quot;&quot;Generate log_and_return_mutation helper for schema&quot;&quot;&quot;
+    # When: Generate helper
+    generator = CoreLogicGenerator()
+    sql = generator.generate_log_and_return_mutation(&quot;crm&quot;)
+
+    # Then: Helper function exists
+    assert &quot;CREATE OR REPLACE FUNCTION crm.log_and_return_mutation(&quot; in sql
+    assert &quot;RETURNS app.mutation_result&quot; in sql
+</code></pre>
+<h4 id="green-implementation">🟢 GREEN: Implementation</h4>
+<p>Generate once per schema:</p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION crm.log_and_return_mutation(
+    p_tenant_id UUID,
+    p_user_id UUID,
+    p_entity TEXT,
+    p_entity_id UUID,
+    p_operation TEXT,
+    p_status TEXT,
+    p_updated_fields TEXT[],
+    p_message TEXT,
+    p_object_data JSONB,
+    p_extra_metadata JSONB
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+BEGIN
+    -- TODO: Insert into audit log table
+
+    -- Return standardized result
+    RETURN ROW(
+        p_entity_id,
+        p_updated_fields,
+        p_status,
+        p_message,
+        p_object_data,
+        p_extra_metadata
+    )::app.mutation_result;
+END;
+$$;
+</code></pre>
+<hr />
+<h2 id="team-c-deliverables">🎯 Team C Deliverables</h2>
+<h3 id="code-modules">Code Modules</h3>
+<ol>
+<li>✅ <code>src/generators/app_wrapper_generator.py</code> - App layer wrappers</li>
+<li>✅ <code>src/generators/core_logic_generator.py</code> - Core business logic</li>
+<li>✅ Updated <code>src/generators/function_generator.py</code> - Orchestration</li>
+<li>✅ <code>templates/sql/app_wrapper.sql.j2</code> - App wrapper template</li>
+<li>✅ <code>templates/sql/core_create_function.sql.j2</code> - Core CREATE template</li>
+<li>✅ <code>templates/sql/core_update_function.sql.j2</code> - Core UPDATE template</li>
+<li>✅ <code>templates/sql/core_delete_function.sql.j2</code> - Core DELETE template</li>
+</ol>
+<h3 id="tests">Tests</h3>
+<ol>
+<li>✅ <code>tests/unit/generators/test_app_wrapper_generator.py</code> (10+ tests)</li>
+<li>✅ <code>tests/unit/generators/test_core_logic_generator.py</code> (15+ tests)</li>
+<li>✅ Updated <code>tests/unit/generators/test_function_generator.py</code> (integration tests)</li>
+<li>✅ Coverage: 90%+ for new code</li>
+</ol>
+<h3 id="documentation">Documentation</h3>
+<ol>
+<li>✅ API docs for new generators</li>
+<li>✅ Examples of generated functions</li>
+<li>✅ JWT context mapping documentation</li>
+</ol>
+<hr />
+<h2 id="team-b-integration-points">🔗 Team B Integration Points</h2>
+<p><strong>Team C Uses from Team B</strong>:
+1. <strong>Composite Types</strong>: <code>app.type_{action}_input</code>
+2. <strong>Trinity Helpers</strong>: <code>{schema}.{entity}_pk(TEXT) → INTEGER</code>
+3. <strong>Standard Output</strong>: <code>app.mutation_result</code>
+4. <strong>Table Schema</strong>: Column names, types for INSERT/UPDATE</p>
+<p><strong>Example Usage</strong>:</p>
+<pre><code class="language-sql">-- Team B generated:
+CREATE TYPE app.type_create_contact_input AS (company_id UUID);
+CREATE FUNCTION crm.company_pk(TEXT) RETURNS INTEGER;
+
+-- Team C uses:
+DECLARE
+    input_data app.type_create_contact_input;  -- ✅ Team B's type
+    v_fk_company INTEGER;
+BEGIN
+    v_fk_company := crm.company_pk(input_data.company_id::TEXT);  -- ✅ Team B's helper
+    INSERT INTO crm.tb_contact (fk_company) VALUES (v_fk_company);
+END;
+</code></pre>
+<hr />
+<h2 id="success-metrics">📊 Success Metrics</h2>
+<ul>
+<li>[ ] ✅ Generate app wrapper functions for all actions</li>
+<li>[ ] ✅ Generate core logic functions with full pattern</li>
+<li>[ ] ✅ Use Team B's composite types correctly</li>
+<li>[ ] ✅ Use Team B's Trinity helpers for FK resolution</li>
+<li>[ ] ✅ Populate tenant_id from JWT context</li>
+<li>[ ] ✅ Populate all audit fields (created_by, updated_by, deleted_by)</li>
+<li>[ ] ✅ Return app.mutation_result (not JSONB)</li>
+<li>[ ] ✅ Generate FraiseQL mutation annotations</li>
+<li>[ ] ✅ All tests pass (90%+ coverage)</li>
+<li>[ ] ✅ Generated SQL matches PrintOptim pattern</li>
+</ul>
+<hr />
+<h2 id="getting-started">🚀 Getting Started</h2>
+<pre><code class="language-bash"># Create branch
+git checkout -b feature/team-c-app-core-functions
+
+# Phase 1: App wrapper generation
+# 1. Write tests
+vim tests/unit/generators/test_app_wrapper_generator.py
+
+# 2. Run tests (should fail)
+uv run pytest tests/unit/generators/test_app_wrapper_generator.py -v
+
+# 3. Implement
+vim src/generators/app_wrapper_generator.py
+vim templates/sql/app_wrapper.sql.j2
+
+# 4. Run tests (should pass)
+uv run pytest tests/unit/generators/test_app_wrapper_generator.py -v
+
+# Continue with Phase 2, 3, 4...
+</code></pre>
+<hr />
+<h2 id="reference-documents">📚 Reference Documents</h2>
+<ol>
+<li><strong>Architecture</strong>: <code>docs/architecture/APP_CORE_FUNCTION_PATTERN.md</code></li>
+<li><strong>Team B Review</strong>: <code>docs/implementation-plans/CTO_IMPLEMENTATION_REVIEW_TEAM_B.md</code></li>
+<li><strong>PrintOptim Examples</strong>: <code>../printoptim_backend/db/0_schema/03_functions/</code></li>
+<li><strong>JWT Pattern</strong>: CTO Review Appendix A</li>
+</ol>
+<hr />
+<h2 id="common-pitfalls-to-avoid">⚠️ Common Pitfalls to Avoid</h2>
+<h3 id="dont-use-integer-in-composite-types">❌ Don't Use INTEGER in Composite Types</h3>
+<pre><code class="language-sql">-- ❌ BAD (Team C should never do this)
+CREATE TYPE app.type_create_contact_input AS (
+    company INTEGER  -- Wrong! External API uses UUID
+);
+</code></pre>
+<p>Team B already generated composite types with UUID. Just use them.</p>
+<h3 id="dont-forget-tenant_id">❌ Don't Forget tenant_id</h3>
+<pre><code class="language-sql">-- ❌ BAD
+INSERT INTO crm.tb_contact (email, fk_company) VALUES (...);
+
+-- ✅ GOOD
+INSERT INTO crm.tb_contact (tenant_id, email, fk_company)
+VALUES (input_pk_organization, ...);
+</code></pre>
+<h3 id="dont-skip-trinity-resolution">❌ Don't Skip Trinity Resolution</h3>
+<pre><code class="language-sql">-- ❌ BAD (UUID can't go into INTEGER column!)
+INSERT INTO crm.tb_contact (fk_company) VALUES (input_data.company_id);
+
+-- ✅ GOOD
+v_fk_company := crm.company_pk(input_data.company_id::TEXT);
+INSERT INTO crm.tb_contact (fk_company) VALUES (v_fk_company);
+</code></pre>
+<h3 id="dont-skip-audit-fields">❌ Don't Skip Audit Fields</h3>
+<pre><code class="language-sql">-- ❌ BAD
+INSERT INTO crm.tb_contact (email) VALUES (...);
+
+-- ✅ GOOD
+INSERT INTO crm.tb_contact (email, created_at, created_by)
+VALUES (..., now(), input_created_by);
+</code></pre>
+<hr />
+<p><strong>Last Updated</strong>: 2025-11-08
+<strong>Status</strong>: Ready for Development
+<strong>Estimated Duration</strong>: 4-5 days (with TDD discipline)</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

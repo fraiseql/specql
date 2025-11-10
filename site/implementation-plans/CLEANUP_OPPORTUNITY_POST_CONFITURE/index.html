@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Cleanup Opportunities After Confiture v0.2.0 Integration - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Cleanup Opportunities After Confiture v0.2.0 Integration";
+        var mkdocs_page_input_path = "implementation-plans/CLEANUP_OPPORTUNITY_POST_CONFITURE.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Cleanup Opportunities After Confiture v0.2.0 Integration</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="cleanup-opportunities-after-confiture-v020-integration">Cleanup Opportunities After Confiture v0.2.0 Integration</h1>
+<p><strong>Date</strong>: November 9, 2025
+<strong>Context</strong>: Confiture v0.2.0 now provides ALL features we requested, eliminating need for custom migration management code.</p>
+<hr />
+<h2 id="executive-summary">🎯 Executive Summary</h2>
+<p><strong>Confiture v0.2.0 eliminates ~700 lines of redundant code from Team E.</strong></p>
+<h3 id="what-changed">What Changed</h3>
+<ul>
+<li>✅ Confiture now has production-ready migration management</li>
+<li>✅ Confiture handles versioning, tracking, rollback</li>
+<li>✅ Confiture preserves SQL comments (FraiseQL blocker SOLVED)</li>
+<li>✅ Confiture has Rust performance layer (10-50x speedup)</li>
+</ul>
+<h3 id="impact-on-team-e">Impact on Team E</h3>
+<ul>
+<li><strong>Before</strong>: Team E needed to build migration management from scratch (~1000 lines)</li>
+<li><strong>After</strong>: Team E only writes SpecQL → Confiture glue (~300 lines)</li>
+<li><strong>Savings</strong>: <strong>70% code reduction</strong>, <strong>50% time reduction</strong> (10 weeks → 2 weeks)</li>
+</ul>
+<hr />
+<h2 id="files-to-delete">🗑️ Files to DELETE</h2>
+<h3 id="1-srcclimigration_managerpy-213-lines">1. <strong><code>src/cli/migration_manager.py</code></strong> (213 lines)</h3>
+<p><strong>Why Delete</strong>: Confiture handles all migration tracking</p>
+<p><strong>What it does</strong> (now redundant):</p>
+<pre><code class="language-python">class MigrationManager:
+    def track_applied_migrations()  # Confiture: migrate status
+    def version_control()           # Confiture: automatic versioning
+    def rollback_logic()            # Confiture: migrate down
+    def state_persistence()         # Confiture: built-in tracking
+</code></pre>
+<p><strong>Replaced by</strong>:</p>
+<pre><code class="language-bash">confiture migrate status   # Check migration state
+confiture migrate up       # Apply migrations
+confiture migrate down     # Rollback
+</code></pre>
+<p><strong>Action</strong>:</p>
+<pre><code class="language-bash">git rm src/cli/migration_manager.py
+git rm tests/unit/cli/test_migrate.py  # Related tests
+</code></pre>
+<hr />
+<h3 id="2-custom-migration-tests-related-to-migration_managerpy">2. <strong>Custom Migration Tests</strong> (related to migration_manager.py)</h3>
+<p><strong>Files to delete</strong>:
+- <code>tests/unit/cli/test_migrate.py</code> - Tests migration manager (redundant)
+- Any tests in <code>test_orchestrator.py</code> that test migration numbering/versioning</p>
+<p><strong>Why</strong>: Confiture has 255 tests covering migration functionality</p>
+<p><strong>Action</strong>:</p>
+<pre><code class="language-bash"># Review and remove migration-specific tests
+vim tests/unit/cli/test_orchestrator.py
+# Keep: SpecQL → SQL generation tests
+# Remove: Migration numbering, versioning, state tracking tests
+</code></pre>
+<hr />
+<h2 id="files-to-simplify">🔧 Files to SIMPLIFY</h2>
+<h3 id="3-srccliorchestratorpy-currently-10162-bytes">3. <strong><code>src/cli/orchestrator.py</code></strong> (currently 10,162 bytes)</h3>
+<p><strong>What to remove</strong>:</p>
+<pre><code class="language-python"># ❌ REMOVE: Custom migration numbering
+def assign_migration_number(entity):
+    &quot;&quot;&quot;Confiture handles numbering automatically&quot;&quot;&quot;
+    pass
+
+# ❌ REMOVE: Custom file concatenation
+def concatenate_sql_files(files):
+    &quot;&quot;&quot;Confiture handles concatenation&quot;&quot;&quot;
+    pass
+
+# ❌ REMOVE: Custom versioning logic
+def generate_version_number():
+    &quot;&quot;&quot;Confiture handles versioning&quot;&quot;&quot;
+    pass
+
+# ❌ REMOVE: Migration file writing logic
+def write_migration_file(number, name, content):
+    &quot;&quot;&quot;Just write to Confiture directories instead&quot;&quot;&quot;
+    pass
+</code></pre>
+<p><strong>What to KEEP</strong>:</p>
+<pre><code class="language-python"># ✅ KEEP: SpecQL parsing
+def parse_specql_files(files):
+    &quot;&quot;&quot;This is SpecQL-specific&quot;&quot;&quot;
+    pass
+
+# ✅ KEEP: SQL generation coordination
+def generate_from_files(entity_files):
+    &quot;&quot;&quot;Coordinate Teams A-D, write SQL to Confiture dirs&quot;&quot;&quot;
+    pass
+
+# ✅ KEEP: Registry integration
+def register_entity(entity, table_code):
+    &quot;&quot;&quot;SpecQL registry is our concern, not Confiture's&quot;&quot;&quot;
+    pass
+</code></pre>
+<p><strong>Estimated reduction</strong>: ~400 lines → ~200 lines (50% smaller)</p>
+<hr />
+<h3 id="4-srccligeneratepy-currently-3724-bytes">4. <strong><code>src/cli/generate.py</code></strong> (currently 3,724 bytes)</h3>
+<p><strong>What to simplify</strong>:</p>
+<pre><code class="language-python"># ❌ REMOVE: Custom migration output logic
+@click.option(&quot;--output-dir&quot;, default=&quot;migrations&quot;, ...)
+def generate(..., output_dir):
+    # Write to migrations/100_entity.sql
+    pass
+
+# ✅ REPLACE WITH: Confiture directory output
+@click.option(&quot;--output-base&quot;, default=&quot;db/schema&quot;, ...)
+def generate(..., output_base):
+    # Write to db/schema/10_tables/entity.sql
+    # Write to db/schema/30_functions/entity.sql
+    # Write to db/schema/40_metadata/entity.sql
+    pass
+</code></pre>
+<p><strong>What to ADD</strong>:</p>
+<pre><code class="language-python"># ✅ ADD: Guidance for next steps
+if result.success:
+    click.echo(&quot;\n📋 Next steps:&quot;)
+    click.echo(&quot;  1. confiture build --env local&quot;)
+    click.echo(&quot;  2. confiture migrate up --env local&quot;)
+</code></pre>
+<hr />
+<h3 id="5-srcclimigratepy-currently-3314-bytes">5. <strong><code>src/cli/migrate.py</code></strong> (currently 3,314 bytes)</h3>
+<p><strong>Current state</strong>: Custom migration execution logic</p>
+<p><strong>New approach</strong>: <strong>Delegate to Confiture entirely</strong></p>
+<p><strong>Option A</strong>: Delete file, tell users to use <code>confiture migrate</code></p>
+<pre><code class="language-bash"># Instead of: specql migrate up
+# Users run:   confiture migrate up --env local
+</code></pre>
+<p><strong>Option B</strong>: Thin wrapper around Confiture</p>
+<pre><code class="language-python"># src/cli/migrate.py (SIMPLIFIED)
+
+import click
+import subprocess
+
+@click.command()
+@click.argument(&quot;direction&quot;, type=click.Choice([&quot;up&quot;, &quot;down&quot;, &quot;status&quot;]))
+@click.option(&quot;--env&quot;, default=&quot;local&quot;, help=&quot;Environment&quot;)
+def migrate(direction: str, env: str):
+    &quot;&quot;&quot;
+    Apply migrations (delegates to Confiture)
+
+    This is a thin wrapper around 'confiture migrate'.
+    For advanced options, use confiture directly.
+    &quot;&quot;&quot;
+    subprocess.run([&quot;confiture&quot;, &quot;migrate&quot;, direction, &quot;--env&quot;, env])
+</code></pre>
+<p><strong>Estimated reduction</strong>: 3,314 bytes → ~500 bytes (if keeping wrapper)</p>
+<p><strong>Recommendation</strong>: <strong>Delete entirely</strong> and use Confiture directly</p>
+<hr />
+<h2 id="files-to-update">📝 Files to UPDATE</h2>
+<h3 id="6-claudeclaudemd-team-e-section">6. <strong><code>.claude/CLAUDE.md</code></strong> - Team E Section</h3>
+<p><strong>Current text</strong> (lines 596-750):</p>
+<pre><code class="language-markdown">## Team E: CLI &amp; Orchestration + Frontend Codegen
+
+**Mission**: Developer tools + pipeline orchestration + frontend code generation
+
+**CLI Commands**:
+```bash
+specql generate entities/contact.yaml
+specql validate entities/*.yaml
+specql migrate up  # Custom migration execution
+specql migrate status  # Custom migration tracking
+</code></pre>
+<p><strong>Orchestration</strong>: Coordinates Teams B + C + D + Migration Management</p>
+<pre><code>
+**New text** (REVISED):
+```markdown
+## Team E: CLI &amp; Orchestration + Frontend Codegen
+
+**Mission**: SpecQL → Confiture integration + frontend code generation
+
+**Responsibilities**:
+- ✅ SpecQL YAML → SQL file generation
+- ✅ Write SQL to Confiture directory structure
+- ✅ Registry integration (hexadecimal table codes)
+- ✅ Frontend code generation (mutation impacts, TypeScript, hooks)
+- ✅ SpecQL-specific validation
+
+**NOT Responsible** (Confiture handles):
+- ❌ Migration versioning/tracking
+- ❌ SQL file concatenation
+- ❌ Database connection management
+- ❌ Migration execution/rollback
+
+**CLI Commands**:
+```bash
+# Team E commands (SpecQL-specific)
+specql generate entities/contact.yaml   # Generate SQL files
+specql validate entities/*.yaml         # Validate SpecQL syntax
+specql docs entities/*.yaml            # Generate documentation
+specql diff contact_v1.yaml contact_v2.yaml  # Compare versions
+
+# Confiture commands (migration management)
+confiture build --env local            # Build combined migration
+confiture migrate up --env local       # Apply migration
+confiture migrate status               # Check migration state
+confiture migrate down                 # Rollback
+</code></pre>
+<p><strong>Workflow</strong>:</p>
+<pre><code>SpecQL YAML
+    ↓ (Team E: generate)
+db/schema/10_tables/entity.sql
+db/schema/30_functions/entity.sql
+db/schema/40_metadata/entity.sql
+    ↓ (Confiture: build)
+db/generated/schema_local.sql
+    ↓ (Confiture: migrate)
+PostgreSQL Database
+</code></pre>
+<pre><code>
+---
+
+### 7. **`README.md`** - Quick Start Section
+
+**Add Confiture workflow**:
+
+```markdown
+## Quick Start
+
+### 1. Generate Schema from SpecQL
+
+```bash
+# Write SpecQL YAML
+cat &gt; entities/contact.yaml &lt;&lt; EOF
+entity: Contact
+schema: crm
+fields:
+  email: text
+  status: enum(lead, qualified)
+EOF
+
+# Generate SQL files
+python -m src.cli.generate entities/contact.yaml
+
+# Output:
+#   db/schema/10_tables/contact.sql
+#   db/schema/30_functions/contact.sql (if actions)
+#   db/schema/40_metadata/contact.sql
+</code></pre>
+<h3 id="2-build-apply-with-confiture">2. Build &amp; Apply with Confiture</h3>
+<pre><code class="language-bash"># Build combined migration
+uv run confiture build --env local
+
+# Apply to database
+uv run confiture migrate up --env local
+
+# Verify
+psql specql_local -c &quot;\dt crm.*&quot;
+psql specql_local -c &quot;\df crm.*&quot;
+</code></pre>
+<h3 id="3-check-migration-status">3. Check Migration Status</h3>
+<pre><code class="language-bash">confiture migrate status
+# Shows: Applied migrations, pending migrations, database state
+</code></pre>
+<pre><code>
+---
+
+### 8. **`docs/teams/TEAM_E_CURRENT_STATE.md`**
+
+**Update status table**:
+
+```markdown
+| Component | Status | Completeness | Notes |
+|-----------|--------|--------------|-------|
+| **CLI Entry Points** | Complete | 100% | `specql generate` working |
+| **Migration Management** | Delegated | 100% | **Using Confiture** ✅ |
+| **Frontend Codegen** | In Progress | 60% | Impacts + TypeScript |
+| **Documentation** | Updated | 90% | Confiture integration docs |
+</code></pre>
+<p><strong>Add note</strong>:</p>
+<pre><code class="language-markdown">## ⚠️ IMPORTANT: Migration Management Delegated to Confiture
+
+As of November 9, 2025, Team E no longer implements custom migration management.
+
+**Migration responsibilities now handled by Confiture v0.2.0**:
+- ✅ Migration versioning
+- ✅ State tracking
+- ✅ Rollback support
+- ✅ Transaction safety
+- ✅ Database connection management
+
+**Team E focuses on**:
+- ✅ SpecQL → SQL generation
+- ✅ Registry integration
+- ✅ Frontend code generation
+- ✅ SpecQL-specific validation
+
+See: `docs/implementation-plans/TEAM_E_REVISED_PLAN_POST_CONFITURE.md`
+</code></pre>
+<hr />
+<h3 id="9-pyprojecttoml-update-dependencies">9. <strong><code>pyproject.toml</code></strong> - Update Dependencies</h3>
+<p><strong>Add Confiture</strong>:</p>
+<pre><code class="language-toml">[project.dependencies]
+# ... existing dependencies ...
+fraiseql-confiture = &quot;^0.2.0&quot;  # NEW: Migration management
+</code></pre>
+<p><strong>Update entry points</strong>:</p>
+<pre><code class="language-toml">[project.scripts]
+specql = &quot;src.cli.generate:main&quot;           # Keep
+# specql-migrate = &quot;src.cli.migrate:main&quot;  # REMOVE (use confiture directly)
+</code></pre>
+<hr />
+<h2 id="new-files-to-create">🏗️ New Files to CREATE</h2>
+<h3 id="10-confitureyaml-new-configuration">10. <strong><code>confiture.yaml</code></strong> (NEW - Configuration)</h3>
+<p><strong>Location</strong>: Project root</p>
+<p><strong>Content</strong>:</p>
+<pre><code class="language-yaml"># Confiture Configuration for SpecQL
+# See: https://github.com/fraiseql/confiture
+
+environments:
+  local:
+    database_url: postgresql://localhost/specql_local
+    schema_dirs:
+      - path: db/schema/00_foundation
+        order: 0
+      - path: db/schema/10_tables
+        order: 10
+      - path: db/schema/30_functions
+        order: 30
+      - path: db/schema/40_metadata
+        order: 40
+    migrations_dir: db/migrations
+
+  test:
+    database_url: postgresql://localhost/specql_test
+    schema_dirs:
+      - path: db/schema/00_foundation
+        order: 0
+      - path: db/schema/10_tables
+        order: 10
+      - path: db/schema/30_functions
+        order: 30
+      - path: db/schema/40_metadata
+        order: 40
+
+  production:
+    database_url: ${DATABASE_URL}
+    schema_dirs:
+      - path: db/schema/00_foundation
+        order: 0
+      - path: db/schema/10_tables
+        order: 10
+      - path: db/schema/30_functions
+        order: 30
+      - path: db/schema/40_metadata
+        order: 40
+</code></pre>
+<hr />
+<h3 id="11-docsguidesconfiture_integrationmd-new-documentation">11. <strong><code>docs/guides/CONFITURE_INTEGRATION.md</code></strong> (NEW - Documentation)</h3>
+<p><strong>Content</strong>: Guide on how SpecQL uses Confiture</p>
+<p><strong>Sections</strong>:
+1. Why Confiture?
+2. Directory structure mapping
+3. Workflow: SpecQL → Confiture → Database
+4. Common commands
+5. Troubleshooting</p>
+<hr />
+<h3 id="12-scriptsmigrate_to_confituresh-new-migration-script">12. <strong><code>scripts/migrate_to_confiture.sh</code></strong> (NEW - Migration Script)</h3>
+<p><strong>Purpose</strong>: Help existing users migrate from old flat structure to Confiture</p>
+<p><strong>Content</strong>:</p>
+<pre><code class="language-bash">#!/bin/bash
+# Migrate from old migrations/ to Confiture db/schema/
+
+# Create directory structure
+mkdir -p db/schema/{00_foundation,10_tables,30_functions,40_metadata}
+
+# Move existing migrations
+# (Would need manual splitting of combined files)
+
+echo &quot;Migration to Confiture structure complete!&quot;
+echo &quot;Next steps:&quot;
+echo &quot;  1. Review files in db/schema/&quot;
+echo &quot;  2. confiture build --env local&quot;
+echo &quot;  3. confiture migrate up --env local&quot;
+</code></pre>
+<hr />
+<h2 id="impact-summary">📊 Impact Summary</h2>
+<h3 id="code-reduction">Code Reduction</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Before</th>
+<th>After</th>
+<th>Savings</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>migration_manager.py</code></td>
+<td>213 lines</td>
+<td>0 lines</td>
+<td>100%</td>
+</tr>
+<tr>
+<td><code>orchestrator.py</code></td>
+<td>~400 lines</td>
+<td>~200 lines</td>
+<td>50%</td>
+</tr>
+<tr>
+<td><code>migrate.py</code></td>
+<td>3,314 bytes</td>
+<td>0 bytes</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>Migration tests</td>
+<td>~500 lines</td>
+<td>0 lines</td>
+<td>100%</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>~1,400 lines</strong></td>
+<td><strong>~200 lines</strong></td>
+<td><strong>~86%</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="time-reduction">Time Reduction</h3>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Before</th>
+<th>After</th>
+<th>Savings</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Migration system implementation</td>
+<td>4 weeks</td>
+<td>0 weeks</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>Testing migration system</td>
+<td>2 weeks</td>
+<td>0 weeks</td>
+<td>100%</td>
+</tr>
+<tr>
+<td>Confiture integration</td>
+<td>0 weeks</td>
+<td>1 week</td>
+<td>N/A</td>
+</tr>
+<tr>
+<td>SpecQL-specific features</td>
+<td>4 weeks</td>
+<td>1 week</td>
+<td>75%</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>10 weeks</strong></td>
+<td><strong>2 weeks</strong></td>
+<td><strong>80%</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="risk-reduction">Risk Reduction</h3>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Before</th>
+<th>After</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Custom migration bugs</td>
+<td>HIGH</td>
+<td>None (using battle-tested tool)</td>
+</tr>
+<tr>
+<td>Maintenance burden</td>
+<td>HIGH</td>
+<td>LOW (external team maintains)</td>
+</tr>
+<tr>
+<td>Production readiness</td>
+<td>MEDIUM</td>
+<td>HIGH (Confiture is production-ready)</td>
+</tr>
+<tr>
+<td>Zero-downtime migrations</td>
+<td>Not planned</td>
+<td>Built-in (FDW)</td>
+</tr>
+<tr>
+<td>Data sync</td>
+<td>Not planned</td>
+<td>Built-in (PII anonymization)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="action-plan">✅ Action Plan</h2>
+<h3 id="phase-1-install-verify-1-day"><strong>Phase 1: Install &amp; Verify</strong> (1 day)</h3>
+<pre><code class="language-bash"># 1. Install Confiture
+cd /home/lionel/code/printoptim_backend_poc
+uv add fraiseql-confiture
+
+# 2. Initialize
+uv run confiture init
+
+# 3. Verify comment preservation (P0 blocker)
+echo &quot;COMMENT ON TABLE test IS '@fraiseql:test';&quot; &gt; db/schema/10_tables/test.sql
+uv run confiture build --env local --output test.sql
+grep &quot;@fraiseql:test&quot; test.sql  # Should find it
+
+# 4. Clean up test
+rm db/schema/10_tables/test.sql test.sql
+</code></pre>
+<h3 id="phase-2-delete-redundant-code-1-day"><strong>Phase 2: Delete Redundant Code</strong> (1 day)</h3>
+<pre><code class="language-bash"># Delete files
+git rm src/cli/migration_manager.py
+git rm tests/unit/cli/test_migrate.py
+
+# Simplify files (manual editing)
+vim src/cli/orchestrator.py  # Remove migration numbering logic
+vim src/cli/generate.py      # Update for Confiture directories
+vim src/cli/migrate.py       # DELETE or make thin wrapper
+
+# Commit
+git add -A
+git commit -m &quot;chore: Remove custom migration code, delegate to Confiture
+
+Confiture v0.2.0 provides all migration management features:
+- Migration versioning/tracking
+- Rollback support
+- Database connection management
+- Zero-downtime migrations
+
+Team E now focuses on SpecQL-specific features only.
+
+Deleted:
+- src/cli/migration_manager.py (213 lines)
+- tests/unit/cli/test_migrate.py
+
+Simplified:
+- src/cli/orchestrator.py (~50% reduction)
+- src/cli/generate.py (Confiture directory output)
+
+See: docs/implementation-plans/TEAM_E_REVISED_PLAN_POST_CONFITURE.md
+&quot;
+</code></pre>
+<h3 id="phase-3-create-confiture-integration-2-days"><strong>Phase 3: Create Confiture Integration</strong> (2 days)</h3>
+<pre><code class="language-bash"># 1. Create confiture.yaml
+vim confiture.yaml  # See template above
+
+# 2. Update orchestrator for Confiture output
+vim src/cli/orchestrator.py
+# Write to: db/schema/10_tables/entity.sql
+#          db/schema/30_functions/entity.sql
+#          db/schema/40_metadata/entity.sql
+
+# 3. Test end-to-end
+python -m src.cli.generate entities/examples/contact_lightweight.yaml
+ls -R db/schema/  # Verify files created
+uv run confiture build --env local
+cat db/generated/schema_local.sql  # Verify combined schema
+
+# 4. Commit
+git add confiture.yaml db/schema/
+git commit -m &quot;feat: Integrate Confiture for migration management&quot;
+</code></pre>
+<h3 id="phase-4-update-documentation-1-day"><strong>Phase 4: Update Documentation</strong> (1 day)</h3>
+<pre><code class="language-bash"># Update existing docs
+vim .claude/CLAUDE.md           # Team E section
+vim README.md                   # Quick start
+vim docs/teams/TEAM_E_CURRENT_STATE.md
+
+# Create new docs
+vim docs/guides/CONFITURE_INTEGRATION.md
+
+# Commit
+git commit -m &quot;docs: Update Team E documentation for Confiture integration&quot;
+</code></pre>
+<hr />
+<h2 id="success-criteria">🎯 Success Criteria</h2>
+<ul>
+<li>[ ] Confiture v0.2.0 installed</li>
+<li>[ ] FraiseQL comment preservation verified (P0 blocker)</li>
+<li>[ ] <code>migration_manager.py</code> deleted</li>
+<li>[ ] <code>orchestrator.py</code> simplified (50% reduction)</li>
+<li>[ ] <code>confiture.yaml</code> created and tested</li>
+<li>[ ] End-to-end workflow works: SpecQL → Confiture → Database</li>
+<li>[ ] All documentation updated</li>
+<li>[ ] All tests passing (with migration tests removed)</li>
+</ul>
+<hr />
+<h2 id="references">📚 References</h2>
+<p><strong>Confiture</strong>:
+- Repository: <code>/home/lionel/code/confiture/</code>
+- Changelog: Contains all v0.2.0 features
+- Documentation: Production-ready guides</p>
+<p><strong>SpecQL</strong>:
+- Old plan: <code>docs/teams/TEAM_E_CURRENT_STATE.md</code>
+- New plan: <code>docs/implementation-plans/TEAM_E_REVISED_PLAN_POST_CONFITURE.md</code>
+- Feature requests (now obsolete): <code>docs/implementation-plans/CONFITURE_FEATURE_REQUESTS.md</code></p>
+<hr />
+<p><strong>Status</strong>: 🟢 READY TO EXECUTE
+<strong>Timeline</strong>: 5 days
+<strong>Risk</strong>: LOW (Confiture is production-ready)
+<strong>ROI</strong>: HIGH (86% code reduction, 80% time savings)</p>
+<hr />
+<p><em>Last Updated</em>: November 9, 2025
+<em>Author</em>: Claude Code
+<em>Purpose</em>: Maximize value from Confiture v0.2.0 integration</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

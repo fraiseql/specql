@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>FraiseQL Integration - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "FraiseQL Integration";
+        var mkdocs_page_input_path = "architecture/FRAISEQL_BRIDGES_THE_GAP.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">FraiseQL Integration</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="fraiseql-integration">FraiseQL Integration</h1>
+<h2 id="overview">Overview</h2>
+<p>FraiseQL provides GraphQL integration for SpecQL-generated PostgreSQL functions. It uses a standardized <code>mutation_result</code> type to return structured data from database operations.</p>
+<h2 id="mutation-result-structure">Mutation Result Structure</h2>
+<pre><code class="language-sql">CREATE TYPE mutation_result AS (
+    id UUID,
+    updated_fields TEXT[],
+    status TEXT,
+    message TEXT,
+    object_data JSONB,
+    extra_metadata JSONB
+);
+</code></pre>
+<h2 id="generated-function-example">Generated Function Example</h2>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION crm.qualify_lead(
+    p_contact_id UUID,
+    p_caller_id UUID
+)
+RETURNS mutation_result AS $$
+DECLARE
+    v_pk INTEGER;
+    v_result mutation_result;
+BEGIN
+    -- Get primary key from UUID
+    v_pk := crm.contact_pk(p_contact_id);
+
+    -- Business validation
+    IF (SELECT status FROM crm.tb_contact WHERE pk_contact = v_pk) != 'lead' THEN
+        v_result.status := 'error';
+        v_result.message := 'Contact is not a lead';
+        RETURN v_result;
+    END IF;
+
+    -- Update operation
+    UPDATE crm.tb_contact
+    SET status = 'qualified',
+        updated_at = NOW(),
+        updated_by = p_caller_id
+    WHERE pk_contact = v_pk;
+
+    -- Return success result
+    v_result.id := p_contact_id;
+    v_result.status := 'success';
+    v_result.message := 'Lead qualified successfully';
+    v_result.updated_fields := ARRAY['status', 'updated_at', 'updated_by'];
+
+    RETURN v_result;
+END;
+$$ LANGUAGE plpgsql;
+
+## How FraiseQL's Pattern Works
+
+### Database Layer (PostgreSQL)
+
+```sql
+CREATE TYPE mutation_result AS (
+    id UUID,
+    updated_fields TEXT[],      -- ✅ Tracks which fields changed!
+    status TEXT,                -- ✅ success/error
+    message TEXT,               -- ✅ Human feedback
+    object_data JSONB,          -- ✅ FULL entity data (all fields)
+    extra_metadata JSONB        -- ✅ Side effects, context
+);
+
+-- Generated function from SpecQL action:
+CREATE OR REPLACE FUNCTION crm.qualify_lead(
+    p_contact_id UUID,
+    p_caller_id UUID
+)
+RETURNS mutation_result AS $$
+DECLARE
+    v_pk INTEGER;
+    v_result mutation_result;
+BEGIN
+    -- Trinity resolution
+    v_pk := crm.contact_pk(p_contact_id);
+
+    -- Validation
+    IF (SELECT status FROM crm.tb_contact WHERE pk_contact = v_pk) != 'lead' THEN
+        -- Error case
+        v_result.status := 'error';
+        v_result.message := 'Contact is not a lead';
+        v_result.object_data := (
+            SELECT jsonb_build_object(
+                '__typename', 'Contact',
+                'id', id,
+                'email', email,
+                'status', status,
+                'company', (SELECT jsonb_build_object('__typename', 'Company', 'id', co.id, 'name', co.name)
+                           FROM management.tb_company co WHERE co.pk_company = fk_company)
+            )
+            FROM crm.tb_contact WHERE pk_contact = v_pk
+        );
+        RETURN v_result;
+    END IF;
+
+    -- Update
+    UPDATE crm.tb_contact
+    SET status = 'qualified',
+        updated_at = now(),
+        updated_by = p_caller_id
+    WHERE pk_contact = v_pk;
+
+    -- Success case - return FULL Contact object
+    v_result.id := gen_random_uuid();
+    v_result.status := 'success';
+    v_result.message := 'Contact qualified successfully';
+    v_result.updated_fields := ARRAY['status', 'updated_at'];  -- ✅ Track what changed
+
+    v_result.object_data := (
+        SELECT jsonb_build_object(
+            '__typename', 'Contact',
+            'id', c.id,
+            'email', c.email,
+            'status', c.status,
+            'updatedAt', c.updated_at,
+            'company', jsonb_build_object(
+                '__typename', 'Company',
+                'id', co.id,
+                'name', co.name
+            )
+        )
+        FROM crm.tb_contact c
+        LEFT JOIN management.tb_company co ON co.pk_company = c.fk_company
+        WHERE c.pk_contact = v_pk
+    );
+
+    -- Extra metadata for side effects
+    v_result.extra_metadata := jsonb_build_object(
+        'createdNotifications', (
+            SELECT jsonb_agg(
+                jsonb_build_object(
+                    '__typename', 'Notification',
+                    'id', n.id,
+                    'message', n.message,
+                    'createdAt', n.created_at
+                )
+            )
+            FROM core.tb_notification n
+            WHERE n.fk_contact = v_pk
+              AND n.created_at &gt; (now() - interval '1 second')  -- Just created
+        )
+    );
+
+    RETURN v_result;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h3 id="fraiseql-auto-generated-graphql-schema">FraiseQL Auto-Generated GraphQL Schema</h3>
+<pre><code class="language-graphql"># Auto-generated from mutation_result structure
+type QualifyLeadSuccess {
+    status: String!              # From mutation_result.status
+    message: String!             # From mutation_result.message
+    updatedFields: [String!]!    # From mutation_result.updated_fields (EXPOSE THIS!)
+    contact: Contact!            # From mutation_result.object_data (auto-mapped)
+    createdNotifications: [Notification!]!  # From extra_metadata
+}
+
+type QualifyLeadError {
+    status: String!
+    message: String!
+    contact: Contact             # Conflict entity from object_data
+    errors: [MutationError!]!
+}
+
+union QualifyLeadPayload = QualifyLeadSuccess | QualifyLeadError
+
+type Mutation {
+    qualifyLead(input: QualifyLeadInput!): QualifyLeadPayload!
+}
+</code></pre>
+<h3 id="frontend-graphql-query">Frontend GraphQL Query</h3>
+<pre><code class="language-graphql">mutation QualifyLead($contactId: UUID!) {
+    qualifyLead(input: { contactId: $contactId }) {
+        __typename
+        ... on QualifyLeadSuccess {
+            message
+            updatedFields        # ✅ Know what changed!
+            contact {
+                id               # Only request what's needed
+                status
+                company {
+                    id
+                    name
+                }
+            }
+            createdNotifications {
+                id
+                message
+            }
+        }
+        ... on QualifyLeadError {
+            message
+            errors {
+                code
+                field
+            }
+        }
+    }
+}
+</code></pre>
+<h3 id="typescript-response-auto-generated">TypeScript Response (Auto-generated)</h3>
+<pre><code class="language-typescript">interface QualifyLeadSuccess {
+    __typename: 'QualifyLeadSuccess';
+    message: string;
+    updatedFields: string[];     // ✅ Fully typed!
+    contact: Contact;            // ✅ Full type safety!
+    createdNotifications: Notification[];
+}
+
+interface Contact {
+    id: string;
+    status: ContactStatus;
+    company: Company;
+}
+
+// ✅ Apollo cache automatically updates Contact + Company!
+</code></pre>
+<h2 id="how-it-solves-frontend-pain-points">How It Solves Frontend Pain Points</h2>
+<h3 id="issue-1-type-safety-solved">✅ Issue 1: Type Safety - SOLVED</h3>
+<p><strong>FraiseQL generates proper typed responses:</strong></p>
+<pre><code class="language-typescript">// Full type safety maintained
+const { data } = await qualifyLead({ variables: { contactId } });
+
+if (data.qualifyLead.__typename === 'QualifyLeadSuccess') {
+    data.qualifyLead.contact.status  // ✅ TypeScript knows: ContactStatus
+    data.qualifyLead.contact.email   // ✅ TypeScript knows: string
+    data.qualifyLead.createdNotifications[0].message  // ✅ Fully typed
+}
+</code></pre>
+<h3 id="issue-2-apollorelay-cache-solved">✅ Issue 2: Apollo/Relay Cache - SOLVED</h3>
+<p><strong>Automatic cache updates:</strong></p>
+<pre><code class="language-typescript">const [qualifyLead] = useMutation(QUALIFY_LEAD);
+
+await qualifyLead({ variables: { contactId } });
+
+// ✨ Apollo automatically updates cache because:
+// - Contact has __typename + id
+// - Company has __typename + id
+// - Notifications have __typename + id
+//
+// Cache keys:
+// - Contact:uuid-1
+// - Company:uuid-2
+// - Notification:uuid-3, uuid-4, ...
+</code></pre>
+<h3 id="issue-3-partial-data-solved">✅ Issue 3: Partial Data - SOLVED</h3>
+<p><strong>Full objects returned (with relationships):</strong></p>
+<pre><code class="language-json">{
+  &quot;__typename&quot;: &quot;QualifyLeadSuccess&quot;,
+  &quot;contact&quot;: {
+    &quot;__typename&quot;: &quot;Contact&quot;,
+    &quot;id&quot;: &quot;...&quot;,
+    &quot;email&quot;: &quot;...&quot;,       // ✅ Not modified but included
+    &quot;status&quot;: &quot;qualified&quot;, // ✅ Modified
+    &quot;company&quot;: {          // ✅ Relationship included
+      &quot;__typename&quot;: &quot;Company&quot;,
+      &quot;id&quot;: &quot;...&quot;,
+      &quot;name&quot;: &quot;Acme Corp&quot;
+    }
+  }
+}
+</code></pre>
+<p>No missing data! No need to refetch!</p>
+<h3 id="issue-4-optimistic-ui-solved">✅ Issue 4: Optimistic UI - SOLVED</h3>
+<p><strong>Predictable structure:</strong></p>
+<pre><code class="language-typescript">const [qualifyLead] = useMutation(QUALIFY_LEAD, {
+    optimisticResponse: {
+        __typename: 'Mutation',
+        qualifyLead: {
+            __typename: 'QualifyLeadSuccess',
+            message: 'Contact qualified',
+            updatedFields: ['status', 'updatedAt'],  // Can predict
+            contact: {
+                __typename: 'Contact',
+                id: contactId,
+                status: 'qualified',     // Can predict
+                ...currentContactData    // Merge existing
+            },
+            createdNotifications: []     // Know structure
+        }
+    }
+});
+</code></pre>
+<h3 id="issue-5-graphql-conventions-solved">✅ Issue 5: GraphQL Conventions - SOLVED</h3>
+<p><strong>Follows all conventions:</strong>
+- ✅ <code>__typename</code> for cache normalization
+- ✅ <code>id</code> fields for cache keys
+- ✅ Fields at top level (not nested in <code>modified_fields</code>)
+- ✅ Union types for success/error
+- ✅ Typed error structures</p>
+<h3 id="issue-6-relationship-data-solved">✅ Issue 6: Relationship Data - SOLVED</h3>
+<p><strong>PostgreSQL builds full object with relationships:</strong></p>
+<pre><code class="language-sql">v_result.object_data := (
+    SELECT jsonb_build_object(
+        '__typename', 'Contact',
+        'id', c.id,
+        'status', c.status,
+        'company', (...)  -- ✅ Relationship included automatically
+    )
+    FROM ...
+);
+</code></pre>
+<h3 id="issue-7-heterogeneous-types-solved">✅ Issue 7: Heterogeneous Types - SOLVED</h3>
+<p><strong>Uses proper GraphQL unions + <code>extra_metadata</code>:</strong></p>
+<pre><code class="language-graphql">type QualifyLeadSuccess {
+    contact: Contact!              # Primary entity
+    createdNotifications: [Notification!]!  # Side effects (different type)
+}
+</code></pre>
+<p>TypeScript discriminated unions work perfectly with <code>__typename</code>.</p>
+<h3 id="issue-8-error-handling-solved">✅ Issue 8: Error Handling - SOLVED</h3>
+<p><strong>Clear typed errors:</strong></p>
+<pre><code class="language-graphql">type QualifyLeadError {
+    status: String!
+    message: String!
+    contact: Contact              # Conflict entity
+    errors: [MutationError!]!
+}
+
+type MutationError {
+    code: String!
+    message: String!
+    field: String
+}
+</code></pre>
+<h3 id="issue-9-performance-90-solved-10-to-go">⚠️ Issue 9: Performance - 90% SOLVED, 10% TO GO</h3>
+<p><strong>Current (without selection filter integrated):</strong></p>
+<pre><code class="language-graphql"># Frontend requests:
+mutation { qualifyLead { contact { id status } } }
+
+# Database returns in object_data:
+{ id, email, status, identifier, active, created_at, updated_at, ... }
+
+# Network sends: ALL fields (waste!)
+# GraphQL serializes: Only id, status to JSON
+</code></pre>
+<p><strong>After integrating selection_filter (1-2 hours):</strong></p>
+<pre><code class="language-python"># In mutation_decorator.py, line 157 (ALREADY EXISTS, just needs integration)
+parsed_result = parse_mutation_result(...)
+
+# NEW: 3-4 lines
+if dataclasses.is_dataclass(parsed_result):
+    from fraiseql.mutations.selection_filter import filter_mutation_result
+    filtered = filter_mutation_result(dataclasses.asdict(parsed_result), info)
+    parsed_result = type(parsed_result)(**filtered)
+
+return parsed_result
+</code></pre>
+<p><strong>Result:</strong>
+- ✅ Network only sends requested fields
+- ✅ 30-50% bandwidth savings
+- ✅ Backward compatible
+- ✅ No database changes needed</p>
+<h2 id="team-c-responsibilities-revised-for-fraiseql-integration">Team C Responsibilities (Revised for FraiseQL Integration)</h2>
+<h3 id="what-team-c-generates-for-fraiseql">What Team C Generates (For FraiseQL)</h3>
+<p>Instead of generic <code>affected_entities</code> deltas, generate <strong>SpecQL → FraiseQL-compatible functions</strong>:</p>
+<h4 id="1-enhanced-specql-syntax">1. Enhanced SpecQL Syntax</h4>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+
+fields:
+  email: text
+  company: ref(Company)
+  status: enum(lead, qualified, customer)
+
+actions:
+  - name: qualify_lead
+
+    # NEW: Specify what to return (for FraiseQL parser)
+    returns:
+      primary: Contact           # Maps to object_data
+      include_relations:
+        - company                # Auto-include in object_data
+      side_effects:              # Maps to extra_metadata
+        - entity: Notification
+          collection: createdNotifications
+
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+      - notify: owner(email, &quot;Contact qualified&quot;)
+</code></pre>
+<h4 id="2-generated-function-fraiseql-compatible">2. Generated Function (FraiseQL-Compatible)</h4>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION crm.qualify_lead(
+    p_contact_id UUID,
+    p_caller_id UUID DEFAULT NULL
+)
+RETURNS mutation_result AS $$  -- ✅ FraiseQL standard type
+DECLARE
+    v_pk INTEGER;
+    v_result mutation_result;
+BEGIN
+    -- Trinity resolution
+    v_pk := crm.contact_pk(p_contact_id);
+
+    -- Validation
+    IF (SELECT status FROM crm.tb_contact WHERE pk_contact = v_pk) != 'lead' THEN
+        v_result.status := 'error';
+        v_result.message := 'Contact is not a lead';
+        v_result.object_data := (
+            -- ✅ Full Contact object (FraiseQL will map to 'contact' field)
+            SELECT jsonb_build_object(...)
+            FROM crm.tb_contact WHERE pk_contact = v_pk
+        );
+        RETURN v_result;
+    END IF;
+
+    -- Update
+    UPDATE crm.tb_contact
+    SET status = 'qualified',
+        updated_at = now(),
+        updated_by = p_caller_id
+    WHERE pk_contact = v_pk;
+
+    -- Success response
+    v_result.id := gen_random_uuid();
+    v_result.status := 'success';
+    v_result.message := 'Contact qualified successfully';
+    v_result.updated_fields := ARRAY['status', 'updated_at'];  -- ✅ Track changes
+
+    -- Primary entity with relationships
+    v_result.object_data := (
+        SELECT jsonb_build_object(
+            '__typename', 'Contact',
+            'id', c.id,
+            'email', c.email,
+            'status', c.status,
+            'updatedAt', c.updated_at,
+            'company', jsonb_build_object(  -- ✅ Included per SpecQL
+                '__typename', 'Company',
+                'id', co.id,
+                'name', co.name
+            )
+        )
+        FROM crm.tb_contact c
+        LEFT JOIN management.tb_company co ON co.pk_company = c.fk_company
+        WHERE c.pk_contact = v_pk
+    );
+
+    -- Side effects
+    v_result.extra_metadata := jsonb_build_object(
+        'createdNotifications', (  -- ✅ Maps to field in Success type
+            SELECT COALESCE(jsonb_agg(
+                jsonb_build_object(
+                    '__typename', 'Notification',
+                    'id', n.id,
+                    'message', n.message,
+                    'createdAt', n.created_at
+                )
+            ), '[]'::jsonb)
+            FROM core.tb_notification n
+            WHERE n.fk_contact = v_pk
+              AND n.created_at &gt; (now() - interval '1 second')
+        )
+    );
+
+    -- Event emission
+    PERFORM core.emit_event('contact.qualified', jsonb_build_object('id', c.id));
+
+    RETURN v_result;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h4 id="3-fraiseql-auto-discovery">3. FraiseQL Auto-Discovery</h4>
+<p><strong>Team D (FraiseQL Metadata) Generates:</strong></p>
+<pre><code class="language-sql">-- Function annotation (tells FraiseQL how to map mutation_result)
+COMMENT ON FUNCTION crm.qualify_lead IS
+  '@fraiseql:mutation
+   name=qualifyLead
+   input=QualifyLeadInput
+   success_type=QualifyLeadSuccess
+   error_type=QualifyLeadError
+   primary_entity=Contact
+   metadata_mapping={
+     &quot;createdNotifications&quot;: &quot;Notification[]&quot;
+   }';
+
+-- Success type mapping (auto-generated by Team D)
+-- FraiseQL knows:
+-- - object_data → contact field (type: Contact)
+-- - extra_metadata.createdNotifications → createdNotifications field (type: [Notification])
+-- - updated_fields → updatedFields field (type: [String])
+</code></pre>
+<h4 id="4-fraiseql-introspects-generates-graphql">4. FraiseQL Introspects &amp; Generates GraphQL</h4>
+<pre><code class="language-graphql"># Auto-generated by FraiseQL from function annotation
+type QualifyLeadSuccess {
+    status: String!
+    message: String!
+    updatedFields: [String!]!
+    contact: Contact!
+    createdNotifications: [Notification!]!
+}
+
+type QualifyLeadError {
+    status: String!
+    message: String!
+    errors: [MutationError!]!
+}
+
+union QualifyLeadPayload = QualifyLeadSuccess | QualifyLeadError
+
+type Mutation {
+    qualifyLead(input: QualifyLeadInput!): QualifyLeadPayload!
+}
+</code></pre>
+<h2 id="comparison-original-delta-pattern-vs-fraiseql-pattern">Comparison: Original Delta Pattern vs. FraiseQL Pattern</h2>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Delta Pattern</th>
+<th>FraiseQL Pattern</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type Safety</strong></td>
+<td>❌ Lost (<code>Record&lt;string, any&gt;</code>)</td>
+<td>✅ Full TypeScript types</td>
+</tr>
+<tr>
+<td><strong>Apollo Cache</strong></td>
+<td>❌ Manual updates</td>
+<td>✅ Automatic</td>
+</tr>
+<tr>
+<td><strong>Optimistic UI</strong></td>
+<td>❌ Very hard</td>
+<td>✅ Easy</td>
+</tr>
+<tr>
+<td><strong>Data Completeness</strong></td>
+<td>❌ Partial (modified only)</td>
+<td>✅ Full objects</td>
+</tr>
+<tr>
+<td><strong>Relationships</strong></td>
+<td>❌ Not included</td>
+<td>✅ Included</td>
+</tr>
+<tr>
+<td><strong>GraphQL Conventions</strong></td>
+<td>❌ Breaks them</td>
+<td>✅ Follows them</td>
+</tr>
+<tr>
+<td><strong>Error Handling</strong></td>
+<td>⚠️ Unclear</td>
+<td>✅ Typed errors</td>
+</tr>
+<tr>
+<td><strong>Network Efficiency</strong></td>
+<td>✅ Small (but requires refetch)</td>
+<td>⚠️ Larger (but 1 roundtrip + selection filter coming)</td>
+</tr>
+<tr>
+<td><strong>Code Generation</strong></td>
+<td>✅ Generic</td>
+<td>⚠️ Action-specific (but better DX)</td>
+</tr>
+<tr>
+<td><strong>Database Tracking</strong></td>
+<td>❌ No metadata</td>
+<td>✅ <code>updated_fields</code> array</td>
+</tr>
+<tr>
+<td><strong>Side Effects</strong></td>
+<td>❌ In same array</td>
+<td>✅ Separate (<code>extra_metadata</code>)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="updated-team-responsibilities">Updated Team Responsibilities</h2>
+<h3 id="team-c-action-compiler-enhanced-for-fraiseql">Team C: Action Compiler (Enhanced for FraiseQL)</h3>
+<p><strong>Mission</strong>: Compile SpecQL actions → PostgreSQL functions returning <code>mutation_result</code></p>
+<p><strong>Generates:</strong></p>
+<ol>
+<li><strong>Function returning <code>mutation_result</code> type</strong></li>
+<li><code>status</code>: 'success' or 'error'</li>
+<li><code>message</code>: Human-readable feedback</li>
+<li><code>updated_fields</code>: Array of modified field names</li>
+<li><code>object_data</code>: Primary entity as JSONB (with relationships)</li>
+<li>
+<p><code>extra_metadata</code>: Side effects (created/updated secondary entities)</p>
+</li>
+<li>
+<p><strong>Validation logic</strong> (from SpecQL <code>validate</code> steps)</p>
+</li>
+<li>
+<p><strong>Business logic</strong> (from SpecQL <code>update</code>, <code>insert</code>, etc.)</p>
+</li>
+<li>
+<p><strong>Full object selection</strong> (not deltas!)</p>
+</li>
+<li>Include primary entity with all fields</li>
+<li>Include requested relationships (from <code>include_relations</code>)</li>
+<li>
+<p>Include <code>__typename</code> for cache normalization</p>
+</li>
+<li>
+<p><strong>Side effect tracking</strong> (in <code>extra_metadata</code>)</p>
+</li>
+<li>Created notifications</li>
+<li>Updated related entities</li>
+<li>Any secondary effects</li>
+</ol>
+<h3 id="team-d-fraiseql-metadata-generator">Team D: FraiseQL Metadata Generator</h3>
+<p><strong>Mission</strong>: Generate <code>@fraiseql:mutation</code> annotations that tell FraiseQL:</p>
+<ol>
+<li><strong>Mapping rules:</strong></li>
+<li><code>object_data</code> → which field in Success type? (e.g., <code>contact</code>)</li>
+<li><code>extra_metadata.createdNotifications</code> → which field? (<code>createdNotifications</code>)</li>
+<li>
+<p><code>updated_fields</code> → expose as <code>updatedFields</code> in GraphQL</p>
+</li>
+<li>
+<p><strong>Type information:</strong></p>
+</li>
+<li>Primary entity type (e.g., <code>Contact</code>)</li>
+<li>Side effect types (e.g., <code>[Notification]</code>)</li>
+<li>
+<p>Error structure</p>
+</li>
+<li>
+<p><strong>GraphQL schema hints:</strong></p>
+</li>
+<li>Union type name</li>
+<li>Success/error type names</li>
+<li>Field descriptions</li>
+</ol>
+<h3 id="team-e-cli-orchestration">Team E: CLI &amp; Orchestration</h3>
+<p><strong>Enhanced to work with FraiseQL:</strong></p>
+<pre><code class="language-bash"># Generate function + FraiseQL annotations
+specql generate entities/contact.yaml --target fraiseql
+
+# Output:
+# ✓ Generated PL/pgSQL function (mutation_result return type)
+# ✓ Generated @fraiseql:mutation annotations
+# ✓ FraiseQL will auto-discover and create GraphQL schema
+# ✓ Frontend gets fully-typed mutation with cache support
+</code></pre>
+<h2 id="the-one-enhancement-fraiseql-needs">The One Enhancement FraiseQL Needs</h2>
+<p><strong>Current Gap:</strong> Selection filter exists but not integrated (30-50% bandwidth waste)</p>
+<p><strong>Fix (1-2 hours):</strong></p>
+<pre><code class="language-python"># File: /home/lionel/code/fraiseql/src/fraiseql/mutations/mutation_decorator.py
+# Line: 157 (after parse_mutation_result)
+
+# CURRENT:
+parsed_result = parse_mutation_result(...)
+return parsed_result
+
+# ENHANCED (add 3-4 lines):
+parsed_result = parse_mutation_result(...)
+
+# Filter to only requested fields
+if dataclasses.is_dataclass(parsed_result):
+    from fraiseql.mutations.selection_filter import filter_mutation_result
+    filtered = filter_mutation_result(dataclasses.asdict(parsed_result), info)
+    parsed_result = type(parsed_result)(**filtered)
+
+return parsed_result
+</code></pre>
+<p><strong>Impact:</strong>
+- ✅ 30-50% smaller responses
+- ✅ No database changes
+- ✅ Backward compatible
+- ✅ Respects GraphQL selection sets</p>
+<h2 id="advanced-expose-updated_fields-in-graphql">Advanced: Expose <code>updated_fields</code> in GraphQL</h2>
+<p><strong>Currently:</strong> <code>mutation_result.updated_fields</code> is tracked but not exposed to frontend</p>
+<p><strong>Enhancement:</strong> Add to generated Success types</p>
+<pre><code class="language-graphql">type QualifyLeadSuccess {
+    status: String!
+    message: String!
+    updatedFields: [String!]!    # ✅ NEW: Frontend knows what changed!
+    contact: Contact!
+    createdNotifications: [Notification!]!
+}
+</code></pre>
+<p><strong>Frontend benefit:</strong></p>
+<pre><code class="language-typescript">const { data } = await qualifyLead({ ... });
+
+if (data.qualifyLead.__typename === 'QualifyLeadSuccess') {
+    console.log('Changed fields:', data.qualifyLead.updatedFields);
+    // Output: ['status', 'updatedAt']
+
+    // Can show UI feedback: &quot;Status updated&quot;
+    // Can invalidate specific cache entries
+    // Can trigger specific side effects
+}
+</code></pre>
+<h2 id="conclusion">Conclusion</h2>
+<p><strong>FraiseQL PERFECTLY bridges the gap!</strong></p>
+<h3 id="what-fraiseql-solves-out-of-the-box">What FraiseQL Solves Out-of-the-Box:</h3>
+<p>✅ Type safety (full TypeScript types)
+✅ Apollo/Relay cache (automatic via <code>__typename</code> + <code>id</code>)
+✅ Optimistic UI (predictable structure)
+✅ Data completeness (full objects, not deltas)
+✅ Relationship data (included in <code>object_data</code>)
+✅ GraphQL conventions (follows all of them)
+✅ Error handling (typed error structures)
+✅ Heterogeneous types (union types + separate fields)
+✅ Side effects tracking (<code>extra_metadata</code>)
+✅ Modified field tracking (<code>updated_fields</code>)</p>
+<h3 id="what-needs-1-2-hours-of-work">What Needs 1-2 Hours of Work:</h3>
+<p>⚠️ Selection filter integration (30-50% bandwidth savings)
+⚠️ Expose <code>updated_fields</code> in GraphQL schema</p>
+<h3 id="specql-fraiseql-integration-strategy">SpecQL → FraiseQL Integration Strategy:</h3>
+<ol>
+<li><strong>Team C generates functions returning <code>mutation_result</code></strong></li>
+<li>Full objects in <code>object_data</code></li>
+<li>Side effects in <code>extra_metadata</code></li>
+<li>
+<p>Track changes in <code>updated_fields</code></p>
+</li>
+<li>
+<p><strong>Team D generates <code>@fraiseql:mutation</code> annotations</strong></p>
+</li>
+<li>Map <code>object_data</code> → primary entity field</li>
+<li>Map <code>extra_metadata</code> → side effect fields</li>
+<li>
+<p>Specify success/error types</p>
+</li>
+<li>
+<p><strong>FraiseQL introspects and auto-generates GraphQL</strong></p>
+</li>
+<li>Perfect types</li>
+<li>Perfect cache behavior</li>
+<li>Perfect developer experience</li>
+</ol>
+<p><strong>Bottom Line:</strong> Keep SpecQL lightweight (business domain only), generate FraiseQL-compatible functions, let FraiseQL handle all the GraphQL complexity. Frontend developers get exactly what they need with zero manual work.</p>
+<p>This is a <strong>perfect marriage</strong> of:
+- <strong>SpecQL</strong>: Business domain DSL
+- <strong>Team C</strong>: PostgreSQL function generation
+- <strong>FraiseQL</strong>: GraphQL schema auto-generation
+- <strong>Frontend</strong>: Perfect DX with full type safety</p>
+<p>100x code leverage maintained. Frontend developers happy. Mission accomplished.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

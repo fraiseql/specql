@@ -1,0 +1,571 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Schema Strategy: App/Core Pattern &amp; Multi-Tenancy - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Schema Strategy: App/Core Pattern \u0026amp; Multi-Tenancy";
+        var mkdocs_page_input_path = "architecture/SCHEMA_STRATEGY.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Schema Strategy: App/Core Pattern &amp; Multi-Tenancy</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="schema-strategy-appcore-pattern-multi-tenancy">Schema Strategy: App/Core Pattern &amp; Multi-Tenancy</h1>
+<p><strong>Date</strong>: 2025-11-08
+<strong>Status</strong>: ✅ FINALIZED
+<strong>Context</strong>: PostgreSQL schema organization for multi-tenant enterprise applications</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>This document defines the schema strategy for the PrintOptim backend, establishing clear patterns for:</p>
+<ol>
+<li><strong>Schema Organization</strong>: <code>app</code> (API) vs <code>core</code> (business logic) vs entity schemas</li>
+<li><strong>Multi-Tenancy</strong>: JWT token context, denormalized <code>tenant_id</code>, tenant isolation</li>
+<li><strong>Security Boundaries</strong>: Row-Level Security (RLS) and data isolation</li>
+<li><strong>Performance Patterns</strong>: Denormalization for query efficiency</li>
+</ol>
+<hr />
+<h2 id="schema-types-purposes">Schema Types &amp; Purposes</h2>
+<h3 id="1-application-schema-app">1. Application Schema (<code>app</code>)</h3>
+<p><strong>Purpose</strong>: Public API contract, GraphQL types, external interfaces</p>
+<p><strong>Contents</strong>:
+- Composite types: <code>app.type_*_input</code> (GraphQL input types)
+- Standard types: <code>app.mutation_result</code> (GraphQL MutationResult)
+- Deletion types: <code>app.type_deletion_input</code></p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-sql">-- GraphQL API contract
+CREATE TYPE app.type_create_contact_input AS (
+    email TEXT,
+    company_id UUID,  -- External: UUIDs
+    status TEXT
+);
+
+-- Standard mutation response
+CREATE TYPE app.mutation_result AS (
+    id UUID,
+    status TEXT,
+    message TEXT,
+    object_data JSONB
+);
+</code></pre>
+<p><strong>Security</strong>: No sensitive data, public interface.</p>
+<h3 id="2-core-schema-core">2. Core Schema (<code>core</code>)</h3>
+<p><strong>Purpose</strong>: Business logic functions, data validation, complex operations</p>
+<p><strong>Contents</strong>:
+- Business functions: <code>core.create_contact()</code>, <code>core.update_contact()</code>
+- Validation logic: Email patterns, business rules
+- Trinity helper functions: <code>core.contact_pk()</code>, <code>core.contact_id()</code></p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-sql">-- Business logic function
+CREATE FUNCTION core.create_contact(
+    input_pk_organization UUID,  -- JWT tenant_id
+    input_created_by UUID,       -- JWT user_id
+    input_data app.type_create_contact_input
+) RETURNS app.mutation_result;
+
+-- Trinity helper: UUID → INTEGER
+CREATE FUNCTION core.contact_pk(identifier TEXT) RETURNS INTEGER;
+</code></pre>
+<p><strong>Security</strong>: Row-Level Security (RLS) applied, tenant isolation enforced.</p>
+<h3 id="3-entity-schemas-crm-management-operations">3. Entity Schemas (<code>crm</code>, <code>management</code>, <code>operations</code>)</h3>
+<p><strong>Purpose</strong>: Domain-specific data storage, business entities</p>
+<p><strong>Contents</strong>:
+- Tables: <code>crm.tb_contact</code>, <code>management.tb_organization</code>
+- Indexes: Performance optimization
+- Constraints: Data integrity</p>
+<p><strong>Schema Tiers &amp; Multi-Tenancy Classification</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Schema</th>
+<th>Type</th>
+<th>tenant_id</th>
+<th>RLS</th>
+<th>Purpose</th>
+<th>Tier</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>common</code></td>
+<td>Framework</td>
+<td>❌ NONE</td>
+<td>❌ NO</td>
+<td>Reference data</td>
+<td><strong>Tier 1</strong></td>
+</tr>
+<tr>
+<td><code>app</code></td>
+<td>Framework</td>
+<td>❌ NONE</td>
+<td>❌ NO</td>
+<td>API types</td>
+<td><strong>Tier 1</strong></td>
+</tr>
+<tr>
+<td><code>core</code></td>
+<td>Framework</td>
+<td>Mixed</td>
+<td>Mixed</td>
+<td>Business functions</td>
+<td><strong>Tier 1</strong></td>
+</tr>
+<tr>
+<td><code>crm</code></td>
+<td>Multi-Tenant</td>
+<td>✅ REQUIRED</td>
+<td>✅ YES</td>
+<td>Customer data</td>
+<td><strong>Tier 2</strong></td>
+</tr>
+<tr>
+<td><code>projects</code></td>
+<td>Multi-Tenant</td>
+<td>✅ REQUIRED</td>
+<td>✅ YES</td>
+<td>Projects/tasks</td>
+<td><strong>Tier 2</strong></td>
+</tr>
+<tr>
+<td><code>catalog</code></td>
+<td>Shared (App-Specific)</td>
+<td>❌ NONE</td>
+<td>❌ NO</td>
+<td>Product catalog (PrintOptim)</td>
+<td><strong>Tier 3</strong></td>
+</tr>
+<tr>
+<td><code>analytics</code></td>
+<td>Shared (App-Specific)</td>
+<td>❌ NONE</td>
+<td>❌ NO</td>
+<td>Analytics data</td>
+<td><strong>Tier 3</strong></td>
+</tr>
+<tr>
+<td><code>finance</code></td>
+<td>Shared (App-Specific)</td>
+<td>❌ NONE</td>
+<td>❌ NO</td>
+<td>Financial data</td>
+<td><strong>Tier 3</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="schema-registry-pattern">Schema Registry Pattern</h3>
+<p><strong>Central Source of Truth</strong>: Domain registry (<code>registry/domain_registry.yaml</code>) + SchemaRegistry class</p>
+<pre><code class="language-yaml"># registry/domain_registry.yaml
+domains:
+  &quot;2&quot;:
+    name: crm
+    aliases: [management]
+    multi_tenant: true  # ← EXPLICIT FLAG
+    description: &quot;Customer relationship management&quot;
+</code></pre>
+<pre><code class="language-python"># src/generators/schema/schema_registry.py
+schema_registry = SchemaRegistry(domain_registry)
+
+# Check multi-tenancy
+if schema_registry.is_multi_tenant(&quot;crm&quot;):  # True
+    add_tenant_id_column()
+
+# Resolve aliases
+canonical = schema_registry.get_canonical_schema_name(&quot;management&quot;)  # &quot;crm&quot;
+</code></pre>
+<h3 id="adding-custom-domains">Adding Custom Domains</h3>
+<p>Users can extend the framework with custom domains:</p>
+<pre><code class="language-yaml"># Add to registry/domain_registry.yaml
+domains:
+  &quot;7&quot;:
+    name: sales
+    multi_tenant: true   # Tenant-specific sales data
+    description: &quot;Sales pipeline and opportunities&quot;
+
+  &quot;8&quot;:
+    name: hr
+    multi_tenant: true   # Employee records
+    description: &quot;Human resources management&quot;
+
+  &quot;9&quot;:
+    name: legal
+    multi_tenant: false  # Shared legal documents
+    description: &quot;Legal templates and contracts&quot;
+</code></pre>
+<hr />
+<h2 id="multi-tenancy-pattern-jwt-context-denormalized-tenant_id">Multi-Tenancy Pattern: JWT Context + Denormalized tenant_id</h2>
+<h3 id="the-golden-rule">The Golden Rule</h3>
+<p><strong>Never trust user input for security context. JWT tokens are verified by auth middleware.</strong></p>
+<h3 id="jwt-token-structure">JWT Token Structure</h3>
+<pre><code class="language-javascript">// Verified JWT payload (server-enforced)
+{
+  &quot;sub&quot;: &quot;user-uuid-123&quot;,        // → created_by, updated_by
+  &quot;tenant_id&quot;: &quot;tenant-uuid-456&quot;, // → tenant_id column
+  &quot;organization_id&quot;: &quot;org-uuid-789&quot; // → fk_organization (optional)
+}
+</code></pre>
+<h3 id="table-structure-pattern">Table Structure Pattern</h3>
+<h4 id="tenant-specific-tables-crm-management-operations">Tenant-Specific Tables (crm, management, operations)</h4>
+<pre><code class="language-sql">CREATE TABLE crm.tb_contact (
+    -- Trinity Pattern
+    pk_contact INTEGER PRIMARY KEY,
+    id UUID UNIQUE,
+
+    -- 🔒 SECURITY: Denormalized from JWT (CRITICAL!)
+    tenant_id UUID NOT NULL,  -- From JWT &quot;tenant_id&quot;
+
+    -- 🔗 BUSINESS: Optional FK to organization
+    fk_organization INTEGER,  -- From user input (optional)
+
+    -- 💼 BUSINESS: User-provided data
+    email TEXT,               -- From user input
+    fk_company INTEGER,       -- From user input
+
+    -- 📋 AUDIT: From JWT (server-controlled)
+    created_at TIMESTAMPTZ DEFAULT now(),
+    created_by UUID,          -- From JWT &quot;sub&quot;
+    updated_at TIMESTAMPTZ DEFAULT now(),
+    updated_by UUID,          -- From JWT &quot;sub&quot;
+    deleted_at TIMESTAMPTZ,   -- Soft delete
+    deleted_by UUID           -- From JWT &quot;sub&quot;
+);
+
+-- 🔑 CRITICAL INDEX: tenant_id for filtering &amp; RLS
+CREATE INDEX idx_tb_contact_tenant ON crm.tb_contact(tenant_id);
+</code></pre>
+<h4 id="shared-tables-common-catalog">Shared Tables (common, catalog)</h4>
+<pre><code class="language-sql">CREATE TABLE common.tb_country (
+    -- Trinity Pattern (no tenant isolation)
+    pk_country INTEGER PRIMARY KEY,
+    id UUID UNIQUE,
+
+    -- 🌍 SHARED: No tenant context
+    code TEXT UNIQUE,
+    name TEXT
+    -- No tenant_id, no audit fields
+);
+</code></pre>
+<h3 id="row-level-security-rls">Row-Level Security (RLS)</h3>
+<h4 id="enable-rls-on-tenant-tables">Enable RLS on Tenant Tables</h4>
+<pre><code class="language-sql">-- Enable RLS
+ALTER TABLE crm.tb_contact ENABLE ROW LEVEL SECURITY;
+
+-- Tenant isolation policy
+CREATE POLICY tenant_isolation ON crm.tb_contact
+FOR ALL
+TO authenticated_user
+USING (tenant_id = current_setting('app.current_tenant_id')::UUID);
+</code></pre>
+<h4 id="jwt-context-injection">JWT Context Injection</h4>
+<pre><code class="language-sql">-- Set session context from JWT
+SELECT set_config('app.current_tenant_id', 'tenant-uuid-456', false);
+SELECT set_config('app.current_user_id', 'user-uuid-123', false);
+</code></pre>
+<h3 id="function-signature-pattern">Function Signature Pattern</h3>
+<h4 id="app-layer-graphql-core">App Layer (GraphQL → Core)</h4>
+<pre><code class="language-sql">CREATE FUNCTION app.create_contact(
+    input_payload JSONB  -- GraphQL mutation input
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_result app.mutation_result;
+BEGIN
+    -- Extract JWT context (injected by GraphQL server)
+    -- Call core function with security context
+    v_result := core.create_contact(
+        input_pk_organization := current_setting('app.current_tenant_id')::UUID,
+        input_created_by := current_setting('app.current_user_id')::UUID,
+        input_data := input_payload::app.type_create_contact_input
+    );
+
+    RETURN v_result;
+END;
+$$;
+</code></pre>
+<h4 id="core-layer-business-logic">Core Layer (Business Logic)</h4>
+<pre><code class="language-sql">CREATE FUNCTION core.create_contact(
+    input_pk_organization UUID,  -- JWT tenant_id (security)
+    input_created_by UUID,       -- JWT user_id (audit)
+    input_data app.type_create_contact_input  -- User data
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_id UUID := gen_random_uuid();
+    v_fk_company INTEGER;
+BEGIN
+    -- Resolve business FKs (UUID → INTEGER)
+    v_fk_company := crm.company_pk(input_data.company_id);
+
+    -- INSERT with security context
+    INSERT INTO crm.tb_contact (
+        id, tenant_id, fk_company, email,
+        created_at, created_by
+    ) VALUES (
+        v_id,
+        input_pk_organization,  -- JWT tenant_id
+        v_fk_company,
+        input_data.email,
+        now(),
+        input_created_by        -- JWT user_id
+    );
+
+    RETURN (v_id, 'success', 'Contact created', NULL)::app.mutation_result;
+END;
+$$;
+</code></pre>
+<hr />
+<h2 id="field-transformation-chain">Field Transformation Chain</h2>
+<h3 id="complete-mapping-specql-composite-graphql-database">Complete Mapping: SpecQL → Composite → GraphQL → Database</h3>
+<table>
+<thead>
+<tr>
+<th>SpecQL Field</th>
+<th>Composite Type</th>
+<th>GraphQL Field</th>
+<th>Database Column</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>company: ref(Company)</code></td>
+<td><code>company_id UUID</code></td>
+<td><code>companyId: UUID</code></td>
+<td><code>fk_company INTEGER</code></td>
+<td>Business relationship</td>
+</tr>
+<tr>
+<td><code>status: enum(...)</code></td>
+<td><code>status TEXT</code></td>
+<td><code>status: String</code></td>
+<td><code>status TEXT</code></td>
+<td>Business data</td>
+</tr>
+<tr>
+<td><code>email: text</code></td>
+<td><code>email TEXT</code></td>
+<td><code>email: String</code></td>
+<td><code>email TEXT</code></td>
+<td>Business data</td>
+</tr>
+<tr>
+<td><code>created_at: timestamp</code></td>
+<td>❌ (not in composite)</td>
+<td>❌ (hidden)</td>
+<td><code>created_at TIMESTAMPTZ</code></td>
+<td>Audit (server)</td>
+</tr>
+<tr>
+<td><code>tenant_id</code></td>
+<td>❌ (security!)</td>
+<td>❌ (hidden)</td>
+<td><code>tenant_id UUID</code></td>
+<td>Security (JWT)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="transformation-rules">Transformation Rules</h3>
+<ol>
+<li><strong>Reference Fields</strong>: <code>field</code> → <code>field_id</code> (UUID in composite) → <code>fk_field</code> (INTEGER in DB)</li>
+<li><strong>Security Fields</strong>: Never in composite types (injected by server)</li>
+<li><strong>Audit Fields</strong>: Never in composite types (managed by triggers/functions)</li>
+<li><strong>Business Fields</strong>: Always in composite types (user-provided)</li>
+</ol>
+<h3 id="naming-convention-priority">Naming Convention Priority</h3>
+<ol>
+<li><strong>GraphQL Convention</strong>: <code>companyId</code> (camelCase)</li>
+<li><strong>Database Convention</strong>: <code>fk_company</code> (snake_case with prefix)</li>
+<li><strong>SpecQL Convention</strong>: <code>company</code> (simple names)</li>
+</ol>
+<hr />
+<h2 id="implementation-checklist">Implementation Checklist</h2>
+<h3 id="schema-classification">Schema Classification</h3>
+<ul>
+<li>✅ <code>app</code>: API types only</li>
+<li>✅ <code>core</code>: Business functions + helpers</li>
+<li>✅ <code>crm</code>, <code>management</code>, <code>operations</code>: Tenant data</li>
+<li>✅ <code>common</code>, <code>catalog</code>: Shared data</li>
+</ul>
+<h3 id="multi-tenancy-implementation">Multi-Tenancy Implementation</h3>
+<ul>
+<li>✅ JWT token structure defined</li>
+<li>✅ <code>tenant_id</code> denormalization pattern</li>
+<li>✅ RLS policies for tenant isolation</li>
+<li>✅ Session context management</li>
+</ul>
+<h3 id="security-boundaries">Security Boundaries</h3>
+<ul>
+<li>✅ JWT context injection</li>
+<li>✅ Server-controlled security fields</li>
+<li>✅ User input validation</li>
+<li>✅ No security data in composite types</li>
+</ul>
+<h3 id="performance-patterns">Performance Patterns</h3>
+<ul>
+<li>✅ <code>tenant_id</code> indexes on all tenant tables</li>
+<li>✅ Denormalized tenant_id for fast filtering</li>
+<li>✅ Trinity helper functions for UUID ↔ INTEGER</li>
+</ul>
+<hr />
+<h2 id="migration-strategy">Migration Strategy</h2>
+<h3 id="phase-1-foundation-current">Phase 1: Foundation (Current)</h3>
+<ul>
+<li>✅ Schema strategy documented</li>
+<li>✅ Multi-tenancy pattern defined</li>
+<li>✅ JWT context integration planned</li>
+</ul>
+<h3 id="phase-2-implementation">Phase 2: Implementation</h3>
+<ul>
+<li>🔄 Update table generators for tenant_id</li>
+<li>🔄 Add Trinity helper functions</li>
+<li>🔄 Implement RLS policies</li>
+<li>🔄 Update function signatures</li>
+</ul>
+<h3 id="phase-3-migration">Phase 3: Migration</h3>
+<ul>
+<li>🔄 Data migration for existing tables</li>
+<li>🔄 Update existing functions</li>
+<li>🔄 Test tenant isolation</li>
+<li>🔄 Performance validation</li>
+</ul>
+<hr />
+<h2 id="references">References</h2>
+<ul>
+<li><strong>APP_CORE_FUNCTION_PATTERN.md</strong>: Function signature patterns</li>
+<li><strong>JWT Token Specification</strong>: Authentication service docs</li>
+<li><strong>Row-Level Security Guide</strong>: PostgreSQL RLS documentation</li>
+<li><strong>Trinity Pattern</strong>: UUID/INTEGER/identifier resolution</li>
+</ul>
+<hr />
+<p><strong>Last Updated</strong>: 2025-11-08
+<strong>Status</strong>: ✅ APPROVED FOR IMPLEMENTATION</content>
+</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

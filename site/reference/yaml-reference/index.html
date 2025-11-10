@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>SpecQL YAML Complete Reference - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "SpecQL YAML Complete Reference";
+        var mkdocs_page_input_path = "reference/yaml-reference.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">SpecQL YAML Complete Reference</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="specql-yaml-complete-reference">SpecQL YAML Complete Reference</h1>
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li>Entity Structure Overview</li>
+<li>Top-Level Fields</li>
+<li>Fields Section</li>
+<li>Actions Section</li>
+<li>Organization Metadata</li>
+<li>Advanced Features</li>
+</ol>
+<h2 id="1-entity-structure-overview">1. Entity Structure Overview</h2>
+<p>[Minimal example with all sections]</p>
+<h2 id="2-top-level-fields">2. Top-Level Fields</h2>
+<h3 id="required-fields">Required Fields</h3>
+<ul>
+<li><code>entity</code> (string, PascalCase)</li>
+<li>Description: Entity name</li>
+<li>Example: <code>entity: Contact</code></li>
+<li>
+<p>Rules: Must be PascalCase, must be unique in schema</p>
+</li>
+<li>
+<p><code>schema</code> (string, snake_case)</p>
+</li>
+<li>Description: PostgreSQL schema name</li>
+<li>Example: <code>schema: crm</code></li>
+<li>
+<p>Rules: Must be registered in domain registry</p>
+</li>
+<li>
+<p><code>fields</code> (object)</p>
+</li>
+<li>Description: Field definitions</li>
+<li>See Fields Section below</li>
+</ul>
+<h3 id="optional-fields">Optional Fields</h3>
+<ul>
+<li><code>description</code> (string)</li>
+<li>Purpose: Entity documentation</li>
+<li>Example: <code>description: "Customer contact information"</code></li>
+<li>
+<p>Impact: Added as PostgreSQL comment</p>
+</li>
+<li>
+<p><code>organization</code> (object)</p>
+</li>
+<li>Purpose: Advanced metadata for migrations</li>
+<li>See Organization Metadata section</li>
+<li>
+<p>When to use: Migrating from existing systems with numbering</p>
+</li>
+<li>
+<p><code>actions</code> (array)</p>
+</li>
+<li>Purpose: Business logic definitions</li>
+<li>
+<p>See Actions Section</p>
+</li>
+<li>
+<p><code>translations</code> (array)</p>
+</li>
+<li>Purpose: i18n support</li>
+<li>Status: Implemented</li>
+<li>
+<p>Reference: docs/guides/i18n-guide.md (if exists)</p>
+</li>
+<li>
+<p><code>hierarchical</code> (boolean)</p>
+</li>
+<li>Purpose: Enable hierarchical identifiers</li>
+<li>Default: false</li>
+<li>Reference: docs/guides/hierarchical-entities.md</li>
+</ul>
+<h2 id="3-fields-section">3. Fields Section</h2>
+<h3 id="scalar-types">Scalar Types</h3>
+<h4 id="text">text</h4>
+<ul>
+<li>SQL Type: TEXT</li>
+<li>Use for: Free-form text, names, descriptions</li>
+<li>Example: <code>name: text</code></li>
+<li>Auto-generated features: None</li>
+<li>Validation: None (use rich types for validated text)</li>
+</ul>
+<h4 id="integer">integer</h4>
+<ul>
+<li>SQL Type: INTEGER</li>
+<li>Use for: Whole numbers, counts, quantities</li>
+<li>Example: <code>quantity: integer</code></li>
+<li>Auto-generated features: None</li>
+<li>Validation: Must be whole number</li>
+</ul>
+<h4 id="decimal">decimal</h4>
+<ul>
+<li>SQL Type: NUMERIC</li>
+<li>Use for: Monetary values, precise calculations</li>
+<li>Example: <code>price: decimal</code></li>
+<li>Auto-generated features: None</li>
+<li>Validation: Precision depends on PostgreSQL defaults</li>
+</ul>
+<h4 id="boolean">boolean</h4>
+<ul>
+<li>SQL Type: BOOLEAN</li>
+<li>Use for: True/false flags</li>
+<li>Example: <code>is_active: boolean</code></li>
+<li>Auto-generated features: None</li>
+<li>Validation: Must be true/false</li>
+</ul>
+<h4 id="timestamp">timestamp</h4>
+<ul>
+<li>SQL Type: TIMESTAMP WITH TIME ZONE</li>
+<li>Use for: Precise date-time values</li>
+<li>Example: <code>delivered_at: timestamp</code></li>
+<li>Auto-generated features: None (except created_at/updated_at)</li>
+<li>Validation: ISO 8601 format</li>
+</ul>
+<h4 id="date">date</h4>
+<ul>
+<li>SQL Type: DATE</li>
+<li>Use for: Dates without time component</li>
+<li>Example: <code>birthday: date</code></li>
+<li>Auto-generated features: None</li>
+<li>Validation: YYYY-MM-DD format</li>
+</ul>
+<h4 id="json">json</h4>
+<ul>
+<li>SQL Type: JSONB</li>
+<li>Use for: Semi-structured data, flexible schemas</li>
+<li>Example: <code>metadata: json</code></li>
+<li>Auto-generated features: GIN index</li>
+<li>Validation: Must be valid JSON</li>
+</ul>
+<h3 id="rich-types-composite-types">Rich Types (Composite Types)</h3>
+<h4 id="email">email</h4>
+<ul>
+<li>SQL Type: app.email (composite)</li>
+<li>Use for: Email addresses</li>
+<li>Example: <code>contact_email: email</code></li>
+<li>Structure: <code>{address: TEXT, display_name: TEXT}</code></li>
+<li>Validation: Basic email format</li>
+</ul>
+<h4 id="phone">phone</h4>
+<ul>
+<li>SQL Type: app.phone (composite)</li>
+<li>Use for: Phone numbers</li>
+<li>Example: <code>mobile: phone</code></li>
+<li>Structure: <code>{country_code: TEXT, number: TEXT, extension: TEXT}</code></li>
+<li>Validation: None (international format varies)</li>
+</ul>
+<h4 id="money">money</h4>
+<ul>
+<li>SQL Type: app.money (composite)</li>
+<li>Use for: Monetary values with currency</li>
+<li>Example: <code>total_amount: money</code></li>
+<li>Structure: <code>{amount: NUMERIC, currency: TEXT}</code></li>
+<li>Validation: ISO 4217 currency codes</li>
+</ul>
+<h4 id="dimensions">dimensions</h4>
+<ul>
+<li>SQL Type: app.dimensions (composite)</li>
+<li>Use for: Physical measurements</li>
+<li>Example: <code>package_size: dimensions</code></li>
+<li>Structure: <code>{length: NUMERIC, width: NUMERIC, height: NUMERIC, unit: TEXT}</code></li>
+<li>Validation: None</li>
+</ul>
+<h4 id="contact_info">contact_info</h4>
+<ul>
+<li>SQL Type: app.contact_info (composite)</li>
+<li>Use for: Complete contact details</li>
+<li>Example: <code>primary_contact: contact_info</code></li>
+<li>Structure: <code>{email: email, phone: phone, address: address}</code></li>
+<li>Validation: Validates nested types</li>
+</ul>
+<h3 id="relational-types">Relational Types</h3>
+<h4 id="refentity">ref(Entity)</h4>
+<ul>
+<li>SQL Type: INTEGER (FK to tb_entity.id)</li>
+<li>Use for: Foreign key relationships</li>
+<li>Example: <code>company: ref(Company)</code></li>
+<li>Auto-generated features:</li>
+<li>Foreign key constraint: <code>fk_tb_contact_company</code></li>
+<li>Index: <code>idx_tb_contact_company</code></li>
+<li>ON DELETE RESTRICT by default</li>
+<li>Validation: Referenced entity must exist</li>
+</ul>
+<h4 id="enumvalue1-value2">enum(value1, value2, ...)</h4>
+<ul>
+<li>SQL Type: TEXT with CHECK constraint</li>
+<li>Use for: Fixed set of values</li>
+<li>Example: <code>status: enum(lead, qualified, customer)</code></li>
+<li>Auto-generated features:</li>
+<li>CHECK constraint</li>
+<li>Index: <code>idx_tb_contact_status</code></li>
+<li>Validation: Must be one of listed values</li>
+</ul>
+<h4 id="listtype">list(Type)</h4>
+<ul>
+<li>SQL Type: Type[] (PostgreSQL array)</li>
+<li>Use for: Multiple values of same type</li>
+<li>Example: <code>tags: list(text)</code></li>
+<li>Auto-generated features: GIN index</li>
+<li>Validation: All elements must be valid Type</li>
+</ul>
+<h3 id="field-modifiers">Field Modifiers</h3>
+<h4 id="nullable">nullable</h4>
+<ul>
+<li>Syntax: <code>field: text?</code> or <code>field: "text | null"</code></li>
+<li>Effect: Field can be NULL</li>
+<li>Default: All fields are NOT NULL</li>
+<li>Example: <code>middle_name: text?</code></li>
+</ul>
+<h4 id="required-default">required (default)</h4>
+<ul>
+<li>Syntax: <code>field: text</code> (no modifier)</li>
+<li>Effect: Field must have value</li>
+<li>Example: <code>email: text</code></li>
+</ul>
+<h2 id="4-actions-section">4. Actions Section</h2>
+<h3 id="action-structure">Action Structure</h3>
+<pre><code class="language-yaml">actions:
+  - name: action_name
+    description: &quot;What this action does&quot;
+    impacts:
+      entities: [Entity1, Entity2]
+      read: [Entity3]
+      write: [Entity1]
+    steps:
+      - [step definitions]
+</code></pre>
+<h3 id="step-types">Step Types</h3>
+<h4 id="validate">validate</h4>
+<ul>
+<li>Purpose: Check preconditions</li>
+<li>Syntax: <code>validate: &lt;expression&gt;</code></li>
+<li>Example: <code>validate: status = 'draft'</code></li>
+<li>On failure: Returns error, halts execution</li>
+<li>Expression syntax: SQL WHERE clause</li>
+</ul>
+<h4 id="if">if</h4>
+<ul>
+<li>Purpose: Conditional branching</li>
+<li>Syntax:
+  ```yaml</li>
+<li>if: <condition>
+    then:<ul>
+<li>[steps]
+else:</li>
+<li>[steps]
+  ```</li>
+</ul>
+</li>
+<li>Example:
+  ```yaml</li>
+<li>if: amount &gt; 1000
+    then:<ul>
+<li>update: Order SET requires_approval = true
+else:</li>
+<li>update: Order SET approved = true
+  ```</li>
+</ul>
+</li>
+</ul>
+<h4 id="insert">insert</h4>
+<ul>
+<li>Purpose: Create new record</li>
+<li>Syntax: <code>insert: Entity [SET field = value, ...]</code></li>
+<li>Example: <code>insert: AuditLog SET action = 'created'</code></li>
+<li>Returns: Complete inserted object</li>
+<li>Auto-generated: id, created_at, created_by</li>
+</ul>
+<h4 id="update">update</h4>
+<ul>
+<li>Purpose: Modify existing record</li>
+<li>Syntax: <code>update: Entity SET field = value [WHERE condition]</code></li>
+<li>Example: <code>update: Contact SET status = 'qualified' WHERE id = :contact_id</code></li>
+<li>Returns: Updated object</li>
+<li>Auto-generated: updated_at, updated_by</li>
+</ul>
+<h4 id="soft_delete">soft_delete</h4>
+<ul>
+<li>Purpose: Mark record as deleted</li>
+<li>Syntax: <code>soft_delete: Entity [WHERE condition]</code></li>
+<li>Example: <code>soft_delete: Contact WHERE id = :id</code></li>
+<li>Effect: Sets deleted_at = NOW(), deleted_by = current_user</li>
+<li>Returns: Deleted object</li>
+</ul>
+<h4 id="call">call</h4>
+<ul>
+<li>Purpose: Invoke another action</li>
+<li>Syntax: <code>call: schema.action_name(param1: value1, ...)</code></li>
+<li>Example: <code>call: crm.send_welcome_email(contact_id: :id)</code></li>
+<li>Returns: Result from called action</li>
+</ul>
+<h4 id="notify">notify</h4>
+<ul>
+<li>Purpose: Send notification/event</li>
+<li>Syntax: <code>notify: channel WITH payload</code></li>
+<li>Example: <code>notify: contact_created WITH {contact_id: :id}</code></li>
+<li>Effect: PostgreSQL NOTIFY</li>
+</ul>
+<h4 id="foreach">foreach</h4>
+<ul>
+<li>Purpose: Loop over collection</li>
+<li>Syntax:
+  ```yaml</li>
+<li>foreach: item IN <collection>
+    do:<ul>
+<li>[steps with :item available]
+  ```</li>
+</ul>
+</li>
+<li>Example:
+  ```yaml</li>
+<li>foreach: line IN order_lines
+    do:<ul>
+<li>update: Product SET stock = stock - :line.quantity WHERE id = :line.product_id
+  ```</li>
+</ul>
+</li>
+</ul>
+<h3 id="expression-syntax">Expression Syntax</h3>
+<h4 id="variables">Variables</h4>
+<ul>
+<li><code>:param_name</code> - Input parameter</li>
+<li><code>:item.field</code> - Foreach item field</li>
+<li><code>CURRENT_TIMESTAMP</code> - Current time</li>
+<li><code>CURRENT_USER</code> - Current user UUID</li>
+</ul>
+<h4 id="operators">Operators</h4>
+<ul>
+<li>Comparison: <code>=</code>, <code>!=</code>, <code>&gt;</code>, <code>&lt;</code>, <code>&gt;=</code>, <code>&lt;=</code></li>
+<li>Logical: <code>AND</code>, <code>OR</code>, <code>NOT</code></li>
+<li>Null: <code>IS NULL</code>, <code>IS NOT NULL</code></li>
+<li>Pattern: <code>LIKE</code>, <code>ILIKE</code></li>
+<li>Membership: <code>IN (value1, value2)</code></li>
+</ul>
+<h4 id="functions">Functions</h4>
+<ul>
+<li>String: <code>LOWER()</code>, <code>UPPER()</code>, <code>TRIM()</code></li>
+<li>Date: <code>NOW()</code>, <code>CURRENT_DATE</code></li>
+<li>Math: <code>ABS()</code>, <code>ROUND()</code></li>
+<li>Aggregation: Use subqueries</li>
+</ul>
+<h2 id="5-organization-metadata">5. Organization Metadata</h2>
+<h3 id="purpose">Purpose</h3>
+<p>Advanced metadata for migrations and hierarchical output structure.</p>
+<h3 id="when-to-use">When to Use</h3>
+<ul>
+<li>✅ Migrating from existing system with file numbering (e.g., <code>012311_tb_contact.sql</code>)</li>
+<li>✅ Generating hierarchical directory structure with <code>--output-format hierarchical</code></li>
+<li>✅ Maintaining traceability to legacy database code</li>
+<li>❌ New projects (not needed)</li>
+<li>❌ Simple prototypes</li>
+</ul>
+<h3 id="fields">Fields</h3>
+<h4 id="table_code">table_code</h4>
+<ul>
+<li>Type: string (6-character hex)</li>
+<li>Format: <code>[0-9A-F]{6}</code></li>
+<li>Example: <code>table_code: "012311"</code></li>
+<li>Purpose: Unique identifier for migration files</li>
+<li>Validation: Must be unique across all entities</li>
+<li>Check with: <code>specql check-codes entities/**/*.yaml</code></li>
+</ul>
+<h4 id="domain">domain</h4>
+<ul>
+<li>Type: string</li>
+<li>Example: <code>domain: "CRM"</code></li>
+<li>Purpose: High-level business domain classification</li>
+<li>Use: Documentation and organization</li>
+</ul>
+<h4 id="subdomain">subdomain</h4>
+<ul>
+<li>Type: string</li>
+<li>Example: <code>subdomain: "Customer Management"</code></li>
+<li>Purpose: Functional area within domain</li>
+<li>Use: Documentation and hierarchical structure</li>
+</ul>
+<h3 id="example">Example</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+organization:
+  table_code: &quot;012311&quot;
+  domain: &quot;CRM&quot;
+  subdomain: &quot;Customer&quot;
+fields:
+  email: text
+</code></pre>
+<h3 id="output-impact">Output Impact</h3>
+<p>With <code>--output-format hierarchical</code>:</p>
+<pre><code>db/schema/10_tables/
+└── CRM/
+    └── Customer/
+        └── 012311_contact.sql
+</code></pre>
+<p>Without (default flat):</p>
+<pre><code>db/schema/10_tables/
+└── contact.sql
+</code></pre>
+<h2 id="6-advanced-features">6. Advanced Features</h2>
+<h3 id="hierarchical-entities">Hierarchical Entities</h3>
+<p>See: <code>docs/guides/hierarchical-entities.md</code></p>
+<p>Enables tree structures with parent-child relationships.</p>
+<pre><code class="language-yaml">entity: Category
+schema: catalog
+hierarchical: true
+fields:
+  name: text
+  parent: ref(Category)?
+</code></pre>
+<p>Generates:
+- <code>identifier</code> as hierarchical path (e.g., <code>electronics/computers/laptops</code>)
+- Helper functions for tree operations
+- Recursive queries</p>
+<h3 id="multi-tenancy">Multi-Tenancy</h3>
+<p>See: <code>docs/guides/multi-tenancy.md</code></p>
+<p>Automatic <code>tenant_id</code> for multi-tenant schemas.</p>
+<p><strong>Configuration</strong>: <code>registry/domain_registry.yaml</code></p>
+<pre><code class="language-yaml">domains:
+  crm:
+    type: multi_tenant  # Adds tenant_id to all tables
+  catalog:
+    type: shared        # No tenant_id
+</code></pre>
+<p><strong>Effect</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE crm.tb_contact (
+  id INTEGER PRIMARY KEY,
+  tenant_id UUID NOT NULL REFERENCES common.tb_tenant(id),
+  -- ... other fields
+);
+</code></pre>
+<h3 id="stdlib-imports">Stdlib Imports</h3>
+<p>See: <code>stdlib/</code> directory</p>
+<p>Reusable entity templates.</p>
+<pre><code class="language-yaml"># entities/contact.yaml
+import: stdlib/crm/contact
+schema: crm  # Override schema
+fields:
+  # Additional fields beyond stdlib
+  custom_field: text
+</code></pre>
+<h2 id="7-auto-generated-features">7. Auto-Generated Features</h2>
+<h3 id="trinity-pattern">Trinity Pattern</h3>
+<p>Every entity automatically gets:
+- <code>id</code> - INTEGER primary key (main identifier)
+- <code>pk_&lt;entity&gt;</code> - UUID unique identifier (stable external reference)
+- <code>identifier</code> - TEXT unique identifier (human-readable slug)</p>
+<p><strong>Don't include these in YAML</strong> - they're always generated.</p>
+<h3 id="audit-fields">Audit Fields</h3>
+<p>Automatically added to all entities:
+- <code>created_at</code> - TIMESTAMP WITH TIME ZONE
+- <code>created_by</code> - UUID (references user)
+- <code>updated_at</code> - TIMESTAMP WITH TIME ZONE
+- <code>updated_by</code> - UUID
+- <code>deleted_at</code> - TIMESTAMP WITH TIME ZONE (NULL unless soft-deleted)
+- <code>deleted_by</code> - UUID</p>
+<h3 id="indexes">Indexes</h3>
+<p>Automatically created for:
+- Foreign key columns: <code>idx_tb_&lt;entity&gt;_&lt;field&gt;</code>
+- Enum fields: <code>idx_tb_&lt;entity&gt;_&lt;field&gt;</code>
+- <code>tenant_id</code>: <code>idx_tb_&lt;entity&gt;_tenant_id</code>
+- JSONB fields: GIN index</p>
+<h3 id="helper-functions">Helper Functions</h3>
+<p>Generated in <code>db/schema/20_helpers/</code>:
+- <code>&lt;schema&gt;.&lt;entity&gt;_pk(uuid)</code> - Get INTEGER id from UUID
+- <code>&lt;schema&gt;.&lt;entity&gt;_id(integer)</code> - Get INTEGER id from identifier
+- <code>&lt;schema&gt;.&lt;entity&gt;_identifier(text)</code> - Get INTEGER id from identifier</p>
+<h3 id="naming-conventions">Naming Conventions</h3>
+<p><strong>Tables</strong>: <code>tb_&lt;entity&gt;</code> (lowercase, snake_case)
+<strong>Views</strong>: <code>tv_&lt;entity&gt;</code> (table views)
+<strong>Foreign Keys</strong>: <code>fk_tb_&lt;entity&gt;_&lt;field&gt;</code>
+<strong>Indexes</strong>: <code>idx_tb_&lt;entity&gt;_&lt;field&gt;</code>
+<strong>Functions</strong>: <code>&lt;schema&gt;.&lt;action_name&gt;</code>
+<strong>Wrappers</strong>: <code>app.&lt;action_name&gt;</code> (GraphQL entry point)</p>
+<hr />
+<h2 id="examples-section">Examples Section</h2>
+<h3 id="complete-minimal-example">Complete Minimal Example</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+fields:
+  email: text
+  name: text
+</code></pre>
+<h3 id="complete-rich-example">Complete Rich Example</h3>
+<pre><code class="language-yaml">entity: Order
+schema: commerce
+description: &quot;Customer purchase orders&quot;
+organization:
+  table_code: &quot;042001&quot;
+  domain: &quot;Commerce&quot;
+  subdomain: &quot;Orders&quot;
+fields:
+  order_number: text
+  customer: ref(Customer)
+  status: enum(draft, confirmed, shipped, delivered, cancelled)
+  total_amount: money
+  shipping_address: json
+  notes: text?
+  delivered_at: timestamp?
+actions:
+  - name: confirm_order
+    description: &quot;Confirm a draft order&quot;
+    impacts:
+      write: [Order]
+      read: [Customer, Product]
+    steps:
+      - validate: status = 'draft'
+      - validate: total_amount.amount &gt; 0
+      - update: Order SET status = 'confirmed', confirmed_at = NOW()
+      - notify: order_confirmed WITH {order_id: :id}
+
+  - name: ship_order
+    description: &quot;Mark order as shipped&quot;
+    impacts:
+      write: [Order, OrderLine, Product]
+    steps:
+      - validate: status = 'confirmed'
+      - foreach: line IN (SELECT * FROM commerce.tb_order_line WHERE order_id = :id)
+        do:
+          - update: Product SET stock = stock - :line.quantity WHERE id = :line.product_id
+      - update: Order SET status = 'shipped', shipped_at = NOW()
+      - call: notifications.send_tracking_email(order_id: :id)
+</code></pre>
+<hr />
+<h2 id="reference">Reference</h2>
+<h3 id="related-documentation">Related Documentation</h3>
+<ul>
+<li><strong>Guides</strong>: <code>docs/guides/</code> - How-to tutorials</li>
+<li><strong>Architecture</strong>: <code>docs/architecture/</code> - Technical design</li>
+<li><strong>CLI Reference</strong>: <code>docs/reference/cli-reference.md</code></li>
+<li><strong>Troubleshooting</strong>: <code>docs/guides/troubleshooting.md</code></li>
+</ul>
+<h3 id="external-references">External References</h3>
+<ul>
+<li>PostgreSQL Data Types: https://www.postgresql.org/docs/current/datatype.html</li>
+<li>SQL Syntax: https://www.postgresql.org/docs/current/sql.html</li>
+<li>GraphQL: https://graphql.org/</li>
+</ul>
+<hr />
+<h2 id="validation-checklist">Validation Checklist</h2>
+<p>Before finalizing this reference:
+- [ ] All field types documented with examples
+- [ ] All action step types explained
+- [ ] Organization section clearly marked as optional/advanced
+- [ ] Auto-generated features explicitly listed
+- [ ] Common gotchas addressed (e.g., text vs string)
+- [ ] Examples are copy-paste ready
+- [ ] Links to related docs work
+- [ ] Table of contents is accurate</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

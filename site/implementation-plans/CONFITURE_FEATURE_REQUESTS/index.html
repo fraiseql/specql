@@ -1,0 +1,678 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Confiture Feature Requests for SpecQL Integration - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Confiture Feature Requests for SpecQL Integration";
+        var mkdocs_page_input_path = "implementation-plans/CONFITURE_FEATURE_REQUESTS.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Confiture Feature Requests for SpecQL Integration</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="confiture-feature-requests-for-specql-integration">Confiture Feature Requests for SpecQL Integration</h1>
+<p><strong>Context</strong>: We're integrating Confiture with SpecQL's hexadecimal registry system and need to assess if Confiture's current features support our architecture or if we need additional capabilities.</p>
+<p><strong>Date</strong>: 2025-11-09
+<strong>Current Confiture Version</strong>: v0.1.0 (Beta, Production-Ready)</p>
+<hr />
+<h2 id="current-integration-challenges">🔍 Current Integration Challenges</h2>
+<h3 id="challenge-1-hexadecimal-file-naming"><strong>Challenge 1: Hexadecimal File Naming</strong></h3>
+<p><strong>Our Need</strong>: Files named with hexadecimal codes (e.g., <code>012A31_tb_contact.sql</code>)</p>
+<p><strong>Question</strong>: Does Confiture's deterministic ordering work with hexadecimal prefixes?</p>
+<p><strong>Current Confiture Behavior</strong> (from documentation):
+- Orders files deterministically within each <code>schema_dirs</code> path
+- Typically expects numeric prefixes or alphabetic ordering</p>
+<p><strong>Potential Issue</strong>:</p>
+<pre><code>db/schema/10_tables/
+├── 012311_tb_contact.sql      # Hex: 74513 decimal
+├── 012A31_tb_company.sql      # Hex: 76337 decimal
+└── 01F231_tb_account.sql      # Hex: 127537 decimal
+</code></pre>
+<p><strong>Question for Confiture Team</strong>:
+- Does Confiture sort <code>012A31</code> correctly as hexadecimal (or as string)?
+- If string sorting, would it handle <code>01F</code> before <code>012</code>? (Wrong order!)</p>
+<p><strong>Workaround</strong> (if needed):
+- Convert hex to decimal for filenames: <code>076337_tb_company.sql</code>
+- Keep hex in table codes, decimal in filenames</p>
+<hr />
+<h3 id="challenge-2-multi-level-directory-hierarchies"><strong>Challenge 2: Multi-Level Directory Hierarchies</strong></h3>
+<p><strong>Our Architecture</strong>:</p>
+<pre><code>db/schema/
+├── 01_write_side/              # Layer 1
+│   └── 012_crm/                # Layer 2 (domain)
+│       └── 0123_customer/      # Layer 3 (subdomain)
+│           └── 01231_group/    # Layer 4 (entity group)
+│               └── 012311_tb_contact.sql  # Layer 5 (file)
+</code></pre>
+<p><strong>Current Confiture Support</strong>:</p>
+<pre><code class="language-yaml"># confiture.yaml
+schema_dirs:
+  - path: db/schema/01_write_side
+    order: 10
+  - path: db/schema/02_read_side
+    order: 20
+</code></pre>
+<p><strong>Issue</strong>: Confiture expects <strong>flat directory lists</strong>, not nested hierarchies.</p>
+<p><strong>Options</strong>:</p>
+<h4 id="option-a-flatten-for-confiture"><strong>Option A: Flatten for Confiture</strong></h4>
+<pre><code class="language-yaml"># List all leaf directories explicitly
+schema_dirs:
+  - path: db/schema/01_write_side/012_crm/0123_customer/01231_group
+    order: 10123110
+  - path: db/schema/01_write_side/012_crm/0123_customer/01232_group
+    order: 10123120
+  # ... (would need 100s of entries for many entities!)
+</code></pre>
+<p>❌ <strong>Unscalable</strong>: Need to update config for every new entity</p>
+<h4 id="option-b-use-flat-directories-current-plan"><strong>Option B: Use Flat Directories (Current Plan)</strong></h4>
+<pre><code class="language-yaml"># Confiture-compatible flat structure
+schema_dirs:
+  - path: db/schema/10_tables
+    order: 10
+  - path: db/schema/30_functions
+    order: 30
+</code></pre>
+<p>✅ <strong>Works but loses hierarchy benefits</strong></p>
+<h4 id="option-c-request-recursive-directory-support"><strong>Option C: Request Recursive Directory Support</strong></h4>
+<pre><code class="language-yaml"># PROPOSED FEATURE
+schema_dirs:
+  - path: db/schema/01_write_side
+    order: 10
+    recursive: true          # NEW: Scan all subdirectories
+    sort_by: path            # Sort by full path (preserves hierarchy)
+</code></pre>
+<p><strong>Feature Request</strong>:
+- <strong>Recursive directory scanning</strong> with <code>recursive: true</code>
+- Maintains file order by full path (naturally preserves hierarchy)
+- No need to list every subdirectory explicitly</p>
+<hr />
+<h3 id="challenge-3-dynamic-schema-discovery"><strong>Challenge 3: Dynamic Schema Discovery</strong></h3>
+<p><strong>Our Use Case</strong>: Generate entities dynamically, Confiture should auto-discover new files</p>
+<p><strong>Current Confiture Behavior</strong>:
+- Reads <code>confiture.yaml</code> for explicit directory list
+- Requires config update when adding new <code>schema_dirs</code></p>
+<p><strong>Problem</strong>:</p>
+<pre><code class="language-bash"># Day 1: Generate Contact
+python -m src.cli.generate entities contact.yaml
+# Creates: db/schema/01_write_side/012_crm/.../contact.sql
+
+# Day 2: Generate Company
+python -m src.cli.generate entities company.yaml
+# Creates: db/schema/01_write_side/013_finance/.../company.sql
+
+# Confiture build
+confiture build --env local
+# ❌ Won't find company.sql if db/schema/01_write_side/013_finance not in config!
+</code></pre>
+<p><strong>Feature Request</strong>:</p>
+<pre><code class="language-yaml"># PROPOSED FEATURE
+schema_dirs:
+  - path: db/schema
+    recursive: true
+    exclude:                 # NEW: Exclude patterns
+      - &quot;**/*.bak&quot;
+      - &quot;**/temp/**&quot;
+    include:                 # NEW: Include patterns
+      - &quot;**/*.sql&quot;
+    auto_discover: true      # NEW: Don't require pre-listing
+</code></pre>
+<p><strong>Benefit</strong>: Add entities without updating <code>confiture.yaml</code></p>
+<hr />
+<h3 id="challenge-4-metadata-comments-preservation"><strong>Challenge 4: Metadata Comments Preservation</strong></h3>
+<p><strong>Our Use Case</strong>: FraiseQL <code>@fraiseql:*</code> comments must be preserved exactly</p>
+<p><strong>Current Confiture Behavior</strong> (need to verify):
+- Does Confiture strip/modify SQL comments during build?
+- Are <code>COMMENT ON</code> statements preserved?</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-sql">-- File: db/schema/40_metadata/contact_fraiseql.sql
+COMMENT ON TABLE crm.tb_contact IS
+  '@fraiseql:type name=Contact,schema=crm';
+
+COMMENT ON COLUMN crm.tb_contact.email IS
+  '@fraiseql:field name=email,type=String!';
+</code></pre>
+<p><strong>Question for Confiture Team</strong>:
+- Are all SQL comments preserved byte-for-byte?
+- Are <code>COMMENT ON</code> statements preserved in build output?
+- Any comment preprocessing or formatting?</p>
+<p><strong>If Not Preserved</strong>:
+- This would be a <strong>blocking issue</strong> for FraiseQL integration
+- FraiseQL depends on these comments for GraphQL schema generation</p>
+<hr />
+<h3 id="challenge-5-build-output-with-hierarchical-context"><strong>Challenge 5: Build Output with Hierarchical Context</strong></h3>
+<p><strong>Our Need</strong>: Debug which file contributed which SQL in the final migration</p>
+<p><strong>Current Confiture Behavior</strong>:</p>
+<pre><code class="language-sql">-- migrations/001_schema.sql (concatenated output)
+CREATE TABLE crm.tb_contact (...);
+CREATE TABLE finance.tb_invoice (...);
+CREATE FUNCTION crm.qualify_lead (...);
+</code></pre>
+<p><strong>Problem</strong>: No indication of <strong>which file</strong> each statement came from</p>
+<p><strong>Feature Request</strong>: Add source file markers</p>
+<pre><code class="language-sql">-- migrations/001_schema.sql (with source markers)
+
+-- SOURCE: db/schema/10_tables/contact.sql (012311)
+CREATE TABLE crm.tb_contact (...);
+
+-- SOURCE: db/schema/10_tables/invoice.sql (013A21)
+CREATE TABLE finance.tb_invoice (...);
+
+-- SOURCE: db/schema/30_functions/contact_actions.sql (032311)
+CREATE FUNCTION crm.qualify_lead (...);
+</code></pre>
+<p><strong>Benefit</strong>:
+- Easy debugging (which file has syntax error?)
+- Audit trail (what came from where?)
+- Helps with conflict resolution</p>
+<p><strong>Implementation Suggestion</strong>:</p>
+<pre><code class="language-yaml"># confiture.yaml
+build:
+  add_source_markers: true   # NEW: Add -- SOURCE: comments
+  marker_format: &quot;-- SOURCE: {path} ({table_code})&quot;  # Configurable format
+</code></pre>
+<hr />
+<h3 id="challenge-6-split-output-by-component-type"><strong>Challenge 6: Split Output by Component Type</strong></h3>
+<p><strong>Our Need</strong>: Generate separate migration files for different components</p>
+<p><strong>Use Case</strong>:</p>
+<pre><code class="language-bash"># Generate 3 separate migrations instead of 1 combined
+confiture build --env local --split-by layer
+
+# Output:
+migrations/001_tables.sql      # All from 10_tables/
+migrations/002_functions.sql   # All from 30_functions/
+migrations/003_metadata.sql    # All from 40_metadata/
+</code></pre>
+<p><strong>Why Needed</strong>:
+- Tables must be created before functions (dependency order)
+- Can apply tables first, test, then apply functions
+- Metadata can be applied last (optional for some deployments)</p>
+<p><strong>Current Workaround</strong>:</p>
+<pre><code class="language-yaml"># Define separate environments for each layer
+environments:
+  tables_only:
+    schema_dirs:
+      - path: db/schema/10_tables
+  functions_only:
+    schema_dirs:
+      - path: db/schema/30_functions
+</code></pre>
+<p>Then:</p>
+<pre><code class="language-bash">confiture build --env tables_only --output migrations/001_tables.sql
+confiture build --env functions_only --output migrations/002_functions.sql
+</code></pre>
+<p><strong>Feature Request</strong>:</p>
+<pre><code class="language-yaml"># PROPOSED FEATURE
+build:
+  split_output: true
+  split_strategy: by_directory  # or 'by_layer', 'by_domain'
+  output_template: &quot;migrations/{order:03d}_{dir_name}.sql&quot;
+</code></pre>
+<pre><code class="language-bash">confiture build --env local --split
+
+# Auto-generates:
+migrations/010_tables.sql
+migrations/030_functions.sql
+migrations/040_metadata.sql
+</code></pre>
+<hr />
+<h3 id="challenge-7-registry-integration-hooks"><strong>Challenge 7: Registry Integration Hooks</strong></h3>
+<p><strong>Our Need</strong>: Call custom Python code during Confiture build</p>
+<p><strong>Use Case</strong>: Update <code>domain_registry.yaml</code> after successful build</p>
+<p><strong>Current Confiture Behavior</strong>:
+- No hooks for custom code execution
+- Pure SQL concatenation + migration tracking</p>
+<p><strong>Feature Request</strong>: Build lifecycle hooks</p>
+<pre><code class="language-yaml"># confiture.yaml
+hooks:
+  pre_build:
+    - command: &quot;python scripts/validate_registry.py&quot;
+      description: &quot;Validate registry consistency&quot;
+
+  post_build:
+    - command: &quot;python scripts/update_registry_timestamps.py&quot;
+      description: &quot;Update last_built timestamps&quot;
+
+  pre_migrate:
+    - command: &quot;python scripts/backup_database.py&quot;
+      description: &quot;Backup before migration&quot;
+
+  post_migrate:
+    - command: &quot;python scripts/notify_team.py&quot;
+      description: &quot;Notify deployment complete&quot;
+</code></pre>
+<p><strong>Benefit</strong>:
+- Integrate with SpecQL registry system
+- Custom validation before build
+- Notifications, backups, cleanup</p>
+<hr />
+<h3 id="challenge-8-table-code-validation"><strong>Challenge 8: Table Code Validation</strong></h3>
+<p><strong>Our Need</strong>: Ensure generated SQL matches registry table codes</p>
+<p><strong>Problem</strong>:</p>
+<pre><code class="language-sql">-- File: db/schema/10_tables/contact.sql
+-- Registry says: tb_contact should have code 012311
+-- But file contains: CREATE TABLE crm.tb_contact_old (...)
+</code></pre>
+<p><strong>Feature Request</strong>: Pre-build validation</p>
+<pre><code class="language-yaml"># confiture.yaml
+validation:
+  enabled: true
+  rules:
+    - type: table_name_pattern
+      pattern: &quot;^tb_[a-z_]+$&quot;
+      message: &quot;Table names must start with tb_&quot;
+
+    - type: custom_validator
+      script: &quot;python scripts/validate_table_codes.py&quot;
+      args: [&quot;--registry&quot;, &quot;registry/domain_registry.yaml&quot;]
+</code></pre>
+<p><strong>Validation Script</strong>:</p>
+<pre><code class="language-python"># scripts/validate_table_codes.py
+import sys
+from src.generators.schema.naming_conventions import NamingConventions
+
+def validate_sql_file(filepath, registry):
+    &quot;&quot;&quot;Ensure SQL file matches registry table code&quot;&quot;&quot;
+    # Extract table name from SQL
+    # Look up in registry
+    # Validate code matches filename
+    # Return errors if mismatch
+</code></pre>
+<hr />
+<h3 id="challenge-9-incremental-builds"><strong>Challenge 9: Incremental Builds</strong></h3>
+<p><strong>Our Need</strong>: Only rebuild changed files (performance optimization)</p>
+<p><strong>Current Confiture Behavior</strong> (need to verify):
+- Rebuild entire schema every time?
+- Or track file checksums for incremental builds?</p>
+<p><strong>Use Case</strong>:</p>
+<pre><code class="language-bash"># Day 1: Generate 100 entities
+confiture build --env local
+# Takes 5 seconds (100 files × 50ms)
+
+# Day 2: Change 1 entity
+python -m src.cli.generate entities contact.yaml --use-registry
+confiture build --env local --incremental
+# Takes 50ms (only rebuild changed file)
+</code></pre>
+<p><strong>Feature Request</strong> (if not already supported):</p>
+<pre><code class="language-yaml"># confiture.yaml
+build:
+  incremental: true
+  cache_dir: .confiture/cache
+  hash_algorithm: sha256
+</code></pre>
+<p><strong>Benefit</strong>:
+- Faster iteration during development
+- Only rebuild what changed
+- Crucial for large projects (100+ entities)</p>
+<hr />
+<h3 id="challenge-10-environment-specific-directory-overrides"><strong>Challenge 10: Environment-Specific Directory Overrides</strong></h3>
+<p><strong>Our Need</strong>: Different directory structures for local vs production</p>
+<p><strong>Use Case</strong>:</p>
+<pre><code class="language-yaml"># Local: Use hierarchical structure for debugging
+environments:
+  local:
+    schema_dirs:
+      - path: generated/migrations/01_write_side
+        recursive: true
+
+# Production: Use flat structure for simplicity
+  production:
+    schema_dirs:
+      - path: db/schema/10_tables
+      - path: db/schema/30_functions
+</code></pre>
+<p><strong>Current Support</strong>: ✅ Already works!</p>
+<p><strong>Enhancement Request</strong>: Directory path variables</p>
+<pre><code class="language-yaml"># PROPOSED FEATURE
+variables:
+  schema_root: ${SCHEMA_ROOT:-db/schema}
+
+environments:
+  local:
+    schema_dirs:
+      - path: ${schema_root}/10_tables
+      - path: ${schema_root}/30_functions
+</code></pre>
+<p><strong>Benefit</strong>: Easier CI/CD configuration</p>
+<hr />
+<h2 id="summary-feature-request-priority">📋 Summary: Feature Request Priority</h2>
+<h3 id="p0-critical-blockers"><strong>P0 (Critical - Blockers)</strong></h3>
+<ol>
+<li><strong>Comment Preservation</strong> (Challenge 4)</li>
+<li><strong>Why</strong>: FraiseQL integration depends on <code>@fraiseql:*</code> comments</li>
+<li><strong>Question</strong>: Are SQL comments preserved exactly?</li>
+<li>
+<p><strong>If Not Supported</strong>: We cannot use Confiture</p>
+</li>
+<li>
+<p><strong>Hexadecimal File Ordering</strong> (Challenge 1)</p>
+</li>
+<li><strong>Why</strong>: Our entire naming system uses hex codes</li>
+<li><strong>Question</strong>: Does Confiture sort hex prefixes correctly?</li>
+<li><strong>Workaround</strong>: Convert to decimal filenames (loses elegance)</li>
+</ol>
+<hr />
+<h3 id="p1-high-major-quality-of-life"><strong>P1 (High - Major Quality of Life)</strong></h3>
+<ol>
+<li><strong>Recursive Directory Support</strong> (Challenge 2)</li>
+<li><strong>Why</strong>: Enables full hierarchical registry structure</li>
+<li><strong>Current</strong>: Must use flat directories</li>
+<li>
+<p><strong>Request</strong>: <code>recursive: true</code> option</p>
+</li>
+<li>
+<p><strong>Source File Markers in Output</strong> (Challenge 5)</p>
+</li>
+<li><strong>Why</strong>: Debugging, audit trail, conflict resolution</li>
+<li>
+<p><strong>Request</strong>: <code>add_source_markers: true</code> option</p>
+</li>
+<li>
+<p><strong>Build Lifecycle Hooks</strong> (Challenge 7)</p>
+</li>
+<li><strong>Why</strong>: Registry integration, validation, notifications</li>
+<li><strong>Request</strong>: <code>hooks: { pre_build, post_build }</code> config</li>
+</ol>
+<hr />
+<h3 id="p2-medium-nice-to-have"><strong>P2 (Medium - Nice to Have)</strong></h3>
+<ol>
+<li><strong>Split Output by Component</strong> (Challenge 6)</li>
+<li><strong>Why</strong>: Separate migrations for tables/functions/metadata</li>
+<li><strong>Workaround</strong>: Multiple environments</li>
+<li>
+<p><strong>Request</strong>: <code>split_output: true</code> option</p>
+</li>
+<li>
+<p><strong>Pre-Build Validation</strong> (Challenge 8)</p>
+</li>
+<li><strong>Why</strong>: Catch errors before build</li>
+<li>
+<p><strong>Request</strong>: <code>validation.rules</code> config</p>
+</li>
+<li>
+<p><strong>Incremental Builds</strong> (Challenge 9)</p>
+</li>
+<li><strong>Why</strong>: Performance with large projects</li>
+<li><strong>Question</strong>: Already supported via Rust hashing?</li>
+</ol>
+<hr />
+<h3 id="p3-low-future-enhancement"><strong>P3 (Low - Future Enhancement)</strong></h3>
+<ol>
+<li><strong>Dynamic Schema Discovery</strong> (Challenge 3)</li>
+<li><strong>Why</strong>: Auto-discover new entities without config updates</li>
+<li><strong>Workaround</strong>: Update <code>confiture.yaml</code> manually</li>
+<li>
+<p><strong>Request</strong>: <code>auto_discover: true</code> option</p>
+</li>
+<li>
+<p><strong>Environment Variables in Config</strong> (Challenge 10)</p>
+<ul>
+<li><strong>Why</strong>: Easier CI/CD configuration</li>
+<li><strong>Request</strong>: <code>${VAR}</code> substitution in YAML</li>
+</ul>
+</li>
+</ol>
+<hr />
+<h2 id="recommended-approach">🎯 Recommended Approach</h2>
+<h3 id="before-requesting-features"><strong>Before Requesting Features</strong></h3>
+<ol>
+<li>
+<p><strong>Test Current Confiture Capabilities</strong>
+   <code>bash
+   # Test hex file ordering
+   mkdir -p test_confiture/schema
+   echo "CREATE TABLE t1 (id INT);" &gt; test_confiture/schema/012A31_test.sql
+   echo "CREATE TABLE t2 (id INT);" &gt; test_confiture/schema/01F231_test.sql
+   confiture build --env test --output test.sql
+   # Check: Is order correct? (012A31 before 01F231)</code></p>
+</li>
+<li>
+<p><strong>Test Comment Preservation</strong>
+   <code>bash
+   echo "COMMENT ON TABLE t IS '@fraiseql:type name=T';" &gt; test_confiture/schema/comments.sql
+   confiture build --env test --output test.sql
+   grep "@fraiseql" test.sql
+   # Check: Are comments preserved exactly?</code></p>
+</li>
+<li>
+<p><strong>Test Recursive Directories</strong>
+   <code>bash
+   mkdir -p test_confiture/schema/sub1/sub2
+   echo "CREATE TABLE t (id INT);" &gt; test_confiture/schema/sub1/sub2/test.sql
+   # Can Confiture discover this with current config?</code></p>
+</li>
+</ol>
+<hr />
+<h3 id="if-features-are-missing"><strong>If Features Are Missing</strong></h3>
+<h4 id="option-a-open-github-issues"><strong>Option A: Open GitHub Issues</strong></h4>
+<p>Create issues in Confiture repository:
+- <strong>Title</strong>: "[Feature Request] Recursive Directory Scanning"
+- <strong>Labels</strong>: enhancement
+- <strong>Provide</strong>:
+  - Use case (SpecQL integration)
+  - Proposed YAML syntax
+  - Why existing workarounds are insufficient</p>
+<h4 id="option-b-contribute-pull-requests"><strong>Option B: Contribute Pull Requests</strong></h4>
+<p>If Confiture is open-source:
+- Fork repository
+- Implement feature (e.g., <code>recursive: true</code>)
+- Submit PR with tests
+- Benefit: Faster integration, community contribution</p>
+<h4 id="option-c-wrapper-script"><strong>Option C: Wrapper Script</strong></h4>
+<p>If features take time to implement:</p>
+<pre><code class="language-python"># scripts/confiture_wrapper.py
+&quot;&quot;&quot;
+Wrapper around Confiture that adds:
+- Recursive directory scanning
+- Source file markers
+- Registry validation hooks
+&quot;&quot;&quot;
+
+def build_with_hierarchy(base_dir, output):
+    # 1. Recursively find all .sql files
+    # 2. Sort by full path (preserves hierarchy)
+    # 3. Add source markers
+    # 4. Concatenate
+    # 5. Call Confiture migrate (not build)
+</code></pre>
+<hr />
+<h2 id="draft-feature-request-emailissue">📧 Draft Feature Request Email/Issue</h2>
+<p><strong>Subject</strong>: Feature Requests for SpecQL Integration</p>
+<p><strong>Body</strong>:</p>
+<pre><code>Hi Confiture Team,
+
+We're integrating Confiture with SpecQL, a business DSL → PostgreSQL + GraphQL
+code generator, and would love to discuss a few features that would make the
+integration smoother.
+
+**Context**:
+- SpecQL generates hexadecimal table codes (e.g., 012A31)
+- Uses hierarchical directory structure (5 levels deep)
+- Generates FraiseQL metadata comments for GraphQL auto-discovery
+- Targets 100+ entities in production
+
+**Critical Questions**:
+
+1. **Comment Preservation** (BLOCKER):
+   Are SQL comments (including `COMMENT ON` statements) preserved exactly
+   in build output? FraiseQL depends on `@fraiseql:*` comments.
+
+2. **Hexadecimal File Ordering**:
+   Does Confiture sort files with hex prefixes correctly?
+   Example: 012A31, 01F231 (should be in hex order, not string order)
+
+**Feature Requests** (in priority order):
+
+1. **Recursive Directory Scanning** (P1):
+   ```yaml
+   schema_dirs:
+     - path: db/schema/01_write_side
+       recursive: true  # Scan all subdirectories
+   ```
+   Why: Enables full hierarchical structure without listing every subdirectory
+
+2. **Source File Markers** (P1):
+   ```yaml
+   build:
+     add_source_markers: true
+   ```
+   Output: `-- SOURCE: db/schema/10_tables/contact.sql`
+   Why: Debugging, audit trail
+
+3. **Build Lifecycle Hooks** (P1):
+   ```yaml
+   hooks:
+     pre_build: [&quot;python validate.py&quot;]
+     post_build: [&quot;python update_registry.py&quot;]
+   ```
+   Why: Integration with registry system
+
+Happy to discuss implementation details or contribute PRs if helpful!
+
+Thanks,
+[Your Name]
+SpecQL Team
+</code></pre>
+<hr />
+<h2 id="next-steps">🔗 Next Steps</h2>
+<ol>
+<li><strong>Day 1</strong>: Test Confiture capabilities (hex ordering, comments, recursion)</li>
+<li><strong>Day 2</strong>: Document test results in this file</li>
+<li><strong>Day 3</strong>: If blockers found, open issues immediately</li>
+<li><strong>Day 4</strong>: If features missing, decide: wait, contribute, or workaround</li>
+<li><strong>Week 2</strong>: Proceed with integration (with or without features)</li>
+</ol>
+<hr />
+<p><strong>Status</strong>: 📋 DRAFT - Needs Testing &amp; Validation
+<strong>Owner</strong>: SpecQL Team
+<strong>Reviewers</strong>: Confiture maintainers
+<strong>Last Updated</strong>: 2025-11-09</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

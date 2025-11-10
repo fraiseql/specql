@@ -1,0 +1,878 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>SpecQL Generated Code Patterns - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "SpecQL Generated Code Patterns";
+        var mkdocs_page_input_path = "reference/generated-patterns.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">SpecQL Generated Code Patterns</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="specql-generated-code-patterns">SpecQL Generated Code Patterns</h1>
+<p><strong>Technical reference for all generated PostgreSQL + PL/pgSQL patterns</strong> 🏗️</p>
+<h2 id="overview">Overview</h2>
+<p>SpecQL generates production-ready PostgreSQL code following proven patterns. This document details every generated artifact, naming convention, and architectural decision.</p>
+<p><strong>Generated per entity:</strong>
+- ✅ PostgreSQL table with Trinity pattern
+- ✅ Helper functions for ID conversion
+- ✅ CRUD functions with error handling
+- ✅ Custom business logic functions
+- ✅ Indexes for performance
+- ✅ Constraints for data integrity
+- ✅ Comments for GraphQL auto-discovery</p>
+<h2 id="trinity-pattern-architecture">Trinity Pattern Architecture</h2>
+<h3 id="table-structure">Table Structure</h3>
+<p>Every SpecQL entity generates a table following the Trinity pattern:</p>
+<pre><code class="language-sql">CREATE TABLE crm.tb_contact (
+    -- ========================================================================
+    -- Trinity Pattern: INTEGER primary key for performance
+    -- ========================================================================
+    pk_contact INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+
+    -- ========================================================================
+    -- Trinity Pattern: UUID for stable public API
+    -- ========================================================================
+    id UUID DEFAULT gen_random_uuid() NOT NULL,
+
+    -- ========================================================================
+    -- Multi-Tenancy: Denormalized from JWT (if tenant schema)
+    -- ========================================================================
+    tenant_id UUID NOT NULL,
+
+    -- ========================================================================
+    -- Business Fields (from YAML)
+    -- ========================================================================
+    email TEXT NOT NULL,
+    first_name TEXT NOT NULL,
+    last_name TEXT NOT NULL,
+
+    -- ========================================================================
+    -- Foreign Keys (Trinity Pattern: INTEGER references)
+    -- ========================================================================
+    fk_organization INTEGER,
+
+    -- ========================================================================
+    -- Audit Fields (Trinity Pattern standard)
+    -- ========================================================================
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_by UUID,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_by UUID,
+    deleted_at TIMESTAMPTZ,
+    deleted_by UUID,
+
+    -- ========================================================================
+    -- Constraints
+    -- ========================================================================
+    CONSTRAINT tb_contact_id_key UNIQUE (id)
+);
+</code></pre>
+<h3 id="column-naming-conventions">Column Naming Conventions</h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Example</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pk_{entity}</code></td>
+<td><code>pk_contact</code></td>
+<td>Internal INTEGER primary key</td>
+</tr>
+<tr>
+<td><code>id</code></td>
+<td><code>id</code></td>
+<td>External UUID identifier</td>
+</tr>
+<tr>
+<td><code>fk_{entity}</code></td>
+<td><code>fk_organization</code></td>
+<td>Foreign key references</td>
+</tr>
+<tr>
+<td><code>tenant_id</code></td>
+<td><code>tenant_id</code></td>
+<td>Multi-tenancy isolation</td>
+</tr>
+<tr>
+<td><code>{field}</code></td>
+<td><code>email</code></td>
+<td>Business fields (snake_case)</td>
+</tr>
+<tr>
+<td><code>created_at</code></td>
+<td><code>created_at</code></td>
+<td>Audit timestamp</td>
+</tr>
+<tr>
+<td><code>created_by</code></td>
+<td><code>created_by</code></td>
+<td>Audit user reference</td>
+</tr>
+</tbody>
+</table>
+<h3 id="helper-functions">Helper Functions</h3>
+<h4 id="primary-key-resolution-entity_pk">Primary Key Resolution (<code>{entity}_pk</code>)</h4>
+<p>Converts external identifiers to internal INTEGER primary keys:</p>
+<pre><code class="language-sql">-- UUID/text identifier → INTEGER pk
+CREATE FUNCTION crm.contact_pk(p_identifier TEXT, p_tenant_id UUID)
+RETURNS INTEGER AS $$
+    SELECT pk_contact
+    FROM crm.tb_contact
+    WHERE (id::TEXT = p_identifier
+        OR pk_contact::TEXT = p_identifier)
+      AND tenant_id = p_tenant_id
+    LIMIT 1;
+$$ LANGUAGE sql STABLE;
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-sql">-- All these work:
+SELECT crm.contact_pk('550e8400-e29b-41d4-a716-446655440000', tenant_id);
+SELECT crm.contact_pk('123', tenant_id);  -- INTEGER pk as text
+SELECT crm.contact_pk('identifier-123', tenant_id);  -- Human-readable identifier
+</code></pre>
+<h4 id="uuid-resolution-entity_id">UUID Resolution (<code>{entity}_id</code>)</h4>
+<p>Converts internal INTEGER primary keys to external UUIDs:</p>
+<pre><code class="language-sql">-- INTEGER pk → UUID
+CREATE FUNCTION crm.contact_id(p_pk INTEGER)
+RETURNS UUID AS $$
+    SELECT id FROM crm.tb_contact
+    WHERE pk_contact = p_pk;
+$$ LANGUAGE sql STABLE;
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-sql">SELECT crm.contact_id(123);  -- Returns UUID for pk_contact = 123
+</code></pre>
+<h4 id="identifier-resolution-entity_identifier">Identifier Resolution (<code>{entity}_identifier</code>)</h4>
+<p>Converts UUIDs to human-readable identifiers:</p>
+<pre><code class="language-sql">-- UUID → TEXT identifier
+CREATE FUNCTION crm.contact_identifier(p_id UUID)
+RETURNS TEXT AS $$
+    SELECT identifier FROM crm.tb_contact
+    WHERE id = p_id;
+$$ LANGUAGE sql STABLE;
+</code></pre>
+<h2 id="crud-functions">CRUD Functions</h2>
+<h3 id="create-function-create_entity">Create Function (<code>create_{entity}</code>)</h3>
+<p>Generated INSERT function with validation and error handling:</p>
+<pre><code class="language-sql">CREATE FUNCTION crm.create_contact(
+    -- Multi-tenancy parameter (automatic)
+    tenant_id UUID,
+
+    -- Business parameters (from YAML fields)
+    email TEXT,
+    first_name TEXT,
+    last_name TEXT
+)
+RETURNS app.mutation_result
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = crm, app, common
+AS $$
+DECLARE
+    v_result app.mutation_result;
+    v_pk INTEGER;
+BEGIN
+    -- Input validation
+    IF email IS NULL THEN
+        RETURN app.error_result('Email is required');
+    END IF;
+
+    -- Business logic validation
+    IF EXISTS (SELECT 1 FROM crm.tb_contact
+               WHERE email = create_contact.email
+                 AND tenant_id = create_contact.tenant_id
+                 AND deleted_at IS NULL) THEN
+        RETURN app.error_result('Email already exists');
+    END IF;
+
+    -- Insert record
+    INSERT INTO crm.tb_contact (
+        tenant_id, email, first_name, last_name
+    ) VALUES (
+        tenant_id, email, first_name, last_name
+    ) RETURNING pk_contact INTO v_pk;
+
+    -- Return success with created object
+    v_result.success := true;
+    v_result.message := 'Contact created successfully';
+    v_result.object := json_build_object(
+        'id', crm.contact_id(v_pk),
+        'email', email,
+        'firstName', first_name,
+        'lastName', last_name
+    );
+
+    RETURN v_result;
+END;
+$$;
+</code></pre>
+<h3 id="update-function-update_entity">Update Function (<code>update_{entity}</code>)</h3>
+<p>Generated UPDATE function with optimistic locking:</p>
+<pre><code class="language-sql">CREATE FUNCTION crm.update_contact(
+    tenant_id UUID,
+    contact_id UUID,  -- UUID identifier
+    email TEXT = NULL,
+    first_name TEXT = NULL,
+    last_name TEXT = NULL
+)
+RETURNS app.mutation_result
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = crm, app, common
+AS $$
+DECLARE
+    v_result app.mutation_result;
+    v_pk INTEGER;
+BEGIN
+    -- Resolve UUID to pk
+    v_pk := crm.contact_pk(contact_id::TEXT, tenant_id);
+    IF v_pk IS NULL THEN
+        RETURN app.error_result('Contact not found');
+    END IF;
+
+    -- Update only provided fields
+    UPDATE crm.tb_contact SET
+        email = COALESCE(email, email),
+        first_name = COALESCE(first_name, first_name),
+        last_name = COALESCE(last_name, last_name),
+        updated_at = now(),
+        updated_by = current_user_id()
+    WHERE pk_contact = v_pk
+      AND tenant_id = tenant_id;
+
+    -- Return updated object
+    SELECT json_build_object(
+        'id', id,
+        'email', email,
+        'firstName', first_name,
+        'lastName', last_name
+    ) INTO v_result.object
+    FROM crm.tb_contact
+    WHERE pk_contact = v_pk;
+
+    v_result.success := true;
+    v_result.message := 'Contact updated successfully';
+
+    RETURN v_result;
+END;
+$$;
+</code></pre>
+<h3 id="delete-function-delete_entity">Delete Function (<code>delete_{entity}</code>)</h3>
+<p>Soft delete with audit trail:</p>
+<pre><code class="language-sql">CREATE FUNCTION crm.delete_contact(
+    tenant_id UUID,
+    contact_id UUID
+)
+RETURNS app.mutation_result
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = crm, app, common
+AS $$
+DECLARE
+    v_result app.mutation_result;
+    v_pk INTEGER;
+BEGIN
+    -- Resolve and validate
+    v_pk := crm.contact_pk(contact_id::TEXT, tenant_id);
+    IF v_pk IS NULL THEN
+        RETURN app.error_result('Contact not found');
+    END IF;
+
+    -- Soft delete
+    UPDATE crm.tb_contact SET
+        deleted_at = now(),
+        deleted_by = current_user_id()
+    WHERE pk_contact = v_pk
+      AND tenant_id = tenant_id;
+
+    v_result.success := true;
+    v_result.message := 'Contact deleted successfully';
+
+    RETURN v_result;
+END;
+$$;
+</code></pre>
+<h2 id="custom-action-functions">Custom Action Functions</h2>
+<h3 id="business-logic-actions">Business Logic Actions</h3>
+<p>Custom actions from YAML generate specialized functions:</p>
+<pre><code class="language-yaml">actions:
+  - name: qualify_lead
+    description: &quot;Convert lead to qualified prospect&quot;
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified', qualified_at = now()
+      - notify: sales_team &quot;New qualified lead&quot;
+</code></pre>
+<p><strong>Generated:</strong></p>
+<pre><code class="language-sql">CREATE FUNCTION crm.qualify_lead(
+    tenant_id UUID,
+    contact_id UUID
+)
+RETURNS app.mutation_result
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = crm, app, common
+AS $$
+DECLARE
+    v_result app.mutation_result;
+    v_pk INTEGER;
+    v_status TEXT;
+BEGIN
+    -- Resolve identifier
+    v_pk := crm.contact_pk(contact_id::TEXT, tenant_id);
+    IF v_pk IS NULL THEN
+        RETURN app.error_result('Contact not found');
+    END IF;
+
+    -- Get current status
+    SELECT status INTO v_status
+    FROM crm.tb_contact
+    WHERE pk_contact = v_pk;
+
+    -- Business validation
+    IF v_status != 'lead' THEN
+        RETURN app.error_result('Contact must be a lead to qualify');
+    END IF;
+
+    -- Execute business logic
+    UPDATE crm.tb_contact SET
+        status = 'qualified',
+        qualified_at = now(),
+        updated_at = now(),
+        updated_by = current_user_id()
+    WHERE pk_contact = v_pk;
+
+    -- Notification (would integrate with external system)
+    -- PERFORM notify_sales_team('New qualified lead: ' || contact_id);
+
+    v_result.success := true;
+    v_result.message := 'Lead qualified successfully';
+
+    RETURN v_result;
+END;
+$$;
+</code></pre>
+<h3 id="complex-multi-step-actions">Complex Multi-Step Actions</h3>
+<p>Actions can orchestrate multiple operations:</p>
+<pre><code class="language-yaml">actions:
+  - name: create_opportunity
+    description: &quot;Create opportunity with contact and organization&quot;
+    steps:
+      - validate: contact_email IS NOT NULL
+      - insert: Contact
+      - insert: Opportunity
+      - call: send_welcome_email(contact.email)
+      - notify: sales_team &quot;New opportunity created&quot;
+</code></pre>
+<h2 id="indexes-and-performance">Indexes and Performance</h2>
+<h3 id="automatic-indexes">Automatic Indexes</h3>
+<p>SpecQL generates performance-optimized indexes:</p>
+<pre><code class="language-sql">-- Unique constraints (automatic)
+CREATE UNIQUE INDEX idx_tb_contact_id ON crm.tb_contact(id);
+CREATE UNIQUE INDEX idx_tb_contact_email ON crm.tb_contact(email) WHERE deleted_at IS NULL;
+
+-- Foreign key indexes (automatic)
+CREATE INDEX idx_tb_contact_fk_organization ON crm.tb_contact(fk_organization);
+
+-- Multi-tenancy indexes (automatic for tenant schema)
+CREATE INDEX idx_tb_contact_tenant ON crm.tb_contact(tenant_id);
+
+-- Performance indexes for common queries
+CREATE INDEX idx_tb_contact_status ON crm.tb_contact(status) WHERE deleted_at IS NULL;
+CREATE INDEX idx_tb_contact_created_at ON crm.tb_contact(created_at) WHERE deleted_at IS NULL;
+
+-- Composite indexes for tenant isolation
+CREATE INDEX idx_tb_contact_tenant_status ON crm.tb_contact(tenant_id, status) WHERE deleted_at IS NULL;
+</code></pre>
+<h3 id="index-naming-convention">Index Naming Convention</h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Example</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>idx_tb_{entity}_id</code></td>
+<td><code>idx_tb_contact_id</code></td>
+<td>UUID lookup</td>
+</tr>
+<tr>
+<td><code>idx_tb_{entity}_{field}</code></td>
+<td><code>idx_tb_contact_email</code></td>
+<td>Field lookup</td>
+</tr>
+<tr>
+<td><code>idx_tb_{entity}_fk_{entity}</code></td>
+<td><code>idx_tb_contact_fk_org</code></td>
+<td>Foreign key</td>
+</tr>
+<tr>
+<td><code>idx_tb_{entity}_tenant</code></td>
+<td><code>idx_tb_contact_tenant</code></td>
+<td>Tenant isolation</td>
+</tr>
+<tr>
+<td><code>idx_tb_{entity}_tenant_{field}</code></td>
+<td><code>idx_tb_contact_tenant_status</code></td>
+<td>Tenant-scoped queries</td>
+</tr>
+</tbody>
+</table>
+<h2 id="constraints-and-data-integrity">Constraints and Data Integrity</h2>
+<h3 id="check-constraints">Check Constraints</h3>
+<p>Rich types generate automatic CHECK constraints:</p>
+<pre><code class="language-sql">-- Email validation
+ALTER TABLE crm.tb_contact
+ADD CONSTRAINT contact_email_check
+CHECK (email ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+
+-- Phone validation (E.164)
+ALTER TABLE crm.tb_contact
+ADD CONSTRAINT contact_phone_check
+CHECK (phone ~ '^\+[1-9]\d{1,14}$');
+
+-- Percentage range
+ALTER TABLE crm.tb_contact
+ADD CONSTRAINT contact_score_check
+CHECK (score &gt;= 0 AND score &lt;= 100);
+
+-- Enum validation
+ALTER TABLE crm.tb_contact
+ADD CONSTRAINT contact_status_check
+CHECK (status IN ('lead', 'qualified', 'customer'));
+</code></pre>
+<h3 id="foreign-key-constraints">Foreign Key Constraints</h3>
+<p>Automatic referential integrity:</p>
+<pre><code class="language-sql">-- Trinity pattern: INTEGER foreign keys
+ALTER TABLE crm.tb_contact
+ADD CONSTRAINT tb_contact_fk_organization_fkey
+FOREIGN KEY (fk_organization)
+REFERENCES crm.tb_organization(pk_organization);
+
+-- Multi-tenancy: Cross-tenant validation
+ALTER TABLE crm.tb_contact
+ADD CONSTRAINT tb_contact_tenant_organization_fkey
+FOREIGN KEY (tenant_id, fk_organization)
+REFERENCES crm.tb_organization(tenant_id, pk_organization);
+</code></pre>
+<h3 id="unique-constraints">Unique Constraints</h3>
+<p>Business uniqueness rules:</p>
+<pre><code class="language-sql">-- Global unique
+ALTER TABLE crm.tb_contact
+ADD CONSTRAINT tb_contact_email_key UNIQUE (email);
+
+-- Tenant-scoped unique
+ALTER TABLE crm.tb_contact
+ADD CONSTRAINT tb_contact_tenant_email_key UNIQUE (tenant_id, email);
+</code></pre>
+<h2 id="multi-tenancy-patterns">Multi-Tenancy Patterns</h2>
+<h3 id="row-level-security-rls">Row Level Security (RLS)</h3>
+<p>Automatic tenant isolation for <code>tenant</code> schema:</p>
+<pre><code class="language-sql">-- Enable RLS
+ALTER TABLE crm.tb_contact ENABLE ROW LEVEL SECURITY;
+
+-- Tenant isolation policy
+CREATE POLICY tenant_isolation ON crm.tb_contact
+  USING (tenant_id = current_tenant_id());
+
+-- Function security
+CREATE FUNCTION crm.create_contact(...) RETURNS app.mutation_result
+SECURITY DEFINER  -- Runs with elevated privileges
+SET search_path = crm, app, common;  -- Controlled schema access
+</code></pre>
+<h3 id="tenant-context-functions">Tenant Context Functions</h3>
+<pre><code class="language-sql">-- Set current tenant (from JWT)
+CREATE FUNCTION app.set_current_tenant(p_tenant_id UUID) RETURNS VOID AS $$
+BEGIN
+    -- Store in session variable
+    PERFORM set_config('app.current_tenant_id', p_tenant_id::TEXT, false);
+END;
+$$ LANGUAGE plpgsql;
+
+-- Get current tenant
+CREATE FUNCTION app.current_tenant_id() RETURNS UUID AS $$
+BEGIN
+    RETURN current_setting('app.current_tenant_id', true)::UUID;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h2 id="graphql-integration-fraiseql">GraphQL Integration (FraiseQL)</h2>
+<h3 id="function-annotations">Function Annotations</h3>
+<p>All functions get FraiseQL annotations for auto-discovery:</p>
+<pre><code class="language-sql">-- Mutation annotation
+COMMENT ON FUNCTION crm.create_contact(UUID, TEXT, TEXT, TEXT) IS
+  'Create a new contact
+@fraiseql:mutation
+@fraiseql:impact contact_created';
+
+-- Query annotation
+COMMENT ON FUNCTION crm.get_contacts(UUID) IS
+  'Get all contacts for tenant
+@fraiseql:query(name: &quot;contacts&quot;)
+@fraiseql:type ContactConnection';
+</code></pre>
+<h3 id="table-annotations">Table Annotations</h3>
+<p>Tables get GraphQL type information:</p>
+<pre><code class="language-sql">COMMENT ON TABLE crm.tb_contact IS
+  'Customer contact information
+@fraiseql:type Contact
+trinity: true';
+
+COMMENT ON COLUMN crm.tb_contact.email IS
+  'Primary email address
+@fraiseql:field
+type: Email!
+required: true';
+</code></pre>
+<h2 id="error-handling-patterns">Error Handling Patterns</h2>
+<h3 id="mutation-result-type">Mutation Result Type</h3>
+<p>Standardized error/success responses:</p>
+<pre><code class="language-sql">-- Result type definition
+CREATE TYPE app.mutation_result AS (
+    success BOOLEAN,
+    message TEXT,
+    object JSONB,      -- Created/updated object
+    errors JSONB       -- Validation errors
+);
+
+-- Success result function
+CREATE FUNCTION app.success_result(p_message TEXT, p_object JSONB DEFAULT NULL)
+RETURNS app.mutation_result AS $$
+BEGIN
+    RETURN (true, p_message, p_object, NULL)::app.mutation_result;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Error result function
+CREATE FUNCTION app.error_result(p_message TEXT, p_errors JSONB DEFAULT NULL)
+RETURNS app.mutation_result AS $$
+BEGIN
+    RETURN (false, p_message, NULL, p_errors)::app.mutation_result;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h3 id="validation-error-format">Validation Error Format</h3>
+<p>Structured validation errors:</p>
+<pre><code class="language-sql">-- Validation error example
+SELECT app.error_result(
+    'Validation failed',
+    jsonb_build_object(
+        'email', jsonb_build_object(
+            'code', 'EMAIL_INVALID',
+            'message', 'Email format is invalid'
+        ),
+        'phone', jsonb_build_object(
+            'code', 'PHONE_INVALID',
+            'message', 'Phone must be in E.164 format'
+        )
+    )
+);
+</code></pre>
+<h2 id="file-organization">File Organization</h2>
+<h3 id="directory-structure">Directory Structure</h3>
+<p>Generated files follow numbered system:</p>
+<pre><code>db/schema/
+├── 00_foundation/           # App types, extensions
+│   ├── 00_extensions.sql
+│   └── 01_types.sql
+├── 10_tables/               # Table definitions
+│   ├── contact.sql
+│   └── organization.sql
+├── 20_helpers/              # Helper functions
+│   ├── contact_helpers.sql
+│   └── organization_helpers.sql
+├── 30_functions/            # Business functions
+│   ├── create_contact.sql
+│   ├── update_contact.sql
+│   ├── qualify_lead.sql
+│   └── create_organization.sql
+└── 40_indexes/              # Performance indexes
+    ├── contact_indexes.sql
+    └── organization_indexes.sql
+</code></pre>
+<h3 id="numbering-systems">Numbering Systems</h3>
+<h4 id="decimal-system-default">Decimal System (Default)</h4>
+<p>Simple sequential numbering:</p>
+<pre><code>00_foundation/
+10_tables/
+20_helpers/
+30_functions/
+40_indexes/
+</code></pre>
+<h4 id="hexadecimal-system-enterprise">Hexadecimal System (Enterprise)</h4>
+<p>Hierarchical registry-based:</p>
+<pre><code>01_app/
+├── 01_foundation/
+├── 02_types/
+└── 03_utilities/
+02_domain/
+├── 01_crm/
+│   ├── 01_tables/
+│   ├── 02_helpers/
+│   └── 03_functions/
+└── 02_billing/
+    ├── 01_tables/
+    ├── 02_helpers/
+    └── 03_functions/
+</code></pre>
+<h2 id="migration-patterns">Migration Patterns</h2>
+<h3 id="schema-evolution">Schema Evolution</h3>
+<p>Safe migration generation:</p>
+<pre><code class="language-sql">-- Migration file example
+BEGIN;
+
+-- Add new column
+ALTER TABLE crm.tb_contact ADD COLUMN phone TEXT;
+
+-- Add check constraint
+ALTER TABLE crm.tb_contact ADD CONSTRAINT contact_phone_check
+CHECK (phone ~ '^\+[1-9]\d{1,14}$');
+
+-- Add comment for GraphQL
+COMMENT ON COLUMN crm.tb_contact.phone IS
+  'Phone number in E.164 format
+@fraiseql:field
+type: Phone';
+
+COMMIT;
+</code></pre>
+<h3 id="backward-compatibility">Backward Compatibility</h3>
+<p>Generated code maintains compatibility:</p>
+<pre><code class="language-sql">-- Function overloading for new parameters
+CREATE FUNCTION crm.create_contact(
+    tenant_id UUID,
+    email TEXT,
+    first_name TEXT,
+    last_name TEXT,
+    phone TEXT DEFAULT NULL  -- New optional parameter
+) RETURNS app.mutation_result AS $$
+-- Implementation
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h2 id="testing-patterns">Testing Patterns</h2>
+<h3 id="generated-test-fixtures">Generated Test Fixtures</h3>
+<pre><code class="language-sql">-- Test data generation
+INSERT INTO crm.tb_contact (
+    tenant_id, id, email, first_name, last_name
+) VALUES
+    ('test-tenant'::UUID, gen_random_uuid(), 'john@example.com', 'John', 'Doe'),
+    ('test-tenant'::UUID, gen_random_uuid(), 'jane@example.com', 'Jane', 'Smith');
+
+-- Test helper functions
+CREATE FUNCTION test.create_test_contact(
+    p_email TEXT,
+    p_first_name TEXT,
+    p_last_name TEXT
+) RETURNS UUID AS $$
+DECLARE
+    v_result app.mutation_result;
+BEGIN
+    SELECT * INTO v_result FROM crm.create_contact(
+        'test-tenant'::UUID, p_email, p_first_name, p_last_name
+    );
+
+    IF NOT v_result.success THEN
+        RAISE EXCEPTION 'Failed to create test contact: %', v_result.message;
+    END IF;
+
+    RETURN (v_result.object-&gt;&gt;'id')::UUID;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h2 id="performance-characteristics">Performance Characteristics</h2>
+<h3 id="query-optimization">Query Optimization</h3>
+<p>Generated queries are optimized for common patterns:</p>
+<pre><code class="language-sql">-- Efficient tenant-scoped queries
+SELECT c.* FROM crm.tb_contact c
+WHERE c.tenant_id = current_tenant_id()
+  AND c.deleted_at IS NULL
+  AND c.status = 'active'
+ORDER BY c.created_at DESC
+LIMIT 50;
+
+-- Uses indexes:
+-- idx_tb_contact_tenant_status (tenant_id, status)
+-- idx_tb_contact_created_at (created_at)
+</code></pre>
+<h3 id="connection-pooling">Connection Pooling</h3>
+<p>Functions designed for connection pooler compatibility:</p>
+<pre><code class="language-sql">-- No session state dependencies
+CREATE FUNCTION crm.get_contact(p_id UUID)
+RETURNS JSONB AS $$
+    SELECT json_build_object(
+        'id', c.id,
+        'email', c.email,
+        'firstName', c.first_name,
+        'lastName', c.last_name
+    )
+    FROM crm.tb_contact c
+    WHERE c.id = p_id
+      AND c.tenant_id = current_tenant_id()
+      AND c.deleted_at IS NULL;
+$$ LANGUAGE sql STABLE;  -- Can be pooled
+</code></pre>
+<h2 id="security-patterns">Security Patterns</h2>
+<h3 id="sql-injection-prevention">SQL Injection Prevention</h3>
+<p>All generated code uses parameterized queries:</p>
+<pre><code class="language-sql">-- Safe parameterized query
+EXECUTE 'SELECT * FROM crm.tb_contact WHERE email = $1 AND tenant_id = $2'
+INTO v_contact
+USING p_email, p_tenant_id;
+</code></pre>
+<h3 id="privilege-escalation-prevention">Privilege Escalation Prevention</h3>
+<p>Functions run with controlled permissions:</p>
+<pre><code class="language-sql">-- SECURITY DEFINER with restricted search path
+CREATE FUNCTION crm.create_contact(...) RETURNS app.mutation_result
+SECURITY DEFINER
+SET search_path = crm, app, common  -- No public schema access
+AS $$
+-- Function body
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li><strong>Read YAML Syntax</strong>: DSL specification in <code>docs/reference/yaml-syntax.md</code></li>
+<li><strong>Check Scalar Types</strong>: Type reference in <code>docs/reference/scalar-types.md</code></li>
+<li><strong>Browse Templates</strong>: See Jinja2 templates in <code>templates/sql/</code></li>
+<li><strong>Run Generation</strong>: Execute <code>specql generate entities/*.yaml</code> to see patterns</li>
+</ul>
+<hr />
+<p><strong>Production patterns, generated automatically.</strong> 🔧</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

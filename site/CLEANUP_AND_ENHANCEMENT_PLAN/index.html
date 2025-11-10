@@ -1,0 +1,1213 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Test Suite Cleanup &amp; Enhancement Implementation Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Test Suite Cleanup \u0026amp; Enhancement Implementation Plan";
+        var mkdocs_page_input_path = "CLEANUP_AND_ENHANCEMENT_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Test Suite Cleanup &amp; Enhancement Implementation Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="test-suite-cleanup-enhancement-implementation-plan">Test Suite Cleanup &amp; Enhancement Implementation Plan</h1>
+<p><strong>Project</strong>: SpecQL Code Generator
+<strong>Current Status</strong>: 845/882 tests passing (95.8%)
+<strong>Goal</strong>: 100% passing tests with cleanup of deprecated features
+<strong>Estimated Time</strong>: 4-6 hours
+<strong>Priority</strong>: MEDIUM (post-production enhancement)</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>This plan addresses the 37 skipped tests by:
+1. <strong>Implementing safe_slug feature</strong> (8 tests) - 1.5-2 hours
+2. <strong>Unifying PostgreSQL database setup</strong> (24 tests) - 2-3 hours
+3. <strong>Removing backward compatibility tests</strong> (5 tests) - 30 minutes</p>
+<p><strong>Result</strong>: ~100% test pass rate (up to 874/882 tests passing)</p>
+<hr />
+<h2 id="phase-1-implement-safe-slug-feature">Phase 1: Implement Safe Slug Feature</h2>
+<p><strong>Priority</strong>: MEDIUM
+<strong>Estimated Time</strong>: 1.5-2 hours
+<strong>Tests to Fix</strong>: 8 tests in <code>tests/unit/schema/test_safe_slug.py</code>
+<strong>Files to Create/Modify</strong>: 2 files</p>
+<h3 id="problem-description">Problem Description</h3>
+<p>The <code>safe_slug</code> feature generates URL-safe identifiers from arbitrary text input. It's used for creating clean, consistent identifiers from user input.</p>
+<p><strong>Use Cases</strong>:
+- Entity names: "My Company" → "my_company"
+- Field names: "First Name" → "first_name"
+- Identifiers: "ACME Corp (NYC)" → "acme_corp_nyc"</p>
+<p><strong>Tests Expecting</strong>:</p>
+<pre><code class="language-python"># tests/unit/schema/test_safe_slug.py
+def test_normal_text():
+    assert safe_slug(&quot;Hello World&quot;) == &quot;hello_world&quot;
+
+def test_unicode_unaccent():
+    assert safe_slug(&quot;Café résumé&quot;) == &quot;cafe_resume&quot;
+
+def test_special_characters():
+    assert safe_slug(&quot;Hello@World!#$&quot;) == &quot;hello_world&quot;
+
+def test_empty_string():
+    assert safe_slug(&quot;&quot;, fallback=&quot;default&quot;) == &quot;default&quot;
+</code></pre>
+<h3 id="implementation-steps">Implementation Steps</h3>
+<h4 id="step-11-create-safe_slug-module-30-minutes">Step 1.1: Create safe_slug Module (30 minutes)</h4>
+<p><strong>File</strong>: <code>src/utils/safe_slug.py</code> (create new file)</p>
+<pre><code class="language-python">&quot;&quot;&quot;
+Safe Slug Generator
+Converts arbitrary text to URL-safe identifiers
+&quot;&quot;&quot;
+
+import re
+import unicodedata
+from typing import Optional
+
+
+def safe_slug(
+    text: Optional[str],
+    separator: str = &quot;_&quot;,
+    fallback: str = &quot;untitled&quot;,
+    max_length: Optional[int] = None,
+) -&gt; str:
+    &quot;&quot;&quot;
+    Convert text to a safe slug (URL-safe identifier)
+
+    Args:
+        text: Input text to convert
+        separator: Character to use as word separator (default: &quot;_&quot;)
+        fallback: Text to use if result is empty (default: &quot;untitled&quot;)
+        max_length: Maximum length of result (default: None = unlimited)
+
+    Returns:
+        Safe slug string
+
+    Examples:
+        &gt;&gt;&gt; safe_slug(&quot;Hello World&quot;)
+        'hello_world'
+        &gt;&gt;&gt; safe_slug(&quot;Café résumé&quot;)
+        'cafe_resume'
+        &gt;&gt;&gt; safe_slug(&quot;Special!@#$Characters&quot;)
+        'special_characters'
+        &gt;&gt;&gt; safe_slug(&quot;&quot;, fallback=&quot;default&quot;)
+        'default'
+        &gt;&gt;&gt; safe_slug(&quot;123 Numbers&quot;, fallback=&quot;n&quot;)
+        'n_123_numbers'
+    &quot;&quot;&quot;
+    # Handle None or empty string
+    if not text or not text.strip():
+        return fallback
+
+    # Convert to string (in case it's not)
+    text = str(text)
+
+    # Normalize Unicode characters (NFD = decompose accents)
+    # Example: &quot;é&quot; → &quot;e&quot; + accent mark
+    text = unicodedata.normalize('NFD', text)
+
+    # Remove accent marks (category Mn = Mark, nonspacing)
+    # This converts &quot;é&quot; → &quot;e&quot;, &quot;ñ&quot; → &quot;n&quot;, etc.
+    text = ''.join(
+        char for char in text
+        if unicodedata.category(char) != 'Mn'
+    )
+
+    # Convert to lowercase
+    text = text.lower()
+
+    # Replace sequences of non-alphanumeric characters with separator
+    # Pattern: \W+ matches one or more non-word characters
+    text = re.sub(r'\W+', separator, text)
+
+    # Remove leading/trailing separators
+    text = text.strip(separator)
+
+    # Handle case where result is empty or starts with digit
+    if not text or text[0].isdigit():
+        # Prefix with fallback if starts with digit
+        if text and text[0].isdigit():
+            text = f&quot;{fallback}{separator}{text}&quot;
+        else:
+            text = fallback
+
+    # Truncate to max_length if specified
+    if max_length and len(text) &gt; max_length:
+        text = text[:max_length].rstrip(separator)
+
+    return text
+
+
+def safe_identifier(text: Optional[str], fallback: str = &quot;field&quot;) -&gt; str:
+    &quot;&quot;&quot;
+    Create a safe Python/PostgreSQL identifier from text
+
+    Wrapper around safe_slug with identifier-specific defaults.
+    Ensures result is a valid Python/PostgreSQL identifier.
+
+    Args:
+        text: Input text
+        fallback: Fallback if text is empty (default: &quot;field&quot;)
+
+    Returns:
+        Valid identifier string
+
+    Examples:
+        &gt;&gt;&gt; safe_identifier(&quot;First Name&quot;)
+        'first_name'
+        &gt;&gt;&gt; safe_identifier(&quot;123-ID&quot;)
+        'field_123_id'
+    &quot;&quot;&quot;
+    slug = safe_slug(text, separator=&quot;_&quot;, fallback=fallback)
+
+    # Ensure it doesn't start with a number (invalid identifier)
+    if slug[0].isdigit():
+        slug = f&quot;{fallback}_{slug}&quot;
+
+    return slug
+
+
+def safe_table_name(entity_name: str, prefix: str = &quot;tb&quot;) -&gt; str:
+    &quot;&quot;&quot;
+    Create a safe table name from entity name
+
+    Args:
+        entity_name: Entity name (e.g., &quot;Contact&quot;, &quot;TaskItem&quot;)
+        prefix: Table prefix (default: &quot;tb&quot;)
+
+    Returns:
+        Table name with prefix (e.g., &quot;tb_contact&quot;, &quot;tb_task_item&quot;)
+
+    Examples:
+        &gt;&gt;&gt; safe_table_name(&quot;Contact&quot;)
+        'tb_contact'
+        &gt;&gt;&gt; safe_table_name(&quot;TaskItem&quot;)
+        'tb_task_item'
+    &quot;&quot;&quot;
+    slug = safe_slug(entity_name, fallback=&quot;entity&quot;)
+    return f&quot;{prefix}_{slug}&quot;
+</code></pre>
+<h4 id="step-12-update-test-file-15-minutes">Step 1.2: Update Test File (15 minutes)</h4>
+<p><strong>File</strong>: <code>tests/unit/schema/test_safe_slug.py</code></p>
+<p><strong>Remove skip marker</strong>:</p>
+<pre><code class="language-python"># OLD:
+pytestmark = pytest.mark.skip(reason=&quot;safe_slug feature not yet implemented&quot;)
+
+# NEW:
+# (remove the line entirely)
+</code></pre>
+<p><strong>Update imports</strong>:</p>
+<pre><code class="language-python">import pytest
+from src.utils.safe_slug import safe_slug, safe_identifier, safe_table_name
+</code></pre>
+<h4 id="step-13-run-tests-and-fix-issues-30-minutes">Step 1.3: Run Tests and Fix Issues (30 minutes)</h4>
+<pre><code class="language-bash"># Run safe_slug tests
+uv run pytest tests/unit/schema/test_safe_slug.py -v
+
+# Expected: 8/8 passing
+</code></pre>
+<p><strong>Common Issues to Debug</strong>:
+1. <strong>Unicode handling</strong>: Ensure <code>unicodedata.normalize()</code> works correctly
+2. <strong>Edge cases</strong>: Empty strings, all special characters, all digits
+3. <strong>Separator handling</strong>: Multiple consecutive separators should become one</p>
+<p><strong>Fix any test failures</strong> by adjusting the implementation.</p>
+<h4 id="step-14-add-additional-tests-15-minutes">Step 1.4: Add Additional Tests (15 minutes)</h4>
+<p><strong>Enhance test coverage</strong> in <code>tests/unit/schema/test_safe_slug.py</code>:</p>
+<pre><code class="language-python">def test_consecutive_separators():
+    &quot;&quot;&quot;Test: Multiple spaces/special chars become single separator&quot;&quot;&quot;
+    assert safe_slug(&quot;Hello    World!!!&quot;) == &quot;hello_world&quot;
+
+def test_mixed_case():
+    &quot;&quot;&quot;Test: Mixed case converts to lowercase&quot;&quot;&quot;
+    assert safe_slug(&quot;CamelCaseText&quot;) == &quot;camelcasetext&quot;
+
+def test_max_length():
+    &quot;&quot;&quot;Test: Truncation to max_length&quot;&quot;&quot;
+    assert safe_slug(&quot;very_long_text_here&quot;, max_length=10) == &quot;very_long&quot;
+
+def test_custom_separator():
+    &quot;&quot;&quot;Test: Custom separator character&quot;&quot;&quot;
+    assert safe_slug(&quot;Hello World&quot;, separator=&quot;-&quot;) == &quot;hello-world&quot;
+
+def test_safe_identifier_function():
+    &quot;&quot;&quot;Test: safe_identifier ensures valid Python identifier&quot;&quot;&quot;
+    assert safe_identifier(&quot;123-field&quot;) == &quot;field_123_field&quot;
+
+def test_safe_table_name_function():
+    &quot;&quot;&quot;Test: safe_table_name adds prefix&quot;&quot;&quot;
+    assert safe_table_name(&quot;Contact&quot;) == &quot;tb_contact&quot;
+</code></pre>
+<h4 id="step-15-integration-with-schema-generator-15-minutes">Step 1.5: Integration with Schema Generator (15 minutes)</h4>
+<p><strong>Optional Enhancement</strong>: Use safe_slug in schema generation</p>
+<p><strong>File</strong>: <code>src/generators/table_generator.py</code></p>
+<pre><code class="language-python">from src.utils.safe_slug import safe_slug, safe_table_name
+
+# In table name generation:
+# OLD:
+table_name = f&quot;tb_{entity.name.lower()}&quot;
+
+# NEW:
+table_name = safe_table_name(entity.name)
+</code></pre>
+<p><strong>Benefits</strong>:
+- Handles entity names with special characters
+- More robust identifier generation
+- Consistent naming across codebase</p>
+<h3 id="success-criteria">Success Criteria</h3>
+<ul>
+<li>✅ <code>src/utils/safe_slug.py</code> created with full implementation</li>
+<li>✅ All 8 tests in <code>test_safe_slug.py</code> passing</li>
+<li>✅ Additional edge case tests added</li>
+<li>✅ No regressions in schema generation tests</li>
+</ul>
+<p><strong>Verification</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/schema/test_safe_slug.py -v
+# Expected: 8/8 passing (or more with additional tests)
+
+uv run pytest tests/unit/schema/ -v
+# Expected: All schema tests still passing
+</code></pre>
+<hr />
+<h2 id="phase-2-unify-postgresql-database-setup">Phase 2: Unify PostgreSQL Database Setup</h2>
+<p><strong>Priority</strong>: HIGH (for CI/CD)
+<strong>Estimated Time</strong>: 2-3 hours
+<strong>Tests to Fix</strong>: 24 tests requiring PostgreSQL
+<strong>Files to Modify</strong>: 4-5 files</p>
+<h3 id="problem-description_1">Problem Description</h3>
+<p>Currently there are <strong>two separate PostgreSQL database setups</strong>:</p>
+<ol>
+<li><strong>Working database</strong>: <code>specql_test</code> (3 tests passing)</li>
+<li>User: Current user (peer authentication)</li>
+<li>Database: <code>specql_test</code></li>
+<li>Tests: <code>tests/pytest/test_contact_integration.py</code></li>
+<li>
+<p>Status: ✅ Working</p>
+</li>
+<li>
+<p><strong>Skipped database</strong>: <code>test_specql</code> (24 tests skipped)</p>
+</li>
+<li>User: <code>postgres</code> with password</li>
+<li>Database: <code>test_specql</code></li>
+<li>Tests: Various integration tests</li>
+<li>Status: ⚠️ Skipped</li>
+</ol>
+<p><strong>Goal</strong>: Unify into a single database setup so all tests can run.</p>
+<h3 id="implementation-steps_1">Implementation Steps</h3>
+<h4 id="step-21-decide-on-database-configuration-15-minutes">Step 2.1: Decide on Database Configuration (15 minutes)</h4>
+<p><strong>Recommendation</strong>: Use flexible configuration that works for both local and CI/CD</p>
+<p><strong>Configuration Strategy</strong>:</p>
+<pre><code class="language-python"># Database settings (from environment or defaults)
+TEST_DB_HOST = os.getenv(&quot;TEST_DB_HOST&quot;, &quot;localhost&quot;)
+TEST_DB_PORT = os.getenv(&quot;TEST_DB_PORT&quot;, &quot;5432&quot;)
+TEST_DB_NAME = os.getenv(&quot;TEST_DB_NAME&quot;, &quot;specql_test&quot;)
+TEST_DB_USER = os.getenv(&quot;TEST_DB_USER&quot;, os.getenv(&quot;USER&quot;))
+TEST_DB_PASSWORD = os.getenv(&quot;TEST_DB_PASSWORD&quot;, &quot;&quot;)
+</code></pre>
+<p><strong>Benefits</strong>:
+- Local: Use peer authentication (no password needed)
+- CI/CD: Set environment variables for postgres user
+- Flexible: Works in both environments</p>
+<h4 id="step-22-create-unified-database-fixture-45-minutes">Step 2.2: Create Unified Database Fixture (45 minutes)</h4>
+<p><strong>File</strong>: <code>tests/conftest.py</code> (update existing or create new)</p>
+<pre><code class="language-python">&quot;&quot;&quot;
+Global pytest fixtures for all tests
+&quot;&quot;&quot;
+
+import os
+import pytest
+import psycopg
+from pathlib import Path
+
+
+def get_db_config():
+    &quot;&quot;&quot;Get database configuration from environment or defaults&quot;&quot;&quot;
+    return {
+        &quot;host&quot;: os.getenv(&quot;TEST_DB_HOST&quot;, &quot;localhost&quot;),
+        &quot;port&quot;: int(os.getenv(&quot;TEST_DB_PORT&quot;, &quot;5432&quot;)),
+        &quot;dbname&quot;: os.getenv(&quot;TEST_DB_NAME&quot;, &quot;specql_test&quot;),
+        &quot;user&quot;: os.getenv(&quot;TEST_DB_USER&quot;, os.getenv(&quot;USER&quot;)),
+        &quot;password&quot;: os.getenv(&quot;TEST_DB_PASSWORD&quot;, &quot;&quot;),
+    }
+
+
+@pytest.fixture(scope=&quot;session&quot;)
+def db_config():
+    &quot;&quot;&quot;Database configuration&quot;&quot;&quot;
+    return get_db_config()
+
+
+@pytest.fixture(scope=&quot;session&quot;)
+def test_db_connection(db_config):
+    &quot;&quot;&quot;
+    Session-scoped PostgreSQL connection for integration tests
+
+    Environment variables (optional):
+    - TEST_DB_HOST: Database host (default: localhost)
+    - TEST_DB_PORT: Database port (default: 5432)
+    - TEST_DB_NAME: Database name (default: specql_test)
+    - TEST_DB_USER: Database user (default: current user)
+    - TEST_DB_PASSWORD: Database password (default: empty)
+
+    To skip database tests:
+        pytest -m &quot;not database&quot;
+    &quot;&quot;&quot;
+    try:
+        # Build connection string
+        conn_parts = [
+            f&quot;host={db_config['host']}&quot;,
+            f&quot;port={db_config['port']}&quot;,
+            f&quot;dbname={db_config['dbname']}&quot;,
+            f&quot;user={db_config['user']}&quot;,
+        ]
+
+        if db_config['password']:
+            conn_parts.append(f&quot;password={db_config['password']}&quot;)
+
+        conn_string = &quot; &quot;.join(conn_parts)
+
+        # Connect with autocommit=False for transaction control
+        conn = psycopg.connect(conn_string, autocommit=False)
+
+        # Verify connection
+        with conn.cursor() as cur:
+            cur.execute(&quot;SELECT version()&quot;)
+            version = cur.fetchone()[0]
+            print(f&quot;\n✅ Database connected: {version[:70]}...&quot;)
+
+        # Install extensions if needed
+        try:
+            with conn.cursor() as cur:
+                cur.execute(&quot;CREATE EXTENSION IF NOT EXISTS pg_trgm;&quot;)
+                cur.execute(&quot;CREATE EXTENSION IF NOT EXISTS postgis;&quot;)
+            conn.commit()
+            print(&quot;✅ PostgreSQL extensions installed (pg_trgm, postgis)&quot;)
+        except Exception as e:
+            conn.rollback()
+            print(f&quot;⚠️  Could not install extensions: {e}&quot;)
+            print(&quot;   (Some tests may be skipped)&quot;)
+
+        yield conn
+
+        # Cleanup
+        conn.close()
+
+    except psycopg.OperationalError as e:
+        pytest.skip(
+            f&quot;PostgreSQL database not available: {e}\n\n&quot;
+            f&quot;To run database tests:\n&quot;
+            f&quot;  1. Create database: createdb {db_config['dbname']}\n&quot;
+            f&quot;  2. Load schema: psql {db_config['dbname']} &lt; tests/schema/setup.sql\n&quot;
+            f&quot;  3. Or set ENABLE_DB_TESTS=0 to skip\n\n&quot;
+            f&quot;Connection attempted:\n&quot;
+            f&quot;  Host: {db_config['host']}\n&quot;
+            f&quot;  Database: {db_config['dbname']}\n&quot;
+            f&quot;  User: {db_config['user']}\n&quot;
+        )
+
+
+@pytest.fixture
+def test_db(test_db_connection):
+    &quot;&quot;&quot;
+    Function-scoped database fixture with transaction rollback
+
+    Each test gets a fresh transaction that's rolled back after the test.
+    This ensures test isolation without needing to delete data.
+    &quot;&quot;&quot;
+    # Start a transaction
+    test_db_connection.rollback()  # Ensure clean state
+
+    yield test_db_connection
+
+    # Rollback transaction to clean up
+    test_db_connection.rollback()
+</code></pre>
+<h4 id="step-23-update-all-database-test-files-1-hour">Step 2.3: Update All Database Test Files (1 hour)</h4>
+<p><strong>Files to Update</strong>:
+1. <code>tests/integration/schema/test_rich_types_postgres.py</code>
+2. <code>tests/integration/fraiseql/test_rich_type_autodiscovery.py</code>
+3. <code>tests/integration/fraiseql/test_mutation_annotations_e2e.py</code>
+4. <code>tests/integration/test_composite_hierarchical_e2e.py</code>
+5. <code>tests/pytest/test_contact_integration.py</code></p>
+<p><strong>Changes for Each File</strong>:</p>
+<p><strong>1. Remove local fixture, use global one</strong>:</p>
+<pre><code class="language-python"># OLD (in each file):
+@pytest.fixture
+def test_db():
+    &quot;&quot;&quot;PostgreSQL test database connection&quot;&quot;&quot;
+    try:
+        conn = psycopg.connect(
+            host=&quot;localhost&quot;,
+            dbname=&quot;test_specql&quot;,  # ← Hardcoded
+            user=&quot;postgres&quot;,       # ← Hardcoded
+            password=&quot;postgres&quot;    # ← Hardcoded
+        )
+        yield conn
+    except psycopg.OperationalError:
+        pytest.skip(&quot;PostgreSQL not available&quot;)
+
+# NEW (remove fixture, use global one from conftest.py):
+# (no local fixture needed - will use the one from conftest.py)
+</code></pre>
+<p><strong>2. Update test signatures</strong>:</p>
+<pre><code class="language-python"># OLD:
+def test_email_constraint_validates_format(test_db):
+    # test_db is local fixture
+    ...
+
+# NEW:
+def test_email_constraint_validates_format(test_db):
+    # test_db is global fixture from conftest.py
+    # No changes needed to signature - pytest will inject it
+    ...
+</code></pre>
+<p><strong>3. Handle extension requirements</strong>:</p>
+<pre><code class="language-python"># For tests requiring pg_trgm or postgis:
+def test_url_pattern_matching_with_gin_index(test_db):
+    &quot;&quot;&quot;Test: URL pattern matching with GIN index&quot;&quot;&quot;
+    try:
+        # This test requires pg_trgm extension
+        with test_db.cursor() as cur:
+            # Test code...
+    except psycopg.errors.UndefinedObject as e:
+        if &quot;pg_trgm&quot; in str(e):
+            pytest.skip(&quot;Test requires pg_trgm extension&quot;)
+        raise
+</code></pre>
+<p><strong>Example: Update test_rich_types_postgres.py</strong>:</p>
+<pre><code class="language-python">&quot;&quot;&quot;
+PostgreSQL Integration Tests for Rich Types
+Tests that generated SQL actually works in PostgreSQL database
+&quot;&quot;&quot;
+
+import pytest
+import psycopg
+from src.generators.table_generator import TableGenerator
+from src.core.ast_models import Entity, FieldDefinition
+
+# Mark all tests as requiring database
+pytestmark = pytest.mark.database
+
+
+def create_contact_entity_with_email():
+    &quot;&quot;&quot;Helper: Create test entity with email field&quot;&quot;&quot;
+    return Entity(
+        name=&quot;Contact&quot;,
+        schema=&quot;crm&quot;,
+        fields={
+            &quot;name&quot;: FieldDefinition(name=&quot;name&quot;, type_name=&quot;text&quot;, nullable=False),
+            &quot;email&quot;: FieldDefinition(name=&quot;email&quot;, type_name=&quot;email&quot;, nullable=False),
+        },
+    )
+
+
+def test_email_constraint_validates_format(test_db, schema_registry):
+    &quot;&quot;&quot;Test: Email CHECK constraint validates format in PostgreSQL&quot;&quot;&quot;
+    # Create entity and generate DDL
+    entity = create_contact_entity_with_email()
+    generator = TableGenerator(schema_registry)
+    ddl = generator.generate_table_ddl(entity)
+
+    # Create table in database
+    with test_db.cursor() as cur:
+        # Clean up if exists
+        cur.execute(&quot;DROP TABLE IF EXISTS crm.tb_contact CASCADE&quot;)
+        cur.execute(&quot;DROP SCHEMA IF EXISTS crm CASCADE&quot;)
+        cur.execute(&quot;CREATE SCHEMA crm&quot;)
+
+        # Execute DDL
+        cur.execute(ddl)
+
+        # Test valid email - should succeed
+        cur.execute(
+            &quot;INSERT INTO crm.tb_contact (id, name, email) VALUES (%s, %s, %s)&quot;,
+            (&quot;550e8400-e29b-41d4-a716-446655440000&quot;, &quot;John Doe&quot;, &quot;john@example.com&quot;)
+        )
+
+        # Test invalid email - should fail
+        with pytest.raises(psycopg.errors.CheckViolation):
+            cur.execute(
+                &quot;INSERT INTO crm.tb_contact (id, name, email) VALUES (%s, %s, %s)&quot;,
+                (&quot;550e8400-e29b-41d4-a716-446655440001&quot;, &quot;Jane Doe&quot;, &quot;not-an-email&quot;)
+            )
+
+    test_db.rollback()  # Clean up
+
+
+def test_url_pattern_matching_with_gin_index(test_db, schema_registry):
+    &quot;&quot;&quot;Test: URL pattern matching with GIN index (requires pg_trgm)&quot;&quot;&quot;
+    try:
+        entity = create_contact_entity_with_url()
+        generator = TableGenerator(schema_registry)
+        ddl = generator.generate_table_ddl(entity)
+
+        with test_db.cursor() as cur:
+            # Setup
+            cur.execute(&quot;DROP TABLE IF EXISTS crm.tb_contact CASCADE&quot;)
+            cur.execute(&quot;DROP SCHEMA IF EXISTS crm CASCADE&quot;)
+            cur.execute(&quot;CREATE SCHEMA crm&quot;)
+            cur.execute(ddl)
+
+            # Test GIN index works
+            cur.execute(
+                &quot;SELECT * FROM pg_indexes WHERE tablename = 'tb_contact' AND indexdef LIKE '%gin%'&quot;
+            )
+            indexes = cur.fetchall()
+            assert len(indexes) &gt; 0, &quot;GIN index not created&quot;
+
+    except psycopg.errors.UndefinedObject as e:
+        if &quot;pg_trgm&quot; in str(e):
+            pytest.skip(&quot;Test requires pg_trgm extension - install with: CREATE EXTENSION pg_trgm;&quot;)
+        raise
+
+    test_db.rollback()
+</code></pre>
+<h4 id="step-24-create-database-setup-script-30-minutes">Step 2.4: Create Database Setup Script (30 minutes)</h4>
+<p><strong>File</strong>: <code>tests/schema/setup.sql</code> (create new)</p>
+<pre><code class="language-sql">-- ============================================================================
+-- Test Database Setup Script
+-- Run this to initialize the test database with required schemas and types
+-- ============================================================================
+
+-- Drop existing schemas (clean slate)
+DROP SCHEMA IF EXISTS app CASCADE;
+DROP SCHEMA IF EXISTS crm CASCADE;
+DROP SCHEMA IF EXISTS common CASCADE;
+DROP SCHEMA IF EXISTS core CASCADE;
+DROP SCHEMA IF EXISTS pm CASCADE;
+DROP SCHEMA IF EXISTS catalog CASCADE;
+
+-- Create schemas
+CREATE SCHEMA app;
+CREATE SCHEMA crm;
+CREATE SCHEMA common;
+CREATE SCHEMA core;
+CREATE SCHEMA pm;
+CREATE SCHEMA catalog;
+
+-- Install extensions (optional - skip if not available)
+CREATE EXTENSION IF NOT EXISTS pg_trgm;
+CREATE EXTENSION IF NOT EXISTS postgis;
+
+-- Create app.mutation_result type
+CREATE TYPE app.mutation_result AS (
+    id UUID,
+    updated_fields TEXT[],
+    status TEXT,
+    message TEXT,
+    object_data JSONB,
+    _meta JSONB
+);
+
+COMMENT ON TYPE app.mutation_result IS
+'Standard return type for all mutations.
+
+@fraiseql:type
+name: MutationResult
+description: Result of a mutation operation';
+
+-- Create input types (will be generated by tests as needed)
+-- These are just placeholders for tests that need them
+
+-- Create Company table (for FK testing)
+CREATE TABLE crm.tb_company (
+    pk_company INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    id UUID DEFAULT gen_random_uuid() NOT NULL UNIQUE,
+    identifier TEXT,
+    tenant_id UUID NOT NULL,
+    name TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT now(),
+    created_by UUID,
+    updated_at TIMESTAMP DEFAULT now(),
+    updated_by UUID,
+    deleted_at TIMESTAMP
+);
+
+CREATE INDEX idx_company_tenant ON crm.tb_company(tenant_id);
+
+-- Trinity helper functions
+CREATE OR REPLACE FUNCTION crm.company_pk(company_identifier TEXT, p_tenant_id UUID)
+RETURNS INTEGER AS $$
+    SELECT pk_company
+    FROM crm.tb_company
+    WHERE identifier = company_identifier
+      AND tenant_id = p_tenant_id
+      AND deleted_at IS NULL;
+$$ LANGUAGE SQL STABLE;
+
+-- Audit logging function
+CREATE OR REPLACE FUNCTION app.log_and_return_mutation(
+    auth_tenant_id UUID,
+    auth_user_id UUID,
+    entity_name TEXT,
+    entity_id UUID,
+    operation TEXT,
+    status TEXT,
+    updated_fields TEXT[],
+    message TEXT,
+    object_data JSONB,
+    extra JSONB,
+    error_details JSONB DEFAULT NULL
+) RETURNS app.mutation_result AS $$
+DECLARE
+    result app.mutation_result;
+BEGIN
+    -- Build result
+    result.id := entity_id;
+    result.updated_fields := updated_fields;
+    result.status := status;
+    result.message := message;
+    result.object_data := object_data;
+    result._meta := COALESCE(extra, '{}'::JSONB);
+
+    -- In production, this would log to audit table
+    -- For tests, just return the result
+
+    RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Grant permissions (if using postgres user)
+GRANT ALL ON SCHEMA app TO PUBLIC;
+GRANT ALL ON SCHEMA crm TO PUBLIC;
+GRANT ALL ON SCHEMA common TO PUBLIC;
+GRANT ALL ON SCHEMA core TO PUBLIC;
+GRANT ALL ON SCHEMA pm TO PUBLIC;
+GRANT ALL ON SCHEMA catalog TO PUBLIC;
+GRANT ALL ON ALL TABLES IN SCHEMA app TO PUBLIC;
+GRANT ALL ON ALL TABLES IN SCHEMA crm TO PUBLIC;
+GRANT ALL ON ALL SEQUENCES IN SCHEMA crm TO PUBLIC;
+</code></pre>
+<p><strong>Load script</strong>:</p>
+<pre><code class="language-bash"># Create database if needed
+createdb specql_test
+
+# Load setup script
+psql specql_test &lt; tests/schema/setup.sql
+
+# Verify
+psql specql_test -c &quot;\dn&quot;  # List schemas
+psql specql_test -c &quot;\dT app.*&quot;  # List types
+</code></pre>
+<h4 id="step-25-update-pytestini-pyprojecttoml-15-minutes">Step 2.5: Update pytest.ini / pyproject.toml (15 minutes)</h4>
+<p><strong>File</strong>: <code>pyproject.toml</code></p>
+<p><strong>Add database marker</strong>:</p>
+<pre><code class="language-toml">[tool.pytest.ini_options]
+markers = [
+    &quot;database: marks tests as requiring PostgreSQL database (deselect with '-m \&quot;not database\&quot;')&quot;,
+    &quot;slow: marks tests as slow running&quot;,
+]
+</code></pre>
+<p><strong>Mark tests requiring database</strong>:</p>
+<pre><code class="language-python"># In each database test file, add at top:
+pytestmark = pytest.mark.database
+</code></pre>
+<h4 id="step-26-update-readme-with-database-setup-15-minutes">Step 2.6: Update README with Database Setup (15 minutes)</h4>
+<p><strong>File</strong>: <code>README.md</code></p>
+<p><strong>Add section</strong>:</p>
+<pre><code class="language-markdown">## Running Tests
+
+### Full Test Suite
+
+```bash
+# Run all tests (including database tests)
+uv run pytest
+
+# Run without database tests
+uv run pytest -m &quot;not database&quot;
+</code></pre>
+<h3 id="database-tests">Database Tests</h3>
+<p>Database integration tests require PostgreSQL:</p>
+<pre><code class="language-bash"># 1. Create test database
+createdb specql_test
+
+# 2. Load schema
+psql specql_test &lt; tests/schema/setup.sql
+
+# 3. Run database tests
+uv run pytest -m database -v
+</code></pre>
+<p><strong>Environment Variables</strong>:</p>
+<pre><code class="language-bash"># Optional: Configure database connection
+export TEST_DB_HOST=localhost
+export TEST_DB_PORT=5432
+export TEST_DB_NAME=specql_test
+export TEST_DB_USER=$USER
+export TEST_DB_PASSWORD=
+
+# Run tests
+uv run pytest
+</code></pre>
+<p><strong>CI/CD Setup</strong>:</p>
+<pre><code class="language-yaml"># GitHub Actions example
+- name: Setup PostgreSQL
+  run: |
+    sudo apt-get install postgresql postgresql-contrib
+    sudo -u postgres createdb specql_test
+    sudo -u postgres psql specql_test &lt; tests/schema/setup.sql
+
+- name: Run Tests
+  env:
+    TEST_DB_HOST: localhost
+    TEST_DB_NAME: specql_test
+    TEST_DB_USER: postgres
+    TEST_DB_PASSWORD: postgres
+  run: uv run pytest
+</code></pre>
+<pre><code>
+#### Step 2.7: Test the Changes (30 minutes)
+
+```bash
+# 1. Create/verify database
+createdb specql_test
+psql specql_test &lt; tests/schema/setup.sql
+
+# 2. Run previously skipped tests
+uv run pytest tests/integration/schema/test_rich_types_postgres.py -v
+
+# 3. Run all database tests
+uv run pytest -m database -v
+
+# 4. Verify no regressions
+uv run pytest
+
+# 5. Test skip behavior (without database)
+dropdb specql_test
+uv run pytest -m database -v
+# Should skip gracefully with helpful message
+</code></pre>
+<h3 id="success-criteria_1">Success Criteria</h3>
+<ul>
+<li>✅ Single unified database fixture (<code>test_db_connection</code> in <code>conftest.py</code>)</li>
+<li>✅ All 24 PostgreSQL tests running (not skipped)</li>
+<li>✅ Tests pass when database is available</li>
+<li>✅ Tests skip gracefully when database is not available</li>
+<li>✅ No regressions in existing tests</li>
+<li>✅ Documentation updated</li>
+</ul>
+<p><strong>Expected Result</strong>:</p>
+<pre><code class="language-bash">uv run pytest -v
+
+# With database:
+======================= 869 passed, 13 skipped in ~35s =======================
+# (13 skipped = safe_slug deprecated tests + under-development features)
+
+# Without database:
+======================= 845 passed, 37 skipped in ~30s =======================
+# (37 skipped = 24 database + 13 other)
+</code></pre>
+<hr />
+<h2 id="phase-3-remove-backward-compatibility-tests">Phase 3: Remove Backward Compatibility Tests</h2>
+<p><strong>Priority</strong>: LOW (cleanup)
+<strong>Estimated Time</strong>: 30 minutes
+<strong>Tests to Remove</strong>: 5 tests
+<strong>Files to Modify/Delete</strong>: 3 files</p>
+<h3 id="problem-description_2">Problem Description</h3>
+<p>These tests verify deprecated features that are no longer relevant:
+- Underscore separator for hierarchical identifiers (old format)
+- Strip tenant prefix feature (not implemented)</p>
+<p><strong>Tests to Remove</strong>:
+1. <code>tests/integration/test_backward_compatibility.py</code> (2 tests)
+2. <code>tests/unit/actions/test_identifier_hierarchical_dot.py</code> (2 tests)
+3. <code>tests/unit/actions/test_strip_tenant_prefix.py</code> (2 tests)</p>
+<h3 id="implementation-steps_2">Implementation Steps</h3>
+<h4 id="step-31-review-tests-before-removal-10-minutes">Step 3.1: Review Tests Before Removal (10 minutes)</h4>
+<p><strong>Verify these are truly deprecated</strong>:</p>
+<pre><code class="language-bash"># Check if code references these features
+grep -r &quot;underscore.*separator&quot; src/
+grep -r &quot;strip_tenant_prefix&quot; src/
+grep -r &quot;hierarchical.*dot&quot; src/
+
+# If no references found in src/, safe to remove tests
+</code></pre>
+<h4 id="step-32-remove-test-files-5-minutes">Step 3.2: Remove Test Files (5 minutes)</h4>
+<pre><code class="language-bash"># Remove deprecated test files
+rm tests/integration/test_backward_compatibility.py
+rm tests/unit/actions/test_identifier_hierarchical_dot.py
+rm tests/unit/actions/test_strip_tenant_prefix.py
+
+# Or move to archive (safer option)
+mkdir -p tests/archived/
+git mv tests/integration/test_backward_compatibility.py tests/archived/
+git mv tests/unit/actions/test_identifier_hierarchical_dot.py tests/archived/
+git mv tests/unit/actions/test_strip_tenant_prefix.py tests/archived/
+</code></pre>
+<h4 id="step-33-update-documentation-10-minutes">Step 3.3: Update Documentation (10 minutes)</h4>
+<p><strong>File</strong>: <code>docs/DEPRECATED_FEATURES.md</code> (create new)</p>
+<pre><code class="language-markdown"># Deprecated Features
+
+This document tracks features that have been deprecated and removed.
+
+## Hierarchical Identifier Underscore Separator
+
+**Deprecated**: 2024-Q4
+**Removed**: 2025-11-09
+**Reason**: Dot separator is more readable and standard
+
+**Old Format**:
+</code></pre>
+<p>tenant_ACME_location_NYC</p>
+<pre><code>
+**New Format**:
+</code></pre>
+<p>tenant.ACME.location.NYC</p>
+<pre><code>
+**Migration**: No migration needed - new entities use dot separator by default.
+
+## Strip Tenant Prefix
+
+**Status**: Never implemented
+**Removed**: 2025-11-09
+**Reason**: Feature was planned but never needed
+
+**Original Idea**: Strip redundant tenant prefixes from composite identifiers
+**Decision**: Not needed - identifiers work fine with tenant prefix
+
+## Test Files Archived
+
+The following test files have been moved to `tests/archived/`:
+- `test_backward_compatibility.py` - Underscore separator tests
+- `test_identifier_hierarchical_dot.py` - Hierarchical dot separator tests
+- `test_strip_tenant_prefix.py` - Strip tenant prefix tests
+
+These can be permanently deleted after 6 months (2025-05-09).
+</code></pre>
+<h4 id="step-34-verify-no-regressions-5-minutes">Step 3.4: Verify No Regressions (5 minutes)</h4>
+<pre><code class="language-bash"># Run full test suite
+uv run pytest
+
+# Should see:
+# - 5 fewer tests (removed tests)
+# - All remaining tests passing
+# - No import errors or missing fixtures
+
+# Verify count
+uv run pytest --collect-only -q | tail -1
+# Should show ~877 tests (882 - 5 deprecated = 877)
+</code></pre>
+<h3 id="success-criteria_2">Success Criteria</h3>
+<ul>
+<li>✅ 5 deprecated test files removed or archived</li>
+<li>✅ Documentation updated explaining what was removed</li>
+<li>✅ No regressions in remaining tests</li>
+<li>✅ No broken imports or references</li>
+</ul>
+<p><strong>Expected Result</strong>:</p>
+<pre><code class="language-bash"># After Phase 1 (safe_slug) + Phase 2 (database) + Phase 3 (cleanup):
+uv run pytest -v
+
+======================= 869 passed, 8 skipped in ~35s =======================
+# 869 passed = 845 (original) + 8 (safe_slug) + 24 (database) - 5 (removed) - 3 (truly deprecated)
+# 8 skipped = features legitimately under development
+</code></pre>
+<hr />
+<h2 id="complete-execution-order">Complete Execution Order</h2>
+<h3 id="recommended-order">Recommended Order</h3>
+<ol>
+<li><strong>Phase 3: Remove Backward Compatibility</strong> (30 min) - Easiest, reduces noise</li>
+<li><strong>Phase 1: Implement Safe Slug</strong> (1.5-2 hours) - Independent feature</li>
+<li><strong>Phase 2: Unify Database Setup</strong> (2-3 hours) - Most complex, highest value</li>
+</ol>
+<p><strong>Total Time</strong>: 4-6 hours
+<strong>Result</strong>: ~99% test pass rate (869/877 tests)</p>
+<h3 id="alternative-order-if-time-constrained">Alternative Order (If Time Constrained)</h3>
+<p><strong>Just do Phase 1 and 3</strong>:
+- Phase 3: Remove deprecated tests (30 min)
+- Phase 1: Implement safe_slug (2 hours)
+- Skip Phase 2 (database unification) for now</p>
+<p><strong>Result</strong>: 853/877 tests passing (97.3%)
+- Still excellent for production
+- Database tests remain optional</p>
+<hr />
+<h2 id="testing-strategy">Testing Strategy</h2>
+<h3 id="after-each-phase">After Each Phase</h3>
+<pre><code class="language-bash"># Phase 1: Safe slug
+uv run pytest tests/unit/schema/test_safe_slug.py -v
+uv run pytest tests/unit/schema/ -v  # Verify no regressions
+
+# Phase 2: Database unification
+createdb specql_test
+psql specql_test &lt; tests/schema/setup.sql
+uv run pytest -m database -v
+uv run pytest  # Full suite
+
+# Phase 3: Cleanup
+uv run pytest  # Verify no import errors
+</code></pre>
+<h3 id="final-verification">Final Verification</h3>
+<pre><code class="language-bash"># Full test suite with database
+createdb specql_test
+psql specql_test &lt; tests/schema/setup.sql
+uv run pytest -v
+
+# Expected: 869 passed, 8 skipped
+
+# Without database (for CI without PostgreSQL)
+uv run pytest -m &quot;not database&quot; -v
+
+# Expected: 845 passed, 32 skipped
+</code></pre>
+<hr />
+<h2 id="cicd-integration">CI/CD Integration</h2>
+<h3 id="github-actions-example">GitHub Actions Example</h3>
+<p><strong>File</strong>: <code>.github/workflows/test.yml</code> (create if doesn't exist)</p>
+<pre><code class="language-yaml">name: Tests
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: specql_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: &gt;-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.13'
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Install dependencies
+        run: uv sync
+
+      - name: Setup PostgreSQL
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d specql_test &lt; tests/schema/setup.sql
+
+      - name: Run tests
+        env:
+          TEST_DB_HOST: localhost
+          TEST_DB_NAME: specql_test
+          TEST_DB_USER: postgres
+          TEST_DB_PASSWORD: postgres
+        run: uv run pytest -v
+
+      - name: Upload coverage
+        if: success()
+        run: |
+          uv run pytest --cov=src --cov-report=xml
+          # Upload to codecov or similar
+</code></pre>
+<hr />
+<h2 id="rollback-plan">Rollback Plan</h2>
+<p>If any phase causes issues:</p>
+<h3 id="phase-1-rollback-safe-slug">Phase 1 Rollback (Safe Slug)</h3>
+<pre><code class="language-bash"># Remove implementation
+rm src/utils/safe_slug.py
+
+# Re-skip tests
+# Add back to test_safe_slug.py:
+pytestmark = pytest.mark.skip(reason=&quot;safe_slug feature not yet implemented&quot;)
+</code></pre>
+<h3 id="phase-2-rollback-database">Phase 2 Rollback (Database)</h3>
+<pre><code class="language-bash"># Revert conftest.py changes
+git checkout HEAD -- tests/conftest.py
+
+# Restore local fixtures in test files
+git checkout HEAD -- tests/integration/schema/test_rich_types_postgres.py
+# (repeat for other files)
+</code></pre>
+<h3 id="phase-3-rollback-cleanup">Phase 3 Rollback (Cleanup)</h3>
+<pre><code class="language-bash"># Restore archived tests
+git checkout HEAD -- tests/integration/test_backward_compatibility.py
+git checkout HEAD -- tests/unit/actions/test_identifier_hierarchical_dot.py
+git checkout HEAD -- tests/unit/actions/test_strip_tenant_prefix.py
+</code></pre>
+<hr />
+<h2 id="success-metrics">Success Metrics</h2>
+<h3 id="minimum-success-phases-1-3-only">Minimum Success (Phases 1 + 3 only)</h3>
+<ul>
+<li>✅ 853/877 tests passing (97.3%)</li>
+<li>✅ Safe slug implemented</li>
+<li>✅ Deprecated tests removed</li>
+<li>✅ 24 database tests remain skipped (acceptable)</li>
+</ul>
+<h3 id="full-success-all-phases">Full Success (All Phases)</h3>
+<ul>
+<li>✅ 869/877 tests passing (99.1%)</li>
+<li>✅ Safe slug implemented and tested</li>
+<li>✅ Database tests unified and running</li>
+<li>✅ Deprecated tests removed</li>
+<li>✅ CI/CD integration documented</li>
+<li>✅ Only 8 tests skipped (legitimately under development)</li>
+</ul>
+<hr />
+<h2 id="documentation-updates">Documentation Updates</h2>
+<p>After completion, update:</p>
+<ol>
+<li><strong>README.md</strong>: Database setup instructions</li>
+<li><strong>GETTING_STARTED.md</strong>: Test running instructions</li>
+<li><strong>CLAUDE.md</strong>: Update test status to ~99% passing</li>
+<li><strong>DEPRECATED_FEATURES.md</strong>: Document removed features</li>
+<li><strong>docs/SKIPPED_TESTS_SUMMARY.md</strong>: Update with new skip count</li>
+</ol>
+<hr />
+<h2 id="timeline">Timeline</h2>
+<h3 id="fast-track-4-hours">Fast Track (4 hours)</h3>
+<ul>
+<li>Phase 3 (cleanup): 30 min</li>
+<li>Phase 1 (safe_slug): 1.5 hours</li>
+<li>Phase 2 (database): 2 hours</li>
+</ul>
+<h3 id="thorough-track-6-hours">Thorough Track (6 hours)</h3>
+<ul>
+<li>Phase 3 (cleanup): 30 min</li>
+<li>Phase 1 (safe_slug): 2 hours</li>
+<li>Phase 2 (database): 3 hours</li>
+<li>Documentation: 30 min</li>
+</ul>
+<hr />
+<h2 id="conclusion">Conclusion</h2>
+<p>This plan will bring the test suite to <strong>~99% pass rate</strong> (869/877 tests) by:</p>
+<ol>
+<li>✅ Implementing the safe_slug utility feature (8 tests)</li>
+<li>✅ Unifying PostgreSQL database setup (24 tests)</li>
+<li>✅ Removing deprecated backward compatibility tests (-5 tests)</li>
+</ol>
+<p><strong>Final Result</strong>: Production-ready test suite with comprehensive coverage and minimal skipped tests.</p>
+<p><strong>Recommendation</strong>: Execute all three phases for maximum test coverage and clean codebase.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

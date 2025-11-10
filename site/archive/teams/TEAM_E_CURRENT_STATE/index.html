@@ -1,0 +1,940 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team E Codebase Exploration Report - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team E Codebase Exploration Report";
+        var mkdocs_page_input_path = "archive/teams/TEAM_E_CURRENT_STATE.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team E Codebase Exploration Report</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-e-codebase-exploration-report">Team E Codebase Exploration Report</h1>
+<p><strong>Date</strong>: November 9, 2025
+<strong>Scope</strong>: Current state of Team E (CLI &amp; Orchestration + Frontend Codegen) implementation</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>Team E is responsible for CLI tools, orchestration, and frontend code generation. The codebase shows:</p>
+<ul>
+<li><strong>CLI Foundation</strong>: Exists with basic structure (<code>src/cli/generate.py</code>)</li>
+<li><strong>Orchestration</strong>: Partially implemented (SchemaOrchestrator in place)</li>
+<li><strong>Frontend Codegen</strong>: Not yet implemented</li>
+<li><strong>Documentation</strong>: Comprehensive but plan-based (not yet executed)</li>
+<li><strong>Tests</strong>: No Team E-specific tests yet (directory doesn't exist)</li>
+</ul>
+<h3 id="current-state-matrix">Current State Matrix</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Status</th>
+<th>Completeness</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CLI Entry Points</strong></td>
+<td>Partial</td>
+<td>20%</td>
+<td>Only <code>generate entities</code> command implemented</td>
+</tr>
+<tr>
+<td><strong>CLI Commands</strong></td>
+<td>Missing</td>
+<td>0%</td>
+<td>validate, migrate, list-duplicates, recalculate, etc. missing</td>
+</tr>
+<tr>
+<td><strong>Orchestration</strong></td>
+<td>Partial</td>
+<td>40%</td>
+<td>SchemaOrchestrator exists but Team E wrapper missing</td>
+</tr>
+<tr>
+<td><strong>Migration Management</strong></td>
+<td>Missing</td>
+<td>0%</td>
+<td>No migration versioning or management</td>
+</tr>
+<tr>
+<td><strong>Documentation Generation</strong></td>
+<td>Missing</td>
+<td>0%</td>
+<td>No mutation docs generator</td>
+</tr>
+<tr>
+<td><strong>Frontend Code Generation</strong></td>
+<td>Missing</td>
+<td>0%</td>
+<td>No TypeScript, hooks, or JSON generation</td>
+</tr>
+<tr>
+<td><strong>Tests</strong></td>
+<td>Missing</td>
+<td>0%</td>
+<td>No tests in tests/unit/cli/</td>
+</tr>
+<tr>
+<td><strong>Error Handling</strong></td>
+<td>Partial</td>
+<td>30%</td>
+<td>Basic error handling in generate.py</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="1-what-exists-current-cli-implementation">1. What Exists: Current CLI Implementation</h2>
+<h3 id="11-location-and-files">1.1 Location and Files</h3>
+<pre><code>src/cli/
+├── __init__.py (empty)
+├── generate.py (4,684 bytes - 139 lines)
+└── __pycache__/
+</code></pre>
+<h3 id="12-current-cli-command-structure">1.2 Current CLI Command Structure</h3>
+<p><strong>File</strong>: <code>/home/lionel/code/printoptim_backend_poc/src/cli/generate.py</code></p>
+<p><strong>Current Status</strong>:
+- Built with Click framework (version 8.1.0+)
+- One command group: <code>cli()</code>
+- One subcommand: <code>entities()</code></p>
+<p><strong>What It Does</strong>:</p>
+<pre><code class="language-bash">specql entities [OPTIONS] entity_files...
+</code></pre>
+<p>Options:
+- <code>--output-dir</code> / <code>-o</code>: Output directory for migrations (default: <code>migrations</code>)
+- <code>--foundation-only</code>: Generate only app foundation migration
+- <code>--include-tv</code>: Generate tv_ table views after entities</p>
+<p><strong>Functionality</strong>:
+1. Parses SpecQL YAML files using SpecQLParser
+2. Converts EntityDefinition → Entity for orchestrator
+3. Uses SchemaOrchestrator to generate complete SQL
+4. Writes migrations to filesystem
+5. Supports app foundation generation (000_app_foundation.sql)
+6. Supports table views generation (200_table_views.sql)</p>
+<p><strong>Known Issues/TODOs in Code</strong>:
+- Line 20: <code># TODO: Convert impact dict to ActionImpact</code> - Impact metadata conversion not implemented
+- No validate or migrate commands referenced in pyproject.toml but declared as entry points</p>
+<h3 id="13-entry-points-pyprojecttoml">1.3 Entry Points (pyproject.toml)</h3>
+<pre><code class="language-toml">[project.scripts]
+specql = &quot;src.cli.generate:main&quot;
+specql-validate = &quot;src.cli.validate:main&quot;  # MISSING
+specql-migrate = &quot;src.cli.migrate:main&quot;    # MISSING
+</code></pre>
+<p><strong>Current Status</strong>:
+- Only <code>specql</code> works (points to generate.py)
+- <code>specql-validate</code> and <code>specql-migrate</code> are declared but files don't exist</p>
+<h3 id="14-dependencies">1.4 Dependencies</h3>
+<p><strong>Already Available</strong>:
+- <code>click&gt;=8.1.0</code> - CLI framework
+- <code>rich&gt;=13.0.0</code> - Terminal UI/formatting
+- <code>pyyaml&gt;=6.0</code> - YAML parsing
+- <code>jinja2&gt;=3.1.2</code> - Template rendering
+- <code>psycopg2-binary&gt;=2.9.0</code> &amp; <code>psycopg&gt;=3.2.12</code> - Database drivers</p>
+<hr />
+<h2 id="2-what-orchestration-exists">2. What Orchestration Exists</h2>
+<h3 id="21-schemaorchestrator">2.1 SchemaOrchestrator</h3>
+<p><strong>File</strong>: <code>/home/lionel/code/printoptim_backend_poc/src/generators/schema_orchestrator.py</code>
+<strong>Size</strong>: 203 lines
+<strong>Status</strong>: Functional</p>
+<p><strong>Key Methods</strong>:</p>
+<pre><code class="language-python">class SchemaOrchestrator:
+    def generate_complete_schema(entity: Entity) -&gt; str
+        # Returns SQL for:
+        # - App foundation
+        # - Table DDL
+        # - Input types
+        # - Indexes
+        # - Foreign keys
+        # - Core logic functions
+        # - FraiseQL annotations
+        # - Trinity helper functions
+
+    def generate_table_views(entities: List[EntityDefinition]) -&gt; str
+        # Returns SQL for all tv_ tables in dependency order
+
+    def generate_app_foundation_only() -&gt; str
+        # Returns base migration SQL
+
+    def generate_schema_summary(entity: Entity) -&gt; Dict
+        # Returns summary of what will be created
+</code></pre>
+<p><strong>Team E Needs</strong>:
+- Wrapper orchestrator for CLI that coordinates:
+  - Extension generation
+  - Utility function generation
+  - Schema generation (with Team B)
+  - Action compilation (with Team C)
+  - FraiseQL metadata (with Team D)
+  - Frontend code generation
+  - Migration numbering and ordering</p>
+<h3 id="22-other-orchestration-components">2.2 Other Orchestration Components</h3>
+<p><strong>Action Orchestrator</strong>: <code>/home/lionel/code/printoptim_backend_poc/src/generators/actions/action_orchestrator.py</code>
+- Handles action step compilation
+- Not directly used by Team E CLI yet</p>
+<hr />
+<h2 id="3-whats-missing-for-team-e">3. What's Missing for Team E</h2>
+<h3 id="31-missing-cli-commands">3.1 Missing CLI Commands</h3>
+<p>Based on CLAUDE.md and TEAM_E_DATABASE_DECISIONS_PLAN.md:</p>
+<h4 id="311-validate-command">3.1.1 Validate Command</h4>
+<pre><code class="language-bash">specql-validate entities/*.yaml --check-impacts
+specql-validate-impacts --database-url=postgres://...
+</code></pre>
+<p><strong>Missing Files</strong>:
+- <code>src/cli/validate.py</code> - Validation command implementation
+- Should validate:
+  - SpecQL syntax correctness
+  - Impact declarations
+  - Runtime impact matching</p>
+<h4 id="312-migrate-command">3.1.2 Migrate Command</h4>
+<pre><code class="language-bash">specql-migrate [OPTIONS] [migrations_dir]
+</code></pre>
+<p><strong>Missing Files</strong>:
+- <code>src/cli/migrate.py</code> - Migration execution command
+- Should handle:
+  - Connection management
+  - Migration ordering
+  - Rollback capability
+  - State tracking</p>
+<h4 id="313-deduplication-commands">3.1.3 Deduplication Commands</h4>
+<pre><code class="language-bash">specql list-duplicates --entity=Location --schema=tenant
+specql recalculate-identifiers --entity=Contact --schema=crm [--dry-run]
+</code></pre>
+<p><strong>Missing Files</strong>:
+- <code>src/cli/commands/deduplication.py</code> - Identifier dedup management
+- Should list and recalculate duplicate identifiers</p>
+<h4 id="314-split-entity-commands">3.1.4 Split Entity Commands</h4>
+<pre><code class="language-bash">specql list-split-entities
+specql validate-split-integrity --entity=Location --schema=tenant
+</code></pre>
+<p><strong>Missing Files</strong>:
+- <code>src/cli/commands/split_entities.py</code> - Node+info split management
+- Should manage node+info split entities</p>
+<h4 id="315-path-validation-commands">3.1.5 Path Validation Commands</h4>
+<pre><code class="language-bash">specql validate-paths --entity=Location --schema=tenant [--fix]
+</code></pre>
+<p><strong>Missing Files</strong>:
+- <code>src/cli/commands/validate_paths.py</code> - INTEGER path validation
+- Should validate LTREE paths</p>
+<h3 id="32-missing-orchestration-components">3.2 Missing Orchestration Components</h3>
+<h4 id="321-cli-orchestrator">3.2.1 CLI Orchestrator</h4>
+<pre><code>src/cli/orchestrator.py
+</code></pre>
+<p><strong>Responsibilities</strong>:
+- Migration order management (extensions → utilities → schema → triggers → helpers → annotations)
+- Template rendering
+- Migration numbering
+- Dependency resolution</p>
+<p><strong>Status</strong>: Not started</p>
+<h4 id="322-migration-management">3.2.2 Migration Management</h4>
+<pre><code>src/cli/migration_manager.py
+</code></pre>
+<p><strong>Responsibilities</strong>:
+- Track applied migrations
+- Versioning
+- Rollback logic
+- State persistence</p>
+<p><strong>Status</strong>: Not started</p>
+<h3 id="33-missing-frontend-code-generation">3.3 Missing Frontend Code Generation</h3>
+<h4 id="331-mutation-impacts-json-generator">3.3.1 Mutation Impacts JSON Generator</h4>
+<pre><code>src/generators/frontend/mutation_impacts_generator.py
+</code></pre>
+<p><strong>Should generate</strong>:</p>
+<pre><code class="language-json">{
+  &quot;version&quot;: &quot;1.0.0&quot;,
+  &quot;generatedAt&quot;: &quot;2025-11-08T16:00:00Z&quot;,
+  &quot;mutations&quot;: {
+    &quot;qualifyLead&quot;: { ... }
+  }
+}
+</code></pre>
+<p><strong>Status</strong>: Not started</p>
+<h4 id="332-typescript-type-generator">3.3.2 TypeScript Type Generator</h4>
+<pre><code>src/generators/frontend/typescript_types_generator.py
+</code></pre>
+<p><strong>Should generate</strong>:</p>
+<pre><code class="language-typescript">export interface MutationImpact { ... }
+export const MUTATION_IMPACTS: { ... }
+</code></pre>
+<p><strong>Status</strong>: Not started</p>
+<h4 id="333-apolloreact-hooks-generator">3.3.3 Apollo/React Hooks Generator</h4>
+<pre><code>src/generators/frontend/apollo_hooks_generator.py
+</code></pre>
+<p><strong>Should generate</strong>:</p>
+<pre><code class="language-typescript">export function useQualifyLead(options?: MutationHookOptions) { ... }
+</code></pre>
+<p><strong>Status</strong>: Not started</p>
+<h4 id="334-documentation-generator">3.3.4 Documentation Generator</h4>
+<pre><code>src/generators/frontend/mutation_docs_generator.py
+</code></pre>
+<p><strong>Should generate</strong>: Markdown documentation from impacts</p>
+<p><strong>Status</strong>: Not started</p>
+<h3 id="34-missing-tests">3.4 Missing Tests</h3>
+<h4 id="341-test-directory">3.4.1 Test Directory</h4>
+<pre><code>tests/unit/cli/
+</code></pre>
+<p><strong>Doesn't exist yet</strong></p>
+<p><strong>Should contain</strong>:
+- <code>test_generate_command.py</code> - CLI generate tests
+- <code>test_validate_command.py</code> - CLI validate tests
+- <code>test_migrate_command.py</code> - CLI migrate tests
+- <code>test_deduplication_commands.py</code> - Dedup CLI tests
+- <code>test_split_entity_commands.py</code> - Split entity tests
+- <code>test_path_validation_commands.py</code> - Path validation tests
+- <code>test_cli_orchestrator.py</code> - Orchestration tests
+- <code>test_frontend_generation.py</code> - Frontend codegen tests</p>
+<p><strong>Status</strong>: Not started</p>
+<hr />
+<h2 id="4-integration-points-what-team-e-depends-on">4. Integration Points (What Team E Depends On)</h2>
+<h3 id="41-team-a-dependencies">4.1 Team A Dependencies</h3>
+<ul>
+<li>✅ <strong>DONE</strong>: AST models (EntityDefinition, Action, ActionDefinition)</li>
+<li>✅ <strong>DONE</strong>: SpecQLParser for parsing YAML</li>
+</ul>
+<h3 id="42-team-b-dependencies">4.2 Team B Dependencies</h3>
+<ul>
+<li>✅ <strong>DONE</strong>: SchemaOrchestrator</li>
+<li>✅ <strong>DONE</strong>: TableGenerator</li>
+<li>✅ <strong>DONE</strong>: TrinityHelperGenerator</li>
+<li>✅ <strong>DONE</strong>: NameingConventions</li>
+<li>✅ <strong>DONE</strong>: SchemaRegistry</li>
+</ul>
+<h3 id="43-team-c-dependencies">4.3 Team C Dependencies</h3>
+<ul>
+<li>✅ <strong>DONE</strong>: ActionCompiler</li>
+<li>✅ <strong>DONE</strong>: Action validation</li>
+</ul>
+<h3 id="44-team-d-dependencies">4.4 Team D Dependencies</h3>
+<ul>
+<li>✅ <strong>DONE</strong>: MutationAnnotator (FraiseQL metadata)</li>
+<li>✅ <strong>DONE</strong>: TableViewAnnotator</li>
+</ul>
+<h3 id="45-missing-internal-team-e-dependencies">4.5 Missing Internal Team E Dependencies</h3>
+<ul>
+<li>❌ <strong>MISSING</strong>: CLI Orchestrator</li>
+<li>❌ <strong>MISSING</strong>: Migration manager</li>
+<li>❌ <strong>MISSING</strong>: Frontend generators</li>
+</ul>
+<hr />
+<h2 id="5-current-test-coverage">5. Current Test Coverage</h2>
+<h3 id="51-unit-tests-structure">5.1 Unit Tests Structure</h3>
+<pre><code>tests/unit/
+├── actions/ (100+ test files)
+├── core/ (SpecQL parser tests - ✅ DONE)
+├── fraiseql/ (FraiseQL tests - ✅ DONE)
+├── generators/ (Team B tests - ✅ DONE)
+├── numbering/ (Team C tests - ✅ DONE)
+├── registry/ (Schema registry tests - ✅ DONE)
+├── schema/ (Schema generation tests - ✅ DONE)
+└── cli/ (❌ MISSING - Would test Team E)
+</code></pre>
+<h3 id="52-integration-tests-structure">5.2 Integration Tests Structure</h3>
+<pre><code>tests/integration/
+├── actions/ (✅ DONE)
+├── fraiseql/ (✅ DONE)
+├── schema/ (✅ DONE)
+└── (Team E tests would go here for CLI/orchestration end-to-end)
+</code></pre>
+<p><strong>Total Test Files</strong>: 100
+<strong>Total Source Files</strong>: 78</p>
+<hr />
+<h2 id="6-documentation-status">6. Documentation Status</h2>
+<h3 id="61-existing-team-e-documentation">6.1 Existing Team E Documentation</h3>
+<p><strong>File</strong>: <code>/home/lionel/code/printoptim_backend_poc/docs/teams/TEAM_E_DATABASE_DECISIONS_PLAN.md</code></p>
+<p><strong>Status</strong>: Detailed plan document (643 lines)</p>
+<p><strong>Contains</strong>:
+- Phase 1: Migration Orchestration (Day 1)
+  - MigrationOrchestrator class design
+  - Template rendering
+  - Order management
+- Phase 2: Deduplication Commands (Day 2)
+  - list_duplicates
+  - recalculate_identifiers
+- Phase 3: Node+Info Split Management (Day 3)
+  - list_split_entities
+  - validate_split_integrity
+- Phase 4: INTEGER Path Validation (Day 4)
+  - validate_paths with --fix</p>
+<h3 id="62-other-referenced-docs">6.2 Other Referenced Docs</h3>
+<p><strong>From CLAUDE.md</strong> (<code>.claude/CLAUDE.md</code>):
+- Section: "Team E: CLI &amp; Orchestration + Frontend Codegen" (lines 596-750)
+- Describes:
+  - CLI commands (generate, validate, diff, docs, validate-impacts)
+  - Orchestration responsibilities
+  - Frontend code generation
+  - Documentation generation
+  - Impact validation</p>
+<hr />
+<h2 id="7-project-structure-overview">7. Project Structure Overview</h2>
+<pre><code>/home/lionel/code/printoptim_backend_poc/
+├── src/
+│   ├── cli/                     # Team E
+│   │   ├── generate.py          # ✅ Partial (only entities command)
+│   │   ├── __init__.py
+│   │   ├── validate.py          # ❌ Missing
+│   │   ├── migrate.py           # ❌ Missing
+│   │   ├── orchestrator.py      # ❌ Missing
+│   │   ├── migration_manager.py # ❌ Missing
+│   │   └── commands/            # ❌ Missing directory
+│   │       ├── deduplication.py
+│   │       ├── split_entities.py
+│   │       └── validate_paths.py
+│   ├── core/                    # Team A (✅ DONE)
+│   ├── generators/
+│   │   ├── schema/              # Team B (✅ DONE)
+│   │   ├── actions/             # Team C (✅ DONE)
+│   │   ├── fraiseql/            # Team D (✅ DONE)
+│   │   └── frontend/            # Team E (❌ MISSING)
+│   │       ├── mutation_impacts_generator.py
+│   │       ├── typescript_types_generator.py
+│   │       ├── apollo_hooks_generator.py
+│   │       └── mutation_docs_generator.py
+│   └── agents/
+│
+├── tests/
+│   ├── unit/
+│   │   ├── core/                # ✅ DONE (Team A)
+│   │   ├── generators/          # ✅ DONE (Team B)
+│   │   ├── actions/             # ✅ DONE (Team C)
+│   │   ├── fraiseql/            # ✅ DONE (Team D)
+│   │   ├── numbering/
+│   │   ├── registry/
+│   │   ├── schema/
+│   │   └── cli/                 # ❌ MISSING (Team E)
+│   └── integration/             # ✅ Partial (Teams A-D)
+│
+├── docs/
+│   ├── teams/
+│   │   ├── TEAM_A_COMPLETION_STATUS.md (✅)
+│   │   ├── TEAM_B_PHASE_9_QA_REPORT.md (✅)
+│   │   ├── TEAM_C_COMPLETION_REPORT.md (✅)
+│   │   ├── TEAM_D_PHASED_IMPLEMENTATION_PLAN.md (✅)
+│   │   └── TEAM_E_DATABASE_DECISIONS_PLAN.md (✅ PLAN)
+│   └── fraiseql/
+│
+├── entities/
+│   ├── examples/                 # ✅ 5 example files
+│   └── schemas/
+│
+├── migrations/                   # ✅ Generated SQLfiles
+├── generated/                    # Generated artifacts
+├── Makefile
+├── pyproject.toml
+├── .claude/CLAUDE.md
+└── README.md
+</code></pre>
+<hr />
+<h2 id="8-key-metrics">8. Key Metrics</h2>
+<h3 id="81-code-distribution">8.1 Code Distribution</h3>
+<table>
+<thead>
+<tr>
+<th>Team</th>
+<th>Source Files</th>
+<th>Lines</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>A</strong> (Parser)</td>
+<td>2</td>
+<td>~500</td>
+<td>✅ Complete</td>
+</tr>
+<tr>
+<td><strong>B</strong> (Schema)</td>
+<td>20+</td>
+<td>~3000</td>
+<td>✅ Complete</td>
+</tr>
+<tr>
+<td><strong>C</strong> (Actions)</td>
+<td>15+</td>
+<td>~4000</td>
+<td>✅ Complete</td>
+</tr>
+<tr>
+<td><strong>D</strong> (FraiseQL)</td>
+<td>5</td>
+<td>~500</td>
+<td>✅ Complete</td>
+</tr>
+<tr>
+<td><strong>E</strong> (CLI/Frontend)</td>
+<td>1</td>
+<td>~140</td>
+<td>❌ 5% Complete</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td>78</td>
+<td>~8500</td>
+<td>~95% Complete</td>
+</tr>
+</tbody>
+</table>
+<h3 id="82-test-distribution">8.2 Test Distribution</h3>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Test Files</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Unit Tests</strong></td>
+<td>~60</td>
+<td>✅ A-D Complete, E Missing</td>
+</tr>
+<tr>
+<td><strong>Integration Tests</strong></td>
+<td>~10</td>
+<td>✅ A-D Present, E Missing</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td>~100</td>
+<td>~90% Coverage (E Missing)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="9-missing-functionality-vs-plan">9. Missing Functionality vs. Plan</h2>
+<h3 id="91-from-claudemd-cli-commands">9.1 From CLAUDE.md - CLI Commands</h3>
+<p>Expected CLI interface (from documentation):</p>
+<pre><code class="language-bash">specql generate entities/contact.yaml
+specql generate entities/*.yaml --with-impacts --output-frontend=../frontend
+specql validate entities/*.yaml --check-impacts
+specql diff entities/contact.yaml
+specql docs entities/*.yaml --format=markdown --output=docs/mutations.md
+specql validate-impacts --database-url=postgres://...
+</code></pre>
+<p><strong>Implemented</strong>: Only partial <code>specql generate</code> (without --with-impacts, --output-frontend)
+<strong>Missing</strong>: All others (validate, diff, docs, validate-impacts)</p>
+<h3 id="92-from-team_e_database_decisions_planmd-commands">9.2 From TEAM_E_DATABASE_DECISIONS_PLAN.md - Commands</h3>
+<pre><code class="language-bash">specql list-duplicates --entity=Location --schema=tenant
+specql recalculate-identifiers --entity=Contact [--dry-run]
+specql list-split-entities
+specql validate-split-integrity --entity=Location
+specql validate-paths --entity=Location [--fix]
+</code></pre>
+<p><strong>Implemented</strong>: None
+<strong>Missing</strong>: All 5 command types</p>
+<h3 id="93-frontend-code-generation-from-claudemd">9.3 Frontend Code Generation (From CLAUDE.md)</h3>
+<pre><code class="language-bash">specql generate entities/*.yaml --with-impacts --output-frontend=../frontend/src/generated
+</code></pre>
+<p>Should generate:
+- <code>mutation-impacts.json</code> - Static metadata
+- <code>mutation-impacts.d.ts</code> - TypeScript types
+- <code>mutations.ts</code> - Pre-configured hooks
+- <code>docs/mutations.md</code> - Documentation</p>
+<p><strong>Implemented</strong>: None
+<strong>Missing</strong>: All 4 artifact types</p>
+<hr />
+<h2 id="10-implementation-roadmap-based-on-codebase-analysis">10. Implementation Roadmap (Based on Codebase Analysis)</h2>
+<h3 id="phase-1-core-cli-enhancements-week-1-2">Phase 1: Core CLI Enhancements (Week 1-2)</h3>
+<ul>
+<li>[x] Existing <code>specql entities</code> command</li>
+<li>[ ] Complete generate command with <code>--with-impacts</code> and <code>--output-frontend</code></li>
+<li>[ ] Implement <code>src/cli/validate.py</code></li>
+<li>[ ] Implement <code>src/cli/migrate.py</code></li>
+<li>[ ] Create CLI tests in <code>tests/unit/cli/</code></li>
+</ul>
+<h3 id="phase-2-orchestration-week-2-3">Phase 2: Orchestration (Week 2-3)</h3>
+<ul>
+<li>[ ] <code>src/cli/orchestrator.py</code> - Migration ordering</li>
+<li>[ ] <code>src/cli/migration_manager.py</code> - State tracking</li>
+<li>[ ] Database connection pooling</li>
+<li>[ ] Rollback support</li>
+</ul>
+<h3 id="phase-3-management-commands-week-3-4">Phase 3: Management Commands (Week 3-4)</h3>
+<ul>
+<li>[ ] <code>src/cli/commands/deduplication.py</code></li>
+<li>[ ] <code>src/cli/commands/split_entities.py</code></li>
+<li>[ ] <code>src/cli/commands/validate_paths.py</code></li>
+<li>[ ] Integration tests for each</li>
+</ul>
+<h3 id="phase-4-frontend-codegen-week-4-5">Phase 4: Frontend Codegen (Week 4-5)</h3>
+<ul>
+<li>[ ] <code>src/generators/frontend/mutation_impacts_generator.py</code></li>
+<li>[ ] <code>src/generators/frontend/typescript_types_generator.py</code></li>
+<li>[ ] <code>src/generators/frontend/apollo_hooks_generator.py</code></li>
+<li>[ ] <code>src/generators/frontend/mutation_docs_generator.py</code></li>
+</ul>
+<h3 id="phase-5-testing-qa-week-5-6">Phase 5: Testing &amp; QA (Week 5-6)</h3>
+<ul>
+<li>[ ] Complete test coverage for all CLI commands</li>
+<li>[ ] Integration tests</li>
+<li>[ ] End-to-end workflow testing</li>
+<li>[ ] Documentation</li>
+</ul>
+<hr />
+<h2 id="11-recommendations">11. Recommendations</h2>
+<h3 id="111-highest-priority-week-1">11.1 Highest Priority (Week 1)</h3>
+<ol>
+<li><strong>Extend existing <code>generate.py</code></strong>:</li>
+<li>Add <code>--with-impacts</code> flag</li>
+<li>Add <code>--output-frontend</code> option</li>
+<li>
+<p>Test these flags work with SchemaOrchestrator</p>
+</li>
+<li>
+<p><strong>Create test structure</strong>:</p>
+</li>
+<li><code>tests/unit/cli/test_generate_command.py</code></li>
+<li><code>tests/unit/cli/test_cli_orchestrator.py</code></li>
+<li>
+<p>Set up CLI testing with Click's CliRunner</p>
+</li>
+<li>
+<p><strong>Implement CLI Orchestrator</strong>:</p>
+</li>
+<li>Wrapper around SchemaOrchestrator</li>
+<li>Migration numbering</li>
+<li>File output management</li>
+</ol>
+<h3 id="112-medium-priority-week-2">11.2 Medium Priority (Week 2)</h3>
+<ol>
+<li><strong>Implement validate.py</strong> - Syntax and impact validation</li>
+<li><strong>Implement migrate.py</strong> - Database migration execution</li>
+<li><strong>Create commands/ directory structure</strong></li>
+</ol>
+<h3 id="113-lower-priority-week-3">11.3 Lower Priority (Week 3+)</h3>
+<ol>
+<li>Frontend code generation</li>
+<li>Management commands (dedup, split, paths)</li>
+<li>Advanced documentation generation</li>
+</ol>
+<hr />
+<h2 id="12-key-files-to-create-summary">12. Key Files to Create (Summary)</h2>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Lines</th>
+<th>Purpose</th>
+<th>Difficulty</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src/cli/validate.py</code></td>
+<td>150</td>
+<td>Validation command</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><code>src/cli/migrate.py</code></td>
+<td>200</td>
+<td>Migration execution</td>
+<td>Hard</td>
+</tr>
+<tr>
+<td><code>src/cli/orchestrator.py</code></td>
+<td>200</td>
+<td>Migration orchestration</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><code>src/cli/migration_manager.py</code></td>
+<td>150</td>
+<td>State tracking</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><code>src/cli/commands/deduplication.py</code></td>
+<td>100</td>
+<td>Dedup management</td>
+<td>Easy</td>
+</tr>
+<tr>
+<td><code>src/cli/commands/split_entities.py</code></td>
+<td>120</td>
+<td>Split entity management</td>
+<td>Easy</td>
+</tr>
+<tr>
+<td><code>src/cli/commands/validate_paths.py</code></td>
+<td>100</td>
+<td>Path validation</td>
+<td>Easy</td>
+</tr>
+<tr>
+<td><code>src/generators/frontend/mutation_impacts_generator.py</code></td>
+<td>150</td>
+<td>Impacts JSON</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><code>src/generators/frontend/typescript_types_generator.py</code></td>
+<td>200</td>
+<td>TypeScript types</td>
+<td>Hard</td>
+</tr>
+<tr>
+<td><code>src/generators/frontend/apollo_hooks_generator.py</code></td>
+<td>250</td>
+<td>React hooks</td>
+<td>Hard</td>
+</tr>
+<tr>
+<td><code>src/generators/frontend/mutation_docs_generator.py</code></td>
+<td>150</td>
+<td>Markdown docs</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><code>tests/unit/cli/test_*.py</code></td>
+<td>1500+</td>
+<td>CLI tests</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><strong>TOTAL</strong></td>
+<td>~3200+</td>
+<td>Complete Team E</td>
+<td>-</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="13-quick-start-for-team-e-development">13. Quick Start for Team E Development</h2>
+<h3 id="131-running-current-cli">13.1 Running Current CLI</h3>
+<pre><code class="language-bash"># See current capabilities
+python -m src.cli.generate --help
+
+# Run entities command
+python -m src.cli.generate entities entities/examples/contact_lightweight.yaml
+
+# With table views
+python -m src.cli.generate entities entities/examples/contact_lightweight.yaml --include-tv
+</code></pre>
+<h3 id="132-testing-current-cli">13.2 Testing Current CLI</h3>
+<pre><code class="language-bash"># Current tests (will fail for validate/migrate)
+make teamE-test  # Will run: pytest tests/unit/cli/ -v (currently no tests)
+
+# Run specific test (once created)
+uv run pytest tests/unit/cli/test_generate_command.py -v
+</code></pre>
+<h3 id="133-development-workflow">13.3 Development Workflow</h3>
+<pre><code class="language-bash"># 1. Create test first (TDD)
+vim tests/unit/cli/test_validate_command.py
+
+# 2. Run test (should fail)
+uv run pytest tests/unit/cli/test_validate_command.py -v
+
+# 3. Implement feature
+vim src/cli/validate.py
+
+# 4. Test should pass
+uv run pytest tests/unit/cli/test_validate_command.py -v
+
+# 5. Run all Team E tests
+make teamE-test
+
+# 6. Run all tests
+make test
+</code></pre>
+<hr />
+<h2 id="summary-table-team-e-current-state">Summary Table: Team E Current State</h2>
+<table>
+<thead>
+<tr>
+<th>Aspect</th>
+<th>Status</th>
+<th>% Complete</th>
+<th>Key Files</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>CLI Foundation</strong></td>
+<td>Partial</td>
+<td>20%</td>
+<td><code>src/cli/generate.py</code></td>
+</tr>
+<tr>
+<td><strong>Entry Points</strong></td>
+<td>Partial</td>
+<td>33%</td>
+<td><code>pyproject.toml</code> (1 of 3 working)</td>
+</tr>
+<tr>
+<td><strong>Commands Implemented</strong></td>
+<td>Partial</td>
+<td>13%</td>
+<td>Only <code>entities</code> (1 of 8)</td>
+</tr>
+<tr>
+<td><strong>Orchestration</strong></td>
+<td>Missing</td>
+<td>0%</td>
+<td>No <code>orchestrator.py</code></td>
+</tr>
+<tr>
+<td><strong>Frontend Codegen</strong></td>
+<td>Missing</td>
+<td>0%</td>
+<td>No <code>src/generators/frontend/</code></td>
+</tr>
+<tr>
+<td><strong>Tests</strong></td>
+<td>Missing</td>
+<td>0%</td>
+<td>No <code>tests/unit/cli/</code></td>
+</tr>
+<tr>
+<td><strong>Documentation</strong></td>
+<td>Plan Only</td>
+<td>100%</td>
+<td>TEAM_E_DATABASE_DECISIONS_PLAN.md</td>
+</tr>
+<tr>
+<td><strong>Overall Team E</strong></td>
+<td>Early Stage</td>
+<td>~5%</td>
+<td>Significant work remains</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="notes">Notes</h2>
+<ol>
+<li><strong>Dependencies are ready</strong>: All Teams A-D are complete and functional</li>
+<li><strong>Framework is installed</strong>: Click, Rich, Jinja2, psycopg all in pyproject.toml</li>
+<li><strong>Examples exist</strong>: 5 entity YAML files ready for testing</li>
+<li><strong>Tests can be added</strong>: 100 test files show strong testing culture</li>
+<li><strong>Documentation is thorough</strong>: Both CLAUDE.md and TEAM_E_DATABASE_DECISIONS_PLAN.md provide detailed specs</li>
+</ol>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

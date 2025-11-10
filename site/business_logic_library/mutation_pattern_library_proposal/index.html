@@ -1,0 +1,1241 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Enhancement: Complete Mutation Pattern Library with Business Logic Actions - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Enhancement: Complete Mutation Pattern Library with Business Logic Actions";
+        var mkdocs_page_input_path = "business_logic_library/mutation_pattern_library_proposal.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Enhancement: Complete Mutation Pattern Library with Business Logic Actions</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="enhancement-complete-mutation-pattern-library-with-business-logic-actions">Enhancement: Complete Mutation Pattern Library with Business Logic Actions</h1>
+<h2 id="executive-summary">🎯 Executive Summary</h2>
+<p>SpecQL's generated mutations follow the correct architectural pattern (app wrapper + core logic) and match the PrintOptim reference implementation structure. However, several critical features from the reference implementation are missing, preventing full production readiness.</p>
+<p>This issue proposes building a <strong>comprehensive mutation pattern library</strong> similar to stdlib's reference entity library, allowing users to specify business logic actions in YAML and have complete, production-ready SQL functions generated.</p>
+<hr />
+<h2 id="current-state">🏗️ Current State</h2>
+<p><strong>What Works Well</strong> ✅:
+- Two-tier architecture (app wrapper + core logic)
+- Input type conversion (JSONB → typed composites)
+- Basic validation (required fields, FK existence)
+- Trinity pattern integration (UUID → INTEGER helpers)
+- FraiseQL metadata comments
+- Audit logging via <code>app.log_and_return_mutation()</code>
+- Soft delete implementation</p>
+<p><strong>What's Missing</strong> ⚠️:
+- Partial update support (only update fields present in payload)
+- Duplicate detection (business uniqueness constraints)
+- Identifier recalculation (Trinity identifier pattern)
+- Materialized view refresh (GraphQL projection sync)
+- Hard delete with dependency checking
+- Business action implementations (currently scaffolds only)</p>
+<hr />
+<h2 id="priority-1-core-crud-gaps">📋 Priority 1: Core CRUD Gaps</h2>
+<h3 id="gap-1-partial-updates-case-based-field-updates">Gap #1: Partial Updates (CASE-based Field Updates)</h3>
+<p><strong>Current Behavior</strong>: Generated update functions appear to perform full-field updates.</p>
+<p><strong>Expected Behavior</strong>: Only update fields present in the input payload (like PATCH in REST APIs).</p>
+<p><strong>Reference Implementation</strong> (<code>reference_sql/0_schema/03_functions/034_dim/0344_agreement/03441_contract/034412_update_contract.sql:112-150</code>):</p>
+<pre><code class="language-sql">-- PrintOptim Reference: Partial updates using CASE expressions
+UPDATE tenant.tb_contract
+SET
+    customer_contract_id = CASE WHEN input_payload ? 'customer_contract_id'
+                               THEN input_data.customer_contract_id
+                               ELSE customer_contract_id END,
+    provider_contract_id = CASE WHEN input_payload ? 'provider_contract_id'
+                               THEN input_data.provider_contract_id
+                               ELSE provider_contract_id END,
+    fk_provider_org = CASE WHEN input_payload ? 'provider_id'
+                          THEN input_data.provider_id
+                          ELSE fk_provider_org END,
+    signature_date = CASE WHEN input_payload ? 'signature_date'
+                         THEN input_data.signature_date
+                         ELSE signature_date END,
+    -- ... more fields ...
+    updated_at = NOW(),
+    updated_by = input_updated_by
+WHERE pk_contract = input_pk_entity
+  AND fk_customer_org = input_pk_organization;
+
+-- Track which fields were in the update request
+IF input_payload ? 'customer_contract_id' THEN
+    v_updated_fields := v_updated_fields || ARRAY['customer_contract_id'];
+END IF;
+-- ... more tracking ...
+</code></pre>
+<p><strong>SpecQL Generated</strong> (needs enhancement):</p>
+<pre><code class="language-sql">-- Current: Appears to update all fields regardless of presence
+UPDATE tenant.tb_contract_item
+SET
+    item_identifier = input_data.item_identifier,
+    description = input_data.description,
+    -- ... all fields ...
+    updated_at = now(),
+    updated_by = auth_user_id
+WHERE id = v_contractitem_id;
+</code></pre>
+<p><strong>Proposed SpecQL Enhancement</strong>:</p>
+<pre><code class="language-yaml"># entities/tenant/contract.yaml
+entity: Contract
+schema: tenant
+fields:
+  customer_contract_id: text
+  provider_contract_id: text
+  signature_date: date
+  # ...
+
+actions:
+  - name: update_contract
+    partial_updates: true  # Enable CASE-based partial updates
+    track_updated_fields: true  # Track which fields changed
+</code></pre>
+<p><strong>Impact</strong>:
+- ❌ Current: Client must always send full entity to avoid nullifying fields
+- ✅ Expected: Client can send only changed fields (PATCH semantics)
+- 🎯 <strong>Critical for API usability</strong></p>
+<hr />
+<h3 id="gap-2-duplicate-detection-business-uniqueness-constraints">Gap #2: Duplicate Detection (Business Uniqueness Constraints)</h3>
+<p><strong>Current Behavior</strong>: No duplicate checking beyond database constraints.</p>
+<p><strong>Expected Behavior</strong>: Check business uniqueness rules before INSERT, return structured NOOP if duplicate exists.</p>
+<p><strong>Reference Implementation</strong> (<code>reference_sql/0_schema/03_functions/034_dim/0344_agreement/03441_contract/034411_create_contract.sql:126-169</code>):</p>
+<pre><code class="language-sql">-- PrintOptim Reference: Check for existing contract with business key
+SELECT pk_contract INTO v_existing_id
+FROM tenant.tb_contract
+WHERE fk_customer_org = input_pk_organization
+  AND fk_provider_org = input_data.provider_id
+  AND customer_contract_id = input_data.customer_contract_id
+LIMIT 1;
+
+IF v_existing_id IS NOT NULL THEN
+    SELECT data INTO v_payload_before
+    FROM public.tv_contract
+    WHERE id = v_existing_id;
+
+    v_op := 'NOOP';
+    v_status := 'noop:already_exists';
+    v_message := 'Contract already exists.';
+    v_reason := 'unique_constraint_violation';
+    v_fields := ARRAY[]::TEXT[];
+    v_extra_metadata := jsonb_build_object(
+        'trigger', 'api_create',
+        'status', v_status,
+        'reason', v_reason,
+        'conflict', jsonb_build_object(
+            'client_id', input_pk_organization,
+            'provider_id', input_data.provider_id,
+            'customer_contract_id', input_data.customer_contract_id,
+            'conflict_object', v_payload_before
+        )
+    );
+
+    RETURN core.log_and_return_mutation(
+        input_pk_organization,
+        input_created_by,
+        v_entity,
+        v_existing_id,
+        v_op,
+        v_status,
+        v_fields,
+        v_message,
+        v_payload_before,
+        v_payload_before,
+        v_extra_metadata
+    );
+END IF;
+</code></pre>
+<p><strong>SpecQL Generated</strong> (needs enhancement):</p>
+<pre><code class="language-sql">-- Current: No duplicate detection
+INSERT INTO tenant.tb_contract_item (...)
+VALUES (...);
+-- May fail with generic constraint violation
+</code></pre>
+<p><strong>Proposed SpecQL Enhancement</strong>:</p>
+<pre><code class="language-yaml"># entities/tenant/contract.yaml
+entity: Contract
+schema: tenant
+fields:
+  customer_contract_id: text
+  provider_org: ref(Organization)
+  # ...
+
+constraints:
+  - name: unique_customer_provider_contract
+    type: unique
+    fields: [customer_org, provider_org, customer_contract_id]
+    check_on_create: true
+    error_message: &quot;Contract already exists for this customer/provider/contract_id combination&quot;
+    return_conflict_object: true  # Include existing entity in NOOP response
+
+actions:
+  - name: create_contract
+    duplicate_detection: true  # Generate duplicate check code
+</code></pre>
+<p><strong>Impact</strong>:
+- ❌ Current: Generic constraint violation error
+- ✅ Expected: Structured NOOP response with conflict details
+- 🎯 <strong>Critical for API error handling and idempotency</strong></p>
+<hr />
+<h3 id="gap-3-identifier-recalculation-trinity-identifier-pattern">Gap #3: Identifier Recalculation (Trinity Identifier Pattern)</h3>
+<p><strong>Current Behavior</strong>: No automatic identifier recalculation after INSERT/UPDATE.</p>
+<p><strong>Expected Behavior</strong>: After creating/updating an entity, recalculate its business identifier based on domain rules.</p>
+<p><strong>Reference Implementation</strong> (<code>reference_sql/0_schema/03_functions/034_dim/0344_agreement/03441_contract/034411_create_contract.sql:214-215</code>):</p>
+<pre><code class="language-sql">-- PrintOptim Reference: Recalculate identifier after INSERT
+INSERT INTO tenant.tb_contract (
+    pk_contract,
+    fk_customer_org,
+    identifier,  -- Initially: 'pending:' || uuid
+    -- ... other fields ...
+) VALUES (
+    v_id,
+    input_pk_organization,
+    v_initial_identifier,  -- 'pending:01234567-...'
+    -- ...
+);
+
+-- Recalculate business identifier
+PERFORM core.recalcid_contract(v_ctx);
+-- Updates identifier to: 'CONTRACT-2024-001' or similar
+
+-- Refresh the contract projection
+PERFORM app.refresh_single_contract(v_id);
+</code></pre>
+<p><strong>Corresponding Recalculation Function</strong> (<code>reference_sql/0_schema/03_functions/030_common/0301_recalcid/</code>):</p>
+<pre><code class="language-sql">-- Example: core.recalcid_contract
+CREATE OR REPLACE FUNCTION core.recalcid_contract(
+    ctx core.recalculation_context
+) RETURNS VOID
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_new_identifier TEXT;
+BEGIN
+    -- Business logic to calculate identifier
+    SELECT 'CONTRACT-' ||
+           to_char(signature_date, 'YYYY') || '-' ||
+           lpad(seq_number::TEXT, 3, '0')
+    INTO v_new_identifier
+    FROM tenant.tb_contract
+    WHERE pk_contract = ctx.entity_id;
+
+    -- Update the identifier
+    UPDATE tenant.tb_contract
+    SET identifier = v_new_identifier
+    WHERE pk_contract = ctx.entity_id;
+END;
+$$;
+</code></pre>
+<p><strong>SpecQL Generated</strong> (needs enhancement):</p>
+<pre><code class="language-sql">-- Current: No identifier recalculation
+INSERT INTO tenant.tb_contract_item (...)
+VALUES (...);
+-- identifier remains NULL or initial value
+</code></pre>
+<p><strong>Proposed SpecQL Enhancement</strong>:</p>
+<pre><code class="language-yaml"># entities/tenant/contract.yaml
+entity: Contract
+schema: tenant
+fields:
+  customer_contract_id: text
+  signature_date: date
+  # ... (identifier is auto-added by Trinity pattern)
+
+identifier:
+  pattern: &quot;CONTRACT-{signature_date:YYYY}-{sequence:03d}&quot;
+  sequence:
+    scope: [customer_org]  # Reset sequence per customer
+    group_by: [signature_date:YYYY]  # Reset yearly
+  recalculate_on: [create, update]  # When to recalculate
+
+actions:
+  - name: create_contract
+    recalculate_identifier: true  # Generate recalculation call
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">-- SpecQL should generate:
+INSERT INTO tenant.tb_contract (..., identifier, ...)
+VALUES (..., 'pending:' || v_contract_id, ...);
+
+-- Call auto-generated recalculation function
+PERFORM tenant.recalcid_contract(
+    v_contract_id,
+    auth_tenant_id,
+    auth_user_id
+);
+</code></pre>
+<p><strong>Impact</strong>:
+- ❌ Current: Identifiers remain pending or NULL
+- ✅ Expected: Human-readable business identifiers auto-generated
+- 🎯 <strong>Critical for business processes and user experience</strong></p>
+<hr />
+<h3 id="gap-4-materialized-view-refresh-graphql-projection-sync">Gap #4: Materialized View Refresh (GraphQL Projection Sync)</h3>
+<p><strong>Current Behavior</strong>: No view refresh after mutations.</p>
+<p><strong>Expected Behavior</strong>: Refresh GraphQL projections (materialized views) after mutations to keep data in sync.</p>
+<p><strong>Reference Implementation</strong> (<code>reference_sql/0_schema/03_functions/034_dim/0344_agreement/03441_contract/034411_create_contract.sql:218</code>):</p>
+<pre><code class="language-sql">-- PrintOptim Reference: Refresh projection after mutation
+INSERT INTO tenant.tb_contract (...) VALUES (...);
+
+PERFORM core.recalcid_contract(v_ctx);
+
+-- Refresh the contract projection (for GraphQL queries)
+PERFORM app.refresh_single_contract(v_id);
+
+-- Final payload from materialized view
+SELECT data INTO v_payload_after
+FROM public.tv_contract  -- Materialized view with JOINs
+WHERE id = v_id;
+</code></pre>
+<p><strong>Refresh Function Pattern</strong>:</p>
+<pre><code class="language-sql">-- Example: app.refresh_single_contract
+CREATE OR REPLACE FUNCTION app.refresh_single_contract(
+    input_pk_contract UUID
+) RETURNS VOID
+LANGUAGE plpgsql AS $$
+BEGIN
+    -- Refresh materialized view row for this entity
+    DELETE FROM public.tv_contract WHERE id = input_pk_contract;
+
+    INSERT INTO public.tv_contract
+    SELECT
+        c.pk_contract AS id,
+        c.identifier,
+        jsonb_build_object(
+            'id', c.pk_contract,
+            'identifier', c.identifier,
+            'customer', jsonb_build_object('id', org.pk_organization, 'name', org.name),
+            'provider', jsonb_build_object('id', prov.pk_organization, 'name', prov.name),
+            'currency', jsonb_build_object('code', curr.iso_code, 'symbol', curr.symbol),
+            'contractItems', (SELECT jsonb_agg(ci.*) FROM tenant.tb_contract_item ci WHERE ci.fk_contract = c.id)
+        ) AS data
+    FROM tenant.tb_contract c
+    LEFT JOIN management.tb_organization org ON c.fk_customer_org = org.pk_organization
+    LEFT JOIN management.tb_organization prov ON c.fk_provider_org = prov.pk_organization
+    LEFT JOIN catalog.tb_currency curr ON c.fk_currency = curr.pk_currency
+    WHERE c.pk_contract = input_pk_contract;
+END;
+$$;
+</code></pre>
+<p><strong>SpecQL Generated</strong> (needs enhancement):</p>
+<pre><code class="language-sql">-- Current: No view refresh
+INSERT INTO tenant.tb_contract_item (...)
+VALUES (...);
+
+-- Return from base table
+RETURN app.log_and_return_mutation(
+    ...,
+    (SELECT row_to_json(t.*) FROM tenant.tb_contract_item t WHERE t.id = v_contractitem_id)::JSONB,
+    NULL
+);
+-- GraphQL projection is stale!
+</code></pre>
+<p><strong>Proposed SpecQL Enhancement</strong>:</p>
+<pre><code class="language-yaml"># entities/tenant/contract.yaml
+entity: Contract
+schema: tenant
+fields:
+  customer_org: ref(Organization)
+  provider_org: ref(Organization)
+  currency: ref(Currency)
+  # ...
+
+projections:
+  - name: graphql_view
+    materialize: true
+    refresh_on: [create, update, delete]
+    includes:
+      - customer_org: [id, name, code]
+      - provider_org: [id, name, code]
+      - currency: [iso_code, symbol]
+      - contract_items: [id, description, quantity]
+
+actions:
+  - name: create_contract
+    refresh_projection: graphql_view
+  - name: update_contract
+    refresh_projection: graphql_view
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">-- SpecQL should generate view refresh function
+CREATE OR REPLACE FUNCTION tenant.refresh_contract_projection(
+    entity_id UUID,
+    tenant_id UUID
+) RETURNS VOID AS $$ ... $$;
+
+-- And call it after mutation
+INSERT INTO tenant.tb_contract (...) VALUES (...);
+PERFORM tenant.recalcid_contract(v_contract_id, auth_tenant_id, auth_user_id);
+PERFORM tenant.refresh_contract_projection(v_contract_id, auth_tenant_id);
+
+-- Return from projection
+SELECT data INTO v_payload_after
+FROM tenant.v_contract_projection
+WHERE id = v_contract_id;
+</code></pre>
+<p><strong>Impact</strong>:
+- ❌ Current: GraphQL queries return stale data
+- ✅ Expected: GraphQL queries immediately reflect mutations
+- 🎯 <strong>Critical for GraphQL API correctness</strong></p>
+<hr />
+<h2 id="priority-2-enhanced-crud-features">📋 Priority 2: Enhanced CRUD Features</h2>
+<h3 id="gap-5-hard-delete-with-dependency-checking">Gap #5: Hard Delete with Dependency Checking</h3>
+<p><strong>Current Behavior</strong>: Only soft delete (sets <code>deleted_at</code>).</p>
+<p><strong>Expected Behavior</strong>: Support hard delete (physical removal) with dependency checking, configurable per entity.</p>
+<p><strong>Reference Implementation</strong> (<code>reference_sql/0_schema/03_functions/034_dim/0345_mat/03451_machine/034513_delete_machine.sql</code>):</p>
+<pre><code class="language-sql">-- PrintOptim Reference: Hard delete with dependency checks
+CREATE OR REPLACE FUNCTION core.delete_machine(
+    input_pk_entity UUID,
+    input_pk_organization UUID,
+    input_hard_delete BOOLEAN,
+    input_deleted_by UUID
+) RETURNS app.mutation_result
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_has_dependencies BOOLEAN := FALSE;
+    v_dependency_details JSONB;
+BEGIN
+    -- Check for dependencies
+    SELECT
+        COUNT(*) &gt; 0,
+        jsonb_build_object(
+            'allocations', (SELECT COUNT(*) FROM tenant.tb_allocation WHERE fk_machine = input_pk_entity),
+            'orders', (SELECT COUNT(*) FROM tenant.tb_order_line WHERE fk_machine = input_pk_entity),
+            'machine_items', (SELECT COUNT(*) FROM tenant.tb_machine_item WHERE fk_machine = input_pk_entity)
+        )
+    INTO v_has_dependencies, v_dependency_details
+    FROM tenant.tb_allocation
+    WHERE fk_machine = input_pk_entity;
+
+    -- If hard delete requested but dependencies exist, block it
+    IF input_hard_delete AND v_has_dependencies THEN
+        RETURN core.log_and_return_mutation(
+            input_pk_organization,
+            input_deleted_by,
+            'machine',
+            input_pk_entity,
+            'NOOP',
+            'noop:cannot_delete_machine_with_dependencies',
+            ARRAY[]::TEXT[],
+            'Cannot hard delete machine with dependencies',
+            NULL, NULL,
+            jsonb_build_object(
+                'reason', 'has_dependencies',
+                'dependencies', v_dependency_details,
+                'suggestion', 'Use soft delete or remove dependencies first'
+            )
+        );
+    END IF;
+
+    -- Hard delete if requested and no dependencies
+    IF input_hard_delete AND NOT v_has_dependencies THEN
+        DELETE FROM tenant.tb_machine
+        WHERE pk_machine = input_pk_entity
+          AND fk_customer_org = input_pk_organization;
+
+        RETURN core.log_and_return_mutation(..., 'DELETE', 'deleted', ...);
+    END IF;
+
+    -- Soft delete (default)
+    UPDATE tenant.tb_machine
+    SET deleted_at = NOW(), deleted_by = input_deleted_by
+    WHERE pk_machine = input_pk_entity
+      AND fk_customer_org = input_pk_organization;
+
+    RETURN core.log_and_return_mutation(..., 'UPDATE', 'updated', ...);
+END;
+$$;
+</code></pre>
+<p><strong>SpecQL Generated</strong> (needs enhancement):</p>
+<pre><code class="language-sql">-- Current: Soft delete only
+UPDATE tenant.tb_contract_item
+SET deleted_at = now(), deleted_by = auth_user_id
+WHERE id = v_contractitem_id;
+</code></pre>
+<p><strong>Proposed SpecQL Enhancement</strong>:</p>
+<pre><code class="language-yaml"># entities/tenant/machine.yaml
+entity: Machine
+schema: tenant
+fields:
+  serial_number: text
+  # ...
+
+delete_policy:
+  default: soft  # soft or hard
+  allow_hard_delete: true
+  check_dependencies:
+    - entity: Allocation
+      field: machine
+      block_hard_delete: true
+      error_message: &quot;Cannot delete machine with active allocations&quot;
+    - entity: OrderLine
+      field: machine
+      block_hard_delete: true
+    - entity: MachineItem
+      field: machine
+      cascade: soft_delete  # Soft delete children instead of blocking
+
+actions:
+  - name: delete_machine
+    supports_hard_delete: true
+    dependency_check: true
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION app.delete_machine(
+    auth_tenant_id UUID,
+    auth_user_id UUID,
+    input_payload JSONB  -- {id: UUID, hard_delete?: boolean}
+) RETURNS app.mutation_result AS $$
+DECLARE
+    input_hard_delete BOOLEAN := COALESCE((input_payload-&gt;&gt;'hard_delete')::BOOLEAN, FALSE);
+BEGIN
+    -- Check dependencies if hard delete requested
+    -- Perform soft or hard delete based on input
+    -- Return appropriate mutation_result
+END;
+$$;
+</code></pre>
+<p><strong>Impact</strong>:
+- ❌ Current: Cannot physically remove test/invalid data
+- ✅ Expected: Flexible delete strategy with safety checks
+- 🎯 <strong>Important for data maintenance and compliance (GDPR)</strong></p>
+<hr />
+<h2 id="priority-3-business-logic-action-library">📋 Priority 3: Business Logic Action Library</h2>
+<h3 id="gap-6-business-action-implementation-library">Gap #6: Business Action Implementation Library</h3>
+<p><strong>Current Behavior</strong>: Business actions generate scaffolds with placeholder implementations.</p>
+<p><strong>Expected Behavior</strong>: Library of common business action patterns that can be composed and customized.</p>
+<p><strong>Reference Implementation Examples</strong>:</p>
+<h4 id="example-1-state-machine-transition-decommission_machine">Example 1: State Machine Transition (<code>decommission_machine</code>)</h4>
+<pre><code class="language-sql">-- PrintOptim Reference: Complex state machine transition
+CREATE OR REPLACE FUNCTION core.decommission_machine(
+    input_pk_entity UUID,
+    input_pk_organization UUID,
+    input_data app.type_decommission_input,
+    input_payload JSONB,
+    input_user_id UUID
+) RETURNS app.mutation_result
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_machine tenant.tb_machine%ROWTYPE;
+    v_active_allocations INTEGER;
+BEGIN
+    -- Load current machine
+    SELECT * INTO v_machine
+    FROM tenant.tb_machine
+    WHERE pk_machine = input_pk_entity
+      AND fk_customer_org = input_pk_organization;
+
+    -- Check current status
+    IF v_machine.status != 'active' THEN
+        RETURN core.log_and_return_mutation(
+            ..., 'NOOP', 'noop:invalid_status_transition',
+            'Can only decommission active machines', ...
+        );
+    END IF;
+
+    -- Check for active allocations
+    SELECT COUNT(*) INTO v_active_allocations
+    FROM tenant.tb_allocation
+    WHERE fk_machine = input_pk_entity
+      AND status = 'active';
+
+    IF v_active_allocations &gt; 0 THEN
+        RETURN core.log_and_return_mutation(
+            ..., 'NOOP', 'noop:has_active_allocations',
+            'Cannot decommission machine with active allocations', ...
+        );
+    END IF;
+
+    -- Update machine status
+    UPDATE tenant.tb_machine
+    SET
+        status = 'decommissioned',
+        decommission_date = input_data.decommission_date,
+        decommission_reason = input_data.reason,
+        updated_at = NOW(),
+        updated_by = input_user_id
+    WHERE pk_machine = input_pk_entity;
+
+    -- Archive related data
+    UPDATE tenant.tb_machine_item
+    SET status = 'archived'
+    WHERE fk_machine = input_pk_entity;
+
+    -- Log event
+    INSERT INTO tenant.tb_machine_event (fk_machine, event_type, event_data)
+    VALUES (input_pk_entity, 'decommissioned', input_payload);
+
+    -- Refresh projection
+    PERFORM app.refresh_single_machine(input_pk_entity);
+
+    RETURN core.log_and_return_mutation(
+        ..., 'UPDATE', 'success', 'Machine decommissioned', ...
+    );
+END;
+$$;
+</code></pre>
+<h4 id="example-2-multi-entity-operation-allocate_to_stock">Example 2: Multi-Entity Operation (<code>allocate_to_stock</code>)</h4>
+<pre><code class="language-sql">-- PrintOptim Reference: Multi-table allocation
+CREATE OR REPLACE FUNCTION core.allocate_to_stock(
+    input_pk_organization UUID,
+    input_data app.type_allocation_input,
+    input_payload JSONB,
+    input_user_id UUID
+) RETURNS app.mutation_result
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_allocation_id UUID := gen_random_uuid();
+    v_machine_id UUID;
+    v_stock_location_id UUID;
+BEGIN
+    -- Validate machine availability
+    SELECT pk_machine INTO v_machine_id
+    FROM tenant.tb_machine
+    WHERE pk_machine = input_data.machine_id
+      AND fk_customer_org = input_pk_organization
+      AND status = 'available'
+      AND deleted_at IS NULL;
+
+    IF v_machine_id IS NULL THEN
+        RETURN core.log_and_return_mutation(
+            ..., 'NOOP', 'noop:machine_not_available', ...
+        );
+    END IF;
+
+    -- Get or create stock location
+    SELECT pk_location INTO v_stock_location_id
+    FROM tenant.tb_location
+    WHERE code = 'STOCK'
+      AND fk_customer_org = input_pk_organization;
+
+    IF v_stock_location_id IS NULL THEN
+        -- Create stock location
+        INSERT INTO tenant.tb_location (pk_location, fk_customer_org, code, name)
+        VALUES (gen_random_uuid(), input_pk_organization, 'STOCK', 'Stock')
+        RETURNING pk_location INTO v_stock_location_id;
+    END IF;
+
+    -- Create allocation
+    INSERT INTO tenant.tb_allocation (
+        pk_allocation,
+        fk_customer_org,
+        fk_machine,
+        fk_location,
+        allocation_type,
+        status,
+        allocated_at,
+        created_by
+    ) VALUES (
+        v_allocation_id,
+        input_pk_organization,
+        v_machine_id,
+        v_stock_location_id,
+        'stock',
+        'active',
+        NOW(),
+        input_user_id
+    );
+
+    -- Update machine status
+    UPDATE tenant.tb_machine
+    SET
+        status = 'in_stock',
+        current_location = v_stock_location_id,
+        updated_at = NOW()
+    WHERE pk_machine = v_machine_id;
+
+    -- Log event
+    INSERT INTO tenant.tb_allocation_event (fk_allocation, event_type)
+    VALUES (v_allocation_id, 'allocated_to_stock');
+
+    -- Refresh projections
+    PERFORM app.refresh_single_machine(v_machine_id);
+    PERFORM app.refresh_single_allocation(v_allocation_id);
+
+    RETURN core.log_and_return_mutation(
+        ..., 'INSERT', 'success', 'Machine allocated to stock', ...
+    );
+END;
+$$;
+</code></pre>
+<h4 id="example-3-batch-operation-bulk_update_prices">Example 3: Batch Operation (<code>bulk_update_prices</code>)</h4>
+<pre><code class="language-sql">-- PrintOptim Reference: Batch operation with transaction
+CREATE OR REPLACE FUNCTION core.bulk_update_prices(
+    input_pk_organization UUID,
+    input_data app.type_bulk_price_update_input,
+    input_payload JSONB,
+    input_user_id UUID
+) RETURNS app.mutation_result
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_updated_count INTEGER := 0;
+    v_failed_count INTEGER := 0;
+    v_failed_items JSONB := '[]'::JSONB;
+    v_price_item JSONB;
+BEGIN
+    -- Iterate over price updates
+    FOR v_price_item IN SELECT * FROM jsonb_array_elements(input_data.price_updates)
+    LOOP
+        BEGIN
+            UPDATE tenant.tb_contract_item
+            SET
+                unit_price = (v_price_item-&gt;&gt;'unit_price')::DECIMAL,
+                updated_at = NOW(),
+                updated_by = input_user_id
+            WHERE pk_contract_item = (v_price_item-&gt;&gt;'id')::UUID
+              AND fk_customer_org = input_pk_organization;
+
+            IF FOUND THEN
+                v_updated_count := v_updated_count + 1;
+            ELSE
+                v_failed_count := v_failed_count + 1;
+                v_failed_items := v_failed_items || jsonb_build_object(
+                    'id', v_price_item-&gt;&gt;'id',
+                    'reason', 'not_found'
+                );
+            END IF;
+        EXCEPTION WHEN OTHERS THEN
+            v_failed_count := v_failed_count + 1;
+            v_failed_items := v_failed_items || jsonb_build_object(
+                'id', v_price_item-&gt;&gt;'id',
+                'reason', SQLERRM
+            );
+        END;
+    END LOOP;
+
+    -- Refresh affected contracts
+    PERFORM app.refresh_contracts_by_org(input_pk_organization);
+
+    RETURN core.log_and_return_mutation(
+        input_pk_organization,
+        input_user_id,
+        'contract_item',
+        '00000000-0000-0000-0000-000000000000'::UUID,
+        'BATCH_UPDATE',
+        'success',
+        ARRAY[]::TEXT[],
+        format('Updated %s prices, %s failed', v_updated_count, v_failed_count),
+        NULL,
+        NULL,
+        jsonb_build_object(
+            'updated_count', v_updated_count,
+            'failed_count', v_failed_count,
+            'failed_items', v_failed_items
+        )
+    );
+END;
+$$;
+</code></pre>
+<p><strong>Proposed SpecQL Action Library</strong>:</p>
+<pre><code class="language-yaml"># Library: stdlib/actions/state_machine.yaml
+action_pattern: state_machine
+description: &quot;Transition entity between states with validation&quot;
+parameters:
+  - name: from_states
+    type: array
+    description: &quot;Valid source states for transition&quot;
+  - name: to_state
+    type: string
+    description: &quot;Target state&quot;
+  - name: validation_checks
+    type: array
+    description: &quot;Pre-transition validations&quot;
+  - name: side_effects
+    type: array
+    description: &quot;Updates to perform on success&quot;
+
+# Library: stdlib/actions/multi_entity_operation.yaml
+action_pattern: multi_entity_operation
+description: &quot;Coordinate changes across multiple entities&quot;
+parameters:
+  - name: primary_entity
+    type: string
+  - name: related_updates
+    type: array
+    description: &quot;Updates to related entities&quot;
+  - name: transaction_scope
+    type: string
+    default: &quot;serializable&quot;
+
+# Library: stdlib/actions/batch_operation.yaml
+action_pattern: batch_operation
+description: &quot;Process multiple records in a single transaction&quot;
+parameters:
+  - name: batch_input
+    type: array
+  - name: error_handling
+    type: enum
+    values: [stop_on_error, continue_on_error, rollback_on_any_error]
+  - name: batch_size
+    type: integer
+    default: 100
+</code></pre>
+<p><strong>Usage in Entity YAML</strong>:</p>
+<pre><code class="language-yaml"># entities/tenant/machine.yaml
+entity: Machine
+schema: tenant
+fields:
+  status: enum(available, in_stock, allocated, decommissioned, maintenance)
+  decommission_date: date
+  decommission_reason: text
+
+actions:
+  # CRUD (auto-generated)
+  - name: create_machine
+  - name: update_machine
+  - name: delete_machine
+
+  # Business actions using library patterns
+  - name: decommission_machine
+    pattern: state_machine
+    from_states: [active, maintenance]
+    to_state: decommissioned
+    validation_checks:
+      - check: no_active_allocations
+        entity: Allocation
+        condition: &quot;status = 'active' AND machine_id = $entity_id&quot;
+        error: &quot;Cannot decommission machine with active allocations&quot;
+    side_effects:
+      - entity: MachineItem
+        update:
+          status: archived
+        where: &quot;machine_id = $entity_id&quot;
+      - entity: MachineEvent
+        insert:
+          machine_id: $entity_id
+          event_type: 'decommissioned'
+          event_data: $input_payload
+    refresh_projections: [machine_projection]
+    input_fields:
+      - decommission_date: {type: date, required: true}
+      - decommission_reason: {type: text, required: true}
+
+  - name: allocate_to_stock
+    pattern: multi_entity_operation
+    description: &quot;Allocate machine to stock location&quot;
+    primary_entity: Machine
+    validations:
+      - field: status
+        equals: available
+        error: &quot;Only available machines can be allocated to stock&quot;
+    operations:
+      - action: get_or_create
+        entity: Location
+        where: {code: 'STOCK', customer_org: $auth_tenant_id}
+        create_if_missing:
+          code: STOCK
+          name: Stock
+          customer_org: $auth_tenant_id
+        store_as: stock_location_id
+
+      - action: insert
+        entity: Allocation
+        values:
+          customer_org: $auth_tenant_id
+          machine_id: $entity_id
+          location_id: $stock_location_id
+          allocation_type: stock
+          status: active
+          allocated_at: now()
+        store_as: allocation_id
+
+      - action: update
+        entity: Machine
+        where: {id: $entity_id}
+        values:
+          status: in_stock
+          current_location: $stock_location_id
+
+      - action: insert
+        entity: AllocationEvent
+        values:
+          allocation_id: $allocation_id
+          event_type: allocated_to_stock
+
+    refresh_projections: [machine_projection, allocation_projection]
+    return_entity: Allocation
+    return_id: $allocation_id
+
+# entities/tenant/contract_item.yaml
+actions:
+  - name: bulk_update_prices
+    pattern: batch_operation
+    description: &quot;Update prices for multiple contract items&quot;
+    input_type:
+      price_updates:
+        type: array
+        items:
+          id: uuid
+          unit_price: decimal
+    error_handling: continue_on_error
+    batch_processing:
+      for_each: price_updates
+      update:
+        entity: ContractItem
+        where: {id: $item.id, customer_org: $auth_tenant_id}
+        set:
+          unit_price: $item.unit_price
+      collect_errors: true
+    refresh_projections: [contract_projection]
+    return_summary:
+      updated_count: count(success)
+      failed_count: count(failed)
+      failed_items: collect(failed, [id, reason])
+</code></pre>
+<p><strong>Generated SQL</strong> (for <code>decommission_machine</code>):</p>
+<pre><code class="language-sql">-- SpecQL generates full implementation from pattern
+CREATE OR REPLACE FUNCTION tenant.decommission_machine(
+    auth_tenant_id UUID,
+    input_data app.type_decommission_machine_input,
+    input_payload JSONB,
+    auth_user_id UUID
+) RETURNS app.mutation_result
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_machine_id UUID := input_data.id;
+    v_current_status TEXT;
+    v_active_allocations INTEGER;
+BEGIN
+    -- Load and validate current state
+    SELECT status INTO v_current_status
+    FROM tenant.tb_machine
+    WHERE id = v_machine_id
+      AND tenant_id = auth_tenant_id;
+
+    -- State machine validation: from_states check
+    IF v_current_status NOT IN ('active', 'maintenance') THEN
+        RETURN app.log_and_return_mutation(
+            auth_tenant_id, auth_user_id, 'machine', v_machine_id,
+            'NOOP', 'validation:invalid_state_transition',
+            ARRAY[]::TEXT[],
+            format('Cannot decommission machine in state %s', v_current_status),
+            NULL, NULL,
+            jsonb_build_object(
+                'current_state', v_current_status,
+                'valid_states', ARRAY['active', 'maintenance']
+            )
+        );
+    END IF;
+
+    -- Validation check: no_active_allocations
+    SELECT COUNT(*) INTO v_active_allocations
+    FROM tenant.tb_allocation
+    WHERE machine_id = v_machine_id
+      AND status = 'active'
+      AND tenant_id = auth_tenant_id;
+
+    IF v_active_allocations &gt; 0 THEN
+        RETURN app.log_and_return_mutation(
+            auth_tenant_id, auth_user_id, 'machine', v_machine_id,
+            'NOOP', 'validation:has_active_allocations',
+            ARRAY[]::TEXT[],
+            'Cannot decommission machine with active allocations',
+            NULL, NULL,
+            jsonb_build_object('active_allocations', v_active_allocations)
+        );
+    END IF;
+
+    -- Primary state transition
+    UPDATE tenant.tb_machine
+    SET
+        status = 'decommissioned',
+        decommission_date = input_data.decommission_date,
+        decommission_reason = input_data.decommission_reason,
+        updated_at = now(),
+        updated_by = auth_user_id
+    WHERE id = v_machine_id
+      AND tenant_id = auth_tenant_id;
+
+    -- Side effect: Update MachineItem
+    UPDATE tenant.tb_machine_item
+    SET status = 'archived', updated_at = now()
+    WHERE machine_id = v_machine_id
+      AND tenant_id = auth_tenant_id;
+
+    -- Side effect: Insert MachineEvent
+    INSERT INTO tenant.tb_machine_event (
+        tenant_id, machine_id, event_type, event_data, created_by
+    ) VALUES (
+        auth_tenant_id, v_machine_id, 'decommissioned',
+        input_payload, auth_user_id
+    );
+
+    -- Refresh projection
+    PERFORM tenant.refresh_machine_projection(v_machine_id, auth_tenant_id);
+
+    RETURN app.log_and_return_mutation(
+        auth_tenant_id, auth_user_id, 'machine', v_machine_id,
+        'UPDATE', 'success',
+        ARRAY['status', 'decommission_date', 'decommission_reason'],
+        'Machine decommissioned successfully',
+        (SELECT row_to_json(t.*) FROM tenant.v_machine_projection t WHERE t.id = v_machine_id)::JSONB,
+        NULL
+    );
+END;
+$$;
+</code></pre>
+<p><strong>Impact</strong>:
+- ❌ Current: Business actions are scaffolds requiring manual implementation
+- ✅ Expected: Declarative business logic with full implementation generated
+- 🎯 <strong>Critical for rapid development of production-ready backends</strong></p>
+<hr />
+<h2 id="proposed-solution-mutation-pattern-library">🎯 Proposed Solution: Mutation Pattern Library</h2>
+<h3 id="architecture">Architecture</h3>
+<pre><code>specql/
+├── stdlib/
+│   ├── entities/           # Reference entities (existing)
+│   └── actions/            # Action pattern library (NEW)
+│       ├── crud/
+│       │   ├── create.yaml
+│       │   ├── update.yaml           # With partial updates
+│       │   ├── delete.yaml           # With hard/soft + dependencies
+│       │   └── duplicate_check.yaml
+│       ├── state_machine/
+│       │   ├── transition.yaml
+│       │   └── validation_rules.yaml
+│       ├── multi_entity/
+│       │   ├── coordinated_update.yaml
+│       │   └── cascading_changes.yaml
+│       ├── batch/
+│       │   ├── bulk_operation.yaml
+│       │   └── error_handling.yaml
+│       └── common/
+│           ├── identifier_recalc.yaml
+│           ├── projection_refresh.yaml
+│           └── audit_logging.yaml
+</code></pre>
+<h3 id="benefits">Benefits</h3>
+<ol>
+<li><strong>Declarative Business Logic</strong>: Specify "what" not "how"</li>
+<li><strong>Consistency</strong>: All actions follow same patterns</li>
+<li><strong>Reusability</strong>: Import common patterns like stdlib entities</li>
+<li><strong>Type Safety</strong>: Validated at YAML level before SQL generation</li>
+<li><strong>Maintainability</strong>: Update pattern library, regenerate all implementations</li>
+<li><strong>Documentation</strong>: Patterns are self-documenting</li>
+<li><strong>Testing</strong>: Pattern library can have comprehensive test suite</li>
+</ol>
+<h3 id="example-usage">Example Usage</h3>
+<pre><code class="language-yaml"># Import action patterns (like importing stdlib entities)
+imports:
+  - from: stdlib/actions/state_machine
+    use: [transition, validation_rules]
+  - from: stdlib/actions/multi_entity
+    use: [coordinated_update]
+
+entity: Machine
+schema: tenant
+
+actions:
+  # Simple reference to library pattern
+  - name: create_machine
+    extends: stdlib/actions/crud/create
+    duplicate_check:
+      fields: [customer_org, serial_number]
+
+  # Compose patterns
+  - name: decommission_machine
+    extends: stdlib/actions/state_machine/transition
+    config:
+      from_states: [active, maintenance]
+      to_state: decommissioned
+      validations:
+        - no_active_allocations
+      side_effects:
+        - archive_machine_items
+        - log_decommission_event
+</code></pre>
+<hr />
+<h2 id="implementation-roadmap">🚀 Implementation Roadmap</h2>
+<h3 id="phase-1-core-crud-enhancements-2-3-weeks">Phase 1: Core CRUD Enhancements (2-3 weeks)</h3>
+<ul>
+<li>[ ] Implement partial updates (CASE expressions)</li>
+<li>[ ] Add duplicate detection pattern</li>
+<li>[ ] Add identifier recalculation hooks</li>
+<li>[ ] Add projection refresh support</li>
+</ul>
+<h3 id="phase-2-enhanced-delete-1-week">Phase 2: Enhanced Delete (1 week)</h3>
+<ul>
+<li>[ ] Implement hard delete option</li>
+<li>[ ] Add dependency checking</li>
+<li>[ ] Add cascade configuration</li>
+</ul>
+<h3 id="phase-3-action-pattern-library-4-6-weeks">Phase 3: Action Pattern Library (4-6 weeks)</h3>
+<ul>
+<li>[ ] Design pattern library structure</li>
+<li>[ ] Implement state machine pattern</li>
+<li>[ ] Implement multi-entity operation pattern</li>
+<li>[ ] Implement batch operation pattern</li>
+<li>[ ] Create pattern documentation</li>
+<li>[ ] Add pattern validation</li>
+</ul>
+<h3 id="phase-4-migration-testing-2-3-weeks">Phase 4: Migration &amp; Testing (2-3 weeks)</h3>
+<ul>
+<li>[ ] Migrate reference implementation patterns</li>
+<li>[ ] Create pattern test suite</li>
+<li>[ ] Document migration guide</li>
+<li>[ ] Create example entities using all patterns</li>
+</ul>
+<hr />
+<h2 id="success-criteria">📚 Success Criteria</h2>
+<ol>
+<li>✅ All CRUD operations support partial updates</li>
+<li>✅ Duplicate detection works for business uniqueness constraints</li>
+<li>✅ Identifiers auto-recalculate after mutations</li>
+<li>✅ GraphQL projections stay in sync via auto-refresh</li>
+<li>✅ Hard delete with dependency checking available</li>
+<li>✅ State machine pattern generates correct validation logic</li>
+<li>✅ Multi-entity operations maintain transactional integrity</li>
+<li>✅ Batch operations handle errors gracefully</li>
+<li>✅ Action library has 90%+ test coverage</li>
+<li>✅ Full PrintOptim reference implementation can be expressed in YAML + patterns</li>
+</ol>
+<hr />
+<h2 id="related-context">🔗 Related Context</h2>
+<ul>
+<li><strong>Reference Implementation</strong>: PrintOptim backend (<code>reference_sql/0_schema/03_functions/</code>)</li>
+<li><strong>Current Generated Code</strong>: <code>specql/db/schema/30_functions/</code></li>
+<li><strong>PrintOptim Analysis</strong>: See detailed comparison in project documentation</li>
+<li><strong>SpecQL Architecture</strong>: Two-tier functions (app wrapper + core logic)</li>
+<li><strong>Trinity Pattern</strong>: UUID (pk) + INTEGER (id) + TEXT (identifier)</li>
+<li><strong>FraiseQL</strong>: GraphQL metadata in SQL comments</li>
+</ul>
+<hr />
+<h2 id="discussion-points">💬 Discussion Points</h2>
+<ol>
+<li>Should action patterns be YAML or a DSL?</li>
+<li>How to handle custom business logic that doesn't fit patterns?</li>
+<li>Should we support pattern composition (combining multiple patterns)?</li>
+<li>How to version the pattern library?</li>
+<li>Should patterns generate tests automatically?</li>
+</ol>
+<hr />
+<p><strong>Priority</strong>: High
+<strong>Complexity</strong>: Medium-High
+<strong>Impact</strong>: Critical for production readiness
+<strong>Status</strong>: Proposal for discussion</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

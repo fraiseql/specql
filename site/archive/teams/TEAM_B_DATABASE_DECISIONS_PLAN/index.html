@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team B: Database Decisions Implementation Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team B: Database Decisions Implementation Plan";
+        var mkdocs_page_input_path = "archive/teams/TEAM_B_DATABASE_DECISIONS_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team B: Database Decisions Implementation Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-b-database-decisions-implementation-plan">Team B: Database Decisions Implementation Plan</h1>
+<p><strong>Team</strong>: Schema Generator
+<strong>Impact</strong>: CRITICAL (major architectural changes)
+<strong>Timeline</strong>: Week 2-3 (8-10 days)
+<strong>Status</strong>: ✅ COMPLETED - All 8 database patterns implemented</p>
+<hr />
+<h2 id="overview">📋 Overview</h2>
+<p>Team B must implement <strong>8 major database patterns</strong> based on approved architectural decisions:</p>
+<ol>
+<li>✅ 3-field deduplication pattern</li>
+<li>✅ <code>safe_slug()</code> utility function</li>
+<li>✅ INTEGER-based LTREE paths</li>
+<li>✅ Partial indexes (<code>WHERE deleted_at IS NULL</code>)</li>
+<li>✅ Separate recalculation audit fields</li>
+<li>✅ Tenant-scoped composite indexes</li>
+<li>✅ 3 safety constraint triggers</li>
+<li>✅ Node+Info split pattern (opt-in)</li>
+<li>✅ Node+info split pattern (opt-in)</li>
+</ol>
+<p><strong>Total Effort</strong>: 8-10 days (2 weeks)</p>
+<hr />
+<h2 id="phase-1-utility-functions-extensions-day-1">🎯 Phase 1: Utility Functions &amp; Extensions (Day 1)</h2>
+<h3 id="objective-generate-foundational-database-utilities"><strong>Objective</strong>: Generate foundational database utilities</h3>
+<h3 id="11-extensions-migration"><strong>1.1: Extensions Migration</strong></h3>
+<p><strong>File</strong>: <code>templates/sql/000_extensions.sql.jinja2</code></p>
+<pre><code class="language-sql">-- Required PostgreSQL Extensions
+-- Generated by SpecQL Framework
+
+-- Unaccent: Remove accents from text (for safe_slug function)
+CREATE EXTENSION IF NOT EXISTS unaccent;
+
+-- LTREE: Hierarchical tree structures
+CREATE EXTENSION IF NOT EXISTS ltree;
+
+-- UUID: Generate UUIDs
+CREATE EXTENSION IF NOT EXISTS &quot;uuid-ossp&quot;;
+
+-- Framework metadata
+COMMENT ON EXTENSION unaccent IS '@specql:required Framework requires unaccent for identifier slugification';
+COMMENT ON EXTENSION ltree IS '@specql:conditional Required for hierarchical entities';
+</code></pre>
+<hr />
+<h3 id="12-safe_slug-utility-function"><strong>1.2: safe_slug() Utility Function</strong></h3>
+<p><strong>File</strong>: <code>templates/sql/utilities/safe_slug.sql.jinja2</code></p>
+<pre><code class="language-sql">-- safe_slug: Convert text to URL-safe slug
+-- Based on printoptim_backend implementation
+-- Handles edge cases: empty strings, all digits, special chars
+
+CREATE OR REPLACE FUNCTION public.safe_slug(
+    value TEXT,
+    fallback TEXT DEFAULT 'unnamed'
+) RETURNS TEXT AS $$
+DECLARE
+    result TEXT;
+BEGIN
+    -- Handle NULL or empty input
+    IF value IS NULL OR trim(value) = '' THEN
+        RETURN fallback;
+    END IF;
+
+    -- Convert to slug: lowercase + unaccent + replace non-alphanumeric with '-'
+    result := trim(BOTH '-' FROM regexp_replace(
+        lower(unaccent(value)),
+        '[^a-z0-9]+', '-', 'gi'
+    ));
+
+    -- Handle edge cases
+    IF result = '' THEN
+        -- All characters were stripped (e.g., &quot;---&quot; or &quot;###&quot;)
+        RETURN fallback;
+    ELSIF result ~ '^[0-9]+$' THEN
+        -- All digits (e.g., &quot;123&quot;) - prefix with 'n-' to avoid LTREE issues
+        RETURN 'n-' || result;
+    ELSE
+        RETURN result;
+    END IF;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE STRICT;
+
+-- Framework metadata
+COMMENT ON FUNCTION public.safe_slug(TEXT, TEXT) IS '@specql:utility Converts text to URL-safe slug with edge case handling';
+
+-- Examples
+COMMENT ON FUNCTION public.safe_slug(TEXT, TEXT) IS E'@specql:examples
+safe_slug(''Café Straße'') → ''cafe-strasse''
+safe_slug(''Building #1'') → ''building-1''
+safe_slug(''123'') → ''n-123''
+safe_slug('''') → ''unnamed''
+safe_slug(''---'') → ''unnamed''
+';
+</code></pre>
+<p><strong>Tests</strong>: <code>tests/unit/schema/test_safe_slug.py</code></p>
+<pre><code class="language-python">import pytest
+from tests.utils.db_test import execute_sql
+
+class TestSafeSlug:
+    &quot;&quot;&quot;Test safe_slug utility function.&quot;&quot;&quot;
+
+    def test_normal_text(self, db):
+        result = execute_sql(db, &quot;SELECT safe_slug('Normal Text')&quot;)
+        assert result == 'normal-text'
+
+    def test_unicode_unaccent(self, db):
+        result = execute_sql(db, &quot;SELECT safe_slug('Café Straße')&quot;)
+        assert result == 'cafe-strasse'
+
+    def test_special_characters(self, db):
+        result = execute_sql(db, &quot;SELECT safe_slug('Building #1')&quot;)
+        assert result == 'building-1'
+
+    def test_all_digits(self, db):
+        result = execute_sql(db, &quot;SELECT safe_slug('123')&quot;)
+        assert result == 'n-123'
+
+    def test_empty_string(self, db):
+        result = execute_sql(db, &quot;SELECT safe_slug('')&quot;)
+        assert result == 'unnamed'
+
+    def test_all_special(self, db):
+        result = execute_sql(db, &quot;SELECT safe_slug('---')&quot;)
+        assert result == 'unnamed'
+
+    def test_custom_fallback(self, db):
+        result = execute_sql(db, &quot;SELECT safe_slug('', 'default')&quot;)
+        assert result == 'default'
+
+    def test_null_input(self, db):
+        result = execute_sql(db, &quot;SELECT safe_slug(NULL)&quot;)
+        assert result == 'unnamed'
+</code></pre>
+<hr />
+<h2 id="phase-2-3-field-deduplication-pattern-day-2">🎯 Phase 2: 3-Field Deduplication Pattern (Day 2)</h2>
+<h3 id="objective-generate-deduplication-schema-for-all-entities"><strong>Objective</strong>: Generate deduplication schema for all entities</h3>
+<h3 id="21-schema-pattern"><strong>2.1: Schema Pattern</strong></h3>
+<p><strong>File</strong>: <code>src/generators/schema/deduplication.py</code> (NEW)</p>
+<pre><code class="language-python">&quot;&quot;&quot;Generate 3-field deduplication pattern.&quot;&quot;&quot;
+
+from ..ast_models import EntityAST
+
+def generate_deduplication_fields(entity: EntityAST) -&gt; str:
+    &quot;&quot;&quot;Generate identifier, sequence_number, display_identifier fields.&quot;&quot;&quot;
+
+    entity_name = entity.name.lower()
+
+    return f&quot;&quot;&quot;
+    -- Deduplication Fields (3-field pattern)
+    identifier TEXT NOT NULL,
+    sequence_number INTEGER NOT NULL DEFAULT 1,
+    display_identifier TEXT GENERATED ALWAYS AS (
+        CASE
+            WHEN sequence_number &gt; 1
+            THEN identifier || '#' || sequence_number
+            ELSE identifier
+        END
+    ) STORED,
+
+    -- Deduplication Constraints
+    UNIQUE (identifier, sequence_number),
+    UNIQUE (display_identifier)
+&quot;&quot;&quot;.strip()
+
+def generate_deduplication_indexes(entity: EntityAST, schema: str, has_tenant: bool) -&gt; str:
+    &quot;&quot;&quot;Generate indexes for deduplication fields.&quot;&quot;&quot;
+
+    entity_name = entity.name.lower()
+    table_name = f&quot;{schema}.tb_{entity_name}&quot;
+
+    if has_tenant:
+        # Tenant-scoped unique constraints
+        return f&quot;&quot;&quot;
+-- Tenant-scoped deduplication
+ALTER TABLE {table_name}
+    DROP CONSTRAINT IF EXISTS tb_{entity_name}_display_identifier_key;
+
+ALTER TABLE {table_name}
+    ADD CONSTRAINT unique_tenant_display_identifier
+    UNIQUE (tenant_id, display_identifier);
+
+ALTER TABLE {table_name}
+    ADD CONSTRAINT unique_tenant_identifier_sequence
+    UNIQUE (tenant_id, identifier, sequence_number);
+&quot;&quot;&quot;
+    else:
+        # Global unique constraints (already in table definition)
+        return &quot;&quot;
+</code></pre>
+<p><strong>Integration</strong>: <code>src/generators/schema/schema_generator.py</code></p>
+<pre><code class="language-python">from .deduplication import generate_deduplication_fields, generate_deduplication_indexes
+
+class SchemaGenerator:
+    def generate_table(self, entity: EntityAST) -&gt; str:
+        # ... existing code
+
+        # Add deduplication fields
+        dedup_fields = generate_deduplication_fields(entity)
+
+        # Add to table definition
+        columns.append(dedup_fields)
+
+        # ... rest of generation
+</code></pre>
+<hr />
+<h3 id="22-concurrent-insert-function"><strong>2.2: Concurrent Insert Function</strong></h3>
+<p><strong>File</strong>: <code>templates/sql/helpers/create_with_dedup.sql.jinja2</code></p>
+<pre><code class="language-sql">-- Safe concurrent insertion with automatic deduplication
+CREATE OR REPLACE FUNCTION {{ schema }}.create_{{ entity_lower }}_with_dedup(
+    p_tenant_id UUID,
+    p_identifier TEXT,
+    p_data JSONB
+) RETURNS UUID AS $$
+DECLARE
+    v_pk_{{ entity_lower }} INTEGER;
+    v_id UUID;
+    v_sequence_number INTEGER;
+BEGIN
+    -- Find next available sequence number (concurrency-safe)
+    SELECT COALESCE(MAX(sequence_number), 0) + 1
+    INTO v_sequence_number
+    FROM {{ schema }}.tb_{{ entity_lower }}
+    WHERE tenant_id = p_tenant_id
+      AND identifier = p_identifier
+    FOR UPDATE;  -- Lock to prevent race conditions
+
+    -- Insert with calculated sequence
+    INSERT INTO {{ schema }}.tb_{{ entity_lower }} (
+        tenant_id,
+        identifier,
+        sequence_number,
+        -- ... other fields from p_data
+    )
+    VALUES (
+        p_tenant_id,
+        p_identifier,
+        v_sequence_number,
+        -- ... extract from p_data
+    )
+    RETURNING pk_{{ entity_lower }}, id INTO v_pk_{{ entity_lower }}, v_id;
+
+    RETURN v_id;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<hr />
+<h2 id="phase-3-integer-based-ltree-paths-generic-function-days-3-4">🎯 Phase 3: INTEGER-Based LTREE Paths - Generic Function (Days 3-4)</h2>
+<h3 id="objective-generate-one-generic-path-recalculation-function-no-triggers"><strong>Objective</strong>: Generate ONE generic path recalculation function (NO triggers!)</h3>
+<p><strong>Philosophy</strong>: Explicit over implicit - mutations call recalculation explicitly, not via triggers</p>
+<h3 id="31-recalculation-context-type"><strong>3.1: Recalculation Context Type</strong></h3>
+<p><strong>File</strong>: <code>templates/sql/000_types.sql.jinja2</code></p>
+<pre><code class="language-sql">-- Context for path recalculation operations
+-- Based on printoptim_backend pattern
+CREATE TYPE core.recalculation_context AS (
+    pk UUID,           -- Entity id to recalculate (subtree mode)
+    pk_tenant UUID,    -- Tenant scope (tenant mode)
+    updated_by UUID    -- Audit tracking
+);
+
+COMMENT ON TYPE core.recalculation_context IS
+'Composite type for path/identifier recalculation operations.
+
+Fields:
+- pk (UUID): Entity id to recalculate. When set, recalculation is scoped to this subtree.
+- pk_tenant (UUID): Tenant scope. When set (and pk is NULL), recalculates all trees in tenant.
+- updated_by (UUID): Audit field to track who triggered the recalculation.
+
+Usage modes:
+1. Subtree: pk set → recalculate from node down
+2. Tenant: pk_tenant set (pk NULL) → recalculate all tenant trees
+3. Global: both NULL → recalculate entire entity globally
+
+Used by: core.recalculate_tree_path(), mutation functions';
+</code></pre>
+<hr />
+<h3 id="32-generic-path-recalculation-function"><strong>3.2: Generic Path Recalculation Function</strong></h3>
+<p><strong>File</strong>: <code>templates/sql/hierarchy/recalculate_tree_path.sql.jinja2</code></p>
+<p><strong>ONE-TIME FRAMEWORK FUNCTION</strong> (not per-entity)</p>
+<pre><code class="language-sql">-- Generic path recalculation for ANY hierarchical entity
+-- Based on printoptim_backend implementation
+-- NO TRIGGERS - Called explicitly from mutations!
+
+CREATE OR REPLACE FUNCTION core.recalculate_tree_path(
+    entity TEXT,
+    ctx core.recalculation_context DEFAULT ROW(NULL, NULL, NULL)::core.recalculation_context
+) RETURNS INTEGER AS $$
+DECLARE
+    v_schema TEXT;
+    v_table TEXT;
+    v_pk_column TEXT;
+    v_parent_column TEXT;
+    v_updated_count INTEGER := 0;
+    v_root_pk INTEGER;
+    dyn_sql TEXT;
+BEGIN
+    IF entity IS NULL THEN
+        RAISE EXCEPTION 'Parameter &quot;entity&quot; must not be NULL';
+    END IF;
+
+    -- Construct dynamic identifiers
+    v_table := format('tb_%s', entity);
+    v_pk_column := format('pk_%s', entity);
+    v_parent_column := format('fk_parent_%s', entity);
+
+    -- Find schema dynamically
+    SELECT table_schema INTO v_schema
+    FROM information_schema.tables
+    WHERE table_name = v_table
+      AND table_schema IN ('core', 'management', 'catalog', 'tenant')
+    LIMIT 1;
+
+    IF v_schema IS NULL THEN
+        RAISE EXCEPTION 'Table &quot;tb_%&quot; not found in any expected schema', entity;
+    END IF;
+
+    -- MODE 1: Subtree recalculation (ctx.pk set)
+    IF ctx.pk IS NOT NULL THEN
+        -- Find root of subtree (walk up to find root or use given node)
+        dyn_sql := format($q$
+            WITH RECURSIVE t_chain AS (
+                SELECT %1$I AS pk, %2$I AS parent
+                FROM %3$I.%4$I
+                WHERE id = $1
+
+                UNION ALL
+
+                SELECT t.%1$I, t.%2$I
+                FROM %3$I.%4$I t
+                JOIN t_chain ON t.%1$I = t_chain.parent
+            )
+            SELECT pk FROM t_chain WHERE parent IS NULL LIMIT 1;
+        $q$, v_pk_column, v_parent_column, v_schema, v_table);
+
+        EXECUTE dyn_sql INTO v_root_pk USING ctx.pk;
+
+        IF v_root_pk IS NULL THEN
+            -- Given node IS the root, get its pk
+            dyn_sql := format($q$
+                SELECT %1$I FROM %2$I.%3$I WHERE id = $1;
+            $q$, v_pk_column, v_schema, v_table);
+            EXECUTE dyn_sql INTO v_root_pk USING ctx.pk;
+        END IF;
+
+        -- Recalculate subtree using INTEGER pk paths
+        dyn_sql := format($q$
+            WITH RECURSIVE hierarchy AS (
+                SELECT t.%1$I AS pk, t.%1$I::TEXT AS path_str
+                FROM %2$I.%3$I t
+                WHERE t.%1$I = $1
+
+                UNION ALL
+
+                SELECT c.%1$I, CONCAT(h.path_str, '.', c.%1$I::TEXT)
+                FROM %2$I.%3$I c
+                JOIN hierarchy h ON c.%4$I = h.pk
+            ),
+            updated AS (
+                UPDATE %2$I.%3$I t
+                SET
+                    path = h.path_str::ltree,
+                    path_updated_at = now(),
+                    path_updated_by = $2
+                FROM hierarchy h
+                WHERE t.%1$I = h.pk
+                  AND t.path IS DISTINCT FROM h.path_str::ltree  -- Idempotent
+                RETURNING t.%1$I
+            )
+            SELECT COUNT(*) FROM updated;
+        $q$, v_pk_column, v_schema, v_table, v_parent_column);
+
+        EXECUTE dyn_sql INTO v_updated_count USING v_root_pk, ctx.updated_by;
+
+    -- MODE 2: Tenant-scoped recalculation (ctx.pk_tenant set)
+    ELSIF ctx.pk_tenant IS NOT NULL THEN
+        dyn_sql := format($q$
+            WITH RECURSIVE hierarchy AS (
+                SELECT t.%1$I AS pk, t.%1$I::TEXT AS path_str
+                FROM %2$I.%3$I t
+                WHERE t.tenant_id = $1 AND t.%4$I IS NULL
+
+                UNION ALL
+
+                SELECT c.%1$I, CONCAT(h.path_str, '.', c.%1$I::TEXT)
+                FROM %2$I.%3$I c
+                JOIN hierarchy h ON c.%4$I = h.pk
+            ),
+            updated AS (
+                UPDATE %2$I.%3$I t
+                SET
+                    path = h.path_str::ltree,
+                    path_updated_at = now(),
+                    path_updated_by = $2
+                FROM hierarchy h
+                WHERE t.%1$I = h.pk
+                  AND t.path IS DISTINCT FROM h.path_str::ltree
+                RETURNING t.%1$I
+            )
+            SELECT COUNT(*) FROM updated;
+        $q$, v_pk_column, v_schema, v_table, v_parent_column);
+
+        EXECUTE dyn_sql INTO v_updated_count USING ctx.pk_tenant, ctx.updated_by;
+
+    -- MODE 3: Global recalculation (both NULL)
+    ELSE
+        dyn_sql := format($q$
+            WITH RECURSIVE hierarchy AS (
+                SELECT t.%1$I AS pk, t.%1$I::TEXT AS path_str
+                FROM %2$I.%3$I t
+                WHERE t.%4$I IS NULL
+
+                UNION ALL
+
+                SELECT c.%1$I, CONCAT(h.path_str, '.', c.%1$I::TEXT)
+                FROM %2$I.%3$I c
+                JOIN hierarchy h ON c.%4$I = h.pk
+            ),
+            updated AS (
+                UPDATE %2$I.%3$I t
+                SET
+                    path = h.path_str::ltree,
+                    path_updated_at = now(),
+                    path_updated_by = $1
+                FROM hierarchy h
+                WHERE t.%1$I = h.pk
+                  AND t.path IS DISTINCT FROM h.path_str::ltree
+                RETURNING t.%1$I
+            )
+            SELECT COUNT(*) FROM updated;
+        $q$, v_pk_column, v_schema, v_table, v_parent_column);
+
+        EXECUTE dyn_sql INTO v_updated_count USING ctx.updated_by;
+    END IF;
+
+    RETURN v_updated_count;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION core.recalculate_tree_path(TEXT, core.recalculation_context) IS
+'Generic path recalculation for any hierarchical entity using INTEGER pk-based LTREE paths.
+
+Explicit over Implicit: NO TRIGGERS! Mutations call this explicitly.
+
+Path Format: Pure INTEGER pk values (e.g., ''1.5.23.47'')
+
+Three modes:
+1. Subtree (ctx.pk set): Recalculate from given node down
+2. Tenant (ctx.pk_tenant set, ctx.pk NULL): Recalculate all trees in tenant
+3. Global (both NULL): Recalculate entire entity
+
+Returns: Number of rows updated
+
+Example usage in mutations:
+  -- Use INTEGER pk variable (e.g., v_location_pk)
+  v_count := core.recalculate_tree_path(
+      ''location'',
+      ROW(v_location_pk, NULL, p_caller_id)::core.recalculation_context
+  );
+
+Based on printoptim_backend pattern.';
+</code></pre>
+<hr />
+<h3 id="33-no-triggers-generated"><strong>3.3: NO TRIGGERS GENERATED</strong></h3>
+<p><strong>IMPORTANT</strong>: Team B does <strong>NOT</strong> generate triggers for path updates!</p>
+<p><strong>Why</strong>: Explicit is better than implicit
+- ✅ Easier to debug (visible in mutation code)
+- ✅ Better transaction control
+- ✅ Testable in isolation
+- ✅ No hidden side effects</p>
+<p><strong>Instead</strong>: Team C generates explicit calls in mutation functions (see Team C plan)</p>
+<hr />
+<h2 id="phase-4-partial-indexes-day-4">🎯 Phase 4: Partial Indexes (Day 4)</h2>
+<h3 id="objective-add-where-deleted_at-is-null-to-all-non-pk-indexes"><strong>Objective</strong>: Add <code>WHERE deleted_at IS NULL</code> to all non-PK indexes</h3>
+<p><strong>File</strong>: <code>src/generators/schema/index_strategy.py</code></p>
+<pre><code class="language-python">def generate_index(
+    table_name: str,
+    index_name: str,
+    columns: list[str],
+    index_type: str = 'btree',
+    unique: bool = False,
+    partial: bool = True  # NEW: Default to partial indexes
+) -&gt; str:
+    &quot;&quot;&quot;Generate index with optional partial index clause.&quot;&quot;&quot;
+
+    unique_clause = 'UNIQUE ' if unique else ''
+    using_clause = f'USING {index_type}' if index_type != 'btree' else ''
+    column_list = ', '.join(columns)
+
+    # Partial index clause (exclude soft-deleted rows)
+    where_clause = ''
+    if partial and not unique:  # Don't apply to unique constraints
+        where_clause = '\n    WHERE deleted_at IS NULL'
+
+    return f&quot;&quot;&quot;
+CREATE {unique_clause}INDEX {index_name}
+    ON {table_name} {using_clause}({column_list}){where_clause};
+&quot;&quot;&quot;.strip()
+
+# Example usage:
+generate_index(
+    table_name='tenant.tb_location',
+    index_name='idx_location_parent',
+    columns=['fk_parent_location'],
+    partial=True  # Adds WHERE deleted_at IS NULL
+)
+</code></pre>
+<hr />
+<h2 id="phase-5-recalculation-audit-fields-day-5">🎯 Phase 5: Recalculation Audit Fields (Day 5)</h2>
+<h3 id="objective-add-separate-audit-tracking-for-identifierpath-changes"><strong>Objective</strong>: Add separate audit tracking for identifier/path changes</h3>
+<p><strong>File</strong>: <code>src/generators/schema/audit_fields.py</code></p>
+<pre><code class="language-python">def generate_audit_fields(entity: EntityAST) -&gt; str:
+    &quot;&quot;&quot;Generate audit fields with recalculation tracking.&quot;&quot;&quot;
+
+    return &quot;&quot;&quot;
+    -- Business Data Audit
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_by UUID,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_by UUID,
+    deleted_at TIMESTAMPTZ,
+    deleted_by UUID,
+
+    -- Identifier Recalculation Audit (separate from business changes)
+    identifier_recalculated_at TIMESTAMPTZ,
+    identifier_recalculated_by UUID,
+
+    -- Path Recalculation Audit (for hierarchical entities)
+    path_updated_at TIMESTAMPTZ,
+    path_updated_by UUID
+&quot;&quot;&quot;.strip()
+</code></pre>
+<p><strong>Usage in triggers</strong>:</p>
+<pre><code class="language-sql">-- Business data change: Update updated_at
+UPDATE tb_location
+SET
+    name = 'New Name',
+    updated_at = now(),
+    updated_by = current_user_id
+WHERE pk_location = 123;
+
+-- Identifier recalculation: Update identifier_recalculated_at (NOT updated_at)
+UPDATE tb_location
+SET
+    identifier = new_identifier,
+    identifier_recalculated_at = now(),
+    identifier_recalculated_by = system_user_id
+WHERE pk_location = 123;
+
+-- Path recalculation: Update path_updated_at (NOT updated_at)
+UPDATE tb_location
+SET
+    path = new_path,
+    path_updated_at = now(),
+    path_updated_by = system_user_id
+WHERE pk_location = 123;
+</code></pre>
+<hr />
+<h2 id="phase-6-tenant-scoped-composite-indexes-day-6">🎯 Phase 6: Tenant-Scoped Composite Indexes (Day 6)</h2>
+<h3 id="objective-add-composite-indexes-for-multi-tenant-performance"><strong>Objective</strong>: Add composite indexes for multi-tenant performance</h3>
+<p><strong>File</strong>: <code>src/generators/schema/tenant_indexes.py</code> (NEW)</p>
+<pre><code class="language-python">def generate_tenant_indexes(entity: EntityAST, schema: str) -&gt; str:
+    &quot;&quot;&quot;Generate tenant-scoped composite indexes.&quot;&quot;&quot;
+
+    entity_name = entity.name.lower()
+    table_name = f&quot;{schema}.tb_{entity_name}&quot;
+    indexes = []
+
+    # 1. Tenant isolation index
+    indexes.append(f&quot;&quot;&quot;
+CREATE INDEX idx_{entity_name}_tenant
+    ON {table_name}(tenant_id)
+    WHERE deleted_at IS NULL;
+&quot;&quot;&quot;)
+
+    # 2. Tenant + ID (for lookups)
+    indexes.append(f&quot;&quot;&quot;
+CREATE UNIQUE INDEX idx_{entity_name}_tenant_id
+    ON {table_name}(tenant_id, id);
+&quot;&quot;&quot;)
+
+    # 3. If hierarchical: Tenant + Path
+    if entity.hierarchical:
+        indexes.append(f&quot;&quot;&quot;
+CREATE INDEX idx_{entity_name}_tenant_path
+    ON {table_name}(tenant_id, path)
+    WHERE deleted_at IS NULL;
+&quot;&quot;&quot;)
+
+        # 4. If hierarchical: Tenant + Parent
+        indexes.append(f&quot;&quot;&quot;
+CREATE INDEX idx_{entity_name}_tenant_parent
+    ON {table_name}(tenant_id, fk_parent_{entity_name})
+    WHERE deleted_at IS NULL;
+&quot;&quot;&quot;)
+
+    return '\n\n'.join(indexes)
+</code></pre>
+<p><strong>Benefits</strong>:
+- ✅ Tenant isolation queries 5-10x faster
+- ✅ RLS policies use tenant_id index efficiently
+- ✅ Composite indexes prevent full table scans</p>
+<hr />
+<h2 id="phase-7-safety-constraint-triggers-day-7">🎯 Phase 7: Safety Constraint Triggers (Day 7)</h2>
+<h3 id="objective-generate-3-safety-triggers-per-hierarchical-entity"><strong>Objective</strong>: Generate 3 safety triggers per hierarchical entity</h3>
+<h3 id="71-prevent-circular-references"><strong>7.1: Prevent Circular References</strong></h3>
+<p><strong>File</strong>: <code>templates/sql/constraints/prevent_cycle.sql.jinja2</code></p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION {{ schema }}.prevent_{{ entity_lower }}_cycle()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_ancestor_path ltree;
+BEGIN
+    -- Skip check if no parent (root node)
+    IF NEW.fk_parent_{{ entity_lower }} IS NULL THEN
+        RETURN NEW;
+    END IF;
+
+    -- Get parent's path
+    SELECT path INTO v_ancestor_path
+    FROM {{ schema }}.tb_{{ entity_lower }}
+    WHERE pk_{{ entity_lower }} = NEW.fk_parent_{{ entity_lower }};
+
+    -- Check if parent is a descendant of current node
+    IF v_ancestor_path &lt;@ NEW.path THEN
+        RAISE EXCEPTION
+            'Circular reference detected: {{ entity }} (%) cannot be its own ancestor (parent path: %, current path: %)',
+            NEW.id,
+            v_ancestor_path,
+            NEW.path
+        USING
+            ERRCODE = '23514',  -- check_violation
+            HINT = 'Choose a parent that is not a descendant of this {{ entity_lower }}';
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_prevent_{{ entity_lower }}_cycle
+    BEFORE INSERT OR UPDATE OF fk_parent_{{ entity_lower }}
+    ON {{ schema }}.tb_{{ entity_lower }}
+    FOR EACH ROW
+    EXECUTE FUNCTION {{ schema }}.prevent_{{ entity_lower }}_cycle();
+</code></pre>
+<hr />
+<h3 id="72-check-identifier-sequence-limit"><strong>7.2: Check Identifier Sequence Limit</strong></h3>
+<p><strong>File</strong>: <code>templates/sql/constraints/check_sequence_limit.sql.jinja2</code></p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION {{ schema }}.check_{{ entity_lower }}_sequence_limit()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_max_duplicates INTEGER := 100;  -- Configurable limit
+BEGIN
+    IF NEW.sequence_number &gt; v_max_duplicates THEN
+        RAISE EXCEPTION
+            'Identifier sequence limit exceeded (&gt;% duplicates): &quot;%&quot;',
+            v_max_duplicates,
+            NEW.identifier
+        USING
+            ERRCODE = '23514',
+            HINT = FORMAT(
+                'Current variant: %s#%s. Use more descriptive naming to reduce collisions.',
+                NEW.identifier,
+                NEW.sequence_number
+            );
+    ELSIF NEW.sequence_number &gt; (v_max_duplicates * 0.5) THEN
+        -- Warning at 50%
+        RAISE WARNING
+            'High identifier duplication: % has % variants (limit: %)',
+            NEW.identifier,
+            NEW.sequence_number,
+            v_max_duplicates;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_{{ entity_lower }}_sequence_limit
+    BEFORE INSERT OR UPDATE OF sequence_number
+    ON {{ schema }}.tb_{{ entity_lower }}
+    FOR EACH ROW
+    EXECUTE FUNCTION {{ schema }}.check_{{ entity_lower }}_sequence_limit();
+</code></pre>
+<hr />
+<h3 id="73-check-hierarchy-depth-limit"><strong>7.3: Check Hierarchy Depth Limit</strong></h3>
+<p><strong>File</strong>: <code>templates/sql/constraints/check_depth_limit.sql.jinja2</code></p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION {{ schema }}.check_{{ entity_lower }}_depth_limit()
+RETURNS TRIGGER AS $$
+DECLARE
+    v_depth INTEGER;
+    v_max_depth INTEGER := 20;  -- From framework config
+    v_warn_threshold INTEGER := 15;
+BEGIN
+    -- Calculate depth from LTREE path
+    v_depth := nlevel(NEW.path);
+
+    IF v_depth &gt; v_max_depth THEN
+        RAISE EXCEPTION
+            'Hierarchy depth limit exceeded: % levels (max: %)',
+            v_depth,
+            v_max_depth
+        USING
+            ERRCODE = '23514',
+            HINT = 'Flatten the hierarchy or increase max_depth in framework config',
+            DETAIL = FORMAT('Path: %s', NEW.path);
+    ELSIF v_depth &gt; v_warn_threshold THEN
+        RAISE WARNING
+            'Approaching hierarchy depth limit: % of % levels (path: %)',
+            v_depth,
+            v_max_depth,
+            NEW.path;
+    END IF;
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER trg_check_{{ entity_lower }}_depth_limit
+    BEFORE INSERT OR UPDATE OF path
+    ON {{ schema }}.tb_{{ entity_lower }}
+    FOR EACH ROW
+    EXECUTE FUNCTION {{ schema }}.check_{{ entity_lower }}_depth_limit();
+</code></pre>
+<hr />
+<h2 id="phase-8-nodeinfo-split-pattern-days-8-10-completed">✅ Phase 8: Node+Info Split Pattern (Days 8-10) - COMPLETED</h2>
+<h3 id="objective-implement-opt-in-nodeinfo-split-for-complex-entities"><strong>Objective</strong>: Implement opt-in node/info split for complex entities</h3>
+<h3 id="81-detection-logic"><strong>8.1: Detection Logic</strong></h3>
+<p><strong>File</strong>: <code>src/generators/schema/node_info_split.py</code> (NEW)</p>
+<pre><code class="language-python">def should_split_entity(entity: EntityAST) -&gt; bool:
+    &quot;&quot;&quot;Determine if entity should use node+info split.&quot;&quot;&quot;
+
+    # User explicitly opted in
+    if entity.metadata_split:
+        return True
+
+    # Auto-suggest if many fields (&gt;12)
+    if len(entity.fields) &gt; 12:
+        # Warn but don't auto-split
+        logger.warning(
+            f&quot;Entity '{entity.name}' has {len(entity.fields)} fields. &quot;
+            &quot;Consider using 'metadata_split: true' for cleaner schema.&quot;
+        )
+
+    return False
+</code></pre>
+<hr />
+<h3 id="82-node-table-generation"><strong>8.2: Node Table Generation</strong></h3>
+<p><strong>File</strong>: <code>templates/sql/node_info/node_table.sql.jinja2</code></p>
+<pre><code class="language-sql">-- Structure table: Hierarchy and tenant isolation only
+CREATE TABLE {{ schema }}.tb_{{ entity_lower }}_node (
+    -- Trinity Pattern
+    pk_{{ entity_lower }} INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+
+    -- Multi-Tenancy
+    tenant_id UUID NOT NULL,
+
+    -- Hierarchy
+    path ltree NOT NULL,
+    fk_parent_{{ entity_lower }} INTEGER REFERENCES {{ schema }}.tb_{{ entity_lower }}_node(pk_{{ entity_lower }})
+        ON DELETE RESTRICT,
+
+    -- Foreign key to info table
+    fk_{{ entity_lower }}_info INTEGER NOT NULL,
+
+    -- Structural Audit (creation/deletion only)
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_by UUID,
+    deleted_at TIMESTAMPTZ,
+    deleted_by UUID,
+
+    -- Path Audit
+    path_updated_at TIMESTAMPTZ,
+    path_updated_by UUID,
+
+    -- Constraints
+    UNIQUE (tenant_id, id),
+    UNIQUE (tenant_id, path)
+);
+
+-- Indexes
+CREATE INDEX idx_{{ entity_lower }}_node_tenant
+    ON {{ schema }}.tb_{{ entity_lower }}_node(tenant_id)
+    WHERE deleted_at IS NULL;
+
+CREATE INDEX idx_{{ entity_lower }}_node_path
+    ON {{ schema }}.tb_{{ entity_lower }}_node USING GIST (path)
+    WHERE deleted_at IS NULL;
+
+CREATE INDEX idx_{{ entity_lower }}_node_parent
+    ON {{ schema }}.tb_{{ entity_lower }}_node(fk_parent_{{ entity_lower }})
+    WHERE deleted_at IS NULL;
+
+CREATE INDEX idx_{{ entity_lower }}_node_info_fk
+    ON {{ schema }}.tb_{{ entity_lower }}_node(fk_{{ entity_lower }}_info);
+</code></pre>
+<hr />
+<h3 id="83-info-table-generation"><strong>8.3: Info Table Generation</strong></h3>
+<p><strong>File</strong>: <code>templates/sql/node_info/info_table.sql.jinja2</code></p>
+<pre><code class="language-sql">-- Attributes table: Business data and versioning
+CREATE TABLE {{ schema }}.tb_{{ entity_lower }}_info (
+    -- Trinity Pattern
+    pk_{{ entity_lower }}_info INTEGER GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+    id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,
+
+    -- Multi-Tenancy
+    tenant_id UUID NOT NULL,
+
+    -- Deduplication
+    identifier TEXT NOT NULL,
+    sequence_number INTEGER NOT NULL DEFAULT 1,
+    display_identifier TEXT GENERATED ALWAYS AS (
+        CASE WHEN sequence_number &gt; 1
+            THEN identifier || '#' || sequence_number
+            ELSE identifier
+        END
+    ) STORED,
+
+    -- Business Fields
+    {% for field in entity.fields %}
+    {{ field.name }} {{ field.sql_type }},
+    {% endfor %}
+
+    -- Business Audit
+    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    created_by UUID,
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_by UUID,
+
+    -- Identifier Audit
+    identifier_recalculated_at TIMESTAMPTZ,
+    identifier_recalculated_by UUID,
+
+    -- Constraints
+    UNIQUE (tenant_id, display_identifier),
+    UNIQUE (identifier, sequence_number)
+);
+
+-- Indexes
+CREATE INDEX idx_{{ entity_lower }}_info_tenant
+    ON {{ schema }}.tb_{{ entity_lower }}_info(tenant_id);
+
+CREATE INDEX idx_{{ entity_lower }}_info_identifier
+    ON {{ schema }}.tb_{{ entity_lower }}_info(identifier);
+</code></pre>
+<hr />
+<h3 id="84-convenience-view"><strong>8.4: Convenience View</strong></h3>
+<p><strong>File</strong>: <code>templates/sql/node_info/view.sql.jinja2</code></p>
+<pre><code class="language-sql">-- Convenience view: JOIN node + info
+CREATE VIEW {{ schema }}.v_{{ entity_lower }} AS
+SELECT
+    -- Node fields
+    n.pk_{{ entity_lower }},
+    n.id,
+    n.tenant_id,
+    n.path,
+    n.fk_parent_{{ entity_lower }},
+
+    -- Info fields
+    i.pk_{{ entity_lower }}_info,
+    i.identifier,
+    i.sequence_number,
+    i.display_identifier,
+    {% for field in entity.fields %}
+    i.{{ field.name }},
+    {% endfor %}
+
+    -- Audit (combined)
+    n.created_at,
+    n.created_by,
+    i.updated_at,
+    i.updated_by,
+    n.deleted_at,
+    n.deleted_by,
+
+    -- Recalculation Audit
+    i.identifier_recalculated_at,
+    i.identifier_recalculated_by,
+    n.path_updated_at,
+    n.path_updated_by
+FROM {{ schema }}.tb_{{ entity_lower }}_node n
+INNER JOIN {{ schema }}.tb_{{ entity_lower }}_info i
+    ON i.pk_{{ entity_lower }}_info = n.fk_{{ entity_lower }}_info
+WHERE n.deleted_at IS NULL;
+
+-- FraiseQL metadata
+COMMENT ON VIEW {{ schema }}.v_{{ entity_lower }} IS
+'@fraiseql:type name={{ entity }},schema={{ schema }}';
+</code></pre>
+<hr />
+<h2 id="summary-team-b-deliverables">📊 Summary: Team B Deliverables</h2>
+<h3 id="files-to-create"><strong>Files to Create</strong></h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+<th>Lines</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>templates/sql/000_extensions.sql.jinja2</code></td>
+<td>Extensions</td>
+<td>20</td>
+</tr>
+<tr>
+<td><code>templates/sql/utilities/safe_slug.sql.jinja2</code></td>
+<td>Slugification</td>
+<td>40</td>
+</tr>
+<tr>
+<td><code>templates/sql/hierarchy/calculate_path.sql.jinja2</code></td>
+<td>Path calculation</td>
+<td>50</td>
+</tr>
+</tbody>
+</table>
+<p>| <code>templates/sql/hierarchy/recalculate_descendants.sql.jinja2</code> | Descendant paths | 60 |
+| <code>templates/sql/constraints/prevent_cycle.sql.jinja2</code> | Safety | 40 |
+| <code>templates/sql/constraints/check_sequence_limit.sql.jinja2</code> | Safety | 40 |
+| <code>templates/sql/constraints/check_depth_limit.sql.jinja2</code> | Safety | 40 |
+| <code>templates/sql/node_info/node_table.sql.jinja2</code> | Split pattern | 80 |
+| <code>templates/sql/node_info/info_table.sql.jinja2</code> | Split pattern | 80 |
+| <code>templates/sql/node_info/view.sql.jinja2</code> | Split pattern | 60 |
+| <code>src/generators/schema/deduplication.py</code> | Python | 100 |
+| <code>src/generators/schema/tenant_indexes.py</code> | Python | 80 |
+| <code>src/generators/schema/node_info_split.py</code> | Python | 200 |
+| <strong>Total</strong> | | <strong>890 lines</strong> |</p>
+<h3 id="timeline"><strong>Timeline</strong></h3>
+<ul>
+<li><strong>Day 1</strong>: Extensions + safe_slug (Phase 1)</li>
+<li><strong>Day 2</strong>: Deduplication pattern (Phase 2)</li>
+<li><strong>Days 3-4</strong>: INTEGER paths (Phase 3)</li>
+<li><strong>Day 4</strong>: Partial indexes (Phase 4)</li>
+<li><strong>Day 5</strong>: Audit fields (Phase 5)</li>
+<li><strong>Day 6</strong>: Tenant indexes (Phase 6)</li>
+<li><strong>Day 7</strong>: Safety triggers (Phase 7)</li>
+<li><strong>Days 8-10</strong>: Node+info split (Phase 8)</li>
+</ul>
+<p><strong>Total</strong>: 10 days (2 weeks)</p>
+<hr />
+<h2 id="acceptance-criteria">✅ Acceptance Criteria</h2>
+<ul>
+<li>[ ] Extensions (unaccent, ltree, uuid-ossp) auto-generated</li>
+<li>[ ] safe_slug() handles all edge cases (empty, digits, special chars)</li>
+<li>[ ] 3-field deduplication works (identifier, sequence_number, display_identifier)</li>
+<li>[ ] INTEGER-based paths calculated correctly (format: <code>1.5.23.47</code>)</li>
+<li>[ ] All non-PK indexes have <code>WHERE deleted_at IS NULL</code></li>
+<li>[ ] Separate audit fields for recalculation vs business changes</li>
+<li>[ ] Tenant-scoped composite indexes generated</li>
+<li>[ ] 3 safety triggers prevent data corruption</li>
+<li>[ ] Node+info split works when <code>metadata_split: true</code></li>
+<li>[ ] All tests pass (90%+ coverage)</li>
+</ul>
+<hr />
+<p><strong>Status</strong>: 🔴 READY TO START (Week 2)
+<strong>Priority</strong>: CRITICAL (core infrastructure)
+<strong>Effort</strong>: 10 days
+<strong>Dependencies</strong>: Team A reserved field validation</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

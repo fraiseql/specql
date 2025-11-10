@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Performance Tests - Benchmarking &amp; Optimization - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Performance Tests - Benchmarking \u0026amp; Optimization";
+        var mkdocs_page_input_path = "guides/test-generation/performance-tests.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Performance Tests - Benchmarking &amp; Optimization</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="performance-tests-benchmarking-optimization">Performance Tests - Benchmarking &amp; Optimization</h1>
+<p>SpecQL generates performance tests to benchmark your database operations, measure query execution times, and ensure your application meets performance requirements. Identify bottlenecks, optimize slow queries, and maintain performance standards.</p>
+<h2 id="what-youll-learn">🎯 What You'll Learn</h2>
+<ul>
+<li>Performance testing fundamentals</li>
+<li>Generate and run performance benchmarks</li>
+<li>Analyze performance results</li>
+<li>Optimize slow operations</li>
+<li>Set performance standards</li>
+</ul>
+<h2 id="prerequisites">📋 Prerequisites</h2>
+<ul>
+<li><a href="../getting-started/installation.md">SpecQL installed</a></li>
+<li><a href="../getting-started/first-entity.md">Entity with patterns created</a></li>
+<li>PostgreSQL database with data</li>
+<li>Understanding of performance concepts</li>
+</ul>
+<h2 id="performance-testing-concepts">💡 Performance Testing Concepts</h2>
+<h3 id="what-are-performance-tests">What Are Performance Tests?</h3>
+<p><strong>Performance tests</strong> measure how fast your SpecQL-generated code executes:</p>
+<pre><code class="language-yaml"># Performance test configuration
+performance:
+  enabled: true
+  iterations: 1000
+  concurrency: 10
+  timeout: &quot;30 seconds&quot;
+  metrics:
+    - query_execution_time
+    - memory_usage
+    - connection_pool_utilization
+</code></pre>
+<p><strong>Key Metrics:</strong>
+- ✅ <strong>Query Execution Time</strong> - How fast SQL queries run
+- ✅ <strong>Throughput</strong> - Operations per second
+- ✅ <strong>Latency</strong> - Response time distribution
+- ✅ <strong>Resource Usage</strong> - CPU, memory, I/O
+- ✅ <strong>Scalability</strong> - Performance under load</p>
+<h3 id="why-performance-testing">Why Performance Testing?</h3>
+<table>
+<thead>
+<tr>
+<th>Benefit</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Early Detection</strong></td>
+<td>Catch performance issues before production</td>
+<td>Query taking 5 seconds instead of 50ms</td>
+</tr>
+<tr>
+<td><strong>Capacity Planning</strong></td>
+<td>Understand system limits</td>
+<td>Support 1000 concurrent users</td>
+</tr>
+<tr>
+<td><strong>Optimization</strong></td>
+<td>Identify bottlenecks</td>
+<td>Missing index causing slow queries</td>
+</tr>
+<tr>
+<td><strong>Regression Prevention</strong></td>
+<td>Ensure changes don't break performance</td>
+<td>New feature doesn't slow down existing operations</td>
+</tr>
+<tr>
+<td><strong>SLA Compliance</strong></td>
+<td>Meet performance requirements</td>
+<td>API responses under 200ms</td>
+</tr>
+</tbody>
+</table>
+<h2 id="step-1-generate-performance-tests">🚀 Step 1: Generate Performance Tests</h2>
+<h3 id="create-test-entity-with-data">Create Test Entity with Data</h3>
+<pre><code class="language-yaml"># entities/order.yaml
+name: order
+fields:
+  id: uuid
+  customer_id: uuid
+  status: string
+  total_amount: decimal
+  created_at: timestamp
+  updated_at: timestamp
+
+patterns:
+  - name: state_machine
+    description: &quot;Order processing workflow&quot;
+    initial_state: pending
+    states: [pending, confirmed, shipped, delivered]
+    transitions:
+      - from: pending
+        to: confirmed
+        trigger: confirm
+      - from: confirmed
+        to: shipped
+        trigger: ship
+      - from: shipped
+        to: delivered
+        trigger: deliver
+
+  - name: validation
+    description: &quot;Order validation rules&quot;
+    rules:
+      - name: positive_total
+        field: total_amount
+        rule: &quot;total_amount &gt; 0&quot;
+</code></pre>
+<h3 id="generate-performance-tests">Generate Performance Tests</h3>
+<pre><code class="language-bash"># Generate performance tests
+specql generate tests --type performance entities/order.yaml
+
+# Check generated files
+ls -la tests/performance/
+# order_state_machine_performance.sql
+# order_validation_performance.sql
+# order_benchmark.py
+</code></pre>
+<h3 id="generated-performance-tests">Generated Performance Tests</h3>
+<pre><code class="language-sql">-- tests/performance/order_state_machine_performance.sql
+-- Performance tests for order state machine
+
+-- Setup test data (1000 orders)
+INSERT INTO order (id, customer_id, status, total_amount, created_at)
+SELECT
+    gen_random_uuid(),
+    (SELECT id FROM customer ORDER BY random() LIMIT 1),
+    'pending',
+    (random() * 1000 + 10)::decimal(10,2),
+    NOW() - (random() * interval '365 days')
+FROM generate_series(1, 1000);
+
+-- Benchmark 1: Single order confirmation
+SELECT * FROM benchmark(
+    'single_order_confirm',
+    $$
+    SELECT order_confirm(order_id) FROM (
+        SELECT id as order_id FROM order WHERE status = 'pending' LIMIT 1
+    ) q
+    $$,
+    100  -- iterations
+);
+
+-- Benchmark 2: Bulk order confirmation
+SELECT * FROM benchmark(
+    'bulk_order_confirm',
+    $$
+    SELECT count(*) FROM (
+        SELECT order_confirm(id)
+        FROM order
+        WHERE status = 'pending'
+        LIMIT 100
+    ) confirmed
+    $$,
+    10  -- iterations
+);
+
+-- Benchmark 3: Order status query performance
+SELECT * FROM benchmark(
+    'order_status_query',
+    $$
+    SELECT count(*) FROM order WHERE status = 'pending'
+    $$,
+    1000  -- iterations
+);
+
+-- Benchmark 4: Complex order search
+SELECT * FROM benchmark(
+    'complex_order_search',
+    $$
+    SELECT count(*) FROM order
+    WHERE status = 'confirmed'
+      AND total_amount &gt; 100
+      AND created_at &gt; NOW() - interval '30 days'
+    $$,
+    500  -- iterations
+);
+
+-- Cleanup
+DELETE FROM order WHERE created_at &gt; NOW() - interval '1 hour';
+</code></pre>
+<pre><code class="language-python"># tests/performance/order_benchmark.py
+import time
+import psycopg2
+import statistics
+from concurrent.futures import ThreadPoolExecutor
+
+def benchmark_operation(name, operation_func, iterations=100):
+    &quot;&quot;&quot;Generic benchmarking function&quot;&quot;&quot;
+    times = []
+
+    for i in range(iterations):
+        start_time = time.perf_counter()
+        operation_func()
+        end_time = time.perf_counter()
+        times.append(end_time - start_time)
+
+    return {
+        'name': name,
+        'iterations': iterations,
+        'mean': statistics.mean(times),
+        'median': statistics.median(times),
+        'min': min(times),
+        'max': max(times),
+        'stdev': statistics.stdev(times) if len(times) &gt; 1 else 0
+    }
+
+def test_order_state_machine_performance():
+    &quot;&quot;&quot;Performance test for order state machine&quot;&quot;&quot;
+    conn = psycopg2.connect(os.environ['DATABASE_URL'])
+    cursor = conn.cursor()
+
+    # Setup test data
+    cursor.execute(&quot;&quot;&quot;
+        INSERT INTO order (id, customer_id, status, total_amount)
+        SELECT
+            gen_random_uuid(),
+            'test-customer-id',
+            'pending',
+            100.00
+        FROM generate_series(1, 100)
+    &quot;&quot;&quot;)
+    conn.commit()
+
+    # Benchmark single confirmations
+    def single_confirmation():
+        cursor.execute(&quot;&quot;&quot;
+            SELECT order_confirm(id) FROM order
+            WHERE status = 'pending' LIMIT 1
+        &quot;&quot;&quot;)
+        conn.commit()
+
+    result = benchmark_operation(
+        'single_order_confirmation',
+        single_confirmation,
+        iterations=100
+    )
+
+    print(f&quot;Single confirmation: {result['mean']:.4f}s average&quot;)
+
+    # Benchmark bulk operations
+    def bulk_confirmation():
+        cursor.execute(&quot;&quot;&quot;
+            SELECT count(*) FROM (
+                SELECT order_confirm(id)
+                FROM order
+                WHERE status = 'pending'
+                LIMIT 10
+            ) q
+        &quot;&quot;&quot;)
+        conn.commit()
+
+    result = benchmark_operation(
+        'bulk_order_confirmation',
+        bulk_confirmation,
+        iterations=50
+    )
+
+    print(f&quot;Bulk confirmation (10): {result['mean']:.4f}s average&quot;)
+
+    # Cleanup
+    cursor.execute(&quot;DELETE FROM order WHERE customer_id = 'test-customer-id'&quot;)
+    conn.commit()
+    conn.close()
+
+if __name__ == '__main__':
+    test_order_state_machine_performance()
+</code></pre>
+<h2 id="step-2-run-performance-tests">🏃 Step 2: Run Performance Tests</h2>
+<h3 id="basic-performance-testing">Basic Performance Testing</h3>
+<pre><code class="language-bash"># Run performance tests
+specql test run --type performance entities/order.yaml
+
+# Expected output:
+# Performance Test Results for order
+# ===================================
+#
+# Test: single_order_confirm
+# Iterations: 100
+# Mean: 0.0234s
+# Median: 0.0218s
+# Min: 0.0189s
+# Max: 0.0456s
+# StdDev: 0.0056s
+#
+# Test: bulk_order_confirm
+# Iterations: 10
+# Mean: 0.4567s
+# Median: 0.4321s
+# Min: 0.3987s
+# Max: 0.5234s
+# StdDev: 0.0345s
+#
+# Performance Requirements:
+# ✅ single_order_confirm: 0.0234s &lt; 0.0500s (target)
+# ✅ bulk_order_confirm: 0.4567s &lt; 1.0000s (target)
+</code></pre>
+<h3 id="advanced-performance-options">Advanced Performance Options</h3>
+<pre><code class="language-bash"># Run with custom iterations
+specql test run --type performance entities/order.yaml --iterations 500
+
+# Run with concurrency
+specql test run --type performance entities/order.yaml --concurrency 5
+
+# Run specific performance test
+specql test run --type performance entities/order.yaml --filter &quot;*state_machine*&quot;
+
+# Generate detailed report
+specql test run --type performance entities/order.yaml --report detailed.html
+
+# Compare against baseline
+specql test run --type performance entities/order.yaml --baseline baseline.json
+</code></pre>
+<h3 id="manual-performance-testing">Manual Performance Testing</h3>
+<pre><code class="language-bash"># Run Python performance tests
+python tests/performance/order_benchmark.py
+
+# Run SQL performance tests
+psql $DATABASE_URL -f tests/performance/order_state_machine_performance.sql
+
+# Profile specific queries
+psql $DATABASE_URL -c &quot;EXPLAIN ANALYZE SELECT * FROM order WHERE status = 'pending' LIMIT 100;&quot;
+</code></pre>
+<h2 id="step-3-analyze-performance-results">📊 Step 3: Analyze Performance Results</h2>
+<h3 id="understanding-metrics">Understanding Metrics</h3>
+<pre><code class="language-json">{
+  &quot;test_name&quot;: &quot;single_order_confirm&quot;,
+  &quot;iterations&quot;: 100,
+  &quot;metrics&quot;: {
+    &quot;mean&quot;: 0.0234,
+    &quot;median&quot;: 0.0218,
+    &quot;min&quot;: 0.0189,
+    &quot;max&quot;: 0.0456,
+    &quot;stdev&quot;: 0.0056,
+    &quot;p95&quot;: 0.0321,
+    &quot;p99&quot;: 0.0412
+  },
+  &quot;requirements&quot;: {
+    &quot;target_mean&quot;: 0.0500,
+    &quot;max_p95&quot;: 0.1000,
+    &quot;status&quot;: &quot;PASS&quot;
+  }
+}
+</code></pre>
+<h3 id="performance-analysis">Performance Analysis</h3>
+<pre><code class="language-python"># Analyze performance distribution
+def analyze_performance_results(results):
+    &quot;&quot;&quot;Analyze performance test results&quot;&quot;&quot;
+
+    # Check for performance regressions
+    if results['mean'] &gt; results['requirements']['target_mean']:
+        print(f&quot;⚠️  Performance regression: {results['mean']:.4f}s &gt; {results['requirements']['target_mean']:.4f}s&quot;)
+
+    # Check for outliers
+    if results['max'] &gt; results['p95'] * 2:
+        print(f&quot;⚠️  Performance outliers detected: max {results['max']:.4f}s vs p95 {results['p95']:.4f}s&quot;)
+
+    # Check stability
+    if results['stdev'] / results['mean'] &gt; 0.5:
+        print(f&quot;⚠️  Unstable performance: coefficient of variation {results['stdev']/results['mean']:.2f}&quot;)
+
+    # Performance health score
+    health_score = calculate_performance_health(results)
+    if health_score &lt; 0.8:
+        print(f&quot;🔴 Poor performance health: {health_score:.2f}&quot;)
+    elif health_score &lt; 0.9:
+        print(f&quot;🟡 Acceptable performance health: {health_score:.2f}&quot;)
+    else:
+        print(f&quot;🟢 Good performance health: {health_score:.2f}&quot;)
+
+def calculate_performance_health(results):
+    &quot;&quot;&quot;Calculate performance health score (0-1)&quot;&quot;&quot;
+    score = 1.0
+
+    # Penalize for exceeding targets
+    if results['mean'] &gt; results['requirements']['target_mean']:
+        excess = results['mean'] / results['requirements']['target_mean'] - 1
+        score -= min(excess, 0.5)  # Max penalty 0.5
+
+    # Penalize for high variability
+    cv = results['stdev'] / results['mean']
+    if cv &gt; 0.3:
+        score -= min(cv - 0.3, 0.2)  # Max penalty 0.2
+
+    # Penalize for outliers
+    outlier_ratio = results['max'] / results['p95']
+    if outlier_ratio &gt; 1.5:
+        score -= min(outlier_ratio - 1.5, 0.3)  # Max penalty 0.3
+
+    return max(0, score)
+</code></pre>
+<h3 id="performance-baselines">Performance Baselines</h3>
+<pre><code class="language-json">// performance-baseline.json
+{
+  &quot;version&quot;: &quot;1.0&quot;,
+  &quot;timestamp&quot;: &quot;2024-01-15T10:00:00Z&quot;,
+  &quot;environment&quot;: &quot;production-like&quot;,
+  &quot;baselines&quot;: {
+    &quot;single_order_confirm&quot;: {
+      &quot;mean&quot;: 0.0234,
+      &quot;p95&quot;: 0.0321,
+      &quot;tolerance&quot;: 0.1  // 10% tolerance for changes
+    },
+    &quot;bulk_order_confirm&quot;: {
+      &quot;mean&quot;: 0.4567,
+      &quot;p95&quot;: 0.5234,
+      &quot;tolerance&quot;: 0.15
+    }
+  }
+}
+</code></pre>
+<h2 id="step-4-optimize-performance-issues">🔧 Step 4: Optimize Performance Issues</h2>
+<h3 id="query-optimization">Query Optimization</h3>
+<pre><code class="language-sql">-- Before: Slow query
+SELECT * FROM order
+WHERE status = 'pending'
+  AND created_at &gt; NOW() - interval '30 days'
+ORDER BY created_at DESC;
+
+-- After: Optimized query
+SELECT o.id, o.customer_id, o.total_amount, o.created_at
+FROM order o
+WHERE o.status = 'pending'
+  AND o.created_at &gt; NOW() - interval '30 days'
+ORDER BY o.created_at DESC;
+
+-- Add composite index
+CREATE INDEX idx_order_status_created ON order(status, created_at DESC)
+WHERE status IN ('pending', 'confirmed');
+</code></pre>
+<h3 id="index-optimization">Index Optimization</h3>
+<pre><code class="language-sql">-- Analyze slow queries
+EXPLAIN ANALYZE
+SELECT * FROM order
+WHERE customer_id = 'customer-123'
+  AND status = 'confirmed';
+
+-- Add missing indexes
+CREATE INDEX idx_order_customer_status ON order(customer_id, status);
+CREATE INDEX idx_order_total_amount ON order(total_amount) WHERE total_amount &gt; 100;
+
+-- Check index usage
+SELECT
+    schemaname, tablename, indexname,
+    idx_scan, idx_tup_read, idx_tup_fetch
+FROM pg_stat_user_indexes
+WHERE tablename = 'order'
+ORDER BY idx_scan DESC;
+</code></pre>
+<h3 id="connection-pooling">Connection Pooling</h3>
+<pre><code class="language-python"># Use connection pooling for better performance
+from psycopg2.pool import ThreadedConnectionPool
+
+# Create connection pool
+pool = ThreadedConnectionPool(
+    minconn=5,
+    maxconn=20,
+    host=&quot;localhost&quot;,
+    database=&quot;specql_db&quot;,
+    user=&quot;specql_user&quot;,
+    password=&quot;password&quot;
+)
+
+def get_connection():
+    return pool.getconn()
+
+def release_connection(conn):
+    pool.putconn(conn)
+</code></pre>
+<h3 id="query-result-caching">Query Result Caching</h3>
+<pre><code class="language-python"># Cache expensive queries
+from functools import lru_cache
+import time
+
+@lru_cache(maxsize=1000)
+def get_customer_order_count(customer_id: str, status: str = None) -&gt; int:
+    &quot;&quot;&quot;Cached function for customer order counts&quot;&quot;&quot;
+    cache_key = f&quot;{customer_id}:{status}:{int(time.time() // 300)}&quot;  # 5-minute cache
+
+    # Check Redis cache first
+    cached_result = redis.get(cache_key)
+    if cached_result:
+        return int(cached_result)
+
+    # Query database
+    with get_connection() as conn:
+        cursor = conn.cursor()
+        if status:
+            cursor.execute(&quot;&quot;&quot;
+                SELECT count(*) FROM order
+                WHERE customer_id = %s AND status = %s
+            &quot;&quot;&quot;, (customer_id, status))
+        else:
+            cursor.execute(&quot;&quot;&quot;
+                SELECT count(*) FROM order
+                WHERE customer_id = %s
+            &quot;&quot;&quot;, (customer_id,))
+
+        result = cursor.fetchone()[0]
+
+        # Cache result for 5 minutes
+        redis.setex(cache_key, 300, result)
+
+        return result
+</code></pre>
+<h3 id="database-configuration-tuning">Database Configuration Tuning</h3>
+<pre><code class="language-sql">-- Optimize PostgreSQL settings for performance
+ALTER SYSTEM SET shared_buffers = '256MB';
+ALTER SYSTEM SET effective_cache_size = '1GB';
+ALTER SYSTEM SET work_mem = '64MB';
+ALTER SYSTEM SET maintenance_work_mem = '256MB';
+ALTER SYSTEM SET checkpoint_completion_target = 0.9;
+ALTER SYSTEM SET wal_buffers = '16MB';
+ALTER SYSTEM SET default_statistics_target = 100;
+
+-- Create optimized table structure
+CREATE TABLE order (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    customer_id UUID NOT NULL,
+    status TEXT NOT NULL,
+    total_amount DECIMAL(10,2) NOT NULL,
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+    updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+) PARTITION BY RANGE (created_at);
+
+-- Create partitions for better performance
+CREATE TABLE order_2024_01 PARTITION OF order
+    FOR VALUES FROM ('2024-01-01') TO ('2024-02-01');
+CREATE TABLE order_2024_02 PARTITION OF order
+    FOR VALUES FROM ('2024-02-01') TO ('2024-03-01');
+</code></pre>
+<h2 id="step-5-set-performance-standards">📈 Step 5: Set Performance Standards</h2>
+<h3 id="performance-requirements">Performance Requirements</h3>
+<pre><code class="language-yaml"># performance-requirements.yaml
+version: &quot;1.0&quot;
+requirements:
+  # API Response Times
+  api:
+    order_create: { p95: 200ms, mean: 100ms }
+    order_update: { p95: 150ms, mean: 75ms }
+    order_query: { p95: 100ms, mean: 50ms }
+
+  # Database Query Times
+  database:
+    simple_select: { p95: 50ms, mean: 25ms }
+    complex_join: { p95: 200ms, mean: 100ms }
+    bulk_update: { p95: 1000ms, mean: 500ms }
+
+  # State Machine Transitions
+  state_machine:
+    single_transition: { p95: 100ms, mean: 50ms }
+    bulk_transition: { p95: 500ms, mean: 250ms }
+
+  # Concurrent Load
+  load:
+    concurrent_users: 1000
+    requests_per_second: 500
+    error_rate: 0.01  # 1%
+
+  # Resource Usage
+  resources:
+    memory_per_request: 10MB
+    cpu_per_request: 5ms
+    connections: 100
+</code></pre>
+<h3 id="performance-slas">Performance SLAs</h3>
+<pre><code class="language-yaml"># performance-slas.yaml
+service_level_agreements:
+  # Critical Operations (99.9% uptime)
+  critical:
+    - operation: order_create
+      availability: 0.999
+      response_time_p95: 200ms
+      error_budget: 0.1  # 0.1% errors allowed
+
+  # Important Operations (99.5% uptime)
+  important:
+    - operation: order_update
+      availability: 0.995
+      response_time_p95: 500ms
+      error_budget: 0.5
+
+  # Standard Operations (99% uptime)
+  standard:
+    - operation: order_query
+      availability: 0.99
+      response_time_p95: 1000ms
+      error_budget: 2.0
+</code></pre>
+<h3 id="performance-monitoring">Performance Monitoring</h3>
+<pre><code class="language-python"># Continuous performance monitoring
+def monitor_performance():
+    &quot;&quot;&quot;Monitor performance metrics continuously&quot;&quot;&quot;
+    while True:
+        # Run performance tests
+        results = run_performance_tests()
+
+        # Check against SLAs
+        violations = check_sla_violations(results)
+
+        if violations:
+            # Alert on violations
+            send_performance_alert(violations)
+
+        # Store metrics for trending
+        store_performance_metrics(results)
+
+        # Wait before next check
+        time.sleep(300)  # 5 minutes
+
+def check_sla_violations(results):
+    &quot;&quot;&quot;Check if performance violates SLAs&quot;&quot;&quot;
+    violations = []
+
+    for test_name, metrics in results.items():
+        sla = get_sla_for_operation(test_name)
+
+        if metrics['p95'] &gt; sla['response_time_p95']:
+            violations.append({
+                'operation': test_name,
+                'violation': 'p95_response_time',
+                'actual': metrics['p95'],
+                'limit': sla['response_time_p95']
+            })
+
+        if metrics['error_rate'] &gt; sla['error_budget']:
+            violations.append({
+                'operation': test_name,
+                'violation': 'error_rate',
+                'actual': metrics['error_rate'],
+                'limit': sla['error_budget']
+            })
+
+    return violations
+</code></pre>
+<h2 id="step-6-customize-performance-tests">🔧 Step 6: Customize Performance Tests</h2>
+<h3 id="test-configuration">Test Configuration</h3>
+<pre><code class="language-yaml"># In your entity YAML
+name: order
+# ... fields and patterns ...
+
+test_config:
+  performance:
+    # Test settings
+    enabled: true
+    iterations: 1000
+    concurrency: 10
+    timeout: &quot;5 minutes&quot;
+
+    # Test data
+    data_sets:
+      - name: small_dataset
+        orders: 100
+        customers: 10
+
+      - name: large_dataset
+        orders: 10000
+        customers: 1000
+
+    # Performance requirements
+    requirements:
+      - operation: order_confirm
+        target_p95: 200ms
+        target_mean: 100ms
+        max_error_rate: 0.01
+
+      - operation: bulk_order_update
+        target_p95: 2000ms
+        target_mean: 1000ms
+
+    # Monitoring
+    metrics:
+      - query_execution_time
+      - memory_usage
+      - lock_wait_time
+      - connection_count
+
+    # Reporting
+    reports:
+      - format: html
+        include_charts: true
+        include_trends: true
+      - format: json
+        include_raw_data: true
+</code></pre>
+<h3 id="custom-performance-tests">Custom Performance Tests</h3>
+<pre><code class="language-sql">-- Custom performance test for complex business logic
+CREATE OR REPLACE FUNCTION test_complex_order_processing_performance()
+RETURNS TABLE(test_name text, execution_time interval, records_processed integer) AS $$
+DECLARE
+    start_time timestamp;
+    end_time timestamp;
+    processed_count integer := 0;
+BEGIN
+    -- Setup complex test data
+    INSERT INTO order (id, customer_id, status, total_amount, created_at)
+    SELECT
+        gen_random_uuid(),
+        'perf-test-customer',
+        'pending',
+        (random() * 1000 + 10)::decimal,
+        NOW() - (random() * interval '90 days')
+    FROM generate_series(1, 1000);
+
+    -- Test complex order processing workflow
+    start_time := clock_timestamp();
+
+    -- Process orders with complex business logic
+    UPDATE order
+    SET status = CASE
+            WHEN total_amount &gt; 500 THEN 'requires_approval'
+            WHEN total_amount &gt; 100 THEN 'confirmed'
+            ELSE 'cancelled'
+        END,
+        updated_at = NOW()
+    WHERE customer_id = 'perf-test-customer'
+      AND status = 'pending'
+      AND created_at &gt; NOW() - interval '30 days';
+
+    GET DIAGNOSTICS processed_count = ROW_COUNT;
+
+    end_time := clock_timestamp();
+
+    -- Return results
+    test_name := 'complex_order_processing';
+    execution_time := end_time - start_time;
+    records_processed := processed_count;
+
+    RETURN NEXT;
+
+    -- Cleanup
+    DELETE FROM order WHERE customer_id = 'perf-test-customer';
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h2 id="step-7-cicd-integration">🔄 Step 7: CI/CD Integration</h2>
+<h3 id="github-actions-performance-testing">GitHub Actions Performance Testing</h3>
+<pre><code class="language-yaml"># .github/workflows/performance-tests.yml
+name: Performance Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  schedule:
+    # Run daily performance tests
+    - cron: '0 2 * * *'
+
+jobs:
+  performance:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: &gt;-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup SpecQL
+        run: pip install specql
+
+      - name: Generate Schema
+        run: specql generate schema entities/*.yaml
+
+      - name: Setup Test Data
+        run: |
+          psql postgresql://postgres:postgres@localhost:5432/postgres -f db/schema/00_foundation/*.sql
+          psql postgresql://postgres:postgres@localhost:5432/postgres -f db/schema/10_tables/*.sql
+          # Load performance test data
+          ./scripts/load_performance_data.sh
+
+      - name: Run Performance Tests
+        run: specql test run --type performance entities/*.yaml --report performance-report.html
+
+      - name: Check Performance Regression
+        run: |
+          # Compare against baseline
+          python scripts/check_performance_regression.py \
+            --baseline baseline-performance.json \
+            --current performance-results.json \
+            --max-degradation 0.1
+
+      - name: Upload Performance Report
+        uses: actions/upload-artifact@v3
+        with:
+          name: performance-report
+          path: performance-report.html
+
+      - name: Alert on Performance Issues
+        if: failure()
+        run: |
+          # Send alert to Slack/Teams
+          curl -X POST -H 'Content-type: application/json' \
+            --data '{&quot;text&quot;:&quot;Performance regression detected!&quot;}' \
+            $SLACK_WEBHOOK_URL
+</code></pre>
+<h3 id="performance-regression-detection">Performance Regression Detection</h3>
+<pre><code class="language-python"># scripts/check_performance_regression.py
+import json
+import sys
+import argparse
+
+def check_performance_regression(baseline_file, current_file, max_degradation):
+    &quot;&quot;&quot;Check for performance regressions&quot;&quot;&quot;
+
+    with open(baseline_file) as f:
+        baseline = json.load(f)
+
+    with open(current_file) as f:
+        current = json.load(f)
+
+    regressions = []
+
+    for test_name in baseline['results']:
+        if test_name in current['results']:
+            baseline_mean = baseline['results'][test_name]['mean']
+            current_mean = current['results'][test_name]['mean']
+
+            degradation = (current_mean - baseline_mean) / baseline_mean
+
+            if degradation &gt; max_degradation:
+                regressions.append({
+                    'test': test_name,
+                    'baseline': baseline_mean,
+                    'current': current_mean,
+                    'degradation': degradation
+                })
+
+    if regressions:
+        print(f&quot;🚨 Performance regressions detected:&quot;)
+        for regression in regressions:
+            print(f&quot;  {regression['test']}: {regression['degradation']:.1%} degradation&quot;)
+        sys.exit(1)
+    else:
+        print(&quot;✅ No performance regressions detected&quot;)
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--baseline', required=True)
+    parser.add_argument('--current', required=True)
+    parser.add_argument('--max-degradation', type=float, default=0.1)
+
+    args = parser.parse_args()
+    check_performance_regression(args.baseline, args.current, args.max_degradation)
+</code></pre>
+<h2 id="best-practices">🎯 Best Practices</h2>
+<h3 id="test-design">Test Design</h3>
+<ul>
+<li><strong>Use realistic data volumes</strong> - Test with production-scale data</li>
+<li><strong>Test under load</strong> - Include concurrent user scenarios</li>
+<li><strong>Measure percentiles</strong> - Focus on p95/p99, not just averages</li>
+<li><strong>Set meaningful targets</strong> - Base requirements on user expectations</li>
+</ul>
+<h3 id="optimization">Optimization</h3>
+<ul>
+<li><strong>Profile before optimizing</strong> - Measure before making changes</li>
+<li><strong>Index strategically</strong> - Add indexes for performance-critical queries</li>
+<li><strong>Cache effectively</strong> - Use caching for expensive operations</li>
+<li><strong>Monitor continuously</strong> - Track performance over time</li>
+</ul>
+<h3 id="monitoring">Monitoring</h3>
+<ul>
+<li><strong>Establish baselines</strong> - Know your normal performance levels</li>
+<li><strong>Alert on regressions</strong> - Catch performance issues early</li>
+<li><strong>Trend analysis</strong> - Monitor performance changes over time</li>
+<li><strong>Capacity planning</strong> - Plan for future growth</li>
+</ul>
+<h3 id="maintenance">Maintenance</h3>
+<ul>
+<li><strong>Update baselines</strong> - Adjust expectations as application evolves</li>
+<li><strong>Review performance tests</strong> - Ensure they remain relevant</li>
+<li><strong>Document optimizations</strong> - Explain why changes were made</li>
+<li><strong>Share knowledge</strong> - Document performance lessons learned</li>
+</ul>
+<h2 id="troubleshooting">🆘 Troubleshooting</h2>
+<h3 id="performance-tests-are-too-slow">"Performance tests are too slow"</h3>
+<pre><code class="language-bash"># Reduce test iterations
+specql test run --type performance entities/order.yaml --iterations 100
+
+# Use smaller data sets
+specql generate tests --type performance entities/order.yaml --data-size 1000
+
+# Run tests in parallel
+specql test run --type performance entities/order.yaml --concurrency 4
+</code></pre>
+<h3 id="inconsistent-performance-results">"Inconsistent performance results"</h3>
+<pre><code class="language-bash"># Stabilize test environment
+# - Use dedicated test database
+# - Disable autovacuum during tests
+# - Pre-warm database caches
+
+# Add result stabilization
+# - Run multiple iterations and average
+# - Discard outlier results
+# - Use statistical analysis
+</code></pre>
+<h3 id="performance-regressions-not-detected">"Performance regressions not detected"</h3>
+<pre><code class="language-bash"># Check baseline accuracy
+cat baseline-performance.json
+
+# Verify test conditions match
+# - Same data volumes
+# - Same PostgreSQL configuration
+# - Same hardware specifications
+
+# Adjust sensitivity
+specql test run --type performance entities/order.yaml --regression-threshold 0.05
+</code></pre>
+<h3 id="database-becomes-unresponsive-under-load">"Database becomes unresponsive under load"</h3>
+<pre><code class="language-bash"># Check PostgreSQL configuration
+psql $DATABASE_URL -c &quot;SHOW shared_buffers;&quot;
+psql $DATABASE_URL -c &quot;SHOW work_mem;&quot;
+
+# Monitor system resources
+# - CPU usage
+# - Memory usage
+# - Disk I/O
+# - Network I/O
+
+# Optimize connection pooling
+# Use PgBouncer or similar
+</code></pre>
+<h2 id="success-metrics">📊 Success Metrics</h2>
+<h3 id="performance-targets">Performance Targets</h3>
+<ul>
+<li><strong>API Response Time</strong>: p95 &lt; 200ms for critical operations</li>
+<li><strong>Database Query Time</strong>: p95 &lt; 50ms for simple queries</li>
+<li><strong>Concurrent Users</strong>: Support 1000+ simultaneous users</li>
+<li><strong>Error Rate</strong>: &lt; 1% under normal load</li>
+</ul>
+<h3 id="reliability-goals">Reliability Goals</h3>
+<ul>
+<li><strong>Performance Stability</strong>: &lt; 10% variance between test runs</li>
+<li><strong>Regression Detection</strong>: Catch &gt; 5% performance changes</li>
+<li><strong>Test Coverage</strong>: Performance tests for all critical paths</li>
+<li><strong>Monitoring Coverage</strong>: 100% of production operations monitored</li>
+</ul>
+<h3 id="business-impact">Business Impact</h3>
+<ul>
+<li><strong>User Satisfaction</strong>: Fast, responsive application</li>
+<li><strong>Operational Efficiency</strong>: Reduced infrastructure costs</li>
+<li><strong>Development Velocity</strong>: Quick feedback on performance impact</li>
+<li><strong>Risk Reduction</strong>: Prevent performance issues in production</li>
+</ul>
+<h2 id="summary">🎉 Summary</h2>
+<p>Performance testing provides:
+- ✅ <strong>Benchmarking</strong> - Measure execution times and resource usage
+- ✅ <strong>Optimization</strong> - Identify and fix performance bottlenecks
+- ✅ <strong>Regression prevention</strong> - Catch performance issues before production
+- ✅ <strong>Capacity planning</strong> - Understand system limits and scaling needs
+- ✅ <strong>Quality assurance</strong> - Ensure consistent performance standards</p>
+<h2 id="whats-next">🚀 What's Next?</h2>
+<ul>
+<li><strong><a href="ci-cd-integration.md">CI/CD Integration</a></strong> - Automated performance testing</li>
+<li><strong><a href="../best-practices/database-tuning.md">Database Optimization</a></strong> - Advanced PostgreSQL tuning</li>
+<li><strong><a href="../best-practices/monitoring.md">Monitoring</a></strong> - Production performance monitoring</li>
+<li><strong><a href="../best-practices/load-testing.md">Load Testing</a></strong> - Advanced load testing techniques</li>
+</ul>
+<p><strong>Ready to ensure your application performs at production levels? Let's continue! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

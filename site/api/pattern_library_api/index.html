@@ -1,0 +1,966 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Pattern Library API Reference - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Pattern Library API Reference";
+        var mkdocs_page_input_path = "api/pattern_library_api.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Pattern Library API Reference</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="pattern-library-api-reference">Pattern Library API Reference</h1>
+<p>Complete reference for SpecQL action patterns, including all parameters, options, and examples.</p>
+<h2 id="table-of-contents">📋 Table of Contents</h2>
+<ul>
+<li><a href="#state-machine-pattern">State Machine Pattern</a></li>
+<li><a href="#multi-entity-pattern">Multi-Entity Pattern</a></li>
+<li><a href="#batch-operation-pattern">Batch Operation Pattern</a></li>
+<li><a href="#crud-enhancement-options">CRUD Enhancement Options</a></li>
+<li><a href="#common-parameters">Common Parameters</a></li>
+<li><a href="#error-handling">Error Handling</a></li>
+</ul>
+<h2 id="state-machine-pattern">🔄 State Machine Pattern</h2>
+<p><strong>Pattern</strong>: <code>state_machine/transition</code></p>
+<p>Manages entity state transitions with validation, side effects, and projection refresh.</p>
+<h3 id="parameters">Parameters</h3>
+<h4 id="required-parameters">Required Parameters</h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>from_states</code></td>
+<td><code>array&lt;string&gt;</code></td>
+<td>Valid source states for transition</td>
+</tr>
+<tr>
+<td><code>to_state</code></td>
+<td><code>string</code></td>
+<td>Target state after transition</td>
+</tr>
+</tbody>
+</table>
+<h4 id="optional-parameters">Optional Parameters</h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>validation_checks</code></td>
+<td><code>array&lt;validation&gt;</code></td>
+<td><code>[]</code></td>
+<td>Pre-transition validation rules</td>
+</tr>
+<tr>
+<td><code>side_effects</code></td>
+<td><code>array&lt;side_effect&gt;</code></td>
+<td><code>[]</code></td>
+<td>Post-transition updates to other entities</td>
+</tr>
+<tr>
+<td><code>input_fields</code></td>
+<td><code>array&lt;input_field&gt;</code></td>
+<td><code>[]</code></td>
+<td>Additional fields to set during transition</td>
+</tr>
+<tr>
+<td><code>refresh_projection</code></td>
+<td><code>string</code></td>
+<td><code>null</code></td>
+<td>Projection to refresh after transition</td>
+</tr>
+</tbody>
+</table>
+<h3 id="validation-check-schema">Validation Check Schema</h3>
+<pre><code class="language-yaml">validation_checks:
+  - name: string              # Optional: descriptive name
+    condition: string         # SQL expression returning boolean
+    error: string            # Error message if validation fails
+</code></pre>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-yaml">validation_checks:
+  - name: no_active_allocations
+    condition: &quot;NOT EXISTS (SELECT 1 FROM allocations WHERE machine_id = v_machine_id AND status = 'active')&quot;
+    error: &quot;Cannot transition with active allocations&quot;
+
+  - condition: &quot;input_data.approved_by IS NOT NULL&quot;
+    error: &quot;Approval requires approver ID&quot;
+</code></pre>
+<h3 id="side-effect-schema">Side Effect Schema</h3>
+<pre><code class="language-yaml">side_effects:
+  - entity: string           # Entity to update
+    set: object             # Fields to set {field: value}
+    where: string           # WHERE clause for update
+    description: string     # Optional: descriptive name
+</code></pre>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-yaml">side_effects:
+  - entity: MachineItem
+    set:
+      status: archived
+      archived_at: NOW()
+    where: &quot;machine_id = v_machine_id&quot;
+    description: &quot;Archive related items&quot;
+
+  - entity: AuditLog
+    set:
+      action: $input.action_type
+      entity_id: v_machine_id
+      user_id: $auth_user_id
+    where: &quot;entity_type = 'machine'&quot;
+</code></pre>
+<h3 id="input-field-schema">Input Field Schema</h3>
+<pre><code class="language-yaml">input_fields:
+  - name: string            # Field name
+    type: string           # PostgreSQL type
+    required: boolean      # Whether field is required
+</code></pre>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-yaml">input_fields:
+  - name: decommission_date
+    type: date
+    required: true
+
+  - name: notes
+    type: text
+    required: false
+</code></pre>
+<h3 id="complete-example">Complete Example</h3>
+<pre><code class="language-yaml">actions:
+  - name: decommission_machine
+    pattern: state_machine/transition
+    config:
+      from_states: [active, maintenance]
+      to_state: decommissioned
+      input_fields:
+        - name: decommission_date
+          type: date
+          required: true
+        - name: decommission_reason
+          type: text
+          required: true
+      validation_checks:
+        - condition: &quot;NOT EXISTS (SELECT 1 FROM allocations WHERE machine_id = v_machine_id AND status = 'active')&quot;
+          error: &quot;Cannot decommission with active allocations&quot;
+      side_effects:
+        - entity: MachineItem
+          set: {status: archived}
+          where: &quot;machine_id = v_machine_id&quot;
+        - entity: MachineEvent
+          set:
+            event_type: decommissioned
+            event_data: $input_payload
+          where: &quot;machine_id = v_machine_id&quot;
+      refresh_projection: machine_projection
+</code></pre>
+<h3 id="generated-sql-structure">Generated SQL Structure</h3>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION app.decommission_machine(...) RETURNS mutation_result AS $$
+DECLARE
+    v_current_status TEXT;
+BEGIN
+    -- Load and validate current state
+    SELECT status INTO v_current_status FROM entity_table WHERE id = v_entity_id;
+
+    IF v_current_status NOT IN ('from_state1', 'from_state2') THEN
+        RETURN error_response('invalid_state_transition');
+    END IF;
+
+    -- Custom validations
+    IF NOT (validation_condition) THEN
+        RETURN error_response('validation_error');
+    END IF;
+
+    -- State transition
+    UPDATE entity_table SET
+        status = 'to_state',
+        to_state_at = NOW(),
+        input_field1 = input_data.input_field1,
+        ...
+    WHERE id = v_entity_id;
+
+    -- Side effects
+    UPDATE other_entity SET ... WHERE ...;
+
+    -- Projection refresh
+    PERFORM refresh_entity_projection(v_entity_id);
+
+    RETURN success_response();
+END;
+$$;
+</code></pre>
+<h2 id="multi-entity-pattern">🔗 Multi-Entity Pattern</h2>
+<p><strong>Pattern</strong>: <code>multi_entity/coordinated_update</code></p>
+<p>Coordinates operations across multiple entities in a single transaction.</p>
+<h3 id="parameters_1">Parameters</h3>
+<h4 id="required-parameters_1">Required Parameters</h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>primary_entity</code></td>
+<td><code>string</code></td>
+<td>Main entity being operated on</td>
+</tr>
+<tr>
+<td><code>operations</code></td>
+<td><code>array&lt;operation&gt;</code></td>
+<td>Sequence of operations to perform</td>
+</tr>
+</tbody>
+</table>
+<h4 id="optional-parameters_1">Optional Parameters</h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>transaction_scope</code></td>
+<td><code>enum</code></td>
+<td><code>serializable</code></td>
+<td>Transaction isolation level</td>
+</tr>
+<tr>
+<td><code>refresh_projections</code></td>
+<td><code>array&lt;string&gt;</code></td>
+<td><code>[]</code></td>
+<td>Projections to refresh after operations</td>
+</tr>
+</tbody>
+</table>
+<h3 id="operation-schema">Operation Schema</h3>
+<p>Operations support different action types:</p>
+<h4 id="get-or-create-operation">Get or Create Operation</h4>
+<pre><code class="language-yaml">- action: get_or_create
+  entity: string              # Entity to check/create
+  where: object              # Conditions to find existing
+  create_if_missing: object  # Fields for creation if not found
+  store_as: string           # Variable to store resulting ID
+</code></pre>
+<h4 id="insert-operation">Insert Operation</h4>
+<pre><code class="language-yaml">- action: insert
+  entity: string             # Entity to insert into
+  values: object             # Field values {field: value}
+  store_as: string           # Optional: store inserted ID
+</code></pre>
+<h4 id="update-operation">Update Operation</h4>
+<pre><code class="language-yaml">- action: update
+  entity: string             # Entity to update
+  set: object                # Fields to set {field: value}
+  where: string|object       # WHERE conditions
+</code></pre>
+<h4 id="delete-operation">Delete Operation</h4>
+<pre><code class="language-yaml">- action: delete
+  entity: string             # Entity to delete from
+  where: string|object       # WHERE conditions
+</code></pre>
+<h3 id="complete-example_1">Complete Example</h3>
+<pre><code class="language-yaml">actions:
+  - name: allocate_to_stock
+    pattern: multi_entity/coordinated_update
+    config:
+      primary_entity: Machine
+      operations:
+        - action: get_or_create
+          entity: Location
+          where:
+            code: 'STOCK'
+            tenant_id: $auth_tenant_id
+          create_if_missing:
+            code: STOCK
+            name: 'Stock Location'
+            location_type: warehouse
+          store_as: stock_location_id
+
+        - action: insert
+          entity: Allocation
+          values:
+            machine_id: $input_data.machine_id
+            location_id: $stock_location_id
+            allocation_type: stock
+            status: active
+            allocated_at: NOW()
+          store_as: allocation_id
+
+        - action: update
+          entity: Machine
+          set:
+            status: in_stock
+            location_id: $stock_location_id
+            current_allocation_id: $allocation_id
+          where: &quot;id = $input_data.machine_id&quot;
+
+        - action: insert
+          entity: MachineEvent
+          values:
+            machine_id: $input_data.machine_id
+            event_type: allocated_to_stock
+            event_data: $input_payload
+
+      refresh_projections:
+        - machine_projection
+        - allocation_projection
+</code></pre>
+<h3 id="generated-sql-structure_1">Generated SQL Structure</h3>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION app.allocate_to_stock(...) RETURNS mutation_result AS $$
+DECLARE
+    v_stock_location_id UUID;
+    v_allocation_id UUID;
+BEGIN
+    -- Get or create location
+    SELECT id INTO v_stock_location_id FROM locations WHERE code = 'STOCK';
+    IF v_stock_location_id IS NULL THEN
+        INSERT INTO locations (...) VALUES (...) RETURNING id INTO v_stock_location_id;
+    END IF;
+
+    -- Insert allocation
+    INSERT INTO allocations (...) VALUES (...) RETURNING id INTO v_allocation_id;
+
+    -- Update machine
+    UPDATE machines SET ... WHERE ...;
+
+    -- Insert event
+    INSERT INTO events (...) VALUES (...);
+
+    -- Refresh projections
+    PERFORM refresh_machine_projection(...);
+    PERFORM refresh_allocation_projection(...);
+
+    RETURN success_response();
+END;
+$$;
+</code></pre>
+<h2 id="batch-operation-pattern">📦 Batch Operation Pattern</h2>
+<p><strong>Pattern</strong>: <code>batch/bulk_operation</code></p>
+<p>Processes multiple records in a single operation with error handling.</p>
+<h3 id="parameters_2">Parameters</h3>
+<h4 id="required-parameters_2">Required Parameters</h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>batch_input</code></td>
+<td><code>string</code></td>
+<td>Field name containing array of items</td>
+</tr>
+<tr>
+<td><code>operation</code></td>
+<td><code>operation</code></td>
+<td>Operation to perform on each item</td>
+</tr>
+<tr>
+<td><code>return_summary</code></td>
+<td><code>object</code></td>
+<td>Summary fields to return</td>
+</tr>
+</tbody>
+</table>
+<h4 id="optional-parameters_2">Optional Parameters</h4>
+<table>
+<thead>
+<tr>
+<th>Parameter</th>
+<th>Type</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>error_handling</code></td>
+<td><code>enum</code></td>
+<td><code>continue_on_error</code></td>
+<td>Error handling strategy</td>
+</tr>
+<tr>
+<td><code>batch_size</code></td>
+<td><code>integer</code></td>
+<td><code>100</code></td>
+<td>Maximum items to process</td>
+</tr>
+<tr>
+<td><code>refresh_projections</code></td>
+<td><code>array&lt;string&gt;</code></td>
+<td><code>[]</code></td>
+<td>Projections to refresh after batch</td>
+</tr>
+</tbody>
+</table>
+<h3 id="operation-schema_1">Operation Schema</h3>
+<pre><code class="language-yaml">operation:
+  action: update|insert|delete
+  entity: string
+  set: object                # For update: {field: $item.value}
+  values: object             # For insert: {field: $item.value}
+  where: string|object       # WHERE conditions with $item references
+</code></pre>
+<h3 id="return-summary-schema">Return Summary Schema</h3>
+<pre><code class="language-yaml">return_summary:
+  field_name: variable_name   # Maps response field to internal variable
+</code></pre>
+<p><strong>Examples:</strong></p>
+<pre><code class="language-yaml">return_summary:
+  processed_count: v_processed_count
+  failed_count: v_failed_count
+  failed_items: v_failed_items
+</code></pre>
+<h3 id="complete-example_2">Complete Example</h3>
+<pre><code class="language-yaml">actions:
+  - name: bulk_update_prices
+    pattern: batch/bulk_operation
+    config:
+      batch_input: price_updates
+      operation:
+        action: update
+        entity: ContractItem
+        set:
+          unit_price: $item.unit_price
+          total_price: $item.unit_price * quantity
+        where: &quot;id = $item.id AND tenant_id = $auth_tenant_id&quot;
+      error_handling: continue_on_error
+      batch_size: 100
+      refresh_projections:
+        - contract_item_projection
+        - contract_projection
+      return_summary:
+        processed_count: v_processed_count
+        failed_count: v_failed_count
+        failed_items: v_failed_items
+</code></pre>
+<h3 id="generated-sql-structure_2">Generated SQL Structure</h3>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION app.bulk_update_prices(...) RETURNS mutation_result AS $$
+DECLARE
+    v_item JSONB;
+    v_processed_count INTEGER := 0;
+    v_failed_count INTEGER := 0;
+    v_failed_items JSONB := '[]'::JSONB;
+BEGIN
+    FOR v_item IN SELECT * FROM jsonb_array_elements(input_data.price_updates) LIMIT 100
+    LOOP
+        BEGIN
+            UPDATE contract_items SET
+                unit_price = (v_item-&gt;&gt;'unit_price')::DECIMAL,
+                total_price = (v_item-&gt;&gt;'unit_price')::DECIMAL * quantity
+            WHERE id = (v_item-&gt;&gt;'id')::UUID AND tenant_id = auth_tenant_id;
+
+            v_processed_count := v_processed_count + 1;
+        EXCEPTION WHEN OTHERS THEN
+            v_failed_count := v_failed_count + 1;
+            v_failed_items := v_failed_items || jsonb_build_object('error', SQLERRM, 'item', v_item);
+        END;
+    END LOOP;
+
+    -- Refresh projections
+    PERFORM refresh_contract_item_projection();
+    PERFORM refresh_contract_projection();
+
+    RETURN success_response(jsonb_build_object(
+        'processed_count', v_processed_count,
+        'failed_count', v_failed_count,
+        'failed_items', v_failed_items
+    ));
+END;
+$$;
+</code></pre>
+<h2 id="crud-enhancement-options">🛠️ CRUD Enhancement Options</h2>
+<p>These are not patterns but entity-level configurations that enhance CRUD operations.</p>
+<h3 id="entity-constraints">Entity Constraints</h3>
+<pre><code class="language-yaml">constraints:
+  - name: string              # Constraint identifier
+    type: unique             # Constraint type
+    fields: array           # Fields in constraint
+    check_on_create: boolean # Check on INSERT
+    error_message: string    # Custom error message
+</code></pre>
+<h3 id="identifier-configuration">Identifier Configuration</h3>
+<pre><code class="language-yaml">identifier:
+  pattern: string           # Pattern with {field:format} placeholders
+  sequence:
+    scope: array            # Fields defining sequence scope
+    group_by: array         # Fields for grouping sequences
+  recalculate_on: array     # When to recalc: [create, update]
+</code></pre>
+<h3 id="projection-configuration">Projection Configuration</h3>
+<pre><code class="language-yaml">projections:
+  - name: string            # Projection name
+    materialize: boolean    # Whether to create materialized view
+    refresh_on: array       # When to refresh: [create, update, delete]
+    includes: array         # Related entities to include
+</code></pre>
+<h3 id="delete-policy">Delete Policy</h3>
+<pre><code class="language-yaml">delete_policy:
+  default: soft|hard        # Default delete behavior
+  allow_hard_delete: boolean # Whether hard delete is allowed
+  check_dependencies: array  # Dependency checks before hard delete
+</code></pre>
+<h3 id="action-enhancements">Action Enhancements</h3>
+<pre><code class="language-yaml">actions:
+  - name: update_entity
+    partial_updates: boolean      # Use CASE expressions for partial updates
+    track_updated_fields: boolean # Track which fields changed
+    duplicate_detection: boolean  # Check constraints before create
+    recalculate_identifier: boolean # Recalc identifier after operation
+    refresh_projection: string    # Projection to refresh
+    supports_hard_delete: boolean # Allow hard delete
+    dependency_check: boolean     # Check dependencies before delete
+</code></pre>
+<h2 id="common-parameters">🔧 Common Parameters</h2>
+<h3 id="variable-references">Variable References</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>$input_data.field</code></td>
+<td>Input payload field</td>
+<td><code>$input_data.machine_id</code></td>
+</tr>
+<tr>
+<td><code>$auth_user_id</code></td>
+<td>Current user ID</td>
+<td><code>updated_by: $auth_user_id</code></td>
+</tr>
+<tr>
+<td><code>$auth_tenant_id</code></td>
+<td>Current tenant ID</td>
+<td><code>tenant_id: $auth_tenant_id</code></td>
+</tr>
+<tr>
+<td><code>v_entity_id</code></td>
+<td>Current entity ID</td>
+<td><code>machine_id = v_entity_id</code></td>
+</tr>
+<tr>
+<td><code>$item.field</code></td>
+<td>Batch item field</td>
+<td><code>$item.unit_price</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="sql-operators">SQL Operators</h3>
+<table>
+<thead>
+<tr>
+<th>Operator</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>EXISTS(...)</code></td>
+<td>Check existence</td>
+<td><code>EXISTS (SELECT 1 FROM table WHERE ...)</code></td>
+</tr>
+<tr>
+<td><code>NOT EXISTS(...)</code></td>
+<td>Check non-existence</td>
+<td><code>NOT EXISTS (SELECT 1 FROM ...)</code></td>
+</tr>
+<tr>
+<td><code>COUNT(*)</code></td>
+<td>Count rows</td>
+<td><code>SELECT COUNT(*) FROM table</code></td>
+</tr>
+<tr>
+<td><code>NOW()</code></td>
+<td>Current timestamp</td>
+<td><code>created_at: NOW()</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="field-types">Field Types</h3>
+<table>
+<thead>
+<tr>
+<th>SpecQL Type</th>
+<th>PostgreSQL Type</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>text</code></td>
+<td><code>TEXT</code></td>
+<td><code>name: text</code></td>
+</tr>
+<tr>
+<td><code>uuid</code></td>
+<td><code>UUID</code></td>
+<td><code>id: uuid</code></td>
+</tr>
+<tr>
+<td><code>integer</code></td>
+<td><code>INTEGER</code></td>
+<td><code>quantity: integer</code></td>
+</tr>
+<tr>
+<td><code>decimal(p,s)</code></td>
+<td><code>DECIMAL(p,s)</code></td>
+<td><code>price: decimal(10,2)</code></td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td><code>DATE</code></td>
+<td><code>start_date: date</code></td>
+</tr>
+<tr>
+<td><code>timestamptz</code></td>
+<td><code>TIMESTAMPTZ</code></td>
+<td><code>created_at: timestamptz</code></td>
+</tr>
+<tr>
+<td><code>boolean</code></td>
+<td><code>BOOLEAN</code></td>
+<td><code>active: boolean</code></td>
+</tr>
+<tr>
+<td><code>enum(...)</code></td>
+<td><code>ENUM</code></td>
+<td><code>status: enum(active,inactive)</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="error-handling">🚨 Error Handling</h2>
+<h3 id="pattern-validation-errors">Pattern Validation Errors</h3>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Cause</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Missing required parameter</code></td>
+<td>Required parameter not provided</td>
+<td>Add parameter to config</td>
+</tr>
+<tr>
+<td><code>Invalid parameter type</code></td>
+<td>Wrong parameter type</td>
+<td>Check parameter schema</td>
+</tr>
+<tr>
+<td><code>Unknown pattern</code></td>
+<td>Pattern doesn't exist</td>
+<td>Verify pattern name</td>
+</tr>
+<tr>
+<td><code>Template expansion failed</code></td>
+<td>Jinja2 template error</td>
+<td>Check template syntax</td>
+</tr>
+</tbody>
+</table>
+<h3 id="runtime-errors">Runtime Errors</h3>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Cause</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>invalid_state_transition</code></td>
+<td>Current state not in from_states</td>
+<td>Check state machine config</td>
+</tr>
+<tr>
+<td><code>validation:check_name</code></td>
+<td>Validation condition failed</td>
+<td>Fix data or validation logic</td>
+</tr>
+<tr>
+<td><code>has_dependencies</code></td>
+<td>Hard delete blocked by dependencies</td>
+<td>Use soft delete or remove dependencies</td>
+</tr>
+</tbody>
+</table>
+<h3 id="sql-errors">SQL Errors</h3>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Cause</th>
+<th>Solution</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>relation "table" does not exist</code></td>
+<td>Wrong table name</td>
+<td>Check entity schema</td>
+</tr>
+<tr>
+<td><code>column "field" does not exist</code></td>
+<td>Wrong field name</td>
+<td>Check entity fields</td>
+</tr>
+<tr>
+<td><code>permission denied</code></td>
+<td>Missing database permissions</td>
+<td>Grant appropriate permissions</td>
+</tr>
+</tbody>
+</table>
+<h2 id="response-format">📊 Response Format</h2>
+<p>All patterns return a standardized <code>mutation_result</code> with:</p>
+<pre><code class="language-sql">CREATE TYPE app.mutation_result AS (
+    tenant_id UUID,
+    user_id UUID,
+    entity_name TEXT,
+    entity_id UUID,
+    mutation_type TEXT,
+    mutation_status TEXT,
+    updated_fields TEXT[],
+    message TEXT,
+    payload_before JSONB,
+    payload_after JSONB,
+    metadata JSONB
+);
+</code></pre>
+<h3 id="success-response-fields">Success Response Fields</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mutation_type</code></td>
+<td>Type of mutation (CREATE, UPDATE, DELETE, BATCH_UPDATE)</td>
+</tr>
+<tr>
+<td><code>mutation_status</code></td>
+<td>Status (success, noop:already_exists, etc.)</td>
+</tr>
+<tr>
+<td><code>updated_fields</code></td>
+<td>Array of fields that were changed</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td>Human-readable success message</td>
+</tr>
+<tr>
+<td><code>payload_after</code></td>
+<td>Entity data after mutation</td>
+</tr>
+<tr>
+<td><code>metadata</code></td>
+<td>Additional operation-specific data</td>
+</tr>
+</tbody>
+</table>
+<h3 id="error-response-fields">Error Response Fields</h3>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mutation_status</code></td>
+<td>Error status (validation:error_name)</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td>Error message</td>
+</tr>
+<tr>
+<td><code>metadata</code></td>
+<td>Error details and conflict information</td>
+</tr>
+</tbody>
+</table>
+<h3 id="batch-operation-metadata">Batch Operation Metadata</h3>
+<pre><code class="language-json">{
+  &quot;processed_count&quot;: 85,
+  &quot;failed_count&quot;: 15,
+  &quot;failed_items&quot;: [
+    {&quot;id&quot;: &quot;uuid&quot;, &quot;reason&quot;: &quot;not_found&quot;},
+    {&quot;id&quot;: &quot;uuid&quot;, &quot;reason&quot;: &quot;permission_denied&quot;}
+  ]
+}
+</code></pre>
+<hr />
+<h2 id="see-also">📚 See Also</h2>
+<ul>
+<li><a href="../../patterns/">Pattern Library Guide</a> - Getting started guide</li>
+<li><a href="printoptim_to_specql.md">Migration Guide</a> - Migrating from manual SQL</li>
+<li><a href="../../entities/examples/">Examples</a> - Working examples</li>
+<li><a href="../../patterns/getting_started/">Quick Start</a> - Step-by-step tutorial</li>
+</ul>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

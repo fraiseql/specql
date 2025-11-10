@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Mutation Impact Metadata - Auto-Documenting Side Effects for Frontend - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Mutation Impact Metadata - Auto-Documenting Side Effects for Frontend";
+        var mkdocs_page_input_path = "architecture/MUTATION_IMPACT_METADATA.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Mutation Impact Metadata - Auto-Documenting Side Effects for Frontend</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="mutation-impact-metadata-auto-documenting-side-effects-for-frontend">Mutation Impact Metadata - Auto-Documenting Side Effects for Frontend</h1>
+<h2 id="the-problem">The Problem</h2>
+<p>Frontend developers need to know <strong>in advance</strong> (before calling a mutation):
+- What entities will be affected?
+- What fields might change?
+- What side effects will occur?
+- What cache invalidations are needed?
+- What optimistic UI updates are safe?</p>
+<p>Currently, they have to:
+- ❌ Read backend code
+- ❌ Call mutation in dev and inspect response
+- ❌ Ask backend developers
+- ❌ Guess and hope</p>
+<h2 id="the-solution-graphql-schema-introspection-parsable-metadata">The Solution: GraphQL Schema Introspection + Parsable Metadata</h2>
+<p>Generate <strong>machine-readable impact metadata</strong> that frontend can introspect <strong>before runtime</strong>.</p>
+<h3 id="three-levels-of-impact-documentation">Three Levels of Impact Documentation</h3>
+<h2 id="level-1-graphql-schema-type-annotations-graphql-native">Level 1: GraphQL Schema Type Annotations (GraphQL Native)</h2>
+<p><strong>Idea</strong>: Use GraphQL directives and descriptions to document impacts</p>
+<pre><code class="language-graphql">&quot;&quot;&quot;
+Qualifies a lead by updating their status to 'qualified'.
+
+**Affected Entities:**
+- Contact (primary) - Updates: status, updatedAt
+- Notification (created) - Creates notification for contact owner
+
+**Cache Impact:**
+- Invalidates: Contact queries filtered by status
+- Updates: Contact:{id}
+- Creates: Notification entries
+
+**Optimistic UI:**
+Safe to optimistically update Contact.status = 'qualified'
+&quot;&quot;&quot;
+type QualifyLeadSuccess {
+    contact: Contact!
+    createdNotifications: [Notification!]!
+    updatedFields: [String!]!
+}
+
+# Alternative: Use custom directives
+type QualifyLeadSuccess
+  @mutationImpact(
+    primary: &quot;Contact&quot;
+    updates: [&quot;status&quot;, &quot;updatedAt&quot;]
+    creates: [&quot;Notification&quot;]
+    invalidates: [&quot;contactsByStatus&quot;]
+  )
+{
+    contact: Contact!
+    createdNotifications: [Notification!]!
+    updatedFields: [String!]!
+}
+</code></pre>
+<p><strong>Frontend can introspect this:</strong></p>
+<pre><code class="language-typescript">// Auto-generated from GraphQL schema introspection
+import { useQuery } from '@apollo/client';
+import { getIntrospectionQuery } from 'graphql';
+
+// One-time schema introspection
+const { data } = useQuery(INTROSPECTION_QUERY);
+
+// Parse mutation impact metadata
+const qualifyLeadMutation = data.__schema.types
+    .find(t =&gt; t.name === 'Mutation')
+    .fields.find(f =&gt; f.name === 'qualifyLead');
+
+const impactDoc = qualifyLeadMutation.description;
+// Contains: &quot;Affected Entities: Contact (primary), Notification (created)...&quot;
+</code></pre>
+<p><strong>Pros:</strong>
+- ✅ GraphQL-native (no extra infrastructure)
+- ✅ Already introspectable
+- ✅ Works with existing tools (GraphiQL, Playground)</p>
+<p><strong>Cons:</strong>
+- ⚠️ Requires parsing description strings
+- ⚠️ Not strongly typed (unless using directives)</p>
+<hr />
+<h2 id="level-2-structured-metadata-in-graphql-schema-custom-field">Level 2: Structured Metadata in GraphQL Schema (Custom Field)</h2>
+<p><strong>Idea</strong>: Add a special <code>_meta</code> field to every mutation payload that returns impact metadata</p>
+<pre><code class="language-graphql">type QualifyLeadSuccess {
+    # Business data
+    contact: Contact!
+    createdNotifications: [Notification!]!
+    updatedFields: [String!]!
+
+    # Machine-readable impact metadata
+    _meta: MutationImpactMetadata!
+}
+
+type MutationImpactMetadata {
+    &quot;&quot;&quot;The primary entity affected by this mutation&quot;&quot;&quot;
+    primaryEntity: EntityImpact!
+
+    &quot;&quot;&quot;Secondary entities created or updated&quot;&quot;&quot;
+    sideEffects: [EntityImpact!]!
+
+    &quot;&quot;&quot;Queries that should be invalidated&quot;&quot;&quot;
+    cacheInvalidations: [CacheInvalidation!]!
+
+    &quot;&quot;&quot;Whether optimistic UI is safe for this mutation&quot;&quot;&quot;
+    optimisticUpdateSafe: Boolean!
+
+    &quot;&quot;&quot;Estimated duration (ms) for this mutation&quot;&quot;&quot;
+    estimatedDuration: Int
+}
+
+type EntityImpact {
+    &quot;&quot;&quot;Entity type name&quot;&quot;&quot;
+    entityType: String!
+
+    &quot;&quot;&quot;Operation performed&quot;&quot;&quot;
+    operation: MutationOperation!
+
+    &quot;&quot;&quot;Fields that will be modified&quot;&quot;&quot;
+    modifiedFields: [String!]!
+
+    &quot;&quot;&quot;Relationships that may be affected&quot;&quot;&quot;
+    affectedRelationships: [String!]!
+}
+
+enum MutationOperation {
+    CREATE
+    UPDATE
+    DELETE
+    UPSERT
+}
+
+type CacheInvalidation {
+    &quot;&quot;&quot;Query name to invalidate&quot;&quot;&quot;
+    queryName: String!
+
+    &quot;&quot;&quot;Specific filter to invalidate (null = all)&quot;&quot;&quot;
+    filter: JSONObject
+
+    &quot;&quot;&quot;Invalidation strategy&quot;&quot;&quot;
+    strategy: InvalidationStrategy!
+}
+
+enum InvalidationStrategy {
+    REFETCH       # Refetch the query
+    EVICT         # Remove from cache
+    UPDATE        # Update in place
+}
+</code></pre>
+<p><strong>Generated from SpecQL:</strong></p>
+<pre><code class="language-yaml">actions:
+  - name: qualify_lead
+
+    # NEW: Impact declaration
+    impact:
+      primary:
+        entity: Contact
+        operation: update
+        fields: [status, updatedAt]
+        relationships: [company]
+
+      side_effects:
+        - entity: Notification
+          operation: create
+          fields: [id, message, createdAt]
+
+      cache_invalidations:
+        - query: contacts
+          filter: { status: &quot;lead&quot; }  # This list will change
+          strategy: REFETCH
+        - query: contactsByStatus
+          strategy: EVICT
+
+      optimistic_safe: true
+      estimated_duration_ms: 150
+
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+      - notify: owner(email, &quot;Contact qualified&quot;)
+</code></pre>
+<p><strong>Team D generates PL/pgSQL that includes metadata:</strong></p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION crm.qualify_lead(...)
+RETURNS mutation_result AS $$
+DECLARE
+    v_result mutation_result;
+BEGIN
+    -- Business logic...
+
+    -- Impact metadata (generated from SpecQL impact declaration)
+    v_result.extra_metadata := jsonb_build_object(
+        '_meta', jsonb_build_object(
+            'primaryEntity', jsonb_build_object(
+                'entityType', 'Contact',
+                'operation', 'UPDATE',
+                'modifiedFields', jsonb_build_array('status', 'updatedAt'),
+                'affectedRelationships', jsonb_build_array('company')
+            ),
+            'sideEffects', jsonb_build_array(
+                jsonb_build_object(
+                    'entityType', 'Notification',
+                    'operation', 'CREATE',
+                    'modifiedFields', jsonb_build_array('id', 'message', 'createdAt')
+                )
+            ),
+            'cacheInvalidations', jsonb_build_array(
+                jsonb_build_object(
+                    'queryName', 'contacts',
+                    'filter', jsonb_build_object('status', 'lead'),
+                    'strategy', 'REFETCH'
+                )
+            ),
+            'optimisticUpdateSafe', true,
+            'estimatedDuration', 150
+        ),
+
+        -- Normal side effect data
+        'createdNotifications', (...)
+    );
+
+    RETURN v_result;
+END;
+$$;
+</code></pre>
+<p><strong>Frontend usage:</strong></p>
+<pre><code class="language-typescript">const { data } = await qualifyLead({ variables: { contactId } });
+
+if (data.qualifyLead.__typename === 'QualifyLeadSuccess') {
+    const meta = data.qualifyLead._meta;
+
+    // Know exactly what changed
+    console.log('Primary entity:', meta.primaryEntity.entityType);
+    console.log('Modified fields:', meta.primaryEntity.modifiedFields);
+    // Output: Primary entity: Contact
+    //         Modified fields: ['status', 'updatedAt']
+
+    // Handle cache invalidations automatically
+    meta.cacheInvalidations.forEach(inv =&gt; {
+        if (inv.strategy === 'REFETCH') {
+            client.refetchQueries({ include: [inv.queryName] });
+        } else if (inv.strategy === 'EVICT') {
+            client.cache.evict({ fieldName: inv.queryName });
+        }
+    });
+
+    // Side effects
+    console.log('Created:', meta.sideEffects);
+    // Output: [{ entityType: 'Notification', operation: 'CREATE', ... }]
+}
+</code></pre>
+<p><strong>Better: Code generation from schema:</strong></p>
+<pre><code class="language-typescript">// Auto-generated hooks with impact awareness
+import { useQualifyLead } from './generated/mutations';
+
+function ContactCard({ contact }) {
+    const [qualifyLead, { loading }] = useQualifyLead({
+        // Auto-generated cache handling based on _meta
+        refetchQueries: (result) =&gt; {
+            // Framework reads result._meta.cacheInvalidations
+            // Auto-refetches affected queries
+            return result._meta.cacheInvalidations
+                .filter(i =&gt; i.strategy === 'REFETCH')
+                .map(i =&gt; i.queryName);
+        },
+
+        // Auto-generated optimistic response
+        optimisticResponse: (vars) =&gt; ({
+            __typename: 'QualifyLeadSuccess',
+            contact: {
+                ...contact,
+                status: 'qualified',  // Safe per _meta.optimisticUpdateSafe
+            },
+            createdNotifications: [],  // Empty per _meta.sideEffects
+            updatedFields: ['status', 'updatedAt'],  // From _meta.primaryEntity
+            _meta: {
+                // Metadata for framework use
+                primaryEntity: { ... },
+                sideEffects: [ ... ]
+            }
+        })
+    });
+
+    return (
+        &lt;button onClick={() =&gt; qualifyLead({ contactId: contact.id })}&gt;
+            Qualify Lead
+        &lt;/button&gt;
+    );
+}
+</code></pre>
+<p><strong>Pros:</strong>
+- ✅ Fully typed metadata
+- ✅ Available at runtime
+- ✅ Can drive automatic cache handling
+- ✅ Can generate optimistic responses
+- ✅ Machine-readable</p>
+<p><strong>Cons:</strong>
+- ⚠️ Adds payload size (but can be filtered with selection sets!)
+- ⚠️ Requires custom code generation</p>
+<hr />
+<h2 id="level-3-static-metadata-file-build-time-discovery">Level 3: Static Metadata File (Build-Time Discovery)</h2>
+<p><strong>Idea</strong>: Generate a separate JSON file with all mutation impacts that frontend consumes at build time</p>
+<p><strong>Generated file: <code>mutation-impacts.json</code></strong></p>
+<pre><code class="language-json">{
+  &quot;version&quot;: &quot;1.0.0&quot;,
+  &quot;generatedAt&quot;: &quot;2025-11-08T15:30:00Z&quot;,
+  &quot;mutations&quot;: {
+    &quot;qualifyLead&quot;: {
+      &quot;description&quot;: &quot;Qualifies a lead by updating their status&quot;,
+      &quot;input&quot;: {
+        &quot;contactId&quot;: { &quot;type&quot;: &quot;UUID&quot;, &quot;required&quot;: true }
+      },
+      &quot;impact&quot;: {
+        &quot;primary&quot;: {
+          &quot;entity&quot;: &quot;Contact&quot;,
+          &quot;operation&quot;: &quot;UPDATE&quot;,
+          &quot;fields&quot;: [&quot;status&quot;, &quot;updatedAt&quot;],
+          &quot;relationships&quot;: [&quot;company&quot;]
+        },
+        &quot;sideEffects&quot;: [
+          {
+            &quot;entity&quot;: &quot;Notification&quot;,
+            &quot;operation&quot;: &quot;CREATE&quot;,
+            &quot;fields&quot;: [&quot;id&quot;, &quot;message&quot;, &quot;createdAt&quot;],
+            &quot;collection&quot;: &quot;createdNotifications&quot;
+          }
+        ],
+        &quot;cacheInvalidations&quot;: [
+          {
+            &quot;query&quot;: &quot;contacts&quot;,
+            &quot;filter&quot;: { &quot;status&quot;: &quot;lead&quot; },
+            &quot;strategy&quot;: &quot;REFETCH&quot;,
+            &quot;reason&quot;: &quot;Removes contact from 'lead' status list&quot;
+          },
+          {
+            &quot;query&quot;: &quot;dashboardStats&quot;,
+            &quot;strategy&quot;: &quot;EVICT&quot;,
+            &quot;reason&quot;: &quot;Lead count will change&quot;
+          }
+        ],
+        &quot;permissions&quot;: [&quot;can_edit_contact&quot;],
+        &quot;estimatedDuration&quot;: 150,
+        &quot;optimisticUpdateSafe&quot;: true,
+        &quot;idempotent&quot;: false
+      },
+      &quot;examples&quot;: [
+        {
+          &quot;name&quot;: &quot;Successful qualification&quot;,
+          &quot;input&quot;: { &quot;contactId&quot;: &quot;uuid-here&quot; },
+          &quot;expectedResult&quot;: {
+            &quot;typename&quot;: &quot;QualifyLeadSuccess&quot;,
+            &quot;contact&quot;: { &quot;status&quot;: &quot;qualified&quot; },
+            &quot;createdNotifications&quot;: [
+              { &quot;message&quot;: &quot;Contact qualified&quot; }
+            ]
+          }
+        }
+      ],
+      &quot;errors&quot;: [
+        {
+          &quot;code&quot;: &quot;validation_failed&quot;,
+          &quot;condition&quot;: &quot;Contact is not a lead&quot;,
+          &quot;recovery&quot;: &quot;Check contact status before calling&quot;
+        }
+      ]
+    },
+
+    &quot;createContact&quot;: {
+      &quot;description&quot;: &quot;Creates a new contact&quot;,
+      &quot;input&quot;: { ... },
+      &quot;impact&quot;: {
+        &quot;primary&quot;: {
+          &quot;entity&quot;: &quot;Contact&quot;,
+          &quot;operation&quot;: &quot;CREATE&quot;,
+          &quot;fields&quot;: [&quot;id&quot;, &quot;email&quot;, &quot;name&quot;, &quot;status&quot;, &quot;createdAt&quot;]
+        },
+        &quot;sideEffects&quot;: [],
+        &quot;cacheInvalidations&quot;: [
+          {
+            &quot;query&quot;: &quot;contacts&quot;,
+            &quot;strategy&quot;: &quot;REFETCH&quot;,
+            &quot;reason&quot;: &quot;New contact added to list&quot;
+          }
+        ],
+        &quot;optimisticUpdateSafe&quot;: false,  // Can't predict ID
+        &quot;idempotent&quot;: false
+      }
+    }
+  }
+}
+</code></pre>
+<p><strong>Team E generates this during migration generation:</strong></p>
+<pre><code class="language-bash">$ specql generate entities/*.yaml --output-impacts mutation-impacts.json
+
+✓ Parsed 15 entities
+✓ Analyzed 42 actions
+✓ Generated SQL migrations
+✓ Generated mutation-impacts.json (25 mutations documented)
+</code></pre>
+<p><strong>Frontend build consumes it:</strong></p>
+<pre><code class="language-typescript">// Generated at build time from mutation-impacts.json
+import mutationImpacts from './generated/mutation-impacts.json';
+
+// Type-safe impact lookup
+export function getMutationImpact(mutationName: string): MutationImpact {
+    return mutationImpacts.mutations[mutationName];
+}
+
+// Auto-generated hooks
+export function useQualifyLead() {
+    const impact = getMutationImpact('qualifyLead');
+
+    return useMutation(QUALIFY_LEAD_MUTATION, {
+        // Auto-configured from impact metadata
+        refetchQueries: impact.cacheInvalidations
+            .filter(i =&gt; i.strategy === 'REFETCH')
+            .map(i =&gt; i.query),
+
+        awaitRefetchQueries: true,
+
+        // Can't generate optimistic response if not safe
+        ...(impact.optimisticUpdateSafe &amp;&amp; {
+            optimisticResponse: (vars) =&gt; ({
+                // Generated based on impact.primary and impact.sideEffects
+            })
+        }),
+
+        // Update cache for evictions
+        update: (cache, { data }) =&gt; {
+            impact.cacheInvalidations
+                .filter(i =&gt; i.strategy === 'EVICT')
+                .forEach(i =&gt; {
+                    cache.evict({ fieldName: i.query });
+                });
+        }
+    });
+}
+</code></pre>
+<p><strong>Developer tools:</strong></p>
+<pre><code class="language-typescript">// Debug panel showing mutation impacts
+import { MutationImpactViewer } from '@/components/dev-tools';
+
+function DevPanel() {
+    return (
+        &lt;MutationImpactViewer
+            impacts={mutationImpacts}
+            showExamples
+            showCacheImpact
+        /&gt;
+    );
+}
+
+// Renders:
+// qualifyLead
+//   Primary: Contact (UPDATE)
+//     Fields: status, updatedAt
+//   Side Effects: Notification (CREATE)
+//   Cache Impact:
+//     ⚠️ Refetch: contacts (filter: status=lead)
+//     ⚠️ Evict: dashboardStats
+//   Optimistic: ✅ Safe
+//   Duration: ~150ms
+</code></pre>
+<p><strong>Documentation generation:</strong></p>
+<pre><code class="language-bash">$ specql docs entities/*.yaml --format markdown
+
+# Generates docs/mutations.md with:
+- All mutations
+- Impact metadata
+- Examples
+- Error cases
+- Cache considerations
+</code></pre>
+<p><strong>Pros:</strong>
+- ✅ Zero runtime overhead
+- ✅ Build-time type safety
+- ✅ Can generate documentation
+- ✅ Can generate dev tools
+- ✅ Can drive code generation
+- ✅ Versionable (track impact changes in git)</p>
+<p><strong>Cons:</strong>
+- ⚠️ Requires build step
+- ⚠️ Metadata may drift from implementation (needs validation)</p>
+<hr />
+<h2 id="recommended-hybrid-approach">Recommended Hybrid Approach</h2>
+<p><strong>Combine Level 2 (Runtime) + Level 3 (Build-Time)</strong></p>
+<h3 id="build-time-level-3">Build Time (Level 3)</h3>
+<pre><code class="language-bash"># Generate mutations + impact metadata file
+$ specql generate entities/*.yaml
+
+# Outputs:
+# - migrations/001_contact.sql (PostgreSQL functions)
+# - generated/mutation-impacts.json (Static metadata)
+# - generated/mutation-impacts.d.ts (TypeScript types)
+</code></pre>
+<p><strong><code>mutation-impacts.json</code>:</strong></p>
+<pre><code class="language-json">{
+  &quot;qualifyLead&quot;: {
+    &quot;impact&quot;: {
+      &quot;primary&quot;: { &quot;entity&quot;: &quot;Contact&quot;, &quot;operation&quot;: &quot;UPDATE&quot;, ... },
+      &quot;sideEffects&quot;: [ ... ],
+      &quot;cacheInvalidations&quot;: [ ... ]
+    }
+  }
+}
+</code></pre>
+<p><strong>Frontend code generation:</strong></p>
+<pre><code class="language-typescript">// Auto-generated from mutation-impacts.json
+export const MUTATION_IMPACTS = {
+    qualifyLead: {
+        primary: { entity: 'Contact', operation: 'UPDATE' as const, ... },
+        sideEffects: [ ... ],
+        cacheInvalidations: [ ... ]
+    }
+} as const;
+
+export type MutationImpacts = typeof MUTATION_IMPACTS;
+
+// Auto-generated hook with impact awareness
+export function useQualifyLead(options?: MutationHookOptions) {
+    const impact = MUTATION_IMPACTS.qualifyLead;
+
+    return useMutation(QUALIFY_LEAD, {
+        ...options,
+
+        // Auto-configured refetch based on impact
+        refetchQueries: [
+            ...impact.cacheInvalidations
+                .filter(i =&gt; i.strategy === 'REFETCH')
+                .map(i =&gt; i.query),
+            ...(options?.refetchQueries || [])
+        ],
+
+        // Auto-configured cache evictions
+        update: (cache, result) =&gt; {
+            impact.cacheInvalidations
+                .filter(i =&gt; i.strategy === 'EVICT')
+                .forEach(i =&gt; cache.evict({ fieldName: i.query }));
+
+            options?.update?.(cache, result);
+        }
+    });
+}
+</code></pre>
+<h3 id="runtime-level-2">Runtime (Level 2)</h3>
+<p><strong>PostgreSQL function also includes metadata</strong> (for dynamic behavior):</p>
+<pre><code class="language-sql">v_result.extra_metadata := jsonb_build_object(
+    '_meta', jsonb_build_object(
+        'primaryEntity', jsonb_build_object(...),
+        'actualSideEffects', (
+            -- ACTUAL side effects (may differ from expected)
+            SELECT jsonb_agg(jsonb_build_object(
+                'entity', 'Notification',
+                'id', n.id,
+                'operation', 'CREATE'
+            ))
+            FROM core.tb_notification n
+            WHERE n.created_at &gt; (now() - interval '1 second')
+        )
+    ),
+    'createdNotifications', (...)
+);
+</code></pre>
+<p><strong>Frontend can compare expected vs. actual:</strong></p>
+<pre><code class="language-typescript">const impact = MUTATION_IMPACTS.qualifyLead;  // Build-time metadata
+const { data } = await qualifyLead({ ... });  // Runtime result
+
+if (data.qualifyLead._meta.actualSideEffects.length !== impact.sideEffects.length) {
+    console.warn('Unexpected side effects detected!');
+    // Maybe a notification wasn't created (owner has notifications disabled)
+}
+</code></pre>
+<hr />
+<h2 id="implementation-in-specql-pipeline">Implementation in SpecQL Pipeline</h2>
+<h3 id="team-c-enhanced-specql-syntax">Team C: Enhanced SpecQL Syntax</h3>
+<pre><code class="language-yaml">actions:
+  - name: qualify_lead
+
+    # NEW: Impact declaration
+    impact:
+      description: &quot;Qualifies a lead by updating their status to 'qualified'&quot;
+
+      primary:
+        entity: Contact
+        operation: update
+        fields: [status, updatedAt]
+        include_relations: [company]  # These will be in response
+
+      side_effects:
+        - entity: Notification
+          operation: create
+          collection: createdNotifications
+          fields: [id, message, createdAt]
+          condition: &quot;owner has notifications enabled&quot;
+
+      cache_invalidations:
+        - query: contacts
+          filter: { status: &quot;lead&quot; }
+          strategy: refetch
+          reason: &quot;Contact removed from lead list&quot;
+
+        - query: dashboardStats
+          strategy: evict
+          reason: &quot;Lead count changed&quot;
+
+      permissions:
+        - can_edit_contact
+
+      optimistic_safe: true
+      idempotent: false
+      estimated_duration_ms: 150
+
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+      - notify: owner(email, &quot;Contact qualified&quot;)
+</code></pre>
+<h3 id="team-d-generate-impact-metadata">Team D: Generate Impact Metadata</h3>
+<p><strong>Outputs:</strong></p>
+<ol>
+<li><strong>Static file</strong> (<code>mutation-impacts.json</code>)</li>
+<li><strong>TypeScript types</strong> (<code>mutation-impacts.d.ts</code>)</li>
+<li><strong>PL/pgSQL with runtime metadata</strong> (in <code>extra_metadata._meta</code>)</li>
+<li><strong>FraiseQL annotations</strong> (with impact hints)</li>
+</ol>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.qualify_lead IS
+  '@fraiseql:mutation
+   name=qualifyLead
+   impact={
+     &quot;primary&quot;: &quot;Contact&quot;,
+     &quot;sideEffects&quot;: [&quot;Notification&quot;],
+     &quot;cacheInvalidations&quot;: [&quot;contacts&quot;, &quot;dashboardStats&quot;]
+   }';
+</code></pre>
+<h3 id="team-e-cli-commands">Team E: CLI Commands</h3>
+<pre><code class="language-bash"># Generate everything including impact metadata
+$ specql generate entities/*.yaml --with-impacts
+
+# Validate impact declarations against implementation
+$ specql validate-impacts entities/*.yaml
+
+# Generate documentation from impacts
+$ specql docs entities/*.yaml --format=markdown
+
+# Generate frontend code
+$ specql codegen:frontend entities/*.yaml --output=src/generated/
+</code></pre>
+<hr />
+<h2 id="frontend-usage-examples">Frontend Usage Examples</h2>
+<h3 id="example-1-basic-mutation-with-auto-configured-cache">Example 1: Basic Mutation with Auto-Configured Cache</h3>
+<pre><code class="language-typescript">import { useQualifyLead } from '@/generated/mutations';
+
+function ContactActions({ contact }) {
+    // Hook is pre-configured with impact metadata
+    const [qualifyLead, { loading }] = useQualifyLead();
+
+    return (
+        &lt;button
+            onClick={() =&gt; qualifyLead({ variables: { contactId: contact.id } })}
+            disabled={loading}
+        &gt;
+            Qualify Lead
+        &lt;/button&gt;
+    );
+
+    // Framework automatically:
+    // ✅ Refetches contacts (status=lead) query
+    // ✅ Evicts dashboardStats from cache
+    // ✅ Updates Contact cache entry
+}
+</code></pre>
+<h3 id="example-2-custom-cache-handling">Example 2: Custom Cache Handling</h3>
+<pre><code class="language-typescript">import { useQualifyLead, MUTATION_IMPACTS } from '@/generated/mutations';
+
+function AdvancedContactActions({ contact }) {
+    const impact = MUTATION_IMPACTS.qualifyLead;
+
+    const [qualifyLead] = useQualifyLead({
+        // Extend default impact-based config
+        refetchQueries: [
+            'myCustomQuery',  // Add extra query
+            ...impact.cacheInvalidations.map(i =&gt; i.query)
+        ],
+
+        onCompleted: (data) =&gt; {
+            // Log actual side effects
+            console.log('Expected side effects:', impact.sideEffects);
+            console.log('Actual side effects:', data.qualifyLead._meta.actualSideEffects);
+        }
+    });
+}
+</code></pre>
+<h3 id="example-3-developer-tools">Example 3: Developer Tools</h3>
+<pre><code class="language-typescript">import { MUTATION_IMPACTS } from '@/generated/mutations';
+
+function MutationDebugger() {
+    return (
+        &lt;div&gt;
+            &lt;h2&gt;Mutation Impact Reference&lt;/h2&gt;
+            {Object.entries(MUTATION_IMPACTS).map(([name, impact]) =&gt; (
+                &lt;details key={name}&gt;
+                    &lt;summary&gt;{name}&lt;/summary&gt;
+                    &lt;dl&gt;
+                        &lt;dt&gt;Primary Entity&lt;/dt&gt;
+                        &lt;dd&gt;{impact.primary.entity} ({impact.primary.operation})&lt;/dd&gt;
+
+                        &lt;dt&gt;Modified Fields&lt;/dt&gt;
+                        &lt;dd&gt;{impact.primary.fields.join(', ')}&lt;/dd&gt;
+
+                        &lt;dt&gt;Side Effects&lt;/dt&gt;
+                        &lt;dd&gt;
+                            {impact.sideEffects.map(se =&gt;
+                                `${se.entity} (${se.operation})`
+                            ).join(', ')}
+                        &lt;/dd&gt;
+
+                        &lt;dt&gt;Cache Impact&lt;/dt&gt;
+                        &lt;dd&gt;
+                            {impact.cacheInvalidations.map(ci =&gt;
+                                `${ci.strategy}: ${ci.query} - ${ci.reason}`
+                            ).join('\n')}
+                        &lt;/dd&gt;
+
+                        &lt;dt&gt;Optimistic Update&lt;/dt&gt;
+                        &lt;dd&gt;{impact.optimisticSafe ? '✅ Safe' : '❌ Not safe'}&lt;/dd&gt;
+                    &lt;/dl&gt;
+                &lt;/details&gt;
+            ))}
+        &lt;/div&gt;
+    );
+}
+</code></pre>
+<hr />
+<h2 id="benefits-summary">Benefits Summary</h2>
+<h3 id="for-frontend-developers">For Frontend Developers</h3>
+<p>✅ <strong>No guesswork</strong> - Know exactly what each mutation does before calling it
+✅ <strong>Auto-configured cache</strong> - Framework handles refetch/evict automatically
+✅ <strong>Type-safe impacts</strong> - TypeScript knows all impact metadata
+✅ <strong>Better optimistic UI</strong> - Know which mutations are safe to optimistically update
+✅ <strong>Faster debugging</strong> - See expected vs. actual side effects
+✅ <strong>Better error handling</strong> - Know what to expect, easier to detect anomalies
+✅ <strong>Self-documenting code</strong> - Impact metadata serves as inline documentation</p>
+<h3 id="for-backend-developers">For Backend Developers</h3>
+<p>✅ <strong>Single source of truth</strong> - SpecQL impact declaration generates everything
+✅ <strong>Contract enforcement</strong> - Runtime can validate actual vs. declared impacts
+✅ <strong>Breaking change detection</strong> - Impact changes show up in git diffs
+✅ <strong>Better testing</strong> - Can test that impacts match declarations
+✅ <strong>Documentation generation</strong> - API docs auto-generated from impacts</p>
+<h3 id="for-the-project">For the Project</h3>
+<p>✅ <strong>100x code leverage maintained</strong> - Impacts declared once, used everywhere
+✅ <strong>Frontend/backend alignment</strong> - Both work from same impact metadata
+✅ <strong>Easier onboarding</strong> - New devs can see mutation impacts at a glance
+✅ <strong>Safer refactoring</strong> - Impact changes are explicit and visible
+✅ <strong>Better monitoring</strong> - Can track if mutations behave as expected</p>
+<hr />
+<h2 id="conclusion">Conclusion</h2>
+<p><strong>Recommended Implementation:</strong></p>
+<ol>
+<li><strong>SpecQL Syntax</strong>: Add <code>impact:</code> section to action declarations</li>
+<li><strong>Team C</strong>: Generate PL/pgSQL with runtime <code>_meta</code> in <code>extra_metadata</code></li>
+<li><strong>Team D</strong>: Generate static <code>mutation-impacts.json</code> + TypeScript types</li>
+<li><strong>Team E</strong>: CLI commands for validation, docs, and frontend codegen</li>
+<li><strong>FraiseQL</strong>: Include impact hints in <code>@fraiseql:mutation</code> annotations</li>
+</ol>
+<p><strong>Result:</strong></p>
+<p>Frontend developers get <strong>parsable, type-safe, build-time and runtime impact metadata</strong> that:
+- Drives automatic cache configuration
+- Enables safe optimistic updates
+- Provides self-documenting code
+- Detects unexpected behavior
+- All generated from SpecQL's lightweight business-domain syntax</p>
+<p><strong>File locations for generated code:</strong></p>
+<pre><code>generated/
+├── mutation-impacts.json        # Static impact metadata
+├── mutation-impacts.d.ts        # TypeScript types
+├── mutations.ts                 # Hooks with auto-configured impacts
+└── docs/
+    └── mutations.md             # Human-readable documentation
+</code></pre>
+<p>This completes the loop: SpecQL business logic → Impact metadata → Frontend consumption → Perfect DX.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Batch Operations Pattern - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Batch Operations Pattern";
+        var mkdocs_page_input_path = "guides/mutation-patterns/batch-operations.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Batch Operations Pattern</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="batch-operations-pattern">Batch Operations Pattern</h1>
+<p>The <strong>batch operations</strong> pattern handles bulk data processing efficiently. It's designed for mass updates, imports, exports, and any operation that needs to process multiple records while maintaining performance and data consistency.</p>
+<h2 id="what-youll-learn">🎯 What You'll Learn</h2>
+<ul>
+<li>Batch operation concepts and benefits</li>
+<li>Configuring bulk data processing</li>
+<li>Performance optimization techniques</li>
+<li>Error handling in batch operations</li>
+<li>Monitoring and reporting</li>
+</ul>
+<h2 id="prerequisites">📋 Prerequisites</h2>
+<ul>
+<li><a href="../getting-started/">Pattern basics</a></li>
+<li>Understanding of bulk data operations</li>
+<li>Knowledge of performance considerations</li>
+</ul>
+<h2 id="batch-operations-concepts">💡 Batch Operations Concepts</h2>
+<h3 id="what-are-batch-operations">What Are Batch Operations?</h3>
+<p><strong>Batch operations</strong> process multiple records efficiently:</p>
+<pre><code class="language-yaml">patterns:
+  - name: batch_operations
+    description: &quot;Bulk user status updates&quot;
+    operation: bulk_update_user_status
+    batch_size: 100
+    parallel: true
+    error_handling: continue_on_error
+</code></pre>
+<p><strong>Benefits:</strong>
+- <strong>Performance</strong> - Process thousands of records efficiently
+- <strong>Consistency</strong> - All-or-nothing or partial success options
+- <strong>Monitoring</strong> - Progress tracking and error reporting
+- <strong>Resource management</strong> - Controlled memory and CPU usage</p>
+<h3 id="when-to-use-batch-operations">When to Use Batch Operations</h3>
+<table>
+<thead>
+<tr>
+<th>Use Case</th>
+<th>Example</th>
+<th>Why Batch</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Data Migration</strong></td>
+<td>Import 100k users</td>
+<td>Efficient bulk loading</td>
+</tr>
+<tr>
+<td><strong>Status Updates</strong></td>
+<td>Activate pending accounts</td>
+<td>Mass state changes</td>
+</tr>
+<tr>
+<td><strong>Data Cleanup</strong></td>
+<td>Remove old logs</td>
+<td>Bulk deletion</td>
+</tr>
+<tr>
+<td><strong>Report Generation</strong></td>
+<td>Process monthly invoices</td>
+<td>Aggregate operations</td>
+</tr>
+<tr>
+<td><strong>Cache Updates</strong></td>
+<td>Refresh product prices</td>
+<td>Bulk cache invalidation</td>
+</tr>
+</tbody>
+</table>
+<h2 id="basic-batch-operation">🏗️ Basic Batch Operation</h2>
+<h3 id="bulk-status-update">Bulk Status Update</h3>
+<pre><code class="language-yaml"># entities/user.yaml
+name: user
+fields:
+  id: uuid
+  email: string
+  status: string
+  updated_at: timestamp
+
+patterns:
+  - name: batch_operations
+    description: &quot;Bulk update user statuses&quot;
+    operation: bulk_update_user_status
+    target_entity: user
+
+    # Processing configuration
+    batch_size: 100
+    parallel: false
+    timeout: &quot;30 minutes&quot;
+
+    # Operation definition
+    operation_type: update
+    update_data:
+      status: :new_status
+      updated_at: &quot;NOW()&quot;
+    where_condition: &quot;id = ANY(:user_ids)&quot;
+
+    # Error handling
+    error_handling: continue_on_error
+    max_errors: 10
+
+    # Progress tracking
+    progress_tracking: true
+    notify_on_completion: true
+</code></pre>
+<h3 id="generated-function">Generated Function</h3>
+<pre><code class="language-sql">-- Generated batch operation function
+CREATE FUNCTION bulk_update_user_status(
+  user_ids UUID[],
+  new_status TEXT
+) RETURNS batch_operation_result AS $$
+DECLARE
+  result batch_operation_result;
+  batch_start_time TIMESTAMP;
+  processed_count INTEGER := 0;
+  error_count INTEGER := 0;
+BEGIN
+  result.operation_id := gen_random_uuid();
+  result.started_at := NOW();
+  result.total_records := array_length(user_ids, 1);
+
+  -- Process in batches
+  FOR i IN 0..(array_length(user_ids, 1) / 100) LOOP
+    batch_start_time := NOW();
+
+    BEGIN
+      -- Update batch
+      UPDATE user
+      SET status = new_status,
+          updated_at = NOW()
+      WHERE id = ANY(user_ids[i*100+1:(i+1)*100]);
+
+      processed_count := processed_count + 100;
+
+      -- Log progress
+      INSERT INTO batch_operation_log (
+        operation_id, batch_number, records_processed,
+        started_at, completed_at
+      ) VALUES (
+        result.operation_id, i, 100,
+        batch_start_time, NOW()
+      );
+
+    EXCEPTION WHEN OTHERS THEN
+      error_count := error_count + 1;
+
+      -- Log error
+      INSERT INTO batch_operation_errors (
+        operation_id, batch_number, error_message,
+        failed_records
+      ) VALUES (
+        result.operation_id, i, SQLERRM,
+        user_ids[i*100+1:(i+1)*100]
+      );
+
+      -- Continue or stop based on error handling
+      IF error_handling = 'stop_on_error' THEN
+        EXIT;
+      END IF;
+    END LOOP;
+
+  -- Complete operation
+  result.completed_at := NOW();
+  result.processed_records := processed_count;
+  result.error_count := error_count;
+  result.status := CASE WHEN error_count = 0 THEN 'completed' ELSE 'completed_with_errors' END;
+
+  RETURN result;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h2 id="advanced-configuration">⚙️ Advanced Configuration</h2>
+<h3 id="parallel-processing">Parallel Processing</h3>
+<pre><code class="language-yaml">patterns:
+  - name: batch_operations
+    description: &quot;Parallel data import&quot;
+    operation: import_products
+    target_entity: product
+
+    # Parallel processing
+    parallel: true
+    max_workers: 4
+    worker_batch_size: 250
+
+    # Data processing
+    operation_type: insert
+    insert_data:
+      name: :product.name
+      price: :product.price
+      category_id: :product.category_id
+      created_at: &quot;NOW()&quot;
+
+    # Source data
+    data_source: :products_array
+
+    # Error handling
+    error_handling: collect_errors
+    max_errors_per_worker: 5
+
+    # Monitoring
+    progress_tracking: true
+    heartbeat_interval: &quot;10 seconds&quot;
+</code></pre>
+<h3 id="complex-operations">Complex Operations</h3>
+<pre><code class="language-yaml">patterns:
+  - name: batch_operations
+    description: &quot;Complex user migration&quot;
+    operation: migrate_user_data
+    target_entity: user
+
+    # Multi-step batch operation
+    steps:
+      - name: validate_data
+        operation_type: select
+        select_fields: [id, email, legacy_id]
+        where_condition: &quot;legacy_id IS NOT NULL&quot;
+        batch_size: 500
+
+      - name: update_profiles
+        operation_type: update
+        update_data:
+          migrated_at: &quot;NOW()&quot;
+          migration_version: &quot;2.0&quot;
+        where_condition: &quot;id IN (:validated_user_ids)&quot;
+        depends_on: validate_data
+
+      - name: cleanup_legacy
+        operation_type: delete
+        where_condition: &quot;migrated_at &lt; NOW() - INTERVAL '30 days'&quot;
+        depends_on: update_profiles
+        batch_size: 1000
+
+    # Overall configuration
+    batch_size: 100
+    parallel: true
+    error_handling: stop_on_error
+</code></pre>
+<h3 id="conditional-batch-operations">Conditional Batch Operations</h3>
+<pre><code class="language-yaml">patterns:
+  - name: batch_operations
+    description: &quot;Conditional bulk approval&quot;
+    operation: bulk_approve_orders
+    target_entity: order
+
+    # Conditions
+    preconditions:
+      - &quot;COUNT(*) FILTER (WHERE status = 'pending') &gt; 0&quot;
+      - &quot;CURRENT_USER_HAS_PERMISSION('approve_orders')&quot;
+
+    # Operation
+    operation_type: update
+    update_data:
+      status: approved
+      approved_at: &quot;NOW()&quot;
+      approved_by: &quot;CURRENT_USER_ID()&quot;
+    where_condition: &quot;status = 'pending' AND total_amount &lt;= :max_amount&quot;
+
+    # Limits and controls
+    max_records: 1000
+    timeout: &quot;15 minutes&quot;
+    requires_confirmation: true
+</code></pre>
+<h2 id="progress-tracking-and-monitoring">📊 Progress Tracking and Monitoring</h2>
+<h3 id="built-in-monitoring">Built-in Monitoring</h3>
+<pre><code class="language-yaml">patterns:
+  - name: batch_operations
+    operation: large_data_import
+
+    # Progress tracking
+    progress_tracking: true
+    progress_notification_interval: 1000  # Notify every 1000 records
+
+    # Detailed logging
+    logging_level: detailed
+    log_table: batch_operation_logs
+
+    # Performance metrics
+    collect_metrics: true
+    metrics_table: batch_performance_metrics
+
+    # Completion notification
+    notify_on_completion: true
+    notification_channels: [email, webhook]
+</code></pre>
+<h3 id="monitoring-tables">Monitoring Tables</h3>
+<pre><code class="language-sql">-- Progress tracking
+CREATE TABLE batch_operation_logs (
+  operation_id UUID,
+  batch_number INTEGER,
+  records_processed INTEGER,
+  started_at TIMESTAMP,
+  completed_at TIMESTAMP,
+  status TEXT
+);
+
+-- Error tracking
+CREATE TABLE batch_operation_errors (
+  operation_id UUID,
+  batch_number INTEGER,
+  error_message TEXT,
+  failed_records JSONB,
+  occurred_at TIMESTAMP
+);
+
+-- Performance metrics
+CREATE TABLE batch_performance_metrics (
+  operation_id UUID,
+  metric_name TEXT,
+  metric_value NUMERIC,
+  recorded_at TIMESTAMP
+);
+</code></pre>
+<h2 id="testing-batch-operations">🧪 Testing Batch Operations</h2>
+<h3 id="generated-tests">Generated Tests</h3>
+<pre><code class="language-bash"># Generate comprehensive tests
+specql generate tests entities/user.yaml
+
+# Run tests
+specql test run entities/user.yaml
+</code></pre>
+<p><strong>Test Coverage:</strong>
+- ✅ <strong>Batch processing</strong> - Correct batch sizes and ordering
+- ✅ <strong>Error handling</strong> - Various failure scenarios
+- ✅ <strong>Progress tracking</strong> - Monitoring and reporting
+- ✅ <strong>Parallel execution</strong> - Worker coordination
+- ✅ <strong>Data consistency</strong> - All-or-nothing guarantees
+- ✅ <strong>Performance</strong> - Timeout and resource limits</p>
+<h3 id="manual-testing">Manual Testing</h3>
+<pre><code class="language-sql">-- Test successful batch operation
+SELECT bulk_update_user_status(
+  ARRAY[
+    'user-1-uuid'::UUID,
+    'user-2-uuid'::UUID,
+    'user-3-uuid'::UUID
+  ]::UUID[],
+  'active'
+);
+
+-- Check results
+SELECT id, status, updated_at FROM user
+WHERE id IN ('user-1-uuid', 'user-2-uuid', 'user-3-uuid');
+
+-- Test error handling
+SELECT bulk_update_user_status(
+  ARRAY['invalid-uuid'::UUID]::UUID[],
+  'active'
+);
+
+-- Check error logs
+SELECT * FROM batch_operation_errors
+ORDER BY occurred_at DESC LIMIT 5;
+</code></pre>
+<h2 id="common-use-cases">🚀 Common Use Cases</h2>
+<h3 id="data-importexport">Data Import/Export</h3>
+<pre><code class="language-yaml">patterns:
+  - name: batch_operations
+    description: &quot;Import products from CSV&quot;
+    operation: import_products_csv
+    target_entity: product
+
+    # CSV processing
+    data_source: csv_file
+    csv_delimiter: ','
+    csv_has_header: true
+
+    # Data mapping
+    field_mapping:
+      name: csv_column_1
+      price: csv_column_2
+      category: csv_column_3
+
+    # Validation
+    validation_rules:
+      - &quot;price &gt; 0&quot;
+      - &quot;name IS NOT NULL&quot;
+
+    # Processing options
+    batch_size: 500
+    parallel: true
+    skip_invalid_rows: true
+    max_errors: 100
+</code></pre>
+<h3 id="user-management">User Management</h3>
+<pre><code class="language-yaml">patterns:
+  - name: batch_operations
+    description: &quot;Bulk user deactivation&quot;
+    operation: deactivate_inactive_users
+    target_entity: user
+
+    # Target selection
+    where_condition: |
+      last_login_at &lt; NOW() - INTERVAL '1 year'
+      AND status = 'active'
+      AND is_admin = false
+
+    # Operation
+    operation_type: update
+    update_data:
+      status: inactive
+      deactivated_at: &quot;NOW()&quot;
+      deactivation_reason: 'automated_inactive_cleanup'
+
+    # Safety limits
+    max_records: 10000
+    batch_size: 200
+    requires_confirmation: true
+
+    # Notification
+    notify_on_completion: true
+    notification_message: &quot;Deactivated {processed_records} inactive users&quot;
+</code></pre>
+<h3 id="cache-management">Cache Management</h3>
+<pre><code class="language-yaml">patterns:
+  - name: batch_operations
+    description: &quot;Refresh product cache&quot;
+    operation: refresh_product_cache
+    target_entity: product_cache
+
+    # Complex refresh logic
+    steps:
+      - name: identify_stale
+        operation_type: select
+        select_fields: [product_id]
+        where_condition: &quot;last_updated &lt; NOW() - INTERVAL '1 hour'&quot;
+
+      - name: fetch_fresh_data
+        operation_type: custom_function
+        function: fetch_product_data_from_api
+        input: :stale_product_ids
+
+      - name: update_cache
+        operation_type: upsert
+        upsert_data:
+          product_id: :fresh_data.product_id
+          name: :fresh_data.name
+          price: :fresh_data.price
+          last_updated: &quot;NOW()&quot;
+        conflict_target: product_id
+
+    # Performance settings
+    parallel: true
+    batch_size: 50
+    timeout: &quot;10 minutes&quot;
+</code></pre>
+<h3 id="report-generation">Report Generation</h3>
+<pre><code class="language-yaml">patterns:
+  - name: batch_operations
+    description: &quot;Generate monthly invoices&quot;
+    operation: generate_monthly_invoices
+    target_entity: invoice
+
+    # Complex multi-step process
+    steps:
+      - name: calculate_usage
+        operation_type: custom_function
+        function: calculate_customer_usage
+        input: {month: :target_month}
+
+      - name: create_invoices
+        operation_type: insert
+        insert_data:
+          customer_id: :usage.customer_id
+          month: :target_month
+          amount: :usage.total_amount
+          status: pending
+
+      - name: generate_pdf
+        operation_type: custom_function
+        function: generate_invoice_pdf
+        input: :created_invoice_ids
+
+      - name: send_notifications
+        operation_type: custom_function
+        function: send_invoice_notifications
+        input: :created_invoice_ids
+
+    # Monitoring
+    progress_tracking: true
+    collect_metrics: true
+    notify_on_completion: true
+</code></pre>
+<h2 id="best-practices">🎯 Best Practices</h2>
+<h3 id="performance-optimization">Performance Optimization</h3>
+<ul>
+<li><strong>Right batch size</strong> - Balance memory vs overhead (100-1000 records)</li>
+<li><strong>Parallel processing</strong> - Use multiple workers for CPU-bound tasks</li>
+<li><strong>Index optimization</strong> - Ensure WHERE conditions are indexed</li>
+<li><strong>Resource limits</strong> - Set timeouts and memory limits</li>
+</ul>
+<h3 id="error-handling">Error Handling</h3>
+<ul>
+<li><strong>Graceful degradation</strong> - Continue processing on individual failures</li>
+<li><strong>Detailed logging</strong> - Track exactly what failed and why</li>
+<li><strong>Retry logic</strong> - Handle transient failures automatically</li>
+<li><strong>Circuit breakers</strong> - Stop processing on systemic failures</li>
+</ul>
+<h3 id="monitoring-and-alerting">Monitoring and Alerting</h3>
+<ul>
+<li><strong>Progress tracking</strong> - Know how long operations take</li>
+<li><strong>Error thresholds</strong> - Alert when error rates are high</li>
+<li><strong>Performance metrics</strong> - Monitor throughput and latency</li>
+<li><strong>Completion notifications</strong> - Inform stakeholders of results</li>
+</ul>
+<h3 id="data-consistency">Data Consistency</h3>
+<ul>
+<li><strong>Transaction boundaries</strong> - Decide what should be atomic</li>
+<li><strong>Idempotency</strong> - Ensure operations can be safely retried</li>
+<li><strong>Rollback plans</strong> - Know how to undo failed operations</li>
+<li><strong>Validation</strong> - Check data before processing</li>
+</ul>
+<h2 id="troubleshooting">🆘 Troubleshooting</h2>
+<h3 id="batch-operation-timeout">"Batch operation timeout"</h3>
+<pre><code class="language-yaml"># Increase timeout
+patterns:
+  - name: batch_operations
+    timeout: &quot;2 hours&quot;  # Extend timeout
+
+# Or reduce batch size
+patterns:
+  - name: batch_operations
+    batch_size: 50  # Smaller batches
+</code></pre>
+<h3 id="out-of-memory">"Out of memory"</h3>
+<pre><code class="language-yaml"># Reduce batch size
+patterns:
+  - name: batch_operations
+    batch_size: 25
+
+# Process sequentially
+patterns:
+  - name: batch_operations
+    parallel: false
+</code></pre>
+<h3 id="deadlock-detected">"Deadlock detected"</h3>
+<pre><code class="language-bash"># Analyze deadlock
+psql $DATABASE_URL -c &quot;
+SELECT
+  blocked_locks.pid AS blocked_pid,
+  blocking_locks.pid AS blocking_pid,
+  blocked_activity.usename AS blocked_user,
+  blocking_activity.usename AS blocking_user,
+  blocked_activity.query AS blocked_statement,
+  blocking_activity.query AS blocking_statement
+FROM pg_catalog.pg_locks blocked_locks
+JOIN pg_catalog.pg_stat_activity blocked_activity ON blocked_activity.pid = blocked_locks.pid
+JOIN pg_catalog.pg_locks blocking_locks ON blocking_locks.locktype = blocked_locks.locktype
+  AND blocking_locks.database IS NOT DISTINCT FROM blocked_locks.database
+  AND blocking_locks.relation IS NOT DISTINCT FROM blocked_locks.relation
+  AND blocking_locks.page IS NOT DISTINCT FROM blocked_locks.page
+  AND blocking_locks.tuple IS NOT DISTINCT FROM blocked_locks.tuple
+  AND blocking_locks.virtualxid IS NOT DISTINCT FROM blocked_locks.virtualxid
+  AND blocking_locks.transactionid IS NOT DISTINCT FROM blocked_locks.transactionid
+  AND blocking_locks.classid IS NOT DISTINCT FROM blocked_locks.classid
+  AND blocking_locks.objid IS NOT DISTINCT FROM blocked_locks.objid
+  AND blocking_locks.objsubid IS NOT DISTINCT FROM blocked_locks.objsubid
+  AND blocking_locks.pid != blocked_locks.pid
+JOIN pg_catalog.pg_stat_activity blocking_activity ON blocking_activity.pid = blocking_locks.pid
+WHERE NOT blocked_locks.granted;&quot;
+</code></pre>
+<h3 id="high-error-rate">"High error rate"</h3>
+<pre><code class="language-yaml"># Add more validation
+patterns:
+  - name: batch_operations
+    preconditions:
+      - &quot;validate_batch_data(:input_data)&quot;
+
+# Or change error handling
+patterns:
+  - name: batch_operations
+    error_handling: stop_on_error  # Stop immediately
+</code></pre>
+<h2 id="summary">🎉 Summary</h2>
+<p>Batch operations provide:
+- ✅ <strong>Efficient processing</strong> - Handle large datasets quickly
+- ✅ <strong>Resource management</strong> - Controlled CPU and memory usage
+- ✅ <strong>Error resilience</strong> - Continue processing despite failures
+- ✅ <strong>Progress monitoring</strong> - Track operation status and performance
+- ✅ <strong>Flexible configuration</strong> - Adapt to different use cases</p>
+<h2 id="whats-next">🚀 What's Next?</h2>
+<ul>
+<li><strong><a href="../validation/">Validation</a></strong> - Data integrity patterns</li>
+<li><strong><a href="../composing-patterns/">Composing Patterns</a></strong> - Combining multiple patterns</li>
+<li><strong><a href="../state-machines/">State Machines</a></strong> - Entity lifecycle management</li>
+<li><strong><a href="../../examples/">Examples</a></strong> - Real-world batch operations</li>
+</ul>
+<p><strong>Ready to process large datasets efficiently? Let's continue! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

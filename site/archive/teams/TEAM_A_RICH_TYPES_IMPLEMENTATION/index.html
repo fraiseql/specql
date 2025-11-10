@@ -1,0 +1,1027 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team A: Rich Types Implementation - SpecQL Parser Extension - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team A: Rich Types Implementation - SpecQL Parser Extension";
+        var mkdocs_page_input_path = "archive/teams/TEAM_A_RICH_TYPES_IMPLEMENTATION.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team A: Rich Types Implementation - SpecQL Parser Extension</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-a-rich-types-implementation-specql-parser-extension">Team A: Rich Types Implementation - SpecQL Parser Extension</h1>
+<p><strong>Epic</strong>: Add FraiseQL Rich Type Support to SpecQL Parser
+<strong>Timeline</strong>: Week 2, Days 1-2 (parallel with schema generation work)
+<strong>Complexity</strong>: Medium (extends existing parser)</p>
+<hr />
+<h2 id="objective">🎯 Objective</h2>
+<p>Extend the SpecQL parser to recognize and validate FraiseQL rich types (email, url, phone, ipAddress, coordinates, etc.) in field definitions.</p>
+<p><strong>Success Criteria</strong>:
+- ✅ Parser recognizes 20+ rich type keywords
+- ✅ Validates rich type syntax
+- ✅ Stores type metadata in AST
+- ✅ Backward compatible with existing types (text, integer, etc.)
+- ✅ 95%+ test coverage
+- ✅ Zero breaking changes to existing functionality</p>
+<hr />
+<h2 id="phase-1-type-registry-validation">📋 PHASE 1: Type Registry &amp; Validation</h2>
+<p><strong>Duration</strong>: 2 hours</p>
+<h3 id="red-phase-write-failing-tests">🔴 RED Phase: Write Failing Tests</h3>
+<p><strong>Test File</strong>: <code>tests/unit/core/test_rich_types.py</code></p>
+<pre><code class="language-python">import pytest
+from src.core.specql_parser import SpecQLParser
+from src.core.type_registry import TypeRegistry, FRAISEQL_RICH_TYPES
+
+
+def test_parse_email_type():
+    &quot;&quot;&quot;Test: Parse email rich type&quot;&quot;&quot;
+    yaml_content = &quot;&quot;&quot;
+entity: Contact
+fields:
+  email: email
+&quot;&quot;&quot;
+    entity = SpecQLParser().parse_string(yaml_content)
+
+    # Expected: email field with rich type
+    assert &quot;email&quot; in entity.fields
+    email_field = entity.fields[&quot;email&quot;]
+    assert email_field.type == &quot;email&quot;
+    assert email_field.is_rich_type() is True
+    assert email_field.get_postgres_type() == &quot;TEXT&quot;
+
+
+def test_parse_multiple_rich_types():
+    &quot;&quot;&quot;Test: Parse multiple different rich types&quot;&quot;&quot;
+    yaml_content = &quot;&quot;&quot;
+entity: Contact
+fields:
+  email: email
+  website: url
+  phone: phoneNumber
+  ip_address: ipAddress
+  mac_address: macAddress
+  location: coordinates
+  price: money
+  birth_date: date
+&quot;&quot;&quot;
+    entity = SpecQLParser().parse_string(yaml_content)
+
+    # Expected: all fields parsed with correct types
+    assert entity.fields[&quot;email&quot;].type == &quot;email&quot;
+    assert entity.fields[&quot;website&quot;].type == &quot;url&quot;
+    assert entity.fields[&quot;phone&quot;].type == &quot;phoneNumber&quot;
+    assert entity.fields[&quot;ip_address&quot;].type == &quot;ipAddress&quot;
+    assert entity.fields[&quot;mac_address&quot;].type == &quot;macAddress&quot;
+    assert entity.fields[&quot;location&quot;].type == &quot;coordinates&quot;
+    assert entity.fields[&quot;price&quot;].type == &quot;money&quot;
+    assert entity.fields[&quot;birth_date&quot;].type == &quot;date&quot;
+
+    # All should be recognized as rich types
+    for field_name, field_def in entity.fields.items():
+        assert field_def.is_rich_type() is True
+
+
+def test_parse_rich_type_with_nullable():
+    &quot;&quot;&quot;Test: Rich types with nullable modifier&quot;&quot;&quot;
+    yaml_content = &quot;&quot;&quot;
+entity: Contact
+fields:
+  email: email!        # NOT NULL
+  website: url         # nullable
+&quot;&quot;&quot;
+    entity = SpecQLParser().parse_string(yaml_content)
+
+    assert entity.fields[&quot;email&quot;].nullable is False
+    assert entity.fields[&quot;website&quot;].nullable is True
+
+
+def test_parse_rich_type_with_default():
+    &quot;&quot;&quot;Test: Rich types with default values&quot;&quot;&quot;
+    yaml_content = &quot;&quot;&quot;
+entity: Settings
+fields:
+  theme_color: color = '#000000'
+  default_url: url = 'https://example.com'
+&quot;&quot;&quot;
+    entity = SpecQLParser().parse_string(yaml_content)
+
+    assert entity.fields[&quot;theme_color&quot;].default == &quot;#000000&quot;
+    assert entity.fields[&quot;default_url&quot;].default == &quot;https://example.com&quot;
+
+
+def test_parse_complex_money_type():
+    &quot;&quot;&quot;Test: Money type with currency metadata&quot;&quot;&quot;
+    yaml_content = &quot;&quot;&quot;
+entity: Product
+fields:
+  price: money(currency=USD, precision=2)
+&quot;&quot;&quot;
+    entity = SpecQLParser().parse_string(yaml_content)
+
+    price_field = entity.fields[&quot;price&quot;]
+    assert price_field.type == &quot;money&quot;
+    assert price_field.type_metadata[&quot;currency&quot;] == &quot;USD&quot;
+    assert price_field.type_metadata[&quot;precision&quot;] == 2
+
+
+def test_backward_compatibility_with_basic_types():
+    &quot;&quot;&quot;Test: Existing basic types still work&quot;&quot;&quot;
+    yaml_content = &quot;&quot;&quot;
+entity: Contact
+fields:
+  name: text
+  age: integer
+  active: boolean
+  metadata: jsonb
+  company: ref(Company)
+  tags: list(text)
+  status: enum(active, inactive)
+&quot;&quot;&quot;
+    entity = SpecQLParser().parse_string(yaml_content)
+
+    # Basic types should NOT be rich types
+    assert entity.fields[&quot;name&quot;].is_rich_type() is False
+    assert entity.fields[&quot;age&quot;].is_rich_type() is False
+    assert entity.fields[&quot;active&quot;].is_rich_type() is False
+
+    # ref, list, enum should still work
+    assert entity.fields[&quot;company&quot;].type == &quot;ref&quot;
+    assert entity.fields[&quot;tags&quot;].type == &quot;list&quot;
+    assert entity.fields[&quot;status&quot;].type == &quot;enum&quot;
+
+
+def test_invalid_rich_type_raises_error():
+    &quot;&quot;&quot;Test: Unknown type raises validation error&quot;&quot;&quot;
+    yaml_content = &quot;&quot;&quot;
+entity: Contact
+fields:
+  mystery: unknownType
+&quot;&quot;&quot;
+
+    with pytest.raises(ValueError) as exc_info:
+        SpecQLParser().parse_string(yaml_content)
+
+    assert &quot;Unknown type: unknownType&quot; in str(exc_info.value)
+
+
+def test_type_registry_completeness():
+    &quot;&quot;&quot;Test: Type registry contains all FraiseQL types&quot;&quot;&quot;
+    registry = TypeRegistry()
+
+    # Verify all expected types are present
+    expected_types = [
+        &quot;email&quot;, &quot;url&quot;, &quot;phone&quot;, &quot;phoneNumber&quot;,
+        &quot;ipAddress&quot;, &quot;macAddress&quot;, &quot;markdown&quot;, &quot;html&quot;,
+        &quot;money&quot;, &quot;percentage&quot;,
+        &quot;date&quot;, &quot;datetime&quot;, &quot;time&quot;, &quot;duration&quot;,
+        &quot;coordinates&quot;, &quot;latitude&quot;, &quot;longitude&quot;,
+        &quot;image&quot;, &quot;file&quot;, &quot;color&quot;,
+        &quot;uuid&quot;, &quot;slug&quot;
+    ]
+
+    for expected_type in expected_types:
+        assert registry.is_rich_type(expected_type) is True
+        assert registry.get_postgres_type(expected_type) is not None
+</code></pre>
+<p><strong>Run Tests</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/core/test_rich_types.py -v
+# Expected: FAILED (not implemented)
+</code></pre>
+<hr />
+<h3 id="green-phase-minimal-implementation">🟢 GREEN Phase: Minimal Implementation</h3>
+<p><strong>Step 1: Create Type Registry</strong></p>
+<p><strong>File</strong>: <code>src/core/type_registry.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;
+FraiseQL Rich Type Registry
+Maps SpecQL rich types to PostgreSQL storage types and GraphQL scalars
+&quot;&quot;&quot;
+
+from dataclasses import dataclass
+from typing import Dict, Set, Optional
+
+
+@dataclass
+class TypeMetadata:
+    &quot;&quot;&quot;Metadata for a rich type&quot;&quot;&quot;
+    specql_name: str
+    postgres_type: str
+    graphql_scalar: str
+    description: str
+    validation_pattern: Optional[str] = None
+
+
+class TypeRegistry:
+    &quot;&quot;&quot;Registry of FraiseQL rich types and their mappings&quot;&quot;&quot;
+
+    def __init__(self):
+        self._types = self._build_type_registry()
+
+    def _build_type_registry(self) -&gt; Dict[str, TypeMetadata]:
+        &quot;&quot;&quot;Build the complete type registry&quot;&quot;&quot;
+        return {
+            # String-based types
+            &quot;email&quot;: TypeMetadata(
+                specql_name=&quot;email&quot;,
+                postgres_type=&quot;TEXT&quot;,
+                graphql_scalar=&quot;Email&quot;,
+                description=&quot;Valid email address&quot;,
+                validation_pattern=r&quot;^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$&quot;
+            ),
+            &quot;url&quot;: TypeMetadata(
+                specql_name=&quot;url&quot;,
+                postgres_type=&quot;TEXT&quot;,
+                graphql_scalar=&quot;Url&quot;,
+                description=&quot;Valid URL&quot;,
+                validation_pattern=r&quot;^https?://&quot;
+            ),
+            &quot;phone&quot;: TypeMetadata(
+                specql_name=&quot;phone&quot;,
+                postgres_type=&quot;TEXT&quot;,
+                graphql_scalar=&quot;PhoneNumber&quot;,
+                description=&quot;Phone number (E.164 format)&quot;,
+                validation_pattern=r&quot;^\+?[1-9]\d{1,14}$&quot;
+            ),
+            &quot;phoneNumber&quot;: TypeMetadata(
+                specql_name=&quot;phoneNumber&quot;,
+                postgres_type=&quot;TEXT&quot;,
+                graphql_scalar=&quot;PhoneNumber&quot;,
+                description=&quot;Phone number (E.164 format)&quot;,
+                validation_pattern=r&quot;^\+?[1-9]\d{1,14}$&quot;
+            ),
+            &quot;ipAddress&quot;: TypeMetadata(
+                specql_name=&quot;ipAddress&quot;,
+                postgres_type=&quot;INET&quot;,
+                graphql_scalar=&quot;IpAddress&quot;,
+                description=&quot;IPv4 or IPv6 address&quot;
+            ),
+            &quot;macAddress&quot;: TypeMetadata(
+                specql_name=&quot;macAddress&quot;,
+                postgres_type=&quot;MACADDR&quot;,
+                graphql_scalar=&quot;MacAddress&quot;,
+                description=&quot;MAC address&quot;
+            ),
+            &quot;markdown&quot;: TypeMetadata(
+                specql_name=&quot;markdown&quot;,
+                postgres_type=&quot;TEXT&quot;,
+                graphql_scalar=&quot;Markdown&quot;,
+                description=&quot;Markdown formatted text&quot;
+            ),
+            &quot;html&quot;: TypeMetadata(
+                specql_name=&quot;html&quot;,
+                postgres_type=&quot;TEXT&quot;,
+                graphql_scalar=&quot;Html&quot;,
+                description=&quot;HTML content&quot;
+            ),
+
+            # Numeric types
+            &quot;money&quot;: TypeMetadata(
+                specql_name=&quot;money&quot;,
+                postgres_type=&quot;NUMERIC(19,4)&quot;,
+                graphql_scalar=&quot;Money&quot;,
+                description=&quot;Monetary value&quot;
+            ),
+            &quot;percentage&quot;: TypeMetadata(
+                specql_name=&quot;percentage&quot;,
+                postgres_type=&quot;NUMERIC(5,2)&quot;,
+                graphql_scalar=&quot;Percentage&quot;,
+                description=&quot;Percentage value (0-100)&quot;
+            ),
+
+            # Date/Time types
+            &quot;date&quot;: TypeMetadata(
+                specql_name=&quot;date&quot;,
+                postgres_type=&quot;DATE&quot;,
+                graphql_scalar=&quot;Date&quot;,
+                description=&quot;Date (YYYY-MM-DD)&quot;
+            ),
+            &quot;datetime&quot;: TypeMetadata(
+                specql_name=&quot;datetime&quot;,
+                postgres_type=&quot;TIMESTAMPTZ&quot;,
+                graphql_scalar=&quot;DateTime&quot;,
+                description=&quot;Timestamp with timezone&quot;
+            ),
+            &quot;time&quot;: TypeMetadata(
+                specql_name=&quot;time&quot;,
+                postgres_type=&quot;TIME&quot;,
+                graphql_scalar=&quot;Time&quot;,
+                description=&quot;Time of day&quot;
+            ),
+            &quot;duration&quot;: TypeMetadata(
+                specql_name=&quot;duration&quot;,
+                postgres_type=&quot;INTERVAL&quot;,
+                graphql_scalar=&quot;Duration&quot;,
+                description=&quot;Time duration&quot;
+            ),
+
+            # Geographic types
+            &quot;coordinates&quot;: TypeMetadata(
+                specql_name=&quot;coordinates&quot;,
+                postgres_type=&quot;POINT&quot;,
+                graphql_scalar=&quot;Coordinates&quot;,
+                description=&quot;Geographic coordinates (lat/lng)&quot;
+            ),
+            &quot;latitude&quot;: TypeMetadata(
+                specql_name=&quot;latitude&quot;,
+                postgres_type=&quot;NUMERIC(10,8)&quot;,
+                graphql_scalar=&quot;Latitude&quot;,
+                description=&quot;Latitude (-90 to 90)&quot;
+            ),
+            &quot;longitude&quot;: TypeMetadata(
+                specql_name=&quot;longitude&quot;,
+                postgres_type=&quot;NUMERIC(11,8)&quot;,
+                graphql_scalar=&quot;Longitude&quot;,
+                description=&quot;Longitude (-180 to 180)&quot;
+            ),
+
+            # Media types
+            &quot;image&quot;: TypeMetadata(
+                specql_name=&quot;image&quot;,
+                postgres_type=&quot;TEXT&quot;,
+                graphql_scalar=&quot;Image&quot;,
+                description=&quot;Image URL or path&quot;
+            ),
+            &quot;file&quot;: TypeMetadata(
+                specql_name=&quot;file&quot;,
+                postgres_type=&quot;TEXT&quot;,
+                graphql_scalar=&quot;File&quot;,
+                description=&quot;File URL or path&quot;
+            ),
+            &quot;color&quot;: TypeMetadata(
+                specql_name=&quot;color&quot;,
+                postgres_type=&quot;TEXT&quot;,
+                graphql_scalar=&quot;Color&quot;,
+                description=&quot;Color (hex code)&quot;,
+                validation_pattern=r&quot;^#[0-9A-Fa-f]{6}$&quot;
+            ),
+
+            # Identifier types
+            &quot;uuid&quot;: TypeMetadata(
+                specql_name=&quot;uuid&quot;,
+                postgres_type=&quot;UUID&quot;,
+                graphql_scalar=&quot;UUID&quot;,
+                description=&quot;Universally unique identifier&quot;
+            ),
+            &quot;slug&quot;: TypeMetadata(
+                specql_name=&quot;slug&quot;,
+                postgres_type=&quot;TEXT&quot;,
+                graphql_scalar=&quot;Slug&quot;,
+                description=&quot;URL-friendly identifier&quot;,
+                validation_pattern=r&quot;^[a-z0-9]+(?:-[a-z0-9]+)*$&quot;
+            ),
+
+            # JSON types
+            &quot;json&quot;: TypeMetadata(
+                specql_name=&quot;json&quot;,
+                postgres_type=&quot;JSONB&quot;,
+                graphql_scalar=&quot;JSON&quot;,
+                description=&quot;JSON object&quot;
+            ),
+        }
+
+    def is_rich_type(self, type_name: str) -&gt; bool:
+        &quot;&quot;&quot;Check if type is a FraiseQL rich type&quot;&quot;&quot;
+        return type_name in self._types
+
+    def get_postgres_type(self, type_name: str) -&gt; str:
+        &quot;&quot;&quot;Get PostgreSQL storage type for rich type&quot;&quot;&quot;
+        metadata = self._types.get(type_name)
+        if not metadata:
+            raise ValueError(f&quot;Unknown rich type: {type_name}&quot;)
+        return metadata.postgres_type
+
+    def get_graphql_scalar(self, type_name: str) -&gt; str:
+        &quot;&quot;&quot;Get GraphQL scalar name for rich type&quot;&quot;&quot;
+        metadata = self._types.get(type_name)
+        if not metadata:
+            raise ValueError(f&quot;Unknown rich type: {type_name}&quot;)
+        return metadata.graphql_scalar
+
+    def get_validation_pattern(self, type_name: str) -&gt; Optional[str]:
+        &quot;&quot;&quot;Get regex validation pattern for rich type&quot;&quot;&quot;
+        metadata = self._types.get(type_name)
+        if not metadata:
+            return None
+        return metadata.validation_pattern
+
+    def get_all_rich_types(self) -&gt; Set[str]:
+        &quot;&quot;&quot;Get set of all rich type names&quot;&quot;&quot;
+        return set(self._types.keys())
+
+
+# Global singleton instance
+_type_registry = TypeRegistry()
+
+# Convenience constants
+FRAISEQL_RICH_TYPES = _type_registry.get_all_rich_types()
+
+
+def get_type_registry() -&gt; TypeRegistry:
+    &quot;&quot;&quot;Get the global type registry instance&quot;&quot;&quot;
+    return _type_registry
+</code></pre>
+<hr />
+<p><strong>Step 2: Update FieldDefinition</strong></p>
+<p><strong>File</strong>: <code>src/core/ast_models.py</code></p>
+<pre><code class="language-python">from typing import Optional, Dict, Any, List
+from dataclasses import dataclass
+from src.core.type_registry import get_type_registry
+
+
+@dataclass
+class FieldDefinition:
+    &quot;&quot;&quot;Parsed field definition with rich type support&quot;&quot;&quot;
+
+    name: str
+    type: str  # NOW SUPPORTS: text, integer, email, url, phone, coordinates, etc.
+    nullable: bool = True
+    default: Optional[Any] = None
+
+    # Type metadata (for complex types like money(currency='USD'))
+    type_metadata: Optional[Dict[str, Any]] = None
+
+    # For enum fields
+    values: Optional[List[str]] = None
+
+    # For ref fields
+    target_entity: Optional[str] = None
+
+    # For list fields
+    item_type: Optional[str] = None
+
+    def is_rich_type(self) -&gt; bool:
+        &quot;&quot;&quot;Check if this field uses a FraiseQL rich type&quot;&quot;&quot;
+        registry = get_type_registry()
+        return registry.is_rich_type(self.type)
+
+    def get_postgres_type(self) -&gt; str:
+        &quot;&quot;&quot;Get underlying PostgreSQL storage type&quot;&quot;&quot;
+        registry = get_type_registry()
+
+        # Rich types
+        if self.is_rich_type():
+            return registry.get_postgres_type(self.type)
+
+        # Basic types
+        basic_type_map = {
+            &quot;text&quot;: &quot;TEXT&quot;,
+            &quot;integer&quot;: &quot;INTEGER&quot;,
+            &quot;boolean&quot;: &quot;BOOLEAN&quot;,
+            &quot;jsonb&quot;: &quot;JSONB&quot;,
+            &quot;timestamp&quot;: &quot;TIMESTAMPTZ&quot;,
+        }
+
+        return basic_type_map.get(self.type, &quot;TEXT&quot;)
+
+    def get_graphql_scalar(self) -&gt; str:
+        &quot;&quot;&quot;Get GraphQL scalar type name&quot;&quot;&quot;
+        registry = get_type_registry()
+
+        # Rich types
+        if self.is_rich_type():
+            scalar = registry.get_graphql_scalar(self.type)
+            return f&quot;{scalar}!&quot; if not self.nullable else scalar
+
+        # Basic types
+        basic_scalar_map = {
+            &quot;text&quot;: &quot;String&quot;,
+            &quot;integer&quot;: &quot;Int&quot;,
+            &quot;boolean&quot;: &quot;Boolean&quot;,
+            &quot;jsonb&quot;: &quot;JSON&quot;,
+        }
+
+        scalar = basic_scalar_map.get(self.type, &quot;String&quot;)
+        return f&quot;{scalar}!&quot; if not self.nullable else scalar
+
+    def get_validation_pattern(self) -&gt; Optional[str]:
+        &quot;&quot;&quot;Get regex validation pattern (if applicable)&quot;&quot;&quot;
+        if not self.is_rich_type():
+            return None
+
+        registry = get_type_registry()
+        return registry.get_validation_pattern(self.type)
+</code></pre>
+<hr />
+<p><strong>Step 3: Update Parser</strong></p>
+<p><strong>File</strong>: <code>src/core/specql_parser.py</code></p>
+<pre><code class="language-python">import yaml
+import re
+from typing import Dict, Any
+from src.core.ast_models import Entity, FieldDefinition
+from src.core.type_registry import get_type_registry
+
+
+class SpecQLParser:
+    &quot;&quot;&quot;Parses SpecQL YAML with rich type support&quot;&quot;&quot;
+
+    def __init__(self):
+        self.type_registry = get_type_registry()
+
+    def parse_string(self, yaml_content: str) -&gt; Entity:
+        &quot;&quot;&quot;Parse YAML string into Entity AST&quot;&quot;&quot;
+        data = yaml.safe_load(yaml_content)
+        return self._parse_entity(data)
+
+    def parse_file(self, yaml_path: str) -&gt; Entity:
+        &quot;&quot;&quot;Parse YAML file into Entity AST&quot;&quot;&quot;
+        with open(yaml_path, 'r') as f:
+            data = yaml.safe_load(f)
+        return self._parse_entity(data)
+
+    def _parse_entity(self, data: Dict[str, Any]) -&gt; Entity:
+        &quot;&quot;&quot;Parse entity definition&quot;&quot;&quot;
+        entity = Entity(
+            name=data.get(&quot;entity&quot;),
+            schema=data.get(&quot;schema&quot;, &quot;public&quot;),
+            description=data.get(&quot;description&quot;, &quot;&quot;)
+        )
+
+        # Parse fields
+        if &quot;fields&quot; in data:
+            entity.fields = self._parse_fields(data[&quot;fields&quot;])
+
+        # Parse actions, agents, etc. (existing code)
+        # ...
+
+        return entity
+
+    def _parse_fields(self, fields_data: Dict[str, Any]) -&gt; Dict[str, FieldDefinition]:
+        &quot;&quot;&quot;Parse field definitions with rich type support&quot;&quot;&quot;
+        fields = {}
+
+        for field_name, field_spec in fields_data.items():
+            fields[field_name] = self._parse_field(field_name, field_spec)
+
+        return fields
+
+    def _parse_field(self, field_name: str, field_spec: Any) -&gt; FieldDefinition:
+        &quot;&quot;&quot;Parse a single field definition&quot;&quot;&quot;
+
+        # Handle simple string type: &quot;email: email&quot;
+        if isinstance(field_spec, str):
+            return self._parse_simple_field(field_name, field_spec)
+
+        # Handle dict with options: &quot;email: {type: email, nullable: false}&quot;
+        elif isinstance(field_spec, dict):
+            return self._parse_complex_field(field_name, field_spec)
+
+        else:
+            raise ValueError(f&quot;Invalid field spec for {field_name}: {field_spec}&quot;)
+
+    def _parse_simple_field(self, field_name: str, type_spec: str) -&gt; FieldDefinition:
+        &quot;&quot;&quot;Parse simple field type string&quot;&quot;&quot;
+
+        # Check for nullable marker: &quot;email!&quot;
+        nullable = True
+        if type_spec.endswith(&quot;!&quot;):
+            nullable = False
+            type_spec = type_spec[:-1]
+
+        # Check for default value: &quot;color = '#000000'&quot;
+        default = None
+        if &quot; = &quot; in type_spec:
+            type_spec, default_str = type_spec.split(&quot; = &quot;, 1)
+            default = default_str.strip().strip(&quot;'\&quot;&quot;)
+
+        # Parse type with metadata: &quot;money(currency=USD)&quot;
+        type_name, type_metadata = self._parse_type_with_metadata(type_spec)
+
+        # Validate type exists
+        self._validate_type(type_name)
+
+        return FieldDefinition(
+            name=field_name,
+            type=type_name,
+            nullable=nullable,
+            default=default,
+            type_metadata=type_metadata
+        )
+
+    def _parse_complex_field(self, field_name: str, field_dict: Dict[str, Any]) -&gt; FieldDefinition:
+        &quot;&quot;&quot;Parse complex field definition with explicit options&quot;&quot;&quot;
+
+        type_spec = field_dict.get(&quot;type&quot;)
+        if not type_spec:
+            raise ValueError(f&quot;Missing 'type' for field {field_name}&quot;)
+
+        type_name, type_metadata = self._parse_type_with_metadata(type_spec)
+
+        # Validate type
+        self._validate_type(type_name)
+
+        return FieldDefinition(
+            name=field_name,
+            type=type_name,
+            nullable=field_dict.get(&quot;nullable&quot;, True),
+            default=field_dict.get(&quot;default&quot;),
+            type_metadata=type_metadata
+        )
+
+    def _parse_type_with_metadata(self, type_spec: str) -&gt; tuple[str, Optional[Dict[str, Any]]]:
+        &quot;&quot;&quot;Parse type with optional metadata: money(currency=USD, precision=2)&quot;&quot;&quot;
+
+        # Check for metadata: &quot;money(currency=USD)&quot;
+        match = re.match(r&quot;(\w+)\((.*)\)&quot;, type_spec)
+        if match:
+            type_name = match.group(1)
+            metadata_str = match.group(2)
+
+            # Parse metadata key=value pairs
+            metadata = {}
+            for pair in metadata_str.split(&quot;,&quot;):
+                if &quot;=&quot; in pair:
+                    key, value = pair.split(&quot;=&quot;, 1)
+                    key = key.strip()
+                    value = value.strip().strip(&quot;'\&quot;&quot;)
+
+                    # Try to parse as number
+                    try:
+                        value = int(value)
+                    except ValueError:
+                        try:
+                            value = float(value)
+                        except ValueError:
+                            pass  # Keep as string
+
+                    metadata[key] = value
+
+            return type_name, metadata
+
+        # No metadata, just type name
+        return type_spec, None
+
+    def _validate_type(self, type_name: str) -&gt; None:
+        &quot;&quot;&quot;Validate that type is recognized&quot;&quot;&quot;
+
+        # Check rich types
+        if self.type_registry.is_rich_type(type_name):
+            return
+
+        # Check basic types
+        basic_types = {&quot;text&quot;, &quot;integer&quot;, &quot;boolean&quot;, &quot;jsonb&quot;, &quot;timestamp&quot;, &quot;uuid&quot;}
+        if type_name in basic_types:
+            return
+
+        # Check special types
+        if type_name in {&quot;ref&quot;, &quot;list&quot;, &quot;enum&quot;}:
+            return
+
+        # Unknown type
+        raise ValueError(
+            f&quot;Unknown type: {type_name}. &quot;
+            f&quot;Supported types: {', '.join(sorted(basic_types | self.type_registry.get_all_rich_types()))}&quot;
+        )
+</code></pre>
+<hr />
+<h3 id="refactor-phase">🔧 REFACTOR Phase</h3>
+<p><strong>Improvements</strong>:</p>
+<ol>
+<li><strong>Extract field parser to separate class</strong>:</li>
+</ol>
+<pre><code class="language-python">class FieldParser:
+    &quot;&quot;&quot;Dedicated parser for field definitions&quot;&quot;&quot;
+
+    def __init__(self, type_registry: TypeRegistry):
+        self.type_registry = type_registry
+
+    def parse(self, field_name: str, field_spec: Any) -&gt; FieldDefinition:
+        &quot;&quot;&quot;Parse field definition&quot;&quot;&quot;
+        # Cleaner separation of concerns
+</code></pre>
+<ol>
+<li><strong>Add type validation helper</strong>:</li>
+</ol>
+<pre><code class="language-python">class TypeValidator:
+    &quot;&quot;&quot;Validates type specifications&quot;&quot;&quot;
+
+    def validate_type_spec(self, type_spec: str) -&gt; bool:
+        &quot;&quot;&quot;Validate type specification is well-formed&quot;&quot;&quot;
+        # Validate syntax, metadata format, etc.
+</code></pre>
+<ol>
+<li><strong>Improve error messages</strong>:</li>
+</ol>
+<pre><code class="language-python">def _validate_type(self, type_name: str) -&gt; None:
+    &quot;&quot;&quot;Validate type with helpful error messages&quot;&quot;&quot;
+    if not self._is_valid_type(type_name):
+        similar = self._find_similar_types(type_name)
+        suggestion = f&quot; Did you mean: {', '.join(similar)}?&quot; if similar else &quot;&quot;
+        raise ValueError(f&quot;Unknown type: {type_name}.{suggestion}&quot;)
+</code></pre>
+<hr />
+<h3 id="qa-phase">✅ QA Phase</h3>
+<pre><code class="language-bash"># Run all tests
+uv run pytest tests/unit/core/test_rich_types.py -v
+
+# Test backward compatibility
+uv run pytest tests/unit/core/test_specql_parser.py -v
+
+# Type checking
+uv run mypy src/core/
+
+# Coverage
+uv run pytest tests/unit/core/ --cov=src/core/ --cov-report=term-missing
+# Target: 95%+
+</code></pre>
+<hr />
+<h2 id="phase-2-integration-with-existing-code">📋 PHASE 2: Integration with Existing Code</h2>
+<p><strong>Duration</strong>: 1 hour</p>
+<h3 id="update-existing-tests">Update Existing Tests</h3>
+<p>Ensure existing tests still pass with new type system:</p>
+<pre><code class="language-bash"># All Team A tests should still pass
+make teamA-test
+</code></pre>
+<h3 id="add-rich-type-examples">Add Rich Type Examples</h3>
+<p><strong>File</strong>: <code>entities/examples/contact_with_rich_types.yaml</code></p>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+description: &quot;Contact with FraiseQL rich types&quot;
+
+fields:
+  # Rich types
+  email: email!
+  website: url
+  phone: phoneNumber
+  avatar: image
+
+  # Basic types (backward compatibility)
+  first_name: text!
+  last_name: text!
+  notes: text
+
+  # Relationships
+  company: ref(Company)
+
+  # Enums
+  status: enum(lead, qualified, customer)
+
+actions:
+  - name: create_contact
+    steps:
+      # Rich types auto-validate!
+      - insert: Contact
+</code></pre>
+<hr />
+<h2 id="acceptance-criteria">📊 Acceptance Criteria</h2>
+<h3 id="must-have">Must Have</h3>
+<ul>
+<li>✅ Parse 20+ FraiseQL rich types</li>
+<li>✅ Extract type metadata (e.g., <code>money(currency=USD)</code>)</li>
+<li>✅ Validate unknown types with helpful errors</li>
+<li>✅ Backward compatible with existing types</li>
+<li>✅ All existing tests pass</li>
+<li>✅ 95%+ test coverage</li>
+<li>✅ Type safety with mypy</li>
+</ul>
+<h3 id="nice-to-have">Nice to Have</h3>
+<ul>
+<li>✅ Suggest similar types on typos ("Did you mean 'email'?")</li>
+<li>✅ Documentation for each rich type</li>
+<li>✅ IDE autocomplete support (via JSON schema)</li>
+</ul>
+<hr />
+<h2 id="definition-of-done">🎯 Definition of Done</h2>
+<ul>
+<li>[ ] <code>TypeRegistry</code> class created with all FraiseQL types</li>
+<li>[ ] <code>FieldDefinition.is_rich_type()</code> method works</li>
+<li>[ ] <code>FieldDefinition.get_postgres_type()</code> returns correct type</li>
+<li>[ ] <code>FieldDefinition.get_graphql_scalar()</code> returns correct scalar</li>
+<li>[ ] Parser recognizes all rich type syntax</li>
+<li>[ ] Parser validates unknown types</li>
+<li>[ ] Parser extracts type metadata</li>
+<li>[ ] All tests pass (new + existing)</li>
+<li>[ ] 95%+ code coverage</li>
+<li>[ ] Documentation updated</li>
+<li>[ ] Examples added</li>
+<li>[ ] Code reviewed</li>
+<li>[ ] Merged to main</li>
+</ul>
+<hr />
+<h2 id="reference">📚 Reference</h2>
+<h3 id="fraiseql-rich-types-to-support">FraiseQL Rich Types to Support</h3>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Types</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>String</strong></td>
+<td>email, url, phone, phoneNumber, markdown, html, slug</td>
+</tr>
+<tr>
+<td><strong>Network</strong></td>
+<td>ipAddress, macAddress</td>
+</tr>
+<tr>
+<td><strong>Numeric</strong></td>
+<td>money, percentage</td>
+</tr>
+<tr>
+<td><strong>Date/Time</strong></td>
+<td>date, datetime, time, duration</td>
+</tr>
+<tr>
+<td><strong>Geographic</strong></td>
+<td>coordinates, latitude, longitude</td>
+</tr>
+<tr>
+<td><strong>Media</strong></td>
+<td>image, file, color</td>
+</tr>
+<tr>
+<td><strong>Identifiers</strong></td>
+<td>uuid, slug</td>
+</tr>
+<tr>
+<td><strong>Structured</strong></td>
+<td>json</td>
+</tr>
+</tbody>
+</table>
+<h3 id="postgresql-mappings">PostgreSQL Mappings</h3>
+<table>
+<thead>
+<tr>
+<th>Rich Type</th>
+<th>PostgreSQL Type</th>
+<th>Has Validation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>email</td>
+<td>TEXT</td>
+<td>CHECK constraint</td>
+</tr>
+<tr>
+<td>url</td>
+<td>TEXT</td>
+<td>CHECK constraint</td>
+</tr>
+<tr>
+<td>ipAddress</td>
+<td>INET</td>
+<td>Built-in</td>
+</tr>
+<tr>
+<td>macAddress</td>
+<td>MACADDR</td>
+<td>Built-in</td>
+</tr>
+<tr>
+<td>money</td>
+<td>NUMERIC(19,4)</td>
+<td>None</td>
+</tr>
+<tr>
+<td>coordinates</td>
+<td>POINT</td>
+<td>CHECK constraint</td>
+</tr>
+<tr>
+<td>date</td>
+<td>DATE</td>
+<td>Built-in</td>
+</tr>
+<tr>
+<td>uuid</td>
+<td>UUID</td>
+<td>Built-in</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>Team A: Parser extension ready to implement!</strong> 🚀</p>
+<p>This prompt provides everything Team A needs to add rich type support without breaking existing functionality.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

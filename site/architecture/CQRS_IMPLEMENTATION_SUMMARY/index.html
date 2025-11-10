@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>CQRS Table Views - Implementation Summary - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "CQRS Table Views - Implementation Summary";
+        var mkdocs_page_input_path = "architecture/CQRS_IMPLEMENTATION_SUMMARY.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">CQRS Table Views - Implementation Summary</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="cqrs-table-views-implementation-summary">CQRS Table Views - Implementation Summary</h1>
+<p><strong>Date</strong>: 2025-11-09
+<strong>Status</strong>: 🔴 APPROVED - Ready for Implementation
+<strong>Total Timeline</strong>: 4-5 weeks (parallel with existing Team B work)</p>
+<hr />
+<h2 id="executive-summary">🎯 Executive Summary</h2>
+<p>SpecQL now implements a <strong>three-layer CQRS architecture</strong> for optimal read performance and FraiseQL integration:</p>
+<ol>
+<li><strong>tb_ tables</strong> (Write Side) - Normalized storage</li>
+<li><strong>tv_ tables</strong> (Read Side) - Denormalized JSONB</li>
+<li><strong>FraiseQL</strong> (Query Layer) - Auto-generated GraphQL</li>
+</ol>
+<p><strong>Key Innovation</strong>: <code>tv_</code> tables compose JSONB from related <code>tv_</code> tables (not <code>tb_</code>), creating cascading denormalization.</p>
+<hr />
+<h2 id="documentation-created">📚 Documentation Created</h2>
+<h3 id="core-architecture"><strong>Core Architecture</strong></h3>
+<ul>
+<li><strong><code>CQRS_TABLE_VIEWS_IMPLEMENTATION.md</code></strong> - Complete architecture specification (1,100+ lines)</li>
+<li>Three-layer architecture explained</li>
+<li>JSONB composition strategy</li>
+<li>Performance optimization (B-tree vs GIN)</li>
+<li>SpecQL configuration reference</li>
+<li>Complete examples</li>
+</ul>
+<hr />
+<h3 id="team-implementation-plans"><strong>Team Implementation Plans</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Team</th>
+<th>Document</th>
+<th>Timeline</th>
+<th>Lines of Code</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Team A</strong></td>
+<td><code>TEAM_A_CQRS_TABLE_VIEWS_PLAN.md</code></td>
+<td>3-4 days</td>
+<td>~1,100</td>
+<td>🟡 Ready</td>
+</tr>
+<tr>
+<td><strong>Team B</strong></td>
+<td><code>TEAM_B_PHASE_9_TABLE_VIEWS.md</code></td>
+<td>7-8 days</td>
+<td>~1,450</td>
+<td>🔴 Critical</td>
+</tr>
+<tr>
+<td><strong>Team C</strong></td>
+<td><code>TEAM_C_CQRS_TV_REFRESH.md</code></td>
+<td>3-4 days</td>
+<td>~800</td>
+<td>🟡 Ready</td>
+</tr>
+<tr>
+<td><strong>Team D</strong></td>
+<td><code>TEAM_D_CQRS_TV_ANNOTATIONS.md</code></td>
+<td>2-3 days</td>
+<td>~600</td>
+<td>🟢 Low Priority</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total New Code</strong>: ~3,950 lines across 4 teams</p>
+<hr />
+<h2 id="architecture-at-a-glance">🏗️ Architecture at a Glance</h2>
+<h3 id="data-flow"><strong>Data Flow</strong></h3>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│  User GraphQL Mutation                                   │
+└──────────────┬──────────────────────────────────────────┘
+               │
+               ▼
+┌─────────────────────────────────────────────────────────┐
+│  PL/pgSQL Function (Team C)                             │
+│  1. Write to tb_review (normalized)                     │
+│  2. PERFORM refresh_tv_review(pk)                       │
+│  3. Return tv_review.data (denormalized JSONB)          │
+└──────────────┬──────────────────────────────────────────┘
+               │
+        ┌──────┴──────┐
+        │             │
+        ▼             ▼
+┌─────────────┐ ┌─────────────────────────────────────────┐
+│  tb_review  │ │  tv_review (Team B)                     │
+│  (Write)    │ │  - pk, id, tenant_id                    │
+│  Normalized │ │  - fk_author, author_id (UUID)          │
+│             │ │  - fk_book, book_id (UUID)              │
+│             │ │  - rating, created_at (filter columns)  │
+│             │ │  - data JSONB (composed from tv_user    │
+│             │ │    + tv_book)                            │
+└─────────────┘ └──────────────┬──────────────────────────┘
+                               │
+                               ▼
+               ┌───────────────────────────────┐
+               │  FraiseQL (External)          │
+               │  1. Introspects tv_review     │
+               │  2. Reads data JSONB structure│
+               │  3. Auto-generates GraphQL    │
+               └───────────────┬───────────────┘
+                               │
+                               ▼
+               ┌───────────────────────────────┐
+               │  GraphQL API                  │
+               │  type Review {                │
+               │    author: ReviewAuthor!      │
+               │    book: ReviewBook!          │
+               │  }                            │
+               └───────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="key-decisions-implemented">🎯 Key Decisions Implemented</h2>
+<h3 id="1-configuration-naming"><strong>1. Configuration Naming</strong></h3>
+<p>✅ <strong>APPROVED</strong>: <code>table_views</code> (matches <code>tv_</code> prefix)
+- Global config: <code>defaults.table_views</code>
+- Entity config: <code>table_views</code> block
+- Modes: <code>auto</code> | <code>force</code> | <code>disable</code></p>
+<hr />
+<h3 id="2-jsonb-composition-strategy"><strong>2. JSONB Composition Strategy</strong></h3>
+<p>✅ <strong>APPROVED</strong>: Compose from <code>tv_</code> tables, not <code>tb_</code> tables</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-sql">-- Refresh tv_review by composing from tv_ tables
+SELECT
+    jsonb_build_object(
+        'author', tv_user.data,  -- From tv_user (not tb_user!)
+        'book', tv_book.data     -- From tv_book (not tb_book!)
+    ) AS data
+FROM tb_review r
+INNER JOIN tv_user ON tv_user.pk_user = r.fk_author
+INNER JOIN tv_book ON tv_book.pk_book = r.fk_book;
+</code></pre>
+<p><strong>Benefits</strong>:
+- ✅ Consistency (author data identical in tv_user and tv_review)
+- ✅ Reuse (nested publisher already composed in tv_book)
+- ✅ Cascading updates (changes propagate through tv_ layers)</p>
+<hr />
+<h3 id="3-performance-optimization"><strong>3. Performance Optimization</strong></h3>
+<p>✅ <strong>APPROVED</strong>: Two-tier filtering system</p>
+<p><strong>Tier 1: Direct Columns</strong> (100-500x faster)
+- Auto-inferred: <code>tenant_id</code>, <code>{entity}_id</code>, <code>path</code>
+- Explicit: <code>extra_filter_columns</code>
+- Index: B-tree</p>
+<p><strong>Tier 2: JSONB Queries</strong> (slower but flexible)
+- All fields in JSONB
+- Index: GIN
+- Works for any field</p>
+<p><strong>Example</strong>:</p>
+<pre><code class="language-yaml">table_views:
+  extra_filter_columns:
+    - rating       # Promoted (1000 queries/day)
+    - created_at   # Promoted (500 queries/day)
+    # comment NOT promoted (10 queries/day, GIN is fine)
+</code></pre>
+<hr />
+<h3 id="4-refresh-strategy"><strong>4. Refresh Strategy</strong></h3>
+<p>✅ <strong>APPROVED</strong>: Explicit refresh (no triggers)</p>
+<pre><code class="language-yaml">actions:
+  - name: update_rating
+    steps:
+      - update: Review SET rating = $new_rating
+      - refresh_table_view:
+          scope: self
+          propagate: [author]  # Recalculate author stats
+</code></pre>
+<p><strong>Generated</strong>:</p>
+<pre><code class="language-sql">UPDATE tb_review SET rating = $new_rating WHERE pk_review = $pk;
+PERFORM refresh_tv_review($pk);         -- Self
+PERFORM refresh_tv_user($fk_author);    -- Propagate
+</code></pre>
+<hr />
+<h3 id="5-field-selection"><strong>5. Field Selection</strong></h3>
+<p>✅ <strong>APPROVED</strong>: Explicit field selection (no depth parameter)</p>
+<pre><code class="language-yaml">table_views:
+  include_relations:
+    - author:
+        fields: [name, email]  # Only these
+    - book:
+        fields: [title, isbn]
+        include_relations:
+          - publisher:
+              fields: [name]  # Explicit nesting
+</code></pre>
+<hr />
+<h2 id="implementation-roadmap">📊 Implementation Roadmap</h2>
+<h3 id="timeline-overview"><strong>Timeline Overview</strong></h3>
+<pre><code>Week 1: Existing Team A work (reserved fields)
+  ↓
+Week 2-3: Team A - Parse table_views (3-4 days)
+  ↓
+Week 3-6: Team B - Generate tv_ tables (7-8 days, Phase 9)
+  ↓
+Week 6-7: Team C - tv_ refresh in mutations (3-4 days)
+  ↓
+Week 7: Team D - FraiseQL annotations (2-3 days)
+  ↓
+Week 7-8: Integration testing &amp; FraiseQL validation
+</code></pre>
+<p><strong>Total</strong>: 4-5 weeks (some parallelization possible)</p>
+<hr />
+<h3 id="dependency-graph"><strong>Dependency Graph</strong></h3>
+<pre><code>Team A (Reserved Fields)
+    ↓
+Team A (table_views parsing)
+    ↓
+Team B (Phases 1-8) ─┐
+                     ├─→ Team B (Phase 9: tv_ generation)
+Team A (table_views) ─┘        ↓
+                               ├─→ Team C (tv_ refresh)
+                               └─→ Team D (annotations)
+                                        ↓
+                                  Integration Testing
+</code></pre>
+<hr />
+<h2 id="acceptance-criteria-global">✅ Acceptance Criteria (Global)</h2>
+<h3 id="team-a"><strong>Team A</strong></h3>
+<ul>
+<li>[ ] Parse <code>table_views</code> configuration block</li>
+<li>[ ] Parse <code>include_relations</code> (nested)</li>
+<li>[ ] Parse <code>extra_filter_columns</code></li>
+<li>[ ] Add TableViewConfig to Entity AST</li>
+</ul>
+<hr />
+<h3 id="team-b"><strong>Team B</strong></h3>
+<ul>
+<li>[ ] Generate tv_ table DDL with correct schema</li>
+<li>[ ] Auto-infer filter columns (tenant_id, {entity}_id, path)</li>
+<li>[ ] Generate explicit filter columns</li>
+<li>[ ] Generate refresh functions that compose from tv_ tables</li>
+<li>[ ] Generate correct indexes (B-tree + GIN)</li>
+<li>[ ] Dependency ordering (topological sort)</li>
+</ul>
+<hr />
+<h3 id="team-c"><strong>Team C</strong></h3>
+<ul>
+<li>[ ] Compile <code>refresh_table_view</code> action step</li>
+<li>[ ] Generate PERFORM calls in mutations</li>
+<li>[ ] Handle scopes (self, related, propagate, batch)</li>
+<li>[ ] Return tv_.data in mutation results</li>
+<li>[ ] Cascading refresh for calculated fields</li>
+</ul>
+<hr />
+<h3 id="team-d"><strong>Team D</strong></h3>
+<ul>
+<li>[ ] Generate @fraiseql:table annotations</li>
+<li>[ ] Generate @fraiseql:filter annotations</li>
+<li>[ ] Generate @fraiseql:jsonb annotations</li>
+<li>[ ] Mark internal columns correctly</li>
+</ul>
+<hr />
+<h3 id="integration"><strong>Integration</strong></h3>
+<ul>
+<li>[ ] End-to-end: SpecQL → SQL → Database → FraiseQL</li>
+<li>[ ] Performance validation (B-tree 100x faster than GIN)</li>
+<li>[ ] JSONB composition works (tv_ composes from tv_)</li>
+<li>[ ] Cascading refresh works</li>
+<li>[ ] FraiseQL auto-generates correct GraphQL types</li>
+</ul>
+<hr />
+<h2 id="configuration-examples">📋 Configuration Examples</h2>
+<h3 id="minimal-auto-mode"><strong>Minimal (Auto Mode)</strong></h3>
+<pre><code class="language-yaml">entity: Review
+fields:
+  author: ref(User)
+  book: ref(Book)
+
+# NO table_views block needed!
+# Auto-generates tv_review with all fields
+</code></pre>
+<hr />
+<h3 id="explicit-field-selection"><strong>Explicit Field Selection</strong></h3>
+<pre><code class="language-yaml">entity: Review
+fields:
+  rating: integer
+  author: ref(User)
+  book: ref(Book)
+
+table_views:
+  include_relations:
+    - author:
+        fields: [name, email]  # Only these
+    - book:
+        fields: [title, isbn]
+        include_relations:
+          - publisher:
+              fields: [name, country]
+
+  extra_filter_columns:
+    - rating       # High-volume queries
+    - created_at   # Date ranges
+</code></pre>
+<hr />
+<h3 id="force-tv_-without-foreign-keys"><strong>Force tv_ Without Foreign Keys</strong></h3>
+<pre><code class="language-yaml">entity: AuditLog
+fields:
+  message: text
+
+table_views:
+  mode: force  # Generate tv_ even without refs
+</code></pre>
+<hr />
+<h3 id="disable-tv_-for-write-heavy-table"><strong>Disable tv_ for Write-Heavy Table</strong></h3>
+<pre><code class="language-yaml">entity: SessionToken
+fields:
+  user: ref(User)
+
+table_views:
+  mode: disable  # No tv_ generation
+</code></pre>
+<hr />
+<h2 id="success-metrics">🎯 Success Metrics</h2>
+<h3 id="performance"><strong>Performance</strong></h3>
+<ul>
+<li>✅ Filter queries on promoted columns: <strong>&lt; 1ms</strong> (B-tree)</li>
+<li>✅ Filter queries on JSONB fields: <strong>&lt; 100ms</strong> (GIN)</li>
+<li>✅ Refresh operations: <strong>Single-pass JOINs</strong> (no N+1)</li>
+</ul>
+<hr />
+<h3 id="code-leverage"><strong>Code Leverage</strong></h3>
+<ul>
+<li>✅ User writes: <strong>10-20 lines</strong> of SpecQL</li>
+<li>✅ Generated: <strong>2000+ lines</strong> of SQL (100x leverage)</li>
+<li>✅ FraiseQL generates: <strong>Complete GraphQL API</strong> (automatic)</li>
+</ul>
+<hr />
+<h3 id="developer-experience"><strong>Developer Experience</strong></h3>
+<ul>
+<li>✅ <strong>Zero manual GraphQL</strong> schema definition</li>
+<li>✅ <strong>Zero manual resolver</strong> implementation</li>
+<li>✅ <strong>Automatic query optimization</strong> via filter columns</li>
+<li>✅ <strong>Type-safe</strong> JSONB composition</li>
+</ul>
+<hr />
+<h2 id="next-steps">🚀 Next Steps</h2>
+<ol>
+<li><strong>Review &amp; Approve</strong> - Confirm all design decisions</li>
+<li><strong>Team A</strong> - Start table_views parsing (Week 2-3)</li>
+<li><strong>Team B</strong> - Continue existing phases, add Phase 9 (Week 3-6)</li>
+<li><strong>Team C</strong> - Implement tv_ refresh integration (Week 6-7)</li>
+<li><strong>Team D</strong> - Generate FraiseQL annotations (Week 7)</li>
+<li><strong>Integration Testing</strong> - End-to-end validation (Week 7-8)</li>
+</ol>
+<hr />
+<h2 id="related-documentation">📚 Related Documentation</h2>
+<ul>
+<li><code>DATABASE_DECISIONS_FINAL.md</code> - Database architecture decisions</li>
+<li><code>DATABASE_ASSESSMENT_GAPS.md</code> - Assessment analysis</li>
+<li>Team A/B/C/D original plans - Base implementation</li>
+<li>FraiseQL documentation (external)</li>
+</ul>
+<hr />
+<p><strong>Status</strong>: 🔴 APPROVED FOR IMPLEMENTATION
+<strong>Owner</strong>: All Teams (A, B, C, D)
+<strong>Start Date</strong>: Week 2 (Team A)
+<strong>Estimated Completion</strong>: Week 8</p>
+<hr />
+<p><strong>Last Updated</strong>: 2025-11-09
+<strong>Document Version</strong>: 1.0</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

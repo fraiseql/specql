@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Multi-Entity Pattern - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Multi-Entity Pattern";
+        var mkdocs_page_input_path = "guides/mutation-patterns/multi-entity.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Multi-Entity Pattern</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="multi-entity-pattern">Multi-Entity Pattern</h1>
+<p>The <strong>multi-entity</strong> pattern handles complex operations that span multiple tables. It's perfect for transactions involving related entities like orders with line items, invoices with payments, or any business operation requiring consistency across tables.</p>
+<h2 id="what-youll-learn">🎯 What You'll Learn</h2>
+<ul>
+<li>Multi-entity operation concepts</li>
+<li>Configuring cross-table transactions</li>
+<li>Handling related entity updates</li>
+<li>Ensuring transactional consistency</li>
+<li>Testing multi-entity operations</li>
+</ul>
+<h2 id="prerequisites">📋 Prerequisites</h2>
+<ul>
+<li><a href="../getting-started/">Pattern basics</a></li>
+<li>Understanding of database relationships</li>
+<li>Knowledge of transactions</li>
+</ul>
+<h2 id="multi-entity-concepts">💡 Multi-Entity Concepts</h2>
+<h3 id="what-are-multi-entity-operations">What Are Multi-Entity Operations?</h3>
+<p><strong>Multi-entity operations</strong> manage transactions across multiple related tables:</p>
+<pre><code class="language-yaml"># Single operation affects multiple entities
+patterns:
+  - name: multi_entity
+    description: &quot;Create order with line items&quot;
+    operation: create_order_with_items
+    entities: [order, order_item]
+    transaction: required  # All or nothing
+</code></pre>
+<p><strong>Benefits:</strong>
+- <strong>Consistency</strong> - All changes succeed or all fail
+- <strong>Atomicity</strong> - Single transaction across tables
+- <strong>Simplicity</strong> - One function call for complex operations
+- <strong>Safety</strong> - No partial updates or orphaned records</p>
+<h3 id="when-to-use-multi-entity">When to Use Multi-Entity</h3>
+<table>
+<thead>
+<tr>
+<th>Use Case</th>
+<th>Example</th>
+<th>Why Multi-Entity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Order Processing</strong></td>
+<td>Order + Line Items</td>
+<td>Maintain inventory consistency</td>
+</tr>
+<tr>
+<td><strong>Invoice Creation</strong></td>
+<td>Invoice + Line Items + Tax</td>
+<td>Calculate totals accurately</td>
+</tr>
+<tr>
+<td><strong>User Registration</strong></td>
+<td>User + Profile + Preferences</td>
+<td>Complete user setup</td>
+</tr>
+<tr>
+<td><strong>Payment Processing</strong></td>
+<td>Payment + Transaction Log</td>
+<td>Audit trail integrity</td>
+</tr>
+</tbody>
+</table>
+<h2 id="basic-multi-entity-operation">🏗️ Basic Multi-Entity Operation</h2>
+<h3 id="order-with-line-items">Order with Line Items</h3>
+<pre><code class="language-yaml"># entities/order.yaml
+name: order
+fields:
+  id: uuid
+  customer_id: uuid
+  status: string
+  total_amount: decimal
+  created_at: timestamp
+
+# entities/order_item.yaml
+name: order_item
+fields:
+  id: uuid
+  order_id: uuid
+  product_id: uuid
+  quantity: integer
+  unit_price: decimal
+  total_price: decimal
+
+# In order.yaml, add multi-entity pattern
+patterns:
+  - name: multi_entity
+    description: &quot;Create complete order with items&quot;
+    operation: create_order_with_items
+    entities: [order, order_item]
+    steps:
+      - create: order
+        data:
+          customer_id: :customer_id
+          status: pending
+          total_amount: 0  # Will be calculated
+      - create: order_item
+        for_each: :items
+        data:
+          order_id: :order.id
+          product_id: :item.product_id
+          quantity: :item.quantity
+          unit_price: :item.unit_price
+          total_price: &quot;:item.quantity * :item.unit_price&quot;
+      - update: order
+        data:
+          total_amount: &quot;SUM(order_item.total_price)&quot;
+        where: &quot;id = :order.id&quot;
+</code></pre>
+<h3 id="generated-function">Generated Function</h3>
+<pre><code class="language-sql">-- Generated multi-entity function
+CREATE FUNCTION create_order_with_items(
+  customer_id UUID,
+  items JSONB  -- Array of {product_id, quantity, unit_price}
+) RETURNS order_result AS $$
+DECLARE
+  new_order order;
+  item_data JSONB;
+  calculated_total DECIMAL := 0;
+BEGIN
+  -- Create order
+  INSERT INTO order (customer_id, status, total_amount)
+  VALUES (customer_id, 'pending', 0)
+  RETURNING * INTO new_order;
+
+  -- Create order items
+  FOR item_data IN SELECT * FROM jsonb_array_elements(items)
+  LOOP
+    INSERT INTO order_item (
+      order_id,
+      product_id,
+      quantity,
+      unit_price,
+      total_price
+    ) VALUES (
+      new_order.id,
+      (item_data-&gt;&gt;'product_id')::UUID,
+      (item_data-&gt;&gt;'quantity')::INTEGER,
+      (item_data-&gt;&gt;'unit_price')::DECIMAL,
+      (item_data-&gt;&gt;'quantity')::INTEGER * (item_data-&gt;&gt;'unit_price')::DECIMAL
+    );
+
+    calculated_total := calculated_total +
+      (item_data-&gt;&gt;'quantity')::INTEGER * (item_data-&gt;&gt;'unit_price')::DECIMAL;
+  END LOOP;
+
+  -- Update order total
+  UPDATE order
+  SET total_amount = calculated_total
+  WHERE id = new_order.id;
+
+  RETURN new_order;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h2 id="advanced-configuration">⚙️ Advanced Configuration</h2>
+<h3 id="complex-multi-entity-operations">Complex Multi-Entity Operations</h3>
+<pre><code class="language-yaml">patterns:
+  - name: multi_entity
+    description: &quot;Process payment and update accounts&quot;
+    operation: process_payment
+    entities: [payment, account, transaction_log]
+    transaction: required
+    isolation_level: serializable  # Highest consistency
+
+    steps:
+      # Validate payment
+      - validate: account
+        where: &quot;id = :account_id&quot;
+        condition: &quot;balance &gt;= :amount AND status = 'active'&quot;
+
+      # Create payment record
+      - create: payment
+        data:
+          account_id: :account_id
+          amount: :amount
+          type: :payment_type
+          status: pending
+
+      # Update account balance
+      - update: account
+        data:
+          balance: &quot;balance - :amount&quot;
+          last_payment_at: &quot;NOW()&quot;
+        where: &quot;id = :account_id&quot;
+
+      # Log transaction
+      - create: transaction_log
+        data:
+          payment_id: :payment.id
+          account_id: :account_id
+          amount: :amount
+          balance_before: :account.balance_before
+          balance_after: &quot;:account.balance_before - :amount&quot;
+          transaction_type: debit
+
+      # Mark payment complete
+      - update: payment
+        data:
+          status: completed
+          completed_at: &quot;NOW()&quot;
+        where: &quot;id = :payment.id&quot;
+
+      # Send notification
+      - notify: payment_processed
+        data:
+          payment_id: :payment.id
+          amount: :amount
+</code></pre>
+<h3 id="conditional-operations">Conditional Operations</h3>
+<pre><code class="language-yaml">patterns:
+  - name: multi_entity
+    description: &quot;Flexible order processing&quot;
+    operation: process_order
+    entities: [order, order_item, inventory, shipment]
+
+    steps:
+      # Create order
+      - create: order
+        data:
+          customer_id: :customer_id
+          status: pending
+
+      # Process items with inventory checks
+      - create: order_item
+        for_each: :items
+        condition: &quot;inventory_available(:item.product_id, :item.quantity)&quot;
+        data:
+          order_id: :order.id
+          product_id: :item.product_id
+          quantity: :item.quantity
+
+      # Update inventory
+      - update: inventory
+        for_each: :items
+        data:
+          quantity: &quot;quantity - :item.quantity&quot;
+        where: &quot;product_id = :item.product_id&quot;
+
+      # Create shipment if all items available
+      - create: shipment
+        condition: &quot;all_items_available(:order.id)&quot;
+        data:
+          order_id: :order.id
+          status: pending
+          estimated_delivery: &quot;NOW() + INTERVAL '3 days'&quot;
+
+      # Update order status based on shipment
+      - update: order
+        data:
+          status: &quot;CASE WHEN :shipment.id IS NOT NULL THEN 'confirmed' ELSE 'pending' END&quot;
+        where: &quot;id = :order.id&quot;
+</code></pre>
+<h2 id="transaction-management">🔄 Transaction Management</h2>
+<h3 id="transaction-levels">Transaction Levels</h3>
+<pre><code class="language-yaml">patterns:
+  - name: multi_entity
+    operation: critical_operation
+    transaction: required
+    isolation_level: serializable  # Highest isolation
+
+    steps:
+      # All steps in single transaction
+      - create: record_a
+      - update: record_b
+      - create: record_c
+</code></pre>
+<p><strong>Isolation Levels:</strong>
+- <code>read_uncommitted</code> - Lowest isolation, allows dirty reads
+- <code>read_committed</code> - Default, prevents dirty reads
+- <code>repeatable_read</code> - Prevents non-repeatable reads
+- <code>serializable</code> - Highest isolation, prevents phantom reads</p>
+<h3 id="compensation-actions">Compensation Actions</h3>
+<p>For saga-style transactions:</p>
+<pre><code class="language-yaml">patterns:
+  - name: multi_entity
+    operation: transfer_money
+    entities: [account, transfer, transaction_log]
+    transaction: saga  # Allow compensation
+
+    steps:
+      - update: account
+        data:
+          balance: &quot;balance - :amount&quot;
+        where: &quot;id = :from_account_id&quot;
+        compensation:
+          balance: &quot;balance + :amount&quot;  # Rollback action
+
+      - update: account
+        data:
+          balance: &quot;balance + :amount&quot;
+        where: &quot;id = :to_account_id&quot;
+        compensation:
+          balance: &quot;balance - :amount&quot;
+
+      - create: transfer
+        data:
+          from_account_id: :from_account_id
+          to_account_id: :to_account_id
+          amount: :amount
+          status: completed
+</code></pre>
+<h2 id="data-flow-and-variables">📊 Data Flow and Variables</h2>
+<h3 id="variable-scope">Variable Scope</h3>
+<pre><code class="language-yaml">patterns:
+  - name: multi_entity
+    operation: complex_operation
+
+    steps:
+      # Create parent record
+      - create: parent
+        data:
+          name: :input_name
+        # Result available as :parent
+
+      # Use parent ID in child records
+      - create: child
+        for_each: :input_children
+        data:
+          parent_id: :parent.id  # Reference created parent
+          name: :child.name
+
+      # Update parent with child count
+      - update: parent
+        data:
+          child_count: &quot;COUNT(*) FROM child WHERE parent_id = :parent.id&quot;
+        where: &quot;id = :parent.id&quot;
+</code></pre>
+<h3 id="loop-operations">Loop Operations</h3>
+<pre><code class="language-yaml">patterns:
+  - name: multi_entity
+    operation: bulk_update
+
+    steps:
+      - update: user
+        for_each: :user_updates
+        condition: &quot;can_update_user(:user.id, :current_user_id)&quot;
+        data:
+          email: :update.email
+          name: :update.name
+          updated_at: &quot;NOW()&quot;
+        where: &quot;id = :user.id&quot;
+        # :user refers to current iteration item
+</code></pre>
+<h2 id="testing-multi-entity-operations">🧪 Testing Multi-Entity Operations</h2>
+<h3 id="generated-tests">Generated Tests</h3>
+<pre><code class="language-bash"># Generate comprehensive tests
+specql generate tests entities/order.yaml
+
+# Run tests
+specql test run entities/order.yaml
+</code></pre>
+<p><strong>Test Coverage:</strong>
+- ✅ <strong>Transaction integrity</strong> - All changes succeed or fail
+- ✅ <strong>Data consistency</strong> - Related records stay synchronized
+- ✅ <strong>Validation rules</strong> - Preconditions enforced
+- ✅ <strong>Error handling</strong> - Rollback on failures
+- ✅ <strong>Edge cases</strong> - Empty inputs, invalid data</p>
+<h3 id="manual-testing">Manual Testing</h3>
+<pre><code class="language-sql">-- Test successful operation
+SELECT create_order_with_items(
+  'customer-uuid'::UUID,
+  '[
+    {&quot;product_id&quot;: &quot;prod-1&quot;, &quot;quantity&quot;: 2, &quot;unit_price&quot;: 10.00},
+    {&quot;product_id&quot;: &quot;prod-2&quot;, &quot;quantity&quot;: 1, &quot;unit_price&quot;: 25.00}
+  ]'::JSONB
+);
+
+-- Verify results
+SELECT o.*, oi.* FROM order o
+JOIN order_item oi ON o.id = oi.order_id
+WHERE o.customer_id = 'customer-uuid';
+
+-- Test failure case (insufficient inventory)
+SELECT create_order_with_items(
+  'customer-uuid'::UUID,
+  '[{&quot;product_id&quot;: &quot;out-of-stock&quot;, &quot;quantity&quot;: 100, &quot;unit_price&quot;: 10.00}]'::JSONB
+);
+-- Should fail and rollback
+</code></pre>
+<h2 id="common-use-cases">🚀 Common Use Cases</h2>
+<h3 id="e-commerce-order-processing">E-commerce Order Processing</h3>
+<pre><code class="language-yaml">patterns:
+  - name: multi_entity
+    description: &quot;Complete order fulfillment&quot;
+    operation: place_order
+    entities: [order, order_item, inventory, payment]
+
+    steps:
+      # Validate inventory
+      - validate: inventory
+        for_each: :items
+        condition: &quot;quantity &gt;= :item.quantity&quot;
+
+      # Create order
+      - create: order
+        data:
+          customer_id: :customer_id
+          status: pending
+          total_amount: :calculated_total
+
+      # Create items and update inventory
+      - create: order_item
+        for_each: :items
+        data:
+          order_id: :order.id
+          product_id: :item.product_id
+          quantity: :item.quantity
+          unit_price: :item.price
+
+      - update: inventory
+        for_each: :items
+        data:
+          quantity: &quot;quantity - :item.quantity&quot;
+        where: &quot;product_id = :item.product_id&quot;
+
+      # Process payment
+      - create: payment
+        data:
+          order_id: :order.id
+          amount: :calculated_total
+          method: :payment_method
+
+      # Update order status
+      - update: order
+        data:
+          status: confirmed
+        where: &quot;id = :order.id&quot;
+</code></pre>
+<h3 id="user-registration-with-profile">User Registration with Profile</h3>
+<pre><code class="language-yaml">patterns:
+  - name: multi_entity
+    description: &quot;Complete user registration&quot;
+    operation: register_user
+    entities: [user, user_profile, user_preferences, email_verification]
+
+    steps:
+      # Create user account
+      - create: user
+        data:
+          email: :email
+          password_hash: :password_hash
+          status: pending_verification
+
+      # Create profile
+      - create: user_profile
+        data:
+          user_id: :user.id
+          first_name: :first_name
+          last_name: :last_name
+          date_of_birth: :date_of_birth
+
+      # Set default preferences
+      - create: user_preferences
+        data:
+          user_id: :user.id
+          theme: light
+          notifications_enabled: true
+          language: en
+
+      # Create verification token
+      - create: email_verification
+        data:
+          user_id: :user.id
+          token: :verification_token
+          expires_at: &quot;NOW() + INTERVAL '24 hours'&quot;
+
+      # Send welcome email
+      - notify: user_registered
+        data:
+          user_id: :user.id
+          email: :email
+</code></pre>
+<h3 id="invoice-generation">Invoice Generation</h3>
+<pre><code class="language-yaml">patterns:
+  - name: multi_entity
+    description: &quot;Generate invoice with line items&quot;
+    operation: create_invoice
+    entities: [invoice, invoice_item, tax_calculation]
+
+    steps:
+      # Create invoice header
+      - create: invoice
+        data:
+          customer_id: :customer_id
+          issue_date: &quot;NOW()&quot;
+          due_date: &quot;NOW() + INTERVAL '30 days'&quot;
+          status: draft
+
+      # Create invoice items
+      - create: invoice_item
+        for_each: :line_items
+        data:
+          invoice_id: :invoice.id
+          description: :item.description
+          quantity: :item.quantity
+          unit_price: :item.unit_price
+          total_price: &quot;:item.quantity * :item.unit_price&quot;
+
+      # Calculate taxes
+      - create: tax_calculation
+        data:
+          invoice_id: :invoice.id
+          subtotal: &quot;SUM(total_price) FROM invoice_item WHERE invoice_id = :invoice.id&quot;
+          tax_rate: :tax_rate
+          tax_amount: &quot;subtotal * :tax_rate&quot;
+          total_amount: &quot;subtotal + tax_amount&quot;
+
+      # Update invoice totals
+      - update: invoice
+        data:
+          subtotal: :tax_calculation.subtotal
+          tax_amount: :tax_calculation.tax_amount
+          total_amount: :tax_calculation.total_amount
+          status: issued
+        where: &quot;id = :invoice.id&quot;
+</code></pre>
+<h2 id="best-practices">🎯 Best Practices</h2>
+<h3 id="transaction-design">Transaction Design</h3>
+<ul>
+<li><strong>Keep transactions short</strong> - Minimize lock time</li>
+<li><strong>Use appropriate isolation</strong> - Balance consistency vs performance</li>
+<li><strong>Handle deadlocks</strong> - Design to prevent circular dependencies</li>
+<li><strong>Plan rollback scenarios</strong> - Know how to undo operations</li>
+</ul>
+<h3 id="data-consistency">Data Consistency</h3>
+<ul>
+<li><strong>Validate early</strong> - Check preconditions before changes</li>
+<li><strong>Maintain invariants</strong> - Ensure business rules stay true</li>
+<li><strong>Use constraints</strong> - Database-level data integrity</li>
+<li><strong>Test edge cases</strong> - Partial failures, concurrent operations</li>
+</ul>
+<h3 id="performance">Performance</h3>
+<ul>
+<li><strong>Index foreign keys</strong> - Speed up joins and lookups</li>
+<li><strong>Batch operations</strong> - Group similar operations</li>
+<li><strong>Cache reference data</strong> - Avoid repeated lookups</li>
+<li><strong>Monitor slow queries</strong> - Optimize bottlenecks</li>
+</ul>
+<h3 id="error-handling">Error Handling</h3>
+<ul>
+<li><strong>Clear error messages</strong> - Explain what went wrong</li>
+<li><strong>Partial failure handling</strong> - Decide whether to rollback</li>
+<li><strong>Retry logic</strong> - Handle transient failures</li>
+<li><strong>Logging</strong> - Track operation success/failure</li>
+</ul>
+<h2 id="troubleshooting">🆘 Troubleshooting</h2>
+<h3 id="transaction-rolled-back">"Transaction rolled back"</h3>
+<pre><code class="language-sql">-- Check for constraint violations
+SELECT * FROM information_schema.constraint_column_usage
+WHERE table_name = 'your_table';
+
+-- Check foreign key constraints
+SELECT * FROM information_schema.table_constraints
+WHERE constraint_type = 'FOREIGN KEY';
+</code></pre>
+<h3 id="deadlock-detected">"Deadlock detected"</h3>
+<pre><code class="language-bash"># Analyze deadlock
+psql $DATABASE_URL -c &quot;SELECT * FROM pg_stat_activity;&quot;
+
+# Common causes:
+# - Circular dependencies in updates
+# - Inconsistent order of table access
+# - Long-running transactions
+</code></pre>
+<h3 id="foreign-key-violation">"Foreign key violation"</h3>
+<pre><code class="language-sql">-- Check referential integrity
+SELECT
+  tc.table_name, kcu.column_name,
+  ccu.table_name AS foreign_table_name,
+  ccu.column_name AS foreign_column_name
+FROM information_schema.table_constraints AS tc
+JOIN information_schema.key_column_usage AS kcu
+  ON tc.constraint_name = kcu.constraint_name
+JOIN information_schema.constraint_column_usage AS ccu
+  ON ccu.constraint_name = tc.constraint_name
+WHERE constraint_type = 'FOREIGN KEY';
+</code></pre>
+<h3 id="performance-issues">"Performance issues"</h3>
+<pre><code class="language-yaml"># Add indexes for multi-entity operations
+indexes:
+  - fields: [customer_id, status]  # For order lookups
+  - fields: [order_id]             # For order items
+  - fields: [product_id, quantity] # For inventory checks
+</code></pre>
+<h2 id="summary">🎉 Summary</h2>
+<p>Multi-entity patterns provide:
+- ✅ <strong>Transactional consistency</strong> - All or nothing operations
+- ✅ <strong>Cross-table coordination</strong> - Related data stays synchronized
+- ✅ <strong>Complex business logic</strong> - Multi-step operations in one call
+- ✅ <strong>Data integrity</strong> - Referential constraints maintained
+- ✅ <strong>Comprehensive testing</strong> - Full transaction coverage</p>
+<h2 id="whats-next">🚀 What's Next?</h2>
+<ul>
+<li><strong><a href="../batch-operations/">Batch Operations</a></strong> - Bulk data processing</li>
+<li><strong><a href="../validation/">Validation</a></strong> - Data integrity patterns</li>
+<li><strong><a href="../state-machines/">State Machines</a></strong> - Entity lifecycle management</li>
+<li><strong><a href="../../examples/">Examples</a></strong> - Real-world multi-entity operations</li>
+</ul>
+<p><strong>Ready to handle complex transactions? Let's continue! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

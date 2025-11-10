@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>SpecQL Action Pattern Library - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "SpecQL Action Pattern Library";
+        var mkdocs_page_input_path = "patterns/README.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">SpecQL Action Pattern Library</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="specql-action-pattern-library">SpecQL Action Pattern Library</h1>
+<p>The SpecQL Action Pattern Library provides declarative templates for common business logic patterns, enabling you to express complex workflows in simple YAML instead of writing manual PL/pgSQL.</p>
+<h2 id="what-are-action-patterns">🎯 What Are Action Patterns?</h2>
+<p>Action patterns are reusable templates that encapsulate common business logic patterns:</p>
+<ul>
+<li><strong>State Machine Transitions</strong>: Declarative state changes with validation and side effects</li>
+<li><strong>Multi-Entity Operations</strong>: Coordinated updates across multiple entities</li>
+<li><strong>Batch Operations</strong>: Bulk processing with error handling and progress tracking</li>
+<li><strong>CRUD Enhancements</strong>: Advanced create/read/update/delete with constraints and projections</li>
+</ul>
+<h2 id="available-patterns">📚 Available Patterns</h2>
+<h3 id="state-machine-pattern-state_machinetransition">State Machine Pattern (<code>state_machine/transition</code>)</h3>
+<p>Manages entity lifecycle transitions with validation and side effects.</p>
+<pre><code class="language-yaml">actions:
+  - name: decommission_machine
+    pattern: state_machine/transition
+    config:
+      from_states: [active, maintenance]
+      to_state: decommissioned
+      validation_checks:
+        - condition: &quot;NOT EXISTS (SELECT 1 FROM allocations WHERE machine_id = $entity_id)&quot;
+          error: &quot;Cannot decommission with active allocations&quot;
+      side_effects:
+        - entity: MachineItem
+          set: {status: archived}
+          where: &quot;machine_id = $entity_id&quot;
+</code></pre>
+<p><strong>Generated SQL</strong>: Automatic state validation, transition logic, and side effect execution.</p>
+<h3 id="multi-entity-pattern-multi_entitycoordinated_update">Multi-Entity Pattern (<code>multi_entity/coordinated_update</code>)</h3>
+<p>Coordinates changes across multiple entities in a single transaction.</p>
+<pre><code class="language-yaml">actions:
+  - name: allocate_to_stock
+    pattern: multi_entity/coordinated_update
+    config:
+      operations:
+        - action: get_or_create
+          entity: Location
+          where: {code: 'STOCK'}
+          create_if_missing: {code: STOCK, name: 'Stock'}
+        - action: insert
+          entity: Allocation
+          values: {machine_id: $input.machine_id, location_id: $location_id}
+        - action: update
+          entity: Machine
+          set: {status: in_stock}
+          where: {id: $input.machine_id}
+</code></pre>
+<p><strong>Generated SQL</strong>: Transaction-wrapped operations with proper error handling.</p>
+<h3 id="batch-operation-pattern-batchbulk_operation">Batch Operation Pattern (<code>batch/bulk_operation</code>)</h3>
+<p>Processes multiple records with configurable error handling.</p>
+<pre><code class="language-yaml">actions:
+  - name: bulk_update_prices
+    pattern: batch/bulk_operation
+    config:
+      batch_input: price_updates
+      operation:
+        action: update
+        entity: ContractItem
+        set: {unit_price: $item.price}
+        where: {id: $item.id}
+      error_handling: continue_on_error
+      return_summary:
+        processed: v_processed_count
+        failed: v_failed_count
+</code></pre>
+<p><strong>Generated SQL</strong>: Loop-based processing with progress tracking and error collection.</p>
+<h2 id="getting-started">🚀 Getting Started</h2>
+<h3 id="1-choose-your-pattern">1. Choose Your Pattern</h3>
+<p>Identify which pattern matches your business logic:</p>
+<table>
+<thead>
+<tr>
+<th>Use Case</th>
+<th>Pattern</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Status changes with rules</td>
+<td><code>state_machine/transition</code></td>
+<td>Order approval workflow</td>
+</tr>
+<tr>
+<td>Cross-entity updates</td>
+<td><code>multi_entity/coordinated_update</code></td>
+<td>User registration with profile</td>
+</tr>
+<tr>
+<td>Bulk data operations</td>
+<td><code>batch/bulk_operation</code></td>
+<td>Price updates, status changes</td>
+</tr>
+<tr>
+<td>Advanced CRUD</td>
+<td>Enhanced entity config</td>
+<td>Duplicate detection, projections</td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-configure-the-pattern">2. Configure the Pattern</h3>
+<p>Each pattern has required and optional parameters. Start with the minimal config:</p>
+<pre><code class="language-yaml">actions:
+  - name: my_action
+    pattern: state_machine/transition
+    config:
+      from_states: [draft]
+      to_state: active
+</code></pre>
+<h3 id="3-add-business-logic">3. Add Business Logic</h3>
+<p>Enhance with validation, side effects, and error handling:</p>
+<pre><code class="language-yaml">actions:
+  - name: my_action
+    pattern: state_machine/transition
+    config:
+      from_states: [draft]
+      to_state: active
+      validation_checks:
+        - condition: &quot;field IS NOT NULL&quot;
+          error: &quot;Required field missing&quot;
+      side_effects:
+        - entity: AuditLog
+          set: {action: 'activated', timestamp: NOW()}
+</code></pre>
+<h3 id="4-test-and-iterate">4. Test and Iterate</h3>
+<p>Patterns generate complete SQL functions. Test them like any other SpecQL action:</p>
+<pre><code class="language-bash"># Generate and test
+specql generate
+specql test
+</code></pre>
+<h2 id="pattern-reference">📖 Pattern Reference</h2>
+<h3 id="state-machine-pattern">State Machine Pattern</h3>
+<p><strong>Parameters:</strong>
+- <code>from_states</code> (required): Array of valid source states
+- <code>to_state</code> (required): Target state
+- <code>validation_checks</code>: Array of pre-transition validations
+- <code>side_effects</code>: Array of post-transition updates
+- <code>input_fields</code>: Additional fields to set during transition
+- <code>refresh_projection</code>: Projection to refresh after transition</p>
+<p><strong>Validation Checks:</strong></p>
+<pre><code class="language-yaml">validation_checks:
+  - name: check_name
+    condition: &quot;SQL expression returning boolean&quot;
+    error: &quot;Error message if condition fails&quot;
+</code></pre>
+<p><strong>Side Effects:</strong></p>
+<pre><code class="language-yaml">side_effects:
+  - entity: EntityName
+    set: {field: value, ...}
+    where: &quot;WHERE clause&quot;
+</code></pre>
+<h3 id="multi-entity-pattern">Multi-Entity Pattern</h3>
+<p><strong>Parameters:</strong>
+- <code>primary_entity</code> (required): Main entity being operated on
+- <code>operations</code> (required): Array of operations to perform
+- <code>transaction_scope</code>: Transaction isolation level
+- <code>refresh_projections</code>: Projections to refresh</p>
+<p><strong>Operations:</strong></p>
+<pre><code class="language-yaml">operations:
+  - action: get_or_create|insert|update|delete
+    entity: EntityName
+    # ... action-specific config
+</code></pre>
+<h3 id="batch-operation-pattern">Batch Operation Pattern</h3>
+<p><strong>Parameters:</strong>
+- <code>batch_input</code> (required): Field containing array of items
+- <code>operation</code> (required): Operation to perform on each item
+- <code>error_handling</code>: <code>continue_on_error</code> or <code>stop_on_error</code>
+- <code>batch_size</code>: Maximum items to process
+- <code>return_summary</code>: Summary fields to return</p>
+<p><strong>Operations:</strong></p>
+<pre><code class="language-yaml">operation:
+  action: update|insert|delete
+  entity: EntityName
+  set: {field: $item.value}
+  where: {id: $item.id}
+</code></pre>
+<h2 id="advanced-usage">🔧 Advanced Usage</h2>
+<h3 id="custom-validation-expressions">Custom Validation Expressions</h3>
+<p>Use SQL expressions for complex validation:</p>
+<pre><code class="language-yaml">validation_checks:
+  - condition: |
+      EXISTS (
+        SELECT 1 FROM related_table
+        WHERE related_id = v_entity_id
+          AND status = 'active'
+      )
+    error: &quot;Related records must be active&quot;
+</code></pre>
+<h3 id="dynamic-side-effects">Dynamic Side Effects</h3>
+<p>Reference input data and entity variables:</p>
+<pre><code class="language-yaml">side_effects:
+  - entity: AuditLog
+    set:
+      entity_id: v_entity_id
+      action: $input.action
+      user_id: $auth_user_id
+      timestamp: NOW()
+</code></pre>
+<h3 id="error-handling-strategies">Error Handling Strategies</h3>
+<p>Choose appropriate error handling for your use case:</p>
+<pre><code class="language-yaml"># Stop on first error
+error_handling: stop_on_error
+
+# Continue and collect errors
+error_handling: continue_on_error
+return_summary:
+  failed_items: v_failed_items
+</code></pre>
+<h2 id="best-practices">🎯 Best Practices</h2>
+<h3 id="1-start-simple">1. Start Simple</h3>
+<p>Begin with basic pattern configuration and add complexity gradually.</p>
+<h3 id="2-use-meaningful-names">2. Use Meaningful Names</h3>
+<p>Name your actions clearly: <code>activate_contract</code>, not <code>change_status</code>.</p>
+<h3 id="3-validate-early">3. Validate Early</h3>
+<p>Use validation checks to catch business rule violations before state changes.</p>
+<h3 id="4-handle-errors-gracefully">4. Handle Errors Gracefully</h3>
+<p>Design for partial failures in batch operations and multi-entity updates.</p>
+<h3 id="5-refresh-projections">5. Refresh Projections</h3>
+<p>Keep GraphQL projections fresh by specifying <code>refresh_projection</code> in state changes.</p>
+<h3 id="6-test-thoroughly">6. Test Thoroughly</h3>
+<p>Patterns generate complex SQL - test edge cases and error conditions.</p>
+<h2 id="troubleshooting">🚨 Troubleshooting</h2>
+<h3 id="pattern-not-found">Pattern Not Found</h3>
+<ul>
+<li>Check pattern name spelling</li>
+<li>Ensure pattern exists in <code>stdlib/actions/</code></li>
+<li>Verify file permissions</li>
+</ul>
+<h3 id="validation-errors">Validation Errors</h3>
+<ul>
+<li>Check SQL syntax in conditions</li>
+<li>Verify field references exist</li>
+<li>Use <code>$entity_id</code> for current entity ID</li>
+</ul>
+<h3 id="template-expansion-issues">Template Expansion Issues</h3>
+<ul>
+<li>Validate YAML syntax</li>
+<li>Check required parameters are provided</li>
+<li>Review Jinja2 template syntax</li>
+</ul>
+<h3 id="sql-generation-problems">SQL Generation Problems</h3>
+<ul>
+<li>Test generated functions individually</li>
+<li>Check database permissions</li>
+<li>Verify entity relationships</li>
+</ul>
+<h2 id="examples">📚 Examples</h2>
+<p>See <code>entities/examples/</code> for complete working examples:</p>
+<ul>
+<li><code>machine_with_patterns.yaml</code> - State machine transitions</li>
+<li><code>allocation_with_patterns.yaml</code> - Multi-entity coordination</li>
+<li><code>contract_item_with_patterns.yaml</code> - Batch operations</li>
+</ul>
+<h2 id="related-documentation">🔗 Related Documentation</h2>
+<ul>
+<li><a href="migration/printoptim_to_specql.md">Migration Guide</a> - Migrating from manual SQL</li>
+<li><a href="api/pattern_library_api.md">API Reference</a> - Complete parameter reference</li>
+<li><a href="getting_started/">Quick Start</a> - Step-by-step tutorial</li>
+</ul>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

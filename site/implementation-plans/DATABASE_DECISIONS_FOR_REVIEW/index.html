@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Database Assessment: Items Requiring Your Review/Decision - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Database Assessment: Items Requiring Your Review/Decision";
+        var mkdocs_page_input_path = "implementation-plans/DATABASE_DECISIONS_FOR_REVIEW.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Database Assessment: Items Requiring Your Review/Decision</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="database-assessment-items-requiring-your-reviewdecision">Database Assessment: Items Requiring Your Review/Decision</h1>
+<p><strong>Date</strong>: 2025-11-08
+<strong>Purpose</strong>: Extract critical implementation decisions that need explicit approval before Team B starts
+<strong>Status</strong>: Awaiting review</p>
+<hr />
+<h2 id="already-decided-no-further-review-needed">✅ <strong>Already Decided (No Further Review Needed)</strong></h2>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Your Decision</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>LTREE Path Strategy</td>
+<td>INTEGER-based (<code>1.5.23.47</code>)</td>
+<td>✅ APPROVED</td>
+</tr>
+<tr>
+<td>Identifier Slugs</td>
+<td>ASCII with unaccent</td>
+<td>✅ APPROVED</td>
+</tr>
+<tr>
+<td>Max Hierarchy Depth</td>
+<td>20 levels</td>
+<td>✅ APPROVED</td>
+</tr>
+<tr>
+<td>Multi-Tenancy</td>
+<td><code>tenant_id UUID</code> direct</td>
+<td>✅ APPROVED</td>
+</tr>
+<tr>
+<td>Trinity Naming</td>
+<td><code>pk_* INTEGER</code>, <code>id UUID</code></td>
+<td>✅ APPROVED</td>
+</tr>
+<tr>
+<td>UUID Version</td>
+<td><strong>v4 (NOT v7)</strong></td>
+<td>✅ APPROVED</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="critical-items-need-your-explicit-approval">🔴 <strong>CRITICAL ITEMS - Need Your Explicit Approval</strong></h2>
+<h3 id="1-deduplication-schema-3-field-pattern">1. 🔴 <strong>Deduplication Schema: 3-Field Pattern</strong></h3>
+<p><strong>What</strong>: Handle duplicate identifiers with separate <code>sequence_number</code> column</p>
+<p><strong>Schema</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE tb_location (
+    identifier TEXT NOT NULL,              -- Base: &quot;headquarters&quot;
+    sequence_number INTEGER DEFAULT 1,     -- Sequence: 1, 2, 3...
+    display_identifier TEXT GENERATED ALWAYS AS (
+        CASE WHEN sequence_number &gt; 1
+            THEN identifier || '#' || sequence_number
+            ELSE identifier
+        END
+    ) STORED,                              -- Display: &quot;headquarters&quot;, &quot;headquarters#2&quot;
+
+    UNIQUE (identifier, sequence_number),
+    UNIQUE (display_identifier)
+);
+</code></pre>
+<p><strong>Example Data</strong>:</p>
+<pre><code>pk | identifier   | sequence_number | display_identifier
+---|--------------|-----------------|-------------------
+23 | headquarters | 1               | headquarters
+45 | headquarters | 2               | headquarters#2
+67 | headquarters | 3               | headquarters#3
+</code></pre>
+<p><strong>Benefits</strong>:
+- ✅ Clean queries: <code>WHERE identifier = 'headquarters'</code> returns all variants
+- ✅ Concurrency-safe: Atomic sequence increment
+- ✅ Migration-friendly: Sequence persists if identifier format changes</p>
+<p><strong>Your Decision Needed</strong>:
+- ⚠️ <strong>Approve this 3-field pattern?</strong> (identifier + sequence_number + display_identifier)
+- ⚠️ <strong>Approve <code>#</code> as separator?</strong> (Could be <code>-</code> or <code>_</code> instead)
+- ⚠️ <strong>Approve sequence starting at 1?</strong> (First instance has no suffix)</p>
+<p><strong>Recommendation</strong>: ✅ APPROVE - This is industry best practice</p>
+<hr />
+<h3 id="2-slugify-edge-case-handling">2. 🔴 <strong>slugify() Edge Case Handling</strong></h3>
+<p><strong>What</strong>: How to handle edge cases when generating slugs</p>
+<p><strong>Edge Cases</strong>:</p>
+<table>
+<thead>
+<tr>
+<th>Input</th>
+<th>Current Behavior</th>
+<th>Your Approval?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>""</code> (empty)</td>
+<td>→ <code>"unnamed"</code></td>
+<td>⚠️ Approve fallback?</td>
+</tr>
+<tr>
+<td><code>"123"</code> (all digits)</td>
+<td>→ <code>"n-123"</code></td>
+<td>⚠️ Approve <code>n-</code> prefix?</td>
+</tr>
+<tr>
+<td><code>"---"</code> (all special)</td>
+<td>→ <code>"unnamed"</code></td>
+<td>⚠️ Approve fallback?</td>
+</tr>
+<tr>
+<td><code>"Café"</code></td>
+<td>→ <code>"cafe"</code> (unaccented)</td>
+<td>✅ Already approved (ASCII)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Functions Generated</strong>:</p>
+<pre><code class="language-sql">-- Three functions (assessment recommendation):
+slugify_immutable(value)      -- For generated columns (strict, IMMUTABLE)
+slugify(value)                -- For triggers (runtime detection, STABLE)
+slugify_safe(value, fallback) -- With edge case handling
+</code></pre>
+<p><strong>Your Decision Needed</strong>:
+- ⚠️ <strong>Approve "unnamed" as default fallback</strong> for empty/invalid inputs?
+- ⚠️ <strong>Approve "n-" prefix</strong> for all-digit slugs (e.g., "123" → "n-123")?
+- ⚠️ <strong>Approve generating all 3 functions</strong>, or just <code>slugify_safe</code>?</p>
+<p><strong>Alternative</strong>: Generate only <code>slugify_safe()</code> and use it everywhere (simpler)</p>
+<p><strong>Recommendation</strong>:
+- ✅ APPROVE "unnamed" fallback
+- ✅ APPROVE "n-" prefix for digits
+- ⚠️ <strong>Your choice</strong>: All 3 functions OR just <code>slugify_safe()</code>?</p>
+<hr />
+<h3 id="3-partial-indexes-where-deleted_at-is-null">3. 🔴 <strong>Partial Indexes: <code>WHERE deleted_at IS NULL</code></strong></h3>
+<p><strong>What</strong>: Add <code>WHERE deleted_at IS NULL</code> to ALL non-PK indexes</p>
+<p><strong>Current</strong>:</p>
+<pre><code class="language-sql">CREATE INDEX idx_location_parent ON tb_location(fk_parent_location);
+CREATE INDEX idx_location_path ON tb_location USING GIST (path);
+</code></pre>
+<p><strong>Proposed</strong>:</p>
+<pre><code class="language-sql">CREATE INDEX idx_location_parent
+    ON tb_location(fk_parent_location)
+    WHERE deleted_at IS NULL;  -- ← NEW
+
+CREATE INDEX idx_location_path
+    ON tb_location USING GIST (path)
+    WHERE deleted_at IS NULL;  -- ← NEW
+</code></pre>
+<p><strong>Benefits</strong>:
+- ✅ 10-50% smaller indexes (excludes soft-deleted rows)
+- ✅ 10-20% faster queries (90%+ of queries ignore deleted rows)
+- ✅ Better VACUUM performance</p>
+<p><strong>Trade-off</strong>:
+- ❌ Queries that INCLUDE deleted rows won't use these indexes
+  ```sql
+  -- This query WON'T use partial index:
+  SELECT * FROM tb_location WHERE deleted_at IS NOT NULL;</p>
+<p>-- But this is rare (admin/audit queries only)
+  ```</p>
+<p><strong>Your Decision Needed</strong>:
+- ⚠️ <strong>Approve partial indexes on ALL non-PK indexes?</strong>
+- ⚠️ <strong>Exception</strong>: Keep full indexes on audit fields (created_at, updated_at)?</p>
+<p><strong>Recommendation</strong>: ✅ APPROVE - Standard best practice for soft-delete patterns</p>
+<hr />
+<h3 id="4-safety-constraint-triggers-4-critical-checks">4. 🔴 <strong>Safety Constraint Triggers: 4 Critical Checks</strong></h3>
+<p><strong>What</strong>: Generate triggers to prevent data corruption</p>
+<h4 id="a-prevent-circular-references">A. Prevent Circular References</h4>
+<pre><code class="language-sql">-- Prevents: Location A → B → C → A (infinite loop)
+CREATE TRIGGER trg_prevent_location_cycle
+    BEFORE INSERT OR UPDATE OF fk_parent_location
+    ON tb_location
+    FOR EACH ROW
+    EXECUTE FUNCTION prevent_location_cycle();
+</code></pre>
+<p><strong>Your Decision</strong>: ⚠️ <strong>Approve auto-generating this trigger?</strong></p>
+<hr />
+<h4 id="b-check-identifier-sequence-limit">B. Check Identifier Sequence Limit</h4>
+<pre><code class="language-sql">-- Prevents: More than 100 variants of same identifier
+-- Example: headquarters, headquarters#2, ... headquarters#101 ❌
+
+CREATE TRIGGER trg_check_sequence_limit
+    BEFORE INSERT OR UPDATE OF sequence_number
+    ON tb_location
+    FOR EACH ROW
+    EXECUTE FUNCTION check_identifier_sequence_limit();
+</code></pre>
+<p><strong>Your Decision</strong>:
+- ⚠️ <strong>Approve limit of 100 duplicates?</strong>
+- ⚠️ <strong>Or different limit</strong> (50? 200? No limit?)</p>
+<p><strong>Recommendation</strong>: 100 is reasonable (prevents runaway duplicates)</p>
+<hr />
+<h4 id="c-validate-identifier-format">C. Validate Identifier Format</h4>
+<pre><code class="language-sql">-- Prevents: Invalid characters in identifiers
+-- Disallowed: &lt; &gt; &quot; ' \ / : * ? |
+
+CREATE TRIGGER trg_validate_identifier
+    BEFORE INSERT OR UPDATE OF identifier
+    ON tb_location
+    FOR EACH ROW
+    EXECUTE FUNCTION validate_location_identifier();
+</code></pre>
+<p><strong>Your Decision</strong>:
+- ⚠️ <strong>Approve these disallowed characters?</strong>
+- ⚠️ <strong>Or different set?</strong> (e.g., allow <code>/</code> for paths?)</p>
+<p><strong>Recommendation</strong>: ✅ APPROVE - These break most systems (Windows filenames, URLs, etc.)</p>
+<hr />
+<h4 id="d-check-hierarchy-depth-limit">D. Check Hierarchy Depth Limit</h4>
+<pre><code class="language-sql">-- Prevents: More than 20 levels deep
+-- Already decided: 20 levels max
+
+CREATE TRIGGER trg_check_depth_limit
+    BEFORE INSERT OR UPDATE OF path
+    ON tb_location
+    FOR EACH ROW
+    EXECUTE FUNCTION check_hierarchy_depth_limit();
+</code></pre>
+<p><strong>Your Decision</strong>: ✅ <strong>Already approved</strong> (20 levels)</p>
+<hr />
+<p><strong>Summary Decision for Safety Triggers</strong>:
+- ⚠️ <strong>Approve ALL 4 safety triggers?</strong>
+- ⚠️ <strong>Or make them optional</strong> (configurable per project)?</p>
+<p><strong>Recommendation</strong>: ✅ APPROVE ALL - Essential for data integrity</p>
+<hr />
+<h3 id="5-separate-audit-fields-for-identifier-recalculation">5. 🔴 <strong>Separate Audit Fields for Identifier Recalculation</strong></h3>
+<p><strong>What</strong>: Don't update <code>updated_at</code> when identifier recalculates</p>
+<p><strong>Current</strong> (problematic):</p>
+<pre><code class="language-sql">-- User renames location:
+UPDATE tb_location
+SET name = 'New HQ', updated_at = now()  -- ✅ Correct
+WHERE pk_location = 23;
+
+-- System recalculates identifier (due to parent change):
+UPDATE tb_location
+SET identifier = 'new-identifier', updated_at = now()  -- ❌ Wrong! No business data changed
+WHERE pk_location = 47;
+</code></pre>
+<p><strong>Proposed</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE tb_location (
+    -- Business data audit
+    created_at TIMESTAMPTZ DEFAULT now(),
+    updated_at TIMESTAMPTZ DEFAULT now(),  -- Only for business changes
+
+    -- Identifier audit (NEW)
+    identifier_recalculated_at TIMESTAMPTZ,  -- When identifier changed
+    identifier_recalculated_by UUID,
+
+    -- Path audit (NEW)
+    path_updated_at TIMESTAMPTZ,  -- When path changed (parent move)
+    path_updated_by UUID
+);
+</code></pre>
+<p><strong>Benefits</strong>:
+- ✅ Frontend knows when <strong>actual</strong> business data changed
+- ✅ Audit trail distinguishes business edits from system recalculations
+- ✅ Webhooks/triggers don't fire on system maintenance</p>
+<p><strong>Your Decision Needed</strong>:
+- ⚠️ <strong>Approve separate audit fields?</strong>
+- ⚠️ <strong>Or keep simple</strong> (always update <code>updated_at</code>)?</p>
+<p><strong>Recommendation</strong>: ✅ APPROVE - Critical for correct frontend behavior</p>
+<hr />
+<h3 id="6-index-strategy-6-mandatory-indexes">6. 🔴 <strong>Index Strategy: 6 Mandatory Indexes</strong></h3>
+<p><strong>What</strong>: Always generate these 6 indexes for every entity</p>
+<h4 id="mandatory-for-all-entities">Mandatory for ALL Entities:</h4>
+<pre><code class="language-sql">1. PRIMARY KEY (pk_location)           -- INTEGER (automatic)
+2. UNIQUE (id)                         -- UUID
+3. UNIQUE (display_identifier)         -- TEXT (with #n suffix)
+</code></pre>
+<h4 id="conditional-based-on-entity-type">Conditional (based on entity type):</h4>
+<pre><code class="language-sql">4. GIST (path)                         -- If hierarchical: true
+   WHERE deleted_at IS NULL
+
+5. INDEX (fk_parent_location)          -- If hierarchical: true
+   WHERE deleted_at IS NULL
+
+6. INDEX (fk_location_info)            -- If metadata_split: true
+</code></pre>
+<p><strong>Your Decision Needed</strong>:
+- ⚠️ <strong>Approve these as MANDATORY</strong> (not configurable)?
+- ⚠️ <strong>Or allow users to opt-out</strong> of specific indexes?</p>
+<p><strong>Recommendation</strong>: ✅ APPROVE as mandatory - Essential for performance</p>
+<hr />
+<h3 id="7-reserved-field-names-block-these">7. 🔴 <strong>Reserved Field Names: Block These</strong></h3>
+<p><strong>What</strong>: Error if user tries to define these field names</p>
+<p><strong>Reserved Names</strong>:</p>
+<pre><code class="language-yaml"># User tries to define:
+entity: Location
+fields:
+  id: text              # ❌ ERROR: &quot;id&quot; is reserved
+  path: text            # ❌ ERROR: &quot;path&quot; is reserved
+  created_at: integer   # ❌ ERROR: &quot;created_at&quot; is reserved
+</code></pre>
+<p><strong>Full Reserved List</strong>:
+- <code>id</code>, <code>pk_*</code>, <code>fk_*</code> (primary/foreign keys)
+- <code>identifier</code>, <code>sequence_number</code>, <code>display_identifier</code> (deduplication)
+- <code>path</code>, <code>fk_parent_*</code> (hierarchy)
+- <code>created_at</code>, <code>updated_at</code>, <code>deleted_at</code>, <code>created_by</code>, <code>updated_by</code>, <code>deleted_by</code> (audit)
+- <code>identifier_recalculated_at</code>, <code>identifier_recalculated_by</code>, <code>path_updated_at</code>, <code>path_updated_by</code> (recalc audit)
+- <code>tenant_id</code> (multi-tenancy)</p>
+<p><strong>Your Decision Needed</strong>:
+- ⚠️ <strong>Approve blocking ALL these names?</strong>
+- ⚠️ <strong>Or allow some</strong> (e.g., user can define <code>id</code> but framework warns)?</p>
+<p><strong>Recommendation</strong>: ✅ APPROVE hard block - Prevents conflicts</p>
+<hr />
+<h2 id="nice-to-have-items-lower-priority">🟡 <strong>NICE-TO-HAVE ITEMS - Lower Priority</strong></h2>
+<h3 id="8-async-recalculation-queue-week-8">8. 🟡 <strong>Async Recalculation Queue (Week 8+)</strong></h3>
+<p><strong>What</strong>: Queue large recalculations (&gt; 1000 nodes) for background processing</p>
+<p><strong>Thresholds</strong> (from assessment benchmarks):
+- 1-100 nodes: Immediate (&lt; 300ms) ✅
+- 100-1,000 nodes: Immediate with warning (300ms-2s) ⚠️
+- 1,000+ nodes: <strong>Queue for async</strong> (2s-30s) ❌</p>
+<p><strong>Your Decision</strong>:
+- ⚠️ <strong>Implement in MVP (Week 2-4)?</strong>
+- ⚠️ <strong>Or defer to Week 8+?</strong></p>
+<p><strong>Recommendation</strong>: Defer to Week 8+ (most hierarchies &lt; 1000 nodes)</p>
+<hr />
+<h3 id="9-helper-functions-for-hierarchies-week-3-4">9. 🟡 <strong>Helper Functions for Hierarchies (Week 3-4)</strong></h3>
+<p><strong>What</strong>: Auto-generate convenience functions</p>
+<pre><code class="language-sql">get_location_ancestors(id UUID)
+get_location_descendants(id UUID)
+move_location_subtree(id UUID, new_parent UUID)
+get_location_root(id UUID)
+get_location_depth(id UUID)
+</code></pre>
+<p><strong>Your Decision</strong>:
+- ⚠️ <strong>Generate these automatically?</strong>
+- ⚠️ <strong>Or on-demand</strong> (user opts in)?</p>
+<p><strong>Recommendation</strong>: Auto-generate (good DX, minimal cost)</p>
+<hr />
+<h3 id="10-nodeinfo-split-opt-in-syntax-week-8">10. 🟡 <strong>Node+Info Split: Opt-In Syntax (Week 8+)</strong></h3>
+<p><strong>What</strong>: Allow users to split complex entities</p>
+<pre><code class="language-yaml">entity: Location
+metadata_split: true  # ← User opts in
+
+# Generates:
+# - tb_location_node (structure: path, parent)
+# - tb_location_info (attributes: name, type, etc.)
+# - v_location (view combining both)
+</code></pre>
+<p><strong>Your Decision</strong>:
+- ⚠️ <strong>Support this in MVP?</strong>
+- ⚠️ <strong>Or defer?</strong></p>
+<p><strong>Recommendation</strong>: Defer to Week 8+ (single table works fine initially)</p>
+<hr />
+<h2 id="decision-summary-checklist">📋 <strong>DECISION SUMMARY CHECKLIST</strong></h2>
+<p>Please review and approve/modify:</p>
+<h3 id="critical-need-before-week-2">🔴 <strong>CRITICAL (Need Before Week 2)</strong></h3>
+<ul>
+<li>[ ] <strong>Deduplication</strong>: 3-field pattern (identifier, sequence_number, display_identifier)</li>
+<li>[ ] <strong>Deduplication</strong>: Use <code>#</code> as separator</li>
+<li>[ ] <strong>Deduplication</strong>: First instance has no suffix (starts at 1)</li>
+<li>[ ] <strong>slugify()</strong>: "unnamed" fallback for empty/invalid inputs</li>
+<li>[ ] <strong>slugify()</strong>: "n-" prefix for all-digit slugs</li>
+<li>[ ] <strong>slugify()</strong>: Generate all 3 functions OR just slugify_safe()?</li>
+<li>[ ] <strong>Partial Indexes</strong>: Add <code>WHERE deleted_at IS NULL</code> to all non-PK indexes</li>
+<li>[ ] <strong>Safety Triggers</strong>: Generate all 4 constraint triggers</li>
+<li>[ ] <strong>Safety Triggers</strong>: 100 duplicate limit (or different?)</li>
+<li>[ ] <strong>Safety Triggers</strong>: Disallow characters: <code>&lt; &gt; " ' \ / : * ? |</code></li>
+<li>[ ] <strong>Audit Fields</strong>: Add separate identifier/path recalculation tracking</li>
+<li>[ ] <strong>Index Strategy</strong>: 6 mandatory indexes (not configurable)</li>
+<li>[ ] <strong>Reserved Names</strong>: Block all reserved field names (hard error)</li>
+</ul>
+<h3 id="nice-to-have-can-defer">🟡 <strong>NICE-TO-HAVE (Can Defer)</strong></h3>
+<ul>
+<li>[ ] <strong>Async Queue</strong>: Implement now OR defer to Week 8+?</li>
+<li>[ ] <strong>Helper Functions</strong>: Auto-generate OR on-demand?</li>
+<li>[ ] <strong>Node+Info Split</strong>: Support now OR defer?</li>
+</ul>
+<hr />
+<h2 id="next-steps">🎯 <strong>Next Steps</strong></h2>
+<ol>
+<li><strong>Review this document</strong> and mark your decisions above</li>
+<li><strong>Let me know your decisions</strong> on critical items</li>
+<li><strong>I'll update DATABASE_ASSESSMENT_GAPS.md</strong> with your final approvals</li>
+<li><strong>Team B can start implementation</strong> once all critical items approved</li>
+</ol>
+<hr />
+<p><strong>Your Current Decisions</strong>:
+- ✅ UUID v4 (NOT v7)
+- ✅ INTEGER-based LTREE paths
+- ✅ ASCII slugification
+- ✅ 20-level max depth
+- ✅ tenant_id UUID direct</p>
+<p><strong>Pending Decisions</strong>: 13 critical items above ⬆️</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

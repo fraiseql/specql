@@ -1,0 +1,632 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team C: CQRS tv_ Refresh Integration - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team C: CQRS tv_ Refresh Integration";
+        var mkdocs_page_input_path = "archive/teams/TEAM_C_CQRS_TV_REFRESH.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team C: CQRS tv_ Refresh Integration</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-c-cqrs-tv_-refresh-integration">Team C: CQRS tv_ Refresh Integration</h1>
+<p><strong>Team</strong>: Action Compiler (Business Logic → PL/pgSQL)
+<strong>Impact</strong>: MEDIUM (tv_ refresh integration in mutations)
+<strong>Timeline</strong>: Week 6-7 (3-4 days)
+<strong>Status</strong>: 🟡 MEDIUM PRIORITY - CQRS Write-Side Integration</p>
+<hr />
+<h2 id="overview">📋 Overview</h2>
+<p>Team C must integrate <strong>tv_ refresh calls</strong> into generated PL/pgSQL mutation functions. Every write operation (INSERT, UPDATE, DELETE) must refresh the corresponding tv_ table(s).</p>
+<p><strong>Key Principle</strong>: Write to <code>tb_</code> (normalized) → Explicit refresh of <code>tv_</code> (denormalized)</p>
+<hr />
+<h2 id="objectives">🎯 Objectives</h2>
+<ol>
+<li>✅ Compile <code>refresh_table_view</code> action step</li>
+<li>✅ Generate <code>PERFORM refresh_tv_{entity}()</code> calls in mutations</li>
+<li>✅ Handle refresh scopes (self, related, propagate, batch)</li>
+<li>✅ Return <code>tv_.data</code> in mutation results (not <code>tb_</code> fields)</li>
+<li>✅ Cascading refresh for calculated fields</li>
+</ol>
+<hr />
+<h2 id="mutation-flow-with-tv_-refresh">🔄 Mutation Flow with tv_ Refresh</h2>
+<h3 id="standard-pattern"><strong>Standard Pattern</strong></h3>
+<pre><code>User GraphQL Mutation
+    ↓
+PL/pgSQL Function
+    ↓
+1. Write to tb_{entity} (normalized)
+    ↓
+2. PERFORM refresh_tv_{entity}(pk)  ← NEW!
+    ↓
+3. PERFORM refresh_tv_{related}()  ← Propagate if needed
+    ↓
+4. Return tv_{entity}.data (denormalized) ← NEW!
+</code></pre>
+<hr />
+<h2 id="implementation-by-day">📊 Implementation by Day</h2>
+<h3 id="day-1-specql-action-step-extension"><strong>Day 1: SpecQL Action Step Extension</strong></h3>
+<h4 id="extend-specql-syntax"><strong>Extend SpecQL Syntax</strong></h4>
+<pre><code class="language-yaml">entity: Review
+
+actions:
+  - name: update_rating
+    steps:
+      - validate: rating &gt;= 1 AND rating &lt;= 5
+      - update: Review SET rating = $new_rating
+
+      # NEW: Explicit tv_ refresh step
+      - refresh_table_view:
+          scope: self              # self | related | propagate | batch
+          propagate: [author]      # Optional: specific entities to refresh
+</code></pre>
+<hr />
+<h4 id="ast-model-extension"><strong>AST Model Extension</strong></h4>
+<p><strong>File</strong>: <code>src/core/ast_models.py</code></p>
+<pre><code class="language-python">from dataclasses import dataclass
+from typing import Optional, List
+from enum import Enum
+
+class RefreshScope(Enum):
+    &quot;&quot;&quot;Scope for table view refresh.&quot;&quot;&quot;
+    SELF = &quot;self&quot;          # Only this entity
+    RELATED = &quot;related&quot;    # This entity + all that reference it
+    PROPAGATE = &quot;propagate&quot;  # This entity + explicit list
+    BATCH = &quot;batch&quot;        # Deferred refresh (bulk operations)
+
+@dataclass
+class RefreshTableViewStep:
+    &quot;&quot;&quot;Action step for refreshing table views.&quot;&quot;&quot;
+    scope: RefreshScope = RefreshScope.SELF
+    propagate: List[str] = None  # Entity names to refresh
+    strategy: str = &quot;immediate&quot;  # immediate | deferred
+
+# Add to ActionStep union type
+ActionStep = Union[
+    ValidateStep,
+    InsertStep,
+    UpdateStep,
+    DeleteStep,
+    RefreshTableViewStep,  # NEW!
+    # ... other steps
+]
+</code></pre>
+<hr />
+<h3 id="day-2-compile-refresh_table_view-step"><strong>Day 2: Compile refresh_table_view Step</strong></h3>
+<h4 id="file-srcgeneratorsactionsstep_compilerpy"><strong>File</strong>: <code>src/generators/actions/step_compiler.py</code></h4>
+<pre><code class="language-python">from src.core.ast_models import RefreshTableViewStep, RefreshScope, EntityAST
+
+class StepCompiler:
+    &quot;&quot;&quot;Compile action steps to PL/pgSQL.&quot;&quot;&quot;
+
+    def compile_refresh_table_view(
+        self,
+        step: RefreshTableViewStep,
+        entity: EntityAST,
+        context: dict
+    ) -&gt; str:
+        &quot;&quot;&quot;Compile refresh_table_view step.&quot;&quot;&quot;
+
+        entity_lower = entity.name.lower()
+        pk_var = f&quot;v_pk_{entity_lower}&quot;
+
+        if step.scope == RefreshScope.SELF:
+            # Refresh only this entity's tv_ row
+            return f&quot;&quot;&quot;
+    -- Refresh table view (self)
+    PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});
+&quot;&quot;&quot;.strip()
+
+        elif step.scope == RefreshScope.PROPAGATE:
+            # Refresh this entity + specific related entities
+            lines = [
+                f&quot;-- Refresh table view (self + propagate)&quot;,
+                f&quot;PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});&quot;
+            ]
+
+            # Refresh specified related entities
+            if step.propagate:
+                for rel_entity in step.propagate:
+                    rel_lower = rel_entity.lower()
+
+                    # Get FK for this relation
+                    fk_var = self._get_fk_var_for_entity(entity, rel_entity, context)
+
+                    if fk_var:
+                        rel_schema = self._get_entity_schema(rel_entity)
+                        lines.append(
+                            f&quot;PERFORM {rel_schema}.refresh_tv_{rel_lower}({fk_var});&quot;
+                        )
+
+            return &quot;\n    &quot;.join(lines)
+
+        elif step.scope == RefreshScope.RELATED:
+            # Refresh this entity + all entities that reference it
+            lines = [
+                f&quot;-- Refresh table view (self + all related)&quot;,
+                f&quot;PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});&quot;
+            ]
+
+            # Find all entities that reference this one
+            for rel_entity in self._find_dependent_entities(entity):
+                rel_lower = rel_entity.name.lower()
+                rel_schema = rel_entity.schema
+
+                # Refresh all rows that reference this entity
+                lines.append(
+                    f&quot;-- Refresh {rel_entity.name} entities that reference this {entity.name}&quot;
+                )
+                lines.append(
+                    f&quot;PERFORM {rel_schema}.refresh_tv_{rel_lower}_by_{entity_lower}({pk_var});&quot;
+                )
+
+            return &quot;\n    &quot;.join(lines)
+
+        elif step.scope == RefreshScope.BATCH:
+            # Deferred refresh (collect PKs, refresh at end)
+            return f&quot;&quot;&quot;
+    -- Queue for batch refresh (deferred)
+    INSERT INTO pg_temp.tv_refresh_queue VALUES ('{entity.name}', {pk_var});
+&quot;&quot;&quot;.strip()
+
+    def _get_fk_var_for_entity(
+        self,
+        entity: EntityAST,
+        ref_entity_name: str,
+        context: dict
+    ) -&gt; Optional[str]:
+        &quot;&quot;&quot;Get FK variable name for referenced entity.&quot;&quot;&quot;
+
+        # Find field that references this entity
+        for field in entity.fields:
+            if field.field_type == f&quot;ref({ref_entity_name})&quot;:
+                return f&quot;v_fk_{field.name.lower()}&quot;
+
+        return None
+
+    def _find_dependent_entities(self, entity: EntityAST) -&gt; List[EntityAST]:
+        &quot;&quot;&quot;Find entities that have foreign keys to this entity.&quot;&quot;&quot;
+        # This would need access to all entities
+        # Implementation depends on global entity registry
+        pass
+</code></pre>
+<hr />
+<h3 id="day-3-return-tv_data-in-mutations"><strong>Day 3: Return tv_.data in Mutations</strong></h3>
+<h4 id="update-mutation-result-builder"><strong>Update Mutation Result Builder</strong></h4>
+<p><strong>File</strong>: <code>src/generators/actions/mutation_result.py</code></p>
+<pre><code class="language-python">def build_mutation_result(
+    entity: EntityAST,
+    pk_var: str,
+    use_table_view: bool = True
+) -&gt; str:
+    &quot;&quot;&quot;Build mutation_result return value.&quot;&quot;&quot;
+
+    entity_lower = entity.name.lower()
+    schema = entity.schema
+
+    if use_table_view and entity.should_generate_table_view:
+        # Return from tv_ (denormalized data)
+        return f&quot;&quot;&quot;
+    -- Build result from table view (denormalized)
+    v_result.status := 'success';
+    v_result.message := '{entity.name} operation completed';
+    v_result.object_data := (
+        SELECT data  -- JSONB from tv_
+        FROM {schema}.tv_{entity_lower}
+        WHERE pk_{entity_lower} = {pk_var}
+    );
+
+    RETURN v_result;
+&quot;&quot;&quot;
+    else:
+        # Return from tb_ (normalized, fallback)
+        return f&quot;&quot;&quot;
+    -- Build result from base table (normalized)
+    v_result.status := 'success';
+    v_result.message := '{entity.name} operation completed';
+    v_result.object_data := (
+        SELECT jsonb_build_object(
+            'id', id,
+            {self._build_object_fields(entity)}
+        )
+        FROM {schema}.tb_{entity_lower}
+        WHERE pk_{entity_lower} = {pk_var}
+    );
+
+    RETURN v_result;
+&quot;&quot;&quot;
+
+    def _build_object_fields(self, entity: EntityAST) -&gt; str:
+        &quot;&quot;&quot;Build field list for jsonb_build_object.&quot;&quot;&quot;
+        fields = []
+        for field in entity.fields:
+            if not field.field_type.startswith('ref('):
+                fields.append(f&quot;'{field.name}', {field.name}&quot;)
+        return &quot;,\n            &quot;.join(fields)
+</code></pre>
+<hr />
+<h3 id="day-3-4-generate-complete-mutation-functions"><strong>Day 3-4: Generate Complete Mutation Functions</strong></h3>
+<h4 id="example-update_rating-mutation"><strong>Example: update_rating Mutation</strong></h4>
+<p><strong>Input SpecQL</strong>:</p>
+<pre><code class="language-yaml">entity: Review
+schema: library
+
+fields:
+  rating: integer
+  comment: text
+  author: ref(User)
+  book: ref(Book)
+
+actions:
+  - name: update_rating
+    steps:
+      - validate: rating &gt;= 1 AND rating &lt;= 5
+      - update: Review SET rating = $new_rating
+      - refresh_table_view:
+          scope: self
+          propagate: [author]  # Recalculate author's average_rating
+</code></pre>
+<p><strong>Generated PL/pgSQL</strong>:</p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION library.update_review_rating(
+    p_review_id UUID,
+    p_new_rating INTEGER,
+    p_caller_id UUID DEFAULT NULL
+) RETURNS mutation_result AS $$
+DECLARE
+    v_pk_review INTEGER;
+    v_fk_author INTEGER;
+    v_old_rating INTEGER;
+    v_result mutation_result;
+BEGIN
+    -- Resolve UUID → INTEGER
+    v_pk_review := library.review_pk(p_review_id);
+
+    -- Get FK for propagation
+    SELECT fk_author, rating INTO v_fk_author, v_old_rating
+    FROM library.tb_review
+    WHERE pk_review = v_pk_review;
+
+    -- Validation
+    IF p_new_rating &lt; 1 OR p_new_rating &gt; 5 THEN
+        v_result.status := 'error';
+        v_result.message := 'Rating must be between 1 and 5';
+        RETURN v_result;
+    END IF;
+
+    -- Update tb_review (normalized)
+    UPDATE library.tb_review
+    SET rating = p_new_rating,
+        updated_at = now(),
+        updated_by = p_caller_id
+    WHERE pk_review = v_pk_review;
+
+    -- Refresh tv_review (self) ✅
+    PERFORM library.refresh_tv_review(v_pk_review);
+
+    -- Propagate to author (recalculate average_rating) ✅
+    IF v_old_rating IS DISTINCT FROM p_new_rating THEN
+        -- Only refresh if rating actually changed
+        PERFORM crm.refresh_tv_user(v_fk_author);
+    END IF;
+
+    -- Build result from tv_review.data ✅
+    v_result.status := 'success';
+    v_result.message := 'Review rating updated';
+    v_result.object_data := (
+        SELECT data  -- Denormalized JSONB
+        FROM library.tv_review
+        WHERE pk_review = v_pk_review
+    );
+
+    RETURN v_result;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<hr />
+<h3 id="example-create_review-mutation"><strong>Example: create_review Mutation</strong></h3>
+<p><strong>Input SpecQL</strong>:</p>
+<pre><code class="language-yaml">actions:
+  - name: create_review
+    steps:
+      - validate: rating &gt;= 1 AND rating &lt;= 5
+      - insert: Review(rating=$rating, comment=$comment, fk_author=$author_id, fk_book=$book_id)
+      - refresh_table_view:
+          scope: self
+          propagate: [author, book]
+</code></pre>
+<p><strong>Generated PL/pgSQL</strong>:</p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION library.create_review(
+    p_rating INTEGER,
+    p_comment TEXT,
+    p_author_id UUID,
+    p_book_id UUID,
+    p_caller_id UUID DEFAULT NULL
+) RETURNS mutation_result AS $$
+DECLARE
+    v_pk_review INTEGER;
+    v_fk_author INTEGER;
+    v_fk_book INTEGER;
+    v_result mutation_result;
+BEGIN
+    -- Resolve UUIDs
+    v_fk_author := crm.user_pk(p_author_id);
+    v_fk_book := library.book_pk(p_book_id);
+
+    -- Validation
+    IF p_rating &lt; 1 OR p_rating &gt; 5 THEN
+        v_result.status := 'error';
+        v_result.message := 'Rating must be between 1 and 5';
+        RETURN v_result;
+    END IF;
+
+    -- Insert into tb_review (normalized)
+    INSERT INTO library.tb_review (
+        rating, comment, fk_author, fk_book,
+        created_at, created_by
+    ) VALUES (
+        p_rating, p_comment, v_fk_author, v_fk_book,
+        now(), p_caller_id
+    ) RETURNING pk_review INTO v_pk_review;
+
+    -- Refresh tv_review (self) ✅
+    PERFORM library.refresh_tv_review(v_pk_review);
+
+    -- Propagate to author (increment review_count) ✅
+    PERFORM crm.refresh_tv_user(v_fk_author);
+
+    -- Propagate to book (increment review_count) ✅
+    PERFORM library.refresh_tv_book(v_fk_book);
+
+    -- Build result from tv_review.data ✅
+    v_result.status := 'success';
+    v_result.message := 'Review created successfully';
+    v_result.object_data := (
+        SELECT data
+        FROM library.tv_review
+        WHERE pk_review = v_pk_review
+    );
+
+    RETURN v_result;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<hr />
+<h3 id="example-delete_review-mutation"><strong>Example: delete_review Mutation</strong></h3>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION library.delete_review(
+    p_review_id UUID,
+    p_caller_id UUID DEFAULT NULL
+) RETURNS mutation_result AS $$
+DECLARE
+    v_pk_review INTEGER;
+    v_fk_author INTEGER;
+    v_fk_book INTEGER;
+    v_result mutation_result;
+BEGIN
+    v_pk_review := library.review_pk(p_review_id);
+
+    -- Get FKs before soft delete
+    SELECT fk_author, fk_book INTO v_fk_author, v_fk_book
+    FROM library.tb_review
+    WHERE pk_review = v_pk_review;
+
+    -- Soft delete in tb_review
+    UPDATE library.tb_review
+    SET deleted_at = now(),
+        deleted_by = p_caller_id
+    WHERE pk_review = v_pk_review;
+
+    -- Remove from tv_review (soft-deleted rows not in tv_) ✅
+    DELETE FROM library.tv_review WHERE pk_review = v_pk_review;
+
+    -- Propagate to author/book (decrement counts) ✅
+    PERFORM crm.refresh_tv_user(v_fk_author);
+    PERFORM library.refresh_tv_book(v_fk_book);
+
+    v_result.status := 'success';
+    v_result.message := 'Review deleted';
+    v_result.object_data := jsonb_build_object('id', p_review_id);
+
+    RETURN v_result;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<hr />
+<h2 id="template-files">📋 Template Files</h2>
+<h3 id="file-templatesactionsrefresh_table_viewsqljinja2"><strong>File</strong>: <code>templates/actions/refresh_table_view.sql.jinja2</code></h3>
+<pre><code class="language-jinja2">{# Template for refresh_table_view step #}
+
+{% if step.scope == 'self' %}
+-- Refresh table view (self)
+PERFORM {{ entity.schema }}.refresh_tv_{{ entity.name|lower }}(v_pk_{{ entity.name|lower }});
+
+{% elif step.scope == 'propagate' %}
+-- Refresh table view (self + propagate)
+PERFORM {{ entity.schema }}.refresh_tv_{{ entity.name|lower }}(v_pk_{{ entity.name|lower }});
+
+{% for rel_entity in step.propagate %}
+{%- set fk_var = 'v_fk_' + rel_entity|lower -%}
+PERFORM {{ get_entity_schema(rel_entity) }}.refresh_tv_{{ rel_entity|lower }}({{ fk_var }});
+{% endfor %}
+
+{% elif step.scope == 'related' %}
+-- Refresh table view (self + all related)
+PERFORM {{ entity.schema }}.refresh_tv_{{ entity.name|lower }}(v_pk_{{ entity.name|lower }});
+
+{% for rel_entity in dependent_entities %}
+PERFORM {{ rel_entity.schema }}.refresh_tv_{{ rel_entity.name|lower }}_by_{{ entity.name|lower }}(v_pk_{{ entity.name|lower }});
+{% endfor %}
+
+{% elif step.scope == 'batch' %}
+-- Queue for batch refresh
+INSERT INTO pg_temp.tv_refresh_queue VALUES ('{{ entity.name }}', v_pk_{{ entity.name|lower }});
+
+{% endif %}
+</code></pre>
+<hr />
+<h2 id="acceptance-criteria">✅ Acceptance Criteria</h2>
+<ul>
+<li>[ ] <code>refresh_table_view</code> step compiles to PERFORM calls</li>
+<li>[ ] Scope: self works (refresh only this entity)</li>
+<li>[ ] Scope: propagate works (refresh specific entities)</li>
+<li>[ ] Scope: related works (refresh all dependents)</li>
+<li>[ ] Mutation results return tv_.data (not tb_ fields)</li>
+<li>[ ] Soft deletes remove from tv_ tables</li>
+<li>[ ] Cascading refresh works for calculated fields</li>
+<li>[ ] All mutation tests pass</li>
+</ul>
+<hr />
+<h2 id="summary">📊 Summary</h2>
+<p><strong>Files to Modify</strong>:
+- <code>src/core/ast_models.py</code> - Add RefreshTableViewStep
+- <code>src/core/specql_parser.py</code> - Parse refresh_table_view step
+- <code>src/generators/actions/step_compiler.py</code> - Compile refresh step
+- <code>src/generators/actions/mutation_result.py</code> - Return tv_.data</p>
+<p><strong>New Templates</strong>:
+- <code>templates/actions/refresh_table_view.sql.jinja2</code></p>
+<p><strong>Tests</strong>:
+- <code>tests/unit/actions/test_refresh_table_view_compilation.py</code>
+- <code>tests/integration/test_mutations_with_tv_refresh.py</code></p>
+<p><strong>Total</strong>: ~800 lines</p>
+<p><strong>Timeline</strong>: 3-4 days</p>
+<hr />
+<h2 id="dependencies">🔗 Dependencies</h2>
+<p><strong>Depends On</strong>:
+- Team A Phase 2 (table_views parsing)
+- Team B Phase 9 (tv_ generation + refresh functions)</p>
+<p><strong>Blocks</strong>:
+- Full CQRS integration
+- FraiseQL end-to-end testing</p>
+<hr />
+<p><strong>Status</strong>: 🟡 READY TO START (after Team B Phase 9)
+<strong>Priority</strong>: MEDIUM (completes write-side CQRS)
+<strong>Effort</strong>: 3-4 days
+<strong>Start</strong>: Week 6-7</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

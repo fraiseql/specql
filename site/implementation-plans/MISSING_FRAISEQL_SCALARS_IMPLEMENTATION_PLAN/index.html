@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Missing FraiseQL Scalars - Complete Implementation Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Missing FraiseQL Scalars - Complete Implementation Plan";
+        var mkdocs_page_input_path = "implementation-plans/MISSING_FRAISEQL_SCALARS_IMPLEMENTATION_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Missing FraiseQL Scalars - Complete Implementation Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="missing-fraiseql-scalars-complete-implementation-plan">Missing FraiseQL Scalars - Complete Implementation Plan</h1>
+<p><strong>Project</strong>: printoptim_backend_poc
+<strong>Target</strong>: FraiseQL scalar library
+<strong>Status</strong>: Ready for Implementation
+<strong>Date</strong>: 2025-11-09</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>This document provides a comprehensive implementation plan for all scalar types needed by the printoptim_backend_poc project but currently missing from FraiseQL's scalar library.</p>
+<h3 id="current-state-analysis">Current State Analysis</h3>
+<p><strong>FraiseQL Scalars Currently Implemented</strong> ✅:
+- ✅ <code>cidr</code> - CIDR network notation
+- ✅ <code>coordinates</code> - Geographic coordinates
+- ✅ <code>date</code> - ISO 8601 date
+- ✅ <code>daterange</code> - PostgreSQL date range
+- ✅ <code>datetime</code> - ISO 8601 datetime with timezone
+- ✅ <code>email_address</code> - Email validation
+- ✅ <code>hostname</code> - DNS hostname (RFC 1123)
+- ✅ <code>ip_address</code> - IPv4/IPv6 addresses
+- ✅ <code>json</code> - JSON object
+- ✅ <code>language_code</code> - ISO 639-1 language codes (NEW - Issue #127)
+- ✅ <code>locale_code</code> - BCP 47 locale codes (NEW - Issue #127)
+- ✅ <code>ltree</code> - PostgreSQL ltree path
+- ✅ <code>mac_address</code> - MAC address
+- ✅ <code>port</code> - Network port (1-65535)
+- ✅ <code>timezone</code> - IANA timezone identifiers (NEW - Issue #127)
+- ✅ <code>uuid</code> - RFC 4122 UUID</p>
+<p><strong>Total Implemented</strong>: 16 scalars</p>
+<hr />
+<h2 id="scalars-needed-by-printoptim_backend_poc">Scalars Needed by printoptim_backend_poc</h2>
+<p>Based on analysis of entity YAML files and documentation:</p>
+<h3 id="category-1-string-validation-types">Category 1: String Validation Types</h3>
+<ol>
+<li>❌ <strong>PhoneNumber</strong> - E.164 phone number format</li>
+<li>❌ <strong>URL</strong> - HTTP/HTTPS URL validation</li>
+<li>❌ <strong>Slug</strong> - URL-friendly identifier (kebab-case)</li>
+<li>❌ <strong>Color</strong> - Hex color code (#RRGGBB)</li>
+</ol>
+<h3 id="category-2-text-formatting-types">Category 2: Text Formatting Types</h3>
+<ol>
+<li>❌ <strong>Markdown</strong> - Markdown formatted text</li>
+<li>❌ <strong>HTML</strong> - HTML content</li>
+</ol>
+<h3 id="category-3-numericfinancial-types">Category 3: Numeric/Financial Types</h3>
+<ol>
+<li>❌ <strong>Money</strong> - Monetary values with precision</li>
+<li>❌ <strong>Percentage</strong> - Percentage values (0-100)</li>
+<li>❌ <strong>ExchangeRate</strong> - Currency exchange rates</li>
+</ol>
+<h3 id="category-4-geographic-types">Category 4: Geographic Types</h3>
+<ol>
+<li>❌ <strong>Latitude</strong> - Latitude value (-90 to 90)</li>
+<li>❌ <strong>Longitude</strong> - Longitude value (-180 to 180)</li>
+</ol>
+<h3 id="category-5-mediafile-types">Category 5: Media/File Types</h3>
+<ol>
+<li>❌ <strong>Image</strong> - Image URL/path</li>
+<li>❌ <strong>File</strong> - File URL/path</li>
+</ol>
+<h3 id="category-6-time-types">Category 6: Time Types</h3>
+<ol>
+<li>❌ <strong>Time</strong> - Time of day (HH:MM:SS)</li>
+<li>❌ <strong>Duration</strong> - Time duration/interval</li>
+</ol>
+<p><strong>Total Needed</strong>: 15 new scalars</p>
+<hr />
+<h2 id="implementation-priority">Implementation Priority</h2>
+<h3 id="priority-1-high-impact-scalars-immediate-need">Priority 1: High-Impact Scalars (Immediate Need)</h3>
+<p><strong>Timeline</strong>: Week 1
+<strong>Rationale</strong>: Used in core entities (Contact, TradingInstrument)</p>
+<ol>
+<li><strong>PhoneNumber</strong> - Contact management</li>
+<li><strong>URL</strong> - Contact/Company websites</li>
+<li><strong>Money</strong> - Trading instruments, financial data</li>
+<li><strong>ExchangeRate</strong> - Trading instruments</li>
+<li><strong>Image</strong> - Contact avatars, product images</li>
+</ol>
+<p><strong>Estimated Time</strong>: 8-10 hours</p>
+<hr />
+<h3 id="priority-2-medium-impact-scalars-near-term">Priority 2: Medium-Impact Scalars (Near-Term)</h3>
+<p><strong>Timeline</strong>: Week 2
+<strong>Rationale</strong>: Enhance functionality, common use cases</p>
+<ol>
+<li><strong>Percentage</strong> - Discounts, rates, analytics</li>
+<li><strong>Slug</strong> - URL-friendly identifiers for entities</li>
+<li><strong>Markdown</strong> - Rich text content (notes, descriptions)</li>
+<li><strong>Color</strong> - UI theming, branding</li>
+</ol>
+<p><strong>Estimated Time</strong>: 6-8 hours</p>
+<hr />
+<h3 id="priority-3-low-impact-scalars-future-enhancement">Priority 3: Low-Impact Scalars (Future Enhancement)</h3>
+<p><strong>Timeline</strong>: Week 3-4
+<strong>Rationale</strong>: Nice-to-have, specialized use cases</p>
+<ol>
+<li><strong>HTML</strong> - Rich text content (alternative to Markdown)</li>
+<li><strong>Latitude</strong> - Geographic data (unless using Coordinates)</li>
+<li><strong>Longitude</strong> - Geographic data (unless using Coordinates)</li>
+<li><strong>Time</strong> - Scheduling, time-based features</li>
+<li><strong>Duration</strong> - Time intervals, task durations</li>
+<li><strong>File</strong> - Document attachments, file uploads</li>
+</ol>
+<p><strong>Estimated Time</strong>: 8-10 hours</p>
+<hr />
+<h2 id="detailed-implementation-specifications">Detailed Implementation Specifications</h2>
+<h3 id="1-phonenumber-scalar">1. PhoneNumber Scalar</h3>
+<p><strong>File</strong>: <code>src/fraiseql/types/scalars/phone_number.py</code></p>
+<p><strong>Validation</strong>: E.164 international phone number format
+- <strong>Format</strong>: <code>+[country][number]</code>
+- <strong>Length</strong>: 7-15 digits (including country code)
+- <strong>Regex</strong>: <code>^\+?[1-9]\d{1,14}$</code>
+- <strong>Examples</strong>: <code>+14155552671</code>, <code>+33123456789</code>, <code>+81312345678</code></p>
+<p><strong>PostgreSQL Type</strong>: <code>TEXT</code>
+<strong>GraphQL Scalar</strong>: <code>PhoneNumber</code></p>
+<p><strong>Key Features</strong>:
+- Accepts optional + prefix
+- No country code required (but recommended)
+- No formatting characters (spaces, hyphens, parentheses)
+- Stores normalized format</p>
+<p><strong>Implementation Template</strong>:</p>
+<pre><code class="language-python">&quot;&quot;&quot;Phone number scalar type for E.164 validation.&quot;&quot;&quot;
+
+import re
+from typing import Any
+
+from graphql import GraphQLError, GraphQLScalarType
+from graphql.language import StringValueNode
+
+from fraiseql.types.definitions import ScalarMarker
+
+# E.164 international phone number format
+# +[country][number] - 7 to 15 digits total
+_PHONE_NUMBER_REGEX = re.compile(r&quot;^\+?[1-9]\d{1,14}$&quot;)
+
+
+def serialize_phone_number(value: Any) -&gt; str | None:
+    &quot;&quot;&quot;Serialize phone number to string.&quot;&quot;&quot;
+    if value is None:
+        return None
+
+    value_str = str(value).strip()
+
+    if not _PHONE_NUMBER_REGEX.match(value_str):
+        raise GraphQLError(
+            f&quot;Invalid phone number: {value}. Must be E.164 format (e.g., '+14155552671')&quot;
+        )
+
+    return value_str
+
+
+def parse_phone_number_value(value: Any) -&gt; str:
+    &quot;&quot;&quot;Parse phone number from variable value.&quot;&quot;&quot;
+    if not isinstance(value, str):
+        raise GraphQLError(f&quot;Phone number must be a string, got {type(value).__name__}&quot;)
+
+    value_str = value.strip()
+
+    if not _PHONE_NUMBER_REGEX.match(value_str):
+        raise GraphQLError(
+            f&quot;Invalid phone number: {value}. Must be E.164 format (e.g., '+14155552671')&quot;
+        )
+
+    return value_str
+
+
+def parse_phone_number_literal(ast: Any, _variables: dict[str, Any] | None = None) -&gt; str:
+    &quot;&quot;&quot;Parse phone number from AST literal.&quot;&quot;&quot;
+    if not isinstance(ast, StringValueNode):
+        raise GraphQLError(&quot;Phone number must be a string&quot;)
+
+    return parse_phone_number_value(ast.value)
+
+
+PhoneNumberScalar = GraphQLScalarType(
+    name=&quot;PhoneNumber&quot;,
+    description=(
+        &quot;E.164 international phone number format. &quot;
+        &quot;Format: +[country][number] (7-15 digits). &quot;
+        &quot;Examples: +14155552671, +33123456789. &quot;
+        &quot;See: https://en.wikipedia.org/wiki/E.164&quot;
+    ),
+    serialize=serialize_phone_number,
+    parse_value=parse_phone_number_value,
+    parse_literal=parse_phone_number_literal,
+)
+
+
+class PhoneNumberField(str, ScalarMarker):
+    &quot;&quot;&quot;E.164 international phone number format.
+
+    This scalar validates phone numbers following E.164 standard:
+    - Optional + prefix
+    - Country code followed by number
+    - 7-15 digits total
+    - No formatting characters (spaces, hyphens, parentheses)
+
+    Example:
+        &gt;&gt;&gt; from fraiseql.types import PhoneNumber
+        &gt;&gt;&gt;
+        &gt;&gt;&gt; @fraiseql.type
+        ... class Contact:
+        ...     phone: PhoneNumber
+        ...     mobile: PhoneNumber | None
+    &quot;&quot;&quot;
+
+    __slots__ = ()
+
+    def __new__(cls, value: str) -&gt; &quot;PhoneNumberField&quot;:
+        &quot;&quot;&quot;Create a new PhoneNumberField instance with validation.&quot;&quot;&quot;
+        value_str = value.strip()
+        if not _PHONE_NUMBER_REGEX.match(value_str):
+            raise ValueError(
+                f&quot;Invalid phone number: {value}. Must be E.164 format (e.g., '+14155552671')&quot;
+            )
+        return super().__new__(cls, value_str)
+</code></pre>
+<hr />
+<h3 id="2-url-scalar">2. URL Scalar</h3>
+<p><strong>File</strong>: <code>src/fraiseql/types/scalars/url.py</code></p>
+<p><strong>Validation</strong>: HTTP/HTTPS URL format
+- <strong>Schemes</strong>: <code>http://</code>, <code>https://</code>
+- <strong>Components</strong>: scheme, domain, optional path/query/fragment
+- <strong>Regex</strong>: <code>^https?://[^\s/$.?#].[^\s]*$</code>
+- <strong>Examples</strong>: <code>https://example.com</code>, <code>http://api.example.com/v1/users?limit=10</code></p>
+<p><strong>PostgreSQL Type</strong>: <code>TEXT</code>
+<strong>GraphQL Scalar</strong>: <code>URL</code></p>
+<p><strong>Key Features</strong>:
+- Validates HTTP/HTTPS schemes only
+- Allows paths, query strings, fragments
+- Case-insensitive domain
+- International domain names supported</p>
+<p><strong>Implementation Template</strong>:</p>
+<pre><code class="language-python">&quot;&quot;&quot;URL scalar type for HTTP/HTTPS URL validation.&quot;&quot;&quot;
+
+import re
+from typing import Any
+
+from graphql import GraphQLError, GraphQLScalarType
+from graphql.language import StringValueNode
+
+from fraiseql.types.definitions import ScalarMarker
+
+# HTTP/HTTPS URL regex
+# Supports: scheme, domain, path, query, fragment
+_URL_REGEX = re.compile(
+    r&quot;^https?://&quot;  # HTTP or HTTPS scheme
+    r&quot;(?:(?:[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?\.)+(?:[A-Z]{2,6}\.?|[A-Z0-9-]{2,}\.?)|&quot;  # domain
+    r&quot;localhost|&quot;  # localhost
+    r&quot;\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})&quot;  # IP address
+    r&quot;(?::\d+)?&quot;  # optional port
+    r&quot;(?:/?|[/?]\S+)$&quot;,  # path
+    re.IGNORECASE
+)
+
+
+def serialize_url(value: Any) -&gt; str | None:
+    &quot;&quot;&quot;Serialize URL to string.&quot;&quot;&quot;
+    if value is None:
+        return None
+
+    value_str = str(value).strip()
+
+    if not _URL_REGEX.match(value_str):
+        raise GraphQLError(
+            f&quot;Invalid URL: {value}. Must be HTTP or HTTPS URL (e.g., 'https://example.com')&quot;
+        )
+
+    return value_str
+
+
+def parse_url_value(value: Any) -&gt; str:
+    &quot;&quot;&quot;Parse URL from variable value.&quot;&quot;&quot;
+    if not isinstance(value, str):
+        raise GraphQLError(f&quot;URL must be a string, got {type(value).__name__}&quot;)
+
+    value_str = value.strip()
+
+    if not _URL_REGEX.match(value_str):
+        raise GraphQLError(
+            f&quot;Invalid URL: {value}. Must be HTTP or HTTPS URL (e.g., 'https://example.com')&quot;
+        )
+
+    return value_str
+
+
+def parse_url_literal(ast: Any, _variables: dict[str, Any] | None = None) -&gt; str:
+    &quot;&quot;&quot;Parse URL from AST literal.&quot;&quot;&quot;
+    if not isinstance(ast, StringValueNode):
+        raise GraphQLError(&quot;URL must be a string&quot;)
+
+    return parse_url_value(ast.value)
+
+
+URLScalar = GraphQLScalarType(
+    name=&quot;URL&quot;,
+    description=(
+        &quot;HTTP or HTTPS URL. &quot;
+        &quot;Must include scheme (http:// or https://). &quot;
+        &quot;Examples: https://example.com, http://api.example.com/v1/users. &quot;
+        &quot;See: https://tools.ietf.org/html/rfc3986&quot;
+    ),
+    serialize=serialize_url,
+    parse_value=parse_url_value,
+    parse_literal=parse_url_literal,
+)
+
+
+class URLField(str, ScalarMarker):
+    &quot;&quot;&quot;HTTP or HTTPS URL.
+
+    This scalar validates URLs with HTTP or HTTPS schemes:
+    - Must start with http:// or https://
+    - Valid domain name or IP address
+    - Optional port, path, query, fragment
+    - Case-insensitive domain
+
+    Example:
+        &gt;&gt;&gt; from fraiseql.types import URL
+        &gt;&gt;&gt;
+        &gt;&gt;&gt; @fraiseql.type
+        ... class Company:
+        ...     website: URL
+        ...     api_endpoint: URL | None
+    &quot;&quot;&quot;
+
+    __slots__ = ()
+
+    def __new__(cls, value: str) -&gt; &quot;URLField&quot;:
+        &quot;&quot;&quot;Create a new URLField instance with validation.&quot;&quot;&quot;
+        value_str = value.strip()
+        if not _URL_REGEX.match(value_str):
+            raise ValueError(
+                f&quot;Invalid URL: {value}. Must be HTTP or HTTPS URL (e.g., 'https://example.com')&quot;
+            )
+        return super().__new__(cls, value_str)
+</code></pre>
+<hr />
+<h3 id="3-money-scalar">3. Money Scalar</h3>
+<p><strong>File</strong>: <code>src/fraiseql/types/scalars/money.py</code></p>
+<p><strong>Validation</strong>: Decimal monetary value
+- <strong>Format</strong>: Decimal number with up to 4 decimal places
+- <strong>Range</strong>: -999,999,999,999,999.9999 to 999,999,999,999,999.9999
+- <strong>Precision</strong>: 19 digits, 4 decimal places
+- <strong>Examples</strong>: <code>19.99</code>, <code>1234.5678</code>, <code>-99.99</code>, <code>0.01</code></p>
+<p><strong>PostgreSQL Type</strong>: <code>NUMERIC(19,4)</code>
+<strong>GraphQL Scalar</strong>: <code>Money</code></p>
+<p><strong>Key Features</strong>:
+- Currency-agnostic (store currency separately)
+- High precision for financial calculations
+- Supports negative values
+- Stores as PostgreSQL NUMERIC (no floating-point errors)</p>
+<p><strong>Implementation Template</strong>:</p>
+<pre><code class="language-python">&quot;&quot;&quot;Money scalar type for monetary values.&quot;&quot;&quot;
+
+from decimal import Decimal, InvalidOperation
+from typing import Any
+
+from graphql import GraphQLError, GraphQLScalarType
+from graphql.language import FloatValueNode, IntValueNode, StringValueNode
+
+from fraiseql.types.definitions import ScalarMarker
+
+
+def serialize_money(value: Any) -&gt; str | None:
+    &quot;&quot;&quot;Serialize money to string.&quot;&quot;&quot;
+    if value is None:
+        return None
+
+    try:
+        decimal_value = Decimal(str(value))
+    except (InvalidOperation, ValueError) as e:
+        raise GraphQLError(f&quot;Invalid money value: {value}. Must be a decimal number&quot;) from e
+
+    # Validate precision (19 digits, 4 decimal places)
+    if decimal_value.as_tuple().exponent &lt; -4:
+        raise GraphQLError(
+            f&quot;Invalid money value: {value}. Maximum 4 decimal places allowed&quot;
+        )
+
+    # Validate range
+    max_value = Decimal(&quot;999999999999999.9999&quot;)
+    min_value = Decimal(&quot;-999999999999999.9999&quot;)
+    if decimal_value &gt; max_value or decimal_value &lt; min_value:
+        raise GraphQLError(
+            f&quot;Invalid money value: {value}. Must be between {min_value} and {max_value}&quot;
+        )
+
+    return str(decimal_value)
+
+
+def parse_money_value(value: Any) -&gt; Decimal:
+    &quot;&quot;&quot;Parse money from variable value.&quot;&quot;&quot;
+    if isinstance(value, Decimal):
+        return value
+
+    if not isinstance(value, (str, int, float)):
+        raise GraphQLError(f&quot;Money must be a number, got {type(value).__name__}&quot;)
+
+    try:
+        decimal_value = Decimal(str(value))
+    except (InvalidOperation, ValueError) as e:
+        raise GraphQLError(f&quot;Invalid money value: {value}. Must be a decimal number&quot;) from e
+
+    # Validate precision
+    if decimal_value.as_tuple().exponent &lt; -4:
+        raise GraphQLError(
+            f&quot;Invalid money value: {value}. Maximum 4 decimal places allowed&quot;
+        )
+
+    return decimal_value
+
+
+def parse_money_literal(ast: Any, _variables: dict[str, Any] | None = None) -&gt; Decimal:
+    &quot;&quot;&quot;Parse money from AST literal.&quot;&quot;&quot;
+    if isinstance(ast, (IntValueNode, FloatValueNode, StringValueNode)):
+        return parse_money_value(ast.value)
+
+    raise GraphQLError(&quot;Money must be a number&quot;)
+
+
+MoneyScalar = GraphQLScalarType(
+    name=&quot;Money&quot;,
+    description=(
+        &quot;Monetary value with high precision. &quot;
+        &quot;Stored as NUMERIC(19,4) - up to 4 decimal places. &quot;
+        &quot;Currency-agnostic (store currency code separately). &quot;
+        &quot;Examples: 19.99, 1234.5678, -99.99&quot;
+    ),
+    serialize=serialize_money,
+    parse_value=parse_money_value,
+    parse_literal=parse_money_literal,
+)
+
+
+class MoneyField(Decimal, ScalarMarker):
+    &quot;&quot;&quot;Monetary value with high precision.
+
+    This scalar represents monetary values:
+    - High precision: NUMERIC(19,4)
+    - No floating-point errors
+    - Supports negative values
+    - Currency-agnostic
+
+    Example:
+        &gt;&gt;&gt; from fraiseql.types import Money
+        &gt;&gt;&gt;
+        &gt;&gt;&gt; @fraiseql.type
+        ... class Product:
+        ...     price: Money
+        ...     cost: Money | None
+        ...     currency: str  # Store currency separately
+    &quot;&quot;&quot;
+
+    __slots__ = ()
+
+    def __new__(cls, value: Any) -&gt; &quot;MoneyField&quot;:
+        &quot;&quot;&quot;Create a new MoneyField instance with validation.&quot;&quot;&quot;
+        try:
+            decimal_value = Decimal(str(value))
+        except (InvalidOperation, ValueError) as e:
+            raise ValueError(f&quot;Invalid money value: {value}. Must be a decimal number&quot;) from e
+
+        if decimal_value.as_tuple().exponent &lt; -4:
+            raise ValueError(
+                f&quot;Invalid money value: {value}. Maximum 4 decimal places allowed&quot;
+            )
+
+        return super().__new__(cls, decimal_value)
+</code></pre>
+<hr />
+<h3 id="4-exchangerate-scalar">4. ExchangeRate Scalar</h3>
+<p><strong>File</strong>: <code>src/fraiseql/types/scalars/exchange_rate.py</code></p>
+<p><strong>Validation</strong>: Decimal exchange rate value
+- <strong>Format</strong>: Decimal number with up to 8 decimal places
+- <strong>Range</strong>: Must be positive (&gt; 0)
+- <strong>Precision</strong>: 20 digits, 8 decimal places
+- <strong>Examples</strong>: <code>1.2345</code>, <code>0.85</code>, <code>120.456789</code>, <code>0.00000123</code></p>
+<p><strong>PostgreSQL Type</strong>: <code>NUMERIC(20,8)</code>
+<strong>GraphQL Scalar</strong>: <code>ExchangeRate</code></p>
+<p><strong>Key Features</strong>:
+- High precision for crypto exchange rates
+- Positive values only
+- Supports very small rates (e.g., 0.00000123)</p>
+<p><strong>Implementation Template</strong>:</p>
+<pre><code class="language-python">&quot;&quot;&quot;Exchange rate scalar type for currency conversion rates.&quot;&quot;&quot;
+
+from decimal import Decimal, InvalidOperation
+from typing import Any
+
+from graphql import GraphQLError, GraphQLScalarType
+from graphql.language import FloatValueNode, IntValueNode, StringValueNode
+
+from fraiseql.types.definitions import ScalarMarker
+
+
+def serialize_exchange_rate(value: Any) -&gt; str | None:
+    &quot;&quot;&quot;Serialize exchange rate to string.&quot;&quot;&quot;
+    if value is None:
+        return None
+
+    try:
+        decimal_value = Decimal(str(value))
+    except (InvalidOperation, ValueError) as e:
+        raise GraphQLError(f&quot;Invalid exchange rate: {value}. Must be a decimal number&quot;) from e
+
+    # Must be positive
+    if decimal_value &lt;= 0:
+        raise GraphQLError(
+            f&quot;Invalid exchange rate: {value}. Must be positive (&gt; 0)&quot;
+        )
+
+    # Validate precision (20 digits, 8 decimal places)
+    if decimal_value.as_tuple().exponent &lt; -8:
+        raise GraphQLError(
+            f&quot;Invalid exchange rate: {value}. Maximum 8 decimal places allowed&quot;
+        )
+
+    return str(decimal_value)
+
+
+def parse_exchange_rate_value(value: Any) -&gt; Decimal:
+    &quot;&quot;&quot;Parse exchange rate from variable value.&quot;&quot;&quot;
+    if isinstance(value, Decimal):
+        decimal_value = value
+    elif isinstance(value, (str, int, float)):
+        try:
+            decimal_value = Decimal(str(value))
+        except (InvalidOperation, ValueError) as e:
+            raise GraphQLError(f&quot;Invalid exchange rate: {value}. Must be a decimal number&quot;) from e
+    else:
+        raise GraphQLError(f&quot;Exchange rate must be a number, got {type(value).__name__}&quot;)
+
+    if decimal_value &lt;= 0:
+        raise GraphQLError(
+            f&quot;Invalid exchange rate: {value}. Must be positive (&gt; 0)&quot;
+        )
+
+    if decimal_value.as_tuple().exponent &lt; -8:
+        raise GraphQLError(
+            f&quot;Invalid exchange rate: {value}. Maximum 8 decimal places allowed&quot;
+        )
+
+    return decimal_value
+
+
+def parse_exchange_rate_literal(ast: Any, _variables: dict[str, Any] | None = None) -&gt; Decimal:
+    &quot;&quot;&quot;Parse exchange rate from AST literal.&quot;&quot;&quot;
+    if isinstance(ast, (IntValueNode, FloatValueNode, StringValueNode)):
+        return parse_exchange_rate_value(ast.value)
+
+    raise GraphQLError(&quot;Exchange rate must be a number&quot;)
+
+
+ExchangeRateScalar = GraphQLScalarType(
+    name=&quot;ExchangeRate&quot;,
+    description=(
+        &quot;Currency exchange rate with high precision. &quot;
+        &quot;Stored as NUMERIC(20,8) - up to 8 decimal places. &quot;
+        &quot;Must be positive. Supports very small rates for crypto. &quot;
+        &quot;Examples: 1.2345, 0.85, 0.00000123&quot;
+    ),
+    serialize=serialize_exchange_rate,
+    parse_value=parse_exchange_rate_value,
+    parse_literal=parse_exchange_rate_literal,
+)
+
+
+class ExchangeRateField(Decimal, ScalarMarker):
+    &quot;&quot;&quot;Currency exchange rate with high precision.
+
+    This scalar represents exchange rates between currencies:
+    - High precision: NUMERIC(20,8)
+    - Must be positive (&gt; 0)
+    - Supports very small rates (crypto)
+    - No floating-point errors
+
+    Example:
+        &gt;&gt;&gt; from fraiseql.types import ExchangeRate
+        &gt;&gt;&gt;
+        &gt;&gt;&gt; @fraiseql.type
+        ... class TradingInstrument:
+        ...     exchange_rate: ExchangeRate
+        ...     base_currency: str
+        ...     quote_currency: str
+    &quot;&quot;&quot;
+
+    __slots__ = ()
+
+    def __new__(cls, value: Any) -&gt; &quot;ExchangeRateField&quot;:
+        &quot;&quot;&quot;Create a new ExchangeRateField instance with validation.&quot;&quot;&quot;
+        try:
+            decimal_value = Decimal(str(value))
+        except (InvalidOperation, ValueError) as e:
+            raise ValueError(f&quot;Invalid exchange rate: {value}. Must be a decimal number&quot;) from e
+
+        if decimal_value &lt;= 0:
+            raise ValueError(
+                f&quot;Invalid exchange rate: {value}. Must be positive (&gt; 0)&quot;
+            )
+
+        if decimal_value.as_tuple().exponent &lt; -8:
+            raise ValueError(
+                f&quot;Invalid exchange rate: {value}. Maximum 8 decimal places allowed&quot;
+            )
+
+        return super().__new__(cls, decimal_value)
+</code></pre>
+<hr />
+<h3 id="5-image-scalar">5. Image Scalar</h3>
+<p><strong>File</strong>: <code>src/fraiseql/types/scalars/image.py</code></p>
+<p><strong>Validation</strong>: Image URL or file path
+- <strong>Formats</strong>: URL (http/https) or file path
+- <strong>Extensions</strong>: <code>.jpg</code>, <code>.jpeg</code>, <code>.png</code>, <code>.gif</code>, <code>.webp</code>, <code>.svg</code>, <code>.bmp</code>, <code>.ico</code>
+- <strong>Examples</strong>: <code>https://example.com/avatar.png</code>, <code>/uploads/image.jpg</code>, <code>data:image/png;base64,...</code></p>
+<p><strong>PostgreSQL Type</strong>: <code>TEXT</code>
+<strong>GraphQL Scalar</strong>: <code>Image</code></p>
+<p><strong>Key Features</strong>:
+- Validates URL format or file path
+- Validates image file extensions
+- Supports data URLs (base64)
+- Case-insensitive extension checking</p>
+<p><strong>Implementation Template</strong>:</p>
+<pre><code class="language-python">&quot;&quot;&quot;Image scalar type for image URL/path validation.&quot;&quot;&quot;
+
+import re
+from typing import Any
+
+from graphql import GraphQLError, GraphQLScalarType
+from graphql.language import StringValueNode
+
+from fraiseql.types.definitions import ScalarMarker
+
+# Image file extensions
+_IMAGE_EXTENSIONS = {&quot;.jpg&quot;, &quot;.jpeg&quot;, &quot;.png&quot;, &quot;.gif&quot;, &quot;.webp&quot;, &quot;.svg&quot;, &quot;.bmp&quot;, &quot;.ico&quot;}
+
+# URL or file path pattern
+_URL_PATTERN = re.compile(r&quot;^https?://&quot;, re.IGNORECASE)
+_DATA_URL_PATTERN = re.compile(r&quot;^data:image/[a-z]+;base64,&quot;, re.IGNORECASE)
+
+
+def _is_valid_image(value: str) -&gt; bool:
+    &quot;&quot;&quot;Check if value is a valid image URL or path.&quot;&quot;&quot;
+    value_lower = value.lower()
+
+    # Data URL (base64 encoded image)
+    if _DATA_URL_PATTERN.match(value_lower):
+        return True
+
+    # HTTP/HTTPS URL
+    if _URL_PATTERN.match(value_lower):
+        # Check if ends with image extension or has extension in path
+        return any(ext in value_lower for ext in _IMAGE_EXTENSIONS)
+
+    # File path
+    return any(value_lower.endswith(ext) for ext in _IMAGE_EXTENSIONS)
+
+
+def serialize_image(value: Any) -&gt; str | None:
+    &quot;&quot;&quot;Serialize image to string.&quot;&quot;&quot;
+    if value is None:
+        return None
+
+    value_str = str(value).strip()
+
+    if not _is_valid_image(value_str):
+        raise GraphQLError(
+            f&quot;Invalid image: {value}. Must be URL or path with image extension &quot;
+            f&quot;(jpg, jpeg, png, gif, webp, svg, bmp, ico)&quot;
+        )
+
+    return value_str
+
+
+def parse_image_value(value: Any) -&gt; str:
+    &quot;&quot;&quot;Parse image from variable value.&quot;&quot;&quot;
+    if not isinstance(value, str):
+        raise GraphQLError(f&quot;Image must be a string, got {type(value).__name__}&quot;)
+
+    value_str = value.strip()
+
+    if not _is_valid_image(value_str):
+        raise GraphQLError(
+            f&quot;Invalid image: {value}. Must be URL or path with image extension &quot;
+            f&quot;(jpg, jpeg, png, gif, webp, svg, bmp, ico)&quot;
+        )
+
+    return value_str
+
+
+def parse_image_literal(ast: Any, _variables: dict[str, Any] | None = None) -&gt; str:
+    &quot;&quot;&quot;Parse image from AST literal.&quot;&quot;&quot;
+    if not isinstance(ast, StringValueNode):
+        raise GraphQLError(&quot;Image must be a string&quot;)
+
+    return parse_image_value(ast.value)
+
+
+ImageScalar = GraphQLScalarType(
+    name=&quot;Image&quot;,
+    description=(
+        &quot;Image URL or file path. &quot;
+        &quot;Supports: http/https URLs, file paths, data URLs (base64). &quot;
+        &quot;Valid extensions: jpg, jpeg, png, gif, webp, svg, bmp, ico. &quot;
+        &quot;Examples: https://example.com/avatar.png, /uploads/image.jpg&quot;
+    ),
+    serialize=serialize_image,
+    parse_value=parse_image_value,
+    parse_literal=parse_image_literal,
+)
+
+
+class ImageField(str, ScalarMarker):
+    &quot;&quot;&quot;Image URL or file path.
+
+    This scalar validates image URLs or file paths:
+    - HTTP/HTTPS URLs with image extensions
+    - File paths ending with image extensions
+    - Data URLs (base64 encoded images)
+    - Supported formats: jpg, jpeg, png, gif, webp, svg, bmp, ico
+
+    Example:
+        &gt;&gt;&gt; from fraiseql.types import Image
+        &gt;&gt;&gt;
+        &gt;&gt;&gt; @fraiseql.type
+        ... class User:
+        ...     avatar: Image | None
+        ...     cover_photo: Image | None
+    &quot;&quot;&quot;
+
+    __slots__ = ()
+
+    def __new__(cls, value: str) -&gt; &quot;ImageField&quot;:
+        &quot;&quot;&quot;Create a new ImageField instance with validation.&quot;&quot;&quot;
+        value_str = value.strip()
+        if not _is_valid_image(value_str):
+            raise ValueError(
+                f&quot;Invalid image: {value}. Must be URL or path with image extension &quot;
+                f&quot;(jpg, jpeg, png, gif, webp, svg, bmp, ico)&quot;
+            )
+        return super().__new__(cls, value_str)
+</code></pre>
+<hr />
+<h2 id="quick-reference-all-15-missing-scalars">Quick Reference: All 15 Missing Scalars</h2>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Scalar</th>
+<th>PostgreSQL Type</th>
+<th>GraphQL Name</th>
+<th>Priority</th>
+<th>Complexity</th>
+<th>Time</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>PhoneNumber</td>
+<td>TEXT</td>
+<td>PhoneNumber</td>
+<td>P1</td>
+<td>Low</td>
+<td>1.5h</td>
+</tr>
+<tr>
+<td>2</td>
+<td>URL</td>
+<td>TEXT</td>
+<td>URL</td>
+<td>P1</td>
+<td>Low</td>
+<td>1.5h</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Money</td>
+<td>NUMERIC(19,4)</td>
+<td>Money</td>
+<td>P1</td>
+<td>Medium</td>
+<td>2h</td>
+</tr>
+<tr>
+<td>4</td>
+<td>ExchangeRate</td>
+<td>NUMERIC(20,8)</td>
+<td>ExchangeRate</td>
+<td>P1</td>
+<td>Medium</td>
+<td>2h</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Image</td>
+<td>TEXT</td>
+<td>Image</td>
+<td>P1</td>
+<td>Low</td>
+<td>1.5h</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Percentage</td>
+<td>NUMERIC(5,2)</td>
+<td>Percentage</td>
+<td>P2</td>
+<td>Low</td>
+<td>1.5h</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Slug</td>
+<td>TEXT</td>
+<td>Slug</td>
+<td>P2</td>
+<td>Low</td>
+<td>1.5h</td>
+</tr>
+<tr>
+<td>8</td>
+<td>Markdown</td>
+<td>TEXT</td>
+<td>Markdown</td>
+<td>P2</td>
+<td>Low</td>
+<td>1h</td>
+</tr>
+<tr>
+<td>9</td>
+<td>Color</td>
+<td>TEXT</td>
+<td>Color</td>
+<td>P2</td>
+<td>Low</td>
+<td>1h</td>
+</tr>
+<tr>
+<td>10</td>
+<td>HTML</td>
+<td>TEXT</td>
+<td>HTML</td>
+<td>P3</td>
+<td>Low</td>
+<td>1h</td>
+</tr>
+<tr>
+<td>11</td>
+<td>Latitude</td>
+<td>NUMERIC(10,8)</td>
+<td>Latitude</td>
+<td>P3</td>
+<td>Low</td>
+<td>1.5h</td>
+</tr>
+<tr>
+<td>12</td>
+<td>Longitude</td>
+<td>NUMERIC(11,8)</td>
+<td>Longitude</td>
+<td>P3</td>
+<td>Low</td>
+<td>1.5h</td>
+</tr>
+<tr>
+<td>13</td>
+<td>Time</td>
+<td>TIME</td>
+<td>Time</td>
+<td>P3</td>
+<td>Low</td>
+<td>1.5h</td>
+</tr>
+<tr>
+<td>14</td>
+<td>Duration</td>
+<td>INTERVAL</td>
+<td>Duration</td>
+<td>P3</td>
+<td>Medium</td>
+<td>2h</td>
+</tr>
+<tr>
+<td>15</td>
+<td>File</td>
+<td>TEXT</td>
+<td>File</td>
+<td>P3</td>
+<td>Low</td>
+<td>1.5h</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total Estimated Time</strong>: 22-24 hours (distributed across 3 weeks)</p>
+<hr />
+<h2 id="implementation-strategy">Implementation Strategy</h2>
+<h3 id="batched-implementation-approach">Batched Implementation Approach</h3>
+<h4 id="batch-1-priority-1-scalars-week-1">Batch 1: Priority 1 Scalars (Week 1)</h4>
+<p><strong>Scalars</strong>: PhoneNumber, URL, Money, ExchangeRate, Image
+<strong>Time</strong>: 8-10 hours
+<strong>Order</strong>:
+1. PhoneNumber (1.5h) - Simplest, good warm-up
+2. URL (1.5h) - Similar pattern to PhoneNumber
+3. Image (1.5h) - Builds on URL validation
+4. Money (2h) - Decimal handling, more complex
+5. ExchangeRate (2h) - Similar to Money</p>
+<p><strong>Deliverables</strong>:
+- 5 scalar implementation files
+- 5 test files with 100% coverage
+- Module exports updated
+- Integration tests passing</p>
+<h4 id="batch-2-priority-2-scalars-week-2">Batch 2: Priority 2 Scalars (Week 2)</h4>
+<p><strong>Scalars</strong>: Percentage, Slug, Markdown, Color
+<strong>Time</strong>: 6-8 hours
+<strong>Order</strong>:
+1. Color (1h) - Simple regex validation
+2. Slug (1.5h) - Regex + normalization
+3. Markdown (1h) - Minimal validation
+4. Percentage (1.5h) - Decimal with range constraints</p>
+<p><strong>Deliverables</strong>:
+- 4 scalar implementation files
+- 4 test files with 100% coverage
+- Module exports updated
+- Integration tests passing</p>
+<h4 id="batch-3-priority-3-scalars-week-3-4">Batch 3: Priority 3 Scalars (Week 3-4)</h4>
+<p><strong>Scalars</strong>: HTML, Latitude, Longitude, Time, Duration, File
+<strong>Time</strong>: 8-10 hours
+<strong>Order</strong>:
+1. HTML (1h) - Minimal validation
+2. File (1.5h) - Similar to Image
+3. Time (1.5h) - PostgreSQL TIME type
+4. Latitude (1.5h) - Decimal with range
+5. Longitude (1.5h) - Decimal with range
+6. Duration (2h) - PostgreSQL INTERVAL type</p>
+<p><strong>Deliverables</strong>:
+- 6 scalar implementation files
+- 6 test files with 100% coverage
+- Module exports updated
+- Integration tests passing
+- Complete documentation</p>
+<hr />
+<h2 id="file-structure">File Structure</h2>
+<pre><code>fraiseql/
+├── src/fraiseql/types/scalars/
+│   ├── __init__.py                    # UPDATE: Add new exports
+│   ├── color.py                       # NEW
+│   ├── duration.py                    # NEW
+│   ├── exchange_rate.py               # NEW
+│   ├── file.py                        # NEW
+│   ├── html.py                        # NEW
+│   ├── image.py                       # NEW
+│   ├── latitude.py                    # NEW
+│   ├── longitude.py                   # NEW
+│   ├── markdown.py                    # NEW
+│   ├── money.py                       # NEW
+│   ├── percentage.py                  # NEW
+│   ├── phone_number.py                # NEW
+│   ├── slug.py                        # NEW
+│   ├── time.py                        # NEW
+│   └── url.py                         # NEW
+│
+├── src/fraiseql/types/__init__.py     # UPDATE: Add new exports
+│
+└── tests/unit/core/type_system/
+    ├── test_color_scalar.py           # NEW
+    ├── test_duration_scalar.py        # NEW
+    ├── test_exchange_rate_scalar.py   # NEW
+    ├── test_file_scalar.py            # NEW
+    ├── test_html_scalar.py            # NEW
+    ├── test_image_scalar.py           # NEW
+    ├── test_latitude_scalar.py        # NEW
+    ├── test_longitude_scalar.py       # NEW
+    ├── test_markdown_scalar.py        # NEW
+    ├── test_money_scalar.py           # NEW
+    ├── test_percentage_scalar.py      # NEW
+    ├── test_phone_number_scalar.py    # NEW
+    ├── test_slug_scalar.py            # NEW
+    ├── test_time_scalar.py            # NEW
+    └── test_url_scalar.py             # NEW
+</code></pre>
+<hr />
+<h2 id="testing-strategy">Testing Strategy</h2>
+<h3 id="test-template-structure">Test Template Structure</h3>
+<p>Each scalar test file follows the pattern established by <code>test_hostname_scalar.py</code>:</p>
+<pre><code class="language-python">&quot;&quot;&quot;Tests for [Scalar] scalar type validation.&quot;&quot;&quot;
+
+import pytest
+from graphql import GraphQLError
+from graphql.language import IntValueNode, StringValueNode
+
+from fraiseql.types.scalars.[scalar_module] import (
+    [Scalar]Field,
+    parse_[scalar]_literal,
+    parse_[scalar]_value,
+    serialize_[scalar],
+)
+
+
+@pytest.mark.unit
+class Test[Scalar]Serialization:
+    &quot;&quot;&quot;Test [scalar] serialization.&quot;&quot;&quot;
+
+    def test_serialize_valid_[scalar]s(self):
+        &quot;&quot;&quot;Test serializing valid [scalar]s.&quot;&quot;&quot;
+        # Valid examples
+
+    def test_serialize_none(self):
+        &quot;&quot;&quot;Test serializing None returns None.&quot;&quot;&quot;
+        assert serialize_[scalar](None) is None
+
+    def test_serialize_invalid_[scalar](self):
+        &quot;&quot;&quot;Test serializing invalid [scalar]s raises error.&quot;&quot;&quot;
+        # Invalid examples with pytest.raises
+
+
+class Test[Scalar]Parsing:
+    &quot;&quot;&quot;Test [scalar] parsing from variables.&quot;&quot;&quot;
+
+    def test_parse_valid_[scalar](self):
+        &quot;&quot;&quot;Test parsing valid [scalar]s.&quot;&quot;&quot;
+        # Valid examples
+
+    def test_parse_invalid_[scalar](self):
+        &quot;&quot;&quot;Test parsing invalid [scalar]s raises error.&quot;&quot;&quot;
+        # Invalid examples
+
+    def test_parse_invalid_type(self):
+        &quot;&quot;&quot;Test parsing non-string types raises error.&quot;&quot;&quot;
+        # Type validation
+
+
+class Test[Scalar]Field:
+    &quot;&quot;&quot;Test [Scalar]Field class.&quot;&quot;&quot;
+
+    def test_create_valid_[scalar]_field(self):
+        &quot;&quot;&quot;Test creating [Scalar]Field with valid values.&quot;&quot;&quot;
+        # Constructor tests
+
+    def test_create_invalid_[scalar]_field(self):
+        &quot;&quot;&quot;Test creating [Scalar]Field with invalid values raises error.&quot;&quot;&quot;
+        # Invalid constructor tests
+
+
+class Test[Scalar]LiteralParsing:
+    &quot;&quot;&quot;Test parsing [scalar] from GraphQL literals.&quot;&quot;&quot;
+
+    def test_parse_valid_literal(self):
+        &quot;&quot;&quot;Test parsing valid [scalar] literals.&quot;&quot;&quot;
+        # AST node tests
+
+    def test_parse_invalid_literal_format(self):
+        &quot;&quot;&quot;Test parsing invalid [scalar] format literals.&quot;&quot;&quot;
+        # Invalid AST tests
+
+    def test_parse_non_string_literal(self):
+        &quot;&quot;&quot;Test parsing non-string literals.&quot;&quot;&quot;
+        # Type validation for AST
+</code></pre>
+<h3 id="test-execution-commands">Test Execution Commands</h3>
+<pre><code class="language-bash"># Run specific scalar tests
+uv run pytest tests/unit/core/type_system/test_phone_number_scalar.py -v
+uv run pytest tests/unit/core/type_system/test_money_scalar.py -v
+
+# Run all new scalar tests
+uv run pytest tests/unit/core/type_system/ -k &quot;phone_number or url or money or exchange_rate or image&quot; -v
+
+# Run complete test suite
+uv run pytest --tb=short
+
+# Code quality
+uv run ruff check
+uv run mypy
+</code></pre>
+<hr />
+<h2 id="module-export-updates">Module Export Updates</h2>
+<h3 id="srcfraiseqltypesscalars__init__py"><code>src/fraiseql/types/scalars/__init__.py</code></h3>
+<p><strong>Add to imports</strong>:</p>
+<pre><code class="language-python">from .color import ColorScalar
+from .duration import DurationScalar
+from .exchange_rate import ExchangeRateScalar
+from .file import FileScalar
+from .html import HTMLScalar
+from .image import ImageScalar
+from .latitude import LatitudeScalar
+from .longitude import LongitudeScalar
+from .markdown import MarkdownScalar
+from .money import MoneyScalar
+from .percentage import PercentageScalar
+from .phone_number import PhoneNumberScalar
+from .slug import SlugScalar
+from .time import TimeScalar
+from .url import URLScalar
+</code></pre>
+<p><strong>Add to <code>__all__</code></strong> (alphabetically):</p>
+<pre><code class="language-python">__all__ = [
+    &quot;CIDRScalar&quot;,
+    &quot;ColorScalar&quot;,           # NEW
+    &quot;CoordinateScalar&quot;,
+    &quot;DateRangeScalar&quot;,
+    &quot;DateScalar&quot;,
+    &quot;DateTimeScalar&quot;,
+    &quot;DurationScalar&quot;,        # NEW
+    &quot;ExchangeRateScalar&quot;,    # NEW
+    &quot;FileScalar&quot;,            # NEW
+    &quot;HostnameScalar&quot;,
+    &quot;HTMLScalar&quot;,            # NEW
+    &quot;ImageScalar&quot;,           # NEW
+    &quot;IpAddressScalar&quot;,
+    &quot;JSONScalar&quot;,
+    &quot;LanguageCodeScalar&quot;,
+    &quot;LatitudeScalar&quot;,        # NEW
+    &quot;LocaleCodeScalar&quot;,
+    &quot;LongitudeScalar&quot;,       # NEW
+    &quot;LTreeScalar&quot;,
+    &quot;MacAddressScalar&quot;,
+    &quot;MarkdownScalar&quot;,        # NEW
+    &quot;MoneyScalar&quot;,           # NEW
+    &quot;PercentageScalar&quot;,      # NEW
+    &quot;PhoneNumberScalar&quot;,     # NEW
+    &quot;PortScalar&quot;,
+    &quot;SlugScalar&quot;,            # NEW
+    &quot;SubnetMaskScalar&quot;,
+    &quot;TimeScalar&quot;,            # NEW
+    &quot;TimezoneScalar&quot;,
+    &quot;URLScalar&quot;,             # NEW
+    &quot;UUIDScalar&quot;,
+]
+</code></pre>
+<h3 id="srcfraiseqltypes__init__py"><code>src/fraiseql/types/__init__.py</code></h3>
+<p><strong>Add to imports</strong>:</p>
+<pre><code class="language-python">from .scalars.color import ColorField as Color
+from .scalars.duration import DurationField as Duration
+from .scalars.exchange_rate import ExchangeRateField as ExchangeRate
+from .scalars.file import FileField as File
+from .scalars.html import HTMLField as HTML
+from .scalars.image import ImageField as Image
+from .scalars.latitude import LatitudeField as Latitude
+from .scalars.longitude import LongitudeField as Longitude
+from .scalars.markdown import MarkdownField as Markdown
+from .scalars.money import MoneyField as Money
+from .scalars.percentage import PercentageField as Percentage
+from .scalars.phone_number import PhoneNumberField as PhoneNumber
+from .scalars.slug import SlugField as Slug
+from .scalars.time import TimeField as Time
+from .scalars.url import URLField as URL
+</code></pre>
+<p><strong>Add to <code>__all__</code></strong> (alphabetically):</p>
+<pre><code class="language-python">__all__ = [
+    &quot;CIDR&quot;,
+    &quot;Color&quot;,              # NEW
+    &quot;Connection&quot;,
+    &quot;Coordinate&quot;,
+    &quot;Date&quot;,
+    &quot;DateRange&quot;,
+    &quot;DateRangeValidatable&quot;,
+    &quot;DateRangeValidationMixin&quot;,
+    &quot;DateTime&quot;,
+    &quot;Duration&quot;,           # NEW
+    &quot;Edge&quot;,
+    &quot;EmailAddress&quot;,
+    &quot;Error&quot;,
+    &quot;ExchangeRate&quot;,       # NEW
+    &quot;File&quot;,               # NEW
+    &quot;HTML&quot;,               # NEW
+    &quot;Hostname&quot;,
+    &quot;Image&quot;,              # NEW
+    &quot;IpAddress&quot;,
+    &quot;JSON&quot;,
+    &quot;LanguageCode&quot;,
+    &quot;Latitude&quot;,           # NEW
+    &quot;LocaleCode&quot;,
+    &quot;Longitude&quot;,          # NEW
+    &quot;LTree&quot;,
+    &quot;MacAddress&quot;,
+    &quot;Markdown&quot;,           # NEW
+    &quot;Money&quot;,              # NEW
+    &quot;PageInfo&quot;,
+    &quot;PaginatedResponse&quot;,
+    &quot;Percentage&quot;,         # NEW
+    &quot;PhoneNumber&quot;,        # NEW
+    &quot;Port&quot;,
+    &quot;Slug&quot;,               # NEW
+    &quot;Time&quot;,               # NEW
+    &quot;Timezone&quot;,
+    &quot;URL&quot;,                # NEW
+    &quot;convert_scalar_to_graphql&quot;,
+    &quot;create_connection&quot;,
+    &quot;date_range_validator&quot;,
+    &quot;fraise_input&quot;,
+    &quot;fraise_type&quot;,
+    &quot;get_date_range_validation_errors&quot;,
+    &quot;input&quot;,
+    &quot;type&quot;,
+    &quot;validate_date_range&quot;,
+]
+</code></pre>
+<hr />
+<h2 id="quality-assurance-checklist">Quality Assurance Checklist</h2>
+<h3 id="per-scalar-checklist">Per-Scalar Checklist</h3>
+<p>For each scalar implementation:</p>
+<ul>
+<li>[ ] Scalar file created with pattern compliance</li>
+<li>[ ] Test file created with 100% coverage</li>
+<li>[ ] Serialization tests pass (valid, invalid, None)</li>
+<li>[ ] Parsing tests pass (valid, invalid, type errors)</li>
+<li>[ ] Field marker tests pass (constructor validation)</li>
+<li>[ ] Literal parsing tests pass (AST nodes)</li>
+<li>[ ] Exports added to <code>scalars/__init__.py</code></li>
+<li>[ ] Exports added to <code>types/__init__.py</code></li>
+<li>[ ] Linting passes: <code>uv run ruff check</code></li>
+<li>[ ] Type checking passes: <code>uv run mypy</code></li>
+<li>[ ] Integration test created and passing</li>
+<li>[ ] Documentation complete with examples</li>
+</ul>
+<h3 id="batch-completion-checklist">Batch Completion Checklist</h3>
+<p>After each batch:</p>
+<ul>
+<li>[ ] All scalar tests pass: <code>uv run pytest tests/unit/core/type_system/ -k "[batch_pattern]"</code></li>
+<li>[ ] No regressions: <code>uv run pytest --tb=short</code></li>
+<li>[ ] Code coverage maintained: <code>uv run pytest --cov=src</code></li>
+<li>[ ] Linting clean: <code>uv run ruff check</code></li>
+<li>[ ] Type checking clean: <code>uv run mypy</code></li>
+<li>[ ] Integration tests pass</li>
+<li>[ ] Documentation updated</li>
+<li>[ ] Usage examples added</li>
+<li>[ ] Git commit with clear message</li>
+</ul>
+<hr />
+<h2 id="integration-testing">Integration Testing</h2>
+<h3 id="integration-test-template">Integration Test Template</h3>
+<p><strong>File</strong>: <code>tests/integration/test_[batch]_scalars_integration.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;Integration tests for [batch] scalars.&quot;&quot;&quot;
+
+import pytest
+from fraiseql.types import (
+    type,
+    input,
+    PhoneNumber,
+    URL,
+    Money,
+    # ... other scalars in batch
+)
+
+
+def test_scalars_in_type_definition():
+    &quot;&quot;&quot;Test scalars work in @fraiseql.type definitions.&quot;&quot;&quot;
+
+    @type(sql_source=&quot;app.contacts&quot;)
+    class Contact:
+        id: int
+        name: str
+        phone: PhoneNumber
+        website: URL | None
+
+    # Should create without errors
+    contact = Contact(
+        id=1,
+        name=&quot;John Doe&quot;,
+        phone=PhoneNumber(&quot;+14155552671&quot;),
+        website=URL(&quot;https://example.com&quot;)
+    )
+
+    assert contact.phone == &quot;+14155552671&quot;
+    assert contact.website == &quot;https://example.com&quot;
+
+
+def test_scalars_in_input_definition():
+    &quot;&quot;&quot;Test scalars work in @fraiseql.input definitions.&quot;&quot;&quot;
+
+    @input
+    class CreateContactInput:
+        name: str
+        phone: PhoneNumber
+        website: URL | None
+
+    # Should validate on construction
+    input_data = CreateContactInput(
+        name=&quot;Jane Doe&quot;,
+        phone=PhoneNumber(&quot;+14155552672&quot;),
+        website=None
+    )
+
+    assert input_data.phone == &quot;+14155552672&quot;
+
+
+def test_scalar_validation_errors():
+    &quot;&quot;&quot;Test scalars raise validation errors.&quot;&quot;&quot;
+
+    with pytest.raises(ValueError, match=&quot;Invalid phone number&quot;):
+        PhoneNumber(&quot;not-a-phone&quot;)
+
+    with pytest.raises(ValueError, match=&quot;Invalid URL&quot;):
+        URL(&quot;not-a-url&quot;)
+</code></pre>
+<hr />
+<h2 id="usage-examples">Usage Examples</h2>
+<h3 id="contact-management-priority-1-scalars">Contact Management (Priority 1 Scalars)</h3>
+<pre><code class="language-python">from fraiseql.types import type, input, PhoneNumber, URL, Image
+
+@type(sql_source=&quot;crm.contacts&quot;)
+class Contact:
+    id: int
+    name: str
+    email: EmailAddress
+    phone: PhoneNumber
+    website: URL | None
+    avatar: Image | None
+
+@input
+class CreateContactInput:
+    name: str
+    email: EmailAddress
+    phone: PhoneNumber
+    website: URL | None
+    avatar: Image | None
+</code></pre>
+<h3 id="trading-instruments-priority-1-scalars">Trading Instruments (Priority 1 Scalars)</h3>
+<pre><code class="language-python">from fraiseql.types import type, Money, ExchangeRate
+
+@type(sql_source=&quot;trading.instruments&quot;)
+class TradingInstrument:
+    id: int
+    base_currency: str
+    quote_currency: str
+    exchange_rate: ExchangeRate
+    volume_24h: Money
+    last_updated: DateTime
+</code></pre>
+<h3 id="product-catalog-priority-2-scalars">Product Catalog (Priority 2 Scalars)</h3>
+<pre><code class="language-python">from fraiseql.types import type, Money, Percentage, Markdown, Slug, Color
+
+@type(sql_source=&quot;catalog.products&quot;)
+class Product:
+    id: int
+    name: str
+    slug: Slug
+    description: Markdown
+    price: Money
+    discount_percentage: Percentage | None
+    brand_color: Color | None
+</code></pre>
+<h3 id="event-scheduling-priority-3-scalars">Event Scheduling (Priority 3 Scalars)</h3>
+<pre><code class="language-python">from fraiseql.types import type, Date, Time, Duration
+
+@type(sql_source=&quot;calendar.events&quot;)
+class Event:
+    id: int
+    title: str
+    event_date: Date
+    start_time: Time
+    duration: Duration
+    timezone: Timezone
+</code></pre>
+<hr />
+<h2 id="success-criteria">Success Criteria</h2>
+<h3 id="functional-success">Functional Success</h3>
+<p>✅ <strong>All 15 Scalars Implemented</strong>:
+- PhoneNumber, URL, Money, ExchangeRate, Image
+- Percentage, Slug, Markdown, Color
+- HTML, Latitude, Longitude, Time, Duration, File</p>
+<p>✅ <strong>Quality Standards Met</strong>:
+- 100% test coverage for all scalars
+- All tests passing
+- Zero regressions
+- Linting clean
+- Type checking clean</p>
+<p>✅ <strong>Integration Success</strong>:
+- Works with <code>@fraiseql.type</code> and <code>@fraiseql.input</code>
+- PostgreSQL integration working
+- GraphQL schema generation working
+- Documentation complete</p>
+<h3 id="business-impact">Business Impact</h3>
+<p>✅ <strong>printoptim_backend_poc Ready</strong>:
+- Contact management fully supported
+- Trading instruments fully supported
+- All entity YAML files can use rich types
+- Type-safe API development enabled</p>
+<p>✅ <strong>FraiseQL Library Enhanced</strong>:
+- 15 new universal scalars
+- Comprehensive coverage of common use cases
+- Ready for other projects to use
+- Well-documented with examples</p>
+<hr />
+<h2 id="next-steps">Next Steps</h2>
+<h3 id="phase-1-batch-1-implementation-this-week">Phase 1: Batch 1 Implementation (This Week)</h3>
+<ol>
+<li>Create GitHub issues for Batch 1 scalars</li>
+<li>Implement scalars in order: PhoneNumber → URL → Image → Money → ExchangeRate</li>
+<li>Run tests after each scalar</li>
+<li>Create integration tests</li>
+<li>Update documentation</li>
+</ol>
+<h3 id="phase-2-batch-2-implementation-next-week">Phase 2: Batch 2 Implementation (Next Week)</h3>
+<ol>
+<li>Create GitHub issues for Batch 2 scalars</li>
+<li>Implement scalars in order: Color → Slug → Markdown → Percentage</li>
+<li>Run tests after each scalar</li>
+<li>Create integration tests</li>
+<li>Update documentation</li>
+</ol>
+<h3 id="phase-3-batch-3-implementation-weeks-3-4">Phase 3: Batch 3 Implementation (Weeks 3-4)</h3>
+<ol>
+<li>Create GitHub issues for Batch 3 scalars</li>
+<li>Implement scalars in order: HTML → File → Time → Latitude → Longitude → Duration</li>
+<li>Run tests after each scalar</li>
+<li>Create integration tests</li>
+<li>Update documentation</li>
+<li>Final integration verification</li>
+<li>Release notes</li>
+</ol>
+<hr />
+<h2 id="references">References</h2>
+<ul>
+<li><strong>FraiseQL Scalar Patterns</strong>: <code>/home/lionel/code/fraiseql/src/fraiseql/types/scalars/</code></li>
+<li><strong>Test Patterns</strong>: <code>/home/lionel/code/fraiseql/tests/unit/core/type_system/test_hostname_scalar.py</code></li>
+<li><strong>printoptim_backend_poc Entities</strong>: <code>/home/lionel/code/printoptim_backend_poc/entities/</code></li>
+<li><strong>Rich Types Spec</strong>: <code>/home/lionel/code/printoptim_backend_poc/docs/teams/TEAM_A_RICH_TYPES_IMPLEMENTATION.md</code></li>
+<li><strong>i18n Scalars Implementation</strong>: <code>/home/lionel/code/fraiseql/docs/implementation-plans/I18N_SCALARS_IMPLEMENTATION_PLAN.md</code></li>
+</ul>
+<hr />
+<p><strong>Document Version</strong>: 1.0
+<strong>Last Updated</strong>: 2025-11-09
+<strong>Status</strong>: Ready for Implementation
+<strong>Total Estimated Time</strong>: 22-24 hours (3-4 weeks at current pace)</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

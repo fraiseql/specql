@@ -1,0 +1,1260 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team B: Rich Types Implementation - Schema Generator Extension - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team B: Rich Types Implementation - Schema Generator Extension";
+        var mkdocs_page_input_path = "archive/teams/TEAM_B_RICH_TYPES_IMPLEMENTATION.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team B: Rich Types Implementation - Schema Generator Extension</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-b-rich-types-implementation-schema-generator-extension">Team B: Rich Types Implementation - Schema Generator Extension</h1>
+<p><strong>Epic</strong>: Add FraiseQL Rich Type Support to Schema Generator
+<strong>Timeline</strong>: Week 2, Days 2-3 (after Team A completes parser)
+<strong>Complexity</strong>: Medium-High (DDL generation with constraints)</p>
+<hr />
+<h2 id="objective">🎯 Objective</h2>
+<p>Extend the Schema Generator to create PostgreSQL DDL with appropriate storage types, CHECK constraints, validation, and <strong>descriptive COMMENT statements</strong> for FraiseQL rich types.</p>
+<p><strong>Success Criteria</strong>:
+- ✅ Maps rich types to optimal PostgreSQL types
+- ✅ Generates CHECK constraints for validated types (email, url, phone)
+- ✅ Uses PostgreSQL native types where available (INET, MACADDR, UUID)
+- ✅ <strong>Generates COMMENT ON statements for field descriptions</strong> (NEW!)
+- ✅ Generates indexes appropriate for rich types
+- ✅ Maintains backward compatibility
+- ✅ Generated SQL is valid and efficient
+- ✅ 90%+ test coverage</p>
+<p><strong>NEW in FraiseQL</strong>: PostgreSQL <code>COMMENT ON</code> statements automatically become GraphQL descriptions! This means field-level documentation is now database-driven.</p>
+<hr />
+<h2 id="phase-1-type-mapping-basic-ddl-generation">📋 PHASE 1: Type Mapping &amp; Basic DDL Generation</h2>
+<p><strong>Duration</strong>: 3 hours</p>
+<h3 id="red-phase-write-failing-tests">🔴 RED Phase: Write Failing Tests</h3>
+<p><strong>Test File</strong>: <code>tests/unit/schema/test_rich_type_ddl.py</code></p>
+<pre><code class="language-python">import pytest
+from src.generators.schema.schema_generator import SchemaGenerator
+from src.core.ast_models import Entity, FieldDefinition
+
+
+def test_email_field_generates_text_with_constraint():
+    &quot;&quot;&quot;Test: email type generates TEXT with CHECK constraint&quot;&quot;&quot;
+    entity = Entity(
+        name=&quot;Contact&quot;,
+        schema=&quot;crm&quot;,
+        fields={
+            &quot;email&quot;: FieldDefinition(name=&quot;email&quot;, type=&quot;email&quot;, nullable=False)
+        }
+    )
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_field_ddl(entity.fields[&quot;email&quot;], entity)
+
+    # Expected: TEXT with email validation
+    assert &quot;email TEXT NOT NULL&quot; in ddl
+    assert &quot;CHECK&quot; in ddl
+    assert &quot;~*&quot; in ddl  # Regex operator
+    assert &quot;@&quot; in ddl   # Email pattern
+
+
+def test_url_field_generates_text_with_url_constraint():
+    &quot;&quot;&quot;Test: url type generates TEXT with URL validation&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;website&quot;, type=&quot;url&quot;, nullable=True)
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_field_ddl(field, None)
+
+    assert &quot;website TEXT&quot; in ddl
+    assert &quot;CHECK&quot; in ddl
+    assert &quot;https?&quot; in ddl
+
+
+def test_ip_address_uses_inet_type():
+    &quot;&quot;&quot;Test: ipAddress type uses PostgreSQL INET (no CHECK needed)&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;ip_address&quot;, type=&quot;ipAddress&quot;)
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_field_ddl(field, None)
+
+    # Expected: PostgreSQL INET type (built-in validation)
+    assert &quot;ip_address INET&quot; in ddl
+    assert &quot;CHECK&quot; not in ddl  # INET has built-in validation
+
+
+def test_mac_address_uses_macaddr_type():
+    &quot;&quot;&quot;Test: macAddress type uses PostgreSQL MACADDR&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;mac&quot;, type=&quot;macAddress&quot;)
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_field_ddl(field, None)
+
+    assert &quot;mac MACADDR&quot; in ddl
+    assert &quot;CHECK&quot; not in ddl  # MACADDR has built-in validation
+
+
+def test_coordinates_generates_point_with_constraint():
+    &quot;&quot;&quot;Test: coordinates type generates POINT with lat/lng validation&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;location&quot;, type=&quot;coordinates&quot;)
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_field_ddl(field, None)
+
+    # Expected: POINT type with bounds check
+    assert &quot;location POINT&quot; in ddl
+    assert &quot;CHECK&quot; in ddl
+    # Latitude: -90 to 90, Longitude: -180 to 180
+    assert &quot;-90&quot; in ddl and &quot;90&quot; in ddl
+    assert &quot;-180&quot; in ddl and &quot;180&quot; in ddl
+
+
+def test_money_generates_numeric_with_precision():
+    &quot;&quot;&quot;Test: money type generates NUMERIC(19,4)&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;price&quot;, type=&quot;money&quot;, nullable=False)
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_field_ddl(field, None)
+
+    assert &quot;price NUMERIC(19,4) NOT NULL&quot; in ddl
+
+
+def test_money_with_metadata_uses_custom_precision():
+    &quot;&quot;&quot;Test: money(precision=2) generates NUMERIC(19,2)&quot;&quot;&quot;
+    field = FieldDefinition(
+        name=&quot;price&quot;,
+        type=&quot;money&quot;,
+        type_metadata={&quot;precision&quot;: 2}
+    )
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_field_ddl(field, None)
+
+    assert &quot;price NUMERIC(19,2)&quot; in ddl
+
+
+def test_phone_number_generates_text_with_e164_constraint():
+    &quot;&quot;&quot;Test: phoneNumber type generates TEXT with E.164 validation&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;phone&quot;, type=&quot;phoneNumber&quot;)
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_field_ddl(field, None)
+
+    assert &quot;phone TEXT&quot; in ddl
+    assert &quot;CHECK&quot; in ddl
+    # E.164 format: +[1-9][0-9]{1,14}
+    assert r&quot;\+?&quot; in ddl or &quot;+&quot; in ddl
+
+
+def test_color_generates_text_with_hex_constraint():
+    &quot;&quot;&quot;Test: color type generates TEXT with hex code validation&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;theme_color&quot;, type=&quot;color&quot;)
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_field_ddl(field, None)
+
+    assert &quot;theme_color TEXT&quot; in ddl
+    assert &quot;CHECK&quot; in ddl
+    assert &quot;#&quot; in ddl
+    assert &quot;[0-9A-Fa-f]&quot; in ddl
+
+
+def test_slug_generates_text_with_url_safe_constraint():
+    &quot;&quot;&quot;Test: slug type generates TEXT with lowercase-hyphen validation&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;slug&quot;, type=&quot;slug&quot;)
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_field_ddl(field, None)
+
+    assert &quot;slug TEXT&quot; in ddl
+    assert &quot;CHECK&quot; in ddl
+    assert &quot;[a-z0-9]&quot; in ddl
+    assert &quot;[-]&quot; in ddl or &quot;-&quot; in ddl
+
+
+def test_complete_table_with_multiple_rich_types():
+    &quot;&quot;&quot;Test: Generate complete table with multiple rich types&quot;&quot;&quot;
+    entity = Entity(
+        name=&quot;Contact&quot;,
+        schema=&quot;crm&quot;,
+        fields={
+            &quot;email&quot;: FieldDefinition(name=&quot;email&quot;, type=&quot;email&quot;, nullable=False),
+            &quot;website&quot;: FieldDefinition(name=&quot;website&quot;, type=&quot;url&quot;),
+            &quot;phone&quot;: FieldDefinition(name=&quot;phone&quot;, type=&quot;phoneNumber&quot;),
+            &quot;ip_address&quot;: FieldDefinition(name=&quot;ip_address&quot;, type=&quot;ipAddress&quot;),
+            &quot;first_name&quot;: FieldDefinition(name=&quot;first_name&quot;, type=&quot;text&quot;),
+        }
+    )
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_table_ddl(entity)
+
+    # Verify table structure
+    assert &quot;CREATE TABLE crm.tb_contact&quot; in ddl
+
+    # Verify Trinity pattern (Team B's existing functionality)
+    assert &quot;pk_contact INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY&quot; in ddl
+    assert &quot;id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE&quot; in ddl
+    assert &quot;identifier TEXT UNIQUE&quot; in ddl
+
+    # Verify rich type fields
+    assert &quot;email TEXT NOT NULL CHECK&quot; in ddl
+    assert &quot;website TEXT CHECK&quot; in ddl
+    assert &quot;phone TEXT CHECK&quot; in ddl
+    assert &quot;ip_address INET&quot; in ddl
+
+    # Verify basic type (backward compatibility)
+    assert &quot;first_name TEXT&quot; in ddl
+
+
+def test_backward_compatibility_basic_types():
+    &quot;&quot;&quot;Test: Existing basic types still work correctly&quot;&quot;&quot;
+    entity = Entity(
+        name=&quot;Product&quot;,
+        schema=&quot;sales&quot;,
+        fields={
+            &quot;name&quot;: FieldDefinition(name=&quot;name&quot;, type=&quot;text&quot;, nullable=False),
+            &quot;quantity&quot;: FieldDefinition(name=&quot;quantity&quot;, type=&quot;integer&quot;),
+            &quot;active&quot;: FieldDefinition(name=&quot;active&quot;, type=&quot;boolean&quot;),
+            &quot;metadata&quot;: FieldDefinition(name=&quot;metadata&quot;, type=&quot;jsonb&quot;),
+        }
+    )
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_table_ddl(entity)
+
+    assert &quot;name TEXT NOT NULL&quot; in ddl
+    assert &quot;quantity INTEGER&quot; in ddl
+    assert &quot;active BOOLEAN&quot; in ddl
+    assert &quot;metadata JSONB&quot; in ddl
+</code></pre>
+<p><strong>Run Tests</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/schema/test_rich_type_ddl.py -v
+# Expected: FAILED (not implemented)
+</code></pre>
+<hr />
+<h3 id="green-phase-minimal-implementation">🟢 GREEN Phase: Minimal Implementation</h3>
+<p><strong>File</strong>: <code>src/generators/schema/rich_type_mapper.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;
+Rich Type Mapper
+Maps FraiseQL rich types to PostgreSQL DDL with constraints
+&quot;&quot;&quot;
+
+from dataclasses import dataclass
+from typing import Optional
+from src.core.ast_models import FieldDefinition
+from src.core.type_registry import get_type_registry
+
+
+@dataclass
+class FieldDDL:
+    &quot;&quot;&quot;PostgreSQL field DDL components&quot;&quot;&quot;
+    column_name: str
+    data_type: str
+    nullable: bool
+    default: Optional[str] = None
+    check_constraint: Optional[str] = None
+
+
+class RichTypeMapper:
+    &quot;&quot;&quot;Maps rich types to PostgreSQL DDL&quot;&quot;&quot;
+
+    def __init__(self):
+        self.type_registry = get_type_registry()
+
+    def map_field_to_ddl(self, field: FieldDefinition) -&gt; FieldDDL:
+        &quot;&quot;&quot;Map field definition to PostgreSQL DDL components&quot;&quot;&quot;
+
+        # Get base PostgreSQL type
+        pg_type = field.get_postgres_type()
+
+        # Get CHECK constraint if needed
+        check_constraint = self._generate_check_constraint(field)
+
+        # Format default value
+        default = self._format_default(field.default) if field.default else None
+
+        return FieldDDL(
+            column_name=field.name,
+            data_type=pg_type,
+            nullable=field.nullable,
+            default=default,
+            check_constraint=check_constraint
+        )
+
+    def _generate_check_constraint(self, field: FieldDefinition) -&gt; Optional[str]:
+        &quot;&quot;&quot;Generate CHECK constraint for validated rich types&quot;&quot;&quot;
+
+        if not field.is_rich_type():
+            return None
+
+        # Get validation pattern from type registry
+        pattern = field.get_validation_pattern()
+        if not pattern:
+            # Some types have built-in validation (INET, MACADDR, UUID)
+            return None
+
+        # Generate regex CHECK constraint
+        return f&quot;{field.name} ~* '{pattern}'&quot;
+
+    def _format_default(self, default_value: any) -&gt; str:
+        &quot;&quot;&quot;Format default value for SQL&quot;&quot;&quot;
+        if isinstance(default_value, str):
+            return f&quot;'{default_value}'&quot;
+        elif isinstance(default_value, bool):
+            return str(default_value).upper()
+        else:
+            return str(default_value)
+
+    def generate_special_constraints(self, field: FieldDefinition) -&gt; Optional[str]:
+        &quot;&quot;&quot;Generate special constraints for specific rich types&quot;&quot;&quot;
+
+        if field.type == &quot;coordinates&quot;:
+            # POINT type: validate latitude/longitude bounds
+            return (
+                f&quot;{field.name}[0] BETWEEN -90 AND 90 AND &quot;
+                f&quot;{field.name}[1] BETWEEN -180 AND 180&quot;
+            )
+
+        elif field.type == &quot;latitude&quot;:
+            return f&quot;{field.name} BETWEEN -90 AND 90&quot;
+
+        elif field.type == &quot;longitude&quot;:
+            return f&quot;{field.name} BETWEEN -180 AND 180&quot;
+
+        elif field.type == &quot;percentage&quot;:
+            return f&quot;{field.name} BETWEEN 0 AND 100&quot;
+
+        return None
+</code></pre>
+<hr />
+<p><strong>File</strong>: <code>src/generators/schema/schema_generator.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;
+Schema Generator with Rich Type Support
+&quot;&quot;&quot;
+
+from typing import List
+from src.core.ast_models import Entity, FieldDefinition
+from src.generators.schema.rich_type_mapper import RichTypeMapper, FieldDDL
+
+
+class SchemaGenerator:
+    &quot;&quot;&quot;Generates PostgreSQL DDL with rich type support&quot;&quot;&quot;
+
+    def __init__(self):
+        self.rich_type_mapper = RichTypeMapper()
+
+    def generate_table_ddl(self, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate complete CREATE TABLE statement&quot;&quot;&quot;
+
+        table_name = f&quot;{entity.schema}.tb_{entity.name.lower()}&quot;
+
+        # Start DDL
+        ddl_parts = [f&quot;CREATE TABLE {table_name} (&quot;]
+
+        # Trinity pattern (existing Team B code)
+        ddl_parts.extend(self._generate_trinity_fields(entity))
+
+        # Business fields with rich type support
+        for field_name, field_def in entity.fields.items():
+            field_ddl = self.generate_field_ddl(field_def, entity)
+            ddl_parts.append(f&quot;    {field_ddl},&quot;)
+
+        # Audit fields (existing Team B code)
+        ddl_parts.extend(self._generate_audit_fields())
+
+        # Close table
+        ddl_parts.append(&quot;);&quot;)
+
+        return &quot;\n&quot;.join(ddl_parts)
+
+    def generate_field_ddl(self, field: FieldDefinition, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate DDL for a single field with rich type support&quot;&quot;&quot;
+
+        # Map to PostgreSQL DDL
+        field_ddl = self.rich_type_mapper.map_field_to_ddl(field)
+
+        # Build field definition
+        parts = [field_ddl.column_name, field_ddl.data_type]
+
+        # NULL constraint
+        if not field_ddl.nullable:
+            parts.append(&quot;NOT NULL&quot;)
+
+        # Default value
+        if field_ddl.default:
+            parts.append(f&quot;DEFAULT {field_ddl.default}&quot;)
+
+        # CHECK constraint (for validated rich types)
+        if field_ddl.check_constraint:
+            parts.append(f&quot;CHECK ({field_ddl.check_constraint})&quot;)
+
+        # Special constraints (coordinates, percentage, etc.)
+        special_constraint = self.rich_type_mapper.generate_special_constraints(field)
+        if special_constraint:
+            parts.append(f&quot;CHECK ({special_constraint})&quot;)
+
+        return &quot; &quot;.join(parts)
+
+    def _generate_trinity_fields(self, entity: Entity) -&gt; List[str]:
+        &quot;&quot;&quot;Generate Trinity pattern fields (existing code)&quot;&quot;&quot;
+        entity_lower = entity.name.lower()
+        return [
+            f&quot;    pk_{entity_lower} INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,&quot;,
+            f&quot;    id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE,&quot;,
+            f&quot;    identifier TEXT UNIQUE,&quot;,
+        ]
+
+    def _generate_audit_fields(self) -&gt; List[str]:
+        &quot;&quot;&quot;Generate audit fields (existing code)&quot;&quot;&quot;
+        return [
+            &quot;    created_at TIMESTAMPTZ NOT NULL DEFAULT now(),&quot;,
+            &quot;    created_by UUID,&quot;,
+            &quot;    updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),&quot;,
+            &quot;    updated_by UUID,&quot;,
+            &quot;    deleted_at TIMESTAMPTZ&quot;,
+        ]
+</code></pre>
+<hr />
+<h3 id="refactor-phase">🔧 REFACTOR Phase</h3>
+<p><strong>Improvements</strong>:</p>
+<ol>
+<li><strong>Extract constraint generators</strong>:</li>
+</ol>
+<pre><code class="language-python">class ConstraintGenerator:
+    &quot;&quot;&quot;Generates CHECK constraints for rich types&quot;&quot;&quot;
+
+    def generate_email_constraint(self, field_name: str) -&gt; str:
+        &quot;&quot;&quot;Generate email validation constraint&quot;&quot;&quot;
+        # RFC 5322 compliant pattern (simplified)
+        pattern = r&quot;^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$&quot;
+        return f&quot;{field_name} ~* '{pattern}'&quot;
+
+    def generate_url_constraint(self, field_name: str) -&gt; str:
+        &quot;&quot;&quot;Generate URL validation constraint&quot;&quot;&quot;
+        pattern = r&quot;^https?://[^\s/$.?#].[^\s]*$&quot;
+        return f&quot;{field_name} ~* '{pattern}'&quot;
+
+    # ... other constraint generators
+</code></pre>
+<ol>
+<li><strong>Add constraint naming</strong>:</li>
+</ol>
+<pre><code class="language-python">def generate_constraint_name(self, table_name: str, field_name: str, constraint_type: str) -&gt; str:
+    &quot;&quot;&quot;Generate consistent constraint names&quot;&quot;&quot;
+    return f&quot;chk_{table_name}_{field_name}_{constraint_type}&quot;
+</code></pre>
+<ol>
+<li><strong>Optimize constraint patterns</strong>:</li>
+</ol>
+<pre><code class="language-python"># Use PostgreSQL domain types for reusable constraints
+CREATE DOMAIN email_address AS TEXT
+    CHECK (VALUE ~* '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$');
+</code></pre>
+<hr />
+<h3 id="qa-phase">✅ QA Phase</h3>
+<pre><code class="language-bash"># Unit tests
+uv run pytest tests/unit/schema/test_rich_type_ddl.py -v
+
+# Integration test with real PostgreSQL
+uv run pytest tests/integration/schema/test_rich_types_postgres.py -v
+
+# Backward compatibility
+uv run pytest tests/unit/schema/ -v
+
+# Coverage
+uv run pytest tests/unit/schema/ --cov=src/generators/schema/ --cov-report=term-missing
+# Target: 90%+
+</code></pre>
+<hr />
+<h2 id="phase-2-postgresql-comment-generation-new">📋 PHASE 2: PostgreSQL COMMENT Generation (NEW!)</h2>
+<p><strong>Duration</strong>: 1-2 hours</p>
+<h3 id="why-this-matters">🎯 Why This Matters</h3>
+<p><strong>FraiseQL v1.3.4+</strong> automatically converts PostgreSQL <code>COMMENT ON</code> statements to GraphQL descriptions. This means:
+- ✅ Database is the single source of truth for API documentation
+- ✅ Zero configuration needed
+- ✅ GraphQL Playground shows rich field descriptions
+- ✅ No annotation duplication</p>
+<h3 id="red-phase-write-failing-tests_1">🔴 RED Phase: Write Failing Tests</h3>
+<p><strong>Test File</strong>: <code>tests/unit/schema/test_comment_generation.py</code></p>
+<pre><code class="language-python">import pytest
+from src.generators.schema.schema_generator import SchemaGenerator
+from src.core.ast_models import Entity, FieldDefinition
+
+
+def test_email_field_generates_descriptive_comment():
+    &quot;&quot;&quot;Test: email type generates descriptive COMMENT&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;email&quot;, type=&quot;email&quot;, nullable=False)
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;, fields={&quot;email&quot;: field})
+
+    generator = SchemaGenerator()
+    comments = generator.generate_field_comments(entity)
+
+    # Expected: COMMENT ON COLUMN with rich type description
+    assert any(&quot;COMMENT ON COLUMN crm.tb_contact.email&quot; in c for c in comments)
+    assert any(&quot;email address&quot; in c.lower() or &quot;Email&quot; in c for c in comments)
+
+
+def test_url_field_generates_descriptive_comment():
+    &quot;&quot;&quot;Test: url type generates descriptive COMMENT&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;website&quot;, type=&quot;url&quot;)
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;, fields={&quot;website&quot;: field})
+
+    generator = SchemaGenerator()
+    comments = generator.generate_field_comments(entity)
+
+    assert any(&quot;COMMENT ON COLUMN crm.tb_contact.website&quot; in c for c in comments)
+    assert any(&quot;URL&quot; in c or &quot;website&quot; in c.lower() for c in comments)
+
+
+def test_coordinates_field_generates_descriptive_comment():
+    &quot;&quot;&quot;Test: coordinates type generates descriptive COMMENT&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;location&quot;, type=&quot;coordinates&quot;)
+    entity = Entity(name=&quot;Place&quot;, fields={&quot;location&quot;: field})
+
+    generator = SchemaGenerator()
+    comments = generator.generate_field_comments(entity)
+
+    assert any(&quot;COMMENT ON COLUMN&quot; in c for c in comments)
+    assert any(&quot;coordinates&quot; in c.lower() or &quot;geographic&quot; in c.lower() for c in comments)
+
+
+def test_money_field_generates_descriptive_comment():
+    &quot;&quot;&quot;Test: money type generates descriptive COMMENT&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;price&quot;, type=&quot;money&quot;)
+    entity = Entity(name=&quot;Product&quot;, fields={&quot;price&quot;: field})
+
+    generator = SchemaGenerator()
+    comments = generator.generate_field_comments(entity)
+
+    assert any(&quot;COMMENT ON COLUMN&quot; in c for c in comments)
+    assert any(&quot;money&quot; in c.lower() or &quot;monetary&quot; in c.lower() for c in comments)
+
+
+def test_rich_type_comment_includes_validation_info():
+    &quot;&quot;&quot;Test: Comments include validation information&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;email&quot;, type=&quot;email&quot;)
+    entity = Entity(name=&quot;Contact&quot;, fields={&quot;email&quot;: field})
+
+    generator = SchemaGenerator()
+    comments = generator.generate_field_comments(entity)
+
+    # Should mention it's validated
+    assert any(&quot;validated&quot; in c.lower() or &quot;format&quot; in c.lower() for c in comments)
+
+
+def test_complete_entity_generates_all_comments():
+    &quot;&quot;&quot;Test: All fields get COMMENT statements&quot;&quot;&quot;
+    entity = Entity(
+        name=&quot;Contact&quot;,
+        schema=&quot;crm&quot;,
+        fields={
+            &quot;email&quot;: FieldDefinition(name=&quot;email&quot;, type=&quot;email&quot;),
+            &quot;website&quot;: FieldDefinition(name=&quot;website&quot;, type=&quot;url&quot;),
+            &quot;phone&quot;: FieldDefinition(name=&quot;phone&quot;, type=&quot;phoneNumber&quot;),
+            &quot;first_name&quot;: FieldDefinition(name=&quot;first_name&quot;, type=&quot;text&quot;),
+        }
+    )
+
+    generator = SchemaGenerator()
+    comments = generator.generate_field_comments(entity)
+
+    # Should have comment for each field
+    assert len(comments) == 4
+    assert any(&quot;email&quot; in c for c in comments)
+    assert any(&quot;website&quot; in c for c in comments)
+    assert any(&quot;phone&quot; in c for c in comments)
+    assert any(&quot;first_name&quot; in c for c in comments)
+</code></pre>
+<p><strong>Run Tests</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/schema/test_comment_generation.py -v
+# Expected: FAILED (not implemented)
+</code></pre>
+<h3 id="green-phase-implementation">🟢 GREEN Phase: Implementation</h3>
+<p><strong>File</strong>: <code>src/generators/schema/comment_generator.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;
+PostgreSQL COMMENT Generator
+Generates descriptive COMMENT ON statements for FraiseQL autodiscovery
+&quot;&quot;&quot;
+
+from typing import List, Dict
+from src.core.ast_models import Entity, FieldDefinition
+from src.core.type_registry import get_type_registry
+
+
+class CommentGenerator:
+    &quot;&quot;&quot;Generates PostgreSQL COMMENT statements for rich types&quot;&quot;&quot;
+
+    def __init__(self):
+        self.type_registry = get_type_registry()
+        self._type_descriptions = self._build_type_descriptions()
+
+    def _build_type_descriptions(self) -&gt; Dict[str, str]:
+        &quot;&quot;&quot;Build human-readable descriptions for rich types&quot;&quot;&quot;
+        return {
+            # String-based
+            &quot;email&quot;: &quot;Email address (validated format)&quot;,
+            &quot;url&quot;: &quot;URL/website address (validated format)&quot;,
+            &quot;phone&quot;: &quot;Phone number in E.164 format&quot;,
+            &quot;phoneNumber&quot;: &quot;Phone number in E.164 format&quot;,
+            &quot;ipAddress&quot;: &quot;IP address (IPv4 or IPv6)&quot;,
+            &quot;macAddress&quot;: &quot;MAC address (hardware identifier)&quot;,
+            &quot;markdown&quot;: &quot;Markdown-formatted text content&quot;,
+            &quot;html&quot;: &quot;HTML content&quot;,
+            &quot;slug&quot;: &quot;URL-friendly identifier (lowercase with hyphens)&quot;,
+            &quot;color&quot;: &quot;Color hex code (e.g., #FF5733)&quot;,
+
+            # Numeric
+            &quot;money&quot;: &quot;Monetary value (precise decimal)&quot;,
+            &quot;percentage&quot;: &quot;Percentage value (0-100)&quot;,
+
+            # Date/Time
+            &quot;date&quot;: &quot;Date (YYYY-MM-DD format)&quot;,
+            &quot;datetime&quot;: &quot;Date and time with timezone&quot;,
+            &quot;time&quot;: &quot;Time of day&quot;,
+            &quot;duration&quot;: &quot;Time duration/interval&quot;,
+
+            # Geographic
+            &quot;coordinates&quot;: &quot;Geographic coordinates (latitude, longitude)&quot;,
+            &quot;latitude&quot;: &quot;Latitude (-90 to 90 degrees)&quot;,
+            &quot;longitude&quot;: &quot;Longitude (-180 to 180 degrees)&quot;,
+
+            # Media
+            &quot;image&quot;: &quot;Image URL or file path&quot;,
+            &quot;file&quot;: &quot;File URL or file path&quot;,
+
+            # Identifiers
+            &quot;uuid&quot;: &quot;Universally unique identifier (UUID)&quot;,
+
+            # Structured
+            &quot;json&quot;: &quot;JSON object data&quot;,
+
+            # Basic types
+            &quot;text&quot;: &quot;Text string&quot;,
+            &quot;integer&quot;: &quot;Integer number&quot;,
+            &quot;boolean&quot;: &quot;True or false value&quot;,
+            &quot;jsonb&quot;: &quot;JSON object (binary format)&quot;,
+        }
+
+    def generate_field_comment(self, field: FieldDefinition, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate COMMENT ON COLUMN for a field&quot;&quot;&quot;
+
+        table_name = f&quot;{entity.schema}.tb_{entity.name.lower()}&quot;
+
+        # Get description based on type
+        description = self._get_field_description(field)
+
+        # Add nullable info if relevant
+        if not field.nullable:
+            description += &quot; (required)&quot;
+
+        return f&quot;COMMENT ON COLUMN {table_name}.{field.name} IS '{description}';&quot;
+
+    def _get_field_description(self, field: FieldDefinition) -&gt; str:
+        &quot;&quot;&quot;Get human-readable description for field&quot;&quot;&quot;
+
+        # Use type description from registry
+        description = self._type_descriptions.get(field.type, &quot;&quot;)
+
+        if not description:
+            # Fallback for unknown types
+            description = f&quot;{field.type.capitalize()} value&quot;
+
+        # Add special notes for specific types
+        if field.type == &quot;enum&quot; and field.values:
+            description += f&quot; (options: {', '.join(field.values)})&quot;
+
+        elif field.type == &quot;ref&quot; and field.target_entity:
+            description += f&quot; → {field.target_entity}&quot;
+
+        elif field.type == &quot;money&quot; and field.type_metadata:
+            currency = field.type_metadata.get(&quot;currency&quot;)
+            if currency:
+                description += f&quot; ({currency})&quot;
+
+        return description
+
+    def generate_all_field_comments(self, entity: Entity) -&gt; List[str]:
+        &quot;&quot;&quot;Generate COMMENT statements for all fields&quot;&quot;&quot;
+        comments = []
+
+        for field_name, field_def in entity.fields.items():
+            comment = self.generate_field_comment(field_def, entity)
+            comments.append(comment)
+
+        return comments
+</code></pre>
+<p><strong>Update <code>SchemaGenerator</code></strong>:</p>
+<pre><code class="language-python">from src.generators.schema.comment_generator import CommentGenerator
+
+class SchemaGenerator:
+    &quot;&quot;&quot;Generates PostgreSQL DDL with rich type support&quot;&quot;&quot;
+
+    def __init__(self):
+        self.rich_type_mapper = RichTypeMapper()
+        self.comment_generator = CommentGenerator()  # NEW!
+
+    def generate_complete_ddl(self, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate complete DDL including table, indexes, and comments&quot;&quot;&quot;
+
+        ddl_parts = []
+
+        # 1. CREATE TABLE
+        ddl_parts.append(self.generate_table_ddl(entity))
+
+        # 2. CREATE INDEX statements
+        indexes = self.generate_indexes(entity)
+        ddl_parts.extend(indexes)
+
+        # 3. COMMENT ON statements (NEW!)
+        comments = self.comment_generator.generate_all_field_comments(entity)
+        ddl_parts.extend(comments)
+
+        return &quot;\n\n&quot;.join(ddl_parts)
+</code></pre>
+<p><strong>Example Generated SQL</strong>:</p>
+<pre><code class="language-sql">-- CREATE TABLE crm.tb_contact (...);
+
+-- Indexes
+CREATE INDEX idx_contact_email ON crm.tb_contact(email);
+
+-- Comments (auto-discovered by FraiseQL!)
+COMMENT ON COLUMN crm.tb_contact.email IS 'Email address (validated format) (required)';
+COMMENT ON COLUMN crm.tb_contact.website IS 'URL/website address (validated format)';
+COMMENT ON COLUMN crm.tb_contact.phone IS 'Phone number in E.164 format';
+COMMENT ON COLUMN crm.tb_contact.location IS 'Geographic coordinates (latitude, longitude)';
+</code></pre>
+<p><strong>FraiseQL Auto-Generates GraphQL</strong>:</p>
+<pre><code class="language-graphql">type Contact {
+  &quot;&quot;&quot;Email address (validated format) (required)&quot;&quot;&quot;
+  email: Email!
+
+  &quot;&quot;&quot;URL/website address (validated format)&quot;&quot;&quot;
+  website: Url
+
+  &quot;&quot;&quot;Phone number in E.164 format&quot;&quot;&quot;
+  phone: PhoneNumber
+
+  &quot;&quot;&quot;Geographic coordinates (latitude, longitude)&quot;&quot;&quot;
+  location: Coordinates
+}
+</code></pre>
+<h3 id="refactor-phase_1">🔧 REFACTOR Phase</h3>
+<p><strong>Improvements</strong>:</p>
+<ol>
+<li><strong>Customizable descriptions</strong>:</li>
+</ol>
+<pre><code class="language-python">def generate_field_comment(
+    self,
+    field: FieldDefinition,
+    entity: Entity,
+    custom_description: Optional[str] = None
+) -&gt; str:
+    &quot;&quot;&quot;Generate COMMENT with optional custom description&quot;&quot;&quot;
+
+    if custom_description:
+        description = custom_description
+    else:
+        description = self._get_field_description(field)
+
+    # ...
+</code></pre>
+<ol>
+<li><strong>Entity-level comments</strong>:</li>
+</ol>
+<pre><code class="language-python">def generate_table_comment(self, entity: Entity) -&gt; str:
+    &quot;&quot;&quot;Generate COMMENT ON TABLE&quot;&quot;&quot;
+    table_name = f&quot;{entity.schema}.tb_{entity.name.lower()}&quot;
+
+    description = entity.description or f&quot;{entity.name} entity&quot;
+
+    return f&quot;COMMENT ON TABLE {table_name} IS '{description}';&quot;
+</code></pre>
+<h3 id="qa-phase_1">✅ QA Phase</h3>
+<pre><code class="language-bash"># Unit tests
+uv run pytest tests/unit/schema/test_comment_generation.py -v
+
+# Verify comments appear in PostgreSQL
+uv run pytest tests/integration/schema/test_comments_in_postgres.py -v
+
+# Coverage
+uv run pytest tests/unit/schema/ --cov=src/generators/schema/ --cov-report=term-missing
+</code></pre>
+<p><strong>Integration Test</strong>:</p>
+<pre><code class="language-python">def test_fraiseql_autodiscovers_comments(db_connection):
+    &quot;&quot;&quot;Integration: FraiseQL uses PostgreSQL comments as GraphQL descriptions&quot;&quot;&quot;
+
+    # Generate and apply DDL
+    entity = Entity(
+        name=&quot;Contact&quot;,
+        schema=&quot;public&quot;,
+        fields={
+            &quot;email&quot;: FieldDefinition(name=&quot;email&quot;, type=&quot;email&quot;, nullable=False)
+        }
+    )
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_complete_ddl(entity)
+
+    cursor = db_connection.cursor()
+    cursor.execute(ddl)
+    db_connection.commit()
+
+    # Run FraiseQL introspection
+    schema = run_fraiseql_introspection()
+
+    # Verify GraphQL type has description from PostgreSQL comment
+    contact_type = schema[&quot;types&quot;][&quot;Contact&quot;]
+    email_field = contact_type[&quot;fields&quot;][&quot;email&quot;]
+
+    assert email_field[&quot;description&quot;] == &quot;Email address (validated format) (required)&quot;
+</code></pre>
+<hr />
+<h2 id="phase-3-index-generation-for-rich-types">📋 PHASE 3: Index Generation for Rich Types</h2>
+<p><strong>Duration</strong>: 1 hour</p>
+<h3 id="red-phase">🔴 RED Phase</h3>
+<pre><code class="language-python">def test_email_field_gets_btree_index():
+    &quot;&quot;&quot;Test: Email fields get efficient indexes&quot;&quot;&quot;
+    entity = Entity(
+        name=&quot;Contact&quot;,
+        schema=&quot;crm&quot;,
+        fields={
+            &quot;email&quot;: FieldDefinition(name=&quot;email&quot;, type=&quot;email&quot;, nullable=False)
+        }
+    )
+
+    generator = SchemaGenerator()
+    indexes = generator.generate_indexes(entity)
+
+    # Expected: B-tree index for exact lookups
+    assert any(&quot;idx_contact_email&quot; in idx for idx in indexes)
+    assert any(&quot;btree&quot; in idx.lower() or &quot;CREATE INDEX&quot; in idx for idx in indexes)
+
+
+def test_url_field_gets_gin_index_for_pattern_search():
+    &quot;&quot;&quot;Test: URL fields get GIN index for pattern matching&quot;&quot;&quot;
+    entity = Entity(
+        name=&quot;Page&quot;,
+        fields={
+            &quot;url&quot;: FieldDefinition(name=&quot;url&quot;, type=&quot;url&quot;)
+        }
+    )
+
+    generator = SchemaGenerator()
+    indexes = generator.generate_indexes(entity)
+
+    # Expected: GIN index for LIKE/regex searches
+    assert any(&quot;idx_page_url&quot; in idx for idx in indexes)
+    assert any(&quot;gin&quot; in idx.lower() for idx in indexes)
+
+
+def test_coordinates_field_gets_gist_index():
+    &quot;&quot;&quot;Test: Coordinates field gets GiST index for spatial queries&quot;&quot;&quot;
+    entity = Entity(
+        name=&quot;Location&quot;,
+        fields={
+            &quot;coordinates&quot;: FieldDefinition(name=&quot;coordinates&quot;, type=&quot;coordinates&quot;)
+        }
+    )
+
+    generator = SchemaGenerator()
+    indexes = generator.generate_indexes(entity)
+
+    # Expected: GiST index for spatial operations
+    assert any(&quot;idx_location_coordinates&quot; in idx for idx in indexes)
+    assert any(&quot;gist&quot; in idx.lower() for idx in indexes)
+</code></pre>
+<h3 id="green-phase">🟢 GREEN Phase</h3>
+<pre><code class="language-python">class IndexGenerator:
+    &quot;&quot;&quot;Generates indexes appropriate for rich types&quot;&quot;&quot;
+
+    def generate_indexes_for_field(self, field: FieldDefinition, entity: Entity) -&gt; List[str]:
+        &quot;&quot;&quot;Generate indexes based on field type&quot;&quot;&quot;
+
+        indexes = []
+        table_name = f&quot;{entity.schema}.tb_{entity.name.lower()}&quot;
+
+        if field.type == &quot;email&quot;:
+            # B-tree for exact lookups
+            indexes.append(
+                f&quot;CREATE INDEX idx_{entity.name.lower()}_{field.name} &quot;
+                f&quot;ON {table_name} ({field.name});&quot;
+            )
+
+        elif field.type == &quot;url&quot;:
+            # GIN for pattern matching
+            indexes.append(
+                f&quot;CREATE INDEX idx_{entity.name.lower()}_{field.name} &quot;
+                f&quot;ON {table_name} USING gin ({field.name} gin_trgm_ops);&quot;
+            )
+
+        elif field.type in (&quot;coordinates&quot;, &quot;latitude&quot;, &quot;longitude&quot;):
+            # GiST for spatial queries
+            indexes.append(
+                f&quot;CREATE INDEX idx_{entity.name.lower()}_{field.name} &quot;
+                f&quot;ON {table_name} USING gist ({field.name});&quot;
+            )
+
+        elif field.type == &quot;ipAddress&quot;:
+            # GiST for network operations (contains, overlaps)
+            indexes.append(
+                f&quot;CREATE INDEX idx_{entity.name.lower()}_{field.name} &quot;
+                f&quot;ON {table_name} USING gist ({field.name} inet_ops);&quot;
+            )
+
+        return indexes
+</code></pre>
+<hr />
+<h2 id="phase-3-integration-testing">📋 PHASE 3: Integration Testing</h2>
+<p><strong>Duration</strong>: 1 hour</p>
+<h3 id="integration-tests">Integration Tests</h3>
+<p><strong>File</strong>: <code>tests/integration/schema/test_rich_types_postgres.py</code></p>
+<pre><code class="language-python">import pytest
+import psycopg2
+from src.generators.schema.schema_generator import SchemaGenerator
+from src.core.ast_models import Entity, FieldDefinition
+
+
+@pytest.fixture
+def db_connection():
+    &quot;&quot;&quot;PostgreSQL test database connection&quot;&quot;&quot;
+    conn = psycopg2.connect(&quot;postgresql://localhost/test_specql&quot;)
+    yield conn
+    conn.close()
+
+
+def test_email_constraint_accepts_valid_emails(db_connection):
+    &quot;&quot;&quot;Integration: Email constraint accepts valid emails&quot;&quot;&quot;
+    entity = Entity(
+        name=&quot;Contact&quot;,
+        schema=&quot;public&quot;,
+        fields={
+            &quot;email&quot;: FieldDefinition(name=&quot;email&quot;, type=&quot;email&quot;, nullable=False)
+        }
+    )
+
+    # Generate and apply DDL
+    generator = SchemaGenerator()
+    ddl = generator.generate_table_ddl(entity)
+
+    cursor = db_connection.cursor()
+    cursor.execute(ddl)
+
+    # Test valid emails
+    valid_emails = [
+        &quot;user@example.com&quot;,
+        &quot;test.user@example.co.uk&quot;,
+        &quot;admin+tag@company.org&quot;
+    ]
+
+    for email in valid_emails:
+        cursor.execute(
+            &quot;INSERT INTO public.tb_contact (email) VALUES (%s)&quot;,
+            (email,)
+        )
+        # Should succeed
+        db_connection.commit()
+
+
+def test_email_constraint_rejects_invalid_emails(db_connection):
+    &quot;&quot;&quot;Integration: Email constraint rejects invalid emails&quot;&quot;&quot;
+    # ... DDL setup ...
+
+    invalid_emails = [
+        &quot;not-an-email&quot;,
+        &quot;@example.com&quot;,
+        &quot;user@&quot;,
+        &quot;user@domain&quot;
+    ]
+
+    cursor = db_connection.cursor()
+    for email in invalid_emails:
+        with pytest.raises(psycopg2.errors.CheckViolation):
+            cursor.execute(
+                &quot;INSERT INTO public.tb_contact (email) VALUES (%s)&quot;,
+                (email,)
+            )
+            db_connection.commit()
+        db_connection.rollback()
+
+
+def test_inet_type_validates_ip_addresses(db_connection):
+    &quot;&quot;&quot;Integration: INET type validates IP addresses&quot;&quot;&quot;
+    entity = Entity(
+        name=&quot;Server&quot;,
+        schema=&quot;public&quot;,
+        fields={
+            &quot;ip_address&quot;: FieldDefinition(name=&quot;ip_address&quot;, type=&quot;ipAddress&quot;)
+        }
+    )
+
+    generator = SchemaGenerator()
+    ddl = generator.generate_table_ddl(entity)
+
+    cursor = db_connection.cursor()
+    cursor.execute(ddl)
+
+    # Valid IP addresses
+    valid_ips = [&quot;192.168.1.1&quot;, &quot;10.0.0.1&quot;, &quot;2001:0db8:85a3::8a2e:0370:7334&quot;]
+    for ip in valid_ips:
+        cursor.execute(
+            &quot;INSERT INTO public.tb_server (ip_address) VALUES (%s)&quot;,
+            (ip,)
+        )
+        db_connection.commit()
+
+    # Invalid IP
+    with pytest.raises(psycopg2.errors.InvalidTextRepresentation):
+        cursor.execute(
+            &quot;INSERT INTO public.tb_server (ip_address) VALUES (%s)&quot;,
+            (&quot;not-an-ip&quot;,)
+        )
+</code></pre>
+<hr />
+<h2 id="acceptance-criteria">📊 Acceptance Criteria</h2>
+<h3 id="must-have">Must Have</h3>
+<ul>
+<li>✅ All rich types map to correct PostgreSQL types</li>
+<li>✅ CHECK constraints generated for validated types</li>
+<li>✅ Native types used where available (INET, MACADDR, UUID)</li>
+<li>✅ Constraints accept valid values</li>
+<li>✅ Constraints reject invalid values</li>
+<li>✅ Appropriate indexes generated</li>
+<li>✅ Backward compatible with existing types</li>
+<li>✅ All tests pass (unit + integration)</li>
+<li>✅ 90%+ test coverage</li>
+</ul>
+<h3 id="nice-to-have">Nice to Have</h3>
+<ul>
+<li>✅ Optimized regex patterns for constraints</li>
+<li>✅ Named constraints for better error messages</li>
+<li>✅ PostgreSQL DOMAIN types for reusable constraints</li>
+<li>✅ Performance benchmarks for constraint validation</li>
+</ul>
+<hr />
+<h2 id="definition-of-done">🎯 Definition of Done</h2>
+<ul>
+<li>[ ] <code>RichTypeMapper</code> class created</li>
+<li>[ ] <code>ConstraintGenerator</code> class created</li>
+<li>[ ] <code>IndexGenerator</code> updated for rich types</li>
+<li>[ ] All rich types generate correct DDL</li>
+<li>[ ] CHECK constraints validate correctly</li>
+<li>[ ] Integration tests pass with real PostgreSQL</li>
+<li>[ ] Backward compatibility verified</li>
+<li>[ ] 90%+ code coverage</li>
+<li>[ ] Documentation updated</li>
+<li>[ ] Examples added</li>
+<li>[ ] Performance tested</li>
+<li>[ ] Code reviewed</li>
+<li>[ ] Merged to main</li>
+</ul>
+<hr />
+<h2 id="postgresql-type-mappings-reference">📚 PostgreSQL Type Mappings Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Rich Type</th>
+<th>PostgreSQL</th>
+<th>Constraint Type</th>
+<th>Index Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>email</td>
+<td>TEXT</td>
+<td>CHECK (regex)</td>
+<td>btree</td>
+</tr>
+<tr>
+<td>url</td>
+<td>TEXT</td>
+<td>CHECK (regex)</td>
+<td>gin</td>
+</tr>
+<tr>
+<td>phone</td>
+<td>TEXT</td>
+<td>CHECK (regex)</td>
+<td>btree</td>
+</tr>
+<tr>
+<td>ipAddress</td>
+<td>INET</td>
+<td>Built-in</td>
+<td>gist</td>
+</tr>
+<tr>
+<td>macAddress</td>
+<td>MACADDR</td>
+<td>Built-in</td>
+<td>btree</td>
+</tr>
+<tr>
+<td>coordinates</td>
+<td>POINT</td>
+<td>CHECK (bounds)</td>
+<td>gist</td>
+</tr>
+<tr>
+<td>money</td>
+<td>NUMERIC(19,4)</td>
+<td>None</td>
+<td>btree</td>
+</tr>
+<tr>
+<td>date</td>
+<td>DATE</td>
+<td>Built-in</td>
+<td>btree</td>
+</tr>
+<tr>
+<td>uuid</td>
+<td>UUID</td>
+<td>Built-in</td>
+<td>btree</td>
+</tr>
+<tr>
+<td>slug</td>
+<td>TEXT</td>
+<td>CHECK (regex)</td>
+<td>btree</td>
+</tr>
+<tr>
+<td>color</td>
+<td>TEXT</td>
+<td>CHECK (hex)</td>
+<td>btree</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<p><strong>Team B: Schema generation with rich types ready to implement!</strong> 🚀</p>
+<p>This provides everything Team B needs to generate production-ready PostgreSQL schemas with FraiseQL rich type support.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>GraphQL Integration with FraiseQL - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "GraphQL Integration with FraiseQL";
+        var mkdocs_page_input_path = "guides/graphql-integration.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">GraphQL Integration with FraiseQL</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="graphql-integration-with-fraiseql">GraphQL Integration with FraiseQL</h1>
+<p><strong>PostgreSQL comments become GraphQL schemas automatically</strong> 🔄</p>
+<h2 id="overview">Overview</h2>
+<p>SpecQL generates GraphQL APIs automatically through FraiseQL - a convention that turns PostgreSQL comments into GraphQL schemas. No schema duplication, no manual GraphQL type definitions.</p>
+<p><strong>What you get:</strong>
+- ✅ GraphQL schema auto-generated from PostgreSQL
+- ✅ Mutations from PL/pgSQL functions
+- ✅ Types from database tables
+- ✅ Descriptions from comments
+- ✅ Frontend hooks auto-generated</p>
+<h2 id="how-it-works">How It Works</h2>
+<h3 id="the-fraiseql-convention">The FraiseQL Convention</h3>
+<p>FraiseQL reads PostgreSQL comments and converts them to GraphQL:</p>
+<pre><code class="language-sql">-- PostgreSQL with comments
+COMMENT ON TABLE crm.tb_contact IS 'Customer contact information';
+COMMENT ON COLUMN crm.tb_contact.email IS 'Primary email address (unique)';
+COMMENT ON FUNCTION crm.create_contact(text, text, text) IS
+  'Create a new contact @fraiseql:mutation';
+
+-- Becomes GraphQL automatically
+type Contact {
+  &quot;&quot;&quot;Customer contact information&quot;&quot;&quot;
+  id: UUID!
+  email: String  # &quot;Primary email address (unique)&quot;
+}
+
+type Mutation {
+  createContact(email: String!, firstName: String!, lastName: String!): MutationResult
+    @fraiseql(type: &quot;crm.create_contact&quot;)
+}
+</code></pre>
+<h3 id="specql-generates-fraiseql-ready-code">SpecQL Generates FraiseQL-Ready Code</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+description: &quot;Customer contact information&quot;
+
+fields:
+  email:
+    type: email
+    description: &quot;Primary email address (unique)&quot;
+
+actions:
+  - name: create_contact
+    description: &quot;Create a new contact&quot;
+</code></pre>
+<p><strong>Generates:</strong></p>
+<pre><code class="language-sql">-- Table with FraiseQL comments
+COMMENT ON TABLE crm.tb_contact IS 'Customer contact information';
+COMMENT ON COLUMN crm.tb_contact.email IS 'Primary email address (unique)';
+
+-- Function with FraiseQL annotation
+COMMENT ON FUNCTION crm.create_contact(text, text, text) IS
+  'Create a new contact @fraiseql:mutation';
+</code></pre>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="1-create-entity-with-graphql-intent">1. Create Entity with GraphQL Intent</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+description: &quot;Customer contact information&quot;
+
+fields:
+  first_name: text!
+  last_name: text!
+  email: email!
+  phone: phone
+
+actions:
+  - name: create_contact
+    description: &quot;Create a new contact&quot;
+  - name: update_contact
+    description: &quot;Update existing contact&quot;
+  - name: delete_contact
+    description: &quot;Soft delete contact&quot;
+</code></pre>
+<h3 id="2-generate-everything">2. Generate Everything</h3>
+<pre><code class="language-bash">specql generate entities/contact.yaml
+</code></pre>
+<h3 id="3-deploy-and-query">3. Deploy and Query</h3>
+<pre><code class="language-bash"># Deploy to database
+cd db/schema
+confiture migrate up
+
+# Your GraphQL API is ready!
+# FraiseQL automatically discovers all functions and types
+</code></pre>
+<h3 id="4-use-from-frontend">4. Use from Frontend</h3>
+<pre><code class="language-typescript">// Generated Apollo hooks
+const [createContact, { loading }] = useCreateContactMutation();
+const { data: contacts } = useContactsQuery();
+
+// Use like any GraphQL API
+await createContact({
+  variables: {
+    email: 'john@example.com',
+    firstName: 'John',
+    lastName: 'Doe'
+  }
+});
+</code></pre>
+<h2 id="fraiseql-annotations">FraiseQL Annotations</h2>
+<h3 id="function-annotations">Function Annotations</h3>
+<pre><code class="language-sql">-- Basic mutation
+COMMENT ON FUNCTION crm.create_contact(text, text, text) IS
+  'Create a new contact @fraiseql:mutation';
+
+-- Query with custom name
+COMMENT ON FUNCTION crm.get_contacts() IS
+  'Get all contacts @fraiseql:query(name: &quot;contacts&quot;)';
+
+-- Mutation with custom impact
+COMMENT ON FUNCTION crm.update_contact(uuid, text) IS
+  'Update contact @fraiseql:mutation @fraiseql:impact(contact_updated)';
+</code></pre>
+<h3 id="field-annotations">Field Annotations</h3>
+<pre><code class="language-sql">-- Custom GraphQL type
+COMMENT ON COLUMN crm.tb_contact.email IS
+  'Email address @fraiseql:type EmailScalar';
+
+-- Required field
+COMMENT ON COLUMN crm.tb_contact.first_name IS
+  'First name @fraiseql:required';
+
+-- Custom resolver
+COMMENT ON COLUMN crm.tb_contact.full_name IS
+  'Full name @fraiseql:resolver contactFullName';
+</code></pre>
+<h3 id="type-annotations">Type Annotations</h3>
+<pre><code class="language-sql">-- Custom GraphQL type name
+COMMENT ON TABLE crm.tb_contact IS
+  'Customer contact @fraiseql:type Customer';
+
+-- Interface implementation
+COMMENT ON TABLE crm.tb_contact IS
+  'Contact info @fraiseql:implements Person';
+</code></pre>
+<h2 id="generated-graphql-schema">Generated GraphQL Schema</h2>
+<h3 id="automatic-type-generation">Automatic Type Generation</h3>
+<pre><code class="language-graphql"># From SpecQL entity
+type Contact {
+  &quot;&quot;&quot;Customer contact information&quot;&quot;&quot;
+  id: UUID!
+  pkContact: Int!
+  identifier: String!
+
+  # Fields with descriptions
+  firstName: String!  # &quot;First name&quot;
+  lastName: String!   # &quot;Last name&quot;
+  email: Email!       # &quot;Email address&quot;
+  phone: Phone        # &quot;Phone number&quot;
+
+  # Audit fields
+  createdAt: DateTime!
+  updatedAt: DateTime!
+  deletedAt: DateTime
+}
+
+# Automatic input types
+input ContactInput {
+  firstName: String!
+  lastName: String!
+  email: Email!
+  phone: Phone
+}
+
+# Automatic filter types
+input ContactFilter {
+  email: Email
+  createdAt: DateRange
+  # ... more filters
+}
+</code></pre>
+<h3 id="mutation-generation">Mutation Generation</h3>
+<pre><code class="language-graphql">type Mutation {
+  # From actions
+  createContact(input: ContactInput!): MutationResult!
+  updateContact(id: UUID!, input: ContactUpdate!): MutationResult!
+  deleteContact(id: UUID!): MutationResult!
+
+  # Automatic CRUD mutations
+  createContactManual(email: Email!, firstName: String!, lastName: String!): MutationResult!
+  updateContactManual(id: UUID!, email: Email, firstName: String): MutationResult!
+}
+
+type MutationResult {
+  success: Boolean!
+  message: String!
+  object: Contact  # The created/updated object
+  errors: [ValidationError!]  # Validation failures
+}
+</code></pre>
+<h3 id="query-generation">Query Generation</h3>
+<pre><code class="language-graphql">type Query {
+  # Single object
+  contact(id: UUID!): Contact
+
+  # List with filtering
+  contacts(
+    filter: ContactFilter
+    orderBy: ContactOrderBy
+    limit: Int
+    offset: Int
+  ): ContactConnection!
+
+  # Aggregations
+  contactsCount(filter: ContactFilter): Int!
+}
+
+type ContactConnection {
+  edges: [ContactEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type ContactEdge {
+  node: Contact!
+  cursor: String!
+}
+</code></pre>
+<h2 id="rich-type-integration">Rich Type Integration</h2>
+<h3 id="scalar-types">Scalar Types</h3>
+<p>SpecQL's 49 rich types map to GraphQL scalars:</p>
+<pre><code class="language-yaml">fields:
+  email: email!      # GraphQL: Email!
+  phone: phone       # GraphQL: Phone
+  money: money       # GraphQL: Money
+  percentage: percentage  # GraphQL: Percentage
+  coordinates: coordinates  # GraphQL: Coordinates
+  url: url           # GraphQL: URL
+</code></pre>
+<h3 id="validation-at-graphql-level">Validation at GraphQL Level</h3>
+<pre><code class="language-graphql">scalar Email  # Validates email format
+scalar Phone  # Validates E.164 format
+scalar Money  # Validates decimal precision
+scalar Percentage  # Validates 0-100 range
+
+# Usage in schema
+input ContactInput {
+  email: Email!      # Rejected if not valid email
+  phone: Phone       # Rejected if not E.164 format
+  budget: Money      # Rejected if invalid decimal
+}
+</code></pre>
+<h2 id="frontend-integration">Frontend Integration</h2>
+<h3 id="apollo-hooks-generation">Apollo Hooks Generation</h3>
+<p>SpecQL can generate TypeScript Apollo hooks:</p>
+<pre><code class="language-bash"># Generate with frontend code
+specql generate entities/*.yaml --with-impacts
+</code></pre>
+<p><strong>Generated hooks:</strong></p>
+<pre><code class="language-typescript">// Apollo React hooks
+export const useCreateContactMutation = () =&gt; { /* ... */ }
+export const useUpdateContactMutation = () =&gt; { /* ... */ }
+export const useContactsQuery = () =&gt; { /* ... */ }
+export const useContactQuery = () =&gt; { /* ... */ }
+
+// TypeScript types
+export interface Contact {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+  createdAt: Date;
+}
+
+export interface CreateContactInput {
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone?: string;
+}
+</code></pre>
+<h3 id="react-component-example">React Component Example</h3>
+<pre><code class="language-tsx">import {
+  useContactsQuery,
+  useCreateContactMutation,
+  Contact
+} from './generated/graphql';
+
+function ContactManager() {
+  const { data, loading } = useContactsQuery();
+  const [createContact] = useCreateContactMutation();
+
+  const handleCreate = async (input: CreateContactInput) =&gt; {
+    await createContact({
+      variables: { input },
+      refetchQueries: ['contacts']  // Automatic cache update
+    });
+  };
+
+  if (loading) return &lt;div&gt;Loading...&lt;/div&gt;;
+
+  return (
+    &lt;div&gt;
+      {data?.contacts.edges.map(({ node }) =&gt; (
+        &lt;ContactCard key={node.id} contact={node} /&gt;
+      ))}
+    &lt;/div&gt;
+  );
+}
+</code></pre>
+<h2 id="advanced-patterns">Advanced Patterns</h2>
+<h3 id="complex-mutations">Complex Mutations</h3>
+<pre><code class="language-yaml">actions:
+  - name: create_opportunity
+    description: &quot;Create opportunity with contact and organization&quot;
+    steps:
+      - validate: contact_email IS NOT NULL
+      - insert: Contact
+      - insert: Opportunity
+      - notify: sales_team &quot;New opportunity created&quot;
+</code></pre>
+<p><strong>Generated GraphQL:</strong></p>
+<pre><code class="language-graphql">type Mutation {
+  createOpportunity(
+    contactEmail: Email!
+    contactFirstName: String!
+    organizationName: String!
+    opportunityName: String!
+    amount: Money
+  ): MutationResult!
+}
+</code></pre>
+<h3 id="relationships-and-nested-queries">Relationships and Nested Queries</h3>
+<pre><code class="language-yaml">entity: Contact
+fields:
+  organization: ref(Organization)
+
+entity: Organization
+fields:
+  name: text!
+  contacts: ref(Contact, many: true)  # Reverse relationship
+</code></pre>
+<p><strong>Generated GraphQL:</strong></p>
+<pre><code class="language-graphql">type Contact {
+  id: UUID!
+  firstName: String!
+  organization: Organization
+}
+
+type Organization {
+  id: UUID!
+  name: String!
+  contacts(filter: ContactFilter, limit: Int): [Contact!]!
+}
+</code></pre>
+<h3 id="custom-resolvers">Custom Resolvers</h3>
+<p>For complex business logic:</p>
+<pre><code class="language-yaml">actions:
+  - name: get_contact_summary
+    description: &quot;Get contact with computed fields @fraiseql:query&quot;
+    steps:
+      - select: Contact WITH organization, last_order
+      - compute: total_orders = COUNT(orders)
+      - compute: lifetime_value = SUM(order_amounts)
+</code></pre>
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="validation-errors">Validation Errors</h3>
+<pre><code class="language-graphql">mutation CreateContact($input: ContactInput!) {
+  createContact(input: $input) {
+    success
+    message
+    object {
+      id
+      firstName
+      lastName
+      email
+    }
+    errors {
+      field
+      message
+      code  # EMAIL_INVALID, REQUIRED_FIELD, etc.
+    }
+  }
+}
+</code></pre>
+<h3 id="business-logic-errors">Business Logic Errors</h3>
+<pre><code class="language-yaml">actions:
+  - name: qualify_lead
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+      - error: &quot;Lead already qualified&quot; WHEN status != 'lead'
+</code></pre>
+<h2 id="performance-optimization">Performance Optimization</h2>
+<h3 id="automatic-optimizations">Automatic Optimizations</h3>
+<ul>
+<li><strong>N+1 Query Prevention</strong>: FraiseQL analyzes dependencies</li>
+<li><strong>Batch Loading</strong>: Related data loaded efficiently</li>
+<li><strong>Caching</strong>: HTTP and Apollo cache integration</li>
+<li><strong>Persisted Queries</strong>: For production deployments</li>
+</ul>
+<h3 id="custom-optimization">Custom Optimization</h3>
+<pre><code class="language-yaml">actions:
+  - name: get_contacts_with_stats
+    description: &quot;Contacts with computed statistics @fraiseql:query @fraiseql:batch&quot;
+    optimization: batch_load
+</code></pre>
+<h2 id="testing-graphql-apis">Testing GraphQL APIs</h2>
+<h3 id="integration-tests">Integration Tests</h3>
+<pre><code class="language-typescript">describe('Contact GraphQL API', () =&gt; {
+  test('create contact', async () =&gt; {
+    const result = await graphqlClient.mutate({
+      mutation: CREATE_CONTACT,
+      variables: {
+        input: {
+          firstName: 'John',
+          lastName: 'Doe',
+          email: 'john@example.com'
+        }
+      }
+    });
+
+    expect(result.data.createContact.success).toBe(true);
+    expect(result.data.createContact.object.email).toBe('john@example.com');
+  });
+
+  test('validation errors', async () =&gt; {
+    const result = await graphqlClient.mutate({
+      mutation: CREATE_CONTACT,
+      variables: {
+        input: {
+          firstName: 'John',
+          email: 'invalid-email'  // Invalid format
+        }
+      }
+    });
+
+    expect(result.data.createContact.success).toBe(false);
+    expect(result.data.createContact.errors).toContainEqual({
+      field: 'email',
+      code: 'EMAIL_INVALID'
+    });
+  });
+});
+</code></pre>
+<h2 id="deployment">Deployment</h2>
+<h3 id="production-setup">Production Setup</h3>
+<pre><code class="language-bash"># Generate schema
+specql generate entities/*.yaml
+
+# Deploy database
+confiture migrate up
+
+# Start FraiseQL server
+fraiseql serve --schema postgres://... --port 4000
+
+# Your GraphQL API is live at http://localhost:4000/graphql
+</code></pre>
+<h3 id="schema-registry">Schema Registry</h3>
+<pre><code class="language-bash"># Register schema with Apollo Studio
+fraiseql schema:push --endpoint http://localhost:4000/graphql
+
+# Check for breaking changes
+fraiseql schema:check
+</code></pre>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="1-descriptive-comments">1. Descriptive Comments</h3>
+<pre><code class="language-yaml">entity: Contact
+description: &quot;Individual contact with organization affiliation&quot;
+
+fields:
+  email:
+    description: &quot;Primary email address - must be unique per organization&quot;
+  phone:
+    description: &quot;Business phone number in E.164 format&quot;
+</code></pre>
+<h3 id="2-consistent-naming">2. Consistent Naming</h3>
+<pre><code class="language-yaml">actions:
+  - name: create_contact     # ✅ Consistent naming
+  - name: contact_create     # ❌ Inconsistent
+</code></pre>
+<h3 id="3-use-rich-types">3. Use Rich Types</h3>
+<pre><code class="language-yaml">fields:
+  email: email!      # ✅ Semantic validation
+  email: text        # ❌ Generic, no validation
+</code></pre>
+<h3 id="4-document-business-logic">4. Document Business Logic</h3>
+<pre><code class="language-yaml">actions:
+  - name: qualify_lead
+    description: &quot;Convert marketing lead to sales qualified lead&quot;
+    steps:
+      - validate: status = 'lead'
+      - validate: email_verified = true
+      - update: Contact SET status = 'qualified', qualified_at = now()
+</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="schema-not-appearing">Schema Not Appearing</h3>
+<pre><code class="language-bash"># Check function comments
+COMMENT ON FUNCTION crm.create_contact(text, text, text) IS
+  'Create contact @fraiseql:mutation';  # Must have @fraiseql:mutation
+
+# Restart FraiseQL server after schema changes
+fraiseql restart
+</code></pre>
+<h3 id="type-conflicts">Type Conflicts</h3>
+<pre><code class="language-yaml"># Avoid GraphQL reserved words
+fields:
+  type: text      # ❌ 'type' is reserved
+  entity_type: text  # ✅ Use specific names
+</code></pre>
+<h3 id="performance-issues">Performance Issues</h3>
+<pre><code class="language-bash"># Enable query analysis
+fraiseql serve --analyze-queries
+
+# Check slow queries
+fraiseql query:analyze &quot;query { contacts { id email } }&quot;
+</code></pre>
+<h2 id="migration-from-manual-graphql">Migration from Manual GraphQL</h2>
+<h3 id="before-manual-schema">Before: Manual Schema</h3>
+<pre><code class="language-graphql"># Manual type definitions
+type Contact {
+  id: ID!
+  firstName: String!
+  lastName: String!
+  email: String!
+}
+
+type Mutation {
+  createContact(input: ContactInput!): Contact!
+}
+</code></pre>
+<pre><code class="language-typescript">// Manual resolvers
+const resolvers = {
+  Mutation: {
+    createContact: async (_, { input }) =&gt; {
+      // Manual database calls
+      const result = await db.query('INSERT INTO contacts ...');
+      return result.rows[0];
+    }
+  }
+};
+</code></pre>
+<h3 id="after-specql-fraiseql">After: SpecQL + FraiseQL</h3>
+<pre><code class="language-yaml"># Define once
+entity: Contact
+fields:
+  first_name: text!
+  last_name: text!
+  email: email!
+
+actions:
+  - name: create_contact
+</code></pre>
+<p><strong>Everything else generated automatically!</strong></p>
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li><strong>Read Rich Types Guide</strong>: Learn all scalar types in <code>docs/guides/rich-types-guide.md</code></li>
+<li><strong>Check Actions Guide</strong>: Understand business logic in <code>docs/guides/actions-guide.md</code></li>
+<li><strong>Browse Examples</strong>: See <code>examples/</code> for complete implementations</li>
+<li><strong>FraiseQL Docs</strong>: Visit <a href="https://fraiseql.dev">fraiseql.dev</a> for advanced features</li>
+</ul>
+<hr />
+<p><strong>GraphQL APIs without the boilerplate. PostgreSQL comments become your schema.</strong> ✨</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

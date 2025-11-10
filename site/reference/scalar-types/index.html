@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>SpecQL Scalar Types Reference - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "SpecQL Scalar Types Reference";
+        var mkdocs_page_input_path = "reference/scalar-types.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">SpecQL Scalar Types Reference</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="specql-scalar-types-reference">SpecQL Scalar Types Reference</h1>
+<p><strong>Complete technical reference for all 49 validated scalar types</strong> 🔢</p>
+<h2 id="overview">Overview</h2>
+<p>SpecQL provides 49 built-in scalar types that automatically generate PostgreSQL CHECK constraints, ensuring data quality at the database level. Each type includes validation patterns, GraphQL mappings, and frontend input hints.</p>
+<p><strong>Generated for each type:</strong>
+- PostgreSQL column definition with appropriate type
+- CHECK constraint with regex/range validation
+- GraphQL scalar type mapping
+- TypeScript input type hints
+- Example values and validation rules</p>
+<h2 id="contact-types">Contact Types</h2>
+<h3 id="email">email</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT CHECK (email ~ '^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$')</code>
+<strong>GraphQL</strong>: <code>Email</code>
+<strong>Validation</strong>: RFC 5322 simplified email format
+<strong>Examples</strong>: <code>user@example.com</code>, <code>test.email+tag@domain.co.uk</code></p>
+<pre><code class="language-yaml">fields:
+  email: email!              # NOT NULL email
+  backup_email: email        # Optional email
+</code></pre>
+<h3 id="phonenumber">phoneNumber</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT CHECK (phone ~ '^\\+[1-9]\\d{1,14}$')</code>
+<strong>GraphQL</strong>: <code>PhoneNumber</code>
+<strong>Validation</strong>: E.164 international phone format
+<strong>Examples</strong>: <code>+14155551234</code>, <code>+447700900000</code></p>
+<pre><code class="language-yaml">fields:
+  phone: phoneNumber
+  mobile: phoneNumber
+</code></pre>
+<h2 id="web-types">Web Types</h2>
+<h3 id="url">url</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT CHECK (url ~ '^https?://[^\\s/$.?#].[^\\s]*$')</code>
+<strong>GraphQL</strong>: <code>Url</code>
+<strong>Validation</strong>: HTTP/HTTPS URL format
+<strong>Examples</strong>: <code>https://example.com</code>, <code>http://localhost:3000/api</code></p>
+<pre><code class="language-yaml">fields:
+  website: url
+  api_endpoint: url
+</code></pre>
+<h3 id="domainname">domainName</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT CHECK (domain ~ '^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}$')</code>
+<strong>GraphQL</strong>: <code>DomainName</code>
+<strong>Validation</strong>: RFC compliant domain name
+<strong>Examples</strong>: <code>example.com</code>, <code>sub.domain.co.uk</code></p>
+<pre><code class="language-yaml">fields:
+  domain: domainName!
+</code></pre>
+<h3 id="slug">slug</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT CHECK (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')</code>
+<strong>GraphQL</strong>: <code>Slug</code>
+<strong>Validation</strong>: URL-friendly string (lowercase, numbers, hyphens)
+<strong>Examples</strong>: <code>my-article</code>, <code>user-profile-123</code></p>
+<pre><code class="language-yaml">fields:
+  slug: slug!
+</code></pre>
+<h2 id="content-types">Content Types</h2>
+<h3 id="markdown">markdown</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code>
+<strong>GraphQL</strong>: <code>Markdown</code>
+<strong>Validation</strong>: None (accepts any text)
+<strong>Notes</strong>: Intended for Markdown content</p>
+<pre><code class="language-yaml">fields:
+  content: markdown
+  description: markdown
+</code></pre>
+<h3 id="html">html</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code>
+<strong>GraphQL</strong>: <code>Html</code>
+<strong>Validation</strong>: None (accepts any text)
+<strong>Notes</strong>: Intended for HTML content</p>
+<pre><code class="language-yaml">fields:
+  html_content: html
+  template: html
+</code></pre>
+<h3 id="text">text</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code>
+<strong>GraphQL</strong>: <code>String</code>
+<strong>Validation</strong>: None (accepts any text)
+<strong>Notes</strong>: General-purpose text field</p>
+<pre><code class="language-yaml">fields:
+  name: text!
+  description: text
+</code></pre>
+<h2 id="financial-types">Financial Types</h2>
+<h3 id="money">money</h3>
+<p><strong>PostgreSQL</strong>: <code>NUMERIC(19,4) CHECK (money &gt;= -999999999999999.9999 AND money &lt;= 999999999999999.9999)</code>
+<strong>GraphQL</strong>: <code>Money</code>
+<strong>Validation</strong>: 19 digits total, 4 decimal places
+<strong>Examples</strong>: <code>123.45</code>, <code>-999.99</code></p>
+<pre><code class="language-yaml">fields:
+  price: money!
+  budget: money
+</code></pre>
+<h3 id="percentage">percentage</h3>
+<p><strong>PostgreSQL</strong>: <code>NUMERIC(5,2) CHECK (percentage &gt;= 0 AND percentage &lt;= 100)</code>
+<strong>GraphQL</strong>: <code>Percentage</code>
+<strong>Validation</strong>: 0-100 range, 2 decimal places
+<strong>Examples</strong>: <code>85.50</code>, <code>0.00</code>, <code>100.00</code></p>
+<pre><code class="language-yaml">fields:
+  completion_rate: percentage
+  tax_rate: percentage
+</code></pre>
+<h3 id="currencycode">currencyCode</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT CHECK (currency ~ '^[A-Z]{3}$')</code>
+<strong>GraphQL</strong>: <code>CurrencyCode</code>
+<strong>Validation</strong>: ISO 4217 3-letter currency code
+<strong>Examples</strong>: <code>USD</code>, <code>EUR</code>, <code>GBP</code>, <code>JPY</code></p>
+<pre><code class="language-yaml">fields:
+  currency: currencyCode!
+</code></pre>
+<h2 id="temporal-types">Temporal Types</h2>
+<h3 id="date">date</h3>
+<p><strong>PostgreSQL</strong>: <code>DATE</code>
+<strong>GraphQL</strong>: <code>Date</code>
+<strong>Validation</strong>: ISO date format (YYYY-MM-DD)
+<strong>Examples</strong>: <code>2023-12-25</code>, <code>1990-01-01</code></p>
+<pre><code class="language-yaml">fields:
+  birth_date: date
+  hire_date: date
+</code></pre>
+<h3 id="datetime">datetime</h3>
+<p><strong>PostgreSQL</strong>: <code>TIMESTAMPTZ</code>
+<strong>GraphQL</strong>: <code>DateTime</code>
+<strong>Validation</strong>: ISO timestamp with timezone
+<strong>Examples</strong>: <code>2023-12-25T10:30:00Z</code>, <code>2023-12-25T10:30:00+02:00</code></p>
+<pre><code class="language-yaml">fields:
+  created_at: datetime!
+  updated_at: datetime!
+</code></pre>
+<h3 id="time">time</h3>
+<p><strong>PostgreSQL</strong>: <code>TIME</code>
+<strong>GraphQL</strong>: <code>Time</code>
+<strong>Validation</strong>: HH:MM:SS format
+<strong>Examples</strong>: <code>14:30:00</code>, <code>09:15:30</code></p>
+<pre><code class="language-yaml">fields:
+  meeting_time: time
+  opening_hours: time
+</code></pre>
+<h3 id="duration">duration</h3>
+<p><strong>PostgreSQL</strong>: <code>INTERVAL</code>
+<strong>GraphQL</strong>: <code>Duration</code>
+<strong>Validation</strong>: PostgreSQL interval format
+<strong>Examples</strong>: <code>1 day</code>, <code>2 hours 30 minutes</code>, <code>P1DT2H30M</code></p>
+<pre><code class="language-yaml">fields:
+  processing_time: duration
+  warranty_period: duration
+</code></pre>
+<h2 id="geographic-types">Geographic Types</h2>
+<h3 id="coordinates">coordinates</h3>
+<p><strong>PostgreSQL</strong>: <code>POINT</code> (PostGIS)
+<strong>GraphQL</strong>: <code>Coordinates</code>
+<strong>Validation</strong>: Geographic point (-180 to 180, -90 to 90)
+<strong>Examples</strong>: <code>(2.3522, 48.8566)</code>, <code>(-74.0060, 40.7128)</code></p>
+<pre><code class="language-yaml">fields:
+  location: coordinates
+</code></pre>
+<h3 id="latitude">latitude</h3>
+<p><strong>PostgreSQL</strong>: <code>NUMERIC(9,6) CHECK (latitude &gt;= -90 AND latitude &lt;= 90)</code>
+<strong>GraphQL</strong>: <code>Latitude</code>
+<strong>Validation</strong>: -90 to 90 degrees
+<strong>Examples</strong>: <code>48.8566</code>, <code>-33.8688</code></p>
+<pre><code class="language-yaml">fields:
+  lat: latitude!
+</code></pre>
+<h3 id="longitude">longitude</h3>
+<p><strong>PostgreSQL</strong>: <code>NUMERIC(9,6) CHECK (longitude &gt;= -180 AND longitude &lt;= 180)</code>
+<strong>GraphQL</strong>: <code>Longitude</code>
+<strong>Validation</strong>: -180 to 180 degrees
+<strong>Examples</strong>: <code>2.3522</code>, <code>-74.0060</code></p>
+<pre><code class="language-yaml">fields:
+  lng: longitude!
+</code></pre>
+<h2 id="technical-types">Technical Types</h2>
+<h3 id="ipaddress">ipAddress</h3>
+<p><strong>PostgreSQL</strong>: <code>INET</code>
+<strong>GraphQL</strong>: <code>IPAddress</code>
+<strong>Validation</strong>: IPv4 or IPv6 address
+<strong>Examples</strong>: <code>192.168.1.1</code>, <code>2001:db8::1</code></p>
+<pre><code class="language-yaml">fields:
+  server_ip: ipAddress
+</code></pre>
+<h3 id="macaddress">macAddress</h3>
+<p><strong>PostgreSQL</strong>: <code>MACADDR</code>
+<strong>GraphQL</strong>: <code>MacAddress</code>
+<strong>Validation</strong>: MAC address format
+<strong>Examples</strong>: <code>08:00:27:5a:c8:32</code>, <code>08-00-27-5A-C8-32</code></p>
+<pre><code class="language-yaml">fields:
+  device_mac: macAddress
+</code></pre>
+<h3 id="uuid">uuid</h3>
+<p><strong>PostgreSQL</strong>: <code>UUID</code>
+<strong>GraphQL</strong>: <code>UUID</code>
+<strong>Validation</strong>: UUID format (auto-generated by default)
+<strong>Examples</strong>: <code>550e8400-e29b-41d4-a716-446655440000</code></p>
+<pre><code class="language-yaml">fields:
+  api_key: uuid!
+</code></pre>
+<h2 id="business-types">Business Types</h2>
+<h3 id="stocksymbol">stockSymbol</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT CHECK (symbol ~ '^[A-Z]{1,5}$')</code>
+<strong>GraphQL</strong>: <code>StockSymbol</code>
+<strong>Validation</strong>: 1-5 uppercase letters
+<strong>Examples</strong>: <code>AAPL</code>, <code>GOOGL</code>, <code>TSLA</code></p>
+<pre><code class="language-yaml">fields:
+  ticker: stockSymbol!
+</code></pre>
+<h3 id="isin">isin</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT CHECK (isin ~ '^[A-Z]{2}[A-Z0-9]{9}[0-9]$')</code>
+<strong>GraphQL</strong>: <code>ISIN</code>
+<strong>Validation</strong>: ISO 6166 ISIN format
+<strong>Examples</strong>: <code>US0378331005</code> (Apple), <code>US5949181045</code> (Microsoft)</p>
+<pre><code class="language-yaml">fields:
+  isin_code: isin!
+</code></pre>
+<h3 id="lei">lei</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT CHECK (lei ~ '^[A-Z0-9]{18}[0-9]{2}$')</code>
+<strong>GraphQL</strong>: <code>LEI</code>
+<strong>Validation</strong>: Legal Entity Identifier format
+<strong>Examples</strong>: <code>54930084UKLVMY22DS16</code></p>
+<pre><code class="language-yaml">fields:
+  lei_code: lei
+</code></pre>
+<h3 id="mic">mic</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT CHECK (mic ~ '^[A-Z0-9]{4}$')</code>
+<strong>GraphQL</strong>: <code>MIC</code>
+<strong>Validation</strong>: ISO 10383 Market Identifier Code
+<strong>Examples</strong>: <code>XNAS</code> (NASDAQ), <code>XLON</code> (London Stock Exchange)</p>
+<pre><code class="language-yaml">fields:
+  market_code: mic!
+</code></pre>
+<h2 id="logistics-types">Logistics Types</h2>
+<h3 id="trackingnumber">trackingNumber</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT CHECK (tracking ~ '^[A-Z0-9]{8,30}$')</code>
+<strong>GraphQL</strong>: <code>TrackingNumber</code>
+<strong>Validation</strong>: 8-30 alphanumeric characters
+<strong>Examples</strong>: <code>1Z999AA1234567890</code>, <code>9400111899223344556677</code></p>
+<pre><code class="language-yaml">fields:
+  tracking_code: trackingNumber
+</code></pre>
+<h3 id="containernumber">containerNumber</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT CHECK (container ~ '^[A-Z]{3}[UJZ][0-9]{7}$')</code>
+<strong>GraphQL</strong>: <code>ContainerNumber</code>
+<strong>Validation</strong>: ISO 6346 container number format
+<strong>Examples</strong>: <code>MSKU1234567</code>, <code>OOLU1234560</code></p>
+<pre><code class="language-yaml">fields:
+  container_id: containerNumber!
+</code></pre>
+<h3 id="vin">vin</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT CHECK (vin ~ '^[A-HJ-NPR-Z0-9]{17}$')</code>
+<strong>GraphQL</strong>: <code>VIN</code>
+<strong>Validation</strong>: Vehicle Identification Number format
+<strong>Examples</strong>: <code>1HGCM82633A123456</code></p>
+<pre><code class="language-yaml">fields:
+  vehicle_vin: vin!
+</code></pre>
+<h2 id="security-types">Security Types</h2>
+<h3 id="apikey">apiKey</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT CHECK (api_key ~ '^[A-Za-z0-9]{32,128}$')</code>
+<strong>GraphQL</strong>: <code>ApiKey</code>
+<strong>Validation</strong>: 32-128 alphanumeric characters
+<strong>Examples</strong>: <code>sk_test_4eC39HqLyjWDarjtT1zdp7dc</code></p>
+<pre><code class="language-yaml">fields:
+  api_key: apiKey!
+</code></pre>
+<h3 id="hashsha256">hashSHA256</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT CHECK (hash ~ '^[a-f0-9]{64}$')</code>
+<strong>GraphQL</strong>: <code>HashSHA256</code>
+<strong>Validation</strong>: 64 hexadecimal characters (SHA-256 hash)
+<strong>Examples</strong>: <code>a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3</code></p>
+<pre><code class="language-yaml">fields:
+  password_hash: hashSHA256!
+</code></pre>
+<h2 id="media-types">Media Types</h2>
+<h3 id="image">image</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code>
+<strong>GraphQL</strong>: <code>ImageUrl</code>
+<strong>Validation</strong>: None (intended for image URLs)
+<strong>Notes</strong>: Use with <code>url</code> type for validation</p>
+<pre><code class="language-yaml">fields:
+  avatar_url: image
+  logo_url: image
+</code></pre>
+<h3 id="video">video</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code>
+<strong>GraphQL</strong>: <code>VideoUrl</code>
+<strong>Validation</strong>: None (intended for video URLs)</p>
+<pre><code class="language-yaml">fields:
+  video_url: video
+</code></pre>
+<h3 id="audio">audio</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code>
+<strong>GraphQL</strong>: <code>AudioUrl</code>
+<strong>Validation</strong>: None (intended for audio URLs)</p>
+<pre><code class="language-yaml">fields:
+  audio_url: audio
+</code></pre>
+<h2 id="numeric-types">Numeric Types</h2>
+<h3 id="integer">integer</h3>
+<p><strong>PostgreSQL</strong>: <code>INTEGER</code>
+<strong>GraphQL</strong>: <code>Int</code>
+<strong>Validation</strong>: -2147483648 to 2147483647
+<strong>Examples</strong>: <code>42</code>, <code>-100</code>, <code>0</code></p>
+<pre><code class="language-yaml">fields:
+  count: integer!
+  quantity: integer
+</code></pre>
+<h3 id="bigint">bigint</h3>
+<p><strong>PostgreSQL</strong>: <code>BIGINT</code>
+<strong>GraphQL</strong>: <code>BigInt</code>
+<strong>Validation</strong>: -9223372036854775808 to 9223372036854775807
+<strong>Examples</strong>: <code>9223372036854775807</code></p>
+<pre><code class="language-yaml">fields:
+  large_number: bigint
+</code></pre>
+<h3 id="decimal">decimal</h3>
+<p><strong>PostgreSQL</strong>: <code>NUMERIC(10,2)</code>
+<strong>GraphQL</strong>: <code>Decimal</code>
+<strong>Validation</strong>: 10 digits total, 2 decimal places
+<strong>Examples</strong>: <code>123.45</code>, <code>-999.99</code></p>
+<pre><code class="language-yaml">fields:
+  amount: decimal
+</code></pre>
+<h3 id="numeric">numeric</h3>
+<p><strong>PostgreSQL</strong>: <code>NUMERIC</code>
+<strong>GraphQL</strong>: <code>Numeric</code>
+<strong>Validation</strong>: Arbitrary precision decimal
+<strong>Examples</strong>: <code>123.456789</code>, <code>-999.999999</code></p>
+<pre><code class="language-yaml">fields:
+  precise_value: numeric
+</code></pre>
+<h2 id="boolean-and-binary-types">Boolean and Binary Types</h2>
+<h3 id="boolean">boolean</h3>
+<p><strong>PostgreSQL</strong>: <code>BOOLEAN</code>
+<strong>GraphQL</strong>: <code>Boolean</code>
+<strong>Validation</strong>: true/false
+<strong>Examples</strong>: <code>true</code>, <code>false</code></p>
+<pre><code class="language-yaml">fields:
+  active: boolean = true
+  verified: boolean!
+</code></pre>
+<h3 id="bytea">bytea</h3>
+<p><strong>PostgreSQL</strong>: <code>BYTEA</code>
+<strong>GraphQL</strong>: <code>ByteArray</code>
+<strong>Validation</strong>: Binary data
+<strong>Notes</strong>: For files, images, encrypted data</p>
+<pre><code class="language-yaml">fields:
+  file_data: bytea
+  encrypted_content: bytea
+</code></pre>
+<h2 id="json-types">JSON Types</h2>
+<h3 id="json">json</h3>
+<p><strong>PostgreSQL</strong>: <code>JSONB</code>
+<strong>GraphQL</strong>: <code>JSONObject</code>
+<strong>Validation</strong>: Valid JSON structure
+<strong>Examples</strong>: <code>{"key": "value"}</code>, <code>[1, 2, 3]</code></p>
+<pre><code class="language-yaml">fields:
+  metadata: json
+  settings: json
+</code></pre>
+<h3 id="jsonb">jsonb</h3>
+<p><strong>PostgreSQL</strong>: <code>JSONB</code>
+<strong>GraphQL</strong>: <code>JSONObject</code>
+<strong>Validation</strong>: Valid JSON structure (same as json)
+<strong>Notes</strong>: JSONB is the recommended JSON type in PostgreSQL</p>
+<pre><code class="language-yaml">fields:
+  configuration: jsonb
+  user_preferences: jsonb
+</code></pre>
+<h2 id="identifier-types">Identifier Types</h2>
+<h3 id="hierarchical">hierarchical</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code>
+<strong>GraphQL</strong>: <code>HierarchicalIdentifier</code>
+<strong>Validation</strong>: None (intended for hierarchical paths)
+<strong>Examples</strong>: <code>root.parent.child</code>, <code>1.2.3.4</code></p>
+<pre><code class="language-yaml">fields:
+  path: hierarchical
+  category_path: hierarchical
+</code></pre>
+<h2 id="type-mapping-table">Type Mapping Table</h2>
+<table>
+<thead>
+<tr>
+<th>SpecQL Type</th>
+<th>PostgreSQL Type</th>
+<th>GraphQL Type</th>
+<th>Validation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>email</code></td>
+<td><code>TEXT</code></td>
+<td><code>Email</code></td>
+<td>RFC 5322 email</td>
+</tr>
+<tr>
+<td><code>phoneNumber</code></td>
+<td><code>TEXT</code></td>
+<td><code>PhoneNumber</code></td>
+<td>E.164 phone</td>
+</tr>
+<tr>
+<td><code>url</code></td>
+<td><code>TEXT</code></td>
+<td><code>Url</code></td>
+<td>HTTP/HTTPS URL</td>
+</tr>
+<tr>
+<td><code>domainName</code></td>
+<td><code>TEXT</code></td>
+<td><code>DomainName</code></td>
+<td>RFC domain</td>
+</tr>
+<tr>
+<td><code>slug</code></td>
+<td><code>TEXT</code></td>
+<td><code>Slug</code></td>
+<td>URL-friendly</td>
+</tr>
+<tr>
+<td><code>markdown</code></td>
+<td><code>TEXT</code></td>
+<td><code>Markdown</code></td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>html</code></td>
+<td><code>TEXT</code></td>
+<td><code>Html</code></td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>text</code></td>
+<td><code>TEXT</code></td>
+<td><code>String</code></td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>money</code></td>
+<td><code>NUMERIC(19,4)</code></td>
+<td><code>Money</code></td>
+<td>19 digits, 4 decimals</td>
+</tr>
+<tr>
+<td><code>percentage</code></td>
+<td><code>NUMERIC(5,2)</code></td>
+<td><code>Percentage</code></td>
+<td>0-100, 2 decimals</td>
+</tr>
+<tr>
+<td><code>currencyCode</code></td>
+<td><code>TEXT</code></td>
+<td><code>CurrencyCode</code></td>
+<td>ISO 4217</td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td><code>DATE</code></td>
+<td><code>Date</code></td>
+<td>ISO date</td>
+</tr>
+<tr>
+<td><code>datetime</code></td>
+<td><code>TIMESTAMPTZ</code></td>
+<td><code>DateTime</code></td>
+<td>ISO timestamp</td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td><code>TIME</code></td>
+<td><code>Time</code></td>
+<td>HH:MM:SS</td>
+</tr>
+<tr>
+<td><code>duration</code></td>
+<td><code>INTERVAL</code></td>
+<td><code>Duration</code></td>
+<td>PostgreSQL interval</td>
+</tr>
+<tr>
+<td><code>coordinates</code></td>
+<td><code>POINT</code></td>
+<td><code>Coordinates</code></td>
+<td>Geographic point</td>
+</tr>
+<tr>
+<td><code>latitude</code></td>
+<td><code>NUMERIC(9,6)</code></td>
+<td><code>Latitude</code></td>
+<td>-90 to 90</td>
+</tr>
+<tr>
+<td><code>longitude</code></td>
+<td><code>NUMERIC(9,6)</code></td>
+<td><code>Longitude</code></td>
+<td>-180 to 180</td>
+</tr>
+<tr>
+<td><code>ipAddress</code></td>
+<td><code>INET</code></td>
+<td><code>IPAddress</code></td>
+<td>IPv4/IPv6</td>
+</tr>
+<tr>
+<td><code>macAddress</code></td>
+<td><code>MACADDR</code></td>
+<td><code>MacAddress</code></td>
+<td>MAC address</td>
+</tr>
+<tr>
+<td><code>uuid</code></td>
+<td><code>UUID</code></td>
+<td><code>UUID</code></td>
+<td>UUID format</td>
+</tr>
+<tr>
+<td><code>stockSymbol</code></td>
+<td><code>TEXT</code></td>
+<td><code>StockSymbol</code></td>
+<td>1-5 uppercase</td>
+</tr>
+<tr>
+<td><code>isin</code></td>
+<td><code>TEXT</code></td>
+<td><code>ISIN</code></td>
+<td>ISO 6166</td>
+</tr>
+<tr>
+<td><code>lei</code></td>
+<td><code>TEXT</code></td>
+<td><code>LEI</code></td>
+<td>Legal Entity ID</td>
+</tr>
+<tr>
+<td><code>mic</code></td>
+<td><code>TEXT</code></td>
+<td><code>MIC</code></td>
+<td>Market ID Code</td>
+</tr>
+<tr>
+<td><code>trackingNumber</code></td>
+<td><code>TEXT</code></td>
+<td><code>TrackingNumber</code></td>
+<td>8-30 alphanumeric</td>
+</tr>
+<tr>
+<td><code>containerNumber</code></td>
+<td><code>TEXT</code></td>
+<td><code>ContainerNumber</code></td>
+<td>ISO 6346</td>
+</tr>
+<tr>
+<td><code>vin</code></td>
+<td><code>TEXT</code></td>
+<td><code>VIN</code></td>
+<td>Vehicle ID</td>
+</tr>
+<tr>
+<td><code>apiKey</code></td>
+<td><code>TEXT</code></td>
+<td><code>ApiKey</code></td>
+<td>32-128 alphanumeric</td>
+</tr>
+<tr>
+<td><code>hashSHA256</code></td>
+<td><code>TEXT</code></td>
+<td><code>HashSHA256</code></td>
+<td>64 hex chars</td>
+</tr>
+<tr>
+<td><code>image</code></td>
+<td><code>TEXT</code></td>
+<td><code>ImageUrl</code></td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>video</code></td>
+<td><code>TEXT</code></td>
+<td><code>VideoUrl</code></td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>audio</code></td>
+<td><code>TEXT</code></td>
+<td><code>AudioUrl</code></td>
+<td>None</td>
+</tr>
+<tr>
+<td><code>integer</code></td>
+<td><code>INTEGER</code></td>
+<td><code>Int</code></td>
+<td>32-bit integer</td>
+</tr>
+<tr>
+<td><code>bigint</code></td>
+<td><code>BIGINT</code></td>
+<td><code>BigInt</code></td>
+<td>64-bit integer</td>
+</tr>
+<tr>
+<td><code>decimal</code></td>
+<td><code>NUMERIC(10,2)</code></td>
+<td><code>Decimal</code></td>
+<td>10 digits, 2 decimals</td>
+</tr>
+<tr>
+<td><code>numeric</code></td>
+<td><code>NUMERIC</code></td>
+<td><code>Numeric</code></td>
+<td>Arbitrary precision</td>
+</tr>
+<tr>
+<td><code>boolean</code></td>
+<td><code>BOOLEAN</code></td>
+<td><code>Boolean</code></td>
+<td>true/false</td>
+</tr>
+<tr>
+<td><code>bytea</code></td>
+<td><code>BYTEA</code></td>
+<td><code>ByteArray</code></td>
+<td>Binary data</td>
+</tr>
+<tr>
+<td><code>json</code></td>
+<td><code>JSONB</code></td>
+<td><code>JSONObject</code></td>
+<td>JSON structure</td>
+</tr>
+<tr>
+<td><code>jsonb</code></td>
+<td><code>JSONB</code></td>
+<td><code>JSONObject</code></td>
+<td>JSON structure</td>
+</tr>
+<tr>
+<td><code>hierarchical</code></td>
+<td><code>TEXT</code></td>
+<td><code>HierarchicalIdentifier</code></td>
+<td>None</td>
+</tr>
+</tbody>
+</table>
+<h2 id="validation-patterns">Validation Patterns</h2>
+<h3 id="regex-patterns-used">Regex Patterns Used</h3>
+<pre><code class="language-sql">-- Email validation
+CHECK (email ~ '^[^@\s]+@[^@\s]+\.[^@\s]+$')
+
+-- Phone (E.164)
+CHECK (phone ~ '^\+[1-9]\d{1,14}$')
+
+-- URL
+CHECK (url ~ '^https?://[^\s/$.?#].[^\s]*$')
+
+-- Domain
+CHECK (domain ~ '^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$')
+
+-- Slug
+CHECK (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')
+
+-- Currency code
+CHECK (currency ~ '^[A-Z]{3}$')
+
+-- ISIN
+CHECK (isin ~ '^[A-Z]{2}[A-Z0-9]{9}[0-9]$')
+
+-- LEI
+CHECK (lei ~ '^[A-Z0-9]{18}[0-9]{2}$')
+
+-- MIC
+CHECK (mic ~ '^[A-Z0-9]{4}$')
+
+-- Container number
+CHECK (container ~ '^[A-Z]{3}[UJZ][0-9]{7}$')
+
+-- VIN
+CHECK (vin ~ '^[A-HJ-NPR-Z0-9]{17}$')
+
+-- API key
+CHECK (api_key ~ '^[A-Za-z0-9]{32,128}$')
+
+-- SHA256 hash
+CHECK (hash ~ '^[a-f0-9]{64}$')
+</code></pre>
+<h3 id="range-validations">Range Validations</h3>
+<pre><code class="language-sql">-- Money range
+CHECK (money &gt;= -999999999999999.9999 AND money &lt;= 999999999999999.9999)
+
+-- Percentage range
+CHECK (percentage &gt;= 0 AND percentage &lt;= 100)
+
+-- Latitude range
+CHECK (latitude &gt;= -90 AND latitude &lt;= 90)
+
+-- Longitude range
+CHECK (longitude &gt;= -180 AND longitude &lt;= 180)
+
+-- Integer range
+CHECK (integer &gt;= -2147483648 AND integer &lt;= 2147483647)
+
+-- BigInt range
+CHECK (bigint &gt;= -9223372036854775808 AND bigint &lt;= 9223372036854775807)
+</code></pre>
+<h2 id="frontend-type-hints">Frontend Type Hints</h2>
+<p>Each scalar type provides TypeScript input type hints for better developer experience:</p>
+<pre><code class="language-typescript">// Generated from SpecQL types
+interface ContactInput {
+  email: string;        // email type
+  phone?: string;       // phoneNumber type
+  website?: string;     // url type
+  score: number;        // percentage type (0-100)
+  budget: number;       // money type
+  coordinates: { lat: number; lng: number }; // coordinates type
+  createdAt: Date;      // datetime type
+  active: boolean;      // boolean type
+}
+</code></pre>
+<h2 id="custom-validation">Custom Validation</h2>
+<p>For complex validation beyond built-in types:</p>
+<pre><code class="language-yaml">fields:
+  custom_field:
+    type: text
+    validation: &quot;^[A-Z][a-z]+$&quot;  # Custom regex
+    description: &quot;Must start with capital letter&quot;
+</code></pre>
+<h2 id="migration-from-generic-types">Migration from Generic Types</h2>
+<h3 id="before-generic-types">Before (Generic Types)</h3>
+<pre><code class="language-yaml">fields:
+  email: text          # No validation
+  phone: text          # No validation
+  price: numeric       # No range limits
+  percentage: numeric  # No 0-100 limit
+</code></pre>
+<h3 id="after-rich-types">After (Rich Types)</h3>
+<pre><code class="language-yaml">fields:
+  email: email!        # Automatic email validation
+  phone: phone         # Automatic E.164 validation
+  price: money         # Automatic precision and range
+  percentage: percentage # Automatic 0-100 validation
+</code></pre>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<ul>
+<li><strong>Rich types add CHECK constraints</strong>: Minimal performance impact</li>
+<li><strong>Text validations use regex</strong>: Efficient for most use cases</li>
+<li><strong>Numeric ranges use simple comparisons</strong>: Very fast</li>
+<li><strong>JSON types use JSONB</strong>: Indexed and searchable</li>
+<li><strong>Geographic types require PostGIS</strong>: Enable for coordinate support</li>
+</ul>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="1-use-semantic-types">1. Use Semantic Types</h3>
+<pre><code class="language-yaml"># ✅ Use specific types
+email: email!
+phone: phone
+website: url
+price: money
+
+# ❌ Don't use generic types
+email: text
+phone: text
+website: text
+price: numeric
+</code></pre>
+<h3 id="2-leverage-validation">2. Leverage Validation</h3>
+<pre><code class="language-yaml"># ✅ Database-level validation
+score: percentage    # Automatically 0-100
+currency: currencyCode # Automatically 3-letter code
+
+# ❌ Application-level validation needed
+score: numeric      # Need to validate 0-100 in app
+currency: text      # Need to validate format in app
+</code></pre>
+<h3 id="3-consider-storage-size">3. Consider Storage Size</h3>
+<pre><code class="language-yaml"># ✅ Appropriate precision
+price: money        # NUMERIC(19,4) - suitable for most currencies
+percentage: percentage # NUMERIC(5,2) - 2 decimal places
+
+# ❌ Over-precision
+price: numeric      # Arbitrary precision - wasteful
+percentage: decimal # NUMERIC(10,2) - unnecessary precision
+</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="validation-errors">Validation Errors</h3>
+<pre><code>ERROR: new row for relation &quot;contact&quot; violates check constraint &quot;contact_email_check&quot;
+DETAIL: Failing row contains (email) = (invalid-email)
+
+# Fix: Use valid email format
+email: 'user@example.com'
+</code></pre>
+<h3 id="type-mismatches">Type Mismatches</h3>
+<pre><code>ERROR: column &quot;price&quot; is of type numeric but expression is of type text
+
+# Fix: Use numeric value
+price: 123.45  # Not &quot;123.45&quot;
+</code></pre>
+<h3 id="postgis-required">PostGIS Required</h3>
+<pre><code>ERROR: type &quot;point&quot; does not exist
+
+# Fix: Install PostGIS extension
+CREATE EXTENSION postgis;
+</code></pre>
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li><strong>Read YAML Syntax</strong>: Complete DSL reference in <code>docs/reference/yaml-syntax.md</code></li>
+<li><strong>Check Rich Types Guide</strong>: Usage examples in <code>docs/guides/rich-types-guide.md</code></li>
+<li><strong>Browse Examples</strong>: See types in action in <code>examples/</code></li>
+<li><strong>Generate Schema</strong>: Run <code>specql generate</code> to see generated constraints</li>
+</ul>
+<hr />
+<p><strong>49 types, 49 validations, zero boilerplate.</strong> ✅</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

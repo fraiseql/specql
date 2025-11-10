@@ -1,0 +1,1397 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Complex Business Logic in YAML - Analysis - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Complex Business Logic in YAML - Analysis";
+        var mkdocs_page_input_path = "analysis/COMPLEX_BUSINESS_LOGIC_YAML_ANALYSIS.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Complex Business Logic in YAML - Analysis</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="complex-business-logic-in-yaml-analysis">Complex Business Logic in YAML - Analysis</h1>
+<p><strong>Date</strong>: November 8, 2025
+<strong>Project</strong>: PrintOptim Backend - YAML Schema Design
+<strong>Purpose</strong>: Explore how to express complex business logic patterns in YAML</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>This document analyzes the most complex business logic functions in printoptim_backend to determine how their patterns can be expressed in YAML entity definitions. The analysis focuses on three advanced cases:</p>
+<ol>
+<li><strong>machine_item</strong> - Nested entity creation, conditional charge insertion</li>
+<li><strong>reservation</strong> - Complex conflict detection, temporal logic, neighbor adjustment</li>
+<li><strong>allocation</strong> - Overlap prevention, date range validation, cascade updates</li>
+</ol>
+<p><strong>Key Finding</strong>: Most business logic can be <strong>declaratively expressed in YAML</strong> using a structured pattern language, with only truly custom logic requiring function templates.</p>
+<hr />
+<h2 id="analyzed-functions">🔍 Analyzed Functions</h2>
+<h3 id="1-machine-item-create_machine_item">1. Machine Item (<code>create_machine_item</code>)</h3>
+<p><strong>File</strong>: <code>db/0_schema/03_functions/034_dim/0345_mat/03452_machine_item/034521_create_machine_item.sql</code>
+<strong>Lines</strong>: 410
+<strong>Complexity</strong>: High</p>
+<h3 id="2-reservation-create_reservation">2. Reservation (<code>create_reservation</code>)</h3>
+<p><strong>File</strong>: <code>db/0_schema/03_functions/035_scd/03502_reservation/035021_create_reservation.sql</code>
+<strong>Lines</strong>: 612
+<strong>Complexity</strong>: Very High</p>
+<h3 id="3-allocation-create_allocation-update_allocation">3. Allocation (<code>create_allocation</code>, <code>update_allocation</code>)</h3>
+<p><strong>Files</strong>:
+- <code>db/0_schema/03_functions/035_scd/03501_allocation/035011_allocation/035011_create_allocation.sql</code> (263 lines)
+- <code>db/0_schema/03_functions/035_scd/03501_allocation/035011_allocation/035012_update_allocation.sql</code> (227 lines)
+<strong>Complexity</strong>: Very High</p>
+<hr />
+<h2 id="common-business-logic-patterns-identified">📊 Common Business Logic Patterns Identified</h2>
+<h3 id="pattern-1-input-validation">Pattern 1: Input Validation</h3>
+<p><strong>Example from <code>create_machine_item</code>:</strong></p>
+<pre><code class="language-sql">-- Validation: both order_id and order_data provided
+IF (v_fields ? 'order_id' AND v_fields-&gt;&gt;'order_id' IS NOT NULL)
+   AND (v_fields ? 'order_data' AND jsonb_typeof(v_fields-&gt;'order_data') = 'object') THEN
+    RETURN core.log_and_return_mutation(..., 'conflicting_order_fields', ...);
+END IF;
+
+-- Validation: Product cannot be used with order_id
+IF (v_fields-&gt;&gt;'source_type') = 'Product'
+   AND ((v_fields ? 'order_id' AND v_fields-&gt;&gt;'order_id' IS NOT NULL) ...) THEN
+    RETURN core.log_and_return_mutation(..., 'invalid_order_usage_with_product', ...);
+END IF;
+</code></pre>
+<p><strong>YAML Pattern:</strong></p>
+<pre><code class="language-yaml">business_logic:
+  validations:
+    - name: conflicting_order_fields
+      type: mutual_exclusion
+      fields: [order_id, order_data]
+      error_message: &quot;Do not provide both order_id and order_data&quot;
+      error_code: &quot;CONFLICTING_ORDER_FIELDS&quot;
+
+    - name: product_order_exclusion
+      type: conditional_exclusion
+      condition: &quot;source_type = 'Product'&quot;
+      forbidden_fields: [order_id, order_data]
+      error_message: &quot;Orders cannot be associated directly with a Product&quot;
+      error_code: &quot;INVALID_ORDER_USAGE_WITH_PRODUCT&quot;
+
+    - name: installation_date_check
+      type: date_comparison
+      field: installed_at
+      operator: &quot;&gt;=&quot;
+      compare_to: &quot;machine.installed_at&quot;
+      error_message: &quot;Installation date cannot be earlier than machine installation date&quot;
+      error_code: &quot;INVALID_INSTALLATION_DATE&quot;
+</code></pre>
+<hr />
+<h3 id="pattern-2-existence-checks">Pattern 2: Existence Checks</h3>
+<p><strong>Example from <code>create_machine_item</code>:</strong></p>
+<pre><code class="language-sql">SELECT installed_at, delivered_at, fk_contract INTO v_machine_installed_at, ...
+FROM tenant.tb_machine
+WHERE pk_machine = input_data.machine_id AND fk_customer_org = input_pk_organization;
+
+IF NOT FOUND THEN
+    RETURN core.log_and_return_mutation(..., 'invalid_machine_id_or_access_denied', ...);
+END IF;
+</code></pre>
+<p><strong>YAML Pattern:</strong></p>
+<pre><code class="language-yaml">business_logic:
+  existence_checks:
+    - entity: machine
+      field: machine_id
+      scope: tenant  # Ensure belongs to same organization
+      error_message: &quot;Machine does not exist or access is denied&quot;
+      error_code: &quot;INVALID_MACHINE_ID&quot;
+      required_fields: [installed_at, delivered_at, fk_contract]
+      store_as:
+        v_machine_installed_at: installed_at
+        v_machine_delivered_at: delivered_at
+        v_contract_id: fk_contract
+
+    - entity: order
+      field: order_id
+      condition: &quot;order_id IS NOT NULL&quot;
+      join_through: contract  # Must belong to organization via contract
+      error_message: &quot;Order ID is invalid or does not belong to this organization&quot;
+      error_code: &quot;INVALID_ORDER_ID&quot;
+</code></pre>
+<hr />
+<h3 id="pattern-3-conflict-detection-deduplication">Pattern 3: Conflict Detection (Deduplication)</h3>
+<p><strong>Example from <code>create_reservation</code>:</strong></p>
+<pre><code class="language-sql">-- Reject if overlapping provisional allocation already exists
+SELECT pk_allocation INTO v_existing_id
+FROM tenant.tb_allocation
+WHERE fk_machine = input_data.machine_id
+  AND is_provisionnal = TRUE
+  AND daterange(start_date, end_date, '[]') &amp;&amp; v_reservation_range
+LIMIT 1;
+
+IF v_existing_id IS NOT NULL THEN
+    RETURN core.log_and_return_mutation(..., 'overlapping_reservation_exists', ...);
+END IF;
+</code></pre>
+<p><strong>YAML Pattern:</strong></p>
+<pre><code class="language-yaml">business_logic:
+  conflict_detection:
+    - name: overlapping_reservation
+      type: temporal_overlap
+      table: allocation
+      conditions:
+        - &quot;fk_machine = input.machine_id&quot;
+        - &quot;is_provisionnal = TRUE&quot;
+      overlap_field: &quot;daterange(start_date, end_date, '[]')&quot;
+      overlap_with: &quot;daterange(input.reserved_from, input.reserved_until, '[]')&quot;
+      action: reject
+      error_message: &quot;Machine is already reserved&quot;
+      error_code: &quot;OVERLAPPING_RESERVATION_EXISTS&quot;
+      context_fields:
+        - conflict_reservation
+        - context_machine
+        - context_allocation
+
+    - name: same_orgunit_location
+      type: exact_match
+      table: allocation
+      conditions:
+        - &quot;fk_machine = input.machine_id&quot;
+        - &quot;fk_organizational_unit = input.organizational_unit_id&quot;
+        - &quot;fk_location = COALESCE(input.location_id, fk_location)&quot;
+        - &quot;start_date &lt;= CURRENT_DATE&quot;
+      overlap_check: &quot;daterange(start_date, end_date, '[]') &amp;&amp; input_range&quot;
+      action: reject
+      error_message: &quot;Current allocation has same location and organizational unit&quot;
+      error_code: &quot;CURRENT_ALLOCATION_IS_THE_SAME&quot;
+</code></pre>
+<hr />
+<h3 id="pattern-4-nested-entity-creation">Pattern 4: Nested Entity Creation</h3>
+<p><strong>Example from <code>create_machine_item</code>:</strong></p>
+<pre><code class="language-sql">-- Create order and inject order_id
+IF jsonb_typeof(v_fields-&gt;'order_data') = 'object' THEN
+    SELECT * INTO v_order_result
+    FROM app.create_order(
+        input_pk_organization,
+        input_created_by,
+        jsonb_strip_nulls(v_fields-&gt;'order_data')
+    );
+
+    IF v_order_result.id IS NOT NULL THEN
+        v_fields := jsonb_set(v_fields, '{order_id}', to_jsonb(v_order_result.id), true);
+    END IF;
+
+    v_fields := v_fields - 'order_data';
+END IF;
+</code></pre>
+<p><strong>YAML Pattern:</strong></p>
+<pre><code class="language-yaml">business_logic:
+  nested_creation:
+    - entity: order
+      trigger_field: order_data
+      function: create_order
+      parameters:
+        - input_pk_organization
+        - input_created_by
+        - &quot;jsonb_strip_nulls(order_data)&quot;
+      on_success:
+        inject_field: order_id
+        source: &quot;result.id&quot;
+        remove_field: order_data
+      validation:
+        required_fields: [contract_id]
+        error_message: &quot;order_data must include contract_id&quot;
+        error_code: &quot;MISSING_CONTRACT_IN_ORDER_DATA&quot;
+</code></pre>
+<hr />
+<h3 id="pattern-5-conditional-charge-insertion">Pattern 5: Conditional Charge Insertion</h3>
+<p><strong>Example from <code>create_machine_item</code>:</strong></p>
+<pre><code class="language-sql">IF input_data.source_type != 'Product' THEN
+    SELECT resolve_machine_cost_period_end_date(...)
+    INTO v_charge_end_date;
+
+    -- Guard against invalid charge period
+    IF v_installed_at::DATE &gt; v_charge_end_date THEN
+        RETURN core.log_and_return_mutation(..., 'installation_date_incompatible_with_contract', ...);
+    END IF;
+
+    -- Check for overlapping charges
+    SELECT EXISTS (
+        SELECT 1 FROM tenant.tb_charge
+        WHERE fk_machine_item = v_id
+          AND charge_daterange &amp;&amp; daterange(v_installed_at::DATE, v_charge_end_date, '[]')
+    ) INTO v_charge_overlap_exists;
+
+    IF v_charge_overlap_exists THEN
+        RETURN core.log_and_return_mutation(..., 'duplicate_charge', ...);
+    END IF;
+
+    PERFORM core.insert_machine_item_charge(...);
+END IF;
+</code></pre>
+<p><strong>YAML Pattern:</strong></p>
+<pre><code class="language-yaml">business_logic:
+  side_effects:
+    - name: create_charge
+      condition: &quot;source_type != 'Product'&quot;
+      action: insert
+      target: charge
+      function: insert_machine_item_charge
+      parameters:
+        - input_pk_organization
+        - v_contract_id
+        - v_fk_financing_condition
+        - v_fk_contract_item
+        - &quot;input.order_id&quot;
+        - &quot;input.machine_id&quot;
+        - v_id
+        - v_installed_at
+        - v_charge_end_date
+        - v_ctx
+      pre_validations:
+        - name: charge_period_validity
+          type: date_comparison
+          field: installed_at
+          operator: &quot;&lt;=&quot;
+          compare_to: v_charge_end_date
+          error_message: &quot;Installation date is after charge end date&quot;
+          error_code: &quot;INSTALLATION_DATE_INCOMPATIBLE_WITH_CONTRACT&quot;
+
+        - name: charge_overlap
+          type: range_overlap
+          table: charge
+          conditions:
+            - &quot;fk_machine_item = v_id&quot;
+          overlap_field: charge_daterange
+          overlap_with: &quot;daterange(installed_at, v_charge_end_date, '[]')&quot;
+          error_message: &quot;Charge already exists for this period&quot;
+          error_code: &quot;DUPLICATE_CHARGE&quot;
+      compute_values:
+        - name: v_charge_end_date
+          function: resolve_machine_cost_period_end_date
+          parameters:
+            - &quot;contract.start_date&quot;
+            - &quot;contract.end_date&quot;
+            - v_installed_at
+            - v_fk_financing_condition
+</code></pre>
+<hr />
+<h3 id="pattern-6-neighbor-adjustment-temporal-continuity">Pattern 6: Neighbor Adjustment (Temporal Continuity)</h3>
+<p><strong>Example from <code>create_reservation</code>:</strong></p>
+<pre><code class="language-sql">-- Adjust current allocation to end before reservation
+IF v_current_allocation_id IS NOT NULL THEN
+    UPDATE tenant.tb_allocation
+    SET end_date = (COALESCE(input_data.reserved_from, ...) - INTERVAL '1 day')::DATE,
+        is_current = (
+            CURRENT_DATE &lt;= COALESCE(input_data.reserved_from, ...) - INTERVAL '1 day'
+            AND CURRENT_DATE &lt;@ daterange(start_date, (COALESCE(...) - INTERVAL '1 day')::DATE, '[]')
+        )
+    WHERE pk_allocation = v_current_allocation_id;
+END IF;
+</code></pre>
+<p><strong>YAML Pattern:</strong></p>
+<pre><code class="language-yaml">business_logic:
+  temporal_continuity:
+    - name: close_current_allocation
+      trigger: before_insert
+      find_neighbor:
+        type: current
+        table: allocation
+        conditions:
+          - &quot;fk_machine = input.machine_id&quot;
+          - &quot;fk_customer_org = input_pk_organization&quot;
+          - &quot;start_date &lt;= CURRENT_DATE&quot;
+          - &quot;end_date IS NULL OR end_date &gt;= input.reserved_from&quot;
+          - &quot;is_provisionnal = FALSE&quot;
+        order_by: &quot;start_date DESC, pk_allocation DESC&quot;
+        limit: 1
+      adjust_neighbor:
+        set_end_date: &quot;input.reserved_from - INTERVAL '1 day'&quot;
+        recalculate_is_current: true
+        condition_for_is_current:
+          - &quot;CURRENT_DATE &lt;= (end_date)&quot;
+          - &quot;CURRENT_DATE &lt;@ daterange(start_date, end_date, '[]')&quot;
+
+    - name: adjust_allocation_neighbors
+      trigger: on_date_change
+      conditions:
+        - &quot;start_date changed OR end_date changed&quot;
+        - &quot;fk_machine IS NOT NULL&quot;
+      function: fn_adjust_allocation_neighbors_for_date_change
+      parameters:
+        - input_allocation_id
+        - input_machine_id
+        - input_customer_org_id
+        - new_start_date
+        - new_end_date
+        - input_updated_by
+      return_affected_ids: true
+</code></pre>
+<hr />
+<h3 id="pattern-7-cascade-updates-recalculations">Pattern 7: Cascade Updates &amp; Recalculations</h3>
+<p><strong>Example from <code>create_machine_item</code>:</strong></p>
+<pre><code class="language-sql">PERFORM core.recalcid_machine_item(v_ctx);
+BEGIN PERFORM core.refresh_machine(ctx := v_ctx); EXCEPTION WHEN OTHERS THEN NULL; END;
+
+SELECT ARRAY(
+    SELECT DISTINCT pk_allocation
+    FROM tenant.tb_allocation
+    WHERE fk_machine = input_data.machine_id
+      AND (end_date IS NULL OR end_date &gt;= CURRENT_DATE)
+) INTO v_allocation_ids;
+
+PERFORM core.batch_refresh_allocation(
+    p_ids := v_allocation_ids,
+    ctx := v_ctx,
+    scope := v_scope_allocation,
+    only_current_allocations := TRUE
+);
+</code></pre>
+<p><strong>YAML Pattern:</strong></p>
+<pre><code class="language-yaml">business_logic:
+  cascade_updates:
+    - name: recalculate_identifiers
+      trigger: after_insert
+      scope: self
+      function: recalcid_machine_item
+      parameters: [v_ctx]
+
+    - name: refresh_machine
+      trigger: after_insert
+      scope: parent
+      entity: machine
+      function: refresh_machine
+      parameters: [v_ctx]
+      ignore_errors: true  # BEGIN...EXCEPTION block
+
+    - name: refresh_allocations
+      trigger: after_insert
+      scope: related
+      entity: allocation
+      find_related:
+        conditions:
+          - &quot;fk_machine = input.machine_id&quot;
+          - &quot;end_date IS NULL OR end_date &gt;= CURRENT_DATE&quot;
+        distinct_on: pk_allocation
+      function: batch_refresh_allocation
+      parameters:
+        p_ids: &quot;v_allocation_ids&quot;
+        ctx: &quot;v_ctx&quot;
+        scope: &quot;['machine']&quot;
+        only_current_allocations: true
+</code></pre>
+<hr />
+<h3 id="pattern-8-field-change-detection">Pattern 8: Field Change Detection</h3>
+<p><strong>Example from <code>update_allocation</code>:</strong></p>
+<pre><code class="language-sql">v_updated_fields := ARRAY[
+    CASE WHEN input_payload ? 'location_id' AND input_data.location_id IS DISTINCT FROM v_curr.fk_location THEN 'location_id' END,
+    CASE WHEN input_payload ? 'machine_id' AND input_data.machine_id IS DISTINCT FROM v_curr.fk_machine THEN 'machine_id' END,
+    CASE WHEN input_payload ? 'start_date' AND input_data.start_date IS DISTINCT FROM v_curr.start_date THEN 'start_date' END,
+    CASE WHEN input_payload ? 'end_date' AND input_data.end_date IS DISTINCT FROM v_curr.end_date THEN 'end_date' END
+]::TEXT[];
+v_updated_fields := array_remove(v_updated_fields, NULL);
+
+IF cardinality(v_updated_fields) = 0 THEN
+    RETURN core.log_and_return_mutation(..., 'noop:no_changes', ...);
+END IF;
+</code></pre>
+<p><strong>YAML Pattern:</strong></p>
+<pre><code class="language-yaml">business_logic:
+  change_detection:
+    tracked_fields:
+      - location_id
+      - machine_id
+      - organizational_unit_id
+      - start_date
+      - end_date
+      - notes
+      - notes_contact
+      - is_stock
+
+    on_no_changes:
+      action: noop
+      message: &quot;No changes were applied&quot;
+      status: &quot;noop:no_changes&quot;
+
+    conditional_actions:
+      - trigger_when:
+          - &quot;start_date changed OR end_date changed&quot;
+        actions:
+          - adjust_neighbors
+          - recalculate_temporal_fields
+      - trigger_when:
+          - &quot;machine_id changed&quot;
+        actions:
+          - refresh_related_allocations
+</code></pre>
+<hr />
+<h3 id="pattern-9-multi-entity-response-building">Pattern 9: Multi-Entity Response Building</h3>
+<p><strong>Example from <code>create_reservation</code>:</strong></p>
+<pre><code class="language-sql">RETURN core.log_and_return_mutation(
+    input_pk_organization,
+    input_created_by,
+    v_entity,
+    v_id,
+    'INSERT',
+    'new',
+    v_updated_fields,
+    v_message,
+    NULL,
+    jsonb_build_object(
+        'reservation', v_payload_reservation_after,
+        'machine', v_payload_machine_after,
+        'allocation', v_payload_allocation_after
+    ),
+    v_extra_metadata
+);
+</code></pre>
+<p><strong>YAML Pattern:</strong></p>
+<pre><code class="language-yaml">business_logic:
+  response_structure:
+    success:
+      status: new
+      message: &quot;Reservation created successfully&quot;
+      return_fields:
+        - name: reservation
+          source: tv_allocation
+          where: &quot;id = v_id&quot;
+        - name: machine
+          source: tv_machine
+          where: &quot;id = input.machine_id&quot;
+        - name: allocation
+          source: tv_allocation
+          where: &quot;id = v_current_allocation_id&quot;
+          nullable: true  # May not exist
+
+    failure_variants:
+      - code: overlapping_reservation_exists
+        message: &quot;Machine is already reserved&quot;
+        return_fields:
+          - conflict_reservation
+          - context_machine
+          - context_allocation
+      - code: machine_not_found
+        message: &quot;The specified machine does not exist&quot;
+        return_fields: []
+</code></pre>
+<hr />
+<h3 id="pattern-10-exception-handling">Pattern 10: Exception Handling</h3>
+<p><strong>Example from <code>create_reservation</code>:</strong></p>
+<pre><code class="language-sql">BEGIN
+    INSERT INTO tenant.tb_allocation (...) VALUES (...);
+EXCEPTION
+    WHEN unique_violation THEN
+        RETURN core.log_and_return_mutation(..., 'failed:unique_violation', ...);
+    WHEN check_violation THEN
+        RETURN core.log_and_return_mutation(..., 'failed:check_violation', ...);
+END;
+
+-- Global exception handler
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN core.log_and_return_mutation(..., 'failed:unexpected_error', ...);
+</code></pre>
+<p><strong>YAML Pattern:</strong></p>
+<pre><code class="language-yaml">business_logic:
+  exception_handling:
+    on_insert:
+      - exception: unique_violation
+        action: reject
+        message: &quot;A constraint violation occurred&quot;
+        error_code: &quot;UNIQUE_VIOLATION&quot;
+        include_details:
+          - sqlstate
+          - sqlerrm
+      - exception: check_violation
+        action: reject
+        message: &quot;A business rule violation occurred&quot;
+        error_code: &quot;CHECK_VIOLATION&quot;
+        include_details:
+          - sqlstate
+          - sqlerrm
+
+    global:
+      - exception: &quot;*&quot;
+        action: reject
+        message: &quot;An unexpected error occurred: {sqlerrm}&quot;
+        error_code: &quot;UNEXPECTED_ERROR&quot;
+        log_level: warning
+        include_details:
+          - sqlstate
+          - sqlerrm
+          - input_data
+</code></pre>
+<hr />
+<h2 id="complete-yaml-schema-for-complex-entities">🏗️ Complete YAML Schema for Complex Entities</h2>
+<h3 id="example-reservation-entity-full-specification">Example: Reservation Entity (Full Specification)</h3>
+<pre><code class="language-yaml">entity:
+  name: reservation
+  schema: tenant
+  table: allocation  # Reservations are stored in allocation table
+  description: &quot;Machine reservation (provisional future allocation)&quot;
+
+  # === Business Logic Configuration ===
+  business_logic:
+
+    # === INPUT VALIDATION ===
+    validations:
+      - name: machine_id_required
+        type: required
+        field: machine_id
+        error_message: &quot;Machine ID is required&quot;
+        error_code: &quot;MISSING_MACHINE_ID&quot;
+
+      - name: invalid_date_range
+        type: date_range
+        start_field: reserved_from
+        end_field: reserved_until
+        rule: &quot;end &gt;= start&quot;
+        error_message: &quot;Reserved until date must be &gt;= reserved from date&quot;
+        error_code: &quot;INVALID_DATE_RANGE&quot;
+
+      - name: past_date_check
+        type: date_comparison
+        field: reserved_from
+        operator: &quot;&gt;=&quot;
+        compare_to: CURRENT_DATE
+        error_message: &quot;Reserved from date cannot be in the past&quot;
+        error_code: &quot;INVALID_DATE&quot;
+
+    # === EXISTENCE CHECKS ===
+    existence_checks:
+      - entity: machine
+        field: machine_id
+        scope: tenant
+        error_code: &quot;MACHINE_NOT_FOUND&quot;
+        error_message: &quot;The specified machine does not exist&quot;
+
+      - entity: organizational_unit
+        field: organizational_unit_id
+        condition: &quot;organizational_unit_id IS NOT NULL&quot;
+        error_code: &quot;ORGANIZATIONAL_UNIT_NOT_FOUND&quot;
+        error_message: &quot;The specified organizational unit does not exist&quot;
+
+    # === DEFAULT VALUE RESOLUTION ===
+    default_value_resolution:
+      - field: organizational_unit_id
+        condition: &quot;organizational_unit_id IS NULL&quot;
+        function: fn_get_or_create_organizational_unit_for_reservation
+        parameters:
+          p_org: input_pk_organization
+          p_current_ou_identifier: &quot;COALESCE(v_current_ou_identifier, 'stock')&quot;
+          p_requested_ou: &quot;input.organizational_unit_id&quot;
+
+      - field: reserved_from
+        condition: &quot;reserved_from IS NULL&quot;
+        value: &quot;(CURRENT_DATE + INTERVAL '1 year')::DATE&quot;
+
+      - field: reserved_until
+        condition: &quot;reserved_until IS NULL&quot;
+        value: &quot;'2099-12-31'::DATE&quot;
+
+      - field: location_id
+        condition: &quot;location_id IS NULL&quot;
+        query: |
+          SELECT l.pk_location
+          FROM management.tb_organization o
+          JOIN tenant.tb_location l ON l.fk_customer_org = o.pk_organization
+          JOIN tenant.tb_location_info li ON l.fk_location_info = li.pk_location_info
+          JOIN common.tb_location_type lt ON li.fk_location_type = lt.pk_location_type
+          WHERE o.pk_organization = input_pk_organization AND lt.name = 'legal'
+          LIMIT 1
+
+    # === CONFLICT DETECTION ===
+    conflict_detection:
+      - name: overlapping_reservation
+        type: temporal_overlap
+        table: allocation
+        conditions:
+          - &quot;fk_machine = input.machine_id&quot;
+          - &quot;is_provisionnal = TRUE&quot;
+        overlap_field: &quot;daterange(start_date, end_date, '[]')&quot;
+        overlap_with: &quot;daterange(reserved_from, reserved_until, '[]')&quot;
+        action: reject
+        error_code: &quot;OVERLAPPING_RESERVATION_EXISTS&quot;
+        error_message: &quot;Machine is already reserved&quot;
+        context_entities:
+          - name: conflict_reservation
+            source: tv_allocation
+            where: &quot;id = v_existing_id&quot;
+          - name: context_machine
+            source: tv_machine
+            where: &quot;id = input.machine_id&quot;
+
+      - name: same_allocation_exists
+        type: exact_match
+        table: allocation
+        conditions:
+          - &quot;fk_machine = input.machine_id&quot;
+          - &quot;fk_organizational_unit = v_resolved_organizational_unit_id&quot;
+          - &quot;fk_location = COALESCE(input.location_id, fk_location)&quot;
+          - &quot;start_date &lt;= CURRENT_DATE&quot;
+        overlap_check: &quot;daterange(start_date, end_date, '[]') &amp;&amp; v_reservation_range&quot;
+        action: reject
+        error_code: &quot;CURRENT_ALLOCATION_IS_THE_SAME&quot;
+        error_message: &quot;Current allocation has same location and organizational unit&quot;
+
+    # === TEMPORAL CONTINUITY (Neighbor Adjustment) ===
+    temporal_continuity:
+      - name: close_current_allocation
+        trigger: before_insert
+        find_neighbor:
+          type: current
+          table: allocation
+          conditions:
+            - &quot;fk_machine = input.machine_id&quot;
+            - &quot;fk_customer_org = input_pk_organization&quot;
+            - &quot;start_date &lt;= CURRENT_DATE&quot;
+            - &quot;end_date IS NULL OR end_date &gt;= reserved_from&quot;
+            - &quot;is_provisionnal = FALSE&quot;
+          order_by: &quot;start_date DESC, pk_allocation DESC&quot;
+          limit: 1
+        adjust_neighbor:
+          set_end_date: &quot;reserved_from - INTERVAL '1 day'&quot;
+          recalculate_is_current: true
+          condition_for_is_current: |
+            CURRENT_DATE &lt;= (reserved_from - INTERVAL '1 day')
+            AND CURRENT_DATE &lt;@ daterange(start_date, (reserved_from - INTERVAL '1 day')::DATE, '[]')
+
+    # === INSERT CONFIGURATION ===
+    insert:
+      table: tb_allocation
+      fields:
+        pk_allocation: v_id
+        fk_customer_org: input_pk_organization
+        fk_machine: &quot;input.machine_id&quot;
+        start_date: &quot;COALESCE(input.reserved_from, (CURRENT_DATE + INTERVAL '1 year')::DATE)&quot;
+        end_date: &quot;COALESCE(input.reserved_until, '2099-12-31'::DATE)&quot;
+        identifier: v_identifier
+        fk_organizational_unit: v_resolved_organizational_unit_id
+        fk_location: &quot;COALESCE(input.location_id, v_default_location)&quot;
+        is_provisionnal: TRUE
+        is_stock: FALSE
+        is_future: &quot;reserved_from &gt;= CURRENT_DATE + 1&quot;
+
+      exception_handling:
+        - exception: unique_violation
+          error_code: &quot;UNIQUE_VIOLATION&quot;
+          error_message: &quot;A constraint violation occurred&quot;
+        - exception: check_violation
+          error_code: &quot;CHECK_VIOLATION&quot;
+          error_message: &quot;A business rule violation occurred&quot;
+
+    # === POST-INSERT ACTIONS ===
+    post_insert_actions:
+      - name: update_allocation_flags
+        function: update_allocation_flags
+        parameters:
+          context: &quot;ROW(input.machine_id, NULL, NULL)::core.recalculation_context&quot;
+
+      - name: update_machine_reserved_flag
+        action: direct_update
+        table: tv_machine
+        set:
+          data: &quot;jsonb_set(COALESCE(data, '{}'), '{is_reserved}', to_jsonb(true), true)&quot;
+          updated_at: NOW()
+          updated_by: input_created_by
+        where:
+          - &quot;id = input.machine_id&quot;
+          - &quot;tenant_id = input_pk_organization&quot;
+
+      - name: update_allocation_embedded_machine
+        action: direct_update
+        table: tv_allocation
+        set:
+          data: &quot;jsonb_set(COALESCE(data, '{}'), '{machine,is_reserved}', to_jsonb(true), true)&quot;
+          updated_at: NOW()
+          updated_by: input_created_by
+        where:
+          - &quot;machine_id = input.machine_id&quot;
+          - &quot;tenant_id = input_pk_organization&quot;
+          - &quot;(is_current = true OR is_stock_current = true)&quot;
+          - &quot;is_provisionnal = false&quot;
+
+    # === VIEW SYNCHRONIZATION ===
+    view_synchronization:
+      - name: recalculate_identifiers
+        function: recalcid_allocation
+        parameters:
+          ctx: v_ctx
+          p_ids: &quot;[v_current_allocation_id, v_id] (removing NULLs)&quot;
+
+      - name: refresh_allocations
+        function: batch_refresh_allocation
+        parameters:
+          p_ids: &quot;[v_current_allocation_id, v_id]&quot;
+          ctx: v_ctx
+        exclude_stock_allocations: true  # Issue #47 fix
+
+    # === RESPONSE STRUCTURE ===
+    response_structure:
+      success:
+        status: new
+        reason: reservation_created
+        message: &quot;Reservation created successfully&quot;
+        return_entity: allocation
+        return_id: v_id
+        return_data:
+          reservation:
+            source: tv_allocation
+            where: &quot;id = v_id&quot;
+            fallback: |
+              jsonb_build_object(
+                'id', pk_allocation::text,
+                'startDate', start_date,
+                'endDate', end_date,
+                'isProvisionnal', is_provisionnal,
+                'isStock', is_stock
+              )
+          machine:
+            source: tv_machine
+            where: &quot;id = input.machine_id&quot;
+          allocation:
+            source: tv_allocation
+            where: &quot;id = v_current_allocation_id&quot;
+            nullable: true
+        metadata:
+          - current_allocation_id: v_current_allocation_id
+          - tv_machine_rows_updated: v_tv_machine_rows_updated
+          - tv_allocation_rows_updated: v_tv_allocation_rows_updated
+
+    # === EXCEPTION HANDLING ===
+    exception_handling:
+      global:
+        - exception: &quot;*&quot;
+          error_code: &quot;UNEXPECTED_ERROR&quot;
+          message: &quot;An unexpected error occurred: {sqlerrm}&quot;
+          log_level: warning
+          include_details: [sqlstate, sqlerrm, input_data, machine_id, organization_id]
+
+  # === Standard Fields ===
+  fields:
+    machine_id:
+      type: UUID
+      nullable: false
+      description: &quot;Machine being reserved&quot;
+
+    reserved_from:
+      type: DATE
+      nullable: true
+      default: &quot;(CURRENT_DATE + INTERVAL '1 year')::DATE&quot;
+      description: &quot;Start date of reservation&quot;
+
+    reserved_until:
+      type: DATE
+      nullable: true
+      default: &quot;'2099-12-31'::DATE&quot;
+      description: &quot;End date of reservation&quot;
+
+    organizational_unit_id:
+      type: UUID
+      nullable: true
+      description: &quot;Organizational unit for the reservation&quot;
+
+    location_id:
+      type: UUID
+      nullable: true
+      description: &quot;Location for the reservation&quot;
+</code></pre>
+<hr />
+<h3 id="example-machine-item-entity-simplified">Example: Machine Item Entity (Simplified)</h3>
+<pre><code class="language-yaml">entity:
+  name: machine_item
+  schema: tenant
+  description: &quot;Item installed on a machine&quot;
+
+  business_logic:
+
+    validations:
+      - name: conflicting_order_fields
+        type: mutual_exclusion
+        fields: [order_id, order_data]
+        error_code: &quot;CONFLICTING_ORDER_FIELDS&quot;
+        error_message: &quot;Do not provide both order_id and order_data&quot;
+
+      - name: product_order_exclusion
+        type: conditional_exclusion
+        condition: &quot;source_type = 'Product'&quot;
+        forbidden_fields: [order_id, order_data]
+        error_code: &quot;INVALID_ORDER_USAGE_WITH_PRODUCT&quot;
+        error_message: &quot;Orders cannot be associated directly with a Product&quot;
+
+      - name: order_data_requires_contract
+        type: required_nested_field
+        parent_field: order_data
+        required_nested: [contract_id]
+        error_code: &quot;MISSING_CONTRACT_IN_ORDER_DATA&quot;
+        error_message: &quot;order_data must include contract_id&quot;
+
+    existence_checks:
+      - entity: machine
+        field: machine_id
+        scope: tenant
+        error_code: &quot;INVALID_MACHINE_ID&quot;
+        required_fields: [installed_at, delivered_at, fk_contract]
+        store_as:
+          v_machine_installed_at: installed_at
+          v_machine_delivered_at: delivered_at
+          v_contract_id: fk_contract
+
+    nested_creation:
+      - entity: order
+        trigger_field: order_data
+        function: create_order
+        parameters: [input_pk_organization, input_created_by, &quot;jsonb_strip_nulls(order_data)&quot;]
+        on_success:
+          inject_field: order_id
+          source: &quot;result.id&quot;
+          remove_field: order_data
+
+    source_type_routing:
+      - source_type: MachineItem
+        action: update_existing
+        lookup_field: source_id
+        conflict_check:
+          field: fk_machine
+          must_be_null: true
+          error_code: &quot;MACHINE_ITEM_ALREADY_ALLOCATED&quot;
+          error_message: &quot;This MachineItem is already linked to a machine&quot;
+        update_fields:
+          fk_machine: &quot;input.machine_id&quot;
+          installed_at: v_installed_at
+          fk_order: &quot;input.order_id&quot;
+        side_effects:
+          - close_open_charges:
+              table: charge
+              where: &quot;fk_machine_item = v_id AND end_date IS NULL&quot;
+              set_end_date: &quot;v_installed_at - INTERVAL '1 day'&quot;
+
+      - source_type: ContractItem
+        action: insert_new
+        resolve_fields:
+          - v_fk_product: &quot;SELECT fk_product FROM tb_contract_item WHERE pk = source_id&quot;
+          - v_fk_financing_condition: &quot;SELECT fk_financing_condition FROM tb_contract_item WHERE pk = source_id&quot;
+        set_fk_contract_item: source_id
+
+      - source_type: Product
+        action: insert_new
+        set_fk_product: source_id
+        skip_charge_creation: true
+
+    side_effects:
+      - name: create_charge
+        condition: &quot;source_type != 'Product'&quot;
+        compute_values:
+          - v_charge_end_date:
+              function: resolve_machine_cost_period_end_date
+              parameters:
+                - &quot;contract.start_date&quot;
+                - &quot;contract.end_date&quot;
+                - v_installed_at
+                - v_fk_financing_condition
+        pre_validations:
+          - name: charge_period_validity
+            type: date_comparison
+            condition: &quot;v_installed_at::DATE &gt; v_charge_end_date&quot;
+            error_code: &quot;INSTALLATION_DATE_INCOMPATIBLE_WITH_CONTRACT&quot;
+            error_message: &quot;Installation date ({installed_at}) is after charge end date ({charge_end_date})&quot;
+          - name: charge_overlap
+            type: exists
+            query: |
+              SELECT 1 FROM tb_charge
+              WHERE fk_machine_item = v_id
+                AND charge_daterange &amp;&amp; daterange(v_installed_at::DATE, v_charge_end_date, '[]')
+            error_code: &quot;DUPLICATE_CHARGE&quot;
+            error_message: &quot;Charge already exists for this period&quot;
+        action: function_call
+        function: insert_machine_item_charge
+        parameters:
+          - input_pk_organization
+          - v_contract_id
+          - v_fk_financing_condition
+          - v_fk_contract_item
+          - &quot;input.order_id&quot;
+          - &quot;input.machine_id&quot;
+          - v_id
+          - v_installed_at
+          - v_charge_end_date
+          - v_ctx
+
+    cascade_updates:
+      - function: recalcid_machine_item
+        parameters: [v_ctx]
+      - function: refresh_machine
+        parameters: [v_ctx]
+        ignore_errors: true
+      - function: batch_refresh_allocation
+        find_related:
+          query: |
+            SELECT DISTINCT pk_allocation
+            FROM tb_allocation
+            WHERE fk_machine = input.machine_id
+              AND (end_date IS NULL OR end_date &gt;= CURRENT_DATE)
+        parameters:
+          p_ids: v_allocation_ids
+          ctx: v_ctx
+          scope: &quot;['machine']&quot;
+          only_current_allocations: true
+</code></pre>
+<hr />
+<h2 id="yaml-schema-capabilities-summary">🎯 YAML Schema Capabilities Summary</h2>
+<h3 id="can-be-expressed-declaratively">✅ Can Be Expressed Declaratively</h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>YAML Support</th>
+<th>Complexity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Input Validation</strong></td>
+<td>Full</td>
+<td>Simple</td>
+</tr>
+<tr>
+<td><strong>Existence Checks</strong></td>
+<td>Full</td>
+<td>Simple</td>
+</tr>
+<tr>
+<td><strong>Conflict Detection</strong></td>
+<td>Full</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><strong>Field Change Detection</strong></td>
+<td>Full</td>
+<td>Simple</td>
+</tr>
+<tr>
+<td><strong>Default Value Resolution</strong></td>
+<td>Full</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><strong>Exception Handling</strong></td>
+<td>Full</td>
+<td>Simple</td>
+</tr>
+<tr>
+<td><strong>Response Structure</strong></td>
+<td>Full</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><strong>Temporal Range Checks</strong></td>
+<td>Full</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><strong>Mutual Exclusion</strong></td>
+<td>Full</td>
+<td>Simple</td>
+</tr>
+<tr>
+<td><strong>Conditional Logic</strong></td>
+<td>Partial</td>
+<td>Medium</td>
+</tr>
+<tr>
+<td><strong>Date Arithmetic</strong></td>
+<td>Partial</td>
+<td>Medium</td>
+</tr>
+</tbody>
+</table>
+<h3 id="requires-template-functions">⚠️ Requires Template Functions</h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Why Template Needed</th>
+<th>Workaround</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Nested Creation</strong></td>
+<td>Function call with result injection</td>
+<td>YAML can specify function + parameters</td>
+</tr>
+<tr>
+<td><strong>Neighbor Adjustment</strong></td>
+<td>Complex temporal logic</td>
+<td>YAML can call helper function</td>
+</tr>
+<tr>
+<td><strong>Cascade Updates</strong></td>
+<td>Multiple related entities</td>
+<td>YAML can list functions to call</td>
+</tr>
+<tr>
+<td><strong>Source Type Routing</strong></td>
+<td>Complex branching</td>
+<td>YAML can specify routing rules</td>
+</tr>
+<tr>
+<td><strong>Side Effects</strong></td>
+<td>Multi-step operations</td>
+<td>YAML can orchestrate function calls</td>
+</tr>
+<tr>
+<td><strong>Direct View Updates</strong></td>
+<td>Non-standard UPDATE</td>
+<td>YAML can specify UPDATE template</td>
+</tr>
+<tr>
+<td><strong>Computed Values</strong></td>
+<td>Complex calculations</td>
+<td>YAML can call calculation functions</td>
+</tr>
+</tbody>
+</table>
+<h3 id="custom-code-required">❌ Custom Code Required</h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Why Custom Code Needed</th>
+<th>Frequency</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Complex Business Rules</strong></td>
+<td>Domain-specific calculations</td>
+<td>10%</td>
+</tr>
+<tr>
+<td><strong>Multi-Table Transactions</strong></td>
+<td>ACID guarantees across tables</td>
+<td>5%</td>
+</tr>
+<tr>
+<td><strong>Performance Optimizations</strong></td>
+<td>Query-specific tuning</td>
+<td>5%</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="recommended-yaml-schema-structure">📐 Recommended YAML Schema Structure</h2>
+<h3 id="top-level-structure">Top-Level Structure</h3>
+<pre><code class="language-yaml">entity:
+  name: string
+  schema: string
+  description: string
+
+  # === Standard Configuration ===
+  fields: {...}
+  foreign_keys: {...}
+  indexes: {...}
+  translations: {...}
+
+  # === Business Logic Configuration ===
+  business_logic:
+
+    # Phase 1: Input Processing
+    input_processing:
+      - field_mappings
+      - default_values
+      - computed_values
+
+    # Phase 2: Validation
+    validations:
+      - type_checks
+      - range_checks
+      - format_checks
+      - conditional_validations
+
+    # Phase 3: Existence Checks
+    existence_checks:
+      - entity_existence
+      - scope_validation
+      - access_control
+
+    # Phase 4: Conflict Detection
+    conflict_detection:
+      - deduplication
+      - overlap_checks
+      - mutual_exclusion
+
+    # Phase 5: Pre-Operations
+    pre_operations:
+      - nested_creation
+      - default_resolution
+      - neighbor_adjustment
+
+    # Phase 6: Main Operation (INSERT/UPDATE)
+    operation:
+      - field_mapping
+      - exception_handling
+      - constraint_handling
+
+    # Phase 7: Post-Operations
+    post_operations:
+      - side_effects
+      - cascade_updates
+      - view_synchronization
+
+    # Phase 8: Response Building
+    response:
+      - success_structure
+      - failure_variants
+      - context_entities
+
+  # === FraiseQL Integration ===
+  fraiseql:
+    enabled: true
+    type: {...}
+    mutations: {...}
+</code></pre>
+<hr />
+<h2 id="implementation-strategy">🚀 Implementation Strategy</h2>
+<h3 id="phase-1-simple-patterns-week-1-2">Phase 1: Simple Patterns (Week 1-2)</h3>
+<p><strong>Implement YAML support for:</strong>
+- Input validation
+- Existence checks
+- Field change detection
+- Response structure
+- Exception handling</p>
+<p><strong>Deliverable</strong>: Basic CRUD with validation</p>
+<hr />
+<h3 id="phase-2-conflict-detection-week-3-4">Phase 2: Conflict Detection (Week 3-4)</h3>
+<p><strong>Implement YAML support for:</strong>
+- Deduplication rules
+- Overlap detection
+- Temporal range checks
+- Mutual exclusion</p>
+<p><strong>Deliverable</strong>: Conflict-aware mutations</p>
+<hr />
+<h3 id="phase-3-advanced-patterns-week-5-6">Phase 3: Advanced Patterns (Week 5-6)</h3>
+<p><strong>Implement YAML support for:</strong>
+- Nested entity creation
+- Neighbor adjustment
+- Cascade updates
+- Side effects</p>
+<p><strong>Deliverable</strong>: Complex business logic support</p>
+<hr />
+<h3 id="phase-4-performance-optimization-week-7-8">Phase 4: Performance &amp; Optimization (Week 7-8)</h3>
+<p><strong>Implement:</strong>
+- Template optimization
+- Query performance tuning
+- Caching strategies
+- Error recovery</p>
+<p><strong>Deliverable</strong>: Production-ready system</p>
+<hr />
+<h2 id="key-insights">💡 Key Insights</h2>
+<h3 id="1-90-declarative">1. <strong>90% Declarative</strong></h3>
+<p>Most business logic (90%) can be expressed declaratively in YAML using the patterns above.</p>
+<h3 id="2-templates-for-complexity">2. <strong>Templates for Complexity</strong></h3>
+<p>The remaining 10% requires Jinja2 templates that generate PL/pgSQL code based on YAML configuration.</p>
+<h3 id="3-layered-approach">3. <strong>Layered Approach</strong></h3>
+<p>Business logic is organized in phases (validation → conflict → operation → cascade), making YAML intuitive.</p>
+<h3 id="4-function-orchestration">4. <strong>Function Orchestration</strong></h3>
+<p>YAML doesn't need to implement complex logic—it orchestrates calls to PostgreSQL functions.</p>
+<h3 id="5-context-propagation">5. <strong>Context Propagation</strong></h3>
+<p>The <code>v_ctx</code> (recalculation context) pattern is reusable across all entities.</p>
+<hr />
+<h2 id="example-complete-template-generation">🎓 Example: Complete Template Generation</h2>
+<h3 id="input-yaml-simplified">Input YAML (Simplified)</h3>
+<pre><code class="language-yaml">entity:
+  name: reservation
+  business_logic:
+    validations:
+      - name: machine_required
+        type: required
+        field: machine_id
+    conflict_detection:
+      - name: overlapping_reservation
+        type: temporal_overlap
+        table: allocation
+        conditions: [&quot;fk_machine = input.machine_id&quot;, &quot;is_provisionnal = TRUE&quot;]
+</code></pre>
+<h3 id="generated-plpgsql-template-output">Generated PL/pgSQL (Template Output)</h3>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION app.create_reservation(
+    input_pk_organization UUID,
+    input_created_by UUID,
+    input_payload JSONB
+) RETURNS app.mutation_result
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_entity TEXT := 'reservation';
+    v_id UUID := gen_random_uuid();
+    v_nil_uuid UUID := '00000000-0000-0000-0000-000000000000';
+BEGIN
+    -- === VALIDATION: machine_required ===
+    IF input_payload-&gt;&gt;'machine_id' IS NULL THEN
+        RETURN core.log_and_return_mutation(
+            input_pk_organization, input_created_by, v_entity, v_nil_uuid,
+            'NOOP', 'failed:machine_required', ARRAY['machine_id']::TEXT[],
+            'Machine ID is required', NULL, NULL,
+            jsonb_build_object('trigger', 'api_create', 'reason', 'validation_machine_required')
+        );
+    END IF;
+
+    -- === CONFLICT DETECTION: overlapping_reservation ===
+    IF EXISTS (
+        SELECT 1 FROM tenant.tb_allocation
+        WHERE fk_machine = (input_payload-&gt;&gt;'machine_id')::UUID
+          AND is_provisionnal = TRUE
+          AND daterange(start_date, end_date, '[]') &amp;&amp; daterange(...)
+    ) THEN
+        RETURN core.log_and_return_mutation(
+            input_pk_organization, input_created_by, v_entity, v_nil_uuid,
+            'NOOP', 'noop:overlapping_reservation', ARRAY[]::TEXT[],
+            'Machine is already reserved', NULL, NULL,
+            jsonb_build_object('trigger', 'api_create', 'reason', 'overlapping_reservation')
+        );
+    END IF;
+
+    -- === INSERT ===
+    INSERT INTO tenant.tb_allocation (...) VALUES (...);
+
+    -- === SUCCESS ===
+    RETURN core.log_and_return_mutation(...);
+END;
+$$;
+</code></pre>
+<hr />
+<h2 id="conclusion">✅ Conclusion</h2>
+<p><strong>Finding</strong>: Complex business logic in printoptim_backend can be <strong>90% expressed declaratively in YAML</strong>.</p>
+<p><strong>Recommendation</strong>: Implement YAML business logic schema as proposed, with Jinja2 templates for code generation.</p>
+<p><strong>Next Steps</strong>:
+1. Implement basic validation patterns (Week 1-2)
+2. Add conflict detection support (Week 3-4)
+3. Implement advanced patterns (Week 5-6)
+4. Optimize and test with real entities (Week 7-8)</p>
+<p><strong>Strategic Value</strong>:
+- <strong>10x productivity</strong> - Define business logic in 200 lines of YAML vs 2000 lines of SQL
+- <strong>Consistency</strong> - All entities follow same patterns
+- <strong>Testability</strong> - YAML can be validated independently
+- <strong>Maintainability</strong> - Business logic visible at a glance</p>
+<hr />
+<p><strong>END OF ANALYSIS</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,915 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>FraiseQL Annotations Reference - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "FraiseQL Annotations Reference";
+        var mkdocs_page_input_path = "reference/fraiseql/annotations.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">FraiseQL Annotations Reference</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="fraiseql-annotations-reference">FraiseQL Annotations Reference</h1>
+<p><strong>Complete guide to PostgreSQL comments that generate GraphQL APIs</strong> 📝</p>
+<h2 id="overview">Overview</h2>
+<p>FraiseQL is SpecQL's convention for turning PostgreSQL comments into GraphQL schemas. By adding specially-formatted comments to database objects, FraiseQL automatically generates:</p>
+<ul>
+<li>✅ GraphQL type definitions</li>
+<li>✅ Query and mutation operations</li>
+<li>✅ Field resolvers and relationships</li>
+<li>✅ Input types and validation</li>
+<li>✅ Schema documentation</li>
+</ul>
+<p><strong>Annotation format:</strong></p>
+<pre><code class="language-sql">COMMENT ON [OBJECT] [name] IS '[description]
+@[namespace]:[directive]
+[additional metadata]';
+</code></pre>
+<h2 id="function-annotations">Function Annotations</h2>
+<h3 id="fraiseqlmutation">@fraiseql:mutation</h3>
+<p>Marks a PostgreSQL function as a GraphQL mutation:</p>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.create_contact(UUID, TEXT, TEXT, TEXT) IS
+  'Create a new contact record
+@fraiseql:mutation
+@fraiseql:impact contact_created';
+</code></pre>
+<p><strong>Generated GraphQL:</strong></p>
+<pre><code class="language-graphql">type Mutation {
+  createContact(
+    tenantId: UUID!
+    email: String!
+    firstName: String!
+    lastName: String!
+  ): MutationResult!
+}
+</code></pre>
+<p><strong>Parameters:</strong>
+- Function parameters become GraphQL input fields
+- Parameter names are converted to camelCase
+- Parameter types map to GraphQL scalars
+- NOT NULL parameters become required (!) fields</p>
+<h3 id="fraiseqlquery">@fraiseql:query</h3>
+<p>Marks a function as a GraphQL query:</p>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.get_contacts(UUID) IS
+  'Retrieve all contacts for a tenant
+@fraiseql:query(name: &quot;contacts&quot;)
+@fraiseql:type ContactConnection';
+</code></pre>
+<p><strong>Generated GraphQL:</strong></p>
+<pre><code class="language-graphql">type Query {
+  contacts(tenantId: UUID!): ContactConnection!
+}
+
+type ContactConnection {
+  edges: [ContactEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+</code></pre>
+<p><strong>Parameters:</strong>
+- <code>name</code>: Custom GraphQL field name (defaults to function name)
+- <code>type</code>: Return type (defaults to inferred from PostgreSQL type)</p>
+<h3 id="fraiseqlimpact">@fraiseql:impact</h3>
+<p>Defines mutation side effects for cache invalidation:</p>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.update_contact(UUID, TEXT) IS
+  'Update contact information
+@fraiseql:mutation
+@fraiseql:impact contact_updated, contact_list_stale';
+</code></pre>
+<p><strong>Usage:</strong>
+- Comma-separated list of impact identifiers
+- Used by Apollo Client for cache management
+- Triggers refetch of related queries</p>
+<h2 id="table-annotations">Table Annotations</h2>
+<h3 id="fraiseqltype">@fraiseql:type</h3>
+<p>Defines the GraphQL type name for a table:</p>
+<pre><code class="language-sql">COMMENT ON TABLE crm.tb_contact IS
+  'Customer contact information
+@fraiseql:type Contact
+trinity: true';
+</code></pre>
+<p><strong>Generated GraphQL:</strong></p>
+<pre><code class="language-graphql">type Contact {
+  id: UUID!
+  pkContact: Int!
+  # ... other fields from column comments
+}
+</code></pre>
+<p><strong>Parameters:</strong>
+- Type name (required) - GraphQL type identifier
+- <code>trinity: true</code> - Enables Trinity pattern field generation</p>
+<h3 id="table-metadata">Table Metadata</h3>
+<p>Additional table-level metadata:</p>
+<pre><code class="language-sql">COMMENT ON TABLE crm.tb_contact IS
+  'Customer contact information
+@fraiseql:type Contact
+trinity: true
+implements: Person
+description: &quot;A person or organization contact&quot;';
+</code></pre>
+<p><strong>Supported metadata:</strong>
+- <code>implements</code>: Interface implementation
+- <code>description</code>: Extended description
+- <code>deprecated</code>: Deprecation notice</p>
+<h2 id="column-annotations">Column Annotations</h2>
+<h3 id="fraiseqlfield">@fraiseql:field</h3>
+<p>Customizes GraphQL field generation:</p>
+<pre><code class="language-sql">COMMENT ON COLUMN crm.tb_contact.email IS
+  'Primary email address for contact
+@fraiseql:field
+name: emailAddress
+type: Email!
+required: true
+description: &quot;Valid email address&quot;';
+</code></pre>
+<p><strong>Generated GraphQL:</strong></p>
+<pre><code class="language-graphql">type Contact {
+  emailAddress: Email!  # &quot;Valid email address&quot;
+}
+</code></pre>
+<p><strong>Parameters:</strong>
+- <code>name</code>: Custom field name (defaults to column name in camelCase)
+- <code>type</code>: GraphQL type override
+- <code>required</code>: Force field as non-nullable
+- <code>description</code>: Field documentation</p>
+<h3 id="fraiseqlresolver">@fraiseql:resolver</h3>
+<p>Specifies custom field resolver:</p>
+<pre><code class="language-sql">COMMENT ON COLUMN crm.tb_contact.full_name IS
+  'Computed full name
+@fraiseql:field
+resolver: contactFullNameResolver
+type: String!';
+</code></pre>
+<p><strong>Usage:</strong>
+- References a custom resolver function
+- Overrides default column value resolution
+- Enables computed fields and relationships</p>
+<h2 id="type-mapping">Type Mapping</h2>
+<h3 id="postgresql-graphql-type-conversion">PostgreSQL → GraphQL Type Conversion</h3>
+<table>
+<thead>
+<tr>
+<th>PostgreSQL Type</th>
+<th>GraphQL Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TEXT</code></td>
+<td><code>String</code></td>
+<td>Variable length text</td>
+</tr>
+<tr>
+<td><code>INTEGER</code></td>
+<td><code>Int</code></td>
+<td>32-bit integer</td>
+</tr>
+<tr>
+<td><code>BIGINT</code></td>
+<td><code>BigInt</code></td>
+<td>64-bit integer</td>
+</tr>
+<tr>
+<td><code>NUMERIC</code></td>
+<td><code>Decimal</code></td>
+<td>Arbitrary precision</td>
+</tr>
+<tr>
+<td><code>BOOLEAN</code></td>
+<td><code>Boolean</code></td>
+<td>True/false</td>
+</tr>
+<tr>
+<td><code>UUID</code></td>
+<td><code>UUID</code></td>
+<td>UUID scalar</td>
+</tr>
+<tr>
+<td><code>TIMESTAMPTZ</code></td>
+<td><code>DateTime</code></td>
+<td>ISO timestamp</td>
+</tr>
+<tr>
+<td><code>DATE</code></td>
+<td><code>Date</code></td>
+<td>ISO date</td>
+</tr>
+<tr>
+<td><code>TIME</code></td>
+<td><code>Time</code></td>
+<td>HH:MM:SS</td>
+</tr>
+<tr>
+<td><code>JSONB</code></td>
+<td><code>JSONObject</code></td>
+<td>JSON object</td>
+</tr>
+<tr>
+<td><code>POINT</code></td>
+<td><code>Coordinates</code></td>
+<td>Geographic point</td>
+</tr>
+</tbody>
+</table>
+<h3 id="rich-type-mappings">Rich Type Mappings</h3>
+<p>SpecQL rich types map to specific GraphQL scalars:</p>
+<pre><code class="language-sql">-- Email type
+COMMENT ON COLUMN crm.tb_contact.email IS 'Email address
+@fraiseql:field
+type: Email!';
+
+-- Phone type
+COMMENT ON COLUMN crm.tb_contact.phone IS 'Phone number
+@fraiseql:field
+type: Phone';
+
+-- Money type
+COMMENT ON COLUMN crm.tb_invoice.amount IS 'Invoice amount
+@fraiseql:field
+type: Money!';
+</code></pre>
+<h2 id="relationship-annotations">Relationship Annotations</h2>
+<h3 id="foreign-key-relationships">Foreign Key Relationships</h3>
+<pre><code class="language-sql">COMMENT ON COLUMN crm.tb_contact.fk_organization IS
+  'Reference to organization
+@fraiseql:field
+name: organization
+type: Organization
+resolver: organizationResolver';
+</code></pre>
+<p><strong>Generated GraphQL:</strong></p>
+<pre><code class="language-graphql">type Contact {
+  organization: Organization
+}
+</code></pre>
+<h3 id="reverse-relationships">Reverse Relationships</h3>
+<pre><code class="language-sql">-- On the organization table
+COMMENT ON TABLE crm.tb_organization IS
+  'Organization information
+@fraiseql:type Organization
+relations:
+  contacts: [Contact!] @reverse(fk_organization)';
+</code></pre>
+<h2 id="input-type-generation">Input Type Generation</h2>
+<h3 id="automatic-input-types">Automatic Input Types</h3>
+<p>Mutations automatically generate input types:</p>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.create_contact(UUID, TEXT, TEXT, TEXT) IS
+  'Create contact
+@fraiseql:mutation';
+</code></pre>
+<p><strong>Generated:</strong></p>
+<pre><code class="language-graphql">input CreateContactInput {
+  tenantId: UUID!
+  email: String!
+  firstName: String!
+  lastName: String!
+}
+
+type Mutation {
+  createContact(input: CreateContactInput!): MutationResult!
+}
+</code></pre>
+<h3 id="custom-input-types">Custom Input Types</h3>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.update_contact(UUID, UUID, ContactUpdate) IS
+  'Update contact
+@fraiseql:mutation
+@fraiseql:input ContactUpdate {
+  email: String
+  firstName: String
+  lastName: String
+}';
+</code></pre>
+<h2 id="filter-and-pagination">Filter and Pagination</h2>
+<h3 id="automatic-filters">Automatic Filters</h3>
+<p>Tables get automatic filter generation:</p>
+<pre><code class="language-sql">COMMENT ON TABLE crm.tb_contact IS
+  'Contact information
+@fraiseql:type Contact
+filters: true';
+</code></pre>
+<p><strong>Generated:</strong></p>
+<pre><code class="language-graphql">input ContactFilter {
+  email: String
+  firstName: String
+  lastName: String
+  createdAt: DateRange
+  # ... other fields
+}
+
+type Query {
+  contacts(filter: ContactFilter, limit: Int, offset: Int): [Contact!]!
+}
+</code></pre>
+<h3 id="custom-filters">Custom Filters</h3>
+<pre><code class="language-sql">COMMENT ON TABLE crm.tb_contact IS
+  'Contact information
+@fraiseql:type Contact
+filters:
+  - name: activeContacts
+    fields: [status, createdAt]
+  - name: emailSearch
+    fields: [email]';
+</code></pre>
+<h2 id="validation-annotations">Validation Annotations</h2>
+<h3 id="field-validation">Field Validation</h3>
+<pre><code class="language-sql">COMMENT ON COLUMN crm.tb_contact.email IS
+  'Email address
+@fraiseql:field
+validation:
+  required: true
+  format: email
+  maxLength: 254';
+</code></pre>
+<p><strong>Generated GraphQL:</strong></p>
+<pre><code class="language-graphql">input CreateContactInput {
+  email: Email! @validation(format: &quot;email&quot;, maxLength: 254)
+}
+</code></pre>
+<h3 id="custom-validators">Custom Validators</h3>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.validate_contact(UUID, TEXT) IS
+  'Custom validation function
+@fraiseql:validator(name: &quot;contactExists&quot;)';
+</code></pre>
+<h2 id="enum-annotations">Enum Annotations</h2>
+<h3 id="enum-type-definition">Enum Type Definition</h3>
+<pre><code class="language-sql">COMMENT ON TABLE crm.tb_contact IS
+  'Contact information
+@fraiseql:type Contact
+enums:
+  status: [lead, qualified, customer]
+  priority: [low, medium, high]';
+</code></pre>
+<p><strong>Generated:</strong></p>
+<pre><code class="language-graphql">enum ContactStatus {
+  LEAD
+  QUALIFIED
+  CUSTOMER
+}
+
+enum ContactPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+type Contact {
+  status: ContactStatus!
+  priority: ContactPriority
+}
+</code></pre>
+<h2 id="interface-and-union-types">Interface and Union Types</h2>
+<h3 id="interface-implementation">Interface Implementation</h3>
+<pre><code class="language-sql">COMMENT ON TABLE crm.tb_contact IS
+  'Contact information
+@fraiseql:type Contact
+implements: Person';
+
+COMMENT ON TABLE crm.tb_organization IS
+  'Organization information
+@fraiseql:type Organization
+implements: Person';
+</code></pre>
+<p><strong>Generated:</strong></p>
+<pre><code class="language-graphql">interface Person {
+  id: UUID!
+  name: String!
+}
+
+type Contact implements Person {
+  id: UUID!
+  name: String!
+  email: Email!
+}
+
+type Organization implements Person {
+  id: UUID!
+  name: String!
+  taxId: String
+}
+</code></pre>
+<h3 id="union-types">Union Types</h3>
+<pre><code class="language-sql">COMMENT ON COLUMN crm.tb_message.recipient IS
+  'Message recipient
+@fraiseql:field
+type: Contact | Organization
+resolver: recipientResolver';
+</code></pre>
+<h2 id="subscription-annotations">Subscription Annotations</h2>
+<h3 id="real-time-subscriptions">Real-time Subscriptions</h3>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.contact_created(UUID) IS
+  'Contact creation event
+@fraiseql:subscription
+@fraiseql:trigger contact_created';
+</code></pre>
+<p><strong>Generated:</strong></p>
+<pre><code class="language-graphql">type Subscription {
+  contactCreated(tenantId: UUID!): Contact!
+}
+</code></pre>
+<h2 id="authentication-and-authorization">Authentication and Authorization</h2>
+<h3 id="permission-annotations">Permission Annotations</h3>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.create_contact(UUID, TEXT, TEXT, TEXT) IS
+  'Create contact
+@fraiseql:mutation
+@fraiseql:auth roles: [admin, manager]';
+
+COMMENT ON TABLE crm.tb_contact IS
+  'Contact information
+@fraiseql:type Contact
+@fraiseql:auth read: [user, admin]
+@fraiseql:auth write: [admin]';
+</code></pre>
+<h2 id="deprecation">Deprecation</h2>
+<h3 id="deprecated-fields">Deprecated Fields</h3>
+<pre><code class="language-sql">COMMENT ON COLUMN crm.tb_contact.old_field IS
+  'Deprecated field
+@fraiseql:field
+deprecated: &quot;Use newField instead&quot;
+reason: &quot;Field renamed for consistency&quot;';
+</code></pre>
+<p><strong>Generated:</strong></p>
+<pre><code class="language-graphql">type Contact {
+  oldField: String @deprecated(reason: &quot;Use newField instead&quot;)
+  newField: String
+}
+</code></pre>
+<h2 id="advanced-patterns">Advanced Patterns</h2>
+<h3 id="computed-fields">Computed Fields</h3>
+<pre><code class="language-sql">COMMENT ON COLUMN crm.tb_contact.full_name IS
+  'Computed full name
+@fraiseql:field
+type: String!
+computed: true
+resolver: fullNameResolver';
+</code></pre>
+<h3 id="batch-resolvers">Batch Resolvers</h3>
+<pre><code class="language-sql">COMMENT ON COLUMN crm.tb_contact.organization IS
+  'Organization relationship
+@fraiseql:field
+type: Organization
+batch: true
+resolver: organizationBatchResolver';
+</code></pre>
+<h3 id="custom-scalars">Custom Scalars</h3>
+<pre><code class="language-sql">COMMENT ON COLUMN crm.tb_contact.custom_field IS
+  'Custom scalar field
+@fraiseql:field
+type: MyCustomScalar
+scalar: true';
+</code></pre>
+<h2 id="error-handling">Error Handling</h2>
+<h3 id="error-type-annotations">Error Type Annotations</h3>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.create_contact(UUID, TEXT, TEXT, TEXT) IS
+  'Create contact
+@fraiseql:mutation
+@fraiseql:errors {
+  EMAIL_EXISTS: &quot;Email address already in use&quot;
+  INVALID_EMAIL: &quot;Email format is invalid&quot;
+}';
+</code></pre>
+<p><strong>Generated:</strong></p>
+<pre><code class="language-graphql">type MutationResult {
+  success: Boolean!
+  message: String!
+  object: Contact
+  errors: [ValidationError!]
+}
+
+type ValidationError {
+  field: String!
+  code: String!
+  message: String!
+}
+</code></pre>
+<h2 id="schema-organization">Schema Organization</h2>
+<h3 id="module-grouping">Module Grouping</h3>
+<pre><code class="language-sql">COMMENT ON SCHEMA crm IS
+  'Customer relationship management
+@fraiseql:module
+name: CRM
+description: &quot;Contact and organization management&quot;';
+</code></pre>
+<h3 id="versioning">Versioning</h3>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.create_contact(UUID, TEXT, TEXT, TEXT) IS
+  'Create contact
+@fraiseql:mutation
+@fraiseql:version 1.0
+@fraiseql:breaking false';
+</code></pre>
+<h2 id="performance-optimization">Performance Optimization</h2>
+<h3 id="caching-hints">Caching Hints</h3>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.get_contacts(UUID) IS
+  'Get contacts
+@fraiseql:query
+@fraiseql:cache {
+  ttl: 300
+  scope: tenant
+}';
+</code></pre>
+<h3 id="query-complexity">Query Complexity</h3>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.get_contacts(UUID, ContactFilter, Int, Int) IS
+  'Get contacts with filtering
+@fraiseql:query
+@fraiseql:complexity {
+  base: 10
+  multiplier: 2
+}';
+</code></pre>
+<h2 id="testing-annotations">Testing Annotations</h2>
+<h3 id="test-data-generation">Test Data Generation</h3>
+<pre><code class="language-sql">COMMENT ON FUNCTION test.create_test_contact(TEXT, TEXT, TEXT) IS
+  'Create test contact
+@fraiseql:test
+@fraiseql:fixture name: &quot;testContact&quot;';
+</code></pre>
+<h2 id="complete-example">Complete Example</h2>
+<h3 id="full-entity-with-annotations">Full Entity with Annotations</h3>
+<pre><code class="language-sql">-- Table with type definition
+COMMENT ON TABLE crm.tb_contact IS
+  'Customer contact information
+@fraiseql:type Contact
+trinity: true
+implements: Person
+filters: true
+description: &quot;A person contact with organization affiliation&quot;';
+
+-- Columns with field definitions
+COMMENT ON COLUMN crm.tb_contact.id IS
+  'Public UUID identifier
+@fraiseql:field
+name: id
+type: UUID!
+required: true';
+
+COMMENT ON COLUMN crm.tb_contact.email IS
+  'Primary email address
+@fraiseql:field
+name: email
+type: Email!
+required: true
+validation:
+  format: email
+  maxLength: 254';
+
+COMMENT ON COLUMN crm.tb_contact.first_name IS
+  'First name
+@fraiseql:field
+name: firstName
+type: String!
+required: true';
+
+COMMENT ON COLUMN crm.tb_contact.organization IS
+  'Organization relationship
+@fraiseql:field
+name: organization
+type: Organization
+resolver: organizationResolver';
+
+-- Functions with operation definitions
+COMMENT ON FUNCTION crm.create_contact(UUID, TEXT, TEXT, TEXT) IS
+  'Create a new contact
+@fraiseql:mutation
+@fraiseql:impact contact_created
+@fraiseql:auth roles: [admin, manager]';
+
+COMMENT ON FUNCTION crm.get_contacts(UUID, ContactFilter, Int, Int) IS
+  'Retrieve contacts with filtering
+@fraiseql:query(name: &quot;contacts&quot;)
+@fraiseql:type ContactConnection
+@fraiseql:auth roles: [user, admin]';
+
+COMMENT ON FUNCTION crm.update_contact(UUID, UUID, TEXT, TEXT, TEXT) IS
+  'Update contact information
+@fraiseql:mutation
+@fraiseql:impact contact_updated
+@fraiseql:auth roles: [admin]';
+</code></pre>
+<p><strong>Generated GraphQL Schema:</strong></p>
+<pre><code class="language-graphql">interface Person {
+  id: UUID!
+  name: String!
+}
+
+type Contact implements Person {
+  id: UUID!
+  email: Email!
+  firstName: String!
+  organization: Organization
+}
+
+input ContactFilter {
+  email: String
+  firstName: String
+}
+
+type ContactConnection {
+  edges: [ContactEdge!]!
+  pageInfo: PageInfo!
+  totalCount: Int!
+}
+
+type Mutation {
+  createContact(
+    tenantId: UUID!
+    email: Email!
+    firstName: String!
+    lastName: String!
+  ): MutationResult!
+    @auth(roles: [admin, manager])
+
+  updateContact(
+    tenantId: UUID!
+    contactId: UUID!
+    email: Email
+    firstName: String
+    lastName: String
+  ): MutationResult!
+    @auth(roles: [admin])
+}
+
+type Query {
+  contacts(
+    tenantId: UUID!
+    filter: ContactFilter
+    first: Int
+    after: String
+  ): ContactConnection!
+    @auth(roles: [user, admin])
+}
+</code></pre>
+<h2 id="annotation-reference-table">Annotation Reference Table</h2>
+<table>
+<thead>
+<tr>
+<th>Annotation</th>
+<th>Target</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>@fraiseql:mutation</code></td>
+<td>Function</td>
+<td>GraphQL mutation</td>
+<td><code>@fraiseql:mutation</code></td>
+</tr>
+<tr>
+<td><code>@fraiseql:query</code></td>
+<td>Function</td>
+<td>GraphQL query</td>
+<td><code>@fraiseql:query(name: "contacts")</code></td>
+</tr>
+<tr>
+<td><code>@fraiseql:subscription</code></td>
+<td>Function</td>
+<td>GraphQL subscription</td>
+<td><code>@fraiseql:subscription</code></td>
+</tr>
+<tr>
+<td><code>@fraiseql:impact</code></td>
+<td>Function</td>
+<td>Cache invalidation</td>
+<td><code>@fraiseql:impact contact_updated</code></td>
+</tr>
+<tr>
+<td><code>@fraiseql:type</code></td>
+<td>Table</td>
+<td>GraphQL type name</td>
+<td><code>@fraiseql:type Contact</code></td>
+</tr>
+<tr>
+<td><code>@fraiseql:field</code></td>
+<td>Column</td>
+<td>Field customization</td>
+<td><code>@fraiseql:field name: emailAddress</code></td>
+</tr>
+<tr>
+<td><code>@fraiseql:resolver</code></td>
+<td>Column</td>
+<td>Custom resolver</td>
+<td><code>@fraiseql:resolver contactResolver</code></td>
+</tr>
+<tr>
+<td><code>@fraiseql:auth</code></td>
+<td>Any</td>
+<td>Authorization</td>
+<td><code>@fraiseql:auth roles: [admin]</code></td>
+</tr>
+<tr>
+<td><code>@fraiseql:validation</code></td>
+<td>Column</td>
+<td>Field validation</td>
+<td><code>@fraiseql:validation required: true</code></td>
+</tr>
+<tr>
+<td><code>@fraiseql:deprecated</code></td>
+<td>Any</td>
+<td>Deprecation notice</td>
+<td><code>@fraiseql:deprecated reason: "Use newField"</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="1-consistent-naming">1. Consistent Naming</h3>
+<pre><code class="language-sql">-- ✅ Good: camelCase for GraphQL
+@fraiseql:field name: emailAddress
+
+-- ❌ Bad: snake_case in GraphQL
+@fraiseql:field name: email_address
+</code></pre>
+<h3 id="2-descriptive-comments">2. Descriptive Comments</h3>
+<pre><code class="language-sql">-- ✅ Good: Clear purpose and type
+COMMENT ON FUNCTION crm.create_contact(...) IS
+  'Create a new contact record with validation
+@fraiseql:mutation
+@fraiseql:impact contact_created';
+
+-- ❌ Bad: Minimal information
+COMMENT ON FUNCTION crm.create_contact(...) IS 'Create contact
+@fraiseql:mutation';
+</code></pre>
+<h3 id="3-security-first">3. Security First</h3>
+<pre><code class="language-sql">-- ✅ Good: Explicit authorization
+@fraiseql:auth roles: [admin, manager]
+
+-- ❌ Bad: Implicit permissions
+-- (No auth annotation)
+</code></pre>
+<h3 id="4-version-impact">4. Version Impact</h3>
+<pre><code class="language-sql">-- ✅ Good: Mark breaking changes
+@fraiseql:breaking true
+@fraiseql:version 2.0
+
+-- ❌ Bad: Silent breaking changes
+</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="schema-not-generated">Schema Not Generated</h3>
+<pre><code class="language-sql">-- Check annotation syntax
+COMMENT ON FUNCTION crm.create_contact(...) IS
+  'Create contact
+@fraiseql:mutation';  -- Must have @fraiseql:mutation
+
+-- Verify function exists
+SELECT proname FROM pg_proc WHERE proname = 'create_contact';
+</code></pre>
+<h3 id="type-conflicts">Type Conflicts</h3>
+<pre><code class="language-sql">-- Avoid GraphQL reserved words
+@fraiseql:type MyType  -- ✅ Good
+@fraiseql:type Type    -- ❌ Reserved word
+
+-- Check for duplicates
+SELECT * FROM pg_description
+WHERE description LIKE '%@fraiseql:type%'
+  AND description LIKE '%Contact%';
+</code></pre>
+<h3 id="resolver-errors">Resolver Errors</h3>
+<pre><code class="language-sql">-- Ensure resolver exists
+@fraiseql:resolver contactResolver
+-- Must have: function contactResolver(...) RETURNS ...
+
+-- Check resolver signature
+CREATE FUNCTION contactResolver(contact_id UUID) RETURNS JSONB AS $$
+-- Implementation
+$$ LANGUAGE sql;
+</code></pre>
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li><strong>Read Generated Patterns</strong>: See how annotations become code in <code>docs/reference/generated-patterns.md</code></li>
+<li><strong>Check GraphQL Integration</strong>: Usage examples in <code>docs/guides/graphql-integration.md</code></li>
+<li><strong>Browse Examples</strong>: See annotations in action in <code>examples/</code></li>
+<li><strong>Generate Schema</strong>: Run FraiseQL server to see live schema</li>
+</ul>
+<hr />
+<p><strong>PostgreSQL comments → GraphQL schema. Automatically.</strong> ✨</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team C: Action Compiler - Phased Implementation Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team C: Action Compiler - Phased Implementation Plan";
+        var mkdocs_page_input_path = "archive/teams/TEAM_C_ACTION_COMPILER_PHASED_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team C: Action Compiler - Phased Implementation Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-c-action-compiler-phased-implementation-plan">Team C: Action Compiler - Phased Implementation Plan</h1>
+<h2 id="executive-summary">Executive Summary</h2>
+<p>Team C must implement the <strong>Action Compiler</strong> that transforms SpecQL action definitions into production-ready PL/pgSQL functions with FraiseQL integration. This is a <strong>COMPLEX</strong> task requiring structured phased development with TDD discipline.</p>
+<p><strong>Current Status</strong>:
+- 1 failing test reveals pre-existing bug in custom action code generation
+- <code>test_custom_action_database_execution</code> failing due to incorrect validation logic
+- Need complete rewrite/overhaul of action compilation system</p>
+<p><strong>Estimated Duration</strong>: 4-5 weeks (Weeks 3-7 of project)</p>
+<hr />
+<h2 id="team-c-mission-refined">🎯 Team C Mission (Refined)</h2>
+<p><strong>Transform</strong>: SpecQL action steps → Type-safe PL/pgSQL functions with FraiseQL composite types</p>
+<p><strong>Key Requirements</strong>:
+1. ✅ Returns <code>mutation_result</code> type (FraiseQL standard)
+2. ✅ Uses PostgreSQL composite types for <code>_meta</code> (type-safe!)
+3. ✅ Trinity pattern resolution (UUID → INTEGER)
+4. ✅ Full object returns (not deltas) with relationships
+5. ✅ Side effect tracking in <code>extra_metadata</code>
+6. ✅ Runtime impact metadata generation
+7. ✅ Audit field updates
+8. ✅ Event emission
+9. ✅ Error handling with typed errors</p>
+<hr />
+<h2 id="phases">📋 PHASES</h2>
+<h3 id="phase-1-foundation-core-infrastructure-week-3-days-1-3">Phase 1: Foundation - Core Infrastructure (Week 3, Days 1-3)</h3>
+<p><strong>Objective</strong>: Set up core action compiler architecture with proper type system</p>
+<h4 id="tdd-cycle-11-mutation-result-type-setup">TDD Cycle 1.1: Mutation Result Type Setup</h4>
+<p><strong>RED</strong>: Write failing test for mutation_result type generation</p>
+<pre><code class="language-python"># tests/unit/actions/test_mutation_result_type.py
+def test_generates_mutation_result_type_schema():
+    &quot;&quot;&quot;Verify mutation_result composite type is generated&quot;&quot;&quot;
+    compiler = ActionCompiler()
+    result = compiler.generate_base_types()
+
+    assert &quot;CREATE TYPE app.mutation_result AS (&quot; in result
+    assert &quot;status TEXT&quot; in result
+    assert &quot;message TEXT&quot; in result
+    assert &quot;object_data JSONB&quot; in result
+    assert &quot;updated_fields TEXT[]&quot; in result
+    assert &quot;extra_metadata JSONB&quot; in result
+</code></pre>
+<p><strong>Expected failure</strong>: <code>ActionCompiler has no attribute 'generate_base_types'</code></p>
+<p><strong>GREEN</strong>: Implement minimal code</p>
+<pre><code class="language-python"># src/generators/actions/action_compiler.py
+class ActionCompiler:
+    def generate_base_types(self) -&gt; str:
+        &quot;&quot;&quot;Generate mutation_result composite type&quot;&quot;&quot;
+        return &quot;&quot;&quot;
+CREATE TYPE app.mutation_result AS (
+    id UUID,
+    status TEXT,
+    message TEXT,
+    object_data JSONB,
+    updated_fields TEXT[],
+    extra_metadata JSONB
+);
+&quot;&quot;&quot;
+</code></pre>
+<p><strong>REFACTOR</strong>:
+- Use Jinja2 template from <code>templates/sql/000_types.sql.jinja2</code>
+- Add proper comments and annotations</p>
+<p><strong>QA</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/actions/test_mutation_result_type.py -v
+</code></pre>
+<hr />
+<h4 id="tdd-cycle-12-impact-metadata-composite-types">TDD Cycle 1.2: Impact Metadata Composite Types</h4>
+<p><strong>RED</strong>: Write failing test for impact metadata types</p>
+<pre><code class="language-python"># tests/unit/actions/test_impact_metadata_types.py
+def test_generates_impact_metadata_types():
+    &quot;&quot;&quot;Verify mutation_metadata composite types are generated&quot;&quot;&quot;
+    compiler = ActionCompiler()
+    result = compiler.generate_metadata_types()
+
+    assert &quot;CREATE SCHEMA IF NOT EXISTS mutation_metadata&quot; in result
+    assert &quot;CREATE TYPE mutation_metadata.entity_impact AS (&quot; in result
+    assert &quot;entity_type TEXT&quot; in result
+    assert &quot;operation TEXT&quot; in result
+    assert &quot;modified_fields TEXT[]&quot; in result
+    assert &quot;CREATE TYPE mutation_metadata.mutation_impact_metadata AS (&quot; in result
+</code></pre>
+<p><strong>GREEN</strong>: Implement composite type generation</p>
+<pre><code class="language-python">def generate_metadata_types(self) -&gt; str:
+    &quot;&quot;&quot;Generate FraiseQL impact metadata composite types&quot;&quot;&quot;
+    # Use template from templates/sql/000_types.sql.jinja2
+    return render_template('000_types.sql.jinja2')
+</code></pre>
+<p><strong>REFACTOR</strong>:
+- Follow Team B's schema registry pattern
+- Add FraiseQL annotations
+- Proper type safety checks</p>
+<p><strong>QA</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/actions/ -k metadata -v
+</code></pre>
+<hr />
+<h4 id="tdd-cycle-13-action-context-ast-integration">TDD Cycle 1.3: Action Context &amp; AST Integration</h4>
+<p><strong>RED</strong>: Test action parsing and context setup</p>
+<pre><code class="language-python"># tests/unit/actions/test_action_context.py
+def test_action_context_from_ast():
+    &quot;&quot;&quot;Build compilation context from action AST&quot;&quot;&quot;
+    action_ast = ActionDefinition(
+        name=&quot;qualify_lead&quot;,
+        steps=[
+            ValidateStep(condition=&quot;status = 'lead'&quot;, error=&quot;not_a_lead&quot;),
+            UpdateStep(target=&quot;Contact&quot;, fields={&quot;status&quot;: &quot;'qualified'&quot;})
+        ],
+        impact=ImpactDeclaration(
+            primary=EntityImpact(
+                entity=&quot;Contact&quot;,
+                operation=&quot;UPDATE&quot;,
+                fields=[&quot;status&quot;, &quot;updatedAt&quot;]
+            )
+        )
+    )
+
+    context = ActionContext.from_ast(action_ast, entity_ast)
+
+    assert context.function_name == &quot;crm.qualify_lead&quot;
+    assert context.entity_schema == &quot;crm&quot;
+    assert context.entity_name == &quot;Contact&quot;
+    assert len(context.steps) == 2
+    assert context.has_impact_metadata is True
+</code></pre>
+<p><strong>GREEN</strong>: Implement ActionContext class</p>
+<pre><code class="language-python"># src/generators/actions/action_context.py
+@dataclass
+class ActionContext:
+    function_name: str
+    entity_schema: str
+    entity_name: str
+    steps: List[ActionStep]
+    impact: Optional[ImpactDeclaration]
+    has_impact_metadata: bool
+
+    @classmethod
+    def from_ast(cls, action_ast: ActionDefinition, entity_ast: Entity) -&gt; 'ActionContext':
+        return cls(
+            function_name=f&quot;{entity_ast.schema}.{action_ast.name}&quot;,
+            entity_schema=entity_ast.schema,
+            entity_name=entity_ast.name,
+            steps=action_ast.steps,
+            impact=action_ast.impact,
+            has_impact_metadata=action_ast.impact is not None
+        )
+</code></pre>
+<p><strong>REFACTOR</strong>:
+- Add validation
+- Add helper methods for step processing
+- Type annotations</p>
+<p><strong>QA</strong>: Full action context tests pass</p>
+<hr />
+<h3 id="phase-2-basic-step-compilation-week-3-days-4-5-week-4-days-1-2">Phase 2: Basic Step Compilation (Week 3, Days 4-5 + Week 4, Days 1-2)</h3>
+<p><strong>Objective</strong>: Compile basic action steps (validate, update, insert)</p>
+<h4 id="tdd-cycle-21-validate-step-compilation">TDD Cycle 2.1: Validate Step Compilation</h4>
+<p><strong>RED</strong>: Test validate step → SQL generation</p>
+<pre><code class="language-python"># tests/unit/actions/test_validate_step.py
+def test_compile_validate_step_simple():
+    &quot;&quot;&quot;Compile validate step to PL/pgSQL IF check&quot;&quot;&quot;
+    step = ValidateStep(condition=&quot;status = 'lead'&quot;, error=&quot;not_a_lead&quot;)
+    context = create_test_context()
+
+    compiler = ValidateStepCompiler()
+    sql = compiler.compile(step, context)
+
+    # Should generate variable fetch + validation
+    assert &quot;SELECT status INTO v_status&quot; in sql
+    assert &quot;FROM crm.tb_contact&quot; in sql
+    assert &quot;WHERE pk_contact = v_pk&quot; in sql
+    assert &quot;IF v_status != 'lead' THEN&quot; in sql
+    assert &quot;v_result.status := 'error'&quot; in sql
+    assert &quot;v_result.message := 'not_a_lead'&quot; in sql
+    assert &quot;RETURN v_result&quot; in sql
+</code></pre>
+<p><strong>Expected failure</strong>: <code>ValidateStepCompiler does not exist</code></p>
+<p><strong>GREEN</strong>: Implement validate step compiler</p>
+<pre><code class="language-python"># src/generators/actions/step_compilers/validate_compiler.py
+class ValidateStepCompiler:
+    def compile(self, step: ValidateStep, context: ActionContext) -&gt; str:
+        # Parse condition to extract field
+        field = self._extract_field(step.condition)
+        expected_value = self._extract_value(step.condition)
+
+        return f&quot;&quot;&quot;
+    -- Validation: {step.condition}
+    SELECT {field} INTO v_{field}
+    FROM {context.entity_schema}.tb_{context.entity_name.lower()}
+    WHERE pk_{context.entity_name.lower()} = v_pk;
+
+    IF v_{field} != {expected_value} THEN
+        v_result.status := 'error';
+        v_result.message := '{step.error}';
+        v_result.object_data := (
+            SELECT jsonb_build_object(
+                '__typename', '{context.entity_name}',
+                'id', c.id,
+                '{field}', c.{field}
+            )
+            FROM {context.entity_schema}.tb_{context.entity_name.lower()} c
+            WHERE c.pk_{context.entity_name.lower()} = v_pk
+        );
+        RETURN v_result;
+    END IF;
+&quot;&quot;&quot;
+</code></pre>
+<p><strong>REFACTOR</strong>:
+- Use expression parser (reuse from Team A if available)
+- Template-based generation
+- Handle complex conditions (AND/OR)
+- Type-safe field resolution</p>
+<p><strong>QA</strong>: All validate step tests pass</p>
+<hr />
+<h4 id="tdd-cycle-22-update-step-compilation">TDD Cycle 2.2: Update Step Compilation</h4>
+<p><strong>RED</strong>: Test update step → SQL UPDATE generation</p>
+<pre><code class="language-python"># tests/unit/actions/test_update_step.py
+def test_compile_update_step_simple():
+    &quot;&quot;&quot;Compile update step to SQL UPDATE&quot;&quot;&quot;
+    step = UpdateStep(target=&quot;Contact&quot;, fields={&quot;status&quot;: &quot;'qualified'&quot;})
+    context = create_test_context()
+
+    compiler = UpdateStepCompiler()
+    sql = compiler.compile(step, context)
+
+    assert &quot;UPDATE crm.tb_contact&quot; in sql
+    assert &quot;SET status = 'qualified'&quot; in sql
+    assert &quot;updated_at = now()&quot; in sql  # Auto-audit
+    assert &quot;updated_by = p_caller_id&quot; in sql  # Auto-audit
+    assert &quot;WHERE pk_contact = v_pk&quot; in sql
+</code></pre>
+<p><strong>GREEN</strong>: Implement update step compiler</p>
+<pre><code class="language-python"># src/generators/actions/step_compilers/update_compiler.py
+class UpdateStepCompiler:
+    def compile(self, step: UpdateStep, context: ActionContext) -&gt; str:
+        # Extract SET clause fields
+        set_clauses = [f&quot;{field} = {value}&quot; for field, value in step.fields.items()]
+
+        # Add audit fields automatically
+        set_clauses.append(&quot;updated_at = now()&quot;)
+        set_clauses.append(&quot;updated_by = p_caller_id&quot;)
+
+        return f&quot;&quot;&quot;
+    -- Update: {step.target}
+    UPDATE {context.entity_schema}.tb_{step.target.lower()}
+    SET {', '.join(set_clauses)}
+    WHERE pk_{step.target.lower()} = v_pk;
+&quot;&quot;&quot;
+</code></pre>
+<p><strong>REFACTOR</strong>:
+- Expression evaluation for field values
+- Support for complex expressions
+- Handle NULL values properly
+- Reserved field validation (use Team B's reserved_fields module)</p>
+<p><strong>QA</strong>: Update step tests pass</p>
+<hr />
+<h4 id="tdd-cycle-23-insert-step-compilation">TDD Cycle 2.3: Insert Step Compilation</h4>
+<p><strong>RED</strong>: Test insert step → SQL INSERT generation</p>
+<pre><code class="language-python"># tests/unit/actions/test_insert_step.py
+def test_compile_insert_step_simple():
+    &quot;&quot;&quot;Compile insert step to SQL INSERT&quot;&quot;&quot;
+    step = InsertStep(
+        target=&quot;Notification&quot;,
+        fields={
+            &quot;fk_contact&quot;: &quot;v_pk&quot;,
+            &quot;message&quot;: &quot;'Contact qualified'&quot;,
+            &quot;notification_type&quot;: &quot;'email'&quot;
+        }
+    )
+    context = create_test_context()
+
+    compiler = InsertStepCompiler()
+    sql = compiler.compile(step, context)
+
+    assert &quot;INSERT INTO core.tb_notification&quot; in sql
+    assert &quot;fk_contact, message, notification_type&quot; in sql
+    assert &quot;VALUES (v_pk, 'Contact qualified', 'email')&quot; in sql
+    assert &quot;RETURNING id INTO v_notification_id&quot; in sql  # Track created entity
+</code></pre>
+<p><strong>GREEN</strong>: Implement insert step compiler</p>
+<p><strong>REFACTOR</strong>:
+- Auto-add tenant_id if schema is multi-tenant
+- Use schema_registry for tenant detection
+- Track created IDs for side effect metadata</p>
+<p><strong>QA</strong>: Insert step tests pass</p>
+<hr />
+<h3 id="phase-3-function-scaffolding-week-4-days-3-5">Phase 3: Function Scaffolding (Week 4, Days 3-5)</h3>
+<p><strong>Objective</strong>: Generate complete PL/pgSQL function wrapper with proper structure</p>
+<h4 id="tdd-cycle-31-function-signature-generation">TDD Cycle 3.1: Function Signature Generation</h4>
+<p><strong>RED</strong>: Test function signature with parameters</p>
+<pre><code class="language-python"># tests/unit/actions/test_function_signature.py
+def test_generate_function_signature():
+    &quot;&quot;&quot;Generate proper function signature from action&quot;&quot;&quot;
+    action = ActionDefinition(name=&quot;qualify_lead&quot;, parameters=[&quot;contact_id&quot;])
+    context = ActionContext.from_ast(action, entity_ast)
+
+    generator = FunctionGenerator()
+    signature = generator.generate_signature(context)
+
+    assert &quot;CREATE OR REPLACE FUNCTION crm.qualify_lead(&quot; in signature
+    assert &quot;p_contact_id UUID&quot; in signature
+    assert &quot;p_caller_id UUID DEFAULT NULL&quot; in signature  # Auto-added
+    assert &quot;RETURNS mutation_result&quot; in signature  # FraiseQL type
+</code></pre>
+<p><strong>GREEN</strong>: Implement signature generation</p>
+<p><strong>REFACTOR</strong>:
+- Parameter type inference
+- Auto-add audit parameters (caller_id, tenant_id)
+- Proper NULL defaults</p>
+<p><strong>QA</strong>: Signature tests pass</p>
+<hr />
+<h4 id="tdd-cycle-32-variable-declaration-block">TDD Cycle 3.2: Variable Declaration Block</h4>
+<p><strong>RED</strong>: Test DECLARE block generation</p>
+<pre><code class="language-python">def test_generate_declare_block():
+    &quot;&quot;&quot;Generate DECLARE block with proper variable types&quot;&quot;&quot;
+    context = create_test_context()
+
+    generator = FunctionGenerator()
+    declare_block = generator.generate_declare_block(context)
+
+    assert &quot;v_pk INTEGER&quot; in declare_block  # Trinity resolution
+    assert &quot;v_result mutation_result&quot; in declare_block  # Return value
+    assert &quot;v_meta mutation_metadata.mutation_impact_metadata&quot; in declare_block  # Impact
+</code></pre>
+<p><strong>GREEN</strong>: Implement DECLARE block generation</p>
+<p><strong>REFACTOR</strong>:
+- Infer needed variables from steps
+- Type-safe variable declarations
+- Conditional variables (only if impact metadata needed)</p>
+<p><strong>QA</strong>: DECLARE tests pass</p>
+<hr />
+<h4 id="tdd-cycle-33-trinity-resolution">TDD Cycle 3.3: Trinity Resolution</h4>
+<p><strong>RED</strong>: Test automatic UUID → INTEGER resolution</p>
+<pre><code class="language-python">def test_generates_trinity_resolution():
+    &quot;&quot;&quot;Auto-generate Trinity helper call&quot;&quot;&quot;
+    context = create_test_context()
+
+    generator = FunctionGenerator()
+    resolution = generator.generate_trinity_resolution(context)
+
+    assert &quot;v_pk := crm.contact_pk(p_contact_id)&quot; in resolution
+</code></pre>
+<p><strong>GREEN</strong>: Implement Trinity resolution using Team B's helpers</p>
+<p><strong>REFACTOR</strong>: Use schema_registry to determine correct helper function</p>
+<p><strong>QA</strong>: Trinity resolution tests pass</p>
+<hr />
+<h3 id="phase-4-success-response-generation-week-5-days-1-3">Phase 4: Success Response Generation (Week 5, Days 1-3)</h3>
+<p><strong>Objective</strong>: Generate complete mutation_result success response with relationships and metadata</p>
+<h4 id="tdd-cycle-41-primary-object-data-with-relationships">TDD Cycle 4.1: Primary Object Data with Relationships</h4>
+<p><strong>RED</strong>: Test full object return with declared relationships</p>
+<pre><code class="language-python"># tests/unit/actions/test_success_response.py
+def test_generates_object_data_with_relationships():
+    &quot;&quot;&quot;Generate object_data with relationships from impact.include_relations&quot;&quot;&quot;
+    impact = ImpactDeclaration(
+        primary=EntityImpact(
+            entity=&quot;Contact&quot;,
+            operation=&quot;UPDATE&quot;,
+            fields=[&quot;status&quot;, &quot;updatedAt&quot;],
+            include_relations=[&quot;company&quot;]
+        )
+    )
+    context = create_test_context(impact=impact)
+
+    generator = SuccessResponseGenerator()
+    object_sql = generator.generate_object_data(context)
+
+    assert &quot;SELECT jsonb_build_object(&quot; in object_sql
+    assert &quot;'__typename', 'Contact'&quot; in object_sql
+    assert &quot;'id', c.id&quot; in object_sql
+    assert &quot;'status', c.status&quot; in object_sql
+    assert &quot;'company', jsonb_build_object(&quot; in object_sql  # Relationship
+    assert &quot;'__typename', 'Company'&quot; in object_sql
+    assert &quot;LEFT JOIN management.tb_company co ON co.pk_company = c.fk_company&quot; in object_sql
+</code></pre>
+<p><strong>GREEN</strong>: Implement object_data generation with relationship resolution</p>
+<p><strong>REFACTOR</strong>:
+- Use entity AST to resolve relationship fields
+- Auto-detect FK columns from schema_registry
+- Handle multi-level relationships
+- Proper NULL handling for optional relations</p>
+<p><strong>QA</strong>: Object data tests pass</p>
+<hr />
+<h4 id="tdd-cycle-42-impact-metadata-generation-composite-types">TDD Cycle 4.2: Impact Metadata Generation (Composite Types!)</h4>
+<p><strong>RED</strong>: Test type-safe impact metadata construction</p>
+<pre><code class="language-python">def test_generates_impact_metadata_composite_type():
+    &quot;&quot;&quot;Generate _meta using type-safe composite type construction&quot;&quot;&quot;
+    context = create_test_context_with_impact()
+
+    generator = ImpactMetadataGenerator()
+    meta_sql = generator.generate_metadata(context)
+
+    # Should use ROW constructor with proper typing
+    assert &quot;v_meta.primary_entity := ROW(&quot; in meta_sql
+    assert &quot;'Contact',&quot; in meta_sql  # entity_type
+    assert &quot;'UPDATE',&quot; in meta_sql  # operation
+    assert &quot;ARRAY['status', 'updated_at']&quot; in meta_sql  # modified_fields
+    assert &quot;)::mutation_metadata.entity_impact&quot; in meta_sql  # Type cast!
+
+    # Should handle side effects array
+    assert &quot;v_meta.actual_side_effects := ARRAY[&quot; in meta_sql
+    assert &quot;ROW('Notification', 'CREATE'&quot; in meta_sql
+
+    # Should convert to JSONB for return
+    assert &quot;to_jsonb(v_meta)&quot; in meta_sql
+</code></pre>
+<p><strong>GREEN</strong>: Implement type-safe metadata generation</p>
+<pre><code class="language-python"># src/generators/actions/impact_metadata_generator.py
+class ImpactMetadataGenerator:
+    def generate_metadata(self, context: ActionContext) -&gt; str:
+        if not context.has_impact_metadata:
+            return &quot;&quot;
+
+        impact = context.impact
+
+        # Type-safe composite type construction
+        primary = f&quot;&quot;&quot;
+        v_meta.primary_entity := ROW(
+            '{impact.primary.entity}',
+            '{impact.primary.operation}',
+            ARRAY{impact.primary.fields}::TEXT[]
+        )::mutation_metadata.entity_impact;
+&quot;&quot;&quot;
+
+        # Side effects array (if any)
+        side_effects = &quot;&quot;
+        if impact.side_effects:
+            effects = [
+                f&quot;ROW('{se.entity}', '{se.operation}', ARRAY{se.fields}::TEXT[])::mutation_metadata.entity_impact&quot;
+                for se in impact.side_effects
+            ]
+            side_effects = f&quot;&quot;&quot;
+        v_meta.actual_side_effects := ARRAY[
+            {', '.join(effects)}
+        ];
+&quot;&quot;&quot;
+
+        # Cache invalidations
+        cache_inv = &quot;&quot;
+        if impact.cache_invalidations:
+            invalidations = [
+                f&quot;ROW('{ci.query}', '{ci.filter}'::jsonb, '{ci.strategy}', '{ci.reason}')::mutation_metadata.cache_invalidation&quot;
+                for ci in impact.cache_invalidations
+            ]
+            cache_inv = f&quot;&quot;&quot;
+        v_meta.cache_invalidations := ARRAY[
+            {', '.join(invalidations)}
+        ];
+&quot;&quot;&quot;
+
+        return primary + side_effects + cache_inv
+</code></pre>
+<p><strong>REFACTOR</strong>:
+- Use Jinja2 templates
+- Validate composite type fields
+- Handle optional fields
+- Type checking</p>
+<p><strong>QA</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/actions/test_impact_metadata.py -v
+# Should verify PostgreSQL accepts the composite type syntax
+</code></pre>
+<hr />
+<h4 id="tdd-cycle-43-side-effects-collection">TDD Cycle 4.3: Side Effects Collection</h4>
+<p><strong>RED</strong>: Test side effect entity collection in extra_metadata</p>
+<pre><code class="language-python">def test_generates_side_effect_collections():
+    &quot;&quot;&quot;Collect created entities in extra_metadata collections&quot;&quot;&quot;
+    impact = ImpactDeclaration(
+        side_effects=[
+            EntityImpact(
+                entity=&quot;Notification&quot;,
+                operation=&quot;CREATE&quot;,
+                collection=&quot;createdNotifications&quot;
+            )
+        ]
+    )
+    context = create_test_context(impact=impact)
+
+    generator = SideEffectCollector()
+    collections_sql = generator.generate_collections(context)
+
+    assert &quot;'createdNotifications',&quot; in collections_sql
+    assert &quot;SELECT COALESCE(jsonb_agg(&quot; in collections_sql
+    assert &quot;FROM core.tb_notification n&quot; in collections_sql
+    assert &quot;WHERE n.fk_contact = v_pk&quot; in collections_sql
+    assert &quot;AND n.created_at &gt; (now() - interval '1 second')&quot; in collections_sql  # Recent only
+</code></pre>
+<p><strong>GREEN</strong>: Implement side effect collection queries</p>
+<p><strong>REFACTOR</strong>:
+- Time-based filtering for "recent" entities
+- Track created IDs from INSERT steps
+- Use tracked IDs instead of time-based filtering (more reliable)</p>
+<p><strong>QA</strong>: Side effect tests pass</p>
+<hr />
+<h3 id="phase-5-conditional-logic-advanced-steps-week-5-days-4-5-week-6-days-1-2">Phase 5: Conditional Logic &amp; Advanced Steps (Week 5, Days 4-5 + Week 6, Days 1-2)</h3>
+<p><strong>Objective</strong>: Support if/then/else, loops, and complex action patterns</p>
+<h4 id="tdd-cycle-51-ifthenelse-compilation">TDD Cycle 5.1: If/Then/Else Compilation</h4>
+<p><strong>RED</strong>: Test conditional step compilation</p>
+<pre><code class="language-python">def test_compile_if_then_else():
+    &quot;&quot;&quot;Compile conditional logic to PL/pgSQL IF&quot;&quot;&quot;
+    step = ConditionalStep(
+        condition=&quot;status = 'lead'&quot;,
+        then_steps=[UpdateStep(...)],
+        else_steps=[RaiseErrorStep(...)]
+    )
+
+    compiler = ConditionalStepCompiler()
+    sql = compiler.compile(step, context)
+
+    assert &quot;IF v_status = 'lead' THEN&quot; in sql
+    assert &quot;UPDATE crm.tb_contact&quot; in sql
+    assert &quot;ELSE&quot; in sql
+    assert &quot;RAISE EXCEPTION&quot; in sql
+    assert &quot;END IF&quot; in sql
+</code></pre>
+<p><strong>GREEN</strong>: Implement nested step compilation</p>
+<p><strong>REFACTOR</strong>:
+- Recursive step compilation
+- Proper indentation
+- Nested condition support</p>
+<p><strong>QA</strong>: Conditional tests pass</p>
+<hr />
+<h4 id="tdd-cycle-52-call-step-function-invocation">TDD Cycle 5.2: Call Step (Function Invocation)</h4>
+<p><strong>RED</strong>: Test calling other functions</p>
+<pre><code class="language-python">def test_compile_call_step():
+    &quot;&quot;&quot;Compile function call step&quot;&quot;&quot;
+    step = CallStep(
+        function=&quot;notify_owner&quot;,
+        arguments={&quot;contact_id&quot;: &quot;p_contact_id&quot;, &quot;message&quot;: &quot;'Qualified'&quot;}
+    )
+
+    compiler = CallStepCompiler()
+    sql = compiler.compile(step, context)
+
+    assert &quot;PERFORM core.notify_owner(&quot; in sql
+    assert &quot;p_contact_id,&quot; in sql
+    assert &quot;'Qualified'&quot; in sql
+</code></pre>
+<p><strong>GREEN</strong>: Implement function call generation</p>
+<p><strong>REFACTOR</strong>:
+- Function resolution (schema.function)
+- Parameter mapping
+- Return value handling (if needed)</p>
+<p><strong>QA</strong>: Call step tests pass</p>
+<hr />
+<h4 id="tdd-cycle-53-notify-step-event-emission">TDD Cycle 5.3: Notify Step (Event Emission)</h4>
+<p><strong>RED</strong>: Test event emission step</p>
+<pre><code class="language-python">def test_compile_notify_step():
+    &quot;&quot;&quot;Compile notify step to event emission&quot;&quot;&quot;
+    step = NotifyStep(
+        target=&quot;owner&quot;,
+        channel=&quot;email&quot;,
+        message=&quot;Contact qualified&quot;
+    )
+
+    compiler = NotifyStepCompiler()
+    sql = compiler.compile(step, context)
+
+    assert &quot;PERFORM core.emit_event(&quot; in sql
+    assert &quot;'contact.qualified'&quot; in sql
+    assert &quot;jsonb_build_object('id', p_contact_id)&quot; in sql
+</code></pre>
+<p><strong>GREEN</strong>: Implement event emission</p>
+<p><strong>REFACTOR</strong>:
+- Event naming conventions
+- Payload construction
+- Integration with event system</p>
+<p><strong>QA</strong>: Notify tests pass</p>
+<hr />
+<h3 id="phase-6-error-handling-edge-cases-week-6-days-3-5">Phase 6: Error Handling &amp; Edge Cases (Week 6, Days 3-5)</h3>
+<p><strong>Objective</strong>: Robust error handling, validation, and edge case coverage</p>
+<h4 id="tdd-cycle-61-typed-error-responses">TDD Cycle 6.1: Typed Error Responses</h4>
+<p><strong>RED</strong>: Test error response generation</p>
+<pre><code class="language-python">def test_generates_typed_error_response():
+    &quot;&quot;&quot;Generate proper error response in mutation_result&quot;&quot;&quot;
+    step = ValidateStep(condition=&quot;status = 'lead'&quot;, error=&quot;not_a_lead&quot;)
+
+    compiler = ValidateStepCompiler()
+    sql = compiler.compile(step, context)
+
+    # Error response structure
+    assert &quot;v_result.status := 'error'&quot; in sql
+    assert &quot;v_result.message := 'not_a_lead'&quot; in sql
+    assert &quot;v_result.object_data := (&quot; in sql  # Still return current object
+    assert &quot;__typename&quot; in sql
+</code></pre>
+<p><strong>GREEN</strong>: Implement error response generation</p>
+<p><strong>REFACTOR</strong>:
+- Error code mapping
+- User-friendly messages
+- Include current state in error response</p>
+<p><strong>QA</strong>: Error handling tests pass</p>
+<hr />
+<h4 id="tdd-cycle-62-exception-handling">TDD Cycle 6.2: Exception Handling</h4>
+<p><strong>RED</strong>: Test PostgreSQL exception handling</p>
+<pre><code class="language-python">def test_generates_exception_handler():
+    &quot;&quot;&quot;Wrap function in EXCEPTION handler&quot;&quot;&quot;
+    context = create_test_context()
+
+    generator = FunctionGenerator()
+    function_sql = generator.generate_function(context)
+
+    assert &quot;EXCEPTION&quot; in function_sql
+    assert &quot;WHEN OTHERS THEN&quot; in function_sql
+    assert &quot;v_result.status := 'error'&quot; in function_sql
+    assert &quot;SQLERRM&quot; in function_sql  # Include error message
+</code></pre>
+<p><strong>GREEN</strong>: Add EXCEPTION block to function template</p>
+<p><strong>REFACTOR</strong>:
+- Specific exception types
+- Error logging
+- Rollback handling</p>
+<p><strong>QA</strong>: Exception tests pass</p>
+<hr />
+<h4 id="tdd-cycle-63-validation-of-generated-sql">TDD Cycle 6.3: Validation of Generated SQL</h4>
+<p><strong>RED</strong>: Test that generated SQL is valid PostgreSQL</p>
+<pre><code class="language-python">def test_generated_sql_is_valid_postgres():
+    &quot;&quot;&quot;Verify generated function compiles in PostgreSQL&quot;&quot;&quot;
+    action = create_qualify_lead_action()
+    entity = create_contact_entity()
+
+    compiler = ActionCompiler()
+    sql = compiler.compile_action(action, entity)
+
+    # Execute in test database
+    with test_db.cursor() as cur:
+        cur.execute(sql)  # Should not raise syntax error
+</code></pre>
+<p><strong>GREEN</strong>: Database integration test</p>
+<p><strong>REFACTOR</strong>:
+- SQL syntax validation
+- Type checking
+- Indentation and formatting</p>
+<p><strong>QA</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/actions/ -v
+</code></pre>
+<hr />
+<h3 id="phase-7-integration-optimization-week-7-days-1-3">Phase 7: Integration &amp; Optimization (Week 7, Days 1-3)</h3>
+<p><strong>Objective</strong>: End-to-end integration, performance, and production readiness</p>
+<h4 id="tdd-cycle-71-full-end-to-end-test-fix-current-failure">TDD Cycle 7.1: Full End-to-End Test (Fix Current Failure!)</h4>
+<p><strong>RED</strong>: Fix <code>test_custom_action_database_execution</code></p>
+<pre><code class="language-python"># tests/integration/actions/test_database_roundtrip.py
+def test_custom_action_database_execution():
+    &quot;&quot;&quot;Execute qualify_lead action in real database&quot;&quot;&quot;
+    # This test is CURRENTLY FAILING - Phase 7 will fix it!
+
+    # Generate function from SpecQL
+    action = parse_qualify_lead_action()
+    entity = parse_contact_entity()
+
+    compiler = ActionCompiler()
+    function_sql = compiler.compile_action(action, entity)
+
+    # Deploy to test database
+    with test_db.cursor() as cur:
+        cur.execute(function_sql)
+
+    # Insert test contact
+    contact_id = create_test_contact(status='lead')
+
+    # Execute action
+    result = execute_function('crm.qualify_lead', contact_id=contact_id)
+
+    # Verify success response
+    assert result['status'] == 'success'
+    assert result['object_data']['__typename'] == 'Contact'
+    assert result['object_data']['status'] == 'qualified'
+
+    # Verify database state
+    contact = get_contact(contact_id)
+    assert contact['status'] == 'qualified'
+    assert contact['updated_at'] is not None
+</code></pre>
+<p><strong>GREEN</strong>: Complete ActionCompiler implementation to make test pass</p>
+<p><strong>REFACTOR</strong>:
+- Code quality
+- Performance optimization
+- Proper error messages</p>
+<p><strong>QA</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/actions/test_database_roundtrip.py::test_custom_action_database_execution -v
+# Should PASS after Phase 7!
+</code></pre>
+<hr />
+<h4 id="tdd-cycle-72-performance-testing">TDD Cycle 7.2: Performance Testing</h4>
+<p><strong>RED</strong>: Test function execution performance</p>
+<pre><code class="language-python">def test_action_execution_performance():
+    &quot;&quot;&quot;Verify action executes in &lt; 100ms&quot;&quot;&quot;
+    contact_id = create_test_contact()
+
+    start = time.time()
+    for _ in range(100):
+        execute_function('crm.qualify_lead', contact_id=contact_id)
+    duration = time.time() - start
+
+    avg_duration = duration / 100
+    assert avg_duration &lt; 0.1  # &lt; 100ms per call
+</code></pre>
+<p><strong>GREEN</strong>: Optimize generated SQL</p>
+<p><strong>REFACTOR</strong>:
+- Query optimization
+- Index usage verification
+- Minimize round trips</p>
+<p><strong>QA</strong>: Performance benchmarks pass</p>
+<hr />
+<h4 id="tdd-cycle-73-fraiseql-integration-validation">TDD Cycle 7.3: FraiseQL Integration Validation</h4>
+<p><strong>RED</strong>: Verify FraiseQL can introspect generated functions</p>
+<pre><code class="language-python">def test_fraiseql_discovers_generated_function():
+    &quot;&quot;&quot;FraiseQL should discover mutation from COMMENT annotation&quot;&quot;&quot;
+    # Generate function with Team D metadata
+    function_sql = generate_with_fraiseql_metadata()
+
+    # Deploy
+    execute_sql(function_sql)
+
+    # Verify COMMENT exists
+    comment = get_function_comment('crm.qualify_lead')
+    assert '@fraiseql:mutation' in comment
+    assert 'name=qualifyLead' in comment
+    assert 'success_type=QualifyLeadSuccess' in comment
+
+    # Verify composite types have comments
+    meta_comment = get_type_comment('mutation_metadata.mutation_impact_metadata')
+    assert '@fraiseql:type' in meta_comment
+</code></pre>
+<p><strong>GREEN</strong>: Integrate with Team D's FraiseQL metadata generator</p>
+<p><strong>REFACTOR</strong>: Ensure all metadata is correct</p>
+<p><strong>QA</strong>: FraiseQL integration tests pass</p>
+<hr />
+<h3 id="phase-8-documentation-cleanup-week-7-days-4-5">Phase 8: Documentation &amp; Cleanup (Week 7, Days 4-5)</h3>
+<p><strong>Objective</strong>: Production-ready code, documentation, and handoff</p>
+<h4 id="tasks">Tasks:</h4>
+<ol>
+<li><strong>Code Documentation</strong></li>
+<li>Add docstrings to all classes/methods</li>
+<li>Document template variables</li>
+<li>
+<p>Add inline comments for complex logic</p>
+</li>
+<li>
+<p><strong>User Documentation</strong></p>
+</li>
+<li>Update <code>docs/guides/action-compilation.md</code></li>
+<li>Add examples for each step type</li>
+<li>
+<p>Document impact metadata format</p>
+</li>
+<li>
+<p><strong>Test Coverage</strong></p>
+</li>
+<li>Achieve 90%+ coverage</li>
+<li>Add missing edge cases</li>
+<li>
+<p>Document test strategy</p>
+</li>
+<li>
+<p><strong>Performance Documentation</strong></p>
+</li>
+<li>Document optimization techniques</li>
+<li>Add performance benchmarks</li>
+<li>
+<p>Create tuning guide</p>
+</li>
+<li>
+<p><strong>Cleanup</strong></p>
+</li>
+<li>Remove debug code</li>
+<li>Fix linting issues</li>
+<li>Update type annotations</li>
+</ol>
+<hr />
+<h2 id="success-criteria">🎯 Success Criteria</h2>
+<h3 id="phase-completion-checklist">Phase Completion Checklist</h3>
+<ul>
+<li>[ ] <strong>Phase 1</strong>: Core infrastructure (mutation_result, composite types, context)</li>
+<li>[ ] All base types generated</li>
+<li>[ ] ActionContext working</li>
+<li>
+<p>[ ] Tests passing</p>
+</li>
+<li>
+<p>[ ] <strong>Phase 2</strong>: Basic steps (validate, update, insert)</p>
+</li>
+<li>[ ] ValidateStepCompiler working</li>
+<li>[ ] UpdateStepCompiler working</li>
+<li>[ ] InsertStepCompiler working</li>
+<li>
+<p>[ ] Tests passing</p>
+</li>
+<li>
+<p>[ ] <strong>Phase 3</strong>: Function scaffolding</p>
+</li>
+<li>[ ] Function signatures correct</li>
+<li>[ ] DECLARE blocks complete</li>
+<li>[ ] Trinity resolution working</li>
+<li>
+<p>[ ] Tests passing</p>
+</li>
+<li>
+<p>[ ] <strong>Phase 4</strong>: Success responses</p>
+</li>
+<li>[ ] Object data with relationships</li>
+<li>[ ] Type-safe impact metadata (composite types!)</li>
+<li>[ ] Side effect collections</li>
+<li>
+<p>[ ] Tests passing</p>
+</li>
+<li>
+<p>[ ] <strong>Phase 5</strong>: Advanced steps</p>
+</li>
+<li>[ ] If/then/else working</li>
+<li>[ ] Call step working</li>
+<li>[ ] Notify step working</li>
+<li>
+<p>[ ] Tests passing</p>
+</li>
+<li>
+<p>[ ] <strong>Phase 6</strong>: Error handling</p>
+</li>
+<li>[ ] Typed error responses</li>
+<li>[ ] Exception handling</li>
+<li>[ ] SQL validation</li>
+<li>
+<p>[ ] Tests passing</p>
+</li>
+<li>
+<p>[ ] <strong>Phase 7</strong>: Integration</p>
+</li>
+<li>[ ] <code>test_custom_action_database_execution</code> PASSING ✅</li>
+<li>[ ] Performance benchmarks met</li>
+<li>[ ] FraiseQL integration verified</li>
+<li>
+<p>[ ] All integration tests passing</p>
+</li>
+<li>
+<p>[ ] <strong>Phase 8</strong>: Production ready</p>
+</li>
+<li>[ ] Documentation complete</li>
+<li>[ ] 90%+ test coverage</li>
+<li>[ ] Code quality checks pass</li>
+<li>[ ] Ready for Team E orchestration</li>
+</ul>
+<hr />
+<h2 id="test-strategy">🧪 Test Strategy</h2>
+<h3 id="test-pyramid">Test Pyramid</h3>
+<pre><code>         /\
+        /E2E\         Integration: 10% (database execution)
+       /------\
+      /  INT   \      Integration: 20% (SQL validation)
+     /----------\
+    /    UNIT    \    Unit: 70% (step compilers, generators)
+   /--------------\
+</code></pre>
+<h3 id="test-commands">Test Commands</h3>
+<pre><code class="language-bash"># Unit tests (fast, no database)
+uv run pytest tests/unit/actions/ -v
+
+# Integration tests (requires test database)
+uv run pytest tests/integration/actions/ -v
+
+# Specific test
+uv run pytest tests/integration/actions/test_database_roundtrip.py::test_custom_action_database_execution -v
+
+# Coverage
+uv run pytest tests/unit/actions/ --cov=src/generators/actions --cov-report=html
+
+# Performance tests
+uv run pytest tests/integration/actions/ -k performance -v
+</code></pre>
+<hr />
+<h2 id="progress-tracking">📊 Progress Tracking</h2>
+<h3 id="week-by-week-goals">Week-by-Week Goals</h3>
+<table>
+<thead>
+<tr>
+<th>Week</th>
+<th>Phase</th>
+<th>Goal</th>
+<th>Success Metric</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Week 3, Days 1-3</td>
+<td>Phase 1</td>
+<td>Core infrastructure</td>
+<td>Base types + context working</td>
+</tr>
+<tr>
+<td>Week 3, Days 4-5 + Week 4, Days 1-2</td>
+<td>Phase 2</td>
+<td>Basic steps</td>
+<td>3 step compilers working</td>
+</tr>
+<tr>
+<td>Week 4, Days 3-5</td>
+<td>Phase 3</td>
+<td>Function scaffolding</td>
+<td>Complete function generated</td>
+</tr>
+<tr>
+<td>Week 5, Days 1-3</td>
+<td>Phase 4</td>
+<td>Success responses</td>
+<td>Full mutation_result with metadata</td>
+</tr>
+<tr>
+<td>Week 5, Days 4-5 + Week 6, Days 1-2</td>
+<td>Phase 5</td>
+<td>Advanced steps</td>
+<td>Conditionals + calls working</td>
+</tr>
+<tr>
+<td>Week 6, Days 3-5</td>
+<td>Phase 6</td>
+<td>Error handling</td>
+<td>Robust error responses</td>
+</tr>
+<tr>
+<td>Week 7, Days 1-3</td>
+<td>Phase 7</td>
+<td>Integration</td>
+<td><strong>Current failing test PASSES</strong> ✅</td>
+</tr>
+<tr>
+<td>Week 7, Days 4-5</td>
+<td>Phase 8</td>
+<td>Documentation</td>
+<td>Production ready</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="critical-dependencies">🚨 Critical Dependencies</h2>
+<h3 id="from-team-a-specql-parser">From Team A (SpecQL Parser)</h3>
+<ul>
+<li>✅ ActionDefinition AST</li>
+<li>✅ Step type definitions</li>
+<li>⚠️ May need ImpactDeclaration in AST (check if exists)</li>
+</ul>
+<h3 id="from-team-b-schema-generator">From Team B (Schema Generator)</h3>
+<ul>
+<li>✅ schema_registry module</li>
+<li>✅ Trinity helper functions</li>
+<li>✅ reserved_fields validation</li>
+<li>⚠️ Need composite type templates (000_types.sql.jinja2)</li>
+</ul>
+<h3 id="from-team-d-fraiseql-metadata">From Team D (FraiseQL Metadata)</h3>
+<ul>
+<li>⚠️ Metadata annotation format (coordinate!)</li>
+<li>⚠️ Composite type naming conventions</li>
+</ul>
+<h3 id="for-team-e-orchestration">For Team E (Orchestration)</h3>
+<ul>
+<li>Stable API for action compilation</li>
+<li>Clear error messages</li>
+<li>Proper logging</li>
+</ul>
+<hr />
+<h2 id="key-design-decisions">💡 Key Design Decisions</h2>
+<h3 id="1-use-composite-types-for-metadata-fraiseql-recommended">1. <strong>Use Composite Types for Metadata</strong> (FraiseQL Recommended!)</h3>
+<p><strong>Decision</strong>: Use PostgreSQL composite types instead of JSONB for <code>_meta</code></p>
+<p><strong>Reasoning</strong>:
+- ✅ Type-safe at database level
+- ✅ Compile-time validation
+- ✅ Better performance (binary format)
+- ✅ FraiseQL team confirmed this is best practice</p>
+<p><strong>Implementation</strong>:</p>
+<pre><code class="language-sql">-- Type-safe construction
+v_meta.primary_entity := ROW(
+    'Contact',
+    'UPDATE',
+    ARRAY['status']::TEXT[]
+)::mutation_metadata.entity_impact;
+</code></pre>
+<h3 id="2-full-object-returns-not-deltas">2. <strong>Full Object Returns (Not Deltas)</strong></h3>
+<p><strong>Decision</strong>: Return complete entity in <code>object_data</code>, not just modified fields</p>
+<p><strong>Reasoning</strong>:
+- ✅ Apollo cache normalization works better
+- ✅ Frontend gets complete state
+- ✅ Simplifies frontend logic</p>
+<h3 id="3-auto-audit-fields">3. <strong>Auto-Audit Fields</strong></h3>
+<p><strong>Decision</strong>: Automatically update <code>updated_at</code>, <code>updated_by</code> on all UPDATEs</p>
+<p><strong>Reasoning</strong>:
+- ✅ Consistency across all actions
+- ✅ Users don't forget
+- ✅ Framework convention</p>
+<h3 id="4-trinity-resolution-first">4. <strong>Trinity Resolution First</strong></h3>
+<p><strong>Decision</strong>: Always resolve UUID → INTEGER at function start</p>
+<p><strong>Reasoning</strong>:
+- ✅ Consistent with framework pattern
+- ✅ Better query performance
+- ✅ Single resolution point</p>
+<hr />
+<h2 id="learning-resources-for-team-c">🎓 Learning Resources for Team C</h2>
+<h3 id="postgresql-plpgsql">PostgreSQL PL/pgSQL</h3>
+<ul>
+<li>Composite types: https://www.postgresql.org/docs/current/rowtypes.html</li>
+<li>Function best practices: https://wiki.postgresql.org/wiki/PL/pgSQL_FAQ</li>
+<li>Error handling: https://www.postgresql.org/docs/current/plpgsql-errors-and-messages.html</li>
+</ul>
+<h3 id="project-specific">Project-Specific</h3>
+<ul>
+<li>FraiseQL integration: <code>docs/analysis/FRAISEQL_INTEGRATION_REQUIREMENTS.md</code></li>
+<li>Trinity pattern: <code>docs/analysis/POC_RESULTS.md</code></li>
+<li>Action syntax: <code>docs/architecture/SPECQL_BUSINESS_LOGIC_REFINED.md</code></li>
+</ul>
+<hr />
+<h2 id="final-deliverable">🏁 Final Deliverable</h2>
+<p><strong>Complete ActionCompiler</strong> that:
+1. ✅ Transforms SpecQL actions → PL/pgSQL functions
+2. ✅ Returns type-safe <code>mutation_result</code>
+3. ✅ Uses composite types for impact metadata
+4. ✅ Includes full objects + relationships
+5. ✅ Tracks side effects
+6. ✅ Handles errors gracefully
+7. ✅ Integrates with FraiseQL
+8. ✅ <strong>Passes all tests, including <code>test_custom_action_database_execution</code></strong> 🎯</p>
+<p><strong>Estimated Completion</strong>: End of Week 7 (5 weeks total)</p>
+<p><strong>Test Pass Rate Target</strong>: 100% (496/496 tests passing)</p>
+<hr />
+<p><em>Phased TDD Development Plan for Team C</em>
+<em>Focus: Type-Safe Actions • FraiseQL Integration • Production Ready</em></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

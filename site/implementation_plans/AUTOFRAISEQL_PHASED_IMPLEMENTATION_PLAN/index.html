@@ -1,0 +1,1576 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>AutoFraiseQL: Phased Implementation Plan (CTO Perspective) - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "AutoFraiseQL: Phased Implementation Plan (CTO Perspective)";
+        var mkdocs_page_input_path = "implementation_plans/AUTOFRAISEQL_PHASED_IMPLEMENTATION_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">AutoFraiseQL: Phased Implementation Plan (CTO Perspective)</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="autofraiseql-phased-implementation-plan-cto-perspective">AutoFraiseQL: Phased Implementation Plan (CTO Perspective)</h1>
+<p><strong>Author</strong>: FraiseQL CTO
+<strong>Date</strong>: November 8, 2025
+<strong>Version</strong>: 1.0
+<strong>Context</strong>: Strategic plan for PostgreSQL metadata-driven auto-discovery
+<strong>Timeline</strong>: 10 weeks (conservative estimate with buffer)</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p><strong>The Vision:</strong>
+Transform FraiseQL from a "write Python decorators" framework into a "write SQL comments" framework. This positions FraiseQL as the <strong>first truly zero-code GraphQL backend</strong> while maintaining 100% backward compatibility.</p>
+<p><strong>The Prize:</strong>
+- <strong>Market differentiation</strong>: Only framework with full auto-discovery from PostgreSQL
+- <strong>Developer experience</strong>: 10-20x productivity gain
+- <strong>SpecQL compatibility</strong>: Seamless integration with declarative business logic
+- <strong>Backward compatible</strong>: Existing apps continue to work</p>
+<p><strong>Strategic Importance:</strong>
+This is a <strong>Category-Defining Feature</strong> that transforms FraiseQL from "fast GraphQL framework" to "database-first application platform."</p>
+<hr />
+<h2 id="success-metrics">🎯 Success Metrics</h2>
+<h3 id="technical-metrics"><strong>Technical Metrics</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Target</th>
+<th>Measurement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Code Reduction</strong></td>
+<td>80-90%</td>
+<td>Lines of Python vs metadata</td>
+</tr>
+<tr>
+<td><strong>Discovery Speed</strong></td>
+<td>&lt; 2s</td>
+<td>Time to introspect 100 tables</td>
+</tr>
+<tr>
+<td><strong>Schema Generation</strong></td>
+<td>&lt; 5s</td>
+<td>Time to generate 100 types</td>
+</tr>
+<tr>
+<td><strong>Backward Compat</strong></td>
+<td>100%</td>
+<td>All existing tests pass</td>
+</tr>
+<tr>
+<td><strong>Type Coverage</strong></td>
+<td>95%+</td>
+<td>PostgreSQL types mapped</td>
+</tr>
+<tr>
+<td><strong>Performance</strong></td>
+<td>&lt; 5% overhead</td>
+<td>vs manual FraiseQL</td>
+</tr>
+</tbody>
+</table>
+<h3 id="business-metrics"><strong>Business Metrics</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Target</th>
+<th>Timeline</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Adoption Rate</strong></td>
+<td>30% of users</td>
+<td>6 months post-release</td>
+</tr>
+<tr>
+<td><strong>GitHub Stars</strong></td>
+<td>+500</td>
+<td>3 months post-release</td>
+</tr>
+<tr>
+<td><strong>Documentation Views</strong></td>
+<td>+2000/month</td>
+<td>3 months post-release</td>
+</tr>
+<tr>
+<td><strong>Bug Reports</strong></td>
+<td>&lt; 10 critical</td>
+<td>3 months post-release</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="architecture-overview">📐 Architecture Overview</h2>
+<h3 id="high-level-components"><strong>High-Level Components</strong></h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────┐
+│                    AutoFraiseQL Architecture                     │
+└─────────────────────────────────────────────────────────────────┘
+
+┌──────────────────┐
+│   PostgreSQL     │
+│   Database       │
+│                  │
+│  - Views (v_*)   │
+│  - Functions     │
+│  - COMMENTs      │
+└────────┬─────────┘
+         │
+         │ Introspection
+         ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    Introspection Layer                            │
+│  ┌────────────────┐  ┌─────────────────┐  ┌──────────────────┐  │
+│  │ Schema         │  │ Metadata        │  │ Column           │  │
+│  │ Discovery      │  │ Parser          │  │ Analyzer         │  │
+│  │ (pg_catalog)   │  │ (YAML/JSON)     │  │ (types, nulls)   │  │
+│  └────────────────┘  └─────────────────┘  └──────────────────┘  │
+└────────┬─────────────────────────────────────────────────────────┘
+         │
+         │ TypeMetadata, MutationMetadata
+         ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    Generation Layer                               │
+│  ┌────────────────┐  ┌─────────────────┐  ┌──────────────────┐  │
+│  │ Type           │  │ Query           │  │ Mutation         │  │
+│  │ Generator      │  │ Generator       │  │ Generator        │  │
+│  │ (@type)        │  │ (@query)        │  │ (@mutation)      │  │
+│  └────────────────┘  └─────────────────┘  └──────────────────┘  │
+│  ┌────────────────┐  ┌─────────────────┐                        │
+│  │ Filter         │  │ OrderBy         │                        │
+│  │ Generator      │  │ Generator       │                        │
+│  │ (WhereInput)   │  │ (OrderByInput)  │                        │
+│  └────────────────┘  └─────────────────┘                        │
+└────────┬─────────────────────────────────────────────────────────┘
+         │
+         │ Python classes, functions
+         ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    Registry &amp; Cache Layer                         │
+│  ┌────────────────┐  ┌─────────────────┐  ┌──────────────────┐  │
+│  │ Type           │  │ Schema          │  │ Performance      │  │
+│  │ Registry       │  │ Cache           │  │ Cache            │  │
+│  │ (runtime)      │  │ (metadata)      │  │ (queries)        │  │
+│  └────────────────┘  └─────────────────┘  └──────────────────┘  │
+└────────┬─────────────────────────────────────────────────────────┘
+         │
+         │ GraphQL Schema
+         ▼
+┌──────────────────────────────────────────────────────────────────┐
+│                    Existing FraiseQL Core                         │
+│  (No changes needed - perfect backward compatibility)             │
+└──────────────────────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h2 id="phase-0-pre-implementation-week-0">🚀 Phase 0: Pre-Implementation (Week 0)</h2>
+<p><strong>Duration</strong>: 1 week
+<strong>Goal</strong>: Technical validation, team alignment, infrastructure setup</p>
+<h3 id="tasks"><strong>Tasks</strong></h3>
+<h4 id="01-technical-spike-2-days"><strong>0.1: Technical Spike (2 days)</strong></h4>
+<pre><code class="language-python"># Prototype: Can we introspect and generate dynamically?
+
+import asyncpg
+
+async def spike_introspection():
+    &quot;&quot;&quot;Validate introspection approach.&quot;&quot;&quot;
+    conn = await asyncpg.connect(&quot;postgresql://...&quot;)
+
+    # Test 1: Can we introspect views efficiently?
+    views = await conn.fetch(&quot;&quot;&quot;
+        SELECT schemaname, viewname, definition
+        FROM pg_views
+        WHERE schemaname = 'public'
+        LIMIT 10
+    &quot;&quot;&quot;)
+    print(f&quot;✅ Found {len(views)} views&quot;)
+
+    # Test 2: Can we read comments?
+    comments = await conn.fetch(&quot;&quot;&quot;
+        SELECT obj_description(c.oid, 'pg_class') as comment
+        FROM pg_class c
+        WHERE c.relname = 'v_user'
+    &quot;&quot;&quot;)
+    print(f&quot;✅ Read comment: {comments[0]['comment']}&quot;)
+
+    # Test 3: Can we parse YAML from comments?
+    import yaml
+    metadata = yaml.safe_load(comments[0]['comment'].split('@fraiseql:type')[1])
+    print(f&quot;✅ Parsed metadata: {metadata}&quot;)
+
+    # Test 4: Can we dynamically create @type classes?
+    from fraiseql import type as fraiseql_type
+
+    User = type('User', (object,), {
+        '__annotations__': {'id': 'UUID', 'name': 'str'},
+        '__doc__': 'Auto-generated type'
+    })
+    User = fraiseql_type(sql_source=&quot;v_user&quot;)(User)
+    print(f&quot;✅ Created type: {User}&quot;)
+
+# Run spike
+asyncio.run(spike_introspection())
+</code></pre>
+<p><strong>Deliverable</strong>: Proof-of-concept validates approach</p>
+<hr />
+<h4 id="02-architecture-review-1-day"><strong>0.2: Architecture Review (1 day)</strong></h4>
+<p><strong>Questions to answer:</strong>
+1. Where does introspection code live? (<code>src/fraiseql/introspection/</code>?)
+2. How to integrate with existing <code>create_fraiseql_app</code>?
+3. How to handle type registry conflicts (auto vs manual)?
+4. Caching strategy for introspection results?
+5. Migration path for existing users?</p>
+<p><strong>Decisions needed:</strong>
+- [ ] Module structure (<code>fraiseql.introspection.*</code>)
+- [ ] API design (<code>auto_discover=True</code> vs <code>AutoDiscovery(...)</code>)
+- [ ] Caching layer (Redis? In-memory? File-based?)
+- [ ] Backward compatibility strategy</p>
+<p><strong>Deliverable</strong>: ADR (Architecture Decision Record) document</p>
+<hr />
+<h4 id="03-team-alignment-1-day"><strong>0.3: Team Alignment (1 day)</strong></h4>
+<p><strong>Stakeholders:</strong>
+- [ ] Core FraiseQL maintainers
+- [ ] Key users/contributors (get feedback)
+- [ ] DevOps (deployment impact)</p>
+<p><strong>Alignment topics:</strong>
+1. <strong>Scope</strong>: What's in v1.0 vs v2.0?
+2. <strong>Timeline</strong>: Can we commit to 10 weeks?
+3. <strong>Resources</strong>: Do we need additional help?
+4. <strong>Risk mitigation</strong>: What could go wrong?</p>
+<p><strong>Deliverable</strong>: Go/No-Go decision from team</p>
+<hr />
+<h4 id="04-infrastructure-setup-2-days"><strong>0.4: Infrastructure Setup (2 days)</strong></h4>
+<pre><code class="language-bash"># New module structure
+mkdir -p src/fraiseql/introspection
+mkdir -p tests/unit/introspection
+mkdir -p tests/integration/introspection
+mkdir -p docs/auto-discovery
+
+# CI/CD updates
+# - Add introspection tests to quality gate
+# - Add benchmarks for discovery speed
+# - Add integration tests with real database
+
+# Dependencies audit
+# - Ensure pyyaml is sufficient
+# - Add psycopg metadata helpers
+# - Consider asyncpg for introspection (faster?)
+</code></pre>
+<p><strong>Deliverable</strong>: Infrastructure ready for development</p>
+<hr />
+<h2 id="phase-1-introspection-engine-week-1-2">🚀 Phase 1: Introspection Engine (Week 1-2)</h2>
+<p><strong>Duration</strong>: 2 weeks
+<strong>Goal</strong>: Reliable PostgreSQL metadata introspection
+<strong>Risk</strong>: Medium (PostgreSQL catalog queries can be complex)</p>
+<h3 id="week-1-core-introspection"><strong>Week 1: Core Introspection</strong></h3>
+<h4 id="11-postgresintrospector-base-class-2-days"><strong>1.1: PostgresIntrospector Base Class (2 days)</strong></h4>
+<pre><code class="language-python"># src/fraiseql/introspection/postgres_introspector.py
+
+from dataclasses import dataclass
+from typing import Optional
+import asyncpg
+
+@dataclass
+class ViewMetadata:
+    &quot;&quot;&quot;Metadata for a database view.&quot;&quot;&quot;
+    schema_name: str
+    view_name: str
+    definition: str
+    comment: Optional[str]
+    columns: dict[str, ColumnInfo]
+
+@dataclass
+class ColumnInfo:
+    &quot;&quot;&quot;Column metadata.&quot;&quot;&quot;
+    name: str
+    pg_type: str
+    nullable: bool
+    comment: Optional[str]
+
+class PostgresIntrospector:
+    &quot;&quot;&quot;Introspect PostgreSQL database for FraiseQL metadata.&quot;&quot;&quot;
+
+    def __init__(self, connection_pool: asyncpg.Pool):
+        self.pool = connection_pool
+
+    async def discover_views(
+        self,
+        pattern: str = &quot;v_%&quot;,
+        schemas: list[str] = [&quot;public&quot;]
+    ) -&gt; list[ViewMetadata]:
+        &quot;&quot;&quot;
+        Discover views matching pattern.
+
+        Implementation:
+        1. Query pg_views for view definitions
+        2. Query pg_class for comments
+        3. Query pg_attribute for column info
+        4. Combine into ViewMetadata objects
+        &quot;&quot;&quot;
+        async with self.pool.acquire() as conn:
+            # Complex query joining pg_catalog tables
+            # See implementation in AUTOFRAISEQL_REQUIREMENTS.md
+            pass
+
+    async def discover_functions(
+        self,
+        pattern: str = &quot;fn_%&quot;,
+        schemas: list[str] = [&quot;public&quot;]
+    ) -&gt; list[FunctionMetadata]:
+        &quot;&quot;&quot;Discover functions matching pattern.&quot;&quot;&quot;
+        pass
+</code></pre>
+<p><strong>Tests:</strong></p>
+<pre><code class="language-python"># tests/unit/introspection/test_postgres_introspector.py
+
+async def test_discover_views():
+    &quot;&quot;&quot;Test view discovery.&quot;&quot;&quot;
+    # Given: Database with v_user, v_post views
+    # When: discover_views(pattern=&quot;v_%&quot;)
+    # Then: Returns 2 ViewMetadata objects
+
+async def test_discover_views_with_comments():
+    &quot;&quot;&quot;Test comment extraction.&quot;&quot;&quot;
+    # Given: View with COMMENT ON VIEW
+    # When: discover_views()
+    # Then: ViewMetadata.comment is populated
+
+async def test_discover_views_columns():
+    &quot;&quot;&quot;Test column introspection.&quot;&quot;&quot;
+    # Given: View with multiple columns
+    # When: discover_views()
+    # Then: ViewMetadata.columns has all columns with types
+</code></pre>
+<p><strong>Deliverable</strong>: Working view introspection</p>
+<hr />
+<h4 id="12-function-introspection-2-days"><strong>1.2: Function Introspection (2 days)</strong></h4>
+<pre><code class="language-python"># src/fraiseql/introspection/postgres_introspector.py (continued)
+
+@dataclass
+class FunctionMetadata:
+    &quot;&quot;&quot;Metadata for a database function.&quot;&quot;&quot;
+    schema_name: str
+    function_name: str
+    parameters: list[ParameterInfo]
+    return_type: str
+    comment: Optional[str]
+    language: str
+
+@dataclass
+class ParameterInfo:
+    &quot;&quot;&quot;Function parameter metadata.&quot;&quot;&quot;
+    name: str
+    pg_type: str
+    mode: str  # IN, OUT, INOUT
+    default_value: Optional[str]
+
+class PostgresIntrospector:
+    async def discover_functions(
+        self,
+        pattern: str = &quot;fn_%&quot;,
+        schemas: list[str] = [&quot;public&quot;]
+    ) -&gt; list[FunctionMetadata]:
+        &quot;&quot;&quot;
+        Discover functions matching pattern.
+
+        Queries:
+        - pg_proc: function definitions
+        - pg_get_function_arguments(): parameter list
+        - pg_get_function_result(): return type
+        &quot;&quot;&quot;
+        async with self.pool.acquire() as conn:
+            query = &quot;&quot;&quot;
+            SELECT
+                n.nspname as schema_name,
+                p.proname as function_name,
+                pg_get_function_arguments(p.oid) as arguments,
+                pg_get_function_result(p.oid) as return_type,
+                obj_description(p.oid, 'pg_proc') as comment,
+                l.lanname as language
+            FROM pg_proc p
+            JOIN pg_namespace n ON n.oid = p.pronamespace
+            JOIN pg_language l ON l.oid = p.prolang
+            WHERE n.nspname = ANY($1)
+              AND p.proname LIKE $2
+            ORDER BY n.nspname, p.proname
+            &quot;&quot;&quot;
+            rows = await conn.fetch(query, schemas, pattern)
+            # Parse into FunctionMetadata
+</code></pre>
+<p><strong>Tests:</strong></p>
+<pre><code class="language-python">async def test_discover_functions():
+    &quot;&quot;&quot;Test function discovery.&quot;&quot;&quot;
+    # Given: fn_create_user, fn_update_user
+    # When: discover_functions(pattern=&quot;fn_%&quot;)
+    # Then: Returns 2 FunctionMetadata objects
+
+async def test_discover_functions_parameters():
+    &quot;&quot;&quot;Test parameter parsing.&quot;&quot;&quot;
+    # Given: fn_create_user(p_name TEXT, p_email TEXT)
+    # When: discover_functions()
+    # Then: parameters list has 2 ParameterInfo objects
+</code></pre>
+<p><strong>Deliverable</strong>: Working function introspection</p>
+<hr />
+<h3 id="week-2-metadata-parsing"><strong>Week 2: Metadata Parsing</strong></h3>
+<h4 id="13-metadata-parser-3-days"><strong>1.3: Metadata Parser (3 days)</strong></h4>
+<pre><code class="language-python"># src/fraiseql/introspection/metadata_parser.py
+
+import yaml
+from dataclasses import dataclass
+from typing import Optional
+
+@dataclass
+class TypeAnnotation:
+    &quot;&quot;&quot;Parsed @fraiseql:type annotation.&quot;&quot;&quot;
+    trinity: bool = False
+    use_projection: bool = False
+    description: Optional[str] = None
+    expose_fields: Optional[list[str]] = None
+    filter_config: Optional[dict] = None
+
+@dataclass
+class MutationAnnotation:
+    &quot;&quot;&quot;Parsed @fraiseql:mutation annotation.&quot;&quot;&quot;
+    input_schema: dict[str, dict]
+    success_type: str
+    failure_type: str
+    description: Optional[str] = None
+    permissions: Optional[list[str]] = None
+
+class MetadataParser:
+    &quot;&quot;&quot;Parse @fraiseql annotations from PostgreSQL comments.&quot;&quot;&quot;
+
+    ANNOTATION_MARKER = '@fraiseql:'
+
+    def parse_type_annotation(
+        self,
+        comment: Optional[str]
+    ) -&gt; Optional[TypeAnnotation]:
+        &quot;&quot;&quot;
+        Parse @fraiseql:type annotation from view comment.
+
+        Format:
+            @fraiseql:type
+            trinity: true
+            description: User account
+            expose_fields:
+              - id
+              - name
+              - email
+
+        Returns:
+            TypeAnnotation if valid, None otherwise
+        &quot;&quot;&quot;
+        if not comment or self.ANNOTATION_MARKER not in comment:
+            return None
+
+        try:
+            # Extract YAML content after marker
+            marker = '@fraiseql:type'
+            if marker not in comment:
+                return None
+
+            yaml_start = comment.index(marker) + len(marker)
+            yaml_content = comment[yaml_start:].strip()
+
+            # Handle multi-line YAML
+            # Stop at next @fraiseql: marker or end of comment
+            if self.ANNOTATION_MARKER in yaml_content:
+                next_marker = yaml_content.index(self.ANNOTATION_MARKER)
+                yaml_content = yaml_content[:next_marker]
+
+            # Parse YAML
+            data = yaml.safe_load(yaml_content) or {}
+
+            return TypeAnnotation(
+                trinity=data.get('trinity', False),
+                use_projection=data.get('use_projection', False),
+                description=data.get('description'),
+                expose_fields=data.get('expose_fields'),
+                filter_config=data.get('filters')
+            )
+
+        except (yaml.YAMLError, ValueError) as e:
+            # Log warning but don't fail
+            logger.warning(f&quot;Failed to parse @fraiseql:type: {e}&quot;)
+            return None
+
+    def parse_mutation_annotation(
+        self,
+        comment: Optional[str]
+    ) -&gt; Optional[MutationAnnotation]:
+        &quot;&quot;&quot;Parse @fraiseql:mutation annotation.&quot;&quot;&quot;
+        # Similar to parse_type_annotation
+        # Handle input schema, success/failure types
+        pass
+</code></pre>
+<p><strong>Tests:</strong></p>
+<pre><code class="language-python">def test_parse_type_annotation_basic():
+    &quot;&quot;&quot;Test basic type annotation.&quot;&quot;&quot;
+    comment = &quot;&quot;&quot;
+    @fraiseql:type
+    trinity: true
+    description: User account
+    &quot;&quot;&quot;
+    result = parser.parse_type_annotation(comment)
+    assert result.trinity is True
+    assert result.description == &quot;User account&quot;
+
+def test_parse_type_annotation_with_fields():
+    &quot;&quot;&quot;Test expose_fields parsing.&quot;&quot;&quot;
+    comment = &quot;&quot;&quot;
+    @fraiseql:type
+    expose_fields:
+      - id
+      - name
+      - email
+    &quot;&quot;&quot;
+    result = parser.parse_type_annotation(comment)
+    assert result.expose_fields == ['id', 'name', 'email']
+
+def test_parse_type_annotation_invalid_yaml():
+    &quot;&quot;&quot;Test error handling.&quot;&quot;&quot;
+    comment = &quot;@fraiseql:type\ninvalid: yaml: [unclosed&quot;
+    result = parser.parse_type_annotation(comment)
+    assert result is None  # Should not crash
+</code></pre>
+<p><strong>Deliverable</strong>: Robust metadata parsing</p>
+<hr />
+<h4 id="14-integration-tests-2-days"><strong>1.4: Integration Tests (2 days)</strong></h4>
+<pre><code class="language-python"># tests/integration/introspection/test_end_to_end_introspection.py
+
+async def test_discover_and_parse_view():
+    &quot;&quot;&quot;Test full introspection + parsing.&quot;&quot;&quot;
+    # Given: Database with annotated view
+    await db.execute(&quot;&quot;&quot;
+        CREATE VIEW v_user AS SELECT ...;
+        COMMENT ON VIEW v_user IS '@fraiseql:type
+        trinity: true
+        description: User account';
+    &quot;&quot;&quot;)
+
+    # When: Introspect and parse
+    introspector = PostgresIntrospector(pool)
+    views = await introspector.discover_views()
+    parser = MetadataParser()
+    annotation = parser.parse_type_annotation(views[0].comment)
+
+    # Then: Annotation is correctly parsed
+    assert annotation.trinity is True
+    assert annotation.description == &quot;User account&quot;
+
+async def test_introspection_performance():
+    &quot;&quot;&quot;Benchmark introspection speed.&quot;&quot;&quot;
+    # Given: 100 views
+    # When: discover_views()
+    # Then: Completes in &lt; 2 seconds
+</code></pre>
+<p><strong>Deliverable</strong>: Phase 1 complete, introspection working</p>
+<hr />
+<h2 id="phase-2-type-generation-week-3-4">🚀 Phase 2: Type Generation (Week 3-4)</h2>
+<p><strong>Duration</strong>: 2 weeks
+<strong>Goal</strong>: Dynamically generate <code>@type</code> classes from metadata
+<strong>Risk</strong>: Medium (Dynamic class generation, type mapping)</p>
+<h3 id="week-3-core-type-generation"><strong>Week 3: Core Type Generation</strong></h3>
+<h4 id="21-type-mapping-system-2-days"><strong>2.1: Type Mapping System (2 days)</strong></h4>
+<pre><code class="language-python"># src/fraiseql/introspection/type_mapper.py
+
+from typing import Any, get_type_hints
+from decimal import Decimal
+from datetime import date, datetime
+from uuid import UUID
+
+class TypeMapper:
+    &quot;&quot;&quot;Map PostgreSQL types to Python types.&quot;&quot;&quot;
+
+    # PostgreSQL → Python type mapping
+    PG_TO_PYTHON = {
+        'uuid': UUID,
+        'text': str,
+        'character varying': str,
+        'varchar': str,
+        'char': str,
+        'integer': int,
+        'int': int,
+        'int4': int,
+        'bigint': int,
+        'int8': int,
+        'smallint': int,
+        'int2': int,
+        'boolean': bool,
+        'bool': bool,
+        'timestamp with time zone': datetime,
+        'timestamptz': datetime,
+        'timestamp without time zone': datetime,
+        'timestamp': datetime,
+        'date': date,
+        'jsonb': dict,
+        'json': dict,
+        'numeric': Decimal,
+        'decimal': Decimal,
+        'double precision': float,
+        'float8': float,
+        'real': float,
+        'float4': float,
+        # Array types
+        'text[]': list[str],
+        'integer[]': list[int],
+        'uuid[]': list[UUID],
+        # Custom types (extensible)
+    }
+
+    def pg_type_to_python(
+        self,
+        pg_type: str,
+        nullable: bool = False
+    ) -&gt; type:
+        &quot;&quot;&quot;
+        Map PostgreSQL type to Python type.
+
+        Args:
+            pg_type: PostgreSQL type name (e.g., &quot;text&quot;, &quot;integer&quot;)
+            nullable: Whether the column is nullable
+
+        Returns:
+            Python type (with Optional[] if nullable)
+        &quot;&quot;&quot;
+        # Normalize type name
+        pg_type_clean = pg_type.lower().strip()
+
+        # Handle array types
+        if pg_type_clean.endswith('[]'):
+            base_type = pg_type_clean[:-2]
+            element_type = self.PG_TO_PYTHON.get(base_type, str)
+            python_type = list[element_type]
+        else:
+            python_type = self.PG_TO_PYTHON.get(pg_type_clean, str)
+
+        # Add Optional if nullable
+        if nullable:
+            from typing import Optional
+            return Optional[python_type]
+        else:
+            return python_type
+
+    def register_custom_type(
+        self,
+        pg_type: str,
+        python_type: type
+    ):
+        &quot;&quot;&quot;Register custom type mapping.&quot;&quot;&quot;
+        self.PG_TO_PYTHON[pg_type.lower()] = python_type
+</code></pre>
+<p><strong>Tests:</strong></p>
+<pre><code class="language-python">def test_basic_type_mapping():
+    &quot;&quot;&quot;Test basic types.&quot;&quot;&quot;
+    mapper = TypeMapper()
+    assert mapper.pg_type_to_python('text') is str
+    assert mapper.pg_type_to_python('integer') is int
+    assert mapper.pg_type_to_python('uuid') is UUID
+
+def test_nullable_type_mapping():
+    &quot;&quot;&quot;Test nullable types.&quot;&quot;&quot;
+    mapper = TypeMapper()
+    result = mapper.pg_type_to_python('text', nullable=True)
+    assert result == Optional[str]
+
+def test_array_type_mapping():
+    &quot;&quot;&quot;Test array types.&quot;&quot;&quot;
+    mapper = TypeMapper()
+    result = mapper.pg_type_to_python('text[]')
+    assert result == list[str]
+</code></pre>
+<p><strong>Deliverable</strong>: Reliable type mapping</p>
+<hr />
+<h4 id="22-dynamic-class-generation-3-days"><strong>2.2: Dynamic Class Generation (3 days)</strong></h4>
+<pre><code class="language-python"># src/fraiseql/introspection/type_generator.py
+
+from fraiseql import type as fraiseql_type
+from fraiseql.introspection.type_mapper import TypeMapper
+from typing import Type
+
+class TypeGenerator:
+    &quot;&quot;&quot;Generate FraiseQL @type classes dynamically.&quot;&quot;&quot;
+
+    def __init__(self, type_mapper: TypeMapper):
+        self.type_mapper = type_mapper
+
+    async def generate_type_class(
+        self,
+        view_metadata: ViewMetadata,
+        annotation: TypeAnnotation,
+        db_pool: asyncpg.Pool
+    ) -&gt; Type:
+        &quot;&quot;&quot;
+        Generate a @type class from view metadata.
+
+        Steps:
+        1. Introspect JSONB data column to get field structure
+        2. Map PostgreSQL types → Python types
+        3. Build class dynamically with __annotations__
+        4. Apply @type decorator
+        5. Register in type registry
+
+        Args:
+            view_metadata: Metadata from introspection
+            annotation: Parsed @fraiseql:type annotation
+            db_pool: Database connection pool
+
+        Returns:
+            Decorated Python class
+        &quot;&quot;&quot;
+        # 1. Get JSONB structure by querying sample row
+        jsonb_fields = await self._introspect_jsonb_column(
+            view_metadata.view_name,
+            view_metadata.schema_name,
+            db_pool
+        )
+
+        # 2. Build class name (PascalCase from view name)
+        class_name = self._view_name_to_class_name(
+            view_metadata.view_name
+        )
+
+        # 3. Build field annotations
+        annotations = {}
+        for field_name, field_info in jsonb_fields.items():
+            python_type = self.type_mapper.pg_type_to_python(
+                field_info['type'],
+                field_info['nullable']
+            )
+            annotations[field_name] = python_type
+
+        # 4. Create class dynamically
+        cls = type(
+            class_name,
+            (object,),
+            {
+                '__annotations__': annotations,
+                '__doc__': annotation.description or f&quot;Auto-generated from {view_metadata.view_name}&quot;,
+                '__module__': 'fraiseql.introspection.generated',
+            }
+        )
+
+        # 5. Apply @type decorator
+        sql_source = f&quot;{view_metadata.schema_name}.{view_metadata.view_name}&quot;
+        decorated_cls = fraiseql_type(
+            sql_source=sql_source,
+            jsonb_column=&quot;data&quot;
+        )(cls)
+
+        # 6. Register in type registry
+        from fraiseql.db import _type_registry
+        _type_registry[class_name] = decorated_cls
+
+        return decorated_cls
+
+    async def _introspect_jsonb_column(
+        self,
+        view_name: str,
+        schema_name: str,
+        db_pool: asyncpg.Pool
+    ) -&gt; dict[str, dict]:
+        &quot;&quot;&quot;
+        Introspect JSONB data column structure.
+
+        Strategy:
+        1. Query one row from view
+        2. Extract 'data' column (JSONB)
+        3. Infer types from actual values
+        4. Return field_name → {type, nullable} mapping
+        &quot;&quot;&quot;
+        async with db_pool.acquire() as conn:
+            row = await conn.fetchrow(
+                f&quot;SELECT data FROM {schema_name}.{view_name} LIMIT 1&quot;
+            )
+
+            if not row or not row['data']:
+                # View is empty, introspect view definition instead
+                return await self._introspect_view_definition(
+                    view_name, schema_name, conn
+                )
+
+            # Parse JSONB structure
+            data = row['data']
+            fields = {}
+
+            for field_name, field_value in data.items():
+                fields[field_name] = {
+                    'type': self._infer_pg_type_from_value(field_value),
+                    'nullable': field_value is None
+                }
+
+            return fields
+
+    def _infer_pg_type_from_value(self, value: Any) -&gt; str:
+        &quot;&quot;&quot;Infer PostgreSQL type from Python value.&quot;&quot;&quot;
+        if isinstance(value, bool):
+            return 'boolean'
+        elif isinstance(value, int):
+            return 'integer'
+        elif isinstance(value, float):
+            return 'double precision'
+        elif isinstance(value, str):
+            # Check if it's a UUID string
+            try:
+                UUID(value)
+                return 'uuid'
+            except:
+                return 'text'
+        elif isinstance(value, (dict, list)):
+            return 'jsonb'
+        else:
+            return 'text'  # Default fallback
+
+    def _view_name_to_class_name(self, view_name: str) -&gt; str:
+        &quot;&quot;&quot;Convert v_user_profile → UserProfile.&quot;&quot;&quot;
+        # Remove v_ prefix
+        name = view_name.replace('v_', '').replace('tv_', '')
+        # Split on underscore, capitalize each part
+        parts = name.split('_')
+        return ''.join(part.capitalize() for part in parts)
+</code></pre>
+<p><strong>Tests:</strong></p>
+<pre><code class="language-python">async def test_generate_type_class():
+    &quot;&quot;&quot;Test dynamic class generation.&quot;&quot;&quot;
+    # Given: View with JSONB data
+    # When: generate_type_class()
+    # Then: Returns decorated class with correct annotations
+
+async def test_generate_type_class_trinity():
+    &quot;&quot;&quot;Test trinity pattern.&quot;&quot;&quot;
+    # Given: View with trinity annotation
+    # When: generate_type_class()
+    # Then: Class has id, identifier fields
+
+async def test_view_name_to_class_name():
+    &quot;&quot;&quot;Test naming conversion.&quot;&quot;&quot;
+    gen = TypeGenerator(TypeMapper())
+    assert gen._view_name_to_class_name('v_user') == 'User'
+    assert gen._view_name_to_class_name('v_user_profile') == 'UserProfile'
+    assert gen._view_name_to_class_name('tv_machine_item') == 'MachineItem'
+</code></pre>
+<p><strong>Deliverable</strong>: Working type generation</p>
+<hr />
+<h3 id="week-4-query-generation"><strong>Week 4: Query Generation</strong></h3>
+<h4 id="23-query-generator-3-days"><strong>2.3: Query Generator (3 days)</strong></h4>
+<pre><code class="language-python"># src/fraiseql/introspection/query_generator.py
+
+from fraiseql import query
+from typing import Type, Optional
+from uuid import UUID
+
+class QueryGenerator:
+    &quot;&quot;&quot;Generate standard queries for auto-discovered types.&quot;&quot;&quot;
+
+    def generate_queries_for_type(
+        self,
+        type_class: Type,
+        view_name: str,
+        schema_name: str,
+        annotation: TypeAnnotation
+    ) -&gt; list[callable]:
+        &quot;&quot;&quot;
+        Generate standard queries for a type.
+
+        Generates:
+        1. find_one(id) → Single item by UUID
+        2. find_all(where, order_by, limit, offset) → List
+        3. connection(first, after, where) → Relay pagination
+
+        Returns:
+            List of decorated query functions
+        &quot;&quot;&quot;
+        queries = []
+
+        # 1. Generate find_one query
+        queries.append(
+            self._generate_find_one_query(
+                type_class, view_name, schema_name
+            )
+        )
+
+        # 2. Generate find_all query
+        queries.append(
+            self._generate_find_all_query(
+                type_class, view_name, schema_name
+            )
+        )
+
+        # 3. Generate connection query (optional, for Relay)
+        if annotation.filter_config:
+            queries.append(
+                self._generate_connection_query(
+                    type_class, view_name, schema_name
+                )
+            )
+
+        return queries
+
+    def _generate_find_one_query(
+        self,
+        type_class: Type,
+        view_name: str,
+        schema_name: str
+    ) -&gt; callable:
+        &quot;&quot;&quot;Generate find_one(id) query.&quot;&quot;&quot;
+
+        # Create query function dynamically
+        @query
+        async def find_one_impl(info, id: UUID) -&gt; Optional[type_class]:
+            &quot;&quot;&quot;Get a single item by ID.&quot;&quot;&quot;
+            db = info.context[&quot;db&quot;]
+            sql_source = f&quot;{schema_name}.{view_name}&quot;
+            result = await db.find_one(sql_source, where={&quot;id&quot;: id})
+            return result
+
+        # Rename function
+        type_name = type_class.__name__
+        find_one_impl.__name__ = type_name[0].lower() + type_name[1:]
+        find_one_impl.__qualname__ = find_one_impl.__name__
+
+        return find_one_impl
+
+    def _generate_find_all_query(
+        self,
+        type_class: Type,
+        view_name: str,
+        schema_name: str
+    ) -&gt; callable:
+        &quot;&quot;&quot;Generate find_all(where, order_by, ...) query.&quot;&quot;&quot;
+
+        @query
+        async def find_all_impl(
+            info,
+            where: Optional[dict] = None,
+            order_by: Optional[dict] = None,
+            limit: Optional[int] = None,
+            offset: Optional[int] = None
+        ) -&gt; list[type_class]:
+            &quot;&quot;&quot;Get all items with optional filtering.&quot;&quot;&quot;
+            db = info.context[&quot;db&quot;]
+            sql_source = f&quot;{schema_name}.{view_name}&quot;
+            results = await db.find(
+                sql_source,
+                where=where,
+                order_by=order_by,
+                limit=limit,
+                offset=offset
+            )
+            return results
+
+        # Rename function
+        type_name = type_class.__name__
+        plural_name = type_name[0].lower() + type_name[1:] + 's'
+        find_all_impl.__name__ = plural_name
+        find_all_impl.__qualname__ = plural_name
+
+        return find_all_impl
+</code></pre>
+<p><strong>Tests:</strong></p>
+<pre><code class="language-python">async def test_generate_find_one_query():
+    &quot;&quot;&quot;Test find_one generation.&quot;&quot;&quot;
+    # Given: User type
+    # When: generate_queries_for_type()
+    # Then: find_one query works
+
+async def test_generate_find_all_query():
+    &quot;&quot;&quot;Test find_all generation.&quot;&quot;&quot;
+    # Given: User type
+    # When: generate_queries_for_type()
+    # Then: find_all query works with filtering
+</code></pre>
+<p><strong>Deliverable</strong>: Phase 2 complete, types + queries generated</p>
+<hr />
+<h2 id="phase-3-mutation-generation-week-5-6">🚀 Phase 3: Mutation Generation (Week 5-6)</h2>
+<p><strong>Duration</strong>: 2 weeks
+<strong>Goal</strong>: Generate mutations from PostgreSQL functions
+<strong>Risk</strong>: High (Complex return type handling, error cases)</p>
+<h3 id="week-5-mutation-infrastructure"><strong>Week 5: Mutation Infrastructure</strong></h3>
+<h4 id="31-input-type-generation-2-days"><strong>3.1: Input Type Generation (2 days)</strong></h4>
+<pre><code class="language-python"># src/fraiseql/introspection/input_generator.py
+
+class InputGenerator:
+    &quot;&quot;&quot;Generate GraphQL input types from function parameters.&quot;&quot;&quot;
+
+    def generate_input_type(
+        self,
+        function_metadata: FunctionMetadata,
+        annotation: MutationAnnotation
+    ) -&gt; Type:
+        &quot;&quot;&quot;
+        Generate input class for mutation.
+
+        Example:
+            fn_create_user(p_name TEXT, p_email TEXT)
+            →
+            class CreateUserInput:
+                name: str
+                email: str
+        &quot;&quot;&quot;
+        class_name = self._function_to_input_name(
+            function_metadata.function_name
+        )
+
+        annotations = {}
+        for param in function_metadata.parameters:
+            if param.mode == 'IN' and not param.name.startswith('input_pk'):
+                # Map parameter to input field
+                field_name = param.name.replace('p_', '')  # Remove p_ prefix
+                python_type = self.type_mapper.pg_type_to_python(
+                    param.pg_type,
+                    nullable=(param.default_value is not None)
+                )
+                annotations[field_name] = python_type
+
+        # Create input class
+        input_cls = type(
+            class_name,
+            (object,),
+            {'__annotations__': annotations}
+        )
+
+        return input_cls
+</code></pre>
+<hr />
+<h4 id="32-mutation-generator-3-days"><strong>3.2: Mutation Generator (3 days)</strong></h4>
+<pre><code class="language-python"># src/fraiseql/introspection/mutation_generator.py
+
+from fraiseql import mutation
+from typing import Union
+
+class MutationGenerator:
+    &quot;&quot;&quot;Generate mutations from PostgreSQL functions.&quot;&quot;&quot;
+
+    def generate_mutation_for_function(
+        self,
+        function_metadata: FunctionMetadata,
+        annotation: MutationAnnotation,
+        type_registry: dict[str, Type]
+    ) -&gt; callable:
+        &quot;&quot;&quot;
+        Generate mutation from function.
+
+        Steps:
+        1. Generate input type
+        2. Resolve success/failure types
+        3. Create mutation function
+        4. Handle JSONB return parsing
+        &quot;&quot;&quot;
+        # 1. Generate input type
+        input_cls = self.input_generator.generate_input_type(
+            function_metadata, annotation
+        )
+
+        # 2. Get success/failure types
+        success_type = type_registry.get(annotation.success_type)
+        failure_type = type_registry.get(annotation.failure_type)
+
+        if not success_type or not failure_type:
+            logger.warning(
+                f&quot;Cannot generate mutation {function_metadata.function_name}: &quot;
+                f&quot;missing types {annotation.success_type} or {annotation.failure_type}&quot;
+            )
+            return None
+
+        # 3. Create mutation function
+        @mutation
+        async def mutation_impl(
+            info,
+            input: input_cls
+        ) -&gt; Union[success_type, failure_type]:
+            &quot;&quot;&quot;Auto-generated mutation.&quot;&quot;&quot;
+            db = info.context[&quot;db&quot;]
+
+            # Call PostgreSQL function
+            result = await db.execute_function(
+                f&quot;{function_metadata.schema_name}.{function_metadata.function_name}&quot;,
+                **input.__dict__
+            )
+
+            # Parse JSONB result
+            # Expected format: {&quot;success&quot;: true, &quot;user&quot;: {...}}
+            #              or: {&quot;success&quot;: false, &quot;error&quot;: &quot;...&quot;}
+            if result.get('success'):
+                # Success case
+                entity_key = annotation.success_type.lower()
+                entity_data = result.get(entity_key)
+                return success_type(**entity_data)
+            else:
+                # Failure case
+                return failure_type(**result)
+
+        # 4. Rename function
+        mutation_name = self._function_to_mutation_name(
+            function_metadata.function_name
+        )
+        mutation_impl.__name__ = mutation_name
+        mutation_impl.__qualname__ = mutation_name
+        mutation_impl.__doc__ = annotation.description
+
+        return mutation_impl
+
+    def _function_to_mutation_name(self, function_name: str) -&gt; str:
+        &quot;&quot;&quot;Convert fn_create_user → createUser.&quot;&quot;&quot;
+        name = function_name.replace('fn_', '')
+        parts = name.split('_')
+        return parts[0] + ''.join(p.capitalize() for p in parts[1:])
+</code></pre>
+<p><strong>Deliverable</strong>: Mutation generation working</p>
+<hr />
+<h3 id="week-6-error-handling-edge-cases"><strong>Week 6: Error Handling &amp; Edge Cases</strong></h3>
+<h4 id="33-union-type-handling-2-days"><strong>3.3: Union Type Handling (2 days)</strong></h4>
+<pre><code class="language-python"># Handle Union[Success, Failure] return types correctly
+# Ensure GraphQL schema generates proper union types
+# Test error cases thoroughly
+</code></pre>
+<h4 id="34-integration-tests-3-days"><strong>3.4: Integration Tests (3 days)</strong></h4>
+<pre><code class="language-python">async def test_mutation_success_case():
+    &quot;&quot;&quot;Test successful mutation.&quot;&quot;&quot;
+    # Given: fn_create_user function
+    # When: Execute createUser mutation
+    # Then: Returns User type
+
+async def test_mutation_failure_case():
+    &quot;&quot;&quot;Test mutation validation errors.&quot;&quot;&quot;
+    # Given: Invalid input
+    # When: Execute mutation
+    # Then: Returns ValidationError type
+</code></pre>
+<p><strong>Deliverable</strong>: Phase 3 complete, mutations working</p>
+<hr />
+<h2 id="phase-4-filter-auto-generation-week-7">🚀 Phase 4: Filter Auto-Generation (Week 7)</h2>
+<p><strong>Duration</strong>: 1 week
+<strong>Goal</strong>: Leverage existing WhereInput/OrderBy generation
+<strong>Risk</strong>: Low (existing code, just integration)</p>
+<h3 id="41-whereinput-generation-2-days"><strong>4.1: WhereInput Generation (2 days)</strong></h3>
+<pre><code class="language-python"># src/fraiseql/introspection/filter_generator.py
+
+from fraiseql.sql.graphql_where_generator import generate_where_input_type
+
+class FilterGenerator:
+    &quot;&quot;&quot;Auto-generate filter inputs.&quot;&quot;&quot;
+
+    def generate_where_input(
+        self,
+        type_class: Type,
+        view_metadata: ViewMetadata
+    ) -&gt; Type:
+        &quot;&quot;&quot;
+        Generate WhereInput for a type.
+
+        Leverages existing fraiseql.sql.graphql_where_generator.
+        &quot;&quot;&quot;
+        where_input = generate_where_input_type(
+            type_name=type_class.__name__,
+            fields=self._extract_filterable_fields(view_metadata),
+            sql_source=view_metadata.view_name
+        )
+        return where_input
+
+    def _extract_filterable_fields(
+        self,
+        view_metadata: ViewMetadata
+    ) -&gt; dict:
+        &quot;&quot;&quot;Extract fields for filter generation.&quot;&quot;&quot;
+        # Map column info to filter-compatible format
+        # Return field_name → {type, operators} mapping
+</code></pre>
+<p><strong>Deliverable</strong>: Filters auto-generated</p>
+<hr />
+<h2 id="phase-5-auto-discovery-api-week-8">🚀 Phase 5: Auto-Discovery API (Week 8)</h2>
+<p><strong>Duration</strong>: 1 week
+<strong>Goal</strong>: Orchestration layer + public API
+<strong>Risk</strong>: Low (composition of existing components)</p>
+<h3 id="51-autodiscovery-class-3-days"><strong>5.1: AutoDiscovery Class (3 days)</strong></h3>
+<pre><code class="language-python"># src/fraiseql/auto_discovery.py
+
+class AutoDiscovery:
+    &quot;&quot;&quot;Orchestrate auto-discovery from PostgreSQL.&quot;&quot;&quot;
+
+    async def discover_all(self) -&gt; dict:
+        &quot;&quot;&quot;
+        Full discovery pipeline.
+
+        Returns:
+            {
+                'types': [User, Post, ...],
+                'queries': [user, users, ...],
+                'mutations': [createUser, ...],
+                'where_inputs': {...},
+                'order_by_inputs': {...}
+            }
+        &quot;&quot;&quot;
+        # 1. Introspect database
+        # 2. Parse metadata
+        # 3. Generate types
+        # 4. Generate queries
+        # 5. Generate mutations
+        # 6. Generate filters
+        # 7. Return registry
+</code></pre>
+<h3 id="52-update-create_fraiseql_app-2-days"><strong>5.2: Update create_fraiseql_app (2 days)</strong></h3>
+<pre><code class="language-python"># src/fraiseql/fastapi/__init__.py
+
+async def create_fraiseql_app(
+    database_url: str,
+    auto_discover: bool = False,
+    **kwargs
+):
+    &quot;&quot;&quot;Extended with auto_discover parameter.&quot;&quot;&quot;
+    if auto_discover:
+        schema = await auto_discover(database_url)
+        # Merge with manual definitions
+</code></pre>
+<p><strong>Deliverable</strong>: Public API ready</p>
+<hr />
+<h2 id="phase-6-production-polish-week-9-10">🚀 Phase 6: Production Polish (Week 9-10)</h2>
+<p><strong>Duration</strong>: 2 weeks
+<strong>Goal</strong>: Production-ready quality
+<strong>Risk</strong>: Low (polish and testing)</p>
+<h3 id="week-9-performance-caching"><strong>Week 9: Performance &amp; Caching</strong></h3>
+<h4 id="61-caching-layer-3-days"><strong>6.1: Caching Layer (3 days)</strong></h4>
+<pre><code class="language-python"># Cache introspection results
+# - File-based cache for development
+# - Redis cache for production
+# - TTL configuration
+# - Cache invalidation on schema changes
+</code></pre>
+<h4 id="62-performance-optimization-2-days"><strong>6.2: Performance Optimization (2 days)</strong></h4>
+<pre><code class="language-python"># - Parallel introspection (views + functions)
+# - Lazy loading of types
+# - Connection pooling tuning
+# - Benchmark tests (&lt; 2s for 100 tables)
+</code></pre>
+<hr />
+<h3 id="week-10-documentation-examples"><strong>Week 10: Documentation &amp; Examples</strong></h3>
+<h4 id="63-documentation-3-days"><strong>6.3: Documentation (3 days)</strong></h4>
+<ul>
+<li>[ ] Usage guide (auto-discovery)</li>
+<li>[ ] Migration guide (manual → auto)</li>
+<li>[ ] Best practices for metadata</li>
+<li>[ ] Troubleshooting guide</li>
+<li>[ ] API reference</li>
+</ul>
+<h4 id="64-examples-2-days"><strong>6.4: Examples (2 days)</strong></h4>
+<pre><code class="language-python"># Complete example: SpecQL → AutoFraiseQL
+# Real-world use case (blog, e-commerce)
+# Performance benchmarks
+</code></pre>
+<p><strong>Deliverable</strong>: Production-ready release</p>
+<hr />
+<h2 id="release-strategy">🎯 Release Strategy</h2>
+<h3 id="alpha-release-end-of-week-8"><strong>Alpha Release (End of Week 8)</strong></h3>
+<pre><code class="language-python"># Limited release to early adopters
+# Version: 1.4.0-alpha
+# Features:
+# - Basic auto-discovery
+# - Types + queries working
+# - Mutations (basic)
+# Audience: 10-20 beta users
+</code></pre>
+<h3 id="beta-release-end-of-week-10"><strong>Beta Release (End of Week 10)</strong></h3>
+<pre><code class="language-python"># Version: 1.4.0-beta
+# Features:
+# - Full auto-discovery
+# - Production-ready
+# - Documentation
+# Audience: All users (opt-in)
+</code></pre>
+<h3 id="stable-release-week-12"><strong>Stable Release (Week 12)</strong></h3>
+<pre><code class="language-python"># Version: 1.4.0 (or 2.0.0?)
+# Features:
+# - Battle-tested
+# - Performance optimized
+# - Complete docs
+# Audience: GA (general availability)
+</code></pre>
+<hr />
+<h2 id="success-criteria">✅ Success Criteria</h2>
+<p>AutoFraiseQL is <strong>production-ready</strong> when:</p>
+<ol>
+<li>✅ <strong>Zero Python code</strong> needed for CRUD (just metadata)</li>
+<li>✅ <strong>&lt; 2s introspection</strong> for 100 tables</li>
+<li>✅ <strong>100% backward compatible</strong> (all existing tests pass)</li>
+<li>✅ <strong>95%+ type coverage</strong> (PostgreSQL types mapped)</li>
+<li>✅ <strong>&lt; 5% performance overhead</strong> vs manual FraiseQL</li>
+<li>✅ <strong>Documentation complete</strong> (guides, examples, API ref)</li>
+<li>✅ <strong>Battle-tested</strong> (3+ production users, &lt; 10 critical bugs)</li>
+</ol>
+<hr />
+<h2 id="risk-mitigation">🚨 Risk Mitigation</h2>
+<h3 id="technical-risks"><strong>Technical Risks</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Probability</th>
+<th>Impact</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type mapping edge cases</strong></td>
+<td>High</td>
+<td>Medium</td>
+<td>Comprehensive test suite, fallback to <code>str</code></td>
+</tr>
+<tr>
+<td><strong>Dynamic class issues</strong></td>
+<td>Medium</td>
+<td>High</td>
+<td>Extensive testing, Python 3.13 compatibility</td>
+</tr>
+<tr>
+<td><strong>Performance degradation</strong></td>
+<td>Low</td>
+<td>High</td>
+<td>Benchmarks, caching, lazy loading</td>
+</tr>
+<tr>
+<td><strong>Backward incompatibility</strong></td>
+<td>Low</td>
+<td>Critical</td>
+<td>100% test coverage of existing behavior</td>
+</tr>
+</tbody>
+</table>
+<h3 id="business-risks"><strong>Business Risks</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Probability</th>
+<th>Impact</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>User adoption slow</strong></td>
+<td>Medium</td>
+<td>Medium</td>
+<td>Marketing, examples, migrations guides</td>
+</tr>
+<tr>
+<td><strong>Competition copies</strong></td>
+<td>High</td>
+<td>Low</td>
+<td>Open source advantage, community</td>
+</tr>
+<tr>
+<td><strong>Scope creep</strong></td>
+<td>High</td>
+<td>Medium</td>
+<td>Strict phase boundaries, MVP focus</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="resource-requirements">📊 Resource Requirements</h2>
+<h3 id="team"><strong>Team</strong></h3>
+<ul>
+<li><strong>Lead Developer</strong> (full-time, 10 weeks) - Core implementation</li>
+<li><strong>Backend Engineer</strong> (50%, 10 weeks) - Testing, integration</li>
+<li><strong>Tech Writer</strong> (25%, 4 weeks) - Documentation</li>
+<li><strong>DevOps</strong> (10%, 10 weeks) - CI/CD, infrastructure</li>
+</ul>
+<h3 id="infrastructure"><strong>Infrastructure</strong></h3>
+<ul>
+<li>PostgreSQL test instances (multiple versions)</li>
+<li>CI/CD pipeline updates</li>
+<li>Benchmarking infrastructure</li>
+</ul>
+<h3 id="budget-estimate"><strong>Budget Estimate</strong></h3>
+<ul>
+<li>Development: 15 person-weeks × $5k/week = <strong>$75k</strong></li>
+<li>Infrastructure: $2k</li>
+<li>Contingency (20%): $15k</li>
+<li><strong>Total: ~$92k</strong></li>
+</ul>
+<hr />
+<h2 id="next-steps-immediate-actions">🎯 Next Steps (Immediate Actions)</h2>
+<h3 id="week-0-this-week"><strong>Week 0 (This Week)</strong></h3>
+<ol>
+<li><strong>Get team buy-in</strong> (2 days)</li>
+<li>Present this plan</li>
+<li>Discuss concerns</li>
+<li>
+<p>Get go/no-go decision</p>
+</li>
+<li>
+<p><strong>Technical spike</strong> (2 days)</p>
+</li>
+<li>Validate introspection approach</li>
+<li>Test dynamic class generation</li>
+<li>
+<p>Measure performance</p>
+</li>
+<li>
+<p><strong>Infrastructure setup</strong> (1 day)</p>
+</li>
+<li>Create module structure</li>
+<li>Setup CI/CD</li>
+<li>Prepare test database</li>
+</ol>
+<h3 id="week-1-next-week"><strong>Week 1 (Next Week)</strong></h3>
+<ul>
+<li>Start Phase 1: Introspection Engine</li>
+<li>Daily standups to track progress</li>
+<li>Early feedback loop with users</li>
+</ul>
+<hr />
+<h2 id="final-thoughts-cto-perspective">💡 Final Thoughts (CTO Perspective)</h2>
+<p><strong>This is a Category-Defining Feature.</strong></p>
+<p>AutoFraiseQL transforms FraiseQL from "a fast GraphQL framework" to <strong>"the database-first application platform"</strong>.</p>
+<p><strong>Strategic Positioning:</strong>
+- <strong>Unique</strong>: No other framework offers full auto-discovery from PostgreSQL metadata
+- <strong>SpecQL-ready</strong>: Perfect complement to declarative business logic
+- <strong>Developer experience</strong>: 10-20x productivity gain
+- <strong>Backward compatible</strong>: Zero breaking changes</p>
+<p><strong>The Market Opportunity:</strong></p>
+<p>Developers are tired of:
+- Writing boilerplate code
+- Keeping schemas in sync
+- Managing multiple sources of truth
+- Complex ORMs and code generation</p>
+<p>AutoFraiseQL solves all of this with <strong>one simple principle</strong>:</p>
+<blockquote>
+<p><strong>Your database schema IS your API schema.</strong></p>
+</blockquote>
+<p><strong>Let's build this. 🚀</strong></p>
+<hr />
+<p><strong>END OF PHASED IMPLEMENTATION PLAN</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

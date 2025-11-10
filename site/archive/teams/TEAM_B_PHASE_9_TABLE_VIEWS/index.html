@@ -1,0 +1,902 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team B Phase 9: Table Views (tv_) Generation - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team B Phase 9: Table Views (tv_) Generation";
+        var mkdocs_page_input_path = "archive/teams/TEAM_B_PHASE_9_TABLE_VIEWS.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team B Phase 9: Table Views (tv_) Generation</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-b-phase-9-table-views-tv_-generation">Team B Phase 9: Table Views (tv_) Generation</h1>
+<p><strong>Phase</strong>: 9 of 9 (NEW - CQRS Read Side)
+<strong>Timeline</strong>: Week 5-6 (7-8 days)
+<strong>Priority</strong>: 🔴 CRITICAL - Enables FraiseQL Integration
+<strong>Status</strong>: 🔴 NEW PHASE - CQRS Implementation</p>
+<hr />
+<h2 id="overview">📋 Overview</h2>
+<p>Generate <strong>tv_ (table view) tables</strong> for read-optimized CQRS pattern. These denormalized tables expose data to FraiseQL for auto-GraphQL generation.</p>
+<p><strong>Key Innovation</strong>: JSONB composition from related <code>tv_</code> tables (not <code>tb_</code> tables)</p>
+<hr />
+<h2 id="objectives">🎯 Objectives</h2>
+<ol>
+<li>✅ Generate <code>tv_{entity}</code> table schema with JSONB data column</li>
+<li>✅ Auto-infer filter columns (tenant_id, {entity}_id, path)</li>
+<li>✅ Generate explicit filter columns (from extra_filter_columns)</li>
+<li>✅ Generate <code>refresh_tv_{entity}()</code> function with JSONB composition</li>
+<li>✅ Generate performance-optimized indexes (B-tree + GIN)</li>
+<li>✅ Handle dependency ordering for cascading composition</li>
+</ol>
+<hr />
+<h2 id="tv_-table-schema-pattern">🏗️ tv_ Table Schema Pattern</h2>
+<h3 id="standard-structure"><strong>Standard Structure</strong></h3>
+<pre><code class="language-sql">CREATE TABLE {schema}.tv_{entity} (
+    -- Primary identification (Trinity pattern)
+    pk_{entity} INTEGER PRIMARY KEY,
+    id UUID NOT NULL UNIQUE,
+    tenant_id UUID NOT NULL,
+
+    -- Foreign keys (INTEGER) for JOINs during refresh
+    {for each ref field}
+    fk_{referenced_entity} INTEGER [NOT NULL],
+
+    -- UUID foreign keys for external filtering (auto-inferred)
+    {for each ref field}
+    {referenced_entity}_id UUID [NOT NULL],
+
+    -- Hierarchy path (if hierarchical)
+    path LTREE,  -- Auto-added for hierarchical entities
+
+    -- Explicit filter columns (from extra_filter_columns)
+    {for each extra_filter_column}
+    {column_name} {column_type},
+
+    -- Denormalized JSONB payload (FraiseQL reads this!)
+    data JSONB NOT NULL,
+
+    -- Metadata
+    refreshed_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Indexes
+CREATE INDEX idx_tv_{entity}_tenant ON {schema}.tv_{entity}(tenant_id);
+
+{for each UUID foreign key}
+CREATE INDEX idx_tv_{entity}_{ref_entity}_id ON {schema}.tv_{entity}({ref_entity}_id);
+
+{for each extra_filter_column}
+CREATE INDEX idx_tv_{entity}_{column_name} ON {schema}.tv_{entity}({column_name});
+
+{if hierarchical}
+CREATE INDEX idx_tv_{entity}_path ON {schema}.tv_{entity} USING GIST(path);
+
+-- GIN index for JSONB queries
+CREATE INDEX idx_tv_{entity}_data ON {schema}.tv_{entity} USING GIN(data);
+</code></pre>
+<hr />
+<h2 id="implementation-by-day">📊 Implementation by Day</h2>
+<h3 id="day-1-2-schema-generation-logic"><strong>Day 1-2: Schema Generation Logic</strong></h3>
+<h4 id="file-srcgeneratorsschematable_view_generatorpy-new"><strong>File</strong>: <code>src/generators/schema/table_view_generator.py</code> (NEW)</h4>
+<pre><code class="language-python">from typing import List, Optional
+from src.core.ast_models import EntityAST, TableViewConfig, IncludeRelation
+
+class TableViewGenerator:
+    &quot;&quot;&quot;Generate tv_ table schema and refresh functions.&quot;&quot;&quot;
+
+    def __init__(self, entity: EntityAST, all_entities: dict):
+        self.entity = entity
+        self.all_entities = all_entities  # For resolving references
+
+    def should_generate(self) -&gt; bool:
+        &quot;&quot;&quot;Determine if tv_ should be generated.&quot;&quot;&quot;
+        return self.entity.should_generate_table_view
+
+    def generate_schema(self) -&gt; str:
+        &quot;&quot;&quot;Generate complete tv_ table DDL.&quot;&quot;&quot;
+        if not self.should_generate():
+            return &quot;&quot;
+
+        parts = []
+
+        # Table creation
+        parts.append(self._generate_table_ddl())
+
+        # Indexes
+        parts.append(self._generate_indexes())
+
+        # Refresh function
+        parts.append(self._generate_refresh_function())
+
+        return &quot;\n\n&quot;.join(parts)
+
+    def _generate_table_ddl(self) -&gt; str:
+        &quot;&quot;&quot;Generate CREATE TABLE statement for tv_.&quot;&quot;&quot;
+        entity_lower = self.entity.name.lower()
+        schema = self.entity.schema
+
+        columns = []
+
+        # Trinity pattern
+        columns.append(f&quot;pk_{entity_lower} INTEGER PRIMARY KEY&quot;)
+        columns.append(f&quot;id UUID NOT NULL UNIQUE&quot;)
+        columns.append(f&quot;tenant_id UUID NOT NULL&quot;)
+
+        # Foreign keys (INTEGER + UUID)
+        for field in self.entity.fields:
+            if field.field_type.startswith('ref('):
+                ref_entity = self._extract_ref_entity(field.field_type)
+                ref_lower = ref_entity.lower()
+
+                # INTEGER FK for JOINs
+                columns.append(f&quot;fk_{ref_lower} INTEGER&quot;)
+
+                # UUID FK for filtering
+                columns.append(f&quot;{ref_lower}_id UUID&quot;)
+
+        # Hierarchy path (if hierarchical)
+        if self.entity.hierarchical:
+            columns.append(f&quot;path LTREE NOT NULL&quot;)
+
+        # Extra filter columns
+        if self.entity.table_views:
+            for col in self.entity.table_views.extra_filter_columns:
+                col_type = self._infer_column_type(col)
+                columns.append(f&quot;{col.name} {col_type}&quot;)
+
+        # JSONB data column
+        columns.append(f&quot;data JSONB NOT NULL&quot;)
+
+        # Metadata
+        columns.append(f&quot;refreshed_at TIMESTAMPTZ DEFAULT now()&quot;)
+
+        return f&quot;&quot;&quot;
+-- Table view for {self.entity.name} (read-optimized, denormalized)
+CREATE TABLE {schema}.tv_{entity_lower} (
+    {',\n    '.join(columns)}
+);
+&quot;&quot;&quot;.strip()
+
+    def _generate_indexes(self) -&gt; str:
+        &quot;&quot;&quot;Generate indexes for tv_ table.&quot;&quot;&quot;
+        entity_lower = self.entity.name.lower()
+        schema = self.entity.schema
+        indexes = []
+
+        # Tenant index (always)
+        indexes.append(
+            f&quot;CREATE INDEX idx_tv_{entity_lower}_tenant &quot;
+            f&quot;ON {schema}.tv_{entity_lower}(tenant_id);&quot;
+        )
+
+        # UUID foreign key indexes (auto-inferred)
+        for field in self.entity.fields:
+            if field.field_type.startswith('ref('):
+                ref_entity = self._extract_ref_entity(field.field_type)
+                ref_lower = ref_entity.lower()
+
+                indexes.append(
+                    f&quot;CREATE INDEX idx_tv_{entity_lower}_{ref_lower}_id &quot;
+                    f&quot;ON {schema}.tv_{entity_lower}({ref_lower}_id);&quot;
+                )
+
+        # Path index (if hierarchical)
+        if self.entity.hierarchical:
+            indexes.append(
+                f&quot;CREATE INDEX idx_tv_{entity_lower}_path &quot;
+                f&quot;ON {schema}.tv_{entity_lower} USING GIST(path);&quot;
+            )
+
+        # Extra filter column indexes
+        if self.entity.table_views:
+            for col in self.entity.table_views.extra_filter_columns:
+                index_type = col.index_type.upper()
+
+                if index_type == &quot;GIN_TRGM&quot;:
+                    # Trigram index for partial text matching
+                    indexes.append(
+                        f&quot;CREATE INDEX idx_tv_{entity_lower}_{col.name} &quot;
+                        f&quot;ON {schema}.tv_{entity_lower} &quot;
+                        f&quot;USING GIN({col.name} gin_trgm_ops);&quot;
+                    )
+                elif index_type == &quot;GIN&quot;:
+                    indexes.append(
+                        f&quot;CREATE INDEX idx_tv_{entity_lower}_{col.name} &quot;
+                        f&quot;ON {schema}.tv_{entity_lower} &quot;
+                        f&quot;USING GIN({col.name});&quot;
+                    )
+                elif index_type == &quot;GIST&quot;:
+                    indexes.append(
+                        f&quot;CREATE INDEX idx_tv_{entity_lower}_{col.name} &quot;
+                        f&quot;ON {schema}.tv_{entity_lower} &quot;
+                        f&quot;USING GIST({col.name});&quot;
+                    )
+                else:  # BTREE (default)
+                    indexes.append(
+                        f&quot;CREATE INDEX idx_tv_{entity_lower}_{col.name} &quot;
+                        f&quot;ON {schema}.tv_{entity_lower}({col.name});&quot;
+                    )
+
+        # GIN index for JSONB queries (always)
+        indexes.append(
+            f&quot;CREATE INDEX idx_tv_{entity_lower}_data &quot;
+            f&quot;ON {schema}.tv_{entity_lower} USING GIN(data);&quot;
+        )
+
+        return &quot;\n&quot;.join(indexes)
+
+    def _infer_column_type(self, col) -&gt; str:
+        &quot;&quot;&quot;Infer SQL type for extra filter column.&quot;&quot;&quot;
+        if col.type:
+            # Explicit type provided
+            return col.type.upper()
+
+        # Infer from source field if available
+        if col.source:
+            # Source like &quot;author.name&quot; - need to resolve type
+            # For now, default to TEXT
+            return &quot;TEXT&quot;
+
+        # Try to find field in entity
+        for field in self.entity.fields:
+            if field.name == col.name:
+                return self._map_specql_type_to_sql(field.field_type)
+
+        # Default
+        return &quot;TEXT&quot;
+
+    def _map_specql_type_to_sql(self, specql_type: str) -&gt; str:
+        &quot;&quot;&quot;Map SpecQL type to SQL type.&quot;&quot;&quot;
+        mapping = {
+            'text': 'TEXT',
+            'integer': 'INTEGER',
+            'decimal': 'DECIMAL',
+            'boolean': 'BOOLEAN',
+            'timestamp': 'TIMESTAMPTZ',
+            'date': 'DATE',
+            'jsonb': 'JSONB',
+        }
+        return mapping.get(specql_type.lower(), 'TEXT')
+
+    def _extract_ref_entity(self, field_type: str) -&gt; str:
+        &quot;&quot;&quot;Extract entity name from ref(Entity) type.&quot;&quot;&quot;
+        # ref(User) -&gt; User
+        return field_type[4:-1]
+</code></pre>
+<hr />
+<h3 id="day-3-5-jsonb-composition-logic"><strong>Day 3-5: JSONB Composition Logic</strong></h3>
+<h4 id="file-srcgeneratorsschematable_view_generatorpy-continued"><strong>File</strong>: <code>src/generators/schema/table_view_generator.py</code> (continued)</h4>
+<pre><code class="language-python">    def _generate_refresh_function(self) -&gt; str:
+        &quot;&quot;&quot;Generate refresh_tv_{entity}() function with JSONB composition.&quot;&quot;&quot;
+        entity_lower = self.entity.name.lower()
+        schema = self.entity.schema
+
+        # Build SELECT columns
+        select_columns = self._build_select_columns()
+
+        # Build FROM clause with JOINs to tv_ tables
+        from_clause = self._build_from_clause_with_tv_joins()
+
+        # Build JSONB data construction
+        jsonb_construction = self._build_jsonb_data()
+
+        return f&quot;&quot;&quot;
+-- Refresh function for tv_{entity_lower}
+-- Composes JSONB from related tv_ tables (not tb_ tables!)
+CREATE OR REPLACE FUNCTION {schema}.refresh_tv_{entity_lower}(
+    p_pk_{entity_lower} INTEGER DEFAULT NULL
+) RETURNS void AS $$
+BEGIN
+    -- Delete existing rows
+    DELETE FROM {schema}.tv_{entity_lower}
+    WHERE p_pk_{entity_lower} IS NULL OR pk_{entity_lower} = p_pk_{entity_lower};
+
+    -- Insert refreshed data
+    INSERT INTO {schema}.tv_{entity_lower} (
+        {', '.join(select_columns)}
+    )
+    SELECT
+        {self._build_select_values()}
+    {from_clause}
+    WHERE base.deleted_at IS NULL
+      AND (p_pk_{entity_lower} IS NULL OR base.pk_{entity_lower} = p_pk_{entity_lower});
+END;
+$$ LANGUAGE plpgsql;
+&quot;&quot;&quot;.strip()
+
+    def _build_select_columns(self) -&gt; List[str]:
+        &quot;&quot;&quot;Build list of columns for INSERT.&quot;&quot;&quot;
+        entity_lower = self.entity.name.lower()
+        columns = [
+            f&quot;pk_{entity_lower}&quot;,
+            &quot;id&quot;,
+            &quot;tenant_id&quot;
+        ]
+
+        # FK columns (INTEGER + UUID)
+        for field in self.entity.fields:
+            if field.field_type.startswith('ref('):
+                ref_entity = self._extract_ref_entity(field.field_type)
+                ref_lower = ref_entity.lower()
+                columns.append(f&quot;fk_{ref_lower}&quot;)
+                columns.append(f&quot;{ref_lower}_id&quot;)
+
+        # Path (if hierarchical)
+        if self.entity.hierarchical:
+            columns.append(&quot;path&quot;)
+
+        # Extra filter columns
+        if self.entity.table_views:
+            for col in self.entity.table_views.extra_filter_columns:
+                columns.append(col.name)
+
+        # Data column
+        columns.append(&quot;data&quot;)
+
+        return columns
+
+    def _build_from_clause_with_tv_joins(self) -&gt; str:
+        &quot;&quot;&quot;Build FROM clause with JOINs to tv_ tables (composition!).&quot;&quot;&quot;
+        entity_lower = self.entity.name.lower()
+        schema = self.entity.schema
+
+        lines = [f&quot;FROM {schema}.tb_{entity_lower} base&quot;]
+
+        # Join to tv_ tables (not tb_ tables!)
+        for field in self.entity.fields:
+            if field.field_type.startswith('ref('):
+                ref_entity = self._extract_ref_entity(field.field_type)
+                ref_lower = ref_entity.lower()
+
+                # Get referenced entity schema
+                ref_schema = self._get_entity_schema(ref_entity)
+
+                # Join to tv_ table (composition!)
+                join_type = &quot;INNER&quot; if field.required else &quot;LEFT&quot;
+                lines.append(
+                    f&quot;{join_type} JOIN {ref_schema}.tv_{ref_lower} tv_{ref_lower} &quot;
+                    f&quot;ON tv_{ref_lower}.pk_{ref_lower} = base.fk_{ref_lower}&quot;
+                )
+
+        return &quot;\n    &quot;.join(lines)
+
+    def _build_jsonb_data(self) -&gt; str:
+        &quot;&quot;&quot;Build JSONB data construction.&quot;&quot;&quot;
+        parts = []
+
+        # Add entity's own fields
+        for field in self.entity.fields:
+            if not field.field_type.startswith('ref('):
+                # Scalar field
+                parts.append(f&quot;'{field.name}', base.{field.name}&quot;)
+
+        # Add related entities (compose from tv_.data)
+        config = self.entity.table_views
+        if config and config.include_relations:
+            for rel in config.include_relations:
+                parts.append(self._build_relation_jsonb(rel))
+        else:
+            # No explicit config - include all ref fields with all data
+            for field in self.entity.fields:
+                if field.field_type.startswith('ref('):
+                    ref_entity = self._extract_ref_entity(field.field_type)
+                    ref_lower = ref_entity.lower()
+
+                    # Include full tv_.data
+                    parts.append(f&quot;'{field.name}', tv_{ref_lower}.data&quot;)
+
+        return f&quot;jsonb_build_object(\n            {',\n            '.join(parts)}\n        )&quot;
+
+    def _build_relation_jsonb(self, rel: IncludeRelation) -&gt; str:
+        &quot;&quot;&quot;Build JSONB for a single relation (explicit field selection).&quot;&quot;&quot;
+        rel_lower = rel.entity_name.lower()
+
+        if rel.fields == ['*']:
+            # Include all fields from tv_.data
+            return f&quot;'{rel.entity_name}', tv_{rel_lower}.data&quot;
+        else:
+            # Extract specific fields from tv_.data
+            field_extractions = []
+            for field in rel.fields:
+                field_extractions.append(
+                    f&quot;'{field}', tv_{rel_lower}.data-&gt;'{field}'&quot;
+                )
+
+            # Handle nested relations
+            if rel.include_relations:
+                for nested in rel.include_relations:
+                    # Nested relations are already composed in parent tv_.data
+                    nested_lower = nested.entity_name.lower()
+                    field_extractions.append(
+                        f&quot;'{nested.entity_name}', tv_{rel_lower}.data-&gt;'{nested.entity_name}'&quot;
+                    )
+
+            return f&quot;&quot;&quot;'{rel.entity_name}', jsonb_build_object(
+                {',\n                '.join(field_extractions)}
+            )&quot;&quot;&quot;
+
+    def _build_select_values(self) -&gt; str:
+        &quot;&quot;&quot;Build SELECT values for INSERT.&quot;&quot;&quot;
+        entity_lower = self.entity.name.lower()
+        values = [
+            f&quot;base.pk_{entity_lower}&quot;,
+            &quot;base.id&quot;,
+            &quot;base.tenant_id&quot;
+        ]
+
+        # FK values
+        for field in self.entity.fields:
+            if field.field_type.startswith('ref('):
+                ref_entity = self._extract_ref_entity(field.field_type)
+                ref_lower = ref_entity.lower()
+
+                # INTEGER FK
+                values.append(f&quot;base.fk_{ref_lower}&quot;)
+
+                # UUID FK (from tv_ table)
+                values.append(f&quot;tv_{ref_lower}.id AS {ref_lower}_id&quot;)
+
+        # Path (if hierarchical)
+        if self.entity.hierarchical:
+            values.append(&quot;base.path&quot;)
+
+        # Extra filter columns
+        if self.entity.table_views:
+            for col in self.entity.table_views.extra_filter_columns:
+                if col.source:
+                    # Nested extraction (e.g., author.name)
+                    parts = col.source.split('.')
+                    if len(parts) == 2:
+                        entity_name, field_name = parts
+                        values.append(f&quot;tv_{entity_name.lower()}.data-&gt;&gt;'{field_name}' AS {col.name}&quot;)
+                    else:
+                        values.append(f&quot;base.{col.name}&quot;)
+                else:
+                    # Direct field from base table
+                    values.append(f&quot;base.{col.name}&quot;)
+
+        # JSONB data
+        values.append(f&quot;{self._build_jsonb_data()} AS data&quot;)
+
+        return &quot;,\n        &quot;.join(values)
+
+    def _get_entity_schema(self, entity_name: str) -&gt; str:
+        &quot;&quot;&quot;Get schema for referenced entity.&quot;&quot;&quot;
+        if entity_name in self.all_entities:
+            return self.all_entities[entity_name].schema
+        # Default to same schema
+        return self.entity.schema
+</code></pre>
+<hr />
+<h3 id="day-6-dependency-ordering"><strong>Day 6: Dependency Ordering</strong></h3>
+<h4 id="file-srcgeneratorsschematable_view_dependencypy-new"><strong>File</strong>: <code>src/generators/schema/table_view_dependency.py</code> (NEW)</h4>
+<pre><code class="language-python">from typing import List, Dict, Set
+from src.core.ast_models import EntityAST
+
+class TableViewDependencyResolver:
+    &quot;&quot;&quot;Resolve dependency order for tv_ generation and refresh.&quot;&quot;&quot;
+
+    def __init__(self, entities: List[EntityAST]):
+        self.entities = {e.name: e for e in entities}
+        self.dependency_graph = self._build_dependency_graph()
+
+    def _build_dependency_graph(self) -&gt; Dict[str, Set[str]]:
+        &quot;&quot;&quot;Build dependency graph (entity -&gt; depends on entities).&quot;&quot;&quot;
+        graph = {}
+
+        for entity in self.entities.values():
+            deps = set()
+
+            # Find ref() fields
+            for field in entity.fields:
+                if field.field_type.startswith('ref('):
+                    ref_entity = field.field_type[4:-1]
+                    if ref_entity != entity.name:  # Not self-reference
+                        deps.add(ref_entity)
+
+            graph[entity.name] = deps
+
+        return graph
+
+    def get_generation_order(self) -&gt; List[str]:
+        &quot;&quot;&quot;Get entity names in dependency order (topological sort).&quot;&quot;&quot;
+        # Kahn's algorithm for topological sort
+        in_degree = {name: 0 for name in self.entities.keys()}
+
+        # Calculate in-degrees
+        for deps in self.dependency_graph.values():
+            for dep in deps:
+                if dep in in_degree:
+                    in_degree[dep] += 1
+
+        # Queue entities with no incoming edges
+        queue = [name for name, degree in in_degree.items() if degree == 0]
+        result = []
+
+        while queue:
+            # Process entity with no dependencies
+            entity_name = queue.pop(0)
+            result.append(entity_name)
+
+            # Reduce in-degree for dependent entities
+            for dep_entity, deps in self.dependency_graph.items():
+                if entity_name in deps:
+                    in_degree[dep_entity] -= 1
+                    if in_degree[dep_entity] == 0:
+                        queue.append(dep_entity)
+
+        if len(result) != len(self.entities):
+            # Cycle detected
+            raise ValueError(&quot;Circular dependency detected in entity references&quot;)
+
+        return result
+
+    def get_refresh_order_for_entity(self, entity_name: str) -&gt; List[str]:
+        &quot;&quot;&quot;Get entities that must be refreshed when given entity changes.&quot;&quot;&quot;
+        # Find all entities that depend on this one
+        dependents = []
+
+        for name, deps in self.dependency_graph.items():
+            if entity_name in deps:
+                dependents.append(name)
+
+        return dependents
+</code></pre>
+<hr />
+<h3 id="day-7-8-integration-testing"><strong>Day 7-8: Integration &amp; Testing</strong></h3>
+<h4 id="test-file-testsunitschematest_table_view_generationpy"><strong>Test File</strong>: <code>tests/unit/schema/test_table_view_generation.py</code></h4>
+<pre><code class="language-python">import pytest
+from src.core.ast_models import (
+    EntityAST, FieldDefinition, TableViewConfig,
+    TableViewMode, IncludeRelation, ExtraFilterColumn
+)
+from src.generators.schema.table_view_generator import TableViewGenerator
+
+class TestTableViewGeneration:
+    &quot;&quot;&quot;Test tv_ table generation.&quot;&quot;&quot;
+
+    def test_basic_tv_generation(self):
+        &quot;&quot;&quot;Test basic tv_ table DDL generation.&quot;&quot;&quot;
+        entity = EntityAST(
+            name=&quot;Review&quot;,
+            schema=&quot;library&quot;,
+            fields=[
+                FieldDefinition(name=&quot;rating&quot;, field_type=&quot;integer&quot;),
+                FieldDefinition(name=&quot;author&quot;, field_type=&quot;ref(User)&quot;)
+            ],
+            actions=[]
+        )
+
+        generator = TableViewGenerator(entity, {})
+        sql = generator.generate_schema()
+
+        assert &quot;CREATE TABLE library.tv_review&quot; in sql
+        assert &quot;pk_review INTEGER PRIMARY KEY&quot; in sql
+        assert &quot;id UUID&quot; in sql
+        assert &quot;tenant_id UUID&quot; in sql
+        assert &quot;fk_author INTEGER&quot; in sql
+        assert &quot;author_id UUID&quot; in sql
+        assert &quot;data JSONB NOT NULL&quot; in sql
+
+    def test_indexes_generated(self):
+        &quot;&quot;&quot;Test indexes are generated correctly.&quot;&quot;&quot;
+        entity = EntityAST(
+            name=&quot;Review&quot;,
+            schema=&quot;library&quot;,
+            fields=[
+                FieldDefinition(name=&quot;author&quot;, field_type=&quot;ref(User)&quot;)
+            ],
+            actions=[],
+            table_views=TableViewConfig(
+                extra_filter_columns=[
+                    ExtraFilterColumn.from_string(&quot;rating&quot;)
+                ]
+            )
+        )
+
+        generator = TableViewGenerator(entity, {})
+        sql = generator.generate_schema()
+
+        assert &quot;idx_tv_review_tenant&quot; in sql
+        assert &quot;idx_tv_review_author_id&quot; in sql
+        assert &quot;idx_tv_review_rating&quot; in sql
+        assert &quot;idx_tv_review_data&quot; in sql
+        assert &quot;USING GIN(data)&quot; in sql
+
+    def test_hierarchical_entity(self):
+        &quot;&quot;&quot;Test hierarchical entity gets path column.&quot;&quot;&quot;
+        entity = EntityAST(
+            name=&quot;Location&quot;,
+            schema=&quot;management&quot;,
+            fields=[],
+            actions=[],
+            hierarchical=True
+        )
+
+        generator = TableViewGenerator(entity, {})
+        sql = generator.generate_schema()
+
+        assert &quot;path LTREE NOT NULL&quot; in sql
+        assert &quot;idx_tv_location_path&quot; in sql
+        assert &quot;USING GIST(path)&quot; in sql
+
+    def test_refresh_function_composition(self):
+        &quot;&quot;&quot;Test refresh function composes from tv_ tables.&quot;&quot;&quot;
+        entity = EntityAST(
+            name=&quot;Review&quot;,
+            schema=&quot;library&quot;,
+            fields=[
+                FieldDefinition(name=&quot;author&quot;, field_type=&quot;ref(User)&quot;)
+            ],
+            actions=[]
+        )
+
+        generator = TableViewGenerator(entity, {&quot;User&quot;: EntityAST(...)})
+        sql = generator.generate_schema()
+
+        # Should JOIN to tv_user, not tb_user!
+        assert &quot;JOIN crm.tv_user tv_user&quot; in sql
+        assert &quot;tv_user.data&quot; in sql
+        assert &quot;tb_user&quot; not in sql  # Should NOT join to tb_!
+
+    def test_explicit_field_selection(self):
+        &quot;&quot;&quot;Test explicit field selection from relations.&quot;&quot;&quot;
+        entity = EntityAST(
+            name=&quot;Review&quot;,
+            schema=&quot;library&quot;,
+            fields=[
+                FieldDefinition(name=&quot;author&quot;, field_type=&quot;ref(User)&quot;)
+            ],
+            actions=[],
+            table_views=TableViewConfig(
+                include_relations=[
+                    IncludeRelation(
+                        entity_name=&quot;author&quot;,
+                        fields=[&quot;name&quot;, &quot;email&quot;]
+                    )
+                ]
+            )
+        )
+
+        generator = TableViewGenerator(entity, {})
+        sql = generator.generate_schema()
+
+        # Should extract only specified fields
+        assert &quot;tv_author.data-&gt;'name'&quot; in sql or &quot;tv_author.data-&gt;&gt;'name'&quot; in sql
+        assert &quot;tv_author.data-&gt;'email'&quot; in sql or &quot;tv_author.data-&gt;&gt;'email'&quot; in sql
+
+    def test_extra_filter_column_with_source(self):
+        &quot;&quot;&quot;Test nested field extraction for filter column.&quot;&quot;&quot;
+        entity = EntityAST(
+            name=&quot;Review&quot;,
+            schema=&quot;library&quot;,
+            fields=[
+                FieldDefinition(name=&quot;author&quot;, field_type=&quot;ref(User)&quot;)
+            ],
+            actions=[],
+            table_views=TableViewConfig(
+                extra_filter_columns=[
+                    ExtraFilterColumn(
+                        name=&quot;author_name&quot;,
+                        source=&quot;author.name&quot;,
+                        type=&quot;text&quot;
+                    )
+                ]
+            )
+        )
+
+        generator = TableViewGenerator(entity, {})
+        sql = generator.generate_schema()
+
+        assert &quot;author_name TEXT&quot; in sql
+        assert &quot;tv_author.data-&gt;&gt;'name' AS author_name&quot; in sql
+</code></pre>
+<hr />
+<h2 id="template-files">📋 Template Files</h2>
+<h3 id="file-templatesschematable_viewsqljinja2"><strong>File</strong>: <code>templates/schema/table_view.sql.jinja2</code></h3>
+<pre><code class="language-jinja2">{# Template for tv_ table generation #}
+
+-- Table view for {{ entity.name }} (read-optimized, denormalized)
+CREATE TABLE {{ entity.schema }}.tv_{{ entity.name|lower }} (
+    -- Primary identification
+    pk_{{ entity.name|lower }} INTEGER PRIMARY KEY,
+    id UUID NOT NULL UNIQUE,
+    tenant_id UUID NOT NULL,
+
+    {% for field in entity.fields if field.field_type.startswith('ref(') %}
+    -- Foreign key: {{ field.name }}
+    fk_{{ field.name|lower }} INTEGER{% if field.required %} NOT NULL{% endif %},
+    {{ field.name|lower }}_id UUID{% if field.required %} NOT NULL{% endif %},
+
+    {% endfor %}
+
+    {% if entity.hierarchical %}
+    -- Hierarchy path
+    path LTREE NOT NULL,
+
+    {% endif %}
+
+    {% if entity.table_views and entity.table_views.extra_filter_columns %}
+    -- Performance-optimized filter columns
+    {% for col in entity.table_views.extra_filter_columns %}
+    {{ col.name }} {{ col.type|default('TEXT') }},
+    {% endfor %}
+
+    {% endif %}
+
+    -- Denormalized JSONB payload
+    data JSONB NOT NULL,
+
+    -- Metadata
+    refreshed_at TIMESTAMPTZ DEFAULT now()
+);
+</code></pre>
+<hr />
+<h2 id="acceptance-criteria">✅ Acceptance Criteria</h2>
+<ul>
+<li>[ ] tv_ table DDL generated with correct columns</li>
+<li>[ ] Auto-inferred filter columns (tenant_id, {entity}_id, path)</li>
+<li>[ ] Explicit filter columns (from extra_filter_columns)</li>
+<li>[ ] Refresh function JOINs to tv_ tables (not tb_!)</li>
+<li>[ ] JSONB composition extracts from tv_.data</li>
+<li>[ ] Explicit field selection works (include_relations)</li>
+<li>[ ] Nested extraction works (source: "author.name")</li>
+<li>[ ] Correct indexes generated (B-tree, GIN, GIST)</li>
+<li>[ ] Dependency ordering works (topological sort)</li>
+<li>[ ] Hierarchical entities get path column</li>
+<li>[ ] All tests pass</li>
+</ul>
+<hr />
+<h2 id="summary">📊 Summary</h2>
+<p><strong>Files Created</strong>:
+- <code>src/generators/schema/table_view_generator.py</code> (~800 lines)
+- <code>src/generators/schema/table_view_dependency.py</code> (~100 lines)
+- <code>templates/schema/table_view.sql.jinja2</code> (~50 lines)
+- <code>templates/schema/refresh_table_view.sql.jinja2</code> (~100 lines)
+- <code>tests/unit/schema/test_table_view_generation.py</code> (~400 lines)</p>
+<p><strong>Total</strong>: ~1,450 lines</p>
+<p><strong>Timeline</strong>: 7-8 days</p>
+<hr />
+<h2 id="dependencies">🔗 Dependencies</h2>
+<p><strong>Depends On</strong>:
+- Team A Phase 2 (table_views parsing)
+- Team B Phases 1-8 (schema generation foundation)</p>
+<p><strong>Blocks</strong>:
+- Team C (tv_ refresh in mutations)
+- Team D (tv_ annotations)
+- FraiseQL integration</p>
+<hr />
+<p><strong>Status</strong>: 🔴 READY TO START (after Team A Phase 2)
+<strong>Priority</strong>: CRITICAL (enables CQRS + FraiseQL)
+<strong>Effort</strong>: 7-8 days
+<strong>Start</strong>: Week 5-6</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

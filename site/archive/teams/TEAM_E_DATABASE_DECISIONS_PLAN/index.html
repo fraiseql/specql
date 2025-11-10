@@ -1,0 +1,782 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team E: Database Decisions Implementation Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team E: Database Decisions Implementation Plan";
+        var mkdocs_page_input_path = "archive/teams/TEAM_E_DATABASE_DECISIONS_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team E: Database Decisions Implementation Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-e-database-decisions-implementation-plan">Team E: Database Decisions Implementation Plan</h1>
+<p><strong>Team</strong>: CLI &amp; Orchestration
+<strong>Impact</strong>: MEDIUM (orchestration of new components)
+<strong>Timeline</strong>: Week 7 (3-4 days)
+<strong>Status</strong>: 🟡 MEDIUM PRIORITY - Integration layer</p>
+<hr />
+<h2 id="overview">📋 Overview</h2>
+<p>Team E must orchestrate the new database patterns:</p>
+<ol>
+<li>✅ Generate migrations in correct order (extensions → utilities → schema → triggers)</li>
+<li>✅ CLI commands for deduplication management</li>
+<li>✅ CLI commands for node+info split entities</li>
+<li>✅ Validation commands for INTEGER paths</li>
+<li>✅ Helper function integration in CLI</li>
+</ol>
+<p><strong>Total Effort</strong>: 3-4 days</p>
+<hr />
+<h2 id="phase-1-migration-orchestration-day-1">🎯 Phase 1: Migration Orchestration (Day 1)</h2>
+<h3 id="objective-generate-migrations-in-correct-dependency-order"><strong>Objective</strong>: Generate migrations in correct dependency order</h3>
+<h3 id="11-migration-order"><strong>1.1: Migration Order</strong></h3>
+<p><strong>File</strong>: <code>src/cli/orchestrator.py</code></p>
+<pre><code class="language-python">class MigrationOrchestrator:
+    &quot;&quot;&quot;Orchestrate migration generation with correct dependency order.&quot;&quot;&quot;
+
+    def generate_migrations(self, entities: list[EntityAST]) -&gt; list[Migration]:
+        &quot;&quot;&quot;Generate all migrations in dependency order.&quot;&quot;&quot;
+
+        migrations = []
+
+        # 1. Extensions (MUST be first)
+        migrations.append(self.generate_extensions_migration())
+
+        # 2. Utility Functions (depends on extensions)
+        migrations.append(self.generate_utilities_migration())
+
+        # 3. Schema (tables, indexes, constraints)
+        for entity in entities:
+            migrations.append(self.generate_schema_migration(entity))
+
+        # 4. Triggers (depends on schema)
+        for entity in entities:
+            if entity.hierarchical:
+                migrations.append(self.generate_triggers_migration(entity))
+
+        # 5. Helper Functions (depends on schema)
+        for entity in entities:
+            if entity.hierarchical:
+                migrations.append(self.generate_helpers_migration(entity))
+
+        # 6. FraiseQL Annotations (depends on everything)
+        migrations.append(self.generate_fraiseql_migration(entities))
+
+        return migrations
+
+    def generate_extensions_migration(self) -&gt; Migration:
+        &quot;&quot;&quot;Generate 000_extensions.sql.&quot;&quot;&quot;
+        return Migration(
+            number=0,
+            name='extensions',
+            content=self.render_template('sql/000_extensions.sql.jinja2')
+        )
+
+    def generate_utilities_migration(self) -&gt; Migration:
+        &quot;&quot;&quot;Generate 001_utilities.sql with safe_slug.&quot;&quot;&quot;
+        return Migration(
+            number=1,
+            name='utilities',
+            content=self.render_template('sql/utilities/safe_slug.sql.jinja2')
+        )
+
+    def generate_schema_migration(self, entity: EntityAST) -&gt; Migration:
+        &quot;&quot;&quot;Generate schema with all new patterns.&quot;&quot;&quot;
+
+        components = []
+
+        # Determine if split
+        if entity.metadata_split:
+            # Node table
+            components.append(
+                self.render_template(
+                    'sql/node_info/node_table.sql.jinja2',
+                    entity=entity
+                )
+            )
+            # Info table
+            components.append(
+                self.render_template(
+                    'sql/node_info/info_table.sql.jinja2',
+                    entity=entity
+                )
+            )
+            # View
+            components.append(
+                self.render_template(
+                    'sql/node_info/view.sql.jinja2',
+                    entity=entity
+                )
+            )
+        else:
+            # Single table
+            components.append(
+                self.render_template(
+                    'sql/schema/table.sql.jinja2',
+                    entity=entity
+                )
+            )
+
+        # Indexes (tenant-scoped)
+        components.append(
+            self.render_template(
+                'sql/schema/tenant_indexes.sql.jinja2',
+                entity=entity
+            )
+        )
+
+        return Migration(
+            number=self.next_migration_number(),
+            name=f'{entity.schema}_{entity.name.lower()}',
+            content='\n\n'.join(components)
+        )
+
+    def generate_triggers_migration(self, entity: EntityAST) -&gt; Migration:
+        &quot;&quot;&quot;Generate safety triggers.&quot;&quot;&quot;
+
+        triggers = []
+
+        # 1. Cycle prevention
+        triggers.append(
+            self.render_template(
+                'sql/constraints/prevent_cycle.sql.jinja2',
+                entity=entity
+            )
+        )
+
+        # 2. Sequence limit
+        triggers.append(
+            self.render_template(
+                'sql/constraints/check_sequence_limit.sql.jinja2',
+                entity=entity
+            )
+        )
+
+        # 3. Depth limit
+        triggers.append(
+            self.render_template(
+                'sql/constraints/check_depth_limit.sql.jinja2',
+                entity=entity
+            )
+        )
+
+        # 4. Path update trigger
+        triggers.append(
+            self.render_template(
+                'sql/hierarchy/update_path_trigger.sql.jinja2',
+                entity=entity
+            )
+        )
+
+        return Migration(
+            number=self.next_migration_number(),
+            name=f'{entity.schema}_{entity.name.lower()}_triggers',
+            content='\n\n'.join(triggers)
+        )
+
+    def generate_helpers_migration(self, entity: EntityAST) -&gt; Migration:
+        &quot;&quot;&quot;Generate helper functions.&quot;&quot;&quot;
+
+        helpers = []
+
+        # Path calculation
+        helpers.append(
+            self.render_template(
+                'sql/hierarchy/calculate_path.sql.jinja2',
+                entity=entity
+            )
+        )
+
+        # Descendant recalculation
+        helpers.append(
+            self.render_template(
+                'sql/hierarchy/recalculate_descendants.sql.jinja2',
+                entity=entity
+            )
+        )
+
+        # 5 helper functions
+        for helper_name in ['ancestors', 'descendants', 'move_subtree', 'root', 'depth']:
+            helpers.append(
+                self.render_template(
+                    f'sql/helpers/get_{helper_name}.sql.jinja2',
+                    entity=entity
+                )
+            )
+
+        return Migration(
+            number=self.next_migration_number(),
+            name=f'{entity.schema}_{entity.name.lower()}_helpers',
+            content='\n\n'.join(helpers)
+        )
+</code></pre>
+<hr />
+<h2 id="phase-2-deduplication-management-cli-day-2">🎯 Phase 2: Deduplication Management CLI (Day 2)</h2>
+<h3 id="objective-cli-commands-for-managing-identifier-deduplication"><strong>Objective</strong>: CLI commands for managing identifier deduplication</h3>
+<h3 id="21-list-duplicates-command"><strong>2.1: List Duplicates Command</strong></h3>
+<p><strong>File</strong>: <code>src/cli/commands/deduplication.py</code></p>
+<pre><code class="language-python">@cli.command()
+@click.option('--entity', required=True, help='Entity name')
+@click.option('--schema', default='public', help='Schema name')
+@click.option('--min-count', default=2, help='Minimum duplicate count')
+def list_duplicates(entity: str, schema: str, min_count: int):
+    &quot;&quot;&quot;List identifier duplicates for an entity.&quot;&quot;&quot;
+
+    entity_lower = entity.lower()
+    table_name = f&quot;{schema}.tb_{entity_lower}&quot;
+
+    query = f&quot;&quot;&quot;
+    SELECT
+        identifier,
+        COUNT(*) as variant_count,
+        array_agg(display_identifier ORDER BY sequence_number) as variants
+    FROM {table_name}
+    WHERE deleted_at IS NULL
+    GROUP BY identifier
+    HAVING COUNT(*) &gt;= %s
+    ORDER BY variant_count DESC;
+    &quot;&quot;&quot;
+
+    results = execute_query(query, (min_count,))
+
+    if not results:
+        click.echo(f&quot;No duplicates found for {entity}&quot;)
+        return
+
+    click.echo(f&quot;\nDuplicates for {entity}:\n&quot;)
+
+    for row in results:
+        identifier = row['identifier']
+        count = row['variant_count']
+        variants = row['variants']
+
+        click.echo(f&quot;  {identifier}: {count} variants&quot;)
+        for variant in variants:
+            click.echo(f&quot;    - {variant}&quot;)
+        click.echo()
+
+# Example usage:
+# $ specql list-duplicates --entity=Location --schema=tenant
+#
+# Duplicates for Location:
+#
+#   headquarters: 3 variants
+#     - headquarters
+#     - headquarters#2
+#     - headquarters#3
+#
+#   office: 2 variants
+#     - office
+#     - office#2
+</code></pre>
+<hr />
+<h3 id="22-recalculate-identifiers-command"><strong>2.2: Recalculate Identifiers Command</strong></h3>
+<p><strong>File</strong>: <code>src/cli/commands/recalculate.py</code></p>
+<pre><code class="language-python">@cli.command()
+@click.option('--entity', required=True, help='Entity name')
+@click.option('--schema', default='public', help='Schema name')
+@click.option('--tenant-id', help='Limit to specific tenant (UUID)')
+@click.option('--dry-run', is_flag=True, help='Show what would change without updating')
+def recalculate_identifiers(
+    entity: str,
+    schema: str,
+    tenant_id: str = None,
+    dry_run: bool = False
+):
+    &quot;&quot;&quot;Recalculate identifiers for an entity.&quot;&quot;&quot;
+
+    entity_lower = entity.lower()
+    function_name = f&quot;{schema}.recalculate_{entity_lower}_identifiers_bulk&quot;
+
+    if dry_run:
+        click.echo(f&quot;[DRY RUN] Would call: {function_name}({tenant_id or 'ALL'})&quot;)
+
+        # Preview changes
+        preview_query = f&quot;&quot;&quot;
+        SELECT
+            id,
+            identifier as current_identifier,
+            {schema}.calculate_{entity_lower}_identifier(pk_{entity_lower}) as new_identifier,
+            CASE
+                WHEN identifier = {schema}.calculate_{entity_lower}_identifier(pk_{entity_lower})
+                THEN 'NO CHANGE'
+                ELSE 'WOULD UPDATE'
+            END as status
+        FROM {schema}.tb_{entity_lower}
+        WHERE deleted_at IS NULL
+          AND ({tenant_id} IS NULL OR tenant_id = %s)
+        LIMIT 20;
+        &quot;&quot;&quot;
+
+        results = execute_query(preview_query, (tenant_id,) if tenant_id else ())
+
+        click.echo(&quot;\nPreview (first 20 rows):\n&quot;)
+        for row in results:
+            status_color = 'yellow' if row['status'] == 'WOULD UPDATE' else 'green'
+            click.secho(
+                f&quot;  {row['id']}: {row['current_identifier']} → {row['new_identifier']} ({row['status']})&quot;,
+                fg=status_color
+            )
+
+        click.echo(&quot;\nUse --no-dry-run to apply changes&quot;)
+        return
+
+    # Execute recalculation
+    click.echo(f&quot;Recalculating identifiers for {entity}...&quot;)
+
+    call_query = f&quot;SELECT {function_name}(%s) as updated_count;&quot;
+    result = execute_query(call_query, (tenant_id,))
+
+    updated_count = result[0]['updated_count']
+
+    click.secho(f&quot;✓ Updated {updated_count} identifier(s)&quot;, fg='green')
+</code></pre>
+<hr />
+<h2 id="phase-3-nodeinfo-split-management-day-3">🎯 Phase 3: Node+Info Split Management (Day 3)</h2>
+<h3 id="objective-cli-commands-for-split-entities"><strong>Objective</strong>: CLI commands for split entities</h3>
+<h3 id="31-list-split-entities-command"><strong>3.1: List Split Entities Command</strong></h3>
+<pre><code class="language-python">@cli.command()
+def list_split_entities():
+    &quot;&quot;&quot;List all entities using node+info split pattern.&quot;&quot;&quot;
+
+    # Detect split entities by checking for _node and _info tables
+    query = &quot;&quot;&quot;
+    SELECT
+        n.table_schema,
+        REPLACE(n.table_name, '_node', '') as entity_name,
+        (SELECT COUNT(*) FROM information_schema.tables t
+         WHERE t.table_schema = n.table_schema
+           AND t.table_name = REPLACE(n.table_name, '_node', '_info')) as has_info_table,
+        (SELECT COUNT(*) FROM information_schema.views v
+         WHERE v.table_schema = n.table_schema
+           AND v.table_name = 'v_' || REPLACE(n.table_name, 'tb_', '')
+           AND v.table_name LIKE '%' || REPLACE(n.table_name, '_node', '') || '%') as has_view
+    FROM information_schema.tables n
+    WHERE n.table_name LIKE '%_node'
+      AND n.table_type = 'BASE TABLE'
+    ORDER BY n.table_schema, entity_name;
+    &quot;&quot;&quot;
+
+    results = execute_query(query)
+
+    if not results:
+        click.echo(&quot;No split entities found&quot;)
+        return
+
+    click.echo(&quot;\nSplit Entities:\n&quot;)
+
+    for row in results:
+        schema = row['table_schema']
+        entity = row['entity_name'].replace('tb_', '')
+        has_info = row['has_info_table'] &gt; 0
+        has_view = row['has_view'] &gt; 0
+
+        status = '✓' if (has_info and has_view) else '⚠'
+        click.echo(f&quot;  {status} {schema}.{entity}&quot;)
+
+        if not has_info:
+            click.secho(f&quot;      Missing: {schema}.tb_{entity}_info&quot;, fg='red')
+        if not has_view:
+            click.secho(f&quot;      Missing: {schema}.v_{entity}&quot;, fg='red')
+</code></pre>
+<hr />
+<h3 id="32-validate-split-integrity-command"><strong>3.2: Validate Split Integrity Command</strong></h3>
+<pre><code class="language-python">@cli.command()
+@click.option('--entity', required=True, help='Entity name')
+@click.option('--schema', default='public', help='Schema name')
+def validate_split_integrity(entity: str, schema: str):
+    &quot;&quot;&quot;Validate node+info split integrity.&quot;&quot;&quot;
+
+    entity_lower = entity.lower()
+
+    checks = []
+
+    # Check 1: All nodes have info records
+    check1 = f&quot;&quot;&quot;
+    SELECT COUNT(*) as orphaned_nodes
+    FROM {schema}.tb_{entity_lower}_node n
+    LEFT JOIN {schema}.tb_{entity_lower}_info i
+        ON i.pk_{entity_lower}_info = n.fk_{entity_lower}_info
+    WHERE i.pk_{entity_lower}_info IS NULL;
+    &quot;&quot;&quot;
+
+    # Check 2: All info records are referenced
+    check2 = f&quot;&quot;&quot;
+    SELECT COUNT(*) as orphaned_info
+    FROM {schema}.tb_{entity_lower}_info i
+    LEFT JOIN {schema}.tb_{entity_lower}_node n
+        ON n.fk_{entity_lower}_info = i.pk_{entity_lower}_info
+    WHERE n.pk_{entity_lower} IS NULL;
+    &quot;&quot;&quot;
+
+    # Check 3: Tenant consistency
+    check3 = f&quot;&quot;&quot;
+    SELECT COUNT(*) as tenant_mismatch
+    FROM {schema}.tb_{entity_lower}_node n
+    INNER JOIN {schema}.tb_{entity_lower}_info i
+        ON i.pk_{entity_lower}_info = n.fk_{entity_lower}_info
+    WHERE n.tenant_id != i.tenant_id;
+    &quot;&quot;&quot;
+
+    orphaned_nodes = execute_query(check1)[0]['orphaned_nodes']
+    orphaned_info = execute_query(check2)[0]['orphaned_info']
+    tenant_mismatch = execute_query(check3)[0]['tenant_mismatch']
+
+    all_ok = True
+
+    click.echo(f&quot;\nValidating {entity} split integrity:\n&quot;)
+
+    if orphaned_nodes &gt; 0:
+        click.secho(f&quot;  ✗ {orphaned_nodes} node(s) missing info records&quot;, fg='red')
+        all_ok = False
+    else:
+        click.secho(f&quot;  ✓ All nodes have info records&quot;, fg='green')
+
+    if orphaned_info &gt; 0:
+        click.secho(f&quot;  ✗ {orphaned_info} orphaned info record(s)&quot;, fg='red')
+        all_ok = False
+    else:
+        click.secho(f&quot;  ✓ No orphaned info records&quot;, fg='green')
+
+    if tenant_mismatch &gt; 0:
+        click.secho(f&quot;  ✗ {tenant_mismatch} tenant mismatch(es)&quot;, fg='red')
+        all_ok = False
+    else:
+        click.secho(f&quot;  ✓ Tenant IDs consistent&quot;, fg='green')
+
+    if all_ok:
+        click.secho(f&quot;\n✓ {entity} split integrity: OK&quot;, fg='green', bold=True)
+    else:
+        click.secho(f&quot;\n✗ {entity} split integrity: ERRORS FOUND&quot;, fg='red', bold=True)
+</code></pre>
+<hr />
+<h2 id="phase-4-integer-path-validation-day-4">🎯 Phase 4: INTEGER Path Validation (Day 4)</h2>
+<h3 id="objective-validate-integer-based-ltree-paths"><strong>Objective</strong>: Validate INTEGER-based LTREE paths</h3>
+<h3 id="41-validate-paths-command"><strong>4.1: Validate Paths Command</strong></h3>
+<pre><code class="language-python">@cli.command()
+@click.option('--entity', required=True, help='Entity name')
+@click.option('--schema', default='public', help='Schema name')
+@click.option('--fix', is_flag=True, help='Fix invalid paths')
+def validate_paths(entity: str, schema: str, fix: bool = False):
+    &quot;&quot;&quot;Validate INTEGER-based LTREE paths.&quot;&quot;&quot;
+
+    entity_lower = entity.lower()
+    table_name = f&quot;{schema}.tb_{entity_lower}&quot;
+
+    checks = []
+
+    # Check 1: Path format (should be pure digits: &quot;1.5.23.47&quot;)
+    check1 = f&quot;&quot;&quot;
+    SELECT id, path
+    FROM {table_name}
+    WHERE path::text !~ '^[0-9]+(\\.[0-9]+)*$'
+      AND deleted_at IS NULL
+    LIMIT 10;
+    &quot;&quot;&quot;
+
+    # Check 2: Path consistency (path should match calculated path)
+    check2 = f&quot;&quot;&quot;
+    SELECT
+        id,
+        path as current_path,
+        {schema}.calculate_{entity_lower}_path(pk_{entity_lower}) as expected_path
+    FROM {table_name}
+    WHERE path IS DISTINCT FROM {schema}.calculate_{entity_lower}_path(pk_{entity_lower})
+      AND deleted_at IS NULL
+    LIMIT 10;
+    &quot;&quot;&quot;
+
+    # Check 3: Path includes own PK (last segment should be pk_{entity})
+    check3 = f&quot;&quot;&quot;
+    SELECT id, pk_{entity_lower}, path
+    FROM {table_name}
+    WHERE NOT (path::text ~ ('\\.' || pk_{entity_lower}::text || '$')
+           OR path::text = pk_{entity_lower}::text)
+      AND deleted_at IS NULL
+    LIMIT 10;
+    &quot;&quot;&quot;
+
+    invalid_format = execute_query(check1)
+    inconsistent = execute_query(check2)
+    wrong_pk = execute_query(check3)
+
+    all_ok = True
+
+    click.echo(f&quot;\nValidating {entity} paths:\n&quot;)
+
+    # Format validation
+    if invalid_format:
+        click.secho(f&quot;  ✗ {len(invalid_format)} path(s) with invalid format&quot;, fg='red')
+        for row in invalid_format[:3]:
+            click.echo(f&quot;      {row['id']}: {row['path']}&quot;)
+        all_ok = False
+    else:
+        click.secho(f&quot;  ✓ All paths have valid INTEGER format&quot;, fg='green')
+
+    # Consistency validation
+    if inconsistent:
+        click.secho(f&quot;  ✗ {len(inconsistent)} inconsistent path(s)&quot;, fg='red')
+        for row in inconsistent[:3]:
+            click.echo(f&quot;      {row['id']}: {row['current_path']} (should be {row['expected_path']})&quot;)
+        all_ok = False
+    else:
+        click.secho(f&quot;  ✓ All paths consistent with hierarchy&quot;, fg='green')
+
+    # PK validation
+    if wrong_pk:
+        click.secho(f&quot;  ✗ {len(wrong_pk)} path(s) missing own PK&quot;, fg='red')
+        for row in wrong_pk[:3]:
+            click.echo(f&quot;      {row['id']}: pk={row['pk_' + entity_lower]}, path={row['path']}&quot;)
+        all_ok = False
+    else:
+        click.secho(f&quot;  ✓ All paths include own PK&quot;, fg='green')
+
+    if all_ok:
+        click.secho(f&quot;\n✓ {entity} paths: OK&quot;, fg='green', bold=True)
+    else:
+        click.secho(f&quot;\n✗ {entity} paths: ERRORS FOUND&quot;, fg='red', bold=True)
+
+        if fix:
+            click.echo(&quot;\nFixing paths...&quot;)
+
+            fix_query = f&quot;&quot;&quot;
+            SELECT {schema}.recalculate_{entity_lower}_descendant_paths(NULL);
+            &quot;&quot;&quot;
+
+            execute_query(fix_query)
+            click.secho(&quot;✓ Paths recalculated&quot;, fg='green')
+        else:
+            click.echo(&quot;\nUse --fix to recalculate paths&quot;)
+</code></pre>
+<hr />
+<h2 id="summary-team-e-deliverables">📊 Summary: Team E Deliverables</h2>
+<h3 id="files-to-create"><strong>Files to Create</strong></h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+<th>Lines</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src/cli/orchestrator.py</code></td>
+<td>Migration ordering</td>
+<td>150</td>
+</tr>
+<tr>
+<td><code>src/cli/commands/deduplication.py</code></td>
+<td>Dedup management</td>
+<td>100</td>
+</tr>
+<tr>
+<td><code>src/cli/commands/recalculate.py</code></td>
+<td>Identifier recalc</td>
+<td>80</td>
+</tr>
+<tr>
+<td><code>src/cli/commands/split_entities.py</code></td>
+<td>Node+info management</td>
+<td>120</td>
+</tr>
+<tr>
+<td><code>src/cli/commands/validate_paths.py</code></td>
+<td>Path validation</td>
+<td>100</td>
+</tr>
+</tbody>
+</table>
+<h3 id="new-cli-commands"><strong>New CLI Commands</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>specql list-duplicates</code></td>
+<td>Show identifier duplicates</td>
+</tr>
+<tr>
+<td><code>specql recalculate-identifiers</code></td>
+<td>Recalc identifiers for entity</td>
+</tr>
+<tr>
+<td><code>specql list-split-entities</code></td>
+<td>Show node+info split entities</td>
+</tr>
+<tr>
+<td><code>specql validate-split-integrity</code></td>
+<td>Check node+info consistency</td>
+</tr>
+<tr>
+<td><code>specql validate-paths</code></td>
+<td>Validate INTEGER paths</td>
+</tr>
+</tbody>
+</table>
+<h3 id="timeline"><strong>Timeline</strong></h3>
+<ul>
+<li><strong>Day 1</strong>: Migration orchestration</li>
+<li><strong>Day 2</strong>: Deduplication CLI commands</li>
+<li><strong>Day 3</strong>: Node+info split CLI commands</li>
+<li><strong>Day 4</strong>: Path validation CLI commands</li>
+</ul>
+<p><strong>Total</strong>: 4 days</p>
+<hr />
+<h2 id="acceptance-criteria">✅ Acceptance Criteria</h2>
+<ul>
+<li>[ ] Migrations generated in correct order</li>
+<li>[ ] Extensions generated first</li>
+<li>[ ] Utilities generated after extensions</li>
+<li>[ ] Triggers generated after schema</li>
+<li>[ ] Deduplication CLI commands work</li>
+<li>[ ] Split entity CLI commands work</li>
+<li>[ ] Path validation CLI commands work</li>
+<li>[ ] All commands have <code>--help</code> documentation</li>
+</ul>
+<hr />
+<h2 id="dependencies">🔗 Dependencies</h2>
+<p><strong>Depends On</strong>:
+- Team B (all phases - provides templates)
+- Team C (action generation)
+- Team D (FraiseQL annotations)</p>
+<p><strong>Blocks</strong>:
+- None (final integration layer)</p>
+<hr />
+<p><strong>Status</strong>: 🟡 WAITING ON ALL TEAMS
+<strong>Priority</strong>: MEDIUM (integration)
+<strong>Effort</strong>: 4 days
+<strong>Start</strong>: After Teams B, C, D complete</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,754 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team C: Trinity Pattern Naming Correction - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team C: Trinity Pattern Naming Correction";
+        var mkdocs_page_input_path = "archive/teams/TEAM_C_TRINITY_PATTERN_CORRECTION.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team C: Trinity Pattern Naming Correction</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-c-trinity-pattern-naming-correction">Team C: Trinity Pattern Naming Correction</h1>
+<p><strong>Date</strong>: 2025-11-08
+<strong>Status</strong>: 🚨 CRITICAL CORRECTION REQUIRED
+<strong>Priority</strong>: IMMEDIATE</p>
+<hr />
+<h2 id="issue-identified">🚨 Issue Identified</h2>
+<p>Team C implementation plans and templates are using <strong>INCORRECT</strong> naming conventions that violate the Trinity pattern established by Team B.</p>
+<h3 id="current-wrong-naming">❌ Current (WRONG) Naming</h3>
+<pre><code class="language-sql">-- WRONG: Current templates use these names
+CREATE OR REPLACE FUNCTION app.create_contact(
+    input_pk_organization UUID,      -- ❌ WRONG
+    input_created_by UUID,            -- ❌ WRONG
+    input_payload JSONB
+)
+...
+DECLARE
+    v_id UUID := gen_random_uuid();  -- ❌ WRONG (ambiguous)
+    v_pk_contact INTEGER;             -- ❌ WRONG (inconsistent)
+</code></pre>
+<h3 id="correct-trinity-pattern-naming">✅ Correct (Trinity Pattern) Naming</h3>
+<pre><code class="language-sql">-- ✅ CORRECT: Trinity pattern naming
+CREATE OR REPLACE FUNCTION app.create_contact(
+    auth_tenant_id UUID,              -- ✅ JWT tenant context
+    auth_user_id UUID,                -- ✅ JWT user context
+    input_payload JSONB
+)
+...
+DECLARE
+    v_contact_id UUID := gen_random_uuid();  -- ✅ Entity-specific UUID
+    v_contact_pk INTEGER;                     -- ✅ Entity-specific INTEGER PK
+</code></pre>
+<hr />
+<h2 id="trinity-pattern-naming-conventions">📋 Trinity Pattern Naming Conventions</h2>
+<h3 id="parameter-naming"><strong>Parameter Naming</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Purpose</th>
+<th>Correct Name</th>
+<th>Type</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tenant context</td>
+<td><code>auth_tenant_id</code></td>
+<td>UUID</td>
+<td>JWT claims</td>
+</tr>
+<tr>
+<td>User context</td>
+<td><code>auth_user_id</code></td>
+<td>UUID</td>
+<td>JWT claims</td>
+</tr>
+<tr>
+<td>Input payload</td>
+<td><code>input_payload</code></td>
+<td>JSONB</td>
+<td>GraphQL/REST</td>
+</tr>
+<tr>
+<td>Composite input</td>
+<td><code>input_data</code></td>
+<td>composite type</td>
+<td>Converted from JSONB</td>
+</tr>
+</tbody>
+</table>
+<h3 id="variable-naming"><strong>Variable Naming</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Purpose</th>
+<th>Pattern</th>
+<th>Example</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>New entity UUID</td>
+<td><code>v_{entity}_id</code></td>
+<td><code>v_contact_id</code></td>
+<td>UUID</td>
+</tr>
+<tr>
+<td>Entity INTEGER PK</td>
+<td><code>v_{entity}_pk</code></td>
+<td><code>v_contact_pk</code></td>
+<td>INTEGER</td>
+</tr>
+<tr>
+<td>Foreign key INTEGER</td>
+<td><code>v_{relation}_pk</code></td>
+<td><code>v_company_pk</code></td>
+<td>INTEGER</td>
+</tr>
+<tr>
+<td>Result variable</td>
+<td><code>v_result</code></td>
+<td><code>v_result</code></td>
+<td>mutation_result</td>
+</tr>
+</tbody>
+</table>
+<h3 id="column-naming-in-insertupdate"><strong>Column Naming in INSERT/UPDATE</strong></h3>
+<table>
+<thead>
+<tr>
+<th>Purpose</th>
+<th>Pattern</th>
+<th>Example</th>
+<th>Type</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Primary key</td>
+<td><code>pk_{entity}</code></td>
+<td><code>pk_contact</code></td>
+<td>INTEGER</td>
+</tr>
+<tr>
+<td>UUID identifier</td>
+<td><code>id</code></td>
+<td><code>id</code></td>
+<td>UUID</td>
+</tr>
+<tr>
+<td>Tenant denormalization</td>
+<td><code>tenant_id</code></td>
+<td><code>tenant_id</code></td>
+<td>UUID</td>
+</tr>
+<tr>
+<td>Created by</td>
+<td><code>created_by</code></td>
+<td><code>created_by</code></td>
+<td>UUID</td>
+</tr>
+<tr>
+<td>Updated by</td>
+<td><code>updated_by</code></td>
+<td><code>updated_by</code></td>
+<td>UUID</td>
+</tr>
+<tr>
+<td>Deleted by</td>
+<td><code>deleted_by</code></td>
+<td><code>deleted_by</code></td>
+<td>UUID</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="required-changes">🔄 Required Changes</h2>
+<h3 id="1-app-wrapper-template-templatessqlapp_wrappersqlj2"><strong>1. App Wrapper Template</strong> (<code>templates/sql/app_wrapper.sql.j2</code>)</h3>
+<pre><code class="language-diff"> CREATE OR REPLACE FUNCTION app.{{ app_function_name }}(
+-    input_pk_organization UUID,      -- JWT context: tenant_id
+-    input_created_by UUID,            -- JWT context: user_id
++    auth_tenant_id UUID,              -- JWT context: tenant_id
++    auth_user_id UUID,                -- JWT context: user_id
+     input_payload JSONB               -- User input (GraphQL/REST)
+ ) RETURNS app.mutation_result
+ ...
+     -- Delegate to core business logic
+     RETURN {{ core_schema }}.{{ core_function_name }}(
+-        input_pk_organization,
++        auth_tenant_id,
+         input_data,
+         input_payload,
+-        input_created_by
++        auth_user_id
+     );
+</code></pre>
+<h3 id="2-core-create-function-template-templatessqlcore_create_functionsqlj2"><strong>2. Core Create Function Template</strong> (<code>templates/sql/core_create_function.sql.j2</code>)</h3>
+<pre><code class="language-diff"> CREATE OR REPLACE FUNCTION {{ entity.schema }}.create_{{ entity.name | lower }}(
+-    input_pk_organization UUID,
++    auth_tenant_id UUID,
+     input_data {{ composite_type }},
+     input_payload JSONB,
+-    input_created_by UUID
++    auth_user_id UUID
+ ) RETURNS app.mutation_result
+ ...
+ DECLARE
+-    v_id UUID := gen_random_uuid();
+-    v_{{ entity.pk_column }} INTEGER;
++    v_{{ entity.name | lower }}_id UUID := gen_random_uuid();
++    v_{{ entity.name | lower }}_pk INTEGER;
+ ...
+     IF {{ validation.check }} THEN
+         RETURN {{ entity.schema }}.log_and_return_mutation(
+-            input_pk_organization,
+-            input_created_by,
++            auth_tenant_id,
++            auth_user_id,
+             '{{ entity.name | lower }}',
+             '00000000-0000-0000-0000-000000000000'::UUID,
+             ...
+         );
+     END IF;
+ ...
+     -- === BUSINESS LOGIC: INSERT ===
+     INSERT INTO {{ entity.schema }}.{{ entity.table_name }} (
++        id,                           -- UUID
++        tenant_id,                    -- Denormalized tenant
+         ...
+         created_by                    -- Audit field
+     ) VALUES (
++        v_{{ entity.name | lower }}_id,
++        auth_tenant_id,
+         ...
+-        input_created_by
++        auth_user_id
+     )
+-    RETURNING {{ entity.pk_column }} INTO v_{{ entity.pk_column }};
++    RETURNING pk_{{ entity.name | lower }} INTO v_{{ entity.name | lower }}_pk;
+ ...
+     -- === AUDIT &amp; RETURN ===
+     RETURN {{ entity.schema }}.log_and_return_mutation(
+-        input_pk_organization,
+-        input_created_by,
++        auth_tenant_id,
++        auth_user_id,
+         '{{ entity.name | lower }}',
+-        v_id,
++        v_{{ entity.name | lower }}_id,
+         'INSERT',
+         'success',
+         ...
+-        (SELECT row_to_json(t.*) FROM {{ entity.schema }}.{{ entity.table_name }} t WHERE t.id = v_id)::JSONB,
++        (SELECT row_to_json(t.*) FROM {{ entity.schema }}.{{ entity.table_name }} t WHERE t.id = v_{{ entity.name | lower }}_id)::JSONB,
+         NULL
+     );
+</code></pre>
+<h3 id="3-core-update-function-template-templatessqlcore_update_functionsqlj2"><strong>3. Core Update Function Template</strong> (<code>templates/sql/core_update_function.sql.j2</code>)</h3>
+<pre><code class="language-diff"> CREATE OR REPLACE FUNCTION {{ entity.schema }}.update_{{ entity.name | lower }}(
+-    input_pk_organization UUID,
++    auth_tenant_id UUID,
+     input_payload JSONB,
+-    input_created_by UUID
++    auth_user_id UUID
+ ) RETURNS app.mutation_result
+ ...
+ DECLARE
+-    v_pk_{{ entity.name | lower }} INTEGER;
++    v_{{ entity.name | lower }}_id UUID;
++    v_{{ entity.name | lower }}_pk INTEGER;
+ ...
+     -- Extract entity ID from payload
+-    v_pk_{{ entity.name | lower }} := {{ entity.schema }}.{{ entity.name | lower }}_pk(
++    v_{{ entity.name | lower }}_id := (input_payload-&gt;&gt;'id')::UUID;
++    v_{{ entity.name | lower }}_pk := {{ entity.schema }}.{{ entity.name | lower }}_pk(
+-        (input_payload-&gt;&gt;'id')::TEXT
++        v_{{ entity.name | lower }}_id::TEXT
+     );
+ ...
+     UPDATE {{ entity.schema }}.{{ entity.table_name }}
+     SET ...
+         updated_at = now(),
+-        updated_by = input_created_by
+-    WHERE pk_{{ entity.name | lower }} = v_pk_{{ entity.name | lower }};
++        updated_by = auth_user_id
++    WHERE pk_{{ entity.name | lower }} = v_{{ entity.name | lower }}_pk;
+</code></pre>
+<h3 id="4-core-delete-function-template-templatessqlcore_delete_functionsqlj2"><strong>4. Core Delete Function Template</strong> (<code>templates/sql/core_delete_function.sql.j2</code>)</h3>
+<pre><code class="language-diff"> CREATE OR REPLACE FUNCTION {{ entity.schema }}.delete_{{ entity.name | lower }}(
+-    input_pk_organization UUID,
++    auth_tenant_id UUID,
+     input_payload JSONB,
+-    input_created_by UUID
++    auth_user_id UUID
+ ) RETURNS app.mutation_result
+ ...
+ DECLARE
+-    v_pk_{{ entity.name | lower }} INTEGER;
++    v_{{ entity.name | lower }}_id UUID;
++    v_{{ entity.name | lower }}_pk INTEGER;
+ ...
+     -- Soft delete
+     UPDATE {{ entity.schema }}.{{ entity.table_name }}
+     SET deleted_at = now(),
+-        deleted_by = input_created_by
+-    WHERE pk_{{ entity.name | lower }} = v_pk_{{ entity.name | lower }};
++        deleted_by = auth_user_id
++    WHERE pk_{{ entity.name | lower }} = v_{{ entity.name | lower }}_pk;
+</code></pre>
+<hr />
+<h2 id="rationale-for-trinity-pattern-naming">🎯 Rationale for Trinity Pattern Naming</h2>
+<h3 id="why-auth_tenant_id-not-input_pk_organization"><strong>Why <code>auth_tenant_id</code> not <code>input_pk_organization</code>?</strong></h3>
+<ol>
+<li><strong>Clarity</strong>: <code>auth_</code> prefix clearly indicates JWT context parameter</li>
+<li><strong>Consistency</strong>: Matches JWT claim structure (<code>auth.tenant_id</code>)</li>
+<li><strong>Separation</strong>: Distinguishes auth context from business input</li>
+<li><strong>Standard</strong>: Follows PostgreSQL RLS pattern conventions</li>
+</ol>
+<h3 id="why-v_entity_id-and-v_entity_pk"><strong>Why <code>v_{entity}_id</code> and <code>v_{entity}_pk</code>?</strong></h3>
+<ol>
+<li><strong>Type Safety</strong>: Clear distinction between UUID (id) and INTEGER (pk)</li>
+<li><strong>Entity-Specific</strong>: <code>v_contact_id</code> is unambiguous, <code>v_id</code> is unclear</li>
+<li><strong>Maintenance</strong>: Easy to grep/search for specific entity operations</li>
+<li><strong>Trinity Compliance</strong>: Directly maps to Trinity columns (<code>id</code>, <code>pk_*</code>)</li>
+</ol>
+<h3 id="why-auth_user_id-not-input_created_by"><strong>Why <code>auth_user_id</code> not <code>input_created_by</code>?</strong></h3>
+<ol>
+<li><strong>Semantic Clarity</strong>: User ID is auth context, not input data</li>
+<li><strong>Consistency</strong>: Matches <code>auth_tenant_id</code> pattern</li>
+<li><strong>Reusability</strong>: Same user ID for created_by, updated_by, deleted_by</li>
+<li><strong>JWT Mapping</strong>: Directly corresponds to <code>auth.user_id</code> claim</li>
+</ol>
+<hr />
+<h2 id="code-generation-changes-required">📝 Code Generation Changes Required</h2>
+<h3 id="corelogicgenerator-srcgeneratorscore_logic_generatorpy"><strong>CoreLogicGenerator</strong> (<code>src/generators/core_logic_generator.py</code>)</h3>
+<pre><code class="language-python"># Current (WRONG)
+context = {
+    &quot;params&quot;: [
+        &quot;input_pk_organization UUID&quot;,      # ❌ WRONG
+        &quot;input_data composite_type&quot;,
+        &quot;input_payload JSONB&quot;,
+        &quot;input_created_by UUID&quot;            # ❌ WRONG
+    ],
+    &quot;variables&quot;: {
+        &quot;id&quot;: &quot;v_id&quot;,                      # ❌ WRONG (ambiguous)
+        &quot;pk&quot;: f&quot;v_{entity.pk_column}&quot;      # ❌ WRONG (inconsistent)
+    }
+}
+
+# Corrected (RIGHT)
+context = {
+    &quot;params&quot;: [
+        &quot;auth_tenant_id UUID&quot;,              # ✅ CORRECT
+        &quot;input_data composite_type&quot;,
+        &quot;input_payload JSONB&quot;,
+        &quot;auth_user_id UUID&quot;                 # ✅ CORRECT
+    ],
+    &quot;variables&quot;: {
+        &quot;id&quot;: f&quot;v_{entity.name.lower()}_id&quot;,    # ✅ CORRECT
+        &quot;pk&quot;: f&quot;v_{entity.name.lower()}_pk&quot;     # ✅ CORRECT
+    }
+}
+</code></pre>
+<h3 id="appwrappergenerator-srcgeneratorsapp_wrapper_generatorpy"><strong>AppWrapperGenerator</strong> (<code>src/generators/app_wrapper_generator.py</code>)</h3>
+<pre><code class="language-python"># Update template context
+context = {
+    &quot;app_function_name&quot;: action.name,
+    &quot;composite_type_name&quot;: f&quot;app.type_{action.name}_input&quot;,
+    &quot;core_schema&quot;: entity.schema,
+    &quot;core_function_name&quot;: action.name,
+    &quot;graphql_name&quot;: self._to_camel_case(action.name),
+    # Parameter names
+    &quot;auth_params&quot;: {
+        &quot;tenant&quot;: &quot;auth_tenant_id&quot;,  # ✅ CORRECT
+        &quot;user&quot;: &quot;auth_user_id&quot;       # ✅ CORRECT
+    }
+}
+</code></pre>
+<hr />
+<h2 id="test-updates-required">🧪 Test Updates Required</h2>
+<h3 id="test_app_wrapper_generatorpy"><strong>test_app_wrapper_generator.py</strong></h3>
+<pre><code class="language-diff"> def test_app_wrapper_jwt_context_parameters():
+     &quot;&quot;&quot;App wrapper extracts JWT context&quot;&quot;&quot;
+     sql = generator.generate_app_wrapper(entity, action)
+
+     # Then: Context parameters use auth_ prefix
+-    assert &quot;input_pk_organization UUID&quot; in sql
+-    assert &quot;input_created_by UUID&quot; in sql
++    assert &quot;auth_tenant_id UUID&quot; in sql
++    assert &quot;auth_user_id UUID&quot; in sql
+     # Then: Payload is third param
+     assert &quot;input_payload JSONB&quot; in sql
+</code></pre>
+<h3 id="test_core_logic_generatorpy"><strong>test_core_logic_generator.py</strong></h3>
+<pre><code class="language-diff"> def test_core_function_uses_trinity_naming():
+     &quot;&quot;&quot;Core function uses Trinity pattern variable names&quot;&quot;&quot;
+     entity = Entity(name=&quot;Contact&quot;, ...)
+     sql = generator.generate_core_create_function(entity)
+
+-    assert &quot;v_id UUID := gen_random_uuid()&quot; in sql
+-    assert &quot;v_pk_contact INTEGER&quot; in sql
++    assert &quot;v_contact_id UUID := gen_random_uuid()&quot; in sql
++    assert &quot;v_contact_pk INTEGER&quot; in sql
++    assert &quot;auth_tenant_id UUID&quot; in sql
++    assert &quot;auth_user_id UUID&quot; in sql
+</code></pre>
+<hr />
+<h2 id="impact-analysis">📊 Impact Analysis</h2>
+<h3 id="files-to-update"><strong>Files to Update</strong></h3>
+<h4 id="templates">Templates</h4>
+<ul>
+<li>✅ <code>templates/sql/app_wrapper.sql.j2</code></li>
+<li>✅ <code>templates/sql/core_create_function.sql.j2</code></li>
+<li>✅ <code>templates/sql/core_update_function.sql.j2</code></li>
+<li>✅ <code>templates/sql/core_delete_function.sql.j2</code></li>
+</ul>
+<h4 id="python-generators">Python Generators</h4>
+<ul>
+<li>✅ <code>src/generators/app_wrapper_generator.py</code></li>
+<li>✅ <code>src/generators/core_logic_generator.py</code></li>
+<li>⚠️ <code>src/generators/actions/action_compiler.py</code> (if exists)</li>
+<li>⚠️ <code>src/generators/actions/function_scaffolding.py</code> (if exists)</li>
+</ul>
+<h4 id="tests">Tests</h4>
+<ul>
+<li>✅ <code>tests/unit/generators/test_app_wrapper_generator.py</code></li>
+<li>✅ <code>tests/unit/generators/test_core_logic_generator.py</code></li>
+</ul>
+<h4 id="documentation">Documentation</h4>
+<ul>
+<li>✅ <code>docs/implementation-plans/TEAM_C_APP_CORE_FUNCTIONS_PLAN.md</code></li>
+<li>✅ <code>docs/teams/TEAM_C_DETAILED_PLAN.md</code></li>
+<li>⚠️ <code>docs/architecture/APP_CORE_FUNCTION_PATTERN.md</code></li>
+</ul>
+<hr />
+<h2 id="verification-checklist">✅ Verification Checklist</h2>
+<p>After making changes, verify:</p>
+<ul>
+<li>[ ] All templates use <code>auth_tenant_id</code> and <code>auth_user_id</code></li>
+<li>[ ] All templates use <code>v_{entity}_id</code> and <code>v_{entity}_pk</code> pattern</li>
+<li>[ ] INSERT statements include <code>tenant_id</code> populated from <code>auth_tenant_id</code></li>
+<li>[ ] INSERT statements include <code>created_by</code> populated from <code>auth_user_id</code></li>
+<li>[ ] UPDATE statements include <code>updated_by = auth_user_id</code></li>
+<li>[ ] DELETE statements include <code>deleted_by = auth_user_id</code></li>
+<li>[ ] All tests updated to expect new naming</li>
+<li>[ ] All documentation reflects Trinity pattern</li>
+<li>[ ] Generated SQL validates in PostgreSQL</li>
+<li>[ ] No references to old naming remain</li>
+</ul>
+<hr />
+<h2 id="migration-strategy">🚀 Migration Strategy</h2>
+<h3 id="phase-1-update-templates-immediate">Phase 1: Update Templates (Immediate)</h3>
+<pre><code class="language-bash"># Update all SQL templates with correct naming
+vim templates/sql/app_wrapper.sql.j2
+vim templates/sql/core_create_function.sql.j2
+vim templates/sql/core_update_function.sql.j2
+vim templates/sql/core_delete_function.sql.j2
+</code></pre>
+<h3 id="phase-2-update-generators-immediate">Phase 2: Update Generators (Immediate)</h3>
+<pre><code class="language-bash"># Update Python generators to use correct context
+vim src/generators/app_wrapper_generator.py
+vim src/generators/core_logic_generator.py
+</code></pre>
+<h3 id="phase-3-update-tests-immediate">Phase 3: Update Tests (Immediate)</h3>
+<pre><code class="language-bash"># Update test expectations
+vim tests/unit/generators/test_app_wrapper_generator.py
+vim tests/unit/generators/test_core_logic_generator.py
+
+# Run tests to verify
+uv run pytest tests/unit/generators/ -v
+</code></pre>
+<h3 id="phase-4-update-documentation-before-team-c-starts">Phase 4: Update Documentation (Before Team C starts)</h3>
+<pre><code class="language-bash"># Update all Team C documentation
+vim docs/implementation-plans/TEAM_C_APP_CORE_FUNCTIONS_PLAN.md
+vim docs/teams/TEAM_C_DETAILED_PLAN.md
+vim docs/architecture/APP_CORE_FUNCTION_PATTERN.md
+</code></pre>
+<h3 id="phase-5-code-review-before-merge">Phase 5: Code Review (Before merge)</h3>
+<pre><code class="language-bash"># Grep for old naming patterns
+git grep -n &quot;input_pk_organization&quot;
+git grep -n &quot;input_created_by&quot;
+git grep -n &quot;v_id UUID :=&quot;
+
+# Should return 0 results
+</code></pre>
+<hr />
+<h2 id="reference-trinity-pattern-summary">📚 Reference: Trinity Pattern Summary</h2>
+<h3 id="complete-example-corrected"><strong>Complete Example (Corrected)</strong></h3>
+<pre><code class="language-sql">-- ============================================================================
+-- APP LAYER: GraphQL Entry Point
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.create_contact(
+    auth_tenant_id UUID,              -- ✅ JWT tenant context
+    auth_user_id UUID,                -- ✅ JWT user context
+    input_payload JSONB               -- ✅ GraphQL input
+) RETURNS app.mutation_result
+LANGUAGE plpgsql AS $$
+DECLARE
+    input_data app.type_create_contact_input;
+BEGIN
+    input_data := jsonb_populate_record(NULL::app.type_create_contact_input, input_payload);
+
+    RETURN crm.create_contact(
+        auth_tenant_id,
+        input_data,
+        input_payload,
+        auth_user_id
+    );
+END;
+$$;
+
+-- ============================================================================
+-- CORE LAYER: Business Logic
+-- ============================================================================
+CREATE OR REPLACE FUNCTION crm.create_contact(
+    auth_tenant_id UUID,
+    input_data app.type_create_contact_input,
+    input_payload JSONB,
+    auth_user_id UUID
+) RETURNS app.mutation_result
+LANGUAGE plpgsql AS $$
+DECLARE
+    v_contact_id UUID := gen_random_uuid();  -- ✅ Entity-specific UUID
+    v_contact_pk INTEGER;                     -- ✅ Entity-specific PK
+    v_company_pk INTEGER;                     -- ✅ FK variable
+BEGIN
+    -- === VALIDATION ===
+    IF input_data.email IS NULL THEN
+        RETURN crm.log_and_return_mutation(
+            auth_tenant_id,           -- ✅ Tenant context
+            auth_user_id,             -- ✅ User context
+            'contact',
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            'NOOP',
+            'failed:missing_email',
+            ARRAY['email']::TEXT[],
+            'Email is required',
+            NULL, NULL,
+            jsonb_build_object('reason', 'validation_email_null')
+        );
+    END IF;
+
+    -- === UUID → INTEGER RESOLUTION (Trinity Helpers) ===
+    IF input_data.company_id IS NOT NULL THEN
+        v_company_pk := crm.company_pk(input_data.company_id::TEXT);  -- ✅ FK resolution
+
+        IF v_company_pk IS NULL THEN
+            RETURN crm.log_and_return_mutation(
+                auth_tenant_id,
+                auth_user_id,
+                'contact',
+                '00000000-0000-0000-0000-000000000000'::UUID,
+                'NOOP',
+                'failed:company_not_found',
+                ARRAY['company_id']::TEXT[],
+                'Company not found',
+                NULL, NULL,
+                jsonb_build_object('company_id', input_data.company_id)
+            );
+        END IF;
+    END IF;
+
+    -- === BUSINESS LOGIC: INSERT ===
+    INSERT INTO crm.tb_contact (
+        id,                   -- ✅ UUID from v_contact_id
+        tenant_id,            -- ✅ Denormalized from auth_tenant_id
+        email,
+        fk_company,           -- ✅ INTEGER FK from v_company_pk
+        status,
+        created_at,
+        created_by            -- ✅ From auth_user_id
+    ) VALUES (
+        v_contact_id,         -- ✅ Generated UUID
+        auth_tenant_id,       -- ✅ JWT tenant
+        input_data.email,
+        v_company_pk,         -- ✅ Resolved FK
+        input_data.status,
+        now(),
+        auth_user_id          -- ✅ JWT user
+    )
+    RETURNING pk_contact INTO v_contact_pk;  -- ✅ Entity-specific PK variable
+
+    -- === AUDIT &amp; RETURN ===
+    RETURN crm.log_and_return_mutation(
+        auth_tenant_id,
+        auth_user_id,
+        'contact',
+        v_contact_id,         -- ✅ UUID identifier
+        'INSERT',
+        'success',
+        ARRAY(SELECT jsonb_object_keys(input_payload)),
+        'Contact created successfully',
+        (SELECT row_to_json(c.*) FROM crm.tb_contact c WHERE c.id = v_contact_id)::JSONB,
+        NULL
+    );
+END;
+$$;
+</code></pre>
+<hr />
+<h2 id="quick-reference-card">🔍 Quick Reference Card</h2>
+<h3 id="parameter-naming_1"><strong>Parameter Naming</strong></h3>
+<pre><code class="language-sql">-- ✅ ALWAYS use these names
+auth_tenant_id UUID      -- JWT tenant context
+auth_user_id UUID        -- JWT user context
+input_payload JSONB      -- GraphQL/REST input
+input_data composite     -- Typed composite (app layer)
+</code></pre>
+<h3 id="variable-naming_1"><strong>Variable Naming</strong></h3>
+<pre><code class="language-sql">-- ✅ ALWAYS use entity-specific names
+v_contact_id UUID        -- New entity UUID
+v_contact_pk INTEGER     -- Entity INTEGER PK
+v_company_pk INTEGER     -- Foreign key PK
+v_result mutation_result -- Function result
+</code></pre>
+<h3 id="column-value-mapping"><strong>Column Value Mapping</strong></h3>
+<pre><code class="language-sql">INSERT INTO crm.tb_contact (
+    id,          -- ← v_contact_id
+    tenant_id,   -- ← auth_tenant_id
+    fk_company,  -- ← v_company_pk (resolved)
+    created_by   -- ← auth_user_id
+) VALUES (
+    v_contact_id,
+    auth_tenant_id,
+    v_company_pk,
+    auth_user_id
+);
+</code></pre>
+<hr />
+<p><strong>CRITICAL</strong>: All Team C code MUST follow these naming conventions to maintain consistency with the Trinity pattern and enable proper multi-tenancy, audit tracking, and UUID/INTEGER resolution.</p>
+<p><strong>Last Updated</strong>: 2025-11-08
+<strong>Priority</strong>: IMMEDIATE ACTION REQUIRED
+<strong>Status</strong>: Ready for Implementation</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

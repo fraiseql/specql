@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>tv_ Table FraiseQL Annotations - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "tv_ Table FraiseQL Annotations";
+        var mkdocs_page_input_path = "reference/fraiseql/TV_ANNOTATIONS.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">tv_ Table FraiseQL Annotations</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="tv_-table-fraiseql-annotations">tv_ Table FraiseQL Annotations</h1>
+<h2 id="overview">Overview</h2>
+<p>Team D implements automatic FraiseQL annotation generation for <code>tv_</code> (table view) tables. These annotations enable FraiseQL v1.3.4+ to automatically introspect CQRS read-optimized tables and generate GraphQL types from their structure.</p>
+<h2 id="purpose">Purpose</h2>
+<p>The <code>tv_</code> tables are denormalized, read-optimized views that combine entity data with related entities in JSONB format. FraiseQL annotations tell the GraphQL engine:</p>
+<ol>
+<li><strong>Table Metadata</strong>: How to treat the table (materialized view, refresh strategy)</li>
+<li><strong>Internal Columns</strong>: Which columns should NOT be exposed in GraphQL (pk_<em>, fk_</em>, refreshed_at)</li>
+<li><strong>Filter Columns</strong>: Which columns are optimized for WHERE clauses</li>
+<li><strong>Data Structure</strong>: How to extract GraphQL types from JSONB data</li>
+</ol>
+<h2 id="generated-annotations">Generated Annotations</h2>
+<h3 id="table-level-annotations">Table-Level Annotations</h3>
+<pre><code class="language-sql">COMMENT ON TABLE library.tv_review IS
+  '@fraiseql:table source=materialized,refresh=explicit,primary=true,description=Read-optimized Review with denormalized relations';
+</code></pre>
+<p><strong>Parameters:</strong>
+- <code>source=materialized</code>: This is a materialized view, not a regular table
+- <code>refresh=explicit</code>: Refreshed via explicit function calls (not automatic)
+- <code>primary=true</code>: This is the primary GraphQL type (not the tb_* table)
+- <code>description</code>: Human-readable description</p>
+<h3 id="internal-column-annotations">Internal Column Annotations</h3>
+<p>Internal columns are marked with <code>internal=true</code> to prevent GraphQL exposure:</p>
+<pre><code class="language-sql">-- Primary key (not exposed in GraphQL)
+COMMENT ON COLUMN library.tv_review.pk_review IS
+  '@fraiseql:field internal=true,description=Internal primary key';
+
+-- Foreign keys (for JOINs only)
+COMMENT ON COLUMN library.tv_review.fk_user IS
+  '@fraiseql:field internal=true,description=Internal FK for User';
+
+-- Refresh timestamp
+COMMENT ON COLUMN library.tv_review.refreshed_at IS
+  '@fraiseql:field internal=true,description=Last refresh timestamp';
+</code></pre>
+<h3 id="filter-column-annotations">Filter Column Annotations</h3>
+<p>Filter columns are annotated for efficient WHERE clause generation:</p>
+<pre><code class="language-sql">-- Tenant isolation
+COMMENT ON COLUMN library.tv_review.tenant_id IS
+  '@fraiseql:filter type=UUID,index=btree,performance=optimized,description=Multi-tenant filter';
+
+-- Foreign key filters
+COMMENT ON COLUMN library.tv_review.user_id IS
+  '@fraiseql:filter type=UUID,relation=User,index=btree,performance=optimized,description=Filter by User';
+
+-- Extra filters (promoted scalars)
+COMMENT ON COLUMN library.tv_review.rating IS
+  '@fraiseql:filter type=Int,index=btree,performance=optimized,description=Filter by rating';
+</code></pre>
+<h3 id="jsonb-data-column-annotation">JSONB Data Column Annotation</h3>
+<p>The <code>data</code> column contains denormalized entity data:</p>
+<pre><code class="language-sql">COMMENT ON COLUMN library.tv_review.data IS
+  '@fraiseql:jsonb expand=true,description=Denormalized Review data with nested relations';
+</code></pre>
+<p><strong>Parameters:</strong>
+- <code>expand=true</code>: Introspect JSONB structure and extract GraphQL types
+- <code>description</code>: Human-readable description</p>
+<h2 id="integration-with-schema-orchestrator">Integration with Schema Orchestrator</h2>
+<p>Annotations are automatically generated by the <code>SchemaOrchestrator.generate_table_views()</code> method:</p>
+<pre><code class="language-python">from src.generators.schema_orchestrator import SchemaOrchestrator
+
+orchestrator = SchemaOrchestrator()
+sql = orchestrator.generate_table_views([entity])
+
+# Returns: CREATE TABLE + indexes + refresh function + FraiseQL annotations
+</code></pre>
+<h2 id="example-complete-tv_review-table">Example: Complete tv_review Table</h2>
+<pre><code class="language-sql">-- Table View: library.tv_review
+CREATE TABLE library.tv_review (
+    pk_review INTEGER PRIMARY KEY,
+    id UUID NOT NULL UNIQUE,
+    tenant_id UUID NOT NULL,
+    fk_user INTEGER,
+    fk_book INTEGER,
+    user_id UUID,
+    book_id UUID,
+    rating INTEGER,
+    created_at TIMESTAMPTZ,
+    data JSONB NOT NULL,
+    refreshed_at TIMESTAMPTZ DEFAULT now()
+);
+
+-- Indexes...
+-- Refresh function...
+
+-- FraiseQL Annotations: library.tv_review
+COMMENT ON TABLE library.tv_review IS
+  '@fraiseql:table source=materialized,refresh=explicit,primary=true,description=Read-optimized Review with denormalized relations';
+
+COMMENT ON COLUMN library.tv_review.pk_review IS
+  '@fraiseql:field internal=true,description=Internal primary key';
+
+COMMENT ON COLUMN library.tv_review.fk_user IS
+  '@fraiseql:field internal=true,description=Internal FK for User';
+
+COMMENT ON COLUMN library.tv_review.fk_book IS
+  '@fraiseql:field internal=true,description=Internal FK for Book';
+
+COMMENT ON COLUMN library.tv_review.refreshed_at IS
+  '@fraiseql:field internal=true,description=Last refresh timestamp';
+
+COMMENT ON COLUMN library.tv_review.tenant_id IS
+  '@fraiseql:filter type=UUID,index=btree,performance=optimized,description=Multi-tenant filter';
+
+COMMENT ON COLUMN library.tv_review.user_id IS
+  '@fraiseql:filter type=UUID,relation=User,index=btree,performance=optimized,description=Filter by User';
+
+COMMENT ON COLUMN library.tv_review.book_id IS
+  '@fraiseql:filter type=UUID,relation=Book,index=btree,performance=optimized,description=Filter by Book';
+
+COMMENT ON COLUMN library.tv_review.rating IS
+  '@fraiseql:filter type=Int,index=btree,performance=optimized,description=Filter by rating';
+
+COMMENT ON COLUMN library.tv_review.created_at IS
+  '@fraiseql:filter type=DateTime,index=btree,performance=optimized,description=Filter by created_at';
+
+COMMENT ON COLUMN library.tv_review.data IS
+  '@fraiseql:jsonb expand=true,description=Denormalized Review data with nested relations';
+</code></pre>
+<h2 id="graphql-type-generation">GraphQL Type Generation</h2>
+<p>With these annotations, FraiseQL automatically generates:</p>
+<pre><code class="language-graphql">type Review {
+  id: UUID!
+  tenantId: UUID!
+  userId: UUID!
+  bookId: UUID!
+  rating: Int
+  createdAt: DateTime
+  data: ReviewData!
+}
+
+type ReviewData {
+  content: String
+  User: UserData
+  Book: BookData
+}
+
+type UserData {
+  name: String
+  email: String
+  avatarUrl: String
+}
+
+type BookData {
+  title: String
+  isbn: String
+  publishedYear: Int
+  genre: String
+}
+</code></pre>
+<h2 id="testing">Testing</h2>
+<p>Comprehensive test coverage includes:</p>
+<ul>
+<li><strong>Unit Tests</strong>: <code>tests/unit/fraiseql/test_table_view_annotator.py</code></li>
+<li><strong>E2E Tests</strong>: <code>tests/integration/fraiseql/test_tv_annotations_e2e.py</code></li>
+<li><strong>Test Fixture</strong>: <code>entities/examples/review_with_table_views.yaml</code></li>
+</ul>
+<p>Run tests:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/fraiseql/test_table_view_annotator.py -v
+uv run pytest tests/integration/fraiseql/test_tv_annotations_e2e.py -v
+</code></pre>
+<h2 id="benefits">Benefits</h2>
+<ol>
+<li><strong>Zero Configuration</strong>: FraiseQL works out-of-the-box with SpecQL entities</li>
+<li><strong>Type Safety</strong>: Automatic GraphQL type generation from JSONB structure</li>
+<li><strong>Performance</strong>: Optimized filter columns with proper indexing hints</li>
+<li><strong>Security</strong>: Internal columns automatically hidden from GraphQL API</li>
+<li><strong>Maintainability</strong>: Annotations generated from entity definitions, not manual</li>
+</ol>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

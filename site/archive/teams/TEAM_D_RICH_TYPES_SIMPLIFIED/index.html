@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team D: Rich Types Integration - Simplified FraiseQL Compatibility - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team D: Rich Types Integration - Simplified FraiseQL Compatibility";
+        var mkdocs_page_input_path = "archive/teams/TEAM_D_RICH_TYPES_SIMPLIFIED.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team D: Rich Types Integration - Simplified FraiseQL Compatibility</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-d-rich-types-integration-simplified-fraiseql-compatibility">Team D: Rich Types Integration - Simplified FraiseQL Compatibility</h1>
+<p><strong>Epic</strong>: Ensure FraiseQL Rich Type Compatibility
+<strong>Timeline</strong>: Week 5, Day 1 (1-2 hours only!)
+<strong>Complexity</strong>: Low (FraiseQL now handles most work automatically)</p>
+<hr />
+<h2 id="objective-simplified">🎯 Objective (SIMPLIFIED!)</h2>
+<p><strong>MAJOR SIMPLIFICATION</strong>: FraiseQL v1.3.4+ now automatically:
+- ✅ Converts PostgreSQL <code>COMMENT ON</code> to GraphQL descriptions
+- ✅ Discovers composite types and their fields
+- ✅ Maps PostgreSQL types to GraphQL scalars</p>
+<p><strong>Team D's New Role</strong>: Verify compatibility and add minimal <code>@fraiseql:type</code> annotations where needed.</p>
+<p><strong>Success Criteria</strong>:
+- ✅ FraiseQL discovers all rich type fields correctly
+- ✅ GraphQL schema includes proper scalars (Email, Url, PhoneNumber, etc.)
+- ✅ Field descriptions appear from PostgreSQL comments
+- ✅ No manual annotation duplication needed
+- ✅ Integration tests pass</p>
+<hr />
+<h2 id="what-changed">📋 What Changed?</h2>
+<h3 id="before-original-team-d-plan">Before (Original Team D Plan)</h3>
+<p>Team D had to manually generate extensive <code>@fraiseql:field</code> annotations:</p>
+<pre><code class="language-sql">COMMENT ON COLUMN crm.tb_contact.email IS
+  '@fraiseql:field
+   name=email
+   type=Email!
+   description=&quot;Email address (validated format)&quot;';
+</code></pre>
+<h3 id="after-fraiseql-v134">After (FraiseQL v1.3.4+)</h3>
+<p>PostgreSQL comments automatically become GraphQL descriptions:</p>
+<pre><code class="language-sql">-- Team B generates this
+COMMENT ON COLUMN crm.tb_contact.email IS 'Email address (validated format) (required)';
+
+-- FraiseQL automatically discovers and uses it!
+</code></pre>
+<p><strong>Result</strong>: ~90% less work for Team D!</p>
+<hr />
+<h2 id="phase-1-verification-compatibility-testing">📋 PHASE 1: Verification &amp; Compatibility Testing</h2>
+<p><strong>Duration</strong>: 1-2 hours</p>
+<h3 id="red-phase-write-integration-tests">🔴 RED Phase: Write Integration Tests</h3>
+<p><strong>Test File</strong>: <code>tests/integration/fraiseql/test_rich_type_autodiscovery.py</code></p>
+<pre><code class="language-python">import pytest
+from src.cli.orchestrator import Orchestrator
+
+
+@pytest.fixture
+def generated_schema(test_db):
+    &quot;&quot;&quot;Generate complete schema from SpecQL and apply to test database&quot;&quot;&quot;
+
+    # Generate from SpecQL with rich types
+    orchestrator = Orchestrator()
+    migration = orchestrator.generate_from_file(
+        &quot;entities/examples/contact_with_rich_types.yaml&quot;
+    )
+
+    # Apply to test database
+    cursor = test_db.cursor()
+    cursor.execute(migration)
+    test_db.commit()
+
+    # Run FraiseQL introspection
+    from fraiseql import FraiseQL
+
+    fraiseql = FraiseQL(database_url=&quot;postgresql://localhost/test_specql&quot;)
+    schema = fraiseql.introspect()
+
+    return schema
+
+
+def test_email_field_autodiscovered_as_email_scalar(generated_schema):
+    &quot;&quot;&quot;Test: FraiseQL discovers email type as Email scalar&quot;&quot;&quot;
+
+    contact_type = generated_schema.get_type(&quot;Contact&quot;)
+    assert contact_type is not None
+
+    email_field = contact_type.get_field(&quot;email&quot;)
+    assert email_field is not None
+    assert email_field.type == &quot;Email!&quot;  # Non-nullable Email scalar
+
+
+def test_email_field_has_description_from_comment(generated_schema):
+    &quot;&quot;&quot;Test: Field description comes from PostgreSQL COMMENT&quot;&quot;&quot;
+
+    contact_type = generated_schema.get_type(&quot;Contact&quot;)
+    email_field = contact_type.get_field(&quot;email&quot;)
+
+    # Description should come from Team B's generated COMMENT
+    assert &quot;email address&quot; in email_field.description.lower()
+    assert &quot;validated&quot; in email_field.description.lower()
+
+
+def test_url_field_autodiscovered_as_url_scalar(generated_schema):
+    &quot;&quot;&quot;Test: FraiseQL discovers url type as Url scalar&quot;&quot;&quot;
+
+    contact_type = generated_schema.get_type(&quot;Contact&quot;)
+    website_field = contact_type.get_field(&quot;website&quot;)
+
+    assert website_field.type == &quot;Url&quot;  # Nullable Url scalar
+
+
+def test_phone_field_autodiscovered_as_phone_number_scalar(generated_schema):
+    &quot;&quot;&quot;Test: FraiseQL discovers phoneNumber type&quot;&quot;&quot;
+
+    contact_type = generated_schema.get_type(&quot;Contact&quot;)
+    phone_field = contact_type.get_field(&quot;phone&quot;)
+
+    assert phone_field.type == &quot;PhoneNumber&quot;
+
+
+def test_coordinates_field_autodiscovered(generated_schema):
+    &quot;&quot;&quot;Test: FraiseQL discovers coordinates type&quot;&quot;&quot;
+
+    place_type = generated_schema.get_type(&quot;Place&quot;)
+    location_field = place_type.get_field(&quot;location&quot;)
+
+    assert location_field.type == &quot;Coordinates&quot;
+
+
+def test_money_field_autodiscovered(generated_schema):
+    &quot;&quot;&quot;Test: FraiseQL discovers money type&quot;&quot;&quot;
+
+    product_type = generated_schema.get_type(&quot;Product&quot;)
+    price_field = product_type.get_field(&quot;price&quot;)
+
+    assert price_field.type == &quot;Money!&quot;
+
+
+def test_all_fraiseql_scalars_available(generated_schema):
+    &quot;&quot;&quot;Test: FraiseQL provides all custom scalars&quot;&quot;&quot;
+
+    expected_scalars = [
+        &quot;Email&quot;, &quot;Url&quot;, &quot;PhoneNumber&quot;, &quot;IpAddress&quot;, &quot;MacAddress&quot;,
+        &quot;Coordinates&quot;, &quot;Money&quot;, &quot;Percentage&quot;, &quot;Markdown&quot;,
+        &quot;Color&quot;, &quot;Slug&quot;, &quot;Date&quot;, &quot;DateTime&quot;
+    ]
+
+    available_scalars = generated_schema.get_all_scalars()
+
+    for scalar in expected_scalars:
+        assert scalar in available_scalars, f&quot;Missing scalar: {scalar}&quot;
+
+
+def test_graphql_query_with_rich_types(generated_schema, test_db):
+    &quot;&quot;&quot;Test: GraphQL queries work with rich type fields&quot;&quot;&quot;
+
+    # Insert test data
+    cursor = test_db.cursor()
+    cursor.execute(&quot;&quot;&quot;
+        INSERT INTO crm.tb_contact (email, website, phone)
+        VALUES ('test@example.com', 'https://example.com', '+1234567890')
+        RETURNING id
+    &quot;&quot;&quot;)
+    contact_id = cursor.fetchone()[0]
+    test_db.commit()
+
+    # Execute GraphQL query
+    from fraiseql import FraiseQL
+
+    fraiseql = FraiseQL(database_url=&quot;postgresql://localhost/test_specql&quot;)
+    result = fraiseql.execute(f&quot;&quot;&quot;
+        query {{
+          contact(id: &quot;{contact_id}&quot;) {{
+            email
+            website
+            phone
+          }}
+        }}
+    &quot;&quot;&quot;)
+
+    # Verify results
+    assert result[&quot;data&quot;][&quot;contact&quot;][&quot;email&quot;] == &quot;test@example.com&quot;
+    assert result[&quot;data&quot;][&quot;contact&quot;][&quot;website&quot;] == &quot;https://example.com&quot;
+    assert result[&quot;data&quot;][&quot;contact&quot;][&quot;phone&quot;] == &quot;+1234567890&quot;
+
+
+def test_graphql_mutation_with_rich_types(generated_schema, test_db):
+    &quot;&quot;&quot;Test: GraphQL mutations validate rich types&quot;&quot;&quot;
+
+    from fraiseql import FraiseQL
+
+    fraiseql = FraiseQL(database_url=&quot;postgresql://localhost/test_specql&quot;)
+
+    # Valid email should work
+    result = fraiseql.execute(&quot;&quot;&quot;
+        mutation {
+          createContact(input: {
+            email: &quot;valid@example.com&quot;
+            website: &quot;https://example.com&quot;
+          }) {
+            contact {
+              email
+            }
+          }
+        }
+    &quot;&quot;&quot;)
+
+    assert result[&quot;data&quot;][&quot;createContact&quot;][&quot;contact&quot;][&quot;email&quot;] == &quot;valid@example.com&quot;
+
+    # Invalid email should fail (if FraiseQL validates input scalars)
+    result = fraiseql.execute(&quot;&quot;&quot;
+        mutation {
+          createContact(input: {
+            email: &quot;not-an-email&quot;
+          }) {
+            contact {
+              email
+            }
+          }
+        }
+    &quot;&quot;&quot;)
+
+    # Should either fail at GraphQL validation or database constraint
+    assert result.get(&quot;errors&quot;) is not None or &quot;error&quot; in result[&quot;data&quot;][&quot;createContact&quot;]
+</code></pre>
+<p><strong>Run Tests</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/fraiseql/test_rich_type_autodiscovery.py -v
+# Expected: Should mostly pass (FraiseQL handles autodiscovery)
+</code></pre>
+<hr />
+<h2 id="phase-2-add-minimal-annotations-if-needed">📋 PHASE 2: Add Minimal Annotations (If Needed)</h2>
+<p><strong>Duration</strong>: 30 minutes</p>
+<p>Only needed if FraiseQL requires explicit type hints for certain rich types.</p>
+<h3 id="check-which-types-need-explicit-annotations">Check Which Types Need Explicit Annotations</h3>
+<p><strong>File</strong>: <code>src/generators/fraiseql/compatibility_checker.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;
+FraiseQL Compatibility Checker
+Determines which rich types need explicit @fraiseql:type annotations
+&quot;&quot;&quot;
+
+from typing import List, Set
+from src.core.type_registry import get_type_registry
+
+
+class CompatibilityChecker:
+    &quot;&quot;&quot;Checks which rich types need explicit FraiseQL annotations&quot;&quot;&quot;
+
+    def __init__(self):
+        self.type_registry = get_type_registry()
+        # Types that FraiseQL might not auto-discover
+        self._needs_explicit_annotation = self._check_fraiseql_support()
+
+    def _check_fraiseql_support(self) -&gt; Set[str]:
+        &quot;&quot;&quot;Determine which types need explicit @fraiseql:type annotations&quot;&quot;&quot;
+
+        # Most types are auto-discovered from PostgreSQL base types
+        # Only add types here if testing reveals they need explicit hints
+
+        return set()  # Empty for now - FraiseQL is smart!
+
+    def needs_annotation(self, type_name: str) -&gt; bool:
+        &quot;&quot;&quot;Check if type needs explicit @fraiseql:type annotation&quot;&quot;&quot;
+        return type_name in self._needs_explicit_annotation
+
+    def generate_type_annotation_if_needed(self, type_name: str) -&gt; str:
+        &quot;&quot;&quot;Generate @fraiseql:type annotation only if needed&quot;&quot;&quot;
+
+        if not self.needs_annotation(type_name):
+            return &quot;&quot;  # FraiseQL auto-discovers it!
+
+        # Generate explicit annotation
+        return f&quot;@fraiseql:type name={type_name.capitalize()}&quot;
+</code></pre>
+<hr />
+<h2 id="phase-3-documentation">📋 PHASE 3: Documentation</h2>
+<p><strong>Duration</strong>: 30 minutes</p>
+<p>Document the FraiseQL integration for future reference.</p>
+<p><strong>File</strong>: <code>docs/fraiseql-integration.md</code></p>
+<pre><code class="language-markdown"># FraiseQL Integration with SpecQL Rich Types
+
+## Overview
+
+SpecQL rich types seamlessly integrate with FraiseQL's autodiscovery system.
+PostgreSQL comments and base types are automatically mapped to GraphQL scalars.
+
+## How It Works
+
+### 1. SpecQL Generates PostgreSQL Schema
+
+```yaml
+# SpecQL
+entity: Contact
+fields:
+  email: email!
+  website: url
+</code></pre>
+<p>↓</p>
+<pre><code class="language-sql">-- Team B generates
+CREATE TABLE crm.tb_contact (
+    email TEXT NOT NULL CHECK (email ~* '^[A-Za-z0-9._%+-]+@...'),
+    website TEXT CHECK (website ~* '^https?://...')
+);
+
+COMMENT ON COLUMN crm.tb_contact.email IS 'Email address (validated format) (required)';
+COMMENT ON COLUMN crm.tb_contact.website IS 'URL/website address (validated format)';
+</code></pre>
+<h3 id="2-fraiseql-autodiscovery">2. FraiseQL Autodiscovery</h3>
+<p>FraiseQL introspects PostgreSQL:
+- Reads base PostgreSQL types (TEXT, INET, etc.)
+- Reads COMMENT ON statements
+- Maps to appropriate GraphQL scalars</p>
+<h3 id="3-graphql-schema-generated">3. GraphQL Schema Generated</h3>
+<pre><code class="language-graphql">type Contact {
+  &quot;&quot;&quot;Email address (validated format) (required)&quot;&quot;&quot;
+  email: Email!
+
+  &quot;&quot;&quot;URL/website address (validated format)&quot;&quot;&quot;
+  website: Url
+}
+
+scalar Email
+scalar Url
+</code></pre>
+<h2 id="rich-type-mappings">Rich Type Mappings</h2>
+<table>
+<thead>
+<tr>
+<th>SpecQL Type</th>
+<th>PostgreSQL Type</th>
+<th>GraphQL Scalar</th>
+<th>Auto-Discovered</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>email</td>
+<td>TEXT + CHECK</td>
+<td>Email</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>url</td>
+<td>TEXT + CHECK</td>
+<td>Url</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>phoneNumber</td>
+<td>TEXT + CHECK</td>
+<td>PhoneNumber</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>ipAddress</td>
+<td>INET</td>
+<td>IpAddress</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>macAddress</td>
+<td>MACADDR</td>
+<td>MacAddress</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>coordinates</td>
+<td>POINT</td>
+<td>Coordinates</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>money</td>
+<td>NUMERIC(19,4)</td>
+<td>Money</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>date</td>
+<td>DATE</td>
+<td>Date</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>datetime</td>
+<td>TIMESTAMPTZ</td>
+<td>DateTime</td>
+<td>✅ Yes</td>
+</tr>
+<tr>
+<td>uuid</td>
+<td>UUID</td>
+<td>UUID</td>
+<td>✅ Yes</td>
+</tr>
+</tbody>
+</table>
+<h2 id="benefits">Benefits</h2>
+<ul>
+<li>✅ <strong>Zero Configuration</strong>: No manual annotations needed</li>
+<li>✅ <strong>Single Source of Truth</strong>: PostgreSQL is the documentation source</li>
+<li>✅ <strong>Type Safety</strong>: PostgreSQL validates + GraphQL type-checks</li>
+<li>✅ <strong>Rich Documentation</strong>: GraphQL Playground shows field descriptions</li>
+<li>✅ <strong>Maintainability</strong>: Update PostgreSQL comments, GraphQL updates automatically</li>
+</ul>
+<h2 id="testing">Testing</h2>
+<p>Integration tests verify:
+1. All rich types are auto-discovered
+2. Field descriptions come from PostgreSQL comments
+3. GraphQL queries/mutations work correctly
+4. Type validation works end-to-end</p>
+<p>Run tests:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/fraiseql/ -v
+</code></pre>
+<p>```</p>
+<hr />
+<h2 id="acceptance-criteria">📊 Acceptance Criteria</h2>
+<h3 id="must-have">Must Have</h3>
+<ul>
+<li>✅ FraiseQL discovers all rich type fields</li>
+<li>✅ GraphQL schema includes proper scalars</li>
+<li>✅ Field descriptions from PostgreSQL comments</li>
+<li>✅ Integration tests pass</li>
+<li>✅ Documentation complete</li>
+</ul>
+<h3 id="nice-to-have">Nice to Have</h3>
+<ul>
+<li>✅ Performance benchmarks</li>
+<li>✅ Examples in documentation</li>
+<li>✅ Comparison with manual annotation approach</li>
+</ul>
+<hr />
+<h2 id="definition-of-done">🎯 Definition of Done</h2>
+<ul>
+<li>[ ] Integration tests written and passing</li>
+<li>[ ] Compatibility checker created (even if empty)</li>
+<li>[ ] FraiseQL autodiscovery verified for all rich types</li>
+<li>[ ] GraphQL queries work with rich type fields</li>
+<li>[ ] Documentation updated</li>
+<li>[ ] Examples added</li>
+<li>[ ] Code reviewed</li>
+<li>[ ] Merged to main</li>
+</ul>
+<hr />
+<h2 id="key-differences-from-original-plan">📚 Key Differences from Original Plan</h2>
+<h3 id="original-team-d-plan-deprecated">Original Team D Plan (Deprecated)</h3>
+<ul>
+<li><strong>400+ lines</strong> of annotation generation code</li>
+<li>Manual <code>@fraiseql:field</code> comments for every field</li>
+<li>Complex scalar mapping logic</li>
+<li>Extensive test suite for annotation correctness</li>
+</ul>
+<h3 id="new-team-d-plan-simplified">New Team D Plan (Simplified)</h3>
+<ul>
+<li><strong>~200 lines</strong> of integration tests</li>
+<li>Rely on FraiseQL autodiscovery</li>
+<li>Verify compatibility only</li>
+<li>Documentation-focused</li>
+</ul>
+<p><strong>Time Savings</strong>: ~6-7 hours → ~1-2 hours</p>
+<hr />
+<h2 id="why-this-is-better">🎉 Why This Is Better</h2>
+<h3 id="1-less-code-to-maintain">1. Less Code to Maintain</h3>
+<ul>
+<li>No annotation generation code</li>
+<li>No complex mapping logic</li>
+<li>Fewer tests needed (integration only)</li>
+</ul>
+<h3 id="2-single-source-of-truth">2. Single Source of Truth</h3>
+<ul>
+<li>PostgreSQL comments → GraphQL descriptions</li>
+<li>Database is the documentation source</li>
+<li>No duplication</li>
+</ul>
+<h3 id="3-better-fraiseql-integration">3. Better FraiseQL Integration</h3>
+<ul>
+<li>Uses FraiseQL's native autodiscovery</li>
+<li>Follows FraiseQL best practices</li>
+<li>Future-proof as FraiseQL improves</li>
+</ul>
+<h3 id="4-cleaner-architecture">4. Cleaner Architecture</h3>
+<ul>
+<li>Team B: Generate PostgreSQL (DDL + COMMENTS)</li>
+<li>Team D: Verify FraiseQL compatibility</li>
+<li>Clear separation of concerns</li>
+</ul>
+<hr />
+<p><strong>Team D: FraiseQL compatibility verification ready!</strong> 🚀</p>
+<p>This simplified approach leverages FraiseQL's autodiscovery capabilities,
+reducing Team D's work from ~8 hours to ~2 hours while providing better
+integration and maintainability.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

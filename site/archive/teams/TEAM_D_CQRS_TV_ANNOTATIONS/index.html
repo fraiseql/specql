@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team D: FraiseQL tv_ Annotations - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team D: FraiseQL tv_ Annotations";
+        var mkdocs_page_input_path = "archive/teams/TEAM_D_CQRS_TV_ANNOTATIONS.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team D: FraiseQL tv_ Annotations</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-d-fraiseql-tv_-annotations">Team D: FraiseQL tv_ Annotations</h1>
+<p><strong>Team</strong>: FraiseQL Metadata Generator
+<strong>Impact</strong>: LOW (metadata annotations only)
+<strong>Timeline</strong>: Week 7 (2-3 days)
+<strong>Status</strong>: 🟢 LOW PRIORITY - Metadata layer for CQRS</p>
+<hr />
+<h2 id="overview">📋 Overview</h2>
+<p>Team D must generate <strong>FraiseQL metadata annotations</strong> for <code>tv_</code> tables to enable auto-GraphQL discovery.</p>
+<p><strong>Purpose</strong>: Tell FraiseQL how to introspect tv_ tables and auto-generate GraphQL types from JSONB structure.</p>
+<hr />
+<h2 id="objectives">🎯 Objectives</h2>
+<ol>
+<li>✅ Annotate tv_ tables with <code>@fraiseql:table</code></li>
+<li>✅ Annotate filter columns with <code>@fraiseql:filter</code></li>
+<li>✅ Annotate data column with <code>@fraiseql:jsonb expand=true</code></li>
+<li>✅ Mark internal columns as <code>internal=true</code></li>
+</ol>
+<hr />
+<h2 id="fraiseql-annotation-patterns">📊 FraiseQL Annotation Patterns</h2>
+<h3 id="pattern-1-table-annotation"><strong>Pattern 1: Table Annotation</strong></h3>
+<pre><code class="language-sql">-- Tell FraiseQL this is a table to introspect
+COMMENT ON TABLE library.tv_review IS
+  '@fraiseql:table source=materialized,refresh=explicit,primary=true,description=Read-optimized review with denormalized author and book data';
+</code></pre>
+<p><strong>Attributes</strong>:
+- <code>source=materialized</code> - This is a materialized table view
+- <code>refresh=explicit</code> - Refreshed explicitly in mutations (not automatic)
+- <code>primary=true</code> - This is the primary table for GraphQL (not tb_review)</p>
+<hr />
+<h3 id="pattern-2-filter-column-annotations"><strong>Pattern 2: Filter Column Annotations</strong></h3>
+<pre><code class="language-sql">-- UUID foreign key filters
+COMMENT ON COLUMN library.tv_review.author_id IS
+  '@fraiseql:filter type=UUID,relation=author,index=btree,performance=optimized,description=Filter by author';
+
+COMMENT ON COLUMN library.tv_review.book_id IS
+  '@fraiseql:filter type=UUID,relation=book,index=btree,performance=optimized,description=Filter by book';
+
+-- Promoted scalar filters
+COMMENT ON COLUMN library.tv_review.rating IS
+  '@fraiseql:filter type=Int,index=btree,performance=optimized,description=Filter by rating (1-5)';
+
+COMMENT ON COLUMN library.tv_review.created_at IS
+  '@fraiseql:filter type=DateTime,index=btree,performance=optimized,description=Filter by creation date';
+</code></pre>
+<p><strong>Attributes</strong>:
+- <code>type</code> - GraphQL type (UUID, Int, String, DateTime, etc.)
+- <code>relation</code> - Related entity name (for foreign keys)
+- <code>index</code> - Index type (btree = fast, gin = slower)
+- <code>performance=optimized</code> - This column is optimized for filtering
+- <code>description</code> - Help text for GraphQL schema</p>
+<hr />
+<h3 id="pattern-3-jsonb-data-column"><strong>Pattern 3: JSONB Data Column</strong></h3>
+<pre><code class="language-sql">-- Main data column (FraiseQL extracts GraphQL types from this)
+COMMENT ON COLUMN library.tv_review.data IS
+  '@fraiseql:jsonb expand=true,description=Denormalized review data with nested author and book';
+</code></pre>
+<p><strong>Attributes</strong>:
+- <code>expand=true</code> - FraiseQL should introspect JSONB structure and generate GraphQL types
+- FraiseQL will sample rows and discover nested structure:
+  <code>jsonb
+  {
+    "id": UUID,
+    "rating": Int,
+    "comment": String,
+    "author": { "id": UUID, "name": String, "email": String },
+    "book": { "id": UUID, "title": String, "isbn": String, "publisher": {...} }
+  }</code></p>
+<hr />
+<h3 id="pattern-4-internal-columns"><strong>Pattern 4: Internal Columns</strong></h3>
+<pre><code class="language-sql">-- Internal columns (not exposed in GraphQL)
+COMMENT ON COLUMN library.tv_review.pk_review IS
+  '@fraiseql:field internal=true,description=Internal primary key';
+
+COMMENT ON COLUMN library.tv_review.fk_author IS
+  '@fraiseql:field internal=true,description=Internal foreign key for JOINs';
+
+COMMENT ON COLUMN library.tv_review.fk_book IS
+  '@fraiseql:field internal=true,description=Internal foreign key for JOINs';
+
+COMMENT ON COLUMN library.tv_review.refreshed_at IS
+  '@fraiseql:field internal=true,description=Last refresh timestamp';
+</code></pre>
+<p><strong>Result</strong>: These columns are NOT exposed in GraphQL (internal use only)</p>
+<hr />
+<h2 id="implementation-by-day">🎯 Implementation by Day</h2>
+<h3 id="day-1-annotation-generator"><strong>Day 1: Annotation Generator</strong></h3>
+<h4 id="file-srcgeneratorsfraiseqltable_view_annotatorpy-new"><strong>File</strong>: <code>src/generators/fraiseql/table_view_annotator.py</code> (NEW)</h4>
+<pre><code class="language-python">from src.core.ast_models import EntityAST, ExtraFilterColumn
+
+class TableViewAnnotator:
+    &quot;&quot;&quot;Generate FraiseQL annotations for tv_ tables.&quot;&quot;&quot;
+
+    def __init__(self, entity: EntityAST):
+        self.entity = entity
+
+    def generate_annotations(self) -&gt; str:
+        &quot;&quot;&quot;Generate all FraiseQL annotations for tv_ table.&quot;&quot;&quot;
+
+        if not self.entity.should_generate_table_view:
+            return &quot;&quot;
+
+        parts = []
+
+        # Table annotation
+        parts.append(self._annotate_table())
+
+        # Column annotations
+        parts.append(self._annotate_primary_keys())
+        parts.append(self._annotate_filter_columns())
+        parts.append(self._annotate_data_column())
+
+        return &quot;\n\n&quot;.join(filter(None, parts))
+
+    def _annotate_table(self) -&gt; str:
+        &quot;&quot;&quot;Annotate tv_ table.&quot;&quot;&quot;
+        entity_lower = self.entity.name.lower()
+        schema = self.entity.schema
+
+        return f&quot;&quot;&quot;
+-- FraiseQL table annotation
+COMMENT ON TABLE {schema}.tv_{entity_lower} IS
+  '@fraiseql:table source=materialized,refresh=explicit,primary=true,description=Read-optimized {self.entity.name} with denormalized relations';
+&quot;&quot;&quot;.strip()
+
+    def _annotate_primary_keys(self) -&gt; str:
+        &quot;&quot;&quot;Annotate internal primary keys.&quot;&quot;&quot;
+        entity_lower = self.entity.name.lower()
+        schema = self.entity.schema
+
+        lines = [
+            &quot;-- Internal columns (not exposed in GraphQL)&quot;,
+            f&quot;COMMENT ON COLUMN {schema}.tv_{entity_lower}.pk_{entity_lower} IS&quot;,
+            &quot;  '@fraiseql:field internal=true,description=Internal primary key';&quot;,
+            &quot;&quot;,
+            f&quot;COMMENT ON COLUMN {schema}.tv_{entity_lower}.refreshed_at IS&quot;,
+            &quot;  '@fraiseql:field internal=true,description=Last refresh timestamp';&quot;
+        ]
+
+        # FK columns (INTEGER) are internal
+        for field in self.entity.fields:
+            if field.field_type.startswith('ref('):
+                ref_entity = self._extract_ref_entity(field.field_type)
+                ref_lower = ref_entity.lower()
+
+                lines.append(&quot;&quot;)
+                lines.append(f&quot;COMMENT ON COLUMN {schema}.tv_{entity_lower}.fk_{ref_lower} IS&quot;)
+                lines.append(f&quot;  '@fraiseql:field internal=true,description=Internal FK for {ref_entity}';&quot;)
+
+        return &quot;\n&quot;.join(lines)
+
+    def _annotate_filter_columns(self) -&gt; str:
+        &quot;&quot;&quot;Annotate filter columns.&quot;&quot;&quot;
+        entity_lower = self.entity.name.lower()
+        schema = self.entity.schema
+        lines = [&quot;-- Filter columns (for efficient WHERE clauses)&quot;]
+
+        # Tenant ID (always)
+        lines.append(f&quot;COMMENT ON COLUMN {schema}.tv_{entity_lower}.tenant_id IS&quot;)
+        lines.append(&quot;  '@fraiseql:filter type=UUID,index=btree,performance=optimized,description=Multi-tenant filter';&quot;)
+
+        # UUID foreign keys
+        for field in self.entity.fields:
+            if field.field_type.startswith('ref('):
+                ref_entity = self._extract_ref_entity(field.field_type)
+                ref_lower = ref_entity.lower()
+
+                lines.append(&quot;&quot;)
+                lines.append(f&quot;COMMENT ON COLUMN {schema}.tv_{entity_lower}.{ref_lower}_id IS&quot;)
+                lines.append(
+                    f&quot;  '@fraiseql:filter type=UUID,relation={ref_entity},index=btree,&quot;
+                    f&quot;performance=optimized,description=Filter by {ref_entity}';&quot;
+                )
+
+        # Path (if hierarchical)
+        if self.entity.hierarchical:
+            lines.append(&quot;&quot;)
+            lines.append(f&quot;COMMENT ON COLUMN {schema}.tv_{entity_lower}.path IS&quot;)
+            lines.append(
+                &quot;  '@fraiseql:filter type=String,index=gist,format=ltree_integer,&quot;
+                &quot;performance=optimized,description=Hierarchical path (INTEGER-based)';&quot;
+            )
+
+        # Extra filter columns
+        if self.entity.table_views and self.entity.table_views.extra_filter_columns:
+            for col in self.entity.table_views.extra_filter_columns:
+                graphql_type = self._map_sql_type_to_graphql(col.type or 'TEXT')
+                index_type = col.index_type
+
+                performance = &quot;optimized&quot; if index_type == &quot;btree&quot; else &quot;acceptable&quot;
+
+                lines.append(&quot;&quot;)
+                lines.append(f&quot;COMMENT ON COLUMN {schema}.tv_{entity_lower}.{col.name} IS&quot;)
+                lines.append(
+                    f&quot;  '@fraiseql:filter type={graphql_type},index={index_type},&quot;
+                    f&quot;performance={performance},description=Filter by {col.name}';&quot;
+                )
+
+        return &quot;\n&quot;.join(lines)
+
+    def _annotate_data_column(self) -&gt; str:
+        &quot;&quot;&quot;Annotate JSONB data column.&quot;&quot;&quot;
+        entity_lower = self.entity.name.lower()
+        schema = self.entity.schema
+
+        return f&quot;&quot;&quot;
+-- JSONB data column (FraiseQL extracts GraphQL types from structure)
+COMMENT ON COLUMN {schema}.tv_{entity_lower}.data IS
+  '@fraiseql:jsonb expand=true,description=Denormalized {self.entity.name} data with nested relations';
+&quot;&quot;&quot;.strip()
+
+    def _extract_ref_entity(self, field_type: str) -&gt; str:
+        &quot;&quot;&quot;Extract entity name from ref(Entity).&quot;&quot;&quot;
+        return field_type[4:-1]
+
+    def _map_sql_type_to_graphql(self, sql_type: str) -&gt; str:
+        &quot;&quot;&quot;Map SQL type to GraphQL type.&quot;&quot;&quot;
+        mapping = {
+            'TEXT': 'String',
+            'INTEGER': 'Int',
+            'DECIMAL': 'Float',
+            'BOOLEAN': 'Boolean',
+            'TIMESTAMPTZ': 'DateTime',
+            'DATE': 'Date',
+            'UUID': 'UUID',
+            'JSONB': 'JSON'
+        }
+        return mapping.get(sql_type.upper(), 'String')
+</code></pre>
+<hr />
+<h3 id="day-2-template-integration"><strong>Day 2: Template Integration</strong></h3>
+<h4 id="file-templatesfraiseqltable_view_annotationssqljinja2"><strong>File</strong>: <code>templates/fraiseql/table_view_annotations.sql.jinja2</code></h4>
+<pre><code class="language-jinja2">{# FraiseQL annotations for tv_ tables #}
+
+-- FraiseQL table annotation
+COMMENT ON TABLE {{ entity.schema }}.tv_{{ entity.name|lower }} IS
+  '@fraiseql:table source=materialized,refresh=explicit,primary=true,description=Read-optimized {{ entity.name }} with denormalized relations';
+
+-- Internal columns (not exposed in GraphQL)
+COMMENT ON COLUMN {{ entity.schema }}.tv_{{ entity.name|lower }}.pk_{{ entity.name|lower }} IS
+  '@fraiseql:field internal=true,description=Internal primary key';
+
+COMMENT ON COLUMN {{ entity.schema }}.tv_{{ entity.name|lower }}.refreshed_at IS
+  '@fraiseql:field internal=true,description=Last refresh timestamp';
+
+{% for field in entity.fields if field.field_type.startswith('ref(') %}
+{%- set ref_entity = field.field_type[4:-1] -%}
+{%- set ref_lower = ref_entity|lower -%}
+
+COMMENT ON COLUMN {{ entity.schema }}.tv_{{ entity.name|lower }}.fk_{{ ref_lower }} IS
+  '@fraiseql:field internal=true,description=Internal FK for {{ ref_entity }}';
+{% endfor %}
+
+-- Filter columns (for efficient WHERE clauses)
+COMMENT ON COLUMN {{ entity.schema }}.tv_{{ entity.name|lower }}.tenant_id IS
+  '@fraiseql:filter type=UUID,index=btree,performance=optimized,description=Multi-tenant filter';
+
+{% for field in entity.fields if field.field_type.startswith('ref(') %}
+{%- set ref_entity = field.field_type[4:-1] -%}
+{%- set ref_lower = ref_entity|lower -%}
+
+COMMENT ON COLUMN {{ entity.schema }}.tv_{{ entity.name|lower }}.{{ ref_lower }}_id IS
+  '@fraiseql:filter type=UUID,relation={{ ref_entity }},index=btree,performance=optimized,description=Filter by {{ ref_entity }}';
+{% endfor %}
+
+{% if entity.hierarchical %}
+
+COMMENT ON COLUMN {{ entity.schema }}.tv_{{ entity.name|lower }}.path IS
+  '@fraiseql:filter type=String,index=gist,format=ltree_integer,performance=optimized,description=Hierarchical path (INTEGER-based)';
+{% endif %}
+
+{% if entity.table_views and entity.table_views.extra_filter_columns %}
+{% for col in entity.table_views.extra_filter_columns %}
+{%- set graphql_type = map_type(col.type or 'TEXT') -%}
+{%- set performance = 'optimized' if col.index_type == 'btree' else 'acceptable' -%}
+
+COMMENT ON COLUMN {{ entity.schema }}.tv_{{ entity.name|lower }}.{{ col.name }} IS
+  '@fraiseql:filter type={{ graphql_type }},index={{ col.index_type }},performance={{ performance }},description=Filter by {{ col.name }}';
+{% endfor %}
+{% endif %}
+
+-- JSONB data column (FraiseQL extracts GraphQL types from structure)
+COMMENT ON COLUMN {{ entity.schema }}.tv_{{ entity.name|lower }}.data IS
+  '@fraiseql:jsonb expand=true,description=Denormalized {{ entity.name }} data with nested relations';
+</code></pre>
+<hr />
+<h3 id="day-3-testing-documentation"><strong>Day 3: Testing &amp; Documentation</strong></h3>
+<h4 id="test-file-testsunitfraiseqltest_table_view_annotationspy"><strong>Test File</strong>: <code>tests/unit/fraiseql/test_table_view_annotations.py</code></h4>
+<pre><code class="language-python">import pytest
+from src.core.ast_models import (
+    EntityAST, FieldDefinition, TableViewConfig, ExtraFilterColumn
+)
+from src.generators.fraiseql.table_view_annotator import TableViewAnnotator
+
+class TestTableViewAnnotations:
+    &quot;&quot;&quot;Test FraiseQL annotations for tv_ tables.&quot;&quot;&quot;
+
+    def test_table_annotation(self):
+        &quot;&quot;&quot;Test table-level annotation.&quot;&quot;&quot;
+        entity = EntityAST(
+            name=&quot;Review&quot;,
+            schema=&quot;library&quot;,
+            fields=[],
+            actions=[]
+        )
+
+        annotator = TableViewAnnotator(entity)
+        sql = annotator.generate_annotations()
+
+        assert &quot;COMMENT ON TABLE library.tv_review&quot; in sql
+        assert &quot;@fraiseql:table&quot; in sql
+        assert &quot;source=materialized&quot; in sql
+        assert &quot;refresh=explicit&quot; in sql
+
+    def test_filter_column_annotations(self):
+        &quot;&quot;&quot;Test filter column annotations.&quot;&quot;&quot;
+        entity = EntityAST(
+            name=&quot;Review&quot;,
+            schema=&quot;library&quot;,
+            fields=[
+                FieldDefinition(name=&quot;author&quot;, field_type=&quot;ref(User)&quot;)
+            ],
+            actions=[],
+            table_views=TableViewConfig(
+                extra_filter_columns=[
+                    ExtraFilterColumn.from_string(&quot;rating&quot;)
+                ]
+            )
+        )
+
+        annotator = TableViewAnnotator(entity)
+        sql = annotator.generate_annotations()
+
+        # UUID FK filter
+        assert &quot;COMMENT ON COLUMN library.tv_review.author_id&quot; in sql
+        assert &quot;@fraiseql:filter type=UUID&quot; in sql
+        assert &quot;relation=User&quot; in sql
+
+        # Extra filter column
+        assert &quot;COMMENT ON COLUMN library.tv_review.rating&quot; in sql
+        assert &quot;@fraiseql:filter&quot; in sql
+
+    def test_data_column_annotation(self):
+        &quot;&quot;&quot;Test JSONB data column annotation.&quot;&quot;&quot;
+        entity = EntityAST(
+            name=&quot;Review&quot;,
+            schema=&quot;library&quot;,
+            fields=[],
+            actions=[]
+        )
+
+        annotator = TableViewAnnotator(entity)
+        sql = annotator.generate_annotations()
+
+        assert &quot;COMMENT ON COLUMN library.tv_review.data&quot; in sql
+        assert &quot;@fraiseql:jsonb expand=true&quot; in sql
+
+    def test_internal_columns(self):
+        &quot;&quot;&quot;Test internal column annotations.&quot;&quot;&quot;
+        entity = EntityAST(
+            name=&quot;Review&quot;,
+            schema=&quot;library&quot;,
+            fields=[
+                FieldDefinition(name=&quot;author&quot;, field_type=&quot;ref(User)&quot;)
+            ],
+            actions=[]
+        )
+
+        annotator = TableViewAnnotator(entity)
+        sql = annotator.generate_annotations()
+
+        # Primary key internal
+        assert &quot;COMMENT ON COLUMN library.tv_review.pk_review&quot; in sql
+        assert &quot;internal=true&quot; in sql
+
+        # FK internal
+        assert &quot;COMMENT ON COLUMN library.tv_review.fk_author&quot; in sql
+        assert &quot;internal=true&quot; in sql
+
+    def test_hierarchical_path_annotation(self):
+        &quot;&quot;&quot;Test path column annotation for hierarchical entities.&quot;&quot;&quot;
+        entity = EntityAST(
+            name=&quot;Location&quot;,
+            schema=&quot;management&quot;,
+            fields=[],
+            actions=[],
+            hierarchical=True
+        )
+
+        annotator = TableViewAnnotator(entity)
+        sql = annotator.generate_annotations()
+
+        assert &quot;COMMENT ON COLUMN management.tv_location.path&quot; in sql
+        assert &quot;format=ltree_integer&quot; in sql
+        assert &quot;index=gist&quot; in sql
+</code></pre>
+<hr />
+<h2 id="complete-example">📋 Complete Example</h2>
+<h3 id="entity-review"><strong>Entity</strong>: Review</h3>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">entity: Review
+schema: library
+
+fields:
+  rating: integer
+  comment: text
+  author: ref(User)
+  book: ref(Book)
+
+table_views:
+  include_relations:
+    - author:
+        fields: [name, email]
+    - book:
+        fields: [title, isbn]
+
+  extra_filter_columns:
+    - rating
+    - created_at
+</code></pre>
+<p><strong>Generated Annotations</strong>:</p>
+<pre><code class="language-sql">-- FraiseQL table annotation
+COMMENT ON TABLE library.tv_review IS
+  '@fraiseql:table source=materialized,refresh=explicit,primary=true,description=Read-optimized Review with denormalized relations';
+
+-- Internal columns (not exposed in GraphQL)
+COMMENT ON COLUMN library.tv_review.pk_review IS
+  '@fraiseql:field internal=true,description=Internal primary key';
+
+COMMENT ON COLUMN library.tv_review.fk_author IS
+  '@fraiseql:field internal=true,description=Internal FK for User';
+
+COMMENT ON COLUMN library.tv_review.fk_book IS
+  '@fraiseql:field internal=true,description=Internal FK for Book';
+
+COMMENT ON COLUMN library.tv_review.refreshed_at IS
+  '@fraiseql:field internal=true,description=Last refresh timestamp';
+
+-- Filter columns (for efficient WHERE clauses)
+COMMENT ON COLUMN library.tv_review.tenant_id IS
+  '@fraiseql:filter type=UUID,index=btree,performance=optimized,description=Multi-tenant filter';
+
+COMMENT ON COLUMN library.tv_review.author_id IS
+  '@fraiseql:filter type=UUID,relation=User,index=btree,performance=optimized,description=Filter by User';
+
+COMMENT ON COLUMN library.tv_review.book_id IS
+  '@fraiseql:filter type=UUID,relation=Book,index=btree,performance=optimized,description=Filter by Book';
+
+COMMENT ON COLUMN library.tv_review.rating IS
+  '@fraiseql:filter type=Int,index=btree,performance=optimized,description=Filter by rating';
+
+COMMENT ON COLUMN library.tv_review.created_at IS
+  '@fraiseql:filter type=DateTime,index=btree,performance=optimized,description=Filter by created_at';
+
+-- JSONB data column (FraiseQL extracts GraphQL types from structure)
+COMMENT ON COLUMN library.tv_review.data IS
+  '@fraiseql:jsonb expand=true,description=Denormalized Review data with nested relations';
+</code></pre>
+<p><strong>FraiseQL Auto-Generates</strong>:</p>
+<pre><code class="language-graphql">type Review {
+  id: UUID!
+  rating: Int!
+  comment: String
+  createdAt: DateTime!
+  author: ReviewAuthor!
+  book: ReviewBook!
+}
+
+type ReviewAuthor {
+  id: UUID!
+  name: String!
+  email: String!
+}
+
+type ReviewBook {
+  id: UUID!
+  title: String!
+  isbn: String!
+}
+
+type Query {
+  review(id: UUID!): Review
+  reviews(
+    where: ReviewFilter
+    limit: Int
+    offset: Int
+  ): [Review!]!
+}
+
+input ReviewFilter {
+  # Auto-generated from filter column annotations
+  authorId: UUIDFilter
+  bookId: UUIDFilter
+  rating: IntFilter
+  createdAt: DateTimeFilter
+}
+</code></pre>
+<hr />
+<h2 id="acceptance-criteria">✅ Acceptance Criteria</h2>
+<ul>
+<li>[ ] Table annotations generated with @fraiseql:table</li>
+<li>[ ] Internal columns marked with internal=true</li>
+<li>[ ] Filter columns annotated with type, index, performance</li>
+<li>[ ] Data column annotated with expand=true</li>
+<li>[ ] Hierarchical entities get path annotation</li>
+<li>[ ] All annotations valid (no syntax errors)</li>
+<li>[ ] FraiseQL can introspect and generate GraphQL</li>
+</ul>
+<hr />
+<h2 id="summary">📊 Summary</h2>
+<p><strong>Files Created</strong>:
+- <code>src/generators/fraiseql/table_view_annotator.py</code> (~300 lines)
+- <code>templates/fraiseql/table_view_annotations.sql.jinja2</code> (~100 lines)
+- <code>tests/unit/fraiseql/test_table_view_annotations.py</code> (~200 lines)</p>
+<p><strong>Total</strong>: ~600 lines</p>
+<p><strong>Timeline</strong>: 2-3 days</p>
+<hr />
+<h2 id="dependencies">🔗 Dependencies</h2>
+<p><strong>Depends On</strong>:
+- Team B Phase 9 (tv_ tables must exist)</p>
+<p><strong>Blocks</strong>:
+- FraiseQL integration (final step)</p>
+<hr />
+<p><strong>Status</strong>: 🟢 READY TO START (after Team B Phase 9)
+<strong>Priority</strong>: LOW (metadata layer only)
+<strong>Effort</strong>: 2-3 days
+<strong>Start</strong>: Week 7</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

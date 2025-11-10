@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Schema Organization Strategy: From PrintOptim-Specific to Universal Framework - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Schema Organization Strategy: From PrintOptim-Specific to Universal Framework";
+        var mkdocs_page_input_path = "architecture/SCHEMA_ORGANIZATION_STRATEGY.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Schema Organization Strategy: From PrintOptim-Specific to Universal Framework</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="schema-organization-strategy-from-printoptim-specific-to-universal-framework">Schema Organization Strategy: From PrintOptim-Specific to Universal Framework</h1>
+<p><strong>Date</strong>: 2025-11-09
+<strong>Status</strong>: 🚧 PROPOSED
+<strong>Context</strong>: Refactoring schema organization to support any business domain, not just PrintOptim</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>The current codebase has a <strong>schema organization problem</strong>: it mixes PrintOptim-specific schemas (catalog) with universal patterns, and uses inconsistent terminology between the domain registry (new, better) and hardcoded lists in generators (old, inflexible).</p>
+<p><strong>Goal</strong>: Transform schema organization to be <strong>domain-agnostic</strong> while maintaining clear separation between:
+1. <strong>Common</strong>: Shared reference data (countries, languages, timezones)
+2. <strong>Tenant</strong>: Multi-tenant business data (isolated per tenant)
+3. <strong>Domain-Specific</strong>: Application-specific schemas (catalog for PrintOptim, others for different apps)</p>
+<hr />
+<h2 id="problem-analysis">Problem Analysis</h2>
+<h3 id="issue-1-printoptim-specific-schema-hardcoded-as-universal">Issue 1: PrintOptim-Specific Schema Hardcoded as "Universal"</h3>
+<p><strong>Current State</strong>:</p>
+<pre><code class="language-yaml"># registry/domain_registry.yaml
+&quot;3&quot;:
+  name: catalog  # ← PrintOptim-specific!
+  description: &quot;Product catalog, manufacturer data &amp; inventory&quot;
+</code></pre>
+<p><strong>Problem</strong>:
+- "catalog" is PrintOptim's product domain, not a universal pattern
+- Framework treats it as a core schema alongside "crm", "projects"
+- Other applications may not need catalog at all
+- Misleads users into thinking catalog is required</p>
+<p><strong>Impact</strong>:
+- ❌ Cannot use framework for non-e-commerce applications
+- ❌ Confusing for users building HR, legal, or other domains
+- ❌ Schema list grows with every app type (catalog, retail, healthcare, etc.)</p>
+<hr />
+<h3 id="issue-2-inconsistent-multi-tenancy-classification">Issue 2: Inconsistent Multi-Tenancy Classification</h3>
+<p><strong>Two Different Systems</strong>:</p>
+<p><strong>System A: Hardcoded Lists</strong> (in 3 generator files):</p>
+<pre><code class="language-python"># src/generators/table_generator.py:147
+tenant_schemas = [&quot;tenant&quot;, &quot;crm&quot;, &quot;management&quot;, &quot;operations&quot;]
+
+# src/generators/trinity_helper_generator.py:64
+TENANT_SCHEMAS = [&quot;tenant&quot;, &quot;crm&quot;, &quot;management&quot;, &quot;operations&quot;]
+
+# src/generators/core_logic_generator.py:201
+TENANT_SCHEMAS = [&quot;tenant&quot;, &quot;crm&quot;, &quot;management&quot;, &quot;operations&quot;]
+</code></pre>
+<p><strong>System B: Domain Registry</strong> (registry/domain_registry.yaml):</p>
+<pre><code class="language-yaml">&quot;2&quot;:
+  name: crm
+  aliases: [&quot;management&quot;]  # ← Supports aliases!
+
+&quot;4&quot;:
+  name: projects
+  aliases: [&quot;tenant&quot;, &quot;dim&quot;]  # ← &quot;tenant&quot; is just an alias!
+</code></pre>
+<p><strong>Problems</strong>:
+- System A doesn't recognize aliases (would fail for "management")
+- System A doesn't have metadata for multi_tenant flag
+- No single source of truth
+- Adding new domains requires updating 3+ files</p>
+<hr />
+<h3 id="issue-3-confusing-terminology-domain-vs-schema-vs-subdomain">Issue 3: Confusing Terminology (Domain vs Schema vs Subdomain)</h3>
+<p><strong>Current Usage</strong> (inconsistent):</p>
+<table>
+<thead>
+<tr>
+<th>File/Location</th>
+<th>Calls it...</th>
+<th>Actually Means</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>domain_registry.yaml</code></td>
+<td>"domain: catalog"</td>
+<td>Top-level grouping</td>
+</tr>
+<tr>
+<td><code>table_generator.py</code></td>
+<td>"schema: catalog"</td>
+<td>PostgreSQL schema</td>
+</tr>
+<tr>
+<td><code>numbering_parser.py</code></td>
+<td>"domain code: 3"</td>
+<td>Hexadecimal digit</td>
+</tr>
+<tr>
+<td>FK resolver</td>
+<td>"schema: product"</td>
+<td>❌ BUG! Should be "catalog"</td>
+</tr>
+<tr>
+<td>SpecQL YAML</td>
+<td>"schema: catalog"</td>
+<td>Where table goes</td>
+</tr>
+<tr>
+<td>Subdomain</td>
+<td>"subdomain: manufacturer"</td>
+<td>Sub-grouping under catalog</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Problem</strong>: Same word ("domain") means different things in different contexts.</p>
+<hr />
+<h3 id="issue-4-missing-multi-tenancy-metadata">Issue 4: Missing Multi-Tenancy Metadata</h3>
+<p><strong>Current</strong>: Hardcoded lists determine tenant_id behavior</p>
+<pre><code class="language-python">if schema in [&quot;tenant&quot;, &quot;crm&quot;, &quot;management&quot;, &quot;operations&quot;]:
+    add_tenant_id_column()
+</code></pre>
+<p><strong>Problem</strong>:
+- What if user creates custom schema "sales" that needs tenant isolation?
+- What if "catalog" needs to be tenant-specific for some apps?
+- No way to configure multi-tenancy per schema</p>
+<hr />
+<h2 id="proposed-solution-three-tier-schema-model">Proposed Solution: Three-Tier Schema Model</h2>
+<h3 id="tier-1-framework-schemas-universal-hardcoded">Tier 1: Framework Schemas (Universal, Hardcoded)</h3>
+<p><strong>Built-in schemas that exist in every deployment</strong>:</p>
+<pre><code class="language-yaml">framework_schemas:
+  common:
+    description: &quot;Shared reference data (countries, currencies, timezones)&quot;
+    multi_tenant: false
+    purpose: &quot;Global lookups, no tenant isolation&quot;
+    examples:
+      - tb_country
+      - tb_language
+      - tb_currency
+      - tb_timezone
+
+  app:
+    description: &quot;GraphQL API types (composite types, mutation_result)&quot;
+    multi_tenant: false
+    purpose: &quot;Framework-level API contract&quot;
+    examples:
+      - mutation_result
+      - type_*_input
+
+  core:
+    description: &quot;Framework business functions &amp; helpers&quot;
+    multi_tenant: mixed  # Depends on which entity
+    purpose: &quot;Trinity helpers, core utilities&quot;
+    examples:
+      - entity_pk()
+      - entity_id()
+      - emit_event()
+</code></pre>
+<p><strong>Key Points</strong>:
+- ✅ These exist in EVERY application
+- ✅ Cannot be removed or renamed
+- ✅ Framework generators know about them
+- ✅ No domain-specific logic (product, manufacturer, etc.)</p>
+<hr />
+<h3 id="tier-2-multi-tenant-schemas-user-defined-configurable">Tier 2: Multi-Tenant Schemas (User-Defined, Configurable)</h3>
+<p><strong>Business domains that need tenant isolation</strong>:</p>
+<pre><code class="language-yaml"># User's domain_registry.yaml (for PrintOptim app)
+multi_tenant_domains:
+  &quot;2&quot;:
+    name: crm
+    aliases: [management]
+    multi_tenant: true  # ← EXPLICIT FLAG
+    description: &quot;Customer relationship management&quot;
+
+  &quot;4&quot;:
+    name: projects
+    aliases: [tenant, dim]
+    multi_tenant: true  # ← EXPLICIT FLAG
+    description: &quot;Project &amp; task management&quot;
+</code></pre>
+<p><strong>Behavior</strong>:
+- ✅ Automatic <code>tenant_id UUID NOT NULL</code> column
+- ✅ RLS policies applied
+- ✅ Trinity helpers accept <code>tenant_id</code> parameter
+- ✅ Foreign keys resolve within tenant scope</p>
+<p><strong>User Flexibility</strong>:
+- User can add "sales", "hr", "legal" domains
+- User can rename "crm" to "customers" if preferred
+- Framework doesn't care about names, only <code>multi_tenant</code> flag</p>
+<hr />
+<h3 id="tier-3-shared-schemas-user-defined-domain-specific">Tier 3: Shared Schemas (User-Defined, Domain-Specific)</h3>
+<p><strong>Application-specific reference data (no tenant isolation)</strong>:</p>
+<pre><code class="language-yaml"># User's domain_registry.yaml (for PrintOptim app)
+shared_domains:
+  &quot;3&quot;:
+    name: catalog
+    multi_tenant: false  # ← EXPLICIT FLAG
+    description: &quot;Product catalog (PrintOptim-specific)&quot;
+    note: &quot;Other apps wouldn't have this&quot;
+
+  # Example for different app:
+  # &quot;3&quot;:
+  #   name: healthcare
+  #   multi_tenant: false
+  #   description: &quot;Medical codes (ICD-10, CPT)&quot;
+</code></pre>
+<p><strong>Behavior</strong>:
+- ✅ NO <code>tenant_id</code> column
+- ✅ No RLS policies
+- ✅ Shared across all tenants
+- ✅ Foreign keys resolve globally</p>
+<p><strong>Key Insight</strong>:
+- "catalog" is NOT universal like "common"
+- "catalog" is PrintOptim's domain-specific shared data
+- Other apps would have different Tier 3 schemas</p>
+<hr />
+<h2 id="implementation-plan">Implementation Plan</h2>
+<h3 id="phase-1-add-multi-tenancy-metadata-to-domain-registry">Phase 1: Add Multi-Tenancy Metadata to Domain Registry</h3>
+<p><strong>Update</strong>: <code>registry/domain_registry.yaml</code></p>
+<pre><code class="language-yaml">domains:
+  &quot;1&quot;:
+    name: core
+    multi_tenant: false  # ← NEW FIELD
+    framework_schema: true  # ← Framework-level
+
+  &quot;2&quot;:
+    name: crm
+    aliases: [management]
+    multi_tenant: true  # ← NEW FIELD
+
+  &quot;3&quot;:
+    name: catalog
+    multi_tenant: false  # ← NEW FIELD (shared reference data)
+    app_specific: true  # ← Not universal like &quot;common&quot;
+
+  &quot;4&quot;:
+    name: projects
+    aliases: [tenant, dim]
+    multi_tenant: true  # ← NEW FIELD
+</code></pre>
+<p><strong>Benefits</strong>:
+- Single source of truth for tenant_id behavior
+- Explicit, not inferred from schema name
+- User can configure any schema as multi_tenant</p>
+<hr />
+<h3 id="phase-2-create-central-schema-registry">Phase 2: Create Central Schema Registry</h3>
+<p><strong>New File</strong>: <code>src/generators/schema/schema_registry.py</code></p>
+<pre><code class="language-python">from typing import Optional
+from src.numbering.naming_conventions import NamingConventions
+from src.core.domain_registry import DomainRegistry
+
+class SchemaRegistry:
+    &quot;&quot;&quot;
+    Central registry for schema properties
+
+    Replaces hardcoded TENANT_SCHEMAS lists with registry-driven lookups
+    &quot;&quot;&quot;
+
+    def __init__(self, domain_registry: DomainRegistry):
+        self.domain_registry = domain_registry
+
+    def is_multi_tenant(self, schema_name: str) -&gt; bool:
+        &quot;&quot;&quot;
+        Check if schema requires tenant_id column
+
+        Checks:
+        1. Domain registry (including aliases)
+        2. multi_tenant flag in domain metadata
+        3. Falls back to False (safe default)
+
+        Example:
+            registry.is_multi_tenant(&quot;crm&quot;)         # True
+            registry.is_multi_tenant(&quot;management&quot;)  # True (alias of crm)
+            registry.is_multi_tenant(&quot;catalog&quot;)     # False
+            registry.is_multi_tenant(&quot;common&quot;)      # False
+        &quot;&quot;&quot;
+        domain = self.domain_registry.get_domain_by_name_or_alias(schema_name)
+        if domain:
+            return domain.metadata.get('multi_tenant', False)
+
+        # Framework schemas (hardcoded, safe)
+        framework_multi_tenant = {
+            # None currently - core has mixed behavior
+        }
+        return schema_name in framework_multi_tenant
+
+    def get_canonical_schema_name(self, schema_name: str) -&gt; str:
+        &quot;&quot;&quot;
+        Resolve alias to canonical schema name
+
+        Example:
+            registry.get_canonical_schema_name(&quot;management&quot;)  # &quot;crm&quot;
+            registry.get_canonical_schema_name(&quot;tenant&quot;)      # &quot;projects&quot;
+            registry.get_canonical_schema_name(&quot;catalog&quot;)     # &quot;catalog&quot;
+        &quot;&quot;&quot;
+        domain = self.domain_registry.get_domain_by_name_or_alias(schema_name)
+        return domain.name if domain else schema_name
+
+    def is_framework_schema(self, schema_name: str) -&gt; bool:
+        &quot;&quot;&quot;Check if schema is framework-level (common, app, core)&quot;&quot;&quot;
+        return schema_name in ['common', 'app', 'core']
+
+    def is_shared_reference_schema(self, schema_name: str) -&gt; bool:
+        &quot;&quot;&quot;
+        Check if schema is shared reference data (no tenant_id)
+
+        Includes:
+        - Framework schemas: common, app
+        - User-defined domains with multi_tenant=false
+        &quot;&quot;&quot;
+        if schema_name in ['common', 'app']:
+            return True
+
+        domain = self.domain_registry.get_domain_by_name_or_alias(schema_name)
+        if domain:
+            return not domain.metadata.get('multi_tenant', False)
+
+        return False
+</code></pre>
+<p><strong>Usage in Generators</strong>:</p>
+<pre><code class="language-python"># BEFORE (hardcoded)
+TENANT_SCHEMAS = [&quot;tenant&quot;, &quot;crm&quot;, &quot;management&quot;, &quot;operations&quot;]
+if schema in TENANT_SCHEMAS:
+    add_tenant_id()
+
+# AFTER (registry-driven)
+schema_registry = SchemaRegistry(domain_registry)
+if schema_registry.is_multi_tenant(entity.schema):
+    add_tenant_id()
+</code></pre>
+<hr />
+<h3 id="phase-3-update-all-generators">Phase 3: Update All Generators</h3>
+<p><strong>Files to Update</strong>:</p>
+<ol>
+<li><strong><code>src/generators/table_generator.py</code></strong> (line 147)
+   ```python
+   # BEFORE
+   def _is_tenant_specific_schema(self, schema: str) -&gt; bool:
+       tenant_schemas = ["tenant", "crm", "management", "operations"]
+       return schema in tenant_schemas</li>
+</ol>
+<p># AFTER
+   def _is_tenant_specific_schema(self, schema: str) -&gt; bool:
+       return self.schema_registry.is_multi_tenant(schema)
+   ```</p>
+<ol>
+<li><strong><code>src/generators/trinity_helper_generator.py</code></strong> (line 64)
+   ```python
+   # BEFORE
+   TENANT_SCHEMAS = ["tenant", "crm", "management", "operations"]
+   if entity.schema in TENANT_SCHEMAS:
+       # Add tenant_id parameter</li>
+</ol>
+<p># AFTER
+   if self.schema_registry.is_multi_tenant(entity.schema):
+       # Add tenant_id parameter
+   ```</p>
+<ol>
+<li>
+<p><strong><code>src/generators/core_logic_generator.py</code></strong> (line 201)
+   <code>python
+   # Similar replacement</code></p>
+</li>
+<li>
+<p><strong><code>src/generators/actions/step_compilers/fk_resolver.py</code></strong> (line 127)
+   ```python
+   # BEFORE (hardcoded schema map)
+   schema_map = {
+       "Contact": "crm",
+       "Manufacturer": "product",  # BUG!
+   }</p>
+</li>
+</ol>
+<p># AFTER (registry lookup)
+   def _resolve_entity_schema(self, entity_name: str) -&gt; str:
+       # Check if entity is registered
+       entry = self.naming_conventions.registry.get_entity(entity_name)
+       if entry:
+           domain = self.domain_registry.get_domain(entry.domain_code)
+           return domain.name  # Use canonical domain name</p>
+<pre><code>   # Fallback to inference
+   return self._infer_schema_from_entity_name(entity_name)
+</code></pre>
+<p>```</p>
+<hr />
+<h3 id="phase-4-update-documentation">Phase 4: Update Documentation</h3>
+<p><strong>Files to Update</strong>:</p>
+<ol>
+<li><strong><code>.claude/CLAUDE.md</code></strong></li>
+<li>Clarify Tier 1 (framework) vs Tier 2 (multi-tenant) vs Tier 3 (shared)</li>
+<li>Remove "catalog" from universal examples</li>
+<li>
+<p>Add examples for different app types (HR, legal, etc.)</p>
+</li>
+<li>
+<p><strong><code>docs/architecture/SCHEMA_STRATEGY.md</code></strong></p>
+</li>
+<li>Add section on schema tiers</li>
+<li>Explain multi_tenant flag</li>
+<li>
+<p>Show how to add custom domains</p>
+</li>
+<li>
+<p><strong>New</strong>: <code>docs/guides/ADDING_CUSTOM_DOMAINS.md</code></p>
+</li>
+<li>Step-by-step guide for users</li>
+<li>Examples: "sales", "hr", "legal", "healthcare"</li>
+</ol>
+<hr />
+<h3 id="phase-5-validation-migration">Phase 5: Validation &amp; Migration</h3>
+<p><strong>Validation Rules</strong> (add to <code>registry/domain_registry.yaml</code>):</p>
+<pre><code class="language-yaml">validation:
+  require_multi_tenant_flag: true  # Must be explicit
+  warn_on_app_specific_in_framework: true  # Warn if &quot;catalog&quot; treated as universal
+
+  framework_schemas:
+    - common
+    - app
+    - core
+
+  reserved_names:
+    - public
+    - pg_catalog
+    - information_schema
+</code></pre>
+<p><strong>Migration Script</strong>: <code>scripts/migrate_schema_metadata.py</code></p>
+<pre><code class="language-python">#!/usr/bin/env python3
+&quot;&quot;&quot;
+Migrate hardcoded TENANT_SCHEMAS to registry-driven model
+&quot;&quot;&quot;
+
+def migrate_domain_registry():
+    &quot;&quot;&quot;Add multi_tenant flag to all existing domains&quot;&quot;&quot;
+    # Read registry
+    # Add multi_tenant: true/false to each domain
+    # Validate no conflicts
+    pass
+
+def update_generators():
+    &quot;&quot;&quot;Replace hardcoded lists with schema_registry calls&quot;&quot;&quot;
+    pass
+
+def validate_migration():
+    &quot;&quot;&quot;Ensure all schemas have multi_tenant flag&quot;&quot;&quot;
+    pass
+</code></pre>
+<hr />
+<h2 id="examples-different-application-types">Examples: Different Application Types</h2>
+<h3 id="printoptim-current">PrintOptim (Current)</h3>
+<pre><code class="language-yaml">framework_schemas: [common, app, core]
+
+multi_tenant_domains:
+  crm: &quot;Customer management&quot;
+  projects: &quot;Tenant-specific project data&quot;
+
+shared_domains:
+  catalog: &quot;Product catalog (shared across tenants)&quot;
+</code></pre>
+<p><strong>Result</strong>:
+- <code>common.tb_country</code> - Framework shared
+- <code>crm.tb_contact</code> - Tenant-specific (has tenant_id)
+- <code>catalog.tb_manufacturer</code> - App-specific shared (no tenant_id)</p>
+<hr />
+<h3 id="hr-management-system">HR Management System</h3>
+<pre><code class="language-yaml">framework_schemas: [common, app, core]
+
+multi_tenant_domains:
+  hr: &quot;Employee records&quot;
+  payroll: &quot;Payroll &amp; compensation&quot;
+  recruiting: &quot;Job postings &amp; candidates&quot;
+
+shared_domains:
+  legal: &quot;Labor laws &amp; regulations (shared)&quot;
+  benefits: &quot;Health plans &amp; providers (shared)&quot;
+</code></pre>
+<p><strong>Result</strong>:
+- <code>common.tb_country</code> - Framework shared
+- <code>hr.tb_employee</code> - Tenant-specific (has tenant_id)
+- <code>legal.tb_labor_law</code> - App-specific shared (no tenant_id)</p>
+<hr />
+<h3 id="healthcare-platform">Healthcare Platform</h3>
+<pre><code class="language-yaml">framework_schemas: [common, app, core]
+
+multi_tenant_domains:
+  patients: &quot;Patient records&quot;
+  appointments: &quot;Scheduling&quot;
+
+shared_domains:
+  medical_codes: &quot;ICD-10, CPT codes (shared)&quot;
+  medications: &quot;Drug formulary (shared)&quot;
+</code></pre>
+<p><strong>Result</strong>:
+- <code>common.tb_country</code> - Framework shared
+- <code>patients.tb_patient</code> - Tenant-specific (has tenant_id)
+- <code>medical_codes.tb_icd10</code> - App-specific shared (no tenant_id)</p>
+<hr />
+<h2 id="key-benefits">Key Benefits</h2>
+<h3 id="1-domain-agnostic-framework">1. Domain-Agnostic Framework</h3>
+<ul>
+<li>✅ No hardcoded business domains (catalog, crm, etc.)</li>
+<li>✅ Users define their own schemas</li>
+<li>✅ Framework only knows: common, app, core</li>
+</ul>
+<h3 id="2-explicit-multi-tenancy">2. Explicit Multi-Tenancy</h3>
+<ul>
+<li>✅ <code>multi_tenant</code> flag in registry (no guessing)</li>
+<li>✅ Works for any schema name</li>
+<li>✅ Easy to add new multi-tenant domains</li>
+</ul>
+<h3 id="3-flexible-alias-support">3. Flexible Alias Support</h3>
+<ul>
+<li>✅ "crm" or "management" (same domain)</li>
+<li>✅ "projects", "tenant", or "dim" (same domain)</li>
+<li>✅ Generators check aliases automatically</li>
+</ul>
+<h3 id="4-single-source-of-truth">4. Single Source of Truth</h3>
+<ul>
+<li>✅ Domain registry controls multi-tenancy</li>
+<li>✅ No hardcoded lists in generators</li>
+<li>✅ Easy to add new schemas</li>
+</ul>
+<h3 id="5-clear-terminology">5. Clear Terminology</h3>
+<ul>
+<li><strong>Framework Schema</strong>: Built-in (common, app, core)</li>
+<li><strong>Multi-Tenant Domain</strong>: User-defined, has tenant_id</li>
+<li><strong>Shared Domain</strong>: User-defined, no tenant_id</li>
+<li><strong>Subdomain</strong>: Finer grouping within domain (manufacturer, product)</li>
+</ul>
+<hr />
+<h2 id="testing-strategy">Testing Strategy</h2>
+<h3 id="test-cases">Test Cases</h3>
+<p><strong>Test 1: Multi-Tenant Flag Respected</strong></p>
+<pre><code class="language-python">def test_multi_tenant_flag():
+    # Given: Domain with multi_tenant=true
+    registry.set_multi_tenant(&quot;sales&quot;, True)
+
+    # When: Generate table
+    sql = table_gen.generate(Entity(schema=&quot;sales&quot;, ...))
+
+    # Then: tenant_id column exists
+    assert &quot;tenant_id UUID NOT NULL&quot; in sql
+</code></pre>
+<p><strong>Test 2: Alias Resolution</strong></p>
+<pre><code class="language-python">def test_alias_resolution():
+    # Given: &quot;management&quot; is alias for &quot;crm&quot;
+    registry.add_domain(&quot;crm&quot;, aliases=[&quot;management&quot;])
+
+    # When: Check multi_tenant
+    assert schema_registry.is_multi_tenant(&quot;management&quot;) == True
+    assert schema_registry.get_canonical_schema_name(&quot;management&quot;) == &quot;crm&quot;
+</code></pre>
+<p><strong>Test 3: Framework Schemas Unchanged</strong></p>
+<pre><code class="language-python">def test_framework_schemas():
+    # Framework schemas always work
+    assert schema_registry.is_framework_schema(&quot;common&quot;) == True
+    assert schema_registry.is_multi_tenant(&quot;common&quot;) == False
+</code></pre>
+<p><strong>Test 4: FK Resolver Uses Registry</strong></p>
+<pre><code class="language-python">def test_fk_resolver_registry():
+    # Register Manufacturer in catalog domain
+    registry.register_entity(&quot;Manufacturer&quot;, domain=&quot;3&quot;)
+
+    # FK resolver should use &quot;catalog&quot; schema
+    schema = fk_resolver.resolve_entity_schema(&quot;Manufacturer&quot;)
+    assert schema == &quot;catalog&quot;  # NOT &quot;product&quot;!
+</code></pre>
+<hr />
+<h2 id="migration-checklist">Migration Checklist</h2>
+<h3 id="pre-migration">Pre-Migration</h3>
+<ul>
+<li>[ ] Review all schemas in current codebase</li>
+<li>[ ] Identify which are tenant-specific vs shared</li>
+<li>[ ] Document any custom schemas users might have</li>
+</ul>
+<h3 id="implementation">Implementation</h3>
+<ul>
+<li>[ ] Add <code>multi_tenant</code> flag to <code>domain_registry.yaml</code></li>
+<li>[ ] Create <code>SchemaRegistry</code> class</li>
+<li>[ ] Update <code>table_generator.py</code></li>
+<li>[ ] Update <code>trinity_helper_generator.py</code></li>
+<li>[ ] Update <code>core_logic_generator.py</code></li>
+<li>[ ] Fix FK resolver bug (Manufacturer → catalog)</li>
+<li>[ ] Add validation rules</li>
+</ul>
+<h3 id="testing">Testing</h3>
+<ul>
+<li>[ ] All unit tests pass</li>
+<li>[ ] Integration tests with multi-tenant schemas</li>
+<li>[ ] Integration tests with shared schemas</li>
+<li>[ ] Test alias resolution</li>
+<li>[ ] Test FK resolver with registry</li>
+</ul>
+<h3 id="documentation">Documentation</h3>
+<ul>
+<li>[ ] Update <code>.claude/CLAUDE.md</code></li>
+<li>[ ] Update <code>SCHEMA_STRATEGY.md</code></li>
+<li>[ ] Create <code>ADDING_CUSTOM_DOMAINS.md</code></li>
+<li>[ ] Add examples for different app types</li>
+</ul>
+<h3 id="cleanup">Cleanup</h3>
+<ul>
+<li>[ ] Remove all hardcoded <code>TENANT_SCHEMAS</code> lists</li>
+<li>[ ] Remove hardcoded schema maps in FK resolver</li>
+<li>[ ] Remove PrintOptim-specific assumptions</li>
+<li>[ ] Deprecate old patterns</li>
+</ul>
+<hr />
+<h2 id="decision-log">Decision Log</h2>
+<h3 id="decision-1-three-tier-model-framework-multi-tenant-shared">Decision 1: Three-Tier Model (Framework / Multi-Tenant / Shared)</h3>
+<p><strong>Reason</strong>: Clear separation between universal (common), tenant-isolated (crm), and app-specific (catalog)</p>
+<h3 id="decision-2-explicit-multi_tenant-flag">Decision 2: Explicit <code>multi_tenant</code> Flag</h3>
+<p><strong>Reason</strong>: No guessing based on schema name; user controls behavior</p>
+<h3 id="decision-3-keep-catalog-as-user-defined-domain">Decision 3: Keep "catalog" as User-Defined Domain</h3>
+<p><strong>Reason</strong>: It's PrintOptim-specific, not universal; other apps won't need it</p>
+<h3 id="decision-4-support-aliases-in-registry">Decision 4: Support Aliases in Registry</h3>
+<p><strong>Reason</strong>: Flexibility for users ("crm" vs "management"); already in domain_registry.yaml</p>
+<h3 id="decision-5-centralize-schema-logic-in-schemaregistry">Decision 5: Centralize Schema Logic in SchemaRegistry</h3>
+<p><strong>Reason</strong>: Single source of truth; eliminates hardcoded lists in 3+ files</p>
+<hr />
+<h2 id="next-steps">Next Steps</h2>
+<ol>
+<li><strong>Review this proposal</strong> with stakeholders</li>
+<li><strong>Prioritize implementation</strong>: High impact, medium effort</li>
+<li><strong>Create subtasks</strong> for Phase 1-5</li>
+<li><strong>Update Week 2 plan</strong> to include schema registry work</li>
+<li><strong>Consider impact on Team B</strong> (schema generation)</li>
+</ol>
+<hr />
+<p><strong>Status</strong>: 🚧 PROPOSED - Awaiting Review
+<strong>Priority</strong>: High (affects all generators)
+<strong>Effort</strong>: Medium (4-6 hours)
+<strong>Impact</strong>: High (makes framework domain-agnostic)</p>
+<p><strong>Last Updated</strong>: 2025-11-09</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

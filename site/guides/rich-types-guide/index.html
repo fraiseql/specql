@@ -1,0 +1,848 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Rich Types Guide - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Rich Types Guide";
+        var mkdocs_page_input_path = "guides/rich-types-guide.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Rich Types Guide</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="rich-types-guide">Rich Types Guide</h1>
+<p><strong>SpecQL Rich Types: 50 Validated Scalar Types for Production-Ready Data</strong></p>
+<p>Rich types automatically generate PostgreSQL CHECK constraints, ensuring data quality at the database level. No validation code needed in your application.</p>
+<h2 id="overview">Overview</h2>
+<p>SpecQL includes 50 built-in scalar types that automatically generate:
+- PostgreSQL CHECK constraints with regex validation
+- Range validation for numeric types
+- Proper data types and precision
+- GraphQL scalar mappings
+- Frontend input type hints</p>
+<h2 id="quick-reference">Quick Reference</h2>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Types</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Contact</strong></td>
+<td><code>email</code>, <code>phoneNumber</code></td>
+<td>User contact information</td>
+</tr>
+<tr>
+<td><strong>Web</strong></td>
+<td><code>url</code>, <code>domainName</code>, <code>slug</code></td>
+<td>Web addresses and identifiers</td>
+</tr>
+<tr>
+<td><strong>Content</strong></td>
+<td><code>markdown</code>, <code>html</code>, <code>text</code></td>
+<td>Rich text content</td>
+</tr>
+<tr>
+<td><strong>Financial</strong></td>
+<td><code>money</code>, <code>percentage</code>, <code>currencyCode</code></td>
+<td>Monetary values</td>
+</tr>
+<tr>
+<td><strong>Temporal</strong></td>
+<td><code>date</code>, <code>datetime</code>, <code>time</code>, <code>duration</code></td>
+<td>Time-based data</td>
+</tr>
+<tr>
+<td><strong>Geographic</strong></td>
+<td><code>coordinates</code>, <code>latitude</code>, <code>longitude</code></td>
+<td>Location data</td>
+</tr>
+<tr>
+<td><strong>Technical</strong></td>
+<td><code>ipAddress</code>, <code>macAddress</code>, <code>uuid</code></td>
+<td>Network and system identifiers</td>
+</tr>
+<tr>
+<td><strong>Business</strong></td>
+<td><code>stockSymbol</code>, <code>isin</code>, <code>lei</code>, <code>mic</code></td>
+<td>Financial instruments</td>
+</tr>
+<tr>
+<td><strong>Logistics</strong></td>
+<td><code>trackingNumber</code>, <code>containerNumber</code>, <code>vin</code></td>
+<td>Shipping and transport</td>
+</tr>
+<tr>
+<td><strong>Security</strong></td>
+<td><code>apiKey</code>, <code>hashSHA256</code></td>
+<td>Authentication and hashing</td>
+</tr>
+</tbody>
+</table>
+<h2 id="contact-types">Contact Types</h2>
+<h3 id="email">email</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>Email</code>
+<strong>Validation</strong>: RFC 5322 simplified email format</p>
+<pre><code class="language-yaml">fields:
+  email: email!  # NOT NULL + email validation
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">email TEXT NOT NULL CHECK (email ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>user@example.com</code>, <code>test.email+tag@domain.co.uk</code></p>
+<h3 id="phonenumber">phoneNumber</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>PhoneNumber</code>
+<strong>Validation</strong>: E.164 international format</p>
+<pre><code class="language-yaml">fields:
+  phone: phoneNumber  # Optional phone number
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">phone TEXT CHECK (phone ~ '^\+[1-9]\d{1,14}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>+14155551234</code>, <code>+447700900000</code></p>
+<h2 id="web-types">Web Types</h2>
+<h3 id="url">url</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>Url</code>
+<strong>Validation</strong>: HTTP/HTTPS URL format</p>
+<pre><code class="language-yaml">fields:
+  website: url
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">website TEXT CHECK (website ~ '^https?://[^\s/$.?#].[^\s]*$')
+</code></pre>
+<p><strong>Examples</strong>: <code>https://example.com</code>, <code>http://localhost:3000/api</code></p>
+<h3 id="domainname">domainName</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>DomainName</code>
+<strong>Validation</strong>: RFC compliant domain name</p>
+<pre><code class="language-yaml">fields:
+  domain: domainName!
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">domain TEXT NOT NULL CHECK (domain ~ '^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>example.com</code>, <code>sub.domain.co.uk</code></p>
+<h3 id="slug">slug</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>Slug</code>
+<strong>Validation</strong>: URL-safe identifier</p>
+<pre><code class="language-yaml">fields:
+  slug: slug!
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">slug TEXT NOT NULL CHECK (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')
+</code></pre>
+<p><strong>Examples</strong>: <code>my-article</code>, <code>user-profile-123</code></p>
+<h2 id="content-types">Content Types</h2>
+<h3 id="markdown">markdown</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code>
+<strong>GraphQL</strong>: <code>Markdown</code>
+<strong>Validation</strong>: Basic markdown structure check</p>
+<pre><code class="language-yaml">fields:
+  content: markdown
+</code></pre>
+<p><strong>Examples</strong>: Standard markdown content with headers, links, lists</p>
+<h3 id="html">html</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code>
+<strong>GraphQL</strong>: <code>Html</code>
+<strong>Validation</strong>: Basic HTML structure check</p>
+<pre><code class="language-yaml">fields:
+  description: html
+</code></pre>
+<p><strong>Examples</strong>: HTML content with tags and attributes</p>
+<h2 id="financial-types">Financial Types</h2>
+<h3 id="money">money</h3>
+<p><strong>PostgreSQL</strong>: <code>NUMERIC(19,4)</code> with range validation
+<strong>GraphQL</strong>: <code>Money</code>
+<strong>Validation</strong>: -999999999999999.9999 to 999999999999999.9999</p>
+<pre><code class="language-yaml">fields:
+  price: money!
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">price NUMERIC(19,4) NOT NULL CHECK (price &gt;= -999999999999999.9999 AND price &lt;= 999999999999999.9999)
+</code></pre>
+<p><strong>Examples</strong>: <code>99.99</code>, <code>1234567.8901</code>, <code>-50.00</code></p>
+<h3 id="percentage">percentage</h3>
+<p><strong>PostgreSQL</strong>: <code>NUMERIC(5,2)</code> with range validation
+<strong>GraphQL</strong>: <code>Percentage</code>
+<strong>Validation</strong>: 0.00 to 100.00</p>
+<pre><code class="language-yaml">fields:
+  score: percentage
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">score NUMERIC(5,2) CHECK (score &gt;= 0.00 AND score &lt;= 100.00)
+</code></pre>
+<p><strong>Examples</strong>: <code>85.50</code>, <code>100.00</code>, <code>0.01</code></p>
+<h3 id="currencycode">currencyCode</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>CurrencyCode</code>
+<strong>Validation</strong>: ISO 4217 currency codes</p>
+<pre><code class="language-yaml">fields:
+  currency: currencyCode!
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">currency TEXT NOT NULL CHECK (currency ~ '^[A-Z]{3}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>USD</code>, <code>EUR</code>, <code>GBP</code>, <code>JPY</code></p>
+<h2 id="temporal-types">Temporal Types</h2>
+<h3 id="date">date</h3>
+<p><strong>PostgreSQL</strong>: <code>DATE</code>
+<strong>GraphQL</strong>: <code>Date</code>
+<strong>Validation</strong>: ISO date format</p>
+<pre><code class="language-yaml">fields:
+  birth_date: date
+</code></pre>
+<p><strong>Examples</strong>: <code>2025-01-15</code>, <code>1990-12-31</code></p>
+<h3 id="datetime">datetime</h3>
+<p><strong>PostgreSQL</strong>: <code>TIMESTAMPTZ</code>
+<strong>GraphQL</strong>: <code>DateTime</code>
+<strong>Validation</strong>: ISO timestamp with timezone</p>
+<pre><code class="language-yaml">fields:
+  created_at: datetime!
+</code></pre>
+<p><strong>Examples</strong>: <code>2025-01-15T14:30:00Z</code>, <code>2025-01-15T09:30:00-05:00</code></p>
+<h3 id="time">time</h3>
+<p><strong>PostgreSQL</strong>: <code>TIME</code>
+<strong>GraphQL</strong>: <code>Time</code>
+<strong>Validation</strong>: HH:MM:SS format</p>
+<pre><code class="language-yaml">fields:
+  meeting_time: time
+</code></pre>
+<p><strong>Examples</strong>: <code>14:30:00</code>, <code>09:15:30</code></p>
+<h3 id="duration">duration</h3>
+<p><strong>PostgreSQL</strong>: <code>INTERVAL</code>
+<strong>GraphQL</strong>: <code>Duration</code>
+<strong>Validation</strong>: PostgreSQL interval format</p>
+<pre><code class="language-yaml">fields:
+  duration: duration
+</code></pre>
+<p><strong>Examples</strong>: <code>1 hour 30 minutes</code>, <code>2 days</code>, <code>PT1H30M</code></p>
+<h2 id="geographic-types">Geographic Types</h2>
+<h3 id="coordinates">coordinates</h3>
+<p><strong>PostgreSQL</strong>: <code>POINT</code> with spatial index
+<strong>GraphQL</strong>: <code>Coordinates</code>
+<strong>Validation</strong>: Latitude/Longitude pair</p>
+<pre><code class="language-yaml">fields:
+  location: coordinates
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">location POINT
+-- Plus automatic GIST spatial index
+CREATE INDEX idx_tb_entity_location ON schema.tb_entity USING GIST(location);
+</code></pre>
+<p><strong>Examples</strong>: <code>(37.7749, -122.4194)</code>, <code>(-33.8688, 151.2093)</code></p>
+<h3 id="latitude">latitude</h3>
+<p><strong>PostgreSQL</strong>: <code>NUMERIC(9,6)</code> with range validation
+<strong>GraphQL</strong>: <code>Latitude</code>
+<strong>Validation</strong>: -90.000000 to 90.000000</p>
+<pre><code class="language-yaml">fields:
+  lat: latitude!
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">lat NUMERIC(9,6) NOT NULL CHECK (lat &gt;= -90.000000 AND lat &lt;= 90.000000)
+</code></pre>
+<h3 id="longitude">longitude</h3>
+<p><strong>PostgreSQL</strong>: <code>NUMERIC(9,6)</code> with range validation
+<strong>GraphQL</strong>: <code>Longitude</code>
+<strong>Validation</strong>: -180.000000 to 180.000000</p>
+<pre><code class="language-yaml">fields:
+  lng: longitude!
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">lng NUMERIC(9,6) NOT NULL CHECK (lng &gt;= -180.000000 AND lng &lt;= 180.000000)
+</code></pre>
+<h2 id="technical-types">Technical Types</h2>
+<h3 id="ipaddress">ipAddress</h3>
+<p><strong>PostgreSQL</strong>: <code>INET</code>
+<strong>GraphQL</strong>: <code>IpAddress</code>
+<strong>Validation</strong>: IPv4 or IPv6 address</p>
+<pre><code class="language-yaml">fields:
+  ip: ipAddress
+</code></pre>
+<p><strong>Examples</strong>: <code>192.168.1.1</code>, <code>2001:db8::1</code></p>
+<h3 id="macaddress">macAddress</h3>
+<p><strong>PostgreSQL</strong>: <code>MACADDR</code>
+<strong>GraphQL</strong>: <code>MacAddress</code>
+<strong>Validation</strong>: MAC address format</p>
+<pre><code class="language-yaml">fields:
+  mac: macAddress
+</code></pre>
+<p><strong>Examples</strong>: <code>00:1B:44:11:3A:B7</code>, <code>00-1B-44-11-3A-B7</code></p>
+<h3 id="uuid">uuid</h3>
+<p><strong>PostgreSQL</strong>: <code>UUID</code>
+<strong>GraphQL</strong>: <code>UUID</code>
+<strong>Validation</strong>: UUID format</p>
+<pre><code class="language-yaml">fields:
+  api_key: uuid!
+</code></pre>
+<p><strong>Examples</strong>: <code>550e8400-e29b-41d4-a716-446655440000</code></p>
+<h2 id="internationalization-types">Internationalization Types</h2>
+<h3 id="languagecode">languageCode</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>LanguageCode</code>
+<strong>Validation</strong>: ISO 639 language codes</p>
+<pre><code class="language-yaml">fields:
+  language: languageCode
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">language TEXT CHECK (language ~ '^[a-z]{2,3}(?:-[A-Z]{2})?$')
+</code></pre>
+<p><strong>Examples</strong>: <code>en</code>, <code>fr</code>, <code>zh-CN</code>, <code>pt-BR</code></p>
+<h3 id="localecode">localeCode</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>LocaleCode</code>
+<strong>Validation</strong>: BCP 47 locale format</p>
+<pre><code class="language-yaml">fields:
+  locale: localeCode
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">locale TEXT CHECK (locale ~ '^[a-z]{2,3}(?:-[A-Z]{2})?(?:-[a-z]{2,8})*$')
+</code></pre>
+<p><strong>Examples</strong>: <code>en-US</code>, <code>fr-CA</code>, <code>zh-Hans-CN</code></p>
+<h3 id="timezone">timezone</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with validation
+<strong>GraphQL</strong>: <code>Timezone</code>
+<strong>Validation</strong>: IANA timezone names</p>
+<pre><code class="language-yaml">fields:
+  tz: timezone!
+</code></pre>
+<p><strong>Examples</strong>: <code>America/New_York</code>, <code>Europe/London</code>, <code>Asia/Tokyo</code></p>
+<h3 id="countrycode">countryCode</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>CountryCode</code>
+<strong>Validation</strong>: ISO 3166-1 alpha-2</p>
+<pre><code class="language-yaml">fields:
+  country: countryCode
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">country TEXT CHECK (country ~ '^[A-Z]{2}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>US</code>, <code>GB</code>, <code>CA</code>, <code>JP</code></p>
+<h2 id="financial-instrument-types">Financial Instrument Types</h2>
+<h3 id="stocksymbol">stockSymbol</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>StockSymbol</code>
+<strong>Validation</strong>: Stock ticker format</p>
+<pre><code class="language-yaml">fields:
+  symbol: stockSymbol!
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">symbol TEXT NOT NULL CHECK (symbol ~ '^[A-Z]{1,5}(\.[A-Z]{1,2})?$')
+</code></pre>
+<p><strong>Examples</strong>: <code>AAPL</code>, <code>GOOGL</code>, <code>BRK.A</code></p>
+<h3 id="isin">isin</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>ISIN</code>
+<strong>Validation</strong>: ISO 6166 ISIN format</p>
+<pre><code class="language-yaml">fields:
+  isin: isin
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">isin TEXT CHECK (isin ~ '^[A-Z]{2}[A-Z0-9]{9}[0-9]$')
+</code></pre>
+<p><strong>Examples</strong>: <code>US0378331005</code>, <code>GB0002634946</code></p>
+<h3 id="cusip">cusip</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>CUSIP</code>
+<strong>Validation</strong>: CUSIP format</p>
+<pre><code class="language-yaml">fields:
+  cusip: cusip
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">cusip TEXT CHECK (cusip ~ '^[0-9]{6}[0-9A-Z]{2}[0-9]$')
+</code></pre>
+<p><strong>Examples</strong>: <code>037833100</code>, <code>172967424</code></p>
+<h3 id="sedol">sedol</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>SEDOL</code>
+<strong>Validation</strong>: SEDOL format</p>
+<pre><code class="language-yaml">fields:
+  sedol: sedol
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">sedol TEXT CHECK (sedol ~ '^[0-9A-Z]{6}[0-9]$')
+</code></pre>
+<p><strong>Examples</strong>: <code>B02LC96</code>, <code>0263494</code></p>
+<h3 id="lei">lei</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>LEI</code>
+<strong>Validation</strong>: LEI format</p>
+<pre><code class="language-yaml">fields:
+  lei: lei
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">lei TEXT CHECK (lei ~ '^[0-9A-Z]{18}[0-9]{2}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>54930084UKLVMY22DS16</code></p>
+<h3 id="mic">mic</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>MIC</code>
+<strong>Validation</strong>: ISO 10383 MIC format</p>
+<pre><code class="language-yaml">fields:
+  mic: mic
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">mic TEXT CHECK (mic ~ '^[A-Z0-9]{4}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>XNYS</code>, <code>XLON</code></p>
+<h3 id="exchangecode">exchangeCode</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>ExchangeCode</code>
+<strong>Validation</strong>: Exchange code format</p>
+<pre><code class="language-yaml">fields:
+  exchange: exchangeCode
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">exchange TEXT CHECK (exchange ~ '^[A-Z]{2,6}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>NYSE</code>, <code>NASDAQ</code>, <code>LSE</code></p>
+<h3 id="exchangerate">exchangeRate</h3>
+<p><strong>PostgreSQL</strong>: <code>NUMERIC(19,8)</code> with range validation
+<strong>GraphQL</strong>: <code>ExchangeRate</code>
+<strong>Validation</strong>: High precision decimal</p>
+<pre><code class="language-yaml">fields:
+  rate: exchangeRate!
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">rate NUMERIC(19,8) NOT NULL CHECK (rate &gt;= 0.0)
+</code></pre>
+<h2 id="logistics-types">Logistics Types</h2>
+<h3 id="trackingnumber">trackingNumber</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>TrackingNumber</code>
+<strong>Validation</strong>: Generic tracking number format</p>
+<pre><code class="language-yaml">fields:
+  tracking: trackingNumber
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">tracking TEXT CHECK (tracking ~ '^[A-Z0-9]{8,30}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>1Z999AA1234567890</code>, <code>9400111899223344</code></p>
+<h3 id="containernumber">containerNumber</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>ContainerNumber</code>
+<strong>Validation</strong>: ISO 6346 container number</p>
+<pre><code class="language-yaml">fields:
+  container: containerNumber
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">container TEXT CHECK (container ~ '^[A-Z]{3}[UJZ]\d{6}\d$')
+</code></pre>
+<p><strong>Examples</strong>: <code>MSKU1234567</code>, <code>CSQU3054383</code></p>
+<h3 id="licenseplate">licensePlate</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>LicensePlate</code>
+<strong>Validation</strong>: International license plate format</p>
+<pre><code class="language-yaml">fields:
+  plate: licensePlate
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">plate TEXT CHECK (plate ~ '^[A-Z0-9\s\-]{1,20}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>ABC-123</code>, <code>CA 123456</code></p>
+<h3 id="vin">vin</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>VIN</code>
+<strong>Validation</strong>: Vehicle Identification Number</p>
+<pre><code class="language-yaml">fields:
+  vin: vin
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">vin TEXT CHECK (vin ~ '^[A-HJ-NPR-Z0-9]{17}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>1HGCM82633A123456</code></p>
+<h3 id="flightnumber">flightNumber</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>FlightNumber</code>
+<strong>Validation</strong>: Airline code + number format</p>
+<pre><code class="language-yaml">fields:
+  flight: flightNumber
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">flight TEXT CHECK (flight ~ '^[A-Z]{2,3}\d{1,4}[A-Z]?$')
+</code></pre>
+<p><strong>Examples</strong>: <code>AA1234</code>, <code>BAW123</code>, <code>DL1234A</code></p>
+<h3 id="portcode">portCode</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>PortCode</code>
+<strong>Validation</strong>: UN/LOCODE format</p>
+<pre><code class="language-yaml">fields:
+  port: portCode
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">port TEXT CHECK (port ~ '^[A-Z]{5}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>USNYC</code>, <code>NLRTM</code>, <code>HKHKG</code></p>
+<h3 id="postalcode">postalCode</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>PostalCode</code>
+<strong>Validation</strong>: International postal code format</p>
+<pre><code class="language-yaml">fields:
+  zip: postalCode
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">zip TEXT CHECK (zip ~ '^[A-Z0-9\s\-]{3,12}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>12345</code>, <code>SW1A 1AA</code>, <code>90210-1234</code></p>
+<h3 id="airportcode">airportCode</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>AirportCode</code>
+<strong>Validation</strong>: IATA airport code</p>
+<pre><code class="language-yaml">fields:
+  airport: airportCode
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">airport TEXT CHECK (airport ~ '^[A-Z]{3}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>JFK</code>, <code>LAX</code>, <code>LHR</code>, <code>NRT</code></p>
+<h2 id="security-types">Security Types</h2>
+<h3 id="apikey">apiKey</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>ApiKey</code>
+<strong>Validation</strong>: API key format</p>
+<pre><code class="language-yaml">fields:
+  api_key: apiKey
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">api_key TEXT CHECK (api_key ~ '^[A-Za-z0-9_\-]{20,128}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>sk-1234567890abcdef</code>, <code>pk_live_1234567890abcdef</code></p>
+<h3 id="hashsha256">hashSHA256</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>HashSHA256</code>
+<strong>Validation</strong>: SHA256 hex format</p>
+<pre><code class="language-yaml">fields:
+  password_hash: hashSHA256
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">password_hash TEXT CHECK (password_hash ~ '^[a-f0-9]{64}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3</code></p>
+<h2 id="banking-types">Banking Types</h2>
+<h3 id="iban">iban</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>IBAN</code>
+<strong>Validation</strong>: IBAN format</p>
+<pre><code class="language-yaml">fields:
+  iban: iban
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">iban TEXT CHECK (iban ~ '^[A-Z]{2}\d{2}[A-Z0-9]{11,30}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>GB29 NWBK 6016 1331 9268 19</code></p>
+<h3 id="swiftcode">swiftCode</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>SwiftCode</code>
+<strong>Validation</strong>: SWIFT/BIC format</p>
+<pre><code class="language-yaml">fields:
+  swift: swiftCode
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">swift TEXT CHECK (swift ~ '^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$')
+</code></pre>
+<p><strong>Examples</strong>: <code>CHASUS33</code>, <code>DEUTDEFF</code></p>
+<h2 id="special-types">Special Types</h2>
+<h3 id="json">json</h3>
+<p><strong>PostgreSQL</strong>: <code>JSONB</code>
+<strong>GraphQL</strong>: <code>JSON</code>
+<strong>Validation</strong>: Valid JSON structure</p>
+<pre><code class="language-yaml">fields:
+  metadata: json
+</code></pre>
+<p><strong>Examples</strong>: <code>{"key": "value"}</code>, <code>[1, 2, 3]</code>, <code>{"nested": {"object": true}}</code></p>
+<h3 id="image">image</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code>
+<strong>GraphQL</strong>: <code>Image</code>
+<strong>Validation</strong>: Image file extension</p>
+<pre><code class="language-yaml">fields:
+  avatar: image
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">avatar TEXT CHECK (avatar ~ '\.(jpg|jpeg|png|gif|webp|svg)$'i)
+</code></pre>
+<h3 id="file">file</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code>
+<strong>GraphQL</strong>: <code>File</code>
+<strong>Validation</strong>: Generic file path</p>
+<pre><code class="language-yaml">fields:
+  attachment: file
+</code></pre>
+<h3 id="color">color</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>Color</code>
+<strong>Validation</strong>: Hex color format</p>
+<pre><code class="language-yaml">fields:
+  theme_color: color
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">theme_color TEXT CHECK (theme_color ~ '^#[0-9A-Fa-f]{6}$')
+</code></pre>
+<p><strong>Examples</strong>: <code>#FF0000</code>, <code>#00FF00</code>, <code>#0000FF</code></p>
+<h3 id="mimetype">mimeType</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>MimeType</code>
+<strong>Validation</strong>: MIME type format</p>
+<pre><code class="language-yaml">fields:
+  content_type: mimeType
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">content_type TEXT CHECK (content_type ~ '^[a-zA-Z][a-zA-Z0-9\-+]*\/[a-zA-Z0-9\-+]*$')
+</code></pre>
+<p><strong>Examples</strong>: <code>application/json</code>, <code>text/html</code>, <code>image/png</code></p>
+<h3 id="semanticversion">semanticVersion</h3>
+<p><strong>PostgreSQL</strong>: <code>TEXT</code> with regex validation
+<strong>GraphQL</strong>: <code>SemanticVersion</code>
+<strong>Validation</strong>: SemVer format</p>
+<pre><code class="language-yaml">fields:
+  version: semanticVersion!
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">version TEXT NOT NULL CHECK (version ~ '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-((?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*)(?:\.(?:0|[1-9]\d*|\d*[a-zA-Z-][0-9a-zA-Z-]*))*))?(?:\+([0-9a-zA-Z-]+(?:\.[0-9a-zA-Z-]+)*))?$')
+</code></pre>
+<p><strong>Examples</strong>: <code>1.0.0</code>, <code>2.1.3-alpha</code>, <code>3.0.0-beta.1</code></p>
+<h2 id="usage-patterns">Usage Patterns</h2>
+<h3 id="basic-entity-with-rich-types">Basic Entity with Rich Types</h3>
+<pre><code class="language-yaml">entity: User
+schema: public
+description: &quot;User account with rich type validation&quot;
+
+fields:
+  # Contact information
+  email: email!
+  phone: phoneNumber
+
+  # Profile data
+  username: slug!
+  bio: markdown
+  website: url
+
+  # Financial data
+  salary: money
+  completion_rate: percentage
+
+  # Geographic data
+  home_coordinates: coordinates
+
+  # Technical data
+  api_key: apiKey
+  last_login_ip: ipAddress
+
+  # Internationalization
+  language: languageCode
+  timezone: timezone!
+  country: countryCode
+</code></pre>
+<h3 id="e-commerce-product">E-commerce Product</h3>
+<pre><code class="language-yaml">entity: Product
+schema: commerce
+description: &quot;Product with comprehensive rich types&quot;
+
+fields:
+  name: text!
+  description: html
+  price: money!
+  currency: currencyCode!
+  discount_percentage: percentage
+  weight_kg: float
+  dimensions: json  # {&quot;width&quot;: 10, &quot;height&quot;: 5, &quot;depth&quot;: 2}
+  color: color
+  image_url: url
+  sku: text!
+  barcode: text
+</code></pre>
+<h3 id="financial-instrument">Financial Instrument</h3>
+<pre><code class="language-yaml">entity: Stock
+schema: finance
+description: &quot;Stock with financial instrument types&quot;
+
+fields:
+  symbol: stockSymbol!
+  isin: isin
+  cusip: cusip
+  exchange: mic!
+  currency: currencyCode!
+  last_price: money
+  market_cap: money
+  pe_ratio: float
+</code></pre>
+<h2 id="error-messages">Error Messages</h2>
+<p>Rich types provide clear validation error messages:</p>
+<ul>
+<li><strong>email</strong>: "Email must be in valid format (user@domain.com)"</li>
+<li><strong>phoneNumber</strong>: "Phone number must be in E.164 format (+1234567890)"</li>
+<li><strong>url</strong>: "URL must be a valid HTTP or HTTPS address"</li>
+<li><strong>money</strong>: "Amount must be between -999999999999999.9999 and 999999999999999.9999"</li>
+<li><strong>percentage</strong>: "Percentage must be between 0.00 and 100.00"</li>
+<li><strong>coordinates</strong>: "Coordinates must be valid latitude/longitude pair"</li>
+</ul>
+<h2 id="custom-validation">Custom Validation</h2>
+<p>For custom validation beyond built-in types, use actions with validate steps:</p>
+<pre><code class="language-yaml">actions:
+  - name: create_user
+    steps:
+      - validate: age &gt;= 18 AND age &lt;= 120
+      - validate: LENGTH(password) &gt;= 8
+      - validate: email NOT IN (SELECT email FROM banned_emails)
+      - insert: User
+</code></pre>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<ul>
+<li><strong>Indexes</strong>: Rich types automatically create appropriate indexes (spatial for coordinates, etc.)</li>
+<li><strong>Constraints</strong>: CHECK constraints are fast but add overhead on INSERT/UPDATE</li>
+<li><strong>Storage</strong>: Some types use higher precision (NUMERIC) for accuracy</li>
+<li><strong>Validation</strong>: Regex validation is performed at database level</li>
+</ul>
+<h2 id="migration-from-basic-types">Migration from Basic Types</h2>
+<p>When upgrading from basic types to rich types:</p>
+<pre><code class="language-yaml"># Before
+fields:
+  email: text!
+  phone: text
+  price: float
+
+# After
+fields:
+  email: email!      # Now validated
+  phone: phoneNumber # Now validated
+  price: money       # Now properly typed with precision
+</code></pre>
+<p>The migration automatically adds CHECK constraints to existing data. Run validation first:</p>
+<pre><code class="language-bash">specql validate entities/*.yaml
+</code></pre>
+<hr />
+<p><strong>Next</strong>: Learn about <a href="../actions-guide/">Actions</a> or explore <a href="../stdlib-usage/">Stdlib Entities</a></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

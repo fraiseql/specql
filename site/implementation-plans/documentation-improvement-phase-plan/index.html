@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Documentation Improvement - Phased Implementation Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Documentation Improvement - Phased Implementation Plan";
+        var mkdocs_page_input_path = "implementation-plans/documentation-improvement-phase-plan.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Documentation Improvement - Phased Implementation Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="documentation-improvement-phased-implementation-plan">Documentation Improvement - Phased Implementation Plan</h1>
+<p><strong>Date</strong>: 2025-11-10
+<strong>Status</strong>: Planning
+<strong>Goal</strong>: Comprehensive, user-friendly documentation for SpecQL's mutation patterns library, automatic test generation, and CLI tools</p>
+<hr />
+<h2 id="executive-summary">🎯 Executive Summary</h2>
+<p>This plan outlines a phased approach to creating world-class documentation for SpecQL's three core capabilities:
+1. <strong>Mutation Patterns Library</strong> - 27 reusable patterns for business logic
+2. <strong>Automatic Test Generation</strong> - Zero-effort test creation from YAML
+3. <strong>SpecQL CLI</strong> - Command-line interface for all operations</p>
+<p><strong>Timeline</strong>: 6 weeks
+<strong>Effort</strong>: 12 person-weeks
+<strong>Outcome</strong>: Production-ready documentation enabling rapid user adoption</p>
+<hr />
+<h2 id="current-state-assessment">📊 Current State Assessment</h2>
+<h3 id="what-we-have">What We Have ✅</h3>
+<ul>
+<li>Technical implementation complete (Phase 4 done)</li>
+<li>Pattern library working (<code>stdlib/actions/</code>)</li>
+<li>Test generators functional (<code>src/testing/</code>)</li>
+<li>CLI commands implemented (<code>src/cli/</code>)</li>
+<li>Basic README files in some directories</li>
+</ul>
+<h3 id="whats-missing">What's Missing ⚠️</h3>
+<ul>
+<li>User-facing documentation (tutorials, guides, examples)</li>
+<li>API reference documentation</li>
+<li>CLI command documentation</li>
+<li>Getting started guides</li>
+<li>Best practices and patterns catalog</li>
+<li>Troubleshooting guides</li>
+<li>Video tutorials</li>
+</ul>
+<h3 id="gap-analysis">Gap Analysis</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Implementation</th>
+<th>Documentation</th>
+<th>Gap</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Mutation Patterns</td>
+<td>✅ 100%</td>
+<td>⚠️ 20%</td>
+<td><strong>80%</strong></td>
+</tr>
+<tr>
+<td>Test Generation</td>
+<td>✅ 100%</td>
+<td>⚠️ 15%</td>
+<td><strong>85%</strong></td>
+</tr>
+<tr>
+<td>CLI Tools</td>
+<td>✅ 100%</td>
+<td>⚠️ 30%</td>
+<td><strong>70%</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Average Documentation Gap</strong>: 78%</p>
+<hr />
+<h2 id="documentation-architecture">🏗️ Documentation Architecture</h2>
+<h3 id="proposed-structure">Proposed Structure</h3>
+<pre><code>docs/
+├── README.md                           # Documentation hub
+├── getting-started/
+│   ├── README.md                       # Quick start (5 min)
+│   ├── installation.md                 # Install guide
+│   ├── first-entity.md                 # Create first entity
+│   ├── first-pattern.md                # Use first pattern
+│   └── first-tests.md                  # Generate first tests
+│
+├── guides/
+│   ├── README.md                       # Guide index
+│   ├── mutation-patterns/
+│   │   ├── README.md                   # Patterns overview
+│   │   ├── getting-started.md          # Pattern basics
+│   │   ├── state-machines.md           # State machine guide
+│   │   ├── multi-entity.md             # Multi-entity guide
+│   │   ├── batch-operations.md         # Batch guide
+│   │   ├── validation.md               # Validation guide
+│   │   ├── composing-patterns.md       # Advanced composition
+│   │   └── custom-patterns.md          # Creating custom patterns
+│   │
+│   ├── test-generation/
+│   │   ├── README.md                   # Testing overview
+│   │   ├── getting-started.md          # Test gen basics
+│   │   ├── pgtap-tests.md              # pgTAP guide
+│   │   ├── pytest-tests.md             # Pytest guide
+│   │   ├── performance-tests.md        # Performance benchmarks
+│   │   └── ci-cd-integration.md        # CI/CD setup
+│   │
+│   └── cli/
+│       ├── README.md                   # CLI overview
+│       ├── generate.md                 # Generate commands
+│       ├── validate.md                 # Validate commands
+│       ├── test.md                     # Test commands
+│       ├── performance.md              # Performance commands
+│       └── workflows.md                # Common workflows
+│
+├── reference/
+│   ├── README.md                       # Reference index
+│   ├── cli-reference.md                # Complete CLI reference
+│   ├── pattern-library-api.md          # Pattern API reference
+│   ├── test-generation-api.md          # Test gen API reference
+│   ├── yaml-schema.md                  # YAML schema reference
+│   └── error-codes.md                  # Error code reference
+│
+├── examples/
+│   ├── README.md                       # Examples index
+│   ├── basic/
+│   │   ├── simple-crud.md              # Basic CRUD
+│   │   ├── state-machine.md            # Simple state machine
+│   │   └── validation.md               # Basic validation
+│   ├── intermediate/
+│   │   ├── multi-entity.md             # Multi-entity ops
+│   │   ├── batch-operations.md         # Batch processing
+│   │   └── workflows.md                # Business workflows
+│   └── advanced/
+│       ├── saga-pattern.md             # Distributed transactions
+│       ├── event-driven.md             # Event-driven architecture
+│       └── performance-tuning.md       # Performance optimization
+│
+├── tutorials/
+│   ├── README.md                       # Tutorials index
+│   ├── 01-hello-specql.md              # 5-minute intro
+│   ├── 02-building-crm.md              # Build simple CRM (30 min)
+│   ├── 03-state-machines.md            # State machines (45 min)
+│   ├── 04-testing.md                   # Testing (30 min)
+│   └── 05-production.md                # Production deployment (60 min)
+│
+├── best-practices/
+│   ├── README.md                       # Best practices index
+│   ├── pattern-selection.md            # Choosing patterns
+│   ├── entity-design.md                # Entity design
+│   ├── testing-strategy.md             # Testing approach
+│   ├── performance.md                  # Performance tips
+│   └── security.md                     # Security considerations
+│
+├── troubleshooting/
+│   ├── README.md                       # Troubleshooting index
+│   ├── common-issues.md                # Common problems
+│   ├── pattern-errors.md               # Pattern issues
+│   ├── test-generation-errors.md       # Test gen issues
+│   └── debugging.md                    # Debugging guide
+│
+└── videos/                             # Video tutorials (later)
+    ├── README.md
+    └── [video files or links]
+</code></pre>
+<hr />
+<h2 id="phase-1-foundation-week-1-2">📅 Phase 1: Foundation (Week 1-2)</h2>
+<p><strong>Goal</strong>: Core documentation structure and getting started guides</p>
+<h3 id="week-1-structure-quick-start">Week 1: Structure &amp; Quick Start</h3>
+<p><strong>Day 1-2: Documentation Infrastructure</strong>
+- [ ] Create documentation directory structure
+- [ ] Set up documentation build system (MkDocs or similar)
+- [ ] Create documentation README as hub
+- [ ] Set up navigation and search</p>
+<p><strong>Day 3-4: Getting Started Guides</strong>
+- [ ] <code>docs/getting-started/README.md</code> - 5-minute quick start
+- [ ] <code>docs/getting-started/installation.md</code> - Installation guide
+- [ ] <code>docs/getting-started/first-entity.md</code> - Create first entity
+- [ ] <code>docs/getting-started/first-pattern.md</code> - Use first pattern
+- [ ] <code>docs/getting-started/first-tests.md</code> - Generate first tests</p>
+<p><strong>Day 5: CLI Quick Reference</strong>
+- [ ] <code>docs/reference/cli-reference.md</code> - Basic CLI commands
+- [ ] Command structure and options
+- [ ] Common workflows quick reference</p>
+<p><strong>Deliverables</strong>:
+- ✅ Documentation structure in place
+- ✅ 5 getting started guides
+- ✅ Basic CLI reference
+- ✅ Users can get started in &lt;10 minutes</p>
+<p><strong>Success Criteria</strong>:
+- New user can install and create first entity in 10 minutes
+- New user can use first pattern in 15 minutes
+- New user can generate tests in 5 minutes</p>
+<hr />
+<h3 id="week-2-pattern-library-basics">Week 2: Pattern Library Basics</h3>
+<p><strong>Day 1-2: Pattern Library Overview</strong>
+- [ ] <code>docs/guides/mutation-patterns/README.md</code> - Patterns overview
+- [ ] <code>docs/guides/mutation-patterns/getting-started.md</code> - Pattern basics
+- [ ] Pattern catalog with descriptions
+- [ ] When to use which pattern</p>
+<p><strong>Day 3: Core Pattern Guides</strong>
+- [ ] <code>docs/guides/mutation-patterns/state-machines.md</code> - State machine guide
+  - What are state machines
+  - When to use
+  - Configuration options
+  - Examples
+  - Common pitfalls</p>
+<p><strong>Day 4: Multi-Entity &amp; Batch Guides</strong>
+- [ ] <code>docs/guides/mutation-patterns/multi-entity.md</code> - Multi-entity guide
+- [ ] <code>docs/guides/mutation-patterns/batch-operations.md</code> - Batch guide</p>
+<p><strong>Day 5: Validation &amp; Composition</strong>
+- [ ] <code>docs/guides/mutation-patterns/validation.md</code> - Validation guide
+- [ ] <code>docs/guides/mutation-patterns/composing-patterns.md</code> - Pattern composition</p>
+<p><strong>Deliverables</strong>:
+- ✅ 6 pattern library guides
+- ✅ Pattern catalog
+- ✅ Clear usage examples
+- ✅ Users understand when to use each pattern</p>
+<p><strong>Success Criteria</strong>:
+- User can choose appropriate pattern for their use case
+- User can configure pattern correctly
+- User understands pattern composition</p>
+<hr />
+<h2 id="phase-2-test-generation-cli-week-3-4">📅 Phase 2: Test Generation &amp; CLI (Week 3-4)</h2>
+<p><strong>Goal</strong>: Complete documentation for test generation and CLI tools</p>
+<h3 id="week-3-test-generation-documentation">Week 3: Test Generation Documentation</h3>
+<p><strong>Day 1: Test Generation Overview</strong>
+- [ ] <code>docs/guides/test-generation/README.md</code> - Testing overview
+- [ ] <code>docs/guides/test-generation/getting-started.md</code> - Test gen basics
+- [ ] Why automatic testing matters
+- [ ] How it works with patterns</p>
+<p><strong>Day 2: pgTAP Guide</strong>
+- [ ] <code>docs/guides/test-generation/pgtap-tests.md</code> - Complete pgTAP guide
+  - What pgTAP tests validate
+  - Generated test structure
+  - Running pgTAP tests
+  - Customizing tests
+  - CI/CD integration</p>
+<p><strong>Day 3: Pytest Guide</strong>
+- [ ] <code>docs/guides/test-generation/pytest-tests.md</code> - Complete pytest guide
+  - What pytest tests validate
+  - Generated test structure
+  - Running pytest tests
+  - Extending generated tests
+  - Fixtures and helpers</p>
+<p><strong>Day 4: Performance Testing</strong>
+- [ ] <code>docs/guides/test-generation/performance-tests.md</code> - Performance guide
+  - Benchmarking pattern-generated SQL
+  - Performance analysis
+  - Optimization recommendations</p>
+<p><strong>Day 5: CI/CD Integration</strong>
+- [ ] <code>docs/guides/test-generation/ci-cd-integration.md</code> - CI/CD setup
+  - GitHub Actions example
+  - GitLab CI example
+  - Jenkins example
+  - Best practices</p>
+<p><strong>Deliverables</strong>:
+- ✅ 5 test generation guides
+- ✅ Complete testing workflow documentation
+- ✅ CI/CD integration examples
+- ✅ Users can set up automated testing</p>
+<p><strong>Success Criteria</strong>:
+- User can generate tests in &lt;2 minutes
+- User can integrate tests into CI/CD
+- User understands test coverage</p>
+<hr />
+<h3 id="week-4-cli-documentation">Week 4: CLI Documentation</h3>
+<p><strong>Day 1-2: CLI Guide Structure</strong>
+- [ ] <code>docs/guides/cli/README.md</code> - CLI overview
+- [ ] <code>docs/guides/cli/generate.md</code> - Generate commands
+  - <code>specql generate schema</code>
+  - <code>specql generate tests</code>
+  - <code>specql generate docs</code>
+  - All options and flags</p>
+<p><strong>Day 3: Additional CLI Commands</strong>
+- [ ] <code>docs/guides/cli/validate.md</code> - Validate commands
+  - YAML validation
+  - Schema validation
+  - Pattern validation
+- [ ] <code>docs/guides/cli/test.md</code> - Test commands
+  - Running tests
+  - Test options
+  - Test reporting</p>
+<p><strong>Day 4: Performance &amp; Workflows</strong>
+- [ ] <code>docs/guides/cli/performance.md</code> - Performance commands
+  - Benchmarking
+  - Analysis
+  - Recommendations
+- [ ] <code>docs/guides/cli/workflows.md</code> - Common workflows
+  - Development workflow
+  - Testing workflow
+  - Deployment workflow</p>
+<p><strong>Day 5: CLI Reference</strong>
+- [ ] Complete <code>docs/reference/cli-reference.md</code>
+  - All commands documented
+  - All options with examples
+  - Exit codes
+  - Environment variables</p>
+<p><strong>Deliverables</strong>:
+- ✅ 5 CLI guides
+- ✅ Complete CLI reference
+- ✅ Common workflow examples
+- ✅ Users can use CLI effectively</p>
+<p><strong>Success Criteria</strong>:
+- User can find any CLI command quickly
+- User understands command options
+- User can follow common workflows</p>
+<hr />
+<h2 id="phase-3-examples-tutorials-week-5">📅 Phase 3: Examples &amp; Tutorials (Week 5)</h2>
+<p><strong>Goal</strong>: Practical examples and step-by-step tutorials</p>
+<h3 id="week-5-examples-tutorials">Week 5: Examples &amp; Tutorials</h3>
+<p><strong>Day 1: Basic Examples</strong>
+- [ ] <code>docs/examples/basic/simple-crud.md</code> - Basic CRUD example
+- [ ] <code>docs/examples/basic/state-machine.md</code> - Simple state machine
+- [ ] <code>docs/examples/basic/validation.md</code> - Basic validation
+- [ ] Complete working examples with explanation</p>
+<p><strong>Day 2: Intermediate Examples</strong>
+- [ ] <code>docs/examples/intermediate/multi-entity.md</code> - Multi-entity example
+- [ ] <code>docs/examples/intermediate/batch-operations.md</code> - Batch example
+- [ ] <code>docs/examples/intermediate/workflows.md</code> - Workflow example
+- [ ] Real-world scenarios</p>
+<p><strong>Day 3: Advanced Examples</strong>
+- [ ] <code>docs/examples/advanced/saga-pattern.md</code> - Distributed transactions
+- [ ] <code>docs/examples/advanced/event-driven.md</code> - Event-driven architecture
+- [ ] <code>docs/examples/advanced/performance-tuning.md</code> - Performance optimization</p>
+<p><strong>Day 4-5: Step-by-Step Tutorials</strong>
+- [ ] <code>docs/tutorials/01-hello-specql.md</code> - 5-minute intro
+  - Install SpecQL
+  - Create first entity
+  - Generate schema
+  - Success!</p>
+<ul>
+<li>[ ] <code>docs/tutorials/02-building-crm.md</code> - Build simple CRM (30 min)</li>
+<li>Design entities (Contact, Company, Deal)</li>
+<li>Add relationships</li>
+<li>Add patterns (qualify_lead, close_deal)</li>
+<li>Generate tests</li>
+<li>
+<p>Run tests</p>
+</li>
+<li>
+<p>[ ] <code>docs/tutorials/03-state-machines.md</code> - State machines (45 min)</p>
+</li>
+<li>What are state machines</li>
+<li>Design order workflow</li>
+<li>Implement with patterns</li>
+<li>
+<p>Test state transitions</p>
+</li>
+<li>
+<p>[ ] <code>docs/tutorials/04-testing.md</code> - Testing (30 min)</p>
+</li>
+<li>Generate tests</li>
+<li>Run pgTAP tests</li>
+<li>Run pytest tests</li>
+<li>
+<p>Performance benchmarks</p>
+</li>
+<li>
+<p>[ ] <code>docs/tutorials/05-production.md</code> - Production deployment (60 min)</p>
+</li>
+<li>Migration strategy</li>
+<li>CI/CD setup</li>
+<li>Monitoring</li>
+<li>Best practices</li>
+</ul>
+<p><strong>Deliverables</strong>:
+- ✅ 6 working examples (basic + intermediate + advanced)
+- ✅ 5 step-by-step tutorials
+- ✅ Copy-paste ready code
+- ✅ Users can learn by doing</p>
+<p><strong>Success Criteria</strong>:
+- User can complete tutorials without getting stuck
+- Examples cover common use cases
+- Code examples work out-of-the-box</p>
+<hr />
+<h2 id="phase-4-reference-polish-week-6">📅 Phase 4: Reference &amp; Polish (Week 6)</h2>
+<p><strong>Goal</strong>: Complete reference documentation and polish</p>
+<h3 id="week-6-reference-documentation-polish">Week 6: Reference Documentation &amp; Polish</h3>
+<p><strong>Day 1: API Reference</strong>
+- [ ] <code>docs/reference/pattern-library-api.md</code> - Complete pattern API
+  - All 27 patterns documented
+  - Parameters and options
+  - Return values
+  - Error codes</p>
+<ul>
+<li>[ ] <code>docs/reference/test-generation-api.md</code> - Test generation API</li>
+<li>Test generators</li>
+<li>Configuration options</li>
+<li>Extension points</li>
+</ul>
+<p><strong>Day 2: Schema &amp; Error Reference</strong>
+- [ ] <code>docs/reference/yaml-schema.md</code> - Complete YAML schema
+  - Entity schema
+  - Pattern schema
+  - Validation rules
+  - Examples</p>
+<ul>
+<li>[ ] <code>docs/reference/error-codes.md</code> - Error code reference</li>
+<li>All error codes</li>
+<li>Descriptions</li>
+<li>Resolution steps</li>
+</ul>
+<p><strong>Day 3: Best Practices</strong>
+- [ ] <code>docs/best-practices/pattern-selection.md</code> - Choosing patterns
+- [ ] <code>docs/best-practices/entity-design.md</code> - Entity design
+- [ ] <code>docs/best-practices/testing-strategy.md</code> - Testing approach
+- [ ] <code>docs/best-practices/performance.md</code> - Performance tips
+- [ ] <code>docs/best-practices/security.md</code> - Security considerations</p>
+<p><strong>Day 4: Troubleshooting</strong>
+- [ ] <code>docs/troubleshooting/common-issues.md</code> - Common problems &amp; solutions
+- [ ] <code>docs/troubleshooting/pattern-errors.md</code> - Pattern-specific issues
+- [ ] <code>docs/troubleshooting/test-generation-errors.md</code> - Test gen issues
+- [ ] <code>docs/troubleshooting/debugging.md</code> - Debugging guide
+  - Enable verbose logging
+  - Inspect generated SQL
+  - Performance profiling</p>
+<p><strong>Day 5: Final Polish</strong>
+- [ ] Review all documentation for consistency
+- [ ] Verify all examples work
+- [ ] Check all links
+- [ ] Proofread and edit
+- [ ] Create comprehensive <code>docs/README.md</code> as hub
+- [ ] Add search functionality
+- [ ] Generate table of contents</p>
+<p><strong>Deliverables</strong>:
+- ✅ Complete API reference
+- ✅ 5 best practices guides
+- ✅ 4 troubleshooting guides
+- ✅ All documentation polished and verified</p>
+<p><strong>Success Criteria</strong>:
+- Zero broken links
+- All examples tested and working
+- Consistent formatting and style
+- Easy to navigate and search</p>
+<hr />
+<h2 id="documentation-standards">📊 Documentation Standards</h2>
+<h3 id="writing-style">Writing Style</h3>
+<ul>
+<li><strong>Clear &amp; Concise</strong>: Short sentences, active voice</li>
+<li><strong>Beginner-Friendly</strong>: Assume minimal knowledge</li>
+<li><strong>Practical</strong>: Show, don't just tell (examples everywhere)</li>
+<li><strong>Consistent</strong>: Same terminology, formatting, structure</li>
+<li><strong>Scannable</strong>: Headers, bullets, code blocks, callouts</li>
+</ul>
+<h3 id="content-structure">Content Structure</h3>
+<p>Every guide should have:
+1. <strong>What</strong>: Brief description (1-2 sentences)
+2. <strong>When</strong>: When to use this (use cases)
+3. <strong>How</strong>: Step-by-step instructions
+4. <strong>Examples</strong>: Working code examples
+5. <strong>Reference</strong>: Links to related docs</p>
+<h3 id="code-examples">Code Examples</h3>
+<ul>
+<li>✅ Complete and runnable</li>
+<li>✅ Copy-paste ready</li>
+<li>✅ Syntax highlighted</li>
+<li>✅ With explanatory comments</li>
+<li>✅ Show expected output</li>
+</ul>
+<h3 id="special-elements">Special Elements</h3>
+<p>Use callouts for:
+- 💡 <strong>Tips</strong>: Helpful hints
+- ⚠️ <strong>Warnings</strong>: Common pitfalls
+- ✅ <strong>Best Practices</strong>: Recommended approaches
+- 🔍 <strong>Deep Dive</strong>: Advanced topics
+- 📚 <strong>See Also</strong>: Related documentation</p>
+<hr />
+<h2 id="tools-technologies">🛠️ Tools &amp; Technologies</h2>
+<h3 id="documentation-build-system">Documentation Build System</h3>
+<p><strong>Recommendation</strong>: MkDocs with Material theme</p>
+<p><strong>Why</strong>:
+- ✅ Markdown-based (easy to write)
+- ✅ Beautiful, responsive UI
+- ✅ Built-in search
+- ✅ Code syntax highlighting
+- ✅ Easy deployment (GitHub Pages)
+- ✅ Versioning support</p>
+<p><strong>Setup</strong>:</p>
+<pre><code class="language-bash"># Install
+pip install mkdocs mkdocs-material
+
+# Configuration (mkdocs.yml)
+site_name: SpecQL Documentation
+theme:
+  name: material
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - search.suggest
+    - content.code.copy
+
+plugins:
+  - search
+  - awesome-pages
+
+# Serve locally
+mkdocs serve
+
+# Build for production
+mkdocs build
+</code></pre>
+<h3 id="documentation-testing">Documentation Testing</h3>
+<ul>
+<li>✅ <strong>Link checker</strong>: Check for broken links</li>
+<li>✅ <strong>Code example tester</strong>: Validate code examples</li>
+<li>✅ <strong>Spelling checker</strong>: Catch typos</li>
+<li>✅ <strong>Style linter</strong>: Enforce style guide</li>
+</ul>
+<p><strong>CI/CD Integration</strong>:</p>
+<pre><code class="language-yaml"># .github/workflows/docs.yml
+name: Documentation
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Test links
+        run: make test-docs-links
+      - name: Test examples
+        run: make test-docs-examples
+      - name: Spell check
+        run: make test-docs-spelling
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy docs
+        run: mkdocs gh-deploy --force
+</code></pre>
+<hr />
+<h2 id="content-checklist">📋 Content Checklist</h2>
+<h3 id="for-each-pattern">For Each Pattern</h3>
+<ul>
+<li>[ ] Description (what it does)</li>
+<li>[ ] Use cases (when to use)</li>
+<li>[ ] Configuration options (all parameters)</li>
+<li>[ ] Basic example (simple usage)</li>
+<li>[ ] Advanced example (complex usage)</li>
+<li>[ ] Generated SQL (what gets created)</li>
+<li>[ ] Common pitfalls (warnings)</li>
+<li>[ ] Related patterns (see also)</li>
+</ul>
+<h3 id="for-each-cli-command">For Each CLI Command</h3>
+<ul>
+<li>[ ] Description (what it does)</li>
+<li>[ ] Syntax (command structure)</li>
+<li>[ ] Options (all flags)</li>
+<li>[ ] Examples (basic + advanced)</li>
+<li>[ ] Exit codes</li>
+<li>[ ] Related commands (see also)</li>
+</ul>
+<h3 id="for-each-tutorial">For Each Tutorial</h3>
+<ul>
+<li>[ ] Learning objectives (what you'll learn)</li>
+<li>[ ] Prerequisites (what you need to know)</li>
+<li>[ ] Time estimate (how long)</li>
+<li>[ ] Step-by-step instructions</li>
+<li>[ ] Code examples (working)</li>
+<li>[ ] Expected output (screenshots/code)</li>
+<li>[ ] Next steps (what's next)</li>
+</ul>
+<hr />
+<h2 id="team-resources">👥 Team &amp; Resources</h2>
+<h3 id="documentation-team">Documentation Team</h3>
+<p><strong>Writer/Technical Writer</strong>: 1 person
+- Responsible for writing clear, consistent documentation
+- Creates tutorials and guides
+- Ensures documentation quality</p>
+<p><strong>Subject Matter Expert (SME)</strong>: 1 person (part-time)
+- Reviews technical accuracy
+- Provides code examples
+- Answers technical questions</p>
+<p><strong>Editor/Reviewer</strong>: 1 person (part-time)
+- Reviews for clarity and consistency
+- Checks grammar and style
+- Ensures beginner-friendliness</p>
+<h3 id="estimated-effort">Estimated Effort</h3>
+<table>
+<thead>
+<tr>
+<th>Phase</th>
+<th>Writer</th>
+<th>SME</th>
+<th>Editor</th>
+<th>Total</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Phase 1</td>
+<td>10 days</td>
+<td>3 days</td>
+<td>2 days</td>
+<td>3 person-weeks</td>
+</tr>
+<tr>
+<td>Phase 2</td>
+<td>10 days</td>
+<td>3 days</td>
+<td>2 days</td>
+<td>3 person-weeks</td>
+</tr>
+<tr>
+<td>Phase 3</td>
+<td>10 days</td>
+<td>4 days</td>
+<td>2 days</td>
+<td>3.2 person-weeks</td>
+</tr>
+<tr>
+<td>Phase 4</td>
+<td>10 days</td>
+<td>2 days</td>
+<td>3 days</td>
+<td>3 person-weeks</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>40 days</strong></td>
+<td><strong>12 days</strong></td>
+<td><strong>9 days</strong></td>
+<td><strong>12.2 person-weeks</strong></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="success-metrics">🎯 Success Metrics</h2>
+<h3 id="quantitative-metrics">Quantitative Metrics</h3>
+<ul>
+<li>[ ] <strong>Coverage</strong>: 100% of patterns documented</li>
+<li>[ ] <strong>Coverage</strong>: 100% of CLI commands documented</li>
+<li>[ ] <strong>Examples</strong>: 20+ working code examples</li>
+<li>[ ] <strong>Tutorials</strong>: 5+ step-by-step tutorials</li>
+<li>[ ] <strong>Time-to-First-Success</strong>: &lt;10 minutes for new users</li>
+<li>[ ] <strong>Search</strong>: &lt;5 seconds to find any topic</li>
+<li>[ ] <strong>Zero Broken Links</strong>: All links working</li>
+</ul>
+<h3 id="qualitative-metrics">Qualitative Metrics</h3>
+<ul>
+<li>[ ] <strong>Clarity</strong>: Beginners can follow without confusion</li>
+<li>[ ] <strong>Completeness</strong>: All common questions answered</li>
+<li>[ ] <strong>Usability</strong>: Easy to navigate and search</li>
+<li>[ ] <strong>Accuracy</strong>: Technical content is correct</li>
+<li>[ ] <strong>Consistency</strong>: Uniform style and terminology</li>
+</ul>
+<h3 id="user-feedback-metrics-post-launch">User Feedback Metrics (Post-Launch)</h3>
+<ul>
+<li>[ ] <strong>User Rating</strong>: &gt;4.5/5 stars</li>
+<li>[ ] <strong>Support Tickets</strong>: &lt;5% due to documentation gaps</li>
+<li>[ ] <strong>Completion Rate</strong>: &gt;80% complete tutorials</li>
+<li>[ ] <strong>Search Success</strong>: &gt;90% find what they need</li>
+</ul>
+<hr />
+<h2 id="quick-start-for-documentation-writers">🚀 Quick Start (For Documentation Writers)</h2>
+<h3 id="week-1-kickoff">Week 1 Kickoff</h3>
+<p><strong>Day 1: Setup</strong></p>
+<pre><code class="language-bash"># Clone repo
+git clone &lt;repo-url&gt;
+cd specql
+
+# Install MkDocs
+pip install mkdocs mkdocs-material
+
+# Create docs structure
+mkdir -p docs/getting-started
+mkdir -p docs/guides/mutation-patterns
+mkdir -p docs/guides/test-generation
+mkdir -p docs/guides/cli
+mkdir -p docs/reference
+mkdir -p docs/examples/{basic,intermediate,advanced}
+mkdir -p docs/tutorials
+mkdir -p docs/best-practices
+mkdir -p docs/troubleshooting
+
+# Create mkdocs.yml
+cat &gt; mkdocs.yml &lt;&lt; 'EOF'
+site_name: SpecQL Documentation
+theme:
+  name: material
+nav:
+  - Home: README.md
+  - Getting Started: getting-started/
+  - Guides:
+      - Mutation Patterns: guides/mutation-patterns/
+      - Test Generation: guides/test-generation/
+      - CLI: guides/cli/
+  - Reference: reference/
+  - Examples: examples/
+  - Tutorials: tutorials/
+  - Best Practices: best-practices/
+  - Troubleshooting: troubleshooting/
+EOF
+
+# Start local server
+mkdocs serve
+# Open http://localhost:8000
+</code></pre>
+<p><strong>Day 2-5: Write Getting Started Guides</strong>
+Follow Phase 1, Week 1 checklist</p>
+<hr />
+<h2 id="support-resources">📞 Support &amp; Resources</h2>
+<h3 id="documentation-resources">Documentation Resources</h3>
+<ul>
+<li><strong>Style Guide</strong>: Follow <a href="https://developers.google.com/style">Google Developer Documentation Style Guide</a></li>
+<li><strong>Markdown Guide</strong>: <a href="https://www.markdownguide.org/">Markdown Guide</a></li>
+<li><strong>MkDocs Docs</strong>: <a href="https://www.mkdocs.org/">MkDocs Documentation</a></li>
+<li><strong>Material Theme</strong>: <a href="https://squidfunk.github.io/mkdocs-material/">Material for MkDocs</a></li>
+</ul>
+<h3 id="internal-resources">Internal Resources</h3>
+<ul>
+<li><strong>Pattern Library Code</strong>: <code>stdlib/actions/</code></li>
+<li><strong>Test Generators</strong>: <code>src/testing/</code></li>
+<li><strong>CLI Code</strong>: <code>src/cli/</code></li>
+<li><strong>Existing Examples</strong>: <code>entities/examples/</code></li>
+<li><strong>Issue #4 Docs</strong>: <code>docs/business_logic_library/</code></li>
+</ul>
+<h3 id="getting-help">Getting Help</h3>
+<ul>
+<li><strong>Technical Questions</strong>: Ask SME (pattern implementation details)</li>
+<li><strong>Style Questions</strong>: Ask Editor (writing style, clarity)</li>
+<li><strong>Tool Questions</strong>: Check MkDocs documentation</li>
+</ul>
+<hr />
+<h2 id="definition-of-done">✅ Definition of Done</h2>
+<p>Documentation is complete when:</p>
+<h3 id="content-complete">Content Complete</h3>
+<ul>
+<li>[ ] All 27 patterns documented</li>
+<li>[ ] All CLI commands documented</li>
+<li>[ ] All test generators documented</li>
+<li>[ ] 20+ working examples</li>
+<li>[ ] 5+ tutorials</li>
+</ul>
+<h3 id="quality-standards">Quality Standards</h3>
+<ul>
+<li>[ ] All links working (zero 404s)</li>
+<li>[ ] All code examples tested and working</li>
+<li>[ ] Consistent formatting and style</li>
+<li>[ ] Proofread and edited</li>
+<li>[ ] Search functionality working</li>
+</ul>
+<h3 id="user-validation">User Validation</h3>
+<ul>
+<li>[ ] New user can get started in &lt;10 minutes</li>
+<li>[ ] User can find any topic in &lt;30 seconds</li>
+<li>[ ] Examples are copy-paste ready</li>
+<li>[ ] Tutorials are followable without help</li>
+</ul>
+<h3 id="technical-standards">Technical Standards</h3>
+<ul>
+<li>[ ] Documentation builds without errors</li>
+<li>[ ] Deployed to hosting (GitHub Pages, etc.)</li>
+<li>[ ] Mobile-responsive</li>
+<li>[ ] Fast loading (&lt;2 seconds)</li>
+</ul>
+<hr />
+<h2 id="post-launch-ongoing">🎉 Post-Launch (Ongoing)</h2>
+<h3 id="maintenance">Maintenance</h3>
+<ul>
+<li><strong>Weekly</strong>: Review and respond to documentation issues</li>
+<li><strong>Monthly</strong>: Update based on user feedback</li>
+<li><strong>Quarterly</strong>: Review and update for new features</li>
+</ul>
+<h3 id="continuous-improvement">Continuous Improvement</h3>
+<ul>
+<li>Add video tutorials (Phase 5)</li>
+<li>Add interactive examples (embedded CodeSandbox)</li>
+<li>Add community recipes and patterns</li>
+<li>Translate to other languages</li>
+</ul>
+<h3 id="metrics-tracking">Metrics Tracking</h3>
+<ul>
+<li>Monitor page views (most popular topics)</li>
+<li>Track search queries (what users look for)</li>
+<li>Review user feedback (GitHub issues, Discord)</li>
+<li>Measure time-to-success (analytics)</li>
+</ul>
+<hr />
+<h2 id="budget-roi">📊 Budget &amp; ROI</h2>
+<h3 id="investment">Investment</h3>
+<table>
+<thead>
+<tr>
+<th>Item</th>
+<th>Effort</th>
+<th>Cost @ $100/hr</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Writer (40 days)</td>
+<td>8 weeks</td>
+<td>$32,000</td>
+</tr>
+<tr>
+<td>SME (12 days)</td>
+<td>2.4 weeks</td>
+<td>$9,600</td>
+</tr>
+<tr>
+<td>Editor (9 days)</td>
+<td>1.8 weeks</td>
+<td>$7,200</td>
+</tr>
+<tr>
+<td><strong>Total</strong></td>
+<td><strong>12.2 weeks</strong></td>
+<td><strong>$48,800</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="return-year-1">Return (Year 1)</h3>
+<table>
+<thead>
+<tr>
+<th>Benefit</th>
+<th>Impact</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Faster Onboarding</strong></td>
+<td>50% faster (2 weeks → 1 week)</td>
+<td>$20,000</td>
+</tr>
+<tr>
+<td><strong>Reduced Support</strong></td>
+<td>70% fewer docs questions</td>
+<td>$30,000</td>
+</tr>
+<tr>
+<td><strong>Higher Adoption</strong></td>
+<td>2x more users</td>
+<td>$50,000</td>
+</tr>
+<tr>
+<td><strong>Self-Service</strong></td>
+<td>Users solve own problems</td>
+<td>$25,000</td>
+</tr>
+<tr>
+<td><strong>Total Return</strong></td>
+<td></td>
+<td><strong>$125,000</strong></td>
+</tr>
+</tbody>
+</table>
+<h3 id="roi">ROI</h3>
+<pre><code>ROI = ($125K - $49K) / $49K = 155%
+Payback Period = ~5 months
+</code></pre>
+<hr />
+<h2 id="decision-points">🚦 Decision Points</h2>
+<h3 id="after-phase-1-week-2">After Phase 1 (Week 2)</h3>
+<p><strong>Question</strong>: Are getting started guides effective?</p>
+<p><strong>Metrics</strong>:
+- Can new user get started in &lt;10 minutes?
+- Is pattern library overview clear?</p>
+<p><strong>Decision</strong>: Continue to Phase 2 or iterate on Phase 1?</p>
+<h3 id="after-phase-2-week-4">After Phase 2 (Week 4)</h3>
+<p><strong>Question</strong>: Is documentation comprehensive enough?</p>
+<p><strong>Metrics</strong>:
+- Are all common use cases covered?
+- Can users find what they need?</p>
+<p><strong>Decision</strong>: Continue to Phase 3 or add more guides?</p>
+<h3 id="after-phase-3-week-5">After Phase 3 (Week 5)</h3>
+<p><strong>Question</strong>: Are examples and tutorials effective?</p>
+<p><strong>Metrics</strong>:
+- Can users complete tutorials?
+- Do examples work out-of-the-box?</p>
+<p><strong>Decision</strong>: Continue to Phase 4 or improve tutorials?</p>
+<hr />
+<h2 id="notes-for-implementation">📝 Notes for Implementation</h2>
+<h3 id="priority-order">Priority Order</h3>
+<p>If time is limited, prioritize in this order:
+1. <strong>Getting Started</strong> (Phase 1, Week 1) - Blocks adoption
+2. <strong>Pattern Library Basics</strong> (Phase 1, Week 2) - Core value
+3. <strong>CLI Reference</strong> (Phase 2, Week 4) - Essential for usage
+4. <strong>Examples</strong> (Phase 3) - Learn by doing
+5. <strong>Everything Else</strong> - Nice to have</p>
+<h3 id="quick-wins">Quick Wins</h3>
+<p>Can be done in 1 week for immediate impact:
+- Getting started README (30 min)
+- First entity tutorial (2 hours)
+- CLI quick reference (3 hours)
+- 3 basic examples (4 hours)
+- Pattern catalog overview (2 hours)</p>
+<h3 id="continuous-delivery">Continuous Delivery</h3>
+<p>Don't wait for perfection - release incrementally:
+- Week 1: Publish getting started guides
+- Week 2: Publish pattern basics
+- Week 3: Publish test generation
+- Week 4: Publish CLI reference
+- Week 5: Publish examples
+- Week 6: Polish everything</p>
+<hr />
+<p><strong>Status</strong>: 📋 <strong>Ready for Implementation</strong>
+<strong>Next Step</strong>: Assign documentation team and begin Phase 1, Week 1
+<strong>Expected Completion</strong>: 6 weeks from start date
+<strong>Expected Impact</strong>: 155% ROI, 2x user adoption</p>
+<hr />
+<p><strong>Questions?</strong> Contact project lead or documentation team lead.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

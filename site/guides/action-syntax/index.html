@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Action Syntax Guide - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Action Syntax Guide";
+        var mkdocs_page_input_path = "guides/action-syntax.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Action Syntax Guide</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="action-syntax-guide">Action Syntax Guide</h1>
+<p>This guide explains how to write actions in SpecQL YAML files for the PrintOptim backend.</p>
+<h2 id="overview">Overview</h2>
+<p>Actions define the business logic that can be performed on entities. Each action consists of a sequence of steps that are executed in order.</p>
+<h2 id="basic-structure">Basic Structure</h2>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+fields:
+  email: text
+  status: enum(lead, qualified, customer)
+
+actions:
+  - name: create_contact
+    steps:
+      - validate: email IS NOT NULL, error: missing_email
+      - insert: Contact
+
+  - name: update_contact
+    steps:
+      - validate: contact_id IS NOT NULL, error: missing_id
+      - update: Contact SET status = qualified
+
+  - name: delete_contact
+    steps:
+      - delete: Contact
+
+  - name: qualify_lead
+    steps:
+      - validate: status = 'lead', error: not_a_lead
+      - update: Contact SET status = 'qualified'
+      - notify: email to owner with template &quot;lead_qualified&quot;
+</code></pre>
+<h2 id="action-types">Action Types</h2>
+<h3 id="crud-actions-automatic">CRUD Actions (Automatic)</h3>
+<p>The system automatically recognizes these patterns:</p>
+<ul>
+<li><code>create_*</code> - Creates new records</li>
+<li><code>update_*</code> - Updates existing records</li>
+<li><code>delete_*</code> - Soft deletes records</li>
+</ul>
+<h3 id="custom-actions">Custom Actions</h3>
+<p>Any action name that doesn't match CRUD patterns is treated as a custom business action:</p>
+<ul>
+<li><code>qualify_lead</code></li>
+<li><code>send_quote</code></li>
+<li><code>process_payment</code></li>
+<li><code>schedule_followup</code></li>
+</ul>
+<h2 id="step-types">Step Types</h2>
+<h3 id="validate">validate</h3>
+<p>Validates conditions before proceeding.</p>
+<pre><code class="language-yaml">- validate: email MATCHES email_pattern, error: invalid_email
+- validate: status IN ('lead', 'qualified'), error: invalid_status
+</code></pre>
+<h3 id="insert">insert</h3>
+<p>Inserts a new record.</p>
+<pre><code class="language-yaml">- insert: Contact
+</code></pre>
+<h3 id="update">update</h3>
+<p>Updates an existing record.</p>
+<pre><code class="language-yaml">- update: Contact SET status = 'qualified'
+- update: Contact SET last_contacted = NOW()
+</code></pre>
+<h3 id="delete">delete</h3>
+<p>Soft deletes a record.</p>
+<pre><code class="language-yaml">- delete: Contact
+</code></pre>
+<h3 id="if">if</h3>
+<p>Conditional execution.</p>
+<pre><code class="language-yaml">- if: status = 'qualified'
+  then:
+    - notify: email to sales_team
+  else:
+    - notify: email to lead_nurture
+</code></pre>
+<h3 id="foreach">foreach</h3>
+<p>Iterate over collections.</p>
+<pre><code class="language-yaml">- foreach: item in related_orders
+  steps:
+    - update: Order SET processed = true
+</code></pre>
+<h3 id="call">call</h3>
+<p>Call another function.</p>
+<pre><code class="language-yaml">- call: send_notification with channel='email', template='welcome'
+</code></pre>
+<h3 id="notify">notify</h3>
+<p>Send notifications.</p>
+<pre><code class="language-yaml">- notify: email to user with template &quot;order_confirmed&quot;
+- notify: webhook to external_system
+</code></pre>
+<h2 id="validation-rules">Validation Rules</h2>
+<h3 id="required-fields">Required Fields</h3>
+<pre><code class="language-yaml">fields:
+  email: text  # nullable: false is default
+  name: text?
+   # Adding ? makes it nullable
+</code></pre>
+<h3 id="field-types">Field Types</h3>
+<ul>
+<li><code>text</code> - String fields</li>
+<li><code>email</code> - Email with validation</li>
+<li><code>phoneNumber</code> - Phone with validation</li>
+<li><code>url</code> - URL with validation</li>
+<li><code>integer</code> - Whole numbers</li>
+<li><code>decimal</code> - Decimal numbers</li>
+<li><code>boolean</code> - True/false</li>
+<li><code>date</code> - Date only</li>
+<li><code>datetime</code> - Date and time</li>
+<li><code>enum(value1, value2, value3)</code> - Fixed set of values</li>
+</ul>
+<h3 id="references">References</h3>
+<pre><code class="language-yaml">fields:
+  company: ref(Company)  # References another entity
+  manager: ref(User)?    # Optional reference
+</code></pre>
+<h2 id="error-handling">Error Handling</h2>
+<p>Actions automatically handle these error conditions:</p>
+<ul>
+<li><strong>Validation failures</strong>: Return structured error with field and message</li>
+<li><strong>Foreign key violations</strong>: Check references exist and belong to tenant</li>
+<li><strong>Unique constraints</strong>: Prevent duplicate values</li>
+<li><strong>Permission issues</strong>: Ensure user has access to tenant data</li>
+</ul>
+<h2 id="examples">Examples</h2>
+<h3 id="complete-contact-management">Complete Contact Management</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+fields:
+  first_name: text
+  last_name: text
+  email: email
+  phone: phoneNumber?
+  status: enum(lead, qualified, customer, inactive)
+  company: ref(Company)?
+  owner: ref(User)
+
+actions:
+  - name: create_contact
+    steps:
+      - validate: email IS NOT NULL, error: missing_email
+      - validate: owner IS NOT NULL, error: missing_owner
+      - insert: Contact
+
+  - name: update_contact
+    steps:
+      - validate: contact_id IS NOT NULL, error: missing_id
+      - update: Contact
+
+  - name: qualify_lead
+    steps:
+      - validate: status = 'lead', error: not_a_lead
+      - update: Contact SET status = 'qualified'
+      - notify: email to owner with template &quot;lead_qualified&quot;
+
+  - name: assign_to_sales_rep
+    steps:
+      - validate: contact_id IS NOT NULL, error: missing_id
+      - validate: sales_rep_id IS NOT NULL, error: missing_sales_rep
+      - update: Contact SET owner = sales_rep_id
+      - notify: email to sales_rep with template &quot;new_assignment&quot;
+</code></pre>
+<h2 id="best-practices">Best Practices</h2>
+<ol>
+<li><strong>Use descriptive action names</strong>: <code>qualify_lead</code> vs <code>update_status</code></li>
+<li><strong>Validate early</strong>: Put validations at the start of actions</li>
+<li><strong>Handle errors gracefully</strong>: Provide clear error messages</li>
+<li><strong>Keep actions focused</strong>: One action should do one business operation</li>
+<li><strong>Use references</strong>: Model relationships between entities</li>
+<li><strong>Document complex logic</strong>: Add comments for non-obvious steps</li>
+</ol>
+<h2 id="generated-code">Generated Code</h2>
+<p>Each action generates:</p>
+<ul>
+<li><strong>App layer function</strong>: JSON input validation and conversion</li>
+<li><strong>Core layer function</strong>: Business logic with security</li>
+<li><strong>Composite types</strong>: Type-safe input/output structures</li>
+<li><strong>Audit logging</strong>: All mutations are logged</li>
+<li><strong>Multi-tenant isolation</strong>: Automatic tenant filtering</li>
+</ul>
+<p>The generated functions follow the Trinity pattern for scalable data access.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

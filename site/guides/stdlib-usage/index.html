@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Using the SpecQL Standard Library - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Using the SpecQL Standard Library";
+        var mkdocs_page_input_path = "guides/stdlib-usage.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Using the SpecQL Standard Library</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="using-the-specql-standard-library">Using the SpecQL Standard Library</h1>
+<p><strong>30 production-ready entities you can import and use immediately</strong> 📚</p>
+<h2 id="overview">Overview</h2>
+<p>The SpecQL standard library provides battle-tested entity definitions extracted from production systems. Instead of building common entities from scratch, import them and focus on your unique business logic.</p>
+<p><strong>What you get:</strong>
+- ✅ Production-quality schemas with proper constraints
+- ✅ Rich type validation (email, phone, coordinates, etc.)
+- ✅ Standard naming conventions
+- ✅ Audit trails and security built-in
+- ✅ GraphQL-ready with FraiseQL annotations</p>
+<h2 id="library-categories">Library Categories</h2>
+<h3 id="i18n-internationalization-6-entities">🌍 <strong>i18n</strong> - Internationalization (6 entities)</h3>
+<p>Reference data for global applications:</p>
+<pre><code class="language-yaml"># Countries with ISO codes
+import: stdlib/i18n/country
+
+# Currencies with ISO 4217 codes
+import: stdlib/i18n/currency
+
+# Languages with ISO 639 codes
+import: stdlib/i18n/language
+
+# Timezones and locales
+import: stdlib/i18n/locale
+</code></pre>
+<h3 id="geo-geography-addresses-9-entities">📍 <strong>geo</strong> - Geography &amp; Addresses (9 entities)</h3>
+<p>Location and address management:</p>
+<pre><code class="language-yaml"># Public addresses with validation
+import: stdlib/geo/public_address
+
+# Geographic locations with coordinates
+import: stdlib/geo/location
+
+# Administrative divisions (states, provinces)
+import: stdlib/geo/administrative_unit
+</code></pre>
+<h3 id="crm-customer-relationship-management-3-entities">👥 <strong>crm</strong> - Customer Relationship Management (3 entities)</h3>
+<p>Contact and organization management:</p>
+<pre><code class="language-yaml"># Individual contacts
+import: stdlib/crm/contact
+
+# Organizations/companies
+import: stdlib/crm/organization
+
+# Organization types (customer, vendor, partner)
+import: stdlib/crm/organization_type
+</code></pre>
+<h3 id="org-organizational-structure-2-entities">🏢 <strong>org</strong> - Organizational Structure (2 entities)</h3>
+<p>Internal organization management:</p>
+<pre><code class="language-yaml"># Organizational units/departments
+import: stdlib/org/organizational_unit
+
+# Hierarchy levels (division, department, team)
+import: stdlib/org/organizational_unit_level
+</code></pre>
+<h3 id="commerce-business-commerce-3-entities">💰 <strong>commerce</strong> - Business Commerce (3 entities)</h3>
+<p>Financial and commercial entities:</p>
+<pre><code class="language-yaml"># Contracts and agreements
+import: stdlib/commerce/contract
+
+# Orders and transactions
+import: stdlib/commerce/order
+
+# Pricing structures
+import: stdlib/commerce/price
+</code></pre>
+<h3 id="tech-technology-reference-2-entities">💻 <strong>tech</strong> - Technology Reference (2 entities)</h3>
+<p>Technical reference data:</p>
+<pre><code class="language-yaml"># Operating systems
+import: stdlib/tech/operating_system
+
+# OS platforms (desktop, mobile, server)
+import: stdlib/tech/operating_system_platform
+</code></pre>
+<h3 id="time-temporal-entities-1-entity">⏰ <strong>time</strong> - Temporal Entities (1 entity)</h3>
+<p>Time-related reference data:</p>
+<pre><code class="language-yaml"># Calendar systems and fiscal years
+import: stdlib/time/calendar
+</code></pre>
+<h3 id="common-common-reference-data-2-entities">🔧 <strong>common</strong> - Common Reference Data (2 entities)</h3>
+<p>Generic reference entities:</p>
+<pre><code class="language-yaml"># Industry classifications
+import: stdlib/common/industry
+
+# Content genres/categories
+import: stdlib/common/genre
+</code></pre>
+<h2 id="quick-start">Quick Start</h2>
+<h3 id="method-1-import-as-is">Method 1: Import As-Is</h3>
+<pre><code class="language-bash"># Copy stdlib entities to your project
+cp stdlib/crm/contact.yaml entities/
+cp stdlib/crm/organization.yaml entities/
+
+# Generate everything
+specql generate entities/*.yaml
+</code></pre>
+<h3 id="method-2-import-in-yaml">Method 2: Import in YAML</h3>
+<pre><code class="language-yaml"># entities/my_app.yaml
+import: stdlib/crm/contact
+import: stdlib/crm/organization
+
+entity: MyCustomEntity
+schema: app
+fields:
+  name: text!
+  contact: ref(Contact)  # Reference imported entity
+</code></pre>
+<h3 id="method-3-extend-and-customize">Method 3: Extend and Customize</h3>
+<pre><code class="language-yaml"># entities/extended_contact.yaml
+entity: ExtendedContact
+extends:
+  from: stdlib/crm/contact
+schema: tenant
+
+# Add your custom fields
+fields:
+  employee_id: text
+  department: text
+  hire_date: date
+
+# Add custom actions
+actions:
+  - name: promote_employee
+    steps:
+      - validate: department IS NOT NULL
+      - update: ExtendedContact SET department = ?
+</code></pre>
+<h2 id="rich-types-showcase">Rich Types Showcase</h2>
+<p>stdlib entities demonstrate best practices for SpecQL's 49 rich scalar types:</p>
+<h3 id="communication">Communication</h3>
+<pre><code class="language-yaml"># Email with automatic validation
+email_address: email
+
+# Phone numbers (E.164 format)
+office_phone: phone
+mobile_phone: phone
+
+# URLs with validation
+website: url
+linkedin_profile: url
+</code></pre>
+<h3 id="geographic">Geographic</h3>
+<pre><code class="language-yaml"># Geographic coordinates (PostgreSQL POINT)
+coordinates: coordinates
+
+# Addresses with validation
+street_address: text
+postal_code: text
+city: text
+country: ref(Country)
+</code></pre>
+<h3 id="financial">Financial</h3>
+<pre><code class="language-yaml"># Monetary amounts with precision
+salary: money
+budget: money
+
+# Percentages (0-100)
+commission_rate: percentage
+tax_rate: percentage
+</code></pre>
+<h3 id="content">Content</h3>
+<pre><code class="language-yaml"># Formatted content
+bio: markdown
+terms_and_conditions: html
+
+# URLs and identifiers
+website: url
+social_media_handle: text
+</code></pre>
+<h2 id="schema-patterns">Schema Patterns</h2>
+<h3 id="multi-tenant-entities-schema-tenant">Multi-Tenant Entities (<code>schema: tenant</code>)</h3>
+<p>Most business entities use the <code>tenant</code> schema for automatic multi-tenancy:</p>
+<pre><code class="language-yaml">entity: Contact
+schema: tenant  # Automatic tenant_id + RLS policies
+</code></pre>
+<p><strong>Generated automatically:</strong>
+- <code>tenant_id UUID</code> foreign key
+- Row Level Security policies
+- Tenant isolation
+- Cross-tenant relationship validation</p>
+<h3 id="common-reference-data-schema-common">Common Reference Data (<code>schema: common</code>)</h3>
+<p>Reference data shared across tenants:</p>
+<pre><code class="language-yaml">entity: Country
+schema: common  # No tenant isolation
+</code></pre>
+<p><strong>Use for:</strong>
+- Countries, currencies, languages
+- Industry classifications
+- System-wide reference data</p>
+<h2 id="real-world-examples">Real-World Examples</h2>
+<h3 id="crm-system">CRM System</h3>
+<pre><code class="language-bash"># Import core CRM entities
+cp stdlib/crm/*.yaml entities/
+cp stdlib/i18n/country.yaml entities/
+cp stdlib/geo/public_address.yaml entities/
+
+# Generate complete CRM backend
+specql generate entities/*.yaml
+</code></pre>
+<p><strong>What you get:</strong>
+- Contact management with email/phone validation
+- Organization hierarchy
+- Address management with geocoding support
+- Country/currency reference data
+- Automatic audit trails and soft deletes</p>
+<h3 id="e-commerce-platform">E-commerce Platform</h3>
+<pre><code class="language-bash"># Import commerce entities
+cp stdlib/commerce/*.yaml entities/
+cp stdlib/crm/contact.yaml entities/
+cp stdlib/i18n/currency.yaml entities/
+
+# Add your custom entities
+# ... your product, inventory, etc.
+</code></pre>
+<p><strong>What you get:</strong>
+- Order management with pricing
+- Contract handling
+- Customer contact integration
+- Multi-currency support
+- Financial audit trails</p>
+<h3 id="saas-application">SaaS Application</h3>
+<pre><code class="language-bash"># Import organization structure
+cp stdlib/org/*.yaml entities/
+cp stdlib/crm/*.yaml entities/
+cp stdlib/i18n/*.yaml entities/
+
+# All entities automatically multi-tenant
+specql generate entities/*.yaml
+</code></pre>
+<p><strong>What you get:</strong>
+- Multi-tenant organization structure
+- User management and contacts
+- Internationalization support
+- Automatic tenant isolation</p>
+<h2 id="extending-stdlib-entities">Extending stdlib Entities</h2>
+<h3 id="adding-fields">Adding Fields</h3>
+<pre><code class="language-yaml">entity: ExtendedContact
+extends:
+  from: stdlib/crm/contact
+fields:
+  # Add custom fields
+  employee_number: text
+  hire_date: date
+  manager: ref(ExtendedContact)  # Self-reference
+</code></pre>
+<h3 id="adding-actions">Adding Actions</h3>
+<pre><code class="language-yaml">entity: ExtendedContact
+extends:
+  from: stdlib/crm/contact
+actions:
+  # Add custom business logic
+  - name: promote_employee
+    description: &quot;Promote employee to new position&quot;
+    steps:
+      - validate: manager IS NOT NULL
+      - update: ExtendedContact SET job_title = ?
+      - notify: hr_team &quot;Employee promotion&quot;
+
+  - name: transfer_employee
+    description: &quot;Transfer to different department&quot;
+    steps:
+      - validate: new_department IS NOT NULL
+      - update: ExtendedContact SET department = ?
+</code></pre>
+<h3 id="customizing-schema">Customizing Schema</h3>
+<pre><code class="language-yaml">entity: CustomOrganization
+extends:
+  from: stdlib/crm/organization
+schema: custom_tenant  # Override schema
+fields:
+  # Override existing fields
+  name:
+    type: text
+    nullable: false
+    description: &quot;Custom organization name validation&quot;
+</code></pre>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="1-start-with-stdlib">1. Start with stdlib</h3>
+<pre><code class="language-yaml"># Don't reinvent - extend
+entity: MyContact
+extends:
+  from: stdlib/crm/contact
+fields:
+  custom_field: text  # Only add what's unique to your business
+</code></pre>
+<h3 id="2-use-appropriate-schemas">2. Use Appropriate Schemas</h3>
+<pre><code class="language-yaml"># Multi-tenant business data
+entity: Customer
+schema: tenant
+
+# Shared reference data
+entity: Industry
+schema: common
+</code></pre>
+<h3 id="3-leverage-rich-types">3. Leverage Rich Types</h3>
+<pre><code class="language-yaml"># Use semantic types over generic text
+email: email!        # Not: email: text
+phone: phone         # Not: phone: text
+website: url         # Not: website: text
+budget: money        # Not: budget: numeric
+</code></pre>
+<h3 id="4-import-related-entities">4. Import Related Entities</h3>
+<pre><code class="language-yaml"># When importing Contact, also import Organization
+import: stdlib/crm/contact
+import: stdlib/crm/organization  # Contact references Organization
+</code></pre>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="entity-not-found-error">"Entity not found" Error</h3>
+<pre><code class="language-bash"># Make sure to import dependencies
+cp stdlib/crm/organization.yaml entities/  # Contact needs this
+cp stdlib/crm/contact.yaml entities/
+</code></pre>
+<h3 id="schema-conflicts">Schema Conflicts</h3>
+<pre><code class="language-yaml"># Override schema if needed
+entity: MyContact
+extends:
+  from: stdlib/crm/contact
+schema: my_schema  # Override the default 'tenant' schema
+</code></pre>
+<h3 id="rich-type-validation-issues">Rich Type Validation Issues</h3>
+<pre><code class="language-bash"># Check data matches rich type format
+# email: must be valid email address
+# phone: must be E.164 format (+33123456789)
+# url: must be valid URL
+</code></pre>
+<h2 id="complete-entity-list">Complete Entity List</h2>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Entity</th>
+<th>Description</th>
+<th>Schema</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>crm</strong></td>
+<td>contact</td>
+<td>Individual contacts</td>
+<td>tenant</td>
+</tr>
+<tr>
+<td><strong>crm</strong></td>
+<td>organization</td>
+<td>Companies/organizations</td>
+<td>tenant</td>
+</tr>
+<tr>
+<td><strong>crm</strong></td>
+<td>organization_type</td>
+<td>Customer/vendor/partner types</td>
+<td>common</td>
+</tr>
+<tr>
+<td><strong>i18n</strong></td>
+<td>country</td>
+<td>Countries with ISO codes</td>
+<td>common</td>
+</tr>
+<tr>
+<td><strong>i18n</strong></td>
+<td>currency</td>
+<td>Currencies with ISO codes</td>
+<td>common</td>
+</tr>
+<tr>
+<td><strong>i18n</strong></td>
+<td>language</td>
+<td>Languages with ISO codes</td>
+<td>common</td>
+</tr>
+<tr>
+<td><strong>i18n</strong></td>
+<td>locale</td>
+<td>Locale settings</td>
+<td>common</td>
+</tr>
+<tr>
+<td><strong>i18n</strong></td>
+<td>continent</td>
+<td>World continents</td>
+<td>common</td>
+</tr>
+<tr>
+<td><strong>geo</strong></td>
+<td>public_address</td>
+<td>Address with validation</td>
+<td>tenant</td>
+</tr>
+<tr>
+<td><strong>geo</strong></td>
+<td>location</td>
+<td>Geographic locations</td>
+<td>tenant</td>
+</tr>
+<tr>
+<td><strong>geo</strong></td>
+<td>administrative_unit</td>
+<td>States/provinces/regions</td>
+<td>common</td>
+</tr>
+<tr>
+<td><strong>geo</strong></td>
+<td>postal_code</td>
+<td>Postal codes</td>
+<td>common</td>
+</tr>
+<tr>
+<td><strong>org</strong></td>
+<td>organizational_unit</td>
+<td>Departments/teams</td>
+<td>tenant</td>
+</tr>
+<tr>
+<td><strong>org</strong></td>
+<td>organizational_unit_level</td>
+<td>Hierarchy levels</td>
+<td>common</td>
+</tr>
+<tr>
+<td><strong>commerce</strong></td>
+<td>contract</td>
+<td>Contracts/agreements</td>
+<td>tenant</td>
+</tr>
+<tr>
+<td><strong>commerce</strong></td>
+<td>order</td>
+<td>Orders/transactions</td>
+<td>tenant</td>
+</tr>
+<tr>
+<td><strong>commerce</strong></td>
+<td>price</td>
+<td>Pricing structures</td>
+<td>tenant</td>
+</tr>
+<tr>
+<td><strong>tech</strong></td>
+<td>operating_system</td>
+<td>OS reference</td>
+<td>common</td>
+</tr>
+<tr>
+<td><strong>tech</strong></td>
+<td>operating_system_platform</td>
+<td>OS platforms</td>
+<td>common</td>
+</tr>
+<tr>
+<td><strong>time</strong></td>
+<td>calendar</td>
+<td>Calendar systems</td>
+<td>common</td>
+</tr>
+<tr>
+<td><strong>common</strong></td>
+<td>industry</td>
+<td>Industry classifications</td>
+<td>common</td>
+</tr>
+<tr>
+<td><strong>common</strong></td>
+<td>genre</td>
+<td>Content categories</td>
+<td>common</td>
+</tr>
+</tbody>
+</table>
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li><strong>Browse Examples</strong>: See <code>examples/</code> for complete applications</li>
+<li><strong>Read Rich Types Guide</strong>: Learn about all 49 scalar types in <code>docs/guides/rich-types-guide.md</code></li>
+<li><strong>Check Actions Guide</strong>: Understand business logic patterns in <code>docs/guides/actions-guide.md</code></li>
+<li><strong>Explore Tests</strong>: See <code>tests/integration/</code> for usage patterns</li>
+</ul>
+<hr />
+<p><strong>Ready to build? Start with stdlib entities and customize as needed.</strong> 🚀</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

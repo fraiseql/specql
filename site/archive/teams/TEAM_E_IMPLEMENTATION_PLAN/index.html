@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team E: Detailed Implementation Plan - Confiture Integration - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team E: Detailed Implementation Plan - Confiture Integration";
+        var mkdocs_page_input_path = "archive/teams/TEAM_E_IMPLEMENTATION_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team E: Detailed Implementation Plan - Confiture Integration</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-e-detailed-implementation-plan-confiture-integration">Team E: Detailed Implementation Plan - Confiture Integration</h1>
+<p><strong>Team</strong>: CLI &amp; Orchestration (Confiture-Based)
+<strong>Status</strong>: 85% Complete (8 of 10 files)
+<strong>Timeline</strong>: 2 Weeks (32-40 hours) - REDUCED from 4 weeks by using Confiture
+<strong>Last Updated</strong>: 2025-11-09</p>
+<hr />
+<h2 id="strategic-decision-adopt-confiture-as-migration-foundation">🎯 Strategic Decision: Adopt Confiture as Migration Foundation</h2>
+<p><strong>Confiture</strong> is a production-ready PostgreSQL migration tool (built for FraiseQL ecosystem) that provides:
+- ✅ Build-from-DDL schema generation (&lt;1 second)
+- ✅ Migration tracking with Trinity pattern
+- ✅ CLI framework (Typer + Rich output)
+- ✅ Schema diff detection with Rust performance
+- ✅ Multi-environment support
+- ✅ 95% test coverage, battle-tested</p>
+<p><strong>Decision</strong>: Use Confiture's infrastructure, extend with SpecQL-specific orchestration.</p>
+<p><strong>Time Saved</strong>: 2 weeks (~40 hours) by not building generic migration infrastructure.</p>
+<hr />
+<h2 id="current-status-team-e-is-85-complete">📊 Current Status: Team E is 85% Complete</h2>
+<p><strong>What exists:</strong>
+- ✅ <code>src/cli/generate.py</code> (139 lines) - Entity generation working
+- ✅ <code>src/cli/validate.py</code> (80 lines) - SpecQL validation working
+- ✅ <code>src/cli/orchestrator.py</code> (139 lines) - Pipeline orchestration working
+- ✅ <code>src/cli/migration_manager.py</code> (214 lines) - Migration tracking (TO BE REPLACED by Confiture)
+- ✅ <code>src/cli/migrate.py</code> (115 lines) - Migration commands (TO BE REPLACED by Confiture)
+- ✅ <code>src/cli/diff.py</code> (129 lines) - SQL diff tool (TO BE ENHANCED with Confiture)
+- ✅ <code>src/cli/docs.py</code> (225 lines) - Documentation generator
+- ✅ All upstream dependencies (Teams A, B, C, D) complete and tested
+- ✅ Comprehensive test suite (1,209 lines of tests!)</p>
+<p><strong>What's missing:</strong>
+- ❌ Confiture integration and directory restructure
+- ❌ Adapt orchestrator to write to <code>db/schema/</code> (not <code>migrations/</code>)
+- ❌ Extend Confiture CLI with <code>specql</code> commands
+- ⏸️ Frontend code generation (DEFERRED - out of scope for now)</p>
+<hr />
+<h2 id="implementation-roadmap-2-weeks-confiture-integration">🎯 Implementation Roadmap: 2 Weeks (Confiture Integration)</h2>
+<h3 id="week-1-confiture-foundation-directory-restructure-days-1-5"><strong>Week 1: Confiture Foundation &amp; Directory Restructure</strong> (Days 1-5)</h3>
+<h4 id="phase-11-install-confiture-verify-integration-day-1">Phase 1.1: Install Confiture &amp; Verify Integration (Day 1)</h4>
+<p><strong>Objective</strong>: Add Confiture dependency and verify it works</p>
+<p><strong>Actions:</strong>
+1. <strong>Add Confiture to project:</strong>
+   <code>bash
+   uv add fraiseql-confiture
+   uv run confiture --version  # Verify installation</code></p>
+<ol>
+<li>
+<p><strong>Initialize Confiture structure:</strong>
+   <code>bash
+   uv run confiture init
+   # Creates:
+   # - db/schema/          (for DDL files)
+   # - db/migrations/      (for Python migrations - optional)
+   # - confiture.yaml      (environment config)</code></p>
+</li>
+<li>
+<p><strong>Test Confiture with simple schema:</strong>
+   ```bash
+   # Create test file
+   echo "CREATE TABLE test_table (id INTEGER);" &gt; db/schema/test.sql</p>
+</li>
+</ol>
+<p># Build schema
+   uv run confiture build --env local</p>
+<p># Verify it works
+   ```</p>
+<p><strong>QA Cycle:</strong></p>
+<pre><code class="language-bash"># Verify Confiture commands work
+uv run confiture --help
+uv run confiture build --help
+uv run confiture migrate --help
+</code></pre>
+<hr />
+<h4 id="phase-12-directory-restructure-day-2-refactor">Phase 1.2: Directory Restructure (Day 2 - REFACTOR)</h4>
+<p><strong>Objective</strong>: Adapt existing code to write to <code>db/schema/</code> instead of <code>migrations/</code></p>
+<p><strong>New Directory Structure:</strong></p>
+<pre><code>db/
+├── schema/                    # ← Confiture expects this
+│   ├── 00_foundation/         # ← App foundation (000_app_foundation.sql)
+│   ├── 10_tables/             # ← Team B output (entity schemas)
+│   │   └── contact.sql        # ← One file per entity (table definition)
+│   ├── 20_helpers/            # ← Utility functions (Trinity helpers)
+│   │   └── contact_helpers.sql
+│   └── 30_functions/          # ← Team C + Team D output (ONE FILE PER MUTATION)
+│       ├── create_contact.sql           # ← app + core functions + FraiseQL COMMENT
+│       ├── update_contact.sql           # ← app + core functions + FraiseQL COMMENT
+│       └── qualify_lead.sql             # ← app + core functions + FraiseQL COMMENT
+└── migrations/                # ← Confiture Python migrations (optional)
+
+migrations/                    # ← OLD (to be removed after migration)
+    ├── 000_app_foundation.sql
+    ├── 100_contact.sql
+    └── ...
+</code></pre>
+<p><strong>CRITICAL PATTERN</strong>: Each mutation gets its <strong>own SQL file</strong> with <strong>exactly 2 functions + FraiseQL comments</strong>:
+1. <code>app.{action_name}()</code> - App wrapper (JSONB → typed input, delegates to core)
+2. <code>core.{action_name}()</code> - Core logic (business rules, validation, audit)
+3. <code>COMMENT ON FUNCTION</code> statements - FraiseQL metadata (Team D) <strong>IN SAME FILE</strong></p>
+<p><strong>Changes to <code>orchestrator.py</code>:</strong></p>
+<pre><code class="language-python"># OLD:
+output_path = Path(output_dir)  # &quot;migrations/&quot;
+migration.path = output_path / f&quot;{i:03d}_{entity.name.lower()}.sql&quot;
+
+# NEW:
+schema_base = Path(&quot;db/schema&quot;)
+
+# Foundation → db/schema/00_foundation/
+foundation_path = schema_base / &quot;00_foundation&quot; / &quot;app_foundation.sql&quot;
+
+# Tables → db/schema/10_tables/ (one file per entity)
+table_path = schema_base / &quot;10_tables&quot; / f&quot;{entity.name.lower()}.sql&quot;
+
+# Helpers → db/schema/20_helpers/ (Trinity helpers, shared utilities)
+helpers_path = schema_base / &quot;20_helpers&quot; / f&quot;{entity.name.lower()}_helpers.sql&quot;
+
+# Functions → db/schema/30_functions/ (ONE FILE PER MUTATION!)
+for action in entity.actions:
+    mutation_path = schema_base / &quot;30_functions&quot; / f&quot;{action.name}.sql&quot;
+    # Contains: app.{action_name}() + core.{action_name}() + COMMENT statements
+</code></pre>
+<p><strong>Test Update:</strong></p>
+<pre><code class="language-bash"># Update tests to expect db/schema/ paths
+uv run pytest tests/unit/cli/test_orchestrator.py -v
+</code></pre>
+<hr />
+<h4 id="phase-13-adapt-schema-orchestrator-to-split-output-day-3-green">Phase 1.3: Adapt Schema Orchestrator to Split Output (Day 3 - GREEN)</h4>
+<p><strong>Objective</strong>: Make Teams B/C/D write to separate files - <strong>ONE FILE PER MUTATION</strong></p>
+<p><strong>Files to modify:</strong>
+- <code>src/generators/schema_orchestrator.py</code></p>
+<p><strong>Current behavior (WRONG ❌):</strong></p>
+<pre><code class="language-python"># Generates one big SQL file with everything
+def generate_complete_schema(entity) -&gt; str:
+    sql = []
+    sql.append(self.table_generator.generate(entity))      # Team B
+    sql.append(self.action_compiler.compile(entity.actions))  # Team C - ALL ACTIONS BUNDLED!
+    sql.append(self.fraiseql_annotator.annotate(entity))  # Team D
+    return &quot;\n\n&quot;.join(sql)
+</code></pre>
+<p><strong>New behavior (CORRECT ✅) - Split by mutation:</strong></p>
+<pre><code class="language-python">from dataclasses import dataclass
+from typing import Dict, List
+
+@dataclass
+class MutationFunctionPair:
+    &quot;&quot;&quot;One mutation = 2 functions + FraiseQL comments (ALL IN ONE FILE)&quot;&quot;&quot;
+    action_name: str
+    app_wrapper_sql: str         # app.{action_name}()
+    core_logic_sql: str          # core.{action_name}()
+    fraiseql_comments_sql: str   # COMMENT ON FUNCTION statements (Team D)
+
+@dataclass
+class SchemaOutput:
+    &quot;&quot;&quot;Split output for Confiture directory structure&quot;&quot;&quot;
+    table_sql: str                           # → db/schema/10_tables/{entity}.sql (includes FraiseQL COMMENT)
+    helpers_sql: str                         # → db/schema/20_helpers/{entity}_helpers.sql
+    mutations: List[MutationFunctionPair]    # → db/schema/30_functions/{action_name}.sql (ONE FILE EACH!)
+
+def generate_split_schema(entity) -&gt; SchemaOutput:
+    &quot;&quot;&quot;
+    Generate schema split by component
+
+    CRITICAL: Each action generates a SEPARATE file with 2 functions + comments
+    &quot;&quot;&quot;
+    # Team B: Table definition
+    table_ddl = self.table_gen.generate_table_ddl(entity)
+
+    # Team D: Table metadata (IN SAME FILE as table DDL)
+    table_comments = self.fraiseql_annotator.annotate_table(entity)
+    table_sql = f&quot;{table_ddl}\n\n{table_comments}&quot;
+
+    # Team B: Helper functions (Trinity pattern utilities)
+    helpers_sql = self.helper_gen.generate_all_helpers(entity)
+
+    # Team C + Team D: ONE FILE PER MUTATION (app + core + comments)
+    mutations = []
+    for action in entity.actions:
+        mutations.append(MutationFunctionPair(
+            action_name=action.name,
+            app_wrapper_sql=self.app_gen.generate_app_wrapper(entity, action),
+            core_logic_sql=self.core_gen.generate_core_function(entity, action),
+            fraiseql_comments_sql=self.fraiseql_annotator.annotate_mutation(action)
+        ))
+
+    return SchemaOutput(
+        table_sql=table_sql,  # Includes FraiseQL comments
+        helpers_sql=helpers_sql,
+        mutations=mutations  # Each includes FraiseQL comments
+    )
+</code></pre>
+<p><strong>Update orchestrator to write ONE FILE PER MUTATION:</strong></p>
+<pre><code class="language-python"># In orchestrator.py
+schema_output = self.schema_orchestrator.generate_split_schema(entity)
+
+# 1. Write table definition (ONE file per entity)
+(schema_base / &quot;10_tables&quot; / f&quot;{entity.name.lower()}.sql&quot;).write_text(schema_output.table_sql)
+
+# 2. Write helper functions (ONE file per entity)
+(schema_base / &quot;20_helpers&quot; / f&quot;{entity.name.lower()}_helpers.sql&quot;).write_text(schema_output.helpers_sql)
+
+# 3. Write mutation functions (ONE FILE PER MUTATION! ✅)
+for mutation in schema_output.mutations:
+    mutation_file = schema_base / &quot;30_functions&quot; / f&quot;{mutation.action_name}.sql&quot;
+
+    # Each file contains EXACTLY 2 functions + FraiseQL comments:
+    mutation_content = f&quot;&quot;&quot;
+-- ============================================================================
+-- Mutation: {mutation.action_name}
+-- Entity: {entity.name}
+-- Pattern: App Wrapper + Core Logic + FraiseQL Metadata
+-- ============================================================================
+
+{mutation.app_wrapper_sql}
+
+{mutation.core_logic_sql}
+
+{mutation.fraiseql_comments_sql}
+&quot;&quot;&quot;
+    mutation_file.write_text(mutation_content)
+</code></pre>
+<p><strong>Test:</strong></p>
+<pre><code class="language-bash"># Verify split output
+uv run pytest tests/unit/cli/test_orchestrator.py::test_split_schema_output -v
+</code></pre>
+<h4 id="phase-14-test-confiture-build-day-4-qa">Phase 1.4: Test Confiture Build (Day 4 - QA)</h4>
+<p><strong>Objective</strong>: Verify Confiture can build from SpecQL output</p>
+<p><strong>Actions:</strong>
+1. <strong>Generate Contact entity to <code>db/schema/</code>:</strong>
+   <code>bash
+   python -m src.cli.generate entities entities/examples/contact.yaml
+   # Should write to:
+   # - db/schema/00_foundation/app_foundation.sql
+   # - db/schema/10_tables/contact.sql
+   # - db/schema/30_functions/contact_actions.sql
+   # - db/schema/40_metadata/contact_fraiseql.sql</code></p>
+<ol>
+<li>
+<p><strong>Build with Confiture:</strong>
+   <code>bash
+   uv run confiture build --env local --output migrations/001_complete.sql
+   # Confiture concatenates all db/schema/* files in deterministic order</code></p>
+</li>
+<li>
+<p><strong>Verify output:</strong>
+   <code>bash
+   # Check that 001_complete.sql contains:
+   # - Foundation types (from 00_foundation/)
+   # - Contact table (from 10_tables/)
+   # - Action functions (from 30_functions/)
+   # - FraiseQL comments (from 40_metadata/)</code></p>
+</li>
+</ol>
+<p><strong>QA:</strong></p>
+<pre><code class="language-bash"># Run full test suite
+uv run pytest tests/unit/cli/ -v
+
+# Test end-to-end
+uv run confiture build --env local
+psql -f migrations/001_complete.sql  # Apply to test DB
+</code></pre>
+<hr />
+<h4 id="phase-15-replace-migration-manager-with-confiture-day-5-refactor">Phase 1.5: Replace Migration Manager with Confiture (Day 5 - REFACTOR)</h4>
+<p><strong>Objective</strong>: Remove custom migration tracking, use Confiture's</p>
+<p><strong>Files to REMOVE:</strong>
+- ❌ <code>src/cli/migration_manager.py</code> (214 lines) - Replaced by Confiture
+- ❌ <code>src/cli/migrate.py</code> (115 lines) - Replaced by Confiture</p>
+<p><strong>What Confiture provides instead:</strong></p>
+<pre><code class="language-bash"># Confiture's migration commands (better than custom implementation!)
+uv run confiture migrate up --env production
+uv run confiture migrate down --steps 1
+uv run confiture migrate status
+
+# Uses confiture_migrations table (with Trinity pattern!)
+# Transaction-safe, rollback support, better error handling
+</code></pre>
+<p><strong>Update documentation:</strong></p>
+<pre><code class="language-bash"># OLD:
+specql migrate up --database-url=postgres://...
+
+# NEW:
+confiture migrate up --env production
+</code></pre>
+<p><strong>Test cleanup:</strong></p>
+<pre><code class="language-bash"># Remove tests for deleted files
+rm tests/unit/cli/test_migration_manager.py
+rm tests/unit/cli/test_migrate.py
+
+# Run remaining tests
+uv run pytest tests/unit/cli/ -v
+</code></pre>
+<hr />
+<h3 id="week-2-extend-confiture-cli-with-specql-commands-days-6-10"><strong>Week 2: Extend Confiture CLI with SpecQL Commands</strong> (Days 6-10)</h3>
+<h4 id="phase-21-create-specql-extension-module-day-6-green">Phase 2.1: Create SpecQL Extension Module (Day 6 - GREEN)</h4>
+<p><strong>Objective</strong>: Extend Confiture's CLI with <code>specql</code> subcommands</p>
+<p><strong>File to create:</strong>
+- <code>src/cli/confiture_extensions.py</code> (150 lines)</p>
+<p><strong>Approach</strong>: Add commands to Confiture's existing CLI</p>
+<pre><code class="language-python"># src/cli/confiture_extensions.py
+from pathlib import Path
+from typing import List
+import click
+from confiture.core.builder import SchemaBuilder
+from src.cli.orchestrator import CLIOrchestrator
+
+# Extend Confiture's CLI (if possible) or create parallel commands
+@click.group()
+def specql():
+    &quot;&quot;&quot;SpecQL commands for Confiture&quot;&quot;&quot;
+    pass
+
+@specql.command()
+@click.argument('entity_files', nargs=-1, type=click.Path(exists=True), required=True)
+@click.option('--foundation-only', is_flag=True, help='Generate only app foundation')
+@click.option('--include-tv', is_flag=True, help='Generate table views')
+def generate(entity_files: tuple, foundation_only: bool, include_tv: bool):
+    &quot;&quot;&quot;Generate PostgreSQL schema from SpecQL YAML files&quot;&quot;&quot;
+
+    orchestrator = CLIOrchestrator()
+
+    # Generate to db/schema/ (Confiture's expected location)
+    result = orchestrator.generate_from_files(
+        entity_files=list(entity_files),
+        output_dir=&quot;db/schema&quot;,  # Changed from &quot;migrations&quot;
+        foundation_only=foundation_only,
+        include_tv=include_tv
+    )
+
+    if result.errors:
+        click.secho(f&quot;❌ {len(result.errors)} error(s):&quot;, fg='red')
+        for error in result.errors:
+            click.echo(f&quot;  {error}&quot;)
+        return 1
+
+    # Success - now build with Confiture
+    click.secho(f&quot;✅ Generated {len(result.migrations)} schema file(s)&quot;, fg='green')
+    click.echo(&quot;\nBuilding final migration with Confiture...&quot;)
+
+    # Use Confiture to build
+    builder = SchemaBuilder(env=&quot;local&quot;)
+    output_path = Path(&quot;migrations/001_schema.sql&quot;)
+    builder.build(output_path=output_path)
+
+    click.secho(f&quot;✅ Complete! Migration written to: {output_path}&quot;, fg='green', bold=True)
+    click.echo(&quot;\nNext steps:&quot;)
+    click.echo(&quot;  1. Review: cat migrations/001_schema.sql&quot;)
+    click.echo(&quot;  2. Apply: confiture migrate up --env local&quot;)
+
+@specql.command()
+@click.argument('entity_files', nargs=-1, type=click.Path(exists=True), required=True)
+@click.option('--check-impacts', is_flag=True, help='Validate impact declarations')
+@click.option('--verbose', '-v', is_flag=True)
+def validate(entity_files: tuple, check_impacts: bool, verbose: bool):
+    &quot;&quot;&quot;Validate SpecQL entity files&quot;&quot;&quot;
+    # Reuse existing validate.py logic
+    from src.cli.validate import validate as validate_cmd
+    ctx = click.get_current_context()
+    ctx.invoke(validate_cmd, entity_files=entity_files,
+               check_impacts=check_impacts, verbose=verbose)
+
+if __name__ == '__main__':
+    specql()
+</code></pre>
+<p><strong>Register with setuptools:</strong></p>
+<pre><code class="language-python"># pyproject.toml
+[project.scripts]
+specql = &quot;src.cli.confiture_extensions:specql&quot;
+</code></pre>
+<p><strong>Test:</strong></p>
+<pre><code class="language-bash"># New command structure
+specql generate entities/examples/contact.yaml
+specql validate entities/examples/*.yaml --verbose
+</code></pre>
+<hr />
+<h4 id="phase-22-enhance-diff-command-with-confiture-day-7-refactor">Phase 2.2: Enhance Diff Command with Confiture (Day 7 - REFACTOR)</h4>
+<p><strong>Objective</strong>: Use Confiture's schema differ (Rust-powered!)</p>
+<p><strong>File to enhance:</strong>
+- ✅ <code>src/cli/diff.py</code> (keep, but enhance with Confiture integration)</p>
+<p><strong>Current implementation:</strong>
+- Uses Python <code>difflib</code> for text comparison</p>
+<p><strong>Enhanced with Confiture:</strong></p>
+<pre><code class="language-python"># src/cli/diff.py (enhanced)
+from confiture.core.differ import SchemaDiffer  # Rust-powered!
+
+@click.command()
+@click.argument('entity_file', type=click.Path(exists=True))
+@click.option('--compare', type=click.Path(), help='Compare against existing SQL')
+@click.option('--use-rust', is_flag=True, default=True, help='Use Rust differ (faster)')
+def diff(entity_file, compare, use_rust):
+    &quot;&quot;&quot;Show what would change if entity is generated&quot;&quot;&quot;
+
+    # Generate in memory
+    orchestrator = CLIOrchestrator()
+    result = orchestrator.generate_from_files([entity_file], output_dir=&quot;/tmp&quot;)
+    new_sql = result.migrations[0].content if result.migrations else &quot;&quot;
+
+    # Load existing (if specified)
+    old_sql = Path(compare).read_text() if compare else &quot;&quot;
+
+    # Use Confiture's Rust differ if available
+    if use_rust:
+        try:
+            differ = SchemaDiffer()
+            changes = differ.compare(old_sql, new_sql)
+            # Confiture provides structured diff (better than text diff)
+            for change in changes:
+                print_structured_change(change)
+        except ImportError:
+            # Fall back to Python difflib
+            show_text_diff(old_sql, new_sql)
+    else:
+        show_text_diff(old_sql, new_sql)
+</code></pre>
+<p><strong>Benefit:</strong> 10-50x faster diff detection with Confiture's Rust parser</p>
+<hr />
+<h4 id="phase-23-integrate-confiture-environment-config-day-8-green">Phase 2.3: Integrate Confiture Environment Config (Day 8 - GREEN)</h4>
+<p><strong>Objective</strong>: Use Confiture's YAML config for multi-environment support</p>
+<p><strong>File to create:</strong>
+- <code>confiture.yaml</code> (Confiture's config file)</p>
+<p><strong>Example config:</strong></p>
+<pre><code class="language-yaml"># confiture.yaml
+environments:
+  local:
+    database_url: postgresql://localhost/specql_local
+    schema_dirs:
+      - path: db/schema/00_foundation
+        order: 0
+      - path: db/schema/10_tables        # Table definitions (ONE file per entity)
+        order: 10
+      - path: db/schema/20_helpers       # Trinity helper functions
+        order: 20
+      - path: db/schema/30_functions     # Mutations (ONE file per mutation: app + core + COMMENT)
+        order: 30
+    migrations_dir: db/migrations
+
+  test:
+    database_url: postgresql://localhost/specql_test
+    schema_dirs:
+      - path: db/schema/00_foundation
+        order: 0
+      - path: db/schema/10_tables
+        order: 10
+      - path: db/schema/20_helpers
+        order: 20
+      - path: db/schema/30_functions
+        order: 30
+
+  production:
+    database_url: ${DATABASE_URL}  # From environment variable
+    schema_dirs:
+      - path: db/schema/00_foundation
+        order: 0
+      - path: db/schema/10_tables
+        order: 10
+      - path: db/schema/20_helpers
+        order: 20
+      - path: db/schema/30_functions
+        order: 30
+</code></pre>
+<p><strong>Usage:</strong></p>
+<pre><code class="language-bash"># Build for different environments
+confiture build --env local
+confiture build --env test
+confiture build --env production
+
+# Migrate different environments
+confiture migrate up --env local
+confiture migrate up --env production
+</code></pre>
+<p><strong>Benefit:</strong> No more hardcoded database URLs, environment-specific behavior built-in</p>
+<hr />
+<h4 id="phase-24-integration-testing-day-9-qa">Phase 2.4: Integration Testing (Day 9 - QA)</h4>
+<p><strong>Objective</strong>: End-to-end testing with Confiture</p>
+<p><strong>File to create:</strong>
+- <code>tests/integration/test_confiture_integration.py</code> (200 lines)</p>
+<p><strong>Test scenarios:</strong></p>
+<pre><code class="language-python">def test_generate_and_build_with_confiture():
+    &quot;&quot;&quot;Test full pipeline: SpecQL → db/schema/ → Confiture build&quot;&quot;&quot;
+    # 1. Generate Contact entity
+    result = subprocess.run([
+        &quot;specql&quot;, &quot;generate&quot;, &quot;entities/examples/contact.yaml&quot;
+    ], capture_output=True)
+    assert result.returncode == 0
+
+    # 2. Verify files in db/schema/
+    assert Path(&quot;db/schema/00_foundation/app_foundation.sql&quot;).exists()
+    assert Path(&quot;db/schema/10_tables/contact.sql&quot;).exists()
+
+    # 3. Build with Confiture
+    result = subprocess.run([
+        &quot;confiture&quot;, &quot;build&quot;, &quot;--env&quot;, &quot;test&quot;, &quot;--output&quot;, &quot;migrations/001_test.sql&quot;
+    ], capture_output=True)
+    assert result.returncode == 0
+
+    # 4. Verify combined migration
+    migration_sql = Path(&quot;migrations/001_test.sql&quot;).read_text()
+    assert &quot;CREATE TABLE crm.tb_contact&quot; in migration_sql
+    assert &quot;CREATE FUNCTION crm.qualify_lead&quot; in migration_sql
+    assert &quot;@fraiseql:type name=Contact&quot; in migration_sql
+
+def test_migrate_up_and_down():
+    &quot;&quot;&quot;Test Confiture migration commands&quot;&quot;&quot;
+    # Apply migration
+    result = subprocess.run([
+        &quot;confiture&quot;, &quot;migrate&quot;, &quot;up&quot;, &quot;--env&quot;, &quot;test&quot;
+    ], capture_output=True)
+    assert result.returncode == 0
+
+    # Verify table exists
+    # ... (database check)
+
+    # Rollback
+    result = subprocess.run([
+        &quot;confiture&quot;, &quot;migrate&quot;, &quot;down&quot;, &quot;--steps&quot;, &quot;1&quot;, &quot;--env&quot;, &quot;test&quot;
+    ], capture_output=True)
+    assert result.returncode == 0
+</code></pre>
+<p><strong>Run:</strong></p>
+<pre><code class="language-bash">uv run pytest tests/integration/test_confiture_integration.py -v
+</code></pre>
+<hr />
+<h4 id="phase-25-documentation-cleanup-day-10-qa">Phase 2.5: Documentation &amp; Cleanup (Day 10 - QA)</h4>
+<p><strong>Objective</strong>: Update all docs to reflect Confiture usage</p>
+<p><strong>Files to update:</strong>
+1. <code>README.md</code> - New workflow with Confiture
+2. <code>.claude/CLAUDE.md</code> - Update Team E section
+3. <code>docs/cli/README.md</code> - Command reference
+4. <code>CONTRIBUTING.md</code> - Development workflow</p>
+<p><strong>Example README update:</strong></p>
+<pre><code class="language-markdown"># Quick Start
+
+## Generate Schema from SpecQL
+
+python
+# 1. Write SpecQL YAML
+cat &gt; entities/contact.yaml &lt;&lt; EOF
+entity: Contact
+schema: crm
+fields:
+  email: text
+  status: enum(lead, qualified)
+EOF
+
+# 2. Generate SQL files
+specql generate entities/contact.yaml
+
+# 3. Build final migration (Confiture)
+confiture build --env local
+
+# 4. Apply to database
+confiture migrate up --env local
+
+
+## Commands
+
+- `specql generate` - Generate schema from SpecQL YAML
+- `specql validate` - Validate SpecQL syntax
+- `confiture build` - Build final migration from db/schema/
+- `confiture migrate up` - Apply migrations
+- `confiture migrate status` - Check migration status
+</code></pre>
+<p><strong>Cleanup:</strong></p>
+<pre><code class="language-bash"># Remove deprecated migration files
+rm -rf migrations/  # Old location
+git rm src/cli/migration_manager.py src/cli/migrate.py
+
+# Update .gitignore
+echo &quot;migrations/*.sql&quot; &gt;&gt; .gitignore  # Ignore generated migrations
+echo &quot;db/schema/**/*.sql&quot; &gt;&gt; .gitignore  # Ignore generated schema files
+</code></pre>
+<hr />
+<h2 id="file-structure-final-state-with-confiture">📁 File Structure (Final State with Confiture)</h2>
+<pre><code>src/cli/
+├── __init__.py
+├── generate.py (139 lines - ✅ EXISTS, to be updated)
+├── validate.py (80 lines - ✅ EXISTS)
+├── diff.py (129 lines - ✅ EXISTS, to be enhanced with Confiture)
+├── docs.py (225 lines - ✅ EXISTS)
+├── orchestrator.py (139 lines - ✅ EXISTS, to be updated for db/schema/)
+├── confiture_extensions.py (150 lines - ❌ NEW, wraps existing commands)
+├── migration_manager.py (214 lines - ❌ TO BE REMOVED, replaced by Confiture)
+└── migrate.py (115 lines - ❌ TO BE REMOVED, replaced by Confiture)
+
+db/
+├── schema/                           # ← NEW: Confiture's expected structure
+│   ├── 00_foundation/                # ← App foundation SQL
+│   │   └── app_foundation.sql
+│   ├── 10_tables/                    # ← Team B output (ONE FILE PER ENTITY)
+│   │   ├── contact.sql               # ← Table definition for Contact
+│   │   └── company.sql
+│   ├── 20_helpers/                   # ← Utility functions (Trinity helpers)
+│   │   ├── contact_helpers.sql       # ← Trinity functions for Contact
+│   │   └── company_helpers.sql
+│   └── 30_functions/                 # ← Team C + Team D output (ONE FILE PER MUTATION! ✅)
+    ├── create_contact.sql        # ← app + core functions + FraiseQL COMMENT
+    ├── update_contact.sql        # ← app + core functions + FraiseQL COMMENT
+    ├── qualify_lead.sql          # ← app + core functions + FraiseQL COMMENT
+    ├── create_company.sql
+    └── update_company.sql
+└── migrations/                       # ← Confiture Python migrations (optional)
+
+confiture.yaml                        # ← NEW: Confiture config
+
+tests/unit/cli/
+├── conftest.py (65 lines - ✅ EXISTS)
+├── test_generate.py (185 lines - ✅ EXISTS, to be updated)
+├── test_validate.py (179 lines - ✅ EXISTS)
+├── test_diff.py (184 lines - ✅ EXISTS)
+├── test_docs.py (193 lines - ✅ EXISTS)
+├── test_orchestrator.py (178 lines - ✅ EXISTS, to be updated)
+├── test_migration_manager.py - ❌ TO BE REMOVED
+├── test_migrate.py - ❌ TO BE REMOVED
+└── test_confiture_extensions.py (150 lines - ❌ NEW)
+
+tests/integration/
+├── test_confiture_integration.py (200 lines - ❌ NEW)
+└── test_cli_workflow.py - ✅ EXISTS (to be updated)
+</code></pre>
+<p><strong>Key Pattern (CRITICAL ✅)</strong>:
+- <strong>10_tables/</strong>: ONE file per entity (table DDL + FraiseQL COMMENT annotations)
+- <strong>20_helpers/</strong>: ONE file per entity (Trinity helper functions)
+- <strong>30_functions/</strong>: <strong>ONE FILE PER MUTATION</strong> containing exactly 2 functions + metadata:
+  1. <code>app.{action_name}()</code> - App wrapper (JSONB → typed input)
+  2. <code>core.{action_name}()</code> - Core business logic
+  3. <code>COMMENT ON FUNCTION</code> statements - FraiseQL metadata (Team D) <strong>IN SAME FILE</strong></p>
+<p><strong>Code Changes Summary:</strong>
+- ✅ <strong>Keep &amp; Enhance</strong>: ~940 lines (orchestrator, generate, validate, diff, docs)
+- ❌ <strong>Remove</strong>: ~330 lines (migration_manager.py, migrate.py + tests)
+- ❌ <strong>Add New</strong>: ~500 lines (confiture_extensions.py, integration tests, config)
+- <strong>Net Change</strong>: +170 lines (vs -1,870 if we built from scratch!)</p>
+<p><strong>Time Savings</strong>: <strong>2 weeks saved</strong> by using Confiture infrastructure</p>
+<hr />
+<h2 id="success-criteria-confiture-based">🎯 Success Criteria (Confiture-Based)</h2>
+<h3 id="week-1-confiture-foundation">Week 1 (Confiture Foundation)</h3>
+<ul>
+<li>[ ] Confiture dependency added and verified</li>
+<li>[ ] Directory restructure complete (<code>db/schema/</code> structure)</li>
+<li>[ ] Orchestrator writing to <code>db/schema/</code> directories</li>
+<li>[ ] Schema split by Team (tables/functions/metadata)</li>
+<li>[ ] Confiture can build from SpecQL output</li>
+<li>[ ] Migration tracking migrated to Confiture</li>
+<li>[ ] Old <code>migration_manager.py</code> and <code>migrate.py</code> removed</li>
+<li>[ ] Tests updated for new structure</li>
+<li>[ ] 85%+ Team E test coverage maintained</li>
+</ul>
+<h3 id="week-2-specql-cli-extension">Week 2 (SpecQL CLI Extension)</h3>
+<ul>
+<li>[ ] <code>specql</code> CLI command wrapping Confiture</li>
+<li>[ ] <code>specql generate</code> working with Confiture build</li>
+<li>[ ] <code>specql validate</code> integrated</li>
+<li>[ ] <code>diff.py</code> enhanced with Confiture differ (optional Rust speedup)</li>
+<li>[ ] <code>confiture.yaml</code> config created with environments</li>
+<li>[ ] Integration tests with Confiture passing</li>
+<li>[ ] Documentation updated for Confiture workflow</li>
+<li>[ ] All examples work end-to-end</li>
+<li>[ ] 90%+ Team E test coverage</li>
+</ul>
+<h3 id="deferred-future-work">Deferred (Future Work)</h3>
+<ul>
+<li>⏸️ Frontend code generation (separate project scope)</li>
+<li>⏸️ Database-specific commands (deduplication, split entities, path validation)</li>
+<li>⏸️ Advanced impact metadata features</li>
+</ul>
+<hr />
+<h2 id="development-commands-updated-for-confiture">🔧 Development Commands (Updated for Confiture)</h2>
+<pre><code class="language-bash"># Run Team E tests only
+make teamE-test
+
+# Run specific test file
+uv run pytest tests/unit/cli/test_orchestrator.py -v
+
+# Test with coverage
+uv run pytest tests/unit/cli/ --cov=src/cli --cov-report=html
+
+# Test Confiture integration
+uv run pytest tests/integration/test_confiture_integration.py -v
+
+# Lint CLI code
+uv run ruff check src/cli/
+
+# Type checking
+uv run mypy src/cli/
+
+# Test new SpecQL commands
+specql generate entities/examples/contact.yaml
+specql validate entities/examples/*.yaml --verbose
+
+# Test Confiture commands
+uv run confiture build --env local
+uv run confiture migrate status --env local
+uv run confiture migrate up --env local
+
+# Full quality check
+make lint &amp;&amp; make typecheck &amp;&amp; make test
+</code></pre>
+<hr />
+<h2 id="effort-estimate-reduced-with-confiture">📊 Effort Estimate (Reduced with Confiture!)</h2>
+<table>
+<thead>
+<tr>
+<th>Week</th>
+<th>Focus</th>
+<th>Hours</th>
+<th>Complexity</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Week 1</td>
+<td>Confiture Foundation</td>
+<td>16-20</td>
+<td>MEDIUM</td>
+<td>Directory restructure, remove old code</td>
+</tr>
+<tr>
+<td>Week 2</td>
+<td>SpecQL CLI Extension</td>
+<td>16-20</td>
+<td>MEDIUM</td>
+<td>Wrap Confiture, integrate commands</td>
+</tr>
+<tr>
+<td><strong>TOTAL</strong></td>
+<td><strong>2 weeks</strong></td>
+<td><strong>32-40 hours</strong></td>
+<td><strong>MEDIUM</strong></td>
+<td><strong>50% reduction from original plan!</strong></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Removed from scope (handled by Confiture):</strong>
+- ❌ Week 2 (Advanced CLI): 24-28 hours - Migration management now free
+- ❌ Week 3 (Frontend Gen): 20-24 hours - Deferred to separate project
+- ❌ Week 4 (Integration): 16-20 hours - Confiture has this built-in</p>
+<p><strong>Total Time Saved</strong>: <strong>60-72 hours</strong> (2.5 weeks)</p>
+<hr />
+<h2 id="getting-started-next-steps-for-confiture-integration">🚀 Getting Started (Next Steps for Confiture Integration)</h2>
+<h3 id="week-1-day-1-install-confiture">Week 1 Day 1: Install Confiture</h3>
+<ol>
+<li>
+<p><strong>Add Confiture dependency</strong>:
+   <code>bash
+   uv add fraiseql-confiture
+   uv run confiture --version  # Verify installation</code></p>
+</li>
+<li>
+<p><strong>Initialize Confiture structure</strong>:
+   <code>bash
+   uv run confiture init
+   # Creates db/schema/, db/migrations/, confiture.yaml</code></p>
+</li>
+<li>
+<p><strong>Test Confiture with simple schema</strong>:
+   <code>bash
+   echo "CREATE TABLE test (id INTEGER);" &gt; db/schema/test.sql
+   uv run confiture build --env local</code></p>
+</li>
+</ol>
+<h3 id="week-1-day-2-directory-restructure">Week 1 Day 2: Directory Restructure</h3>
+<ol>
+<li>
+<p><strong>Update orchestrator.py</strong>:
+   <code>bash
+   # Modify CLIOrchestrator.generate_from_files()
+   # Change output_dir from "migrations/" to "db/schema/"
+   # Split output by directory (00_foundation, 10_tables, etc.)</code></p>
+</li>
+<li>
+<p><strong>Update tests</strong>:
+   <code>bash
+   # Update test expectations for new paths
+   uv run pytest tests/unit/cli/test_orchestrator.py -v</code></p>
+</li>
+</ol>
+<h3 id="week-1-day-3-5-split-output-remove-old-code">Week 1 Day 3-5: Split Output &amp; Remove Old Code</h3>
+<ol>
+<li>
+<p><strong>Modify schema_orchestrator.py</strong>:
+   <code>bash
+   # Add generate_split_schema() method
+   # Return SchemaOutput with separate tables/functions/metadata SQL</code></p>
+</li>
+<li>
+<p><strong>Remove old migration code</strong>:
+   <code>bash
+   git rm src/cli/migration_manager.py src/cli/migrate.py
+   git rm tests/unit/cli/test_migration_manager.py tests/unit/cli/test_migrate.py</code></p>
+</li>
+<li>
+<p><strong>Test end-to-end with Confiture</strong>:
+   <code>bash
+   specql generate entities/examples/contact.yaml
+   uv run confiture build --env local</code></p>
+</li>
+</ol>
+<h3 id="week-2-extend-confiture-cli">Week 2: Extend Confiture CLI</h3>
+<ol>
+<li>
+<p><strong>Create confiture_extensions.py</strong>:
+   <code>bash
+   # Implement specql CLI wrapping existing commands
+   # Register in pyproject.toml</code></p>
+</li>
+<li>
+<p><strong>Add confiture.yaml config</strong>:
+   <code>bash
+   # Configure environments (local, test, production)
+   # Set schema_dirs with proper ordering</code></p>
+</li>
+<li>
+<p><strong>Integration tests</strong>:
+   <code>bash
+   # Create test_confiture_integration.py
+   # Test full pipeline: SpecQL → db/schema/ → Confiture build → migrate</code></p>
+</li>
+<li>
+<p><strong>Update documentation</strong>:
+   <code>bash
+   # Update README.md, .claude/CLAUDE.md with new workflow
+   # Document Confiture commands</code></p>
+</li>
+</ol>
+<hr />
+<h2 id="dependencies">🔗 Dependencies</h2>
+<p><strong>Depends On</strong>:
+- ✅ Team A: SpecQL Parser (COMPLETE)
+- ✅ Team B: Schema Generator (COMPLETE)
+- ✅ Team C: Action Compiler (COMPLETE)
+- ✅ Team D: FraiseQL Metadata (COMPLETE)
+- ❌ <strong>Confiture</strong>: External dependency (to be added)</p>
+<p><strong>Blocks</strong>:
+- None (final integration layer)</p>
+<p><strong>External Tools</strong>:
+- Confiture (fraiseql-confiture) - Production-ready migration tool
+  - Repository: https://github.com/fraiseql/confiture
+  - PyPI: https://pypi.org/project/fraiseql-confiture/
+  - License: MIT
+  - Status: Beta (v0.1.0), Production-Ready</p>
+<hr />
+<h2 id="related-documentation">📚 Related Documentation</h2>
+<p><strong>Team E Specific</strong>:
+- <code>/docs/teams/TEAM_E_CURRENT_STATE.md</code> - Detailed current state (outdated, needs update)
+- <code>/docs/teams/TEAM_E_EXPLORATION_EXECUTIVE_SUMMARY.md</code> - Analysis summary
+- <code>/docs/teams/TEAM_E_DATABASE_DECISIONS_PLAN.md</code> - Database-specific commands (deferred)</p>
+<p><strong>Project Context</strong>:
+- <code>/.claude/CLAUDE.md</code> - Team E section (needs update for Confiture)
+- <code>/src/cli/</code> - Current implementation (85% complete)
+- <code>/tests/unit/cli/</code> - Comprehensive test suite (1,209 lines)</p>
+<p><strong>Confiture Documentation</strong> (External):
+- Confiture README - Migration tool overview
+- Confiture examples/ - Production deployment patterns
+- Confiture docs/ - API reference</p>
+<hr />
+<h2 id="summary-why-confiture">🎉 Summary: Why Confiture?</h2>
+<p><strong>Benefits</strong>:
+- ✅ <strong>2 weeks saved</strong> (60-72 hours) by not building migration infrastructure
+- ✅ <strong>Production features</strong> free: Multi-environment, schema diff, rollback
+- ✅ <strong>Rust performance</strong> when needed (10-50x faster)
+- ✅ <strong>Battle-tested</strong> with 95% test coverage
+- ✅ <strong>Natural fit</strong>: Built for FraiseQL (same ecosystem)
+- ✅ <strong>Focus on value</strong>: Time saved goes to SpecQL-specific features</p>
+<p><strong>Trade-offs</strong>:
+- ⚠️ External dependency (mitigated: MIT license, active development)
+- ⚠️ Directory restructure (one-time cost: ~4 hours)
+- ⚠️ Learning curve (mitigated: excellent docs, simple API)</p>
+<p><strong>Net Result</strong>:
+- <strong>Original Plan</strong>: 4 weeks, 80-96 hours, build everything from scratch
+- <strong>Confiture Plan</strong>: 2 weeks, 32-40 hours, leverage production tool
+- <strong>ROI</strong>: 50% time reduction, 100% production-ready features</p>
+<hr />
+<p><strong>Status</strong>: 🟢 READY TO START (with Confiture integration plan)
+<strong>Priority</strong>: HIGH (final integration layer)
+<strong>Effort</strong>: 2 weeks (32-40 hours) - <strong>REDUCED from 4 weeks!</strong>
+<strong>Start Date</strong>: TBD
+<strong>Target Completion</strong>: TBD + 2 weeks</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

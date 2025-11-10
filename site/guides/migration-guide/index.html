@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Migrating Existing Databases to SpecQL - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Migrating Existing Databases to SpecQL";
+        var mkdocs_page_input_path = "guides/migration-guide.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Migrating Existing Databases to SpecQL</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="migrating-existing-databases-to-specql">Migrating Existing Databases to SpecQL</h1>
+<h2 id="overview">Overview</h2>
+<p>This guide helps you convert existing PostgreSQL schemas to SpecQL YAML definitions.</p>
+<p><strong>Time Estimate</strong>: 1-2 hours per 10 tables
+<strong>Difficulty</strong>: Intermediate
+<strong>Prerequisites</strong>:
+- Existing PostgreSQL database
+- Understanding of your schema structure
+- SpecQL installed (<code>uv add specql-generator</code>)</p>
+<hr />
+<h2 id="migration-strategy">🎯 Migration Strategy</h2>
+<h3 id="1-inventory-phase-30-minutes">1. Inventory Phase (30 minutes)</h3>
+<p>Understand what you have.</p>
+<h3 id="2-mapping-phase-1-2-hours-per-10-tables">2. Mapping Phase (1-2 hours per 10 tables)</h3>
+<p>Convert SQL → YAML.</p>
+<h3 id="3-validation-phase-1-hour">3. Validation Phase (1 hour)</h3>
+<p>Verify generated SQL matches intent.</p>
+<h3 id="4-testing-phase-1-2-hours">4. Testing Phase (1-2 hours)</h3>
+<p>Test in development environment.</p>
+<hr />
+<h2 id="step-1-export-current-schema">Step 1: Export Current Schema</h2>
+<h3 id="export-ddl">Export DDL</h3>
+<pre><code class="language-bash"># Full schema dump
+pg_dump --schema-only mydb &gt; schema_export.sql
+
+# Specific schema only
+pg_dump --schema-only --schema=crm mydb &gt; crm_schema.sql
+
+# Exclude framework schemas
+pg_dump --schema-only \
+  --exclude-schema=information_schema \
+  --exclude-schema=pg_catalog \
+  mydb &gt; app_schema.sql
+</code></pre>
+<h3 id="analyze-schema">Analyze Schema</h3>
+<pre><code class="language-bash"># List all tables
+psql mydb -c &quot;\dt crm.*&quot;
+
+# Show table structure
+psql mydb -c &quot;\d crm.contacts&quot;
+
+# Show foreign keys
+psql mydb -c &quot;
+  SELECT
+    tc.table_name,
+    kcu.column_name,
+    ccu.table_name AS foreign_table_name,
+    ccu.column_name AS foreign_column_name
+  FROM information_schema.table_constraints AS tc
+  JOIN information_schema.key_column_usage AS kcu
+    ON tc.constraint_name = kcu.constraint_name
+  JOIN information_schema.constraint_column_usage AS ccu
+    ON ccu.constraint_name = tc.constraint_name
+  WHERE tc.constraint_type = 'FOREIGN KEY'
+    AND tc.table_schema = 'crm';
+&quot;
+</code></pre>
+<hr />
+<h2 id="step-2-map-tables-to-entities">Step 2: Map Tables to Entities</h2>
+<h3 id="mapping-rules">Mapping Rules</h3>
+<h4 id="table-names">Table Names</h4>
+<p><strong>SQL</strong>: <code>crm.contacts</code>, <code>crm.tb_contact</code>, <code>contact</code>
+<strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">entity: Contact  # Singular, PascalCase
+schema: crm      # Schema name
+</code></pre>
+<p><strong>Rule</strong>: Drop <code>tb_</code> prefix, singularize, PascalCase</p>
+<h4 id="column-types">Column Types</h4>
+<table>
+<thead>
+<tr>
+<th>SQL Type</th>
+<th>SpecQL Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TEXT</code>, <code>VARCHAR</code></td>
+<td><code>text</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>INTEGER</code>, <code>INT</code></td>
+<td><code>integer</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>NUMERIC</code>, <code>DECIMAL</code></td>
+<td><code>decimal</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>BOOLEAN</code></td>
+<td><code>boolean</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>TIMESTAMP</code></td>
+<td><code>timestamp</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>DATE</code></td>
+<td><code>date</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>JSONB</code>, <code>JSON</code></td>
+<td><code>json</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>TEXT[]</code></td>
+<td><code>list(text)</code></td>
+<td>Arrays</td>
+</tr>
+<tr>
+<td><code>INTEGER REFERENCES</code></td>
+<td><code>ref(Entity)</code></td>
+<td>Foreign keys</td>
+</tr>
+<tr>
+<td><code>TEXT CHECK (...)</code></td>
+<td><code>enum(...)</code></td>
+<td>Extract values</td>
+</tr>
+</tbody>
+</table>
+<h4 id="foreign-keys">Foreign Keys</h4>
+<p><strong>SQL</strong>:</p>
+<pre><code class="language-sql">company_id INTEGER REFERENCES companies(id)
+</code></pre>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">company: ref(Company)
+</code></pre>
+<p><strong>Rule</strong>:
+1. Drop <code>_id</code> suffix from column name
+2. Reference entity name in PascalCase
+3. SpecQL generates FK constraint automatically</p>
+<h4 id="enums-check-constraints">Enums (CHECK Constraints)</h4>
+<p><strong>SQL</strong>:</p>
+<pre><code class="language-sql">status TEXT CHECK (status IN ('lead', 'qualified', 'customer'))
+</code></pre>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">status: enum(lead, qualified, customer)
+</code></pre>
+<p><strong>Rule</strong>: Extract values from CHECK constraint</p>
+<h4 id="nullable-columns">Nullable Columns</h4>
+<p><strong>SQL</strong>:</p>
+<pre><code class="language-sql">middle_name TEXT NULL
+</code></pre>
+<p><strong>SpecQL</strong>:</p>
+<pre><code class="language-yaml">middle_name: text?
+</code></pre>
+<p><strong>Rule</strong>: Add <code>?</code> suffix for nullable fields</p>
+<hr />
+<h2 id="step-3-handle-auto-generated-fields">Step 3: Handle Auto-Generated Fields</h2>
+<h3 id="fields-to-exclude-from-yaml">Fields to EXCLUDE from YAML</h3>
+<p>SpecQL auto-generates these - <strong>do not include</strong>:</p>
+<h4 id="trinity-pattern">Trinity Pattern</h4>
+<pre><code class="language-sql">-- DON'T INCLUDE:
+id INTEGER PRIMARY KEY
+uuid UUID UNIQUE
+slug TEXT UNIQUE
+</code></pre>
+<p><strong>Reason</strong>: Trinity pattern is always generated</p>
+<h4 id="audit-fields">Audit Fields</h4>
+<pre><code class="language-sql">-- DON'T INCLUDE:
+created_at TIMESTAMP DEFAULT NOW()
+updated_at TIMESTAMP
+deleted_at TIMESTAMP
+created_by UUID
+updated_by UUID
+deleted_by UUID
+</code></pre>
+<p><strong>Reason</strong>: Audit fields are always generated</p>
+<h4 id="multi-tenant-fields">Multi-Tenant Fields</h4>
+<pre><code class="language-sql">-- DON'T INCLUDE (if schema is multi-tenant):
+tenant_id UUID REFERENCES tenants(id)
+</code></pre>
+<p><strong>Reason</strong>: Generated based on domain registry</p>
+<h4 id="indexes">Indexes</h4>
+<pre><code class="language-sql">-- DON'T INCLUDE:
+CREATE INDEX idx_contacts_company_id ON contacts(company_id);
+CREATE INDEX idx_contacts_status ON contacts(status);
+</code></pre>
+<p><strong>Reason</strong>: Indexes auto-generated for FKs and enums</p>
+<h3 id="fields-to-include">Fields to INCLUDE</h3>
+<p>Only include <strong>business domain fields</strong>:</p>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+fields:
+  # ✅ Include: Business fields
+  email: text
+  first_name: text
+  last_name: text
+  company: ref(Company)
+  status: enum(lead, qualified, customer)
+  notes: text?
+
+  # ❌ Don't include: Auto-generated
+  # id, uuid, slug, created_at, updated_at, tenant_id
+</code></pre>
+<hr />
+<h2 id="step-4-convert-business-logic">Step 4: Convert Business Logic</h2>
+<h3 id="triggers-actions">Triggers → Actions</h3>
+<p><strong>SQL Trigger</strong>:</p>
+<pre><code class="language-sql">CREATE FUNCTION qualify_lead() RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.status = 'qualified' AND OLD.status = 'lead' THEN
+    UPDATE contacts
+    SET qualified_at = NOW()
+    WHERE id = NEW.id;
+  END IF;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER qualify_lead_trigger
+  AFTER UPDATE ON contacts
+  FOR EACH ROW
+  EXECUTE FUNCTION qualify_lead();
+</code></pre>
+<p><strong>SpecQL Action</strong>:</p>
+<pre><code class="language-yaml">actions:
+  - name: qualify_lead
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified', qualified_at = NOW()
+</code></pre>
+<p><strong>Benefits</strong>:
+- No trigger syntax
+- Declarative steps
+- Automatic GraphQL integration
+- Built-in error handling</p>
+<h3 id="stored-procedures-actions">Stored Procedures → Actions</h3>
+<p><strong>SQL Procedure</strong>:</p>
+<pre><code class="language-sql">CREATE FUNCTION archive_contact(contact_id INTEGER)
+RETURNS VOID AS $$
+BEGIN
+  UPDATE contacts
+  SET deleted_at = NOW(), deleted_by = current_user
+  WHERE id = contact_id;
+
+  INSERT INTO audit_log (entity_type, entity_id, action)
+  VALUES ('contact', contact_id, 'archived');
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<p><strong>SpecQL Action</strong>:</p>
+<pre><code class="language-yaml">actions:
+  - name: archive_contact
+    steps:
+      - soft_delete: Contact
+      - insert: AuditLog SET entity_type = 'contact', action = 'archived'
+</code></pre>
+<hr />
+<h2 id="step-5-preserve-existing-table-codes">Step 5: Preserve Existing Table Codes</h2>
+<p>If you have numbered migration files (e.g., <code>001_contacts.sql</code>, <code>002_companies.sql</code>):</p>
+<h3 id="extract-table-codes">Extract Table Codes</h3>
+<pre><code class="language-bash"># List migration files
+ls db/migrations/
+
+# Output:
+# 001_contacts.sql
+# 002_companies.sql
+# 003_orders.sql
+</code></pre>
+<h3 id="add-to-yaml">Add to YAML</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+organization:
+  table_code: &quot;000001&quot;  # Pad to 6 hex digits
+fields:
+  # ... fields
+</code></pre>
+<h3 id="validate-uniqueness">Validate Uniqueness</h3>
+<pre><code class="language-bash">specql check-codes entities/**/*.yaml
+</code></pre>
+<p><strong>Output</strong>:</p>
+<pre><code>✅ All table codes are unique
+📊 3 entities with table codes
+</code></pre>
+<hr />
+<h2 id="step-6-create-domain-registry">Step 6: Create Domain Registry</h2>
+<p>Configure schema types (multi-tenant vs shared):</p>
+<p><strong>File</strong>: <code>registry/domain_registry.yaml</code></p>
+<pre><code class="language-yaml">domains:
+  # Multi-tenant schemas (add tenant_id)
+  crm:
+    type: multi_tenant
+    description: &quot;Customer relationship management&quot;
+
+  projects:
+    type: multi_tenant
+    description: &quot;Project management&quot;
+
+  # Shared schemas (no tenant_id)
+  catalog:
+    type: shared
+    description: &quot;Product catalog&quot;
+
+  analytics:
+    type: shared
+    description: &quot;Cross-tenant analytics&quot;
+</code></pre>
+<hr />
+<h2 id="step-7-generate-and-compare">Step 7: Generate and Compare</h2>
+<h3 id="generate-specql-schema">Generate SpecQL Schema</h3>
+<pre><code class="language-bash"># Generate all entities
+specql generate entities/**/*.yaml
+
+# Output directory:
+# db/schema/10_tables/
+# db/schema/20_helpers/
+# db/schema/30_functions/
+</code></pre>
+<h3 id="compare-with-original">Compare with Original</h3>
+<pre><code class="language-bash"># Compare table structure
+diff -u schema_export.sql db/schema/10_tables/contact.sql
+
+# Focus on business logic (ignore auto-generated differences)
+</code></pre>
+<h3 id="expected-differences">Expected Differences</h3>
+<p>✅ <strong>Safe to ignore</strong>:
+- Trinity pattern columns (<code>id</code>, <code>pk_*</code>, <code>identifier</code>)
+- Audit fields (<code>created_at</code>, <code>updated_at</code>, etc.)
+- Auto-generated indexes
+- Naming conventions (<code>tb_</code> prefix vs original name)</p>
+<p>⚠️ <strong>Review carefully</strong>:
+- Missing business columns
+- Different field types
+- Missing foreign keys
+- Different constraints</p>
+<hr />
+<h2 id="step-8-test-in-development">Step 8: Test in Development</h2>
+<h3 id="apply-generated-schema">Apply Generated Schema</h3>
+<pre><code class="language-bash"># Create test database
+createdb specql_migration_test
+
+# Apply foundation
+psql specql_migration_test -f db/schema/00_foundation/000_app_foundation.sql
+
+# Apply tables
+psql specql_migration_test -f db/schema/10_tables/*.sql
+
+# Apply helpers
+psql specql_migration_test -f db/schema/20_helpers/*.sql
+
+# Apply actions
+psql specql_migration_test -f db/schema/30_functions/*.sql
+</code></pre>
+<h3 id="migrate-data">Migrate Data</h3>
+<pre><code class="language-bash"># Export data from original
+pg_dump --data-only --schema=crm mydb &gt; data_export.sql
+
+# Map column names if needed
+sed 's/company_id/company/g' data_export.sql &gt; data_mapped.sql
+
+# Import to test database
+psql specql_migration_test -f data_mapped.sql
+</code></pre>
+<h3 id="validate-data">Validate Data</h3>
+<pre><code class="language-sql">-- Check row counts
+SELECT 'contacts' as table, count(*) FROM crm.tb_contact
+UNION ALL
+SELECT 'companies', count(*) FROM crm.tb_company;
+
+-- Validate foreign keys
+SELECT count(*) FROM crm.tb_contact WHERE company IS NULL;
+
+-- Check constraints
+SELECT status, count(*) FROM crm.tb_contact GROUP BY status;
+</code></pre>
+<hr />
+<h2 id="common-migration-patterns">Common Migration Patterns</h2>
+<h3 id="pattern-1-serial-ids-trinity">Pattern 1: Serial IDs → Trinity</h3>
+<p><strong>Before</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE contacts (
+  id SERIAL PRIMARY KEY,
+  -- ...
+);
+</code></pre>
+<p><strong>After</strong> (auto-generated):</p>
+<pre><code class="language-sql">CREATE TABLE crm.tb_contact (
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  pk_contact UUID DEFAULT gen_random_uuid() UNIQUE,
+  identifier TEXT UNIQUE NOT NULL,
+  -- ...
+);
+</code></pre>
+<p><strong>Migration</strong>:
+- Keep original <code>id</code> values
+- Generate <code>pk_*</code> UUID for new external references
+- Generate <code>identifier</code> from business key (e.g., email, name)</p>
+<h3 id="pattern-2-manual-audit-automatic">Pattern 2: Manual Audit → Automatic</h3>
+<p><strong>Before</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE contacts (
+  -- ...
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP
+);
+
+CREATE TRIGGER update_timestamp
+  BEFORE UPDATE ON contacts
+  FOR EACH ROW
+  EXECUTE FUNCTION update_modified_column();
+</code></pre>
+<p><strong>After</strong> (auto-generated):</p>
+<pre><code class="language-sql">-- Fields added automatically
+-- Triggers added automatically
+-- updated_by tracking added automatically
+</code></pre>
+<p><strong>Migration</strong>:
+- Remove manual triggers
+- SpecQL handles updates automatically</p>
+<h3 id="pattern-3-check-constraints-enums">Pattern 3: CHECK Constraints → Enums</h3>
+<p><strong>Before</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE contacts (
+  status TEXT CHECK (status IN ('lead', 'qualified', 'customer')),
+  priority TEXT CHECK (priority IN ('low', 'medium', 'high'))
+);
+</code></pre>
+<p><strong>After</strong>:</p>
+<pre><code class="language-yaml">fields:
+  status: enum(lead, qualified, customer)
+  priority: enum(low, medium, high)
+</code></pre>
+<p><strong>Migration</strong>:
+- Extract enum values from CHECK constraints
+- Validate data matches enum values
+- SpecQL generates CHECK constraint automatically</p>
+<h3 id="pattern-4-composite-types">Pattern 4: Composite Types</h3>
+<p><strong>Before</strong>:</p>
+<pre><code class="language-sql">CREATE TABLE contacts (
+  email_address TEXT,
+  email_display_name TEXT,
+  phone_country TEXT,
+  phone_number TEXT,
+  phone_extension TEXT
+);
+</code></pre>
+<p><strong>After</strong>:</p>
+<pre><code class="language-yaml">fields:
+  email: email  # Composite: {address, display_name}
+  phone: phone  # Composite: {country_code, number, extension}
+</code></pre>
+<p><strong>Migration</strong>:</p>
+<pre><code class="language-sql">-- Map existing columns to composite type
+UPDATE crm.tb_contact SET
+  email = ROW(email_address, email_display_name)::app.email,
+  phone = ROW(phone_country, phone_number, phone_extension)::app.phone;
+</code></pre>
+<hr />
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="issue-table-code-already-assigned">Issue: "Table code already assigned"</h3>
+<p><strong>Symptom</strong>:</p>
+<pre><code>ValueError: Table code 012311 already assigned to Contact
+</code></pre>
+<p><strong>Solution</strong>:</p>
+<pre><code class="language-bash">specql check-codes entities/**/*.yaml
+</code></pre>
+<p>Each entity must have unique <code>table_code</code>.</p>
+<h3 id="issue-unknown-field-type">Issue: "Unknown field type"</h3>
+<p><strong>Symptom</strong>:</p>
+<pre><code>Parse Error: Unknown field type 'varchar'
+</code></pre>
+<p><strong>Solution</strong>: Use SpecQL type names
+- ❌ <code>varchar</code> → ✅ <code>text</code>
+- ❌ <code>int</code> → ✅ <code>integer</code>
+- ❌ <code>bool</code> → ✅ <code>boolean</code></p>
+<p>See: <code>docs/reference/yaml-reference.md#scalar-types</code></p>
+<h3 id="issue-foreign-key-references-wrong-column">Issue: Foreign key references wrong column</h3>
+<p><strong>Symptom</strong>:</p>
+<pre><code class="language-sql">-- Generated:
+FOREIGN KEY (company) REFERENCES crm.tb_company(id)
+-- But original was:
+FOREIGN KEY (company_id) REFERENCES companies(company_uuid)
+</code></pre>
+<p><strong>Solution</strong>: SpecQL always references <code>id</code> (INTEGER PK)
+- If original uses UUID: Map to new <code>pk_*</code> column
+- If original uses different PK: Requires manual migration</p>
+<h3 id="issue-missing-custom-indexes">Issue: Missing custom indexes</h3>
+<p><strong>Symptom</strong>: Original has <code>CREATE INDEX idx_contacts_email</code> but SpecQL doesn't generate it.</p>
+<p><strong>Solution</strong>:
+- SpecQL auto-indexes FKs and enums
+- For custom indexes, add manually to <code>db/schema/10_tables/contact.sql</code> after generation
+- Or request feature: Rich type with auto-index (e.g., <code>email: email</code> could auto-index)</p>
+<hr />
+<h2 id="migration-checklist">Migration Checklist</h2>
+<h3 id="pre-migration">Pre-Migration</h3>
+<ul>
+<li>[ ] Export current schema (<code>pg_dump --schema-only</code>)</li>
+<li>[ ] Document custom business logic (triggers, procedures)</li>
+<li>[ ] Identify table numbering scheme (if any)</li>
+<li>[ ] List all schemas (multi-tenant vs shared)</li>
+<li>[ ] Back up production data</li>
+</ul>
+<h3 id="mapping-phase">Mapping Phase</h3>
+<ul>
+<li>[ ] Create <code>entities/</code> directory structure</li>
+<li>[ ] Create domain registry (<code>registry/domain_registry.yaml</code>)</li>
+<li>[ ] Map each table → YAML entity</li>
+<li>[ ] Extract CHECK constraints → enums</li>
+<li>[ ] Convert foreign keys → ref()</li>
+<li>[ ] Add table codes if preserving numbering</li>
+<li>[ ] Validate all YAML files (<code>specql validate</code>)</li>
+</ul>
+<h3 id="generation-phase">Generation Phase</h3>
+<ul>
+<li>[ ] Generate schema (<code>specql generate entities/**/*.yaml</code>)</li>
+<li>[ ] Review generated SQL</li>
+<li>[ ] Compare with original schema</li>
+<li>[ ] Verify naming conventions applied</li>
+<li>[ ] Check auto-generated indexes</li>
+</ul>
+<h3 id="testing-phase">Testing Phase</h3>
+<ul>
+<li>[ ] Create test database</li>
+<li>[ ] Apply generated schema</li>
+<li>[ ] Migrate sample data</li>
+<li>[ ] Validate data integrity</li>
+<li>[ ] Test actions/business logic</li>
+<li>[ ] Performance test with real data volume</li>
+</ul>
+<h3 id="production-cutover">Production Cutover</h3>
+<ul>
+<li>[ ] Schedule maintenance window</li>
+<li>[ ] Final data export from old schema</li>
+<li>[ ] Apply new schema to production</li>
+<li>[ ] Migrate data with mapping scripts</li>
+<li>[ ] Validate foreign key constraints</li>
+<li>[ ] Smoke test critical workflows</li>
+<li>[ ] Monitor for errors</li>
+</ul>
+<hr />
+<h2 id="example-complete-migration">Example: Complete Migration</h2>
+<h3 id="original-schema">Original Schema</h3>
+<pre><code class="language-sql">-- Original: 42 lines SQL
+CREATE TABLE crm.contacts (
+  id SERIAL PRIMARY KEY,
+  email VARCHAR(255) NOT NULL,
+  first_name TEXT,
+  last_name TEXT,
+  company_id INTEGER REFERENCES companies(id),
+  status TEXT CHECK (status IN ('lead', 'qualified', 'customer')),
+  priority TEXT CHECK (priority IN ('low', 'medium', 'high')),
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP,
+  deleted_at TIMESTAMP,
+  UNIQUE(email)
+);
+
+CREATE INDEX idx_contacts_company ON contacts(company_id);
+CREATE INDEX idx_contacts_status ON contacts(status);
+
+CREATE FUNCTION qualify_lead(contact_id INTEGER) RETURNS VOID AS $$
+BEGIN
+  UPDATE contacts
+  SET status = 'qualified', updated_at = NOW()
+  WHERE id = contact_id AND status = 'lead';
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<h3 id="specql-yaml">SpecQL YAML</h3>
+<pre><code class="language-yaml"># Migrated: 15 lines YAML (3x less code)
+entity: Contact
+schema: crm
+organization:
+  table_code: &quot;012311&quot;
+fields:
+  email: text
+  first_name: text
+  last_name: text
+  company: ref(Company)
+  status: enum(lead, qualified, customer)
+  priority: enum(low, medium, high)
+  notes: text?
+actions:
+  - name: qualify_lead
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+</code></pre>
+<h3 id="generated-schema">Generated Schema</h3>
+<pre><code class="language-sql">-- Generated: 87 lines SQL (includes Trinity, audit, helpers, GraphQL)
+CREATE TABLE crm.tb_contact (
+  id INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+  pk_contact UUID DEFAULT gen_random_uuid() UNIQUE NOT NULL,
+  identifier TEXT UNIQUE NOT NULL,
+  tenant_id UUID NOT NULL REFERENCES common.tb_tenant(pk_tenant),
+  email TEXT NOT NULL,
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  company INTEGER NOT NULL REFERENCES crm.tb_company(id),
+  status TEXT NOT NULL CHECK (status IN ('lead', 'qualified', 'customer')),
+  priority TEXT NOT NULL CHECK (priority IN ('low', 'medium', 'high')),
+  notes TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  created_by UUID NOT NULL,
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW() NOT NULL,
+  updated_by UUID NOT NULL,
+  deleted_at TIMESTAMP WITH TIME ZONE,
+  deleted_by UUID
+);
+
+CREATE UNIQUE INDEX idx_tb_contact_email ON crm.tb_contact(email);
+CREATE INDEX idx_tb_contact_company ON crm.tb_contact(company);
+CREATE INDEX idx_tb_contact_status ON crm.tb_contact(status);
+CREATE INDEX idx_tb_contact_tenant_id ON crm.tb_contact(tenant_id);
+
+-- Helper functions
+CREATE FUNCTION crm.contact_pk(uuid_val UUID) RETURNS INTEGER ...
+CREATE FUNCTION crm.contact_id(id_val INTEGER) RETURNS UUID ...
+
+-- Business action
+CREATE FUNCTION crm.qualify_lead(...) RETURNS app.mutation_result ...
+
+-- GraphQL wrapper
+CREATE FUNCTION app.qualify_lead(...) RETURNS app.mutation_result ...
+</code></pre>
+<p><strong>Result</strong>:
+- 15 lines YAML → 87 lines production SQL
+- <strong>6x code leverage</strong>
+- Trinity pattern included
+- GraphQL ready
+- Audit trail built-in</p>
+<hr />
+<h2 id="next-steps">Next Steps</h2>
+<p>After successful migration:
+1. <strong>Update CI/CD</strong>: Use <code>specql generate</code> in build pipeline
+2. <strong>Train team</strong>: Share YAML reference and guides
+3. <strong>Deprecate old migrations</strong>: Archive SQL files, use YAML as source of truth
+4. <strong>Add actions</strong>: Migrate remaining business logic to SpecQL actions
+5. <strong>Enable GraphQL</strong>: Configure FraiseQL for frontend integration</p>
+<hr />
+<h2 id="resources">Resources</h2>
+<ul>
+<li><strong>YAML Reference</strong>: <code>docs/reference/yaml-reference.md</code></li>
+<li><strong>CLI Reference</strong>: <code>docs/reference/cli-reference.md</code></li>
+<li><strong>Troubleshooting</strong>: <code>docs/guides/troubleshooting.md</code></li>
+<li><strong>Examples</strong>: <code>examples/entities/</code></li>
+<li><strong>Stdlib</strong>: <code>stdlib/</code> (reusable templates)</li>
+</ul>
+<hr />
+<h2 id="support">Support</h2>
+<p><strong>Questions?</strong>
+- Search issues: https://github.com/fraiseql/specql/issues
+- Create issue with:
+  - Original SQL schema
+  - Generated YAML
+  - Generated SQL
+  - Specific differences/questions</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,619 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Team A: Scalar Rich Types - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team A: Scalar Rich Types";
+        var mkdocs_page_input_path = "team_a/scalar_types.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team A: Scalar Rich Types</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-a-scalar-rich-types">Team A: Scalar Rich Types</h1>
+<h2 id="overview">Overview</h2>
+<p>Team A has implemented parsing for 23 scalar rich types that provide built-in validation and semantic meaning.</p>
+<h2 id="supported-scalar-types">Supported Scalar Types</h2>
+<h3 id="string-based-types">String-Based Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>PostgreSQL</th>
+<th>FraiseQL</th>
+<th>Validation</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>email</code></td>
+<td>TEXT</td>
+<td>Email</td>
+<td>RFC 5322 regex</td>
+<td>user@example.com</td>
+</tr>
+<tr>
+<td><code>phoneNumber</code></td>
+<td>TEXT</td>
+<td>PhoneNumber</td>
+<td>E.164 format</td>
+<td>+14155551234</td>
+</tr>
+<tr>
+<td><code>url</code></td>
+<td>TEXT</td>
+<td>Url</td>
+<td>URL regex</td>
+<td>https://example.com</td>
+</tr>
+<tr>
+<td><code>slug</code></td>
+<td>TEXT</td>
+<td>Slug</td>
+<td>lowercase-hyphen</td>
+<td>my-article</td>
+</tr>
+<tr>
+<td><code>markdown</code></td>
+<td>TEXT</td>
+<td>Markdown</td>
+<td>None</td>
+<td># Heading</td>
+</tr>
+<tr>
+<td><code>html</code></td>
+<td>TEXT</td>
+<td>Html</td>
+<td>None</td>
+<td><code>&lt;p&gt;Text&lt;/p&gt;</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="numeric-types">Numeric Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>PostgreSQL</th>
+<th>FraiseQL</th>
+<th>Validation</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>money</code></td>
+<td>NUMERIC(19,4)</td>
+<td>Money</td>
+<td>&gt;= 0</td>
+<td>1234.56</td>
+</tr>
+<tr>
+<td><code>percentage</code></td>
+<td>NUMERIC(5,2)</td>
+<td>Percentage</td>
+<td>0-100</td>
+<td>75.5</td>
+</tr>
+</tbody>
+</table>
+<h3 id="datetime-types">Date/Time Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>PostgreSQL</th>
+<th>FraiseQL</th>
+<th>Validation</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>date</code></td>
+<td>DATE</td>
+<td>Date</td>
+<td>None</td>
+<td>2025-11-08</td>
+</tr>
+<tr>
+<td><code>datetime</code></td>
+<td>TIMESTAMPTZ</td>
+<td>DateTime</td>
+<td>None</td>
+<td>2025-11-08T14:30:00Z</td>
+</tr>
+<tr>
+<td><code>time</code></td>
+<td>TIME</td>
+<td>Time</td>
+<td>None</td>
+<td>14:30:00</td>
+</tr>
+<tr>
+<td><code>duration</code></td>
+<td>INTERVAL</td>
+<td>Duration</td>
+<td>None</td>
+<td>2 hours 30 minutes</td>
+</tr>
+</tbody>
+</table>
+<h3 id="geographic-types">Geographic Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>PostgreSQL</th>
+<th>FraiseQL</th>
+<th>Validation</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>coordinates</code></td>
+<td>POINT</td>
+<td>Coordinates</td>
+<td>None</td>
+<td>(37.7749, -122.4194)</td>
+</tr>
+<tr>
+<td><code>latitude</code></td>
+<td>NUMERIC(10,8)</td>
+<td>Latitude</td>
+<td>-90 to 90</td>
+<td>37.7749</td>
+</tr>
+<tr>
+<td><code>longitude</code></td>
+<td>NUMERIC(11,8)</td>
+<td>Longitude</td>
+<td>-180 to 180</td>
+<td>-122.4194</td>
+</tr>
+</tbody>
+</table>
+<h3 id="network-types">Network Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>PostgreSQL</th>
+<th>FraiseQL</th>
+<th>Validation</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ipAddress</code></td>
+<td>INET</td>
+<td>IpAddress</td>
+<td>None</td>
+<td>192.168.1.1</td>
+</tr>
+<tr>
+<td><code>macAddress</code></td>
+<td>MACADDR</td>
+<td>MacAddress</td>
+<td>None</td>
+<td>08:00:2b:01:02:03</td>
+</tr>
+</tbody>
+</table>
+<h3 id="media-types">Media Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>PostgreSQL</th>
+<th>FraiseQL</th>
+<th>Validation</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>image</code></td>
+<td>TEXT</td>
+<td>Image</td>
+<td>None</td>
+<td>https://example.com/image.jpg</td>
+</tr>
+<tr>
+<td><code>file</code></td>
+<td>TEXT</td>
+<td>File</td>
+<td>None</td>
+<td>https://example.com/document.pdf</td>
+</tr>
+<tr>
+<td><code>color</code></td>
+<td>TEXT</td>
+<td>Color</td>
+<td>Hex color regex</td>
+<td>#FF5733</td>
+</tr>
+</tbody>
+</table>
+<h3 id="identifier-types">Identifier Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>PostgreSQL</th>
+<th>FraiseQL</th>
+<th>Validation</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>uuid</code></td>
+<td>UUID</td>
+<td>UUID</td>
+<td>None</td>
+<td>550e8400-e29b-41d4-a716-446655440000</td>
+</tr>
+</tbody>
+</table>
+<h3 id="structured-types">Structured Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>PostgreSQL</th>
+<th>FraiseQL</th>
+<th>Validation</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>json</code></td>
+<td>JSONB</td>
+<td>JSON</td>
+<td>None</td>
+<td>{"key": "value"}</td>
+</tr>
+</tbody>
+</table>
+<h3 id="boolean-types">Boolean Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>PostgreSQL</th>
+<th>FraiseQL</th>
+<th>Validation</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>boolean</code></td>
+<td>BOOLEAN</td>
+<td>Boolean</td>
+<td>None</td>
+<td>true</td>
+</tr>
+</tbody>
+</table>
+<h2 id="usage-in-specql">Usage in SpecQL</h2>
+<pre><code class="language-yaml">entity: Contact
+fields:
+  email: email!
+  phone: phoneNumber
+  website: url
+</code></pre>
+<h2 id="ast-output">AST Output</h2>
+<p>Team A generates FieldDefinition objects with:
+- <code>tier: FieldTier.SCALAR</code>
+- <code>scalar_def: ScalarTypeDef</code> (full metadata)
+- <code>postgres_type: str</code> (for Team B)
+- <code>fraiseql_type: str</code> (for Team D)
+- <code>validation_pattern: Optional[str]</code> (for Team B CHECK constraints)</p>
+<h2 id="implementation-details">Implementation Details</h2>
+<h3 id="core-files">Core Files</h3>
+<ul>
+<li><code>src/core/scalar_types.py</code> - Type registry and definitions</li>
+<li><code>src/core/ast_models.py</code> - Extended AST with tier support</li>
+<li><code>src/core/specql_parser.py</code> - Parser with scalar type recognition</li>
+</ul>
+<h3 id="test-coverage">Test Coverage</h3>
+<ul>
+<li>Unit tests for all 23 scalar types</li>
+<li>Parser integration tests</li>
+<li>End-to-end validation tests</li>
+</ul>
+<h2 id="phase-2-composite-types-completed">Phase 2: Composite Types ✅ COMPLETED</h2>
+<p>Team A has implemented 12 composite types that map to JSONB in PostgreSQL:</p>
+<h3 id="supported-composite-types">Supported Composite Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>Description</th>
+<th>Fields</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>SimpleAddress</code></td>
+<td>Basic address</td>
+<td>street, city, state, zipCode, country</td>
+<td>{"street": "123 Main St", "city": "Anytown"}</td>
+</tr>
+<tr>
+<td><code>MoneyAmount</code></td>
+<td>Currency + amount</td>
+<td>amount, currency</td>
+<td>{"amount": 99.99, "currency": "USD"}</td>
+</tr>
+<tr>
+<td><code>PersonName</code></td>
+<td>Full name</td>
+<td>firstName, lastName, middleName, title, suffix</td>
+<td>{"firstName": "John", "lastName": "Doe"}</td>
+</tr>
+<tr>
+<td><code>ContactInfo</code></td>
+<td>Contact details</td>
+<td>email, phone, website</td>
+<td>{"email": "john@example.com"}</td>
+</tr>
+<tr>
+<td><code>Coordinates</code></td>
+<td>Lat/lng pair</td>
+<td>latitude, longitude</td>
+<td>{"latitude": 37.7749, "longitude": -122.4194}</td>
+</tr>
+<tr>
+<td><code>TimeRange</code></td>
+<td>Start/end times</td>
+<td>startTime, endTime</td>
+<td>{"startTime": "09:00", "endTime": "17:00"}</td>
+</tr>
+<tr>
+<td><code>DateRange</code></td>
+<td>Start/end dates</td>
+<td>startDate, endDate</td>
+<td>{"startDate": "2025-01-01", "endDate": "2025-12-31"}</td>
+</tr>
+<tr>
+<td><code>PhoneNumber</code></td>
+<td>Phone with type</td>
+<td>countryCode, number</td>
+<td>{"countryCode": "1", "number": "4155551234"}</td>
+</tr>
+<tr>
+<td><code>EmailAddress</code></td>
+<td>Email with type</td>
+<td>address, type</td>
+<td>{"address": "john@example.com", "type": "work"}</td>
+</tr>
+<tr>
+<td><code>URL</code></td>
+<td>URL with type</td>
+<td>protocol, host, path, query, fragment</td>
+<td>{"protocol": "https", "host": "example.com"}</td>
+</tr>
+<tr>
+<td><code>Color</code></td>
+<td>RGB color</td>
+<td>red, green, blue</td>
+<td>{"red": 255, "green": 0, "blue": 0}</td>
+</tr>
+<tr>
+<td><code>Dimensions</code></td>
+<td>Size measurements</td>
+<td>width, height, depth, unit</td>
+<td>{"width": 10, "height": 5, "unit": "inches"}</td>
+</tr>
+<tr>
+<td><code>BusinessHours</code></td>
+<td>Weekly schedule</td>
+<td>monday-sunday (TimeRange)</td>
+<td>{"monday": {"startTime": "09:00", "endTime": "17:00"}}</td>
+</tr>
+</tbody>
+</table>
+<h3 id="usage-in-specql_1">Usage in SpecQL</h3>
+<pre><code class="language-yaml">entity: Company
+fields:
+  headquarters: SimpleAddress!
+  contact_info: ContactInfo
+  business_hours: BusinessHours
+</code></pre>
+<h3 id="ast-output_1">AST Output</h3>
+<p>Composite fields generate FieldDefinition objects with:
+- <code>tier: FieldTier.COMPOSITE</code>
+- <code>composite_def: CompositeTypeDef</code> (schema + examples)
+- <code>postgres_type: "JSONB"</code>
+- <code>fraiseql_type: str</code> (GraphQL object type name)
+- <code>fraiseql_schema: dict</code> (JSON schema for validation)</p>
+<h2 id="phase-3-entity-references-completed">Phase 3: Entity References ✅ COMPLETED</h2>
+<p>Team A has implemented entity reference parsing with PostgreSQL UUID foreign keys:</p>
+<h3 id="reference-syntax">Reference Syntax</h3>
+<pre><code class="language-yaml">entity: Order
+fields:
+  customer: ref(Customer)!          # Single entity reference
+  supplier: ref(Supplier)           # Nullable reference
+  backup_contacts: ref(Person)      # Array of references (future)
+</code></pre>
+<h3 id="polymorphic-references">Polymorphic References</h3>
+<pre><code class="language-yaml">entity: Activity
+fields:
+  actor: ref(User|Admin|System)!    # Union of entity types
+  subject: ref(Post|Comment|User)   # Nullable polymorphic
+</code></pre>
+<h3 id="ast-output_2">AST Output</h3>
+<p>Reference fields generate FieldDefinition objects with:
+- <code>tier: FieldTier.REFERENCE</code>
+- <code>reference_entity: str</code> (target entity name)
+- <code>postgres_type: "UUID"</code> (foreign key)
+- <code>fraiseql_type: "ID"</code> (GraphQL ID type)
+- <code>fraiseql_relation: "many-to-one"</code> (relationship type)</p>
+<h2 id="complete-type-system">Complete Type System</h2>
+<p>The implementation now supports all three tiers:</p>
+<h3 id="tier-1-basic-types">Tier 1: Basic Types</h3>
+<ul>
+<li><code>text</code>, <code>integer</code>, <code>bigint</code>, <code>float</code>, <code>boolean</code></li>
+<li>Maps to PostgreSQL primitives</li>
+<li>No additional validation</li>
+</ul>
+<h3 id="tier-1-scalar-rich-types">Tier 1: Scalar Rich Types</h3>
+<ul>
+<li>22 specialized types with validation (email, money, etc.)</li>
+<li>Built-in regex patterns and constraints</li>
+<li>Maps to PostgreSQL TEXT/NUMERIC with CHECK constraints</li>
+</ul>
+<h3 id="tier-2-composite-types">Tier 2: Composite Types</h3>
+<ul>
+<li>12 structured JSONB types</li>
+<li>Nested field validation schemas</li>
+<li>Maps to PostgreSQL JSONB</li>
+</ul>
+<h3 id="tier-3-entity-references">Tier 3: Entity References</h3>
+<ul>
+<li>UUID foreign keys to other entities</li>
+<li>Polymorphic reference support</li>
+<li>Maps to PostgreSQL UUID with FK constraints</li>
+</ul>
+<h2 id="integration-ready">Integration Ready</h2>
+<p>The complete type system provides all metadata needed for:
+- <strong>Team B</strong>: PostgreSQL DDL generation with proper types and constraints
+- <strong>Team D</strong>: GraphQL schema generation with correct types and relations
+- <strong>Future</strong>: Full validation and type safety across the stack</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

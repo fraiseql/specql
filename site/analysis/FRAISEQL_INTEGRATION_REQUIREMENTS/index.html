@@ -1,0 +1,1386 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>FraiseQL Integration Requirements - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "FraiseQL Integration Requirements";
+        var mkdocs_page_input_path = "analysis/FRAISEQL_INTEGRATION_REQUIREMENTS.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">FraiseQL Integration Requirements</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="fraiseql-integration-requirements">FraiseQL Integration Requirements</h1>
+<p><strong>Project</strong>: PrintOptim Backend + FraiseQL Auto-Generation
+<strong>Date</strong>: November 8, 2025
+<strong>Status</strong>: Requirements Definition
+<strong>Integration Goal</strong>: Unified YAML → SQL DDL → GraphQL Backend Pipeline</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>This document defines requirements for integrating <strong>two complementary systems</strong>:</p>
+<ol>
+<li><strong>YAML-to-DDL Generator</strong> (printoptim_backend_poc) - Generates PostgreSQL tables/functions from YAML</li>
+<li><strong>FraiseQL Auto-Backend</strong> (fraiseql) - Generates GraphQL API from PostgreSQL metadata</li>
+</ol>
+<h3 id="vision-single-source-of-truth">Vision: Single Source of Truth</h3>
+<pre><code>┌─────────────────────────────────────────────────────────────────────┐
+│                     UNIFIED YAML ENTITY DEFINITION                  │
+│                  (Single Source of Truth - entities/)               │
+└──────────────────────────┬──────────────────────────────────────────┘
+                           │
+         ┌─────────────────┴──────────────────┐
+         ▼                                    ▼
+┌──────────────────────┐            ┌─────────────────────────┐
+│  YAML-to-DDL Engine  │            │  FraiseQL Metadata      │
+│  (printoptim_poc)    │            │  Annotations            │
+└──────────┬───────────┘            └────────┬────────────────┘
+           │                                 │
+           ▼                                 ▼
+┌──────────────────────┐            ┌─────────────────────────┐
+│  PostgreSQL Schema   │            │  @fraiseql:type         │
+│  - Tables            │───────────▶│  COMMENT annotations    │
+│  - Functions         │            │  in generated SQL       │
+│  - Trinity Helpers   │            └────────┬────────────────┘
+└──────────────────────┘                     │
+                                             ▼
+                                    ┌─────────────────────────┐
+                                    │  FraiseQL Auto-Discovery│
+                                    │  (introspection engine) │
+                                    └────────┬────────────────┘
+                                             ▼
+                                    ┌─────────────────────────┐
+                                    │  Full GraphQL Backend   │
+                                    │  - Types (auto)         │
+                                    │  - Queries (auto)       │
+                                    │  - Mutations (auto)     │
+                                    │  - Filters (auto)       │
+                                    └─────────────────────────┘
+</code></pre>
+<p><strong>Result</strong>: Write YAML once → Get PostgreSQL schema + GraphQL API automatically</p>
+<hr />
+<h2 id="integration-objectives">🎯 Integration Objectives</h2>
+<h3 id="primary-goal">Primary Goal</h3>
+<p>Enable <strong>zero-code GraphQL backend generation</strong> from YAML entity definitions by:
+1. Generating PostgreSQL schema with FraiseQL-compatible metadata annotations
+2. Auto-discovering schema to generate complete GraphQL API
+3. Maintaining Trinity Pattern compatibility throughout the stack</p>
+<h3 id="success-criteria">Success Criteria</h3>
+<p><strong>Functional:</strong>
+- ✅ YAML entity → PostgreSQL tables with <code>@fraiseql:type</code> annotations
+- ✅ YAML entity → PostgreSQL functions with <code>@fraiseql:mutation</code> annotations
+- ✅ FraiseQL auto-discovers types, queries, mutations from generated SQL
+- ✅ GraphQL API works without writing Python code
+- ✅ Trinity Pattern preserved (pk_* INTEGER, id UUID, identifier TEXT)</p>
+<p><strong>Non-Functional:</strong>
+- ✅ Developer experience: Define entity in YAML, get full API (&lt; 10 minutes)
+- ✅ Quality: Generated code is production-ready
+- ✅ Maintainability: Single YAML change propagates to SQL + GraphQL
+- ✅ Performance: Trinity Pattern ensures optimal database performance</p>
+<hr />
+<h2 id="current-state-analysis">📊 Current State Analysis</h2>
+<h3 id="system-1-yaml-to-ddl-generator-printoptim_backend_poc">System 1: YAML-to-DDL Generator (printoptim_backend_poc)</h3>
+<p><strong>Status</strong>: ✅ POC Complete, Validated
+<strong>Location</strong>: <code>/home/lionel/code/printoptim_backend_poc/</code></p>
+<h4 id="current-capabilities">Current Capabilities</h4>
+<ul>
+<li>✅ Generate CREATE TABLE from YAML (76 lines generated)</li>
+<li>✅ Generate Trinity helper functions (4 per entity, 129 lines)</li>
+<li>✅ Generate translation tables (i18n support)</li>
+<li>✅ Support foreign keys, constraints, indexes</li>
+<li>✅ Generate comprehensive documentation (COMMENT statements)</li>
+<li>✅ 96% faster than manual SQL creation</li>
+</ul>
+<h4 id="current-output-structure">Current Output Structure</h4>
+<pre><code>generated/
+├── tables/
+│   └── tb_manufacturer.sql          # Table definitions
+└── functions/
+    └── manufacturer_trinity_helpers.sql  # Trinity helpers
+</code></pre>
+<h4 id="missing-for-fraiseql-integration">Missing for FraiseQL Integration</h4>
+<ul>
+<li>❌ No <code>@fraiseql:type</code> annotations in generated SQL</li>
+<li>❌ No <code>@fraiseql:mutation</code> annotations on functions</li>
+<li>❌ No view generation (FraiseQL needs views for types)</li>
+<li>❌ No JSONB data column in views (FraiseQL trinity pattern)</li>
+<li>❌ CREATE/UPDATE/DELETE mutation functions not generated</li>
+</ul>
+<hr />
+<h3 id="system-2-fraiseql-auto-backend-from-analysis">System 2: FraiseQL Auto-Backend (from analysis)</h3>
+<p><strong>Status</strong>: 📋 Design Complete, Implementation Planned
+<strong>Location</strong>: <code>/tmp/fraiseql_auto_backend_analysis.md</code></p>
+<h4 id="required-input-format">Required Input Format</h4>
+<p>FraiseQL auto-discovery expects:</p>
+<p><strong>1. Views with Annotations:</strong></p>
+<pre><code class="language-sql">CREATE VIEW v_manufacturer AS
+SELECT
+    id,
+    identifier,
+    jsonb_build_object(
+        'id', id::text,
+        'identifier', identifier,
+        'name', name,
+        'abbreviation', abbreviation
+    ) AS data
+FROM tb_manufacturer;
+
+COMMENT ON VIEW v_manufacturer IS '@fraiseql:type
+trinity: true
+use_projection: false
+description: Printer/copier manufacturer';
+
+COMMENT ON COLUMN v_manufacturer.id IS 'Public UUID identifier';
+COMMENT ON COLUMN v_manufacturer.identifier IS 'Internal stable identifier';
+</code></pre>
+<p><strong>2. Functions with Annotations:</strong></p>
+<pre><code class="language-sql">CREATE FUNCTION fn_create_manufacturer(
+    p_identifier TEXT,
+    p_name TEXT,
+    p_abbreviation CHAR(2)
+) RETURNS JSONB AS $$
+-- Business logic here
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION fn_create_manufacturer IS '@fraiseql:mutation
+input:
+  identifier: { type: string, description: &quot;Stable identifier&quot; }
+  name: { type: string, description: &quot;Display name&quot; }
+  abbreviation: { type: string, description: &quot;2-letter code&quot; }
+success: Manufacturer
+failure: ValidationError
+description: Create a new manufacturer';
+</code></pre>
+<h4 id="auto-generated-output">Auto-Generated Output</h4>
+<p>From annotated views + functions, FraiseQL generates:
+- ✅ GraphQL types (from views)
+- ✅ Queries: <code>manufacturer(id)</code>, <code>manufacturers(where, orderBy)</code>, <code>manufacturersConnection(...)</code>
+- ✅ Mutations: <code>createManufacturer</code>, <code>updateManufacturer</code>, <code>deleteManufacturer</code>
+- ✅ Filter inputs: <code>ManufacturerWhereInput</code> with field-specific operators
+- ✅ OrderBy inputs: <code>ManufacturerOrderByInput</code></p>
+<hr />
+<h2 id="integration-architecture">🏗️ Integration Architecture</h2>
+<h3 id="phase-1-enhanced-yaml-schema-yaml-extension">Phase 1: Enhanced YAML Schema (YAML Extension)</h3>
+<p>Add FraiseQL metadata to existing YAML entity definitions:</p>
+<pre><code class="language-yaml">entity:
+  name: manufacturer
+  schema: catalog
+  table_code: &quot;013211&quot;
+  description: &quot;Lists recognized printer/copier manufacturers&quot;
+
+  # === NEW: FraiseQL Integration Section ===
+  fraiseql:
+    enabled: true                    # Generate FraiseQL-compatible artifacts
+
+    # Type configuration
+    type:
+      generate_view: true            # Generate v_manufacturer view
+      trinity: true                  # Use trinity pattern (id, identifier)
+      use_projection: false          # Use v_* (views) not tv_* (projection tables)
+      expose_fields:                 # Fields to expose in GraphQL
+        - id
+        - identifier
+        - name
+        - abbreviation
+        - color_name
+
+    # Query configuration
+    queries:
+      find_one: true                 # manufacturer(id: UUID)
+      find_one_by_identifier: true   # manufacturerByIdentifier(identifier: String)
+      find_many: true                # manufacturers(where, orderBy, limit, offset)
+      connection: true               # manufacturersConnection(first, after, where)
+
+    # Mutation configuration
+    mutations:
+      create:
+        enabled: true
+        function_name: fn_create_manufacturer
+        input_fields: [identifier, name, abbreviation, color_name, fk_company]
+        success_type: Manufacturer
+        failure_type: ValidationError
+
+      update:
+        enabled: true
+        function_name: fn_update_manufacturer
+        input_fields: [name, abbreviation, color_name]
+        success_type: Manufacturer
+        failure_type: ValidationError
+
+      delete:
+        enabled: true
+        function_name: fn_delete_manufacturer
+        soft: true                   # Use deleted_at
+        success_type: DeleteResult
+        failure_type: ValidationError
+
+  # === Existing Fields Section ===
+  fields:
+    identifier:
+      type: TEXT
+      nullable: false
+      unique: true
+      description: &quot;Internal stable identifier (e.g., 'canon', 'ricoh')&quot;
+      fraiseql:                      # NEW: FraiseQL field metadata
+        filter_operators: [eq, neq, in, nin, contains, startsWith, endsWith]
+        sortable: true
+
+    name:
+      type: TEXT
+      nullable: true
+      description: &quot;Optional display name (can be localized)&quot;
+      fraiseql:
+        filter_operators: [eq, contains, startsWith]
+        sortable: true
+
+    abbreviation:
+      type: CHAR(2)
+      nullable: false
+      unique: true
+      description: &quot;Short 2-letter code&quot;
+      fraiseql:
+        filter_operators: [eq, in]
+        sortable: true
+
+    color_name:
+      type: TEXT
+      nullable: false
+      description: &quot;CSS-compatible color name or code&quot;
+      fraiseql:
+        filter_operators: [eq, contains]
+        sortable: false
+
+  # === Existing Sections (Unchanged) ===
+  foreign_keys:
+    fk_company:
+      references: management.tb_organization
+      on: pk_organization
+      nullable: true
+      description: &quot;Foreign key to organization&quot;
+
+  trinity_helpers:
+    generate: true
+    lookup_by: identifier
+    helpers:
+      - name: manufacturer_pk
+        params: [identifier]
+        returns: INTEGER
+        description: &quot;Resolve identifier to PK&quot;
+      # ... other helpers
+</code></pre>
+<hr />
+<h3 id="phase-2-extended-template-system">Phase 2: Extended Template System</h3>
+<p>Add new Jinja2 templates to generate FraiseQL-compatible artifacts:</p>
+<h4 id="new-templates-needed">New Templates Needed</h4>
+<p><strong>1. <code>templates/fraiseql_view.sql.j2</code></strong> - Generate FraiseQL type views</p>
+<pre><code class="language-jinja2">{# Generate v_[entity] view for FraiseQL type #}
+{%- if entity.fraiseql.enabled and entity.fraiseql.type.generate_view %}
+
+-- ============================================================================
+-- FraiseQL Type View: v_{{ entity.name }}
+-- ============================================================================
+-- Purpose: Exposes {{ entity.name }} as GraphQL type via FraiseQL auto-discovery
+-- Trinity Pattern: id (UUID), identifier (TEXT business key)
+-- ============================================================================
+
+CREATE OR REPLACE VIEW {{ entity.schema }}.v_{{ entity.name }} AS
+SELECT
+    -- Trinity identifiers
+    id,
+    {%- if entity.fraiseql.type.trinity %}
+    identifier,
+    {%- endif %}
+
+    -- JSONB data column (FraiseQL convention)
+    jsonb_build_object(
+        'id', id::text,
+        {%- if entity.fraiseql.type.trinity %}
+        'identifier', identifier,
+        {%- endif %}
+        {%- for field in entity.fraiseql.type.expose_fields %}
+        {%- if field not in ['id', 'identifier'] %}
+        '{{ field | camel_case }}', {{ field }},
+        {%- endif %}
+        {%- endfor %}
+        'createdAt', created_at,
+        'updatedAt', updated_at
+    ) AS data
+
+FROM {{ entity.schema }}.tb_{{ entity.name }}
+WHERE deleted_at IS NULL;  -- Soft delete filter
+
+-- ============================================================================
+-- FraiseQL Metadata Annotations
+-- ============================================================================
+
+COMMENT ON VIEW {{ entity.schema }}.v_{{ entity.name }} IS '@fraiseql:type
+trinity: {{ entity.fraiseql.type.trinity | lower }}
+use_projection: {{ entity.fraiseql.type.use_projection | lower }}
+description: {{ entity.description }}';
+
+-- Column descriptions (visible in GraphQL schema)
+COMMENT ON COLUMN {{ entity.schema }}.v_{{ entity.name }}.id IS '{{ entity.fields.id.description | default(&quot;Public UUID identifier&quot;) }}';
+
+{%- for field_name, field_def in entity.fields.items() %}
+{%- if field_name in entity.fraiseql.type.expose_fields %}
+COMMENT ON COLUMN {{ entity.schema }}.v_{{ entity.name }}.{{ field_name }} IS '{{ field_def.description }}';
+{%- endif %}
+{%- endfor %}
+
+{%- endif %}
+</code></pre>
+<p><strong>2. <code>templates/fraiseql_mutation_create.sql.j2</code></strong> - Generate CREATE mutations</p>
+<pre><code class="language-jinja2">{%- if entity.fraiseql.enabled and entity.fraiseql.mutations.create.enabled %}
+
+-- ============================================================================
+-- FraiseQL Mutation: {{ entity.fraiseql.mutations.create.function_name }}
+-- ============================================================================
+-- PURPOSE: Create new {{ entity.name }} entity
+-- RETURNS: JSONB with success/failure structure
+-- USAGE: Called via GraphQL createManufacturer mutation
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION {{ entity.schema }}.{{ entity.fraiseql.mutations.create.function_name }}(
+    {%- for field_name in entity.fraiseql.mutations.create.input_fields %}
+    {%- set field_def = entity.fields.get(field_name, entity.foreign_keys.get(field_name)) %}
+    p_{{ field_name }} {{ field_def.type }}{% if not loop.last %},{% endif %}
+    {%- endfor %}
+)
+RETURNS JSONB
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    v_{{ entity.name }}_pk INTEGER;
+    v_{{ entity.name }}_id UUID;
+BEGIN
+    -- ========================================================================
+    -- Validation
+    -- ========================================================================
+
+    {%- for validation in entity.validation %}
+    -- {{ validation.name }}
+    IF NOT ({{ validation.condition }}) THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'error', '{{ validation.error }}',
+            'code', '{{ validation.name | upper }}'
+        );
+    END IF;
+    {%- endfor %}
+
+    -- ========================================================================
+    -- Deduplication Check
+    -- ========================================================================
+
+    {%- if entity.deduplication %}
+    {%- for rule in entity.deduplication.rules %}
+    -- Priority {{ rule.priority }}: {{ rule.message }}
+    {%- if rule.when %}
+    IF {{ rule.when }} THEN
+    {%- endif %}
+        SELECT pk_{{ entity.name }} INTO v_{{ entity.name }}_pk
+        FROM {{ entity.schema }}.tb_{{ entity.name }}
+        WHERE {%- for field in rule.fields %}
+            {{ field }} = p_{{ field }}{% if not loop.last %} AND {% endif %}
+        {%- endfor %}
+          AND deleted_at IS NULL
+        LIMIT 1;
+
+        IF v_{{ entity.name }}_pk IS NOT NULL THEN
+            RETURN jsonb_build_object(
+                'success', false,
+                'error', '{{ rule.message }}',
+                'code', 'DUPLICATE_{{ entity.name | upper }}',
+                'existing_id', (SELECT id FROM {{ entity.schema }}.tb_{{ entity.name }} WHERE pk_{{ entity.name }} = v_{{ entity.name }}_pk)
+            );
+        END IF;
+    {%- if rule.when %}
+    END IF;
+    {%- endif %}
+    {%- endfor %}
+    {%- endif %}
+
+    -- ========================================================================
+    -- Foreign Key Resolution (Trinity Pattern)
+    -- ========================================================================
+
+    {%- for fk_name, fk_def in entity.foreign_keys.items() %}
+    {%- if fk_name in entity.fraiseql.mutations.create.input_fields %}
+    -- Resolve {{ fk_name }} (if provided)
+    -- Note: Input should already be INTEGER PK (client uses helper functions)
+    {%- endif %}
+    {%- endfor %}
+
+    -- ========================================================================
+    -- Insert Entity
+    -- ========================================================================
+
+    INSERT INTO {{ entity.schema }}.tb_{{ entity.name }} (
+        {%- for field_name in entity.fraiseql.mutations.create.input_fields %}
+        {{ field_name }}{% if not loop.last %},{% endif %}
+        {%- endfor %}
+    )
+    VALUES (
+        {%- for field_name in entity.fraiseql.mutations.create.input_fields %}
+        p_{{ field_name }}{% if not loop.last %},{% endif %}
+        {%- endfor %}
+    )
+    RETURNING pk_{{ entity.name }}, id INTO v_{{ entity.name }}_pk, v_{{ entity.name }}_id;
+
+    -- ========================================================================
+    -- Return Success
+    -- ========================================================================
+
+    RETURN jsonb_build_object(
+        'success', true,
+        '{{ entity.name | lower }}', (
+            SELECT data FROM {{ entity.schema }}.v_{{ entity.name }}
+            WHERE id = v_{{ entity.name }}_id
+        )
+    );
+
+EXCEPTION
+    WHEN OTHERS THEN
+        RETURN jsonb_build_object(
+            'success', false,
+            'error', SQLERRM,
+            'code', 'DATABASE_ERROR'
+        );
+END;
+$$;
+
+-- ============================================================================
+-- FraiseQL Mutation Metadata
+-- ============================================================================
+
+COMMENT ON FUNCTION {{ entity.schema }}.{{ entity.fraiseql.mutations.create.function_name }} IS '@fraiseql:mutation
+input:
+{%- for field_name in entity.fraiseql.mutations.create.input_fields %}
+{%- set field_def = entity.fields.get(field_name, entity.foreign_keys.get(field_name)) %}
+  {{ field_name }}:
+    type: {{ field_def.type | pg_to_graphql_type }}
+    description: &quot;{{ field_def.description }}&quot;
+{%- endfor %}
+success: {{ entity.fraiseql.mutations.create.success_type }}
+failure: {{ entity.fraiseql.mutations.create.failure_type }}
+description: {{ entity.description }}';
+
+{%- endif %}
+</code></pre>
+<p><strong>3. <code>templates/fraiseql_mutation_update.sql.j2</code></strong> - Generate UPDATE mutations
+<strong>4. <code>templates/fraiseql_mutation_delete.sql.j2</code></strong> - Generate DELETE mutations</p>
+<hr />
+<h3 id="phase-3-enhanced-generator-engine">Phase 3: Enhanced Generator Engine</h3>
+<p>Extend <code>scripts/dev/generate_sql.py</code> to support FraiseQL generation:</p>
+<pre><code class="language-python">class SQLGenerator:
+    def __init__(self, templates_dir='templates',
+                 entities_dir='entities',
+                 output_dir='generated'):
+        # ... existing initialization ...
+
+        # NEW: Create FraiseQL output directories
+        (self.output_dir / 'views').mkdir(parents=True, exist_ok=True)
+        (self.output_dir / 'mutations').mkdir(parents=True, exist_ok=True)
+
+    def generate_entity(self, entity_file):
+        &quot;&quot;&quot;Generate all SQL for one entity (extended)&quot;&quot;&quot;
+        entity = self.load_entity(entity_file)
+
+        # Existing: Generate table SQL
+        table_sql = self.generate_table(entity)
+        table_file = self.output_dir / 'tables' / f'tb_{entity[&quot;name&quot;]}.sql'
+        table_file.write_text(table_sql)
+
+        # Existing: Generate trinity helpers
+        if entity.get('trinity_helpers', {}).get('generate'):
+            trinity_sql = self.generate_trinity_helpers(entity)
+            trinity_file = self.output_dir / 'functions' / f'{entity[&quot;name&quot;]}_trinity_helpers.sql'
+            trinity_file.write_text(trinity_sql)
+
+        # NEW: Generate FraiseQL artifacts
+        if entity.get('fraiseql', {}).get('enabled'):
+            self.generate_fraiseql_artifacts(entity)
+
+    def generate_fraiseql_artifacts(self, entity):
+        &quot;&quot;&quot;Generate FraiseQL-specific SQL artifacts&quot;&quot;&quot;
+
+        # 1. Generate view (for type)
+        if entity['fraiseql']['type']['generate_view']:
+            view_sql = self.generate_fraiseql_view(entity)
+            view_file = self.output_dir / 'views' / f'v_{entity[&quot;name&quot;]}.sql'
+            view_file.write_text(view_sql)
+
+        # 2. Generate CREATE mutation
+        if entity['fraiseql']['mutations']['create']['enabled']:
+            create_sql = self.generate_fraiseql_mutation_create(entity)
+            create_file = self.output_dir / 'mutations' / f'{entity[&quot;fraiseql&quot;][&quot;mutations&quot;][&quot;create&quot;][&quot;function_name&quot;]}.sql'
+            create_file.write_text(create_sql)
+
+        # 3. Generate UPDATE mutation
+        if entity['fraiseql']['mutations']['update']['enabled']:
+            update_sql = self.generate_fraiseql_mutation_update(entity)
+            update_file = self.output_dir / 'mutations' / f'{entity[&quot;fraiseql&quot;][&quot;mutations&quot;][&quot;update&quot;][&quot;function_name&quot;]}.sql'
+            update_file.write_text(update_sql)
+
+        # 4. Generate DELETE mutation
+        if entity['fraiseql']['mutations']['delete']['enabled']:
+            delete_sql = self.generate_fraiseql_mutation_delete(entity)
+            delete_file = self.output_dir / 'mutations' / f'{entity[&quot;fraiseql&quot;][&quot;mutations&quot;][&quot;delete&quot;][&quot;function_name&quot;]}.sql'
+            delete_file.write_text(delete_sql)
+
+    def generate_fraiseql_view(self, entity):
+        &quot;&quot;&quot;Render fraiseql_view.sql.j2 template&quot;&quot;&quot;
+        template = self.env.get_template('fraiseql_view.sql.j2')
+        return template.render(entity=entity)
+
+    def generate_fraiseql_mutation_create(self, entity):
+        &quot;&quot;&quot;Render fraiseql_mutation_create.sql.j2 template&quot;&quot;&quot;
+        template = self.env.get_template('fraiseql_mutation_create.sql.j2')
+        return template.render(entity=entity)
+
+    # ... similar for update/delete mutations
+</code></pre>
+<hr />
+<h3 id="phase-4-generated-output-structure">Phase 4: Generated Output Structure</h3>
+<p>After integration, the generator will produce:</p>
+<pre><code>generated/
+├── tables/                          # Existing: Table definitions
+│   └── tb_manufacturer.sql
+│
+├── functions/                       # Existing: Trinity helpers
+│   └── manufacturer_trinity_helpers.sql
+│
+├── views/                           # NEW: FraiseQL type views
+│   └── v_manufacturer.sql           # With @fraiseql:type annotation
+│
+└── mutations/                       # NEW: FraiseQL mutation functions
+    ├── fn_create_manufacturer.sql   # With @fraiseql:mutation annotation
+    ├── fn_update_manufacturer.sql
+    └── fn_delete_manufacturer.sql
+</code></pre>
+<hr />
+<h3 id="phase-5-fraiseql-backend-integration">Phase 5: FraiseQL Backend Integration</h3>
+<p>Create FraiseQL application that auto-discovers generated schema:</p>
+<pre><code class="language-python"># app.py - FraiseQL Backend
+from fraiseql.fastapi import create_fraiseql_app
+
+app = create_fraiseql_app(
+    database_url=&quot;postgresql://localhost/printoptim&quot;,
+
+    # Enable auto-discovery
+    auto_discover=True,
+
+    # Auto-discovery configuration
+    auto_discover_types=True,        # Discover v_* views as types
+    auto_discover_queries=True,       # Generate find/findOne queries
+    auto_discover_mutations=True,     # Discover fn_* functions as mutations
+
+    # Source patterns
+    view_pattern=&quot;v_%&quot;,               # Views for types
+    function_pattern=&quot;fn_%&quot;,          # Functions for mutations
+
+    # Schema to introspect
+    introspection_schema=&quot;catalog&quot;,   # Match YAML schema
+
+    # Naming conventions (match YAML camelCase)
+    strip_view_prefixes=True,         # v_manufacturer → Manufacturer
+    pascal_case_types=True,           # manufacturer → Manufacturer
+    camel_case_fields=True,           # created_at → createdAt
+
+    # Source priority (use views, not projection tables)
+    source_priority=[&quot;v&quot;, &quot;tv&quot;],      # Prefer v_* (real-time)
+)
+</code></pre>
+<p><strong>Result</strong>: GraphQL API is fully generated from database introspection!</p>
+<hr />
+<h2 id="detailed-requirements">📋 Detailed Requirements</h2>
+<h3 id="req-1-yaml-schema-extension">REQ-1: YAML Schema Extension</h3>
+<p><strong>Priority</strong>: Critical
+<strong>Effort</strong>: 4 hours</p>
+<p><strong>Description</strong>: Extend YAML entity schema to include FraiseQL configuration</p>
+<p><strong>Acceptance Criteria</strong>:
+- [ ] YAML supports <code>fraiseql.enabled</code> flag
+- [ ] YAML supports <code>fraiseql.type</code> configuration (view generation)
+- [ ] YAML supports <code>fraiseql.queries</code> configuration (query types)
+- [ ] YAML supports <code>fraiseql.mutations</code> configuration (CRUD operations)
+- [ ] YAML supports per-field <code>fraiseql.filter_operators</code> and <code>fraiseql.sortable</code>
+- [ ] Backward compatible with existing YAML entities (fraiseql section optional)
+- [ ] Documented with examples in README</p>
+<hr />
+<h3 id="req-2-fraiseql-view-template">REQ-2: FraiseQL View Template</h3>
+<p><strong>Priority</strong>: Critical
+<strong>Effort</strong>: 8 hours</p>
+<p><strong>Description</strong>: Create Jinja2 template to generate FraiseQL-compatible views</p>
+<p><strong>Acceptance Criteria</strong>:
+- [ ] Template generates <code>CREATE VIEW v_[entity]</code> with JSONB data column
+- [ ] Template includes Trinity Pattern (id, identifier columns)
+- [ ] Template generates <code>COMMENT ON VIEW</code> with <code>@fraiseql:type</code> annotation
+- [ ] Template generates <code>COMMENT ON COLUMN</code> for each exposed field
+- [ ] Template supports field selection (expose_fields configuration)
+- [ ] Template handles soft delete filtering (WHERE deleted_at IS NULL)
+- [ ] Generated view is valid PostgreSQL SQL
+- [ ] Generated view is recognized by FraiseQL introspection</p>
+<hr />
+<h3 id="req-3-fraiseql-mutation-templates">REQ-3: FraiseQL Mutation Templates</h3>
+<p><strong>Priority</strong>: High
+<strong>Effort</strong>: 24 hours (8 hours per template)</p>
+<p><strong>Description</strong>: Create Jinja2 templates for CREATE/UPDATE/DELETE mutations</p>
+<p><strong>Acceptance Criteria</strong>:</p>
+<p><strong>CREATE Mutation:</strong>
+- [ ] Template generates <code>CREATE FUNCTION fn_create_[entity]</code> with input parameters
+- [ ] Template includes validation rules from YAML
+- [ ] Template includes deduplication checks from YAML
+- [ ] Template includes Trinity Pattern foreign key resolution
+- [ ] Template returns JSONB with success/failure structure
+- [ ] Template generates <code>COMMENT ON FUNCTION</code> with <code>@fraiseql:mutation</code> annotation
+- [ ] Template handles errors gracefully (EXCEPTION block)</p>
+<p><strong>UPDATE Mutation:</strong>
+- [ ] Template generates <code>CREATE FUNCTION fn_update_[entity]</code>
+- [ ] Template accepts identifier/id for lookup
+- [ ] Template updates only specified fields
+- [ ] Template validates before updating
+- [ ] Template returns JSONB success/failure
+- [ ] Template generates proper metadata annotations</p>
+<p><strong>DELETE Mutation:</strong>
+- [ ] Template generates <code>CREATE FUNCTION fn_delete_[entity]</code>
+- [ ] Template supports soft delete (sets deleted_at)
+- [ ] Template supports hard delete (optional)
+- [ ] Template returns success/failure
+- [ ] Template generates proper metadata annotations</p>
+<hr />
+<h3 id="req-4-enhanced-sql-generator">REQ-4: Enhanced SQL Generator</h3>
+<p><strong>Priority</strong>: High
+<strong>Effort</strong>: 12 hours</p>
+<p><strong>Description</strong>: Extend <code>scripts/dev/generate_sql.py</code> to support FraiseQL artifact generation</p>
+<p><strong>Acceptance Criteria</strong>:
+- [ ] Generator creates <code>generated/views/</code> directory
+- [ ] Generator creates <code>generated/mutations/</code> directory
+- [ ] Generator calls <code>generate_fraiseql_view()</code> when <code>fraiseql.enabled=true</code>
+- [ ] Generator calls mutation templates when mutations enabled
+- [ ] Generator validates YAML fraiseql section (schema validation)
+- [ ] Generator logs what FraiseQL artifacts are generated
+- [ ] Generator handles missing fraiseql section gracefully (skips)
+- [ ] Generator supports dry-run mode (preview without writing files)</p>
+<hr />
+<h3 id="req-5-fraiseql-backend-integration">REQ-5: FraiseQL Backend Integration</h3>
+<p><strong>Priority</strong>: High
+<strong>Effort</strong>: 8 hours</p>
+<p><strong>Description</strong>: Create FraiseQL application that auto-discovers generated schema</p>
+<p><strong>Acceptance Criteria</strong>:
+- [ ] <code>app.py</code> creates FraiseQL app with auto-discovery enabled
+- [ ] App successfully introspects generated views as types
+- [ ] App successfully introspects generated functions as mutations
+- [ ] App generates GraphQL schema with correct types
+- [ ] App generates queries: <code>find</code>, <code>findOne</code>, <code>connection</code>
+- [ ] App generates mutations from annotated functions
+- [ ] App generates WhereInput filters automatically
+- [ ] App generates OrderByInput for sortable fields
+- [ ] GraphQL schema matches YAML entity definitions</p>
+<hr />
+<h3 id="req-6-type-mapping-utilities">REQ-6: Type Mapping Utilities</h3>
+<p><strong>Priority</strong>: Medium
+<strong>Effort</strong>: 6 hours</p>
+<p><strong>Description</strong>: Create utilities to map PostgreSQL types ↔ GraphQL types</p>
+<p><strong>Acceptance Criteria</strong>:
+- [ ] Function <code>pg_to_graphql_type(pg_type)</code> maps PostgreSQL → GraphQL
+- [ ] Function <code>graphql_to_pg_type(gql_type)</code> maps GraphQL → PostgreSQL
+- [ ] Supports all common types (TEXT→String, INTEGER→Int, UUID→UUID, etc.)
+- [ ] Handles nullable types (adds <code>!</code> for non-nullable)
+- [ ] Handles array types (<code>TEXT[]</code> → <code>[String!]</code>)
+- [ ] Handles JSONB → JSON
+- [ ] Available as Jinja2 filter in templates</p>
+<p><strong>Type Mapping Table</strong>:
+| PostgreSQL | GraphQL | Notes |
+|------------|---------|-------|
+| TEXT | String | |
+| VARCHAR | String | |
+| INTEGER | Int | |
+| BIGINT | BigInt | Custom scalar |
+| UUID | UUID | Custom scalar |
+| BOOLEAN | Boolean | |
+| TIMESTAMPTZ | DateTime | Custom scalar |
+| DATE | Date | Custom scalar |
+| JSONB | JSON | |
+| CHAR(n) | String | |
+| TEXT[] | [String!] | Array |</p>
+<hr />
+<h3 id="req-7-end-to-end-testing">REQ-7: End-to-End Testing</h3>
+<p><strong>Priority</strong>: High
+<strong>Effort</strong>: 16 hours</p>
+<p><strong>Description</strong>: Validate complete YAML → SQL → GraphQL pipeline</p>
+<p><strong>Test Cases</strong>:</p>
+<p><strong>TC-1: Simple Entity (manufacturer)</strong>
+- [ ] Define manufacturer entity in YAML with fraiseql section
+- [ ] Run <code>python scripts/dev/generate_sql.py</code>
+- [ ] Verify generated files:
+  - <code>generated/tables/tb_manufacturer.sql</code>
+  - <code>generated/views/v_manufacturer.sql</code>
+  - <code>generated/mutations/fn_create_manufacturer.sql</code>
+  - <code>generated/functions/manufacturer_trinity_helpers.sql</code>
+- [ ] Apply SQL to PostgreSQL database
+- [ ] Start FraiseQL app with auto-discovery
+- [ ] Verify GraphQL schema includes:
+  - Type <code>Manufacturer</code>
+  - Query <code>manufacturer(id: UUID)</code>
+  - Query <code>manufacturers(where: ManufacturerWhereInput)</code>
+  - Mutation <code>createManufacturer(input: CreateManufacturerInput)</code>
+- [ ] Execute GraphQL queries successfully
+- [ ] Execute GraphQL mutations successfully</p>
+<p><strong>TC-2: Entity with Foreign Keys</strong>
+- [ ] Define entity with foreign keys (e.g., product → manufacturer)
+- [ ] Generate SQL
+- [ ] Verify foreign key resolution in mutations
+- [ ] Verify GraphQL schema includes relations
+- [ ] Test querying related entities</p>
+<p><strong>TC-3: Entity with Translations</strong>
+- [ ] Define entity with <code>translations.enabled=true</code>
+- [ ] Generate SQL including translation table
+- [ ] Verify FraiseQL handles translation fields
+- [ ] Test i18n queries</p>
+<p><strong>TC-4: Entity with Complex Validation</strong>
+- [ ] Define entity with multiple validation rules
+- [ ] Generate CREATE mutation
+- [ ] Test validation errors via GraphQL
+- [ ] Verify error messages match YAML definitions</p>
+<hr />
+<h3 id="req-8-documentation">REQ-8: Documentation</h3>
+<p><strong>Priority</strong>: Medium
+<strong>Effort</strong>: 8 hours</p>
+<p><strong>Description</strong>: Document the integrated YAML → GraphQL workflow</p>
+<p><strong>Deliverables</strong>:
+- [ ] <strong>Tutorial</strong>: "From YAML to GraphQL in 10 Minutes"
+  - Define entity in YAML
+  - Generate SQL
+  - Apply to database
+  - Start GraphQL API
+  - Execute first query
+- [ ] <strong>YAML Schema Reference</strong>: Document all fraiseql configuration options
+- [ ] <strong>Template Reference</strong>: Document available Jinja2 templates
+- [ ] <strong>Integration Guide</strong>: How to customize generated artifacts
+- [ ] <strong>Migration Guide</strong>: Converting existing entities to YAML
+- [ ] <strong>Best Practices</strong>: When to use auto-generation vs manual code</p>
+<hr />
+<h3 id="req-9-developer-experience-improvements">REQ-9: Developer Experience Improvements</h3>
+<p><strong>Priority</strong>: Low
+<strong>Effort</strong>: 8 hours</p>
+<p><strong>Description</strong>: Improve developer workflow and debugging</p>
+<p><strong>Acceptance Criteria</strong>:
+- [ ] CLI command: <code>python scripts/dev/generate_sql.py --entity manufacturer --dry-run</code>
+- [ ] CLI command: <code>python scripts/dev/generate_sql.py --validate-yaml</code> (check YAML syntax)
+- [ ] CLI command: <code>python scripts/dev/generate_sql.py --list-entities</code>
+- [ ] Validation errors show line numbers and helpful messages
+- [ ] Generator logs summary: "Generated 4 files for manufacturer entity"
+- [ ] Generator supports <code>--verbose</code> flag for detailed output
+- [ ] Generator supports <code>--watch</code> mode (regenerate on YAML changes)</p>
+<hr />
+<h2 id="implementation-roadmap">🚀 Implementation Roadmap</h2>
+<h3 id="phase-1-foundation-week-1-32-hours">Phase 1: Foundation (Week 1) - 32 hours</h3>
+<p><strong>Goal</strong>: Extend YAML schema and create basic FraiseQL view generation</p>
+<p><strong>Tasks</strong>:
+1. ✅ REQ-1: YAML Schema Extension (4 hours)
+2. ✅ REQ-2: FraiseQL View Template (8 hours)
+3. ✅ REQ-6: Type Mapping Utilities (6 hours)
+4. ✅ REQ-4: Enhanced SQL Generator (partial - view generation only) (6 hours)
+5. ✅ REQ-7: End-to-End Testing TC-1 (partial - view generation) (8 hours)</p>
+<p><strong>Deliverable</strong>: Generator can produce FraiseQL-compatible views from YAML</p>
+<hr />
+<h3 id="phase-2-mutations-week-2-40-hours">Phase 2: Mutations (Week 2) - 40 hours</h3>
+<p><strong>Goal</strong>: Add CREATE/UPDATE/DELETE mutation generation</p>
+<p><strong>Tasks</strong>:
+1. ✅ REQ-3: FraiseQL Mutation Templates (24 hours)
+   - CREATE mutation (8 hours)
+   - UPDATE mutation (8 hours)
+   - DELETE mutation (8 hours)
+2. ✅ REQ-4: Enhanced SQL Generator (complete mutation generation) (6 hours)
+3. ✅ REQ-7: End-to-End Testing TC-1 (complete) (10 hours)</p>
+<p><strong>Deliverable</strong>: Generator produces complete SQL schema + mutations from YAML</p>
+<hr />
+<h3 id="phase-3-integration-week-3-24-hours">Phase 3: Integration (Week 3) - 24 hours</h3>
+<p><strong>Goal</strong>: Integrate with FraiseQL auto-discovery</p>
+<p><strong>Tasks</strong>:
+1. ✅ REQ-5: FraiseQL Backend Integration (8 hours)
+2. ✅ REQ-7: End-to-End Testing TC-2, TC-3, TC-4 (16 hours)</p>
+<p><strong>Deliverable</strong>: Full YAML → GraphQL pipeline working end-to-end</p>
+<hr />
+<h3 id="phase-4-polish-week-4-16-hours">Phase 4: Polish (Week 4) - 16 hours</h3>
+<p><strong>Goal</strong>: Documentation and developer experience</p>
+<p><strong>Tasks</strong>:
+1. ✅ REQ-8: Documentation (8 hours)
+2. ✅ REQ-9: Developer Experience Improvements (8 hours)</p>
+<p><strong>Deliverable</strong>: Production-ready system with complete documentation</p>
+<hr />
+<p><strong>Total Effort</strong>: ~112 hours (3-4 weeks)</p>
+<hr />
+<h2 id="example-complete-workflow">💡 Example: Complete Workflow</h2>
+<h3 id="step-1-define-entity-in-yaml">Step 1: Define Entity in YAML</h3>
+<pre><code class="language-yaml"># entities/manufacturer.yaml
+entity:
+  name: manufacturer
+  schema: catalog
+  description: &quot;Printer/copier manufacturers&quot;
+
+  fraiseql:
+    enabled: true
+    type:
+      generate_view: true
+      trinity: true
+      expose_fields: [id, identifier, name, abbreviation]
+    mutations:
+      create:
+        enabled: true
+        function_name: fn_create_manufacturer
+        input_fields: [identifier, name, abbreviation, color_name]
+        success_type: Manufacturer
+        failure_type: ValidationError
+
+  fields:
+    identifier: { type: TEXT, nullable: false, unique: true }
+    name: { type: TEXT, nullable: true }
+    abbreviation: { type: CHAR(2), nullable: false, unique: true }
+    color_name: { type: TEXT, nullable: false }
+</code></pre>
+<h3 id="step-2-generate-sql">Step 2: Generate SQL</h3>
+<pre><code class="language-bash">python scripts/dev/generate_sql.py
+</code></pre>
+<p><strong>Output</strong>:</p>
+<pre><code>✅ Generated tables/tb_manufacturer.sql (76 lines)
+✅ Generated views/v_manufacturer.sql (42 lines)
+✅ Generated mutations/fn_create_manufacturer.sql (95 lines)
+✅ Generated functions/manufacturer_trinity_helpers.sql (129 lines)
+</code></pre>
+<h3 id="step-3-apply-to-database">Step 3: Apply to Database</h3>
+<pre><code class="language-bash">psql -f generated/tables/tb_manufacturer.sql
+psql -f generated/views/v_manufacturer.sql
+psql -f generated/mutations/fn_create_manufacturer.sql
+psql -f generated/functions/manufacturer_trinity_helpers.sql
+</code></pre>
+<h3 id="step-4-start-graphql-api">Step 4: Start GraphQL API</h3>
+<pre><code class="language-bash">uvicorn app:app --reload
+</code></pre>
+<h3 id="step-5-query-via-graphql">Step 5: Query via GraphQL</h3>
+<pre><code class="language-graphql"># Create manufacturer
+mutation {
+  createManufacturer(input: {
+    identifier: &quot;canon&quot;
+    name: &quot;Canon Inc.&quot;
+    abbreviation: &quot;CN&quot;
+    colorName: &quot;#E60012&quot;
+  }) {
+    ... on Manufacturer {
+      id
+      identifier
+      name
+    }
+    ... on ValidationError {
+      message
+      code
+    }
+  }
+}
+
+# Query manufacturers
+query {
+  manufacturers(
+    where: { abbreviation: { eq: &quot;CN&quot; } }
+  ) {
+    id
+    identifier
+    name
+    abbreviation
+  }
+}
+</code></pre>
+<p><strong>Total Time</strong>: &lt; 10 minutes from YAML to working GraphQL API</p>
+<hr />
+<h2 id="success-metrics">🎯 Success Metrics</h2>
+<h3 id="quantitative-metrics">Quantitative Metrics</h3>
+<table>
+<thead>
+<tr>
+<th>Metric</th>
+<th>Target</th>
+<th>Measurement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Developer Time</strong></td>
+<td>&lt; 10 minutes</td>
+<td>Time from YAML edit to working GraphQL endpoint</td>
+</tr>
+<tr>
+<td><strong>Code Generation</strong></td>
+<td>&gt; 95%</td>
+<td>Percentage of backend code auto-generated</td>
+</tr>
+<tr>
+<td><strong>Boilerplate Reduction</strong></td>
+<td>&gt; 90%</td>
+<td>Lines of manual code eliminated</td>
+</tr>
+<tr>
+<td><strong>Entity Creation Speed</strong></td>
+<td>&lt; 1 hour</td>
+<td>Time to add new entity (YAML + test)</td>
+</tr>
+<tr>
+<td><strong>Schema Migration Speed</strong></td>
+<td>&lt; 30 min</td>
+<td>Time to regenerate all entities after pattern change</td>
+</tr>
+<tr>
+<td><strong>Test Coverage</strong></td>
+<td>&gt; 85%</td>
+<td>Coverage of generated SQL code</td>
+</tr>
+</tbody>
+</table>
+<h3 id="qualitative-metrics">Qualitative Metrics</h3>
+<ul>
+<li>✅ <strong>Developer Satisfaction</strong>: "Easier to define entities in YAML than SQL"</li>
+<li>✅ <strong>Onboarding Time</strong>: New developers can add entities without deep SQL knowledge</li>
+<li>✅ <strong>Maintainability</strong>: Single YAML change propagates to all layers</li>
+<li>✅ <strong>Consistency</strong>: All entities follow exact same patterns</li>
+<li>✅ <strong>Documentation</strong>: Generated code is self-documenting</li>
+</ul>
+<hr />
+<h2 id="future-enhancements-phase-5">🔄 Future Enhancements (Phase 5+)</h2>
+<h3 id="multi-database-support">Multi-Database Support</h3>
+<ul>
+<li>Generate MySQL DDL from same YAML</li>
+<li>Generate SQLite DDL from same YAML</li>
+<li>Abstract type mapping per database</li>
+</ul>
+<h3 id="additional-generators">Additional Generators</h3>
+<ul>
+<li><strong>TypeScript Types</strong>: YAML → TypeScript interfaces</li>
+<li><strong>OpenAPI Schema</strong>: YAML → REST API documentation</li>
+<li><strong>Test Fixtures</strong>: YAML → seed data generators</li>
+<li><strong>Postman Collections</strong>: YAML → API testing collections</li>
+</ul>
+<h3 id="advanced-fraiseql-features">Advanced FraiseQL Features</h3>
+<ul>
+<li><strong>Subscriptions</strong>: Real-time GraphQL subscriptions from YAML</li>
+<li><strong>Custom Scalars</strong>: Define custom GraphQL scalars in YAML</li>
+<li><strong>Computed Fields</strong>: Add derived fields to GraphQL types</li>
+<li><strong>Field Resolvers</strong>: Custom resolution logic for complex fields</li>
+</ul>
+<h3 id="developer-tooling">Developer Tooling</h3>
+<ul>
+<li><strong>VS Code Extension</strong>: YAML syntax highlighting + validation</li>
+<li><strong>GraphQL Playground</strong>: Integrated API explorer</li>
+<li><strong>Migration Generator</strong>: Diff YAML changes → generate SQL migrations</li>
+<li><strong>Visual Entity Designer</strong>: GUI for creating YAML entities</li>
+</ul>
+<hr />
+<h2 id="risk-assessment">📊 Risk Assessment</h2>
+<h3 id="technical-risks">Technical Risks</h3>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Impact</th>
+<th>Probability</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Template Complexity</strong></td>
+<td>High</td>
+<td>Medium</td>
+<td>Start simple, iterate. Keep templates focused.</td>
+</tr>
+<tr>
+<td><strong>Type Mapping Edge Cases</strong></td>
+<td>Medium</td>
+<td>Medium</td>
+<td>Comprehensive type mapping tests.</td>
+</tr>
+<tr>
+<td><strong>FraiseQL Integration Issues</strong></td>
+<td>High</td>
+<td>Low</td>
+<td>Close collaboration with FraiseQL development.</td>
+</tr>
+<tr>
+<td><strong>Performance at Scale</strong></td>
+<td>Medium</td>
+<td>Low</td>
+<td>Projection tables (tv_*) for performance-critical paths.</td>
+</tr>
+<tr>
+<td><strong>Breaking Changes</strong></td>
+<td>Medium</td>
+<td>Medium</td>
+<td>Version templates, maintain backward compatibility.</td>
+</tr>
+</tbody>
+</table>
+<h3 id="process-risks">Process Risks</h3>
+<table>
+<thead>
+<tr>
+<th>Risk</th>
+<th>Impact</th>
+<th>Probability</th>
+<th>Mitigation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Learning Curve</strong></td>
+<td>Medium</td>
+<td>Medium</td>
+<td>Comprehensive documentation and examples.</td>
+</tr>
+<tr>
+<td><strong>Adoption Resistance</strong></td>
+<td>Low</td>
+<td>Low</td>
+<td>Show clear time savings in demos.</td>
+</tr>
+<tr>
+<td><strong>Template Maintenance</strong></td>
+<td>Medium</td>
+<td>Medium</td>
+<td>Centralized template repository, versioning.</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="open-questions">📝 Open Questions</h2>
+<h3 id="q1-hybrid-approach-support">Q1: Hybrid Approach Support?</h3>
+<p><strong>Question</strong>: Should we support hybrid entities (some manual SQL + some YAML)?
+<strong>Options</strong>:
+- A) Full YAML-only (strict)
+- B) Allow manual SQL overrides
+- C) Support partial generation (e.g., just views, manual mutations)</p>
+<p><strong>Recommendation</strong>: Option C - Allow partial generation for flexibility</p>
+<hr />
+<h3 id="q2-yaml-validation-strategy">Q2: YAML Validation Strategy?</h3>
+<p><strong>Question</strong>: How to validate YAML before generation?
+<strong>Options</strong>:
+- A) JSON Schema validation
+- B) Python Pydantic models
+- C) Custom validator</p>
+<p><strong>Recommendation</strong>: Option B - Pydantic models provide best error messages and IDE support</p>
+<hr />
+<h3 id="q3-migration-path-for-existing-entities">Q3: Migration Path for Existing Entities?</h3>
+<p><strong>Question</strong>: How to convert 40+ existing entities to YAML?
+<strong>Options</strong>:
+- A) Manual conversion (slow but accurate)
+- B) Reverse-engineer from SQL (automated but risky)
+- C) Gradual migration (new entities use YAML, old entities stay SQL)</p>
+<p><strong>Recommendation</strong>: Option C - Gradual migration minimizes risk</p>
+<hr />
+<h3 id="q4-fraiseql-customization">Q4: FraiseQL Customization?</h3>
+<p><strong>Question</strong>: How to handle custom business logic not in YAML?
+<strong>Options</strong>:
+- A) Generate stubs, developers fill in logic
+- B) Support inline SQL/PL/pgSQL in YAML
+- C) Keep complex logic in separate manual files</p>
+<p><strong>Recommendation</strong>: Option C - Separation of concerns, YAML for structure only</p>
+<hr />
+<h2 id="acceptance-criteria-overall">✅ Acceptance Criteria (Overall)</h2>
+<p>The integration is complete when:</p>
+<ol>
+<li>✅ A developer can define an entity in YAML with FraiseQL configuration</li>
+<li>✅ Running <code>python scripts/dev/generate_sql.py</code> produces:</li>
+<li>PostgreSQL table DDL</li>
+<li>FraiseQL-annotated view</li>
+<li>CREATE/UPDATE/DELETE mutation functions</li>
+<li>Trinity helper functions</li>
+<li>✅ Applying generated SQL to PostgreSQL works without errors</li>
+<li>✅ FraiseQL app auto-discovers the schema and generates GraphQL API</li>
+<li>✅ GraphQL queries and mutations work end-to-end</li>
+<li>✅ The generated GraphQL schema matches YAML entity definitions</li>
+<li>✅ Documentation exists showing the complete workflow</li>
+<li>✅ At least 3 example entities demonstrate the full pipeline</li>
+<li>✅ Tests validate correctness of generated SQL and GraphQL</li>
+<li>✅ Time savings of &gt; 90% are demonstrated vs. manual approach</li>
+</ol>
+<hr />
+<h2 id="appendix-a-yaml-schema-specification">🎓 Appendix A: YAML Schema Specification</h2>
+<h3 id="complete-yaml-entity-schema">Complete YAML Entity Schema</h3>
+<pre><code class="language-yaml">entity:
+  # === Core Metadata ===
+  name: string                       # Required: entity name (snake_case)
+  schema: string                     # Required: PostgreSQL schema (e.g., &quot;catalog&quot;)
+  table_code: string                 # Optional: numeric table identifier
+  description: string                # Required: entity description
+
+  # === FraiseQL Integration ===
+  fraiseql:
+    enabled: boolean                 # Enable FraiseQL generation
+
+    type:
+      generate_view: boolean         # Generate v_[entity] view
+      trinity: boolean               # Use trinity pattern (id + identifier)
+      use_projection: boolean        # Prefer tv_* over v_* (performance)
+      expose_fields: [string]        # Fields to include in GraphQL type
+
+    queries:
+      find_one: boolean              # Generate entity(id: UUID) query
+      find_one_by_identifier: boolean # Generate entityByIdentifier() query
+      find_many: boolean             # Generate entities() query
+      connection: boolean            # Generate entitiesConnection() query
+
+    mutations:
+      create:
+        enabled: boolean
+        function_name: string        # PostgreSQL function name
+        input_fields: [string]       # Fields in input
+        success_type: string         # GraphQL success type
+        failure_type: string         # GraphQL failure type
+
+      update:
+        enabled: boolean
+        function_name: string
+        input_fields: [string]
+        success_type: string
+        failure_type: string
+
+      delete:
+        enabled: boolean
+        function_name: string
+        soft: boolean                # Use deleted_at vs. hard delete
+        success_type: string
+        failure_type: string
+
+  # === Fields ===
+  fields:
+    field_name:
+      type: string                   # PostgreSQL type (TEXT, INTEGER, UUID, etc.)
+      nullable: boolean              # Allow NULL
+      unique: boolean                # UNIQUE constraint
+      default: string                # Default value
+      description: string            # Column description
+      fraiseql:
+        filter_operators: [string]   # Allowed filter operators
+        sortable: boolean            # Allow sorting on this field
+
+  # === Foreign Keys ===
+  foreign_keys:
+    fk_name:
+      references: string             # schema.table
+      on: string                     # Referenced column
+      nullable: boolean
+      description: string
+
+  # === Indexes ===
+  indexes:
+    - columns: [string]
+      type: string                   # btree, gin, gist, etc.
+      name: string                   # Index name
+
+  # === Validation Rules ===
+  validation:
+    - name: string                   # Validation rule name
+      condition: string              # SQL condition
+      error: string                  # Error message
+
+  # === Deduplication ===
+  deduplication:
+    strategy: string                 # identifier_based, uuid_based, etc.
+    rules:
+      - fields: [string]
+        when: string                 # Optional condition
+        priority: integer
+        message: string
+
+  # === Operations ===
+  operations:
+    create: boolean
+    update: boolean
+    delete: soft | true | false      # Soft delete or hard delete
+    recalcid: boolean
+
+  # === Trinity Helpers ===
+  trinity_helpers:
+    generate: boolean
+    lookup_by: string                # Field for pk lookup (e.g., &quot;identifier&quot;)
+    helpers:
+      - name: string
+        params: [string]
+        returns: string
+        description: string
+
+  # === Translations (i18n) ===
+  translations:
+    enabled: boolean
+    table_name: string
+    fields: [string]                 # Translatable fields
+
+  # === Notes ===
+  notes: string                      # Additional documentation
+</code></pre>
+<hr />
+<h2 id="appendix-b-template-filter-reference">🎓 Appendix B: Template Filter Reference</h2>
+<h3 id="custom-jinja2-filters">Custom Jinja2 Filters</h3>
+<pre><code class="language-python"># Available in templates as {{ value | filter_name }}
+
+@jinja2_filter
+def camel_case(snake_str: str) -&gt; str:
+    &quot;&quot;&quot;Convert snake_case to camelCase&quot;&quot;&quot;
+    components = snake_str.split('_')
+    return components[0] + ''.join(x.title() for x in components[1:])
+
+@jinja2_filter
+def pascal_case(snake_str: str) -&gt; str:
+    &quot;&quot;&quot;Convert snake_case to PascalCase&quot;&quot;&quot;
+    return ''.join(x.title() for x in snake_str.split('_'))
+
+@jinja2_filter
+def pg_to_graphql_type(pg_type: str) -&gt; str:
+    &quot;&quot;&quot;Map PostgreSQL type to GraphQL type&quot;&quot;&quot;
+    mapping = {
+        'TEXT': 'String',
+        'VARCHAR': 'String',
+        'CHAR': 'String',
+        'INTEGER': 'Int',
+        'BIGINT': 'BigInt',
+        'UUID': 'UUID',
+        'BOOLEAN': 'Boolean',
+        'TIMESTAMPTZ': 'DateTime',
+        'DATE': 'Date',
+        'JSONB': 'JSON',
+        'NUMERIC': 'Decimal',
+    }
+    return mapping.get(pg_type.upper(), 'String')
+
+@jinja2_filter
+def sql_safe(value: str) -&gt; str:
+    &quot;&quot;&quot;Escape single quotes for SQL strings&quot;&quot;&quot;
+    return value.replace(&quot;'&quot;, &quot;''&quot;)
+</code></pre>
+<hr />
+<p><strong>END OF REQUIREMENTS DOCUMENT</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

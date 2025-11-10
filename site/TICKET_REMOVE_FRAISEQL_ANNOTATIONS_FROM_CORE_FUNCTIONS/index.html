@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Ticket: Remove FraiseQL Annotations from Core Layer Functions - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Ticket: Remove FraiseQL Annotations from Core Layer Functions";
+        var mkdocs_page_input_path = "TICKET_REMOVE_FRAISEQL_ANNOTATIONS_FROM_CORE_FUNCTIONS.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Ticket: Remove FraiseQL Annotations from Core Layer Functions</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="ticket-remove-fraiseql-annotations-from-core-layer-functions">Ticket: Remove FraiseQL Annotations from Core Layer Functions</h1>
+<p><strong>Priority</strong>: Low
+<strong>Type</strong>: Documentation Cleanup
+<strong>Status</strong>: Open
+<strong>Created</strong>: 2025-11-09
+<strong>Estimated Effort</strong>: 10-15 minutes</p>
+<hr />
+<h2 id="summary">📋 Summary</h2>
+<p>Core layer functions (e.g., <code>crm.create_contact</code>, <code>projects.assign_task</code>) currently have <code>@fraiseql:mutation</code> annotations in their comments. These annotations should be removed because:</p>
+<ol>
+<li><strong>Only app layer functions are exposed to GraphQL</strong> - FraiseQL introspects <code>app.*</code> functions, not <code>schema.*</code> functions</li>
+<li><strong>Core functions are internal</strong> - They are called by app layer functions, not exposed to GraphQL API</li>
+<li><strong>Annotations are misleading</strong> - Having <code>@fraiseql:mutation</code> on internal functions suggests they're GraphQL-exposed</li>
+</ol>
+<hr />
+<h2 id="objective">🎯 Objective</h2>
+<p>Remove all <code>@fraiseql:mutation</code> annotations from core layer functions while keeping clear documentation about their purpose.</p>
+<hr />
+<h2 id="affected-files">📍 Affected Files</h2>
+<h3 id="file-1-dbschema30_functionscreate_contactsql"><strong>File 1: <code>db/schema/30_functions/create_contact.sql</code></strong></h3>
+<p><strong>Location</strong>: Lines 139-146</p>
+<p><strong>Current Code:</strong></p>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.create_contact IS
+  '@fraiseql:mutation
+   name=createContact
+   input=CreateContactInput
+   success_type=CreateContactSuccess
+   error_type=CreateContactError
+   primary_entity=Contact
+   metadata_mapping={}';
+</code></pre>
+<p><strong>Should Be:</strong></p>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.create_contact IS
+'Core business logic for creating Contact records.
+
+Handles:
+- Input validation
+- Trinity pattern FK resolution (UUID → INTEGER)
+- INSERT operation
+- Audit logging via app.log_and_return_mutation
+
+Called by: app.create_contact (GraphQL-exposed mutation)
+Returns: app.mutation_result';
+</code></pre>
+<hr />
+<h3 id="file-2-dbschema30_functionsqualify_leadsql"><strong>File 2: <code>db/schema/30_functions/qualify_lead.sql</code></strong></h3>
+<p><strong>Expected Issue</strong>: Likely has similar <code>@fraiseql:mutation</code> annotation</p>
+<p><strong>Recommended Fix:</strong></p>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.qualify_lead IS
+'Core business logic for qualifying a lead as a customer.
+
+Validates:
+- Contact exists
+- Contact has status = &quot;lead&quot;
+
+Performs:
+- Status update to &quot;qualified&quot;
+- Audit logging
+
+Called by: app.qualify_lead (GraphQL-exposed mutation)
+Returns: app.mutation_result';
+</code></pre>
+<hr />
+<h3 id="other-files-to-check"><strong>Other Files to Check:</strong></h3>
+<p>Scan all files in <code>db/schema/30_functions/</code> for <code>@fraiseql:mutation</code> annotations:</p>
+<pre><code class="language-bash">grep -r &quot;@fraiseql:mutation&quot; db/schema/30_functions/
+</code></pre>
+<p>Any core layer function with this annotation should be updated.</p>
+<hr />
+<h2 id="acceptance-criteria">✅ Acceptance Criteria</h2>
+<ul>
+<li>[ ] All <code>@fraiseql:mutation</code> annotations removed from core layer functions</li>
+<li>[ ] Core functions have clear, descriptive comments explaining:</li>
+<li>What the function does</li>
+<li>What it validates</li>
+<li>What operations it performs</li>
+<li>Which app layer function calls it</li>
+<li>What it returns</li>
+<li>[ ] No <code>@fraiseql:*</code> annotations remain on internal/core functions</li>
+<li>[ ] Documentation clearly distinguishes:</li>
+<li><strong>App layer</strong> (<code>app.*</code>): GraphQL-exposed, has <code>@fraiseql:mutation</code></li>
+<li><strong>Core layer</strong> (<code>schema.*</code>): Internal business logic, NO annotations</li>
+</ul>
+<hr />
+<h2 id="context-app-layer-vs-core-layer">📚 Context: App Layer vs Core Layer</h2>
+<h3 id="app-layer-functions-app"><strong>App Layer Functions</strong> (<code>app.*</code>)</h3>
+<p><strong>Purpose</strong>: API entry points (GraphQL/REST)</p>
+<p><strong>Responsibilities</strong>:
+- Accept JSONB input
+- Convert JSONB → Typed Composite
+- Delegate to core business logic
+- Handle unexpected errors</p>
+<p><strong>Comment Format</strong>:</p>
+<pre><code class="language-sql">COMMENT ON FUNCTION app.create_contact IS
+'Creates a new Contact record.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: createContact
+input_type: app.type_create_contact_input
+success_type: CreateContactSuccess
+failure_type: CreateContactError';
+</code></pre>
+<p><strong>Key</strong>: ✅ <strong>MUST have</strong> <code>@fraiseql:mutation</code> annotation (GraphQL-exposed)</p>
+<hr />
+<h3 id="core-layer-functions-schema"><strong>Core Layer Functions</strong> (<code>schema.*</code>)</h3>
+<p><strong>Purpose</strong>: Business logic implementation</p>
+<p><strong>Responsibilities</strong>:
+- Business rule validation
+- Trinity pattern FK resolution
+- Data manipulation (INSERT/UPDATE/DELETE)
+- Audit logging</p>
+<p><strong>Comment Format</strong>:</p>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.create_contact IS
+'Core business logic for creating Contact records.
+
+Validates input, resolves foreign keys, performs INSERT,
+and logs to audit table.
+
+Called by: app.create_contact
+Returns: app.mutation_result';
+</code></pre>
+<p><strong>Key</strong>: ❌ <strong>MUST NOT have</strong> <code>@fraiseql:*</code> annotations (internal only)</p>
+<hr />
+<h2 id="implementation-steps">🔧 Implementation Steps</h2>
+<h3 id="step-1-identify-affected-functions"><strong>Step 1: Identify Affected Functions</strong></h3>
+<pre><code class="language-bash">cd /home/lionel/code/printoptim_backend_poc
+
+# Find all @fraiseql:mutation annotations in core functions
+grep -r &quot;@fraiseql:mutation&quot; db/schema/30_functions/
+
+# Expected output:
+# db/schema/30_functions/create_contact.sql:COMMENT ON FUNCTION crm.create_contact IS '@fraiseql:mutation...'
+# db/schema/30_functions/qualify_lead.sql:COMMENT ON FUNCTION crm.qualify_lead IS '@fraiseql:mutation...'
+</code></pre>
+<hr />
+<h3 id="step-2-update-each-function-comment"><strong>Step 2: Update Each Function Comment</strong></h3>
+<p>For each affected file:</p>
+<ol>
+<li>Open file</li>
+<li>Find <code>COMMENT ON FUNCTION schema.*</code> statement</li>
+<li>Remove <code>@fraiseql:mutation</code> annotation</li>
+<li>Replace with descriptive comment (see templates above)</li>
+<li>Save file</li>
+</ol>
+<hr />
+<h3 id="step-3-verify-changes"><strong>Step 3: Verify Changes</strong></h3>
+<pre><code class="language-bash"># Ensure no @fraiseql annotations remain in core functions
+grep -r &quot;@fraiseql&quot; db/schema/30_functions/
+
+# Expected: No results (or only in app layer functions if mixed)
+
+# Verify app layer functions still have annotations
+grep -r &quot;@fraiseql:mutation&quot; db/schema/30_functions/ | grep &quot;app\.&quot;
+
+# Expected: Only app.* functions
+</code></pre>
+<hr />
+<h3 id="step-4-regenerate-sql-if-needed"><strong>Step 4: Regenerate SQL if Needed</strong></h3>
+<p>If using code generation:</p>
+<pre><code class="language-bash"># Regenerate SQL from YAML
+python scripts/dev/generate_sql.py
+
+# Verify changes are preserved
+git diff db/schema/30_functions/
+</code></pre>
+<hr />
+<h2 id="example-before-after">📝 Example: Before &amp; After</h2>
+<h3 id="before-incorrect"><strong>Before (Incorrect)</strong></h3>
+<pre><code class="language-sql">-- Core layer function (internal)
+CREATE OR REPLACE FUNCTION crm.create_contact(...) RETURNS app.mutation_result AS $$
+...
+$$;
+
+COMMENT ON FUNCTION crm.create_contact IS
+  '@fraiseql:mutation
+   name=createContact
+   input=CreateContactInput
+   success_type=CreateContactSuccess
+   error_type=CreateContactError
+   primary_entity=Contact
+   metadata_mapping={}';
+</code></pre>
+<p><strong>Problems:</strong>
+- ❌ Has <code>@fraiseql:mutation</code> (suggests GraphQL exposure)
+- ❌ No human-readable description
+- ❌ Field names inconsistent (<code>input</code> instead of <code>input_type</code>)
+- ❌ Misleading (this function is NOT exposed to GraphQL)</p>
+<hr />
+<h3 id="after-correct"><strong>After (Correct)</strong></h3>
+<pre><code class="language-sql">-- Core layer function (internal)
+CREATE OR REPLACE FUNCTION crm.create_contact(...) RETURNS app.mutation_result AS $$
+...
+$$;
+
+COMMENT ON FUNCTION crm.create_contact IS
+'Core business logic for creating Contact records.
+
+Validation:
+- Validates company_id exists (if provided)
+- Checks tenant_id context
+
+Operations:
+- Resolves company UUID → INTEGER (Trinity pattern)
+- Inserts new contact record
+- Logs audit trail
+
+Called by: app.create_contact (GraphQL mutation)
+Returns: app.mutation_result with success/failure status';
+</code></pre>
+<p><strong>Benefits:</strong>
+- ✅ Clear, descriptive documentation
+- ✅ No misleading annotations
+- ✅ Explains what the function does
+- ✅ Documents relationship to app layer</p>
+<hr />
+<h2 id="why-this-matters">🎯 Why This Matters</h2>
+<h3 id="for-fraiseql-introspection"><strong>For FraiseQL Introspection</strong></h3>
+<p>FraiseQL introspects <strong>app layer functions only</strong>:</p>
+<pre><code class="language-python"># FraiseQL searches for functions with @fraiseql:mutation
+functions = introspector.discover_functions(schema=&quot;app&quot;)
+
+# Only app.create_contact is found (correct)
+# crm.create_contact is NOT introspected (correct)
+</code></pre>
+<p>Having <code>@fraiseql:mutation</code> on core functions:
+- ❌ Could confuse FraiseQL (if it searches all schemas)
+- ❌ Misleads developers (suggests GraphQL exposure)
+- ❌ Violates separation of concerns</p>
+<hr />
+<h3 id="for-code-clarity"><strong>For Code Clarity</strong></h3>
+<p>Clear separation:
+- <strong>App layer</strong>: "This is exposed to GraphQL" (<code>@fraiseql:mutation</code> present)
+- <strong>Core layer</strong>: "This is internal business logic" (NO annotations)</p>
+<p>Developers can quickly understand:
+- Which functions are public API (app layer)
+- Which functions are internal (core layer)</p>
+<hr />
+<h2 id="related-files-no-changes-needed">📊 Related Files (No Changes Needed)</h2>
+<p>These files are <strong>correct as-is</strong>:</p>
+<h3 id="app-layer-functions-keep-annotations"><strong>✅ App Layer Functions (Keep Annotations)</strong></h3>
+<pre><code class="language-sql">-- File: db/schema/30_functions/create_contact.sql
+COMMENT ON FUNCTION app.create_contact IS
+'Creates a new Contact record.
+
+@fraiseql:mutation
+name: createContact
+input_type: app.type_create_contact_input
+success_type: CreateContactSuccess
+failure_type: CreateContactError';
+</code></pre>
+<p><strong>Status</strong>: ✅ Correct (GraphQL-exposed, needs annotation)</p>
+<hr />
+<h3 id="composite-types-keep-annotations"><strong>✅ Composite Types (Keep Annotations)</strong></h3>
+<pre><code class="language-sql">COMMENT ON TYPE app.type_create_contact_input IS
+'Input parameters for Create Contact.
+
+@fraiseql:composite
+name: CreateContactInput
+tier: 2';
+</code></pre>
+<p><strong>Status</strong>: ✅ Correct (FraiseQL introspects composite types)</p>
+<hr />
+<h3 id="utility-functions-no-annotations"><strong>✅ Utility Functions (No Annotations)</strong></h3>
+<pre><code class="language-sql">COMMENT ON FUNCTION app.log_and_return_mutation IS
+'Logs mutation to audit table and returns standardized result.
+
+Internal utility function used by all mutations.
+Not exposed to GraphQL.';
+</code></pre>
+<p><strong>Status</strong>: ✅ Correct (utility function, no annotation needed)</p>
+<hr />
+<h2 id="testing-after-changes">🚀 Testing After Changes</h2>
+<h3 id="test-1-verify-no-regressions"><strong>Test 1: Verify No Regressions</strong></h3>
+<pre><code class="language-bash"># Run all tests
+pytest tests/
+
+# Expected: All tests pass (comments don't affect functionality)
+</code></pre>
+<hr />
+<h3 id="test-2-verify-fraiseql-introspection-future"><strong>Test 2: Verify FraiseQL Introspection (Future)</strong></h3>
+<p>When FraiseQL Phase 5 is implemented:</p>
+<pre><code class="language-python"># Test that only app layer functions are introspected
+from fraiseql.introspection import PostgresIntrospector
+
+introspector = PostgresIntrospector(connection)
+functions = introspector.discover_functions(schema=&quot;app&quot;)
+
+# Should find: app.create_contact, app.qualify_lead, etc.
+# Should NOT find: crm.create_contact, crm.qualify_lead, etc.
+
+assert &quot;create_contact&quot; in [f.function_name for f in functions]
+</code></pre>
+<hr />
+<h2 id="questions">📞 Questions?</h2>
+<p><strong>For SpecQL Team:</strong>
+- See: <code>/tmp/specql_comment_format_guide.md</code> (comment format specification)
+- See: <code>/tmp/printoptim_backend_poc_comment_format_analysis.md</code> (full analysis)</p>
+<p><strong>For PrintOptim Backend POC Team:</strong>
+- Slack: #specql-printoptim
+- GitHub: Create issue if needed</p>
+<hr />
+<h2 id="checklist">✅ Checklist</h2>
+<ul>
+<li>[ ] Identify all core functions with <code>@fraiseql:mutation</code> annotations</li>
+<li>[ ] Update <code>db/schema/30_functions/create_contact.sql</code></li>
+<li>[ ] Update <code>db/schema/30_functions/qualify_lead.sql</code></li>
+<li>[ ] Update any other affected core functions</li>
+<li>[ ] Verify no <code>@fraiseql</code> annotations remain on core functions</li>
+<li>[ ] Verify app layer functions still have annotations</li>
+<li>[ ] Run tests (if any)</li>
+<li>[ ] Commit changes with message: "docs: Remove @fraiseql annotations from core layer functions"</li>
+</ul>
+<hr />
+<p><strong>Status</strong>: Ready for implementation
+<strong>Assignee</strong>: SpecQL/PrintOptim Backend Team
+<strong>Estimated Time</strong>: 10-15 minutes</p>
+<hr />
+<h2 id="references">📚 References</h2>
+<ul>
+<li><strong>Comment Format Guide</strong>: <code>/tmp/specql_comment_format_guide.md</code></li>
+<li><strong>Analysis Report</strong>: <code>/tmp/printoptim_backend_poc_comment_format_analysis.md</code></li>
+<li><strong>FraiseQL Boundaries</strong>: <code>/home/lionel/code/fraiseql/docs/architecture/SPECQL_FRAISEQL_BOUNDARIES.md</code></li>
+</ul>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

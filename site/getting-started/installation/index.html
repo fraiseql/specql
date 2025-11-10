@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Installation Guide - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Installation Guide";
+        var mkdocs_page_input_path = "getting-started/installation.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Installation Guide</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="installation-guide">Installation Guide</h1>
+<p>This guide will help you install SpecQL and set up your development environment.</p>
+<h2 id="prerequisites">📋 Prerequisites</h2>
+<p>Before installing SpecQL, ensure you have:</p>
+<ul>
+<li><strong>Python 3.8 or higher</strong></li>
+<li><strong>PostgreSQL 12 or higher</strong></li>
+<li><strong>Command-line access</strong> (Terminal, PowerShell, etc.)</li>
+</ul>
+<h3 id="system-requirements">System Requirements</h3>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Minimum</th>
+<th>Recommended</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Python</strong></td>
+<td>3.8</td>
+<td>3.11+</td>
+</tr>
+<tr>
+<td><strong>PostgreSQL</strong></td>
+<td>12</td>
+<td>15+</td>
+</tr>
+<tr>
+<td><strong>RAM</strong></td>
+<td>2GB</td>
+<td>4GB+</td>
+</tr>
+<tr>
+<td><strong>Disk</strong></td>
+<td>500MB</td>
+<td>1GB+</td>
+</tr>
+</tbody>
+</table>
+<h2 id="quick-install-2-minutes">🚀 Quick Install (2 minutes)</h2>
+<h3 id="option-1-install-from-pypi-recommended">Option 1: Install from PyPI (Recommended)</h3>
+<pre><code class="language-bash"># Install SpecQL
+pip install specql
+
+# Verify installation
+specql --version
+</code></pre>
+<p><strong>Expected output:</strong></p>
+<pre><code>SpecQL v1.0.0
+</code></pre>
+<h3 id="option-2-install-from-source-development">Option 2: Install from Source (Development)</h3>
+<pre><code class="language-bash"># Clone the repository
+git clone https://github.com/your-org/specql
+cd specql
+
+# Install in development mode
+pip install -e .
+
+# Verify installation
+specql --version
+</code></pre>
+<h2 id="database-setup">🗄️ Database Setup</h2>
+<p>SpecQL requires PostgreSQL for storing your generated schemas and running tests.</p>
+<h3 id="option-a-docker-easiest-recommended">Option A: Docker (Easiest - Recommended)</h3>
+<pre><code class="language-bash"># Start PostgreSQL container
+docker run --name specql-postgres \
+  -e POSTGRES_DB=specql_dev \
+  -e POSTGRES_USER=specql \
+  -e POSTGRES_PASSWORD=specql123 \
+  -p 5432:5432 \
+  -d postgres:15
+
+# Wait for PostgreSQL to start
+sleep 5
+
+# Test connection
+psql postgresql://specql:specql123@localhost:5432/specql_dev -c &quot;SELECT version();&quot;
+</code></pre>
+<h3 id="option-b-local-postgresql">Option B: Local PostgreSQL</h3>
+<h4 id="macos-homebrew">macOS (Homebrew)</h4>
+<pre><code class="language-bash"># Install PostgreSQL
+brew install postgresql
+
+# Start PostgreSQL service
+brew services start postgresql
+
+# Create database
+createdb specql_dev
+</code></pre>
+<h4 id="ubuntudebian">Ubuntu/Debian</h4>
+<pre><code class="language-bash"># Install PostgreSQL
+sudo apt update
+sudo apt install postgresql postgresql-contrib
+
+# Start service
+sudo systemctl start postgresql
+
+# Create database as postgres user
+sudo -u postgres createdb specql_dev
+</code></pre>
+<h4 id="windows">Windows</h4>
+<pre><code class="language-powershell"># Using Chocolatey
+choco install postgresql
+
+# Or download from postgresql.org
+# Follow installer instructions
+# Create database via pgAdmin or psql
+</code></pre>
+<h3 id="option-c-cloud-database">Option C: Cloud Database</h3>
+<p>You can also use cloud-hosted PostgreSQL:</p>
+<ul>
+<li><strong>AWS RDS PostgreSQL</strong></li>
+<li><strong>Google Cloud SQL</strong></li>
+<li><strong>Azure Database for PostgreSQL</strong></li>
+<li><strong>Supabase</strong></li>
+<li><strong>Neon</strong></li>
+</ul>
+<p>Just ensure you have the connection URL.</p>
+<h2 id="configuration">⚙️ Configuration</h2>
+<h3 id="environment-variables">Environment Variables</h3>
+<p>Set up your database connection:</p>
+<pre><code class="language-bash"># For local Docker setup
+export DATABASE_URL=&quot;postgresql://specql:specql123@localhost:5432/specql_dev&quot;
+
+# For local PostgreSQL
+export DATABASE_URL=&quot;postgresql://localhost/specql_dev&quot;
+
+# For cloud database
+export DATABASE_URL=&quot;postgresql://user:password@host:5432/database&quot;
+</code></pre>
+<h3 id="optional-confiture-configuration">Optional: Confiture Configuration</h3>
+<p>For advanced setups, create a <code>confiture.yaml</code>:</p>
+<pre><code class="language-yaml"># confiture.yaml
+schema_dirs:
+  - path: db/schema/00_foundation
+    order: 0
+  - path: db/schema/10_tables
+    order: 10
+  - path: db/schema/20_constraints
+    order: 20
+  - path: db/schema/30_indexes
+    order: 30
+  - path: db/schema/40_functions
+    order: 40
+
+environments:
+  local:
+    database_url: ${DATABASE_URL}
+  production:
+    database_url: ${PROD_DATABASE_URL}
+</code></pre>
+<h2 id="verification">✅ Verification</h2>
+<p>Test that everything is working:</p>
+<pre><code class="language-bash"># 1. Check SpecQL version
+specql --version
+
+# 2. Test database connection
+psql $DATABASE_URL -c &quot;SELECT version();&quot;
+
+# 3. Test SpecQL database connection
+specql validate connection
+
+# 4. Optional: Test Confiture (if using)
+confiture validate confiture.yaml
+</code></pre>
+<p><strong>Expected output:</strong></p>
+<pre><code>SpecQL v1.0.0
+                                                 version
+---------------------------------------------------------------------------------------------------------
+ PostgreSQL 15.3 on x86_64-pc-linux-gnu, compiled by gcc (GCC) 9.4.0, 64-bit
+(1 row)
+
+✅ Database connection successful
+✅ All configurations valid
+</code></pre>
+<h2 id="troubleshooting">🐛 Troubleshooting</h2>
+<h3 id="common-installation-issues">Common Installation Issues</h3>
+<h4 id="specql-command-not-found">"specql command not found"</h4>
+<pre><code class="language-bash"># Check if pip installed to user directory
+pip install --user specql
+
+# Or use pipx
+pipx install specql
+
+# Add to PATH
+export PATH=&quot;$HOME/.local/bin:$PATH&quot;
+</code></pre>
+<h4 id="psql-command-not-found">"psql command not found"</h4>
+<pre><code class="language-bash"># Install PostgreSQL client
+# macOS
+brew install libpq
+
+# Ubuntu
+sudo apt install postgresql-client
+
+# Add to PATH
+export PATH=&quot;/usr/local/opt/libpq/bin:$PATH&quot;
+</code></pre>
+<h4 id="database-connection-failed">Database Connection Failed</h4>
+<pre><code class="language-bash"># Check if PostgreSQL is running
+# Docker
+docker ps | grep postgres
+
+# Local service
+sudo systemctl status postgresql  # Linux
+brew services list | grep postgres  # macOS
+
+# Test connection manually
+psql $DATABASE_URL -c &quot;SELECT 1;&quot;
+</code></pre>
+<h4 id="permission-denied">Permission Denied</h4>
+<pre><code class="language-bash"># For Docker on Linux
+sudo chmod 666 /var/run/docker.sock
+
+# Or add user to docker group
+sudo usermod -aG docker $USER
+# Then logout and login again
+</code></pre>
+<h2 id="next-steps">🎯 Next Steps</h2>
+<p>Now that SpecQL is installed:</p>
+<ol>
+<li><strong><a href="../first-entity/">Create Your First Entity</a></strong> - Learn the basics</li>
+<li><strong><a href="../first-pattern/">Use Your First Pattern</a></strong> - Add business logic</li>
+<li><strong><a href="../first-tests/">Generate Tests</a></strong> - Set up automated testing</li>
+</ol>
+<h2 id="additional-resources">📚 Additional Resources</h2>
+<ul>
+<li><strong><a href="../../reference/cli-reference/">CLI Reference</a></strong> - All commands</li>
+<li><strong><a href="../troubleshooting/common-issues.md">Troubleshooting</a></strong> - Common problems</li>
+<li><strong><a href="https://discord.gg/specql">Community</a></strong> - Get help</li>
+</ul>
+<h2 id="pro-tips">💡 Pro Tips</h2>
+<ul>
+<li><strong>Use Docker for development</strong> - Consistent environment</li>
+<li><strong>Set environment variables</strong> in your shell profile (<code>.bashrc</code>, <code>.zshrc</code>)</li>
+<li><strong>Use virtual environments</strong> - <code>python -m venv specql-env</code></li>
+<li><strong>Keep PostgreSQL updated</strong> - Latest version for best performance</li>
+</ul>
+<p><strong>Ready to create your first entity? Let's go! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

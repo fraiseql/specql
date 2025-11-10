@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>FraiseQL Integration Proposal: Mutation Impact Metadata - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "FraiseQL Integration Proposal: Mutation Impact Metadata";
+        var mkdocs_page_input_path = "reference/fraiseql/MUTATION_IMPACT_INTEGRATION_PROPOSAL.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">FraiseQL Integration Proposal: Mutation Impact Metadata</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="fraiseql-integration-proposal-mutation-impact-metadata">FraiseQL Integration Proposal: Mutation Impact Metadata</h1>
+<p><strong>Target</strong>: FraiseQL Maintainers
+<strong>From</strong>: SpecQL → PostgreSQL → GraphQL Generator Project
+<strong>Date</strong>: 2025-11-08
+<strong>Status</strong>: Proposal for Enhancement</p>
+<hr />
+<h2 id="executive-summary">Executive Summary</h2>
+<p>We're building a lightweight business DSL (SpecQL) that generates PostgreSQL functions returning FraiseQL's <code>mutation_result</code> type. We propose <strong>two small enhancements</strong> to FraiseQL that would enable frontend developers to automatically discover mutation impacts (which entities are affected, cache invalidation needs, etc.) <strong>without reading backend code</strong>.</p>
+<p><strong>What we're asking for:</strong></p>
+<ol>
+<li><strong>Expose <code>updated_fields</code> in GraphQL schema</strong> (5 lines of code)</li>
+<li><strong>Map <code>extra_metadata._meta</code> to a <code>MutationImpactMetadata</code> type</strong> (already supported via existing mechanisms)</li>
+</ol>
+<p>Both are <strong>backward compatible</strong> and leverage FraiseQL's existing architecture.</p>
+<hr />
+<h2 id="background-what-were-building">Background: What We're Building</h2>
+<h3 id="specql-lightweight-business-domain-dsl">SpecQL: Lightweight Business Domain DSL</h3>
+<p><strong>User writes (20 lines of YAML):</strong></p>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+
+fields:
+  email: text
+  company: ref(Company)
+  status: enum(lead, qualified)
+
+actions:
+  - name: qualify_lead
+    impact:
+      primary:
+        entity: Contact
+        operation: update
+        fields: [status, updatedAt]
+        include_relations: [company]
+      side_effects:
+        - entity: Notification
+          operation: create
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+      - notify: owner(email, &quot;Contact qualified&quot;)
+</code></pre>
+<p><strong>Auto-generates (2000+ lines):</strong>
+- PostgreSQL table with Trinity pattern
+- PL/pgSQL function returning <code>mutation_result</code>
+- FraiseQL <code>@fraiseql:mutation</code> annotations
+- Static <code>mutation-impacts.json</code> for frontend
+- TypeScript types
+- Pre-configured Apollo hooks</p>
+<p><strong>Result</strong>: 100x code leverage</p>
+<h3 id="why-we-chose-fraiseql">Why We Chose FraiseQL</h3>
+<p>FraiseQL's <code>mutation_result</code> pattern is <strong>perfect</strong> for our needs:</p>
+<pre><code class="language-sql">CREATE TYPE mutation_result AS (
+    id UUID,
+    updated_fields TEXT[],      -- ✅ Tracks what changed
+    status TEXT,                -- ✅ success/error
+    message TEXT,               -- ✅ Human feedback
+    object_data JSONB,          -- ✅ Full entity data
+    extra_metadata JSONB        -- ✅ Extensible for side effects
+);
+</code></pre>
+<p>Our generated functions use this structure exactly as designed:</p>
+<pre><code class="language-sql">CREATE OR REPLACE FUNCTION crm.qualify_lead(...)
+RETURNS mutation_result AS $$
+BEGIN
+    -- Business logic...
+
+    v_result.object_data := (
+        -- Full Contact object (FraiseQL maps this to 'contact' field)
+        SELECT jsonb_build_object(
+            '__typename', 'Contact',
+            'id', c.id,
+            'email', c.email,
+            'status', c.status,
+            'company', (...)  -- Include relationships
+        )
+        FROM crm.tb_contact c WHERE ...
+    );
+
+    v_result.extra_metadata := jsonb_build_object(
+        'createdNotifications', (...),  -- Side effects
+        '_meta', (...)                   -- Impact metadata
+    );
+
+    RETURN v_result;
+END;
+$$;
+</code></pre>
+<p>FraiseQL then auto-generates GraphQL from <code>@fraiseql:mutation</code> comments. <strong>This works beautifully.</strong></p>
+<hr />
+<h2 id="the-gap-frontend-discovery-of-mutation-impacts">The Gap: Frontend Discovery of Mutation Impacts</h2>
+<h3 id="current-state-after-fraiseql-auto-discovery">Current State (After FraiseQL Auto-Discovery)</h3>
+<p><strong>Generated GraphQL (by FraiseQL):</strong></p>
+<pre><code class="language-graphql">type QualifyLeadSuccess {
+    status: String!
+    message: String!
+    contact: Contact!                      # From object_data
+    createdNotifications: [Notification!]! # From extra_metadata
+}
+</code></pre>
+<p><strong>Frontend developer's question:</strong></p>
+<blockquote>
+<p>"Before I call <code>qualifyLead</code>, how do I know:
+- What entities will be affected?
+- Which fields will change?
+- What cache invalidations are needed?
+- Whether optimistic UI is safe?"</p>
+</blockquote>
+<p><strong>Current answer:</strong> Read backend code or trial-and-error.</p>
+<h3 id="desired-state">Desired State</h3>
+<p><strong>Frontend developer can discover impacts at build-time:</strong></p>
+<pre><code class="language-typescript">import { MUTATION_IMPACTS } from '@/generated/mutation-impacts';
+
+const impact = MUTATION_IMPACTS.qualifyLead;
+
+console.log(impact.primary);
+// { entity: 'Contact', operation: 'UPDATE', fields: ['status', 'updatedAt'] }
+
+console.log(impact.sideEffects);
+// [{ entity: 'Notification', operation: 'CREATE' }]
+
+console.log(impact.cacheInvalidations);
+// [{ query: 'contacts', filter: {status: 'lead'}, strategy: 'REFETCH' }]
+
+console.log(impact.optimisticUpdateSafe);
+// true
+</code></pre>
+<p><strong>And at runtime, validate actual impacts:</strong></p>
+<pre><code class="language-graphql">mutation QualifyLead($contactId: UUID!) {
+    qualifyLead(input: {contactId: $contactId}) {
+        __typename
+        ... on QualifyLeadSuccess {
+            contact { id, status }
+            updatedFields        # ✅ NEW: Know what changed
+            _meta {              # ✅ NEW: Runtime validation
+                primaryEntity {
+                    entityType
+                    operation
+                    modifiedFields
+                }
+                actualSideEffects {
+                    entity
+                    operation
+                }
+            }
+        }
+    }
+}
+</code></pre>
+<hr />
+<h2 id="proposed-enhancements-to-fraiseql">Proposed Enhancements to FraiseQL</h2>
+<h3 id="enhancement-1-expose-updated_fields-in-success-types">Enhancement 1: Expose <code>updated_fields</code> in Success Types</h3>
+<p><strong>Current</strong>: <code>mutation_result.updated_fields</code> is tracked but not exposed in GraphQL</p>
+<p><strong>Proposed</strong>: Auto-add <code>updatedFields: [String!]!</code> to success types</p>
+<p><strong>Implementation</strong> (estimated 5-10 lines):</p>
+<pre><code class="language-python"># In mutation_generator.py or parser.py
+
+# When generating success type from mutation_result:
+success_type_fields = {
+    'status': String!,
+    'message': String!,
+    'updatedFields': [String!]!,  # NEW: Map from mutation_result.updated_fields
+    # ... other fields from object_data/extra_metadata
+}
+</code></pre>
+<p><strong>GraphQL Output:</strong></p>
+<pre><code class="language-graphql">type QualifyLeadSuccess {
+    status: String!
+    message: String!
+    updatedFields: [String!]!   # ✅ NEW
+    contact: Contact!
+    createdNotifications: [Notification!]!
+}
+</code></pre>
+<p><strong>Frontend Benefit:</strong></p>
+<pre><code class="language-typescript">const { data } = await qualifyLead({ ... });
+
+console.log('Changed fields:', data.qualifyLead.updatedFields);
+// Output: ['status', 'updatedAt']
+
+// Can show precise UI feedback: &quot;Status updated&quot;
+// Can invalidate specific cache entries
+</code></pre>
+<p><strong>Backward Compatibility</strong>: ✅ Additive only, no breaking changes</p>
+<hr />
+<h3 id="enhancement-2-support-_meta-field-mapping-already-works">Enhancement 2: Support <code>_meta</code> Field Mapping (Already Works?)</h3>
+<p><strong>Current</strong>: FraiseQL maps <code>extra_metadata</code> fields to GraphQL fields via annotations</p>
+<p><strong>Our Use Case</strong>: Map <code>extra_metadata._meta</code> → <code>_meta: MutationImpactMetadata!</code></p>
+<p><strong>Annotation We'll Generate:</strong></p>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.qualify_lead IS
+  '@fraiseql:mutation
+   name=qualifyLead
+   success_type=QualifyLeadSuccess
+   metadata_mapping={
+     &quot;createdNotifications&quot;: &quot;Notification[]&quot;,
+     &quot;_meta&quot;: &quot;MutationImpactMetadata&quot;
+   }';
+</code></pre>
+<p><strong>PostgreSQL Function Returns:</strong></p>
+<pre><code class="language-sql">v_result.extra_metadata := jsonb_build_object(
+    'createdNotifications', (...),
+    '_meta', jsonb_build_object(
+        'primaryEntity', jsonb_build_object(
+            'entityType', 'Contact',
+            'operation', 'UPDATE',
+            'modifiedFields', jsonb_build_array('status', 'updatedAt')
+        ),
+        'actualSideEffects', (...)
+    )
+);
+</code></pre>
+<p><strong>Expected GraphQL (if FraiseQL supports this):</strong></p>
+<pre><code class="language-graphql">type QualifyLeadSuccess {
+    status: String!
+    message: String!
+    updatedFields: [String!]!
+    contact: Contact!
+    createdNotifications: [Notification!]!
+    _meta: MutationImpactMetadata!  # From extra_metadata._meta
+}
+
+type MutationImpactMetadata {
+    primaryEntity: EntityImpact!
+    actualSideEffects: [EntityImpact!]!
+}
+
+type EntityImpact {
+    entityType: String!
+    operation: String!
+    modifiedFields: [String!]!
+}
+</code></pre>
+<p><strong>Question for FraiseQL Team:</strong>
+Does <code>metadata_mapping</code> already support arbitrary JSONB → GraphQL type mapping?</p>
+<p>If YES: ✅ No changes needed, we just document the pattern
+If NO: Could this be added to the parser's field extraction logic?</p>
+<p><strong>Frontend Benefit:</strong></p>
+<pre><code class="language-typescript">const { data } = await qualifyLead({ ... });
+
+// Runtime validation: Compare declared vs. actual impacts
+const declaredImpacts = MUTATION_IMPACTS.qualifyLead; // Build-time
+const actualImpacts = data.qualifyLead._meta;         // Runtime
+
+if (actualImpacts.actualSideEffects.length !== declaredImpacts.sideEffects.length) {
+    console.warn('Unexpected side effects detected!');
+}
+</code></pre>
+<p><strong>Backward Compatibility</strong>: ✅ Opt-in via annotation, no impact on existing functions</p>
+<hr />
+<h2 id="alternative-selection-filter-integration-separate-enhancement">Alternative: Selection Filter Integration (Separate Enhancement)</h2>
+<p><strong>From your analysis document</strong>: <code>/tmp/investigation_summary.txt</code></p>
+<blockquote>
+<p><strong>MISSING CAPABILITY: SELECTIVE FIELD RETURNS</strong>
+- ❌ No GraphQL selection set inspection in mutation response
+- ✅ <code>/src/fraiseql/mutations/selection_filter.py</code> (complete, unused)
+- <strong>POINT A: IMMEDIATE (1-2 hours, 30-50% savings)</strong></p>
+</blockquote>
+<p><strong>Our Request</strong>: Please integrate <code>selection_filter</code> into mutation responses!</p>
+<p><strong>Implementation Point</strong> (from your docs):</p>
+<pre><code class="language-python"># File: /src/fraiseql/mutations/mutation_decorator.py
+# Line: 157 (after parse_mutation_result)
+
+parsed_result = parse_mutation_result(...)
+
+# NEW: Filter based on GraphQL selection set
+if dataclasses.is_dataclass(parsed_result):
+    from fraiseql.mutations.selection_filter import filter_mutation_result
+    filtered = filter_mutation_result(dataclasses.asdict(parsed_result), info)
+    parsed_result = type(parsed_result)(**filtered)
+
+return parsed_result
+</code></pre>
+<p><strong>Why This Matters for Us:</strong></p>
+<p>Frontend developers using SpecQL-generated mutations often request minimal fields:</p>
+<pre><code class="language-graphql">mutation QualifyLead($contactId: UUID!) {
+    qualifyLead(input: {contactId: $contactId}) {
+        ... on QualifyLeadSuccess {
+            contact {
+                id      # Only these 2 fields
+                status  #
+            }
+        }
+    }
+}
+</code></pre>
+<p><strong>Current</strong>: Database returns all fields in <code>object_data</code>, network sends all fields
+<strong>After integration</strong>: Network only sends requested fields (30-50% savings per your estimate)</p>
+<p><strong>Impact for SpecQL Users:</strong>
+- Faster responses
+- Less bandwidth
+- Better mobile performance
+- No changes to our generator (it already produces full objects in <code>object_data</code>)</p>
+<p>This is a <strong>pure FraiseQL enhancement</strong> that benefits everyone, not just SpecQL.</p>
+<hr />
+<h2 id="summary-what-were-asking">Summary: What We're Asking</h2>
+<h3 id="must-have-for-mvp">Must-Have (for MVP)</h3>
+<ol>
+<li><strong>Expose <code>updated_fields</code> as <code>updatedFields: [String!]!</code> in success types</strong></li>
+<li>Effort: ~5-10 lines of code</li>
+<li>Backward compatible: Yes (additive only)</li>
+<li>Benefit: Frontend knows exactly what changed</li>
+</ol>
+<h3 id="nice-to-have-for-better-dx">Nice-to-Have (for Better DX)</h3>
+<ol>
+<li><strong>Support <code>_meta</code> field mapping from <code>extra_metadata._meta</code></strong></li>
+<li>Effort: May already work? Or ~20-30 lines if parser enhancement needed</li>
+<li>Backward compatible: Yes (opt-in via annotation)</li>
+<li>
+<p>Benefit: Runtime impact validation</p>
+</li>
+<li>
+<p><strong>Integrate <code>selection_filter</code> into mutation responses</strong></p>
+</li>
+<li>Effort: 3-4 lines per your analysis</li>
+<li>Backward compatible: Yes (transparent optimization)</li>
+<li>Benefit: 30-50% network savings for everyone</li>
+</ol>
+<hr />
+<h2 id="what-well-provide">What We'll Provide</h2>
+<h3 id="for-fraiseql-documentation">For FraiseQL Documentation</h3>
+<p>We'll contribute examples showing:</p>
+<ol>
+<li>
+<p><strong>How to structure mutation functions for impact metadata</strong>
+   <code>sql
+   v_result.extra_metadata := jsonb_build_object(
+       'sideEffectField', (...),
+       '_meta', (...)  -- Impact metadata pattern
+   );</code></p>
+</li>
+<li>
+<p><strong>How to annotate functions with <code>metadata_mapping</code></strong>
+   <code>sql
+   COMMENT ON FUNCTION ... IS
+     '@fraiseql:mutation metadata_mapping={"_meta": "MutationImpactMetadata"}';</code></p>
+</li>
+<li>
+<p><strong>Frontend patterns for consuming impact metadata</strong></p>
+</li>
+<li>Build-time introspection</li>
+<li>Runtime validation</li>
+<li>Auto-configured cache handling</li>
+</ol>
+<h3 id="for-specql-generator">For SpecQL Generator</h3>
+<p>We'll build:</p>
+<ol>
+<li><strong>Team C</strong>: Generates PostgreSQL functions with FraiseQL-compatible <code>mutation_result</code></li>
+<li><strong>Team D</strong>: Generates <code>@fraiseql:mutation</code> annotations with impact hints</li>
+<li><strong>Team E</strong>: Generates static <code>mutation-impacts.json</code> + TypeScript types + docs</li>
+</ol>
+<p>All working seamlessly with FraiseQL's auto-discovery.</p>
+<hr />
+<h2 id="questions-for-fraiseql-team">Questions for FraiseQL Team</h2>
+<ol>
+<li><strong><code>updated_fields</code> Exposure</strong>:</li>
+<li>Is this something you'd consider adding?</li>
+<li>
+<p>Where in the codebase should we look if we wanted to contribute a PR?</p>
+</li>
+<li>
+<p><strong><code>_meta</code> Field Mapping</strong>:</p>
+</li>
+<li>Does <code>metadata_mapping</code> already support arbitrary JSONB → GraphQL type?</li>
+<li>If not, would you accept a PR to add this?</li>
+<li>
+<p>Are there alternative patterns we should use?</p>
+</li>
+<li>
+<p><strong>Selection Filter Integration</strong>:</p>
+</li>
+<li>You mentioned this is "ready for integration" - is there a planned timeline?</li>
+<li>Can we help with testing/documentation?</li>
+<li>
+<p>Should this be behind a feature flag initially?</p>
+</li>
+<li>
+<p><strong>GraphQL Type Generation for Metadata</strong>:</p>
+</li>
+<li>Should we define <code>MutationImpactMetadata</code> as a table with <code>@fraiseql:type</code>?</li>
+<li>
+<p>Or should we use a different pattern (custom GraphQL types file)?</p>
+</li>
+<li>
+<p><strong>Contribution Process</strong>:</p>
+</li>
+<li>If we wanted to contribute PRs for these features, what's your preferred process?</li>
+<li>Do you have contribution guidelines?</li>
+<li>Should we open GitHub issues first?</li>
+</ol>
+<hr />
+<h2 id="example-full-integration-flow">Example: Full Integration Flow</h2>
+<h3 id="1-specql-input-user-writes">1. SpecQL Input (User writes)</h3>
+<pre><code class="language-yaml">actions:
+  - name: qualify_lead
+    impact:
+      primary:
+        entity: Contact
+        operation: update
+        fields: [status, updatedAt]
+      side_effects:
+        - entity: Notification
+          operation: create
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+</code></pre>
+<h3 id="2-generated-postgresql-function">2. Generated PostgreSQL Function</h3>
+<pre><code class="language-sql">CREATE FUNCTION crm.qualify_lead(...)
+RETURNS mutation_result AS $$
+BEGIN
+    v_result.updated_fields := ARRAY['status', 'updated_at'];
+    v_result.object_data := (SELECT jsonb_build_object(...));
+    v_result.extra_metadata := jsonb_build_object(
+        'createdNotifications', (...),
+        '_meta', jsonb_build_object(
+            'primaryEntity', jsonb_build_object(
+                'entityType', 'Contact',
+                'operation', 'UPDATE',
+                'modifiedFields', jsonb_build_array('status', 'updatedAt')
+            )
+        )
+    );
+    RETURN v_result;
+END;
+$$;
+</code></pre>
+<h3 id="3-generated-fraiseql-annotation">3. Generated FraiseQL Annotation</h3>
+<pre><code class="language-sql">COMMENT ON FUNCTION crm.qualify_lead IS
+  '@fraiseql:mutation
+   name=qualifyLead
+   success_type=QualifyLeadSuccess
+   metadata_mapping={
+     &quot;createdNotifications&quot;: &quot;Notification[]&quot;,
+     &quot;_meta&quot;: &quot;MutationImpactMetadata&quot;
+   }';
+</code></pre>
+<h3 id="4-fraiseql-auto-generates-graphql">4. FraiseQL Auto-Generates GraphQL</h3>
+<pre><code class="language-graphql">type QualifyLeadSuccess {
+    status: String!
+    message: String!
+    updatedFields: [String!]!           # From mutation_result.updated_fields
+    contact: Contact!                   # From object_data
+    createdNotifications: [Notification!]!  # From extra_metadata
+    _meta: MutationImpactMetadata!      # From extra_metadata._meta
+}
+</code></pre>
+<h3 id="5-frontend-gets-perfect-types">5. Frontend Gets Perfect Types</h3>
+<pre><code class="language-typescript">const { data } = await qualifyLead({ ... });
+
+// Full type safety
+data.qualifyLead.updatedFields  // string[]
+data.qualifyLead.contact        // Contact
+data.qualifyLead._meta          // MutationImpactMetadata
+
+// Runtime validation
+console.log('Changed:', data.qualifyLead.updatedFields);
+console.log('Actual impacts:', data.qualifyLead._meta.actualSideEffects);
+</code></pre>
+<hr />
+<h2 id="benefits-for-fraiseql-ecosystem">Benefits for FraiseQL Ecosystem</h2>
+<ol>
+<li><strong>Better Developer Experience</strong>:</li>
+<li>Frontend devs can discover mutation impacts without reading code</li>
+<li>Optimistic UI becomes easier</li>
+<li>
+<p>Cache management becomes automatic</p>
+</li>
+<li>
+<p><strong>Better Documentation</strong>:</p>
+</li>
+<li>Mutation impacts are self-documenting</li>
+<li>GraphQL schema becomes more informative</li>
+<li>
+<p>Example patterns for complex mutations</p>
+</li>
+<li>
+<p><strong>Better Performance</strong>:</p>
+</li>
+<li>Selection filter integration saves bandwidth</li>
+<li>Fewer roundtrips (no refetch needed)</li>
+<li>
+<p>Better mobile experience</p>
+</li>
+<li>
+<p><strong>Better Testing</strong>:</p>
+</li>
+<li>Runtime vs. declared impact validation</li>
+<li>Easier to detect breaking changes</li>
+<li>
+<p>Automated impact testing</p>
+</li>
+<li>
+<p><strong>Showcase for FraiseQL</strong>:</p>
+</li>
+<li>SpecQL → FraiseQL integration becomes a reference example</li>
+<li>Shows FraiseQL's power for DSL-to-GraphQL use cases</li>
+<li>Demonstrates ecosystem extensibility</li>
+</ol>
+<hr />
+<h2 id="timeline">Timeline</h2>
+<p><strong>Our Side (SpecQL Generator)</strong>:
+- Week 1 (current): Team A - Parser (90% done)
+- Week 2-3: Team B - Schema Generator
+- Week 3-4: Team C - Action Compiler (needs FraiseQL <code>mutation_result</code> pattern)
+- Week 5-6: Team D - FraiseQL Metadata Generator (needs answers to questions above)
+- Week 7+: Team E - CLI &amp; Frontend Codegen</p>
+<p><strong>Ideal FraiseQL Timeline</strong>:
+- <strong>By Week 5</strong>: Clarify <code>updated_fields</code> exposure and <code>_meta</code> mapping patterns
+- <strong>By Week 6</strong>: (Optional) Selection filter integration
+- <strong>By Week 8</strong>: Final integration testing</p>
+<p>We can work around limitations in the meantime, but having these features would make the integration <strong>much</strong> cleaner.</p>
+<hr />
+<h2 id="contact">Contact</h2>
+<p><strong>Project</strong>: SpecQL → PostgreSQL → FraiseQL → GraphQL Generator
+<strong>GitHub</strong>: (TBD - currently in development)
+<strong>Documentation</strong>: <code>/home/lionel/code/printoptim_backend_poc/docs/architecture/</code></p>
+<p><strong>Key Docs</strong>:
+- <code>FRAISEQL_BRIDGES_THE_GAP.md</code> - How FraiseQL solves frontend pain points
+- <code>MUTATION_IMPACT_METADATA.md</code> - Impact metadata design
+- <code>FRONTEND_CRITIQUE_RETURN_PATTERN.md</code> - Why deltas don't work for frontend</p>
+<p>We're excited to work with FraiseQL and would love to contribute back to the project!</p>
+<hr />
+<p><strong>Thank you for building FraiseQL!</strong> Your <code>mutation_result</code> pattern and auto-discovery architecture are exactly what we needed. These small enhancements would make it perfect for our use case and benefit the entire FraiseQL ecosystem.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

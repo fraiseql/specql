@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Test Suite Fix - Quick Start Guide - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Test Suite Fix - Quick Start Guide";
+        var mkdocs_page_input_path = "TEST_FIX_QUICK_START.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Test Suite Fix - Quick Start Guide</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="test-suite-fix-quick-start-guide">Test Suite Fix - Quick Start Guide</h1>
+<p><strong>For the implementing agent: Start here, then read the full implementation plan</strong></p>
+<hr />
+<h2 id="tldr">TL;DR</h2>
+<ul>
+<li><strong>38 failing tests + 7 errors</strong> out of 846 total tests</li>
+<li><strong>Most failures are test maintenance</strong>, not bugs</li>
+<li><strong>1 critical bug</strong>: Trinity Helper FK resolution not generated</li>
+<li><strong>Estimated time</strong>: 6-10 hours total</li>
+<li><strong>Execution order</strong>: Phase 1 → Phase 2 → Phase 3 → (optional) Phase 4-6</li>
+</ul>
+<hr />
+<h2 id="quick-status-check">Quick Status Check</h2>
+<pre><code class="language-bash"># Current test status
+cd /home/lionel/code/printoptim_backend_poc
+uv run pytest --tb=no -q | tail -5
+
+# Expected output:
+# ===== 38 failed, 765 passed, 36 skipped, 7 errors in ~30s =====
+</code></pre>
+<hr />
+<h2 id="phase-summary-in-order">Phase Summary (In Order)</h2>
+<h3 id="phase-1-critical-bug-2-3-hours">🔴 Phase 1: CRITICAL BUG (2-3 hours)</h3>
+<p><strong>What</strong>: Trinity Helper FK resolution not being generated in core functions
+<strong>Where</strong>: <code>src/generators/core_logic_generator.py:175</code> (condition check)
+<strong>Test</strong>: <code>tests/unit/generators/test_core_logic_generator.py::test_core_function_uses_trinity_helpers</code></p>
+<p><strong>Quick Check</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/generators/test_core_logic_generator.py::test_core_function_uses_trinity_helpers -xvs
+</code></pre>
+<p><strong>Expected Failure</strong>: SQL should have <code>crm.company_pk(...)</code> but doesn't</p>
+<p><strong>Fix</strong>: Add FK resolution logic to INSERT step compiler</p>
+<hr />
+<h3 id="phase-2-architecture-decision-2-3-hours">🟡 Phase 2: ARCHITECTURE DECISION (2-3 hours)</h3>
+<p><strong>What</strong>: 25 tests expect old FraiseQL annotation behavior
+<strong>Where</strong>: <code>tests/unit/fraiseql/test_mutation_annotator.py</code>
+<strong>Decision</strong>: Keep new architecture (Core layer = no annotations, App layer = with annotations)</p>
+<p><strong>Quick Check</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/fraiseql/test_mutation_annotator.py::TestMutationAnnotation::test_generates_mutation_annotation -xvs
+</code></pre>
+<p><strong>Expected Failure</strong>: Test expects <code>@fraiseql:mutation</code> in core layer function</p>
+<p><strong>Fix</strong>: Split tests into <code>TestCoreMutationAnnotation</code> and <code>TestAppMutationAnnotation</code></p>
+<hr />
+<h3 id="phase-3-cli-test-updates-15-2-hours">🟢 Phase 3: CLI TEST UPDATES (1.5-2 hours)</h3>
+<p><strong>What</strong>: CLI interface changed, tests outdated
+<strong>Where</strong>: <code>tests/unit/cli/test_generate.py</code></p>
+<p><strong>Quick Check</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/cli/test_generate.py::TestGenerateCLI::test_entities_foundation_only -xvs
+</code></pre>
+<p><strong>Expected Failure</strong>: Exit code or output format mismatch</p>
+<p><strong>Fix</strong>: Update test assertions to match new CLI output</p>
+<hr />
+<h3 id="phase-4-frontend-tests-30-mins">🔵 Phase 4: FRONTEND TESTS (30 mins)</h3>
+<p><strong>What</strong>: Overly strict string matching
+<strong>Where</strong>: <code>tests/integration/frontend/test_frontend_generators_e2e.py</code></p>
+<p><strong>Quick Check</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/integration/frontend/test_frontend_generators_e2e.py::TestFrontendGeneratorsE2E::test_typescript_types_generator -xvs
+</code></pre>
+<p><strong>Expected Failure</strong>: <code>MutationResult&lt;T = any&gt;</code> doesn't match <code>MutationResult&lt;T&gt;</code></p>
+<p><strong>Fix</strong>: Make string assertions more flexible</p>
+<hr />
+<h3 id="phase-5-minor-fixes-45-mins">🟣 Phase 5: MINOR FIXES (45 mins)</h3>
+<p><strong>What</strong>: Annotation format mismatches
+<strong>Where</strong>: <code>tests/unit/generators/test_composite_type_generator.py</code> and 2 others</p>
+<p><strong>Fix</strong>: Update annotations to match YAML format instead of inline format</p>
+<hr />
+<h3 id="phase-6-database-tests-skip">⚪ Phase 6: DATABASE TESTS (SKIP)</h3>
+<p><strong>What</strong>: Missing PostgreSQL fixtures
+<strong>Status</strong>: OPTIONAL - skip for now, these are for CI/CD</p>
+<hr />
+<h2 id="verification-commands">Verification Commands</h2>
+<h3 id="after-each-phase">After Each Phase</h3>
+<pre><code class="language-bash"># Phase 1
+uv run pytest tests/unit/generators/test_core_logic_generator.py -v
+
+# Phase 2
+uv run pytest tests/unit/fraiseql/ tests/integration/fraiseql/ -v
+
+# Phase 3
+uv run pytest tests/unit/cli/ -v
+
+# Phase 4
+uv run pytest tests/integration/frontend/ -v
+
+# Phase 5
+uv run pytest tests/unit/generators/test_composite_type_generator.py tests/unit/schema/test_comment_generation.py tests/unit/schema/test_node_info_split.py -v
+</code></pre>
+<h3 id="full-test-suite">Full Test Suite</h3>
+<pre><code class="language-bash"># Run all tests
+uv run pytest --tb=short
+
+# Target: ~838 passed, 36 skipped (excludes 7 database tests)
+</code></pre>
+<hr />
+<h2 id="critical-files-map">Critical Files Map</h2>
+<h3 id="phase-1-files">Phase 1 Files</h3>
+<p><strong>Code to Fix</strong>:
+- <code>src/generators/core_logic_generator.py:175</code> - Change condition from tier check to type_name check</p>
+<p><strong>Test to Pass</strong>:
+- <code>tests/unit/generators/test_core_logic_generator.py:77-95</code></p>
+<h3 id="phase-2-files">Phase 2 Files</h3>
+<p><strong>Tests to Update</strong>:
+- <code>tests/unit/fraiseql/test_mutation_annotator.py</code> - Split into core + app tests
+- <code>tests/integration/fraiseql/test_mutation_annotations_e2e.py</code> - Update to check both layers
+- <code>tests/integration/test_confiture_integration.py:80-95</code> - Update annotation checks</p>
+<p><strong>Reference Code</strong> (DO NOT MODIFY):
+- <code>src/generators/fraiseql/mutation_annotator.py</code> - Current implementation is CORRECT
+- <code>src/generators/app_wrapper_generator.py</code> - Uses <code>generate_app_mutation_annotation()</code></p>
+<h3 id="phase-3-files">Phase 3 Files</h3>
+<p><strong>Tests to Update</strong>:
+- <code>tests/unit/cli/test_generate.py</code> - 9 tests
+- <code>tests/unit/cli/test_orchestrator.py</code> - 1 test
+- <code>tests/unit/cli/test_validate.py</code> - 3 tests</p>
+<p><strong>Reference Code</strong> (DO NOT MODIFY):
+- <code>src/cli/generate.py</code> - Current CLI implementation
+- <code>src/cli/validate.py</code> - Current validation implementation</p>
+<hr />
+<h2 id="common-pitfalls">Common Pitfalls</h2>
+<h3 id="dont">❌ DON'T</h3>
+<ol>
+<li><strong>Don't revert the FraiseQL architecture change</strong> - the new architecture is better</li>
+<li><strong>Don't modify working code</strong> - fix the tests, not the implementation (except Phase 1)</li>
+<li><strong>Don't skip verification</strong> - run tests after each phase</li>
+<li><strong>Don't batch all changes</strong> - commit after each phase</li>
+</ol>
+<h3 id="do">✅ DO</h3>
+<ol>
+<li><strong>Read the full implementation plan</strong> before starting</li>
+<li><strong>Execute phases in order</strong> (1 → 2 → 3 → 4 → 5)</li>
+<li><strong>Verify no regressions</strong> after each phase</li>
+<li><strong>Document any deviations</strong> from the plan</li>
+</ol>
+<hr />
+<h2 id="success-criteria">Success Criteria</h2>
+<h3 id="minimum-production-ready">Minimum (Production Ready)</h3>
+<ul>
+<li>✅ Phase 1 complete (Trinity helpers working)</li>
+<li>✅ Phase 2 complete (FraiseQL tests updated)</li>
+<li>✅ 800+ tests passing</li>
+</ul>
+<h3 id="full-success">Full Success</h3>
+<ul>
+<li>✅ Phases 1-5 complete</li>
+<li>✅ 838+ tests passing (99%+)</li>
+<li>✅ Only database tests skipped</li>
+</ul>
+<hr />
+<h2 id="emergency-commands">Emergency Commands</h2>
+<h3 id="if-tests-get-worse">If Tests Get Worse</h3>
+<pre><code class="language-bash"># See what changed
+git status
+git diff
+
+# Revert to before changes
+git stash
+
+# Re-run tests
+uv run pytest -v
+
+# Compare before/after
+diff &lt;(git stash show) &lt;(git diff)
+</code></pre>
+<h3 id="if-stuck">If Stuck</h3>
+<ol>
+<li>Read the detailed plan: <code>docs/TEST_SUITE_FIX_IMPLEMENTATION_PLAN.md</code></li>
+<li>Check the specific test failure output</li>
+<li>Review the referenced code files</li>
+<li>Compare expected vs actual test assertions</li>
+</ol>
+<hr />
+<h2 id="time-budget">Time Budget</h2>
+<ul>
+<li><strong>Phase 1</strong>: 2-3 hours (CRITICAL - actual bug fix)</li>
+<li><strong>Phase 2</strong>: 2-3 hours (HIGH - 25 tests)</li>
+<li><strong>Phase 3</strong>: 1.5-2 hours (MEDIUM - 12 tests)</li>
+<li><strong>Phase 4</strong>: 30 mins (LOW - 3 tests)</li>
+<li><strong>Phase 5</strong>: 45 mins (LOW - 3 tests)</li>
+</ul>
+<p><strong>Total</strong>: 7-10 hours for 100% test pass rate</p>
+<hr />
+<h2 id="next-steps">Next Steps</h2>
+<ol>
+<li>✅ Read this quick start guide (you're here!)</li>
+<li>📖 Read the full implementation plan: <code>docs/TEST_SUITE_FIX_IMPLEMENTATION_PLAN.md</code></li>
+<li>🔴 Start with Phase 1 (Trinity Helper FK resolution)</li>
+<li>✅ Verify Phase 1 tests pass</li>
+<li>🟡 Continue to Phase 2 (FraiseQL tests)</li>
+<li>✅ Verify Phase 2 tests pass</li>
+<li>🟢 Continue to Phase 3 (CLI tests)</li>
+<li>✅ Run full test suite</li>
+<li>🎉 Report completion</li>
+</ol>
+<hr />
+<p><strong>Good luck! Most of this is straightforward test maintenance. The only real bug is in Phase 1.</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

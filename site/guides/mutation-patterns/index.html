@@ -1,0 +1,648 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Mutation Patterns Library - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Mutation Patterns Library";
+        var mkdocs_page_input_path = "guides/mutation-patterns/README.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="./">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Mutation Patterns Library</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="mutation-patterns-library">Mutation Patterns Library</h1>
+<p>SpecQL provides 27+ reusable mutation patterns for common business logic operations. Patterns are pre-built templates that generate database functions, constraints, and tests automatically.</p>
+<h2 id="what-are-mutation-patterns">🎯 What Are Mutation Patterns?</h2>
+<p><strong>Mutation patterns</strong> are declarative templates that implement common business operations:</p>
+<ul>
+<li><strong>State Machines</strong> - Order workflows, approval processes</li>
+<li><strong>Validation</strong> - Data integrity and business rules</li>
+<li><strong>Multi-Entity Operations</strong> - Complex transactions across tables</li>
+<li><strong>Batch Operations</strong> - Bulk data processing</li>
+<li><strong>Audit Trails</strong> - Change tracking and compliance</li>
+<li><strong>And 22 more...</strong></li>
+</ul>
+<p>Instead of writing custom SQL functions, you declare what you want to achieve, and SpecQL generates the implementation.</p>
+<h2 id="why-use-patterns">💡 Why Use Patterns?</h2>
+<h3 id="benefits">✅ Benefits</h3>
+<ul>
+<li><strong>Consistency</strong> - Standardized implementations across your application</li>
+<li><strong>Reliability</strong> - Battle-tested patterns from real-world applications</li>
+<li><strong>Productivity</strong> - 10x faster development than custom SQL</li>
+<li><strong>Maintainability</strong> - Declarative specifications are easy to modify</li>
+<li><strong>Testing</strong> - Automatic test generation with comprehensive coverage</li>
+</ul>
+<h3 id="productivity-impact">🚀 Productivity Impact</h3>
+<table>
+<thead>
+<tr>
+<th>Approach</th>
+<th>Time to Implement</th>
+<th>Lines of Code</th>
+<th>Test Coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Custom SQL</strong></td>
+<td>2-3 days</td>
+<td>200+ lines</td>
+<td>Manual (incomplete)</td>
+</tr>
+<tr>
+<td><strong>SpecQL Pattern</strong></td>
+<td>30 minutes</td>
+<td>5 lines YAML</td>
+<td>Auto (100%)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="available-patterns">📚 Available Patterns</h2>
+<h3 id="core-business-logic-essential">Core Business Logic (Essential)</h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Purpose</th>
+<th>Use Cases</th>
+<th>Complexity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><a href="state-machines/"><code>state_machine</code></a></strong></td>
+<td>Entity lifecycle management</td>
+<td>User accounts, orders, approvals</td>
+<td>🟢 Beginner</td>
+</tr>
+<tr>
+<td><strong><a href="validation/"><code>validation</code></a></strong></td>
+<td>Data integrity rules</td>
+<td>Business constraints, input validation</td>
+<td>🟢 Beginner</td>
+</tr>
+<tr>
+<td><strong><a href="multi-entity/"><code>multi_entity</code></a></strong></td>
+<td>Cross-table transactions</td>
+<td>Order with line items, account transfers</td>
+<td>🟡 Intermediate</td>
+</tr>
+<tr>
+<td><strong><a href="batch-operations/"><code>batch_operations</code></a></strong></td>
+<td>Bulk data processing</td>
+<td>Mass updates, imports</td>
+<td>🟡 Intermediate</td>
+</tr>
+<tr>
+<td><strong><code>soft_delete</code></strong></td>
+<td>Safe record deletion</td>
+<td>Data recovery, audit compliance</td>
+<td>🟢 Beginner</td>
+</tr>
+</tbody>
+</table>
+<h3 id="advanced-patterns-complex-logic">Advanced Patterns (Complex Logic)</h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Purpose</th>
+<th>Use Cases</th>
+<th>Complexity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>audit_trail</code></strong></td>
+<td>Change tracking</td>
+<td>Compliance, debugging</td>
+<td>🟢 Beginner</td>
+</tr>
+<tr>
+<td><strong><code>versioning</code></strong></td>
+<td>Data versioning</td>
+<td>Historical records, rollback</td>
+<td>🟡 Intermediate</td>
+</tr>
+<tr>
+<td><strong><code>workflow</code></strong></td>
+<td>Complex processes</td>
+<td>Multi-step approvals, routing</td>
+<td>🔴 Advanced</td>
+</tr>
+<tr>
+<td><strong><code>scheduling</code></strong></td>
+<td>Time-based operations</td>
+<td>Recurring tasks, deadlines</td>
+<td>🟡 Intermediate</td>
+</tr>
+<tr>
+<td><strong><code>notifications</code></strong></td>
+<td>Event-driven messaging</td>
+<td>Email alerts, webhooks</td>
+<td>🟡 Intermediate</td>
+</tr>
+</tbody>
+</table>
+<h3 id="integration-patterns-external-systems">Integration Patterns (External Systems)</h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Purpose</th>
+<th>Use Cases</th>
+<th>Complexity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>api_integration</code></strong></td>
+<td>External API calls</td>
+<td>Payment processing, third-party services</td>
+<td>🔴 Advanced</td>
+</tr>
+<tr>
+<td><strong><code>event_sourcing</code></strong></td>
+<td>Event-driven architecture</td>
+<td>Audit logs, CQRS</td>
+<td>🔴 Advanced</td>
+</tr>
+<tr>
+<td><strong><code>saga</code></strong></td>
+<td>Distributed transactions</td>
+<td>Multi-service operations</td>
+<td>🔴 Advanced</td>
+</tr>
+<tr>
+<td><strong><code>circuit_breaker</code></strong></td>
+<td>Fault tolerance</td>
+<td>Service degradation handling</td>
+<td>🔴 Advanced</td>
+</tr>
+</tbody>
+</table>
+<h3 id="utility-patterns-infrastructure">Utility Patterns (Infrastructure)</h3>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Purpose</th>
+<th>Use Cases</th>
+<th>Complexity</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong><code>rate_limiting</code></strong></td>
+<td>Request throttling</td>
+<td>API protection, abuse prevention</td>
+<td>🟡 Intermediate</td>
+</tr>
+<tr>
+<td><strong><code>feature_flags</code></strong></td>
+<td>Dynamic features</td>
+<td>A/B testing, gradual rollouts</td>
+<td>🟡 Intermediate</td>
+</tr>
+<tr>
+<td><strong><code>permissions</code></strong></td>
+<td>Access control</td>
+<td>Role-based security</td>
+<td>🟡 Intermediate</td>
+</tr>
+<tr>
+<td><strong><code>data_archiving</code></strong></td>
+<td>Long-term storage</td>
+<td>Compliance, performance</td>
+<td>🟡 Intermediate</td>
+</tr>
+<tr>
+<td><strong><code>search_indexing</code></strong></td>
+<td>Full-text search</td>
+<td>Product catalogs, content</td>
+<td>🟡 Intermediate</td>
+</tr>
+<tr>
+<td><strong><code>caching</code></strong></td>
+<td>Performance optimization</td>
+<td>Frequent queries, computed values</td>
+<td>🟡 Intermediate</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Legend</strong>: 🟢 Beginner • 🟡 Intermediate • 🔴 Advanced</p>
+<h2 id="quick-start">🚀 Quick Start</h2>
+<h3 id="1-add-pattern-to-entity">1. Add Pattern to Entity</h3>
+<pre><code class="language-yaml"># entities/user.yaml
+name: user
+fields:
+  id: uuid
+  email: string
+  status: string  # Will be managed by pattern
+
+patterns:
+  - name: state_machine
+    description: &quot;User account lifecycle&quot;
+    states: [inactive, active, suspended]
+    initial_state: inactive
+    transitions:
+      - from: inactive
+        to: active
+        trigger: activate
+</code></pre>
+<h3 id="2-generate">2. Generate</h3>
+<pre><code class="language-bash"># Generate schema with patterns
+specql generate schema entities/user.yaml
+</code></pre>
+<h3 id="3-use-generated-functions">3. Use Generated Functions</h3>
+<pre><code class="language-sql">-- Activate user
+SELECT user_activate('user-uuid-123');
+
+-- Check available transitions
+SELECT * FROM user_get_available_transitions('user-uuid-123');
+</code></pre>
+<h2 id="pattern-guides">📖 Pattern Guides</h2>
+<h3 id="getting-started">Getting Started</h3>
+<ul>
+<li><strong><a href="getting-started/">Getting Started</a></strong> - Pattern basics and concepts</li>
+<li><strong><a href="state-machines/">State Machines</a></strong> - Complete state machine guide</li>
+<li><strong><a href="multi-entity/">Multi-Entity Operations</a></strong> - Cross-table transactions</li>
+</ul>
+<h3 id="core-patterns">Core Patterns</h3>
+<ul>
+<li><strong><a href="validation/">Validation</a></strong> - Data integrity and business rules</li>
+<li><strong><a href="batch-operations/">Batch Operations</a></strong> - Bulk data processing</li>
+<li><strong><a href="composing-patterns/">Composing Patterns</a></strong> - Combining multiple patterns</li>
+</ul>
+<h3 id="advanced-patterns">Advanced Patterns</h3>
+<ul>
+<li><strong><a href="custom-patterns.md">Custom Patterns</a></strong> - Creating your own patterns</li>
+<li><strong><a href="extensions.md">Pattern Extensions</a></strong> - Extending existing patterns</li>
+</ul>
+<h2 id="pattern-concepts">💡 Pattern Concepts</h2>
+<h3 id="declarative-vs-imperative">Declarative vs Imperative</h3>
+<p><strong>Imperative (Traditional SQL):</strong></p>
+<pre><code class="language-sql">-- Custom function with business logic
+CREATE FUNCTION activate_user(user_id UUID) RETURNS VOID AS $$
+BEGIN
+  -- Check current status
+  IF (SELECT status FROM users WHERE id = user_id) != 'inactive' THEN
+    RAISE EXCEPTION 'User not inactive';
+  END IF;
+
+  -- Update status
+  UPDATE users SET status = 'active', activated_at = NOW()
+  WHERE id = user_id;
+
+  -- Log the change
+  INSERT INTO audit_log (action, user_id, old_status, new_status)
+  VALUES ('activate', user_id, 'inactive', 'active');
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<p><strong>Declarative (SpecQL Pattern):</strong></p>
+<pre><code class="language-yaml">patterns:
+  - name: state_machine
+    states: [inactive, active]
+    transitions:
+      - from: inactive
+        to: active
+        trigger: activate
+        action: &quot;log_user_activation&quot;
+</code></pre>
+<h3 id="pattern-composition">Pattern Composition</h3>
+<p>Patterns can work together:</p>
+<pre><code class="language-yaml">patterns:
+  # State machine for status
+  - name: state_machine
+    states: [draft, published, archived]
+
+  # Validation for business rules
+  - name: validation
+    rules:
+      - name: published_must_have_title
+        condition: &quot;status = 'published' AND title IS NOT NULL&quot;
+
+  # Audit trail for compliance
+  - name: audit_trail
+    track_fields: [status, title]
+</code></pre>
+<h3 id="generated-components">Generated Components</h3>
+<p>Each pattern generates multiple components:</p>
+<pre><code>Pattern: state_machine
+├── Functions: user_activate(), user_get_transitions()
+├── Constraints: CHECK (status IN ('inactive', 'active'))
+├── Triggers: Automatic status validation
+├── Tests: Comprehensive test coverage
+└── Documentation: Auto-generated guides
+</code></pre>
+<h2 id="choosing-the-right-pattern">🎯 Choosing the Right Pattern</h2>
+<h3 id="decision-tree">Decision Tree</h3>
+<pre><code>Need to manage entity states?
+├── Yes → state_machine
+└── No → Need data validation?
+    ├── Yes → validation
+    └── No → Need cross-table operations?
+        ├── Yes → multi_entity
+        └── No → Need bulk processing?
+            ├── Yes → batch_operations
+            └── No → Need audit trail?
+                ├── Yes → audit_trail
+                └── No → Check advanced patterns...
+</code></pre>
+<h3 id="common-combinations">Common Combinations</h3>
+<table>
+<thead>
+<tr>
+<th>Use Case</th>
+<th>Pattern Combination</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>E-commerce Order</strong></td>
+<td><code>state_machine</code> + <code>multi_entity</code> + <code>validation</code></td>
+</tr>
+<tr>
+<td><strong>User Management</strong></td>
+<td><code>state_machine</code> + <code>audit_trail</code> + <code>permissions</code></td>
+</tr>
+<tr>
+<td><strong>Content Management</strong></td>
+<td><code>workflow</code> + <code>versioning</code> + <code>validation</code></td>
+</tr>
+<tr>
+<td><strong>Financial Transaction</strong></td>
+<td><code>saga</code> + <code>audit_trail</code> + <code>validation</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="pattern-configuration">🔧 Pattern Configuration</h2>
+<h3 id="basic-structure">Basic Structure</h3>
+<pre><code class="language-yaml">patterns:
+  - name: pattern_name
+    description: &quot;What this pattern does&quot;
+    # Pattern-specific configuration
+    option1: value1
+    option2: value2
+</code></pre>
+<h3 id="advanced-configuration">Advanced Configuration</h3>
+<pre><code class="language-yaml">patterns:
+  - name: state_machine
+    description: &quot;Order processing workflow&quot;
+    # Basic settings
+    initial_state: pending
+    allow_self_transitions: false
+
+    # State definitions
+    states:
+      - name: pending
+        description: &quot;Awaiting payment&quot;
+      - name: paid
+        description: &quot;Payment received&quot;
+
+    # Transition rules
+    transitions:
+      - from: pending
+        to: paid
+        trigger: mark_paid
+        guard: &quot;total_amount &gt; 0&quot;
+        action: &quot;send_order_confirmation&quot;
+        events: [&quot;order_paid&quot;]
+</code></pre>
+<h2 id="testing-patterns">🧪 Testing Patterns</h2>
+<p>Patterns generate comprehensive tests automatically:</p>
+<pre><code class="language-bash"># Generate tests
+specql generate tests entities/user.yaml
+
+# Run tests
+specql test run entities/user.yaml
+
+# Check coverage
+specql test coverage entities/user.yaml
+</code></pre>
+<p><strong>Generated test coverage:</strong>
+- ✅ <strong>Happy path</strong> - Normal operation
+- ✅ <strong>Edge cases</strong> - Boundary conditions
+- ✅ <strong>Error conditions</strong> - Invalid inputs
+- ✅ <strong>Guard conditions</strong> - Precondition validation
+- ✅ <strong>Actions</strong> - Side effect execution</p>
+<h2 id="performance-characteristics">📊 Performance Characteristics</h2>
+<table>
+<thead>
+<tr>
+<th>Pattern</th>
+<th>Performance</th>
+<th>Use Case</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>state_machine</strong></td>
+<td>⚡ Fast</td>
+<td>High-frequency operations</td>
+</tr>
+<tr>
+<td><strong>validation</strong></td>
+<td>⚡ Fast</td>
+<td>Data integrity checks</td>
+</tr>
+<tr>
+<td><strong>multi_entity</strong></td>
+<td>🐌 Slower</td>
+<td>Complex transactions</td>
+</tr>
+<tr>
+<td><strong>audit_trail</strong></td>
+<td>⚡ Fast</td>
+<td>Compliance logging</td>
+</tr>
+<tr>
+<td><strong>batch_operations</strong></td>
+<td>🐌 Slower</td>
+<td>Bulk processing</td>
+</tr>
+</tbody>
+</table>
+<h2 id="best-practices">🚀 Best Practices</h2>
+<h3 id="pattern-design">Pattern Design</h3>
+<ul>
+<li><strong>Start simple</strong> - Use basic patterns first</li>
+<li><strong>Compose thoughtfully</strong> - Don't over-engineer</li>
+<li><strong>Test early</strong> - Validate patterns work as expected</li>
+<li><strong>Document intent</strong> - Clear descriptions for maintenance</li>
+</ul>
+<h3 id="performance">Performance</h3>
+<ul>
+<li><strong>Index guard fields</strong> - Speed up precondition checks</li>
+<li><strong>Batch where possible</strong> - Use batch patterns for bulk operations</li>
+<li><strong>Monitor slow patterns</strong> - Profile performance-critical patterns</li>
+</ul>
+<h3 id="maintenance">Maintenance</h3>
+<ul>
+<li><strong>Version patterns</strong> - Track pattern changes</li>
+<li><strong>Refactor gradually</strong> - Test changes thoroughly</li>
+<li><strong>Document extensions</strong> - Explain custom pattern modifications</li>
+</ul>
+<h2 id="troubleshooting">🆘 Troubleshooting</h2>
+<h3 id="pattern-not-found">"Pattern not found"</h3>
+<pre><code class="language-yaml"># Check pattern name spelling
+patterns:
+  - name: state_machine  # ✅ Correct
+  # - name: statemachine  # ❌ Wrong
+</code></pre>
+<h3 id="invalid-pattern-configuration">"Invalid pattern configuration"</h3>
+<pre><code class="language-bash"># Validate configuration
+specql validate entities/user.yaml --verbose
+
+# Check pattern documentation for required fields
+</code></pre>
+<h3 id="pattern-conflicts">"Pattern conflicts"</h3>
+<pre><code class="language-yaml"># Some patterns can't be combined
+patterns:
+  - name: soft_delete
+  - name: versioning  # May conflict with soft_delete
+</code></pre>
+<h3 id="performance-issues">"Performance issues"</h3>
+<pre><code class="language-bash"># Add indexes for guard conditions
+indexes:
+  - fields: [status]
+    where: &quot;status IN ('active', 'inactive')&quot;
+</code></pre>
+<h2 id="next-steps">🎉 Next Steps</h2>
+<ul>
+<li><strong><a href="getting-started/">Getting Started</a></strong> - Learn pattern basics</li>
+<li><strong><a href="state-machines/">State Machines</a></strong> - Complete state machine guide</li>
+<li><strong><a href="../../examples/">Examples</a></strong> - See patterns in action</li>
+<li><strong><a href="custom-patterns.md">Custom Patterns</a></strong> - Create your own patterns</li>
+</ul>
+<p><strong>Ready to add business logic to your entities? Let's explore the patterns! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

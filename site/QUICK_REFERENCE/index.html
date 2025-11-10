@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>SpecQL Quick Reference - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "SpecQL Quick Reference";
+        var mkdocs_page_input_path = "QUICK_REFERENCE.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">SpecQL Quick Reference</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="specql-quick-reference">SpecQL Quick Reference</h1>
+<h2 id="entity-structure">Entity Structure</h2>
+<pre><code class="language-yaml">entity: Contact                    # PascalCase, unique
+schema: crm                        # snake_case, registered
+description: &quot;Customer contacts&quot;   # Optional
+
+fields:                            # Required
+  email: text                      # Required field
+  first_name: text
+  last_name: text
+  company: ref(Company)            # Foreign key
+  status: enum(lead, qualified, customer)
+  notes: text?                     # Nullable field
+  metadata: json                   # JSON data
+
+organization:                      # Optional, for migrations
+  table_code: &quot;012311&quot;             # 6-char hex, unique
+  domain: &quot;CRM&quot;
+  subdomain: &quot;Customer&quot;
+
+actions:                           # Optional
+  - name: qualify_lead
+    description: &quot;Qualify a lead&quot;
+    impacts:
+      write: [Contact]
+      read: [Company]
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+</code></pre>
+<h2 id="field-types">Field Types</h2>
+<h3 id="scalar-types">Scalar Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>SQL</th>
+<th>Use Case</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>text</code></td>
+<td>TEXT</td>
+<td>Free-form text</td>
+<td><code>name: text</code></td>
+</tr>
+<tr>
+<td><code>integer</code></td>
+<td>INTEGER</td>
+<td>Whole numbers</td>
+<td><code>quantity: integer</code></td>
+</tr>
+<tr>
+<td><code>decimal</code></td>
+<td>NUMERIC</td>
+<td>Money, precise</td>
+<td><code>price: decimal</code></td>
+</tr>
+<tr>
+<td><code>boolean</code></td>
+<td>BOOLEAN</td>
+<td>True/false</td>
+<td><code>active: boolean</code></td>
+</tr>
+<tr>
+<td><code>timestamp</code></td>
+<td>TIMESTAMP TZ</td>
+<td>Date-time</td>
+<td><code>created_at: timestamp</code></td>
+</tr>
+<tr>
+<td><code>date</code></td>
+<td>DATE</td>
+<td>Date only</td>
+<td><code>birthday: date</code></td>
+</tr>
+<tr>
+<td><code>json</code></td>
+<td>JSONB</td>
+<td>Structured data</td>
+<td><code>metadata: json</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="rich-types">Rich Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>SQL</th>
+<th>Structure</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>email</code></td>
+<td>app.email</td>
+<td><code>{address, display_name}</code></td>
+<td><code>contact_email: email</code></td>
+</tr>
+<tr>
+<td><code>phone</code></td>
+<td>app.phone</td>
+<td><code>{country_code, number, extension}</code></td>
+<td><code>mobile: phone</code></td>
+</tr>
+<tr>
+<td><code>money</code></td>
+<td>app.money</td>
+<td><code>{amount, currency}</code></td>
+<td><code>total: money</code></td>
+</tr>
+<tr>
+<td><code>dimensions</code></td>
+<td>app.dimensions</td>
+<td><code>{length, width, height, unit}</code></td>
+<td><code>size: dimensions</code></td>
+</tr>
+<tr>
+<td><code>contact_info</code></td>
+<td>app.contact_info</td>
+<td><code>{email, phone, address}</code></td>
+<td><code>primary_contact: contact_info</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="relational-types">Relational Types</h3>
+<table>
+<thead>
+<tr>
+<th>Type</th>
+<th>SQL</th>
+<th>Use Case</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>ref(Entity)</code></td>
+<td>INTEGER FK</td>
+<td>Foreign key</td>
+<td><code>company: ref(Company)</code></td>
+</tr>
+<tr>
+<td><code>enum(v1, v2, ...)</code></td>
+<td>TEXT CHECK</td>
+<td>Fixed values</td>
+<td><code>status: enum(active, inactive)</code></td>
+</tr>
+<tr>
+<td><code>list(Type)</code></td>
+<td>Type[]</td>
+<td>Multiple values</td>
+<td><code>tags: list(text)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="modifiers">Modifiers</h3>
+<table>
+<thead>
+<tr>
+<th>Modifier</th>
+<th>Meaning</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>?</code></td>
+<td>Nullable</td>
+<td><code>middle_name: text?</code></td>
+</tr>
+<tr>
+<td>None</td>
+<td>Required</td>
+<td><code>email: text</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="actions">Actions</h2>
+<h3 id="step-types">Step Types</h3>
+<table>
+<thead>
+<tr>
+<th>Step</th>
+<th>Purpose</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>validate</code></td>
+<td>Check preconditions</td>
+<td><code>validate: status = 'draft'</code></td>
+</tr>
+<tr>
+<td><code>insert</code></td>
+<td>Create record</td>
+<td><code>insert: AuditLog SET action = 'created'</code></td>
+</tr>
+<tr>
+<td><code>update</code></td>
+<td>Modify record</td>
+<td><code>update: Contact SET status = 'qualified'</code></td>
+</tr>
+<tr>
+<td><code>soft_delete</code></td>
+<td>Mark deleted</td>
+<td><code>soft_delete: Contact</code></td>
+</tr>
+<tr>
+<td><code>call</code></td>
+<td>Invoke action</td>
+<td><code>call: crm.send_email(contact_id: :id)</code></td>
+</tr>
+<tr>
+<td><code>notify</code></td>
+<td>Send event</td>
+<td><code>notify: contact_created WITH {id: :id}</code></td>
+</tr>
+<tr>
+<td><code>if</code></td>
+<td>Conditional</td>
+<td><code>if: amount &gt; 1000 then: [...]</code></td>
+</tr>
+<tr>
+<td><code>foreach</code></td>
+<td>Loop</td>
+<td><code>foreach: item IN order_lines do: [...]</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="variables">Variables</h3>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Meaning</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>:param</code></td>
+<td>Input parameter</td>
+<td><code>:contact_id</code></td>
+</tr>
+<tr>
+<td><code>:item.field</code></td>
+<td>Loop item field</td>
+<td><code>:line.product_id</code></td>
+</tr>
+<tr>
+<td><code>CURRENT_USER</code></td>
+<td>Current user UUID</td>
+<td><code>created_by = CURRENT_USER</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="cli-commands">CLI Commands</h2>
+<h3 id="generate">Generate</h3>
+<pre><code class="language-bash"># Basic generation
+specql generate entities/**/*.yaml
+
+# With options
+specql generate entities/**/*.yaml \
+  --with-impacts \
+  --output-frontend=src/generated \
+  --output-format hierarchical
+</code></pre>
+<h3 id="validate">Validate</h3>
+<pre><code class="language-bash"># Check syntax
+specql validate entities/**/*.yaml
+
+# With impact checking
+specql validate entities/**/*.yaml --check-impacts
+</code></pre>
+<h3 id="check-codes">Check Codes</h3>
+<pre><code class="language-bash"># Verify table code uniqueness
+specql check-codes entities/**/*.yaml
+</code></pre>
+<h2 id="common-patterns">Common Patterns</h2>
+<h3 id="basic-entity">Basic Entity</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+fields:
+  email: text
+  name: text
+</code></pre>
+<h3 id="with-relationships">With Relationships</h3>
+<pre><code class="language-yaml">entity: Order
+schema: commerce
+fields:
+  customer: ref(Customer)
+  status: enum(draft, confirmed, shipped)
+  total: money
+</code></pre>
+<h3 id="with-actions">With Actions</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+fields:
+  email: text
+  status: enum(lead, qualified, customer)
+
+actions:
+  - name: qualify_lead
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+</code></pre>
+<h3 id="multi-tenant">Multi-Tenant</h3>
+<pre><code class="language-yaml"># registry/domain_registry.yaml
+domains:
+  crm:
+    type: multi_tenant  # Adds tenant_id automatically
+</code></pre>
+<h3 id="hierarchical">Hierarchical</h3>
+<pre><code class="language-yaml">entity: Category
+schema: catalog
+hierarchical: true
+fields:
+  name: text
+  parent: ref(Category)?
+</code></pre>
+<h2 id="auto-generated-features">Auto-Generated Features</h2>
+<h3 id="trinity-pattern-always-added">Trinity Pattern (Always Added)</h3>
+<ul>
+<li><code>id</code> - INTEGER PRIMARY KEY</li>
+<li><code>pk_&lt;entity&gt;</code> - UUID unique identifier</li>
+<li><code>identifier</code> - TEXT human-readable slug</li>
+</ul>
+<h3 id="audit-fields-always-added">Audit Fields (Always Added)</h3>
+<ul>
+<li><code>created_at</code>, <code>updated_at</code> - TIMESTAMP WITH TIME ZONE</li>
+<li><code>created_by</code>, <code>updated_by</code> - UUID user references</li>
+<li><code>deleted_at</code>, <code>deleted_by</code> - Soft delete fields</li>
+</ul>
+<h3 id="indexes-auto-generated">Indexes (Auto-Generated)</h3>
+<ul>
+<li>Foreign keys: <code>idx_tb_&lt;entity&gt;_&lt;field&gt;</code></li>
+<li>Enums: <code>idx_tb_&lt;entity&gt;_&lt;field&gt;</code></li>
+<li>JSON: GIN indexes</li>
+<li>Tenant ID: <code>idx_tb_&lt;entity&gt;_tenant_id</code></li>
+</ul>
+<h2 id="naming-conventions">Naming Conventions</h2>
+<table>
+<thead>
+<tr>
+<th>Element</th>
+<th>Convention</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tables</td>
+<td><code>tb_&lt;entity&gt;</code></td>
+<td><code>tb_contact</code></td>
+</tr>
+<tr>
+<td>Views</td>
+<td><code>tv_&lt;entity&gt;</code></td>
+<td><code>tv_contact</code></td>
+</tr>
+<tr>
+<td>Foreign Keys</td>
+<td><code>fk_tb_&lt;entity&gt;_&lt;field&gt;</code></td>
+<td><code>fk_tb_contact_company</code></td>
+</tr>
+<tr>
+<td>Indexes</td>
+<td><code>idx_tb_&lt;entity&gt;_&lt;field&gt;</code></td>
+<td><code>idx_tb_contact_email</code></td>
+</tr>
+<tr>
+<td>Functions</td>
+<td><code>&lt;schema&gt;.&lt;action&gt;</code></td>
+<td><code>crm.qualify_lead</code></td>
+</tr>
+<tr>
+<td>Wrappers</td>
+<td><code>app.&lt;action&gt;</code></td>
+<td><code>app.qualify_lead</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="migration-mapping">Migration Mapping</h2>
+<table>
+<thead>
+<tr>
+<th>SQL Type</th>
+<th>SpecQL Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>TEXT</code>, <code>VARCHAR</code></td>
+<td><code>text</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>INTEGER</code></td>
+<td><code>integer</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>NUMERIC</code></td>
+<td><code>decimal</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>BOOLEAN</code></td>
+<td><code>boolean</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>TIMESTAMP</code></td>
+<td><code>timestamp</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>JSONB</code></td>
+<td><code>json</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>TEXT[]</code></td>
+<td><code>list(text)</code></td>
+<td></td>
+</tr>
+<tr>
+<td><code>INTEGER REFERENCES</code></td>
+<td><code>ref(Entity)</code></td>
+<td>Drop <code>_id</code> suffix</td>
+</tr>
+<tr>
+<td><code>TEXT CHECK (...)</code></td>
+<td><code>enum(...)</code></td>
+<td>Extract values</td>
+</tr>
+<tr>
+<td><code>NULL</code></td>
+<td><code>field?</code></td>
+<td>Add <code>?</code> suffix</td>
+</tr>
+</tbody>
+</table>
+<h2 id="quick-commands">Quick Commands</h2>
+<pre><code class="language-bash"># Validate all entities
+specql validate entities/**/*.yaml
+
+# Generate schema
+specql generate entities/**/*.yaml
+
+# Check table codes
+specql check-codes entities/**/*.yaml
+
+# Compare with existing
+specql diff entities/contact.yaml --compare db/schema/10_tables/contact.sql
+
+# Generate docs
+specql docs entities/**/*.yaml
+</code></pre>
+<h2 id="common-errors">Common Errors</h2>
+<table>
+<thead>
+<tr>
+<th>Error</th>
+<th>Quick Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Unknown field type 'string'</code></td>
+<td>Use <code>text</code> instead</td>
+</tr>
+<tr>
+<td><code>Missing 'entity' key</code></td>
+<td>Use <code>entity:</code> not <code>import:</code></td>
+</tr>
+<tr>
+<td><code>Table code already assigned</code></td>
+<td><code>specql check-codes</code> to find duplicates</td>
+</tr>
+<tr>
+<td><code>Referenced entity not found</code></td>
+<td>Create referenced entity first</td>
+</tr>
+<tr>
+<td><code>Circular reference</code></td>
+<td>Make one reference nullable with <code>?</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="resources">Resources</h2>
+<ul>
+<li><strong>YAML Reference</strong>: <code>docs/reference/yaml-reference.md</code></li>
+<li><strong>CLI Reference</strong>: <code>docs/reference/cli-reference.md</code></li>
+<li><strong>Migration Guide</strong>: <code>docs/guides/migration-guide.md</code></li>
+<li><strong>Troubleshooting</strong>: <code>docs/guides/troubleshooting.md</code></li>
+<li><strong>Examples</strong>: <code>examples/entities/</code></li>
+</ul>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

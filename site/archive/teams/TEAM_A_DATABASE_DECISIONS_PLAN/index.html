@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team A: Database Decisions Implementation Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team A: Database Decisions Implementation Plan";
+        var mkdocs_page_input_path = "archive/teams/TEAM_A_DATABASE_DECISIONS_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team A: Database Decisions Implementation Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-a-database-decisions-implementation-plan">Team A: Database Decisions Implementation Plan</h1>
+<p><strong>Team</strong>: Parser &amp; AST
+<strong>Impact</strong>: LOW (validation only)
+<strong>Timeline</strong>: Week 1 (1-2 days)
+<strong>Status</strong>: 🔴 CRITICAL - Blocks Team B</p>
+<hr />
+<h2 id="overview">📋 Overview</h2>
+<p>Team A must add <strong>reserved field name validation</strong> to prevent users from defining fields that conflict with framework-generated columns.</p>
+<p><strong>Impact</strong>: Minimal code changes, but critical for data integrity</p>
+<hr />
+<h2 id="phase-1-reserved-field-name-validation">🎯 Phase 1: Reserved Field Name Validation</h2>
+<h3 id="objective-reject-user-defined-fields-that-conflict-with-framework"><strong>Objective</strong>: Reject user-defined fields that conflict with framework</h3>
+<h3 id="implementation"><strong>Implementation</strong></h3>
+<h4 id="step-1-define-reserved-names"><strong>Step 1: Define Reserved Names</strong></h4>
+<p><strong>File</strong>: <code>src/core/reserved_fields.py</code> (NEW)</p>
+<pre><code class="language-python">&quot;&quot;&quot;Reserved field names that cannot be used by end users.&quot;&quot;&quot;
+
+from typing import Set
+
+# Primary Keys &amp; Foreign Keys
+RESERVED_PK_FK = {
+    'id',                    # UUID external reference
+    'tenant_id',            # Multi-tenant reference
+}
+
+# Deduplication Fields
+RESERVED_DEDUPLICATION = {
+    'identifier',           # Base identifier
+    'sequence_number',      # Deduplication sequence
+    'display_identifier',   # Computed identifier with #n suffix
+}
+
+# Hierarchy Fields (for hierarchical entities)
+RESERVED_HIERARCHY = {
+    'path',                 # LTREE path (INTEGER-based)
+}
+
+# Audit Fields
+RESERVED_AUDIT = {
+    'created_at',
+    'created_by',
+    'updated_at',
+    'updated_by',
+    'deleted_at',
+    'deleted_by',
+}
+
+# Recalculation Audit
+RESERVED_RECALCULATION_AUDIT = {
+    'identifier_recalculated_at',
+    'identifier_recalculated_by',
+    'path_updated_at',
+    'path_updated_by',
+}
+
+# Combine all reserved names
+RESERVED_FIELD_NAMES: Set[str] = (
+    RESERVED_PK_FK
+    | RESERVED_DEDUPLICATION
+    | RESERVED_HIERARCHY
+    | RESERVED_AUDIT
+    | RESERVED_RECALCULATION_AUDIT
+)
+
+# Reserved prefixes (dynamic naming)
+RESERVED_PREFIXES = {
+    'pk_',    # Primary keys: pk_location, pk_contact, etc.
+    'fk_',    # Foreign keys: fk_parent_location, fk_company, etc.
+}
+
+def is_reserved_field_name(field_name: str) -&gt; bool:
+    &quot;&quot;&quot;Check if a field name is reserved by the framework.&quot;&quot;&quot;
+    # Check exact matches
+    if field_name in RESERVED_FIELD_NAMES:
+        return True
+
+    # Check prefixes
+    for prefix in RESERVED_PREFIXES:
+        if field_name.startswith(prefix):
+            return True
+
+    return False
+
+def get_reserved_field_error_message(field_name: str) -&gt; str:
+    &quot;&quot;&quot;Generate helpful error message for reserved field names.&quot;&quot;&quot;
+    return f&quot;&quot;&quot;
+Field name '{field_name}' is reserved by the framework.
+
+Reserved fields:
+  - Primary/Foreign Keys: id, pk_*, fk_*, tenant_id
+  - Deduplication: identifier, sequence_number, display_identifier
+  - Hierarchy: path, fk_parent_*
+  - Audit: created_at, updated_at, deleted_at, created_by, updated_by, deleted_by
+  - Recalculation: identifier_recalculated_at, path_updated_at, etc.
+
+Please choose a different field name.
+&quot;&quot;&quot;.strip()
+</code></pre>
+<hr />
+<h4 id="step-2-add-validation-to-parser"><strong>Step 2: Add Validation to Parser</strong></h4>
+<p><strong>File</strong>: <code>src/core/specql_parser.py</code></p>
+<pre><code class="language-python">from .reserved_fields import is_reserved_field_name, get_reserved_field_error_message
+from .exceptions import SpecQLValidationError
+
+class SpecQLParser:
+    def parse_fields(self, entity_name: str, fields_dict: dict) -&gt; list[FieldDefinition]:
+        &quot;&quot;&quot;Parse field definitions with reserved name validation.&quot;&quot;&quot;
+        parsed_fields = []
+
+        for field_name, field_config in fields_dict.items():
+            # VALIDATION: Check if field name is reserved
+            if is_reserved_field_name(field_name):
+                raise SpecQLValidationError(
+                    entity=entity_name,
+                    message=get_reserved_field_error_message(field_name)
+                )
+
+            # Parse field type
+            field_def = self._parse_field_definition(field_name, field_config)
+            parsed_fields.append(field_def)
+
+        return parsed_fields
+
+    def _parse_field_definition(self, name: str, config) -&gt; FieldDefinition:
+        &quot;&quot;&quot;Parse individual field definition.&quot;&quot;&quot;
+        # ... existing parsing logic
+</code></pre>
+<hr />
+<h4 id="step-3-add-custom-exception"><strong>Step 3: Add Custom Exception</strong></h4>
+<p><strong>File</strong>: <code>src/core/exceptions.py</code></p>
+<pre><code class="language-python">class SpecQLValidationError(Exception):
+    &quot;&quot;&quot;Raised when SpecQL validation fails.&quot;&quot;&quot;
+
+    def __init__(self, entity: str, message: str):
+        self.entity = entity
+        self.message = message
+        super().__init__(f&quot;Validation error in entity '{entity}': {message}&quot;)
+</code></pre>
+<hr />
+<h3 id="testing"><strong>Testing</strong></h3>
+<h4 id="file-testsunitcoretest_reserved_fieldspy-new"><strong>File</strong>: <code>tests/unit/core/test_reserved_fields.py</code> (NEW)</h4>
+<pre><code class="language-python">import pytest
+from src.core.specql_parser import SpecQLParser
+from src.core.exceptions import SpecQLValidationError
+
+class TestReservedFieldNames:
+    &quot;&quot;&quot;Test that reserved field names are properly rejected.&quot;&quot;&quot;
+
+    def setup_method(self):
+        self.parser = SpecQLParser()
+
+    def test_reserved_exact_match(self):
+        &quot;&quot;&quot;Test exact reserved field names are rejected.&quot;&quot;&quot;
+        reserved_names = [
+            'id', 'path', 'identifier', 'sequence_number',
+            'created_at', 'updated_at', 'deleted_at'
+        ]
+
+        for field_name in reserved_names:
+            yaml_content = f&quot;&quot;&quot;
+            entity: TestEntity
+            fields:
+              {field_name}: text
+            &quot;&quot;&quot;
+
+            with pytest.raises(SpecQLValidationError) as exc_info:
+                self.parser.parse_yaml(yaml_content)
+
+            assert field_name in str(exc_info.value)
+            assert &quot;reserved&quot; in str(exc_info.value).lower()
+
+    def test_reserved_prefix_pk(self):
+        &quot;&quot;&quot;Test pk_* prefix is rejected.&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: Location
+        fields:
+          pk_custom: integer
+        &quot;&quot;&quot;
+
+        with pytest.raises(SpecQLValidationError) as exc_info:
+            self.parser.parse_yaml(yaml_content)
+
+        assert 'pk_custom' in str(exc_info.value)
+        assert 'pk_*' in str(exc_info.value)
+
+    def test_reserved_prefix_fk(self):
+        &quot;&quot;&quot;Test fk_* prefix is rejected.&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: Location
+        fields:
+          fk_custom: integer
+        &quot;&quot;&quot;
+
+        with pytest.raises(SpecQLValidationError) as exc_info:
+            self.parser.parse_yaml(yaml_content)
+
+        assert 'fk_custom' in str(exc_info.value)
+
+    def test_tenant_id_reserved(self):
+        &quot;&quot;&quot;Test tenant_id is reserved.&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: Location
+        fields:
+          tenant_id: text
+        &quot;&quot;&quot;
+
+        with pytest.raises(SpecQLValidationError) as exc_info:
+            self.parser.parse_yaml(yaml_content)
+
+        assert 'tenant_id' in str(exc_info.value)
+
+    def test_non_reserved_allowed(self):
+        &quot;&quot;&quot;Test non-reserved field names are allowed.&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: Location
+        fields:
+          name: text
+          description: text
+          custom_field: integer
+        &quot;&quot;&quot;
+
+        # Should NOT raise
+        result = self.parser.parse_yaml(yaml_content)
+        assert result is not None
+        assert len(result.fields) == 3
+
+    def test_error_message_helpful(self):
+        &quot;&quot;&quot;Test error message is helpful to users.&quot;&quot;&quot;
+        yaml_content = &quot;&quot;&quot;
+        entity: Location
+        fields:
+          path: text
+        &quot;&quot;&quot;
+
+        with pytest.raises(SpecQLValidationError) as exc_info:
+            self.parser.parse_yaml(yaml_content)
+
+        error_msg = str(exc_info.value)
+
+        # Should contain helpful info
+        assert 'path' in error_msg
+        assert 'reserved' in error_msg.lower()
+        assert 'different field name' in error_msg.lower()
+
+        # Should list categories of reserved fields
+        assert 'Primary/Foreign Keys' in error_msg or 'pk_*' in error_msg
+        assert 'Audit' in error_msg or 'created_at' in error_msg
+</code></pre>
+<hr />
+<h3 id="acceptance-criteria"><strong>Acceptance Criteria</strong></h3>
+<ul>
+<li>[ ] Reserved names defined in <code>reserved_fields.py</code></li>
+<li>[ ] Validation added to <code>specql_parser.py</code></li>
+<li>[ ] Custom exception <code>SpecQLValidationError</code> created</li>
+<li>[ ] All tests pass (100% coverage on validation logic)</li>
+<li>[ ] Error messages are clear and helpful</li>
+</ul>
+<hr />
+<h2 id="impact-on-team-a">📊 Impact on Team A</h2>
+<h3 id="files-modified"><strong>Files Modified</strong></h3>
+<ul>
+<li><code>src/core/specql_parser.py</code> - Add validation call</li>
+<li><code>src/core/reserved_fields.py</code> - NEW file</li>
+<li><code>src/core/exceptions.py</code> - Add exception</li>
+<li><code>tests/unit/core/test_reserved_fields.py</code> - NEW file</li>
+</ul>
+<h3 id="effort-estimate"><strong>Effort Estimate</strong></h3>
+<ul>
+<li>Implementation: 2-3 hours</li>
+<li>Testing: 1-2 hours</li>
+<li><strong>Total</strong>: 0.5 days</li>
+</ul>
+<h3 id="dependencies"><strong>Dependencies</strong></h3>
+<ul>
+<li>None (Team A can start immediately)</li>
+</ul>
+<h3 id="blocks"><strong>Blocks</strong></h3>
+<ul>
+<li>Team B (cannot start until reserved names are enforced)</li>
+</ul>
+<hr />
+<h2 id="success-criteria">🎯 Success Criteria</h2>
+<ol>
+<li>✅ Users CANNOT define fields named: <code>id</code>, <code>path</code>, <code>identifier</code>, <code>created_at</code>, etc.</li>
+<li>✅ Users CANNOT define fields with prefixes: <code>pk_*</code>, <code>fk_*</code></li>
+<li>✅ Error messages clearly explain which fields are reserved</li>
+<li>✅ Error messages suggest alternatives</li>
+<li>✅ All tests pass with 100% coverage</li>
+</ol>
+<hr />
+<h2 id="rollout-plan">🚀 Rollout Plan</h2>
+<h3 id="phase-11-implementation-day-1-morning"><strong>Phase 1.1: Implementation</strong> (Day 1, Morning)</h3>
+<ol>
+<li>Create <code>reserved_fields.py</code> with all reserved names</li>
+<li>Add <code>is_reserved_field_name()</code> validation function</li>
+<li>Create <code>SpecQLValidationError</code> exception</li>
+</ol>
+<h3 id="phase-12-integration-day-1-afternoon"><strong>Phase 1.2: Integration</strong> (Day 1, Afternoon)</h3>
+<ol>
+<li>Add validation to <code>parse_fields()</code> method</li>
+<li>Test with example SpecQL files</li>
+<li>Ensure error messages are clear</li>
+</ol>
+<h3 id="phase-13-testing-day-2-morning"><strong>Phase 1.3: Testing</strong> (Day 2, Morning)</h3>
+<ol>
+<li>Write comprehensive test suite</li>
+<li>Test all reserved names</li>
+<li>Test reserved prefixes</li>
+<li>Test error message quality</li>
+</ol>
+<h3 id="phase-14-documentation-day-2-afternoon"><strong>Phase 1.4: Documentation</strong> (Day 2, Afternoon)</h3>
+<ol>
+<li>Update parser documentation</li>
+<li>Add examples of valid/invalid field names</li>
+<li>Document reserved field categories</li>
+</ol>
+<hr />
+<h2 id="example-usage">📝 Example Usage</h2>
+<h3 id="invalid-specql-should-fail"><strong>Invalid SpecQL (Should Fail)</strong></h3>
+<pre><code class="language-yaml"># ❌ BAD - Uses reserved field name
+entity: Location
+fields:
+  name: text
+  path: text  # ERROR: &quot;path&quot; is reserved!
+</code></pre>
+<p><strong>Error Output</strong>:</p>
+<pre><code>SpecQLValidationError: Validation error in entity 'Location':
+Field name 'path' is reserved by the framework.
+
+Reserved fields:
+  - Primary/Foreign Keys: id, pk_*, fk_*, tenant_id
+  - Deduplication: identifier, sequence_number, display_identifier
+  - Hierarchy: path, fk_parent_*
+  - Audit: created_at, updated_at, deleted_at, created_by, updated_by, deleted_by
+  - Recalculation: identifier_recalculated_at, path_updated_at, etc.
+
+Please choose a different field name.
+</code></pre>
+<h3 id="valid-specql-should-pass"><strong>Valid SpecQL (Should Pass)</strong></h3>
+<pre><code class="language-yaml"># ✅ GOOD - Uses non-reserved field names
+entity: Location
+fields:
+  name: text
+  description: text
+  location_type: ref(LocationType)
+  custom_metadata: jsonb
+</code></pre>
+<hr />
+<h2 id="related-documentation">🔗 Related Documentation</h2>
+<ul>
+<li><code>DATABASE_DECISIONS_FINAL.md</code> - Approved reserved field names</li>
+<li><code>DATABASE_ASSESSMENT_GAPS.md</code> - Context and rationale</li>
+<li>Team B Schema Generation Plan - Depends on this validation</li>
+</ul>
+<hr />
+<p><strong>Status</strong>: 🔴 READY TO START
+<strong>Priority</strong>: CRITICAL (blocks Team B)
+<strong>Effort</strong>: 0.5 days
+<strong>Dependencies</strong>: None</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

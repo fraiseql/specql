@@ -1,0 +1,1302 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team C: Action Compiler - Detailed Phased TDD Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team C: Action Compiler - Detailed Phased TDD Plan";
+        var mkdocs_page_input_path = "archive/teams/TEAM_C_DETAILED_PLAN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team C: Action Compiler - Detailed Phased TDD Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-c-action-compiler-detailed-phased-tdd-plan">Team C: Action Compiler - Detailed Phased TDD Plan</h1>
+<p><strong>Mission</strong>: Transform SpecQL action steps → Type-safe PL/pgSQL functions returning FraiseQL-compatible <code>mutation_result</code></p>
+<p><strong>Timeline</strong>: Week 3-4 (10 working days)</p>
+<p><strong>Overall Progress Target</strong>: Transform business logic DSL into production-ready PostgreSQL functions</p>
+<hr />
+<h2 id="executive-summary">🎯 Executive Summary</h2>
+<p>Team C converts business action steps from the AST into executable PL/pgSQL functions. We follow a disciplined phased TDD approach, building from simple validations to complex multi-step workflows with full FraiseQL integration.</p>
+<p><strong>Key Principles</strong>:
+- ✅ Type-safe metadata using PostgreSQL composite types
+- ✅ Full object returns (not deltas)
+- ✅ Trinity pattern resolution
+- ✅ Runtime impact tracking
+- ✅ FraiseQL-compatible responses</p>
+<p><strong>Dependencies</strong>:
+- <strong>Requires</strong>: Team A's AST (Week 1) ✅
+- <strong>Requires</strong>: Team B's schema + <code>mutation_metadata</code> types (Week 2)
+- <strong>Provides</strong>: PL/pgSQL functions for Team D to annotate (Week 5)</p>
+<hr />
+<h2 id="phase-1-function-scaffolding-basic-returns">📋 PHASE 1: Function Scaffolding &amp; Basic Returns</h2>
+<p><strong>Duration</strong>: Week 3, Days 1-2 (2 days)
+<strong>Objective</strong>: Generate basic PL/pgSQL function structure with simple <code>mutation_result</code> returns</p>
+<h3 id="red-phase-write-failing-tests">🔴 RED Phase: Write Failing Tests</h3>
+<p><strong>Test File</strong>: <code>tests/unit/actions/test_basic_scaffolding.py</code></p>
+<pre><code class="language-python">def test_generate_basic_function_signature():
+    &quot;&quot;&quot;Test: Generate function with correct signature&quot;&quot;&quot;
+    action = Action(
+        name=&quot;create_contact&quot;,
+        steps=[
+            ActionStep(type=&quot;insert&quot;, entity=&quot;Contact&quot;)
+        ]
+    )
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;, fields={...})
+
+    sql = ActionCompiler().compile_action(action, entity)
+
+    # Expected: function exists with proper signature
+    assert &quot;CREATE OR REPLACE FUNCTION crm.create_contact(&quot; in sql
+    assert &quot;RETURNS mutation_result AS $$&quot; in sql
+    assert &quot;LANGUAGE plpgsql&quot; in sql
+
+
+def test_generate_function_parameters():
+    &quot;&quot;&quot;Test: Generate parameters from field inputs&quot;&quot;&quot;
+    action = Action(name=&quot;create_contact&quot;, steps=[...])
+    entity = Entity(
+        name=&quot;Contact&quot;,
+        fields={
+            &quot;email&quot;: FieldDefinition(name=&quot;email&quot;, type=&quot;text&quot;),
+            &quot;company&quot;: FieldDefinition(name=&quot;company&quot;, type=&quot;ref&quot;, target_entity=&quot;Company&quot;)
+        }
+    )
+
+    sql = ActionCompiler().compile_action(action, entity)
+
+    # Expected: UUID parameters for ref fields, native types for others
+    assert &quot;p_email TEXT&quot; in sql
+    assert &quot;p_company_id UUID&quot; in sql
+    assert &quot;p_caller_id UUID DEFAULT NULL&quot; in sql  # Auto-added caller context
+
+
+def test_basic_success_response():
+    &quot;&quot;&quot;Test: Generate basic success response structure&quot;&quot;&quot;
+    action = Action(
+        name=&quot;create_contact&quot;,
+        steps=[ActionStep(type=&quot;insert&quot;, entity=&quot;Contact&quot;)]
+    )
+
+    sql = ActionCompiler().compile_action(action, entity)
+
+    # Expected: mutation_result structure
+    assert &quot;v_result mutation_result;&quot; in sql
+    assert &quot;v_result.status := 'success';&quot; in sql
+    assert &quot;v_result.message :=&quot; in sql
+    assert &quot;v_result.object_data :=&quot; in sql
+    assert &quot;RETURN v_result;&quot; in sql
+
+
+def test_trinity_resolution_for_update_action():
+    &quot;&quot;&quot;Test: Auto-generate Trinity resolution for actions needing pk&quot;&quot;&quot;
+    action = Action(
+        name=&quot;update_contact&quot;,
+        steps=[ActionStep(type=&quot;update&quot;, entity=&quot;Contact&quot;)]
+    )
+
+    sql = ActionCompiler().compile_action(action, entity)
+
+    # Expected: Trinity helper call
+    assert &quot;v_pk INTEGER;&quot; in sql
+    assert &quot;v_pk := crm.contact_pk(p_contact_id);&quot; in sql
+</code></pre>
+<p><strong>Run Tests</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/actions/test_basic_scaffolding.py -v
+# Expected: FAILED (not implemented)
+</code></pre>
+<h3 id="green-phase-minimal-implementation">🟢 GREEN Phase: Minimal Implementation</h3>
+<p><strong>Implementation File</strong>: <code>src/generators/actions/action_compiler.py</code></p>
+<pre><code class="language-python">from dataclasses import dataclass
+from typing import List
+from src.core.ast_models import Action, Entity, ActionStep
+
+@dataclass
+class ActionCompiler:
+    &quot;&quot;&quot;Compiles SpecQL actions to PL/pgSQL functions&quot;&quot;&quot;
+
+    def compile_action(self, action: Action, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate PL/pgSQL function from action definition&quot;&quot;&quot;
+        schema = entity.schema
+        function_name = f&quot;{schema}.{action.name}&quot;
+
+        # Generate parameters
+        params = self._generate_parameters(entity, action)
+
+        # Generate function body
+        body = self._generate_basic_body(action, entity)
+
+        return f&quot;&quot;&quot;
+CREATE OR REPLACE FUNCTION {function_name}(
+    {', '.join(params)}
+)
+RETURNS mutation_result AS $$
+DECLARE
+    v_result mutation_result;
+    {self._generate_declarations(action, entity)}
+BEGIN
+    {body}
+END;
+$$ LANGUAGE plpgsql;
+&quot;&quot;&quot;
+
+    def _generate_parameters(self, entity: Entity, action: Action) -&gt; List[str]:
+        &quot;&quot;&quot;Generate function parameters&quot;&quot;&quot;
+        params = []
+
+        # For update/delete actions, need entity ID
+        if self._needs_entity_id(action):
+            params.append(f&quot;p_{entity.name.lower()}_id UUID&quot;)
+
+        # For create/update, add field parameters
+        for field_name, field_def in entity.fields.items():
+            if field_def.type == &quot;ref&quot;:
+                params.append(f&quot;p_{field_name}_id UUID DEFAULT NULL&quot;)
+            else:
+                pg_type = self._map_type(field_def.type)
+                params.append(f&quot;p_{field_name} {pg_type} DEFAULT NULL&quot;)
+
+        # Always add caller context
+        params.append(&quot;p_caller_id UUID DEFAULT NULL&quot;)
+
+        return params
+
+    def _generate_declarations(self, action: Action, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate DECLARE block variables&quot;&quot;&quot;
+        declarations = []
+
+        if self._needs_entity_id(action):
+            declarations.append(&quot;v_pk INTEGER;&quot;)
+
+        return &quot;\n    &quot;.join(declarations)
+
+    def _generate_basic_body(self, action: Action, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate minimal function body&quot;&quot;&quot;
+        parts = []
+
+        # Trinity resolution if needed
+        if self._needs_entity_id(action):
+            parts.append(f&quot;v_pk := {entity.schema}.{entity.name.lower()}_pk(p_{entity.name.lower()}_id);&quot;)
+
+        # Basic success response
+        parts.append(&quot;&quot;&quot;
+    -- Basic success response
+    v_result.status := 'success';
+    v_result.message := 'Operation completed';
+    v_result.object_data := '{}'::jsonb;
+
+    RETURN v_result;
+&quot;&quot;&quot;)
+
+        return &quot;\n    &quot;.join(parts)
+
+    def _needs_entity_id(self, action: Action) -&gt; bool:
+        &quot;&quot;&quot;Check if action operates on existing entity&quot;&quot;&quot;
+        return any(
+            step.type in (&quot;update&quot;, &quot;delete&quot;, &quot;validate&quot;)
+            for step in action.steps
+        )
+
+    def _map_type(self, specql_type: str) -&gt; str:
+        &quot;&quot;&quot;Map SpecQL types to PostgreSQL types&quot;&quot;&quot;
+        mapping = {
+            &quot;text&quot;: &quot;TEXT&quot;,
+            &quot;integer&quot;: &quot;INTEGER&quot;,
+            &quot;boolean&quot;: &quot;BOOLEAN&quot;,
+            &quot;timestamp&quot;: &quot;TIMESTAMPTZ&quot;,
+            &quot;date&quot;: &quot;DATE&quot;,
+            &quot;jsonb&quot;: &quot;JSONB&quot;,
+            &quot;uuid&quot;: &quot;UUID&quot;
+        }
+        return mapping.get(specql_type, &quot;TEXT&quot;)
+</code></pre>
+<p><strong>Run Tests</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/actions/test_basic_scaffolding.py -v
+# Expected: PASSED
+</code></pre>
+<h3 id="refactor-phase-clean-up">🔧 REFACTOR Phase: Clean Up</h3>
+<p><strong>Improvements</strong>:
+1. Extract parameter generation to separate class
+2. Add type hints everywhere
+3. Improve readability with constants
+4. Add comprehensive docstrings</p>
+<pre><code class="language-python"># Refactored version
+from typing import List, Dict
+from enum import Enum
+
+class PostgreSQLType(Enum):
+    &quot;&quot;&quot;PostgreSQL type mappings&quot;&quot;&quot;
+    TEXT = &quot;TEXT&quot;
+    INTEGER = &quot;INTEGER&quot;
+    BOOLEAN = &quot;BOOLEAN&quot;
+    TIMESTAMPTZ = &quot;TIMESTAMPTZ&quot;
+    DATE = &quot;DATE&quot;
+    JSONB = &quot;JSONB&quot;
+    UUID = &quot;UUID&quot;
+
+class ParameterGenerator:
+    &quot;&quot;&quot;Generates function parameters from entity fields&quot;&quot;&quot;
+
+    def generate(self, entity: Entity, action: Action) -&gt; List[str]:
+        &quot;&quot;&quot;Generate list of parameter declarations&quot;&quot;&quot;
+        params = []
+
+        if self._requires_entity_id(action):
+            params.append(self._entity_id_param(entity))
+
+        params.extend(self._field_params(entity))
+        params.append(self._caller_context_param())
+
+        return params
+
+    def _entity_id_param(self, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate entity ID parameter for update/delete&quot;&quot;&quot;
+        return f&quot;p_{entity.name.lower()}_id UUID&quot;
+
+    def _field_params(self, entity: Entity) -&gt; List[str]:
+        &quot;&quot;&quot;Generate parameters for entity fields&quot;&quot;&quot;
+        # ... implementation
+
+    def _caller_context_param(self) -&gt; str:
+        &quot;&quot;&quot;Generate caller context parameter (always added)&quot;&quot;&quot;
+        return &quot;p_caller_id UUID DEFAULT NULL&quot;
+</code></pre>
+<p><strong>Run Tests Again</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/actions/ -v
+# Expected: All PASSED
+</code></pre>
+<h3 id="qa-phase-quality-verification">✅ QA Phase: Quality Verification</h3>
+<pre><code class="language-bash"># Full test suite
+uv run pytest --tb=short
+
+# Type checking
+uv run mypy src/generators/actions/
+
+# Linting
+uv run ruff check src/generators/actions/
+
+# Coverage
+uv run pytest --cov=src/generators/actions/ --cov-report=term-missing
+# Target: 90%+ coverage
+</code></pre>
+<p><strong>Acceptance Criteria</strong>:
+- ✅ Generates valid PL/pgSQL function signatures
+- ✅ Includes correct parameters based on entity fields
+- ✅ Returns <code>mutation_result</code> type
+- ✅ Includes Trinity resolution when needed
+- ✅ All tests pass
+- ✅ 90%+ code coverage</p>
+<hr />
+<h2 id="phase-2-validation-step-compilation">📋 PHASE 2: Validation Step Compilation</h2>
+<p><strong>Duration</strong>: Week 3, Days 3-4 (2 days)
+<strong>Objective</strong>: Compile <code>validate:</code> steps into PL/pgSQL validation logic with proper error handling</p>
+<h3 id="red-phase-write-failing-tests_1">🔴 RED Phase: Write Failing Tests</h3>
+<p><strong>Test File</strong>: <code>tests/unit/actions/test_validation_steps.py</code></p>
+<pre><code class="language-python">def test_simple_equality_validation():
+    &quot;&quot;&quot;Test: Compile simple equality validation&quot;&quot;&quot;
+    step = ActionStep(
+        type=&quot;validate&quot;,
+        expression=&quot;status = 'lead'&quot;,
+        error=&quot;not_a_lead&quot;
+    )
+
+    sql = ValidationStepCompiler().compile(step, entity)
+
+    # Expected: IF NOT validation THEN error response
+    assert &quot;IF NOT (status = 'lead') THEN&quot; in sql
+    assert &quot;v_result.status := 'error';&quot; in sql
+    assert &quot;v_result.message := 'not_a_lead';&quot; in sql
+    assert &quot;RETURN v_result;&quot; in sql
+
+
+def test_null_check_validation():
+    &quot;&quot;&quot;Test: Compile NULL validation&quot;&quot;&quot;
+    step = ActionStep(
+        type=&quot;validate&quot;,
+        expression=&quot;email IS NOT NULL&quot;,
+        error=&quot;email_required&quot;
+    )
+
+    sql = ValidationStepCompiler().compile(step, entity)
+
+    assert &quot;IF NOT (email IS NOT NULL) THEN&quot; in sql
+    assert &quot;'email_required'&quot; in sql
+
+
+def test_pattern_match_validation():
+    &quot;&quot;&quot;Test: Compile regex pattern validation&quot;&quot;&quot;
+    step = ActionStep(
+        type=&quot;validate&quot;,
+        expression=&quot;email MATCHES email_pattern&quot;,
+        error=&quot;invalid_email&quot;
+    )
+
+    sql = ValidationStepCompiler().compile(step, entity)
+
+    # Expected: PostgreSQL regex operator
+    assert &quot;IF NOT (email ~ '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}') THEN&quot; in sql
+
+
+def test_exists_query_validation():
+    &quot;&quot;&quot;Test: Compile EXISTS subquery validation&quot;&quot;&quot;
+    step = ActionStep(
+        type=&quot;validate&quot;,
+        expression=&quot;NOT EXISTS Contact WHERE email = input.email&quot;,
+        error=&quot;duplicate_email&quot;
+    )
+
+    sql = ValidationStepCompiler().compile(step, entity)
+
+    # Expected: Subquery in validation
+    assert &quot;IF NOT (NOT EXISTS (SELECT 1 FROM crm.tb_contact&quot; in sql
+    assert &quot;WHERE email = p_email&quot; in sql
+</code></pre>
+<p><strong>Run Tests</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/actions/test_validation_steps.py -v
+# Expected: FAILED (not implemented)
+</code></pre>
+<h3 id="green-phase-minimal-implementation_1">🟢 GREEN Phase: Minimal Implementation</h3>
+<p><strong>Implementation File</strong>: <code>src/generators/actions/validation_step_compiler.py</code></p>
+<pre><code class="language-python">import re
+from dataclasses import dataclass
+from src.core.ast_models import ActionStep, Entity
+
+@dataclass
+class ValidationStepCompiler:
+    &quot;&quot;&quot;Compiles validation steps to PL/pgSQL&quot;&quot;&quot;
+
+    def compile(self, step: ActionStep, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate validation SQL from step&quot;&quot;&quot;
+        expression = step.expression
+        error_code = step.error
+
+        # Transform expression to SQL
+        sql_expr = self._transform_expression(expression, entity)
+
+        return f&quot;&quot;&quot;
+    -- Validation: {expression}
+    IF NOT ({sql_expr}) THEN
+        v_result.status := 'error';
+        v_result.message := '{error_code}';
+        v_result.object_data := '{{}}'::jsonb;
+        RETURN v_result;
+    END IF;
+&quot;&quot;&quot;
+
+    def _transform_expression(self, expr: str, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Transform SpecQL expression to PostgreSQL SQL&quot;&quot;&quot;
+
+        # Handle MATCHES (regex)
+        if &quot;MATCHES&quot; in expr:
+            return self._transform_pattern_match(expr)
+
+        # Handle EXISTS
+        if &quot;EXISTS&quot; in expr:
+            return self._transform_exists(expr, entity)
+
+        # Handle field references (replace with parameter names)
+        expr = self._replace_field_refs(expr, entity)
+
+        return expr
+
+    def _transform_pattern_match(self, expr: str) -&gt; str:
+        &quot;&quot;&quot;Transform MATCHES to PostgreSQL regex operator&quot;&quot;&quot;
+        # Example: &quot;email MATCHES email_pattern&quot; → &quot;email ~ '[pattern]'&quot;
+        match = re.match(r&quot;(\w+)\s+MATCHES\s+(\w+)&quot;, expr)
+        if match:
+            field, pattern_name = match.groups()
+            pattern = self._get_pattern(pattern_name)
+            return f&quot;{field} ~ '{pattern}'&quot;
+        return expr
+
+    def _transform_exists(self, expr: str, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Transform EXISTS query to PostgreSQL&quot;&quot;&quot;
+        # Example: &quot;NOT EXISTS Contact WHERE email = input.email&quot;
+        # → &quot;NOT EXISTS (SELECT 1 FROM crm.tb_contact WHERE email = p_email)&quot;
+
+        match = re.match(r&quot;(NOT\s+)?EXISTS\s+(\w+)\s+WHERE\s+(.+)&quot;, expr)
+        if match:
+            not_clause, entity_name, where = match.groups()
+            not_clause = not_clause or &quot;&quot;
+
+            # Get table name
+            table = f&quot;{entity.schema}.tb_{entity_name.lower()}&quot;
+
+            # Transform WHERE clause
+            where_sql = self._transform_expression(where, entity)
+
+            return f&quot;{not_clause}EXISTS (SELECT 1 FROM {table} WHERE {where_sql})&quot;
+
+        return expr
+
+    def _replace_field_refs(self, expr: str, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Replace field references with parameter names&quot;&quot;&quot;
+        # Replace &quot;input.field&quot; with &quot;p_field&quot;
+        expr = re.sub(r&quot;input\.(\w+)&quot;, r&quot;p_\1&quot;, expr)
+
+        # Replace bare field names with parameters
+        for field_name in entity.fields.keys():
+            expr = re.sub(rf&quot;\b{field_name}\b&quot;, f&quot;p_{field_name}&quot;, expr)
+
+        return expr
+
+    def _get_pattern(self, pattern_name: str) -&gt; str:
+        &quot;&quot;&quot;Get regex pattern by name&quot;&quot;&quot;
+        patterns = {
+            &quot;email_pattern&quot;: r&quot;[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}&quot;,
+            &quot;phone_pattern&quot;: r&quot;^\+?[1-9]\d{1,14}$&quot;
+        }
+        return patterns.get(pattern_name, &quot;.*&quot;)
+</code></pre>
+<p><strong>Run Tests</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/actions/test_validation_steps.py -v
+# Expected: PASSED
+</code></pre>
+<h3 id="refactor-phase-expression-parser">🔧 REFACTOR Phase: Expression Parser</h3>
+<p>Extract expression transformation into proper parser:</p>
+<pre><code class="language-python">class ExpressionParser:
+    &quot;&quot;&quot;Parses and transforms SpecQL expressions to PostgreSQL SQL&quot;&quot;&quot;
+
+    def __init__(self, entity: Entity):
+        self.entity = entity
+
+    def parse(self, expr: str) -&gt; str:
+        &quot;&quot;&quot;Parse SpecQL expression to SQL&quot;&quot;&quot;
+        # Use proper parser pattern
+        if self._is_pattern_match(expr):
+            return self._parse_pattern_match(expr)
+
+        if self._is_exists_query(expr):
+            return self._parse_exists_query(expr)
+
+        if self._is_comparison(expr):
+            return self._parse_comparison(expr)
+
+        return self._replace_identifiers(expr)
+
+    # ... cleaner implementation with better separation
+</code></pre>
+<h3 id="qa-phase">✅ QA Phase</h3>
+<pre><code class="language-bash">uv run pytest tests/unit/actions/test_validation_steps.py -v --tb=short
+uv run mypy src/generators/actions/validation_step_compiler.py
+uv run ruff check src/generators/actions/
+</code></pre>
+<p><strong>Acceptance Criteria</strong>:
+- ✅ Simple validations (equality, NULL checks)
+- ✅ Pattern matching (MATCHES → regex)
+- ✅ EXISTS queries
+- ✅ Error responses with correct format
+- ✅ All tests pass</p>
+<hr />
+<h2 id="phase-3-insertupdatedelete-operations">📋 PHASE 3: Insert/Update/Delete Operations</h2>
+<p><strong>Duration</strong>: Week 3, Day 5 - Week 4, Day 1 (2 days)
+<strong>Objective</strong>: Compile database operations with full object returns</p>
+<h3 id="red-phase">🔴 RED Phase</h3>
+<p><strong>Test File</strong>: <code>tests/unit/actions/test_database_operations.py</code></p>
+<pre><code class="language-python">def test_insert_operation():
+    &quot;&quot;&quot;Test: Generate INSERT statement with RETURNING&quot;&quot;&quot;
+    step = ActionStep(type=&quot;insert&quot;, entity=&quot;Contact&quot;)
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;, fields={...})
+
+    sql = DatabaseOperationCompiler().compile(step, entity)
+
+    # Expected: INSERT with all fields + RETURNING
+    assert &quot;INSERT INTO crm.tb_contact&quot; in sql
+    assert &quot;email, fk_company, status&quot; in sql
+    assert &quot;p_email, crm.company_pk(p_company_id), p_status&quot; in sql
+    assert &quot;RETURNING pk_contact INTO v_pk&quot; in sql
+
+
+def test_update_operation_with_audit():
+    &quot;&quot;&quot;Test: Generate UPDATE with auto-audit fields&quot;&quot;&quot;
+    step = ActionStep(
+        type=&quot;update&quot;,
+        entity=&quot;Contact&quot;,
+        fields={&quot;status&quot;: &quot;qualified&quot;}
+    )
+
+    sql = DatabaseOperationCompiler().compile(step, entity)
+
+    # Expected: UPDATE with audit fields
+    assert &quot;UPDATE crm.tb_contact&quot; in sql
+    assert &quot;SET status = 'qualified'&quot; in sql
+    assert &quot;updated_at = now()&quot; in sql
+    assert &quot;updated_by = p_caller_id&quot; in sql
+    assert &quot;WHERE pk_contact = v_pk&quot; in sql
+
+
+def test_full_object_return_with_relationships():
+    &quot;&quot;&quot;Test: Generate full object query with relationships&quot;&quot;&quot;
+    step = ActionStep(type=&quot;insert&quot;, entity=&quot;Contact&quot;)
+    impact = ActionImpact(
+        primary=EntityImpact(
+            entity=&quot;Contact&quot;,
+            include_relations=[&quot;company&quot;]
+        )
+    )
+
+    sql = DatabaseOperationCompiler().generate_object_return(step, entity, impact)
+
+    # Expected: Full object with company relationship
+    assert &quot;SELECT jsonb_build_object(&quot; in sql
+    assert &quot;'__typename', 'Contact'&quot; in sql
+    assert &quot;'id', c.id&quot; in sql
+    assert &quot;'email', c.email&quot; in sql
+    assert &quot;'company', jsonb_build_object(&quot; in sql
+    assert &quot;'__typename', 'Company'&quot; in sql
+    assert &quot;LEFT JOIN management.tb_company co ON co.pk_company = c.fk_company&quot; in sql
+</code></pre>
+<h3 id="green-phase">🟢 GREEN Phase</h3>
+<pre><code class="language-python">class DatabaseOperationCompiler:
+    &quot;&quot;&quot;Compiles database operation steps&quot;&quot;&quot;
+
+    def compile_insert(self, step: ActionStep, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate INSERT statement&quot;&quot;&quot;
+        table = entity.get_table_name()
+
+        # Get field columns (exclude Trinity pattern fields - auto-generated)
+        field_cols = []
+        field_vals = []
+
+        for field_name, field_def in entity.fields.items():
+            col_name = f&quot;fk_{field_name}&quot; if field_def.type == &quot;ref&quot; else field_name
+            field_cols.append(col_name)
+
+            if field_def.type == &quot;ref&quot;:
+                # Resolve ref to pk
+                target = field_def.target_entity
+                field_vals.append(f&quot;{entity.schema}.{target.lower()}_pk(p_{field_name}_id)&quot;)
+            else:
+                field_vals.append(f&quot;p_{field_name}&quot;)
+
+        # Add audit fields
+        field_cols.extend([&quot;created_at&quot;, &quot;created_by&quot;])
+        field_vals.extend([&quot;now()&quot;, &quot;p_caller_id&quot;])
+
+        return f&quot;&quot;&quot;
+    -- Insert {entity.name}
+    INSERT INTO {entity.schema}.{table} (
+        {', '.join(field_cols)}
+    ) VALUES (
+        {', '.join(field_vals)}
+    ) RETURNING pk_{entity.name.lower()} INTO v_pk;
+&quot;&quot;&quot;
+
+    def compile_update(self, step: ActionStep, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate UPDATE statement&quot;&quot;&quot;
+        set_clauses = []
+
+        # User-specified fields
+        for field_name, value in (step.fields or {}).items():
+            set_clauses.append(f&quot;{field_name} = {self._format_value(value)}&quot;)
+
+        # Auto-audit fields
+        set_clauses.extend([
+            &quot;updated_at = now()&quot;,
+            &quot;updated_by = p_caller_id&quot;
+        ])
+
+        return f&quot;&quot;&quot;
+    -- Update {entity.name}
+    UPDATE {entity.schema}.{entity.get_table_name()}
+    SET {', '.join(set_clauses)}
+    WHERE pk_{entity.name.lower()} = v_pk;
+&quot;&quot;&quot;
+
+    def generate_object_return(
+        self,
+        step: ActionStep,
+        entity: Entity,
+        impact: Optional[ActionImpact] = None
+    ) -&gt; str:
+        &quot;&quot;&quot;Generate full object return with relationships&quot;&quot;&quot;
+
+        # Build field list
+        fields = []
+        joins = []
+
+        # __typename (for Apollo cache)
+        fields.append(f&quot;'__typename', '{entity.name}'&quot;)
+
+        # Primary fields
+        for field_name, field_def in entity.fields.items():
+            if field_def.type == &quot;ref&quot;:
+                # Handle relationship
+                if impact and field_name in (impact.primary.include_relations or []):
+                    target = field_def.target_entity
+                    fields.append(f&quot;'{field_name}', {self._build_relation_object(field_name, target)}&quot;)
+                    joins.append(self._build_join(field_name, target, entity))
+                else:
+                    # Just include ID
+                    fields.append(f&quot;'{field_name}Id', c.fk_{field_name}&quot;)
+            else:
+                # Regular field
+                camel_name = self._to_camel(field_name)
+                fields.append(f&quot;'{camel_name}', c.{field_name}&quot;)
+
+        # Build query
+        join_sql = &quot;\n    &quot;.join(joins) if joins else &quot;&quot;
+
+        return f&quot;&quot;&quot;
+    -- Return full {entity.name} object
+    v_result.object_data := (
+        SELECT jsonb_build_object(
+            {',\n            '.join(fields)}
+        )
+        FROM {entity.schema}.{entity.get_table_name()} c
+        {join_sql}
+        WHERE c.pk_{entity.name.lower()} = v_pk
+    );
+&quot;&quot;&quot;
+</code></pre>
+<h3 id="refactor-phase">🔧 REFACTOR Phase</h3>
+<p>Extract to cleaner service:</p>
+<pre><code class="language-python">class ObjectBuilder:
+    &quot;&quot;&quot;Builds full GraphQL-compatible object responses&quot;&quot;&quot;
+
+    def build_object_query(
+        self,
+        entity: Entity,
+        include_relations: List[str] = None
+    ) -&gt; str:
+        &quot;&quot;&quot;Build SELECT query for full object&quot;&quot;&quot;
+        # Proper builder pattern with better organization
+</code></pre>
+<h3 id="qa-phase_1">✅ QA Phase</h3>
+<pre><code class="language-bash">uv run pytest tests/unit/actions/test_database_operations.py -v
+uv run pytest --cov=src/generators/actions/
+</code></pre>
+<p><strong>Acceptance Criteria</strong>:
+- ✅ INSERT with RETURNING
+- ✅ UPDATE with audit fields
+- ✅ Full object returns (not deltas)
+- ✅ Relationship inclusion
+- ✅ <code>__typename</code> for cache normalization</p>
+<hr />
+<h2 id="phase-4-conditional-logic-ifthenelse-switch">📋 PHASE 4: Conditional Logic (if/then/else, switch)</h2>
+<p><strong>Duration</strong>: Week 4, Days 2-3 (2 days)
+<strong>Objective</strong>: Compile conditional steps into PL/pgSQL control flow</p>
+<h3 id="red-phase_1">🔴 RED Phase</h3>
+<pre><code class="language-python">def test_if_then_simple():
+    &quot;&quot;&quot;Test: Compile simple if/then&quot;&quot;&quot;
+    step = ActionStep(
+        type=&quot;if&quot;,
+        condition=&quot;status = 'lead'&quot;,
+        then_steps=[
+            ActionStep(type=&quot;update&quot;, entity=&quot;Contact&quot;, fields={&quot;status&quot;: &quot;qualified&quot;})
+        ]
+    )
+
+    sql = ConditionalCompiler().compile(step, entity)
+
+    assert &quot;IF (status = 'lead') THEN&quot; in sql
+    assert &quot;UPDATE crm.tb_contact&quot; in sql
+    assert &quot;END IF;&quot; in sql
+
+
+def test_if_then_else():
+    &quot;&quot;&quot;Test: Compile if/then/else&quot;&quot;&quot;
+    step = ActionStep(
+        type=&quot;if&quot;,
+        condition=&quot;lead_score &gt;= 70&quot;,
+        then_steps=[ActionStep(type=&quot;update&quot;, fields={&quot;status&quot;: &quot;qualified&quot;})],
+        else_steps=[ActionStep(type=&quot;update&quot;, fields={&quot;status&quot;: &quot;nurture&quot;})]
+    )
+
+    sql = ConditionalCompiler().compile(step, entity)
+
+    assert &quot;IF (lead_score &gt;= 70) THEN&quot; in sql
+    assert &quot;ELSE&quot; in sql
+    assert &quot;END IF;&quot; in sql
+
+
+def test_switch_statement():
+    &quot;&quot;&quot;Test: Compile switch/case&quot;&quot;&quot;
+    step = ActionStep(
+        type=&quot;switch&quot;,
+        expression=&quot;source_type&quot;,
+        cases={
+            &quot;Product&quot;: [ActionStep(type=&quot;insert&quot;, ...)],
+            &quot;ContractItem&quot;: [ActionStep(type=&quot;call&quot;, ...)]
+        }
+    )
+
+    sql = ConditionalCompiler().compile(step, entity)
+
+    assert &quot;CASE source_type&quot; in sql
+    assert &quot;WHEN 'Product' THEN&quot; in sql
+    assert &quot;WHEN 'ContractItem' THEN&quot; in sql
+    assert &quot;END CASE;&quot; in sql
+</code></pre>
+<h3 id="green-phase_1">🟢 GREEN Phase</h3>
+<pre><code class="language-python">class ConditionalCompiler:
+    &quot;&quot;&quot;Compiles conditional control flow&quot;&quot;&quot;
+
+    def compile(self, step: ActionStep, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Compile conditional step&quot;&quot;&quot;
+        if step.type == &quot;if&quot;:
+            return self._compile_if(step, entity)
+        elif step.type == &quot;switch&quot;:
+            return self._compile_switch(step, entity)
+        return &quot;&quot;
+
+    def _compile_if(self, step: ActionStep, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Compile if/then/else&quot;&quot;&quot;
+        condition = ExpressionParser(entity).parse(step.condition)
+
+        then_body = self._compile_steps(step.then_steps, entity)
+        else_body = self._compile_steps(step.else_steps, entity) if step.else_steps else &quot;&quot;
+
+        sql = f&quot;&quot;&quot;
+    IF ({condition}) THEN
+        {then_body}
+&quot;&quot;&quot;
+        if else_body:
+            sql += f&quot;&quot;&quot;
+    ELSE
+        {else_body}
+&quot;&quot;&quot;
+        sql += &quot;&quot;&quot;
+    END IF;
+&quot;&quot;&quot;
+        return sql
+
+    def _compile_switch(self, step: ActionStep, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Compile switch/case&quot;&quot;&quot;
+        expr = step.expression
+
+        cases = []
+        for value, case_steps in step.cases.items():
+            body = self._compile_steps(case_steps, entity)
+            cases.append(f&quot;&quot;&quot;
+        WHEN '{value}' THEN
+            {body}
+&quot;&quot;&quot;)
+
+        return f&quot;&quot;&quot;
+    CASE {expr}
+        {'\n'.join(cases)}
+    END CASE;
+&quot;&quot;&quot;
+
+    def _compile_steps(self, steps: List[ActionStep], entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Compile list of steps&quot;&quot;&quot;
+        # Recursive compilation
+        compiled = []
+        for step in steps:
+            if step.type == &quot;validate&quot;:
+                compiled.append(ValidationStepCompiler().compile(step, entity))
+            elif step.type in (&quot;insert&quot;, &quot;update&quot;, &quot;delete&quot;):
+                compiled.append(DatabaseOperationCompiler().compile(step, entity))
+            elif step.type in (&quot;if&quot;, &quot;switch&quot;):
+                compiled.append(self.compile(step, entity))
+        return &quot;\n&quot;.join(compiled)
+</code></pre>
+<h3 id="qa-phase_2">✅ QA Phase</h3>
+<p><strong>Acceptance Criteria</strong>:
+- ✅ if/then/else compilation
+- ✅ Nested conditionals
+- ✅ switch/case statements
+- ✅ Proper indentation</p>
+<hr />
+<h2 id="phase-5-impact-metadata-with-composite-types">📋 PHASE 5: Impact Metadata with Composite Types</h2>
+<p><strong>Duration</strong>: Week 4, Days 4-5 (2 days)
+<strong>Objective</strong>: Generate type-safe impact metadata using PostgreSQL composite types</p>
+<h3 id="red-phase_2">🔴 RED Phase</h3>
+<pre><code class="language-python">def test_impact_metadata_declaration():
+    &quot;&quot;&quot;Test: Declare impact metadata variable&quot;&quot;&quot;
+    action = Action(
+        name=&quot;qualify_lead&quot;,
+        impact=ActionImpact(
+            primary=EntityImpact(entity=&quot;Contact&quot;, operation=&quot;UPDATE&quot;)
+        )
+    )
+
+    sql = ImpactMetadataCompiler().compile(action, entity)
+
+    # Expected: Type-safe declaration
+    assert &quot;v_meta mutation_metadata.mutation_impact_metadata;&quot; in sql
+
+
+def test_primary_impact_construction():
+    &quot;&quot;&quot;Test: Build primary entity impact&quot;&quot;&quot;
+    impact = ActionImpact(
+        primary=EntityImpact(
+            entity=&quot;Contact&quot;,
+            operation=&quot;UPDATE&quot;,
+            fields=[&quot;status&quot;, &quot;updated_at&quot;]
+        )
+    )
+
+    sql = ImpactMetadataCompiler().build_primary_impact(impact)
+
+    # Expected: ROW constructor with type cast
+    assert &quot;v_meta.primary_entity := ROW(&quot; in sql
+    assert &quot;'Contact'&quot; in sql
+    assert &quot;'UPDATE'&quot; in sql
+    assert &quot;ARRAY['status', 'updated_at']&quot; in sql
+    assert &quot;)::mutation_metadata.entity_impact;&quot; in sql
+
+
+def test_side_effects_array():
+    &quot;&quot;&quot;Test: Build side effects array&quot;&quot;&quot;
+    impact = ActionImpact(
+        side_effects=[
+            EntityImpact(entity=&quot;Notification&quot;, operation=&quot;CREATE&quot;, fields=[&quot;id&quot;, &quot;message&quot;])
+        ]
+    )
+
+    sql = ImpactMetadataCompiler().build_side_effects(impact)
+
+    # Expected: Array of entity_impact
+    assert &quot;v_meta.actual_side_effects := ARRAY[&quot; in sql
+    assert &quot;ROW(&quot; in sql
+    assert &quot;'Notification'&quot; in sql
+    assert &quot;'CREATE'&quot; in sql
+    assert &quot;::mutation_metadata.entity_impact&quot; in sql
+
+
+def test_cache_invalidations():
+    &quot;&quot;&quot;Test: Build cache invalidation array&quot;&quot;&quot;
+    impact = ActionImpact(
+        cache_invalidations=[
+            CacheInvalidation(
+                query=&quot;contacts&quot;,
+                filter={&quot;status&quot;: &quot;lead&quot;},
+                strategy=&quot;REFETCH&quot;,
+                reason=&quot;Contact removed from lead list&quot;
+            )
+        ]
+    )
+
+    sql = ImpactMetadataCompiler().build_cache_invalidations(impact)
+
+    # Expected: Array of cache_invalidation composite type
+    assert &quot;v_meta.cache_invalidations := ARRAY[&quot; in sql
+    assert &quot;ROW(&quot; in sql
+    assert &quot;'contacts'&quot; in sql
+    assert '\'{&quot;status&quot;: &quot;lead&quot;}\'::jsonb' in sql
+    assert &quot;'REFETCH'&quot; in sql
+    assert &quot;::mutation_metadata.cache_invalidation&quot; in sql
+
+
+def test_full_metadata_integration():
+    &quot;&quot;&quot;Test: Full metadata in extra_metadata field&quot;&quot;&quot;
+    action = Action(
+        name=&quot;qualify_lead&quot;,
+        impact=ActionImpact(
+            primary=EntityImpact(entity=&quot;Contact&quot;, operation=&quot;UPDATE&quot;),
+            side_effects=[...],
+            cache_invalidations=[...]
+        )
+    )
+
+    sql = ActionCompiler().compile_action(action, entity)
+
+    # Expected: _meta in extra_metadata
+    assert &quot;v_result.extra_metadata := jsonb_build_object(&quot; in sql
+    assert &quot;'_meta', to_jsonb(v_meta)&quot; in sql
+</code></pre>
+<h3 id="green-phase_2">🟢 GREEN Phase</h3>
+<pre><code class="language-python">class ImpactMetadataCompiler:
+    &quot;&quot;&quot;Compiles impact metadata using composite types&quot;&quot;&quot;
+
+    def compile(self, action: Action, entity: Entity) -&gt; str:
+        &quot;&quot;&quot;Generate impact metadata construction&quot;&quot;&quot;
+        if not action.impact:
+            return &quot;&quot;
+
+        impact = action.impact
+
+        parts = []
+
+        # Primary entity
+        parts.append(self.build_primary_impact(impact))
+
+        # Side effects
+        if impact.side_effects:
+            parts.append(self.build_side_effects(impact))
+
+        # Cache invalidations
+        if impact.cache_invalidations:
+            parts.append(self.build_cache_invalidations(impact))
+
+        return &quot;\n    &quot;.join(parts)
+
+    def build_primary_impact(self, impact: ActionImpact) -&gt; str:
+        &quot;&quot;&quot;Build primary entity impact (type-safe)&quot;&quot;&quot;
+        primary = impact.primary
+
+        return f&quot;&quot;&quot;
+    -- Build primary entity impact (type-safe)
+    v_meta.primary_entity := ROW(
+        '{primary.entity}',                          -- entity_type
+        '{primary.operation}',                       -- operation
+        ARRAY{primary.fields}::TEXT[]                -- modified_fields
+    )::mutation_metadata.entity_impact;
+&quot;&quot;&quot;
+
+    def build_side_effects(self, impact: ActionImpact) -&gt; str:
+        &quot;&quot;&quot;Build side effects array&quot;&quot;&quot;
+        rows = []
+
+        for effect in impact.side_effects:
+            rows.append(f&quot;&quot;&quot;
+        ROW(
+            '{effect.entity}',
+            '{effect.operation}',
+            ARRAY{effect.fields}::TEXT[]
+        )::mutation_metadata.entity_impact
+&quot;&quot;&quot;)
+
+        return f&quot;&quot;&quot;
+    -- Build side effects array
+    v_meta.actual_side_effects := ARRAY[
+        {','.join(rows)}
+    ];
+&quot;&quot;&quot;
+
+    def build_cache_invalidations(self, impact: ActionImpact) -&gt; str:
+        &quot;&quot;&quot;Build cache invalidation array&quot;&quot;&quot;
+        rows = []
+
+        for inv in impact.cache_invalidations:
+            filter_json = json.dumps(inv.filter) if inv.filter else &quot;null&quot;
+
+            rows.append(f&quot;&quot;&quot;
+        ROW(
+            '{inv.query}',                      -- query_name
+            '{filter_json}'::jsonb,             -- filter_json
+            '{inv.strategy}',                   -- strategy
+            '{inv.reason}'                      -- reason
+        )::mutation_metadata.cache_invalidation
+&quot;&quot;&quot;)
+
+        return f&quot;&quot;&quot;
+    -- Build cache invalidations
+    v_meta.cache_invalidations := ARRAY[
+        {','.join(rows)}
+    ];
+&quot;&quot;&quot;
+
+    def integrate_into_result(self, action: Action) -&gt; str:
+        &quot;&quot;&quot;Integrate metadata into mutation_result.extra_metadata&quot;&quot;&quot;
+        if not action.impact:
+            return &quot;v_result.extra_metadata := '{}'::jsonb;&quot;
+
+        # Build extra_metadata with side effects + _meta
+        parts = []
+
+        # Side effect collections (e.g., createdNotifications)
+        for effect in action.impact.side_effects:
+            if effect.collection:
+                parts.append(f&quot;'{effect.collection}', {self._build_collection_query(effect)}&quot;)
+
+        # Add _meta
+        parts.append(&quot;'_meta', to_jsonb(v_meta)&quot;)
+
+        return f&quot;&quot;&quot;
+    v_result.extra_metadata := jsonb_build_object(
+        {',\n        '.join(parts)}
+    );
+&quot;&quot;&quot;
+</code></pre>
+<h3 id="refactor-phase_1">🔧 REFACTOR Phase</h3>
+<p>Clean up with better type safety:</p>
+<pre><code class="language-python">from typing import TypedDict
+
+class CompositeTypeBuilder:
+    &quot;&quot;&quot;Type-safe builder for PostgreSQL composite types&quot;&quot;&quot;
+
+    def build_entity_impact(
+        self,
+        entity: str,
+        operation: str,
+        fields: List[str]
+    ) -&gt; str:
+        &quot;&quot;&quot;Build entity_impact composite type&quot;&quot;&quot;
+        # Validate inputs
+        assert operation in (&quot;CREATE&quot;, &quot;UPDATE&quot;, &quot;DELETE&quot;, &quot;UPSERT&quot;)
+
+        return f&quot;&quot;&quot;ROW(
+    '{entity}',
+    '{operation}',
+    ARRAY{fields}::TEXT[]
+)::mutation_metadata.entity_impact&quot;&quot;&quot;
+</code></pre>
+<h3 id="qa-phase_3">✅ QA Phase</h3>
+<pre><code class="language-bash"># Test composite type compilation
+uv run pytest tests/unit/actions/test_impact_metadata.py -v
+
+# Integration test: Does PostgreSQL accept the generated SQL?
+uv run pytest tests/integration/test_composite_types.py -v
+
+# Type check
+uv run mypy src/generators/actions/
+</code></pre>
+<p><strong>Acceptance Criteria</strong>:
+- ✅ Type-safe composite type construction
+- ✅ Proper <code>_meta</code> field in <code>extra_metadata</code>
+- ✅ Side effects tracked
+- ✅ Cache invalidations declared
+- ✅ PostgreSQL validates types at compile time
+- ✅ Full integration with mutation_result</p>
+<hr />
+<h2 id="phase-6-integration-end-to-end-testing">📋 PHASE 6: Integration &amp; End-to-End Testing</h2>
+<p><strong>Duration</strong>: Week 4, Last Day (1 day)
+<strong>Objective</strong>: Verify full pipeline works with actual PostgreSQL + FraiseQL</p>
+<h3 id="integration-tests">Integration Tests</h3>
+<pre><code class="language-python">def test_full_contact_qualify_lead_function():
+    &quot;&quot;&quot;Integration: Generate complete qualify_lead function&quot;&quot;&quot;
+    # Load full Contact entity from YAML
+    entity = SpecQLParser().parse(&quot;entities/examples/contact_lightweight.yaml&quot;)
+    action = entity.get_action(&quot;qualify_lead&quot;)
+
+    # Generate SQL
+    sql = ActionCompiler().compile_action(action, entity)
+
+    # Apply to test database
+    db.execute(sql)
+
+    # Call function
+    result = db.query(&quot;&quot;&quot;
+        SELECT crm.qualify_lead(
+            p_contact_id := '...',
+            p_caller_id := '...'
+        );
+    &quot;&quot;&quot;)
+
+    # Verify structure
+    assert result.status == &quot;success&quot;
+    assert result.object_data[&quot;__typename&quot;] == &quot;Contact&quot;
+    assert result.object_data[&quot;status&quot;] == &quot;qualified&quot;
+    assert result.extra_metadata[&quot;_meta&quot;][&quot;primaryEntity&quot;][&quot;entityType&quot;] == &quot;Contact&quot;
+
+
+def test_fraiseql_discovers_function():
+    &quot;&quot;&quot;Integration: FraiseQL discovers generated function&quot;&quot;&quot;
+    # Generate + apply SQL
+    apply_generated_migration()
+
+    # Run FraiseQL introspection
+    schema = run_fraiseql_introspection()
+
+    # Verify mutation exists
+    assert &quot;qualifyLead&quot; in schema[&quot;mutations&quot;]
+    mutation = schema[&quot;mutations&quot;][&quot;qualifyLead&quot;]
+
+    # Verify return types
+    assert &quot;QualifyLeadSuccess&quot; in mutation[&quot;returnType&quot;]
+    assert &quot;_meta&quot; in mutation[&quot;successFields&quot;]
+    assert mutation[&quot;successFields&quot;][&quot;_meta&quot;][&quot;type&quot;] == &quot;MutationImpactMetadata&quot;
+</code></pre>
+<h3 id="final-qa">✅ Final QA</h3>
+<pre><code class="language-bash"># All unit tests
+make teamC-test
+
+# Integration tests
+uv run pytest tests/integration/actions/ -v
+
+# Full test suite
+make test
+
+# Coverage report
+uv run pytest --cov=src/generators/actions/ --cov-report=html
+
+# Type checking
+uv run mypy src/
+
+# Linting
+uv run ruff check src/
+</code></pre>
+<hr />
+<h2 id="success-criteria-summary">🎯 Success Criteria Summary</h2>
+<h3 id="by-end-of-week-3">By End of Week 3</h3>
+<ul>
+<li>✅ Basic function scaffolding working</li>
+<li>✅ Validation steps compile correctly</li>
+<li>✅ INSERT/UPDATE/DELETE operations work</li>
+<li>✅ Full object returns (not deltas)</li>
+<li>✅ Conditional logic (if/then/switch)</li>
+</ul>
+<h3 id="by-end-of-week-4">By End of Week 4</h3>
+<ul>
+<li>✅ Impact metadata with composite types</li>
+<li>✅ Side effects tracking</li>
+<li>✅ Cache invalidation declarations</li>
+<li>✅ Full FraiseQL compatibility</li>
+<li>✅ Integration tests passing</li>
+<li>✅ 90%+ test coverage</li>
+<li>✅ Ready for Team D (annotation generation)</li>
+</ul>
+<hr />
+<h2 id="testing-strategy">📊 Testing Strategy</h2>
+<h3 id="unit-tests-70-of-effort">Unit Tests (70% of effort)</h3>
+<ul>
+<li>Test each step compiler independently</li>
+<li>Mock entity/action objects</li>
+<li>Verify SQL correctness</li>
+<li>Fast execution (&lt; 1s total)</li>
+</ul>
+<h3 id="integration-tests-20-of-effort">Integration Tests (20% of effort)</h3>
+<ul>
+<li>Apply SQL to real PostgreSQL</li>
+<li>Verify functions execute</li>
+<li>Check return structure</li>
+<li>Moderate speed (~30s total)</li>
+</ul>
+<h3 id="e2e-tests-10-of-effort">E2E Tests (10% of effort)</h3>
+<ul>
+<li>Full SpecQL → SQL → Database → FraiseQL flow</li>
+<li>Verify GraphQL schema generation</li>
+<li>Test real mutations</li>
+<li>Slower (few minutes)</li>
+</ul>
+<h3 id="coverage-target">Coverage Target</h3>
+<ul>
+<li><strong>Unit Tests</strong>: 95%+ coverage</li>
+<li><strong>Integration Tests</strong>: Critical paths</li>
+<li><strong>E2E Tests</strong>: Happy path + 2-3 edge cases</li>
+</ul>
+<hr />
+<h2 id="risk-mitigation">🚨 Risk Mitigation</h2>
+<h3 id="risk-composite-types-dont-work-with-fraiseql">Risk: Composite Types Don't Work with FraiseQL</h3>
+<p><strong>Mitigation</strong>: Test in Week 2 (Team B responsibility)
+<strong>Fallback</strong>: Use plain JSONB temporarily</p>
+<h3 id="risk-expression-parser-too-complex">Risk: Expression Parser Too Complex</h3>
+<p><strong>Mitigation</strong>: Start with simple cases, iterate
+<strong>Fallback</strong>: Support subset of expressions initially</p>
+<h3 id="risk-performance-issues">Risk: Performance Issues</h3>
+<p><strong>Mitigation</strong>: Benchmark early (Week 4)
+<strong>Fallback</strong>: Optimize generated SQL patterns</p>
+<hr />
+<p><strong>Team C Ready to Execute!</strong> 🚀</p>
+<p>This plan provides clear phases, test-first discipline, and measurable progress milestones. Each phase builds on the previous, ensuring we deliver type-safe, FraiseQL-compatible PL/pgSQL functions that transform 20 lines of YAML into production-ready business logic.</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

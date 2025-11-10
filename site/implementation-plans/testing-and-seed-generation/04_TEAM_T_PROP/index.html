@@ -1,0 +1,555 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../../img/favicon.ico" />
+    <title>Team T-Prop: Property-Based Testing with Hypothesis - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../../css/theme.css" />
+    <link rel="stylesheet" href="../../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team T-Prop: Property-Based Testing with Hypothesis";
+        var mkdocs_page_input_path = "implementation-plans/testing-and-seed-generation/04_TEAM_T_PROP.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team T-Prop: Property-Based Testing with Hypothesis</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-t-prop-property-based-testing-with-hypothesis">Team T-Prop: Property-Based Testing with Hypothesis</h1>
+<p><strong>Status</strong>: Planning Phase
+<strong>Timeline</strong>: Week 5 (5 days)
+<strong>Priority</strong>: Medium - Advanced testing
+<strong>Team Size</strong>: 1 developer
+<strong>Dependencies</strong>: Teams T-Meta, T-Seed, T-Test complete</p>
+<hr />
+<h2 id="mission">🎯 Mission</h2>
+<p><strong>Generate property-based tests using Hypothesis to find edge cases automatically.</strong></p>
+<p>Property-based testing doesn't test specific examples - it tests <strong>properties that should always be true</strong>, using automatically generated test cases.</p>
+<h3 id="examples-of-properties">Examples of Properties</h3>
+<ul>
+<li><strong>Idempotency</strong>: <code>create(x) then create(x) → error</code></li>
+<li><strong>Reversibility</strong>: <code>create(x) then delete(x) → no record</code></li>
+<li><strong>Invariants</strong>: <code>status can only be lead|qualified|customer</code></li>
+<li><strong>Relationships</strong>: <code>delete(company) → cascade to contacts</code></li>
+</ul>
+<hr />
+<h2 id="architecture">🏗️ Architecture</h2>
+<pre><code>Test Metadata
+    ↓
+Hypothesis Strategy Generator
+    ├─ Field strategies (email, phone, etc.)
+    ├─ Entity strategies (full Contact)
+    └─ Scenario strategies (valid/invalid)
+    ↓
+Property Test Generator
+    ├─ Idempotency properties
+    ├─ Constraint properties
+    ├─ Relationship properties
+    └─ State machine properties
+    ↓
+Output: tests/property/test_contact_properties.py
+</code></pre>
+<hr />
+<h2 id="component-1-hypothesis-strategies-from-metadata">📦 Component 1: Hypothesis Strategies from Metadata</h2>
+<p><strong>File</strong>: <code>src/testing/property/strategies.py</code></p>
+<pre><code class="language-python">from hypothesis import strategies as st
+from hypothesis.strategies import SearchStrategy
+from typing import Dict, Any
+import string
+
+class SpecQLStrategies:
+    &quot;&quot;&quot;Generate Hypothesis strategies from SpecQL field metadata&quot;&quot;&quot;
+
+    @staticmethod
+    def for_field(field_mapping: Dict[str, Any]) -&gt; SearchStrategy:
+        &quot;&quot;&quot;Generate strategy for field based on metadata&quot;&quot;&quot;
+        field_type = field_mapping['field_type']
+
+        # Rich scalar types
+        if field_type == 'email':
+            return st.emails()
+
+        elif field_type == 'url':
+            return st.from_regex(r'https?://[a-z0-9-]+\.[a-z]{2,}(/[a-z0-9-]*)*', fullmatch=True)
+
+        elif field_type == 'phoneNumber':
+            return st.from_regex(r'\+1-[0-9]{3}-[0-9]{3}-[0-9]{4}', fullmatch=True)
+
+        elif field_type == 'money':
+            return st.decimals(
+                min_value=0,
+                max_value=1000000,
+                places=2
+            )
+
+        elif field_type == 'percentage':
+            return st.decimals(
+                min_value=0,
+                max_value=100,
+                places=2
+            )
+
+        # Basic types
+        elif field_type == 'text':
+            max_len = field_mapping.get('postgres_type', '').replace('TEXT', '').replace('VARCHAR(', '').replace(')', '')
+            if max_len.isdigit():
+                return st.text(alphabet=string.printable, max_size=int(max_len))
+            else:
+                return st.text(alphabet=string.printable, max_size=255)
+
+        elif field_type == 'integer':
+            dist = field_mapping.get('seed_distribution', {})
+            return st.integers(
+                min_value=dist.get('min', 1),
+                max_value=dist.get('max', 2**31 - 1)
+            )
+
+        elif field_type == 'boolean':
+            return st.booleans()
+
+        elif field_type.startswith('enum('):
+            values = field_mapping.get('enum_values', [])
+            if not values:
+                # Parse from type string
+                values = [v.strip() for v in field_type[5:-1].split(',')]
+            return st.sampled_from(values)
+
+        elif field_type == 'date':
+            return st.dates()
+
+        elif field_type == 'timestamptz':
+            return st.datetimes()
+
+        else:
+            return st.none()
+
+    @staticmethod
+    def for_entity(
+        entity_config: Dict[str, Any],
+        field_mappings: list[Dict[str, Any]]
+    ) -&gt; SearchStrategy:
+        &quot;&quot;&quot;Generate strategy for complete entity&quot;&quot;&quot;
+
+        # Build dictionary strategy for required fields
+        required_fields = {}
+        optional_fields = {}
+
+        for field in field_mappings:
+            if field['generator_type'] in ('random', 'fixed'):
+                strategy = SpecQLStrategies.for_field(field)
+
+                if field['nullable']:
+                    optional_fields[field['field_name']] = strategy
+                else:
+                    required_fields[field['field_name']] = strategy
+
+        return st.fixed_dictionaries(
+            required_fields,
+            optional=optional_fields
+        )
+
+    @staticmethod
+    def invalid_for_field(field_mapping: Dict[str, Any]) -&gt; SearchStrategy:
+        &quot;&quot;&quot;Generate INVALID values for field (for negative testing)&quot;&quot;&quot;
+        field_type = field_mapping['field_type']
+
+        if field_type == 'email':
+            # Invalid emails
+            return st.one_of(
+                st.just(&quot;not-an-email&quot;),
+                st.just(&quot;@example.com&quot;),
+                st.just(&quot;user@&quot;),
+                st.text(alphabet=string.ascii_letters, min_size=1, max_size=10)
+            )
+
+        elif field_type.startswith('enum('):
+            # Values NOT in enum
+            valid_values = field_mapping.get('enum_values', [])
+            return st.text(alphabet=string.ascii_letters).filter(lambda x: x not in valid_values)
+
+        elif field_type == 'integer':
+            # Out of range integers
+            dist = field_mapping.get('seed_distribution', {})
+            min_val = dist.get('min', 1)
+            max_val = dist.get('max', 2**31 - 1)
+            return st.one_of(
+                st.integers(max_value=min_val - 1),
+                st.integers(min_value=max_val + 1)
+            )
+
+        else:
+            return st.none()
+</code></pre>
+<hr />
+<h2 id="component-2-property-test-generator">📦 Component 2: Property Test Generator</h2>
+<p><strong>File</strong>: <code>src/testing/property/property_generator.py</code></p>
+<pre><code class="language-python">class PropertyTestGenerator:
+    &quot;&quot;&quot;Generate property-based tests for entities&quot;&quot;&quot;
+
+    def generate_idempotency_tests(
+        self,
+        entity_config: Dict[str, Any],
+        field_mappings: List[Dict[str, Any]]
+    ) -&gt; str:
+        &quot;&quot;&quot;Generate idempotency property tests&quot;&quot;&quot;
+        entity = entity_config['entity_name']
+
+        return f'''
+import pytest
+from hypothesis import given, settings, HealthCheck
+from hypothesis import strategies as st
+from uuid import UUID
+
+from src.testing.property.strategies import SpecQLStrategies
+
+class Test{entity}Idempotency:
+    &quot;&quot;&quot;Property tests for {entity} idempotency&quot;&quot;&quot;
+
+    @given(
+        data=SpecQLStrategies.for_entity(
+            {repr(entity_config)},
+            {repr(field_mappings)}
+        )
+    )
+    @settings(max_examples=50, suppress_health_check=[HealthCheck.function_scoped_fixture])
+    def test_create_duplicate_fails(self, clean_db, data):
+        &quot;&quot;&quot;Property: Creating duplicate entity should always fail&quot;&quot;&quot;
+        tenant_id = UUID(&quot;{entity_config['default_tenant_id']}&quot;)
+        user_id = UUID(&quot;{entity_config['default_user_id']}&quot;)
+
+        with clean_db.cursor() as cur:
+            # First create - should succeed
+            cur.execute(
+                &quot;SELECT app.create_{entity.lower()}(%s, %s, %s)&quot;,
+                (tenant_id, user_id, data)
+            )
+            result1 = cur.fetchone()[0]
+            assert result1['status'] == 'success', f&quot;First create failed: {{result1}}&quot;
+
+            # Second create with same data - should fail
+            cur.execute(
+                &quot;SELECT app.create_{entity.lower()}(%s, %s, %s)&quot;,
+                (tenant_id, user_id, data)
+            )
+            result2 = cur.fetchone()[0]
+            assert result2['status'].startswith('failed:'), \\
+                f&quot;Duplicate create should fail but got: {{result2}}&quot;
+'''
+
+    def generate_constraint_tests(
+        self,
+        entity_config: Dict[str, Any],
+        field_mappings: List[Dict[str, Any]]
+    ) -&gt; str:
+        &quot;&quot;&quot;Generate constraint property tests&quot;&quot;&quot;
+        entity = entity_config['entity_name']
+
+        # Find fields with constraints
+        constrained_fields = [f for f in field_mappings if f.get('validation_pattern') or f.get('check_constraint')]
+
+        tests = []
+        for field in constrained_fields:
+            test = f'''
+    @given(
+        valid_data=SpecQLStrategies.for_entity(...),
+        invalid_{field['field_name']}=SpecQLStrategies.invalid_for_field({repr(field)})
+    )
+    def test_{field['field_name']}_constraint(self, clean_db, valid_data, invalid_{field['field_name']}):
+        &quot;&quot;&quot;Property: Invalid {field['field_name']} should always fail&quot;&quot;&quot;
+        valid_data['{field['field_name']}'] = invalid_{field['field_name']}
+
+        with clean_db.cursor() as cur:
+            cur.execute(
+                &quot;SELECT app.create_{entity.lower()}(%s, %s, %s)&quot;,
+                (UUID(&quot;{entity_config['default_tenant_id']}&quot;), UUID(&quot;{entity_config['default_user_id']}&quot;), valid_data)
+            )
+            result = cur.fetchone()[0]
+
+        assert result['status'].startswith('failed:'), \\
+            f&quot;Invalid {field['field_name']} should fail but got: {{result}}&quot;
+'''
+            tests.append(test)
+
+        return '\n\n'.join(tests)
+
+    def generate_roundtrip_tests(
+        self,
+        entity_config: Dict[str, Any],
+        field_mappings: List[Dict[str, Any]]
+    ) -&gt; str:
+        &quot;&quot;&quot;Generate create → read → update roundtrip property tests&quot;&quot;&quot;
+        entity = entity_config['entity_name']
+
+        return f'''
+    @given(
+        create_data=SpecQLStrategies.for_entity(...),
+        update_data=SpecQLStrategies.for_entity(...)
+    )
+    def test_create_update_roundtrip(self, clean_db, create_data, update_data):
+        &quot;&quot;&quot;Property: Created entity can always be updated&quot;&quot;&quot;
+        tenant_id = UUID(&quot;{entity_config['default_tenant_id']}&quot;)
+        user_id = UUID(&quot;{entity_config['default_user_id']}&quot;)
+
+        with clean_db.cursor() as cur:
+            # Create
+            cur.execute(
+                &quot;SELECT app.create_{entity.lower()}(%s, %s, %s)&quot;,
+                (tenant_id, user_id, create_data)
+            )
+            create_result = cur.fetchone()[0]
+            assert create_result['status'] == 'success'
+
+            entity_id = UUID(create_result['object_data']['id'])
+
+            # Update
+            cur.execute(
+                &quot;SELECT app.update_{entity.lower()}(%s, %s, %s)&quot;,
+                (entity_id, user_id, update_data)
+            )
+            update_result = cur.fetchone()[0]
+
+        # Property: Update should succeed for any valid data
+        assert update_result['status'] == 'success', \\
+            f&quot;Update failed: {{update_result}}&quot;
+
+        # Property: Updated fields should match input
+        for field, value in update_data.items():
+            assert update_result['object_data'][field] == value, \\
+                f&quot;Field {{field}} not updated correctly&quot;
+'''
+
+    def generate_state_machine_tests(
+        self,
+        entity_config: Dict[str, Any],
+        actions: List[Dict[str, Any]]
+    ) -&gt; str:
+        &quot;&quot;&quot;Generate state machine property tests for actions&quot;&quot;&quot;
+        entity = entity_config['entity_name']
+
+        # Find enum fields (potential state fields)
+        # For Contact: status = enum(lead, qualified, customer)
+        # Generate state transition tests
+
+        return f'''
+from hypothesis.stateful import RuleBasedStateMachine, rule, initialize
+
+class {entity}StateMachine(RuleBasedStateMachine):
+    &quot;&quot;&quot;State machine property tests for {entity}&quot;&quot;&quot;
+
+    def __init__(self):
+        super().__init__()
+        self.entity_id = None
+        self.current_status = None
+
+    @initialize()
+    def create_{entity.lower()}(self):
+        &quot;&quot;&quot;Initialize by creating entity&quot;&quot;&quot;
+        # Create entity with initial state
+        self.entity_id = UUID(&quot;...&quot;)
+        self.current_status = &quot;lead&quot;
+
+    @rule()
+    def qualify_lead(self):
+        &quot;&quot;&quot;Try to qualify lead&quot;&quot;&quot;
+        if self.current_status == &quot;lead&quot;:
+            # Should succeed
+            result = execute_action(&quot;qualify_lead&quot;, self.entity_id)
+            assert result['status'] == 'success'
+            self.current_status = &quot;qualified&quot;
+        else:
+            # Should fail
+            result = execute_action(&quot;qualify_lead&quot;, self.entity_id)
+            assert result['status'].startswith('failed:')
+
+Test{entity}StateMachine.TestCase.settings = settings(max_examples=100)
+'''
+</code></pre>
+<hr />
+<h2 id="success-criteria">📊 Success Criteria</h2>
+<h3 id="week-5-completion">Week 5 Completion</h3>
+<ul>
+<li>✅ Hypothesis strategies for all 23 scalar types</li>
+<li>✅ Entity-level strategy generation</li>
+<li>✅ Invalid value strategies (negative testing)</li>
+<li>✅ Idempotency property tests</li>
+<li>✅ Constraint property tests</li>
+<li>✅ Roundtrip property tests</li>
+<li>✅ Run 1000+ auto-generated test cases</li>
+<li>✅ Find at least 2 edge case bugs</li>
+</ul>
+<hr />
+<h2 id="example-output">📝 Example Output</h2>
+<p><strong>File</strong>: <code>tests/property/test_contact_properties.py</code></p>
+<pre><code class="language-python">&quot;&quot;&quot;Auto-generated property-based tests for Contact&quot;&quot;&quot;
+
+from hypothesis import given, settings
+from hypothesis import strategies as st
+from uuid import UUID
+import pytest
+
+class TestContactIdempotency:
+    &quot;&quot;&quot;Idempotency properties for Contact&quot;&quot;&quot;
+
+    @given(st.emails(), st.sampled_from(['lead', 'qualified', 'customer']))
+    @settings(max_examples=100)
+    def test_duplicate_email_always_fails(self, clean_db, email, status):
+        &quot;&quot;&quot;Property: Duplicate email should always fail&quot;&quot;&quot;
+        data = {&quot;email&quot;: email, &quot;status&quot;: status}
+        tenant_id = UUID(&quot;22222222-2222-2222-2222-222222222222&quot;)
+        user_id = UUID(&quot;01232022-0000-0000-0000-000000000001&quot;)
+
+        with clean_db.cursor() as cur:
+            # First create
+            cur.execute(&quot;SELECT app.create_contact(%s, %s, %s)&quot;, (tenant_id, user_id, data))
+            result1 = cur.fetchone()[0]
+            assert result1['status'] == 'success'
+
+            # Duplicate
+            cur.execute(&quot;SELECT app.create_contact(%s, %s, %s)&quot;, (tenant_id, user_id, data))
+            result2 = cur.fetchone()[0]
+            assert result2['status'].startswith('failed:')
+
+
+class TestContactConstraints:
+    &quot;&quot;&quot;Constraint properties for Contact&quot;&quot;&quot;
+
+    @given(
+        st.text(alphabet='abc', min_size=1, max_size=100).filter(lambda x: '@' not in x)
+    )
+    def test_invalid_email_always_fails(self, clean_db, invalid_email):
+        &quot;&quot;&quot;Property: Invalid email format should always fail&quot;&quot;&quot;
+        data = {&quot;email&quot;: invalid_email, &quot;status&quot;: &quot;lead&quot;}
+
+        with clean_db.cursor() as cur:
+            cur.execute(&quot;SELECT app.create_contact(%s, %s, %s)&quot;, (..., data))
+            result = cur.fetchone()[0]
+
+        assert result['status'].startswith('failed:'), \\
+            f&quot;Invalid email {invalid_email} should fail&quot;
+</code></pre>
+<hr />
+<p><strong>Next</strong>: <a href="../05_INTEGRATION/">Integration Plan</a></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../../..";</script>
+    <script src="../../../js/theme_extra.js"></script>
+    <script src="../../../js/theme.js"></script>
+      <script src="../../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

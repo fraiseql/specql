@@ -1,0 +1,59 @@
+# Proposed Trading Data Model
+# More normalized approach using reference entities
+
+entity: FinancialUnit
+schema: trading
+description: "Master list of financial units (currencies, crypto, stocks)"
+
+fields:
+  code: text!  # "USD", "BTC", "AAPL"
+  name: text!  # "US Dollar", "Bitcoin", "Apple Inc."
+  type: enum(currency, cryptocurrency, stock, commodity)!
+  symbol: text   # "$", "₿", etc.
+  decimals: integer  # For display formatting
+
+actions:
+  - name: create_unit
+    steps:
+      - validate: code IS UNIQUE
+      - insert: FinancialUnit
+
+---
+
+entity: TradingPair
+schema: trading
+description: "Trading pairs composed of financial units"
+
+fields:
+  base_unit: ref(FinancialUnit)!
+  quote_unit: ref(FinancialUnit)!
+  symbol: text!  # Auto-generated: "BTC/USD", "EURUSD", "AAPL/USD"
+  pair_type: enum(forex, crypto, stock, crypto_fx)!  # For categorization
+  is_active: boolean = true
+
+actions:
+  - name: create_pair
+    steps:
+      - validate: base_unit != quote_unit
+      - validate: symbol IS UNIQUE
+      - update: TradingPair SET symbol = CONCAT(base_unit.code, '/', quote_unit.code)
+      - insert: TradingPair
+
+---
+
+entity: TradingInstrument
+schema: trading
+description: "Trading instruments using normalized references"
+
+fields:
+  pair: ref(TradingPair)!  # Instead of forexPair/cryptoPair scalars
+  exchange_rate: exchangeRate
+  volume_24h: money
+  last_updated: datetime
+
+# Benefits:
+# - Single pair reference instead of multiple scalar types
+# - Master data management for financial units
+# - Flexible for new pair types
+# - Better reporting/analytics capabilities
+# - Validation against master lists

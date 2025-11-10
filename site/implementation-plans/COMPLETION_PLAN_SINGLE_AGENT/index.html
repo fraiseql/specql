@@ -1,0 +1,1294 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Complete SpecQL System - Single Agent Phased TDD Plan - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Complete SpecQL System - Single Agent Phased TDD Plan";
+        var mkdocs_page_input_path = "implementation-plans/COMPLETION_PLAN_SINGLE_AGENT.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Complete SpecQL System - Single Agent Phased TDD Plan</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="complete-specql-system-single-agent-phased-tdd-plan">Complete SpecQL System - Single Agent Phased TDD Plan</h1>
+<p><strong>Goal</strong>: Finish the remaining 25-30% of the SpecQL → PostgreSQL → GraphQL system
+<strong>Timeline</strong>: 3-4 weeks (15-20 working days)
+<strong>Methodology</strong>: TDD cycles (RED → GREEN → REFACTOR → QA) for each phase
+<strong>Progress Tracking</strong>: Update this file after each phase completion</p>
+<hr />
+<h2 id="starting-point-assessment">📊 Starting Point Assessment</h2>
+<p><strong>Current Completion</strong>: 70-75%</p>
+<table>
+<thead>
+<tr>
+<th>Team</th>
+<th>Status</th>
+<th>What's Done</th>
+<th>What's Missing</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Team A</td>
+<td>95%</td>
+<td>Parser complete</td>
+<td>Edge cases</td>
+</tr>
+<tr>
+<td>Team B</td>
+<td>90%</td>
+<td>Schema gen complete</td>
+<td>Mutation metadata schema</td>
+</tr>
+<tr>
+<td>Team C</td>
+<td>85%</td>
+<td>CRUD actions work</td>
+<td>Custom actions</td>
+</tr>
+<tr>
+<td>Team D</td>
+<td>50%</td>
+<td>Type system design</td>
+<td>GraphQL generation</td>
+</tr>
+<tr>
+<td>Team E</td>
+<td>30%</td>
+<td>Basic orchestration</td>
+<td>CLI commands, docs</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Test Status</strong>: 305/312 passing (98%)</p>
+<hr />
+<h2 id="overall-strategy">🎯 Overall Strategy</h2>
+<h3 id="three-major-workstreams">Three Major Workstreams</h3>
+<ol>
+<li><strong>Team D - FraiseQL Integration</strong> (10 days)</li>
+<li>GraphQL metadata generation</li>
+<li>Frontend code generation</li>
+<li>
+<p>Most critical gap</p>
+</li>
+<li>
+<p><strong>Team C - Custom Actions</strong> (3 days)</p>
+</li>
+<li>Complete action compiler</li>
+<li>
+<p>Enable complex workflows</p>
+</li>
+<li>
+<p><strong>Team E - CLI &amp; Developer Experience</strong> (5 days)</p>
+</li>
+<li>Developer tools</li>
+<li>Documentation generation</li>
+<li>Polish &amp; ship</li>
+</ol>
+<hr />
+<h2 id="phase-plan-overview">📅 PHASE PLAN OVERVIEW</h2>
+<pre><code>┌─────────────────────────────────────────────────────────┐
+│ WEEK 1: Team D - FraiseQL Core                         │
+│ Days 1-5: GraphQL metadata + mutation annotations      │
+└─────────────────────────────────────────────────────────┘
+         ▼
+┌─────────────────────────────────────────────────────────┐
+│ WEEK 2: Team D - Frontend Codegen                      │
+│ Days 6-10: TypeScript types + mutation hooks           │
+└─────────────────────────────────────────────────────────┘
+         ▼
+┌─────────────────────────────────────────────────────────┐
+│ WEEK 3: Team C + Team E                                │
+│ Days 11-13: Custom actions (Team C)                    │
+│ Days 14-15: CLI commands (Team E)                      │
+└─────────────────────────────────────────────────────────┘
+         ▼
+┌─────────────────────────────────────────────────────────┐
+│ WEEK 4: Integration &amp; Ship                             │
+│ Days 16-18: End-to-end testing + docs                  │
+│ Days 19-20: Polish &amp; release                           │
+└─────────────────────────────────────────────────────────┘
+</code></pre>
+<hr />
+<h1 id="week-1-team-d-fraiseql-core-days-1-5">WEEK 1: Team D - FraiseQL Core (Days 1-5)</h1>
+<h2 id="phase-1-mutation-metadata-schema-day-1">Phase 1: Mutation Metadata Schema (Day 1)</h2>
+<p><strong>Objective</strong>: Generate the <code>mutation_metadata</code> schema with composite types for FraiseQL</p>
+<h3 id="tdd-cycle-1-entity-impact-type">TDD Cycle 1: Entity Impact Type</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python"># tests/unit/generators/test_mutation_metadata_generator.py
+def test_generate_entity_impact_type():
+    &quot;&quot;&quot;Generate mutation_metadata.entity_impact composite type&quot;&quot;&quot;
+    generator = MutationMetadataGenerator()
+    sql = generator.generate_entity_impact_type()
+
+    assert &quot;CREATE TYPE mutation_metadata.entity_impact AS&quot; in sql
+    assert &quot;entity_type TEXT&quot; in sql
+    assert &quot;operation TEXT&quot; in sql
+    assert &quot;modified_fields TEXT[]&quot; in sql
+    assert &quot;@fraiseql:type name=EntityImpact&quot; in sql
+</code></pre>
+<p>Run: <code>uv run pytest tests/unit/generators/test_mutation_metadata_generator.py::test_generate_entity_impact_type -v</code>
+Expected: <strong>FAIL</strong> (file doesn't exist)</p>
+<p><strong>🟢 GREEN</strong> (45 min)
+1. Create <code>src/generators/mutation_metadata_generator.py</code>
+2. Implement <code>generate_entity_impact_type()</code> method
+3. Return SQL with composite type definition</p>
+<pre><code class="language-python">class MutationMetadataGenerator:
+    def generate_entity_impact_type(self) -&gt; str:
+        return &quot;&quot;&quot;
+CREATE TYPE mutation_metadata.entity_impact AS (
+    entity_type TEXT,
+    operation TEXT,
+    modified_fields TEXT[]
+);
+
+COMMENT ON TYPE mutation_metadata.entity_impact IS
+  '@fraiseql:type name=EntityImpact';
+&quot;&quot;&quot;
+</code></pre>
+<p>Run: <code>uv run pytest tests/unit/generators/test_mutation_metadata_generator.py::test_generate_entity_impact_type -v</code>
+Expected: <strong>PASS</strong></p>
+<p><strong>🔧 REFACTOR</strong> (15 min)
+- Extract template to <code>templates/sql/mutation_metadata_types.sql.j2</code>
+- Use Jinja2 for rendering
+- Add type safety checks</p>
+<p>Run: <code>uv run pytest tests/unit/generators/test_mutation_metadata_generator.py -v</code>
+Expected: All pass</p>
+<p><strong>✅ QA</strong> (10 min)
+- Run full test suite: <code>uv run pytest</code>
+- Check code quality: <code>uv run ruff check src/generators/mutation_metadata_generator.py</code>
+- Verify no regressions</p>
+<hr />
+<h3 id="tdd-cycle-2-cache-invalidation-type">TDD Cycle 2: Cache Invalidation Type</h3>
+<p><strong>🔴 RED</strong> (20 min)</p>
+<pre><code class="language-python">def test_generate_cache_invalidation_type():
+    &quot;&quot;&quot;Generate mutation_metadata.cache_invalidation composite type&quot;&quot;&quot;
+    generator = MutationMetadataGenerator()
+    sql = generator.generate_cache_invalidation_type()
+
+    assert &quot;CREATE TYPE mutation_metadata.cache_invalidation AS&quot; in sql
+    assert &quot;query_name TEXT&quot; in sql
+    assert &quot;filter_json JSONB&quot; in sql
+    assert &quot;strategy TEXT&quot; in sql
+    assert &quot;reason TEXT&quot; in sql
+</code></pre>
+<p>Run: <code>uv run pytest tests/unit/generators/test_mutation_metadata_generator.py::test_generate_cache_invalidation_type -v</code>
+Expected: <strong>FAIL</strong></p>
+<p><strong>🟢 GREEN</strong> (30 min)
+Implement <code>generate_cache_invalidation_type()</code> method</p>
+<p><strong>🔧 REFACTOR</strong> (15 min)
+Clean up template usage</p>
+<p><strong>✅ QA</strong> (10 min)
+Run full test suite</p>
+<hr />
+<h3 id="tdd-cycle-3-complete-metadata-schema">TDD Cycle 3: Complete Metadata Schema</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python">def test_generate_complete_mutation_metadata_schema():
+    &quot;&quot;&quot;Generate complete mutation_metadata schema&quot;&quot;&quot;
+    generator = MutationMetadataGenerator()
+    sql = generator.generate_complete_schema()
+
+    # Should include schema creation
+    assert &quot;CREATE SCHEMA IF NOT EXISTS mutation_metadata&quot; in sql
+
+    # All three types
+    assert &quot;entity_impact&quot; in sql
+    assert &quot;cache_invalidation&quot; in sql
+    assert &quot;mutation_impact_metadata&quot; in sql
+
+    # FraiseQL annotations
+    assert &quot;@fraiseql:type name=MutationImpactMetadata&quot; in sql
+</code></pre>
+<p><strong>🟢 GREEN</strong> (1 hour)
+Implement complete schema generation</p>
+<p><strong>🔧 REFACTOR</strong> (30 min)
+- Ensure proper ordering (dependencies first)
+- Add schema-level comments
+- Template optimization</p>
+<p><strong>✅ QA</strong> (15 min)
+- Full test suite
+- Integration test with SchemaOrchestrator</p>
+<p><strong>END OF DAY 1</strong>: Mutation metadata schema types complete</p>
+<hr />
+<h2 id="phase-2-mutation-annotation-generator-day-2">Phase 2: Mutation Annotation Generator (Day 2)</h2>
+<p><strong>Objective</strong>: Generate @fraiseql:mutation annotations for action functions</p>
+<h3 id="tdd-cycle-1-basic-mutation-annotation">TDD Cycle 1: Basic Mutation Annotation</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python"># tests/unit/generators/test_fraiseql_annotator.py
+def test_generate_mutation_annotation_for_create_action():
+    &quot;&quot;&quot;Generate @fraiseql:mutation annotation for CREATE action&quot;&quot;&quot;
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;, fields={...})
+    action = Action(name=&quot;create_contact&quot;, steps=[...])
+
+    annotator = FraiseQLAnnotator()
+    sql = annotator.generate_mutation_annotation(entity, action)
+
+    assert &quot;COMMENT ON FUNCTION crm.create_contact&quot; in sql
+    assert &quot;@fraiseql:mutation&quot; in sql
+    assert &quot;name=createContact&quot; in sql
+    assert &quot;input=CreateContactInput&quot; in sql
+    assert &quot;success_type=CreateContactSuccess&quot; in sql
+    assert &quot;error_type=CreateContactError&quot; in sql
+</code></pre>
+<p>Run: <code>uv run pytest tests/unit/generators/test_fraiseql_annotator.py::test_generate_mutation_annotation_for_create_action -v</code>
+Expected: <strong>FAIL</strong></p>
+<p><strong>🟢 GREEN</strong> (1 hour)
+1. Create <code>src/generators/fraiseql_annotator.py</code>
+2. Implement <code>generate_mutation_annotation()</code> method
+3. Parse action metadata to build annotation</p>
+<pre><code class="language-python">class FraiseQLAnnotator:
+    def generate_mutation_annotation(self, entity: Entity, action: Action) -&gt; str:
+        mutation_name = self._to_camel_case(action.name)
+        input_type = self._to_pascal_case(action.name) + &quot;Input&quot;
+        success_type = self._to_pascal_case(action.name) + &quot;Success&quot;
+        error_type = self._to_pascal_case(action.name) + &quot;Error&quot;
+
+        annotation = f&quot;&quot;&quot;
+COMMENT ON FUNCTION {entity.schema}.{action.name} IS
+  '@fraiseql:mutation
+   name={mutation_name}
+   input={input_type}
+   success_type={success_type}
+   error_type={error_type}
+   primary_entity={entity.name}';
+&quot;&quot;&quot;
+        return annotation
+</code></pre>
+<p><strong>🔧 REFACTOR</strong> (30 min)
+- Extract name transformation to helper methods
+- Add validation for annotation format
+- Template-based generation</p>
+<p><strong>✅ QA</strong> (15 min)
+Full test suite</p>
+<hr />
+<h3 id="tdd-cycle-2-impact-metadata-in-annotations">TDD Cycle 2: Impact Metadata in Annotations</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python">def test_mutation_annotation_includes_impact_metadata():
+    &quot;&quot;&quot;Annotation should include impact hints for FraiseQL&quot;&quot;&quot;
+    entity = Entity(...)
+    action = Action(
+        name=&quot;qualify_lead&quot;,
+        impact=ImpactDeclaration(
+            primary=EntityImpact(entity=&quot;Contact&quot;, operation=&quot;UPDATE&quot;, fields=[&quot;status&quot;]),
+            side_effects=[EntityImpact(entity=&quot;Notification&quot;, operation=&quot;CREATE&quot;)],
+            optimistic_safe=True
+        )
+    )
+
+    annotator = FraiseQLAnnotator()
+    sql = annotator.generate_mutation_annotation(entity, action)
+
+    assert &quot;metadata_mapping&quot; in sql
+    assert '&quot;_meta&quot;: &quot;MutationImpactMetadata&quot;' in sql
+    assert &quot;impact={&quot; in sql
+    assert '&quot;optimistic_safe&quot;: true' in sql
+</code></pre>
+<p><strong>🟢 GREEN</strong> (1.5 hours)
+Implement impact metadata serialization to annotation</p>
+<p><strong>🔧 REFACTOR</strong> (30 min)
+Clean up JSON serialization, format annotation</p>
+<p><strong>✅ QA</strong> (15 min)
+Full test suite</p>
+<p><strong>END OF DAY 2</strong>: FraiseQL mutation annotations complete</p>
+<hr />
+<h2 id="phase-3-mutation-impacts-json-generator-day-3">Phase 3: Mutation Impacts JSON Generator (Day 3)</h2>
+<p><strong>Objective</strong>: Generate <code>mutation-impacts.json</code> for frontend consumption</p>
+<h3 id="tdd-cycle-1-basic-impact-json-structure">TDD Cycle 1: Basic Impact JSON Structure</h3>
+<p><strong>🔴 RED</strong> (45 min)</p>
+<pre><code class="language-python"># tests/unit/generators/test_impact_json_generator.py
+def test_generate_impact_json_for_single_mutation():
+    &quot;&quot;&quot;Generate mutation impact JSON for a single action&quot;&quot;&quot;
+    entity = Entity(...)
+    action = Action(name=&quot;qualify_lead&quot;, steps=[...])
+
+    generator = ImpactJsonGenerator()
+    impact_data = generator.generate_impact_for_action(entity, action)
+
+    assert impact_data[&quot;description&quot;] is not None
+    assert &quot;input&quot; in impact_data
+    assert &quot;impact&quot; in impact_data
+    assert impact_data[&quot;impact&quot;][&quot;primary&quot;][&quot;entity&quot;] == &quot;Contact&quot;
+    assert impact_data[&quot;impact&quot;][&quot;primary&quot;][&quot;operation&quot;] == &quot;UPDATE&quot;
+    assert len(impact_data[&quot;impact&quot;][&quot;sideEffects&quot;]) &gt;= 0
+    assert len(impact_data[&quot;impact&quot;][&quot;cacheInvalidations&quot;]) &gt;= 0
+</code></pre>
+<p>Run: <code>uv run pytest tests/unit/generators/test_impact_json_generator.py::test_generate_impact_json_for_single_mutation -v</code>
+Expected: <strong>FAIL</strong></p>
+<p><strong>🟢 GREEN</strong> (2 hours)
+1. Create <code>src/generators/impact_json_generator.py</code>
+2. Implement <code>generate_impact_for_action()</code> method
+3. Build JSON structure from action steps analysis</p>
+<pre><code class="language-python">class ImpactJsonGenerator:
+    def generate_impact_for_action(self, entity: Entity, action: Action) -&gt; dict:
+        return {
+            &quot;description&quot;: self._generate_description(action),
+            &quot;input&quot;: self._extract_input_schema(entity, action),
+            &quot;impact&quot;: {
+                &quot;primary&quot;: self._analyze_primary_impact(entity, action),
+                &quot;sideEffects&quot;: self._analyze_side_effects(action),
+                &quot;cacheInvalidations&quot;: self._infer_cache_invalidations(entity, action),
+                &quot;permissions&quot;: self._extract_permissions(action),
+                &quot;optimisticUpdateSafe&quot;: self._is_optimistic_safe(action),
+                &quot;idempotent&quot;: self._is_idempotent(action),
+                &quot;estimatedDuration&quot;: 150  # ms, can be refined
+            },
+            &quot;examples&quot;: self._generate_examples(entity, action),
+            &quot;errors&quot;: self._extract_possible_errors(action)
+        }
+</code></pre>
+<p><strong>🔧 REFACTOR</strong> (1 hour)
+- Break down into smaller helper methods
+- Add validation for JSON schema
+- Document expected format</p>
+<p><strong>✅ QA</strong> (20 min)
+Full test suite + JSON validation</p>
+<hr />
+<h3 id="tdd-cycle-2-complete-mutation-impactsjson-file">TDD Cycle 2: Complete mutation-impacts.json File</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python">def test_generate_complete_mutation_impacts_json():
+    &quot;&quot;&quot;Generate complete mutation-impacts.json for all entities&quot;&quot;&quot;
+    entities = [
+        Entity(name=&quot;Contact&quot;, actions=[...]),
+        Entity(name=&quot;Company&quot;, actions=[...])
+    ]
+
+    generator = ImpactJsonGenerator()
+    json_output = generator.generate_complete_impacts_file(entities)
+
+    data = json.loads(json_output)
+    assert data[&quot;version&quot;] == &quot;1.0.0&quot;
+    assert &quot;generatedAt&quot; in data
+    assert &quot;mutations&quot; in data
+    assert &quot;qualifyLead&quot; in data[&quot;mutations&quot;]
+    assert &quot;createContact&quot; in data[&quot;mutations&quot;]
+</code></pre>
+<p><strong>🟢 GREEN</strong> (1.5 hours)
+Implement complete file generation with metadata</p>
+<p><strong>🔧 REFACTOR</strong> (30 min)
+Add pretty-printing, sorting, validation</p>
+<p><strong>✅ QA</strong> (20 min)
+Verify JSON structure matches frontend expectations</p>
+<p><strong>END OF DAY 3</strong>: mutation-impacts.json generation complete</p>
+<hr />
+<h2 id="phase-4-typescript-type-generator-day-4">Phase 4: TypeScript Type Generator (Day 4)</h2>
+<p><strong>Objective</strong>: Generate <code>mutation-impacts.d.ts</code> TypeScript definitions</p>
+<h3 id="tdd-cycle-1-basic-type-definitions">TDD Cycle 1: Basic Type Definitions</h3>
+<p><strong>🔴 RED</strong> (45 min)</p>
+<pre><code class="language-python"># tests/unit/generators/test_typescript_generator.py
+def test_generate_typescript_types_for_mutation_impact():
+    &quot;&quot;&quot;Generate TypeScript interface for MutationImpact&quot;&quot;&quot;
+    generator = TypeScriptGenerator()
+    ts_code = generator.generate_mutation_impact_interface()
+
+    assert &quot;export interface MutationImpact {&quot; in ts_code
+    assert &quot;description: string;&quot; in ts_code
+    assert &quot;input: Record&lt;string, { type: string; required: boolean }&gt;;&quot; in ts_code
+    assert &quot;impact: {&quot; in ts_code
+    assert &quot;primary: EntityImpact;&quot; in ts_code
+    assert &quot;sideEffects: EntityImpact[];&quot; in ts_code
+</code></pre>
+<p>Run: <code>uv run pytest tests/unit/generators/test_typescript_generator.py::test_generate_typescript_types_for_mutation_impact -v</code>
+Expected: <strong>FAIL</strong></p>
+<p><strong>🟢 GREEN</strong> (2 hours)
+1. Create <code>src/generators/typescript_generator.py</code>
+2. Implement TypeScript interface generation
+3. Map JSON schema to TypeScript types</p>
+<pre><code class="language-python">class TypeScriptGenerator:
+    def generate_mutation_impact_interface(self) -&gt; str:
+        return &quot;&quot;&quot;
+export interface MutationImpact {
+  description: string;
+  input: Record&lt;string, { type: string; required: boolean }&gt;;
+  impact: {
+    primary: EntityImpact;
+    sideEffects: EntityImpact[];
+    cacheInvalidations: CacheInvalidation[];
+    permissions: string[];
+    optimisticUpdateSafe: boolean;
+    idempotent: boolean;
+    estimatedDuration: number;
+  };
+  examples: MutationExample[];
+  errors: MutationError[];
+}
+&quot;&quot;&quot;
+</code></pre>
+<p><strong>🔧 REFACTOR</strong> (45 min)
+- Use templates for type generation
+- Add JSDoc comments
+- Validate TypeScript syntax</p>
+<p><strong>✅ QA</strong> (20 min)
+Verify types compile in TypeScript</p>
+<hr />
+<h3 id="tdd-cycle-2-complete-dts-file-generation">TDD Cycle 2: Complete .d.ts File Generation</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python">def test_generate_complete_typescript_definitions():
+    &quot;&quot;&quot;Generate complete mutation-impacts.d.ts file&quot;&quot;&quot;
+    entities = [Entity(...), Entity(...)]
+
+    generator = TypeScriptGenerator()
+    ts_code = generator.generate_complete_definitions(entities)
+
+    assert &quot;export const MUTATION_IMPACTS: {&quot; in ts_code
+    assert &quot;qualifyLead: MutationImpact;&quot; in ts_code
+    assert &quot;createContact: MutationImpact;&quot; in ts_code
+    assert &quot;export interface EntityImpact&quot; in ts_code
+    assert &quot;export interface CacheInvalidation&quot; in ts_code
+</code></pre>
+<p><strong>🟢 GREEN</strong> (2 hours)
+Generate complete TypeScript module</p>
+<p><strong>🔧 REFACTOR</strong> (30 min)
+Format code, add type guards</p>
+<p><strong>✅ QA</strong> (20 min)
+Compile with TypeScript compiler</p>
+<p><strong>END OF DAY 4</strong>: TypeScript types complete</p>
+<hr />
+<h2 id="phase-5-integration-with-schema-orchestrator-day-5">Phase 5: Integration with Schema Orchestrator (Day 5)</h2>
+<p><strong>Objective</strong>: Integrate Team D generators into main pipeline</p>
+<h3 id="tdd-cycle-1-add-fraiseql-step-to-orchestrator">TDD Cycle 1: Add FraiseQL Step to Orchestrator</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python"># tests/unit/generators/test_schema_orchestrator.py (add to existing)
+def test_orchestrator_includes_fraiseql_metadata():
+    &quot;&quot;&quot;Orchestrator should include FraiseQL metadata in output&quot;&quot;&quot;
+    entity = Entity(name=&quot;Contact&quot;, ...)
+
+    orchestrator = SchemaOrchestrator()
+    complete_sql = orchestrator.generate_complete_schema(entity)
+
+    # Should include mutation metadata schema
+    assert &quot;CREATE SCHEMA mutation_metadata&quot; in complete_sql
+    assert &quot;CREATE TYPE mutation_metadata.entity_impact&quot; in complete_sql
+
+    # Should include mutation annotations
+    assert &quot;@fraiseql:mutation&quot; in complete_sql
+</code></pre>
+<p>Run: <code>uv run pytest tests/unit/generators/test_schema_orchestrator.py::test_orchestrator_includes_fraiseql_metadata -v</code>
+Expected: <strong>FAIL</strong></p>
+<p><strong>🟢 GREEN</strong> (1.5 hours)
+1. Update <code>SchemaOrchestrator.generate_complete_schema()</code> to include:
+   - Mutation metadata schema (one-time)
+   - FraiseQL annotations for each action
+2. Ensure proper ordering (schema before functions)</p>
+<p><strong>🔧 REFACTOR</strong> (45 min)
+- Clean up orchestration logic
+- Add flags for what to include
+- Document generation phases</p>
+<p><strong>✅ QA</strong> (30 min)
+Run all orchestrator tests</p>
+<hr />
+<h3 id="tdd-cycle-2-frontend-artifacts-generation">TDD Cycle 2: Frontend Artifacts Generation</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python">def test_generate_frontend_artifacts():
+    &quot;&quot;&quot;Generate mutation-impacts.json and .d.ts files&quot;&quot;&quot;
+    entities = [Entity(...), Entity(...)]
+
+    orchestrator = SchemaOrchestrator()
+    artifacts = orchestrator.generate_frontend_artifacts(
+        entities,
+        output_dir=&quot;generated/&quot;
+    )
+
+    assert artifacts[&quot;mutation_impacts_json&quot;] is not None
+    assert artifacts[&quot;typescript_definitions&quot;] is not None
+    assert len(artifacts[&quot;mutation_impacts_json&quot;]) &gt; 1000  # Substantial content
+</code></pre>
+<p><strong>🟢 GREEN</strong> (1.5 hours)
+Implement frontend artifact generation</p>
+<p><strong>🔧 REFACTOR</strong> (30 min)
+File writing, error handling</p>
+<p><strong>✅ QA</strong> (30 min)
+Integration test that writes actual files</p>
+<hr />
+<h3 id="tdd-cycle-3-end-to-end-fraiseql-test">TDD Cycle 3: End-to-End FraiseQL Test</h3>
+<p><strong>🔴 RED</strong> (45 min)</p>
+<pre><code class="language-python"># tests/integration/test_fraiseql_integration.py
+def test_complete_fraiseql_pipeline():
+    &quot;&quot;&quot;Test complete SpecQL → SQL + FraiseQL metadata pipeline&quot;&quot;&quot;
+    yaml_content = &quot;&quot;&quot;
+    entity: Contact
+    schema: crm
+    fields:
+      email: email!
+      status: enum(lead, qualified)
+    actions:
+      - name: qualify_lead
+        steps:
+          - validate: status = 'lead'
+          - update: Contact SET status = 'qualified'
+    &quot;&quot;&quot;
+
+    # Parse
+    parser = SpecQLParser()
+    entity = parser.parse(yaml_content)
+
+    # Generate
+    orchestrator = SchemaOrchestrator()
+    complete_sql = orchestrator.generate_complete_schema(entity)
+    frontend_artifacts = orchestrator.generate_frontend_artifacts([entity])
+
+    # Verify SQL has FraiseQL metadata
+    assert &quot;@fraiseql:mutation name=qualifyLead&quot; in complete_sql
+    assert &quot;mutation_metadata.entity_impact&quot; in complete_sql
+
+    # Verify JSON artifact
+    impacts = json.loads(frontend_artifacts[&quot;mutation_impacts_json&quot;])
+    assert &quot;qualifyLead&quot; in impacts[&quot;mutations&quot;]
+    assert impacts[&quot;mutations&quot;][&quot;qualifyLead&quot;][&quot;impact&quot;][&quot;primary&quot;][&quot;entity&quot;] == &quot;Contact&quot;
+
+    # Verify TypeScript artifact
+    assert &quot;export interface MutationImpact&quot; in frontend_artifacts[&quot;typescript_definitions&quot;]
+</code></pre>
+<p>Run: <code>uv run pytest tests/integration/test_fraiseql_integration.py::test_complete_fraiseql_pipeline -v</code>
+Expected: <strong>FAIL</strong></p>
+<p><strong>🟢 GREEN</strong> (2 hours)
+Wire everything together, fix integration issues</p>
+<p><strong>🔧 REFACTOR</strong> (1 hour)
+Clean up interfaces, add logging</p>
+<p><strong>✅ QA</strong> (30 min)
+- Run full test suite
+- Verify 310+ tests passing
+- Check generated artifacts manually</p>
+<p><strong>END OF WEEK 1</strong>: Team D core FraiseQL generation complete</p>
+<hr />
+<h1 id="week-2-team-d-frontend-codegen-days-6-10">WEEK 2: Team D - Frontend Codegen (Days 6-10)</h1>
+<h2 id="phase-6-mutation-hook-generator-days-6-7">Phase 6: Mutation Hook Generator (Days 6-7)</h2>
+<p><strong>Objective</strong>: Generate pre-configured React hooks with cache management</p>
+<h3 id="tdd-cycle-1-basic-hook-structure">TDD Cycle 1: Basic Hook Structure</h3>
+<p><strong>🔴 RED</strong> (1 hour)</p>
+<pre><code class="language-python"># tests/unit/generators/test_mutation_hook_generator.py
+def test_generate_basic_mutation_hook():
+    &quot;&quot;&quot;Generate React hook for a mutation&quot;&quot;&quot;
+    entity = Entity(...)
+    action = Action(name=&quot;qualify_lead&quot;, ...)
+
+    generator = MutationHookGenerator()
+    ts_code = generator.generate_hook(entity, action)
+
+    assert &quot;export function useQualifyLead&quot; in ts_code
+    assert &quot;useMutation&quot; in ts_code
+    assert &quot;QUALIFY_LEAD&quot; in ts_code  # GraphQL query constant
+    assert &quot;MutationHookOptions&quot; in ts_code
+</code></pre>
+<p>Run test, expected: <strong>FAIL</strong></p>
+<p><strong>🟢 GREEN</strong> (3 hours)
+1. Create <code>src/generators/mutation_hook_generator.py</code>
+2. Implement basic hook generation
+3. Use templates for TypeScript code</p>
+<p><strong>🔧 REFACTOR</strong> (1 hour)
+Clean up template, add JSDoc</p>
+<p><strong>✅ QA</strong> (30 min)
+Verify TypeScript compiles</p>
+<hr />
+<h3 id="tdd-cycle-2-cache-invalidation-in-hooks">TDD Cycle 2: Cache Invalidation in Hooks</h3>
+<p><strong>🔴 RED</strong> (45 min)</p>
+<pre><code class="language-python">def test_hook_includes_cache_invalidations():
+    &quot;&quot;&quot;Hook should auto-configure refetchQueries from impact&quot;&quot;&quot;
+    action = Action(
+        name=&quot;qualify_lead&quot;,
+        impact=ImpactDeclaration(
+            cache_invalidations=[
+                CacheInvalidation(query=&quot;contacts&quot;, strategy=&quot;REFETCH&quot;),
+                CacheInvalidation(query=&quot;dashboardStats&quot;, strategy=&quot;EVICT&quot;)
+            ]
+        )
+    )
+
+    generator = MutationHookGenerator()
+    ts_code = generator.generate_hook(entity, action)
+
+    assert &quot;refetchQueries: [&quot; in ts_code
+    assert &quot;'contacts'&quot; in ts_code
+    assert &quot;cache.evict({ fieldName: 'dashboardStats' })&quot; in ts_code
+</code></pre>
+<p><strong>🟢 GREEN</strong> (2 hours)
+Implement cache management code generation</p>
+<p><strong>🔧 REFACTOR</strong> (45 min)
+Optimize generated code</p>
+<p><strong>✅ QA</strong> (30 min)
+Test suite</p>
+<hr />
+<h3 id="tdd-cycle-3-optimistic-updates">TDD Cycle 3: Optimistic Updates</h3>
+<p><strong>🔴 RED</strong> (45 min)</p>
+<pre><code class="language-python">def test_hook_includes_optimistic_response_if_safe():
+    &quot;&quot;&quot;Generate optimistic response for safe mutations&quot;&quot;&quot;
+    action = Action(
+        name=&quot;update_contact&quot;,
+        impact=ImpactDeclaration(optimistic_safe=True)
+    )
+
+    generator = MutationHookGenerator()
+    ts_code = generator.generate_hook(entity, action)
+
+    assert &quot;optimisticResponse&quot; in ts_code
+</code></pre>
+<p><strong>🟢 GREEN</strong> (2 hours)
+Generate optimistic response code</p>
+<p><strong>🔧 REFACTOR</strong> (30 min)
+Clean up</p>
+<p><strong>✅ QA</strong> (30 min)
+Full test suite</p>
+<p><strong>END OF DAY 7</strong>: Mutation hooks complete</p>
+<hr />
+<h2 id="phase-7-complete-frontend-module-days-8-9">Phase 7: Complete Frontend Module (Days 8-9)</h2>
+<h3 id="tdd-cycle-1-graphql-query-constants">TDD Cycle 1: GraphQL Query Constants</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python">def test_generate_graphql_query_constants():
+    &quot;&quot;&quot;Generate GraphQL query definitions&quot;&quot;&quot;
+    entity = Entity(...)
+    action = Action(name=&quot;qualify_lead&quot;, ...)
+
+    generator = GraphQLQueryGenerator()
+    ts_code = generator.generate_query_constant(entity, action)
+
+    assert &quot;export const QUALIFY_LEAD = gql`&quot; in ts_code
+    assert &quot;mutation QualifyLead&quot; in ts_code
+    assert &quot;$contactId: UUID!&quot; in ts_code
+</code></pre>
+<p><strong>🟢 GREEN</strong> (2 hours)
+Generate GraphQL query constants</p>
+<p><strong>🔧 REFACTOR</strong> (30 min)
+Template optimization</p>
+<p><strong>✅ QA</strong> (20 min)
+Test suite</p>
+<hr />
+<h3 id="tdd-cycle-2-complete-mutationsts-module">TDD Cycle 2: Complete mutations.ts Module</h3>
+<p><strong>🔴 RED</strong> (1 hour)</p>
+<pre><code class="language-python">def test_generate_complete_mutations_module():
+    &quot;&quot;&quot;Generate complete frontend mutations module&quot;&quot;&quot;
+    entities = [Entity(...), Entity(...)]
+
+    generator = FrontendModuleGenerator()
+    ts_code = generator.generate_mutations_module(entities)
+
+    # Should include imports
+    assert &quot;import { useMutation }&quot; in ts_code
+    assert &quot;import { gql }&quot; in ts_code
+
+    # Should include all hooks
+    assert &quot;export function useQualifyLead&quot; in ts_code
+    assert &quot;export function useCreateContact&quot; in ts_code
+
+    # Should re-export impacts
+    assert &quot;export { MUTATION_IMPACTS }&quot; in ts_code
+</code></pre>
+<p><strong>🟢 GREEN</strong> (3 hours)
+Generate complete module with all pieces</p>
+<p><strong>🔧 REFACTOR</strong> (1 hour)
+Code organization, formatting</p>
+<p><strong>✅ QA</strong> (30 min)
+Compile with TypeScript</p>
+<p><strong>END OF DAY 9</strong>: Complete frontend module generation</p>
+<hr />
+<h2 id="phase-8-integration-testing-day-10">Phase 8: Integration &amp; Testing (Day 10)</h2>
+<h3 id="tdd-cycle-1-cli-integration-for-frontend-generation">TDD Cycle 1: CLI Integration for Frontend Generation</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python"># tests/integration/test_cli_frontend_generation.py
+def test_cli_generates_frontend_artifacts():
+    &quot;&quot;&quot;CLI should generate frontend files&quot;&quot;&quot;
+    # Mock CLI call
+    result = cli_generate(
+        entities=[&quot;entities/contact.yaml&quot;],
+        output_frontend=&quot;frontend/src/generated&quot;
+    )
+
+    assert result.success
+    assert Path(&quot;frontend/src/generated/mutations.ts&quot;).exists()
+    assert Path(&quot;frontend/src/generated/mutation-impacts.json&quot;).exists()
+    assert Path(&quot;frontend/src/generated/mutation-impacts.d.ts&quot;).exists()
+</code></pre>
+<p><strong>🟢 GREEN</strong> (2 hours)
+Wire frontend generation into CLI</p>
+<p><strong>🔧 REFACTOR</strong> (30 min)
+Error handling, progress reporting</p>
+<p><strong>✅ QA</strong> (30 min)
+Manual testing of CLI</p>
+<hr />
+<h3 id="tdd-cycle-2-end-to-end-with-real-frontend">TDD Cycle 2: End-to-End with Real Frontend</h3>
+<p><strong>🔴 RED</strong> (1 hour)
+Create a real React component that uses generated hooks</p>
+<pre><code class="language-typescript">// tests/integration/frontend-test/src/TestComponent.tsx
+import { useQualifyLead } from './generated/mutations';
+
+export function TestComponent() {
+  const [qualifyLead, { loading, error }] = useQualifyLead();
+
+  return (
+    &lt;button onClick={() =&gt; qualifyLead({ variables: { contactId: '...' }})}&gt;
+      Qualify Lead
+    &lt;/button&gt;
+  );
+}
+</code></pre>
+<p>Try to compile, expected: <strong>FAIL</strong> (not generated yet)</p>
+<p><strong>🟢 GREEN</strong> (2 hours)
+1. Generate complete frontend code
+2. Set up minimal React test app
+3. Verify compilation and type checking</p>
+<p><strong>🔧 REFACTOR</strong> (1 hour)
+Fix type errors, improve generated code quality</p>
+<p><strong>✅ QA</strong> (1 hour)
+- Full test suite: <code>uv run pytest</code>
+- TypeScript compilation: <code>cd tests/integration/frontend-test &amp;&amp; npm run typecheck</code>
+- All ~320 tests passing</p>
+<p><strong>END OF WEEK 2</strong>: Complete FraiseQL + Frontend generation done</p>
+<hr />
+<h1 id="week-3-custom-actions-cli-days-11-15">WEEK 3: Custom Actions + CLI (Days 11-15)</h1>
+<h2 id="phase-9-custom-actions-team-c-days-11-13">Phase 9: Custom Actions (Team C) (Days 11-13)</h2>
+<p><strong>Objective</strong>: Support custom business actions beyond CRUD</p>
+<h3 id="tdd-cycle-1-custom-action-detection">TDD Cycle 1: Custom Action Detection</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python"># tests/unit/generators/test_core_logic_generator.py (add)
+def test_detect_custom_action_pattern():
+    &quot;&quot;&quot;Detect custom actions vs CRUD&quot;&quot;&quot;
+    action_create = Action(name=&quot;create_contact&quot;, ...)
+    action_custom = Action(name=&quot;qualify_lead&quot;, ...)
+
+    generator = CoreLogicGenerator()
+
+    assert generator.detect_action_pattern(action_create) == &quot;create&quot;
+    assert generator.detect_action_pattern(action_custom) == &quot;custom&quot;
+</code></pre>
+<p><strong>🟢 GREEN</strong> (45 min)
+Implement action pattern detection</p>
+<p><strong>🔧 REFACTOR</strong> (15 min)
+Clean up logic</p>
+<p><strong>✅ QA</strong> (10 min)
+Test suite</p>
+<hr />
+<h3 id="tdd-cycle-2-custom-action-template">TDD Cycle 2: Custom Action Template</h3>
+<p><strong>🔴 RED</strong> (45 min)</p>
+<pre><code class="language-python">def test_generate_custom_action_qualify_lead():
+    &quot;&quot;&quot;Generate custom action function&quot;&quot;&quot;
+    entity = Entity(name=&quot;Contact&quot;, ...)
+    action = Action(
+        name=&quot;qualify_lead&quot;,
+        steps=[
+            ActionStep(type=&quot;validate&quot;, expression=&quot;status = 'lead'&quot;),
+            ActionStep(type=&quot;update&quot;, entity=&quot;Contact&quot;, fields={&quot;status&quot;: &quot;qualified&quot;}),
+            ActionStep(type=&quot;notify&quot;, template=&quot;lead_qualified&quot;)
+        ]
+    )
+
+    generator = CoreLogicGenerator()
+    sql = generator.generate_core_custom_action(entity, action)
+
+    assert &quot;CREATE OR REPLACE FUNCTION crm.qualify_lead(&quot; in sql
+    assert &quot;input_data app.type_qualify_lead_input&quot; in sql
+    # Should have compiled steps
+    assert &quot;IF NOT (status = 'lead')&quot; in sql  # Validation
+    assert &quot;UPDATE crm.tb_contact SET status = 'qualified'&quot; in sql  # Update
+    assert &quot;PERFORM app.emit_event&quot; in sql  # Notify
+</code></pre>
+<p><strong>🟢 GREEN</strong> (4 hours)
+1. Create <code>templates/sql/core_custom_action.sql.j2</code>
+2. Implement <code>generate_core_custom_action()</code> method
+3. Use existing step compilers to compile action steps</p>
+<p><strong>🔧 REFACTOR</strong> (1 hour)
+Template optimization, error handling</p>
+<p><strong>✅ QA</strong> (30 min)
+Test suite</p>
+<hr />
+<h3 id="tdd-cycle-3-database-roundtrip-for-custom-action">TDD Cycle 3: Database Roundtrip for Custom Action</h3>
+<p><strong>🔴 RED</strong> (1 hour)</p>
+<pre><code class="language-python"># tests/integration/actions/test_custom_actions_roundtrip.py
+def test_custom_action_qualify_lead_executes_in_database(test_db):
+    &quot;&quot;&quot;Custom action executes successfully in PostgreSQL&quot;&quot;&quot;
+    # Generate SQL for entity with custom action
+    entity = create_contact_with_qualify_lead_action()
+    orchestrator = SchemaOrchestrator()
+    sql = orchestrator.generate_complete_schema(entity)
+
+    # Apply to database
+    test_db.execute(sql)
+    test_db.commit()
+
+    # Create a lead
+    test_db.execute(&quot;&quot;&quot;
+        INSERT INTO crm.tb_contact (id, email, status, tenant_id)
+        VALUES (gen_random_uuid(), 'test@example.com', 'lead', %s)
+    &quot;&quot;&quot;, (TEST_TENANT_ID,))
+
+    # Call custom action
+    cursor = test_db.cursor()
+    cursor.execute(&quot;&quot;&quot;
+        SELECT (crm.qualify_lead(%s, ROW(...)::app.type_qualify_lead_input, %s, %s)).*
+    &quot;&quot;&quot;, (...))
+    result = cursor.fetchone()
+
+    # Verify success
+    assert result[2] == &quot;success&quot;  # status
+
+    # Verify database state
+    cursor.execute(&quot;SELECT status FROM crm.tb_contact WHERE email = 'test@example.com'&quot;)
+    assert cursor.fetchone()[0] == &quot;qualified&quot;
+</code></pre>
+<p><strong>🟢 GREEN</strong> (3 hours)
+Fix any issues found during actual execution</p>
+<p><strong>🔧 REFACTOR</strong> (1 hour)
+Improve generated SQL quality</p>
+<p><strong>✅ QA</strong> (1 hour)
+Full test suite, verify database tests pass</p>
+<p><strong>END OF DAY 13</strong>: Custom actions complete</p>
+<hr />
+<h2 id="phase-10-cli-commands-team-e-days-14-15">Phase 10: CLI Commands (Team E) (Days 14-15)</h2>
+<p><strong>Objective</strong>: Polish CLI for production use</p>
+<h3 id="tdd-cycle-1-generate-command">TDD Cycle 1: Generate Command</h3>
+<p><strong>🔴 RED</strong> (1 hour)</p>
+<pre><code class="language-python"># tests/unit/cli/test_generate_command.py
+def test_cli_generate_command():
+    &quot;&quot;&quot;Test specql generate command&quot;&quot;&quot;
+    result = run_cli([&quot;generate&quot;, &quot;entities/contact.yaml&quot;])
+
+    assert result.exit_code == 0
+    assert &quot;✓ Generated: migrations/001_contact.sql&quot; in result.output
+    assert Path(&quot;migrations/001_contact.sql&quot;).exists()
+</code></pre>
+<p><strong>🟢 GREEN</strong> (2 hours)
+Implement full generate command with:
+- File reading
+- Progress output
+- Migration file writing
+- Frontend artifacts (if --with-impacts)</p>
+<p><strong>🔧 REFACTOR</strong> (1 hour)
+Add colors, better error messages</p>
+<p><strong>✅ QA</strong> (30 min)
+Manual testing</p>
+<hr />
+<h3 id="tdd-cycle-2-validate-command">TDD Cycle 2: Validate Command</h3>
+<p><strong>🔴 RED</strong> (45 min)</p>
+<pre><code class="language-python">def test_cli_validate_command():
+    &quot;&quot;&quot;Test specql validate command&quot;&quot;&quot;
+    result = run_cli([&quot;validate&quot;, &quot;entities/contact.yaml&quot;])
+
+    assert result.exit_code == 0
+    assert &quot;✓ contact.yaml is valid&quot; in result.output
+</code></pre>
+<p><strong>🟢 GREEN</strong> (1.5 hours)
+Implement validation with helpful error messages</p>
+<p><strong>🔧 REFACTOR</strong> (30 min)
+Error formatting</p>
+<p><strong>✅ QA</strong> (20 min)
+Test invalid YAML</p>
+<hr />
+<h3 id="tdd-cycle-3-docs-command">TDD Cycle 3: Docs Command</h3>
+<p><strong>🔴 RED</strong> (30 min)</p>
+<pre><code class="language-python">def test_cli_docs_command():
+    &quot;&quot;&quot;Test specql docs command&quot;&quot;&quot;
+    result = run_cli([&quot;docs&quot;, &quot;entities/contact.yaml&quot;, &quot;--output=docs/&quot;])
+
+    assert result.exit_code == 0
+    assert Path(&quot;docs/mutations.md&quot;).exists()
+</code></pre>
+<p><strong>🟢 GREEN</strong> (2 hours)
+Generate markdown documentation</p>
+<p><strong>🔧 REFACTOR</strong> (30 min)
+Template formatting</p>
+<p><strong>✅ QA</strong> (30 min)
+Review generated docs</p>
+<p><strong>END OF DAY 15</strong>: CLI complete</p>
+<hr />
+<h1 id="week-4-integration-ship-days-16-20">WEEK 4: Integration &amp; Ship (Days 16-20)</h1>
+<h2 id="phase-11-end-to-end-testing-days-16-17">Phase 11: End-to-End Testing (Days 16-17)</h2>
+<h3 id="tdd-cycle-1-complete-pipeline-test">TDD Cycle 1: Complete Pipeline Test</h3>
+<p><strong>🔴 RED</strong> (2 hours)</p>
+<pre><code class="language-python"># tests/integration/test_complete_pipeline.py
+def test_complete_specql_to_graphql_pipeline():
+    &quot;&quot;&quot;Test complete SpecQL → PostgreSQL → GraphQL pipeline&quot;&quot;&quot;
+
+    # 1. Write SpecQL
+    yaml_content = &quot;&quot;&quot;
+    entity: Contact
+    schema: crm
+    fields:
+      email: email!
+      company: ref(Company)
+      status: enum(lead, qualified, customer)
+    actions:
+      - name: create_contact
+        steps:
+          - validate: email IS NOT NULL
+          - insert: Contact
+      - name: qualify_lead
+        steps:
+          - validate: status = 'lead'
+          - update: Contact SET status = 'qualified'
+          - notify: owner(email, &quot;Contact qualified&quot;)
+    &quot;&quot;&quot;
+
+    # 2. Generate SQL
+    parser = SpecQLParser()
+    entity = parser.parse(yaml_content)
+
+    orchestrator = SchemaOrchestrator()
+    sql = orchestrator.generate_complete_schema(entity)
+    frontend_artifacts = orchestrator.generate_frontend_artifacts([entity])
+
+    # 3. Apply to database
+    test_db.execute(sql)
+    test_db.commit()
+
+    # 4. Test CRUD operations
+    test_db.execute(&quot;SELECT crm.create_contact(...)&quot;)
+    test_db.execute(&quot;SELECT crm.qualify_lead(...)&quot;)
+
+    # 5. Verify frontend artifacts
+    assert &quot;useCreateContact&quot; in frontend_artifacts[&quot;mutations_module&quot;]
+    assert &quot;useQualifyLead&quot; in frontend_artifacts[&quot;mutations_module&quot;]
+
+    # 6. Verify FraiseQL can introspect
+    # (Manual verification or mock FraiseQL tool)
+    assert &quot;@fraiseql:mutation&quot; in sql
+</code></pre>
+<p>Run test, expected: <strong>FAIL</strong> (integration issues)</p>
+<p><strong>🟢 GREEN</strong> (4 hours)
+Fix all integration issues found</p>
+<p><strong>🔧 REFACTOR</strong> (2 hours)
+Clean up rough edges</p>
+<p><strong>✅ QA</strong> (2 hours)
+Run complete test suite multiple times</p>
+<hr />
+<h3 id="tdd-cycle-2-performance-testing">TDD Cycle 2: Performance Testing</h3>
+<p><strong>🔴 RED</strong> (1 hour)</p>
+<pre><code class="language-python">def test_generation_performance():
+    &quot;&quot;&quot;Verify generation is fast enough for production use&quot;&quot;&quot;
+    entities = [create_entity(i) for i in range(10)]  # 10 entities
+
+    import time
+    start = time.time()
+
+    for entity in entities:
+        orchestrator.generate_complete_schema(entity)
+
+    elapsed = time.time() - start
+
+    # Should generate 10 entities in under 5 seconds
+    assert elapsed &lt; 5.0
+</code></pre>
+<p><strong>🟢 GREEN</strong> (2 hours)
+Optimize slow parts if needed</p>
+<p><strong>✅ QA</strong> (1 hour)
+Profile and optimize</p>
+<p><strong>END OF DAY 17</strong>: All tests passing, system working end-to-end</p>
+<hr />
+<h2 id="phase-12-documentation-day-18">Phase 12: Documentation (Day 18)</h2>
+<h3 id="task-1-user-documentation">Task 1: User Documentation</h3>
+<p><strong>Time: 4 hours</strong></p>
+<p>Write comprehensive docs:</p>
+<ol>
+<li><strong>Getting Started Guide</strong> (<code>docs/guides/getting-started.md</code>)</li>
+<li>Installation</li>
+<li>First entity</li>
+<li>Running migrations</li>
+<li>
+<p>Using generated GraphQL</p>
+</li>
+<li>
+<p><strong>SpecQL Language Reference</strong> (<code>docs/reference/specql-syntax.md</code>)</p>
+</li>
+<li>Field types</li>
+<li>Action syntax</li>
+<li>
+<p>Examples</p>
+</li>
+<li>
+<p><strong>CLI Reference</strong> (<code>docs/reference/cli-commands.md</code>)</p>
+</li>
+<li>All commands</li>
+<li>Options</li>
+<li>
+<p>Examples</p>
+</li>
+<li>
+<p><strong>Architecture Guide</strong> (<code>docs/architecture/overview.md</code>)</p>
+</li>
+<li>Pipeline explanation</li>
+<li>Team structure</li>
+<li>Extension points</li>
+</ol>
+<h3 id="task-2-api-documentation">Task 2: API Documentation</h3>
+<p><strong>Time: 2 hours</strong></p>
+<p>Generate API docs:
+- Generator classes
+- Method signatures
+- Usage examples</p>
+<h3 id="task-3-examples">Task 3: Examples</h3>
+<p><strong>Time: 2 hours</strong></p>
+<p>Create working examples:
+- Simple CRM (Contact, Company)
+- E-commerce (Product, Order)
+- Multi-tenant SaaS</p>
+<p><strong>END OF DAY 18</strong>: Documentation complete</p>
+<hr />
+<h2 id="phase-13-polish-release-days-19-20">Phase 13: Polish &amp; Release (Days 19-20)</h2>
+<h3 id="day-19-final-polish">Day 19: Final Polish</h3>
+<p><strong>Morning</strong> (4 hours)
+- Fix any remaining TODO comments
+- Improve error messages
+- Add helpful CLI output
+- Code review of all new code</p>
+<p><strong>Afternoon</strong> (4 hours)
+- Run full test suite 10x
+- Fix any flaky tests
+- Performance profiling
+- Memory leak checking</p>
+<hr />
+<h3 id="day-20-release-preparation">Day 20: Release Preparation</h3>
+<p><strong>Morning</strong> (4 hours)
+1. Version bump to 1.0.0
+2. Update CHANGELOG.md
+3. Final test run
+4. Tag release
+5. Write release notes</p>
+<p><strong>Afternoon</strong> (4 hours)
+1. Create demo video (recording)
+2. Write blog post announcement
+3. Prepare demo for stakeholders
+4. Deploy documentation site</p>
+<hr />
+<h2 id="success-criteria-checklist">🎯 Success Criteria Checklist</h2>
+<h3 id="functionality">Functionality</h3>
+<ul>
+<li>[ ] SpecQL → PostgreSQL works (already ✅)</li>
+<li>[ ] PostgreSQL → FraiseQL metadata works</li>
+<li>[ ] Frontend code generation works</li>
+<li>[ ] All 320+ tests passing</li>
+<li>[ ] Database roundtrip tests pass</li>
+<li>[ ] Custom actions work</li>
+<li>[ ] CLI commands work</li>
+</ul>
+<h3 id="quality">Quality</h3>
+<ul>
+<li>[ ] No critical bugs</li>
+<li>[ ] Performance acceptable (&lt;5s for 10 entities)</li>
+<li>[ ] Error messages helpful</li>
+<li>[ ] Documentation complete</li>
+<li>[ ] Code coverage &gt;90%</li>
+</ul>
+<h3 id="deliverables">Deliverables</h3>
+<ul>
+<li>[ ] <code>mutation-impacts.json</code> generation ✅</li>
+<li>[ ] <code>mutation-impacts.d.ts</code> generation ✅</li>
+<li>[ ] <code>mutations.ts</code> hooks generation ✅</li>
+<li>[ ] GraphQL query constants ✅</li>
+<li>[ ] Complete CLI (<code>specql generate/validate/docs</code>) ✅</li>
+<li>[ ] User documentation ✅</li>
+<li>[ ] Working examples ✅</li>
+</ul>
+<hr />
+<h2 id="daily-progress-tracking">📊 Daily Progress Tracking</h2>
+<p>Update after each day:</p>
+<pre><code class="language-markdown">### Day 1 (YYYY-MM-DD)
+- ✅ Phase 1, Cycle 1-3 complete
+- Tests: 308/312 passing
+- Blockers: None
+- Tomorrow: Phase 2
+
+### Day 2 (YYYY-MM-DD)
+- ✅ Phase 2 complete
+- Tests: 315/320 passing
+- Blockers: None
+- Tomorrow: Phase 3
+
+... (continue for all 20 days)
+</code></pre>
+<hr />
+<h2 id="risk-mitigation">🚨 Risk Mitigation</h2>
+<h3 id="if-behind-schedule">If Behind Schedule</h3>
+<p><strong>Week 1 behind?</strong>
+- Skip frontend hook generation
+- Focus on JSON/TypeScript generation only
+- Defer hooks to later</p>
+<p><strong>Week 2 behind?</strong>
+- Simplify hook generation
+- Basic functionality only
+- Skip optimistic updates</p>
+<p><strong>Week 3 behind?</strong>
+- Skip custom actions
+- Focus on CLI polish
+- Custom actions can be v1.1</p>
+<h3 id="if-blocked">If Blocked</h3>
+<p><strong>Technical issues?</strong>
+1. Document the blocker
+2. Create failing test
+3. Ask for help / research
+4. Consider workaround</p>
+<p><strong>Integration issues?</strong>
+1. Write integration test that fails
+2. Debug one piece at a time
+3. Add logging/tracing
+4. Simplify if needed</p>
+<hr />
+<h2 id="tdd-best-practices-for-this-plan">🎓 TDD Best Practices for This Plan</h2>
+<h3 id="red-phase-tips">RED Phase Tips</h3>
+<ul>
+<li>Write the test you wish existed</li>
+<li>Make it specific and focused</li>
+<li>Run it and watch it fail</li>
+<li>Commit the failing test</li>
+</ul>
+<h3 id="green-phase-tips">GREEN Phase Tips</h3>
+<ul>
+<li>Simplest possible implementation</li>
+<li>Don't worry about elegance</li>
+<li>Just make the test pass</li>
+<li>Commit when green</li>
+</ul>
+<h3 id="refactor-phase-tips">REFACTOR Phase Tips</h3>
+<ul>
+<li>Now make it beautiful</li>
+<li>Extract methods</li>
+<li>Add comments</li>
+<li>Keep tests passing</li>
+<li>Commit after refactor</li>
+</ul>
+<h3 id="qa-phase-tips">QA Phase Tips</h3>
+<ul>
+<li>Run full test suite</li>
+<li>Check code quality</li>
+<li>Manual testing</li>
+<li>Integration verification</li>
+<li>Document any issues</li>
+</ul>
+<hr />
+<h2 id="questions-to-ask-yourself-daily">📞 Questions to Ask Yourself Daily</h2>
+<ol>
+<li><strong>Progress</strong>: Am I on track for today's phase?</li>
+<li><strong>Quality</strong>: Are all tests passing?</li>
+<li><strong>Blockers</strong>: What's slowing me down?</li>
+<li><strong>Tomorrow</strong>: What's the next TDD cycle?</li>
+<li><strong>Help</strong>: Do I need to escalate anything?</li>
+</ol>
+<hr />
+<p><strong>Last Updated</strong>: 2025-11-08
+<strong>Status</strong>: Ready to Execute
+<strong>Estimated Completion</strong>: 3-4 weeks (15-20 days)
+<strong>Next Action</strong>: Start Day 1, Phase 1, TDD Cycle 1</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

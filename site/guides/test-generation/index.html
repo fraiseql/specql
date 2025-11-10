@@ -1,0 +1,531 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Test Generation - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Test Generation";
+        var mkdocs_page_input_path = "guides/test-generation/README.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="./">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Test Generation</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="test-generation">Test Generation</h1>
+<p>SpecQL automatically generates comprehensive tests for your entities and patterns. Get instant test coverage for business logic, data validation, state machines, and performance - without writing a single test manually.</p>
+<h2 id="what-is-automatic-test-generation">🎯 What Is Automatic Test Generation?</h2>
+<p><strong>SpecQL generates three types of tests from your YAML specifications:</strong></p>
+<h3 id="1-pgtap-tests-database-level-testing">1. <strong>pgTAP Tests</strong> - Database-Level Testing</h3>
+<ul>
+<li>✅ <strong>Native PostgreSQL</strong> - Run directly in the database</li>
+<li>✅ <strong>Business Logic</strong> - Test patterns, constraints, functions</li>
+<li>✅ <strong>Fast Execution</strong> - No external dependencies</li>
+<li>✅ <strong>Comprehensive Coverage</strong> - All edge cases and error conditions</li>
+</ul>
+<h3 id="2-pytest-tests-application-level-testing">2. <strong>pytest Tests</strong> - Application-Level Testing</h3>
+<ul>
+<li>✅ <strong>Python Integration</strong> - Test from your application code</li>
+<li>✅ <strong>API Testing</strong> - Validate generated functions</li>
+<li>✅ <strong>Data Consistency</strong> - Cross-table relationship testing</li>
+<li>✅ <strong>CI/CD Ready</strong> - Standard Python test framework</li>
+</ul>
+<h3 id="3-performance-tests-benchmarking-optimization">3. <strong>Performance Tests</strong> - Benchmarking &amp; Optimization</h3>
+<ul>
+<li>✅ <strong>Query Performance</strong> - Measure SQL execution time</li>
+<li>✅ <strong>Scalability Testing</strong> - Load testing with multiple users</li>
+<li>✅ <strong>Pattern Efficiency</strong> - Compare different implementations</li>
+<li>✅ <strong>Bottleneck Detection</strong> - Identify slow operations</li>
+</ul>
+<h2 id="why-automatic-testing">💡 Why Automatic Testing?</h2>
+<table>
+<thead>
+<tr>
+<th>Traditional Testing</th>
+<th>SpecQL Test Generation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Manual coding</strong> - Write every test</td>
+<td><strong>Zero coding</strong> - Tests from YAML</td>
+</tr>
+<tr>
+<td><strong>Incomplete coverage</strong> - Miss edge cases</td>
+<td><strong>100% coverage</strong> - All scenarios</td>
+</tr>
+<tr>
+<td><strong>Maintenance burden</strong> - Update when code changes</td>
+<td><strong>Auto-sync</strong> - Tests update with specs</td>
+</tr>
+<tr>
+<td><strong>Slow feedback</strong> - Hours to write tests</td>
+<td><strong>Instant coverage</strong> - Tests in seconds</td>
+</tr>
+<tr>
+<td><strong>Error-prone</strong> - Human mistakes</td>
+<td><strong>Consistent</strong> - Generated reliably</td>
+</tr>
+</tbody>
+</table>
+<h2 id="quick-start">🚀 Quick Start</h2>
+<h3 id="generate-tests-in-3-steps">Generate Tests in 3 Steps</h3>
+<pre><code class="language-bash"># 1. Create your entity with patterns
+# (entities/user.yaml with state_machine pattern)
+
+# 2. Generate all test types
+specql generate tests entities/user.yaml
+
+# 3. Run tests
+specql test run entities/user.yaml
+</code></pre>
+<p><strong>That's it!</strong> You now have comprehensive test coverage.</p>
+<h2 id="generated-test-coverage">📊 Generated Test Coverage</h2>
+<h3 id="state-machine-tests">State Machine Tests</h3>
+<pre><code class="language-sql">-- pgTAP test example
+SELECT ok(
+    user_request_verification('test-user-id') IS NOT NULL,
+    'Can request verification from inactive state'
+);
+
+SELECT ok(
+    (SELECT status FROM user WHERE id = 'test-user-id') = 'pending_verification',
+    'State changed correctly'
+);
+</code></pre>
+<h3 id="validation-tests">Validation Tests</h3>
+<pre><code class="language-python"># pytest test example
+def test_email_validation():
+    # Test valid email
+    result = validate_user_email(&quot;user@example.com&quot;)
+    assert result.is_valid == True
+
+    # Test invalid email
+    result = validate_user_email(&quot;invalid-email&quot;)
+    assert result.is_valid == False
+    assert &quot;Invalid email format&quot; in result.errors
+</code></pre>
+<h3 id="performance-tests">Performance Tests</h3>
+<pre><code class="language-python"># Performance benchmark
+def test_state_machine_performance(benchmark):
+    users = create_test_users(1000)
+
+    # Benchmark bulk state transitions
+    result = benchmark(
+        lambda: bulk_update_user_status(users, 'active')
+    )
+
+    assert result.execution_time &lt; 5.0  # seconds
+</code></pre>
+<h2 id="test-generation-guides">📖 Test Generation Guides</h2>
+<h3 id="getting-started">Getting Started</h3>
+<ul>
+<li><strong><a href="getting-started/">Getting Started</a></strong> - Test generation basics and workflow</li>
+<li><strong><a href="pgtap-tests/">pgTAP Tests</a></strong> - PostgreSQL native testing</li>
+<li><strong><a href="pytest-tests/">pytest Tests</a></strong> - Python integration testing</li>
+</ul>
+<h3 id="advanced-testing">Advanced Testing</h3>
+<ul>
+<li><strong><a href="performance-tests/">Performance Tests</a></strong> - Benchmarking and optimization</li>
+<li><strong><a href="ci-cd-integration.md">CI/CD Integration</a></strong> - Automated testing pipelines</li>
+</ul>
+<h2 id="test-categories">🎯 Test Categories</h2>
+<h3 id="business-logic-tests">Business Logic Tests</h3>
+<ul>
+<li><strong>Pattern Validation</strong> - State machines, validation rules, multi-entity operations</li>
+<li><strong>Function Testing</strong> - Generated database functions</li>
+<li><strong>Constraint Testing</strong> - Data integrity rules</li>
+<li><strong>Trigger Testing</strong> - Automatic actions and validations</li>
+</ul>
+<h3 id="data-integrity-tests">Data Integrity Tests</h3>
+<ul>
+<li><strong>Relationship Testing</strong> - Foreign key constraints</li>
+<li><strong>Uniqueness Testing</strong> - Unique constraints and indexes</li>
+<li><strong>Type Validation</strong> - Data type constraints</li>
+<li><strong>Range Testing</strong> - Numeric and date range validations</li>
+</ul>
+<h3 id="integration-tests">Integration Tests</h3>
+<ul>
+<li><strong>Cross-Entity Testing</strong> - Multi-table operations</li>
+<li><strong>API Testing</strong> - Generated function interfaces</li>
+<li><strong>Workflow Testing</strong> - End-to-end business processes</li>
+<li><strong>Error Handling</strong> - Exception and rollback scenarios</li>
+</ul>
+<h3 id="performance-tests_1">Performance Tests</h3>
+<ul>
+<li><strong>Query Optimization</strong> - SQL execution time</li>
+<li><strong>Scalability Testing</strong> - Concurrent user load</li>
+<li><strong>Memory Usage</strong> - Resource consumption</li>
+<li><strong>Bottleneck Analysis</strong> - Performance profiling</li>
+</ul>
+<h2 id="test-configuration">🔧 Test Configuration</h2>
+<h3 id="basic-configuration">Basic Configuration</h3>
+<pre><code class="language-yaml"># In your entity YAML
+name: user
+fields:
+  id: uuid
+  email: string
+  status: string
+
+patterns:
+  - name: state_machine
+    # ... pattern config
+
+# Test configuration (optional)
+test_config:
+  enabled: true
+  types: [pgtap, pytest, performance]
+  data_sets:
+    - name: basic_user
+      email: &quot;test@example.com&quot;
+      status: &quot;active&quot;
+    - name: edge_cases
+      email: &quot;&quot;  # Empty email
+      status: &quot;invalid_status&quot;
+</code></pre>
+<h3 id="advanced-test-settings">Advanced Test Settings</h3>
+<pre><code class="language-yaml">test_config:
+  # Test types to generate
+  types: [pgtap, pytest]
+
+  # Test data generation
+  fixtures:
+    - name: test_users
+      count: 100
+      template:
+        email: &quot;user_{index}@example.com&quot;
+        status: &quot;active&quot;
+
+  # Performance test settings
+  performance:
+    enabled: true
+    iterations: 1000
+    concurrency: 10
+    timeout: &quot;30 seconds&quot;
+
+  # Coverage requirements
+  coverage:
+    minimum: 95
+    exclude_patterns: [&quot;debug_*&quot;, &quot;temp_*&quot;]
+</code></pre>
+<h2 id="test-metrics-reporting">📈 Test Metrics &amp; Reporting</h2>
+<h3 id="coverage-reports">Coverage Reports</h3>
+<pre><code class="language-bash"># Generate coverage report
+specql test coverage entities/user.yaml
+
+# Output formats
+specql test coverage entities/user.yaml --format html --output coverage.html
+specql test coverage entities/user.yaml --format json --output coverage.json
+</code></pre>
+<h3 id="performance-reports">Performance Reports</h3>
+<pre><code class="language-bash"># Run performance tests
+specql test run --type performance entities/user.yaml
+
+# Generate performance report
+specql test performance-report entities/user.yaml --output performance.html
+</code></pre>
+<h3 id="test-results">Test Results</h3>
+<pre><code class="language-bash"># Detailed test output
+specql test run entities/user.yaml --verbose
+
+# JUnit XML for CI/CD
+specql test run entities/user.yaml --junit-xml results.xml
+
+# Summary report
+specql test run entities/user.yaml --summary
+</code></pre>
+<h2 id="common-workflows">🚀 Common Workflows</h2>
+<h3 id="development-workflow">Development Workflow</h3>
+<pre><code class="language-bash"># 1. Write YAML specification
+vim entities/user.yaml
+
+# 2. Generate schema
+specql generate schema entities/user.yaml
+
+# 3. Generate tests
+specql generate tests entities/user.yaml
+
+# 4. Run tests
+specql test run entities/user.yaml
+
+# 5. Check coverage
+specql test coverage entities/user.yaml
+</code></pre>
+<h3 id="cicd-pipeline">CI/CD Pipeline</h3>
+<pre><code class="language-yaml"># .github/workflows/test.yml
+name: Test
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup SpecQL
+        run: pip install specql
+
+      - name: Generate Tests
+        run: specql generate tests entities/*.yaml
+
+      - name: Run pgTAP Tests
+        run: specql test run --type pgtap entities/*.yaml
+
+      - name: Run pytest Tests
+        run: specql test run --type pytest entities/*.yaml
+
+      - name: Performance Tests
+        run: specql test run --type performance entities/*.yaml
+
+      - name: Coverage Report
+        run: specql test coverage entities/*.yaml --format html
+</code></pre>
+<h3 id="debugging-failed-tests">Debugging Failed Tests</h3>
+<pre><code class="language-bash"># Run with verbose output
+specql test run entities/user.yaml --verbose
+
+# Run specific test
+specql test run entities/user.yaml --filter &quot;test_state_machine&quot;
+
+# Debug database state
+psql $DATABASE_URL -c &quot;SELECT * FROM user LIMIT 5;&quot;
+
+# Check test logs
+cat logs/test_execution.log
+</code></pre>
+<h2 id="best-practices">🎯 Best Practices</h2>
+<h3 id="test-design">Test Design</h3>
+<ul>
+<li><strong>Test early, test often</strong> - Generate tests immediately after creating entities</li>
+<li><strong>Use realistic data</strong> - Test with production-like data sets</li>
+<li><strong>Cover edge cases</strong> - Include boundary conditions and error scenarios</li>
+<li><strong>Maintain test data</strong> - Keep test fixtures up to date</li>
+</ul>
+<h3 id="performance-testing">Performance Testing</h3>
+<ul>
+<li><strong>Set realistic targets</strong> - Define acceptable performance thresholds</li>
+<li><strong>Test at scale</strong> - Use data volumes similar to production</li>
+<li><strong>Monitor trends</strong> - Track performance over time</li>
+<li><strong>Profile bottlenecks</strong> - Identify and optimize slow operations</li>
+</ul>
+<h3 id="cicd-integration">CI/CD Integration</h3>
+<ul>
+<li><strong>Fast feedback</strong> - Run critical tests on every commit</li>
+<li><strong>Parallel execution</strong> - Split test suites across multiple runners</li>
+<li><strong>Quality gates</strong> - Block deployments on test failures</li>
+<li><strong>Artifact storage</strong> - Save test reports and coverage data</li>
+</ul>
+<h3 id="maintenance">Maintenance</h3>
+<ul>
+<li><strong>Regenerate regularly</strong> - Keep tests in sync with schema changes</li>
+<li><strong>Review failures</strong> - Understand why tests fail and fix root causes</li>
+<li><strong>Update expectations</strong> - Modify tests when business logic changes intentionally</li>
+<li><strong>Archive old tests</strong> - Clean up obsolete test cases</li>
+</ul>
+<h2 id="troubleshooting">🆘 Troubleshooting</h2>
+<h3 id="tests-not-generating">"Tests not generating"</h3>
+<pre><code class="language-bash"># Check YAML syntax
+specql validate entities/user.yaml
+
+# Force regeneration
+specql generate tests entities/user.yaml --force
+
+# Check file permissions
+ls -la tests/
+</code></pre>
+<h3 id="pgtap-tests-failing">"pgTAP tests failing"</h3>
+<pre><code class="language-bash"># Install pgTAP extension
+psql $DATABASE_URL -c &quot;CREATE EXTENSION IF NOT EXISTS pgtap;&quot;
+
+# Check database connection
+psql $DATABASE_URL -c &quot;SELECT 1;&quot;
+
+# Run tests manually
+psql $DATABASE_URL -f tests/pgtap/user_test.sql
+</code></pre>
+<h3 id="pytest-tests-failing">"pytest tests failing"</h3>
+<pre><code class="language-bash"># Install dependencies
+pip install pytest psycopg2-binary
+
+# Check Python path
+python -c &quot;import specql&quot;
+
+# Run tests directly
+pytest tests/pytest/ -v
+</code></pre>
+<h3 id="performance-tests-slow">"Performance tests slow"</h3>
+<pre><code class="language-bash"># Reduce test data size
+specql generate tests entities/user.yaml --performance-data-size 100
+
+# Increase timeouts
+specql test run --type performance entities/user.yaml --timeout 300
+
+# Profile specific operations
+specql test profile entities/user.yaml --operation state_machine
+</code></pre>
+<h2 id="success-metrics">📊 Success Metrics</h2>
+<h3 id="coverage-goals">Coverage Goals</h3>
+<ul>
+<li><strong>Line Coverage</strong>: &gt;95% of generated code</li>
+<li><strong>Branch Coverage</strong>: &gt;90% of conditional logic</li>
+<li><strong>Pattern Coverage</strong>: 100% of declared patterns</li>
+<li><strong>Edge Case Coverage</strong>: All boundary conditions</li>
+</ul>
+<h3 id="performance-targets">Performance Targets</h3>
+<ul>
+<li><strong>Test Execution</strong>: &lt;5 minutes for full suite</li>
+<li><strong>pgTAP Tests</strong>: &lt;1 minute execution time</li>
+<li><strong>pytest Tests</strong>: &lt;2 minutes execution time</li>
+<li><strong>Performance Tests</strong>: &lt;10 minutes benchmarking</li>
+</ul>
+<h3 id="quality-gates">Quality Gates</h3>
+<ul>
+<li><strong>Zero failing tests</strong> in main branch</li>
+<li><strong>No performance regressions</strong> &gt;10%</li>
+<li><strong>All patterns tested</strong> before deployment</li>
+<li><strong>Test coverage maintained</strong> across releases</li>
+</ul>
+<h2 id="summary">🎉 Summary</h2>
+<p>SpecQL's automatic test generation provides:
+- ✅ <strong>Zero-effort testing</strong> - Tests from YAML specifications
+- ✅ <strong>Comprehensive coverage</strong> - All business logic and edge cases
+- ✅ <strong>Multiple test types</strong> - pgTAP, pytest, and performance tests
+- ✅ <strong>CI/CD integration</strong> - Automated testing pipelines
+- ✅ <strong>Performance monitoring</strong> - Benchmarking and optimization</p>
+<h2 id="whats-next">🚀 What's Next?</h2>
+<ul>
+<li><strong><a href="getting-started/">Getting Started</a></strong> - Learn test generation basics</li>
+<li><strong><a href="pgtap-tests/">pgTAP Tests</a></strong> - PostgreSQL native testing</li>
+<li><strong><a href="pytest-tests/">pytest Tests</a></strong> - Python integration testing</li>
+<li><strong><a href="ci-cd-integration.md">CI/CD Integration</a></strong> - Production pipelines</li>
+</ul>
+<p><strong>Ready to achieve 100% test coverage instantly? Let's dive in! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

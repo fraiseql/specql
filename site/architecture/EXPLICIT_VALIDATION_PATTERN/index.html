@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Explicit Validation Pattern - Replace Triggers with Function Calls - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Explicit Validation Pattern - Replace Triggers with Function Calls";
+        var mkdocs_page_input_path = "architecture/EXPLICIT_VALIDATION_PATTERN.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Explicit Validation Pattern - Replace Triggers with Function Calls</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="explicit-validation-pattern-replace-triggers-with-function-calls">Explicit Validation Pattern - Replace Triggers with Function Calls</h1>
+<p><strong>Status</strong>: 🎯 Architectural Proposal
+<strong>Impact</strong>: Phase 7 of Team B Implementation
+<strong>Related</strong>: <code>EXPLICIT_PATH_RECALCULATION.md</code>, Team B Plan Phase 7</p>
+<hr />
+<h2 id="problem-triggers-are-implicit-and-hidden">🎯 Problem: Triggers are Implicit and Hidden</h2>
+<p><strong>Current Phase 7 Design</strong> uses 3 triggers per hierarchical entity:
+1. <code>prevent_cycle()</code> - Prevent circular references
+2. <code>check_sequence_limit()</code> - Limit identifier duplicates (max 100)
+3. <code>check_depth_limit()</code> - Limit hierarchy depth (max 20)</p>
+<p><strong>Issues with Triggers</strong>:
+- ❌ Hidden behavior (not visible in mutation code)
+- ❌ Hard to test in isolation
+- ❌ Poor transaction control
+- ❌ Difficult to debug (no explicit call site)
+- ❌ Can't skip validation when appropriate (migrations, admin operations)
+- ❌ Inconsistent with explicit pattern we established for path recalculation</p>
+<hr />
+<h2 id="solution-explicit-validation-functions">✅ Solution: Explicit Validation Functions</h2>
+<p><strong>Same pattern as <code>recalculate_tree_path()</code></strong>: Mutations call validation explicitly.</p>
+<h3 id="core-principle">Core Principle</h3>
+<pre><code class="language-python"># ❌ BAD: Hidden trigger validates automatically
+UPDATE tb_location SET fk_parent = 5 WHERE pk_location = 10;
+-- Trigger fires invisibly, might fail with cryptic error
+
+# ✅ GOOD: Explicit validation before mutation
+SELECT core.validate_hierarchy_change('location', 10, 5);  -- Returns error or NULL
+UPDATE tb_location SET fk_parent = 5 WHERE pk_location = 10;
+-- Clear validation step, visible in code, easy to debug
+</code></pre>
+<hr />
+<h2 id="proposed-architecture">🏗️ Proposed Architecture</h2>
+<h3 id="1-generic-validation-function">1. Generic Validation Function</h3>
+<p><strong>File</strong>: <code>templates/sql/hierarchy/validate_hierarchy_change.sql.jinja2</code></p>
+<p><strong>ONE-TIME FRAMEWORK FUNCTION</strong> (not per-entity, like <code>recalculate_tree_path</code>)</p>
+<pre><code class="language-sql">-- Validate hierarchy changes BEFORE they happen
+-- Returns NULL if valid, raises EXCEPTION if invalid
+-- Called explicitly from mutation functions (Team C)
+
+CREATE TYPE core.hierarchy_validation_error AS (
+    error_code TEXT,
+    error_message TEXT,
+    hint TEXT,
+    detail JSONB
+);
+
+CREATE OR REPLACE FUNCTION core.validate_hierarchy_change(
+    entity TEXT,
+    node_pk INTEGER,                    -- Node being modified
+    new_parent_pk INTEGER DEFAULT NULL, -- New parent (NULL for root)
+    max_depth INTEGER DEFAULT 20,       -- Framework config
+    check_cycle BOOLEAN DEFAULT TRUE,   -- Skip for performance if known safe
+    check_depth BOOLEAN DEFAULT TRUE    -- Skip for performance if known safe
+) RETURNS core.hierarchy_validation_error AS $$
+DECLARE
+    v_schema TEXT;
+    v_table TEXT;
+    v_pk_column TEXT;
+    v_parent_column TEXT;
+    v_node_path ltree;
+    v_parent_path ltree;
+    v_new_depth INTEGER;
+    v_error core.hierarchy_validation_error;
+    dyn_sql TEXT;
+BEGIN
+    IF entity IS NULL THEN
+        RAISE EXCEPTION 'Parameter &quot;entity&quot; must not be NULL';
+    END IF;
+
+    -- Construct dynamic identifiers
+    v_table := format('tb_%s', entity);
+    v_pk_column := format('pk_%s', entity);
+    v_parent_column := format('fk_parent_%s', entity);
+
+    -- Find schema dynamically
+    SELECT table_schema INTO v_schema
+    FROM information_schema.tables
+    WHERE table_name = v_table
+      AND table_schema IN ('core', 'management', 'catalog', 'tenant')
+    LIMIT 1;
+
+    IF v_schema IS NULL THEN
+        RAISE EXCEPTION 'Table &quot;tb_%&quot; not found in any expected schema', entity;
+    END IF;
+
+    -- Get current node's path
+    dyn_sql := format($q$
+        SELECT path FROM %I.%I WHERE %I = $1;
+    $q$, v_schema, v_table, v_pk_column);
+    EXECUTE dyn_sql INTO v_node_path USING node_pk;
+
+    IF v_node_path IS NULL THEN
+        v_error.error_code := 'node_not_found';
+        v_error.error_message := format('%s with pk=%s not found', entity, node_pk);
+        v_error.hint := 'Verify the node exists and is not deleted';
+        RETURN v_error;
+    END IF;
+
+    -- If no parent change, no validation needed
+    IF new_parent_pk IS NULL THEN
+        RETURN NULL;  -- Valid (root node)
+    END IF;
+
+    -- Get new parent's path
+    dyn_sql := format($q$
+        SELECT path FROM %I.%I WHERE %I = $1;
+    $q$, v_schema, v_table, v_pk_column);
+    EXECUTE dyn_sql INTO v_parent_path USING new_parent_pk;
+
+    IF v_parent_path IS NULL THEN
+        v_error.error_code := 'parent_not_found';
+        v_error.error_message := format('Parent %s with pk=%s not found', entity, new_parent_pk);
+        v_error.hint := 'Verify the parent exists and is not deleted';
+        RETURN v_error;
+    END IF;
+
+    -- VALIDATION 1: Check for circular reference (parent is descendant of node)
+    IF check_cycle THEN
+        IF v_parent_path &lt;@ v_node_path THEN
+            v_error.error_code := 'circular_reference';
+            v_error.error_message := format(
+                'Circular reference: %s (pk=%s) cannot be moved under its own descendant (pk=%s)',
+                entity, node_pk, new_parent_pk
+            );
+            v_error.hint := 'Choose a parent that is not a descendant of this node';
+            v_error.detail := jsonb_build_object(
+                'node_path', v_node_path::text,
+                'parent_path', v_parent_path::text,
+                'node_pk', node_pk,
+                'parent_pk', new_parent_pk
+            );
+            RETURN v_error;
+        END IF;
+    END IF;
+
+    -- VALIDATION 2: Check depth limit (new parent path + 1 level)
+    IF check_depth THEN
+        v_new_depth := nlevel(v_parent_path) + 1;
+
+        IF v_new_depth &gt; max_depth THEN
+            v_error.error_code := 'depth_limit_exceeded';
+            v_error.error_message := format(
+                'Depth limit exceeded: moving %s (pk=%s) would create depth %s (max: %s)',
+                entity, node_pk, v_new_depth, max_depth
+            );
+            v_error.hint := 'Flatten the hierarchy or increase max_depth in framework config';
+            v_error.detail := jsonb_build_object(
+                'current_depth', nlevel(v_node_path),
+                'new_depth', v_new_depth,
+                'max_depth', max_depth,
+                'parent_path', v_parent_path::text
+            );
+            RETURN v_error;
+        ELSIF v_new_depth &gt; (max_depth * 0.75) THEN
+            -- Soft warning at 75% threshold
+            RAISE WARNING 'Approaching depth limit: % of % levels (path: %)',
+                v_new_depth, max_depth, v_parent_path || node_pk::text;
+        END IF;
+    END IF;
+
+    -- All validations passed
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION core.validate_hierarchy_change IS
+'Validate hierarchy parent changes BEFORE they happen.
+
+Explicit over Implicit: NO TRIGGERS! Mutations call this explicitly.
+
+Returns NULL if valid, returns error object if invalid.
+
+Validations:
+1. Circular reference check (parent is not descendant of node)
+2. Depth limit check (new depth would not exceed max)
+
+Example usage in mutations:
+  DECLARE
+    v_validation_error core.hierarchy_validation_error;
+  BEGIN
+    -- Validate before UPDATE
+    v_validation_error := core.validate_hierarchy_change(
+        ''location'',
+        v_location_pk,
+        v_new_parent_pk,
+        max_depth =&gt; 20,
+        check_cycle =&gt; true,
+        check_depth =&gt; true
+    );
+
+    IF v_validation_error IS NOT NULL THEN
+        -- Return error response
+        RETURN jsonb_build_object(
+            ''status'', ''error'',
+            ''code'', v_validation_error.error_code,
+            ''message'', v_validation_error.error_message,
+            ''hint'', v_validation_error.hint,
+            ''detail'', v_validation_error.detail
+        );
+    END IF;
+
+    -- Safe to proceed with UPDATE
+    UPDATE tenant.tb_location
+    SET fk_parent_location = v_new_parent_pk
+    WHERE pk_location = v_location_pk;
+  END;
+
+Based on explicit pattern from recalculate_tree_path().';
+</code></pre>
+<hr />
+<h3 id="2-identifier-sequence-validation">2. Identifier Sequence Validation</h3>
+<p><strong>File</strong>: <code>templates/sql/hierarchy/validate_identifier_sequence.sql.jinja2</code></p>
+<pre><code class="language-sql">-- Validate identifier sequence BEFORE insert/update
+-- Returns NULL if valid, raises WARNING/EXCEPTION if invalid
+
+CREATE OR REPLACE FUNCTION core.validate_identifier_sequence(
+    entity TEXT,
+    identifier TEXT,
+    sequence_number INTEGER,
+    tenant_id UUID DEFAULT NULL,  -- For tenant-scoped entities
+    max_duplicates INTEGER DEFAULT 100  -- Framework config
+) RETURNS core.hierarchy_validation_error AS $$
+DECLARE
+    v_schema TEXT;
+    v_table TEXT;
+    v_current_count INTEGER;
+    v_error core.hierarchy_validation_error;
+    dyn_sql TEXT;
+BEGIN
+    IF entity IS NULL THEN
+        RAISE EXCEPTION 'Parameter &quot;entity&quot; must not be NULL';
+    END IF;
+
+    -- Construct dynamic identifiers
+    v_table := format('tb_%s', entity);
+
+    -- Find schema dynamically
+    SELECT table_schema INTO v_schema
+    FROM information_schema.tables
+    WHERE table_name = v_table
+      AND table_schema IN ('core', 'management', 'catalog', 'tenant')
+    LIMIT 1;
+
+    IF v_schema IS NULL THEN
+        RAISE EXCEPTION 'Table &quot;tb_%&quot; not found in any expected schema', entity;
+    END IF;
+
+    -- Count existing sequences for this identifier
+    IF tenant_id IS NOT NULL THEN
+        -- Tenant-scoped count
+        dyn_sql := format($q$
+            SELECT COUNT(*)
+            FROM %I.%I
+            WHERE tenant_id = $1
+              AND identifier = $2;
+        $q$, v_schema, v_table);
+        EXECUTE dyn_sql INTO v_current_count USING tenant_id, identifier;
+    ELSE
+        -- Global count
+        dyn_sql := format($q$
+            SELECT COUNT(*)
+            FROM %I.%I
+            WHERE identifier = $1;
+        $q$, v_schema, v_table);
+        EXECUTE dyn_sql INTO v_current_count USING identifier;
+    END IF;
+
+    -- Check hard limit
+    IF sequence_number &gt; max_duplicates THEN
+        v_error.error_code := 'sequence_limit_exceeded';
+        v_error.error_message := format(
+            'Identifier sequence limit exceeded: &quot;%s&quot; has %s variants (max: %s)',
+            identifier, sequence_number, max_duplicates
+        );
+        v_error.hint := format(
+            'Current variant: %s#%s. Use more descriptive naming to reduce collisions.',
+            identifier, sequence_number
+        );
+        v_error.detail := jsonb_build_object(
+            'identifier', identifier,
+            'sequence_number', sequence_number,
+            'current_count', v_current_count,
+            'max_duplicates', max_duplicates
+        );
+        RETURN v_error;
+    END IF;
+
+    -- Soft warning at 50% threshold
+    IF sequence_number &gt; (max_duplicates * 0.5) THEN
+        RAISE WARNING 'High identifier duplication: &quot;%&quot; has % variants (limit: %)',
+            identifier, sequence_number, max_duplicates;
+    END IF;
+
+    -- Valid
+    RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION core.validate_identifier_sequence IS
+'Validate identifier sequence numbers BEFORE insert/update.
+
+Explicit over Implicit: NO TRIGGERS! Mutations call this explicitly.
+
+Returns NULL if valid, returns error object if limit exceeded.
+
+Example usage:
+  v_validation_error := core.validate_identifier_sequence(
+      ''location'',
+      ''warehouse-a'',
+      42,
+      tenant_id =&gt; v_tenant_id,
+      max_duplicates =&gt; 100
+  );
+
+  IF v_validation_error IS NOT NULL THEN
+      RETURN error response;
+  END IF;';
+</code></pre>
+<hr />
+<h2 id="team-c-integration-pattern">🎯 Team C Integration Pattern</h2>
+<h3 id="mutation-function-template-team-c-generates-this">Mutation Function Template (Team C generates this)</h3>
+<pre><code class="language-sql">-- Example: Move location in hierarchy
+CREATE OR REPLACE FUNCTION tenant.move_location(
+    p_location_id UUID,
+    p_new_parent_id UUID,
+    p_caller_id UUID DEFAULT NULL
+) RETURNS mutation_result AS $$
+DECLARE
+    v_location_pk INTEGER;
+    v_new_parent_pk INTEGER;
+    v_validation_error core.hierarchy_validation_error;
+    v_result mutation_result;
+BEGIN
+    -- Resolve UUIDs to INTEGER pks
+    v_location_pk := tenant.location_pk(p_location_id);
+    v_new_parent_pk := tenant.location_pk(p_new_parent_id);
+
+    -- EXPLICIT VALIDATION (Team C generates this call)
+    v_validation_error := core.validate_hierarchy_change(
+        'location',
+        v_location_pk,
+        v_new_parent_pk,
+        max_depth =&gt; 20,  -- From framework config
+        check_cycle =&gt; true,
+        check_depth =&gt; true
+    );
+
+    -- Handle validation error
+    IF v_validation_error IS NOT NULL THEN
+        v_result.status := 'error';
+        v_result.message := v_validation_error.error_message;
+        v_result.object_data := jsonb_build_object(
+            '__typename', 'MoveLocationError',
+            'code', v_validation_error.error_code,
+            'message', v_validation_error.error_message,
+            'hint', v_validation_error.hint,
+            'detail', v_validation_error.detail
+        );
+        RETURN v_result;
+    END IF;
+
+    -- Validation passed - safe to update
+    UPDATE tenant.tb_location
+    SET
+        fk_parent_location = v_new_parent_pk,
+        updated_at = now(),
+        updated_by = p_caller_id
+    WHERE pk_location = v_location_pk;
+
+    -- EXPLICIT PATH RECALCULATION (existing pattern)
+    PERFORM core.recalculate_tree_path(
+        'location',
+        ROW(p_location_id, NULL, p_caller_id)::core.recalculation_context
+    );
+
+    -- Success response
+    v_result.status := 'success';
+    v_result.message := 'Location moved successfully';
+    v_result.object_data := (
+        SELECT jsonb_build_object(
+            '__typename', 'Location',
+            'id', l.id,
+            'path', l.path::text,
+            -- ... other fields
+        )
+        FROM tenant.tb_location l
+        WHERE l.pk_location = v_location_pk
+    );
+
+    RETURN v_result;
+END;
+$$ LANGUAGE plpgsql;
+</code></pre>
+<hr />
+<h2 id="comparison-triggers-vs-explicit">📊 Comparison: Triggers vs Explicit</h2>
+<h3 id="triggers-current-phase-7-design">Triggers (Current Phase 7 Design)</h3>
+<pre><code class="language-sql">-- ❌ IMPLICIT: Validation happens invisibly
+
+UPDATE tenant.tb_location
+SET fk_parent_location = 5
+WHERE pk_location = 10;
+-- Hidden trigger fires, might throw cryptic error:
+-- ERROR: Circular reference detected: Location (...) cannot be its own ancestor
+-- WHERE did this come from? Hard to debug!
+</code></pre>
+<h3 id="explicit-validation-proposed">Explicit Validation (Proposed)</h3>
+<pre><code class="language-sql">-- ✅ EXPLICIT: Validation visible in mutation code
+
+DECLARE
+    v_error core.hierarchy_validation_error;
+BEGIN
+    -- Step 1: EXPLICIT validation
+    v_error := core.validate_hierarchy_change('location', 10, 5);
+
+    -- Step 2: Handle error (visible in code)
+    IF v_error IS NOT NULL THEN
+        RETURN error_response(v_error);
+    END IF;
+
+    -- Step 3: Safe to update
+    UPDATE tenant.tb_location
+    SET fk_parent_location = 5
+    WHERE pk_location = 10;
+
+    -- Step 4: EXPLICIT recalculation
+    PERFORM core.recalculate_tree_path('location', ...);
+END;
+</code></pre>
+<p><strong>Benefits</strong>:
+- ✅ Clear flow: validate → update → recalculate
+- ✅ Easy to debug (see exact call site)
+- ✅ Can skip validation when safe (migrations, admin ops)
+- ✅ Consistent with <code>recalculate_tree_path()</code> pattern
+- ✅ Testable in isolation</p>
+<hr />
+<h2 id="migration-from-triggers">🔄 Migration from Triggers</h2>
+<h3 id="phase-7-refactored-deliverables">Phase 7 Refactored Deliverables</h3>
+<table>
+<thead>
+<tr>
+<th>Old Trigger Approach</th>
+<th>New Explicit Approach</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>prevent_cycle.sql.jinja2</code> (trigger)</td>
+<td><code>validate_hierarchy_change()</code> (function)</td>
+</tr>
+<tr>
+<td><code>check_sequence_limit.sql.jinja2</code> (trigger)</td>
+<td><code>validate_identifier_sequence()</code> (function)</td>
+</tr>
+<tr>
+<td><code>check_depth_limit.sql.jinja2</code> (trigger)</td>
+<td><code>validate_hierarchy_change()</code> (function)</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Reduction</strong>: 3 trigger templates → 2 validation functions</p>
+<h3 id="new-team-b-phase-7-tasks">New Team B Phase 7 Tasks</h3>
+<p><strong>Day 7: Validation Functions</strong> (instead of triggers)</p>
+<ol>
+<li>Generate <code>templates/sql/hierarchy/validate_hierarchy_change.sql.jinja2</code></li>
+<li>Circular reference check</li>
+<li>Depth limit check</li>
+<li>
+<p>Returns error object or NULL</p>
+</li>
+<li>
+<p>Generate <code>templates/sql/hierarchy/validate_identifier_sequence.sql.jinja2</code></p>
+</li>
+<li>Sequence limit check</li>
+<li>
+<p>Returns error object or NULL</p>
+</li>
+<li>
+<p>Update Team C templates to call validations explicitly</p>
+</li>
+</ol>
+<p><strong>No triggers generated!</strong></p>
+<hr />
+<h2 id="acceptance-criteria">✅ Acceptance Criteria</h2>
+<ul>
+<li>[ ] <code>validate_hierarchy_change()</code> function works for any hierarchical entity</li>
+<li>[ ] <code>validate_identifier_sequence()</code> function works for any entity</li>
+<li>[ ] Both return <code>hierarchy_validation_error</code> type or NULL</li>
+<li>[ ] Team C mutations call validations explicitly (visible in code)</li>
+<li>[ ] No triggers generated for validation logic</li>
+<li>[ ] Tests cover all validation scenarios</li>
+<li>[ ] Migration guide for existing trigger-based code</li>
+</ul>
+<hr />
+<h2 id="decision-explicit-pattern-everywhere">🎯 Decision: Explicit Pattern Everywhere</h2>
+<p><strong>Principle</strong>: Mutations should be <strong>explicit and predictable</strong>.</p>
+<h3 id="what-should-be-explicit-called-from-mutations">What Should Be Explicit (Called from Mutations)</h3>
+<p>✅ Path recalculation: <code>recalculate_tree_path()</code>
+✅ Hierarchy validation: <code>validate_hierarchy_change()</code>
+✅ Sequence validation: <code>validate_identifier_sequence()</code>
+✅ Identifier recalculation: <code>recalculate_identifier()</code> (future)</p>
+<h3 id="what-can-stay-as-triggers">What Can Stay as Triggers</h3>
+<p>❌ Nothing for core business logic!
+✅ ONLY infrastructure concerns:
+   - <code>updated_at</code> timestamp updates
+   - Event logging (after the fact)
+   - Soft delete cascades (if needed)</p>
+<hr />
+<h2 id="updated-team-b-timeline">📝 Updated Team B Timeline</h2>
+<p><strong>Phase 7: Validation Functions (Day 7)</strong> - NOT triggers!</p>
+<ul>
+<li>Generate <code>validate_hierarchy_change.sql.jinja2</code></li>
+<li>Generate <code>validate_identifier_sequence.sql.jinja2</code></li>
+<li>Update Team C templates to call explicitly</li>
+<li>Write comprehensive tests</li>
+</ul>
+<p><strong>No change to overall timeline</strong> (still Day 7), just better architecture!</p>
+<hr />
+<p><strong>Status</strong>: 🎯 Ready for Approval
+<strong>Impact</strong>: Refactors Phase 7 from trigger-based to explicit validation
+<strong>Consistency</strong>: Matches <code>recalculate_tree_path()</code> explicit pattern
+<strong>Benefits</strong>: Clearer code, easier debugging, better testing</p>
+<hr />
+<h2 id="open-question">🤔 Open Question</h2>
+<p><strong>Should we also make identifier recalculation explicit?</strong></p>
+<p>Currently identifier is auto-calculated on INSERT (in table definition).
+Should we have <code>recalculate_identifier()</code> similar to <code>recalculate_tree_path()</code>?</p>
+<p><strong>Proposal</strong>: Yes, for consistency!</p>
+<pre><code class="language-sql">-- Example: Explicit identifier calculation
+PERFORM core.recalculate_identifier(
+    'location',
+    ROW(p_location_id, v_tenant_id, p_caller_id)::core.recalculation_context
+);
+</code></pre>
+<p>This would complete the pattern:
+- ✅ Explicit validation
+- ✅ Explicit path recalculation
+- ✅ Explicit identifier recalculation</p>
+<p>All framework operations visible and testable!</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

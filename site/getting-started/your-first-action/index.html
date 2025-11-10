@@ -1,0 +1,382 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Your First Action - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Your First Action";
+        var mkdocs_page_input_path = "getting-started/your-first-action.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Your First Action</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="your-first-action">Your First Action</h1>
+<h2 id="overview">Overview</h2>
+<p>Actions are SpecQL's way of defining business logic. Instead of stored procedures, you write declarative steps that SpecQL converts to PostgreSQL functions with GraphQL integration.</p>
+<p><strong>Time</strong>: 10 minutes
+<strong>Prerequisites</strong>: <a href="../your-first-entity/">Your first entity</a> created</p>
+<h2 id="step-1-add-action-to-entity">Step 1: Add Action to Entity</h2>
+<p>Update <code>entities/contact.yaml</code>:</p>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+description: &quot;Customer contact information&quot;
+
+fields:
+  email: text
+  first_name: text
+  last_name: text
+  company: text?
+  status: enum(lead, qualified, customer)
+  notes: text?
+
+actions:
+  - name: qualify_lead
+    description: &quot;Convert a lead to a qualified contact&quot;
+    impacts:
+      write: [Contact]
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified', qualified_at = NOW()
+      - notify: contact_qualified WITH {contact_id: :id}
+</code></pre>
+<h2 id="step-2-understand-action-structure">Step 2: Understand Action Structure</h2>
+<p><strong>Required elements</strong>:
+- <strong><code>name</code></strong>: Function name (snake_case)
+- <strong><code>description</code></strong>: Human-readable purpose
+- <strong><code>impacts</code></strong>: Entities affected (for GraphQL optimization)
+- <strong><code>steps</code></strong>: Business logic steps</p>
+<p><strong>Step types</strong>:
+- <strong><code>validate</code></strong>: Check preconditions
+- <strong><code>update</code></strong>: Modify data
+- <strong><code>notify</code></strong>: Send events</p>
+<h2 id="step-3-generate-and-apply">Step 3: Generate and Apply</h2>
+<pre><code class="language-bash"># Regenerate schema
+specql generate entities/contact.yaml
+
+# Apply new functions
+psql $DATABASE_URL -f db/schema/30_functions/crm_qualify_lead.sql
+</code></pre>
+<h2 id="step-4-test-the-action">Step 4: Test the Action</h2>
+<pre><code class="language-bash"># Insert test data
+psql $DATABASE_URL -c &quot;
+INSERT INTO crm.tb_contact (email, first_name, last_name, status)
+VALUES ('jane@example.com', 'Jane', 'Smith', 'lead');
+&quot;
+
+# Call the action
+psql $DATABASE_URL -c &quot;
+SELECT crm.qualify_lead(1);  -- Assuming id = 1
+&quot;
+
+# Check result
+psql $DATABASE_URL -c &quot;
+SELECT id, email, status, qualified_at FROM crm.tb_contact;
+&quot;
+</code></pre>
+<h2 id="step-5-graphql-integration">Step 5: GraphQL Integration</h2>
+<p>SpecQL automatically creates GraphQL wrappers:</p>
+<pre><code class="language-bash"># Check generated GraphQL function
+cat db/schema/30_functions/app_qualify_lead.sql
+</code></pre>
+<p><strong>Generated GraphQL function</strong>:</p>
+<pre><code class="language-sql">CREATE FUNCTION app.qualify_lead(contact_id INTEGER)
+RETURNS app.mutation_result AS $$
+-- GraphQL entry point that calls crm.qualify_lead
+$$ LANGUAGE sql;
+</code></pre>
+<h2 id="understanding-action-steps">Understanding Action Steps</h2>
+<h3 id="validate-step">Validate Step</h3>
+<pre><code class="language-yaml">- validate: status = 'lead'
+</code></pre>
+<ul>
+<li><strong>Purpose</strong>: Ensure preconditions are met</li>
+<li><strong>Failure</strong>: Returns error, stops execution</li>
+<li><strong>Syntax</strong>: SQL WHERE clause</li>
+</ul>
+<h3 id="update-step">Update Step</h3>
+<pre><code class="language-yaml">- update: Contact SET status = 'qualified', qualified_at = NOW()
+</code></pre>
+<ul>
+<li><strong>Purpose</strong>: Modify existing records</li>
+<li><strong>Auto-generates</strong>: <code>updated_at</code>, <code>updated_by</code></li>
+<li><strong>Returns</strong>: Updated record data</li>
+</ul>
+<h3 id="notify-step">Notify Step</h3>
+<pre><code class="language-yaml">- notify: contact_qualified WITH {contact_id: :id}
+</code></pre>
+<ul>
+<li><strong>Purpose</strong>: Send PostgreSQL NOTIFY events</li>
+<li><strong>Use</strong>: Trigger external systems, webhooks</li>
+<li><strong>Payload</strong>: JSON data with variables</li>
+</ul>
+<h2 id="variables-in-actions">Variables in Actions</h2>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Meaning</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>:id</code></td>
+<td>Current entity ID</td>
+<td><code>:id</code></td>
+</tr>
+<tr>
+<td><code>:param_name</code></td>
+<td>Input parameter</td>
+<td><code>:contact_id</code></td>
+</tr>
+<tr>
+<td><code>NOW()</code></td>
+<td>Current timestamp</td>
+<td><code>qualified_at = NOW()</code></td>
+</tr>
+<tr>
+<td><code>CURRENT_USER</code></td>
+<td>Current user UUID</td>
+<td><code>updated_by = CURRENT_USER</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="more-complex-actions">More Complex Actions</h2>
+<h3 id="with-input-parameters">With Input Parameters</h3>
+<pre><code class="language-yaml">actions:
+  - name: update_contact
+    description: &quot;Update contact information&quot;
+    impacts:
+      write: [Contact]
+    steps:
+      - update: Contact SET
+          first_name = :first_name,
+          last_name = :last_name,
+          notes = :notes
+        WHERE id = :id
+</code></pre>
+<h3 id="with-conditional-logic">With Conditional Logic</h3>
+<pre><code class="language-yaml">actions:
+  - name: process_order
+    description: &quot;Process customer order&quot;
+    impacts:
+      write: [Order, Inventory]
+      read: [Customer]
+    steps:
+      - validate: status = 'pending'
+      - if: total_amount &gt; 1000
+        then:
+          - update: Order SET status = 'requires_approval'
+        else:
+          - update: Order SET status = 'approved'
+          - call: inventory.reserve_stock(order_id: :id)
+</code></pre>
+<h3 id="with-loops">With Loops</h3>
+<pre><code class="language-yaml">actions:
+  - name: bulk_update_status
+    description: &quot;Update status for multiple contacts&quot;
+    impacts:
+      write: [Contact]
+    steps:
+      - foreach: contact IN :contact_ids
+        do:
+          - update: Contact SET status = :new_status WHERE id = :contact.id
+</code></pre>
+<h2 id="step-6-test-graphql-integration">Step 6: Test GraphQL Integration</h2>
+<pre><code class="language-bash"># Check if FraiseQL is configured
+psql $DATABASE_URL -c &quot;
+SELECT app.qualify_lead(1);
+&quot;
+
+# Should return JSON result
+{
+  &quot;success&quot;: true,
+  &quot;data&quot;: {
+    &quot;id&quot;: 1,
+    &quot;status&quot;: &quot;qualified&quot;,
+    &quot;qualified_at&quot;: &quot;2024-01-15T10:30:00Z&quot;
+  }
+}
+</code></pre>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="action-naming">Action Naming</h3>
+<ul>
+<li>Use <code>snake_case</code></li>
+<li>Start with verb: <code>create_order</code>, <code>update_profile</code>, <code>send_notification</code></li>
+<li>Be specific: <code>qualify_sales_lead</code> vs <code>qualify</code></li>
+</ul>
+<h3 id="impact-declaration">Impact Declaration</h3>
+<ul>
+<li><strong><code>write</code></strong>: Entities modified by this action</li>
+<li><strong><code>read</code></strong>: Entities read (for GraphQL query optimization)</li>
+<li>Be complete: Missing impacts break GraphQL caching</li>
+</ul>
+<h3 id="validation-first">Validation First</h3>
+<ul>
+<li>Put <code>validate</code> steps at the beginning</li>
+<li>Check all preconditions before making changes</li>
+<li>Fail fast with clear error messages</li>
+</ul>
+<h3 id="error-handling">Error Handling</h3>
+<ul>
+<li>Actions automatically handle transactions</li>
+<li>Validation failures roll back changes</li>
+<li>Use <code>notify</code> for external error handling</li>
+</ul>
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li><a href="../../guides/actions-guide.md">Add more complex actions</a></li>
+<li><a href="../../reference/cli-reference.md#output-frontend-path">Set up GraphQL client</a></li>
+<li><a href="../../architecture/">Add authentication</a></li>
+<li><a href="../../guides/migration-guide.md">Deploy to production</a></li>
+</ul>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<p><strong>"Action not found"</strong></p>
+<pre><code class="language-bash"># Regenerate after adding action
+specql generate entities/contact.yaml
+psql $DATABASE_URL -f db/schema/30_functions/crm_qualify_lead.sql
+</code></pre>
+<p><strong>"Permission denied for function"</strong></p>
+<pre><code class="language-bash"># Grant execute permissions
+GRANT EXECUTE ON FUNCTION crm.qualify_lead(INTEGER) TO app_user;
+</code></pre>
+<p><strong>"Invalid variable reference"</strong></p>
+<pre><code class="language-yaml"># ❌ Wrong
+- update: Contact SET status = :status
+
+# ✅ Correct (if status is input parameter)
+- update: Contact SET status = :new_status
+</code></pre>
+<p><strong>"Circular dependency in impacts"</strong>
+- Remove unnecessary <code>read</code> impacts
+- Check for actual dependencies
+- Use <code>call</code> instead of direct impacts</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

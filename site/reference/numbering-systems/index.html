@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>SpecQL Numbering Systems Guide - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "SpecQL Numbering Systems Guide";
+        var mkdocs_page_input_path = "reference/numbering-systems.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">SpecQL Numbering Systems Guide</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="specql-numbering-systems-guide">SpecQL Numbering Systems Guide</h1>
+<p><strong>Choose the right file organization system for your project</strong> 📁</p>
+<h2 id="quick-decision-guide">Quick Decision Guide</h2>
+<p><strong>Just starting out?</strong> → Use <strong>Decimal System</strong> (default, simple)
+<strong>Enterprise project (100+ entities)?</strong> → Consider <strong>Hexadecimal System</strong> (scalable)</p>
+<h2 id="overview">Overview</h2>
+<p>SpecQL supports <strong>two numbering systems</strong> for organizing generated DDL files. Both are production-ready and can coexist in the same codebase.</p>
+<h3 id="system-comparison">System Comparison</h3>
+<table>
+<thead>
+<tr>
+<th>Feature</th>
+<th>Decimal (Simple)</th>
+<th>Hexadecimal (Registry)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Complexity</strong></td>
+<td>⭐⭐⭐ Simple</td>
+<td>⭐⭐⭐⭐⭐ Advanced</td>
+</tr>
+<tr>
+<td><strong>Setup</strong></td>
+<td>Automatic (default)</td>
+<td>Requires registry configuration</td>
+</tr>
+<tr>
+<td><strong>Scaling</strong></td>
+<td>Up to 50 entities</td>
+<td>1000+ entities</td>
+</tr>
+<tr>
+<td><strong>Structure</strong></td>
+<td>Flat directories</td>
+<td>Deep hierarchy</td>
+</tr>
+<tr>
+<td><strong>Use Case</strong></td>
+<td>Most projects</td>
+<td>Enterprise-scale</td>
+</tr>
+<tr>
+<td><strong>Migration</strong></td>
+<td>Easy (later)</td>
+<td>Complex (initial setup)</td>
+</tr>
+</tbody>
+</table>
+<h2 id="system-1-decimal-system-recommended-for-most-users">System 1: Decimal System (Recommended for Most Users) ⭐</h2>
+<h3 id="when-to-use">When to Use</h3>
+<p>✅ <strong>New projects</strong>
+✅ <strong>Simple to medium complexity</strong> (&lt; 50 entities)
+✅ <strong>Fast iteration and development</strong>
+✅ <strong>Human-readable structure</strong>
+✅ <strong>Confiture integration</strong></p>
+<h3 id="directory-structure">Directory Structure</h3>
+<pre><code>db/schema/
+├── 00_foundation/           # App types and extensions
+│   ├── 00_extensions.sql
+│   └── 01_types.sql
+├── 10_tables/               # Table definitions
+│   ├── contact.sql
+│   └── organization.sql
+├── 20_helpers/              # Trinity helper functions
+│   ├── contact_helpers.sql
+│   └── organization_helpers.sql
+└── 30_functions/            # Business logic functions
+    ├── create_contact.sql
+    ├── update_contact.sql
+    └── qualify_lead.sql
+</code></pre>
+<h3 id="how-it-works">How It Works</h3>
+<ul>
+<li><strong>Numbers</strong>: Multiples of 10 (00, 10, 20, 30)</li>
+<li><strong>Depth</strong>: Single level (flat)</li>
+<li><strong>Naming</strong>: <code>{entity_name}.sql</code> or <code>{action_name}.sql</code></li>
+<li><strong>Order</strong>: Executed in numerical order by Confiture</li>
+</ul>
+<h3 id="example-output">Example Output</h3>
+<pre><code class="language-bash"># Generate with decimal system (default)
+specql generate entities/contact.yaml
+
+# Creates:
+db/schema/10_tables/contact.sql
+db/schema/20_helpers/contact_helpers.sql
+db/schema/30_functions/create_contact.sql
+db/schema/30_functions/qualify_lead.sql
+</code></pre>
+<h3 id="activation">Activation</h3>
+<p><strong>Automatic</strong> - This is the default system:</p>
+<pre><code class="language-python"># Default CLI orchestrator uses decimal system
+orchestrator = CLIOrchestrator()
+
+# Or explicitly
+orchestrator = CLIOrchestrator(output_format=&quot;confiture&quot;)
+</code></pre>
+<h2 id="system-2-hexadecimal-system-enterprise-scale">System 2: Hexadecimal System (Enterprise-Scale)</h2>
+<h3 id="when-to-use_1">When to Use</h3>
+<p>✅ <strong>Enterprise-scale projects</strong> (100+ entities)
+✅ <strong>Multiple domains and subdomains</strong>
+✅ <strong>Strict naming conventions required</strong>
+✅ <strong>Large team coordination</strong>
+✅ <strong>Registry-based organization</strong></p>
+<h3 id="table-code-format">Table Code Format</h3>
+<p><strong>6-character hexadecimal code</strong>: <code>SSDGGE</code></p>
+<table>
+<thead>
+<tr>
+<th>Position</th>
+<th>Component</th>
+<th>Range</th>
+<th>Description</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>0-1</strong></td>
+<td>Schema layer</td>
+<td>01-03</td>
+<td>Write side, read side, analytics</td>
+<td><code>01</code> = write_side</td>
+</tr>
+<tr>
+<td><strong>2</strong></td>
+<td>Domain</td>
+<td>0-F</td>
+<td>Business domain</td>
+<td><code>3</code> = catalog</td>
+</tr>
+<tr>
+<td><strong>3</strong></td>
+<td>Entity group</td>
+<td>0-F</td>
+<td>Related entities</td>
+<td><code>2</code> = manufacturer group</td>
+</tr>
+<tr>
+<td><strong>4</strong></td>
+<td>Entity</td>
+<td>0-F</td>
+<td>Specific entity</td>
+<td><code>1</code> = manufacturer</td>
+</tr>
+<tr>
+<td><strong>5</strong></td>
+<td>File sequence</td>
+<td>0-F</td>
+<td>File within entity</td>
+<td><code>1</code> = first file</td>
+</tr>
+</tbody>
+</table>
+<h3 id="directory-structure_1">Directory Structure</h3>
+<pre><code>db/schema/
+├── 01_write_side/                           # Schema layer (01)
+│   ├── 011_core/                            # Domain 1 (11)
+│   │   └── 0111_user/                       # Group 1 (111)
+│   │       └── 01111_user/                  # Entity 1 (1111)
+│   │           └── 011111_tb_user.sql       # File 1 (11111)
+│   └── 013_catalog/                         # Domain 3 (13)
+│       └── 0132_manufacturer/               # Group 2 (132)
+│           └── 01321_manufacturer/          # Entity 1 (1321)
+│               ├── 013211_tb_manufacturer.sql
+│               ├── 013212_fn_manufacturer.sql
+│               └── 013213_vw_manufacturer.sql
+├── 02_read_side/                            # Read models (02)
+└── 03_analytics/                            # Analytics (03)
+</code></pre>
+<h3 id="registry-configuration">Registry Configuration</h3>
+<p>Requires a domain registry file:</p>
+<pre><code class="language-yaml"># registry/domain_registry.yaml
+domains:
+  core:
+    code: &quot;1&quot;
+    description: &quot;Core business entities&quot;
+    groups:
+      user:
+        code: &quot;1&quot;
+        entities:
+          user:
+            code: &quot;1&quot;
+            description: &quot;User account&quot;
+
+  catalog:
+    code: &quot;3&quot;
+    description: &quot;Product catalog&quot;
+    groups:
+      manufacturer:
+        code: &quot;2&quot;
+        entities:
+          manufacturer:
+            code: &quot;1&quot;
+            description: &quot;Product manufacturer&quot;
+</code></pre>
+<h3 id="activation_1">Activation</h3>
+<p>Requires explicit registry mode:</p>
+<pre><code class="language-python"># Use registry-based hexadecimal system
+orchestrator = CLIOrchestrator(use_registry=True)
+</code></pre>
+<h2 id="migration-between-systems">Migration Between Systems</h2>
+<h3 id="from-decimal-to-hexadecimal">From Decimal to Hexadecimal</h3>
+<p><strong>When</strong>: Project grows beyond 50 entities</p>
+<p><strong>Steps</strong>:
+1. Create domain registry (<code>registry/domain_registry.yaml</code>)
+2. Assign codes to existing entities
+3. Regenerate with <code>use_registry=True</code>
+4. Update Confiture migration scripts</p>
+<p><strong>Migration preserves</strong>:
+- ✅ All business logic
+- ✅ Data integrity
+- ✅ Function signatures
+- ❌ File paths (new structure)</p>
+<h3 id="from-hexadecimal-to-decimal">From Hexadecimal to Decimal</h3>
+<p><strong>When</strong>: Simplifying enterprise project</p>
+<p><strong>Steps</strong>:
+1. Switch orchestrator to default mode
+2. Regenerate all entities
+3. Update migration scripts
+4. Remove registry configuration</p>
+<h2 id="code-examples">Code Examples</h2>
+<h3 id="decimal-system-default">Decimal System (Default)</h3>
+<pre><code class="language-python">from specql.cli.orchestrator import CLIOrchestrator
+
+# Simple decimal system
+orchestrator = CLIOrchestrator()
+
+# Generate contact entity
+orchestrator.generate_entity({
+    'entity': 'Contact',
+    'schema': 'crm',
+    'fields': {
+        'email': 'email!',
+        'name': 'text!'
+    }
+})
+
+# Output structure:
+# db/schema/10_tables/contact.sql
+# db/schema/20_helpers/contact_helpers.sql
+# db/schema/30_functions/create_contact.sql
+</code></pre>
+<h3 id="hexadecimal-system-registry">Hexadecimal System (Registry)</h3>
+<pre><code class="language-python">from specql.cli.orchestrator import CLIOrchestrator
+
+# Registry-based hexadecimal system
+orchestrator = CLIOrchestrator(use_registry=True)
+
+# Requires registry configuration
+registry = {
+    'domains': {
+        'crm': {
+            'code': '1',
+            'groups': {
+                'contact': {
+                    'code': '1',
+                    'entities': {
+                        'contact': {'code': '1'}
+                    }
+                }
+            }
+        }
+    }
+}
+
+orchestrator.generate_entity({
+    'entity': 'Contact',
+    'schema': 'crm',
+    'fields': {
+        'email': 'email!',
+        'name': 'text!'
+    }
+}, registry=registry)
+
+# Output structure:
+# db/schema/01_write_side/011_crm/0111_contact/01111_contact/011111_tb_contact.sql
+</code></pre>
+<h2 id="file-naming-conventions">File Naming Conventions</h2>
+<h3 id="decimal-system">Decimal System</h3>
+<table>
+<thead>
+<tr>
+<th>Directory</th>
+<th>Pattern</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>00_foundation/</code></td>
+<td><code>{number}_{description}.sql</code></td>
+<td><code>00_extensions.sql</code></td>
+</tr>
+<tr>
+<td><code>10_tables/</code></td>
+<td><code>{entity}.sql</code></td>
+<td><code>contact.sql</code></td>
+</tr>
+<tr>
+<td><code>20_helpers/</code></td>
+<td><code>{entity}_helpers.sql</code></td>
+<td><code>contact_helpers.sql</code></td>
+</tr>
+<tr>
+<td><code>30_functions/</code></td>
+<td><code>{action}.sql</code></td>
+<td><code>create_contact.sql</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="hexadecimal-system">Hexadecimal System</h3>
+<table>
+<thead>
+<tr>
+<th>Directory</th>
+<th>Pattern</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>All</td>
+<td><code>{full_code}_{type}_{name}.sql</code></td>
+<td><code>011111_tb_contact.sql</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Code components</strong>:
+- <code>011111</code> = Full 6-character code
+- <code>tb</code> = Type (tb=table, fn=function, vw=view)
+- <code>contact</code> = Entity name</p>
+<h2 id="performance-considerations">Performance Considerations</h2>
+<h3 id="decimal-system_1">Decimal System</h3>
+<ul>
+<li><strong>Fast generation</strong>: Simple directory structure</li>
+<li><strong>Quick navigation</strong>: Flat hierarchy</li>
+<li><strong>Confiture optimized</strong>: Native migration support</li>
+</ul>
+<h3 id="hexadecimal-system_1">Hexadecimal System</h3>
+<ul>
+<li><strong>Scalable</strong>: Supports thousands of entities</li>
+<li><strong>Organized</strong>: Domain-driven structure</li>
+<li><strong>Registry overhead</strong>: Additional configuration management</li>
+</ul>
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="choosing-your-system">Choosing Your System</h3>
+<p><strong>Start with Decimal</strong> if:
+- Project has &lt; 50 entities
+- Team prefers simplicity
+- Using Confiture for migrations
+- Fast prototyping needed</p>
+<p><strong>Use Hexadecimal</strong> if:
+- Project will exceed 100 entities
+- Multiple business domains
+- Strict governance required
+- Large distributed team</p>
+<h3 id="migration-timing">Migration Timing</h3>
+<p><strong>Migrate early</strong> when:
+- Entity count approaches 50
+- Multiple domains emerge
+- Governance requirements increase</p>
+<p><strong>Consider migration</strong> when:
+- File organization becomes confusing
+- Team coordination suffers
+- New domain additions needed</p>
+<h3 id="registry-management">Registry Management</h3>
+<p><strong>For Hexadecimal systems</strong>:
+- Maintain registry as code
+- Version control registry changes
+- Document code assignment strategy
+- Plan for domain growth</p>
+<h2 id="troubleshooting">Troubleshooting</h2>
+<h3 id="registry-not-found-error">"Registry not found" Error</h3>
+<pre><code class="language-python"># Ensure registry exists for hexadecimal mode
+orchestrator = CLIOrchestrator(use_registry=True)
+# Requires: registry/domain_registry.yaml
+</code></pre>
+<h3 id="code-conflicts">Code Conflicts</h3>
+<pre><code class="language-yaml"># Avoid duplicate codes in registry
+domains:
+  crm:
+    code: &quot;1&quot;    # ✅ Unique
+  sales:
+    code: &quot;1&quot;    # ❌ Conflict!
+</code></pre>
+<h3 id="migration-issues">Migration Issues</h3>
+<pre><code class="language-bash"># When switching systems, regenerate all
+rm -rf db/schema/
+specql generate entities/*.yaml
+
+# Update Confiture configuration
+# (System-specific migration scripts)
+</code></pre>
+<h2 id="complete-examples">Complete Examples</h2>
+<h3 id="simple-crm-decimal-system">Simple CRM (Decimal System)</h3>
+<p><strong>Registry</strong>: None (default)</p>
+<p><strong>Structure</strong>:</p>
+<pre><code>db/schema/
+├── 00_foundation/
+├── 10_tables/
+│   ├── contact.sql
+│   └── organization.sql
+├── 20_helpers/
+└── 30_functions/
+</code></pre>
+<p><strong>Configuration</strong>:</p>
+<pre><code class="language-bash"># Just generate - uses decimal by default
+specql generate entities/crm/*.yaml
+</code></pre>
+<h3 id="enterprise-platform-hexadecimal-system">Enterprise Platform (Hexadecimal System)</h3>
+<p><strong>Registry</strong>:</p>
+<pre><code class="language-yaml">domains:
+  identity:
+    code: &quot;1&quot;
+    groups:
+      user:
+        code: &quot;1&quot;
+        entities:
+          user: {code: &quot;1&quot;}
+          profile: {code: &quot;2&quot;}
+
+  commerce:
+    code: &quot;2&quot;
+    groups:
+      product:
+        code: &quot;1&quot;
+        entities:
+          product: {code: &quot;1&quot;}
+          category: {code: &quot;2&quot;}
+</code></pre>
+<p><strong>Structure</strong>:</p>
+<pre><code>db/schema/
+├── 01_write_side/
+│   ├── 011_identity/
+│   │   └── 0111_user/
+│   │       ├── 01111_user/
+│   │       └── 01112_profile/
+│   └── 012_commerce/
+│       └── 0121_product/
+└── 02_read_side/
+</code></pre>
+<h2 id="technical-details">Technical Details</h2>
+<h3 id="implementation-files">Implementation Files</h3>
+<ul>
+<li><strong>Decimal</strong>: <code>src/cli/orchestrator.py</code> (lines 197-283)</li>
+<li><strong>Hexadecimal</strong>: <code>src/numbering/registry.py</code></li>
+<li><strong>Tests</strong>: <code>tests/unit/cli/test_numbering_systems.py</code> (21 tests)</li>
+</ul>
+<h3 id="verification-status">Verification Status</h3>
+<ul>
+<li>✅ <strong>Decimal System</strong>: 111 tests passing</li>
+<li>✅ <strong>Hexadecimal System</strong>: 111 tests passing</li>
+<li>✅ <strong>Coexistence</strong>: Both systems tested together</li>
+<li>✅ <strong>Migration</strong>: Verified conversion paths</li>
+</ul>
+<h2 id="next-steps">Next Steps</h2>
+<ul>
+<li><strong>Read Architecture Verification</strong>: Technical details in <code>docs/architecture/NUMBERING_SYSTEMS_VERIFICATION.md</code></li>
+<li><strong>Check Generated Patterns</strong>: File structures in <code>docs/reference/generated-patterns.md</code></li>
+<li><strong>Browse Examples</strong>: See both systems in <code>examples/</code></li>
+<li><strong>Generate Code</strong>: Try <code>specql generate --help</code> for options</li>
+</ul>
+<hr />
+<p><strong>Two systems, one codebase. Choose what fits your scale.</strong> ⚖️</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

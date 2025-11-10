@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>Team B: Remaining Fix Required - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Team B: Remaining Fix Required";
+        var mkdocs_page_input_path = "reviews/TEAM_B_REMAINING_FIX.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Team B: Remaining Fix Required</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="team-b-remaining-fix-required">Team B: Remaining Fix Required</h1>
+<p><strong>Date</strong>: 2025-11-08
+<strong>Status</strong>: ❌ Issue #1 (Part 2) NOT FIXED</p>
+<hr />
+<h2 id="what-team-b-fixed">✅ What Team B Fixed</h2>
+<ol>
+<li><strong>Duplicate COMMENT statements</strong> - ✅ FIXED</li>
+<li>No longer generating duplicate COMMENTs for the same column</li>
+<li>Template doesn't duplicate CommentGenerator output</li>
+</ol>
+<hr />
+<h2 id="whats-still-broken">❌ What's Still Broken</h2>
+<h3 id="issue-1-part-2-wrong-column-names-for-ref-fields">Issue #1 (Part 2): Wrong Column Names for <code>ref()</code> Fields</h3>
+<p><strong>Current Behavior</strong>:</p>
+<pre><code class="language-sql">-- From template (correct):
+COMMENT ON COLUMN crm.tb_contact.fk_company IS 'Reference to Company';
+
+-- From CommentGenerator (WRONG!):
+COMMENT ON COLUMN crm.tb_contact.company IS 'Ref value → Company';
+</code></pre>
+<p><strong>The Problem</strong>:
+- The actual database column is <code>fk_company</code> (created in table_generator.py line 74)
+- CommentGenerator uses the business field name <code>company</code> (from the AST)
+- PostgreSQL will accept the COMMENT but it references a non-existent column!</p>
+<p><strong>Verification</strong>:</p>
+<pre><code class="language-bash">PYTHONPATH=. uv run python /tmp/verify_team_b_fixes.py
+</code></pre>
+<p>Output shows:</p>
+<pre><code>⚠️  WARNING - Both 'company' and 'fk_company' found (possible issue)
+</code></pre>
+<hr />
+<h2 id="required-fix">🔧 Required Fix</h2>
+<h3 id="file-srcgeneratorscomment_generatorpy">File: <code>src/generators/comment_generator.py</code></h3>
+<p><strong>Current Code</strong> (lines 101-109):</p>
+<pre><code class="language-python">def generate_all_field_comments(self, entity: Entity) -&gt; List[str]:
+    &quot;&quot;&quot;Generate COMMENT statements for all fields&quot;&quot;&quot;
+    comments = []
+
+    for field_name, field_def in entity.fields.items():
+        comment = self.generate_field_comment(field_def, entity)  # ❌ WRONG
+        comments.append(comment)
+
+    return comments
+</code></pre>
+<p><strong>Fixed Code</strong>:</p>
+<pre><code class="language-python">def generate_all_field_comments(self, entity: Entity) -&gt; List[str]:
+    &quot;&quot;&quot;Generate COMMENT statements for all fields&quot;&quot;&quot;
+    comments = []
+
+    for field_name, field_def in entity.fields.items():
+        # For ref() fields, use actual database column name (fk_*)
+        if field_def.type == &quot;ref&quot;:
+            # Create temp field with correct column name
+            from dataclasses import replace
+            actual_field = replace(field_def, name=f&quot;fk_{field_name}&quot;)
+            comment = self.generate_field_comment(actual_field, entity)
+        else:
+            comment = self.generate_field_comment(field_def, entity)
+
+        comments.append(comment)
+
+    return comments
+</code></pre>
+<p><strong>Why This Works</strong>:
+- For <code>ref()</code> fields, we create a temporary <code>FieldDefinition</code> with the actual database column name (<code>fk_company</code>)
+- Use <code>dataclasses.replace()</code> to create a copy with just the name changed
+- All other fields use the original <code>field_def</code></p>
+<hr />
+<h2 id="verification-test">✅ Verification Test</h2>
+<p><strong>Add this test</strong> to <code>tests/unit/schema/test_comment_generation.py</code>:</p>
+<pre><code class="language-python">def test_ref_field_comment_uses_correct_column_name():
+    &quot;&quot;&quot;Test: Reference fields use fk_* column name, not business field name&quot;&quot;&quot;
+    field = FieldDefinition(name=&quot;company&quot;, type=&quot;ref&quot;, target_entity=&quot;Company&quot;)
+    entity = Entity(name=&quot;Contact&quot;, schema=&quot;crm&quot;, fields={&quot;company&quot;: field})
+
+    generator = TableGenerator()
+    comments = generator.generate_field_comments(entity)
+
+    # Should use fk_company (actual column), NOT company (business field)
+    assert any(&quot;fk_company&quot; in c for c in comments), \
+        &quot;COMMENT should use 'fk_company' (actual database column)&quot;
+    assert not any(&quot;tb_contact.company IS&quot; in c for c in comments), \
+        &quot;COMMENT should NOT use 'company' (business field name, column doesn't exist)&quot;
+</code></pre>
+<p><strong>Run Test</strong>:</p>
+<pre><code class="language-bash">uv run pytest tests/unit/schema/test_comment_generation.py::test_ref_field_comment_uses_correct_column_name -v
+</code></pre>
+<p><strong>Expected</strong>:
+- Should FAIL before fix
+- Should PASS after fix</p>
+<hr />
+<h2 id="impact">📊 Impact</h2>
+<p><strong>Severity</strong>: Medium (was CRITICAL, but since the template already generates correct comments for fk_company, this is redundant rather than breaking)</p>
+<p><strong>Why Not Critical Anymore</strong>:
+- Template generates: <code>COMMENT ON COLUMN crm.tb_contact.fk_company IS 'Reference to Company';</code> ✅
+- CommentGenerator adds: <code>COMMENT ON COLUMN crm.tb_contact.company IS 'Ref value → Company';</code> ❌
+- PostgreSQL accepts both, but <code>company</code> column doesn't exist
+- The correct comment (from template) still exists, so FraiseQL will work
+- But this is wasteful and confusing</p>
+<p><strong>What Could Break</strong>:
+- If someone manually creates a column named <code>company</code>, this COMMENT will unexpectedly attach to it
+- Confuses developers reading the DDL
+- Wastes space in the migration file</p>
+<hr />
+<h2 id="acceptance-criteria">🎯 Acceptance Criteria</h2>
+<p>After fix, running:</p>
+<pre><code class="language-bash">PYTHONPATH=. uv run python /tmp/verify_team_b_fixes.py
+</code></pre>
+<p>Should show:</p>
+<pre><code>✓ CHECK 2: Correct column names for ref() fields
+  Found 1 comment(s) with 'company':
+    COMMENT ON COLUMN crm.tb_contact.fk_company IS 'Reference to Company';
+  ✅ PASS - Uses 'fk_company' (correct database column)
+</code></pre>
+<p><strong>NOT</strong>:</p>
+<pre><code>⚠️  WARNING - Both 'company' and 'fk_company' found (possible issue)
+</code></pre>
+<hr />
+<h2 id="estimated-fix-time">⏱️ Estimated Fix Time</h2>
+<p><strong>15 minutes</strong>:
+- 5 min: Update <code>comment_generator.py</code> (lines 101-109)
+- 5 min: Add test case
+- 5 min: Run tests and verify</p>
+<hr />
+<h2 id="summary">📝 Summary</h2>
+<p><strong>Fixed by Team B</strong>:
+- ✅ No duplicate COMMENTs</p>
+<p><strong>Still Needs Fix</strong>:
+- ❌ Wrong column name for <code>ref()</code> fields (<code>company</code> instead of <code>fk_company</code>)</p>
+<p><strong>Total Remaining Work</strong>: 15 minutes</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../img/favicon.ico" />
+    <title>Implementation Plans - Missing Patterns from PrintOptim Backend - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../css/theme.css" />
+    <link rel="stylesheet" href="../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "Implementation Plans - Missing Patterns from PrintOptim Backend";
+        var mkdocs_page_input_path = "implementation-plans/README.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href=".." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../guides/mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../guides/cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href=".." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">Implementation Plans - Missing Patterns from PrintOptim Backend</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="implementation-plans-missing-patterns-from-printoptim-backend">Implementation Plans - Missing Patterns from PrintOptim Backend</h1>
+<h2 id="quick-navigation">📚 Quick Navigation</h2>
+<h3 id="start-here-patterns_implementation_roadmapmd">Start Here: <a href="PATTERNS_IMPLEMENTATION_ROADMAP/">PATTERNS_IMPLEMENTATION_ROADMAP.md</a></h3>
+<p><strong>Master roadmap</strong> with 6-week timeline, testing strategy, and getting started guide.</p>
+<h3 id="implementation-details-missing_patterns_implementationmd">Implementation Details: <a href="MISSING_PATTERNS_IMPLEMENTATION/">MISSING_PATTERNS_IMPLEMENTATION.md</a></h3>
+<p><strong>Complete phased TDD plans</strong> for all three patterns with RED → GREEN → REFACTOR → QA cycles.</p>
+<h3 id="production-examples-identifier_calculation_patternsmd">Production Examples: <a href="IDENTIFIER_CALCULATION_PATTERNS/">IDENTIFIER_CALCULATION_PATTERNS.md</a></h3>
+<p><strong>Real-world analysis</strong> from PrintOptim backend showing how identifiers are actually calculated.</p>
+<hr />
+<h2 id="three-missing-patterns">🎯 Three Missing Patterns</h2>
+<h3 id="1-identifier-recalculation-recalcid-functions">1️⃣ Identifier Recalculation (recalcid functions)</h3>
+<p><strong>What</strong>: Auto-calculate human-readable, hierarchical identifiers with deduplication
+<strong>Example</strong>: <code>toulouse|legal.001-headquarters.002-building-a#2</code>
+<strong>Why</strong>: Consistent, meaningful identifiers across related entities</p>
+<h3 id="2-ltree-hierarchical-data">2️⃣ LTREE Hierarchical Data</h3>
+<p><strong>What</strong>: PostgreSQL LTREE paths for efficient tree queries
+<strong>Example</strong>: <code>WHERE path &lt;@ 'USA.California'</code> (all CA descendants)
+<strong>Why</strong>: Fast ancestor/descendant queries without recursive CTEs</p>
+<h3 id="3-node-info-two-table-split">3️⃣ Node + Info Two-Table Split</h3>
+<p><strong>What</strong>: Separate structure (node) from attributes (info) for hierarchical entities
+<strong>Example</strong>: <code>tb_location</code> (pk, path, parent) + <code>tb_location_info</code> (name, type, address)
+<strong>Why</strong>: Reusable tree logic, clean separation of concerns</p>
+<hr />
+<h2 id="quick-start">🚀 Quick Start</h2>
+<h3 id="1-read-the-roadmap">1. Read the Roadmap</h3>
+<p>Start with <a href="PATTERNS_IMPLEMENTATION_ROADMAP/">PATTERNS_IMPLEMENTATION_ROADMAP.md</a> for:
+- 6-week timeline
+- How patterns integrate
+- Testing strategy
+- Week 1, Day 1 tasks</p>
+<h3 id="2-review-implementation-plans">2. Review Implementation Plans</h3>
+<p>Read <a href="MISSING_PATTERNS_IMPLEMENTATION/">MISSING_PATTERNS_IMPLEMENTATION.md</a> for:
+- Detailed TDD cycles
+- Test specifications
+- Code examples
+- Quality gates</p>
+<h3 id="3-study-production-patterns">3. Study Production Patterns</h3>
+<p>Read <a href="IDENTIFIER_CALCULATION_PATTERNS/">IDENTIFIER_CALCULATION_PATTERNS.md</a> for:
+- Real-world examples from PrintOptim
+- Slug-based identifiers
+- Deduplication logic
+- SpecQL integration proposals</p>
+<h3 id="4-begin-implementation">4. Begin Implementation</h3>
+<p>Follow Week 1 tasks from roadmap:
+- Create migration 000
+- Add foundation types
+- Write tests
+- Start coding!</p>
+<hr />
+<h2 id="timeline-summary">📊 Timeline Summary</h2>
+<table>
+<thead>
+<tr>
+<th>Week</th>
+<th>Pattern</th>
+<th>Deliverable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1-2</td>
+<td>Identifier Recalculation</td>
+<td><code>recalcid_{entity}()</code> functions working</td>
+</tr>
+<tr>
+<td>3-4</td>
+<td>LTREE Hierarchical Data</td>
+<td>Hierarchical queries with LTREE</td>
+</tr>
+<tr>
+<td>5-6</td>
+<td>Node + Info Split</td>
+<td>Two-table pattern for hierarchies</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Total</strong>: 6 weeks to production-ready implementation</p>
+<hr />
+<h2 id="for-each-team">🎓 For Each Team</h2>
+<h3 id="team-a-specql-parser">Team A (SpecQL Parser)</h3>
+<p><strong>Focus</strong>: Parse new YAML sections
+- <code>hierarchical: true</code>
+- <code>metadata_split: true</code>
+- <code>identifier:</code> configuration</p>
+<p><strong>Documents</strong>: ROADMAP (Team A section), IMPLEMENTATION (Phase 2)</p>
+<h3 id="team-b-schema-generator">Team B (Schema Generator)</h3>
+<p><strong>Focus</strong>: Generate tables, indexes, triggers
+- LTREE columns and indexes
+- Node + info table split
+- Identifier fields
+- Helper functions</p>
+<p><strong>Documents</strong>: ROADMAP (Team B section), IMPLEMENTATION (Pattern 2 &amp; 3)</p>
+<h3 id="team-c-action-compiler">Team C (Action Compiler)</h3>
+<p><strong>Focus</strong>: Generate recalcid functions
+- Hierarchical slug calculation
+- Deduplication logic
+- Two-table updates
+- Cascade integration</p>
+<p><strong>Documents</strong>: IDENTIFIER_PATTERNS (all sections), IMPLEMENTATION (Pattern 1)</p>
+<hr />
+<h2 id="success-criteria">✅ Success Criteria</h2>
+<p><strong>Can I use it?</strong>
+- ✅ Write 20 lines of YAML
+- ✅ Run <code>specql generate</code>
+- ✅ Get 2000+ lines of SQL
+- ✅ Load into PostgreSQL
+- ✅ Query with GraphQL (FraiseQL)</p>
+<p><strong>Does it work?</strong>
+- ✅ Location hierarchy with 3+ levels
+- ✅ Identifiers auto-calculated on changes
+- ✅ LTREE queries: "find all descendants"
+- ✅ Node+info split with convenience view
+- ✅ All tests pass (90%+ coverage)</p>
+<hr />
+<h2 id="questions">📞 Questions?</h2>
+<ol>
+<li><strong>What are these patterns?</strong> → Read ROADMAP introduction</li>
+<li><strong>How do I implement them?</strong> → Follow IMPLEMENTATION plans</li>
+<li><strong>What do production examples look like?</strong> → Study IDENTIFIER_PATTERNS</li>
+<li><strong>Where do I start?</strong> → ROADMAP "Getting Started" section</li>
+<li><strong>How long will it take?</strong> → 6 weeks (see timeline)</li>
+</ol>
+<hr />
+<h2 id="related-documentation">🔗 Related Documentation</h2>
+<ul>
+<li>Main project: <a href="../../.claude/CLAUDE.md">/docs/architecture/CLAUDE.md</a></li>
+<li>Integration plans: <a href="../architecture/UPDATED_TEAM_PLANS_POST_FRAISEQL_RESPONSE/">/docs/architecture/UPDATED_TEAM_PLANS_POST_FRAISEQL_RESPONSE.md</a></li>
+<li>PrintOptim analysis: <a href="../analysis/POC_RESULTS/">/docs/analysis/POC_RESULTS.md</a></li>
+</ul>
+<hr />
+<p><strong>Ready to implement? Start with the <a href="PATTERNS_IMPLEMENTATION_ROADMAP/">ROADMAP</a>! 🚀</strong></p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "..";</script>
+    <script src="../js/theme_extra.js"></script>
+    <script src="../js/theme.js"></script>
+      <script src="../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>

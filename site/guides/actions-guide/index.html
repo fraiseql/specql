@@ -1,0 +1,1104 @@
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <link rel="shortcut icon" href="../../img/favicon.ico" />
+    <title>SpecQL Actions Guide - SpecQL Documentation</title>
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/theme_extra.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/github.min.css" />
+    
+      <script>
+        // Current page data
+        var mkdocs_page_name = "SpecQL Actions Guide";
+        var mkdocs_page_input_path = "guides/actions-guide.md";
+        var mkdocs_page_url = null;
+      </script>
+    
+    <!--[if lt IE 9]>
+      <script src="../../js/html5shiv.min.js"></script>
+    <![endif]-->
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+      <script>hljs.highlightAll();</script> 
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side stickynav">
+    <div class="wy-side-scroll">
+      <div class="wy-side-nav-search">
+          <a href="../.." class="icon icon-home"> SpecQL Documentation
+        </a><div role="search">
+  <form id ="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+      <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" title="Type search term here" />
+  </form>
+</div>
+      </div>
+
+      <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <ul>
+                <li class="toctree-l1"><a class="reference internal" href="../..">Home</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../getting-started/">Getting Started</a>
+                </li>
+              </ul>
+              <p class="caption"><span class="caption-text">Guides</span></p>
+              <ul>
+                  <li class="toctree-l1"><a class="" href="../mutation-patterns/">Mutation Patterns</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../test-generation/">Test Generation</a>
+                  </li>
+                  <li class="toctree-l1"><a class="" href="../cli/">CLI</a>
+                  </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../reference/">Reference</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../examples/">Examples</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../tutorials/">Tutorials</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../best-practices/">Best Practices</a>
+                </li>
+              </ul>
+              <ul>
+                <li class="toctree-l1"><a class="" href="../../troubleshooting/">Troubleshooting</a>
+                </li>
+              </ul>
+      </div>
+    </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+      <nav class="wy-nav-top" role="navigation" aria-label="Mobile navigation menu">
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../..">SpecQL Documentation</a>
+        
+      </nav>
+      <div class="wy-nav-content">
+        <div class="rst-content"><div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../.." class="icon icon-home" aria-label="Docs"></a></li>
+      <li class="breadcrumb-item active">SpecQL Actions Guide</li>
+    <li class="wy-breadcrumbs-aside">
+    </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+            <div class="section" itemprop="articleBody">
+              
+                <h1 id="specql-actions-guide">SpecQL Actions Guide</h1>
+<p><strong>Complete reference for defining business logic with SpecQL actions</strong></p>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ul>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#action-basics">Action Basics</a></li>
+<li><a href="#step-types">Step Types</a></li>
+<li><a href="#validate-business-rules">Validate</a></li>
+<li><a href="#ifthenelse-conditional-logic">If/Then/Else</a></li>
+<li><a href="#switch-multi-way-branching">Switch</a></li>
+<li><a href="#insert-create-records">Insert</a></li>
+<li><a href="#update-modify-records">Update</a></li>
+<li><a href="#delete-remove-records">Delete</a></li>
+<li><a href="#call-function-calls">Call</a></li>
+<li><a href="#notify-notifications">Notify</a></li>
+<li><a href="#foreach-loops">Foreach</a></li>
+<li><a href="#advanced-patterns">Advanced Patterns</a></li>
+<li><a href="#complete-examples">Complete Examples</a></li>
+<li><a href="#best-practices">Best Practices</a></li>
+</ul>
+<hr />
+<h2 id="overview">Overview</h2>
+<p><strong>SpecQL actions</strong> define your business logic as declarative workflow steps. The framework automatically handles:</p>
+<ul>
+<li>✅ <strong>Type validation</strong> - Field types are checked automatically</li>
+<li>✅ <strong>Permission checks</strong> - Caller authorization via <code>requires:</code></li>
+<li>✅ <strong>Transaction management</strong> - All steps run in a single transaction</li>
+<li>✅ <strong>Error handling</strong> - Typed errors with proper status codes</li>
+<li>✅ <strong>Audit trails</strong> - Automatic logging of all mutations</li>
+<li>✅ <strong>Event emission</strong> - Events fired for all actions</li>
+<li>✅ <strong>GraphQL integration</strong> - Actions become mutations automatically</li>
+</ul>
+<p><strong>You focus on</strong>: Business rules, workflows, and domain logic.</p>
+<hr />
+<h2 id="action-basics">Action Basics</h2>
+<h3 id="minimal-action">Minimal Action</h3>
+<pre><code class="language-yaml">entity: Contact
+actions:
+  - name: create_contact
+    steps:
+      - insert: Contact
+</code></pre>
+<p><strong>Generates</strong>:</p>
+<pre><code class="language-sql">CREATE FUNCTION crm.create_contact(
+  email TEXT,
+  first_name TEXT,
+  last_name TEXT
+) RETURNS app.mutation_result;
+</code></pre>
+<h3 id="action-with-validation">Action with Validation</h3>
+<pre><code class="language-yaml">actions:
+  - name: qualify_lead
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+</code></pre>
+<h3 id="action-with-permissions">Action with Permissions</h3>
+<pre><code class="language-yaml">actions:
+  - name: delete_contact
+    requires: caller.has_permission('delete_contact')
+    steps:
+      - delete: Contact
+</code></pre>
+<p><strong>Framework automatically</strong>:
+- Checks permission before executing
+- Returns <code>permission_denied</code> error if unauthorized
+- Logs permission check in audit trail</p>
+<hr />
+<h2 id="step-types">Step Types</h2>
+<h3 id="validate-business-rules">Validate (Business Rules)</h3>
+<p><strong>Purpose</strong>: Enforce business rules and constraints</p>
+<p><strong>Syntax</strong>:</p>
+<pre><code class="language-yaml">- validate: condition
+  error: &quot;error_code&quot;
+</code></pre>
+<p><strong>Examples</strong>:</p>
+<h4 id="simple-validation">Simple Validation</h4>
+<pre><code class="language-yaml">steps:
+  - validate: email IS NOT NULL
+  - validate: status IN ('lead', 'qualified', 'customer')
+  - validate: age &gt;= 18
+</code></pre>
+<h4 id="custom-error-codes">Custom Error Codes</h4>
+<pre><code class="language-yaml">steps:
+  - validate: status = 'lead'
+    error: &quot;not_a_lead&quot;
+
+  - validate: phone MATCHES '^\+[1-9]\d{1,14}$'
+    error: &quot;invalid_phone_format&quot;
+</code></pre>
+<h4 id="complex-conditions">Complex Conditions</h4>
+<pre><code class="language-yaml">steps:
+  - validate: start_date &lt;= end_date
+    error: &quot;invalid_date_range&quot;
+
+  - validate: NOT EXISTS (
+      SELECT 1 FROM crm.tb_contact
+      WHERE email = input.email
+        AND pk_contact != input.pk_contact
+    )
+    error: &quot;duplicate_email&quot;
+</code></pre>
+<h4 id="multiple-field-validation">Multiple Field Validation</h4>
+<pre><code class="language-yaml">steps:
+  - validate: NOT (order_id IS NOT NULL AND order_data IS NOT NULL)
+    error: &quot;conflicting_order_fields&quot;
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">IF NOT (status = 'lead') THEN
+  RETURN (
+    FALSE,
+    'not_a_lead',
+    'Validation failed: status must be lead',
+    NULL,
+    NULL
+  )::app.mutation_result;
+END IF;
+</code></pre>
+<hr />
+<h3 id="ifthenelse-conditional-logic">If/Then/Else (Conditional Logic)</h3>
+<p><strong>Purpose</strong>: Conditional execution based on runtime conditions</p>
+<p><strong>Syntax</strong>:</p>
+<pre><code class="language-yaml">- if: condition
+  then:
+    - step1
+    - step2
+  else:  # Optional
+    - step3
+</code></pre>
+<p><strong>Examples</strong>:</p>
+<h4 id="simple-conditional">Simple Conditional</h4>
+<pre><code class="language-yaml">steps:
+  - if: status = 'lead'
+    then:
+      - update: Contact SET lead_score = lead_score + 10
+</code></pre>
+<h4 id="ifelse">If/Else</h4>
+<pre><code class="language-yaml">steps:
+  - if: order_data IS NOT NULL
+    then:
+      - call: create_order(order_data)
+      - set: order_id = result.id
+    else:
+      - validate: order_id IS NOT NULL
+</code></pre>
+<h4 id="nested-conditions">Nested Conditions</h4>
+<pre><code class="language-yaml">steps:
+  - if: source_type = 'Product'
+    then:
+      - if: product.is_available
+        then:
+          - insert: MachineItem
+        else:
+          - validate: FALSE
+            error: &quot;product_not_available&quot;
+</code></pre>
+<h4 id="existence-checks">Existence Checks</h4>
+<pre><code class="language-yaml">steps:
+  - if: EXISTS (
+      SELECT 1 FROM crm.tb_company
+      WHERE email_domain = extract_domain(input.email)
+    )
+    then:
+      - call: link_contact_to_company(input.email)
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">IF (status = 'lead') THEN
+  UPDATE crm.tb_contact
+  SET lead_score = lead_score + 10
+  WHERE pk_contact = v_pk_contact;
+END IF;
+</code></pre>
+<hr />
+<h3 id="switch-multi-way-branching">Switch (Multi-Way Branching)</h3>
+<p><strong>Purpose</strong>: Multiple conditional branches based on a field value</p>
+<p><strong>Syntax</strong>:</p>
+<pre><code class="language-yaml">- switch: field
+  cases:
+    value1:
+      - steps
+    value2:
+      - steps
+</code></pre>
+<p><strong>Examples</strong>:</p>
+<h4 id="enum-switch">Enum Switch</h4>
+<pre><code class="language-yaml">steps:
+  - switch: source_type
+    cases:
+      MachineItem:
+        - validate: source.fk_machine IS NULL
+          error: &quot;machine_item_already_allocated&quot;
+        - update: source SET fk_machine = input.machine_id
+
+      ContractItem:
+        - fetch: source AS contract_item
+        - set: fk_product = contract_item.fk_product
+        - insert: MachineItem
+
+      Product:
+        - set: fk_product = source_id
+        - insert: MachineItem
+</code></pre>
+<h4 id="status-based-workflow">Status-Based Workflow</h4>
+<pre><code class="language-yaml">steps:
+  - switch: status
+    cases:
+      lead:
+        - update: Contact SET lead_score = 50
+      qualified:
+        - update: Contact SET lead_score = 75
+        - notify: sales_team &quot;Lead qualified: {email}&quot;
+      customer:
+        - update: Contact SET lead_score = 100
+        - call: create_welcome_sequence(contact_id)
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">CASE v_source_type
+  WHEN 'MachineItem' THEN
+    -- MachineItem steps
+  WHEN 'ContractItem' THEN
+    -- ContractItem steps
+  WHEN 'Product' THEN
+    -- Product steps
+END CASE;
+</code></pre>
+<hr />
+<h3 id="insert-create-records">Insert (Create Records)</h3>
+<p><strong>Purpose</strong>: Create new database records</p>
+<p><strong>Syntax</strong>:</p>
+<pre><code class="language-yaml">- insert: Entity
+- insert: Entity(field1, field2, ...)
+</code></pre>
+<p><strong>Examples</strong>:</p>
+<h4 id="simple-insert">Simple Insert</h4>
+<pre><code class="language-yaml">steps:
+  - insert: Contact
+</code></pre>
+<p><strong>Inserts all fields from action parameters</strong></p>
+<h4 id="explicit-fields">Explicit Fields</h4>
+<pre><code class="language-yaml">steps:
+  - insert: Contact(email, first_name, last_name)
+</code></pre>
+<h4 id="computed-fields">Computed Fields</h4>
+<pre><code class="language-yaml">steps:
+  - compute: full_name = first_name || ' ' || last_name
+  - insert: Contact(email, full_name)
+</code></pre>
+<h4 id="nested-insert-with-foreign-key">Nested Insert with Foreign Key</h4>
+<pre><code class="language-yaml">steps:
+  - insert: Company(name, domain)
+  - set: company_id = result.id
+  - insert: Contact(email, first_name, last_name, company_id)
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">INSERT INTO crm.tb_contact (
+  email,
+  first_name,
+  last_name,
+  created_at,
+  created_by,
+  updated_at,
+  updated_by
+) VALUES (
+  p_email,
+  p_first_name,
+  p_last_name,
+  now(),
+  auth.uid(),  -- Framework provides
+  now(),
+  auth.uid()
+) RETURNING pk_contact, id, identifier INTO v_pk_contact, v_id, v_identifier;
+</code></pre>
+<p><strong>Framework automatically adds</strong>:
+- <code>created_at = now()</code>
+- <code>created_by = auth.uid()</code>
+- <code>updated_at = now()</code>
+- <code>updated_by = auth.uid()</code></p>
+<hr />
+<h3 id="update-modify-records">Update (Modify Records)</h3>
+<p><strong>Purpose</strong>: Modify existing records</p>
+<p><strong>Syntax</strong>:</p>
+<pre><code class="language-yaml">- update: Entity SET field = value
+- update: Entity SET field1 = value1, field2 = value2
+</code></pre>
+<p><strong>Examples</strong>:</p>
+<h4 id="simple-update">Simple Update</h4>
+<pre><code class="language-yaml">steps:
+  - update: Contact SET status = 'qualified'
+</code></pre>
+<h4 id="multiple-fields">Multiple Fields</h4>
+<pre><code class="language-yaml">steps:
+  - update: Contact SET
+      status = 'customer',
+      lead_score = 100,
+      qualified_at = now()
+</code></pre>
+<h4 id="conditional-update">Conditional Update</h4>
+<pre><code class="language-yaml">steps:
+  - if: lead_score &gt; 80
+    then:
+      - update: Contact SET status = 'qualified'
+</code></pre>
+<h4 id="update-with-expression">Update with Expression</h4>
+<pre><code class="language-yaml">steps:
+  - update: Contact SET
+      lead_score = lead_score + 10,
+      last_activity = now()
+</code></pre>
+<h4 id="computed-update">Computed Update</h4>
+<pre><code class="language-yaml">steps:
+  - compute: new_score = calculate_lead_score(email, phone, company_id)
+  - update: Contact SET lead_score = new_score
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">UPDATE crm.tb_contact
+SET
+  status = 'qualified',
+  updated_at = now(),  -- Framework adds
+  updated_by = auth.uid()  -- Framework adds
+WHERE pk_contact = v_pk_contact;
+</code></pre>
+<p><strong>Framework automatically</strong>:
+- Updates <code>updated_at = now()</code>
+- Updates <code>updated_by = auth.uid()</code>
+- Respects soft deletes (<code>deleted_at IS NULL</code>)</p>
+<hr />
+<h3 id="delete-remove-records">Delete (Remove Records)</h3>
+<p><strong>Purpose</strong>: Delete or soft-delete records</p>
+<p><strong>Syntax</strong>:</p>
+<pre><code class="language-yaml">- delete: Entity
+</code></pre>
+<p><strong>Examples</strong>:</p>
+<h4 id="soft-delete-default">Soft Delete (Default)</h4>
+<pre><code class="language-yaml">steps:
+  - delete: Contact
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">UPDATE crm.tb_contact
+SET
+  deleted_at = now(),
+  deleted_by = auth.uid()
+WHERE pk_contact = v_pk_contact;
+</code></pre>
+<h4 id="conditional-delete">Conditional Delete</h4>
+<pre><code class="language-yaml">steps:
+  - if: status = 'inactive'
+    then:
+      - delete: Contact
+</code></pre>
+<h4 id="cascade-delete">Cascade Delete</h4>
+<pre><code class="language-yaml">steps:
+  - delete: Order
+  - delete: OrderItem WHERE fk_order = order_id
+</code></pre>
+<p><strong>Note</strong>: Hard deletes are NOT generated by SpecQL. All deletes are soft deletes to maintain audit trails.</p>
+<hr />
+<h3 id="call-function-calls">Call (Function Calls)</h3>
+<p><strong>Purpose</strong>: Call other functions or actions</p>
+<p><strong>Syntax</strong>:</p>
+<pre><code class="language-yaml">- call: function_name(arg1, arg2)
+- call: schema.function_name(arg1, arg2)
+  store: variable_name
+</code></pre>
+<p><strong>Examples</strong>:</p>
+<h4 id="simple-call">Simple Call</h4>
+<pre><code class="language-yaml">steps:
+  - call: send_welcome_email(contact.email)
+</code></pre>
+<h4 id="call-with-result">Call with Result</h4>
+<pre><code class="language-yaml">steps:
+  - call: create_order(order_data)
+  - set: order_id = result.id
+</code></pre>
+<h4 id="call-another-action">Call Another Action</h4>
+<pre><code class="language-yaml">steps:
+  - call: crm.create_company(company_data)
+  - set: company_id = result.object.id
+  - insert: Contact(email, company_id)
+</code></pre>
+<h4 id="conditional-call">Conditional Call</h4>
+<pre><code class="language-yaml">steps:
+  - if: lead_score &gt; 80
+    then:
+      - call: notify_sales_team(contact_id, &quot;High-value lead&quot;)
+</code></pre>
+<h4 id="multiple-calls">Multiple Calls</h4>
+<pre><code class="language-yaml">steps:
+  - insert: Contact
+  - call: send_welcome_email(contact.email)
+  - call: add_to_mailing_list(contact.email)
+  - call: trigger_lead_scoring(contact.id)
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">SELECT crm.send_welcome_email(v_email) INTO v_result;
+</code></pre>
+<hr />
+<h3 id="notify-notifications">Notify (Notifications)</h3>
+<p><strong>Purpose</strong>: Send notifications to users or teams</p>
+<p><strong>Syntax</strong>:</p>
+<pre><code class="language-yaml">- notify: recipient(channel, message)
+</code></pre>
+<p><strong>Examples</strong>:</p>
+<h4 id="email-notification">Email Notification</h4>
+<pre><code class="language-yaml">steps:
+  - notify: contact.email &quot;Welcome to our platform!&quot;
+</code></pre>
+<h4 id="team-notification">Team Notification</h4>
+<pre><code class="language-yaml">steps:
+  - notify: sales_team &quot;New lead: {first_name} {last_name}&quot;
+</code></pre>
+<h4 id="conditional-notification">Conditional Notification</h4>
+<pre><code class="language-yaml">steps:
+  - if: lead_score &gt; 90
+    then:
+      - notify: sales_manager &quot;High-value lead qualified: {email}&quot;
+</code></pre>
+<h4 id="multiple-recipients">Multiple Recipients</h4>
+<pre><code class="language-yaml">steps:
+  - notify: contact.email &quot;Your order has been confirmed&quot;
+  - notify: admin.email &quot;New order from {contact.email}&quot;
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">-- Framework handles notification queuing
+INSERT INTO app.notifications (
+  recipient,
+  channel,
+  message,
+  created_at
+) VALUES (
+  v_contact_email,
+  'email',
+  'Welcome to our platform!',
+  now()
+);
+</code></pre>
+<hr />
+<h3 id="foreach-loops">Foreach (Loops)</h3>
+<p><strong>Purpose</strong>: Iterate over collections</p>
+<p><strong>Syntax</strong>:</p>
+<pre><code class="language-yaml">- foreach: item IN collection
+  do:
+    - steps
+</code></pre>
+<p><strong>Examples</strong>:</p>
+<h4 id="process-multiple-items">Process Multiple Items</h4>
+<pre><code class="language-yaml">steps:
+  - foreach: item IN input.items
+    do:
+      - insert: OrderItem(
+          order_id = order.id,
+          product_id = item.product_id,
+          quantity = item.quantity
+        )
+</code></pre>
+<h4 id="batch-updates">Batch Updates</h4>
+<pre><code class="language-yaml">steps:
+  - foreach: contact IN selected_contacts
+    do:
+      - update: Contact SET status = 'qualified'
+        WHERE id = contact.id
+</code></pre>
+<h4 id="conditional-loop">Conditional Loop</h4>
+<pre><code class="language-yaml">steps:
+  - foreach: allocation IN future_allocations
+    do:
+      - if: allocation.is_provisional
+        then:
+          - delete: allocation
+</code></pre>
+<p><strong>Generated SQL</strong>:</p>
+<pre><code class="language-sql">FOR v_item IN SELECT * FROM jsonb_array_elements(p_items)
+LOOP
+  INSERT INTO crm.tb_order_item (
+    fk_order,
+    fk_product,
+    quantity
+  ) VALUES (
+    v_order_id,
+    (v_item-&gt;&gt;'product_id')::UUID,
+    (v_item-&gt;&gt;'quantity')::INTEGER
+  );
+END LOOP;
+</code></pre>
+<hr />
+<h2 id="advanced-patterns">Advanced Patterns</h2>
+<h3 id="pattern-1-deduplication">Pattern 1: Deduplication</h3>
+<p><strong>Check for duplicates before insert</strong>:</p>
+<pre><code class="language-yaml">actions:
+  - name: create_contact
+    steps:
+      - validate: NOT EXISTS (
+          SELECT 1 FROM crm.tb_contact
+          WHERE email = input.email
+        )
+        error: &quot;duplicate_email&quot;
+
+      - insert: Contact
+</code></pre>
+<h3 id="pattern-2-nested-object-creation">Pattern 2: Nested Object Creation</h3>
+<p><strong>Create parent, then child with FK</strong>:</p>
+<pre><code class="language-yaml">actions:
+  - name: create_contact_with_company
+    steps:
+      - if: company_data IS NOT NULL
+        then:
+          - call: create_company(company_data)
+          - set: company_id = result.object.id
+        else:
+          - validate: company_id IS NOT NULL
+            error: &quot;company_required&quot;
+
+      - insert: Contact(email, first_name, last_name, company_id)
+</code></pre>
+<h3 id="pattern-3-status-transitions">Pattern 3: Status Transitions</h3>
+<p><strong>Enforce valid state transitions</strong>:</p>
+<pre><code class="language-yaml">actions:
+  - name: update_order_status
+    steps:
+      - fetch: order
+
+      - validate: new_status IN allowed_transitions(order.status)
+        error: &quot;invalid_status_transition&quot;
+
+      - update: Order SET status = new_status
+
+      - switch: new_status
+        cases:
+          shipped:
+            - notify: customer.email &quot;Your order has shipped!&quot;
+          delivered:
+            - notify: customer.email &quot;Your order was delivered&quot;
+            - call: trigger_review_request(order.id)
+</code></pre>
+<h3 id="pattern-4-temporal-logic">Pattern 4: Temporal Logic</h3>
+<p><strong>Handle date ranges and overlaps</strong>:</p>
+<pre><code class="language-yaml">actions:
+  - name: create_reservation
+    steps:
+      - validate: reserved_from &lt;= reserved_until
+        error: &quot;invalid_date_range&quot;
+
+      - validate: reserved_from &gt;= CURRENT_DATE
+        error: &quot;past_date_not_allowed&quot;
+
+      - validate: NOT EXISTS (
+          SELECT 1 FROM allocation
+          WHERE fk_machine = input.machine_id
+            AND daterange(start_date, end_date) &amp;&amp;
+                daterange(input.reserved_from, input.reserved_until)
+        )
+        error: &quot;overlapping_reservation&quot;
+
+      - insert: Reservation
+</code></pre>
+<h3 id="pattern-5-cascade-updates">Pattern 5: Cascade Updates</h3>
+<p><strong>Update related records</strong>:</p>
+<pre><code class="language-yaml">actions:
+  - name: update_company_domain
+    steps:
+      - update: Company SET domain = new_domain
+
+      - update: Contact SET
+          email = replace(email, old_domain, new_domain)
+        WHERE company_id = input.company_id
+          AND email LIKE '%@' || old_domain
+</code></pre>
+<h3 id="pattern-6-computed-defaults">Pattern 6: Computed Defaults</h3>
+<p><strong>Resolve defaults from related data</strong>:</p>
+<pre><code class="language-yaml">actions:
+  - name: create_allocation
+    steps:
+      - if: location_id IS NULL
+        then:
+          - call: get_default_location(organizational_unit_id)
+          - set: location_id = result.id
+
+      - if: start_date IS NULL
+        then:
+          - set: start_date = CURRENT_DATE
+
+      - insert: Allocation
+</code></pre>
+<h3 id="pattern-7-conflict-resolution">Pattern 7: Conflict Resolution</h3>
+<p><strong>Detect and handle conflicts</strong>:</p>
+<pre><code class="language-yaml">actions:
+  - name: allocate_machine
+    steps:
+      - if: EXISTS current_allocation WITH same location AND orgunit
+        then:
+          - validate: FALSE
+            error: &quot;current_allocation_is_the_same&quot;
+
+      - if: EXISTS future_provisional_allocations
+        then:
+          - if: input.delete_future_allocations
+            then:
+              - foreach: allocation IN future_allocations
+                do:
+                  - delete: allocation
+            else:
+              - validate: FALSE
+                error: &quot;future_allocations_exist&quot;
+
+      - insert: Allocation
+</code></pre>
+<hr />
+<h2 id="complete-examples">Complete Examples</h2>
+<h3 id="example-1-crm-lead-management">Example 1: CRM Lead Management</h3>
+<pre><code class="language-yaml">entity: Contact
+schema: crm
+
+fields:
+  email: email!
+  first_name: text!
+  last_name: text!
+  company: ref(Company)
+  status: enum(lead, qualified, customer, inactive)
+  lead_score: integer = 0
+  qualified_at: timestamp
+
+actions:
+  - name: create_lead
+    steps:
+      # Validation
+      - validate: email MATCHES email_pattern
+        error: &quot;invalid_email&quot;
+
+      # Deduplication
+      - validate: NOT EXISTS (
+          SELECT 1 FROM crm.tb_contact WHERE email = input.email
+        )
+        error: &quot;duplicate_email&quot;
+
+      # Create contact
+      - insert: Contact(email, first_name, last_name, company_id)
+
+      # Trigger scoring
+      - call: calculate_lead_score(contact.id)
+
+      # Notify sales
+      - if: lead_score &gt; 80
+        then:
+          - notify: sales_team &quot;High-value lead: {email}&quot;
+
+  - name: qualify_lead
+    steps:
+      # Validate current status
+      - validate: status = 'lead'
+        error: &quot;not_a_lead&quot;
+
+      # Validate score threshold
+      - validate: lead_score &gt;= 60
+        error: &quot;score_too_low&quot;
+
+      # Update status
+      - update: Contact SET
+          status = 'qualified',
+          qualified_at = now()
+
+      # Notify
+      - notify: owner.email &quot;Lead qualified: {first_name} {last_name}&quot;
+      - notify: contact.email &quot;Thank you for your interest!&quot;
+
+  - name: convert_to_customer
+    steps:
+      - validate: status = 'qualified'
+        error: &quot;not_qualified&quot;
+
+      - update: Contact SET
+          status = 'customer',
+          lead_score = 100
+
+      - call: create_customer_account(contact.id)
+      - call: send_welcome_sequence(contact.email)
+      - notify: sales_team &quot;New customer: {email}&quot;
+</code></pre>
+<h3 id="example-2-order-processing">Example 2: Order Processing</h3>
+<pre><code class="language-yaml">entity: Order
+schema: commerce
+
+fields:
+  customer: ref(Customer)!
+  items: list(OrderItem)
+  status: enum(draft, confirmed, shipped, delivered, cancelled)
+  total_amount: money
+  shipping_address: ref(Address)!
+
+actions:
+  - name: create_order
+    steps:
+      # Validate customer
+      - validate: customer_id IS NOT NULL
+        error: &quot;customer_required&quot;
+
+      # Validate items
+      - validate: jsonb_array_length(items) &gt; 0
+        error: &quot;items_required&quot;
+
+      # Create order
+      - insert: Order(customer_id, status = 'draft')
+
+      # Create order items
+      - foreach: item IN items
+        do:
+          - validate: item.quantity &gt; 0
+            error: &quot;invalid_quantity&quot;
+
+          - call: get_product_price(item.product_id)
+          - compute: line_total = result.price * item.quantity
+
+          - insert: OrderItem(
+              order_id = order.id,
+              product_id = item.product_id,
+              quantity = item.quantity,
+              unit_price = result.price,
+              total = line_total
+            )
+
+      # Calculate total
+      - call: calculate_order_total(order.id)
+      - update: Order SET total_amount = result.total
+
+  - name: confirm_order
+    steps:
+      - validate: status = 'draft'
+        error: &quot;invalid_status&quot;
+
+      - validate: total_amount &gt; 0
+        error: &quot;invalid_total&quot;
+
+      # Check inventory
+      - foreach: item IN order.items
+        do:
+          - call: check_inventory(item.product_id, item.quantity)
+          - validate: result.available = TRUE
+            error: &quot;insufficient_inventory&quot;
+
+      # Reserve inventory
+      - foreach: item IN order.items
+        do:
+          - call: reserve_inventory(item.product_id, item.quantity)
+
+      # Update order
+      - update: Order SET
+          status = 'confirmed',
+          confirmed_at = now()
+
+      # Notify
+      - notify: customer.email &quot;Order confirmed: #{order.identifier}&quot;
+      - notify: warehouse_team &quot;New order to fulfill: #{order.identifier}&quot;
+</code></pre>
+<h3 id="example-3-resource-allocation">Example 3: Resource Allocation</h3>
+<pre><code class="language-yaml">entity: Allocation
+schema: inventory
+
+fields:
+  machine: ref(Machine)!
+  organizational_unit: ref(OrganizationalUnit)!
+  location: ref(Location)!
+  start_date: date!
+  end_date: date!
+  is_provisional: boolean = false
+
+actions:
+  - name: create_allocation
+    steps:
+      # Validate dates
+      - validate: start_date &lt;= end_date
+        error: &quot;invalid_date_range&quot;
+
+      - validate: start_date &gt;= CURRENT_DATE
+        error: &quot;past_date_not_allowed&quot;
+
+      # Check for same current allocation
+      - if: EXISTS (
+          SELECT 1 FROM inventory.allocation
+          WHERE fk_machine = input.machine_id
+            AND fk_organizational_unit = input.organizational_unit_id
+            AND fk_location = input.location_id
+            AND start_date &lt;= CURRENT_DATE
+            AND end_date &gt;= CURRENT_DATE
+            AND deleted_at IS NULL
+        )
+        then:
+          - validate: FALSE
+            error: &quot;current_allocation_is_the_same&quot;
+
+      # Handle future provisional allocations
+      - if: EXISTS (
+          SELECT 1 FROM inventory.allocation
+          WHERE fk_machine = input.machine_id
+            AND start_date &gt; CURRENT_DATE
+            AND is_provisional = TRUE
+            AND deleted_at IS NULL
+        )
+        then:
+          - if: input.delete_future_allocations = TRUE
+            then:
+              - foreach: allocation IN (
+                  SELECT * FROM inventory.allocation
+                  WHERE fk_machine = input.machine_id
+                    AND start_date &gt; CURRENT_DATE
+                    AND is_provisional = TRUE
+                    AND deleted_at IS NULL
+                )
+                do:
+                  - delete: allocation
+            else:
+              - validate: FALSE
+                error: &quot;future_allocations_exist&quot;
+
+      # Close current allocation
+      - if: EXISTS (
+          SELECT 1 FROM inventory.allocation
+          WHERE fk_machine = input.machine_id
+            AND start_date &lt;= input.start_date
+            AND end_date &gt;= input.start_date
+            AND deleted_at IS NULL
+        )
+        then:
+          - update: allocation SET end_date = input.start_date - interval '1 day'
+            WHERE fk_machine = input.machine_id
+              AND start_date &lt;= input.start_date
+              AND end_date &gt;= input.start_date
+
+      # Create allocation
+      - insert: Allocation(
+          machine_id,
+          organizational_unit_id,
+          location_id,
+          start_date,
+          end_date,
+          is_provisional
+        )
+
+      # Update machine flags
+      - call: update_machine_allocation_flags(machine_id)
+</code></pre>
+<hr />
+<h2 id="best-practices">Best Practices</h2>
+<h3 id="1-validate-early">1. <strong>Validate Early</strong></h3>
+<p>Put validation steps at the beginning of your action:</p>
+<p>✅ <strong>Good</strong>:</p>
+<pre><code class="language-yaml">steps:
+  - validate: email IS NOT NULL
+  - validate: phone MATCHES phone_pattern
+  - insert: Contact
+</code></pre>
+<p>❌ <strong>Bad</strong>:</p>
+<pre><code class="language-yaml">steps:
+  - insert: Contact
+  - validate: email IS NOT NULL  # Too late!
+</code></pre>
+<h3 id="2-use-meaningful-error-codes">2. <strong>Use Meaningful Error Codes</strong></h3>
+<p>✅ <strong>Good</strong>:</p>
+<pre><code class="language-yaml">- validate: lead_score &gt;= 60
+  error: &quot;score_below_qualification_threshold&quot;
+</code></pre>
+<p>❌ <strong>Bad</strong>:</p>
+<pre><code class="language-yaml">- validate: lead_score &gt;= 60
+  error: &quot;invalid&quot;
+</code></pre>
+<h3 id="3-keep-actions-focused">3. <strong>Keep Actions Focused</strong></h3>
+<p>One action should do one thing well:</p>
+<p>✅ <strong>Good</strong>:</p>
+<pre><code class="language-yaml">- name: qualify_lead
+  steps:
+    - validate: status = 'lead'
+    - update: Contact SET status = 'qualified'
+
+- name: convert_to_customer
+  steps:
+    - validate: status = 'qualified'
+    - update: Contact SET status = 'customer'
+</code></pre>
+<p>❌ <strong>Bad</strong>:</p>
+<pre><code class="language-yaml">- name: update_status
+  steps:
+    - if: new_status = 'qualified'
+      then: [...]
+    - if: new_status = 'customer'
+      then: [...]
+    # Too many responsibilities!
+</code></pre>
+<h3 id="4-use-switch-for-multiple-cases">4. <strong>Use Switch for Multiple Cases</strong></h3>
+<p>✅ <strong>Good</strong>:</p>
+<pre><code class="language-yaml">- switch: status
+  cases:
+    lead: [...]
+    qualified: [...]
+    customer: [...]
+</code></pre>
+<p>❌ <strong>Bad</strong>:</p>
+<pre><code class="language-yaml">- if: status = 'lead'
+  then: [...]
+- if: status = 'qualified'
+  then: [...]
+- if: status = 'customer'
+  then: [...]
+</code></pre>
+<h3 id="5-document-complex-logic">5. <strong>Document Complex Logic</strong></h3>
+<pre><code class="language-yaml">actions:
+  - name: create_allocation
+    description: |
+      Creates a new machine allocation with automatic conflict resolution.
+      Handles: temporal overlaps, provisional allocation cleanup, neighbor adjustment.
+
+    steps:
+      # Check for temporal conflicts
+      - validate: NOT EXISTS overlapping_allocation
+        error: &quot;overlapping_allocation&quot;
+
+      # Close previous allocation if needed
+      - if: EXISTS previous_allocation
+        then:
+          - update: previous SET end_date = input.start_date - 1
+</code></pre>
+<h3 id="6-handle-edge-cases">6. <strong>Handle Edge Cases</strong></h3>
+<pre><code class="language-yaml">steps:
+  # Normal case
+  - if: company_id IS NOT NULL
+    then:
+      - insert: Contact(company_id, ...)
+
+  # Edge case: create company first
+  - if: company_data IS NOT NULL
+    then:
+      - call: create_company(company_data)
+      - set: company_id = result.id
+      - insert: Contact(company_id, ...)
+
+  # Error case
+  - validate: company_id IS NOT NULL
+    error: &quot;company_required&quot;
+</code></pre>
+<h3 id="7-use-foreach-for-collections">7. <strong>Use Foreach for Collections</strong></h3>
+<p>✅ <strong>Good</strong>:</p>
+<pre><code class="language-yaml">- foreach: item IN order.items
+  do:
+    - insert: OrderItem(item.product_id, item.quantity)
+</code></pre>
+<p>❌ <strong>Bad</strong>: Don't try to manually iterate</p>
+<h3 id="8-leverage-framework-features">8. <strong>Leverage Framework Features</strong></h3>
+<p>Let the framework handle:
+- ✅ Audit trails (automatic)
+- ✅ Permission checks (<code>requires:</code>)
+- ✅ Type validation (automatic)
+- ✅ Event emission (automatic)</p>
+<p>Focus your YAML on:
+- 🎯 Business rules
+- 🎯 Workflows
+- 🎯 Domain logic</p>
+<hr />
+<h2 id="whats-next">What's Next?</h2>
+<ul>
+<li><strong><a href="../rich-types-guide/">Rich Types Guide</a></strong> - Learn about validated scalar types</li>
+<li><strong><a href="../stdlib-usage/">stdlib Usage</a></strong> - Use production-ready entities</li>
+<li><strong><a href="../multi-tenancy/">Multi-Tenancy Guide</a></strong> - Build SaaS applications</li>
+<li><strong><a href="../graphql-integration/">GraphQL Integration</a></strong> - Auto-generated mutations</li>
+</ul>
+<hr />
+<p><strong>SpecQL Actions: Because your business logic should be declarative, not imperative.</strong> 🚀</p>
+              
+            </div>
+          </div><footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <!-- Copyright etc -->
+  </div>
+
+  Built with <a href="https://www.mkdocs.org/">MkDocs</a> using a <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>.
+</footer>
+          
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+
+  <div class="rst-versions" role="note" aria-label="Versions">
+  <span class="rst-current-version" data-toggle="rst-current-version">
+    
+    
+    
+  </span>
+</div>
+    <script src="../../js/jquery-3.6.0.min.js"></script>
+    <script>var base_url = "../..";</script>
+    <script src="../../js/theme_extra.js"></script>
+    <script src="../../js/theme.js"></script>
+      <script src="../../search/main.js"></script>
+    <script>
+        jQuery(function () {
+            SphinxRtdTheme.Navigation.enable(true);
+        });
+    </script>
+
+</body>
+</html>
