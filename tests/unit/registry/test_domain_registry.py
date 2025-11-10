@@ -25,50 +25,50 @@ class TestDomainRegistryLoading:
         registry = DomainRegistry("registry/domain_registry.yaml")
 
         assert registry.registry is not None
-        assert 'version' in registry.registry
-        assert 'domains' in registry.registry
-        assert 'schema_layers' in registry.registry
+        assert "version" in registry.registry
+        assert "domains" in registry.registry
+        assert "schema_layers" in registry.registry
 
     def test_registry_has_version(self):
         """Registry should have version field"""
         with open("registry/domain_registry.yaml") as f:
             data = yaml.safe_load(f)
 
-        assert 'version' in data
-        assert data['version'] == "1.0.0"
+        assert "version" in data
+        assert data["version"] == "1.0.0"
 
     def test_registry_has_schema_layers(self):
         """Registry should define schema layers"""
         with open("registry/domain_registry.yaml") as f:
             data = yaml.safe_load(f)
 
-        assert 'schema_layers' in data
-        assert '01' in data['schema_layers']
-        assert data['schema_layers']['01'] == 'write_side'
-        assert '02' in data['schema_layers']
-        assert data['schema_layers']['02'] == 'read_side'
+        assert "schema_layers" in data
+        assert "01" in data["schema_layers"]
+        assert data["schema_layers"]["01"] == "write_side"
+        assert "02" in data["schema_layers"]
+        assert data["schema_layers"]["02"] == "read_side"
 
     def test_registry_has_domains(self):
         """Registry should define domains"""
         with open("registry/domain_registry.yaml") as f:
             data = yaml.safe_load(f)
 
-        assert 'domains' in data
-        assert '1' in data['domains']  # core
-        assert '2' in data['domains']  # crm
-        assert '3' in data['domains']  # catalog
-        assert '4' in data['domains']  # projects
+        assert "domains" in data
+        assert "1" in data["domains"]  # core
+        assert "2" in data["domains"]  # crm
+        assert "3" in data["domains"]  # catalog
+        assert "4" in data["domains"]  # projects
 
     def test_crm_domain_has_subdomains(self):
         """CRM domain should have subdomains"""
         with open("registry/domain_registry.yaml") as f:
             data = yaml.safe_load(f)
 
-        crm = data['domains']['2']
-        assert crm['name'] == 'crm'
-        assert 'subdomains' in crm
-        assert '03' in crm['subdomains']  # customer subdomain
-        assert crm['subdomains']['03']['name'] == 'customer'
+        crm = data["domains"]["2"]
+        assert crm["name"] == "crm"
+        assert "subdomains" in crm
+        assert "03" in crm["subdomains"]  # customer subdomain
+        assert crm["subdomains"]["03"]["name"] == "customer"
 
 
 class TestDomainRegistryQueries:
@@ -165,6 +165,7 @@ class TestDomainRegistryModification:
         """Create temporary registry for testing modifications"""
         # Copy main registry to temp location
         import shutil
+
         temp_registry = tmp_path / "test_registry.yaml"
         shutil.copy("registry/domain_registry.yaml", temp_registry)
         return DomainRegistry(str(temp_registry))
@@ -180,7 +181,7 @@ class TestDomainRegistryModification:
             table_code="012311",
             entity_code="CON",
             domain_code="2",
-            subdomain_code="03"
+            subdomain_code="03",
         )
 
         # After: entity exists
@@ -200,7 +201,7 @@ class TestDomainRegistryModification:
             table_code="012321",
             entity_code="CON",
             domain_code="2",
-            subdomain_code="03"
+            subdomain_code="03",
         )
 
         # Sequence should have incremented
@@ -215,7 +216,7 @@ class TestDomainRegistryModification:
                 table_code="099999",
                 entity_code="TST",
                 domain_code="9",  # Invalid
-                subdomain_code="01"
+                subdomain_code="01",
             )
 
     def test_register_entity_invalid_subdomain(self, registry):
@@ -226,5 +227,5 @@ class TestDomainRegistryModification:
                 table_code="012991",
                 entity_code="TST",
                 domain_code="2",
-                subdomain_code="99"  # Invalid
+                subdomain_code="99",  # Invalid
             )

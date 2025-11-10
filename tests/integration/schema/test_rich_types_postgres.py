@@ -100,13 +100,15 @@ def test_indexes_created_correctly(test_db, isolated_schema, table_generator):
     test_db.commit()
 
     # Query pg_indexes to verify
-    cursor.execute(f"""
+    cursor.execute(
+        f"""
         SELECT indexname, indexdef
         FROM pg_indexes
         WHERE tablename = 'tb_contact'
         AND schemaname = '{isolated_schema}'
         AND indexname LIKE 'idx_tb_contact_%'
-    """)
+    """
+    )
 
     indexes = {row[0]: row[1] for row in cursor.fetchall()}
 
@@ -144,7 +146,8 @@ def test_comments_appear_in_postgresql(test_db, isolated_schema, table_generator
     test_db.commit()
 
     # Query col_description to verify comments
-    cursor.execute(f"""
+    cursor.execute(
+        f"""
         SELECT
             a.attname AS column_name,
             col_description('{isolated_schema}.tb_contact'::regclass, a.attnum) AS description
@@ -153,7 +156,8 @@ def test_comments_appear_in_postgresql(test_db, isolated_schema, table_generator
         AND a.attnum > 0
         AND NOT a.attisdropped
         AND a.attname IN ('email', 'website', 'phone', 'coordinates')
-    """)
+    """
+    )
 
     comments = {row[0]: row[1] for row in cursor.fetchall()}
 
@@ -216,13 +220,15 @@ def test_url_pattern_matching_with_gin_index(test_db, isolated_schema, table_gen
     test_db.commit()
 
     # Check that GIN index was created for URL pattern matching
-    cursor.execute(f"""
+    cursor.execute(
+        f"""
         SELECT indexname, indexdef
         FROM pg_indexes
         WHERE schemaname = '{isolated_schema}'
           AND tablename = 'tb_contact'
           AND indexname LIKE '%website%'
-    """)
+    """
+    )
     indexes = cursor.fetchall()
     assert len(indexes) > 0
     assert "gin" in indexes[0][1].lower()
@@ -230,7 +236,8 @@ def test_url_pattern_matching_with_gin_index(test_db, isolated_schema, table_gen
 
     # Verify the index can be used (insert more data to make index scan more likely)
     for i in range(100):
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             INSERT INTO {isolated_schema}.tb_contact (id, tenant_id, name, email, website, phone, coordinates)
             VALUES (
                 '550e8400-e29b-41d4-a716-44665544{1000 + i:04d}',
@@ -241,15 +248,18 @@ def test_url_pattern_matching_with_gin_index(test_db, isolated_schema, table_gen
                 '+1234567890',
                 '(10.0, 20.0)'
             )
-        """)
+        """
+        )
     test_db.commit()
 
     # Verify GIN index enables efficient pattern matching
     # The index exists and is properly configured for trigram operations
     # In production with larger datasets, this would enable fast pattern matching
-    cursor.execute(f"""
+    cursor.execute(
+        f"""
         SELECT COUNT(*) FROM {isolated_schema}.tb_contact WHERE website LIKE '%example%'
-    """)
+    """
+    )
     count = cursor.fetchone()[0]
     assert count > 0  # Should find matches
 

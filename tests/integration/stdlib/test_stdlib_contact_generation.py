@@ -48,9 +48,9 @@ def test_generate_contact_entity_snapshot():
     else:
         # Test mode: compare against existing snapshot
         expected_ddl = load_snapshot(snapshot_path)
-        assert ddl == expected_ddl, (
-            "DDL does not match snapshot. Run with SNAPSHOT_UPDATE=1 to update the snapshot if this change is intentional."
-        )
+        assert (
+            ddl == expected_ddl
+        ), "DDL does not match snapshot. Run with SNAPSHOT_UPDATE=1 to update the snapshot if this change is intentional."
 
 
 def test_generate_contact_entity_production_readiness():
@@ -74,24 +74,24 @@ def test_generate_contact_entity_production_readiness():
     assert len(lines) > 100, "Generated DDL should be substantial for production use"
 
     # Should include app schema foundation
-    assert any("CREATE SCHEMA IF NOT EXISTS app;" in line for line in lines), (
-        "Should create app schema"
-    )
+    assert any(
+        "CREATE SCHEMA IF NOT EXISTS app;" in line for line in lines
+    ), "Should create app schema"
 
     # Should include mutation result type
-    assert any("CREATE TYPE app.mutation_result" in line for line in lines), (
-        "Should define mutation result type"
-    )
+    assert any(
+        "CREATE TYPE app.mutation_result" in line for line in lines
+    ), "Should define mutation result type"
 
     # Should include audit logging
-    assert any("CREATE TABLE app.tb_mutation_audit_log" in line for line in lines), (
-        "Should create audit log table"
-    )
+    assert any(
+        "CREATE TABLE app.tb_mutation_audit_log" in line for line in lines
+    ), "Should create audit log table"
 
     # Should create tenant schema
-    assert any("CREATE SCHEMA IF NOT EXISTS tenant;" in line for line in lines), (
-        "Should create tenant schema"
-    )
+    assert any(
+        "CREATE SCHEMA IF NOT EXISTS tenant;" in line for line in lines
+    ), "Should create tenant schema"
 
     # Should create contact table with proper structure
     contact_table_start = None

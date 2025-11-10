@@ -16,7 +16,6 @@ Generated PL/pgSQL:
     WHERE pk_contact = v_pk;
 """
 
-
 from src.core.ast_models import ActionStep, EntityDefinition
 
 

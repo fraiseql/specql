@@ -127,6 +127,6 @@ def test_edge_cases(compiler, test_entity):
     try:
         result = compiler.compile("UPPER()", test_entity)
         # Should handle empty function args
-    except:
+    except Exception:
         # Expected if empty args not supported
         pass

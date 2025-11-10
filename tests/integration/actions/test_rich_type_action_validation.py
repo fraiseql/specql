@@ -2,7 +2,6 @@
 Tests for rich type validation in actions
 """
 
-
 import pytest
 
 from src.core.ast_models import Entity, FieldDefinition

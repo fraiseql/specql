@@ -3,7 +3,6 @@ PostgreSQL COMMENT Generator
 Generates descriptive COMMENT ON statements for FraiseQL autodiscovery
 """
 
-
 from src.core.ast_models import Entity, FieldDefinition
 from src.core.scalar_types import get_scalar_type
 from src.utils.safe_slug import safe_table_name

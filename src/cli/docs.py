@@ -19,7 +19,6 @@ def generate_markdown_docs(entities: list[dict[str, Any]], output_file: str) -> 
 
     for entity_data in entities:
         entity_def = entity_data["definition"]
-        entity = entity_data["entity"]
 
         content.append(f"## {entity_def.name}\n")
         content.append(f"**Schema:** {entity_def.schema}\n")
@@ -31,7 +30,7 @@ def generate_markdown_docs(entities: list[dict[str, Any]], output_file: str) -> 
         content.append("|-------|------|----------|-------------|")
 
         for field_name, field in entity_def.fields.items():
-            required = "Yes" if field.nullable == False else "No"
+            required = "Yes" if not field.nullable else "No"
             content.append(
                 f"| {field_name} | {field.type_name} | {required} | {field.description or ''} |"
             )
@@ -101,7 +100,6 @@ def generate_html_docs(entities: list[dict[str, Any]], output_dir: str) -> None:
 
     for entity_data in entities:
         entity_def = entity_data["definition"]
-        entity = entity_data["entity"]
 
         index_content += f"""
     <div class="entity">
@@ -120,9 +118,7 @@ def generate_html_docs(entities: list[dict[str, Any]], output_dir: str) -> None:
 """
 
         for field_name, field in entity_def.fields.items():
-            required = (
-                "<span class='field-required'>Yes</span>" if field.nullable == False else "No"
-            )
+            required = "<span class='field-required'>Yes</span>" if not field.nullable else "No"
             index_content += f"            <tr><td>{field_name}</td><td>{field.type_name}</td><td>{required}</td><td>{field.description or ''}</td></tr>\n"
 
         index_content += "        </table>\n"

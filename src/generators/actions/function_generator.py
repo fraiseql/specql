@@ -4,7 +4,6 @@ Function Generator for Action Compiler
 Generates complete PL/pgSQL function signatures, declarations, and scaffolding.
 """
 
-
 from src.core.ast_models import ActionDefinition, EntityDefinition
 from src.generators.actions.action_context import ActionContext
 from src.generators.actions.function_scaffolding import FunctionScaffoldingGenerator

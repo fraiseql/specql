@@ -5,7 +5,6 @@ Generates PostgreSQL functions for recalculating entity identifiers based on Spe
 Supports hierarchical and composite identifier strategies.
 """
 
-
 from src.core.ast_models import EntityDefinition
 from src.core.separators import Separators
 

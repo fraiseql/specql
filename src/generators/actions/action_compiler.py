@@ -172,13 +172,15 @@ $$ LANGUAGE plpgsql;
             )
 
         # Basic success response
-        parts.append("""
+        parts.append(
+            """
     -- Basic success response
     v_result.status := 'success';
     v_result.message := 'Operation completed';
     v_result.object_data := '{}'::jsonb;
 
     RETURN v_result;
-""")
+"""
+        )
 
         return "\n    ".join(parts)

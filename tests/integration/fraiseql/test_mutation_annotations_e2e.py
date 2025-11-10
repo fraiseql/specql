@@ -135,13 +135,15 @@ class TestMutationAnnotationsEndToEnd:
         test_db.commit()
 
         # Verify functions exist
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT proname
             FROM pg_proc p
             JOIN pg_namespace n ON p.pronamespace = n.oid
             WHERE n.nspname = '{isolated_schema}'
               AND p.proname IN ('qualify_lead', 'create_contact', 'update_contact')
-        """)
+        """
+        )
         functions = cursor.fetchall()
         function_names = [f[0] for f in functions]
 
@@ -172,12 +174,14 @@ class TestMutationAnnotationsEndToEnd:
         test_db.commit()
 
         # Check qualify_lead comment
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT obj_description(p.oid, 'pg_proc')
             FROM pg_proc p
             JOIN pg_namespace n ON p.pronamespace = n.oid
             WHERE n.nspname = '{isolated_schema}' AND p.proname = 'qualify_lead'
-        """)
+        """
+        )
         comment = cursor.fetchone()
         assert comment is not None
         # Core functions don't have @fraiseql:mutation annotations
@@ -207,12 +211,14 @@ class TestMutationAnnotationsEndToEnd:
         test_db.commit()
 
         # Check update_contact comment (has side effects)
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT obj_description(p.oid, 'pg_proc')
             FROM pg_proc p
             JOIN pg_namespace n ON p.pronamespace = n.oid
             WHERE n.nspname = '{isolated_schema}' AND p.proname = 'update_contact'
-        """)
+        """
+        )
         result = cursor.fetchone()
         comment_text = result[0] if result else ""
         assert "update_contact" in comment_text

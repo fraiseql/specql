@@ -152,12 +152,14 @@ class TestRichTypeAutodiscovery:
         """Test: email field has CHECK constraint for validation"""
         test_db, schema_name = test_db_with_rich_types
         cursor = test_db.cursor()
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT pg_get_constraintdef(oid)
             FROM pg_constraint
             WHERE conrelid = '{schema_name}.tb_contact'::regclass
               AND conname LIKE '%email%'
-        """)
+        """
+        )
         constraint = cursor.fetchone()
         assert constraint is not None
         assert "~*" in constraint[0]  # Regex validation present
@@ -166,12 +168,14 @@ class TestRichTypeAutodiscovery:
         """Test: email field has PostgreSQL comment (becomes GraphQL description)"""
         test_db, schema_name = test_db_with_rich_types
         cursor = test_db.cursor()
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT col_description('{schema_name}.tb_contact'::regclass, attnum)
             FROM pg_attribute
             WHERE attrelid = '{schema_name}.tb_contact'::regclass
               AND attname = 'email'
-        """)
+        """
+        )
         comment = cursor.fetchone()
         assert comment is not None
         assert "email" in comment[0].lower()
@@ -181,12 +185,14 @@ class TestRichTypeAutodiscovery:
         """Test: url field has CHECK constraint"""
         test_db, schema_name = test_db_with_rich_types
         cursor = test_db.cursor()
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT pg_get_constraintdef(oid)
             FROM pg_constraint
             WHERE conrelid = '{schema_name}.tb_contact'::regclass
               AND conname LIKE '%website%'
-        """)
+        """
+        )
         constraint = cursor.fetchone()
         assert constraint is not None
         assert "~*" in constraint[0]  # URL regex validation
@@ -195,12 +201,14 @@ class TestRichTypeAutodiscovery:
         """Test: phoneNumber field has CHECK constraint"""
         test_db, schema_name = test_db_with_rich_types
         cursor = test_db.cursor()
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT pg_get_constraintdef(oid)
             FROM pg_constraint
             WHERE conrelid = '{schema_name}.tb_contact'::regclass
               AND conname LIKE '%phone%'
-        """)
+        """
+        )
         constraint = cursor.fetchone()
         assert constraint is not None
 
@@ -208,13 +216,15 @@ class TestRichTypeAutodiscovery:
         """Test: money field uses NUMERIC(19,4)"""
         test_db, schema_name = test_db_with_rich_types
         cursor = test_db.cursor()
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT data_type, numeric_precision, numeric_scale
             FROM information_schema.columns
             WHERE table_schema = '{schema_name}'
               AND table_name = 'tb_product'
               AND column_name = 'price'
-        """)
+        """
+        )
         result = cursor.fetchone()
         assert result is not None
         assert result[0] == "numeric"
@@ -225,13 +235,15 @@ class TestRichTypeAutodiscovery:
         """Test: ipAddress field uses INET PostgreSQL type"""
         test_db, schema_name = test_db_with_rich_types
         cursor = test_db.cursor()
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT data_type
             FROM information_schema.columns
             WHERE table_schema = '{schema_name}'
               AND table_name = 'tb_device'
               AND column_name = 'ip_address'
-        """)
+        """
+        )
         result = cursor.fetchone()
         assert result is not None
         assert result[0] == "inet"
@@ -240,13 +252,15 @@ class TestRichTypeAutodiscovery:
         """Test: coordinates field uses POINT PostgreSQL type"""
         test_db, schema_name = test_db_with_rich_types
         cursor = test_db.cursor()
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT udt_name
             FROM information_schema.columns
             WHERE table_schema = '{schema_name}'
               AND table_name = 'tb_location'
               AND column_name = 'coordinates'
-        """)
+        """
+        )
         result = cursor.fetchone()
         assert result is not None
         assert result[0] == "point"
@@ -255,7 +269,8 @@ class TestRichTypeAutodiscovery:
         """Test: All rich type fields have descriptive comments"""
         test_db, schema_name = test_db_with_rich_types
         cursor = test_db.cursor()
-        cursor.execute(f"""
+        cursor.execute(
+            f"""
             SELECT
                 c.table_schema,
                 c.table_name,
@@ -264,7 +279,8 @@ class TestRichTypeAutodiscovery:
             FROM information_schema.columns c
             WHERE c.table_schema = '{schema_name}'
               AND c.column_name IN ('email', 'website', 'phone', 'price', 'ip_address', 'coordinates')
-        """)
+        """
+        )
         results = cursor.fetchall()
 
         # All rich type fields should have comments

@@ -116,7 +116,7 @@ def test_action_validation_speed():
     for action in entity_def.actions:
         try:
             validator.validate_action(action, entity_def, [])
-        except:
+        except Exception:
             # Some actions may have validation errors, that's ok for this benchmark
             pass
 

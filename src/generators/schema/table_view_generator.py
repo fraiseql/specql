@@ -7,7 +7,6 @@ These denormalized tables expose data to FraiseQL for auto-GraphQL generation.
 Key Innovation: JSONB composition from related tv_ tables (not tb_ tables)
 """
 
-
 from src.core.ast_models import EntityDefinition, ExtraFilterColumn, IncludeRelation
 
 

@@ -36,7 +36,12 @@ class TestGenerateTenantIndexes:
             schema="tenant",
             fields={
                 "name": FieldDefinition(name="name", type_name="string"),
-                "parent": FieldDefinition(name="parent", type_name="ref", tier=FieldTier.REFERENCE, reference_entity="location"),
+                "parent": FieldDefinition(
+                    name="parent",
+                    type_name="ref",
+                    tier=FieldTier.REFERENCE,
+                    reference_entity="location",
+                ),
             },
         )
 
@@ -113,7 +118,12 @@ class TestIsEntityHierarchical:
             schema="tenant",
             fields={
                 "name": FieldDefinition(name="name", type_name="string"),
-                "company": FieldDefinition(name="company", type_name="ref", tier=FieldTier.REFERENCE, reference_entity="company"),
+                "company": FieldDefinition(
+                    name="company",
+                    type_name="ref",
+                    tier=FieldTier.REFERENCE,
+                    reference_entity="company",
+                ),
             },
         )
 
@@ -126,7 +136,12 @@ class TestIsEntityHierarchical:
             schema="tenant",
             fields={
                 "name": FieldDefinition(name="name", type_name="string"),
-                "parent": FieldDefinition(name="parent", type_name="ref", tier=FieldTier.REFERENCE, reference_entity="location"),
+                "parent": FieldDefinition(
+                    name="parent",
+                    type_name="ref",
+                    tier=FieldTier.REFERENCE,
+                    reference_entity="location",
+                ),
             },
         )
 
@@ -140,7 +155,10 @@ class TestIsEntityHierarchical:
             fields={
                 "name": FieldDefinition(name="name", type_name="string"),
                 "fk_parent_category": FieldDefinition(
-                    name="fk_parent_category", type_name="ref", tier=FieldTier.REFERENCE, reference_entity="category"
+                    name="fk_parent_category",
+                    type_name="ref",
+                    tier=FieldTier.REFERENCE,
+                    reference_entity="category",
                 ),
             },
         )
@@ -173,7 +191,12 @@ class TestIndexIntegration:
             schema="tenant",
             fields={
                 "name": FieldDefinition(name="name", type_name="string"),
-                "parent": FieldDefinition(name="parent", type_name="ref", tier=FieldTier.REFERENCE, reference_entity="department"),
+                "parent": FieldDefinition(
+                    name="parent",
+                    type_name="ref",
+                    tier=FieldTier.REFERENCE,
+                    reference_entity="department",
+                ),
             },
         )
 

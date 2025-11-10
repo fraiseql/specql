@@ -133,9 +133,7 @@ class TestActionOrchestrator:
         """Test that compilation handles errors gracefully"""
         action = ActionDefinition(
             name="error_action",
-            steps=[
-                ActionStep(type="unknown_step_type")  # This should raise an error
-            ],
+            steps=[ActionStep(type="unknown_step_type")],  # This should raise an error
         )
 
         with pytest.raises(ValueError, match="No compiler for step type"):

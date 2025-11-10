@@ -48,6 +48,11 @@ generated/
 .DS_Store
 Thumbs.db
 
+# Environment files
+.env
+.env.local
+.env.*.local
+
 # Logs
 *.log
 

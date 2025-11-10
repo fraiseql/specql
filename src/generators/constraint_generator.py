@@ -3,7 +3,6 @@ Constraint Generator for Rich Types
 Generates CHECK constraints for FraiseQL rich types
 """
 
-
 from src.core.ast_models import FieldDefinition
 from src.utils.safe_slug import safe_slug
 

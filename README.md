@@ -87,7 +87,7 @@ FraiseQL auto-discovery eliminates schema duplication:
 
 ```bash
 # Install
-git clone https://github.com/your-org/specql.git
+git clone https://github.com/fraiseql/specql.git
 cd specql
 uv venv && source .venv/bin/activate
 uv pip install -e .
