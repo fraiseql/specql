@@ -92,6 +92,14 @@ make format
 
 See [CONTRIBUTING.md](CONTRIBUTING.md)
 
+## Author
+
+**Lionel Hamayon**
+- Email: lionel.hamayon@evolution-digitale.fr
+- GitHub: [@fraiseql](https://github.com/fraiseql)
+
 ## License
 
-MIT - See [LICENSE](LICENSE)
+MIT License - Copyright (c) 2025 Lionel Hamayon
+
+See [LICENSE](LICENSE) for full details.
