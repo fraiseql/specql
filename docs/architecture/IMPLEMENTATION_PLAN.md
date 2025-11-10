@@ -943,7 +943,7 @@ def test_generate_with_numbering_system(tmp_path):
 #### 🟢 GREEN Phase
 **Time**: 3 hours
 
-Update `generate_sql.py` to use new numbering system:
+Update `scripts/dev/generate_sql.py` to use new numbering system:
 
 ```python
 # src/sql_generator.py (updated)
@@ -1043,7 +1043,7 @@ class SQLGenerator:
 **Acceptance Test:**
 ```bash
 # Run full generation
-python generate_sql.py
+python scripts/dev/generate_sql.py
 
 # Verify output structure
 ls -R generated/
@@ -1475,7 +1475,7 @@ Implement full integration, fix any issues.
 **Acceptance Test:**
 ```bash
 # Generate entity with group leaders
-python generate_sql.py
+python scripts/dev/generate_sql.py
 
 # Apply to test database
 psql test_db < generated/01_write_side/.../013211_tb_manufacturer.sql

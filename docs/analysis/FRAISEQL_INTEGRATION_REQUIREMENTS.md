@@ -502,7 +502,7 @@ description: {{ entity.description }}';
 
 ### Phase 3: Enhanced Generator Engine
 
-Extend `generate_sql.py` to support FraiseQL generation:
+Extend `scripts/dev/generate_sql.py` to support FraiseQL generation:
 
 ```python
 class SQLGenerator:
@@ -718,7 +718,7 @@ app = create_fraiseql_app(
 **Priority**: High
 **Effort**: 12 hours
 
-**Description**: Extend `generate_sql.py` to support FraiseQL artifact generation
+**Description**: Extend `scripts/dev/generate_sql.py` to support FraiseQL artifact generation
 
 **Acceptance Criteria**:
 - [ ] Generator creates `generated/views/` directory
@@ -796,7 +796,7 @@ app = create_fraiseql_app(
 
 **TC-1: Simple Entity (manufacturer)**
 - [ ] Define manufacturer entity in YAML with fraiseql section
-- [ ] Run `python generate_sql.py`
+- [ ] Run `python scripts/dev/generate_sql.py`
 - [ ] Verify generated files:
   - `generated/tables/tb_manufacturer.sql`
   - `generated/views/v_manufacturer.sql`
@@ -863,9 +863,9 @@ app = create_fraiseql_app(
 **Description**: Improve developer workflow and debugging
 
 **Acceptance Criteria**:
-- [ ] CLI command: `python generate_sql.py --entity manufacturer --dry-run`
-- [ ] CLI command: `python generate_sql.py --validate-yaml` (check YAML syntax)
-- [ ] CLI command: `python generate_sql.py --list-entities`
+- [ ] CLI command: `python scripts/dev/generate_sql.py --entity manufacturer --dry-run`
+- [ ] CLI command: `python scripts/dev/generate_sql.py --validate-yaml` (check YAML syntax)
+- [ ] CLI command: `python scripts/dev/generate_sql.py --list-entities`
 - [ ] Validation errors show line numbers and helpful messages
 - [ ] Generator logs summary: "Generated 4 files for manufacturer entity"
 - [ ] Generator supports `--verbose` flag for detailed output
@@ -969,7 +969,7 @@ entity:
 ### Step 2: Generate SQL
 
 ```bash
-python generate_sql.py
+python scripts/dev/generate_sql.py
 ```
 
 **Output**:
@@ -1158,7 +1158,7 @@ query {
 The integration is complete when:
 
 1. ✅ A developer can define an entity in YAML with FraiseQL configuration
-2. ✅ Running `python generate_sql.py` produces:
+2. ✅ Running `python scripts/dev/generate_sql.py` produces:
    - PostgreSQL table DDL
    - FraiseQL-annotated view
    - CREATE/UPDATE/DELETE mutation functions

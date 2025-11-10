@@ -216,7 +216,7 @@ If using code generation:
 
 ```bash
 # Regenerate SQL from YAML
-python generate_sql.py
+python scripts/dev/generate_sql.py
 
 # Verify changes are preserved
 git diff db/schema/30_functions/

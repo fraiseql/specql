@@ -55,3 +55,25 @@ Thumbs.db
 tmp/
 temp/
 *.tmp
+
+# Test outputs and temporary directories
+test_*/
+tmp_*/
+*_output/
+*.db-journal
+*.db-wal
+
+# Development scripts (now in scripts/dev/)
+/compare_with_original.py
+/generate_sql.py
+
+# Editor directories
+.vscode/
+.idea/
+
+# macOS
+.DS_Store
+
+# Database files (keep in migrations/)
+/*.db
+/*.sql
