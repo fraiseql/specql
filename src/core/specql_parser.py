@@ -128,6 +128,11 @@ class SpecQLParser:
         # Parse organization
         if "organization" in data:
             entity.organization = self._parse_organization(data["organization"])
+        elif "table_code" in data:
+            # Support top-level table_code (more intuitive for simple cases)
+            entity.organization = Organization(
+                table_code=data["table_code"], domain_name=data.get("domain_name", None)
+            )
 
         # Parse identifier configuration (NEW)
         entity.identifier = self._parse_identifier_config(data)

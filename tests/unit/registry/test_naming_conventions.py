@@ -431,3 +431,88 @@ class TestEntityQueries:
         for entity in customer_entities:
             assert entity.domain == "crm"
             assert entity.subdomain == "customer"
+
+
+class TestExplicitTableCodeHandling:
+    """Test handling of explicit table codes (skip uniqueness validation)"""
+
+    @pytest.fixture
+    def nc(self):
+        return NamingConventions("registry/domain_registry.yaml")
+
+    def test_explicit_table_code_skips_uniqueness_validation(self, nc):
+        """Explicit table codes should skip uniqueness validation"""
+        # Create entity with explicit table code
+        entity1 = Entity(name="Manufacturer", schema="catalog")
+        entity1.organization = Organization(table_code="013211")
+
+        # First entity should succeed
+        code1 = nc.get_table_code(entity1)
+        assert code1 == "013211"
+
+        # Create second entity with different explicit code
+        entity2 = Entity(name="ManufacturerRange", schema="catalog")
+        entity2.organization = Organization(table_code="013212")
+
+        # Second entity should also succeed (no conflict)
+        code2 = nc.get_table_code(entity2)
+        assert code2 == "013212"
+
+    def test_explicit_table_code_validates_format(self, nc):
+        """Explicit table codes should still validate format"""
+        # Invalid format should raise error
+        entity = Entity(name="Test", schema="catalog")
+        entity.organization = Organization(table_code="INVALID")
+
+        with pytest.raises(ValueError, match="Invalid table code format"):
+            nc.get_table_code(entity)
+
+    def test_explicit_table_code_validates_domain_consistency(self, nc):
+        """Explicit table codes should validate domain consistency"""
+        # Domain mismatch should raise error
+        entity = Entity(name="Contact", schema="crm")
+        entity.organization = Organization(table_code="013211")  # catalog domain
+
+        with pytest.raises(ValueError, match="doesn't match entity schema"):
+            nc.get_table_code(entity)
+
+    def test_auto_derived_codes_still_validate_uniqueness(self, nc):
+        """Auto-derived codes should still check uniqueness"""
+        # Create entity with explicit code first
+        entity_explicit = Entity(name="TestEntityExplicit", schema="catalog")
+        entity_explicit.organization = Organization(
+            table_code="013211"
+        )  # This should work even if it conflicts
+
+        # This should succeed (explicit codes skip uniqueness)
+        code_explicit = nc.get_table_code(entity_explicit)
+        assert code_explicit == "013211"
+
+        # Now try to auto-derive a code - this should fail if the registry has conflicts
+        # (The exact behavior depends on registry state, but uniqueness should be enforced)
+        entity_auto = Entity(name="TestEntityAuto", schema="catalog")
+
+        # This might succeed or fail depending on available codes, but should not use the explicit code
+        try:
+            code_auto = nc.get_table_code(entity_auto)
+            # If it succeeds, the code should be different from explicit codes
+            assert code_auto != "013211"
+        except ValueError as e:
+            # If it fails, it should be due to uniqueness validation
+            assert "already assigned" in str(e)
+
+    def test_validate_table_code_with_skip_uniqueness(self, nc):
+        """validate_table_code should accept skip_uniqueness parameter"""
+        entity = Entity(name="Test", schema="catalog")
+
+        # Should not raise error with skip_uniqueness=True
+        nc.validate_table_code("013211", entity, skip_uniqueness=True)
+
+        # Should still validate format
+        with pytest.raises(ValueError, match="Invalid table code format"):
+            nc.validate_table_code("INVALID", entity, skip_uniqueness=True)
+
+        # Should still validate domain consistency
+        entity_crm = Entity(name="Contact", schema="crm")
+        with pytest.raises(ValueError, match="doesn't match entity schema"):
+            nc.validate_table_code("013211", entity_crm, skip_uniqueness=True)

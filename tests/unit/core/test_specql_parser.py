@@ -461,3 +461,53 @@ actions:
         assert refresh_step.refresh_scope == RefreshScope.SELF
         assert refresh_step.propagate_entities == ["author"]
         assert refresh_step.refresh_strategy == "immediate"
+
+    def test_parse_top_level_table_code(self):
+        """Parser should support top-level table_code field"""
+        yaml_content = """
+entity: Manufacturer
+schema: catalog
+table_code: "013211"
+description: Test entity
+
+fields:
+  name: text
+"""
+        entity = self.parser.parse(yaml_content)
+
+        assert entity.name == "Manufacturer"
+        assert entity.organization is not None
+        assert entity.organization.table_code == "013211"
+
+    def test_parse_nested_table_code_takes_priority(self):
+        """Nested organization.table_code should take priority over top-level"""
+        yaml_content = """
+entity: Manufacturer
+schema: catalog
+table_code: "013211"
+organization:
+  table_code: "013999"
+  domain_name: catalog
+
+fields:
+  name: text
+"""
+        entity = self.parser.parse(yaml_content)
+
+        # Nested format should win
+        assert entity.organization.table_code == "013999"
+
+    def test_parse_table_code_without_domain_name(self):
+        """Top-level table_code without domain_name should work"""
+        yaml_content = """
+entity: Manufacturer
+schema: catalog
+table_code: "013211"
+
+fields:
+  name: text
+"""
+        entity = self.parser.parse(yaml_content)
+
+        assert entity.organization.table_code == "013211"
+        assert entity.organization.domain_name is None
