@@ -1,0 +1,29 @@
+entity: Payment
+schema: commerce
+description: "Payment for an order"
+
+fields:
+  amount: money!
+  currency: currencyCode = 'USD'
+  status: enum(pending, processing, succeeded, failed)
+  payment_method: enum(card, paypal, bank_transfer)
+
+  # Payment processor details
+  processor_id: text         # Stripe charge ID, etc.
+  last_four: text            # Last 4 digits of card
+
+  order: ref(Order)!
+
+actions:
+  - name: process_payment
+    description: "Process payment for order"
+    steps:
+      - validate: amount > 0
+      - validate: order IS NOT NULL
+      - insert: Payment
+
+  - name: refund_payment
+    description: "Refund a payment"
+    steps:
+      - validate: status = 'succeeded'
+      - update: Payment SET status = 'refunded'

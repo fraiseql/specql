@@ -1,0 +1,35 @@
+entity: Comment
+schema: blog
+description: "Comment on a blog post"
+
+fields:
+  # Comment author (can be anonymous)
+  author_name: text!
+  author_email: email        # Optional for anonymous comments
+  content: markdown!
+
+  # Moderation
+  approved: boolean = false
+
+  # Relationships
+  post: ref(Post)!
+
+actions:
+  - name: create_comment
+    description: "Add a comment to a post"
+    steps:
+      - validate: author_name IS NOT NULL
+      - validate: content IS NOT NULL
+      - validate: post IS NOT NULL
+      - insert: Comment
+
+  - name: approve_comment
+    description: "Approve a comment for publication"
+    steps:
+      - validate: approved = false
+      - update: Comment SET approved = true
+
+  - name: reject_comment
+    description: "Reject a comment"
+    steps:
+      - delete: Comment

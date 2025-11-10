@@ -1,320 +1,339 @@
-# Getting Started - Team Parallelization
+# Getting Started with SpecQL
 
-**Repository is now organized for maximum parallelization!** 🚀
+**From zero to production backend in 5 minutes** ⏱️
 
----
+## Prerequisites
 
-## 🎯 Repository Organization Complete
-
-The codebase has been restructured to enable **5 teams to work independently in parallel**.
-
-### ✅ What's Been Done
-
-1. **Modular Structure Created**
-   - `src/core/` - Team A (SpecQL parser)
-   - `src/generators/` - Team B (SQL generators)
-   - `src/numbering/` - Team C (Hierarchical organization)
-   - `src/integration/` - Team D (FraiseQL + GraphQL)
-   - `src/cli/` - Team E (Developer tools)
-
-2. **Testing Infrastructure**
-   - Unit tests organized by team (`tests/unit/{team}/`)
-   - Integration tests for end-to-end validation
-   - Shared fixtures and mocks (`tests/conftest.py`)
-   - Team-specific test commands (`make teamA-test`, etc.)
-
-3. **Development Tooling**
-   - `Makefile` - Common development commands
-   - `pyproject.toml` - Python dependencies and configuration
-   - `.gitignore` - Proper Python/generated file exclusions
-   - `CONTRIBUTING.md` - TDD workflow and guidelines
-
-4. **Documentation Structure**
-   - `docs/architecture/` - Implementation plans
-   - `docs/analysis/` - Analysis documents
-   - `docs/guides/` - User guides (TODO)
-   - Team READMEs in each module
-
-5. **Foundation Code**
-   - `src/core/ast_models.py` - Complete AST data classes ✅
-   - Entity, FieldDefinition, Action, ActionStep, Agent models
-   - Foundation for all other components
-
----
-
-## 🚀 Quick Start for Each Team
-
-### Team A: Core Parser (`src/core/`)
-
-**Mission**: Parse SpecQL YAML → Entity AST
+- PostgreSQL 14+ installed
+- Python 3.11+
+- uv package manager
 
 ```bash
-# Start here
-cd src/core/
-cat README.md
-
-# Run tests
-make teamA-test
-
-# Start coding (TDD)
-vim tests/unit/core/test_specql_parser.py  # RED: Write failing test
-vim src/core/specql_parser.py              # GREEN: Make it pass
-make teamA-test                            # REFACTOR: Verify still passes
-make lint && make typecheck                # QA: Quality checks
+# Quick check
+postgres --version  # Should be 14+
+python --version    # Should be 3.11+
+uv --version        # Should be 0.1.0+
 ```
 
-**First Task**: Implement `SpecQLParser.parse()` method
-
----
-
-### Team B: SQL Generators (`src/generators/`)
-
-**Mission**: Generate PostgreSQL DDL + functions from Entity AST
+## Step 1: Installation (30 seconds)
 
 ```bash
-# Start here
-cd src/generators/
-cat README.md
-
-# Use mock data (parallel development)
-vim tests/fixtures/mock_entities.py  # Create mock Entity objects
-
-# Run tests
-make teamB-test
-
-# Start coding (TDD)
-vim tests/unit/generators/test_table_generator.py  # RED
-vim src/generators/table_generator.py              # GREEN
-make teamB-test                                    # REFACTOR + QA
-```
-
-**First Task**: Implement `generate_table()` for Trinity pattern tables
-
----
-
-### Team C: Numbering System (`src/numbering/`)
-
-**Mission**: Hierarchical organization + manifest generation
-
-```bash
-# Start here
-cd src/numbering/
-# cat README.md (TODO: create README)
-
-# Run tests
-make teamC-test
-
-# Start coding
-vim tests/unit/numbering/test_numbering_parser.py
-vim src/numbering/numbering_parser.py
-```
-
-**First Task**: Implement `NumberingParser.parse_table_code()`
-
----
-
-### Team D: Integration Layer (`src/integration/`)
-
-**Mission**: FraiseQL + GraphQL + TypeScript generation
-
-```bash
-# Start here
-cd src/integration/
-# cat README.md (TODO: create README)
-
-# Run tests
-make teamD-test
-
-# Start coding
-vim tests/unit/integration/test_fraiseql_adapter.py
-vim src/integration/fraiseql_adapter.py
-```
-
-**First Task**: Implement `generate_fraiseql_comments()`
-
----
-
-### Team E: CLI & Tooling (`src/cli/`)
-
-**Mission**: Developer experience tools
-
-```bash
-# Start here
-cd src/cli/
-# cat README.md (TODO: create README)
-
-# Run tests
-make teamE-test
-
-# Start coding
-vim tests/unit/cli/test_confiture_extensions.py
-vim src/cli/confiture_extensions.py
-```
-
-**First Task**: Create `specql generate` CLI command with Confiture integration
-
----
-
-## 📊 Current Status
-
-### Completed ✅
-- [x] Repository structure
-- [x] Development tooling (Makefile, pyproject.toml)
-- [x] Testing infrastructure
-- [x] AST models (`src/core/ast_models.py`)
-- [x] Documentation framework
-- [x] Team READMEs (partial)
-
-### Next Steps (Teams Choose)
-
-**Week 1 Goals** (All teams can start immediately):
-
-- [ ] **Team A**: `SpecQLParser.parse()` for simple entities
-- [ ] **Team B**: `generate_table()` for Trinity pattern
-- [ ] **Team C**: `NumberingParser.parse_table_code()`
-- [ ] **Team D**: `fraiseql_adapter.generate_comments()`
-- [ ] **Team E**: `cli.generate` basic command
-
-**Integration Point**: End of Week 2 - All components integrate
-
----
-
-## 🔧 Development Commands
-
-```bash
-# Setup (once)
+# Clone and setup
+git clone https://github.com/your-org/specql.git
+cd specql
 uv venv
-source .venv/bin/activate
-make install
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
+uv pip install -e .
 
-# Daily workflow
-make test              # All tests
-make teamA-test        # Team A tests only
-make lint              # Code quality
-make typecheck         # Type checking
-make coverage          # Coverage report
-
-# Before commit
-make lint && make typecheck && make test
-git add .
-git commit -m "feat(core): implement SpecQL parser"
+# Verify
+specql --version
 ```
 
----
+## Step 2: Create Your First Entity (1 minute)
 
-## 📚 Key Documentation
+Let's build a simple Contact management system.
 
-1. **[REPOSITORY_STRUCTURE.md](REPOSITORY_STRUCTURE.md)** - Full architecture
-2. **[CONTRIBUTING.md](CONTRIBUTING.md)** - Development workflow (TDD)
-3. **[IMPLEMENTATION_PLAN_SPECQL.md](docs/architecture/IMPLEMENTATION_PLAN_SPECQL.md)** - 10-week roadmap
-4. **[README.md](README.md)** - Project overview
-
----
-
-## 🤝 Team Coordination
-
-### Interface Contracts
-
-Teams can work independently using **well-defined interfaces**:
-
-```python
-# Team A Output → Team B Input
-from src.core.ast_models import Entity
-
-def generate_table(entity: Entity) -> str:
-    """Team B consumes Team A's output"""
-    pass
-```
-
-### Mock Data for Parallel Development
-
-```python
-# tests/fixtures/mock_entities.py
-def mock_contact_entity() -> Entity:
-    """Teams B/C/D/E can use this while Team A develops parser"""
-    return Entity(
-        name='Contact',
-        schema='crm',
-        fields={'email': FieldDefinition(name='email', type='text')}
-    )
-```
-
-### Communication Channels
-
-- **Daily Standups**: Post in team channels (async)
-- **Blockers**: Mention in `#integration` channel
-- **Questions**: See `CONTRIBUTING.md` for help resources
-
----
-
-## 🎯 Success Metrics
-
-### Week 1 Targets
-- [ ] Each team completes 1 core component
-- [ ] Unit tests pass (>80% coverage per team)
-- [ ] Mock interfaces validated
-
-### Week 2 Targets
-- [ ] Integration between teams begins
-- [ ] End-to-end test (YAML → SQL) passes
-- [ ] Documentation updated
-
----
-
-## 🚨 Important Notes
-
-### TDD is Mandatory
-**RED → GREEN → REFACTOR → QA** cycle for every feature.
-
-See `CONTRIBUTING.md` for detailed workflow.
-
-### No Direct Dependencies
-Teams should **not directly import** from other teams during Week 1.
-
-Use **mock data** instead:
-```python
-# ❌ DON'T (Week 1)
-from src.core.specql_parser import SpecQLParser
-
-# ✅ DO (Week 1)
-from tests.fixtures.mock_entities import mock_contact_entity
-```
-
-### Git Strategy
 ```bash
-# Branch naming
-git checkout -b teamA/specql-parser
-git checkout -b teamB/table-generator
+# Create entity file
+mkdir -p entities
+cat > entities/contact.yaml <<'EOF'
+entity: Contact
+schema: crm
+description: "Customer contact information"
 
-# PR when ready
-gh pr create --title "SpecQL Parser Implementation"
+fields:
+  # Rich types with automatic validation
+  email: email!              # NOT NULL + email validation
+  phone: phone               # E.164 phone format
+
+  # Basic types
+  first_name: text!
+  last_name: text!
+  company_name: text
+
+  # Enum with automatic CHECK constraint
+  status: enum(lead, qualified, customer)
+
+  # Rich type with automatic range validation
+  score: percentage          # 0-100 with 2 decimal places
+
+actions:
+  - name: create_contact
+    description: "Create a new contact"
+    steps:
+      - validate: email IS NOT NULL
+      - insert: Contact
+
+  - name: qualify_lead
+    description: "Convert lead to qualified"
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+EOF
+```
+
+**What you just wrote**: 25 lines of business logic
+**What you'll get**: 2000+ lines of production code
+
+## Step 3: Generate Everything (30 seconds)
+
+```bash
+# Generate all code
+specql generate entities/contact.yaml
+
+# See what was generated
+ls -la db/schema/
+# 00_foundation/           - App foundation types (mutation_result, etc.)
+# 10_tables/contact.sql     - Table with Trinity pattern
+# 20_helpers/contact_helpers.sql - Helper functions (contact_pk, contact_id, etc.)
+# 30_functions/create_contact.sql  - PL/pgSQL function
+# 30_functions/qualify_lead.sql    - PL/pgSQL function
+```
+
+## Step 4: Deploy to Database (1 minute)
+
+```bash
+# Setup database
+createdb specql_demo
+
+# Run migrations with Confiture
+cd db/schema
+confiture migrate up
+
+# Verify
+psql specql_demo -c "\dt crm.*"
+# You should see: crm.tb_contact
+```
+
+## Step 5: Test It Works (1 minute)
+
+```bash
+# Create a contact
+psql specql_demo <<EOF
+SELECT crm.create_contact(
+  email := 'john@example.com',
+  first_name := 'John',
+  last_name := 'Doe',
+  status := 'lead'
+);
+EOF
+
+# Qualify the lead
+psql specql_demo <<EOF
+SELECT crm.qualify_lead(
+  contact_id := (SELECT id FROM crm.tb_contact WHERE email = 'john@example.com')
+);
+EOF
+
+# Check results
+psql specql_demo -c "SELECT * FROM crm.tb_contact;"
+```
+
+## What You Got (Automatically)
+
+### 1. Production Database Schema
+```sql
+-- Trinity Pattern table
+CREATE TABLE crm.tb_contact (
+  -- Trinity Pattern (best practice)
+  pk_contact INTEGER PRIMARY KEY,           -- Performance
+  id UUID DEFAULT gen_random_uuid(),        -- Stable API
+  identifier TEXT NOT NULL,                 -- Human-readable
+
+  -- Your fields with validation
+  email TEXT NOT NULL CHECK (email ~ '^[a-zA-Z0-9._%+-]+@...'),
+  phone TEXT CHECK (phone ~ '^\+[1-9]\d{1,14}$'),
+  first_name TEXT NOT NULL,
+  last_name TEXT NOT NULL,
+  company_name TEXT,
+  status TEXT CHECK (status IN ('lead', 'qualified', 'customer')),
+  score NUMERIC(5,2) CHECK (score >= 0 AND score <= 100),
+
+  -- Automatic audit trails
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  created_by UUID,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  updated_by UUID,
+  deleted_at TIMESTAMPTZ,
+  deleted_by UUID
+);
+```
+
+### 2. Helper Functions
+```sql
+-- Get INTEGER primary key from UUID
+CREATE FUNCTION crm.contact_pk(contact_id UUID) RETURNS INTEGER;
+
+-- Get UUID from INTEGER primary key
+CREATE FUNCTION crm.contact_id(pk INTEGER) RETURNS UUID;
+
+-- Get identifier from UUID
+CREATE FUNCTION crm.contact_identifier(contact_id UUID) RETURNS TEXT;
+```
+
+### 3. Business Logic Functions
+```sql
+-- FraiseQL-compliant mutation
+CREATE FUNCTION crm.create_contact(
+  email TEXT,
+  first_name TEXT,
+  last_name TEXT,
+  ...
+) RETURNS app.mutation_result;
+
+-- With error handling, validation, audit trails
+CREATE FUNCTION crm.qualify_lead(
+  contact_id UUID
+) RETURNS app.mutation_result;
+```
+
+### 4. Indexes
+```sql
+-- Unique constraints
+CREATE UNIQUE INDEX idx_tb_contact_id ON crm.tb_contact(id);
+CREATE UNIQUE INDEX idx_tb_contact_email ON crm.tb_contact(email);
+
+-- Performance indexes
+CREATE INDEX idx_tb_contact_status ON crm.tb_contact(status);
+```
+
+### 5. GraphQL Ready
+All functions automatically discoverable by FraiseQL:
+```graphql
+mutation QualifyLead($contactId: UUID!) {
+  qualifyLead(contactId: $contactId) {
+    success
+    message
+    object {
+      id
+      email
+      firstName
+      status
+    }
+  }
+}
+```
+
+## Next Steps
+
+### Add More Features
+
+```yaml
+# Add a Company entity
+entity: Company
+schema: crm
+fields:
+  name: text!
+  domain: domainName  # Rich type with validation
+  website: url
+
+# Reference it from Contact
+entity: Contact
+fields:
+  company: ref(Company)  # Automatic foreign key!
+```
+
+### Use stdlib Entities
+
+```bash
+# Import production-ready entities
+cp stdlib/crm/organization.yaml entities/
+cp stdlib/crm/contact.yaml entities/
+specql generate entities/*.yaml
+```
+
+### Explore Rich Types
+
+Try these validated types:
+- `email`, `phone`, `url` - Automatic regex validation
+- `money`, `percentage` - Automatic range validation
+- `coordinates` - PostgreSQL POINT with spatial indexes
+- `date`, `datetime`, `time` - Temporal types
+- `slug`, `markdown`, `html` - Content types
+
+### Add Complex Actions
+
+```yaml
+actions:
+  - name: create_opportunity
+    steps:
+      - validate: company IS NOT NULL
+      - validate: email MATCHES email_pattern
+      - insert: Contact
+      - call: send_welcome_email(contact.email)
+      - notify: sales_team "New opportunity from {company}"
+```
+
+## Common Patterns
+
+### Multi-Tenancy
+```yaml
+entity: Contact
+schema: tenant  # Automatic tenant_id + RLS policies
+```
+
+### Hierarchical Data
+```yaml
+entity: Organization
+fields:
+  parent: ref(Organization)  # Self-reference = hierarchy
+  identifier: hierarchical   # Automatic path calculation
+```
+
+### Soft Deletes
+```yaml
+# Automatic! Every entity gets:
+# - deleted_at TIMESTAMPTZ
+# - deleted_by UUID
+# Actions exclude deleted records by default
+```
+
+## Troubleshooting
+
+### "Permission denied for schema"
+```bash
+# Grant access
+psql specql_demo -c "GRANT ALL ON SCHEMA crm TO current_user;"
+```
+
+### "Function does not exist"
+```bash
+# Re-run migration
+confiture migrate down
+confiture migrate up
+```
+
+### "CHECK constraint violation"
+```bash
+# Check your data matches the rich type format
+# Example: email must be valid, phone must be E.164
+```
+
+## Learning Resources
+
+- **Examples**: See `entities/examples/` directory
+- **stdlib**: Browse 30 production entities in `stdlib/`
+- **Guides**: Read `docs/guides/` for deep dives
+- **Tests**: Check `tests/integration/` for usage patterns
+
+## Quick Reference
+
+```bash
+# Generate schema
+specql generate entities/*.yaml
+
+# Validate YAML
+specql validate entities/*.yaml
+
+# Show schema diff
+specql diff entities/contact.yaml
+
+# Generate with frontend code
+specql generate entities/*.yaml --with-impacts
 ```
 
 ---
 
-## 🎓 Resources
+**You just built a production backend in 5 minutes!** 🎉
 
-- [Python Type Hints](https://docs.python.org/3/library/typing.html)
-- [Pytest Documentation](https://docs.pytest.org/)
-- [PostgreSQL PL/pgSQL](https://www.postgresql.org/docs/current/plpgsql.html)
-- [Jinja2 Templates](https://jinja.palletsprojects.com/)
-
----
-
-## ✅ Pre-Flight Checklist
-
-Before starting development:
-
-- [ ] Read `REPOSITORY_STRUCTURE.md`
-- [ ] Read `CONTRIBUTING.md`
-- [ ] Choose your team (A/B/C/D/E)
-- [ ] Read your team's `README.md`
-- [ ] Setup development environment (`make install`)
-- [ ] Run tests (`make test`)
-- [ ] Create feature branch (`git checkout -b teamX/feature`)
-
----
-
-**All systems ready for parallel development!** 🚀
-
-Pick your team and start coding!
+**Next**: Read the [User Guide](docs/guides/) or explore [stdlib](stdlib/README.md)

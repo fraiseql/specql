@@ -1,0 +1,27 @@
+entity: Project
+schema: tenant
+description: "Tenant project"
+
+fields:
+  name: text!
+  description: text
+  status: enum(active, completed, archived) = 'active'
+  owner: ref(User)!
+
+actions:
+  - name: create_project
+    description: "Create a new project"
+    steps:
+      - validate: name IS NOT NULL
+      - validate: owner IS NOT NULL
+      - insert: Project
+
+  - name: update_project
+    description: "Update project information"
+    steps:
+      - update: Project
+
+  - name: archive_project
+    description: "Archive a completed project"
+    steps:
+      - update: Project SET status = 'archived'

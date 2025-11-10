@@ -1,0 +1,22 @@
+entity: Organization
+schema: crm
+description: "CRM organization/company"
+
+fields:
+  name: text!
+  domain: domainName
+  website: url
+  industry: text
+  employee_count: integer
+
+actions:
+  - name: create_organization
+    description: "Create a new organization"
+    steps:
+      - validate: name IS NOT NULL
+      - insert: Organization
+
+  - name: update_organization
+    description: "Update organization information"
+    steps:
+      - update: Organization

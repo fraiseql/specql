@@ -1,0 +1,37 @@
+entity: Author
+schema: blog
+description: "Blog post author with profile information"
+
+fields:
+  # Contact information
+  email: email!              # Rich type with validation
+  first_name: text!
+  last_name: text!
+
+  # Profile
+  bio: markdown              # Rich markdown content
+  website: url               # URL validation
+  avatar_url: image          # Image URL
+
+  # Social media (optional)
+  twitter_handle: text
+  linkedin_profile: url
+
+actions:
+  - name: create_author
+    description: "Create a new blog author"
+    steps:
+      - validate: email IS NOT NULL
+      - validate: first_name IS NOT NULL
+      - validate: last_name IS NOT NULL
+      - insert: Author
+
+  - name: update_author
+    description: "Update author profile"
+    steps:
+      - update: Author
+
+  - name: get_author
+    description: "Get author by ID"
+    steps:
+      - select: Author

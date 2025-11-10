@@ -1,0 +1,23 @@
+entity: Contact
+schema: crm
+description: "CRM contact"
+
+fields:
+  email: email!
+  first_name: text!
+  last_name: text!
+  phone: phone
+  job_title: text
+  organization: ref(Organization)
+
+actions:
+  - name: create_contact
+    description: "Create a new contact"
+    steps:
+      - validate: email IS NOT NULL
+      - insert: Contact
+
+  - name: update_contact
+    description: "Update contact information"
+    steps:
+      - update: Contact

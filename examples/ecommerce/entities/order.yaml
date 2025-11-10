@@ -1,0 +1,43 @@
+entity: Order
+schema: commerce
+description: "Customer order"
+
+fields:
+  order_number: text!        # Human-readable order number
+  status: enum(pending, paid, shipped, delivered, cancelled)
+  total_amount: money!
+
+  customer: ref(Customer)!
+
+  # Financials
+  shipping_amount: money
+  tax_amount: money
+
+  # Timestamps
+  ordered_at: datetime!
+  shipped_at: datetime
+  delivered_at: datetime
+
+actions:
+  - name: create_order
+    description: "Create a new order"
+    steps:
+      - validate: customer IS NOT NULL
+      - insert: Order
+
+  - name: update_status
+    description: "Update order status"
+    steps:
+      - update: Order SET status = ?
+
+  - name: ship_order
+    description: "Mark order as shipped"
+    steps:
+      - validate: status = 'paid'
+      - update: Order SET status = 'shipped', shipped_at = now()
+
+  - name: cancel_order
+    description: "Cancel an order"
+    steps:
+      - validate: status IN ('pending', 'paid')
+      - update: Order SET status = 'cancelled'

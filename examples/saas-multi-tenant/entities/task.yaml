@@ -1,0 +1,34 @@
+entity: Task
+schema: tenant
+description: "Project task"
+
+fields:
+  title: text!
+  description: markdown
+  status: enum(todo, in_progress, done) = 'todo'
+  assignee: ref(User)
+  project: ref(Project)!
+  due_date: date
+
+actions:
+  - name: create_task
+    description: "Create a new task"
+    steps:
+      - validate: title IS NOT NULL
+      - validate: project IS NOT NULL
+      - insert: Task
+
+  - name: update_task
+    description: "Update task information"
+    steps:
+      - update: Task
+
+  - name: assign_task
+    description: "Assign task to a user"
+    steps:
+      - update: Task SET assignee = ?
+
+  - name: complete_task
+    description: "Mark task as completed"
+    steps:
+      - update: Task SET status = 'done'

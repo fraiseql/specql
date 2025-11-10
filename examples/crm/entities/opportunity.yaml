@@ -1,0 +1,30 @@
+entity: Opportunity
+schema: crm
+description: "Sales opportunity/lead"
+
+fields:
+  title: text!
+  amount: money
+  stage: enum(prospect, qualified, proposal, negotiation, closed_won, closed_lost)
+  probability: percentage
+  expected_close_date: date
+  contact: ref(Contact)
+  organization: ref(Organization)
+
+actions:
+  - name: create_opportunity
+    description: "Create a new sales opportunity"
+    steps:
+      - validate: title IS NOT NULL
+      - insert: Opportunity
+
+  - name: update_stage
+    description: "Update opportunity stage"
+    steps:
+      - update: Opportunity SET stage = ?
+
+  - name: close_opportunity
+    description: "Close opportunity as won or lost"
+    steps:
+      - validate: stage IN ('negotiation', 'proposal')
+      - update: Opportunity SET stage = ?

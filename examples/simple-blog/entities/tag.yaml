@@ -1,0 +1,22 @@
+entity: Tag
+schema: blog
+description: "Content tag for categorizing blog posts"
+
+fields:
+  name: text!
+  slug: slug!                # URL-friendly identifier
+  description: text          # Optional description
+  color: text                # Hex color code (optional)
+
+actions:
+  - name: create_tag
+    description: "Create a new content tag"
+    steps:
+      - validate: name IS NOT NULL
+      - validate: slug IS NOT NULL
+      - insert: Tag
+
+  - name: update_tag
+    description: "Update tag information"
+    steps:
+      - update: Tag
