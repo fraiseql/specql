@@ -1,5 +1,5 @@
 version: 1.0.0
-last_updated: '2025-11-09T22:04:00.804069'
+last_updated: '2025-11-10T09:17:31.666000'
 schema_layers:
   '00': common
   '01': write_side
@@ -85,12 +85,20 @@ domains:
       '02':
         name: manufacturer
         description: Manufacturer-related entities (brand, model, range)
-        next_entity_sequence: 2
+        next_entity_sequence: 43
         entities:
           Manufacturer:
-            table_code: '013211'
-            entity_code: MAN
-            assigned_at: '2025-11-09T00:00:00Z'
+            table_code: 013029
+            entity_code: MNF
+            assigned_at: '2025-11-10T09:17:31.604441'
+          TestEntity:
+            table_code: '013011'
+            entity_code: TST
+            assigned_at: '2025-11-10T08:46:42.910843'
+          ManufacturerRange:
+            table_code: '013021'
+            entity_code: MNF
+            assigned_at: '2025-11-10T09:17:31.665985'
       '03':
         name: product
         description: Product entities, SKUs & variants

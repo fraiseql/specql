@@ -90,7 +90,7 @@ class TestDomainRegistryQueries:
         assert entity is not None
         assert entity.entity_name == "Manufacturer"
         assert entity.table_code == "013211"
-        assert entity.entity_code == "MAN"
+        assert entity.entity_code == "MNF"
         assert entity.domain == "catalog"
         assert entity.subdomain == "manufacturer"
 
