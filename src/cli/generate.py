@@ -16,7 +16,26 @@ from src.testing.pytest.pytest_generator import PytestGenerator
 
 
 def convert_entity_definition_to_entity(entity_def: EntityDefinition) -> Entity:
-    """Convert EntityDefinition to Entity for orchestrator compatibility"""
+    """Convert EntityDefinition to Entity for backward compatibility
+
+    This function bridges the gap between the parsed EntityDefinition
+    (from SpecQL YAML) and the Entity object used by code generators.
+
+    Key conversions:
+    - ActionDefinition → Action (with impact placeholder)
+    - organization.table_code → entity.table_code (for numbering system)
+
+    Args:
+        entity_def: Parsed entity definition from SpecQL YAML
+
+    Returns:
+        Entity object ready for code generation
+
+    Note:
+        If entity_def.organization.table_code is present, it will be
+        extracted and set as entity.table_code for use in SQL comments,
+        migration naming, and the table numbering registry.
+    """
     # Convert ActionDefinition to Action
     actions = []
     for action_def in entity_def.actions:
@@ -25,10 +44,16 @@ def convert_entity_definition_to_entity(entity_def: EntityDefinition) -> Entity:
         )  # TODO: Convert impact dict to ActionImpact
         actions.append(action)
 
+    # Extract table_code from organization if present
+    table_code = None
+    if entity_def.organization and entity_def.organization.table_code:
+        table_code = entity_def.organization.table_code
+
     # Create Entity
     entity = Entity(
         name=entity_def.name,
         schema=entity_def.schema,
+        table_code=table_code,
         description=entity_def.description,
         fields=entity_def.fields,
         actions=actions,
