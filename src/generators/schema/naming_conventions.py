@@ -357,10 +357,11 @@ class NamingConventions:
         Raises:
             ValueError: If table code is invalid or cannot be derived
         """
-        # Priority 1: Manual specification
+        # Priority 1: Manual specification (TRUSTED - no uniqueness validation)
         if entity.organization and entity.organization.table_code:
             table_code = entity.organization.table_code
-            self.validate_table_code(table_code, entity)
+            # Validate format & domain consistency only (not uniqueness)
+            self.validate_table_code(table_code, entity, skip_uniqueness=True)
             return table_code
 
         # Priority 2: Registry lookup
@@ -476,7 +477,7 @@ class NamingConventions:
             f"Cannot infer subdomain for entity '{entity.name}' in domain '{domain_info.domain_name}'"
         )
 
-    def validate_table_code(self, table_code: str, entity: Entity):
+    def validate_table_code(self, table_code: str, entity: Entity, skip_uniqueness: bool = False):
         """
         Validate table code format and consistency
 
@@ -484,11 +485,12 @@ class NamingConventions:
         - Format: exactly 6 hexadecimal characters (case-insensitive)
         - Schema layer exists
         - Domain code exists and matches entity.schema
-        - Code is unique (not already assigned)
+        - Code is unique (not already assigned) - unless skip_uniqueness=True
 
         Args:
             table_code: 6-character hexadecimal code to validate
             entity: Entity being validated
+            skip_uniqueness: If True, skip uniqueness validation (for explicit codes)
 
         Raises:
             ValueError: If validation fails
@@ -532,14 +534,15 @@ class NamingConventions:
                 f"entity schema '{entity.schema}'"
             )
 
-        # Uniqueness check (skip if entity already has this code in registry)
-        registry_entry = self.registry.get_entity(entity.name)
-        if registry_entry and registry_entry.table_code == table_code:
-            # Entity already registered with this code - OK
-            return
+        # Uniqueness check (SKIP for explicit codes)
+        if not skip_uniqueness:
+            registry_entry = self.registry.get_entity(entity.name)
+            if registry_entry and registry_entry.table_code == table_code:
+                # Entity already registered with this code - OK
+                return
 
-        if not self.registry.is_code_available(table_code):
-            raise ValueError(f"Table code {table_code} already assigned to another entity")
+            if not self.registry.is_code_available(table_code):
+                raise ValueError(f"Table code {table_code} already assigned to another entity")
 
     def derive_entity_code(self, entity_name: str) -> str:
         """
