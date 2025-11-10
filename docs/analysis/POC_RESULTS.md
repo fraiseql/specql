@@ -27,7 +27,7 @@ printoptim_backend_poc/
 ├── templates/
 │   ├── table.sql.j2               # 123 lines - Reusable table template
 │   └── trinity_helpers.sql.j2     # 148 lines - Reusable helpers template
-├── generate_sql.py                # 123 lines - Generator engine
+├── scripts/dev/generate_sql.py                # 123 lines - Generator engine
 └── generated/
     ├── tables/
     │   └── tb_manufacturer.sql    # 76 lines - Generated table
@@ -143,7 +143,7 @@ entity:
 
 **Templated Migration**:
 - Update template once
-- Run `python generate_sql.py`
+- Run `python scripts/dev/generate_sql.py`
 - **Total**: ~30 minutes
 
 **100x faster migrations**
@@ -236,8 +236,8 @@ entity:
 1. **entities/manufacturer.yaml** - YAML entity definition
 2. **templates/table.sql.j2** - Jinja2 table template
 3. **templates/trinity_helpers.sql.j2** - Jinja2 helpers template
-4. **generate_sql.py** - Python generation engine
-5. **compare_with_original.py** - Validation script
+4. **scripts/dev/generate_sql.py** - Python generation engine
+5. **scripts/dev/compare_with_original.py** - Validation script
 
 ### Generated Outputs:
 

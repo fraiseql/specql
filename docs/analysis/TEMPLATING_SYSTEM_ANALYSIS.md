@@ -30,8 +30,8 @@ printoptim_backend_poc/
 │   ├── table.sql.j2                   # Table generation (123 lines)
 │   └── trinity_helpers.sql.j2         # Helper functions (148 lines)
 │
-├── generate_sql.py                    # Generation engine (Python script)
-├── compare_with_original.py           # Validation script
+├── scripts/dev/generate_sql.py                    # Generation engine (Python script)
+├── scripts/dev/compare_with_original.py           # Validation script
 │
 └── generated/                         # Generated output (target)
     ├── tables/
@@ -49,7 +49,7 @@ printoptim_backend_poc/
 - Version: Latest (via pip install jinja2)
 - Python 3.8+ required
 
-### Engine Configuration (from generate_sql.py)
+### Engine Configuration (from scripts/dev/generate_sql.py)
 
 ```python
 from jinja2 import Environment, FileSystemLoader
@@ -334,10 +334,10 @@ Each entity generates 4 helpers (customizable):
 
 ---
 
-## Generation Process (generate_sql.py)
+## Generation Process (scripts/dev/generate_sql.py)
 
 ### Script Overview
-**Location**: `/home/lionel/code/printoptim_backend_poc/generate_sql.py`  
+**Location**: `/home/lionel/code/printoptim_backend_poc/scripts/dev/generate_sql.py`  
 **Lines**: 140  
 **Class**: `SQLGenerator`
 
@@ -401,7 +401,7 @@ class SQLGenerator:
 
 ### Execution
 ```bash
-python3 generate_sql.py
+python3 scripts/dev/generate_sql.py
 ```
 
 ### Output Structure
@@ -585,7 +585,7 @@ entity:
 
 ### Step 2: Run Generator
 ```bash
-python3 generate_sql.py
+python3 scripts/dev/generate_sql.py
 ```
 
 ### Step 3: Generated SQL Appears
@@ -700,7 +700,7 @@ entity:
 -- Numbering Scheme: {{ entity.numbering.hierarchy }}.{{ entity.numbering.table_type }}
 ```
 
-#### In generator (generate_sql.py):
+#### In generator (scripts/dev/generate_sql.py):
 ```python
 # Option: Use numbering for file naming
 if entity.get('table_code'):
@@ -766,7 +766,7 @@ The best place to integrate numbering system would be:
 1. **YAML Entity Definition** (entities/manufacturer.yaml)
    - Add/enhance `table_code` or `numbering` section
 
-2. **Generator Script** (generate_sql.py)
+2. **Generator Script** (scripts/dev/generate_sql.py)
    - Add logic to parse numbering and use in file naming
    - Add validation for numbering consistency
 
@@ -783,8 +783,8 @@ The best place to integrate numbering system would be:
 | `entities/manufacturer.yaml` | Entity definition | 193 | Complete |
 | `templates/table.sql.j2` | Table template | 123 | Complete |
 | `templates/trinity_helpers.sql.j2` | Helper functions template | 148 | Complete |
-| `generate_sql.py` | Generation engine | 140 | Complete |
-| `compare_with_original.py` | Validation script | 142 | Complete |
+| `scripts/dev/generate_sql.py` | Generation engine | 140 | Complete |
+| `scripts/dev/compare_with_original.py` | Validation script | 142 | Complete |
 | `generated/tables/tb_manufacturer.sql` | Generated table | 76 | Generated |
 | `generated/functions/manufacturer_trinity_helpers.sql` | Generated helpers | 129 | Generated |
 

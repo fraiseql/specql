@@ -13,7 +13,7 @@ This guide helps you diagnose and fix common issues with actions in the PrintOpt
 **Solution**:
 ```bash
 # Regenerate schema
-uv run python generate_sql.py entities/examples/contact.yaml
+uv run python scripts/dev/generate_sql.py entities/examples/contact.yaml
 
 # Apply migration
 psql -d your_database -f generated/contact.sql
