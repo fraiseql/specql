@@ -92,5 +92,122 @@ def validate(entity_files, check_impacts, verbose):
     return result.returncode
 
 
+@specql.command("check-codes")
+@click.argument("entity_files", nargs=-1, required=True)
+@click.option(
+    "--format", type=click.Choice(["text", "json", "csv"]), default="text", help="Output format"
+)
+@click.option("--export", type=click.Path(), help="Export results to file")
+@click.pass_context
+def check_codes(ctx, entity_files, format, export):
+    """Check uniqueness of table codes across entity files.
+
+    ENTITY_FILES can be file paths or glob patterns (e.g., entities/*.yaml, entities/**/*.yaml)
+
+    Examples:
+        specql check-codes entities/*.yaml
+        specql check-codes entities/**/*.yaml --format json
+        specql check-codes entities/ --export results.json
+    """
+    from src.cli.commands.check_codes import check_table_code_uniqueness
+    from pathlib import Path
+    import glob
+    import json
+    import csv
+
+    # Expand glob patterns and convert to Path objects
+    file_paths = []
+    for pattern in entity_files:
+        if "*" in pattern or "?" in pattern:
+            # It's a glob pattern
+            matches = glob.glob(pattern, recursive=True)
+            file_paths.extend(Path(f) for f in matches if f.endswith(".yaml") or f.endswith(".yml"))
+        else:
+            # It's a direct path
+            path = Path(pattern)
+            if path.is_file() and (path.suffix in [".yaml", ".yml"]):
+                file_paths.append(path)
+            elif path.is_dir():
+                # If it's a directory, find all YAML files in it
+                file_paths.extend(path.glob("**/*.yaml"))
+                file_paths.extend(path.glob("**/*.yml"))
+
+    # Filter to only existing files
+    file_paths = [f for f in file_paths if f.exists()]
+
+    if not file_paths:
+        click.secho("❌ No YAML files found", fg="red")
+        ctx.exit(1)
+
+    duplicates = check_table_code_uniqueness(file_paths)
+
+    # Calculate total unique codes found
+    all_codes = set()
+    for entity_file in file_paths:
+        try:
+            from src.core.specql_parser import SpecQLParser
+
+            parser = SpecQLParser()
+            content = entity_file.read_text()
+            entity_def = parser.parse(content)
+            if entity_def.organization and entity_def.organization.table_code:
+                all_codes.add(entity_def.organization.table_code)
+        except Exception:
+            pass  # Skip files that can't be parsed
+
+    # Prepare results
+    results = {
+        "total_files": len(file_paths),
+        "total_codes": len(all_codes),
+        "duplicates": duplicates,
+        "success": len(duplicates) == 0,
+    }
+
+    # Display results
+    if format == "json":
+        click.echo(json.dumps(results, indent=2))
+    elif format == "csv":
+        writer = csv.writer(click.get_text_stream("stdout"))
+        writer.writerow(["code", "entity"])
+        for code, entities in duplicates.items():
+            for entity in entities:
+                writer.writerow([code, entity])
+    else:  # text format
+        if duplicates:
+            click.secho("❌ Table code uniqueness check FAILED", fg="red", bold=True)
+            click.secho("\n🔴 Duplicate Codes:", fg="red", bold=True)
+
+            for code, entities in duplicates.items():
+                click.secho(f"\n  Code: {code}", fg="red")
+                for entity in entities:
+                    click.echo(f"    - {entity}")
+
+            click.secho(f"\n❌ Fix duplicates before running 'specql generate'", fg="red")
+            ctx.exit(1)
+        else:
+            click.secho("✅ Table code uniqueness check PASSED", fg="green", bold=True)
+            click.secho(f"\n📊 Summary:", fg="blue")
+            click.echo(f"   Total files scanned: {results['total_files']}")
+            click.echo(f"   Unique codes found: {results['total_codes']}")
+            click.echo(f"   Duplicate codes: {len(duplicates)}")
+            click.secho("\nAll table codes are unique! 🎉", fg="green")
+            ctx.exit(0)
+
+    # Export if requested (only for non-text formats)
+    if export:
+        export_path = Path(export)
+        if format == "json":
+            with open(export_path, "w") as f:
+                json.dump(results, f, indent=2)
+        elif format == "csv":
+            with open(export_path, "w", newline="") as f:
+                writer = csv.writer(f)
+                writer.writerow(["code", "entity"])
+                for code, entities in duplicates.items():
+                    for entity in entities:
+                        writer.writerow([code, entity])
+        click.echo(f"📄 Results exported to: {export_path}")
+
+
 if __name__ == "__main__":
     specql()
