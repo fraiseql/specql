@@ -3,7 +3,7 @@ name = "specql-generator"
 version = "0.1.0"  #   Managed by VERSION file
 description = "SpecQL schema generator - Business-focused YAML to PostgreSQL + GraphQL"
 authors = [
-    {name = "Lionel Hamayon", email = "lionel.hamayon@evolution-digitale.fr"}
+    {name = "SpecQL Team", email = "team@specql.dev"}
 ]
 license = {text = "MIT"}
 requires-python = ">=3.11"

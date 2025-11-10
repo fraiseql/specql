@@ -3,7 +3,6 @@ Index Generator for Rich Types
 Generates appropriate database indexes for FraiseQL rich types
 """
 
-
 from src.core.ast_models import Entity, FieldDefinition
 from src.utils.safe_slug import safe_slug, safe_table_name
 

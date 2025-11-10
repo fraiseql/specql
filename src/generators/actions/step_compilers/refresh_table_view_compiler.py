@@ -19,7 +19,6 @@ Generated PL/pgSQL:
     PERFORM library.refresh_tv_book(v_fk_book);
 """
 
-
 from src.core.ast_models import ActionStep, EntityDefinition, RefreshScope
 
 

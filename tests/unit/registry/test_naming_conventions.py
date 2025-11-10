@@ -5,7 +5,6 @@ Tests table code derivation, validation, entity code generation,
 and file path generation.
 """
 
-
 import pytest
 
 from src.core.ast_models import Entity, Organization
@@ -299,12 +298,7 @@ class TestFilePathGeneration:
         """Should use custom base directory"""
         entity = Entity(name="Contact", schema="crm", fields={})
 
-        path = nc.generate_file_path(
-            entity,
-            "012311",
-            "table",
-            base_dir="custom/output"
-        )
+        path = nc.generate_file_path(entity, "012311", "table", base_dir="custom/output")
 
         assert path.startswith("custom/output")
 
@@ -322,7 +316,7 @@ class TestGetTableCode:
             name="Contact",
             schema="crm",
             fields={},
-            organization=Organization(table_code="012399", domain_name="crm")
+            organization=Organization(table_code="012399", domain_name="crm"),
         )
 
         code = nc.get_table_code(entity)
@@ -395,6 +389,7 @@ class TestEntityQueries:
     def nc(self, tmp_path):
         """Create temporary registry with test data"""
         import shutil
+
         temp_registry = tmp_path / "test_registry.yaml"
         shutil.copy("registry/domain_registry.yaml", temp_registry)
 
@@ -406,7 +401,7 @@ class TestEntityQueries:
             table_code="012311",
             entity_code="CON",
             domain_code="2",
-            subdomain_code="03"
+            subdomain_code="03",
         )
 
         return nc

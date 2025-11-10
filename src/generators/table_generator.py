@@ -120,9 +120,11 @@ class TableGenerator:
             "entity": {
                 "name": entity.name,
                 "schema": entity.schema,
-                "table_code": entity.organization.table_code
-                if entity.organization
-                else entity.name[:3].upper(),
+                "table_code": (
+                    entity.organization.table_code
+                    if entity.organization
+                    else entity.name[:3].upper()
+                ),
                 "description": entity.description or f"{entity.name} entity",
                 "fields": business_fields,
                 "foreign_keys": foreign_keys,
@@ -198,21 +200,27 @@ class TableGenerator:
 
         # Index on UUID (for external API lookups)
         # Index naming follows table convention: idx_tb_{entity}_{field}
-        indexes.append(f"""CREATE INDEX idx_tb_{entity_name_slug}_id
-    ON {entity.schema}.{safe_table_name(entity.name)} USING btree (id);""")
+        indexes.append(
+            f"""CREATE INDEX idx_tb_{entity_name_slug}_id
+    ON {entity.schema}.{safe_table_name(entity.name)} USING btree (id);"""
+        )
 
         # Index on foreign keys
         for field_name, field_def in entity.fields.items():
             if field_def.type_name == "ref" and field_def.reference_entity:
                 fk_name = f"fk_{field_name}"
-                indexes.append(f"""CREATE INDEX idx_tb_{entity_name_slug}_{safe_slug(field_name)}
-    ON {entity.schema}.{safe_table_name(entity.name)} USING btree ({fk_name});""")
+                indexes.append(
+                    f"""CREATE INDEX idx_tb_{entity_name_slug}_{safe_slug(field_name)}
+    ON {entity.schema}.{safe_table_name(entity.name)} USING btree ({fk_name});"""
+                )
 
         # Index on enum fields (for filtering)
         for field_name, field_def in entity.fields.items():
             if field_def.type_name == "enum" and field_def.values:
-                indexes.append(f"""CREATE INDEX idx_tb_{entity_name_slug}_{safe_slug(field_name)}
-    ON {entity.schema}.{safe_table_name(entity.name)} USING btree ({field_name});""")
+                indexes.append(
+                    f"""CREATE INDEX idx_tb_{entity_name_slug}_{safe_slug(field_name)}
+    ON {entity.schema}.{safe_table_name(entity.name)} USING btree ({field_name});"""
+                )
 
         return "\n\n".join(indexes)
 

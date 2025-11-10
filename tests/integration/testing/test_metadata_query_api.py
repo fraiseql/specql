@@ -15,7 +15,7 @@ def test_db():
         cursor = conn.cursor()
         try:
             cursor.execute("DROP SCHEMA IF EXISTS test_metadata CASCADE;")
-        except:
+        except Exception:
             pass  # Ignore errors
         conn.commit()
 
@@ -42,12 +42,14 @@ def test_db():
 def test_get_entity_config(test_db):
     """Should retrieve entity config by name"""
     # First populate some test metadata
-    test_db.execute("""
+    test_db.execute(
+        """
         INSERT INTO test_metadata.tb_entity_test_config
         (entity_name, schema_name, table_name, table_code, entity_code, base_uuid_prefix)
         VALUES
         ('Contact', 'crm', 'tb_contact', 123210, 'CON', '012321');
-    """)
+    """
+    )
 
     # Now test the function
     result = test_db.execute("SELECT test_metadata.get_entity_config('Contact')").fetchone()
@@ -74,22 +76,26 @@ def test_get_entity_config_not_found(test_db):
 def test_get_field_generators(test_db):
     """Should retrieve field generators for entity"""
     # First populate entity config
-    test_db.execute("""
+    test_db.execute(
+        """
         INSERT INTO test_metadata.tb_entity_test_config
         (pk_entity_test_config, entity_name, schema_name, table_name, table_code, entity_code, base_uuid_prefix)
         VALUES
         (1, 'Contact', 'crm', 'tb_contact', 123210, 'CON', '012321');
-    """)
+    """
+    )
 
     # Populate field generators
-    test_db.execute("""
+    test_db.execute(
+        """
         INSERT INTO test_metadata.tb_field_generator_mapping
         (fk_entity_test_config, field_name, field_type, postgres_type, generator_type, generator_function, priority_order, fk_target_entity, fk_target_schema, fk_target_table, fk_target_pk_field)
         VALUES
         (1, 'email', 'email', 'TEXT', 'random', 'test_random_email', 10, NULL, NULL, NULL, NULL),
         (1, 'first_name', 'text', 'TEXT', 'random', 'test_random_text', 5, NULL, NULL, NULL, NULL),
         (1, 'fk_company', 'ref(Company)', 'INTEGER', 'fk_resolve', NULL, 20, 'Company', 'crm', 'tb_company', 'pk_company');
-    """)
+    """
+    )
 
     # Test the function
     results = test_db.execute(
@@ -116,12 +122,14 @@ def test_get_field_generators(test_db):
 def test_get_field_generators_empty_entity(test_db):
     """Should return empty result set for entity with no fields"""
     # First populate entity config
-    test_db.execute("""
+    test_db.execute(
+        """
         INSERT INTO test_metadata.tb_entity_test_config
         (entity_name, schema_name, table_name, table_code, entity_code, base_uuid_prefix)
         VALUES
         ('EmptyEntity', 'test', 'tb_empty', 999999, 'EMP', '999999');
-    """)
+    """
+    )
 
     # Test the function
     results = test_db.execute(
@@ -134,22 +142,26 @@ def test_get_field_generators_empty_entity(test_db):
 def test_get_scenarios(test_db):
     """Should retrieve test scenarios for entity"""
     # First populate entity config
-    test_db.execute("""
+    test_db.execute(
+        """
         INSERT INTO test_metadata.tb_entity_test_config
         (pk_entity_test_config, entity_name, schema_name, table_name, table_code, entity_code, base_uuid_prefix)
         VALUES
         (1, 'Contact', 'crm', 'tb_contact', 123210, 'CON', '012321');
-    """)
+    """
+    )
 
     # Populate scenarios
-    test_db.execute("""
+    test_db.execute(
+        """
         INSERT INTO test_metadata.tb_test_scenarios
         (fk_entity_test_config, scenario_code, scenario_name, scenario_type, expected_result, enabled)
         VALUES
         (1, 0, 'happy_path_create', 'happy_path', 'success', TRUE),
         (1, 1000, 'duplicate_email', 'dedup', 'error', TRUE),
         (1, 2000, 'disabled_scenario', 'custom_action', 'success', FALSE);
-    """)
+    """
+    )
 
     # Test the function
     results = test_db.execute(
@@ -175,20 +187,24 @@ def test_get_scenarios(test_db):
 def test_get_scenarios_no_enabled_scenarios(test_db):
     """Should return empty result set when no enabled scenarios"""
     # First populate entity config
-    test_db.execute("""
+    test_db.execute(
+        """
         INSERT INTO test_metadata.tb_entity_test_config
         (pk_entity_test_config, entity_name, schema_name, table_name, table_code, entity_code, base_uuid_prefix)
         VALUES
         (1, 'Contact', 'crm', 'tb_contact', 123210, 'CON', '012321');
-    """)
+    """
+    )
 
     # Populate only disabled scenarios
-    test_db.execute("""
+    test_db.execute(
+        """
         INSERT INTO test_metadata.tb_test_scenarios
         (fk_entity_test_config, scenario_code, scenario_name, scenario_type, expected_result, enabled)
         VALUES
         (1, 0, 'disabled_scenario', 'happy_path', 'success', FALSE);
-    """)
+    """
+    )
 
     # Test the function
     results = test_db.execute("SELECT * FROM test_metadata.get_scenarios('Contact')").fetchall()
@@ -199,30 +215,36 @@ def test_get_scenarios_no_enabled_scenarios(test_db):
 def test_get_group_leader_config(test_db):
     """Should retrieve group leader configuration"""
     # First populate entity config
-    test_db.execute("""
+    test_db.execute(
+        """
         INSERT INTO test_metadata.tb_entity_test_config
         (pk_entity_test_config, entity_name, schema_name, table_name, table_code, entity_code, base_uuid_prefix)
         VALUES
         (1, 'Contact', 'crm', 'tb_contact', 123210, 'CON', '012321');
-    """)
+    """
+    )
 
     # Populate group leader field
-    test_db.execute("""
+    test_db.execute(
+        """
         INSERT INTO test_metadata.tb_field_generator_mapping
         (fk_entity_test_config, field_name, field_type, postgres_type, generator_type, is_group_leader, generator_group, generator_params)
         VALUES
         (1, 'country_code', 'text', 'TEXT', 'group_leader', TRUE, 'address_group',
          '{"leader_query": "SELECT country_code, postal_code, city_code FROM dim.tb_address WHERE deleted_at IS NULL ORDER BY RANDOM() LIMIT 1"}'::JSONB);
-    """)
+    """
+    )
 
     # Populate group dependent fields
-    test_db.execute("""
+    test_db.execute(
+        """
         INSERT INTO test_metadata.tb_field_generator_mapping
         (fk_entity_test_config, field_name, field_type, postgres_type, generator_type, generator_group, group_leader_field)
         VALUES
         (1, 'postal_code', 'text', 'TEXT', 'group_dependent', 'address_group', 'country_code'),
         (1, 'city_code', 'text', 'TEXT', 'group_dependent', 'address_group', 'country_code');
-    """)
+    """
+    )
 
     # Test the function (this will fail until implemented)
     result = test_db.execute(
@@ -240,20 +262,24 @@ def test_get_group_leader_config(test_db):
 def test_get_fk_dependencies(test_db):
     """Should retrieve FK dependency information"""
     # First populate entity config
-    test_db.execute("""
+    test_db.execute(
+        """
         INSERT INTO test_metadata.tb_entity_test_config
         (pk_entity_test_config, entity_name, schema_name, table_name, table_code, entity_code, base_uuid_prefix)
         VALUES
         (1, 'Contact', 'crm', 'tb_contact', 123210, 'CON', '012321');
-    """)
+    """
+    )
 
     # Populate FK field with dependencies
-    test_db.execute("""
+    test_db.execute(
+        """
         INSERT INTO test_metadata.tb_field_generator_mapping
         (fk_entity_test_config, field_name, field_type, postgres_type, generator_type, fk_target_entity, fk_dependencies)
         VALUES
         (1, 'fk_company', 'ref(Company)', 'INTEGER', 'fk_resolve', 'Company', ARRAY['tenant_id', 'user_id']);
-    """)
+    """
+    )
 
     # Test the function (this will fail until implemented)
     result = test_db.execute(

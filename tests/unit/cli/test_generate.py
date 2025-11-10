@@ -1,6 +1,5 @@
 """Tests for CLI generate command."""
 
-
 from src.cli.generate import cli, convert_entity_definition_to_entity
 
 

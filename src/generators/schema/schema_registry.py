@@ -5,7 +5,6 @@ Central registry for schema properties and multi-tenancy classification
 Replaces hardcoded TENANT_SCHEMAS lists with registry-driven lookups
 """
 
-
 from src.generators.schema.naming_conventions import DomainInfo, DomainRegistry
 
 

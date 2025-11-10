@@ -104,15 +104,15 @@ def test_db():
         cursor = conn.cursor()
         try:
             cursor.execute("DROP SCHEMA IF EXISTS crm CASCADE;")
-        except:
+        except Exception:
             pass  # Ignore errors
         try:
             cursor.execute("DROP SCHEMA IF EXISTS management CASCADE;")
-        except:
+        except Exception:
             pass  # Ignore errors
         try:
             cursor.execute("DROP SCHEMA IF EXISTS app CASCADE;")
-        except:
+        except Exception:
             pass  # Ignore errors
         conn.commit()
 

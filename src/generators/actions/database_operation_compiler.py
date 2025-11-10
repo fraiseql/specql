@@ -12,9 +12,7 @@ from src.utils.safe_slug import safe_slug, safe_table_name
 class ObjectBuilder:
     """Builds GraphQL-compatible object responses with relationships"""
 
-    def build_object_query(
-        self, entity: Entity, include_relations: list[str] | None = None
-    ) -> str:
+    def build_object_query(self, entity: Entity, include_relations: list[str] | None = None) -> str:
         """Build SELECT query for full object with relationships"""
         fields = []
         joins = []

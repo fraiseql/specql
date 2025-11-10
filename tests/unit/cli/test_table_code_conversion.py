@@ -4,6 +4,7 @@ This module tests the conversion function that bridges EntityDefinition
 (parsed from YAML) to Entity (used by code generators), specifically
 verifying that organization.table_code is properly extracted to entity.table_code.
 """
+
 import pytest
 from src.core.ast_models import EntityDefinition, Organization, Entity
 from src.cli.generate import convert_entity_definition_to_entity
@@ -20,15 +21,14 @@ def test_table_code_extracted_from_organization():
         fields={},
         actions=[],
         agents=[],
-        organization=org
+        organization=org,
     )
 
     # Convert to Entity
     entity = convert_entity_definition_to_entity(entity_def)
 
     # Verify table_code was extracted
-    assert entity.table_code == "012321", \
-        f"Expected table_code='012321', got '{entity.table_code}'"
+    assert entity.table_code == "012321", f"Expected table_code='012321', got '{entity.table_code}'"
     assert entity.organization is not None
     assert entity.organization.table_code == "012321"
 
@@ -42,7 +42,7 @@ def test_table_code_none_when_no_organization():
         fields={},
         actions=[],
         agents=[],
-        organization=None
+        organization=None,
     )
 
     entity = convert_entity_definition_to_entity(entity_def)
@@ -61,7 +61,7 @@ def test_table_code_none_when_organization_has_no_code():
         fields={},
         actions=[],
         agents=[],
-        organization=org
+        organization=org,
     )
 
     entity = convert_entity_definition_to_entity(entity_def)
@@ -80,7 +80,7 @@ def test_table_code_extraction_with_six_digit_code():
         fields={},
         actions=[],
         agents=[],
-        organization=org
+        organization=org,
     )
 
     entity = convert_entity_definition_to_entity(entity_def)
