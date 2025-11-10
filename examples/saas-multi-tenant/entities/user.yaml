@@ -1,0 +1,22 @@
+entity: User
+schema: tenant
+description: "User within a tenant"
+
+fields:
+  email: email!
+  first_name: text!
+  last_name: text!
+  role: enum(admin, manager, member) = 'member'
+  avatar_url: image
+
+actions:
+  - name: create_user
+    description: "Create a new user in the tenant"
+    steps:
+      - validate: email IS NOT NULL
+      - insert: User
+
+  - name: update_user
+    description: "Update user information"
+    steps:
+      - update: User

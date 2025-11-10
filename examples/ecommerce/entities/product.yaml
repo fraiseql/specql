@@ -1,0 +1,35 @@
+entity: Product
+schema: commerce
+description: "Product in the catalog"
+
+fields:
+  name: text!
+  sku: text!                 # Stock keeping unit
+  description: markdown
+  price: money!              # Rich monetary type
+  compare_at_price: money    # Sale price
+  inventory_count: integer!
+  track_inventory: boolean = true
+
+  # Shipping
+  weight: decimal            # Weight in kg
+  dimensions: text           # L x W x H in cm
+
+actions:
+  - name: create_product
+    description: "Add a new product to catalog"
+    steps:
+      - validate: name IS NOT NULL
+      - validate: sku IS NOT NULL
+      - validate: price > 0
+      - insert: Product
+
+  - name: update_product
+    description: "Update product information"
+    steps:
+      - update: Product
+
+  - name: adjust_inventory
+    description: "Adjust product inventory"
+    steps:
+      - update: Product SET inventory_count = ?

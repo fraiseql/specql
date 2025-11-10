@@ -1,0 +1,27 @@
+entity: Customer
+schema: commerce
+description: "Customer account"
+
+fields:
+  email: email!
+  first_name: text!
+  last_name: text!
+
+  # Shipping address
+  shipping_street: text
+  shipping_city: text
+  shipping_state: text
+  shipping_zip: text
+  shipping_country: text
+
+actions:
+  - name: create_customer
+    description: "Create customer account"
+    steps:
+      - validate: email IS NOT NULL
+      - insert: Customer
+
+  - name: update_customer
+    description: "Update customer information"
+    steps:
+      - update: Customer

@@ -1,0 +1,48 @@
+entity: Post
+schema: blog
+description: "Blog post with rich content and metadata"
+
+fields:
+  # Content
+  title: text!
+  slug: slug!                # URL-friendly identifier
+  content: markdown!         # Rich markdown content
+  excerpt: text              # Short summary (optional)
+
+  # Publication
+  published: boolean = false
+  published_at: datetime
+
+  # Relationships
+  author: ref(Author)!       # Required author
+
+  # Metadata
+  reading_time: integer      # Estimated reading time in minutes
+  word_count: integer        # Word count
+
+actions:
+  - name: create_post
+    description: "Create a new blog post"
+    steps:
+      - validate: title IS NOT NULL
+      - validate: slug IS NOT NULL
+      - validate: content IS NOT NULL
+      - validate: author IS NOT NULL
+      - insert: Post
+
+  - name: update_post
+    description: "Update post content and metadata"
+    steps:
+      - update: Post
+
+  - name: publish_post
+    description: "Publish a draft post"
+    steps:
+      - validate: published = false
+      - update: Post SET published = true, published_at = now()
+
+  - name: unpublish_post
+    description: "Unpublish a post (move to draft)"
+    steps:
+      - validate: published = true
+      - update: Post SET published = false, published_at = NULL
