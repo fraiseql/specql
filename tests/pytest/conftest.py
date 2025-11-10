@@ -1,9 +1,9 @@
 """Pytest fixtures for database integration tests"""
 
 import os
-import pytest
+
 import psycopg
-from psycopg import Connection
+import pytest
 
 
 @pytest.fixture(scope="session")

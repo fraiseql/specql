@@ -4,8 +4,7 @@ Standardized error codes and messages for Team C action compilation
 Provides structured error responses with user-friendly messages and actionable guidance.
 """
 
-from typing import Dict, Any
-
+from typing import Any
 
 ERROR_CATALOG = {
     "MISSING_REQUIRED_FIELD": {
@@ -53,7 +52,7 @@ ERROR_CATALOG = {
 }
 
 
-def build_error_response(error_type: str, **context) -> Dict[str, Any]:
+def build_error_response(error_type: str, **context) -> dict[str, Any]:
     """
     Build structured error response
 
@@ -84,7 +83,7 @@ def build_error_response(error_type: str, **context) -> Dict[str, Any]:
     }
 
 
-def format_error_for_sql(error_response: Dict[str, Any]) -> str:
+def format_error_for_sql(error_response: dict[str, Any]) -> str:
     """
     Format error response as SQL-safe string for TEXT column
 

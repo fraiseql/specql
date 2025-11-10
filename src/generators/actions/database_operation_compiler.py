@@ -3,7 +3,7 @@ Database Operation Compiler - Transform database operations to PL/pgSQL
 """
 
 from dataclasses import dataclass
-from typing import Any, List, Optional
+from typing import Any
 
 from src.core.ast_models import ActionStep, Entity
 from src.utils.safe_slug import safe_slug, safe_table_name
@@ -13,7 +13,7 @@ class ObjectBuilder:
     """Builds GraphQL-compatible object responses with relationships"""
 
     def build_object_query(
-        self, entity: Entity, include_relations: Optional[List[str]] = None
+        self, entity: Entity, include_relations: list[str] | None = None
     ) -> str:
         """Build SELECT query for full object with relationships"""
         fields = []
@@ -140,7 +140,7 @@ class DatabaseOperationCompiler:
     """
 
     def generate_object_return(
-        self, step: ActionStep, entity: Entity, impact: Optional[Any] = None
+        self, step: ActionStep, entity: Entity, impact: Any | None = None
     ) -> str:
         """Generate full object return with relationships"""
         include_relations = None

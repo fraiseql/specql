@@ -1,6 +1,5 @@
 """Tests for audit field generation with recalculation tracking."""
 
-import pytest
 from src.generators.schema.audit_fields import (
     generate_audit_fields,
     generate_business_audit_update,

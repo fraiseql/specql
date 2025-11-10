@@ -1,8 +1,5 @@
 """Tests for CLI validate command."""
 
-import pytest
-from pathlib import Path
-from click.testing import CliRunner
 
 
 class TestValidateCommand:

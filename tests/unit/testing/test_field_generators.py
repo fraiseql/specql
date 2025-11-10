@@ -1,6 +1,5 @@
 """Tests for field value generators component"""
 
-import pytest
 from src.testing.seed.field_generators import FieldValueGenerator
 
 

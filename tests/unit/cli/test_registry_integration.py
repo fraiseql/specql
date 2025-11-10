@@ -1,9 +1,11 @@
 # tests/unit/cli/test_registry_integration.py
 
-import pytest
 from pathlib import Path
+
+import pytest
+
 from src.cli.orchestrator import CLIOrchestrator
-from src.core.ast_models import Entity, FieldDefinition
+from src.core.ast_models import Entity
 
 
 def test_orchestrator_uses_registry_table_codes():

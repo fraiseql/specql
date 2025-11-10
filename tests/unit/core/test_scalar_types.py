@@ -1,4 +1,3 @@
-import pytest
 from src.core.scalar_types import SCALAR_TYPES, get_scalar_type, is_scalar_type
 
 

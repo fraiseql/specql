@@ -1,6 +1,7 @@
 """Unit tests for pgTAP generator."""
 
 import pytest
+
 from src.testing.pgtap.pgtap_generator import PgTAPGenerator
 
 

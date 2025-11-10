@@ -3,9 +3,10 @@ Tests for Trinity Helper Generator (Team B)
 """
 
 import pytest
-from src.generators.trinity_helper_generator import TrinityHelperGenerator
+
 from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.schema_registry import SchemaRegistry
+from src.generators.trinity_helper_generator import TrinityHelperGenerator
 from tests.fixtures.mock_entities import mock_contact_entity
 
 

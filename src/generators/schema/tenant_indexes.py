@@ -1,10 +1,10 @@
 """Tenant-scoped composite index generation for multi-tenant performance."""
 
-from typing import List
+
 from src.core.ast_models import EntityDefinition
 
 
-def generate_tenant_indexes(entity: EntityDefinition, schema: str) -> List[str]:
+def generate_tenant_indexes(entity: EntityDefinition, schema: str) -> list[str]:
     """Generate tenant-scoped composite indexes for optimal multi-tenant performance.
 
     Args:

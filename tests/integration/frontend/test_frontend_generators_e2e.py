@@ -9,16 +9,16 @@ Tests the complete frontend code generation pipeline:
 """
 
 import json
-import pytest
 from pathlib import Path
-from typing import List
 
-from src.core.ast_models import Entity, Action, FieldDefinition, ActionStep
+import pytest
+
+from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
 from src.generators.frontend import (
-    MutationImpactsGenerator,
-    TypeScriptTypesGenerator,
     ApolloHooksGenerator,
     MutationDocsGenerator,
+    MutationImpactsGenerator,
+    TypeScriptTypesGenerator,
 )
 
 
@@ -26,7 +26,7 @@ class TestFrontendGeneratorsE2E:
     """End-to-end tests for frontend code generation"""
 
     @pytest.fixture
-    def sample_entities(self) -> List[Entity]:
+    def sample_entities(self) -> list[Entity]:
         """Create sample entities for testing"""
         # Create a Contact entity with actions
         contact_entity = Entity(

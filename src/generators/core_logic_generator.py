@@ -3,10 +3,11 @@ Core Logic Generator (Team C)
 Generates core.* business logic functions
 """
 
-from typing import Any, Dict, List
+from typing import Any
+
 from jinja2 import Environment, FileSystemLoader
-from src.core.ast_models import Entity, FieldDefinition, FieldTier, Action
-from src.generators.actions.action_orchestrator import ActionOrchestrator
+
+from src.core.ast_models import Action, Entity, FieldTier
 from src.generators.schema.schema_registry import SchemaRegistry
 from src.utils.safe_slug import safe_slug, safe_table_name
 
@@ -94,7 +95,7 @@ class CoreLogicGenerator:
         template = self.env.get_template("core_delete_function.sql.j2")
         return template.render(**context)
 
-    def _prepare_insert_fields(self, entity: Entity) -> Dict[str, List[str]]:
+    def _prepare_insert_fields(self, entity: Entity) -> dict[str, list[str]]:
         """Prepare field list for INSERT statement"""
         insert_fields = []
         insert_values = []
@@ -128,7 +129,7 @@ class CoreLogicGenerator:
             "insert_values": insert_values,
         }
 
-    def _prepare_update_fields(self, entity: Entity) -> Dict[str, List[str]]:
+    def _prepare_update_fields(self, entity: Entity) -> dict[str, list[str]]:
         """Prepare field list for UPDATE statement"""
         update_assignments = []
 
@@ -149,7 +150,7 @@ class CoreLogicGenerator:
             "assignments": update_assignments,
         }
 
-    def _generate_validations(self, entity: Entity) -> List[Dict[str, str]]:
+    def _generate_validations(self, entity: Entity) -> list[dict[str, str]]:
         """Generate validation checks for required fields"""
         validations = []
         for field_name, field_def in entity.fields.items():
@@ -167,7 +168,7 @@ class CoreLogicGenerator:
                 )
         return validations
 
-    def _generate_fk_resolutions(self, entity: Entity) -> List[Dict[str, Any]]:
+    def _generate_fk_resolutions(self, entity: Entity) -> list[dict[str, Any]]:
         """Generate UUID → INTEGER FK resolutions using Trinity helpers"""
         resolutions = []
         is_tenant_specific = self._is_tenant_specific_schema(entity.schema)
@@ -274,7 +275,7 @@ class CoreLogicGenerator:
         template = self.env.get_template("core_custom_action.sql.j2")
         return template.render(**context)
 
-    def _compile_action_steps(self, action: Action, entity: Entity) -> List[str]:
+    def _compile_action_steps(self, action: Action, entity: Entity) -> list[str]:
         """
         Compile action steps into SQL statements
         """
@@ -362,7 +363,7 @@ class CoreLogicGenerator:
 
         return compiled
 
-    def _compile_refresh_table_view_step(self, step, entity: Entity) -> List[str]:
+    def _compile_refresh_table_view_step(self, step, entity: Entity) -> list[str]:
         """
         Compile refresh_table_view step to PL/pgSQL PERFORM calls
         """
@@ -372,12 +373,12 @@ class CoreLogicGenerator:
 
         if hasattr(step, "refresh_scope") and step.refresh_scope.value == "self":
             # Refresh only this entity's tv_ row
-            compiled.append(f"-- Refresh table view (self)")
+            compiled.append("-- Refresh table view (self)")
             compiled.append(f"PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});")
 
         elif hasattr(step, "refresh_scope") and step.refresh_scope.value == "propagate":
             # Refresh this entity + specific related entities
-            compiled.append(f"-- Refresh table view (self + propagate)")
+            compiled.append("-- Refresh table view (self + propagate)")
             compiled.append(f"PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});")
 
             # Refresh specified related entities
@@ -390,20 +391,20 @@ class CoreLogicGenerator:
 
         elif hasattr(step, "refresh_scope") and step.refresh_scope.value == "related":
             # Refresh this entity + all entities that reference it
-            compiled.append(f"-- Refresh table view (self + all related)")
+            compiled.append("-- Refresh table view (self + all related)")
             compiled.append(f"PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});")
             # TODO: Implement finding dependent entities
 
         elif hasattr(step, "refresh_scope") and step.refresh_scope.value == "batch":
             # Deferred refresh (collect PKs, refresh at end)
-            compiled.append(f"-- Queue for batch refresh (deferred)")
+            compiled.append("-- Queue for batch refresh (deferred)")
             compiled.append(
                 f"INSERT INTO pg_temp.tv_refresh_queue VALUES ('{entity.name}', {pk_var});"
             )
 
         return compiled
 
-    def _extract_fields_from_expression(self, expression: str, entity: Entity) -> List[str]:
+    def _extract_fields_from_expression(self, expression: str, entity: Entity) -> list[str]:
         """
         Extract field names referenced in a validation expression
         """
@@ -433,7 +434,7 @@ class CoreLogicGenerator:
         }
         return mapping.get(specql_type, "TEXT")
 
-    def _extract_declarations(self, action, entity) -> List[str]:
+    def _extract_declarations(self, action, entity) -> list[str]:
         """
         Extract variable declarations needed for the action
         """

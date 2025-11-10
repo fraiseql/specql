@@ -2,7 +2,6 @@
 Tests for SQL Utils
 """
 
-import pytest
 from src.generators.sql_utils import SQLUtils
 
 

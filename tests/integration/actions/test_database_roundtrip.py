@@ -3,17 +3,14 @@ Integration tests that execute generated SQL in real PostgreSQL
 Requires docker-compose with test database
 """
 
-import uuid
 import json
-import pytest
+import uuid
+
 import psycopg
-from pathlib import Path
+import pytest
+
+from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
 from src.generators.schema_orchestrator import SchemaOrchestrator
-from src.generators.function_generator import FunctionGenerator
-from src.generators.core_logic_generator import CoreLogicGenerator
-
-from src.core.ast_models import Entity, FieldDefinition, Action, ActionStep
-
 
 # Test constants
 TEST_TENANT_ID = "550e8400-e29b-41d4-a716-446655440000"
@@ -407,7 +404,6 @@ def test_soft_delete_database_execution(test_db, function_generator):
 
 def test_custom_action_database_execution(test_db, function_generator, core_logic_generator):
     """Custom action executes in PostgreSQL"""
-    import uuid
 
     unique_id = str(uuid.uuid4())[:8]
     email = f"lead_{unique_id}@example.com"

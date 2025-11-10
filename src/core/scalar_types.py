@@ -9,8 +9,8 @@ Defines all 49 built-in scalar types with:
 """
 
 from dataclasses import dataclass
-from typing import Optional, Dict, Any
 from enum import Enum
+from typing import Any
 
 
 class PostgreSQLType(Enum):
@@ -42,10 +42,10 @@ class ScalarTypeDef:
     fraiseql_scalar_name: str  # GraphQL scalar name
 
     # PostgreSQL validation (for Team B)
-    validation_pattern: Optional[str] = None  # Regex for CHECK constraint
-    min_value: Optional[float] = None
-    max_value: Optional[float] = None
-    postgres_precision: Optional[tuple] = None  # For NUMERIC(19,4)
+    validation_pattern: str | None = None  # Regex for CHECK constraint
+    min_value: float | None = None
+    max_value: float | None = None
+    postgres_precision: tuple | None = None  # For NUMERIC(19,4)
 
     # Metadata
     description: str = ""
@@ -53,7 +53,7 @@ class ScalarTypeDef:
 
     # UI hints (future frontend generation)
     input_type: str = "text"  # HTML input type
-    placeholder: Optional[str] = None
+    placeholder: str | None = None
 
     def get_postgres_type_with_precision(self) -> str:
         """Get PostgreSQL type with precision if applicable"""
@@ -78,7 +78,7 @@ class CompositeTypeDef:
     """Definition of a composite type (stored as JSONB)"""
 
     name: str
-    fields: Dict[str, CompositeFieldDef]
+    fields: dict[str, CompositeFieldDef]
     description: str = ""
     example: str = ""
 
@@ -87,7 +87,7 @@ class CompositeTypeDef:
         """Get GraphQL object type name"""
         return self.name
 
-    def get_jsonb_schema(self) -> Dict[str, Any]:
+    def get_jsonb_schema(self) -> dict[str, Any]:
         """Get JSON schema for validation (for Team B)"""
         properties = {}
         required = []
@@ -114,8 +114,13 @@ class CompositeTypeDef:
         return schema
 
 
+# Type aliases for backward compatibility and stdlib support
+SCALAR_TYPE_ALIASES = {
+    "phone": "phoneNumber",  # stdlib uses 'phone', registry has 'phoneNumber'
+}
+
 # Registry of all built-in scalar types
-SCALAR_TYPES: Dict[str, ScalarTypeDef] = {
+SCALAR_TYPES: dict[str, ScalarTypeDef] = {
     # String-based types
     "email": ScalarTypeDef(
         name="email",
@@ -152,9 +157,8 @@ SCALAR_TYPES: Dict[str, ScalarTypeDef] = {
         postgres_type=PostgreSQLType.TEXT,
         fraiseql_scalar_name="Slug",
         validation_pattern=r"^[a-z0-9]+(?:-[a-z0-9]+)*$",
-        description="URL-friendly slug (lowercase, hyphens)",
+        description="URL-friendly identifier (lowercase with hyphens, validated format)",
         example="my-article-slug",
-        input_type="text",
         placeholder="my-article-slug",
     ),
     "markdown": ScalarTypeDef(
@@ -635,7 +639,7 @@ SCALAR_TYPES: Dict[str, ScalarTypeDef] = {
 
 
 # Registry of all built-in composite types (stored as JSONB)
-COMPOSITE_TYPES: Dict[str, CompositeTypeDef] = {
+COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
     "SimpleAddress": CompositeTypeDef(
         name="SimpleAddress",
         description="Basic address information",
@@ -907,22 +911,7 @@ COMPOSITE_TYPES: Dict[str, CompositeTypeDef] = {
                 "phone", "phoneNumber", nullable=True, description="Main phone number"
             ),
         },
-        example={
-            "name": "Acme Corporation",
-            "legal_name": "Acme Corp Inc.",
-            "tax_id": "12-3456789",
-            "website": "https://acme.com",
-            "industry": "Manufacturing",
-            "employee_count": 500,
-            "address": {
-                "street": "123 Business St",
-                "city": "Business City",
-                "state": "CA",
-                "zipCode": "12345",
-                "country": "USA",
-            },
-            "phone": "+14155550000",
-        },
+        example='{"name": "Acme Corporation", "legal_name": "Acme Corp Inc.", "tax_id": "12-3456789", "website": "https://acme.com", "industry": "Manufacturing", "employee_count": 500, "address": {"street": "123 Business St", "city": "Business City", "state": "CA", "zipCode": "12345", "country": "USA"}, "phone": "+14155550000"}',
     ),
     "GeoLocation": CompositeTypeDef(
         name="GeoLocation",
@@ -975,17 +964,26 @@ COMPOSITE_TYPES: Dict[str, CompositeTypeDef] = {
 }
 
 
-def get_scalar_type(type_name: str) -> Optional[ScalarTypeDef]:
-    """Get scalar type definition by name"""
-    return SCALAR_TYPES.get(type_name)
+def get_scalar_type(type_name: str) -> ScalarTypeDef | None:
+    """Get scalar type definition by name (resolving aliases)"""
+    # Check direct match first
+    if type_name in SCALAR_TYPES:
+        return SCALAR_TYPES[type_name]
+
+    # Check aliases
+    if type_name in SCALAR_TYPE_ALIASES:
+        alias_target = SCALAR_TYPE_ALIASES[type_name]
+        return SCALAR_TYPES.get(alias_target)
+
+    return None
 
 
 def is_scalar_type(type_name: str) -> bool:
-    """Check if type name is a registered scalar type"""
-    return type_name in SCALAR_TYPES
+    """Check if type name is a registered scalar type (including aliases)"""
+    return type_name in SCALAR_TYPES or type_name in SCALAR_TYPE_ALIASES
 
 
-def get_composite_type(type_name: str) -> Optional[CompositeTypeDef]:
+def get_composite_type(type_name: str) -> CompositeTypeDef | None:
     """Get composite type definition by name"""
     return COMPOSITE_TYPES.get(type_name)
 

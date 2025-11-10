@@ -8,7 +8,7 @@ def generate_deduplication_fields(entity: EntityDefinition) -> str:
 
     entity_name = entity.name.lower()
 
-    return f"""
+    return """
     -- Deduplication Fields (3-field pattern)
     identifier TEXT NOT NULL,
     sequence_number INTEGER NOT NULL DEFAULT 1,

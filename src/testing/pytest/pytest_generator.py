@@ -1,8 +1,7 @@
 """Pytest integration test generator for database testing."""
 
 import json
-from typing import Dict, List, Any
-from datetime import datetime
+from typing import Any
 
 
 class PytestGenerator:
@@ -13,7 +12,7 @@ class PytestGenerator:
         pass
 
     def generate_pytest_integration_tests(
-        self, entity_config: Dict[str, Any], actions: List[Dict[str, Any]]
+        self, entity_config: dict[str, Any], actions: list[dict[str, Any]]
     ) -> str:
         """Generate pytest integration tests for an entity.
 
@@ -212,7 +211,7 @@ class Test{entity}Integration:
 {"".join(action_test_methods)}
 '''
 
-    def _build_sample_input_data(self, entity_config: Dict[str, Any]) -> Dict[str, Any]:
+    def _build_sample_input_data(self, entity_config: dict[str, Any]) -> dict[str, Any]:
         """Build sample input data for testing based on entity config."""
         # This is a simplified version - in practice this would be more sophisticated
         # and based on the actual field mappings from the metadata
@@ -224,7 +223,7 @@ class Test{entity}Integration:
         }
 
     def _generate_action_test_method(
-        self, action: Dict[str, Any], entity_config: Dict[str, Any]
+        self, action: dict[str, Any], entity_config: dict[str, Any]
     ) -> str:
         """Generate a test method for a custom action."""
         action_name = action["name"]

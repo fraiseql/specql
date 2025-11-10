@@ -1,6 +1,7 @@
 """Tests for app schema foundation generation (Team B)"""
 
 import pytest
+
 from src.generators.app_schema_generator import AppSchemaGenerator
 
 

@@ -1,7 +1,8 @@
 """Tests for composite type generation (Team B)"""
 
 import pytest
-from src.core.ast_models import Entity, Action, FieldDefinition
+
+from src.core.ast_models import Action, Entity, FieldDefinition
 from src.generators.composite_type_generator import CompositeTypeGenerator
 from src.generators.schema_orchestrator import SchemaOrchestrator
 

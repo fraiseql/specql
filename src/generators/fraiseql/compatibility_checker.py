@@ -11,19 +11,16 @@ FraiseQL v1.3.4+ automatically discovers types from PostgreSQL metadata:
 Result: No manual annotations needed! ✨
 """
 
-from typing import Set
 
-from src.core.type_registry import get_type_registry
+from src.core.scalar_types import SCALAR_TYPES
 
 
 class CompatibilityChecker:
     """Checks FraiseQL compatibility for SpecQL rich types"""
 
     def __init__(self) -> None:
-        self.type_registry = get_type_registry()
-
         # Types that need manual annotation (empty - FraiseQL handles all!)
-        self._incompatible_types: Set[str] = set()
+        self._incompatible_types: set[str] = set()
 
     def check_all_types_compatible(self) -> bool:
         """
@@ -34,7 +31,7 @@ class CompatibilityChecker:
         """
         return len(self._incompatible_types) == 0
 
-    def get_incompatible_types(self) -> Set[str]:
+    def get_incompatible_types(self) -> set[str]:
         """
         Return set of types that need manual annotation
 
@@ -50,7 +47,7 @@ class CompatibilityChecker:
         Returns:
             dict with compatibility status for all registered types
         """
-        all_types = self.type_registry.get_all_rich_types()
+        all_types = set(SCALAR_TYPES.keys())
 
         return {
             "total_types": len(all_types),

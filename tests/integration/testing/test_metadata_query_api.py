@@ -1,7 +1,7 @@
 """Integration tests for test metadata query API functions"""
 
-import pytest
 import psycopg
+import pytest
 
 
 @pytest.fixture
@@ -20,13 +20,13 @@ def test_db():
         conn.commit()
 
         # Create test_metadata schema and tables
-        with open("migrations/test_metadata_schema.sql", "r") as f:
+        with open("migrations/test_metadata_schema.sql") as f:
             schema_sql = f.read()
         cursor.execute(schema_sql)
         conn.commit()
 
         # Create functions
-        with open("migrations/test_metadata_functions.sql", "r") as f:
+        with open("migrations/test_metadata_functions.sql") as f:
             functions_sql = f.read()
         cursor.execute(functions_sql)
         conn.commit()

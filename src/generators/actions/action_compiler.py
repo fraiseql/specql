@@ -3,7 +3,6 @@ Action Compiler - Transform SpecQL actions to PL/pgSQL functions
 """
 
 from enum import Enum
-from typing import List
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -25,7 +24,7 @@ class PostgreSQLType(Enum):
 class ParameterGenerator:
     """Generates function parameters from entity fields"""
 
-    def generate(self, entity: Entity, action: Action) -> List[str]:
+    def generate(self, entity: Entity, action: Action) -> list[str]:
         """Generate list of parameter declarations"""
         params = []
 
@@ -41,7 +40,7 @@ class ParameterGenerator:
         """Generate entity ID parameter for update/delete"""
         return f"p_{entity.name.lower()}_id UUID"
 
-    def _field_params(self, entity: Entity) -> List[str]:
+    def _field_params(self, entity: Entity) -> list[str]:
         """Generate parameters for entity fields"""
         params = []
         for field_name, field_def in entity.fields.items():

@@ -3,8 +3,9 @@ Unit tests for ForEachStepCompiler
 """
 
 import pytest
-from src.generators.actions.step_compilers.foreach_compiler import ForEachStepCompiler
+
 from src.core.ast_models import ActionStep, EntityDefinition, FieldDefinition
+from src.generators.actions.step_compilers.foreach_compiler import ForEachStepCompiler
 
 
 class TestForEachStepCompiler:

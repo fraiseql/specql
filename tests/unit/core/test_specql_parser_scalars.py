@@ -1,6 +1,5 @@
-import pytest
-from src.core.specql_parser import SpecQLParser
 from src.core.ast_models import FieldTier
+from src.core.specql_parser import SpecQLParser
 
 
 def test_parse_entity_with_scalar_types():

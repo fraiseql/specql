@@ -9,7 +9,7 @@ class TestValidationErrorType:
     def test_validation_error_type_template_exists(self):
         """Should have validation error type template."""
         try:
-            with open("templates/sql/000_types.sql.jinja2", "r") as f:
+            with open("templates/sql/000_types.sql.jinja2") as f:
                 template_content = f.read()
         except FileNotFoundError:
             # Template doesn't exist yet - this is expected for RED test
@@ -20,7 +20,7 @@ class TestValidationErrorType:
 
     def test_validation_error_type_structure(self):
         """Should define validation error type with correct fields."""
-        with open("templates/sql/000_types.sql.jinja2", "r") as f:
+        with open("templates/sql/000_types.sql.jinja2") as f:
             template = Template(f.read())
 
         result = template.render()

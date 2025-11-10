@@ -6,13 +6,12 @@ Show differences between entity definitions and existing migrations
 
 import difflib
 from pathlib import Path
-from typing import Optional
 
 import click
 
+from src.cli.generate import convert_entity_definition_to_entity
 from src.core.specql_parser import SpecQLParser
 from src.generators.schema_orchestrator import SchemaOrchestrator
-from src.cli.generate import convert_entity_definition_to_entity
 
 
 def generate_entity_sql(entity_file: str) -> str:
@@ -102,11 +101,11 @@ def diff(entity_file, migration_file, color, context, use_rust):
                         return
 
                     # Confiture provides high-level schema analysis
-                    click.echo(f"📋 Schema differences (Confiture analysis):")
+                    click.echo("📋 Schema differences (Confiture analysis):")
                     click.echo(str(diff_result))
 
                     # Always show detailed diff with Python difflib for complete comparison
-                    click.echo(f"\n📋 Detailed differences:")
+                    click.echo("\n📋 Detailed differences:")
                     use_rust = False  # Fall back to Python difflib for full diff
 
                 except ImportError:

@@ -3,11 +3,10 @@ PostgreSQL Function Generator (Team B)
 Generates CRUD and action functions from Entity AST
 """
 
-from typing import List
 
 from jinja2 import Environment, FileSystemLoader
 
-from src.core.ast_models import Action, ActionStep, Entity
+from src.core.ast_models import Entity
 from src.generators.app_wrapper_generator import AppWrapperGenerator
 from src.generators.core_logic_generator import CoreLogicGenerator
 

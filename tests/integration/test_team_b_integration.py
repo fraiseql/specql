@@ -2,13 +2,15 @@
 Integration tests for Team B - SQL Generation from SpecQL
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
+
+from src.core.ast_models import Action, Entity, FieldDefinition
 from src.core.specql_parser import SpecQLParser
-from src.core.ast_models import Entity, Action, FieldDefinition
-from src.generators.table_generator import TableGenerator
 from src.generators.function_generator import FunctionGenerator
 from src.generators.schema_orchestrator import SchemaOrchestrator
+from src.generators.table_generator import TableGenerator
 
 
 class TestTeamBIntegration:

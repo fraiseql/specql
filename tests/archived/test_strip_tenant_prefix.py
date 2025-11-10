@@ -1,7 +1,8 @@
 """Test tenant prefix stripping for composite identifiers."""
 
 import pytest
-from tests.utils.db_test import execute_sql, execute_query
+
+from tests.utils.db_test import execute_query, execute_sql
 
 
 class TestStripTenantPrefix:

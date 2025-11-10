@@ -3,8 +3,7 @@ Tests for safe_slug utility function
 Tests that safe_slug function handles all edge cases correctly
 """
 
-import pytest
-from src.utils.safe_slug import safe_slug, safe_identifier, safe_table_name
+from src.utils.safe_slug import safe_identifier, safe_slug, safe_table_name
 
 
 def test_normal_text():

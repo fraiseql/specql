@@ -5,15 +5,15 @@ Generates complete PostgreSQL schema from YAML entity definitions
 """
 
 import argparse
-from pathlib import Path
-import yaml
 import sys
-from typing import List, Optional
+from pathlib import Path
+
+import yaml
 
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from src.core.ast_models import Entity, FieldDefinition, Action, ActionStep
+from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
 from src.generators.schema_orchestrator import SchemaOrchestrator
 
 
@@ -26,7 +26,7 @@ class SpecQLGenerator:
 
     def load_entity_from_yaml(self, yaml_file: Path) -> Entity:
         """Load entity definition from YAML file and convert to SpecQL Entity"""
-        with open(yaml_file, "r") as f:
+        with open(yaml_file) as f:
             data = yaml.safe_load(f)
 
         # Parse entity name, schema, description
@@ -159,7 +159,7 @@ class SpecQLGenerator:
             print(f"Actions: {len(entity.actions)}")
 
             # Generate complete SQL
-            print(f"\nGenerating complete SQL schema...")
+            print("\nGenerating complete SQL schema...")
             sql = self.generate_entity_sql(entity)
 
             # Write output
@@ -185,7 +185,7 @@ class SpecQLGenerator:
             return
 
         print(f"\n{'=' * 80}")
-        print(f"SpecQL SQL Generator")
+        print("SpecQL SQL Generator")
         print(f"{'=' * 80}")
         print(f"Entities directory: {entities_dir}")
         print(f"Output directory: {self.output_dir}")
@@ -195,13 +195,13 @@ class SpecQLGenerator:
             self.generate_single_entity(yaml_file)
 
         print(f"\n{'=' * 80}")
-        print(f"✅ Generation complete!")
+        print("✅ Generation complete!")
         print(f"{'=' * 80}")
         print(f"Output: {self.output_dir}")
-        print(f"\nNext steps:")
-        print(f"  1. Review generated SQL files")
-        print(f"  2. Test in PostgreSQL database")
-        print(f"  3. Apply migrations as needed")
+        print("\nNext steps:")
+        print("  1. Review generated SQL files")
+        print("  2. Test in PostgreSQL database")
+        print("  3. Apply migrations as needed")
 
 
 def main():

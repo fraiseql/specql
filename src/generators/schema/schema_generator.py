@@ -10,22 +10,21 @@ Generates complete PostgreSQL DDL from Team A's AST:
 - Table code integration with NamingConventions registry
 """
 
-from typing import List, Optional
-from src.core.ast_models import EntityDefinition, FieldDefinition, FieldTier, Organization
+from src.core.ast_models import EntityDefinition, FieldDefinition
+from src.generators.schema.audit_fields import generate_audit_fields
 from src.generators.schema.composite_type_mapper import CompositeTypeMapper
-from src.generators.schema.foreign_key_generator import ForeignKeyGenerator
-from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.deduplication import (
     generate_deduplication_fields,
     generate_deduplication_indexes,
 )
-from src.generators.schema.audit_fields import generate_audit_fields
-from src.generators.schema.tenant_indexes import generate_tenant_indexes
+from src.generators.schema.foreign_key_generator import ForeignKeyGenerator
+from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.node_info_split import (
-    should_split_entity,
     generate_node_info_split_ddl,
+    should_split_entity,
 )
-from src.utils.safe_slug import safe_slug, safe_table_name
+from src.generators.schema.tenant_indexes import generate_tenant_indexes
+from src.utils.safe_slug import safe_table_name
 
 
 class SchemaGenerator:
@@ -164,7 +163,7 @@ class SchemaGenerator:
             null_constraint = "" if field.nullable else " NOT NULL"
             return f"{field.name} {field.postgres_type or 'TEXT'}{null_constraint}"
 
-    def _generate_validation_functions(self, entity: EntityDefinition) -> List[str]:
+    def _generate_validation_functions(self, entity: EntityDefinition) -> list[str]:
         """Generate validation functions for composite fields"""
         functions = []
 
@@ -224,7 +223,7 @@ class SchemaGenerator:
 -- Benefits: Visible, debuggable, testable, controllable
 -- ════════════════════════════════════════════════════════════════""".strip()
 
-    def _generate_indexes(self, entity: EntityDefinition) -> List[str]:
+    def _generate_indexes(self, entity: EntityDefinition) -> list[str]:
         """Generate indexes for composite and reference fields"""
         indexes = []
 
@@ -247,7 +246,7 @@ class SchemaGenerator:
 
         return indexes
 
-    def _generate_trinity_helper_functions(self, entity: EntityDefinition) -> List[str]:
+    def _generate_trinity_helper_functions(self, entity: EntityDefinition) -> list[str]:
         """Generate Trinity Pattern helper functions for the entity"""
         entity_lower = entity.name.lower()
         table_name = f"{entity.schema}.tb_{entity_lower}"
@@ -285,7 +284,7 @@ $$ LANGUAGE SQL STABLE;""")
 
         return functions
 
-    def _generate_trinity_fields(self, entity: EntityDefinition) -> List[str]:
+    def _generate_trinity_fields(self, entity: EntityDefinition) -> list[str]:
         """Generate Trinity Pattern fields for the entity"""
         entity_lower = entity.name.lower()
 
@@ -305,7 +304,7 @@ $$ LANGUAGE SQL STABLE;""")
 
         return fields
 
-    def _generate_trinity_indexes(self, entity: EntityDefinition) -> List[str]:
+    def _generate_trinity_indexes(self, entity: EntityDefinition) -> list[str]:
         """Generate Trinity Pattern indexes for the entity"""
         table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
         entity_lower = entity.name.lower()

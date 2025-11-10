@@ -7,7 +7,6 @@ These denormalized tables expose data to FraiseQL for auto-GraphQL generation.
 Key Innovation: JSONB composition from related tv_ tables (not tb_ tables)
 """
 
-from typing import Dict
 
 from src.core.ast_models import EntityDefinition, ExtraFilterColumn, IncludeRelation
 
@@ -15,7 +14,7 @@ from src.core.ast_models import EntityDefinition, ExtraFilterColumn, IncludeRela
 class TableViewGenerator:
     """Generate tv_ table schema and refresh functions."""
 
-    def __init__(self, entity: EntityDefinition, all_entities: Dict[str, EntityDefinition]):
+    def __init__(self, entity: EntityDefinition, all_entities: dict[str, EntityDefinition]):
         self.entity = entity
         self.all_entities = all_entities  # For resolving references
 

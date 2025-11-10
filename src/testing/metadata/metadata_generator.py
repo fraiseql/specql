@@ -1,7 +1,6 @@
 """Generate test metadata SQL from SpecQL AST"""
 
-from typing import Dict, Any, List
-from src.core.ast_models import Entity, FieldDefinition, Action
+from src.core.ast_models import Entity, FieldDefinition
 
 
 class TestMetadataGenerator:

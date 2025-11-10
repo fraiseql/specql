@@ -4,7 +4,6 @@ Creates execution manifests with dependency resolution and topological ordering
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set
 
 from src.numbering.numbering_parser import NumberingParser
 
@@ -15,21 +14,21 @@ class ManifestEntry:
 
     entity_name: str
     table_code: str
-    dependencies: List[str] = field(default_factory=list)
+    dependencies: list[str] = field(default_factory=list)
     directory_path: str = ""
-    file_paths: List[str] = field(default_factory=list)
+    file_paths: list[str] = field(default_factory=list)
 
 
 class ManifestGenerator:
     """Generates execution manifests with dependency resolution"""
 
     def __init__(self):
-        self.entries: Dict[str, ManifestEntry] = {}
-        self.dependencies: Dict[str, Set[str]] = {}
+        self.entries: dict[str, ManifestEntry] = {}
+        self.dependencies: dict[str, set[str]] = {}
         self.parser = NumberingParser()
 
     def add_entity(
-        self, entity_name: str, table_code: str, dependencies: Optional[List[str]] = None
+        self, entity_name: str, table_code: str, dependencies: list[str] | None = None
     ) -> None:
         """
         Add an entity to the manifest
@@ -77,7 +76,7 @@ class ManifestGenerator:
         self.dependencies[entity_name].add(depends_on)
         self.entries[entity_name].dependencies.append(depends_on)
 
-    def generate_manifest(self) -> List[ManifestEntry]:
+    def generate_manifest(self) -> list[ManifestEntry]:
         """
         Generate execution manifest with dependency-aware ordering
 
@@ -100,7 +99,7 @@ class ManifestGenerator:
         # Return entries in execution order
         return [self.entries[entity] for entity in execution_order]
 
-    def _dependency_aware_sort(self, entities: List[str]) -> List[str]:
+    def _dependency_aware_sort(self, entities: list[str]) -> list[str]:
         """
         Sort entities ensuring dependencies come before dependents
 

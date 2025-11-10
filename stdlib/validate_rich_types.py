@@ -10,8 +10,9 @@ Checks:
 5. Money fields use money type
 """
 
-import yaml
 from pathlib import Path
+
+import yaml
 
 RICH_TYPE_RULES = {
     # Field name patterns → expected type

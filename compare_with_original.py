@@ -3,8 +3,8 @@
 Compare generated SQL with original SQL from printoptim_backend
 """
 
-from pathlib import Path
 import difflib
+from pathlib import Path
 
 # Paths
 ORIGINAL_TABLE = Path('../printoptim_backend/db/0_schema/01_write_side/013_catalog/0132_manufacturer/01321_manufacturer/013211_tb_manufacturer.sql')
@@ -50,10 +50,10 @@ def compare_files(original, generated, name):
     generated_norm = normalize_sql(generated_content)
 
     if original_norm == generated_norm:
-        print(f"\n✅ Files are functionally identical (ignoring comments/formatting)")
+        print("\n✅ Files are functionally identical (ignoring comments/formatting)")
         return True
     else:
-        print(f"\n⚠️  Files have differences:")
+        print("\n⚠️  Files have differences:")
 
         # Show diff
         diff = difflib.unified_diff(
@@ -78,7 +78,7 @@ def compare_files(original, generated, name):
 def analyze_coverage():
     """Analyze what's covered and what's missing"""
     print(f"\n{'='*80}")
-    print(f"Coverage Analysis")
+    print("Coverage Analysis")
     print(f"{'='*80}")
 
     print("\n✅ Generated from YAML:")
@@ -124,8 +124,8 @@ def main():
         print("⚠️  POC Partial Success: Generated SQL has differences")
         print("   (This is expected - template may need refinement)")
 
-    print(f"\n✅ Trinity Helpers: NEW functionality not in original")
-    print(f"   Generated 4 helper functions in:")
+    print("\n✅ Trinity Helpers: NEW functionality not in original")
+    print("   Generated 4 helper functions in:")
     print(f"   {GENERATED_TRINITY}")
 
     print(f"\n{'='*80}")

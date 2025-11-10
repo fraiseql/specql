@@ -1,7 +1,7 @@
 """Tests for Entity Seed Generator component"""
 
-import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
+
 from src.testing.seed.seed_generator import EntitySeedGenerator
 from src.testing.seed.uuid_generator import SpecQLUUID
 

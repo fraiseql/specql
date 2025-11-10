@@ -1,11 +1,10 @@
 """Tests for index generation strategy with partial index support."""
 
-import pytest
 from src.generators.schema.index_strategy import (
-    generate_index,
     generate_btree_index,
     generate_gin_index,
     generate_gist_index,
+    generate_index,
 )
 
 

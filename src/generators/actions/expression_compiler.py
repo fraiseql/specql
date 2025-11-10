@@ -15,9 +15,9 @@ Generated safe SQL:
 """
 
 import re
-from typing import List
 
 from src.core.ast_models import EntityDefinition
+from src.core.scalar_types import get_scalar_type
 
 
 class ExpressionCompiler:
@@ -39,6 +39,7 @@ class ExpressionCompiler:
         "ILIKE",
         "IS",
         "IS NOT",
+        "MATCHES",
         "+",
         "-",
         "*",
@@ -212,7 +213,7 @@ class ExpressionCompiler:
         operators_by_precedence = [
             ("OR",),  # Lowest precedence
             ("AND",),
-            ("=", "!=", "<", ">", "<=", ">=", "LIKE", "ILIKE", "IN", "IS", "IS NOT"),
+            ("=", "!=", "<", ">", "<=", ">=", "LIKE", "ILIKE", "IN", "IS", "IS NOT", "MATCHES"),
         ]
 
         for op_group in operators_by_precedence:
@@ -259,7 +260,7 @@ class ExpressionCompiler:
             # Assume it's an identifier/field reference
             return {"type": "identifier", "name": expression}
 
-    def _parse_function_args(self, args_str: str) -> List[dict]:
+    def _parse_function_args(self, args_str: str) -> list[dict]:
         """Parse function arguments with support for nested functions and subqueries"""
         if not args_str:
             return []
@@ -475,7 +476,18 @@ class ExpressionCompiler:
         if ast["type"] == "binary":
             left = self._ast_to_sql(ast["left"], entity)
             right = self._ast_to_sql(ast["right"], entity)
-            return f"{left} {ast['operator']} {right}"
+
+            # Handle special operators
+            if ast["operator"] == "MATCHES":
+                # Convert MATCHES to PostgreSQL regex matching
+                if self._is_rich_type_pattern(right):
+                    pattern = self._get_rich_type_pattern(right)
+                    return f"{left} ~ '{pattern}'"
+                else:
+                    # For non-rich-type patterns, treat as literal regex
+                    return f"{left} ~ {right}"
+            else:
+                return f"{left} {ast['operator']} {right}"
 
         elif ast["type"] == "unary":
             operand = self._ast_to_sql(ast["operand"], entity)
@@ -506,6 +518,20 @@ class ExpressionCompiler:
 
         else:
             raise ValueError(f"Unknown AST node type: {ast['type']}")
+
+    def _is_rich_type_pattern(self, pattern_expr: str) -> bool:
+        """Check if the pattern expression refers to a rich type"""
+        # Remove quotes if present
+        pattern_name = pattern_expr.strip("'\"")
+        return get_scalar_type(pattern_name) is not None
+
+    def _get_rich_type_pattern(self, pattern_expr: str) -> str:
+        """Get the regex pattern for a rich type"""
+        pattern_name = pattern_expr.strip("'\"")
+        scalar_def = get_scalar_type(pattern_name)
+        if scalar_def and scalar_def.validation_pattern:
+            return scalar_def.validation_pattern
+        raise ValueError(f"No validation pattern found for rich type: {pattern_name}")
 
 
 class SecurityError(Exception):

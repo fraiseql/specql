@@ -1,8 +1,8 @@
 """pgTAP test generator for PostgreSQL database testing."""
 
 import json
-from typing import Dict, List, Any
 from datetime import datetime
+from typing import Any
 
 
 class PgTAPGenerator:
@@ -12,7 +12,7 @@ class PgTAPGenerator:
         """Initialize the pgTAP generator."""
         pass
 
-    def generate_structure_tests(self, entity_config: Dict[str, Any]) -> str:
+    def generate_structure_tests(self, entity_config: dict[str, Any]) -> str:
         """Generate schema structure validation tests.
 
         Args:
@@ -61,7 +61,7 @@ ROLLBACK;
 """
 
     def generate_crud_tests(
-        self, entity_config: Dict[str, Any], field_mappings: List[Dict[str, Any]]
+        self, entity_config: dict[str, Any], field_mappings: list[dict[str, Any]]
     ) -> str:
         """Generate CRUD operation tests.
 
@@ -175,7 +175,7 @@ ROLLBACK;
 """
 
     def generate_constraint_tests(
-        self, entity_config: Dict[str, Any], scenarios: List[Dict[str, Any]]
+        self, entity_config: dict[str, Any], scenarios: list[dict[str, Any]]
     ) -> str:
         """Generate constraint violation tests from scenarios.
 
@@ -235,9 +235,9 @@ END $$;
 
     def generate_action_tests(
         self,
-        entity_config: Dict[str, Any],
-        actions: List[Dict[str, Any]],
-        scenarios: List[Dict[str, Any]],
+        entity_config: dict[str, Any],
+        actions: list[dict[str, Any]],
+        scenarios: list[dict[str, Any]],
     ) -> str:
         """Generate tests for custom actions.
 

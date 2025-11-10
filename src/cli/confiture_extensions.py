@@ -5,10 +5,10 @@ Extend Confiture CLI with SpecQL-specific commands
 """
 
 from pathlib import Path
-from typing import List
+
 import click
+
 from src.cli.orchestrator import CLIOrchestrator
-from src.core.specql_parser import SpecQLParser
 
 
 @click.group()

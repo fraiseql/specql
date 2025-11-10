@@ -8,9 +8,10 @@ Maps Team A's composite type definitions to:
 """
 
 from dataclasses import dataclass
-from typing import Optional, Dict, Any
+
 from src.core.ast_models import FieldDefinition
 from src.core.scalar_types import CompositeTypeDef, get_composite_type
+
 from .index_strategy import generate_gin_index
 
 
@@ -21,10 +22,10 @@ class CompositeDDL:
     column_name: str
     postgres_type: str = "JSONB"
     nullable: bool = True
-    validation_function: Optional[str] = None
-    check_constraint: Optional[str] = None
-    comment: Optional[str] = None
-    jsonb_schema: Optional[Dict] = None
+    validation_function: str | None = None
+    check_constraint: str | None = None
+    comment: str | None = None
+    jsonb_schema: dict | None = None
 
 
 class CompositeTypeMapper:

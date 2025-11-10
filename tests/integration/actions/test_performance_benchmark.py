@@ -5,11 +5,13 @@ Compares execution time of generated functions vs hand-written equivalents
 """
 
 import time
-import pytest
 from pathlib import Path
+
+import pytest
+
+from src.core.ast_models import Action, Entity
 from src.core.specql_parser import SpecQLParser
 from src.generators.schema_orchestrator import SchemaOrchestrator
-from src.core.ast_models import Entity, Action
 
 
 def read_yaml_file(file_path: str) -> str:

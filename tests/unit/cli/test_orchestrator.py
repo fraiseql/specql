@@ -1,8 +1,8 @@
 """Tests for CLI orchestrator."""
 
-import pytest
 from pathlib import Path
-from src.cli.orchestrator import CLIOrchestrator, MigrationFile, GenerationResult
+
+from src.cli.orchestrator import CLIOrchestrator, GenerationResult, MigrationFile
 
 
 class TestMigrationFile:

@@ -1,8 +1,8 @@
-import pytest
-from src.generators.schema.schema_generator import SchemaGenerator
+from unittest.mock import patch
+
 from src.core.ast_models import EntityDefinition, FieldDefinition, FieldTier
 from src.core.scalar_types import get_composite_type
-from unittest.mock import patch
+from src.generators.schema.schema_generator import SchemaGenerator
 
 
 def test_generate_table_with_composite_field():

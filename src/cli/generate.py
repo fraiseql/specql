@@ -4,12 +4,13 @@ SpecQL Generate CLI
 Generate SQL migrations from SpecQL entity definitions
 """
 
-import click
 from pathlib import Path
+
+import click
+
 from src.cli.orchestrator import CLIOrchestrator
+from src.core.ast_models import Action, Entity, EntityDefinition
 from src.core.specql_parser import SpecQLParser
-from src.generators.schema_orchestrator import SchemaOrchestrator
-from src.core.ast_models import Entity, Action, EntityDefinition
 from src.testing.pgtap.pgtap_generator import PgTAPGenerator
 from src.testing.pytest.pytest_generator import PytestGenerator
 
@@ -97,10 +98,10 @@ def entities(
 
         try:
             from src.generators.frontend import (
-                MutationImpactsGenerator,
-                TypeScriptTypesGenerator,
                 ApolloHooksGenerator,
                 MutationDocsGenerator,
+                MutationImpactsGenerator,
+                TypeScriptTypesGenerator,
             )
 
             frontend_dir = Path(output_frontend)
@@ -253,7 +254,7 @@ def tests(
         try:
             # Generate pgTAP tests
             if test_type in ["pgtap", "both"]:
-                click.echo(f"    📊 Generating pgTAP tests...")
+                click.echo("    📊 Generating pgTAP tests...")
                 pgtap_gen = PgTAPGenerator()
 
                 # Structure tests
@@ -278,7 +279,7 @@ def tests(
 
             # Generate Pytest tests
             if test_type in ["pytest", "both"]:
-                click.echo(f"    🐍 Generating Pytest tests...")
+                click.echo("    🐍 Generating Pytest tests...")
                 pytest_gen = PytestGenerator()
 
                 pytest_code = pytest_gen.generate_pytest_integration_tests(entity_config, actions)
@@ -305,8 +306,8 @@ def tests(
         click.echo(f"  📄 {file_path}")
 
     if test_type == "both":
-        click.echo(f"\n💡 Run pgTAP tests: pg_prove tests/pgtap/*.sql")
-        click.echo(f"💡 Run Pytest tests: pytest tests/pytest/")
+        click.echo("\n💡 Run pgTAP tests: pg_prove tests/pgtap/*.sql")
+        click.echo("💡 Run Pytest tests: pytest tests/pytest/")
 
     return 0
 

@@ -9,9 +9,10 @@ Generates foreign key constraints from Team A's reference fields:
 """
 
 from dataclasses import dataclass
-from .index_strategy import generate_btree_index
-from typing import Optional
+
 from src.core.ast_models import FieldDefinition
+
+from .index_strategy import generate_btree_index
 
 
 @dataclass
@@ -26,7 +27,7 @@ class ForeignKeyDDL:
     references_column: str = ""
     on_delete: str = "RESTRICT"
     on_update: str = "CASCADE"
-    comment: Optional[str] = None
+    comment: str | None = None
 
 
 class ForeignKeyGenerator:

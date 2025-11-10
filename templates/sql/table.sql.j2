@@ -44,9 +44,10 @@ CREATE TABLE {{ entity.schema }}.tb_{{ entity.name | lower }} (
     -- ========================================================================
     -- Foreign Keys (Trinity Pattern: INTEGER references)
     -- ========================================================================
-{%- for fk_name, fk_def in entity.foreign_keys.items() %}
+{% for fk_name, fk_def in entity.foreign_keys.items() %}
+
     {{ fk_name }} INTEGER{% if not fk_def.nullable %} NOT NULL{% endif %},
-{%- endfor %}
+{% endfor %}
 
     -- ========================================================================
     -- Audit Fields (Trinity Pattern standard)

@@ -1,6 +1,5 @@
 """Reserved field names that cannot be used by end users."""
 
-from typing import Set
 
 # Primary Keys & Foreign Keys
 RESERVED_PK_FK = {
@@ -39,7 +38,7 @@ RESERVED_RECALCULATION_AUDIT = {
 }
 
 # Combine all reserved names
-RESERVED_FIELD_NAMES: Set[str] = (
+RESERVED_FIELD_NAMES: set[str] = (
     RESERVED_PK_FK
     | RESERVED_DEDUPLICATION
     | RESERVED_HIERARCHY

@@ -1,6 +1,7 @@
 import pytest
-from src.generators.schema.foreign_key_generator import ForeignKeyGenerator, ForeignKeyDDL
+
 from src.core.ast_models import FieldDefinition, FieldTier
+from src.generators.schema.foreign_key_generator import ForeignKeyDDL, ForeignKeyGenerator
 
 
 def test_map_reference_field():

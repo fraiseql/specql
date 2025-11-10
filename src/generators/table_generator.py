@@ -3,7 +3,7 @@ PostgreSQL Table Generator (Team B)
 Generates DDL for Trinity pattern tables from Entity AST
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -58,7 +58,7 @@ class TableGenerator:
         template = self.env.get_template("table.sql.j2")
         return template.render(**context)
 
-    def _prepare_template_context(self, entity: Entity) -> Dict[str, Any]:
+    def _prepare_template_context(self, entity: Entity) -> dict[str, Any]:
         """Prepare context dictionary for Jinja2 template"""
 
         # Determine multi-tenancy requirements based on schema
@@ -87,7 +87,9 @@ class TableGenerator:
             elif field_def.type_name == "enum" and field_def.values:
                 # Enum field - add CHECK constraint
                 enum_values = ", ".join(f"'{v}'" for v in field_def.values)
-                constraint_name = f"chk_{safe_slug(entity.name)}_{safe_slug(field_name)}_enum"
+                constraint_name = self.constraint_generator._generate_constraint_name(
+                    table_name, field_name, "enum"
+                )
                 table_constraints.append(
                     f"CONSTRAINT {constraint_name} CHECK ({field_name} IN ({enum_values}))"
                 )
@@ -214,11 +216,11 @@ class TableGenerator:
 
         return "\n\n".join(indexes)
 
-    def generate_field_comments(self, entity: Entity) -> List[str]:
+    def generate_field_comments(self, entity: Entity) -> list[str]:
         """Generate COMMENT ON COLUMN statements for all fields"""
         return self.comment_generator.generate_all_field_comments(entity)
 
-    def generate_indexes_for_rich_types(self, entity: Entity) -> List[str]:
+    def generate_indexes_for_rich_types(self, entity: Entity) -> list[str]:
         """Generate indexes for rich type fields"""
         return self.index_generator.generate_indexes_for_rich_types(entity)
 

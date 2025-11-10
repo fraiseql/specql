@@ -3,8 +3,9 @@ Unit tests for ActionValidator
 """
 
 import pytest
+
+from src.core.ast_models import ActionDefinition, ActionStep, EntityDefinition, FieldDefinition
 from src.generators.actions.action_validator import ActionValidator, ValidationError
-from src.core.ast_models import ActionDefinition, EntityDefinition, ActionStep, FieldDefinition
 
 
 class TestActionValidator:

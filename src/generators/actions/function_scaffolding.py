@@ -11,7 +11,6 @@ Generates the outer structure of action functions:
 """
 
 from dataclasses import dataclass
-from typing import Dict, List
 
 from src.core.ast_models import ActionDefinition, EntityDefinition
 
@@ -22,7 +21,7 @@ class FunctionSignature:
 
     function_name: str
     schema: str
-    parameters: List[Dict[str, str]]  # [{"name": "p_id", "type": "UUID"}]
+    parameters: list[dict[str, str]]  # [{"name": "p_id", "type": "UUID"}]
     returns: str = "mutation_result"
 
 
@@ -31,7 +30,7 @@ class FunctionScaffolding:
     """Complete function scaffolding"""
 
     signature: FunctionSignature
-    variables: List[str]  # Variable declarations
+    variables: list[str]  # Variable declarations
     body: str  # Function body (will be filled by step compilers)
     error_handling: bool = True
 
@@ -91,7 +90,7 @@ class FunctionScaffoldingGenerator:
             returns="mutation_result",
         )
 
-    def _generate_variables(self, action: ActionDefinition, entity: EntityDefinition) -> List[str]:
+    def _generate_variables(self, action: ActionDefinition, entity: EntityDefinition) -> list[str]:
         """
         Generate DECLARE block variables
 

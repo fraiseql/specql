@@ -4,7 +4,6 @@ SQL formatting, quoting, and utility functions
 """
 
 import re
-from typing import List, Optional
 
 
 class SQLUtils:
@@ -31,7 +30,7 @@ class SQLUtils:
 
     @staticmethod
     def format_create_table_statement(
-        schema: str, table_name: str, columns: List[str], constraints: Optional[List[str]] = None
+        schema: str, table_name: str, columns: list[str], constraints: list[str] | None = None
     ) -> str:
         """
         Format a CREATE TABLE statement
@@ -125,7 +124,7 @@ class SQLUtils:
         index_name: str,
         schema: str,
         table_name: str,
-        columns: List[str],
+        columns: list[str],
         type: str = "btree",
         unique: bool = False,
     ) -> str:
@@ -153,7 +152,7 @@ class SQLUtils:
     def format_create_function(
         schema: str,
         function_name: str,
-        parameters: List[str],
+        parameters: list[str],
         return_type: str,
         body: str,
         language: str = "sql",
@@ -242,7 +241,7 @@ $$;"""
         return value.replace("'", "''")
 
     @staticmethod
-    def format_string_list(items: List[str], prefix: str = "", suffix: str = "") -> str:
+    def format_string_list(items: list[str], prefix: str = "", suffix: str = "") -> str:
         """
         Format a list of strings with optional prefix/suffix
 

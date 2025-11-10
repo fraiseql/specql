@@ -1,7 +1,7 @@
 """Tests for UUID generator component"""
 
-import pytest
 from uuid import UUID
+
 from src.testing.seed.uuid_generator import SpecQLUUIDGenerator, UUIDComponents
 
 

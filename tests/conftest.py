@@ -2,12 +2,12 @@
 Pytest configuration and shared fixtures
 """
 
-from pathlib import Path
-from typing import Any, Dict
-
-import pytest
-import psycopg
 import uuid
+from pathlib import Path
+from typing import Any
+
+import psycopg
+import pytest
 
 
 @pytest.fixture
@@ -46,7 +46,7 @@ entity: Contact
 
 
 @pytest.fixture
-def mock_entity_dict() -> Dict[str, Any]:
+def mock_entity_dict() -> dict[str, Any]:
     """Return mock entity dictionary for testing"""
     return {
         "entity": {

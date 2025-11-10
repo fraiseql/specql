@@ -2,11 +2,10 @@
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import List, Optional
+
 from src.core.specql_parser import SpecQLParser
-from src.generators.schema_orchestrator import SchemaOrchestrator
 from src.generators.schema.naming_conventions import NamingConventions  # NEW
-from src.core.ast_models import EntityDefinition
+from src.generators.schema_orchestrator import SchemaOrchestrator
 
 
 @dataclass
@@ -16,17 +15,17 @@ class MigrationFile:
     number: int  # Kept for backward compatibility
     name: str
     content: str
-    path: Optional[Path] = None
-    table_code: Optional[str] = None  # NEW: Hexadecimal table code
+    path: Path | None = None
+    table_code: str | None = None  # NEW: Hexadecimal table code
 
 
 @dataclass
 class GenerationResult:
     """Result of generation process"""
 
-    migrations: List[MigrationFile]
-    errors: List[str]
-    warnings: List[str]
+    migrations: list[MigrationFile]
+    errors: list[str]
+    warnings: list[str]
 
 
 class CLIOrchestrator:
@@ -106,7 +105,7 @@ class CLIOrchestrator:
 
     def generate_from_files(
         self,
-        entity_files: List[str],
+        entity_files: list[str],
         output_dir: str = "migrations",
         with_impacts: bool = False,
         include_tv: bool = False,

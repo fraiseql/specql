@@ -1,7 +1,9 @@
-import pytest
 from unittest.mock import Mock
-from src.generators.schema.schema_registry import SchemaRegistry
+
+import pytest
+
 from src.generators.schema.naming_conventions import DomainInfo
+from src.generators.schema.schema_registry import SchemaRegistry
 
 
 @pytest.fixture

@@ -21,7 +21,6 @@ Generated PL/pgSQL:
     END LOOP;
 """
 
-from typing import List
 
 from src.core.ast_models import ActionStep, EntityDefinition
 
@@ -161,7 +160,7 @@ class ForEachStepCompiler:
             return f"""        SELECT * FROM {entity.schema}.{collection_expr}"""
 
     def _compile_loop_body(
-        self, steps: List[ActionStep], entity: EntityDefinition, context: dict, iterator_var: str
+        self, steps: list[ActionStep], entity: EntityDefinition, context: dict, iterator_var: str
     ) -> str:
         """
         Compile the steps to execute inside the FOR loop

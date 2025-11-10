@@ -5,11 +5,11 @@ Tests table code derivation, validation, entity code generation,
 and file path generation.
 """
 
-import pytest
-from pathlib import Path
 
+import pytest
+
+from src.core.ast_models import Entity, Organization
 from src.generators.schema.naming_conventions import NamingConventions
-from src.core.ast_models import Entity, Organization, FieldDefinition
 
 
 class TestEntityCodeDerivation:

@@ -3,9 +3,9 @@ Tests for Function Generator
 """
 
 import pytest
-from src.core.ast_models import Entity, FieldDefinition, Action
+
+from src.core.ast_models import Action, Entity, FieldDefinition
 from src.generators.function_generator import FunctionGenerator
-from tests.fixtures.mock_entities import mock_contact_entity, mock_simple_entity
 
 
 class TestFunctionGenerator:

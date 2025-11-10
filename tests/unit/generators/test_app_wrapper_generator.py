@@ -1,8 +1,7 @@
 """Tests for App Wrapper Generator (Team C)"""
 
-import pytest
+from src.core.ast_models import Action, Entity
 from src.generators.app_wrapper_generator import AppWrapperGenerator
-from src.core.ast_models import Entity, Action
 
 
 def test_generate_app_wrapper_for_create_action():

@@ -15,7 +15,6 @@ Generated PL/pgSQL:
     WHERE pk_contact = v_pk;
 """
 
-from typing import Dict, List
 
 from src.core.ast_models import EntityDefinition
 
@@ -81,7 +80,7 @@ class RichTypeHandler:
         return f"v_{base_field} := jsonb_set(v_{base_field}, '{path_str}', {json_value});"
 
     def build_jsonb_object(
-        self, field_assignments: Dict[str, str], entity: EntityDefinition
+        self, field_assignments: dict[str, str], entity: EntityDefinition
     ) -> str:
         """
         Build a complete JSONB object from field assignments
@@ -126,7 +125,7 @@ class RichTypeHandler:
         # For now, raise an error
         raise NotImplementedError("Multiple base fields not yet supported")
 
-    def _parse_field_path(self, field_path: str) -> tuple[str, List[str]]:
+    def _parse_field_path(self, field_path: str) -> tuple[str, list[str]]:
         """
         Parse a field path like "address.street.city" into base field and path
 

@@ -3,7 +3,8 @@ Tests for ManifestGenerator
 """
 
 import pytest
-from src.numbering.manifest_generator import ManifestGenerator, ManifestEntry
+
+from src.numbering.manifest_generator import ManifestEntry, ManifestGenerator
 
 
 def test_manifest_generator_creation():

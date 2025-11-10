@@ -1,12 +1,11 @@
 """Index generation strategy with partial index support."""
 
-from typing import List
 
 
 def generate_index(
     table_name: str,
     index_name: str,
-    columns: List[str],
+    columns: list[str],
     index_type: str = "btree",
     unique: bool = False,
     partial: bool = True,  # NEW: Default to partial indexes
@@ -46,21 +45,21 @@ def generate_index(
 
 
 def generate_btree_index(
-    table_name: str, index_name: str, columns: List[str], partial: bool = True
+    table_name: str, index_name: str, columns: list[str], partial: bool = True
 ) -> str:
     """Generate B-tree index (most common type)."""
     return generate_index(table_name, index_name, columns, "btree", False, partial)
 
 
 def generate_gin_index(
-    table_name: str, index_name: str, columns: List[str], partial: bool = True
+    table_name: str, index_name: str, columns: list[str], partial: bool = True
 ) -> str:
     """Generate GIN index for JSONB and full-text search."""
     return generate_index(table_name, index_name, columns, "gin", False, partial)
 
 
 def generate_gist_index(
-    table_name: str, index_name: str, columns: List[str], partial: bool = True
+    table_name: str, index_name: str, columns: list[str], partial: bool = True
 ) -> str:
     """Generate GIST index for geometric and range types."""
     return generate_index(table_name, index_name, columns, "gist", False, partial)

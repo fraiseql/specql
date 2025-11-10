@@ -20,7 +20,6 @@ Generated PL/pgSQL:
     END IF;
 """
 
-from typing import List, Optional
 
 from src.core.ast_models import ActionStep, EntityDefinition
 from src.core.scalar_types import get_scalar_type
@@ -70,7 +69,7 @@ class ValidateStepCompiler:
 {check_sql}
 """
 
-    def _extract_fields(self, expression: str, entity: EntityDefinition) -> List[str]:
+    def _extract_fields(self, expression: str, entity: EntityDefinition) -> list[str]:
         """
         Extract field names from validation expression
 
@@ -92,7 +91,7 @@ class ValidateStepCompiler:
 
         return fields_in_expr
 
-    def _generate_select(self, fields: List[str], entity: EntityDefinition) -> str:
+    def _generate_select(self, fields: list[str], entity: EntityDefinition) -> str:
         """
         Generate SELECT statement to fetch field values
 
@@ -156,7 +155,7 @@ class ValidateStepCompiler:
 
     def _is_scalar_validation(
         self, expression: str, entity: EntityDefinition
-    ) -> Optional[tuple[str, str]]:
+    ) -> tuple[str, str] | None:
         """
         Check if expression is a scalar type validation
 

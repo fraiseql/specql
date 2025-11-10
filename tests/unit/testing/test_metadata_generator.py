@@ -1,7 +1,6 @@
 """Tests for TestMetadataGenerator - AST to SQL conversion"""
 
-from pathlib import Path
-from src.core.ast_models import Entity, FieldDefinition, Action
+from src.core.ast_models import Entity, FieldDefinition
 
 
 def test_generate_entity_config():

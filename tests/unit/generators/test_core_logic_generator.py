@@ -1,8 +1,8 @@
 """Tests for Core Logic Generator (Team C)"""
 
 import pytest
-from src.generators.core_logic_generator import CoreLogicGenerator
-from src.core.ast_models import Entity, FieldDefinition, ActionStep, Action
+
+from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
 
 
 @pytest.fixture

@@ -3,22 +3,22 @@ Schema Orchestrator (Team B)
 Coordinates table + type generation for complete schema
 """
 
-from typing import Dict, List, Union
 from dataclasses import dataclass
-from src.generators.table_generator import TableGenerator
-from src.generators.composite_type_generator import CompositeTypeGenerator
-from src.generators.trinity_helper_generator import TrinityHelperGenerator
+
+from src.core.ast_models import Entity, EntityDefinition
 from src.generators.app_schema_generator import AppSchemaGenerator
-from src.generators.core_logic_generator import CoreLogicGenerator
 from src.generators.app_wrapper_generator import AppWrapperGenerator
+from src.generators.composite_type_generator import CompositeTypeGenerator
+from src.generators.core_logic_generator import CoreLogicGenerator
+from src.generators.fraiseql.mutation_annotator import MutationAnnotator
+from src.generators.fraiseql.table_view_annotator import TableViewAnnotator
 from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.schema_registry import SchemaRegistry
-from src.generators.schema.table_view_generator import TableViewGenerator
-from src.utils.safe_slug import safe_table_name
 from src.generators.schema.table_view_dependency import TableViewDependencyResolver
-from src.generators.fraiseql.table_view_annotator import TableViewAnnotator
-from src.generators.fraiseql.mutation_annotator import MutationAnnotator
-from src.core.ast_models import Entity, EntityDefinition
+from src.generators.schema.table_view_generator import TableViewGenerator
+from src.generators.table_generator import TableGenerator
+from src.generators.trinity_helper_generator import TrinityHelperGenerator
+from src.utils.safe_slug import safe_table_name
 
 
 @dataclass
@@ -37,7 +37,7 @@ class SchemaOutput:
 
     table_sql: str  # → db/schema/10_tables/{entity}.sql (includes FraiseQL COMMENT)
     helpers_sql: str  # → db/schema/20_helpers/{entity}_helpers.sql
-    mutations: List[
+    mutations: list[
         MutationFunctionPair
     ]  # → db/schema/30_functions/{action_name}.sql (ONE FILE EACH!)
 
@@ -45,7 +45,7 @@ class SchemaOutput:
 class SchemaOrchestrator:
     """Orchestrates complete schema generation: tables + types + indexes + constraints"""
 
-    def __init__(self, naming_conventions: NamingConventions = None) -> None:
+    def __init__(self, naming_conventions: NamingConventions | None = None) -> None:
         # Create naming conventions if not provided
         if naming_conventions is None:
             naming_conventions = NamingConventions()
@@ -90,6 +90,11 @@ class SchemaOrchestrator:
         # 4. Entity table (Trinity pattern)
         table_sql = self.table_gen.generate_table_ddl(entity)
         parts.append("-- Entity Table\n" + table_sql)
+
+        # 4.5. Field comments for FraiseQL metadata
+        field_comments = self.table_gen.generate_field_comments(entity)
+        if field_comments:
+            parts.append("-- Field Comments for FraiseQL\n" + "\n\n".join(field_comments))
 
         # 4. Input types for actions
         for action in entity.actions:
@@ -194,7 +199,7 @@ class SchemaOrchestrator:
 
         return SchemaOutput(table_sql=table_sql, helpers_sql=helpers_sql, mutations=mutations)
 
-    def generate_table_views(self, entities: List[EntityDefinition]) -> str:
+    def generate_table_views(self, entities: list[EntityDefinition]) -> str:
         """
         Generate tv_ tables for all entities in dependency order.
 
@@ -244,15 +249,15 @@ class SchemaOrchestrator:
         """
         return self.app_gen.generate_app_foundation()
 
-    def generate_schema_summary(self, entity: Entity) -> Dict[str, Union[str, List[str]]]:
+    def generate_schema_summary(self, entity: Entity) -> dict[str, str | list[str]]:
         """
         Generate summary of what will be created for this entity
 
         Returns:
             Dict with counts and names of generated objects
         """
-        types_list: List[str] = []
-        summary: Dict[str, Union[str, List[str]]] = {
+        types_list: list[str] = []
+        summary: dict[str, str | list[str]] = {
             "entity": entity.name,
             "table": f"{entity.schema}.{safe_table_name(entity.name)}",
             "types": types_list,

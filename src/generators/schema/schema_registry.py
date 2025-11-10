@@ -5,8 +5,8 @@ Central registry for schema properties and multi-tenancy classification
 Replaces hardcoded TENANT_SCHEMAS lists with registry-driven lookups
 """
 
-from typing import Optional
-from src.generators.schema.naming_conventions import DomainRegistry, DomainInfo
+
+from src.generators.schema.naming_conventions import DomainInfo, DomainRegistry
 
 
 class SchemaRegistry:
@@ -77,7 +77,7 @@ class SchemaRegistry:
 
         return False
 
-    def get_domain_by_name_or_alias(self, schema_name: str) -> Optional[DomainInfo]:
+    def get_domain_by_name_or_alias(self, schema_name: str) -> DomainInfo | None:
         """
         Get domain info by name or alias
 

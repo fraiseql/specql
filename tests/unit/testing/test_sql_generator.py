@@ -1,7 +1,7 @@
 """Tests for SQL File Generator component"""
 
-import pytest
 from datetime import datetime
+
 from src.testing.seed.sql_generator import SeedSQLGenerator
 from src.testing.seed.uuid_generator import SpecQLUUID
 

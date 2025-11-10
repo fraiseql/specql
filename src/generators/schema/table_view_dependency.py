@@ -5,7 +5,6 @@ Resolves dependency order for tv_ generation and refresh operations.
 Uses topological sort to ensure proper ordering of table view creation and updates.
 """
 
-from typing import Dict, List, Set
 
 from src.core.ast_models import EntityDefinition
 
@@ -13,11 +12,11 @@ from src.core.ast_models import EntityDefinition
 class TableViewDependencyResolver:
     """Resolve dependency order for tv_ generation and refresh."""
 
-    def __init__(self, entities: List[EntityDefinition]):
+    def __init__(self, entities: list[EntityDefinition]):
         self.entities = {e.name: e for e in entities}
         self.dependency_graph = self._build_dependency_graph()
 
-    def _build_dependency_graph(self) -> Dict[str, Set[str]]:
+    def _build_dependency_graph(self) -> dict[str, set[str]]:
         """Build dependency graph (entity -> entities that depend on this entity)."""
         graph = {name: set() for name in self.entities.keys()}
 
@@ -37,7 +36,7 @@ class TableViewDependencyResolver:
 
         return graph
 
-    def get_generation_order(self) -> List[str]:
+    def get_generation_order(self) -> list[str]:
         """Get entity names in dependency order (topological sort)."""
         # Build reverse dependency graph (entity -> depends on entities)
         reverse_graph = {name: set() for name in self.entities.keys()}
@@ -70,7 +69,7 @@ class TableViewDependencyResolver:
 
         return result
 
-    def get_refresh_order_for_entity(self, entity_name: str) -> List[str]:
+    def get_refresh_order_for_entity(self, entity_name: str) -> list[str]:
         """Get entities that must be refreshed when given entity changes."""
         # Return all entities that depend on this one
         return list(self.dependency_graph.get(entity_name, set()))

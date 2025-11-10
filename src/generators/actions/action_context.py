@@ -5,9 +5,8 @@ Provides compilation context from SpecQL AST to guide PL/pgSQL generation.
 """
 
 from dataclasses import dataclass
-from typing import List, Optional, Dict, Any
-
 from typing import Any
+
 from src.core.ast_models import ActionDefinition, ActionStep
 
 
@@ -19,8 +18,8 @@ class ActionContext:
     entity_schema: str
     entity_name: str
     entity: Any  # Full entity definition for table view checks
-    steps: List[ActionStep]
-    impact: Optional[Dict[str, Any]]  # Impact metadata dict
+    steps: list[ActionStep]
+    impact: dict[str, Any] | None  # Impact metadata dict
     has_impact_metadata: bool
 
     @classmethod
@@ -44,7 +43,7 @@ class ActionContext:
             has_impact_metadata=action_ast.impact is not None,
         )
 
-    def get_step_types(self) -> List[str]:
+    def get_step_types(self) -> list[str]:
         """Get list of step types for this action"""
         return [step.type for step in self.steps]
 
@@ -56,13 +55,13 @@ class ActionContext:
         """Check if action operates on existing entity (needs ID parameter)"""
         return any(step.type in ("update", "delete", "validate") for step in self.steps)
 
-    def get_primary_entity_impact(self) -> Optional[Dict[str, Any]]:
+    def get_primary_entity_impact(self) -> dict[str, Any] | None:
         """Get primary entity impact from impact metadata"""
         if not self.impact:
             return None
         return self.impact.get("primary")
 
-    def get_side_effects(self) -> List[Dict[str, Any]]:
+    def get_side_effects(self) -> list[dict[str, Any]]:
         """Get side effects from impact metadata"""
         if not self.impact:
             return []

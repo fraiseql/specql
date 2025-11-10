@@ -5,14 +5,13 @@ Converts arbitrary text to URL-safe identifiers
 
 import re
 import unicodedata
-from typing import Optional
 
 
 def safe_slug(
-    text: Optional[str],
+    text: str | None,
     separator: str = "_",
     fallback: str = "untitled",
-    max_length: Optional[int] = None,
+    max_length: int | None = None,
 ) -> str:
     """
     Convert text to a safe slug (URL-safe identifier)
@@ -82,7 +81,7 @@ def safe_slug(
     return text
 
 
-def safe_identifier(text: Optional[str], fallback: str = "field") -> str:
+def safe_identifier(text: str | None, fallback: str = "field") -> str:
     """
     Create a safe Python/PostgreSQL identifier from text
 

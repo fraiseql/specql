@@ -9,12 +9,9 @@ Tests that schema_registry properly affects:
 """
 
 import pytest
+
 from src.core.ast_models import Entity, FieldDefinition
-from src.generators.table_generator import TableGenerator
-from src.generators.trinity_helper_generator import TrinityHelperGenerator
 from src.generators.actions.step_compilers.fk_resolver import ForeignKeyResolver
-from src.generators.schema.naming_conventions import NamingConventions
-from src.generators.schema.schema_registry import SchemaRegistry
 
 
 @pytest.fixture

@@ -2,7 +2,6 @@
 Test success response generation
 """
 
-import pytest
 from src.generators.actions.action_context import ActionContext
 from src.generators.actions.success_response_generator import SuccessResponseGenerator
 
@@ -87,8 +86,8 @@ def test_generates_impact_metadata_composite_type():
     context = create_test_context_with_impact()
 
     # Use the existing ImpactMetadataCompiler
-    from src.generators.actions.impact_metadata_compiler import ImpactMetadataCompiler
     from src.core.ast_models import Action, ActionImpact, EntityImpact
+    from src.generators.actions.impact_metadata_compiler import ImpactMetadataCompiler
 
     # Create Action object for the compiler
     action = Action(
@@ -122,8 +121,8 @@ def test_generates_impact_metadata_composite_type():
 
 def test_generates_side_effect_collections():
     """Collect created entities in extra_metadata collections"""
-    from src.generators.actions.impact_metadata_compiler import ImpactMetadataCompiler
     from src.core.ast_models import Action, ActionImpact, EntityImpact
+    from src.generators.actions.impact_metadata_compiler import ImpactMetadataCompiler
 
     action = Action(
         name="qualify_lead",

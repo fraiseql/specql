@@ -1,6 +1,5 @@
 """Test SchemaGenerator produces explicit validation pattern."""
 
-import pytest
 from src.core.ast_models import EntityDefinition, FieldDefinition, FieldTier
 from src.generators.schema.schema_generator import SchemaGenerator
 

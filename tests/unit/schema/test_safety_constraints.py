@@ -1,13 +1,12 @@
 """Tests for safety constraint triggers generation."""
 
-import pytest
-from src.generators.schema.safety_constraints import (
-    generate_safety_constraints,
-    generate_circular_reference_check,
-    generate_sequence_limit_check,
-    generate_depth_limit_check,
-)
 from src.core.ast_models import EntityDefinition, FieldDefinition, FieldTier
+from src.generators.schema.safety_constraints import (
+    generate_circular_reference_check,
+    generate_depth_limit_check,
+    generate_safety_constraints,
+    generate_sequence_limit_check,
+)
 
 
 class TestGenerateSafetyConstraints:
@@ -175,8 +174,8 @@ class TestConstraintIntegration:
 
     def test_explicit_validation_pattern_in_schema_ddl(self):
         """Test that explicit validation pattern replaces safety constraint triggers."""
-        from src.generators.schema.schema_generator import SchemaGenerator
         from src.core.ast_models import EntityDefinition, FieldDefinition, FieldTier
+        from src.generators.schema.schema_generator import SchemaGenerator
 
         entity = EntityDefinition(
             name="category",

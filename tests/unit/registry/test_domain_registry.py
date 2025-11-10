@@ -4,11 +4,12 @@ Tests for DomainRegistry class
 Tests registry loading, entity lookup, and management functions.
 """
 
-import pytest
 from pathlib import Path
+
+import pytest
 import yaml
 
-from src.generators.schema.naming_conventions import DomainRegistry, EntityRegistryEntry
+from src.generators.schema.naming_conventions import DomainRegistry
 
 
 class TestDomainRegistryLoading:

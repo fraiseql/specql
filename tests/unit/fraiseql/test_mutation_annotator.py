@@ -2,7 +2,6 @@
 Unit tests for mutation FraiseQL annotation generator
 """
 
-import pytest
 from src.core.ast_models import Action, ActionImpact, EntityImpact
 from src.generators.fraiseql.mutation_annotator import MutationAnnotator
 
@@ -127,7 +126,7 @@ class TestCoreMutationAnnotation:
             sql = annotator.generate_mutation_annotation(action)
 
             assert f"COMMENT ON FUNCTION {schema}.test_action" in sql
-            assert f"Called by: app.test_action" in sql
+            assert "Called by: app.test_action" in sql
             assert "@fraiseql:mutation" not in sql
 
 
@@ -238,8 +237,8 @@ class TestAppMutationAnnotation:
             annotator = MutationAnnotator(schema, "TestEntity")
             sql = annotator.generate_app_mutation_annotation(action)
 
-            assert f"COMMENT ON FUNCTION app.test_action" in sql
-            assert f"operation on TestEntity" in sql
+            assert "COMMENT ON FUNCTION app.test_action" in sql
+            assert "operation on TestEntity" in sql
 
 
 class TestMetadataMapping:

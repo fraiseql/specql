@@ -2,7 +2,6 @@
 Unit tests for FraiseQL compatibility checker
 """
 
-import pytest
 from src.generators.fraiseql.compatibility_checker import CompatibilityChecker
 
 

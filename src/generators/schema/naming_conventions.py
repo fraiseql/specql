@@ -17,16 +17,15 @@ Example: 012321
   1  = first file
 """
 
-from dataclasses import dataclass
-from typing import Optional, Dict, List
-from pathlib import Path
-from datetime import datetime
-import yaml
 import re
+from dataclasses import dataclass
+from datetime import datetime
+from pathlib import Path
 
-from src.core.ast_models import Entity, Organization
-from src.numbering.numbering_parser import NumberingParser, TableCodeComponents
+import yaml
 
+from src.core.ast_models import Entity
+from src.numbering.numbering_parser import NumberingParser
 
 # ============================================================================
 # Data Models
@@ -53,7 +52,7 @@ class SubdomainInfo:
     subdomain_name: str
     description: str
     next_entity_sequence: int
-    entities: Dict[str, Dict]
+    entities: dict[str, dict]
 
 
 @dataclass
@@ -63,8 +62,8 @@ class DomainInfo:
     domain_code: str
     domain_name: str
     description: str
-    subdomains: Dict[str, SubdomainInfo]
-    aliases: List[str]
+    subdomains: dict[str, SubdomainInfo]
+    aliases: list[str]
     multi_tenant: bool
 
 
@@ -87,8 +86,8 @@ class DomainRegistry:
 
     def __init__(self, registry_path: str = "registry/domain_registry.yaml"):
         self.registry_path = Path(registry_path)
-        self.registry: Dict = {}
-        self.entities_index: Dict[str, EntityRegistryEntry] = {}
+        self.registry: dict = {}
+        self.entities_index: dict[str, EntityRegistryEntry] = {}
         self.load()
 
     def load(self):
@@ -99,7 +98,7 @@ class DomainRegistry:
                 f"Create it by copying registry/domain_registry.yaml.example"
             )
 
-        with open(self.registry_path, "r") as f:
+        with open(self.registry_path) as f:
             self.registry = yaml.safe_load(f)
 
         # Build entity index for quick lookup
@@ -128,7 +127,7 @@ class DomainRegistry:
                         domain=domain_name,
                     )
 
-    def get_entity(self, entity_name: str) -> Optional[EntityRegistryEntry]:
+    def get_entity(self, entity_name: str) -> EntityRegistryEntry | None:
         """
         Get entity from registry by name
 
@@ -140,7 +139,7 @@ class DomainRegistry:
         """
         return self.entities_index.get(entity_name.lower())
 
-    def get_domain(self, domain_identifier: str) -> Optional[DomainInfo]:
+    def get_domain(self, domain_identifier: str) -> DomainInfo | None:
         """
         Get domain by code, name, or alias
 
@@ -187,7 +186,7 @@ class DomainRegistry:
             multi_tenant=domain_data.get("multi_tenant", False),
         )
 
-    def get_subdomain(self, domain_code: str, subdomain_identifier: str) -> Optional[SubdomainInfo]:
+    def get_subdomain(self, domain_code: str, subdomain_identifier: str) -> SubdomainInfo | None:
         """
         Get subdomain by code or name
 
@@ -373,7 +372,7 @@ class NamingConventions:
         return self.derive_table_code(entity, schema_layer=schema_layer)
 
     def derive_table_code(
-        self, entity: Entity, schema_layer: str = "01", subdomain: Optional[str] = None
+        self, entity: Entity, schema_layer: str = "01", subdomain: str | None = None
     ) -> str:
         """
         Automatically derive table code from entity
@@ -745,7 +744,7 @@ class NamingConventions:
             subdomain_code=subdomain_code,
         )
 
-    def get_all_entities(self) -> List[EntityRegistryEntry]:
+    def get_all_entities(self) -> list[EntityRegistryEntry]:
         """
         Get all registered entities
 
@@ -754,7 +753,7 @@ class NamingConventions:
         """
         return list(self.registry.entities_index.values())
 
-    def get_entities_by_domain(self, domain_name: str) -> List[EntityRegistryEntry]:
+    def get_entities_by_domain(self, domain_name: str) -> list[EntityRegistryEntry]:
         """
         Get all entities in a domain
 
@@ -770,7 +769,7 @@ class NamingConventions:
 
     def get_entities_by_subdomain(
         self, domain_name: str, subdomain_name: str
-    ) -> List[EntityRegistryEntry]:
+    ) -> list[EntityRegistryEntry]:
         """
         Get all entities in a subdomain
 

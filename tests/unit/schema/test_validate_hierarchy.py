@@ -9,7 +9,7 @@ class TestValidateHierarchyChange:
     def test_validate_hierarchy_template_exists(self):
         """Should have validate_hierarchy_change template."""
         try:
-            with open("templates/sql/hierarchy/validate_hierarchy_change.sql.jinja2", "r") as f:
+            with open("templates/sql/hierarchy/validate_hierarchy_change.sql.jinja2") as f:
                 template_content = f.read()
         except FileNotFoundError:
             # Template doesn't exist yet - this is expected for RED test
@@ -22,7 +22,7 @@ class TestValidateHierarchyChange:
 
     def test_validate_hierarchy_template_structure(self):
         """Should define function with correct signature and logic."""
-        with open("templates/sql/hierarchy/validate_hierarchy_change.sql.jinja2", "r") as f:
+        with open("templates/sql/hierarchy/validate_hierarchy_change.sql.jinja2") as f:
             template = Template(f.read())
 
         result = template.render()

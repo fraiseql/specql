@@ -1,13 +1,12 @@
 """Tests for tenant-scoped composite index generation."""
 
-import pytest
+from src.core.ast_models import EntityDefinition, FieldDefinition, FieldTier
 from src.generators.schema.tenant_indexes import (
+    _is_entity_hierarchical,
+    generate_tenant_id_lookup_index,
     generate_tenant_indexes,
     generate_tenant_isolation_index,
-    generate_tenant_id_lookup_index,
-    _is_entity_hierarchical,
 )
-from src.core.ast_models import EntityDefinition, FieldDefinition, FieldTier
 
 
 class TestGenerateTenantIndexes:

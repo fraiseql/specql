@@ -2,7 +2,6 @@
 Test update step compilation
 """
 
-import pytest
 from src.core.ast_models import ActionStep, EntityDefinition, FieldDefinition
 from src.generators.actions.step_compilers.update_compiler import UpdateStepCompiler
 

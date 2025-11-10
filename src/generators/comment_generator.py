@@ -3,8 +3,9 @@ PostgreSQL COMMENT Generator
 Generates descriptive COMMENT ON statements for FraiseQL autodiscovery
 """
 
-from typing import List, Dict, Optional
+
 from src.core.ast_models import Entity, FieldDefinition
+from src.core.scalar_types import get_scalar_type
 from src.utils.safe_slug import safe_table_name
 
 
@@ -26,12 +27,12 @@ class CommentGenerator:
     def __init__(self) -> None:
         self._type_descriptions = self._build_type_descriptions()
 
-    def _build_type_descriptions(self) -> Dict[str, str]:
+    def _build_type_descriptions(self) -> dict[str, str]:
         """Build human-readable descriptions for rich types"""
         return {
             # String-based
-            "email": "Email address (validated format)",
-            "url": "URL/website address (validated format)",
+            "email": "Email address",
+            "url": "URL/website address",
             "phone": "Phone number in E.164 format",
             "phoneNumber": "Phone number in E.164 format",
             "ipAddress": "IP address (IPv4 or IPv6)",
@@ -67,7 +68,7 @@ class CommentGenerator:
         }
 
     def generate_field_comment(
-        self, field: FieldDefinition, entity: Entity, custom_description: Optional[str] = None
+        self, field: FieldDefinition, entity: Entity, custom_description: str | None = None
     ) -> str:
         """Generate COMMENT ON COLUMN for a field with FraiseQL YAML annotations"""
 
@@ -108,7 +109,14 @@ class CommentGenerator:
     def _get_field_description(self, field: FieldDefinition) -> str:
         """Get human-readable description for field"""
 
-        # Use type description from registry
+        # First check if it's a rich type from SCALAR_TYPES
+        scalar_def = get_scalar_type(field.type_name)
+        if scalar_def:
+            description = scalar_def.description
+            # Validation is implied by the type, no need to add extra text
+            return description
+
+        # Fall back to hardcoded descriptions for basic types
         description = self._type_descriptions.get(field.type_name, "")
 
         if not description:
@@ -135,6 +143,11 @@ class CommentGenerator:
             base_type = self.TYPE_MAPPINGS.get(field.item_type or "text", "String")
             return f"[{base_type}]"
         else:
+            # Check if it's a rich type with a specific GraphQL scalar
+            scalar_def = get_scalar_type(field.type_name)
+            if scalar_def:
+                return scalar_def.fraiseql_scalar_name
+
             # Map PostgreSQL types to GraphQL types
             pg_type = self.TYPE_MAPPINGS.get(field.type_name, "String")
             graphql_mappings = {
@@ -149,7 +162,7 @@ class CommentGenerator:
             }
             return graphql_mappings.get(pg_type, "String")
 
-    def generate_all_field_comments(self, entity: Entity) -> List[str]:
+    def generate_all_field_comments(self, entity: Entity) -> list[str]:
         """Generate COMMENT statements for all fields"""
         comments = []
 

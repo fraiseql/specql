@@ -3,14 +3,13 @@ Dependency Resolver
 Provides topological sorting for dependency resolution
 """
 
-from typing import Dict, List, Set
 
 
 class DependencyResolver:
     """Resolves dependencies using topological sorting"""
 
     def __init__(self):
-        self.dependencies: Dict[str, Set[str]] = {}
+        self.dependencies: dict[str, set[str]] = {}
 
     def add_dependency(self, item: str, depends_on: str) -> None:
         """
@@ -24,7 +23,7 @@ class DependencyResolver:
             self.dependencies[item] = set()
         self.dependencies[item].add(depends_on)
 
-    def resolve(self, items: List[str]) -> List[str]:
+    def resolve(self, items: list[str]) -> list[str]:
         """
         Resolve dependencies and return items in execution order
 

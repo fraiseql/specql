@@ -4,7 +4,6 @@ Conditional Compiler - Transform conditional logic to PL/pgSQL control flow
 
 import re
 from dataclasses import dataclass
-from typing import List
 
 from src.core.ast_models import ActionStep, Entity
 from src.utils.safe_slug import safe_slug, safe_table_name
@@ -72,7 +71,7 @@ class ConditionalCompiler:
     END CASE;
 """
 
-    def _extract_fields(self, condition: str, entity: Entity) -> List[str]:
+    def _extract_fields(self, condition: str, entity: Entity) -> list[str]:
         """
         Extract field names from condition expression
 
@@ -90,7 +89,7 @@ class ConditionalCompiler:
 
         return fields_in_condition
 
-    def _generate_select(self, fields: List[str], entity: Entity) -> str:
+    def _generate_select(self, fields: list[str], entity: Entity) -> str:
         """
         Generate SELECT statement to fetch field values
 
@@ -129,7 +128,7 @@ class ConditionalCompiler:
 
         return condition
 
-    def _compile_steps(self, steps: List[ActionStep], entity: Entity) -> str:
+    def _compile_steps(self, steps: list[ActionStep], entity: Entity) -> str:
         """Compile list of steps (recursive)"""
         # For now, return a simple placeholder - will be enhanced when integrated
         if not steps:

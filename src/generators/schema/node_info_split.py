@@ -1,7 +1,7 @@
 """Node+Info split pattern for complex entities."""
 
 import logging
-from typing import List, Tuple
+
 from src.core.ast_models import EntityDefinition, FieldDefinition
 
 logger = logging.getLogger(__name__)
@@ -49,7 +49,7 @@ def should_split_entity(entity: EntityDefinition) -> bool:
 
 def split_entity_fields(
     entity: EntityDefinition,
-) -> Tuple[List[FieldDefinition], List[FieldDefinition]]:
+) -> tuple[list[FieldDefinition], list[FieldDefinition]]:
     """Split entity fields into node fields and info fields.
 
     Args:
@@ -216,18 +216,18 @@ def generate_unified_view_ddl(entity: EntityDefinition, schema: str) -> str:
 
     # Build field list for view
     view_fields = [
-        f"    -- Node fields",
+        "    -- Node fields",
         f"    n.pk_{entity_lower},",
-        f"    n.id,",
-        f"    n.tenant_id,",
-        f"    n.path,",
+        "    n.id,",
+        "    n.tenant_id,",
+        "    n.path,",
         f"    n.fk_parent_{entity_lower},",
-        f"",
-        f"    -- Info fields",
+        "",
+        "    -- Info fields",
         f"    i.pk_{entity_lower}_info,",
-        f"    i.identifier,",
-        f"    i.sequence_number,",
-        f"    i.display_identifier,",
+        "    i.identifier,",
+        "    i.sequence_number,",
+        "    i.display_identifier,",
     ]
 
     # Add business fields from info table
@@ -238,20 +238,20 @@ def generate_unified_view_ddl(entity: EntityDefinition, schema: str) -> str:
     # Add combined audit fields
     view_fields.extend(
         [
-            f"",
-            f"    -- Audit (combined)",
-            f"    n.created_at,",
-            f"    n.created_by,",
-            f"    i.updated_at,",
-            f"    i.updated_by,",
-            f"    n.deleted_at,",
-            f"    n.deleted_by,",
-            f"",
-            f"    -- Recalculation Audit",
-            f"    i.identifier_recalculated_at,",
-            f"    i.identifier_recalculated_by,",
-            f"    n.path_updated_at,",
-            f"    n.path_updated_by",
+            "",
+            "    -- Audit (combined)",
+            "    n.created_at,",
+            "    n.created_by,",
+            "    i.updated_at,",
+            "    i.updated_by,",
+            "    n.deleted_at,",
+            "    n.deleted_by,",
+            "",
+            "    -- Recalculation Audit",
+            "    i.identifier_recalculated_at,",
+            "    i.identifier_recalculated_by,",
+            "    n.path_updated_at,",
+            "    n.path_updated_by",
         ]
     )
 
@@ -281,7 +281,7 @@ schema: {schema}';"""
     return ddl
 
 
-def generate_node_info_split_ddl(entity: EntityDefinition, schema: str) -> List[str]:
+def generate_node_info_split_ddl(entity: EntityDefinition, schema: str) -> list[str]:
     """Generate complete DDL for node+info split pattern.
 
     Args:

@@ -5,9 +5,8 @@ Tests that refresh_table_view steps are properly compiled to PERFORM calls
 in generated PL/pgSQL functions.
 """
 
-import pytest
 from pathlib import Path
-from src.core.specql_parser import SpecQLParser
+
 from src.generators.core_logic_generator import CoreLogicGenerator
 
 

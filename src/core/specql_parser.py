@@ -6,7 +6,7 @@ Extended to parse:
 """
 
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 import yaml
 
@@ -142,7 +142,9 @@ class SpecQLParser:
         """
         Parse a field definition
 
-        Supports:
+        Supports both lightweight and complex formats:
+
+        Lightweight (string):
         - email!          → email scalar, NOT NULL
         - phoneNumber     → phoneNumber scalar, NULL
         - SimpleAddress   → composite type, NULL
@@ -150,7 +152,22 @@ class SpecQLParser:
         - enum(values...)
         - ref(Entity)
         - list(type)
+
+        Complex (dict):
+        - type: email
+          nullable: false
+          description: "Primary email"
         """
+
+        # Handle dict format (complex)
+        if isinstance(field_spec, dict):
+            return self._parse_field_dict(field_name, field_spec)
+
+        # Handle string format (lightweight)
+        return self._parse_field_string(field_name, field_spec)
+
+    def _parse_field_string(self, field_name: str, field_spec: str) -> FieldDefinition:
+        """Parse field from string specification (lightweight format)"""
 
         # Extract type and nullability
         type_str = str(field_spec).strip()
@@ -188,6 +205,44 @@ class SpecQLParser:
 
         # Otherwise, basic type (text, integer, etc.)
         return self._parse_basic_field(field_name, type_str, nullable, default)
+
+    def _parse_field_dict(self, field_name: str, field_spec: dict) -> FieldDefinition:
+        """Parse field from dict specification (complex format)"""
+
+        # Extract core attributes
+        type_name = field_spec.get("type", "text")
+        nullable = field_spec.get("nullable", True)
+        default = field_spec.get("default")
+        description = field_spec.get("description", "")
+
+        # Handle enum types
+        if type_name.startswith("enum(") and type_name.endswith(")"):
+            return self._parse_enum_field(field_name, type_name, nullable, default)
+
+        # Handle list types
+        if type_name.startswith("list(") and type_name.endswith(")"):
+            return self._parse_list_field(field_name, type_name, nullable, default)
+
+        # Handle reference types
+        if type_name.startswith("ref(") and type_name.endswith(")"):
+            return self._parse_reference_field(field_name, type_name, nullable)
+
+        # Handle rich scalar types
+        if is_scalar_type(type_name):
+            field = self._parse_scalar_field(field_name, type_name, nullable)
+            field.description = description
+            return field
+
+        # Handle composite types
+        if is_composite_type(type_name):
+            field = self._parse_composite_field(field_name, type_name, nullable)
+            field.description = description
+            return field
+
+        # Handle basic types
+        field = self._parse_basic_field(field_name, type_name, nullable, default)
+        field.description = description
+        return field
 
     def _parse_scalar_field(
         self, field_name: str, type_name: str, nullable: bool
@@ -290,7 +345,7 @@ class SpecQLParser:
         )
 
     def _parse_enum_field(
-        self, field_name: str, type_str: str, nullable: bool, default: Optional[str]
+        self, field_name: str, type_str: str, nullable: bool, default: str | None
     ) -> FieldDefinition:
         """Parse enum field type"""
 
@@ -310,7 +365,7 @@ class SpecQLParser:
         )
 
     def _parse_list_field(
-        self, field_name: str, type_str: str, nullable: bool, default: Optional[str]
+        self, field_name: str, type_str: str, nullable: bool, default: str | None
     ) -> FieldDefinition:
         """Parse list field type"""
 
@@ -329,7 +384,7 @@ class SpecQLParser:
         )
 
     def _parse_basic_field(
-        self, field_name: str, type_name: str, nullable: bool, default: Optional[str] = None
+        self, field_name: str, type_name: str, nullable: bool, default: str | None = None
     ) -> FieldDefinition:
         """Parse basic type field (text, integer, etc.)"""
 
@@ -580,7 +635,7 @@ class SpecQLParser:
         )
 
     def _validate_expression_fields(
-        self, expression: str, entity_fields: Dict[str, FieldDefinition]
+        self, expression: str, entity_fields: dict[str, FieldDefinition]
     ) -> None:
         """Validate that fields referenced in expression exist, skipping quoted strings"""
 
@@ -618,7 +673,7 @@ class SpecQLParser:
                     f"Available fields: {', '.join(sorted(entity_fields.keys()))}"
                 )
 
-    def _parse_identifier_config(self, yaml_data: dict) -> Optional[IdentifierConfig]:
+    def _parse_identifier_config(self, yaml_data: dict) -> IdentifierConfig | None:
         """Parse identifier configuration from YAML."""
 
         if "identifier" not in yaml_data:

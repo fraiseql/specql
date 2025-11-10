@@ -7,7 +7,6 @@ Tests full pipeline:
 - Verify metadata for Teams B & D
 """
 
-import pytest
 from src.core.specql_parser import SpecQLParser
 
 

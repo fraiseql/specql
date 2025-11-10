@@ -1,9 +1,9 @@
 """CLI test fixtures and configuration."""
 
-import pytest
 import tempfile
 from pathlib import Path
-from typing import List
+
+import pytest
 from click.testing import CliRunner
 
 from src.core.specql_parser import SpecQLParser

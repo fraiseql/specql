@@ -3,7 +3,6 @@ Composite Type Builder - Type-safe construction of PostgreSQL composite types
 """
 
 import json
-from typing import List
 
 from src.core.ast_models import CacheInvalidation, EntityImpact
 
@@ -35,7 +34,7 @@ class CompositeTypeBuilder:
         )::mutation_metadata.cache_invalidation"""
 
     @staticmethod
-    def build_entity_impact_array(impacts: List[EntityImpact]) -> str:
+    def build_entity_impact_array(impacts: list[EntityImpact]) -> str:
         """Build array of entity_impact composite types"""
         if not impacts:
             return "ARRAY[]::mutation_metadata.entity_impact[]"
@@ -45,7 +44,7 @@ class CompositeTypeBuilder:
         return f"ARRAY[\n        {separator.join(rows)}\n    ]"
 
     @staticmethod
-    def build_cache_invalidation_array(invalidations: List[CacheInvalidation]) -> str:
+    def build_cache_invalidation_array(invalidations: list[CacheInvalidation]) -> str:
         """Build array of cache_invalidation composite types"""
         if not invalidations:
             return "ARRAY[]::mutation_metadata.cache_invalidation[]"

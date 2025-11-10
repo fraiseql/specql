@@ -3,6 +3,7 @@ Tests for NumberingParser
 """
 
 import pytest
+
 from src.numbering.numbering_parser import NumberingParser
 
 

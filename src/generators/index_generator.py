@@ -3,7 +3,6 @@ Index Generator for Rich Types
 Generates appropriate database indexes for FraiseQL rich types
 """
 
-from typing import List
 
 from src.core.ast_models import Entity, FieldDefinition
 from src.utils.safe_slug import safe_slug, safe_table_name
@@ -12,7 +11,7 @@ from src.utils.safe_slug import safe_slug, safe_table_name
 class IndexGenerator:
     """Generates database indexes appropriate for rich types"""
 
-    def generate_indexes_for_rich_types(self, entity: Entity) -> List[str]:
+    def generate_indexes_for_rich_types(self, entity: Entity) -> list[str]:
         """Generate indexes for all rich type fields in an entity"""
         indexes = []
 
@@ -23,7 +22,7 @@ class IndexGenerator:
 
         return indexes
 
-    def _generate_index_for_field(self, field: FieldDefinition, entity: Entity) -> List[str]:
+    def _generate_index_for_field(self, field: FieldDefinition, entity: Entity) -> list[str]:
         """
         Generate appropriate index for a single rich type field
 

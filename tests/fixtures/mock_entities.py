@@ -3,12 +3,12 @@ Mock Entity fixtures for Team B generator testing
 """
 
 from src.core.ast_models import (
-    Entity,
-    FieldDefinition,
-    Organization,
-    OperationConfig,
     Action,
     ActionStep,
+    Entity,
+    FieldDefinition,
+    OperationConfig,
+    Organization,
 )
 
 

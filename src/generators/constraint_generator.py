@@ -3,7 +3,7 @@ Constraint Generator for Rich Types
 Generates CHECK constraints for FraiseQL rich types
 """
 
-from typing import Optional
+
 from src.core.ast_models import FieldDefinition
 from src.utils.safe_slug import safe_slug
 
@@ -11,22 +11,47 @@ from src.utils.safe_slug import safe_slug
 class ConstraintGenerator:
     """Generates CHECK constraints for rich types"""
 
-    def generate_constraint(self, field: FieldDefinition, table_name: str) -> Optional[str]:
+    def generate_constraint(self, field: FieldDefinition, table_name: str) -> str | None:
         """Generate appropriate constraint for a field"""
 
         if not field.is_rich_type():
             return None
 
+        constraints = []
+
         # Get validation pattern
         pattern = field.get_validation_pattern()
         if pattern:
-            constraint_name = self._generate_constraint_name(table_name, field.name, "check")
-            return f"CONSTRAINT {constraint_name} CHECK ({field.name} ~* '{pattern}')"
+            constraint_name = self._generate_constraint_name(table_name, field.name, "pattern")
+            constraints.append(f"CONSTRAINT {constraint_name} CHECK ({field.name} ~* '{pattern}')")
+
+        # Min/max value constraints
+        min_max_checks = []
+        if field.min_value is not None:
+            min_max_checks.append(f"{field.name} >= {field.min_value}")
+        if field.max_value is not None:
+            min_max_checks.append(f"{field.name} <= {field.max_value}")
+
+        if min_max_checks:
+            constraint_name = self._generate_constraint_name(table_name, field.name, "range")
+            constraints.append(
+                f"CONSTRAINT {constraint_name} CHECK ({' AND '.join(min_max_checks)})"
+            )
 
         # Special constraints for specific types
         if field.type_name == "coordinates":
             constraint_name = self._generate_constraint_name(table_name, field.name, "bounds")
-            return f"CONSTRAINT {constraint_name} CHECK ({field.name}[0] BETWEEN -90 AND 90 AND {field.name}[1] BETWEEN -180 AND 180)"
+            constraints.append(
+                f"CONSTRAINT {constraint_name} CHECK ({field.name}[0] BETWEEN -90 AND 90 AND {field.name}[1] BETWEEN -180 AND 180)"
+            )
+
+        # Return combined constraints or single constraint
+        if len(constraints) == 1:
+            return constraints[0]
+        elif len(constraints) > 1:
+            # For multiple constraints, we'd need to handle this differently
+            # For now, return the first one (pattern takes precedence)
+            return constraints[0]
 
         return None
 

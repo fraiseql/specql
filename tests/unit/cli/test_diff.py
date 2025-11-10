@@ -1,8 +1,5 @@
 """Tests for CLI diff command."""
 
-import pytest
-from pathlib import Path
-from click.testing import CliRunner
 
 from src.cli.diff import diff, generate_entity_sql, load_migration_sql
 
@@ -34,7 +31,6 @@ class TestDiffCommand:
 
     def test_diff_command_help(self, cli_runner):
         """Test diff command help text."""
-        from src.cli.diff import diff
 
         result = cli_runner.invoke(diff, ["--help"])
         assert result.exit_code == 0
@@ -44,7 +40,6 @@ class TestDiffCommand:
 
     def test_diff_without_compare(self, cli_runner, sample_entity_file):
         """Test diff command without --compare option."""
-        from src.cli.diff import diff
 
         result = cli_runner.invoke(diff, [str(sample_entity_file)])
 
@@ -55,7 +50,6 @@ class TestDiffCommand:
 
     def test_diff_with_compare_no_differences(self, cli_runner, sample_entity_file, temp_dir):
         """Test diff with compare when files are identical."""
-        from src.cli.diff import diff
 
         # Generate SQL and save as "migration"
         entity_sql = generate_entity_sql(str(sample_entity_file))
@@ -71,7 +65,6 @@ class TestDiffCommand:
 
     def test_diff_with_compare_has_differences(self, cli_runner, sample_entity_file, temp_dir):
         """Test diff with compare when files differ."""
-        from src.cli.diff import diff
 
         # Create different migration SQL
         migration_sql = "CREATE TABLE contact (id INTEGER PRIMARY KEY, name TEXT);"
@@ -89,7 +82,6 @@ class TestDiffCommand:
 
     def test_diff_with_color_option(self, cli_runner, sample_entity_file, temp_dir):
         """Test diff with color option."""
-        from src.cli.diff import diff
 
         # Create different migration SQL
         migration_sql = "CREATE TABLE contact (id INTEGER);"
@@ -106,7 +98,6 @@ class TestDiffCommand:
 
     def test_diff_with_no_color_option(self, cli_runner, sample_entity_file, temp_dir):
         """Test diff with no-color option."""
-        from src.cli.diff import diff
 
         # Create different migration SQL
         migration_sql = "CREATE TABLE contact (id INTEGER);"
@@ -123,7 +114,6 @@ class TestDiffCommand:
 
     def test_diff_with_context_option(self, cli_runner, sample_entity_file, temp_dir):
         """Test diff with custom context lines."""
-        from src.cli.diff import diff
 
         # Create different migration SQL
         migration_sql = "CREATE TABLE contact (id INTEGER);"
@@ -140,7 +130,6 @@ class TestDiffCommand:
 
     def test_diff_invalid_entity_file(self, cli_runner, temp_dir):
         """Test diff with invalid entity file."""
-        from src.cli.diff import diff
 
         invalid_file = temp_dir / "invalid.yaml"
         invalid_file.write_text("invalid: yaml: content: [")
@@ -152,7 +141,6 @@ class TestDiffCommand:
 
     def test_diff_nonexistent_compare_file(self, cli_runner, sample_entity_file):
         """Test diff with nonexistent compare file."""
-        from src.cli.diff import diff
 
         result = cli_runner.invoke(diff, [str(sample_entity_file), "--compare", "nonexistent.sql"])
 
@@ -160,7 +148,6 @@ class TestDiffCommand:
 
     def test_diff_nonexistent_entity_file(self, cli_runner):
         """Test diff with nonexistent entity file."""
-        from src.cli.diff import diff
 
         result = cli_runner.invoke(diff, ["nonexistent.yaml"])
 

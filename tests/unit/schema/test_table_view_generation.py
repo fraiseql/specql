@@ -1,14 +1,15 @@
 import pytest
+
 from src.core.ast_models import (
     EntityDefinition,
+    ExtraFilterColumn,
     FieldDefinition,
+    IncludeRelation,
     TableViewConfig,
     TableViewMode,
-    IncludeRelation,
-    ExtraFilterColumn,
 )
-from src.generators.schema.table_view_generator import TableViewGenerator
 from src.generators.schema.table_view_dependency import TableViewDependencyResolver
+from src.generators.schema.table_view_generator import TableViewGenerator
 
 
 class TestTableViewGeneration:

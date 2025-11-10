@@ -4,7 +4,6 @@ Maps SpecQL rich types to PostgreSQL storage types and GraphQL scalars
 """
 
 from dataclasses import dataclass
-from typing import Dict, Set, Optional
 
 
 @dataclass
@@ -15,7 +14,7 @@ class TypeMetadata:
     postgres_type: str
     graphql_scalar: str
     description: str
-    validation_pattern: Optional[str] = None
+    validation_pattern: str | None = None
 
 
 class TypeRegistry:
@@ -24,7 +23,7 @@ class TypeRegistry:
     def __init__(self) -> None:
         self._types = self._build_type_registry()
 
-    def _build_type_registry(self) -> Dict[str, TypeMetadata]:
+    def _build_type_registry(self) -> dict[str, TypeMetadata]:
         """Build the complete type registry"""
         return {
             # String-based types
@@ -198,14 +197,14 @@ class TypeRegistry:
             raise ValueError(f"Unknown rich type: {type_name}")
         return str(metadata.graphql_scalar)
 
-    def get_validation_pattern(self, type_name: str) -> Optional[str]:
+    def get_validation_pattern(self, type_name: str) -> str | None:
         """Get regex validation pattern for rich type"""
         metadata = self._types.get(type_name)
         if not metadata:
             return None
         return metadata.validation_pattern
 
-    def get_all_rich_types(self) -> Set[str]:
+    def get_all_rich_types(self) -> set[str]:
         """Get set of all rich type names"""
         return set(self._types.keys())
 

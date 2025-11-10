@@ -4,8 +4,10 @@ SpecQL Validate CLI
 Validate SpecQL entity definitions
 """
 
-import click
 from pathlib import Path
+
+import click
+
 from src.core.specql_parser import SpecQLParser
 
 

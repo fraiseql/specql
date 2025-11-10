@@ -3,7 +3,7 @@ Composite Type Generator (Team B)
 Generates PostgreSQL composite types for action inputs
 """
 
-from typing import Any, Dict, List
+from typing import Any
 
 from jinja2 import Environment, FileSystemLoader
 
@@ -64,7 +64,7 @@ class CompositeTypeGenerator:
 
     def _determine_action_fields(
         self, entity: Entity, action: Action
-    ) -> Dict[str, FieldDefinition]:
+    ) -> dict[str, FieldDefinition]:
         """
         Determine which fields are needed for action input
 
@@ -114,8 +114,8 @@ class CompositeTypeGenerator:
         return api_fields
 
     def _prepare_fields(
-        self, fields: Dict[str, FieldDefinition], type_name: str
-    ) -> Dict[str, Dict[str, Any]]:
+        self, fields: dict[str, FieldDefinition], type_name: str
+    ) -> dict[str, dict[str, Any]]:
         """Prepare fields for template rendering"""
         prepared = {}
         for field_name, field_def in fields.items():
@@ -126,8 +126,8 @@ class CompositeTypeGenerator:
         return prepared
 
     def _generate_field_comments(
-        self, type_name: str, fields: Dict[str, FieldDefinition]
-    ) -> List[str]:
+        self, type_name: str, fields: dict[str, FieldDefinition]
+    ) -> list[str]:
         """Generate FraiseQL field-level comments with YAML metadata"""
         comments = []
         for field_name, field_def in fields.items():
@@ -223,7 +223,7 @@ class CompositeTypeGenerator:
 
     def _analyze_custom_action_fields(
         self, action: Action, entity: Entity
-    ) -> Dict[str, FieldDefinition]:
+    ) -> dict[str, FieldDefinition]:
         """
         Analyze custom action steps to determine required input fields
 

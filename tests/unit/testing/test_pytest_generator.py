@@ -1,6 +1,7 @@
 """Unit tests for pytest generator."""
 
 import pytest
+
 from src.testing.pytest.pytest_generator import PytestGenerator
 
 

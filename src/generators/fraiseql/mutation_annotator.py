@@ -8,7 +8,7 @@ Purpose:
 - Map PostgreSQL function parameters to GraphQL input types
 """
 
-from typing import Any, Dict, Optional
+from typing import Any
 
 from src.core.ast_models import Action, ActionImpact
 
@@ -185,7 +185,7 @@ class MutationAnnotator:
         else:
             return "OPERATION"
 
-    def _build_metadata_mapping(self, impact: Optional[ActionImpact] = None) -> str:
+    def _build_metadata_mapping(self, impact: ActionImpact | None = None) -> str:
         """
         Build metadata mapping JSON for cache invalidation
 
@@ -200,7 +200,7 @@ class MutationAnnotator:
 
         # For now, include basic impact metadata
         # In a full implementation, this would include detailed cache invalidation rules
-        mapping: Dict[str, Any] = {"_meta": "MutationImpactMetadata"}
+        mapping: dict[str, Any] = {"_meta": "MutationImpactMetadata"}
 
         # Add primary entity impact
         if impact.primary:

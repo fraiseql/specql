@@ -34,6 +34,7 @@ CREATE TABLE crm.tb_task (
     -- ========================================================================
     -- Foreign Keys (Trinity Pattern: INTEGER references)
     -- ========================================================================
+
     -- ========================================================================
     -- Audit Fields (Trinity Pattern standard)
     -- ========================================================================
@@ -48,7 +49,7 @@ CREATE TABLE crm.tb_task (
     -- Constraints
     -- ========================================================================
     CONSTRAINT tb_task_id_key UNIQUE (id)
-    ,CONSTRAINT chk_task_priority_enum CHECK (priority IN ('low', 'medium', 'high')));
+    ,CONSTRAINT chk_tb_task_priority_enum CHECK (priority IN ('low', 'medium', 'high')));
 
 -- ============================================================================
 -- Foreign Key Constraints (defined after table creation)

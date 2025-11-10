@@ -3,8 +3,6 @@ Tests for PostgreSQL COMMENT Generation
 Tests COMMENT ON statement generation for FraiseQL autodiscovery
 """
 
-import pytest
-from src.generators.table_generator import TableGenerator
 from src.core.ast_models import Entity, FieldDefinition
 
 
@@ -60,8 +58,8 @@ def test_rich_type_comment_includes_validation_info(table_generator):
 
     comments = table_generator.generate_field_comments(entity)
 
-    # Should mention it's validated
-    assert any("validated" in c.lower() or "format" in c.lower() for c in comments)
+    # Should mention the type and validation details
+    assert any("email" in c.lower() and "rfc" in c.lower() for c in comments)
 
 
 def test_complete_entity_generates_all_comments(table_generator):

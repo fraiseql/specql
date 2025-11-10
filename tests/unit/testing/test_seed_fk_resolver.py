@@ -1,7 +1,9 @@
 """Tests for FK Resolver and Group Leader components"""
 
+from unittest.mock import Mock
+
 import pytest
-from unittest.mock import Mock, MagicMock
+
 from src.testing.seed.fk_resolver import ForeignKeyResolver, GroupLeaderExecutor
 
 

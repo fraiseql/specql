@@ -5,7 +5,8 @@ Coordinates complex actions involving multiple entities within transactions.
 Handles multi-entity operations, side effects, and transaction management.
 """
 
-from typing import List, Dict, Any, Optional
+from typing import Any
+
 from src.core.ast_models import ActionDefinition, EntityDefinition
 from src.utils.safe_slug import safe_slug, safe_table_name
 
@@ -26,7 +27,7 @@ class ActionOrchestrator:
         self,
         action: ActionDefinition,
         primary_entity: EntityDefinition,
-        related_entities: List[EntityDefinition],
+        related_entities: list[EntityDefinition],
     ) -> str:
         """
         Compile actions that affect multiple entities within a transaction
@@ -124,7 +125,7 @@ $$;
         self,
         action: ActionDefinition,
         primary_entity: EntityDefinition,
-        related_entities: List[EntityDefinition],
+        related_entities: list[EntityDefinition],
     ) -> str:
         """
         Compile all steps in the action
@@ -299,8 +300,8 @@ $$;
     -- TODO: Implement notification compilation"""
 
     def _find_entity_by_name(
-        self, name: str, entities: List[EntityDefinition]
-    ) -> Optional[EntityDefinition]:
+        self, name: str, entities: list[EntityDefinition]
+    ) -> EntityDefinition | None:
         """
         Find entity by name
 

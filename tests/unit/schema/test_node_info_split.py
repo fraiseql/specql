@@ -1,13 +1,12 @@
-import pytest
+from src.core.ast_models import EntityDefinition, FieldDefinition
 from src.generators.schema.node_info_split import (
+    generate_info_table_ddl,
+    generate_node_info_split_ddl,
+    generate_node_table_ddl,
+    generate_unified_view_ddl,
     should_split_entity,
     split_entity_fields,
-    generate_node_table_ddl,
-    generate_info_table_ddl,
-    generate_unified_view_ddl,
-    generate_node_info_split_ddl,
 )
-from src.core.ast_models import EntityDefinition, FieldDefinition
 
 
 def test_should_split_entity_opt_in_false():

@@ -1,8 +1,7 @@
 """UUID generator for SpecQL test data with encoded components"""
 
-from uuid import UUID
 from dataclasses import dataclass
-from typing import Optional
+from uuid import UUID
 
 
 @dataclass
@@ -70,7 +69,7 @@ class SpecQLUUIDGenerator:
         entity_name: str,
         entity_code: str,  # From metadata: base_uuid_prefix
         test_type: str = "general_seed",
-        function_num: Optional[int] = None,
+        function_num: int | None = None,
     ):
         self.entity_name = entity_name
         self.entity_code = entity_code.zfill(6)  # Ensure 6 digits

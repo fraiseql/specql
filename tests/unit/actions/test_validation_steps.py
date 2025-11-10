@@ -26,7 +26,9 @@ class TestValidationSteps:
             fields={
                 "email": FieldDefinition(name="email", type_name="text"),
                 "status": FieldDefinition(name="status", type_name="text"),
-                "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company"),
+                "company": FieldDefinition(
+                    name="company", type_name="ref", reference_entity="Company"
+                ),
             },
         )
 
@@ -59,8 +61,8 @@ class TestValidationSteps:
 
         sql = compiler.compile(step, contact_entity)
 
-        # Expected: PostgreSQL regex operator
-        assert "IF NOT (email ~ '[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}') THEN" in sql
+        # Expected: PostgreSQL regex operator with full anchored pattern
+        assert "IF NOT (email ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$') THEN" in sql
 
     def test_exists_query_validation(self, compiler, contact_entity):
         """Test: Compile EXISTS subquery validation"""

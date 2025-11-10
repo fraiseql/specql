@@ -5,7 +5,7 @@ Generates PostgreSQL functions for recalculating entity identifiers based on Spe
 Supports hierarchical and composite identifier strategies.
 """
 
-from typing import Optional
+
 from src.core.ast_models import EntityDefinition
 from src.core.separators import Separators
 
@@ -223,7 +223,7 @@ Components have tenant prefix stripped to avoid duplication.';
         # Simple heuristic: if entity has tenant_id field, apply prefix
         return any(field.name == "tenant_id" for field in entity.fields.values())
 
-    def _detect_tenant_field(self, entity: EntityDefinition) -> Optional[str]:
+    def _detect_tenant_field(self, entity: EntityDefinition) -> str | None:
         """Detect the tenant field name."""
         for field in entity.fields.values():
             if field.name == "tenant_id":

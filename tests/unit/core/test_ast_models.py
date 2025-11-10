@@ -1,5 +1,4 @@
-import pytest
-from src.core.ast_models import FieldDefinition, FieldTier, EntityDefinition
+from src.core.ast_models import EntityDefinition, FieldDefinition, FieldTier
 from src.core.scalar_types import SCALAR_TYPES
 
 

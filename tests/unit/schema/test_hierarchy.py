@@ -3,7 +3,6 @@ Tests for LTREE hierarchy path functionality
 Tests INTEGER-based LTREE path calculation and management
 """
 
-import pytest
 from jinja2 import Template
 
 
@@ -12,7 +11,7 @@ class TestHierarchyTemplates:
 
     def test_calculate_path_template_renders(self):
         """Test that calculate_path template renders correctly."""
-        with open("templates/sql/hierarchy/calculate_path.sql.jinja2", "r") as f:
+        with open("templates/sql/hierarchy/calculate_path.sql.jinja2") as f:
             template = Template(f.read())
 
         result = template.render(schema="tenant", entity_lower="location")
@@ -26,7 +25,7 @@ class TestHierarchyTemplates:
 
     def test_recalculate_descendants_template_renders(self):
         """Test that recalculate_descendants template renders correctly."""
-        with open("templates/sql/hierarchy/recalculate_descendants.sql.jinja2", "r") as f:
+        with open("templates/sql/hierarchy/recalculate_descendants.sql.jinja2") as f:
             template = Template(f.read())
 
         result = template.render(schema="tenant", entity_lower="location")
@@ -48,13 +47,13 @@ class TestHierarchyTemplateIntegration:
         entity_config = {"schema": "inventory", "entity_lower": "category"}
 
         # Test calculate_path
-        with open("templates/sql/hierarchy/calculate_path.sql.jinja2", "r") as f:
+        with open("templates/sql/hierarchy/calculate_path.sql.jinja2") as f:
             calc_template = Template(f.read())
         calc_result = calc_template.render(**entity_config)
         assert "inventory.calculate_category_path" in calc_result
 
         # Test recalculate descendants
-        with open("templates/sql/hierarchy/recalculate_descendants.sql.jinja2", "r") as f:
+        with open("templates/sql/hierarchy/recalculate_descendants.sql.jinja2") as f:
             recalc_template = Template(f.read())
         recalc_result = recalc_template.render(**entity_config)
         assert "inventory.recalculate_category_descendant_paths" in recalc_result
@@ -64,7 +63,7 @@ class TestHierarchyTemplateIntegration:
         entity_config = {"schema": "tenant", "entity_lower": "department"}
 
         # Recalculate should reference calculate function
-        with open("templates/sql/hierarchy/recalculate_descendants.sql.jinja2", "r") as f:
+        with open("templates/sql/hierarchy/recalculate_descendants.sql.jinja2") as f:
             recalc_template = Template(f.read())
         recalc_result = recalc_template.render(**entity_config)
 

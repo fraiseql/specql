@@ -5,7 +5,6 @@ Parses 6-character hexadecimal table codes into hierarchical components
 
 import re
 from dataclasses import dataclass
-from typing import Dict
 
 
 @dataclass
@@ -48,7 +47,7 @@ class NumberingParser:
     # Domain code mappings
     DOMAIN_CODES = {"1": "core", "2": "management", "3": "catalog", "4": "tenant"}
 
-    def parse_table_code(self, table_code: str) -> Dict[str, str]:
+    def parse_table_code(self, table_code: str) -> dict[str, str]:
         """Parse 6-character hexadecimal table code into hierarchical components"""
         components = self.parse_table_code_detailed(table_code)
 

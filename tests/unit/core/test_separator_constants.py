@@ -1,6 +1,5 @@
 """Test separator constants and utilities."""
 
-import pytest
 from src.core.separators import Separators
 
 

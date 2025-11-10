@@ -3,12 +3,11 @@ Tests for deduplication pattern generation
 Tests the 3-field deduplication pattern implementation
 """
 
-import pytest
+from src.core.ast_models import EntityDefinition
 from src.generators.schema.deduplication import (
     generate_deduplication_fields,
     generate_deduplication_indexes,
 )
-from src.core.ast_models import EntityDefinition
 
 
 class TestDeduplicationFields:

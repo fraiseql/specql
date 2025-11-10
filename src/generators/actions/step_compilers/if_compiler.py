@@ -29,7 +29,6 @@ Generated PL/pgSQL:
     END IF;
 """
 
-from typing import List
 
 from src.core.ast_models import ActionStep, EntityDefinition
 
@@ -83,7 +82,7 @@ class IfStepCompiler:
 {if_block_sql}
 """
 
-    def _extract_fields(self, condition: str, entity: EntityDefinition) -> List[str]:
+    def _extract_fields(self, condition: str, entity: EntityDefinition) -> list[str]:
         """
         Extract field names from condition expression
 
@@ -105,7 +104,7 @@ class IfStepCompiler:
 
         return fields_in_condition
 
-    def _generate_select(self, fields: List[str], entity: EntityDefinition) -> str:
+    def _generate_select(self, fields: list[str], entity: EntityDefinition) -> str:
         """
         Generate SELECT statement to fetch field values
 
@@ -132,8 +131,8 @@ class IfStepCompiler:
     def _generate_if_block(
         self,
         condition: str,
-        then_steps: List[ActionStep],
-        else_steps: List[ActionStep],
+        then_steps: list[ActionStep],
+        else_steps: list[ActionStep],
         entity: EntityDefinition,
         context: dict,
     ) -> str:
@@ -167,7 +166,7 @@ class IfStepCompiler:
     END IF;"""
 
     def _compile_steps(
-        self, steps: List[ActionStep], entity: EntityDefinition, context: dict
+        self, steps: list[ActionStep], entity: EntityDefinition, context: dict
     ) -> str:
         """
         Compile a list of steps using the step compiler registry

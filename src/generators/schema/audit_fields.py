@@ -1,11 +1,11 @@
 """Audit field generation with separate recalculation tracking."""
 
-from typing import Optional
+
 from src.core.ast_models import EntityDefinition
 
 
 def generate_audit_fields(
-    entity: Optional[EntityDefinition] = None, is_hierarchical: bool = False
+    entity: EntityDefinition | None = None, is_hierarchical: bool = False
 ) -> str:
     """Generate audit fields with separate recalculation tracking.
 

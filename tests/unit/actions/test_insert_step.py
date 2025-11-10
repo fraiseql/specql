@@ -2,7 +2,6 @@
 Test insert step compilation
 """
 
-import pytest
 from src.core.ast_models import ActionStep, EntityDefinition, FieldDefinition
 from src.generators.actions.step_compilers.insert_compiler import InsertStepCompiler
 

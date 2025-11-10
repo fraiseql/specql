@@ -3,8 +3,6 @@ Integration Tests for TableGenerator
 Tests complete DDL generation, foreign keys, constraints, and orchestration
 """
 
-import pytest
-from src.generators.table_generator import TableGenerator
 from src.core.ast_models import Entity, FieldDefinition
 
 
@@ -39,7 +37,7 @@ def test_complete_ddl_with_enum_constraints(table_generator):
 
     ddl = table_generator.generate_table_ddl(entity)
 
-    assert "CONSTRAINT chk_task_status_enum CHECK" in ddl
+    assert "CONSTRAINT chk_tb_task_status_enum CHECK" in ddl
     assert "status IN ('pending', 'in_progress', 'completed')" in ddl
 
 
@@ -105,8 +103,8 @@ def test_generate_complete_ddl_orchestration(table_generator):
     assert "status TEXT" in complete_ddl
 
     # Should have constraints
-    assert "CONSTRAINT chk_tb_contact_email_check" in complete_ddl
-    assert "CONSTRAINT chk_contact_status_enum" in complete_ddl
+    assert "CONSTRAINT chk_tb_contact_email_pattern" in complete_ddl
+    assert "CONSTRAINT chk_tb_contact_status_enum" in complete_ddl
 
     # Should have indexes
     assert "CREATE INDEX idx_tb_contact_id" in complete_ddl
@@ -117,7 +115,7 @@ def test_generate_complete_ddl_orchestration(table_generator):
     # Should have comments
     assert "COMMENT ON TABLE crm.tb_contact" in complete_ddl
     assert "COMMENT ON COLUMN crm.tb_contact.email" in complete_ddl
-    assert "Email address" in complete_ddl and "validated format" in complete_ddl
+    assert "Valid email address (RFC 5322 simplified)" in complete_ddl
 
 
 def test_tenant_specific_schema_gets_multi_tenant_fields(table_generator):
@@ -171,9 +169,9 @@ def test_rich_types_in_complete_ddl(table_generator):
     complete_ddl = table_generator.generate_complete_ddl(entity)
 
     # Should have rich type constraints
-    assert "chk_tb_contact_email_check" in complete_ddl
-    assert "chk_tb_contact_website_check" in complete_ddl
-    assert "chk_tb_contact_phone_check" in complete_ddl
+    assert "chk_tb_contact_email_pattern" in complete_ddl
+    assert "chk_tb_contact_website_pattern" in complete_ddl
+    assert "chk_tb_contact_phone_pattern" in complete_ddl
     assert "chk_tb_contact_coordinates_bounds" in complete_ddl
 
     # Should have rich type indexes
@@ -183,10 +181,10 @@ def test_rich_types_in_complete_ddl(table_generator):
     assert "idx_tb_contact_coordinates" in complete_ddl
 
     # Should have descriptive comments
-    assert "Email address (validated format)" in complete_ddl
-    assert "URL/website address (validated format)" in complete_ddl
-    assert "Phone number in E.164 format" in complete_ddl
-    assert "Geographic coordinates (latitude, longitude)" in complete_ddl
+    assert "Valid email address (RFC 5322 simplified)" in complete_ddl
+    assert "Valid HTTP or HTTPS URL" in complete_ddl
+    assert "International phone number (E.164 format)" in complete_ddl
+    assert "Geographic coordinates (lat, lng)" in complete_ddl
 
 
 def test_no_duplicate_comments_in_complete_ddl(table_generator):

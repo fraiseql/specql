@@ -8,16 +8,16 @@ Extended to support:
 """
 
 from dataclasses import dataclass, field
-from typing import Optional, List, Dict, Any
 from enum import Enum
+from typing import Any, Optional
 
 # Import from scalar_types
 from src.core.scalar_types import (
-    ScalarTypeDef,
     CompositeTypeDef,
+    ScalarTypeDef,
     get_scalar_type,
-    is_scalar_type,
     is_composite_type,
+    is_scalar_type,
 )
 
 # Import separators
@@ -55,8 +55,8 @@ class IncludeRelation:
     """Specification for including a related entity in table view."""
 
     entity_name: str
-    fields: List[str]  # Which fields to include from related entity
-    include_relations: List["IncludeRelation"] = field(default_factory=list)  # Nested
+    fields: list[str]  # Which fields to include from related entity
+    include_relations: list["IncludeRelation"] = field(default_factory=list)  # Nested
 
     def __post_init__(self):
         """Validate field list."""
@@ -75,7 +75,7 @@ class RefreshTableViewStep:
     """Action step for refreshing table views."""
 
     scope: RefreshScope = RefreshScope.SELF
-    propagate: List[str] = field(default_factory=list)  # Entity names to refresh
+    propagate: list[str] = field(default_factory=list)  # Entity names to refresh
     strategy: str = "immediate"  # immediate | deferred
 
 
@@ -84,8 +84,8 @@ class ExtraFilterColumn:
     """Extra filter column specification."""
 
     name: str
-    source: Optional[str] = None  # e.g., "author.name" for nested extraction
-    type: Optional[str] = None  # Explicit type override
+    source: str | None = None  # e.g., "author.name" for nested extraction
+    type: str | None = None  # Explicit type override
     index_type: str = "btree"  # btree | gin | gin_trgm | gist
 
     @classmethod
@@ -112,10 +112,10 @@ class TableViewConfig:
     mode: TableViewMode = TableViewMode.AUTO
 
     # Explicit relation inclusion
-    include_relations: List[IncludeRelation] = field(default_factory=list)
+    include_relations: list[IncludeRelation] = field(default_factory=list)
 
     # Performance-optimized filter columns
-    extra_filter_columns: List[ExtraFilterColumn] = field(default_factory=list)
+    extra_filter_columns: list[ExtraFilterColumn] = field(default_factory=list)
 
     # Refresh strategy (always explicit for now)
     refresh: str = "explicit"
@@ -140,44 +140,44 @@ class FieldDefinition:
     name: str
     type_name: str
     nullable: bool = True
-    default: Optional[Any] = None
+    default: Any | None = None
     description: str = ""
 
     # Tier classification
     tier: FieldTier = FieldTier.BASIC
 
     # For enum fields
-    values: Optional[List[str]] = None
+    values: list[str] | None = None
 
     # For list fields
-    item_type: Optional[str] = None
+    item_type: str | None = None
 
     # Tier 1: Scalar rich type metadata
-    scalar_def: Optional[ScalarTypeDef] = None
+    scalar_def: ScalarTypeDef | None = None
 
     # Tier 2: Composite type metadata (set in Phase 2)
     composite_def: Optional["CompositeTypeDef"] = None
 
     # Tier 3: Reference metadata (set in Phase 3)
-    reference_entity: Optional[str] = None
-    reference_schema: Optional[str] = None
+    reference_entity: str | None = None
+    reference_schema: str | None = None
 
     # PostgreSQL generation metadata (for Team B)
-    postgres_type: Optional[str] = None
-    postgres_precision: Optional[tuple] = None
-    validation_pattern: Optional[str] = None
-    min_value: Optional[float] = None
-    max_value: Optional[float] = None
+    postgres_type: str | None = None
+    postgres_precision: tuple | None = None
+    validation_pattern: str | None = None
+    min_value: float | None = None
+    max_value: float | None = None
 
     # FraiseQL metadata (for Team D)
-    fraiseql_type: Optional[str] = None
-    fraiseql_relation: Optional[str] = None  # "many-to-one", "one-to-many"
-    fraiseql_schema: Optional[Dict[str, str]] = None  # For composites
+    fraiseql_type: str | None = None
+    fraiseql_relation: str | None = None  # "many-to-one", "one-to-many"
+    fraiseql_schema: dict[str, str] | None = None  # For composites
 
     # UI hints (future)
     input_type: str = "text"
-    placeholder: Optional[str] = None
-    example: Optional[str] = None
+    placeholder: str | None = None
+    example: str | None = None
 
     def __post_init__(self):
         """Initialize field based on type_name"""
@@ -219,7 +219,6 @@ class FieldDefinition:
 
     def get_postgres_type(self) -> str:
         """Get the PostgreSQL type for this field"""
-        from src.core.scalar_types import get_scalar_type
 
         # If we have a cached postgres_type, use it
         if self.postgres_type:
@@ -255,7 +254,7 @@ class FieldDefinition:
         # Fallback
         return "TEXT"
 
-    def get_validation_pattern(self) -> Optional[str]:
+    def get_validation_pattern(self) -> str | None:
         """Get validation regex pattern for this field"""
         if self.scalar_def and self.scalar_def.validation_pattern:
             return self.scalar_def.validation_pattern
@@ -274,9 +273,9 @@ class IdentifierComponent:
 
     field: str
     transform: str = "slugify"
-    format: Optional[str] = None
+    format: str | None = None
     separator: str = ""
-    replace: Optional[Dict[str, str]] = None
+    replace: dict[str, str] | None = None
     strip_tenant_prefix: bool = False  # NEW: Strip tenant prefix from referenced identifiers
 
 
@@ -287,8 +286,8 @@ class IdentifierConfig:
     strategy: str
 
     # Components
-    prefix: List[IdentifierComponent] = field(default_factory=list)
-    components: List[IdentifierComponent] = field(default_factory=list)
+    prefix: list[IdentifierComponent] = field(default_factory=list)
+    components: list[IdentifierComponent] = field(default_factory=list)
 
     # Separators (NEW)
     separator: str = Separators.HIERARCHY  # Default changed from "_" to "."
@@ -301,8 +300,8 @@ class TranslationConfig:
     """Configuration for i18n translation tables"""
 
     enabled: bool = False
-    table_name: Optional[str] = None  # e.g., "tl_manufacturer"
-    fields: List[str] = field(default_factory=list)  # Fields to translate
+    table_name: str | None = None  # e.g., "tl_manufacturer"
+    fields: list[str] = field(default_factory=list)  # Fields to translate
 
 
 @dataclass
@@ -314,13 +313,13 @@ class EntityDefinition:
     description: str = ""
 
     # Fields
-    fields: Dict[str, FieldDefinition] = field(default_factory=dict)
+    fields: dict[str, FieldDefinition] = field(default_factory=dict)
 
     # Actions (for Team C)
-    actions: List["ActionDefinition"] = field(default_factory=list)
+    actions: list["ActionDefinition"] = field(default_factory=list)
 
     # AI agents
-    agents: List["Agent"] = field(default_factory=list)
+    agents: list["Agent"] = field(default_factory=list)
 
     # Organization (numbering system)
     organization: Optional["Organization"] = None
@@ -332,10 +331,13 @@ class EntityDefinition:
     is_catalog_table: bool = False  # True for Country, Industry, etc.
 
     # i18n translations
-    translations: Optional[TranslationConfig] = None
+    translations: TranslationConfig | None = None
 
     # NEW: Table views configuration
-    table_views: Optional[TableViewConfig] = None
+    table_views: TableViewConfig | None = None
+
+    # Identifier configuration (NEW)
+    identifier: IdentifierConfig | None = None
 
     @property
     def has_foreign_keys(self) -> bool:
@@ -363,13 +365,13 @@ class ActionDefinition:
 
     name: str
     description: str = ""
-    steps: List["ActionStep"] = field(default_factory=list)
+    steps: list["ActionStep"] = field(default_factory=list)
 
     # Impact metadata (for Team C)
-    impact: Optional[Dict[str, Any]] = None
+    impact: dict[str, Any] | None = None
 
     # Hierarchy impact (for explicit path recalculation)
-    hierarchy_impact: Optional[str] = (
+    hierarchy_impact: str | None = (
         None  # 'recalculate_subtree', 'recalculate_tenant', 'recalculate_global'
     )
 
@@ -381,39 +383,39 @@ class ActionStep:
     type: str  # validate, if, insert, update, delete, call, find, etc.
 
     # For validate steps
-    expression: Optional[str] = None
-    error: Optional[str] = None
+    expression: str | None = None
+    error: str | None = None
 
     # For conditional steps
-    condition: Optional[str] = None
-    then_steps: List["ActionStep"] = field(default_factory=list)
-    else_steps: List["ActionStep"] = field(default_factory=list)
+    condition: str | None = None
+    then_steps: list["ActionStep"] = field(default_factory=list)
+    else_steps: list["ActionStep"] = field(default_factory=list)
 
     # For switch steps
-    cases: Optional[Dict[str, List["ActionStep"]]] = None
+    cases: dict[str, list["ActionStep"]] | None = None
 
     # For database operations
-    entity: Optional[str] = None
-    fields: Optional[Dict[str, Any]] = None
-    where_clause: Optional[str] = None
+    entity: str | None = None
+    fields: dict[str, Any] | None = None
+    where_clause: str | None = None
 
     # For function calls
-    function_name: Optional[str] = None
-    arguments: Optional[Dict[str, Any]] = None
-    store_result: Optional[str] = None
+    function_name: str | None = None
+    arguments: dict[str, Any] | None = None
+    store_result: str | None = None
 
     # For foreach steps
-    foreach_expr: Optional[str] = None
-    iterator_var: Optional[str] = None
-    collection: Optional[str] = None
+    foreach_expr: str | None = None
+    iterator_var: str | None = None
+    collection: str | None = None
 
     # For notify steps
-    recipient: Optional[str] = None
-    channel: Optional[str] = None
+    recipient: str | None = None
+    channel: str | None = None
 
     # For refresh_table_view steps
-    refresh_scope: Optional[RefreshScope] = None
-    propagate_entities: List[str] = field(default_factory=list)
+    refresh_scope: RefreshScope | None = None
+    propagate_entities: list[str] = field(default_factory=list)
     refresh_strategy: str = "immediate"
 
 
@@ -423,8 +425,8 @@ class EntityImpact:
 
     entity: str
     operation: str  # CREATE, UPDATE, DELETE
-    fields: List[str] = field(default_factory=list)
-    collection: Optional[str] = None  # For side effects (e.g., "createdNotifications")
+    fields: list[str] = field(default_factory=list)
+    collection: str | None = None  # For side effects (e.g., "createdNotifications")
 
 
 @dataclass
@@ -432,7 +434,7 @@ class CacheInvalidation:
     """Cache invalidation specification"""
 
     query: str  # GraphQL query name to invalidate
-    filter: Optional[Dict[str, Any]] = None  # Filter conditions
+    filter: dict[str, Any] | None = None  # Filter conditions
     strategy: str = "REFETCH"  # REFETCH, REMOVE, UPDATE
     reason: str = ""  # Human-readable reason
 
@@ -442,8 +444,8 @@ class ActionImpact:
     """Complete impact metadata for an action"""
 
     primary: EntityImpact
-    side_effects: List[EntityImpact] = field(default_factory=list)
-    cache_invalidations: List[CacheInvalidation] = field(default_factory=list)
+    side_effects: list[EntityImpact] = field(default_factory=list)
+    cache_invalidations: list[CacheInvalidation] = field(default_factory=list)
 
 
 @dataclass
@@ -451,10 +453,10 @@ class Action:
     """Parsed action definition"""
 
     name: str
-    requires: Optional[str] = None  # Permission expression
-    steps: List[ActionStep] = field(default_factory=list)
-    impact: Optional[ActionImpact] = None  # Impact metadata
-    hierarchy_impact: Optional[str] = None  # Explicit path recalculation scope
+    requires: str | None = None  # Permission expression
+    steps: list[ActionStep] = field(default_factory=list)
+    impact: ActionImpact | None = None  # Impact metadata
+    hierarchy_impact: str | None = None  # Explicit path recalculation scope
 
 
 @dataclass
@@ -463,27 +465,27 @@ class Entity:
 
     name: str
     schema: str = "public"
-    table: Optional[str] = None
-    table_code: Optional[str] = None
+    table: str | None = None
+    table_code: str | None = None
     description: str = ""
 
     # Core components
-    fields: Dict[str, FieldDefinition] = field(default_factory=dict)
-    actions: List[Action] = field(default_factory=list)
-    agents: List["Agent"] = field(default_factory=list)
+    fields: dict[str, FieldDefinition] = field(default_factory=dict)
+    actions: list[Action] = field(default_factory=list)
+    agents: list["Agent"] = field(default_factory=list)
 
     # Database schema
-    foreign_keys: List["ForeignKey"] = field(default_factory=list)
-    indexes: List["Index"] = field(default_factory=list)
+    foreign_keys: list["ForeignKey"] = field(default_factory=list)
+    indexes: list["Index"] = field(default_factory=list)
 
     # Hierarchical entity support
     hierarchical: bool = False  # True if entity has parent/path structure
 
     # Identifier configuration (NEW)
-    identifier: Optional[IdentifierConfig] = None
+    identifier: IdentifierConfig | None = None
 
     # Business logic
-    validation: List["ValidationRule"] = field(default_factory=list)
+    validation: list["ValidationRule"] = field(default_factory=list)
     deduplication: Optional["DeduplicationStrategy"] = None
     operations: Optional["OperationConfig"] = None
 
@@ -496,7 +498,7 @@ class Entity:
     organization: Optional["Organization"] = None
 
     # Metadata
-    notes: Optional[str] = None
+    notes: str | None = None
 
 
 @dataclass
@@ -505,8 +507,8 @@ class Agent:
 
     name: str
     type: str = "rule_based"
-    observes: List[str] = field(default_factory=list)
-    can_execute: List[str] = field(default_factory=list)
+    observes: list[str] = field(default_factory=list)
+    can_execute: list[str] = field(default_factory=list)
     strategy: str = ""
     audit: str = "required"
 
@@ -515,8 +517,8 @@ class Agent:
 class DeduplicationRule:
     """Deduplication rule"""
 
-    fields: List[str]
-    when: Optional[str] = None
+    fields: list[str]
+    when: str | None = None
     priority: int = 1
     message: str = ""
 
@@ -526,7 +528,7 @@ class DeduplicationStrategy:
     """Deduplication strategy"""
 
     strategy: str
-    rules: List[DeduplicationRule] = field(default_factory=list)
+    rules: list[DeduplicationRule] = field(default_factory=list)
 
 
 @dataclass
@@ -535,7 +537,7 @@ class ForeignKey:
 
     name: str
     references: str
-    on: List[str]
+    on: list[str]
     nullable: bool = True
     description: str = ""
 
@@ -545,17 +547,17 @@ class GraphQLSchema:
     """GraphQL schema configuration"""
 
     type_name: str
-    queries: List[str] = field(default_factory=list)
-    mutations: List[str] = field(default_factory=list)
+    queries: list[str] = field(default_factory=list)
+    mutations: list[str] = field(default_factory=list)
 
 
 @dataclass
 class Index:
     """Database index definition"""
 
-    columns: List[str]
+    columns: list[str]
     type: str = "btree"
-    name: Optional[str] = None
+    name: str | None = None
 
 
 @dataclass
@@ -573,7 +575,7 @@ class Organization:
     """Organization configuration for numbering system"""
 
     table_code: str
-    domain_name: Optional[str] = None
+    domain_name: str | None = None
 
 
 @dataclass
@@ -581,7 +583,7 @@ class TrinityHelper:
     """Trinity helper function"""
 
     name: str
-    params: Dict[str, str]
+    params: dict[str, str]
     returns: str
     description: str = ""
 
@@ -591,8 +593,8 @@ class TrinityHelpers:
     """Trinity helpers configuration"""
 
     generate: bool = True
-    lookup_by: Optional[str] = None
-    helpers: List[TrinityHelper] = field(default_factory=list)
+    lookup_by: str | None = None
+    helpers: list[TrinityHelper] = field(default_factory=list)
 
 
 @dataclass

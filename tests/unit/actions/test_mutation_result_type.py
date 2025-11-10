@@ -2,7 +2,6 @@
 Test mutation_result type generation
 """
 
-import pytest
 from src.generators.actions.action_compiler import ActionCompiler
 
 

@@ -19,7 +19,6 @@ Generated PL/pgSQL:
     PERFORM library.refresh_tv_book(v_fk_book);
 """
 
-from typing import List, Optional, Dict, Any, cast
 
 from src.core.ast_models import ActionStep, EntityDefinition, RefreshScope
 
@@ -55,7 +54,7 @@ class RefreshTableViewStepCompiler:
         elif step.refresh_scope == RefreshScope.PROPAGATE:
             # Refresh this entity + specific related entities
             lines = [
-                f"-- Refresh table view (self + propagate)",
+                "-- Refresh table view (self + propagate)",
                 f"PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});",
             ]
 
@@ -85,7 +84,7 @@ class RefreshTableViewStepCompiler:
         elif step.refresh_scope == RefreshScope.RELATED:
             # Refresh this entity + all entities that reference it
             lines = [
-                f"-- Refresh table view (self + all related)",
+                "-- Refresh table view (self + all related)",
                 f"PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});",
             ]
 
@@ -117,7 +116,7 @@ class RefreshTableViewStepCompiler:
 
     def _get_fk_var_for_entity(
         self, entity: EntityDefinition, ref_entity_name: str, context: dict
-    ) -> Optional[str]:
+    ) -> str | None:
         """
         Get FK variable name for referenced entity.
 
@@ -136,7 +135,7 @@ class RefreshTableViewStepCompiler:
 
         return None
 
-    def _get_entity_schema(self, entity_name: Optional[str], context: dict) -> str:
+    def _get_entity_schema(self, entity_name: str | None, context: dict) -> str:
         """
         Get schema for an entity name.
 
@@ -169,7 +168,7 @@ class RefreshTableViewStepCompiler:
 
     def _find_dependent_entities(
         self, entity: EntityDefinition, context: dict
-    ) -> List[EntityDefinition]:
+    ) -> list[EntityDefinition]:
         """
         Find entities that have foreign keys to this entity.
 

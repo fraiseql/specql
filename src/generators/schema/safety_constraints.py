@@ -1,11 +1,12 @@
 """Safety constraint triggers for hierarchical entities."""
 
-from typing import List
+
 from jinja2 import Template
+
 from src.core.ast_models import EntityDefinition
 
 
-def generate_safety_constraints(entity: EntityDefinition, schema: str) -> List[str]:
+def generate_safety_constraints(entity: EntityDefinition, schema: str) -> list[str]:
     """Generate safety constraint triggers for hierarchical entities.
 
     Generates 3 safety triggers for entities with hierarchical relationships:
@@ -31,17 +32,17 @@ def generate_safety_constraints(entity: EntityDefinition, schema: str) -> List[s
     template_vars = {"schema": schema, "entity": entity.name, "entity_lower": entity_lower}
 
     # 1. Prevent circular references
-    with open("templates/sql/constraints/prevent_cycle.sql.jinja2", "r") as f:
+    with open("templates/sql/constraints/prevent_cycle.sql.jinja2") as f:
         cycle_template = Template(f.read())
     constraints.append(cycle_template.render(**template_vars))
 
     # 2. Check identifier sequence limits
-    with open("templates/sql/constraints/check_sequence_limit.sql.jinja2", "r") as f:
+    with open("templates/sql/constraints/check_sequence_limit.sql.jinja2") as f:
         sequence_template = Template(f.read())
     constraints.append(sequence_template.render(**template_vars))
 
     # 3. Check hierarchy depth limits
-    with open("templates/sql/constraints/check_depth_limit.sql.jinja2", "r") as f:
+    with open("templates/sql/constraints/check_depth_limit.sql.jinja2") as f:
         depth_template = Template(f.read())
     constraints.append(depth_template.render(**template_vars))
 
@@ -66,7 +67,7 @@ def generate_circular_reference_check(entity: EntityDefinition, schema: str) -> 
     entity_lower = entity.name.lower()
     template_vars = {"schema": schema, "entity": entity.name, "entity_lower": entity_lower}
 
-    with open("templates/sql/constraints/prevent_cycle.sql.jinja2", "r") as f:
+    with open("templates/sql/constraints/prevent_cycle.sql.jinja2") as f:
         template = Template(f.read())
     return template.render(**template_vars)
 
@@ -76,7 +77,7 @@ def generate_sequence_limit_check(entity: EntityDefinition, schema: str) -> str:
     entity_lower = entity.name.lower()
     template_vars = {"schema": schema, "entity": entity.name, "entity_lower": entity_lower}
 
-    with open("templates/sql/constraints/check_sequence_limit.sql.jinja2", "r") as f:
+    with open("templates/sql/constraints/check_sequence_limit.sql.jinja2") as f:
         template = Template(f.read())
     return template.render(**template_vars)
 
@@ -89,6 +90,6 @@ def generate_depth_limit_check(entity: EntityDefinition, schema: str) -> str:
     entity_lower = entity.name.lower()
     template_vars = {"schema": schema, "entity": entity.name, "entity_lower": entity_lower}
 
-    with open("templates/sql/constraints/check_depth_limit.sql.jinja2", "r") as f:
+    with open("templates/sql/constraints/check_depth_limit.sql.jinja2") as f:
         template = Template(f.read())
     return template.render(**template_vars)

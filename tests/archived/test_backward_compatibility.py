@@ -1,7 +1,5 @@
 """Test backward compatibility with underscore separator."""
 
-import pytest
-from tests.utils.db_test import execute_sql, execute_query
 
 
 class TestBackwardCompatibility:

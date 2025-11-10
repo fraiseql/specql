@@ -30,10 +30,10 @@ fields:
     nullable: false
     description: "Unique identifier for this price record."
 
-   amount:
-     type: money
-     nullable: false
-     description: "Price amount with currency semantics"
+  amount:
+    type: money
+    nullable: false
+    description: "Price amount with currency semantics"
 
   start_date:
     type: date

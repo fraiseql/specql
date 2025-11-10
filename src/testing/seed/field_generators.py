@@ -1,14 +1,15 @@
 """Field value generators for SpecQL test data"""
 
-from faker import Faker
 import random
-from typing import Any, Dict, Optional
+from typing import Any
+
+from faker import Faker
 
 
 class FieldValueGenerator:
     """Generate field values based on type and metadata"""
 
-    def __init__(self, seed: Optional[int] = None):
+    def __init__(self, seed: int | None = None):
         """
         Args:
             seed: Random seed for deterministic generation
@@ -18,7 +19,7 @@ class FieldValueGenerator:
             Faker.seed(seed)
             random.seed(seed)
 
-    def generate(self, field_mapping: Dict[str, Any], context: Dict[str, Any] = None) -> Any:
+    def generate(self, field_mapping: dict[str, Any], context: dict[str, Any] = None) -> Any:
         """
         Generate value for field based on mapping
 
@@ -43,7 +44,7 @@ class FieldValueGenerator:
         else:
             raise ValueError(f"Unsupported generator type: {generator_type}")
 
-    def _generate_random(self, mapping: Dict[str, Any]) -> Any:
+    def _generate_random(self, mapping: dict[str, Any]) -> Any:
         """Generate random value based on field type"""
         field_type = mapping["field_type"]
 
@@ -105,7 +106,7 @@ class FieldValueGenerator:
             # Fallback
             return None
 
-    def _generate_sequence(self, mapping: Dict, context: Dict) -> Any:
+    def _generate_sequence(self, mapping: dict, context: dict) -> Any:
         """Generate sequential value"""
         params = mapping.get("generator_params", {})
         start = params.get("start", 1)

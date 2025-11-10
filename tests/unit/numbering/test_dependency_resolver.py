@@ -3,6 +3,7 @@ Tests for DependencyResolver
 """
 
 import pytest
+
 from src.numbering.dependency_resolver import DependencyResolver
 
 

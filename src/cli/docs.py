@@ -4,17 +4,16 @@ SpecQL Docs CLI
 Generate documentation from SpecQL entity definitions
 """
 
-import os
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import Any
 
 import click
 
-from src.core.specql_parser import SpecQLParser
 from src.cli.generate import convert_entity_definition_to_entity
+from src.core.specql_parser import SpecQLParser
 
 
-def generate_markdown_docs(entities: List[Dict[str, Any]], output_file: str) -> None:
+def generate_markdown_docs(entities: list[dict[str, Any]], output_file: str) -> None:
     """Generate markdown documentation for entities."""
     content = ["# SpecQL Entity Documentation\n"]
 
@@ -75,7 +74,7 @@ def generate_markdown_docs(entities: List[Dict[str, Any]], output_file: str) -> 
     Path(output_file).write_text("\n".join(content))
 
 
-def generate_html_docs(entities: List[Dict[str, Any]], output_dir: str) -> None:
+def generate_html_docs(entities: list[dict[str, Any]], output_dir: str) -> None:
     """Generate HTML documentation for entities."""
     # Create output directory
     output_path = Path(output_dir)

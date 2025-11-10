@@ -1,7 +1,8 @@
 """Test hierarchical identifier generation with dot separator."""
 
 import pytest
-from tests.utils.db_test import execute_sql, execute_query
+
+from tests.utils.db_test import execute_query, execute_sql
 
 
 class TestHierarchicalDotSeparator:

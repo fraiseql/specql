@@ -1,9 +1,9 @@
 """Integration tests for Contact entity"""
 
-import pytest
-from uuid import UUID
-import psycopg
 import json
+from uuid import UUID
+
+import pytest
 
 # Mark all tests in this file as requiring database
 pytestmark = pytest.mark.database

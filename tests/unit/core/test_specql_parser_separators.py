@@ -1,8 +1,7 @@
 """Test SpecQL parser separator configuration."""
 
-import pytest
-from src.core.specql_parser import SpecQLParser
 from src.core.separators import Separators
+from src.core.specql_parser import SpecQLParser
 
 
 class TestParseIdentifierSeparators:

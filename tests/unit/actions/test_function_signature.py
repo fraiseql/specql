@@ -2,9 +2,8 @@
 Test function signature generation
 """
 
-import pytest
-from src.generators.actions.function_generator import FunctionGenerator
 from src.generators.actions.action_context import ActionContext
+from src.generators.actions.function_generator import FunctionGenerator
 
 
 def create_test_context():

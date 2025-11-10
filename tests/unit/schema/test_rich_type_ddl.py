@@ -3,8 +3,6 @@ Tests for Rich Type DDL Generation (Team B)
 Tests TableGenerator with FraiseQL rich types
 """
 
-import pytest
-from src.generators.table_generator import TableGenerator
 from src.core.ast_models import Entity, FieldDefinition
 
 
@@ -191,9 +189,9 @@ def test_complete_table_with_multiple_rich_types(table_generator):
     assert "ip_address INET" in ddl
 
     # Verify named constraints
-    assert "CONSTRAINT chk_tb_contact_email_check CHECK (email ~* " in ddl
-    assert "CONSTRAINT chk_tb_contact_website_check CHECK (website ~* " in ddl
-    assert "CONSTRAINT chk_tb_contact_phone_check CHECK (phone ~* " in ddl
+    assert "CONSTRAINT chk_tb_contact_email_pattern CHECK (email ~* " in ddl
+    assert "CONSTRAINT chk_tb_contact_website_pattern CHECK (website ~* " in ddl
+    assert "CONSTRAINT chk_tb_contact_phone_pattern CHECK (phone ~* " in ddl
 
     # Verify basic type (backward compatibility)
     assert "first_name TEXT" in ddl

@@ -1,7 +1,6 @@
 """Test separator utility functions."""
 
-import pytest
-from src.core.separators import strip_tenant_prefix, join_with_composition, split_composition
+from src.core.separators import join_with_composition, split_composition, strip_tenant_prefix
 
 
 class TestStripTenantPrefix:

@@ -16,7 +16,6 @@ Generated PL/pgSQL:
     WHERE pk_contact = v_pk;
 """
 
-from typing import List
 
 from src.core.ast_models import ActionStep, EntityDefinition
 
@@ -70,7 +69,7 @@ class UpdateStepCompiler:
     {where_sql};
 """
 
-    def _parse_set_clause(self, set_spec: str) -> List[str]:
+    def _parse_set_clause(self, set_spec: str) -> list[str]:
         """
         Parse SET clause into individual assignments
 

@@ -1,11 +1,7 @@
 """Tests for CLI generate command."""
 
-import pytest
-from pathlib import Path
-from click.testing import CliRunner
 
 from src.cli.generate import cli, convert_entity_definition_to_entity
-from src.core.ast_models import EntityDefinition, ActionDefinition, FieldDefinition
 
 
 class TestConvertEntityDefinitionToEntity:
