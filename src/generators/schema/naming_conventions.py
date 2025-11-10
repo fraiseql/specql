@@ -505,6 +505,10 @@ class NamingConventions:
                 f"Must be exactly 6 hexadecimal characters (0-9, A-F)."
             )
 
+        # For explicit codes, trust the user - only check format
+        if skip_uniqueness:
+            return  # Skip all structural validation for external table codes
+
         # Parse components
         components = self.parser.parse_table_code_detailed(table_code)
 
@@ -534,7 +538,7 @@ class NamingConventions:
                 f"entity schema '{entity.schema}'"
             )
 
-        # Uniqueness check (SKIP for explicit codes)
+        # Uniqueness check
         if not skip_uniqueness:
             registry_entry = self.registry.get_entity(entity.name)
             if registry_entry and registry_entry.table_code == table_code:

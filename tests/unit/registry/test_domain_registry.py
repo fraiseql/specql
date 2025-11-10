@@ -89,7 +89,7 @@ class TestDomainRegistryQueries:
 
         assert entity is not None
         assert entity.entity_name == "Manufacturer"
-        assert entity.table_code == "013211"
+        assert entity.table_code == "013029"  # Actual code from registry
         assert entity.entity_code == "MNF"
         assert entity.domain == "catalog"
         assert entity.subdomain == "manufacturer"
@@ -148,8 +148,8 @@ class TestDomainRegistryQueries:
 
     def test_is_code_available_assigned(self, registry):
         """Should check assigned codes"""
-        # Manufacturer has 013211
-        assert not registry.is_code_available("013211")
+        # Manufacturer has 013029 (from actual registry)
+        assert not registry.is_code_available("013029")
 
     def test_is_code_available_unassigned(self, registry):
         """Should return true for unassigned codes"""

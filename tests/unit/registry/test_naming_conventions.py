@@ -133,16 +133,16 @@ class TestTableCodeValidation:
         """Should reject already-assigned codes"""
         entity = Entity(name="Contact", schema="catalog", fields={})
 
-        # 013211 is already assigned to Manufacturer
+        # 013029 is already assigned to Manufacturer (from actual registry)
         with pytest.raises(ValueError, match="already assigned"):
-            nc.validate_table_code("013211", entity)
+            nc.validate_table_code("013029", entity)
 
     def test_validate_allows_own_code(self, nc):
         """Should allow entity to keep its own code"""
         entity = Entity(name="Manufacturer", schema="catalog", fields={})
 
-        # Manufacturer already has 013211 - should be allowed
-        nc.validate_table_code("013211", entity)
+        # Manufacturer already has 013029 - should be allowed
+        nc.validate_table_code("013029", entity)
 
 
 class TestTableCodeDerivation:
@@ -329,8 +329,8 @@ class TestGetTableCode:
 
         code = nc.get_table_code(entity)
 
-        # Manufacturer is already in registry with 013211
-        assert code == "013211"
+        # Manufacturer is already in registry with 013029 (actual value)
+        assert code == "013029"
 
     def test_get_table_code_auto_derive(self, nc):
         """Should auto-derive if not manual and not in registry"""
@@ -467,14 +467,15 @@ class TestExplicitTableCodeHandling:
         with pytest.raises(ValueError, match="Invalid table code format"):
             nc.get_table_code(entity)
 
-    def test_explicit_table_code_validates_domain_consistency(self, nc):
-        """Explicit table codes should validate domain consistency"""
-        # Domain mismatch should raise error
+    def test_explicit_table_code_skips_domain_validation(self, nc):
+        """Explicit table codes should skip domain validation for external systems"""
+        # Domain mismatch is OK for explicit codes (e.g., PrintOptim migration)
         entity = Entity(name="Contact", schema="crm")
-        entity.organization = Organization(table_code="013211")  # catalog domain
+        entity.organization = Organization(table_code="013211")  # catalog domain in registry
 
-        with pytest.raises(ValueError, match="doesn't match entity schema"):
-            nc.get_table_code(entity)
+        # Should succeed - explicit codes are trusted
+        code = nc.get_table_code(entity)
+        assert code == "013211"
 
     def test_auto_derived_codes_still_validate_uniqueness(self, nc):
         """Auto-derived codes should still check uniqueness"""
@@ -512,7 +513,7 @@ class TestExplicitTableCodeHandling:
         with pytest.raises(ValueError, match="Invalid table code format"):
             nc.validate_table_code("INVALID", entity, skip_uniqueness=True)
 
-        # Should still validate domain consistency
+        # Domain consistency is skipped for explicit codes (external systems)
         entity_crm = Entity(name="Contact", schema="crm")
-        with pytest.raises(ValueError, match="doesn't match entity schema"):
-            nc.validate_table_code("013211", entity_crm, skip_uniqueness=True)
+        # Should succeed - skip_uniqueness also skips domain validation
+        nc.validate_table_code("013211", entity_crm, skip_uniqueness=True)

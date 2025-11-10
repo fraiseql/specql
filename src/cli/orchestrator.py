@@ -53,7 +53,7 @@ class CLIOrchestrator:
         if not self.use_registry or not self.naming:
             raise ValueError("Registry not enabled. Use CLIOrchestrator(use_registry=True)")
 
-        return self.naming.derive_table_code(entity)
+        return self.naming.get_table_code(entity)  # Respects priority: explicit → registry → derive
 
     def generate_file_path(
         self,
@@ -227,11 +227,10 @@ class CLIOrchestrator:
 """
                         mutation_path.write_text(mutation_content)
 
-                    # Register entity if using registry
-                    if self.naming:
-                        self.naming.register_entity_auto(entity, table_code)
-
-                        # Register entity in domain registry
+                    # Register entity if using registry (only for derived codes)
+                    if self.naming and not (entity.organization and entity.organization.table_code):
+                        # Only auto-register entities with derived codes
+                        # Explicit codes from external systems should not be registered
                         self.naming.register_entity_auto(entity, table_code)
 
                     # Track all files
