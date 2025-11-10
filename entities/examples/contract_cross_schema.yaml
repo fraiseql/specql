@@ -1,0 +1,228 @@
+name: Contract
+schema: tenant
+description: |
+  Multi-tenant contract with cross-schema references (PrintOptim pattern).
+
+  Demonstrates:
+  - Cross-schema composition (management, catalog, tenant)
+  - Wildcard field inclusion for zero maintenance
+  - Explicit field selection for selective data
+  - Extra filter columns for hot-path queries
+
+  Use Case:
+  - Customer contracts with organization and currency references
+  - FraiseQL GraphQL API exposure
+  - Dashboard queries with pre-composed data
+
+fields:
+  # Cross-schema reference: management.Organization
+  customer_org:
+    type: ref(Organization)
+    schema: management
+    description: Customer organization (from management schema)
+
+  provider_org:
+    type: ref(Organization)
+    schema: management
+    description: Provider organization (from management schema)
+
+  # Cross-schema reference: management.User
+  account_manager:
+    type: ref(User)
+    schema: management
+    description: Account manager (from management schema)
+
+  # Cross-schema reference: catalog.Currency
+  currency:
+    type: ref(Currency)
+    schema: catalog
+    description: Contract currency (from catalog schema)
+
+  # Cross-schema reference: catalog.PaymentTerm
+  payment_terms:
+    type: ref(PaymentTerm)
+    schema: catalog
+    description: Payment terms (from catalog schema)
+
+  # Contract-specific fields (tenant schema)
+  contract_number:
+    type: text
+    description: Human-readable contract identifier (e.g., CT-2025-001)
+
+  title:
+    type: text
+    description: Contract title
+
+  description:
+    type: text
+    description: Contract description
+
+  start_date:
+    type: date
+    description: Contract effective start date
+
+  end_date:
+    type: date
+    description: Contract expiration date
+
+  total_amount:
+    type: decimal
+    description: Total contract value (in contract currency)
+
+  status:
+    type: enum
+    values: [draft, active, expired, cancelled]
+    description: Contract lifecycle status
+
+# CQRS read layer with cross-schema composition
+table_views:
+  mode: auto
+
+  # Compose data from entities in multiple schemas
+  include_relations:
+    # Wildcard composition - includes ALL fields from tv_organization
+    # ✅ Benefit: Zero maintenance when Organization fields change
+    # ✅ Use case: Organization structure is stable and fully controlled
+    - Organization:
+        fields: ["*"]
+
+    # Explicit field selection for User - only essentials needed
+    # ✅ Benefit: Smaller payload, excludes sensitive fields (password_hash, etc.)
+    # ✅ Use case: User has many fields, only need contact info
+    - User:
+        fields: [id, name, email, department, phone]
+
+    # Explicit fields for Currency - small entity, all fields useful
+    # ✅ Benefit: Clear intent, only what's needed for display
+    - Currency:
+        fields: [iso_code, symbol, name, decimal_places]
+
+    # Explicit fields for PaymentTerm - reference data
+    - PaymentTerm:
+        fields: [code, name, days, description]
+
+  # Promote hot-path filter fields outside JSONB for fast btree queries
+  # Use case: Dashboard filters, reporting queries
+  extra_filter_columns:
+    # Status filtering (most common query)
+    - name: status
+      type: TEXT
+      index_type: btree
+
+    # Date range queries (active contracts, expiring soon, etc.)
+    - name: start_date
+      type: DATE
+      index_type: btree
+
+    - name: end_date
+      type: DATE
+      index_type: btree
+
+    # Amount filtering (contracts > $X, revenue reports)
+    - name: total_amount
+      type: NUMERIC
+      index_type: btree
+
+    # Customer filtering (all contracts for org)
+    - name: customer_org_id
+      type: UUID
+      index_type: btree
+
+    # Currency filtering (all USD contracts)
+    - name: currency_id
+      type: UUID
+      index_type: btree
+
+# Business actions
+actions:
+  - name: create
+    description: Create a new draft contract
+    impacts:
+      write: [Contract]
+      read: [Organization, User, Currency, PaymentTerm]
+    steps:
+      - validate: status = 'draft'
+      - validate: start_date < end_date
+      - validate: total_amount > 0
+      - insert: Contract SET
+          contract_number = :contract_number,
+          customer_org = :customer_org_id,
+          provider_org = :provider_org_id,
+          currency = :currency_id,
+          status = 'draft'
+
+  - name: activate
+    description: Activate a draft contract
+    impacts:
+      write: [Contract]
+    steps:
+      - validate: status = 'draft'
+      - validate: start_date <= CURRENT_DATE
+      - validate: end_date > CURRENT_DATE
+      - update: Contract SET
+          status = 'active',
+          activated_at = CURRENT_TIMESTAMP
+
+  - name: expire
+    description: Mark contract as expired
+    impacts:
+      write: [Contract]
+    steps:
+      - validate: status = 'active'
+      - validate: end_date <= CURRENT_DATE
+      - update: Contract SET
+          status = 'expired',
+          expired_at = CURRENT_TIMESTAMP
+
+  - name: cancel
+    description: Cancel a contract
+    impacts:
+      write: [Contract]
+    steps:
+      - validate: status IN ('draft', 'active')
+      - update: Contract SET
+          status = 'cancelled',
+          cancelled_at = CURRENT_TIMESTAMP,
+          cancellation_reason = :reason
+      - notify: contract_cancelled WITH {
+          contract_id: :id,
+          contract_number: :contract_number
+        }
+
+# Expected tv_contract.data structure (for reference):
+# {
+#   "contract_number": "CT-2025-001",
+#   "title": "Annual Software License Agreement",
+#   "start_date": "2025-01-01",
+#   "end_date": "2025-12-31",
+#   "total_amount": "150000.00",
+#   "status": "active",
+#   "customer_org": {
+#     "id": "uuid-123",
+#     "name": "Acme Corp",
+#     "code": "ACME",
+#     "identifier": "ORG-ACME",
+#     "legal_name": "Acme Corporation Ltd.",
+#     "... all other Organization fields ..."
+#   },
+#   "provider_org": { "... all Organization fields ..." },
+#   "account_manager": {
+#     "id": "uuid-456",
+#     "name": "John Smith",
+#     "email": "john.smith@example.com",
+#     "department": "Sales",
+#     "phone": "+1-555-0100"
+#   },
+#   "currency": {
+#     "iso_code": "USD",
+#     "symbol": "$",
+#     "name": "US Dollar",
+#     "decimal_places": 2
+#   },
+#   "payment_terms": {
+#     "code": "NET30",
+#     "name": "Net 30 Days",
+#     "days": 30,
+#     "description": "Payment due 30 days after invoice date"
+#   }
+# }

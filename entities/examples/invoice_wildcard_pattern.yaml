@@ -1,0 +1,276 @@
+name: Invoice
+schema: tenant
+description: |
+  Multi-tenant invoice demonstrating wildcard composition pattern.
+
+  Demonstrates:
+  - Wildcard field inclusion for zero maintenance
+  - When wildcards are the right choice vs explicit fields
+  - Mixed strategy (wildcards for internal, explicit for external)
+  - PrintOptim pattern: Minimize field list maintenance across 47+ entities
+
+  Use Case:
+  - Invoice system with multiple entity references
+  - Internal entities (Organization, User) fully controlled - use wildcards
+  - External/small entities (Currency, PaymentMethod) - use explicit fields
+
+  Maintenance Benefit:
+  - Organization has 20 fields → No field list needed with wildcard
+  - When Organization adds "registration_number" field → Auto-included
+  - Result: Zero YAML updates across 47 entities that reference Organization
+
+fields:
+  # Contract reference (internal entity)
+  contract:
+    type: ref(Contract)
+    schema: tenant
+    description: Related contract
+
+  # Customer reference (internal entity - wildcard candidate)
+  customer:
+    type: ref(Organization)
+    schema: management
+    description: Customer organization
+
+  # Billing contact (internal entity - wildcard candidate)
+  billing_contact:
+    type: ref(User)
+    schema: management
+    description: Billing contact person
+
+  # Currency reference (external/small entity - explicit fields ok)
+  currency:
+    type: ref(Currency)
+    schema: catalog
+    description: Invoice currency
+
+  # Payment method (external/small entity - explicit fields ok)
+  payment_method:
+    type: ref(PaymentMethod)
+    schema: catalog
+    description: Payment method
+
+  # Invoice fields
+  invoice_number:
+    type: text
+    description: Human-readable invoice number (e.g., INV-2025-001)
+
+  issue_date:
+    type: date
+    description: Invoice issue date
+
+  due_date:
+    type: date
+    description: Payment due date
+
+  subtotal:
+    type: decimal
+    description: Subtotal before tax
+
+  tax_amount:
+    type: decimal
+    description: Tax amount
+
+  total_amount:
+    type: decimal
+    description: Total amount due (subtotal + tax)
+
+  status:
+    type: enum
+    values: [draft, sent, paid, overdue, cancelled]
+    description: Invoice status
+
+  notes:
+    type: text
+    description: Additional notes
+
+# CQRS read layer with wildcard composition strategy
+table_views:
+  mode: auto
+
+  include_relations:
+    # ✅ Wildcard Strategy for Internal Entities
+    # ==========================================
+    # Use wildcards when:
+    # 1. Entity is fully controlled by your team
+    # 2. All fields are relevant (no sensitive data)
+    # 3. Entity appears in many places (high reuse)
+    # 4. Entity structure changes frequently
+
+    - Contract:
+        fields: ["*"]
+        # Benefit: Contract has 15+ fields, all useful for invoice display
+        # When contract_type or warranty_terms added → Auto-included
+
+    - Organization:
+        fields: ["*"]
+        # Benefit: Organization referenced by 47+ entities in PrintOptim
+        # Zero maintenance when Organization.registration_number added
+        # All fields safe (no PII in Organization entity)
+
+    - User:
+        fields: ["*"]
+        # Benefit: User contact info all relevant for billing
+        # NOTE: Assumes User entity excludes sensitive fields (password_hash)
+        # If User has PII → Switch to explicit: [name, email, phone]
+
+    # ✅ Explicit Strategy for External/Small Entities
+    # =================================================
+    # Use explicit fields when:
+    # 1. Entity from external system/third-party
+    # 2. Only subset of fields relevant
+    # 3. Bandwidth-sensitive (mobile, high-volume)
+    # 4. Sensitive data present (need filtering)
+
+    - Currency:
+        fields: [iso_code, symbol, name, decimal_places]
+        # Benefit: Small entity (8 fields), only need display essentials
+        # Clear intent: These 4 fields sufficient for UI display
+
+    - PaymentMethod:
+        fields: [code, name, description, processing_fee_percent]
+        # Benefit: External payment processor data, stable contract
+        # Only need basics for invoice rendering
+
+  # Hot-path filtering columns
+  extra_filter_columns:
+    - name: status
+      type: TEXT
+      index_type: btree
+
+    - name: issue_date
+      type: DATE
+      index_type: btree
+
+    - name: due_date
+      type: DATE
+      index_type: btree
+
+    - name: total_amount
+      type: NUMERIC
+      index_type: btree
+
+    - name: customer_id
+      type: UUID
+      index_type: btree
+
+# Business actions
+actions:
+  - name: create
+    description: Create a new invoice
+    impacts:
+      write: [Invoice]
+      read: [Contract, Organization, Currency]
+    steps:
+      - validate: status = 'draft'
+      - validate: due_date > issue_date
+      - validate: total_amount = subtotal + tax_amount
+      - insert: Invoice SET
+          contract = :contract_id,
+          customer = :customer_id,
+          currency = :currency_id,
+          status = 'draft'
+
+  - name: send
+    description: Send invoice to customer
+    impacts:
+      write: [Invoice]
+    steps:
+      - validate: status = 'draft'
+      - validate: total_amount > 0
+      - update: Invoice SET
+          status = 'sent',
+          sent_at = CURRENT_TIMESTAMP
+      - notify: invoice_sent WITH {
+          invoice_id: :id,
+          customer_email: :customer.billing_email
+        }
+
+  - name: mark_paid
+    description: Mark invoice as paid
+    impacts:
+      write: [Invoice]
+    steps:
+      - validate: status IN ('sent', 'overdue')
+      - update: Invoice SET
+          status = 'paid',
+          paid_at = CURRENT_TIMESTAMP,
+          payment_reference = :payment_reference
+
+  - name: mark_overdue
+    description: Mark invoice as overdue (automated)
+    impacts:
+      write: [Invoice]
+    steps:
+      - validate: status = 'sent'
+      - validate: due_date < CURRENT_DATE
+      - update: Invoice SET status = 'overdue'
+      - notify: invoice_overdue WITH {
+          invoice_id: :id,
+          days_overdue: CURRENT_DATE - due_date
+        }
+
+# Expected tv_invoice.data structure:
+# {
+#   "invoice_number": "INV-2025-001",
+#   "issue_date": "2025-11-01",
+#   "due_date": "2025-12-01",
+#   "subtotal": "100000.00",
+#   "tax_amount": "20000.00",
+#   "total_amount": "120000.00",
+#   "status": "sent",
+#   "notes": "Annual license fee",
+#   "contract": {
+#     "contract_number": "CT-2025-001",
+#     "title": "Software License Agreement",
+#     "start_date": "2025-01-01",
+#     "end_date": "2025-12-31",
+#     "... all other Contract fields (wildcard = zero maintenance!) ..."
+#   },
+#   "customer": {
+#     "id": "uuid-123",
+#     "name": "Acme Corp",
+#     "code": "ACME",
+#     "legal_name": "Acme Corporation Ltd.",
+#     "tax_id": "123456789",
+#     "address": "123 Main St",
+#     "city": "Springfield",
+#     "state": "IL",
+#     "postal_code": "62701",
+#     "country": "US",
+#     "billing_email": "billing@acme.com",
+#     "... all other Organization fields (wildcard = comprehensive data!) ..."
+#   },
+#   "billing_contact": {
+#     "id": "uuid-456",
+#     "name": "Jane Smith",
+#     "email": "jane.smith@acme.com",
+#     "phone": "+1-555-0100",
+#     "title": "CFO",
+#     "... all other User fields (wildcard = full contact info!) ..."
+#   },
+#   "currency": {
+#     "iso_code": "USD",
+#     "symbol": "$",
+#     "name": "US Dollar",
+#     "decimal_places": 2
+#   },
+#   "payment_method": {
+#     "code": "WIRE",
+#     "name": "Wire Transfer",
+#     "description": "Bank wire transfer",
+#     "processing_fee_percent": 0.0
+#   }
+# }
+#
+# PrintOptim Pattern Benefits:
+# =============================
+# Before Wildcards (47 entities × 3 org references × 15 fields):
+#   → 2,115 field declarations to maintain
+#   → When Organization.registration_number added: 141 YAML updates needed
+#
+# After Wildcards (47 entities × 3 org references × 1 wildcard):
+#   → 141 field declarations (15x reduction!)
+#   → When Organization.registration_number added: ZERO updates needed
+#
+# Maintenance Reduction: 93% less YAML, 100% fewer updates!

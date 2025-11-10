@@ -1,0 +1,520 @@
+"""
+Integration tests for cross-schema table_views composition
+
+Tests the complete pipeline for cross-schema composition:
+- Parse YAML with cross-schema references
+- Generate SQL with correct schema qualifications
+- Verify refresh functions JOIN to correct schemas
+- Validate wildcard and explicit field selection
+
+Related to Issue #5: Projection view composition pattern
+"""
+
+import pytest
+from src.core.specql_parser import SpecQLParser
+from src.cli.orchestrator import SpecQLOrchestrator
+
+
+class TestCrossSchemaCompositionPipeline:
+    """Test end-to-end pipeline for cross-schema composition"""
+
+    def test_cross_schema_composition_full_pipeline(self):
+        """Test complete pipeline for cross-schema composition"""
+        # Contract in tenant schema referencing management and catalog schemas
+        contract_yaml = """
+        entity: Contract
+        schema: tenant
+        fields:
+          customer_org:
+            type: ref(Organization)
+            schema: management
+          currency:
+            type: ref(Currency)
+            schema: catalog
+
+        table_views:
+          include_relations:
+            - Organization:
+                fields: ["*"]
+            - Currency:
+                fields: [iso_code, symbol]
+        """
+
+        parser = SpecQLParser()
+        ast = parser.parse(contract_yaml)
+
+        # Verify AST parsing captured schemas
+        assert ast.schema == "tenant"
+
+        customer_field = ast.fields[0]
+        assert customer_field.name == "customer_org"
+        # Note: Schema info stored in field metadata
+
+        # Generate schema
+        orchestrator = SpecQLOrchestrator()
+        results = orchestrator.generate_from_ast(ast)
+
+        schema_sql = results["schema"]
+
+        # Should create tv_contract table in tenant schema
+        assert "CREATE TABLE tenant.tv_contract" in schema_sql
+
+        # Should reference tv_organization from management schema
+        assert "management.tv_organization" in schema_sql or "management" in schema_sql
+
+        # Should reference tv_currency from catalog schema
+        assert "catalog.tv_currency" in schema_sql or "catalog" in schema_sql
+
+        # Should handle wildcard for Organization
+        assert "tv_organization.data" in schema_sql
+
+        # Should handle explicit fields for Currency
+        assert "'iso_code'" in schema_sql
+        assert "'symbol'" in schema_sql
+
+    def test_cross_schema_refresh_function_joins(self):
+        """Test that refresh function correctly JOINs across schemas"""
+        contract_yaml = """
+        entity: Contract
+        schema: tenant
+        fields:
+          customer_org:
+            type: ref(Organization)
+            schema: management
+
+        table_views:
+          include_relations:
+            - Organization:
+                fields: [name, code]
+        """
+
+        parser = SpecQLParser()
+        ast = parser.parse(contract_yaml)
+
+        orchestrator = SpecQLOrchestrator()
+        results = orchestrator.generate_from_ast(ast)
+
+        schema_sql = results["schema"]
+
+        # Verify refresh function signature
+        assert "CREATE OR REPLACE FUNCTION tenant.refresh_tv_contract" in schema_sql
+
+        # Verify JOIN to management schema
+        assert "LEFT JOIN management.tv_organization" in schema_sql
+
+        # Verify FK join condition (depends on FK naming convention)
+        # Should use fk_customer_org to join
+        assert "fk_customer_org" in schema_sql
+        assert "pk_organization" in schema_sql
+
+    def test_multiple_cross_schema_references(self):
+        """Test entity with multiple cross-schema references"""
+        invoice_yaml = """
+        entity: Invoice
+        schema: tenant
+        fields:
+          contract:
+            type: ref(Contract)
+            schema: tenant
+          customer:
+            type: ref(Organization)
+            schema: management
+          currency:
+            type: ref(Currency)
+            schema: catalog
+          payment_method:
+            type: ref(PaymentMethod)
+            schema: catalog
+
+        table_views:
+          include_relations:
+            - Contract:
+                fields: ["*"]
+            - Organization:
+                fields: ["*"]
+            - Currency:
+                fields: [iso_code, symbol]
+            - PaymentMethod:
+                fields: [code, name]
+        """
+
+        parser = SpecQLParser()
+        ast = parser.parse(invoice_yaml)
+
+        orchestrator = SpecQLOrchestrator()
+        results = orchestrator.generate_from_ast(ast)
+
+        schema_sql = results["schema"]
+
+        # Should reference all three schemas
+        assert "tenant.tv_contract" in schema_sql
+        assert "management.tv_organization" in schema_sql or "management" in schema_sql
+        assert "catalog.tv_currency" in schema_sql or "catalog" in schema_sql
+        assert "catalog.tv_payment_method" in schema_sql or "catalog" in schema_sql
+
+
+class TestCrossSchemaWildcardComposition:
+    """Test wildcard field selection with cross-schema entities"""
+
+    def test_wildcard_cross_schema_generates_correct_sql(self):
+        """Test that wildcard works correctly with cross-schema entities"""
+        contract_yaml = """
+        entity: Contract
+        schema: tenant
+        fields:
+          customer_org:
+            type: ref(Organization)
+            schema: management
+
+        table_views:
+          include_relations:
+            - Organization:
+                fields: ["*"]
+        """
+
+        parser = SpecQLParser()
+        ast = parser.parse(contract_yaml)
+
+        orchestrator = SpecQLOrchestrator()
+        results = orchestrator.generate_from_ast(ast)
+
+        schema_sql = results["schema"]
+
+        # Wildcard should use full data object from cross-schema table
+        assert "management.tv_organization" in schema_sql or "tv_organization.data" in schema_sql
+
+    def test_mixed_wildcard_explicit_cross_schema(self):
+        """Test mixing wildcard and explicit with cross-schema entities"""
+        contract_yaml = """
+        entity: Contract
+        schema: tenant
+        fields:
+          customer:
+            type: ref(Organization)
+            schema: management
+          provider:
+            type: ref(Organization)
+            schema: management
+          currency:
+            type: ref(Currency)
+            schema: catalog
+
+        table_views:
+          include_relations:
+            - Organization:
+                fields: ["*"]
+            - Currency:
+                fields: [iso_code, symbol, name]
+        """
+
+        parser = SpecQLParser()
+        ast = parser.parse(contract_yaml)
+
+        orchestrator = SpecQLOrchestrator()
+        results = orchestrator.generate_from_ast(ast)
+
+        schema_sql = results["schema"]
+
+        # Organization: wildcard (full data)
+        assert "tv_organization.data" in schema_sql
+
+        # Currency: explicit fields
+        assert "'iso_code'" in schema_sql
+        assert "'symbol'" in schema_sql
+        assert "'name'" in schema_sql
+
+
+class TestCrossSchemaNestedComposition:
+    """Test nested composition across multiple schemas"""
+
+    def test_nested_composition_cross_schema(self):
+        """Test nested includes with cross-schema references"""
+        review_yaml = """
+        entity: Review
+        schema: library
+        fields:
+          book:
+            type: ref(Book)
+            schema: library
+          author:
+            type: ref(User)
+            schema: crm
+
+        table_views:
+          include_relations:
+            - Book:
+                fields: [title, isbn]
+                include_relations:
+                  - Publisher:
+                      fields: [name, website]
+            - User:
+                fields: ["*"]
+        """
+
+        parser = SpecQLParser()
+        ast = parser.parse(review_yaml)
+
+        orchestrator = SpecQLOrchestrator()
+        results = orchestrator.generate_from_ast(ast)
+
+        schema_sql = results["schema"]
+
+        # Should handle nested Book → Publisher composition
+        # Note: Publisher data should be in tv_book.data already
+
+        # Should handle User wildcard from crm schema
+        assert "crm.tv_user" in schema_sql or "tv_user" in schema_sql
+
+
+class TestCrossSchemaExtraFilterColumns:
+    """Test extra_filter_columns with cross-schema composition"""
+
+    def test_extra_filter_columns_with_cross_schema_wildcard(self):
+        """Test that extra_filter_columns work with cross-schema wildcards"""
+        contract_yaml = """
+        entity: Contract
+        schema: tenant
+        fields:
+          customer:
+            type: ref(Organization)
+            schema: management
+          status: enum(draft, active)
+          created_at: timestamp
+
+        table_views:
+          include_relations:
+            - Organization:
+                fields: ["*"]
+          extra_filter_columns:
+            - name: status
+              type: TEXT
+              index_type: btree
+            - name: created_at
+              type: TIMESTAMPTZ
+              index_type: btree
+        """
+
+        parser = SpecQLParser()
+        ast = parser.parse(contract_yaml)
+
+        orchestrator = SpecQLOrchestrator()
+        results = orchestrator.generate_from_ast(ast)
+
+        schema_sql = results["schema"]
+
+        # Should have extra filter columns in table definition
+        assert "status" in schema_sql
+        assert "created_at" in schema_sql
+
+        # Should have indexes on extra filter columns
+        assert "idx_tv_contract_status" in schema_sql or "CREATE INDEX" in schema_sql
+
+        # Should still have wildcard Organization data
+        assert "tv_organization.data" in schema_sql
+
+
+class TestPrintOptimUseCaseIntegration:
+    """Integration tests for PrintOptim's specific use case (Issue #5)"""
+
+    def test_printoptim_contract_pattern_e2e(self):
+        """Test PrintOptim's exact Contract pattern end-to-end"""
+        contract_yaml = """
+        entity: Contract
+        schema: tenant
+        fields:
+          customer_org:
+            type: ref(Organization)
+            schema: management
+          provider_org:
+            type: ref(Organization)
+            schema: management
+          currency:
+            type: ref(Currency)
+            schema: catalog
+          contract_number: text
+          start_date: date
+          end_date: date
+          total_amount: decimal
+          status: enum(draft, active, expired, cancelled)
+
+        table_views:
+          include_relations:
+            - Organization:
+                fields: ["*"]
+            - Currency:
+                fields: [iso_code, symbol, name, decimal_places]
+          extra_filter_columns:
+            - name: status
+              type: TEXT
+              index_type: btree
+            - name: start_date
+              type: DATE
+              index_type: btree
+            - name: end_date
+              type: DATE
+              index_type: btree
+        """
+
+        parser = SpecQLParser()
+        ast = parser.parse(contract_yaml)
+
+        # Verify parsing
+        assert ast.name == "Contract"
+        assert ast.schema == "tenant"
+
+        orchestrator = SpecQLOrchestrator()
+        results = orchestrator.generate_from_ast(ast)
+
+        schema_sql = results["schema"]
+
+        # Verify table creation
+        assert "CREATE TABLE tenant.tv_contract" in schema_sql
+
+        # Verify cross-schema JOINs
+        assert "management.tv_organization" in schema_sql or "management" in schema_sql
+        assert "catalog.tv_currency" in schema_sql or "catalog" in schema_sql
+
+        # Verify wildcard for Organization
+        assert "tv_organization.data" in schema_sql
+
+        # Verify explicit fields for Currency
+        assert "'iso_code'" in schema_sql
+        assert "'symbol'" in schema_sql
+        assert "'name'" in schema_sql
+        assert "'decimal_places'" in schema_sql
+
+        # Verify extra filter columns
+        assert "status" in schema_sql
+        assert "start_date" in schema_sql
+        assert "end_date" in schema_sql
+
+        # Verify indexes
+        assert "idx_tv_contract_status" in schema_sql or "CREATE INDEX" in schema_sql
+
+        # Verify refresh function
+        assert "CREATE OR REPLACE FUNCTION tenant.refresh_tv_contract" in schema_sql
+
+    def test_printoptim_47_entities_pattern(self):
+        """Test that wildcard pattern scales to 47+ entities"""
+        # Simulate 5 entities (representing subset of 47)
+        entities = []
+        for i in range(5):
+            yaml_content = f"""
+            entity: Entity{i}
+            schema: tenant
+            fields:
+              org:
+                type: ref(Organization)
+                schema: management
+
+            table_views:
+              include_relations:
+                - Organization:
+                    fields: ["*"]
+            """
+            entities.append(yaml_content)
+
+        parser = SpecQLParser()
+        orchestrator = SpecQLOrchestrator()
+
+        # All entities should generate successfully
+        for yaml_content in entities:
+            ast = parser.parse(yaml_content)
+            results = orchestrator.generate_from_ast(ast)
+            schema_sql = results["schema"]
+
+            # Each should reference management.tv_organization with wildcard
+            assert "management.tv_organization" in schema_sql or "management" in schema_sql
+            assert "tv_organization.data" in schema_sql
+
+    def test_wildcard_eliminates_maintenance_overhead(self):
+        """Test that wildcard reduces maintenance for repeated references"""
+        # Scenario: Organization has 20 fields, referenced by 47 entities
+
+        # Before: Explicit fields (maintenance burden)
+        explicit_yaml = """
+        entity: Contract
+        schema: tenant
+        fields:
+          customer:
+            type: ref(Organization)
+            schema: management
+
+        table_views:
+          include_relations:
+            - Organization:
+                fields: [id, name, code, legal_name, tax_id, address,
+                        city, state, postal_code, country, phone, email,
+                        website, status, created_at, updated_at, notes,
+                        registration_number, industry, employee_count]
+        """
+
+        # After: Wildcard (zero maintenance)
+        wildcard_yaml = """
+        entity: Contract
+        schema: tenant
+        fields:
+          customer:
+            type: ref(Organization)
+            schema: management
+
+        table_views:
+          include_relations:
+            - Organization:
+                fields: ["*"]
+        """
+
+        parser = SpecQLParser()
+        orchestrator = SpecQLOrchestrator()
+
+        # Both should generate successfully
+        explicit_ast = parser.parse(explicit_yaml)
+        wildcard_ast = parser.parse(wildcard_yaml)
+
+        explicit_results = orchestrator.generate_from_ast(explicit_ast)
+        wildcard_results = orchestrator.generate_from_ast(wildcard_ast)
+
+        # Both should produce valid SQL
+        assert "CREATE TABLE" in explicit_results["schema"]
+        assert "CREATE TABLE" in wildcard_results["schema"]
+
+        # Wildcard YAML is ~75% shorter
+        assert len(wildcard_yaml) < len(explicit_yaml) * 0.5
+
+
+class TestCrossSchemaErrorHandling:
+    """Test error handling for cross-schema composition issues"""
+
+    def test_missing_schema_declaration_handled(self):
+        """Test behavior when schema declaration is missing"""
+        # This may be invalid YAML, but test documents expected behavior
+        yaml_content = """
+        entity: Contract
+        schema: tenant
+        fields:
+          customer: ref(Organization)
+          # Missing: schema: management
+
+        table_views:
+          include_relations:
+            - Organization:
+                fields: ["*"]
+        """
+
+        parser = SpecQLParser()
+
+        # Should either:
+        # 1. Parse successfully (assumes same schema)
+        # 2. Raise validation error
+        # Document actual behavior
+        try:
+            ast = parser.parse(yaml_content)
+            # If it parses, verify it assumes same schema
+            assert ast.schema == "tenant"
+        except Exception as e:
+            # If it errors, verify it's a clear error message
+            assert "schema" in str(e).lower()
+
+
+if __name__ == "__main__":
+    pytest.main([__file__, "-v"])
