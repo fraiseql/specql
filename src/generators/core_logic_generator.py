@@ -331,24 +331,79 @@ class CoreLogicGenerator:
                 compiled.append("    );")
                 compiled.append("END IF;")
 
+            elif step.type == "duplicate_check":
+                compiled.append(self._compile_duplicate_check_step(step, entity))
+
+            elif step.type == "delete":
+                compiled.append(self._compile_delete_step(step, entity))
+
             elif step.type == "update":
                 entity_name = step.entity or entity.name
                 compiled.append(f"-- Update {entity_name}")
                 table_name = f"{entity.schema}.tb_{entity_name.lower()}"
+
+                # Check if partial updates are requested
+                partial_updates = (
+                    step.fields.get("partial_updates", False) if step.fields else False
+                )
+                track_updated_fields = (
+                    step.fields.get("track_updated_fields", False) if step.fields else False
+                )
+                recalculate_identifier = (
+                    step.fields.get("recalculate_identifier", False) if step.fields else False
+                )
+                refresh_projection = (
+                    step.fields.get("refresh_projection", None) if step.fields else None
+                )
+
                 assignments = []
+                tracking_code = []
+
                 if step.fields:
-                    for field, value in step.fields.items():
-                        if field == "raw_set":
-                            # Raw SQL SET clause
-                            assignments.append(value)
-                        else:
-                            assignments.append(f"{field} = {repr(value)}")
+                    if partial_updates:
+                        # Generate CASE expressions for partial updates
+                        assignments = self._generate_partial_update_assignments(entity, step.fields)
+                        if track_updated_fields:
+                            tracking_code = self._generate_field_tracking(entity, step.fields)
+                    else:
+                        # Full update (existing logic)
+                        for field, value in step.fields.items():
+                            if field in [
+                                "partial_updates",
+                                "track_updated_fields",
+                                "recalculate_identifier",
+                            ]:
+                                continue  # Skip control fields
+                            elif field == "raw_set":
+                                # Raw SQL SET clause
+                                assignments.append(value)
+                            else:
+                                assignments.append(f"{field} = {repr(value)}")
 
-                    # Add audit fields
-                    assignments.extend(["updated_at = now()", "updated_by = auth_user_id"])
+                        # Add audit fields
+                        assignments.extend(["updated_at = now()", "updated_by = auth_user_id"])
 
-                compiled.append(f"UPDATE {table_name} SET {', '.join(assignments)}")
-                compiled.append(f"WHERE id = v_{entity.name.lower()}_id;")
+                if partial_updates:
+                    compiled.append(f"UPDATE {table_name}")
+                    compiled.append(f"SET {', '.join(assignments)}")
+                    compiled.append(
+                        f"WHERE id = v_{entity.name.lower()}_id AND tenant_id = auth_tenant_id;"
+                    )
+                    if tracking_code:
+                        compiled.extend(tracking_code)
+                else:
+                    compiled.append(f"UPDATE {table_name} SET {', '.join(assignments)}")
+                    compiled.append(f"WHERE id = v_{entity.name.lower()}_id;")
+
+                # Add identifier recalculation if requested
+                if recalculate_identifier:
+                    compiled.append(self._generate_identifier_recalc_call(entity))
+
+                # Add projection refresh if requested
+                if refresh_projection:
+                    compiled.append(
+                        self._generate_projection_refresh_call(entity, refresh_projection)
+                    )
 
             elif step.type == "call":
                 compiled.append(f"-- Call: {step.expression}")
@@ -362,6 +417,355 @@ class CoreLogicGenerator:
                 compiled.extend(self._compile_refresh_table_view_step(step, entity))
 
         return compiled
+
+    def _compile_duplicate_check_step(self, step, entity: Entity) -> str:
+        """
+        Compile duplicate check step to PL/pgSQL
+
+        Args:
+            step: Duplicate check step
+            entity: Entity being checked
+
+        Returns:
+            PL/pgSQL code for duplicate detection
+        """
+        # Get configuration from step fields
+        check_fields = step.fields.get("fields", []) if step.fields else []
+        error_message = (
+            step.fields.get("error_message", "Record already exists")
+            if step.fields
+            else "Record already exists"
+        )
+        return_conflict_object = (
+            step.fields.get("return_conflict_object", True) if step.fields else True
+        )
+
+        if not check_fields:
+            raise ValueError("duplicate_check step must specify 'fields' to check")
+
+        entity_lower = entity.name.lower()
+        table_name = f"{entity.schema}.tb_{entity_lower}"
+        projection_name = f"{entity.schema}.v_{entity_lower}_projection"
+
+        # Build WHERE conditions
+        where_conditions = []
+        for field in check_fields:
+            where_conditions.append(f"{field} = input_data.{field}")
+
+        where_clause = " AND ".join(where_conditions)
+
+        # Build conflict object for response
+        conflict_fields = []
+        for field in check_fields:
+            conflict_fields.append(f"'{field}', input_data.{field}")
+
+        conflict_object = ", ".join(conflict_fields)
+
+        sql_parts = []
+
+        # Check for existing record
+        sql_parts.append(f"""
+    -- Check for duplicate {entity.name}
+    SELECT id INTO v_existing_id
+    FROM {table_name}
+    WHERE {where_clause}
+      AND tenant_id = auth_tenant_id
+      AND deleted_at IS NULL
+    LIMIT 1;""")
+
+        # Handle duplicate found
+        sql_parts.append(f"""
+    IF v_existing_id IS NOT NULL THEN""")
+
+        if return_conflict_object:
+            sql_parts.append(f"""
+        -- Load existing object for conflict response
+        SELECT data INTO v_existing_object
+        FROM {projection_name}
+        WHERE id = v_existing_id;""")
+
+        # Return NOOP response
+        sql_parts.append(f"""
+        -- Return NOOP with conflict details
+        RETURN app.log_and_return_mutation(
+            auth_tenant_id,
+            auth_user_id,
+            '{entity_lower}',
+            v_existing_id,
+            'NOOP',
+            'noop:already_exists',
+            ARRAY[]::TEXT[],
+            '{error_message}',
+            {"v_existing_object" if return_conflict_object else "NULL"},
+            {"v_existing_object" if return_conflict_object else "NULL"},
+            jsonb_build_object(
+                'trigger', 'api_create',
+                'status', 'noop:already_exists',
+                'reason', 'unique_constraint_violation',
+                'conflict', jsonb_build_object(
+                    {conflict_object}{f", 'conflict_object', v_existing_object" if return_conflict_object else ""}
+                )
+            )
+        );
+    END IF;""")
+
+        return "\n".join(sql_parts)
+
+    def _compile_delete_step(self, step, entity: Entity) -> str:
+        """
+        Compile delete step to PL/pgSQL with hard/soft delete support
+
+        Args:
+            step: Delete step
+            entity: Entity being deleted
+
+        Returns:
+            PL/pgSQL code for delete operation
+        """
+        # Get configuration from step fields
+        supports_hard_delete = (
+            step.fields.get("supports_hard_delete", False) if step.fields else False
+        )
+        check_dependencies = step.fields.get("check_dependencies", []) if step.fields else []
+
+        entity_lower = entity.name.lower()
+        table_name = f"{entity.schema}.tb_{entity_lower}"
+
+        sql_parts = []
+
+        if supports_hard_delete and check_dependencies:
+            # Generate dependency checking code
+            sql_parts.append(self._generate_dependency_check(entity, check_dependencies))
+
+        sql_parts.append(f"""
+    -- Delete {entity.name}
+    DECLARE
+        v_hard_delete BOOLEAN := COALESCE(
+            (input_payload->>'hard_delete')::BOOLEAN,
+            FALSE
+        );
+    BEGIN""")
+
+        if supports_hard_delete and check_dependencies:
+            sql_parts.append("""
+        -- Check if hard delete is blocked by dependencies
+        IF v_hard_delete AND v_has_dependencies THEN
+            RETURN app.log_and_return_mutation(
+                auth_tenant_id, auth_user_id,
+                '{entity_lower}', v_{entity_lower}_id,
+                'NOOP', 'noop:cannot_delete_with_dependencies',
+                ARRAY[]::TEXT[],
+                'Cannot hard delete record with dependencies',
+                NULL, NULL,
+                jsonb_build_object(
+                    'reason', 'has_dependencies',
+                    'dependencies', v_dependency_details,
+                    'suggestion', 'Use soft delete or remove dependencies first'
+                )
+            );
+        END IF;""")
+
+        # Perform delete
+        delete_sql = f"""
+        -- Perform delete
+        IF v_hard_delete THEN
+            -- Hard delete
+            DELETE FROM {table_name}
+            WHERE id = v_{entity_lower}_id
+              AND tenant_id = auth_tenant_id;
+
+            RETURN app.log_and_return_mutation(
+                auth_tenant_id, auth_user_id,
+                '{entity_lower}', v_{entity_lower}_id,
+                'DELETE', 'deleted',
+                ARRAY[]::TEXT[],
+                'Record deleted permanently',
+                NULL, NULL
+            );
+        ELSE
+            -- Soft delete
+            UPDATE {table_name}
+            SET deleted_at = NOW(),
+                deleted_by = auth_user_id
+            WHERE id = v_{entity_lower}_id
+              AND tenant_id = auth_tenant_id;
+
+            RETURN app.log_and_return_mutation(
+                auth_tenant_id, auth_user_id,
+                '{entity_lower}', v_{entity_lower}_id,
+                'UPDATE', 'soft_deleted',
+                ARRAY[]::TEXT[],
+                'Record soft deleted',
+                NULL, NULL
+            );
+        END IF;
+    END;"""
+
+        sql_parts.append(delete_sql)
+
+        return "\n".join(sql_parts)
+
+    def _generate_dependency_check(self, entity: Entity, dependencies: list) -> str:
+        """
+        Generate dependency checking code for hard delete
+
+        Args:
+            entity: Entity being deleted
+            dependencies: List of dependency checks
+
+        Returns:
+            PL/pgSQL code for dependency checking
+        """
+        entity_lower = entity.name.lower()
+
+        check_parts = [
+            f"""
+    -- Check dependencies before hard delete
+    DECLARE
+        v_has_dependencies BOOLEAN := FALSE;
+        v_dependency_details JSONB := '{{}}'::JSONB;
+    BEGIN"""
+        ]
+
+        for dep in dependencies:
+            dep_entity = dep.get("entity")
+            dep_field = dep.get("field", f"{entity_lower}_id")
+            block_hard_delete = dep.get("block_hard_delete", True)
+
+            if block_hard_delete:
+                check_parts.append(f"""
+        -- Check {dep_entity} dependency
+        IF EXISTS (
+            SELECT 1 FROM {entity.schema}.tb_{dep_entity.lower()}
+            WHERE {dep_field} = v_{entity_lower}_id
+              AND tenant_id = auth_tenant_id
+              AND deleted_at IS NULL
+        ) THEN
+            v_has_dependencies := TRUE;
+            v_dependency_details := jsonb_set(
+                COALESCE(v_dependency_details, '{{}}'::JSONB),
+                '{{{dep_entity}}}',
+                (SELECT COUNT(*)::TEXT::JSONB
+                 FROM {entity.schema}.tb_{dep_entity.lower()}
+                 WHERE {dep_field} = v_{entity_lower}_id
+                   AND tenant_id = auth_tenant_id
+                   AND deleted_at IS NULL)
+            );
+        END IF;""")
+
+        check_parts.append("    END;")
+        return "\n".join(check_parts)
+
+    def _generate_identifier_recalc_call(self, entity: Entity) -> str:
+        """
+        Generate call to identifier recalculation function
+
+        Args:
+            entity: Entity to recalculate identifier for
+
+        Returns:
+            PL/pgSQL PERFORM statement for identifier recalculation
+        """
+        entity_lower = entity.name.lower()
+        schema = entity.schema
+
+        return f"""
+    -- Recalculate identifier
+    PERFORM {schema}.recalcid_{entity_lower}(
+        v_{entity_lower}_id,
+        auth_tenant_id,
+        auth_user_id
+    );"""
+
+    def _generate_projection_refresh_call(self, entity: Entity, projection_name: str) -> str:
+        """
+        Generate call to projection refresh function
+
+        Args:
+            entity: Entity whose projection to refresh
+            projection_name: Name of the projection to refresh
+
+        Returns:
+            PL/pgSQL PERFORM statement for projection refresh
+        """
+        entity_lower = entity.name.lower()
+        schema = entity.schema
+
+        return f"""
+    -- Refresh projection
+    PERFORM {schema}.refresh_{projection_name}(
+        v_{entity_lower}_id,
+        auth_tenant_id
+    );"""
+
+    def _generate_partial_update_assignments(self, entity: Entity, step_fields: dict) -> list[str]:
+        """
+        Generate CASE expressions for partial updates
+
+        Args:
+            entity: The entity being updated
+            step_fields: Fields from the update step
+
+        Returns:
+            List of SET assignments with CASE expressions
+        """
+        assignments = []
+
+        # Generate CASE expressions for each field in the entity
+        for field_name, field_def in entity.fields.items():
+            # Skip system fields that shouldn't be updated directly
+            if field_name in ["id", "tenant_id", "created_at", "created_by"]:
+                continue
+
+            # Audit fields are always set, not conditionally updated
+            if field_name in ["updated_at", "updated_by"]:
+                if field_name == "updated_at":
+                    assignments.append("updated_at = NOW()")
+                elif field_name == "updated_by":
+                    assignments.append("updated_by = auth_user_id")
+            else:
+                case_expr = f"""{field_name} = CASE WHEN input_payload ? '{field_name}'
+                         THEN input_data.{field_name}
+                         ELSE {field_name} END"""
+                assignments.append(case_expr)
+
+        return assignments
+
+    def _generate_field_tracking(self, entity: Entity, step_fields: dict) -> list[str]:
+        """
+        Generate code to track which fields were updated
+
+        Args:
+            entity: The entity being updated
+            step_fields: Fields from the update step
+
+        Returns:
+            List of PL/pgSQL statements for field tracking
+        """
+        tracking_code = []
+
+        # Initialize updated fields array if not already done
+        tracking_code.append("v_updated_fields := ARRAY[]::TEXT[];")
+
+        # Track each field that could be updated (excluding system and audit fields)
+        for field_name, field_def in entity.fields.items():
+            # Skip system fields and audit fields (they're always updated)
+            if field_name in [
+                "id",
+                "tenant_id",
+                "created_at",
+                "created_by",
+                "updated_at",
+                "updated_by",
+            ]:
+                continue
+
+            tracking_code.append(f"""
+    IF input_payload ? '{field_name}' THEN
+        v_updated_fields := v_updated_fields || ARRAY['{field_name}'];
+    END IF;""")
+
+        return tracking_code
 
     def _compile_refresh_table_view_step(self, step, entity: Entity) -> list[str]:
         """

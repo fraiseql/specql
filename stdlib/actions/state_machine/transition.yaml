@@ -1,0 +1,126 @@
+pattern: state_machine/transition
+version: 1.0
+description: "Transition entity between states with validation and side effects"
+author: SpecQL Team
+
+parameters:
+  - name: from_states
+    type: array<string>
+    required: true
+    description: "Valid source states for transition"
+
+  - name: to_state
+    type: string
+    required: true
+    description: "Target state"
+
+  - name: validation_checks
+    type: array<object>
+    required: false
+    description: "Pre-transition validations"
+
+  - name: side_effects
+    type: array<object>
+    required: false
+    description: "Updates to perform on success"
+
+  - name: input_fields
+    type: array<object>
+    required: false
+    description: "Additional input fields to set on transition"
+
+  - name: refresh_projection
+    type: string
+    required: false
+    description: "Projection to refresh after transition"
+
+template: |
+  steps:
+    # Load and validate current state
+    - raw_sql: |
+        SELECT status INTO v_current_status
+        FROM {{ entity.schema }}.tb_{{ entity.name | lower }}
+        WHERE id = v_{{ entity.name | lower }}_id
+          AND tenant_id = auth_tenant_id;
+
+        IF v_current_status NOT IN ({% for state in from_states %}'{{ state }}'{% if not loop.last %}, {% endif %}{% endfor %}) THEN
+            RETURN app.log_and_return_mutation(
+                auth_tenant_id, auth_user_id,
+                '{{ entity.name | lower }}', v_{{ entity.name | lower }}_id,
+                'NOOP', 'validation:invalid_state_transition',
+                ARRAY[]::TEXT[],
+                format('Cannot transition from state %s to {{ to_state }}', v_current_status),
+                NULL, NULL,
+                jsonb_build_object(
+                    'current_state', v_current_status,
+                    'valid_states', ARRAY[{% for state in from_states %}'{{ state }}'{% if not loop.last %}, {% endif %}{% endfor %}],
+                    'target_state', '{{ to_state }}'
+                )
+            );
+        END IF;
+
+    {% for check in validation_checks %}
+    # Validation: {{ check.get('name') or check.get('description') or 'custom check' }}
+    - validate: |
+        {{ check['condition'] }}
+      error: {{ check['error'] }}
+    {% endfor %}
+
+    # State transition
+    - update: "{{ entity.name }} SET status = '{{ to_state }}'{% for field in input_fields %}, {{ field['name'] }} = input_data.{{ field['name'] }}{% endfor %}"
+
+    {% for effect in side_effects %}
+    # Side effect: Update {{ effect['entity'] }}
+    {% if effect.get('insert') %}
+    - insert: {{ effect['entity'] }}
+      fields:
+        {% for field, value in effect['insert'].items() %}
+        {{ field }}: {{ value }}
+        {% endfor %}
+    {% elif effect.get('updates') %}
+    - update: "{{ effect['entity'] }} SET {% for field, value in effect['updates'].items() %}{{ field }} = {% if value is string %}'{{ value }}'{% else %}{{ value }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %} WHERE {{ effect.get('where', '') }}"
+    {% endif %}
+    {% endfor %}
+
+    {% if refresh_projection %}
+    # Refresh projection
+    - refresh_table_view: {{ refresh_projection }}
+    {% endif %}
+
+examples:
+  - name: decommission_machine
+    description: "Decommission machine from active/maintenance to decommissioned"
+    config:
+      from_states: [active, maintenance]
+      to_state: decommissioned
+      input_fields:
+        - name: decommission_date
+          type: date
+          required: true
+        - name: decommission_reason
+          type: text
+          required: true
+      validation_checks:
+        - name: no_active_allocations
+          condition: |
+            NOT EXISTS (
+              SELECT 1 FROM tenant.tb_allocation
+              WHERE machine_id = v_machine_id
+                AND status = 'active'
+                AND tenant_id = auth_tenant_id
+            )
+          error: "Cannot decommission machine with active allocations"
+      side_effects:
+        - description: "Archive machine items"
+          entity: MachineItem
+          set:
+            status: archived
+          where: "machine_id = v_machine_id AND tenant_id = auth_tenant_id"
+        - description: "Log decommission event"
+          entity: MachineEvent
+          set:
+            machine_id: v_machine_id
+            event_type: decommissioned
+            event_data: input_payload
+          where: "machine_id = v_machine_id AND tenant_id = auth_tenant_id"
+      refresh_projection: machine_projection

@@ -1,0 +1,255 @@
+entity: FinancialTransaction
+schema: finance
+description: Financial transaction management with pattern-based validation and state transitions
+
+fields:
+  id: uuid!
+  tenant_id: uuid!
+  account_id: uuid!
+  transaction_type: text!  # 'credit', 'debit', 'transfer'
+  amount: decimal!(10,2)
+  currency: text!  # ISO currency code
+  description: text
+  reference_number: text
+  status: text!  # 'pending', 'approved', 'rejected', 'completed', 'failed'
+  created_at: timestamp!
+  updated_at: timestamp
+  processed_at: timestamp
+  approved_by: uuid
+  approved_at: timestamp
+  failure_reason: text
+
+# Business rules and constraints
+validation_checks:
+  - condition: "amount > 0"
+    error_message: "Transaction amount must be positive"
+  - condition: "currency IN ('USD', 'EUR', 'GBP', 'CAD')"
+    error_message: "Unsupported currency"
+  - condition: "transaction_type IN ('credit', 'debit', 'transfer')"
+    error_message: "Invalid transaction type"
+
+# Indexes for performance
+indexes:
+  - fields: [tenant_id, account_id, created_at]
+    name: idx_transaction_tenant_account_date
+  - fields: [reference_number]
+    name: idx_transaction_reference
+    unique: true
+  - fields: [status, created_at]
+    name: idx_transaction_status_date
+
+# Table views for different access patterns
+table_views:
+  - name: active_transactions
+    mode: read
+    filter: "status IN ('pending', 'approved', 'completed')"
+    description: "Currently active transactions"
+
+  - name: failed_transactions
+    mode: read
+    filter: "status = 'failed'"
+    description: "Failed transactions for audit"
+
+# Actions using patterns
+actions:
+  # CRUD Operations
+  - name: create_transaction
+    pattern: crud/create
+    config:
+      duplicate_check:
+        fields: [reference_number]
+        error_message: "Transaction with this reference number already exists"
+    description: "Create a new financial transaction"
+
+  - name: update_transaction
+    pattern: crud/update
+    config:
+      partial_updates: true
+      track_updated_fields: true
+      validation_checks:
+        - condition: "status NOT IN ('completed', 'failed')"
+          error_message: "Cannot update completed or failed transactions"
+    description: "Update transaction details"
+
+  - name: delete_transaction
+    pattern: crud/delete
+    config:
+      supports_hard_delete: false
+      check_dependencies: true
+      validation_checks:
+        - condition: "status NOT IN ('completed')"
+          error_message: "Cannot delete completed transactions"
+    description: "Soft delete a transaction"
+
+  # State Machine Transitions
+  - name: approve_transaction
+    pattern: state_machine/transition
+    config:
+      from_states: ["pending"]
+      to_state: "approved"
+      guards:
+        - condition: "amount <= 10000"  # Auto-approve small amounts
+          error_message: "Large transactions require manual approval"
+      side_effects:
+        - entity: AuditLog
+          action: create_audit_entry
+          params:
+            action: "transaction_approved"
+            entity_type: "FinancialTransaction"
+            entity_id: "$id"
+            details: "Transaction approved for processing"
+    description: "Approve a pending transaction"
+
+  - name: reject_transaction
+    pattern: state_machine/guarded_transition
+    config:
+      from_states: ["pending", "approved"]
+      to_state: "rejected"
+      guards:
+        - condition: "status != 'completed'"
+          error_message: "Cannot reject completed transactions"
+      required_fields: ["failure_reason"]
+      side_effects:
+        - entity: Notification
+          action: send_rejection_notification
+          params:
+            recipient: "$approved_by"
+            message: "Transaction $reference_number has been rejected: $failure_reason"
+    description: "Reject a transaction with reason"
+
+  - name: process_transaction
+    pattern: state_machine/transition
+    config:
+      from_states: ["approved"]
+      to_state: "completed"
+      side_effects:
+        - entity: Account
+          action: update_balance
+          params:
+            account_id: "$account_id"
+            amount: "$amount * CASE WHEN transaction_type = 'debit' THEN -1 ELSE 1 END"
+            currency: "$currency"
+        - entity: AuditLog
+          action: create_audit_entry
+          params:
+            action: "transaction_processed"
+            entity_type: "FinancialTransaction"
+            entity_id: "$id"
+            details: "Transaction completed successfully"
+    description: "Process an approved transaction"
+
+  - name: fail_transaction
+    pattern: state_machine/transition
+    config:
+      from_states: ["approved", "processing"]
+      to_state: "failed"
+      required_fields: ["failure_reason"]
+      side_effects:
+        - entity: Notification
+          action: send_failure_notification
+          params:
+            recipient: "$approved_by"
+            message: "Transaction $reference_number failed: $failure_reason"
+    description: "Mark transaction as failed"
+
+  # Batch Operations
+  - name: bulk_approve_transactions
+    pattern: batch/bulk_operation
+    config:
+      batch_input: "transaction_ids"
+      operation: "approve"
+      validation_checks:
+        - condition: "ALL transactions have status = 'pending'"
+          error_message: "All transactions must be in pending status"
+        - condition: "ALL transactions have amount <= 5000"
+          error_message: "Bulk approval limited to transactions under $5000"
+      side_effects:
+        - entity: AuditLog
+          action: create_bulk_audit_entry
+          params:
+            action: "bulk_transaction_approval"
+            transaction_count: "array_length($transaction_ids, 1)"
+    description: "Bulk approve multiple small transactions"
+
+  - name: bulk_process_transactions
+    pattern: batch/bulk_operation
+    config:
+      batch_input: "transaction_ids"
+      operation: "process"
+      validation_checks:
+        - condition: "ALL transactions have status = 'approved'"
+          error_message: "All transactions must be approved first"
+      side_effects:
+        - entity: Account
+          action: bulk_update_balances
+          params:
+            transactions: "$transaction_ids"
+    description: "Process multiple approved transactions"
+
+  # Multi-Entity Operations
+  - name: create_transfer_transaction
+    pattern: multi_entity/coordinated_update
+    config:
+      primary_entity: FinancialTransaction
+      operations:
+        - entity: FinancialTransaction
+          action: create_transaction
+          params:
+            transaction_type: "'transfer'"
+            amount: "$amount"
+            currency: "$currency"
+            description: "'Transfer from account'"
+            reference_number: "'FROM_' || $reference_number"
+        - entity: FinancialTransaction
+          action: create_transaction
+          params:
+            account_id: "$to_account_id"
+            transaction_type: "'transfer'"
+            amount: "$amount"
+            currency: "$currency"
+            description: "'Transfer to account'"
+            reference_number: "'TO_' || $reference_number"
+      validation_checks:
+        - condition: "source_account.balance >= amount"
+          error_message: "Insufficient funds in source account"
+        - condition: "source_account.currency = target_account.currency"
+          error_message: "Currency mismatch between accounts"
+    description: "Create a transfer between two accounts"
+
+  # Validation Chains
+  - name: validate_transaction_compliance
+    pattern: validation/validation_chain
+    config:
+      validations:
+        - name: amount_limits
+          condition: "amount BETWEEN 0.01 AND 1000000.00"
+          error_message: "Transaction amount outside allowed limits"
+        - name: currency_support
+          condition: "currency IN ('USD', 'EUR', 'GBP', 'CAD', 'AUD')"
+          error_message: "Unsupported currency for compliance"
+        - name: duplicate_reference
+          condition: "NOT EXISTS (SELECT 1 FROM finance.tb_financial_transaction WHERE reference_number = $reference_number AND tenant_id = $tenant_id)"
+          error_message: "Duplicate reference number"
+        - name: account_exists
+          condition: "EXISTS (SELECT 1 FROM finance.tb_account WHERE id = account_id AND tenant_id = $tenant_id)"
+          error_message: "Referenced account does not exist"
+      stop_on_first_failure: false
+    description: "Comprehensive compliance validation for transactions"
+
+# Audit and tracking
+audit:
+  enabled: true
+  track_fields: ["status", "amount", "approved_by", "failure_reason"]
+  exclude_fields: ["updated_at"]
+
+# Notifications
+notifications:
+  - event: "transaction_approved"
+    channels: ["email", "in_app"]
+    template: "transaction_approved"
+  - event: "transaction_rejected"
+    channels: ["email", "in_app"]
+    template: "transaction_rejected"
+  - event: "transaction_failed"
+    channels: ["email", "sms"]
+    template: "transaction_failed"

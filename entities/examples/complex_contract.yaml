@@ -1,0 +1,200 @@
+entity: Contract
+schema: tenant
+
+fields:
+  customer_org: uuid
+  provider_org: uuid
+  customer_contract_id: text
+  provider_contract_id: text
+  status: enum[draft, pending_review, approved, active, completed, cancelled]
+  total_value: decimal
+  currency: text
+  signature_date: date
+  approved_by: uuid
+  approved_at: timestamptz
+  cancelled_by: uuid
+  cancelled_at: timestamptz
+
+constraints:
+  - name: unique_customer_contract
+    type: unique
+    fields: [customer_org, customer_contract_id]
+    check_on_create: true
+    error_message: "Contract already exists for this customer and contract ID"
+
+identifier:
+  pattern: "CONTRACT-{signature_date:YYYY}-{sequence:03d}"
+  sequence:
+    scope: [customer_org]
+    group_by: [signature_date:YYYY]
+  recalculate_on: [create, update]
+
+projections:
+  - name: contract_projection
+    includes:
+      - customer_org: [id, name, code]
+      - provider_org: [id, name, code]
+      - currency: [iso_code, symbol]
+      - contract_items: [id, description, quantity, unit_price]
+
+actions:
+  # CRUD with patterns
+  - name: create_contract
+    pattern: crud/create
+    config:
+      duplicate_check:
+        fields: [customer_org, customer_contract_id]
+        error_message: "Contract already exists for this customer and contract ID"
+        return_conflict_object: true
+
+  - name: update_contract
+    pattern: crud/update
+    config:
+      partial_updates: true
+      track_updated_fields: true
+
+  - name: delete_contract
+    pattern: crud/delete
+    config:
+      supports_hard_delete: true
+      check_dependencies:
+        - entity: ContractItem
+          field: contract_id
+          block_hard_delete: true
+          error_message: "Cannot delete contract with items"
+
+  # State machine transitions
+  - name: submit_for_review
+    pattern: state_machine/transition
+    config:
+      from_states: [draft]
+      to_state: pending_review
+      validation_checks:
+        - condition: "input_data.total_value IS NOT NULL AND input_data.total_value > 0"
+          error: "Contract total value is required and must be positive"
+        - condition: "input_data.customer_org IS NOT NULL AND input_data.provider_org IS NOT NULL"
+          error: "Customer and provider organizations are required"
+      side_effects:
+        - entity: ContractEvent
+          insert:
+            contract_id: v_contract_id
+            event_type: submitted_for_review
+            event_data: input_payload
+      refresh_projection: contract_projection
+
+  - name: approve_contract
+    pattern: state_machine/guarded_transition
+    config:
+      from_states: [draft, pending_review]
+      to_state: approved
+      guards:
+        - name: budget_available
+          condition: "input_data.total_value <= (SELECT budget FROM departments WHERE id = (SELECT department_id FROM users WHERE id = auth_user_id))"
+          error: "Contract value exceeds your department budget"
+        - name: manager_approval
+          condition: "EXISTS (SELECT 1 FROM contract_approvals WHERE contract_id = v_contract_id AND approver_role = 'manager' AND approved = true)"
+          error: "Manager approval required for contracts over $10,000"
+        - name: compliance_check
+          condition: "NOT EXISTS (SELECT 1 FROM compliance_issues WHERE contract_id = v_contract_id AND severity = 'blocking')"
+          error: "Contract has blocking compliance issues"
+      side_effects:
+        - name: update_department_budget
+          entity: Department
+          updates:
+            used_budget: used_budget + input_data.total_value
+          where: "id = (SELECT department_id FROM users WHERE id = auth_user_id)"
+        - name: create_approval_event
+          entity: ContractEvent
+          insert:
+            contract_id: v_contract_id
+            event_type: approved
+            event_data: input_payload
+      input_fields:
+        - name: approved_by
+          type: uuid
+        - name: approval_date
+          type: date
+      refresh_projection: contract_projection
+
+  - name: cancel_contract
+    pattern: state_machine/transition
+    config:
+      from_states: [draft, pending_review, approved, active]
+      to_state: cancelled
+      input_fields:
+        - name: cancelled_by
+          type: uuid
+        - name: cancellation_reason
+          type: text
+      side_effects:
+        - entity: ContractItem
+          updates:
+            status: cancelled
+          where: "contract_id = v_contract_id"
+        - entity: ContractEvent
+          insert:
+            contract_id: v_contract_id
+            event_type: cancelled
+            event_data: input_payload
+      refresh_projection: contract_projection
+
+  # Multi-entity operations
+  # - name: create_contract_with_items
+  #   pattern: multi_entity/coordinated_update
+  #   config:
+  #     primary_entity: Contract
+  #     operations: []
+      refresh_projections:
+        - contract_projection
+
+  # Validation chains
+  - name: validate_contract_comprehensive
+    pattern: validation/validation_chain
+    config:
+      validations:
+        - name: customer_exists
+          field: customer_org
+          condition: "EXISTS (SELECT 1 FROM organizations WHERE id = input_data.customer_org AND status = 'active')"
+          message: "Customer organization must exist and be active"
+        - name: provider_exists
+          field: provider_org
+          condition: "EXISTS (SELECT 1 FROM organizations WHERE id = input_data.provider_org AND status = 'active')"
+          message: "Provider organization must exist and be active"
+        - name: currency_supported
+          field: currency
+          condition: "input_data.currency IN (SELECT iso_code FROM supported_currencies WHERE active = true)"
+          message: "Currency is not supported or inactive"
+        - name: amount_positive
+          field: total_value
+          condition: "input_data.total_value > 0"
+          message: "Contract total value must be positive"
+        - name: amount_within_limits
+          field: total_value
+          condition: "input_data.total_value <= (SELECT max_contract_value FROM user_permissions WHERE user_id = auth_user_id)"
+          message: "Contract value exceeds your approval limit"
+        - name: contract_id_unique
+          field: customer_contract_id
+          condition: "NOT EXISTS (SELECT 1 FROM contracts WHERE customer_org = input_data.customer_org AND customer_contract_id = input_data.customer_contract_id AND deleted_at IS NULL)"
+          message: "Contract ID already exists for this customer"
+      stop_on_first_failure: false
+      collect_all_errors: true
+
+  # Batch operations
+  - name: bulk_update_contract_items
+    pattern: batch/bulk_operation
+    config:
+      batch_input: item_updates
+      operation:
+        action: update
+        entity: ContractItem
+        set:
+          unit_price: $item.unit_price
+          quantity: $item.quantity
+        where:
+          id: $item.id
+          contract_id: $input_data.contract_id
+      error_handling: continue_on_error
+      return_summary:
+        updated_count: v_updated_count
+        failed_count: v_failed_count
+        failed_items: v_failed_items

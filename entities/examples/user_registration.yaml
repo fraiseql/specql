@@ -1,0 +1,144 @@
+# Example: User Registration with Multi-Entity Pattern
+# Demonstrates user onboarding workflow with profile and preferences
+
+entity: User
+schema: tenant
+description: "User accounts with registration workflow"
+
+fields:
+  email:
+    type: text!
+    description: "User email address"
+
+  password_hash:
+    type: text!
+    description: "Hashed password"
+
+  status:
+    type: enum(pending, active, suspended, deactivated)
+    default: pending
+    description: "Account status"
+
+  email_verified:
+    type: boolean
+    default: false
+    description: "Email verification status"
+
+  verification_token:
+    type: text
+    description: "Email verification token"
+
+# Unique email constraint
+constraints:
+  - name: unique_email
+    type: unique
+    fields: [email]
+    check_on_create: true
+    error_message: "Email address already registered"
+
+projections:
+  - name: user_projection
+    materialize: true
+    refresh_on: [create, update]
+    includes:
+      - user_profile: [first_name, last_name, avatar_url]
+      - user_preferences: [theme, language, notifications]
+
+actions:
+  # Multi-entity: complete user registration
+  - name: register_user
+    pattern: multi_entity/coordinated_update
+    description: "Create user account with profile and preferences"
+    config:
+      primary_entity: User
+      operations:
+        # Create user account
+        - action: insert
+          entity: User
+          values:
+            email: $input_data.email
+            password_hash: $input_data.password_hash
+            status: pending
+            verification_token: $input_data.verification_token
+          store_as: user_id
+
+        # Create user profile
+        - action: insert
+          entity: UserProfile
+          values:
+            user_id: $user_id
+            first_name: $input_data.first_name
+            last_name: $input_data.last_name
+            display_name: $input_data.first_name || ' ' || $input_data.last_name
+
+        # Create default preferences
+        - action: insert
+          entity: UserPreferences
+          values:
+            user_id: $user_id
+            theme: 'light'
+            language: 'en'
+            timezone: 'UTC'
+            notifications: true
+            email_updates: true
+
+        # Send welcome email (would integrate with email service)
+        - action: insert
+          entity: EmailQueue
+          values:
+            user_id: $user_id
+            email_type: 'welcome'
+            recipient_email: $input_data.email
+            subject: 'Welcome to our platform!'
+            template_data: jsonb_build_object('first_name', $input_data.first_name)
+
+      refresh_projections:
+        - user_projection
+
+  # State machine: activate account after email verification
+  - name: verify_email
+    pattern: state_machine/transition
+    description: "Verify user email and activate account"
+    config:
+      from_states: [pending]
+      to_state: active
+      input_fields:
+        - name: verified_at
+          type: timestamptz
+          required: true
+      validation_checks:
+        - condition: "verification_token = $input_data.token"
+          error: "Invalid verification token"
+      side_effects:
+        - entity: User
+          set:
+            email_verified: true
+            verification_token: NULL
+          where: "id = v_user_id"
+        - entity: UserEvent
+          set:
+            event_type: 'email_verified'
+            event_data: $input_payload
+          where: "user_id = v_user_id"
+      refresh_projection: user_projection
+
+  # State machine: suspend user account
+  - name: suspend_user
+    pattern: state_machine/transition
+    config:
+      from_states: [active]
+      to_state: suspended
+      input_fields:
+        - name: suspension_reason
+          type: text
+          required: true
+      side_effects:
+        - entity: UserSession
+          set: {status: 'expired'}
+          where: "user_id = v_user_id AND status = 'active'"
+        - entity: UserEvent
+          set:
+            event_type: 'account_suspended'
+            event_data: $input_payload
+          where: "user_id = v_user_id"
+      refresh_projection: user_projection

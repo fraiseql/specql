@@ -1,0 +1,195 @@
+entity: Order
+schema: tenant
+
+fields:
+  customer_id: uuid
+  order_number: text
+  status: enum[pending, confirmed, processing, shipped, delivered, cancelled]
+  total_amount: decimal
+  currency: text
+  shipping_address: jsonb
+  billing_address: jsonb
+  ordered_at: timestamptz
+  shipped_at: timestamptz
+  delivered_at: timestamptz
+  cancelled_at: timestamptz
+
+constraints:
+  - name: unique_order_number
+    type: unique
+    fields: [order_number]
+    check_on_create: true
+    error_message: "Order number already exists"
+
+identifier:
+  pattern: "ORD-{ordered_at:YYYY}-{sequence:06d}"
+  sequence:
+    scope: [customer_id]
+    group_by: [ordered_at:YYYY]
+  recalculate_on: [create]
+
+projections:
+  - name: order_summary
+    includes:
+      - customer: [id, name, email]
+      - currency: [symbol]
+      - order_items: [id, product_name, quantity, unit_price]
+
+actions:
+  # CRUD with patterns
+  - name: create_order
+    pattern: crud/create
+    config:
+      duplicate_check:
+        fields: [order_number]
+        error_message: "Order number already exists"
+
+  - name: update_order
+    pattern: crud/update
+    config:
+      partial_updates: true
+      track_updated_fields: true
+
+  - name: cancel_order
+    pattern: crud/delete
+    config:
+      supports_hard_delete: false  # Orders are never hard deleted
+      check_dependencies:
+        - entity: OrderItem
+          field: order_id
+          block_hard_delete: false  # Allow soft delete even with items
+
+  # State machine transitions
+  - name: confirm_order
+    pattern: state_machine/transition
+    config:
+      from_states: [pending]
+      to_state: confirmed
+      validation_checks:
+        - condition: "input_data.total_amount > 0"
+          error: "Order total must be positive"
+        - condition: "input_data.shipping_address IS NOT NULL"
+          error: "Shipping address is required"
+      side_effects:
+        - entity: InventoryReservation
+          insert:
+            order_id: v_order_id
+            product_items: input_data.items
+            reserved_at: NOW()
+        - entity: OrderEvent
+          insert:
+            order_id: v_order_id
+            event_type: confirmed
+            event_data: input_payload
+      refresh_projection: order_summary
+
+  - name: ship_order
+    pattern: state_machine/transition
+    config:
+      from_states: [confirmed, processing]
+      to_state: shipped
+      input_fields:
+        - name: tracking_number
+          type: text
+        - name: carrier
+          type: text
+      validation_checks:
+        - condition: "EXISTS (SELECT 1 FROM inventory_reservations WHERE order_id = v_order_id AND status = 'reserved')"
+          error: "Inventory not properly reserved"
+      side_effects:
+        - entity: InventoryReservation
+          updates:
+            status: shipped
+          where: "order_id = v_order_id"
+        - entity: OrderEvent
+          insert:
+            order_id: v_order_id
+            event_type: shipped
+            event_data: input_payload
+      refresh_projection: order_summary
+
+  - name: deliver_order
+    pattern: state_machine/guarded_transition
+    config:
+      from_states: [shipped]
+      to_state: delivered
+      guards:
+        - name: delivery_confirmed
+          condition: "input_data.delivery_confirmation = true"
+          error: "Delivery confirmation required"
+      input_fields:
+        - name: delivered_by
+          type: text
+        - name: delivery_notes
+          type: text
+      side_effects:
+        - entity: OrderEvent
+          insert:
+            order_id: v_order_id
+            event_type: delivered
+            event_data: input_payload
+      refresh_projection: order_summary
+
+  - name: cancel_order_state
+    pattern: state_machine/transition
+    config:
+      from_states: [pending, confirmed, processing]
+      to_state: cancelled
+      input_fields:
+        - name: cancellation_reason
+          type: text
+        - name: cancelled_by
+          type: uuid
+      side_effects:
+        - entity: InventoryReservation
+          updates:
+            status: cancelled
+          where: "order_id = v_order_id"
+        - entity: OrderEvent
+          insert:
+            order_id: v_order_id
+            event_type: cancelled
+            event_data: input_payload
+      refresh_projection: order_summary
+
+  # Validation chains
+  - name: validate_order_comprehensive
+    pattern: validation/validation_chain
+    config:
+      validations:
+        - name: customer_exists
+          field: customer_id
+          condition: "EXISTS (SELECT 1 FROM customers WHERE id = input_data.customer_id AND status = 'active')"
+          message: "Customer must exist and be active"
+        - name: has_items
+          field: items
+          condition: "jsonb_array_length(input_data.items) > 0"
+          message: "Order must contain at least one item"
+        - name: sufficient_inventory
+          field: items
+          condition: "NOT EXISTS (SELECT 1 FROM jsonb_array_elements(input_data.items) AS item WHERE (item->>'quantity')::integer > (SELECT available_quantity FROM products WHERE id = (item->>'product_id')::uuid))"
+          message: "Insufficient inventory for one or more items"
+        - name: valid_currency
+          field: currency
+          condition: "input_data.currency IN ('USD', 'EUR', 'GBP')"
+          message: "Currency not supported"
+      stop_on_first_failure: false
+      collect_all_errors: true
+
+  # Batch operations
+  - name: bulk_update_order_status
+    pattern: batch/bulk_operation
+    config:
+      batch_input: orders
+      operation:
+        action: update
+        entity: Order
+        set:
+          status: $item.status
+          updated_at: NOW()
+        where: {id: $item.id}
+      error_handling: continue_on_error
+      return_summary:
+        processed_count: v_processed_count
+        failed_count: v_failed_count
+        failed_orders: v_failed_orders

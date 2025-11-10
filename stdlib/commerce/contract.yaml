@@ -19,16 +19,17 @@
 #     custom_field: text
 
 entity: Contract
-schema: management
+schema: tenant
 description: |
   Contract entity representing agreements between customer and provider organizations.
   Defines the commercial terms, duration, and parties involved in a business agreement.
+  Enhanced with PrintOptim production patterns for CRUD operations.
 
 fields:
   contract_identifier:
     type: text
     nullable: false
-    description: "Unique contract identifier"
+    description: "Unique contract identifier (auto-generated)"
 
   customer_contract_id:
     type: text
@@ -76,18 +77,161 @@ fields:
     nullable: false
     description: "Currency used for pricing in this contract"
 
-actions:
-  - name: create_contract
-  - name: update_contract
-  - name: delete_contract
+  status:
+    type: enum(draft, active, suspended, terminated, expired)
+    default: draft
+    description: "Contract lifecycle status"
 
-  # Business actions
+# Business constraints for duplicate detection
+constraints:
+  - name: unique_customer_provider_contract
+    type: unique
+    fields: [customer_org, provider_org, customer_contract_id]
+    check_on_create: true
+    error_message: "Contract already exists for this customer/provider/contract_id combination"
+
+# Identifier pattern for human-readable contract IDs
+identifier:
+  pattern: "CONTRACT-{signature_date:YYYY}-{sequence:03d}"
+  sequence:
+    scope: [customer_org]
+    group_by: [signature_date:YYYY]
+  recalculate_on: [create, update]
+
+# GraphQL projection with related data
+projections:
+  - name: contract_projection
+    materialize: true
+    refresh_on: [create, update]
+    includes:
+      - customer_org: [id, name, code]
+      - provider_org: [id, name, code]
+      - currency: [id, iso_code, symbol]
+
+# Delete policy with dependency checking
+delete_policy:
+  default: soft
+  allow_hard_delete: true
+  check_dependencies:
+    - entity: ContractItem
+      field: contract_id
+      block_hard_delete: true
+      error_message: "Cannot delete contract with associated items"
+    - entity: Allocation
+      field: contract_id
+      block_hard_delete: true
+      error_message: "Cannot delete contract with active allocations"
+
+actions:
+  # CRUD operations with enhanced patterns
+  - name: create_contract
+    duplicate_detection: true
+    recalculate_identifier: true
+    refresh_projection: contract_projection
+
+  - name: update_contract
+    partial_updates: true
+    track_updated_fields: true
+    recalculate_identifier: true
+    refresh_projection: contract_projection
+
+  - name: delete_contract
+    supports_hard_delete: true
+    dependency_check: true
+
+  # Business state transitions using state machine pattern
   - name: activate_contract
+    pattern: state_machine/transition
+    config:
+      from_states: [draft]
+      to_state: active
+      validation_checks:
+        - name: has_required_fields
+          condition: "input_data.start_date IS NOT NULL AND input_data.signature_date IS NOT NULL"
+          error: "Contract must have start date and signature date to activate"
+      refresh_projection: contract_projection
+
   - name: suspend_contract
+    pattern: state_machine/transition
+    config:
+      from_states: [active]
+      to_state: suspended
+      input_fields:
+        - name: suspension_reason
+          type: text
+          required: true
+      refresh_projection: contract_projection
+
   - name: terminate_contract
+    pattern: state_machine/transition
+    config:
+      from_states: [active, suspended]
+      to_state: terminated
+      input_fields:
+        - name: termination_date
+          type: date
+          required: true
+        - name: termination_reason
+          type: text
+          required: true
+      refresh_projection: contract_projection
+
+  # Complex business operations
   - name: renew_contract
+    description: "Create a renewal contract based on existing terms"
+    pattern: multi_entity/coordinated_update
+    config:
+      primary_entity: Contract
+      operations:
+        # Create renewal contract
+        - action: insert
+          entity: Contract
+          values:
+            customer_org: $input_data.customer_org
+            provider_org: $input_data.provider_org
+            currency: $input_data.currency
+            name: $input_data.name || ' (Renewal)'
+            start_date: $input_data.new_start_date
+            end_date: $input_data.new_end_date
+            status: draft
+          store_as: renewal_contract_id
+
+        # Link to original contract
+        - action: update
+          entity: Contract
+          where:
+            id: $input_data.original_contract_id
+          values:
+            renewal_contract_id: $renewal_contract_id
+
+      refresh_projections:
+        - contract_projection
+
   - name: amend_contract
-  - name: change_currency
-  - name: update_terms
-  - name: add_financing_condition
-  - name: remove_financing_condition
+    description: "Create contract amendment"
+    pattern: multi_entity/coordinated_update
+    config:
+      primary_entity: Contract
+      operations:
+        # Create amendment record
+        - action: insert
+          entity: ContractAmendment
+          values:
+            contract_id: $input_data.contract_id
+            amendment_type: $input_data.amendment_type
+            description: $input_data.description
+            effective_date: $input_data.effective_date
+          store_as: amendment_id
+
+        # Update contract status if needed
+        - action: update
+          entity: Contract
+          where:
+            id: $input_data.contract_id
+          values:
+            last_amended_at: NOW()
+            amendment_count: amendment_count + 1
+
+      refresh_projections:
+        - contract_projection
+        - contract_amendment_projection

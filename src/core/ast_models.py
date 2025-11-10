@@ -375,6 +375,10 @@ class ActionDefinition:
         None  # 'recalculate_subtree', 'recalculate_tenant', 'recalculate_global'
     )
 
+    # Pattern support (Phase 2)
+    pattern: str | None = None  # Pattern name if this action uses a pattern
+    pattern_config: dict[str, Any] | None = None  # Pattern configuration
+
 
 @dataclass
 class ActionStep:
@@ -403,6 +407,12 @@ class ActionStep:
     function_name: str | None = None
     arguments: dict[str, Any] | None = None
     store_result: str | None = None
+
+    # For raw SQL steps (used by patterns)
+    sql: str | None = None
+
+    # For table view refresh steps
+    view_name: str | None = None
 
     # For foreach steps
     foreach_expr: str | None = None

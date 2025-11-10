@@ -1,0 +1,211 @@
+# SpecQL stdlib Entity: Machine
+# Category: tech
+# Version: 1.1.0
+# Standard: PrintOptim Production Reference
+# Description: Manufacturing equipment with lifecycle management
+#
+# This entity implements PrintOptim's machine lifecycle management
+# using the new state machine pattern for declarative business logic.
+#
+# Usage:
+#   import: stdlib/tech/machine
+
+entity: Machine
+schema: tenant
+description: |
+  Manufacturing equipment with comprehensive lifecycle management.
+  Tracks machine status, allocations, maintenance, and decommissioning.
+
+fields:
+  code:
+    type: text!
+    description: "Unique machine code/identifier"
+
+  name:
+    type: text!
+    description: "Human-readable machine name"
+
+  model:
+    type: text
+    description: "Machine model or type"
+
+  serial_number:
+    type: text
+    description: "Manufacturer serial number"
+
+  status:
+    type: enum(active, maintenance, decommissioned, in_stock, allocated)
+    default: in_stock
+    description: "Current machine status"
+
+  location_id:
+    type: uuid
+    description: "Current physical location"
+
+  current_allocation_id:
+    type: uuid
+    description: "Current allocation if allocated"
+
+  purchase_date:
+    type: date
+    description: "Date machine was purchased"
+
+  installation_date:
+    type: date
+    description: "Date machine was installed"
+
+  last_maintenance_date:
+    type: date
+    description: "Date of last maintenance"
+
+  next_maintenance_date:
+    type: date
+    description: "Scheduled next maintenance"
+
+  decommission_date:
+    type: date
+    description: "Date machine was decommissioned"
+
+  decommission_reason:
+    type: text
+    description: "Reason for decommissioning"
+
+# GraphQL projection with related data
+projections:
+  - name: machine_projection
+    materialize: true
+    refresh_on: [create, update]
+    includes:
+      - location: [id, name, code]
+      - current_allocation: [id, allocation_type, status]
+
+# Delete policy - machines can be hard deleted if not allocated
+delete_policy:
+  default: soft
+  allow_hard_delete: true
+  check_dependencies:
+    - entity: Allocation
+      field: machine_id
+      block_hard_delete: true
+      error_message: "Cannot delete machine with active allocations"
+    - entity: MachineItem
+      field: machine_id
+      block_hard_delete: true
+      error_message: "Cannot delete machine with associated items"
+
+actions:
+  # CRUD operations
+  - name: create_machine
+    refresh_projection: machine_projection
+
+  - name: update_machine
+    partial_updates: true
+    refresh_projection: machine_projection
+
+  - name: delete_machine
+    supports_hard_delete: true
+    dependency_check: true
+
+  # State machine transitions - core business logic
+  - name: decommission_machine
+    pattern: state_machine/transition
+    description: "Decommission machine from active/maintenance to decommissioned"
+    config:
+      from_states: [active, maintenance]
+      to_state: decommissioned
+      input_fields:
+        - name: decommission_date
+          type: date
+          required: true
+        - name: decommission_reason
+          type: text
+          required: true
+      validation_checks:
+        - name: no_active_allocations
+          condition: "NOT EXISTS (SELECT 1 FROM tenant.tb_allocation WHERE machine_id = v_machine_id AND status = 'active' AND tenant_id = auth_tenant_id)"
+          error: "Cannot decommission machine with active allocations"
+        - name: no_pending_maintenance
+          condition: "NOT EXISTS (SELECT 1 FROM tenant.tb_work_order WHERE machine_id = v_machine_id AND status IN ('pending', 'in_progress') AND tenant_id = auth_tenant_id)"
+          error: "Cannot decommission machine with pending maintenance"
+      side_effects:
+        - description: "Archive machine items"
+          entity: MachineItem
+          set:
+            status: archived
+          where: "machine_id = v_machine_id AND tenant_id = auth_tenant_id"
+        - description: "Cancel pending work orders"
+          entity: WorkOrder
+          set:
+            status: cancelled
+            cancellation_reason: 'Machine decommissioned'
+          where: "machine_id = v_machine_id AND status IN ('pending', 'scheduled') AND tenant_id = auth_tenant_id"
+        - description: "Log decommission event"
+          entity: MachineEvent
+          set:
+            machine_id: v_machine_id
+            event_type: decommissioned
+            event_data: input_payload
+          where: "machine_id = v_machine_id AND tenant_id = auth_tenant_id"
+      refresh_projection: machine_projection
+
+  - name: start_maintenance
+    pattern: state_machine/transition
+    description: "Put machine into maintenance mode"
+    config:
+      from_states: [active, in_stock]
+      to_state: maintenance
+      input_fields:
+        - name: maintenance_reason
+          type: text
+          required: true
+        - name: estimated_completion
+          type: date
+          required: false
+      validation_checks:
+        - name: no_active_work_orders
+          condition: "NOT EXISTS (SELECT 1 FROM tenant.tb_work_order WHERE machine_id = v_machine_id AND status IN ('pending', 'in_progress') AND tenant_id = auth_tenant_id)"
+          error: "Cannot start maintenance with active work orders"
+      side_effects:
+        - description: "Create maintenance work order"
+          entity: WorkOrder
+          set:
+            machine_id: v_machine_id
+            work_type: maintenance
+            status: in_progress
+            description: input_data.maintenance_reason
+            estimated_completion: input_data.estimated_completion
+          where: "machine_id = v_machine_id AND tenant_id = auth_tenant_id"
+      refresh_projection: machine_projection
+
+  - name: end_maintenance
+    pattern: state_machine/transition
+    description: "Return machine to active status after maintenance"
+    config:
+      from_states: [maintenance]
+      to_state: active
+      side_effects:
+        - description: "Complete maintenance work order"
+          entity: WorkOrder
+          set:
+            status: completed
+            actual_completion: NOW()
+          where: "machine_id = v_machine_id AND work_type = 'maintenance' AND status = 'in_progress' AND tenant_id = auth_tenant_id"
+      refresh_projection: machine_projection
+
+  - name: allocate_to_production
+    pattern: state_machine/transition
+    description: "Allocate machine to production use"
+    config:
+      from_states: [in_stock, active]
+      to_state: allocated
+      input_fields:
+        - name: production_line_id
+          type: uuid
+          required: true
+      side_effects:
+        - description: "Update location to production line"
+          entity: Machine
+          set:
+            location_id: input_data.production_line_id
+          where: "id = v_machine_id AND tenant_id = auth_tenant_id"
+      refresh_projection: machine_projection
