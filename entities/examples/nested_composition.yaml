@@ -1,0 +1,206 @@
+name: Review
+schema: library
+description: |
+  Book review with deeply nested composition pattern.
+
+  Demonstrates:
+  - Multi-level nested composition (3 levels deep)
+  - Cascading denormalization (Review → Book → Publisher → Country)
+  - Mixed wildcard and explicit field selection at different levels
+  - Efficient composition from already-denormalized tv_ tables
+
+  Use Case:
+  - Book review platform with rich metadata
+  - Display reviews with full book, publisher, and country details
+  - No nested JOINs at query time (pre-composed JSONB)
+
+fields:
+  # Author relationship
+  author:
+    type: ref(User)
+    schema: crm
+    description: Review author (user who wrote the review)
+
+  # Book relationship (with nested Publisher → Country)
+  book:
+    type: ref(Book)
+    schema: library
+    description: Book being reviewed
+
+  # Review content
+  rating:
+    type: integer
+    description: Star rating (1-5 stars)
+
+  title:
+    type: text
+    description: Review title/headline
+
+  content:
+    type: text
+    description: Review text content
+
+  verified_purchase:
+    type: boolean
+    description: Whether reviewer purchased the book
+
+  helpful_count:
+    type: integer
+    description: Number of users who found this review helpful
+
+  review_date:
+    type: date
+    description: Date review was written
+
+# CQRS read layer with nested composition
+table_views:
+  mode: auto
+
+  # Nested composition: Review → Book → Publisher → Country
+  include_relations:
+    # Level 1: Author (wildcard - all user fields)
+    - User:
+        fields: ["*"]
+
+    # Level 1: Book with nested Publisher
+    - Book:
+        # Explicit fields for Book
+        fields: [title, subtitle, isbn, isbn13, published_year, page_count, language, genre]
+
+        # Level 2: Publisher with nested Country
+        include_relations:
+          - Publisher:
+              # Explicit fields for Publisher
+              fields: [name, website, founded_year]
+
+              # Level 3: Country (leaf level)
+              include_relations:
+                - Country:
+                    # Explicit fields for Country
+                    fields: [name, code, region, currency]
+
+  # Promote frequently-filtered fields for fast queries
+  extra_filter_columns:
+    # Rating filtering (4+ stars, 5 stars only, etc.)
+    - name: rating
+      type: INTEGER
+      index_type: btree
+
+    # Date range queries (recent reviews, reviews in 2025, etc.)
+    - name: review_date
+      type: DATE
+      index_type: btree
+
+    # Verified purchase filtering (show only verified reviews)
+    - name: verified_purchase
+      type: BOOLEAN
+      index_type: btree
+
+    # Author filtering (all reviews by user)
+    - name: author_id
+      type: UUID
+      index_type: btree
+
+    # Book filtering (all reviews for book)
+    - name: book_id
+      type: UUID
+      index_type: btree
+
+# Business actions
+actions:
+  - name: create
+    description: Create a new book review
+    impacts:
+      write: [Review]
+      read: [Book, User]
+    steps:
+      - validate: rating >= 1 AND rating <= 5
+      - validate: LENGTH(content) >= 50
+      - insert: Review SET
+          author = :author_id,
+          book = :book_id,
+          rating = :rating,
+          title = :title,
+          content = :content,
+          verified_purchase = :verified_purchase,
+          review_date = CURRENT_DATE
+
+  - name: mark_helpful
+    description: Mark review as helpful
+    impacts:
+      write: [Review]
+    steps:
+      - update: Review SET
+          helpful_count = helpful_count + 1
+        WHERE id = :review_id
+
+  - name: moderate
+    description: Moderate inappropriate review
+    impacts:
+      write: [Review]
+    steps:
+      - validate: :moderator_role = 'admin'
+      - update: Review SET
+          moderated = true,
+          moderation_reason = :reason,
+          moderated_by = :moderator_id,
+          moderated_at = CURRENT_TIMESTAMP
+
+# Expected tv_review.data structure with nested composition:
+# {
+#   "rating": 5,
+#   "title": "Excellent book on software craftsmanship",
+#   "content": "This book fundamentally changed how I write code...",
+#   "verified_purchase": true,
+#   "helpful_count": 42,
+#   "review_date": "2025-11-10",
+#   "author": {
+#     "id": "uuid-author",
+#     "name": "Jane Doe",
+#     "email": "jane@example.com",
+#     "... all other User fields from tv_user.data ..."
+#   },
+#   "book": {
+#     "title": "Clean Code",
+#     "subtitle": "A Handbook of Agile Software Craftsmanship",
+#     "isbn": "0132350882",
+#     "isbn13": "978-0132350884",
+#     "published_year": 2008,
+#     "page_count": 464,
+#     "language": "English",
+#     "genre": "Programming",
+#     "publisher": {
+#       "name": "Prentice Hall",
+#       "website": "https://prentic ehall.com",
+#       "founded_year": 1913,
+#       "country": {
+#         "name": "United States",
+#         "code": "US",
+#         "region": "North America",
+#         "currency": "USD"
+#       }
+#     }
+#   }
+# }
+#
+# Key Insight: Nested composition efficiency
+# ================================
+# Review refresh JOINs to:
+#   - tv_user (already denormalized)
+#   - tv_book (already contains publisher + country data!)
+#
+# NO nested JOINs needed:
+#   ❌ Does NOT JOIN to tb_publisher
+#   ❌ Does NOT JOIN to tb_country
+#
+# Why? tv_book.data already has this structure:
+# {
+#   "title": "Clean Code",
+#   "publisher": {
+#     "name": "Prentice Hall",
+#     "country": {"name": "United States", "code": "US"}
+#   }
+# }
+#
+# Review's refresh function simply copies Book's pre-composed data!
+# Result: Cascading denormalization = blazing fast refresh operations

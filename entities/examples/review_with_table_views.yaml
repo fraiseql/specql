@@ -30,10 +30,11 @@ actions:
 table_views:
   mode: auto
   include_relations:
-    - entity_name: User
-      fields: [name, email, avatar_url]
-    - entity_name: Book
-      fields: [title, isbn, published_year, genre]
+    # Correct syntax: Entity name directly, not "entity_name:"
+    - User:
+        fields: [name, email, avatar_url]
+    - Book:
+        fields: [title, isbn, published_year, genre]
   extra_filter_columns:
     - name: rating
       type: INTEGER
