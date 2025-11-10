@@ -22,16 +22,34 @@ def specql():
 @click.option("--foundation-only", is_flag=True, help="Generate only app foundation")
 @click.option("--include-tv", is_flag=True, help="Generate table views")
 @click.option("--env", default="local", help="Confiture environment to use")
-def generate(entity_files, foundation_only, include_tv, env):
+@click.option(
+    "--output-format",
+    type=click.Choice(["confiture", "hierarchical"], case_sensitive=False),
+    default="confiture",
+    help="Output format: confiture (flat) or hierarchical (hex directories)",
+)
+@click.option(
+    "--output-dir",
+    default=None,  # Will be set based on output_format
+    help="Output directory (defaults: db/schema for confiture, migrations/ for hierarchical)",
+)
+def generate(entity_files, foundation_only, include_tv, env, output_format, output_dir):
     """Generate PostgreSQL schema from SpecQL YAML files"""
 
-    # Create orchestrator (always use Confiture-compatible output now)
-    orchestrator = CLIOrchestrator(use_registry=False, output_format="confiture")
+    # Determine default output directory
+    if output_dir is None:
+        output_dir = "db/schema" if output_format == "confiture" else "migrations"
 
-    # Generate to db/schema/ (Confiture's expected location)
+    # Use registry when hierarchical format requested
+    use_registry = output_format == "hierarchical"
+
+    # Create orchestrator with requested format
+    orchestrator = CLIOrchestrator(use_registry=use_registry, output_format=output_format)
+
+    # Generate schema
     result = orchestrator.generate_from_files(
         entity_files=list(entity_files),
-        output_dir="db/schema",  # Changed from "migrations"
+        output_dir=output_dir,
         foundation_only=foundation_only,
         include_tv=include_tv,
     )
@@ -42,18 +60,17 @@ def generate(entity_files, foundation_only, include_tv, env):
             click.echo(f"  {error}")
         return 1
 
-    # Success - now build with Confiture
+    # Success messaging
     click.secho(f"✅ Generated {len(result.migrations)} schema file(s)", fg="green")
 
-    if not foundation_only:
+    # Confiture build (only for confiture format)
+    if output_format == "confiture" and not foundation_only:
         click.echo("\nBuilding final migration with Confiture...")
-
-        # Import Confiture here to avoid circular imports
         try:
-            from confiture.core.builder import SchemaBuilder  # type: ignore
+            from confiture.core.builder import SchemaBuilder
 
             builder = SchemaBuilder(env=env)
-            builder.build()  # Let Confiture use its default output path
+            builder.build()
 
             output_path = Path(f"db/generated/schema_{env}.sql")
             click.secho(f"✅ Complete! Migration written to: {output_path}", fg="green", bold=True)
@@ -61,13 +78,25 @@ def generate(entity_files, foundation_only, include_tv, env):
             click.echo(f"  1. Review: cat {output_path}")
             click.echo(f"  2. Apply: confiture migrate up --env {env}")
             click.echo("  3. Status: confiture migrate status")
-
         except ImportError:
             click.secho("⚠️  Confiture not available, generated schema files only", fg="yellow")
-            click.echo("Install confiture: uv add fraiseql-confiture")
         except Exception as e:
             click.secho(f"❌ Confiture build failed: {e}", fg="red")
             return 1
+
+    elif output_format == "hierarchical":
+        click.secho(f"\n📁 Hierarchical output written to: {output_dir}/", fg="blue", bold=True)
+        click.echo("\nStructure:")
+        click.echo("  migrations/")
+        click.echo("    └── 01_write_side/")
+        click.echo("        └── [domain]/")
+        click.echo("            └── [subdomain]/")
+        click.echo("                └── [entity]/")
+        click.echo("\nNext steps:")
+        click.echo(f"  1. Review structure: tree {output_dir}/")
+        click.echo("  2. Apply manually or integrate with custom migration tool")
+        if use_registry:
+            click.echo("  3. Check registry: cat registry/domain_registry.yaml")
 
     return 0
 
@@ -109,11 +138,12 @@ def check_codes(ctx, entity_files, format, export):
         specql check-codes entities/**/*.yaml --format json
         specql check-codes entities/ --export results.json
     """
-    from src.cli.commands.check_codes import check_table_code_uniqueness
-    from pathlib import Path
+    import csv
     import glob
     import json
-    import csv
+    from pathlib import Path
+
+    from src.cli.commands.check_codes import check_table_code_uniqueness
 
     # Expand glob patterns and convert to Path objects
     file_paths = []
@@ -182,11 +212,11 @@ def check_codes(ctx, entity_files, format, export):
                 for entity in entities:
                     click.echo(f"    - {entity}")
 
-            click.secho(f"\n❌ Fix duplicates before running 'specql generate'", fg="red")
+            click.secho("\n❌ Fix duplicates before running 'specql generate'", fg="red")
             ctx.exit(1)
         else:
             click.secho("✅ Table code uniqueness check PASSED", fg="green", bold=True)
-            click.secho(f"\n📊 Summary:", fg="blue")
+            click.secho("\n📊 Summary:", fg="blue")
             click.echo(f"   Total files scanned: {results['total_files']}")
             click.echo(f"   Unique codes found: {results['total_codes']}")
             click.echo(f"   Duplicate codes: {len(duplicates)}")

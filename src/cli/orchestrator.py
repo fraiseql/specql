@@ -192,27 +192,56 @@ class CLIOrchestrator:
                     # Generate SPLIT schema for Confiture
                     schema_output = self.schema_orchestrator.generate_split_schema(entity)
 
-                    # Write to Confiture directory structure
-                    schema_base = Path("db/schema")
+                    if self.output_format == "hierarchical":
+                        # Write to hierarchical directory structure
+                        table_path = self.generate_file_path(
+                            entity, table_code, "table", output_dir
+                        )
+                        helpers_path = self.generate_file_path(
+                            entity, table_code, "function", output_dir
+                        )
+                        functions_dir = Path(
+                            self.generate_file_path(entity, table_code, "function", output_dir)
+                        ).parent
 
-                    # 1. Table definition (db/schema/10_tables/)
-                    table_dir = schema_base / "10_tables"
-                    table_dir.mkdir(parents=True, exist_ok=True)
-                    table_path = table_dir / f"{entity.name.lower()}.sql"
-                    table_path.write_text(schema_output.table_sql)
+                        # Ensure directories exist
+                        Path(table_path).parent.mkdir(parents=True, exist_ok=True)
+                        Path(helpers_path).parent.mkdir(parents=True, exist_ok=True)
+                        functions_dir.mkdir(parents=True, exist_ok=True)
+                    else:
+                        # Write to Confiture directory structure
+                        schema_base = Path("db/schema")
 
-                    # 2. Helper functions (db/schema/20_helpers/)
-                    helpers_dir = schema_base / "20_helpers"
-                    helpers_dir.mkdir(parents=True, exist_ok=True)
-                    helpers_path = helpers_dir / f"{entity.name.lower()}_helpers.sql"
-                    helpers_path.write_text(schema_output.helpers_sql)
+                        # 1. Table definition (db/schema/10_tables/)
+                        table_dir = schema_base / "10_tables"
+                        table_dir.mkdir(parents=True, exist_ok=True)
+                        table_path = table_dir / f"{entity.name.lower()}.sql"
 
-                    # 3. Mutations - ONE FILE PER MUTATION (db/schema/30_functions/)
-                    functions_dir = schema_base / "30_functions"
-                    functions_dir.mkdir(parents=True, exist_ok=True)
+                        # 2. Helper functions (db/schema/20_helpers/)
+                        helpers_dir = schema_base / "20_helpers"
+                        helpers_dir.mkdir(parents=True, exist_ok=True)
+                        helpers_path = helpers_dir / f"{entity.name.lower()}_helpers.sql"
 
+                        # 3. Mutations - ONE FILE PER MUTATION (db/schema/30_functions/)
+                        functions_dir = schema_base / "30_functions"
+                        functions_dir.mkdir(parents=True, exist_ok=True)
+
+                    # Write table SQL
+                    Path(table_path).write_text(schema_output.table_sql)
+
+                    # Write helpers SQL
+                    Path(helpers_path).write_text(schema_output.helpers_sql)
+
+                    # Write mutations
                     for mutation in schema_output.mutations:
-                        mutation_path = functions_dir / f"{mutation.action_name}.sql"
+                        if self.output_format == "hierarchical":
+                            mutation_path = (
+                                functions_dir
+                                / f"{table_code}_fn_{entity.name.lower()}_{mutation.action_name}.sql"
+                            )
+                        else:
+                            mutation_path = functions_dir / f"{mutation.action_name}.sql"
+
                         mutation_content = f"""-- ============================================================================
 -- Mutation: {mutation.action_name}
 -- Entity: {entity.name}
