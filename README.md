@@ -1,5 +1,8 @@
 # SpecQL: Business Logic as Code
 
+[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/fraiseql/specql/releases)
+[![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
 > **Transform business requirements into production PostgreSQL + GraphQL backends**
 > Write 20 lines of YAML. Get 2000+ lines of production code.
 

@@ -1,0 +1,88 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+
+      - name: Install dependencies
+        run: |
+          uv venv
+          uv pip install -e ".[dev]"
+
+      - name: Run tests
+        run: |
+          uv run pytest --tb=short
+
+      - name: Extract version from tag
+        id: get_version
+        run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+      - name: Verify version consistency
+        run: |
+          TAG_VERSION="${{ steps.get_version.outputs.VERSION }}"
+          FILE_VERSION=$(cat VERSION)
+          if [ "$TAG_VERSION" != "$FILE_VERSION" ]; then
+            echo "❌ Version mismatch: tag=$TAG_VERSION, VERSION file=$FILE_VERSION"
+            exit 1
+          fi
+          echo "✅ Version consistency verified: $TAG_VERSION"
+
+      - name: Extract changelog for this version
+        id: changelog
+        run: |
+          VERSION="${{ steps.get_version.outputs.VERSION }}"
+
+          # Extract the section for this version from CHANGELOG.md
+          sed -n "/## \[$VERSION\]/,/## \[/p" CHANGELOG.md | sed '$d' > release_notes.md
+
+          # If release notes are empty, create a default message
+          if [ ! -s release_notes.md ]; then
+            echo "Release $VERSION" > release_notes.md
+            echo "" >> release_notes.md
+            echo "See CHANGELOG.md for details." >> release_notes.md
+          fi
+
+          cat release_notes.md
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          body_path: release_notes.md
+          draft: false
+          prerelease: ${{ contains(steps.get_version.outputs.VERSION, '-') }}
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build distribution packages
+        run: |
+          uv pip install build
+          python -m build
+
+      - name: Upload distribution artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-package-distributions
+          path: dist/

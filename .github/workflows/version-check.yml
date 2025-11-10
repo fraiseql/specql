@@ -1,0 +1,88 @@
+name: Version Check
+
+on:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  check-version:
+    name: Check Version Bump
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch main branch
+        run: git fetch origin main:main
+
+      - name: Check if VERSION file changed
+        id: version_changed
+        run: |
+          if git diff --name-only origin/main...HEAD | grep -q "^VERSION$"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+            NEW_VERSION=$(cat VERSION)
+            git checkout main
+            OLD_VERSION=$(cat VERSION)
+            git checkout -
+            echo "old_version=$OLD_VERSION" >> $GITHUB_OUTPUT
+            echo "new_version=$NEW_VERSION" >> $GITHUB_OUTPUT
+            echo "✅ VERSION file changed: $OLD_VERSION → $NEW_VERSION"
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+            echo "ℹ️  VERSION file not changed (this may be intentional for docs/test changes)"
+          fi
+
+      - name: Validate version format
+        if: steps.version_changed.outputs.changed == 'true'
+        run: |
+          VERSION=$(cat VERSION)
+          if ! echo "$VERSION" | grep -Pq '^\d+\.\d+\.\d+$'; then
+            echo "❌ Invalid version format: $VERSION"
+            echo "Expected: MAJOR.MINOR.PATCH (e.g., 1.2.3)"
+            exit 1
+          fi
+          echo "✅ Version format valid: $VERSION"
+
+      - name: Check version increment
+        if: steps.version_changed.outputs.changed == 'true'
+        run: |
+          OLD="${{ steps.version_changed.outputs.old_version }}"
+          NEW="${{ steps.version_changed.outputs.new_version }}"
+
+          # Parse versions
+          IFS='.' read -r OLD_MAJOR OLD_MINOR OLD_PATCH <<< "$OLD"
+          IFS='.' read -r NEW_MAJOR NEW_MINOR NEW_PATCH <<< "$NEW"
+
+          # Check if version was incremented (not decremented)
+          if [ "$NEW_MAJOR" -lt "$OLD_MAJOR" ]; then
+            echo "❌ Version downgrade detected: $OLD → $NEW"
+            exit 1
+          elif [ "$NEW_MAJOR" -eq "$OLD_MAJOR" ] && [ "$NEW_MINOR" -lt "$OLD_MINOR" ]; then
+            echo "❌ Version downgrade detected: $OLD → $NEW"
+            exit 1
+          elif [ "$NEW_MAJOR" -eq "$OLD_MAJOR" ] && [ "$NEW_MINOR" -eq "$OLD_MINOR" ] && [ "$NEW_PATCH" -le "$OLD_PATCH" ]; then
+            echo "❌ Version must be incremented: $OLD → $NEW"
+            exit 1
+          fi
+
+          echo "✅ Valid version increment: $OLD → $NEW"
+
+      - name: Check pyproject.toml sync
+        if: steps.version_changed.outputs.changed == 'true'
+        run: |
+          VERSION=$(cat VERSION)
+          PYPROJECT_VERSION=$(grep '^version = ' pyproject.toml | cut -d'"' -f2)
+
+          if [ "$VERSION" != "$PYPROJECT_VERSION" ]; then
+            echo "❌ Version mismatch:"
+            echo "   VERSION file: $VERSION"
+            echo "   pyproject.toml: $PYPROJECT_VERSION"
+            echo ""
+            echo "Run: python scripts/version.py bump [major|minor|patch]"
+            exit 1
+          fi
+
+          echo "✅ VERSION and pyproject.toml are in sync: $VERSION"

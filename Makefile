@@ -1,4 +1,4 @@
-.PHONY: help install test test-unit test-integration lint typecheck format clean
+.PHONY: help install test test-unit test-integration lint typecheck format clean version
 
 help:
 	@echo "SpecQL Generator - Development Commands"
@@ -12,6 +12,12 @@ help:
 	@echo "  make format          Format code (black)"
 	@echo "  make clean           Clean generated files"
 	@echo "  make coverage        Generate coverage report"
+	@echo ""
+	@echo "Version Management:"
+	@echo "  make version         Show current version"
+	@echo "  make version-patch   Bump patch version (0.1.0 -> 0.1.1)"
+	@echo "  make version-minor   Bump minor version (0.1.0 -> 0.2.0)"
+	@echo "  make version-major   Bump major version (0.1.0 -> 1.0.0)"
 
 install:
 	uv pip install -e ".[dev]"
@@ -67,3 +73,16 @@ teamD-test:
 
 teamE-test:
 	uv run pytest tests/unit/cli/ -v
+
+# Version management
+version:
+	@python scripts/version.py
+
+version-patch:
+	@python scripts/version.py bump patch
+
+version-minor:
+	@python scripts/version.py bump minor
+
+version-major:
+	@python scripts/version.py bump major
