@@ -101,14 +101,16 @@ class Pattern:
 
     def _is_entity_multi_tenant(self, entity: dict[str, Any]) -> bool:
         """Check if entity is multi-tenant."""
-        # Check entity-level flag first
-        if entity.get("multi_tenant", False):
-            return True
+        # Check entity-level flag first (support both multi_tenant and is_multi_tenant keys)
+        if "is_multi_tenant" in entity:
+            return entity["is_multi_tenant"]
+        if "multi_tenant" in entity:
+            return entity["multi_tenant"]
 
-        # Check schema-level multi-tenancy
+        # Check schema-level multi-tenancy only if no explicit flag
         schema = entity.get("schema", "")
         # Common multi-tenant schemas in SpecQL
-        multi_tenant_schemas = {"tenant", "crm", "management"}
+        multi_tenant_schemas = {"crm", "management"}  # Removed "tenant" to avoid false positives
         return schema in multi_tenant_schemas
 
     def _build_tenant_filter(self) -> str:
