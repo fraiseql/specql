@@ -22,6 +22,7 @@ class TestActionOrchestrator:
         self.mock_registry = {
             "validate": MockStepCompiler(),
             "update": MockStepCompiler(),
+            "partial_update": MockStepCompiler(),  # Added for partial update support (now default)
             "foreach": MockStepCompiler(),
             "call": MockStepCompiler(),
             "notify": MockStepCompiler(),

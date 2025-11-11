@@ -474,8 +474,8 @@ $$;
         Returns:
             PL/pgSQL for update
         """
-        # Check if partial updates are requested
-        partial_updates = step.fields.get("partial_updates", False) if step.fields else False
+        # Check if partial updates are requested (default: True)
+        partial_updates = step.fields.get("partial_updates", True) if step.fields else True
 
         if partial_updates:
             # Use PartialUpdateCompiler for partial updates
