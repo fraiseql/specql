@@ -1,7 +1,7 @@
 """Execution type definitions and metadata."""
 
-from enum import Enum
 from dataclasses import dataclass
+from enum import Enum
 
 
 @dataclass

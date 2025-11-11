@@ -39,11 +39,10 @@ class TestWildcardSQLGeneration:
         # Should reference tv_user.data directly (not extract fields)
         assert "tv_user.data" in sql
 
-        # Should NOT use jsonb_build_object for wildcard
-        # (jsonb_build_object is for explicit field selection)
-        if "jsonb_build_object" in sql and "tv_user" in sql:
-            # If jsonb_build_object exists, it shouldn't be building User fields
-            assert sql.index("tv_user.data") < sql.index("jsonb_build_object")
+        # Should NOT extract individual fields from tv_user.data for wildcard
+        # (field extraction like tv_user.data->'field' is for explicit field selection)
+        # Wildcard should use the whole tv_user.data object
+        assert "tv_user.data->" not in sql, "Wildcard should use whole data object, not extract fields"
 
     def test_explicit_fields_generate_jsonb_build_object(self):
         """Test that explicit fields generate jsonb_build_object()"""
@@ -355,9 +354,9 @@ class TestWildcardPerformanceOptimizations:
             - Organization:
                 fields: ["*"]
           extra_filter_columns:
-            - name: status
-              type: TEXT
-              index_type: btree
+            - status:
+                type: TEXT
+                index_type: btree
         """
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
@@ -425,9 +424,9 @@ class TestWildcardPrintOptimPattern:
             - Currency:
                 fields: [iso_code, symbol, name]
           extra_filter_columns:
-            - name: status
-              type: TEXT
-              index_type: btree
+            - status:
+                type: TEXT
+                index_type: btree
         """
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)

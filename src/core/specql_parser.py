@@ -483,9 +483,18 @@ class SpecQLParser:
         type_name = field_spec.get("type", "text")
         nullable = field_spec.get("nullable", True)
         default = field_spec.get("default")
+        schema = field_spec.get("schema")  # Optional cross-schema reference
 
         # For dict format, we delegate to the string parser with constructed type string
         type_str = type_name
+
+        # Handle cross-schema references: ref(Organization) + schema: management -> ref(management.Organization)
+        if schema and type_str.startswith("ref(") and type_str.endswith(")"):
+            # Extract entity from ref(Entity)
+            entity = type_str[4:-1]
+            # Reconstruct with schema: ref(schema.Entity)
+            type_str = f"ref({schema}.{entity})"
+
         if not nullable:
             type_str += "!"
         if default is not None:
