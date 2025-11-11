@@ -24,6 +24,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Missing `faker` test dependency
 - Test collection errors
 
+## [0.2.0] - 2025-11-11
+
+### Changed
+- First public PyPI release
+- Repository cleaned for public consumption
+- Documentation updated for PyPI users
+
+### Added
+- PyPI metadata and classifiers
+- Installation instructions via pip/uv
+
 ## [0.1.0] - 2025-11-10
 
 ### Added
@@ -75,5 +86,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Team-by-team implementation guide
 - Integration proposal with FraiseQL conventions
 
-[unreleased]: https://github.com/fraiseql/specql/compare/v0.1.0...HEAD
+[unreleased]: https://github.com/fraiseql/specql/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/fraiseql/specql/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/fraiseql/specql/releases/tag/v0.1.0

@@ -1,35 +1,78 @@
 [project]
 name = "specql-generator"
-version = "0.1.0"  #   Managed by VERSION file
+version = "0.2.0"  #   Managed by VERSION file
 description = "SpecQL schema generator - Business-focused YAML to PostgreSQL + GraphQL"
 authors = [
     {name = "Lionel Hamayon", email = "lionel.hamayon@evolution-digitale.fr"}
 ]
 license = {text = "MIT"}
 requires-python = ">=3.11"
-dependencies = [
-    "pyyaml>=6.0",
-    "jinja2>=3.1.2",
-    "click>=8.1.0",
-    "rich>=13.0.0",
-    "psycopg2-binary>=2.9.0",
-    "psycopg>=3.2.12",
-    "fraiseql-confiture>=0.3.0",
-    "faker>=37.12.0",
-    "networkx>=3.0",
+readme = "README.md"
+keywords = [
+    "postgresql",
+    "graphql",
+    "code-generation",
+    "sql-generator",
+    "business-logic",
+    "yaml",
+    "plpgsql",
+    "fraiseql",
+    "schema-generator",
+    "low-code"
 ]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: SQL",
+    "Topic :: Database",
+    "Topic :: Software Development :: Code Generators",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Operating System :: OS Independent",
+    "Typing :: Typed",
+]
+
+dependencies = [
+    # Core functionality
+    "pyyaml>=6.0",         # YAML parsing for SpecQL DSL
+    "jinja2>=3.1.2",       # Template engine for code generation
+    "click>=8.1.0",        # CLI framework
+    "rich>=13.0.0",        # Beautiful terminal output
+    "psycopg2-binary>=2.9.0",  # PostgreSQL adapter (legacy)
+    "psycopg>=3.2.12",     # PostgreSQL adapter (modern)
+    "fraiseql-confiture>=0.3.0",  # Migration framework integration
+    "networkx>=3.0",       # Graph algorithms for dependency resolution
+]
+
+[project.urls]
+Homepage = "https://github.com/fraiseql/specql"
+Repository = "https://github.com/fraiseql/specql"
+Documentation = "https://github.com/fraiseql/specql/blob/main/GETTING_STARTED.md"
+"Bug Tracker" = "https://github.com/fraiseql/specql/issues"
+Changelog = "https://github.com/fraiseql/specql/blob/main/CHANGELOG.md"
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=7.4.0",
-    "pytest-cov>=4.1.0",
-    "pytest-asyncio>=0.21.0",
-    "ruff>=0.1.0",
-    "mypy>=1.5.0",
-    "black>=23.0.0",
-    "types-pyyaml>=6.0.0",
-    "mkdocs>=1.5.0",
-    "mkdocs-material>=9.0.0",
+    # Testing
+    "pytest>=7.4.0",       # Test framework
+    "pytest-cov>=4.1.0",   # Coverage reporting
+    "pytest-asyncio>=0.21.0",  # Async test support
+    "faker>=18.0.0",       # Test data generation
+
+    # Code quality
+    "ruff>=0.1.0",         # Fast Python linter
+    "mypy>=1.5.0",         # Static type checking
+    "black>=23.0.0",       # Code formatting
+
+    # Type stubs
+    "types-pyyaml>=6.0.0", # Type stubs for PyYAML
+
+    # Documentation
+    "mkdocs>=1.5.0",       # Documentation generator
+    "mkdocs-material>=9.0.0",  # Material theme
 ]
 
 [project.scripts]
@@ -45,7 +88,13 @@ addopts = "-v --tb=short --strict-markers"
 norecursedirs = ["archived", ".git", "__pycache__"]
 markers = [
     "unit: Unit tests (fast, isolated)",
-    "integration: Integration tests (slower, requires DB)",
+    "integration: Integration tests (slower, use database)",
+    "slow: Slow tests (>1 second)",
+    "parser: Parser-related tests",
+    "schema: Schema generation tests",
+    "actions: Action compilation tests",
+    "fraiseql: FraiseQL integration tests",
+    "cli: CLI tests",
     "benchmark: Performance benchmarks",
     "database: marks tests as requiring database (deselect with '-m \"not database\"')",
 ]
@@ -80,3 +129,10 @@ ignore_missing_imports = true
 [tool.black]
 line-length = 100
 target-version = ['py311']
+
+[tool.hatch.build.targets.wheel]
+packages = ["src"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

@@ -2,6 +2,9 @@
 
 Business logic to production PostgreSQL + GraphQL generator.
 
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](https://www.python.org/downloads/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 ## Overview
 
 SpecQL generates production-ready PostgreSQL schema and PL/pgSQL functions from YAML business logic definitions. Write business rules in 20 lines of YAML, get 2000+ lines of tested SQL.
@@ -10,6 +13,14 @@ Define entities, fields, and actions in YAML; get tested SQL output with automat
 
 ## Installation
 
+### From PyPI (Recommended)
+```bash
+pip install specql-generator
+# or with uv
+uv pip install specql-generator
+```
+
+### From Source
 ```bash
 git clone https://github.com/fraiseql/specql.git
 cd specql
@@ -68,10 +79,13 @@ CREATE TABLE crm.tb_contact (
 
 ## Project Status
 
-- **Version**: 0.x.x (pre-release)
-- **Tests**: 927 passing
-- **Coverage**: 99.6%
-- **Stability**: Beta - API may change
+- **Version**: 0.2.0 (Beta)
+- **Tests**: Comprehensive test suite (1,185 tests, >95% coverage)
+- **Coverage**: >95%
+- **Stability**: Beta - Core features stable, API may evolve
+- **Production Use**: Suitable for evaluation and testing
+
+See [CHANGELOG.md](CHANGELOG.md) for detailed version history.
 
 ## Development
 
