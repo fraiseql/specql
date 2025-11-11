@@ -31,8 +31,10 @@ class TestWildcardSQLGeneration:
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
-        generator = TableViewGenerator(ast)
-        sql = generator.generate()
+        # TableViewGenerator requires all_entities dict
+        all_entities = {ast.name: ast}
+        generator = TableViewGenerator(ast, all_entities)
+        sql = generator.generate_schema()
 
         # Should reference tv_user.data directly (not extract fields)
         assert "tv_user.data" in sql
@@ -59,8 +61,10 @@ class TestWildcardSQLGeneration:
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
-        generator = TableViewGenerator(ast)
-        sql = generator.generate()
+        # TableViewGenerator requires all_entities dict
+        all_entities = {ast.name: ast}
+        generator = TableViewGenerator(ast, all_entities)
+        sql = generator.generate_schema()
 
         # Should generate field-specific extraction
         assert "jsonb_build_object" in sql
@@ -89,8 +93,10 @@ class TestWildcardSQLGeneration:
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
-        generator = TableViewGenerator(ast)
-        sql = generator.generate()
+        # TableViewGenerator requires all_entities dict
+        all_entities = {ast.name: ast}
+        generator = TableViewGenerator(ast, all_entities)
+        sql = generator.generate_schema()
 
         # Organization: wildcard (full data object)
         assert "tv_organization.data" in sql
@@ -116,8 +122,10 @@ class TestWildcardSQLGeneration:
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
-        generator = TableViewGenerator(ast)
-        sql = generator.generate()
+        # TableViewGenerator requires all_entities dict
+        all_entities = {ast.name: ast}
+        generator = TableViewGenerator(ast, all_entities)
+        sql = generator.generate_schema()
 
         # Should have 'author' key with full User data
         assert "'author'" in sql
@@ -142,8 +150,10 @@ class TestWildcardSQLGeneration:
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
-        generator = TableViewGenerator(ast)
-        sql = generator.generate()
+        # TableViewGenerator requires all_entities dict
+        all_entities = {ast.name: ast}
+        generator = TableViewGenerator(ast, all_entities)
+        sql = generator.generate_schema()
 
         # Both Book and Publisher should use full data
         assert "tv_book.data" in sql
@@ -172,8 +182,10 @@ class TestWildcardJOINGeneration:
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
-        generator = TableViewGenerator(ast)
-        sql = generator.generate()
+        # TableViewGenerator requires all_entities dict
+        all_entities = {ast.name: ast}
+        generator = TableViewGenerator(ast, all_entities)
+        sql = generator.generate_schema()
 
         # Should have LEFT JOIN to tv_organization
         assert "LEFT JOIN" in sql.upper()
@@ -195,8 +207,10 @@ class TestWildcardJOINGeneration:
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
-        generator = TableViewGenerator(ast)
-        sql = generator.generate()
+        # TableViewGenerator requires all_entities dict
+        all_entities = {ast.name: ast}
+        generator = TableViewGenerator(ast, all_entities)
+        sql = generator.generate_schema()
 
         # Should JOIN using fk_customer_org
         assert "fk_customer_org" in sql
@@ -224,8 +238,10 @@ class TestWildcardCrossSchemaGeneration:
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
-        generator = TableViewGenerator(ast)
-        sql = generator.generate()
+        # TableViewGenerator requires all_entities dict
+        all_entities = {ast.name: ast}
+        generator = TableViewGenerator(ast, all_entities)
+        sql = generator.generate_schema()
 
         # Should use schema-qualified table name
         assert "management.tv_organization" in sql or "management" in sql
@@ -253,8 +269,10 @@ class TestWildcardCrossSchemaGeneration:
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
-        generator = TableViewGenerator(ast)
-        sql = generator.generate()
+        # TableViewGenerator requires all_entities dict
+        all_entities = {ast.name: ast}
+        generator = TableViewGenerator(ast, all_entities)
+        sql = generator.generate_schema()
 
         # Should have both schema-qualified tables
         # Note: Exact SQL format depends on implementation
@@ -281,8 +299,10 @@ class TestWildcardRefreshFunctionGeneration:
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
-        generator = TableViewGenerator(ast)
-        sql = generator.generate()
+        # TableViewGenerator requires all_entities dict
+        all_entities = {ast.name: ast}
+        generator = TableViewGenerator(ast, all_entities)
+        sql = generator.generate_schema()
 
         # Should generate refresh function
         assert "CREATE OR REPLACE FUNCTION" in sql
@@ -305,8 +325,10 @@ class TestWildcardRefreshFunctionGeneration:
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
-        generator = TableViewGenerator(ast)
-        sql = generator.generate()
+        # TableViewGenerator requires all_entities dict
+        all_entities = {ast.name: ast}
+        generator = TableViewGenerator(ast, all_entities)
+        sql = generator.generate_schema()
 
         # Refresh function should INSERT into tv_contract
         assert "INSERT INTO" in sql
@@ -340,8 +362,10 @@ class TestWildcardPerformanceOptimizations:
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
-        generator = TableViewGenerator(ast)
-        sql = generator.generate()
+        # TableViewGenerator requires all_entities dict
+        all_entities = {ast.name: ast}
+        generator = TableViewGenerator(ast, all_entities)
+        sql = generator.generate_schema()
 
         # Should have status column in table definition
         assert "status" in sql
@@ -365,8 +389,10 @@ class TestWildcardPerformanceOptimizations:
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
-        generator = TableViewGenerator(ast)
-        sql = generator.generate()
+        # TableViewGenerator requires all_entities dict
+        all_entities = {ast.name: ast}
+        generator = TableViewGenerator(ast, all_entities)
+        sql = generator.generate_schema()
 
         # Should have GIN index on data column for JSONB queries
         assert "USING GIN" in sql or "gin" in sql.lower()
@@ -406,8 +432,10 @@ class TestWildcardPrintOptimPattern:
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
-        generator = TableViewGenerator(ast)
-        sql = generator.generate()
+        # TableViewGenerator requires all_entities dict
+        all_entities = {ast.name: ast}
+        generator = TableViewGenerator(ast, all_entities)
+        sql = generator.generate_schema()
 
         # Should create tv_contract table
         assert "CREATE TABLE" in sql
@@ -460,11 +488,15 @@ class TestWildcardPrintOptimPattern:
         explicit_ast = parser.parse(explicit_yaml)
         wildcard_ast = parser.parse(wildcard_yaml)
 
-        explicit_gen = TableViewGenerator(explicit_ast)
-        wildcard_gen = TableViewGenerator(wildcard_ast)
+        # TableViewGenerator requires all_entities dict
+        explicit_entities = {explicit_ast.name: explicit_ast}
+        wildcard_entities = {wildcard_ast.name: wildcard_ast}
 
-        explicit_sql = explicit_gen.generate()
-        wildcard_sql = wildcard_gen.generate()
+        explicit_gen = TableViewGenerator(explicit_ast, explicit_entities)
+        wildcard_gen = TableViewGenerator(wildcard_ast, wildcard_entities)
+
+        explicit_sql = explicit_gen.generate_schema()
+        wildcard_sql = wildcard_gen.generate_schema()
 
         # Wildcard SQL should be simpler (fewer field extractions)
         # Explicit has jsonb_build_object with 8 field extractions
