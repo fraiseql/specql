@@ -35,6 +35,14 @@ from src.core.scalar_types import (
     is_scalar_type,
 )
 from src.core.separators import Separators
+from src.core.universal_ast import (
+    FieldType,
+    StepType,
+    UniversalEntity,
+    UniversalField,
+    UniversalAction,
+    UniversalStep,
+)
 from src.patterns import PatternLoader
 
 
@@ -148,6 +156,261 @@ class SpecQLParser:
 
         return entity
 
+    def parse_universal(self, yaml_content: str) -> UniversalEntity:
+        """
+        Parse SpecQL YAML to Universal AST (framework-agnostic)
+
+        This method produces a UniversalEntity that can be used by any
+        framework adapter (PostgreSQL, Django, Rails, etc.)
+        """
+        try:
+            data = yaml.safe_load(yaml_content)
+        except yaml.YAMLError as e:
+            raise ParseError(f"Invalid YAML: {e}")
+
+        # Validate required fields
+        if not isinstance(data, dict):
+            raise ParseError("YAML must be a dictionary")
+
+        if "entity" not in data:
+            raise ParseError("Missing 'entity' key")
+
+        # Parse entity metadata
+        if isinstance(data["entity"], dict):
+            # Complex format
+            entity_name = data["entity"]["name"]
+            entity_schema = data["entity"].get("schema", data.get("schema", "app"))
+            entity_description = data["entity"].get("description", data.get("description", ""))
+            is_multi_tenant = data["entity"].get("multi_tenant", data.get("multi_tenant", True))
+        else:
+            # Lightweight format
+            entity_name = data["entity"]
+            entity_schema = data.get("schema", "app")
+            entity_description = data.get("description", "")
+            is_multi_tenant = data.get("multi_tenant", True)
+
+        # Parse fields
+        if isinstance(data["entity"], dict) and "fields" in data["entity"]:
+            # Complex format: fields are inside entity dict
+            fields_data = data["entity"]["fields"]
+        else:
+            # Lightweight format: fields at root level
+            fields_data = data.get("fields", {})
+
+        fields = []
+        for field_name, field_spec in fields_data.items():
+            # VALIDATION: Check if field name is reserved
+            if is_reserved_field_name(field_name):
+                raise SpecQLValidationError(
+                    entity=entity_name, message=get_reserved_field_error_message(field_name)
+                )
+
+            field = self._parse_universal_field(field_name, field_spec)
+            fields.append(field)
+
+        # Parse actions
+        actions_data = data.get("actions", [])
+        actions = []
+        for action_spec in actions_data:
+            action = self._parse_universal_action(action_spec, entity_name)
+            actions.append(action)
+
+        return UniversalEntity(
+            name=entity_name,
+            schema=entity_schema,
+            fields=fields,
+            actions=actions,
+            is_multi_tenant=is_multi_tenant,
+            description=entity_description,
+        )
+
+    def _parse_universal_field(self, field_name: str, field_spec: Any) -> UniversalField:
+        """
+        Parse a field definition to UniversalField
+
+        Converts SpecQL field types to universal FieldType enum
+        """
+
+        # Handle dict format (complex)
+        if isinstance(field_spec, dict):
+            return self._parse_universal_field_dict(field_name, field_spec)
+
+        # Handle string format (lightweight)
+        return self._parse_universal_field_string(field_name, field_spec)
+
+    def _parse_universal_field_string(self, field_name: str, field_spec: str) -> UniversalField:
+        """Parse field from string specification to UniversalField"""
+
+        type_str = str(field_spec).strip()
+        required = False
+        default = None
+
+        if type_str.endswith("!"):
+            required = True
+            type_str = type_str[:-1]
+
+        # Check for default value
+        if " = " in type_str:
+            type_str, default_str = type_str.split(" = ", 1)
+            default = default_str.strip().strip("'\"")
+
+        # Map SpecQL types to Universal FieldType
+        if type_str == "text":
+            field_type = FieldType.TEXT
+        elif type_str == "integer":
+            field_type = FieldType.INTEGER
+        elif type_str == "boolean":
+            field_type = FieldType.BOOLEAN
+        elif type_str == "datetime":
+            field_type = FieldType.DATETIME
+        elif type_str.startswith("ref(") and type_str.endswith(")"):
+            field_type = FieldType.REFERENCE
+        elif type_str.startswith("enum(") and type_str.endswith(")"):
+            field_type = FieldType.ENUM
+        elif is_scalar_type(type_str):
+            field_type = FieldType.RICH
+        else:
+            # Default to TEXT for unknown types
+            field_type = FieldType.TEXT
+
+        # Extract additional metadata
+        references = None
+        enum_values = None
+        composite_type = None
+
+        if field_type == FieldType.REFERENCE:
+            # Extract referenced entity: ref(Company) -> Company
+            ref_match = re.match(r"ref\(([^)]+)\)", type_str)
+            if ref_match:
+                references = ref_match.group(1)
+
+        elif field_type == FieldType.ENUM:
+            # Extract enum values: enum(lead, qualified, customer) -> ['lead', 'qualified', 'customer']
+            enum_match = re.match(r"enum\(([^)]+)\)", type_str)
+            if enum_match:
+                enum_values = [v.strip() for v in enum_match.group(1).split(",")]
+
+        elif field_type == FieldType.RICH:
+            composite_type = type_str
+
+        return UniversalField(
+            name=field_name,
+            type=field_type,
+            required=required,
+            default=default,
+            references=references,
+            enum_values=enum_values,
+            composite_type=composite_type,
+        )
+
+    def _parse_universal_field_dict(self, field_name: str, field_spec: dict) -> UniversalField:
+        """Parse field from dict specification to UniversalField"""
+        # For now, delegate to string parsing with the type field
+        type_str = field_spec.get("type", "text")
+        if "nullable" in field_spec and field_spec["nullable"] is False:
+            type_str += "!"
+        if "default" in field_spec:
+            type_str += f" = {field_spec['default']}"
+
+        return self._parse_universal_field_string(field_name, type_str)
+
+    def _parse_universal_action(self, action_spec: dict, entity_name: str) -> UniversalAction:
+        """Parse action specification to UniversalAction"""
+        if not isinstance(action_spec, dict):
+            raise ParseError("Action must be a dictionary")
+
+        action_name = action_spec.get("name")
+        if not action_name:
+            raise ParseError("Action must have a 'name' field")
+
+        description = action_spec.get("description")
+        steps_data = action_spec.get("steps", [])
+        impacts = action_spec.get("impacts", [entity_name])  # Default to affecting the entity
+
+        steps = []
+        for step_data in steps_data:
+            step = self._parse_universal_step(step_data)
+            steps.append(step)
+
+        return UniversalAction(
+            name=action_name,
+            entity=entity_name,
+            steps=steps,
+            impacts=impacts,
+            description=description,
+        )
+
+    def _parse_universal_step(self, step_data: dict) -> UniversalStep:
+        """Parse step specification to UniversalStep"""
+        if not isinstance(step_data, dict):
+            raise ParseError("Step must be a dictionary")
+
+        # Extract step type
+        step_type_str = None
+        for key in step_data.keys():
+            if key in ["validate", "if", "insert", "update", "delete", "call", "notify", "foreach"]:
+                step_type_str = key
+                break
+
+        if not step_type_str:
+            raise ParseError(f"Unknown step type in: {step_data}")
+
+        step_type = StepType(step_type_str)
+        step_value = step_data[step_type_str]
+
+        # Parse based on step type
+        if step_type == StepType.VALIDATE:
+            return UniversalStep(type=step_type, expression=step_value)
+        elif step_type == StepType.UPDATE:
+            # Parse "Entity SET field = value" format
+            return self._parse_universal_update_step(step_value)
+        elif step_type == StepType.INSERT:
+            # Parse "Entity SET field = value" format
+            return self._parse_universal_insert_step(step_value)
+        elif step_type == StepType.DELETE:
+            # Parse "Entity WHERE condition" format
+            return self._parse_universal_delete_step(step_value)
+        elif step_type == StepType.CALL:
+            return UniversalStep(type=step_type, function=step_value)
+        else:
+            # For other step types, store the raw value
+            return UniversalStep(type=step_type, expression=str(step_value))
+
+    def _parse_universal_update_step(self, step_value: str) -> UniversalStep:
+        """Parse update step like 'Contact SET status = qualified'"""
+        # Simple parsing - can be enhanced
+        parts = step_value.split(" SET ")
+        if len(parts) != 2:
+            raise ParseError(f"Invalid update step format: {step_value}")
+
+        entity = parts[0].strip()
+        field_assignments = parts[1].strip()
+
+        # Parse field = value pairs
+        fields = {}
+        for assignment in field_assignments.split(","):
+            if " = " in assignment:
+                field, value = assignment.split(" = ", 1)
+                fields[field.strip()] = value.strip().strip("'\"")
+
+        return UniversalStep(type=StepType.UPDATE, entity=entity, fields=fields)
+
+    def _parse_universal_insert_step(self, step_value: str) -> UniversalStep:
+        """Parse insert step like 'Contact SET field = value'"""
+        # Similar to update for now
+        return self._parse_universal_update_step(step_value)
+
+    def _parse_universal_delete_step(self, step_value: str) -> UniversalStep:
+        """Parse delete step like 'Contact WHERE condition'"""
+        parts = step_value.split(" WHERE ")
+        if len(parts) != 2:
+            raise ParseError(f"Invalid delete step format: {step_value}")
+
+        entity = parts[0].strip()
+        condition = parts[1].strip()
+
+        return UniversalStep(type=StepType.DELETE, entity=entity, expression=condition)
+
     def _parse_field(self, field_name: str, field_spec: Any) -> FieldDefinition:
         """
         Parse a field definition
@@ -182,13 +445,13 @@ class SpecQLParser:
         # Extract type and nullability
         type_str = str(field_spec).strip()
         nullable = True
-        default = None
 
         if type_str.endswith("!"):
             nullable = False
             type_str = type_str[:-1]
 
         # Check for default value: "enum(active, inactive) = active"
+        default = None
         if " = " in type_str:
             type_str, default_str = type_str.split(" = ", 1)
             default = default_str.strip().strip("'\"")
@@ -201,64 +464,40 @@ class SpecQLParser:
         if type_str.startswith("list(") and type_str.endswith(")"):
             return self._parse_list_field(field_name, type_str, nullable, default)
 
-        # Check if it's a reference type: ref(Entity) or ref(Entity1|Entity2)
+        # Check if it's a reference type: ref(Entity)
         if type_str.startswith("ref(") and type_str.endswith(")"):
             return self._parse_reference_field(field_name, type_str, nullable)
-
-        # Check if it's a rich scalar type
-        if is_scalar_type(type_str):
-            return self._parse_scalar_field(field_name, type_str, nullable)
 
         # Check if it's a composite type
         if is_composite_type(type_str):
             return self._parse_composite_field(field_name, type_str, nullable)
 
-        # Otherwise, basic type (text, integer, etc.)
+        # Check if it's a scalar rich type
+        if is_scalar_type(type_str):
+            return self._parse_scalar_field(field_name, type_str, nullable, default)
+
+        # Otherwise, it's a basic type
         return self._parse_basic_field(field_name, type_str, nullable, default)
 
     def _parse_field_dict(self, field_name: str, field_spec: dict) -> FieldDefinition:
         """Parse field from dict specification (complex format)"""
-
-        # Extract core attributes
         type_name = field_spec.get("type", "text")
         nullable = field_spec.get("nullable", True)
         default = field_spec.get("default")
-        description = field_spec.get("description", "")
 
-        # Handle enum types
-        if type_name.startswith("enum(") and type_name.endswith(")"):
-            return self._parse_enum_field(field_name, type_name, nullable, default)
+        # For dict format, we delegate to the string parser with constructed type string
+        type_str = type_name
+        if not nullable:
+            type_str += "!"
+        if default is not None:
+            type_str += f" = {default}"
 
-        # Handle list types
-        if type_name.startswith("list(") and type_name.endswith(")"):
-            return self._parse_list_field(field_name, type_name, nullable, default)
-
-        # Handle reference types
-        if type_name.startswith("ref(") and type_name.endswith(")"):
-            return self._parse_reference_field(field_name, type_name, nullable)
-
-        # Handle rich scalar types
-        if is_scalar_type(type_name):
-            field = self._parse_scalar_field(field_name, type_name, nullable)
-            field.description = description
-            return field
-
-        # Handle composite types
-        if is_composite_type(type_name):
-            field = self._parse_composite_field(field_name, type_name, nullable)
-            field.description = description
-            return field
-
-        # Handle basic types
-        field = self._parse_basic_field(field_name, type_name, nullable, default)
-        field.description = description
-        return field
+        return self._parse_field_string(field_name, type_str)
 
     def _parse_scalar_field(
-        self, field_name: str, type_name: str, nullable: bool
+        self, field_name: str, type_name: str, nullable: bool, default: str | None
     ) -> FieldDefinition:
-        """Parse rich scalar type field"""
-
+        """Parse scalar rich type field"""
         scalar_def = get_scalar_type(type_name)
         assert scalar_def is not None, f"Scalar type '{type_name}' not found"
 
@@ -266,21 +505,17 @@ class SpecQLParser:
             name=field_name,
             type_name=type_name,
             nullable=nullable,
+            default=default,
             tier=FieldTier.SCALAR,
             scalar_def=scalar_def,
-            # PostgreSQL metadata (for Team B)
             postgres_type=scalar_def.get_postgres_type_with_precision(),
-            postgres_precision=scalar_def.postgres_precision,
             validation_pattern=scalar_def.validation_pattern,
             min_value=scalar_def.min_value,
             max_value=scalar_def.max_value,
-            # FraiseQL metadata (for Team D)
-            fraiseql_type=scalar_def.fraiseql_scalar_name,
-            # Display metadata
-            description=scalar_def.description,
-            example=scalar_def.example,
+            postgres_precision=scalar_def.postgres_precision,
             input_type=scalar_def.input_type,
             placeholder=scalar_def.placeholder,
+            fraiseql_type=scalar_def.fraiseql_scalar_name,
         )
 
     def _parse_composite_field(
@@ -665,11 +900,50 @@ class SpecQLParser:
 
     def _parse_refresh_table_view_step(self, step_data: dict) -> ActionStep:
         """Parse refresh_table_view step"""
-        view_name = step_data["refresh_table_view"]
-        return ActionStep(
-            type="refresh_table_view",
-            view_name=view_name,
-        )
+        from src.core.ast_models import RefreshScope
+
+        refresh_config = step_data["refresh_table_view"]
+
+        # Handle both string (view name) and dict (config) formats
+        if isinstance(refresh_config, str):
+            # Legacy format: just view name
+            return ActionStep(
+                type="refresh_table_view",
+                view_name=refresh_config,
+            )
+        elif isinstance(refresh_config, dict):
+            # New format: configuration dict
+            # Parse scope
+            scope_str = refresh_config.get("scope", "self")
+            try:
+                scope = RefreshScope(scope_str)
+            except ValueError:
+                raise ParseError(
+                    f"Invalid refresh scope: {scope_str}. Must be one of: {[s.value for s in RefreshScope]}"
+                )
+
+            # Parse propagate entities
+            propagate_entities = refresh_config.get("propagate", [])
+            if not isinstance(propagate_entities, list):
+                raise ParseError("refresh_table_view.propagate must be a list of entity names")
+
+            # Parse strategy
+            strategy = refresh_config.get("strategy", "immediate")
+            if strategy not in ["immediate", "deferred"]:
+                raise ParseError(
+                    f"Invalid refresh strategy: {strategy}. Must be: immediate or deferred"
+                )
+
+            return ActionStep(
+                type="refresh_table_view",
+                refresh_scope=scope,
+                propagate_entities=propagate_entities,
+                refresh_strategy=strategy,
+            )
+        else:
+            raise ParseError(
+                "refresh_table_view must be a string (view name) or dict (configuration)"
+            )
 
     def _parse_raw_sql_step(self, step_data: dict) -> ActionStep:
         """Parse raw_sql step"""
@@ -688,25 +962,6 @@ class SpecQLParser:
         return ActionStep(
             type="duplicate_check",
             fields=config,
-        )
-
-        # Parse propagate entities
-        propagate_entities = refresh_config.get("propagate", [])
-        if not isinstance(propagate_entities, list):
-            raise ParseError("refresh_table_view.propagate must be a list of entity names")
-
-        # Parse strategy
-        strategy = refresh_config.get("strategy", "immediate")
-        if strategy not in ["immediate", "deferred"]:
-            raise ParseError(
-                f"Invalid refresh strategy: {strategy}. Must be: immediate or deferred"
-            )
-
-        return ActionStep(
-            type="refresh_table_view",
-            refresh_scope=scope,
-            propagate_entities=propagate_entities,
-            refresh_strategy=strategy,
         )
 
     def _validate_expression_fields(

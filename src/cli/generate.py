@@ -211,6 +211,128 @@ def entities(
 
 @cli.command()
 @click.argument("entity_files", nargs=-1, type=click.Path(exists=True), required=True)
+@click.option(
+    "--backends",
+    default=["postgresql"],
+    multiple=True,
+    help="Target backends to generate for (e.g., postgresql, django, rails)",
+)
+@click.option(
+    "--output-dir",
+    default="generated",
+    help="Base output directory for generated code",
+)
+def universal(
+    entity_files: tuple,
+    backends: tuple,
+    output_dir: str,
+):
+    """Generate code for multiple frameworks from SpecQL YAML files
+
+    This command uses the new Universal AST and adapter system to generate
+    code for any supported backend framework.
+
+    Examples:
+        specql generate universal entities/contact.yaml --backends=postgresql
+        specql generate universal entities/*.yaml --backends=postgresql,django
+    """
+
+    click.secho("🚀 Generating universal code...", fg="blue", bold=True)
+
+    # Import here to avoid circular imports
+    from src.core.specql_parser import SpecQLParser
+    from src.adapters.registry import get_registry
+
+    # Initialize parser and registry
+    parser = SpecQLParser()
+    registry = get_registry()
+    registry.auto_discover()
+
+    # Parse SpecQL files to Universal AST
+    entities = []
+    for file_path in entity_files:
+        click.echo(f"  📄 Parsing {file_path}...")
+        try:
+            content = Path(file_path).read_text()
+            entity = parser.parse_universal(content)
+            entities.append(entity)
+        except Exception as e:
+            click.secho(f"❌ Failed to parse {file_path}: {e}", fg="red")
+            return 1
+
+    if not entities:
+        click.secho("❌ No valid entities found", fg="red")
+        return 1
+
+    # Create universal schema
+    from src.core.universal_ast import UniversalSchema
+
+    schema = UniversalSchema(entities=entities, composite_types={}, tenant_mode="multi_tenant")
+
+    # Generate for each backend
+    total_files = 0
+    for backend_name in backends:
+        click.echo(f"  🏗️  Generating for {backend_name}...")
+
+        try:
+            adapter = registry.get_adapter(backend_name)
+            generated_files = adapter.generate_full_schema(schema)
+
+            # Create output directory for this backend
+            backend_dir = Path(output_dir) / backend_name
+            backend_dir.mkdir(parents=True, exist_ok=True)
+
+            # Write generated files
+            for gen_file in generated_files:
+                file_path = backend_dir / gen_file.file_path
+                file_path.parent.mkdir(parents=True, exist_ok=True)
+                file_path.write_text(gen_file.content)
+                click.echo(f"    ✅ {gen_file.file_path}")
+
+            total_files += len(generated_files)
+
+        except ValueError as e:
+            click.secho(f"❌ Unknown backend '{backend_name}': {e}", fg="red")
+            click.echo("Available backends:")
+            for available in registry.list_adapters():
+                click.echo(f"  - {available}")
+            return 1
+        except Exception as e:
+            click.secho(f"❌ Failed to generate for {backend_name}: {e}", fg="red")
+            return 1
+
+    click.secho(
+        f"✅ Generated {total_files} file(s) across {len(backends)} backend(s)",
+        fg="green",
+        bold=True,
+    )
+    return 0
+
+
+@cli.command()
+def list_backends():
+    """List all available framework backends"""
+
+    from src.adapters.registry import get_registry
+
+    registry = get_registry()
+    registry.auto_discover()
+
+    backends = registry.list_adapters()
+
+    if not backends:
+        click.secho("❌ No backends available", fg="red")
+        return 1
+
+    click.secho("Available backends:", fg="blue", bold=True)
+    for backend in sorted(backends):
+        click.echo(f"  • {backend}")
+
+    return 0
+
+
+@cli.command()
+@click.argument("entity_files", nargs=-1, type=click.Path(exists=True), required=True)
 @click.option("--output-dir", default="tests", help="Output directory for generated tests")
 @click.option(
     "--test-type",
