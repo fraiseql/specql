@@ -1,0 +1,1 @@
+"""Registry management for SpecQL."""

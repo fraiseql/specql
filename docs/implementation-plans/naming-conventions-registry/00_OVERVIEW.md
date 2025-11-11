@@ -731,14 +731,14 @@ class NamingConventions:
         domain_dir = f"{components.full_domain}_{domain_name}"
 
         # Subdomain directory
-        subdomain_code = f"{components.entity_group}{components.entity_code}"
-        subdomain_info = domain_info.get('subdomains', {}).get(components.entity_group, {})
+        subdomain_code = components.subdomain_code  # Single digit
+        subdomain_info = domain_info.get('subdomains', {}).get(subdomain_code, {})
         subdomain_name = subdomain_info.get('name', f"subdomain_{subdomain_code}")
-        subdomain_dir = f"{components.full_domain}{components.entity_group}_{subdomain_name}"
+        subdomain_dir = f"{components.full_domain}{subdomain_code}_{subdomain_name}"
 
         # Entity group directory
         entity_lower = entity.name.lower()
-        entity_group_code = f"{components.full_domain}{components.entity_group}{components.entity_code}"
+        entity_group_code = f"{components.full_domain}{subdomain_code}{components.entity_sequence}"
         entity_group_dir = f"{entity_group_code}_{entity_lower}_group"
 
         # File name
@@ -773,13 +773,12 @@ class NamingConventions:
         """
         components = self.parser.parse_table_code_detailed(table_code)
         entity_code = self.derive_entity_code(entity.name)
-
         self.registry.register_entity(
             entity_name=entity.name,
             table_code=table_code,
             entity_code=entity_code,
             domain_code=components.domain_code,
-            subdomain_code=components.entity_group
+            subdomain_code=components.subdomain_code
         )
 ```
 

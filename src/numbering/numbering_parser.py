@@ -13,8 +13,8 @@ class TableCodeComponents:
 
     schema_layer: str  # 2 hex chars: schema type (01=write_side, etc.)
     domain_code: str  # 1 hex char: domain (0-F)
-    entity_group: str  # 1 hex char: entity group
-    entity_code: str  # 1 hex char: entity code
+    subdomain_code: str  # 1 hex char: subdomain (0-F)
+    entity_sequence: str  # 1 hex char: entity sequence
     file_sequence: str  # 1 hex char: file sequence
 
     @property
@@ -24,18 +24,18 @@ class TableCodeComponents:
 
     @property
     def full_group(self) -> str:
-        """Full group code: full_domain + entity_group"""
-        return f"{self.full_domain}{self.entity_group}"
+        """Full group code: full_domain + subdomain_code"""
+        return f"{self.full_domain}{self.subdomain_code}"
 
     @property
     def full_entity(self) -> str:
-        """Full entity code: full_group + entity_code"""
-        return f"{self.full_group}{self.entity_code}"
+        """Full entity code: full_group + entity_sequence"""
+        return f"{self.full_group}{self.entity_sequence}"
 
     @property
     def table_code(self) -> str:
         """Reconstruct the full 6-character hexadecimal table code"""
-        return f"{self.schema_layer}{self.domain_code}{self.entity_group}{self.entity_code}{self.file_sequence}".upper()
+        return f"{self.schema_layer}{self.domain_code}{self.subdomain_code}{self.entity_sequence}{self.file_sequence}".upper()
 
 
 class NumberingParser:
@@ -54,8 +54,8 @@ class NumberingParser:
         return {
             "schema_layer": components.schema_layer,
             "domain_code": components.domain_code,
-            "entity_group": components.entity_group,
-            "entity_code": components.entity_code,
+            "entity_group": components.subdomain_code,  # Use correct single-digit subdomain
+            "entity_code": components.entity_sequence,  # Use correct field name
             "file_sequence": components.file_sequence,
             "full_domain": components.full_domain,
             "full_group": components.full_group,
@@ -94,8 +94,8 @@ class NumberingParser:
         return TableCodeComponents(
             schema_layer=table_code[0:2],
             domain_code=table_code[2],
-            entity_group=table_code[3],
-            entity_code=table_code[4],
+            subdomain_code=table_code[3],  # ← CORRECT: single digit
+            entity_sequence=table_code[4],  # ← RENAMED from entity_code
             file_sequence=table_code[5],
         )
 
@@ -110,6 +110,8 @@ class NumberingParser:
         Returns:
             str: Hierarchical directory path
         """
+        from src.generators.naming_utils import camel_to_snake
+
         components = self.parse_table_code_detailed(table_code)
 
         schema_name = self.SCHEMA_LAYERS.get(
@@ -119,7 +121,9 @@ class NumberingParser:
             components.domain_code, f"domain_{components.domain_code}"
         )
 
-        return f"{components.schema_layer}_{schema_name}/{components.full_domain}_{domain_name}/{components.full_group}_{entity_name}/{components.full_entity}_{entity_name}"
+        entity_snake = camel_to_snake(entity_name)
+
+        return f"{components.schema_layer}_{schema_name}/{components.full_domain}_{domain_name}/{components.full_group}_{entity_snake}/{components.full_entity}_{entity_snake}"
 
     def generate_file_path(self, table_code: str, entity_name: str, file_type: str) -> str:
         """
@@ -133,6 +137,8 @@ class NumberingParser:
         Returns:
             str: Complete file path with extension
         """
+        from src.generators.naming_utils import camel_to_snake
+
         if not entity_name:
             raise ValueError("entity_name is required")
 
@@ -152,9 +158,10 @@ class NumberingParser:
         ext = extensions.get(file_type, "sql")
 
         # Generate filename based on type
+        entity_snake = camel_to_snake(entity_name)
         if file_type == "table":
-            filename = f"tb_{entity_name}"
+            filename = f"tb_{entity_snake}"
         else:
-            filename = f"{entity_name}_{file_type}"
+            filename = f"{entity_snake}_{file_type}"
 
         return f"{dir_path}/{table_code}_{filename}.{ext}"

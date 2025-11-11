@@ -238,9 +238,12 @@ class CLIOrchestrator:
                     # Write mutations
                     for mutation in schema_output.mutations:
                         if self.output_format == "hierarchical":
+                            from src.generators.naming_utils import camel_to_snake
+
+                            entity_snake = camel_to_snake(entity.name)
                             mutation_path = (
                                 functions_dir
-                                / f"{table_code}_fn_{entity.name.lower()}_{mutation.action_name}.sql"
+                                / f"{table_code}_fn_{entity_snake}_{mutation.action_name}.sql"
                             )
                         else:
                             mutation_path = functions_dir / f"{mutation.action_name}.sql"

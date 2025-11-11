@@ -15,8 +15,8 @@ def test_parse_table_code_6_digit():
     assert result == {
         "schema_layer": "01",  # write_side
         "domain_code": "3",  # catalog
-        "entity_group": "2",  # manufacturer group
-        "entity_code": "1",  # manufacturer entity
+        "entity_group": "2",  # manufacturer subdomain (single digit)
+        "entity_code": "1",  # manufacturer entity sequence
         "file_sequence": "1",  # first file
         "full_domain": "013",  # schema_layer + domain
         "full_group": "0132",  # + entity_group
@@ -58,3 +58,47 @@ def test_generate_file_path():
         "01_write_side/013_catalog/0132_manufacturer/01321_manufacturer/013211_tb_manufacturer.sql"
     )
     assert path == expected
+
+
+def test_parse_table_code_subdomain_single_digit():
+    """Subdomain should be SINGLE digit (position 3)"""
+    parser = NumberingParser()
+
+    # Test case from PrintOptim: ColorMode entity
+    components = parser.parse_table_code_detailed("013111")
+
+    assert components.schema_layer == "01"
+    assert components.domain_code == "3"
+    assert components.subdomain_code == "1"  # ← SINGLE DIGIT
+    assert components.entity_sequence == "1"
+    assert components.file_sequence == "1"
+
+
+def test_parse_table_code_manufacturer_subdomain():
+    """Manufacturer subdomain (code 2) should parse correctly"""
+    parser = NumberingParser()
+
+    components = parser.parse_table_code_detailed("013211")
+
+    assert components.subdomain_code == "2"  # ← SINGLE DIGIT
+    assert components.entity_sequence == "1"
+
+
+def test_correct_field_names():
+    """New field names work correctly"""
+    parser = NumberingParser()
+    components = parser.parse_table_code_detailed("013111")
+
+    # New field names
+    assert components.subdomain_code == "1"
+    assert components.entity_sequence == "1"
+
+
+def test_correct_field_names_manufacturer():
+    """New field names work for manufacturer subdomain"""
+    parser = NumberingParser()
+    components = parser.parse_table_code_detailed("013121")
+
+    # New field names
+    assert components.subdomain_code == "1"
+    assert components.entity_sequence == "2"

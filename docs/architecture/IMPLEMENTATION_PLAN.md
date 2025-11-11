@@ -75,12 +75,12 @@ def test_parse_table_code_6_digit():
     assert result == {
         'schema_layer': '01',      # write_side
         'domain_code': '3',        # catalog
-        'entity_group': '2',       # manufacturer group
-        'entity_code': '1',        # manufacturer entity
+        'subdomain_code': '2',     # manufacturer subdomain
+        'entity_sequence': '1',    # manufacturer entity
         'file_sequence': '1',      # first file
         'full_domain': '013',      # schema_layer + domain
-        'full_group': '0132',      # + entity_group
-        'full_entity': '01321'     # + entity_code
+        'full_group': '0132',      # + subdomain_code
+        'full_entity': '01321'     # + entity_sequence
     }
 
 def test_parse_invalid_code():
@@ -168,8 +168,8 @@ class NumberingParser:
 
         schema_layer = table_code[0:2]
         domain_code = table_code[2]
-        entity_group = table_code[3]
-        entity_code = table_code[4]
+        subdomain_code = table_code[3]
+        entity_sequence = table_code[4]
         file_sequence = table_code[5]
 
         if schema_layer not in self.LAYER_NAMES:
@@ -178,8 +178,8 @@ class NumberingParser:
         return {
             'schema_layer': schema_layer,
             'domain_code': domain_code,
-            'entity_group': entity_group,
-            'entity_code': entity_code,
+            'subdomain_code': subdomain_code,
+            'entity_sequence': entity_sequence,
             'file_sequence': file_sequence,
             'full_domain': table_code[0:3],      # 013
             'full_group': table_code[0:4],        # 0132
@@ -242,8 +242,8 @@ class TableCodeComponents:
     """Parsed components of a table code"""
     schema_layer: str
     domain_code: str
-    entity_group: str
-    entity_code: str
+    subdomain_code: str
+    entity_sequence: str
     file_sequence: str
     full_domain: str
     full_group: str
@@ -254,8 +254,8 @@ class TableCodeComponents:
         return {
             'schema_layer': self.schema_layer,
             'domain_code': self.domain_code,
-            'entity_group': self.entity_group,
-            'entity_code': self.entity_code,
+            'subdomain_code': self.subdomain_code,
+            'entity_sequence': self.entity_sequence,
             'file_sequence': self.file_sequence,
             'full_domain': self.full_domain,
             'full_group': self.full_group,
@@ -339,8 +339,8 @@ class NumberingParser:
         return TableCodeComponents(
             schema_layer=schema_layer,
             domain_code=table_code[2],
-            entity_group=table_code[3],
-            entity_code=table_code[4],
+            subdomain_code=table_code[3],
+            entity_sequence=table_code[4],
             file_sequence=table_code[5],
             full_domain=table_code[0:3],
             full_group=table_code[0:4],

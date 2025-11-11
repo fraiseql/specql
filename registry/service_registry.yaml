@@ -1,0 +1,31 @@
+services:
+  - name: sendgrid
+    type: email
+    category: communication
+    operations:
+      - name: send_email
+        input_schema:
+          to: string
+          subject: string
+          body: string
+        output_schema:
+          message_id: string
+          status: string
+        timeout: 30
+        max_retries: 3
+
+  - name: stripe
+    type: payment
+    category: financial
+    operations:
+      - name: create_charge
+        input_schema:
+          amount: integer
+          currency: string
+          customer_id: string
+        output_schema:
+          charge_id: string
+          status: string
+          amount: integer
+        timeout: 30
+        max_retries: 3

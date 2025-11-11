@@ -172,21 +172,21 @@ class TestWildcardWithOtherFeatures:
     def test_wildcard_with_extra_filter_columns(self):
         """Test wildcard includes work with extra_filter_columns"""
         yaml_content = """
-        entity: Contract
-        schema: tenant
-        fields:
-          customer: ref(Organization)
-          status: enum(draft, active)
+         entity: Contract
+         schema: tenant
+         fields:
+           customer: ref(Organization)
+           status: enum(draft, active)
 
-        table_views:
-          include_relations:
-            - Organization:
-                fields: ["*"]
-          extra_filter_columns:
-            - name: status
-              type: TEXT
-              index_type: btree
-        """
+         table_views:
+           include_relations:
+             - Organization:
+                 fields: ["*"]
+           extra_filter_columns:
+             - status:
+                 type: TEXT
+                 index: btree
+         """
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
@@ -194,7 +194,7 @@ class TestWildcardWithOtherFeatures:
         assert ast.table_views.include_relations[0].fields == ["*"]
 
         assert len(ast.table_views.extra_filter_columns) == 1
-        assert ast.table_views.extra_filter_columns[0]["name"] == "status"
+        assert ast.table_views.extra_filter_columns[0].name == "status"
 
     def test_wildcard_with_mode_force(self):
         """Test wildcard with mode: force"""
@@ -213,7 +213,9 @@ class TestWildcardWithOtherFeatures:
         parser = SpecQLParser()
         ast = parser.parse(yaml_content)
 
-        assert ast.table_views.mode == "force"
+        from src.core.ast_models import TableViewMode
+
+        assert ast.table_views.mode == TableViewMode.FORCE
         assert ast.table_views.include_relations[0].fields == ["*"]
 
     def test_deep_nesting_all_wildcards(self):
@@ -271,12 +273,10 @@ class TestWildcardEdgeCases:
         """
         parser = SpecQLParser()
 
-        # Empty fields should be invalid or handled differently
-        # This test documents current behavior
-        ast = parser.parse(yaml_content)
-        user_include = ast.table_views.include_relations[0]
-        assert user_include.fields == []
-        assert user_include.fields != ["*"]
+        # Empty fields should be invalid
+        # This test documents that empty fields raise ValueError
+        with pytest.raises(ValueError, match="include_relations.User must specify fields"):
+            parser.parse(yaml_content)
 
     def test_wildcard_case_sensitive(self):
         """Test that wildcard is case-sensitive (must be asterisk)"""

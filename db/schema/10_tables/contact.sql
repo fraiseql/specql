@@ -1,7 +1,7 @@
 -- ============================================================================
 -- Table: crm.tb_contact
 -- ============================================================================
--- [Table: CON | Contact entity for CRM]
+-- [Table: CON | Customer contact information]
 -- ============================================================================
 
 CREATE TABLE crm.tb_contact (
@@ -31,10 +31,13 @@ CREATE TABLE crm.tb_contact (
     email TEXT,
     first_name TEXT,
     last_name TEXT,
+    status TEXT,
     phone TEXT,
     -- ========================================================================
     -- Foreign Keys (Trinity Pattern: INTEGER references)
     -- ========================================================================
+
+    fk_company INTEGER,
 
     -- ========================================================================
     -- Audit Fields (Trinity Pattern standard)
@@ -49,11 +52,15 @@ CREATE TABLE crm.tb_contact (
     -- ========================================================================
     -- Constraints
     -- ========================================================================
-    CONSTRAINT tb_contact_id_key UNIQUE (id));
+    CONSTRAINT tb_contact_id_key UNIQUE (id)
+    ,CONSTRAINT chk_tb_contact_status_enum CHECK (status IN ('lead', 'qualified', 'customer')));
 
 -- ============================================================================
 -- Foreign Key Constraints (defined after table creation)
--- ============================================================================-- ============================================================================
+-- ============================================================================
+ALTER TABLE ONLY crm.tb_contact
+    ADD CONSTRAINT tb_contact_fk_company_fkey
+    FOREIGN KEY (fk_company) REFERENCES crm.tb_company(pk_company);-- ============================================================================
 -- Multi-Tenancy Indexes (CRITICAL for performance & RLS)
 -- ============================================================================
 CREATE INDEX idx_tb_contact_tenant ON crm.tb_contact(tenant_id);
@@ -61,7 +68,7 @@ CREATE INDEX idx_tb_contact_tenant ON crm.tb_contact(tenant_id);
 -- Documentation
 -- ============================================================================
 COMMENT ON TABLE crm.tb_contact IS
-'Contact entity for CRM.
+'Customer contact information.
 
 @fraiseql:type
 trinity: true';

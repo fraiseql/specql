@@ -41,7 +41,6 @@ class ScalarTypeDef:
     postgres_type: PostgreSQLType  # PostgreSQL type
     fraiseql_scalar_name: str  # GraphQL scalar name
 
-    # PostgreSQL validation (for Team B)
     validation_pattern: str | None = None  # Regex for CHECK constraint
     min_value: float | None = None
     max_value: float | None = None

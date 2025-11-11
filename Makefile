@@ -1,4 +1,4 @@
-.PHONY: help install test test-unit test-integration lint typecheck format clean version
+.PHONY: help install test test-unit test-integration lint typecheck format clean clean-generated clean-test clean-all version
 
 help:
 	@echo "SpecQL Generator - Development Commands"
@@ -10,7 +10,11 @@ help:
 	@echo "  make lint            Run linting (ruff)"
 	@echo "  make typecheck       Run type checking (mypy)"
 	@echo "  make format          Format code (black)"
-	@echo "  make clean           Clean generated files"
+	@echo "  make clean           Clean all artifacts"
+	@echo "  make clean-generated Clean generated files only"
+	@echo "  make clean-test      Clean test artifacts only"
+	@echo "  make clean-all       Clean everything"
+	@echo "  make repo-size       Show repository size"
 	@echo "  make coverage        Generate coverage report"
 	@echo ""
 	@echo "Version Management:"
@@ -43,13 +47,38 @@ format:
 coverage:
 	uv run pytest tests/ --cov=src --cov-report=html --cov-report=term
 
-clean:
-	rm -rf generated/*
-	rm -rf .pytest_cache
-	rm -rf htmlcov
-	rm -rf .coverage
-	find . -type d -name __pycache__ -exec rm -rf {} +
-	find . -type f -name "*.pyc" -delete
+# Clean generated files
+clean-generated:
+	@echo "Cleaning generated files..."
+	find generated -type f -not -name '.gitkeep' -not -name 'README.md' -delete
+	@echo "Generated files cleaned."
+
+# Clean test artifacts
+clean-test:
+	@echo "Cleaning test artifacts..."
+	rm -rf .pytest_cache/ htmlcov/ .coverage .mypy_cache/ .ruff_cache/
+	find . -type d -name '__pycache__' -exec rm -rf {} +
+	find . -type f -name '*.pyc' -delete
+	find . -type f -name '*.pyo' -delete
+	@echo "Test artifacts cleaned."
+
+# Clean all temporary files
+clean-all: clean-generated clean-test
+	@echo "Cleaning all temporary files..."
+	rm -rf tmp/ temp/ test_output/ *.db *.log
+	@echo "All temporary files cleaned."
+
+# Show repository size
+repo-size:
+	@echo "Repository size:"
+	@du -sh .
+	@echo "\nGit object size:"
+	@du -sh .git/
+	@echo "\nLargest directories:"
+	@du -h --max-depth=1 . | sort -rh | head -10
+
+# Legacy clean target (for backward compatibility)
+clean: clean-all
 
 # Development shortcuts
 dev-setup: install
