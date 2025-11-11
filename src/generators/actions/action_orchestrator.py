@@ -18,7 +18,9 @@ from src.utils.safe_slug import safe_slug, safe_table_name
 class ActionOrchestrator:
     """Orchestrate complex actions involving multiple entities"""
 
-    def __init__(self, step_compiler_registry=None, entity=None, yaml_content=None) -> None:  # type: ignore
+    def __init__(
+        self, step_compiler_registry=None, entity=None, yaml_content=None, service_registry=None
+    ) -> None:
         """
         Initialize with step compiler registry
 
@@ -26,18 +28,21 @@ class ActionOrchestrator:
             step_compiler_registry: Dict mapping step types to compilers
             entity: Parsed entity (for from_yaml)
             yaml_content: Original YAML content
+            service_registry: Service registry for call_service steps
         """
         self.step_compiler_registry = step_compiler_registry or {}
         self.entity = entity
         self.yaml_content = yaml_content
+        self.service_registry = service_registry
 
     @classmethod
-    def from_yaml(cls, yaml_content: str) -> "ActionOrchestrator":
+    def from_yaml(cls, yaml_content: str, service_registry=None) -> "ActionOrchestrator":
         """
         Create ActionOrchestrator from SpecQL YAML content
 
         Args:
             yaml_content: SpecQL YAML string
+            service_registry: Service registry for call_service steps
 
         Returns:
             ActionOrchestrator instance
@@ -47,7 +52,7 @@ class ActionOrchestrator:
         entity = parser.parse(yaml_content)
 
         # Create orchestrator with call_service step compiler
-        orchestrator = cls()
+        orchestrator = cls(service_registry=service_registry)
         orchestrator.entity = entity
         orchestrator.yaml_content = yaml_content
 
@@ -194,7 +199,9 @@ $$;
 
     def _compile_call_service_step(self, step: Any, context: ActionContext) -> str:
         """Compile call_service step using CallServiceStepCompiler"""
-        compiler = CallServiceStepCompiler(step, context)
+        if not self.service_registry:
+            raise ValueError("Service registry required for call_service steps")
+        compiler = CallServiceStepCompiler(step, context, self.service_registry)
         return compiler.compile()
 
     def _generate_callback_functions(self, step: Any, context: ActionContext) -> list[str]:
