@@ -29,18 +29,27 @@ class JobsSchemaGenerator:
             "idempotency_key TEXT",
             "service_name TEXT NOT NULL",
             "operation TEXT NOT NULL",
+            # Execution type support (NEW)
+            "execution_type TEXT NOT NULL DEFAULT 'http' CHECK (execution_type IN ('http', 'shell', 'docker', 'serverless'))",
+            "runner_config JSONB",
+            "resource_usage JSONB",
+            "security_context JSONB",
+            # Input/output/error (existing)
             "input_data JSONB",
             "output_data JSONB",
             "error_message TEXT",
+            # Status and retry (existing)
             "status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'running', 'completed', 'failed', 'cancelled'))",
             "attempts INTEGER DEFAULT 0",
             "max_attempts INTEGER DEFAULT 3",
             "timeout_seconds INTEGER",
+            # Context (existing)
             "tenant_id UUID",
             "triggered_by UUID",
             "correlation_id TEXT",
             "entity_type TEXT",
             "entity_pk TEXT",
+            # Timestamps (existing)
             "created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()",
             "started_at TIMESTAMP WITH TIME ZONE",
             "completed_at TIMESTAMP WITH TIME ZONE",
@@ -76,6 +85,13 @@ CREATE TABLE jobs.tb_job_run (
                 "jobs.tb_job_run (idempotency_key)",
                 "WHERE idempotency_key IS NOT NULL",
             ),
+            # NEW: Execution type index
+            self._create_index(
+                "idx_tb_job_run_execution_type",
+                "jobs.tb_job_run (execution_type, status, created_at)",
+            ),
+            # NEW: Resource usage JSONB index
+            "CREATE INDEX idx_tb_job_run_resource_usage ON jobs.tb_job_run USING gin (resource_usage);",
         ]
 
         return "\n\n".join(indexes)
@@ -216,6 +232,71 @@ WHERE created_at > now() - interval '7 days'
 GROUP BY service_name, operation
 HAVING COUNT(*) > 100
 ORDER BY success_rate_percent ASC;
+""",
+            ),
+            # NEW: Execution performance by type
+            self._create_view(
+                "v_execution_performance_by_type",
+                """
+SELECT
+    execution_type,
+    service_name,
+    operation,
+    COUNT(*) as total_jobs,
+    COUNT(*) FILTER (WHERE status = 'completed') as successful_jobs,
+    COUNT(*) FILTER (WHERE status = 'failed') as failed_jobs,
+    AVG(EXTRACT(EPOCH FROM (completed_at - started_at)))::numeric(10,2) as avg_duration_sec,
+    PERCENTILE_CONT(0.95) WITHIN GROUP (
+        ORDER BY EXTRACT(EPOCH FROM (completed_at - started_at))
+    )::numeric(10,2) as p95_duration_sec,
+    PERCENTILE_CONT(0.99) WITHIN GROUP (
+        ORDER BY EXTRACT(EPOCH FROM (completed_at - started_at))
+    )::numeric(10,2) as p99_duration_sec
+FROM jobs.tb_job_run
+WHERE started_at IS NOT NULL
+    AND created_at > now() - interval '7 days'
+GROUP BY execution_type, service_name, operation
+ORDER BY total_jobs DESC;
+""",
+            ),
+            # NEW: Resource usage by runner
+            self._create_view(
+                "v_resource_usage_by_runner",
+                """
+SELECT
+    execution_type,
+    service_name,
+    operation,
+    COUNT(*) as total_jobs,
+    AVG((resource_usage->>'cpu_usage_percent')::numeric)::numeric(10,2) as avg_cpu_percent,
+    AVG((resource_usage->>'memory_mb')::numeric)::numeric(10,2) as avg_memory_mb,
+    AVG((resource_usage->>'duration_seconds')::numeric)::numeric(10,2) as avg_duration_sec,
+    MAX((resource_usage->>'peak_memory_mb')::numeric)::numeric(10,2) as max_memory_mb
+FROM jobs.tb_job_run
+WHERE resource_usage IS NOT NULL
+    AND created_at > now() - interval '24 hours'
+GROUP BY execution_type, service_name, operation
+ORDER BY avg_memory_mb DESC;
+""",
+            ),
+            # NEW: Runner failure patterns
+            self._create_view(
+                "v_runner_failure_patterns",
+                """
+SELECT
+    execution_type,
+    service_name,
+    operation,
+    COUNT(*) as failure_count,
+    ARRAY_AGG(DISTINCT error_message) as error_types,
+    AVG(attempts)::numeric(10,2) as avg_attempts_before_failure,
+    MAX(updated_at) as last_failure
+FROM jobs.tb_job_run
+WHERE status = 'failed'
+    AND attempts >= max_attempts
+    AND created_at > now() - interval '24 hours'
+GROUP BY execution_type, service_name, operation
+ORDER BY failure_count DESC;
 """,
             ),
         ]

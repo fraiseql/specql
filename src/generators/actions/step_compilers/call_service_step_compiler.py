@@ -38,14 +38,21 @@ from typing import Any
 
 from src.core.ast_models import ActionStep
 from src.generators.actions.action_context import ActionContext
+from src.registry.service_registry import ServiceRegistry
 
 
 class CallServiceStepCompiler:
     """Compiles call_service steps to PL/pgSQL job queueing"""
 
-    def __init__(self, step: ActionStep, context: ActionContext):
+    def __init__(self, step: ActionStep, context: ActionContext, service_registry: ServiceRegistry):
         self.step = step
         self.context = context
+        self.service_registry = service_registry
+
+    def get_execution_type(self) -> str:
+        """Get execution type for the service from registry"""
+        service = self.service_registry.get_service(self.step.service)
+        return service.execution_type.name
 
     def compile(self) -> str:
         """Compile call_service step to INSERT INTO jobs.tb_job_run"""
@@ -65,7 +72,10 @@ class CallServiceStepCompiler:
             entity_type,
             entity_pk,
             max_attempts,
-            timeout_seconds
+            timeout_seconds,
+            execution_type,
+            runner_config,
+            security_context
         ) VALUES (
             {self._generate_identifier()},
             {self._generate_idempotency_key()},
@@ -78,7 +88,10 @@ class CallServiceStepCompiler:
             '{self.context.entity_name}',
             {self._compile_entity_pk()},
             {self._compile_max_attempts()},
-            {self._compile_timeout()}
+            {self._compile_timeout()},
+            '{self.get_execution_type()}',
+            {self._compile_runner_config()},
+            {self._compile_security_context()}
         ) RETURNING id INTO _job_id_{self._job_var_suffix()};
         """
 
@@ -187,6 +200,46 @@ class CallServiceStepCompiler:
         else:
             # Default to 300 seconds (5 minutes)
             return "300"
+
+    def _compile_runner_config(self) -> str:
+        """Compile runner configuration to JSONB"""
+        service = self.service_registry.get_service(self.step.service)
+        if service.runner_config:
+            # Convert dict to JSONB literal
+            pairs = []
+            for key, value in service.runner_config.items():
+                if isinstance(value, bool):
+                    pairs.append(f"'{key}', {'true' if value else 'false'}")
+                elif isinstance(value, str):
+                    pairs.append(f"'{key}', '{value}'")
+                elif isinstance(value, (int, float)):
+                    pairs.append(f"'{key}', {value}")
+                else:
+                    # For complex types, convert to string
+                    pairs.append(f"'{key}', '{str(value)}'")
+            return f"jsonb_build_object({', '.join(pairs)})"
+        else:
+            return "'{}'::jsonb"
+
+    def _compile_security_context(self) -> str:
+        """Compile security context to JSONB"""
+        service = self.service_registry.get_service(self.step.service)
+        if service.security_policy:
+            # Convert dict to JSONB literal
+            pairs = []
+            for key, value in service.security_policy.items():
+                if isinstance(value, bool):
+                    pairs.append(f"'{key}', {'true' if value else 'false'}")
+                elif isinstance(value, str):
+                    pairs.append(f"'{key}', '{value}'")
+                elif isinstance(value, (int, float)):
+                    pairs.append(f"'{key}', {value}")
+                else:
+                    # For complex types, convert to string
+                    pairs.append(f"'{key}', '{str(value)}'")
+            return f"jsonb_build_object({', '.join(pairs)})"
+        else:
+            return "'{}'::jsonb"
 
     def _job_var_suffix(self) -> str:
         """Generate unique suffix for job variables"""
