@@ -309,6 +309,175 @@ def universal(
     return 0
 
 
+@cli.group()
+def jobs():
+    """Manage call_service jobs"""
+    pass
+
+
+@jobs.command()
+@click.option("--service", help="Filter by service name")
+@click.option("--operation", help="Filter by operation name")
+@click.option(
+    "--status",
+    type=click.Choice(["pending", "running", "completed", "failed", "cancelled"]),
+    help="Filter by job status",
+)
+@click.option("--limit", default=50, help="Maximum number of jobs to show")
+def list(service: str, operation: str, status: str, limit: int):
+    """List jobs with optional filtering"""
+    click.secho("🔍 Listing jobs...", fg="blue", bold=True)
+
+    # Build query conditions
+    conditions = []
+    params = []
+
+    if service:
+        conditions.append("service_name = %s")
+        params.append(service)
+
+    if operation:
+        conditions.append("operation = %s")
+        params.append(operation)
+
+    if status:
+        conditions.append("status = %s")
+        params.append(status)
+
+    where_clause = " AND ".join(conditions) if conditions else "TRUE"
+
+    # This would connect to database and query jobs
+    # For now, just show the query that would be executed
+    query = f"""
+SELECT
+    id,
+    service_name,
+    operation,
+    status,
+    created_at,
+    started_at,
+    completed_at
+FROM jobs.tb_job_run
+WHERE {where_clause}
+ORDER BY created_at DESC
+LIMIT {limit}
+"""
+
+    click.echo("Query that would be executed:")
+    click.echo(query)
+    if params:
+        click.echo(f"Parameters: {params}")
+
+    click.secho("💡 To implement: Connect to database and execute this query", fg="yellow")
+
+
+@jobs.command()
+@click.argument("job_id")
+def status(job_id: str):
+    """Get detailed status of a specific job"""
+    click.secho(f"🔍 Getting status for job {job_id}...", fg="blue", bold=True)
+
+    query = """
+SELECT
+    id,
+    service_name,
+    operation,
+    status,
+    input_data,
+    output_data,
+    error_message,
+    attempts,
+    max_attempts,
+    created_at,
+    started_at,
+    completed_at,
+    updated_at
+FROM jobs.tb_job_run
+WHERE id = %s
+"""
+
+    click.echo("Query that would be executed:")
+    click.echo(query)
+    click.echo(f"Parameters: [{job_id}]")
+
+    click.secho("💡 To implement: Connect to database and execute this query", fg="yellow")
+
+
+@jobs.command()
+@click.argument("job_id")
+@click.option("--force", is_flag=True, help="Force cancellation even if running")
+def cancel(job_id: str, force: bool):
+    """Cancel a pending or running job"""
+    click.secho(f"🛑 Cancelling job {job_id}...", fg="red", bold=True)
+
+    if force:
+        update_query = """
+UPDATE jobs.tb_job_run
+SET status = 'cancelled', updated_at = NOW()
+WHERE id = %s
+"""
+    else:
+        update_query = """
+UPDATE jobs.tb_job_run
+SET status = 'cancelled', updated_at = NOW()
+WHERE id = %s AND status IN ('pending', 'running')
+"""
+
+    click.echo("Update query that would be executed:")
+    click.echo(update_query)
+    click.echo(f"Parameters: [{job_id}]")
+
+    click.secho("💡 To implement: Connect to database and execute this update", fg="yellow")
+
+
+@jobs.command()
+@click.option("--service", help="Filter by service name")
+@click.option("--operation", help="Filter by operation name")
+@click.option("--hours", default=1, help="Look back hours")
+def stats(service: str, operation: str, hours: int):
+    """Show job statistics and health metrics"""
+    click.secho("📊 Calculating job statistics...", fg="blue", bold=True)
+
+    conditions = []
+    params = []
+
+    if service:
+        conditions.append("service_name = %s")
+        params.append(service)
+
+    if operation:
+        conditions.append("operation = %s")
+        params.append(operation)
+
+    where_clause = " AND ".join(conditions) if conditions else "TRUE"
+
+    query = f"""
+SELECT
+    service_name,
+    operation,
+    COUNT(*) as total_jobs,
+    COUNT(*) FILTER (WHERE status = 'completed') as completed,
+    COUNT(*) FILTER (WHERE status = 'failed') as failed,
+    ROUND(
+        COUNT(*) FILTER (WHERE status = 'completed')::numeric /
+        NULLIF(COUNT(*), 0) * 100, 2
+    ) as success_rate_percent,
+    AVG(EXTRACT(EPOCH FROM (completed_at - started_at)))::numeric(10,2) as avg_duration_sec
+FROM jobs.tb_job_run
+WHERE {where_clause}
+    AND created_at > now() - interval '{hours} hours'
+GROUP BY service_name, operation
+ORDER BY success_rate_percent ASC
+"""
+
+    click.echo("Query that would be executed:")
+    click.echo(query)
+    if params:
+        click.echo(f"Parameters: {params}")
+
+    click.secho("💡 To implement: Connect to database and execute this query", fg="yellow")
+
+
 @cli.command()
 def list_backends():
     """List all available framework backends"""
