@@ -55,6 +55,7 @@ class CallServiceStepCompiler:
         -- Queue job for {self.step.service}.{self.step.operation}
         INSERT INTO jobs.tb_job_run (
             identifier,
+            idempotency_key,
             service_name,
             operation,
             input_data,
@@ -62,9 +63,12 @@ class CallServiceStepCompiler:
             triggered_by,
             correlation_id,
             entity_type,
-            entity_pk
+            entity_pk,
+            max_attempts,
+            timeout_seconds
         ) VALUES (
             {self._generate_identifier()},
+            {self._generate_idempotency_key()},
             '{self.step.service}',
             '{self.step.operation}',
             {self._compile_input_data()},
@@ -72,7 +76,9 @@ class CallServiceStepCompiler:
             _user_id,
             {self._compile_correlation()},
             '{self.context.entity_name}',
-            {self._compile_entity_pk()}
+            {self._compile_entity_pk()},
+            {self._compile_max_attempts()},
+            {self._compile_timeout()}
         ) RETURNING id INTO _job_id_{self._job_var_suffix()};
         """
 
@@ -91,6 +97,16 @@ class CallServiceStepCompiler:
         """Generate idempotent identifier for job deduplication"""
         entity_var = f"_{self.context.entity_name.lower()}"
         # Format: EntityName_PK_Service_Operation
+        return f"""
+        '{self.context.entity_name}_' ||
+        {entity_var}.id::text ||
+        '_{self.step.service}_{self.step.operation}'
+        """.strip()
+
+    def _generate_idempotency_key(self) -> str:
+        """Generate idempotency key for duplicate prevention"""
+        entity_var = f"_{self.context.entity_name.lower()}"
+        # Use same format as identifier for now
         return f"""
         '{self.context.entity_name}_' ||
         {entity_var}.id::text ||
@@ -154,6 +170,23 @@ class CallServiceStepCompiler:
         """Compile entity primary key"""
         entity_var = f"_{self.context.entity_name.lower()}"
         return f"{entity_var}.id"
+
+    def _compile_max_attempts(self) -> str:
+        """Compile max_attempts value"""
+        if self.step.max_retries is not None:
+            # max_attempts = max_retries + 1 (for initial attempt)
+            return str(self.step.max_retries + 1)
+        else:
+            # Default to 3 attempts
+            return "3"
+
+    def _compile_timeout(self) -> str:
+        """Compile timeout_seconds value"""
+        if self.step.timeout is not None:
+            return str(self.step.timeout)
+        else:
+            # Default to 300 seconds (5 minutes)
+            return "300"
 
     def _job_var_suffix(self) -> str:
         """Generate unique suffix for job variables"""

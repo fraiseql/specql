@@ -1,0 +1,65 @@
+entity: Order
+schema: commerce
+description: "Customer order with external payment processing"
+
+fields:
+  order_number: text!
+  status: enum(pending, payment_processing, paid, shipped, delivered, cancelled, payment_failed)
+  total_amount: money!
+  customer_email: text!
+
+  # Payment processing
+  payment_job_id: uuid    # Reference to external payment job
+
+  # Timestamps
+  ordered_at: datetime!
+  paid_at: datetime
+  shipped_at: datetime
+
+actions:
+  - name: place_order
+    description: "Create order and process payment asynchronously"
+    steps:
+      - validate: total_amount > 0
+      - validate: customer_email IS NOT NULL
+      - insert: Order
+        as: order
+      - call_service:
+          service: stripe
+          operation: create_charge
+          input:
+            amount: $order.total_amount
+            currency: USD
+            customer_email: $order.customer_email
+            order_number: $order.order_number
+          max_retries: 3
+          timeout: 30
+
+  - name: process_payment_sync
+    description: "Process payment synchronously with immediate response"
+    steps:
+      - validate: status = 'pending'
+      - call_service:
+          service: stripe
+          operation: create_charge
+          input:
+            amount: $order.total_amount
+            currency: USD
+          max_retries: 1
+          timeout: 10
+
+  - name: refund_order
+    description: "Refund order payment"
+    steps:
+      - validate: status = 'paid'
+      - validate: payment_job_id IS NOT NULL
+      - call_service:
+          service: stripe
+          operation: create_refund
+          input:
+            charge_id: $order.payment_job_id
+            amount: $order.total_amount
+          on_success:
+            - update: Order SET status = 'refunded'
+          on_failure:
+            - update: Order SET status = 'refund_failed'

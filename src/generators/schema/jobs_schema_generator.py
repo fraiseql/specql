@@ -1,6 +1,6 @@
 """Generator for jobs schema and related database objects."""
 
-from typing import List
+from typing import List  # TODO: Replace with list when Python 3.8 support is dropped
 
 
 class JobsSchemaGenerator:
@@ -26,6 +26,7 @@ class JobsSchemaGenerator:
         columns = [
             "id UUID PRIMARY KEY DEFAULT gen_random_uuid()",
             "identifier TEXT NOT NULL UNIQUE",
+            "idempotency_key TEXT",
             "service_name TEXT NOT NULL",
             "operation TEXT NOT NULL",
             "input_data JSONB",
@@ -34,6 +35,7 @@ class JobsSchemaGenerator:
             "status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'running', 'completed', 'failed', 'cancelled'))",
             "attempts INTEGER DEFAULT 0",
             "max_attempts INTEGER DEFAULT 3",
+            "timeout_seconds INTEGER",
             "tenant_id UUID",
             "triggered_by UUID",
             "correlation_id TEXT",
@@ -68,6 +70,11 @@ CREATE TABLE jobs.tb_job_run (
                 "idx_tb_job_run_correlation",
                 "jobs.tb_job_run (correlation_id)",
                 "WHERE correlation_id IS NOT NULL",
+            ),
+            self._create_index(
+                "idx_tb_job_run_idempotency",
+                "jobs.tb_job_run (idempotency_key)",
+                "WHERE idempotency_key IS NOT NULL",
             ),
         ]
 
@@ -151,6 +158,64 @@ WHERE status = 'failed'
     AND updated_at > now() - interval '1 hour'
 GROUP BY service_name, operation
 HAVING COUNT(*) > 10;
+""",
+            ),
+            self._create_view(
+                "v_job_queue_health",
+                """
+SELECT
+    service_name,
+    operation,
+    COUNT(*) FILTER (WHERE status = 'pending') as pending_jobs,
+    COUNT(*) FILTER (WHERE status = 'running') as running_jobs,
+    COUNT(*) FILTER (WHERE status = 'failed' AND attempts < max_attempts) as retryable_failures,
+    COUNT(*) FILTER (WHERE status = 'failed' AND attempts >= max_attempts) as permanent_failures,
+    AVG(EXTRACT(EPOCH FROM (now() - created_at))) FILTER (WHERE status = 'pending')::numeric(10,2) as avg_queue_age_sec,
+    MAX(EXTRACT(EPOCH FROM (now() - created_at))) FILTER (WHERE status = 'pending')::numeric(10,2) as max_queue_age_sec
+FROM jobs.tb_job_run
+WHERE created_at > now() - interval '1 hour'
+GROUP BY service_name, operation;
+""",
+            ),
+            self._create_view(
+                "v_job_retry_patterns",
+                """
+SELECT
+    service_name,
+    operation,
+    attempts,
+    COUNT(*) as jobs_at_attempt,
+    AVG(EXTRACT(EPOCH FROM (completed_at - started_at)))::numeric(10,2) as avg_duration_at_attempt,
+    COUNT(*) FILTER (WHERE status = 'completed') as successes_at_attempt,
+    COUNT(*) FILTER (WHERE status = 'failed') as failures_at_attempt
+FROM jobs.tb_job_run
+WHERE attempts > 0
+    AND started_at IS NOT NULL
+    AND updated_at > now() - interval '24 hours'
+GROUP BY service_name, operation, attempts
+ORDER BY service_name, operation, attempts;
+""",
+            ),
+            self._create_view(
+                "v_service_reliability",
+                """
+SELECT
+    service_name,
+    operation,
+    COUNT(*) as total_jobs,
+    COUNT(*) FILTER (WHERE status = 'completed') as successful_jobs,
+    COUNT(*) FILTER (WHERE status = 'failed' AND attempts >= max_attempts) as failed_jobs,
+    ROUND(
+        COUNT(*) FILTER (WHERE status = 'completed')::numeric /
+        NULLIF(COUNT(*), 0) * 100, 2
+    ) as success_rate_percent,
+    AVG(attempts) FILTER (WHERE status = 'completed')::numeric(10,2) as avg_attempts_for_success,
+    MAX(updated_at) as last_job_at
+FROM jobs.tb_job_run
+WHERE created_at > now() - interval '7 days'
+GROUP BY service_name, operation
+HAVING COUNT(*) > 100
+ORDER BY success_rate_percent ASC;
 """,
             ),
         ]

@@ -229,10 +229,19 @@ export interface PaginatedResult<T> {
             self.types.append("}")
             self.types.append("")
 
+            # Check if action contains call_service steps
+            has_call_service = any(step.type == "call_service" for step in action.steps)
+
             # Success result type
             self.types.append(f"export interface {pascal_name}Success {{")
 
-            if action_name.startswith("create_"):
+            if has_call_service:
+                # For actions with call_service, include job_id
+                if action_name.startswith("create_"):
+                    self.types.append(f"  {entity_name.lower()}: {entity_name};")
+                self.types.append("  job_id: UUID;")
+                self.types.append("  message: string;")
+            elif action_name.startswith("create_"):
                 self.types.append(f"  {entity_name.lower()}: {entity_name};")
                 self.types.append("  message: string;")
             elif action_name.startswith("update_"):

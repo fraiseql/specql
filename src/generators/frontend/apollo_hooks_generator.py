@@ -172,11 +172,19 @@ export const useGet{entity_name}s = (filter?: {entity_name}Filter, pagination?: 
         # Build GraphQL mutation
         mutation_gql = self._build_mutation_gql(entity, action)
 
+        # Check if action contains call_service steps
+        has_call_service = any(step.type == "call_service" for step in action.steps)
+
         # Build cache update logic
         cache_update = self._build_cache_update_logic(entity, action)
 
         # Build optimistic response
         optimistic_response = self._build_optimistic_response(entity, action)
+
+        # Build special handling for call_service actions
+        call_service_handling = ""
+        if has_call_service:
+            call_service_handling = self._build_call_service_handling(entity, action, camel_name)
 
         hook_code = f"""
 export const {pascal_name.upper()}_MUTATION = gql`
@@ -192,6 +200,9 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
     {{
       {cache_update}
       {optimistic_response}
+      onCompleted: (data) => {{
+        {call_service_handling}
+      }},
       onError: (error) => {{
         console.error(`{pascal_name} mutation failed:`, error);
       }},
@@ -201,6 +212,28 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
 """
 
         self.hooks.append(hook_code)
+
+    def _build_call_service_handling(self, entity: Entity, action: Action, camel_name: str) -> str:
+        """
+        Build special handling for call_service actions.
+
+        Args:
+            entity: The entity containing the action
+            action: The action with call_service steps
+            camel_name: The camelCase version of the action name
+
+        Returns:
+            JavaScript code for handling call_service completion
+        """
+        action_name = action.name
+
+        return f"""
+        // Handle call_service completion
+        if (data?.{camel_name}?.success && data.{camel_name}.job_id) {{
+          console.log('{action_name} initiated job:', data.{camel_name}.job_id);
+          // TODO: Implement job status polling or subscription
+          // You can poll job status or set up a subscription here
+        }}"""
 
     def _build_mutation_gql(self, entity: Entity, action: Action) -> str:
         """
