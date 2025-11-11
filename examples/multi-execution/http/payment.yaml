@@ -1,0 +1,119 @@
+# Payment Processing with HTTP Execution
+# Demonstrates REST API integration with authentication and error handling
+
+entity: payment
+description: "Payment processing with Stripe API integration"
+
+fields:
+  id:
+    type: uuid
+    primary_key: true
+    default: gen_random_uuid()
+
+  order_id:
+    type: uuid
+    required: true
+    references: order.id
+
+  amount_cents:
+    type: integer
+    required: true
+    description: "Amount in cents"
+
+  currency:
+    type: string
+    default: "usd"
+    validation:
+      pattern: "^[a-z]{3}$"
+
+  status:
+    type: string
+    default: "pending"
+    validation:
+      enum: ["pending", "processing", "completed", "failed", "refunded"]
+
+  stripe_charge_id:
+    type: string
+    description: "Stripe charge identifier"
+
+  error_message:
+    type: text
+    description: "Error details if payment failed"
+
+  created_at:
+    type: timestamptz
+    default: now()
+
+  processed_at:
+    type: timestamptz
+
+actions:
+  # Process payment through Stripe API
+  process_payment:
+    description: "Charge customer card via Stripe API"
+    input:
+      card_token: string  # Stripe card token
+      amount_cents: integer
+      currency: string
+      description: string
+    output:
+      charge_id: string
+      status: string
+      amount: integer
+    actions:
+      - validate:
+          conditions:
+            - "$input.amount_cents > 0"
+            - "$input.card_token != null"
+      - call_service:
+          service: stripe_payment
+          operation: create_charge
+          input:
+            amount: "$input.amount_cents"
+            currency: "$input.currency"
+            source: "$input.card_token"
+            description: "$input.description"
+          on_success:
+            - update:
+                set:
+                  status: "completed"
+                  stripe_charge_id: "$response.id"
+                  processed_at: now()
+          on_failure:
+            - update:
+                set:
+                  status: "failed"
+                  error_message: "$error.message"
+
+  # Refund payment
+  refund_payment:
+    description: "Refund a completed payment"
+    input:
+      refund_amount_cents: integer
+    output:
+      refund_id: string
+      status: string
+    preconditions:
+      - status == "completed"
+    actions:
+      - call_service:
+          service: stripe_payment
+          operation: create_refund
+          input:
+            charge_id: "$entity.stripe_charge_id"
+            amount: "$input.refund_amount_cents"
+          on_success:
+            - update:
+                set:
+                  status: "refunded"
+          on_failure:
+            - update:
+                set:
+                  error_message: "$error.message"
+
+indexes:
+  - fields: [order_id]
+  - fields: [status, created_at]
+  - fields: [stripe_charge_id]
+    unique: true
+    where: "stripe_charge_id IS NOT NULL"

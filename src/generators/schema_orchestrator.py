@@ -63,11 +63,11 @@ class SchemaOrchestrator:
         self.entities = entities or []
         self.actions = actions or []
 
-        self.app_gen = AppSchemaGenerator()
-        self.table_gen = TableGenerator(schema_registry)
-        self.type_gen = CompositeTypeGenerator()
-        self.helper_gen = TrinityHelperGenerator(schema_registry)
-        self.core_gen = CoreLogicGenerator(schema_registry)
+        self.app_gen = AppSchemaGenerator(templates_dir="../specql/templates/sql")
+        self.table_gen = TableGenerator(schema_registry, templates_dir="../specql/templates/sql")
+        self.type_gen = CompositeTypeGenerator(templates_dir="../specql/templates/sql")
+        self.helper_gen = TrinityHelperGenerator(schema_registry, templates_dir="../specql/templates/sql")
+        self.core_gen = CoreLogicGenerator(schema_registry, templates_dir="../specql/templates/sql")
 
     def generate_complete_schema(self, entity: Entity) -> str:
         """
@@ -170,7 +170,7 @@ class SchemaOrchestrator:
         helpers_sql = self.helper_gen.generate_all_helpers(entity)
 
         mutations = []
-        app_wrapper_gen = AppWrapperGenerator()
+        app_wrapper_gen = AppWrapperGenerator(templates_dir="../specql/templates/sql")
 
         for action in entity.actions:
             # Detect action pattern for core function generation

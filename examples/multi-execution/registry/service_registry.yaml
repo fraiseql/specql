@@ -1,0 +1,187 @@
+# Multi-Execution Service Registry Examples
+# Demonstrates configuration for all execution types
+
+services:
+  # HTTP Execution Examples
+  - name: stripe_payment
+    type: payment
+    category: financial
+    execution_type: http
+    runner_config:
+      base_url: "https://api.stripe.com/v1"
+      auth_type: "bearer"
+      auth_config:
+        token_env_var: "STRIPE_SECRET_KEY"
+      timeout: 30
+      retry_config:
+        max_retries: 3
+        backoff_factor: 2.0
+    security_policy:
+      allowed_domains: ["api.stripe.com"]
+      max_request_size: 1048576
+      rate_limit_per_minute: 100
+    operations:
+      - name: create_charge
+        input_schema:
+          amount: integer
+          currency: string
+          source: string
+          description: string
+        output_schema:
+          id: string
+          amount: integer
+          currency: string
+          status: string
+      - name: create_refund
+        input_schema:
+          charge_id: string
+          amount: integer
+        output_schema:
+          id: string
+          amount: integer
+          status: string
+
+  # Shell Execution Examples
+  - name: data_processor
+    type: script
+    category: automation
+    execution_type: shell
+    runner_config:
+      working_directory: "/app/scripts"
+      environment:
+        PYTHONPATH: "/app"
+        LOG_LEVEL: "INFO"
+    security_policy:
+      allowed_commands:
+        - "/usr/bin/python"
+        - "/usr/bin/node"
+        - "/usr/bin/cat"
+        - "/usr/bin/grep"
+      resource_limits:
+        cpu_cores: 1.0
+        memory_mb: 512
+        disk_mb: 1024
+        cpu_seconds: 300
+      working_directory_restrictions:
+        - "/app/scripts"
+        - "/tmp/processing"
+    operations:
+      - name: process_csv
+        input_schema:
+          input_file: string
+          delimiter: string
+          has_header: boolean
+          output_format: string
+          output_file: string
+        output_schema:
+          records_count: integer
+          output_path: string
+          processing_time_seconds: number
+
+  - name: report_generator
+    type: script
+    category: reporting
+    execution_type: shell
+    runner_config:
+      working_directory: "/app/reports"
+    security_policy:
+      allowed_commands:
+        - "/usr/bin/python"
+        - "/usr/bin/pandoc"
+      resource_limits:
+        memory_mb: 1024
+        cpu_seconds: 600
+    operations:
+      - name: generate_summary
+        input_schema:
+          batch_id: string
+          input_records: integer
+          processing_time: string
+          report_type: string
+        output_schema:
+          report_path: string
+
+  # Docker Execution Examples
+  - name: ml_predictor
+    type: container
+    category: compute
+    execution_type: docker
+    runner_config:
+      image: "python:3.11-slim"
+      command: ["python", "predict.py"]
+      working_dir: "/app"
+      volumes:
+        - host_path: "/models"
+          container_path: "/models"
+          mode: "ro"
+        - host_path: "/tmp/results"
+          container_path: "/tmp"
+          mode: "rw"
+      environment:
+        MODEL_PATH: "/models"
+        LOG_LEVEL: "INFO"
+    security_policy:
+      allowed_images: ["python:3.11-slim"]
+      resource_limits:
+        cpu_cores: 2.0
+        memory_mb: 2048
+        disk_mb: 5120
+      volume_restrictions:
+        allowed_host_paths: ["/models", "/tmp"]
+        max_volumes: 5
+    operations:
+      - name: classify_image
+        input_schema:
+          image_path: string
+          model_version: string
+        output_schema:
+          prediction: string
+          confidence: number
+          processing_time: number
+
+  # Serverless Execution Examples
+  - name: image_resizer
+    type: function
+    category: media
+    execution_type: serverless
+    runner_config:
+      provider: "aws"
+      function_name: "image-resize-service"
+      region: "us-east-1"
+      memory_mb: 1024
+      timeout: 300
+      environment:
+        BUCKET_NAME: "processed-images"
+      auth_config:
+        role_arn: "arn:aws:iam::123456789012:role/LambdaExecutionRole"
+    security_policy:
+      allowed_providers: ["aws"]
+      allowed_regions: ["us-east-1", "us-west-2"]
+      resource_limits:
+        memory_mb: 3072
+        timeout_seconds: 900
+      cost_limits:
+        max_invocations_per_hour: 1000
+        max_cost_per_hour: 5.0
+    operations:
+      - name: resize
+        input_schema:
+          image_url: string
+          width: integer
+          height: integer
+          format: string
+        output_schema:
+          resized_url: string
+          original_size: integer
+          new_size: integer
+
+  # Legacy HTTP service (backward compatibility)
+  - name: legacy_api
+    type: api
+    category: integration
+    # execution_type defaults to 'http'
+    operations:
+      - name: call
+        input_schema: {}
+        output_schema:
+          result: string

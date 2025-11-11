@@ -35,8 +35,8 @@ class TestTableViewGeneration:
         assert "pk_review INTEGER PRIMARY KEY" in sql
         assert "id UUID NOT NULL UNIQUE" in sql
         assert "tenant_id UUID NOT NULL" in sql
-        assert "fk_user INTEGER" in sql
-        assert "user_id UUID" in sql
+        assert "fk_author INTEGER" in sql  # FK uses field name, not entity name
+        assert "author_id UUID" in sql  # UUID FK also uses field name
         assert "data JSONB NOT NULL" in sql
 
     def test_indexes_generated(self):
@@ -54,7 +54,7 @@ class TestTableViewGeneration:
         sql = generator.generate_schema()
 
         assert "idx_tv_review_tenant" in sql
-        assert "idx_tv_review_user_id" in sql
+        assert "idx_tv_review_author_id" in sql  # Index uses field name, not entity name
         assert "idx_tv_review_rating" in sql
         assert "idx_tv_review_data" in sql
         assert "USING GIN(data)" in sql
@@ -200,18 +200,18 @@ class TestTableViewGeneration:
         generator = TableViewGenerator(entity, {})
         sql = generator.generate_schema()
 
-        # Should have FK columns for all references
-        assert "fk_user INTEGER" in sql
+        # Should have FK columns for all references (using field names)
+        assert "fk_author INTEGER" in sql
         assert "fk_book INTEGER" in sql
         assert "fk_publisher INTEGER" in sql
 
-        # Should have UUID columns for all references
-        assert "user_id UUID" in sql
+        # Should have UUID columns for all references (using field names)
+        assert "author_id UUID" in sql
         assert "book_id UUID" in sql
         assert "publisher_id UUID" in sql
 
-        # Should have indexes for all UUID columns
-        assert "idx_tv_review_user_id" in sql
+        # Should have indexes for all UUID columns (using field names)
+        assert "idx_tv_review_author_id" in sql
         assert "idx_tv_review_book_id" in sql
         assert "idx_tv_review_publisher_id" in sql
 

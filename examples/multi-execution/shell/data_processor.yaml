@@ -1,0 +1,111 @@
+# Data Processing with Shell Execution
+# Demonstrates shell script execution with security controls
+
+entity: data_batch
+description: "Batch data processing with shell scripts"
+
+fields:
+  id:
+    type: uuid
+    primary_key: true
+    default: gen_random_uuid()
+
+  name:
+    type: string
+    required: true
+
+  input_file_path:
+    type: string
+    required: true
+
+  output_file_path:
+    type: string
+
+  status:
+    type: string
+    default: "pending"
+    validation:
+      enum: ["pending", "processing", "completed", "failed"]
+
+  records_processed:
+    type: integer
+    default: 0
+
+  error_message:
+    type: text
+
+  created_at:
+    type: timestamptz
+    default: now()
+
+  processed_at:
+    type: timestamptz
+
+actions:
+  # Process CSV data with Python script
+  process_csv:
+    description: "Process CSV file and generate report"
+    input:
+      delimiter: string
+      has_header: boolean
+      output_format: string  # json, xml, csv
+    output:
+      records_count: integer
+      output_path: string
+      processing_time_seconds: number
+    actions:
+      - validate:
+          conditions:
+            - "$entity.input_file_path != null"
+      - update:
+          set:
+            status: "processing"
+      - call_service:
+          service: data_processor
+          operation: process_csv
+          input:
+            input_file: "$entity.input_file_path"
+            delimiter: "$input.delimiter"
+            has_header: "$input.has_header"
+            output_format: "$input.output_format"
+            output_file: "$entity.name + '_processed.' + $input.output_format"
+          on_success:
+            - update:
+                set:
+                  status: "completed"
+                  output_file_path: "$response.output_path"
+                  records_processed: "$response.records_count"
+                  processed_at: now()
+          on_failure:
+            - update:
+                set:
+                  status: "failed"
+                  error_message: "$error.message"
+
+  # Generate summary report
+  generate_report:
+    description: "Generate processing summary report"
+    input:
+      report_type: string  # summary, detailed, statistics
+    output:
+      report_path: string
+    preconditions:
+      - status == "completed"
+    actions:
+      - call_service:
+          service: report_generator
+          operation: generate_summary
+          input:
+            batch_id: "$entity.id"
+            input_records: "$entity.records_processed"
+            processing_time: "$entity.processed_at - $entity.created_at"
+            report_type: "$input.report_type"
+          on_success:
+            - update:
+                set:
+                  report_path: "$response.report_path"
+
+indexes:
+  - fields: [status, created_at]
+  - fields: [name]
+    unique: true

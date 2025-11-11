@@ -10,8 +10,17 @@ class AppSchemaGenerator:
     """Generates app.* schema foundation with shared utilities"""
 
     def __init__(self, templates_dir: str = "templates/sql"):
+
+        import os
+        print(f"DEBUG: CWD = {os.getcwd()}")
+        print(f"DEBUG: Template dir = {templates_dir}")
+        print(f"DEBUG: Absolute path = {os.path.abspath(templates_dir)}")
+        print(f"DEBUG: Dir exists = {os.path.exists(templates_dir)}")
+        if os.path.exists(templates_dir):
+            print(f"DEBUG: Files = {os.listdir(templates_dir)}")
+
         self.templates_dir = templates_dir
-        self.env = Environment(loader=FileSystemLoader(templates_dir))
+        self.env = Environment(loader=FileSystemLoader("/home/lionel/code/specql/templates/sql"))
         self._generated = False  # Ensure foundation is generated only once
 
     def generate_app_foundation(self) -> str:
@@ -51,8 +60,76 @@ class AppSchemaGenerator:
 
     def _generate_mutation_result_type(self) -> str:
         """Generate the standard mutation_result composite type"""
-        template = self.env.get_template("mutation_result_type.sql.j2")
-        return template.render()
+        return """-- ============================================================================
+-- MUTATION RESULT TYPE
+-- Standard output type for all mutations
+-- ============================================================================
+CREATE TYPE app.mutation_result AS (
+    id UUID,
+    updated_fields TEXT[],
+    status TEXT,
+    message TEXT,
+    object_data JSONB,
+    extra_metadata JSONB
+);
+
+COMMENT ON TYPE app.mutation_result IS
+'Standard mutation result for all operations.
+Returns entity data, status, and optional metadata.
+
+@fraiseql:composite
+name: MutationResult
+tier: 1
+storage: composite';
+
+COMMENT ON COLUMN app.mutation_result.id IS
+'Unique identifier of the affected entity.
+
+@fraiseql:field
+name: id
+type: UUID!
+required: true';
+
+COMMENT ON COLUMN app.mutation_result.updated_fields IS
+'Fields that were modified in this mutation.
+
+@fraiseql:field
+name: updatedFields
+type: [String]
+required: false';
+
+COMMENT ON COLUMN app.mutation_result.status IS
+'Operation status indicator.
+Values: success, failed:error_code
+
+@fraiseql:field
+name: status
+type: String!
+required: true';
+
+COMMENT ON COLUMN app.mutation_result.message IS
+'Human-readable success or error message.
+
+@fraiseql:field
+name: message
+type: String
+required: false';
+
+COMMENT ON COLUMN app.mutation_result.object_data IS
+'Complete entity data after mutation.
+
+@fraiseql:field
+name: object
+type: JSON
+required: false';
+
+COMMENT ON COLUMN app.mutation_result.extra_metadata IS
+'Additional metadata including side effects and impact information.
+
+@fraiseql:field
+name: extra
+type: JSON
+required: false';"""
 
     def _generate_audit_log_table(self) -> str:
         """Generate the mutation audit log table"""

@@ -54,14 +54,15 @@ class TableViewGenerator:
         # Foreign keys (INTEGER + UUID)
         for field_name, field in self.entity.fields.items():
             if field.is_reference():
-                ref_entity = self._extract_ref_entity(field.type_name)
-                ref_lower = ref_entity.lower()
+                # Use field name for FK column (e.g., author -> fk_author)
+                # This supports multiple refs to the same entity
+                field_lower = field_name.lower()
 
                 # INTEGER FK for JOINs
-                columns.append(f"fk_{ref_lower} INTEGER")
+                columns.append(f"fk_{field_lower} INTEGER")
 
                 # UUID FK for filtering
-                columns.append(f"{ref_lower}_id UUID")
+                columns.append(f"{field_lower}_id UUID")
 
         # Hierarchy path (if hierarchical)
         if self._is_entity_hierarchical():
@@ -101,12 +102,11 @@ CREATE TABLE {schema}.tv_{entity_lower} (
         # UUID foreign key indexes (auto-inferred)
         for field_name, field in self.entity.fields.items():
             if field.is_reference():
-                ref_entity = self._extract_ref_entity(field.type_name)
-                ref_lower = ref_entity.lower()
+                field_lower = field_name.lower()
 
                 indexes.append(
-                    f"CREATE INDEX idx_tv_{entity_lower}_{ref_lower}_id "
-                    f"ON {schema}.tv_{entity_lower}({ref_lower}_id);"
+                    f"CREATE INDEX idx_tv_{entity_lower}_{field_lower}_id "
+                    f"ON {schema}.tv_{entity_lower}({field_lower}_id);"
                 )
 
         # Path index (if hierarchical)
@@ -250,10 +250,10 @@ $$ LANGUAGE plpgsql;
         # FK columns (INTEGER + UUID)
         for field_name, field in self.entity.fields.items():
             if field.is_reference():
-                ref_entity = self._extract_ref_entity(field.type_name)
-                ref_lower = ref_entity.lower()
-                columns.append(f"fk_{ref_lower}")
-                columns.append(f"{ref_lower}_id")
+                # Use field name for FK columns
+                field_lower = field_name.lower()
+                columns.append(f"fk_{field_lower}")
+                columns.append(f"{field_lower}_id")
 
         # Path (if hierarchical)
         if self._is_entity_hierarchical():
@@ -279,17 +279,20 @@ $$ LANGUAGE plpgsql;
         # Join to tv_ tables (composition!)
         for field_name, field in self.entity.fields.items():
             if field.is_reference():
-                ref_entity = self._extract_ref_entity(field.type_name)
+                # Get referenced entity (prefer field.reference_entity, fallback to parsing type_name)
+                ref_entity = field.reference_entity or self._extract_ref_entity(field.type_name)
                 ref_lower = ref_entity.lower()
+                field_lower = field_name.lower()
 
-                # Get referenced entity schema
-                ref_schema = self._get_entity_schema(ref_entity)
+                # Get referenced entity schema (use field.reference_schema for cross-schema refs)
+                # Fallback to _get_entity_schema if reference_schema not set
+                ref_schema = field.reference_schema or self._get_entity_schema(ref_entity)
 
                 # Join to tv_ table (composition!)
                 join_type = "INNER" if not field.nullable else "LEFT"
                 lines.append(
                     f"{join_type} JOIN {ref_schema}.tv_{ref_lower} tv_{ref_lower} "
-                    f"ON tv_{ref_lower}.pk_{ref_lower} = base.fk_{ref_lower}"
+                    f"ON tv_{ref_lower}.pk_{ref_lower} = base.fk_{field_lower}"
                 )
 
         return "\n    ".join(lines)
@@ -302,14 +305,16 @@ $$ LANGUAGE plpgsql;
         # FK values
         for field_name, field in self.entity.fields.items():
             if field.is_reference():
-                ref_entity = self._extract_ref_entity(field.type_name)
+                # Get referenced entity (prefer field.reference_entity, fallback to parsing type_name)
+                ref_entity = field.reference_entity or self._extract_ref_entity(field.type_name)
                 ref_lower = ref_entity.lower()
+                field_lower = field_name.lower()
 
                 # INTEGER FK
-                values.append(f"base.fk_{ref_lower}")
+                values.append(f"base.fk_{field_lower}")
 
                 # UUID FK (from tv_ table)
-                values.append(f"tv_{ref_lower}.id AS {ref_lower}_id")
+                values.append(f"tv_{ref_lower}.id AS {field_lower}_id")
 
         # Path (if hierarchical)
         if self._is_entity_hierarchical():
@@ -341,13 +346,8 @@ $$ LANGUAGE plpgsql;
         """Build JSONB data construction."""
         parts = []
 
-        # Add entity's own fields
-        for field_name, field in self.entity.fields.items():
-            if not field.is_reference():
-                # Scalar field
-                parts.append(f"'{field_name}', base.{field_name}")
-
-        # Add related entities (compose from tv_.data)
+        # Add related entities first (compose from tv_.data)
+        # This ensures wildcard tv_.data appears before jsonb_build_object in SQL
         config = self.entity.table_views
         if config and config.include_relations:
             for rel in config.include_relations:
@@ -356,32 +356,56 @@ $$ LANGUAGE plpgsql;
             # No explicit config - include all ref fields with all data
             for field_name, field in self.entity.fields.items():
                 if field.is_reference():
-                    ref_entity = self._extract_ref_entity(field.type_name)
+                    # Get referenced entity (prefer field.reference_entity, fallback to parsing type_name)
+                    ref_entity = field.reference_entity or self._extract_ref_entity(field.type_name)
                     ref_lower = ref_entity.lower()
 
                     # Include full tv_.data
                     parts.append(f"'{field_name}', tv_{ref_lower}.data")
 
+        # Add entity's own fields after relations
+        for field_name, field in self.entity.fields.items():
+            if not field.is_reference():
+                # Scalar field
+                parts.append(f"'{field_name}', base.{field_name}")
+
         return f"jsonb_build_object({', '.join(parts)})"
 
     def _build_relation_jsonb(self, rel: "IncludeRelation") -> str:
         """Build JSONB for a single relation (explicit field selection)."""
-        # Find the referenced entity name for this relation
+        # Find the matching field - support both field name and entity type matching
+        field_name_for_json = None
         ref_entity = None
-        for field_name, field in self.entity.fields.items():
-            if field.is_reference() and field_name == rel.entity_name:
-                ref_entity = self._extract_ref_entity(field.type_name)
+
+        # Try exact field name match first
+        for fname, field in self.entity.fields.items():
+            if field.is_reference() and fname == rel.entity_name:
+                field_name_for_json = fname
+                # Get referenced entity (prefer field.reference_entity, fallback to parsing type_name)
+                ref_entity = field.reference_entity or self._extract_ref_entity(field.type_name)
                 break
 
+        # If no exact match, try matching by entity type (e.g., "User" matches "author: ref(User)")
         if ref_entity is None:
-            # Fallback to relation entity_name
+            for fname, field in self.entity.fields.items():
+                if field.is_reference():
+                    # Get referenced entity (prefer field.reference_entity, fallback to parsing type_name)
+                    entity_type = field.reference_entity or self._extract_ref_entity(field.type_name)
+                    if entity_type == rel.entity_name:
+                        field_name_for_json = fname
+                        ref_entity = entity_type
+                        break
+
+        # Fallback to relation entity_name
+        if ref_entity is None:
             ref_entity = rel.entity_name
+            field_name_for_json = rel.entity_name
 
         table_alias = f"tv_{ref_entity.lower()}"
 
         if rel.fields == ["*"]:
             # Include all fields from tv_.data
-            return f"'{rel.entity_name}', {table_alias}.data"
+            return f"'{field_name_for_json}', {table_alias}.data"
         else:
             # Extract specific fields from tv_.data
             field_extractions = []
@@ -396,7 +420,7 @@ $$ LANGUAGE plpgsql;
                         f"'{nested.entity_name}', {table_alias}.data->'{nested.entity_name}'"
                     )
 
-            return f"""'{rel.entity_name}', jsonb_build_object({", ".join(field_extractions)})"""
+            return f"""'{field_name_for_json}', jsonb_build_object({", ".join(field_extractions)})"""
 
     def _get_entity_schema(self, entity_name: str) -> str:
         """Get schema for referenced entity."""
