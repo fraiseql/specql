@@ -14,6 +14,7 @@ from src.core.ast_models import (
     ActionDefinition,
     ActionStep,
     Agent,
+    CallServiceStep,
     EntityDefinition,
     ExtraFilterColumn,
     FieldDefinition,
@@ -56,7 +57,6 @@ class SpecQLParser:
     """Parser for SpecQL YAML to AST"""
 
     def __init__(self):
-        # Will be extended in Phase 2 with composite types
         self.current_entity_fields = {}  # Track fields for expression validation
         self.pattern_loader = PatternLoader()  # Pattern library support
 
@@ -126,7 +126,6 @@ class SpecQLParser:
         # Set current entity for pattern expansion
         self._current_entity = entity
 
-        # Parse actions (Phase 2)
         actions_data = data.get("actions", [])
         for action_spec in actions_data:
             action = self._parse_action(action_spec)
@@ -532,9 +531,7 @@ class SpecQLParser:
             nullable=nullable,
             tier=FieldTier.COMPOSITE,
             composite_def=composite_def,
-            # PostgreSQL metadata (for Team B)
             postgres_type="JSONB",
-            # FraiseQL metadata (for Team D)
             fraiseql_type=composite_def.fraiseql_type_name,
             fraiseql_schema=composite_def.get_jsonb_schema(),
             # Display metadata
@@ -577,9 +574,7 @@ class SpecQLParser:
             type_name="ref",  # Just "ref" for type checking
             nullable=nullable,
             tier=FieldTier.REFERENCE,
-            # PostgreSQL metadata (for Team B)
             postgres_type=postgres_type,  # INTEGER for catalog, UUID for others
-            # FraiseQL metadata (for Team D)
             fraiseql_type="ID",  # GraphQL ID type for references
             fraiseql_relation="many-to-one",  # Default relation type
             # Reference metadata
@@ -735,6 +730,8 @@ class SpecQLParser:
             return self._parse_raw_sql_step(step_data)
         elif "duplicate_check" in step_data:
             return self._parse_duplicate_check_step(step_data)
+        elif "call_service" in step_data:
+            return self._parse_call_service_step(step_data)
         else:
             raise ParseError(f"Unknown step type: {step_data}")
 
@@ -963,6 +960,37 @@ class SpecQLParser:
             type="duplicate_check",
             fields=config,
         )
+
+    def _parse_call_service_step(self, step_data: dict) -> ActionStep:
+        """Parse call_service step"""
+        config = step_data["call_service"]
+
+        # Validate required fields
+        if "service" not in config:
+            raise ParseError("call_service step missing required field 'service'")
+        if "operation" not in config:
+            raise ParseError("call_service step missing required field 'operation'")
+
+        # Parse callbacks
+        on_success = self._parse_callback_steps(config.get("on_success", []))
+        on_failure = self._parse_callback_steps(config.get("on_failure", []))
+
+        return ActionStep(
+            type="call_service",
+            service=config["service"],
+            operation=config["operation"],
+            input=config.get("input", {}),
+            async_mode=config.get("async", True),
+            timeout=config.get("timeout"),
+            max_retries=config.get("max_retries"),
+            on_success=on_success,
+            on_failure=on_failure,
+            correlation_field=config.get("correlation_field"),
+        )
+
+    def _parse_callback_steps(self, steps_config: list) -> list[ActionStep]:
+        """Parse callback steps for call_service"""
+        return [self._parse_single_step(step) for step in steps_config]
 
     def _validate_expression_fields(
         self, expression: str, entity_fields: dict[str, FieldDefinition]

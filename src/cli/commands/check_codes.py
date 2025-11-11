@@ -40,7 +40,7 @@ def check_table_code_uniqueness(entity_files: List[Path]) -> Dict[str, List[str]
 
         except Exception as e:
             # Skip files that can't be parsed - they'll be reported as errors
-            # in the CLI phase when we add proper error handling
+            # when we add proper error handling
             continue
 
     # Return only codes that have duplicates
@@ -49,7 +49,7 @@ def check_table_code_uniqueness(entity_files: List[Path]) -> Dict[str, List[str]
 
 def main():
     """Entry point for specql check-codes command"""
-    # TODO: Implement CLI command in Phase 2
+    # TODO: Implement CLI command
     pass
 
 

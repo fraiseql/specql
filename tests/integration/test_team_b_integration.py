@@ -72,7 +72,7 @@ class TestTeamBIntegration:
         # Generate action functions (app wrapper + core logic pattern)
         action_sql = function_generator.generate_action_functions(entity)
         assert "CREATE OR REPLACE FUNCTION app.qualify_lead" in action_sql  # App wrapper
-        # TODO: Custom actions like qualify_lead don't have core logic yet - Team C incomplete
+        # TODO: Custom actions like qualify_lead don't have core logic yet
         # assert "CREATE OR REPLACE FUNCTION crm.qualify_lead" in action_sql  # Core logic (not implemented for custom actions)
         assert "CREATE OR REPLACE FUNCTION app.create_contact" in action_sql  # App wrapper for CRUD
         assert (
@@ -109,7 +109,7 @@ class TestTeamBIntegration:
         # Generate action functions (app wrapper + core logic pattern)
         action_sql = function_generator.generate_action_functions(entity)
         assert "CREATE OR REPLACE FUNCTION app.assign_task" in action_sql  # App wrapper
-        # TODO: Custom actions don't have core logic yet - Team C incomplete
+        # TODO: Custom actions don't have core logic yet
         # assert "CREATE OR REPLACE FUNCTION projects.assign_task" in action_sql  # Core logic
         assert "LANGUAGE plpgsql" in action_sql
 

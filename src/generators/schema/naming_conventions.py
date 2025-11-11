@@ -655,7 +655,7 @@ class NamingConventions:
           SS_schema_layer/
             SSD_domain/
               SSDS_subdomain/
-                SSDSE_entity_group/
+                SSDSE_entity/              ← No _group suffix, snake_case
                   SSDSEF_filename.ext
 
         Args:
@@ -665,12 +665,14 @@ class NamingConventions:
             base_dir: Base directory for generated files
 
         Returns:
-            Complete file path
+            Complete file path with snake_case entity names
 
         Example:
-            generate_file_path(contact, "012311", "table")
-            → "generated/migrations/01_write_side/012_crm/0123_customer/01231_contact_group/012311_tb_contact.sql"
+            generate_file_path(ColorMode, "013111", "table")
+            → "generated/01_write_side/013_catalog/0131_classification/01311_color_mode/013111_tb_color_mode.sql"
         """
+        from src.generators.naming_utils import camel_to_snake
+
         components = self.parser.parse_table_code_detailed(table_code)
 
         # Schema layer directory
@@ -684,18 +686,27 @@ class NamingConventions:
         domain_name = domain_data.get("name", f"domain_{components.domain_code}")
         domain_dir = f"{components.full_domain}_{domain_name}"
 
-        # Subdomain directory (2 digits)
-        subdomain_code = f"{components.entity_group}{components.entity_code}"[:2]
-        subdomain_data = domain_data.get("subdomains", {}).get(subdomain_code, {})
-        subdomain_name = subdomain_data.get("name", f"subdomain_{subdomain_code}")
-        subdomain_dir = f"{components.full_domain}{subdomain_code}_{subdomain_name}"
+        # Subdomain directory - FIXED: use single-digit subdomain_code from table code
+        # Table code format: SSDSSE (schema_layer + domain + subdomain + entity_sequence + file_sequence)
+        # Subdomain is single digit in table code, but registry uses 2-digit codes with leading zero
+        subdomain_code = components.subdomain_code  # Single digit (e.g., "1")
+        subdomain_code_padded = subdomain_code.zfill(2)  # Padded to 2 digits (e.g., "01")
 
-        # Entity group directory
-        entity_lower = entity.name.lower()
-        entity_group_code = f"{components.full_domain}{subdomain_code}{components.entity_code}"
-        entity_group_dir = f"{entity_group_code}_{entity_lower}_group"
+        # Look up subdomain name from registry
+        subdomain_data = domain_data.get("subdomains", {}).get(subdomain_code_padded, {})
+        subdomain_name = subdomain_data.get("name", f"subdomain_{subdomain_code_padded}")
 
-        # File name
+        # Build 4-digit subdomain directory code: schema_layer + domain + subdomain
+        # Example: "0131" for schema 01, domain 3, subdomain 1
+        subdomain_dir_code = f"{components.schema_layer}{components.domain_code}{subdomain_code}"
+        subdomain_dir = f"{subdomain_dir_code}_{subdomain_name}"
+
+        # Entity directory - CHANGED: snake_case, no _group suffix
+        entity_snake = camel_to_snake(entity.name)  # ColorMode → color_mode
+        entity_dir_code = f"{subdomain_dir_code}{components.entity_sequence}"
+        entity_dir = f"{entity_dir_code}_{entity_snake}"  # 01311_color_mode (no _group)
+
+        # File name - CHANGED: use snake_case
         file_extensions = {
             "table": "sql",
             "function": "sql",
@@ -707,14 +718,14 @@ class NamingConventions:
         ext = file_extensions.get(file_type, "sql")
 
         file_prefixes = {
-            "table": f"tb_{entity_lower}",
-            "function": f"fn_{entity_lower}",
-            "comment": f"comments_{entity_lower}",
-            "test": f"test_{entity_lower}",
-            "yaml": entity_lower,
-            "json": entity_lower,
+            "table": f"tb_{entity_snake}",  # tb_color_mode
+            "function": f"fn_{entity_snake}",  # fn_color_mode
+            "comment": f"comments_{entity_snake}",
+            "test": f"test_{entity_snake}",
+            "yaml": entity_snake,
+            "json": entity_snake,
         }
-        filename = file_prefixes.get(file_type, entity_lower)
+        filename = file_prefixes.get(file_type, entity_snake)
 
         # Complete path
         return str(
@@ -722,7 +733,7 @@ class NamingConventions:
             / schema_dir
             / domain_dir
             / subdomain_dir
-            / entity_group_dir
+            / entity_dir  # Changed: no _group, snake_case
             / f"{table_code}_{filename}.{ext}"
         )
 
@@ -740,15 +751,29 @@ class NamingConventions:
         components = self.parser.parse_table_code_detailed(table_code)
         entity_code = self.derive_entity_code(entity.name)
 
-        # Subdomain code is 2 digits
-        subdomain_code = f"{components.entity_group}{components.entity_code}"[:2]
+        # FIXED: Use single-digit subdomain_code
+        subdomain_code = components.subdomain_code  # ← Now correct
+
+        # Registry uses 2-digit codes with leading zero
+        subdomain_code_padded = subdomain_code.zfill(2)
+
+        # Validate subdomain exists in registry
+        domain_data = self.registry.registry["domains"].get(components.domain_code)
+        if not domain_data:
+            raise ValueError(f"Domain {components.domain_code} not found in registry")
+
+        if subdomain_code_padded not in domain_data.get("subdomains", {}):
+            raise ValueError(
+                f"Subdomain {subdomain_code_padded} not found in domain {components.domain_code}. "
+                f"Available: {list(domain_data.get('subdomains', {}).keys())}"
+            )
 
         self.registry.register_entity(
             entity_name=entity.name,
             table_code=table_code,
             entity_code=entity_code,
             domain_code=components.domain_code,
-            subdomain_code=subdomain_code,
+            subdomain_code=subdomain_code_padded,
         )
 
     def get_all_entities(self) -> list[EntityRegistryEntry]:

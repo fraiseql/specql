@@ -49,7 +49,7 @@ class AppWrapperGenerator:
         template = self.env.get_template("app_wrapper.sql.j2")
         function_sql = template.render(**context)
 
-        # Add FraiseQL annotation (Team D) - IN SAME FILE as function
+        # Add FraiseQL annotation - IN SAME FILE as function
         annotator = MutationAnnotator("app", entity.name)
         annotation_sql = annotator.generate_app_mutation_annotation(action)
 

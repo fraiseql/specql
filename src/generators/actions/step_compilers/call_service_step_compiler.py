@@ -1,0 +1,160 @@
+"""Call Service Step Compiler
+
+Compiles 'call_service' steps to PL/pgSQL INSERT statements that queue jobs for external service calls.
+
+Example SpecQL:
+    - call_service:
+        service: stripe
+        operation: create_charge
+        input:
+          amount: $order.total
+
+Generated PL/pgSQL:
+    -- Queue job for stripe.create_charge
+    INSERT INTO jobs.tb_job_run (
+        identifier,
+        service_name,
+        operation,
+        input_data,
+        tenant_id,
+        triggered_by,
+        correlation_id,
+        entity_type,
+        entity_pk
+    ) VALUES (
+        'order_' || _order.id::text || '_stripe_create_charge',
+        'stripe',
+        'create_charge',
+        jsonb_build_object('amount', _order.total),
+        _tenant_id,
+        _user_id,
+        _order.id::text,
+        'Order',
+        _order.id
+    ) RETURNING id INTO _job_id_stripe_create_charge;
+"""
+
+from typing import Any
+
+from src.core.ast_models import ActionStep
+from src.generators.actions.action_context import ActionContext
+
+
+class CallServiceStepCompiler:
+    """Compiles call_service steps to PL/pgSQL job queueing"""
+
+    def __init__(self, step: ActionStep, context: ActionContext):
+        self.step = step
+        self.context = context
+
+    def compile(self) -> str:
+        """Compile call_service step to INSERT INTO jobs.tb_job_run"""
+        self._validate_step()
+
+        return f"""
+        -- Queue job for {self.step.service}.{self.step.operation}
+        INSERT INTO jobs.tb_job_run (
+            identifier,
+            service_name,
+            operation,
+            input_data,
+            tenant_id,
+            triggered_by,
+            correlation_id,
+            entity_type,
+            entity_pk
+        ) VALUES (
+            {self._generate_identifier()},
+            '{self.step.service}',
+            '{self.step.operation}',
+            {self._compile_input_data()},
+            _tenant_id,
+            _user_id,
+            {self._compile_correlation()},
+            '{self.context.entity_name}',
+            {self._compile_entity_pk()}
+        ) RETURNING id INTO _job_id_{self._job_var_suffix()};
+        """
+
+    def _validate_step(self) -> None:
+        """Validate call_service step has required fields"""
+        if self.step.type != "call_service":
+            raise ValueError(f"Expected call_service step, got {self.step.type}")
+
+        if not self.step.service:
+            raise ValueError("call_service step missing service name")
+
+        if not self.step.operation:
+            raise ValueError("call_service step missing operation name")
+
+    def _generate_identifier(self) -> str:
+        """Generate idempotent identifier for job deduplication"""
+        entity_var = f"_{self.context.entity_name.lower()}"
+        # Format: EntityName_PK_Service_Operation
+        return f"""
+        '{self.context.entity_name}_' ||
+        {entity_var}.id::text ||
+        '_{self.step.service}_{self.step.operation}'
+        """.strip()
+
+    def _compile_input_data(self) -> str:
+        """Compile input data to JSONB"""
+        if not self.step.input:
+            return "'{}'::jsonb"
+
+        # Compile key-value pairs for jsonb_build_object
+        pairs = []
+        for key, value in self.step.input.items():
+            compiled_value = self._compile_input_value(value)
+            pairs.append(f"'{key}', {compiled_value}")
+
+        return f"jsonb_build_object({', '.join(pairs)})"
+
+    def _compile_input_value(self, value: Any) -> str:
+        """Compile a single input value"""
+        if isinstance(value, str):
+            if value.startswith("$"):
+                # Handle variable references like $order.total
+                return self._compile_variable_reference(value)
+            else:
+                # String literal
+                return f"'{value}'"
+        elif isinstance(value, (int, float)):
+            # Numeric literal
+            return str(value)
+        elif isinstance(value, bool):
+            # Boolean literal
+            return "true" if value else "false"
+        else:
+            # For complex types, convert to string representation
+            return f"'{str(value)}'"
+
+    def _compile_variable_reference(self, var_ref: str) -> str:
+        """Compile variable reference like $order.total"""
+        if not var_ref.startswith("$"):
+            raise ValueError(f"Expected variable reference starting with $, got {var_ref}")
+
+        var_path = var_ref[1:]  # Remove $
+        parts = var_path.split(".")
+
+        if len(parts) != 2:
+            raise ValueError(f"Expected entity.field format, got {var_path}")
+
+        entity_name, field_name = parts
+        entity_var = f"_{entity_name.lower()}"
+
+        return f"{entity_var}.{field_name}"
+
+    def _compile_correlation(self) -> str:
+        """Compile correlation ID"""
+        entity_var = f"_{self.context.entity_name.lower()}"
+        return f"{entity_var}.id::text"
+
+    def _compile_entity_pk(self) -> str:
+        """Compile entity primary key"""
+        entity_var = f"_{self.context.entity_name.lower()}"
+        return f"{entity_var}.id"
+
+    def _job_var_suffix(self) -> str:
+        """Generate unique suffix for job variables"""
+        return f"{self.step.service}_{self.step.operation}".replace("_", "")

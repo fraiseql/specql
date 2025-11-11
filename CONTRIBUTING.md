@@ -21,7 +21,7 @@ See [REPOSITORY_STRUCTURE.md](REPOSITORY_STRUCTURE.md) for full details.
 ```bash
 # Clone repository
 git clone <repo-url>
-cd printoptim_backend_poc
+cd specql
 
 # Create virtual environment
 uv venv
@@ -29,6 +29,10 @@ source .venv/bin/activate
 
 # Install dependencies
 make install
+
+# Install pre-commit hooks
+uv pip install pre-commit
+pre-commit install
 
 # Verify setup
 make test
@@ -144,8 +148,13 @@ make typecheck
 # Check coverage
 make coverage
 
+# Run pre-commit checks
+pre-commit run --all-files
+
 # All checks should pass before committing
 ```
+
+**Note**: Pre-commit hooks will automatically run these checks on `git commit`. To run manually: `pre-commit run --all-files`
 
 ## 🌿 Git Workflow
 

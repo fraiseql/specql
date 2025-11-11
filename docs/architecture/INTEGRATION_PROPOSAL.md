@@ -51,8 +51,8 @@ entity:
     # Directory structure (auto-generated from table_code)
     schema_layer: "01"            # write_side (01), query_side (02), functions (03)
     domain_code: "013"            # catalog domain
-    entity_group_code: "0132"     # manufacturer group
-    entity_code: "01321"          # specific manufacturer entity
+    subdomain_code: "2"           # manufacturer subdomain
+    entity_sequence: "1"          # manufacturer entity sequence
 
     # Alternative: Let generator parse table_code automatically
     # parse_table_code: true      # Auto-extract: 01|3|2|1|1

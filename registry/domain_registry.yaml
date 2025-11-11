@@ -1,5 +1,5 @@
 version: 1.0.0
-last_updated: '2025-11-10T12:33:27.996890'
+last_updated: '2025-11-11T09:56:47.578199'
 schema_layers:
   '00': common
   '01': write_side
@@ -130,8 +130,12 @@ domains:
       '01':
         name: core
         description: Core project entities (project, task, milestone)
-        next_entity_sequence: 1
-        entities: {}
+        next_entity_sequence: 2
+        entities:
+          OrganizationalUnit:
+            table_code: '014011'
+            entity_code: ORG
+            assigned_at: '2025-11-11T09:56:47.578181'
       '02':
         name: location
         description: Geographic entities (location, address, region)

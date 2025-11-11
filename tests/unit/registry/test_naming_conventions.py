@@ -302,6 +302,125 @@ class TestFilePathGeneration:
 
         assert path.startswith("custom/output")
 
+    def test_generate_file_path_subdomain_classification(self):
+        """Entities in classification subdomain should share directory"""
+        nc = NamingConventions("registry/domain_registry.yaml")
+
+        # Mock entity
+        entity = Entity(name="ColorMode", schema="catalog")
+
+        # Generate path for table_code 013111
+        path = nc.generate_file_path(
+            entity=entity, table_code="013111", file_type="table", base_dir="generated"
+        )
+
+        # Should contain "0131_classification" subdomain directory
+        assert "0131_classification" in path
+        # Should NOT contain wrong codes
+        assert "01311_subdomain_11" not in path
+        assert "subdomain_11" not in path
+
+    def test_generate_file_path_same_subdomain_different_entities(self):
+        """Multiple entities in same subdomain should share directory"""
+        nc = NamingConventions("registry/domain_registry.yaml")
+
+        # Three entities in classification subdomain (code 1)
+        entities = [
+            ("ColorMode", "013111"),
+            ("DuplexMode", "013121"),
+            ("MachineFunction", "013131"),
+        ]
+
+        paths = []
+        for name, table_code in entities:
+            entity = Entity(name=name, schema="catalog")
+            path = nc.generate_file_path(
+                entity=entity, table_code=table_code, file_type="table", base_dir="generated"
+            )
+            paths.append(path)
+
+        # All three should contain "0131_classification"
+        for path in paths:
+            assert "0131_classification" in path
+
+        # All three should share the same subdomain directory prefix
+        subdomain_prefixes = [
+            p.split("/")[3]
+            for p in paths  # Extract subdomain dir (index 3)
+        ]
+        assert len(set(subdomain_prefixes)) == 1  # All the same
+        assert subdomain_prefixes[0] == "0131_classification"
+
+    def test_generate_file_path_snake_case(self):
+        """Entity names should be converted to snake_case"""
+        nc = NamingConventions("registry/domain_registry.yaml")
+
+        # CamelCase entity name
+        entity = Entity(name="ColorMode", schema="catalog")
+
+        path = nc.generate_file_path(
+            entity=entity, table_code="013111", file_type="table", base_dir="generated"
+        )
+
+        # Should use snake_case
+        assert "color_mode" in path
+        # Should NOT use lowercase without underscores
+        assert "colormode" not in path
+
+    def test_generate_file_path_no_group_suffix(self):
+        """Entity directories should NOT have _group suffix"""
+        nc = NamingConventions("registry/domain_registry.yaml")
+
+        entity = Entity(name="DuplexMode", schema="catalog")
+
+        path = nc.generate_file_path(
+            entity=entity, table_code="013121", file_type="table", base_dir="generated"
+        )
+
+        # Should have entity name directory
+        assert "duplex_mode" in path
+        # Should NOT have _group suffix
+        assert "duplex_mode_group" not in path
+        assert "_group" not in path
+
+    def test_generate_file_path_complete_structure(self):
+        """Complete path should follow snake_case convention"""
+        nc = NamingConventions("registry/domain_registry.yaml")
+
+        entity = Entity(name="MachineFunction", schema="catalog")
+
+        path = nc.generate_file_path(
+            entity=entity, table_code="013131", file_type="table", base_dir="generated"
+        )
+
+        # Expected path structure:
+        # generated/01_write_side/013_catalog/0131_classification/01313_machine_function/013131_tb_machine_function.sql
+
+        # Check each component
+        assert "01_write_side" in path
+        assert "013_catalog" in path
+        assert "0131_classification" in path
+        assert "01313_machine_function" in path  # No _group, snake_case
+        assert "013131_tb_machine_function.sql" in path
+
+        # Verify NO old patterns
+        assert "machinefunction_group" not in path
+        assert "machinefunction" not in path.split("/")[-2]  # Entity dir should be snake_case
+
+    def test_generate_file_path_function_files(self):
+        """Function files should also use snake_case"""
+        nc = NamingConventions("registry/domain_registry.yaml")
+
+        entity = Entity(name="ColorMode", schema="catalog")
+
+        path = nc.generate_file_path(
+            entity=entity, table_code="013111", file_type="function", base_dir="generated"
+        )
+
+        # Function filename should be snake_case
+        assert "fn_color_mode" in path
+        assert "fn_colormode" not in path
+
 
 class TestGetTableCode:
     """Test get_table_code (main entry point)"""
@@ -517,3 +636,84 @@ class TestExplicitTableCodeHandling:
         entity_crm = Entity(name="Contact", schema="crm")
         # Should succeed - skip_uniqueness also skips domain validation
         nc.validate_table_code("013211", entity_crm, skip_uniqueness=True)
+
+
+class TestEntityRegistration:
+    """Test entity registration functionality"""
+
+    def test_register_entity_auto_subdomain_classification(self):
+        """Entity registration should use single-digit subdomain code"""
+        import tempfile
+        import os
+
+        # Create temporary registry
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            registry_path = os.path.join(tmp_dir, "test_registry.yaml")
+            with open(registry_path, "w") as f:
+                f.write("""
+version: 1.0.0
+domains:
+  '3':
+    name: catalog
+    subdomains:
+      '01':  # Single digit subdomain code
+        name: classification
+        next_entity_sequence: 1
+        entities: {}
+      '02':  # Single digit subdomain code
+        name: manufacturer
+        next_entity_sequence: 1
+        entities: {}
+""")
+
+            nc = NamingConventions(registry_path)
+
+            from src.core.ast_models import Entity
+
+            entity = Entity(name="ColorMode", schema="catalog")
+
+            # Register with table_code 013111
+            # Subdomain should be "01" (classification), NOT "11"
+            nc.register_entity_auto(entity, "013111")
+
+            # Reload registry to check
+            nc.registry.load()
+
+            # Verify registered in correct subdomain
+            assert (
+                "ColorMode" in nc.registry.registry["domains"]["3"]["subdomains"]["01"]["entities"]
+            )
+            # Should NOT be in wrong subdomain
+            assert "11" not in nc.registry.registry["domains"]["3"]["subdomains"]
+
+    def test_register_entity_auto_invalid_subdomain(self):
+        """Should raise clear error for invalid subdomain"""
+        import tempfile
+        import os
+
+        # Create temporary registry with limited subdomains
+        with tempfile.TemporaryDirectory() as tmp_dir:
+            registry_path = os.path.join(tmp_dir, "test_registry.yaml")
+            with open(registry_path, "w") as f:
+                f.write("""
+version: 1.0.0
+domains:
+  '3':
+    name: catalog
+    subdomains:
+      '01':  # Only classification subdomain
+        name: classification
+        next_entity_sequence: 1
+        entities: {}
+""")
+
+            nc = NamingConventions(registry_path)
+
+            from src.core.ast_models import Entity
+
+            entity = Entity(name="TestEntity", schema="catalog")
+
+            # Try to register with table_code 013211 (subdomain 2 = manufacturer)
+            # But manufacturer subdomain doesn't exist in this registry
+            with pytest.raises(ValueError, match="Subdomain 02 not found in domain 3"):
+                nc.register_entity_auto(entity, "013211")

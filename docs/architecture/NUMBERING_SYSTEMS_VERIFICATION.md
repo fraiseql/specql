@@ -67,14 +67,14 @@ orchestrator = CLIOrchestrator(output_format="confiture")
 Deep hierarchical organization for enterprise-scale projects with hundreds of entities.
 
 ### Table Code Format
-**6-character hexadecimal code**: `SSDGGE`
+**6-character hexadecimal code**: `SSDSSE`
 
 | Component | Position | Range | Description | Example |
 |-----------|----------|-------|-------------|---------|
 | **SS** | 0-1 | 01-03 | Schema layer | 01 = write_side |
 | **D** | 2 | 0-F | Domain code | 3 = catalog |
-| **G** | 3 | 0-F | Entity group | 2 = manufacturer group |
-| **E** | 4 | 0-F | Entity code | 1 = manufacturer |
+| **S** | 3 | 0-F | Subdomain code | 2 = manufacturer subdomain |
+| **S** | 4 | 0-F | Entity sequence | 1 = manufacturer entity |
 | **E** | 5 | 0-F | File sequence | 1 = first file |
 
 ### Directory Structure
@@ -82,11 +82,11 @@ Deep hierarchical organization for enterprise-scale projects with hundreds of en
 db/schema/
 ├── 01_write_side/                           # Schema layer
 │   ├── 011_core/                            # Domain
-│   │   └── 0111_user/                       # Entity group
+│   │   └── 0111_user/                       # Subdomain
 │   │       └── 01111_user/                  # Entity
 │   │           └── 011111_tb_user.sql       # File (with full code)
 │   └── 013_catalog/                         # Domain
-│       └── 0132_manufacturer/               # Entity group
+│       └── 0132_manufacturer/               # Subdomain
 │           └── 01321_manufacturer/          # Entity
 │               ├── 013211_tb_manufacturer.sql
 │               ├── 013212_fn_manufacturer.sql
@@ -138,13 +138,28 @@ components = parser.parse_table_code("013211")
 {
     "schema_layer": "01",      # write_side
     "domain_code": "3",        # catalog
-    "entity_group": "2",       # manufacturer group
-    "entity_code": "1",        # manufacturer entity
+    "subdomain_code": "2",     # manufacturer subdomain (single digit)
+    "entity_sequence": "1",    # manufacturer entity sequence
     "file_sequence": "1",      # first file
     "full_domain": "013",      # schema + domain
-    "full_group": "0132",      # + group
-    "full_entity": "01321"     # + entity
+    "full_group": "0132",      # + subdomain
+    "full_entity": "01321"     # + entity sequence
 }
+```
+
+### Detailed Component Parsing
+```python
+from src.numbering.numbering_parser import NumberingParser
+
+parser = NumberingParser()
+components = parser.parse_table_code_detailed("013211")
+
+# Returns TableCodeComponents object:
+components.schema_layer      # "01" - write_side
+components.domain_code       # "3"  - catalog
+components.subdomain_code    # "2"  - manufacturer subdomain (single digit)
+components.entity_sequence   # "1"  - manufacturer entity sequence
+components.file_sequence     # "1"  - first file
 ```
 
 ### Example Path Generation
@@ -154,6 +169,16 @@ path = parser.generate_directory_path("013211", "manufacturer")
 
 file_path = parser.generate_file_path("013211", "manufacturer", "table")
 # Returns: "01_write_side/013_catalog/0132_manufacturer/01321_manufacturer/013211_tb_manufacturer.sql"
+```
+
+### Directory Structure Explanation
+For table code `013211` (manufacturer entity):
+```
+01_write_side/          # Schema layer (01)
+  013_catalog/          # Domain (013 = 01 + 3)
+    0132_manufacturer/  # Subdomain (0132 = 013 + 2)
+      01321_manufacturer/  # Entity (01321 = 0132 + 1)
+        013211_tb_manufacturer.sql  # File (013211 = 01321 + 1)
 ```
 
 ### Activation

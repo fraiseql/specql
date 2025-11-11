@@ -29,7 +29,7 @@ class MutationFunctionPair:
     action_name: str
     app_wrapper_sql: str  # app.{action_name}()
     core_logic_sql: str  # core.{action_name}()
-    fraiseql_comments_sql: str  # COMMENT ON FUNCTION statements (Team D)
+    fraiseql_comments_sql: str  # COMMENT ON FUNCTION statements
 
 
 @dataclass
@@ -46,13 +46,22 @@ class SchemaOutput:
 class SchemaOrchestrator:
     """Orchestrates complete schema generation: tables + types + indexes + constraints"""
 
-    def __init__(self, naming_conventions: NamingConventions | None = None) -> None:
+    def __init__(
+        self,
+        entities: list | None = None,
+        actions: list | None = None,
+        naming_conventions: NamingConventions | None = None,
+    ) -> None:
         # Create naming conventions if not provided
         if naming_conventions is None:
             naming_conventions = NamingConventions()
 
         # Create schema registry
         schema_registry = SchemaRegistry(naming_conventions.registry)
+
+        # Store entities and actions for future use
+        self.entities = entities or []
+        self.actions = actions or []
 
         self.app_gen = AppSchemaGenerator()
         self.table_gen = TableGenerator(schema_registry)
@@ -131,7 +140,7 @@ class SchemaOrchestrator:
         if core_functions:
             parts.append("-- Core Logic Functions\n" + "\n\n".join(core_functions))
 
-        # 8. FraiseQL mutation annotations (Team D)
+        # 8. FraiseQL mutation annotations
         mutation_annotations = []
         if entity.actions:
             for action in entity.actions:
@@ -141,9 +150,7 @@ class SchemaOrchestrator:
                     mutation_annotations.append(annotation)
 
         if mutation_annotations:
-            parts.append(
-                "-- FraiseQL Mutation Annotations (Team D)\n" + "\n\n".join(mutation_annotations)
-            )
+            parts.append("-- FraiseQL Mutation Annotations\n" + "\n\n".join(mutation_annotations))
 
         # 9. Trinity helper functions
         helpers = self.helper_gen.generate_all_helpers(entity)
@@ -157,14 +164,11 @@ class SchemaOrchestrator:
 
         CRITICAL: Each action generates a SEPARATE file with 2 functions + comments
         """
-        # Team B: Table definition
         table_ddl = self.table_gen.generate_table_ddl(entity)
         table_sql = table_ddl  # For now, no table comments
 
-        # Team B: Helper functions (Trinity pattern utilities)
         helpers_sql = self.helper_gen.generate_all_helpers(entity)
 
-        # Team C + Team D: ONE FILE PER MUTATION (app + core + comments)
         mutations = []
         app_wrapper_gen = AppWrapperGenerator()
 
@@ -279,3 +283,26 @@ class SchemaOrchestrator:
         # (simplified for now)
 
         return summary
+
+    def generate_full_schema(self) -> str:
+        """
+        Generate complete schema including jobs schema for external services
+
+        Returns:
+            Complete SQL schema as string
+        """
+        from src.generators.schema.jobs_schema_generator import JobsSchemaGenerator
+
+        parts = []
+
+        # 1. App schema foundation
+        app_foundation = self.app_gen.generate_app_foundation()
+        if app_foundation:
+            parts.append("-- App Schema Foundation\n" + app_foundation)
+
+        # 2. Jobs schema for external services
+        jobs_gen = JobsSchemaGenerator()
+        jobs_schema = jobs_gen.generate()
+        parts.append("-- Jobs Schema for External Services\n" + jobs_schema)
+
+        return "\n\n".join(parts)

@@ -52,7 +52,6 @@ class TestHierarchicalDotSeparator:
 
     def test_hierarchical_uses_dot_separator(self, db, location_hierarchy):
         """Hierarchical identifiers should use dot separator by default."""
-        # Generate recalculate function (Team C generates this)
         # Simulated generated function
         execute_sql(
             db,

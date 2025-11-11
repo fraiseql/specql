@@ -202,6 +202,6 @@ query_patterns:
         sql_files = list(output_dir.glob("*.sql"))
         assert len(sql_files) >= 1  # at least foundation
 
-        # Query pattern files should now be generated (GREEN phase - integration implemented)
+        # Query pattern files should now be generated
         query_pattern_files = list(Path("db/schema/02_query_side/tenant").glob("v_test_view.sql"))
         assert len(query_pattern_files) == 1
