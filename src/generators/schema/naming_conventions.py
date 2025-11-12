@@ -505,7 +505,7 @@ class DomainRegistry:
         Check if table code is available (not already assigned)
 
         Args:
-            table_code: 6-digit table code to check
+            table_code: 7-digit table code to check
 
         Returns:
             True if available, False if already assigned or reserved
@@ -814,7 +814,7 @@ class NamingConventions:
             schema_layer: Schema layer code (default: "01" = write_side)
 
         Returns:
-            6-digit table code string
+            7-digit table code string
 
         Raises:
             ValueError: If table code is invalid or cannot be derived
@@ -840,11 +840,12 @@ class NamingConventions:
         """
         Automatically derive table code from entity
 
-        Table Code Format: SSDSSE
+        Table Code Format: SSDSSEX
         - SS: Schema layer (01=write_side, 02=read_side, 03=analytics)
         - D:  Domain code (1-9)
         - SS: Subdomain code (00-99)
-        - E:  Entity sequence (1-9) + file sequence (1)
+        - E:  Entity sequence (1-9)
+        - X:  File sequence (1=main table, 2=audit, 3=info, etc.)
 
         Args:
             entity: Entity AST model
@@ -852,7 +853,7 @@ class NamingConventions:
             subdomain: Subdomain name (if None, will try to infer)
 
         Returns:
-            6-digit table code (e.g., "012321")
+            7-digit table code (e.g., "0123211")
 
         Raises:
             ValueError: If domain unknown or subdomain cannot be determined
@@ -884,11 +885,11 @@ class NamingConventions:
         # Get next entity sequence
         entity_sequence = self.registry.get_next_entity_sequence(domain_code, subdomain_code)
 
-        # Build table code: SSDSSE (6 digits total)
-        # Format: schema_layer (2) + domain (1) + subdomain (2) + entity_seq (1)
+        # Build table code: SSDSSEX (7 digits total)
+        # Format: schema_layer (2) + domain (1) + subdomain (2) + entity_seq (1) + file_seq (1)
         # Note: subdomain_code is already 2 digits (e.g., "03")
         # We need just the entity sequence digit, so take last digit of entity_sequence
-        table_code = f"{schema_layer}{domain_code}{subdomain_code}{entity_sequence % 10}"
+        table_code = f"{schema_layer}{domain_code}{subdomain_code}{entity_sequence % 10}1"
 
         # Validate uniqueness
         if not self.registry.is_code_available(table_code):
@@ -944,27 +945,24 @@ class NamingConventions:
         Validate table code format and consistency
 
         Checks:
-        - Format: exactly 6 hexadecimal characters (case-insensitive)
+        - Format: exactly 7 decimal digits
         - Schema layer exists
         - Domain code exists and matches entity.schema
         - Code is unique (not already assigned) - unless skip_uniqueness=True
 
         Args:
-            table_code: 6-character hexadecimal code to validate
+            table_code: 7-digit decimal code to validate
             entity: Entity being validated
             skip_uniqueness: If True, skip uniqueness validation (for explicit codes)
 
         Raises:
             ValueError: If validation fails
         """
-        # Normalize to uppercase for consistency
-        table_code = table_code.upper()
-
-        # Format check: 6 hexadecimal characters
-        if not re.match(r"^[0-9A-F]{6}$", table_code):
+        # Format check: exactly 7 decimal digits
+        if not re.match(r"^[0-9]{7}$", table_code):
             raise ValueError(
                 f"Invalid table code format: {table_code}. "
-                f"Must be exactly 6 hexadecimal characters (0-9, A-F)."
+                f"Must be exactly 7 decimal digits (0-9)."
             )
 
         # For explicit codes, trust the user - only check format
@@ -1120,19 +1118,20 @@ class NamingConventions:
         Derive view code from table code by changing schema layer to 02
 
         Args:
-            table_code: Base table code (e.g., "012031")
+            table_code: Table code (7 digits, e.g., "0120311")
 
         Returns:
-            View code with layer 02 (e.g., "022031")
+            View code with layer 02 (7 digits, e.g., "0220310")
 
         Example:
-            table_code="012031" (write_side table) → "022031" (read_side view)
+            table_code="0120311" (write_side table) → "0220310" (read_side view)
         """
-        if len(table_code) != 6:
-            raise ValueError(f"Invalid table code format: {table_code}")
+        if len(table_code) != 7:
+            raise ValueError(f"Table code must be 7 digits, got: {table_code}")
 
         # Replace schema layer (first 2 digits) with "02" (views)
-        return f"02{table_code[2:]}"
+        # Keep entity and domain info, add "0" as the view sequence
+        return f"02{table_code[2:6]}0"
 
     def generate_file_path(
         self,

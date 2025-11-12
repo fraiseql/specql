@@ -60,19 +60,13 @@ class WriteSidePathGenerator(PathGenerator):
         if file_spec.layer != "write_side":
             raise ValueError(f"WriteSidePathGenerator can only handle write_side files, got {file_spec.layer}")
 
-        # Accept both 6-digit (legacy) and 7-digit (new standard)
-        if len(file_spec.code) not in [6, 7]:
-            raise ValueError(f"Write-side code must be 6 or 7 digits, got: {file_spec.code}")
+        # Accept 7-digit codes only
+        if len(file_spec.code) != 7:
+            raise ValueError(f"Write-side code must be 7 digits, got: {file_spec.code}")
 
-        # Parse code (handle both formats)
-        if len(file_spec.code) == 6:
-            # Legacy format: SSDSSE
-            base_code = file_spec.code
-            file_seq = "1"  # Default file sequence
-        else:
-            # New format: SSDSSEX
-            base_code = file_spec.code[:6]
-            file_seq = file_spec.code[6]
+        # Parse code
+        base_code = file_spec.code[:6]
+        file_seq = file_spec.code[6]
 
         # Parse table code using the same parsing as naming_conventions
         from src.numbering.numbering_parser import NumberingParser

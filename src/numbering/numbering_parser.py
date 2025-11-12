@@ -1,6 +1,6 @@
 """
 Numbering System Parser
-Parses 6-character hexadecimal table codes into hierarchical components
+Parses 7-digit decimal table codes into hierarchical components
 """
 
 import re
@@ -11,11 +11,11 @@ from dataclasses import dataclass
 class TableCodeComponents:
     """Structured representation of parsed table code components"""
 
-    schema_layer: str  # 2 hex chars: schema type (01=write_side, etc.)
-    domain_code: str  # 1 hex char: domain (0-F)
-    subdomain_code: str  # 1 hex char: subdomain (0-F)
-    entity_sequence: str  # 1 hex char: entity sequence
-    file_sequence: str  # 1 hex char: file sequence
+    schema_layer: str  # 2 digits: schema type (01=write_side, etc.)
+    domain_code: str  # 1 digit: domain (0-9)
+    subdomain_code: str  # 2 digits: subdomain (00-99)
+    entity_sequence: str  # 1 digit: entity sequence (0-9)
+    file_sequence: str  # 1 digit: file sequence (0-9)
 
     @property
     def full_domain(self) -> str:
@@ -34,8 +34,8 @@ class TableCodeComponents:
 
     @property
     def table_code(self) -> str:
-        """Reconstruct the full 6-character hexadecimal table code"""
-        return f"{self.schema_layer}{self.domain_code}{self.subdomain_code}{self.entity_sequence}{self.file_sequence}".upper()
+        """Reconstruct the full 7-digit decimal table code"""
+        return f"{self.schema_layer}{self.domain_code}{self.subdomain_code}{self.entity_sequence}{self.file_sequence}"
 
 
 class NumberingParser:
@@ -48,7 +48,7 @@ class NumberingParser:
     DOMAIN_CODES = {"1": "core", "2": "management", "3": "catalog", "4": "tenant"}
 
     def parse_table_code(self, table_code: str) -> dict[str, str]:
-        """Parse 6-character hexadecimal table code into hierarchical components"""
+        """Parse 7-character hexadecimal table code into hierarchical components"""
         components = self.parse_table_code_detailed(table_code)
 
         return {
@@ -64,10 +64,10 @@ class NumberingParser:
 
     def parse_table_code_detailed(self, table_code: str) -> TableCodeComponents:
         """
-        Parse 6-character hexadecimal table code into structured components
+        Parse 7-digit decimal table code into structured components
 
         Args:
-            table_code: 6-character hexadecimal string (case-insensitive)
+            table_code: 7-digit decimal string (or 6-digit for backward compat)
 
         Returns:
             TableCodeComponents: Structured representation of the code
@@ -81,23 +81,42 @@ class NumberingParser:
         if not isinstance(table_code, str):
             raise ValueError(f"table_code must be a string, got {type(table_code)}")
 
-        # Normalize to uppercase
-        table_code = table_code.upper()
-
-        # Accept hexadecimal characters (0-9, A-F)
-        if not re.match(r"^[0-9A-F]{6}$", table_code):
+        # Accept 6 or 7 decimal digits (backward compatibility)
+        if len(table_code) == 6:
+            # 6-digit code (SSDSSE): assume file_sequence = "1" for backward compat
+            # Format: SS (layer) + D (domain) + SS (subdomain) + E (entity)
+            if not re.match(r"^[0-9]{6}$", table_code):
+                raise ValueError(
+                    f"Invalid table_code: {table_code}. "
+                    f"Must be 6 or 7 decimal digits (0-9)."
+                )
+            return TableCodeComponents(
+                schema_layer=table_code[0:2],  # First 2 digits
+                domain_code=table_code[2],      # 3rd digit
+                subdomain_code=table_code[3:5], # 4th-5th digits
+                entity_sequence=table_code[5],  # 6th digit
+                file_sequence="1",              # Default file sequence
+            )
+        elif len(table_code) == 7:
+            # 7-digit code (SSDSSEX): parse normally
+            # Format: SS (layer) + D (domain) + SS (subdomain) + E (entity) + X (file)
+            if not re.match(r"^[0-9]{7}$", table_code):
+                raise ValueError(
+                    f"Invalid table_code: {table_code}. "
+                    f"Must be exactly 7 decimal digits (0-9)."
+                )
+            return TableCodeComponents(
+                schema_layer=table_code[0:2],   # First 2 digits
+                domain_code=table_code[2],       # 3rd digit
+                subdomain_code=table_code[3:5],  # 4th-5th digits
+                entity_sequence=table_code[5],   # 6th digit
+                file_sequence=table_code[6],     # 7th digit
+            )
+        else:
             raise ValueError(
                 f"Invalid table_code: {table_code}. "
-                f"Must be exactly 6 hexadecimal characters (0-9, A-F)."
+                f"Must be 6 or 7 decimal digits (0-9), got {len(table_code)}."
             )
-
-        return TableCodeComponents(
-            schema_layer=table_code[0:2],
-            domain_code=table_code[2],
-            subdomain_code=table_code[3],  # ← CORRECT: single digit
-            entity_sequence=table_code[4],  # ← RENAMED from entity_code
-            file_sequence=table_code[5],
-        )
 
     def generate_directory_path(self, table_code: str, entity_name: str) -> str:
         """
