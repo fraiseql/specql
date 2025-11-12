@@ -1,8 +1,8 @@
 # SpecQL PostgreSQL Bootstrap: Eating Our Own Dog Food
 
 **Date**: 2025-11-12
-**Status**: Implementation Plan
-**Goal**: Migrate SpecQL's domain model to PostgreSQL using the 6-digit hex architecture we generate
+**Status**: Implementation Plan - REVISED
+**Goal**: Migrate SpecQL's domain model to PostgreSQL using DDD + Repository Pattern + 6-digit hex architecture
 
 ---
 
@@ -24,188 +24,764 @@ SpecQL currently uses **multiple heterogeneous formats** for its domain model:
 - ❌ No ACID guarantees across registries
 - ❌ We generate production PostgreSQL for users but don't use it ourselves
 - ❌ Missing the power of our own 6-digit hierarchical architecture
+- ❌ **No proper architecture** - Direct database access scattered throughout code
+- ❌ **Hard to test** - Tightly coupled to data sources
+- ❌ **No domain model** - Anemic entities with no business logic
 
-### The Solution: "Eat Our Own Dog Food"
+### The Solution: "Eat Our Own Dog Food" + Proper Architecture
 
-**Use SpecQL to generate SpecQL's own domain model in PostgreSQL**, respecting the same 6-digit architecture we produce for users.
+**Phase 0**: Establish proper architecture patterns FIRST
+**Phase 1+**: Use SpecQL to generate SpecQL's own domain model in PostgreSQL
 
 ```
-registry/domain_registry.yaml  →  SpecQL Generator  →  PostgreSQL (6-digit architecture)
-registry/service_registry.yaml →                    →
-src/pattern_library/           →                    →
+Architecture First:
+  Repository Pattern → Domain Model (DDD) → Clean Architecture
+                              ↓
+Then Migration:
+  registry/domain_registry.yaml  →  SpecQL Generator  →  PostgreSQL (6-digit)
 ```
 
 ### Benefits
 
+✅ **Proper Architecture**: Repository pattern, DDD, clean separation
 ✅ **Single Source of Truth**: PostgreSQL becomes the canonical registry
 ✅ **ACID Transactions**: All registry operations are transactional
+✅ **Testable**: Mock repositories for unit tests
 ✅ **Powerful Queries**: SQL joins between domains, patterns, entities
 ✅ **6-Digit Architecture**: Hierarchical organization we generate for users
 ✅ **GraphQL API**: Auto-generated FraiseQL API for registry
-✅ **Pattern Library Integration**: Patterns stored in same database
 ✅ **Dogfooding**: We use what we build (builds trust)
-✅ **Performance**: Native indexes, constraints, triggers
 
 ---
 
-## Current State Analysis
+## Revised Implementation Timeline
 
-### 1. Domain Registry (YAML)
+### Phase 0: Architecture Foundation (Week 0 - CRITICAL)
 
-**File**: `registry/domain_registry.yaml`
+**Goal**: Establish proper architectural patterns before any migration
 
-**Structure**:
-```yaml
-version: 2.0.0
-domains:
-  '1':
-    name: core
-    description: Core infrastructure
-    multi_tenant: false
-    subdomains:
-      '1':
-        name: i18n
-        description: Internationalization
-        entities: {}
-  '2':
-    name: crm
-    description: Customer relationship management
-    multi_tenant: true
-    subdomains:
-      '3':
-        name: customer
-        entities:
-          Contact:
-            table_code: 01203581
-            entity_code: CON
+**Why this comes FIRST**:
+- ❌ **Stop** implementing without architecture
+- ✅ **Start** with proper patterns
+- ✅ Make code testable and maintainable
+- ✅ Prepare for PostgreSQL migration
+
+#### Step 0.1: Revert Working Directory (FIRST!)
+
+**IMPORTANT**: Revert any uncommitted changes from previous attempts:
+
+```bash
+# Check what's uncommitted
+git status
+
+# Revert all uncommitted changes
+git restore .
+
+# Remove any new untracked directories created
+rm -rf entities/specql_registry/
+
+# Verify clean state
+git status
+# Should show: "nothing to commit, working tree clean"
 ```
 
-**Python Interface**: `src/generators/schema/naming_conventions.py` (DomainRegistry class)
+#### Step 0.2: Repository Pattern Design
 
-### 2. Pattern Library (SQLite)
+**Create**: `docs/architecture/REPOSITORY_PATTERN.md`
 
-**File**: `src/pattern_library/schema.sql`
+**Contents**:
+```markdown
+# Repository Pattern for SpecQL
 
-**Tables**:
-- `patterns` - Universal patterns (Tier 1)
-- `languages` - Target languages
-- `pattern_implementations` - Language-specific code
-- `domain_patterns` - Business logic patterns (Tier 2)
-- `entity_templates` - Pre-built entity templates
+## Principles
 
-**Issues**:
-- SQLite (not PostgreSQL)
-- Separate database (not integrated with SpecQL schemas)
-- No connection to domain registry
+1. **Abstract Data Access**: Hide database implementation details
+2. **Domain-Driven**: Repositories return domain entities, not raw data
+3. **Testable**: Easy to mock for unit tests
+4. **Single Responsibility**: One repository per aggregate root
 
-### 3. Service Registry (YAML)
+## Architecture
 
-**File**: `registry/service_registry.yaml`
-
-**Structure**:
-```yaml
-services:
-  - name: user_management
-    domain: crm
-    database: crm
-    schemas:
-      - crm
-    dependencies: []
+```
+┌─────────────────────────────────────────────────────┐
+│                  Application Layer                   │
+│  (CLI, API, Services - depend on Repository Protocol)│
+└──────────────────────┬──────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────┐
+│              Repository Protocol (ABC)               │
+│  - get(), find(), save(), delete()                  │
+│  - Domain-focused interface                         │
+└──────────────────────┬──────────────────────────────┘
+                       │
+                       ▼
+┌─────────────────────────────────────────────────────┐
+│            Concrete Implementations                  │
+│  - PostgreSQLDomainRepository                       │
+│  - YAMLDomainRepository (legacy)                    │
+│  - InMemoryDomainRepository (testing)               │
+└─────────────────────────────────────────────────────┘
 ```
 
-### 4. Type Registry (Python)
+## Example
 
-**File**: `src/core/type_registry.py`
+```python
+from abc import ABC, abstractmethod
+from typing import Protocol
 
-**Hardcoded Types**:
-- Scalars: text, integer, boolean, timestamp, uuid, money
-- Composites: address, contact_info, dimensions
-- Rich types with validation
+class DomainRepository(Protocol):
+    """Repository for Domain aggregate"""
+
+    def get(self, domain_number: str) -> Domain:
+        """Get domain by number - raises if not found"""
+        ...
+
+    def find_by_name(self, name: str) -> Domain | None:
+        """Find domain by name or alias"""
+        ...
+
+    def save(self, domain: Domain) -> None:
+        """Save domain (insert or update)"""
+        ...
+
+    def list_all(self) -> list[Domain]:
+        """List all domains"""
+        ...
+```
+```
+
+**Deliverable**: Complete repository pattern design document
+
+#### Step 0.3: Domain-Driven Design (DDD)
+
+**Create**: `docs/architecture/DDD_DOMAIN_MODEL.md`
+
+**Contents**:
+```markdown
+# Domain-Driven Design for SpecQL
+
+## Bounded Contexts
+
+SpecQL has 4 bounded contexts:
+
+1. **Registry Context**: Domains, subdomains, entities
+2. **Pattern Context**: Domain patterns, templates, instantiations
+3. **Type Context**: Type definitions, mappings
+4. **Service Context**: Service registry, dependencies
+
+## Aggregates
+
+### Registry Context
+
+**Aggregate Root**: `Domain`
+**Entities**: `Subdomain`, `EntityRegistration`
+**Value Objects**: `DomainNumber`, `TableCode`
+
+```python
+@dataclass
+class Domain:
+    """Aggregate Root for Registry Context"""
+    domain_number: DomainNumber  # Value Object
+    domain_name: str
+    description: str
+    multi_tenant: bool
+    aliases: list[str]
+    subdomains: list[Subdomain]  # Child entities
+
+    def add_subdomain(self, subdomain: Subdomain) -> None:
+        """Business logic: Add subdomain"""
+        if self._has_subdomain(subdomain.number):
+            raise ValueError(f"Subdomain {subdomain.number} already exists")
+        self.subdomains.append(subdomain)
+
+    def allocate_entity_code(self, subdomain_num: str, entity_name: str) -> TableCode:
+        """Business logic: Allocate 6-digit code"""
+        subdomain = self._get_subdomain(subdomain_num)
+        return subdomain.allocate_next_code(entity_name)
+```
+
+## Layers
+
+```
+┌──────────────────────────────────────────┐
+│         Presentation Layer               │
+│  (CLI, GraphQL API)                      │
+└──────────────────┬───────────────────────┘
+                   │
+┌──────────────────▼───────────────────────┐
+│         Application Layer                │
+│  (Use Cases, Services)                   │
+│  - RegisterDomainService                 │
+│  - AllocateEntityCodeService             │
+└──────────────────┬───────────────────────┘
+                   │
+┌──────────────────▼───────────────────────┐
+│          Domain Layer                    │
+│  (Entities, Value Objects, Domain Logic) │
+│  - Domain, Subdomain                     │
+│  - DomainNumber, TableCode               │
+└──────────────────┬───────────────────────┘
+                   │
+┌──────────────────▼───────────────────────┐
+│      Infrastructure Layer                │
+│  (Repositories, Database, External APIs) │
+│  - PostgreSQLDomainRepository            │
+│  - YAMLDomainRepository                  │
+└──────────────────────────────────────────┘
+```
+```
+
+**Deliverable**: Complete DDD domain model design
+
+#### Step 0.4: Implement Base Repository
+
+**Create**: `src/domain/repositories/__init__.py`
+
+```python
+"""
+Repository Pattern Implementation
+
+Provides abstract base classes and protocols for data access.
+"""
+from abc import ABC, abstractmethod
+from typing import TypeVar, Generic, Protocol
+
+T = TypeVar('T')
+
+class Repository(Protocol, Generic[T]):
+    """
+    Generic repository protocol
+
+    All concrete repositories should implement this protocol
+    """
+
+    def get(self, id: str) -> T:
+        """Get entity by ID - raises if not found"""
+        ...
+
+    def find(self, id: str) -> T | None:
+        """Find entity by ID - returns None if not found"""
+        ...
+
+    def save(self, entity: T) -> None:
+        """Save entity (insert or update)"""
+        ...
+
+    def delete(self, id: str) -> None:
+        """Delete entity by ID"""
+        ...
+
+    def list_all(self) -> list[T]:
+        """List all entities"""
+        ...
+```
+
+**Create**: `src/domain/repositories/domain_repository.py`
+
+```python
+"""Domain Repository Protocol"""
+from typing import Protocol
+from src.domain.entities.domain import Domain
+
+class DomainRepository(Protocol):
+    """Repository for Domain aggregate root"""
+
+    def get(self, domain_number: str) -> Domain:
+        """Get domain by number - raises if not found"""
+        ...
+
+    def find_by_name(self, name_or_alias: str) -> Domain | None:
+        """Find domain by name or alias"""
+        ...
+
+    def save(self, domain: Domain) -> None:
+        """Save domain"""
+        ...
+
+    def list_all(self) -> list[Domain]:
+        """List all domains"""
+        ...
+```
+
+**Deliverables**:
+- [ ] `src/domain/repositories/__init__.py`
+- [ ] `src/domain/repositories/domain_repository.py`
+- [ ] `src/domain/repositories/pattern_repository.py`
+- [ ] Unit tests for protocols
+
+#### Step 0.5: Implement Domain Entities
+
+**Create**: `src/domain/entities/domain.py`
+
+```python
+"""Domain Aggregate Root"""
+from dataclasses import dataclass, field
+from typing import List
+from src.domain.value_objects import DomainNumber, TableCode
+
+@dataclass
+class Subdomain:
+    """Subdomain entity (part of Domain aggregate)"""
+    subdomain_number: str
+    subdomain_name: str
+    description: str | None
+    next_entity_sequence: int = 1
+    entities: dict = field(default_factory=dict)
+
+    def allocate_next_code(self, entity_name: str) -> TableCode:
+        """Allocate next entity code"""
+        code = TableCode.generate(
+            domain_num=self.parent_domain_number,
+            subdomain_num=self.subdomain_number,
+            entity_seq=self.next_entity_sequence
+        )
+        self.entities[entity_name] = {
+            'table_code': str(code),
+            'entity_sequence': self.next_entity_sequence
+        }
+        self.next_entity_sequence += 1
+        return code
+
+@dataclass
+class Domain:
+    """Domain Aggregate Root"""
+    domain_number: DomainNumber
+    domain_name: str
+    description: str | None
+    multi_tenant: bool
+    aliases: List[str] = field(default_factory=list)
+    subdomains: dict[str, Subdomain] = field(default_factory=dict)
+
+    def add_subdomain(self, subdomain: Subdomain) -> None:
+        """Add subdomain to domain"""
+        if subdomain.subdomain_number in self.subdomains:
+            raise ValueError(
+                f"Subdomain {subdomain.subdomain_number} already exists in {self.domain_name}"
+            )
+        subdomain.parent_domain_number = self.domain_number.value
+        self.subdomains[subdomain.subdomain_number] = subdomain
+
+    def get_subdomain(self, subdomain_number: str) -> Subdomain:
+        """Get subdomain by number"""
+        if subdomain_number not in self.subdomains:
+            raise ValueError(
+                f"Subdomain {subdomain_number} not found in {self.domain_name}"
+            )
+        return self.subdomains[subdomain_number]
+
+    def allocate_entity_code(self, subdomain_num: str, entity_name: str) -> TableCode:
+        """Allocate 6-digit code for entity"""
+        subdomain = self.get_subdomain(subdomain_num)
+        return subdomain.allocate_next_code(entity_name)
+```
+
+**Create**: `src/domain/value_objects/__init__.py`
+
+```python
+"""Value Objects for Domain Model"""
+from dataclasses import dataclass
+import re
+
+@dataclass(frozen=True)
+class DomainNumber:
+    """Domain number (1-9) - immutable value object"""
+    value: str
+
+    def __post_init__(self):
+        if not re.match(r'^[1-9]$', self.value):
+            raise ValueError(f"Domain number must be 1-9, got: {self.value}")
+
+    def __str__(self):
+        return self.value
+
+@dataclass(frozen=True)
+class TableCode:
+    """6-digit table code - immutable value object"""
+    value: str
+
+    def __post_init__(self):
+        if not re.match(r'^\d{6}$', self.value):
+            raise ValueError(f"Table code must be 6 digits, got: {self.value}")
+
+    @classmethod
+    def generate(cls, domain_num: str, subdomain_num: str, entity_seq: int) -> 'TableCode':
+        """Generate 6-digit code from components"""
+        code = f"{domain_num}{subdomain_num}{entity_seq:02d}"
+        if len(code) != 6:
+            # Handle longer sequences
+            code = f"{domain_num}{subdomain_num}{entity_seq}"
+        return cls(code)
+
+    def __str__(self):
+        return self.value
+```
+
+**Deliverables**:
+- [ ] `src/domain/entities/domain.py`
+- [ ] `src/domain/value_objects/__init__.py`
+- [ ] Unit tests for entities
+- [ ] Unit tests for value objects
+
+#### Step 0.6: Implement Concrete Repositories
+
+**Create**: `src/infrastructure/repositories/yaml_domain_repository.py`
+
+```python
+"""YAML-backed Domain Repository (legacy)"""
+import yaml
+from pathlib import Path
+from src.domain.repositories.domain_repository import DomainRepository
+from src.domain.entities.domain import Domain, Subdomain
+from src.domain.value_objects import DomainNumber
+
+class YAMLDomainRepository:
+    """Legacy YAML-backed repository"""
+
+    def __init__(self, yaml_path: Path):
+        self.yaml_path = yaml_path
+        self._domains: dict[str, Domain] = {}
+        self._load_from_yaml()
+
+    def _load_from_yaml(self):
+        """Load domains from YAML file"""
+        with open(self.yaml_path) as f:
+            data = yaml.safe_load(f)
+
+        for domain_num, domain_data in data['domains'].items():
+            domain = Domain(
+                domain_number=DomainNumber(domain_num),
+                domain_name=domain_data['name'],
+                description=domain_data.get('description'),
+                multi_tenant=domain_data.get('multi_tenant', False),
+                aliases=domain_data.get('aliases', [])
+            )
+
+            # Load subdomains
+            for subdomain_num, subdomain_data in domain_data.get('subdomains', {}).items():
+                subdomain = Subdomain(
+                    subdomain_number=subdomain_num,
+                    subdomain_name=subdomain_data['name'],
+                    description=subdomain_data.get('description'),
+                    next_entity_sequence=subdomain_data.get('next_entity_sequence', 1),
+                    entities=subdomain_data.get('entities', {})
+                )
+                domain.add_subdomain(subdomain)
+
+            self._domains[domain_num] = domain
+
+    def get(self, domain_number: str) -> Domain:
+        """Get domain by number"""
+        if domain_number not in self._domains:
+            raise ValueError(f"Domain {domain_number} not found")
+        return self._domains[domain_number]
+
+    def find_by_name(self, name_or_alias: str) -> Domain | None:
+        """Find domain by name or alias"""
+        for domain in self._domains.values():
+            if domain.domain_name == name_or_alias:
+                return domain
+            if name_or_alias in domain.aliases:
+                return domain
+        return None
+
+    def save(self, domain: Domain) -> None:
+        """Save domain (writes back to YAML)"""
+        self._domains[domain.domain_number.value] = domain
+        self._write_to_yaml()
+
+    def list_all(self) -> list[Domain]:
+        """List all domains"""
+        return list(self._domains.values())
+
+    def _write_to_yaml(self):
+        """Write domains back to YAML"""
+        # Convert domains to YAML structure
+        data = {'version': '2.0.0', 'domains': {}}
+        for domain in self._domains.values():
+            data['domains'][domain.domain_number.value] = {
+                'name': domain.domain_name,
+                'description': domain.description,
+                'multi_tenant': domain.multi_tenant,
+                'aliases': domain.aliases,
+                'subdomains': {
+                    subdomain.subdomain_number: {
+                        'name': subdomain.subdomain_name,
+                        'description': subdomain.description,
+                        'next_entity_sequence': subdomain.next_entity_sequence,
+                        'entities': subdomain.entities
+                    }
+                    for subdomain in domain.subdomains.values()
+                }
+            }
+
+        with open(self.yaml_path, 'w') as f:
+            yaml.safe_dump(data, f, default_flow_style=False, sort_keys=False)
+```
+
+**Create**: `src/infrastructure/repositories/postgresql_domain_repository.py`
+
+```python
+"""PostgreSQL-backed Domain Repository"""
+import psycopg
+from src.domain.repositories.domain_repository import DomainRepository
+from src.domain.entities.domain import Domain, Subdomain
+from src.domain.value_objects import DomainNumber
+
+class PostgreSQLDomainRepository:
+    """PostgreSQL-backed repository"""
+
+    def __init__(self, db_url: str):
+        self.db_url = db_url
+
+    def get(self, domain_number: str) -> Domain:
+        """Get domain by number from PostgreSQL"""
+        with psycopg.connect(self.db_url) as conn:
+            with conn.cursor() as cur:
+                # Get domain
+                cur.execute("""
+                    SELECT domain_number, domain_name, description, multi_tenant, aliases
+                    FROM specql_registry.tb_domain
+                    WHERE domain_number = %s
+                """, (domain_number,))
+
+                row = cur.fetchone()
+                if not row:
+                    raise ValueError(f"Domain {domain_number} not found")
+
+                domain = Domain(
+                    domain_number=DomainNumber(row[0]),
+                    domain_name=row[1],
+                    description=row[2],
+                    multi_tenant=row[3],
+                    aliases=row[4] or []
+                )
+
+                # Get subdomains
+                cur.execute("""
+                    SELECT pk_subdomain, subdomain_number, subdomain_name, description, next_entity_sequence
+                    FROM specql_registry.tb_subdomain
+                    WHERE fk_domain = (
+                        SELECT pk_domain FROM specql_registry.tb_domain WHERE domain_number = %s
+                    )
+                """, (domain_number,))
+
+                for subdomain_row in cur.fetchall():
+                    subdomain = Subdomain(
+                        subdomain_number=subdomain_row[1],
+                        subdomain_name=subdomain_row[2],
+                        description=subdomain_row[3],
+                        next_entity_sequence=subdomain_row[4]
+                    )
+
+                    # Get entities for this subdomain
+                    cur.execute("""
+                        SELECT entity_name, table_code, entity_sequence
+                        FROM specql_registry.tb_entity_registration
+                        WHERE fk_subdomain = %s
+                    """, (subdomain_row[0],))
+
+                    for entity_row in cur.fetchall():
+                        subdomain.entities[entity_row[0]] = {
+                            'table_code': entity_row[1],
+                            'entity_sequence': entity_row[2]
+                        }
+
+                    domain.add_subdomain(subdomain)
+
+                return domain
+
+    def save(self, domain: Domain) -> None:
+        """Save domain to PostgreSQL (transactional)"""
+        with psycopg.connect(self.db_url) as conn:
+            with conn.cursor() as cur:
+                # Save domain
+                cur.execute("""
+                    INSERT INTO specql_registry.tb_domain
+                    (domain_number, domain_name, description, multi_tenant, aliases)
+                    VALUES (%s, %s, %s, %s, %s)
+                    ON CONFLICT (domain_number) DO UPDATE SET
+                        domain_name = EXCLUDED.domain_name,
+                        description = EXCLUDED.description,
+                        multi_tenant = EXCLUDED.multi_tenant,
+                        aliases = EXCLUDED.aliases
+                    RETURNING pk_domain
+                """, (
+                    domain.domain_number.value,
+                    domain.domain_name,
+                    domain.description,
+                    domain.multi_tenant,
+                    domain.aliases
+                ))
+
+                domain_pk = cur.fetchone()[0]
+
+                # Save subdomains
+                for subdomain in domain.subdomains.values():
+                    cur.execute("""
+                        INSERT INTO specql_registry.tb_subdomain
+                        (fk_domain, subdomain_number, subdomain_name, description, next_entity_sequence)
+                        VALUES (%s, %s, %s, %s, %s)
+                        ON CONFLICT (fk_domain, subdomain_number) DO UPDATE SET
+                            subdomain_name = EXCLUDED.subdomain_name,
+                            description = EXCLUDED.description,
+                            next_entity_sequence = EXCLUDED.next_entity_sequence
+                    """, (
+                        domain_pk,
+                        subdomain.subdomain_number,
+                        subdomain.subdomain_name,
+                        subdomain.description,
+                        subdomain.next_entity_sequence
+                    ))
+
+                conn.commit()
+```
+
+**Deliverables**:
+- [ ] `src/infrastructure/repositories/yaml_domain_repository.py`
+- [ ] `src/infrastructure/repositories/postgresql_domain_repository.py`
+- [ ] `src/infrastructure/repositories/in_memory_domain_repository.py` (for tests)
+- [ ] Integration tests for each repository
+
+#### Step 0.7: Application Services
+
+**Create**: `src/application/services/domain_service.py`
+
+```python
+"""Application Service for Domain operations"""
+from src.domain.repositories.domain_repository import DomainRepository
+from src.domain.entities.domain import Domain, Subdomain
+from src.domain.value_objects import DomainNumber, TableCode
+
+class DomainService:
+    """
+    Application Service for Domain operations
+
+    Uses repository abstraction - doesn't care about storage implementation
+    """
+
+    def __init__(self, repository: DomainRepository):
+        self.repository = repository
+
+    def register_domain(
+        self,
+        domain_number: str,
+        domain_name: str,
+        description: str | None,
+        multi_tenant: bool,
+        aliases: list[str] | None = None
+    ) -> Domain:
+        """Register a new domain"""
+        domain = Domain(
+            domain_number=DomainNumber(domain_number),
+            domain_name=domain_name,
+            description=description,
+            multi_tenant=multi_tenant,
+            aliases=aliases or []
+        )
+        self.repository.save(domain)
+        return domain
+
+    def allocate_entity_code(
+        self,
+        domain_name: str,
+        subdomain_name: str,
+        entity_name: str
+    ) -> TableCode:
+        """Allocate 6-digit code for entity"""
+        # Find domain
+        domain = self.repository.find_by_name(domain_name)
+        if not domain:
+            raise ValueError(f"Domain {domain_name} not found")
+
+        # Find subdomain
+        subdomain = None
+        for sd in domain.subdomains.values():
+            if sd.subdomain_name == subdomain_name:
+                subdomain = sd
+                break
+
+        if not subdomain:
+            raise ValueError(f"Subdomain {subdomain_name} not found in {domain_name}")
+
+        # Allocate code (business logic in domain entity)
+        code = subdomain.allocate_next_code(entity_name)
+
+        # Save (increments next_entity_sequence)
+        self.repository.save(domain)
+
+        return code
+```
+
+**Deliverables**:
+- [ ] `src/application/services/domain_service.py`
+- [ ] `src/application/services/pattern_service.py`
+- [ ] Unit tests using mock repositories
+
+#### Step 0.8: Update Existing Code
+
+**Update**: `src/generators/schema/naming_conventions.py`
+
+```python
+"""
+Naming Conventions - Now uses Repository Pattern
+
+BEFORE: Direct YAML access
+AFTER: Uses DomainRepository abstraction
+"""
+from src.domain.repositories.domain_repository import DomainRepository
+from src.infrastructure.repositories.yaml_domain_repository import YAMLDomainRepository
+
+class NamingConventions:
+    """Naming conventions for generated SQL"""
+
+    def __init__(self, domain_repository: DomainRepository | None = None):
+        # Default to YAML repository for backward compatibility
+        if domain_repository is None:
+            domain_repository = YAMLDomainRepository(Path('registry/domain_registry.yaml'))
+
+        self.domain_repository = domain_repository
+
+    def get_table_code(self, domain: str, subdomain: str, entity: str) -> str:
+        """Get 6-digit table code"""
+        domain_obj = self.domain_repository.find_by_name(domain)
+        if not domain_obj:
+            raise ValueError(f"Domain {domain} not found")
+
+        # Business logic now lives in domain entity
+        return str(domain_obj.allocate_entity_code(subdomain, entity))
+```
+
+**Deliverables**:
+- [ ] Update all files that access registry directly
+- [ ] Add dependency injection where needed
+- [ ] Ensure backward compatibility
+
+**Phase 0 Deliverables Summary**:
+- [ ] `docs/architecture/REPOSITORY_PATTERN.md`
+- [ ] `docs/architecture/DDD_DOMAIN_MODEL.md`
+- [ ] Complete repository protocol implementations
+- [ ] Complete domain entities and value objects
+- [ ] Application services layer
+- [ ] All unit tests passing (>90% coverage)
+- [ ] Integration tests for each repository
+- [ ] Updated existing code to use repositories
 
 ---
-
-## Target State: PostgreSQL 6-Digit Architecture
-
-### Hierarchy
-
-```
-0_schema/
-├── 01_write_side/                         # Schema layer 01
-│   └── 011_core/                          # Domain 1: core
-│       ├── 0111_registry/                 # Subdomain 1: registry
-│       │   ├── 01111_domain/              # Entity sequence 1: domain
-│       │   │   ├── 011111_tb_domain.sql                  # Table
-│       │   │   ├── 011112_fn_domain_pk.sql               # Trinity helpers
-│       │   │   └── 011113_fn_domain_id.sql
-│       │   ├── 01112_subdomain/           # Entity sequence 2: subdomain
-│       │   │   ├── 011121_tb_subdomain.sql
-│       │   │   └── 011122_fn_subdomain_pk.sql
-│       │   ├── 01113_entity/              # Entity sequence 3: entity
-│       │   │   ├── 011131_tb_entity.sql
-│       │   │   └── 011132_fn_entity_pk.sql
-│       │   ├── 01114_field/               # Entity sequence 4: field
-│       │   │   └── 011141_tb_field.sql
-│       │   └── 01115_type/                # Entity sequence 5: type
-│       │       └── 011151_tb_type.sql
-│       │
-│       ├── 0112_pattern/                  # Subdomain 2: pattern
-│       │   ├── 01121_domain_pattern/      # Domain patterns (business logic)
-│       │   │   ├── 011211_tb_domain_pattern.sql
-│       │   │   └── 011212_fn_domain_pattern_pk.sql
-│       │   ├── 01122_entity_template/     # Entity templates
-│       │   │   └── 011221_tb_entity_template.sql
-│       │   └── 01123_pattern_instantiation/
-│       │       └── 011231_tb_pattern_instantiation.sql
-│       │
-│       └── 0113_service/                  # Subdomain 3: service
-│           └── 01131_service/
-│               └── 011311_tb_service.sql
-│
-└── 02_query_side/                         # Schema layer 02
-    └── 021_core/                          # Query side views
-        └── 0211_registry/
-            ├── 02111_domain/
-            │   └── 021111_tv_domain.sql           # Table views for GraphQL
-            ├── 02112_subdomain/
-            │   └── 021121_tv_subdomain.sql
-            └── 02113_entity/
-                └── 021131_tv_entity.sql
-```
-
-### PostgreSQL Schemas
-
-Instead of using `core` schema for everything, we use **proper PostgreSQL schemas**:
-
-| PostgreSQL Schema | Purpose | Multi-Tenant |
-|-------------------|---------|--------------|
-| `specql_registry` | Domain/subdomain/entity registry | No |
-| `specql_pattern` | Pattern library (domain patterns, templates) | No |
-| `specql_service` | Service registry | No |
-| `specql_type` | Type registry | No |
-| `common` | Framework reference data | No |
-| `app` | GraphQL types | No |
-
-**Why separate schemas?**
-- Clear separation of concerns
-- Better security (grant per schema)
-- Follows our own conventions (multi-tenant vs shared)
-- Easier to backup/restore specific parts
-
----
-
-## Implementation Phases
 
 ### Phase 1: Registry Schema (Week 1)
 
-**Goal**: Define SpecQL YAML entities for domain registry
+**Prerequisites**: Phase 0 MUST be complete
+
+**Goal**: Create SpecQL YAML entities for domain registry, generate PostgreSQL DDL
 
 #### Tasks
 
-**1.1 Create Entity YAMLs**
+**1.1 Create Registry Entity YAMLs**
 
-Create `entities/specql_registry/` directory with:
+Now that we have proper domain model, create SpecQL YAML definitions:
 
-**`domain.yaml`**:
+**`entities/specql_registry/domain.yaml`**:
 ```yaml
 entity: domain
 schema: specql_registry
@@ -257,926 +833,166 @@ fraiseql:
     find_one: true
     find_one_by_identifier: true
     find_many: true
-
-actions:
-  - name: register_domain
-    steps:
-      - validate: domain_number ~ '^[1-9]$'
-      - validate: NOT EXISTS (SELECT 1 FROM specql_registry.tb_domain WHERE domain_number = :domain_number)
-      - insert: domain (domain_number, domain_name, description, multi_tenant)
-    returns: domain
 ```
 
-**`subdomain.yaml`**:
-```yaml
-entity: subdomain
-schema: specql_registry
-description: Domain subdivisions (crm.customer, catalog.manufacturer)
-
-organization:
-  table_code: "011121"
-
-fields:
-  subdomain_number:
-    type: text
-    nullable: false
-    description: "Single digit subdomain number (1-9)"
-
-  subdomain_name:
-    type: text
-    nullable: false
-
-  description:
-    type: text
-    nullable: true
-
-  next_entity_sequence:
-    type: integer
-    nullable: false
-    default: 1
-    description: "Next available entity sequence number"
-
-foreign_keys:
-  fk_domain:
-    references: specql_registry.tb_domain
-    on: pk_domain
-    nullable: false
-
-unique_constraints:
-  - fields: [fk_domain, subdomain_number]
-  - fields: [fk_domain, subdomain_name]
-
-indexes:
-  - fields: [fk_domain, subdomain_number]
-    unique: true
-```
-
-**`entity_registration.yaml`**:
-```yaml
-entity: entity_registration
-schema: specql_registry
-description: Entity registrations with 6-digit codes
-
-organization:
-  table_code: "011131"
-
-fields:
-  entity_name:
-    type: text
-    nullable: false
-    description: "Entity name (Contact, Manufacturer)"
-
-  table_code:
-    type: text
-    nullable: false
-    unique: true
-    description: "6-digit hierarchical code (012035)"
-
-  entity_code:
-    type: text
-    nullable: true
-    description: "3-letter mnemonic (CON, MNF)"
-
-  entity_sequence:
-    type: integer
-    nullable: false
-    description: "Entity sequence within subdomain"
-
-  assigned_at:
-    type: timestamp
-    nullable: false
-    default: now()
-
-foreign_keys:
-  fk_subdomain:
-    references: specql_registry.tb_subdomain
-    on: pk_subdomain
-    nullable: false
-
-unique_constraints:
-  - fields: [fk_subdomain, entity_sequence]
-  - fields: [table_code]
-
-indexes:
-  - fields: [table_code]
-    unique: true
-  - fields: [fk_subdomain, entity_sequence]
-```
-
-**1.2 Generate PostgreSQL Schema**
-
-```bash
-specql generate entities/specql_registry/domain.yaml \
-  --hierarchical \
-  --output-dir=db/schema/
-
-specql generate entities/specql_registry/subdomain.yaml \
-  --hierarchical \
-  --output-dir=db/schema/
-
-specql generate entities/specql_registry/entity_registration.yaml \
-  --hierarchical \
-  --output-dir=db/schema/
-```
-
-**Output**: Generates PostgreSQL DDL in 6-digit hierarchy
-
-**1.3 Migration Script**
-
-Create `scripts/migrate_registry_to_postgres.py`:
-
-```python
-#!/usr/bin/env python3
-"""
-Migrate domain_registry.yaml to PostgreSQL
-"""
-import yaml
-import psycopg
-from datetime import datetime
-
-def migrate_registry():
-    # Load YAML
-    with open('registry/domain_registry.yaml') as f:
-        registry = yaml.safe_load(f)
-
-    # Connect to PostgreSQL
-    with psycopg.connect(os.getenv('DATABASE_URL')) as conn:
-        with conn.cursor() as cur:
-            # Migrate domains
-            for domain_num, domain_data in registry['domains'].items():
-                cur.execute("""
-                    INSERT INTO specql_registry.tb_domain
-                    (domain_number, domain_name, description, multi_tenant, aliases)
-                    VALUES (%s, %s, %s, %s, %s)
-                    ON CONFLICT (domain_number) DO UPDATE SET
-                        domain_name = EXCLUDED.domain_name,
-                        description = EXCLUDED.description,
-                        multi_tenant = EXCLUDED.multi_tenant,
-                        aliases = EXCLUDED.aliases
-                """, (
-                    domain_num,
-                    domain_data['name'],
-                    domain_data.get('description'),
-                    domain_data.get('multi_tenant', False),
-                    domain_data.get('aliases')
-                ))
-
-                # Get domain PK
-                cur.execute(
-                    "SELECT pk_domain FROM specql_registry.tb_domain WHERE domain_number = %s",
-                    (domain_num,)
-                )
-                domain_pk = cur.fetchone()[0]
-
-                # Migrate subdomains
-                for subdomain_num, subdomain_data in domain_data['subdomains'].items():
-                    cur.execute("""
-                        INSERT INTO specql_registry.tb_subdomain
-                        (fk_domain, subdomain_number, subdomain_name, description, next_entity_sequence)
-                        VALUES (%s, %s, %s, %s, %s)
-                        ON CONFLICT (fk_domain, subdomain_number) DO UPDATE SET
-                            subdomain_name = EXCLUDED.subdomain_name,
-                            description = EXCLUDED.description,
-                            next_entity_sequence = EXCLUDED.next_entity_sequence
-                    """, (
-                        domain_pk,
-                        subdomain_num,
-                        subdomain_data['name'],
-                        subdomain_data.get('description'),
-                        subdomain_data.get('next_entity_sequence', 1)
-                    ))
-
-                    # Get subdomain PK
-                    cur.execute(
-                        "SELECT pk_subdomain FROM specql_registry.tb_subdomain WHERE fk_domain = %s AND subdomain_number = %s",
-                        (domain_pk, subdomain_num)
-                    )
-                    subdomain_pk = cur.fetchone()[0]
-
-                    # Migrate entities
-                    for entity_name, entity_data in subdomain_data.get('entities', {}).items():
-                        cur.execute("""
-                            INSERT INTO specql_registry.tb_entity_registration
-                            (fk_subdomain, entity_name, table_code, entity_code, entity_sequence, assigned_at)
-                            VALUES (%s, %s, %s, %s, %s, %s)
-                            ON CONFLICT (table_code) DO UPDATE SET
-                                entity_name = EXCLUDED.entity_name,
-                                entity_code = EXCLUDED.entity_code
-                        """, (
-                            subdomain_pk,
-                            entity_name,
-                            entity_data['table_code'],
-                            entity_data.get('entity_code'),
-                            entity_data.get('entity_sequence', 1),
-                            entity_data.get('assigned_at', datetime.now())
-                        ))
-
-            conn.commit()
-            print("✅ Migration complete")
-
-if __name__ == '__main__':
-    migrate_registry()
-```
-
-**1.4 Python API Migration**
-
-Update `src/generators/schema/naming_conventions.py`:
-
-```python
-class DomainRegistry:
-    """
-    PostgreSQL-backed domain registry
-
-    Replaces YAML file with live PostgreSQL queries
-    """
-
-    def __init__(self, db_url: str):
-        self.db_url = db_url
-
-    def get_domain(self, name_or_alias: str) -> DomainInfo | None:
-        """Get domain by name or alias - from PostgreSQL"""
-        with psycopg.connect(self.db_url) as conn:
-            with conn.cursor() as cur:
-                cur.execute("""
-                    SELECT
-                        domain_number,
-                        domain_name,
-                        description,
-                        multi_tenant,
-                        aliases
-                    FROM specql_registry.tb_domain
-                    WHERE domain_name = %s
-                       OR %s = ANY(aliases)
-                """, (name_or_alias, name_or_alias))
-
-                row = cur.fetchone()
-                if not row:
-                    return None
-
-                return DomainInfo(
-                    domain_number=row[0],
-                    domain_name=row[1],
-                    description=row[2],
-                    multi_tenant=row[3],
-                    aliases=row[4] or []
-                )
-
-    def allocate_entity_code(self, domain: str, subdomain: str, entity_name: str) -> str:
-        """Allocate next 6-digit code - transactional"""
-        with psycopg.connect(self.db_url) as conn:
-            with conn.cursor() as cur:
-                # Get subdomain
-                cur.execute("""
-                    SELECT s.pk_subdomain, s.next_entity_sequence, d.domain_number, s.subdomain_number
-                    FROM specql_registry.tb_subdomain s
-                    JOIN specql_registry.tb_domain d ON d.pk_domain = s.fk_domain
-                    WHERE d.domain_name = %s AND s.subdomain_name = %s
-                    FOR UPDATE  -- Lock row for atomic increment
-                """, (domain, subdomain))
-
-                row = cur.fetchone()
-                if not row:
-                    raise ValueError(f"Subdomain {domain}.{subdomain} not found")
-
-                subdomain_pk, next_seq, domain_num, subdomain_num = row
-
-                # Generate 6-digit code
-                table_code = f"{domain_num}{subdomain_num}{next_seq:02d}"
-
-                # Register entity
-                cur.execute("""
-                    INSERT INTO specql_registry.tb_entity_registration
-                    (fk_subdomain, entity_name, table_code, entity_sequence, assigned_at)
-                    VALUES (%s, %s, %s, %s, NOW())
-                    RETURNING table_code
-                """, (subdomain_pk, entity_name, table_code, next_seq))
-
-                allocated_code = cur.fetchone()[0]
-
-                # Increment sequence
-                cur.execute("""
-                    UPDATE specql_registry.tb_subdomain
-                    SET next_entity_sequence = next_entity_sequence + 1
-                    WHERE pk_subdomain = %s
-                """, (subdomain_pk,))
-
-                conn.commit()
-                return allocated_code
-```
+*(Continue with subdomain.yaml, entity_registration.yaml as in original plan)*
 
 **Deliverables**:
 - [ ] `entities/specql_registry/domain.yaml`
 - [ ] `entities/specql_registry/subdomain.yaml`
 - [ ] `entities/specql_registry/entity_registration.yaml`
-- [ ] Generated PostgreSQL DDL in `db/schema/0_schema/01_write_side/011_core/0111_registry/`
-- [ ] Migration script `scripts/migrate_registry_to_postgres.py`
-- [ ] Updated `DomainRegistry` class with PostgreSQL backend
-- [ ] All tests passing with PostgreSQL registry
+- [ ] Generated PostgreSQL DDL
+- [ ] Migration script from YAML to PostgreSQL
+- [ ] PostgreSQL repository fully tested
 
 ---
 
-### Phase 2: Pattern Library Schema (Week 2)
+### Phase 2-6: Same as Original Plan
 
-**Goal**: Migrate pattern library from SQLite to PostgreSQL with 6-digit architecture
+*(Pattern Library, Type Registry, Service Registry, CLI, Migration)*
 
-#### Tasks
+---
 
-**2.1 Create Pattern Entity YAMLs**
+## Architecture Benefits
 
-**`entities/specql_pattern/domain_pattern.yaml`**:
-```yaml
-entity: domain_pattern
-schema: specql_pattern
-description: Reusable business logic patterns (state_machine, audit_trail)
-
-organization:
-  table_code: "011211"
-  domain: core
-  subdomain: pattern
-  entity_sequence: 1
-
-fields:
-  pattern_name:
-    type: text
-    nullable: false
-    unique: true
-
-  pattern_category:
-    type: enum(state_machine, workflow, hierarchy, audit, validation)
-    nullable: false
-
-  description:
-    type: text
-    nullable: true
-
-  parameters:
-    type: jsonb
-    nullable: false
-    description: "JSON schema for pattern parameters"
-
-  implementation:
-    type: jsonb
-    nullable: false
-    description: "Pattern logic in Tier 1 primitives"
-
-  embedding:
-    type: vector(384)
-    nullable: true
-    description: "Semantic embedding for similarity search"
-
-  usage_count:
-    type: integer
-    nullable: false
-    default: 0
-
-  popularity_score:
-    type: real
-    nullable: false
-    default: 0.0
-
-  tags:
-    type: list(text)
-    nullable: true
-
-indexes:
-  - fields: [pattern_category]
-  - fields: [pattern_name]
-    unique: true
-  - fields: [embedding]
-    type: hnsw
-    ops: vector_cosine_ops
-    description: "HNSW index for fast vector similarity"
-
-fraiseql:
-  enabled: true
-  queries:
-    find_one: true
-    find_one_by_identifier: true
-    find_many: true
-
-actions:
-  - name: register_pattern
-    steps:
-      - validate: NOT EXISTS (SELECT 1 FROM specql_pattern.tb_domain_pattern WHERE pattern_name = :pattern_name)
-      - insert: domain_pattern (pattern_name, pattern_category, description, parameters, implementation)
-    returns: domain_pattern
-
-  - name: search_patterns_by_embedding
-    parameters:
-      - name: query_embedding
-        type: vector(384)
-      - name: limit
-        type: integer
-        default: 10
-    steps:
-      - query: |
-          SELECT
-            pk_domain_pattern,
-            pattern_name,
-            pattern_category,
-            description,
-            embedding <=> :query_embedding AS distance
-          FROM specql_pattern.tb_domain_pattern
-          WHERE embedding IS NOT NULL
-          ORDER BY embedding <=> :query_embedding
-          LIMIT :limit
-    returns: list(domain_pattern)
-```
-
-**2.2 PostgreSQL Extensions**
-
-Add to `db/schema/00_foundation/000_app_foundation.sql`:
-
-```sql
--- pgvector for semantic search
-CREATE EXTENSION IF NOT EXISTS vector;
-
--- pg_trgm for fuzzy text search
-CREATE EXTENSION IF NOT EXISTS pg_trgm;
-
--- Comment
-COMMENT ON EXTENSION vector IS 'Vector similarity search for pattern embeddings';
-```
-
-**2.3 Migrate Pattern Data**
-
-Create `scripts/migrate_patterns_to_postgres.py`:
+### Before (No Architecture)
 
 ```python
-#!/usr/bin/env python3
-"""
-Migrate pattern library from SQLite to PostgreSQL
-"""
-import sqlite3
-import psycopg
+# Direct YAML access scattered everywhere
+def get_domain():
+    with open('registry/domain_registry.yaml') as f:
+        data = yaml.load(f)  # Tightly coupled!
+        return data['domains']['1']
 
-def migrate_patterns():
-    # Connect to SQLite
-    sqlite_conn = sqlite3.connect('src/pattern_library/pattern_library.db')
-    sqlite_cur = sqlite_conn.cursor()
-
-    # Connect to PostgreSQL
-    with psycopg.connect(os.getenv('DATABASE_URL')) as pg_conn:
-        with pg_conn.cursor() as pg_cur:
-            # Migrate domain patterns
-            sqlite_cur.execute("SELECT * FROM domain_patterns")
-            for row in sqlite_cur.fetchall():
-                pg_cur.execute("""
-                    INSERT INTO specql_pattern.tb_domain_pattern
-                    (pattern_name, pattern_category, description, parameters, implementation, usage_count, popularity_score, tags)
-                    VALUES (%s, %s, %s, %s::jsonb, %s::jsonb, %s, %s, %s)
-                    ON CONFLICT (pattern_name) DO UPDATE SET
-                        pattern_category = EXCLUDED.pattern_category,
-                        description = EXCLUDED.description,
-                        parameters = EXCLUDED.parameters,
-                        implementation = EXCLUDED.implementation
-                """, (
-                    row[1],  # pattern_name
-                    row[2],  # pattern_category
-                    row[3],  # description
-                    row[4],  # parameters (JSON)
-                    row[5],  # implementation (JSON)
-                    row[6],  # usage_count
-                    row[7],  # popularity_score
-                    row[8].split(',') if row[8] else None  # tags
-                ))
-
-            pg_conn.commit()
-            print("✅ Pattern migration complete")
-
-    sqlite_conn.close()
-
-if __name__ == '__main__':
-    migrate_patterns()
+# Hard to test!
+# Hard to change storage!
+# Business logic mixed with data access!
 ```
 
-**Deliverables**:
-- [ ] `entities/specql_pattern/domain_pattern.yaml`
-- [ ] `entities/specql_pattern/entity_template.yaml`
-- [ ] `entities/specql_pattern/pattern_instantiation.yaml`
-- [ ] Generated PostgreSQL DDL with pgvector support
-- [ ] Migration script from SQLite
-- [ ] HNSW index on embedding column
-- [ ] Updated pattern library API to use PostgreSQL
-
----
-
-### Phase 3: Type Registry Schema (Week 3)
-
-**Goal**: Move type registry from Python code to PostgreSQL
-
-#### Tasks
-
-**3.1 Create Type Entity YAMLs**
-
-**`entities/specql_type/universal_type.yaml`**:
-```yaml
-entity: universal_type
-schema: specql_type
-description: SpecQL type system (text, integer, money, address)
-
-organization:
-  table_code: "011511"
-
-fields:
-  type_name:
-    type: text
-    nullable: false
-    unique: true
-    description: "Type name (text, integer, money, address)"
-
-  type_category:
-    type: enum(scalar, composite, collection)
-    nullable: false
-
-  json_schema:
-    type: jsonb
-    nullable: true
-    description: "JSON Schema definition for validation"
-
-  default_postgres_type:
-    type: text
-    nullable: true
-    description: "Default PostgreSQL type mapping"
-
-  is_rich_type:
-    type: boolean
-    nullable: false
-    default: false
-    description: "Whether this is a rich/composite type"
-
-indexes:
-  - fields: [type_name]
-    unique: true
-  - fields: [type_category]
-```
-
-**3.2 Seed Types**
-
-Create `db/seed_data/universal_types.sql`:
-
-```sql
--- Scalar types
-INSERT INTO specql_type.tb_universal_type (type_name, type_category, default_postgres_type, is_rich_type)
-VALUES
-  ('text', 'scalar', 'TEXT', false),
-  ('integer', 'scalar', 'INTEGER', false),
-  ('boolean', 'scalar', 'BOOLEAN', false),
-  ('timestamp', 'scalar', 'TIMESTAMPTZ', false),
-  ('uuid', 'scalar', 'UUID', false),
-  ('money', 'scalar', 'NUMERIC(15,2)', false),
-  ('date', 'scalar', 'DATE', false),
-  ('time', 'scalar', 'TIME', false),
-  ('jsonb', 'scalar', 'JSONB', false);
-
--- Composite types
-INSERT INTO specql_type.tb_universal_type (type_name, type_category, json_schema, is_rich_type)
-VALUES
-  ('address', 'composite', '{
-    "type": "object",
-    "properties": {
-      "street": {"type": "string"},
-      "city": {"type": "string"},
-      "postal_code": {"type": "string"},
-      "country": {"type": "string"}
-    }
-  }'::jsonb, true),
-
-  ('contact_info', 'composite', '{
-    "type": "object",
-    "properties": {
-      "email": {"type": "string", "format": "email"},
-      "phone": {"type": "string"},
-      "mobile": {"type": "string"}
-    }
-  }'::jsonb, true),
-
-  ('dimensions', 'composite', '{
-    "type": "object",
-    "properties": {
-      "length": {"type": "number"},
-      "width": {"type": "number"},
-      "height": {"type": "number"},
-      "unit": {"type": "string", "enum": ["mm", "cm", "m", "in", "ft"]}
-    }
-  }'::jsonb, true);
-
--- Collection types
-INSERT INTO specql_type.tb_universal_type (type_name, type_category, default_postgres_type, is_rich_type)
-VALUES
-  ('list', 'collection', 'ARRAY', false);
-```
-
-**Deliverables**:
-- [ ] `entities/specql_type/universal_type.yaml`
-- [ ] Seed data for common types
-- [ ] Updated type registry to read from PostgreSQL
-- [ ] Type validation using JSON Schema
-
----
-
-### Phase 4: Service Registry Schema (Week 4)
-
-**Goal**: Migrate service registry to PostgreSQL
-
-**`entities/specql_service/service.yaml`**:
-```yaml
-entity: service
-schema: specql_service
-description: Microservice registry
-
-organization:
-  table_code: "011311"
-
-fields:
-  service_name:
-    type: text
-    nullable: false
-    unique: true
-
-  database_name:
-    type: text
-    nullable: false
-
-  schemas:
-    type: list(text)
-    nullable: false
-    description: "PostgreSQL schemas used by this service"
-
-  dependencies:
-    type: list(text)
-    nullable: true
-    description: "Other services this depends on"
-
-foreign_keys:
-  fk_domain:
-    references: specql_registry.tb_domain
-    on: pk_domain
-    nullable: true
-```
-
----
-
-### Phase 5: Unified CLI & API (Week 5)
-
-**Goal**: Single CLI to interact with PostgreSQL registry
-
-#### Tasks
-
-**5.1 Create Registry CLI**
-
-```bash
-# Query registry
-specql registry domains list
-specql registry domains show crm
-specql registry subdomains list --domain=crm
-specql registry entities list --domain=crm --subdomain=customer
-
-# Allocate codes
-specql registry allocate-code \
-  --domain=crm \
-  --subdomain=customer \
-  --entity=Contact
-
-# Pattern library
-specql patterns list --category=workflow
-specql patterns search "approval workflow"
-specql patterns register --file=patterns/approval.yaml
-
-# Types
-specql types list
-specql types show money
-specql types register --file=types/custom_type.yaml
-```
-
-**5.2 GraphQL API**
-
-Auto-generated from FraiseQL annotations:
-
-```graphql
-query {
-  domains {
-    domainName
-    multiTenant
-    subdomains {
-      subdomainName
-      entities {
-        entityName
-        tableCode
-      }
-    }
-  }
-}
-
-query {
-  searchPatterns(queryEmbedding: $embedding, limit: 10) {
-    patternName
-    patternCategory
-    description
-    distance
-  }
-}
-
-mutation {
-  registerDomain(input: {
-    domainNumber: "7"
-    domainName: "inventory"
-    description: "Inventory management"
-    multiTenant: true
-  }) {
-    ... on Domain {
-      id
-      domainName
-    }
-  }
-}
-```
-
-**Deliverables**:
-- [ ] Unified CLI for registry operations
-- [ ] GraphQL API for registry (auto-generated)
-- [ ] Python SDK for programmatic access
-- [ ] REST API wrapper (optional)
-
----
-
-### Phase 6: Migration & Testing (Week 6)
-
-**Goal**: Complete migration from YAML/SQLite to PostgreSQL
-
-#### Tasks
-
-**6.1 Dual-Write Period**
-
-Maintain both YAML and PostgreSQL during transition:
+### After (Repository Pattern + DDD)
 
 ```python
-class DomainRegistry:
-    def register_entity(self, domain, subdomain, entity):
-        # Write to PostgreSQL (primary)
-        code = self._register_in_postgres(domain, subdomain, entity)
+# Clean separation
+class DomainService:
+    def __init__(self, repository: DomainRepository):  # Dependency injection
+        self.repository = repository
 
-        # Write to YAML (backup)
-        self._register_in_yaml(domain, subdomain, entity, code)
+    def register_domain(self, ...):
+        domain = Domain(...)  # Rich domain model
+        domain.validate()     # Business logic in entity
+        self.repository.save(domain)  # Abstracted storage
 
-        return code
+# Easy to test with mocks!
+# Easy to swap PostgreSQL <-> YAML!
+# Business logic in domain entities!
 ```
-
-**6.2 Validation**
-
-```bash
-# Compare YAML vs PostgreSQL
-specql registry validate --compare-yaml
-
-# Output:
-# ✅ Domain 'crm' matches
-# ✅ Subdomain 'crm.customer' matches
-# ❌ Entity 'Contact' code mismatch: YAML=01203581, PG=012035
-```
-
-**6.3 Cut-Over**
-
-1. **Freeze YAML writes** - Make YAML read-only
-2. **Verify PostgreSQL complete** - All data migrated
-3. **Switch Python API** - Point to PostgreSQL
-4. **Archive YAML** - Move to `registry/archive/`
-5. **Delete SQLite** - Remove `src/pattern_library/pattern_library.db`
-
-**Deliverables**:
-- [ ] Dual-write implementation
-- [ ] Validation scripts
-- [ ] Cut-over runbook
-- [ ] Rollback plan
-- [ ] All tests passing with PostgreSQL backend
 
 ---
 
-## Benefits Summary
+## Testing Strategy
 
-### Before (Current State)
+### Unit Tests (Phase 0)
 
-```
-Domain Registry:  registry/domain_registry.yaml (2,000 lines)
-Pattern Library:  src/pattern_library/schema.sql (SQLite, 183 lines)
-Service Registry: registry/service_registry.yaml (50 lines)
-Type Registry:    src/core/type_registry.py (Python code)
-```
+```python
+def test_domain_allocate_code():
+    """Test domain entity business logic"""
+    domain = Domain(
+        domain_number=DomainNumber('1'),
+        domain_name='core',
+        ...
+    )
+    subdomain = Subdomain(subdomain_number='1', ...)
+    domain.add_subdomain(subdomain)
 
-**Issues**:
-- 4 different formats
-- Manual synchronization
-- No relationships
-- Can't query across registries
-- No ACID guarantees
+    code = domain.allocate_entity_code('1', 'Contact')
+    assert str(code) == '011101'
 
-### After (Target State)
+def test_domain_service_with_mock_repository():
+    """Test service with mock repository"""
+    mock_repo = Mock(spec=DomainRepository)
+    service = DomainService(mock_repo)
 
-```
-PostgreSQL Database:
-├── specql_registry schema (domains, subdomains, entities)
-├── specql_pattern schema (patterns, templates, instantiations)
-├── specql_service schema (services, dependencies)
-└── specql_type schema (types, mappings)
-
-All accessible via:
-- SQL queries
-- GraphQL API (auto-generated)
-- Python SDK
-- CLI commands
+    service.register_domain('1', 'core', ...)
+    mock_repo.save.assert_called_once()
 ```
 
-**Benefits**:
-- ✅ Single source of truth (PostgreSQL)
-- ✅ ACID transactions
-- ✅ SQL joins across registries
-- ✅ 6-digit hierarchical architecture
-- ✅ Auto-generated GraphQL API
-- ✅ pgvector for pattern search
-- ✅ Dogfooding our own framework
-- ✅ Production-ready from day 1
+### Integration Tests (Phase 1+)
+
+```python
+def test_postgresql_repository_roundtrip():
+    """Test PostgreSQL repository"""
+    repo = PostgreSQLDomainRepository(db_url)
+
+    domain = Domain(...)
+    repo.save(domain)
+
+    loaded = repo.get('1')
+    assert loaded.domain_name == domain.domain_name
+```
 
 ---
 
-## File Structure After Migration
+## Migration Path
 
-```
-registry/
-├── archive/                           # Legacy files (read-only)
-│   ├── domain_registry.yaml.backup
-│   └── service_registry.yaml.backup
-└── README.md                          # Points to PostgreSQL
+### Step 1: Implement Architecture (Phase 0)
+- Repository pattern
+- Domain entities
+- Application services
+- All using existing YAML backend
 
-src/
-├── registry/
-│   ├── __init__.py
-│   ├── domain_registry.py            # PostgreSQL-backed
-│   ├── pattern_library.py            # PostgreSQL-backed
-│   ├── service_registry.py           # PostgreSQL-backed
-│   └── type_registry.py              # PostgreSQL-backed
-└── cli/
-    └── registry.py                    # CLI commands
+### Step 2: Generate PostgreSQL Schema (Phase 1)
+- Create SpecQL YAML entities
+- Generate DDL
+- Create PostgreSQL repository
 
-db/
-└── schema/
-    ├── 0_schema/
-    │   ├── 01_write_side/
-    │   │   └── 011_core/
-    │   │       ├── 0111_registry/    # Domain, subdomain, entity tables
-    │   │       ├── 0112_pattern/     # Pattern library tables
-    │   │       ├── 0113_service/     # Service registry tables
-    │   │       └── 0115_type/        # Type registry tables
-    │   └── 02_query_side/
-    │       └── 021_core/
-    │           └── 0211_registry/    # GraphQL views
-    └── seed_data/
-        ├── 01_domains.sql
-        ├── 02_subdomains.sql
-        ├── 03_patterns.sql
-        └── 04_types.sql
-```
+### Step 3: Dual Repository (Phase 2)
+- Write to both YAML and PostgreSQL
+- Validate consistency
+- Build confidence
+
+### Step 4: Cut-Over (Phase 3)
+- Switch primary to PostgreSQL
+- Keep YAML as backup
+- Monitor performance
+
+### Step 5: Clean-Up (Phase 4)
+- Remove YAML repository
+- Archive YAML files
+- Full PostgreSQL
 
 ---
 
 ## Success Metrics
 
-| Metric | Target | Measurement |
-|--------|--------|-------------|
-| **Migration Completeness** | 100% data migrated | Compare YAML vs PG |
-| **Query Performance** | <10ms for registry lookups | PostgreSQL EXPLAIN |
-| **Pattern Search** | <50ms for 1000 patterns | HNSW index benchmark |
-| **API Coverage** | 100% YAML operations | Feature parity check |
-| **Test Coverage** | >90% | pytest --cov |
-| **Zero Downtime** | No service interruption | Dual-write period |
-
----
-
-## Risks & Mitigations
-
-| Risk | Impact | Mitigation |
-|------|--------|------------|
-| **Data loss during migration** | High | Dual-write period, validation scripts, backups |
-| **Performance regression** | Medium | Benchmarks, indexes, query optimization |
-| **Breaking API changes** | Medium | Backward compatibility layer, versioning |
-| **PostgreSQL dependency** | Low | Acceptable - production databases use PostgreSQL |
+| Metric | Target | Why |
+|--------|--------|-----|
+| **Test Coverage** | >90% | Proves architecture works |
+| **Repository Swappability** | <1 hour to swap | Proves abstraction works |
+| **Performance** | <10ms queries | Proves PostgreSQL works |
+| **Code Quality** | Zero direct DB access | Proves separation works |
 
 ---
 
 ## Next Steps
 
-1. **Review this plan** - Get stakeholder approval
-2. **Create entity YAMLs** - Start with `domain.yaml`
-3. **Generate PostgreSQL DDL** - Use SpecQL generator
-4. **Implement migration scripts** - YAML → PostgreSQL
-5. **Update Python APIs** - Point to PostgreSQL
-6. **Dual-write testing** - Ensure data consistency
-7. **Cut-over** - Switch to PostgreSQL as primary
-8. **Archive YAML** - Keep for historical reference
+**STOP and DO Phase 0 FIRST!**
+
+1. ✅ **Revert uncommitted changes** - Clean slate
+2. ✅ **Design repository pattern** - Document first
+3. ✅ **Design DDD domain model** - Entities and value objects
+4. ✅ **Implement base repositories** - Protocols and abstractions
+5. ✅ **Implement domain entities** - Rich business logic
+6. ✅ **Implement concrete repositories** - YAML, PostgreSQL, InMemory
+7. ✅ **Implement application services** - Use case layer
+8. ✅ **Update existing code** - Use repositories
+9. ✅ **Test everything** - Unit + integration tests
+10. ✅ **Then proceed to Phase 1** - Generate PostgreSQL schema
 
 ---
 
-**Status**: Ready to implement
-**Estimated Timeline**: 6 weeks
-**Complexity**: Medium (we're using our own framework)
-**Risk**: Low (well-understood domain, incremental migration)
+**Status**: Architecture-first approach
+**Estimated Timeline**: 8 weeks (1 week for Phase 0 + 7 weeks for migration)
+**Complexity**: Medium-High (proper architecture takes time, but pays off)
+**Risk**: Low (well-architected systems are easier to change)
 
-Let's eat our own dog food! 🐕
+Let's build it right! 🏗️
