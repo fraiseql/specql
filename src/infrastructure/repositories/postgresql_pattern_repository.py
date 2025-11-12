@@ -51,47 +51,82 @@ class PostgreSQLPatternRepository(PatternRepository):
         """Save pattern to PostgreSQL (transactional)"""
         with psycopg.connect(self.db_url) as conn:
             with conn.cursor() as cur:
-                # Upsert pattern
-                cur.execute("""
-                    INSERT INTO pattern_library.domain_patterns
-                    (id, name, category, description, parameters, implementation,
-                     embedding, times_instantiated, source_type, complexity_score,
-                     deprecated, deprecated_reason, replacement_pattern_id,
-                     created_at, updated_at)
-                    VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-                    ON CONFLICT (name) DO UPDATE SET
-                        category = EXCLUDED.category,
-                        description = EXCLUDED.description,
-                        parameters = EXCLUDED.parameters,
-                        implementation = EXCLUDED.implementation,
-                        embedding = EXCLUDED.embedding,
-                        times_instantiated = EXCLUDED.times_instantiated,
-                        source_type = EXCLUDED.source_type,
-                        complexity_score = EXCLUDED.complexity_score,
-                        deprecated = EXCLUDED.deprecated,
-                        deprecated_reason = EXCLUDED.deprecated_reason,
-                        replacement_pattern_id = EXCLUDED.replacement_pattern_id,
-                        updated_at = EXCLUDED.updated_at
-                    RETURNING id
-                """, (
-                    pattern.id,
-                    pattern.name,
-                    pattern.category.value,
-                    pattern.description,
-                    json.dumps(pattern.parameters),
-                    json.dumps(pattern.implementation),
-                    pattern.embedding,
-                    pattern.times_instantiated,
-                    pattern.source_type.value,
-                    pattern.complexity_score,
-                    pattern.deprecated,
-                    pattern.deprecated_reason,
-                    pattern.replacement_pattern_id,
-                    pattern.created_at,
-                    pattern.updated_at
-                ))
-
                 if pattern.id is None:
+                    # Insert new pattern (let PostgreSQL generate id)
+                    cur.execute("""
+                        INSERT INTO pattern_library.domain_patterns
+                        (name, category, description, parameters, implementation,
+                         embedding, times_instantiated, source_type, complexity_score,
+                         deprecated, deprecated_reason, replacement_pattern_id)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (name) DO UPDATE SET
+                            category = EXCLUDED.category,
+                            description = EXCLUDED.description,
+                            parameters = EXCLUDED.parameters,
+                            implementation = EXCLUDED.implementation,
+                            embedding = EXCLUDED.embedding,
+                            times_instantiated = EXCLUDED.times_instantiated,
+                            source_type = EXCLUDED.source_type,
+                            complexity_score = EXCLUDED.complexity_score,
+                            deprecated = EXCLUDED.deprecated,
+                            deprecated_reason = EXCLUDED.deprecated_reason,
+                            replacement_pattern_id = EXCLUDED.replacement_pattern_id,
+                            updated_at = now()
+                        RETURNING id
+                    """, (
+                        pattern.name,
+                        pattern.category.value,
+                        pattern.description,
+                        json.dumps(pattern.parameters),
+                        json.dumps(pattern.implementation),
+                        pattern.embedding,
+                        pattern.times_instantiated,
+                        pattern.source_type.value,
+                        pattern.complexity_score,
+                        pattern.deprecated,
+                        pattern.deprecated_reason,
+                        pattern.replacement_pattern_id
+                    ))
+                    result = cur.fetchone()
+                    if result:
+                        pattern.id = result[0]
+                else:
+                    # Update existing pattern
+                    cur.execute("""
+                        INSERT INTO pattern_library.domain_patterns
+                        (id, name, category, description, parameters, implementation,
+                         embedding, times_instantiated, source_type, complexity_score,
+                         deprecated, deprecated_reason, replacement_pattern_id)
+                        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+                        ON CONFLICT (name) DO UPDATE SET
+                            category = EXCLUDED.category,
+                            description = EXCLUDED.description,
+                            parameters = EXCLUDED.parameters,
+                            implementation = EXCLUDED.implementation,
+                            embedding = EXCLUDED.embedding,
+                            times_instantiated = EXCLUDED.times_instantiated,
+                            source_type = EXCLUDED.source_type,
+                            complexity_score = EXCLUDED.complexity_score,
+                            deprecated = EXCLUDED.deprecated,
+                            deprecated_reason = EXCLUDED.deprecated_reason,
+                            replacement_pattern_id = EXCLUDED.replacement_pattern_id,
+                            updated_at = now()
+                        RETURNING id
+                    """, (
+                        pattern.id,
+                        pattern.name,
+                        pattern.category.value,
+                        pattern.description,
+                        json.dumps(pattern.parameters),
+                        json.dumps(pattern.implementation),
+                        pattern.embedding,
+                        pattern.times_instantiated,
+                        pattern.source_type.value,
+                        pattern.complexity_score,
+                        pattern.deprecated,
+                        pattern.deprecated_reason,
+                        pattern.replacement_pattern_id
+                    ))
                     result = cur.fetchone()
                     if result:
                         pattern.id = result[0]
