@@ -1,20 +1,8 @@
 """
-Naming Conventions & Table Code Management
+Naming Conventions - Now uses Repository Pattern
 
-Provides automatic table code derivation, validation, and registry integration
-for SpecQL entities following the SSDSSE (6-digit) numbering system.
-
-Table Code Format: SSDSSE
-- SS: Schema layer (01=write_side, 02=read_side, 03=analytics)
-- D:  Domain code (1-9)
-- SS: Subdomain code (00-99)
-- E:  Entity sequence + file sequence
-
-Example: 012321
-  01 = write_side
-  2  = crm domain
-  32 = customer subdomain (3) + entity #2
-  1  = first file
+BEFORE: Direct YAML access
+AFTER: Uses DomainRepository abstraction
 """
 
 import re
@@ -26,6 +14,9 @@ import yaml
 
 from src.core.ast_models import Entity
 from src.numbering.numbering_parser import NumberingParser
+from src.domain.repositories.domain_repository import DomainRepository
+from src.infrastructure.repositories.yaml_domain_repository import YAMLDomainRepository
+from src.infrastructure.repositories.postgresql_domain_repository import PostgreSQLDomainRepository
 
 # ============================================================================
 # Data Models
@@ -784,55 +775,35 @@ class DomainRegistry:
 
 
 class NamingConventions:
-    """
-    Naming conventions and table code management
+    """Naming conventions for generated SQL"""
 
-    Provides:
-    - Automatic table code derivation
-    - Validation of manual table codes
-    - Entity code generation (3-char codes)
-    - Subdomain inference
-    - File path generation
-    - Registry integration
-    """
+    def __init__(self, domain_repository: DomainRepository | None = None):
+        # Default to PostgreSQL repository, fallback to YAML for backward compatibility
+        if domain_repository is None:
+            import os
+            db_url = os.getenv('SPECQL_DB_URL')
+            if db_url:
+                try:
+                    domain_repository = PostgreSQLDomainRepository(db_url)
+                except Exception:
+                    # Fallback to YAML if PostgreSQL is not available
+                    domain_repository = YAMLDomainRepository(Path('registry/domain_registry.yaml'))
+            else:
+                # Fallback to YAML if no database URL configured
+                domain_repository = YAMLDomainRepository(Path('registry/domain_registry.yaml'))
 
-    def __init__(self, registry_path: str = "registry/domain_registry.yaml"):
-        self.registry = DomainRegistry(registry_path)
+        self.domain_repository = domain_repository
+        self.registry = DomainRegistry()  # Keep registry for backward compatibility
         self.parser = NumberingParser()
 
-    def get_table_code(self, entity: Entity, schema_layer: str = "01") -> str:
-        """
-        Get table code for entity (manual or auto-derived)
+    def get_table_code(self, domain: str, subdomain: str, entity: str) -> str:
+        """Get 6-digit table code"""
+        domain_obj = self.domain_repository.find_by_name(domain)
+        if not domain_obj:
+            raise ValueError(f"Domain {domain} not found")
 
-        Priority:
-        1. Manual specification in YAML (organization.table_code)
-        2. Registry lookup (if entity previously registered)
-        3. Automatic derivation
-
-        Args:
-            entity: Entity AST model
-            schema_layer: Schema layer code (default: "01" = write_side)
-
-        Returns:
-            7-digit table code string
-
-        Raises:
-            ValueError: If table code is invalid or cannot be derived
-        """
-        # Priority 1: Manual specification (TRUSTED - no uniqueness validation)
-        if entity.organization and entity.organization.table_code:
-            table_code = entity.organization.table_code
-            # Validate format & domain consistency only (not uniqueness)
-            self.validate_table_code(table_code, entity, skip_uniqueness=True)
-            return table_code
-
-        # Priority 2: Registry lookup
-        registry_entry = self.registry.get_entity(entity.name)
-        if registry_entry:
-            return registry_entry.table_code
-
-        # Priority 3: Automatic derivation
-        return self.derive_table_code(entity, schema_layer=schema_layer)
+        # Business logic now lives in domain entity
+        return str(domain_obj.allocate_entity_code(subdomain, entity))
 
     def derive_table_code(
         self, entity: Entity, schema_layer: str = "01", subdomain: str | None = None
