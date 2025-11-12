@@ -2,6 +2,15 @@
 PatternLibrary API for database-driven code generation
 
 Usage:
+    # Using repository pattern (recommended)
+    from src.infrastructure.repositories.sqlite_pattern_repository import SQLitePatternRepository
+    from src.application.services.pattern_service import PatternService
+
+    repo = SQLitePatternRepository("pattern_library.db")
+    service = PatternService(repo)
+    library = PatternLibrary(service)
+
+    # Legacy direct usage (deprecated)
     library = PatternLibrary(db_path="pattern_library.db")
 
     # Add pattern
@@ -29,25 +38,39 @@ Usage:
 import sqlite3
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 from functools import lru_cache
 from jinja2 import Template
+
+if TYPE_CHECKING:
+    from src.application.services.pattern_service import PatternService
 
 
 class PatternLibrary:
     """Database-driven pattern library for multi-language code generation"""
 
-    def __init__(self, db_path: str = "pattern_library.db"):
+    def __init__(self, pattern_service: Optional["PatternService"] = None, db_path: str = "pattern_library.db"):
         """
         Initialize pattern library
 
         Args:
-            db_path: Path to SQLite database (":memory:" for in-memory)
+            pattern_service: PatternService instance (uses repository pattern)
+            db_path: Path to SQLite database (legacy, for backward compatibility)
         """
-        self.db_path = db_path
-        self.db = sqlite3.connect(db_path)
-        self.db.row_factory = sqlite3.Row  # Return rows as dicts
-        self._initialize_schema()
+        if pattern_service:
+            # New repository-based approach
+            self.pattern_service = pattern_service
+            self.db_path = None
+            self.db = None
+            self._legacy_mode = False
+        else:
+            # Legacy direct database access (deprecated)
+            self.pattern_service = None
+            self.db_path = db_path
+            self.db = sqlite3.connect(db_path)
+            self.db.row_factory = sqlite3.Row  # Return rows as dicts
+            self._initialize_schema()
+            self._legacy_mode = True
 
     def _initialize_schema(self):
         """Create database schema if not exists"""
@@ -82,15 +105,28 @@ class PatternLibrary:
         complexity_score: int = 1
     ) -> int:
         """Add a pattern to the library"""
-        cursor = self.db.execute(
-            """
-            INSERT INTO patterns (pattern_name, pattern_category, abstract_syntax, description, complexity_score)
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (name, category, json.dumps(abstract_syntax), description, complexity_score)
-        )
-        self.db.commit()
-        return cursor.lastrowid or 0
+        if self.pattern_service:
+            # Use repository pattern
+            pattern = self.pattern_service.create_pattern(
+                name=name,
+                category=category,
+                description=description,
+                parameters=abstract_syntax,
+                complexity_score=float(complexity_score),
+                source_type="manual"
+            )
+            return pattern.id or 0
+        else:
+            # Legacy direct database access
+            cursor = self.db.execute(
+                """
+                INSERT INTO patterns (pattern_name, pattern_category, abstract_syntax, description, complexity_score)
+                VALUES (?, ?, ?, ?, ?)
+                """,
+                (name, category, json.dumps(abstract_syntax), description, complexity_score)
+            )
+            self.db.commit()
+            return cursor.lastrowid or 0
 
     @lru_cache(maxsize=128)
     def get_pattern(self, name: str) -> Optional[Dict[str, Any]]:

@@ -83,6 +83,26 @@ class SpecQLConfig:
         except ImportError as e:
             raise RuntimeError(f"Failed to import repository implementation: {e}")
 
+    def get_pattern_repository(self, monitoring: bool = False):
+        """Factory method to get the appropriate pattern repository"""
+        try:
+            if self.repository_backend == RepositoryBackend.POSTGRESQL:
+                if not self.database_url:
+                    raise ValueError("Database URL is required for PostgreSQL repository")
+                if monitoring:
+                    from src.infrastructure.repositories.monitored_postgresql_pattern_repository import MonitoredPostgreSQLPatternRepository
+                    return MonitoredPostgreSQLPatternRepository(self.database_url)
+                else:
+                    from src.infrastructure.repositories.postgresql_pattern_repository import PostgreSQLPatternRepository
+                    return PostgreSQLPatternRepository(self.database_url)
+            elif self.repository_backend == RepositoryBackend.IN_MEMORY:
+                from src.infrastructure.repositories.in_memory_pattern_repository import InMemoryPatternRepository
+                return InMemoryPatternRepository()
+            else:
+                raise ValueError(f"Unknown repository backend: {self.repository_backend}")
+        except ImportError as e:
+            raise RuntimeError(f"Failed to import repository implementation: {e}")
+
 
 # Global configuration instance
 _config_instance: Optional[SpecQLConfig] = None
