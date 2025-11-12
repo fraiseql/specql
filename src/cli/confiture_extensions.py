@@ -324,6 +324,135 @@ def check_codes(ctx, entity_files, format, export):
 
 
 @specql.command()
+@click.argument("template_name", required=True)
+@click.argument("entity_name", required=True)
+@click.option("--output", "-o", type=click.Path(), help="Output file path (default: stdout)")
+@click.option("--custom-fields", type=click.Path(exists=True), help="YAML file with custom fields")
+@click.option("--config", type=click.Path(exists=True), help="YAML file with configuration overrides")
+def instantiate(template_name, entity_name, output, custom_fields, config):
+    """Instantiate an entity template
+
+    TEMPLATE_NAME: Name of the template to instantiate (e.g., crm.contact)
+    ENTITY_NAME: Name for the new entity
+
+    Examples:
+        specql instantiate crm.contact MyContact
+        specql instantiate crm.contact MyContact --output entities/my_contact.yaml
+        specql instantiate crm.contact MyContact --custom-fields custom.yaml
+    """
+    import yaml
+    from src.pattern_library.api import PatternLibrary
+
+    try:
+        # Initialize pattern library with persistent database
+        import os
+        db_path = os.path.expanduser("~/.specql/pattern_library.db")
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        library = PatternLibrary(db_path)
+
+        # Parse namespace.template format
+        if "." in template_name:
+            namespace, template = template_name.split(".", 1)
+        else:
+            namespace = None
+            template = template_name
+
+        # Load custom fields if provided
+        custom_fields_data = {}
+        if custom_fields:
+            with open(custom_fields, 'r') as f:
+                custom_fields_data = yaml.safe_load(f) or {}
+
+        # Load config overrides if provided
+        custom_config = {}
+        if config:
+            with open(config, 'r') as f:
+                custom_config = yaml.safe_load(f) or {}
+
+        # Instantiate template
+        result = library.instantiate_entity_template(
+            template,
+            entity_name,
+            custom_fields=custom_fields_data,
+            custom_config=custom_config
+        )
+
+        # Convert to YAML
+        yaml_output = yaml.dump(result, default_flow_style=False, sort_keys=False)
+
+        if output:
+            # Write to file
+            with open(output, 'w') as f:
+                f.write(yaml_output)
+            click.secho(f"✅ Entity instantiated: {output}", fg="green")
+        else:
+            # Output to stdout
+            click.echo(yaml_output)
+
+    except Exception as e:
+        click.secho(f"❌ Error: {e}", fg="red")
+        return 1
+
+    return 0
+
+
+@specql.command()
+@click.option("--force", is_flag=True, help="Force reseed even if templates exist")
+def seed_templates(force):
+    """Seed entity templates into the pattern library
+
+    This command populates the pattern library with pre-built entity templates
+    for CRM, E-commerce, Healthcare, Project Management, HR, and Finance domains.
+
+    Examples:
+        specql seed-templates
+        specql seed-templates --force  # Reseed even if templates exist
+    """
+    import os
+    from src.pattern_library.api import PatternLibrary
+    from src.pattern_library.seed_entity_templates import seed_all_templates
+
+    try:
+        # Initialize pattern library with persistent database
+        db_path = os.path.expanduser("~/.specql/pattern_library.db")
+        os.makedirs(os.path.dirname(db_path), exist_ok=True)
+        library = PatternLibrary(db_path)
+
+        # Check if templates already exist
+        existing_count = len(library.get_all_entity_templates())
+        if existing_count > 0 and not force:
+            click.secho(f"⚠️  {existing_count} templates already exist. Use --force to reseed.", fg="yellow")
+            return 0
+
+        # Seed all templates
+        click.echo("🌱 Seeding entity templates...")
+        seed_all_templates(library)
+
+        # Show summary
+        total_count = len(library.get_all_entity_templates())
+        click.secho(f"✅ Seeded {total_count} entity templates across 6 domains:", fg="green")
+
+        # Show breakdown by domain
+        domains = {}
+        for template in library.get_all_entity_templates():
+            domain = template["template_namespace"]
+            domains[domain] = domains.get(domain, 0) + 1
+
+        for domain, count in sorted(domains.items()):
+            click.echo(f"  • {domain}: {count} templates")
+
+        click.echo("\n📚 Available templates:")
+        for template in library.get_all_entity_templates():
+            click.echo(f"  • {template['template_namespace']}.{template['template_name']}: {template['description'][:60]}...")
+
+    except Exception as e:
+        click.secho(f"❌ Error seeding templates: {e}", fg="red")
+        return 1
+
+    return 0
+
+
+@specql.command()
 def list_frameworks():
     """List all available target frameworks"""
     registry = get_framework_registry()
@@ -339,6 +468,10 @@ def list_frameworks():
 
 # Add registry management commands
 specql.add_command(registry, name="registry")
+
+# Add reverse engineering command
+from src.cli.reverse import reverse
+specql.add_command(reverse)
 
 
 if __name__ == "__main__":
