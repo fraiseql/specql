@@ -159,12 +159,21 @@ class HierarchicalFileWriter:
         if file_spec.content is None:
             raise ValueError("File spec must have content (can be empty string)")
 
-        if file_spec.layer not in ["write_side", "read_side"]:
-            raise ValueError(f"Invalid layer '{file_spec.layer}'. Must be 'write_side' or 'read_side'")
+        if file_spec.layer not in ["write_side", "read_side", "functions"]:
+            raise ValueError(f"Invalid layer '{file_spec.layer}'. Must be 'write_side', 'read_side', or 'functions'")
 
         # Validate code format based on layer
-        if file_spec.layer == "write_side" and len(file_spec.code) != 6:
-            raise ValueError(f"Write-side code must be 6 digits, got {len(file_spec.code)}: {file_spec.code}")
+        if file_spec.layer == "write_side" and len(file_spec.code) not in [6, 7]:
+            raise ValueError(
+                f"Write-side code must be 6 or 7 digits, got {len(file_spec.code)}: {file_spec.code}"
+            )
 
         if file_spec.layer == "read_side" and len(file_spec.code) != 7:
-            raise ValueError(f"Read-side code must be 7 digits, got {len(file_spec.code)}: {file_spec.code}")
+            raise ValueError(
+                f"Read-side code must be 7 digits, got {len(file_spec.code)}: {file_spec.code}"
+            )
+
+        if file_spec.layer == "functions" and len(file_spec.code) != 7:
+            raise ValueError(
+                f"Function code must be 7 digits, got {len(file_spec.code)}: {file_spec.code}"
+            )
