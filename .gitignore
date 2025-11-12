@@ -137,3 +137,4 @@ INVESTOR_EVALUATION.md
 *.zip
 *.tar.gz
 *.rar
+pgvector/

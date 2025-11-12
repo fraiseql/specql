@@ -105,9 +105,79 @@ CREATE TABLE pattern_dependencies (
     UNIQUE(pattern_id, depends_on_pattern_id)
 );
 
+-- ===== TIER 2: Domain Patterns =====
+
+-- Table 10: Domain Patterns (Reusable business logic patterns)
+CREATE TABLE domain_patterns (
+    domain_pattern_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    pattern_name TEXT NOT NULL UNIQUE,
+    pattern_category TEXT NOT NULL, -- state_machine, workflow, hierarchy, audit, validation
+    description TEXT,
+    parameters TEXT NOT NULL, -- JSON schema for pattern parameters
+    implementation TEXT NOT NULL, -- JSON with pattern logic in Tier 1 primitives
+    usage_count INTEGER DEFAULT 0,
+    popularity_score REAL DEFAULT 0.0,
+    tags TEXT, -- Comma-separated tags
+    icon TEXT, -- Emoji or icon name
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP
+);
+
+-- Table 11: Entity Templates (Business entity templates)
+CREATE TABLE entity_templates (
+    entity_template_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    domain_pattern_id INTEGER, -- Optional: based on domain pattern
+    template_name TEXT NOT NULL UNIQUE,
+    template_namespace TEXT NOT NULL, -- e.g., 'crm', 'ecommerce', 'healthcare'
+    description TEXT,
+    default_fields TEXT NOT NULL, -- JSON: Fields included in template
+    default_patterns TEXT NOT NULL, -- JSON: Domain patterns applied
+    default_actions TEXT NOT NULL, -- JSON: Pre-built actions
+    configuration_options TEXT, -- JSON: Customization options
+    icon TEXT,
+    tags TEXT,
+    usage_count INTEGER DEFAULT 0,
+    popularity_score REAL DEFAULT 0.0,
+    created_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (domain_pattern_id) REFERENCES domain_patterns(domain_pattern_id)
+);
+
+-- Table 12: Entity Template Dependencies
+CREATE TABLE entity_template_dependencies (
+    dependency_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    entity_template_id INTEGER NOT NULL,
+    depends_on_template_id INTEGER,
+    depends_on_pattern_id INTEGER,
+    dependency_type TEXT NOT NULL, -- requires, suggests, conflicts_with
+    FOREIGN KEY (entity_template_id) REFERENCES entity_templates(entity_template_id),
+    FOREIGN KEY (depends_on_template_id) REFERENCES entity_templates(entity_template_id),
+    FOREIGN KEY (depends_on_pattern_id) REFERENCES domain_patterns(domain_pattern_id)
+);
+
+-- Table 13: Pattern Instantiations (Track usage)
+CREATE TABLE pattern_instantiations (
+    instantiation_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    entity_name TEXT NOT NULL,
+    domain_pattern_id INTEGER,
+    entity_template_id INTEGER,
+    parameters TEXT, -- JSON parameters used
+    instantiated_at TIMESTAMPTZ DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (domain_pattern_id) REFERENCES domain_patterns(domain_pattern_id),
+    FOREIGN KEY (entity_template_id) REFERENCES entity_templates(entity_template_id)
+);
+
 -- Indexes
 CREATE INDEX idx_patterns_category ON patterns(pattern_category);
 CREATE INDEX idx_implementations_pattern ON pattern_implementations(pattern_id);
 CREATE INDEX idx_implementations_language ON pattern_implementations(language_id);
 CREATE INDEX idx_type_mappings_type ON type_mappings(universal_type_id);
 CREATE INDEX idx_type_mappings_language ON type_mappings(language_id);
+
+-- Domain Pattern Indexes
+CREATE INDEX idx_domain_patterns_category ON domain_patterns(pattern_category);
+CREATE INDEX idx_domain_patterns_popularity ON domain_patterns(popularity_score DESC);
+
+-- Entity Template Indexes
+CREATE INDEX idx_entity_templates_namespace ON entity_templates(template_namespace);
+CREATE INDEX idx_entity_templates_popularity ON entity_templates(popularity_score DESC);

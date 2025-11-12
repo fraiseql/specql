@@ -9,7 +9,110 @@ Business logic to production PostgreSQL + GraphQL generator.
 
 SpecQL generates production-ready PostgreSQL schema and PL/pgSQL functions from YAML business logic definitions. Write business rules in 20 lines of YAML, get 2000+ lines of tested SQL.
 
+**Three-Tier Architecture**: Primitives → Domain Patterns → Entity Templates
+- **15 Domain Patterns**: Reusable business logic (state machines, audit trails, validation, etc.)
+- **22 Entity Templates**: Ready-to-use business entities (CRM Contact, E-Commerce Product, etc.)
+- **Pattern Composition**: Combine patterns for complex business logic
+
 Define entities, fields, and actions in YAML; get tested SQL output with automatic audit trails, indexes, and GraphQL integration.
+
+## 🏗️ Three-Tier Architecture
+
+SpecQL uses a composable three-tier architecture:
+
+### Tier 1: Primitives (35 actions)
+Atomic building blocks like `query`, `update`, `validate`, `call_function`
+
+### Tier 2: Domain Patterns (15 patterns)
+Reusable business logic patterns:
+- **State Machine**: Workflow management with transitions
+- **Audit Trail**: Automatic tracking of changes
+- **Soft Delete**: Safe record deletion
+- **Validation Chain**: Business rule validation
+- **Approval Workflow**: Multi-stage approvals
+- And 10 more patterns...
+
+### Tier 3: Entity Templates (22 templates)
+Ready-to-use business entities:
+- **CRM**: Contact, Lead, Opportunity, Account
+- **E-Commerce**: Product, Order, Cart, Customer
+- **Healthcare**: Patient, Appointment, Prescription
+- **Project Management**: Project, Task, Milestone
+- **HR**: Employee, Position, Department
+- **Finance**: Invoice, Payment, Transaction
+
+**Example**: `extends: crm.contact_template` gives you a complete contact entity with state machine, audit trail, and 15+ pre-built actions.
+
+## 🧠 Pattern Library (NEW!)
+
+SpecQL includes an intelligent **Pattern Library** that automatically discovers, stores, and reuses business logic patterns using PostgreSQL + vector search + Grok LLM.
+
+### Features
+
+- **🤖 Pattern Discovery**: Automatically finds reusable patterns in your legacy SQL
+- **🔍 Intelligent Search**: Semantic search using vector embeddings (pgvector)
+- **📝 Natural Language Generation**: Create patterns from plain English descriptions
+- **👥 Human Review Workflow**: Approve/reject pattern suggestions
+- **⚡ Fast Retrieval**: <50ms search using HNSW indexes
+- **💰 Zero Cost**: Free Grok LLM, local PostgreSQL
+
+### Quick Start
+
+```bash
+# 1. Setup pattern library database
+export SPECQL_DB_URL="postgresql://user:password@localhost:5432/specql_patterns"
+./scripts/setup_database.sh
+psql $SPECQL_DB_URL -f database/pattern_library_schema.sql
+psql $SPECQL_DB_URL -f database/seed_patterns.sql
+
+# 2. Generate embeddings
+specql embeddings generate
+
+# 3. Discover patterns from SQL
+specql reverse --discover-patterns complex_function.sql
+
+# 4. Review suggestions
+specql patterns review-suggestions
+specql patterns approve 1
+
+# 5. Generate patterns from text
+specql patterns create-from-description \
+  --description "Multi-step approval workflow with audit logging" \
+  --category workflow
+
+# 6. Search patterns
+specql patterns search "approval process"
+```
+
+### Pattern Categories
+
+- **Workflow**: Approval processes, state machines, validation chains
+- **Audit**: Change tracking, audit trails, compliance logging
+- **Data**: Hierarchical structures, temporal data, reference data
+- **Custom**: Your domain-specific patterns
+
+### Architecture
+
+```
+PostgreSQL + pgvector + HNSW indexes
+    ↓
+Pattern Discovery (AI analysis of SQL)
+    ↓
+Vector Embeddings (384-dim sentence-transformers)
+    ↓
+Semantic Search (<50ms retrieval)
+    ↓
+Human Review → Pattern Library
+```
+
+See [Pattern Library User Guide](docs/pattern_library/USER_GUIDE.md) for complete documentation.
+
+## 📚 Documentation
+
+- **[Domain Pattern Catalog](docs/patterns/domain_pattern_catalog.md)** - All 15 domain patterns
+- **[Entity Template Catalog](docs/patterns/entity_template_catalog.md)** - All 22 entity templates
+- **[Pattern Composition Guide](docs/patterns/pattern_composition_guide.md)** - Combining patterns
+- **[Template Customization Guide](docs/patterns/template_customization_guide.md)** - Extending templates
 
 ## Installation
 
@@ -29,6 +132,18 @@ uv pip install -e .
 ```
 
 ## Quick Example
+
+**Option 1: Use Entity Templates (Recommended)**
+
+Input (YAML):
+```yaml
+entity: Contact
+extends: crm.contact_template
+fields:
+  custom_field: text  # Add custom fields
+```
+
+**Option 2: Manual Definition**
 
 Input (YAML):
 ```yaml
@@ -99,7 +214,7 @@ See [Automatic GraphQL Cascade](docs/features/AUTOMATIC_GRAPHQL_CASCADE.md) for 
 
 ## CLI Usage
 
-SpecQL provides an intelligent CLI with production-ready defaults and framework-aware generation.
+SpecQL provides an intelligent CLI with production-ready defaults, framework-aware generation, and pattern library management.
 
 ### Production-Ready Generation (Default)
 
@@ -144,6 +259,26 @@ specql generate entities/**/*.yaml --framework prisma
 
 See [CLI Guide](docs/guides/CLI_GUIDE.md) for comprehensive usage documentation.
 
+### Pattern Library Commands
+
+```bash
+# Pattern Management
+specql patterns review-suggestions          # List pending pattern suggestions
+specql patterns show <id>                   # Show pattern suggestion details
+specql patterns approve <id>                # Approve pattern suggestion
+specql patterns reject <id> --reason "..."  # Reject pattern suggestion
+specql patterns list [--category <cat>]     # List approved patterns
+specql patterns search <query>              # Search patterns semantically
+specql patterns create-from-description     # Generate pattern from text
+
+# Embeddings Management
+specql embeddings generate                  # Generate embeddings for all patterns
+specql embeddings test-retrieval <query>    # Test similarity search
+
+# Reverse Engineering with Discovery
+specql reverse <file> --discover-patterns    # Analyze SQL with pattern discovery
+```
+
 ## Key Features
 
 - **Convention-based**: Trinity pattern, audit fields, indexes generated automatically
@@ -156,6 +291,8 @@ See [CLI Guide](docs/guides/CLI_GUIDE.md) for comprehensive usage documentation.
 
 - [Getting Started](GETTING_STARTED.md) - Quick start guide
 - [CLI Guide](docs/guides/CLI_GUIDE.md) - Comprehensive CLI usage guide
+- [Pattern Library User Guide](docs/pattern_library/USER_GUIDE.md) - Pattern library usage
+- [Pattern Library Developer Guide](docs/pattern_library/DEVELOPER_GUIDE.md) - Extending patterns
 - [Architecture](docs/architecture/) - Technical implementation details
 - [API Reference](docs/api/) - Complete API documentation
 - [Examples](examples/) - Working examples

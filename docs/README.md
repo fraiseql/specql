@@ -5,7 +5,9 @@ Welcome to the comprehensive documentation for SpecQL, a powerful framework for 
 ## 🎯 What is SpecQL?
 
 SpecQL is a code generation framework that transforms YAML entity definitions into:
-- **27 Reusable Mutation Patterns** for common business logic operations
+- **Three-Tier Architecture**: Primitives → Domain Patterns → Entity Templates
+- **15 Domain Patterns** for reusable business logic (state machines, audit trails, etc.)
+- **22 Entity Templates** for ready-to-use business entities (CRM, E-Commerce, etc.)
 - **Automatic Test Generation** for pgTAP and pytest
 - **Complete CLI Tooling** for development workflows
 
@@ -27,7 +29,13 @@ New to SpecQL? Get started in 5 minutes:
 - **[First Tests](getting-started/first-tests.md)** - Generate automatic tests
 
 ### Guides
-- **[Mutation Patterns](guides/mutation-patterns/)** - Complete library of 27 reusable patterns
+- **[Three-Tier Architecture](patterns/)** - New composable architecture
+  - [Domain Pattern Catalog](patterns/domain_pattern_catalog.md) - All 15 domain patterns
+  - [Entity Template Catalog](patterns/entity_template_catalog.md) - All 22 entity templates
+  - [Pattern Composition Guide](patterns/pattern_composition_guide.md) - Combining patterns
+  - [Template Customization Guide](patterns/template_customization_guide.md) - Extending templates
+
+- **[Legacy Mutation Patterns](guides/mutation-patterns/)** - Original library of 27 reusable patterns
   - [State Machines](guides/mutation-patterns/state-machines.md) - Workflow management
   - [Multi-Entity Operations](guides/mutation-patterns/multi-entity.md) - Cross-entity logic
   - [Batch Operations](guides/mutation-patterns/batch-operations.md) - Bulk processing
@@ -93,24 +101,39 @@ New to SpecQL? Get started in 5 minutes:
 
 ## 💡 Key Concepts
 
-### YAML Specifications
-SpecQL uses simple YAML files to define your data models and business logic:
+### Three-Tier Architecture
+SpecQL uses a composable three-tier system:
 
+**Tier 1: Primitives** (35 actions)
 ```yaml
-# Example entity with patterns
-name: order
-fields:
-  id: uuid
-  status: string
-  total: decimal
+actions:
+  - name: update_status
+    steps:
+      - validate: status IN ('pending', 'confirmed')
+      - update: Order SET status = $new_status WHERE id = $id
+```
+
+**Tier 2: Domain Patterns** (15 patterns)
+```yaml
 patterns:
   - name: state_machine
-    states: [pending, confirmed, shipped, delivered]
-    transitions:
-      - from: pending
-        to: confirmed
-        trigger: confirm
+    config:
+      states: [pending, confirmed, shipped, delivered]
+      transitions:
+        pending->confirmed: {}
+        confirmed->shipped: {}
 ```
+
+**Tier 3: Entity Templates** (22 templates)
+```yaml
+entity: Order
+extends: ecommerce.order_template
+fields:
+  custom_field: text  # Add custom fields
+```
+
+### YAML Specifications
+SpecQL uses simple YAML files to define your data models and business logic.
 
 ### Generated Output
 From this simple spec, SpecQL generates:

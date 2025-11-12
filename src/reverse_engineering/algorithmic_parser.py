@@ -22,11 +22,11 @@ class AlgorithmicParser:
     3. AI enhancement (95% confidence)
     """
 
-    def __init__(self, use_heuristics: bool = True, use_ai: bool = False):
+    def __init__(self, use_heuristics: bool = True, use_ai: bool = False, enable_pattern_discovery: bool = False):
         self.sql_parser = SQLASTParser()
         self.mapper = ASTToSpecQLMapper()
         self.heuristic_enhancer = HeuristicEnhancer() if use_heuristics else None
-        self.ai_enhancer = AIEnhancer() if use_ai else None
+        self.ai_enhancer = AIEnhancer(enable_pattern_discovery=enable_pattern_discovery) if use_ai else None
 
     def parse(self, sql: str) -> ConversionResult:
         """
@@ -50,7 +50,7 @@ class AlgorithmicParser:
 
         # Stage 4: Apply AI enhancements (optional)
         if self.ai_enhancer:
-            result = self.ai_enhancer.enhance(result)
+            result = self.ai_enhancer.enhance(result, sql)
 
         return result
 

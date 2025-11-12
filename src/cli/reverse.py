@@ -21,7 +21,8 @@ from src.reverse_engineering.algorithmic_parser import AlgorithmicParser
 @click.option("--preview", is_flag=True, help="Preview mode (no files written)")
 @click.option("--compare", is_flag=True, help="Generate comparison report")
 @click.option("--use-heuristics/--no-heuristics", default=True, help="Use heuristic enhancements")
-def reverse(sql_files, output_dir, min_confidence, no_ai, preview, compare, use_heuristics):
+@click.option("--discover-patterns", is_flag=True, help="Enable automatic pattern discovery")
+def reverse(sql_files, output_dir, min_confidence, no_ai, preview, compare, use_heuristics, discover_patterns):
     """
     Reverse engineer SQL functions to SpecQL YAML
 
@@ -36,7 +37,11 @@ def reverse(sql_files, output_dir, min_confidence, no_ai, preview, compare, use_
         return
 
     # Initialize parser with requested options
-    parser = AlgorithmicParser(use_heuristics=use_heuristics, use_ai=not no_ai)
+    parser = AlgorithmicParser(
+        use_heuristics=use_heuristics,
+        use_ai=not no_ai,
+        enable_pattern_discovery=discover_patterns
+    )
 
     # Process files
     results = []

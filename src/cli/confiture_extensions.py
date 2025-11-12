@@ -473,6 +473,14 @@ specql.add_command(registry, name="registry")
 from src.cli.reverse import reverse
 specql.add_command(reverse)
 
+# Add embeddings command
+from src.cli.embeddings import embeddings_cli
+specql.add_command(embeddings_cli)
+
+# Add patterns command
+from src.cli.patterns import patterns_cli
+specql.add_command(patterns_cli)
+
 
 if __name__ == "__main__":
     specql()
