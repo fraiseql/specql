@@ -68,6 +68,8 @@ class SubdomainInfo:
     entities: dict[str, dict]
     next_read_entity: int = 1  # Independent read-side sequence
     read_entities: dict[str, dict] = field(default_factory=dict)  # Read-side entities
+    next_function_sequence: dict[str, int] = field(default_factory=dict)  # Per-entity function counter
+    next_table_file_sequence: dict[str, int] = field(default_factory=dict)  # Per-entity table file counter
 
 
 @dataclass
@@ -704,6 +706,70 @@ class DomainRegistry:
             subdomain_code=subdomain_info.subdomain_code,
         )
 
+    def assign_function_code(
+        self,
+        domain_name: str,
+        subdomain_name: str,
+        entity_name: str,
+        action_name: str
+    ) -> str:
+        """
+        Assign function code for an action
+
+        Args:
+            domain_name: Domain name
+            subdomain_name: Subdomain name
+            entity_name: Entity name
+            action_name: Action name (e.g., "create_contact")
+
+        Returns:
+            7-digit function code (e.g., "0323611")
+        """
+        # Get entity info
+        entity_entry = self.get_entity(entity_name)
+        if not entity_entry:
+            raise ValueError(f"Entity {entity_name} not registered")
+
+        # Get base table code (7 digits)
+        base_code = entity_entry.table_code
+
+        # Get subdomain info
+        domain_info = self.get_domain(domain_name)
+        if not domain_info:
+            raise ValueError(f"Domain {domain_name} not found")
+
+        subdomain_info = self.get_subdomain(domain_info.domain_code, subdomain_name)
+        if not subdomain_info:
+            raise ValueError(f"Subdomain {subdomain_name} not found in domain {domain_name}")
+
+        # Update registry dictionary directly
+        subdomain_dict = self.registry["domains"][domain_info.domain_code]["subdomains"][subdomain_info.subdomain_code]
+
+        # Ensure next_function_sequence exists
+        if "next_function_sequence" not in subdomain_dict:
+            subdomain_dict["next_function_sequence"] = {}
+
+        entity_key = entity_name.lower()
+
+        if entity_key not in subdomain_dict["next_function_sequence"]:
+            subdomain_dict["next_function_sequence"][entity_key] = 1
+
+        function_seq = subdomain_dict["next_function_sequence"][entity_key]
+
+        # Build 7-digit function code: 03 + domain/subdomain/entity + function_seq
+        function_code = f"03{base_code[2:6]}{function_seq}"
+
+        # Increment sequence
+        subdomain_dict["next_function_sequence"][entity_key] += 1
+
+        # Update last_updated
+        self.registry["last_updated"] = datetime.now().isoformat()
+
+        # Save registry
+        self.save()
+
+        return function_code
+
     def save(self):
         """Save registry to YAML file"""
         with open(self.registry_path, "w") as f:
@@ -998,24 +1064,56 @@ class NamingConventions:
 
         return code[:3].upper()
 
-    def derive_function_code(self, table_code: str) -> str:
+    def derive_function_code(self, table_code: str, function_seq: int = 1) -> str:
         """
         Derive function code from table code by changing schema layer to 03
 
         Args:
-            table_code: Base table code (e.g., "012031")
+            table_code: Base table code (7 digits, e.g., "0123611")
+            function_seq: Function sequence within entity (1-9, default: 1)
 
         Returns:
-            Function code with layer 03 (e.g., "032031")
+            7-digit function code (e.g., "0323611", "0323612")
 
-        Example:
-            table_code="012031" (write_side table) → "032031" (function)
+        Examples:
+            derive_function_code("0123611", 1)  # First function → "0323611"
+            derive_function_code("0123611", 2)  # Second function → "0323612"
         """
-        if len(table_code) != 6:
-            raise ValueError(f"Invalid table code format: {table_code}")
+        if len(table_code) != 7:
+            raise ValueError(f"Table code must be 7 digits, got: {table_code}")
 
-        # Replace schema layer (first 2 digits) with "03" (functions)
-        return f"03{table_code[2:]}"
+        # Validate function sequence
+        if function_seq < 1 or function_seq > 9:
+            raise ValueError(f"Function sequence must be 1-9, got: {function_seq}")
+
+        # Build 7-digit function code: 03 + domain/subdomain/entity + function_seq
+        return f"03{table_code[2:6]}{function_seq}"
+
+    def derive_table_file_code(self, table_code: str, file_seq: int = 1) -> str:
+        """
+        Generate 7-digit code for additional table files (audit, info, node, etc.)
+
+        Args:
+            table_code: Base table code (7 digits, e.g., "0123611")
+            file_seq: File sequence within entity (1-9, default: 1)
+
+        Returns:
+            7-digit table file code
+
+        Examples:
+            derive_table_file_code("0123611", 1)  # Main table → "0123611"
+            derive_table_file_code("0123611", 2)  # Audit table → "0123612"
+            derive_table_file_code("0123611", 3)  # Info table → "0123613"
+        """
+        if len(table_code) != 7:
+            raise ValueError(f"Table code must be 7 digits, got: {table_code}")
+
+        # Validate file sequence
+        if file_seq < 1 or file_seq > 9:
+            raise ValueError(f"File sequence must be 1-9, got: {file_seq}")
+
+        # Build 7-digit code: base_code + file_seq
+        return f"{table_code[:6]}{file_seq}"
 
     def derive_view_code(self, table_code: str) -> str:
         """

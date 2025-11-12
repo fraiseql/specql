@@ -224,11 +224,53 @@ class TestDomainRegistryModification:
         with pytest.raises(ValueError, match="Subdomain.*not found"):
             registry.register_entity(
                 entity_name="Test",
-                table_code="012991",
+                table_code="012981",
                 entity_code="TST",
                 domain_code="2",
-                subdomain_code="99",  # Invalid
+                subdomain_code="98",  # Invalid
             )
+
+    def test_assign_function_code(self, registry):
+        """Should assign function codes with sequence tracking"""
+        # First register a test entity
+        registry.register_entity(
+            entity_name="TestContact",
+            table_code="0123611",  # 7-digit code
+            entity_code="CON",
+            domain_code="2",
+            subdomain_code="03",
+        )
+
+        # Assign first function
+        func1_code = registry.assign_function_code("crm", "customer", "TestContact", "create_contact")
+        assert func1_code == "0323611"
+
+        # Assign second function
+        func2_code = registry.assign_function_code("crm", "customer", "TestContact", "update_contact")
+        assert func2_code == "0323612"
+
+        # Assign third function
+        func3_code = registry.assign_function_code("crm", "customer", "TestContact", "delete_contact")
+        assert func3_code == "0323613"
+
+    def test_assign_function_code_unregistered_entity(self, registry):
+        """Should raise error for unregistered entity"""
+        with pytest.raises(ValueError, match="Entity.*not registered"):
+            registry.assign_function_code("crm", "customer", "NonExistentEntity", "create")
+
+    def test_assign_function_code_invalid_domain(self, registry):
+        """Should raise error for invalid domain"""
+        # First register a test entity
+        registry.register_entity(
+            entity_name="TestContact",
+            table_code="0123611",
+            entity_code="CON",
+            domain_code="2",
+            subdomain_code="03",
+        )
+
+        with pytest.raises(ValueError, match="Domain.*not found"):
+            registry.assign_function_code("invalid", "customer", "TestContact", "create")
 
 
 class TestDomainRegistryMappings:

@@ -470,13 +470,14 @@ class TestCodeDerivation:
         return NamingConventions("registry/domain_registry.yaml")
 
     def test_derive_function_code_from_table(self, nc):
-        """Should derive function code by changing layer to 03"""
-        table_code = "012031"  # write_side table
-        function_code = nc.derive_function_code(table_code)
+        """Should derive function code by changing layer to 03 with sequence"""
+        table_code = "0123611"  # write_side table (7 digits)
+        function_code = nc.derive_function_code(table_code, function_seq=1)
 
-        assert function_code == "032031"
+        assert function_code == "0323611"
         assert function_code[:2] == "03"  # functions layer
-        assert function_code[2:] == table_code[2:]  # same domain/subdomain/entity
+        assert function_code[2:6] == table_code[2:6]  # same domain/subdomain/entity
+        assert function_code[6] == "1"  # function sequence
 
     def test_derive_view_code_from_table(self, nc):
         """Should derive view code by changing layer to 02"""
@@ -489,11 +490,77 @@ class TestCodeDerivation:
 
     def test_derive_function_code_invalid_format(self, nc):
         """Should reject invalid table codes"""
-        with pytest.raises(ValueError, match="Invalid table code format"):
+        with pytest.raises(ValueError, match="Table code must be 7 digits"):
             nc.derive_function_code("123")  # Too short
 
-        with pytest.raises(ValueError, match="Invalid table code format"):
-            nc.derive_function_code("1234567")  # Too long
+        with pytest.raises(ValueError, match="Table code must be 7 digits"):
+            nc.derive_function_code("123456")  # 6 digits
+
+        with pytest.raises(ValueError, match="Table code must be 7 digits"):
+            nc.derive_function_code("12345678")  # Too long
+
+    def test_derive_function_code_with_sequence(self, nc):
+        """Should generate function codes with different sequences"""
+        table_code = "0123611"
+
+        # First function
+        func1 = nc.derive_function_code(table_code, function_seq=1)
+        assert func1 == "0323611"
+
+        # Second function
+        func2 = nc.derive_function_code(table_code, function_seq=2)
+        assert func2 == "0323612"
+
+        # Third function
+        func3 = nc.derive_function_code(table_code, function_seq=3)
+        assert func3 == "0323613"
+
+    def test_derive_function_code_invalid_sequence(self, nc):
+        """Should reject invalid function sequences"""
+        table_code = "0123611"
+
+        with pytest.raises(ValueError, match="Function sequence must be 1-9"):
+            nc.derive_function_code(table_code, function_seq=0)
+
+        with pytest.raises(ValueError, match="Function sequence must be 1-9"):
+            nc.derive_function_code(table_code, function_seq=10)
+
+    def test_derive_table_file_code(self, nc):
+        """Should generate table file codes with sequences"""
+        table_code = "0123611"
+
+        # Main table
+        main = nc.derive_table_file_code(table_code, file_seq=1)
+        assert main == "0123611"
+
+        # Audit table
+        audit = nc.derive_table_file_code(table_code, file_seq=2)
+        assert audit == "0123612"
+
+        # Info table
+        info = nc.derive_table_file_code(table_code, file_seq=3)
+        assert info == "0123613"
+
+    def test_derive_table_file_code_invalid_format(self, nc):
+        """Should reject invalid table codes"""
+        with pytest.raises(ValueError, match="Table code must be 7 digits"):
+            nc.derive_table_file_code("123")  # Too short
+
+        with pytest.raises(ValueError, match="Table code must be 7 digits"):
+            nc.derive_table_file_code("123456")  # 6 digits
+
+        with pytest.raises(ValueError, match="Table code must be 7 digits"):
+            nc.derive_table_file_code("12345678")  # Too long
+
+    def test_derive_table_file_code_invalid_sequence(self, nc):
+        """Should reject invalid file sequences"""
+        table_code = "0123611"
+
+        with pytest.raises(ValueError, match="File sequence must be 1-9"):
+            nc.derive_table_file_code(table_code, file_seq=0)
+
+        with pytest.raises(ValueError, match="File sequence must be 1-9"):
+            nc.derive_table_file_code(table_code, file_seq=10)
 
     def test_derive_view_code_invalid_format(self, nc):
         """Should reject invalid table codes"""
