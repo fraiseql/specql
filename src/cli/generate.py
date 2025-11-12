@@ -83,6 +83,11 @@ def cli():
     help="Target framework (default: fraiseql)",
 )  # NEW
 @click.option(
+    "--target",
+    type=click.Choice(["postgresql", "python_django", "python_sqlalchemy"]),
+    help="Target language for pattern-based code generation",
+)  # NEW
+@click.option(
     "--use-registry", is_flag=True, default=True, help="Use hexadecimal registry for table codes and paths"
 )  # CHANGED: Default to True
 @click.option(
@@ -90,6 +95,16 @@ def cli():
     type=click.Choice(["hierarchical", "confiture"]),
     default="hierarchical",
     help="Output format: hierarchical (full registry paths) or confiture (db/schema/ flat)",
+)  # NEW
+@click.option(
+    "--hierarchical/--flat",
+    default=True,
+    help="Use hierarchical file structure (default) or flat structure",
+)  # NEW
+@click.option(
+    "--dry-run",
+    is_flag=True,
+    help="Show what would be generated without writing files",
 )  # NEW
 @click.option(
     "--with-impacts",
@@ -125,8 +140,11 @@ def entities(
     foundation_only: bool,
     include_tv: bool,
     framework: str,  # NEW
+    target: str,  # NEW
     use_registry: bool,  # NEW
     output_format: str,  # NEW
+    hierarchical: bool,  # NEW
+    dry_run: bool,  # NEW
     with_impacts: bool,  # NEW
     output_frontend: str,  # NEW
     with_query_patterns: bool,  # NEW
@@ -143,38 +161,88 @@ def entities(
 
     COMMON EXAMPLES:
 
-      # Generate all entities (FraiseQL framework, production-ready)
-      specql generate entities/**/*.yaml
-      # → Uses FraiseQL defaults: tv_* views, Trinity pattern, audit fields
+       # Generate all entities hierarchically (default, production-ready)
+       specql generate entities/**/*.yaml
+       # → Hierarchical structure: 0_schema/01_write_side/012_crm/...
 
-      # Generate for specific framework
-      specql generate entities/**/*.yaml --framework django
-      # → Uses Django defaults: models.py, admin.py, no tv_*
+       # Generate in flat structure (legacy)
+       specql generate entities/**/*.yaml --flat
+       # → Flat structure: db/schema/10_tables/...
 
-      # Generate specific entities
-      specql generate entities/catalog/*.yaml
+       # Dry run to preview what would be generated
+       specql generate entities/**/*.yaml --dry-run --verbose
 
-      # Custom output directory
-      specql generate entities/**/*.yaml --output migrations/v2/
+       # Generate for specific framework
+       specql generate entities/**/*.yaml --framework django
+       # → Uses Django defaults: models.py, admin.py, no tv_*
 
-      # Development mode (flat structure for confiture)
-      specql generate entities/**/*.yaml --dev
+       # Generate specific entities
+       specql generate entities/catalog/*.yaml
 
-      # List available frameworks
-      specql list-frameworks
+       # Custom output directory
+       specql generate entities/**/*.yaml --output migrations/v2/
+
+       # Development mode (flat structure for confiture)
+       specql generate entities/**/*.yaml --dev
+
+       # List available frameworks
+       specql list-frameworks
 
     OUTPUT FORMATS:
 
-      hierarchical (default)
-        Organized directory structure matching domain/subdomain/entity hierarchy.
-        Best for: Production migrations, large codebases, team collaboration
+       hierarchical (default, --hierarchical)
+         Organized directory structure matching domain/subdomain/entity hierarchy.
+         Best for: Production migrations, large codebases, team collaboration
 
-      flat (--dev or --format=confiture)
-        Flat directory structure grouped by object type.
-        Best for: Development with confiture, simple projects
+       flat (--flat or --dev)
+         Flat directory structure grouped by object type.
+         Best for: Development with confiture, simple projects
+
+       dry-run (--dry-run)
+         Show what would be generated without writing any files.
+         Best for: Previewing changes, validation
 
     For comprehensive help, run: specql generate --help
     """
+
+    # Handle pattern-based multi-language generation
+    if target:
+        from src.pattern_library.pattern_based_compiler import PatternBasedCompiler
+        from tests.integration.test_pattern_library_multilang import MultiLanguageGenerator
+
+        click.secho(f"🔧 Generating {target} code using pattern library...", fg="blue", bold=True)
+
+        parser = SpecQLParser()
+        generator = MultiLanguageGenerator()
+
+        for entity_file in entity_files:
+            with open(entity_file) as f:
+                yaml_content = f.read()
+            entity_def = parser.parse(yaml_content)
+
+            if target == "postgresql":
+                code = generator.generate_postgresql(entity_def)
+            elif target == "python_django":
+                code = generator.generate_django(entity_def)
+            elif target == "python_sqlalchemy":
+                code = generator.generate_sqlalchemy(entity_def)
+            else:
+                raise click.ClickException(f"Unsupported target: {target}")
+
+            # Write to output file
+            output_path = Path(output_dir)
+            output_path.mkdir(parents=True, exist_ok=True)
+            output_file = output_path / f"{entity_def.name.lower()}_{target}.sql" if target == "postgresql" else f"{entity_def.name.lower()}_{target}.py"
+
+            if dry_run:
+                click.echo(f"Would write to {output_file}:")
+                click.echo(code[:500] + "..." if len(code) > 500 else code)
+            else:
+                with open(output_file, 'w') as f:
+                    f.write(code)
+                click.secho(f"✅ Generated {output_file}", fg="green")
+
+        return
 
     # Apply development mode overrides
     if dev:
@@ -182,6 +250,12 @@ def entities(
         output_format = "confiture"
         output_dir = "db/schema"
         include_tv = False
+
+    # Apply --hierarchical/--flat override
+    if not hierarchical:
+        output_format = "confiture"
+    else:
+        output_format = "hierarchical"
 
     # Apply --no-tv override
     if no_tv:
@@ -196,15 +270,24 @@ def entities(
     )
 
     # Generate migrations
-    result = orchestrator.generate_from_files(
-        entity_files=list(entity_files),
-        output_dir=output_dir,
-        foundation_only=foundation_only,
-        include_tv=include_tv,
-        with_query_patterns=with_query_patterns,
-        with_audit_cascade=with_audit_cascade,
-        with_outbox=with_outbox,
-    )
+    if hierarchical and use_registry:
+        # Use new hierarchical generation
+        result = orchestrator.generate_hierarchical(
+            entity_files=list(entity_files),
+            output_dir=output_dir,
+            dry_run=dry_run
+        )
+    else:
+        # Use legacy generation
+        result = orchestrator.generate_from_files(
+            entity_files=list(entity_files),
+            output_dir=output_dir,
+            foundation_only=foundation_only,
+            include_tv=include_tv,
+            with_query_patterns=with_query_patterns,
+            with_audit_cascade=with_audit_cascade,
+            with_outbox=with_outbox,
+        )
 
     # Generate frontend code if requested
     if output_frontend:
