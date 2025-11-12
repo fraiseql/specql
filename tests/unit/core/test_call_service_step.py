@@ -1,7 +1,5 @@
 """Tests for call_service step parsing."""
 
-import pytest
-from src.core.ast_models import CallServiceStep
 from src.core.specql_parser import SpecQLParser
 
 

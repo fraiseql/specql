@@ -7,7 +7,6 @@ from src.runners.http_runner import HTTPRunner
 from src.runners.job_runner import (
     JobRecord,
     ExecutionContext,
-    JobResult,
     ResourceRequirements,
 )
 

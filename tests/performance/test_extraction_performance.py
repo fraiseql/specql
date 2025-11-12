@@ -7,7 +7,6 @@ compared to direct LEFT JOINs with NULL filtering.
 
 import pytest
 import time
-from typing import List, Dict, Any
 
 
 class TestExtractionPerformance:

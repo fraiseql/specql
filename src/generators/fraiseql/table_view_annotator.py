@@ -78,11 +78,11 @@ COMMENT ON TABLE {self.schema}.tv_{self.entity_lower} IS
         for field_name, field in self.entity.fields.items():
             if field.type_name.startswith("ref("):
                 ref_entity = self._extract_ref_entity(field.type_name)
-                ref_lower = ref_entity.lower()
+                field_lower = field_name.lower()
 
                 lines.append("")
                 lines.append(
-                    f"COMMENT ON COLUMN {self.schema}.tv_{self.entity_lower}.fk_{ref_lower} IS"
+                    f"COMMENT ON COLUMN {self.schema}.tv_{self.entity_lower}.fk_{field_lower} IS"
                 )
                 lines.append(
                     f"  '@fraiseql:field internal=true,description=Internal FK for {ref_entity}';"
@@ -121,11 +121,11 @@ COMMENT ON TABLE {self.schema}.tv_{self.entity_lower} IS
         for field_name, field in self.entity.fields.items():
             if field.type_name.startswith("ref("):
                 ref_entity = self._extract_ref_entity(field.type_name)
-                ref_lower = ref_entity.lower()
+                field_lower = field_name.lower()
 
                 lines.append("")
                 lines.append(
-                    f"COMMENT ON COLUMN {self.schema}.tv_{self.entity_lower}.{ref_lower}_id IS"
+                    f"COMMENT ON COLUMN {self.schema}.tv_{self.entity_lower}.{field_lower}_id IS"
                 )
                 lines.append(
                     f"  '@fraiseql:filter type=UUID,relation={ref_entity},index=btree,performance=optimized,description=Filter by {ref_entity}';"

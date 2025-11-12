@@ -9,9 +9,7 @@ import time
 import psycopg2
 import psycopg2.extras
 from dataclasses import dataclass
-from typing import Dict, List, Any, Optional
-from pathlib import Path
-import yaml
+from typing import List, Any, Optional
 
 
 @dataclass

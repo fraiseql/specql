@@ -1,6 +1,5 @@
 """Integration tests for SCD Type 2 pattern."""
 
-import pytest
 from src.patterns.pattern_registry import PatternRegistry
 
 

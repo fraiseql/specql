@@ -1,6 +1,5 @@
 """Test Trend Analysis Pattern"""
 
-import pytest
 from src.patterns.pattern_registry import PatternRegistry
 
 

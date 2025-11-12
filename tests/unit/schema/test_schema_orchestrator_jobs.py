@@ -1,6 +1,5 @@
 """Tests for schema orchestrator integration with jobs schema."""
 
-import pytest
 from src.generators.schema_orchestrator import SchemaOrchestrator
 
 

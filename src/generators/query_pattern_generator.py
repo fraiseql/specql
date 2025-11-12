@@ -6,8 +6,7 @@ converting YAML-defined patterns into executable SQL views.
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Any, Set
-from pathlib import Path
+from typing import Dict, List, Any
 from collections import defaultdict, deque
 
 from src.patterns.pattern_registry import PatternRegistry

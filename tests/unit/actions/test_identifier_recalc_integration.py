@@ -2,7 +2,6 @@
 Unit tests for identifier recalculation integration in CoreLogicGenerator
 """
 
-import pytest
 
 from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
 

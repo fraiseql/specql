@@ -8,9 +8,9 @@ validate configurations, and expand patterns into action steps using Jinja2 temp
 import yaml
 from pathlib import Path
 from typing import Dict, Any, List, Optional
-from jinja2 import Environment, FileSystemLoader, Template
+from jinja2 import Environment, FileSystemLoader
 
-from .pattern_models import PatternDefinition, PatternConfig, ExpandedPattern, PatternParameter
+from .pattern_models import PatternDefinition, ExpandedPattern
 
 
 class PatternLoader:

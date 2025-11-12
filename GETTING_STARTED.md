@@ -43,17 +43,47 @@ actions:
 specql generate entities/contact.yaml
 ```
 
-Output is written to `db/schema/`:
-- `10_tables/contact.sql` - Table definition
-- `20_helpers/contact_helpers.sql` - Helper functions
-- `30_functions/` - Business logic functions
+**New in v1.0**: Production-ready defaults with FraiseQL framework!
+
+Output is written to `migrations/` with hierarchical structure:
+- `000_app_foundation.sql` - App schema foundation
+- `01_write_side/011_crm/011XXX_contact/` - Entity-specific directory
+  - `011XXX_tb_contact.sql` - Table definition with Trinity pattern
+  - `011XXX_tv_contact.sql` - Table view for GraphQL queries
+  - `011XXX_fn_contact_*.sql` - Business logic functions
+
+**For development mode** (flat structure like before):
+```bash
+specql generate entities/contact.yaml --dev
+```
 
 ## Apply to Database
 
+**For production mode** (hierarchical structure):
+
 ```bash
 createdb specql_demo
-psql specql_demo -f db/schema/10_tables/contact.sql
-psql specql_demo -f db/schema/20_helpers/contact_helpers.sql
+
+# Apply foundation first
+psql specql_demo -f migrations/000_app_foundation.sql
+
+# Apply entity files in order
+find migrations/01_write_side -name "*.sql" | sort | xargs -I {} psql specql_demo -f {}
+```
+
+**For development mode** (flat structure):
+
+```bash
+createdb specql_demo
+
+# Apply foundation
+psql specql_demo -f db/schema/00_foundation/000_app_foundation.sql
+
+# Apply tables
+for file in db/schema/10_tables/*.sql; do psql specql_demo -f "$file"; done
+
+# Apply functions
+for file in db/schema/30_functions/*.sql; do psql specql_demo -f "$file"; done
 ```
 
 ## Test It Works
@@ -64,6 +94,9 @@ psql specql_demo -c "SELECT crm.create_contact('john@example.com', 'lead');"
 
 # Check the result
 psql specql_demo -c "SELECT id, email, status FROM crm.tb_contact;"
+
+# Or query the GraphQL view
+psql specql_demo -c "SELECT id, email, status FROM crm.tv_contact;"
 ```
 
 ## Next Steps

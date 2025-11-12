@@ -96,7 +96,7 @@ class TestInternalColumnAnnotations:
         sql = annotator.generate_annotations()
 
         # Both FK columns should be marked internal
-        assert "COMMENT ON COLUMN library.tv_review.fk_user" in sql
+        assert "COMMENT ON COLUMN library.tv_review.fk_author" in sql
         assert "COMMENT ON COLUMN library.tv_review.fk_book" in sql
         assert sql.count("internal=true") >= 4  # pk + 2 fks + refreshed_at
 
@@ -163,8 +163,8 @@ class TestFilterColumnAnnotations:
         annotator = TableViewAnnotator(entity)
         sql = annotator.generate_annotations()
 
-        # user_id filter (extracted from ref(User))
-        assert "COMMENT ON COLUMN library.tv_review.user_id" in sql
+        # author_id filter (extracted from ref(User))
+        assert "COMMENT ON COLUMN library.tv_review.author_id" in sql
         assert "@fraiseql:filter type=UUID" in sql
         assert "relation=User" in sql
 

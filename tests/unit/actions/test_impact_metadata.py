@@ -175,3 +175,61 @@ class TestImpactMetadata:
         sql = compiler.integrate_into_result(action)
         assert "'createdNotifications'" in sql
         assert "_build_collection_query" not in sql  # Method should be called
+
+    def test_multi_step_action_tracks_all_entities(self, compiler):
+        """Multi-step action should track IDs for all affected entities"""
+        from src.core.ast_models import Entity
+
+        action = Action(
+            name="create_post_with_notification",
+            impact=ActionImpact(
+                primary=EntityImpact(entity="Post", operation="CREATE"),
+                side_effects=[
+                    EntityImpact(entity="Notification", operation="CREATE"),
+                    EntityImpact(entity="User", operation="UPDATE", fields=["post_count"])
+                ]
+            ),
+            steps=[]
+        )
+        entity = Entity(name="Post", schema="blog")
+
+        # Test cascade variable declarations
+        sql = compiler.compile(action, entity)
+        assert "v_cascade_entities JSONB[]" in sql
+        assert "v_cascade_deleted JSONB[]" in sql
+
+        # Test cascade building for multiple entities
+        assert "app.cascade_entity(" in sql  # Should have cascade calls
+        assert "'Post'" in sql  # Primary entity
+        assert "'Notification'" in sql  # Side effect CREATE
+        assert "'User'" in sql  # Side effect UPDATE
+
+    def test_extra_metadata_includes_cascade_automatically(self, compiler):
+        """extra_metadata should include _cascade when impact exists and cascade is enabled"""
+        from src.core.ast_models import Entity
+
+        action = Action(
+            name="create_post",
+            impact=ActionImpact(
+                primary=EntityImpact(entity="Post", operation="CREATE")
+            ),
+            steps=[]
+        )
+        entity = Entity(name="Post", schema="blog")
+
+        # Enable cascade by calling compile with entity
+        compiler.compile(action, entity)
+        metadata_sql = compiler.integrate_into_result(action)
+
+        # Should include _cascade
+        assert "'_cascade'" in metadata_sql
+        assert "v_cascade_entities" in metadata_sql
+        assert "v_cascade_deleted" in metadata_sql
+
+        # Should include timestamp and affectedCount
+        assert "'timestamp'" in metadata_sql
+        assert "'affectedCount'" in metadata_sql
+
+        # Should still include _meta (backward compatibility)
+        assert "'_meta'" in metadata_sql
+        assert "to_jsonb(v_meta)" in metadata_sql

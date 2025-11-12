@@ -4,7 +4,6 @@ Structured logging configuration for SpecQL.
 
 import logging
 import sys
-from typing import Any
 
 
 def setup_logging(level: str = "INFO", format: str = "json") -> None:

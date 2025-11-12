@@ -1,6 +1,5 @@
 """Tests for materialized view refresh orchestration."""
 
-import pytest
 from src.patterns.wrapper.mv_refresh import generate_refresh_function, generate_refresh_trigger
 
 

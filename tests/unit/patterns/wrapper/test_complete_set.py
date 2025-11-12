@@ -1,6 +1,5 @@
 """Tests for complete set wrapper pattern."""
 
-import pytest
 from src.patterns.wrapper.complete_set import generate_complete_set_wrapper
 
 

@@ -1,6 +1,5 @@
 """Integration tests for call_service actions."""
 
-import pytest
 from src.generators.actions.action_orchestrator import ActionOrchestrator
 from src.registry.service_registry import ServiceRegistry, Service, ServiceOperation
 from src.runners.execution_types import ExecutionType

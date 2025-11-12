@@ -1,6 +1,5 @@
 """Test translation coverage reporting"""
 
-import pytest
 from src.patterns.localization.translation_utils import TranslationManager
 
 

@@ -3,10 +3,8 @@ Integration tests for pattern-based action compilation.
 """
 
 import pytest
-from pathlib import Path
 
 from src.core.specql_parser import SpecQLParser
-from src.core.ast_models import EntityDefinition
 
 
 class TestPatternCompilation:

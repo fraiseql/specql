@@ -5,7 +5,6 @@ Tests the polymorphic/type_resolver pattern that resolves ambiguous PKs to entit
 """
 
 import pytest
-from unittest.mock import Mock
 
 from src.patterns.pattern_registry import PatternRegistry
 

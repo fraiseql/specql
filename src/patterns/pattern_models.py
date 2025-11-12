@@ -6,8 +6,7 @@ their parameters, and configuration.
 """
 
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional, Union
-from pathlib import Path
+from typing import Any, Dict, List, Optional
 
 
 @dataclass

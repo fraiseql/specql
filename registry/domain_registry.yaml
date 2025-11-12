@@ -1,5 +1,5 @@
 version: 1.0.0
-last_updated: '2025-11-11T09:56:47.578199'
+last_updated: '2025-11-11T21:47:45.480572'
 schema_layers:
   '00': common
   '01': write_side
@@ -34,6 +34,11 @@ domains:
       '05':
         name: config
         description: System configuration & settings
+        next_entity_sequence: 1
+        entities: {}
+      09:
+        name: utilities
+        description: Utility functions, helpers & system utilities
         next_entity_sequence: 1
         entities: {}
   '2':
@@ -100,23 +105,13 @@ domains:
             entity_code: MNF
             assigned_at: '2025-11-10T09:17:31.665985'
       '03':
-        name: product
-        description: Product entities, SKUs & variants
+        name: financing
+        description: Financing options, pricing & payment terms
         next_entity_sequence: 1
         entities: {}
       '04':
         name: generic
         description: Generic product data & specifications
-        next_entity_sequence: 1
-        entities: {}
-      '05':
-        name: financing
-        description: Financing options, pricing & payment terms
-        next_entity_sequence: 1
-        entities: {}
-      '06':
-        name: inventory
-        description: Inventory management & stock tracking
         next_entity_sequence: 1
         entities: {}
   '4':

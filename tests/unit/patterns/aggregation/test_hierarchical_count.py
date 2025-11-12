@@ -1,6 +1,5 @@
 """Tests for hierarchical count aggregation pattern."""
 
-import pytest
 from src.patterns.aggregation.hierarchical_count import generate_hierarchical_count
 
 

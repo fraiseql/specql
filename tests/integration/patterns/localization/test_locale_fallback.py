@@ -1,6 +1,5 @@
 """Integration tests for locale fallback functionality"""
 
-import pytest
 from src.patterns.pattern_registry import PatternRegistry
 
 

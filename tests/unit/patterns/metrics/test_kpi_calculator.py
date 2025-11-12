@@ -1,6 +1,5 @@
 """Test KPI Calculator Pattern"""
 
-import pytest
 from src.patterns.pattern_registry import PatternRegistry
 
 

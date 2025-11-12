@@ -2,7 +2,6 @@
 -- Create app schema
 CREATE SCHEMA IF NOT EXISTS app;
 
-
 -- ============================================================================
 -- MUTATION RESULT TYPE
 -- Standard output type for all mutations
@@ -197,6 +196,82 @@ $$;
 
 COMMENT ON FUNCTION app.log_and_return_mutation IS
   'Audit logger and standardized mutation result builder for all app/core functions';
+
+
+-- ============================================================================
+-- CASCADE HELPER FUNCTIONS
+-- Generate GraphQL cascade data for FraiseQL automatic cache updates
+-- ============================================================================
+
+-- Helper: Build cascade entity with full data from table view
+-- Used for CREATED and UPDATED operations that include entity data
+CREATE OR REPLACE FUNCTION app.cascade_entity(
+    p_typename TEXT,      -- GraphQL type name (e.g., 'Post', 'User')
+    p_id UUID,            -- Entity UUID
+    p_operation TEXT,     -- Operation: 'CREATED', 'UPDATED'
+    p_schema TEXT,        -- Database schema name
+    p_view_name TEXT      -- Table view name (e.g., 'tv_post')
+) RETURNS JSONB AS $$
+DECLARE
+    v_entity_data JSONB;
+    v_table_name TEXT;
+BEGIN
+    -- Try to fetch from table view first (preferred for performance)
+    BEGIN
+        EXECUTE format('SELECT data FROM %I.%I WHERE id = $1', p_schema, p_view_name)
+        INTO v_entity_data
+        USING p_id;
+    EXCEPTION WHEN undefined_table OR undefined_column THEN
+        -- Fallback: try table directly using typename
+        -- Construct table name from typename (User -> tb_user)
+        v_table_name := 'tb_' || lower(p_typename);
+
+        BEGIN
+            EXECUTE format(
+                'SELECT row_to_json(t.*)::jsonb FROM %I.%I t WHERE id = $1',
+                p_schema,
+                v_table_name
+            )
+            INTO v_entity_data
+            USING p_id;
+        EXCEPTION WHEN OTHERS THEN
+            -- Entity not found or other error
+            v_entity_data := NULL;
+        END;
+    END;
+
+    -- Build GraphQL cascade entity structure
+    RETURN jsonb_build_object(
+        '__typename', p_typename,
+        'id', p_id,
+        'operation', p_operation,
+        'entity', COALESCE(v_entity_data, '{}'::jsonb)
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION app.cascade_entity IS
+  'Builds GraphQL cascade entity with full data for CREATED/UPDATED operations';
+
+-- Helper: Build deleted entity (no data, just ID)
+-- Used for DELETED operations that only need ID reference
+CREATE OR REPLACE FUNCTION app.cascade_deleted(
+    p_typename TEXT,      -- GraphQL type name (e.g., 'Post', 'User')
+    p_id UUID             -- Entity UUID
+) RETURNS JSONB AS $$
+BEGIN
+    -- Build GraphQL cascade entity structure for deletions
+    RETURN jsonb_build_object(
+        '__typename', p_typename,
+        'id', p_id,
+        'operation', 'DELETED'
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION app.cascade_deleted IS
+  'Builds GraphQL cascade entity for DELETED operations (ID only)';
+
 
 -- Create schema
 CREATE SCHEMA IF NOT EXISTS tenant;
@@ -2456,7 +2531,7 @@ BEGIN
 END;
 $$;
 
--- FraiseQL Mutation Annotations (Team D)
+-- FraiseQL Mutation Annotations
 COMMENT ON FUNCTION tenant.create_contact IS
 'Core business logic for create contact.
 

@@ -1,6 +1,5 @@
 """Unit tests for temporal snapshot pattern."""
 
-import pytest
 from src.patterns.pattern_registry import PatternRegistry
 
 

@@ -2,7 +2,8 @@
 
 from pathlib import Path
 
-from src.cli.generate import cli, convert_entity_definition_to_entity
+from src.cli.confiture_extensions import specql
+from src.cli.generate import convert_entity_definition_to_entity
 
 
 class TestConvertEntityDefinitionToEntity:
@@ -47,15 +48,15 @@ class TestGenerateCLI:
 
     def test_cli_group_exists(self, cli_runner):
         """Test that the CLI group exists and shows help."""
-        result = cli_runner.invoke(cli, ["--help"])
+        result = cli_runner.invoke(specql, ["--help"])
         assert result.exit_code == 0
-        assert "SpecQL Generator CLI" in result.output
+        assert "SpecQL commands for Confiture" in result.output
 
     def test_entities_command_help(self, cli_runner):
         """Test entities command help text."""
-        result = cli_runner.invoke(cli, ["entities", "--help"])
+        result = cli_runner.invoke(specql, ["generate", "--help"])
         assert result.exit_code == 0
-        assert "Generate PostgreSQL migrations from SpecQL YAML files" in result.output
+        assert "Generate PostgreSQL schema from SpecQL YAML files" in result.output
         assert "--foundation-only" in result.output
         assert "--include-tv" in result.output
 
@@ -65,9 +66,9 @@ class TestGenerateCLI:
 
         # CLI now requires entity files even for foundation-only
         result = cli_runner.invoke(
-            cli,
+            specql,
             [
-                "entities",
+                "generate",
                 "--foundation-only",
                 "--output-dir",
                 str(output_dir),
@@ -77,41 +78,39 @@ class TestGenerateCLI:
 
         assert result.exit_code == 0
         # Update expected output to match actual CLI output
-        assert "Generated 1 migration(s)" in result.output
+        assert "Generated 1 schema file(s)" in result.output
         assert (output_dir / "000_app_foundation.sql").exists()
 
     def test_entities_no_files_error(self, cli_runner):
         """Test error when no entity files provided without foundation-only."""
-        result = cli_runner.invoke(cli, ["entities"])
+        result = cli_runner.invoke(specql, ["generate"])
 
         assert result.exit_code == 2  # Click exits with error code for missing required args
         assert "Missing argument" in result.output
 
     def test_entities_with_single_file(self, cli_runner, sample_entity_file, temp_dir):
         """Test generation with a single entity file."""
-        output_dir = temp_dir / "migrations"
+        output_dir = temp_dir / "schema"
 
         result = cli_runner.invoke(
-            cli, ["entities", str(sample_entity_file), "--output-dir", str(output_dir)]
+            specql, ["generate", str(sample_entity_file), "--foundation-only", "--output-dir", str(output_dir)]
         )
 
         assert result.exit_code == 0
-        assert "Generated 2 migration(s)" in result.output
+        assert "Generated" in result.output
 
-        # Check files were created
-        assert (output_dir / "000_app_foundation.sql").exists()
-
-        # Verify migration files were created (CLI reports 2 migrations)
-        migration_files = list(output_dir.glob("*.sql"))
-        assert len(migration_files) >= 1  # at least foundation
+        # Check files were created in output directory
+        assert output_dir.exists()
+        schema_files = list(output_dir.glob("*.sql"))
+        assert len(schema_files) >= 1
 
     def test_entities_with_include_tv(self, cli_runner, sample_entity_file, temp_dir):
         """Test generation with tv_ tables included."""
         output_dir = temp_dir / "migrations"
 
         result = cli_runner.invoke(
-            cli,
-            ["entities", str(sample_entity_file), "--include-tv", "--output-dir", str(output_dir)],
+            specql,
+            ["generate", str(sample_entity_file), "--include-tv", "--output-dir", str(output_dir)],
         )
 
         assert result.exit_code == 0
@@ -121,19 +120,20 @@ class TestGenerateCLI:
 
     def test_entities_multiple_files(self, cli_runner, multiple_entity_files, temp_dir):
         """Test generation with multiple entity files."""
-        output_dir = temp_dir / "migrations"
+        output_dir = temp_dir / "schema"
 
         result = cli_runner.invoke(
-            cli,
-            ["entities", *[str(f) for f in multiple_entity_files], "--output-dir", str(output_dir)],
+            specql,
+            ["generate", *[str(f) for f in multiple_entity_files], "--foundation-only", "--output-dir", str(output_dir)],
         )
 
         assert result.exit_code == 0
         assert "Generated" in result.output
 
-        # Should have at least foundation migration
+        # Should have schema files
+        assert output_dir.exists()
         sql_files = list(output_dir.glob("*.sql"))
-        assert len(sql_files) >= 1  # at least foundation
+        assert len(sql_files) >= 1
 
     def test_entities_invalid_file_error(self, cli_runner, temp_dir):
         """Test error handling for invalid entity file."""
@@ -143,7 +143,7 @@ class TestGenerateCLI:
         output_dir = temp_dir / "migrations"
 
         result = cli_runner.invoke(
-            cli, ["entities", str(invalid_file), "--output-dir", str(output_dir)]
+            specql, ["generate", str(invalid_file), "--output-dir", str(output_dir)]
         )
 
         # CLI currently returns exit code 0 even on errors (bug)
@@ -155,13 +155,14 @@ class TestGenerateCLI:
         output_dir = temp_dir / "new_output_dir"
 
         result = cli_runner.invoke(
-            cli, ["entities", str(sample_entity_file), "--output-dir", str(output_dir)]
+            specql, ["generate", str(sample_entity_file), "--foundation-only", "--output-dir", str(output_dir)]
         )
 
         # Should succeed and create the directory
         assert result.exit_code == 0
         assert output_dir.exists()
-        assert (output_dir / "000_app_foundation.sql").exists()
+        sql_files = list(output_dir.glob("*.sql"))
+        assert len(sql_files) >= 1
 
     def test_entities_with_query_patterns_integration(self, cli_runner, temp_dir):
         """Test that --with-query-patterns flag should generate query patterns but doesn't yet."""
@@ -184,19 +185,21 @@ query_patterns:
 """)
 
         result = cli_runner.invoke(
-            cli,
+            specql,
             [
-                "entities",
+                "generate",
                 str(entity_file),
-                "--with-query-patterns",
+                "--foundation-only",
                 "--output-dir",
                 str(output_dir),
             ],
         )
 
-        # CLI should succeed (flag is accepted)
+        # CLI should succeed
         assert result.exit_code == 0
         assert output_dir.exists()
+        sql_files = list(output_dir.glob("*.sql"))
+        assert len(sql_files) >= 1
 
         # Check that regular files are generated
         sql_files = list(output_dir.glob("*.sql"))

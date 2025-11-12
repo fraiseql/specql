@@ -8,6 +8,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- **Automatic GraphQL Cascade Support**: SpecQL now automatically generates cascade data
+  in `mutation_result.extra_metadata._cascade` for all actions with impact metadata.
+  This enables FraiseQL to automatically update GraphQL client caches.
+  - Zero configuration required
+  - Works with all existing actions that have impact metadata
+  - Includes primary entity and all side effects
+  - Backward compatible
+  - PostgreSQL helper functions: `app.cascade_entity()`, `app.cascade_deleted()`
 - Production-ready example with CRM entities
 - Comprehensive test suite with >95% coverage
 - CI/CD pipeline with GitHub Actions

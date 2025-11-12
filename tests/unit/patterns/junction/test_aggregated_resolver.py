@@ -2,7 +2,6 @@
 Tests for junction/aggregated_resolver pattern.
 """
 
-import pytest
 from src.patterns.pattern_registry import PatternRegistry
 
 

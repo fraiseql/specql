@@ -45,21 +45,104 @@ actions:
       - update: Contact SET status = 'qualified'
 ```
 
-Output: PostgreSQL table with Trinity pattern, indexes, audit fields, helper functions.
-
-```sql
-CREATE TABLE crm.tb_contact (
-  pk_contact INTEGER PRIMARY KEY,
-  id UUID NOT NULL DEFAULT gen_random_uuid(),
-  identifier TEXT NOT NULL,
-  email TEXT,
-  status TEXT CHECK (status IN ('lead', 'qualified', 'customer')),
-  created_at TIMESTAMP DEFAULT NOW(),
-  updated_at TIMESTAMP DEFAULT NOW(),
-  deleted_at TIMESTAMP,
-  -- ... more audit fields
-);
+**Generate production-ready schema** (FraiseQL defaults):
+```bash
+specql generate entities/contact.yaml
 ```
+
+Output: Hierarchical directory structure with GraphQL-ready tables, Trinity pattern, audit fields, and helper functions.
+
+```
+migrations/
+├── 000_app_foundation.sql
+└── 01_write_side/
+    └── 011_crm/
+        └── 011001_contact/
+            ├── 011001_tb_contact.sql    # Table with Trinity pattern
+            ├── 011001_tv_contact.sql    # GraphQL view
+            └── 011001_fn_contact_*.sql  # Business logic functions
+```
+
+**Development mode** (flat structure):
+```bash
+specql generate entities/contact.yaml --dev
+```
+
+Output: Simple flat structure for development iteration.
+
+```
+db/schema/
+├── 10_tables/contact.sql
+├── 20_helpers/contact_helpers.sql
+└── 30_functions/qualify_lead.sql
+```
+
+## 🚀 GraphQL Cascade Support
+
+SpecQL automatically generates GraphQL Cascade data for FraiseQL integration,
+enabling automatic GraphQL client cache updates.
+
+**Zero configuration required!** Just define impact metadata in your actions:
+
+```yaml
+actions:
+  - name: create_post
+    impact:
+      primary:
+        entity: Post
+        operation: CREATE
+```
+
+SpecQL automatically includes cascade data in `mutation_result.extra_metadata._cascade`.
+
+See [Automatic GraphQL Cascade](docs/features/AUTOMATIC_GRAPHQL_CASCADE.md) for details.
+
+## CLI Usage
+
+SpecQL provides an intelligent CLI with production-ready defaults and framework-aware generation.
+
+### Production-Ready Generation (Default)
+
+```bash
+# Generate for FraiseQL (full-stack GraphQL)
+specql generate entities/**/*.yaml
+```
+
+**Features**:
+- ✅ Hierarchical directory structure
+- ✅ Table views (tv_*) for GraphQL queries
+- ✅ Trinity pattern (pk_*, id, identifier)
+- ✅ Audit fields and helper functions
+- ✅ Rich progress output and statistics
+
+### Development Mode
+
+```bash
+# Quick development iteration
+specql generate entities/**/*.yaml --dev
+```
+
+**Features**:
+- ✅ Flat directory structure
+- ✅ Fast generation for development
+- ✅ Confiture-compatible output
+
+### Framework-Specific Generation
+
+```bash
+# Generate for different frameworks
+specql generate entities/**/*.yaml --framework django
+specql generate entities/**/*.yaml --framework rails
+specql generate entities/**/*.yaml --framework prisma
+```
+
+**Framework Defaults**:
+- **FraiseQL**: GraphQL views, Trinity pattern, hierarchical output
+- **Django**: ORM models, admin interface, flat output
+- **Rails**: ActiveRecord models, migrations, flat output
+- **Prisma**: Schema definitions, client code, flat output
+
+See [CLI Guide](docs/guides/CLI_GUIDE.md) for comprehensive usage documentation.
 
 ## Key Features
 
@@ -72,10 +155,12 @@ CREATE TABLE crm.tb_contact (
 ## Documentation
 
 - [Getting Started](GETTING_STARTED.md) - Quick start guide
+- [CLI Guide](docs/guides/CLI_GUIDE.md) - Comprehensive CLI usage guide
 - [Architecture](docs/architecture/) - Technical implementation details
 - [API Reference](docs/api/) - Complete API documentation
 - [Examples](examples/) - Working examples
 - [Guides](docs/guides/) - How-to guides
+- [CLI Reference](docs/reference/cli-reference.md) - Legacy CLI reference
 
 ## Project Status
 

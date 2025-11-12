@@ -367,6 +367,17 @@ class EntityDefinition:
 
 
 @dataclass
+class CDCConfig:
+    """CDC/Outbox configuration for actions"""
+
+    enabled: bool = False
+    event_type: str | None = None  # e.g., 'PostCreated'
+    include_cascade: bool = True    # Include cascade in event_metadata
+    include_payload: bool = True    # Include full entity data
+    partition_key: str | None = None  # Custom partition key expression
+
+
+@dataclass
 class ActionDefinition:
     """Represents an action in SpecQL"""
 
@@ -383,6 +394,8 @@ class ActionDefinition:
 
     pattern: str | None = None  # Pattern name if this action uses a pattern
     pattern_config: dict[str, Any] | None = None  # Pattern configuration
+
+    cdc: CDCConfig | None = None  # CDC configuration
 
 
 @dataclass
@@ -483,6 +496,7 @@ class Action:
     steps: list[ActionStep] = field(default_factory=list)
     impact: ActionImpact | None = None  # Impact metadata
     hierarchy_impact: str | None = None  # Explicit path recalculation scope
+    cdc: CDCConfig | None = None  # CDC configuration
 
 
 @dataclass

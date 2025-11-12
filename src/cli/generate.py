@@ -9,6 +9,7 @@ from pathlib import Path
 import click
 
 from src.cli.orchestrator import CLIOrchestrator
+from src.cli.help_text import get_generate_help_text
 from src.core.ast_models import Action, Entity, EntityDefinition
 from src.core.specql_parser import SpecQLParser
 from src.testing.pgtap.pgtap_generator import PgTAPGenerator
@@ -70,14 +71,20 @@ def cli():
     pass
 
 
-@cli.command()
+@cli.command(help=get_generate_help_text())
 @click.argument("entity_files", nargs=-1, type=click.Path(exists=True), required=True)
 @click.option("--output-dir", default="migrations", help="Output directory")
 @click.option("--foundation-only", is_flag=True, help="Generate only app foundation")
 @click.option("--include-tv", is_flag=True, help="Generate table views")
 @click.option(
-    "--use-registry", is_flag=True, help="Use hexadecimal registry for table codes and paths"
+    "--framework",
+    type=click.Choice(["fraiseql", "django", "rails", "prisma"]),
+    default="fraiseql",
+    help="Target framework (default: fraiseql)",
 )  # NEW
+@click.option(
+    "--use-registry", is_flag=True, default=True, help="Use hexadecimal registry for table codes and paths"
+)  # CHANGED: Default to True
 @click.option(
     "--output-format",
     type=click.Choice(["hierarchical", "confiture"]),
@@ -109,11 +116,15 @@ def cli():
     is_flag=True,
     help="Generate CDC outbox table and functions for event streaming",
 )  # NEW
+@click.option("--dev", is_flag=True, help="Development mode: flat structure in db/schema/")
+@click.option("--no-tv", is_flag=True, help="Skip table view (tv_*) generation")
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed generation progress")
 def entities(
     entity_files: tuple,
     output_dir: str,
     foundation_only: bool,
     include_tv: bool,
+    framework: str,  # NEW
     use_registry: bool,  # NEW
     output_format: str,  # NEW
     with_impacts: bool,  # NEW
@@ -121,11 +132,68 @@ def entities(
     with_query_patterns: bool,  # NEW
     with_audit_cascade: bool,  # NEW
     with_outbox: bool,  # NEW
+    dev: bool,  # NEW
+    no_tv: bool,  # NEW
+    verbose: bool,
 ):
-    """Generate PostgreSQL migrations from SpecQL YAML files"""
+    """Generate production-ready PostgreSQL schema from SpecQL YAML entity definitions.
 
-    # Create orchestrator with registry support
-    orchestrator = CLIOrchestrator(use_registry=use_registry, output_format=output_format)
+    By default, generates hierarchical directory structure with db/schema/ prefix,
+    ready for migration deployment.
+
+    COMMON EXAMPLES:
+
+      # Generate all entities (FraiseQL framework, production-ready)
+      specql generate entities/**/*.yaml
+      # → Uses FraiseQL defaults: tv_* views, Trinity pattern, audit fields
+
+      # Generate for specific framework
+      specql generate entities/**/*.yaml --framework django
+      # → Uses Django defaults: models.py, admin.py, no tv_*
+
+      # Generate specific entities
+      specql generate entities/catalog/*.yaml
+
+      # Custom output directory
+      specql generate entities/**/*.yaml --output migrations/v2/
+
+      # Development mode (flat structure for confiture)
+      specql generate entities/**/*.yaml --dev
+
+      # List available frameworks
+      specql list-frameworks
+
+    OUTPUT FORMATS:
+
+      hierarchical (default)
+        Organized directory structure matching domain/subdomain/entity hierarchy.
+        Best for: Production migrations, large codebases, team collaboration
+
+      flat (--dev or --format=confiture)
+        Flat directory structure grouped by object type.
+        Best for: Development with confiture, simple projects
+
+    For comprehensive help, run: specql generate --help
+    """
+
+    # Apply development mode overrides
+    if dev:
+        use_registry = False
+        output_format = "confiture"
+        output_dir = "db/schema"
+        include_tv = False
+
+    # Apply --no-tv override
+    if no_tv:
+        include_tv = False
+
+    # Create orchestrator with framework-aware defaults
+    orchestrator = CLIOrchestrator(
+        use_registry=use_registry,
+        output_format=output_format,
+        verbose=verbose,
+        framework=framework
+    )
 
     # Generate migrations
     result = orchestrator.generate_from_files(

@@ -1,8 +1,7 @@
 """Test documentation completeness for query patterns."""
 
-import pytest
 from pathlib import Path
-from typing import List, Set
+from typing import Set
 
 
 class TestDocumentationCoverage:

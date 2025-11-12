@@ -1,6 +1,5 @@
 """Tests for execution types and metadata."""
 
-import pytest
 from src.runners.execution_types import ExecutionType, ExecutionMetadata
 
 

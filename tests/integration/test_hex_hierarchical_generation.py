@@ -1,6 +1,5 @@
 """Integration tests for hex hierarchical generation with explicit table codes"""
 
-import pytest
 from pathlib import Path
 from src.cli.orchestrator import CLIOrchestrator
 

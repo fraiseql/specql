@@ -18,8 +18,6 @@ These tests verify the fix works end-to-end with real entity generation scenario
 matching the PrintOptim migration use case with 74+ entities.
 """
 
-import pytest
-from pathlib import Path
 from src.cli.orchestrator import CLIOrchestrator
 
 
@@ -79,7 +77,7 @@ class TestIssue6SubdomainParsing:
         # Check directory structure
         # Should have: 01_write_side/013_catalog/0131_classification/
         classification_dir = output_dir / "01_write_side" / "013_catalog" / "0131_classification"
-        assert classification_dir.exists(), f"Classification subdomain directory not found"
+        assert classification_dir.exists(), "Classification subdomain directory not found"
 
         # All three entity directories should be under classification (snake_case, no _group)
         entity_dirs = list(classification_dir.glob("*"))
@@ -135,7 +133,7 @@ class TestIssue6SubdomainParsing:
 
         # Check manufacturer subdomain directory
         manufacturer_dir = output_dir / "01_write_side" / "013_catalog" / "0132_manufacturer"
-        assert manufacturer_dir.exists(), f"Manufacturer subdomain directory not found"
+        assert manufacturer_dir.exists(), "Manufacturer subdomain directory not found"
 
         # All three entity directories should be under manufacturer (snake_case, no _group)
         entity_dirs = list(manufacturer_dir.glob("*"))
@@ -152,9 +150,9 @@ class TestIssue6SubdomainParsing:
 
         # Verify NO wrong directories
         wrong_dirs = list(output_dir.rglob("*subdomain_21*"))
-        assert len(wrong_dirs) == 0, f"Found wrong subdomain_21 directory"
+        assert len(wrong_dirs) == 0, "Found wrong subdomain_21 directory"
         wrong_dirs = list(output_dir.rglob("*subdomain_23*"))
-        assert len(wrong_dirs) == 0, f"Found wrong subdomain_23 directory"
+        assert len(wrong_dirs) == 0, "Found wrong subdomain_23 directory"
 
     def test_cross_subdomain_separation(self, tmp_path):
         """

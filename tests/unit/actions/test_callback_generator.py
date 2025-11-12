@@ -1,6 +1,5 @@
 """Tests for callback function generation."""
 
-import pytest
 from src.generators.actions.callback_generator import CallbackGenerator
 from src.core.ast_models import ActionStep
 from src.generators.actions.action_context import ActionContext
