@@ -16,15 +16,16 @@ class ReadSidePathGenerator(PathGenerator):
     Generates hierarchical paths for read-side files
 
     Path structure:
-    0_schema/02_query_side/0{D}{D}_{domain}/0{D}{D}{S}_{subdomain}/{code}_{view}.sql
+    0_schema/02_query_side/02{D}_{domain}/02{D}{S}_{subdomain}/02{D}{S}{E}_{entity}/{code}_{view}.sql
 
     Where:
     - D: domain code (1 digit)
-    - S: subdomain second digit (from 2-digit subdomain code)
+    - S: subdomain code (1 digit)
+    - E: entity sequence (1 digit)
 
     Example:
-        generate_path(FileSpec(code="0220310", name="tv_contact", layer="read_side"))
-        → 0_schema/02_query_side/022_crm/0223_customer/0220310_tv_contact.sql
+        generate_path(FileSpec(code="022310", name="v_contact", layer="read_side"))
+        → 0_schema/02_query_side/022_crm/0223_customer/02232_contact/022310_v_contact.sql
     """
 
     # Schema layer constants
@@ -68,12 +69,16 @@ class ReadSidePathGenerator(PathGenerator):
         if not view_name:
             raise ValueError("view_name cannot be empty")
 
+        # Accept 6-digit codes only
+        if len(code) != 6:
+            raise ValueError(f"Read-side code must be 6 digits, got: {code}")
+
         # Parse the code
         components = self.parser.parse(code)
 
         # Validate layer
-        if components.layer != "2":
-            raise ValueError(f"Invalid schema layer '{components.layer}' for read-side code (expected '2')")
+        if components.schema_layer != "02":
+            raise ValueError(f"Invalid schema layer '{components.schema_layer}' for read-side code (expected '02')")
 
         # Build path components
         domain_name = self._get_domain_name(components.domain)
@@ -84,17 +89,32 @@ class ReadSidePathGenerator(PathGenerator):
         if not subdomain_name:
             raise ValueError(f"Unknown subdomain code: {components.subdomain} in domain {components.domain}")
 
-        # Domain directory: 0{domain}{domain}_{domain_name}
-        domain_dir = f"0{components.domain}{components.domain}_{domain_name}"
+        # Domain directory: 02{domain}_{domain_name}
+        domain_dir = f"02{components.domain}_{domain_name}"
 
-        # Subdomain directory: 0{domain}{domain}{subdomain_second_digit}_{subdomain_name}
-        subdomain_dir = f"0{components.domain}{components.domain}{components.subdomain[1]}_{subdomain_name}"
+        # Subdomain directory: 02{domain}{subdomain}_{subdomain_name}
+        subdomain_dir = f"02{components.domain}{components.subdomain}_{subdomain_name}"
+
+        # Entity directory: 02{domain}{subdomain}{entity}_{entity_name}
+        # For read-side, infer entity name from view_name (e.g., "v_contact" -> "contact")
+        if view_name.startswith("v_"):
+            entity_name = view_name[2:]  # Remove "v_" prefix
+        elif view_name.startswith("tv_"):
+            entity_name = view_name[3:]  # Remove "tv_" prefix
+        else:
+            raise ValueError(f"Read-side view name should start with 'v_' or 'tv_', got: {view_name}")
+
+        # Convert to snake_case for directory name
+        from src.generators.naming_utils import camel_to_snake
+        entity_snake = camel_to_snake(entity_name)
+
+        entity_dir = f"02{components.domain}{components.subdomain}{components.entity}_{entity_snake}"
 
         # File name
         filename = f"{code}_{view_name}.sql"
 
-        # Combine path
-        return self.base_dir / self.SCHEMA_LAYER_PREFIX / self.QUERY_SIDE_DIR / domain_dir / subdomain_dir / filename
+        # Combine path (now includes entity directory)
+        return self.base_dir / self.SCHEMA_LAYER_PREFIX / self.QUERY_SIDE_DIR / domain_dir / subdomain_dir / entity_dir / filename
 
     def format_domain_path(self, domain_code: str, subdomain_code: str, domain_name: str) -> str:
         """
@@ -141,21 +161,21 @@ class ReadSidePathGenerator(PathGenerator):
         # This is a simplified mapping - in a real implementation,
         # this would come from the registry
         subdomain_map = {
-            ("2", "01"): "core",
-            ("2", "02"): "sales",
-            ("2", "03"): "customer",
-            ("2", "04"): "support",
-            ("2", "05"): "marketing",
-            ("3", "01"): "classification",
-            ("3", "02"): "manufacturer",
-            ("3", "03"): "financing",
-            ("3", "04"): "generic",
-            ("4", "01"): "core",
-            ("4", "02"): "location",
-            ("4", "03"): "network",
-            ("4", "04"): "contract",
-            ("4", "05"): "machine",
-            ("4", "06"): "allocation",
+            ("2", "1"): "core",
+            ("2", "2"): "sales",
+            ("2", "3"): "customer",
+            ("2", "4"): "support",
+            ("2", "5"): "marketing",
+            ("3", "1"): "classification",
+            ("3", "2"): "manufacturer",
+            ("3", "3"): "financing",
+            ("3", "4"): "generic",
+            ("4", "1"): "core",
+            ("4", "2"): "location",
+            ("4", "3"): "network",
+            ("4", "4"): "contract",
+            ("4", "5"): "machine",
+            ("4", "6"): "allocation",
         }
 
         return subdomain_map.get((domain_code, subdomain_code), f"subdomain_{subdomain_code}")

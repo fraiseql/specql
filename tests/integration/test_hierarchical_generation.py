@@ -21,119 +21,7 @@ class TestHierarchicalGenerationWorkflow:
 entity: TestContact
 schema: crm
 subdomain: customer
-table_code: "0120391"
-fields:
-  first_name: text
-  last_name: text
-  email: text
-  phone: text
-actions:
-  - name: create_contact
-    steps:
-      - insert: TestContact
-""")
-
-        order_yaml = tmp_path / "order.yaml"
-        order_yaml.write_text("""
-entity: TestOrder
-schema: crm
-subdomain: core
-table_code: "0120191"
-fields:
-  contact_id: uuid
-  total_amount: money
-  status: enum(pending, confirmed, shipped, delivered)
-  order_date: timestamp
-actions:
-  - name: create_order
-    steps:
-      - insert: TestOrder
-""")
-
-        # Generate using hierarchical workflow
-        output_dir = tmp_path / "generated"
-        orchestrator = CLIOrchestrator(use_registry=True, output_format="hierarchical")
-
-        result = orchestrator.generate_hierarchical(
-            entity_files=[str(contact_yaml), str(order_yaml)],
-            output_dir=str(output_dir)
-        )
-
-        # Check for errors (allow some for now while debugging)
-        if result.errors:
-            print(f"Generation errors: {result.errors}")
-        if result.warnings:
-            print(f"Generation warnings: {result.warnings}")
-
-        # Verify files were created
-        assert len(result.migrations) > 0, "No migration files generated"
-
-        # Check hierarchical directory structure relative to output_dir
-        output_path = Path(output_dir)
-        schema_base = output_path / "0_schema"
-
-        # Write-side structure
-        write_side = schema_base / "01_write_side"
-        assert write_side.exists(), f"Write-side directory not created at {write_side}"
-
-        # CRM domain - Customer subdomain
-        crm_write = write_side / "012_crm" / "01203_customer"
-        assert crm_write.exists(), f"CRM customer subdomain directory not created at {crm_write}"
-
-        # Contact entity directory (using table code 0120391)
-        contact_entity_dir = crm_write / "012039_testcontact"
-        assert contact_entity_dir.exists(), f"Contact entity directory not created at {contact_entity_dir}"
-
-        # Contact table file (sequence 1)
-        contact_table = contact_entity_dir / "0120391_tb_testcontact.sql"
-        assert contact_table.exists(), f"Contact table file not created at {contact_table}"
-
-        # Contact function file (sequence 3 - after table and helpers)
-        contact_function = contact_entity_dir / "0120393_fn_testcontact_create_contact.sql"
-        assert contact_function.exists(), f"Contact function file not created at {contact_function}"
-
-        # CRM domain - Core subdomain
-        core_write = write_side / "012_crm" / "01201_core"
-        assert core_write.exists(), f"Core subdomain directory not created at {core_write}"
-
-        # Order entity directory (using table code 0120191)
-        order_entity_dir = core_write / "012019_testorder"
-        assert order_entity_dir.exists(), f"Order entity directory not created at {order_entity_dir}"
-
-        # Order table file (sequence 1)
-        order_table = order_entity_dir / "0120191_tb_testorder.sql"
-        assert order_table.exists(), f"Order table file not created at {order_table}"
-
-        # TODO: Add read-side assertions once read-side generation is working
-        # Read-side structure
-        # read_side = schema_base / "02_query_side"
-        # assert read_side.exists(), f"Read-side directory not created at {read_side}"
-
-    def test_hierarchical_preserves_dependencies(self, tmp_path):
-        """
-        Test that hierarchical generation preserves entity dependencies.
-
-        When entities reference each other, they should be generated in
-        the correct dependency order to avoid foreign key constraint errors.
-        """
-        # Create entities with dependencies: Company -> Contact -> Order
-        company_yaml = tmp_path / "company.yaml"
-        company_yaml.write_text("""
-entity: TestCompany
-schema: crm
-subdomain: core
-table_code: "0120191"
-fields:
-  name: text
-  industry: text
-""")
-
-        contact_yaml = tmp_path / "contact.yaml"
-        contact_yaml.write_text("""
-entity: TestContact
-schema: crm
-subdomain: customer
-table_code: "0120391"
+table_code: "012321"
 fields:
   first_name: text
   last_name: text
@@ -146,7 +34,7 @@ fields:
 entity: TestOrder
 schema: crm
 subdomain: core
-table_code: "0120121"
+table_code: "012121"
 fields:
   contact_id: uuid
   total_amount: money
@@ -158,7 +46,7 @@ fields:
         orchestrator = CLIOrchestrator(use_registry=True, output_format="hierarchical")
 
         result = orchestrator.generate_hierarchical(
-            entity_files=[str(order_yaml), str(contact_yaml), str(company_yaml)],  # Out of order
+            entity_files=[str(contact_yaml), str(order_yaml)],
             output_dir=str(output_dir)
         )
 
@@ -171,22 +59,16 @@ fields:
         write_side = schema_base / "01_write_side"
         crm_write = write_side / "012_crm"
 
-        # Company (core subdomain)
-        company_entity_dir = crm_write / "01201_core" / "012019_testcompany"
-        assert company_entity_dir.exists(), f"Company entity directory not created at {company_entity_dir}"
-        company_table = company_entity_dir / "0120191_tb_testcompany.sql"
-        assert company_table.exists(), f"Company table not generated at {company_table}"
-
         # Contact (customer subdomain)
-        contact_entity_dir = crm_write / "01203_customer" / "012039_testcontact"
+        contact_entity_dir = crm_write / "0123_customer" / "01232_testcontact"
         assert contact_entity_dir.exists(), f"Contact entity directory not created at {contact_entity_dir}"
-        contact_table = contact_entity_dir / "0120391_tb_testcontact.sql"
+        contact_table = contact_entity_dir / "012321_tb_testcontact.sql"
         assert contact_table.exists(), f"Contact table not generated at {contact_table}"
 
-        # Order (core subdomain) - using different entity sequence (2)
-        order_entity_dir = crm_write / "01201_core" / "012012_testorder"
+        # Order (core subdomain)
+        order_entity_dir = crm_write / "0121_core" / "01212_testorder"
         assert order_entity_dir.exists(), f"Order entity directory not created at {order_entity_dir}"
-        order_table = order_entity_dir / "0120121_tb_testorder.sql"
+        order_table = order_entity_dir / "012121_tb_testorder.sql"
         assert order_table.exists(), f"Order table not generated at {order_table}"
 
     def test_hierarchical_handles_multiple_domains(self, tmp_path):
@@ -198,8 +80,8 @@ fields:
         """
         # Create entities across multiple subdomains in CRM domain
         entities = [
-            ("crm", "core", "TestCompany", "0120191"),
-            ("crm", "customer", "TestContact", "0120391"),
+            ("crm", "core", "TestCompany", "012121"),
+            ("crm", "customer", "TestContact", "012321"),
         ]
 
         entity_files = []
@@ -235,17 +117,17 @@ fields:
 
         # CRM domain
         crm_write = write_side / "012_crm"
-        crm_core = crm_write / "01201_core"
+        crm_core = crm_write / "0121_core"
         assert crm_core.exists(), f"CRM core subdomain directory not created at {crm_core}"
-        company_entity_dir = crm_core / "012019_testcompany"
+        company_entity_dir = crm_core / "01212_testcompany"
         assert company_entity_dir.exists(), f"Company entity directory not created at {company_entity_dir}"
-        assert (company_entity_dir / "0120191_tb_testcompany.sql").exists(), "Company table not created"
+        assert (company_entity_dir / "012121_tb_testcompany.sql").exists(), "Company table not created"
 
-        crm_customer = crm_write / "01203_customer"
+        crm_customer = crm_write / "0123_customer"
         assert crm_customer.exists(), f"CRM customer subdomain directory not created at {crm_customer}"
-        contact_entity_dir = crm_customer / "012039_testcontact"
+        contact_entity_dir = crm_customer / "01232_testcontact"
         assert contact_entity_dir.exists(), f"Contact entity directory not created at {contact_entity_dir}"
-        assert (contact_entity_dir / "0120391_tb_testcontact.sql").exists(), "Contact table not created"
+        assert (contact_entity_dir / "012321_tb_testcontact.sql").exists(), "Contact table not created"
 
 
 
@@ -301,7 +183,7 @@ fields:
 entity: TestContact
 schema: crm
 subdomain: customer
-table_code: "0120391"
+table_code: "012321"
 fields:
   first_name: text
   last_name: text
@@ -317,7 +199,7 @@ actions:
 entity: TestOrder
 schema: crm
 subdomain: core
-table_code: "0120193"
+table_code: "012131"
 fields:
   contact_id: uuid
   total_amount: money

@@ -627,11 +627,11 @@ class CLIOrchestrator:
 
         for entity in entities:
             try:
-                # Get table code (7 digits with file sequence 1 for main table)
+                # Get table code (6 digits with file sequence 1 for main table)
                 table_code = self.get_table_code(entity)
 
-                # Extract base code (first 6 digits) for generating additional file codes
-                base_code = table_code[:6] if len(table_code) == 7 else table_code
+                # Extract base code (first 5 digits) for generating additional file codes
+                base_code = table_code[:5]  # 6-digit code, base is first 5 digits
 
                 # Generate schema output
                 schema_output = self.schema_orchestrator.generate_split_schema(entity, with_audit_cascade=False)

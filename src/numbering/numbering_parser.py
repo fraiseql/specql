@@ -1,6 +1,6 @@
 """
 Numbering System Parser
-Parses 7-digit decimal table codes into hierarchical components
+Parses 6-digit decimal table codes into hierarchical components
 """
 
 import re
@@ -13,7 +13,7 @@ class TableCodeComponents:
 
     schema_layer: str  # 2 digits: schema type (01=write_side, etc.)
     domain_code: str  # 1 digit: domain (0-9)
-    subdomain_code: str  # 2 digits: subdomain (00-99)
+    subdomain_code: str  # 1 digit: subdomain (0-9)
     entity_sequence: str  # 1 digit: entity sequence (0-9)
     file_sequence: str  # 1 digit: file sequence (0-9)
 
@@ -24,17 +24,17 @@ class TableCodeComponents:
 
     @property
     def full_group(self) -> str:
-        """Full group code: full_domain + subdomain_code"""
+        """Full group code: full_domain + subdomain_code (4 digits: SS+D+S)"""
         return f"{self.full_domain}{self.subdomain_code}"
 
     @property
     def full_entity(self) -> str:
-        """Full entity code: full_group + entity_sequence"""
+        """Full entity code: full_group + entity_sequence (5 digits: SS+D+S+E)"""
         return f"{self.full_group}{self.entity_sequence}"
 
     @property
     def table_code(self) -> str:
-        """Reconstruct the full 7-digit decimal table code"""
+        """Reconstruct the full 6-digit decimal table code"""
         return f"{self.schema_layer}{self.domain_code}{self.subdomain_code}{self.entity_sequence}{self.file_sequence}"
 
 
@@ -48,14 +48,14 @@ class NumberingParser:
     DOMAIN_CODES = {"1": "core", "2": "management", "3": "catalog", "4": "tenant"}
 
     def parse_table_code(self, table_code: str) -> dict[str, str]:
-        """Parse 7-character hexadecimal table code into hierarchical components"""
+        """Parse 6-digit decimal table code into hierarchical components"""
         components = self.parse_table_code_detailed(table_code)
 
         return {
             "schema_layer": components.schema_layer,
             "domain_code": components.domain_code,
-            "entity_group": components.subdomain_code,  # Use correct single-digit subdomain
-            "entity_code": components.entity_sequence,  # Use correct field name
+            "subdomain_code": components.subdomain_code,  # 1-digit subdomain
+            "entity_sequence": components.entity_sequence,
             "file_sequence": components.file_sequence,
             "full_domain": components.full_domain,
             "full_group": components.full_group,
@@ -64,10 +64,17 @@ class NumberingParser:
 
     def parse_table_code_detailed(self, table_code: str) -> TableCodeComponents:
         """
-        Parse 7-digit decimal table code into structured components
+        Parse 6-digit decimal table code into structured components
+
+        Format: SDSEX (Schema + Domain + Subdomain + Entity + FileSequence)
+        - SS (2 digits): Schema layer (01=write_side, 02=read_side, 03=functions)
+        - D (1 digit): Domain (0-9)
+        - S (1 digit): Subdomain (0-9)
+        - E (1 digit): Entity sequence (0-9)
+        - X (1 digit): File sequence (0-9)
 
         Args:
-            table_code: 7-digit decimal string (or 6-digit for backward compat)
+            table_code: 6-digit decimal string
 
         Returns:
             TableCodeComponents: Structured representation of the code
@@ -81,46 +88,30 @@ class NumberingParser:
         if not isinstance(table_code, str):
             raise ValueError(f"table_code must be a string, got {type(table_code)}")
 
-        # Accept 6 or 7 decimal digits (backward compatibility)
-        if len(table_code) == 6:
-            # 6-digit code (SSDSSE): assume file_sequence = "1" for backward compat
-            # Format: SS (layer) + D (domain) + SS (subdomain) + E (entity)
-            if not re.match(r"^[0-9]{6}$", table_code):
-                raise ValueError(
-                    f"Invalid table_code: {table_code}. "
-                    f"Must be 6 or 7 decimal digits (0-9)."
-                )
-            return TableCodeComponents(
-                schema_layer=table_code[0:2],  # First 2 digits
-                domain_code=table_code[2],      # 3rd digit
-                subdomain_code=table_code[3:5], # 4th-5th digits
-                entity_sequence=table_code[5],  # 6th digit
-                file_sequence="1",              # Default file sequence
-            )
-        elif len(table_code) == 7:
-            # 7-digit code (SSDSSEX): parse normally
-            # Format: SS (layer) + D (domain) + SS (subdomain) + E (entity) + X (file)
-            if not re.match(r"^[0-9]{7}$", table_code):
-                raise ValueError(
-                    f"Invalid table_code: {table_code}. "
-                    f"Must be exactly 7 decimal digits (0-9)."
-                )
-            return TableCodeComponents(
-                schema_layer=table_code[0:2],   # First 2 digits
-                domain_code=table_code[2],       # 3rd digit
-                subdomain_code=table_code[3:5],  # 4th-5th digits
-                entity_sequence=table_code[5],   # 6th digit
-                file_sequence=table_code[6],     # 7th digit
-            )
-        else:
+        # Require exactly 6 hexadecimal digits
+        if not re.match(r"^[0-9a-fA-F]{6}$", table_code):
             raise ValueError(
                 f"Invalid table_code: {table_code}. "
-                f"Must be 6 or 7 decimal digits (0-9), got {len(table_code)}."
+                f"Must be exactly 6 hexadecimal digits (0-9, a-f, A-F), got {len(table_code)}."
             )
+
+        return TableCodeComponents(
+            schema_layer=table_code[0:2],   # First 2 digits: SS
+            domain_code=table_code[2],       # 3rd digit: D
+            subdomain_code=table_code[3],    # 4th digit: S (1 digit)
+            entity_sequence=table_code[4],   # 5th digit: E
+            file_sequence=table_code[5],     # 6th digit: X
+        )
 
     def generate_directory_path(self, table_code: str, entity_name: str) -> str:
         """
         Generate hierarchical directory path from table code and entity name
+
+        Directory structure follows SDSEX format:
+        - Layer 1: SS_schema/ (2 digits)
+        - Layer 2: SSD_domain/ (3 digits)
+        - Layer 3: SSDS_subdomain/ (4 digits)
+        - Layer 4: SSDSE_entity/ (5 digits)
 
         Args:
             table_code: 6-digit table code
@@ -142,11 +133,19 @@ class NumberingParser:
 
         entity_snake = camel_to_snake(entity_name)
 
-        return f"{components.schema_layer}_{schema_name}/{components.full_domain}_{domain_name}/{components.full_group}_{entity_snake}/{components.full_entity}_{entity_snake}"
+        # Build progressive directory structure
+        schema_dir = f"{components.schema_layer}_{schema_name}"
+        domain_dir = f"{components.full_domain}_{domain_name}"
+        subdomain_dir = f"{components.full_group}_{entity_snake}"  # SSDS_subdomain
+        entity_dir = f"{components.full_entity}_{entity_snake}"    # SSDSE_entity
+
+        return f"{schema_dir}/{domain_dir}/{subdomain_dir}/{entity_dir}"
 
     def generate_file_path(self, table_code: str, entity_name: str, file_type: str) -> str:
         """
         Generate file path with proper naming convention
+
+        File is placed in the entity directory (5 digits) with 6-digit filename.
 
         Args:
             table_code: 6-digit table code
@@ -179,8 +178,12 @@ class NumberingParser:
         # Generate filename based on type
         entity_snake = camel_to_snake(entity_name)
         if file_type == "table":
-            filename = f"tb_{entity_snake}"
+            filename = f"{table_code}_tb_{entity_snake}"
+        elif file_type == "view":
+            filename = f"{table_code}_v_{entity_snake}"
+        elif file_type == "function":
+            filename = f"{table_code}_fn_{entity_snake}"
         else:
-            filename = f"{entity_snake}_{file_type}"
+            filename = f"{table_code}_{entity_snake}_{file_type}"
 
-        return f"{dir_path}/{table_code}_{filename}.{ext}"
+        return f"{dir_path}/{filename}.{ext}"

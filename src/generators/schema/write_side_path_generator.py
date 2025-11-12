@@ -60,23 +60,20 @@ class WriteSidePathGenerator(PathGenerator):
         if file_spec.layer != "write_side":
             raise ValueError(f"WriteSidePathGenerator can only handle write_side files, got {file_spec.layer}")
 
-        # Accept 7-digit codes only
-        if len(file_spec.code) != 7:
-            raise ValueError(f"Write-side code must be 7 digits, got: {file_spec.code}")
+        # Accept 6-digit codes only
+        if len(file_spec.code) != 6:
+            raise ValueError(f"Write-side code must be 6 digits, got: {file_spec.code}")
 
-        # Parse code
-        base_code = file_spec.code[:6]
-        file_seq = file_spec.code[6]
-
-        # Parse table code using the same parsing as naming_conventions
+        # Parse code using the numbering parser
         from src.numbering.numbering_parser import NumberingParser
         parser = NumberingParser()
-        components = parser.parse_table_code_detailed(base_code)
+        components = parser.parse_table_code_detailed(file_spec.code)
 
         schema_layer = components.schema_layer
         domain_code = components.domain_code
-        subdomain_code = components.subdomain_code
+        subdomain_code = components.subdomain_code  # Now 1 digit
         entity_sequence = components.entity_sequence
+        file_seq = components.file_sequence
 
         # Validate schema layer
         if schema_layer != "01":
@@ -88,7 +85,7 @@ class WriteSidePathGenerator(PathGenerator):
             raise ValueError(f"Unknown domain code: {domain_code}")
 
         # Get subdomain info
-        subdomain_info = self.naming.registry.get_subdomain(domain_code, subdomain_code.zfill(2))
+        subdomain_info = self.naming.registry.get_subdomain(domain_code, subdomain_code)
         if not subdomain_info:
             raise ValueError(f"Unknown subdomain code: {subdomain_code} in domain {domain_code}")
 
