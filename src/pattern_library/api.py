@@ -377,6 +377,546 @@ class PatternLibrary:
             ids.append(impl_id)
         return ids
 
+    # ===== Tier 2: Domain Patterns =====
+
+    def add_domain_pattern(
+        self,
+        name: str,
+        category: str,
+        description: str,
+        parameters: Dict[str, Any],
+        implementation: Dict[str, Any],
+        tags: str = "",
+        icon: str = ""
+    ) -> int:
+        """Add a domain pattern (Tier 2)"""
+        cursor = self.db.execute(
+            """
+            INSERT INTO domain_patterns
+            (pattern_name, pattern_category, description, parameters, implementation, tags, icon)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+            """,
+            (name, category, description, json.dumps(parameters), json.dumps(implementation), tags, icon)
+        )
+        self.db.commit()
+        return cursor.lastrowid or 0
+
+    def get_domain_pattern(self, name: str) -> Optional[Dict[str, Any]]:
+        """Get domain pattern by name"""
+        cursor = self.db.execute(
+            "SELECT * FROM domain_patterns WHERE pattern_name = ?",
+            (name,)
+        )
+        row = cursor.fetchone()
+        if row:
+            result = dict(row)
+            result["parameters"] = json.loads(result["parameters"])
+            result["implementation"] = json.loads(result["implementation"])
+            return result
+        return None
+
+    def get_all_domain_patterns(self, category: Optional[str] = None) -> List[Dict[str, Any]]:
+        """Get all domain patterns, optionally filtered by category"""
+        if category:
+            cursor = self.db.execute(
+                "SELECT * FROM domain_patterns WHERE pattern_category = ? ORDER BY popularity_score DESC",
+                (category,)
+            )
+        else:
+            cursor = self.db.execute(
+                "SELECT * FROM domain_patterns ORDER BY popularity_score DESC"
+            )
+
+        results = []
+        for row in cursor.fetchall():
+            result = dict(row)
+            result["parameters"] = json.loads(result["parameters"])
+            result["implementation"] = json.loads(result["implementation"])
+            results.append(result)
+
+        return results
+
+    def instantiate_domain_pattern(
+        self,
+        pattern_name: str,
+        entity_name: str,
+        parameters: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Instantiate a domain pattern for a specific entity
+
+        Returns:
+            Dictionary with instantiated fields, actions, etc.
+        """
+        pattern = self.get_domain_pattern(pattern_name)
+        if not pattern:
+            raise ValueError(f"Domain pattern not found: {pattern_name}")
+
+        # Validate parameters
+        self._validate_pattern_parameters(pattern["parameters"], parameters)
+
+        # Instantiate implementation
+        instantiated = self._instantiate_implementation(
+            pattern["implementation"],
+            entity_name,
+            parameters
+        )
+
+        # Record instantiation
+        self.db.execute(
+            """
+            INSERT INTO pattern_instantiations (entity_name, domain_pattern_id, parameters)
+            VALUES (?, ?, ?)
+            """,
+            (entity_name, pattern["domain_pattern_id"], json.dumps(parameters))
+        )
+        self.db.commit()
+
+        return instantiated
+
+    def _validate_pattern_parameters(
+        self,
+        param_schema: Dict[str, Any],
+        provided_params: Dict[str, Any]
+    ):
+        """Validate provided parameters against schema"""
+        for param_name, param_def in param_schema.items():
+            if param_def.get("required", False) and param_name not in provided_params:
+                raise ValueError(f"Required parameter missing: {param_name}")
+
+    def _instantiate_implementation(
+        self,
+        implementation: Dict[str, Any],
+        entity_name: str,
+        parameters: Dict[str, Any]
+    ) -> Dict[str, Any]:
+        """
+        Instantiate pattern implementation with entity-specific values
+
+        Replaces placeholders like {entity}, {state}, etc. with actual values
+        """
+        from jinja2 import Template
+
+        # Convert implementation to JSON string, replace placeholders, parse back
+        impl_json = json.dumps(implementation)
+        template = Template(impl_json)
+
+        context = {
+            "entity": entity_name,
+            **parameters
+        }
+
+        instantiated_json = template.render(**context)
+        instantiated = json.loads(instantiated_json)
+
+        return instantiated
+
+    def compose_patterns(
+        self,
+        entity_name: str,
+        patterns: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        Compose multiple domain patterns into single entity definition
+
+        Args:
+            entity_name: Name of entity
+            patterns: List of {"pattern": "pattern_name", "params": {...}}
+
+        Returns:
+            Composed entity definition with merged fields, actions, etc.
+        """
+        composed = {
+            "entity": entity_name,
+            "fields": [],
+            "actions": [],
+            "triggers": [],
+            "indexes": [],
+            "tables": []
+        }
+
+        # Track field names to detect conflicts
+        field_names = set()
+        action_names = set()
+
+        for pattern_spec in patterns:
+            pattern_name = pattern_spec["pattern"]
+            params = pattern_spec.get("params", {})
+
+            instantiated = self.instantiate_domain_pattern(
+                pattern_name, entity_name, params
+            )
+
+            # Merge fields with conflict detection
+            if "fields" in instantiated:
+                for field in instantiated["fields"]:
+                    field_name = field["name"]
+                    if field_name in field_names:
+                        # For now, allow duplicates but could be enhanced to merge intelligently
+                        pass  # TODO: Implement intelligent field merging in future
+                    else:
+                        field_names.add(field_name)
+                        composed["fields"].append(field)
+
+            # Merge actions with conflict detection
+            if "actions" in instantiated:
+                for action in instantiated["actions"]:
+                    action_name = action["name"]
+                    if action_name in action_names:
+                        # Rename conflicting actions
+                        action["name"] = f"{pattern_name}_{action_name}"
+                    action_names.add(action["name"])
+                    composed["actions"].append(action)
+
+            # Merge triggers
+            if "triggers" in instantiated:
+                composed["triggers"].extend(instantiated["triggers"])
+
+            # Merge indexes
+            if "indexes" in instantiated:
+                composed["indexes"].extend(instantiated["indexes"])
+
+            # Merge tables
+            if "tables" in instantiated:
+                composed["tables"].extend(instantiated["tables"])
+
+        return composed
+
+    def validate_pattern_composition(
+        self,
+        patterns: List[str]
+    ) -> Dict[str, Any]:
+        """
+        Validate that a set of patterns can be composed together
+
+        Args:
+            patterns: List of pattern names
+
+        Returns:
+            Validation result with conflicts and warnings
+        """
+        validation_result = {
+            "valid": True,
+            "conflicts": [],
+            "warnings": [],
+            "pattern_details": []
+        }
+
+        pattern_details = []
+        for pattern_name in patterns:
+            pattern = self.get_domain_pattern(pattern_name)
+            if not pattern:
+                validation_result["valid"] = False
+                validation_result["conflicts"].append(f"Pattern not found: {pattern_name}")
+                continue
+            pattern_details.append(pattern)
+
+        # Check for field conflicts
+        all_fields = {}
+        for pattern in pattern_details:
+            impl = pattern["implementation"]
+            if "fields" in impl:
+                for field in impl["fields"]:
+                    field_name = field["name"]
+                    if field_name in all_fields:
+                        validation_result["conflicts"].append(
+                            f"Field conflict: '{field_name}' defined in both "
+                            f"{all_fields[field_name]} and {pattern['pattern_name']}"
+                        )
+                    else:
+                        all_fields[field_name] = pattern["pattern_name"]
+
+        # Check for action conflicts
+        all_actions = {}
+        for pattern in pattern_details:
+            impl = pattern["implementation"]
+            if "actions" in impl:
+                for action in impl["actions"]:
+                    action_name = action["name"]
+                    if action_name in all_actions:
+                        validation_result["warnings"].append(
+                            f"Action conflict: '{action_name}' defined in both "
+                            f"{all_actions[action_name]} and {pattern['pattern_name']}"
+                        )
+                    else:
+                        all_actions[action_name] = pattern["pattern_name"]
+
+        validation_result["pattern_details"] = pattern_details
+        if validation_result["conflicts"]:
+            validation_result["valid"] = False
+
+        return validation_result
+
+    def resolve_pattern_dependencies(
+        self,
+        pattern_names: List[str]
+    ) -> List[str]:
+        """
+        Resolve pattern dependencies and return ordered list
+
+        Args:
+            pattern_names: Initial pattern names
+
+        Returns:
+            Ordered list with dependencies first
+        """
+        # For now, return as-is. Could be enhanced to check pattern_dependencies table
+        # and perform topological sort
+        return pattern_names
+
+    # ===== TIER 3: Entity Templates =====
+
+    def add_entity_template(
+        self,
+        template_name: str,
+        template_namespace: str,
+        description: str,
+        default_fields: Dict[str, Any],
+        default_patterns: Dict[str, Any],
+        default_actions: Dict[str, Any],
+        configuration_options: Optional[Dict[str, Any]] = None,
+        icon: str = "",
+        tags: str = ""
+    ) -> int:
+        """Add an entity template (Tier 3)"""
+        cursor = self.db.execute(
+            """
+            INSERT INTO entity_templates
+            (template_name, template_namespace, description, default_fields, default_patterns, default_actions, configuration_options, icon, tags)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """,
+            (template_name, template_namespace, description, json.dumps(default_fields), json.dumps(default_patterns), json.dumps(default_actions), json.dumps(configuration_options) if configuration_options else None, icon, tags)
+        )
+        self.db.commit()
+        return cursor.lastrowid or 0
+
+    def get_entity_template(self, template_name: str) -> Optional[Dict[str, Any]]:
+        """Get entity template by name"""
+        cursor = self.db.execute(
+            "SELECT * FROM entity_templates WHERE template_name = ?",
+            (template_name,)
+        )
+        row = cursor.fetchone()
+        if row:
+            result = dict(row)
+            result["default_fields"] = json.loads(result["default_fields"])
+            result["default_patterns"] = json.loads(result["default_patterns"])
+            result["default_actions"] = json.loads(result["default_actions"])
+            if result["configuration_options"]:
+                result["configuration_options"] = json.loads(result["configuration_options"])
+            return result
+        return None
+
+    def get_entity_templates_by_namespace(self, namespace: str) -> List[Dict[str, Any]]:
+        """Get all entity templates for a specific namespace"""
+        cursor = self.db.execute(
+            "SELECT * FROM entity_templates WHERE template_namespace = ? ORDER BY template_name",
+            (namespace,)
+        )
+
+        results = []
+        for row in cursor.fetchall():
+            result = dict(row)
+            result["default_fields"] = json.loads(result["default_fields"])
+            result["default_patterns"] = json.loads(result["default_patterns"])
+            result["default_actions"] = json.loads(result["default_actions"])
+            result["configuration_options"] = json.loads(result["configuration_options"]) if result["configuration_options"] else {}
+            results.append(result)
+
+        return results
+
+    def get_all_entity_templates(self) -> List[Dict[str, Any]]:
+        """Get all entity templates across all namespaces"""
+        cursor = self.db.execute(
+            "SELECT * FROM entity_templates ORDER BY template_namespace, template_name"
+        )
+
+        results = []
+        for row in cursor.fetchall():
+            result = dict(row)
+            result["default_fields"] = json.loads(result["default_fields"])
+            result["default_patterns"] = json.loads(result["default_patterns"])
+            result["default_actions"] = json.loads(result["default_actions"])
+            result["configuration_options"] = json.loads(result["configuration_options"]) if result["configuration_options"] else {}
+            results.append(result)
+
+        return results
+
+    def instantiate_entity_template(
+        self,
+        template_name: str,
+        entity_name: str,
+        custom_fields: Optional[Dict[str, Any]] = None,
+        custom_config: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        Instantiate an entity template for a specific entity
+
+        Args:
+            template_name: Name of the template to instantiate
+            entity_name: Name of the entity to create
+            custom_fields: Additional custom fields to add
+            custom_config: Configuration overrides
+
+        Returns:
+            Complete entity definition with all patterns applied
+        """
+        template = self.get_entity_template(template_name)
+        if not template:
+            raise ValueError(f"Entity template not found: {template_name}")
+
+        # Start with template defaults
+        entity_def = {
+            "entity": entity_name,
+            "schema": template["template_namespace"],
+            "fields": template["default_fields"].copy(),
+            "actions": template["default_actions"].copy(),
+            "patterns": template["default_patterns"].copy()
+        }
+
+        # Apply custom configuration
+        if custom_config and template["configuration_options"]:
+            for key, value in custom_config.items():
+                if key in template["configuration_options"]:
+                    # Apply configuration logic here
+                    pass
+
+        # Add custom fields
+        if custom_fields:
+            entity_def["fields"].update(custom_fields)
+
+        # Instantiate domain patterns
+        pattern_instances = []
+        for pattern_name, pattern_config in template["default_patterns"].items():
+            try:
+                # Ensure entity parameter is provided
+                params = pattern_config.copy()
+                if "entity" not in params:
+                    params["entity"] = entity_name
+
+                instantiated = self.instantiate_domain_pattern(
+                    pattern_name, entity_name, params
+                )
+                pattern_instances.append(instantiated)
+            except Exception as e:
+                print(f"Warning: Failed to instantiate pattern {pattern_name}: {e}")
+                continue
+
+        # Merge pattern implementations
+        merged_entity = self._merge_pattern_instances(entity_def, pattern_instances)
+
+        # Record template instantiation
+        self.db.execute(
+            """
+            INSERT INTO pattern_instantiations (entity_name, entity_template_id, parameters)
+            VALUES (?, ?, ?)
+            """,
+            (entity_name, template["entity_template_id"], json.dumps({
+                "template": template_name,
+                "custom_fields": custom_fields or {},
+                "custom_config": custom_config or {}
+            }))
+        )
+        self.db.commit()
+
+        return merged_entity
+
+    def _merge_pattern_instances(
+        self,
+        base_entity: Dict[str, Any],
+        pattern_instances: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
+        """
+        Merge multiple pattern instances into a single entity definition
+
+        Handles conflicts and combines fields, actions, triggers, etc.
+        """
+        merged = base_entity.copy()
+
+        # Convert template fields dict to list format for consistency
+        if isinstance(merged.get("fields"), dict):
+            merged["fields"] = [{"name": k, **v} for k, v in merged["fields"].items()]
+
+        # Convert template actions dict to list format for consistency
+        if isinstance(merged.get("actions"), dict):
+            merged["actions"] = [{"name": k, **v} for k, v in merged["actions"].items()]
+
+        # Initialize collections
+        merged.setdefault("actions", [])
+        merged.setdefault("triggers", [])
+        merged.setdefault("indexes", [])
+        merged.setdefault("tables", [])
+
+        for instance in pattern_instances:
+            # Merge fields (avoid duplicates by name)
+            if "fields" in instance:
+                existing_field_names = {f.get("name") for f in merged["fields"] if isinstance(f, dict)}
+                for field in instance["fields"]:
+                    if isinstance(field, dict) and field.get("name") not in existing_field_names:
+                        merged["fields"].append(field)
+
+            # Merge actions (allow duplicates for now, could add conflict resolution)
+            if "actions" in instance:
+                if isinstance(instance["actions"], list):
+                    merged["actions"].extend(instance["actions"])
+                elif isinstance(instance["actions"], dict):
+                    # Convert dict actions to list format
+                    for name, action_def in instance["actions"].items():
+                        merged["actions"].append({"name": name, **action_def})
+
+            # Merge triggers
+            if "triggers" in instance:
+                merged["triggers"].extend(instance["triggers"])
+
+            # Merge indexes
+            if "indexes" in instance:
+                merged["indexes"].extend(instance["indexes"])
+
+            # Merge tables
+            if "tables" in instance:
+                merged["tables"].extend(instance["tables"])
+
+        return merged
+
+    def validate_entity_template(
+        self,
+        template_name: str
+    ) -> Dict[str, Any]:
+        """
+        Validate an entity template for consistency and conflicts
+
+        Returns validation result with any issues found
+        """
+        template = self.get_entity_template(template_name)
+        if not template:
+            return {"valid": False, "errors": [f"Template not found: {template_name}"]}
+
+        validation_result = {
+            "valid": True,
+            "warnings": [],
+            "errors": [],
+            "pattern_validation": {}
+        }
+
+        # Validate that referenced patterns exist
+        for pattern_name in template["default_patterns"].keys():
+            pattern = self.get_domain_pattern(pattern_name)
+            if not pattern:
+                validation_result["valid"] = False
+                validation_result["errors"].append(f"Referenced pattern not found: {pattern_name}")
+            else:
+                # Validate pattern parameters
+                pattern_validation = self.validate_pattern_composition(
+                    [pattern_name]
+                )
+                validation_result["pattern_validation"][pattern_name] = pattern_validation
+
+                if not pattern_validation["valid"]:
+                    validation_result["valid"] = False
+                    validation_result["errors"].extend(pattern_validation["conflicts"])
+
+        return validation_result
+
     # ===== Utility Methods =====
 
     def close(self):

@@ -1,0 +1,175 @@
+You are an expert SpecQL pattern designer. Your task is to convert natural language descriptions into structured SpecQL patterns.
+
+## SpecQL Pattern Structure
+
+SpecQL patterns are JSON objects with this structure:
+
+```json
+{
+  "name": "pattern_name",
+  "category": "category_name",
+  "description": "Natural language description",
+  "parameters": {
+    "entity": {"type": "string", "required": true, "description": "Target entity name"},
+    "additional_params": {...}
+  },
+  "implementation": {
+    "fields": [
+      {"name": "field_name", "type": "field_type", "default": "default_value", "description": "Field description"}
+    ],
+    "actions": [
+      {
+        "name": "action_name",
+        "steps": [
+          {"validate": "validation_condition", "error": "error_message"},
+          {"update": "update_statement"},
+          {"notify": "recipient", "template": "notification_template"}
+        ]
+      }
+    ]
+  }
+}
+```
+
+## SpecQL Conventions (MANDATORY)
+
+### Trinity Pattern
+All entities MUST have these three fields:
+- `pk_*` (INTEGER PRIMARY KEY)
+- `id` (UUID, unique identifier)
+- `identifier` (TEXT, human-readable identifier)
+
+### Naming Conventions
+- **Tables**: `tb_*` (e.g., `tb_users`, `tb_orders`)
+- **Foreign Keys**: `fk_*` (e.g., `fk_user_id`)
+- **Indexes**: `idx_*` (e.g., `idx_user_email`)
+- **Sequences**: `seq_*` (e.g., `seq_user_id`)
+
+### Audit Fields
+All entities should include:
+- `created_at` (TIMESTAMPTZ)
+- `updated_at` (TIMESTAMPTZ)
+- `deleted_at` (TIMESTAMPTZ, for soft deletes)
+
+### Schema Organization
+- **Framework schemas**: `common`, `app`, `core` (shared functionality)
+- **User schemas**: `crm`, `sales`, `inventory` (business-specific)
+
+### Field Types
+- `ref(Entity)` for foreign keys
+- `enum(value1, value2, value3)` for enumerated values
+- `timestamp` for dates/times
+- `text` for strings
+- `integer` for numbers
+- `boolean` for true/false
+- `jsonb` for complex data
+
+## Categories
+
+Choose the most appropriate category:
+- `workflow`: Multi-step processes (approvals, state machines)
+- `validation`: Data validation and constraints
+- `audit`: Tracking changes and history
+- `hierarchy`: Parent-child relationships
+- `state_machine`: Finite state transitions
+- `approval`: Approval workflows
+- `notification`: Alerts and messaging
+- `calculation`: Computed values and formulas
+- `soft_delete`: Logical deletion
+- `security`: Access control and permissions
+
+## Pattern Examples
+
+### Example 1: Approval Workflow
+```json
+{
+  "name": "approval_workflow",
+  "category": "workflow",
+  "description": "Two-stage approval workflow: pending -> approved/rejected",
+  "parameters": {
+    "entity": {"type": "string", "required": true},
+    "approver_role": {"type": "string", "default": "manager"}
+  },
+  "implementation": {
+    "fields": [
+      {"name": "approval_status", "type": "enum(pending, approved, rejected)", "default": "pending"},
+      {"name": "approved_by", "type": "ref(User)"},
+      {"name": "approved_at", "type": "timestamp"},
+      {"name": "rejection_reason", "type": "text"}
+    ],
+    "actions": [
+      {
+        "name": "approve",
+        "steps": [
+          {"validate": "approval_status = 'pending'"},
+          {"validate": "current_user_has_role('{{approver_role}}')"},
+          {"update": "{{entity}} SET approval_status = 'approved', approved_by = current_user_id, approved_at = now()"},
+          {"notify": "submitter", "template": "approval_granted"}
+        ]
+      },
+      {
+        "name": "reject",
+        "steps": [
+          {"validate": "approval_status = 'pending'"},
+          {"validate": "current_user_has_role('{{approver_role}}')"},
+          {"update": "{{entity}} SET approval_status = 'rejected', rejection_reason = :reason"},
+          {"notify": "submitter", "template": "approval_rejected"}
+        ]
+      }
+    ]
+  }
+}
+```
+
+### Example 2: State Machine
+```json
+{
+  "name": "state_machine",
+  "category": "state_machine",
+  "description": "Finite state machine with configurable states and transitions",
+  "parameters": {
+    "entity": {"type": "string", "required": true},
+    "states": {"type": "array", "default": ["draft", "active", "archived"]},
+    "initial_state": {"type": "string", "default": "draft"}
+  },
+  "implementation": {
+    "fields": [
+      {"name": "status", "type": "enum({{states}})", "default": "{{initial_state}}"},
+      {"name": "status_changed_at", "type": "timestamp"},
+      {"name": "previous_status", "type": "enum({{states}})"}
+    ],
+    "actions": [
+      {
+        "name": "transition_state",
+        "steps": [
+          {"validate": "new_status IN {{states}}"},
+          {"update": "{{entity}} SET previous_status = status, status = new_status, status_changed_at = now()"}
+        ]
+      }
+    ]
+  }
+}
+```
+
+## Task
+
+Convert this natural language description into a SpecQL pattern:
+
+Description: {{ description }}
+Category: {{ category }}
+
+## Instructions
+
+1. **Analyze the description** and identify the core business logic
+2. **Choose appropriate category** from the list above
+3. **Design fields** needed to implement the pattern
+4. **Create actions** that implement the business logic
+5. **Follow SpecQL conventions** exactly (trinity pattern, naming, audit fields)
+6. **Use proper field types** and validation rules
+7. **Make it reusable** with parameters where appropriate
+
+## Output Format
+
+Output ONLY valid JSON. No markdown, no explanations, no code blocks. Just the JSON object.
+
+The JSON must be parseable and follow the structure shown in examples.
