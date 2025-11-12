@@ -18,7 +18,7 @@ Example: 012321
 """
 
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
 
@@ -45,6 +45,19 @@ class EntityRegistryEntry:
 
 
 @dataclass
+class ReadEntityRegistryEntry:
+    """Read-side entity entry in registry"""
+
+    entity_name: str
+    code: str  # 8-digit read-side code (e.g., "0220130")
+    entity_number: int  # Entity sequence number (1-9)
+    view_type: str  # 'v_', 'tv_', 'mv_'
+    assigned_at: str
+    subdomain: str
+    domain: str
+
+
+@dataclass
 class SubdomainInfo:
     """Subdomain information from registry"""
 
@@ -53,6 +66,8 @@ class SubdomainInfo:
     description: str
     next_entity_sequence: int
     entities: dict[str, dict]
+    next_read_entity: int = 1  # Independent read-side sequence
+    read_entities: dict[str, dict] = field(default_factory=dict)  # Read-side entities
 
 
 @dataclass
@@ -88,6 +103,10 @@ class DomainRegistry:
         self.registry_path = Path(registry_path)
         self.registry: dict = {}
         self.entities_index: dict[str, EntityRegistryEntry] = {}
+        self.read_entities_index: dict[str, ReadEntityRegistryEntry] = {}
+        # Caches for performance
+        self._domain_mapping_cache: dict[str, dict] | None = None
+        self._subdomain_mapping_cache: dict[str, dict[str, dict]] = {}
         self.load()
 
     def load(self):
@@ -101,12 +120,17 @@ class DomainRegistry:
         with open(self.registry_path) as f:
             self.registry = yaml.safe_load(f)
 
+        # Clear caches when reloading
+        self._domain_mapping_cache = None
+        self._subdomain_mapping_cache = {}
+
         # Build entity index for quick lookup
         self._build_entity_index()
 
     def _build_entity_index(self):
         """Build index of all registered entities for O(1) lookup"""
         self.entities_index = {}
+        self.read_entities_index = {}
 
         for domain_code, domain in self.registry.get("domains", {}).items():
             domain_name = domain["name"]
@@ -127,9 +151,22 @@ class DomainRegistry:
                         domain=domain_name,
                     )
 
+                # Build read entities index
+                read_entities = subdomain.get("read_entities") or {}
+                for entity_name, entity_data in read_entities.items():
+                    self.read_entities_index[entity_name.lower()] = ReadEntityRegistryEntry(
+                        entity_name=entity_name,
+                        code=entity_data["code"],
+                        entity_number=entity_data["entity_number"],
+                        view_type=entity_data["view_type"],
+                        assigned_at=entity_data["assigned_at"],
+                        subdomain=subdomain_name,
+                        domain=domain_name,
+                    )
+
     def get_entity(self, entity_name: str) -> EntityRegistryEntry | None:
         """
-        Get entity from registry by name
+        Get entity from registry by name (case-insensitive)
 
         Args:
             entity_name: Entity name (case-insensitive)
@@ -138,6 +175,162 @@ class DomainRegistry:
             EntityRegistryEntry if found, None otherwise
         """
         return self.entities_index.get(entity_name.lower())
+
+    def get_read_entity(self, domain_name: str, subdomain_name: str, entity_name: str) -> ReadEntityRegistryEntry | None:
+        """
+        Get read-side entity from registry by domain, subdomain, and name
+
+        Args:
+            domain_name: Domain name
+            subdomain_name: Subdomain name
+            entity_name: Entity name (case-insensitive)
+
+        Returns:
+            ReadEntityRegistryEntry if found, None otherwise
+        """
+        entry = self.read_entities_index.get(entity_name.lower())
+        if entry and entry.domain == domain_name and entry.subdomain == subdomain_name:
+            return entry
+        return None
+
+    def assign_write_entity_code(self, domain_name: str, subdomain_name: str, entity_name: str) -> str:
+        """
+        Assign write-side entity code (for testing - simulates existing logic)
+
+        Args:
+            domain_name: Domain name
+            subdomain_name: Subdomain name
+            entity_name: Entity name
+
+        Returns:
+            Assigned write-side code
+        """
+        # Get domain and subdomain codes
+        domain_info = self.get_domain(domain_name)
+        if not domain_info:
+            raise ValueError(f"Domain {domain_name} not found")
+
+        subdomain_info = self.get_subdomain(domain_info.domain_code, subdomain_name)
+        if not subdomain_info:
+            raise ValueError(f"Subdomain {subdomain_name} not found in domain {domain_name}")
+
+        # Get next sequence
+        entity_sequence = subdomain_info.next_entity_sequence
+
+        # Build write-side code: 01 + domain + subdomain + entity + file
+        code = f"01{domain_info.domain_code}{subdomain_info.subdomain_code}{entity_sequence}1"
+
+        # Register the entity
+        self.register_entity(
+            entity_name=entity_name,
+            table_code=code,
+            entity_code=self._derive_entity_code(entity_name),
+            domain_code=domain_info.domain_code,
+            subdomain_code=subdomain_info.subdomain_code,
+        )
+
+        return code
+
+    def _derive_entity_code(self, entity_name: str) -> str:
+        """Simple entity code derivation for testing"""
+        return entity_name[:3].upper()
+
+    def assign_read_entity_code(self, domain_name: str, subdomain_name: str, entity_name: str) -> str:
+        """
+        Assign read-side entity code independently from write-side
+
+        Args:
+            domain_name: Domain name
+            subdomain_name: Subdomain name
+            entity_name: Entity name (e.g., "tv_contact")
+
+        Returns:
+            Assigned 8-digit read-side code (e.g., "0220130")
+        """
+        # Get domain and subdomain codes
+        domain_info = self.get_domain(domain_name)
+        if not domain_info:
+            raise ValueError(f"Domain {domain_name} not found")
+
+        subdomain_info = self.get_subdomain(domain_info.domain_code, subdomain_name)
+        if not subdomain_info:
+            raise ValueError(f"Subdomain {subdomain_name} not found in domain {domain_name}")
+
+        # Check if already assigned
+        existing = self.get_read_entity(domain_name, subdomain_name, entity_name)
+        if existing:
+            return existing.code
+
+        # Get next read-side entity sequence (independent from write-side)
+        entity_number = subdomain_info.next_read_entity
+
+        # Validate entity number range (0-9)
+        if entity_number < 0 or entity_number > 9:
+            raise ValueError(f"Entity number {entity_number} out of range (0-9) for subdomain {subdomain_name}")
+
+        # Build read-side code: 02 + domain + subdomain + entity + file
+        code = f"02{domain_info.domain_code}{subdomain_info.subdomain_code}{entity_number}0"
+
+        # Register the read-side entity
+        self._register_read_entity(
+            entity_name=entity_name,
+            code=code,
+            entity_number=entity_number,
+            view_type=self._determine_view_type(entity_name),
+            domain_code=domain_info.domain_code,
+            subdomain_code=subdomain_info.subdomain_code,
+        )
+
+        return code
+
+    def _determine_view_type(self, entity_name: str) -> str:
+        """Determine view type from entity name"""
+        if entity_name.startswith("tv_"):
+            return "tv_"
+        elif entity_name.startswith("v_"):
+            return "v_"
+        elif entity_name.startswith("mv_"):
+            return "mv_"
+        else:
+            return "v_"  # Default
+
+    def _register_read_entity(
+        self,
+        entity_name: str,
+        code: str,
+        entity_number: int,
+        view_type: str,
+        domain_code: str,
+        subdomain_code: str,
+    ):
+        """
+        Register read-side entity in registry and save to file
+        """
+        # Add to in-memory registry
+        subdomain = self.registry["domains"][domain_code]["subdomains"][subdomain_code]
+
+        # Ensure read_entities exists
+        if "read_entities" not in subdomain:
+            subdomain["read_entities"] = {}
+
+        subdomain["read_entities"][entity_name] = {
+            "code": code,
+            "entity_number": entity_number,
+            "view_type": view_type,
+            "assigned_at": datetime.now().isoformat(),
+        }
+
+        # Increment next_read_entity
+        subdomain["next_read_entity"] = entity_number + 1
+
+        # Update last_updated
+        self.registry["last_updated"] = datetime.now().isoformat()
+
+        # Save to file
+        self.save()
+
+        # Rebuild index
+        self._build_entity_index()
 
     def get_domain(self, domain_identifier: str) -> DomainInfo | None:
         """
@@ -175,6 +368,8 @@ class DomainRegistry:
                 description=subdomain_data["description"],
                 next_entity_sequence=subdomain_data["next_entity_sequence"],
                 entities=subdomain_data.get("entities", {}),
+                next_read_entity=subdomain_data.get("next_read_entity", 1),
+                read_entities=subdomain_data.get("read_entities", {}),
             )
 
         return DomainInfo(
@@ -209,6 +404,78 @@ class DomainRegistry:
                 return subdomain
 
         return None
+
+    def load_domain_mapping(self) -> dict[str, dict]:
+        """
+        Load domain mapping from registry for fast lookups
+
+        Returns:
+            Dictionary mapping domain codes/names to domain info
+        """
+        if self._domain_mapping_cache is not None:
+            return self._domain_mapping_cache
+
+        mapping = {}
+
+        for domain_code, domain_data in self.registry.get("domains", {}).items():
+            domain_name = domain_data["name"]
+            aliases = domain_data.get("aliases", [])
+
+            # Map by code
+            mapping[domain_code] = {
+                "code": domain_code,
+                "name": domain_name,
+                "description": domain_data["description"],
+                "aliases": aliases,
+                "multi_tenant": domain_data.get("multi_tenant", False)
+            }
+
+            # Map by name
+            mapping[domain_name] = mapping[domain_code]
+
+            # Map by aliases
+            for alias in aliases:
+                mapping[alias] = mapping[domain_code]
+
+        self._domain_mapping_cache = mapping
+        return mapping
+
+    def load_subdomain_mapping(self, domain_identifier: str) -> dict[str, dict]:
+        """
+        Load subdomain mapping for a specific domain from registry
+
+        Args:
+            domain_identifier: Domain code, name, or alias
+
+        Returns:
+            Dictionary mapping subdomain codes/names to subdomain info
+        """
+        if domain_identifier in self._subdomain_mapping_cache:
+            return self._subdomain_mapping_cache[domain_identifier]
+
+        # Get domain info
+        domain_info = self.get_domain(domain_identifier)
+        if not domain_info:
+            return {}
+
+        mapping = {}
+
+        for subdomain_code, subdomain_data in domain_info.subdomains.items():
+            subdomain_name = subdomain_data.subdomain_name
+
+            mapping[subdomain_code] = {
+                "code": subdomain_code,
+                "name": subdomain_name,
+                "description": subdomain_data.description,
+                "next_entity_sequence": subdomain_data.next_entity_sequence,
+                "next_read_entity": subdomain_data.next_read_entity
+            }
+
+            # Also map by name
+            mapping[subdomain_name] = mapping[subdomain_code]
+
+        self._subdomain_mapping_cache[domain_identifier] = mapping
+        return mapping
 
     def get_next_entity_sequence(self, domain_code: str, subdomain_code: str) -> int:
         """
@@ -307,6 +574,135 @@ class DomainRegistry:
 
         # Rebuild index
         self._build_entity_index()
+
+    def assign_read_file_code(self, domain_name: str, subdomain_name: str, entity_name: str, file_num: int) -> str:
+        """
+        Assign read-side file code for additional files within same entity
+
+        Args:
+            domain_name: Domain name
+            subdomain_name: Subdomain name
+            entity_name: Entity name
+            file_num: File number (0, 1, 2, ...)
+
+        Returns:
+            Assigned 7-digit read-side code
+        """
+        # Get existing entity
+        existing = self.get_read_entity(domain_name, subdomain_name, entity_name)
+        if not existing:
+            # First file - assign entity code
+            return self.assign_read_entity_code(domain_name, subdomain_name, entity_name)
+
+        # Additional file - use same entity number but different file number
+        domain_info = self.get_domain(domain_name)
+        if not domain_info:
+            raise ValueError(f"Domain {domain_name} not found")
+
+        subdomain_info = self.get_subdomain(domain_info.domain_code, subdomain_name)
+        if not subdomain_info:
+            raise ValueError(f"Subdomain {subdomain_name} not found in domain {domain_name}")
+
+        # Validate file number range (0-9)
+        if file_num < 0 or file_num > 9:
+            raise ValueError(f"File number {file_num} out of range (0-9)")
+
+        code = f"02{domain_info.domain_code}{subdomain_info.subdomain_code}{existing.entity_number}{file_num}"
+
+        # Register additional file
+        subdomain = self.registry["domains"][domain_info.domain_code]["subdomains"][subdomain_info.subdomain_code]
+        entity_data = subdomain["read_entities"][entity_name]
+
+        # Ensure files list exists
+        if "files" not in entity_data:
+            entity_data["files"] = []
+
+        entity_data["files"].append({
+            "code": code,
+            "type": existing.view_type,
+            "name": entity_name,
+            "file_num": file_num,
+        })
+
+        # Save and rebuild
+        self.save()
+        self._build_entity_index()
+
+        return code
+
+    def validate_read_code_format(self, code: str) -> bool:
+        """
+        Validate read-side code format
+
+        Args:
+            code: 7-digit code to validate
+
+        Returns:
+            True if valid format
+        """
+        if len(code) != 7:
+            return False
+
+        # Format: 0SDSSEV
+        # 0: always 0
+        # S: schema layer (2 for read-side)
+        # D: domain code (1 digit)
+        # SS: subdomain code (2 digits)
+        # E: entity number (1 digit)
+        # V: file number (1 digit)
+
+        try:
+            schema_prefix = code[0]
+            layer = code[1]
+            domain = code[2]
+            subdomain = code[3:5]
+            entity = code[5]
+            file_num = code[6]
+
+            return (
+                schema_prefix == "0" and
+                layer == "2" and  # Read-side
+                domain.isdigit() and len(domain) == 1 and
+                subdomain.isdigit() and len(subdomain) == 2 and
+                entity.isdigit() and len(entity) == 1 and
+                file_num.isdigit() and len(file_num) == 1
+            )
+        except (IndexError, ValueError):
+            return False
+
+    def force_assign_read_code(self, code: str, domain_name: str, subdomain_name: str, entity_name: str):
+        """
+        Force assign a specific read-side code (for testing conflicts)
+
+        Args:
+            code: Code to assign
+            domain_name: Domain name
+            subdomain_name: Subdomain name
+            entity_name: Entity name
+        """
+        domain_info = self.get_domain(domain_name)
+        if not domain_info:
+            raise ValueError(f"Domain {domain_name} not found")
+
+        subdomain_info = self.get_subdomain(domain_info.domain_code, subdomain_name)
+        if not subdomain_info:
+            raise ValueError(f"Subdomain {subdomain_name} not found in domain {domain_name}")
+
+        # Check for conflicts
+        for existing_entity, existing_data in subdomain_info.read_entities.items():
+            if existing_data.get("code") == code:
+                raise ValueError(f"Code {code} already assigned to {existing_entity}")
+
+        # Register
+        entity_number = int(code[5])  # Extract entity number from 7-digit code (position 5)
+        self._register_read_entity(
+            entity_name=entity_name,
+            code=code,
+            entity_number=entity_number,
+            view_type=self._determine_view_type(entity_name),
+            domain_code=domain_info.domain_code,
+            subdomain_code=subdomain_info.subdomain_code,
+        )
 
     def save(self):
         """Save registry to YAML file"""

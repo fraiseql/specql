@@ -229,3 +229,87 @@ class TestDomainRegistryModification:
                 domain_code="2",
                 subdomain_code="99",  # Invalid
             )
+
+
+class TestDomainRegistryMappings:
+    """Test domain and subdomain mapping methods"""
+
+    def test_load_domain_mapping(self, registry):
+        """Should load domain mapping with codes, names, and aliases"""
+        mapping = registry.load_domain_mapping()
+
+        # Should have mappings by code
+        assert "2" in mapping
+        assert mapping["2"]["name"] == "crm"
+        assert mapping["2"]["code"] == "2"
+        assert mapping["2"]["description"] == "Customer relationship management & organizational structure"
+        assert mapping["2"]["multi_tenant"] is True
+
+        # Should have mappings by name
+        assert "crm" in mapping
+        assert mapping["crm"] == mapping["2"]
+
+        # Should have mappings by alias
+        assert "management" in mapping
+        assert mapping["management"] == mapping["2"]
+
+    def test_load_domain_mapping_caching(self, registry):
+        """Should cache domain mapping results"""
+        # First call
+        mapping1 = registry.load_domain_mapping()
+
+        # Second call should return cached result
+        mapping2 = registry.load_domain_mapping()
+
+        assert mapping1 is mapping2
+
+        # Reload registry should clear cache
+        registry.load()
+        mapping3 = registry.load_domain_mapping()
+
+        assert mapping1 is not mapping3
+
+    def test_load_subdomain_mapping(self, registry):
+        """Should load subdomain mapping for a domain"""
+        mapping = registry.load_subdomain_mapping("crm")
+
+        # Should have mappings by code
+        assert "03" in mapping
+        assert mapping["03"]["name"] == "customer"
+        assert mapping["03"]["code"] == "03"
+        assert mapping["03"]["description"] == "Customer contact entities (contact, company, account)"
+        assert "next_entity_sequence" in mapping["03"]
+        assert "next_read_entity" in mapping["03"]
+
+        # Should have mappings by name
+        assert "customer" in mapping
+        assert mapping["customer"] == mapping["03"]
+
+    def test_load_subdomain_mapping_by_alias(self, registry):
+        """Should load subdomain mapping using domain alias"""
+        mapping1 = registry.load_subdomain_mapping("crm")
+        mapping2 = registry.load_subdomain_mapping("management")  # alias
+
+        assert mapping1 == mapping2
+
+    def test_load_subdomain_mapping_invalid_domain(self, registry):
+        """Should return empty dict for invalid domain"""
+        mapping = registry.load_subdomain_mapping("invalid_domain")
+
+        assert mapping == {}
+
+    def test_load_subdomain_mapping_caching(self, registry):
+        """Should cache subdomain mapping results"""
+        # First call
+        mapping1 = registry.load_subdomain_mapping("crm")
+
+        # Second call should return cached result
+        mapping2 = registry.load_subdomain_mapping("crm")
+
+        assert mapping1 is mapping2
+
+        # Reload registry should clear cache
+        registry.load()
+        mapping3 = registry.load_subdomain_mapping("crm")
+
+        assert mapping1 is not mapping3

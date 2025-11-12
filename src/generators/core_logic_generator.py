@@ -7,7 +7,8 @@ from typing import Any
 
 from jinja2 import Environment, FileSystemLoader
 
-from src.core.ast_models import Action, Entity, FieldTier
+from src.core.ast_models import Action, ActionStep, Entity, FieldTier
+from src.generators.actions.compilation_context import CompilationContext
 from src.generators.schema.schema_registry import SchemaRegistry
 from src.utils.safe_slug import safe_slug, safe_table_name
 
@@ -280,6 +281,7 @@ class CoreLogicGenerator:
         Compile action steps into SQL statements
         """
         compiled = []
+        context = CompilationContext()  # Collect CTEs and variables for use in queries
 
         for step in action.steps:
             if step.type == "validate" and step.expression:
@@ -416,7 +418,37 @@ class CoreLogicGenerator:
                 # Handle refresh_table_view step
                 compiled.extend(self._compile_refresh_table_view_step(step, entity))
 
+            elif step.type == "cte":
+                # Handle CTE step - collect CTE for use in subsequent queries
+                if step.cte_name:
+                    context.add_cte(step.cte_name, step.cte_query or "", step.cte_materialized)
+
+            elif step.type == "query":
+                # Handle query step with potential CTEs
+                compiled.append(self._compile_query_step(step, context))
+
+            elif step.type == "switch":
+                # Handle switch step
+                compiled.append(self._compile_switch_step(step, context))
+
+            elif step.type == "return_early":
+                # Handle return_early step
+                compiled.append(self._compile_return_early_step(step, context))
+
         return compiled
+
+    def _compile_query_step(self, step: ActionStep, context: CompilationContext) -> str:
+        """
+        Compile a query step with CTE support
+        """
+        query_sql = step.expression or ""
+
+        # Add WITH clause if CTEs exist
+        if context.has_ctes():
+            with_clause = context.get_with_clause()
+            query_sql = f"{with_clause}\n{query_sql}"
+
+        return f"-- Query: {query_sql}"
 
     def _compile_duplicate_check_step(self, step, entity: Entity) -> str:
         """
@@ -838,6 +870,17 @@ class CoreLogicGenerator:
         }
         return mapping.get(specql_type, "TEXT")
 
+    def _format_value_for_sql(self, value: Any) -> str:
+        """Format a value for SQL DEFAULT clause"""
+        if value is None:
+            return "NULL"
+        elif isinstance(value, str):
+            return f"'{value}'"
+        elif isinstance(value, bool):
+            return "TRUE" if value else "FALSE"
+        else:
+            return str(value)
+
     def _extract_declarations(self, action, entity) -> list[str]:
         """
         Extract variable declarations needed for the action
@@ -867,9 +910,89 @@ class CoreLogicGenerator:
             if field_def.tier == FieldTier.REFERENCE:
                 declarations.append(f"v_fk_{field_name} INTEGER")
 
+        # Add declarations from declare steps
+        for step in action.steps:
+            if step.type == "declare":
+                if step.variable_name:
+                    # Single declaration
+                    pg_type = self._map_field_type_to_pg_type(step.variable_type or "text")
+                    default = ""
+                    if step.default_value is not None:
+                        default = f" := {self._format_value_for_sql(step.default_value)}"
+                    declarations.append(f"{step.variable_name} {pg_type}{default}")
+                elif step.declarations:
+                    # Multiple declarations
+                    for decl in step.declarations:
+                        pg_type = self._map_field_type_to_pg_type(decl.type)
+                        default = ""
+                        if decl.default_value is not None:
+                            default = f" := {self._format_value_for_sql(decl.default_value)}"
+                        declarations.append(f"{decl.name} {pg_type}{default}")
+
         return declarations
 
     def _to_camel_case(self, snake_str: str) -> str:
         """Convert snake_case to camelCase"""
         components = snake_str.split("_")
         return components[0] + "".join(word.capitalize() for word in components[1:])
+
+    def _compile_switch_step(self, step: ActionStep, context: CompilationContext) -> str:
+        """
+        Compile switch step to PL/pgSQL CASE WHEN or IF/ELSIF
+        """
+        # For now, use a simplified implementation
+        # In practice, this would use the SwitchStepCompiler
+        switch_expr = step.switch_expression or ""
+
+        lines = []
+        if self._is_simple_switch(step):
+            lines.append(f"CASE {switch_expr}")
+            for case in step.cases:
+                when_value = case.when_value
+                lines.append(f"  WHEN {when_value} THEN")
+                # Simplified: just add a comment for now
+                lines.append("    -- Case logic here")
+            if step.default_steps:
+                lines.append("  ELSE")
+                lines.append("    -- Default logic here")
+            lines.append("END CASE;")
+        else:
+            # IF/ELSIF chain
+            for i, case in enumerate(step.cases):
+                keyword = "IF" if i == 0 else "ELSIF"
+                condition = case.when_condition or case.when_value
+                lines.append(f"{keyword} {condition} THEN")
+                lines.append("  -- Case logic here")
+            if step.default_steps:
+                lines.append("ELSE")
+                lines.append("  -- Default logic here")
+            lines.append("END IF;")
+
+        return "\n".join(lines)
+
+    def _compile_return_early_step(self, step: ActionStep, context: CompilationContext) -> str:
+        """
+        Compile return_early step to PL/pgSQL RETURN
+        """
+        return_value = step.return_value
+
+        if return_value is None:
+            return "RETURN;"
+        elif isinstance(return_value, dict):
+            # Complex return value (mutation result)
+            success = return_value.get('success', 'false')
+            message = return_value.get('message', "''")
+            return f"""RETURN ROW(
+    {success}::BOOLEAN,
+    {message}::TEXT,
+    '{{}}'::JSONB,
+    '{{}}'::JSONB
+)::app.mutation_result;"""
+        else:
+            # Simple return value
+            return f"RETURN {return_value};"
+
+    def _is_simple_switch(self, step: ActionStep) -> bool:
+        """Check if switch can use simple CASE WHEN syntax"""
+        from src.generators.actions.switch_optimizer import SwitchOptimizer
+        return SwitchOptimizer.detect_simple_switch(step.cases, step.switch_expression)

@@ -1,0 +1,75 @@
+# Aggregate Action Examples
+
+entity: Report
+schema: analytics
+actions:
+  # Simple sum aggregate
+  - name: calculate_total_sales
+    parameters:
+      - name: start_date
+        type: date
+      - name: end_date
+        type: date
+    returns: numeric
+    steps:
+      - aggregate:
+          operation: sum
+          field: amount
+          from: tb_order
+          where: order_date BETWEEN $start_date AND $end_date AND status = 'completed'
+          as: total_sales
+      - return: total_sales
+
+  # Count with conditions
+  - name: count_active_customers
+    returns: integer
+    steps:
+      - aggregate:
+          operation: count
+          field: id
+          from: tb_customer
+          where: last_login > CURRENT_DATE - INTERVAL '30 days'
+          as: active_count
+      - return: active_count
+
+  # Average calculation
+  - name: average_order_value
+    returns: numeric
+    steps:
+      - aggregate:
+          operation: avg
+          field: total_amount
+          from: tb_order
+          where: EXTRACT(YEAR FROM order_date) = EXTRACT(YEAR FROM CURRENT_DATE)
+          as: avg_value
+      - return: avg_value
+
+  # Grouped aggregate
+  - name: sales_by_category
+    returns: json
+    steps:
+      - aggregate:
+          operation: sum
+          field: amount
+          from: tb_order_item
+          group_by: category
+          as: category_totals
+      - return: category_totals
+
+  # Min/Max values
+  - name: price_range
+    returns: json
+    steps:
+      - aggregate:
+          operation: min
+          field: unit_price
+          from: tb_product
+          as: min_price
+      - aggregate:
+          operation: max
+          field: unit_price
+          from: tb_product
+          as: max_price
+      - return:
+          min_price: $min_price
+          max_price: $max_price

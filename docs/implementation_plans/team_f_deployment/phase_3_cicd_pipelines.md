@@ -1,0 +1,765 @@
+# Team F Phase 3: CI/CD Pipelines Implementation Plan
+
+**Created**: 2025-11-12
+**Phase**: 3 of 5
+**Status**: Planning
+**Complexity**: Medium - Workflow automation
+**Priority**: MEDIUM - Enables automated deployments
+**Prerequisites**: Phase 1 (Docker), Phase 2 (OpenTofu) complete
+
+---
+
+## Executive Summary
+
+Implement automated CI/CD pipeline generation for GitHub Actions and GitLab CI. Generate production-ready workflows that handle linting, testing, building, and deploying applications.
+
+**Goal**: From `deployment.yaml` (5 lines) → Generate CI/CD pipelines (400+ lines)
+
+**Key Deliverables**:
+1. GitHub Actions workflow generation
+2. GitLab CI pipeline generation (optional)
+3. Multi-stage pipelines (lint → test → build → deploy)
+4. Database migration automation
+5. Rollback procedures
+6. Environment promotion (staging → production)
+
+**Impact**:
+- Fully automated deployment pipeline
+- No manual deployment steps
+- Consistent deployments across environments
+- Automatic rollback on failures
+
+---
+
+## 🎯 Phase 3 Objectives
+
+### Core Goals
+1. **GitHub Actions Generator**: Production-ready workflows
+2. **Multi-Environment Support**: dev, staging, production
+3. **Database Migrations**: Automated migration execution
+4. **Rollback Automation**: Automated failure recovery
+5. **Security Scanning**: Container scanning, dependency checks
+
+### Success Criteria
+- ✅ Generate complete GitHub Actions workflow
+- ✅ Support PR testing (lint + unit tests)
+- ✅ Support main branch deployment (staging + production)
+- ✅ Database migrations run automatically
+- ✅ Rollback triggers on failures
+- ✅ All generated workflows pass validation
+
+---
+
+## 📋 Technical Design
+
+### Architecture
+
+```
+src/generators/deployment/cicd/
+├── __init__.py
+├── cicd_orchestrator.py           # Main CI/CD generation orchestrator
+├── github/
+│   ├── __init__.py
+│   ├── actions_generator.py       # GitHub Actions workflow generator
+│   ├── pr_workflow.py             # PR testing workflow
+│   ├── deploy_workflow.py         # Deployment workflow
+│   └── rollback_workflow.py       # Rollback workflow
+├── gitlab/
+│   ├── __init__.py
+│   └── gitlab_ci_generator.py     # GitLab CI pipeline generator
+├── steps/
+│   ├── __init__.py
+│   ├── lint_step.py               # Linting steps
+│   ├── test_step.py               # Testing steps
+│   ├── build_step.py              # Docker build steps
+│   ├── deploy_step.py             # Deployment steps
+│   └── migration_step.py          # Database migration steps
+└── templates/
+    ├── github/
+    │   ├── test.yml.j2
+    │   ├── deploy.yml.j2
+    │   └── rollback.yml.j2
+    └── gitlab/
+        └── gitlab-ci.yml.j2
+```
+
+### Deployment YAML Extension
+
+```yaml
+# deployment.yaml (EXTENDED for Phase 3)
+deployment:
+  name: my-app
+  framework: fraiseql
+  pattern: small-saas
+
+# CI/CD configuration
+cicd:
+  provider: github-actions  # github-actions | gitlab-ci
+  triggers:
+    - event: pull_request
+      action: test
+    - event: push
+      branch: main
+      action: deploy
+      environment: staging
+  environments:
+    - name: staging
+      auto_deploy: true
+    - name: production
+      auto_deploy: false
+      approval_required: true
+  migrations:
+    auto_run: true  # Run migrations automatically
+    rollback_on_failure: true
+```
+
+---
+
+## 🏗️ Implementation Details
+
+### 1. GitHub Actions Generator
+
+```python
+# src/generators/deployment/cicd/github/actions_generator.py
+from pathlib import Path
+from typing import Dict, Any
+from jinja2 import Environment, FileSystemLoader
+
+class GitHubActionsGenerator:
+    """Generate GitHub Actions workflows"""
+
+    def __init__(self, config: Dict[str, Any], framework: str):
+        self.config = config
+        self.framework = framework
+        self.template_env = Environment(
+            loader=FileSystemLoader('src/generators/deployment/cicd/templates/github')
+        )
+
+    def generate(self, output_dir: Path) -> Dict[str, Path]:
+        """Generate all GitHub Actions workflows"""
+        generated = {}
+
+        workflows_dir = output_dir / '.github' / 'workflows'
+        workflows_dir.mkdir(parents=True, exist_ok=True)
+
+        # PR testing workflow
+        generated['test'] = self._generate_test_workflow(workflows_dir)
+
+        # Deployment workflow
+        generated['deploy'] = self._generate_deploy_workflow(workflows_dir)
+
+        # Rollback workflow
+        generated['rollback'] = self._generate_rollback_workflow(workflows_dir)
+
+        return generated
+
+    def _generate_test_workflow(self, output_dir: Path) -> Path:
+        """Generate PR testing workflow"""
+        app_name = self.config['deployment']['name']
+
+        workflow = f"""# ============================================
+# AUTO-GENERATED BY SPECQL TEAM F
+# PR Testing Workflow
+# ============================================
+
+name: Test
+
+on:
+  pull_request:
+    branches: [main, develop]
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{{{ github.repository }}}}
+
+jobs:
+  lint:
+    name: Lint Code
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install ruff mypy
+
+      - name: Run ruff
+        run: ruff check .
+
+      - name: Run mypy
+        run: mypy app/
+
+  test:
+    name: Run Tests
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: test_db
+          POSTGRES_USER: test_user
+          POSTGRES_PASSWORD: test_password
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install dependencies
+        run: |
+          pip install -e ".[dev]"
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        run: |
+          psql $DATABASE_URL -f migrations/000_app_foundation.sql
+          # Apply SpecQL-generated migrations
+          for file in migrations/**/*.sql; do
+            psql $DATABASE_URL -f "$file"
+          done
+
+      - name: Run tests
+        env:
+          DATABASE_URL: postgresql://test_user:test_password@localhost:5432/test_db
+        run: |
+          pytest --cov=app --cov-report=xml
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        with:
+          file: ./coverage.xml
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: 'trivy-results.sarif'
+"""
+
+        workflow_path = output_dir / 'test.yml'
+        workflow_path.write_text(workflow)
+        return workflow_path
+
+    def _generate_deploy_workflow(self, output_dir: Path) -> Path:
+        """Generate deployment workflow"""
+        app_name = self.config['deployment']['name']
+        region = self.config['platform']['region']
+
+        workflow = f"""# ============================================
+# AUTO-GENERATED BY SPECQL TEAM F
+# Deployment Workflow
+# ============================================
+
+name: Deploy
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{{{ github.repository }}}}
+  AWS_REGION: {region}
+  ECS_CLUSTER: {app_name}-cluster
+  ECS_SERVICE: {app_name}-service
+
+jobs:
+  build:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    outputs:
+      image_tag: ${{{{ steps.meta.outputs.tags }}}}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{{{ env.REGISTRY }}}}
+          username: ${{{{ github.actor }}}}
+          password: ${{{{ secrets.GITHUB_TOKEN }}}}
+
+      - name: Extract metadata (tags, labels)
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{{{ env.REGISTRY }}}}/${{{{ env.IMAGE_NAME }}}}
+          tags: |
+            type=sha,prefix=,format=short
+            type=ref,event=branch
+            type=semver,pattern={{{{version}}}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{{{ steps.meta.outputs.tags }}}}
+          labels: ${{{{ steps.meta.outputs.labels }}}}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.ref == 'refs/heads/main' || github.event.inputs.environment == 'staging'
+    environment:
+      name: staging
+      url: https://staging.{app_name}.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{{{ secrets.AWS_ACCESS_KEY_ID }}}}
+          aws-secret-access-key: ${{{{ secrets.AWS_SECRET_ACCESS_KEY }}}}
+          aws-region: ${{{{ env.AWS_REGION }}}}
+
+      - name: Run database migrations
+        run: |
+          # Get RDS endpoint from outputs
+          DB_ENDPOINT=$(aws rds describe-db-instances \\
+            --db-instance-identifier {app_name}-postgres-staging \\
+            --query 'DBInstances[0].Endpoint.Address' \\
+            --output text)
+
+          # Run migrations
+          PGPASSWORD=${{{{ secrets.DB_PASSWORD }}}} psql \\
+            -h $DB_ENDPOINT \\
+            -U app_user \\
+            -d {app_name} \\
+            -f migrations/000_app_foundation.sql
+
+          # Apply SpecQL migrations
+          for file in migrations/**/*.sql; do
+            PGPASSWORD=${{{{ secrets.DB_PASSWORD }}}} psql \\
+              -h $DB_ENDPOINT \\
+              -U app_user \\
+              -d {app_name} \\
+              -f "$file"
+          done
+
+      - name: Update ECS service
+        run: |
+          # Get current task definition
+          TASK_DEF=$(aws ecs describe-task-definition \\
+            --task-definition {app_name}-staging \\
+            --query 'taskDefinition' \\
+            --output json)
+
+          # Update container image
+          NEW_TASK_DEF=$(echo $TASK_DEF | jq --arg IMAGE "${{{{ needs.build.outputs.image_tag }}}}" \\
+            '.containerDefinitions[0].image = $IMAGE')
+
+          # Register new task definition
+          aws ecs register-task-definition \\
+            --cli-input-json "$NEW_TASK_DEF"
+
+          # Update service
+          aws ecs update-service \\
+            --cluster ${{{{ env.ECS_CLUSTER }}}}-staging \\
+            --service ${{{{ env.ECS_SERVICE }}}}-staging \\
+            --task-definition {app_name}-staging
+
+      - name: Wait for service stability
+        run: |
+          aws ecs wait services-stable \\
+            --cluster ${{{{ env.ECS_CLUSTER }}}}-staging \\
+            --services ${{{{ env.ECS_SERVICE }}}}-staging
+
+      - name: Smoke tests
+        run: |
+          # Get ALB DNS
+          ALB_DNS=$(aws elbv2 describe-load-balancers \\
+            --names {app_name}-alb-staging \\
+            --query 'LoadBalancers[0].DNSName' \\
+            --output text)
+
+          # Health check
+          curl -f https://$ALB_DNS/health || exit 1
+
+          # Basic GraphQL query
+          curl -f -X POST https://$ALB_DNS/graphql \\
+            -H "Content-Type: application/json" \\
+            -d '{{"query": "{{ __schema {{ types {{ name }} }} }}"}}' || exit 1
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs: [build, deploy-staging]
+    if: github.event.inputs.environment == 'production'
+    environment:
+      name: production
+      url: https://{app_name}.com
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{{{ secrets.AWS_ACCESS_KEY_ID_PROD }}}}
+          aws-secret-access-key: ${{{{ secrets.AWS_SECRET_ACCESS_KEY_PROD }}}}
+          aws-region: ${{{{ env.AWS_REGION }}}}
+
+      - name: Create database backup
+        run: |
+          aws rds create-db-snapshot \\
+            --db-instance-identifier {app_name}-postgres-production \\
+            --db-snapshot-identifier {app_name}-pre-deploy-$(date +%Y%m%d-%H%M%S)
+
+      - name: Run database migrations
+        run: |
+          DB_ENDPOINT=$(aws rds describe-db-instances \\
+            --db-instance-identifier {app_name}-postgres-production \\
+            --query 'DBInstances[0].Endpoint.Address' \\
+            --output text)
+
+          PGPASSWORD=${{{{ secrets.DB_PASSWORD_PROD }}}} psql \\
+            -h $DB_ENDPOINT \\
+            -U app_user \\
+            -d {app_name} \\
+            -f migrations/000_app_foundation.sql
+
+          for file in migrations/**/*.sql; do
+            PGPASSWORD=${{{{ secrets.DB_PASSWORD_PROD }}}} psql \\
+              -h $DB_ENDPOINT \\
+              -U app_user \\
+              -d {app_name} \\
+              -f "$file" || {{
+                echo "Migration failed: $file"
+                exit 1
+              }}
+          done
+
+      - name: Update ECS service (Blue-Green)
+        run: |
+          # Similar to staging but with production cluster
+          TASK_DEF=$(aws ecs describe-task-definition \\
+            --task-definition {app_name}-production \\
+            --query 'taskDefinition' \\
+            --output json)
+
+          NEW_TASK_DEF=$(echo $TASK_DEF | jq --arg IMAGE "${{{{ needs.build.outputs.image_tag }}}}" \\
+            '.containerDefinitions[0].image = $IMAGE')
+
+          aws ecs register-task-definition \\
+            --cli-input-json "$NEW_TASK_DEF"
+
+          aws ecs update-service \\
+            --cluster ${{{{ env.ECS_CLUSTER }}}}-production \\
+            --service ${{{{ env.ECS_SERVICE }}}}-production \\
+            --task-definition {app_name}-production \\
+            --force-new-deployment
+
+      - name: Wait for service stability
+        run: |
+          aws ecs wait services-stable \\
+            --cluster ${{{{ env.ECS_CLUSTER }}}}-production \\
+            --services ${{{{ env.ECS_SERVICE }}}}-production
+
+      - name: Production smoke tests
+        run: |
+          ALB_DNS=$(aws elbv2 describe-load-balancers \\
+            --names {app_name}-alb-production \\
+            --query 'LoadBalancers[0].DNSName' \\
+            --output text)
+
+          curl -f https://$ALB_DNS/health || exit 1
+          curl -f -X POST https://$ALB_DNS/graphql \\
+            -H "Content-Type: application/json" \\
+            -d '{{"query": "{{ __schema {{ types {{ name }} }} }}"}}' || exit 1
+
+      - name: Notify deployment
+        if: success()
+        run: |
+          echo "✅ Production deployment successful!"
+          # Add Slack/Discord notification here
+"""
+
+        workflow_path = output_dir / 'deploy.yml'
+        workflow_path.write_text(workflow)
+        return workflow_path
+
+    def _generate_rollback_workflow(self, output_dir: Path) -> Path:
+        """Generate rollback workflow"""
+        app_name = self.config['deployment']['name']
+
+        workflow = f"""# ============================================
+# AUTO-GENERATED BY SPECQL TEAM F
+# Rollback Workflow
+# ============================================
+
+name: Rollback
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to rollback'
+        required: true
+        type: choice
+        options:
+          - staging
+          - production
+      task_definition_revision:
+        description: 'Task definition revision to rollback to'
+        required: true
+        type: string
+
+env:
+  AWS_REGION: {self.config['platform']['region']}
+  ECS_CLUSTER: {app_name}-cluster
+  ECS_SERVICE: {app_name}-service
+
+jobs:
+  rollback:
+    name: Rollback Deployment
+    runs-on: ubuntu-latest
+    environment:
+      name: ${{{{ github.event.inputs.environment }}}}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{{{ secrets.AWS_ACCESS_KEY_ID }}}}
+          aws-secret-access-key: ${{{{ secrets.AWS_SECRET_ACCESS_KEY }}}}
+          aws-region: ${{{{ env.AWS_REGION }}}}
+
+      - name: Rollback ECS service
+        run: |
+          ENV=${{{{ github.event.inputs.environment }}}}
+          REVISION=${{{{ github.event.inputs.task_definition_revision }}}}
+
+          aws ecs update-service \\
+            --cluster ${{{{ env.ECS_CLUSTER }}}}-$ENV \\
+            --service ${{{{ env.ECS_SERVICE }}}}-$ENV \\
+            --task-definition {app_name}-$ENV:$REVISION \\
+            --force-new-deployment
+
+      - name: Wait for service stability
+        run: |
+          ENV=${{{{ github.event.inputs.environment }}}}
+
+          aws ecs wait services-stable \\
+            --cluster ${{{{ env.ECS_CLUSTER }}}}-$ENV \\
+            --services ${{{{ env.ECS_SERVICE }}}}-$ENV
+
+      - name: Verify rollback
+        run: |
+          ENV=${{{{ github.event.inputs.environment }}}}
+
+          ALB_DNS=$(aws elbv2 describe-load-balancers \\
+            --names {app_name}-alb-$ENV \\
+            --query 'LoadBalancers[0].DNSName' \\
+            --output text)
+
+          curl -f https://$ALB_DNS/health || {{
+            echo "❌ Rollback verification failed!"
+            exit 1
+          }}
+
+          echo "✅ Rollback successful!"
+
+      - name: Notify rollback
+        if: always()
+        run: |
+          echo "Rollback to revision ${{{{ github.event.inputs.task_definition_revision }}}}"
+          # Add notification
+"""
+
+        workflow_path = output_dir / 'rollback.yml'
+        workflow_path.write_text(workflow)
+        return workflow_path
+```
+
+---
+
+## 📊 Testing Strategy
+
+### Unit Tests
+
+```python
+# tests/unit/generators/deployment/cicd/test_github_actions_generator.py
+import pytest
+from pathlib import Path
+from src.generators.deployment.cicd.github.actions_generator import GitHubActionsGenerator
+
+def test_generates_all_workflows(tmp_path):
+    """Test that all workflows are generated"""
+    config = {
+        'deployment': {'name': 'test-app', 'framework': 'fraiseql'},
+        'platform': {'region': 'us-east-1'}
+    }
+
+    generator = GitHubActionsGenerator(config, 'fraiseql')
+    generated = generator.generate(tmp_path)
+
+    assert 'test' in generated
+    assert 'deploy' in generated
+    assert 'rollback' in generated
+
+    assert (tmp_path / '.github' / 'workflows' / 'test.yml').exists()
+    assert (tmp_path / '.github' / 'workflows' / 'deploy.yml').exists()
+
+def test_test_workflow_includes_migrations():
+    """Test workflow should run database migrations"""
+    config = {...}
+
+    generator = GitHubActionsGenerator(config, 'fraiseql')
+    test_workflow = generator._generate_test_workflow(Path('/tmp'))
+
+    content = test_workflow.read_text()
+
+    assert 'psql' in content
+    assert 'migrations/' in content
+    assert 'postgres' in content  # Service
+
+def test_deploy_workflow_includes_smoke_tests():
+    """Deploy workflow should include smoke tests"""
+    config = {...}
+
+    generator = GitHubActionsGenerator(config, 'fraiseql')
+    deploy_workflow = generator._generate_deploy_workflow(Path('/tmp'))
+
+    content = deploy_workflow.read_text()
+
+    assert '/health' in content
+    assert 'curl' in content
+    assert 'smoke' in content.lower()
+```
+
+### Integration Tests
+
+```python
+# tests/integration/deployment/cicd/test_workflow_validation.py
+import subprocess
+
+def test_workflow_syntax_valid(tmp_path):
+    """Test that generated workflows have valid YAML syntax"""
+    config = {...}
+
+    generator = GitHubActionsGenerator(config, 'fraiseql')
+    generator.generate(tmp_path)
+
+    # Validate YAML syntax using actionlint
+    result = subprocess.run(
+        ['actionlint', str(tmp_path / '.github' / 'workflows')],
+        capture_output=True,
+        text=True
+    )
+
+    assert result.returncode == 0, f"Invalid workflow syntax: {result.stderr}"
+```
+
+---
+
+## 📝 Deliverables
+
+### Code Files
+1. ✅ `src/generators/deployment/cicd/cicd_orchestrator.py`
+2. ✅ `src/generators/deployment/cicd/github/actions_generator.py`
+3. ✅ `src/generators/deployment/cicd/steps/migration_step.py`
+
+### Templates
+4. ✅ `src/generators/deployment/cicd/templates/github/test.yml.j2`
+5. ✅ `src/generators/deployment/cicd/templates/github/deploy.yml.j2`
+6. ✅ `src/generators/deployment/cicd/templates/github/rollback.yml.j2`
+
+### Tests
+7. ✅ `tests/unit/generators/deployment/cicd/test_github_actions_generator.py`
+8. ✅ `tests/integration/deployment/cicd/test_workflow_validation.py`
+
+### Documentation
+9. ✅ `docs/guides/DEPLOYMENT_CICD.md` - CI/CD deployment guide
+10. ✅ Auto-generated workflow README
+
+---
+
+## 🚀 Implementation Phases
+
+### Week 1: GitHub Actions (Days 1-3)
+**TDD Cycles for PR testing workflow**
+
+### Week 2: Deployment Workflow (Days 4-6)
+**TDD Cycles for automated deployment**
+
+### Week 3: Rollback + Integration (Days 7-9)
+**TDD Cycles for rollback + E2E tests**
+
+---
+
+## ✅ Success Metrics
+
+### Quantitative
+- ✅ Generate complete CI/CD workflows from 5-line YAML
+- ✅ Workflows pass GitHub Actions validation
+- ✅ PR tests run in < 5 minutes
+- ✅ Deployment completes in < 10 minutes
+- ✅ 100% test coverage for generators
+
+### Qualitative
+- ✅ Zero-touch deployments
+- ✅ Automated rollback on failures
+- ✅ Clear deployment status visibility
+- ✅ Production deployments require approval
+
+---
+
+**Status**: Ready for Implementation (After Phase 2)
+**Priority**: MEDIUM - Automation capability
+**Estimated Effort**: 3 weeks (phased TDD approach)
+**Risk Level**: Medium - Workflow complexity

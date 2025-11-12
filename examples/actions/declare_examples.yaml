@@ -1,0 +1,22 @@
+entity: Invoice
+schema: billing
+actions:
+  - name: calculate_total_with_tax
+    parameters:
+      - name: invoice_id
+        type: uuid
+    returns: numeric
+    steps:
+      - declare:
+          - name: subtotal
+            type: numeric
+            default: 0
+          - name: tax_rate
+            type: numeric
+            default: 0.0825
+          - name: total
+            type: numeric
+
+      - query: subtotal = SELECT SUM(quantity * unit_price) FROM tb_line_item WHERE invoice_id = $invoice_id
+      - assign: total = subtotal * (1 + tax_rate)
+      - return: total

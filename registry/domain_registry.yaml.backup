@@ -1,0 +1,412 @@
+version: 1.0.0
+last_updated: '2025-11-12T10:35:39.498996'
+schema_layers:
+  '00': common
+  '01': write_side
+  '02': read_side
+  '03': functions
+domains:
+  '1':
+    name: core
+    description: Core infrastructure (i18n, auth, events, workflow)
+    multi_tenant: false
+    subdomains:
+      '01':
+        name: i18n
+        description: Internationalization & translation management
+        next_entity_sequence: 1
+        entities: {}
+      '02':
+        name: auth
+        description: Authentication, authorization & access control
+        next_entity_sequence: 1
+        entities: {}
+      '03':
+        name: events
+        description: Event system, audit logging & notifications
+        next_entity_sequence: 1
+        entities: {}
+      '04':
+        name: workflow
+        description: Workflow engine & state machines
+        next_entity_sequence: 1
+        entities: {}
+      '05':
+        name: config
+        description: System configuration & settings
+        next_entity_sequence: 1
+        entities: {}
+      '09':
+        name: utilities
+        description: Utility functions, helpers & system utilities
+        next_entity_sequence: 1
+        entities: {}
+  '2':
+    name: crm
+    description: Customer relationship management & organizational structure
+    aliases: [management]
+    multi_tenant: true
+    subdomains:
+        '01':
+          name: core
+          description: Core organization entities (organization, user, team)
+          next_entity_sequence: 1
+          entities: {}
+          read_entities: {}
+          next_read_entity: 1
+        '03':
+         name: customer
+         description: Customer contact entities (contact, company, account)
+         next_entity_sequence: 58
+         entities:
+           Contact:
+             table_code: '01203571'
+             entity_code: CON
+             assigned_at: '2025-11-12T10:16:38.540920'
+         read_entities:
+           tv_contact:
+             code: '0220310'
+             entity_number: 1
+             view_type: tv_
+             assigned_at: '2025-11-12T09:31:42.216019'
+             files:
+             - code: '0220310'
+               type: tv_
+               name: tv_contact
+               file_num: 0
+             - code: '0220311'
+               type: tv_
+               name: tv_contact
+               file_num: 1
+             - code: '0220310'
+               type: tv_
+               name: tv_contact
+               file_num: 0
+             - code: '0220311'
+               type: tv_
+               name: tv_contact
+               file_num: 1
+             - code: '0220310'
+               type: tv_
+               name: tv_contact
+               file_num: 0
+             - code: '0220311'
+               type: tv_
+               name: tv_contact
+               file_num: 1
+             - code: '0220310'
+               type: tv_
+               name: tv_contact
+               file_num: 0
+             - code: '0220311'
+               type: tv_
+               name: tv_contact
+               file_num: 1
+           v_contact_summary:
+             code: '0220320'
+             entity_number: 2
+             view_type: v_
+             assigned_at: '2025-11-12T09:31:42.240041'
+         next_read_entity: 4
+       '04':
+         name: support
+         description: Customer support entities (ticket, case, knowledge_base)
+         next_entity_sequence: 1
+         entities: {}
+         read_entities: {}
+         next_read_entity: 1
+        '05':
+          name: marketing
+          description: Marketing entities (campaign, lead_source, email_template)
+          next_entity_sequence: 1
+          entities: {}
+          read_entities: {}
+          next_read_entity: 1
+         read_entities: {}
+         next_read_entity: 1
+      '02':
+        name: sales
+        description: Sales process entities (opportunity, quote, pipeline)
+        next_entity_sequence: 1
+        entities: {}
+      '03':
+        name: customer
+        description: Customer contact entities (contact, company, account)
+        next_entity_sequence: 58
+        entities:
+          Contact:
+            table_code: '01203571'
+            entity_code: CON
+            assigned_at: '2025-11-12T10:16:38.540920'
+        read_entities:
+          tv_contact:
+            code: '0220310'
+            entity_number: 1
+            view_type: tv_
+            assigned_at: '2025-11-12T09:31:42.216019'
+              files:
+              - code: '0220310'
+                type: tv_
+                name: tv_contact
+                file_num: 0
+              - code: '0220311'
+                type: tv_
+                name: tv_contact
+                file_num: 1
+          v_contact_summary:
+            code: '0220320'
+            entity_number: 2
+            view_type: v_
+            assigned_at: '2025-11-12T09:31:42.240041'
+          tv_company:
+            code: '0220330'
+            entity_number: 3
+            view_type: tv_
+            assigned_at: '2025-11-12T10:35:39.498976'
+        next_read_entity: 4
+      '04':
+        name: support
+        description: Customer support entities (ticket, case, knowledge_base)
+        next_entity_sequence: 1
+        entities: {}
+      '05':
+        name: marketing
+        description: Marketing entities (campaign, lead_source, email_template)
+        next_entity_sequence: 1
+        entities: {}
+   '3':
+     name: catalog
+     description: Product catalog, manufacturer data & inventory
+     multi_tenant: false
+     subdomains:
+       '01':
+         name: classification
+         description: Product classification, categories & taxonomies
+         next_entity_sequence: 1
+         entities: {}
+         read_entities: {}
+         next_read_entity: 1
+       '02':
+         name: manufacturer
+         description: Manufacturer-related entities (brand, model, range)
+         next_entity_sequence: 43
+         entities:
+           Manufacturer:
+             table_code: 013029
+             entity_code: MNF
+             assigned_at: '2025-11-10T09:17:31.604441'
+           TestEntity:
+             table_code: '013011'
+             entity_code: TST
+             assigned_at: '2025-11-10T08:46:42.910843'
+           ManufacturerRange:
+             table_code: '013021'
+             entity_code: MNF
+             assigned_at: '2025-11-10T09:17:31.665985'
+         read_entities:
+           tv_product:
+             code: '0230210'
+             entity_number: 1
+             view_type: tv_
+             assigned_at: '2025-11-12T09:32:06.852577'
+         next_read_entity: 2
+       '03':
+         name: financing
+         description: Financing options, pricing & payment terms
+         next_entity_sequence: 1
+         entities: {}
+         read_entities: {}
+         next_read_entity: 1
+       '04':
+         name: generic
+         description: Generic product data & specifications
+         next_entity_sequence: 1
+         entities: {}
+         read_entities: {}
+         next_read_entity: 1
+   '4':
+     name: projects
+     description: Project management & tenant-specific entities
+     aliases:
+     - tenant
+     - dim
+     multi_tenant: true
+     subdomains:
+       '01':
+         name: core
+         description: Core project entities (project, task, milestone)
+         next_entity_sequence: 2
+         entities:
+           OrganizationalUnit:
+             table_code: '014011'
+             entity_code: ORG
+             assigned_at: '2025-11-11T09:56:47.578181'
+         read_entities: {}
+         next_read_entity: 1
+       '02':
+         name: location
+         description: Geographic entities (location, address, region)
+         next_entity_sequence: 1
+         entities: {}
+         read_entities: {}
+         next_read_entity: 1
+       '03':
+         name: network
+         description: Network configuration & infrastructure
+         next_entity_sequence: 1
+         entities: {}
+         read_entities: {}
+         next_read_entity: 1
+       '04':
+         name: contract
+         description: Contract management & SLAs
+         next_entity_sequence: 1
+         entities: {}
+         read_entities: {}
+         next_read_entity: 1
+       '05':
+         name: machine
+         description: Machine/equipment tracking & maintenance
+         next_entity_sequence: 1
+         entities: {}
+         read_entities: {}
+         next_read_entity: 1
+       '06':
+         name: allocation
+         description: Resource allocation & assignments
+         next_entity_sequence: 1
+         entities: {}
+         read_entities: {}
+         next_read_entity: 1
+   '5':
+     name: analytics
+     description: Analytics, reporting & business intelligence
+     multi_tenant: false
+     subdomains:
+       '01':
+         name: metrics
+         description: Metrics, KPIs & performance indicators
+         next_entity_sequence: 1
+         entities: {}
+         read_entities: {}
+         next_read_entity: 1
+       '02':
+         name: reports
+         description: Report definitions & templates
+         next_entity_sequence: 1
+         entities: {}
+         read_entities: {}
+         next_read_entity: 1
+       '03':
+         name: dashboards
+         description: Dashboard configurations & widgets
+         next_entity_sequence: 1
+         entities: {}
+         read_entities: {}
+         next_read_entity: 1
+   '6':
+     name: finance
+     description: Financial management, billing & accounting
+     multi_tenant: false
+     subdomains:
+       '01':
+         name: billing
+         description: Billing, invoices & payments
+         next_entity_sequence: 1
+         entities: {}
+         read_entities: {}
+         next_read_entity: 1
+       '02':
+         name: accounting
+         description: Accounting, ledgers & financial records
+         next_entity_sequence: 1
+         entities: {}
+         read_entities: {}
+         next_read_entity: 1
+       '03':
+         name: pricing
+         description: Pricing models, discounts & promotions
+         next_entity_sequence: 1
+         entities: {}
+         read_entities: {}
+         next_read_entity: 1
+reserved_codes:
+- '000000'
+- '999999'
+validation:
+  enforce_uniqueness: true
+  allow_manual_override: true
+  require_subdomain: false
+  warn_on_inference: true
+subdomain_inference:
+  crm:
+    customer:
+      patterns:
+      - contact
+      - company
+      - person
+      - account
+      - customer
+    sales:
+      patterns:
+      - opportunity
+      - deal
+      - quote
+      - proposal
+      - pipeline
+    support:
+      patterns:
+      - ticket
+      - case
+      - issue
+      - support
+    marketing:
+      patterns:
+      - campaign
+      - lead
+      - email_template
+      - segment
+  catalog:
+    manufacturer:
+      patterns:
+      - manufacturer
+      - brand
+      - model
+      - range
+    product:
+      patterns:
+      - product
+      - sku
+      - item
+      - variant
+    classification:
+      patterns:
+      - category
+      - taxonomy
+      - classification
+      - generic
+  projects:
+    core:
+      patterns:
+      - project
+      - task
+      - milestone
+      - sprint
+    location:
+      patterns:
+      - location
+      - address
+      - site
+      - region
+      - geo
+    contract:
+      patterns:
+      - contract
+      - sla
+      - agreement
+    machine:
+      patterns:
+      - machine
+      - equipment
+      - device
+      - asset

@@ -128,6 +128,40 @@ class CLIOrchestrator:
 
         return f"db/schema/{dir_name}/{filename}"
 
+    def _generate_tv_file_path(self, tv_file, output_path) -> Path:
+        """
+        Generate hierarchical path for tv_ table file using HierarchicalFileWriter.
+
+        Args:
+            tv_file: TableViewFile object
+            output_path: Base output path
+
+        Returns:
+            Path to the tv_ file
+        """
+        from src.generators.schema.hierarchical_file_writer import FileSpec
+        from src.generators.schema.read_side_path_generator import ReadSidePathGenerator
+
+        # Create file spec for the tv_ file
+        file_spec = FileSpec(
+            code=tv_file.code,
+            name=tv_file.name,
+            content=tv_file.content,
+            layer="read_side"
+        )
+
+        # Create path generator to get the path
+        path_generator = ReadSidePathGenerator(base_dir=str(output_path))
+
+        # Generate path without writing
+        try:
+            path = path_generator.generate_path(file_spec)
+            return path
+        except Exception as e:
+            # Fallback to legacy path if hierarchical generation fails
+            print(f"DEBUG: Hierarchical path generation failed for {tv_file.name}: {e}, using legacy path")
+            return output_path / f"{tv_file.code}_{tv_file.name}.sql"
+
     def generate_from_files(
         self,
         entity_files: list[str],
@@ -424,13 +458,15 @@ class CLIOrchestrator:
         # Generate tv_ tables if requested
         if include_tv and entity_defs:
             try:
-                tv_sql = self.schema_orchestrator.generate_table_views(entity_defs)
-                if tv_sql:
+                tv_files = self.schema_orchestrator.generate_table_views(entity_defs)
+                for tv_file in tv_files:
+                    # Generate hierarchical path for tv_ file
+                    tv_path = self._generate_tv_file_path(tv_file, output_path)
                     migration = MigrationFile(
                         number=200,
-                        name="table_views",
-                        content=tv_sql,
-                        path=output_path / "200_table_views.sql",
+                        name=f"tv_{tv_file.name}",
+                        content=tv_file.content,
+                        path=tv_path,
                     )
                     result.migrations.append(migration)
             except Exception as e:
@@ -500,6 +536,202 @@ class CLIOrchestrator:
         # Phase 3: Summary
         stats = self._calculate_generation_stats(result, generated_files)
         self.progress.summary(stats, output_dir, generated_files)
+
+        return result
+
+    def generate_hierarchical(self, entity_files: list[str], output_dir: str = "generated", dry_run: bool = False) -> GenerationResult:
+        """
+        Generate files using hierarchical structure for both write-side and read-side.
+
+        This is the unified entry point for hierarchical generation that uses
+        HierarchicalFileWriter for consistent path generation and file writing.
+
+        Args:
+            entity_files: List of SpecQL YAML file paths
+            output_dir: Base output directory for generated files
+            dry_run: If True, only show what would be generated without writing files
+
+        Returns:
+            GenerationResult with migration files and any errors/warnings
+        """
+        print(f"DEBUG: generate_hierarchical called with {len(entity_files)} files, dry_run={dry_run}")
+
+        result = GenerationResult(migrations=[], errors=[], warnings=[])
+        output_path = Path(output_dir)
+
+        # Parse all entities first
+        entity_defs = []
+        for entity_file in entity_files:
+            try:
+                content = Path(entity_file).read_text()
+                entity_def = self.parser.parse(content)
+                entity_defs.append(entity_def)
+            except Exception as e:
+                result.errors.append(f"Failed to parse {entity_file}: {e}")
+
+        if result.errors:
+            return result
+
+        # Convert to Entity objects
+        entities = []
+        for entity_def in entity_defs:
+            try:
+                from src.cli.generate import convert_entity_definition_to_entity
+                entity = convert_entity_definition_to_entity(entity_def)
+                entities.append(entity)
+            except Exception as e:
+                result.errors.append(f"Failed to convert {entity_def.name}: {e}")
+
+        if result.errors:
+            return result
+
+        # Generate write-side files hierarchically
+        write_result = self.generate_write_side_hierarchical(entities, output_dir, dry_run)
+        result.migrations.extend(write_result.migrations)
+        result.errors.extend(write_result.errors)
+        result.warnings.extend(write_result.warnings)
+
+        # Generate read-side files hierarchically
+        read_result = self.generate_read_side_hierarchical(entity_defs, output_dir, dry_run)
+        result.migrations.extend(read_result.migrations)
+        result.errors.extend(read_result.errors)
+        result.warnings.extend(read_result.warnings)
+
+        return result
+
+    def generate_write_side_hierarchical(self, entities: list, output_dir: str = "generated", dry_run: bool = False) -> GenerationResult:
+        """
+        Generate write-side files (tables, functions) using hierarchical structure.
+
+        Args:
+            entities: List of Entity objects
+            output_dir: Base output directory
+            dry_run: If True, only show what would be generated
+
+        Returns:
+            GenerationResult with generated files
+        """
+        from src.generators.schema.hierarchical_file_writer import HierarchicalFileWriter, FileSpec
+        from src.generators.schema.write_side_path_generator import WriteSidePathGenerator
+
+        result = GenerationResult(migrations=[], errors=[], warnings=[])
+
+        if not entities:
+            return result
+
+        # Create path generator and writer
+        path_generator = WriteSidePathGenerator(base_dir=output_dir)
+        writer = HierarchicalFileWriter(path_generator, dry_run=dry_run)
+
+        file_specs = []
+
+        for entity in entities:
+            try:
+                # Get table code
+                table_code = self.get_table_code(entity)
+
+                # Generate schema output
+                schema_output = self.schema_orchestrator.generate_split_schema(entity, with_audit_cascade=False)
+
+                # Create file specs for table, helpers, and functions
+                # Table file
+                table_spec = FileSpec(
+                    code=table_code,
+                    name=f"tb_{entity.name.lower()}",
+                    content=schema_output.table_sql,
+                    layer="write_side"
+                )
+                file_specs.append(table_spec)
+
+                # Helper functions file
+                if schema_output.helpers_sql:
+                    helpers_spec = FileSpec(
+                        code=table_code,
+                        name=f"tb_{entity.name.lower()}_helpers",
+                        content=schema_output.helpers_sql,
+                        layer="write_side"
+                    )
+                    file_specs.append(helpers_spec)
+
+                # Individual function files
+                for mutation in schema_output.mutations:
+                    func_spec = FileSpec(
+                        code=table_code,
+                        name=f"fn_{entity.name.lower()}_{mutation.action_name}",
+                        content=mutation.app_wrapper_sql + "\n\n" + mutation.core_logic_sql + "\n\n" + mutation.fraiseql_comments_sql,
+                        layer="write_side"
+                    )
+                    file_specs.append(func_spec)
+
+                # Audit file if present
+                if schema_output.audit_sql:
+                    audit_spec = FileSpec(
+                        code=table_code,
+                        name=f"tb_{entity.name.lower()}_audit",
+                        content=schema_output.audit_sql,
+                        layer="write_side"
+                    )
+                    file_specs.append(audit_spec)
+
+            except Exception as e:
+                result.errors.append(f"Failed to generate write-side files for {entity.name}: {e}")
+
+        # Write all files
+        try:
+            written_paths = writer.write_files(file_specs)
+
+            # Create MigrationFile objects for tracking
+            for path in written_paths:
+                migration = MigrationFile(
+                    number=0,  # Not used in hierarchical mode
+                    name=path.name,
+                    content="",  # Content already written
+                    path=path
+                )
+                result.migrations.append(migration)
+
+        except Exception as e:
+            result.errors.append(f"Failed to write write-side files: {e}")
+
+        return result
+
+    def generate_read_side_hierarchical(self, entity_defs: list, output_dir: str = "generated", dry_run: bool = False) -> GenerationResult:
+        """
+        Generate read-side files (table views) using hierarchical structure.
+
+        Args:
+            entity_defs: List of EntityDefinition objects
+            output_dir: Base output directory
+            dry_run: If True, only show what would be generated
+
+        Returns:
+            GenerationResult with generated files
+        """
+        from src.generators.schema.table_view_file_generator import TableViewFileGenerator
+
+        result = GenerationResult(migrations=[], errors=[], warnings=[])
+
+        if not entity_defs:
+            return result
+
+        try:
+            # Use TableViewFileGenerator which already integrates with HierarchicalFileWriter
+            generator = TableViewFileGenerator(entity_defs)
+            written_paths = generator.write_files_to_disk(output_dir=output_dir, dry_run=dry_run)
+
+            # Create MigrationFile objects for tracking
+            for path_str in written_paths:
+                path = Path(path_str)
+                migration = MigrationFile(
+                    number=0,  # Not used in hierarchical mode
+                    name=path.name,
+                    content="",  # Content already written
+                    path=path
+                )
+                result.migrations.append(migration)
+
+        except Exception as e:
+            result.errors.append(f"Failed to generate read-side files: {e}")
 
         return result
 
@@ -782,13 +1014,15 @@ class CLIOrchestrator:
         # Generate tv_ tables if requested
         if include_tv and entity_defs:
             try:
-                tv_sql = self.schema_orchestrator.generate_table_views(entity_defs)
-                if tv_sql:
+                tv_files = self.schema_orchestrator.generate_table_views(entity_defs)
+                for tv_file in tv_files:
+                    # Generate hierarchical path for tv_ file
+                    tv_path = self._generate_tv_file_path(tv_file, output_path)
                     migration = MigrationFile(
                         number=200,
-                        name="table_views",
-                        content=tv_sql,
-                        path=output_path / "200_table_views.sql",
+                        name=f"tv_{tv_file.name}",
+                        content=tv_file.content,
+                        path=tv_path,
                     )
                     result.migrations.append(migration)
             except Exception as e:

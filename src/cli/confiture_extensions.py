@@ -11,6 +11,7 @@ import click
 from src.cli.orchestrator import CLIOrchestrator
 from src.cli.help_text import get_generate_help_text
 from src.cli.framework_registry import get_framework_registry
+from src.cli.registry import registry
 
 
 @click.group()
@@ -334,6 +335,10 @@ def list_frameworks():
 
     click.echo("\nUse: specql generate --framework <name> entities/**/*.yaml")
     return 0
+
+
+# Add registry management commands
+specql.add_command(registry, name="registry")
 
 
 if __name__ == "__main__":
