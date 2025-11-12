@@ -1,6 +1,8 @@
 """Pattern Repository Protocol"""
-from typing import Protocol
-# from src.domain.entities.pattern import Pattern  # TODO: Create Pattern entity
+from typing import Protocol, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from src.domain.entities.pattern import Pattern
 
 class PatternRepository(Protocol):
     """Repository for Pattern aggregate root"""
