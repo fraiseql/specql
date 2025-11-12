@@ -27,7 +27,6 @@ class SpecQLConfig:
         # Repository backend configuration
         self.repository_backend = self._get_repository_backend()
         self.database_url = os.getenv('SPECQL_DB_URL')
-        self.registry_yaml_path = Path('registry/domain_registry.yaml')
 
         # Validate configuration
         self._validate_config()
