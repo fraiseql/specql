@@ -9,6 +9,10 @@ Extended to support:
 
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    pass  # Forward references will be resolved
 from typing import Any, Optional
 
 # Import from scalar_types
@@ -319,6 +323,7 @@ class EntityDefinition:
 
     name: str
     schema: str
+    subdomain: str | None = None  # Optional subdomain override
     description: str = ""
 
     # Fields
@@ -399,6 +404,22 @@ class ActionDefinition:
 
 
 @dataclass
+class VariableDeclaration:
+    """Variable declaration"""
+    name: str
+    type: str  # numeric, text, boolean, uuid, etc.
+    default_value: Any | None = None
+
+
+@dataclass
+class SwitchCase:
+    """Case in a switch statement"""
+    when_condition: str | None = None  # For complex conditions
+    when_value: str | None = None      # For simple value matching
+    then_steps: list["ActionStep"] = field(default_factory=list)
+
+
+@dataclass
 class ActionStep:
     """Parsed action step from SpecQL DSL"""
 
@@ -414,7 +435,9 @@ class ActionStep:
     else_steps: list["ActionStep"] = field(default_factory=list)
 
     # For switch steps
-    cases: dict[str, list["ActionStep"]] | None = None
+    switch_expression: str | None = None
+    cases: list[SwitchCase] = field(default_factory=list)
+    default_steps: list["ActionStep"] = field(default_factory=list)
 
     # For database operations
     entity: str | None = None
@@ -456,6 +479,109 @@ class ActionStep:
     correlation_field: str | None = None
     on_success: list["ActionStep"] = field(default_factory=list)
     on_failure: list["ActionStep"] = field(default_factory=list)
+
+    # NEW: declare step
+    variable_name: str | None = None
+    variable_type: str | None = None
+    default_value: Any | None = None
+    declarations: list[VariableDeclaration] = field(default_factory=list)
+
+    # NEW: cte step
+    cte_name: str | None = None
+    cte_query: str | None = None
+    cte_materialized: bool = False
+
+    # NEW: aggregate step
+    aggregate_operation: str | None = None
+    aggregate_field: str | None = None
+    aggregate_from: str | None = None
+    aggregate_where: str | None = None
+    aggregate_group_by: str | None = None
+    aggregate_as: str | None = None
+
+    # NEW: subquery step
+    subquery_query: str | None = None
+    subquery_result_variable: str | None = None
+
+    # NEW: call_function step
+    call_function_name: str | None = None
+    call_function_arguments: dict[str, Any] | None = None
+    call_function_return_variable: str | None = None
+
+    # NEW: switch step
+    # (switch_expression, cases, default_steps already defined above)
+
+    # NEW: return_early step
+    return_value: Any | None = None
+
+    # NEW: while loop
+    while_condition: str | None = None
+    loop_body: list["ActionStep"] = field(default_factory=list)
+
+    # NEW: for_query loop
+    for_query_sql: str | None = None
+    for_query_alias: str | None = None
+    for_query_body: list["ActionStep"] = field(default_factory=list)
+
+    # NEW: exception handling
+    try_steps: list["ActionStep"] = field(default_factory=list)
+    catch_handlers: list["ExceptionHandler"] = field(default_factory=list)  # type: ignore
+    finally_steps: list["ActionStep"] = field(default_factory=list)
+
+    # NEW: Week 6 - Advanced Queries
+    # json_build step
+    json_variable_name: str | None = None
+    json_object: dict[str, Any] | None = None
+
+    # array_build step
+    array_variable_name: str | None = None
+    array_elements: list[Any] | None = None
+
+    # upsert step
+    upsert_entity: str | None = None
+    upsert_fields: dict[str, Any] | None = None
+    upsert_conflict_target: str | None = None
+    upsert_conflict_action: str | None = None
+
+    # batch_operation step
+    batch_operation_type: str | None = None  # insert, update, delete
+    batch_data: list[dict[str, Any]] | None = None
+    batch_entity: str | None = None
+
+    # window_function step
+    window_function_name: str | None = None
+    window_partition_by: list[str] | None = None
+    window_order_by: list[str] | None = None
+    window_frame: str | None = None
+    window_as: str | None = None
+
+    # return_table step
+    return_table_query: str | None = None
+
+    # cursor step
+    cursor_name: str | None = None
+    cursor_query: str | None = None
+    cursor_operations: list["ActionStep"] | None = None
+
+    # recursive_cte step
+    recursive_cte_name: str | None = None
+    recursive_cte_base_query: str | None = None
+    recursive_cte_recursive_query: str | None = None
+
+    # dynamic_sql step
+    dynamic_sql_template: str | None = None
+    dynamic_sql_parameters: dict[str, Any] | None = None
+    dynamic_sql_result_variable: str | None = None
+
+    # transaction_control step
+    transaction_command: str | None = None  # BEGIN, COMMIT, ROLLBACK, SAVEPOINT
+
+
+@dataclass
+class ExceptionHandler:
+    """Exception handler in catch block"""
+    when_condition: str  # Exception type (payment_failed, OTHERS, etc.)
+    then_steps: list["ActionStep"] = field(default_factory=list)
 
 
 @dataclass

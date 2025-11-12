@@ -1,0 +1,68 @@
+# Subquery Action Examples
+
+entity: Analytics
+schema: reporting
+actions:
+  # Simple subquery for single value
+  - name: orders_above_average
+    parameters:
+      - name: customer_id
+        type: uuid
+    returns: boolean
+    steps:
+      - declare:
+          name: customer_total
+          type: numeric
+      - declare:
+          name: avg_total
+          type: numeric
+
+      - query: customer_total = SELECT SUM(total_amount) FROM tb_order WHERE customer_id = $customer_id
+      - subquery:
+          query: SELECT AVG(total_amount) FROM tb_order
+          as: avg_total
+
+      - return: customer_total > avg_total
+
+  # Subquery in WHERE clause (using regular query)
+  - name: find_top_customers
+    returns: table
+    steps:
+      - query: |
+          SELECT * FROM tb_customer
+          WHERE id IN (
+            SELECT customer_id FROM tb_order
+            GROUP BY customer_id
+            HAVING SUM(total_amount) > 5000
+          )
+      - return: result
+
+  # Nested subqueries
+  - name: complex_analytics
+    returns: json
+    steps:
+      - declare:
+          name: top_category
+          type: text
+      - declare:
+          name: avg_in_category
+          type: numeric
+
+      - subquery:
+          query: |
+            SELECT category FROM (
+              SELECT category, SUM(amount) as total
+              FROM tb_sales
+              GROUP BY category
+              ORDER BY total DESC
+              LIMIT 1
+            ) top_cat
+          as: top_category
+
+      - subquery:
+          query: SELECT AVG(amount) FROM tb_sales WHERE category = top_category
+          as: avg_in_category
+
+      - return:
+          top_category: $top_category
+          average_in_top_category: $avg_in_category

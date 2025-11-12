@@ -23,13 +23,13 @@ class TableViewDependencyResolver:
             # Find ref() fields - these create dependencies
             for field_name, field in entity.fields.items():
                 if field.is_reference():
-                    # Extract entity name from ref(Entity) type
-                    ref_entity = (
-                        field.type_name[4:-1]
-                        if field.type_name.startswith("ref(") and field.type_name.endswith(")")
-                        else field.type_name
-                    )
-                    if ref_entity != entity.name and ref_entity in graph:  # Not self-reference
+                    # Try reference_entity first (new format), then parse type_name (legacy format)
+                    ref_entity = field.reference_entity
+                    if not ref_entity and field.type_name.startswith("ref(") and field.type_name.endswith(")"):
+                        # Legacy format: extract from type_name
+                        ref_entity = field.type_name[4:-1]
+
+                    if ref_entity and ref_entity != entity.name and ref_entity in graph:  # Not self-reference
                         # entity depends on ref_entity, so ref_entity has entity as dependent
                         graph[ref_entity].add(entity.name)
 

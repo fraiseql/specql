@@ -16,6 +16,7 @@ from src.core.ast_models import (
     Agent,
     CDCConfig,
     EntityDefinition,
+    ExceptionHandler,
     ExtraFilterColumn,
     FieldDefinition,
     FieldTier,
@@ -24,6 +25,7 @@ from src.core.ast_models import (
     IncludeRelation,
     Organization,
     RefreshScope,
+    SwitchCase,
     TableViewConfig,
     TableViewMode,
 )
@@ -680,7 +682,6 @@ class SpecQLParser:
         if "pattern" in action_spec:
             # Load and expand pattern
             pattern_name = action_spec["pattern"]
-            pattern = self.pattern_loader.load_pattern(pattern_name)
             config = action_spec.get("config", {})
 
             # We need the entity definition to expand patterns
@@ -752,6 +753,50 @@ class SpecQLParser:
             return self._parse_duplicate_check_step(step_data)
         elif "call_service" in step_data:
             return self._parse_call_service_step(step_data)
+        elif "declare" in step_data:
+            return self._parse_declare_step(step_data)
+        elif "cte" in step_data:
+            return self._parse_cte_step(step_data)
+        elif "aggregate" in step_data:
+            return self._parse_aggregate_step(step_data)
+        elif "subquery" in step_data:
+            return self._parse_subquery_step(step_data)
+        elif "call_function" in step_data:
+            return self._parse_call_function_step(step_data)
+        elif "switch" in step_data:
+            return self._parse_switch_step(step_data)
+        elif "return_early" in step_data:
+            return self._parse_return_early_step(step_data)
+        elif "while" in step_data:
+            return self._parse_while_step(step_data)
+        elif "for_query" in step_data:
+            return self._parse_for_query_step(step_data)
+        elif "exception_handling" in step_data:
+            return self._parse_exception_handling_step(step_data)
+        elif "json_build" in step_data:
+            return self._parse_json_build_step(step_data)
+        elif "array_build" in step_data:
+            return self._parse_array_build_step(step_data)
+        elif "upsert" in step_data:
+            return self._parse_upsert_step(step_data)
+        elif "batch_operation" in step_data:
+            return self._parse_batch_operation_step(step_data)
+        elif "window_function" in step_data:
+            return self._parse_window_function_step(step_data)
+        elif "return_table" in step_data:
+            return self._parse_return_table_step(step_data)
+        elif "cursor" in step_data:
+            return self._parse_cursor_step(step_data)
+        elif "recursive_cte" in step_data:
+            return self._parse_recursive_cte_step(step_data)
+        elif "dynamic_sql" in step_data:
+            return self._parse_dynamic_sql_step(step_data)
+        elif "transaction_control" in step_data:
+            return self._parse_transaction_control_step(step_data)
+        elif "query" in step_data:
+            return self._parse_query_step(step_data)
+        elif "return" in step_data:
+            return self._parse_return_step(step_data)
         else:
             raise ParseError(f"Unknown step type: {step_data}")
 
@@ -1022,9 +1067,9 @@ class SpecQLParser:
 
         # Skip validation for expressions that look like SQL (contain SELECT, EXISTS, etc.)
         sql_indicators = ["select", "exists", "from", "where", "join", "tenant.", "tb_"]
-        variable_indicators = ["input_data.", "auth_", "v_"]
+        variable_indicators = ["input_data.", "auth_", "v_", "$"]
         if any(indicator in expression.lower() for indicator in sql_indicators) or any(
-            indicator in expression.lower() for indicator in variable_indicators
+            indicator in expression for indicator in variable_indicators
         ):
             return
 
@@ -1232,3 +1277,276 @@ class SpecQLParser:
             raise SpecQLValidationError(
                 entity=entity_name, message="extra_filter_columns must be string or dict"
             )
+
+    def _parse_declare_step(self, step_data: dict) -> ActionStep:
+        """Parse declare step"""
+        from src.core.ast_models import VariableDeclaration
+
+        declare_data = step_data["declare"]
+
+        # Single declaration
+        if "name" in declare_data:
+            return ActionStep(
+                type="declare",
+                variable_name=declare_data["name"],
+                variable_type=declare_data.get("type", "text"),
+                default_value=declare_data.get("default")
+            )
+
+        # Multiple declarations
+        elif isinstance(declare_data, list):
+            declarations = [
+                VariableDeclaration(
+                    name=decl["name"],
+                    type=decl.get("type", "text"),
+                    default_value=decl.get("default")
+                )
+                for decl in declare_data
+            ]
+            return ActionStep(
+                type="declare",
+                declarations=declarations
+            )
+
+        else:
+            raise ParseError("Invalid declare step format")
+
+    def _parse_cte_step(self, step_data: dict) -> ActionStep:
+        """Parse cte step"""
+        cte_data = step_data["cte"]
+        return ActionStep(
+            type="cte",
+            cte_name=cte_data["name"],
+            cte_query=cte_data["query"],
+            cte_materialized=cte_data.get("materialized", False)
+        )
+
+    def _parse_aggregate_step(self, step_data: dict) -> ActionStep:
+        """Parse aggregate step"""
+        aggregate_data = step_data["aggregate"]
+        return ActionStep(
+            type="aggregate",
+            aggregate_operation=aggregate_data["operation"],
+            aggregate_field=aggregate_data["field"],
+            aggregate_from=aggregate_data["from"],
+            aggregate_where=aggregate_data.get("where"),
+            aggregate_group_by=aggregate_data.get("group_by"),
+            aggregate_as=aggregate_data["as"]
+        )
+
+    def _parse_subquery_step(self, step_data: dict) -> ActionStep:
+        """Parse subquery step"""
+        subquery_data = step_data["subquery"]
+        return ActionStep(
+            type="subquery",
+            subquery_query=subquery_data["query"],
+            subquery_result_variable=subquery_data["as"]
+        )
+
+    def _parse_call_function_step(self, step_data: dict) -> ActionStep:
+        """Parse call_function step"""
+        call_data = step_data["call_function"]
+        return ActionStep(
+            type="call_function",
+            call_function_name=call_data["function"],
+            call_function_arguments=call_data.get("arguments", {}),
+            call_function_return_variable=call_data.get("returns")
+        )
+
+    def _parse_switch_step(self, step_data: dict) -> ActionStep:
+        """Parse switch step"""
+        switch_data = step_data["switch"]
+
+        # Parse cases
+        cases = []
+        for case_data in switch_data.get("cases", []):
+            when_value = case_data.get("when")
+            # For now, treat all 'when' as simple values
+            # Complex conditions would be parsed differently
+            case = SwitchCase(
+                when_condition=None,  # Not used for simple switches
+                when_value=when_value,
+                then_steps=[self._parse_single_step(step) for step in case_data.get("then", [])]
+            )
+            cases.append(case)
+
+        # Parse default steps
+        default_steps = []
+        if "default" in switch_data:
+            default_steps = [self._parse_single_step(step) for step in switch_data["default"]]
+
+        return ActionStep(
+            type="switch",
+            switch_expression=switch_data.get("expression"),
+            cases=cases,
+            default_steps=default_steps
+        )
+
+    def _parse_return_early_step(self, step_data: dict) -> ActionStep:
+        """Parse return_early step"""
+        return_data = step_data["return_early"]
+
+        # Handle both dict format and simple value format
+        if isinstance(return_data, dict):
+            return ActionStep(
+                type="return_early",
+                return_value=return_data
+            )
+        else:
+            # Simple value like NULL, a string, etc.
+            return ActionStep(
+                type="return_early",
+                return_value=return_data
+            )
+
+    def _parse_while_step(self, step_data: dict) -> ActionStep:
+        """Parse while loop"""
+        while_data = step_data["while"]
+        return ActionStep(
+            type="while",
+            while_condition=while_data,
+            loop_body=[self._parse_single_step(step) for step in step_data.get("loop", [])]
+        )
+
+    def _parse_for_query_step(self, step_data: dict) -> ActionStep:
+        """Parse for_query loop"""
+        for_data = step_data["for_query"]
+        return ActionStep(
+            type="for_query",
+            for_query_sql=for_data,
+            for_query_alias=step_data.get("as"),
+            for_query_body=[self._parse_single_step(step) for step in step_data.get("loop", [])]
+        )
+
+    def _parse_exception_handling_step(self, step_data: dict) -> ActionStep:
+        """Parse exception handling block"""
+        eh_data = step_data["exception_handling"]
+
+        # Parse catch handlers
+        catch_handlers = []
+        for catch_data in eh_data.get("catch", []):
+            handler = ExceptionHandler(
+                when_condition=catch_data["when"],
+                then_steps=[self._parse_single_step(step) for step in catch_data.get("then", [])]
+            )
+            catch_handlers.append(handler)
+
+        return ActionStep(
+            type="exception_handling",
+            try_steps=[self._parse_single_step(step) for step in eh_data.get("try", [])],
+            catch_handlers=catch_handlers,
+            finally_steps=[self._parse_single_step(step) for step in eh_data.get("finally", [])]
+        )
+
+    def _parse_json_build_step(self, step_data: dict) -> ActionStep:
+        """Parse json_build step"""
+        json_data = step_data["json_build"]
+        return ActionStep(
+            type="json_build",
+            json_variable_name=json_data["name"],
+            json_object=json_data["object"]
+        )
+
+    def _parse_array_build_step(self, step_data: dict) -> ActionStep:
+        """Parse array_build step"""
+        array_data = step_data["array_build"]
+        return ActionStep(
+            type="array_build",
+            array_variable_name=array_data["name"],
+            array_elements=array_data["elements"]
+        )
+
+    def _parse_upsert_step(self, step_data: dict) -> ActionStep:
+        """Parse upsert step"""
+        upsert_data = step_data["upsert"]
+        return ActionStep(
+            type="upsert",
+            upsert_entity=upsert_data["entity"],
+            upsert_fields=upsert_data["fields"],
+            upsert_conflict_target=upsert_data["conflict_target"],
+            upsert_conflict_action=upsert_data["conflict_action"]
+        )
+
+    def _parse_batch_operation_step(self, step_data: dict) -> ActionStep:
+        """Parse batch_operation step"""
+        batch_data = step_data["batch_operation"]
+        return ActionStep(
+            type="batch_operation",
+            batch_operation_type=batch_data["type"],
+            batch_entity=batch_data["entity"],
+            batch_data=batch_data["data"]
+        )
+
+    def _parse_window_function_step(self, step_data: dict) -> ActionStep:
+        """Parse window_function step"""
+        wf_data = step_data["window_function"]
+        return ActionStep(
+            type="window_function",
+            window_function_name=wf_data["name"],
+            window_partition_by=wf_data.get("partition_by"),
+            window_order_by=wf_data.get("order_by"),
+            window_frame=wf_data.get("frame"),
+            window_as=wf_data.get("as")
+        )
+
+    def _parse_return_table_step(self, step_data: dict) -> ActionStep:
+        """Parse return_table step"""
+        rt_data = step_data["return_table"]
+        return ActionStep(
+            type="return_table",
+            return_table_query=rt_data["query"]
+        )
+
+    def _parse_cursor_step(self, step_data: dict) -> ActionStep:
+        """Parse cursor step"""
+        cursor_data = step_data["cursor"]
+        return ActionStep(
+            type="cursor",
+            cursor_name=cursor_data["name"],
+            cursor_query=cursor_data["query"],
+            cursor_operations=cursor_data.get("operations")
+        )
+
+    def _parse_recursive_cte_step(self, step_data: dict) -> ActionStep:
+        """Parse recursive_cte step"""
+        rcte_data = step_data["recursive_cte"]
+        return ActionStep(
+            type="recursive_cte",
+            recursive_cte_name=rcte_data["name"],
+            recursive_cte_base_query=rcte_data["base_query"],
+            recursive_cte_recursive_query=rcte_data["recursive_query"]
+        )
+
+    def _parse_dynamic_sql_step(self, step_data: dict) -> ActionStep:
+        """Parse dynamic_sql step"""
+        ds_data = step_data["dynamic_sql"]
+        return ActionStep(
+            type="dynamic_sql",
+            dynamic_sql_template=ds_data["template"],
+            dynamic_sql_parameters=ds_data.get("parameters"),
+            dynamic_sql_result_variable=ds_data.get("result_variable")
+        )
+
+    def _parse_transaction_control_step(self, step_data: dict) -> ActionStep:
+        """Parse transaction_control step"""
+        tc_data = step_data["transaction_control"]
+        return ActionStep(
+            type="transaction_control",
+            transaction_command=tc_data["command"]
+        )
+
+    def _parse_query_step(self, step_data: dict) -> ActionStep:
+        """Parse query step"""
+        query_data = step_data["query"]
+        return ActionStep(
+            type="query",
+            expression=query_data
+        )
+
+    def _parse_return_step(self, step_data: dict) -> ActionStep:
+        """Parse return step"""
+        return_data = step_data["return"]
+        return ActionStep(
+            type="return",
+            expression=return_data
+        )

@@ -1,0 +1,51 @@
+entity: Report
+schema: analytics
+actions:
+  - name: monthly_sales_report
+    parameters:
+      - name: year
+        type: integer
+    returns: table
+    steps:
+      - cte:
+          name: monthly_totals
+          query: |
+            SELECT
+              DATE_TRUNC('month', order_date) AS month,
+              SUM(total_amount) AS monthly_total
+            FROM tb_order
+            WHERE EXTRACT(YEAR FROM order_date) = $year
+            GROUP BY DATE_TRUNC('month', order_date)
+
+      - query: |
+          SELECT * FROM monthly_totals
+          ORDER BY month
+      - return: result
+
+  - name: customer_lifetime_value
+    returns: table
+    steps:
+      - cte:
+          name: customer_orders
+          query: |
+            SELECT customer_id, COUNT(*) as order_count, SUM(total_amount) as total_spent
+            FROM tb_order
+            GROUP BY customer_id
+
+      - cte:
+          name: customer_segments
+          query: |
+            SELECT
+              customer_id,
+              CASE
+                WHEN total_spent > 10000 THEN 'vip'
+                WHEN total_spent > 1000 THEN 'regular'
+                ELSE 'occasional'
+              END as segment
+            FROM customer_orders
+
+      - query: |
+          SELECT * FROM customer_segments
+          WHERE segment = 'vip'
+          ORDER BY total_spent DESC
+      - return: result

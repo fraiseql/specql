@@ -16,6 +16,8 @@ from src.generators.fraiseql.table_view_annotator import TableViewAnnotator
 from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.schema_registry import SchemaRegistry
 from src.generators.schema.table_view_dependency import TableViewDependencyResolver
+from src.generators.schema.table_view_file import TableViewFile
+from src.generators.schema.table_view_file_generator import TableViewFileGenerator
 from src.generators.schema.table_view_generator import TableViewGenerator
 from src.generators.table_generator import TableGenerator
 from src.generators.trinity_helper_generator import TrinityHelperGenerator
@@ -216,46 +218,22 @@ class SchemaOrchestrator:
 
         return SchemaOutput(table_sql=table_sql, helpers_sql=helpers_sql, mutations=mutations, audit_sql=audit_sql)
 
-    def generate_table_views(self, entities: list[EntityDefinition]) -> str:
+    def generate_table_views(self, entities: list[EntityDefinition]) -> list[TableViewFile]:
         """
-        Generate tv_ tables for all entities in dependency order.
+        Generate tv_ table files for all entities in dependency order.
 
         Args:
-            entities: All entities to generate tv_ tables for
+            entities: All entities to generate tv_ table files for
 
         Returns:
-            Complete SQL for all tv_ tables and refresh functions
+            List of TableViewFile objects, one per tv_ entity in dependency order
         """
         if not entities:
-            return ""
+            return []
 
-        # Resolve dependency order for generation
-        resolver = TableViewDependencyResolver(entities)
-        generation_order = resolver.get_generation_order()
-
-        parts = []
-
-        # Generate tv_ tables in dependency order
-        for entity_name in generation_order:
-            entity = next(e for e in entities if e.name == entity_name)
-            generator = TableViewGenerator(entity, {e.name: e for e in entities})
-            tv_schema = generator.generate_schema()
-            if tv_schema:
-                parts.append(
-                    f"-- Table View: {entity.schema}.tv_{entity.name.lower()}\n" + tv_schema
-                )
-
-            # Generate FraiseQL annotations for tv_ table
-            if entity.table_views:
-                annotator = TableViewAnnotator(entity)
-                annotations = annotator.generate_annotations()
-                if annotations:
-                    parts.append(
-                        f"-- FraiseQL Annotations: {entity.schema}.tv_{entity.name.lower()}\n"
-                        + annotations
-                    )
-
-        return "\n\n".join(parts)
+        # Use TableViewFileGenerator to create individual files
+        file_generator = TableViewFileGenerator(entities)
+        return file_generator.generate_files()
 
     def generate_app_foundation_only(self, include_outbox: bool = False) -> str:
         """

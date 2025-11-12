@@ -9,7 +9,14 @@ This package contains compilers for individual action step types:
 - if: Conditional logic
 """
 
+from .aggregate_step import AggregateStepCompiler
 from .call_compiler import CallStepCompiler
+from .call_function_step import CallFunctionStepCompiler
+from .cte_step import CTEStepCompiler
+from .declare_step import DeclareStepCompiler
+from .return_early_step import ReturnEarlyStepCompiler
+from .subquery_step import SubqueryStepCompiler
+from .switch_step import SwitchStepCompiler
 from .delete_compiler import DeleteStepCompiler
 from .duplicate_check_compiler import DuplicateCheckCompiler
 from .foreach_compiler import ForEachStepCompiler
@@ -33,4 +40,11 @@ __all__ = [
     "NotifyStepCompiler",
     "PartialUpdateCompiler",
     "RefreshTableViewStepCompiler",
+    "DeclareStepCompiler",
+    "CTEStepCompiler",
+    "AggregateStepCompiler",
+    "SubqueryStepCompiler",
+    "CallFunctionStepCompiler",
+    "SwitchStepCompiler",
+    "ReturnEarlyStepCompiler",
 ]

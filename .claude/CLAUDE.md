@@ -51,6 +51,25 @@ Generator   Compiler    Metadata
         PostgreSQL + GraphQL
 ```
 
+### 🔧 Core Protocols
+
+**FileSpec**: Standard file specification for generation
+```python
+@dataclass
+class FileSpec:
+    code: str      # Table/view code (6-digit write, 7-digit read)
+    name: str      # Filename without extension
+    content: str   # Complete file content
+    layer: str     # "write_side" or "read_side"
+```
+
+**PathGenerator**: Protocol for hierarchical path generation
+```python
+class PathGenerator(Protocol):
+    def generate_path(self, file_spec: FileSpec) -> Path:
+        """Generate hierarchical file path from FileSpec"""
+```
+
 ---
 
 ## 👥 TEAMS (✅ = Implemented)
@@ -85,6 +104,39 @@ Generates PostgreSQL DDL with **automatic conventions**:
 - `trinity_helper_generator.py` - Helper functions (entity_pk, entity_id, entity_identifier)
 - `composite_type_generator.py` - Rich type handling
 - `comment_generator.py` - PostgreSQL comments
+
+### ✅ Hierarchical File Generation
+**Status**: ✅ Complete (Week 1)
+**Files**: `hierarchical_file_writer.py`, `write_side_path_generator.py`, `read_side_path_generator.py`
+
+Unified file writer for both write-side and read-side with:
+1. **Protocol-based design**: `PathGenerator` protocol for flexible path generation
+2. **Hierarchical paths**: Domain/subdomain/entity layered structure
+3. **Dry-run support**: Preview file operations without writing
+4. **Registry integration**: Dynamic codes from domain registry
+
+**Example**:
+```bash
+# Generate hierarchical structure
+specql generate entities/*.yaml --hierarchical
+
+# Output structure:
+0_schema/
+├── 01_write_side/
+│   ├── 012_crm/
+│   │   ├── 0123_customer/
+│   │   │   ├── 01236_contact/
+│   │   │   │   └── 012361_tb_contact.sql
+│   │   │   └── 012362_tb_company.sql
+│   │   └── 0124_sales/
+│   │       └── ...
+└── 02_query_side/
+    ├── 022_crm/
+    │   ├── 0223_customer/
+    │   │   ├── 0220310_tv_contact.sql
+    │   │   └── 0220320_tv_company.sql
+    │   └── ...
+```
 
 ---
 

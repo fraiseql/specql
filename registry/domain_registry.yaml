@@ -1,5 +1,5 @@
 version: 1.0.0
-last_updated: '2025-11-11T21:47:45.480572'
+last_updated: '2025-11-12T11:26:13.530291'
 schema_layers:
   '00': common
   '01': write_side
@@ -53,30 +53,64 @@ domains:
         description: Core organization entities (organization, user, team)
         next_entity_sequence: 1
         entities: {}
-      '02':
-        name: sales
-        description: Sales process entities (opportunity, quote, pipeline)
-        next_entity_sequence: 1
-        entities: {}
+        read_entities: {}
+        next_read_entity: 1
       '03':
         name: customer
         description: Customer contact entities (contact, company, account)
-        next_entity_sequence: 49
+        next_entity_sequence: 58
         entities:
           Contact:
-            table_code: '012036'
-            entity_code: CNT
-            assigned_at: '2025-11-10T12:33:27.996875'
+            table_code: '01203571'
+            entity_code: CON
+            assigned_at: '2025-11-12T10:16:38.540920'
+        read_entities:
+          tv_contact:
+            code: '0220310'
+            entity_number: 1
+            view_type: tv_
+            assigned_at: '2025-11-12T09:31:42.216019'
+            files:
+            - code: '0220310'
+              type: tv_
+              name: tv_contact
+              file_num: 0
+            - code: '0220311'
+              type: tv_
+              name: tv_contact
+              file_num: 1
+          v_contact_summary:
+            code: '0220320'
+            entity_number: 2
+            view_type: v_
+            assigned_at: '2025-11-12T09:31:42.240041'
+          tv_company:
+            code: '0220330'
+            entity_number: 3
+            view_type: tv_
+            assigned_at: '2025-11-12T10:35:39.498976'
+        next_read_entity: 4
       '04':
         name: support
         description: Customer support entities (ticket, case, knowledge_base)
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
       '05':
         name: marketing
         description: Marketing entities (campaign, lead_source, email_template)
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
+      '99':
+        name: test_subdomain
+        description: Test subdomain for CLI
+        next_entity_sequence: 1
+        entities: {}
+        read_entities: {}
+        next_read_entity: 1
   '3':
     name: catalog
     description: Product catalog, manufacturer data & inventory
@@ -87,6 +121,8 @@ domains:
         description: Product classification, categories & taxonomies
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
       '02':
         name: manufacturer
         description: Manufacturer-related entities (brand, model, range)
@@ -104,16 +140,27 @@ domains:
             table_code: '013021'
             entity_code: MNF
             assigned_at: '2025-11-10T09:17:31.665985'
+        read_entities:
+          tv_product:
+            code: '0230210'
+            entity_number: 1
+            view_type: tv_
+            assigned_at: '2025-11-12T09:32:06.852577'
+        next_read_entity: 2
       '03':
         name: financing
         description: Financing options, pricing & payment terms
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
       '04':
         name: generic
         description: Generic product data & specifications
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
   '4':
     name: projects
     description: Project management & tenant-specific entities
@@ -131,31 +178,43 @@ domains:
             table_code: '014011'
             entity_code: ORG
             assigned_at: '2025-11-11T09:56:47.578181'
+        read_entities: {}
+        next_read_entity: 1
       '02':
         name: location
         description: Geographic entities (location, address, region)
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
       '03':
         name: network
         description: Network configuration & infrastructure
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
       '04':
         name: contract
         description: Contract management & SLAs
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
       '05':
         name: machine
         description: Machine/equipment tracking & maintenance
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
       '06':
         name: allocation
         description: Resource allocation & assignments
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
   '5':
     name: analytics
     description: Analytics, reporting & business intelligence
@@ -166,16 +225,22 @@ domains:
         description: Metrics, KPIs & performance indicators
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
       '02':
         name: reports
         description: Report definitions & templates
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
       '03':
         name: dashboards
         description: Dashboard configurations & widgets
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
   '6':
     name: finance
     description: Financial management, billing & accounting
@@ -186,16 +251,22 @@ domains:
         description: Billing, invoices & payments
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
       '02':
         name: accounting
         description: Accounting, ledgers & financial records
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
       '03':
         name: pricing
         description: Pricing models, discounts & promotions
         next_entity_sequence: 1
         entities: {}
+        read_entities: {}
+        next_read_entity: 1
 reserved_codes:
 - '000000'
 - '999999'
@@ -276,3 +347,8 @@ subdomain_inference:
       - equipment
       - device
       - asset
+    allocation:
+      patterns:
+      - allocation
+      - assign
+      - resource
