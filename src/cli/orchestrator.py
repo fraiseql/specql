@@ -4,10 +4,8 @@ from dataclasses import dataclass
 from pathlib import Path
 
 from src.core.specql_parser import SpecQLParser
-from src.generators.query_pattern_generator import QueryPatternGenerator
 from src.generators.schema.naming_conventions import NamingConventions  # NEW
 from src.generators.schema_orchestrator import SchemaOrchestrator
-from src.patterns.pattern_registry import PatternRegistry
 
 
 @dataclass
@@ -35,15 +33,16 @@ class CLIOrchestrator:
 
     def __init__(self, use_registry: bool = False, output_format: str = "hierarchical"):
         self.parser = SpecQLParser()
-        self.schema_orchestrator = SchemaOrchestrator()
 
-        # NEW: Registry integration
+        # NEW: Registry integration - conditionally create SchemaOrchestrator
         self.use_registry = use_registry
         self.output_format = output_format
         if use_registry:
             self.naming = NamingConventions()
+            self.schema_orchestrator = SchemaOrchestrator(naming_conventions=self.naming)
         else:
             self.naming = None
+            self.schema_orchestrator = SchemaOrchestrator(naming_conventions=None)
 
     def get_table_code(self, entity) -> str:
         """
@@ -113,6 +112,8 @@ class CLIOrchestrator:
         include_tv: bool = False,
         foundation_only: bool = False,
         with_query_patterns: bool = False,
+        with_audit_cascade: bool = False,
+        with_outbox: bool = False,
     ) -> GenerationResult:
         """
         Generate migrations from SpecQL files (registry-aware)
@@ -133,7 +134,7 @@ class CLIOrchestrator:
 
         # Foundation only mode
         if foundation_only:
-            foundation_sql = self.schema_orchestrator.generate_app_foundation_only()
+            foundation_sql = self.schema_orchestrator.generate_app_foundation_only(with_outbox)
             migration = MigrationFile(
                 number=0,
                 name="app_foundation",
@@ -193,8 +194,9 @@ class CLIOrchestrator:
                     table_code = self.get_table_code(entity)
 
                     # Generate SPLIT schema for Confiture
-                    schema_output = self.schema_orchestrator.generate_split_schema(entity)
+                    schema_output = self.schema_orchestrator.generate_split_schema(entity, with_audit_cascade)
 
+                    # Determine output structure
                     if self.output_format == "hierarchical":
                         # Write to hierarchical directory structure
                         table_path = self.generate_file_path(
@@ -211,6 +213,7 @@ class CLIOrchestrator:
                         Path(table_path).parent.mkdir(parents=True, exist_ok=True)
                         Path(helpers_path).parent.mkdir(parents=True, exist_ok=True)
                         functions_dir.mkdir(parents=True, exist_ok=True)
+                        schema_base = None  # Not used in hierarchical mode
                     else:
                         # Write to Confiture directory structure
                         schema_base = Path("db/schema")
@@ -262,6 +265,20 @@ class CLIOrchestrator:
 """
                         mutation_path.write_text(mutation_content)
 
+                    # Write audit SQL if generated
+                    if schema_output.audit_sql:
+                        if self.output_format == "hierarchical":
+                            audit_path = self.generate_file_path(
+                                entity, table_code, "audit", output_dir
+                            )
+                        else:
+                            # Confiture: db/schema/40_audit/
+                            audit_dir = Path("db/schema") / "40_audit"
+                            audit_dir.mkdir(parents=True, exist_ok=True)
+                            audit_path = audit_dir / f"{entity.name.lower()}_audit.sql"
+
+                        Path(audit_path).write_text(schema_output.audit_sql)
+
                     # Register entity if using registry (only for derived codes)
                     if self.naming and not (entity.organization and entity.organization.table_code):
                         # Only auto-register entities with derived codes
@@ -279,7 +296,7 @@ class CLIOrchestrator:
 
                 else:
                     # Confiture-compatible generation (default behavior)
-                    schema_output = self.schema_orchestrator.generate_split_schema(entity)
+                    schema_output = self.schema_orchestrator.generate_split_schema(entity, with_audit_cascade)
 
                     # Write to Confiture directory structure
                     schema_base = Path("db/schema")
@@ -315,6 +332,13 @@ class CLIOrchestrator:
 {mutation.fraiseql_comments_sql}
 """
                         mutation_path.write_text(mutation_content)
+
+                    # Write audit SQL if generated
+                    if schema_output.audit_sql:
+                        audit_dir = schema_base / "40_audit"
+                        audit_dir.mkdir(parents=True, exist_ok=True)
+                        audit_path = audit_dir / f"{entity.name.lower()}_audit.sql"
+                        audit_path.write_text(schema_output.audit_sql)
 
                     # Use sequential numbering for backward compatibility
                     entity_count = len([m for m in result.migrations if m.number >= 100])

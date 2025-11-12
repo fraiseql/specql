@@ -40,7 +40,7 @@ def convert_entity_definition_to_entity(entity_def: EntityDefinition) -> Entity:
     actions = []
     for action_def in entity_def.actions:
         action = Action(
-            name=action_def.name, steps=action_def.steps, impact=None
+            name=action_def.name, steps=action_def.steps, impact=None, cdc=action_def.cdc
         )  # TODO: Convert impact dict to ActionImpact
         actions.append(action)
 
@@ -99,6 +99,16 @@ def cli():
     is_flag=True,
     help="Generate SQL views from query patterns defined in entity YAML",
 )  # NEW
+@click.option(
+    "--with-audit-cascade",
+    is_flag=True,
+    help="Integrate cascade data with audit trail for complete mutation history",
+)  # NEW
+@click.option(
+    "--with-outbox",
+    is_flag=True,
+    help="Generate CDC outbox table and functions for event streaming",
+)  # NEW
 def entities(
     entity_files: tuple,
     output_dir: str,
@@ -109,6 +119,8 @@ def entities(
     with_impacts: bool,  # NEW
     output_frontend: str,  # NEW
     with_query_patterns: bool,  # NEW
+    with_audit_cascade: bool,  # NEW
+    with_outbox: bool,  # NEW
 ):
     """Generate PostgreSQL migrations from SpecQL YAML files"""
 
@@ -122,6 +134,8 @@ def entities(
         foundation_only=foundation_only,
         include_tv=include_tv,
         with_query_patterns=with_query_patterns,
+        with_audit_cascade=with_audit_cascade,
+        with_outbox=with_outbox,
     )
 
     # Generate frontend code if requested
@@ -636,6 +650,10 @@ def tests(
 
     return 0
 
+
+# Add CDC commands
+from src.cli.cdc import cdc
+cli.add_command(cdc)
 
 def main():
     """Entry point for specql generate command"""
