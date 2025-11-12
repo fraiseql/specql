@@ -205,6 +205,56 @@ class TestHierarchicalFileWriter:
             assert result_path.exists()
             assert result_path.parent.exists()
 
+    def test_write_single_file_7_digit_write_side(self):
+        """Test writing single 7-digit write-side file"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_path = Path(temp_dir)
+            path_generator = MockPathGenerator(base_path)
+
+            writer = HierarchicalFileWriter(path_generator)
+
+            spec = FileSpec(
+                code="0123611",  # 7-digit code
+                name="tb_contact",
+                content="CREATE TABLE tb_contact (id UUID PRIMARY KEY);",
+                layer="write_side"
+            )
+
+            result_path = writer.write_single_file(spec)
+
+            expected_path = base_path / "0123611_tb_contact.sql"
+            assert result_path == expected_path
+            assert expected_path.exists()
+
+            with open(expected_path) as f:
+                content = f.read()
+                assert content == "CREATE TABLE tb_contact (id UUID PRIMARY KEY);"
+
+    def test_write_single_file_function(self):
+        """Test writing single function file"""
+        with tempfile.TemporaryDirectory() as temp_dir:
+            base_path = Path(temp_dir)
+            path_generator = MockPathGenerator(base_path)
+
+            writer = HierarchicalFileWriter(path_generator)
+
+            spec = FileSpec(
+                code="0320311",
+                name="fn_contact_create",
+                content="CREATE OR REPLACE FUNCTION fn_contact_create(...) ...;",
+                layer="functions"
+            )
+
+            result_path = writer.write_single_file(spec)
+
+            expected_path = base_path / "0320311_fn_contact_create.sql"
+            assert result_path == expected_path
+            assert expected_path.exists()
+
+            with open(expected_path) as f:
+                content = f.read()
+                assert content == "CREATE OR REPLACE FUNCTION fn_contact_create(...) ...;"
+
 
 class TestValidation:
     """Test validation logic"""
@@ -311,7 +361,7 @@ class TestValidation:
             layer="write_side"
         )
 
-        with pytest.raises(ValueError, match="Write-side code must be 6 digits"):
+        with pytest.raises(ValueError, match="Write-side code must be 6 or 7 digits"):
             writer._validate_file_spec(spec)
 
     def test_validate_file_spec_wrong_code_length_read_side(self):
