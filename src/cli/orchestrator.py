@@ -627,51 +627,61 @@ class CLIOrchestrator:
 
         for entity in entities:
             try:
-                # Get table code
+                # Get table code (7 digits with file sequence 1 for main table)
                 table_code = self.get_table_code(entity)
+
+                # Extract base code (first 6 digits) for generating additional file codes
+                base_code = table_code[:6] if len(table_code) == 7 else table_code
 
                 # Generate schema output
                 schema_output = self.schema_orchestrator.generate_split_schema(entity, with_audit_cascade=False)
 
+                # File sequence tracking for this entity
+                file_seq = 1
+
                 # Create file specs for table, helpers, and functions
-                # Table file
+                # Table file (sequence 1)
                 table_spec = FileSpec(
-                    code=table_code,
+                    code=f"{base_code}{file_seq}",  # e.g., "0123611"
                     name=f"tb_{entity.name.lower()}",
                     content=schema_output.table_sql,
                     layer="write_side"
                 )
                 file_specs.append(table_spec)
+                file_seq += 1
 
-                # Helper functions file
+                # Helper functions file (sequence 2)
                 if schema_output.helpers_sql:
                     helpers_spec = FileSpec(
-                        code=table_code,
+                        code=f"{base_code}{file_seq}",  # e.g., "0123612"
                         name=f"tb_{entity.name.lower()}_helpers",
                         content=schema_output.helpers_sql,
                         layer="write_side"
                     )
                     file_specs.append(helpers_spec)
+                    file_seq += 1
 
-                # Individual function files
+                # Individual function files (sequences 3, 4, 5, ...)
                 for mutation in schema_output.mutations:
                     func_spec = FileSpec(
-                        code=table_code,
+                        code=f"{base_code}{file_seq}",  # e.g., "0123613", "0123614", ...
                         name=f"fn_{entity.name.lower()}_{mutation.action_name}",
                         content=mutation.app_wrapper_sql + "\n\n" + mutation.core_logic_sql + "\n\n" + mutation.fraiseql_comments_sql,
                         layer="write_side"
                     )
                     file_specs.append(func_spec)
+                    file_seq += 1
 
                 # Audit file if present
                 if schema_output.audit_sql:
                     audit_spec = FileSpec(
-                        code=table_code,
+                        code=f"{base_code}{file_seq}",  # e.g., "0123615"
                         name=f"tb_{entity.name.lower()}_audit",
                         content=schema_output.audit_sql,
                         layer="write_side"
                     )
                     file_specs.append(audit_spec)
+                    file_seq += 1
 
             except Exception as e:
                 result.errors.append(f"Failed to generate write-side files for {entity.name}: {e}")
