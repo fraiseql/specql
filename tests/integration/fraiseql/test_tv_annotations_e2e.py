@@ -45,7 +45,7 @@ class TestTableViewAnnotationsE2E:
         # Verify table creation
         assert "CREATE TABLE library.tv_review" in sql
         assert "pk_review INTEGER PRIMARY KEY" in sql
-        assert "fk_user INTEGER" in sql
+        assert "fk_author INTEGER" in sql
         assert "fk_book INTEGER" in sql
         assert "data JSONB NOT NULL" in sql
 
@@ -60,7 +60,7 @@ class TestTableViewAnnotationsE2E:
         assert "@fraiseql:field internal=true" in sql
         assert "Internal primary key" in sql
 
-        assert "COMMENT ON COLUMN library.tv_review.fk_user" in sql
+        assert "COMMENT ON COLUMN library.tv_review.fk_author" in sql
         assert "Internal FK for User" in sql
 
         assert "COMMENT ON COLUMN library.tv_review.fk_book" in sql
@@ -74,7 +74,7 @@ class TestTableViewAnnotationsE2E:
         assert "@fraiseql:filter type=UUID" in sql
         assert "Multi-tenant filter" in sql
 
-        assert "COMMENT ON COLUMN library.tv_review.user_id" in sql
+        assert "COMMENT ON COLUMN library.tv_review.author_id" in sql
         assert "relation=User" in sql
 
         assert "COMMENT ON COLUMN library.tv_review.book_id" in sql

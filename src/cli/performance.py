@@ -5,7 +5,6 @@ Provides commands to benchmark pattern implementations vs manual SQL
 """
 
 import sys
-from pathlib import Path
 from typing import Optional
 
 from src.testing.performance_benchmark import run_pattern_performance_analysis

@@ -10,9 +10,9 @@ from src.generators.app_schema_generator import AppSchemaGenerator
 from src.generators.app_wrapper_generator import AppWrapperGenerator
 from src.generators.composite_type_generator import CompositeTypeGenerator
 from src.generators.core_logic_generator import CoreLogicGenerator
+from src.generators.enterprise.audit_generator import AuditGenerator
 from src.generators.fraiseql.mutation_annotator import MutationAnnotator
 from src.generators.fraiseql.table_view_annotator import TableViewAnnotator
-from src.generators.query_pattern_generator import QueryPatternGenerator
 from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.schema_registry import SchemaRegistry
 from src.generators.schema.table_view_dependency import TableViewDependencyResolver
@@ -41,6 +41,7 @@ class SchemaOutput:
     mutations: list[
         MutationFunctionPair
     ]  # → db/schema/30_functions/{action_name}.sql (ONE FILE EACH!)
+    audit_sql: str | None = None  # → db/schema/40_audit/{entity}_audit.sql (optional)
 
 
 class SchemaOrchestrator:
@@ -52,8 +53,10 @@ class SchemaOrchestrator:
         actions: list | None = None,
         naming_conventions: NamingConventions | None = None,
     ) -> None:
-        # Create naming conventions if not provided
+        # Create naming conventions if not provided and registry is needed
         if naming_conventions is None:
+            # Only create naming conventions if we actually need registry functionality
+            # For now, always create it but this could be optimized later
             naming_conventions = NamingConventions()
 
         # Create schema registry
@@ -158,7 +161,7 @@ class SchemaOrchestrator:
 
         return "\n\n".join(parts)
 
-    def generate_split_schema(self, entity: Entity) -> SchemaOutput:
+    def generate_split_schema(self, entity: Entity, with_audit_cascade: bool = False) -> SchemaOutput:
         """
         Generate schema split by component
 
@@ -202,7 +205,16 @@ class SchemaOrchestrator:
                 )
             )
 
-        return SchemaOutput(table_sql=table_sql, helpers_sql=helpers_sql, mutations=mutations)
+        # Generate audit SQL if requested
+        audit_sql = None
+        if with_audit_cascade:
+            audit_gen = AuditGenerator()
+            # Get entity fields for audit generation
+            entity_fields = [field.name for field in entity.fields]
+            audit_config = {"enabled": True, "include_cascade": True}
+            audit_sql = audit_gen.generate_audit_trail(entity.name, entity_fields, audit_config)
+
+        return SchemaOutput(table_sql=table_sql, helpers_sql=helpers_sql, mutations=mutations, audit_sql=audit_sql)
 
     def generate_table_views(self, entities: list[EntityDefinition]) -> str:
         """
@@ -245,14 +257,14 @@ class SchemaOrchestrator:
 
         return "\n\n".join(parts)
 
-    def generate_app_foundation_only(self) -> str:
+    def generate_app_foundation_only(self, include_outbox: bool = False) -> str:
         """
         Generate only the app schema foundation (for base migrations)
 
         Returns:
             SQL for app schema foundation
         """
-        return self.app_gen.generate_app_foundation()
+        return self.app_gen.generate_app_foundation(include_outbox)
 
     def generate_schema_summary(self, entity: Entity) -> dict[str, str | list[str]]:
         """

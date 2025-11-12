@@ -38,7 +38,7 @@ def check_table_code_uniqueness(entity_files: List[Path]) -> Dict[str, List[str]
                     code_to_entities[table_code] = []
                 code_to_entities[table_code].append(entity_name)
 
-        except Exception as e:
+        except Exception:
             # Skip files that can't be parsed - they'll be reported as errors
             # when we add proper error handling
             continue
