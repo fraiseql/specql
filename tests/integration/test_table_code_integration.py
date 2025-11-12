@@ -18,7 +18,7 @@ entity: Machine
 schema: tenant
 
 organization:
-  table_code: "0140211"
+  table_code: "014021"
   domain_name: "Dimensions"
 
 description: |
@@ -41,7 +41,7 @@ fields:
 
     # Verify EntityDefinition has organization.table_code
     assert entity_def.organization is not None
-    assert entity_def.organization.table_code == "0140211"
+    assert entity_def.organization.table_code == "014021"
     assert entity_def.organization.domain_name == "Dimensions"
 
     # Convert EntityDefinition → Entity
@@ -49,12 +49,12 @@ fields:
 
     # Verify Entity has extracted table_code
     assert (
-        entity.table_code == "0140211"
-    ), f"Expected entity.table_code='0140211', got '{entity.table_code}'"
+        entity.table_code == "014021"
+    ), f"Expected entity.table_code='014021', got '{entity.table_code}'"
 
     # Verify organization is preserved
     assert entity.organization is not None
-    assert entity.organization.table_code == "0140211"
+    assert entity.organization.table_code == "014021"
 
     # Verify other fields are correct
     assert entity.name == "Machine"
@@ -91,7 +91,7 @@ entity: Contact
 schema: crm
 
 organization:
-  table_code: "0120311"
+  table_code: "012031"
   domain_name: "CRM"
 
 description: |
@@ -114,8 +114,9 @@ fields:
     entity_def = parser.parse(yaml_content)
     entity = convert_entity_definition_to_entity(entity_def)
 
-    assert entity.table_code == "0120311"
+    assert entity.table_code == "012031"
     assert entity.schema == "crm"
+    assert entity.organization is not None
     assert entity.organization.domain_name == "CRM"
 
 

@@ -840,10 +840,10 @@ class NamingConventions:
         """
         Automatically derive table code from entity
 
-        Table Code Format: SSDSSEX
+        Table Code Format: SDSEX (6 digits)
         - SS: Schema layer (01=write_side, 02=read_side, 03=analytics)
         - D:  Domain code (1-9)
-        - SS: Subdomain code (00-99)
+        - S:  Subdomain code (0-9)
         - E:  Entity sequence (1-9)
         - X:  File sequence (1=main table, 2=audit, 3=info, etc.)
 
@@ -853,7 +853,7 @@ class NamingConventions:
             subdomain: Subdomain name (if None, will try to infer)
 
         Returns:
-            7-digit table code (e.g., "0123211")
+            6-digit table code (e.g., "012321")
 
         Raises:
             ValueError: If domain unknown or subdomain cannot be determined
@@ -885,10 +885,9 @@ class NamingConventions:
         # Get next entity sequence
         entity_sequence = self.registry.get_next_entity_sequence(domain_code, subdomain_code)
 
-        # Build table code: SSDSSEX (7 digits total)
-        # Format: schema_layer (2) + domain (1) + subdomain (2) + entity_seq (1) + file_seq (1)
-        # Note: subdomain_code is already 2 digits (e.g., "03")
-        # We need just the entity sequence digit, so take last digit of entity_sequence
+        # Build table code: SDSEX (6 digits total)
+        # Format: schema_layer (2) + domain (1) + subdomain (1) + entity_seq (1) + file_seq (1)
+        # Note: subdomain_code is now 1 digit (e.g., "3")
         table_code = f"{schema_layer}{domain_code}{subdomain_code}{entity_sequence % 10}1"
 
         # Validate uniqueness
@@ -945,24 +944,24 @@ class NamingConventions:
         Validate table code format and consistency
 
         Checks:
-        - Format: exactly 7 decimal digits
+        - Format: exactly 6 decimal digits
         - Schema layer exists
         - Domain code exists and matches entity.schema
         - Code is unique (not already assigned) - unless skip_uniqueness=True
 
         Args:
-            table_code: 7-digit decimal code to validate
+            table_code: 6-digit decimal code to validate
             entity: Entity being validated
             skip_uniqueness: If True, skip uniqueness validation (for explicit codes)
 
         Raises:
             ValueError: If validation fails
         """
-        # Format check: exactly 7 decimal digits
-        if not re.match(r"^[0-9]{7}$", table_code):
+        # Format check: exactly 6 hexadecimal digits
+        if not re.match(r"^[0-9a-fA-F]{6}$", table_code):
             raise ValueError(
                 f"Invalid table code format: {table_code}. "
-                f"Must be exactly 7 decimal digits (0-9)."
+                f"Must be exactly 6 hexadecimal digits (0-9, a-f, A-F)."
             )
 
         # For explicit codes, trust the user - only check format
@@ -1067,71 +1066,71 @@ class NamingConventions:
         Derive function code from table code by changing schema layer to 03
 
         Args:
-            table_code: Base table code (7 digits, e.g., "0123611")
+            table_code: Base table code (6 digits, e.g., "012361")
             function_seq: Function sequence within entity (1-9, default: 1)
 
         Returns:
-            7-digit function code (e.g., "0323611", "0323612")
+            6-digit function code (e.g., "032361", "032362")
 
         Examples:
-            derive_function_code("0123611", 1)  # First function → "0323611"
-            derive_function_code("0123611", 2)  # Second function → "0323612"
+            derive_function_code("012361", 1)  # First function → "032361"
+            derive_function_code("012361", 2)  # Second function → "032362"
         """
-        if len(table_code) != 7:
-            raise ValueError(f"Table code must be 7 digits, got: {table_code}")
+        if len(table_code) != 6:
+            raise ValueError(f"Table code must be 6 digits, got: {table_code}")
 
         # Validate function sequence
         if function_seq < 1 or function_seq > 9:
             raise ValueError(f"Function sequence must be 1-9, got: {function_seq}")
 
-        # Build 7-digit function code: 03 + domain/subdomain/entity + function_seq
-        return f"03{table_code[2:6]}{function_seq}"
+        # Build 6-digit function code: 03 + domain/subdomain/entity + function_seq
+        return f"03{table_code[2:5]}{function_seq}"
 
     def derive_table_file_code(self, table_code: str, file_seq: int = 1) -> str:
         """
-        Generate 7-digit code for additional table files (audit, info, node, etc.)
+        Generate 6-digit code for additional table files (audit, info, node, etc.)
 
         Args:
-            table_code: Base table code (7 digits, e.g., "0123611")
+            table_code: Base table code (6 digits, e.g., "012361")
             file_seq: File sequence within entity (1-9, default: 1)
 
         Returns:
-            7-digit table file code
+            6-digit table file code
 
         Examples:
-            derive_table_file_code("0123611", 1)  # Main table → "0123611"
-            derive_table_file_code("0123611", 2)  # Audit table → "0123612"
-            derive_table_file_code("0123611", 3)  # Info table → "0123613"
+            derive_table_file_code("012361", 1)  # Main table → "012361"
+            derive_table_file_code("012361", 2)  # Audit table → "012362"
+            derive_table_file_code("012361", 3)  # Info table → "012363"
         """
-        if len(table_code) != 7:
-            raise ValueError(f"Table code must be 7 digits, got: {table_code}")
+        if len(table_code) != 6:
+            raise ValueError(f"Table code must be 6 digits, got: {table_code}")
 
         # Validate file sequence
         if file_seq < 1 or file_seq > 9:
             raise ValueError(f"File sequence must be 1-9, got: {file_seq}")
 
-        # Build 7-digit code: base_code + file_seq
-        return f"{table_code[:6]}{file_seq}"
+        # Build 6-digit code: base_code + file_seq
+        return f"{table_code[:5]}{file_seq}"
 
     def derive_view_code(self, table_code: str) -> str:
         """
         Derive view code from table code by changing schema layer to 02
 
         Args:
-            table_code: Table code (7 digits, e.g., "0120311")
+            table_code: Table code (6 digits, e.g., "012311")
 
         Returns:
-            View code with layer 02 (7 digits, e.g., "0220310")
+            View code with layer 02 (6 digits, e.g., "022310")
 
         Example:
-            table_code="0120311" (write_side table) → "0220310" (read_side view)
+            table_code="012311" (write_side table) → "022310" (read_side view)
         """
-        if len(table_code) != 7:
-            raise ValueError(f"Table code must be 7 digits, got: {table_code}")
+        if len(table_code) != 6:
+            raise ValueError(f"Table code must be 6 digits, got: {table_code}")
 
         # Replace schema layer (first 2 digits) with "02" (views)
-        # Keep entity and domain info, add "0" as the view sequence
-        return f"02{table_code[2:6]}0"
+        # Keep domain, subdomain, and entity info, add "0" as the view sequence
+        return f"02{table_code[2:5]}0"
 
     def generate_file_path(
         self,

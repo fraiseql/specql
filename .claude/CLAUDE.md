@@ -57,7 +57,7 @@ Generator   Compiler    Metadata
 ```python
 @dataclass
 class FileSpec:
-    code: str      # Table/view code (6-digit write, 7-digit read)
+    code: str      # Table/view code (6-digit for all layers)
     name: str      # Filename without extension
     content: str   # Complete file content
     layer: str     # "write_side" or "read_side"

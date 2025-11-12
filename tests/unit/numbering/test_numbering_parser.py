@@ -15,12 +15,12 @@ def test_parse_table_code_6_digit():
     assert result == {
         "schema_layer": "01",  # write_side
         "domain_code": "3",  # catalog
-        "entity_group": "2",  # manufacturer subdomain (single digit)
-        "entity_code": "1",  # manufacturer entity sequence
+        "subdomain_code": "2",  # manufacturer subdomain (single digit)
+        "entity_sequence": "1",  # manufacturer entity sequence
         "file_sequence": "1",  # first file
-        "full_domain": "013",  # schema_layer + domain
-        "full_group": "0132",  # + entity_group
-        "full_entity": "01321",  # + entity_code
+        "full_domain": "013",  # schema_layer + domain (3 digits)
+        "full_group": "0132",  # + subdomain (4 digits: SS+D+S)
+        "full_entity": "01321",  # + entity_sequence (5 digits: SS+D+S+E)
     }
 
 

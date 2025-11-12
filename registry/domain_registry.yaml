@@ -1,5 +1,5 @@
-version: 1.0.0
-last_updated: '2025-11-12T11:26:13.530291'
+version: 2.0.0
+last_updated: '2025-11-12T14:00:00.000000'
 schema_layers:
   '00': common
   '01': write_side
@@ -11,32 +11,32 @@ domains:
     description: Core infrastructure (i18n, auth, events, workflow)
     multi_tenant: false
     subdomains:
-      '01':
+      '1':
         name: i18n
         description: Internationalization & translation management
         next_entity_sequence: 1
         entities: {}
-      '02':
+      '2':
         name: auth
         description: Authentication, authorization & access control
         next_entity_sequence: 1
         entities: {}
-      '03':
+      '3':
         name: events
         description: Event system, audit logging & notifications
         next_entity_sequence: 1
         entities: {}
-      '04':
+      '4':
         name: workflow
         description: Workflow engine & state machines
         next_entity_sequence: 1
         entities: {}
-      '05':
+      '5':
         name: config
         description: System configuration & settings
         next_entity_sequence: 1
         entities: {}
-      09:
+      '9':
         name: utilities
         description: Utility functions, helpers & system utilities
         next_entity_sequence: 1
@@ -48,22 +48,22 @@ domains:
     - management
     multi_tenant: true
     subdomains:
-      '01':
+      '1':
         name: core
         description: Core organization entities (organization, user, team)
         next_entity_sequence: 1
         entities: {}
         read_entities: {}
         next_read_entity: 1
-      '03':
+      '3':
         name: customer
         description: Customer contact entities (contact, company, account)
-        next_entity_sequence: 58
+        next_entity_sequence: 59
         entities:
           Contact:
-            table_code: '01203571'
+            table_code: 01203581
             entity_code: CON
-            assigned_at: '2025-11-12T10:16:38.540920'
+            assigned_at: '2025-11-12T13:34:31.788434'
         read_entities:
           tv_contact:
             code: '0220310'
@@ -71,6 +71,14 @@ domains:
             view_type: tv_
             assigned_at: '2025-11-12T09:31:42.216019'
             files:
+            - code: '0220310'
+              type: tv_
+              name: tv_contact
+              file_num: 0
+            - code: '0220311'
+              type: tv_
+              name: tv_contact
+              file_num: 1
             - code: '0220310'
               type: tv_
               name: tv_contact
@@ -90,21 +98,21 @@ domains:
             view_type: tv_
             assigned_at: '2025-11-12T10:35:39.498976'
         next_read_entity: 4
-      '04':
+      '4':
         name: support
         description: Customer support entities (ticket, case, knowledge_base)
         next_entity_sequence: 1
         entities: {}
         read_entities: {}
         next_read_entity: 1
-      '05':
+      '5':
         name: marketing
         description: Marketing entities (campaign, lead_source, email_template)
         next_entity_sequence: 1
         entities: {}
         read_entities: {}
         next_read_entity: 1
-      '99':
+      '9':
         name: test_subdomain
         description: Test subdomain for CLI
         next_entity_sequence: 1
@@ -116,14 +124,18 @@ domains:
     description: Product catalog, manufacturer data & inventory
     multi_tenant: false
     subdomains:
-      '01':
+      '1':
         name: classification
         description: Product classification, categories & taxonomies
-        next_entity_sequence: 1
-        entities: {}
+        next_entity_sequence: 7
+        entities:
+          TestEntity:
+            table_code: 0131991
+            entity_code: TST
+            assigned_at: '2025-11-12T13:52:10.965733'
         read_entities: {}
         next_read_entity: 1
-      '02':
+      '2':
         name: manufacturer
         description: Manufacturer-related entities (brand, model, range)
         next_entity_sequence: 43
@@ -147,14 +159,14 @@ domains:
             view_type: tv_
             assigned_at: '2025-11-12T09:32:06.852577'
         next_read_entity: 2
-      '03':
+      '3':
         name: financing
         description: Financing options, pricing & payment terms
         next_entity_sequence: 1
         entities: {}
         read_entities: {}
         next_read_entity: 1
-      '04':
+      '4':
         name: generic
         description: Generic product data & specifications
         next_entity_sequence: 1
@@ -169,7 +181,7 @@ domains:
     - dim
     multi_tenant: true
     subdomains:
-      '01':
+      '1':
         name: core
         description: Core project entities (project, task, milestone)
         next_entity_sequence: 2
@@ -180,35 +192,35 @@ domains:
             assigned_at: '2025-11-11T09:56:47.578181'
         read_entities: {}
         next_read_entity: 1
-      '02':
+      '2':
         name: location
         description: Geographic entities (location, address, region)
         next_entity_sequence: 1
         entities: {}
         read_entities: {}
         next_read_entity: 1
-      '03':
+      '3':
         name: network
         description: Network configuration & infrastructure
         next_entity_sequence: 1
         entities: {}
         read_entities: {}
         next_read_entity: 1
-      '04':
+      '4':
         name: contract
         description: Contract management & SLAs
         next_entity_sequence: 1
         entities: {}
         read_entities: {}
         next_read_entity: 1
-      '05':
+      '5':
         name: machine
         description: Machine/equipment tracking & maintenance
         next_entity_sequence: 1
         entities: {}
         read_entities: {}
         next_read_entity: 1
-      '06':
+      '6':
         name: allocation
         description: Resource allocation & assignments
         next_entity_sequence: 1
@@ -220,21 +232,21 @@ domains:
     description: Analytics, reporting & business intelligence
     multi_tenant: false
     subdomains:
-      '01':
+      '1':
         name: metrics
         description: Metrics, KPIs & performance indicators
         next_entity_sequence: 1
         entities: {}
         read_entities: {}
         next_read_entity: 1
-      '02':
+      '2':
         name: reports
         description: Report definitions & templates
         next_entity_sequence: 1
         entities: {}
         read_entities: {}
         next_read_entity: 1
-      '03':
+      '3':
         name: dashboards
         description: Dashboard configurations & widgets
         next_entity_sequence: 1
@@ -246,21 +258,21 @@ domains:
     description: Financial management, billing & accounting
     multi_tenant: false
     subdomains:
-      '01':
+      '1':
         name: billing
         description: Billing, invoices & payments
         next_entity_sequence: 1
         entities: {}
         read_entities: {}
         next_read_entity: 1
-      '02':
+      '2':
         name: accounting
         description: Accounting, ledgers & financial records
         next_entity_sequence: 1
         entities: {}
         read_entities: {}
         next_read_entity: 1
-      '03':
+      '3':
         name: pricing
         description: Pricing models, discounts & promotions
         next_entity_sequence: 1

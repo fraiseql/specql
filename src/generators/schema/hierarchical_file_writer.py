@@ -21,7 +21,7 @@ class FileSpec:
 
     Contains all information needed to write a file to the correct location.
     """
-    code: str  # Table/view code (6-digit for write-side, 7-digit for read-side)
+    code: str  # Table/view code (6-digit for all layers)
     name: str  # File name without extension (e.g., "tb_contact", "tv_contact")
     content: str  # Complete file content
     layer: str  # Schema layer ("write_side", "read_side")
@@ -162,18 +162,8 @@ class HierarchicalFileWriter:
         if file_spec.layer not in ["write_side", "read_side", "functions"]:
             raise ValueError(f"Invalid layer '{file_spec.layer}'. Must be 'write_side', 'read_side', or 'functions'")
 
-        # Validate code format based on layer
-        if file_spec.layer == "write_side" and len(file_spec.code) not in [6, 7]:
+        # Validate code format based on layer (all layers now use 6-digit codes)
+        if len(file_spec.code) != 6:
             raise ValueError(
-                f"Write-side code must be 6 or 7 digits, got {len(file_spec.code)}: {file_spec.code}"
-            )
-
-        if file_spec.layer == "read_side" and len(file_spec.code) != 7:
-            raise ValueError(
-                f"Read-side code must be 7 digits, got {len(file_spec.code)}: {file_spec.code}"
-            )
-
-        if file_spec.layer == "functions" and len(file_spec.code) != 7:
-            raise ValueError(
-                f"Function code must be 7 digits, got {len(file_spec.code)}: {file_spec.code}"
+                f"All codes must be 6 digits, got {len(file_spec.code)} for {file_spec.layer}: {file_spec.code}"
             )

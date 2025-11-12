@@ -10,41 +10,38 @@ from dataclasses import dataclass
 @dataclass
 class ReadSideCodeComponents:
     """Components of a read-side code"""
-    schema_prefix: str  # "0"
-    layer: str          # "2" (read-side)
+    schema_layer: str   # "02" (read-side)
     domain: str         # "2" (crm), "3" (catalog), etc.
-    subdomain: str      # "03" (customer), "01" (manufacturer), etc.
-    entity: str         # "1", "2", etc.
+    subdomain: str      # "3" (customer), "1" (manufacturer), etc. (1 digit)
+    entity: str         # "2", "1", etc.
     file_num: str       # "0", "1", etc.
 
 
 class ReadSideCodeParser:
     """
-    Parses 7-digit read-side codes into components
+    Parses 6-digit read-side codes into components
 
-    Format: 0SDSSEV
-    - 0: schema prefix
-    - S: layer (2 for read-side)
+    Format: SDSEX
+    - SS: schema layer (02 for read-side)
     - D: domain (1 digit)
-    - SS: subdomain (2 digits)
+    - S: subdomain (1 digit)
     - E: entity (1 digit)
-    - V: file number (1 digit)
+    - X: file number (1 digit)
     """
 
     def parse(self, code: str) -> ReadSideCodeComponents:
         """
-        Parse a 7-digit read-side code into components
+        Parse a 6-digit read-side code into components
 
-        Format: 0SDSSEV
-        - 0: schema prefix (always "0")
-        - S: schema layer (should be "2" for read-side)
+        Format: SDSEX
+        - SS: schema layer (should be "02" for read-side)
         - D: domain code (1 digit)
-        - SS: subdomain code (2 digits)
+        - S: subdomain code (1 digit)
         - E: entity number (1 digit)
-        - V: file number (1 digit)
+        - X: file number (1 digit)
 
         Args:
-            code: 7-digit code string (e.g., "0220310")
+            code: 6-digit code string (e.g., "022310")
 
         Returns:
             ReadSideCodeComponents with parsed values
@@ -53,16 +50,16 @@ class ReadSideCodeParser:
             ValueError: If code format is invalid
 
         Example:
-            parse("0220310") → ReadSideCodeComponents(
-                schema_prefix="0", layer="2", domain="2",
-                subdomain="03", entity="1", file_num="0"
+            parse("022310") → ReadSideCodeComponents(
+                schema_layer="02", domain="2",
+                subdomain="3", entity="1", file_num="0"
             )
         """
         if not isinstance(code, str):
             raise ValueError(f"Code must be a string, got {type(code)}")
 
-        if len(code) != 7:
-            raise ValueError(f"Invalid code length: {len(code)} (expected 7 digits, got '{code}')")
+        if len(code) != 6:
+            raise ValueError(f"Invalid code length: {len(code)} (expected 6 digits, got '{code}')")
 
         # Basic format validation
         if not code.isdigit():
@@ -70,12 +67,11 @@ class ReadSideCodeParser:
 
         try:
             return ReadSideCodeComponents(
-                schema_prefix=code[0],
-                layer=code[1],
+                schema_layer=code[0:2],
                 domain=code[2],
-                subdomain=code[3:5],
-                entity=code[5],
-                file_num=code[6]
+                subdomain=code[3],
+                entity=code[4],
+                file_num=code[5]
             )
         except IndexError as e:
             raise ValueError(f"Invalid code format: {code}") from e
