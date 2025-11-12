@@ -3,9 +3,7 @@
 Unit tests for check-codes CLI command
 """
 
-import pytest
 from pathlib import Path
-from unittest.mock import patch
 
 from src.cli.commands.check_codes import check_table_code_uniqueness
 from click.testing import CliRunner

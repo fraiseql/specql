@@ -2,7 +2,6 @@
 Unit tests for extraction patterns (component and temporal).
 """
 
-import pytest
 from src.patterns.pattern_registry import PatternRegistry
 
 

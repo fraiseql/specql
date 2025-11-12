@@ -1,6 +1,5 @@
 """Tests for count aggregation pattern."""
 
-import pytest
 from src.patterns.aggregation.count_aggregation import generate_count_aggregation
 
 

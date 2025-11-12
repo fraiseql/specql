@@ -1,6 +1,5 @@
 """Tests for translated view pattern"""
 
-import pytest
 from src.patterns.pattern_registry import PatternRegistry
 
 

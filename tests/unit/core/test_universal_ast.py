@@ -1,5 +1,4 @@
 # tests/unit/core/test_universal_ast.py
-import pytest
 from src.core.universal_ast import (
     FieldType,
     StepType,

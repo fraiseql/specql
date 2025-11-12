@@ -9,6 +9,8 @@ from pathlib import Path
 import click
 
 from src.cli.orchestrator import CLIOrchestrator
+from src.cli.help_text import get_generate_help_text
+from src.cli.framework_registry import get_framework_registry
 
 
 @click.group()
@@ -17,7 +19,7 @@ def specql():
     pass
 
 
-@specql.command()
+@specql.command(help=get_generate_help_text())
 @click.argument("entity_files", nargs=-1, type=click.Path(exists=True), required=True)
 @click.option("--foundation-only", is_flag=True, help="Generate only app foundation")
 @click.option("--include-tv", is_flag=True, help="Generate table views")
@@ -33,28 +35,109 @@ def specql():
     default=None,  # Will be set based on output_format
     help="Output directory (defaults: db/schema for confiture, migrations/ for hierarchical)",
 )
-def generate(entity_files, foundation_only, include_tv, env, output_format, output_dir):
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed generation progress")
+@click.option(
+    "--framework",
+    type=click.Choice(["fraiseql", "django", "rails", "prisma"]),
+    default="fraiseql",
+    help="Target framework (default: fraiseql)",
+)
+@click.option("--dev", is_flag=True, help="Development mode: flat format in db/schema/")
+@click.option("--no-tv", is_flag=True, help="Skip table view (tv_*) generation")
+def generate(
+    entity_files,
+    foundation_only,
+    include_tv,
+    env,
+    output_format,
+    output_dir,
+    verbose,
+    framework,
+    dev,
+    no_tv,
+):
     """Generate PostgreSQL schema from SpecQL YAML files"""
 
-    # Determine default output directory
-    if output_dir is None:
-        output_dir = "db/schema" if output_format == "confiture" else "migrations"
+    # Get framework registry
+    registry = get_framework_registry()
 
-    # Use registry when hierarchical format requested
-    use_registry = output_format == "hierarchical"
-
-    # Create orchestrator with requested format
-    orchestrator = CLIOrchestrator(use_registry=use_registry, output_format=output_format)
-
-    # Generate schema
-    result = orchestrator.generate_from_files(
-        entity_files=list(entity_files),
-        output_dir=output_dir,
-        foundation_only=foundation_only,
-        include_tv=include_tv,
+    # Resolve framework (explicit > auto-detect > default)
+    resolved_framework = registry.resolve_framework(
+        explicit_framework=framework,
+        dev_mode=dev,
+        auto_detect=True
     )
 
-    if result.errors:
+    # Get effective defaults for the resolved framework
+    effective_defaults = registry.get_effective_defaults(
+        framework=resolved_framework,
+        dev_mode=dev,
+        no_tv=no_tv,
+        custom_output_dir=output_dir
+    )
+
+    # Apply framework-aware defaults (Phase 3: production-ready defaults)
+    use_registry = effective_defaults.get("use_registry", True)  # CHANGED: Default to True
+    output_format = effective_defaults.get("output_format", "hierarchical")  # CHANGED: Default to hierarchical
+    include_tv = effective_defaults.get("include_tv", True) if not include_tv else include_tv  # CHANGED: Default to True for FraiseQL
+    output_dir = effective_defaults.get("output_dir", "migrations")
+
+    # Show framework selection if different from default
+    if resolved_framework != "fraiseql" or framework != "fraiseql":
+        click.echo(f"🎯 Using {resolved_framework} framework defaults")
+
+    # Check for compatibility warnings
+    warnings = registry.validate_framework_compatibility(resolved_framework, {
+        "include_tv": include_tv,
+        "dev_mode": dev,
+        "no_tv": no_tv,
+    })
+
+    for warning_type, warning_msg in warnings.items():
+        click.secho(f"⚠️  {warning_msg}", fg="yellow")
+
+    # Deprecation warnings for old behavior
+    if output_format == "confiture" and not dev and resolved_framework == "fraiseql":
+        click.secho(
+            "⚠️  Using 'confiture' format with FraiseQL framework. "
+            "Consider using 'hierarchical' format for better organization, "
+            "or use --dev for development mode.",
+            fg="yellow"
+        )
+
+    if not use_registry and resolved_framework == "fraiseql" and not dev:
+        click.secho(
+            "⚠️  Registry disabled for FraiseQL framework. "
+            "Table codes and hierarchical paths will not be generated. "
+            "Use --dev for development mode or specify --framework explicitly.",
+            fg="yellow"
+        )
+
+    # Create orchestrator with framework-aware settings
+    orchestrator = CLIOrchestrator(
+        use_registry=use_registry,
+        output_format=output_format,
+        verbose=verbose,
+        framework=resolved_framework
+    )
+
+    # Generate schema
+    try:
+        result = orchestrator.generate_from_files(
+            entity_files=list(entity_files),
+            output_dir=output_dir,
+            foundation_only=foundation_only,
+            include_tv=include_tv,
+        )
+        print(f"DEBUG: result = {result}")
+        print(f"DEBUG: result type = {type(result)}")
+    except Exception as e:
+        print(f"DEBUG: Exception in generate_from_files: {e}")
+        import traceback
+        traceback.print_exc()
+        return 1
+
+    if result and result.errors:
         click.secho(f"❌ {len(result.errors)} error(s):", fg="red")
         for error in result.errors:
             click.echo(f"  {error}")
@@ -237,6 +320,20 @@ def check_codes(ctx, entity_files, format, export):
                     for entity in entities:
                         writer.writerow([code, entity])
         click.echo(f"📄 Results exported to: {export_path}")
+
+
+@specql.command()
+def list_frameworks():
+    """List all available target frameworks"""
+    registry = get_framework_registry()
+    frameworks = registry.list_frameworks()
+
+    click.secho("Available frameworks:", fg="blue", bold=True)
+    for name, description in sorted(frameworks.items()):
+        click.echo(f"  • {name}: {description}")
+
+    click.echo("\nUse: specql generate --framework <name> entities/**/*.yaml")
+    return 0
 
 
 if __name__ == "__main__":

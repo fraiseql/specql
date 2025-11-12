@@ -1,6 +1,5 @@
 """Tests for jobs schema generator."""
 
-import pytest
 from src.generators.schema.jobs_schema_generator import JobsSchemaGenerator
 
 

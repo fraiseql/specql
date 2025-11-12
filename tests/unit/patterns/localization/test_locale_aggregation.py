@@ -1,6 +1,5 @@
 """Tests for locale-aware aggregation pattern"""
 
-import pytest
 from src.patterns.pattern_registry import PatternRegistry
 
 

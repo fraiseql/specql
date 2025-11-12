@@ -1,6 +1,5 @@
 """Tests for service registry parsing and validation."""
 
-import pytest
 from src.registry.service_registry import ServiceRegistry
 
 

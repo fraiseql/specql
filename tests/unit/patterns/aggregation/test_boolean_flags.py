@@ -1,6 +1,5 @@
 """Tests for boolean flag aggregation pattern."""
 
-import pytest
 from src.patterns.aggregation.boolean_flags import generate_boolean_flags
 
 

@@ -1,6 +1,5 @@
 """Integration tests for KPI calculator pattern accuracy"""
 
-import pytest
 from src.patterns.pattern_registry import PatternRegistry
 
 

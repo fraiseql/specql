@@ -2,8 +2,7 @@
 Tests for QueryPatternGenerator - generates SQL views from query patterns in entity definitions.
 """
 
-import pytest
-from unittest.mock import Mock, MagicMock
+from unittest.mock import Mock
 
 from src.generators.query_pattern_generator import QueryPatternGenerator
 

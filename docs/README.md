@@ -40,7 +40,8 @@ New to SpecQL? Get started in 5 minutes:
   - [Performance Testing](guides/test-generation/performance-tests.md) - Benchmarking
   - [CI/CD Integration](guides/test-generation/ci-cd-integration.md) - Automated pipelines
 
-- **[CLI Tools](guides/cli/)** - Command-line interface
+- **[CLI Guide](guides/CLI_GUIDE.md)** - Comprehensive command-line interface guide
+- **[CLI Tools](guides/cli/)** - Command-line interface (legacy)
   - [Generate Commands](guides/cli/generate.md) - Code generation
   - [Validate Commands](guides/cli/validate.md) - Schema validation
   - [Test Commands](guides/cli/test.md) - Test execution

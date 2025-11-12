@@ -2,7 +2,6 @@
 Unit tests for projection refresh integration in CoreLogicGenerator
 """
 
-import pytest
 
 from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
 

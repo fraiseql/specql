@@ -1,6 +1,5 @@
 """Unit tests for temporal audit trail pattern."""
 
-import pytest
 from src.patterns.pattern_registry import PatternRegistry
 
 

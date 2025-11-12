@@ -1,7 +1,6 @@
 """Temporal pattern utilities for query building and validation."""
 
 from typing import Dict, Optional
-from datetime import date
 
 
 class TemporalQueryBuilder:

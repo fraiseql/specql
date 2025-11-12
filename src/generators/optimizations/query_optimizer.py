@@ -4,7 +4,7 @@ Query optimization for pattern-generated SQL
 Analyzes and optimizes generated SQL for better performance
 """
 
-from typing import Dict, List, Any, Optional, Set
+from typing import Dict, List, Any
 from dataclasses import dataclass
 import re
 

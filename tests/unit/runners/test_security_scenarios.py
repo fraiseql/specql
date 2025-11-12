@@ -345,8 +345,6 @@ class TestConfigurationTamperingPrevention:
         """Service registry prevents configuration injection."""
         from src.registry.service_registry import (
             ServiceRegistry,
-            Service,
-            ServiceOperation,
         )
 
         # Attempt to inject malicious config via YAML

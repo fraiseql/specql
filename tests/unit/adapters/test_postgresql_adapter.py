@@ -1,5 +1,4 @@
 # tests/unit/adapters/test_postgresql_adapter.py
-import pytest
 from src.adapters.postgresql_adapter import PostgreSQLAdapter
 from src.core.universal_ast import (
     UniversalEntity,

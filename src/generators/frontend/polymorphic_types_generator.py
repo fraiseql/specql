@@ -1,6 +1,6 @@
 """TypeScript type generation for polymorphic patterns."""
 
-from typing import Dict, List, Any
+from typing import Dict, Any
 
 
 def generate_polymorphic_types(pattern_config: Dict[str, Any]) -> str:

@@ -1,7 +1,7 @@
 """Tests for DockerRunner."""
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 from src.runners.docker_runner import DockerRunner
 from src.runners.job_runner import JobRecord, ExecutionContext

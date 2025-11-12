@@ -1,7 +1,7 @@
 """Tests for ServerlessRunner."""
 
 import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import patch
 
 from src.runners.job_runner import JobRecord, ExecutionContext, JobResult
 

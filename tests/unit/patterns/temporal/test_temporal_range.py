@@ -1,6 +1,5 @@
 """Unit tests for temporal range pattern."""
 
-import pytest
 from src.patterns.pattern_registry import PatternRegistry
 
 

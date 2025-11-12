@@ -121,7 +121,7 @@ class DuplicateCheckCompiler:
     LIMIT 1;""")
 
         # Handle duplicate found
-        sql_parts.append(f"""
+        sql_parts.append("""
     IF v_existing_id IS NOT NULL THEN""")
 
         if return_conflict_object:
@@ -150,7 +150,7 @@ class DuplicateCheckCompiler:
                 'status', 'noop:already_exists',
                 'reason', 'unique_constraint_violation',
                 'conflict', jsonb_build_object(
-                    {conflict_object}{f", 'conflict_object', v_existing_object" if return_conflict_object else ""}
+                    {conflict_object}{", 'conflict_object', v_existing_object" if return_conflict_object else ""}
                 )
             )
         );

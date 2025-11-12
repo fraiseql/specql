@@ -5,7 +5,6 @@ and can be used by downstream generators.
 """
 
 import pytest
-from pathlib import Path
 from src.core.specql_parser import SpecQLParser
 from src.cli.generate import convert_entity_definition_to_entity
 

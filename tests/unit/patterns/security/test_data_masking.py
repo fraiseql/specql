@@ -1,6 +1,5 @@
 """Unit tests for security data masking pattern."""
 
-import pytest
 from src.patterns.pattern_registry import PatternRegistry
 
 

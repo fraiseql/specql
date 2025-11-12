@@ -112,16 +112,47 @@ class SuccessResponseGenerator:
 """
                 )
 
-        # Extra metadata (impact + side effects)
+        # Extra metadata (impact + cascade)
         if context.has_impact_metadata:
-            parts.append(
-                """
-    -- Build extra metadata with impact information
-    v_result.extra_metadata := jsonb_build_object(
-        '_meta', to_jsonb(v_meta)
-    );
-"""
+            # Use ImpactMetadataCompiler to build extra_metadata with cascade support
+            from src.generators.actions.impact_metadata_compiler import ImpactMetadataCompiler
+            from src.core.ast_models import Action, Entity
+
+            # Create Action and Entity objects for the compiler
+            action = Action(
+                name=context.function_name,
+                impact=context.impact,
+                steps=[]
             )
+            entity = Entity(
+                name=context.entity_name,
+                schema=context.entity_schema
+            )
+
+            compiler = ImpactMetadataCompiler()
+            meta_sql = compiler.compile(action, entity)
+            extra_meta_sql = compiler.integrate_into_result(action)
+
+            # Add outbox event writing if CDC is enabled
+            outbox_sql = ""
+            if action.cdc and action.cdc.enabled:
+                try:
+                    from src.generators.actions.outbox_event_compiler import OutboxEventCompiler
+                    outbox_compiler = OutboxEventCompiler()
+                    outbox_sql = outbox_compiler.compile(action, entity)
+                except ImportError:
+                    # Outbox compiler not available, skip
+                    pass
+
+            parts.append(f"""
+    -- Build impact metadata
+    {meta_sql}
+
+    -- Build extra metadata with impact and cascade information
+    {extra_meta_sql}
+
+    {outbox_sql}
+""")
         else:
             parts.append(
                 """

@@ -3,8 +3,6 @@ Test documentation coverage for advanced query patterns.
 Tests ensure all advanced patterns have complete documentation.
 """
 
-import pytest
-import os
 from pathlib import Path
 
 

@@ -14,7 +14,7 @@ from src.core.ast_models import (
     ActionDefinition,
     ActionStep,
     Agent,
-    CallServiceStep,
+    CDCConfig,
     EntityDefinition,
     ExtraFilterColumn,
     FieldDefinition,
@@ -665,6 +665,17 @@ class SpecQLParser:
             description=action_spec.get("description", ""),
         )
 
+        # Parse CDC configuration
+        if "cdc" in action_spec:
+            cdc_spec = action_spec["cdc"]
+            action.cdc = CDCConfig(
+                enabled=cdc_spec.get("enabled", False),
+                event_type=cdc_spec.get("event_type"),
+                include_cascade=cdc_spec.get("include_cascade", True),
+                include_payload=cdc_spec.get("include_payload", True),
+                partition_key=cdc_spec.get("partition_key"),
+            )
+
         # Check if this is a pattern-based action
         if "pattern" in action_spec:
             # Load and expand pattern
@@ -906,7 +917,6 @@ class SpecQLParser:
 
     def _parse_refresh_table_view_step(self, step_data: dict) -> ActionStep:
         """Parse refresh_table_view step"""
-        from src.core.ast_models import RefreshScope
 
         refresh_config = step_data["refresh_table_view"]
 

@@ -1,0 +1,20 @@
+entity: Post
+schema: blog
+
+actions:
+  - name: create_post_with_notification
+    steps:
+      - insert: Post
+      - insert: Notification
+      - update: User SET post_count = post_count + 1
+
+    impact:
+      primary:
+        entity: Post
+        operation: CREATE
+      side_effects:
+        - entity: Notification
+          operation: CREATE
+        - entity: User
+          operation: UPDATE
+          fields: [post_count]

@@ -10,7 +10,6 @@ Related to Issue #5: Projection view composition pattern
 
 import pytest
 from src.core.specql_parser import SpecQLParser
-from src.core.ast_models import Entity, TableViewConfig, IncludeRelation
 
 
 class TestWildcardFieldSelection:

@@ -1,6 +1,5 @@
 """Tests for naming utility functions"""
 
-import pytest
 
 
 class TestCamelToSnake:

@@ -34,4 +34,21 @@ def test_compile_insert_step_simple():
     assert "INSERT INTO crm.tb_notification" in sql
     assert "fk_contact, message, notification_type, created_at, created_by" in sql
     assert "v_pk, 'Contact qualified', 'email', now(), p_caller_id" in sql
-    assert "RETURNING pk_notification INTO v_notification_pk" in sql
+    assert "RETURNING id INTO v_notification_id" in sql
+
+
+def test_insert_step_captures_entity_id():
+    """INSERT step should capture RETURNING id INTO v_{entity}_id for cascade tracking"""
+    step = ActionStep(
+        type="insert",
+        entity="Post",
+        fields={"title": "Test Post", "content": "Hello World"},
+    )
+    entity = create_test_entity()
+    context = {}
+
+    compiler = InsertStepCompiler()
+    sql = compiler.compile(step, entity, context)
+
+    # Should capture ID for cascade tracking
+    assert "RETURNING id INTO v_post_id" in sql or "v_post_id UUID" in sql

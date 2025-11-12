@@ -13,6 +13,27 @@ class TestAppSchemaGenerator:
         """Create app schema generator"""
         return AppSchemaGenerator()
 
+    def test_app_schema_includes_cascade_entity_helper(self, generator):
+        """AppSchemaGenerator should include cascade_entity() helper function"""
+        sql = generator.generate()
+
+        assert "CREATE OR REPLACE FUNCTION app.cascade_entity" in sql
+        assert "p_typename TEXT" in sql
+        assert "p_id UUID" in sql
+        assert "p_operation TEXT" in sql
+        assert "p_schema TEXT" in sql
+        assert "p_view_name TEXT" in sql
+        assert "RETURNS JSONB" in sql
+
+    def test_app_schema_includes_cascade_deleted_helper(self, generator):
+        """AppSchemaGenerator should include cascade_deleted() helper function"""
+        sql = generator.generate()
+
+        assert "CREATE OR REPLACE FUNCTION app.cascade_deleted" in sql
+        assert "p_typename TEXT" in sql
+        assert "p_id UUID" in sql
+        assert "RETURNS JSONB" in sql
+
     def test_mutation_result_comment_yaml_format(self, generator):
         """Mutation result should use YAML format with description"""
         sql = generator._generate_mutation_result_type()

@@ -4,6 +4,7 @@ Generates the app.* schema foundation including shared utility functions
 """
 
 from jinja2 import Environment, FileSystemLoader
+from src.generators.cdc.outbox_generator import OutboxGenerator
 
 
 class AppSchemaGenerator:
@@ -23,7 +24,7 @@ class AppSchemaGenerator:
         self.env = Environment(loader=FileSystemLoader("/home/lionel/code/specql/templates/sql"))
         self._generated = False  # Ensure foundation is generated only once
 
-    def generate_app_foundation(self) -> str:
+    def generate_app_foundation(self, include_outbox: bool = False) -> str:
         """
         Generate the complete app.* schema foundation
 
@@ -56,7 +57,29 @@ class AppSchemaGenerator:
         utility_functions = self._generate_shared_utilities()
         parts.append(utility_functions)
 
+        # NEW: CDC Outbox (optional)
+        if include_outbox:
+            outbox_gen = OutboxGenerator()
+            parts.append(outbox_gen.generate_all())
+
         return "\n".join(parts)
+
+    def generate(self, include_outbox: bool = False) -> str:
+        """Generate app schema with mutation_result type and cascade helpers"""
+        parts = []
+
+        # Existing: mutation_result type
+        parts.append(self._generate_mutation_result_type())
+
+        # NEW: Cascade helper functions
+        parts.append(self._generate_cascade_helpers())
+
+        # NEW: CDC Outbox (optional)
+        if include_outbox:
+            outbox_gen = OutboxGenerator()
+            parts.append(outbox_gen.generate_all())
+
+        return "\n\n".join(parts)
 
     def _generate_mutation_result_type(self) -> str:
         """Generate the standard mutation_result composite type"""
@@ -196,6 +219,9 @@ COMMENT ON COLUMN app.tb_mutation_audit_log.created_at IS 'Timestamp when the au
         # Log and return mutation utility
         functions.append(self._generate_log_and_return_mutation())
 
+        # Cascade helper functions
+        functions.append(self._generate_cascade_helpers())
+
         # Future: Add other shared utilities like build_error_response, emit_event, etc.
 
         return "\n\n".join(functions)
@@ -269,3 +295,81 @@ $$;
 
 COMMENT ON FUNCTION app.log_and_return_mutation IS
   'Audit logger and standardized mutation result builder for all app/core functions';"""
+
+    def _generate_cascade_helpers(self) -> str:
+        """Generate GraphQL cascade helper functions for automatic cache updates"""
+        return """
+-- ============================================================================
+-- CASCADE HELPER FUNCTIONS
+-- Generate GraphQL cascade data for FraiseQL automatic cache updates
+-- ============================================================================
+
+-- Helper: Build cascade entity with full data from table view
+-- Used for CREATED and UPDATED operations that include entity data
+CREATE OR REPLACE FUNCTION app.cascade_entity(
+    p_typename TEXT,      -- GraphQL type name (e.g., 'Post', 'User')
+    p_id UUID,            -- Entity UUID
+    p_operation TEXT,     -- Operation: 'CREATED', 'UPDATED'
+    p_schema TEXT,        -- Database schema name
+    p_view_name TEXT      -- Table view name (e.g., 'tv_post')
+) RETURNS JSONB AS $$
+DECLARE
+    v_entity_data JSONB;
+    v_table_name TEXT;
+BEGIN
+    -- Try to fetch from table view first (preferred for performance)
+    BEGIN
+        EXECUTE format('SELECT data FROM %I.%I WHERE id = $1', p_schema, p_view_name)
+        INTO v_entity_data
+        USING p_id;
+    EXCEPTION WHEN undefined_table OR undefined_column THEN
+        -- Fallback: try table directly using typename
+        -- Construct table name from typename (User -> tb_user)
+        v_table_name := 'tb_' || lower(p_typename);
+
+        BEGIN
+            EXECUTE format(
+                'SELECT row_to_json(t.*)::jsonb FROM %I.%I t WHERE id = $1',
+                p_schema,
+                v_table_name
+            )
+            INTO v_entity_data
+            USING p_id;
+        EXCEPTION WHEN OTHERS THEN
+            -- Entity not found or other error
+            v_entity_data := NULL;
+        END;
+    END;
+
+    -- Build GraphQL cascade entity structure
+    RETURN jsonb_build_object(
+        '__typename', p_typename,
+        'id', p_id,
+        'operation', p_operation,
+        'entity', COALESCE(v_entity_data, '{}'::jsonb)
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION app.cascade_entity IS
+  'Builds GraphQL cascade entity with full data for CREATED/UPDATED operations';
+
+-- Helper: Build deleted entity (no data, just ID)
+-- Used for DELETED operations that only need ID reference
+CREATE OR REPLACE FUNCTION app.cascade_deleted(
+    p_typename TEXT,      -- GraphQL type name (e.g., 'Post', 'User')
+    p_id UUID             -- Entity UUID
+) RETURNS JSONB AS $$
+BEGIN
+    -- Build GraphQL cascade entity structure for deletions
+    RETURN jsonb_build_object(
+        '__typename', p_typename,
+        'id', p_id,
+        'operation', 'DELETED'
+    );
+END;
+$$ LANGUAGE plpgsql;
+
+COMMENT ON FUNCTION app.cascade_deleted IS
+  'Builds GraphQL cascade entity for DELETED operations (ID only)';
+"""

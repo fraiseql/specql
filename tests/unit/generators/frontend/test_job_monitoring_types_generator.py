@@ -2,7 +2,6 @@
 Tests for JobMonitoringTypesGenerator
 """
 
-import pytest
 from pathlib import Path
 from src.generators.frontend.job_monitoring_types_generator import JobMonitoringTypesGenerator
 

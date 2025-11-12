@@ -1,6 +1,5 @@
 """Integration tests for temporal audit trail pattern queries."""
 
-import pytest
 from src.patterns.pattern_registry import PatternRegistry
 
 

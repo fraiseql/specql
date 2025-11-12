@@ -6,7 +6,7 @@ verifying that organization.table_code is properly extracted to entity.table_cod
 """
 
 import pytest
-from src.core.ast_models import EntityDefinition, Organization, Entity
+from src.core.ast_models import EntityDefinition, Organization
 from src.cli.generate import convert_entity_definition_to_entity
 
 

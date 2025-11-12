@@ -51,7 +51,6 @@ class InsertStepCompiler:
 
         entity_lower = target_entity.lower()
         table_name = f"{entity.schema}.tb_{entity_lower}"  # TODO: lookup schema
-        pk_column = f"pk_{entity_lower}"
 
         # Build column list and value list
         columns = []
@@ -74,8 +73,8 @@ class InsertStepCompiler:
         columns_str = ", ".join(columns)
         values_str = ", ".join(values)
 
-        # Generate variable for returned PK
-        pk_var = f"v_{entity_lower}_pk"
+        # Generate variable for returned ID (for cascade tracking)
+        id_var = f"v_{target_entity.lower()}_id"
 
         return f"""
     -- Insert {target_entity}
@@ -83,7 +82,7 @@ class InsertStepCompiler:
         {columns_str}
     ) VALUES (
         {values_str}
-    ) RETURNING {pk_column} INTO {pk_var};
+    ) RETURNING id INTO {id_var};
 """
 
     def _format_value(self, value: Any) -> str:

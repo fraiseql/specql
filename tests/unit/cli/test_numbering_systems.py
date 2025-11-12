@@ -6,7 +6,6 @@ hexadecimal (01_, 02_, 03_) numbering systems are correctly implemented
 and can coexist.
 """
 
-import tempfile
 from pathlib import Path
 
 import pytest

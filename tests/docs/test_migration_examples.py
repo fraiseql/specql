@@ -1,8 +1,6 @@
 """Test migration examples and utilities."""
 
-import pytest
 from pathlib import Path
-from typing import Dict, Any
 
 
 class TestMigrationExamples:

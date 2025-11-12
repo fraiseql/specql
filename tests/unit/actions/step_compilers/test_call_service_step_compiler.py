@@ -1,6 +1,5 @@
 """Tests for call_service step compiler."""
 
-import pytest
 from src.generators.actions.step_compilers.call_service_step_compiler import CallServiceStepCompiler
 from src.core.ast_models import ActionStep
 from src.generators.actions.action_context import ActionContext

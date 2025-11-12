@@ -1,0 +1,23 @@
+entity: Post
+schema: blog
+table_views:
+  mode: force
+  include_relations:
+    - User:
+        fields: [name, email]
+
+fields:
+  title: text
+  content: text
+  author: ref(User)
+
+actions:
+  - name: create_post
+    steps:
+      - insert: Post
+
+    impact:
+      primary:
+        entity: Post
+        operation: CREATE
+        fields: [id, title, content, author, created_at]
