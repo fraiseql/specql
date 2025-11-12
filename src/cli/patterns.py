@@ -12,8 +12,7 @@ import click
 from rich.console import Console
 from rich.table import Table
 from rich.panel import Panel
-from rich.text import Text
-from rich.prompt import Confirm, Prompt
+from rich.prompt import Confirm
 import json
 
 console = Console()
@@ -41,7 +40,7 @@ def review_suggestions(limit: int):
             return
 
         # Header with stats
-        console.print(f"\n[bold blue]Pattern Suggestions Review Queue[/bold blue]")
+        console.print("\n[bold blue]Pattern Suggestions Review Queue[/bold blue]")
         console.print(f"Total: {stats.get('total', 0)} | Pending: {stats.get('pending', 0)} | Approved: {stats.get('approved', 0)} | Rejected: {stats.get('rejected', 0)}")
 
         # Table
@@ -72,7 +71,7 @@ def review_suggestions(limit: int):
             )
 
         console.print(table)
-        console.print(f"\n[dim]Use 'specql patterns show <id>' to see details[/dim]")
+        console.print("\n[dim]Use 'specql patterns show <id>' to see details[/dim]")
 
     except Exception as e:
         console.print(f"[red]Error listing suggestions: {e}[/red]")
@@ -105,7 +104,7 @@ def show_suggestion(suggestion_id: int):
         console.print(f"Status: {suggestion['status'].upper()}")
 
         # Basic info
-        console.print(f"\n[bold]Basic Information:[/bold]")
+        console.print("\n[bold]Basic Information:[/bold]")
         console.print(f"Category: {suggestion['category']}")
         console.print(f"Source: {suggestion['source_type']}")
         console.print(f"Created: {suggestion['created_at']}")
@@ -116,22 +115,22 @@ def show_suggestion(suggestion_id: int):
             console.print(f"Complexity: {suggestion['complexity_score']:.2f}")
 
         # Description
-        console.print(f"\n[bold]Description:[/bold]")
+        console.print("\n[bold]Description:[/bold]")
         console.print(Panel(suggestion['description'], border_style="dim"))
 
         # Parameters
         if suggestion['parameters']:
-            console.print(f"\n[bold]Parameters:[/bold]")
+            console.print("\n[bold]Parameters:[/bold]")
             console.print(Panel(json.dumps(suggestion['parameters'], indent=2), border_style="blue"))
 
         # Implementation
         if suggestion['implementation']:
-            console.print(f"\n[bold]Implementation:[/bold]")
+            console.print("\n[bold]Implementation:[/bold]")
             console.print(Panel(json.dumps(suggestion['implementation'], indent=2), border_style="green"))
 
         # Source info
         if suggestion['source_sql']:
-            console.print(f"\n[bold]Source SQL:[/bold]")
+            console.print("\n[bold]Source SQL:[/bold]")
             # Truncate very long SQL
             sql = suggestion['source_sql']
             if len(sql) > 500:
@@ -143,7 +142,7 @@ def show_suggestion(suggestion_id: int):
 
         # Actions
         if suggestion['status'] == 'pending':
-            console.print(f"\n[bold]Actions:[/bold]")
+            console.print("\n[bold]Actions:[/bold]")
             console.print("• Approve: specql patterns approve <id>")
             console.print("• Reject:  specql patterns reject <id> --reason '...'")
 
@@ -216,7 +215,7 @@ def create_from_description(description: str, category: str, save: bool, reviewe
     try:
         from src.pattern_library.nl_generator import NLPatternGenerator
 
-        console.print(f"[cyan]Generating pattern from description...[/cyan]")
+        console.print("[cyan]Generating pattern from description...[/cyan]")
         console.print(f"Description: {description}")
         if category:
             console.print(f"Category hint: {category}")
@@ -227,23 +226,23 @@ def create_from_description(description: str, category: str, save: bool, reviewe
         generator.close()
 
         # Display results
-        console.print(f"\n[green]✓ Pattern generated successfully![/green]")
+        console.print("\n[green]✓ Pattern generated successfully![/green]")
         console.print(f"Confidence: {confidence:.2f} ({validation_msg})")
 
         # Show pattern details
-        console.print(f"\n[bold]Generated Pattern:[/bold]")
+        console.print("\n[bold]Generated Pattern:[/bold]")
         console.print(f"Name: {pattern['name']}")
         console.print(f"Category: {pattern['category']}")
         console.print(f"Description: {pattern['description']}")
 
         # Parameters
         if pattern.get('parameters'):
-            console.print(f"\n[bold]Parameters:[/bold]")
+            console.print("\n[bold]Parameters:[/bold]")
             console.print(Panel(json.dumps(pattern['parameters'], indent=2), border_style="blue"))
 
         # Implementation
         if pattern.get('implementation'):
-            console.print(f"\n[bold]Implementation:[/bold]")
+            console.print("\n[bold]Implementation:[/bold]")
             console.print(Panel(json.dumps(pattern['implementation'], indent=2), border_style="green"))
 
         # Save to database if requested
@@ -271,7 +270,7 @@ def show_stats():
         stats = service.get_stats()
         service.close()
 
-        console.print(f"\n[bold blue]Pattern Suggestion Statistics[/bold blue]")
+        console.print("\n[bold blue]Pattern Suggestion Statistics[/bold blue]")
         console.print(f"Total suggestions: {stats.get('total', 0)}")
         console.print(f"Pending review: {stats.get('pending', 0)}")
         console.print(f"Approved: {stats.get('approved', 0)}")

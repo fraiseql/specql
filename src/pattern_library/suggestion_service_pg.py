@@ -5,7 +5,7 @@ Manages the human-in-the-loop workflow for pattern discovery and approval.
 """
 
 import os
-from typing import Dict, List, Optional, Any
+from typing import Dict, List, Optional
 import psycopg
 from pgvector.psycopg import register_vector
 
