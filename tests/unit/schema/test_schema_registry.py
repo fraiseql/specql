@@ -54,9 +54,9 @@ def mock_domain_registry():
 
 
 @pytest.fixture
-def schema_registry(mock_domain_registry):
-    """Create SchemaRegistry instance with mock domain registry"""
-    return SchemaRegistry(mock_domain_registry)
+def schema_registry():
+    """Create SchemaRegistry instance"""
+    return SchemaRegistry()
 
 
 def test_is_multi_tenant_true_for_multi_tenant_domains(schema_registry):

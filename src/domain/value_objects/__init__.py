@@ -24,9 +24,9 @@ class TableCode:
             raise ValueError(f"Table code must be 6 digits, got: {self.value}")
 
     @classmethod
-    def generate(cls, domain_num: str, subdomain_num: str, entity_seq: int) -> 'TableCode':
+    def generate(cls, domain_num: str, subdomain_num: str, entity_seq: int, file_seq: int = 0) -> 'TableCode':
         """Generate 6-digit code from components"""
-        code = f"{domain_num}{subdomain_num}{entity_seq:02d}"
+        code = f"{domain_num}{subdomain_num}{entity_seq:02d}{file_seq}"
         if len(code) > 6:
             # Handle longer sequences by using the last 6 digits
             code = code[-6:]

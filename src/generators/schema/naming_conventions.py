@@ -15,7 +15,7 @@ import yaml
 from src.core.ast_models import Entity
 from src.numbering.numbering_parser import NumberingParser
 from src.domain.repositories.domain_repository import DomainRepository
-from src.infrastructure.repositories.yaml_domain_repository import YAMLDomainRepository
+
 from src.infrastructure.repositories.postgresql_domain_repository import PostgreSQLDomainRepository
 
 # ============================================================================
@@ -778,22 +778,13 @@ class NamingConventions:
     """Naming conventions for generated SQL"""
 
     def __init__(self, domain_repository: DomainRepository | None = None):
-        # Default to PostgreSQL repository, fallback to YAML for backward compatibility
+        # Use provided repository or get from config
         if domain_repository is None:
-            import os
-            db_url = os.getenv('SPECQL_DB_URL')
-            if db_url:
-                try:
-                    domain_repository = PostgreSQLDomainRepository(db_url)
-                except Exception:
-                    # Fallback to YAML if PostgreSQL is not available
-                    domain_repository = YAMLDomainRepository(Path('registry/domain_registry.yaml'))
-            else:
-                # Fallback to YAML if no database URL configured
-                domain_repository = YAMLDomainRepository(Path('registry/domain_registry.yaml'))
+            from src.core.config import get_config
+            config = get_config()
+            domain_repository = config.get_domain_repository()
 
         self.domain_repository = domain_repository
-        self.registry = DomainRegistry()  # Keep registry for backward compatibility
         self.parser = NumberingParser()
 
     def get_table_code(self, domain: str, subdomain: str, entity: str) -> str:

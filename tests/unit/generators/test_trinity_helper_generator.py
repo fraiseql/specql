@@ -16,8 +16,7 @@ class TestTrinityHelperGenerator:
     @pytest.fixture
     def generator(self):
         """Create trinity helper generator instance"""
-        naming_conventions = NamingConventions()
-        schema_registry = SchemaRegistry(naming_conventions.registry)
+        schema_registry = SchemaRegistry()
         return TrinityHelperGenerator(schema_registry)
 
     def test_trinity_helper_comments(self, generator):

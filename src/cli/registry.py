@@ -8,7 +8,7 @@ adding new entries, and inspecting registry contents.
 import click
 from pathlib import Path
 
-from src.generators.schema.naming_conventions import DomainRegistry
+from src.application.services.domain_service_factory import get_domain_service
 
 
 @click.group()
@@ -21,22 +21,21 @@ def registry():
 def list_domains():
     """List all domains in the registry"""
     try:
-        registry = DomainRegistry()
-        domains = registry.load_domain_mapping()
+        service = get_domain_service()
+        domains = service.repository.list_all()
 
         click.secho("Registered Domains:", fg="blue", bold=True)
         click.echo()
 
-        # Group by domain code for better display
-        domain_codes = sorted([k for k in domains.keys() if k.isdigit()])
+        # Sort by domain number
+        domains_sorted = sorted(domains, key=lambda d: int(d.domain_number.value))
 
-        for domain_code in domain_codes:
-            domain_info = domains[domain_code]
-            multi_tenant = " (multi-tenant)" if domain_info["multi_tenant"] else ""
-            aliases = f" [{', '.join(domain_info['aliases'])}]" if domain_info["aliases"] else ""
+        for domain in domains_sorted:
+            multi_tenant = " (multi-tenant)" if domain.multi_tenant else ""
+            aliases = f" [{', '.join(domain.aliases)}]" if domain.aliases else ""
 
-            click.echo(f"  {domain_info['code']} - {domain_info['name']}{multi_tenant}{aliases}")
-            click.echo(f"      {domain_info['description']}")
+            click.echo(f"  {domain.domain_number.value} - {domain.domain_name}{multi_tenant}{aliases}")
+            click.echo(f"      {domain.description or 'No description'}")
             click.echo()
 
     except Exception as e:
@@ -51,29 +50,27 @@ def list_domains():
 def list_subdomains(domain):
     """List subdomains for a specific domain"""
     try:
-        registry = DomainRegistry()
-        subdomains = registry.load_subdomain_mapping(domain)
+        service = get_domain_service()
 
-        if not subdomains:
-            click.secho(f"Domain '{domain}' not found", fg="red")
-            raise click.ClickException(f"Domain '{domain}' not found")
+        # Find domain by name or number
+        domain_obj = service.repository.find_by_name(domain)
+        if not domain_obj:
+            try:
+                domain_obj = service.repository.get(domain)
+            except ValueError:
+                click.secho(f"Domain '{domain}' not found", fg="red")
+                raise click.ClickException(f"Domain '{domain}' not found")
 
-        # Get domain info for header
-        domain_info = registry.get_domain(domain)
-        if not domain_info:
-            click.secho(f"Domain '{domain}' not found", fg="red")
-            raise click.ClickException(f"Domain '{domain}' not found")
-        click.secho(f"Subdomains for {domain_info.domain_name} ({domain_info.domain_code}):", fg="blue", bold=True)
+        click.secho(f"Subdomains for {domain_obj.domain_name} ({domain_obj.domain_number.value}):", fg="blue", bold=True)
         click.echo()
 
-        # Group by subdomain code
-        subdomain_codes = sorted([k for k in subdomains.keys() if k.isdigit()])
+        # Sort subdomains by subdomain number
+        subdomains_sorted = sorted(domain_obj.subdomains.values(), key=lambda s: s.subdomain_number)
 
-        for subdomain_code in subdomain_codes:
-            subdomain_info = subdomains[subdomain_code]
-            click.echo(f"  {subdomain_info['code']} - {subdomain_info['name']}")
-            click.echo(f"      {subdomain_info['description']}")
-            click.echo(f"      Next entity: {subdomain_info['next_entity_sequence']}, Next read: {subdomain_info['next_read_entity']}")
+        for subdomain in subdomains_sorted:
+            click.echo(f"  {subdomain.subdomain_number} - {subdomain.subdomain_name}")
+            click.echo(f"      {subdomain.description or 'No description'}")
+            click.echo(f"      Next entity: {subdomain.next_entity_sequence}")
             click.echo()
 
     except click.ClickException:
@@ -88,31 +85,33 @@ def list_subdomains(domain):
 def show_entity(entity_name):
     """Show detailed information about a specific entity"""
     try:
-        registry = DomainRegistry()
+        service = get_domain_service()
 
-        # Try to find the entity
-        entity = registry.get_entity(entity_name)
+        # Search through all domains and subdomains for the entity
+        found_entity = None
+        found_domain = None
+        found_subdomain = None
 
-        if not entity:
+        domains = service.repository.list_all()
+        for domain in domains:
+            for subdomain in domain.subdomains.values():
+                if entity_name in subdomain.entities:
+                    found_entity = subdomain.entities[entity_name]
+                    found_domain = domain
+                    found_subdomain = subdomain
+                    break
+            if found_entity:
+                break
+
+        if not found_entity:
             click.secho(f"Entity '{entity_name}' not found in registry", fg="red")
             raise click.ClickException(f"Entity '{entity_name}' not found in registry")
 
-        click.secho(f"Entity: {entity.entity_name}", fg="blue", bold=True)
-        click.echo(f"Domain: {entity.domain}")
-        click.echo(f"Subdomain: {entity.subdomain}")
-        click.echo(f"Table Code: {entity.table_code}")
-        click.echo(f"Entity Code: {entity.entity_code}")
-        click.echo(f"Assigned: {entity.assigned_at}")
-
-        # Show read entities if any
-        domain_info = registry.get_domain(entity.domain)
-        if domain_info:
-            subdomain_info = registry.get_subdomain(domain_info.domain_code, entity.subdomain)
-            if subdomain_info and subdomain_info.read_entities:
-                click.echo()
-                click.secho("Read Entities:", fg="green")
-                for read_entity_name, read_entity_data in subdomain_info.read_entities.items():
-                    click.echo(f"  - {read_entity_name} ({read_entity_data['code']})")
+        click.secho(f"Entity: {entity_name}", fg="blue", bold=True)
+        click.echo(f"Domain: {found_domain.domain_name if found_domain else 'Unknown'}")
+        click.echo(f"Subdomain: {found_subdomain.subdomain_name if found_subdomain else 'Unknown'}")
+        click.echo(f"Table Code: {found_entity['table_code']}")
+        click.echo(f"Entity Sequence: {found_entity['entity_sequence']}")
 
     except click.ClickException:
         raise
@@ -129,7 +128,7 @@ def show_entity(entity_name):
 def add_domain(code, name, description, multi_tenant):
     """Add a new domain to the registry"""
     try:
-        registry = DomainRegistry()
+        service = get_domain_service()
 
         # Validate domain code
         if not code.isdigit() or len(code) != 1 or code == "0":
@@ -137,31 +136,28 @@ def add_domain(code, name, description, multi_tenant):
             raise click.ClickException("Domain code must be a single digit from 1-9")
 
         # Check if domain already exists
-        if registry.get_domain(code):
+        try:
+            existing = service.repository.get(code)
             click.secho(f"Domain with code '{code}' already exists", fg="red")
             raise click.ClickException(f"Domain with code '{code}' already exists")
+        except ValueError:
+            pass  # Domain doesn't exist, which is good
 
-        if registry.get_domain(name):
-            click.secho(f"Domain with name '{name}' already exists", fg="red")
-            raise click.ClickException(f"Domain with name '{name}' already exists")
+        try:
+            existing = service.repository.find_by_name(name)
+            if existing:
+                click.secho(f"Domain with name '{name}' already exists", fg="red")
+                raise click.ClickException(f"Domain with name '{name}' already exists")
+        except ValueError:
+            pass
 
-        # Add domain to registry
-        if "domains" not in registry.registry:
-            registry.registry["domains"] = {}
-
-        registry.registry["domains"][code] = {
-            "name": name,
-            "description": description,
-            "multi_tenant": multi_tenant,
-            "subdomains": {}
-        }
-
-        # Update last_updated
-        from datetime import datetime
-        registry.registry["last_updated"] = datetime.now().isoformat()
-
-        # Save registry
-        registry.save()
+        # Add domain using service
+        domain = service.register_domain(
+            domain_number=code,
+            domain_name=name,
+            description=description,
+            multi_tenant=multi_tenant
+        )
 
         click.secho(f"Domain '{name}' ({code}) added successfully", fg="green")
 
@@ -180,50 +176,41 @@ def add_domain(code, name, description, multi_tenant):
 def add_subdomain(domain, code, name, description):
     """Add a new subdomain to an existing domain"""
     try:
-        registry = DomainRegistry()
-
-        # Get domain
-        domain_info = registry.get_domain(domain)
-        if not domain_info:
-            click.secho(f"Domain '{domain}' not found", fg="red")
-            raise click.ClickException(f"Domain '{domain}' not found")
+        service = get_domain_service()
 
         # Validate subdomain code
         if not code.isdigit() or len(code) != 2:
             click.secho("Subdomain code must be exactly 2 digits (00-99)", fg="red")
             raise click.ClickException("Subdomain code must be exactly 2 digits (00-99)")
 
+        # Check if domain exists
+        domain_obj = service.repository.find_by_name(domain)
+        if not domain_obj:
+            try:
+                domain_obj = service.repository.get(domain)
+            except ValueError:
+                click.secho(f"Domain '{domain}' not found", fg="red")
+                raise click.ClickException(f"Domain '{domain}' not found")
+
         # Check if subdomain already exists
-        if registry.get_subdomain(domain_info.domain_code, code):
+        if code in domain_obj.subdomains:
             click.secho(f"Subdomain with code '{code}' already exists in domain {domain}", fg="red")
             raise click.ClickException(f"Subdomain with code '{code}' already exists in domain {domain}")
 
-        if registry.get_subdomain(domain_info.domain_code, name):
-            click.secho(f"Subdomain with name '{name}' already exists in domain {domain}", fg="red")
-            raise click.ClickException(f"Subdomain with name '{name}' already exists in domain {domain}")
+        for subdomain in domain_obj.subdomains.values():
+            if subdomain.subdomain_name == name:
+                click.secho(f"Subdomain with name '{name}' already exists in domain {domain}", fg="red")
+                raise click.ClickException(f"Subdomain with name '{name}' already exists in domain {domain}")
 
-        # Add subdomain to registry
-        domain_data = registry.registry["domains"][domain_info.domain_code]
-        if "subdomains" not in domain_data:
-            domain_data["subdomains"] = {}
+        # Add subdomain using service
+        service.add_subdomain(
+            domain_name=domain_obj.domain_name,
+            subdomain_number=code,
+            subdomain_name=name,
+            description=description
+        )
 
-        domain_data["subdomains"][code] = {
-            "name": name,
-            "description": description,
-            "next_entity_sequence": 1,
-            "entities": {},
-            "read_entities": {},
-            "next_read_entity": 1
-        }
-
-        # Update last_updated
-        from datetime import datetime
-        registry.registry["last_updated"] = datetime.now().isoformat()
-
-        # Save registry
-        registry.save()
-
-        click.secho(f"Subdomain '{name}' ({code}) added to domain '{domain_info.domain_name}' successfully", fg="green")
+        click.secho(f"Subdomain '{name}' ({code}) added to domain '{domain_obj.domain_name}' successfully", fg="green")
 
     except click.ClickException:
         raise
@@ -236,7 +223,7 @@ def add_subdomain(domain, code, name, description):
 def validate_registry():
     """Validate registry integrity and consistency"""
     try:
-        registry = DomainRegistry()
+        service = get_domain_service()
 
         click.secho("Validating registry...", fg="blue")
 
@@ -244,29 +231,30 @@ def validate_registry():
         warnings = []
 
         # Check domains
-        domains = registry.registry.get("domains", {})
+        domains = service.repository.list_all()
         if not domains:
             errors.append("No domains found in registry")
         else:
-            for domain_code, domain_data in domains.items():
-                # Validate domain code
-                if not domain_code.isdigit() or len(domain_code) != 1:
-                    errors.append(f"Invalid domain code: {domain_code}")
+            for domain in domains:
+                # Validate domain number
+                try:
+                    int(domain.domain_number.value)
+                except ValueError:
+                    errors.append(f"Invalid domain number: {domain.domain_number.value}")
 
                 # Check required fields
-                if "name" not in domain_data:
-                    errors.append(f"Domain {domain_code} missing 'name' field")
-                if "description" not in domain_data:
-                    errors.append(f"Domain {domain_code} missing 'description' field")
+                if not domain.domain_name:
+                    errors.append(f"Domain {domain.domain_number.value} missing name")
+                if not domain.description:
+                    warnings.append(f"Domain {domain.domain_name} has no description")
 
                 # Check subdomains
-                subdomains = domain_data.get("subdomains", {})
-                for subdomain_code, subdomain_data in subdomains.items():
-                    if not subdomain_code.isdigit() or len(subdomain_code) != 2:
-                        errors.append(f"Invalid subdomain code: {subdomain_code} in domain {domain_code}")
+                for subdomain in domain.subdomains.values():
+                    if not subdomain.subdomain_number.isdigit() or len(subdomain.subdomain_number) != 2:
+                        errors.append(f"Invalid subdomain code: {subdomain.subdomain_number} in domain {domain.domain_name}")
 
-                    if "name" not in subdomain_data:
-                        errors.append(f"Subdomain {subdomain_code} in domain {domain_code} missing 'name' field")
+                    if not subdomain.subdomain_name:
+                        errors.append(f"Subdomain {subdomain.subdomain_number} in domain {domain.domain_name} missing name")
 
         # Report results
         if errors:

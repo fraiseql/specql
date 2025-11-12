@@ -36,26 +36,24 @@ class SpecQLConfig:
         """Determine which repository backend to use"""
         backend_env = os.getenv('SPECQL_REPOSITORY_BACKEND', '').upper()
 
-        if backend_env == 'YAML':
-            return RepositoryBackend.YAML
-        elif backend_env == 'IN_MEMORY':
+        if backend_env == 'IN_MEMORY':
             return RepositoryBackend.IN_MEMORY
         elif backend_env == 'POSTGRESQL':
             return RepositoryBackend.POSTGRESQL
         else:
-            # Auto-detect: prefer PostgreSQL if database URL is available
+            # Default to PostgreSQL if DB URL is set, otherwise in-memory for testing
             if os.getenv('SPECQL_DB_URL'):
                 return RepositoryBackend.POSTGRESQL
             else:
-                return RepositoryBackend.YAML
+                return RepositoryBackend.IN_MEMORY
 
     def _validate_config(self) -> None:
         """Validate configuration consistency"""
-        if self.repository_backend == RepositoryBackend.POSTGRESQL:
-            if not self.database_url:
-                raise ValueError(
-                    "PostgreSQL repository backend requires SPECQL_DB_URL environment variable"
-                )
+        # PostgreSQL requires database URL
+        if self.repository_backend == RepositoryBackend.POSTGRESQL and not self.database_url:
+            raise ValueError(
+                "PostgreSQL repository backend requires SPECQL_DB_URL environment variable"
+            )
 
     def should_use_postgresql_primary(self) -> bool:
         """Check if PostgreSQL should be used as primary repository"""
@@ -69,15 +67,14 @@ class SpecQLConfig:
         """Factory method to get the appropriate domain repository"""
         try:
             if self.repository_backend == RepositoryBackend.POSTGRESQL:
+                if not self.database_url:
+                    raise ValueError("Database URL is required for PostgreSQL repository")
                 if monitoring:
                     from src.infrastructure.repositories.monitored_postgresql_repository import MonitoredPostgreSQLDomainRepository
                     return MonitoredPostgreSQLDomainRepository(self.database_url)
                 else:
                     from src.infrastructure.repositories.postgresql_domain_repository import PostgreSQLDomainRepository
                     return PostgreSQLDomainRepository(self.database_url)
-            elif self.repository_backend == RepositoryBackend.YAML:
-                from src.infrastructure.repositories.yaml_domain_repository import YAMLDomainRepository
-                return YAMLDomainRepository(self.registry_yaml_path)
             elif self.repository_backend == RepositoryBackend.IN_MEMORY:
                 from src.infrastructure.repositories.in_memory_domain_repository import InMemoryDomainRepository
                 return InMemoryDomainRepository()
