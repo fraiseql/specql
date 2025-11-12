@@ -32,6 +32,32 @@ class DomainService:
         self.repository.save(domain)
         return domain
 
+    def add_subdomain(
+        self,
+        domain_name: str,
+        subdomain_number: str,
+        subdomain_name: str,
+        description: str | None = None
+    ) -> None:
+        """Add a subdomain to an existing domain"""
+        # Find domain
+        domain = self.repository.find_by_name(domain_name)
+        if not domain:
+            raise ValueError(f"Domain {domain_name} not found")
+
+        # Create subdomain
+        subdomain = Subdomain(
+            subdomain_number=subdomain_number,
+            subdomain_name=subdomain_name,
+            description=description
+        )
+
+        # Add to domain (business logic in domain entity)
+        domain.add_subdomain(subdomain)
+
+        # Save
+        self.repository.save(domain)
+
     def allocate_entity_code(
         self,
         domain_name: str,

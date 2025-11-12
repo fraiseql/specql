@@ -39,8 +39,8 @@ def test_switch_compilation():
     entity = entity_def
     action = entity.actions[0]
 
-    # Create a mock schema registry
-    schema_registry = SchemaRegistry({})
+    # Create schema registry
+    schema_registry = SchemaRegistry()
 
     # Generate core logic
     generator = CoreLogicGenerator(schema_registry)
@@ -85,8 +85,8 @@ def test_return_early_compilation():
     for i, step in enumerate(action.steps):
         print(f"DEBUG: Step {i}: {step.type}")
 
-    # Create a mock schema registry
-    schema_registry = SchemaRegistry({})
+    # Create schema registry
+    schema_registry = SchemaRegistry()
 
     # Generate core logic
     generator = CoreLogicGenerator(schema_registry)

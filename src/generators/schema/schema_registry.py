@@ -5,7 +5,7 @@ Central registry for schema properties and multi-tenancy classification
 Replaces hardcoded TENANT_SCHEMAS lists with registry-driven lookups
 """
 
-from src.generators.schema.naming_conventions import DomainInfo, DomainRegistry
+from src.application.services.domain_service_factory import get_domain_service
 
 
 class SchemaRegistry:
@@ -15,8 +15,8 @@ class SchemaRegistry:
     Replaces hardcoded TENANT_SCHEMAS lists with registry-driven lookups
     """
 
-    def __init__(self, domain_registry: DomainRegistry):
-        self.domain_registry = domain_registry
+    def __init__(self):
+        self.domain_service = get_domain_service()
 
     def is_multi_tenant(self, schema_name: str) -> bool:
         """
@@ -33,7 +33,7 @@ class SchemaRegistry:
             registry.is_multi_tenant("catalog")     # False
             registry.is_multi_tenant("common")      # False
         """
-        domain = self.domain_registry.get_domain(schema_name)
+        domain = self.domain_service.repository.find_by_name(schema_name)
         if domain:
             return domain.multi_tenant
 
@@ -52,7 +52,7 @@ class SchemaRegistry:
             registry.get_canonical_schema_name("tenant")      # "projects"
             registry.get_canonical_schema_name("catalog")     # "catalog"
         """
-        domain = self.domain_registry.get_domain(schema_name)
+        domain = self.domain_service.repository.find_by_name(schema_name)
         return domain.domain_name if domain else schema_name
 
     def is_framework_schema(self, schema_name: str) -> bool:
@@ -70,16 +70,16 @@ class SchemaRegistry:
         if schema_name in ["common", "app"]:
             return True
 
-        domain = self.domain_registry.get_domain(schema_name)
+        domain = self.domain_service.repository.find_by_name(schema_name)
         if domain:
             return not domain.multi_tenant
 
         return False
 
-    def get_domain_by_name_or_alias(self, schema_name: str) -> DomainInfo | None:
+    def get_domain_by_name_or_alias(self, schema_name: str):
         """
         Get domain info by name or alias
 
-        This is a convenience method that delegates to domain_registry.get_domain()
+        This is a convenience method that delegates to domain service
         """
-        return self.domain_registry.get_domain(schema_name)
+        return self.domain_service.repository.find_by_name(schema_name)

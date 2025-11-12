@@ -62,7 +62,7 @@ class SchemaOrchestrator:
             naming_conventions = NamingConventions()
 
         # Create schema registry
-        schema_registry = SchemaRegistry(naming_conventions.registry)
+        schema_registry = SchemaRegistry()
 
         # Store entities and actions for future use
         self.entities = entities or []

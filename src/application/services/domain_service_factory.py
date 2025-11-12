@@ -27,25 +27,11 @@ def get_domain_service(monitoring: bool = False) -> DomainService:
 
 def get_domain_service_with_fallback() -> DomainService:
     """
-    Get a DomainService with explicit fallback behavior.
+    Get a DomainService.
 
-    Primary: PostgreSQL (read-write)
-    Fallback: YAML (read-only)
-
-    This provides resilience during the cut-over period.
+    PostgreSQL is now the only supported backend.
 
     Returns:
-        DomainService with fallback capability
+        DomainService instance
     """
-    try:
-        return get_domain_service()
-    except Exception as e:
-        # Log the error and fall back to YAML (read-only)
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.warning(f"Failed to initialize PostgreSQL repository, falling back to read-only YAML: {e}")
-
-        from src.infrastructure.repositories.yaml_domain_repository import YAMLDomainRepository
-        from pathlib import Path
-        repository = YAMLDomainRepository(Path('registry/domain_registry.yaml'), read_only=True)
-        return DomainService(repository)
+    return get_domain_service()

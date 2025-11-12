@@ -273,7 +273,7 @@ def schema_registry(naming_conventions):
     """
     from src.generators.schema.schema_registry import SchemaRegistry
 
-    return SchemaRegistry(naming_conventions.registry)
+    return SchemaRegistry()
 
 
 @pytest.fixture

@@ -19,8 +19,7 @@ class TestTableGenerator:
     @pytest.fixture
     def generator(self):
         """Create table generator instance"""
-        naming_conventions = NamingConventions()
-        schema_registry = SchemaRegistry(naming_conventions.registry)
+        schema_registry = SchemaRegistry()
         return TableGenerator(schema_registry)
 
     def test_generate_simple_table(self, generator):

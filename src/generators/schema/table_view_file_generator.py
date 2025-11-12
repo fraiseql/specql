@@ -199,7 +199,7 @@ class TableViewFileGenerator:
 
     def _generate_code_for_entity(self, entity: EntityDefinition) -> str:
         """
-        Generate read-side code for entity using registry integration.
+        Generate read-side code for entity.
 
         Args:
             entity: Entity to generate code for.
@@ -207,9 +207,7 @@ class TableViewFileGenerator:
         Returns:
             7-digit read-side code string.
         """
-        from src.generators.schema.naming_conventions import DomainRegistry
-
-        registry = DomainRegistry()
+        from src.application.services.domain_service_factory import get_domain_service
 
         # Determine domain and subdomain
         domain_name = entity.schema
@@ -217,32 +215,38 @@ class TableViewFileGenerator:
 
         # If subdomain not specified, try to infer it
         if not subdomain_name:
-            # Use the same inference logic as naming_conventions
-            from src.generators.schema.naming_conventions import NamingConventions
-            naming = NamingConventions()
-
-            # Create a minimal Entity object for inference
-            from src.core.ast_models import Entity
-            temp_entity = Entity(
-                name=entity.name,
-                schema=entity.schema,
-                fields=entity.fields
-            )
-
             try:
-                domain_info = naming.registry.get_domain(domain_name)
-                if domain_info:
-                    subdomain_name = naming._infer_subdomain(temp_entity, domain_info)
+                service = get_domain_service()
+                domain = service.repository.find_by_name(domain_name)
+                if domain and domain.subdomains:
+                    # Use first subdomain as default
+                    subdomain_name = list(domain.subdomains.values())[0].subdomain_name
                 else:
-                    logger.warning(f"Domain {domain_name} not found, using 'core' subdomain")
                     subdomain_name = "core"
             except Exception as e:
                 logger.warning(f"Could not infer subdomain for {entity.name}: {e}, using 'core'")
                 subdomain_name = "core"
 
-        # Generate read-side code
+        # Generate read-side code (simplified - not stored in registry)
         try:
-            code = registry.assign_read_entity_code(domain_name, subdomain_name, f"tv_{entity.name.lower()}")
+            # Get domain number
+            service = get_domain_service()
+            domain = service.repository.find_by_name(domain_name)
+            domain_num = domain.domain_number.value if domain else "0"
+
+            # Get subdomain number (simplified mapping)
+            subdomain_num = "00"  # Default
+            if domain:
+                for sd in domain.subdomains.values():
+                    if sd.subdomain_name == subdomain_name:
+                        subdomain_num = sd.subdomain_number
+                        break
+
+            # Generate simple read-side code: 02 + domain + subdomain + entity_sequence + file
+            # For now, use a simple incrementing pattern
+            entity_hash = hash(entity.name.lower()) % 100
+            code = f"02{domain_num}{subdomain_num}{entity_hash:02d}0"
+
             logger.debug(f"Generated code for {entity.name}: {code}")
             return code
         except Exception as e:
