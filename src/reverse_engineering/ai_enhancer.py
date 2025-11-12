@@ -7,7 +7,8 @@ Includes pattern discovery for novel patterns
 """
 
 import os
-from typing import Optional, Tuple, Dict, Any, List
+import json
+from typing import Optional, Dict, List
 from src.reverse_engineering.ast_to_specql_mapper import ConversionResult
 
 
@@ -67,16 +68,6 @@ class AIEnhancer:
             print("⚠️  llama-cpp-python not installed. Install with: pip install llama-cpp-python")
         except Exception as e:
             print(f"⚠️  Failed to load local LLM: {e}")
-
-    def _load_grok_provider(self):
-        """Load Grok LLM provider"""
-        try:
-            from src.reverse_engineering.grok_provider import GrokProvider
-            self.grok_provider = GrokProvider()
-            print("✅ Loaded Grok LLM provider")
-        except Exception as e:
-            print(f"⚠️  Failed to load Grok provider: {e}")
-            self.grok_provider = None
 
     def _load_grok_provider(self):
         """Load Grok LLM provider"""
@@ -223,10 +214,9 @@ Example: {{"v_total": "total_amount", "v_cnt": "customer_count"}}
         response = self._query_llm(prompt, max_tokens=200)
 
         try:
-            import json
             name_map = json.loads(response) if response else {}
             result = self._apply_name_map(result, name_map)
-        except:
+        except (json.JSONDecodeError, ValueError):
             # If LLM response not valid JSON, skip
             pass
 
@@ -428,7 +418,6 @@ Respond with valid JSON only:
             return None
 
         try:
-            import json
             pattern_data = json.loads(response)
             return pattern_data
         except json.JSONDecodeError:
@@ -438,7 +427,7 @@ Respond with valid JSON only:
             if json_match:
                 try:
                     return json.loads(json_match.group())
-                except:
+                except (json.JSONDecodeError, ValueError):
                     pass
 
         return None

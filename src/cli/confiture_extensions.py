@@ -469,6 +469,10 @@ def list_frameworks():
 # Add registry management commands
 specql.add_command(registry, name="registry")
 
+# Add domain management commands (PostgreSQL primary)
+from src.cli.domain import domain
+specql.add_command(domain, name="domain")
+
 # Add reverse engineering command
 from src.cli.reverse import reverse
 specql.add_command(reverse)
