@@ -6,12 +6,14 @@ from src.core.specql_parser import SpecQLParser
 from src.generators.diagrams.relationship_extractor import RelationshipExtractor
 from src.generators.diagrams.dependency_graph import DependencyGraph
 from src.generators.diagrams.graphviz_generator import GraphvizGenerator
+from src.generators.diagrams.mermaid_generator import MermaidGenerator
+from src.generators.diagrams.html_viewer_generator import HTMLViewerGenerator
 
 @click.command()
 @click.argument('yaml_files', nargs=-1, type=click.Path(exists=True), required=True)
 @click.option('--output', '-o', type=click.Path(), default='docs/schema.svg',
               help='Output file path')
-@click.option('--format', '-f', type=click.Choice(['svg', 'png', 'pdf', 'dot']),
+@click.option('--format', '-f', type=click.Choice(['svg', 'png', 'pdf', 'dot', 'mermaid', 'html']),
               default='svg', help='Output format')
 @click.option('--title', '-t', type=str, help='Diagram title')
 @click.option('--cluster/--no-cluster', default=True,
@@ -44,6 +46,12 @@ def diagram(
 
         # PNG format
         specql diagram entities/*.yaml --format png
+
+        # Mermaid format (for Markdown docs)
+        specql diagram entities/*.yaml --format mermaid --output docs/schema.md
+
+        # Interactive HTML viewer
+        specql diagram entities/*.yaml --format html --output docs/schema.html
 
         # With title
         specql diagram entities/*.yaml --title "CRM Schema"
@@ -91,24 +99,57 @@ def diagram(
         _show_statistics(extractor)
         click.echo()
 
-    # Generate diagram
-    generator = GraphvizGenerator(extractor)
+    # Generate diagram based on format
+    if format in ['svg', 'png', 'pdf', 'dot']:
+        # Graphviz formats
+        generator = GraphvizGenerator(extractor)
+        dot_source = generator.generate(
+            output_path=output,
+            format=format,
+            title=title,
+            cluster_by_schema=cluster,
+            show_fields=show_fields,
+            show_trinity=show_trinity,
+        )
 
-    dot_source = generator.generate(
-        output_path=output,
-        format=format,
-        title=title,
-        cluster_by_schema=cluster,
-        show_fields=show_fields,
-        show_trinity=show_trinity,
-    )
+        if format == 'dot':
+            # Just save DOT source
+            Path(output).write_text(dot_source)
+            click.echo(f"✅ DOT source saved: {output}")
+        else:
+            click.echo(f"✅ Diagram generated: {output}")
 
-    if format == 'dot':
-        # Just save DOT source
-        Path(output).write_text(dot_source)
-        click.echo(f"✅ DOT source saved: {output}")
-    else:
-        click.echo(f"✅ Diagram generated: {output}")
+    elif format == 'mermaid':
+        # Mermaid format
+        generator = MermaidGenerator(extractor)
+        mermaid_source = generator.generate(
+            output_path=output,
+            title=title,
+            show_fields=show_fields,
+            show_trinity=show_trinity,
+        )
+        click.echo(f"✅ Mermaid diagram saved: {output}")
+
+    elif format == 'html':
+        # HTML interactive viewer
+        # First generate SVG for embedding
+        graphviz_gen = GraphvizGenerator(extractor)
+        svg_content = graphviz_gen.generate(
+            format='svg',
+            title=title,
+            cluster_by_schema=cluster,
+            show_fields=show_fields,
+            show_trinity=show_trinity,
+        )
+
+        # Generate HTML viewer
+        html_gen = HTMLViewerGenerator(extractor)
+        html_gen.generate(
+            svg_content=svg_content,
+            output_path=output,
+            title=title or "Schema Diagram"
+        )
+        click.echo(f"✅ Interactive HTML viewer saved: {output}")
 
     # Show next steps
     click.echo("\n📋 Next steps:")

@@ -203,6 +203,58 @@ specql universal entities/**/*.yaml --backends postgresql,django
 specql universal entities/contact.yaml --backends postgresql
 ```
 
+### specql diagram
+
+Generate visual schema diagrams from SpecQL entity definitions. Supports multiple output formats for documentation and visualization.
+
+```bash
+specql diagram [OPTIONS] ENTITY_FILES...
+
+# Examples
+# Basic ER diagram (SVG)
+specql diagram entities/*.yaml
+
+# Mermaid format for Markdown docs
+specql diagram entities/*.yaml --format mermaid --output docs/schema.md
+
+# Interactive HTML viewer
+specql diagram entities/*.yaml --format html --output docs/schema.html
+
+# PNG format with custom title
+specql diagram entities/*.yaml --format png --title "CRM Schema"
+
+# Show relationship statistics
+specql diagram entities/*.yaml --stats
+
+# Flat layout (no schema clustering)
+specql diagram entities/*.yaml --no-cluster
+
+# Hide Trinity pattern fields
+specql diagram entities/*.yaml --hide-trinity
+```
+
+**Options**:
+- `--output, -o`: Output file path
+- `--format, -f`: Output format (`svg`, `png`, `pdf`, `dot`, `mermaid`, `html`)
+- `--title, -t`: Diagram title
+- `--cluster/--no-cluster`: Group entities by schema (default: cluster)
+- `--show-fields/--hide-fields`: Show entity fields (default: show)
+- `--show-trinity/--hide-trinity`: Show Trinity pattern fields (default: show)
+- `--stats`: Show relationship statistics
+
+**Output Formats**:
+- **`svg/png/pdf`**: Graphviz-rendered diagrams with schema clustering
+- **`dot`**: Graphviz DOT source code
+- **`mermaid`**: Mermaid ERD syntax for Markdown documentation
+- **`html`**: Interactive HTML viewer with pan/zoom and entity details
+
+**Features**:
+- Automatic relationship detection from `ref()` field types
+- Schema-based entity clustering
+- Cardinality inference (1:1, 1:N, N:1)
+- Trinity pattern field highlighting
+- Interactive HTML viewer with search and details
+
 ## Common Usage Patterns
 
 ### Production Deployment (FraiseQL)

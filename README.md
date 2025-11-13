@@ -285,6 +285,7 @@ specql reverse <file> --discover-patterns    # Analyze SQL with pattern discover
 - **Business logic**: Define actions in YAML, get PL/pgSQL functions
 - **FraiseQL integration**: GraphQL metadata generation
 - **Type-safe**: PostgreSQL composite types, automatic validation
+- **Visual documentation**: Automatic ER diagram generation (Graphviz, Mermaid, HTML)
 - **Tested**: Comprehensive test coverage, generated test fixtures
 
 ## Documentation

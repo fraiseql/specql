@@ -65,7 +65,7 @@ class RelationshipExtractor:
         # First pass: Build entity nodes
         for entity in entities:
             node = self._build_entity_node(entity)
-            self.entities[entity.entity_name] = node
+            self.entities[entity.name] = node
 
         # Second pass: Extract relationships
         for entity in entities:
@@ -73,56 +73,58 @@ class RelationshipExtractor:
 
     def _build_entity_node(self, entity) -> EntityNode:
         """Build entity node from SpecQL entity"""
+        # Pre-compute primary key names for this entity
+        primary_keys = ['pk_' + entity.name.lower(), 'id']
+
         fields = []
-        primary_keys = ['pk_' + entity.entity_name.lower(), 'id']
         foreign_keys = []
 
-        for field in entity.fields:
+        for field_name, field_def in entity.fields.items():
             field_info = {
-                'name': field.name,
-                'type': self._get_display_type(field),
-                'required': field.required if hasattr(field, 'required') else True,
-                'is_pk': field.name in primary_keys,
-                'is_fk': self._is_foreign_key(field),
+                'name': field_name,
+                'type': self._get_display_type(field_def),
+                'required': not field_def.nullable,
+                'is_pk': field_name in primary_keys,  # O(1) lookup now
+                'is_fk': self._is_foreign_key(field_def),
             }
 
             fields.append(field_info)
 
             if field_info['is_fk']:
-                foreign_keys.append(field.name)
+                foreign_keys.append(field_name)
 
         return EntityNode(
-            name=entity.entity_name,
+            name=entity.name,
             schema=entity.schema,
             fields=fields,
             primary_keys=primary_keys,
             foreign_keys=foreign_keys,
-            description=entity.description if hasattr(entity, 'description') else None,
+            description=entity.description or "",
         )
 
     def _extract_entity_relationships(self, entity) -> None:
         """Extract relationships for single entity"""
-        for field in entity.fields:
-            if self._is_foreign_key(field):
-                relationship = self._analyze_relationship(entity, field)
+        for field_name, field_def in entity.fields.items():
+            if self._is_foreign_key(field_def):
+                relationship = self._analyze_relationship(entity, field_def)
                 if relationship:
                     self.relationships.append(relationship)
 
-    def _is_foreign_key(self, field) -> bool:
+    def _is_foreign_key(self, field_def) -> bool:
         """Check if field is a foreign key"""
-        field_type = str(field.type)
+        field_type = field_def.type_name
 
         # ref() syntax
         if field_type.startswith('ref('):
             return True
 
         # _id suffix convention
-        if field.name.endswith('_id'):
+        if field_def.name.endswith('_id'):
             return True
 
         return False
 
-    def _analyze_relationship(self, entity, field) -> Optional[Relationship]:
+    def _analyze_relationship(self, entity, field_def) -> Optional[Relationship]:
         """
         Analyze relationship type and cardinality
 
@@ -131,7 +133,7 @@ class RelationshipExtractor:
         - Nullable ref → 0..1 cardinality
         - Required ref → 1 cardinality
         """
-        field_type = str(field.type)
+        field_type = field_def.type_name
 
         # Extract target entity
         target_entity = None
@@ -139,15 +141,15 @@ class RelationshipExtractor:
         if field_type.startswith('ref('):
             # ref(Company) → Company
             target_entity = field_type[4:-1]
-        elif field.name.endswith('_id'):
+        elif field_def.name.endswith('_id'):
             # company_id → Company
-            target_entity = field.name[:-3].capitalize()
+            target_entity = field_def.name[:-3].capitalize()
 
         if not target_entity:
             return None
 
         # Determine cardinality
-        nullable = not field.required if hasattr(field, 'required') else False
+        nullable = field_def.nullable
 
         # From cardinality (FK side)
         from_card = (RelationshipCardinality.ZERO_OR_ONE if nullable
@@ -160,23 +162,23 @@ class RelationshipExtractor:
         rel_type = RelationshipType.MANY_TO_ONE
 
         # Check for self-referential
-        if target_entity == entity.entity_name:
+        if target_entity == entity.name:
             rel_type = RelationshipType.SELF_REFERENTIAL
 
         return Relationship(
-            from_entity=entity.entity_name,
+            from_entity=entity.name,
             to_entity=target_entity,
-            from_field=field.name,
+            from_field=field_def.name,
             relationship_type=rel_type,
             from_cardinality=from_card,
             to_cardinality=to_card,
             nullable=nullable,
-            description=f"{entity.entity_name}.{field.name} → {target_entity}"
+            description=f"{entity.name}.{field_def.name} → {target_entity}"
         )
 
-    def _get_display_type(self, field) -> str:
+    def _get_display_type(self, field_def) -> str:
         """Get display-friendly type name"""
-        field_type = str(field.type)
+        field_type = field_def.type_name or 'UNKNOWN'
 
         # Map SpecQL types to diagram types
         type_mapping = {
