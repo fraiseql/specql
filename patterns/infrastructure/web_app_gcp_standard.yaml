@@ -1,0 +1,51 @@
+pattern_id: "web_app_gcp_standard_v1"
+name: "Standard Web Application (GCP)"
+description: "Production-ready web app with load balancer, auto-scaling, Cloud SQL"
+category: web_application
+cloud_provider: gcp
+estimated_monthly_cost: 450
+
+service: web_application
+provider: gcp
+region: us-central1
+environment: production
+
+compute:
+  instances: 2
+  cpu: 1
+  memory: 2GB
+  auto_scale:
+    enabled: true
+    min_instances: 2
+    max_instances: 10
+    cpu_target: 70
+
+database:
+  type: postgresql
+  version: "15"
+  storage: 50GB
+  multi_az: true
+  backups:
+    enabled: true
+    retention_days: 7
+
+load_balancer:
+  enabled: true
+  type: application
+  https: true
+
+observability:
+  logging: true
+  metrics: true
+  alerts:
+    - {name: high_cpu, condition: "cpu > 80%"}
+
+best_practices:
+  - "Multi-zone deployment for high availability"
+  - "Auto-scaling for cost optimization"
+  - "Automated backups with retention policies"
+
+cost_optimization:
+  - "Use committed use discounts for predictable workloads"
+  - "Consider preemptible VMs for dev/staging"
+  - "Right-size instances based on actual usage"

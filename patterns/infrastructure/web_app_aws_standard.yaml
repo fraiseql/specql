@@ -1,0 +1,51 @@
+pattern_id: "web_app_aws_standard_v1"
+name: "Standard Web Application (AWS)"
+description: "Production-ready web app with load balancer, auto-scaling, RDS"
+category: web_application
+cloud_provider: aws
+estimated_monthly_cost: 500
+
+service: web_application
+provider: aws
+region: us-east-1
+environment: production
+
+compute:
+  instances: 2
+  cpu: 1
+  memory: 2GB
+  auto_scale:
+    enabled: true
+    min_instances: 2
+    max_instances: 10
+    cpu_target: 70
+
+database:
+  type: postgresql
+  version: "15"
+  storage: 50GB
+  multi_az: true
+  backups:
+    enabled: true
+    retention_days: 7
+
+load_balancer:
+  enabled: true
+  type: application
+  https: true
+
+observability:
+  logging: true
+  metrics: true
+  alerts:
+    - {name: high_cpu, condition: "cpu > 80%"}
+
+best_practices:
+  - "Multi-AZ for high availability"
+  - "Auto-scaling for cost optimization"
+  - "Automated backups"
+
+cost_optimization:
+  - "Use Reserved Instances for predictable workloads"
+  - "Consider Spot Instances for dev/staging"
+  - "Right-size instances based on actual usage"
