@@ -126,10 +126,7 @@ class KubernetesParser:
 
                     # Environment variables
                     env_vars = {}
-                    env_list = container.get("env", [])
-                    for env in env_list:
-                        if isinstance(env, dict) and "name" in env and "value" in env:
-                            env_vars[env["name"]] = env["value"]
+                    secrets = {}
 
                     # Environment variables from ConfigMaps and Secrets (envFrom)
                     env_from_list = container.get("envFrom", [])
@@ -137,11 +134,23 @@ class KubernetesParser:
                         if isinstance(env_from, dict):
                             if "configMapRef" in env_from:
                                 config_map_name = env_from["configMapRef"].get("name")
-                                # ConfigMap data will be handled in a separate pass
-                                pass  # For now, skip - will be handled in separate method
+                                # Parse ConfigMap data
+                                config_map_data = self._get_config_map_data(grouped_manifests, config_map_name)
+                                env_vars.update(config_map_data)
+                            elif "secretRef" in env_from:
+                                secret_name = env_from["secretRef"].get("name")
+                                # Parse Secret data
+                                secret_data = self._get_secret_data(grouped_manifests, secret_name)
+                                for key in secret_data.keys():
+                                    secrets[key] = f"${{secrets.{key}}}"
+
+                    # Direct environment variables
+                    env_list = container.get("env", [])
+                    for env in env_list:
+                        if isinstance(env, dict) and "name" in env and "value" in env:
+                            env_vars[env["name"]] = env["value"]
 
                     # Secrets (from env with secretKeyRef)
-                    secrets = {}
                     for env in env_list:
                         if isinstance(env, dict) and "name" in env:
                             env_name = env["name"]
@@ -295,6 +304,32 @@ class KubernetesParser:
                 ))
 
         return volumes
+
+    def _get_config_map_data(self, grouped_manifests: Dict[str, List[Dict[str, Any]]], config_map_name: str) -> Dict[str, str]:
+        """Get data from a ConfigMap"""
+        if "ConfigMap" not in grouped_manifests:
+            return {}
+
+        for config_map in grouped_manifests["ConfigMap"]:
+            metadata = config_map.get("metadata", {})
+            name = metadata.get("name", "")
+            if name == config_map_name:
+                return config_map.get("data", {})
+
+        return {}
+
+    def _get_secret_data(self, grouped_manifests: Dict[str, List[Dict[str, Any]]], secret_name: str) -> Dict[str, str]:
+        """Get data from a Secret"""
+        if "Secret" not in grouped_manifests:
+            return {}
+
+        for secret in grouped_manifests["Secret"]:
+            metadata = secret.get("metadata", {})
+            name = metadata.get("name", "")
+            if name == secret_name:
+                return secret.get("data", {})
+
+        return {}
 
     def _get_containers_from_manifest(self, manifest: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Extract containers from a Deployment/StatefulSet manifest"""
