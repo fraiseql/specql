@@ -497,6 +497,10 @@ specql.add_command(templates)
 from src.cli.interactive import interactive
 specql.add_command(interactive)
 
+# Diagram generation
+from src.cli.diagram import diagram
+specql.add_command(diagram)
+
 
 if __name__ == "__main__":
     specql()
