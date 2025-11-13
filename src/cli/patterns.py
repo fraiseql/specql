@@ -15,6 +15,10 @@ from rich.panel import Panel
 from rich.prompt import Confirm
 import json
 
+from src.core.config import get_config
+from src.infrastructure.repositories.postgresql_pattern_repository import PostgreSQLPatternRepository
+from src.application.services.pattern_service import PatternService
+
 console = Console()
 
 @click.group(name="patterns")
@@ -480,3 +484,471 @@ def check_pattern_consistency(legacy_db: str):
 
     except Exception as e:
         console.print(f"[red]Error checking pattern consistency: {e}[/red]")
+
+
+@patterns_cli.command(name="search")
+@click.argument("query")
+@click.option("--limit", default=10, help="Maximum results to return")
+@click.option("--min-similarity", default=0.5, type=float,
+              help="Minimum similarity threshold (0.0-1.0)")
+@click.option("--category", help="Filter by category")
+def search_patterns(query, limit, min_similarity, category):
+    """
+    Search patterns using natural language
+
+    Examples:
+        specql patterns search "validate email addresses"
+        specql patterns search "audit logging" --category infrastructure
+        specql patterns search "phone number" --min-similarity 0.7
+    """
+    try:
+        from src.application.services.pattern_service_factory import get_pattern_service_with_fallback
+
+        service = get_pattern_service_with_fallback()
+
+        console.print(f"🔍 Searching for: '{query}'")
+        if category:
+            console.print(f"   Category: {category}")
+        console.print(f"   Minimum similarity: {min_similarity}")
+        console.print()
+
+        # Search
+        results = service.search_patterns_semantic(
+            query=query,
+            limit=limit,
+            min_similarity=min_similarity,
+            category=category
+        )
+
+        if not results:
+            console.print("No matching patterns found.")
+            console.print(f"Try lowering --min-similarity (current: {min_similarity})")
+            return
+
+        console.print(f"Found {len(results)} pattern(s):\n")
+
+        for i, (pattern, similarity) in enumerate(results, 1):
+            # Similarity as percentage
+            sim_pct = similarity * 100
+
+            # Color code by similarity
+            if similarity >= 0.8:
+                color = "green"
+            elif similarity >= 0.6:
+                color = "yellow"
+            else:
+                color = "white"
+
+            console.print(f"{i}. {pattern.name} ({sim_pct:.1f}% match)", style=f"bold {color}")
+
+            console.print(f"   Category: {pattern.category}")
+            console.print(f"   Description: {pattern.description[:100]}...")
+
+            if pattern.times_instantiated > 0:
+                console.print(f"   Used {pattern.times_instantiated} times")
+
+            console.print()
+
+    except Exception as e:
+        console.print(f"[red]Error searching patterns: {e}[/red]")
+
+
+@patterns_cli.command(name="similar")
+@click.argument("pattern_name")
+@click.option("--limit", default=5, help="Maximum results to return")
+@click.option("--min-similarity", default=0.5, type=float,
+              help="Minimum similarity threshold")
+def find_similar_patterns(pattern_name, limit, min_similarity):
+    """
+    Find patterns similar to a given pattern
+
+    Examples:
+        specql patterns similar email_validation
+        specql patterns similar audit_trail --limit 10
+    """
+    try:
+        from src.application.services.pattern_service_factory import get_pattern_service_with_fallback
+
+        service = get_pattern_service_with_fallback()
+
+        # Get reference pattern
+        pattern = service.get_pattern(pattern_name)
+        if not pattern:
+            console.print(f"[red]Pattern not found: {pattern_name}[/red]")
+            return
+
+        if not pattern.embedding:
+            console.print(f"[red]Pattern has no embedding: {pattern_name}[/red]")
+            console.print("Run: python scripts/backfill_pattern_embeddings.py")
+            return
+
+        console.print(f"🔍 Finding patterns similar to: {pattern.name}")
+        console.print(f"   {pattern.description}")
+        console.print()
+
+        # Find similar
+        if pattern.id is None:
+            console.print("[red]Pattern has no ID[/red]")
+            return
+
+        results = service.find_similar_patterns(
+            pattern_id=pattern.id,
+            limit=limit,
+            min_similarity=min_similarity
+        )
+
+        if not results:
+            console.print("No similar patterns found.")
+            return
+
+        console.print(f"Found {len(results)} similar pattern(s):\n")
+
+        for i, (similar_pattern, similarity) in enumerate(results, 1):
+            sim_pct = similarity * 100
+
+            if similarity >= 0.8:
+                color = "green"
+            elif similarity >= 0.6:
+                color = "yellow"
+            else:
+                color = "white"
+
+            console.print(f"{i}. {similar_pattern.name} ({sim_pct:.1f}% similar)", style=f"bold {color}")
+
+            console.print(f"   {similar_pattern.description[:100]}...")
+            console.print()
+
+    except Exception as e:
+        console.print(f"[red]Error finding similar patterns: {e}[/red]")
+
+
+@patterns_cli.command(name="recommend")
+@click.option("--entity-description", required=True,
+              help="Description of the entity")
+@click.option("--field", "fields", multiple=True, required=True,
+              help="Field names in the entity (can specify multiple)")
+@click.option("--limit", default=5, help="Maximum recommendations")
+def recommend_patterns(entity_description, fields, limit):
+    """
+    Recommend patterns for an entity
+
+    Examples:
+        specql patterns recommend \
+            --entity-description "Customer contact information" \
+            --field email \
+            --field phone \
+            --field address
+    """
+    try:
+        from src.application.services.pattern_service_factory import get_pattern_service_with_fallback
+
+        service = get_pattern_service_with_fallback()
+
+        console.print("🎯 Pattern recommendations for:")
+        console.print(f"   Entity: {entity_description}")
+        console.print(f"   Fields: {', '.join(fields)}")
+        console.print()
+
+        # Get recommendations
+        recommendations = service.recommend_patterns_for_entity(
+            entity_description=entity_description,
+            field_names=list(fields),
+            limit=limit
+        )
+
+        if not recommendations:
+            console.print("No pattern recommendations found.")
+            return
+
+        console.print(f"💡 Recommended {len(recommendations)} pattern(s):\n")
+
+        for i, (pattern, similarity) in enumerate(recommendations, 1):
+            sim_pct = similarity * 100
+
+            console.print(f"{i}. {pattern.name} ({sim_pct:.1f}% match)", style="bold cyan")
+
+            console.print(f"   {pattern.description}")
+
+            if pattern.times_instantiated > 0:
+                console.print(f"   ⭐ Popular: Used {pattern.times_instantiated} times")
+
+            console.print()
+
+    except Exception as e:
+        console.print(f"[red]Error getting recommendations: {e}[/red]")
+
+
+@patterns_cli.command()
+@click.option("--output", required=True, type=click.Path(),
+              help="Output file path")
+@click.option("--format", "fmt", type=click.Choice(["yaml", "json"]),
+              default="yaml", help="Export format")
+@click.option("--category", help="Export only patterns in this category")
+@click.option("--include-embeddings", is_flag=True,
+              help="Include embeddings in export (large file)")
+def export(output, fmt, category, include_embeddings):
+    """
+    Export patterns to file
+
+    Examples:
+        specql patterns export --output patterns.yaml
+        specql patterns export --output validation.json --format json --category validation
+        specql patterns export --output all_patterns.yaml --include-embeddings
+    """
+    from pathlib import Path
+    from src.cli.pattern_exporter import PatternExporter
+
+    config = get_config()
+
+    # Check if PostgreSQL is configured
+    if not config.database_url:
+        console.print("[red]❌ PostgreSQL database not configured.[/red]")
+        console.print("Set SPECQL_DB_URL environment variable to enable pattern export/import.")
+        console.print("Example: export SPECQL_DB_URL='postgresql://user:pass@localhost:5432/specql'")
+        raise click.Abort()
+
+    repository = PostgreSQLPatternRepository(config.database_url)  # type: ignore
+    service = PatternService(repository)
+    exporter = PatternExporter(service)
+
+    output_path = Path(output)
+
+    console.print("📦 Exporting patterns...")
+    if category:
+        console.print(f"   Category: {category}")
+    console.print(f"   Format: {fmt}")
+    console.print(f"   Output: {output}")
+
+    try:
+        if fmt == "yaml":
+            exporter.export_to_yaml(
+                output_path,
+                category=category,
+                include_embeddings=include_embeddings
+            )
+        else:
+            exporter.export_to_json(
+                output_path,
+                category=category,
+                include_embeddings=include_embeddings
+            )
+
+        # Get pattern count
+        if category:
+            patterns = [p for p in service.repository.list_all() if p.category.value == category]
+        else:
+            patterns = service.repository.list_all()
+
+        console.print(f"✅ Exported {len(patterns)} pattern(s) to {output}")
+
+    except Exception as e:
+        console.print(f"[red]❌ Export failed: {e}[/red]")
+        raise click.Abort()
+
+
+@patterns_cli.command("import")
+@click.argument("input_file", type=click.Path(exists=True))
+@click.option("--skip-existing/--update-existing", default=True,
+              help="Skip existing patterns or update them")
+@click.option("--no-embeddings", is_flag=True,
+              help="Don't generate embeddings during import")
+def import_patterns(input_file, skip_existing, no_embeddings):
+    """
+    Import patterns from file
+
+    Examples:
+        specql patterns import patterns.yaml
+        specql patterns import validation.json --update-existing
+        specql patterns import patterns.yaml --no-embeddings
+    """
+    from pathlib import Path
+    from src.cli.pattern_importer import PatternImporter
+
+    config = get_config()
+
+    # Check if PostgreSQL is configured
+    if not config.database_url:
+        console.print("[red]❌ PostgreSQL database not configured.[/red]")
+        console.print("Set SPECQL_DB_URL environment variable to enable pattern export/import.")
+        console.print("Example: export SPECQL_DB_URL='postgresql://user:pass@localhost:5432/specql'")
+        raise click.Abort()
+
+    repository = PostgreSQLPatternRepository(config.database_url)  # type: ignore
+    service = PatternService(repository)
+    importer = PatternImporter(service)
+
+    input_path = Path(input_file)
+
+    console.print(f"📥 Importing patterns from {input_file}...")
+    if skip_existing:
+        console.print("   Mode: Skip existing patterns")
+    else:
+        console.print("   Mode: Update existing patterns")
+
+    try:
+        # Determine format from extension
+        if input_path.suffix == ".yaml" or input_path.suffix == ".yml":
+            imported_count = importer.import_from_yaml(
+                input_path,
+                skip_existing=skip_existing,
+                generate_embeddings=not no_embeddings
+            )
+        elif input_path.suffix == ".json":
+            imported_count = importer.import_from_json(
+                input_path,
+                skip_existing=skip_existing,
+                generate_embeddings=not no_embeddings
+            )
+        else:
+            console.print(f"[red]❌ Unsupported file format: {input_path.suffix}[/red]")
+            raise click.Abort()
+
+        if imported_count > 0:
+            console.print(f"✅ Imported {imported_count} pattern(s)")
+        else:
+            console.print("ℹ️  No new patterns imported (all existed)")
+
+    except Exception as e:
+        console.print(f"[red]❌ Import failed: {e}[/red]")
+        raise click.Abort()
+
+
+@patterns_cli.command()
+@click.option("--threshold", default=0.9, type=float,
+              help="Similarity threshold (0.0-1.0)")
+@click.option("--auto-merge", is_flag=True,
+              help="Automatically merge duplicates")
+@click.option("--strategy", type=click.Choice(["most_used", "oldest", "newest"]),
+              default="most_used",
+              help="Merge strategy")
+def deduplicate(threshold, auto_merge, strategy):
+    """
+    Find and optionally merge duplicate patterns
+
+    Examples:
+        specql patterns deduplicate
+        specql patterns deduplicate --threshold 0.95
+        specql patterns deduplicate --auto-merge --strategy most_used
+    """
+    from src.application.services.pattern_deduplicator import PatternDeduplicator
+
+    config = get_config()
+
+    # Check if PostgreSQL is configured
+    if not config.database_url:
+        console.print("[red]❌ PostgreSQL database not configured.[/red]")
+        console.print("Set SPECQL_DB_URL environment variable to enable pattern deduplication.")
+        console.print("Example: export SPECQL_DB_URL='postgresql://user:pass@localhost:5432/specql'")
+        raise click.Abort()
+
+    repository = PostgreSQLPatternRepository(config.database_url)  # type: ignore
+    service = PatternService(repository)
+    deduplicator = PatternDeduplicator(service)
+
+    console.print(f"🔍 Finding duplicate patterns (threshold: {threshold})...")
+    console.print()
+
+    # Find duplicates
+    duplicate_groups = deduplicator.find_duplicates(similarity_threshold=threshold)
+
+    if not duplicate_groups:
+        console.print("✅ No duplicate patterns found")
+        return
+
+    console.print(f"Found {len(duplicate_groups)} group(s) of duplicates:\n")
+
+    # Process each group
+    for i, group in enumerate(duplicate_groups, 1):
+        console.print(f"[bold]Group {i}:[/bold]")
+
+        for pattern in group:
+            console.print(f"  • {pattern.name}")
+            console.print(f"    Category: {pattern.category.value}")
+            console.print(f"    Used: {pattern.times_instantiated} times")
+            console.print(f"    Source: {pattern.source_type.value}")
+
+        # Get merge suggestion
+        suggestion = deduplicator.suggest_merge(group, strategy=strategy)
+
+        console.print()
+        console.print(f"  [green]Suggestion: Keep '{suggestion['keep'].name}'[/green]")
+        console.print(f"  Reason: {suggestion['reason']}")
+
+        if auto_merge:
+            # Perform merge
+            merged = deduplicator.merge_patterns(
+                keep=suggestion["keep"],
+                merge=suggestion["merge"]
+            )
+            console.print(f"  [green]✅ Merged into '{merged.name}'[/green]")
+        else:
+            console.print("  💡 Run with --auto-merge to perform merge")
+
+        console.print()
+
+    if not auto_merge:
+        console.print("💡 Run with --auto-merge to automatically merge duplicates")
+
+
+@patterns_cli.command()
+@click.argument("pattern1_name")
+@click.argument("pattern2_name")
+def compare(pattern1_name, pattern2_name):
+    """
+    Compare two patterns for similarity
+
+    Examples:
+        specql patterns compare email_validation email_validator
+    """
+    from src.application.services.pattern_deduplicator import PatternDeduplicator
+
+    config = get_config()
+
+    # Check if PostgreSQL is configured
+    if not config.database_url:
+        console.print("[red]❌ PostgreSQL database not configured.[/red]")
+        console.print("Set SPECQL_DB_URL environment variable to enable pattern comparison.")
+        console.print("Example: export SPECQL_DB_URL='postgresql://user:pass@localhost:5432/specql'")
+        raise click.Abort()
+
+    repository = PostgreSQLPatternRepository(config.database_url)  # type: ignore
+    service = PatternService(repository)
+    deduplicator = PatternDeduplicator(service)
+
+    # Get patterns
+    try:
+        pattern1 = service.get_pattern_by_name(pattern1_name)
+        pattern2 = service.get_pattern_by_name(pattern2_name)
+    except ValueError as e:
+        console.print(f"[red]Error: {e}[/red]")
+        return
+
+    # Calculate similarity
+    similarity = deduplicator.calculate_similarity(pattern1, pattern2)
+    sim_pct = similarity * 100
+
+    console.print("📊 Comparing patterns:\n")
+
+    console.print(f"Pattern 1: {pattern1.name}")
+    console.print(f"  Category: {pattern1.category.value}")
+    console.print(f"  Description: {pattern1.description[:80]}...")
+    console.print()
+
+    console.print(f"Pattern 2: {pattern2.name}")
+    console.print(f"  Category: {pattern2.category.value}")
+    console.print(f"  Description: {pattern2.description[:80]}...")
+    console.print()
+
+    # Color code by similarity
+    if similarity >= 0.9:
+        color = "red"
+        verdict = "Very similar (likely duplicate)"
+    elif similarity >= 0.7:
+        color = "yellow"
+        verdict = "Similar"
+    else:
+        color = "green"
+        verdict = "Different"
+
+    console.print(f"Similarity: [bold {color}]{sim_pct:.1f}%[/bold {color}]")
+    console.print(f"Verdict: {verdict}")
