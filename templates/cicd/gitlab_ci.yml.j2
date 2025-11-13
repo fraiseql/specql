@@ -1,0 +1,55 @@
+{# GitLab CI Pipeline Template #}
+stages:
+{%- for stage in pipeline.stages %}
+  - {{ stage.name }}
+{%- endfor %}
+
+{%- for stage in pipeline.stages %}
+{%- for job in stage.jobs %}
+
+{{ job.name }}:
+  stage: {{ stage.name }}
+  {%- if job.runtime %}
+
+  image: {{ job.runtime.language }}:{{ job.runtime.version }}
+  {%- endif %}
+  {%- if job.before_script or job.script or job.after_script %}
+
+  script:
+  {%- if job.before_script %}
+  {%- for script in job.before_script %}
+    - {{ script }}
+  {%- endfor %}
+  {%- endif %}
+  {%- for step in job.steps %}
+    - {{ step.command }}
+  {%- endfor %}
+  {%- if job.after_script %}
+  {%- for script in job.after_script %}
+    - {{ script }}
+  {%- endfor %}
+  {%- endif %}
+  {%- endif %}
+  {%- if job.services %}
+
+  services:
+  {%- for service in job.services %}
+    - {{ service.name }}:{{ service.version }}
+  {%- endfor %}
+  {%- endif %}
+  {%- if job.environment %}
+
+  variables:
+  {%- for key, value in job.environment.items() %}
+    {{ key }}: "{{ value }}"
+  {%- endfor %}
+  {%- endif %}
+  {%- if job.if_condition %}
+
+  rules:
+    - if: {{ job.if_condition }}
+      when: always
+  {%- endif %}
+
+{%- endfor %}
+{%- endfor %}

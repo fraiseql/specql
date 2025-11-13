@@ -1,0 +1,39 @@
+{# Azure DevOps Pipeline Template #}
+{%- if pipeline.triggers %}
+{{ _render_triggers(pipeline.triggers) }}
+{%- endif %}
+
+{%- if pipeline.global_environment %}
+
+variables:
+{%- for key, value in pipeline.global_environment.items() %}
+  {{ key }}: {{ value }}
+{%- endfor %}
+
+{%- endif %}
+
+stages:
+{%- for stage in pipeline.stages %}
+- stage: {{ stage.name }}
+  jobs:
+  {%- for job in stage.jobs %}
+  - job: {{ job.name }}
+    {%- if job.runtime %}
+
+    pool:
+      vmImage: {{ _render_runtime(job.runtime) }}
+    {%- endif %}
+    {%- if job.environment %}
+
+    variables:
+    {%- for key, value in job.environment.items() %}
+      {{ key }}: {{ value }}
+    {%- endfor %}
+    {%- endif %}
+
+    steps:
+    {%- for step in job.steps %}
+{{ _render_step(step) }}
+    {%- endfor %}
+  {%- endfor %}
+{%- endfor %}
