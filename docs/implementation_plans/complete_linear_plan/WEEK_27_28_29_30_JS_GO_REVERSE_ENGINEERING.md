@@ -291,29 +291,53 @@ specql reverse sqlc sqlc.yaml
 
 ## Type Mapping Tables
 
-### TypeScript/Prisma → SpecQL
-| Prisma Type | SpecQL Type |
-|-------------|-------------|
-| String      | text        |
-| Int         | integer     |
-| BigInt      | integer     |
-| Float       | decimal     |
-| Boolean     | boolean     |
-| DateTime    | timestamp   |
-| Json        | json        |
-| Bytes       | bytea       |
+### TypeScript/Prisma → SpecQL (Enhanced with Subtypes)
+| Prisma Type | SpecQL Type | Notes |
+|-------------|-------------|-------|
+| String      | text / text:short / text:tiny | Context-aware (email → text:short) |
+| Int         | integer:int | Explicit 32-bit integer |
+| BigInt      | integer:big | Explicit 64-bit integer |
+| Float       | decimal | Or decimal:money/geo/percent based on field name |
+| Boolean     | boolean | No subtypes |
+| DateTime    | timestamp | No subtypes |
+| Json        | json | No subtypes |
+| Bytes       | bytea | No subtypes |
 
-### Go/GORM → SpecQL
-| Go Type       | SpecQL Type |
-|---------------|-------------|
-| string        | text        |
-| int, int64    | integer     |
-| float64       | decimal     |
-| bool          | boolean     |
-| time.Time     | timestamp   |
-| sql.NullString| text        |
-| []byte        | bytea       |
-| interface{}   | json        |
+**Type Inference Rules**:
+- `@unique` on String → `text:short` (indexed fields benefit from VARCHAR)
+- Field names with `price`, `amount`, `cost` → `decimal:money`
+- Field names with `email`, `phone`, `url` → `text:short`
+- Field names with `description`, `content`, `bio` → `text:long`
+- `@id` on Int → `integer:big` (primary keys scale to BIGINT)
+- Regular Int without @id → `integer:int`
+
+### Go/GORM → SpecQL (Enhanced with Subtypes)
+| Go Type       | SpecQL Type | Notes |
+|---------------|-------------|-------|
+| string        | text / text:short / text:tiny | Context-aware based on field name |
+| int8          | integer:small | 8-bit integer → SMALLINT |
+| int16         | integer:small | 16-bit integer → SMALLINT |
+| int32, int    | integer:int | 32-bit integer → INTEGER |
+| int64         | integer:big | 64-bit integer → BIGINT |
+| uint8         | integer:small | Unsigned 8-bit |
+| uint16        | integer:small | Unsigned 16-bit |
+| uint32, uint  | integer:int | Unsigned 32-bit |
+| uint64        | integer:big | Unsigned 64-bit |
+| float32       | decimal | Or decimal:money based on field name |
+| float64       | decimal | Or decimal:geo/percent based on field |
+| bool          | boolean | No subtypes |
+| time.Time     | timestamp | No subtypes |
+| sql.NullString| text | Or text:short based on field |
+| []byte        | bytea | No subtypes |
+| interface{}   | json | No subtypes |
+
+**Type Inference Rules**:
+- `gorm:"primaryKey"` on int/uint → `integer:big` (PKs should scale)
+- `gorm:"type:varchar(255)"` → `text:short`
+- `gorm:"type:varchar(10)"` → `text:tiny`
+- `gorm:"type:text"` → `text:long`
+- Field names with `Price`, `Amount`, `Cost` → `decimal:money`
+- Field names with `Email`, `Phone`, `URL` → `text:short`
 
 ---
 

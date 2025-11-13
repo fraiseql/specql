@@ -79,6 +79,29 @@ cd db/schema
 confiture migrate up
 ```
 
+## Schema Visualization
+
+Generate visual ER diagrams of your CRM schema:
+
+```bash
+# Interactive HTML diagram
+specql diagram entities/*.yaml --format html --output crm_schema.html
+
+# Mermaid format for documentation
+specql diagram entities/*.yaml --format mermaid --output docs/crm_schema.md
+
+# PNG diagram with statistics
+specql diagram entities/*.yaml --format png --stats --title "CRM Schema"
+```
+
+**Generated Diagram Features**:
+- Contact → Organization (many-to-one)
+- Contact → Opportunity (one-to-many)
+- Organization → Opportunity (one-to-many)
+- Schema-based clustering
+- Field type annotations
+- Relationship cardinality
+
 ## File Structure
 
 ```

@@ -29,6 +29,8 @@
 ### Success Criteria
 
 - [ ] SpecQL generates both `tb_` base tables AND `tv_` table views
+- [ ] **Enhanced type system** with subtypes (integer:big, decimal:money, text:short)
+- [ ] **Context-aware type inference** for smart defaults
 - [ ] Vector embeddings and HNSW indexes auto-generated
 - [ ] Full-text search columns and GIN indexes included
 - [ ] Trinity helper functions generated per entity
@@ -38,9 +40,46 @@
 
 ---
 
-## Week 12: Base Table Generation & Trinity Pattern
+## 📚 Type System Foundation
 
-**Objective**: Generate complete `tb_` base tables with full Trinity pattern alongside existing `tv_` views
+**Reference**: See `TYPE_SYSTEM_SPECIFICATION.md` for complete type system details
+
+### Enhanced Type System (NEW!)
+
+SpecQL now supports **optional subtypes** for precise type control:
+
+```yaml
+# Format: type:subtype
+fields:
+  # Integers
+  id: integer              # → integer:big (smart default)
+  age: integer:small       # Explicit → smallint
+  count: integer:int       # Explicit → integer
+
+  # Decimals
+  price: decimal:money     # numeric(10,2)
+  latitude: decimal:geo    # numeric(9,6)
+  tax_rate: decimal:percent # numeric(5,4)
+
+  # Text
+  email: text:short        # varchar(255)
+  description: text:long   # text
+  code: text:tiny          # varchar(10)
+```
+
+**Benefits:**
+- ✅ **Backward compatible**: Existing YAML still works
+- ✅ **Smart defaults**: Auto-inferred from context
+- ✅ **Performance**: Right-size types for indexes
+- ✅ **Cross-language**: Accurate Java/Rust/Go mapping
+
+**Implementation**: Integrated throughout Week 12
+
+---
+
+## Week 12: Enhanced Type System & Base Table Generation
+
+**Objective**: Implement enhanced type system and generate complete `tb_` base tables with full Trinity pattern
 
 ### Day 1: Base Table Template & Generator
 
@@ -172,6 +211,137 @@ class TestBaseTableNaming:
 
         # Check constraint
         assert "chk_tb_contact_status" in result
+
+
+class TestEnhancedTypeSystem:
+    """Test enhanced type system with subtypes (NEW!)"""
+
+    @pytest.fixture
+    def generator(self):
+        return BaseTableGenerator()
+
+    def test_integer_subtypes(self, generator):
+        """Test integer subtypes map to correct PostgreSQL types"""
+        entity = Entity(
+            name="Product",
+            schema="catalog",
+            fields=[
+                Field(name="id", field_type="integer"),  # → BIGINT (smart default)
+                Field(name="age", field_type="integer:small"),  # → SMALLINT (explicit)
+                Field(name="count", field_type="integer:int"),  # → INTEGER (explicit)
+                Field(name="big_num", field_type="integer:big"),  # → BIGINT (explicit)
+            ]
+        )
+
+        # Act
+        result = generator.generate(entity)
+
+        # Assert
+        assert "id BIGINT" in result  # Smart default for id field
+        assert "age SMALLINT" in result  # Explicit subtype
+        assert "count INTEGER" in result  # Explicit subtype
+        assert "big_num BIGINT" in result  # Explicit subtype
+
+    def test_decimal_subtypes(self, generator):
+        """Test decimal subtypes map to correct numeric types"""
+        entity = Entity(
+            name="Product",
+            schema="catalog",
+            fields=[
+                Field(name="price", field_type="decimal:money"),  # → NUMERIC(10,2)
+                Field(name="latitude", field_type="decimal:geo"),  # → NUMERIC(9,6)
+                Field(name="tax_rate", field_type="decimal:percent"),  # → NUMERIC(5,4)
+                Field(name="precise", field_type="decimal:high"),  # → NUMERIC(20,10)
+            ]
+        )
+
+        # Act
+        result = generator.generate(entity)
+
+        # Assert
+        assert "price NUMERIC(10,2)" in result
+        assert "latitude NUMERIC(9,6)" in result
+        assert "tax_rate NUMERIC(5,4)" in result
+        assert "precise NUMERIC(20,10)" in result
+
+    def test_text_subtypes(self, generator):
+        """Test text subtypes map to correct varchar/text types"""
+        entity = Entity(
+            name="Contact",
+            schema="crm",
+            fields=[
+                Field(name="email", field_type="text:short"),  # → VARCHAR(255)
+                Field(name="code", field_type="text:tiny"),  # → VARCHAR(10)
+                Field(name="description", field_type="text:long"),  # → TEXT
+                Field(name="name", field_type="text"),  # → TEXT (default)
+            ]
+        )
+
+        # Act
+        result = generator.generate(entity)
+
+        # Assert
+        assert "email VARCHAR(255)" in result
+        assert "code VARCHAR(10)" in result
+        assert "description TEXT" in result
+        assert "name TEXT" in result
+
+    def test_context_aware_type_inference(self, generator):
+        """Test type inference based on field names and patterns"""
+        entity = Entity(
+            name="User",
+            schema="auth",
+            fields=[
+                # Should infer integer:big for IDs
+                Field(name="user_id", field_type="integer"),  # → BIGINT
+                Field(name="organization_id", field_type="integer"),  # → BIGINT
+
+                # Should infer integer:small for age
+                Field(name="age", field_type="integer"),  # → SMALLINT
+
+                # Should infer text:short for email/phone
+                Field(name="email", field_type="text"),  # → VARCHAR(255)
+                Field(name="phone", field_type="text"),  # → VARCHAR(50)
+
+                # Should infer decimal:money for price/amount
+                Field(name="price", field_type="decimal"),  # → NUMERIC(10,2)
+                Field(name="amount", field_type="decimal"),  # → NUMERIC(10,2)
+            ]
+        )
+
+        # Act
+        result = generator.generate(entity)
+
+        # Assert - Context-aware inference
+        assert "user_id BIGINT" in result
+        assert "organization_id BIGINT" in result
+        assert "age SMALLINT" in result
+        assert "email VARCHAR(255)" in result
+        assert "phone VARCHAR(50)" in result
+        assert "price NUMERIC(10,2)" in result
+        assert "amount NUMERIC(10,2)" in result
+
+    def test_backward_compatibility(self, generator):
+        """Test that existing YAML without subtypes still works"""
+        entity = Entity(
+            name="LegacyEntity",
+            schema="legacy",
+            fields=[
+                Field(name="name", field_type="text"),
+                Field(name="count", field_type="integer"),
+                Field(name="price", field_type="decimal"),
+                Field(name="active", field_type="boolean"),
+            ]
+        )
+
+        # Act - Should not fail
+        result = generator.generate(entity)
+
+        # Assert - Uses smart defaults
+        assert "name TEXT" in result  # or VARCHAR based on inference
+        assert ("count INTEGER" in result or "count BIGINT" in result)  # Context-dependent
+        assert ("price NUMERIC" in result or "price NUMERIC(10,2)" in result)
+        assert "active BOOLEAN" in result
 ```
 
 **Run Tests (Should Fail)**:
@@ -433,22 +603,145 @@ class BaseTableGenerator:
         return sql_fields
 
     def _map_field_type(self, field: Field) -> str:
-        """Map SpecQL field type to SQL type"""
+        """
+        Map SpecQL field type to SQL type with enhanced subtype support
+
+        Format: type:subtype
+        - integer → context-aware (BIGINT for IDs, SMALLINT for age, INTEGER default)
+        - integer:small → SMALLINT
+        - integer:int → INTEGER
+        - integer:big → BIGINT
+        - decimal → context-aware (NUMERIC(10,2) for money)
+        - decimal:money → NUMERIC(10,2)
+        - decimal:geo → NUMERIC(9,6)
+        - decimal:percent → NUMERIC(5,4)
+        - decimal:high → NUMERIC(20,10)
+        - text → TEXT (default)
+        - text:tiny → VARCHAR(10)
+        - text:short → VARCHAR(255)
+        - text:long → TEXT
+        """
+        # Parse type:subtype format
+        if ':' in field.field_type:
+            base_type, subtype = field.field_type.split(':', 1)
+        else:
+            base_type = field.field_type
+            subtype = None
+
+        # Handle ref and enum (no subtypes)
+        if base_type == "ref":
+            return "INTEGER"  # Trinity: FK to pk_* INTEGER
+
+        if base_type == "enum":
+            return "TEXT"
+
+        if base_type == "list":
+            return "TEXT[]"
+
+        # Integer subtypes
+        if base_type == "integer":
+            if subtype == "small":
+                return "SMALLINT"
+            elif subtype == "int":
+                return "INTEGER"
+            elif subtype == "big":
+                return "BIGINT"
+            else:
+                # Context-aware inference
+                return self._infer_integer_type(field)
+
+        # Decimal subtypes
+        if base_type == "decimal":
+            if subtype == "money":
+                return "NUMERIC(10,2)"
+            elif subtype == "geo":
+                return "NUMERIC(9,6)"
+            elif subtype == "percent":
+                return "NUMERIC(5,4)"
+            elif subtype == "high":
+                return "NUMERIC(20,10)"
+            else:
+                # Context-aware inference
+                return self._infer_decimal_type(field)
+
+        # Text subtypes
+        if base_type == "text":
+            if subtype == "tiny":
+                return "VARCHAR(10)"
+            elif subtype == "short":
+                return "VARCHAR(255)"
+            elif subtype == "long":
+                return "TEXT"
+            else:
+                # Context-aware inference
+                return self._infer_text_type(field)
+
+        # Default mappings
         type_map = {
-            "text": "TEXT",
-            "integer": "INTEGER",
-            "decimal": "NUMERIC",
             "boolean": "BOOLEAN",
             "date": "DATE",
             "timestamp": "TIMESTAMPTZ",
             "json": "JSONB",
-            "ref": "INTEGER",  # Trinity: FK to pk_* INTEGER
-            "enum": "TEXT",
-            "list": "TEXT[]",
         }
 
-        base_type = field.field_type
         return type_map.get(base_type, "TEXT")
+
+    def _infer_integer_type(self, field: Field) -> str:
+        """Infer integer SQL type based on field name and context"""
+        field_lower = field.name.lower()
+
+        # IDs are always BIGINT for scalability
+        if field_lower.endswith('_id') or field_lower == 'id':
+            return "BIGINT"
+
+        # Age fields are SMALLINT (0-255 is plenty)
+        if 'age' in field_lower:
+            return "SMALLINT"
+
+        # Count, quantity usually fit in INTEGER
+        if any(word in field_lower for word in ['count', 'quantity', 'number']):
+            return "INTEGER"
+
+        # Default to INTEGER for backward compatibility
+        return "INTEGER"
+
+    def _infer_decimal_type(self, field: Field) -> str:
+        """Infer decimal SQL type based on field name"""
+        field_lower = field.name.lower()
+
+        # Money fields: NUMERIC(10,2)
+        if any(word in field_lower for word in ['price', 'amount', 'cost', 'fee', 'salary', 'revenue']):
+            return "NUMERIC(10,2)"
+
+        # Geographic coordinates: NUMERIC(9,6)
+        if any(word in field_lower for word in ['lat', 'lon', 'latitude', 'longitude', 'coord']):
+            return "NUMERIC(9,6)"
+
+        # Percentages: NUMERIC(5,4)
+        if any(word in field_lower for word in ['percent', 'rate', 'ratio']):
+            return "NUMERIC(5,4)"
+
+        # Default to general NUMERIC
+        return "NUMERIC"
+
+    def _infer_text_type(self, field: Field) -> str:
+        """Infer text SQL type based on field name"""
+        field_lower = field.name.lower()
+
+        # Code/slug fields are tiny
+        if any(word in field_lower for word in ['code', 'slug', 'key', 'token']):
+            return "VARCHAR(10)"
+
+        # Email, phone, URL are short
+        if any(word in field_lower for word in ['email', 'phone', 'url', 'link', 'username']):
+            return "VARCHAR(255)"
+
+        # Description, content, notes are long
+        if any(word in field_lower for word in ['description', 'content', 'note', 'comment', 'bio']):
+            return "TEXT"
+
+        # Default to TEXT for flexibility
+        return "TEXT"
 
     def _generate_foreign_keys(self, entity: Entity) -> List[ForeignKey]:
         """Generate foreign key constraints for ref fields"""
@@ -653,12 +946,15 @@ uv run ruff check src/generators/schema/base_table_generator.py
 
 **Day 1 Summary**:
 - ✅ Base table generator implemented with Trinity pattern
+- ✅ **Enhanced type system** with subtype support (integer:big, decimal:money, text:short)
+- ✅ **Context-aware type inference** engine for smart defaults
+- ✅ **Backward compatibility** maintained with existing YAML
 - ✅ Jinja2 template created for tb_ tables
 - ✅ Full audit fields (6-field audit trail)
 - ✅ Foreign key constraints generated
 - ✅ Indexes auto-created
 - ✅ Integrated with orchestrator
-- ✅ Complete test coverage
+- ✅ Complete test coverage including type system tests
 
 ---
 

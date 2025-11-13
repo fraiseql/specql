@@ -57,34 +57,48 @@ class GraphvizGenerator:
 
         Returns:
             DOT source string
+
+        Raises:
+            ValueError: If format is not supported
+            RuntimeError: If diagram rendering fails
         """
-        self.dot_lines = []
+        if format not in ['svg', 'png', 'pdf', 'dot']:
+            raise ValueError(f"Unsupported format: {format}. Supported: svg, png, pdf, dot")
 
-        # Header
-        self._add_header(title)
+        if not self.extractor.entities:
+            raise ValueError("No entities found in extractor. Run extract_from_entities() first.")
 
-        # Graph attributes
-        self._add_graph_attributes()
+        try:
+            self.dot_lines = []
 
-        # Entities
-        if cluster_by_schema:
-            self._add_entities_clustered()
-        else:
-            self._add_entities_flat(show_fields, show_trinity)
+            # Header
+            self._add_header(title)
 
-        # Relationships
-        self._add_relationships()
+            # Graph attributes
+            self._add_graph_attributes()
 
-        # Footer
-        self._add_footer()
+            # Entities
+            if cluster_by_schema:
+                self._add_entities_clustered()
+            else:
+                self._add_entities_flat(show_fields, show_trinity)
 
-        dot_source = '\n'.join(self.dot_lines)
+            # Relationships
+            self._add_relationships()
 
-        # Render if output path provided
-        if output_path:
-            self._render_diagram(dot_source, output_path, format)
+            # Footer
+            self._add_footer()
 
-        return dot_source
+            dot_source = '\n'.join(self.dot_lines)
+
+            # Render if output path provided
+            if output_path:
+                self._render_diagram(dot_source, output_path, format)
+
+            return dot_source
+
+        except Exception as e:
+            raise RuntimeError(f"Failed to generate Graphviz diagram: {e}") from e
 
     def _add_header(self, title: Optional[str]) -> None:
         """Add DOT header"""
@@ -286,27 +300,42 @@ class GraphvizGenerator:
         """Render DOT to image using Graphviz"""
         try:
             import graphviz
+        except ImportError as e:
+            # Fallback: save DOT source
+            dot_path = Path(output_path).with_suffix('.dot')
+            dot_path.parent.mkdir(parents=True, exist_ok=True)
+            dot_path.write_text(dot_source)
+            raise RuntimeError(
+                f"Graphviz library not installed. Install with: pip install graphviz. "
+                f"DOT source saved to: {dot_path}"
+            ) from e
 
+        # Validate output path
+        output_path_obj = Path(output_path)
+        output_path_obj.parent.mkdir(parents=True, exist_ok=True)
+
+        try:
             # Create graph
             graph = graphviz.Source(dot_source)
 
             # Render
-            output = Path(output_path).with_suffix('')
+            output = output_path_obj.with_suffix('')
             graph.render(
                 filename=str(output),
                 format=format,
                 cleanup=True  # Remove intermediate .dot file
             )
 
-            print(f"✅ Diagram generated: {output}.{format}")
+        except Exception as e:
+            # Fallback: save DOT source
+            dot_path = Path(output_path).with_suffix('.dot')
+            try:
+                dot_path.write_text(dot_source)
+                fallback_msg = f"DOT source saved to: {dot_path}"
+            except OSError:
+                fallback_msg = "Could not save DOT source"
 
-        except ImportError:
-            print("⚠️  Graphviz not installed. Install with: pip install graphviz")
-            print("   Also need system Graphviz: https://graphviz.org/download/")
-
-            # Save DOT source anyway
-            Path(output_path).with_suffix('.dot').write_text(dot_source)
-            print(f"💾 Saved DOT source: {output_path}.dot")
+            raise RuntimeError(f"Failed to render diagram to {format}: {e}. {fallback_msg}") from e
 
         except Exception as e:
             print(f"❌ Error rendering diagram: {e}")

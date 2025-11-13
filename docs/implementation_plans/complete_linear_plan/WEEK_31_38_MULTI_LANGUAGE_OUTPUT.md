@@ -816,6 +816,99 @@ func (h *UserHandler) CreateUser(c *gin.Context) {
 
 ---
 
+## Type Mapping Tables (Enhanced with Subtypes)
+
+### SpecQL → Java/Spring Boot
+| SpecQL Type | Java Type | JPA Type | Notes |
+|-------------|-----------|----------|-------|
+| integer:small | Short | @Column(columnDefinition="SMALLINT") | 16-bit integer |
+| integer:int | Integer | @Column(columnDefinition="INTEGER") | 32-bit integer |
+| integer:big | Long | @Column(columnDefinition="BIGINT") | 64-bit integer (default for IDs) |
+| integer | Long | @Column(columnDefinition="BIGINT") | Smart default → BIGINT |
+| decimal:money | BigDecimal | @Column(precision=10, scale=2) | Money fields |
+| decimal:geo | BigDecimal | @Column(precision=9, scale=6) | Geographic coordinates |
+| decimal:percent | BigDecimal | @Column(precision=5, scale=4) | Percentages |
+| decimal:high | BigDecimal | @Column(precision=20, scale=10) | High precision |
+| decimal | BigDecimal | @Column | General decimal |
+| text:tiny | String | @Column(length=10) | Short codes |
+| text:short | String | @Column(length=255) | Email, phone, URL |
+| text:long | String | @Column(columnDefinition="TEXT") | Description, content |
+| text | String | @Column(columnDefinition="TEXT") | Default TEXT |
+| boolean | Boolean | @Column | Boolean field |
+| timestamp | LocalDateTime | @Column | Timestamp with timezone |
+| date | LocalDate | @Column | Date only |
+| json | JsonNode | @Type(JsonBinaryType.class) | JSON/JSONB |
+
+### SpecQL → Rust/Diesel
+| SpecQL Type | Rust Type | Diesel Type | Notes |
+|-------------|-----------|-------------|-------|
+| integer:small | i16 | SmallInt | 16-bit signed integer |
+| integer:int | i32 | Integer | 32-bit signed integer |
+| integer:big | i64 | BigInt | 64-bit signed integer (default) |
+| integer | i64 | BigInt | Smart default |
+| decimal:money | rust_decimal::Decimal | Numeric | Money with precision |
+| decimal:geo | rust_decimal::Decimal | Numeric | Geographic coordinates |
+| decimal:percent | rust_decimal::Decimal | Numeric | Percentages |
+| decimal | f64 | Double | General decimal |
+| text:tiny | String | Varchar | Short strings |
+| text:short | String | Varchar | Medium strings |
+| text:long | String | Text | Long text |
+| text | String | Text | Default |
+| boolean | bool | Bool | Boolean |
+| timestamp | chrono::NaiveDateTime | Timestamp | Timestamp |
+| date | chrono::NaiveDate | Date | Date only |
+| json | serde_json::Value | Jsonb | JSON/JSONB |
+
+### SpecQL → TypeScript/Prisma
+| SpecQL Type | TypeScript Type | Prisma Type | Notes |
+|-------------|-----------------|-------------|-------|
+| integer:small | number | Int | 16-bit (comment only) |
+| integer:int | number | Int | 32-bit signed |
+| integer:big | bigint | BigInt | 64-bit signed |
+| integer | bigint | BigInt | Smart default |
+| decimal:money | number | Decimal | Money (precision 10,2) |
+| decimal:geo | number | Decimal | Geographic (precision 9,6) |
+| decimal:percent | number | Decimal | Percentage (precision 5,4) |
+| decimal | number | Decimal | General decimal |
+| text:tiny | string | String @db.VarChar(10) | Short codes |
+| text:short | string | String @db.VarChar(255) | Email, URL |
+| text:long | string | String @db.Text | Long text |
+| text | string | String | Default |
+| boolean | boolean | Boolean | Boolean |
+| timestamp | Date | DateTime | Timestamp |
+| date | Date | DateTime @db.Date | Date only |
+| json | object | Json | JSON/JSONB |
+
+### SpecQL → Go/GORM
+| SpecQL Type | Go Type | GORM Tag | Notes |
+|-------------|---------|----------|-------|
+| integer:small | int16 | type:smallint | 16-bit signed |
+| integer:int | int32 | type:integer | 32-bit signed |
+| integer:big | int64 | type:bigint | 64-bit signed (default) |
+| integer | int64 | type:bigint | Smart default |
+| decimal:money | float64 | type:numeric(10,2) | Money fields |
+| decimal:geo | float64 | type:numeric(9,6) | Geographic coords |
+| decimal:percent | float64 | type:numeric(5,4) | Percentages |
+| decimal | float64 | type:numeric | General decimal |
+| text:tiny | string | type:varchar(10) | Short codes |
+| text:short | string | type:varchar(255) | Email, URL |
+| text:long | string | type:text | Long text |
+| text | string | type:text | Default |
+| boolean | bool | type:boolean | Boolean |
+| timestamp | time.Time | type:timestamp | Timestamp |
+| date | time.Time | type:date | Date only |
+| json | interface{} | type:jsonb | JSON/JSONB |
+
+**Type Inference Strategy**:
+All code generators implement the same context-aware inference rules as the PostgreSQL generator:
+- Field names ending in `_id` or named `id` → Use big integer types
+- Field names containing `age` → Use small integer types
+- Field names containing `price`, `amount`, `cost` → Use money decimal types
+- Field names containing `email`, `phone`, `url` → Use short text types
+- Field names containing `description`, `content`, `bio` → Use long text types
+
+---
+
 ## CLI Commands
 
 ```bash

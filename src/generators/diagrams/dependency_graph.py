@@ -28,11 +28,11 @@ class DependencyGraph:
                 field_count=len(entity_node.fields),
             )
 
-        # Add relationship edges
+        # Add relationship edges (dependency -> dependent)
         for rel in self.extractor.relationships:
             self.graph.add_edge(
-                rel.from_entity,
-                rel.to_entity,
+                rel.to_entity,  # dependency
+                rel.from_entity,  # dependent
                 field=rel.from_field,
                 type=rel.relationship_type.value,
                 nullable=rel.nullable,

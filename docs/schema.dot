@@ -1,0 +1,52 @@
+digraph schema {
+	graph [bb="0,0,173,569.5",
+		bgcolor=white,
+		nodesep=0.8,
+		rankdir=TB,
+		ranksep=1.2,
+		splines=ortho
+	];
+	node [fontname=Arial,
+		fontsize=10,
+		label="\N",
+		shape=plaintext
+	];
+	edge [arrowhead=crow,
+		color="#666666",
+		fontname=Arial,
+		fontsize=9
+	];
+	subgraph cluster_crm {
+		graph [bb="8,8,165,561.5",
+			color="#e8f5e9",
+			fontname="Arial Bold",
+			label=crm,
+			lheight=0.22,
+			lp="86.5,549.62",
+			lwidth=0.35,
+			style=filled
+		];
+		Company	[height=1.3924,
+			label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#4a90e2" ALIGN="CENTER"><FONT COLOR="white" POINT-SIZE="12"><B>Company (crm)</B></FONT></TD></TR><TR><TD BGCOLOR="#e0e0e0" HEIGHT="1"></TD></TR><TR><TD  ALIGN="LEFT">name <FONT COLOR="#666666">TEXT</FONT></TD></TR><TR><TD  ALIGN="LEFT">industry <FONT COLOR="#666666">TEXT</FONT></TD></TR><TR><TD  ALIGN="LEFT">employee_count <FONT COLOR="#666666">INT</FONT></TD></TR></TABLE>>,
+			pos="74,66.125",
+			width=1.6215];
+		Contact	[height=1.6701,
+			label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#4a90e2" ALIGN="CENTER"><FONT COLOR="white" POINT-SIZE="12"><B>Contact (crm)</B></FONT></TD></TR><TR><TD BGCOLOR="#e0e0e0" HEIGHT="1"></TD></TR><TR><TD  ALIGN="LEFT">email <FONT COLOR="#666666">TEXT</FONT></TD></TR><TR><TD  ALIGN="LEFT">phone <FONT COLOR="#666666">TEXT</FONT></TD></TR><TR><TD BGCOLOR="#ffe0b2" ALIGN="LEFT">company_id <FONT COLOR="#666666">REF FK</FONT></TD></TR><TR><TD  ALIGN="LEFT">status <FONT COLOR="#666666">ENUM</FONT></TD></TR></TABLE>>,
+			pos="75,272.88",
+			width=1.6319];
+		Contact -> Company	[dir=back,
+			label="0..1 company_id 1..*",
+			lp="115.62,164.5",
+			pos="s,74.312,212.8 74.312,201.28 74.312,201.28 74.312,116.23 74.312,116.23",
+			style=dashed];
+		Order	[height=1.3924,
+			label=<<TABLE BORDER="1" CELLBORDER="0" CELLSPACING="0" CELLPADDING="4"><TR><TD BGCOLOR="#4a90e2" ALIGN="CENTER"><FONT COLOR="white" POINT-SIZE="12"><B>Order (crm)</B></FONT></TD></TR><TR><TD BGCOLOR="#e0e0e0" HEIGHT="1"></TD></TR><TR><TD  ALIGN="LEFT">total <FONT COLOR="#666666">DECIMAL</FONT></TD></TR><TR><TD BGCOLOR="#ffe0b2" ALIGN="LEFT">contact_id <FONT COLOR="#666666">REF FK</FONT></TD></TR><TR><TD  ALIGN="LEFT">status <FONT COLOR="#666666">ENUM</FONT></TD></TR></TABLE>>,
+			pos="75,479.62",
+			width=1.5278];
+		Order -> Contact	[dir=back,
+			label="0..1 contact_id 1..*",
+			lp="112.5,381.25",
+			pos="s,75,429.58 75,418.06 75,418.06 75,332.76 75,332.76",
+			style=dashed];
+	}
+}
