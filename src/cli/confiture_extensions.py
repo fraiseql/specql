@@ -493,6 +493,10 @@ specql.add_command(patterns_cli)
 from src.cli.templates import templates
 specql.add_command(templates)
 
+# Interactive CLI
+from src.cli.interactive import interactive
+specql.add_command(interactive)
+
 
 if __name__ == "__main__":
     specql()
