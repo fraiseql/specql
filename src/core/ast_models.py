@@ -326,6 +326,12 @@ class EntityDefinition:
     subdomain: str | None = None  # Optional subdomain override
     description: str = ""
 
+    # Features (for advanced functionality like vectors, search, etc.)
+    features: list[str] = field(default_factory=list)
+
+    # Vector search configuration
+    search_functions: bool = True  # Generate custom search functions (default True for backward compatibility)
+
     # Fields
     fields: dict[str, FieldDefinition] = field(default_factory=dict)
 

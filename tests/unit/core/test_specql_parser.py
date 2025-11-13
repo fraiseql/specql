@@ -511,3 +511,64 @@ fields:
 
         assert entity.organization.table_code == "013211"
         assert entity.organization.domain_name is None
+
+    def test_parse_vector_config_search_functions_enabled(self):
+        """Test parsing vector_config with search_functions enabled"""
+        yaml_content = """
+entity: Document
+schema: content
+features:
+  - semantic_search
+vector_config:
+  search_functions: true
+
+fields:
+  title: text!
+  content: text
+"""
+
+        entity = self.parser.parse(yaml_content)
+
+        assert entity.name == "Document"
+        assert "semantic_search" in entity.features
+        assert entity.search_functions is True
+
+    def test_parse_vector_config_search_functions_disabled(self):
+        """Test parsing vector_config with search_functions disabled"""
+        yaml_content = """
+entity: Document
+schema: content
+features:
+  - semantic_search
+vector_config:
+  search_functions: false
+
+fields:
+  title: text!
+  content: text
+"""
+
+        entity = self.parser.parse(yaml_content)
+
+        assert entity.name == "Document"
+        assert "semantic_search" in entity.features
+        assert entity.search_functions is False
+
+    def test_parse_vector_config_default_search_functions(self):
+        """Test default search_functions behavior when vector_config not specified"""
+        yaml_content = """
+entity: Document
+schema: content
+features:
+  - semantic_search
+
+fields:
+  title: text!
+  content: text
+"""
+
+        entity = self.parser.parse(yaml_content)
+
+        assert entity.name == "Document"
+        assert "semantic_search" in entity.features
+        assert entity.search_functions is True  # Default value

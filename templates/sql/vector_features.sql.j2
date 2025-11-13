@@ -1,16 +1,15 @@
+{%- if section == "columns" %}
 -- ============================================================================
 -- Vector Embeddings: {{ entity.name }}
--- Purpose: Semantic search with pgvector
 -- ============================================================================
 
--- Add embedding column to base table
 ALTER TABLE {{ schema }}.tb_{{ entity.name|lower }}
 ADD COLUMN embedding vector(384);
 
--- Add embedding column to table view
 ALTER TABLE {{ schema }}.tv_{{ entity.name|lower }}
 ADD COLUMN embedding vector(384);
 
+{%- elif section == "indexes" %}
 -- ============================================================================
 -- HNSW Index for Fast Similarity Search
 -- ============================================================================
@@ -26,8 +25,9 @@ COMMENT ON INDEX {{ schema }}.idx_tb_{{ entity.name|lower }}_embedding_hnsw IS
 - ef_construction = 64: Quality of index construction
 - Operator: <=> (cosine distance)';
 
+{%- elif section == "function" %}
 -- ============================================================================
--- Similarity Search Function
+-- Similarity Search Function (Optional - for direct SQL usage)
 -- ============================================================================
 
 CREATE OR REPLACE FUNCTION {{ schema }}.search_{{ entity.name|lower }}_by_embedding(
@@ -59,6 +59,9 @@ $$ LANGUAGE plpgsql STABLE;
 COMMENT ON FUNCTION {{ schema }}.search_{{ entity.name|lower }}_by_embedding IS
 'Semantic similarity search for {{ entity.name }} using vector embeddings.
 
+NOTE: This function is optional. FraiseQL provides native vector operators.
+Use this for direct SQL queries outside of GraphQL.
+
 Args:
 - p_query_embedding: Query vector (384 dimensions)
 - p_limit: Maximum results to return
@@ -74,3 +77,4 @@ args:
   - queryEmbedding: [Float!]!
   - limit: Int
   - minSimilarity: Float';
+{%- endif %}
