@@ -204,7 +204,7 @@ public class Task {
 
         # Check fields (excluding id)
         assert (
-            len(entity.fields) == 7
+            len(entity.fields) == 8
         )  # email, name, active, company, tasks, status, createdAt, updatedAt
 
         # Check specific fields
