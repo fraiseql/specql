@@ -481,6 +481,10 @@ specql.add_command(reverse)
 from src.cli.reverse_python import reverse_python
 specql.add_command(reverse_python, name="reverse-python")
 
+# Add test reverse engineering command
+from src.cli.reverse_tests import reverse_tests
+specql.add_command(reverse_tests, name="reverse-tests")
+
 # Add embeddings command
 from src.cli.embeddings import embeddings_cli
 specql.add_command(embeddings_cli)
