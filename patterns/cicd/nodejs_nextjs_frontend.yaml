@@ -1,0 +1,58 @@
+pattern_id: "nodejs_nextjs_frontend_v1"
+name: "Next.js Frontend Application"
+description: "CI/CD for Next.js React applications"
+category: frontend
+language: node
+framework: nextjs
+tags: [node, react, nextjs, typescript, jest, vercel]
+
+pipeline:
+  name: nextjs_frontend
+  language: node
+  framework: nextjs
+
+  triggers:
+    - type: push
+      branches: [main, develop]
+    - type: pull_request
+
+  stages:
+    - name: test
+      jobs:
+        - name: lint
+          runtime:
+            language: node
+            version: "18"
+            package_manager: npm
+          steps:
+            - {type: checkout}
+            - {type: setup_runtime}
+            - {type: install_dependencies, command: "npm ci"}
+            - {type: lint, command: "npm run lint"}
+
+        - name: test
+          steps:
+            - {type: checkout}
+            - {type: setup_runtime}
+            - {type: install_dependencies}
+            - {type: run_tests, command: "npm test"}
+
+        - name: build
+          steps:
+            - {type: checkout}
+            - {type: setup_runtime}
+            - {type: install_dependencies}
+            - {type: build, command: "npm run build"}
+
+    - name: deploy
+      environment: production
+      jobs:
+        - name: deploy
+          steps:
+            - {type: deploy, command: "npm run deploy"}
+
+best_practices:
+  - "Use npm ci for consistent installs"
+  - "Run linting and tests before build"
+  - "Build application in CI to catch issues"
+  - "Deploy to staging before production"

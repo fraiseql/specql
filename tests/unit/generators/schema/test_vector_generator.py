@@ -2,7 +2,7 @@
 
 import pytest
 from src.generators.schema.vector_generator import VectorGenerator
-from src.core.ast_models import Entity
+from src.core.ast_models import EntityDefinition
 
 
 class TestVectorGeneration:
@@ -14,9 +14,10 @@ class TestVectorGeneration:
 
     @pytest.fixture
     def entity_with_vector(self):
-        return Entity(
+        return EntityDefinition(
             name="Pattern",
-            schema="specql_registry"
+            schema="specql_registry",
+            features=["semantic_search"]
         )
 
     def test_add_embedding_column(self, generator, entity_with_vector):

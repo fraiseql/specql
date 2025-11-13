@@ -4,6 +4,7 @@ from typing import Optional
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 from src.core.ast_models import EntityDefinition
+from src.generators.fraiseql.fraiseql_annotator import FraiseQLAnnotator
 
 
 class VectorGenerator:
@@ -15,6 +16,7 @@ class VectorGenerator:
 
         self.env = Environment(loader=FileSystemLoader(str(template_dir)))
         self.template = self.env.get_template("vector_features.sql.j2")
+        self.annotator = FraiseQLAnnotator()
 
     def generate(self, entity: EntityDefinition) -> str:
         """
@@ -24,7 +26,7 @@ class VectorGenerator:
             entity: Entity to generate vector features for
 
         Returns:
-            SQL for vector columns, indexes, and search functions
+            SQL for vector columns, indexes, and optionally search functions
         """
         if "semantic_search" not in (entity.features or []):
             return ""
@@ -34,9 +36,14 @@ class VectorGenerator:
         parts.append(self._generate_columns(entity))
         parts.append(self._generate_indexes(entity))
 
+        # 🆕 Add column annotations for FraiseQL
+        parts.append(self.annotator.annotate_vector_column(entity))
+
         # Only generate search functions if enabled
         if getattr(entity, 'search_functions', True):  # Default True
             parts.append(self._generate_search_function(entity))
+            # 🆕 Mark as legacy
+            parts.append(self.annotator.annotate_custom_search_function(entity))
 
         return "\n\n".join(filter(None, parts))
 

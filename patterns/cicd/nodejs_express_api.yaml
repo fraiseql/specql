@@ -1,0 +1,53 @@
+pattern_id: "nodejs_express_api_v1"
+name: "Node.js Express API"
+description: "CI/CD pipeline for Node.js Express applications"
+category: backend_api
+language: node
+framework: express
+tags: [node, express, mongodb, jest, docker]
+
+pipeline:
+  name: express_api
+  language: node
+  framework: express
+
+  triggers:
+    - type: push
+      branches: [main, develop]
+    - type: pull_request
+
+  stages:
+    - name: test
+      jobs:
+        - name: lint
+          runtime:
+            language: node
+            version: "18"
+            package_manager: npm
+          steps:
+            - {type: checkout}
+            - {type: setup_runtime}
+            - {type: install_dependencies, command: "npm ci"}
+            - {type: lint, command: "npm run lint"}
+
+        - name: test
+          services:
+            - {name: mongodb, version: "5"}
+          steps:
+            - {type: checkout}
+            - {type: setup_runtime}
+            - {type: install_dependencies}
+            - {type: run_tests, command: "npm test"}
+
+    - name: deploy
+      environment: production
+      jobs:
+        - name: deploy
+          steps:
+            - {type: deploy, command: "npm run deploy"}
+
+best_practices:
+  - "Use npm ci for faster, reliable installs"
+  - "Run linting before tests"
+  - "Use MongoDB service for integration tests"
+  - "Cache node_modules between runs"

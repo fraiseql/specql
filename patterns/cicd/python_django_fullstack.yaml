@@ -1,0 +1,63 @@
+pattern_id: "python_django_fullstack_v1"
+name: "Django Fullstack Application"
+description: "CI/CD for Django applications with PostgreSQL"
+category: fullstack
+language: python
+framework: django
+tags: [python, django, postgresql, redis, pytest, docker]
+
+pipeline:
+  name: django_app
+  language: python
+  framework: django
+
+  triggers:
+    - type: push
+      branches: [main, develop]
+    - type: pull_request
+
+  stages:
+    - name: test
+      jobs:
+        - name: lint
+          runtime:
+            language: python
+            version: "3.11"
+            package_manager: pip
+          steps:
+            - {type: checkout}
+            - {type: setup_runtime}
+            - {type: install_dependencies, command: "pip install -r requirements-dev.txt"}
+            - {type: lint, command: "ruff check ."}
+
+        - name: test
+          services:
+            - {name: postgres, version: "15"}
+            - {name: redis, version: "7"}
+          steps:
+            - {type: checkout}
+            - {type: setup_runtime}
+            - {type: install_dependencies}
+            - {type: run, name: "migrate", command: "python manage.py migrate"}
+            - {type: run_tests, command: "pytest --cov"}
+
+    - name: build
+      jobs:
+        - name: docker_build
+          steps:
+            - {type: checkout}
+            - {type: build, command: "docker build -t django-app:${{ git.sha }} ."}
+
+    - name: deploy
+      environment: production
+      approval_required: true
+      jobs:
+        - name: deploy
+          steps:
+            - {type: deploy, command: "docker push && kubectl deploy"}
+
+best_practices:
+  - "Run database migrations in test environment"
+  - "Use Redis for caching in tests"
+  - "Build Docker images for consistent deployment"
+  - "Require approval for production deployments"
