@@ -505,6 +505,10 @@ specql.add_command(interactive)
 from src.cli.diagram import diagram
 specql.add_command(diagram)
 
+# CI/CD pipeline management
+from src.cli.cicd import cicd
+specql.add_command(cicd, name="cicd")
+
 
 if __name__ == "__main__":
     specql()

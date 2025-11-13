@@ -1,0 +1,80 @@
+{# CircleCI Config Template #}
+version: 2.1
+
+{%- if pipeline.global_environment %}
+
+env:
+{%- for key, value in pipeline.global_environment.items() %}
+  {{ key }}: {{ value }}
+{%- endfor %}
+
+{%- endif %}
+
+workflows:
+{%- for stage in pipeline.stages %}
+  {{ stage.name }}:
+{%- if pipeline.triggers %}
+{{ _render_triggers(pipeline.triggers) }}
+{%- endif %}
+    jobs:
+{%- for job in stage.jobs %}
+      - {{ job.name }}:
+{%- if job.needs %}
+          requires:
+{%- for need in job.needs %}
+            - {{ need }}
+{%- endfor %}
+{%- endif %}
+{%- if job.matrix %}
+          matrix:
+            parameters:
+{%- for key, values in job.matrix.items() %}
+              {{ key }}: [{{ values|join(', ') }}]
+{%- endfor %}
+{%- endif %}
+{%- endfor %}
+{%- endfor %}
+
+jobs:
+{%- for stage in pipeline.stages %}
+{%- for job in stage.jobs %}
+  {{ job.name }}:
+{%- if job.runtime %}
+    docker:
+        - image: {{ _render_runtime(job.runtime) }}
+{%- if job.services %}
+{%- for service in job.services %}
+      - image: {{ service.name }}:{{ service.version }}
+{%- if service.environment %}
+        environment:
+{%- for key, value in service.environment.items() %}
+          {{ key }}: {{ value }}
+{%- endfor %}
+{%- endif %}
+{%- if service.ports %}
+        ports:
+{%- for port in service.ports %}
+          - "{{ port }}:{{ port }}"
+{%- endfor %}
+{%- endif %}
+{%- endfor %}
+{%- endif %}
+{%- else %}
+    docker:
+      - image: cimg/base:stable
+{%- endif %}
+
+{%- if job.environment %}
+    environment:
+{%- for key, value in job.environment.items() %}
+      {{ key }}: {{ value }}
+{%- endfor %}
+{%- endif %}
+
+    steps:
+{%- for step in job.steps %}
+{{ _render_step(step) }}
+{%- endfor %}
+
+{%- endfor %}
+{%- endfor %}

@@ -1,0 +1,81 @@
+{# GitHub Actions Workflow Template #}
+name: {{ pipeline.name }}
+
+{%- if pipeline.triggers %}
+
+"on":
+{%- for trigger in pipeline.triggers %}
+  {{ trigger.type.value }}:
+  {%- if trigger.branches %}
+    branches: [{{ trigger.branches|join(', ') }}]
+  {%- endif %}
+  {%- if trigger.paths %}
+    paths:
+    {%- for path in trigger.paths %}
+      - {{ path }}
+    {%- endfor %}
+  {%- endif %}
+{%- endfor %}
+{%- else %}
+"on":
+  push:
+{%- endif %}
+
+{%- if pipeline.global_environment %}
+
+env:
+{%- for key, value in pipeline.global_environment.items() %}
+  {{ key }}: {{ value }}
+{%- endfor %}
+{%- endif %}
+
+jobs:
+{%- for stage in pipeline.stages %}
+{%- for job in stage.jobs %}
+  {{ job.name }}:
+    runs-on: ubuntu-latest
+
+    {%- if job.needs %}
+    needs: [{{ job.needs|join(', ') }}]
+    {%- endif %}
+
+    {%- if job.if_condition %}
+    if: {{ job.if_condition }}
+    {%- endif %}
+
+    {%- if job.matrix %}
+    strategy:
+      matrix:
+      {%- for key, values in job.matrix.items() %}
+        {{ key }}: [{{ values|join(', ') }}]
+      {%- endfor %}
+    {%- endif %}
+
+    {%- if job.services %}
+
+    services:
+    {%- for service in job.services %}
+      {{ service.name }}:
+        image: {{ service.name }}:{{ service.version }}
+        {%- if service.environment %}
+        env:
+        {%- for key, value in service.environment.items() %}
+          {{ key }}: {{ value }}
+        {%- endfor %}
+        {%- endif %}
+        {%- if service.ports %}
+        ports:
+        {%- for port in service.ports %}
+          - {{ port }}:{{ port }}
+        {%- endfor %}
+        {%- endif %}
+    {%- endfor %}
+    {%- endif %}
+
+    steps:
+    {%- for step in job.steps %}
+      - name: {{ step.name }}
+        {{ _render_step(step) }}
+    {%- endfor %}
+{%- endfor %}
+{%- endfor %}
