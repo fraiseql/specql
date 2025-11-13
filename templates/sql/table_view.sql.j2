@@ -1,0 +1,99 @@
+-- ============================================================================
+-- Table View: {{ schema }}.{{ table_name }}
+-- Entity: {{ entity.name }}
+-- Purpose: Denormalized JSONB view for GraphQL queries
+-- ============================================================================
+
+CREATE TABLE {{ schema }}.{{ table_name }} (
+    -- Trinity pattern primary keys (mirrors base table)
+    pk_{{ entity.name|lower }} INTEGER PRIMARY KEY,
+    id UUID NOT NULL UNIQUE,
+{%- if entity.schema_type == 'multi_tenant' %}
+    tenant_id UUID NOT NULL,
+{% endif %}
+
+    -- Denormalized JSONB data
+    data JSONB NOT NULL,
+
+    -- Refresh timestamp
+    refreshed_at TIMESTAMPTZ DEFAULT now(),
+
+    -- Foreign key to base table
+    CONSTRAINT fk_{{ table_name }}_base FOREIGN KEY (pk_{{ entity.name|lower }})
+        REFERENCES {{ schema }}.tb_{{ entity.name|lower }}(pk_{{ entity.name|lower }})
+        ON DELETE CASCADE
+);
+
+-- ============================================================================
+-- Indexes
+-- ============================================================================
+
+-- GIN index for JSONB queries
+CREATE INDEX idx_{{ table_name }}_data ON {{ schema }}.{{ table_name }} USING gin (data);
+
+{%- if entity.schema_type == 'multi_tenant' %}
+-- Multi-tenancy index
+CREATE INDEX idx_{{ table_name }}_tenant_id ON {{ schema }}.{{ table_name }}(tenant_id);
+{% endif %}
+
+-- ============================================================================
+-- Refresh Function: Sync tb_ -> tv_
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION {{ schema }}.refresh_{{ table_name }}()
+RETURNS TRIGGER AS $$
+BEGIN
+    INSERT INTO {{ schema }}.{{ table_name }} (
+        pk_{{ entity.name|lower }},
+        id,
+{%- if entity.schema_type == 'multi_tenant' %}
+        tenant_id,
+{% endif %}
+        data,
+        refreshed_at
+    )
+    SELECT
+        NEW.pk_{{ entity.name|lower }},
+        NEW.id,
+{%- if entity.schema_type == 'multi_tenant' %}
+        NEW.tenant_id,
+{% endif %}
+        jsonb_build_object(
+{%- for field_name, field_def in entity.fields.items() %}
+            '{{ field_name }}', NEW.{{ field_name }}{% if not loop.last %},{% endif %}
+{%- endfor %}
+        ),
+        now()
+    ON CONFLICT (pk_{{ entity.name|lower }})
+    DO UPDATE SET
+        data = EXCLUDED.data,
+        refreshed_at = now();
+
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+-- ============================================================================
+-- Trigger: Auto-refresh on tb_ changes
+-- ============================================================================
+
+CREATE TRIGGER trg_refresh_{{ table_name }}
+    AFTER INSERT OR UPDATE ON {{ schema }}.tb_{{ entity.name|lower }}
+    FOR EACH ROW
+    EXECUTE FUNCTION {{ schema }}.refresh_{{ table_name }}();
+
+-- ============================================================================
+-- Comments
+-- ============================================================================
+
+COMMENT ON TABLE {{ schema }}.{{ table_name }} IS '{{ entity.description }}
+
+Table View: Denormalized JSONB for GraphQL
+- Synced automatically from tb_{{ entity.name|lower }} via trigger
+- data: Complete entity as JSONB for flexible querying
+- refreshed_at: Last sync timestamp
+
+@fraiseql:type
+name: {{ entity.name }}
+trinity: table_view
+query: true';
