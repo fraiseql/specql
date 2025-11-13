@@ -1,0 +1,58 @@
+pattern_id: "go_microservice_v1"
+name: "Go Microservice"
+description: "CI/CD pipeline for Go microservices"
+category: backend_api
+language: go
+framework: gin
+tags: [go, microservice, docker, postgres, testify]
+
+pipeline:
+  name: go_microservice
+  language: go
+  framework: gin
+
+  triggers:
+    - type: push
+      branches: [main, develop]
+    - type: pull_request
+
+  stages:
+    - name: test
+      jobs:
+        - name: lint
+          runtime:
+            language: go
+            version: "1.21"
+          steps:
+            - {type: checkout}
+            - {type: setup_runtime}
+            - {type: lint, command: "go vet ./..."}
+
+        - name: test
+          services:
+            - {name: postgres, version: "15"}
+          steps:
+            - {type: checkout}
+            - {type: setup_runtime}
+            - {type: run_tests, command: "go test -race -cover ./..."}
+
+    - name: build
+      jobs:
+        - name: build
+          steps:
+            - {type: checkout}
+            - {type: setup_runtime}
+            - {type: build, command: "go build -o bin/app ./cmd"}
+
+    - name: deploy
+      environment: production
+      jobs:
+        - name: deploy
+          steps:
+            - {type: deploy, command: "docker push && kubectl deploy"}
+
+best_practices:
+  - "Use go vet for static analysis"
+  - "Run tests with race detector"
+  - "Build binaries for deployment"
+  - "Use multi-stage Docker builds"

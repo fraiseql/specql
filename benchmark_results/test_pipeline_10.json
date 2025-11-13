@@ -1,0 +1,8 @@
+{
+  "pipeline_name": "test_pipeline",
+  "total_time": 5.8,
+  "stage_count": 1,
+  "job_count": 1,
+  "step_count": 3,
+  "timestamp": 10.0
+}

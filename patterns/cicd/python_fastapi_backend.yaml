@@ -1,0 +1,55 @@
+pattern_id: "python_fastapi_backend_v1"
+name: "FastAPI Backend with PostgreSQL"
+description: "Production-ready CI/CD for FastAPI applications"
+category: backend_api
+language: python
+framework: fastapi
+tags: [python, fastapi, postgresql, docker, pytest]
+
+pipeline:
+  name: fastapi_backend
+  language: python
+  framework: fastapi
+
+  triggers:
+    - type: push
+      branches: [main, develop]
+    - type: pull_request
+
+  stages:
+    - name: test
+      jobs:
+        - name: lint
+          runtime:
+            language: python
+            version: "3.11"
+            package_manager: uv
+          steps:
+            - {type: checkout}
+            - {type: setup_runtime}
+            - {type: install_dependencies, command: "uv pip install -e .[dev]"}
+            - {type: lint, command: "uv run ruff check ."}
+            - {type: run, name: "mypy", command: "uv run mypy src/"}
+
+        - name: test
+          services:
+            - {name: postgres, version: "15"}
+          steps:
+            - {type: checkout}
+            - {type: setup_runtime}
+            - {type: install_dependencies}
+            - {type: run_tests, command: "uv run pytest --cov"}
+
+    - name: deploy
+      environment: production
+      approval_required: true
+      jobs:
+        - name: deploy
+          steps:
+            - {type: deploy, command: "deploy-to-production"}
+
+best_practices:
+  - "Use uv for fast dependency management"
+  - "Run mypy for type safety"
+  - "Require approval for production deploys"
+  - "Use PostgreSQL service for integration tests"

@@ -1,0 +1,67 @@
+pattern_id: "python_data_pipeline_v1"
+name: "Python Data Pipeline"
+description: "CI/CD for data processing pipelines"
+category: data
+language: python
+framework: pandas
+tags: [python, data, pandas, airflow, postgres, docker]
+
+pipeline:
+  name: data_pipeline
+  language: python
+  framework: pandas
+
+  triggers:
+    - type: push
+      branches: [main]
+    - type: schedule
+      schedule: "0 */6 * * *"  # Every 6 hours
+
+  stages:
+    - name: test
+      jobs:
+        - name: lint
+          runtime:
+            language: python
+            version: "3.11"
+          steps:
+            - {type: checkout}
+            - {type: setup_runtime}
+            - {type: install_dependencies, command: "pip install -r requirements-dev.txt"}
+            - {type: lint, command: "ruff check ."}
+
+        - name: unit_tests
+          steps:
+            - {type: checkout}
+            - {type: setup_runtime}
+            - {type: install_dependencies}
+            - {type: run_tests, command: "pytest tests/unit/"}
+
+        - name: integration_tests
+          services:
+            - {name: postgres, version: "15"}
+          steps:
+            - {type: checkout}
+            - {type: setup_runtime}
+            - {type: install_dependencies}
+            - {type: run_tests, command: "pytest tests/integration/"}
+
+    - name: build
+      jobs:
+        - name: build_image
+          steps:
+            - {type: checkout}
+            - {type: build, command: "docker build -t data-pipeline:${{ git.sha }} ."}
+
+    - name: deploy
+      environment: production
+      jobs:
+        - name: deploy
+          steps:
+            - {type: deploy, command: "kubectl apply -f k8s/"}
+
+best_practices:
+  - "Separate unit and integration tests"
+  - "Use PostgreSQL for test data"
+  - "Schedule pipelines appropriately"
+  - "Containerize for consistent execution"

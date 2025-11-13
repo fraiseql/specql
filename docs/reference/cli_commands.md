@@ -208,6 +208,231 @@ Disable Change Data Capture.
 specql cdc disable entity.yaml
 ```
 
+### CI/CD Commands
+
+#### `cicd convert-cicd`
+Convert universal pipeline YAML to platform-specific CI/CD configurations.
+
+```bash
+# Convert to GitHub Actions
+specql cicd convert-cicd pipeline.yaml github-actions --output .github/workflows/ci.yml
+
+# Convert to GitLab CI
+specql cicd convert-cicd pipeline.yaml gitlab-ci --output .gitlab-ci.yml
+
+# Convert to CircleCI
+specql cicd convert-cicd pipeline.yaml circleci --output .circleci/config.yml
+
+# Convert to Jenkins Pipeline
+specql cicd convert-cicd pipeline.yaml jenkins --output Jenkinsfile
+
+# Convert to Azure DevOps
+specql cicd convert-cicd pipeline.yaml azure --output azure-pipelines.yml
+
+# Convert to all supported platforms
+specql cicd convert-cicd pipeline.yaml all --output ./cicd-configs/
+```
+
+**Options**:
+- `--output FILE/DIRECTORY`: Output file or directory (default: stdout for single platform, ./cicd-configs/ for all)
+- `--validate`: Validate generated configuration syntax
+- `--optimize`: Apply performance optimizations during generation
+
+**Supported Platforms**:
+- `github-actions`: GitHub Actions workflows
+- `gitlab-ci`: GitLab CI/CD pipelines
+- `circleci`: CircleCI configuration
+- `jenkins`: Jenkins Pipeline (Jenkinsfile)
+- `azure`: Azure DevOps YAML pipelines
+- `all`: Generate for all supported platforms
+
+#### `cicd reverse-cicd`
+Reverse engineer existing CI/CD configurations to universal pipeline format.
+
+```bash
+# Reverse engineer GitHub Actions workflow
+specql cicd reverse-cicd .github/workflows/ci.yml --output pipeline.yaml
+
+# Reverse engineer GitLab CI pipeline
+specql cicd reverse-cicd .gitlab-ci.yml --platform gitlab-ci --output pipeline.yaml
+
+# Reverse engineer CircleCI config
+specql cicd reverse-cicd .circleci/config.yml --platform circleci --output pipeline.yaml
+
+# Batch process multiple files
+specql cicd reverse-cicd workflows/*.yml --output universal/
+
+# Auto-detect platform from file content
+specql cicd reverse-cicd unknown-config.yml
+```
+
+**Options**:
+- `--platform PLATFORM`: Explicitly specify source platform (auto-detected if not provided)
+- `--output FILE/DIRECTORY`: Output file or directory
+- `--validate`: Validate input configuration before parsing
+- `--extract-patterns`: Extract reusable patterns during reverse engineering
+
+**Auto-Detection**:
+The command automatically detects the platform based on:
+- File naming conventions (.github/workflows/, .gitlab-ci.yml, etc.)
+- YAML structure and syntax patterns
+- Platform-specific keywords and constructs
+
+#### `cicd generate-cicd`
+Generate CI/CD pipeline from SpecQL entities or project analysis.
+
+```bash
+# Generate pipeline from SpecQL entities
+specql cicd generate-cicd entities/*.yaml --output pipeline.yaml
+
+# Auto-generate pipeline from project structure
+specql cicd generate-cicd --auto --language python --framework fastapi
+
+# Generate from pattern with customizations
+specql cicd generate-cicd --from-pattern python_fastapi_backend --customize '{"database": "postgres"}'
+```
+
+**Options**:
+- `--auto`: Auto-detect project structure and generate appropriate pipeline
+- `--language LANGUAGE`: Programming language (python, node, go, rust, java)
+- `--framework FRAMEWORK`: Framework name (fastapi, django, express, react)
+- `--from-pattern PATTERN`: Generate from existing pattern
+- `--customize JSON`: Pattern customizations as JSON string
+- `--output FILE`: Output universal pipeline YAML file
+
+#### `cicd search-pipeline`
+Search CI/CD pipeline patterns using semantic search.
+
+```bash
+# Search for patterns by description
+specql cicd search-pipeline "fastapi backend with postgres"
+
+# Search by category
+specql cicd search-pipeline --category backend
+
+# Search by tags
+specql cicd search-pipeline --tags python,fastapi,docker
+
+# List all available patterns
+specql cicd search-pipeline --list
+
+# Show pattern details
+specql cicd search-pipeline --show python_fastapi_backend
+```
+
+**Options**:
+- `--category CATEGORY`: Filter by category (backend, frontend, data, mobile)
+- `--tags TAG1,TAG2`: Filter by tags
+- `--language LANGUAGE`: Filter by programming language
+- `--framework FRAMEWORK`: Filter by framework
+- `--list`: List all available patterns
+- `--show PATTERN_ID`: Show detailed information for specific pattern
+- `--limit N`: Limit number of results (default: 10)
+
+#### `cicd validate-pipeline`
+Validate universal pipeline YAML syntax and semantics.
+
+```bash
+# Validate single pipeline file
+specql cicd validate-pipeline pipeline.yaml
+
+# Validate multiple files
+specql cicd validate-pipeline pipelines/*.yaml
+
+# Strict validation with all checks
+specql cicd validate-pipeline pipeline.yaml --strict
+
+# Show detailed validation report
+specql cicd validate-pipeline pipeline.yaml --verbose
+```
+
+**Options**:
+- `--strict`: Enable strict validation mode
+- `--verbose, -v`: Show detailed validation messages
+- `--format [text|json]`: Output format for validation results
+
+#### `cicd benchmark`
+Run performance benchmarks on CI/CD pipelines.
+
+```bash
+# Benchmark pipeline execution time
+specql cicd benchmark execution pipeline.yaml --iterations 10
+
+# Benchmark resource usage
+specql cicd benchmark resources pipeline.yaml
+
+# Compare performance across platforms
+specql cicd benchmark compare pipeline.yaml --platforms github-actions,gitlab-ci
+
+# Benchmark pattern library performance
+specql cicd benchmark patterns --query "fastapi backend"
+```
+
+**Benchmark Types**:
+- `execution`: Measure pipeline execution time
+- `resources`: Monitor memory and CPU usage
+- `compare`: Compare performance across platforms
+- `patterns`: Benchmark pattern search performance
+- `reliability`: Test pipeline success rates
+
+**Options**:
+- `--iterations N`: Number of benchmark iterations (default: 5)
+- `--timeout MINUTES`: Benchmark timeout in minutes (default: 30)
+- `--platforms P1,P2`: Platforms to compare (for compare benchmark)
+- `--output FILE`: Save benchmark results to JSON file
+
+#### `cicd recommend-pipeline`
+Get AI-powered pipeline recommendations.
+
+```bash
+# Get recommendations for project type
+specql cicd recommend-pipeline --language python --framework fastapi --database postgres
+
+# Analyze existing pipeline for improvements
+specql cicd recommend-pipeline pipeline.yaml --analyze
+
+# Get security recommendations
+specql cicd recommend-pipeline pipeline.yaml --security
+
+# Suggest optimizations
+specql cicd recommend-pipeline pipeline.yaml --optimize
+```
+
+**Options**:
+- `--language LANGUAGE`: Programming language
+- `--framework FRAMEWORK`: Framework name
+- `--database DATABASE`: Database type
+- `--analyze`: Analyze existing pipeline for improvements
+- `--security`: Focus on security recommendations
+- `--optimize`: Focus on performance optimizations
+- `--model MODEL`: AI model to use (default: llama3.1)
+
+#### `cicd optimize-pipeline`
+Automatically optimize pipeline performance and structure.
+
+```bash
+# Optimize existing pipeline
+specql cicd optimize-pipeline pipeline.yaml --output optimized.yaml
+
+# Apply specific optimizations
+specql cicd optimize-pipeline pipeline.yaml --caching --parallelization
+
+# Optimize for specific platform
+specql cicd optimize-pipeline pipeline.yaml --platform github-actions
+```
+
+**Optimization Types**:
+- `--caching`: Add intelligent caching strategies
+- `--parallelization`: Optimize job parallelization
+- `--matrix`: Suggest matrix build optimizations
+- `--artifacts`: Optimize artifact handling
+- `--security`: Add security scanning optimizations
+
+**Options**:
+- `--platform PLATFORM`: Optimize for specific platform
+- `--output FILE`: Output optimized pipeline file
+- `--dry-run`: Show optimizations without applying them
+
 ### Documentation Commands
 
 #### `docs generate`
@@ -363,6 +588,16 @@ Commands are organized into logical groups:
 ### Data Integration
 - `reverse`: SQL to YAML conversion
 - `cdc enable/disable`: Change data capture
+
+### CI/CD Pipeline Management
+- `cicd convert-cicd`: Convert universal pipelines to platform-specific configs
+- `cicd reverse-cicd`: Reverse engineer existing CI/CD configs
+- `cicd generate-cicd`: Generate pipelines from entities or auto-detection
+- `cicd search-pipeline`: Search pipeline patterns
+- `cicd validate-pipeline`: Validate pipeline syntax
+- `cicd benchmark`: Performance benchmarking
+- `cicd recommend-pipeline`: AI-powered recommendations
+- `cicd optimize-pipeline`: Automatic pipeline optimization
 
 ### Documentation
 - `docs generate`: Create documentation

@@ -21,6 +21,14 @@ class TableViewGenerator:
         """Determine if tv_ should be generated."""
         return self.entity.should_generate_table_view
 
+    def _has_vector_search(self) -> bool:
+        """Check if entity has semantic search enabled"""
+        return "semantic_search" in (self.entity.features or [])
+
+    def _has_fulltext_search(self) -> bool:
+        """Check if entity has full-text search enabled"""
+        return "full_text_search" in (self.entity.features or [])
+
     def generate_schema(self) -> str:
         """Generate complete tv_ table DDL."""
         if not self.should_generate():
@@ -73,6 +81,14 @@ class TableViewGenerator:
             for col in self.entity.table_views.extra_filter_columns:
                 col_type = self._infer_column_type(col)
                 columns.append(f"{col.name} {col_type}")
+
+        # 🆕 Vector embedding column (if semantic search enabled)
+        if self._has_vector_search():
+            columns.append("embedding vector(384)")
+
+        # 🆕 Full-text search vector (if full-text search enabled)
+        if self._has_fulltext_search():
+            columns.append("search_vector tsvector")
 
         # JSONB data column
         columns.append("data JSONB NOT NULL")
@@ -145,6 +161,22 @@ CREATE TABLE {schema}.tv_{entity_lower} (
                         f"CREATE INDEX idx_tv_{entity_lower}_{col.name} "
                         f"ON {schema}.tv_{entity_lower}({col.name});"
                     )
+
+        # 🆕 Vector embedding index (HNSW for similarity search)
+        if self._has_vector_search():
+            indexes.append(
+                f"CREATE INDEX idx_tv_{entity_lower}_embedding_hnsw "
+                f"ON {schema}.tv_{entity_lower} "
+                f"USING hnsw (embedding vector_cosine_ops);"
+            )
+
+        # 🆕 Full-text search index (GIN)
+        if self._has_fulltext_search():
+            indexes.append(
+                f"CREATE INDEX idx_tv_{entity_lower}_search_vector "
+                f"ON {schema}.tv_{entity_lower} "
+                f"USING gin (search_vector);"
+            )
 
         # GIN index for JSONB queries (always)
         indexes.append(
@@ -264,6 +296,13 @@ $$ LANGUAGE plpgsql;
             for col in self.entity.table_views.extra_filter_columns:
                 columns.append(col.name)
 
+        # 🆕 Vector columns
+        if self._has_vector_search():
+            columns.append("embedding")
+
+        if self._has_fulltext_search():
+            columns.append("search_vector")
+
         # Data column
         columns.append("data")
 
@@ -336,6 +375,13 @@ $$ LANGUAGE plpgsql;
                 else:
                     # Direct field from base table
                     values.append(f"base.{col.name}")
+
+        # 🆕 Vector columns (copied from tb_)
+        if self._has_vector_search():
+            values.append("base.embedding")
+
+        if self._has_fulltext_search():
+            values.append("base.search_vector")
 
         # JSONB data
         values.append(f"{self._build_jsonb_data()} AS data")
