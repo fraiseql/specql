@@ -8,32 +8,34 @@ Usage:
 """
 
 import click
+import yaml
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
 from src.reverse_engineering.algorithmic_parser import AlgorithmicParser
+from src.reverse_engineering.ai_enhancer import AIEnhancer
 
 
 @click.command()
-@click.argument("sql_files", nargs=-1, type=click.Path(exists=True))
+@click.argument("input_files", nargs=-1, type=click.Path(exists=True))
 @click.option("--output-dir", "-o", type=click.Path(), help="Output directory for YAML files")
 @click.option("--min-confidence", type=float, default=0.80, help="Minimum confidence threshold")
 @click.option("--no-ai", is_flag=True, help="Skip AI enhancement (faster)")
 @click.option("--preview", is_flag=True, help="Preview mode (no files written)")
 @click.option("--compare", is_flag=True, help="Generate comparison report")
 @click.option("--use-heuristics/--no-heuristics", default=True, help="Use heuristic enhancements")
-@click.option("--discover-patterns", is_flag=True, help="Enable automatic pattern discovery")
-def reverse(sql_files, output_dir, min_confidence, no_ai, preview, compare, use_heuristics, discover_patterns):
+@click.option("--discover-patterns", is_flag=True, help="Suggest applicable patterns")
+def reverse(input_files, output_dir, min_confidence, no_ai, preview, compare, use_heuristics, discover_patterns):
     """
-    Reverse engineer SQL functions to SpecQL YAML
+    Reverse engineer SQL functions to SpecQL YAML or enhance entity YAML with patterns
 
     Examples:
         specql reverse function.sql
         specql reverse reference_sql/**/*.sql -o entities/
         specql reverse function.sql --no-ai --preview
-        specql reverse function.sql --min-confidence=0.90
+        specql reverse entity.yaml --discover-patterns
     """
-    if not sql_files:
-        click.echo("❌ No SQL files specified")
+    if not input_files:
+        click.echo("❌ No input files specified")
         return
 
     # Initialize parser with requested options
@@ -45,33 +47,41 @@ def reverse(sql_files, output_dir, min_confidence, no_ai, preview, compare, use_
 
     # Process files
     results = []
-    for sql_file in sql_files:
-        click.echo(f"🔄 Processing {sql_file}...")
+    for input_file in input_files:
+        click.echo(f"🔄 Processing {input_file}...")
 
         try:
-            # Read SQL
-            with open(sql_file, 'r') as f:
-                sql = f.read()
+            file_path = Path(input_file)
 
-            # Parse and enhance
-            result = parser.parse(sql)
+            # Check file type
+            if file_path.suffix.lower() in ['.yaml', '.yml']:
+                # Process YAML entity file
+                result = _process_entity_file(input_file, discover_patterns)
+                results.append((input_file, result))
+            else:
+                # Process SQL file
+                with open(input_file, 'r') as f:
+                    sql = f.read()
 
-            # Check confidence threshold
-            status = "✅" if result.confidence >= min_confidence else "⚠️"
-            click.echo(".0%")
+                # Parse and enhance
+                result = parser.parse(sql)
 
-            if result.confidence < min_confidence:
-                click.echo(f"   ⚠️  Confidence {result.confidence:.0%} below threshold {min_confidence:.0%}")
+                # Check confidence threshold
+                status = "✅" if result.confidence >= min_confidence else "⚠️"
+                click.echo(".0%")
 
-            results.append((sql_file, result))
+                if result.confidence < min_confidence:
+                    click.echo(f"   ⚠️  Confidence {result.confidence:.0%} below threshold {min_confidence:.0%}")
 
-            # Write YAML if not preview mode and output dir specified
-            if not preview and output_dir:
-                _write_yaml_file(result, output_dir, sql_file)
+                results.append((input_file, result))
+
+                # Write YAML if not preview mode and output dir specified
+                if not preview and output_dir:
+                    _write_yaml_file(result, output_dir, input_file)
 
         except Exception as e:
-            click.echo(f"❌ Failed to process {sql_file}: {e}")
-            results.append((sql_file, None))
+            click.echo(f"❌ Failed to process {input_file}: {e}")
+            results.append((input_file, None))
 
     # Summary
     _print_summary(results, min_confidence)
@@ -79,6 +89,34 @@ def reverse(sql_files, output_dir, min_confidence, no_ai, preview, compare, use_
     # Comparison report
     if compare:
         _generate_comparison_report(results)
+
+
+def _process_entity_file(input_file: str, discover_patterns: bool) -> Dict[str, Any]:
+    """Process YAML entity file and optionally suggest patterns"""
+    # Load entity spec
+    with open(input_file, 'r') as f:
+        entity_spec = yaml.safe_load(f)
+
+    if discover_patterns:
+        # Get pattern suggestions
+        enhancer = AIEnhancer()
+        entity_spec = enhancer.enhance_entity(entity_spec)
+
+        # Display suggestions
+        if "suggested_patterns" in entity_spec:
+            suggestions = entity_spec["suggested_patterns"]
+            if suggestions:
+                click.echo(f"\n💡 Pattern suggestions for {entity_spec.get('entity', 'entity')}:")
+                for suggestion in suggestions:
+                    confidence_pct = suggestion["confidence"]
+                    click.secho(f"  • {suggestion['name']} ", fg="cyan", nl=False)
+                    click.echo(f"({confidence_pct})")
+                    click.echo(f"    {suggestion['description'][:80]}...")
+
+                    if suggestion["popularity"] > 10:
+                        click.echo(f"    ⭐ Popular: Used {suggestion['popularity']} times")
+
+    return entity_spec
 
 
 def _write_yaml_file(result, output_dir, sql_file):

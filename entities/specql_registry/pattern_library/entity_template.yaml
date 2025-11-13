@@ -1,0 +1,142 @@
+# Entity Template
+# Complete reusable entity templates with fields and patterns
+
+entity: EntityTemplate
+schema: pattern_library
+description: "Complete entity templates that can be instantiated to create new entities with pre-configured fields and patterns."
+
+# Organization (Numbering System)
+organization:
+  table_code: "012002"
+  domain: core
+  subdomain: patterns
+  entity: entity_template
+
+identifier_template: "{template_id}"
+
+fields:
+  # Primary identifier
+  template_id:
+    type: text
+    required: true
+    unique: true
+    description: "Unique template identifier (e.g., 'customer_contact_template')"
+    validation:
+      pattern: "^[a-z][a-z0-9_]*$"
+      max_length: 100
+
+  # Template metadata
+  template_name:
+    type: text
+    required: true
+    description: "Human-readable template name"
+    validation:
+      max_length: 200
+
+  description:
+    type: text
+    required: true
+    description: "Template description and use cases"
+
+  # Domain context
+  parent_domain:
+    type: ref(Domain)
+    required: true
+    description: "Domain this template belongs to"
+
+  base_entity_name:
+    type: text
+    required: true
+    description: "Base entity name for instantiation (e.g., 'Contact' produces 'tb_contact')"
+    validation:
+      pattern: "^[A-Z][A-Za-z0-9]*$"
+      max_length: 100
+
+  # Template definition
+  fields_json:
+    type: json
+    required: true
+    description: "Complete field definitions in JSON format"
+    validation:
+      schema: entity_fields_schema
+
+  # Pattern composition
+  included_patterns:
+    type: list(text)
+    description: "List of pattern_ids to apply to this template"
+
+  composed_from:
+    type: list(text)
+    description: "List of other template_ids this template is composed from"
+
+  # Instantiation tracking
+  instantiation_count:
+    type: integer
+    required: true
+    default: 0
+    description: "Number of times this template has been instantiated"
+    validation:
+      min: 0
+
+  # Versioning
+  version:
+    type: text
+    required: true
+    default: "1.0.0"
+    description: "Template version (semver format)"
+    validation:
+      pattern: '^\d+\.\d+\.\d+$'
+
+  # Status
+  status:
+    type: enum
+    values: [draft, active, deprecated]
+    required: true
+    default: active
+    description: "Template lifecycle status"
+
+  # Metadata
+  created_by_user:
+    type: text
+    description: "User who created this template"
+
+  tags:
+    type: list(text)
+    description: "Tags for template discovery (e.g., ['crm', 'customer', 'b2b'])"
+
+# Indexes
+indexes:
+  - fields: [template_id]
+    name: idx_entity_templates_id
+  - fields: [parent_domain]
+    name: idx_entity_templates_domain
+  - fields: [base_entity_name]
+    name: idx_entity_templates_base_name
+  - fields: [status]
+    name: idx_entity_templates_status
+  - fields: [instantiation_count]
+    name: idx_entity_templates_usage
+
+# Actions
+actions:
+  - name: instantiate_template
+    description: "Create a new entity from this template"
+    parameters:
+      - name: target_entity_name
+        type: text
+        required: true
+      - name: target_schema
+        type: text
+        required: true
+      - name: customizations
+        type: json
+        description: "Field customizations to apply"
+    steps:
+      - validate: status = 'active'
+      - update: EntityTemplate SET instantiation_count = instantiation_count + 1 WHERE template_id = @template_id
+    impacts:
+      mutates: [EntityTemplate]
+
+# Post-processing notes:
+# - Add embedding vector(384) column for semantic search
+# - Template instantiation handled by SpecQL CLI: specql template instantiate <template_id>

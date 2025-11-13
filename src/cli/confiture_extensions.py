@@ -470,7 +470,7 @@ def list_frameworks():
 specql.add_command(registry, name="registry")
 
 # Add domain management commands (PostgreSQL primary)
-from src.cli.domain import domain
+from src.presentation.cli.domain import domain
 specql.add_command(domain, name="domain")
 
 # Add reverse engineering command
@@ -484,6 +484,10 @@ specql.add_command(embeddings_cli)
 # Add patterns command
 from src.cli.patterns import patterns_cli
 specql.add_command(patterns_cli)
+
+# Add templates command
+from src.cli.templates import templates
+specql.add_command(templates)
 
 
 if __name__ == "__main__":
