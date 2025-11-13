@@ -3,7 +3,7 @@ from pathlib import Path
 import yaml
 from click.testing import CliRunner
 
-from src.cli import specql
+from src.cli.confiture_extensions import specql
 
 class TestPythonReverseEngineering:
 

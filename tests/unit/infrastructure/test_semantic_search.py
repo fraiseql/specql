@@ -1,35 +1,92 @@
 """Tests for semantic search functionality"""
 import pytest
-import os
-from src.infrastructure.repositories.postgresql_pattern_repository import (
-    PostgreSQLPatternRepository
+from src.infrastructure.repositories.in_memory_pattern_repository import (
+    InMemoryPatternRepository
 )
-from src.application.services.pattern_service import PatternService
+from src.domain.entities.pattern import Pattern, PatternCategory, SourceType
 from src.infrastructure.services.embedding_service import get_embedding_service
-
-
-@pytest.fixture
-def db_url():
-    """Get database URL"""
-    return os.getenv("SPECQL_DB_URL", "postgresql://specql_user:specql_dev_password@localhost/specql")
-
-
-@pytest.fixture
-def repository(db_url):
-    """Create PostgreSQL repository"""
-    return PostgreSQLPatternRepository(db_url)
-
-
-@pytest.fixture
-def service(repository):
-    """Create pattern service"""
-    return PatternService(repository)
 
 
 @pytest.fixture
 def embedding_service():
     """Get embedding service"""
     return get_embedding_service()
+
+
+@pytest.fixture
+def service(repository):
+    """Create pattern service"""
+    from src.application.services.pattern_service import PatternService
+    return PatternService(repository)
+
+
+@pytest.fixture
+def repository(embedding_service):
+    """Create in-memory repository with test patterns"""
+    from src.infrastructure.repositories.in_memory_pattern_repository import (
+        InMemoryPatternRepository
+    )
+    from src.domain.entities.pattern import Pattern, PatternCategory, SourceType
+
+    repo = InMemoryPatternRepository()
+
+    # Create test patterns with embeddings
+    patterns = [
+        Pattern(
+            id=None,
+            name="email_validation",
+            category=PatternCategory.VALIDATION,
+            description="Validates email addresses using regex patterns",
+            parameters={"field_types": ["text", "email"]},
+            implementation={"sql": "CHECK email ~* '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$)'"},
+            times_instantiated=15,
+            source_type=SourceType.MANUAL,
+            complexity_score=3
+        ),
+        Pattern(
+            id=None,
+            name="contact_validation",
+            category=PatternCategory.VALIDATION,
+            description="Validates contact information including emails and phone numbers",
+            parameters={"field_types": ["text", "email", "phone"]},
+            implementation={"sql": "Complex validation logic for contact fields"},
+            times_instantiated=8,
+            source_type=SourceType.MANUAL,
+            complexity_score=5
+        ),
+        Pattern(
+            id=None,
+            name="user_registration_workflow",
+            category=PatternCategory.WORKFLOW,
+            description="Complete user registration process with validation",
+            parameters={"steps": ["validate", "create_user", "send_email"]},
+            implementation={"workflow": "Multi-step registration process"},
+            times_instantiated=25,
+            source_type=SourceType.MANUAL,
+            complexity_score=8
+        ),
+        Pattern(
+            id=None,
+            name="data_migration",
+            category=PatternCategory.WORKFLOW,
+            description="Migrates data between different systems",
+            parameters={"source": "database", "target": "api"},
+            implementation={"workflow": "Extract, transform, load process"},
+            times_instantiated=12,
+            source_type=SourceType.MANUAL,
+            complexity_score=7
+        )
+    ]
+
+    # Generate embeddings for each pattern
+    for pattern in patterns:
+        embedding = embedding_service.generate_embedding(
+            f"{pattern.name} {pattern.description}"
+        )
+        pattern.embedding = embedding_service.embedding_to_list(embedding)
+        repo.save(pattern)
+
+    return repo
 
 
 class TestSemanticSearch:

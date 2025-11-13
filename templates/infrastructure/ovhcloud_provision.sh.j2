@@ -1,0 +1,144 @@
+#!/bin/bash
+# OVHcloud Bare Metal Provisioning Script
+# Generated for {{ infrastructure.name }}
+
+set -e
+
+# Configuration
+SERVER_NAME="{{ infrastructure.name }}"
+SERVER_MODEL="{{ _map_server_model(infrastructure.bare_metal) }}"
+DATACENTER="{{ _get_datacenter(infrastructure.region, infrastructure.bare_metal.datacenter) }}"
+OS_TEMPLATE="{{ _get_os_template(infrastructure.bare_metal.os) }}"
+{%- if infrastructure.bare_metal.ssh_keys %}
+SSH_KEYS="{{ infrastructure.bare_metal.ssh_keys|join(',') }}"
+{%- endif %}
+
+echo "🚀 Starting OVHcloud bare metal provisioning for {{ infrastructure.name }}"
+
+# Check if OVHcloud CLI is installed
+if ! command -v ovhcli &> /dev/null; then
+    echo "❌ OVHcloud CLI not found. Please install it first:"
+    echo "pip install ovhcli"
+    exit 1
+fi
+
+# Authenticate with OVHcloud API
+echo "🔐 Authenticating with OVHcloud API..."
+# Note: You need to configure your OVHcloud credentials first
+# ovhcli --init
+
+# Create the server
+echo "🖥️  Creating bare metal server..."
+ovhcli --format json dedicated/server/provision \
+    --name "$SERVER_NAME" \
+    --datacenter "$DATACENTER" \
+    --server-model "$SERVER_MODEL" \
+    --os-template "$OS_TEMPLATE" \
+    {%- if infrastructure.bare_metal.ssh_keys %}
+    --ssh-keys "$SSH_KEYS" \
+    {%- endif %}
+    {%- if infrastructure.bare_metal.private_network %}
+    --private-network true \
+    {%- endif %}
+    {%- if infrastructure.bare_metal.ipv6 %}
+    --ipv6 true \
+    {%- endif %}
+    {%- if infrastructure.bare_metal.bandwidth %}
+    --bandwidth "{{ infrastructure.bare_metal.bandwidth }}" \
+    {%- endif %}
+    > server_provision.json
+
+# Extract server information
+SERVER_ID=$(jq -r '.id' server_provision.json)
+SERVER_IP=$(jq -r '.ip' server_provision.json)
+
+echo "✅ Server provisioned successfully!"
+echo "Server ID: $SERVER_ID"
+echo "Server IP: $SERVER_IP"
+
+# Wait for server to be ready
+echo "⏳ Waiting for server to be ready..."
+while true; do
+    STATUS=$(ovhcli --format json dedicated/server/$SERVER_ID | jq -r '.status')
+    if [ "$STATUS" = "ready" ]; then
+        break
+    fi
+    echo "Current status: $STATUS. Waiting..."
+    sleep 30
+done
+
+echo "🎉 Server is ready!"
+
+# Configure additional services
+{%- if infrastructure.bare_metal.backup_service %}
+echo "💾 Enabling backup service..."
+ovhcli dedicated/server/$SERVER_ID/backup enable
+{%- endif %}
+
+{%- if infrastructure.bare_metal.monitoring %}
+echo "📊 Enabling monitoring..."
+ovhcli dedicated/server/$SERVER_ID/monitoring enable
+{%- endif %}
+
+# Install additional software if containers are specified
+{%- if infrastructure.container %}
+echo "🐳 Installing Docker and configuring container..."
+ssh -o StrictHostKeyChecking=no root@$SERVER_IP << 'EOF'
+# Install Docker
+curl -fsSL https://get.docker.com -o get-docker.sh
+sh get-docker.sh
+systemctl enable docker
+systemctl start docker
+
+# Run container
+{%- if infrastructure.container %}
+docker run -d \
+  -p {{ infrastructure.container.port }}:{{ infrastructure.container.port }} \
+  {%- for key, value in infrastructure.container.environment.items() %}
+  -e {{ key }}={{ value }} \
+  {%- endfor %}
+  {%- if infrastructure.container.secrets %}
+  {%- for key, value in infrastructure.container.secrets.items() %}
+  -e {{ key }}={{ value }} \
+  {%- endfor %}
+  {%- endif %}
+  {{ infrastructure.container.image }}:{{ infrastructure.container.tag }}
+{%- endif %}
+EOF
+{%- endif %}
+
+# Configure firewall
+echo "🔥 Configuring firewall..."
+ovhcli dedicated/server/$SERVER_ID/firewall enable
+
+# Add firewall rules
+{%- if infrastructure.container %}
+# Allow container port
+ovhcli dedicated/server/$SERVER_ID/firewall/rule add \
+    --protocol tcp \
+    --port {{ infrastructure.container.port }} \
+    --source any
+{%- endif %}
+
+# SSH access (allow from anywhere for now)
+ovhcli dedicated/server/$SERVER_ID/firewall/rule add \
+    --protocol tcp \
+    --port 22 \
+    --source any
+
+echo "🎊 Provisioning complete!"
+echo "Server Details:"
+echo "  Name: $SERVER_NAME"
+echo "  IP: $SERVER_IP"
+echo "  Model: $SERVER_MODEL"
+echo "  Datacenter: $DATACENTER"
+{%- if infrastructure.container %}
+echo "  Container Port: {{ infrastructure.container.port }}"
+{%- endif %}
+
+echo ""
+echo "Next steps:"
+echo "1. SSH into your server: ssh root@$SERVER_IP"
+echo "2. Update your DNS records to point to $SERVER_IP"
+echo "3. Configure your application"
+echo "4. Set up monitoring and backups"

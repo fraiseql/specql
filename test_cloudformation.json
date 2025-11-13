@@ -1,0 +1,513 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "CloudFormation template for test-app",
+  "Parameters": {
+    "DBPassword": {
+      "Type": "String",
+      "Description": "Password for the database",
+      "NoEcho": true
+    }
+  },
+  "Resources": {
+    "test-appVPC": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.0.0.0/16",
+        "EnableDnsHostnames": true,
+        "EnableDnsSupport": true,
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "test-app-vpc"
+          }
+        ]
+      }
+    },
+    "test-appInternetGateway": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "test-app-igw"
+          }
+        ]
+      }
+    },
+    "test-appVPCGatewayAttachment": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "test-appVPC"
+        },
+        "InternetGatewayId": {
+          "Ref": "test-appInternetGateway"
+        }
+      }
+    },
+    "test-appPublicSubnet1": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "test-appVPC"
+        },
+        "CidrBlock": "10.0.1.0/24",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "test-app-public-1"
+          }
+        ]
+      }
+    },
+    "test-appPublicSubnet2": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "test-appVPC"
+        },
+        "CidrBlock": "10.0.2.0/24",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            1,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "MapPublicIpOnLaunch": true,
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "test-app-public-2"
+          }
+        ]
+      }
+    },
+    "test-appPrivateSubnet1": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "test-appVPC"
+        },
+        "CidrBlock": "10.0.10.0/24",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            0,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "test-app-private-1"
+          }
+        ]
+      }
+    },
+    "test-appPrivateSubnet2": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "test-appVPC"
+        },
+        "CidrBlock": "10.0.20.0/24",
+        "AvailabilityZone": {
+          "Fn::Select": [
+            1,
+            {
+              "Fn::GetAZs": ""
+            }
+          ]
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "test-app-private-2"
+          }
+        ]
+      }
+    },
+    "test-appEIP": {
+      "Type": "AWS::EC2::EIP",
+      "Properties": {
+        "Domain": "vpc"
+      }
+    },
+    "test-appNATGateway": {
+      "Type": "AWS::EC2::NatGateway",
+      "Properties": {
+        "AllocationId": {
+          "Fn::GetAtt": [
+            "test-appEIP",
+            "AllocationId"
+          ]
+        },
+        "SubnetId": {
+          "Ref": "test-appPublicSubnet1"
+        }
+      }
+    },
+    "test-appPublicRouteTable": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "test-appVPC"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "test-app-public-rt"
+          }
+        ]
+      }
+    },
+    "test-appPublicRoute": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "test-appPublicRouteTable"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "test-appInternetGateway"
+        }
+      }
+    },
+    "test-appPublicSubnet1RouteTableAssociation": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "test-appPublicSubnet1"
+        },
+        "RouteTableId": {
+          "Ref": "test-appPublicRouteTable"
+        }
+      }
+    },
+    "test-appPublicSubnet2RouteTableAssociation": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "test-appPublicSubnet2"
+        },
+        "RouteTableId": {
+          "Ref": "test-appPublicRouteTable"
+        }
+      }
+    },
+    "test-appLoadBalancerSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Security group for load balancer",
+        "VpcId": {
+          "Ref": "test-appVPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 80,
+            "ToPort": 80,
+            "CidrIp": "0.0.0.0/0"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "test-app-lb-sg"
+          }
+        ]
+      }
+    },
+    "test-appApplicationSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Security group for application instances",
+        "VpcId": {
+          "Ref": "test-appVPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 80,
+            "ToPort": 80,
+            "SourceSecurityGroupId": {
+              "Ref": "test-appLoadBalancerSecurityGroup"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "test-app-app-sg"
+          }
+        ]
+      }
+    },
+    "test-appDatabaseSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Security group for database",
+        "VpcId": {
+          "Ref": "test-appVPC"
+        },
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 5432,
+            "ToPort": 5432,
+            "SourceSecurityGroupId": {
+              "Ref": "test-appApplicationSecurityGroup"
+            }
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "test-app-db-sg"
+          }
+        ]
+      }
+    },
+    "test-appLaunchTemplate": {
+      "Type": "AWS::EC2::LaunchTemplate",
+      "Properties": {
+        "LaunchTemplateName": "test-app-lt",
+        "LaunchTemplateData": {
+          "ImageId": {
+            "Fn::FindInMap": [
+              "RegionMap",
+              {
+                "Ref": "AWS::Region"
+              },
+              "AMI"
+            ]
+          },
+          "InstanceType": "t3.small",
+          "SecurityGroupIds": [
+            {
+              "Ref": "test-appApplicationSecurityGroup"
+            }
+          ],
+          "TagSpecifications": [
+            {
+              "ResourceType": "instance",
+              "Tags": [
+                {
+                  "Key": "Name",
+                  "Value": "test-app"
+                }
+              ]
+            }
+          ],
+          "UserData": {
+            "Fn::Base64": {
+              "Fn::Sub": "#!/bin/bash\napt-get update\napt-get install -y docker.io\ndocker run -d -p 80:80 nginx:latest\n"
+            }
+          }
+        }
+      }
+    },
+    "test-appAutoScalingGroup": {
+      "Type": "AWS::AutoScaling::AutoScalingGroup",
+      "Properties": {
+        "AutoScalingGroupName": "test-app-asg",
+        "LaunchTemplate": {
+          "LaunchTemplateId": {
+            "Ref": "test-appLaunchTemplate"
+          },
+          "Version": "$Latest"
+        },
+        "MinSize": "1",
+        "MaxSize": "5",
+        "DesiredCapacity": "2",
+        "VPCZoneIdentifier": [
+          {
+            "Ref": "test-appPrivateSubnet1"
+          },
+          {
+            "Ref": "test-appPrivateSubnet2"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "test-app",
+            "PropagateAtLaunch": true
+          }
+        ],
+        "TargetGroupARNs": [
+          {
+            "Ref": "test-appTargetGroup"
+          }
+        ]
+      }
+    },
+    "test-appScaleUpPolicy": {
+      "Type": "AWS::AutoScaling::ScalingPolicy",
+      "Properties": {
+        "AutoScalingGroupName": {
+          "Ref": "test-appAutoScalingGroup"
+        },
+        "PolicyType": "TargetTrackingScaling",
+        "TargetTrackingConfiguration": {
+          "PredefinedMetricSpecification": {
+            "PredefinedMetricType": "ASGAverageCPUUtilization"
+          },
+          "TargetValue": 70
+        }
+      }
+    },
+    "test-appDBSubnetGroup": {
+      "Type": "AWS::RDS::DBSubnetGroup",
+      "Properties": {
+        "DBSubnetGroupDescription": "Subnet group for test-app database",
+        "SubnetIds": [
+          {
+            "Ref": "test-appPrivateSubnet1"
+          },
+          {
+            "Ref": "test-appPrivateSubnet2"
+          }
+        ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "test-app-db-subnet-group"
+          }
+        ]
+      }
+    },
+    "test-appDBInstance": {
+      "Type": "AWS::RDS::DBInstance",
+      "Properties": {
+        "DBInstanceIdentifier": "test-app-db",
+        "DBInstanceClass": "db.t3.medium",
+        "Engine": "postgres",
+        "EngineVersion": "15",
+        "AllocatedStorage": "50",
+        "StorageType": "gp3",
+        "DBName": "test_app",
+        "MasterUsername": "admin",
+        "MasterUserPassword": {
+          "Ref": "DBPassword"
+        },
+        "MultiAZ": false,
+        "BackupRetentionPeriod": 7,
+        "StorageEncrypted": true,
+        "PubliclyAccessible": false,
+        "VPCSecurityGroups": [
+          {
+            "Ref": "test-appDatabaseSecurityGroup"
+          }
+        ],
+        "DBSubnetGroupName": {
+          "Ref": "test-appDBSubnetGroup"
+        },
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": "test-app-database"
+          }
+        ]
+      }
+    },
+    "test-appLoadBalancer": {
+      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+      "Properties": {
+        "Name": "test-app-lb",
+        "Type": "application",
+        "Scheme": "internet-facing",
+        "SecurityGroups": [
+          {
+            "Ref": "test-appLoadBalancerSecurityGroup"
+          }
+        ],
+        "Subnets": [
+          {
+            "Ref": "test-appPublicSubnet1"
+          },
+          {
+            "Ref": "test-appPublicSubnet2"
+          }
+        ]
+      }
+    },
+    "test-appTargetGroup": {
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+      "Properties": {
+        "Name": "test-app-tg",
+        "Protocol": "HTTP",
+        "Port": 80,
+        "VpcId": {
+          "Ref": "test-appVPC"
+        },
+        "HealthCheckPath": "/health"
+      }
+    },
+    "test-appListener": {
+      "Type": "AWS::ElasticLoadBalancingV2::Listener",
+      "Properties": {
+        "LoadBalancerArn": {
+          "Ref": "test-appLoadBalancer"
+        },
+        "Protocol": "HTTP",
+        "Port": 80,
+        "DefaultActions": [
+          {
+            "Type": "forward",
+            "TargetGroupArn": {
+              "Ref": "test-appTargetGroup"
+            }
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "VPCId": {
+      "Description": "VPC ID",
+      "Value": {
+        "Ref": "test-appVPC"
+      },
+      "Export": {
+        "Name": "test-app-vpc-id"
+      }
+    },
+    "LoadBalancerDNS": {
+      "Description": "Load Balancer DNS Name",
+      "Value": {
+        "Fn::GetAtt": [
+          "test-appLoadBalancer",
+          "DNSName"
+        ]
+      },
+      "Export": {
+        "Name": "test-app-lb-dns"
+      }
+    },
+    "DatabaseEndpoint": {
+      "Description": "Database Endpoint",
+      "Value": {
+        "Fn::GetAtt": [
+          "test-appDBInstance",
+          "Endpoint.Address"
+        ]
+      },
+      "Export": {
+        "Name": "test-app-db-endpoint"
+      }
+    }
+  }
+}

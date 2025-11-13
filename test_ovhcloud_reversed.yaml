@@ -1,0 +1,24 @@
+name: test-server
+description: OVHcloud dedicated server ADVANCE-2
+service_type: bare-metal
+provider: ovhcloud
+region: GRA1
+environment: production
+bare_metal:
+  server_model: ADVANCE-2
+  cpu_cores: 4
+  ram_gb: 16
+  storage_type: ssd
+  storage_gb: 80
+  os: ubuntu2204
+  ssh_keys: []
+network:
+  vpc_cidr: 10.0.0.0/16
+  public_subnets:
+  - 10.0.1.0/24
+  - 10.0.2.0/24
+  private_subnets:
+  - 10.0.10.0/24
+  - 10.0.20.0/24
+  enable_nat_gateway: true
+  enable_vpn_gateway: false

@@ -131,6 +131,28 @@ uv sync
 uv pip install -e .
 ```
 
+### Optional: Java Development Kit (JDK)
+
+**Required for**: Java/JPA reverse engineering (optional feature)
+
+If you want to reverse engineer Java JPA entities, you'll need JDK 11+:
+
+```bash
+# Ubuntu/Debian
+sudo apt install openjdk-17-jdk
+
+# macOS
+brew install openjdk@17
+
+# Windows
+choco install temurin17
+
+# Verify setup
+./scripts/verify_java_setup.sh
+```
+
+**Note**: SpecQL works fine without JDK - it only affects Java parsing. All other features (schema generation, actions, CLI) work normally. See [docs/JAVA_SETUP.md](docs/JAVA_SETUP.md) for detailed instructions.
+
 ## Quick Example
 
 **Option 1: Use Entity Templates (Recommended)**
@@ -291,6 +313,7 @@ specql reverse <file> --discover-patterns    # Analyze SQL with pattern discover
 ## Documentation
 
 - [Getting Started](GETTING_STARTED.md) - Quick start guide
+- [Java Setup](docs/JAVA_SETUP.md) - JDK installation for Java reverse engineering (optional)
 - [CLI Guide](docs/guides/CLI_GUIDE.md) - Comprehensive CLI usage guide
 - [Pattern Library User Guide](docs/pattern_library/USER_GUIDE.md) - Pattern library usage
 - [Pattern Library Developer Guide](docs/pattern_library/DEVELOPER_GUIDE.md) - Extending patterns

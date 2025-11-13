@@ -1,0 +1,57 @@
+name: test-app
+description: Test application infrastructure
+service_type: api
+provider: aws
+region: us-east-1
+environment: production
+
+compute:
+  instances: 2
+  cpu: 1.0
+  memory: 2GB
+  disk: 20GB
+  auto_scale: true
+  min_instances: 1
+  max_instances: 5
+  cpu_target: 70
+
+container:
+  image: nginx
+  tag: latest
+  port: 80
+  environment:
+    ENV: production
+
+database:
+  type: postgresql
+  version: "15"
+  storage: 50GB
+  multi_az: false
+  backup_enabled: true
+  backup_retention_days: 7
+  encryption_at_rest: true
+  publicly_accessible: false
+
+network:
+  vpc_cidr: 10.0.0.0/16
+  public_subnets:
+    - 10.0.1.0/24
+    - 10.0.2.0/24
+  private_subnets:
+    - 10.0.10.0/24
+    - 10.0.20.0/24
+  enable_nat_gateway: true
+
+load_balancer:
+  enabled: true
+  type: application
+  https: false
+  health_check_path: /health
+
+security:
+  secrets:
+    db_password: "secret123"
+
+tags:
+  Project: test-app
+  Environment: production

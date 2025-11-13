@@ -1,0 +1,22 @@
+{
+  "id": "12345678",
+  "name": "test-server",
+  "displayName": "Test OVHcloud Server",
+  "commercialRange": "ADVANCE-2",
+  "datacenter": "GRA1",
+  "ip": "51.178.12.34",
+  "os": "ubuntu2204",
+  "state": "ok",
+  "cpu": {
+    "cores": 4,
+    "frequency": 2.4
+  },
+  "memory": {
+    "size": 17179869184
+  },
+  "storages": [
+    {
+      "size": 85899345920
+    }
+  ]
+}
