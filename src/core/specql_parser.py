@@ -155,6 +155,16 @@ class SpecQLParser:
         if "table_views" in data:
             entity.table_views = self._parse_table_views(data["table_views"], entity_name)
 
+        # Parse features (vector search, etc.)
+        if "features" in data:
+            entity.features = data["features"]
+
+        # Parse vector configuration
+        if "vector_config" in data:
+            vector_config = data["vector_config"]
+            if "search_functions" in vector_config:
+                entity.search_functions = vector_config["search_functions"]
+
         return entity
 
     def parse_universal(self, yaml_content: str) -> UniversalEntity:
