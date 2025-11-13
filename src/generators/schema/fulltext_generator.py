@@ -1,9 +1,9 @@
 """Full-text search generator"""
 
-from typing import Optional, List
+from typing import Optional
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
-from src.core.ast_models import Entity, FieldDefinition
+from src.core.ast_models import Entity
 
 
 class FullTextGenerator:
