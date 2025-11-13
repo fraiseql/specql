@@ -1,0 +1,139 @@
+# Entity Registration
+# Central registry of all entities with codes and metadata
+
+entity: EntityRegistration
+schema: specql_registry
+description: "Central registry of all entities in SpecQL system with their hierarchical codes and table codes."
+
+# Organization (Numbering System)
+organization:
+  table_code: "011113"
+  domain: core
+  subdomain: registry
+  entity: entity_registration
+
+# Identifier format: DDS-EX (e.g., 012-31 = Domain 0, Subdomain 12, Entity 3, Hex 1)
+identifier_template: "{domain_number:03d}{subdomain_number:02d}{entity_sequence}"
+
+fields:
+  # Hierarchical numbering components
+  domain_number:
+    type: integer
+    required: true
+    description: "Domain number (1-255)"
+    validation:
+      min: 1
+      max: 255
+
+  subdomain_number:
+    type: integer
+    required: true
+    description: "Subdomain number within domain (0-15)"
+    validation:
+      min: 0
+      max: 15
+
+  entity_sequence:
+    type: integer
+    required: true
+    description: "Entity sequence within subdomain (0-15)"
+    validation:
+      min: 0
+      max: 15
+
+  # Foreign keys to parent structures
+  parent_domain:
+    type: ref(Domain)
+    required: true
+    description: "Parent domain"
+
+  parent_subdomain:
+    type: ref(Subdomain)
+    required: true
+    description: "Parent subdomain"
+    # Note: Ideally would be composite FK (domain_number, subdomain_number)
+    # For dogfooding, using simple ref with application-level validation
+
+  # Entity metadata
+  entity_name:
+    type: text
+    required: true
+    description: "Entity name (e.g., 'Contact', 'Company')"
+    validation:
+      pattern: "^[A-Z][A-Za-z0-9]*$"
+      max_length: 100
+
+  table_code:
+    type: text
+    required: true
+    unique: true
+    description: "6-digit hexadecimal table code (e.g., '012361' for Contact)"
+    validation:
+      pattern: "^[0-9A-Fa-f]{6}$"
+
+  schema_name:
+    type: text
+    required: true
+    description: "PostgreSQL schema name (e.g., 'crm', 'core', 'projects')"
+    validation:
+      pattern: "^[a-z][a-z0-9_]*$"
+      max_length: 63  # PostgreSQL identifier limit
+
+  table_name:
+    type: text
+    required: true
+    description: "PostgreSQL table name (e.g., 'tb_contact')"
+    validation:
+      pattern: "^tb_[a-z][a-z0-9_]*$"
+      max_length: 63
+
+  entity_type:
+    type: enum
+    values: [standard, aggregate, value_object, view]
+    required: true
+    default: standard
+    description: "Type of entity in DDD terms"
+
+  # Metadata
+  registration_source:
+    type: enum
+    values: [manual, generated, discovered]
+    required: true
+    default: generated
+    description: "How this entity was registered"
+
+# Unique constraints
+constraints:
+  - type: unique
+    fields: [domain_number, subdomain_number, entity_sequence]
+    name: uq_entity_dds_code
+    description: "Each DDS code must be unique"
+
+  - type: unique
+    fields: [schema_name, table_name]
+    name: uq_entity_schema_table
+    description: "Each table name must be unique within schema"
+
+# Indexes
+indexes:
+  - fields: [domain_number]
+    name: idx_entity_registration_domain
+  - fields: [subdomain_number]
+    name: idx_entity_registration_subdomain
+  - fields: [entity_sequence]
+    name: idx_entity_registration_sequence
+  - fields: [table_code]
+    name: idx_entity_registration_table_code
+  - fields: [schema_name]
+    name: idx_entity_registration_schema
+  - fields: [entity_name]
+    name: idx_entity_registration_name
+  - fields: [parent_domain]
+    name: idx_entity_registration_parent_domain
+  - fields: [parent_subdomain]
+    name: idx_entity_registration_parent_subdomain
+
+# Post-processing notes:
+# - Add composite CHECK constraint: table_code calculated from DDS-EX formula
+# - Add trigger to validate parent_subdomain belongs to parent_domain
+# - Populated by code generation pipeline

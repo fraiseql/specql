@@ -1,7 +1,8 @@
 """Application Service for Pattern operations"""
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 from src.domain.repositories.pattern_repository import PatternRepository
 from src.domain.entities.pattern import Pattern, PatternCategory, SourceType
+from src.infrastructure.services.embedding_service import get_embedding_service
 
 
 class PatternService:
@@ -13,6 +14,7 @@ class PatternService:
 
     def __init__(self, repository: PatternRepository):
         self.repository = repository
+        self.embedding_service = get_embedding_service()
 
     def create_pattern(
         self,
@@ -22,9 +24,36 @@ class PatternService:
         parameters: Optional[Dict[str, Any]] = None,
         implementation: Optional[Dict[str, Any]] = None,
         complexity_score: Optional[float] = None,
-        source_type: str = "manual"
+        source_type: str = "manual",
+        generate_embedding: bool = True  # New parameter
     ) -> Pattern:
-        """Create a new pattern"""
+        """
+        Create a new pattern
+
+        Args:
+            name: Pattern name
+            category: Pattern category
+            description: Pattern description
+            parameters: Pattern parameters
+            implementation: Implementation details
+            complexity_score: Complexity (0-10)
+            source_type: Source type
+            generate_embedding: Whether to auto-generate embedding
+
+        Returns:
+            Created Pattern
+        """
+        # Generate embedding if requested
+        embedding = None
+        if generate_embedding:
+            embedding_vector = self.embedding_service.create_pattern_embedding(
+                pattern_name=name,
+                description=description,
+                implementation=str(implementation) if implementation else "",
+                category=category
+            )
+            embedding = self.embedding_service.embedding_to_list(embedding_vector)
+
         pattern = Pattern(
             id=None,
             name=name,
@@ -32,6 +61,7 @@ class PatternService:
             description=description,
             parameters=parameters or {},
             implementation=implementation or {},
+            embedding=embedding,
             source_type=SourceType(source_type),
             complexity_score=complexity_score
         )
@@ -92,18 +122,214 @@ class PatternService:
         pattern.increment_usage()
         self.repository.save(pattern)
 
-    def find_similar_patterns(self, pattern_name: str, threshold: float = 0.7) -> List[Pattern]:
-        """Find patterns similar to the given pattern based on embeddings"""
-        target_pattern = self.repository.get(pattern_name)
-        if not target_pattern.has_embedding or target_pattern.embedding is None:
-            return []
+    def search_patterns_semantic(
+        self,
+        query: str,
+        limit: int = 10,
+        min_similarity: float = 0.5,
+        category: Optional[str] = None
+    ) -> List[Tuple[Pattern, float]]:
+        """
+        Search patterns using natural language query
 
-        all_patterns = self.repository.list_all()
-        similar = []
+        Args:
+            query: Natural language search query
+            limit: Maximum results to return
+            min_similarity: Minimum similarity threshold (0-1)
+            category: Optional category filter
 
-        for pattern in all_patterns:
-            if pattern.name != pattern_name and pattern.embedding is not None:
-                if pattern.is_similar_to(target_pattern.embedding, threshold):
-                    similar.append(pattern)
+        Returns:
+            List of (Pattern, similarity_score) tuples
 
-        return similar
+        Example:
+            >>> results = service.search_patterns_semantic(
+            ...     "validate email addresses",
+            ...     limit=5
+            ... )
+            >>> for pattern, similarity in results:
+            ...     print(f"{pattern.name}: {similarity:.2%}")
+        """
+        # Generate embedding for query
+        query_embedding_vector = self.embedding_service.generate_embedding(query)
+        query_embedding = self.embedding_service.embedding_to_list(query_embedding_vector)
+
+        # Search using repository method (to be implemented)
+        return self.repository.search_by_similarity(
+            query_embedding=query_embedding,
+            limit=limit,
+            min_similarity=min_similarity,
+            category=category,
+            include_deprecated=False
+        )
+
+    def find_similar_patterns(
+        self,
+        pattern_id: int,
+        limit: int = 10,
+        min_similarity: float = 0.5
+    ) -> List[Tuple[Pattern, float]]:
+        """
+        Find patterns similar to a given pattern
+
+        Args:
+            pattern_id: ID of reference pattern
+            limit: Maximum results to return
+            min_similarity: Minimum similarity threshold
+
+        Returns:
+            List of (Pattern, similarity_score) tuples
+
+        Example:
+            >>> email_pattern = service.get_pattern_by_name("email_validation")
+            >>> similar = service.find_similar_patterns(
+            ...     email_pattern.id,
+            ...     limit=5
+            ... )
+        """
+        return self.repository.find_similar_to_pattern(
+            pattern_id=pattern_id,
+            limit=limit,
+            min_similarity=min_similarity,
+            include_deprecated=False
+        )
+
+    def recommend_patterns_for_entity(
+        self,
+        entity_description: str,
+        field_names: List[str],
+        limit: int = 5
+    ) -> List[Tuple[Pattern, float]]:
+        """
+        Recommend patterns for an entity based on description and fields
+
+        Args:
+            entity_description: Description of the entity
+            field_names: List of field names in the entity
+            limit: Maximum recommendations
+
+        Returns:
+            List of (Pattern, similarity_score) tuples
+
+        Example:
+            >>> recommendations = service.recommend_patterns_for_entity(
+            ...     entity_description="Customer contact information",
+            ...     field_names=["email", "phone", "address"],
+            ...     limit=5
+            ... )
+        """
+        # Combine description and field names into query
+        query = f"{entity_description}. Fields: {', '.join(field_names)}"
+
+        return self.search_patterns_semantic(
+            query=query,
+            limit=limit,
+            min_similarity=0.6  # Higher threshold for recommendations
+        )
+
+    def get_pattern_by_name(self, name: str) -> Pattern:
+        """Get pattern by name (alias for get_pattern)"""
+        return self.get_pattern(name)
+
+    def search_patterns_semantic(
+        self,
+        query: str,
+        limit: int = 10,
+        min_similarity: float = 0.5,
+        category: Optional[str] = None
+    ) -> List[Tuple[Pattern, float]]:
+        """
+        Search patterns using natural language query
+
+        Args:
+            query: Natural language search query
+            limit: Maximum results to return
+            min_similarity: Minimum similarity threshold (0-1)
+            category: Optional category filter
+
+        Returns:
+            List of (Pattern, similarity_score) tuples
+
+        Example:
+            >>> results = service.search_patterns_semantic(
+            ...     "validate email addresses",
+            ...     limit=5
+            ... )
+            >>> for pattern, similarity in results:
+            ...     print(f"{pattern.name}: {similarity:.2%}")
+        """
+        # Generate embedding for query
+        query_embedding_vector = self.embedding_service.generate_embedding(query)
+        query_embedding = self.embedding_service.embedding_to_list(query_embedding_vector)
+
+        # Search
+        return self.repository.search_by_similarity(
+            query_embedding=query_embedding,
+            limit=limit,
+            min_similarity=min_similarity,
+            category=category,
+            include_deprecated=False
+        )
+
+    def find_similar_patterns(
+        self,
+        pattern_id: int,
+        limit: int = 10,
+        min_similarity: float = 0.5
+    ) -> List[Tuple[Pattern, float]]:
+        """
+        Find patterns similar to a given pattern
+
+        Args:
+            pattern_id: ID of reference pattern
+            limit: Maximum results to return
+            min_similarity: Minimum similarity threshold
+
+        Returns:
+            List of (Pattern, similarity_score) tuples
+
+        Example:
+            >>> email_pattern = service.get_pattern_by_name("email_validation")
+            >>> similar = service.find_similar_patterns(
+            ...     email_pattern.id,
+            ...     limit=5
+            ... )
+        """
+        return self.repository.find_similar_to_pattern(
+            pattern_id=pattern_id,
+            limit=limit,
+            min_similarity=min_similarity,
+            include_deprecated=False
+        )
+
+    def recommend_patterns_for_entity(
+        self,
+        entity_description: str,
+        field_names: List[str],
+        limit: int = 5
+    ) -> List[Tuple[Pattern, float]]:
+        """
+        Recommend patterns for an entity based on description and fields
+
+        Args:
+            entity_description: Description of the entity
+            field_names: List of field names in the entity
+            limit: Maximum recommendations
+
+        Returns:
+            List of (Pattern, similarity_score) tuples
+
+        Example:
+            >>> recommendations = service.recommend_patterns_for_entity(
+            ...     entity_description="Customer contact information",
+            ...     field_names=["email", "phone", "address"],
+            ...     limit=5
+            ... )
+        """
+        # Combine description and field names into query
+        query = f"{entity_description}. Fields: {', '.join(field_names)}"
+
+        return self.search_patterns_semantic(
+            query=query,
+            limit=limit,
+            min_similarity=0.6  # Higher threshold for recommendations
+        )

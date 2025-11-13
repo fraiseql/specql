@@ -318,6 +318,18 @@ SCALAR_TYPES: dict[str, ScalarTypeDef] = {
         input_type="color",
         placeholder="#FF5733",
     ),
+    "hex": ScalarTypeDef(
+        name="hex",
+        postgres_type=PostgreSQLType.INTEGER,
+        fraiseql_scalar_name="Hex",
+        validation_pattern=r"^(?:0[xX])?[0-9A-Fa-f]{1,2}$",  # 0x prefix optional, 1-2 hex digits (0-FF)
+        min_value=0,
+        max_value=255,  # FF in hex
+        description="Hexadecimal number (0-FF, with optional 0x prefix)",
+        example="FF",
+        input_type="text",
+        placeholder="0F",
+    ),
     # Identifier types
     "uuid": ScalarTypeDef(
         name="uuid",

@@ -8,8 +8,13 @@ Includes pattern discovery for novel patterns
 
 import os
 import json
-from typing import Optional, Dict, List
+from typing import Optional, Dict, List, Any
 from src.reverse_engineering.ast_to_specql_mapper import ConversionResult
+from src.application.services.pattern_matcher import PatternMatcher
+from src.infrastructure.repositories.postgresql_pattern_repository import (
+    PostgreSQLPatternRepository
+)
+from src.core.config import get_config
 
 
 class AIEnhancer:
@@ -40,6 +45,13 @@ class AIEnhancer:
         self.enable_pattern_discovery = enable_pattern_discovery
         self.local_llm = None
         self.grok_provider = None
+
+        # Initialize pattern matcher for entity enhancement (if DB available)
+        config = get_config()
+        self.pattern_matcher = None
+        if config.database_url:
+            pattern_repository = PostgreSQLPatternRepository(config.database_url)
+            self.pattern_matcher = PatternMatcher(pattern_repository)
 
         # Try to load local model or Grok
         if self.use_grok:
@@ -128,6 +140,36 @@ class AIEnhancer:
             # Don't change confidence if AI fails
 
         return result
+
+    def enhance_entity(self, entity_spec: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        Enhance entity with AI suggestions including pattern recommendations
+
+        Now includes pattern recommendations using PatternMatcher
+        """
+        # ... existing enhancement logic ...
+
+        # Suggest applicable patterns (if pattern matcher available)
+        if self.pattern_matcher:
+            pattern_suggestions = self.pattern_matcher.find_applicable_patterns(
+                entity_spec=entity_spec,
+                limit=5,
+                min_confidence=0.6
+            )
+
+            # Add as metadata
+            if pattern_suggestions:
+                entity_spec["suggested_patterns"] = [
+                    {
+                        "name": pattern.name,
+                        "description": pattern.description,
+                        "confidence": f"{confidence:.1%}",
+                        "popularity": pattern.times_instantiated
+                    }
+                    for pattern, confidence in pattern_suggestions
+                ]
+
+        return entity_spec
 
     def discover_patterns(self, result: ConversionResult, sql_source: str) -> List[Dict]:
         """

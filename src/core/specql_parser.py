@@ -486,6 +486,7 @@ class SpecQLParser:
         nullable = field_spec.get("nullable", True)
         default = field_spec.get("default")
         schema = field_spec.get("schema")  # Optional cross-schema reference
+        validation = field_spec.get("validation", {})
 
         # For dict format, we delegate to the string parser with constructed type string
         type_str = type_name
@@ -502,7 +503,18 @@ class SpecQLParser:
         if default is not None:
             type_str += f" = {default}"
 
-        return self._parse_field_string(field_name, type_str)
+        field_def = self._parse_field_string(field_name, type_str)
+
+        # Apply field-specific validation overrides
+        if validation:
+            if "min" in validation:
+                field_def.min_value = validation["min"]
+            if "max" in validation:
+                field_def.max_value = validation["max"]
+            if "pattern" in validation:
+                field_def.validation_pattern = validation["pattern"]
+
+        return field_def
 
     def _parse_scalar_field(
         self, field_name: str, type_name: str, nullable: bool, default: str | None

@@ -1,0 +1,67 @@
+# Domain Registry Entity
+# Stores all domains in the SpecQL system
+
+entity: Domain
+schema: specql_registry
+description: "Registry of all domains in SpecQL system. Domains represent top-level organizational units (1-255)."
+
+# Organization (Numbering System)
+organization:
+  table_code: "011111"
+  domain: core
+  subdomain: registry
+  entity: domain
+
+# Trinity pattern: automatically generates pk_domain, id, identifier
+identifier_template: "D{domain_number}"
+
+fields:
+  # Business fields
+  domain_number:
+    type: hex
+    required: true
+    unique: true
+    description: "Domain number as hex digit (0-F) for maximum versatility in hierarchical numbering."
+    validation:
+      min: 0
+      max: 15  # F in hex - gives 16 possible domains
+
+  domain_name:
+    type: text
+    required: true
+    unique: true
+    description: "Human-readable domain name (e.g., 'core', 'crm', 'projects')"
+    validation:
+      pattern: "^[a-z][a-z0-9_]*$"
+      max_length: 50
+
+  description:
+    type: text
+    description: "Domain purpose and scope description"
+    validation:
+      max_length: 500
+
+  schema_type:
+    type: enum
+    values: [framework, multi_tenant, shared]
+    required: true
+    description: |
+      Type of schema for this domain:
+      - framework: Core SpecQL schemas (common, app, core)
+      - multi_tenant: User schemas with tenant_id isolation
+      - shared: User schemas shared across all tenants
+
+  # Audit fields: created_at, updated_at, deleted_at added automatically
+
+# Indexes
+indexes:
+  - fields: [domain_number]
+    name: idx_domain_registry_domain_number
+  - fields: [domain_name]
+    name: idx_domain_registry_domain_name
+  - fields: [schema_type]
+    name: idx_domain_registry_schema_type
+
+# Post-processing notes:
+# - Add CHECK constraint: domain_number BETWEEN 1 AND 255
+# - Populated by specql domain register CLI command

@@ -1,0 +1,65 @@
+# Subdomain Registry Entity
+# Stores subdomains within domains
+
+entity: Subdomain
+schema: specql_registry
+description: "Registry of subdomains within domains. Subdomains provide second-level organization (0-15 per domain)."
+
+# Organization (Numbering System)
+organization:
+  table_code: "011112"
+  domain: core
+  subdomain: registry
+  entity: subdomain
+
+# Identifier format: SD{parent_domain_number}{subdomain_number}
+# Example: SD12 = Domain 1, Subdomain 2
+identifier_template: "SD{parent_domain.domain_number}{subdomain_number}"
+
+fields:
+  # Business fields
+  subdomain_number:
+    type: hex
+    required: true
+    description: "Subdomain number as hex digit (0-F) within parent domain"
+    validation:
+      min: 0
+      max: 15  # F in hex - gives 16 possible subdomains per domain
+
+  parent_domain:
+    type: ref(Domain)
+    required: true
+    description: "Parent domain this subdomain belongs to"
+    # Note: Creates fk_domain foreign key automatically
+
+  subdomain_name:
+    type: text
+    required: true
+    description: "Human-readable subdomain name (e.g., 'entities', 'workflows')"
+    validation:
+      pattern: "^[a-z][a-z0-9_]*$"
+      max_length: 50
+
+  description:
+    type: text
+    description: "Subdomain purpose and scope description"
+    validation:
+      max_length: 500
+
+# Unique constraint: each subdomain_number must be unique within a domain
+constraints:
+  - type: unique
+    fields: [parent_domain, subdomain_number]
+    name: uq_subdomain_parent_number
+
+# Indexes
+indexes:
+  - fields: [parent_domain]
+    name: idx_subdomain_registry_parent_domain
+  - fields: [subdomain_number]
+    name: idx_subdomain_registry_number
+  - fields: [subdomain_name]
+    name: idx_subdomain_registry_name
+
+# Post-processing notes:
+# - Populated by specql subdomain register CLI command
