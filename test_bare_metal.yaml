@@ -1,0 +1,27 @@
+name: test-bare-metal
+description: Test bare metal infrastructure
+service_type: api
+provider: hetzner
+region: eu-west-1
+environment: production
+
+bare_metal:
+   cpu_cores: 4
+   ram_gb: 16
+   storage_type: ssd
+   storage_gb: 80
+   os: ubuntu2204
+   ssh_keys:
+     - "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQ..."
+   private_network: true
+   ipv6: false
+   backup_service: true
+   monitoring: true
+   datacenter: "GRA1"
+
+container:
+  image: nginx
+  tag: latest
+  port: 80
+  environment:
+    ENV: production

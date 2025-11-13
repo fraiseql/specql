@@ -1,0 +1,276 @@
+---
+# Kubernetes manifests generated from universal infrastructure
+# Service: {{ infrastructure.name }}
+# Environment: {{ infrastructure.environment }}
+
+{% if infrastructure.container %}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ infrastructure.name }}
+  labels:
+    app: {{ infrastructure.name }}
+    environment: {{ infrastructure.environment }}
+    {% for key, value in infrastructure.tags.items() %}
+    {{ key }}: {{ value }}
+    {% endfor %}
+spec:
+  replicas: {{ infrastructure.compute.instances if infrastructure.compute else 1 }}
+  selector:
+    matchLabels:
+      app: {{ infrastructure.name }}
+  template:
+    metadata:
+      labels:
+        app: {{ infrastructure.name }}
+        environment: {{ infrastructure.environment }}
+        {% for key, value in infrastructure.tags.items() %}
+        {{ key }}: {{ value }}
+        {% endfor %}
+    spec:
+      containers:
+      - name: {{ infrastructure.name }}
+        image: {{ infrastructure.container.image }}:{{ infrastructure.container.tag }}
+        ports:
+        - containerPort: {{ infrastructure.container.port }}
+          protocol: TCP
+        {% if infrastructure.container.environment %}
+        env:
+        {% for key, value in infrastructure.container.environment.items() %}
+        - name: {{ key }}
+          value: "{{ value }}"
+        {% endfor %}
+        {% endif %}
+        {% if infrastructure.container.secrets %}
+        {% for key, value in infrastructure.container.secrets.items() %}
+        - name: {{ key }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ infrastructure.name }}-secrets
+              key: {{ key }}
+        {% endfor %}
+        {% endif %}
+        {% if infrastructure.container.cpu_request or infrastructure.container.memory_request %}
+        resources:
+          requests:
+            {% if infrastructure.container.cpu_request %}cpu: "{{ infrastructure.container.cpu_request }}"{% endif %}
+            {% if infrastructure.container.memory_request %}memory: "{{ infrastructure.container.memory_request }}"{% endif %}
+          {% if infrastructure.container.cpu_limit or infrastructure.container.memory_limit %}
+          limits:
+            {% if infrastructure.container.cpu_limit %}cpu: "{{ infrastructure.container.cpu_limit }}"{% endif %}
+            {% if infrastructure.container.memory_limit %}memory: "{{ infrastructure.container.memory_limit }}"{% endif %}
+          {% endif %}
+        {% endif %}
+        {% if infrastructure.container.health_check_path %}
+        livenessProbe:
+          httpGet:
+            path: {{ infrastructure.container.health_check_path }}
+            port: {{ infrastructure.container.port }}
+          initialDelaySeconds: 30
+          periodSeconds: {{ infrastructure.container.health_check_interval }}
+        readinessProbe:
+          httpGet:
+            path: {{ infrastructure.container.readiness_check_path }}
+            port: {{ infrastructure.container.port }}
+          initialDelaySeconds: 5
+          periodSeconds: {{ infrastructure.container.health_check_interval }}
+        {% endif %}
+        {% if infrastructure.container.volumes %}
+        volumeMounts:
+        {% for volume in infrastructure.container.volumes %}
+        - name: {{ volume.name }}
+          mountPath: {{ volume.mount_path }}
+        {% endfor %}
+        {% endif %}
+      {% if infrastructure.container.volumes %}
+      volumes:
+      {% for volume in infrastructure.container.volumes %}
+      - name: {{ volume.name }}
+        persistentVolumeClaim:
+          claimName: {{ volume.name }}-pvc
+      {% endfor %}
+      {% endif %}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ infrastructure.name }}
+  labels:
+    app: {{ infrastructure.name }}
+    environment: {{ infrastructure.environment }}
+spec:
+  selector:
+    app: {{ infrastructure.name }}
+  ports:
+  - name: http
+    port: {{ infrastructure.container.port }}
+    targetPort: {{ infrastructure.container.port }}
+    protocol: TCP
+  type: ClusterIP
+{% endif %}
+
+{% if infrastructure.load_balancer and infrastructure.load_balancer.enabled %}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ infrastructure.name }}
+  labels:
+    app: {{ infrastructure.name }}
+    environment: {{ infrastructure.environment }}
+  {% if infrastructure.load_balancer.https %}
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    {% if infrastructure.load_balancer.certificate_domain %}
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    {% endif %}
+  {% endif %}
+spec:
+  {% if infrastructure.load_balancer.https %}
+  tls:
+  - hosts:
+    - {{ infrastructure.load_balancer.certificate_domain or (infrastructure.name + ".example.com") }}
+    secretName: {{ infrastructure.name }}-tls
+  {% endif %}
+  rules:
+  - host: {{ infrastructure.load_balancer.certificate_domain or (infrastructure.name + ".example.com") }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ infrastructure.name }}
+            port:
+              number: {{ infrastructure.container.port if infrastructure.container else 80 }}
+{% endif %}
+
+{% if infrastructure.container and infrastructure.container.secrets %}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ infrastructure.name }}-secrets
+  labels:
+    app: {{ infrastructure.name }}
+    environment: {{ infrastructure.environment }}
+type: Opaque
+data:
+{% for key, value in infrastructure.container.secrets.items() %}
+  {{ key }}: {{ value | b64encode }}
+{% endfor %}
+{% endif %}
+
+{% if infrastructure.volumes %}
+{% for volume in infrastructure.volumes %}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ volume.name }}-pvc
+  labels:
+    app: {{ infrastructure.name }}
+    environment: {{ infrastructure.environment }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ volume.storage_class }}
+  resources:
+    requests:
+      storage: {{ volume.size }}
+{% endfor %}
+{% endif %}
+
+{% if infrastructure.database %}
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ infrastructure.name }}-db
+  labels:
+    app: {{ infrastructure.name }}-db
+    environment: {{ infrastructure.environment }}
+spec:
+  serviceName: {{ infrastructure.name }}-db
+  replicas: {{ infrastructure.database.replicas + 1 if infrastructure.database.multi_az else 1 }}
+  selector:
+    matchLabels:
+      app: {{ infrastructure.name }}-db
+  template:
+    metadata:
+      labels:
+        app: {{ infrastructure.name }}-db
+        environment: {{ infrastructure.environment }}
+    spec:
+      containers:
+      - name: {{ infrastructure.database.type }}
+        image: {% if infrastructure.database.type == 'postgresql' %}postgres{% elif infrastructure.database.type == 'mysql' %}mysql{% elif infrastructure.database.type == 'mongodb' %}mongo{% elif infrastructure.database.type == 'redis' %}redis{% else %}{{ infrastructure.database.type }}{% endif %}:{{ infrastructure.database.version }}
+        ports:
+        - containerPort: {% if infrastructure.database.type == 'postgresql' %}5432{% elif infrastructure.database.type == 'mysql' %}3306{% elif infrastructure.database.type == 'mongodb' %}27017{% elif infrastructure.database.type == 'redis' %}6379{% else %}5432{% endif %}
+          protocol: TCP
+        env:
+        - name: POSTGRES_DB
+          value: "{{ infrastructure.name }}_db"
+        - name: POSTGRES_USER
+          value: "admin"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: {{ infrastructure.name }}-db-secrets
+              key: password
+        volumeMounts:
+        - name: {{ infrastructure.name }}-db-data
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: {{ infrastructure.name }}-db-data
+        persistentVolumeClaim:
+          claimName: {{ infrastructure.name }}-db-pvc
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ infrastructure.name }}-db
+  labels:
+    app: {{ infrastructure.name }}-db
+    environment: {{ infrastructure.environment }}
+spec:
+  selector:
+    app: {{ infrastructure.name }}-db
+  ports:
+  - name: db
+    port: {% if infrastructure.database.type == 'postgresql' %}5432{% elif infrastructure.database.type == 'mysql' %}3306{% elif infrastructure.database.type == 'mongodb' %}27017{% elif infrastructure.database.type == 'redis' %}6379{% else %}5432{% endif %}
+    targetPort: {% if infrastructure.database.type == 'postgresql' %}5432{% elif infrastructure.database.type == 'mysql' %}3306{% elif infrastructure.database.type == 'mongodb' %}27017{% elif infrastructure.database.type == 'redis' %}6379{% else %}5432{% endif %}
+    protocol: TCP
+  type: ClusterIP
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ infrastructure.name }}-db-secrets
+  labels:
+    app: {{ infrastructure.name }}-db
+    environment: {{ infrastructure.environment }}
+type: Opaque
+data:
+  password: "cGFzc3dvcmQ="  # base64 encoded "password"
+
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ infrastructure.name }}-db-pvc
+  labels:
+    app: {{ infrastructure.name }}-db
+    environment: {{ infrastructure.environment }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: standard
+  resources:
+    requests:
+      storage: {{ infrastructure.database.storage }}
+{% endif %}

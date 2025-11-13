@@ -1,0 +1,406 @@
+{# Terraform Azure Template #}
+
+# ============================================================================
+# Provider Configuration
+# ============================================================================
+terraform {
+  required_providers {
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 3.0"
+    }
+  }
+}
+
+provider "azurerm" {
+  features {}
+}
+
+# ============================================================================
+# Resource Group
+# ============================================================================
+
+resource "azurerm_resource_group" "{{ infrastructure.name }}" {
+  name     = "{{ infrastructure.name }}-rg"
+  location = "{{ _map_region(infrastructure.region) }}"
+
+  tags = {
+    Name = "{{ infrastructure.name }}"
+  }
+}
+
+{%- if infrastructure.compute %}
+
+# ============================================================================
+# Compute Resources (Virtual Machine Scale Set)
+# ============================================================================
+
+resource "azurerm_linux_virtual_machine_scale_set" "{{ infrastructure.name }}" {
+  name                = "{{ infrastructure.name }}-vmss"
+  resource_group_name = azurerm_resource_group.{{ infrastructure.name }}.name
+  location            = azurerm_resource_group.{{ infrastructure.name }}.location
+  sku                 = "{{ _map_instance_type(infrastructure.compute) }}"
+  instances           = {{ infrastructure.compute.instances }}
+
+  admin_username = "adminuser"
+  admin_ssh_key {
+    username   = "adminuser"
+    public_key = file("~/.ssh/id_rsa.pub")
+  }
+
+  source_image_reference {
+    publisher = "Canonical"
+    offer     = "UbuntuServer"
+    sku       = "18.04-LTS"
+    version   = "latest"
+  }
+
+  os_disk {
+    storage_account_type = "Standard_LRS"
+    caching              = "ReadWrite"
+  }
+
+  {%- if infrastructure.container %}
+  custom_data = base64encode(<<-EOF
+    #!/bin/bash
+    # Install Docker
+    apt-get update
+    apt-get install -y docker.io
+
+    # Run container
+    docker run -d \
+      -p {{ infrastructure.container.port }}:{{ infrastructure.container.port }} \
+      {%- for key, value in infrastructure.container.environment.items() %}
+      -e {{ key }}={{ value }} \
+      {%- endfor %}
+      {%- if infrastructure.container.secrets %}
+      {%- for key, value in infrastructure.container.secrets.items() %}
+      -e {{ key }}={{ value }} \
+      {%- endfor %}
+      {%- endif %}
+      {{ infrastructure.container.image }}:{{ infrastructure.container.tag }}
+  EOF
+  )
+  {%- endif %}
+
+  network_interface {
+    name    = "{{ infrastructure.name }}-nic"
+    primary = true
+
+    ip_configuration {
+      name      = "internal"
+      primary   = true
+      subnet_id = azurerm_subnet.{{ infrastructure.name }}.id
+      {%- if infrastructure.load_balancer %}
+      load_balancer_backend_address_pool_ids = [azurerm_lb_backend_address_pool.{{ infrastructure.name }}.id]
+      {%- endif %}
+    }
+  }
+
+  tags = {
+    Name = "{{ infrastructure.name }}"
+  }
+}
+
+# Auto Scaling
+resource "azurerm_monitor_autoscale_setting" "{{ infrastructure.name }}" {
+  name                = "{{ infrastructure.name }}-autoscale"
+  resource_group_name = azurerm_resource_group.{{ infrastructure.name }}.name
+  location            = azurerm_resource_group.{{ infrastructure.name }}.location
+  target_resource_id  = azurerm_linux_virtual_machine_scale_set.{{ infrastructure.name }}.id
+
+  profile {
+    name = "defaultProfile"
+
+    capacity {
+      default = {{ infrastructure.compute.instances }}
+      minimum = {{ infrastructure.compute.min_instances }}
+      maximum = {{ infrastructure.compute.max_instances }}
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_linux_virtual_machine_scale_set.{{ infrastructure.name }}.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "GreaterThan"
+        threshold          = {{ infrastructure.compute.cpu_target }}
+      }
+
+      scale_action {
+        direction = "Increase"
+        type      = "ChangeCount"
+        value     = "1"
+        cooldown  = "PT1M"
+      }
+    }
+
+    rule {
+      metric_trigger {
+        metric_name        = "Percentage CPU"
+        metric_resource_id = azurerm_linux_virtual_machine_scale_set.{{ infrastructure.name }}.id
+        time_grain         = "PT1M"
+        statistic          = "Average"
+        time_window        = "PT5M"
+        time_aggregation   = "Average"
+        operator           = "LessThan"
+        threshold          = 30
+      }
+
+      scale_action {
+        direction = "Decrease"
+        type      = "ChangeCount"
+        value     = "1"
+        cooldown  = "PT1M"
+      }
+    }
+  }
+}
+{%- endif %}
+
+{%- if infrastructure.database %}
+
+# ============================================================================
+# Database (Azure Database for PostgreSQL)
+# ============================================================================
+
+resource "azurerm_postgresql_flexible_server" "{{ infrastructure.name }}" {
+  name                   = "{{ infrastructure.name }}-db"
+  resource_group_name    = azurerm_resource_group.{{ infrastructure.name }}.name
+  location               = azurerm_resource_group.{{ infrastructure.name }}.location
+  version                = "{{ infrastructure.database.version }}"
+  administrator_login    = "adminuser"
+  administrator_password = random_password.db_password.result
+  storage_mb             = {{ infrastructure.database.storage|replace('GB', '')|int * 1024 }}
+  sku_name               = "{{ infrastructure.database.instance_class or 'GP_Standard_D2s_v3' }}"
+
+  backup_retention_days        = {{ infrastructure.database.backup_retention_days }}
+  geo_redundant_backup_enabled = {{ infrastructure.database.multi_az|lower }}
+
+  tags = {
+    Name = "{{ infrastructure.name }}-database"
+  }
+}
+
+resource "azurerm_postgresql_flexible_server_database" "{{ infrastructure.name }}" {
+  name      = "{{ infrastructure.name|replace('-', '_') }}"
+  server_id = azurerm_postgresql_flexible_server.{{ infrastructure.name }}.id
+  collation = "en_US.utf8"
+  charset   = "utf8"
+}
+
+resource "random_password" "db_password" {
+  length  = 32
+  special = true
+}
+
+# Store password in Key Vault
+resource "azurerm_key_vault_secret" "{{ infrastructure.name }}" {
+  name         = "{{ infrastructure.name }}-db-password"
+  value        = random_password.db_password.result
+  key_vault_id = azurerm_key_vault.{{ infrastructure.name }}.id
+}
+
+resource "azurerm_key_vault" "{{ infrastructure.name }}" {
+  name                        = "{{ infrastructure.name }}-kv"
+  location                    = azurerm_resource_group.{{ infrastructure.name }}.location
+  resource_group_name         = azurerm_resource_group.{{ infrastructure.name }}.name
+  enabled_for_disk_encryption = true
+  tenant_id                   = data.azurerm_client_config.current.tenant_id
+  soft_delete_retention_days  = 7
+  purge_protection_enabled    = false
+
+  sku_name = "standard"
+
+  access_policy {
+    tenant_id = data.azurerm_client_config.current.tenant_id
+    object_id = data.azurerm_client_config.current.object_id
+
+    secret_permissions = [
+      "Get",
+      "Set",
+      "List",
+      "Delete",
+      "Purge"
+    ]
+  }
+}
+{%- endif %}
+
+{%- if infrastructure.load_balancer %}
+
+# ============================================================================
+# Load Balancer
+# ============================================================================
+
+resource "azurerm_public_ip" "{{ infrastructure.name }}" {
+  name                = "{{ infrastructure.name }}-pip"
+  resource_group_name = azurerm_resource_group.{{ infrastructure.name }}.name
+  location            = azurerm_resource_group.{{ infrastructure.name }}.location
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_lb" "{{ infrastructure.name }}" {
+  name                = "{{ infrastructure.name }}-lb"
+  resource_group_name = azurerm_resource_group.{{ infrastructure.name }}.name
+  location            = azurerm_resource_group.{{ infrastructure.name }}.location
+  sku                 = "Standard"
+
+  frontend_ip_configuration {
+    name                 = "{{ infrastructure.name }}-frontend"
+    public_ip_address_id = azurerm_public_ip.{{ infrastructure.name }}.id
+  }
+}
+
+resource "azurerm_lb_backend_address_pool" "{{ infrastructure.name }}" {
+  name            = "{{ infrastructure.name }}-backend-pool"
+  loadbalancer_id = azurerm_lb.{{ infrastructure.name }}.id
+}
+
+resource "azurerm_lb_probe" "{{ infrastructure.name }}" {
+  name            = "{{ infrastructure.name }}-probe"
+  loadbalancer_id = azurerm_lb.{{ infrastructure.name }}.id
+  port            = {{ infrastructure.container.port if infrastructure.container else 80 }}
+  protocol        = "Http"
+  request_path    = "{{ infrastructure.load_balancer.health_check_path }}"
+}
+
+resource "azurerm_lb_rule" "{{ infrastructure.name }}" {
+  name                           = "{{ infrastructure.name }}-rule"
+  loadbalancer_id                = azurerm_lb.{{ infrastructure.name }}.id
+  probe_id                       = azurerm_lb_probe.{{ infrastructure.name }}.id
+  backend_address_pool_ids       = [azurerm_lb_backend_address_pool.{{ infrastructure.name }}.id]
+
+  frontend_ip_configuration_name = "{{ infrastructure.name }}-frontend"
+  protocol                       = "Tcp"
+  frontend_port                  = 80
+  backend_port                   = {{ infrastructure.container.port if infrastructure.container else 80 }}
+}
+{%- endif %}
+
+# ============================================================================
+# Networking (Virtual Network, Subnets, etc.)
+# ============================================================================
+
+resource "azurerm_virtual_network" "{{ infrastructure.name }}" {
+  name                = "{{ infrastructure.name }}-vnet"
+  address_space       = ["{{ infrastructure.network.vpc_cidr }}"]
+  location            = azurerm_resource_group.{{ infrastructure.name }}.location
+  resource_group_name = azurerm_resource_group.{{ infrastructure.name }}.name
+}
+
+resource "azurerm_subnet" "{{ infrastructure.name }}" {
+  name                 = "{{ infrastructure.name }}-subnet"
+  resource_group_name  = azurerm_resource_group.{{ infrastructure.name }}.name
+  virtual_network_name = azurerm_virtual_network.{{ infrastructure.name }}.name
+  address_prefixes     = ["{{ infrastructure.network.public_subnets[0] }}"]
+}
+
+{%- if infrastructure.network.enable_nat_gateway %}
+resource "azurerm_nat_gateway" "{{ infrastructure.name }}" {
+  name                    = "{{ infrastructure.name }}-nat"
+  location                = azurerm_resource_group.{{ infrastructure.name }}.location
+  resource_group_name     = azurerm_resource_group.{{ infrastructure.name }}.name
+  sku_name                = "Standard"
+  idle_timeout_in_minutes = 10
+}
+
+resource "azurerm_nat_gateway_public_ip_association" "{{ infrastructure.name }}" {
+  nat_gateway_id       = azurerm_nat_gateway.{{ infrastructure.name }}.id
+  public_ip_address_id = azurerm_public_ip.nat.id
+}
+
+resource "azurerm_public_ip" "nat" {
+  name                = "{{ infrastructure.name }}-nat-pip"
+  location            = azurerm_resource_group.{{ infrastructure.name }}.location
+  resource_group_name = azurerm_resource_group.{{ infrastructure.name }}.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+
+resource "azurerm_subnet_nat_gateway_association" "{{ infrastructure.name }}" {
+  subnet_id      = azurerm_subnet.{{ infrastructure.name }}.id
+  nat_gateway_id = azurerm_nat_gateway.{{ infrastructure.name }}.id
+}
+{%- endif %}
+
+# Network Security Group
+resource "azurerm_network_security_group" "{{ infrastructure.name }}" {
+  name                = "{{ infrastructure.name }}-nsg"
+  location            = azurerm_resource_group.{{ infrastructure.name }}.location
+  resource_group_name = azurerm_resource_group.{{ infrastructure.name }}.name
+
+  security_rule {
+    name                       = "HTTP"
+    priority                   = 100
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "80"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+
+  {%- if infrastructure.load_balancer.https %}
+  security_rule {
+    name                       = "HTTPS"
+    priority                   = 101
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "443"
+    source_address_prefix      = "*"
+    destination_address_prefix = "*"
+  }
+  {%- endif %}
+
+  {%- if infrastructure.database %}
+  security_rule {
+    name                       = "PostgreSQL"
+    priority                   = 102
+    direction                  = "Inbound"
+    access                     = "Allow"
+    protocol                   = "Tcp"
+    source_port_range          = "*"
+    destination_port_range     = "5432"
+    source_address_prefix      = "{{ infrastructure.network.vpc_cidr }}"
+    destination_address_prefix = "*"
+  }
+  {%- endif %}
+}
+
+# ============================================================================
+# Data Sources
+# ============================================================================
+
+data "azurerm_client_config" "current" {}
+
+# ============================================================================
+# Outputs
+# ============================================================================
+
+{%- if infrastructure.load_balancer %}
+output "load_balancer_ip" {
+  value = azurerm_public_ip.{{ infrastructure.name }}.ip_address
+}
+{%- endif %}
+
+{%- if infrastructure.database %}
+output "database_server_fqdn" {
+  value = azurerm_postgresql_flexible_server.{{ infrastructure.name }}.fqdn
+}
+
+output "database_password_secret" {
+  value = azurerm_key_vault_secret.{{ infrastructure.name }}.name
+}
+{%- endif %}
+
+output "resource_group_name" {
+  value = azurerm_resource_group.{{ infrastructure.name }}.name
+}

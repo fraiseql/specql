@@ -15,6 +15,30 @@ from typing import List, Dict, Optional, Any, Literal
 from enum import Enum
 
 
+# Forward declarations for cost estimation
+@dataclass
+class CostBreakdown:
+    """Detailed cost breakdown by resource type"""
+    compute_cost: float = 0.0
+    database_cost: float = 0.0
+    storage_cost: float = 0.0
+    network_cost: float = 0.0
+    load_balancer_cost: float = 0.0
+    monitoring_cost: float = 0.0
+    total_monthly_cost: float = 0.0
+
+    def to_dict(self) -> Dict[str, Any]:
+        return {
+            "compute_cost": round(self.compute_cost, 2),
+            "database_cost": round(self.database_cost, 2),
+            "storage_cost": round(self.storage_cost, 2),
+            "network_cost": round(self.network_cost, 2),
+            "load_balancer_cost": round(self.load_balancer_cost, 2),
+            "monitoring_cost": round(self.monitoring_cost, 2),
+            "total_monthly_cost": round(self.total_monthly_cost, 2)
+        }
+
+
 # ============================================================================
 # Cloud Providers
 # ============================================================================
@@ -26,6 +50,8 @@ class CloudProvider(str, Enum):
     AZURE = "azure"
     KUBERNETES = "kubernetes"
     DOCKER = "docker"
+    OVHCLOUD = "ovhcloud"
+    HETZNER = "hetzner"
 
 
 # ============================================================================
@@ -265,6 +291,38 @@ class SecurityConfig:
 
 
 # ============================================================================
+# Bare Metal Support
+# ============================================================================
+
+@dataclass
+class BareMetalConfig:
+    """Bare metal server configuration"""
+
+    # Server specifications
+    server_model: str  # e.g., "AX41", "CPX11", "KS-1"
+    cpu_cores: int
+    ram_gb: int
+    storage_type: Literal["hdd", "ssd", "nvme"] = "ssd"
+    storage_gb: int = 0  # 0 means use default for model
+
+    # OS installation
+    os: str = "ubuntu2204"  # OS template identifier
+    ssh_keys: List[str] = field(default_factory=list)  # SSH key fingerprints
+
+    # Network configuration
+    private_network: bool = False
+    ipv6: bool = False
+
+    # Additional services
+    backup_service: bool = False
+    monitoring: bool = False
+
+    # Provider-specific options
+    datacenter: Optional[str] = None  # Specific datacenter location
+    bandwidth: Optional[str] = None  # Bandwidth allocation
+
+
+# ============================================================================
 # Complete Service Definition
 # ============================================================================
 
@@ -295,6 +353,7 @@ class UniversalInfrastructure:
     compute: Optional[ComputeConfig] = None
     container: Optional[ContainerConfig] = None
     database: Optional[DatabaseConfig] = None
+    bare_metal: Optional[BareMetalConfig] = None
 
     # Networking
     network: NetworkConfig = field(default_factory=NetworkConfig)
@@ -324,19 +383,91 @@ class UniversalInfrastructure:
 
     def to_terraform_aws(self) -> str:
         """Convert to Terraform for AWS"""
-        return ""
+        try:
+            from .generators.terraform_aws_generator import TerraformAWSGenerator
+            generator = TerraformAWSGenerator()
+            return generator.generate(self)
+        except ImportError:
+            return ""
 
     def to_terraform_gcp(self) -> str:
         """Convert to Terraform for GCP"""
-        return ""
+        try:
+            from .generators.terraform_gcp_generator import TerraformGCPGenerator
+            generator = TerraformGCPGenerator()
+            return generator.generate(self)
+        except ImportError:
+            return ""
+
+    def to_terraform_azure(self) -> str:
+        """Convert to Terraform for Azure"""
+        try:
+            from .generators.terraform_azure_generator import TerraformAzureGenerator
+            generator = TerraformAzureGenerator()
+            return generator.generate(self)
+        except ImportError:
+            return ""
+
+    def to_cloudformation(self) -> str:
+        """Convert to AWS CloudFormation"""
+        try:
+            from .generators.cloudformation_generator import CloudFormationGenerator
+            generator = CloudFormationGenerator()
+            return generator.generate(self)
+        except ImportError:
+            return ""
+
+    def to_pulumi(self) -> str:
+        """Convert to Pulumi Python"""
+        try:
+            from .generators.pulumi_generator import PulumiGenerator
+            generator = PulumiGenerator()
+            return generator.generate(self)
+        except ImportError:
+            return ""
 
     def to_kubernetes(self) -> str:
         """Convert to Kubernetes manifests"""
-        return ""
+        try:
+            from .generators.kubernetes_generator import KubernetesGenerator
+            generator = KubernetesGenerator()
+            return generator.generate(self)
+        except ImportError:
+            return ""
+
+    def to_ovhcloud(self) -> str:
+        """Convert to OVHcloud provisioning script"""
+        try:
+            from .generators.ovhcloud_generator import OVHcloudGenerator
+            generator = OVHcloudGenerator()
+            return generator.generate(self)
+        except ImportError:
+            return ""
+
+    def to_hetzner(self) -> str:
+        """Convert to Hetzner provisioning script"""
+        try:
+            from .generators.hetzner_generator import HetznerGenerator
+            generator = HetznerGenerator()
+            return generator.generate(self)
+        except ImportError:
+            return ""
 
     def to_docker_compose(self) -> str:
         """Convert to Docker Compose"""
         return ""
+
+    def estimate_cost(self) -> 'CostBreakdown':
+        """Estimate monthly cost for this infrastructure"""
+        from .services.cost_estimation_service import CostEstimationService
+        service = CostEstimationService()
+        return service.estimate_cost(self)
+
+    def get_cost_comparison(self) -> Dict[str, 'CostBreakdown']:
+        """Get cost estimates across all supported providers"""
+        from .services.cost_estimation_service import CostEstimationService
+        service = CostEstimationService()
+        return service.get_cost_comparison(self)
 
     @classmethod
     def from_terraform(cls, tf_content: str) -> 'UniversalInfrastructure':

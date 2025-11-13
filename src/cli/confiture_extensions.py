@@ -509,6 +509,10 @@ specql.add_command(diagram)
 from src.cli.cicd import cicd
 specql.add_command(cicd, name="cicd")
 
+# Infrastructure operations
+from src.cli.infrastructure import infrastructure
+specql.add_command(infrastructure, name="infrastructure")
+
 
 if __name__ == "__main__":
     specql()

@@ -14,7 +14,7 @@ class TestInMemoryDomainRepository:
     def test_save_and_get_domain(self):
         """Test saving and retrieving domains"""
         domain = Domain(
-            domain_number=DomainNumber("2"),
+            domain_number=DomainNumber("02"),
             domain_name="crm",
             description="Customer Relationship Management",
             multi_tenant=True,
@@ -25,7 +25,7 @@ class TestInMemoryDomainRepository:
         self.repo.save(domain)
 
         # Retrieve domain
-        retrieved = self.repo.get("2")
+        retrieved = self.repo.get("02")
         assert retrieved.domain_name == "crm"
         assert retrieved.multi_tenant is True
         assert "sales" in retrieved.aliases
@@ -33,7 +33,7 @@ class TestInMemoryDomainRepository:
     def test_find_by_name(self):
         """Test finding domain by name or alias"""
         domain = Domain(
-            domain_number=DomainNumber("3"),
+            domain_number=DomainNumber("03"),
             domain_name="catalog",
             description="Product catalog",
             multi_tenant=False,
@@ -45,7 +45,7 @@ class TestInMemoryDomainRepository:
         # Find by name
         found = self.repo.find_by_name("catalog")
         assert found is not None
-        assert found.domain_number.value == "3"
+        assert found.domain_number.value == "03"
 
         # Find by alias
         found_alias = self.repo.find_by_name("products")
@@ -62,7 +62,7 @@ class TestInMemoryDomainRepository:
         domains = []
         for i in range(1, 4):
             domain = Domain(
-                domain_number=DomainNumber(str(i)),
+                domain_number=DomainNumber(f"{i:02X}"),
                 domain_name=f"domain{i}",
                 description=f"Domain {i}",
                 multi_tenant=False
@@ -86,7 +86,7 @@ class TestInMemoryDomainRepository:
     def test_clear_repository(self):
         """Test clearing the repository"""
         domain = Domain(
-            domain_number=DomainNumber("1"),
+            domain_number=DomainNumber("01"),
             domain_name="test",
             description="Test domain",
             multi_tenant=False
