@@ -1,0 +1,73 @@
+-- ============================================================================
+-- Full-Text Search: {{ entity.name }}
+-- Purpose: Fast text search with PostgreSQL tsvector
+-- ============================================================================
+
+-- Add generated tsvector column
+ALTER TABLE {{ schema }}.tb_{{ entity.name|lower }}
+ADD COLUMN search_vector tsvector
+GENERATED ALWAYS AS (
+    to_tsvector('english',
+{%- for field in text_fields %}
+        coalesce({{ field.name }}, ''){% if not loop.last %} || ' ' ||{% endif %}
+{%- endfor %}
+    )
+) STORED;
+
+COMMENT ON COLUMN {{ schema }}.tb_{{ entity.name|lower }}.search_vector IS
+'Full-text search vector (auto-generated).
+Combines: {{ text_fields|map(attribute='name')|join(', ') }}';
+
+-- ============================================================================
+-- GIN Index for Full-Text Search
+-- ============================================================================
+
+CREATE INDEX idx_tb_{{ entity.name|lower }}_search
+ON {{ schema }}.tb_{{ entity.name|lower }}
+USING gin (search_vector);
+
+-- ============================================================================
+-- Full-Text Search Function
+-- ============================================================================
+
+CREATE OR REPLACE FUNCTION {{ schema }}.search_{{ entity.name|lower }}_by_text(
+    p_query TEXT,
+    p_limit INTEGER DEFAULT 20
+)
+RETURNS TABLE (
+    pk INTEGER,
+    id UUID,
+    rank FLOAT,
+    data JSONB
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT
+        tv.pk_{{ entity.name|lower }},
+        tv.id,
+        ts_rank(tb.search_vector, websearch_to_tsquery('english', p_query)) AS rank,
+        tv.data
+    FROM {{ schema }}.tv_{{ entity.name|lower }} tv
+    JOIN {{ schema }}.tb_{{ entity.name|lower }} tb USING (pk_{{ entity.name|lower }})
+    WHERE tb.search_vector @@ websearch_to_tsquery('english', p_query)
+    ORDER BY rank DESC
+    LIMIT p_limit;
+END;
+$$ LANGUAGE plpgsql STABLE;
+
+COMMENT ON FUNCTION {{ schema }}.search_{{ entity.name|lower }}_by_text IS
+'Full-text search for {{ entity.name }} using PostgreSQL tsvector.
+
+Args:
+- p_query: Search query (websearch syntax supported)
+- p_limit: Maximum results
+
+Returns:
+- Matching entities with relevance rank
+
+@fraiseql:query
+name: search{{ entity.name }}ByText
+type: [{{ entity.name }}!]!
+args:
+  - query: String!
+  - limit: Int';
