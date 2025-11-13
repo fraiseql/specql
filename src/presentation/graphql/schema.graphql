@@ -1,0 +1,94 @@
+# SpecQL Registry GraphQL Schema
+
+# Domain Type
+type Domain {
+  domainNumber: Int!
+  domainName: String!
+  schemaType: SchemaType!
+  identifier: String!
+  description: String
+  subdomains: [Subdomain!]!
+  createdAt: DateTime!
+}
+
+enum SchemaType {
+  FRAMEWORK
+  MULTI_TENANT
+  SHARED
+}
+
+# Subdomain Type
+type Subdomain {
+  subdomainNumber: Int!
+  subdomainName: String!
+  parentDomainNumber: Int!
+  identifier: String!
+  description: String
+  parentDomain: Domain!
+  createdAt: DateTime!
+}
+
+# Pattern Type
+type Pattern {
+  patternId: String!
+  patternName: String!
+  category: PatternCategory!
+  description: String!
+  patternType: PatternType!
+  usageCount: Int!
+  popularityScore: Float!
+}
+
+enum PatternCategory {
+  VALIDATION
+  AUDIT
+  SECURITY
+  WORKFLOW
+  NOTIFICATION
+  DATA_QUALITY
+  PERFORMANCE
+}
+
+enum PatternType {
+  UNIVERSAL
+  DOMAIN
+  ENTITY_TEMPLATE
+}
+
+# Query Root
+type Query {
+  # Domain queries
+  domains(schemaType: SchemaType): [Domain!]!
+  domain(domainNumber: Int!): Domain
+
+  # Subdomain queries
+  subdomains(parentDomainNumber: Int): [Subdomain!]!
+  subdomain(domainNumber: Int!, subdomainNumber: Int!): Subdomain
+
+  # Pattern queries
+  patterns(category: PatternCategory, patternType: PatternType): [Pattern!]!
+  pattern(patternId: String!): Pattern
+  searchPatterns(query: String!, limit: Int, minSimilarity: Float): [Pattern!]!
+}
+
+# Mutation Root
+type Mutation {
+  # Domain mutations
+  registerDomain(
+    domainNumber: Int!
+    domainName: String!
+    schemaType: SchemaType!
+    description: String
+  ): Domain!
+
+  # Subdomain mutations
+  registerSubdomain(
+    parentDomainNumber: Int!
+    subdomainNumber: Int!
+    subdomainName: String!
+    description: String
+  ): Subdomain!
+}
+
+# Custom Scalars
+scalar DateTime
