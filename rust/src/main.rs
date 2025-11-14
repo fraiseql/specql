@@ -33,6 +33,13 @@ pub struct DieselColumn {
     pub is_nullable: bool,
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct DieselDerive {
+    pub struct_name: String,
+    pub derives: Vec<String>,
+    pub associations: Vec<String>,
+}
+
 fn extract_struct_info(struct_item: &ItemStruct) -> Result<RustStruct, String> {
     let name = struct_item.ident.to_string();
 
@@ -123,6 +130,58 @@ fn extract_type_info(ty: &Type) -> Result<(String, bool), String> {
         Type::Reference(_) => Ok(("Reference".to_string(), false)),
         Type::Tuple(_) => Ok(("Tuple".to_string(), false)),
         _ => Ok(("Unknown".to_string(), false)),
+    }
+}
+
+fn extract_diesel_derives(struct_item: &ItemStruct) -> Option<DieselDerive> {
+    let name = struct_item.ident.to_string();
+    let mut derives = Vec::new();
+    let mut associations = Vec::new();
+
+    // Parse attributes by converting to string and searching
+    for attr in &struct_item.attrs {
+        let attr_str = attr.to_token_stream().to_string();
+
+        // Check for derive macros
+        if attr_str.contains("# [derive") || attr_str.contains("#[derive") {
+            // Extract derive names
+            if attr_str.contains("Queryable") {
+                derives.push("Queryable".to_string());
+            }
+            if attr_str.contains("Insertable") {
+                derives.push("Insertable".to_string());
+            }
+            if attr_str.contains("AsChangeset") {
+                derives.push("AsChangeset".to_string());
+            }
+            if attr_str.contains("Associations") {
+                derives.push("Associations".to_string());
+            }
+            if attr_str.contains("Identifiable") {
+                derives.push("Identifiable".to_string());
+            }
+        }
+
+        // Check for table_name
+        if attr_str.contains("# [table_name") || attr_str.contains("#[table_name") {
+            // Extract table name from = "..." pattern
+            if let Some(start) = attr_str.find("= \"") {
+                if let Some(end) = attr_str[start + 3..].find('"') {
+                    let table_name = attr_str[start + 3..start + 3 + end].to_string();
+                    associations.push(table_name);
+                }
+            }
+        }
+    }
+
+    if derives.is_empty() && associations.is_empty() {
+        None
+    } else {
+        Some(DieselDerive {
+            struct_name: name,
+            derives,
+            associations,
+        })
     }
 }
 
@@ -240,6 +299,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         Ok(syntax) => {
             let mut structs = Vec::new();
             let mut diesel_tables = Vec::new();
+            let mut diesel_derives = Vec::new();
 
             for item in syntax.items {
                 match item {
@@ -251,6 +311,10 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                                 std::process::exit(1);
                             }
                         }
+                        // Extract Diesel derives for this struct
+                        if let Some(derive_info) = extract_diesel_derives(&struct_item) {
+                            diesel_derives.push(derive_info);
+                        }
                     }
                     syn::Item::Macro(macro_item) => {
                         if let Some(table) = extract_diesel_table(&macro_item) {
@@ -261,10 +325,11 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            // Output both structs and diesel_tables
+            // Output structs, diesel_tables, and diesel_derives
             let output = serde_json::json!({
                 "structs": structs,
-                "diesel_tables": diesel_tables
+                "diesel_tables": diesel_tables,
+                "diesel_derives": diesel_derives
             });
             println!("{}", serde_json::to_string(&output)?);
             Ok(())

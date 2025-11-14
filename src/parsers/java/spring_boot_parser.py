@@ -8,13 +8,14 @@ from pathlib import Path
 from typing import List
 import re
 from src.core.universal_ast import UniversalEntity, UniversalField, FieldType
+from src.parsers.java.lombok_handler import LombokAnnotationHandler, LombokMetadata
 
 
 class SpringBootParser:
     """Parser for Spring Boot JPA entities"""
 
     def __init__(self):
-        pass
+        self.lombok_handler = LombokAnnotationHandler()
 
     def parse_entity_file(self, file_path: str) -> UniversalEntity:
         """
@@ -29,7 +30,16 @@ class SpringBootParser:
         with open(file_path, "r") as f:
             content = f.read()
 
-        return self._parse_java_content(content, file_path)
+        # Extract Lombok metadata
+        lombok_metadata = self.lombok_handler.extract_lombok_metadata(content)
+
+        # Parse entity (existing logic)
+        entity = self._parse_java_content(content, file_path)
+
+        # Enhance entity with Lombok metadata
+        entity = self._apply_lombok_metadata(entity, lombok_metadata)
+
+        return entity
 
     def parse_project(self, project_path: str) -> List[UniversalEntity]:
         """
@@ -217,3 +227,18 @@ class SpringBootParser:
             references=references,
             enum_values=enum_values,
         )
+
+    def _apply_lombok_metadata(
+        self, entity: UniversalEntity, metadata: LombokMetadata
+    ) -> UniversalEntity:
+        """Apply Lombok metadata to entity"""
+        # Mark @NonNull fields as required
+        for field in entity.fields:
+            if self.lombok_handler.is_field_required(field.name, metadata):
+                field.required = True
+
+            # Apply @Builder.Default values
+            if field.name in metadata.builder_defaults:
+                field.default = metadata.builder_defaults[field.name]
+
+        return entity
