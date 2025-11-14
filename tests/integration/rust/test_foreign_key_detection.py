@@ -37,11 +37,15 @@ class TestForeignKeyDetection:
     def test_naming_convention_detection_simple(self):
         """Test FK detection from simple naming convention: user_id -> User."""
         rust_code = """
+        use diesel::prelude::*;
+
+        #[derive(Queryable)]
         pub struct User {
             pub id: i32,
             pub name: String,
         }
 
+        #[derive(Queryable)]
         pub struct Post {
             pub id: i64,
             pub title: String,
@@ -76,11 +80,15 @@ class TestForeignKeyDetection:
     def test_belongs_to_attribute_simple(self):
         """Test FK detection from Diesel #[belongs_to(User)] attribute."""
         rust_code = """
+        use diesel::prelude::*;
+
+        #[derive(Queryable)]
         pub struct User {
             pub id: i32,
             pub name: String,
         }
 
+        #[derive(Queryable)]
         pub struct Post {
             pub id: i64,
             pub title: String,
@@ -113,11 +121,15 @@ class TestForeignKeyDetection:
     def test_belongs_to_attribute_with_custom_fk(self):
         """Test FK detection with custom foreign_key parameter."""
         rust_code = """
+        use diesel::prelude::*;
+
+        #[derive(Queryable)]
         pub struct Category {
             pub id: i32,
             pub name: String,
         }
 
+        #[derive(Queryable)]
         pub struct Product {
             pub id: i64,
             pub name: String,
@@ -158,11 +170,15 @@ class TestForeignKeyDetection:
     def test_optional_foreign_key(self):
         """Test FK detection for optional relationships (Option<i32>)."""
         rust_code = """
+        use diesel::prelude::*;
+
+        #[derive(Queryable)]
         pub struct User {
             pub id: i32,
             pub name: String,
         }
 
+        #[derive(Queryable)]
         pub struct Post {
             pub id: i64,
             pub title: String,
@@ -202,16 +218,21 @@ class TestForeignKeyDetection:
     def test_multiple_foreign_keys(self):
         """Test detection of multiple FKs in one entity."""
         rust_code = """
+        use diesel::prelude::*;
+
+        #[derive(Queryable)]
         pub struct User {
             pub id: i32,
             pub name: String,
         }
 
+        #[derive(Queryable)]
         pub struct Category {
             pub id: i32,
             pub name: String,
         }
 
+        #[derive(Queryable)]
         pub struct Post {
             pub id: i64,
             pub title: String,
@@ -267,6 +288,9 @@ class TestForeignKeyDetection:
     def test_self_referential_foreign_key(self):
         """Test detection of self-referential FKs (e.g., parent_id)."""
         rust_code = """
+        use diesel::prelude::*;
+
+        #[derive(Queryable)]
         pub struct Category {
             pub id: i32,
             pub name: String,
@@ -306,14 +330,19 @@ class TestForeignKeyDetection:
     def test_naming_convention_multiple_patterns(self):
         """Test various FK naming patterns."""
         rust_code = """
+        use diesel::prelude::*;
+
+        #[derive(Queryable)]
         pub struct User {
             pub id: i32,
         }
 
+        #[derive(Queryable)]
         pub struct Organization {
             pub id: i32,
         }
 
+        #[derive(Queryable)]
         pub struct Post {
             pub id: i64,
             pub user_id: i32,           // Pattern: <entity>_id
@@ -356,11 +385,15 @@ class TestForeignKeyDetection:
     def test_belongs_to_without_field_name_match(self):
         """Test belongs_to where field name doesn't match convention."""
         rust_code = """
+        use diesel::prelude::*;
+
+        #[derive(Queryable)]
         pub struct User {
             pub id: i32,
             pub name: String,
         }
 
+        #[derive(Queryable)]
         pub struct Post {
             pub id: i64,
             pub title: String,

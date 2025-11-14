@@ -282,11 +282,15 @@ class TestRustParserIntegration:
     def test_service_integration(self):
         """Test the full service integration."""
         rust_code = """
+        use diesel::prelude::*;
+
+        #[derive(Queryable)]
         pub struct Category {
             pub id: i32,
             pub name: String,
         }
 
+        #[derive(Queryable)]
         pub struct Item {
             pub id: i32,
             pub name: String,

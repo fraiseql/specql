@@ -360,10 +360,16 @@ class RustParser:
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to run Rust parser: {e}")
             logger.error(f"stderr: {e.stderr}")
-            raise
+            # Return empty results instead of crashing
+            return ([], [], [], [], [], [])
+        except json.JSONDecodeError as e:
+            logger.error(f"Failed to parse JSON from Rust parser for {file_path}: {e}")
+            # Return empty results for malformed JSON
+            return ([], [], [], [], [], [])
         except Exception as e:
             logger.error(f"Failed to parse Rust file {file_path}: {e}")
-            raise
+            # Return empty results for any other errors
+            return ([], [], [], [], [], [])
 
     def parse_source(
         self, source_code: str
@@ -404,6 +410,50 @@ class RustToSpecQLMapper:
 
     def __init__(self):
         self.type_mapper = RustTypeMapper()
+
+    def is_diesel_struct(self, struct: RustStructInfo) -> bool:
+        """
+        Check if a struct is Diesel-related.
+
+        A struct is considered Diesel-related if it has:
+        - Queryable derive
+        - Insertable derive
+        - table_name attribute
+        - diesel(...) attributes
+        - Fields with belongs_to or other Diesel attributes
+
+        Args:
+            struct: Parsed Rust struct information
+
+        Returns:
+            True if the struct is Diesel-related, False otherwise
+        """
+        # Check struct-level attributes
+        if struct.attributes:
+            attributes_str = " ".join(struct.attributes).lower()
+
+            # Check for Diesel-related derives
+            diesel_derives = ["queryable", "insertable", "aschangeset", "associations"]
+            for derive in diesel_derives:
+                if derive in attributes_str:
+                    return True
+
+            # Check for Diesel-related attributes
+            diesel_attributes = ["table_name", "diesel(", "belongs_to"]
+            for attr in diesel_attributes:
+                if attr in attributes_str:
+                    return True
+
+        # Check field-level attributes for Diesel markers
+        for field in struct.fields:
+            if field.attributes:
+                field_attrs_str = " ".join(field.attributes).lower()
+                diesel_field_attributes = ["belongs_to", "diesel(", "column_name"]
+                for attr in diesel_field_attributes:
+                    if attr in field_attrs_str:
+                        return True
+
+        return False
 
     def map_struct_to_entity(self, struct: RustStructInfo) -> Entity:
         """
@@ -746,10 +796,12 @@ class RustReverseEngineeringService:
         )
         entities = []
 
-        # Process structs (existing behavior)
+        # Process structs - only include Diesel-related structs
         for struct in structs:
-            entity = self.mapper.map_struct_to_entity(struct)
-            entities.append(entity)
+            # Filter to only Diesel-related structs
+            if self.mapper.is_diesel_struct(struct):
+                entity = self.mapper.map_struct_to_entity(struct)
+                entities.append(entity)
 
         # Process Diesel tables (NEW)
         if include_diesel_tables:
