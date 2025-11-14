@@ -53,7 +53,9 @@ query: true';"""
 
         return "\n\n".join(annotations)
 
-    def _annotate_field(self, entity: EntityDefinition, field_name: str, field_def: FieldDefinition) -> Optional[str]:
+    def _annotate_field(
+        self, entity: EntityDefinition, field_name: str, field_def: FieldDefinition
+    ) -> Optional[str]:
         """Generate FraiseQL annotation for a single field"""
         table_name = f"{entity.schema}.tb_{entity.name.lower()}"
         fraiseql_type = self._map_to_fraiseql_type(field_def)
@@ -72,7 +74,7 @@ relation: many_to_one""")
 name: {field_name}
 type: {fraiseql_type}""")
 
-        return f"""COMMENT ON COLUMN {table_name}.{field_name} IS '{''.join(comment_parts)}';"""
+        return f"""COMMENT ON COLUMN {table_name}.{field_name} IS '{"".join(comment_parts)}';"""
 
     def _map_to_fraiseql_type(self, field_def: FieldDefinition) -> str:
         """Map SpecQL field type to FraiseQL GraphQL type"""
@@ -113,20 +115,6 @@ Trinity Pattern Helper: Resolves internal pk_{entity_lower} to external UUID.
 entity: {entity.name}
 converts: INTEGER -> UUID';"""
 
-    def annotate_vector_column(self, entity: EntityDefinition) -> str:
-        """Generate FraiseQL annotation for vector column"""
-        entity_lower = entity.name.lower()
-
-        return f"""
-COMMENT ON COLUMN {entity.schema}.tv_{entity_lower}.embedding IS
-'Vector embedding for semantic similarity search.
-
-@fraiseql:field
-name: embedding
-type: [Float!]
-description: Vector embedding (384 dimensions) for similarity queries
-operators: cosine_distance, l2_distance, inner_product';
-"""
 
     def annotate_fulltext_column(self, entity: EntityDefinition) -> str:
         """Generate FraiseQL annotation for full-text search column"""
@@ -143,36 +131,21 @@ description: Full-text search vector (auto-generated from text fields)
 operators: matches, plain_query, phrase_query, websearch_query';
 """
 
-    def annotate_custom_search_function(self, entity: EntityDefinition) -> str:
-        """
-        Annotate custom search function (only when search_functions=true)
-
-        Note: This is legacy support. FraiseQL native operators are preferred.
-        """
-        entity_lower = entity.name.lower()
-
-        return f"""
-COMMENT ON FUNCTION {entity.schema}.search_{entity_lower}_by_embedding IS
-'[LEGACY] Custom similarity search function.
-
-NOTE: This function is provided for direct SQL access. For GraphQL queries,
-use FraiseQL''s native vector operators instead:
-
-  query {{
-    documents(
-      where: {{ embedding: {{ cosine_distance: [...] }} }}
-      orderBy: {{ embedding: {{ cosine_distance: [...] }} }}
-    ) {{ id, title }}
-  }}
-
-@fraiseql:query
-name: search{entity.name}ByEmbedding
-type: [{entity.name}!]!
-deprecated: Use native vector operators instead';
-"""
 
     def generate_annotations(self, entity: EntityDefinition) -> str:
-        """Generate all FraiseQL annotations for an entity"""
+        """
+        Generate FraiseQL annotations for an entity
+
+        FraiseQL 1.5 auto-discovers:
+        - Vector columns (vector type)
+        - Vector operators (cosineDistance, l2Distance, innerProduct)
+        - Full-text columns (tsvector type)
+
+        SpecQL only annotates:
+        - Tables and views (descriptions, trinity pattern metadata)
+        - Fields (type mapping, descriptions)
+        - Helper functions (UUID/PK converters)
+        """
         annotations = []
 
         # Table annotations
@@ -182,67 +155,13 @@ deprecated: Use native vector operators instead';
         # Field annotations
         annotations.append(self.annotate_fields(entity))
 
-        # Vector column annotations (if semantic search enabled)
-        if "semantic_search" in (entity.features or []):
-            annotations.append(self.annotate_vector_column(entity))
-
         # Full-text column annotations (if full-text search enabled)
+        # Note: Vector columns are auto-discovered, no annotation needed
         if "full_text_search" in (entity.features or []):
             annotations.append(self.annotate_fulltext_column(entity))
 
         # Helper functions
         annotations.append(self.annotate_helper_functions(entity))
 
-        # Search functions (only if enabled)
-        if getattr(entity, 'search_functions', True):  # Default True
-            annotations.append(self.annotate_search_functions(entity))
-
         return "\n\n".join(filter(None, annotations))
 
-    def annotate_search_functions(self, entity: EntityDefinition) -> str:
-        """Generate FraiseQL annotations for search functions"""
-        annotations = []
-
-        # Vector search function
-        vector_annotation = f"""COMMENT ON FUNCTION {entity.schema}.search_{entity.name.lower()}_by_embedding(vector(384), INTEGER, FLOAT) IS
-'Semantic similarity search for {entity.name} using vector embeddings.
-
-Args:
-- p_query_embedding: Query vector (384 dimensions)
-- p_limit: Maximum results to return
-- p_min_similarity: Minimum similarity threshold (0.0 - 1.0)
-
-Returns:
-- Matching entities with similarity scores, ordered by relevance
-
-@fraiseql:query
-name: search{entity.name}ByEmbedding
-type: [{entity.name}!]!
-args:
-  - queryEmbedding: [Float!]!
-  - limit: Int
-  - minSimilarity: Float';"""
-
-        annotations.append(vector_annotation)
-
-        # Full-text search function
-        text_annotation = f"""COMMENT ON FUNCTION {entity.schema}.search_{entity.name.lower()}_by_text(TEXT, INTEGER) IS
-'Full-text search for {entity.name} using PostgreSQL tsvector.
-
-Args:
-- p_query: Search query (websearch syntax supported)
-- p_limit: Maximum results
-
-Returns:
-- Matching entities with relevance rank
-
-@fraiseql:query
-name: search{entity.name}ByText
-type: [{entity.name}!]!
-args:
-  - query: String!
-  - limit: Int';"""
-
-        annotations.append(text_annotation)
-
-        return "\n\n".join(annotations)

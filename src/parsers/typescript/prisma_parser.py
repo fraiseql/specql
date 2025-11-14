@@ -19,16 +19,19 @@ class PrismaParser:
 
     def __init__(self):
         self.type_mapping = {
-            'String': FieldType.TEXT,
-            'Int': FieldType.INTEGER,
-            'BigInt': FieldType.INTEGER,
-            'Float': FieldType.RICH,  # Use RICH for decimal types
-            'Decimal': FieldType.RICH,
-            'Boolean': FieldType.BOOLEAN,
-            'DateTime': FieldType.DATETIME,
-            'Json': FieldType.RICH,  # JSON as rich type
-            'Bytes': FieldType.RICH,  # Binary as rich type
+            "String": FieldType.TEXT,
+            "Int": FieldType.INTEGER,
+            "BigInt": FieldType.INTEGER,
+            "Float": FieldType.RICH,  # Use RICH for decimal types
+            "Decimal": FieldType.RICH,
+            "Boolean": FieldType.BOOLEAN,
+            "DateTime": FieldType.DATETIME,
+            "Json": FieldType.RICH,  # JSON as rich type
+            "Bytes": FieldType.RICH,  # Binary as rich type
         }
+
+        # Pre-compile regex patterns for better performance
+        self.model_pattern = re.compile(r"model\s+(\w+)\s*\{([^}]+)\}", re.DOTALL)
 
     def parse_schema_file(self, schema_path: str) -> List[UniversalEntity]:
         """
@@ -60,8 +63,7 @@ class PrismaParser:
         entities = []
 
         # Split content into model blocks
-        model_pattern = r'model\s+(\w+)\s*\{([^}]+)\}'
-        matches = re.findall(model_pattern, content, re.DOTALL)
+        matches = self.model_pattern.findall(content)
 
         for model_name, model_content in matches:
             try:
@@ -74,15 +76,17 @@ class PrismaParser:
 
         return entities
 
-    def _parse_model(self, model_name: str, model_content: str) -> Optional[UniversalEntity]:
+    def _parse_model(
+        self, model_name: str, model_content: str
+    ) -> Optional[UniversalEntity]:
         """Parse a single Prisma model."""
         fields = []
 
         # Split into lines and parse each field
-        lines = [line.strip() for line in model_content.split('\n') if line.strip()]
+        lines = [line.strip() for line in model_content.split("\n") if line.strip()]
 
         for line in lines:
-            if line.startswith('//') or line.startswith('@@'):
+            if line.startswith("//") or line.startswith("@@"):
                 continue  # Skip comments and model-level attributes
 
             field = self._parse_field_line(line)
@@ -98,7 +102,7 @@ class PrismaParser:
             schema="public",
             fields=fields,
             actions=[],  # No actions from Prisma schema
-            description=f"Prisma model {model_name}"
+            description=f"Prisma model {model_name}",
         )
 
         return entity
@@ -106,7 +110,7 @@ class PrismaParser:
     def _parse_field_line(self, line: str) -> Optional[UniversalField]:
         """Parse a single field line from a Prisma model."""
         # Remove trailing comma and split
-        line = line.rstrip(',')
+        line = line.rstrip(",")
         parts = line.split()
 
         if len(parts) < 2:
@@ -115,43 +119,50 @@ class PrismaParser:
         field_name = parts[0]
         field_type = parts[1]
 
+        # Handle relation fields (they have @relation)
+        # These are like: author User @relation(...)
+        is_relation_field = "@relation" in line
+
         # Check for optional field
-        is_optional = field_type.endswith('?')
+        is_optional = field_type.endswith("?")
         if is_optional:
             field_type = field_type[:-1]
 
-        # Check for array type
-        is_array = field_type.startswith('[') and field_type.endswith(']')
+        # Check for array type (String[] syntax)
+        is_array = field_type.endswith("[]")
         if is_array:
-            field_type = field_type[1:-1]
+            field_type = field_type[:-2]  # Remove []
 
-        # Check for relationship (references another model)
-        if '@relation' in line:
-            # This is a foreign key field
+        # Determine field type
+        if is_relation_field:
+            # Relation navigation fields
+            specql_type = FieldType.REFERENCE
+        elif field_name.endswith("Id") and field_type in ["Int", "String"]:
+            # Foreign key fields
             specql_type = FieldType.REFERENCE
         else:
-            # Map Prisma type to SpecQL FieldType
+            # Regular fields
             specql_type = self._map_prisma_type(field_type, is_array)
 
         # Check for @unique
-        is_unique = '@unique' in line
+        is_unique = "@unique" in line
 
         field = UniversalField(
             name=field_name,
             type=specql_type,
             required=not is_optional,
-            unique=is_unique
+            unique=is_unique,
         )
 
-        # Set reference target for foreign keys
-        if '@relation' in line and 'references:' in line:
-            ref_match = re.search(r'references:\s*\[([^\]]+)\]', line)
-            if ref_match:
-                referenced_fields = [f.strip() for f in ref_match.group(1).split(',')]
-                if referenced_fields:
-                    # For now, assume the field references the same model name
-                    # In a full implementation, we'd need to parse the relation args more carefully
-                    field.references = field_type
+        # Set references for relation fields
+        if is_relation_field:
+            # For relation fields like "author User @relation(...)", the type is the referenced model
+            field.references = field_type
+        elif field_name.endswith("Id") and field_type in ["Int", "String"]:
+            # For foreign key fields, infer the model name
+            potential_model = field_name[:-2]
+            if potential_model:
+                field.references = potential_model
 
         return field
 
@@ -174,4 +185,4 @@ class PrismaParser:
         Returns:
             List of UniversalEntity objects
         """
-        return self.parse_schema_file(schema_path)</content>
+        return self.parse_schema_file(schema_path)
