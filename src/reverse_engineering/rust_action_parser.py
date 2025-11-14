@@ -54,7 +54,7 @@ class RustActionParser:
 
     def extract_endpoints(self, file_path: Path) -> List[Dict[str, Any]]:
         """Extract API endpoints from route handlers."""
-        structs, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
+        structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
             self.rust_parser.parse_file(file_path)
         )
 
