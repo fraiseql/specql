@@ -30,7 +30,10 @@ from src.core.ast_models import (
     TableViewMode,
 )
 from src.core.exceptions import SpecQLValidationError
-from src.core.reserved_fields import get_reserved_field_error_message, is_reserved_field_name
+from src.core.reserved_fields import (
+    get_reserved_field_error_message,
+    is_reserved_field_name,
+)
 from src.core.scalar_types import (
     get_composite_type,
     get_scalar_type,
@@ -91,7 +94,9 @@ class SpecQLParser:
             # Complex format
             entity_name = data["entity"]["name"]
             entity_schema = data["entity"].get("schema", data.get("schema", "public"))
-            entity_description = data["entity"].get("description", data.get("description", ""))
+            entity_description = data["entity"].get(
+                "description", data.get("description", "")
+            )
         else:
             # Lightweight format
             entity_name = data["entity"]
@@ -116,7 +121,8 @@ class SpecQLParser:
             # VALIDATION: Check if field name is reserved
             if is_reserved_field_name(field_name):
                 raise SpecQLValidationError(
-                    entity=entity_name, message=get_reserved_field_error_message(field_name)
+                    entity=entity_name,
+                    message=get_reserved_field_error_message(field_name),
                 )
 
             field = self._parse_field(field_name, field_spec)
@@ -153,7 +159,9 @@ class SpecQLParser:
 
         # Parse table_views configuration (CQRS)
         if "table_views" in data:
-            entity.table_views = self._parse_table_views(data["table_views"], entity_name)
+            entity.table_views = self._parse_table_views(
+                data["table_views"], entity_name
+            )
 
         # Parse features (vector search, etc.)
         if "features" in data:
@@ -191,8 +199,12 @@ class SpecQLParser:
             # Complex format
             entity_name = data["entity"]["name"]
             entity_schema = data["entity"].get("schema", data.get("schema", "app"))
-            entity_description = data["entity"].get("description", data.get("description", ""))
-            is_multi_tenant = data["entity"].get("multi_tenant", data.get("multi_tenant", True))
+            entity_description = data["entity"].get(
+                "description", data.get("description", "")
+            )
+            is_multi_tenant = data["entity"].get(
+                "multi_tenant", data.get("multi_tenant", True)
+            )
         else:
             # Lightweight format
             entity_name = data["entity"]
@@ -213,7 +225,8 @@ class SpecQLParser:
             # VALIDATION: Check if field name is reserved
             if is_reserved_field_name(field_name):
                 raise SpecQLValidationError(
-                    entity=entity_name, message=get_reserved_field_error_message(field_name)
+                    entity=entity_name,
+                    message=get_reserved_field_error_message(field_name),
                 )
 
             field = self._parse_universal_field(field_name, field_spec)
@@ -235,7 +248,9 @@ class SpecQLParser:
             description=entity_description,
         )
 
-    def _parse_universal_field(self, field_name: str, field_spec: Any) -> UniversalField:
+    def _parse_universal_field(
+        self, field_name: str, field_spec: Any
+    ) -> UniversalField:
         """
         Parse a field definition to UniversalField
 
@@ -249,21 +264,24 @@ class SpecQLParser:
         # Handle string format (lightweight)
         return self._parse_universal_field_string(field_name, field_spec)
 
-    def _parse_universal_field_string(self, field_name: str, field_spec: str) -> UniversalField:
+    def _parse_universal_field_string(
+        self, field_name: str, field_spec: str
+    ) -> UniversalField:
         """Parse field from string specification to UniversalField"""
 
         type_str = str(field_spec).strip()
         required = False
         default = None
 
-        if type_str.endswith("!"):
-            required = True
-            type_str = type_str[:-1]
-
-        # Check for default value
+        # Check for default value first
         if " = " in type_str:
             type_str, default_str = type_str.split(" = ", 1)
             default = default_str.strip().strip("'\"")
+
+        # Then check for required marker
+        if type_str.endswith("!"):
+            required = True
+            type_str = type_str[:-1]
 
         # Map SpecQL types to Universal FieldType
         if type_str == "text":
@@ -278,6 +296,8 @@ class SpecQLParser:
             field_type = FieldType.REFERENCE
         elif type_str.startswith("enum(") and type_str.endswith(")"):
             field_type = FieldType.ENUM
+        elif type_str.startswith("list(") and type_str.endswith(")"):
+            field_type = FieldType.LIST
         elif is_scalar_type(type_str):
             field_type = FieldType.RICH
         else:
@@ -288,6 +308,7 @@ class SpecQLParser:
         references = None
         enum_values = None
         composite_type = None
+        list_item_type = None
 
         if field_type == FieldType.REFERENCE:
             # Extract referenced entity: ref(Company) -> Company
@@ -301,6 +322,12 @@ class SpecQLParser:
             if enum_match:
                 enum_values = [v.strip() for v in enum_match.group(1).split(",")]
 
+        elif field_type == FieldType.LIST:
+            # Extract list item type: list(text) -> text
+            list_match = re.match(r"list\(([^)]+)\)", type_str)
+            if list_match:
+                list_item_type = list_match.group(1)
+
         elif field_type == FieldType.RICH:
             composite_type = type_str
 
@@ -312,20 +339,60 @@ class SpecQLParser:
             references=references,
             enum_values=enum_values,
             composite_type=composite_type,
+            list_item_type=list_item_type,
         )
 
-    def _parse_universal_field_dict(self, field_name: str, field_spec: dict) -> UniversalField:
+    def _parse_universal_field_dict(
+        self, field_name: str, field_spec: dict
+    ) -> UniversalField:
         """Parse field from dict specification to UniversalField"""
-        # For now, delegate to string parsing with the type field
-        type_str = field_spec.get("type", "text")
-        if "nullable" in field_spec and field_spec["nullable"] is False:
-            type_str += "!"
-        if "default" in field_spec:
-            type_str += f" = {field_spec['default']}"
+        type_name = field_spec.get("type", "text")
+        nullable = field_spec.get("nullable", True)
+        default = field_spec.get("default")
 
-        return self._parse_universal_field_string(field_name, type_str)
+        # Map type name to FieldType
+        if type_name == "text":
+            field_type = FieldType.TEXT
+        elif type_name == "integer":
+            field_type = FieldType.INTEGER
+        elif type_name == "boolean":
+            field_type = FieldType.BOOLEAN
+        elif type_name == "datetime":
+            field_type = FieldType.DATETIME
+        elif type_name == "enum":
+            field_type = FieldType.ENUM
+        elif type_name == "reference":
+            field_type = FieldType.REFERENCE
+        elif type_name == "list":
+            field_type = FieldType.LIST
+        else:
+            field_type = FieldType.TEXT  # Default
 
-    def _parse_universal_action(self, action_spec: dict, entity_name: str) -> UniversalAction:
+        # Extract metadata based on type
+        references = None
+        enum_values = None
+        list_item_type = None
+
+        if field_type == FieldType.REFERENCE:
+            references = field_spec.get("references")
+        elif field_type == FieldType.ENUM:
+            enum_values = field_spec.get("values", [])
+        elif field_type == FieldType.LIST:
+            list_item_type = field_spec.get("items")
+
+        return UniversalField(
+            name=field_name,
+            type=field_type,
+            required=not nullable,
+            default=default,
+            references=references,
+            enum_values=enum_values,
+            list_item_type=list_item_type,
+        )
+
+    def _parse_universal_action(
+        self, action_spec: dict, entity_name: str
+    ) -> UniversalAction:
         """Parse action specification to UniversalAction"""
         if not isinstance(action_spec, dict):
             raise ParseError("Action must be a dictionary")
@@ -336,7 +403,9 @@ class SpecQLParser:
 
         description = action_spec.get("description")
         steps_data = action_spec.get("steps", [])
-        impacts = action_spec.get("impacts", [entity_name])  # Default to affecting the entity
+        impacts = action_spec.get(
+            "impacts", [entity_name]
+        )  # Default to affecting the entity
 
         steps = []
         for step_data in steps_data:
@@ -359,7 +428,16 @@ class SpecQLParser:
         # Extract step type
         step_type_str = None
         for key in step_data.keys():
-            if key in ["validate", "if", "insert", "update", "delete", "call", "notify", "foreach"]:
+            if key in [
+                "validate",
+                "if",
+                "insert",
+                "update",
+                "delete",
+                "call",
+                "notify",
+                "foreach",
+            ]:
                 step_type_str = key
                 break
 
@@ -657,7 +735,11 @@ class SpecQLParser:
         )
 
     def _parse_basic_field(
-        self, field_name: str, type_name: str, nullable: bool, default: str | None = None
+        self,
+        field_name: str,
+        type_name: str,
+        nullable: bool,
+        default: str | None = None,
     ) -> FieldDefinition:
         """Parse basic type field (text, integer, etc.)"""
 
@@ -835,8 +917,12 @@ class SpecQLParser:
     def _parse_if_step(self, step_data: dict) -> ActionStep:
         """Parse if/then/else step"""
         condition = step_data["if"]
-        then_steps = [self._parse_single_step(step) for step in step_data.get("then", [])]
-        else_steps = [self._parse_single_step(step) for step in step_data.get("else", [])]
+        then_steps = [
+            self._parse_single_step(step) for step in step_data.get("then", [])
+        ]
+        else_steps = [
+            self._parse_single_step(step) for step in step_data.get("else", [])
+        ]
 
         # Validate condition field references
         self._validate_expression_fields(condition, self.current_entity_fields)
@@ -898,7 +984,10 @@ class SpecQLParser:
             self._validate_expression_fields(where_clause, self.current_entity_fields)
 
         return ActionStep(
-            type="update", entity=entity, fields={"raw_set": raw_set}, where_clause=where_clause
+            type="update",
+            entity=entity,
+            fields={"raw_set": raw_set},
+            where_clause=where_clause,
         )
 
     def _parse_delete_step(self, step_data: dict) -> ActionStep:
@@ -954,7 +1043,10 @@ class SpecQLParser:
                     arguments[key] = value
 
         return ActionStep(
-            type="call", function_name=function_name, arguments=arguments, store_result=store_result
+            type="call",
+            function_name=function_name,
+            arguments=arguments,
+            store_result=store_result,
         )
 
     def _parse_notify_step(self, step_data: dict) -> ActionStep:
@@ -1008,7 +1100,9 @@ class SpecQLParser:
             # Parse propagate entities
             propagate_entities = refresh_config.get("propagate", [])
             if not isinstance(propagate_entities, list):
-                raise ParseError("refresh_table_view.propagate must be a list of entity names")
+                raise ParseError(
+                    "refresh_table_view.propagate must be a list of entity names"
+                )
 
             # Parse strategy
             strategy = refresh_config.get("strategy", "immediate")
@@ -1099,7 +1193,9 @@ class SpecQLParser:
         expression_without_quotes = re.sub(r"['\"]([^'\"]*)['\"]", "", expression)
 
         # Extract potential field names (words that could be field references)
-        potential_fields = re.findall(r"\b([a-z_][a-z0-9_]*)\b", expression_without_quotes.lower())
+        potential_fields = re.findall(
+            r"\b([a-z_][a-z0-9_]*)\b", expression_without_quotes.lower()
+        )
 
         # Keywords that are not field names
         keywords = {
@@ -1158,7 +1254,9 @@ class SpecQLParser:
 
         # Parse separators
         hierarchy_separator = id_config.get("separator", Separators.HIERARCHY)
-        composition_separator = id_config.get("composition_separator", Separators.COMPOSITION)
+        composition_separator = id_config.get(
+            "composition_separator", Separators.COMPOSITION
+        )
         internal_separator = id_config.get("internal_separator", Separators.INTERNAL)
 
         # Parse components
@@ -1172,7 +1270,9 @@ class SpecQLParser:
             components=components,
         )
 
-    def _parse_identifier_components(self, components: list[Any]) -> list[IdentifierComponent]:
+    def _parse_identifier_components(
+        self, components: list[Any]
+    ) -> list[IdentifierComponent]:
         """Parse identifier components (with strip_tenant_prefix support)."""
 
         result = []
@@ -1190,7 +1290,9 @@ class SpecQLParser:
                         format=comp.get("format"),
                         separator=comp.get("separator", ""),
                         replace=comp.get("replace"),
-                        strip_tenant_prefix=comp.get("strip_tenant_prefix", False),  # NEW
+                        strip_tenant_prefix=comp.get(
+                            "strip_tenant_prefix", False
+                        ),  # NEW
                     )
                 )
 
@@ -1238,7 +1340,9 @@ class SpecQLParser:
             refresh=refresh,
         )
 
-    def _parse_include_relation(self, config: dict, entity_name: str) -> IncludeRelation:
+    def _parse_include_relation(
+        self, config: dict, entity_name: str
+    ) -> IncludeRelation:
         """Parse include_relations entry."""
 
         # Format: - entity_name: { fields: [...], include_relations: [...] }
@@ -1273,7 +1377,9 @@ class SpecQLParser:
                 nested_relations.append(nested)
 
         return IncludeRelation(
-            entity_name=relation_entity, fields=fields, include_relations=nested_relations
+            entity_name=relation_entity,
+            fields=fields,
+            include_relations=nested_relations,
         )
 
     def _parse_extra_filter_column(self, config, entity_name: str) -> ExtraFilterColumn:
@@ -1297,7 +1403,8 @@ class SpecQLParser:
 
         else:
             raise SpecQLValidationError(
-                entity=entity_name, message="extra_filter_columns must be string or dict"
+                entity=entity_name,
+                message="extra_filter_columns must be string or dict",
             )
 
     def _parse_declare_step(self, step_data: dict) -> ActionStep:
@@ -1312,7 +1419,7 @@ class SpecQLParser:
                 type="declare",
                 variable_name=declare_data["name"],
                 variable_type=declare_data.get("type", "text"),
-                default_value=declare_data.get("default")
+                default_value=declare_data.get("default"),
             )
 
         # Multiple declarations
@@ -1321,14 +1428,11 @@ class SpecQLParser:
                 VariableDeclaration(
                     name=decl["name"],
                     type=decl.get("type", "text"),
-                    default_value=decl.get("default")
+                    default_value=decl.get("default"),
                 )
                 for decl in declare_data
             ]
-            return ActionStep(
-                type="declare",
-                declarations=declarations
-            )
+            return ActionStep(type="declare", declarations=declarations)
 
         else:
             raise ParseError("Invalid declare step format")
@@ -1340,7 +1444,7 @@ class SpecQLParser:
             type="cte",
             cte_name=cte_data["name"],
             cte_query=cte_data["query"],
-            cte_materialized=cte_data.get("materialized", False)
+            cte_materialized=cte_data.get("materialized", False),
         )
 
     def _parse_aggregate_step(self, step_data: dict) -> ActionStep:
@@ -1353,7 +1457,7 @@ class SpecQLParser:
             aggregate_from=aggregate_data["from"],
             aggregate_where=aggregate_data.get("where"),
             aggregate_group_by=aggregate_data.get("group_by"),
-            aggregate_as=aggregate_data["as"]
+            aggregate_as=aggregate_data["as"],
         )
 
     def _parse_subquery_step(self, step_data: dict) -> ActionStep:
@@ -1362,7 +1466,7 @@ class SpecQLParser:
         return ActionStep(
             type="subquery",
             subquery_query=subquery_data["query"],
-            subquery_result_variable=subquery_data["as"]
+            subquery_result_variable=subquery_data["as"],
         )
 
     def _parse_call_function_step(self, step_data: dict) -> ActionStep:
@@ -1372,7 +1476,7 @@ class SpecQLParser:
             type="call_function",
             call_function_name=call_data["function"],
             call_function_arguments=call_data.get("arguments", {}),
-            call_function_return_variable=call_data.get("returns")
+            call_function_return_variable=call_data.get("returns"),
         )
 
     def _parse_switch_step(self, step_data: dict) -> ActionStep:
@@ -1388,20 +1492,24 @@ class SpecQLParser:
             case = SwitchCase(
                 when_condition=None,  # Not used for simple switches
                 when_value=when_value,
-                then_steps=[self._parse_single_step(step) for step in case_data.get("then", [])]
+                then_steps=[
+                    self._parse_single_step(step) for step in case_data.get("then", [])
+                ],
             )
             cases.append(case)
 
         # Parse default steps
         default_steps = []
         if "default" in switch_data:
-            default_steps = [self._parse_single_step(step) for step in switch_data["default"]]
+            default_steps = [
+                self._parse_single_step(step) for step in switch_data["default"]
+            ]
 
         return ActionStep(
             type="switch",
             switch_expression=switch_data.get("expression"),
             cases=cases,
-            default_steps=default_steps
+            default_steps=default_steps,
         )
 
     def _parse_return_early_step(self, step_data: dict) -> ActionStep:
@@ -1410,16 +1518,10 @@ class SpecQLParser:
 
         # Handle both dict format and simple value format
         if isinstance(return_data, dict):
-            return ActionStep(
-                type="return_early",
-                return_value=return_data
-            )
+            return ActionStep(type="return_early", return_value=return_data)
         else:
             # Simple value like NULL, a string, etc.
-            return ActionStep(
-                type="return_early",
-                return_value=return_data
-            )
+            return ActionStep(type="return_early", return_value=return_data)
 
     def _parse_while_step(self, step_data: dict) -> ActionStep:
         """Parse while loop"""
@@ -1427,7 +1529,9 @@ class SpecQLParser:
         return ActionStep(
             type="while",
             while_condition=while_data,
-            loop_body=[self._parse_single_step(step) for step in step_data.get("loop", [])]
+            loop_body=[
+                self._parse_single_step(step) for step in step_data.get("loop", [])
+            ],
         )
 
     def _parse_for_query_step(self, step_data: dict) -> ActionStep:
@@ -1437,7 +1541,9 @@ class SpecQLParser:
             type="for_query",
             for_query_sql=for_data,
             for_query_alias=step_data.get("as"),
-            for_query_body=[self._parse_single_step(step) for step in step_data.get("loop", [])]
+            for_query_body=[
+                self._parse_single_step(step) for step in step_data.get("loop", [])
+            ],
         )
 
     def _parse_exception_handling_step(self, step_data: dict) -> ActionStep:
@@ -1449,15 +1555,21 @@ class SpecQLParser:
         for catch_data in eh_data.get("catch", []):
             handler = ExceptionHandler(
                 when_condition=catch_data["when"],
-                then_steps=[self._parse_single_step(step) for step in catch_data.get("then", [])]
+                then_steps=[
+                    self._parse_single_step(step) for step in catch_data.get("then", [])
+                ],
             )
             catch_handlers.append(handler)
 
         return ActionStep(
             type="exception_handling",
-            try_steps=[self._parse_single_step(step) for step in eh_data.get("try", [])],
+            try_steps=[
+                self._parse_single_step(step) for step in eh_data.get("try", [])
+            ],
             catch_handlers=catch_handlers,
-            finally_steps=[self._parse_single_step(step) for step in eh_data.get("finally", [])]
+            finally_steps=[
+                self._parse_single_step(step) for step in eh_data.get("finally", [])
+            ],
         )
 
     def _parse_json_build_step(self, step_data: dict) -> ActionStep:
@@ -1466,7 +1578,7 @@ class SpecQLParser:
         return ActionStep(
             type="json_build",
             json_variable_name=json_data["name"],
-            json_object=json_data["object"]
+            json_object=json_data["object"],
         )
 
     def _parse_array_build_step(self, step_data: dict) -> ActionStep:
@@ -1475,7 +1587,7 @@ class SpecQLParser:
         return ActionStep(
             type="array_build",
             array_variable_name=array_data["name"],
-            array_elements=array_data["elements"]
+            array_elements=array_data["elements"],
         )
 
     def _parse_upsert_step(self, step_data: dict) -> ActionStep:
@@ -1486,7 +1598,7 @@ class SpecQLParser:
             upsert_entity=upsert_data["entity"],
             upsert_fields=upsert_data["fields"],
             upsert_conflict_target=upsert_data["conflict_target"],
-            upsert_conflict_action=upsert_data["conflict_action"]
+            upsert_conflict_action=upsert_data["conflict_action"],
         )
 
     def _parse_batch_operation_step(self, step_data: dict) -> ActionStep:
@@ -1496,7 +1608,7 @@ class SpecQLParser:
             type="batch_operation",
             batch_operation_type=batch_data["type"],
             batch_entity=batch_data["entity"],
-            batch_data=batch_data["data"]
+            batch_data=batch_data["data"],
         )
 
     def _parse_window_function_step(self, step_data: dict) -> ActionStep:
@@ -1508,16 +1620,13 @@ class SpecQLParser:
             window_partition_by=wf_data.get("partition_by"),
             window_order_by=wf_data.get("order_by"),
             window_frame=wf_data.get("frame"),
-            window_as=wf_data.get("as")
+            window_as=wf_data.get("as"),
         )
 
     def _parse_return_table_step(self, step_data: dict) -> ActionStep:
         """Parse return_table step"""
         rt_data = step_data["return_table"]
-        return ActionStep(
-            type="return_table",
-            return_table_query=rt_data["query"]
-        )
+        return ActionStep(type="return_table", return_table_query=rt_data["query"])
 
     def _parse_cursor_step(self, step_data: dict) -> ActionStep:
         """Parse cursor step"""
@@ -1526,7 +1635,7 @@ class SpecQLParser:
             type="cursor",
             cursor_name=cursor_data["name"],
             cursor_query=cursor_data["query"],
-            cursor_operations=cursor_data.get("operations")
+            cursor_operations=cursor_data.get("operations"),
         )
 
     def _parse_recursive_cte_step(self, step_data: dict) -> ActionStep:
@@ -1536,7 +1645,7 @@ class SpecQLParser:
             type="recursive_cte",
             recursive_cte_name=rcte_data["name"],
             recursive_cte_base_query=rcte_data["base_query"],
-            recursive_cte_recursive_query=rcte_data["recursive_query"]
+            recursive_cte_recursive_query=rcte_data["recursive_query"],
         )
 
     def _parse_dynamic_sql_step(self, step_data: dict) -> ActionStep:
@@ -1546,29 +1655,22 @@ class SpecQLParser:
             type="dynamic_sql",
             dynamic_sql_template=ds_data["template"],
             dynamic_sql_parameters=ds_data.get("parameters"),
-            dynamic_sql_result_variable=ds_data.get("result_variable")
+            dynamic_sql_result_variable=ds_data.get("result_variable"),
         )
 
     def _parse_transaction_control_step(self, step_data: dict) -> ActionStep:
         """Parse transaction_control step"""
         tc_data = step_data["transaction_control"]
         return ActionStep(
-            type="transaction_control",
-            transaction_command=tc_data["command"]
+            type="transaction_control", transaction_command=tc_data["command"]
         )
 
     def _parse_query_step(self, step_data: dict) -> ActionStep:
         """Parse query step"""
         query_data = step_data["query"]
-        return ActionStep(
-            type="query",
-            expression=query_data
-        )
+        return ActionStep(type="query", expression=query_data)
 
     def _parse_return_step(self, step_data: dict) -> ActionStep:
         """Parse return step"""
         return_data = step_data["return"]
-        return ActionStep(
-            type="return",
-            expression=return_data
-        )
+        return ActionStep(type="return", expression=return_data)

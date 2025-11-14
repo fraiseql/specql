@@ -64,9 +64,7 @@ def generate(
 
     # Resolve framework (explicit > auto-detect > default)
     resolved_framework = registry.resolve_framework(
-        explicit_framework=framework,
-        dev_mode=dev,
-        auto_detect=True
+        explicit_framework=framework, dev_mode=dev, auto_detect=True
     )
 
     # Get effective defaults for the resolved framework
@@ -74,13 +72,19 @@ def generate(
         framework=resolved_framework,
         dev_mode=dev,
         no_tv=no_tv,
-        custom_output_dir=output_dir
+        custom_output_dir=output_dir,
     )
 
     # Apply framework-aware defaults (Phase 3: production-ready defaults)
-    use_registry = effective_defaults.get("use_registry", True)  # CHANGED: Default to True
-    output_format = effective_defaults.get("output_format", "hierarchical")  # CHANGED: Default to hierarchical
-    include_tv = effective_defaults.get("include_tv", True) if not include_tv else include_tv  # CHANGED: Default to True for FraiseQL
+    use_registry = effective_defaults.get(
+        "use_registry", True
+    )  # CHANGED: Default to True
+    output_format = effective_defaults.get(
+        "output_format", "hierarchical"
+    )  # CHANGED: Default to hierarchical
+    include_tv = (
+        effective_defaults.get("include_tv", True) if not include_tv else include_tv
+    )  # CHANGED: Default to True for FraiseQL
     output_dir = effective_defaults.get("output_dir", "migrations")
 
     # Show framework selection if different from default
@@ -88,11 +92,14 @@ def generate(
         click.echo(f"🎯 Using {resolved_framework} framework defaults")
 
     # Check for compatibility warnings
-    warnings = registry.validate_framework_compatibility(resolved_framework, {
-        "include_tv": include_tv,
-        "dev_mode": dev,
-        "no_tv": no_tv,
-    })
+    warnings = registry.validate_framework_compatibility(
+        resolved_framework,
+        {
+            "include_tv": include_tv,
+            "dev_mode": dev,
+            "no_tv": no_tv,
+        },
+    )
 
     for warning_type, warning_msg in warnings.items():
         click.secho(f"⚠️  {warning_msg}", fg="yellow")
@@ -103,7 +110,7 @@ def generate(
             "⚠️  Using 'confiture' format with FraiseQL framework. "
             "Consider using 'hierarchical' format for better organization, "
             "or use --dev for development mode.",
-            fg="yellow"
+            fg="yellow",
         )
 
     if not use_registry and resolved_framework == "fraiseql" and not dev:
@@ -111,7 +118,7 @@ def generate(
             "⚠️  Registry disabled for FraiseQL framework. "
             "Table codes and hierarchical paths will not be generated. "
             "Use --dev for development mode or specify --framework explicitly.",
-            fg="yellow"
+            fg="yellow",
         )
 
     # Create orchestrator with framework-aware settings
@@ -119,7 +126,7 @@ def generate(
         use_registry=use_registry,
         output_format=output_format,
         verbose=verbose,
-        framework=resolved_framework
+        framework=resolved_framework,
     )
 
     # Generate schema
@@ -135,6 +142,7 @@ def generate(
     except Exception as e:
         print(f"DEBUG: Exception in generate_from_files: {e}")
         import traceback
+
         traceback.print_exc()
         return 1
 
@@ -157,19 +165,27 @@ def generate(
             builder.build()
 
             output_path = Path(f"db/generated/schema_{env}.sql")
-            click.secho(f"✅ Complete! Migration written to: {output_path}", fg="green", bold=True)
+            click.secho(
+                f"✅ Complete! Migration written to: {output_path}",
+                fg="green",
+                bold=True,
+            )
             click.echo("\nNext steps:")
             click.echo(f"  1. Review: cat {output_path}")
             click.echo(f"  2. Apply: confiture migrate up --env {env}")
             click.echo("  3. Status: confiture migrate status")
         except ImportError:
-            click.secho("⚠️  Confiture not available, generated schema files only", fg="yellow")
+            click.secho(
+                "⚠️  Confiture not available, generated schema files only", fg="yellow"
+            )
         except Exception as e:
             click.secho(f"❌ Confiture build failed: {e}", fg="red")
             return 1
 
     elif output_format == "hierarchical":
-        click.secho(f"\n📁 Hierarchical output written to: {output_dir}/", fg="blue", bold=True)
+        click.secho(
+            f"\n📁 Hierarchical output written to: {output_dir}/", fg="blue", bold=True
+        )
         click.echo("\nStructure:")
         click.echo("  migrations/")
         click.echo("    └── 01_write_side/")
@@ -208,7 +224,10 @@ def validate(entity_files, check_impacts, verbose):
 @specql.command("check-codes")
 @click.argument("entity_files", nargs=-1, required=True)
 @click.option(
-    "--format", type=click.Choice(["text", "json", "csv"]), default="text", help="Output format"
+    "--format",
+    type=click.Choice(["text", "json", "csv"]),
+    default="text",
+    help="Output format",
 )
 @click.option("--export", type=click.Path(), help="Export results to file")
 @click.pass_context
@@ -235,7 +254,9 @@ def check_codes(ctx, entity_files, format, export):
         if "*" in pattern or "?" in pattern:
             # It's a glob pattern
             matches = glob.glob(pattern, recursive=True)
-            file_paths.extend(Path(f) for f in matches if f.endswith(".yaml") or f.endswith(".yml"))
+            file_paths.extend(
+                Path(f) for f in matches if f.endswith(".yaml") or f.endswith(".yml")
+            )
         else:
             # It's a direct path
             path = Path(pattern)
@@ -296,7 +317,9 @@ def check_codes(ctx, entity_files, format, export):
                 for entity in entities:
                     click.echo(f"    - {entity}")
 
-            click.secho("\n❌ Fix duplicates before running 'specql generate'", fg="red")
+            click.secho(
+                "\n❌ Fix duplicates before running 'specql generate'", fg="red"
+            )
             ctx.exit(1)
         else:
             click.secho("✅ Table code uniqueness check PASSED", fg="green", bold=True)
@@ -326,9 +349,17 @@ def check_codes(ctx, entity_files, format, export):
 @specql.command()
 @click.argument("template_name", required=True)
 @click.argument("entity_name", required=True)
-@click.option("--output", "-o", type=click.Path(), help="Output file path (default: stdout)")
-@click.option("--custom-fields", type=click.Path(exists=True), help="YAML file with custom fields")
-@click.option("--config", type=click.Path(exists=True), help="YAML file with configuration overrides")
+@click.option(
+    "--output", "-o", type=click.Path(), help="Output file path (default: stdout)"
+)
+@click.option(
+    "--custom-fields", type=click.Path(exists=True), help="YAML file with custom fields"
+)
+@click.option(
+    "--config",
+    type=click.Path(exists=True),
+    help="YAML file with configuration overrides",
+)
 def instantiate(template_name, entity_name, output, custom_fields, config):
     """Instantiate an entity template
 
@@ -346,6 +377,7 @@ def instantiate(template_name, entity_name, output, custom_fields, config):
     try:
         # Initialize pattern library with persistent database
         import os
+
         db_path = os.path.expanduser("~/.specql/pattern_library.db")
         os.makedirs(os.path.dirname(db_path), exist_ok=True)
         library = PatternLibrary(db_path)
@@ -360,13 +392,13 @@ def instantiate(template_name, entity_name, output, custom_fields, config):
         # Load custom fields if provided
         custom_fields_data = {}
         if custom_fields:
-            with open(custom_fields, 'r') as f:
+            with open(custom_fields, "r") as f:
                 custom_fields_data = yaml.safe_load(f) or {}
 
         # Load config overrides if provided
         custom_config = {}
         if config:
-            with open(config, 'r') as f:
+            with open(config, "r") as f:
                 custom_config = yaml.safe_load(f) or {}
 
         # Instantiate template
@@ -374,7 +406,7 @@ def instantiate(template_name, entity_name, output, custom_fields, config):
             template,
             entity_name,
             custom_fields=custom_fields_data,
-            custom_config=custom_config
+            custom_config=custom_config,
         )
 
         # Convert to YAML
@@ -382,7 +414,7 @@ def instantiate(template_name, entity_name, output, custom_fields, config):
 
         if output:
             # Write to file
-            with open(output, 'w') as f:
+            with open(output, "w") as f:
                 f.write(yaml_output)
             click.secho(f"✅ Entity instantiated: {output}", fg="green")
         else:
@@ -421,7 +453,10 @@ def seed_templates(force):
         # Check if templates already exist
         existing_count = len(library.get_all_entity_templates())
         if existing_count > 0 and not force:
-            click.secho(f"⚠️  {existing_count} templates already exist. Use --force to reseed.", fg="yellow")
+            click.secho(
+                f"⚠️  {existing_count} templates already exist. Use --force to reseed.",
+                fg="yellow",
+            )
             return 0
 
         # Seed all templates
@@ -430,7 +465,9 @@ def seed_templates(force):
 
         # Show summary
         total_count = len(library.get_all_entity_templates())
-        click.secho(f"✅ Seeded {total_count} entity templates across 6 domains:", fg="green")
+        click.secho(
+            f"✅ Seeded {total_count} entity templates across 6 domains:", fg="green"
+        )
 
         # Show breakdown by domain
         domains = {}
@@ -443,7 +480,9 @@ def seed_templates(force):
 
         click.echo("\n📚 Available templates:")
         for template in library.get_all_entity_templates():
-            click.echo(f"  • {template['template_namespace']}.{template['template_name']}: {template['description'][:60]}...")
+            click.echo(
+                f"  • {template['template_namespace']}.{template['template_name']}: {template['description'][:60]}..."
+            )
 
     except Exception as e:
         click.secho(f"❌ Error seeding templates: {e}", fg="red")
@@ -471,47 +510,87 @@ specql.add_command(registry, name="registry")
 
 # Add domain management commands (PostgreSQL primary)
 from src.presentation.cli.domain import domain
+
 specql.add_command(domain, name="domain")
 
 # Add reverse engineering command
 from src.cli.reverse import reverse
+
 specql.add_command(reverse)
 
 # Add Python reverse engineering command
 from src.cli.reverse_python import reverse_python
+
 specql.add_command(reverse_python, name="reverse-python")
 
 # Add test reverse engineering command
 from src.cli.reverse_tests import reverse_tests
+
 specql.add_command(reverse_tests, name="reverse-tests")
 
 # Add embeddings command
 from src.cli.embeddings import embeddings_cli
+
 specql.add_command(embeddings_cli)
 
 # Add patterns command
 from src.cli.patterns import patterns_cli
+
 specql.add_command(patterns_cli)
 
 # Add templates command
 from src.cli.templates import templates
+
 specql.add_command(templates)
 
 # Interactive CLI
 from src.cli.interactive import interactive
+
 specql.add_command(interactive)
 
 # Diagram generation
 from src.cli.diagram import diagram
+
 specql.add_command(diagram)
 
 # CI/CD pipeline management
 from src.cli.cicd import cicd
+
 specql.add_command(cicd, name="cicd")
 
 # Infrastructure operations
 from src.cli.infrastructure import infrastructure
+
 specql.add_command(infrastructure, name="infrastructure")
+
+
+@specql.command()
+@click.argument("entity_file", type=click.Path(exists=True))
+@click.option("--output-dir", default="generated/java", help="Output directory")
+def generate_java(entity_file: str, output_dir: str):
+    """Generate Spring Boot Java code from SpecQL entity"""
+    from src.core.specql_parser import SpecQLParser
+    from src.generators.java.java_generator_orchestrator import (
+        JavaGeneratorOrchestrator,
+    )
+
+    click.secho("☕ Generating Spring Boot Java code...", fg="blue", bold=True)
+
+    # Parse SpecQL
+    parser = SpecQLParser()
+    with open(entity_file) as f:
+        entity = parser.parse_universal(f.read())
+
+    # Generate Java code
+    orchestrator = JavaGeneratorOrchestrator(output_dir)
+    files = orchestrator.generate_all(entity)
+    orchestrator.write_files(files)
+
+    click.echo(f"✅ Generated {len(files)} Java files in {output_dir}")
+    for file in files:
+        click.echo(f"  - {file.path}")
+
+    return 0
 
 
 if __name__ == "__main__":
