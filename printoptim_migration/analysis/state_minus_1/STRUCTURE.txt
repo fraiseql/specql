@@ -1,0 +1,29 @@
+=== State -1 Analysis: Pre-SpecQL Codebase ===
+
+Schema Directory Structure:
+../db/schema/
+├── 00_foundation
+│   └── 000_app_foundation.sql
+├── 10_tables
+│   └── locale.sql
+├── 20_helpers
+│   └── locale_helpers.sql
+└── 30_functions
+    ├── activate_locale.sql
+    ├── create_locale.sql
+    ├── deactivate_locale.sql
+    ├── get_default_locale_for_language.sql
+    ├── list_active_locales.sql
+    ├── list_locales_for_language.sql
+    └── set_as_default_for_language.sql
+
+5 directories, 10 files
+
+SQL File Inventory:
+Total SQL files: 10
+
+Identified Schemas:
+- app (application framework, audit logging, shared utilities)
+- catalog (business data - locales, languages)
+
+Seed Data:
