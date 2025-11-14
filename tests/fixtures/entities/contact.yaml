@@ -1,0 +1,8 @@
+entity: Contact
+schema: crm
+fields:
+  email: text
+  phone: text?
+  company: ref(Company)?
+  status: enum(lead, qualified, customer)
+  active: boolean
