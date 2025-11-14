@@ -28,7 +28,9 @@ impl User {
 }
 """
         parser = RustParser()
-        structs, tables, derives, impl_blocks = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(impl_blocks) == 1
         impl_block = impl_blocks[0]
@@ -71,7 +73,9 @@ impl User {
 }
 """
         parser = RustParser()
-        structs, tables, derives, impl_blocks = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(impl_blocks) == 1
         impl_block = impl_blocks[0]
@@ -97,13 +101,15 @@ impl User {
 }
 """
         parser = RustParser()
-        structs, tables, derives, impl_blocks = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(impl_blocks) == 1
         method = impl_blocks[0].methods[0]
         assert method.name == "save"
         assert method.is_async == True
-        assert method.return_type == "Result"
+        assert method.return_type == "Result<(), String>"
 
     def test_self_parameters(self):
         """Test parsing different self parameter types."""
@@ -127,7 +133,9 @@ impl User {
 }
 """
         parser = RustParser()
-        structs, tables, derives, impl_blocks = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(impl_blocks) == 1
         methods = impl_blocks[0].methods
@@ -169,7 +177,9 @@ impl User {
 }
 """
         parser = RustParser()
-        structs, tables, derives, impl_blocks = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(impl_blocks) == 1
         methods = impl_blocks[0].methods
@@ -201,7 +211,9 @@ impl Debug for User {
 }
 """
         parser = RustParser()
-        structs, tables, derives, impl_blocks = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(impl_blocks) == 2
 
@@ -236,7 +248,9 @@ impl<T> Container<T> {
 }
 """
         parser = RustParser()
-        structs, tables, derives, impl_blocks = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(impl_blocks) == 1
         impl_block = impl_blocks[0]
@@ -265,7 +279,9 @@ impl User {
 }
 """
         parser = RustParser()
-        structs, tables, derives, impl_blocks = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(impl_blocks) == 1
         methods = impl_blocks[0].methods
@@ -273,9 +289,9 @@ impl User {
 
         # Check return types
         return_types = {m.name: m.return_type for m in methods}
-        assert return_types["find_all"] == "Vec"
-        assert return_types["find_by_id"] == "Option"
-        assert return_types["create"] == "Result"
+        assert return_types["find_all"] == "Vec<User>"
+        assert return_types["find_by_id"] == "Option<User>"
+        assert return_types["create"] == "Result<User, String>"
 
     def test_reference_parameters(self):
         """Test parsing reference parameters."""
@@ -295,7 +311,9 @@ impl User {
 }
 """
         parser = RustParser()
-        structs, tables, derives, impl_blocks = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(impl_blocks) == 1
         methods = impl_blocks[0].methods
@@ -319,7 +337,9 @@ impl User {
 }
 """
         parser = RustParser()
-        structs, tables, derives, impl_blocks = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         # Should not include empty impl blocks
         assert len(impl_blocks) == 0
@@ -340,7 +360,9 @@ impl User {
 }
 """
         parser = RustParser()
-        structs, tables, derives, impl_blocks = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(impl_blocks) == 2
         all_methods = []
@@ -364,7 +386,9 @@ impl<'a> Container<'a> {
 }
 """
         parser = RustParser()
-        structs, tables, derives, impl_blocks = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(impl_blocks) == 1
         assert impl_blocks[0].type_name == "Container"
@@ -384,7 +408,9 @@ impl User {
 }
 """
         parser = RustParser()
-        structs, tables, derives, impl_blocks = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(impl_blocks) == 1
         method = impl_blocks[0].methods[0]
@@ -402,7 +428,9 @@ impl Calculator {
 }
 """
         parser = RustParser()
-        structs, tables, derives, impl_blocks = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(impl_blocks) == 1
         method = impl_blocks[0].methods[0]

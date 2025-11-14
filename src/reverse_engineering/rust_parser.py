@@ -128,6 +128,54 @@ class ImplBlockInfo:
         self.trait_impl = trait_impl
 
 
+class RouteHandlerInfo:
+    """Represents a parsed route handler."""
+
+    def __init__(
+        self,
+        method: str,
+        path: str,
+        function_name: str,
+        is_async: bool,
+        return_type: str,
+        parameters: List[dict],
+    ):
+        self.method = method
+        self.path = path
+        self.function_name = function_name
+        self.is_async = is_async
+        self.return_type = return_type
+        self.parameters = parameters
+
+
+class RustEnumInfo:
+    """Represents a parsed Rust enum."""
+
+    def __init__(
+        self,
+        name: str,
+        variants: List["RustEnumVariantInfo"],
+        attributes: Optional[List[str]] = None,
+    ):
+        self.name = name
+        self.variants = variants
+        self.attributes = attributes or []
+
+
+class RustEnumVariantInfo:
+    """Represents a variant in a Rust enum."""
+
+    def __init__(
+        self,
+        name: str,
+        fields: Optional[List[RustFieldInfo]] = None,
+        discriminant: Optional[str] = None,
+    ):
+        self.name = name
+        self.fields = fields
+        self.discriminant = discriminant
+
+
 class RustParser:
     """Parser for Rust code using subprocess and syn crate."""
 
@@ -142,18 +190,20 @@ class RustParser:
         self, file_path: Path
     ) -> Tuple[
         List[RustStructInfo],
+        List[RustEnumInfo],
         List[DieselTableInfo],
         List[DieselDeriveInfo],
         List[ImplBlockInfo],
+        List[RouteHandlerInfo],
     ]:
         """
-        Parse a Rust source file and extract struct definitions, Diesel tables, Diesel derives, and impl blocks.
+        Parse a Rust source file and extract struct definitions, enums, Diesel tables, Diesel derives, impl blocks, and route handlers.
 
         Args:
             file_path: Path to the Rust file
 
         Returns:
-            Tuple of (List of parsed struct information, List of Diesel table information, List of Diesel derive information, List of impl block information)
+            Tuple of (List of parsed struct information, List of enum information, List of Diesel table information, List of Diesel derive information, List of impl block information, List of route handler information)
         """
         try:
             # Call the Rust parser binary
@@ -171,14 +221,18 @@ class RustParser:
             # Handle old format (just array of structs) for backward compatibility
             if isinstance(data, list):
                 structs_data = data
+                enums_data = []
                 diesel_tables_data = []
                 diesel_derives_data = []
                 impl_blocks_data = []
+                route_handlers_data = []
             else:
                 structs_data = data.get("structs", [])
+                enums_data = data.get("enums", [])
                 diesel_tables_data = data.get("diesel_tables", [])
                 diesel_derives_data = data.get("diesel_derives", [])
                 impl_blocks_data = data.get("impl_blocks", [])
+                route_handlers_data = data.get("route_handlers", [])
 
             # Parse structs (existing code)
             structs = []
@@ -250,7 +304,58 @@ class RustParser:
                 )
                 impl_blocks.append(impl_block)
 
-            return structs, diesel_tables, diesel_derives, impl_blocks
+            # Parse enums (NEW)
+            enums = []
+            for enum_data in enums_data:
+                variants = []
+                for variant_data in enum_data["variants"]:
+                    fields = None
+                    if variant_data.get("fields") is not None:
+                        fields = []
+                        for field_data in variant_data["fields"]:
+                            field = RustFieldInfo(
+                                name=field_data["name"],
+                                field_type=field_data["field_type"],
+                                is_optional=field_data["is_optional"],
+                                attributes=field_data["attributes"],
+                            )
+                            fields.append(field)
+
+                    variant = RustEnumVariantInfo(
+                        name=variant_data["name"],
+                        fields=fields,
+                        discriminant=variant_data.get("discriminant"),
+                    )
+                    variants.append(variant)
+
+                rust_enum = RustEnumInfo(
+                    name=enum_data["name"],
+                    variants=variants,
+                    attributes=enum_data["attributes"],
+                )
+                enums.append(rust_enum)
+
+            # Parse route handlers (NEW)
+            route_handlers = []
+            for route_data in route_handlers_data:
+                route_handler = RouteHandlerInfo(
+                    method=route_data["method"],
+                    path=route_data["path"],
+                    function_name=route_data["function_name"],
+                    is_async=route_data["is_async"],
+                    return_type=route_data["return_type"],
+                    parameters=route_data["parameters"],
+                )
+                route_handlers.append(route_handler)
+
+            return (
+                structs,
+                enums,
+                diesel_tables,
+                diesel_derives,
+                impl_blocks,
+                route_handlers,
+            )
 
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to run Rust parser: {e}")
@@ -264,18 +369,20 @@ class RustParser:
         self, source_code: str
     ) -> Tuple[
         List[RustStructInfo],
+        List[RustEnumInfo],
         List[DieselTableInfo],
         List[DieselDeriveInfo],
         List[ImplBlockInfo],
+        List[RouteHandlerInfo],
     ]:
         """
-        Parse Rust source code and extract struct definitions, Diesel tables, Diesel derives, and impl blocks.
+        Parse Rust source code and extract struct definitions, enums, Diesel tables, Diesel derives, impl blocks, and route handlers.
 
         Args:
             source_code: Rust source code as string
 
         Returns:
-            Tuple of (List of parsed struct information, List of Diesel table information, List of Diesel derive information, List of impl block information)
+            Tuple of (List of parsed struct information, List of enum information, List of Diesel table information, List of Diesel derive information, List of impl block information, List of route handler information)
         """
         # For now, create a temporary file and parse it
         # TODO: Modify Rust binary to accept source code via stdin
@@ -634,8 +741,8 @@ class RustReverseEngineeringService:
             List of SpecQL entities
         """
         # Now returns tuple
-        structs, diesel_tables, diesel_derives, impl_blocks = self.parser.parse_file(
-            file_path
+        structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
+            self.parser.parse_file(file_path)
         )
         entities = []
 

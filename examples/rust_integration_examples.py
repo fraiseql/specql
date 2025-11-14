@@ -282,7 +282,148 @@ def example_5_directory_parsing():
         print()
 
 
-def example_6_performance_benchmark():
+def example_6_enum_parsing():
+    """Example 6: Enum parsing with all variant types."""
+    print("=== Example 6: Enum Parsing ===")
+
+    rust_code = """
+    #[derive(Debug, Clone, Serialize, Deserialize, Queryable, Insertable, AsChangeset)]
+    #[diesel(table_name = users)]
+    pub enum UserRole {
+        Admin,                                    // unit variant
+        Moderator,                               // unit variant
+        User(String),                           // tuple variant
+        Custom { name: String, permissions: Vec<String> },  // struct variant
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize)]
+    pub enum PostStatus {
+        Draft = 0,
+        Published = 1,
+        Archived = 2,
+    }
+
+    #[derive(Debug, Clone, Serialize, Deserialize, Queryable, Insertable)]
+    #[diesel(table_name = users)]
+    pub struct User {
+        pub id: i32,
+        pub username: String,
+        pub role: UserRole,
+        pub status: PostStatus,
+    }
+    """
+
+    service = RustReverseEngineeringService()
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".rs", delete=False) as f:
+        f.write(rust_code)
+        temp_path = f.name
+
+    try:
+        entities = service.reverse_engineer_file(Path(temp_path))
+
+        print(f"Parsed {len(entities)} entities with enums:")
+        for entity in entities:
+            print(f"  - {entity.name}")
+            for field_name, field in entity.fields.items():
+                print(f"    {field_name}: {field.type_name}")
+        print()
+
+    finally:
+        os.unlink(temp_path)
+
+
+def example_7_route_handler_extraction():
+    """Example 7: Route handler extraction from Actix and Axum."""
+    print("=== Example 7: Route Handler Extraction ===")
+
+    rust_code = """
+use actix_web::{web, HttpResponse, Result as ActixResult, get, post, put, delete};
+use axum::{Json, extract::Path};
+use serde::{Deserialize, Serialize};
+
+#[derive(Deserialize)]
+pub struct CreateUserRequest {
+    pub username: String,
+    pub email: Option<String>,
+}
+
+// Actix-web route handlers
+#[get("/users")]
+pub async fn get_users() -> ActixResult<HttpResponse> {
+    Ok(HttpResponse::Ok().json(vec!["user1", "user2"]))
+}
+
+#[post("/users")]
+pub async fn create_user(
+    user_data: web::Json<CreateUserRequest>
+) -> ActixResult<HttpResponse> {
+    Ok(HttpResponse::Created().json(serde_json::json!({"id": 1})))
+}
+
+#[get("/users/{id}")]
+pub async fn get_user(path: web::Path<i32>) -> ActixResult<HttpResponse> {
+    let user_id = path.into_inner();
+    Ok(HttpResponse::Ok().json(serde_json::json!({"id": user_id})))
+}
+
+#[put("/users/{id}")]
+pub async fn update_user(
+    path: web::Path<i32>,
+    user_data: web::Json<CreateUserRequest>
+) -> ActixResult<HttpResponse> {
+    let user_id = path.into_inner();
+    Ok(HttpResponse::Ok().json(serde_json::json!({"id": user_id, "updated": true})))
+}
+
+#[delete("/users/{id}")]
+pub async fn delete_user(path: web::Path<i32>) -> ActixResult<HttpResponse> {
+    Ok(HttpResponse::NoContent().finish())
+}
+
+// Axum route handlers
+pub async fn axum_get_users() -> Json<Vec<String>> {
+    Json(vec!["user1".to_string(), "user2".to_string()])
+}
+
+pub async fn axum_create_user(
+    Json(payload): Json<CreateUserRequest>,
+) -> Json<serde_json::Value> {
+    Json(serde_json::json!({"id": 2, "username": payload.username}))
+}
+
+pub async fn axum_get_user(
+    Path(user_id): Path<i32>,
+) -> Json<serde_json::Value> {
+    Json(serde_json::json!({"id": user_id, "username": "test"}))
+}
+"""
+
+    from src.reverse_engineering.rust_action_parser import RustActionParser
+
+    action_parser = RustActionParser()
+
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".rs", delete=False) as f:
+        f.write(rust_code)
+        temp_path = f.name
+
+    try:
+        actions = action_parser.extract_actions(Path(temp_path))
+
+        print(f"Extracted {len(actions)} actions from route handlers:")
+        for action in actions:
+            method = action.get("http_method", "N/A")
+            path = action.get("path", "N/A")
+            name = action["name"]
+            action_type = action["type"]
+            print(f"  - {method} {path} -> {name} ({action_type})")
+        print()
+
+    finally:
+        os.unlink(temp_path)
+
+
+def example_8_performance_benchmark():
     """Example 6: Performance benchmark with large codebase."""
     print("=== Example 6: Performance Benchmark ===")
 
@@ -339,7 +480,9 @@ def main():
         example_3_belongs_to_relationships,
         example_4_complex_types_and_attributes,
         example_5_directory_parsing,
-        example_6_performance_benchmark,
+        example_6_enum_parsing,
+        example_7_route_handler_extraction,
+        example_8_performance_benchmark,
     ]
 
     for example in examples:

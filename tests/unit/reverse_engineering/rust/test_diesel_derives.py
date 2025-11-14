@@ -20,7 +20,9 @@ pub struct User {
 }
 """
         parser = RustParser()
-        structs, tables, derives = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(derives) == 1
         derive = derives[0]
@@ -37,7 +39,9 @@ pub struct NewUser {
 }
 """
         parser = RustParser()
-        structs, tables, derives = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(derives) == 1
         derive = derives[0]
@@ -54,7 +58,9 @@ pub struct User {
 }
 """
         parser = RustParser()
-        structs, tables, derives = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(derives) == 1
         derive = derives[0]
@@ -74,7 +80,9 @@ pub struct User {
 }
 """
         parser = RustParser()
-        structs, tables, derives = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(derives) == 1
         derive = derives[0]
@@ -94,7 +102,9 @@ pub struct Post {
 }
 """
         parser = RustParser()
-        structs, tables, derives = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         # For now, our parser only extracts derive macros and table_name
         # belongs_to would need separate parsing
@@ -113,7 +123,9 @@ pub struct User {
 }
 """
         parser = RustParser()
-        structs, tables, derives = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         # Should not extract non-Diesel derives
         assert len(derives) == 0
@@ -127,7 +139,9 @@ pub struct UserUpdate {
 }
 """
         parser = RustParser()
-        structs, tables, derives = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(derives) == 1
         derive = derives[0]
@@ -144,7 +158,9 @@ pub struct Post {
 }
 """
         parser = RustParser()
-        structs, tables, derives = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(derives) == 1
         derive = derives[0]
@@ -162,7 +178,9 @@ pub struct User {
 }
 """
         parser = RustParser()
-        structs, tables, derives = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(derives) == 1
         derive = derives[0]
@@ -181,7 +199,9 @@ pub struct User {
 }
 """
         parser = RustParser()
-        structs, tables, derives = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(derives) == 1
         derive = derives[0]
@@ -200,7 +220,9 @@ pub struct User {
 }
 """
         parser = RustParser()
-        structs, tables, derives = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         # Should not extract empty derives
         assert len(derives) == 0
@@ -214,7 +236,9 @@ pub struct User {
 }
 """
         parser = RustParser()
-        structs, tables, derives = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(derives) == 0
 
@@ -227,7 +251,9 @@ pub struct User {
 }
 """
         parser = RustParser()
-        structs, tables, derives = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         # Should not match lowercase
         assert len(derives) == 0
@@ -242,7 +268,9 @@ pub struct User {
 }
 """
         parser = RustParser()
-        structs, tables, derives = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(derives) == 1
         derive = derives[0]
@@ -260,7 +288,9 @@ pub struct User {
 }
 """
         parser = RustParser()
-        structs, tables, derives = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, routes = parser.parse_source(
+            rust_code
+        )
 
         assert len(derives) == 1
         derive = derives[0]

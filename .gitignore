@@ -138,3 +138,6 @@ INVESTOR_EVALUATION.md
 *.tar.gz
 *.rar
 pgvector/
+
+# Rust build artifacts
+rust/target/

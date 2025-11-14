@@ -28,6 +28,20 @@ SpecQL now supports Rust struct parsing and can reverse-engineer your existing R
 - ✅ Relationship attribute recognition (`#[belongs_to(...)]`)
 - ✅ Type mapping from Diesel to SQL types
 
+### Enum Parsing
+- ✅ Unit variants (`Admin`, `Moderator`)
+- ✅ Tuple variants (`User(String)`)
+- ✅ Struct variants (`Custom { name: String, permissions: Vec<String> }`)
+- ✅ Discriminants (`Pending = 0`, `Active = 1`)
+- ✅ Diesel derive support for enums
+
+### Route Handler Parsing
+- ✅ Actix-web route handlers (`#[get("/users")]`, `#[post("/users")]`, etc.)
+- ✅ Axum route handlers (function-based routing)
+- ✅ HTTP method detection (GET, POST, PUT, DELETE)
+- ✅ Path parameter extraction
+- ✅ Automatic REST endpoint mapping
+
 ### Impl Block Parsing
 - ✅ Extract business logic from `impl` blocks
 - ✅ Automatic CRUD pattern detection from method names
@@ -68,6 +82,21 @@ pub struct Post {
     pub content: Option<String>,
     pub user_id: i32,  // Foreign key
     pub published_at: Option<NaiveDateTime>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum UserRole {
+    Admin,
+    Moderator,
+    User(String),  // tuple variant
+    Custom { name: String, permissions: Vec<String> },  // struct variant
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub enum PostStatus {
+    Draft = 0,
+    Published = 1,
+    Archived = 2,
 }
 ```
 
@@ -123,6 +152,70 @@ The system automatically detects CRUD patterns and maps them to SpecQL actions:
 - `update_user` → `update` action
 - `delete_user` → `delete` action
 - `validate_email` → `custom` action
+
+### 5. Extract Route Handlers
+
+SpecQL can also extract REST endpoints from your route handlers:
+
+#### Actix-web Example
+```rust
+use actix_web::{web, HttpResponse, Result as ActixResult};
+
+#[get("/users")]
+pub async fn get_users() -> ActixResult<HttpResponse> {
+    // Return all users
+    Ok(HttpResponse::Ok().json(vec!["user1", "user2"]))
+}
+
+#[post("/users")]
+pub async fn create_user(
+    user_data: web::Json<CreateUserRequest>
+) -> ActixResult<HttpResponse> {
+    // Create new user
+    Ok(HttpResponse::Created().json({"id": 1}))
+}
+
+#[get("/users/{id}")]
+pub async fn get_user(path: web::Path<i32>) -> ActixResult<HttpResponse> {
+    let user_id = path.into_inner();
+    // Return specific user
+    Ok(HttpResponse::Ok().json({"id": user_id}))
+}
+```
+
+#### Axum Example
+```rust
+use axum::{Json, extract::Path};
+
+pub async fn get_users() -> Json<Vec<String>> {
+    Json(vec!["user1".to_string(), "user2".to_string()])
+}
+
+pub async fn create_user(
+    Json(payload): Json<CreateUserRequest>,
+) -> Json<User> {
+    Json(User {
+        id: 1,
+        username: payload.username,
+        email: payload.email,
+    })
+}
+
+pub async fn get_user(
+    Path(user_id): Path<i32>,
+) -> Json<User> {
+    Json(User {
+        id: user_id,
+        username: "test".to_string(),
+        email: Some("test@example.com".to_string()),
+    })
+}
+```
+
+Route handlers are automatically mapped to REST endpoints:
+- `#[get("/users")]` → `GET /users` endpoint
+- `#[post("/users")]` → `POST /users` endpoint
+- `#[get("/users/{id}")]` → `GET /users/{id}` endpoint
 
 ## Type Mapping
 
