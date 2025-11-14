@@ -68,7 +68,7 @@ class SpringToSpecQLConverter:
         self, component: SpringComponent, method: SpringMethod
     ) -> Optional[Action]:
         """Convert controller method to SpecQL action"""
-        if not method.http_method or not method.path:
+        if not method.http_method:
             return None
 
         # Generate action name
@@ -113,31 +113,31 @@ class SpringToSpecQLConverter:
         self, method: SpringMethod, base_path: Optional[str]
     ) -> str:
         """Generate SpecQL action name from HTTP method and path"""
-        if not method.path:
-            method_name = method.name.lower() if method.name else "unknown"
+        # Start with base path
+        full_path = base_path or ""
+
+        # Append method path if present
+        if method.path:
+            method_path = method.path.strip("/")
+            if method_path:
+                if full_path:
+                    full_path = f"{full_path}/{method_path}"
+                else:
+                    full_path = method_path
+
+        # Clean path for action name
+        path = full_path.strip("/")
+        if not path:
+            # Root endpoint
             http_method = (
                 method.http_method.lower() if method.http_method else "unknown"
             )
-            return f"{http_method}_{method_name}"
-
-        # Clean path for action name
-        path = method.path.strip("/")
-        if base_path:
-            base_path = base_path.strip("/")
-            if path.startswith(base_path):
-                path = path[len(base_path) :].strip("/")
+            return f"{http_method}_root"
 
         # Convert path to snake_case action name, keep {param} as is
         path_parts = path.replace("/", "_")
         http_method = method.http_method.lower() if method.http_method else "unknown"
         action_name = f"{http_method}_{path_parts}"
-
-        # Handle empty path (root endpoint)
-        if not action_name or action_name.endswith("_"):
-            http_method = (
-                method.http_method.lower() if method.http_method else "unknown"
-            )
-            action_name = f"{http_method}_root"
 
         return action_name
 

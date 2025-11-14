@@ -131,7 +131,7 @@ class JDTBridge:
             cu._types.append(mock_type)
 
         # Match Spring components (@Service, @Controller, @RestController, @Repository, etc.)
-        spring_pattern = r"(@(?:Service|Controller|RestController|Repository|Component|Configuration)[\s\S]*?)public\s+(?:abstract\s+)?class\s+(\w+)[\s\S]*?\{([\s\S]*?)\}"
+        spring_pattern = r"(@(?:Service|Controller|RestController|Repository|Component|Configuration)[\s\S]*?)public\s+(?:abstract\s+)?class\s+(\w+)[\s\S]*?\{"
         spring_matches = re.findall(
             spring_pattern, source_code, re.MULTILINE | re.DOTALL
         )
@@ -139,11 +139,70 @@ class JDTBridge:
         for match in spring_matches:
             annotations_text = match[0]
             class_name = match[1]
-            class_body = match[2]
-            mock_type = MockSpringTypeDeclaration(
-                class_name, source_code, class_body, annotations_text
+
+            # Find the full class declaration to locate the opening brace
+            full_match_pattern = (
+                re.escape(annotations_text)
+                + r"public\s+(?:abstract\s+)?class\s+"
+                + class_name
+                + r"[\s\S]*?\{"
             )
-            cu._types.append(mock_type)
+            full_match = re.search(full_match_pattern, source_code, re.DOTALL)
+            if full_match:
+                brace_start = full_match.end() - 1  # Position of opening brace
+
+                # Count braces to find class end
+                brace_count = 1
+                i = brace_start + 1
+                while i < len(source_code) and brace_count > 0:
+                    if source_code[i] == "{":
+                        brace_count += 1
+                    elif source_code[i] == "}":
+                        brace_count -= 1
+                    i += 1
+
+                # Extract class body
+                class_body = source_code[brace_start + 1 : i - 1]
+
+                mock_type = MockSpringTypeDeclaration(
+                    class_name, source_code, class_body, annotations_text
+                )
+                cu._types.append(mock_type)
+
+        # Match repository interfaces (interfaces extending repository classes)
+        repo_pattern = r"public\s+interface\s+(\w+)\s+extends\s+(?:JpaRepository|CrudRepository|PagingAndSortingRepository|Repository)"
+        repo_matches = re.findall(repo_pattern, source_code, re.MULTILINE)
+
+        for class_name in repo_matches:
+            # Find the interface declaration
+            interface_pattern = (
+                r"public\s+interface\s+" + class_name + r"\s+extends[\s\S]*?\{"
+            )
+            interface_match = re.search(interface_pattern, source_code, re.DOTALL)
+            if interface_match:
+                brace_start = interface_match.end() - 1
+
+                # Count braces to find interface end
+                brace_count = 1
+                i = brace_start + 1
+                while i < len(source_code) and brace_count > 0:
+                    if source_code[i] == "{":
+                        brace_count += 1
+                    elif source_code[i] == "}":
+                        brace_count -= 1
+                    i += 1
+
+                # Extract interface body
+                class_body = source_code[brace_start + 1 : i - 1]
+
+                # Create mock type for repository interface
+                mock_type = MockSpringTypeDeclaration(
+                    class_name,
+                    source_code,
+                    class_body,
+                    "",  # No annotations for repository interfaces
+                )
+                cu._types.append(mock_type)
 
         return cu
 
@@ -165,6 +224,7 @@ class MockTypeDeclaration:
         self._class_body = class_body
         self._modifiers = self._extract_modifiers()
         self._body_declarations = self._extract_body_declarations()
+        self._super_interfaces = self._extract_super_interfaces()
 
     def getName(self):
         return MockSimpleName(self.class_name)
@@ -174,6 +234,44 @@ class MockTypeDeclaration:
 
     def bodyDeclarations(self):
         return self._body_declarations
+
+    def superInterfaceTypes(self):
+        """Return list of super interfaces (for repository detection)"""
+        return self._super_interfaces
+
+    def isInterface(self):
+        """Check if this is an interface"""
+        # Check if the source contains "interface class_name"
+        import re
+
+        return bool(
+            re.search(
+                rf"\binterface\s+{re.escape(self.class_name)}\b", self.source_code
+            )
+        )
+
+    def _extract_super_interfaces(self):
+        """Extract super interfaces from extends clause"""
+        import re
+
+        interfaces = []
+
+        # Match "extends Interface1, Interface2" for classes/interfaces
+        extends_pattern = (
+            rf"(?:class|interface)\s+{re.escape(self.class_name)}\s+extends\s+([^{{]+)"
+        )
+        extends_match = re.search(extends_pattern, self.source_code, re.DOTALL)
+
+        if extends_match:
+            extends_clause = extends_match.group(1).strip()
+            # Split by comma and clean up
+            interface_names = [name.strip() for name in extends_clause.split(",")]
+
+            for interface_name in interface_names:
+                # Create mock interface type
+                interfaces.append(MockSimpleType(interface_name))
+
+        return interfaces
 
     def _extract_modifiers(self):
         """Extract class-level annotations"""
@@ -191,44 +289,134 @@ class MockTypeDeclaration:
         return modifiers
 
     def _extract_body_declarations(self):
-        """Extract both field and method declarations from the class"""
+        """Extract both field and method declarations from the class/interface"""
         declarations = []
         import re
+
+        # Check if this is an interface
+        is_interface = self.isInterface()
 
         # Use the stored class body if available, otherwise find it
         if hasattr(self, "_class_body") and self._class_body:
             class_body = self._class_body
         else:
-            # Find the class body - more flexible pattern for different class types
-            class_pattern = rf"(?:@\w+\s+)*(?:public\s+)?(?:class|interface)\s+{self.class_name}[^{{]*\{{(.*?)\}}$"
-            match = re.search(class_pattern, self.source_code, re.DOTALL)
-            if not match:
-                # Try simpler pattern
-                class_pattern = rf"\s+{self.class_name}[^{{]*\{{(.*?)\}}$"
-                match = re.search(class_pattern, self.source_code, re.DOTALL)
-                if not match:
-                    return declarations
-            class_body = match.group(1)
+            # Find the class/interface body using brace counting
+            class_body = self._extract_class_body_with_brace_counting()
 
-        # Extract field declarations (handle generics like List<Contact>)
-        field_pattern = r"(?:@\w+(?:\([^)]*\))?\s+)*private\s+([\w<>\[\]]+)\s+(\w+)(?:\s*=\s*[^;]+)?\s*;"
-        field_matches = re.findall(field_pattern, class_body)
+        if is_interface:
+            # For interfaces, extract method signatures (no bodies)
+            method_declarations = self._extract_interface_methods(class_body)
+            declarations.extend(method_declarations)
+        else:
+            # For classes, extract fields and methods with bodies
+            # Extract field declarations (handle generics like List<Contact>)
+            field_pattern = r"(?:@\w+(?:\([^)]*\))?\s+)*private\s+([\w<>\[\]]+)\s+(\w+)(?:\s*=\s*[^;]+)?\s*;"
+            field_matches = re.findall(field_pattern, class_body)
 
-        for java_type, field_name in field_matches:
-            field_decl = MockFieldDeclaration(java_type, field_name, class_body)
-            declarations.append(field_decl)
+            for java_type, field_name in field_matches:
+                field_decl = MockFieldDeclaration(java_type, field_name, class_body)
+                declarations.append(field_decl)
 
-        # Extract method declarations (public/protected/private methods)
-        # Match pattern: @Annotations visibility returnType methodName(params) { body }
-        method_pattern = r'((?:@\w+(?:\([^)]*\))?\s+)*(?:public|private|protected)\s+(?:\w+(?:<[^>]+>)?)\s+\w+\s*\([^)]*\)\s*(?:throws\s+[\w\s,]+)?\s*\{[^}]*\})'
-        method_matches = re.finditer(method_pattern, class_body, re.DOTALL)
-
-        for match in method_matches:
-            method_text = match.group(1)
-            method_decl = MockMethodDeclaration(method_text, class_body)
-            declarations.append(method_decl)
+            # Extract method declarations using brace counting (handles nested braces)
+            methods = self._extract_methods_with_brace_counting(class_body)
+            declarations.extend(methods)
 
         return declarations
+
+    def _extract_interface_methods(self, interface_body):
+        """Extract method declarations from interface (no method bodies)"""
+        import re
+
+        methods = []
+
+        # Match interface method signatures: @Annotations Type methodName(params);
+        method_pattern = (
+            r"((?:@\w+(?:\([^)]*\))?\s*)*)(\w+(?:<[^>]+>)?)\s+(\w+)\s*\((.*?)\)\s*;"
+        )
+        method_matches = re.finditer(method_pattern, interface_body, re.DOTALL)
+
+        for match in method_matches:
+            method_text = match.group(0)  # Include the semicolon
+            try:
+                method_decl = MockInterfaceMethodDeclaration(
+                    method_text, interface_body
+                )
+                methods.append(method_decl)
+            except Exception as e:
+                print(
+                    f"Error parsing interface method: {e}, text: {repr(method_text[:100])}"
+                )
+                # Continue without this method
+
+        return methods
+
+    def _extract_class_body_with_brace_counting(self):
+        """Extract class body using brace counting to handle nested braces correctly"""
+        import re
+
+        # Find the class declaration start
+        class_pattern = rf"(?:@\w+\s+)*(?:public\s+)?(?:class|interface)\s+{self.class_name}[^{{]*\{{"
+        match = re.search(class_pattern, self.source_code, re.DOTALL)
+        if not match:
+            return ""
+
+        # Find opening brace position
+        brace_start = match.end() - 1  # -1 because match.end() is after the {
+
+        # Count braces to find class end
+        brace_count = 1
+        i = brace_start + 1
+        while i < len(self.source_code) and brace_count > 0:
+            if self.source_code[i] == "{":
+                brace_count += 1
+            elif self.source_code[i] == "}":
+                brace_count -= 1
+            i += 1
+
+        # Extract class body (everything between the braces)
+        class_body = self.source_code[brace_start + 1 : i - 1]
+        return class_body
+
+    def _extract_methods_with_brace_counting(self, class_body):
+        """Extract methods by counting braces to handle nested braces correctly"""
+        import re
+
+        methods = []
+        i = 0
+        while i < len(class_body):
+            # Find method signature (without requiring closing brace in regex)
+            sig_match = re.search(
+                r"((?:@\w+(?:\([^)]*\))?\s+)*)(public|private|protected)\s+"
+                r"(\w+(?:<[^>]+>)?)\s+(\w+)\s*\(([^)]*)\)\s*"
+                r"(?:throws\s+[\w\s,]+)?",
+                class_body[i:],
+            )
+            if not sig_match:
+                break
+
+            # Find opening brace after the signature
+            sig_end = i + sig_match.end()
+            brace_start = class_body.find("{", sig_end)
+            if brace_start == -1:
+                i = sig_end
+                continue
+
+            # Count braces to find method end (handles nested braces)
+            brace_count = 1
+            j = brace_start + 1
+            while j < len(class_body) and brace_count > 0:
+                if class_body[j] == "{":
+                    brace_count += 1
+                elif class_body[j] == "}":
+                    brace_count -= 1
+                j += 1
+
+            # Extract the complete method text
+            method_text = class_body[i + sig_match.start() : j]
+            methods.append(MockMethodDeclaration(method_text, class_body))
+            i = j
+
+        return methods
 
 
 class MockSimpleName:
@@ -511,7 +699,9 @@ class MockSpringTypeDeclaration(MockTypeDeclaration):
                 )
                 if mapping_match:
                     modifiers.append(
-                        MockRequestMappingAnnotation("RequestMapping", f'"{mapping_match.group(1)}"')
+                        MockRequestMappingAnnotation(
+                            "RequestMapping", f'"{mapping_match.group(1)}"'
+                        )
                     )
 
         return modifiers
@@ -532,10 +722,11 @@ class MockRequestMappingAnnotation(MockAnnotation):
             return ""
         # Remove quotes and extract path
         import re
+
         path_match = re.search(r'["\']([^"\']+)["\']', params)
         if path_match:
             return path_match.group(1)
-        return params.strip('"\'')
+        return params.strip("\"'")
 
     def getTypeName(self):
         return MockQualifiedName(self.annotation_name)
@@ -647,7 +838,7 @@ class MockMethodDeclaration:
         import re
 
         # Extract method signature: @Annotations public ReturnType methodName(params) {
-        method_pattern = r'((?:@\w+(?:\([^)]*\))?\s+)*)(public|private|protected)?\s*(\w+(?:<[^>]+>)?)\s+(\w+)\s*\(([^)]*)\)'
+        method_pattern = r"((?:@\w+(?:\([^)]*\))?\s+)*)(public|private|protected)?\s*(\w+(?:<[^>]+>)?)\s+(\w+)\s*\(([^)]*)\)"
         match = re.search(method_pattern, self.method_text)
 
         if match:
@@ -657,23 +848,99 @@ class MockMethodDeclaration:
             params_text = match.group(5)
 
             # Parse annotations
-            annotation_pattern = r'@(\w+)(?:\(([^)]*)\))?'
+            annotation_pattern = r"@(\w+)(?:\(([^)]*)\))?"
             annotation_matches = re.findall(annotation_pattern, annotations_text)
 
             for annotation_name, params in annotation_matches:
-                if annotation_name in ('GetMapping', 'PostMapping', 'PutMapping', 'DeleteMapping', 'PatchMapping', 'RequestMapping'):
-                    self._modifiers.append(MockRequestMappingAnnotation(annotation_name, params))
-                elif annotation_name == 'Bean':
-                    self._modifiers.append(MockAnnotation('@Bean'))
+                if annotation_name in (
+                    "GetMapping",
+                    "PostMapping",
+                    "PutMapping",
+                    "DeleteMapping",
+                    "PatchMapping",
+                    "RequestMapping",
+                ):
+                    self._modifiers.append(
+                        MockRequestMappingAnnotation(annotation_name, params)
+                    )
+                elif annotation_name == "Bean":
+                    self._modifiers.append(MockAnnotation("@Bean"))
                 else:
-                    self._modifiers.append(MockAnnotation(f'@{annotation_name}'))
+                    self._modifiers.append(MockAnnotation(f"@{annotation_name}"))
 
             # Parse parameters
             if params_text.strip():
-                param_pattern = r'(@\w+(?:\([^)]*\))?\s+)?(\w+(?:<[^>]+>)?)\s+(\w+)'
+                param_pattern = r"(@\w+(?:\([^)]*\))?\s+)?(\w+(?:<[^>]+>)?)\s+(\w+)"
                 param_matches = re.findall(param_pattern, params_text)
-                self._parameters = [MockParameter(param_type, param_name, annotations)
-                                   for annotations, param_type, param_name in param_matches]
+                self._parameters = [
+                    MockParameter(param_type, param_name, annotations)
+                    for annotations, param_type, param_name in param_matches
+                ]
+
+    def getNodeType(self):
+        return self.METHOD_DECLARATION
+
+    def getName(self):
+        return MockSimpleName(self._name or "unknown")
+
+    def getReturnType2(self):
+        return MockSimpleType(self._return_type or "void")
+
+    def parameters(self):
+        return self._parameters
+
+    def modifiers(self):
+        return self._modifiers
+
+
+class MockInterfaceMethodDeclaration:
+    """Mock method declaration for interface methods (no body)"""
+
+    METHOD_DECLARATION = "METHOD_DECLARATION"
+
+    def __init__(self, method_text, interface_body):
+        self.method_text = method_text
+        self.interface_body = interface_body
+        self._name = None
+        self._return_type = None
+        self._parameters = []
+        self._modifiers = []
+        self._parse_interface_method()
+
+    def _parse_interface_method(self):
+        """Parse interface method signature"""
+        import re
+
+        # Extract method signature: @Annotations Type methodName(params);
+        method_pattern = (
+            r"((?:@\w+(?:\([^)]*\))?\s*)*)(\w+(?:<[^>]+>)?)\s+(\w+)\s*\((.*?)\)\s*;"
+        )
+        match = re.search(method_pattern, self.method_text)
+
+        if match:
+            annotations_text = match.group(1) or ""
+            self._return_type = match.group(2)
+            self._name = match.group(3)
+            params_text = match.group(4)
+
+            # Parse annotations
+            annotation_pattern = r"@(\w+)(?:\(([^)]*)\))?"
+            annotation_matches = re.findall(annotation_pattern, annotations_text)
+
+            for annotation_name, params in annotation_matches:
+                if annotation_name == "Query":
+                    self._modifiers.append(MockAnnotation("@Query"))
+                else:
+                    self._modifiers.append(MockAnnotation(f"@{annotation_name}"))
+
+            # Parse parameters
+            if params_text.strip():
+                param_pattern = r"(@\w+(?:\([^)]*\))?\s+)?(\w+(?:<[^>]+>)?)\s+(\w+)"
+                param_matches = re.findall(param_pattern, params_text)
+                self._parameters = [
+                    MockParameter(param_type, param_name, annotations)
+                    for annotations, param_type, param_name in param_matches
+                ]
 
     def getNodeType(self):
         return self.METHOD_DECLARATION
@@ -708,12 +975,13 @@ class MockParameter:
     def modifiers(self):
         """Return any parameter annotations like @PathVariable, @RequestBody"""
         modifiers = []
-        if '@' in self.annotations:
+        if "@" in self.annotations:
             import re
-            annotation_pattern = r'@(\w+)(?:\(([^)]*)\))?'
+
+            annotation_pattern = r"@(\w+)(?:\(([^)]*)\))?"
             matches = re.findall(annotation_pattern, self.annotations)
             for annotation_name, params in matches:
-                modifiers.append(MockAnnotation(f'@{annotation_name}'))
+                modifiers.append(MockAnnotation(f"@{annotation_name}"))
         return modifiers
 
 

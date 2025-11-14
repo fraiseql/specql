@@ -153,7 +153,10 @@ class SpringAnnotationVisitor:
         for body_decl in type_decl.bodyDeclarations():
             # Check if it's a method declaration
             node_type = body_decl.getNodeType()
-            if node_type == "METHOD_DECLARATION" or (hasattr(body_decl, 'METHOD_DECLARATION') and node_type == body_decl.METHOD_DECLARATION):
+            if node_type == "METHOD_DECLARATION" or (
+                hasattr(body_decl, "METHOD_DECLARATION")
+                and node_type == body_decl.METHOD_DECLARATION
+            ):
                 spring_method = self._extract_method(body_decl, component_type)
                 if spring_method:
                     component.methods.append(spring_method)
@@ -205,7 +208,9 @@ class SpringAnnotationVisitor:
 
         return "unknown"
 
-    def _extract_method(self, method_decl, component_type: str = "unknown") -> Optional[SpringMethod]:
+    def _extract_method(
+        self, method_decl, component_type: str = "unknown"
+    ) -> Optional[SpringMethod]:
         """Extract method information from method declaration"""
         method_name = method_decl.getName().getIdentifier()
         return_type = self._extract_method_return_type(method_decl)
@@ -287,6 +292,8 @@ class SpringAnnotationVisitor:
                     "org.springframework.scheduling.annotation.Async",
                     "Bean",
                     "org.springframework.context.annotation.Bean",
+                    "Query",
+                    "org.springframework.data.jpa.repository.Query",
                 ):
                     has_spring_annotation = True
 
@@ -295,7 +302,12 @@ class SpringAnnotationVisitor:
             has_spring_annotation = True
 
         # For controllers and services, include all public methods
-        if component_type in ('rest_controller', 'controller', 'service', 'configuration'):
+        if component_type in (
+            "rest_controller",
+            "controller",
+            "service",
+            "configuration",
+        ):
             has_spring_annotation = True
 
         # Only return method if it has Spring annotations or belongs to a Spring component
