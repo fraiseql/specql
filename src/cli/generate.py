@@ -41,7 +41,10 @@ def convert_entity_definition_to_entity(entity_def: EntityDefinition) -> Entity:
     actions = []
     for action_def in entity_def.actions:
         action = Action(
-            name=action_def.name, steps=action_def.steps, impact=None, cdc=action_def.cdc
+            name=action_def.name,
+            steps=action_def.steps,
+            impact=None,
+            cdc=action_def.cdc,
         )  # TODO: Convert impact dict to ActionImpact
         actions.append(action)
 
@@ -88,7 +91,10 @@ def cli():
     help="Target language for pattern-based code generation",
 )  # NEW
 @click.option(
-    "--use-registry", is_flag=True, default=True, help="Use hexadecimal registry for table codes and paths"
+    "--use-registry",
+    is_flag=True,
+    default=True,
+    help="Use hexadecimal registry for table codes and paths",
 )  # CHANGED: Default to True
 @click.option(
     "--output-format",
@@ -131,7 +137,9 @@ def cli():
     is_flag=True,
     help="Generate CDC outbox table and functions for event streaming",
 )  # NEW
-@click.option("--dev", is_flag=True, help="Development mode: flat structure in db/schema/")
+@click.option(
+    "--dev", is_flag=True, help="Development mode: flat structure in db/schema/"
+)
 @click.option("--no-tv", is_flag=True, help="Skip table view (tv_*) generation")
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed generation progress")
 def entities(
@@ -208,9 +216,15 @@ def entities(
     # Handle pattern-based multi-language generation
     if target:
         from src.pattern_library.pattern_based_compiler import PatternBasedCompiler
-        from tests.integration.test_pattern_library_multilang import MultiLanguageGenerator
+        from tests.integration.test_pattern_library_multilang import (
+            MultiLanguageGenerator,
+        )
 
-        click.secho(f"🔧 Generating {target} code using pattern library...", fg="blue", bold=True)
+        click.secho(
+            f"🔧 Generating {target} code using pattern library...",
+            fg="blue",
+            bold=True,
+        )
 
         parser = SpecQLParser()
         generator = MultiLanguageGenerator()
@@ -232,13 +246,17 @@ def entities(
             # Write to output file
             output_path = Path(output_dir)
             output_path.mkdir(parents=True, exist_ok=True)
-            output_file = output_path / f"{entity_def.name.lower()}_{target}.sql" if target == "postgresql" else f"{entity_def.name.lower()}_{target}.py"
+            output_file = (
+                output_path / f"{entity_def.name.lower()}_{target}.sql"
+                if target == "postgresql"
+                else f"{entity_def.name.lower()}_{target}.py"
+            )
 
             if dry_run:
                 click.echo(f"Would write to {output_file}:")
                 click.echo(code[:500] + "..." if len(code) > 500 else code)
             else:
-                with open(output_file, 'w') as f:
+                with open(output_file, "w") as f:
                     f.write(code)
                 click.secho(f"✅ Generated {output_file}", fg="green")
 
@@ -266,16 +284,14 @@ def entities(
         use_registry=use_registry,
         output_format=output_format,
         verbose=verbose,
-        framework=framework
+        framework=framework,
     )
 
     # Generate migrations
     if hierarchical and use_registry:
         # Use new hierarchical generation
         result = orchestrator.generate_hierarchical(
-            entity_files=list(entity_files),
-            output_dir=output_dir,
-            dry_run=dry_run
+            entity_files=list(entity_files), output_dir=output_dir, dry_run=dry_run
         )
     else:
         # Use legacy generation
@@ -332,7 +348,11 @@ def entities(
             docs_gen.generate_docs(entities)
             click.echo("  ✅ Generated mutations.md")
 
-            click.secho(f"✅ Frontend code generated in {output_frontend}", fg="green", bold=True)
+            click.secho(
+                f"✅ Frontend code generated in {output_frontend}",
+                fg="green",
+                bold=True,
+            )
 
         except ImportError as e:
             click.secho(f"❌ Frontend generators not available: {e}", fg="red")
@@ -349,7 +369,11 @@ def entities(
         return 1
 
     if use_registry:
-        format_desc = "hierarchical" if output_format == "hierarchical" else "Confiture-compatible"
+        format_desc = (
+            "hierarchical"
+            if output_format == "hierarchical"
+            else "Confiture-compatible"
+        )
         click.secho(
             f"✅ Generated {len(result.migrations)} file(s) with hexadecimal codes ({format_desc} format)",
             fg="green",
@@ -364,7 +388,9 @@ def entities(
             else:
                 click.echo(f"  {migration.path}")
     else:
-        click.secho(f"✅ Generated {len(result.migrations)} migration(s)", fg="green", bold=True)
+        click.secho(
+            f"✅ Generated {len(result.migrations)} migration(s)", fg="green", bold=True
+        )
 
     if result.warnings:
         click.secho(f"\n⚠️  {len(result.warnings)} warning(s):", fg="yellow")
@@ -432,7 +458,9 @@ def universal(
     # Create universal schema
     from src.core.universal_ast import UniversalSchema
 
-    schema = UniversalSchema(entities=entities, composite_types={}, tenant_mode="multi_tenant")
+    schema = UniversalSchema(
+        entities=entities, composite_types={}, tenant_mode="multi_tenant"
+    )
 
     # Generate for each backend
     total_files = 0
@@ -533,7 +561,9 @@ LIMIT {limit}
     if params:
         click.echo(f"Parameters: {params}")
 
-    click.secho("💡 To implement: Connect to database and execute this query", fg="yellow")
+    click.secho(
+        "💡 To implement: Connect to database and execute this query", fg="yellow"
+    )
 
 
 @jobs.command()
@@ -565,7 +595,9 @@ WHERE id = %s
     click.echo(query)
     click.echo(f"Parameters: [{job_id}]")
 
-    click.secho("💡 To implement: Connect to database and execute this query", fg="yellow")
+    click.secho(
+        "💡 To implement: Connect to database and execute this query", fg="yellow"
+    )
 
 
 @jobs.command()
@@ -592,7 +624,9 @@ WHERE id = %s AND status IN ('pending', 'running')
     click.echo(update_query)
     click.echo(f"Parameters: [{job_id}]")
 
-    click.secho("💡 To implement: Connect to database and execute this update", fg="yellow")
+    click.secho(
+        "💡 To implement: Connect to database and execute this update", fg="yellow"
+    )
 
 
 @jobs.command()
@@ -640,7 +674,9 @@ ORDER BY success_rate_percent ASC
     if params:
         click.echo(f"Parameters: {params}")
 
-    click.secho("💡 To implement: Connect to database and execute this query", fg="yellow")
+    click.secho(
+        "💡 To implement: Connect to database and execute this query", fg="yellow"
+    )
 
 
 @cli.command()
@@ -667,14 +703,18 @@ def list_backends():
 
 @cli.command()
 @click.argument("entity_files", nargs=-1, type=click.Path(exists=True), required=True)
-@click.option("--output-dir", default="tests", help="Output directory for generated tests")
+@click.option(
+    "--output-dir", default="tests", help="Output directory for generated tests"
+)
 @click.option(
     "--test-type",
     type=click.Choice(["pgtap", "pytest", "both"]),
     default="both",
     help="Type of tests to generate: pgtap, pytest, or both",
 )
-@click.option("--with-metadata", is_flag=True, help="Generate test metadata alongside tests")
+@click.option(
+    "--with-metadata", is_flag=True, help="Generate test metadata alongside tests"
+)
 def tests(
     entity_files: tuple,
     output_dir: str,
@@ -735,7 +775,9 @@ def tests(
             actions.append(
                 {
                     "name": action.name,
-                    "description": getattr(action, "description", f"Action {action.name}"),
+                    "description": getattr(
+                        action, "description", f"Action {action.name}"
+                    ),
                 }
             )
 
@@ -772,8 +814,14 @@ def tests(
                 click.echo("    🐍 Generating Pytest tests...")
                 pytest_gen = PytestGenerator()
 
-                pytest_code = pytest_gen.generate_pytest_integration_tests(entity_config, actions)
-                pytest_file = output_path / "pytest" / f"test_{entity.name.lower()}_integration.py"
+                pytest_code = pytest_gen.generate_pytest_integration_tests(
+                    entity_config, actions
+                )
+                pytest_file = (
+                    output_path
+                    / "pytest"
+                    / f"test_{entity.name.lower()}_integration.py"
+                )
                 pytest_file.parent.mkdir(parents=True, exist_ok=True)
                 pytest_file.write_text(pytest_code)
                 generated_files.append(str(pytest_file))
@@ -789,7 +837,9 @@ def tests(
         pass
 
     # Report results
-    click.secho(f"✅ Generated {len(generated_files)} test file(s)", fg="green", bold=True)
+    click.secho(
+        f"✅ Generated {len(generated_files)} test file(s)", fg="green", bold=True
+    )
 
     click.echo("\nGenerated files:")
     for file_path in generated_files:
@@ -802,9 +852,39 @@ def tests(
     return 0
 
 
+@cli.command()
+@click.argument("entity_file", type=click.Path(exists=True))
+@click.option("--output-dir", default="generated/java", help="Output directory")
+def generate_java(entity_file: str, output_dir: str):
+    """Generate Spring Boot Java code from SpecQL entity"""
+    from src.generators.java.java_generator_orchestrator import (
+        JavaGeneratorOrchestrator,
+    )
+
+    click.secho("☕ Generating Spring Boot Java code...", fg="blue", bold=True)
+
+    # Parse SpecQL
+    parser = SpecQLParser()
+    with open(entity_file) as f:
+        entity = parser.parse_universal(f.read())
+
+    # Generate Java code
+    orchestrator = JavaGeneratorOrchestrator(output_dir)
+    files = orchestrator.generate_all(entity)
+    orchestrator.write_files(files)
+
+    click.echo(f"✅ Generated {len(files)} Java files in {output_dir}")
+    for file in files:
+        click.echo(f"  - {file.path}")
+
+    return 0
+
+
 # Add CDC commands
 from src.cli.cdc import cdc
+
 cli.add_command(cdc)
+
 
 def main():
     """Entry point for specql generate command"""

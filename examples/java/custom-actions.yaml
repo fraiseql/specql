@@ -1,0 +1,14 @@
+entity: Order
+schema: ecommerce
+fields:
+  status: enum = [pending, shipped, delivered]
+  total: integer
+actions:
+  - name: ship_order
+    steps:
+      - validate: status = 'pending'
+      - update: Order SET status = 'shipped'
+  - name: cancel_order
+    steps:
+      - validate: status != 'delivered'
+      - update: Order SET status = 'cancelled'

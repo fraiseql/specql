@@ -1,0 +1,12 @@
+entity: Order
+schema: ecommerce
+fields:
+  quantity: integer
+  status: enum = [pending, shipped, delivered]
+  product:
+    type: reference
+    references: Product
+    required: true
+  customer:
+    type: reference
+    references: Customer

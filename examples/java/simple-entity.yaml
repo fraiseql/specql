@@ -1,0 +1,6 @@
+entity: Product
+schema: ecommerce
+fields:
+  name: text!
+  price: integer
+  active: boolean = true
