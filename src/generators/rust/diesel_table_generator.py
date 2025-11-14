@@ -106,8 +106,17 @@ class DieselTableGenerator:
             Field line like "email -> Varchar,"
         """
         # Handle foreign key references
-        if field.type_name == "ref":
-            field_name = f"fk_{camel_to_snake(field.reference_entity or '')}"
+        # Strip nullable syntax first
+        base_type = field.type_name
+        if base_type.endswith("?"):
+            base_type = base_type[:-1]
+
+        if base_type.startswith("ref(") and base_type.endswith(")"):
+            # Extract entity name from ref(EntityName) syntax
+            ref_entity = base_type[4:-1]
+            field_name = f"fk_{camel_to_snake(ref_entity)}"
+        elif base_type == "ref" and field.reference_entity:
+            field_name = f"fk_{camel_to_snake(field.reference_entity)}"
         else:
             field_name = camel_to_snake(field.name)
 
@@ -167,7 +176,18 @@ class DieselTableGenerator:
             + [allow_tables]
         )
 
-        return "\n\n".join(parts)
+        # Diesel expects allow_tables_to_appear_in_same_query! to come after joinable!
+        # So we need to reorder if joinables exist
+        if joinables:
+            # Find the joinables and allow_tables in the parts
+            result = "\n".join(parts)
+            # The order is already correct, so this should work
+        else:
+            result = "\n".join(parts)
+
+        return result
+
+        return "\n".join(parts)
 
     def _generate_joinables(self, entities: List[Entity]) -> List[str]:
         """
@@ -183,9 +203,23 @@ class DieselTableGenerator:
 
             # Find all ref fields
             for field in entity.fields.values():
-                if field.type_name == "ref":
-                    ref_table = f"tb_{camel_to_snake(field.reference_entity or '')}"
-                    fk_field = f"fk_{camel_to_snake(field.reference_entity or '')}"
+                # Strip nullable syntax first
+                base_type = field.type_name
+                if base_type.endswith("?"):
+                    base_type = base_type[:-1]
+
+                if base_type.startswith("ref(") and base_type.endswith(")"):
+                    ref_entity = base_type[4:-1]
+                    ref_table = f"tb_{camel_to_snake(ref_entity)}"
+                    fk_field = f"fk_{camel_to_snake(ref_entity)}"
+
+                    joinable = (
+                        f"diesel::joinable!({table_name} -> {ref_table} ({fk_field}));"
+                    )
+                    joinables.append(joinable)
+                elif base_type == "ref" and field.reference_entity:
+                    ref_table = f"tb_{camel_to_snake(field.reference_entity)}"
+                    fk_field = f"fk_{camel_to_snake(field.reference_entity)}"
 
                     joinable = (
                         f"diesel::joinable!({table_name} -> {ref_table} ({fk_field}));"

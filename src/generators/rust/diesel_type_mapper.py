@@ -161,7 +161,7 @@ class DieselTypeMapper:
         Map SpecQL field type to Diesel SQL type
 
         Args:
-            field_type: SpecQL type (e.g., "text", "integer:big", "text[]")
+            field_type: SpecQL type (e.g., "text", "integer:big", "text[]", "text?")
             required: Whether field is required (False = Nullable)
             ref_entity: Referenced entity name for ref fields
 
@@ -171,10 +171,25 @@ class DieselTypeMapper:
         Raises:
             ValueError: If field_type is unknown
         """
+        # Handle nullable syntax (text?, integer?, etc.)
+        if field_type.endswith("?"):
+            field_type = field_type[:-1]  # Remove ?
+            required = False
+
         # Handle array types (text[], integer[], etc.)
         is_array = field_type.endswith("[]")
         if is_array:
             field_type = field_type[:-2]  # Remove []
+
+        # Handle reference syntax (ref(EntityName))
+        if field_type.startswith("ref(") and field_type.endswith(")"):
+            ref_entity = field_type[4:-1]  # Extract EntityName
+            field_type = "ref"
+        elif field_type == "ref" and ref_entity is None:
+            # If it's just "ref" without entity, that's an error
+            raise ValueError(
+                "Reference type 'ref' must specify an entity, e.g., 'ref(Company)'"
+            )
 
         # Check subtype map first (more specific)
         if field_type in self.SUBTYPE_MAP:

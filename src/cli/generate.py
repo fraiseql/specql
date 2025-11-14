@@ -87,7 +87,7 @@ def cli():
 )  # NEW
 @click.option(
     "--target",
-    type=click.Choice(["postgresql", "python_django", "python_sqlalchemy"]),
+    type=click.Choice(["postgresql", "python_django", "python_sqlalchemy", "rust"]),
     help="Target language for pattern-based code generation",
 )  # NEW
 @click.option(
@@ -240,6 +240,20 @@ def entities(
                 code = generator.generate_django(entity_def)
             elif target == "python_sqlalchemy":
                 code = generator.generate_sqlalchemy(entity_def)
+            elif target == "rust":
+                from src.generators.rust.rust_generator_orchestrator import (
+                    RustGeneratorOrchestrator,
+                )
+
+                orchestrator = RustGeneratorOrchestrator()
+                orchestrator.generate(
+                    entity_files=[Path(entity_file)],
+                    output_dir=Path(output_dir),
+                    with_handlers=True,
+                    with_routes=True,
+                )
+                click.secho(f"✅ Rust backend generated in {output_dir}", fg="green")
+                return
             else:
                 raise click.ClickException(f"Unsupported target: {target}")
 
