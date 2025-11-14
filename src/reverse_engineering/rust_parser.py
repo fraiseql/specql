@@ -82,6 +82,20 @@ class DieselTableInfo:
         self.columns = columns
 
 
+class DieselDeriveInfo:
+    """Represents Diesel derive macros on a struct."""
+
+    def __init__(
+        self,
+        struct_name: str,
+        derives: List[str],
+        associations: List[str],
+    ):
+        self.struct_name = struct_name
+        self.derives = derives
+        self.associations = associations
+
+
 class RustParser:
     """Parser for Rust code using subprocess and syn crate."""
 
@@ -94,15 +108,15 @@ class RustParser:
 
     def parse_file(
         self, file_path: Path
-    ) -> Tuple[List[RustStructInfo], List[DieselTableInfo]]:
+    ) -> Tuple[List[RustStructInfo], List[DieselTableInfo], List[DieselDeriveInfo]]:
         """
-        Parse a Rust source file and extract struct definitions AND Diesel tables.
+        Parse a Rust source file and extract struct definitions, Diesel tables, and Diesel derives.
 
         Args:
             file_path: Path to the Rust file
 
         Returns:
-            Tuple of (List of parsed struct information, List of Diesel table information)
+            Tuple of (List of parsed struct information, List of Diesel table information, List of Diesel derive information)
         """
         try:
             # Call the Rust parser binary
@@ -121,9 +135,11 @@ class RustParser:
             if isinstance(data, list):
                 structs_data = data
                 diesel_tables_data = []
+                diesel_derives_data = []
             else:
                 structs_data = data.get("structs", [])
                 diesel_tables_data = data.get("diesel_tables", [])
+                diesel_derives_data = data.get("diesel_derives", [])
 
             # Parse structs (existing code)
             structs = []
@@ -164,7 +180,17 @@ class RustParser:
                 )
                 diesel_tables.append(table)
 
-            return structs, diesel_tables
+            # Parse Diesel derives (NEW)
+            diesel_derives = []
+            for derive_data in diesel_derives_data:
+                derive = DieselDeriveInfo(
+                    struct_name=derive_data["struct_name"],
+                    derives=derive_data["derives"],
+                    associations=derive_data["associations"],
+                )
+                diesel_derives.append(derive)
+
+            return structs, diesel_tables, diesel_derives
 
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to run Rust parser: {e}")
@@ -176,15 +202,15 @@ class RustParser:
 
     def parse_source(
         self, source_code: str
-    ) -> Tuple[List[RustStructInfo], List[DieselTableInfo]]:
+    ) -> Tuple[List[RustStructInfo], List[DieselTableInfo], List[DieselDeriveInfo]]:
         """
-        Parse Rust source code and extract struct definitions AND Diesel tables.
+        Parse Rust source code and extract struct definitions, Diesel tables, and Diesel derives.
 
         Args:
             source_code: Rust source code as string
 
         Returns:
-            Tuple of (List of parsed struct information, List of Diesel table information)
+            Tuple of (List of parsed struct information, List of Diesel table information, List of Diesel derive information)
         """
         # For now, create a temporary file and parse it
         # TODO: Modify Rust binary to accept source code via stdin
@@ -543,7 +569,7 @@ class RustReverseEngineeringService:
             List of SpecQL entities
         """
         # Now returns tuple
-        structs, diesel_tables = self.parser.parse_file(file_path)
+        structs, diesel_tables, diesel_derives = self.parser.parse_file(file_path)
         entities = []
 
         # Process structs (existing behavior)
