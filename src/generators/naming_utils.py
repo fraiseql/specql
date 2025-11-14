@@ -111,7 +111,9 @@ COMMON_ACRONYMS = {
 
 
 def camel_to_snake(
-    name: str, preserve_acronyms: set[str] | None = None, use_common_acronyms: bool = True
+    name: str,
+    preserve_acronyms: set[str] | None = None,
+    use_common_acronyms: bool = True,
 ) -> str:
     """
     Convert CamelCase to snake_case with smart acronym handling
@@ -181,9 +183,15 @@ def camel_to_snake(
     s1 = re.sub(r"([A-Z]+)([A-Z][a-z])", r"\1_\2", temp_name)
     s2 = re.sub("(.)([A-Z][a-z]+)", r"\1_\2", s1)
     s3 = re.sub("([a-z0-9])([A-Z])", r"\1_\2", s2)
-    s4 = re.sub(r"([a-zA-Z])(\[\[\d+\]\])", r"\1_\2", s3)  # Handle transitions to placeholders
-    s5 = re.sub(r"(\[\[\d+\]\])([A-Z])", r"\1_\2", s4)  # Handle transitions from placeholders
-    s6 = re.sub(r"(\d)(\[\[\d+\]\])", r"\1_\2", s5)  # Handle digit to placeholder transitions
+    s4 = re.sub(
+        r"([a-zA-Z])(\[\[\d+\]\])", r"\1_\2", s3
+    )  # Handle transitions to placeholders
+    s5 = re.sub(
+        r"(\[\[\d+\]\])([A-Z])", r"\1_\2", s4
+    )  # Handle transitions from placeholders
+    s6 = re.sub(
+        r"(\d)(\[\[\d+\]\])", r"\1_\2", s5
+    )  # Handle digit to placeholder transitions
     s7 = re.sub(
         r"(\[\[\d+\]\])(\[\[\d+\]\])", r"\1_\2", s6
     )  # Handle transitions between placeholders
@@ -238,3 +246,55 @@ def to_entity_name(name: str, preserve_acronyms: set[str] | None = None) -> str:
         'duplex_mode'
     """
     return camel_to_snake(name, preserve_acronyms=preserve_acronyms)
+
+
+def to_snake_case(name: str) -> str:
+    """
+    Convert string to snake_case
+
+    Alias for camel_to_snake for convenience.
+
+    Args:
+        name: String to convert
+
+    Returns:
+        snake_case version
+    """
+    return camel_to_snake(name)
+
+
+def to_pascal_case(name: str) -> str:
+    """
+    Convert string to PascalCase
+
+    Args:
+        name: String to convert (snake_case, camelCase, etc.)
+
+    Returns:
+        PascalCase version
+
+    Examples:
+        >>> to_pascal_case("contact")
+        'Contact'
+        >>> to_pascal_case("duplex_mode")
+        'DuplexMode'
+        >>> to_pascal_case("userAPI")
+        'UserAPI'
+    """
+    if not name:
+        return ""
+
+    # Split on underscores and other separators
+    words = re.split(r"[_-]", name)
+
+    # Capitalize each word
+    pascal_words = []
+    for word in words:
+        if word:
+            # Handle acronyms (all caps)
+            if word.isupper() and len(word) > 1:
+                pascal_words.append(word)
+            else:
+                pascal_words.append(word.capitalize())
+
+    return "".join(pascal_words)
