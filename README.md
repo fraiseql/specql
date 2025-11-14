@@ -53,6 +53,7 @@ specql generate entities/*.yaml
 ### Core Generation
 - **Database**: PostgreSQL with Trinity pattern
 - **Backend**: Java/Spring Boot with JPA entities (97% coverage, Lombok support)
+- **Backend**: TypeScript/Prisma with schema generation (96% coverage, round-trip validation)
 - **Actions**: PL/pgSQL functions with type safety
 - **Frontend**: TypeScript types, GraphQL schema, Apollo hooks
 - **Testing**: pgTAP SQL tests + pytest Python tests
@@ -66,7 +67,7 @@ specql generate entities/*.yaml
 
 ## Roadmap Features (Coming Soon)
 
-- 🔜 **Multi-Language**: Rust, TypeScript, Go backends
+- 🔜 **Multi-Language**: Rust, Go backends (TypeScript ✅ Complete)
 - 🔜 **Frontend**: React, Vue, Angular component generation
 - 🔜 **Full Stack**: Complete apps from single YAML spec
 - 🔜 **Universal CI/CD**: Platform-agnostic pipeline definition
@@ -90,6 +91,7 @@ All from `examples/` and `entities/examples/`:
 - [Contact Manager](examples/crm/) - Simple CRM
 - [E-Commerce](examples/ecommerce/) - Orders, payments, inventory
 - [Java/Spring Boot](examples/java/) - JPA entities with Lombok support
+- [TypeScript/Prisma](examples/typescript/) - Prisma schemas with TypeScript interfaces
 - [SaaS Multi-Tenant](examples/saas-multi-tenant/) - Enterprise patterns
 - [Simple Blog](examples/simple-blog/) - CRUD basics
 
@@ -109,8 +111,9 @@ MIT License - see [LICENSE](LICENSE)
 
 ---
 
-**Current Status**: Production ready for PostgreSQL + GraphQL + Java/Spring Boot
+**Current Status**: Production ready for PostgreSQL + GraphQL + Java/Spring Boot + TypeScript/Prisma
 **Python**: 3.10+
 **PostgreSQL**: 14+
 **Java**: 17+ (Spring Boot 3.x, JPA/Hibernate)
-**Total Source**: 359 Python files, 25+ step compilers, comprehensive test suite
+**TypeScript**: 4.9+ (Prisma Client, TypeScript interfaces)
+**Total Source**: 371 Python files, 25+ step compilers, comprehensive test suite (96% coverage)
