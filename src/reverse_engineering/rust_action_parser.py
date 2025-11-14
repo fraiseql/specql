@@ -14,6 +14,7 @@ from src.reverse_engineering.rust_parser import (
     DieselDeriveInfo,
     ImplBlockInfo,
     ImplMethodInfo,
+    RouteHandlerInfo,
 )
 
 logger = logging.getLogger(__name__)
@@ -30,7 +31,7 @@ class RustActionParser:
     def extract_actions(self, file_path: Path) -> List[Dict[str, Any]]:
         """Extract SpecQL actions from Rust file."""
         # Parse file
-        structs, diesel_tables, diesel_derives, impl_blocks = (
+        structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
             self.rust_parser.parse_file(file_path)
         )
 
@@ -43,16 +44,25 @@ class RustActionParser:
                 if action:
                     actions.append(action)
 
+        # Map route handlers to actions
+        for route_handler in route_handlers:
+            action = self.route_mapper.map_route_to_action(route_handler)
+            if action:
+                actions.append(action)
+
         return actions
 
     def extract_endpoints(self, file_path: Path) -> List[Dict[str, Any]]:
         """Extract API endpoints from route handlers."""
-        structs, diesel_tables, diesel_derives, impl_blocks = (
+        structs, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
             self.rust_parser.parse_file(file_path)
         )
 
         endpoints = []
-        # TODO: Implement route handler extraction
+        for route_handler in route_handlers:
+            endpoint = self.route_mapper.map_route_to_endpoint(route_handler)
+            if endpoint:
+                endpoints.append(endpoint)
 
         return endpoints
 
@@ -146,9 +156,44 @@ class RustActionMapper:
 
 
 class RouteToActionMapper:
-    """Maps route handlers to SpecQL endpoints."""
+    """Maps route handlers to SpecQL actions and endpoints."""
 
-    def map_route_to_endpoint(self, route_data: dict) -> Optional[Dict[str, Any]]:
+    def map_route_to_action(
+        self, route_handler: RouteHandlerInfo
+    ) -> Optional[Dict[str, Any]]:
+        """Map route handler to SpecQL action."""
+        # Map HTTP methods to CRUD actions
+        method_to_action = {
+            "GET": "read",
+            "POST": "create",
+            "PUT": "update",
+            "DELETE": "delete",
+            "PATCH": "update",
+        }
+
+        action_type = method_to_action.get(route_handler.method)
+        if not action_type:
+            return None
+
+        return {
+            "name": route_handler.function_name,
+            "type": action_type,
+            "parameters": route_handler.parameters,
+            "return_type": route_handler.return_type,
+            "is_async": route_handler.is_async,
+            "http_method": route_handler.method,
+            "path": route_handler.path,
+        }
+
+    def map_route_to_endpoint(
+        self, route_handler: RouteHandlerInfo
+    ) -> Optional[Dict[str, Any]]:
         """Map route handler to SpecQL endpoint."""
-        # TODO: Implement mapping logic
-        return None
+        return {
+            "method": route_handler.method,
+            "path": route_handler.path,
+            "handler": route_handler.function_name,
+            "is_async": route_handler.is_async,
+            "return_type": route_handler.return_type,
+            "parameters": route_handler.parameters,
+        }

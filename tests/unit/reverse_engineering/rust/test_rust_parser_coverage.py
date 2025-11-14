@@ -277,7 +277,9 @@ class TestRustParserParseSource:
         }
         """
 
-        structs, diesel_tables = self.parser.parse_source(source)
+        structs, enums, diesel_tables, diesel_derives, impl_blocks, routes = (
+            self.parser.parse_source(source)
+        )
 
         assert len(structs) == 1
         assert len(diesel_tables) == 0
@@ -432,7 +434,9 @@ class TestPathEdgeCases:
             file_path.write_text("pub struct User { pub id: i32, }")
 
             parser = RustParser()
-            structs, diesel_tables = parser.parse_file(file_path)
+            structs, enums, diesel_tables, diesel_derives, impl_blocks, routes = (
+                parser.parse_file(file_path)
+            )
 
             assert len(structs) == 1
             assert len(diesel_tables) == 0
@@ -481,7 +485,9 @@ class TestDieselTableCoverage:
         }"""
 
         with patch("subprocess.run", return_value=mock_result):
-            structs, diesel_tables = parser.parse_file(Path("/fake/path.rs"))
+            structs, enums, diesel_tables, diesel_derives, impl_blocks, routes = (
+                parser.parse_file(Path("/fake/path.rs"))
+            )
 
             assert len(structs) == 1
             assert len(diesel_tables) == 1
@@ -499,7 +505,9 @@ class TestDieselTableCoverage:
         mock_result.stdout = """[{"name": "User", "fields": [], "attributes": []}]"""
 
         with patch("subprocess.run", return_value=mock_result):
-            structs, diesel_tables = parser.parse_file(Path("/fake/path.rs"))
+            structs, enums, diesel_tables, diesel_derives, impl_blocks, routes = (
+                parser.parse_file(Path("/fake/path.rs"))
+            )
 
             assert len(structs) == 1
             assert len(diesel_tables) == 0  # Should be empty for old format
@@ -567,7 +575,7 @@ class TestDieselTableCoverage:
         with patch.object(
             service.parser,
             "parse_file",
-            return_value=(mock_structs, mock_diesel_tables),
+            return_value=(mock_structs, [], mock_diesel_tables, [], [], []),
         ):
             entities = service.reverse_engineer_file(
                 Path("/fake/path.rs"), include_diesel_tables=True
@@ -588,7 +596,7 @@ class TestDieselTableCoverage:
         with patch.object(
             service.parser,
             "parse_file",
-            return_value=(mock_structs, mock_diesel_tables),
+            return_value=(mock_structs, [], mock_diesel_tables, [], [], []),
         ):
             entities = service.reverse_engineer_file(
                 Path("/fake/path.rs"), include_diesel_tables=False
