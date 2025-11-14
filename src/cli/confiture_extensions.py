@@ -12,6 +12,7 @@ from src.cli.orchestrator import CLIOrchestrator
 from src.cli.help_text import get_generate_help_text
 from src.cli.framework_registry import get_framework_registry
 from src.cli.registry import registry
+from src.core.specql_parser import SpecQLParser
 
 
 @click.group()
@@ -43,6 +44,17 @@ def specql():
     default="fraiseql",
     help="Target framework (default: fraiseql)",
 )
+@click.option(
+    "--target",
+    type=click.Choice(["postgresql", "python_django", "python_sqlalchemy", "rust"]),
+    help="Target language for pattern-based code generation",
+)
+@click.option(
+    "--with-handlers", is_flag=True, help="Generate HTTP handlers (Rust only)"
+)
+@click.option(
+    "--with-routes", is_flag=True, help="Generate route configuration (Rust only)"
+)
 @click.option("--dev", is_flag=True, help="Development mode: flat format in db/schema/")
 @click.option("--no-tv", is_flag=True, help="Skip table view (tv_*) generation")
 def generate(
@@ -54,10 +66,75 @@ def generate(
     output_dir,
     verbose,
     framework,
+    target,
+    with_handlers,
+    with_routes,
     dev,
     no_tv,
 ):
     """Generate PostgreSQL schema from SpecQL YAML files"""
+
+    # Handle pattern-based multi-language generation
+    if target:
+        from src.pattern_library.pattern_based_compiler import PatternBasedCompiler
+        from tests.integration.test_pattern_library_multilang import (
+            MultiLanguageGenerator,
+        )
+
+        click.secho(
+            f"🔧 Generating {target} code using pattern library...",
+            fg="blue",
+            bold=True,
+        )
+
+        parser = SpecQLParser()
+        generator = MultiLanguageGenerator()
+
+        for entity_file in entity_files:
+            with open(entity_file) as f:
+                yaml_content = f.read()
+            entity_def = parser.parse(yaml_content)
+
+            if target == "postgresql":
+                code = generator.generate_postgresql(entity_def)
+            elif target == "python_django":
+                code = generator.generate_django(entity_def)
+            elif target == "python_sqlalchemy":
+                code = generator.generate_sqlalchemy(entity_def)
+            elif target == "rust":
+                from src.generators.rust.rust_generator_orchestrator import (
+                    RustGeneratorOrchestrator,
+                )
+
+                orchestrator = RustGeneratorOrchestrator()
+                orchestrator.generate(
+                    entity_files=[Path(entity_file)],
+                    output_dir=Path(output_dir or "generated"),
+                    with_handlers=with_handlers,
+                    with_routes=with_routes,
+                )
+                click.secho(
+                    f"✅ Rust backend generated in {output_dir or 'generated'}",
+                    fg="green",
+                )
+                return
+            else:
+                raise click.ClickException(f"Unsupported target: {target}")
+
+            # Write to output file
+            output_path = Path(output_dir or "generated")
+            output_path.mkdir(parents=True, exist_ok=True)
+            output_file = (
+                output_path / f"{entity_def.name.lower()}_{target}.sql"
+                if target == "postgresql"
+                else f"{entity_def.name.lower()}_{target}.py"
+            )
+
+            with open(output_file, "w") as f:
+                f.write(code)
+            click.secho(f"✅ Generated {output_file}", fg="green")
+
+        return
 
     # Get framework registry
     registry = get_framework_registry()

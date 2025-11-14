@@ -572,6 +572,10 @@ class SpecQLParser:
         """Parse field from dict specification (complex format)"""
         type_name = field_spec.get("type", "text")
         nullable = field_spec.get("nullable", True)
+        required = field_spec.get("required", False)
+        # If required is explicitly set, it overrides nullable
+        if "required" in field_spec:
+            nullable = not required
         default = field_spec.get("default")
         schema = field_spec.get("schema")  # Optional cross-schema reference
         validation = field_spec.get("validation", {})

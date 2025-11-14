@@ -4,7 +4,7 @@ Rust Model Generator
 Generates Rust struct definitions for Diesel ORM.
 """
 
-from typing import List, Optional
+from typing import List
 from src.core.ast_models import Entity, FieldDefinition
 from src.generators.rust.diesel_type_mapper import DieselTypeMapper
 from src.generators.naming_utils import to_snake_case, to_pascal_case

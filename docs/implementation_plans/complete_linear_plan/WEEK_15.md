@@ -16,6 +16,7 @@
 This week focuses on: Generate Rust/Diesel code from SpecQL
 
 Key deliverables:
+
 - Generate Diesel schema.rs from SpecQL entities
 - Generate Rust struct definitions
 - Generate Actix/Axum handler functions
@@ -26,12 +27,15 @@ Key deliverables:
 ## 📅 Daily Breakdown
 
 ### Day 1-2: Core Implementation
+
 **Focus**: Generate Diesel schema.rs from SpecQL entities
 
 ### Day 3-4: Integration & Testing
+
 **Focus**: Integration tests, edge cases, performance optimization
 
 ### Day 5: Documentation & Polish
+
 **Focus**: Complete documentation, examples, migration guides
 
 ---
