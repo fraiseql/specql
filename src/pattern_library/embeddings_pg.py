@@ -1,211 +1,201 @@
-"""Pattern embedding service using PostgreSQL + pgvector."""
+"""
+Pattern embedding service using FraiseQL 1.5 GraphQL API
 
-from sentence_transformers import SentenceTransformer
-import numpy as np
-import psycopg
-from pgvector.psycopg import register_vector
+FraiseQL 1.5 handles:
+- Embedding generation (auto-generated on INSERT/UPDATE)
+- Vector similarity search (GraphQL operators)
+- Model loading and caching
+
+SpecQL provides:
+- Domain-specific text extraction (_pattern_to_text)
+- Business logic for pattern search
+"""
+
 from typing import Dict, List, Optional
-from pathlib import Path
-import os
+import httpx
+
 
 class PatternEmbeddingService:
     """
-    Generate and manage pattern embeddings using PostgreSQL + pgvector.
+    Pattern search service using FraiseQL 1.5 GraphQL API
 
-    Features:
-    - CPU-friendly sentence-transformers
-    - Native pgvector storage and similarity search
-    - HNSW index for 100x speedup
+    Simplified version that delegates all embedding operations to FraiseQL.
+    Only maintains pattern-specific business logic.
     """
 
-    def __init__(
-        self,
-        connection_string: Optional[str] = None,
-        model_name: str = "all-MiniLM-L6-v2"
-    ):
+    def __init__(self, fraiseql_url: str = "http://localhost:4000/graphql"):
         """
-        Initialize embedding service.
+        Initialize pattern embedding service
 
         Args:
-            connection_string: PostgreSQL connection string (or uses SPECQL_DB_URL env)
-            model_name: Sentence transformer model (384-dim, fast on CPU)
+            fraiseql_url: FraiseQL GraphQL endpoint URL
         """
-        self.model_name = model_name
-        self.model = SentenceTransformer(model_name)
-
-        # Connect to PostgreSQL
-        self.conn_string = connection_string or os.getenv('SPECQL_DB_URL')
-        if not self.conn_string:
-            raise ValueError("No connection string provided and SPECQL_DB_URL not set")
-
-        self.conn = psycopg.connect(self.conn_string)
-        register_vector(self.conn)
-
-        print(f"✓ Embedding service ready ({model_name}, PostgreSQL + pgvector)")
-
-    def embed_pattern(self, pattern: Dict) -> np.ndarray:
-        """
-        Generate embedding for a domain pattern.
-
-        Combines:
-        - Pattern name and description
-        - Category
-        - Field names
-        - Action names
-
-        Returns:
-            384-dim numpy array
-        """
-        text = self._pattern_to_text(pattern)
-        embedding = self.model.encode(text, convert_to_numpy=True, show_progress_bar=False)
-        return embedding.astype(np.float32)
-
-    def embed_function(self, sql: str, description: str = "") -> np.ndarray:
-        """Generate embedding for SQL function."""
-        text = f"{description}\n{sql}" if description else sql
-        embedding = self.model.encode(text, convert_to_numpy=True, show_progress_bar=False)
-        return embedding.astype(np.float32)
-
-    def update_pattern_embedding(self, pattern_id: int, embedding: np.ndarray):
-        """Update pattern with embedding (native pgvector!)."""
-        self.conn.execute(
-            """
-            UPDATE pattern_library.domain_patterns
-            SET embedding = %s
-            WHERE id = %s
-            """,
-            (embedding, pattern_id)
-        )
-        self.conn.commit()
-
-    def generate_all_embeddings(self):
-        """Batch generate embeddings for all patterns without embeddings."""
-        cursor = self.conn.execute(
-            """
-            SELECT id, name, category, description, parameters, implementation
-            FROM pattern_library.domain_patterns
-            WHERE embedding IS NULL
-            """
-        )
-
-        patterns = cursor.fetchall()
-        print(f"Generating embeddings for {len(patterns)} patterns...")
-
-        for i, row in enumerate(patterns, 1):
-            pattern_id, name, category, description, parameters, implementation = row
-
-            pattern = {
-                'name': name,
-                'category': category,
-                'description': description,
-                'parameters': parameters,
-                'implementation': implementation
-            }
-
-            embedding = self.embed_pattern(pattern)
-            self.update_pattern_embedding(pattern_id, embedding)
-
-            if i % 10 == 0:
-                print(f"  {i}/{len(patterns)} complete")
-
-        print(f"✓ {len(patterns)} embeddings generated")
+        self.fraiseql_url = fraiseql_url
+        self.client = httpx.Client(timeout=30.0)
 
     def retrieve_similar(
         self,
-        query_embedding: np.ndarray,
+        query_text: str,
         top_k: int = 5,
         threshold: float = 0.5,
         category_filter: Optional[str] = None
     ) -> List[Dict]:
         """
-        Retrieve top-K similar patterns using native pgvector.
+        Retrieve top-K similar patterns using FraiseQL vector search
 
-        Uses HNSW index for fast approximate nearest neighbor search.
+        FraiseQL 1.5 handles embedding generation and similarity search.
 
         Args:
-            query_embedding: Query embedding vector
+            query_text: Natural language query (FraiseQL generates embedding)
             top_k: Number of results to return
             threshold: Minimum similarity score (0-1)
             category_filter: Optional category filter
 
         Returns:
-            List of {pattern_id, name, category, description, similarity, ...}
+            List of {id, name, category, description, similarity, ...}
         """
-        # Build query
-        query = """
-            SELECT
-                id,
-                name,
-                category,
-                description,
-                parameters,
-                1 - (embedding <=> %s) AS similarity
-            FROM pattern_library.domain_patterns
-            WHERE embedding IS NOT NULL
-                AND deprecated = FALSE
-                AND (1 - (embedding <=> %s)) >= %s
-        """
-
-        params = [query_embedding, query_embedding, threshold]
+        # Build GraphQL query with optional category filter
+        where_conditions = [
+            {"embedding": {"cosineDistance": {"text": query_text, "threshold": threshold}}},
+            {"deprecated": {"equals": False}}
+        ]
 
         if category_filter:
-            query += " AND category = %s"
-            params.append(category_filter)
+            where_conditions.append({"category": {"equals": category_filter}})
 
-        query += " ORDER BY embedding <=> %s LIMIT %s"
-        params.extend([query_embedding, top_k])
+        query = """
+        query FindSimilarPatterns($query: String!, $topK: Int!, $where: DomainPatternWhereInput!) {
+          domainPatterns(
+            where: $where
+            orderBy: { embedding: { cosineDistance: $query } }
+            limit: $topK
+          ) {
+            id
+            name
+            category
+            description
+            parameters
+            implementation
+            similarity
+          }
+        }
+        """
 
-        # Execute
-        cursor = self.conn.execute(query, params)
+        variables = {
+            "query": query_text,
+            "topK": top_k,
+            "where": {"AND": where_conditions}
+        }
 
-        results = []
-        for row in cursor:
-            results.append({
-                'pattern_id': row[0],
-                'name': row[1],
-                'category': row[2],
-                'description': row[3],
-                'parameters': row[4],
-                'similarity': float(row[5])
-            })
+        response = self.client.post(
+            self.fraiseql_url,
+            json={"query": query, "variables": variables}
+        )
+        response.raise_for_status()
 
-        return results
+        result = response.json()
+        if "errors" in result:
+            raise RuntimeError(f"GraphQL errors: {result['errors']}")
+
+        patterns = result["data"]["domainPatterns"]
+
+        # Convert to legacy format for compatibility
+        return [
+            {
+                "pattern_id": p["id"],
+                "name": p["name"],
+                "category": p["category"],
+                "description": p["description"],
+                "parameters": p.get("parameters"),
+                "similarity": p.get("similarity", 0.0)
+            }
+            for p in patterns
+        ]
 
     def hybrid_search(
         self,
-        query_embedding: np.ndarray,
-        query_text: Optional[str] = None,
+        query_text: str,
         category_filter: Optional[str] = None,
         top_k: int = 10
     ) -> List[Dict]:
         """
-        Hybrid search: vector similarity + full-text search + filters.
+        Hybrid search: vector similarity + full-text search
 
-        Uses PostgreSQL function for optimized query.
+        FraiseQL 1.5 handles both vector and full-text operations.
+
+        Args:
+            query_text: Search query
+            category_filter: Optional category filter
+            top_k: Number of results
+
+        Returns:
+            List of patterns with combined relevance score
         """
-        cursor = self.conn.execute(
-            """
-            SELECT * FROM pattern_library.hybrid_pattern_search(
-                %s, %s, %s, %s
-            )
-            """,
-            (query_embedding, query_text, category_filter, top_k)
+        where_conditions = [
+            {
+                "OR": [
+                    {"embedding": {"cosineDistance": {"text": query_text, "threshold": 0.5}}},
+                    {"searchVector": {"matches": query_text}}
+                ]
+            },
+            {"deprecated": {"equals": False}}
+        ]
+
+        if category_filter:
+            where_conditions.append({"category": {"equals": category_filter}})
+
+        query = """
+        query HybridPatternSearch($topK: Int!, $where: DomainPatternWhereInput!) {
+          domainPatterns(
+            where: $where
+            orderBy: { _relevance: DESC }
+            limit: $topK
+          ) {
+            id
+            name
+            category
+            description
+            _relevance
+          }
+        }
+        """
+
+        variables = {
+            "topK": top_k,
+            "where": {"AND": where_conditions}
+        }
+
+        response = self.client.post(
+            self.fraiseql_url,
+            json={"query": query, "variables": variables}
         )
+        response.raise_for_status()
 
-        results = []
-        for row in cursor:
-            results.append({
-                'pattern_id': row[0],
-                'name': row[1],
-                'category': row[2],
-                'description': row[3],
-                'combined_score': float(row[4])
-            })
+        result = response.json()
+        if "errors" in result:
+            raise RuntimeError(f"GraphQL errors: {result['errors']}")
 
-        return results
+        patterns = result["data"]["domainPatterns"]
 
-    def _pattern_to_text(self, pattern: Dict) -> str:
-        """Convert pattern to searchable text."""
+        return [
+            {
+                "pattern_id": p["id"],
+                "name": p["name"],
+                "category": p["category"],
+                "description": p["description"],
+                "combined_score": p.get("_relevance", 0.0)
+            }
+            for p in patterns
+        ]
+
+    @staticmethod
+    def _pattern_to_text(pattern: Dict) -> str:
+        """
+        Convert pattern to searchable text
+
+        Domain-specific logic for combining pattern fields.
+        Used by FraiseQL's embedding configuration.
+        """
         parts = [
             f"Pattern: {pattern.get('name', '')}",
             f"Category: {pattern.get('category', '')}",
@@ -226,5 +216,5 @@ class PatternEmbeddingService:
         return " | ".join(parts)
 
     def close(self):
-        """Close database connection."""
-        self.conn.close()
+        """Close HTTP client"""
+        self.client.close()

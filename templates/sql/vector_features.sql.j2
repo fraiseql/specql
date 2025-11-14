@@ -1,6 +1,7 @@
 {%- if section == "columns" %}
 -- ============================================================================
 -- Vector Embeddings: {{ entity.name }}
+-- FraiseQL 1.5 auto-discovers these columns and provides GraphQL operators
 -- ============================================================================
 
 ALTER TABLE {{ schema }}.tb_{{ entity.name|lower }}
@@ -11,7 +12,8 @@ ADD COLUMN embedding vector(384);
 
 {%- elif section == "indexes" %}
 -- ============================================================================
--- HNSW Index for Fast Similarity Search
+-- HNSW Index for Fast Vector Similarity Search
+-- FraiseQL 1.5 uses this index for optimized vector queries
 -- ============================================================================
 
 CREATE INDEX idx_tb_{{ entity.name|lower }}_embedding_hnsw
@@ -23,58 +25,7 @@ COMMENT ON INDEX {{ schema }}.idx_tb_{{ entity.name|lower }}_embedding_hnsw IS
 'HNSW index for fast vector similarity search on {{ entity.name }}.
 - m = 16: Number of connections per layer
 - ef_construction = 64: Quality of index construction
-- Operator: <=> (cosine distance)';
+- Operator: <=> (cosine distance)
 
-{%- elif section == "function" %}
--- ============================================================================
--- Similarity Search Function (Optional - for direct SQL usage)
--- ============================================================================
-
-CREATE OR REPLACE FUNCTION {{ schema }}.search_{{ entity.name|lower }}_by_embedding(
-    p_query_embedding vector(384),
-    p_limit INTEGER DEFAULT 10,
-    p_min_similarity FLOAT DEFAULT 0.0
-)
-RETURNS TABLE (
-    pk INTEGER,
-    id UUID,
-    similarity FLOAT,
-    data JSONB
-) AS $$
-BEGIN
-    RETURN QUERY
-    SELECT
-        tv.pk_{{ entity.name|lower }},
-        tv.id,
-        1 - (tv.embedding <=> p_query_embedding) AS similarity,
-        tv.data
-    FROM {{ schema }}.tv_{{ entity.name|lower }} tv
-    WHERE tv.embedding IS NOT NULL
-        AND (1 - (tv.embedding <=> p_query_embedding)) >= p_min_similarity
-    ORDER BY tv.embedding <=> p_query_embedding
-    LIMIT p_limit;
-END;
-$$ LANGUAGE plpgsql STABLE;
-
-COMMENT ON FUNCTION {{ schema }}.search_{{ entity.name|lower }}_by_embedding IS
-'Semantic similarity search for {{ entity.name }} using vector embeddings.
-
-NOTE: This function is optional. FraiseQL provides native vector operators.
-Use this for direct SQL queries outside of GraphQL.
-
-Args:
-- p_query_embedding: Query vector (384 dimensions)
-- p_limit: Maximum results to return
-- p_min_similarity: Minimum similarity threshold (0.0 - 1.0)
-
-Returns:
-- Matching entities with similarity scores, ordered by relevance
-
-@fraiseql:query
-name: search{{ entity.name }}ByEmbedding
-type: [{{ entity.name }}!]!
-args:
-  - queryEmbedding: [Float!]!
-  - limit: Int
-  - minSimilarity: Float';
+FraiseQL 1.5 GraphQL operators: cosineDistance, l2Distance, innerProduct';
 {%- endif %}

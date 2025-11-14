@@ -23,3 +23,42 @@ schema:
   auto_discover: true
   comments: true
   mutations: true
+
+# FraiseQL 1.5 Embedding Configuration
+embeddings:
+  # Provider: sentence_transformers, openai, cohere, etc.
+  provider: sentence_transformers
+
+  # Model configuration
+  model: all-MiniLM-L6-v2
+  dimensions: 384
+
+  # Auto-generate embeddings on INSERT/UPDATE
+  auto_generate: true
+
+  # Batch configuration
+  batch_size: 32
+  batch_timeout_ms: 100
+
+  # Per-entity configuration
+  entities:
+    - name: Document
+      fields: [title, content]
+      combine_strategy: weighted
+      weights:
+        title: 0.3
+        content: 0.7
+
+    - name: DomainPattern
+      fields: [name, description, category]
+      combine_strategy: concat
+      separator: " | "
+
+# Vector column discovery
+vector_discovery:
+  enabled: true
+  auto_create_operators: true  # Expose GraphQL operators
+  supported_metrics:
+    - cosine_distance
+    - l2_distance
+    - inner_product

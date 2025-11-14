@@ -1,23 +1,30 @@
-"""Pattern deduplication service"""
-from typing import List, Tuple, Dict, Any
+"""
+Pattern deduplication service
+
+Uses FraiseQL 1.5 for semantic similarity via GraphQL API.
+"""
+from typing import List, Dict, Any
 import numpy as np
 
 from src.application.services.pattern_service import PatternService
 from src.domain.entities.pattern import Pattern
-from src.infrastructure.services.embedding_service import get_embedding_service
 
 
 class PatternDeduplicator:
     """
     Detects and merges duplicate patterns
 
-    Uses semantic similarity (embeddings) + name similarity
+    Uses semantic similarity (via FraiseQL) + name similarity
     to find potential duplicates
     """
 
-    def __init__(self, service: PatternService):
+    def __init__(
+        self,
+        service: PatternService,
+        fraiseql_url: str = "http://localhost:4000/graphql"
+    ):
         self.service = service
-        self.embedding_service = get_embedding_service()
+        self.fraiseql_url = fraiseql_url
 
     def find_duplicates(
         self,
@@ -25,6 +32,8 @@ class PatternDeduplicator:
     ) -> List[List[Pattern]]:
         """
         Find groups of duplicate patterns
+
+        Uses FraiseQL similarity search to find semantically similar patterns.
 
         Args:
             similarity_threshold: Minimum similarity to consider duplicates (0.9 = 90%)
@@ -37,7 +46,7 @@ class PatternDeduplicator:
         # Filter out deprecated patterns
         active_patterns = [p for p in all_patterns if not p.deprecated]
 
-        # Build similarity matrix
+        # Build similarity matrix using FraiseQL
         duplicate_groups = []
         processed = set()
 
@@ -45,16 +54,26 @@ class PatternDeduplicator:
             if pattern1.id in processed:
                 continue
 
-            # Find similar patterns
+            # Find similar patterns using FraiseQL
             similar = [pattern1]
 
-            for j, pattern2 in enumerate(active_patterns[i+1:], start=i+1):
+            # Use FraiseQL to find similar patterns
+            similar_patterns = self.service.find_similar_patterns(
+                pattern_id=pattern1.id,
+                limit=len(active_patterns),  # Get all potential matches
+                min_similarity=similarity_threshold
+            )
+
+            for pattern2, similarity in similar_patterns:
+                if pattern2.id == pattern1.id:
+                    continue  # Skip self
                 if pattern2.id in processed:
                     continue
 
-                similarity = self.calculate_similarity(pattern1, pattern2)
+                # Additional name similarity check
+                combined_similarity = self.calculate_similarity(pattern1, pattern2)
 
-                if similarity >= similarity_threshold:
+                if combined_similarity >= similarity_threshold:
                     similar.append(pattern2)
                     processed.add(pattern2.id)
 
@@ -74,7 +93,7 @@ class PatternDeduplicator:
         Calculate similarity between two patterns
 
         Combines:
-        - Semantic similarity (embeddings)
+        - Semantic similarity (from FraiseQL embeddings)
         - Name similarity (Levenshtein distance)
         - Category match
 
@@ -83,20 +102,19 @@ class PatternDeduplicator:
         """
         signals = []
 
-        # Signal 1: Embedding similarity (70% weight)
-        if pattern1.embedding and pattern2.embedding:
-            emb1 = np.array(pattern1.embedding)
-            emb2 = np.array(pattern2.embedding)
-            semantic_sim = self.embedding_service.cosine_similarity(emb1, emb2)
-            signals.append(("semantic", semantic_sim, 0.7))
+        # Signal 1: Semantic similarity (70% weight)
+        # Note: FraiseQL provides this via similarity search
+        # We use find_similar_patterns which already includes semantic similarity
+        # For this combined score, we primarily use name + category
+        # since semantic similarity is already captured by FraiseQL
 
-        # Signal 2: Name similarity (20% weight)
+        # Signal 2: Name similarity (60% weight when no embedding comparison)
         name_sim = self._name_similarity(pattern1.name, pattern2.name)
-        signals.append(("name", name_sim, 0.2))
+        signals.append(("name", name_sim, 0.6))
 
-        # Signal 3: Category match (10% weight)
+        # Signal 3: Category match (40% weight)
         category_match = 1.0 if pattern1.category == pattern2.category else 0.0
-        signals.append(("category", category_match, 0.1))
+        signals.append(("category", category_match, 0.4))
 
         # Weighted average
         if not signals:

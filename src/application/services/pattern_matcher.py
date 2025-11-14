@@ -1,8 +1,12 @@
-"""Pattern matching service - detects applicable patterns for entities"""
+"""
+Pattern matching service - detects applicable patterns for entities
+
+Uses FraiseQL 1.5 for semantic pattern matching via GraphQL API.
+"""
 from typing import List, Tuple, Dict, Any, Optional
 from src.domain.entities.pattern import Pattern
 from src.domain.repositories.pattern_repository import PatternRepository
-from src.infrastructure.services.embedding_service import get_embedding_service
+from src.pattern_library.embeddings_pg import PatternEmbeddingService
 
 
 class PatternMatcher:
@@ -12,13 +16,13 @@ class PatternMatcher:
     Uses multiple signals:
     - Field names (e.g., "email" → email_validation)
     - Field types (e.g., text fields → validation patterns)
-    - Entity description (semantic matching)
+    - Entity description (semantic matching via FraiseQL)
     - Pattern popularity (boost frequently used patterns)
     """
 
-    def __init__(self, repository: PatternRepository):
+    def __init__(self, repository: PatternRepository, fraiseql_url: str = "http://localhost:4000/graphql"):
         self.repository = repository
-        self.embedding_service = get_embedding_service()
+        self.embedding_service = PatternEmbeddingService(fraiseql_url)
 
     def find_applicable_patterns(
         self,
