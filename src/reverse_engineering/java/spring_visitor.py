@@ -150,10 +150,12 @@ class SpringAnnotationVisitor:
         )
 
         # Extract methods
-        for method_decl in type_decl.bodyDeclarations():
-            if method_decl.getNodeType() == method_decl.METHOD_DECLARATION:
-                spring_method = self._extract_method(method_decl)
-                if spring_method:  # Only add methods with Spring annotations
+        for body_decl in type_decl.bodyDeclarations():
+            # Check if it's a method declaration
+            node_type = body_decl.getNodeType()
+            if node_type == "METHOD_DECLARATION" or (hasattr(body_decl, 'METHOD_DECLARATION') and node_type == body_decl.METHOD_DECLARATION):
+                spring_method = self._extract_method(body_decl, component_type)
+                if spring_method:
                     component.methods.append(spring_method)
 
         return component
@@ -203,8 +205,8 @@ class SpringAnnotationVisitor:
 
         return "unknown"
 
-    def _extract_method(self, method_decl) -> Optional[SpringMethod]:
-        """Extract method information if it has Spring annotations"""
+    def _extract_method(self, method_decl, component_type: str = "unknown") -> Optional[SpringMethod]:
+        """Extract method information from method declaration"""
         method_name = method_decl.getName().getIdentifier()
         return_type = self._extract_method_return_type(method_decl)
 
@@ -292,7 +294,11 @@ class SpringAnnotationVisitor:
         if self._is_repository_method(method_name):
             has_spring_annotation = True
 
-        # Only return method if it has Spring annotations or is a repository method
+        # For controllers and services, include all public methods
+        if component_type in ('rest_controller', 'controller', 'service', 'configuration'):
+            has_spring_annotation = True
+
+        # Only return method if it has Spring annotations or belongs to a Spring component
         if not has_spring_annotation:
             return None
 

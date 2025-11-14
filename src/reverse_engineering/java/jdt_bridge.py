@@ -164,7 +164,7 @@ class MockTypeDeclaration:
         self.source_code = source_code
         self._class_body = class_body
         self._modifiers = self._extract_modifiers()
-        self._body_declarations = self._extract_fields()
+        self._body_declarations = self._extract_body_declarations()
 
     def getName(self):
         return MockSimpleName(self.class_name)
@@ -190,22 +190,24 @@ class MockTypeDeclaration:
 
         return modifiers
 
-    def _extract_fields(self):
-        """Extract field declarations from the class"""
-        fields = []
+    def _extract_body_declarations(self):
+        """Extract both field and method declarations from the class"""
+        declarations = []
         import re
 
         # Use the stored class body if available, otherwise find it
         if hasattr(self, "_class_body") and self._class_body:
             class_body = self._class_body
         else:
-            # Find the class body
-            class_pattern = (
-                rf"@Entity\s+public\s+class\s+{self.class_name}\s*\{{(.*?)\}}"
-            )
+            # Find the class body - more flexible pattern for different class types
+            class_pattern = rf"(?:@\w+\s+)*(?:public\s+)?(?:class|interface)\s+{self.class_name}[^{{]*\{{(.*?)\}}$"
             match = re.search(class_pattern, self.source_code, re.DOTALL)
             if not match:
-                return fields
+                # Try simpler pattern
+                class_pattern = rf"\s+{self.class_name}[^{{]*\{{(.*?)\}}$"
+                match = re.search(class_pattern, self.source_code, re.DOTALL)
+                if not match:
+                    return declarations
             class_body = match.group(1)
 
         # Extract field declarations (handle generics like List<Contact>)
@@ -214,9 +216,19 @@ class MockTypeDeclaration:
 
         for java_type, field_name in field_matches:
             field_decl = MockFieldDeclaration(java_type, field_name, class_body)
-            fields.append(field_decl)
+            declarations.append(field_decl)
 
-        return fields
+        # Extract method declarations (public/protected/private methods)
+        # Match pattern: @Annotations visibility returnType methodName(params) { body }
+        method_pattern = r'((?:@\w+(?:\([^)]*\))?\s+)*(?:public|private|protected)\s+(?:\w+(?:<[^>]+>)?)\s+\w+\s*\([^)]*\)\s*(?:throws\s+[\w\s,]+)?\s*\{[^}]*\})'
+        method_matches = re.finditer(method_pattern, class_body, re.DOTALL)
+
+        for match in method_matches:
+            method_text = match.group(1)
+            method_decl = MockMethodDeclaration(method_text, class_body)
+            declarations.append(method_decl)
+
+        return declarations
 
 
 class MockSimpleName:
@@ -499,7 +511,7 @@ class MockSpringTypeDeclaration(MockTypeDeclaration):
                 )
                 if mapping_match:
                     modifiers.append(
-                        MockRequestMappingAnnotation(mapping_match.group(1))
+                        MockRequestMappingAnnotation("RequestMapping", f'"{mapping_match.group(1)}"')
                     )
 
         return modifiers
@@ -508,12 +520,39 @@ class MockSpringTypeDeclaration(MockTypeDeclaration):
 class MockRequestMappingAnnotation(MockAnnotation):
     """Mock @RequestMapping annotation"""
 
-    def __init__(self, path):
-        super().__init__("@RequestMapping")
-        self.path = path
+    def __init__(self, annotation_name, params=""):
+        super().__init__(f"@{annotation_name}")
+        self.annotation_name = annotation_name
+        self.params = params
+        self.path = self._extract_path(params)
+
+    def _extract_path(self, params):
+        """Extract path from annotation parameters"""
+        if not params:
+            return ""
+        # Remove quotes and extract path
+        import re
+        path_match = re.search(r'["\']([^"\']+)["\']', params)
+        if path_match:
+            return path_match.group(1)
+        return params.strip('"\'')
+
+    def getTypeName(self):
+        return MockQualifiedName(self.annotation_name)
 
     def values(self):
-        return [MockAnnotationMemberValuePair("value", self.path)]
+        if self.path:
+            return [MockAnnotationMemberValuePair("value", self.path)]
+        return []
+
+    def isSingleMemberAnnotation(self):
+        return bool(self.path)
+
+    def isNormalAnnotation(self):
+        return False
+
+    def getValue(self):
+        return MockStringLiteral(self.path) if self.path else None
 
 
 class MockQualifiedName:
@@ -587,6 +626,95 @@ class MockSimpleType:
 
     def toString(self):
         return self.type_name
+
+
+class MockMethodDeclaration:
+    """Mock method declaration for Spring Boot methods"""
+
+    METHOD_DECLARATION = "METHOD_DECLARATION"
+
+    def __init__(self, method_text, class_body):
+        self.method_text = method_text
+        self.class_body = class_body
+        self._name = None
+        self._return_type = None
+        self._parameters = []
+        self._modifiers = []
+        self._parse_method()
+
+    def _parse_method(self):
+        """Parse method signature"""
+        import re
+
+        # Extract method signature: @Annotations public ReturnType methodName(params) {
+        method_pattern = r'((?:@\w+(?:\([^)]*\))?\s+)*)(public|private|protected)?\s*(\w+(?:<[^>]+>)?)\s+(\w+)\s*\(([^)]*)\)'
+        match = re.search(method_pattern, self.method_text)
+
+        if match:
+            annotations_text = match.group(1) or ""
+            self._return_type = match.group(3)
+            self._name = match.group(4)
+            params_text = match.group(5)
+
+            # Parse annotations
+            annotation_pattern = r'@(\w+)(?:\(([^)]*)\))?'
+            annotation_matches = re.findall(annotation_pattern, annotations_text)
+
+            for annotation_name, params in annotation_matches:
+                if annotation_name in ('GetMapping', 'PostMapping', 'PutMapping', 'DeleteMapping', 'PatchMapping', 'RequestMapping'):
+                    self._modifiers.append(MockRequestMappingAnnotation(annotation_name, params))
+                elif annotation_name == 'Bean':
+                    self._modifiers.append(MockAnnotation('@Bean'))
+                else:
+                    self._modifiers.append(MockAnnotation(f'@{annotation_name}'))
+
+            # Parse parameters
+            if params_text.strip():
+                param_pattern = r'(@\w+(?:\([^)]*\))?\s+)?(\w+(?:<[^>]+>)?)\s+(\w+)'
+                param_matches = re.findall(param_pattern, params_text)
+                self._parameters = [MockParameter(param_type, param_name, annotations)
+                                   for annotations, param_type, param_name in param_matches]
+
+    def getNodeType(self):
+        return self.METHOD_DECLARATION
+
+    def getName(self):
+        return MockSimpleName(self._name or "unknown")
+
+    def getReturnType2(self):
+        return MockSimpleType(self._return_type or "void")
+
+    def parameters(self):
+        return self._parameters
+
+    def modifiers(self):
+        return self._modifiers
+
+
+class MockParameter:
+    """Mock method parameter"""
+
+    def __init__(self, param_type, param_name, annotations=""):
+        self.param_type = param_type
+        self.param_name = param_name
+        self.annotations = annotations
+
+    def getName(self):
+        return MockSimpleName(self.param_name)
+
+    def getType(self):
+        return MockSimpleType(self.param_type)
+
+    def modifiers(self):
+        """Return any parameter annotations like @PathVariable, @RequestBody"""
+        modifiers = []
+        if '@' in self.annotations:
+            import re
+            annotation_pattern = r'@(\w+)(?:\(([^)]*)\))?'
+            matches = re.findall(annotation_pattern, self.annotations)
+            for annotation_name, params in matches:
+                modifiers.append(MockAnnotation(f'@{annotation_name}'))
+        return modifiers
 
 
 class MockVariableDeclarationFragment:
