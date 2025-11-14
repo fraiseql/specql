@@ -1,6 +1,6 @@
 use std::env;
 use std::fs;
-use syn::{parse_file, Item, ItemStruct, Fields, Field, Type};
+use syn::{ItemStruct, Fields, Field, Type};
 use quote::ToTokens;
 use serde::{Serialize, Deserialize};
 
@@ -144,58 +144,38 @@ fn extract_diesel_table(macro_item: &syn::ItemMacro) -> Option<DieselTable> {
 }
 
 fn parse_diesel_table_tokens(tokens: &str) -> Option<DieselTable> {
-    // This is a very basic parser for Diesel table macros
-    // Format: table! { table_name (primary_key) { column -> Type, ... } }
+    // Parse Diesel table! macro format: table_name (primary_key) { column -> Type, ... }
 
-    // Remove whitespace and braces
-    let content = tokens.trim().trim_matches(|c| c == '{' || c == '}').trim();
+    let content = tokens.trim();
 
-    // Split by spaces and parentheses
-    let parts: Vec<&str> = content.split_whitespace().collect();
+    // Find table name (first word)
+    let table_name_end = content.find(char::is_whitespace)?;
+    let table_name = content[..table_name_end].to_string();
 
-    if parts.len() < 3 {
+    // Find primary key in parentheses
+    let pk_start = content.find('(')?;
+    let pk_end = content.find(')')?;
+    if pk_end <= pk_start {
         return None;
     }
 
-    // First part should be table name
-    let table_name = parts[0].to_string();
+    let pk_content = &content[pk_start + 1..pk_end];
+    let primary_key: Vec<String> = pk_content
+        .split(',')
+        .map(|s| s.trim().to_string())
+        .filter(|s| !s.is_empty())
+        .collect();
 
-    // Find primary key in parentheses
-    let mut primary_key = Vec::new();
-    let mut in_parens = false;
-    let mut column_start = 0;
+    // Find column definitions between braces
+    let brace_start = content[pk_end..].find('{')?;
+    let brace_end = content[pk_end + brace_start..].find('}')?;
+    let columns_content = &content[pk_end + brace_start + 1..pk_end + brace_start + brace_end];
 
-    for (i, part) in parts.iter().enumerate() {
-        if part.contains('(') {
-            in_parens = true;
-            let pk_part = part.trim_matches(|c| c == '(' || c == ')');
-            if !pk_part.is_empty() {
-                primary_key.push(pk_part.to_string());
-            }
-        } else if part.contains(')') {
-            in_parens = false;
-            let pk_part = part.trim_matches(|c| c == '(' || c == ')');
-            if !pk_part.is_empty() {
-                primary_key.push(pk_part.to_string());
-            }
-            column_start = i + 1;
-            break;
-        } else if in_parens {
-            let pk_part = part.trim_matches(|c| c == '(' || c == ')');
-            if !pk_part.is_empty() {
-                primary_key.push(pk_part.to_string());
-            }
-        }
-    }
-
-    // Parse columns from the rest
+    // Parse columns
     let mut columns = Vec::new();
-    let column_part = parts[column_start..].join(" ");
-
-    // Split by commas and parse each column
-    for column_def in column_part.split(',') {
+    for column_def in columns_content.split(',') {
         let column_def = column_def.trim();
-        if column_def.is_empty() {
+        if column_def.is_empty() || column_def == "}" {
             continue;
         }
 
@@ -222,10 +202,19 @@ fn parse_column_def(def: &str) -> Option<(String, String, bool)> {
         let col_name = parts[0].to_string();
         let type_part = parts[1];
 
-        // Check for Nullable<Type>
-        let (sql_type, is_nullable) = if type_part.starts_with("Nullable<") && type_part.ends_with('>') {
-            let inner_type = type_part.trim_start_matches("Nullable<").trim_end_matches('>');
-            (inner_type.to_string(), true)
+        // Check for Nullable<Type> (may have spaces)
+        let (sql_type, is_nullable) = if type_part.contains("Nullable") {
+            // Extract inner type from Nullable<...>
+            if let Some(start) = type_part.find('<') {
+                if let Some(end) = type_part.rfind('>') {
+                    let inner_type = &type_part[start + 1..end];
+                    (inner_type.trim().to_string(), true)
+                } else {
+                    (type_part.to_string(), false)
+                }
+            } else {
+                (type_part.to_string(), false)
+            }
         } else {
             (type_part.to_string(), false)
         };
@@ -272,9 +261,12 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 }
             }
 
-            // For now, just output structs. TODO: Handle diesel tables
-            let json = serde_json::to_string(&structs)?;
-            println!("{}", json);
+            // Output both structs and diesel_tables
+            let output = serde_json::json!({
+                "structs": structs,
+                "diesel_tables": diesel_tables
+            });
+            println!("{}", serde_json::to_string(&output)?);
             Ok(())
         }
         Err(e) => {

@@ -8,7 +8,7 @@ import json
 import logging
 import subprocess
 from pathlib import Path
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 from src.core.ast_models import Entity, FieldDefinition, FieldTier
 
@@ -54,6 +54,34 @@ class RustStructInfo:
         self.attributes = attributes or []
 
 
+class DieselColumnInfo:
+    """Represents a parsed Diesel column from table! macro."""
+
+    def __init__(
+        self,
+        name: str,
+        sql_type: str,
+        is_nullable: bool = False,
+    ):
+        self.name = name
+        self.sql_type = sql_type
+        self.is_nullable = is_nullable
+
+
+class DieselTableInfo:
+    """Represents a parsed Diesel table from table! macro."""
+
+    def __init__(
+        self,
+        name: str,
+        primary_key: List[str],
+        columns: List[DieselColumnInfo],
+    ):
+        self.name = name
+        self.primary_key = primary_key
+        self.columns = columns
+
+
 class RustParser:
     """Parser for Rust code using subprocess and syn crate."""
 
@@ -64,15 +92,17 @@ class RustParser:
                 "Please build it by running: cd rust && cargo build --release"
             )
 
-    def parse_file(self, file_path: Path) -> List[RustStructInfo]:
+    def parse_file(
+        self, file_path: Path
+    ) -> Tuple[List[RustStructInfo], List[DieselTableInfo]]:
         """
-        Parse a Rust source file and extract struct definitions.
+        Parse a Rust source file and extract struct definitions AND Diesel tables.
 
         Args:
             file_path: Path to the Rust file
 
         Returns:
-            List of parsed struct information
+            Tuple of (List of parsed struct information, List of Diesel table information)
         """
         try:
             # Call the Rust parser binary
@@ -84,8 +114,18 @@ class RustParser:
             )
 
             # Parse the JSON result
-            structs_data = json.loads(result.stdout)
+            # Expect JSON with two keys: "structs" and "diesel_tables"
+            data = json.loads(result.stdout)
 
+            # Handle old format (just array of structs) for backward compatibility
+            if isinstance(data, list):
+                structs_data = data
+                diesel_tables_data = []
+            else:
+                structs_data = data.get("structs", [])
+                diesel_tables_data = data.get("diesel_tables", [])
+
+            # Parse structs (existing code)
             structs = []
             for struct_data in structs_data:
                 fields = []
@@ -105,7 +145,26 @@ class RustParser:
                 )
                 structs.append(struct)
 
-            return structs
+            # Parse Diesel tables (NEW CODE)
+            diesel_tables = []
+            for table_data in diesel_tables_data:
+                columns = []
+                for col_data in table_data["columns"]:
+                    column = DieselColumnInfo(
+                        name=col_data["name"],
+                        sql_type=col_data["sql_type"],
+                        is_nullable=col_data["is_nullable"],
+                    )
+                    columns.append(column)
+
+                table = DieselTableInfo(
+                    name=table_data["name"],
+                    primary_key=table_data["primary_key"],
+                    columns=columns,
+                )
+                diesel_tables.append(table)
+
+            return structs, diesel_tables
 
         except subprocess.CalledProcessError as e:
             logger.error(f"Failed to run Rust parser: {e}")
@@ -115,15 +174,17 @@ class RustParser:
             logger.error(f"Failed to parse Rust file {file_path}: {e}")
             raise
 
-    def parse_source(self, source_code: str) -> List[RustStructInfo]:
+    def parse_source(
+        self, source_code: str
+    ) -> Tuple[List[RustStructInfo], List[DieselTableInfo]]:
         """
-        Parse Rust source code and extract struct definitions.
+        Parse Rust source code and extract struct definitions AND Diesel tables.
 
         Args:
             source_code: Rust source code as string
 
         Returns:
-            List of parsed struct information
+            Tuple of (List of parsed struct information, List of Diesel table information)
         """
         # For now, create a temporary file and parse it
         # TODO: Modify Rust binary to accept source code via stdin
@@ -169,6 +230,61 @@ class RustToSpecQLMapper:
             description=f"Rust struct {struct.name}",
         )
 
+    def map_diesel_table_to_entity(self, table: DieselTableInfo) -> Entity:
+        """
+        Convert a Diesel table! macro to a SpecQL entity.
+
+        Args:
+            table: Parsed Diesel table information
+
+        Returns:
+            SpecQL Entity
+        """
+        fields = {}
+
+        for diesel_col in table.columns:
+            # Map Diesel SQL type to SpecQL type
+            type_name = self.type_mapper.map_diesel_type(diesel_col.sql_type)
+
+            # Create FieldDefinition
+            field_def = FieldDefinition(
+                name=diesel_col.name,
+                type_name=type_name,
+                nullable=diesel_col.is_nullable,
+                description=f"Diesel column {diesel_col.name} of type {diesel_col.sql_type}",
+            )
+
+            # Mark primary key fields
+            if diesel_col.name in table.primary_key:
+                # Primary keys are typically not nullable
+                field_def.nullable = False
+
+            # Detect FK from naming convention in Diesel tables
+            if diesel_col.name.endswith("_id"):
+                # For Diesel tables, FK field user_id typically references users table
+                singular_name = diesel_col.name[:-3]  # Remove '_id'
+                # Simple pluralization: add 's' if not already plural
+                if not singular_name.endswith("s"):
+                    table_name = singular_name + "s"
+                else:
+                    table_name = singular_name
+                field_def.reference_entity = table_name
+                field_def.tier = FieldTier.REFERENCE
+
+            fields[field_def.name] = field_def
+
+        return Entity(
+            name=self._snake_to_pascal(table.name),  # Convert table name to PascalCase
+            schema="public",
+            table=table.name,  # Use original table name
+            fields=fields,
+            description=f"Diesel table {table.name}",
+        )
+
+    def _snake_to_pascal(self, name: str) -> str:
+        """Convert snake_case to PascalCase."""
+        return "".join(word.capitalize() for word in name.split("_"))
+
     def _map_field(self, rust_field: RustFieldInfo) -> FieldDefinition:
         """Map a Rust field to a SpecQL field."""
         type_name = self.type_mapper.map_type(rust_field.field_type)
@@ -183,6 +299,13 @@ class RustToSpecQLMapper:
 
         # Parse attributes for additional metadata
         self._parse_field_attributes(field_def, rust_field.attributes)
+
+        # Detect foreign keys from naming convention (if not already set by belongs_to)
+        if not field_def.reference_entity and rust_field.name.endswith("_id"):
+            # Extract entity name: user_id -> user
+            entity_name = rust_field.name[:-3]  # Remove '_id'
+            field_def.reference_entity = entity_name
+            field_def.tier = FieldTier.REFERENCE
 
         return field_def
 
@@ -200,7 +323,7 @@ class RustToSpecQLMapper:
                 pass
 
             # Diesel belongs_to relationships
-            elif "#[belongs_to(" in attr:
+            elif "belongs_to(" in attr.replace(" ", ""):
                 # Parse belongs_to attribute: #[belongs_to(User)]
                 # or #[belongs_to(user, foreign_key = "user_id")]
                 self._parse_belongs_to_attribute(field_def, attr)
@@ -223,7 +346,16 @@ class RustToSpecQLMapper:
     def _parse_belongs_to_attribute(self, field_def: FieldDefinition, attr: str):
         """Parse Diesel belongs_to attribute for foreign key relationships."""
         # Example: #[belongs_to(User)] or #[belongs_to(user, foreign_key = "user_id")]
+        # Note: Rust parser may add spaces: "# [belongs_to (User)]"
         try:
+            # Handle spaced version first
+            attr = (
+                attr.replace("# [", "#[")
+                .replace("] ", "]")
+                .replace(" (", "(")
+                .replace(") ", ")")
+            )
+
             # Extract content inside belongs_to(...)
             start = attr.find("belongs_to(")
             if start == -1:
@@ -397,31 +529,45 @@ class RustReverseEngineeringService:
         self.parser = RustParser()
         self.mapper = RustToSpecQLMapper()
 
-    def reverse_engineer_file(self, file_path: Path) -> List[Entity]:
+    def reverse_engineer_file(
+        self, file_path: Path, include_diesel_tables: bool = True
+    ) -> List[Entity]:
         """
         Reverse engineer a Rust file to SpecQL entities.
 
         Args:
             file_path: Path to the Rust file
+            include_diesel_tables: Whether to include Diesel table! macros (default: True)
 
         Returns:
             List of SpecQL entities
         """
-        structs = self.parser.parse_file(file_path)
+        # Now returns tuple
+        structs, diesel_tables = self.parser.parse_file(file_path)
         entities = []
 
+        # Process structs (existing behavior)
         for struct in structs:
             entity = self.mapper.map_struct_to_entity(struct)
             entities.append(entity)
 
+        # Process Diesel tables (NEW)
+        if include_diesel_tables:
+            for table in diesel_tables:
+                entity = self.mapper.map_diesel_table_to_entity(table)
+                entities.append(entity)
+
         return entities
 
-    def reverse_engineer_directory(self, directory_path: Path) -> List[Entity]:
+    def reverse_engineer_directory(
+        self, directory_path: Path, include_diesel_tables: bool = True
+    ) -> List[Entity]:
         """
         Reverse engineer all Rust files in a directory.
 
         Args:
             directory_path: Path to the directory containing Rust files
+            include_diesel_tables: Whether to include Diesel table! macros (default: True)
 
         Returns:
             List of SpecQL entities
@@ -430,7 +576,9 @@ class RustReverseEngineeringService:
 
         for rust_file in directory_path.rglob("*.rs"):
             try:
-                file_entities = self.reverse_engineer_file(rust_file)
+                file_entities = self.reverse_engineer_file(
+                    rust_file, include_diesel_tables=include_diesel_tables
+                )
                 entities.extend(file_entities)
             except Exception as e:
                 logger.warning(f"Failed to parse {rust_file}: {e}")
