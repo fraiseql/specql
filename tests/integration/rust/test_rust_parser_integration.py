@@ -321,6 +321,107 @@ class TestRustParserIntegration:
         finally:
             os.unlink(temp_path)
 
+    def test_impl_block_parsing_and_action_extraction(self):
+        """Test parsing impl blocks and extracting actions."""
+        from src.reverse_engineering.rust_action_parser import RustActionParser
+
+        rust_code = """
+        pub struct User {
+            pub id: i32,
+            pub name: String,
+            pub email: String,
+        }
+
+        impl User {
+            pub fn new(id: i32, name: String, email: String) -> Self {
+                Self { id, name, email }
+            }
+
+            pub fn create_user(&self, name: String, email: String) -> Result<User, Error> {
+                // Create user logic
+                Ok(User { id: 1, name, email })
+            }
+
+            pub fn get_user(&self, id: i32) -> Result<User, Error> {
+                // Get user logic
+                Ok(User { id, name: "test".to_string(), email: "test@test.com".to_string() })
+            }
+
+            pub fn update_user(&self, id: i32, name: String) -> Result<(), Error> {
+                // Update logic
+                Ok(())
+            }
+
+            pub fn delete_user(&self, id: i32) -> Result<(), Error> {
+                // Delete logic
+                Ok(())
+            }
+
+            pub fn validate_email(&self, email: &str) -> bool {
+                // Custom validation logic
+                email.contains("@")
+            }
+
+            fn private_method(&self) {
+                // Private method should not be extracted
+            }
+        }
+
+        pub struct Error;
+        """
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".rs", delete=False) as f:
+            f.write(rust_code)
+            temp_path = f.name
+
+        try:
+            action_parser = RustActionParser()
+            actions = action_parser.extract_actions(Path(temp_path))
+
+            # Should extract 6 public actions (new, create_user, get_user, update_user, delete_user, validate_email)
+            # Private method should be ignored
+            assert len(actions) == 6
+
+            # Check action types
+            action_types = [a["type"] for a in actions]
+            assert action_types.count("create") == 2  # new and create_user
+            assert "read" in action_types
+            assert "update" in action_types
+            assert "delete" in action_types
+            assert "custom" in action_types
+
+            # Check specific actions
+            new_action = next(a for a in actions if a["name"] == "new")
+            assert new_action["type"] == "create"
+            assert new_action["return_type"] == "Self"
+            assert len(new_action["parameters"]) == 3  # id, name, email
+
+            create_action = next(a for a in actions if a["name"] == "create_user")
+            assert create_action["type"] == "create"
+            assert create_action["return_type"] == "Result"
+            assert len(create_action["parameters"]) == 2  # name, email
+
+            read_action = next(a for a in actions if a["name"] == "get_user")
+            assert read_action["type"] == "read"
+            assert len(read_action["parameters"]) == 1  # id
+
+            update_action = next(a for a in actions if a["name"] == "update_user")
+            assert update_action["type"] == "update"
+
+            delete_action = next(a for a in actions if a["name"] == "delete_user")
+            assert delete_action["type"] == "delete"
+
+            custom_action = next(a for a in actions if a["name"] == "validate_email")
+            assert custom_action["type"] == "custom"
+            assert custom_action["return_type"] == "bool"
+
+            # Check that private method is not included
+            action_names = [a["name"] for a in actions]
+            assert "private_method" not in action_names
+
+        finally:
+            os.unlink(temp_path)
+
     def test_file_with_no_structs(self):
         """Test file with functions but no structs."""
         rust_code = """
