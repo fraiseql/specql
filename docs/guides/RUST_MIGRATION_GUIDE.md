@@ -28,6 +28,13 @@ SpecQL now supports Rust struct parsing and can reverse-engineer your existing R
 - ✅ Relationship attribute recognition (`#[belongs_to(...)]`)
 - ✅ Type mapping from Diesel to SQL types
 
+### Impl Block Parsing
+- ✅ Extract business logic from `impl` blocks
+- ✅ Automatic CRUD pattern detection from method names
+- ✅ Parameter and return type mapping
+- ✅ Async method support
+- ✅ Public method filtering (private methods ignored)
+
 ## Quick Start
 
 ### 1. Install SpecQL
@@ -76,6 +83,46 @@ specql reverse rust path/to/src/ --output user_entities.yaml
 # Generate SpecQL entities
 specql generate --input user_entities.yaml --language rust
 ```
+
+### 4. Extract Actions from Business Logic
+
+SpecQL can also extract actions from your Rust impl blocks:
+
+```rust
+impl User {
+    pub fn create_user(&self, name: String, email: String) -> Result<User, Error> {
+        // Create logic
+        Ok(User { id: 1, name, email })
+    }
+
+    pub fn get_user(&self, id: i32) -> Result<User, Error> {
+        // Read logic
+        Ok(User { id, name: "test".to_string(), email: "test@test.com".to_string() })
+    }
+
+    pub fn update_user(&self, id: i32, name: String) -> Result<(), Error> {
+        // Update logic
+        Ok(())
+    }
+
+    pub fn delete_user(&self, id: i32) -> Result<(), Error> {
+        // Delete logic
+        Ok(())
+    }
+
+    pub fn validate_email(&self, email: &str) -> bool {
+        // Custom business logic
+        email.contains("@")
+    }
+}
+```
+
+The system automatically detects CRUD patterns and maps them to SpecQL actions:
+- `create_user` → `create` action
+- `get_user` → `read` action
+- `update_user` → `update` action
+- `delete_user` → `delete` action
+- `validate_email` → `custom` action
 
 ## Type Mapping
 

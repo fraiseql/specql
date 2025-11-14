@@ -305,6 +305,118 @@ pub struct Entity{i} {{
             f"Too slow: {mappings_per_sec:.0f} < 10,000 mappings/sec"
         )
 
+    def test_impl_methods_parsing_speed(self):
+        """Test parsing speed for impl blocks with methods."""
+        # Generate impl block with 50 methods
+        methods = []
+        crud_ops = ["create", "get", "update", "delete", "find", "save", "remove"]
+
+        for i in range(50):
+            op = crud_ops[i % len(crud_ops)]
+            methods.append(f"""
+    pub fn {op}_entity_{i}(&self, id: i32) -> Result<Entity{i}, Error> {{
+        // Implementation
+        Ok(Entity{i} {{ id, name: "test".to_string() }})
+    }}
+""")
+
+        rust_code = f"""
+use std::result::Result;
+
+pub struct Entity {{
+    pub id: i32,
+    pub name: String,
+}}
+
+#[derive(Debug)]
+pub struct Error;
+
+impl Entity {{
+    pub fn new(id: i32, name: String) -> Self {{
+        Self {{ id, name }}
+    }}
+{chr(10).join(methods)}
+}}
+"""
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".rs", delete=False) as f:
+            f.write(rust_code)
+            temp_path = f.name
+
+        try:
+            # Warm up
+            self.parser.parse_file(Path(temp_path))
+
+            # Benchmark
+            iterations = 20
+            start = time.time()
+            for _ in range(iterations):
+                result = self.parser.parse_file(Path(temp_path))
+            elapsed = time.time() - start
+
+            avg_time = elapsed / iterations
+            methods_per_sec = (50 * iterations) / elapsed
+
+            print(
+                f"\n  50 methods: {avg_time * 1000:.2f}ms avg, {methods_per_sec:.0f} methods/sec"
+            )
+
+            # Performance target: > 500 methods/sec
+            assert methods_per_sec > 500, (
+                f"Too slow: {methods_per_sec:.0f} < 500 methods/sec"
+            )
+
+        finally:
+            import os
+
+            os.unlink(temp_path)
+
+    def test_action_mapping_speed(self):
+        """Test action mapping performance for impl methods."""
+        from src.reverse_engineering.rust_action_parser import RustActionMapper
+        from src.reverse_engineering.rust_parser import ImplMethodInfo
+
+        mapper = RustActionMapper()
+
+        # Create 100 method info objects
+        methods = []
+        crud_ops = ["create", "get", "update", "delete", "find", "save", "remove"]
+
+        for i in range(100):
+            op = crud_ops[i % len(crud_ops)]
+            method = ImplMethodInfo(
+                name=f"{op}_entity_{i}",
+                visibility="pub",
+                parameters=[
+                    {
+                        "name": "self",
+                        "param_type": "&self",
+                        "is_mut": False,
+                        "is_ref": True,
+                    }
+                ],
+                return_type="Result<Entity, Error>",
+                is_async=False,
+            )
+            methods.append(method)
+
+        # Benchmark action mapping
+        iterations = 50
+        start = time.time()
+        for _ in range(iterations):
+            for method in methods:
+                mapper.map_method_to_action(method)
+        elapsed = time.time() - start
+
+        mappings_per_sec = (100 * iterations) / elapsed
+
+        print(f"\n  Action mapping: {mappings_per_sec:.0f} mappings/sec")
+
+        # Performance target: > 10,000 mappings/sec
+        assert mappings_per_sec > 10000, (
+            f"Too slow: {mappings_per_sec:.0f} < 10,000 mappings/sec"
+        )
+
     def test_memory_usage(self):
         """Test that parsing doesn't cause excessive memory usage."""
         import os
