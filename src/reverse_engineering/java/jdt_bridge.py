@@ -115,17 +115,34 @@ class JDTBridge:
         # Basic mock - identify class declarations with annotations
         cu = MockCompilationUnit(source_code)
 
-        # Simple regex-based class extraction with @Entity annotation
+        # Simple regex-based class extraction with @Entity or Spring annotations
         import re
 
         # Match @Entity followed by class declaration (allowing newlines and abstract)
         entity_pattern = r"@Entity[\s\S]*?public\s+(?:abstract\s+)?class\s+(\w+)[\s\S]*?\{([\s\S]*?)\}"
-        matches = re.findall(entity_pattern, source_code, re.MULTILINE | re.DOTALL)
+        entity_matches = re.findall(
+            entity_pattern, source_code, re.MULTILINE | re.DOTALL
+        )
 
-        for match in matches:
+        for match in entity_matches:
             class_name = match[0]
             class_body = match[1]
             mock_type = MockTypeDeclaration(class_name, source_code, class_body)
+            cu._types.append(mock_type)
+
+        # Match Spring components (@Service, @Controller, @RestController, @Repository, etc.)
+        spring_pattern = r"(@(?:Service|Controller|RestController|Repository|Component|Configuration)[\s\S]*?)public\s+(?:abstract\s+)?class\s+(\w+)[\s\S]*?\{([\s\S]*?)\}"
+        spring_matches = re.findall(
+            spring_pattern, source_code, re.MULTILINE | re.DOTALL
+        )
+
+        for match in spring_matches:
+            annotations_text = match[0]
+            class_name = match[1]
+            class_body = match[2]
+            mock_type = MockSpringTypeDeclaration(
+                class_name, source_code, class_body, annotations_text
+            )
             cu._types.append(mock_type)
 
         return cu
@@ -441,6 +458,62 @@ class MockNumberLiteral:
 
     def getToken(self):
         return str(self.value)
+
+
+class MockSpringTypeDeclaration(MockTypeDeclaration):
+    """Mock Spring component type declaration"""
+
+    def __init__(self, class_name, source_code, class_body=None, annotations_text=""):
+        super().__init__(class_name, source_code, class_body)
+        self._annotations_text = annotations_text
+        self._spring_modifiers = self._extract_spring_modifiers()
+
+    def modifiers(self):
+        return self._spring_modifiers
+
+    def _extract_spring_modifiers(self):
+        """Extract Spring annotations and modifiers"""
+        modifiers = []
+
+        # Add Spring stereotype annotations
+        import re
+
+        # Extract annotations like @Service, @RestController, etc.
+        annotation_pattern = r"@(\w+)(?:\([^)]*\))?"
+        annotations = re.findall(annotation_pattern, self._annotations_text)
+
+        for annotation in annotations:
+            if annotation in (
+                "Service",
+                "Controller",
+                "RestController",
+                "Repository",
+                "Component",
+                "Configuration",
+            ):
+                modifiers.append(MockAnnotation(f"@{annotation}"))
+            elif annotation in ("RequestMapping"):
+                # Extract RequestMapping with path
+                mapping_match = re.search(
+                    r"@RequestMapping\s*\(\s*\"([^\"]+)\"\s*\)", self._annotations_text
+                )
+                if mapping_match:
+                    modifiers.append(
+                        MockRequestMappingAnnotation(mapping_match.group(1))
+                    )
+
+        return modifiers
+
+
+class MockRequestMappingAnnotation(MockAnnotation):
+    """Mock @RequestMapping annotation"""
+
+    def __init__(self, path):
+        super().__init__("@RequestMapping")
+        self.path = path
+
+    def values(self):
+        return [MockAnnotationMemberValuePair("value", self.path)]
 
 
 class MockQualifiedName:
