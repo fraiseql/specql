@@ -39,7 +39,7 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs, diesel_tables, diesel_derives, impl_blocks = (
+            structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
                 self.parser.parse_file(Path(temp_path))
             )
             assert len(structs) == 1
@@ -95,7 +95,7 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs, diesel_tables, diesel_derives, impl_blocks = (
+            structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
                 self.parser.parse_file(Path(temp_path))
             )
 
@@ -185,7 +185,7 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs, diesel_tables, diesel_derives, impl_blocks = (
+            structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
                 self.parser.parse_file(Path(temp_path))
             )
             assert len(structs) == 1
@@ -244,7 +244,7 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs, diesel_tables, diesel_derives, impl_blocks = (
+            structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
                 self.parser.parse_file(Path(temp_path))
             )
             assert len(structs) == 1
@@ -323,7 +323,7 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs, diesel_tables, diesel_derives, impl_blocks = (
+            structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
                 self.parser.parse_file(Path(temp_path))
             )
             assert len(structs) == 0
@@ -408,7 +408,7 @@ class TestRustParserIntegration:
 
             create_action = next(a for a in actions if a["name"] == "create_user")
             assert create_action["type"] == "create"
-            assert create_action["return_type"] == "Result"
+            assert "Result" in create_action["return_type"]  # Allow Result<T, E>
             assert len(create_action["parameters"]) == 2  # name, email
 
             read_action = next(a for a in actions if a["name"] == "get_user")
@@ -449,7 +449,7 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs, diesel_tables, diesel_derives, impl_blocks = (
+            structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
                 self.parser.parse_file(Path(temp_path))
             )
             assert len(structs) == 0
