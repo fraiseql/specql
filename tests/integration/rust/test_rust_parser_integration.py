@@ -39,8 +39,9 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs = self.parser.parse_file(Path(temp_path))
+            structs, diesel_tables = self.parser.parse_file(Path(temp_path))
             assert len(structs) == 1
+            assert len(diesel_tables) == 0  # No diesel tables in this test
 
             user_struct = structs[0]
             assert user_struct.name == "User"
@@ -65,18 +66,25 @@ class TestRustParserIntegration:
         finally:
             os.unlink(temp_path)
 
-    def test_parse_multiple_structs(self):
-        """Test parsing multiple structs in one file."""
+    def test_diesel_table_macro_parsing(self):
+        """Test parsing Diesel table! macros."""
         rust_code = """
-        pub struct User {
-            pub id: i32,
-            pub name: String,
+        table! {
+            users (id) {
+                id -> Integer,
+                username -> Text,
+                email -> Nullable<Text>,
+                created_at -> Timestamp,
+            }
         }
 
-        pub struct Post {
-            pub id: i64,
-            pub title: String,
-            pub user_id: i32,
+        table! {
+            posts (id) {
+                id -> BigInt,
+                title -> Text,
+                user_id -> Integer,
+                published -> Bool,
+            }
         }
         """
 
@@ -85,14 +93,76 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs = self.parser.parse_file(Path(temp_path))
-            assert len(structs) == 2
+            structs, diesel_tables = self.parser.parse_file(Path(temp_path))
 
-            struct_names = [s.name for s in structs]
-            assert "User" in struct_names
-            assert "Post" in struct_names
+            # Should have no structs but 2 diesel tables
+            assert len(structs) == 0
+            assert len(diesel_tables) == 2
+
+            # Check users table
+            users_table = next(t for t in diesel_tables if t.name == "users")
+            assert users_table.name == "users"
+            assert users_table.primary_key == ["id"]
+            assert len(users_table.columns) == 4
+
+            # Check column details
+            id_col = next(c for c in users_table.columns if c.name == "id")
+            assert id_col.sql_type == "Integer"
+            assert not id_col.is_nullable
+
+            email_col = next(c for c in users_table.columns if c.name == "email")
+            assert email_col.sql_type == "Text"
+            assert email_col.is_nullable
 
         finally:
+            import os
+
+            os.unlink(temp_path)
+
+    def test_diesel_table_to_entity_mapping(self):
+        """Test converting Diesel tables to SpecQL entities."""
+        rust_code = """
+        table! {
+            products (id) {
+                id -> Integer,
+                name -> Text,
+                price -> Double,
+                in_stock -> Bool,
+            }
+        }
+        """
+
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".rs", delete=False) as f:
+            f.write(rust_code)
+            temp_path = f.name
+
+        try:
+            entities = self.service.reverse_engineer_file(
+                Path(temp_path), include_diesel_tables=True
+            )
+
+            # Should have 1 entity from diesel table
+            assert len(entities) == 1
+
+            entity = entities[0]
+            assert entity.name == "Products"  # PascalCase
+            assert entity.table == "products"  # original name
+            assert len(entity.fields) == 4
+
+            # Check field mappings
+            assert "id" in entity.fields
+            assert entity.fields["id"].type_name == "integer"
+            assert not entity.fields["id"].nullable
+
+            assert "name" in entity.fields
+            assert entity.fields["name"].type_name == "text"
+
+            assert "price" in entity.fields
+            assert entity.fields["price"].type_name == "double_precision"
+
+        finally:
+            import os
+
             os.unlink(temp_path)
 
     def test_struct_to_entity_mapping(self):
@@ -111,8 +181,9 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs = self.parser.parse_file(Path(temp_path))
+            structs, diesel_tables = self.parser.parse_file(Path(temp_path))
             assert len(structs) == 1
+            assert len(diesel_tables) == 0
 
             entity = self.mapper.map_struct_to_entity(structs[0])
 
@@ -167,8 +238,9 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs = self.parser.parse_file(Path(temp_path))
+            structs, diesel_tables = self.parser.parse_file(Path(temp_path))
             assert len(structs) == 1
+            assert len(diesel_tables) == 0
 
             entity = self.mapper.map_struct_to_entity(structs[0])
 
@@ -243,8 +315,9 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs = self.parser.parse_file(Path(temp_path))
+            structs, diesel_tables = self.parser.parse_file(Path(temp_path))
             assert len(structs) == 0
+            assert len(diesel_tables) == 0
         finally:
             os.unlink(temp_path)
 
@@ -265,7 +338,8 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs = self.parser.parse_file(Path(temp_path))
+            structs, diesel_tables = self.parser.parse_file(Path(temp_path))
             assert len(structs) == 0
+            assert len(diesel_tables) == 0
         finally:
             os.unlink(temp_path)
