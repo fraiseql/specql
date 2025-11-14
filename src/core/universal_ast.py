@@ -60,6 +60,9 @@ class UniversalField:
     # For RICH type
     composite_type: Optional[str] = None
 
+    # For LIST type
+    list_item_type: Optional[str] = None
+
 
 @dataclass
 class UniversalEntity:

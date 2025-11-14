@@ -1,107 +1,93 @@
 # Getting Started with SpecQL
 
+**Goal**: Build a working contact manager in 5 minutes
+
 ## Prerequisites
 
-- Python 3.12+
+- Python 3.10+
 - PostgreSQL 14+
-- 15 minutes
+- Basic YAML knowledge
 
 ## Installation
 
 ```bash
-git clone https://github.com/fraiseql/specql.git
-cd specql
-uv sync
-uv pip install -e .
+pip install specql
+specql --version
 ```
 
-## Create Your First Entity
+## Your First Project
 
-Create `entities/contact.yaml`:
+### Step 1: Create Project
+
+```bash
+specql init contact-manager
+cd contact-manager
+```
+
+Creates:
+```
+contact-manager/
+├── entities/
+│   └── example.yaml
+├── generated/
+└── specql.yaml
+```
+
+### Step 2: Define Entity
+
+Edit `entities/contact.yaml`:
 
 ```yaml
 entity: Contact
-schema: crm
+schema: app
 fields:
+  name: text
   email: text
-  status: enum(lead, qualified, customer)
-
-actions:
-  - name: create_contact
-    steps:
-      - insert: Contact
-
-  - name: qualify_lead
-    steps:
-      - validate: status = 'lead'
-      - update: Contact SET status = 'qualified'
+  phone: text
+  status: enum(active, inactive)
 ```
 
-## Generate Schema
+### Step 3: Generate Code
 
 ```bash
 specql generate entities/contact.yaml
 ```
 
-**New in v1.0**: Production-ready defaults with FraiseQL framework!
+Generates:
+- `generated/01_write_side/012361_tb_contact.sql` - Table definition
+- `generated/02_query_side/0220310_tv_contact.sql` - Query view
+- Plus: Indexes, functions, GraphQL schema, TypeScript types
 
-Output is written to `migrations/` with hierarchical structure:
-- `000_app_foundation.sql` - App schema foundation
-- `01_write_side/011_crm/011XXX_contact/` - Entity-specific directory
-  - `011XXX_tb_contact.sql` - Table definition with Trinity pattern
-  - `011XXX_tv_contact.sql` - Table view for GraphQL queries
-  - `011XXX_fn_contact_*.sql` - Business logic functions
-
-**For development mode** (flat structure like before):
-```bash
-specql generate entities/contact.yaml --dev
-```
-
-## Apply to Database
-
-**For production mode** (hierarchical structure):
+### Step 4: Apply to Database
 
 ```bash
-createdb specql_demo
-
-# Apply foundation first
-psql specql_demo -f migrations/000_app_foundation.sql
-
-# Apply entity files in order
-find migrations/01_write_side -name "*.sql" | sort | xargs -I {} psql specql_demo -f {}
+psql -d mydb -f generated/**/*.sql
 ```
 
-**For development mode** (flat structure):
+### Step 5: Add Business Logic
 
+Edit `entities/contact.yaml`:
+
+```yaml
+entity: Contact
+# ... previous fields ...
+actions:
+  - name: activate_contact
+    steps:
+      - validate: status = 'inactive'
+      - update: Contact SET status = 'active'
+```
+
+Regenerate:
 ```bash
-createdb specql_demo
-
-# Apply foundation
-psql specql_demo -f db/schema/00_foundation/000_app_foundation.sql
-
-# Apply tables
-for file in db/schema/10_tables/*.sql; do psql specql_demo -f "$file"; done
-
-# Apply functions
-for file in db/schema/30_functions/*.sql; do psql specql_demo -f "$file"; done
+specql generate entities/contact.yaml
 ```
 
-## Test It Works
-
-```bash
-# Create a contact
-psql specql_demo -c "SELECT crm.create_contact('john@example.com', 'lead');"
-
-# Check the result
-psql specql_demo -c "SELECT id, email, status FROM crm.tb_contact;"
-
-# Or query the GraphQL view
-psql specql_demo -c "SELECT id, email, status FROM crm.tv_contact;"
-```
+Now you have a `app.activate_contact(contact_id UUID)` function!
 
 ## Next Steps
 
-- [Define complex fields](docs/guides/field_types.md)
-- [Write business actions](docs/guides/actions.md)
-- [Understand Trinity pattern](docs/architecture/trinity_pattern.md)
-- [Explore examples](entities/examples/)
+- 🎓 [Complete Tutorial](docs/01_tutorials/beginner/contact_manager.md)
+- 📖 [Core Concepts](docs/00_getting_started/core_concepts.md)
+- 🔧 [CLI Reference](docs/03_reference/cli/command_reference.md)
+- 💬 [Join Discord](https://discord.gg/specql) for help
