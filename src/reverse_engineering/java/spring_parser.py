@@ -6,7 +6,7 @@ Parses Spring Boot applications and converts to SpecQL actions.
 """
 
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, cast
 from dataclasses import dataclass, field
 
 from src.reverse_engineering.java.spring_visitor import (
@@ -163,7 +163,7 @@ class SpringParser:
         Returns:
             List of Java file paths
         """
-        java_files = []
+        java_files: list[str] = []
 
         path = Path(directory_path)
 
@@ -217,7 +217,7 @@ class SpringParser:
         Returns:
             Validation metrics
         """
-        metrics = {
+        metrics: Dict[str, Any] = {
             "file_path": result.file_path,
             "component_count": len(result.components),
             "action_count": len(result.actions),
@@ -227,7 +227,7 @@ class SpringParser:
         }
 
         if result.errors:
-            metrics["issues"].extend(result.errors)
+            metrics["issues"].extend(list(result.errors))
             metrics["confidence"] = 0.0
             return metrics
 

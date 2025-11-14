@@ -94,7 +94,8 @@ class SpringToSpecQLConverter:
     ) -> Optional[Action]:
         """Convert service method to SpecQL action"""
         # Service methods become internal actions
-        action_name = f"{component.class_name.lower()}_{method.name.lower()}"
+        method_name = method.name.lower() if method.name else "unknown"
+        action_name = f"{component.class_name.lower()}_{method_name}"
 
         # Create action steps
         steps = self._create_service_action_steps(method)
@@ -113,7 +114,11 @@ class SpringToSpecQLConverter:
     ) -> str:
         """Generate SpecQL action name from HTTP method and path"""
         if not method.path:
-            return f"{method.http_method.lower()}_{method.name.lower()}"
+            method_name = method.name.lower() if method.name else "unknown"
+            http_method = (
+                method.http_method.lower() if method.http_method else "unknown"
+            )
+            return f"{http_method}_{method_name}"
 
         # Clean path for action name
         path = method.path.strip("/")
@@ -124,11 +129,15 @@ class SpringToSpecQLConverter:
 
         # Convert path to snake_case action name, keep {param} as is
         path_parts = path.replace("/", "_")
-        action_name = f"{method.http_method.lower()}_{path_parts}"
+        http_method = method.http_method.lower() if method.http_method else "unknown"
+        action_name = f"{http_method}_{path_parts}"
 
         # Handle empty path (root endpoint)
         if not action_name or action_name.endswith("_"):
-            action_name = f"{method.http_method.lower()}_root"
+            http_method = (
+                method.http_method.lower() if method.http_method else "unknown"
+            )
+            action_name = f"{http_method}_root"
 
         return action_name
 
@@ -196,7 +205,8 @@ class SpringToSpecQLConverter:
         self, component: SpringComponent, method: SpringMethod
     ) -> Optional[Action]:
         """Convert repository method to SpecQL action"""
-        action_name = f"{component.class_name.lower()}_{method.name.lower()}"
+        method_name = method.name.lower() if method.name else "unknown"
+        action_name = f"{component.class_name.lower()}_{method_name}"
 
         # Determine action type based on method name
         action_type = self._get_repository_action_type(method.name)

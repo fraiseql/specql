@@ -11,7 +11,7 @@ Extracts Spring Boot annotations from Java AST to identify:
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict
 
 
 @dataclass
@@ -206,15 +206,11 @@ class SpringAnnotationVisitor:
     def _extract_method(self, method_decl) -> Optional[SpringMethod]:
         """Extract method information if it has Spring annotations"""
         method_name = method_decl.getName().getIdentifier()
-        return_type = (
-            method_decl.getReturnType2().toString()
-            if method_decl.getReturnType2()
-            else "void"
-        )
+        return_type = self._extract_method_return_type(method_decl)
 
         # Extract parameters
         parameters = []
-        for param in method_decl.parameters():
+        for param in self._extract_method_parameters(method_decl):
             param_info = {
                 "name": param.getName().getIdentifier(),
                 "type": param.getType().toString(),
@@ -333,99 +329,6 @@ class SpringAnnotationVisitor:
 
         return any(method_name.startswith(pattern) for pattern in repository_patterns)
 
-        # Extract parameters
-        parameters = []
-        for param in method_decl.parameters():
-            param_info = {
-                "name": param.getName().getIdentifier(),
-                "type": param.getType().toString(),
-            }
-            parameters.append(param_info)
-
-        # Check for Spring annotations
-        annotations = []
-        http_method = None
-        path = None
-        produces = None
-        consumes = None
-
-        has_spring_annotation = False
-
-        for modifier in method_decl.modifiers():
-            if modifier.isAnnotation():
-                annotation_name = modifier.getTypeName().getFullyQualifiedName()
-                annotations.append(annotation_name)
-
-                # Check for HTTP method annotations
-                if annotation_name in (
-                    "GetMapping",
-                    "org.springframework.web.bind.annotation.GetMapping",
-                ):
-                    http_method = "GET"
-                    path = self._extract_mapping_path(modifier)
-                    has_spring_annotation = True
-                elif annotation_name in (
-                    "PostMapping",
-                    "org.springframework.web.bind.annotation.PostMapping",
-                ):
-                    http_method = "POST"
-                    path = self._extract_mapping_path(modifier)
-                    has_spring_annotation = True
-                elif annotation_name in (
-                    "PutMapping",
-                    "org.springframework.web.bind.annotation.PutMapping",
-                ):
-                    http_method = "PUT"
-                    path = self._extract_mapping_path(modifier)
-                    has_spring_annotation = True
-                elif annotation_name in (
-                    "DeleteMapping",
-                    "org.springframework.web.bind.annotation.DeleteMapping",
-                ):
-                    http_method = "DELETE"
-                    path = self._extract_mapping_path(modifier)
-                    has_spring_annotation = True
-                elif annotation_name in (
-                    "PatchMapping",
-                    "org.springframework.web.bind.annotation.PatchMapping",
-                ):
-                    http_method = "PATCH"
-                    path = self._extract_mapping_path(modifier)
-                    has_spring_annotation = True
-                elif annotation_name in (
-                    "RequestMapping",
-                    "org.springframework.web.bind.annotation.RequestMapping",
-                ):
-                    http_method = self._extract_request_method(modifier)
-                    path = self._extract_mapping_path(modifier)
-                    has_spring_annotation = True
-
-                # Check for other Spring annotations
-                elif annotation_name in (
-                    "Transactional",
-                    "org.springframework.transaction.annotation.Transactional",
-                    "Cacheable",
-                    "org.springframework.cache.annotation.Cacheable",
-                    "Async",
-                    "org.springframework.scheduling.annotation.Async",
-                ):
-                    has_spring_annotation = True
-
-        # Only return method if it has Spring annotations
-        if not has_spring_annotation:
-            return None
-
-        return SpringMethod(
-            name=method_name,
-            return_type=return_type,
-            parameters=parameters,
-            annotations=annotations,
-            http_method=http_method,
-            path=path,
-            produces=produces,
-            consumes=consumes,
-        )
-
     def _extract_package_name(self) -> str:
         """Extract package name from compilation unit"""
         if hasattr(self.cu, "getPackage") and self.cu.getPackage():
@@ -438,6 +341,18 @@ class SpringAnnotationVisitor:
             if package_match:
                 return package_match.group(1)
         return ""
+
+    def _extract_method_return_type(self, method_decl) -> str:
+        """Extract method return type safely"""
+        if hasattr(method_decl, "getReturnType2") and method_decl.getReturnType2():
+            return method_decl.getReturnType2().toString()
+        return "void"
+
+    def _extract_method_parameters(self, method_decl) -> list:
+        """Extract method parameters safely"""
+        if hasattr(method_decl, "parameters"):
+            return method_decl.parameters()
+        return []
 
     def _extract_request_mapping_path(self, annotation) -> Optional[str]:
         """Extract path from @RequestMapping annotation"""
