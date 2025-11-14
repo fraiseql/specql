@@ -1,0 +1,40 @@
+# Simple Contact Entity
+entity: Contact
+schema: crm
+description: "Customer contact information"
+
+fields:
+  email: text
+  first_name: text
+  last_name: text
+  status: enum(lead, qualified, customer)
+  phone: text
+
+actions:
+  # Lead qualification - core business logic
+  - name: qualify_lead
+    requires: caller.can_edit_contact
+    steps:
+      - validate: status = 'lead'
+        error: "not_a_lead"
+      - update: Contact SET status = 'qualified'
+      - notify: owner(email, "Contact qualified")
+
+  # Contact creation with validation
+  - name: create_contact
+    steps:
+      - validate: email MATCHES email_pattern
+        error: "invalid_email"
+      - validate: first_name IS NOT NULL
+        error: "first_name_required"
+      - insert: Contact
+
+  # Status update with business rules
+  - name: update_status
+    requires: caller.can_edit_contact
+    steps:
+      - validate: status IN ('lead', 'qualified', 'customer')
+        error: "invalid_status"
+      - validate: status != 'customer' OR notes IS NOT NULL
+        error: "notes_required_for_customer"
+      - update: Contact SET status = $status
