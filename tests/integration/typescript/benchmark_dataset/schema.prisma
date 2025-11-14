@@ -1,0 +1,1608 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+
+model Entity000 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value0    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity000? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity001 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value1    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity000? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity002 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value2    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity001? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity003 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value3    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity002? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity004 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value4    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity003? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity005 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value5    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity004? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity006 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value6    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity005? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity007 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value7    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity006? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity008 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value8    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity007? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity009 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value9    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity008? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity010 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value10    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity009? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity011 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value11    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity010? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity012 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value12    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity011? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity013 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value13    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity012? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity014 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value14    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity013? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity015 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value15    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity014? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity016 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value16    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity015? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity017 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value17    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity016? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity018 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value18    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity017? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity019 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value19    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity018? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity020 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value20    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity019? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity021 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value21    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity020? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity022 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value22    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity021? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity023 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value23    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity022? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity024 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value24    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity023? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity025 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value25    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity024? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity026 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value26    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity025? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity027 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value27    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity026? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity028 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value28    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity027? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity029 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value29    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity028? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity030 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value30    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity029? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity031 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value31    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity030? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity032 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value32    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity031? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity033 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value33    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity032? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity034 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value34    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity033? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity035 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value35    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity034? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity036 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value36    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity035? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity037 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value37    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity036? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity038 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value38    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity037? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity039 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value39    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity038? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity040 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value40    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity039? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity041 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value41    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity040? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity042 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value42    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity041? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity043 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value43    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity042? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity044 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value44    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity043? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity045 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value45    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity044? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity046 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value46    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity045? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity047 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value47    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity046? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity048 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value48    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity047? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity049 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value49    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity048? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity050 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value50    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity049? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity051 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value51    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity050? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity052 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value52    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity051? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity053 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value53    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity052? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity054 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value54    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity053? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity055 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value55    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity054? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity056 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value56    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity055? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity057 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value57    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity056? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity058 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value58    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity057? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity059 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value59    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity058? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity060 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value60    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity059? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity061 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value61    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity060? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity062 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value62    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity061? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity063 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value63    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity062? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity064 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value64    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity063? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity065 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value65    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity064? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity066 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value66    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity065? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity067 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value67    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity066? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity068 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value68    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity067? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity069 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value69    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity068? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity070 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value70    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity069? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity071 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value71    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity070? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity072 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value72    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity071? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity073 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value73    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity072? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity074 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value74    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity073? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity075 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value75    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity074? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity076 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value76    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity075? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity077 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value77    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity076? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity078 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value78    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity077? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity079 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value79    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity078? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity080 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value80    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity079? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity081 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value81    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity080? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity082 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value82    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity081? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity083 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value83    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity082? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity084 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value84    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity083? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity085 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value85    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity084? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity086 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value86    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity085? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity087 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value87    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity086? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity088 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value88    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity087? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity089 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value89    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity088? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity090 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value90    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity089? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity091 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value91    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity090? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity092 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value92    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity091? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity093 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value93    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity092? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity094 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value94    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity093? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity095 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value95    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity094? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity096 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value96    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity095? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity097 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value97    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity096? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity098 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value98    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity097? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}
+
+
+model Entity099 {
+  id          Int       @id @default(autoincrement())
+  name        String
+  description String?
+  value99    Int
+  active      Boolean   @default(true)
+  relatedId   Int?
+
+  related     Entity098? @relation(fields: [relatedId], references: [id])
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deletedAt   DateTime?
+}

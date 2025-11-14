@@ -156,6 +156,8 @@ class TypeScriptParser:
 
         # Clean up the type (remove comments, etc.)
         field_type = re.sub(r"\s*//.*$", "", field_type).strip()
+        # Remove trailing semicolon
+        field_type = field_type.rstrip(";").strip()
 
         # Map TypeScript type to SpecQL FieldType
         specql_type = self._map_typescript_type(field_type)
