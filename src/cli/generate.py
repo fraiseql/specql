@@ -142,6 +142,8 @@ def cli():
 )
 @click.option("--no-tv", is_flag=True, help="Skip table view (tv_*) generation")
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed generation progress")
+@click.option("--performance", is_flag=True, help="Enable performance monitoring and output metrics")
+@click.option("--performance-output", type=click.Path(), help="Write performance metrics to specified JSON file")
 def entities(
     entity_files: tuple,
     output_dir: str,
@@ -161,6 +163,8 @@ def entities(
     dev: bool,  # NEW
     no_tv: bool,  # NEW
     verbose: bool,
+    performance: bool,
+    performance_output: str,
 ):
     """Generate production-ready PostgreSQL schema from SpecQL YAML entity definitions.
 
@@ -293,12 +297,13 @@ def entities(
     if no_tv:
         include_tv = False
 
-    # Create orchestrator with framework-aware defaults
+    # Create orchestrator with framework-aware defaults and performance monitoring
     orchestrator = CLIOrchestrator(
         use_registry=use_registry,
         output_format=output_format,
         verbose=verbose,
         framework=framework,
+        enable_performance_monitoring=performance,
     )
 
     # Generate migrations
@@ -410,6 +415,23 @@ def entities(
         click.secho(f"\n⚠️  {len(result.warnings)} warning(s):", fg="yellow")
         for warning in result.warnings:
             click.echo(f"  {warning}")
+
+    # Output performance metrics if enabled
+    if performance and orchestrator.perf_monitor:
+        from src.utils.performance_monitor import get_performance_monitor
+
+        perf_monitor = get_performance_monitor()
+        metrics = perf_monitor.get_metrics()
+
+        if performance_output:
+            # Write to file
+            output_file = Path(performance_output)
+            metrics.write_to_file(output_file)
+            click.secho(f"\n📊 Performance metrics written to {performance_output}", fg="blue", bold=True)
+        else:
+            # Print to stdout
+            click.secho("\n📊 Performance Metrics:", fg="blue", bold=True)
+            click.echo(metrics.to_json(indent=2))
 
     return 0
 

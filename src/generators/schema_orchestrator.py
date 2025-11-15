@@ -54,6 +54,7 @@ class SchemaOrchestrator:
         entities: list | None = None,
         actions: list | None = None,
         naming_conventions: NamingConventions | None = None,
+        enable_performance_monitoring: bool = False,
     ) -> None:
         # Create naming conventions if not provided and registry is needed
         if naming_conventions is None:
@@ -67,6 +68,12 @@ class SchemaOrchestrator:
         # Store entities and actions for future use
         self.entities = entities or []
         self.actions = actions or []
+
+        # Performance monitoring
+        self.perf_monitor = None
+        if enable_performance_monitoring:
+            from src.utils.performance_monitor import get_performance_monitor
+            self.perf_monitor = get_performance_monitor()
 
         self.app_gen = AppSchemaGenerator(templates_dir="../specql/templates/sql")
         self.table_gen = TableGenerator(schema_registry, templates_dir="../specql/templates/sql")
@@ -169,10 +176,20 @@ class SchemaOrchestrator:
 
         CRITICAL: Each action generates a SEPARATE file with 2 functions + comments
         """
-        table_ddl = self.table_gen.generate_table_ddl(entity)
+        # Generate table DDL with performance tracking
+        if self.perf_monitor:
+            with self.perf_monitor.track("table_ddl", category="template_rendering"):
+                table_ddl = self.table_gen.generate_table_ddl(entity)
+        else:
+            table_ddl = self.table_gen.generate_table_ddl(entity)
         table_sql = table_ddl  # For now, no table comments
 
-        helpers_sql = self.helper_gen.generate_all_helpers(entity)
+        # Generate helper functions with performance tracking
+        if self.perf_monitor:
+            with self.perf_monitor.track("helpers", category="template_rendering"):
+                helpers_sql = self.helper_gen.generate_all_helpers(entity)
+        else:
+            helpers_sql = self.helper_gen.generate_all_helpers(entity)
 
         mutations = []
         app_wrapper_gen = AppWrapperGenerator(templates_dir="../specql/templates/sql")
@@ -181,15 +198,26 @@ class SchemaOrchestrator:
             # Detect action pattern for core function generation
             action_pattern = self.core_gen.detect_action_pattern(action.name)
 
-            # Generate core function based on pattern
-            if action_pattern == "create":
-                core_sql = self.core_gen.generate_core_create_function(entity)
-            elif action_pattern == "update":
-                core_sql = self.core_gen.generate_core_update_function(entity)
-            elif action_pattern == "delete":
-                core_sql = self.core_gen.generate_core_delete_function(entity)
-            else:  # custom
-                core_sql = self.core_gen.generate_core_custom_action(entity, action)
+            # Generate core function based on pattern with performance tracking
+            if self.perf_monitor:
+                with self.perf_monitor.track(f"mutation_{action.name}", category="template_rendering"):
+                    if action_pattern == "create":
+                        core_sql = self.core_gen.generate_core_create_function(entity)
+                    elif action_pattern == "update":
+                        core_sql = self.core_gen.generate_core_update_function(entity)
+                    elif action_pattern == "delete":
+                        core_sql = self.core_gen.generate_core_delete_function(entity)
+                    else:  # custom
+                        core_sql = self.core_gen.generate_core_custom_action(entity, action)
+            else:
+                if action_pattern == "create":
+                    core_sql = self.core_gen.generate_core_create_function(entity)
+                elif action_pattern == "update":
+                    core_sql = self.core_gen.generate_core_update_function(entity)
+                elif action_pattern == "delete":
+                    core_sql = self.core_gen.generate_core_delete_function(entity)
+                else:  # custom
+                    core_sql = self.core_gen.generate_core_custom_action(entity, action)
 
             # Generate app wrapper
             app_sql = app_wrapper_gen.generate_app_wrapper(entity, action)

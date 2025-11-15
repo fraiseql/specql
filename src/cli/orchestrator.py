@@ -39,7 +39,8 @@ class CLIOrchestrator:
         use_registry: bool = True,  # CHANGED: Default to True for production-ready
         output_format: str = "hierarchical",
         verbose: bool = False,
-        framework: str = "fraiseql"
+        framework: str = "fraiseql",
+        enable_performance_monitoring: bool = False,
     ):
         self.parser = SpecQLParser()
         try:
@@ -60,13 +61,19 @@ class CLIOrchestrator:
         self.use_registry = use_registry
         self.output_format = output_format
 
+        # Performance monitoring
+        self.perf_monitor = None
+        if enable_performance_monitoring:
+            from src.utils.performance_monitor import get_performance_monitor
+            self.perf_monitor = get_performance_monitor()
+
         # NEW: Registry integration - conditionally create SchemaOrchestrator
         if self.use_registry:
             self.naming = NamingConventions()
-            self.schema_orchestrator = SchemaOrchestrator(naming_conventions=self.naming)
+            self.schema_orchestrator = SchemaOrchestrator(naming_conventions=self.naming, enable_performance_monitoring=enable_performance_monitoring)
         else:
             self.naming = None
-            self.schema_orchestrator = SchemaOrchestrator(naming_conventions=None)
+            self.schema_orchestrator = SchemaOrchestrator(naming_conventions=None, enable_performance_monitoring=enable_performance_monitoring)
 
     def get_table_code(self, entity) -> str:
         """
@@ -190,10 +197,10 @@ class CLIOrchestrator:
 
         # Phase 1: Scan entity files
         schema_stats = self.progress.scan_phase(entity_files)
-        print(f"DEBUG: scan_phase completed")
+        print("DEBUG: scan_phase completed")
 
         result = GenerationResult(migrations=[], errors=[], warnings=[])
-        print(f"DEBUG: GenerationResult created")
+        print("DEBUG: GenerationResult created")
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
 
@@ -213,7 +220,7 @@ class CLIOrchestrator:
             return result
 
         # Generate foundation first (always, unless foundation_only)
-        print(f"DEBUG: Generating foundation")
+        print("DEBUG: Generating foundation")
         foundation_sql = self.schema_orchestrator.generate_app_foundation_only()
         print(f"DEBUG: Foundation SQL generated, length: {len(foundation_sql) if foundation_sql else 0}")
         if foundation_sql:
@@ -779,7 +786,7 @@ class CLIOrchestrator:
         }
 
         # Generate foundation first
-        print(f"DEBUG: Generating foundation")
+        print("DEBUG: Generating foundation")
         foundation_sql = self.schema_orchestrator.generate_app_foundation_only()
         print(f"DEBUG: Foundation SQL generated, length: {len(foundation_sql) if foundation_sql else 0}")
         if foundation_sql:
