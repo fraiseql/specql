@@ -10,6 +10,8 @@ from typing import Any
 
 import yaml
 
+from src.utils.logger import LogContext, get_team_logger
+
 from src.core.ast_models import (
     ActionDefinition,
     ActionStep,
@@ -49,6 +51,7 @@ class SpecQLParser:
     def __init__(self):
         # Will be extended in Phase 2 with composite types
         self.current_entity_fields = {}  # Track fields for expression validation
+        self.logger = get_team_logger("Team A", __name__)
 
     def parse(self, yaml_content: str) -> EntityDefinition:
         """
@@ -60,9 +63,13 @@ class SpecQLParser:
         - fields: { name: type }
         - actions: [...]
         """
+        self.logger.debug("Starting SpecQL YAML parsing")
+
         try:
             data = yaml.safe_load(yaml_content)
+            self.logger.debug("YAML loaded successfully")
         except yaml.YAMLError as e:
+            self.logger.error(f"Failed to parse YAML: {e}")
             raise ParseError(f"Invalid YAML: {e}")
 
         # Validate required fields
@@ -92,6 +99,15 @@ class SpecQLParser:
             description=entity_description,
         )
 
+        # Update logger context with entity information
+        context = LogContext(
+            entity_name=entity_name,
+            schema=entity_schema,
+            operation="parse"
+        )
+        self.logger = get_team_logger("Team A", __name__, context)
+        self.logger.info(f"Parsing entity '{entity_name}' in schema '{entity_schema}'")
+
         # Parse fields - check both root level and inside entity dict (for complex format)
         if isinstance(data["entity"], dict) and "fields" in data["entity"]:
             # Complex format: fields are inside entity dict
@@ -100,33 +116,48 @@ class SpecQLParser:
             # Lightweight format: fields at root level
             fields_data = data.get("fields", {})
 
+        self.logger.debug(f"Parsing {len(fields_data)} fields")
         for field_name, field_spec in fields_data.items():
             # VALIDATION: Check if field name is reserved
             if is_reserved_field_name(field_name):
+                self.logger.error(f"Reserved field name detected: {field_name}")
                 raise SpecQLValidationError(
                     entity=entity_name, message=get_reserved_field_error_message(field_name)
                 )
 
             field = self._parse_field(field_name, field_spec)
             entity.fields[field_name] = field
+            self.logger.debug(f"Parsed field '{field_name}' (type: {field.type_name}, tier: {field.tier.value})")
+
+        self.logger.info(f"Parsed {len(entity.fields)} fields successfully")
 
         # Set current entity fields for expression validation
         self.current_entity_fields = entity.fields
 
         # Parse actions (Phase 2)
         actions_data = data.get("actions", [])
+        if actions_data:
+            self.logger.debug(f"Parsing {len(actions_data)} actions")
         for action_spec in actions_data:
             action = self._parse_action(action_spec)
             entity.actions.append(action)
+            self.logger.debug(f"Parsed action '{action.name}' with {len(action.steps)} steps")
+
+        if actions_data:
+            self.logger.info(f"Parsed {len(entity.actions)} actions successfully")
 
         # Parse agents
         agents_data = data.get("agents", [])
+        if agents_data:
+            self.logger.debug(f"Parsing {len(agents_data)} agents")
         for agent_spec in agents_data:
             agent = self._parse_agent(agent_spec)
             entity.agents.append(agent)
+            self.logger.debug(f"Parsed agent '{agent.name}' (type: {agent.type})")
 
         # Parse organization
         if "organization" in data:
+            self.logger.debug("Parsing organization configuration")
             entity.organization = self._parse_organization(data["organization"])
 
         # Parse identifier configuration (NEW)
@@ -134,7 +165,10 @@ class SpecQLParser:
 
         # Parse table_views configuration (CQRS)
         if "table_views" in data:
+            self.logger.debug("Parsing table_views configuration")
             entity.table_views = self._parse_table_views(data["table_views"], entity_name)
+
+        self.logger.info(f"Successfully parsed entity '{entity_name}' with {len(entity.fields)} fields, {len(entity.actions)} actions")
 
         return entity
 

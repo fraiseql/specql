@@ -13,6 +13,7 @@ from src.core.ast_models import Action, Entity, EntityDefinition
 from src.core.specql_parser import SpecQLParser
 from src.testing.pgtap.pgtap_generator import PgTAPGenerator
 from src.testing.pytest.pytest_generator import PytestGenerator
+from src.utils.logger import configure_logging, get_team_logger
 
 
 def convert_entity_definition_to_entity(entity_def: EntityDefinition) -> Entity:
@@ -94,6 +95,8 @@ def cli():
     type=click.Path(),
     help="Generate frontend code (TypeScript types, Apollo hooks, docs) to specified directory",
 )  # NEW
+@click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging (DEBUG level)")
+@click.option("--quiet", "-q", is_flag=True, help="Suppress all output except errors")
 def entities(
     entity_files: tuple,
     output_dir: str,
@@ -103,13 +106,29 @@ def entities(
     output_format: str,  # NEW
     with_impacts: bool,  # NEW
     output_frontend: str,  # NEW
+    verbose: bool,
+    quiet: bool,
 ):
     """Generate PostgreSQL migrations from SpecQL YAML files"""
+
+    # Configure logging based on verbosity flags
+    import logging
+    if quiet:
+        configure_logging(level=logging.ERROR)
+    elif verbose:
+        configure_logging(level=logging.DEBUG, verbose=True)
+    else:
+        configure_logging(level=logging.INFO)
+
+    logger = get_team_logger("Team E", __name__)
+    logger.info(f"Starting generation for {len(entity_files)} entity file(s)")
 
     # Create orchestrator with registry support
     orchestrator = CLIOrchestrator(use_registry=use_registry, output_format=output_format)
 
     # Generate migrations
+    logger.debug(f"Output directory: {output_dir}")
+    logger.debug(f"Foundation only: {foundation_only}, Include TV: {include_tv}")
     result = orchestrator.generate_from_files(
         entity_files=list(entity_files),
         output_dir=output_dir,
@@ -117,8 +136,11 @@ def entities(
         include_tv=include_tv,
     )
 
+    logger.info(f"Generated {len(result.migrations)} migration file(s)")
+
     # Generate frontend code if requested
     if output_frontend:
+        logger.info(f"Generating frontend code to {output_frontend}")
         click.secho("🔧 Generating frontend code...", fg="blue", bold=True)
 
         try:
@@ -141,40 +163,50 @@ def entities(
 
             # Generate mutation impacts if requested
             if with_impacts:
+                logger.debug("Generating mutation impacts JSON")
                 impacts_gen = MutationImpactsGenerator(frontend_dir)
                 impacts_gen.generate_impacts(entities)
                 click.echo("  ✅ Generated mutation-impacts.json")
 
             # Generate TypeScript types
+            logger.debug("Generating TypeScript types")
             types_gen = TypeScriptTypesGenerator(frontend_dir)
             types_gen.generate_types(entities)
             click.echo("  ✅ Generated types.ts")
 
             # Generate Apollo hooks
+            logger.debug("Generating Apollo hooks")
             hooks_gen = ApolloHooksGenerator(frontend_dir)
             hooks_gen.generate_hooks(entities)
             click.echo("  ✅ Generated hooks.ts")
 
             # Generate documentation
+            logger.debug("Generating mutation documentation")
             docs_gen = MutationDocsGenerator(frontend_dir)
             docs_gen.generate_docs(entities)
             click.echo("  ✅ Generated mutations.md")
 
+            logger.info("Frontend code generation completed successfully")
             click.secho(f"✅ Frontend code generated in {output_frontend}", fg="green", bold=True)
 
         except ImportError as e:
+            logger.error(f"Frontend generators not available: {e}")
             click.secho(f"❌ Frontend generators not available: {e}", fg="red")
             return 1
         except Exception as e:
+            logger.error(f"Frontend generation failed: {e}", exc_info=True)
             click.secho(f"❌ Frontend generation failed: {e}", fg="red")
             return 1
 
     # Report results
     if result.errors:
+        logger.error(f"Generation completed with {len(result.errors)} error(s)")
         click.secho(f"❌ {len(result.errors)} error(s):", fg="red", bold=True)
         for error in result.errors:
             click.echo(f"  {error}")
         return 1
+
+    logger.info("Generation completed successfully")
 
     if use_registry:
         format_desc = "hierarchical" if output_format == "hierarchical" else "Confiture-compatible"

@@ -6,6 +6,7 @@ Coordinates table + type generation for complete schema
 from dataclasses import dataclass
 
 from src.core.ast_models import Entity, EntityDefinition
+from src.utils.logger import LogContext, get_team_logger
 from src.generators.app_schema_generator import AppSchemaGenerator
 from src.generators.app_wrapper_generator import AppWrapperGenerator
 from src.generators.composite_type_generator import CompositeTypeGenerator
@@ -46,6 +47,9 @@ class SchemaOrchestrator:
     """Orchestrates complete schema generation: tables + types + indexes + constraints"""
 
     def __init__(self, naming_conventions: NamingConventions | None = None) -> None:
+        self.logger = get_team_logger("Team B", __name__)
+        self.logger.debug("Initializing SchemaOrchestrator")
+
         # Create naming conventions if not provided
         if naming_conventions is None:
             naming_conventions = NamingConventions()
@@ -59,6 +63,8 @@ class SchemaOrchestrator:
         self.helper_gen = TrinityHelperGenerator(schema_registry)
         self.core_gen = CoreLogicGenerator(schema_registry)
 
+        self.logger.debug("SchemaOrchestrator initialized successfully")
+
     def generate_complete_schema(self, entity: Entity) -> str:
         """
         Generate complete schema for entity: app foundation + tables + types + indexes + constraints
@@ -69,12 +75,22 @@ class SchemaOrchestrator:
         Returns:
             Complete SQL schema as string
         """
+        context = LogContext(
+            entity_name=entity.name,
+            schema=entity.schema,
+            operation="generate_schema"
+        )
+        logger = get_team_logger("Team B", __name__, context)
+        logger.info(f"Generating complete schema for entity '{entity.name}' in schema '{entity.schema}'")
+
         parts = []
 
         # 1. App schema foundation (mutation_result type + shared utilities)
+        logger.debug("Generating app schema foundation")
         app_foundation = self.app_gen.generate_app_foundation()
         if app_foundation:
             parts.append("-- App Schema Foundation\n" + app_foundation)
+            logger.debug("App schema foundation generated")
 
         # 2. Create schema if needed
         schema_creation = f"CREATE SCHEMA IF NOT EXISTS {entity.schema};"
@@ -88,26 +104,32 @@ class SchemaOrchestrator:
             parts.append("-- Common Types\n" + common_types)
 
         # 4. Entity table (Trinity pattern)
+        logger.debug("Generating entity table DDL")
         table_sql = self.table_gen.generate_table_ddl(entity)
         parts.append("-- Entity Table\n" + table_sql)
 
         # 4.5. Field comments for FraiseQL metadata
         field_comments = self.table_gen.generate_field_comments(entity)
         if field_comments:
+            logger.debug(f"Generated {len(field_comments)} field comments")
             parts.append("-- Field Comments for FraiseQL\n" + "\n\n".join(field_comments))
 
         # 4. Input types for actions
+        if entity.actions:
+            logger.debug(f"Generating input types for {len(entity.actions)} actions")
         for action in entity.actions:
             input_type = self.type_gen.generate_input_type(entity, action)
             if input_type:
                 parts.append(f"-- Input Type: {action.name}\n" + input_type)
 
         # 5. Indexes
+        logger.debug("Generating indexes")
         indexes = self.table_gen.generate_indexes_ddl(entity)
         if indexes:
             parts.append("-- Indexes\n" + indexes)
 
         # 6. Foreign keys
+        logger.debug("Generating foreign keys")
         fks = self.table_gen.generate_foreign_keys_ddl(entity)
         if fks:
             parts.append("-- Foreign Keys\n" + fks)
@@ -115,9 +137,11 @@ class SchemaOrchestrator:
         # 7. Core logic functions
         core_functions = []
         if entity.actions:
+            logger.debug(f"Generating core logic functions for {len(entity.actions)} actions")
             # Generate core functions for each action based on detected pattern
             for action in entity.actions:
                 action_pattern = self.core_gen.detect_action_pattern(action.name)
+                logger.debug(f"Generating {action_pattern} function for action '{action.name}'")
                 if action_pattern == "create":
                     core_functions.append(self.core_gen.generate_core_create_function(entity))
                 elif action_pattern == "update":
@@ -133,6 +157,7 @@ class SchemaOrchestrator:
         # 8. FraiseQL mutation annotations (Team D)
         mutation_annotations = []
         if entity.actions:
+            logger.debug(f"Generating FraiseQL mutation annotations for {len(entity.actions)} actions")
             for action in entity.actions:
                 annotator = MutationAnnotator(entity.schema, entity.name)
                 annotation = annotator.generate_mutation_annotation(action)
@@ -145,9 +170,11 @@ class SchemaOrchestrator:
             )
 
         # 9. Trinity helper functions
+        logger.debug("Generating Trinity helper functions")
         helpers = self.helper_gen.generate_all_helpers(entity)
         parts.append("-- Trinity Helper Functions\n" + helpers)
 
+        logger.info(f"Successfully generated complete schema for '{entity.name}' ({len(parts)} components)")
         return "\n\n".join(parts)
 
     def generate_split_schema(self, entity: Entity) -> SchemaOutput:
@@ -156,20 +183,34 @@ class SchemaOrchestrator:
 
         CRITICAL: Each action generates a SEPARATE file with 2 functions + comments
         """
+        context = LogContext(
+            entity_name=entity.name,
+            schema=entity.schema,
+            operation="generate_split_schema"
+        )
+        logger = get_team_logger("Team B", __name__, context)
+        logger.info(f"Generating split schema for entity '{entity.name}'")
+
         # Team B: Table definition
+        logger.debug("Generating table DDL")
         table_ddl = self.table_gen.generate_table_ddl(entity)
         table_sql = table_ddl  # For now, no table comments
 
         # Team B: Helper functions (Trinity pattern utilities)
+        logger.debug("Generating helper functions")
         helpers_sql = self.helper_gen.generate_all_helpers(entity)
 
         # Team C + Team D: ONE FILE PER MUTATION (app + core + comments)
         mutations = []
         app_wrapper_gen = AppWrapperGenerator()
 
+        if entity.actions:
+            logger.debug(f"Generating {len(entity.actions)} mutation files")
+
         for action in entity.actions:
             # Detect action pattern for core function generation
             action_pattern = self.core_gen.detect_action_pattern(action.name)
+            logger.debug(f"Generating mutation '{action.name}' (pattern: {action_pattern})")
 
             # Generate core function based on pattern
             if action_pattern == "create":
@@ -197,6 +238,7 @@ class SchemaOrchestrator:
                 )
             )
 
+        logger.info(f"Successfully generated split schema for '{entity.name}' ({len(mutations)} mutations)")
         return SchemaOutput(table_sql=table_sql, helpers_sql=helpers_sql, mutations=mutations)
 
     def generate_table_views(self, entities: list[EntityDefinition]) -> str:
