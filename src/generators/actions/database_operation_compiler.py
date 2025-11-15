@@ -12,7 +12,9 @@ from src.utils.safe_slug import safe_slug, safe_table_name
 class ObjectBuilder:
     """Builds GraphQL-compatible object responses with relationships"""
 
-    def build_object_query(self, entity: Entity, include_relations: list[str] | None = None) -> str:
+    def build_object_query(
+        self, entity: Entity, include_relations: list[str] | None = None
+    ) -> str:
         """Build SELECT query for full object with relationships"""
         fields = []
         joins = []
@@ -94,13 +96,17 @@ class DatabaseOperationCompiler:
         field_vals = []
 
         for field_name, field_def in entity.fields.items():
-            col_name = f"fk_{field_name}" if field_def.type_name == "ref" else field_name
+            col_name = (
+                f"fk_{field_name}" if field_def.type_name == "ref" else field_name
+            )
             field_cols.append(col_name)
 
             if field_def.type_name == "ref":
                 # Resolve ref to pk
                 target = field_def.reference_entity or field_name
-                field_vals.append(f"{entity.schema}.{target.lower()}_pk(p_{field_name}_id)")
+                field_vals.append(
+                    f"{entity.schema}.{target.lower()}_pk(p_{field_name}_id)"
+                )
             else:
                 field_vals.append(f"p_{field_name}")
 
@@ -142,7 +148,11 @@ class DatabaseOperationCompiler:
     ) -> str:
         """Generate full object return with relationships"""
         include_relations = None
-        if impact and hasattr(impact, "primary") and hasattr(impact.primary, "include_relations"):
+        if (
+            impact
+            and hasattr(impact, "primary")
+            and hasattr(impact.primary, "include_relations")
+        ):
             relations = getattr(impact.primary, "include_relations", None)
             if isinstance(relations, list):
                 include_relations = relations
@@ -151,7 +161,11 @@ class DatabaseOperationCompiler:
 
     def _format_value(self, value: str) -> str:
         """Format value for SQL SET clause"""
-        # If it's a string literal, wrap in quotes
-        if isinstance(value, str) and not value.startswith("'"):
-            return f"'{value}'"
+        # If it's a string literal, escape and wrap in quotes
+        if isinstance(value, str):
+            # FIXED: proper escaping to prevent SQL injection
+            from src.generators.sql_utils import SQLUtils
+
+            escaped = SQLUtils.escape_string_literal(value)
+            return f"'{escaped}'"
         return str(value)

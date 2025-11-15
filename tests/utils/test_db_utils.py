@@ -7,7 +7,7 @@ Provides utilities for creating isolated test databases and executing SQL.
 import uuid
 import psycopg
 import psycopg.sql
-from typing import Optional
+from typing import Optional, List
 
 
 def get_test_connection(db_name: str) -> psycopg.Connection:
@@ -84,12 +84,56 @@ def execute_sql(conn: psycopg.Connection, sql: str):
         sql: SQL to execute (can contain multiple statements)
     """
     with conn.cursor() as cur:
-        # Split on semicolons and execute each statement
-        statements = [stmt.strip() for stmt in sql.split(";") if stmt.strip()]
+        # Handle PL/pgSQL functions that contain semicolons
+        # Split on semicolons but be careful about PL/pgSQL function bodies
+        statements = _split_sql_statements(sql)
         for statement in statements:
-            if statement:
+            if statement.strip():
                 # Use string directly - psycopg allows this in practice
-                cur.execute(statement)  # type: ignore
+                cur.execute(statement.strip())  # type: ignore
+
+
+def _split_sql_statements(sql: str) -> List[str]:
+    """
+    Split SQL into individual statements, handling PL/pgSQL functions.
+
+    This function splits on semicolons but skips semicolons inside dollar-quoted strings.
+    """
+    statements = []
+    current = ""
+    in_dollar_quote = False
+    dollar_tag = ""
+
+    i = 0
+    while i < len(sql):
+        char = sql[i]
+
+        if not in_dollar_quote:
+            # Look for start of dollar quoting
+            if char == "$" and i + 1 < len(sql) and sql[i + 1] == "$":
+                in_dollar_quote = True
+                dollar_tag = "$$"
+                current += char
+            elif char == ";":
+                # End of statement
+                if current.strip():
+                    statements.append(current.strip())
+                current = ""
+            else:
+                current += char
+        else:
+            current += char
+            # Look for end of dollar quote
+            if sql[i : i + len(dollar_tag)] == dollar_tag:
+                in_dollar_quote = False
+
+        i += 1
+
+    # Add remaining statement
+    if current.strip():
+        statements.append(current.strip())
+
+    return statements
 
 
 def database_exists(db_name: str) -> bool:

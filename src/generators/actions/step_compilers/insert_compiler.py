@@ -92,7 +92,10 @@ class InsertStepCompiler:
                 # Variable reference
                 return f"v_{value[1:]}"
             else:
-                # String literal
-                return f"'{value}'"
+                # String literal - FIXED: proper escaping to prevent SQL injection
+                from src.generators.sql_utils import SQLUtils
+
+                escaped = SQLUtils.escape_string_literal(value)
+                return f"'{escaped}'"
         else:
             return str(value)
