@@ -7,6 +7,7 @@ from dataclasses import dataclass
 
 from src.core.ast_models import Entity, EntityDefinition
 from src.utils.logger import LogContext, get_team_logger
+from src.utils.performance_monitor import get_performance_monitor
 from src.generators.app_schema_generator import AppSchemaGenerator
 from src.generators.app_wrapper_generator import AppWrapperGenerator
 from src.generators.composite_type_generator import CompositeTypeGenerator
@@ -46,7 +47,7 @@ class SchemaOutput:
 class SchemaOrchestrator:
     """Orchestrates complete schema generation: tables + types + indexes + constraints"""
 
-    def __init__(self, naming_conventions: NamingConventions | None = None) -> None:
+    def __init__(self, naming_conventions: NamingConventions | None = None, enable_performance_monitoring: bool = False) -> None:
         self.logger = get_team_logger("Team B", __name__)
         self.logger.debug("Initializing SchemaOrchestrator")
 
@@ -62,6 +63,10 @@ class SchemaOrchestrator:
         self.type_gen = CompositeTypeGenerator()
         self.helper_gen = TrinityHelperGenerator(schema_registry)
         self.core_gen = CoreLogicGenerator(schema_registry)
+
+        # Performance monitoring
+        self.enable_performance_monitoring = enable_performance_monitoring
+        self.perf_monitor = get_performance_monitor() if enable_performance_monitoring else None
 
         self.logger.debug("SchemaOrchestrator initialized successfully")
 
@@ -183,63 +188,94 @@ class SchemaOrchestrator:
 
         CRITICAL: Each action generates a SEPARATE file with 2 functions + comments
         """
-        context = LogContext(
-            entity_name=entity.name,
-            schema=entity.schema,
-            operation="generate_split_schema"
-        )
-        logger = get_team_logger("Team B", __name__, context)
-        logger.info(f"Generating split schema for entity '{entity.name}'")
+        # Track schema generation time if performance monitoring is enabled
+        if self.perf_monitor:
+            ctx = self.perf_monitor.track("generate_schema", category="generation")
+            ctx.__enter__()
+        else:
+            ctx = None
 
-        # Team B: Table definition
-        logger.debug("Generating table DDL")
-        table_ddl = self.table_gen.generate_table_ddl(entity)
-        table_sql = table_ddl  # For now, no table comments
-
-        # Team B: Helper functions (Trinity pattern utilities)
-        logger.debug("Generating helper functions")
-        helpers_sql = self.helper_gen.generate_all_helpers(entity)
-
-        # Team C + Team D: ONE FILE PER MUTATION (app + core + comments)
-        mutations = []
-        app_wrapper_gen = AppWrapperGenerator()
-
-        if entity.actions:
-            logger.debug(f"Generating {len(entity.actions)} mutation files")
-
-        for action in entity.actions:
-            # Detect action pattern for core function generation
-            action_pattern = self.core_gen.detect_action_pattern(action.name)
-            logger.debug(f"Generating mutation '{action.name}' (pattern: {action_pattern})")
-
-            # Generate core function based on pattern
-            if action_pattern == "create":
-                core_sql = self.core_gen.generate_core_create_function(entity)
-            elif action_pattern == "update":
-                core_sql = self.core_gen.generate_core_update_function(entity)
-            elif action_pattern == "delete":
-                core_sql = self.core_gen.generate_core_delete_function(entity)
-            else:  # custom
-                core_sql = self.core_gen.generate_core_custom_action(entity, action)
-
-            # Generate app wrapper
-            app_sql = app_wrapper_gen.generate_app_wrapper(entity, action)
-
-            # Generate FraiseQL comments
-            annotator = MutationAnnotator(entity.schema, entity.name)
-            comments_sql = annotator.generate_mutation_annotation(action)
-
-            mutations.append(
-                MutationFunctionPair(
-                    action_name=action.name,
-                    app_wrapper_sql=app_sql,
-                    core_logic_sql=core_sql,
-                    fraiseql_comments_sql=comments_sql,
-                )
+        try:
+            context = LogContext(
+                entity_name=entity.name,
+                schema=entity.schema,
+                operation="generate_split_schema"
             )
+            logger = get_team_logger("Team B", __name__, context)
+            logger.info(f"Generating split schema for entity '{entity.name}'")
 
-        logger.info(f"Successfully generated split schema for '{entity.name}' ({len(mutations)} mutations)")
-        return SchemaOutput(table_sql=table_sql, helpers_sql=helpers_sql, mutations=mutations)
+            # Team B: Table definition
+            logger.debug("Generating table DDL")
+            if self.perf_monitor:
+                with self.perf_monitor.track("table_ddl", category="template_rendering"):
+                    table_ddl = self.table_gen.generate_table_ddl(entity)
+            else:
+                table_ddl = self.table_gen.generate_table_ddl(entity)
+            table_sql = table_ddl  # For now, no table comments
+
+            # Team B: Helper functions (Trinity pattern utilities)
+            logger.debug("Generating helper functions")
+            if self.perf_monitor:
+                with self.perf_monitor.track("helpers", category="template_rendering"):
+                    helpers_sql = self.helper_gen.generate_all_helpers(entity)
+            else:
+                helpers_sql = self.helper_gen.generate_all_helpers(entity)
+
+            # Team C + Team D: ONE FILE PER MUTATION (app + core + comments)
+            mutations = []
+            app_wrapper_gen = AppWrapperGenerator()
+
+            if entity.actions:
+                logger.debug(f"Generating {len(entity.actions)} mutation files")
+
+            for action in entity.actions:
+                # Detect action pattern for core function generation
+                action_pattern = self.core_gen.detect_action_pattern(action.name)
+                logger.debug(f"Generating mutation '{action.name}' (pattern: {action_pattern})")
+
+                # Generate core function based on pattern
+                if self.perf_monitor:
+                    with self.perf_monitor.track(f"mutation_{action.name}", category="template_rendering"):
+                        if action_pattern == "create":
+                            core_sql = self.core_gen.generate_core_create_function(entity)
+                        elif action_pattern == "update":
+                            core_sql = self.core_gen.generate_core_update_function(entity)
+                        elif action_pattern == "delete":
+                            core_sql = self.core_gen.generate_core_delete_function(entity)
+                        else:  # custom
+                            core_sql = self.core_gen.generate_core_custom_action(entity, action)
+                else:
+                    if action_pattern == "create":
+                        core_sql = self.core_gen.generate_core_create_function(entity)
+                    elif action_pattern == "update":
+                        core_sql = self.core_gen.generate_core_update_function(entity)
+                    elif action_pattern == "delete":
+                        core_sql = self.core_gen.generate_core_delete_function(entity)
+                    else:  # custom
+                        core_sql = self.core_gen.generate_core_custom_action(entity, action)
+
+                # Generate app wrapper
+                app_sql = app_wrapper_gen.generate_app_wrapper(entity, action)
+
+                # Generate FraiseQL comments
+                annotator = MutationAnnotator(entity.schema, entity.name)
+                comments_sql = annotator.generate_mutation_annotation(action)
+
+                mutations.append(
+                    MutationFunctionPair(
+                        action_name=action.name,
+                        app_wrapper_sql=app_sql,
+                        core_logic_sql=core_sql,
+                        fraiseql_comments_sql=comments_sql,
+                    )
+                )
+
+            logger.info(f"Successfully generated split schema for '{entity.name}' ({len(mutations)} mutations)")
+            return SchemaOutput(table_sql=table_sql, helpers_sql=helpers_sql, mutations=mutations)
+        finally:
+            # Exit performance tracking context
+            if ctx:
+                ctx.__exit__(None, None, None)
 
     def generate_table_views(self, entities: list[EntityDefinition]) -> str:
         """

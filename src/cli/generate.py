@@ -97,6 +97,8 @@ def cli():
 )  # NEW
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging (DEBUG level)")
 @click.option("--quiet", "-q", is_flag=True, help="Suppress all output except errors")
+@click.option("--performance", is_flag=True, help="Enable performance monitoring and output metrics")
+@click.option("--performance-output", type=click.Path(), help="Write performance metrics to specified JSON file")
 def entities(
     entity_files: tuple,
     output_dir: str,
@@ -108,6 +110,8 @@ def entities(
     output_frontend: str,  # NEW
     verbose: bool,
     quiet: bool,
+    performance: bool,
+    performance_output: str,
 ):
     """Generate PostgreSQL migrations from SpecQL YAML files"""
 
@@ -123,8 +127,12 @@ def entities(
     logger = get_team_logger("Team E", __name__)
     logger.info(f"Starting generation for {len(entity_files)} entity file(s)")
 
-    # Create orchestrator with registry support
-    orchestrator = CLIOrchestrator(use_registry=use_registry, output_format=output_format)
+    # Create orchestrator with registry support and performance monitoring
+    orchestrator = CLIOrchestrator(
+        use_registry=use_registry,
+        output_format=output_format,
+        enable_performance_monitoring=performance
+    )
 
     # Generate migrations
     logger.debug(f"Output directory: {output_dir}")
@@ -230,6 +238,24 @@ def entities(
         click.secho(f"\n⚠️  {len(result.warnings)} warning(s):", fg="yellow")
         for warning in result.warnings:
             click.echo(f"  {warning}")
+
+    # Output performance metrics if enabled
+    if performance and orchestrator.perf_monitor:
+        from src.utils.performance_monitor import get_performance_monitor
+        from pathlib import Path
+
+        perf_monitor = get_performance_monitor()
+        metrics = perf_monitor.get_metrics()
+
+        if performance_output:
+            # Write to file
+            output_file = Path(performance_output)
+            metrics.write_to_file(output_file)
+            click.secho(f"\n📊 Performance metrics written to {performance_output}", fg="blue", bold=True)
+        else:
+            # Print to stdout
+            click.secho("\n📊 Performance Metrics:", fg="blue", bold=True)
+            click.echo(metrics.to_json(indent=2))
 
     return 0
 

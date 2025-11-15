@@ -6,6 +6,7 @@ from pathlib import Path
 from src.core.specql_parser import SpecQLParser
 from src.generators.schema.naming_conventions import NamingConventions  # NEW
 from src.generators.schema_orchestrator import SchemaOrchestrator
+from src.utils.performance_monitor import get_performance_monitor
 
 
 @dataclass
@@ -31,9 +32,12 @@ class GenerationResult:
 class CLIOrchestrator:
     """Orchestrate all Teams for CLI commands"""
 
-    def __init__(self, use_registry: bool = False, output_format: str = "hierarchical"):
-        self.parser = SpecQLParser()
-        self.schema_orchestrator = SchemaOrchestrator()
+    def __init__(self, use_registry: bool = False, output_format: str = "hierarchical", enable_performance_monitoring: bool = False):
+        self.enable_performance_monitoring = enable_performance_monitoring
+        self.perf_monitor = get_performance_monitor() if enable_performance_monitoring else None
+
+        self.parser = SpecQLParser(enable_performance_monitoring=enable_performance_monitoring)
+        self.schema_orchestrator = SchemaOrchestrator(enable_performance_monitoring=enable_performance_monitoring)
 
         # NEW: Registry integration
         self.use_registry = use_registry

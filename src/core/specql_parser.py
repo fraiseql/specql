@@ -11,6 +11,7 @@ from typing import Any
 import yaml
 
 from src.utils.logger import LogContext, get_team_logger
+from src.utils.performance_monitor import get_performance_monitor
 
 from src.core.ast_models import (
     ActionDefinition,
@@ -48,10 +49,12 @@ class ParseError(Exception):
 class SpecQLParser:
     """Parser for SpecQL YAML to AST"""
 
-    def __init__(self):
+    def __init__(self, enable_performance_monitoring: bool = False):
         # Will be extended in Phase 2 with composite types
         self.current_entity_fields = {}  # Track fields for expression validation
         self.logger = get_team_logger("Team A", __name__)
+        self.enable_performance_monitoring = enable_performance_monitoring
+        self.perf_monitor = get_performance_monitor() if enable_performance_monitoring else None
 
     def parse(self, yaml_content: str) -> EntityDefinition:
         """
@@ -63,114 +66,126 @@ class SpecQLParser:
         - fields: { name: type }
         - actions: [...]
         """
-        self.logger.debug("Starting SpecQL YAML parsing")
+        # Track parsing time if performance monitoring is enabled
+        if self.perf_monitor:
+            ctx = self.perf_monitor.track("parse_yaml", category="parsing")
+            ctx.__enter__()
+        else:
+            ctx = None
 
         try:
-            data = yaml.safe_load(yaml_content)
-            self.logger.debug("YAML loaded successfully")
-        except yaml.YAMLError as e:
-            self.logger.error(f"Failed to parse YAML: {e}")
-            raise ParseError(f"Invalid YAML: {e}")
+            self.logger.debug("Starting SpecQL YAML parsing")
 
-        # Validate required fields
-        if not isinstance(data, dict):
-            raise ParseError("YAML must be a dictionary")
+            try:
+                data = yaml.safe_load(yaml_content)
+                self.logger.debug("YAML loaded successfully")
+            except yaml.YAMLError as e:
+                self.logger.error(f"Failed to parse YAML: {e}")
+                raise ParseError(f"Invalid YAML: {e}")
 
-        if "entity" not in data:
-            raise ParseError("Missing 'entity' key")
+            # Validate required fields
+            if not isinstance(data, dict):
+                raise ParseError("YAML must be a dictionary")
 
-        # Parse entity metadata - supports both formats:
-        # Lightweight: entity: EntityName
-        # Complex: entity: {name: entity_name, schema: schema_name, description: "..."}
-        if isinstance(data["entity"], dict):
-            # Complex format
-            entity_name = data["entity"]["name"]
-            entity_schema = data["entity"].get("schema", data.get("schema", "public"))
-            entity_description = data["entity"].get("description", data.get("description", ""))
-        else:
-            # Lightweight format
-            entity_name = data["entity"]
-            entity_schema = data.get("schema", "public")
-            entity_description = data.get("description", "")
+            if "entity" not in data:
+                raise ParseError("Missing 'entity' key")
 
-        entity = EntityDefinition(
-            name=entity_name,
-            schema=entity_schema,
-            description=entity_description,
-        )
+            # Parse entity metadata - supports both formats:
+            # Lightweight: entity: EntityName
+            # Complex: entity: {name: entity_name, schema: schema_name, description: "..."}
+            if isinstance(data["entity"], dict):
+                # Complex format
+                entity_name = data["entity"]["name"]
+                entity_schema = data["entity"].get("schema", data.get("schema", "public"))
+                entity_description = data["entity"].get("description", data.get("description", ""))
+            else:
+                # Lightweight format
+                entity_name = data["entity"]
+                entity_schema = data.get("schema", "public")
+                entity_description = data.get("description", "")
 
-        # Update logger context with entity information
-        context = LogContext(
-            entity_name=entity_name,
-            schema=entity_schema,
-            operation="parse"
-        )
-        self.logger = get_team_logger("Team A", __name__, context)
-        self.logger.info(f"Parsing entity '{entity_name}' in schema '{entity_schema}'")
+            entity = EntityDefinition(
+                name=entity_name,
+                schema=entity_schema,
+                description=entity_description,
+            )
 
-        # Parse fields - check both root level and inside entity dict (for complex format)
-        if isinstance(data["entity"], dict) and "fields" in data["entity"]:
-            # Complex format: fields are inside entity dict
-            fields_data = data["entity"]["fields"]
-        else:
-            # Lightweight format: fields at root level
-            fields_data = data.get("fields", {})
+            # Update logger context with entity information
+            context = LogContext(
+                entity_name=entity_name,
+                schema=entity_schema,
+                operation="parse"
+            )
+            self.logger = get_team_logger("Team A", __name__, context)
+            self.logger.info(f"Parsing entity '{entity_name}' in schema '{entity_schema}'")
 
-        self.logger.debug(f"Parsing {len(fields_data)} fields")
-        for field_name, field_spec in fields_data.items():
-            # VALIDATION: Check if field name is reserved
-            if is_reserved_field_name(field_name):
-                self.logger.error(f"Reserved field name detected: {field_name}")
-                raise SpecQLValidationError(
-                    entity=entity_name, message=get_reserved_field_error_message(field_name)
-                )
+            # Parse fields - check both root level and inside entity dict (for complex format)
+            if isinstance(data["entity"], dict) and "fields" in data["entity"]:
+                # Complex format: fields are inside entity dict
+                fields_data = data["entity"]["fields"]
+            else:
+                # Lightweight format: fields at root level
+                fields_data = data.get("fields", {})
 
-            field = self._parse_field(field_name, field_spec)
-            entity.fields[field_name] = field
-            self.logger.debug(f"Parsed field '{field_name}' (type: {field.type_name}, tier: {field.tier.value})")
+            self.logger.debug(f"Parsing {len(fields_data)} fields")
+            for field_name, field_spec in fields_data.items():
+                # VALIDATION: Check if field name is reserved
+                if is_reserved_field_name(field_name):
+                    self.logger.error(f"Reserved field name detected: {field_name}")
+                    raise SpecQLValidationError(
+                        entity=entity_name, message=get_reserved_field_error_message(field_name)
+                    )
 
-        self.logger.info(f"Parsed {len(entity.fields)} fields successfully")
+                field = self._parse_field(field_name, field_spec)
+                entity.fields[field_name] = field
+                self.logger.debug(f"Parsed field '{field_name}' (type: {field.type_name}, tier: {field.tier.value})")
 
-        # Set current entity fields for expression validation
-        self.current_entity_fields = entity.fields
+            self.logger.info(f"Parsed {len(entity.fields)} fields successfully")
 
-        # Parse actions (Phase 2)
-        actions_data = data.get("actions", [])
-        if actions_data:
-            self.logger.debug(f"Parsing {len(actions_data)} actions")
-        for action_spec in actions_data:
-            action = self._parse_action(action_spec)
-            entity.actions.append(action)
-            self.logger.debug(f"Parsed action '{action.name}' with {len(action.steps)} steps")
+            # Set current entity fields for expression validation
+            self.current_entity_fields = entity.fields
 
-        if actions_data:
-            self.logger.info(f"Parsed {len(entity.actions)} actions successfully")
+            # Parse actions (Phase 2)
+            actions_data = data.get("actions", [])
+            if actions_data:
+                self.logger.debug(f"Parsing {len(actions_data)} actions")
+            for action_spec in actions_data:
+                action = self._parse_action(action_spec)
+                entity.actions.append(action)
+                self.logger.debug(f"Parsed action '{action.name}' with {len(action.steps)} steps")
 
-        # Parse agents
-        agents_data = data.get("agents", [])
-        if agents_data:
-            self.logger.debug(f"Parsing {len(agents_data)} agents")
-        for agent_spec in agents_data:
-            agent = self._parse_agent(agent_spec)
-            entity.agents.append(agent)
-            self.logger.debug(f"Parsed agent '{agent.name}' (type: {agent.type})")
+            if actions_data:
+                self.logger.info(f"Parsed {len(entity.actions)} actions successfully")
 
-        # Parse organization
-        if "organization" in data:
-            self.logger.debug("Parsing organization configuration")
-            entity.organization = self._parse_organization(data["organization"])
+            # Parse agents
+            agents_data = data.get("agents", [])
+            if agents_data:
+                self.logger.debug(f"Parsing {len(agents_data)} agents")
+            for agent_spec in agents_data:
+                agent = self._parse_agent(agent_spec)
+                entity.agents.append(agent)
+                self.logger.debug(f"Parsed agent '{agent.name}' (type: {agent.type})")
 
-        # Parse identifier configuration (NEW)
-        entity.identifier = self._parse_identifier_config(data)
+            # Parse organization
+            if "organization" in data:
+                self.logger.debug("Parsing organization configuration")
+                entity.organization = self._parse_organization(data["organization"])
 
-        # Parse table_views configuration (CQRS)
-        if "table_views" in data:
-            self.logger.debug("Parsing table_views configuration")
-            entity.table_views = self._parse_table_views(data["table_views"], entity_name)
+            # Parse identifier configuration (NEW)
+            entity.identifier = self._parse_identifier_config(data)
 
-        self.logger.info(f"Successfully parsed entity '{entity_name}' with {len(entity.fields)} fields, {len(entity.actions)} actions")
+            # Parse table_views configuration (CQRS)
+            if "table_views" in data:
+                self.logger.debug("Parsing table_views configuration")
+                entity.table_views = self._parse_table_views(data["table_views"], entity_name)
 
-        return entity
+            self.logger.info(f"Successfully parsed entity '{entity_name}' with {len(entity.fields)} fields, {len(entity.actions)} actions")
+
+            return entity
+        finally:
+            # Exit performance tracking context
+            if ctx:
+                ctx.__exit__(None, None, None)
 
     def _parse_field(self, field_name: str, field_spec: Any) -> FieldDefinition:
         """
