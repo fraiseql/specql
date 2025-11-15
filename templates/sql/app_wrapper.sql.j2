@@ -13,6 +13,7 @@ DECLARE
 {%- if needs_composite_type %}
     input_data {{ composite_type_name }};
 {%- endif %}
+    error_id UUID;
 BEGIN
 {%- if needs_composite_type %}
     -- Convert JSONB → Typed Composite
@@ -39,14 +40,45 @@ BEGIN
 {%- endif %}
 EXCEPTION
     WHEN OTHERS THEN
-        -- Handle unexpected errors
+        -- Generate correlation ID for error tracking
+        error_id := gen_random_uuid();
+
+        -- Log detailed error to audit table
+        INSERT INTO app.tb_mutation_audit_log (
+            tenant_id,
+            user_id,
+            entity_type,
+            entity_id,
+            operation,
+            status,
+            message,
+            error_context,
+            extra_metadata
+        ) VALUES (
+            auth_tenant_id,
+            auth_user_id,
+            '{{ app_function_name }}',
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            'ERROR',
+            'failed:unexpected_error',
+            'Unexpected error in {{ core_function_name }}',
+            jsonb_build_object(
+                'sql_error', SQLERRM,
+                'sql_state', SQLSTATE,
+                'function_name', '{{ core_function_name }}',
+                'input_payload', input_payload
+            ),
+            jsonb_build_object('error_id', error_id)
+        );
+
+        -- Return generic error to client
         RETURN ROW(
             '00000000-0000-0000-0000-000000000000'::UUID,
             ARRAY[]::TEXT[],
             'failed:unexpected_error',
-            'An unexpected error occurred',
+            'An unexpected error occurred. Please contact support.',
             NULL::JSONB,
-            jsonb_build_object('error', SQLERRM, 'detail', SQLSTATE)
+            jsonb_build_object('error_id', error_id)
         )::app.mutation_result;
 END;
 $$;
