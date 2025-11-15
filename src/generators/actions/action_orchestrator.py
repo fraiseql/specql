@@ -11,6 +11,26 @@ from src.core.ast_models import ActionDefinition, EntityDefinition
 from src.core.specql_parser import SpecQLParser
 from src.generators.actions.action_context import ActionContext
 from src.generators.actions.callback_generator import CallbackGenerator
+from src.generators.actions.step_compilers import (
+    AggregateStepCompiler,
+    CallFunctionStepCompiler,
+    CallStepCompiler,
+    CTEStepCompiler,
+    DeclareStepCompiler,
+    DeleteStepCompiler,
+    DuplicateCheckCompiler,
+    ForEachStepCompiler,
+    IfStepCompiler,
+    InsertStepCompiler,
+    NotifyStepCompiler,
+    PartialUpdateCompiler,
+    RefreshTableViewStepCompiler,
+    ReturnEarlyStepCompiler,
+    SubqueryStepCompiler,
+    SwitchStepCompiler,
+    UpdateStepCompiler,
+    ValidateStepCompiler,
+)
 from src.generators.actions.step_compilers.call_service_step_compiler import (
     CallServiceStepCompiler,
 )
@@ -59,8 +79,32 @@ class ActionOrchestrator:
         parser = SpecQLParser()
         entity = parser.parse(yaml_content)
 
-        # Create orchestrator with call_service step compiler
-        orchestrator = cls(service_registry=service_registry)
+        # Create default step compiler registry
+        default_registry = {
+            "validate": ValidateStepCompiler(),
+            "update": UpdateStepCompiler(),
+            "insert": InsertStepCompiler(),
+            "delete": DeleteStepCompiler(),
+            "duplicate_check": DuplicateCheckCompiler(),
+            "if": IfStepCompiler(),
+            "foreach": ForEachStepCompiler(),
+            "call": CallStepCompiler(),
+            "notify": NotifyStepCompiler(),
+            "partial_update": PartialUpdateCompiler(),
+            "refresh_table_view": RefreshTableViewStepCompiler(),
+            "declare": DeclareStepCompiler(),
+            "cte": CTEStepCompiler(),
+            "aggregate": AggregateStepCompiler(),
+            "subquery": SubqueryStepCompiler(),
+            "call_function": CallFunctionStepCompiler(),
+            "switch": SwitchStepCompiler(),
+            "return_early": ReturnEarlyStepCompiler(),
+        }
+
+        # Create orchestrator with call_service step compiler and default registry
+        orchestrator = cls(
+            service_registry=service_registry, step_compiler_registry=default_registry
+        )
         orchestrator.entity = entity
         orchestrator.yaml_content = yaml_content
 
@@ -125,7 +169,14 @@ class ActionOrchestrator:
                     self._generate_callback_functions(step, context)
                 )
             else:
-                compiled_parts.append(f"-- TODO: Compile {step.type} step")
+                # Use step compiler registry for other step types
+                compiler = self.step_compiler_registry.get(step.type)
+                if compiler:
+                    compiled_parts.append(compiler.compile(step, self.entity, {}))
+                else:
+                    compiled_parts.append(
+                        f"-- TODO: Compile {step.type} step (no compiler found)"
+                    )
 
         # Build complete function
         function_sql = self._build_action_function(
