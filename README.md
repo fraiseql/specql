@@ -1,5 +1,10 @@
 # SpecQL - Multi-Language Backend Code Generator
 
+[![PyPI version](https://badge.fury.io/py/specql-generator.svg)](https://pypi.org/project/specql-generator/)
+[![PyPI - Python Version](https://img.shields.io/pypi/pyversions/specql-generator.svg)](https://pypi.org/project/specql-generator/)
+[![PyPI - Downloads](https://img.shields.io/pypi/dm/specql-generator.svg)](https://pypistats.org/packages/specql-generator)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 > **🚧 v0.4.0-alpha**: Production-ready for backend generation. APIs stable. [Report issues](https://github.com/fraiseql/specql/issues).
 
 **One YAML spec → PostgreSQL + Java + Rust + TypeScript** (100x code leverage)
