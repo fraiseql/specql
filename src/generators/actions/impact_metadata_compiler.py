@@ -26,23 +26,38 @@ class ImpactMetadataCompiler:
 
         # Handle legacy dict format for backwards compatibility
         if isinstance(impact, dict):
-            from src.core.ast_models import ActionImpact, EntityImpact, CacheInvalidation
-            primary_data = impact.get('primary', {})
+            from src.core.ast_models import (
+                ActionImpact,
+                EntityImpact,
+                CacheInvalidation,
+            )
+
+            primary_data = impact.get("primary", {})
             # Infer entity and operation from action/entity context
-            entity_name = entity.name if entity else primary_data.get('entity', 'Unknown')
-            operation = primary_data.get('operation', 'UPDATE')  # Default assumption
-            fields = primary_data.get('fields', [])
+            entity_name = (
+                entity.name if entity else primary_data.get("entity", "Unknown")
+            )
+            operation = primary_data.get("operation", "UPDATE")  # Default assumption
+            fields = primary_data.get("fields", [])
 
-            side_effects_data = impact.get('side_effects', [])
-            side_effects = [EntityImpact(**effect) for effect in side_effects_data] if side_effects_data else []
+            side_effects_data = impact.get("side_effects", [])
+            side_effects = (
+                [EntityImpact(**effect) for effect in side_effects_data]
+                if side_effects_data
+                else []
+            )
 
-            cache_data = impact.get('cache_invalidations', [])
-            cache_invalidations = [CacheInvalidation(**inv) for inv in cache_data] if cache_data else []
+            cache_data = impact.get("cache_invalidations", [])
+            cache_invalidations = (
+                [CacheInvalidation(**inv) for inv in cache_data] if cache_data else []
+            )
 
             impact = ActionImpact(
-                primary=EntityImpact(entity=entity_name, operation=operation, fields=fields),
+                primary=EntityImpact(
+                    entity=entity_name, operation=operation, fields=fields
+                ),
                 side_effects=side_effects,
-                cache_invalidations=cache_invalidations
+                cache_invalidations=cache_invalidations,
             )
 
         parts = []
@@ -123,7 +138,8 @@ class ImpactMetadataCompiler:
         for effect in impact.side_effects:
             typename = effect.entity
             operation = effect.operation
-            schema = entity.schema  # Assume same schema (TODO: support cross-schema)
+            # Support cross-schema: check if effect has schema, otherwise use entity's schema
+            schema = getattr(effect, "schema", None) or entity.schema
             view_name = f"tv_{typename.lower()}"
             operation_graphql = self._map_operation(operation)
 
@@ -132,9 +148,7 @@ class ImpactMetadataCompiler:
 
             if operation == "DELETE":
                 # Deleted entities don't include full data
-                cascade_calls.append(
-                    f"app.cascade_deleted('{typename}', {id_var})"
-                )
+                cascade_calls.append(f"app.cascade_deleted('{typename}', {id_var})")
             else:
                 # Created/Updated entities include full data
                 cascade_calls.append(
@@ -145,7 +159,7 @@ class ImpactMetadataCompiler:
             return ""
 
         # Append to existing cascade array
-        cascade_array = ',\n        '.join(cascade_calls)
+        cascade_array = ",\n        ".join(cascade_calls)
         return f"""
     -- Append side effect cascade entities
     v_cascade_entities := v_cascade_entities || ARRAY[
@@ -155,11 +169,7 @@ class ImpactMetadataCompiler:
 
     def _map_operation(self, operation: str) -> str:
         """Map SpecQL operation to GraphQL cascade operation"""
-        mapping = {
-            "CREATE": "CREATED",
-            "UPDATE": "UPDATED",
-            "DELETE": "DELETED"
-        }
+        mapping = {"CREATE": "CREATED", "UPDATE": "UPDATED", "DELETE": "DELETED"}
         return mapping.get(operation, operation)
 
     def build_side_effects(self, impact: ActionImpact) -> str:
@@ -184,23 +194,36 @@ class ImpactMetadataCompiler:
         # Handle legacy dict format for backwards compatibility
         impact = action.impact
         if isinstance(impact, dict):
-            from src.core.ast_models import ActionImpact, EntityImpact, CacheInvalidation
-            primary_data = impact.get('primary', {})
+            from src.core.ast_models import (
+                ActionImpact,
+                EntityImpact,
+                CacheInvalidation,
+            )
+
+            primary_data = impact.get("primary", {})
             # Infer entity and operation from action/entity context
-            entity_name = primary_data.get('entity', 'Unknown')
-            operation = primary_data.get('operation', 'UPDATE')  # Default assumption
-            fields = primary_data.get('fields', [])
+            entity_name = primary_data.get("entity", "Unknown")
+            operation = primary_data.get("operation", "UPDATE")  # Default assumption
+            fields = primary_data.get("fields", [])
 
-            side_effects_data = impact.get('side_effects', [])
-            side_effects = [EntityImpact(**effect) for effect in side_effects_data] if side_effects_data else []
+            side_effects_data = impact.get("side_effects", [])
+            side_effects = (
+                [EntityImpact(**effect) for effect in side_effects_data]
+                if side_effects_data
+                else []
+            )
 
-            cache_data = impact.get('cache_invalidations', [])
-            cache_invalidations = [CacheInvalidation(**inv) for inv in cache_data] if cache_data else []
+            cache_data = impact.get("cache_invalidations", [])
+            cache_invalidations = (
+                [CacheInvalidation(**inv) for inv in cache_data] if cache_data else []
+            )
 
             impact = ActionImpact(
-                primary=EntityImpact(entity=entity_name, operation=operation, fields=fields),
+                primary=EntityImpact(
+                    entity=entity_name, operation=operation, fields=fields
+                ),
                 side_effects=side_effects,
-                cache_invalidations=cache_invalidations
+                cache_invalidations=cache_invalidations,
             )
             # Update action.impact for the rest of the method
             action = Action(
@@ -209,7 +232,7 @@ class ImpactMetadataCompiler:
                 steps=action.steps,
                 impact=impact,
                 hierarchy_impact=action.hierarchy_impact,
-                cdc=action.cdc
+                cdc=action.cdc,
             )
 
         parts = []
@@ -259,7 +282,9 @@ class ImpactMetadataCompiler:
         # EXISTING: Side effect collections (e.g., createdNotifications)
         for effect in impact.side_effects:
             if effect.collection:
-                parts.append(f"'{effect.collection}', {self._build_collection_query(effect)}")
+                parts.append(
+                    f"'{effect.collection}', {self._build_collection_query(effect)}"
+                )
 
         # EXISTING: Add _meta
         parts.append("'_meta', to_jsonb(v_meta)")

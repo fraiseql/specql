@@ -65,7 +65,9 @@ class IncludeRelation:
     def __post_init__(self):
         """Validate field list."""
         if not self.fields:
-            raise ValueError(f"include_relations.{self.entity_name} must specify fields")
+            raise ValueError(
+                f"include_relations.{self.entity_name} must specify fields"
+            )
 
         # Special case: '*' means all fields
         if self.fields == ["*"]:
@@ -289,7 +291,9 @@ class IdentifierComponent:
     format: str | None = None
     separator: str = ""
     replace: dict[str, str] | None = None
-    strip_tenant_prefix: bool = False  # NEW: Strip tenant prefix from referenced identifiers
+    strip_tenant_prefix: bool = (
+        False  # NEW: Strip tenant prefix from referenced identifiers
+    )
 
 
 @dataclass
@@ -383,8 +387,8 @@ class CDCConfig:
 
     enabled: bool = False
     event_type: str | None = None  # e.g., 'PostCreated'
-    include_cascade: bool = True    # Include cascade in event_metadata
-    include_payload: bool = True    # Include full entity data
+    include_cascade: bool = True  # Include cascade in event_metadata
+    include_payload: bool = True  # Include full entity data
     partition_key: str | None = None  # Custom partition key expression
 
 
@@ -412,6 +416,7 @@ class ActionDefinition:
 @dataclass
 class VariableDeclaration:
     """Variable declaration"""
+
     name: str
     type: str  # numeric, text, boolean, uuid, etc.
     default_value: Any | None = None
@@ -420,8 +425,9 @@ class VariableDeclaration:
 @dataclass
 class SwitchCase:
     """Case in a switch statement"""
+
     when_condition: str | None = None  # For complex conditions
-    when_value: str | None = None      # For simple value matching
+    when_value: str | None = None  # For simple value matching
     then_steps: list["ActionStep"] = field(default_factory=list)
 
 
@@ -586,6 +592,7 @@ class ActionStep:
 @dataclass
 class ExceptionHandler:
     """Exception handler in catch block"""
+
     when_condition: str  # Exception type (payment_failed, OTHERS, etc.)
     then_steps: list["ActionStep"] = field(default_factory=list)
 
@@ -598,6 +605,7 @@ class EntityImpact:
     operation: str  # CREATE, UPDATE, DELETE
     fields: list[str] = field(default_factory=list)
     collection: str | None = None  # For side effects (e.g., "createdNotifications")
+    schema: str | None = None  # Schema for cross-schema references
 
 
 @dataclass
