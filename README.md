@@ -1,5 +1,8 @@
 # SpecQL - PostgreSQL Code Generator
 
+> **🚧 ALPHA RELEASE (v0.4.0-alpha)**: SpecQL is in active development. APIs may change.
+> Production use is not recommended yet. [Report issues](https://github.com/fraiseql/specql/issues).
+
 **20 lines YAML → 2000+ lines production code (100x leverage)**
 
 [Badges: Build Status, Coverage, Version, License]
@@ -40,13 +43,25 @@ actions:
 
 **Result**: 2000+ lines from 15 lines (133x leverage)
 
-## Quick Start
+## Installation
+
+### From Source (Required for Alpha)
 
 ```bash
-pip install specql-generator
-cd your-project
-specql generate entities/*.yaml
+git clone https://github.com/fraiseql/specql.git
+cd specql
+uv sync
+uv pip install -e .
 ```
+
+### Verify Installation
+
+```bash
+specql --version  # Should show: 0.4.0-alpha
+specql generate entities/examples/**/*.yaml
+```
+
+**Note**: SpecQL is not yet published to PyPI. Source installation is required.
 
 ## Current Features (Production Ready)
 
@@ -95,11 +110,17 @@ All from `examples/` and `entities/examples/`:
 - [SaaS Multi-Tenant](examples/saas-multi-tenant/) - Enterprise patterns
 - [Simple Blog](examples/simple-blog/) - CRUD basics
 
-## Community
+## Community & Support
 
-- [Discord](link) - Get help, share ideas
-- [GitHub Discussions](link) - Questions and answers
-- [GitHub Issues](link) - Bug reports and feature requests
+**Alpha Release**: SpecQL is in early alpha. We're building in public!
+
+- 📖 [Documentation](docs/) - Complete guides and references
+- 🐛 [Report Bugs](https://github.com/fraiseql/specql/issues) - Help us improve
+- 💡 [Feature Requests](https://github.com/fraiseql/specql/issues) - Share your ideas
+- 📦 [Examples](examples/) - Working code examples
+- 📝 [Changelog](CHANGELOG.md) - See what's new
+
+**Coming Soon**: Discord community and GitHub Discussions
 
 ## Contributing
 
@@ -111,9 +132,21 @@ MIT License - see [LICENSE](LICENSE)
 
 ---
 
-**Current Status**: Production ready for PostgreSQL + GraphQL + Java/Spring Boot + TypeScript/Prisma
-**Python**: 3.10+
-**PostgreSQL**: 14+
-**Java**: 17+ (Spring Boot 3.x, JPA/Hibernate)
-**TypeScript**: 4.9+ (Prisma Client, TypeScript interfaces)
-**Total Source**: 371 Python files, 25+ step compilers, comprehensive test suite (96% coverage)
+## Current Status
+
+**Release**: 🚧 **Alpha (v0.4.0-alpha)** - Multi-language backend generation
+**Languages**: PostgreSQL + Java + Rust + TypeScript
+**Test Coverage**: 96%+ across 371 Python files
+**Stability**: Pre-release - APIs subject to change
+
+### Supported Technologies
+- **PostgreSQL**: 14+ with Trinity pattern (pk_*, id, identifier)
+- **Java**: 17+ (Spring Boot 3.x, JPA/Hibernate, Lombok)
+- **Rust**: 1.70+ (Diesel 2.x, Actix-web)
+- **TypeScript**: 4.9+ (Prisma Client, type-safe interfaces)
+
+### Known Limitations
+- Frontend generation not yet implemented
+- Infrastructure as Code partial (Terraform/Pulumi in progress)
+- Not published to PyPI (install from source only)
+- Discord and GitHub Discussions not yet available
