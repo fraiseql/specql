@@ -1,5 +1,6 @@
 """Tests for LLM-powered CI/CD pattern recommendations"""
 
+import os
 import pytest
 from unittest.mock import patch
 from src.cicd.llm_recommendations import LLMRecommendations
@@ -12,7 +13,7 @@ class TestLLMRecommendations:
     @pytest.fixture
     def llm_recommendations(self):
         """Create LLM recommendations instance"""
-        return LLMRecommendations()
+        return LLMRecommendations(api_key="test-api-key")
 
     @pytest.fixture
     def sample_pipeline(self):
@@ -22,10 +23,12 @@ class TestLLMRecommendations:
             description="FastAPI backend with PostgreSQL",
             language="python",
             framework="fastapi",
-            stages=[]
+            stages=[],
         )
 
-    def test_recommend_patterns_for_pipeline(self, llm_recommendations, sample_pipeline):
+    def test_recommend_patterns_for_pipeline(
+        self, llm_recommendations, sample_pipeline
+    ):
         """Test recommending patterns for a pipeline"""
         # Mock LLM response
         mock_response = {
@@ -33,17 +36,17 @@ class TestLLMRecommendations:
                 {
                     "pattern_id": "python_fastapi_backend_v1",
                     "confidence": 0.95,
-                    "reasoning": "Perfect match for FastAPI + PostgreSQL stack"
+                    "reasoning": "Perfect match for FastAPI + PostgreSQL stack",
                 },
                 {
                     "pattern_id": "python_django_fullstack_v1",
                     "confidence": 0.75,
-                    "reasoning": "Alternative Python web framework"
-                }
+                    "reasoning": "Alternative Python web framework",
+                },
             ]
         }
 
-        with patch.object(llm_recommendations, '_call_llm', return_value=mock_response):
+        with patch.object(llm_recommendations, "_call_llm", return_value=mock_response):
             recommendations = llm_recommendations.recommend_patterns(sample_pipeline)
 
             assert len(recommendations) == 2
@@ -59,18 +62,18 @@ class TestLLMRecommendations:
                     "type": "caching",
                     "description": "Add pip cache to speed up dependency installation",
                     "impact": "high",
-                    "effort": "low"
+                    "effort": "low",
                 },
                 {
                     "type": "parallelization",
                     "description": "Run linting and testing in parallel",
                     "impact": "medium",
-                    "effort": "medium"
-                }
+                    "effort": "medium",
+                },
             ]
         }
 
-        with patch.object(llm_recommendations, '_call_llm', return_value=mock_response):
+        with patch.object(llm_recommendations, "_call_llm", return_value=mock_response):
             optimizations = llm_recommendations.optimize_pipeline(sample_pipeline)
 
             assert len(optimizations) == 2
@@ -86,16 +89,13 @@ class TestLLMRecommendations:
                 {
                     "severity": "medium",
                     "category": "security",
-                    "description": "Consider adding security scanning step"
+                    "description": "Consider adding security scanning step",
                 }
             ],
-            "strengths": [
-                "Good separation of concerns",
-                "Clear stage definitions"
-            ]
+            "strengths": ["Good separation of concerns", "Clear stage definitions"],
         }
 
-        with patch.object(llm_recommendations, '_call_llm', return_value=mock_response):
+        with patch.object(llm_recommendations, "_call_llm", return_value=mock_response):
             analysis = llm_recommendations.analyze_quality(sample_pipeline)
 
             assert analysis["quality_score"] == 8.5
@@ -122,18 +122,21 @@ class TestLLMRecommendations:
                                 "steps": [
                                     {"type": "checkout"},
                                     {"type": "setup_runtime"},
-                                    {"type": "install_dependencies", "command": "npm ci"},
+                                    {
+                                        "type": "install_dependencies",
+                                        "command": "npm ci",
+                                    },
                                     {"type": "lint", "command": "npm run lint"},
-                                    {"type": "run_tests", "command": "npm test"}
-                                ]
+                                    {"type": "run_tests", "command": "npm test"},
+                                ],
                             }
-                        ]
+                        ],
                     }
-                ]
+                ],
             }
         }
 
-        with patch.object(llm_recommendations, '_call_llm', return_value=mock_response):
+        with patch.object(llm_recommendations, "_call_llm", return_value=mock_response):
             pipeline = llm_recommendations.generate_from_description(description)
 
             assert pipeline.name == "react_typescript_pipeline"
@@ -145,9 +148,7 @@ class TestLLMRecommendations:
     def test_compare_pipelines(self, llm_recommendations, sample_pipeline):
         """Test comparing two pipelines"""
         pipeline2 = UniversalPipeline(
-            name="comparison_pipeline",
-            language="python",
-            framework="django"
+            name="comparison_pipeline", language="python", framework="django"
         )
 
         mock_response = {
@@ -155,22 +156,24 @@ class TestLLMRecommendations:
                 "similarity_score": 0.7,
                 "differences": [
                     "Different frameworks (FastAPI vs Django)",
-                    "Similar language and structure"
+                    "Similar language and structure",
                 ],
                 "recommendations": [
                     "Consider migrating to FastAPI for better performance"
-                ]
+                ],
             }
         }
 
-        with patch.object(llm_recommendations, '_call_llm', return_value=mock_response):
-            comparison = llm_recommendations.compare_pipelines(sample_pipeline, pipeline2)
+        with patch.object(llm_recommendations, "_call_llm", return_value=mock_response):
+            comparison = llm_recommendations.compare_pipelines(
+                sample_pipeline, pipeline2
+            )
 
             assert comparison["similarity_score"] == 0.7
             assert len(comparison["differences"]) == 2
             assert len(comparison["recommendations"]) == 1
 
-    @patch('src.cicd.llm_recommendations.requests.post')
+    @patch("src.cicd.llm_recommendations.requests.post")
     def test_call_llm_api_error_handling(self, mock_post, llm_recommendations):
         """Test error handling when LLM API fails"""
         mock_post.side_effect = Exception("API Error")
@@ -187,13 +190,26 @@ class TestLLMRecommendations:
                 {
                     "pattern_id": "basic_pipeline_v1",
                     "confidence": 0.8,
-                    "reasoning": "Basic pipeline template for getting started"
+                    "reasoning": "Basic pipeline template for getting started",
                 }
             ]
         }
 
-        with patch.object(llm_recommendations, '_call_llm', return_value=mock_response):
+        with patch.object(llm_recommendations, "_call_llm", return_value=mock_response):
             recommendations = llm_recommendations.recommend_patterns(empty_pipeline)
 
             assert len(recommendations) == 1
             assert recommendations[0]["pattern_id"] == "basic_pipeline_v1"
+
+    def test_missing_api_key_raises_error(self):
+        """Test that missing API key raises ValueError"""
+        with pytest.raises(
+            ValueError, match="OPENAI_API_KEY environment variable required"
+        ):
+            LLMRecommendations()
+
+    @patch.dict(os.environ, {"OPENAI_API_KEY": "test-key"})
+    def test_api_key_from_environment(self):
+        """Test that API key is read from environment variable"""
+        recommendations = LLMRecommendations()
+        assert recommendations.api_key == "test-key"

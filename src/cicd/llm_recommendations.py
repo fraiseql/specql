@@ -9,6 +9,7 @@ Uses LLM to provide intelligent recommendations for CI/CD pipelines including:
 """
 
 import json
+import os
 import requests
 from typing import Dict, List, Any, Optional
 from dataclasses import asdict
@@ -31,11 +32,18 @@ class LLMRecommendations:
             api_key: OpenAI API key (defaults to environment variable)
             model: LLM model to use (default: gpt-4)
         """
-        self.api_key = api_key or "your-openai-api-key"  # TODO: Get from env
+        self.api_key = api_key or os.environ.get("OPENAI_API_KEY")
+        if not self.api_key:
+            raise ValueError(
+                "OPENAI_API_KEY environment variable required for LLM recommendations. "
+                "Set it or disable LLM features with --no-llm flag."
+            )
         self.model = model
         self.api_base = "https://api.openai.com/v1/chat/completions"
 
-    def recommend_patterns(self, pipeline: UniversalPipeline, limit: int = 5) -> List[Dict[str, Any]]:
+    def recommend_patterns(
+        self, pipeline: UniversalPipeline, limit: int = 5
+    ) -> List[Dict[str, Any]]:
         """
         Recommend similar pipeline patterns based on current pipeline characteristics.
 
@@ -98,7 +106,9 @@ class LLMRecommendations:
 
         return self._parse_pipeline_from_response(pipeline_data)
 
-    def compare_pipelines(self, pipeline1: UniversalPipeline, pipeline2: UniversalPipeline) -> Dict[str, Any]:
+    def compare_pipelines(
+        self, pipeline1: UniversalPipeline, pipeline2: UniversalPipeline
+    ) -> Dict[str, Any]:
         """
         Compare two pipelines and provide insights.
 
@@ -126,7 +136,7 @@ class LLMRecommendations:
         """
         headers = {
             "Authorization": f"Bearer {self.api_key}",
-            "Content-Type": "application/json"
+            "Content-Type": "application/json",
         }
 
         data = {
@@ -134,15 +144,12 @@ class LLMRecommendations:
             "messages": [
                 {
                     "role": "system",
-                    "content": "You are an expert CI/CD pipeline consultant. Always respond with valid JSON."
+                    "content": "You are an expert CI/CD pipeline consultant. Always respond with valid JSON.",
                 },
-                {
-                    "role": "user",
-                    "content": prompt
-                }
+                {"role": "user", "content": prompt},
             ],
             "temperature": 0.3,
-            "max_tokens": 2000
+            "max_tokens": 2000,
         }
 
         try:
@@ -167,7 +174,9 @@ class LLMRecommendations:
             # In production, this should raise the exception
             raise e
 
-    def _build_pattern_recommendation_prompt(self, pipeline: UniversalPipeline, limit: int) -> str:
+    def _build_pattern_recommendation_prompt(
+        self, pipeline: UniversalPipeline, limit: int
+    ) -> str:
         """Build prompt for pattern recommendations."""
         pipeline_info = self._pipeline_to_dict(pipeline)
 
@@ -295,7 +304,9 @@ Respond with JSON in this format:
 }}
 """
 
-    def _build_comparison_prompt(self, pipeline1: UniversalPipeline, pipeline2: UniversalPipeline) -> str:
+    def _build_comparison_prompt(
+        self, pipeline1: UniversalPipeline, pipeline2: UniversalPipeline
+    ) -> str:
         """Build prompt for pipeline comparison."""
         pipeline1_info = self._pipeline_to_dict(pipeline1)
         pipeline2_info = self._pipeline_to_dict(pipeline2)
@@ -344,23 +355,33 @@ Respond with JSON in this format:
                             "steps": [
                                 {
                                     "name": step.name,
-                                    "type": step.type.value if hasattr(step.type, 'value') else str(step.type),
-                                    "command": step.command
+                                    "type": step.type.value
+                                    if hasattr(step.type, "value")
+                                    else str(step.type),
+                                    "command": step.command,
                                 }
                                 for step in job.steps
-                            ]
+                            ],
                         }
                         for job in stage.jobs
-                    ]
+                    ],
                 }
                 for stage in pipeline.stages
-            ]
+            ],
         }
 
-    def _parse_pipeline_from_response(self, pipeline_data: Dict[str, Any]) -> UniversalPipeline:
+    def _parse_pipeline_from_response(
+        self, pipeline_data: Dict[str, Any]
+    ) -> UniversalPipeline:
         """Parse pipeline data from LLM response into UniversalPipeline object."""
         # This is a simplified parser - in production, this would be more robust
-        from src.cicd.universal_pipeline_schema import Stage, Job, Step, StepType, Runtime
+        from src.cicd.universal_pipeline_schema import (
+            Stage,
+            Job,
+            Step,
+            StepType,
+            Runtime,
+        )
 
         stages = []
         for stage_data in pipeline_data.get("stages", []):
@@ -372,18 +393,20 @@ Respond with JSON in this format:
 
                 steps = []
                 for step_data in job_data.get("steps", []):
-                    step_type = StepType(step_data["type"]) if "type" in step_data else StepType.RUN
-                    steps.append(Step(
-                        name=step_data.get("name", "Unnamed step"),
-                        type=step_type,
-                        command=step_data.get("command")
-                    ))
+                    step_type = (
+                        StepType(step_data["type"])
+                        if "type" in step_data
+                        else StepType.RUN
+                    )
+                    steps.append(
+                        Step(
+                            name=step_data.get("name", "Unnamed step"),
+                            type=step_type,
+                            command=step_data.get("command"),
+                        )
+                    )
 
-                jobs.append(Job(
-                    name=job_data["name"],
-                    steps=steps,
-                    runtime=runtime
-                ))
+                jobs.append(Job(name=job_data["name"], steps=steps, runtime=runtime))
 
             stages.append(Stage(name=stage_data["name"], jobs=jobs))
 
@@ -392,5 +415,5 @@ Respond with JSON in this format:
             description="Generated from natural language description",
             language=pipeline_data.get("language", "python"),
             framework=pipeline_data.get("framework"),
-            stages=stages
+            stages=stages,
         )
