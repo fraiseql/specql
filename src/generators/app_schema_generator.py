@@ -12,12 +12,6 @@ class AppSchemaGenerator:
 
     def __init__(self, templates_dir: str = "templates/sql"):
         import os
-        # print(f"DEBUG: CWD = {os.getcwd()}")
-        # print(f"DEBUG: Template dir = {templates_dir}")
-        # print(f"DEBUG: Absolute path = {os.path.abspath(templates_dir)}")
-        # print(f"DEBUG: Dir exists = {os.path.exists(templates_dir)}")
-        # if os.path.exists(templates_dir):
-        #     print(f"DEBUG: Files = {os.listdir(templates_dir)}")
 
         self.templates_dir = templates_dir
         self.env = Environment(

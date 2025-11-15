@@ -213,10 +213,7 @@ def generate(
             foundation_only=foundation_only,
             include_tv=include_tv,
         )
-        # print(f"DEBUG: result = {result}")
-        # print(f"DEBUG: result type = {type(result)}")
     except Exception as e:
-        # print(f"DEBUG: Exception in generate_from_files: {e}")
         import traceback
 
         traceback.print_exc()

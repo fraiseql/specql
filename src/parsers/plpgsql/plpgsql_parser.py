@@ -207,9 +207,6 @@ class PLpgSQLParser:
 
         columns = cursor.fetchall()
 
-        # Debug: print columns
-        # print(f"DEBUG: columns for {table_name}: {columns}")
-
         # Build CREATE TABLE statement
         ddl_parts = [f"CREATE TABLE {schema}.{table_name} ("]
 

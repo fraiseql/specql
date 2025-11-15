@@ -263,7 +263,6 @@ class CoreLogicGenerator:
         """
         # Compile action steps
         compiled_steps = self._compile_action_steps(action, entity)
-        # print(f"DEBUG: compiled_steps for {action.name}: {compiled_steps}")
 
         # Extract variable declarations
         declarations = self._extract_declarations(action, entity)

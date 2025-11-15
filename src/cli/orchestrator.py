@@ -45,7 +45,6 @@ class CLIOrchestrator:
         try:
             self.progress = SpecQLProgress(verbose=verbose)
         except Exception as e:
-            # print(f"DEBUG: Failed to initialize progress: {e}")
             import traceback
 
             traceback.print_exc()
@@ -213,14 +212,10 @@ class CLIOrchestrator:
         - Single directory output
         """
 
-        # print(f"DEBUG: generate_from_files called with {len(entity_files)} files")
-
         # Phase 1: Scan entity files
         self.progress.scan_phase(entity_files)
-        # print("DEBUG: scan_phase completed")
 
         result = GenerationResult(migrations=[], errors=[], warnings=[])
-        # print("DEBUG: GenerationResult created")
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
 
@@ -244,9 +239,6 @@ class CLIOrchestrator:
         # Generate foundation first (always, unless foundation_only)
         # print("DEBUG: Generating foundation")
         foundation_sql = self.schema_orchestrator.generate_app_foundation_only()
-        # print(
-        #     f"DEBUG: Foundation SQL generated, length: {len(foundation_sql) if foundation_sql else 0}"
-        # )
         if foundation_sql:
             if self.output_format == "confiture":
                 # For Confiture: write to db/schema/00_foundation/
@@ -293,17 +285,12 @@ class CLIOrchestrator:
             except Exception as e:
                 result.errors.append(f"Failed to convert {entity_def.name}: {e}")
 
-        # print(f"DEBUG: Converted to {len(entities)} entities")
-
         # Use progress bar for generation
         generated_files = []
-        # print(f"DEBUG: Starting progress generation with {len(entities)} entities")
         if not entities:
-            # print("DEBUG: No entities to process")
             return result
 
         for entity, progress_update in self.progress.generation_progress(entities):
-            # print(f"DEBUG: Processing entity {entity.name}")
             try:
                 # Find the corresponding entity_def for this entity
                 entity_def = next(ed for ed in entity_defs if ed.name == entity.name)

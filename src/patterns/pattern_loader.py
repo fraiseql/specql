@@ -116,7 +116,6 @@ class PatternLoader:
         entity: Any,  # EntityDefinition - avoiding circular import
         config: Dict[str, Any],
     ) -> ExpandedPattern:
-        # print(f"DEBUG: Expanding pattern {pattern_name}")
         """Expand a pattern template with configuration.
 
         Args:
