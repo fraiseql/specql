@@ -23,7 +23,11 @@ def test_compile_insert_step_simple():
     step = ActionStep(
         type="insert",
         entity="Notification",
-        fields={"contact_id": "$pk", "message": "Contact qualified", "notification_type": "email"},
+        fields={
+            "contact_id": "$pk",
+            "message": "Contact qualified",
+            "notification_type": "email",
+        },
     )
     entity = create_test_entity()
     context = {}
@@ -35,6 +39,28 @@ def test_compile_insert_step_simple():
     assert "fk_contact, message, notification_type, created_at, created_by" in sql
     assert "v_pk, 'Contact qualified', 'email', now(), p_caller_id" in sql
     assert "RETURNING id INTO v_notification_id" in sql
+
+
+def test_insert_step_with_different_schema():
+    """Test insert step with entity from different schema"""
+    step = ActionStep(
+        type="insert",
+        entity="LogEntry",
+        fields={"level": "info", "message": "Test message"},
+    )
+    # Entity with different schema
+    entity = EntityDefinition(
+        name="Contact",
+        schema="audit",  # Different schema
+        fields={},
+    )
+    context = {}
+
+    compiler = InsertStepCompiler()
+    sql = compiler.compile(step, entity, context)
+
+    # Should use entity's schema but step's entity name
+    assert "INSERT INTO audit.tb_logentry" in sql
 
 
 def test_insert_step_captures_entity_id():

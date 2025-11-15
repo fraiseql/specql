@@ -26,6 +26,21 @@ from typing import Any
 from src.core.ast_models import ActionStep, EntityDefinition
 
 
+def get_qualified_table_name(entity: EntityDefinition) -> str:
+    """
+    Get fully-qualified table name with schema.
+
+    Args:
+        entity: Entity definition
+
+    Returns:
+        Qualified table name (schema.table)
+    """
+    schema = entity.schema or "public"
+    table = f"tb_{entity.name.lower()}"
+    return f"{schema}.{table}"
+
+
 class InsertStepCompiler:
     """Compiles insert steps to PL/pgSQL"""
 
@@ -49,8 +64,10 @@ class InsertStepCompiler:
             raise ValueError("Insert step must specify target entity")
         fields = step.fields or {}
 
-        entity_lower = target_entity.lower()
-        table_name = f"{entity.schema}.tb_{entity_lower}"  # TODO: lookup schema
+        # Use step.entity for table name, entity.schema for schema
+        schema = entity.schema or "public"
+        table = f"tb_{target_entity.lower()}"
+        table_name = f"{schema}.{table}"
 
         # Build column list and value list
         columns = []
