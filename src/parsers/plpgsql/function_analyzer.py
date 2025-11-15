@@ -211,8 +211,22 @@ class FunctionAnalyzer:
 
     def _parse_delete_statement(self, stmt: str) -> Optional[UniversalStep]:
         """Parse DELETE statement to delete step"""
-        # TODO: Implement DELETE parsing
-        return None
+        # Extract table name from DELETE statement (handle schema.table format)
+        pattern = r"DELETE\s+FROM\s+([.\w]+)\s+"
+        match = re.search(pattern, stmt, re.IGNORECASE)
+
+        if not match:
+            return None
+
+        table_full = match.group(1)
+
+        # Extract just the table name (remove schema prefix if present)
+        table = table_full.split(".")[-1]
+
+        # Convert table name to entity name
+        entity_name = self._table_to_entity_name(table)
+
+        return UniversalStep(type=StepType.DELETE, entity=entity_name)
 
     def _parse_raise_exception(self, stmt: str) -> Optional[UniversalStep]:
         """

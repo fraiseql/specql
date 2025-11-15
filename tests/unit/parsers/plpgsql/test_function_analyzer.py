@@ -118,6 +118,16 @@ class TestFunctionAnalyzer:
         assert step.entity == "Contact"
         assert step.fields["status"] == "'active'"
 
+    def test_parse_delete_statement(self, analyzer):
+        """Test parsing DELETE statements"""
+        stmt = "DELETE FROM contact WHERE pk_contact = v_id;"
+
+        step = analyzer._parse_delete_statement(stmt)
+
+        assert step is not None
+        assert step.type == StepType.DELETE
+        assert step.entity == "Contact"
+
     def test_parse_raise_exception(self, analyzer):
         """Test parsing RAISE EXCEPTION statements"""
         stmt = "RAISE EXCEPTION 'validation_error';"
