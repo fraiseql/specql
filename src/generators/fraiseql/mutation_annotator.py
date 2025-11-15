@@ -11,6 +11,7 @@ Purpose:
 from typing import Any
 
 from src.core.ast_models import Action, ActionImpact
+from src.utils.logger import LogContext, get_team_logger
 
 
 class MutationAnnotator:
@@ -19,6 +20,12 @@ class MutationAnnotator:
     def __init__(self, schema: str, entity_name: str):
         self.schema = schema
         self.entity_name = entity_name
+        context = LogContext(
+            entity_name=entity_name,
+            schema=schema,
+            operation="annotate_mutation"
+        )
+        self.logger = get_team_logger("Team D", __name__, context)
 
     def generate_mutation_annotation(self, action: Action) -> str:
         """
@@ -33,6 +40,7 @@ class MutationAnnotator:
         Returns:
             SQL COMMENT statement with descriptive comment (no FraiseQL annotation)
         """
+        self.logger.debug(f"Generating core layer annotation for action '{action.name}'")
         function_name = f"{self.schema}.{action.name}"
 
         # Get action description with core layer context
@@ -43,6 +51,7 @@ class MutationAnnotator:
             f"'{description}';",
         ]
 
+        self.logger.debug(f"Generated core layer annotation for '{function_name}'")
         return "\n".join(comment_lines)
 
     def generate_app_mutation_annotation(self, action: Action) -> str:
@@ -57,6 +66,7 @@ class MutationAnnotator:
         Returns:
             SQL COMMENT statement with descriptive @fraiseql:mutation annotation
         """
+        self.logger.debug(f"Generating FraiseQL mutation annotation for action '{action.name}'")
         function_name = f"app.{action.name}"
         graphql_name = self._to_camel_case(action.name)
         pascal_name = graphql_name[0].upper() + graphql_name[1:] if graphql_name else ""
@@ -75,6 +85,7 @@ class MutationAnnotator:
             f"failure_type: {pascal_name}Error';",
         ]
 
+        self.logger.info(f"Generated FraiseQL mutation annotation for '{graphql_name}'")
         return "\n".join(annotation_lines)
 
     def _get_action_description(self, action: Action) -> str:

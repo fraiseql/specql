@@ -8,6 +8,7 @@ Handles multi-entity operations, side effects, and transaction management.
 from typing import Any
 
 from src.core.ast_models import ActionDefinition, EntityDefinition
+from src.utils.logger import LogContext, get_team_logger
 from src.utils.safe_slug import safe_slug, safe_table_name
 
 
@@ -21,7 +22,9 @@ class ActionOrchestrator:
         Args:
             step_compiler_registry: Dict mapping step types to compilers
         """
+        self.logger = get_team_logger("Team C", __name__)
         self.step_compiler_registry = step_compiler_registry or {}
+        self.logger.debug("ActionOrchestrator initialized")
 
     def compile_multi_entity_action(
         self,
@@ -47,11 +50,21 @@ class ActionOrchestrator:
             - Updates MachineItem statuses (side effects)
             - Sends notifications (side effects)
         """
+        context = LogContext(
+            entity_name=primary_entity.name,
+            schema=primary_entity.schema,
+            action_name=action.name,
+            operation="compile_action"
+        )
+        logger = get_team_logger("Team C", __name__, context)
+        logger.info(f"Compiling multi-entity action '{action.name}' for entity '{primary_entity.name}'")
+
         # Build function signature
         function_name = f"{primary_entity.schema}.{action.name}"
         params = self._build_function_parameters(action, primary_entity)
 
         # Compile action steps
+        logger.debug(f"Compiling {len(action.steps)} action steps")
         compiled_steps = self._compile_action_steps(action, primary_entity, related_entities)
 
         # Build complete function
@@ -97,6 +110,7 @@ END;
 $$;
 """
 
+        logger.info(f"Successfully compiled action '{action.name}' ({len(action.steps)} steps)")
         return function_sql
 
     def _build_function_parameters(
