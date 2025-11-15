@@ -10,7 +10,7 @@ import click
 
 from src.cli.orchestrator import CLIOrchestrator
 from src.cli.help_text import get_generate_help_text
-from src.core.ast_models import Action, Entity, EntityDefinition
+from src.core.ast_models import Action, ActionImpact, Entity, EntityDefinition
 from src.core.specql_parser import SpecQLParser
 from src.testing.pgtap.pgtap_generator import PgTAPGenerator
 from src.testing.pytest.pytest_generator import PytestGenerator
@@ -40,12 +40,17 @@ def convert_entity_definition_to_entity(entity_def: EntityDefinition) -> Entity:
     # Convert ActionDefinition to Action
     actions = []
     for action_def in entity_def.actions:
+        # Convert impact dict to ActionImpact if present
+        impact = None
+        if action_def.impact:
+            impact = ActionImpact.from_dict(action_def.impact, entity_def.name)
+
         action = Action(
             name=action_def.name,
             steps=action_def.steps,
-            impact=None,
+            impact=impact,
             cdc=action_def.cdc,
-        )  # TODO: Convert impact dict to ActionImpact
+        )
         actions.append(action)
 
     # Extract table_code from organization if present
@@ -142,8 +147,16 @@ def cli():
 )
 @click.option("--no-tv", is_flag=True, help="Skip table view (tv_*) generation")
 @click.option("--verbose", "-v", is_flag=True, help="Show detailed generation progress")
-@click.option("--performance", is_flag=True, help="Enable performance monitoring and output metrics")
-@click.option("--performance-output", type=click.Path(), help="Write performance metrics to specified JSON file")
+@click.option(
+    "--performance",
+    is_flag=True,
+    help="Enable performance monitoring and output metrics",
+)
+@click.option(
+    "--performance-output",
+    type=click.Path(),
+    help="Write performance metrics to specified JSON file",
+)
 def entities(
     entity_files: tuple,
     output_dir: str,
@@ -426,7 +439,11 @@ def entities(
             # Write to file
             output_file = Path(performance_output)
             metrics.write_to_file(output_file)
-            click.secho(f"\n📊 Performance metrics written to {performance_output}", fg="blue", bold=True)
+            click.secho(
+                f"\n📊 Performance metrics written to {performance_output}",
+                fg="blue",
+                bold=True,
+            )
         else:
             # Print to stdout
             click.secho("\n📊 Performance Metrics:", fg="blue", bold=True)

@@ -626,6 +626,36 @@ class ActionImpact:
     side_effects: list[EntityImpact] = field(default_factory=list)
     cache_invalidations: list[CacheInvalidation] = field(default_factory=list)
 
+    @classmethod
+    def from_dict(
+        cls, impact_dict: dict, entity_name: str = "Unknown"
+    ) -> "ActionImpact":
+        """Create ActionImpact from dict format (for backwards compatibility)"""
+        primary_data = impact_dict.get("primary", {})
+        entity_name = primary_data.get("entity", entity_name)
+        operation = primary_data.get("operation", "UPDATE")
+        fields = primary_data.get("fields", [])
+
+        side_effects_data = impact_dict.get("side_effects", [])
+        side_effects = (
+            [EntityImpact(**effect) for effect in side_effects_data]
+            if side_effects_data
+            else []
+        )
+
+        cache_data = impact_dict.get("cache_invalidations", [])
+        cache_invalidations = (
+            [CacheInvalidation(**inv) for inv in cache_data] if cache_data else []
+        )
+
+        return cls(
+            primary=EntityImpact(
+                entity=entity_name, operation=operation, fields=fields
+            ),
+            side_effects=side_effects,
+            cache_invalidations=cache_invalidations,
+        )
+
 
 @dataclass
 class Action:
