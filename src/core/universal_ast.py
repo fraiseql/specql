@@ -63,6 +63,10 @@ class UniversalField:
     # For LIST type
     list_item_type: Optional[str] = None
 
+    # For round-trip testing: preserve original PostgreSQL type
+    postgres_type: Optional[str] = None
+    character_maximum_length: Optional[int] = None
+
 
 @dataclass
 class UniversalEntity:

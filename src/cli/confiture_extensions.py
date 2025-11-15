@@ -606,9 +606,8 @@ from src.cli.reverse_tests import reverse_tests
 specql.add_command(reverse_tests, name="reverse-tests")
 
 # Add embeddings command
-from src.cli.embeddings import embeddings_cli
-
-specql.add_command(embeddings_cli)
+# from src.cli.embeddings import embeddings_cli
+# specql.add_command(embeddings_cli)
 
 # Add patterns command
 from src.cli.patterns import patterns_cli
@@ -668,6 +667,224 @@ def generate_java(entity_file: str, output_dir: str):
         click.echo(f"  - {file.path}")
 
     return 0
+
+
+@specql.command()
+@click.argument("input", nargs=-1)
+@click.option(
+    "--output-dir", "-o", type=click.Path(), help="Output directory for YAML files"
+)
+@click.option(
+    "--connection-string",
+    "-c",
+    help="PostgreSQL connection string for database parsing",
+)
+@click.option(
+    "--schemas",
+    "-s",
+    multiple=True,
+    help="Database schemas to parse (default: all user schemas)",
+)
+@click.option(
+    "--include-functions/--no-functions",
+    default=True,
+    help="Include PL/pgSQL functions as actions",
+)
+@click.option(
+    "--confidence-threshold",
+    type=float,
+    default=0.70,
+    help="Minimum confidence threshold (0.0-1.0)",
+)
+@click.option("--preview", is_flag=True, help="Preview mode (no files written)")
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed parsing progress")
+def parse_plpgsql(
+    input,
+    output_dir,
+    connection_string,
+    schemas,
+    include_functions,
+    confidence_threshold,
+    preview,
+    verbose,
+):
+    """
+    Parse PostgreSQL DDL or live database to SpecQL entities
+
+    Examples:
+        # Parse DDL file
+        specql parse-plpgsql schema.sql -o entities/
+
+        # Parse live database
+        specql parse-plpgsql --connection-string "postgresql://user:pass@host/db" --schemas public crm
+
+        # Parse with custom confidence threshold
+        specql parse-plpgsql schema.sql --confidence-threshold 0.8
+
+        # Preview parsing without writing files
+        specql parse-plpgsql schema.sql --preview --verbose
+    """
+    from src.parsers.plpgsql.plpgsql_parser import PLpgSQLParser
+
+    if not input and not connection_string:
+        click.secho(
+            "❌ Must specify either input files or --connection-string", fg="red"
+        )
+        return 1
+
+    if input and connection_string:
+        click.secho(
+            "❌ Cannot specify both input files and --connection-string", fg="red"
+        )
+        return 1
+
+    # Initialize parser
+    parser = PLpgSQLParser(confidence_threshold=confidence_threshold)
+
+    entities = []
+    total_files = 0
+    total_entities = 0
+
+    try:
+        if connection_string:
+            # Parse live database
+            if verbose:
+                click.echo(f"🔌 Connecting to database...")
+
+            parsed_entities = parser.parse_database(
+                connection_string,
+                schemas=list(schemas) if schemas else None,
+                include_functions=include_functions,
+            )
+
+            entities.extend(parsed_entities)
+            total_entities = len(parsed_entities)
+
+            if verbose:
+                click.echo(f"📋 Found {len(parsed_entities)} entities")
+                for entity in parsed_entities:
+                    click.echo(f"  • {entity.name} ({entity.schema})")
+
+        else:
+            # Parse DDL files
+            for input_file in input:
+                if verbose:
+                    click.echo(f"📄 Processing {input_file}...")
+
+                try:
+                    parsed_entities = parser.parse_ddl_file(input_file)
+                    entities.extend(parsed_entities)
+                    total_files += 1
+
+                    if verbose:
+                        click.echo(f"  📋 Found {len(parsed_entities)} entities")
+                        for entity in parsed_entities:
+                            click.echo(f"    • {entity.name}")
+
+                except Exception as e:
+                    click.secho(f"❌ Failed to parse {input_file}: {e}", fg="red")
+                    continue
+
+            total_entities = len(entities)
+
+        # Filter by confidence
+        high_confidence_entities = [
+            e
+            for e in entities
+            if not hasattr(e, "confidence") or e.confidence >= confidence_threshold
+        ]
+
+        # Summary
+        click.echo(f"\n📊 Parsing Summary:")
+        click.echo(f"  Files processed: {total_files}")
+        click.echo(f"  Total entities: {total_entities}")
+        click.echo(f"  High confidence: {len(high_confidence_entities)}")
+        click.echo(f"  Filtered out: {total_entities - len(high_confidence_entities)}")
+
+        if high_confidence_entities and output_dir and not preview:
+            # Write YAML files
+            import yaml
+            from pathlib import Path
+
+            output_path = Path(output_dir)
+            output_path.mkdir(parents=True, exist_ok=True)
+
+            for entity in high_confidence_entities:
+                # Convert entity to YAML
+                yaml_content = _entity_to_yaml(entity)
+
+                # Write to file
+                filename = f"{entity.name}.yaml"
+                file_path = output_path / filename
+                with open(file_path, "w") as f:
+                    f.write(yaml_content)
+
+                click.echo(f"💾 Written {entity.name} to {file_path}")
+
+        elif preview:
+            # Show preview
+            click.echo(f"\n👀 Preview:")
+            for entity in high_confidence_entities[:5]:  # Show first 5
+                click.echo(f"  • {entity.name} ({entity.schema})")
+                click.echo(f"    Fields: {len(entity.fields)}")
+                if entity.actions:
+                    click.echo(f"    Actions: {len(entity.actions)}")
+            if len(high_confidence_entities) > 5:
+                click.echo(f"  ... and {len(high_confidence_entities) - 5} more")
+
+        return 0
+
+    except Exception as e:
+        click.secho(f"❌ Error: {e}", fg="red")
+        return 1
+
+
+def _entity_to_yaml(entity) -> str:
+    """Convert UniversalEntity to YAML string"""
+    import yaml
+
+    entity_dict = {
+        "entity": entity.name,
+        "schema": entity.schema,
+        "description": getattr(entity, "description", None),
+    }
+
+    # Add fields
+    if entity.fields:
+        entity_dict["fields"] = {}
+        for field in entity.fields:
+            field_dict = {"type": field.type.value}
+            if not field.required:
+                field_dict["nullable"] = True
+            if field.unique:
+                field_dict["unique"] = True
+            if field.default is not None:
+                field_dict["default"] = str(field.default)
+
+            entity_dict["fields"][field.name] = field_dict
+
+    # Add actions
+    if entity.actions:
+        entity_dict["actions"] = []
+        for action in entity.actions:
+            action_dict = {"name": action.name, "steps": []}
+
+            for step in action.steps:
+                step_dict = {
+                    "type": step.type.value,
+                }
+                if hasattr(step, "entity") and step.entity:
+                    step_dict["entity"] = step.entity
+                if hasattr(step, "expression") and step.expression:
+                    step_dict["expression"] = step.expression
+                if hasattr(step, "fields") and step.fields:
+                    step_dict["fields"] = step.fields
+
+                action_dict["steps"].append(step_dict)
+
+            entity_dict["actions"].append(action_dict)
+
+    return yaml.dump(entity_dict, default_flow_style=False, sort_keys=False)
 
 
 if __name__ == "__main__":
