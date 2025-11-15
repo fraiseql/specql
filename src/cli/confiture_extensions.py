@@ -213,7 +213,7 @@ def generate(
             foundation_only=foundation_only,
             include_tv=include_tv,
         )
-    except Exception as e:
+    except Exception:
         import traceback
 
         traceback.print_exc()

@@ -15,7 +15,7 @@ A contact management system with:
 
 ## 📋 Prerequisites
 
-- Completed [Quick Start](../00_getting_started/quickstart.md)
+- Completed [Quick Start Guide](../00_getting_started/QUICKSTART.md)
 - Basic understanding of YAML
 - PostgreSQL database for testing
 
@@ -316,18 +316,22 @@ function ContactList() {
 }
 ```
 
-## 🧪 Step 9: Generate Tests
+## 🧪 Step 9: Testing Your Code
 
-SpecQL generates comprehensive tests:
+While SpecQL doesn't currently generate tests automatically, you can test your generated functions manually:
 
-```bash
-specql generate entities/contact.yaml --with-tests
+```sql
+-- Test the qualify_lead function
+SELECT * FROM crm.fn_qualify_lead(
+    'your-contact-uuid'::uuid,
+    'caller-uuid'::uuid
+);
+
+-- Verify the contact was updated
+SELECT id, status, updated_at FROM crm.tv_contact WHERE id = 'your-contact-uuid';
 ```
 
-This creates:
-- pgTAP SQL tests for database functions
-- pytest Python tests for validation logic
-- Integration tests for end-to-end workflows
+**Future**: Test generation will be available in v0.5.0 with `--with-tests` flag.
 
 ## 🎯 Step 10: Extend Your System
 
@@ -412,9 +416,9 @@ psql -d production_db -f migrations/**/*.sql
 
 ## 🔄 Next Steps
 
-- **[Blog Platform Tutorial](blog_platform.md)** - Content management system
-- **[E-commerce Tutorial](../intermediate/ecommerce_platform.md)** - Complex business logic
-- **[Pattern Library Usage](../intermediate/pattern_library_usage.md)** - Reusable patterns
+- **[Simple Blog Example](../../06_examples/SIMPLE_BLOG.md)** - Content management system
+- **[E-commerce Example](../../06_examples/ECOMMERCE_SYSTEM.md)** - Complex business logic
+- **[CRM Example](../../06_examples/CRM_SYSTEM_COMPLETE.md)** - Complete business application
 
 ## 💡 Key Concepts Covered
 

@@ -1,0 +1,5 @@
+error: 2 values required by '<FILE> <FILE>...'; only 1 was provided
+
+Usage: asciinema cat [OPTIONS] <FILE> <FILE>...
+
+For more information, try '--help'.

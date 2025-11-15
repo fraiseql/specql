@@ -325,12 +325,5 @@ Actions are automatically tested with:
 ## 🚀 Next Steps
 
 - **[All Step Types](all_step_types.md)** - Complete step reference
-- **[Validation Guide](validation.md)** - Data validation patterns
-- **[Error Handling Guide](error_handling.md)** - Exception management
-- **[Authorization Guide](authorization.md)** - Permission systems
-
-## 📚 Related Topics
-
-- **[YAML Reference](../../03_reference/yaml/action_schema.md)** - Action syntax
-- **[Generated Functions](../../03_reference/generated/plpgsql_functions.md)** - PL/pgSQL output
-- **[GraphQL Integration](../../02_guides/frontend/graphql_integration.md)** - API usage
+- **[YAML Reference](../../03_reference/yaml/complete_reference.md)** - Action syntax
+- **[Workflows Guide](../WORKFLOWS.md)** - Development workflows

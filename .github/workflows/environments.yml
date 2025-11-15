@@ -1,0 +1,15 @@
+# GitHub Environments for PyPI Publishing
+# This file documents the required environments and secrets
+
+# Required GitHub Environments:
+# - test (for TestPyPI publishing)
+# - production (for production PyPI publishing)
+
+# Required Secrets:
+# PYPI_API_TOKEN - API token for PyPI/TestPyPI publishing
+#   - For TestPyPI: Get from https://test.pypi.org/manage/account/#api-tokens
+#   - For PyPI: Get from https://pypi.org/manage/account/#api-tokens
+
+# Environment Protection Rules:
+# - test: No protection rules (allow alpha/beta releases)
+# - production: Require approval for stable releases

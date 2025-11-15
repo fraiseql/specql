@@ -44,7 +44,7 @@ class CLIOrchestrator:
         self.parser = SpecQLParser()
         try:
             self.progress = SpecQLProgress(verbose=verbose)
-        except Exception as e:
+        except Exception:
             import traceback
 
             traceback.print_exc()

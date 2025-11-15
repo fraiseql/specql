@@ -77,7 +77,7 @@ This guide walks you through migrating an existing PostgreSQL database to SpecQL
 
 ### Required Tools
 - PostgreSQL 14+ installed and running
-- Python 3.10+
+- Python 3.11+
 - SpecQL CLI installed (`pip install specql`)
 - Database access credentials
 

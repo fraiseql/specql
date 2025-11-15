@@ -281,7 +281,7 @@ Phase 1: PrintOptim Migration (Weeks 1-8)
 
 2. **Environment**
    - PostgreSQL 14+ installed
-   - Python 3.10+
+    - Python 3.11+
    - SpecQL repository cloned
    - Test database access
 

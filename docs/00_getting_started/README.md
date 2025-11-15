@@ -2,6 +2,17 @@
 
 **Welcome to SpecQL!** This section will get you productive in minutes, not hours.
 
+## 🎬 See It In Action
+
+### Installation
+![Installation Demo](../demos/installation.gif)
+
+### Quick Start
+![Quick Start Demo](../demos/quickstart_demo.gif)
+
+### Multi-Language Generation
+![Multi-Language Demo](../demos/multi_language_demo.gif)
+
 ## 🎯 What You'll Learn
 
 By the end of this section, you'll be able to:
@@ -15,13 +26,13 @@ By the end of this section, you'll be able to:
 
 **Goal**: Generate your first PostgreSQL schema in under 5 minutes
 
-If you're in a hurry, jump straight to the **[Quick Start Guide](quickstart.md)** - it's designed for immediate productivity.
+If you're in a hurry, jump straight to the **[Quick Start Guide](QUICKSTART.md)** - it's designed for immediate productivity.
 
 ## 📋 Prerequisites
 
 Before you begin, ensure you have:
 
-- **Python 3.10+** - SpecQL is written in Python
+- **Python 3.11+** - SpecQL is written in Python
 - **PostgreSQL 14+** - Target database for generation
 - **Basic YAML knowledge** - Configuration format
 - **Command line access** - For running SpecQL commands
@@ -42,19 +53,17 @@ pip --version
 ## 📚 Learning Path
 
 ### 1. Installation & Setup
-**[Installation Guide](installation.md)** - Install SpecQL and verify your environment
+**[Quick Start Guide](QUICKSTART.md)** - Install SpecQL and generate your first schema
 
-### 2. Your First Generation
-**[Quick Start](quickstart.md)** - Generate your first schema from YAML
+### 2. Real-World Examples
+**[CRM System Example](../../06_examples/CRM_SYSTEM_COMPLETE.md)** - Complete customer relationship management system
 
-### 3. Core Concepts
-**[Core Concepts](core_concepts.md)** - Understand Trinity pattern, schemas, and actions
+**[E-commerce Example](../../06_examples/ECOMMERCE_SYSTEM.md)** - Full online store with inventory and orders
 
-### 4. Complete Project
-**[First Project](first_project.md)** - Build a contact management system
+### 3. Advanced Topics
+**[YAML Reference](../../03_reference/yaml/complete_reference.md)** - Complete YAML syntax guide
 
-### 5. Next Steps
-**[FAQ](faq.md)** - Common questions and troubleshooting
+**[CLI Reference](../../03_reference/cli/command_reference.md)** - All command-line options
 
 ## 💡 Key Concepts You'll Encounter
 
@@ -90,10 +99,10 @@ After completing this section, you should be able to:
 
 ## 🆘 Need Help?
 
-- **Stuck on installation?** Check the [Installation Guide](installation.md)
-- **YAML syntax issues?** See the [Core Concepts](core_concepts.md)
-- **Generation problems?** Review the [FAQ](faq.md)
-- **Community support?** Join our Discord or GitHub Discussions
+- **Stuck on installation?** Check the [Quick Start Guide](QUICKSTART.md)
+- **YAML syntax issues?** See the [YAML Reference](../../03_reference/yaml/complete_reference.md)
+- **Generation problems?** Check the [CLI Reference](../../03_reference/cli/command_reference.md)
+- **Community support?** Open issues on [GitHub](https://github.com/fraiseql/specql/issues)
 
 ## 📈 What's Next?
 
@@ -106,4 +115,4 @@ Once you're comfortable with the basics:
 
 ---
 
-**Ready to start?** Head to the [Quick Start Guide](quickstart.md)!
+**Ready to start?** Head to the [Quick Start Guide](QUICKSTART.md)!

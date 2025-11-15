@@ -126,11 +126,13 @@ fields:
 
         # Add 1000 actions
         for i in range(1000):
-            yaml_parts.extend([
-                f"  - name: action_{i}",
-                "    steps:",
-                "      - validate: email != ''",
-            ])
+            yaml_parts.extend(
+                [
+                    f"  - name: action_{i}",
+                    "    steps:",
+                    "      - validate: email != ''",
+                ]
+            )
 
         yaml_content = "\n".join(yaml_parts)
 
@@ -424,7 +426,7 @@ actions:
         for yaml_content in invalid_yamls:
             # Parser should either reject these or raise an error
             with pytest.raises((ValueError, KeyError, TypeError, Exception)):
-                result = parser.parse(yaml_content)
+                result = parser.parse(yaml_content)  # noqa: F841
 
     def test_circular_references(self, parser):
         """Test handling of circular references"""
@@ -644,8 +646,10 @@ class TestCrashResistance:
 
         for yaml_content in truncated_yamls:
             # Parser should reject invalid UTF-8
-            with pytest.raises((UnicodeDecodeError, UnicodeError, ValueError, Exception)):
-                result = parser.parse(yaml_content)
+            with pytest.raises(
+                (UnicodeDecodeError, UnicodeError, ValueError, Exception)
+            ):
+                result = parser.parse(yaml_content)  # noqa: F841
 
     def test_mixed_line_endings(self, parser):
         """Test mixed line endings"""

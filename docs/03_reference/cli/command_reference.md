@@ -565,6 +565,5 @@ specql validate --help
 
 ## 📚 Related Topics
 
-- **[Generate Command Guide](../../02_guides/cli/generate_command.md)** - Detailed generation guide
-- **[Configuration Guide](configuration.md)** - Configuration options
+- **[Workflows Guide](../../02_guides/WORKFLOWS.md)** - Development and migration workflows
 - **[Troubleshooting Guide](../../../08_troubleshooting/)** - Common issues and solutions

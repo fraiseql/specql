@@ -48,7 +48,9 @@ class TestRandomStringFuzzing:
         """Test random ASCII strings"""
         for _ in range(50):
             length = random.randint(1, 100)
-            random_str = "".join(random.choices(string.ascii_letters + string.digits, k=length))
+            random_str = "".join(
+                random.choices(string.ascii_letters + string.digits, k=length)
+            )
 
             try:
                 result = compiler.compile(random_str, test_entity)
@@ -67,7 +69,14 @@ class TestRandomStringFuzzing:
             try:
                 result = compiler.compile(random_str, test_entity)
                 assert isinstance(result, str)
-            except (SecurityError, ValueError, KeyError, AttributeError, TypeError, IndexError):
+            except (
+                SecurityError,
+                ValueError,
+                KeyError,
+                AttributeError,
+                TypeError,
+                IndexError,
+            ):
                 # Expected exceptions
                 pass
 
@@ -91,7 +100,14 @@ class TestRandomStringFuzzing:
             try:
                 result = compiler.compile(random_str, test_entity)
                 assert isinstance(result, str)
-            except (SecurityError, ValueError, KeyError, AttributeError, TypeError, UnicodeError):
+            except (
+                SecurityError,
+                ValueError,
+                KeyError,
+                AttributeError,
+                TypeError,
+                UnicodeError,
+            ):
                 pass
 
 
@@ -120,14 +136,12 @@ class TestOperatorFuzzing:
 
     def test_random_operator_stacking(self, compiler, test_entity):
         """Test stacking multiple operators"""
-        operators = ["=", "!=", "<", ">", "AND", "OR"]
-
         for _ in range(30):
             num_ops = random.randint(1, 5)
             parts = []
 
             for i in range(num_ops):
-                parts.append(f"status = 'lead'")
+                parts.append("status = 'lead'")
                 if i < num_ops - 1:
                     parts.append(random.choice(["AND", "OR"]))
 
@@ -157,7 +171,14 @@ class TestParenthesesFuzzing:
             try:
                 result = compiler.compile(expr, test_entity)
                 assert isinstance(result, str)
-            except (SecurityError, ValueError, KeyError, AttributeError, TypeError, IndexError):
+            except (
+                SecurityError,
+                ValueError,
+                KeyError,
+                AttributeError,
+                TypeError,
+                IndexError,
+            ):
                 pass
 
     def test_nested_parentheses(self, compiler, test_entity):
@@ -168,7 +189,13 @@ class TestParenthesesFuzzing:
             try:
                 result = compiler.compile(expr, test_entity)
                 assert isinstance(result, str)
-            except (SecurityError, ValueError, KeyError, RecursionError, AttributeError):
+            except (
+                SecurityError,
+                ValueError,
+                KeyError,
+                RecursionError,
+                AttributeError,
+            ):
                 # RecursionError might occur with very deep nesting
                 pass
 
@@ -430,7 +457,14 @@ class TestEdgeCaseFuzzing:
             try:
                 result = compiler.compile(expr, test_entity)
                 assert isinstance(result, str)
-            except (SecurityError, ValueError, KeyError, AttributeError, IndexError, TypeError):
+            except (
+                SecurityError,
+                ValueError,
+                KeyError,
+                AttributeError,
+                IndexError,
+                TypeError,
+            ):
                 pass
 
     def test_maximum_length_expressions(self, compiler, test_entity):
@@ -499,7 +533,14 @@ class TestCrashResistance:
                 result = compiler.compile(random_expr, test_entity)
                 # No crash - good!
                 assert isinstance(result, str) or result is None
-            except (SecurityError, ValueError, KeyError, AttributeError, TypeError, IndexError):
+            except (
+                SecurityError,
+                ValueError,
+                KeyError,
+                AttributeError,
+                TypeError,
+                IndexError,
+            ):
                 # Expected exceptions - not crashes
                 exception_count += 1
             except Exception as e:

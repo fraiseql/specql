@@ -403,8 +403,8 @@ fields:
 
 ## 📚 Next Steps
 
-- **[E-commerce Order](../ecommerce_order/)** - Complex business logic
-- **[CRM System](../crm_system/)** - Complete business application
+- **[E-commerce System](../ECOMMERCE_SYSTEM.md)** - Complex business logic
+- **[CRM System](../CRM_SYSTEM_COMPLETE.md)** - Complete business application
 - **[Custom Patterns](../../../../02_guides/patterns/)** - Reusable patterns
 - **[Multi-Language](../../../../05_vision/multi_language.md)** - Java/Rust/Go support
 

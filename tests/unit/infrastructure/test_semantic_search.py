@@ -1,7 +1,7 @@
 """Tests for semantic search functionality"""
 
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 from src.infrastructure.repositories.in_memory_pattern_repository import (
     InMemoryPatternRepository,
 )

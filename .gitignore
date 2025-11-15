@@ -149,3 +149,6 @@ pgvector/
 
 # Rust build artifacts
 rust/target/
+
+# Internal planning and archives (not for public repo)
+backup_internal/

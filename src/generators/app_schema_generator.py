@@ -11,7 +11,6 @@ class AppSchemaGenerator:
     """Generates app.* schema foundation with shared utilities"""
 
     def __init__(self, templates_dir: str = "templates/sql"):
-        import os
 
         self.templates_dir = templates_dir
         self.env = Environment(
