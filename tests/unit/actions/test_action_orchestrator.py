@@ -4,7 +4,12 @@ Unit tests for ActionOrchestrator
 
 import pytest
 
-from src.core.ast_models import ActionDefinition, ActionStep, EntityDefinition, FieldDefinition
+from src.core.ast_models import (
+    ActionDefinition,
+    ActionStep,
+    EntityDefinition,
+    FieldDefinition,
+)
 from src.generators.actions.action_orchestrator import ActionOrchestrator
 
 
@@ -28,7 +33,9 @@ class TestActionOrchestrator:
             "notify": MockStepCompiler(),
         }
 
-        self.orchestrator = ActionOrchestrator(step_compiler_registry=self.mock_registry)
+        self.orchestrator = ActionOrchestrator(
+            step_compiler_registry=self.mock_registry
+        )
 
         # Mock entities
         self.primary_entity = EntityDefinition(
@@ -45,7 +52,9 @@ class TestActionOrchestrator:
                 name="Allocation",
                 schema="bookings",
                 fields={
-                    "resource_id": FieldDefinition(name="resource_id", type_name="uuid"),
+                    "resource_id": FieldDefinition(
+                        name="resource_id", type_name="uuid"
+                    ),
                     "quantity": FieldDefinition(name="quantity", type_name="integer"),
                 },
             ),
@@ -115,17 +124,23 @@ class TestActionOrchestrator:
 
     def test_find_entity_by_name(self):
         """Test entity lookup by name"""
-        found = self.orchestrator._find_entity_by_name("Allocation", self.related_entities)
+        found = self.orchestrator._find_entity_by_name(
+            "Allocation", self.related_entities
+        )
         assert found is not None
         assert found.name == "Allocation"
 
-        not_found = self.orchestrator._find_entity_by_name("NonExistent", self.related_entities)
+        not_found = self.orchestrator._find_entity_by_name(
+            "NonExistent", self.related_entities
+        )
         assert not_found is None
 
     def test_build_function_parameters(self):
         """Test parameter building"""
         action = ActionDefinition(name="test_action", steps=[])
-        params = self.orchestrator._build_function_parameters(action, self.primary_entity)
+        params = self.orchestrator._build_function_parameters(
+            action, self.primary_entity
+        )
 
         expected = "auth_tenant_id UUID, input_data app.type_create_reservation_input, input_payload JSONB, auth_user_id UUID"
         assert params == expected
@@ -141,3 +156,37 @@ class TestActionOrchestrator:
             self.orchestrator.compile_multi_entity_action(
                 action, self.primary_entity, self.related_entities
             )
+
+    def test_generate_multiple_actions_from_yaml(self):
+        """Test that generate() compiles multiple actions from YAML"""
+        yaml_content = """
+entity: User
+schema: public
+description: "User management"
+
+fields:
+  user_id: uuid
+  email: text
+  name: text
+
+actions:
+  - name: create_user
+    steps:
+      - validate: email MATCHES email_pattern
+      - insert: User
+
+  - name: update_user
+    steps:
+      - validate: email MATCHES email_pattern
+      - update: User SET name = input.name WHERE user_id = input.user_id
+"""
+
+        orchestrator = ActionOrchestrator.from_yaml(yaml_content)
+        result = orchestrator.generate()
+
+        # Should contain both action functions
+        assert "CREATE OR REPLACE FUNCTION public.create_user" in result
+        assert "CREATE OR REPLACE FUNCTION public.update_user" in result
+
+        # Should be separated by newlines
+        assert "\n\n" in result

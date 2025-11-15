@@ -11,7 +11,9 @@ from src.core.ast_models import ActionDefinition, EntityDefinition
 from src.core.specql_parser import SpecQLParser
 from src.generators.actions.action_context import ActionContext
 from src.generators.actions.callback_generator import CallbackGenerator
-from src.generators.actions.step_compilers.call_service_step_compiler import CallServiceStepCompiler
+from src.generators.actions.step_compilers.call_service_step_compiler import (
+    CallServiceStepCompiler,
+)
 from src.utils.safe_slug import safe_slug, safe_table_name
 
 
@@ -19,7 +21,11 @@ class ActionOrchestrator:
     """Orchestrate complex actions involving multiple entities"""
 
     def __init__(
-        self, step_compiler_registry=None, entity=None, yaml_content=None, service_registry=None
+        self,
+        step_compiler_registry=None,
+        entity=None,
+        yaml_content=None,
+        service_registry=None,
     ) -> None:
         """
         Initialize with step compiler registry
@@ -36,7 +42,9 @@ class ActionOrchestrator:
         self.service_registry = service_registry
 
     @classmethod
-    def from_yaml(cls, yaml_content: str, service_registry=None) -> "ActionOrchestrator":
+    def from_yaml(
+        cls, yaml_content: str, service_registry=None
+    ) -> "ActionOrchestrator":
         """
         Create ActionOrchestrator from SpecQL YAML content
 
@@ -63,16 +71,40 @@ class ActionOrchestrator:
         Generate complete action SQL including call_service compilation
 
         Returns:
-            Complete PL/pgSQL for the action
+            Complete PL/pgSQL for all actions in the entity
         """
         if not hasattr(self, "entity"):
             raise ValueError("ActionOrchestrator not initialized with from_yaml")
 
-        # Find the action (assume first action for now)
+        # Compile all actions for the entity
         if not self.entity or not self.entity.actions:
             raise ValueError("No actions found in entity")
 
-        action = self.entity.actions[0]  # TODO: Support multiple actions
+        compiled_actions = []
+        for action in self.entity.actions:
+            try:
+                compiled_action = self._compile_single_action(action)
+                compiled_actions.append(compiled_action)
+            except Exception as e:
+                # Log error but continue with other actions
+                print(f"Failed to compile action {action.name}: {e}")
+                raise
+
+        # Combine all compiled actions
+        return "\n\n".join(compiled_actions)
+
+    def _compile_single_action(self, action: ActionDefinition) -> str:
+        """
+        Compile a single action to PL/pgSQL
+
+        Args:
+            action: Action definition to compile
+
+        Returns:
+            Complete PL/pgSQL function for the action
+        """
+        if not self.entity:
+            raise ValueError("Entity not set in orchestrator")
 
         # Create action context
         context = ActionContext.from_ast(action, self.entity)
@@ -89,7 +121,9 @@ class ActionOrchestrator:
                 # Handle call_service step
                 compiled_parts.append(self._compile_call_service_step(step, context))
                 # Generate callback functions
-                callback_functions.extend(self._generate_callback_functions(step, context))
+                callback_functions.extend(
+                    self._generate_callback_functions(step, context)
+                )
             else:
                 compiled_parts.append(f"-- TODO: Compile {step.type} step")
 
@@ -129,7 +163,9 @@ class ActionOrchestrator:
         params = self._build_function_parameters(action, primary_entity)
 
         # Compile action steps
-        compiled_steps = self._compile_action_steps(action, primary_entity, related_entities)
+        compiled_steps = self._compile_action_steps(
+            action, primary_entity, related_entities
+        )
 
         # Build complete function
         function_sql = f"""
@@ -204,7 +240,9 @@ $$;
         compiler = CallServiceStepCompiler(step, context, self.service_registry)
         return compiler.compile()
 
-    def _generate_callback_functions(self, step: Any, context: ActionContext) -> list[str]:
+    def _generate_callback_functions(
+        self, step: Any, context: ActionContext
+    ) -> list[str]:
         """Generate callback functions for call_service step"""
         generator = CallbackGenerator(step, context)
         callbacks = []
@@ -330,7 +368,9 @@ $$;
         declarations = [f"    {var} UUID;" for var in job_vars]
         return "\n".join(declarations)
 
-    def _build_action_parameters(self, action: ActionDefinition, context: ActionContext) -> str:
+    def _build_action_parameters(
+        self, action: ActionDefinition, context: ActionContext
+    ) -> str:
         """Build function parameters dynamically"""
         # Use parameter names expected by step compilers
         return """auth_tenant_id UUID,
@@ -382,12 +422,18 @@ $$;
         for step in action.steps:
             if step.type == "insert" and step.entity == primary_entity.name:
                 # Primary entity insert
-                compiled_parts.append(self._compile_primary_insert(step, primary_entity))
+                compiled_parts.append(
+                    self._compile_primary_insert(step, primary_entity)
+                )
             elif step.type == "insert" and step.entity:
                 # Related entity insert
-                related_entity = self._find_entity_by_name(step.entity, related_entities)
+                related_entity = self._find_entity_by_name(
+                    step.entity, related_entities
+                )
                 if related_entity:
-                    compiled_parts.append(self._compile_related_insert(step, related_entity))
+                    compiled_parts.append(
+                        self._compile_related_insert(step, related_entity)
+                    )
             elif step.type == "update":
                 # Update operation
                 compiled_parts.append(self._compile_update_step(step, primary_entity))
@@ -482,7 +528,9 @@ $$;
             PL/pgSQL for update
         """
         # Check if partial updates are requested (default: True)
-        partial_updates = step.fields.get("partial_updates", True) if step.fields else True
+        partial_updates = (
+            step.fields.get("partial_updates", True) if step.fields else True
+        )
 
         if partial_updates:
             # Use PartialUpdateCompiler for partial updates
