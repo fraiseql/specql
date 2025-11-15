@@ -1,4 +1,3 @@
-import pytest
 from src.generators.diagrams.relationship_extractor import (
     RelationshipExtractor,
     RelationshipType,

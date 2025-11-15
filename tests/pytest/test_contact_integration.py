@@ -57,7 +57,7 @@ class TestContactIntegration:
 
             # Simple parsing: remove outer parentheses and split by comma
             # But need to be careful with nested structures
-            result_str = result.strip("()")
+            result.strip("()")
             # This is tricky with nested JSON. For now, let's use a simpler approach
             # Check that the result contains success
             assert "success" in result

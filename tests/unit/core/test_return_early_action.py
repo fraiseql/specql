@@ -1,6 +1,5 @@
 """Tests for return_early action parsing and AST generation"""
 
-import pytest
 from src.core.specql_parser import SpecQLParser
 
 

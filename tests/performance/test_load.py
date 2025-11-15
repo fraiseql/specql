@@ -2,7 +2,6 @@
 Load testing for concurrent operations
 """
 
-import pytest
 import concurrent.futures
 from src.core.specql_parser import SpecQLParser
 from tests.integration.test_pattern_library_multilang import MultiLanguageGenerator

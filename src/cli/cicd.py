@@ -6,7 +6,6 @@ Commands for reverse engineering and generating CI/CD pipelines.
 
 import click
 from pathlib import Path
-from typing import Optional
 
 from src.cicd.parsers.parser_factory import ParserFactory
 from src.cicd.generators.github_actions_generator import GitHubActionsGenerator

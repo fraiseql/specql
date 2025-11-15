@@ -9,14 +9,11 @@ Tests the complete bidirectional flow:
 """
 
 import pytest
-import tempfile
-import psycopg
-from pathlib import Path
 from typing import List, Optional
 
 from src.parsers.plpgsql.plpgsql_parser import PLpgSQLParser
 from src.generators.plpgsql.schema_generator import SchemaGenerator
-from tests.utils.schema_comparison import SchemaComparator, assert_tables_equivalent
+from tests.utils.schema_comparison import SchemaComparator
 from tests.utils.test_db_utils import (
     create_test_database,
     drop_test_database,

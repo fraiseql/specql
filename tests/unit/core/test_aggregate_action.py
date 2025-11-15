@@ -1,6 +1,5 @@
 """Tests for aggregate action type"""
 
-import pytest
 
 from src.core.specql_parser import SpecQLParser
 

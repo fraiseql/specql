@@ -1,8 +1,6 @@
 """Integration tests for TypeScript/Prisma generators."""
 
 import pytest
-import tempfile
-from pathlib import Path
 from src.core.universal_ast import UniversalEntity, UniversalField, FieldType
 from src.generators.typescript.typescript_generator_orchestrator import (
     TypeScriptGeneratorOrchestrator,

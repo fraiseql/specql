@@ -143,7 +143,7 @@ class RustQueryGenerator:
     def generate_query_struct(self, entity: Entity) -> str:
         """Generate complete query struct with all methods"""
         struct_name = to_pascal_case(entity.name)
-        snake_name = to_snake_case(entity.name)
+        to_snake_case(entity.name)
 
         parts = [
             f"/// Query builders for {struct_name} entity",
@@ -211,7 +211,7 @@ class RustQueryGenerator:
         self, parent_entity: Entity, children_name: str, child_entity: str
     ) -> str:
         """Generate find children query for parent entity"""
-        parent_name = to_pascal_case(parent_entity.name)
+        to_pascal_case(parent_entity.name)
         parent_snake = to_snake_case(parent_entity.name)
         parent_table = f"tb_{parent_snake}"
         child_table = f"tb_{to_snake_case(child_entity)}"

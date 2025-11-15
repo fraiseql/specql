@@ -149,7 +149,7 @@ class PatternRegistry:
         for yaml_file in pattern_dir.glob("*.yaml"):
             pattern_name = yaml_file.stem  # filename without extension
             template_file = yaml_file.with_suffix(".sql.jinja2")
-            python_file = yaml_file.with_suffix(".py")
+            yaml_file.with_suffix(".py")
 
             if not template_file.exists():
                 continue

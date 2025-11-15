@@ -1,15 +1,18 @@
-# SpecQL - PostgreSQL Code Generator
+# SpecQL - Multi-Language Backend Code Generator
 
 > **🚧 ALPHA RELEASE (v0.4.0-alpha)**: SpecQL is in active development. APIs may change.
 > Production use is not recommended yet. [Report issues](https://github.com/fraiseql/specql/issues).
 
-**20 lines YAML → 2000+ lines production code (100x leverage)**
+**20 lines YAML → 2000+ lines production code in 4 languages (100x leverage)**
+
+Generate production-ready backends from single YAML spec:
+**PostgreSQL** · **Java/Spring Boot** · **Rust/Diesel** · **TypeScript/Prisma**
 
 [Badges: Build Status, Coverage, Version, License]
 
 ## What is SpecQL?
 
-SpecQL transforms business-domain YAML into production-ready PostgreSQL + GraphQL:
+SpecQL transforms business-domain YAML into production-ready multi-language backend code:
 
 ```yaml
 # contact.yaml (15 lines - from actual example)
@@ -33,15 +36,36 @@ actions:
       - notify: owner(email, "Contact qualified")
 ```
 
-**Auto-generates**:
-- ✅ PostgreSQL tables (Trinity pattern: pk_*, id, identifier)
-- ✅ Foreign keys, indexes, constraints, audit fields
-- ✅ PL/pgSQL functions (`crm.qualify_lead`, `app.qualify_lead`)
-- ✅ FraiseQL metadata for GraphQL auto-discovery
-- ✅ TypeScript types + Apollo React hooks
-- ✅ Test files (pgTAP + pytest)
+**Auto-generates** (from this single YAML):
 
-**Result**: 2000+ lines from 15 lines (133x leverage)
+**PostgreSQL**:
+- ✅ Tables with Trinity pattern (pk_*, id, identifier)
+- ✅ Foreign keys, indexes, constraints, audit fields
+- ✅ PL/pgSQL functions with full business logic
+
+**Java/Spring Boot**:
+- ✅ JPA entities with Lombok annotations
+- ✅ Repository interfaces (JpaRepository)
+- ✅ Service classes with business logic
+- ✅ REST controllers with validation
+
+**Rust/Diesel**:
+- ✅ Model structs with Diesel derives
+- ✅ Schema definitions (schema.rs)
+- ✅ Query builders and repositories
+- ✅ Actix-web HTTP handlers
+
+**TypeScript/Prisma**:
+- ✅ Prisma schema with relations
+- ✅ TypeScript interfaces and types
+- ✅ Type-safe client generation
+
+**Plus**:
+- ✅ FraiseQL metadata for GraphQL auto-discovery
+- ✅ Test files (pgTAP SQL + pytest)
+- ✅ CI/CD workflows (GitHub Actions, GitLab CI)
+
+**Result**: 2000+ lines across 4 languages from 15 lines YAML (133x leverage)
 
 ## Installation
 
@@ -63,30 +87,41 @@ specql generate entities/examples/**/*.yaml
 
 **Note**: SpecQL is not yet published to PyPI. Source installation is required.
 
-## Current Features (Production Ready)
+## Features
 
-### Core Generation
-- **Database**: PostgreSQL with Trinity pattern
-- **Backend**: Java/Spring Boot with JPA entities (97% coverage, Lombok support)
-- **Backend**: TypeScript/Prisma with schema generation (96% coverage, round-trip validation)
-- **Actions**: PL/pgSQL functions with type safety
-- **Frontend**: TypeScript types, GraphQL schema, Apollo hooks
-- **Testing**: pgTAP SQL tests + pytest Python tests
+### Multi-Language Code Generation ✅
+- **PostgreSQL** - Tables, indexes, constraints, PL/pgSQL functions (Trinity pattern)
+- **Java/Spring Boot** - JPA entities, repositories, services, controllers (97% test coverage)
+- **Rust/Diesel** - Models, schemas, queries, Actix-web handlers (100% test pass rate)
+- **TypeScript/Prisma** - Schema, interfaces, type-safe client (96% coverage)
 
-### Advanced Features
-- **Pattern Library**: 100+ reusable query/action patterns
-- **Reverse Engineering**: PostgreSQL → SpecQL YAML
-- **Interactive CLI**: Live preview with syntax highlighting
-- **CI/CD**: Generate GitHub Actions/GitLab CI workflows
-- **Registry System**: Hexadecimal domain/entity codes for organization
+### Reverse Engineering ✅
+Transform existing code back to SpecQL YAML:
+- **PostgreSQL** → SpecQL (PL/pgSQL function analysis, schema introspection)
+- **Java/Spring Boot** → SpecQL (JPA annotation parsing via Eclipse JDT)
+- **Rust/Diesel** → SpecQL (Macro expansion, derive parsing)
+- **TypeScript/Prisma** → SpecQL (Schema parsing, relation detection)
 
-## Roadmap Features (Coming Soon)
+### Developer Experience ✅
+- **Pattern Library** - 100+ reusable query/action patterns with semantic search
+- **Interactive CLI** - Live preview with syntax highlighting (powered by Textual)
+- **Visual Diagrams** - Automatic ER diagrams with Graphviz/Mermaid
+- **CI/CD Generation** - GitHub Actions, GitLab CI workflow scaffolding
+- **Registry System** - Hexadecimal domain/entity codes for large organizations
 
-- 🔜 **Multi-Language**: Rust, Go backends (TypeScript ✅ Complete)
-- 🔜 **Frontend**: React, Vue, Angular component generation
-- 🔜 **Full Stack**: Complete apps from single YAML spec
-- 🔜 **Universal CI/CD**: Platform-agnostic pipeline definition
-- 🔜 **Infrastructure**: Universal cloud deployment spec
+### Testing & Quality ✅
+- **Automated Tests** - pgTAP SQL tests + pytest Python test generation
+- **96%+ Coverage** - Comprehensive test suite across all generators
+- **Performance Benchmarks** - 1,461 Java entities/sec, 37,233 TypeScript entities/sec
+- **Security** - SQL injection prevention, comprehensive security audit
+
+## Roadmap (Coming Soon)
+
+- 🔜 **Go Backend** - Go structs, GORM, HTTP handlers
+- 🔜 **Frontend** - React, Vue, Angular component generation
+- 🔜 **Infrastructure as Code** - Complete Terraform/Pulumi/CloudFormation
+- 🔜 **Full-Stack Deployment** - Single-command deployment to cloud
+- 🔜 **PyPI Package** - Install via `pip install specql`
 
 See [VISION.md](VISION.md) and [roadmap](docs/05_vision/roadmap.md)
 

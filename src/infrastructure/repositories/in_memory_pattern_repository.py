@@ -4,10 +4,10 @@ In-Memory Pattern Repository
 For testing and development without database dependencies.
 """
 
-from typing import List, Dict, Any, Tuple, Optional
+from typing import List, Dict, Tuple, Optional
 import math
 from src.domain.repositories.pattern_repository import PatternRepository
-from src.domain.entities.pattern import Pattern, PatternCategory, SourceType
+from src.domain.entities.pattern import Pattern
 from datetime import datetime
 
 

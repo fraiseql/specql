@@ -295,7 +295,7 @@ export const useCreateJob = () => {
   >(CREATE_JOB_MUTATION, {
     onCompleted: (data) => {
       if (data.createJob.success) {
-        console.log('Job created:', data.createJob.data?.job.id);
+        // console.log('Job created:', data.createJob.data?.job.id);
       }
     },
     onError: (error) => {
@@ -331,7 +331,7 @@ export const useUpdateJob = () => {
   >(UPDATE_JOB_MUTATION, {
     onCompleted: (data) => {
       if (data.updateJob.success) {
-        console.log('Job updated:', data.updateJob.data?.job.id);
+        // console.log('Job updated:', data.updateJob.data?.job.id);
       }
     },
   });
@@ -362,7 +362,7 @@ export const useCancelJob = () => {
   >(CANCEL_JOB_MUTATION, {
     onCompleted: (data) => {
       if (data.cancelJob.success) {
-        console.log('Job cancelled:', data.cancelJob.data?.job.id);
+        // console.log('Job cancelled:', data.cancelJob.data?.job.id);
       }
     },
     onError: (error) => {
@@ -396,7 +396,7 @@ export const useRetryJob = () => {
   >(RETRY_JOB_MUTATION, {
     onCompleted: (data) => {
       if (data.retryJob.success) {
-        console.log('Job retry initiated:', data.retryJob.data?.job.id);
+        // console.log('Job retry initiated:', data.retryJob.data?.job.id);
       }
     },
   });

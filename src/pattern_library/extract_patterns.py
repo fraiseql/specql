@@ -5,10 +5,9 @@ This script analyzes all step compilers to identify the 35 primitive patterns
 that need to be converted to pattern library templates.
 """
 
-import os
 import re
 from pathlib import Path
-from typing import Dict, List, Set
+from typing import Dict, List
 
 
 def find_all_compilers() -> List[Path]:

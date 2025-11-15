@@ -10,7 +10,7 @@ import os
 import sys
 import logging
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any
 
 # Add src to path
 sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
@@ -55,7 +55,7 @@ class PatternMigrator:
                 try:
                     # Check if pattern already exists in PostgreSQL
                     try:
-                        existing = self.service.get_pattern(pattern_name)
+                        self.service.get_pattern(pattern_name)
                         logger.info(f"Pattern {pattern_name} already exists in PostgreSQL, skipping")
                         results['patterns_skipped'] += 1
                         continue
@@ -163,7 +163,7 @@ class PatternMigrator:
         if isinstance(parameters, str):
             try:
                 parameters = json.loads(parameters)
-            except:
+            except Exception:
                 parameters = {}
 
         # Handle implementation (could be JSON string or dict)
@@ -171,7 +171,7 @@ class PatternMigrator:
         if isinstance(implementation, str):
             try:
                 implementation = json.loads(implementation)
-            except:
+            except Exception:
                 implementation = {}
 
         # Handle source type

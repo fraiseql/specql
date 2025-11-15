@@ -4,7 +4,7 @@ Prisma schema generator for TypeScript/Prisma projects.
 Generates schema.prisma files from UniversalEntity objects.
 """
 
-from typing import List, Dict, Optional
+from typing import List
 from src.core.universal_ast import UniversalEntity, UniversalField, FieldType
 
 

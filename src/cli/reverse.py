@@ -14,7 +14,7 @@ from typing import List, Tuple, Dict, Any
 from dataclasses import dataclass
 from src.reverse_engineering.algorithmic_parser import AlgorithmicParser
 from src.reverse_engineering.ai_enhancer import AIEnhancer
-from src.reverse_engineering.java.java_parser import JavaParser, JavaParseConfig
+from src.reverse_engineering.java.java_parser import JavaParser
 
 
 @dataclass
@@ -105,7 +105,6 @@ def reverse(
                 result = parser.parse(sql)
 
                 # Check confidence threshold
-                status = "✅" if result.confidence >= min_confidence else "⚠️"
                 click.echo(".0%")
 
                 if result.confidence < min_confidence:
@@ -265,7 +264,7 @@ def _entity_to_yaml(entity) -> str:
 
 def _print_summary(results: List[Tuple[str, Any]], min_confidence: float):
     """Print processing summary"""
-    click.echo(f"\n📊 Summary:")
+    click.echo("\n📊 Summary:")
     click.echo(f"  Total files: {len(results)}")
 
     successful_results = [r for _, r in results if r is not None]
@@ -278,7 +277,7 @@ def _print_summary(results: List[Tuple[str, Any]], min_confidence: float):
                 confidences.append(r.confidence)
 
         if confidences:
-            avg_confidence = sum(confidences) / len(confidences)
+            sum(confidences) / len(confidences)
             above_threshold = sum(1 for c in confidences if c >= min_confidence)
 
             click.echo(".0%")
@@ -295,7 +294,7 @@ def _print_summary(results: List[Tuple[str, Any]], min_confidence: float):
 
 def _generate_comparison_report(results: List[Tuple[str, Any]]):
     """Generate comparison report between original SQL and generated YAML"""
-    click.echo(f"\n📋 Comparison Report:")
+    click.echo("\n📋 Comparison Report:")
 
     for sql_file, result in results:
         if result is None:

@@ -12,7 +12,6 @@ from typing import List, Optional, Dict, Any
 from src.reverse_engineering.rust_parser import (
     RustParser,
     DieselDeriveInfo,
-    ImplBlockInfo,
     ImplMethodInfo,
     RouteHandlerInfo,
 )

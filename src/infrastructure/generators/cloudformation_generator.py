@@ -5,7 +5,7 @@ Generates AWS CloudFormation templates from universal infrastructure format.
 """
 
 import json
-from typing import Dict, Any, List
+from typing import Dict, Any
 from src.infrastructure.universal_infra_schema import UniversalInfrastructure, DatabaseType
 
 

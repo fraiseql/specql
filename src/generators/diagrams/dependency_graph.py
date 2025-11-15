@@ -64,7 +64,7 @@ class DependencyGraph:
         try:
             cycles = list(nx.simple_cycles(self.graph))
             return cycles
-        except:
+        except Exception:
             return []
 
     def get_strongly_connected_components(self) -> List[Set[str]]:

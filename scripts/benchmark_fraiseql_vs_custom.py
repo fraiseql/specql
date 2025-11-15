@@ -21,16 +21,16 @@ class FraiseQLClient:
     def __init__(self, endpoint: str = "http://localhost:4000/graphql"):
         self.endpoint = endpoint
 
-    def query(self, query: str, variables: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def query(
+        self, query: str, variables: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
         """Execute GraphQL query"""
-        payload = {"query": query}
+        payload: Dict[str, Any] = {"query": query}
         if variables:
             payload["variables"] = variables
 
         response = requests.post(
-            self.endpoint,
-            json=payload,
-            headers={"Content-Type": "application/json"}
+            self.endpoint, json=payload, headers={"Content-Type": "application/json"}
         )
         response.raise_for_status()
         return response.json()["data"]
@@ -42,7 +42,9 @@ class DatabaseClient:
     def __init__(self, connection_string: str):
         self.conn = psycopg.connect(connection_string)
 
-    def execute_custom_function(self, query_embedding: List[float], limit: int = 10) -> List[Dict]:
+    def execute_custom_function(
+        self, query_embedding: List[float], limit: int = 10
+    ) -> List[Dict]:
         """Execute SpecQL's custom search function"""
         query = """
         SELECT * FROM pattern_library.find_similar_patterns(
@@ -68,11 +70,13 @@ def generate_test_queries() -> List[str]:
         "CQRS architecture",
         "API rate limiting",
         "database indexing strategy",
-        "error handling pattern"
+        "error handling pattern",
     ]
 
 
-def benchmark_fraiseql(client: FraiseQLClient, queries: List[str], runs: int = 5) -> Dict[str, float]:
+def benchmark_fraiseql(
+    client: FraiseQLClient, queries: List[str], runs: int = 5
+) -> Dict[str, float]:
     """Benchmark FraiseQL vector queries"""
     times = []
 
@@ -98,10 +102,7 @@ def benchmark_fraiseql(client: FraiseQLClient, queries: List[str], runs: int = 5
     for query_text in queries:
         for _ in range(runs):
             start_time = time.time()
-            result = client.query(fraiseql_query, {
-                "queryText": query_text,
-                "limit": 10
-            })
+            client.query(fraiseql_query, {"queryText": query_text, "limit": 10})
             end_time = time.time()
             times.append(end_time - start_time)
 
@@ -112,11 +113,13 @@ def benchmark_fraiseql(client: FraiseQLClient, queries: List[str], runs: int = 5
         "p99": statistics.quantiles(times, n=100)[98],  # 99th percentile
         "min": min(times),
         "max": max(times),
-        "total_queries": len(queries) * runs
+        "total_queries": len(queries) * runs,
     }
 
 
-def benchmark_custom_functions(db_client: DatabaseClient, queries: List[str], runs: int = 5) -> Dict[str, float]:
+def benchmark_custom_functions(
+    db_client: DatabaseClient, queries: List[str], runs: int = 5
+) -> Dict[str, float]:
     """Benchmark SpecQL custom SQL functions"""
     times = []
 
@@ -128,7 +131,7 @@ def benchmark_custom_functions(db_client: DatabaseClient, queries: List[str], ru
     for query_text in queries:
         for _ in range(runs):
             start_time = time.time()
-            results = db_client.execute_custom_function(dummy_embedding, limit=10)
+            db_client.execute_custom_function(dummy_embedding, limit=10)
             end_time = time.time()
             times.append(end_time - start_time)
 
@@ -139,7 +142,7 @@ def benchmark_custom_functions(db_client: DatabaseClient, queries: List[str], ru
         "p99": statistics.quantiles(times, n=100)[98],
         "min": min(times),
         "max": max(times),
-        "total_queries": len(queries) * runs
+        "total_queries": len(queries) * runs,
     }
 
 
@@ -151,8 +154,8 @@ def print_results(fraiseql_stats: Dict[str, float], custom_stats: Dict[str, floa
 
     print("Test Configuration:")
     print(f"  • Queries tested: {fraiseql_stats['total_queries']}")
-    print("  • Metric: Response time (seconds)"
-    print("  • Test: Cosine distance search, limit 10, threshold 0.5"
+    print("  • Metric: Response time (seconds)")
+    print("  • Test: Cosine distance search, limit 10, threshold 0.5")
     print()
 
     print("FraiseQL 1.5 GraphQL Vector Queries:")
@@ -174,16 +177,18 @@ def print_results(fraiseql_stats: Dict[str, float], custom_stats: Dict[str, floa
     print()
 
     # Performance comparison
-    speedup = custom_stats['mean'] / fraiseql_stats['mean']
+    speedup = custom_stats["mean"] / fraiseql_stats["mean"]
     print("Performance Comparison:")
     if speedup > 1:
-        print(".2f"    else:
-        print(".2f"        print("  ⚠️  FraiseQL is slower - investigate optimization opportunities"
+        print(f"  • Custom SQL is {speedup:.2f}x faster than FraiseQL")
+    else:
+        print(f"  • FraiseQL is {1 / speedup:.2f}x faster than Custom SQL")
+        print("  ⚠️  FraiseQL is slower - investigate optimization opportunities")
     print()
 
     # Recommendations
     print("Recommendations:")
-    if fraiseql_stats['p95'] < 0.1:  # Sub-100ms P95
+    if fraiseql_stats["p95"] < 0.1:  # Sub-100ms P95
         print("  ✅ FraiseQL performance meets production requirements (< 100ms P95)")
     else:
         print("  ⚠️  FraiseQL P95 > 100ms - may need optimization")
@@ -250,8 +255,4 @@ def main():
 
 
 if __name__ == "__main__":
-    exit(main())</content>
-</xai:function_call">  
-
-<xai:function_call name="todowrite">
-<parameter name="todos">[{"content":"Benchmark FraiseQL vector queries vs SpecQL custom functions","status":"completed","priority":"medium","id":"benchmark_performance"}]
+    exit(main())

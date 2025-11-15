@@ -1,6 +1,6 @@
 """Handle Lombok annotations when parsing Java entities"""
 
-from typing import List, Dict, Set, Optional
+from typing import Dict, Set
 from dataclasses import dataclass, field
 
 

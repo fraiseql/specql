@@ -320,7 +320,7 @@ def test_all_tracks_integration():
     assert "UPDATE" in sql  # Check for update primitive in SQL
 
     # Track B: Store in pattern library (mock)
-    library = MockPatternLibrary(":memory:")
+    MockPatternLibrary(":memory:")
     # ... (add to library)
 
     # Track C: Detect pattern (state machine transition)
@@ -449,7 +449,7 @@ def test_multi_language_consistency():
     }
 
     # Generate for multiple languages
-    pg_sql = generate_schema_from_dict(entity_dict, target="postgresql")
+    generate_schema_from_dict(entity_dict, target="postgresql")
 
     # Mock Django and SQLAlchemy generation
     django_models = """

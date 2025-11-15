@@ -22,7 +22,7 @@ def add_django_patterns(library: PatternLibrary):
         print(f"Debug: {pattern_name} {language_name} exists: {existing is not None}")
         if existing:
             # Update existing implementation
-            cursor = library.db.execute(
+            library.db.execute(
                 "UPDATE pattern_implementations SET implementation_template = ? WHERE implementation_id = ?",
                 (template, existing["implementation_id"])
             )

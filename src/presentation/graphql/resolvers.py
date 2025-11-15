@@ -10,8 +10,7 @@ from src.application.services.pattern_service import PatternService
 from src.application.exceptions import (
     DomainAlreadyExistsError,
     DomainNotFoundError,
-    SubdomainAlreadyExistsError,
-    SubdomainNotFoundError
+    SubdomainAlreadyExistsError
 )
 
 

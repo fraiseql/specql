@@ -5,12 +5,12 @@ Reverse engineers Jenkinsfile (Groovy DSL) to universal pipeline format.
 """
 
 import re
-from typing import Dict, Any, List
+from typing import Dict, List
 from src.cicd.universal_pipeline_schema import (
     UniversalPipeline,
     Trigger, TriggerType,
     Stage, Job, Step, StepType,
-    Runtime, Service
+    Runtime
 )
 
 

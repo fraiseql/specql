@@ -1,6 +1,5 @@
 """Test Spring @RestController generation"""
 
-import pytest
 from src.core.universal_ast import UniversalEntity, UniversalField, FieldType
 from src.generators.java.controller_generator import JavaControllerGenerator
 

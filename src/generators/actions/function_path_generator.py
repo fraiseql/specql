@@ -58,7 +58,7 @@ class FunctionPathGenerator(PathGenerator):
         domain_code = file_spec.code[2]
         subdomain_code = file_spec.code[3]  # 1 digit
         entity_sequence = file_spec.code[4]
-        function_sequence = file_spec.code[5]
+        file_spec.code[5]
 
         # Validate schema layer
         if schema_layer != "03":

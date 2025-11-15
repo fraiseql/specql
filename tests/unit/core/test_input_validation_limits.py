@@ -215,8 +215,8 @@ actions:
         yaml_content = "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
         for i in range(101):
             yaml_content += f"  - name: action_{i}\n"
-            yaml_content += f"    steps:\n"
-            yaml_content += f"      - validate: email != null\n"
+            yaml_content += "    steps:\n"
+            yaml_content += "      - validate: email != null\n"
 
         # Should raise SpecQLValidationError for action count
         with pytest.raises(SpecQLValidationError, match="Action count .* exceeds maximum allowed"):
@@ -230,8 +230,8 @@ actions:
         yaml_content = "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
         for i in range(100):
             yaml_content += f"  - name: action_{i}\n"
-            yaml_content += f"    steps:\n"
-            yaml_content += f"      - validate: email != null\n"
+            yaml_content += "    steps:\n"
+            yaml_content += "      - validate: email != null\n"
 
         # Should parse successfully
         entity = parser.parse(yaml_content)
@@ -270,7 +270,7 @@ actions:
         yaml_content = "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
         yaml_content += "  - name: many_steps\n    steps:\n"
         for i in range(501):
-            yaml_content += f"      - validate: email != null\n"
+            yaml_content += "      - validate: email != null\n"
 
         # Should raise SpecQLValidationError for steps count
         with pytest.raises(SpecQLValidationError, match="Steps count .* exceeds maximum allowed"):
@@ -284,7 +284,7 @@ actions:
         yaml_content = "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
         yaml_content += "  - name: at_limit\n    steps:\n"
         for i in range(500):
-            yaml_content += f"      - validate: email != null\n"
+            yaml_content += "      - validate: email != null\n"
 
         # Should parse successfully
         entity = parser.parse(yaml_content)

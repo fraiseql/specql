@@ -1,6 +1,5 @@
 """Full integration test for Week 1 features"""
 
-import uuid
 
 from src.core.specql_parser import SpecQLParser
 

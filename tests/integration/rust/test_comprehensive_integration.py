@@ -475,7 +475,7 @@ pub type PgConnection = diesel::PgConnection;
             assert "published" in post_entity.fields
             assert "tags" in post_entity.fields
 
-            print(f"\n✅ Comprehensive integration test passed!")
+            print("\n✅ Comprehensive integration test passed!")
             print(f"   - Parsed {len(structs)} structs")
             print(f"   - Found {len(diesel_tables)} Diesel tables")
             print(f"   - Extracted {len(diesel_derives)} Diesel derives")
@@ -620,7 +620,7 @@ pub async fn axum_get_user(
             assert len(put_actions) == 1  # update_user
             assert len(delete_actions) == 1  # delete_user
 
-            print(f"\n✅ Route handler extraction test passed!")
+            print("\n✅ Route handler extraction test passed!")
             print(f"   - Extracted {len(actions)} route actions")
             print(
                 f"   - GET: {len(get_actions)}, POST: {len(post_actions)}, PUT: {len(put_actions)}, DELETE: {len(delete_actions)}"

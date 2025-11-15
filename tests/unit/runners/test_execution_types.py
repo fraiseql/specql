@@ -34,23 +34,23 @@ def test_execution_type_display_names():
 def test_execution_type_network_requirements():
     """Execution types have correct network requirements"""
     # Network-dependent types
-    assert ExecutionType.HTTP.requires_network == True
-    assert ExecutionType.SERVERLESS.requires_network == True
+    assert ExecutionType.HTTP.requires_network  is True
+    assert ExecutionType.SERVERLESS.requires_network  is True
 
     # Local execution types
-    assert ExecutionType.SHELL.requires_network == False
-    assert ExecutionType.DOCKER.requires_network == False
+    assert not ExecutionType.SHELL.requires_network
+    assert not ExecutionType.DOCKER.requires_network
 
 
 def test_execution_type_streaming_support():
     """Execution types have correct streaming support"""
     # Streaming-supported types
-    assert ExecutionType.SHELL.supports_streaming == True
-    assert ExecutionType.DOCKER.supports_streaming == True
+    assert ExecutionType.SHELL.supports_streaming  is True
+    assert ExecutionType.DOCKER.supports_streaming  is True
 
     # Non-streaming types
-    assert ExecutionType.HTTP.supports_streaming == False
-    assert ExecutionType.SERVERLESS.supports_streaming == False
+    assert not ExecutionType.HTTP.supports_streaming
+    assert not ExecutionType.SERVERLESS.supports_streaming
 
 
 def test_execution_type_default_timeouts():
@@ -74,8 +74,8 @@ def test_execution_metadata_dataclass():
     )
 
     assert metadata.display_name == "Test Type"
-    assert metadata.requires_network == True
-    assert metadata.supports_streaming == False
+    assert metadata.requires_network  is True
+    assert not metadata.supports_streaming
     assert metadata.default_timeout == 120
 
 
@@ -155,7 +155,7 @@ def test_execution_metadata_immutable():
     """ExecutionMetadata instances are immutable (frozen dataclass)"""
     # Note: This test will fail if ExecutionMetadata is not frozen
     # We should make it frozen for immutability
-    metadata = ExecutionMetadata(
+    ExecutionMetadata(
         display_name="Test",
         requires_network=False,
         supports_streaming=True,

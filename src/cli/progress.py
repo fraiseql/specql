@@ -94,7 +94,7 @@ class SpecQLProgress:
     def generation_progress(self, entities: List[Any]) -> Iterator[tuple[Any, Callable[[], None]]]:
         """Show progress bar during generation and yield entities with progress updater"""
         if not RICH_AVAILABLE:
-            print(f"⚙️  Generating database schema...")
+            print("⚙️  Generating database schema...")
             for entity in entities:
                 yield entity, lambda: None
             return
@@ -128,7 +128,7 @@ class SpecQLProgress:
         if not RICH_AVAILABLE:
             print(f"\n✅ Generation complete! ({elapsed:.1f} seconds)")
             print(f"📁 Output: {output_dir}")
-            print(f"📈 Statistics:")
+            print("📈 Statistics:")
             print(f"   Total files: {stats.get('total_files', 0)} SQL files")
             print(f"   Total SQL: ~{stats.get('total_lines', 0):,} lines")
             print(f"   Tables: {stats.get('tables', 0)}")
@@ -137,7 +137,7 @@ class SpecQLProgress:
             print("\n🎯 Next Steps:")
             print(f"   1. Review: tree {output_dir}")
             print(f"   2. Apply: psql -f {output_dir}/000_app_foundation.sql")
-            print(f"   3. Migrate: Apply entity files in subdirectories")
+            print("   3. Migrate: Apply entity files in subdirectories")
             print("📚 Learn more: specql generate --help")
             return
 
@@ -176,7 +176,7 @@ class SpecQLProgress:
         self.console.print("\n🎯 [bold]Next Steps:[/bold]")
         self.console.print(f"   1. Review:    tree {output_dir}")
         self.console.print(f"   2. Apply:     psql -f {output_dir}/000_app_foundation.sql")
-        self.console.print(f"   3. Migrate:   Apply entity files in subdirectories")
+        self.console.print("   3. Migrate:   Apply entity files in subdirectories")
         self.console.print("\n📚 Learn more: [dim]specql generate --help[/dim]")
 
     def _build_file_tree(self, files: List[str], base_dir: str) -> Optional[Tree]:

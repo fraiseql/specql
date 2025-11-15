@@ -37,7 +37,7 @@ class TestPerformance100Entities:
         generator = PrismaSchemaGenerator()
 
         start = time.time()
-        schema = generator.generate(entities)
+        generator.generate(entities)
         elapsed = time.time() - start
 
         assert len(entities) == 100

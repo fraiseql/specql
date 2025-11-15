@@ -1,6 +1,5 @@
 """Tests for exception handling action"""
 
-import pytest
 from src.core.specql_parser import SpecQLParser
 
 

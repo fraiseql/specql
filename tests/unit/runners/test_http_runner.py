@@ -48,7 +48,7 @@ class TestHTTPRunnerConfigValidation:
         config = {"base_url": "https://api.example.com"}
 
         result = await http_runner.validate_config(config)
-        assert result == True
+        assert result  is True
 
     @pytest.mark.asyncio
     async def test_validate_config_valid_https(self, http_runner):
@@ -56,7 +56,7 @@ class TestHTTPRunnerConfigValidation:
         config = {"base_url": "https://secure-api.example.com"}
 
         result = await http_runner.validate_config(config)
-        assert result == True
+        assert result  is True
 
     @pytest.mark.asyncio
     async def test_validate_config_valid_http(self, http_runner):
@@ -64,7 +64,7 @@ class TestHTTPRunnerConfigValidation:
         config = {"base_url": "http://dev-api.example.com"}
 
         result = await http_runner.validate_config(config)
-        assert result == True
+        assert result  is True
 
     @pytest.mark.asyncio
     async def test_validate_config_missing_base_url(self, http_runner):
@@ -122,7 +122,7 @@ class TestHTTPRunnerExecution:
 
             result = await http_runner.execute(sample_job, sample_context)
 
-            assert result.success == True
+            assert result.success  is True
             assert result.output_data == {"data": "success"}
             assert result.duration_seconds == 1.5
             assert result.resource_usage == {
@@ -171,7 +171,7 @@ class TestHTTPRunnerExecution:
 
             result = await http_runner.execute(job, sample_context)
 
-            assert result.success == True
+            assert result.success  is True
             assert result.output_data == {"id": 123, "name": "test item"}
 
             # Verify JSON payload was sent
@@ -214,7 +214,7 @@ class TestHTTPRunnerExecution:
 
             result = await http_runner.execute(job, sample_context)
 
-            assert result.success == True
+            assert result.success  is True
             mock_request.assert_called_once_with(
                 method="PUT",
                 url="https://api.example.com/items/123",
@@ -253,7 +253,7 @@ class TestHTTPRunnerExecution:
 
             result = await http_runner.execute(job, sample_context)
 
-            assert result.success == True
+            assert result.success  is True
             assert result.output_data == {}
             mock_request.assert_called_once_with(
                 method="DELETE",
@@ -294,7 +294,7 @@ class TestHTTPRunnerExecution:
 
             result = await http_runner.execute(job, sample_context)
 
-            assert result.success == True
+            assert result.success  is True
             mock_request.assert_called_once_with(
                 method="GET",
                 url="https://api.example.com/data",
@@ -333,7 +333,7 @@ class TestHTTPRunnerExecution:
 
             result = await http_runner.execute(job, sample_context)
 
-            assert result.success == True
+            assert result.success  is True
             mock_request.assert_called_once_with(
                 method="GET",  # Should be uppercased
                 url="https://api.example.com/data",
@@ -364,7 +364,7 @@ class TestHTTPRunnerErrorHandling:
         with patch.object(http_runner.client, "request", side_effect=http_error):
             result = await http_runner.execute(sample_job, sample_context)
 
-            assert result.success == False
+            assert not result.success
             assert result.error_message == "HTTP 404: Not Found"
             assert result.output_data is None
 
@@ -386,7 +386,7 @@ class TestHTTPRunnerErrorHandling:
         with patch.object(http_runner.client, "request", side_effect=http_error):
             result = await http_runner.execute(sample_job, sample_context)
 
-            assert result.success == False
+            assert not result.success
             assert result.error_message == "HTTP 500: Internal Server Error"
 
     @pytest.mark.asyncio
@@ -399,7 +399,7 @@ class TestHTTPRunnerErrorHandling:
         with patch.object(http_runner.client, "request", side_effect=connect_error):
             result = await http_runner.execute(sample_job, sample_context)
 
-            assert result.success == False
+            assert not result.success
             assert result.error_message == "HTTP request failed: Connection refused"
 
     @pytest.mark.asyncio
@@ -412,7 +412,7 @@ class TestHTTPRunnerErrorHandling:
         with patch.object(http_runner.client, "request", side_effect=timeout_error):
             result = await http_runner.execute(sample_job, sample_context)
 
-            assert result.success == False
+            assert not result.success
             assert "HTTP request failed: Request timeout" in result.error_message
 
     @pytest.mark.asyncio
@@ -443,7 +443,7 @@ class TestHTTPRunnerErrorHandling:
             result = await http_runner.execute(job, sample_context)
 
             # Should succeed but with empty dict as fallback for invalid JSON
-            assert result.success == True
+            assert result.success  is True
             assert result.output_data == {}
 
     @pytest.mark.asyncio
@@ -475,7 +475,7 @@ class TestHTTPRunnerErrorHandling:
 
             result = await http_runner.execute(job, sample_context)
 
-            assert result.success == True
+            assert result.success  is True
             assert result.output_data == {}  # Empty dict for empty response
 
 
@@ -486,10 +486,10 @@ class TestHTTPRunnerCancel:
     async def test_cancel_always_returns_false(self, http_runner):
         """Cancel always returns False for HTTP runner."""
         result = await http_runner.cancel("job-123")
-        assert result == False
+        assert not result
 
         result = await http_runner.cancel("any-job-id")
-        assert result == False
+        assert not result
 
 
 class TestHTTPRunnerResourceRequirements:

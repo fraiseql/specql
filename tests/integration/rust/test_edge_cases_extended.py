@@ -3,11 +3,8 @@
 import pytest
 import tempfile
 import os
-from pathlib import Path
 from src.parsers.rust.diesel_parser import DieselParser
 from src.generators.rust.rust_generator_orchestrator import RustGeneratorOrchestrator
-from src.core.yaml_serializer import YAMLSerializer
-from src.core.specql_parser import SpecQLParser
 
 
 class TestAdvancedEdgeCases:
@@ -586,30 +583,8 @@ class TestAdvancedEdgeCases:
 
     def test_model_with_inheritance_patterns(self, parser):
         """Test inheritance-like patterns in Rust structs"""
-        rust_code = """
-        use diesel::prelude::*;
-
-        #[derive(Queryable)]
-        #[diesel(table_name = base_entities)]
-        pub struct BaseEntity {
-            pub id: i64,
-            pub created_at: chrono::NaiveDateTime,
-            pub updated_at: chrono::NaiveDateTime,
-        }
-
-        #[derive(Queryable)]
-        #[diesel(table_name = specialized_entities)]
-        pub struct SpecializedEntity {
-            pub id: i64,
-            pub base_id: i64,
-            pub special_field: String,
-            pub created_at: chrono::NaiveDateTime,
-            pub updated_at: chrono::NaiveDateTime,
-        }
-        """
 
         # Test parsing multiple entities
-        entities = []  # This would need a different parsing approach
         # For now, test that the concept is understood
         assert "inheritance" in "inheritance patterns"
         assert "base" in "base entity"

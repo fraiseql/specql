@@ -2,7 +2,6 @@
 
 import pytest
 from src.parsers.plpgsql.schema_analyzer import SchemaAnalyzer
-from src.core.universal_ast import FieldType
 
 
 class TestSchemaAnalyzer:
@@ -60,7 +59,7 @@ class TestSchemaAnalyzer:
 
         assert column["name"] == "email"
         assert column["data_type"] == "TEXT"
-        assert column["nullable"] == False
+        assert not column["nullable"]
         assert column["default"] == "'test@example.com'"
 
     def test_parse_complete_table(self, analyzer):

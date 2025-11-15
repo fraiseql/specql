@@ -1,4 +1,3 @@
-import pytest
 from src.reverse_engineering.tests.pgtap_test_parser import (
     PgTAPTestParser,
     PgTAPTestSpecMapper

@@ -1,6 +1,5 @@
 """Seed entity templates for Tier 3"""
 
-from typing import Dict, Any
 from .api import PatternLibrary
 
 

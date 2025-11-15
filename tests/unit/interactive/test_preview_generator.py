@@ -2,8 +2,7 @@
 Unit tests for interactive preview generator
 """
 
-import pytest
-from src.cli.interactive.preview_generator import PreviewGenerator, PreviewResult
+from src.cli.interactive.preview_generator import PreviewGenerator
 
 
 class TestPreviewGenerator:

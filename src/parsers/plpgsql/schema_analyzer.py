@@ -280,5 +280,3 @@ class SchemaAnalyzer:
             postgres_type=column["data_type"],
             character_maximum_length=column.get("character_maximum_length"),
         )
-
-        return field

@@ -15,21 +15,19 @@ Supported pgTAP functions:
 """
 
 import re
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from pathlib import Path
 
 from src.testing.spec.test_parser_protocol import (
-    TestParser,
     ParsedTest,
     ParsedTestFunction,
     TestSourceLanguage
 )
-from src.testing.spec.test_spec_models import (
+from src.testing.spec.spec_models import (
     TestSpec,
     TestType,
     TestScenario,
     TestAssertion,
-    TestStep,
     TestFixture,
     ScenarioCategory,
     AssertionType
@@ -259,10 +257,6 @@ class PgTAPTestSpecMapper:
         Returns:
             Universal TestSpec
         """
-        from src.testing.spec.test_spec_models import (
-            TestScenario, TestAssertion, TestStep, TestFixture,
-            ScenarioCategory, AssertionType
-        )
 
         # Map test functions to scenarios
         scenarios = []

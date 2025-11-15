@@ -6,7 +6,7 @@ Follows the same pattern as SpecQL for database schemas.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any, Literal
+from typing import List, Dict, Optional, Any
 from enum import Enum
 
 

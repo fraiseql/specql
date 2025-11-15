@@ -4,7 +4,7 @@ Jenkins Generator
 Converts universal pipeline format to Jenkinsfile (Groovy DSL).
 """
 
-from src.cicd.universal_pipeline_schema import UniversalPipeline, Step, StepType
+from src.cicd.universal_pipeline_schema import UniversalPipeline, Step
 
 
 class JenkinsGenerator:

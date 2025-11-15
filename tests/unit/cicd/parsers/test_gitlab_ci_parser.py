@@ -2,7 +2,6 @@
 
 import pytest
 from src.cicd.parsers.gitlab_ci_parser import GitLabCIParser
-from src.cicd.universal_pipeline_schema import UniversalPipeline, TriggerType, StepType
 
 
 class TestGitLabCIParser:

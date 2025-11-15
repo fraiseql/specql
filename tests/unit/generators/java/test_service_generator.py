@@ -1,6 +1,5 @@
 """Test Spring @Service class generation"""
 
-import pytest
 from src.core.universal_ast import (
     UniversalEntity,
     UniversalField,

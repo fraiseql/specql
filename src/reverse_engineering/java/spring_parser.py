@@ -6,7 +6,7 @@ Parses Spring Boot applications and converts to SpecQL actions.
 """
 
 from pathlib import Path
-from typing import List, Optional, Dict, Any, cast
+from typing import List, Optional, Dict, Any
 from dataclasses import dataclass, field
 
 from src.reverse_engineering.java.spring_visitor import (

@@ -1,7 +1,6 @@
 """Base class for step compilers"""
 
 from abc import ABC, abstractmethod
-from typing import Any
 
 from src.core.ast_models import ActionStep, EntityDefinition
 

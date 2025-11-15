@@ -95,7 +95,7 @@ def main():
             print(f"  Generated {i + 1}/100 entities...")
 
     print(f"✅ Generated 100 entities + 100 enums in {output_dir}")
-    print(f"   Total files: 200")
+    print("   Total files: 200")
     print(f"   Total lines: ~{100 * 30 + 100 * 7}")
 
 

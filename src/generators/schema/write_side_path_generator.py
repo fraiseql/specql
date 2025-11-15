@@ -9,7 +9,6 @@ from pathlib import Path
 
 from src.generators.schema.hierarchical_file_writer import FileSpec, PathGenerator
 from src.generators.schema.naming_conventions import NamingConventions
-from src.core.ast_models import Entity
 
 
 class WriteSidePathGenerator(PathGenerator):
@@ -73,7 +72,6 @@ class WriteSidePathGenerator(PathGenerator):
         domain_code = components.domain_code
         subdomain_code = components.subdomain_code  # Now 1 digit
         entity_sequence = components.entity_sequence
-        file_seq = components.file_sequence
 
         # Validate schema layer
         if schema_layer != "01":

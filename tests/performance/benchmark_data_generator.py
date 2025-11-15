@@ -12,7 +12,7 @@ Generates realistic PostgreSQL schemas with:
 
 import random
 from dataclasses import dataclass
-from typing import List, Set, Tuple, Optional
+from typing import List, Tuple, Optional
 from pathlib import Path
 
 

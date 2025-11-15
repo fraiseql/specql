@@ -5,13 +5,11 @@ This is the new PatternLibrary that uses the repository pattern for better
 architecture, testability, and storage abstraction.
 """
 
-import json
 from typing import Any, Dict, List, Optional
 from functools import lru_cache
 from jinja2 import Template
 
 from src.application.services.pattern_service import PatternService
-from src.domain.entities.pattern import Pattern
 
 
 class RepositoryPatternLibrary:
@@ -141,7 +139,7 @@ class RepositoryPatternLibrary:
         context: Dict[str, Any]
     ) -> str:
         """Compile a pattern with given context"""
-        pattern = self.pattern_service.get_pattern(pattern_name)
+        self.pattern_service.get_pattern(pattern_name)
         implementation = self.get_implementation(pattern_name, language_name)
 
         if not implementation:

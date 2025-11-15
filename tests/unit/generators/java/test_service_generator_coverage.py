@@ -1,6 +1,5 @@
 """Additional tests for service_generator.py coverage"""
 
-import pytest
 from src.core.universal_ast import (
     UniversalEntity,
     UniversalField,

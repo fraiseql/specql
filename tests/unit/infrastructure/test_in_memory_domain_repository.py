@@ -1,7 +1,7 @@
 """Unit tests for InMemoryDomainRepository"""
 import pytest
 from src.infrastructure.repositories.in_memory_domain_repository import InMemoryDomainRepository
-from src.domain.entities.domain import Domain, Subdomain
+from src.domain.entities.domain import Domain
 from src.domain.value_objects import DomainNumber
 
 class TestInMemoryDomainRepository:

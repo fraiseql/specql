@@ -18,7 +18,6 @@ class TestSQLAlchemyPatterns:
         """Create pattern library with SQLAlchemy patterns loaded"""
         # Connect to existing database without reinitializing schema
         import sqlite3
-        from pathlib import Path
 
         db_path = Path("pattern_library.db")
         if not db_path.exists():
@@ -112,7 +111,7 @@ else:
         # Should contain basic query structure
         assert "# Query User" in result
         assert "users = session.query(User)" in result
-        assert "User.is_active == True" in result
+        assert "User.is_active  is True" in result
 
     def test_insert_pattern(self, library):
         """Test insert pattern compilation"""

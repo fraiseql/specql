@@ -1,9 +1,6 @@
 """Additional tests to achieve 95%+ coverage for TypeScript generators."""
 
 import pytest
-import tempfile
-from pathlib import Path
-from unittest.mock import patch
 from src.core.universal_ast import UniversalEntity, UniversalField, FieldType
 from src.generators.typescript.prisma_schema_generator import PrismaSchemaGenerator
 from src.generators.typescript.typescript_entity_generator import (

@@ -2,9 +2,7 @@
 Tests for Diesel derive parsing functionality.
 """
 
-import pytest
-from pathlib import Path
-from src.reverse_engineering.rust_parser import RustParser, DieselDeriveInfo
+from src.reverse_engineering.rust_parser import RustParser
 
 
 class TestDieselDeriveDetection:

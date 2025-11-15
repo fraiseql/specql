@@ -1,5 +1,4 @@
 """In-Memory Domain Repository (for testing)"""
-from src.domain.repositories.domain_repository import DomainRepository
 from src.domain.entities.domain import Domain
 
 class InMemoryDomainRepository:

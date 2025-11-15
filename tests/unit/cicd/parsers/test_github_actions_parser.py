@@ -2,7 +2,7 @@
 
 import pytest
 from src.cicd.parsers.github_actions_parser import GitHubActionsParser
-from src.cicd.universal_pipeline_schema import UniversalPipeline, TriggerType, StepType
+from src.cicd.universal_pipeline_schema import TriggerType, StepType
 
 
 class TestGitHubActionsParser:

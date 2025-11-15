@@ -1,6 +1,4 @@
 """End-to-end test for complete pattern workflow"""
-import pytest
-from pathlib import Path
 import yaml
 
 

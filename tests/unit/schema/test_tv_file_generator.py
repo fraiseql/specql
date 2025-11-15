@@ -4,7 +4,6 @@ Tests for tv_ file splitting and content structuring
 Tests splitting monolithic tv_ output into individual entity files.
 """
 
-import pytest
 
 from src.generators.schema.table_view_file_generator import TableViewFileGenerator, TableViewFile
 from src.core.ast_models import EntityDefinition, FieldDefinition, TableViewConfig, TableViewMode, FieldTier

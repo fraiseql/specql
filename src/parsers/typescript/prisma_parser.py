@@ -7,7 +7,7 @@ Parses schema.prisma files to extract models, fields, and relationships.
 import re
 import logging
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import List, Optional
 
 from src.core.universal_ast import UniversalEntity, UniversalField, FieldType
 

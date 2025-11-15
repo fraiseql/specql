@@ -5,7 +5,7 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 from src.runners.execution_types import ExecutionType
 from src.runners.runner_registry import RunnerRegistry
-from src.runners.job_runner import JobRecord, ExecutionContext, JobResult
+from src.runners.job_runner import JobRecord, ExecutionContext
 from src.registry.service_registry import ServiceRegistry, Service, ServiceOperation
 
 
@@ -96,7 +96,7 @@ class TestHTTPJobExecutionE2E:
         with patch.object(http_runner.client, "request", side_effect=timeout_error):
             result = await http_runner.execute(job, sample_execution_context)
 
-            assert result.success == False
+            assert not result.success
             assert "HTTP request failed: Request timeout" in result.error_message
 
     @pytest.mark.asyncio
@@ -133,7 +133,7 @@ class TestHTTPJobExecutionE2E:
 
             result = await docker_runner.execute(job, sample_execution_context)
 
-            assert result.success == False
+            assert not result.success
             assert result.output_data["exit_code"] == 1
             assert "Error: something went wrong" in result.output_data["stdout"]
 
@@ -179,7 +179,7 @@ class TestJobExecutionResourceManagementE2E:
 
             result = await http_runner.execute(job, sample_execution_context)
 
-            assert result.success == True
+            assert result.success  is True
             assert result.duration_seconds == 2.5
             assert result.resource_usage["status_code"] == 200
             assert result.resource_usage["response_size_bytes"] == len(large_content)
@@ -254,7 +254,7 @@ class TestJobExecutionSecurityE2E:
 
         result = await runner.execute(job, context)
 
-        assert result.success == False
+        assert not result.success
         assert "not allowed" in result.error_message.lower()
 
     @pytest.mark.asyncio
@@ -280,7 +280,7 @@ class TestJobExecutionSecurityE2E:
 
         # Test valid config
         result = await runner.validate_config({"base_url": "https://api.example.com"})
-        assert result == True
+        assert result  is True
 
 
 class TestMultiRunnerWorkflowE2E:
@@ -291,7 +291,7 @@ class TestMultiRunnerWorkflowE2E:
         self, mock_service_registry, sample_execution_context
     ):
         """Execute jobs with different runners in sequence."""
-        registry = RunnerRegistry.get_instance()
+        RunnerRegistry.get_instance()
 
         # HTTP job
         http_job = JobRecord(
@@ -337,7 +337,7 @@ class TestMultiRunnerWorkflowE2E:
         ) as mock_request:
             mock_request.return_value = mock_http_response
             http_result = await http_runner.execute(http_job, sample_execution_context)
-            assert http_result.success == True
+            assert http_result.success  is True
 
         # Execute Docker job
         from src.runners.docker_runner import DockerRunner
@@ -356,7 +356,7 @@ class TestMultiRunnerWorkflowE2E:
             docker_result = await docker_runner.execute(
                 docker_job, sample_execution_context
             )
-            assert docker_result.success == True
+            assert docker_result.success  is True
 
         # Both jobs succeeded
         assert http_result.success and docker_result.success

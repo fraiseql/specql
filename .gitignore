@@ -130,6 +130,14 @@ INVESTOR_EVALUATION.md
 *_CONFIDENTIAL.md
 *_PRIVATE.md
 
+# Security files
+secrets/
+credentials/
+*.key
+*.pem
+*.p12
+*.pfx
+
 # Large files (add specific patterns as needed)
 *.mp4
 *.mov

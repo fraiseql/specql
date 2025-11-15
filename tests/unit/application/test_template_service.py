@@ -2,7 +2,7 @@
 import pytest
 from src.application.services.template_service import TemplateService
 from src.domain.entities.entity_template import EntityTemplate, TemplateField
-from src.domain.value_objects import DomainNumber, TableCode
+from src.domain.value_objects import DomainNumber
 from src.infrastructure.repositories.in_memory_entity_template_repository import (
     InMemoryEntityTemplateRepository
 )

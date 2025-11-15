@@ -1,6 +1,4 @@
 import pytest
-import tempfile
-from pathlib import Path
 from src.generators.diagrams.relationship_extractor import RelationshipExtractor
 from src.generators.diagrams.graphviz_generator import GraphvizGenerator
 from src.generators.diagrams.mermaid_generator import MermaidGenerator

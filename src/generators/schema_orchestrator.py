@@ -12,13 +12,10 @@ from src.generators.composite_type_generator import CompositeTypeGenerator
 from src.generators.core_logic_generator import CoreLogicGenerator
 from src.generators.enterprise.audit_generator import AuditGenerator
 from src.generators.fraiseql.mutation_annotator import MutationAnnotator
-from src.generators.fraiseql.table_view_annotator import TableViewAnnotator
 from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.schema_registry import SchemaRegistry
-from src.generators.schema.table_view_dependency import TableViewDependencyResolver
 from src.generators.schema.table_view_file import TableViewFile
 from src.generators.schema.table_view_file_generator import TableViewFileGenerator
-from src.generators.schema.table_view_generator import TableViewGenerator
 from src.generators.table_generator import TableGenerator
 from src.generators.trinity_helper_generator import TrinityHelperGenerator
 from src.utils.safe_slug import safe_table_name

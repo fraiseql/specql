@@ -8,7 +8,6 @@ from pathlib import Path
 from src.reverse_engineering.java.java_parser import (
     JavaParser,
     JavaParseConfig,
-    JavaParseResult,
 )
 
 
@@ -210,7 +209,7 @@ public class Task {
         # Check specific fields
         email_field = entity.fields["email"]
         assert email_field.type_name == "text"
-        assert email_field.nullable == False
+        assert not email_field.nullable
 
         company_field = entity.fields["company"]
         assert company_field.type_name == "ref(Company)"

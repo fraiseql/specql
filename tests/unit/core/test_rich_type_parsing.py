@@ -14,5 +14,5 @@ fields:
 
     # Should recognize 'email' and 'phone' as rich scalar types
     assert result.fields["email_address"].type_name == "email"
-    assert result.fields["email_address"].is_rich_type() == True
+    assert result.fields["email_address"].is_rich_type()  is True
     assert result.fields["mobile_phone"].type_name == "phone"

@@ -1,6 +1,5 @@
 """Integration test: Vector columns in tv_ tables"""
 
-import pytest
 from src.generators.schema_orchestrator import SchemaOrchestrator
 from src.core.specql_parser import SpecQLParser
 

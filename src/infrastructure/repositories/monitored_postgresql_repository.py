@@ -7,7 +7,6 @@ for Phase 3 cut-over monitoring.
 
 import time
 import logging
-from typing import Optional
 from src.infrastructure.repositories.postgresql_domain_repository import PostgreSQLDomainRepository
 
 logger = logging.getLogger(__name__)

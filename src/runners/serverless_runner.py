@@ -91,8 +91,8 @@ class ServerlessRunner(JobRunner):
             # Extract function details
             provider = job.input_data.get("provider", "").lower()
             function_name = job.input_data.get("function_name")
-            payload = job.input_data.get("payload", {})
-            invocation_type = job.input_data.get("invocation_type", "RequestResponse")
+            job.input_data.get("payload", {})
+            job.input_data.get("invocation_type", "RequestResponse")
 
             # Get runner config (would come from service registry in production)
             config = {}  # Placeholder

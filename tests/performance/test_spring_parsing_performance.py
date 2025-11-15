@@ -2,7 +2,6 @@
 Performance benchmarks for Spring Boot parsing
 """
 
-import pytest
 import time
 import tempfile
 import os

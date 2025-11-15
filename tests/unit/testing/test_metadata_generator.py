@@ -155,8 +155,8 @@ def test_has_unique_constraints():
         },
     )
 
-    assert generator._has_unique_constraints(entity_with_email) == True
-    assert generator._has_unique_constraints(entity_without_unique) == False
+    assert generator._has_unique_constraints(entity_with_email)  is True
+    assert not generator._has_unique_constraints(entity_without_unique)
 
 
 def test_generate_default_scenarios():

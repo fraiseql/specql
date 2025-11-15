@@ -1,6 +1,5 @@
 """Integration tests for PostgreSQL Domain Repository migration"""
 import pytest
-import psycopg
 from pathlib import Path
 from src.infrastructure.repositories.postgresql_domain_repository import PostgreSQLDomainRepository
 from src.infrastructure.repositories.yaml_domain_repository import YAMLDomainRepository

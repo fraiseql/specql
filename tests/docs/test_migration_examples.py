@@ -94,7 +94,7 @@ class TestMigrationExamples:
     def test_pattern_documentation_links_exist(self):
         """Test that pattern documentation links in migration guide exist."""
         migration_guide = Path("docs/migration/printoptim_to_patterns.md")
-        content = migration_guide.read_text()
+        migration_guide.read_text()
 
         # Check that referenced pattern docs exist
         pattern_doc_paths = [

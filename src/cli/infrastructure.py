@@ -21,7 +21,6 @@ from src.infrastructure.generators.kubernetes_generator import KubernetesGenerat
 from src.infrastructure.generators.ovhcloud_generator import OVHcloudGenerator
 from src.infrastructure.generators.hetzner_generator import HetznerGenerator
 from src.infrastructure.universal_infra_schema import UniversalInfrastructure, CloudProvider
-from src.infrastructure.services.cost_estimation_service import CostEstimationService
 import yaml
 
 

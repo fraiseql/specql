@@ -4,7 +4,6 @@ Performance benchmarks for all tracks
 
 import pytest
 import time
-from pathlib import Path
 from src.core.specql_parser import SpecQLParser
 from src.pattern_library.api import PatternLibrary
 from tests.integration.test_pattern_library_multilang import MultiLanguageGenerator
@@ -37,7 +36,7 @@ fields:
 """
 
     start = time.time()
-    sql = generate_schema(yaml_content, target="postgresql")
+    generate_schema(yaml_content, target="postgresql")
     elapsed = time.time() - start
 
     print(f"Simple entity generation: {elapsed:.3f}s")
@@ -61,7 +60,7 @@ fields:
 """
 
     start = time.time()
-    sql = generate_schema(yaml_content, target="postgresql")
+    generate_schema(yaml_content, target="postgresql")
     elapsed = time.time() - start
 
     print(f"Complex entity generation: {elapsed:.3f}s")
@@ -93,7 +92,7 @@ def test_benchmark_reverse_engineering():
     parser = AlgorithmicParser()
 
     start = time.time()
-    result = parser.parse(sql)
+    parser.parse(sql)
     elapsed = time.time() - start
 
     print(f"Reverse engineering (algorithmic): {elapsed:.3f}s")
@@ -117,7 +116,7 @@ def test_benchmark_batch_generation():
 
     start = time.time()
     for yaml in entities:
-        sql = generate_schema(yaml, target="postgresql")
+        generate_schema(yaml, target="postgresql")
     elapsed = time.time() - start
 
     print(f"Batch 100 entities: {elapsed:.3f}s")
@@ -169,17 +168,17 @@ def test_benchmark_full_pipeline():
     start = time.time()
 
     # Reverse engineer
-    result = parser.parse(sql)
+    parser.parse(sql)
     yaml = parser.parse_to_yaml(sql)
 
     # Generate PostgreSQL
-    pg_sql = generate_schema(yaml, target="postgresql")
+    generate_schema(yaml, target="postgresql")
 
     # Generate Django
-    django_code = generate_schema(yaml, target="python_django")
+    generate_schema(yaml, target="python_django")
 
     # Generate SQLAlchemy
-    sa_code = generate_schema(yaml, target="python_sqlalchemy")
+    generate_schema(yaml, target="python_sqlalchemy")
 
     elapsed = time.time() - start
 

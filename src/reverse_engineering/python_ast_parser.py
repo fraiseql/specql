@@ -6,8 +6,7 @@ from src.reverse_engineering.protocols import (
     ParsedEntity,
     ParsedField,
     ParsedMethod,
-    SourceLanguage,
-    LanguageParser
+    SourceLanguage
 )
 
 class PythonASTParser:
@@ -455,7 +454,7 @@ class PythonASTParser:
             try:
                 line = ast.unparse(node)
                 body_lines.append(line)
-            except:
+            except Exception:
                 continue
 
         return body_lines

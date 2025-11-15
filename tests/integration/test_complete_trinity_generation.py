@@ -1,6 +1,5 @@
 """Integration test for complete Trinity pattern generation"""
 
-import pytest
 from src.generators.schema.trinity_schema_orchestrator import TrinitySchemaOrchestrator
 from src.core.ast_models import Entity, FieldDefinition
 

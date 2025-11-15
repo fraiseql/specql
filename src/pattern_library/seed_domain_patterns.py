@@ -1,6 +1,5 @@
 """Seed domain patterns for Tier 2"""
 
-from typing import Dict, Any
 from .api import PatternLibrary
 
 

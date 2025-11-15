@@ -8,11 +8,9 @@ Improves confidence from 85% → 90% through:
 - Variable naming improvements
 """
 
-from typing import Dict, List, Optional, Set
+from typing import List, Optional, Set
 from dataclasses import dataclass
-from src.core.ast_models import ActionStep
 from src.reverse_engineering.ast_to_specql_mapper import ConversionResult
-from src.core.ast_models import ActionStep
 
 
 @dataclass

@@ -4,7 +4,6 @@ Unit tests for Rust action mapper functionality.
 Tests the CRUD pattern detection and action mapping logic.
 """
 
-import pytest
 from src.reverse_engineering.rust_action_parser import (
     RustActionMapper,
     RouteToActionMapper,

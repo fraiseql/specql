@@ -5,7 +5,6 @@ Maps Hibernate/JPA Java types to SpecQL types.
 """
 
 from typing import Optional
-from src.core.ast_models import FieldDefinition
 
 
 class HibernateTypeMapper:

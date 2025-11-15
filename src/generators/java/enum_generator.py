@@ -1,6 +1,5 @@
 """Generate Java enum classes from SpecQL enum fields"""
 
-from typing import List
 from src.core.universal_ast import UniversalField, FieldType
 
 

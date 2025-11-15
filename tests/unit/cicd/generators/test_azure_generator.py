@@ -2,7 +2,16 @@
 
 import pytest
 from src.cicd.generators.azure_generator import AzureGenerator
-from src.cicd.universal_pipeline_schema import *
+from src.cicd.universal_pipeline_schema import (
+    UniversalPipeline,
+    Trigger,
+    TriggerType,
+    Stage,
+    Job,
+    Runtime,
+    Step,
+    StepType,
+)
 
 
 class TestAzureGenerator:
@@ -16,9 +25,7 @@ class TestAzureGenerator:
         """Test generating basic Azure DevOps pipeline"""
         pipeline = UniversalPipeline(
             name="build_and_test",
-            triggers=[
-                Trigger(type=TriggerType.PUSH, branches=["main", "develop"])
-            ],
+            triggers=[Trigger(type=TriggerType.PUSH, branches=["main", "develop"])],
             stages=[
                 Stage(
                     name="Build",
@@ -28,11 +35,19 @@ class TestAzureGenerator:
                             runtime=Runtime(language="python", version="3.11"),
                             steps=[
                                 Step(name="Checkout", type=StepType.CHECKOUT),
-                                Step(name="Install deps", type=StepType.INSTALL_DEPS, command="pip install -r requirements.txt"),
-                                Step(name="Run tests", type=StepType.RUN_TESTS, command="pytest")
-                            ]
+                                Step(
+                                    name="Install deps",
+                                    type=StepType.INSTALL_DEPS,
+                                    command="pip install -r requirements.txt",
+                                ),
+                                Step(
+                                    name="Run tests",
+                                    type=StepType.RUN_TESTS,
+                                    command="pytest",
+                                ),
+                            ],
                         )
-                    ]
+                    ],
                 ),
                 Stage(
                     name="Test",
@@ -41,12 +56,16 @@ class TestAzureGenerator:
                             name="test",
                             runtime=Runtime(language="python", version="3.11"),
                             steps=[
-                                Step(name="Run tests", type=StepType.RUN_TESTS, command="pytest")
-                            ]
+                                Step(
+                                    name="Run tests",
+                                    type=StepType.RUN_TESTS,
+                                    command="pytest",
+                                )
+                            ],
                         )
-                    ]
-                )
-            ]
+                    ],
+                ),
+            ],
         )
 
         # Act
@@ -72,7 +91,9 @@ class TestAzureGenerator:
         pipeline = UniversalPipeline(
             name="nightly_build",
             triggers=[
-                Trigger(type=TriggerType.SCHEDULE, schedule="0 2 * * *", branches=["main"])
+                Trigger(
+                    type=TriggerType.SCHEDULE, schedule="0 2 * * *", branches=["main"]
+                )
             ],
             stages=[
                 Stage(
@@ -82,12 +103,16 @@ class TestAzureGenerator:
                             name="test",
                             runtime=Runtime(language="python", version="3.11"),
                             steps=[
-                                Step(name="Run tests", type=StepType.RUN_TESTS, command="pytest")
-                            ]
+                                Step(
+                                    name="Run tests",
+                                    type=StepType.RUN_TESTS,
+                                    command="pytest",
+                                )
+                            ],
                         )
-                    ]
+                    ],
                 )
-            ]
+            ],
         )
 
         # Act
@@ -95,7 +120,7 @@ class TestAzureGenerator:
 
         # Assert
         assert "schedules:" in yaml_output
-        assert "cron: \"0 2 * * *\"" in yaml_output
+        assert 'cron: "0 2 * * *"' in yaml_output
         assert "displayName: Scheduled build" in yaml_output
         assert "branches:" in yaml_output
         assert "include:" in yaml_output
@@ -105,10 +130,7 @@ class TestAzureGenerator:
         """Test generating pipeline with environment variables"""
         pipeline = UniversalPipeline(
             name="env_test",
-            global_environment={
-                "ENV": "production",
-                "DEBUG": "false"
-            },
+            global_environment={"ENV": "production", "DEBUG": "false"},
             stages=[
                 Stage(
                     name="Deploy",
@@ -117,15 +139,19 @@ class TestAzureGenerator:
                             name="deploy",
                             environment={
                                 "DEPLOY_ENV": "prod",
-                                "API_KEY": "$(secret-api-key)"
+                                "API_KEY": "$(secret-api-key)",
                             },
                             steps=[
-                                Step(name="Deploy", type=StepType.DEPLOY, command="echo Deploying to production")
-                            ]
+                                Step(
+                                    name="Deploy",
+                                    type=StepType.DEPLOY,
+                                    command="echo Deploying to production",
+                                )
+                            ],
                         )
-                    ]
+                    ],
                 )
-            ]
+            ],
         )
 
         # Act

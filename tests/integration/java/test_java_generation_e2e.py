@@ -1,6 +1,5 @@
 """End-to-end test: SpecQL YAML → Java Spring Boot code"""
 
-import pytest
 from src.core.specql_parser import SpecQLParser
 from src.generators.java.entity_generator import JavaEntityGenerator
 from src.generators.java.repository_generator import JavaRepositoryGenerator

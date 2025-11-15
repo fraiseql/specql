@@ -7,7 +7,7 @@ Implements PathGenerator protocol for use with HierarchicalFileWriter.
 
 from pathlib import Path
 
-from src.generators.schema.code_parser import ReadSideCodeParser, ReadSideCodeComponents
+from src.generators.schema.code_parser import ReadSideCodeParser
 from src.generators.schema.hierarchical_file_writer import FileSpec, PathGenerator
 
 

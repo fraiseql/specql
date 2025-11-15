@@ -23,7 +23,9 @@ def crm_entity():
         description="Customer contact",
         fields={
             "email": FieldDefinition(name="email", type_name="text", nullable=False),
-            "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company"),
+            "company": FieldDefinition(
+                name="company", type_name="ref", reference_entity="Company"
+            ),
         },
     )
 
@@ -143,14 +145,18 @@ class TestFrameworkSchemas:
 class TestTrinityHelperGeneration:
     """Test Trinity helpers respect multi-tenant flag"""
 
-    def test_multi_tenant_helpers_have_tenant_param(self, trinity_helper_generator, crm_entity):
+    def test_multi_tenant_helpers_have_tenant_param(
+        self, trinity_helper_generator, crm_entity
+    ):
         """Multi-tenant entities should have tenant_id in helper functions"""
         result = trinity_helper_generator.generate_all_helpers(crm_entity)
 
         # Should have tenant_id parameter in pk/id/identifier helpers
         assert "tenant_id UUID" in result
 
-    def test_shared_helpers_no_tenant_param(self, trinity_helper_generator, catalog_entity):
+    def test_shared_helpers_no_tenant_param(
+        self, trinity_helper_generator, catalog_entity
+    ):
         """Shared entities should NOT have tenant_id in helpers"""
         result = trinity_helper_generator.generate_all_helpers(catalog_entity)
 
@@ -158,7 +164,9 @@ class TestTrinityHelperGeneration:
         # (Check that tenant_id is not in function signatures)
         lines = result.split("\n")
         function_lines = [
-            l for l in lines if "CREATE FUNCTION" in l or "CREATE OR REPLACE FUNCTION" in l
+            line
+            for line in lines
+            if "CREATE FUNCTION" in line or "CREATE OR REPLACE FUNCTION" in line
         ]
 
         for line in function_lines:

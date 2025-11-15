@@ -2,8 +2,6 @@
 Integration tests for TypeScript parser.
 """
 
-import pytest
-from pathlib import Path
 from src.parsers.typescript.typescript_parser import TypeScriptParser
 
 
@@ -31,11 +29,11 @@ class TestTypeScriptParser:
         # Check fields
         id_field = next(f for f in entity.fields if f.name == "id")
         assert id_field.type.value == "integer"
-        assert id_field.required == True
+        assert id_field.required  is True
 
         name_field = next(f for f in entity.fields if f.name == "name")
         assert name_field.type.value == "text"
-        assert name_field.required == True
+        assert name_field.required  is True
 
     def test_parse_optional_fields(self):
         """Test parsing optional fields."""
@@ -57,17 +55,17 @@ class TestTypeScriptParser:
 
         # Required fields
         id_field = next(f for f in entity.fields if f.name == "id")
-        assert id_field.required == True
+        assert id_field.required  is True
 
         name_field = next(f for f in entity.fields if f.name == "name")
-        assert name_field.required == True
+        assert name_field.required  is True
 
         # Optional fields
         desc_field = next(f for f in entity.fields if f.name == "description")
-        assert desc_field.required == False
+        assert not desc_field.required
 
         price_field = next(f for f in entity.fields if f.name == "price")
-        assert price_field.required == False
+        assert not price_field.required
 
     def test_parse_array_types(self):
         """Test parsing array types."""

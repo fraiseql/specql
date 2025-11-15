@@ -1,6 +1,5 @@
 """Generate large test dataset for performance testing"""
 
-import os
 from pathlib import Path
 
 
@@ -241,9 +240,9 @@ def generate_schema_file(schema_path: Path, num_models: int):
         created_by -> Nullable<Uuid>,
         updated_by -> Nullable<Uuid>,"""
 
-        content += f"""
-    }}
-}}
+        content += """
+    }
+}
 
 """
 

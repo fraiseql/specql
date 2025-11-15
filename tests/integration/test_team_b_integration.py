@@ -138,8 +138,8 @@ class TestTeamBIntegration:
 
         # Generate DDL
         ddl = table_generator.generate_table_ddl(entity)
-        fk_ddl = table_generator.generate_foreign_keys_ddl(entity)
-        idx_ddl = table_generator.generate_indexes_ddl(entity)
+        table_generator.generate_foreign_keys_ddl(entity)
+        table_generator.generate_indexes_ddl(entity)
 
         # Basic syntax checks
         assert ddl.strip().endswith(";")

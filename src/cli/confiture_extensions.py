@@ -76,7 +76,6 @@ def generate(
 
     # Handle pattern-based multi-language generation
     if target:
-        from src.pattern_library.pattern_based_compiler import PatternBasedCompiler
         from tests.integration.test_pattern_library_multilang import (
             MultiLanguageGenerator,
         )
@@ -214,10 +213,10 @@ def generate(
             foundation_only=foundation_only,
             include_tv=include_tv,
         )
-        print(f"DEBUG: result = {result}")
-        print(f"DEBUG: result type = {type(result)}")
+        # print(f"DEBUG: result = {result}")
+        # print(f"DEBUG: result type = {type(result)}")
     except Exception as e:
-        print(f"DEBUG: Exception in generate_from_files: {e}")
+        # print(f"DEBUG: Exception in generate_from_files: {e}")
         import traceback
 
         traceback.print_exc()
@@ -463,7 +462,6 @@ def instantiate(template_name, entity_name, output, custom_fields, config):
         if "." in template_name:
             namespace, template = template_name.split(".", 1)
         else:
-            namespace = None
             template = template_name
 
         # Load custom fields if provided
@@ -586,12 +584,12 @@ def list_frameworks():
 specql.add_command(registry, name="registry")
 
 # Add domain management commands (PostgreSQL primary)
-from src.presentation.cli.domain import domain
+from src.presentation.cli.domain import domain  # noqa: E402
 
 specql.add_command(domain, name="domain")
 
 # Add reverse engineering command
-from src.cli.reverse import reverse
+from src.cli.reverse import reverse  # noqa: E402
 
 specql.add_command(reverse)
 
@@ -749,7 +747,7 @@ def parse_plpgsql(
         if connection_string:
             # Parse live database
             if verbose:
-                click.echo(f"🔌 Connecting to database...")
+                click.echo("🔌 Connecting to database...")
 
             parsed_entities = parser.parse_database(
                 connection_string,
@@ -795,7 +793,7 @@ def parse_plpgsql(
         ]
 
         # Summary
-        click.echo(f"\n📊 Parsing Summary:")
+        click.echo("\n📊 Parsing Summary:")
         click.echo(f"  Files processed: {total_files}")
         click.echo(f"  Total entities: {total_entities}")
         click.echo(f"  High confidence: {len(high_confidence_entities)}")
@@ -803,7 +801,6 @@ def parse_plpgsql(
 
         if high_confidence_entities and output_dir and not preview:
             # Write YAML files
-            import yaml
             from pathlib import Path
 
             output_path = Path(output_dir)
@@ -823,7 +820,7 @@ def parse_plpgsql(
 
         elif preview:
             # Show preview
-            click.echo(f"\n👀 Preview:")
+            click.echo("\n👀 Preview:")
             for entity in high_confidence_entities[:5]:  # Show first 5
                 click.echo(f"  • {entity.name} ({entity.schema})")
                 click.echo(f"    Fields: {len(entity.fields)}")
@@ -889,3 +886,4 @@ def _entity_to_yaml(entity) -> str:
 
 if __name__ == "__main__":
     specql()
+# ruff: noqa: E402

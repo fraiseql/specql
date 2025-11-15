@@ -40,7 +40,7 @@ class TestRichTypeValidationStepCompiler:
 
     def test_email_validation_pattern(self, contact_entity):
         """Test that email validation uses correct regex pattern"""
-        compiler = ValidationStepCompiler()
+        ValidationStepCompiler()
         parser = ExpressionParser(contact_entity)
 
         # Test MATCHES expression with email
@@ -50,7 +50,7 @@ class TestRichTypeValidationStepCompiler:
 
     def test_phone_validation_pattern(self, contact_entity):
         """Test that phone validation uses E.164 pattern"""
-        compiler = ValidationStepCompiler()
+        ValidationStepCompiler()
         parser = ExpressionParser(contact_entity)
 
         # Test MATCHES expression with phone
@@ -60,7 +60,7 @@ class TestRichTypeValidationStepCompiler:
 
     def test_validate_rich_type_field(self, contact_entity):
         """Test VALIDATE expression for rich type fields"""
-        compiler = ValidationStepCompiler()
+        ValidationStepCompiler()
         parser = ExpressionParser(contact_entity)
 
         # Test VALIDATE expression
@@ -71,7 +71,7 @@ class TestRichTypeValidationStepCompiler:
 
     def test_validate_phone_field(self, contact_entity):
         """Test VALIDATE expression for phone fields"""
-        compiler = ValidationStepCompiler()
+        ValidationStepCompiler()
         parser = ExpressionParser(contact_entity)
 
         # Test VALIDATE expression for phone
@@ -82,7 +82,7 @@ class TestRichTypeValidationStepCompiler:
 
     def test_validate_money_field(self, contact_entity):
         """Test VALIDATE expression for money fields"""
-        compiler = ValidationStepCompiler()
+        ValidationStepCompiler()
         parser = ExpressionParser(contact_entity)
 
         # Test VALIDATE expression for money
@@ -92,7 +92,7 @@ class TestRichTypeValidationStepCompiler:
 
     def test_validate_percentage_field(self, contact_entity):
         """Test VALIDATE expression for percentage fields"""
-        compiler = ValidationStepCompiler()
+        ValidationStepCompiler()
         parser = ExpressionParser(contact_entity)
 
         # Test VALIDATE expression for percentage
@@ -103,7 +103,7 @@ class TestRichTypeValidationStepCompiler:
 
     def test_legacy_pattern_names(self, contact_entity):
         """Test backward compatibility with legacy pattern names"""
-        compiler = ValidationStepCompiler()
+        ValidationStepCompiler()
         parser = ExpressionParser(contact_entity)
 
         # Test legacy email_pattern
@@ -118,7 +118,7 @@ class TestRichTypeValidationStepCompiler:
 
     def test_invalid_rich_type_validation(self, contact_entity):
         """Test error handling for invalid rich type validation"""
-        compiler = ValidationStepCompiler()
+        ValidationStepCompiler()
         parser = ExpressionParser(contact_entity)
 
         # Test VALIDATE on non-rich-type field

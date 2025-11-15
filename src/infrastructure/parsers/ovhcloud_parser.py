@@ -6,14 +6,21 @@ Parses OVHcloud API responses, CLI output, or configuration files.
 """
 
 import json
-from typing import Dict, Any, Optional
-from src.infrastructure.universal_infra_schema import *
+from typing import Dict, Any
+from src.infrastructure.universal_infra_schema import (
+    UniversalInfrastructure,
+    BareMetalConfig,
+    CloudProvider,
+    ContainerConfig,
+)
 
 
 class OVHcloudParser:
     """Parse OVHcloud configurations to universal format"""
 
-    def parse_dedicated_server(self, server_data: Dict[str, Any]) -> UniversalInfrastructure:
+    def parse_dedicated_server(
+        self, server_data: Dict[str, Any]
+    ) -> UniversalInfrastructure:
         """
         Parse OVHcloud dedicated server data to UniversalInfrastructure
 
@@ -24,14 +31,17 @@ class OVHcloudParser:
             UniversalInfrastructure object with bare_metal config
         """
         # Extract server information
-        server_name = server_data.get("name", server_data.get("displayName", "ovh-server"))
+        server_name = server_data.get(
+            "name", server_data.get("displayName", "ovh-server")
+        )
         datacenter = server_data.get("datacenter", server_data.get("region", "GRA1"))
         os = self._extract_os(server_data)
-        ip = server_data.get("ip", "")
 
         # Map OVHcloud server model to specs
         server_model = server_data.get("commercialRange", "")
-        cpu_cores, ram_gb, storage_gb = self._map_server_specs(server_model, server_data)
+        cpu_cores, ram_gb, storage_gb = self._map_server_specs(
+            server_model, server_data
+        )
 
         # Create bare metal config
         bare_metal = BareMetalConfig(
@@ -48,7 +58,7 @@ class OVHcloudParser:
         infra = UniversalInfrastructure(
             name=server_name,
             description=f"OVHcloud dedicated server {server_model}",
-            service_type="bare-metal",
+            service_type="api",
             provider=CloudProvider.OVHCLOUD,
             region=datacenter,
             environment="production",
@@ -57,7 +67,9 @@ class OVHcloudParser:
 
         # Add container if present
         if "containers" in server_data or "docker" in server_data:
-            container_data = server_data.get("containers", server_data.get("docker", {}))
+            container_data = server_data.get(
+                "containers", server_data.get("docker", {})
+            )
             if container_data:
                 infra.container = ContainerConfig(
                     image=container_data.get("image", "nginx:latest"),
@@ -96,13 +108,13 @@ class OVHcloudParser:
             UniversalInfrastructure object
         """
         # Parse CLI output format (simplified - would need to handle actual CLI formats)
-        lines = cli_output.strip().split('\n')
+        lines = cli_output.strip().split("\n")
         server_data = {}
 
         for line in lines:
-            if ':' in line:
-                key, value = line.split(':', 1)
-                key = key.strip().lower().replace(' ', '_')
+            if ":" in line:
+                key, value = line.split(":", 1)
+                key = key.strip().lower().replace(" ", "_")
                 value = value.strip()
                 server_data[key] = value
 
@@ -137,7 +149,9 @@ class OVHcloudParser:
         else:
             return "ubuntu2204"  # Default
 
-    def _map_server_specs(self, server_model: str, server_data: Dict[str, Any]) -> tuple[int, int, int]:
+    def _map_server_specs(
+        self, server_model: str, server_data: Dict[str, Any]
+    ) -> tuple[int, int, int]:
         """Map OVHcloud server model to CPU cores, RAM GB, and storage GB"""
         # OVHcloud server model mappings (approximate)
         model_specs = {
@@ -160,7 +174,9 @@ class OVHcloudParser:
 
         # Fallback to extracting from server data
         cpu_cores = server_data.get("cpu", {}).get("cores", 4)
-        ram_gb = server_data.get("memory", {}).get("size", 16) // 1024 // 1024 // 1024  # Convert bytes to GB
+        ram_gb = (
+            server_data.get("memory", {}).get("size", 16) // 1024 // 1024 // 1024
+        )  # Convert bytes to GB
         storage_gb = 0
 
         # Sum up storage
@@ -168,6 +184,8 @@ class OVHcloudParser:
         if isinstance(storages, list):
             for storage in storages:
                 if isinstance(storage, dict):
-                    storage_gb += storage.get("size", 0) // 1024 // 1024 // 1024  # Convert bytes to GB
+                    storage_gb += (
+                        storage.get("size", 0) // 1024 // 1024 // 1024
+                    )  # Convert bytes to GB
 
         return cpu_cores, max(ram_gb, 1), max(storage_gb, 20)

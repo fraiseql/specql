@@ -154,7 +154,7 @@ def test_parser_produces_universal_ast():
     email_field = entity.fields[0]
     assert email_field.name == "email"
     assert email_field.type == FieldType.TEXT
-    assert email_field.required == True
+    assert email_field.required  is True
 
     company_field = entity.fields[1]
     assert company_field.name == "company"

@@ -1,6 +1,5 @@
 """Test Spring Data repository generation"""
 
-import pytest
 from src.core.universal_ast import UniversalEntity, UniversalField, FieldType
 from src.generators.java.repository_generator import JavaRepositoryGenerator
 

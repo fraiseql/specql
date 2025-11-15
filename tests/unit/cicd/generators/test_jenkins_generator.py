@@ -2,7 +2,15 @@
 
 import pytest
 from src.cicd.generators.jenkins_generator import JenkinsGenerator
-from src.cicd.universal_pipeline_schema import *
+from src.cicd.universal_pipeline_schema import (
+    UniversalPipeline,
+    Trigger,
+    TriggerType,
+    Stage,
+    Job,
+    Step,
+    StepType,
+)
 
 
 class TestJenkinsGenerator:
@@ -24,10 +32,14 @@ class TestJenkinsGenerator:
                             name="build",
                             steps=[
                                 Step(name="Checkout", type=StepType.CHECKOUT),
-                                Step(name="Install deps", type=StepType.INSTALL_DEPS, command="pip install -r requirements.txt"),
-                            ]
+                                Step(
+                                    name="Install deps",
+                                    type=StepType.INSTALL_DEPS,
+                                    command="pip install -r requirements.txt",
+                                ),
+                            ],
                         )
-                    ]
+                    ],
                 ),
                 Stage(
                     name="Test",
@@ -35,12 +47,16 @@ class TestJenkinsGenerator:
                         Job(
                             name="test",
                             steps=[
-                                Step(name="Run tests", type=StepType.RUN_TESTS, command="pytest")
-                            ]
+                                Step(
+                                    name="Run tests",
+                                    type=StepType.RUN_TESTS,
+                                    command="pytest",
+                                )
+                            ],
                         )
-                    ]
-                )
-            ]
+                    ],
+                ),
+            ],
         )
 
         # Act
@@ -59,9 +75,7 @@ class TestJenkinsGenerator:
         """Test generating pipeline with triggers"""
         pipeline = UniversalPipeline(
             name="nightly",
-            triggers=[
-                Trigger(type=TriggerType.SCHEDULE, schedule="H 2 * * *")
-            ],
+            triggers=[Trigger(type=TriggerType.SCHEDULE, schedule="H 2 * * *")],
             stages=[
                 Stage(
                     name="Test",
@@ -69,12 +83,16 @@ class TestJenkinsGenerator:
                         Job(
                             name="test",
                             steps=[
-                                Step(name="Run tests", type=StepType.RUN, command="pytest")
-                            ]
+                                Step(
+                                    name="Run tests",
+                                    type=StepType.RUN,
+                                    command="pytest",
+                                )
+                            ],
                         )
-                    ]
+                    ],
                 )
-            ]
+            ],
         )
 
         # Act
@@ -88,7 +106,10 @@ class TestJenkinsGenerator:
         """Test generating pipeline with environment variables"""
         pipeline = UniversalPipeline(
             name="with_env",
-            global_environment={"DATABASE_URL": "postgres://localhost", "API_KEY": "secret"},
+            global_environment={
+                "DATABASE_URL": "postgres://localhost",
+                "API_KEY": "secret",
+            },
             stages=[
                 Stage(
                     name="Deploy",
@@ -96,12 +117,16 @@ class TestJenkinsGenerator:
                         Job(
                             name="deploy",
                             steps=[
-                                Step(name="Deploy app", type=StepType.RUN, command="deploy.sh")
-                            ]
+                                Step(
+                                    name="Deploy app",
+                                    type=StepType.RUN,
+                                    command="deploy.sh",
+                                )
+                            ],
                         )
-                    ]
+                    ],
                 )
-            ]
+            ],
         )
 
         # Act

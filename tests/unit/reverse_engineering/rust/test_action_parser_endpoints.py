@@ -4,7 +4,6 @@ Unit tests for RustActionParser endpoint extraction.
 Tests the extract_endpoints and extract_actions methods.
 """
 
-import pytest
 import tempfile
 import os
 from pathlib import Path

@@ -4,7 +4,6 @@ Tests for Table Generator (Team B)
 
 import pytest
 
-from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.schema_registry import SchemaRegistry
 from src.generators.table_generator import TableGenerator
 from tests.fixtures.mock_entities import (

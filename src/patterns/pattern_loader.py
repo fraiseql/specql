@@ -62,7 +62,9 @@ class PatternLoader:
         pattern_path = self.stdlib_path / f"{pattern_name}.yaml"
 
         if not pattern_path.exists():
-            raise FileNotFoundError(f"Pattern '{pattern_name}' not found at {pattern_path}")
+            raise FileNotFoundError(
+                f"Pattern '{pattern_name}' not found at {pattern_path}"
+            )
 
         try:
             with open(pattern_path, "r") as f:
@@ -75,7 +77,9 @@ class PatternLoader:
         except yaml.YAMLError as e:
             raise ValueError(f"Invalid YAML in pattern '{pattern_name}': {e}")
 
-    def validate_config(self, pattern: PatternDefinition, config: Dict[str, Any]) -> List[str]:
+    def validate_config(
+        self, pattern: PatternDefinition, config: Dict[str, Any]
+    ) -> List[str]:
         """Validate a configuration against a pattern.
 
         Args:
@@ -112,7 +116,7 @@ class PatternLoader:
         entity: Any,  # EntityDefinition - avoiding circular import
         config: Dict[str, Any],
     ) -> ExpandedPattern:
-        print(f"DEBUG: Expanding pattern {pattern_name}")
+        # print(f"DEBUG: Expanding pattern {pattern_name}")
         """Expand a pattern template with configuration.
 
         Args:
@@ -153,7 +157,9 @@ class PatternLoader:
             steps_data = yaml.safe_load(rendered)
             steps = steps_data.get("steps", [])
 
-            return ExpandedPattern(pattern_name=pattern.name, config=config, expanded_steps=steps)
+            return ExpandedPattern(
+                pattern_name=pattern.name, config=config, expanded_steps=steps
+            )
 
         except yaml.YAMLError as e:
             raise ValueError(f"Failed to parse expanded pattern template: {e}")
@@ -171,7 +177,9 @@ class PatternLoader:
             for yaml_file in self.stdlib_path.rglob("*.yaml"):
                 if yaml_file.is_file():
                     relative_path = yaml_file.relative_to(self.stdlib_path)
-                    pattern_name = str(relative_path).replace(".yaml", "").replace("\\", "/")
+                    pattern_name = (
+                        str(relative_path).replace(".yaml", "").replace("\\", "/")
+                    )
                     patterns.append(pattern_name)
         return sorted(patterns)
 

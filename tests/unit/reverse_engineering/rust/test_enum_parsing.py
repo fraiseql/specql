@@ -2,11 +2,8 @@
 Tests for enum parsing in Rust files.
 """
 
-import pytest
 from src.reverse_engineering.rust_parser import (
     RustParser,
-    RustEnumInfo,
-    RustEnumVariantInfo,
 )
 
 

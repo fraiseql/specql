@@ -1,6 +1,5 @@
 """Integration test for declare + cte compilation"""
 
-import pytest
 from src.core.specql_parser import SpecQLParser
 
 

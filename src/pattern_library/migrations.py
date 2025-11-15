@@ -1,8 +1,7 @@
 """Migration utilities for pattern library schema updates"""
 
 import sqlite3
-from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 
 class MigrationManager:

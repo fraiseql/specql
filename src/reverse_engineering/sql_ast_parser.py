@@ -5,7 +5,7 @@ Converts PostgreSQL SQL to AST for analysis
 """
 
 import pglast
-from typing import Any, Dict, List, Optional
+from typing import Dict, List, Optional
 from dataclasses import dataclass
 
 

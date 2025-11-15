@@ -60,12 +60,15 @@ class SpecQLGenerator:
                 if isinstance(step_item, str):
                     # Simple step like "validate: status = 'lead'"
                     step_type, expression = step_item.split(":", 1)
-                    step = ActionStep(type=step_type.strip(), expression=expression.strip())
+                    step = ActionStep(
+                        type=step_type.strip(), expression=expression.strip()
+                    )
                 elif isinstance(step_item, dict):
                     # Complex step with additional properties
                     step = ActionStep(
                         type=step_item.get("type") or list(step_item.keys())[0],
-                        expression=step_item.get("validate") or step_item.get("expression"),
+                        expression=step_item.get("validate")
+                        or step_item.get("expression"),
                         entity=step_item.get("entity"),
                         fields=step_item.get("fields"),
                     )
@@ -82,10 +85,16 @@ class SpecQLGenerator:
             )
 
         return Entity(
-            name=entity_name, schema=schema, description=description, fields=fields, actions=actions
+            name=entity_name,
+            schema=schema,
+            description=description,
+            fields=fields,
+            actions=actions,
         )
 
-    def _parse_field_type(self, field_name: str, type_annotation: str) -> FieldDefinition:
+    def _parse_field_type(
+        self, field_name: str, type_annotation: str
+    ) -> FieldDefinition:
         """Parse SpecQL type annotation into FieldDefinition"""
         type_annotation = type_annotation.strip()
 
@@ -108,36 +117,9 @@ class SpecQLGenerator:
 
         # Simple types
         else:
-            return FieldDefinition(name=field_name, type_name=type_annotation, nullable=True)
-
-        # Convert actions
-        actions = []
-        for action_data in entity_data.get("actions", []):
-            steps = []
-            for step_data in action_data.get("steps", []):
-                steps.append(
-                    ActionStep(
-                        type=step_data["type"],
-                        expression=step_data.get("expression"),
-                        entity=step_data.get("entity"),
-                        fields=step_data.get("fields"),
-                    )
-                )
-
-            actions.append(
-                Action(
-                    name=action_data["name"],
-                    steps=steps,
-                )
+            return FieldDefinition(
+                name=field_name, type_name=type_annotation, nullable=True
             )
-
-        return Entity(
-            name=entity_data["name"],
-            schema=entity_data["schema"],
-            description=entity_data["description"],
-            fields=fields,
-            actions=actions,
-        )
 
     def generate_entity_sql(self, entity: Entity) -> str:
         """Generate complete SQL for an entity using SchemaOrchestrator"""

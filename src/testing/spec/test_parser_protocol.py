@@ -10,11 +10,12 @@ from typing import Protocol, List, Dict, Any, Optional
 from dataclasses import dataclass
 from enum import Enum
 
-from src.testing.spec.test_spec_models import TestSpec
+from src.testing.spec.spec_models import TestSpec
 
 
 class TestSourceLanguage(Enum):
     """Supported test languages"""
+
     PGTAP = "pgtap"
     PYTEST = "pytest"
     JEST = "jest"
@@ -28,9 +29,10 @@ class ParsedTest:
     Intermediate representation after parsing test source
     (language-specific but structured)
     """
+
     test_name: str
     source_language: TestSourceLanguage
-    test_functions: List['ParsedTestFunction']
+    test_functions: List["ParsedTestFunction"]
     fixtures: List[Dict[str, Any]]
     imports: List[str]
     metadata: Dict[str, Any]
@@ -39,6 +41,7 @@ class ParsedTest:
 @dataclass
 class ParsedTestFunction:
     """Single test function/case"""
+
     function_name: str
     docstring: Optional[str]
     decorators: List[str]
@@ -56,7 +59,9 @@ class TestParser(Protocol):
         """Parse test source file to intermediate representation"""
         ...
 
-    def extract_assertions(self, test_function: ParsedTestFunction) -> List[Dict[str, Any]]:
+    def extract_assertions(
+        self, test_function: ParsedTestFunction
+    ) -> List[Dict[str, Any]]:
         """Extract assertions from test function"""
         ...
 
@@ -77,11 +82,7 @@ class TestSpecMapper:
     This is the key component that enables cross-language test equivalence
     """
 
-    def map_to_test_spec(
-        self,
-        parsed_test: ParsedTest,
-        entity_name: str
-    ) -> TestSpec:
+    def map_to_test_spec(self, parsed_test: ParsedTest, entity_name: str) -> TestSpec:
         """
         Convert language-specific ParsedTest to universal TestSpec
 
@@ -94,7 +95,7 @@ class TestSpecMapper:
         """
         raise NotImplementedError("Implement in subclass")
 
-    def categorize_scenario(self, test_function: ParsedTestFunction) -> 'ScenarioCategory':
+    def categorize_scenario(self, test_function: ParsedTestFunction):
         """
         Determine scenario category from test function
 
@@ -104,20 +105,26 @@ class TestSpecMapper:
             - "edge", "boundary", "limit" → EDGE_CASE/BOUNDARY
             - "security", "auth", "permission" → SECURITY
         """
-        from src.testing.spec.test_spec_models import ScenarioCategory
+        from src.testing.spec.spec_models import ScenarioCategory
 
         function_name = test_function.function_name.lower()
         docstring = (test_function.docstring or "").lower()
 
         combined = function_name + " " + docstring
 
-        if any(word in combined for word in ["error", "fail", "invalid", "raises", "exception"]):
+        if any(
+            word in combined
+            for word in ["error", "fail", "invalid", "raises", "exception"]
+        ):
             return ScenarioCategory.ERROR_CASE
         elif any(word in combined for word in ["edge", "extreme"]):
             return ScenarioCategory.EDGE_CASE
         elif any(word in combined for word in ["boundary", "limit", "max", "min"]):
             return ScenarioCategory.BOUNDARY
-        elif any(word in combined for word in ["security", "auth", "permission", "unauthorized"]):
+        elif any(
+            word in combined
+            for word in ["security", "auth", "permission", "unauthorized"]
+        ):
             return ScenarioCategory.SECURITY
         elif any(word in combined for word in ["performance", "speed", "benchmark"]):
             return ScenarioCategory.PERFORMANCE

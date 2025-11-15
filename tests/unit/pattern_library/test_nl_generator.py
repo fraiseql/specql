@@ -1,7 +1,6 @@
 """Unit tests for NL Pattern Generator."""
 
 import pytest
-import json
 from unittest.mock import Mock, patch, MagicMock
 from src.pattern_library.nl_generator import NLPatternGenerator
 

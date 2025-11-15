@@ -16,7 +16,9 @@ from src.utils.safe_slug import safe_slug, safe_table_name
 class CoreLogicGenerator:
     """Generates core layer business logic functions"""
 
-    def __init__(self, schema_registry: SchemaRegistry, templates_dir: str = "templates/sql"):
+    def __init__(
+        self, schema_registry: SchemaRegistry, templates_dir: str = "templates/sql"
+    ):
         self.schema_registry = schema_registry
         self.templates_dir = templates_dir
         self.env = Environment(loader=FileSystemLoader(templates_dir))
@@ -172,18 +174,24 @@ class CoreLogicGenerator:
     def _generate_fk_resolutions(self, entity: Entity) -> list[dict[str, Any]]:
         """Generate UUID → INTEGER FK resolutions using Trinity helpers"""
         resolutions = []
-        is_tenant_specific = self._is_tenant_specific_schema(entity.schema)
+        self._is_tenant_specific_schema(entity.schema)
 
         for field_name, field_def in entity.fields.items():
             if field_def.type_name == "ref" and field_def.reference_entity:
                 # Check if target entity is in tenant-specific schema
-                target_is_tenant_specific = self._is_tenant_specific_schema(entity.schema)
+                target_is_tenant_specific = self._is_tenant_specific_schema(
+                    entity.schema
+                )
 
                 input_field_ref = f"input_data.{field_name}_id::TEXT"
-                helper_function_name = f"{entity.schema}.{field_def.reference_entity.lower()}_pk"
+                helper_function_name = (
+                    f"{entity.schema}.{field_def.reference_entity.lower()}_pk"
+                )
 
                 if target_is_tenant_specific:
-                    helper_call = f"{helper_function_name}({input_field_ref}, auth_tenant_id)"
+                    helper_call = (
+                        f"{helper_function_name}({input_field_ref}, auth_tenant_id)"
+                    )
                 else:
                     helper_call = f"{helper_function_name}({input_field_ref})"
 
@@ -255,7 +263,7 @@ class CoreLogicGenerator:
         """
         # Compile action steps
         compiled_steps = self._compile_action_steps(action, entity)
-        print(f"DEBUG: compiled_steps for {action.name}: {compiled_steps}")
+        # print(f"DEBUG: compiled_steps for {action.name}: {compiled_steps}")
 
         # Extract variable declarations
         declarations = self._extract_declarations(action, entity)
@@ -286,15 +294,21 @@ class CoreLogicGenerator:
         for step in action.steps:
             if step.type == "validate" and step.expression:
                 # Extract fields used in validation
-                fields_in_validation = self._extract_fields_from_expression(step.expression, entity)
+                fields_in_validation = self._extract_fields_from_expression(
+                    step.expression, entity
+                )
 
                 # Fetch current values for validation
                 if fields_in_validation:
                     table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
                     select_fields = ", ".join(fields_in_validation)
-                    select_into = ", ".join(f"v_current_{field}" for field in fields_in_validation)
+                    select_into = ", ".join(
+                        f"v_current_{field}" for field in fields_in_validation
+                    )
 
-                    compiled.append(f"-- Fetch current values for validation: {step.expression}")
+                    compiled.append(
+                        f"-- Fetch current values for validation: {step.expression}"
+                    )
                     compiled.append(
                         f"RAISE NOTICE 'Before SELECT: v_{entity.name.lower()}_id=%, auth_tenant_id=%', v_{entity.name.lower()}_id, auth_tenant_id;"
                     )
@@ -309,7 +323,9 @@ class CoreLogicGenerator:
                 # Replace field references with v_current_* variables
                 expression = step.expression
                 for field_name in fields_in_validation:
-                    expression = expression.replace(field_name, f"v_current_{field_name}")
+                    expression = expression.replace(
+                        field_name, f"v_current_{field_name}"
+                    )
 
                 # Use custom error message if provided, otherwise default
                 error_message = (
@@ -329,7 +345,9 @@ class CoreLogicGenerator:
                     + f"'{entity.name.lower()}', v_{entity.name.lower()}_id,"
                 )
                 compiled.append("        'CUSTOM', 'failed:validation_error',")
-                compiled.append(f"        ARRAY[]::TEXT[], '{error_message}', NULL, NULL")
+                compiled.append(
+                    f"        ARRAY[]::TEXT[], '{error_message}', NULL, NULL"
+                )
                 compiled.append("    );")
                 compiled.append("END IF;")
 
@@ -349,10 +367,14 @@ class CoreLogicGenerator:
                     step.fields.get("partial_updates", False) if step.fields else False
                 )
                 track_updated_fields = (
-                    step.fields.get("track_updated_fields", False) if step.fields else False
+                    step.fields.get("track_updated_fields", False)
+                    if step.fields
+                    else False
                 )
                 recalculate_identifier = (
-                    step.fields.get("recalculate_identifier", False) if step.fields else False
+                    step.fields.get("recalculate_identifier", False)
+                    if step.fields
+                    else False
                 )
                 refresh_projection = (
                     step.fields.get("refresh_projection", None) if step.fields else None
@@ -364,9 +386,13 @@ class CoreLogicGenerator:
                 if step.fields:
                     if partial_updates:
                         # Generate CASE expressions for partial updates
-                        assignments = self._generate_partial_update_assignments(entity, step.fields)
+                        assignments = self._generate_partial_update_assignments(
+                            entity, step.fields
+                        )
                         if track_updated_fields:
-                            tracking_code = self._generate_field_tracking(entity, step.fields)
+                            tracking_code = self._generate_field_tracking(
+                                entity, step.fields
+                            )
                     else:
                         # Full update (existing logic)
                         for field, value in step.fields.items():
@@ -383,7 +409,9 @@ class CoreLogicGenerator:
                                 assignments.append(f"{field} = {repr(value)}")
 
                         # Add audit fields
-                        assignments.extend(["updated_at = now()", "updated_by = auth_user_id"])
+                        assignments.extend(
+                            ["updated_at = now()", "updated_by = auth_user_id"]
+                        )
 
                 if partial_updates:
                     compiled.append(f"UPDATE {table_name}")
@@ -404,7 +432,9 @@ class CoreLogicGenerator:
                 # Add projection refresh if requested
                 if refresh_projection:
                     compiled.append(
-                        self._generate_projection_refresh_call(entity, refresh_projection)
+                        self._generate_projection_refresh_call(
+                            entity, refresh_projection
+                        )
                     )
 
             elif step.type == "call":
@@ -421,7 +451,9 @@ class CoreLogicGenerator:
             elif step.type == "cte":
                 # Handle CTE step - collect CTE for use in subsequent queries
                 if step.cte_name:
-                    context.add_cte(step.cte_name, step.cte_query or "", step.cte_materialized)
+                    context.add_cte(
+                        step.cte_name, step.cte_query or "", step.cte_materialized
+                    )
 
             elif step.type == "query":
                 # Handle query step with potential CTEs
@@ -558,7 +590,9 @@ class CoreLogicGenerator:
         supports_hard_delete = (
             step.fields.get("supports_hard_delete", False) if step.fields else False
         )
-        check_dependencies = step.fields.get("check_dependencies", []) if step.fields else []
+        check_dependencies = (
+            step.fields.get("check_dependencies", []) if step.fields else []
+        )
 
         entity_lower = entity.name.lower()
         table_name = f"{entity.schema}.tb_{entity_lower}"
@@ -567,7 +601,9 @@ class CoreLogicGenerator:
 
         if supports_hard_delete and check_dependencies:
             # Generate dependency checking code
-            sql_parts.append(self._generate_dependency_check(entity, check_dependencies))
+            sql_parts.append(
+                self._generate_dependency_check(entity, check_dependencies)
+            )
 
         sql_parts.append(f"""
     -- Delete {entity.name}
@@ -709,7 +745,9 @@ class CoreLogicGenerator:
         auth_user_id
     );"""
 
-    def _generate_projection_refresh_call(self, entity: Entity, projection_name: str) -> str:
+    def _generate_projection_refresh_call(
+        self, entity: Entity, projection_name: str
+    ) -> str:
         """
         Generate call to projection refresh function
 
@@ -730,7 +768,9 @@ class CoreLogicGenerator:
         auth_tenant_id
     );"""
 
-    def _generate_partial_update_assignments(self, entity: Entity, step_fields: dict) -> list[str]:
+    def _generate_partial_update_assignments(
+        self, entity: Entity, step_fields: dict
+    ) -> list[str]:
         """
         Generate CASE expressions for partial updates
 
@@ -810,12 +850,16 @@ class CoreLogicGenerator:
         if hasattr(step, "refresh_scope") and step.refresh_scope.value == "self":
             # Refresh only this entity's tv_ row
             compiled.append("-- Refresh table view (self)")
-            compiled.append(f"PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});")
+            compiled.append(
+                f"PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});"
+            )
 
         elif hasattr(step, "refresh_scope") and step.refresh_scope.value == "propagate":
             # Refresh this entity + specific related entities
             compiled.append("-- Refresh table view (self + propagate)")
-            compiled.append(f"PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});")
+            compiled.append(
+                f"PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});"
+            )
 
             # Refresh specified related entities
             if hasattr(step, "propagate_entities") and step.propagate_entities:
@@ -823,12 +867,16 @@ class CoreLogicGenerator:
                     # For simplicity, assume same schema and basic FK naming
                     rel_lower = rel_entity_name.lower()
                     fk_var = f"v_fk_{rel_entity_name.lower()}"
-                    compiled.append(f"PERFORM {entity.schema}.refresh_tv_{rel_lower}({fk_var});")
+                    compiled.append(
+                        f"PERFORM {entity.schema}.refresh_tv_{rel_lower}({fk_var});"
+                    )
 
         elif hasattr(step, "refresh_scope") and step.refresh_scope.value == "related":
             # Refresh this entity + all entities that reference it
             compiled.append("-- Refresh table view (self + all related)")
-            compiled.append(f"PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});")
+            compiled.append(
+                f"PERFORM {entity.schema}.refresh_tv_{entity_lower}({pk_var});"
+            )
             # TODO: Implement finding dependent entities
 
         elif hasattr(step, "refresh_scope") and step.refresh_scope.value == "batch":
@@ -840,7 +888,9 @@ class CoreLogicGenerator:
 
         return compiled
 
-    def _extract_fields_from_expression(self, expression: str, entity: Entity) -> list[str]:
+    def _extract_fields_from_expression(
+        self, expression: str, entity: Entity
+    ) -> list[str]:
         """
         Extract field names referenced in a validation expression
         """
@@ -915,10 +965,14 @@ class CoreLogicGenerator:
             if step.type == "declare":
                 if step.variable_name:
                     # Single declaration
-                    pg_type = self._map_field_type_to_pg_type(step.variable_type or "text")
+                    pg_type = self._map_field_type_to_pg_type(
+                        step.variable_type or "text"
+                    )
                     default = ""
                     if step.default_value is not None:
-                        default = f" := {self._format_value_for_sql(step.default_value)}"
+                        default = (
+                            f" := {self._format_value_for_sql(step.default_value)}"
+                        )
                     declarations.append(f"{step.variable_name} {pg_type}{default}")
                 elif step.declarations:
                     # Multiple declarations
@@ -926,7 +980,9 @@ class CoreLogicGenerator:
                         pg_type = self._map_field_type_to_pg_type(decl.type)
                         default = ""
                         if decl.default_value is not None:
-                            default = f" := {self._format_value_for_sql(decl.default_value)}"
+                            default = (
+                                f" := {self._format_value_for_sql(decl.default_value)}"
+                            )
                         declarations.append(f"{decl.name} {pg_type}{default}")
 
         return declarations
@@ -936,7 +992,9 @@ class CoreLogicGenerator:
         components = snake_str.split("_")
         return components[0] + "".join(word.capitalize() for word in components[1:])
 
-    def _compile_switch_step(self, step: ActionStep, context: CompilationContext) -> str:
+    def _compile_switch_step(
+        self, step: ActionStep, context: CompilationContext
+    ) -> str:
         """
         Compile switch step to PL/pgSQL CASE WHEN or IF/ELSIF
         """
@@ -970,7 +1028,9 @@ class CoreLogicGenerator:
 
         return "\n".join(lines)
 
-    def _compile_return_early_step(self, step: ActionStep, context: CompilationContext) -> str:
+    def _compile_return_early_step(
+        self, step: ActionStep, context: CompilationContext
+    ) -> str:
         """
         Compile return_early step to PL/pgSQL RETURN
         """
@@ -980,8 +1040,8 @@ class CoreLogicGenerator:
             return "RETURN;"
         elif isinstance(return_value, dict):
             # Complex return value (mutation result)
-            success = return_value.get('success', 'false')
-            message = return_value.get('message', "''")
+            success = return_value.get("success", "false")
+            message = return_value.get("message", "''")
             return f"""RETURN ROW(
     {success}::BOOLEAN,
     {message}::TEXT,
@@ -995,4 +1055,5 @@ class CoreLogicGenerator:
     def _is_simple_switch(self, step: ActionStep) -> bool:
         """Check if switch can use simple CASE WHEN syntax"""
         from src.generators.actions.switch_optimizer import SwitchOptimizer
+
         return SwitchOptimizer.detect_simple_switch(step.cases, step.switch_expression)

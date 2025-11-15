@@ -74,7 +74,7 @@ class TypeScriptParser:
 
         for match in interface_starts:
             interface_name = match.group(1)
-            extends_clause = match.group(2) or ""
+            match.group(2) or ""
             start_pos = match.end()
 
             # Find the matching closing brace

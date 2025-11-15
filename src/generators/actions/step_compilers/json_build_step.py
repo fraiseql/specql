@@ -1,6 +1,5 @@
 """Compiler for json_build steps"""
 
-import json
 from typing import Any
 
 from src.core.ast_models import ActionStep, EntityDefinition

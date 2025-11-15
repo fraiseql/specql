@@ -2,7 +2,7 @@
 from typing import List, Optional
 from src.domain.repositories.domain_repository import DomainRepository
 from src.domain.entities.domain import Domain, Subdomain
-from src.domain.value_objects import DomainNumber, SubdomainNumber, TableCode
+from src.domain.value_objects import DomainNumber, SubdomainNumber
 from src.application.dtos.domain_dto import DomainDTO, SubdomainDTO
 from src.application.exceptions import (
     DomainAlreadyExistsError,

@@ -37,7 +37,7 @@ class TestDecimalNumberingSystem:
         orchestrator = CLIOrchestrator()
         output_dir = temp_dir / "migrations"
 
-        result = orchestrator.generate_from_files(
+        orchestrator.generate_from_files(
             entity_files=[str(sample_entity_file)], output_dir=str(output_dir)
         )
 
@@ -51,7 +51,7 @@ class TestDecimalNumberingSystem:
         orchestrator = CLIOrchestrator()
         output_dir = temp_dir / "migrations"
 
-        result = orchestrator.generate_from_files(
+        orchestrator.generate_from_files(
             entity_files=[str(sample_entity_file)], output_dir=str(output_dir)
         )
 
@@ -65,7 +65,7 @@ class TestDecimalNumberingSystem:
         orchestrator = CLIOrchestrator()
         output_dir = temp_dir / "migrations"
 
-        result = orchestrator.generate_from_files(
+        orchestrator.generate_from_files(
             entity_files=[str(sample_entity_file)], output_dir=str(output_dir)
         )
 
@@ -79,7 +79,7 @@ class TestDecimalNumberingSystem:
         orchestrator = CLIOrchestrator()
         output_dir = temp_dir / "migrations"
 
-        result = orchestrator.generate_from_files(
+        orchestrator.generate_from_files(
             entity_files=[str(sample_entity_file)], output_dir=str(output_dir)
         )
 
@@ -174,7 +174,7 @@ class TestNumberingSystemsCoexistence:
         orchestrator = CLIOrchestrator()  # Default: use_registry=False
         output_dir = temp_dir / "migrations"
 
-        result = orchestrator.generate_from_files(
+        orchestrator.generate_from_files(
             entity_files=[str(sample_entity_file)], output_dir=str(output_dir)
         )
 

@@ -4,7 +4,6 @@ Pattern deduplication service
 Uses FraiseQL 1.5 for semantic similarity via GraphQL API.
 """
 from typing import List, Dict, Any
-import numpy as np
 
 from src.application.services.pattern_service import PatternService
 from src.domain.entities.pattern import Pattern

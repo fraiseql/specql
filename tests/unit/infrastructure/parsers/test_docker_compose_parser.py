@@ -2,7 +2,7 @@
 
 import pytest
 from src.infrastructure.parsers.docker_compose_parser import DockerComposeParser
-from src.infrastructure.universal_infra_schema import *
+from src.infrastructure.universal_infra_schema import CloudProvider, DatabaseType
 
 
 class TestDockerComposeParser:

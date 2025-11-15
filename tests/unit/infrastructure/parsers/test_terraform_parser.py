@@ -2,7 +2,7 @@
 
 import pytest
 from src.infrastructure.parsers.terraform_parser import TerraformParser
-from src.infrastructure.universal_infra_schema import *
+from src.infrastructure.universal_infra_schema import CloudProvider, DatabaseType
 
 
 class TestTerraformParser:
@@ -51,7 +51,7 @@ resource "aws_db_instance" "postgres" {
         assert infra.database.type == DatabaseType.POSTGRESQL
         assert infra.database.version == "15"
         assert infra.database.storage == "100GB"
-        assert infra.database.multi_az == True
+        assert infra.database.multi_az is True
 
     def test_parse_with_load_balancer(self, parser):
         """Test parsing infrastructure with load balancer"""
@@ -104,12 +104,12 @@ resource "aws_autoscaling_group" "web_asg" {
         assert infra.provider == CloudProvider.AWS
         assert infra.compute is not None
         assert infra.compute.instances == 3
-        assert infra.compute.auto_scale == True
+        assert infra.compute.auto_scale is True
         assert infra.compute.min_instances == 2
         assert infra.compute.max_instances == 10
 
         assert infra.load_balancer is not None
-        assert infra.load_balancer.enabled == True
+        assert infra.load_balancer.enabled is True
         assert infra.load_balancer.type == "application"
 
     def test_parse_gcp_resources(self, parser):

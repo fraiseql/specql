@@ -2,7 +2,7 @@
 
 import pytest
 import time
-from unittest.mock import patch, MagicMock
+from unittest.mock import patch
 from src.cicd.performance_benchmark import PerformanceBenchmark, BenchmarkResult
 from src.cicd.universal_pipeline_schema import UniversalPipeline, Stage, Job, Step, StepType, Runtime
 

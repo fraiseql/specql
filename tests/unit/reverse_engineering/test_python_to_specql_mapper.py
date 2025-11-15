@@ -1,4 +1,3 @@
-import pytest
 from src.reverse_engineering.python_ast_parser import PythonASTParser
 from src.reverse_engineering.python_to_specql_mapper import PythonToSpecQLMapper
 

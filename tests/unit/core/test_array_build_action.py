@@ -1,6 +1,5 @@
 """Tests for array_build action"""
 
-import pytest
 from src.core.specql_parser import SpecQLParser
 
 

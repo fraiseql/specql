@@ -6,7 +6,6 @@ adding new entries, and inspecting registry contents.
 """
 
 import click
-from pathlib import Path
 
 from src.application.services.domain_service_factory import get_domain_service
 
@@ -152,7 +151,7 @@ def add_domain(code, name, description, multi_tenant):
             pass
 
         # Add domain using service
-        domain = service.register_domain(
+        service.register_domain(
             domain_number=code,
             domain_name=name,
             description=description,

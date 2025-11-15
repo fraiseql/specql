@@ -1,8 +1,5 @@
 """Round-trip testing: Prisma → SpecQL YAML → Prisma"""
 
-import pytest
-import tempfile
-from pathlib import Path
 from src.parsers.typescript.prisma_parser import PrismaParser
 from src.generators.typescript.prisma_schema_generator import PrismaSchemaGenerator
 from src.core.yaml_serializer import YAMLSerializer

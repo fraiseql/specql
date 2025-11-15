@@ -192,7 +192,9 @@ Common error codes across all mutations:
         self.docs.append("---")
         self.docs.append("")
 
-    def _add_success_fields_docs(self, entity: Entity, action: Action, indent: str) -> None:
+    def _add_success_fields_docs(
+        self, entity: Entity, action: Action, indent: str
+    ) -> None:
         """
         Add success fields documentation.
 
@@ -257,13 +259,23 @@ Common error codes across all mutations:
             self.docs.append("|-------|------|----------|-------------|")
 
             for field_name, field_def in entity.fields.items():
-                if field_name not in ["id", "created_at", "updated_at", "created_by", "updated_by"]:
+                if field_name not in [
+                    "id",
+                    "created_at",
+                    "updated_at",
+                    "created_by",
+                    "updated_by",
+                ]:
                     required = (
-                        "No" if field_def.nullable or field_def.default is not None else "Yes"
+                        "No"
+                        if field_def.nullable or field_def.default is not None
+                        else "Yes"
                     )
                     ts_type = self._field_to_typescript_doc(field_def)
                     desc = field_def.description or f"{field_name} field"
-                    self.docs.append(f"| `{field_name}` | `{ts_type}` | {required} | {desc} |")
+                    self.docs.append(
+                        f"| `{field_name}` | `{ts_type}` | {required} | {desc} |"
+                    )
 
         elif action_name.startswith("update_"):
             self.docs.append(
@@ -275,7 +287,13 @@ Common error codes across all mutations:
             self.docs.append("| `id` | `UUID` | Yes | Entity ID to update |")
 
             for field_name, field_def in entity.fields.items():
-                if field_name not in ["id", "created_at", "updated_at", "created_by", "updated_by"]:
+                if field_name not in [
+                    "id",
+                    "created_at",
+                    "updated_at",
+                    "created_by",
+                    "updated_by",
+                ]:
                     ts_type = self._field_to_typescript_doc(field_def)
                     desc = field_def.description or f"{field_name} field"
                     self.docs.append(f"| `{field_name}` | `{ts_type}` | No | {desc} |")
@@ -346,7 +364,9 @@ Common error codes across all mutations:
             self.docs.append("**Possible errors:**")
             self.docs.append("- `VALIDATION_ERROR`: Invalid input data")
             self.docs.append("- `PERMISSION_DENIED`: Insufficient permissions")
-            self.docs.append("- `CONFLICT`: Entity already exists or constraint violation")
+            self.docs.append(
+                "- `CONFLICT`: Entity already exists or constraint violation"
+            )
         elif action_name.startswith("update_"):
             self.docs.append("**Possible errors:**")
             self.docs.append("- `VALIDATION_ERROR`: Invalid input data")
@@ -357,7 +377,9 @@ Common error codes across all mutations:
             self.docs.append("**Possible errors:**")
             self.docs.append("- `NOT_FOUND`: Entity with given ID doesn't exist")
             self.docs.append("- `PERMISSION_DENIED`: Insufficient permissions")
-            self.docs.append("- `CONFLICT`: Deletion would violate referential integrity")
+            self.docs.append(
+                "- `CONFLICT`: Deletion would violate referential integrity"
+            )
 
         self.docs.append("")
 
@@ -370,9 +392,9 @@ Common error codes across all mutations:
             action: The action
         """
         action_name = action.name
-        pascal_name = self._to_pascal_case(action_name)
+        self._to_pascal_case(action_name)
         camel_name = self._to_camel_case(action_name)
-        hook_name = f"use{camel_name[0].upper()}{camel_name[1:]}"
+        f"use{camel_name[0].upper()}{camel_name[1:]}"
 
         self.docs.append("#### Usage Example")
         self.docs.append("")
@@ -381,18 +403,26 @@ Common error codes across all mutations:
         self.docs.append("import type { {pascal_name}Input } from '../types';")
         self.docs.append("")
         self.docs.append("function {entity.name}Form() {{")
-        self.docs.append("  const [{camel_name}, {{ loading, error }}] = {hook_name}();")
+        self.docs.append(
+            "  const [{camel_name}, {{ loading, error }}] = {hook_name}();"
+        )
         self.docs.append("")
-        self.docs.append("  const handleSubmit = async (input: {pascal_name}Input) => {{")
+        self.docs.append(
+            "  const handleSubmit = async (input: {pascal_name}Input) => {{"
+        )
         self.docs.append("    try {{")
         self.docs.append("      const result = await {camel_name}({{")
         self.docs.append("        variables: {{ input }},")
         self.docs.append("      }});")
         self.docs.append("")
         self.docs.append("      if (result.data?.{camel_name}.success) {{")
-        self.docs.append("        console.log('Success:', result.data.{camel_name}.data);")
+        self.docs.append(
+            "        // console.log('Success:', result.data.{camel_name}.data);"
+        )
         self.docs.append("      }} else {{")
-        self.docs.append("        console.error('Error:', result.data?.{camel_name}.error);")
+        self.docs.append(
+            "        console.error('Error:', result.data?.{camel_name}.error);"
+        )
         self.docs.append("      }}")
         self.docs.append("    }} catch (err) {{")
         self.docs.append("      console.error('Mutation failed:', err);")
@@ -426,7 +456,9 @@ Common error codes across all mutations:
 
         if action_name.startswith("create_"):
             self.docs.append("**Automatic cache updates:**")
-            self.docs.append("- Adds the new entity to any cached `{entity.name.lower()}s` queries")
+            self.docs.append(
+                "- Adds the new entity to any cached `{entity.name.lower()}s` queries"
+            )
             self.docs.append("- Updates list views immediately")
             self.docs.append("")
             self.docs.append("**Recommended:** No manual cache updates needed")
@@ -444,7 +476,9 @@ Common error codes across all mutations:
             self.docs.append("")
             self.docs.append("**Recommended:** No manual cache updates needed")
         else:
-            self.docs.append("**Cache behavior:** Custom - check mutation impacts for details")
+            self.docs.append(
+                "**Cache behavior:** Custom - check mutation impacts for details"
+            )
 
         self.docs.append("")
 
@@ -550,9 +584,7 @@ Apollo Client automatically manages cache updates for all mutations. Manual cach
         elif action_name.startswith("delete_"):
             return f"Deletes an existing {entity_name} record."
         else:
-            return (
-                f"Performs a {action_name.replace('_', ' ')} operation on a {entity_name} record."
-            )
+            return f"Performs a {action_name.replace('_', ' ')} operation on a {entity_name} record."
 
     def _field_to_typescript_doc(self, field_def) -> str:
         """

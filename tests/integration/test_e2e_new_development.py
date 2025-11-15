@@ -9,10 +9,8 @@ Workflow:
 5. Validate multi-language consistency
 """
 
-import pytest
 from pathlib import Path
 from typing import Dict, Any, List
-from src.core.specql_parser import SpecQLParser
 from src.cli.orchestrator import CLIOrchestrator
 
 
@@ -242,7 +240,7 @@ def test_new_development_crm_contact():
     assert len(entity_dict["fields"]) >= 10  # Should have all the expected fields
 
     # Step 3: Generate Django models (mock for now)
-    django_models = f"""
+    django_models = """
 class Contact(models.Model):
     id = models.UUIDField(primary_key=True)
     first_name = models.TextField()
@@ -280,7 +278,7 @@ def test_new_development_ecommerce_product():
 
     # Generate multiple targets
     pg_sql = generate_schema_from_dict(entity_yaml, target="postgresql")
-    django_models = f"""
+    django_models = """
 class Product(models.Model):
     id = models.UUIDField(primary_key=True)
     name = models.TextField()

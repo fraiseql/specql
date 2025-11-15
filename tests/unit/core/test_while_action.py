@@ -1,6 +1,5 @@
 """Tests for while loop action"""
 
-import pytest
 from src.core.specql_parser import SpecQLParser
 
 

@@ -1,8 +1,7 @@
 """Application Service for Subdomain operations"""
 from typing import List, Optional
 from src.domain.repositories.domain_repository import DomainRepository
-from src.domain.entities.domain import Domain, Subdomain
-from src.domain.value_objects import DomainNumber
+from src.domain.entities.domain import Subdomain
 from src.application.dtos.domain_dto import SubdomainDTO
 from src.application.exceptions import (
     DomainNotFoundError,

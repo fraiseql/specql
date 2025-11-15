@@ -2,7 +2,6 @@
 Performance benchmarks for GraphQL API.
 """
 import pytest
-import time
 # Note: GraphQL client imports commented out until FraiseQL is available
 # from gql import gql, Client
 # from gql.transport.requests import RequestsHTTPTransport

@@ -8,7 +8,6 @@ import yaml
 from typing import Dict, Any, List, Optional
 from src.cicd.universal_pipeline_schema import (
     UniversalPipeline,
-    Trigger, TriggerType,
     Stage, Job, Step, StepType,
     Runtime, Service
 )

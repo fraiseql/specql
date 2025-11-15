@@ -27,10 +27,10 @@ class TestPatternDetector:
 
         result = detector._detect_trinity_pattern(entity)
 
-        assert result["detected"] == True
-        assert result["has_pk"] == True
-        assert result["has_id"] == True
-        assert result["has_identifier"] == True
+        assert result["detected"]  is True
+        assert result["has_pk"]  is True
+        assert result["has_id"]  is True
+        assert result["has_identifier"]  is True
         assert result["confidence"] == 1.0
 
     def test_detect_trinity_pattern_partial(self, detector):
@@ -48,7 +48,7 @@ class TestPatternDetector:
 
         result = detector._detect_trinity_pattern(entity)
 
-        assert result["detected"] == False
+        assert not result["detected"]
         assert result["confidence"] == 2 / 3  # 2 out of 3
 
     def test_detect_audit_fields_complete(self, detector):
@@ -66,10 +66,10 @@ class TestPatternDetector:
 
         result = detector._detect_audit_fields(entity)
 
-        assert result["detected"] == True
-        assert result["has_created_at"] == True
-        assert result["has_updated_at"] == True
-        assert result["has_deleted_at"] == True
+        assert result["detected"]  is True
+        assert result["has_created_at"]  is True
+        assert result["has_updated_at"]  is True
+        assert result["has_deleted_at"]  is True
 
     def test_detect_deduplication_pattern(self, detector):
         """Test detecting deduplication pattern"""
@@ -86,7 +86,7 @@ class TestPatternDetector:
 
         result = detector._detect_deduplication(entity)
 
-        assert result["detected"] == True
+        assert result["detected"]  is True
         assert result["confidence"] == 1.0
 
     def test_detect_hierarchical_entity(self, detector):
@@ -102,7 +102,7 @@ class TestPatternDetector:
 
         result = detector._detect_hierarchical(entity)
 
-        assert result["detected"] == True
+        assert result["detected"]  is True
         assert result["parent_field"] == "fk_parent"
 
     def test_calculate_overall_confidence(self, detector):

@@ -84,7 +84,7 @@ def test_postgresql_adapter_get_conventions():
     assert conventions.primary_key_name == "pk_{entity}"
     assert conventions.foreign_key_pattern == "fk_{entity}"
     assert conventions.timestamp_fields == ["created_at", "updated_at", "deleted_at"]
-    assert conventions.supports_multi_tenancy == True
+    assert conventions.supports_multi_tenancy  is True
 
 
 def test_postgresql_adapter_get_framework_name():

@@ -5,7 +5,7 @@ Tests the repository pattern architecture for pattern library operations.
 """
 
 import pytest
-from unittest.mock import Mock, MagicMock, patch
+from unittest.mock import Mock, patch
 from src.domain.entities.pattern import Pattern, PatternCategory, SourceType
 from src.domain.repositories.pattern_repository import PatternRepository
 from src.application.services.pattern_service import PatternService
@@ -29,8 +29,8 @@ class TestPatternRepositoryPattern:
 
         assert pattern.name == "test_pattern"
         assert pattern.category == PatternCategory.WORKFLOW
-        assert pattern.is_active == True
-        assert pattern.has_embedding == False
+        assert pattern.is_active  is True
+        assert not pattern.has_embedding
 
     def test_pattern_business_logic(self):
         """Test pattern business logic methods"""
@@ -43,9 +43,9 @@ class TestPatternRepositoryPattern:
 
         # Test deprecation
         pattern.mark_deprecated("No longer needed")
-        assert pattern.deprecated == True
+        assert pattern.deprecated  is True
         assert pattern.deprecated_reason == "No longer needed"
-        assert pattern.is_active == False
+        assert not pattern.is_active
 
         # Test usage increment
         initial_usage = pattern.times_instantiated
@@ -55,7 +55,7 @@ class TestPatternRepositoryPattern:
     def test_pattern_validation(self):
         """Test pattern validation rules"""
         # Valid pattern
-        pattern = Pattern(
+        Pattern(
             id=None,
             name="valid_pattern",
             category=PatternCategory.WORKFLOW,
@@ -154,7 +154,7 @@ class TestPatternRepositoryPattern:
 
         service.deprecate_pattern("to_deprecate", "No longer needed")
 
-        assert existing_pattern.deprecated == True
+        assert existing_pattern.deprecated  is True
         assert existing_pattern.deprecated_reason == "No longer needed"
         mock_repo.save.assert_called_once()
 

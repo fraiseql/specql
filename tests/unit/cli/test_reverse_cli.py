@@ -2,11 +2,9 @@
 Tests for reverse engineering CLI command
 """
 
-import pytest
 from click.testing import CliRunner
 from pathlib import Path
 import tempfile
-import yaml
 
 
 def test_reverse_cli_basic():
@@ -30,7 +28,7 @@ def test_reverse_cli_basic():
         output_dir.mkdir()
 
         runner = CliRunner()
-        result = runner.invoke(
+        runner.invoke(
             None,  # We'll test the function directly
             ["reverse", str(sql_file), "--output-dir", str(output_dir), "--no-ai"]
         )
@@ -57,7 +55,7 @@ def test_reverse_cli_preview():
         sql_file.write_text(sql_content)
 
         runner = CliRunner()
-        result = runner.invoke(
+        runner.invoke(
             None,  # We'll test the function directly
             ["reverse", str(sql_file), "--preview", "--no-ai"]
         )
@@ -83,7 +81,7 @@ def test_reverse_cli_min_confidence():
         sql_file.write_text(sql_content)
 
         runner = CliRunner()
-        result = runner.invoke(
+        runner.invoke(
             None,  # We'll test the function directly
             ["reverse", str(sql_file), "--min-confidence", "0.95", "--no-ai"]
         )

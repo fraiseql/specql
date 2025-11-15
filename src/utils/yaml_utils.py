@@ -72,27 +72,27 @@ def yaml_string_to_entities(yaml_str: str) -> List[UniversalEntity]:
 
     for item in data:
         entity_data = item["entity"]
-                fields = []
-                for field_data in entity_data.get("fields", []):
-                    field = UniversalField(
-                        name=field_data["name"],
-                        type=FieldType(field_data["type"]),
-                        required=field_data.get("required", True),
-                        default=field_data.get("default"),
-                        references=field_data.get("references"),
-                    )
-                    fields.append(field)
+        fields = []
+        for field_data in entity_data.get("fields", []):
+            field = UniversalField(
+                name=field_data["name"],
+                type=FieldType(field_data["type"]),
+                required=field_data.get("required", True),
+                default=field_data.get("default"),
+                references=field_data.get("references"),
+            )
+            fields.append(field)
 
-                actions = []
-                for action_data in entity_data.get("actions", []):
-                    # Simplified action creation for round-trip testing
-                    action = UniversalAction(
-                        name=action_data["name"],
-                        entity=entity_data["name"],  # Required field
-                        steps=[],  # Required field
-                        impacts=[],  # Required field
-                    )
-                    actions.append(action)
+        actions = []
+        for action_data in entity_data.get("actions", []):
+            # Simplified action creation for round-trip testing
+            action = UniversalAction(
+                name=action_data["name"],
+                entity=entity_data["name"],  # Required field
+                steps=[],  # Required field
+                impacts=[],  # Required field
+            )
+            actions.append(action)
 
         entity = UniversalEntity(
             name=entity_data["name"],

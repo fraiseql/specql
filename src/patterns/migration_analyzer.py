@@ -63,7 +63,7 @@ class MigrationAnalyzer:
             return suggestions
 
         # Analyze action structure for pattern opportunities
-        action_config = action.get("config", {})
+        action.get("config", {})
 
         # Check for CRUD patterns
         crud_suggestion = self._analyze_crud_pattern(entity_name, action_name, action)
@@ -402,7 +402,7 @@ class MigrationAnalyzer:
 
         # Summary statistics
         total_actions = len(set((s.entity_name, s.action_name) for s in suggestions))
-        avg_confidence = (
+        (
             sum(s.confidence for s in suggestions) / len(suggestions) if suggestions else 0
         )
 

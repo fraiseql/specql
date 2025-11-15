@@ -5,7 +5,6 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 from src.application.services.pattern_service import PatternService
-from src.domain.entities.pattern import Pattern, PatternCategory, SourceType
 
 
 class PatternImporter:
@@ -79,7 +78,7 @@ class PatternImporter:
                 existing = None
 
             # Create or update pattern
-            pattern = self.service.create_pattern(
+            self.service.create_pattern(
                 name=pattern_data["name"],
                 category=pattern_data["category"],
                 description=pattern_data["description"],

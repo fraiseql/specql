@@ -126,7 +126,7 @@ class JavaServiceGenerator:
 
         # DELETE (soft delete)
         lines.append("    @Transactional")
-        lines.append(f"    public void delete(Long id) {{")
+        lines.append("    public void delete(Long id) {")
         lines.append(f"        {entity.name} entity = {repo}.findById(id)")
         lines.append(
             f'            .orElseThrow(() -> new RuntimeException("{entity.name} not found"));'

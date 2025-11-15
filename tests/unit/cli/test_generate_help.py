@@ -2,7 +2,6 @@
 Tests for enhanced help text in generate command
 """
 
-import pytest
 from click.testing import CliRunner
 
 from src.cli.confiture_extensions import specql

@@ -55,10 +55,10 @@ class TestTypeMapper:
 
     def test_detect_foreign_key(self, mapper):
         """Test detecting foreign key columns"""
-        assert mapper._is_foreign_key("fk_company") == True
-        assert mapper._is_foreign_key("company_id") == True
-        assert mapper._is_foreign_key("id") == False
-        assert mapper._is_foreign_key("email") == False
+        assert mapper._is_foreign_key("fk_company")  is True
+        assert mapper._is_foreign_key("company_id")  is True
+        assert not mapper._is_foreign_key("id")
+        assert not mapper._is_foreign_key("email")
 
     def test_extract_reference_target(self, mapper):
         """Test extracting reference target entity"""

@@ -2,7 +2,6 @@
 Tests for Kubernetes Generator
 """
 
-import pytest
 from src.infrastructure.generators.kubernetes_generator import KubernetesGenerator
 from src.infrastructure.universal_infra_schema import (
     UniversalInfrastructure,
@@ -12,7 +11,6 @@ from src.infrastructure.universal_infra_schema import (
     DatabaseConfig,
     DatabaseType,
     LoadBalancerConfig,
-    NetworkConfig,
     Volume,
 )
 

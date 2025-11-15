@@ -1,7 +1,6 @@
 """Tests for cte action step"""
 
-import pytest
-from src.core.specql_parser import ParseError, SpecQLParser
+from src.core.specql_parser import SpecQLParser
 
 
 def test_simple_cte():

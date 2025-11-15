@@ -2,8 +2,6 @@
 Integration tests for Diesel derive parsing with real-world scenarios.
 """
 
-import pytest
-from pathlib import Path
 from src.reverse_engineering.rust_parser import RustParser
 
 

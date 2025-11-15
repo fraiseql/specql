@@ -4,7 +4,6 @@ Map SQL AST to SpecQL primitives
 Algorithmic mapping without AI
 """
 
-import pglast
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 from src.core.ast_models import ActionStep

@@ -6,7 +6,15 @@ Reverse engineers Docker Compose YAML files to universal infrastructure format.
 
 import yaml
 from typing import Dict, Any, List, Optional
-from src.infrastructure.universal_infra_schema import *
+from src.infrastructure.universal_infra_schema import (
+    UniversalInfrastructure,
+    ContainerConfig,
+    NetworkConfig,
+    Volume,
+    DatabaseConfig,
+    DatabaseType,
+    CloudProvider,
+)
 
 
 class DockerComposeParser:
@@ -47,7 +55,7 @@ class DockerComposeParser:
         volumes = self._parse_volumes(compose_dict)
 
         # Extract environment and other metadata
-        environment = compose_dict.get("version", "3.8")
+        compose_dict.get("version", "3.8")
 
         return UniversalInfrastructure(
             name=main_service_name,
@@ -56,7 +64,7 @@ class DockerComposeParser:
             container=container,
             database=database,
             network=network,
-            volumes=volumes
+            volumes=volumes,
         )
 
     def _detect_main_service(self, services: Dict[str, Any]) -> str:
@@ -72,7 +80,11 @@ class DockerComposeParser:
         # Fallback to first service
         return list(services.keys())[0] if services else "docker-service"
 
-    def _parse_container(self, service_config: Dict[str, Any], secrets_config: Optional[Dict[str, Any]] = None) -> Optional[ContainerConfig]:
+    def _parse_container(
+        self,
+        service_config: Dict[str, Any],
+        secrets_config: Optional[Dict[str, Any]] = None,
+    ) -> Optional[ContainerConfig]:
         """Parse container configuration"""
         if not service_config:
             return None
@@ -115,7 +127,11 @@ class DockerComposeParser:
 
         # Check for secrets referenced in environment variables
         for key, value in environment.items():
-            if isinstance(value, str) and value.startswith("${") and "secrets" in value.lower():
+            if (
+                isinstance(value, str)
+                and value.startswith("${")
+                and "secrets" in value.lower()
+            ):
                 secrets[key] = f"${{secrets.{key.lower()}}}"
 
         # Check for secrets defined in service secrets section
@@ -168,6 +184,7 @@ class DockerComposeParser:
                     for i, part in enumerate(parts):
                         if part.startswith("http"):
                             from urllib.parse import urlparse
+
                             parsed = urlparse(part)
                             if parsed.path:
                                 health_check_path = parsed.path
@@ -182,7 +199,7 @@ class DockerComposeParser:
             memory_limit=memory_limit,
             cpu_request=cpu_request,
             memory_request=memory_request,
-            health_check_path=health_check_path
+            health_check_path=health_check_path,
         )
 
     def _parse_database(self, services: Dict[str, Any]) -> Optional[DatabaseConfig]:
@@ -191,7 +208,7 @@ class DockerComposeParser:
         priority_patterns = [
             ["db", "database"],  # Primary databases
             ["postgres", "mysql", "mongodb"],  # Specific database types
-            ["redis"]  # Cache services
+            ["redis"],  # Cache services
         ]
 
         for pattern_group in priority_patterns:
@@ -220,8 +237,12 @@ class DockerComposeParser:
                     environment = service_config.get("environment", {})
 
                     if isinstance(environment, list):
-                        env_dict = {k: v for item in environment
-                                  for k, v in [item.split("=", 1)] if "=" in item}
+                        env_dict = {
+                            k: v
+                            for item in environment
+                            for k, v in [item.split("=", 1)]
+                            if "=" in item
+                        }
                         environment = env_dict
 
                     # Extract storage from volumes if present
@@ -231,13 +252,11 @@ class DockerComposeParser:
                         if isinstance(volume, str) and "postgres" in volume.lower():
                             # Parse volume mapping like "./postgres-data:/var/lib/postgresql/data"
                             if ":" in volume:
-                                host_path = volume.split(":")[0]
+                                volume.split(":")[0]
                                 # Could parse size from host directory, but for now use default
 
                     return DatabaseConfig(
-                        type=db_type,
-                        version=version,
-                        storage=storage
+                        type=db_type, version=version, storage=storage
                     )
 
         return None
@@ -250,7 +269,7 @@ class DockerComposeParser:
             # Use first network configuration
             first_network = list(networks.values())[0]
             if isinstance(first_network, dict):
-                driver = first_network.get("driver", "bridge")
+                first_network.get("driver", "bridge")
                 # Could map driver to network config, but keep simple for now
 
         return NetworkConfig()
@@ -262,23 +281,27 @@ class DockerComposeParser:
 
         for volume_name, volume_config in named_volumes.items():
             if isinstance(volume_config, dict):
-                driver = volume_config.get("driver", "local")
+                volume_config.get("driver", "local")
                 # For now, create basic volume config
                 # In practice, would need to map to actual storage requirements
-                volumes.append(Volume(
-                    name=volume_name,
-                    size="10GB",  # Default size
-                    mount_path=f"/data/{volume_name}",
-                    storage_class="standard"
-                ))
+                volumes.append(
+                    Volume(
+                        name=volume_name,
+                        size="10GB",  # Default size
+                        mount_path=f"/data/{volume_name}",
+                        storage_class="standard",
+                    )
+                )
             else:
                 # Volume defined without config (just the name)
-                volumes.append(Volume(
-                    name=volume_name,
-                    size="10GB",  # Default size
-                    mount_path=f"/data/{volume_name}",
-                    storage_class="standard"
-                ))
+                volumes.append(
+                    Volume(
+                        name=volume_name,
+                        size="10GB",  # Default size
+                        mount_path=f"/data/{volume_name}",
+                        storage_class="standard",
+                    )
+                )
 
         return volumes
 
@@ -313,10 +336,5 @@ class DockerComposeParser:
             return version
 
         # Defaults
-        defaults = {
-            "postgres": "15",
-            "mysql": "8.0",
-            "redis": "7.0",
-            "mongo": "7.0"
-        }
+        defaults = {"postgres": "15", "mysql": "8.0", "redis": "7.0", "mongo": "7.0"}
         return defaults.get(db_type, "latest")

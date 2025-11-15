@@ -1,6 +1,5 @@
 import click
 from pathlib import Path
-from typing import List
 
 from src.core.specql_parser import SpecQLParser
 from src.generators.diagrams.relationship_extractor import RelationshipExtractor
@@ -122,7 +121,7 @@ def diagram(
     elif format == 'mermaid':
         # Mermaid format
         generator = MermaidGenerator(extractor)
-        mermaid_source = generator.generate(
+        generator.generate(
             output_path=output,
             title=title,
             show_fields=show_fields,
@@ -158,7 +157,6 @@ def diagram(
 
 def _show_statistics(extractor: RelationshipExtractor) -> None:
     """Show relationship statistics"""
-    from src.generators.diagrams.dependency_graph import DependencyGraph
 
     summary = extractor.get_relationship_summary()
 

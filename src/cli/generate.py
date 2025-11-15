@@ -219,7 +219,6 @@ def entities(
 
     # Handle pattern-based multi-language generation
     if target:
-        from src.pattern_library.pattern_based_compiler import PatternBasedCompiler
         from tests.integration.test_pattern_library_multilang import (
             MultiLanguageGenerator,
         )
@@ -929,3 +928,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+# ruff: noqa: E402

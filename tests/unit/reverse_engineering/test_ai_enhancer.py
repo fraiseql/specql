@@ -4,7 +4,7 @@ Tests for AI Enhancer
 Tests LLM-based enhancements (mocked for CI)
 """
 
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 from src.reverse_engineering.ai_enhancer import AIEnhancer
 from src.reverse_engineering.algorithmic_parser import AlgorithmicParser
 
@@ -110,7 +110,6 @@ def test_variable_name_improvement():
     result = parser.parse(sql)
 
     # Manually lower confidence to trigger AI enhancement
-    original_confidence = result.confidence
     result.confidence = 0.85
 
     enhanced_result = enhancer.enhance(result)

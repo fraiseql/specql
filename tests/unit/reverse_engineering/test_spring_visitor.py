@@ -2,13 +2,10 @@
 Tests for Spring Boot Annotation Visitor
 """
 
-import pytest
 from unittest.mock import Mock
 
 from src.reverse_engineering.java.spring_visitor import (
     SpringAnnotationVisitor,
-    SpringComponent,
-    SpringMethod,
 )
 
 

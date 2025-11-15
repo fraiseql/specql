@@ -1,4 +1,3 @@
-import pytest
 from src.generators.diagrams.mermaid_generator import MermaidGenerator
 from src.generators.diagrams.relationship_extractor import RelationshipExtractor
 from src.core.ast_models import Entity, FieldDefinition
@@ -144,7 +143,7 @@ class TestMermaidGenerator:
         generator = MermaidGenerator(extractor)
         output_file = tmp_path / "test.md"
 
-        result = generator.generate(output_path=str(output_file))
+        generator.generate(output_path=str(output_file))
 
         assert output_file.exists()
         content = output_file.read_text()

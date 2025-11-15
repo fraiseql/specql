@@ -16,17 +16,16 @@ Supported pytest features:
 """
 
 import ast
-import re
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any
 from pathlib import Path
+from src.testing.spec.spec_models import ScenarioCategory, TestAssertion
 
 from src.testing.spec.test_parser_protocol import (
-    TestParser,
     ParsedTest,
     ParsedTestFunction,
-    TestSourceLanguage
+    TestSourceLanguage,
 )
-from src.testing.spec.test_spec_models import TestSpec, TestType
+from src.testing.spec.spec_models import TestSpec, TestType
 
 
 class PytestParser:
@@ -99,10 +98,7 @@ class PytestParser:
             test_functions=test_functions,
             fixtures=fixtures,
             imports=imports,
-            metadata={
-                "file_path": file_path,
-                "test_count": len(test_functions)
-            }
+            metadata={"file_path": file_path, "test_count": len(test_functions)},
         )
 
     def _extract_imports(self, tree: ast.AST) -> List[str]:
@@ -118,7 +114,9 @@ class PytestParser:
                     imports.append(f"{module}.{alias.name}")
         return imports
 
-    def _extract_fixtures(self, tree: ast.AST, source_code: str) -> List[Dict[str, Any]]:
+    def _extract_fixtures(
+        self, tree: ast.AST, source_code: str
+    ) -> List[Dict[str, Any]]:
         """Extract pytest fixtures"""
         fixtures = []
 
@@ -126,11 +124,18 @@ class PytestParser:
             if isinstance(node, ast.FunctionDef):
                 # Check for @pytest.fixture decorator
                 has_fixture_decorator = any(
-                    (isinstance(d, ast.Name) and d.id == "fixture") or
-                    (isinstance(d, ast.Attribute) and d.attr == "fixture") or
-                    (isinstance(d, ast.Call) and
-                     ((isinstance(d.func, ast.Name) and d.func.id == "fixture") or
-                      (isinstance(d.func, ast.Attribute) and d.func.attr == "fixture")))
+                    (isinstance(d, ast.Name) and d.id == "fixture")
+                    or (isinstance(d, ast.Attribute) and d.attr == "fixture")
+                    or (
+                        isinstance(d, ast.Call)
+                        and (
+                            (isinstance(d.func, ast.Name) and d.func.id == "fixture")
+                            or (
+                                isinstance(d.func, ast.Attribute)
+                                and d.func.attr == "fixture"
+                            )
+                        )
+                    )
                     for d in node.decorator_list
                 )
 
@@ -147,17 +152,23 @@ class PytestParser:
                     # Get fixture body
                     fixture_lines = ast.get_source_segment(source_code, node)
 
-                    fixtures.append({
-                        "name": node.name,
-                        "type": "pytest_fixture",
-                        "scope": scope,
-                        "body": fixture_lines,
-                        "parameters": [arg.arg for arg in node.args.args if arg.arg != "self"]
-                    })
+                    fixtures.append(
+                        {
+                            "name": node.name,
+                            "type": "pytest_fixture",
+                            "scope": scope,
+                            "body": fixture_lines,
+                            "parameters": [
+                                arg.arg for arg in node.args.args if arg.arg != "self"
+                            ],
+                        }
+                    )
 
         return fixtures
 
-    def _extract_test_functions(self, tree: ast.AST, source_code: str) -> List[ParsedTestFunction]:
+    def _extract_test_functions(
+        self, tree: ast.AST, source_code: str
+    ) -> List[ParsedTestFunction]:
         """Extract test functions from AST"""
         test_functions = []
 
@@ -170,7 +181,9 @@ class PytestParser:
 
         return test_functions
 
-    def _parse_test_function(self, func_node: ast.FunctionDef, source_code: str) -> ParsedTestFunction:
+    def _parse_test_function(
+        self, func_node: ast.FunctionDef, source_code: str
+    ) -> ParsedTestFunction:
         """Parse single test function"""
         # Extract docstring
         docstring = ast.get_docstring(func_node)
@@ -189,7 +202,9 @@ class PytestParser:
         # Extract body lines
         body_lines = []
         for stmt in func_node.body:
-            if not isinstance(stmt, ast.Expr) or not isinstance(stmt.value, ast.Constant):
+            if not isinstance(stmt, ast.Expr) or not isinstance(
+                stmt.value, ast.Constant
+            ):
                 # Skip docstring
                 line = ast.get_source_segment(source_code, stmt)
                 if line:
@@ -211,11 +226,15 @@ class PytestParser:
             teardown_calls=[],
             metadata={
                 "line_number": func_node.lineno,
-                "parameters": [arg.arg for arg in func_node.args.args if arg.arg != "self"]
-            }
+                "parameters": [
+                    arg.arg for arg in func_node.args.args if arg.arg != "self"
+                ],
+            },
         )
 
-    def _extract_assertions_from_function(self, func_node: ast.FunctionDef) -> List[Dict[str, Any]]:
+    def _extract_assertions_from_function(
+        self, func_node: ast.FunctionDef
+    ) -> List[Dict[str, Any]]:
         """Extract all assertions from function"""
         assertions = []
 
@@ -272,7 +291,7 @@ class PytestParser:
                 "type": assertion_type,
                 "target": left,
                 "expected": right,
-                "message": ast.unparse(assert_node.msg) if assert_node.msg else None
+                "message": ast.unparse(assert_node.msg) if assert_node.msg else None,
             }
         else:
             # Boolean assertion
@@ -280,7 +299,7 @@ class PytestParser:
                 "type": "equals",
                 "target": ast.unparse(test_expr),
                 "expected": True,
-                "message": ast.unparse(assert_node.msg) if assert_node.msg else None
+                "message": ast.unparse(assert_node.msg) if assert_node.msg else None,
             }
 
     def _is_pytest_raises(self, call_node: ast.Call) -> bool:
@@ -309,7 +328,8 @@ class PytestParser:
             "type": "throws",
             "target": "function_call",
             "expected": exception_type,
-            "message": f"Should raise {exception_type}" + (f" matching {match_pattern}" if match_pattern else "")
+            "message": f"Should raise {exception_type}"
+            + (f" matching {match_pattern}" if match_pattern else ""),
         }
 
     def _extract_setup_calls(self, func_node: ast.FunctionDef) -> List[str]:
@@ -334,7 +354,9 @@ class PytestParser:
 
         return setup_calls
 
-    def extract_assertions(self, test_function: ParsedTestFunction) -> List[Dict[str, Any]]:
+    def extract_assertions(
+        self, test_function: ParsedTestFunction
+    ) -> List[Dict[str, Any]]:
         """Extract assertions from test function"""
         return test_function.assertions
 
@@ -356,7 +378,9 @@ class PytestParser:
             return TestType.CRUD_DELETE.value
 
         # Validation
-        elif any(word in combined_names for word in ["validate", "validation", "invalid"]):
+        elif any(
+            word in combined_names for word in ["validate", "validation", "invalid"]
+        ):
             return TestType.VALIDATION.value
 
         # Workflow
@@ -370,15 +394,12 @@ class PytestParser:
 class PytestTestSpecMapper:
     """Maps pytest ParsedTest to universal TestSpec"""
 
-    def map_to_test_spec(
-        self,
-        parsed_test: ParsedTest,
-        entity_name: str
-    ) -> TestSpec:
+    def map_to_test_spec(self, parsed_test: ParsedTest, entity_name: str) -> TestSpec:
         """Convert pytest ParsedTest to TestSpec"""
-        from src.testing.spec.test_spec_models import (
-            TestScenario, TestAssertion, TestStep, TestFixture,
-            ScenarioCategory, AssertionType
+        from src.testing.spec.spec_models import (
+            TestScenario,
+            TestStep,
+            TestFixture,
         )
 
         # Map test functions to scenarios
@@ -389,41 +410,47 @@ class PytestTestSpecMapper:
             # Map setup steps
             setup_steps = []
             for setup_call in func.setup_calls:
-                setup_steps.append(TestStep(
-                    step_type="setup",
-                    action="execute_code",
-                    metadata={"code": setup_call}
-                ))
+                setup_steps.append(
+                    TestStep(
+                        step_type="setup",
+                        action="execute_code",
+                        metadata={"code": setup_call},
+                    )
+                )
 
             # Map assertions
             assertions = []
             for assertion_dict in func.assertions:
                 assertions.append(self._map_pytest_assertion(assertion_dict))
 
-            scenarios.append(TestScenario(
-                scenario_name=func.function_name,
-                description=func.docstring or f"pytest test: {func.function_name}",
-                category=category,
-                setup_steps=setup_steps,
-                action_steps=[],
-                assertions=assertions,
-                teardown_steps=[],
-                fixtures=func.metadata.get("parameters", []),
-                metadata={
-                    "source_language": "pytest",
-                    "decorators": func.decorators
-                }
-            ))
+            scenarios.append(
+                TestScenario(
+                    scenario_name=func.function_name,
+                    description=func.docstring or f"pytest test: {func.function_name}",
+                    category=category,
+                    setup_steps=setup_steps,
+                    action_steps=[],
+                    assertions=assertions,
+                    teardown_steps=[],
+                    fixtures=func.metadata.get("parameters", []),
+                    metadata={
+                        "source_language": "pytest",
+                        "decorators": func.decorators,
+                    },
+                )
+            )
 
         # Map fixtures
         fixtures = []
         for fixture_dict in parsed_test.fixtures:
-            fixtures.append(TestFixture(
-                fixture_name=fixture_dict["name"],
-                fixture_type=fixture_dict["type"],
-                scope=fixture_dict.get("scope", "function"),
-                metadata={"body": fixture_dict.get("body")}
-            ))
+            fixtures.append(
+                TestFixture(
+                    fixture_name=fixture_dict["name"],
+                    fixture_type=fixture_dict["type"],
+                    scope=fixture_dict.get("scope", "function"),
+                    metadata={"body": fixture_dict.get("body")},
+                )
+            )
 
         # Detect test type
         parser = PytestParser()
@@ -436,16 +463,13 @@ class PytestTestSpecMapper:
             test_type=test_type,
             scenarios=scenarios,
             fixtures=fixtures,
-            coverage={
-                "test_count": len(scenarios),
-                "source_language": "pytest"
-            },
-            metadata=parsed_test.metadata
+            coverage={"test_count": len(scenarios), "source_language": "pytest"},
+            metadata=parsed_test.metadata,
         )
 
-    def _categorize_pytest_test(self, func: ParsedTestFunction) -> 'ScenarioCategory':
+    def _categorize_pytest_test(self, func: ParsedTestFunction) -> "ScenarioCategory":
         """Categorize pytest test function"""
-        from src.testing.spec.test_spec_models import ScenarioCategory
+        from src.testing.spec.spec_models import ScenarioCategory
 
         docstring = (func.docstring or "").lower()
         function_name = func.function_name.lower()
@@ -461,9 +485,9 @@ class PytestTestSpecMapper:
         else:
             return ScenarioCategory.HAPPY_PATH
 
-    def _map_pytest_assertion(self, assertion_dict: Dict[str, Any]) -> 'TestAssertion':
+    def _map_pytest_assertion(self, assertion_dict: Dict[str, Any]) -> TestAssertion:
         """Map pytest assertion to universal TestAssertion"""
-        from src.testing.spec.test_spec_models import AssertionType, TestAssertion
+        from src.testing.spec.spec_models import AssertionType, TestAssertion
 
         assertion_type_map = {
             "equals": AssertionType.EQUALS,
@@ -485,8 +509,5 @@ class PytestTestSpecMapper:
             target=assertion_dict.get("target", ""),
             expected=assertion_dict.get("expected"),
             message=assertion_dict.get("message"),
-            metadata={
-                "pytest_assertion": pytest_type,
-                "source": "pytest"
-            }
+            metadata={"pytest_assertion": pytest_type, "source": "pytest"},
         )

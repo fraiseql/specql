@@ -6,7 +6,6 @@ Tests database operations, vector search performance, and basic system responsiv
 
 import pytest
 import time
-import json
 
 
 class TestPatternLibraryPerformance:
@@ -34,7 +33,7 @@ class TestPatternLibraryPerformance:
                     FROM pattern_library.domain_patterns
                     LIMIT 50
                 """)
-                patterns = cur.fetchall()
+                cur.fetchall()
                 query_time = time.time() - start_time
 
                 print(".4f")
@@ -116,7 +115,7 @@ class TestPatternLibraryPerformance:
                     assert result is not None
                     suggestion_ids.append(result[0])
 
-                create_time = time.time() - start_time
+                time.time() - start_time
                 print(".4f")
 
                 # Test bulk retrieval
@@ -126,7 +125,7 @@ class TestPatternLibraryPerformance:
                     WHERE id = ANY(%s)
                 """, (suggestion_ids,))
                 results = cur.fetchall()
-                retrieve_time = time.time() - start_time
+                time.time() - start_time
 
                 print(".4f")
                 assert len(results) == 10
@@ -140,7 +139,7 @@ class TestPatternLibraryPerformance:
                         WHERE id = %s
                     """, (suggestion_id,))
 
-                update_time = time.time() - start_time
+                time.time() - start_time
                 print(".4f")
 
                 # Clean up
@@ -163,7 +162,7 @@ class TestPatternLibraryPerformance:
                 for query_name, query in queries:
                     start_time = time.time()
                     cur.execute(query)
-                    result = cur.fetchone()
+                    cur.fetchone()
                     query_time = time.time() - start_time
 
                     print(".4f")
@@ -184,7 +183,7 @@ class TestPatternLibraryPerformance:
                         SELECT COUNT(*) FROM pattern_library.domain_patterns
                         WHERE to_tsvector('english', description) @@ plainto_tsquery('english', %s)
                     """, (term,))
-                    result = cur.fetchone()
+                    cur.fetchone()
                     search_time = time.time() - start_time
 
                     print(".4f")

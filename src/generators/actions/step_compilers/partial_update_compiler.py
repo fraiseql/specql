@@ -52,14 +52,13 @@ class PartialUpdateCompiler:
             raise ValueError(f"Expected update step, got {step.type}")
 
         # Get configuration from step fields
-        partial_updates = step.fields.get("partial_updates", True) if step.fields else True
+        step.fields.get("partial_updates", True) if step.fields else True
         track_updated_fields = (
             step.fields.get("track_updated_fields", False) if step.fields else False
         )
 
         entity_lower = entity.name.lower()
         table_name = f"{entity.schema}.tb_{entity_lower}"
-        pk_column = "id"  # Assuming UUID primary key
 
         # Generate CASE expressions for each field
         set_clauses = []

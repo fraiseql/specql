@@ -1,4 +1,3 @@
-import pytest
 from src.reverse_engineering.tests.pytest_test_parser import (
     PytestParser,
     PytestTestSpecMapper

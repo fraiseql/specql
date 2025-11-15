@@ -164,7 +164,6 @@ export const useGet{entity_name}s = (filter?: {entity_name}Filter, pagination?: 
             entity: The entity containing the action
             action: The action to generate a hook for
         """
-        entity_name = entity.name
         action_name = action.name
         pascal_name = self._to_pascal_case(action_name)
         camel_name = self._to_camel_case(action_name)
@@ -184,7 +183,9 @@ export const useGet{entity_name}s = (filter?: {entity_name}Filter, pagination?: 
         # Build special handling for call_service actions
         call_service_handling = ""
         if has_call_service:
-            call_service_handling = self._build_call_service_handling(entity, action, camel_name)
+            call_service_handling = self._build_call_service_handling(
+                entity, action, camel_name
+            )
 
         hook_code = f"""
 export const {pascal_name.upper()}_MUTATION = gql`
@@ -213,7 +214,9 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
 
         self.hooks.append(hook_code)
 
-    def _build_call_service_handling(self, entity: Entity, action: Action, camel_name: str) -> str:
+    def _build_call_service_handling(
+        self, entity: Entity, action: Action, camel_name: str
+    ) -> str:
         """
         Build special handling for call_service actions.
 
@@ -230,7 +233,7 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
         return f"""
         // Handle call_service completion
         if (data?.{camel_name}?.success && data.{camel_name}.job_id) {{
-          console.log('{action_name} initiated job:', data.{camel_name}.job_id);
+          // console.log('{action_name} initiated job:', data.{camel_name}.job_id);
           // TODO: Implement job status polling or subscription
           // You can poll job status or set up a subscription here
         }}"""
@@ -252,7 +255,6 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
 
         # Determine input and output types
         input_type = f"{pascal_name}Input"
-        output_type = f"{pascal_name}Result"
 
         return f"""  mutation {pascal_name}($input: {input_type}!) {{
     {camel_name}(input: $input) {{

@@ -2,7 +2,6 @@
 Unit tests for Rust type mapping functionality.
 """
 
-import pytest
 from src.reverse_engineering.rust_parser import RustTypeMapper
 
 

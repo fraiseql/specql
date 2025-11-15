@@ -252,7 +252,7 @@ class PatternConsistencyChecker:
                     pg_params = json.loads(pg_params)
                 if isinstance(legacy_params, str):
                     legacy_params = json.loads(legacy_params)
-            except:
+            except Exception:
                 pass  # Keep as-is for comparison
 
             if pg_params != legacy_params:
@@ -275,7 +275,7 @@ class PatternConsistencyChecker:
                     pg_impl = json.loads(pg_impl)
                 if isinstance(legacy_impl, str):
                     legacy_impl = json.loads(legacy_impl)
-            except:
+            except Exception:
                 pass  # Keep as-is for comparison
 
             if pg_impl != legacy_impl:

@@ -1,10 +1,8 @@
-from typing import List, Optional
+from typing import Optional
 from pathlib import Path
 
 from src.generators.diagrams.relationship_extractor import (
-    RelationshipExtractor,
-    RelationshipType,
-    EntityNode
+    RelationshipExtractor
 )
 
 class MermaidGenerator:

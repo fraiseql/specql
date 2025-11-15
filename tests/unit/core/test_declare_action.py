@@ -1,7 +1,6 @@
 """Tests for declare action step"""
 
-import pytest
-from src.core.specql_parser import ParseError, SpecQLParser
+from src.core.specql_parser import SpecQLParser
 
 
 def test_declare_variable_integer():

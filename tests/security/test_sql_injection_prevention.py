@@ -2,7 +2,6 @@
 Security tests for SQL injection prevention
 """
 
-import pytest
 from src.generators.actions.step_compilers.insert_compiler import InsertStepCompiler
 from src.generators.actions.database_operation_compiler import DatabaseOperationCompiler
 

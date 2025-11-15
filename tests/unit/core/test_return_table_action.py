@@ -1,6 +1,5 @@
 """Tests for return_table action"""
 
-import pytest
 from src.core.specql_parser import SpecQLParser
 
 

@@ -4,8 +4,6 @@ Usage: python scripts/test_summary.py
 """
 
 import subprocess
-import json
-from pathlib import Path
 from datetime import datetime
 
 

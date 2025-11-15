@@ -1,4 +1,3 @@
-import pytest
 from src.generators.diagrams.graphviz_generator import GraphvizGenerator
 from src.generators.diagrams.relationship_extractor import RelationshipExtractor
 from src.core.ast_models import Entity, FieldDefinition

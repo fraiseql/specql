@@ -2,8 +2,7 @@
 Tests for route handler parsing in Rust files.
 """
 
-import pytest
-from src.reverse_engineering.rust_parser import RustParser, RouteHandlerInfo
+from src.reverse_engineering.rust_parser import RustParser
 
 
 class TestRouteHandlerParsing:
@@ -33,7 +32,7 @@ async fn get_users() -> Result<HttpResponse> {
         assert route.method == "GET"
         assert route.path == "/users"
         assert route.function_name == "get_users"
-        assert route.is_async == True
+        assert route.is_async  is True
         assert route.return_type == "Result<HttpResponse>"
 
     def test_multiple_routes(self):
@@ -135,7 +134,7 @@ fn health_check() -> HttpResponse {
         assert route.method == "GET"
         assert route.path == "/health"
         assert route.function_name == "health_check"
-        assert route.is_async == False
+        assert not route.is_async
         assert route.return_type == "HttpResponse"
 
     def test_different_http_methods(self):

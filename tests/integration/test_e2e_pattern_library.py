@@ -10,8 +10,6 @@ These tests require a PostgreSQL database with the pattern library schema.
 
 import pytest
 import os
-import json
-from unittest.mock import patch
 
 
 class TestPatternLibraryE2E:

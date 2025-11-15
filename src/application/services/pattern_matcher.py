@@ -3,7 +3,7 @@ Pattern matching service - detects applicable patterns for entities
 
 Uses FraiseQL 1.5 for semantic pattern matching via GraphQL API.
 """
-from typing import List, Tuple, Dict, Any, Optional
+from typing import List, Tuple, Dict, Any
 from src.domain.entities.pattern import Pattern
 from src.domain.repositories.pattern_repository import PatternRepository
 from src.pattern_library.embeddings_pg import PatternEmbeddingService

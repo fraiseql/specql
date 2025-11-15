@@ -5,7 +5,6 @@ import tempfile
 import shutil
 from pathlib import Path
 from src.parsers.rust.diesel_parser import DieselParser
-from src.generators.rust.rust_generator_orchestrator import RustGeneratorOrchestrator
 from src.core.yaml_serializer import YAMLSerializer
 from src.core.specql_parser import SpecQLParser
 from src.core.universal_ast import UniversalEntity, UniversalField, FieldType
@@ -204,8 +203,8 @@ class TestRoundTrip:
             f for f in intermediate_entity.fields if f.name == "description"
         )
 
-        assert orig_description.required == False  # Should be optional
-        assert inter_description.required == False
+        assert not orig_description.required  # Should be optional
+        assert not inter_description.required
 
 
 def test_yaml_serializer_rust_specific():

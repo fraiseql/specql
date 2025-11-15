@@ -1,6 +1,5 @@
 """Test JPA entity generation from SpecQL"""
 
-import pytest
 from src.core.universal_ast import UniversalEntity, UniversalField, FieldType
 from src.generators.java.entity_generator import JavaEntityGenerator
 

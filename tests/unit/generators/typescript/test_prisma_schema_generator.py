@@ -1,6 +1,5 @@
 """Tests for Prisma schema generator."""
 
-import pytest
 from src.core.universal_ast import UniversalEntity, UniversalField, FieldType
 from src.generators.typescript.prisma_schema_generator import PrismaSchemaGenerator
 

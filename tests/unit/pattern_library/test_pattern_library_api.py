@@ -52,14 +52,14 @@ def test_add_pattern_implementation():
     library = PatternLibrary(db_path=":memory:")
 
     # Add pattern
-    pattern_id = library.add_pattern(
+    library.add_pattern(
         name="declare",
         category="primitive",
         abstract_syntax={}
     )
 
     # Add language
-    lang_id = library.add_language(
+    library.add_language(
         name="postgresql",
         ecosystem="postgresql",
         paradigm="declarative"

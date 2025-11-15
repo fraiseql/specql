@@ -5,7 +5,6 @@ This module provides utilities for framework detection, validation,
 and selection based on project context and user preferences.
 """
 
-import os
 from pathlib import Path
 from typing import Optional, Dict, Any
 
@@ -62,7 +61,7 @@ class FrameworkRegistry:
                 content = gemfile.read_text().lower()
                 if "rails" in content:
                     return "rails"
-            except:
+            except Exception:
                 pass
 
         # Prisma indicators
@@ -168,7 +167,7 @@ class FrameworkRegistry:
             Dictionary of warnings for incompatible features
         """
         warnings = {}
-        defaults = get_framework_defaults(framework)
+        get_framework_defaults(framework)
 
         # Check for framework-incompatible features
         if framework == "django" and requested_features.get("include_tv", False):

@@ -1,6 +1,5 @@
 """Tests for switch action parsing and AST generation"""
 
-import pytest
 from src.core.specql_parser import SpecQLParser
 
 

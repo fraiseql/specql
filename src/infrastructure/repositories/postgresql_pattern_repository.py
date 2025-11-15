@@ -2,7 +2,6 @@
 import psycopg
 import json
 from typing import List, Optional, Tuple
-from psycopg import sql
 from src.domain.repositories.pattern_repository import PatternRepository
 from src.domain.entities.pattern import Pattern, PatternCategory, SourceType
 

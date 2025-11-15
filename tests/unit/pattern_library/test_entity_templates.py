@@ -199,7 +199,7 @@ class TestEntityTemplates:
         initial_count = len(library.get_all_entity_templates())
 
         # Add a minimal template
-        template_id = library.add_entity_template(
+        library.add_entity_template(
             template_name="minimal_test",
             template_namespace="test",
             description="Minimal test template",

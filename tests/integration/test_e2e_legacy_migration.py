@@ -8,11 +8,9 @@ Workflow:
 4. Validate functional equivalence
 """
 
-import pytest
 from pathlib import Path
 from typing import Dict, Any, List
 from dataclasses import dataclass
-from src.core.specql_parser import SpecQLParser
 from src.cli.orchestrator import CLIOrchestrator
 
 
@@ -345,7 +343,7 @@ def test_batch_migration_reference_sql():
 
     # Summary
     avg_confidence = sum(conf for _, conf in results) / len(results)
-    print(f"\n📊 Batch migration summary:")
+    print("\n📊 Batch migration summary:")
     print(f"  Files processed: {len(results)}")
     print(f"  Average confidence: {avg_confidence:.0%}")
     print(f"  High confidence (>90%): {sum(1 for _, c in results if c > 0.90)}")

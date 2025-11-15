@@ -6,7 +6,7 @@ and SpecQL syntax rules.
 """
 
 from dataclasses import dataclass
-from typing import List, Optional, Tuple
+from typing import List
 from enum import Enum
 
 

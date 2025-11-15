@@ -2,8 +2,6 @@
 Integration tests for Prisma parser.
 """
 
-import pytest
-from pathlib import Path
 from src.parsers.typescript.prisma_parser import PrismaParser
 
 
@@ -32,21 +30,21 @@ class TestPrismaParser:
         # Check fields
         id_field = next(f for f in entity.fields if f.name == "id")
         assert id_field.type.value == "integer"
-        assert id_field.required == True
-        assert id_field.unique == False  # @id doesn't set unique on the field
+        assert id_field.required  is True
+        assert not id_field.unique  # @id doesn't set unique on the field
 
         email_field = next(f for f in entity.fields if f.name == "email")
         assert email_field.type.value == "text"
-        assert email_field.required == True
-        assert email_field.unique == True  # @unique sets this
+        assert email_field.required  is True
+        assert email_field.unique  is True  # @unique sets this
 
         name_field = next(f for f in entity.fields if f.name == "name")
         assert name_field.type.value == "text"
-        assert name_field.required == False
+        assert not name_field.required
 
         created_at_field = next(f for f in entity.fields if f.name == "createdAt")
         assert created_at_field.type.value == "datetime"
-        assert created_at_field.required == True
+        assert created_at_field.required  is True
 
     def test_parse_model_with_relations(self):
         """Test parsing models with relationships."""
@@ -188,20 +186,20 @@ class TestPrismaParser:
 
         # Required fields
         id_field = next(f for f in entity.fields if f.name == "id")
-        assert id_field.required == True
+        assert id_field.required  is True
 
         name_field = next(f for f in entity.fields if f.name == "name")
-        assert name_field.required == True
+        assert name_field.required  is True
 
         # Optional fields
         desc_field = next(f for f in entity.fields if f.name == "description")
-        assert desc_field.required == False
+        assert not desc_field.required
 
         price_field = next(f for f in entity.fields if f.name == "price")
-        assert price_field.required == False
+        assert not price_field.required
 
         category_field = next(f for f in entity.fields if f.name == "categoryId")
-        assert category_field.required == False
+        assert not category_field.required
 
     def test_parse_unique_constraints(self):
         """Test parsing unique constraints."""
@@ -225,11 +223,11 @@ class TestPrismaParser:
 
         # Check unique field
         email_field = next(f for f in entity.fields if f.name == "email")
-        assert email_field.unique == True
+        assert email_field.unique  is True
 
         # Other fields should not be marked unique (@@unique is not parsed yet)
         username_field = next(f for f in entity.fields if f.name == "username")
-        assert username_field.unique == False
+        assert not username_field.unique
 
     def test_ignore_comments_and_config(self):
         """Test that comments and config blocks are ignored."""

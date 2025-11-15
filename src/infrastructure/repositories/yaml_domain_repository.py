@@ -1,7 +1,6 @@
 """YAML-backed Domain Repository (legacy)"""
 import yaml
 from pathlib import Path
-from src.domain.repositories.domain_repository import DomainRepository
 from src.domain.entities.domain import Domain, Subdomain
 from src.domain.value_objects import DomainNumber
 

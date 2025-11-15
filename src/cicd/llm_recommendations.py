@@ -13,7 +13,6 @@ import requests
 from typing import Dict, List, Any, Optional
 from dataclasses import asdict
 from src.cicd.universal_pipeline_schema import UniversalPipeline
-from src.cicd.pattern_repository import PipelinePattern
 
 
 class LLMRecommendations:

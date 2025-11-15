@@ -93,7 +93,7 @@ def register_domain(number, name, schema_type):
             schema_type=schema_type
         )
 
-        click.secho(f"✅ Domain registered successfully!", fg="green")
+        click.secho("✅ Domain registered successfully!", fg="green")
         click.echo(f"Domain: {result.domain_number.upper()} - {result.domain_name}")
         click.echo(f"Identifier: {result.identifier}")
 
@@ -137,7 +137,7 @@ def register_subdomain(domain, number, name):
             subdomain_name=name
         )
 
-        click.secho(f"✅ Subdomain registered successfully!", fg="green")
+        click.secho("✅ Subdomain registered successfully!", fg="green")
         click.echo(f"Subdomain: {result.subdomain_number.upper()} - {result.subdomain_name}")
         click.echo(f"Parent Domain: {result.parent_domain_number.upper()}")
         click.echo(f"Identifier: {result.identifier}")

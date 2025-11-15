@@ -6,7 +6,7 @@ Pulumi supports multiple languages (Python, TypeScript, Go, C#, etc.) but we'll 
 """
 
 import textwrap
-from typing import Dict, Any, List
+from typing import List
 from src.infrastructure.universal_infra_schema import UniversalInfrastructure, DatabaseType
 
 
@@ -206,7 +206,7 @@ class PulumiGenerator:
             '    name_prefix=f"{infrastructure.name}-app-",',
             '    vpc_id=vpc.id,',
             '    ingress=[{',
-            f'        "protocol": "tcp",',
+            '        "protocol": "tcp",',
             f'        "from_port": {port},',
             f'        "to_port": {port},',
             '        "security_groups": [lb_sg.id]' if infrastructure.load_balancer else '        "cidr_blocks": ["0.0.0.0/0"]',
@@ -418,7 +418,7 @@ class PulumiGenerator:
             '    port=' + str(port) + ',',
             '    protocol="HTTP",',
             '    vpc_id=vpc.id,',
-            f'    health_check={{',
+            '    health_check={',
             f'        "path": "{infrastructure.load_balancer.health_check_path}",',
             f'        "interval": {infrastructure.load_balancer.health_check_interval},',
             '        "timeout": 5,',

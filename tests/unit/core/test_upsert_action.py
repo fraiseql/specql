@@ -1,6 +1,5 @@
 """Tests for upsert action"""
 
-import pytest
 from src.core.specql_parser import SpecQLParser
 
 

@@ -4,7 +4,6 @@ TypeScript entity/interface generator.
 Generates TypeScript interfaces from UniversalEntity objects.
 """
 
-from typing import List
 from src.core.universal_ast import UniversalEntity, UniversalField, FieldType
 
 

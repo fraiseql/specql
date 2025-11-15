@@ -597,7 +597,6 @@ class TestDieselParserCoverage:
         """Test that advanced Rust patterns are detected"""
         from src.parsers.rust.advanced_patterns import (
             AdvancedRustPatternHandler,
-            RustAdvancedMetadata,
         )
 
         handler = AdvancedRustPatternHandler()

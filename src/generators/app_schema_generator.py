@@ -11,17 +11,18 @@ class AppSchemaGenerator:
     """Generates app.* schema foundation with shared utilities"""
 
     def __init__(self, templates_dir: str = "templates/sql"):
-
         import os
-        print(f"DEBUG: CWD = {os.getcwd()}")
-        print(f"DEBUG: Template dir = {templates_dir}")
-        print(f"DEBUG: Absolute path = {os.path.abspath(templates_dir)}")
-        print(f"DEBUG: Dir exists = {os.path.exists(templates_dir)}")
-        if os.path.exists(templates_dir):
-            print(f"DEBUG: Files = {os.listdir(templates_dir)}")
+        # print(f"DEBUG: CWD = {os.getcwd()}")
+        # print(f"DEBUG: Template dir = {templates_dir}")
+        # print(f"DEBUG: Absolute path = {os.path.abspath(templates_dir)}")
+        # print(f"DEBUG: Dir exists = {os.path.exists(templates_dir)}")
+        # if os.path.exists(templates_dir):
+        #     print(f"DEBUG: Files = {os.listdir(templates_dir)}")
 
         self.templates_dir = templates_dir
-        self.env = Environment(loader=FileSystemLoader("/home/lionel/code/specql/templates/sql"))
+        self.env = Environment(
+            loader=FileSystemLoader("/home/lionel/code/specql/templates/sql")
+        )
         self._generated = False  # Ensure foundation is generated only once
 
     def generate_app_foundation(self, include_outbox: bool = False) -> str:

@@ -98,13 +98,13 @@ def reverse_python(python_files, output_dir, discover_patterns, dry_run):
             })
 
     # Summary
-    click.echo(f"\n📊 Summary:")
+    click.echo("\n📊 Summary:")
     successful = sum(1 for r in results if r['success'])
     click.echo(f"  ✅ Successful: {successful}/{len(results)}")
 
     if not dry_run:
         click.echo(f"  📁 Output directory: {output_path}")
-        click.echo(f"\nNext steps:")
+        click.echo("\nNext steps:")
         click.echo(f"  1. Review generated YAML: ls {output_dir}")
         click.echo(f"  2. Validate: specql validate {output_dir}/*.yaml")
         click.echo(f"  3. Generate schema: specql generate {output_dir}/*.yaml")
@@ -130,6 +130,6 @@ def _save_patterns_to_library(entity, patterns: List[str]):
 
         try:
             api.create_pattern(pattern_data)
-        except:
+        except Exception:
             # Pattern might already exist
             pass

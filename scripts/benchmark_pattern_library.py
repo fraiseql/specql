@@ -12,7 +12,7 @@ Usage:
 
 import time
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, List
 
 from src.core.specql_parser import SpecQLParser
 from src.core.ast_models import EntityDefinition
@@ -54,7 +54,7 @@ def benchmark_pattern_library(entities: List[EntityDefinition], iterations: int 
         try:
             compiler.compile_action_step("declare", {"variable_name": "test", "variable_type": "INTEGER"})
             generator.generate_postgresql(entity)
-        except:
+        except Exception:
             pass  # Ignore warmup errors
 
     # Benchmark pattern compilation
@@ -65,7 +65,7 @@ def benchmark_pattern_library(entities: List[EntityDefinition], iterations: int 
                 for step in action.steps:
                     try:
                         compiler.compile_action_step(step.type, {"test": "data"})
-                    except:
+                    except Exception:
                         pass  # Skip problematic steps
     pattern_time = time.time() - start_time
 
@@ -137,7 +137,7 @@ def run_benchmarks():
         pattern_total = pattern_results["total"]
 
         if hardcoded_total > 0:
-            improvement = ((hardcoded_total - pattern_total) / hardcoded_total) * 100
+            ((hardcoded_total - pattern_total) / hardcoded_total) * 100
             print(".1f")
         else:
             print("⚠️  Cannot calculate improvement (hard-coded time is 0)")

@@ -2,8 +2,7 @@
 Integration tests for Spring Boot pattern recognition
 """
 
-import pytest
-from src.reverse_engineering.java.spring_parser import SpringParser, SpringParseConfig
+from src.reverse_engineering.java.spring_parser import SpringParser
 
 
 class TestSpringBootIntegration:

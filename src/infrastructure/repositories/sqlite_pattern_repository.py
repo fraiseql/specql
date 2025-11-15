@@ -2,7 +2,7 @@
 import sqlite3
 import json
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 from src.domain.repositories.pattern_repository import PatternRepository
 from src.domain.entities.pattern import Pattern, PatternCategory, SourceType
 

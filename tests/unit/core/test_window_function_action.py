@@ -1,6 +1,5 @@
 """Tests for window_function action"""
 
-import pytest
 from src.core.specql_parser import SpecQLParser
 
 

@@ -49,7 +49,7 @@ public class Contact {
 
         # Check email field
         email_field = next(f for f in entity.fields if f.name == "email")
-        assert email_field.nullable == False
+        assert not email_field.nullable
         assert email_field.java_type == "String"
 
     def test_relationship_extraction(self, jdt_bridge):
@@ -76,7 +76,7 @@ public class Contact {
         entity = entities[0]
 
         company_field = next(f for f in entity.fields if f.name == "company")
-        assert company_field.is_relationship == True
+        assert company_field.is_relationship  is True
         assert company_field.relationship_type == "ManyToOne"
         assert company_field.target_entity == "Company"
         assert company_field.join_column == "company_id"
@@ -104,7 +104,7 @@ public class Contact {
         entity = entities[0]
 
         status_field = next(f for f in entity.fields if f.name == "status")
-        assert status_field.is_enum == True
+        assert status_field.is_enum  is True
         assert status_field.enum_type == "STRING"
 
     def test_one_to_many_relationship(self, jdt_bridge):
@@ -131,7 +131,7 @@ public class Company {
         entity = entities[0]
 
         contacts_field = next(f for f in entity.fields if f.name == "contacts")
-        assert contacts_field.is_relationship == True
+        assert contacts_field.is_relationship  is True
         assert contacts_field.relationship_type == "OneToMany"
         assert contacts_field.target_entity == "Contact"
 
@@ -162,8 +162,8 @@ public class Product {
 
         name_field = next(f for f in entity.fields if f.name == "name")
         assert name_field.column_name == "product_name"
-        assert name_field.nullable == False
-        assert name_field.unique == True
+        assert not name_field.nullable
+        assert name_field.unique  is True
         assert name_field.length == 100
 
     def test_no_entity_class(self, jdt_bridge):

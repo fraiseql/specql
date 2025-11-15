@@ -1,5 +1,4 @@
-import pytest
-from src.testing.spec.test_spec_models import (
+from src.testing.spec.spec_models import (
     TestSpec,
     TestScenario,
     TestAssertion,
@@ -7,7 +6,7 @@ from src.testing.spec.test_spec_models import (
     TestFixture,
     TestType,
     ScenarioCategory,
-    AssertionType
+    AssertionType,
 )
 
 
@@ -20,7 +19,7 @@ class TestTestSpecModels:
             assertion_type=AssertionType.EQUALS,
             target="result.status",
             expected="success",
-            message="Status should be success"
+            message="Status should be success",
         )
 
         assert assertion.assertion_type == AssertionType.EQUALS
@@ -33,7 +32,7 @@ class TestTestSpecModels:
             assertion_type=AssertionType.THROWS,
             target="action_call",
             expected="ValidationError",
-            message="Should throw ValidationError"
+            message="Should throw ValidationError",
         )
 
         assert assertion.assertion_type == AssertionType.THROWS
@@ -46,7 +45,7 @@ class TestTestSpecModels:
             action="create_entity",
             entity="Contact",
             data={"email": "test@example.com", "status": "lead"},
-            store_result="contact"
+            store_result="contact",
         )
 
         assert step.step_type == "setup"
@@ -66,7 +65,7 @@ class TestTestSpecModels:
                     action="create_entity",
                     entity="Contact",
                     data={"email": "test@example.com", "status": "lead"},
-                    store_result="contact"
+                    store_result="contact",
                 )
             ],
             action_steps=[
@@ -75,22 +74,22 @@ class TestTestSpecModels:
                     action="call_function",
                     function="qualify_lead",
                     parameters={"contact_id": "{{contact.id}}"},
-                    store_result="result"
+                    store_result="result",
                 )
             ],
             assertions=[
                 TestAssertion(
                     assertion_type=AssertionType.EQUALS,
                     target="result.status",
-                    expected="success"
+                    expected="success",
                 ),
                 TestAssertion(
                     assertion_type=AssertionType.STATE_CHANGE,
                     target="contact.status",
                     expected="qualified",
-                    actual="lead"
-                )
-            ]
+                    actual="lead",
+                ),
+            ],
         )
 
         assert scenario.category == ScenarioCategory.HAPPY_PATH
@@ -111,14 +110,11 @@ class TestTestSpecModels:
                     category=ScenarioCategory.HAPPY_PATH,
                     setup_steps=[],
                     action_steps=[],
-                    assertions=[]
+                    assertions=[],
                 )
             ],
             fixtures=[],
-            coverage={
-                "actions_covered": ["qualify_lead"],
-                "coverage_percentage": 85.0
-            }
+            coverage={"actions_covered": ["qualify_lead"], "coverage_percentage": 85.0},
         )
 
         yaml_output = spec.to_yaml()
@@ -147,9 +143,9 @@ class TestTestSpecModels:
                             data={
                                 "email": "test@example.com",
                                 "username": "testuser",
-                                "status": "pending_verification"
+                                "status": "pending_verification",
                             },
-                            store_result="user"
+                            store_result="user",
                         )
                     ],
                     action_steps=[
@@ -157,7 +153,7 @@ class TestTestSpecModels:
                             step_type="action",
                             action="call_function",
                             function="send_verification_email",
-                            parameters={"user_id": "{{user.id}}"}
+                            parameters={"user_id": "{{user.id}}"},
                         ),
                         TestStep(
                             step_type="action",
@@ -165,56 +161,56 @@ class TestTestSpecModels:
                             function="verify_email",
                             parameters={
                                 "user_id": "{{user.id}}",
-                                "token": "valid_token_123"
+                                "token": "valid_token_123",
                             },
-                            store_result="verification_result"
-                        )
+                            store_result="verification_result",
+                        ),
                     ],
                     assertions=[
                         TestAssertion(
                             assertion_type=AssertionType.EQUALS,
                             target="verification_result.success",
                             expected=True,
-                            message="Email verification should succeed"
+                            message="Email verification should succeed",
                         ),
                         TestAssertion(
                             assertion_type=AssertionType.STATE_CHANGE,
                             target="user.status",
                             expected="verified",
                             actual="pending_verification",
-                            message="User status should change to verified"
+                            message="User status should change to verified",
                         ),
                         TestAssertion(
                             assertion_type=AssertionType.EQUALS,
                             target="user.email_verified_at",
                             expected="not_null",
-                            message="Email verified timestamp should be set"
-                        )
+                            message="Email verified timestamp should be set",
+                        ),
                     ],
                     fixtures=["test_email_service", "test_database"],
-                    tags=["integration", "email", "verification"]
+                    tags=["integration", "email", "verification"],
                 )
             ],
             fixtures=[
                 TestFixture(
                     fixture_name="test_email_service",
                     fixture_type="mock",
-                    data={"service_class": "EmailService", "mock_responses": True}
+                    data={"service_class": "EmailService", "mock_responses": True},
                 ),
                 TestFixture(
                     fixture_name="test_database",
                     fixture_type="database",
                     setup_sql="INSERT INTO test_data VALUES (...)",
                     teardown_sql="DELETE FROM test_data",
-                    scope="module"
-                )
+                    scope="module",
+                ),
             ],
             coverage={
                 "actions_covered": ["send_verification_email", "verify_email"],
                 "entities_covered": ["User"],
                 "scenarios_covered": ["happy_path", "error_case"],
-                "coverage_percentage": 92.5
-            }
+                "coverage_percentage": 92.5,
+            },
         )
 
         # Test basic properties

@@ -1,6 +1,5 @@
 """Tests for batch_operation action"""
 
-import pytest
 from src.core.specql_parser import SpecQLParser
 
 

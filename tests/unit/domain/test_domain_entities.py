@@ -1,7 +1,7 @@
 """Unit tests for domain entities"""
 import pytest
 from src.domain.entities.domain import Domain, Subdomain
-from src.domain.value_objects import DomainNumber, TableCode
+from src.domain.value_objects import DomainNumber
 
 class TestSubdomain:
     """Test Subdomain entity"""

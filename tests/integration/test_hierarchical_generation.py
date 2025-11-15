@@ -1,6 +1,5 @@
 """End-to-end integration tests for hierarchical generation workflow."""
 
-import pytest
 from pathlib import Path
 from src.cli.orchestrator import CLIOrchestrator
 

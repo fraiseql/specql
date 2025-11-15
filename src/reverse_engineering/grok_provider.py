@@ -6,7 +6,6 @@ import time
 import tempfile
 import uuid
 from pathlib import Path
-from typing import Optional
 import psycopg
 import os
 

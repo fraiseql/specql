@@ -1,6 +1,6 @@
 """Detect common patterns in SpecQL actions for optimization"""
 
-from src.core.ast_models import Action, ActionStep
+from src.core.ast_models import Action
 
 
 class PatternDetector:

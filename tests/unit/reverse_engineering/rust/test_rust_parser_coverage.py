@@ -30,7 +30,7 @@ from src.reverse_engineering.rust_parser import (
     DieselColumnInfo,
     DieselTableInfo,
 )
-from src.core.ast_models import FieldDefinition, FieldTier
+from src.core.ast_models import FieldDefinition
 
 
 class TestRustParserErrorHandling:
@@ -297,7 +297,7 @@ class TestRustParserParseSource:
         before_count = len(list(Path(temp_dir).glob("*.rs")))
 
         # Parse
-        structs = self.parser.parse_source(source)
+        self.parser.parse_source(source)
 
         # Temp file should be cleaned up
         after_count = len(list(Path(temp_dir).glob("*.rs")))
@@ -564,7 +564,7 @@ class TestDieselTableCoverage:
 
     def test_reverse_engineer_file_with_diesel_tables(self):
         """Test reverse engineering file with Diesel tables included."""
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import patch
 
         service = RustReverseEngineeringService()
 
@@ -585,7 +585,7 @@ class TestDieselTableCoverage:
 
     def test_reverse_engineer_file_exclude_diesel_tables(self):
         """Test reverse engineering file with Diesel tables excluded."""
-        from unittest.mock import patch, MagicMock
+        from unittest.mock import patch
 
         service = RustReverseEngineeringService()
 

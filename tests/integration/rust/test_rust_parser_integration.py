@@ -2,7 +2,6 @@
 Integration tests for Rust parser end-to-end functionality.
 """
 
-import pytest
 import tempfile
 import os
 from pathlib import Path

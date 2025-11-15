@@ -5,7 +5,6 @@ Handles repository backend selection and other configuration options.
 """
 import os
 from enum import Enum
-from pathlib import Path
 from typing import Optional
 
 

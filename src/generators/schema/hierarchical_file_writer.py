@@ -6,7 +6,6 @@ Provides protocol-based path generation and file writing capabilities.
 """
 
 import logging
-from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Protocol

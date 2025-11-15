@@ -186,7 +186,7 @@ pub type PgConnection = diesel::PgConnection;
                 "DELETE /users/{id} endpoint not generated"
             )
 
-            print(f"\n✅ End-to-end pipeline test passed!")
+            print("\n✅ End-to-end pipeline test passed!")
             print(f"   - Parsed {len(entities)} entities")
             print(f"   - Extracted {len(actions)} actions")
             print(f"   - Generated {len(endpoints)} endpoints")

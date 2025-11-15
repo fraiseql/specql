@@ -28,7 +28,6 @@ def list_domains(schema_type):
 
         for domain in domains:
             schema_desc = f" ({domain.schema_type})"
-            subdomains_count = 0  # TODO: Add subdomain count to DTO
 
             click.echo(f"  {domain.domain_number} - {domain.domain_name}{schema_desc}")
             click.echo(f"      Identifier: {domain.identifier}")
@@ -80,7 +79,7 @@ def register_domain(number, name, schema_type):
             schema_type=schema_type
         )
 
-        click.secho(f"✅ Domain registered successfully!", fg="green")
+        click.secho("✅ Domain registered successfully!", fg="green")
         click.echo(f"Domain: {result.domain_number} - {result.domain_name}")
         click.echo(f"Identifier: {result.identifier}")
 

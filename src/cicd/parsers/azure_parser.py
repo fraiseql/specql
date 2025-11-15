@@ -10,7 +10,7 @@ from src.cicd.universal_pipeline_schema import (
     UniversalPipeline,
     Trigger, TriggerType,
     Stage, Job, Step, StepType,
-    Runtime, Service
+    Runtime
 )
 
 

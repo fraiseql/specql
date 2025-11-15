@@ -310,3 +310,4 @@ class TestFraiseQLCompatibility:
 
         # All types should be autodiscovered by FraiseQL
         assert len(incompatible) == 0, f"Unexpected manual annotations needed: {incompatible}"
+# ruff: noqa: E402

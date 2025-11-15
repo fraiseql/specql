@@ -1,4 +1,3 @@
-import pytest
 import tempfile
 from pathlib import Path
 from src.core.specql_parser import SpecQLParser

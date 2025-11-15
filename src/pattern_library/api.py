@@ -236,7 +236,7 @@ class PatternLibrary:
         existing = self.get_implementation(pattern_name, language_name)
         if existing:
             # Update existing implementation
-            cursor = self.db.execute(
+            self.db.execute(
                 "UPDATE pattern_implementations SET implementation_template = ?, supported = ?, version = ? WHERE implementation_id = ?",
                 (template, supported, version, existing["implementation_id"])
             )

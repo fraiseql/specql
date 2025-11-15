@@ -1,4 +1,4 @@
-from typing import List, Dict, Any
+from typing import List
 from src.core.ast_models import Action, ActionStep
 from src.reverse_engineering.protocols import ParsedMethod, ParsedEntity
 from src.reverse_engineering.python_statement_analyzer import (
@@ -197,7 +197,7 @@ class PythonToSpecQLMapper:
         """
         target = stmt.metadata['target']
         iter_expr = stmt.metadata['iter']
-        body = stmt.metadata['body']
+        stmt.metadata['body']
 
         # Parse body (simplified)
         body_steps = []

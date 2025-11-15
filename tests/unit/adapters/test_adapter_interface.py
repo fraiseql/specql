@@ -8,7 +8,7 @@ def test_framework_adapter_is_abstract():
     """FrameworkAdapter should be an abstract base class"""
     # Should not be able to instantiate directly
     with pytest.raises(TypeError):
-        adapter = FrameworkAdapter()
+        FrameworkAdapter()
 
 
 def test_adapter_can_generate_entity():
@@ -66,7 +66,7 @@ def test_adapter_requires_abstract_methods():
 
     # Should fail because abstract methods are not implemented
     with pytest.raises(TypeError):
-        adapter = IncompleteAdapter()
+        IncompleteAdapter()
 
 
 def test_adapter_get_conventions():
@@ -99,7 +99,7 @@ def test_adapter_get_conventions():
 
     assert conventions.naming_case == "PascalCase"
     assert conventions.primary_key_name == "Id"
-    assert conventions.supports_multi_tenancy == False
+    assert not conventions.supports_multi_tenancy
 
 
 def test_adapter_get_framework_name():
@@ -156,4 +156,4 @@ def test_framework_conventions_structure():
     assert conventions.primary_key_name == "id"
     assert conventions.foreign_key_pattern == "{entity}Id"
     assert conventions.timestamp_fields == ["createdAt", "updatedAt"]
-    assert conventions.supports_multi_tenancy == True
+    assert conventions.supports_multi_tenancy  is True

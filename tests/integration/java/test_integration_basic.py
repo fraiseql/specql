@@ -6,7 +6,6 @@ import shutil
 from pathlib import Path
 from src.parsers.java.spring_boot_parser import SpringBootParser
 from src.generators.java.java_generator_orchestrator import JavaGeneratorOrchestrator
-from src.core.universal_ast import UniversalEntity
 
 
 class TestBasicIntegration:
@@ -48,13 +47,13 @@ class TestBasicIntegration:
 
         # Verify field types
         name_field = next(f for f in entity.fields if f.name == "name")
-        assert name_field.required == True
+        assert name_field.required  is True
 
         price_field = next(f for f in entity.fields if f.name == "price")
         assert price_field.type.value == "integer"
 
         active_field = next(f for f in entity.fields if f.name == "active")
-        assert active_field.default == True
+        assert active_field.default  is True
 
         status_field = next(f for f in entity.fields if f.name == "status")
         assert status_field.type.value == "enum"
@@ -62,7 +61,7 @@ class TestBasicIntegration:
         category_field = next(f for f in entity.fields if f.name == "category")
         assert category_field.type.value == "reference"
         assert category_field.references == "Category"
-        assert category_field.required == True
+        assert category_field.required  is True
 
     def test_generate_from_reversed_entity(self, sample_project_dir, temp_output_dir):
         """Test generating Java code from a reversed entity"""

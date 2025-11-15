@@ -1,6 +1,5 @@
 """Integration test for Week 2 features: aggregate + subquery + call_function"""
 
-import pytest
 
 from src.core.specql_parser import SpecQLParser
 def test_week2_features_parse_correctly():

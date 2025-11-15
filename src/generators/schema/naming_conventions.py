@@ -16,7 +16,6 @@ from src.core.ast_models import Entity
 from src.numbering.numbering_parser import NumberingParser
 from src.domain.repositories.domain_repository import DomainRepository
 
-from src.infrastructure.repositories.postgresql_domain_repository import PostgreSQLDomainRepository
 
 # ============================================================================
 # Data Models

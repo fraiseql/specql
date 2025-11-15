@@ -2,7 +2,16 @@
 
 import pytest
 from src.cicd.generators.github_actions_generator import GitHubActionsGenerator
-from src.cicd.universal_pipeline_schema import *
+from src.cicd.universal_pipeline_schema import (
+    UniversalPipeline,
+    Trigger,
+    TriggerType,
+    Stage,
+    Job,
+    Runtime,
+    Step,
+    StepType,
+)
 
 
 class TestGitHubActionsGenerator:
@@ -18,7 +27,7 @@ class TestGitHubActionsGenerator:
             name="CI",
             triggers=[
                 Trigger(type=TriggerType.PUSH, branches=["main"]),
-                Trigger(type=TriggerType.PULL_REQUEST)
+                Trigger(type=TriggerType.PULL_REQUEST),
             ],
             stages=[
                 Stage(
@@ -30,12 +39,16 @@ class TestGitHubActionsGenerator:
                             steps=[
                                 Step(name="Checkout", type=StepType.CHECKOUT),
                                 Step(name="Setup", type=StepType.SETUP_RUNTIME),
-                                Step(name="Test", type=StepType.RUN_TESTS, command="pytest")
-                            ]
+                                Step(
+                                    name="Test",
+                                    type=StepType.RUN_TESTS,
+                                    command="pytest",
+                                ),
+                            ],
                         )
-                    ]
+                    ],
                 )
-            ]
+            ],
         )
 
         # Act

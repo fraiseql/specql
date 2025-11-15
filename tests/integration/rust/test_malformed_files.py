@@ -2,7 +2,6 @@
 Test handling of malformed Rust files and edge cases.
 """
 
-import pytest
 import tempfile
 import os
 from pathlib import Path

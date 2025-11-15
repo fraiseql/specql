@@ -4,11 +4,11 @@ Algorithmic Parser: SQL → SpecQL without AI
 85% confidence through pure algorithmic conversion
 """
 
-from src.reverse_engineering.sql_ast_parser import SQLASTParser, ParsedFunction
+from src.reverse_engineering.sql_ast_parser import SQLASTParser
 from src.reverse_engineering.ast_to_specql_mapper import ASTToSpecQLMapper, ConversionResult
 from src.reverse_engineering.heuristic_enhancer import HeuristicEnhancer
 from src.reverse_engineering.ai_enhancer import AIEnhancer
-from typing import Dict, Optional
+from typing import Dict
 import yaml
 
 

@@ -5,7 +5,7 @@ Coordinates the complete Rust code generation pipeline.
 """
 
 from pathlib import Path
-from typing import List, Dict, Any
+from typing import List
 from src.core.ast_models import Entity
 from src.generators.rust.diesel_table_generator import DieselTableGenerator
 from src.generators.rust.model_generator import RustModelGenerator

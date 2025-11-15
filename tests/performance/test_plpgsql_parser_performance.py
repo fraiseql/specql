@@ -2,8 +2,6 @@
 
 import time
 import psycopg
-from pathlib import Path
-from typing import List, Dict, Any
 import pytest
 from src.parsers.plpgsql.plpgsql_parser import PLpgSQLParser
 from src.core.universal_ast import UniversalEntity

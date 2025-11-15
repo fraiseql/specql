@@ -43,7 +43,7 @@ class TestCommandInjectionPrevention:
         result = await runner.execute(job, context)
 
         # Should fail because the command structure is invalid/malicious
-        assert result.success == False
+        assert not result.success
         assert (
             "not allowed" in result.error_message.lower()
             or "invalid" in result.error_message.lower()
@@ -81,7 +81,7 @@ class TestCommandInjectionPrevention:
 
         result = await runner.execute(job, context)
 
-        assert result.success == False
+        assert not result.success
         assert "not allowed" in result.error_message.lower()
 
     @pytest.mark.asyncio
@@ -116,7 +116,7 @@ class TestCommandInjectionPrevention:
 
         result = await runner.execute(job, context)
 
-        assert result.success == False
+        assert not result.success
         assert "not allowed" in result.error_message.lower()
 
     @pytest.mark.asyncio
@@ -161,7 +161,7 @@ class TestCommandInjectionPrevention:
             result = await runner.execute(job, context)
 
             # Should fail due to network error, not succeed with SSRF
-            assert result.success == False
+            assert not result.success
             assert "Connection refused" in result.error_message
 
 
@@ -204,7 +204,7 @@ class TestResourceExhaustionPrevention:
         result = await runner.execute(job, context)
 
         # Should fail due to memory limit enforcement
-        assert result.success == False
+        assert not result.success
         # Note: Actual enforcement depends on OS resource limits
 
     @pytest.mark.asyncio
@@ -258,7 +258,7 @@ class TestResourceExhaustionPrevention:
             result = await runner.execute(job, context)
 
             # Should show container was killed
-            assert result.success == False
+            assert not result.success
             assert result.output_data["exit_code"] == 137
 
     @pytest.mark.asyncio
@@ -290,7 +290,7 @@ class TestResourceExhaustionPrevention:
         ):
             result = await runner.execute(job, context)
 
-            assert result.success == False
+            assert not result.success
             assert "Too many requests" in result.error_message
 
     @pytest.mark.asyncio
@@ -334,7 +334,7 @@ class TestResourceExhaustionPrevention:
         result = await runner.execute(job, context)
 
         # Should fail due to disk limits or timeout
-        assert result.success == False
+        assert not result.success
 
 
 class TestConfigurationTamperingPrevention:
@@ -392,7 +392,7 @@ class TestConfigurationTamperingPrevention:
         # Should validate and reject malicious config
         result = await runner.validate_config(malicious_config)
         # Config is still valid since we only check base_url
-        assert result == True
+        assert result  is True
 
         # But the malicious parts should be ignored during execution
         job = JobRecord(
@@ -427,7 +427,7 @@ class TestConfigurationTamperingPrevention:
             result = await fresh_runner.execute(job, context)
 
             # Should execute safely despite malicious config
-            assert result.success == True
+            assert result.success  is True
             assert result.output_data == {"data": "safe"}
 
     @pytest.mark.asyncio

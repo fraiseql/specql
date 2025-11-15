@@ -49,7 +49,7 @@ def generate_kpi_calculator(config: Dict[str, Any]) -> str:
 
     for metric in metrics:
         formula = metric.get("formula", "0")
-        metric_name = metric.get("name", "metric")
+        metric.get("name", "metric")
 
         # Detect required joins using the JoinDetector
         joins_needed = join_detector.detect_joins(formula, entity["name"])

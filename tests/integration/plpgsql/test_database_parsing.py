@@ -1,7 +1,6 @@
 """Database integration tests for PLpgSQLParser"""
 
 import pytest
-import psycopg
 from src.parsers.plpgsql.plpgsql_parser import PLpgSQLParser
 
 
@@ -85,7 +84,7 @@ class TestDatabaseParsing:
         with test_db.cursor() as cur:
             # Set search path to the test schema
             cur.execute(f"SET LOCAL search_path TO {schema_name}")
-            cur.execute(f"""
+            cur.execute("""
             CREATE OR REPLACE FUNCTION create_contact(
                 p_email TEXT,
                 p_first_name TEXT,

@@ -1,6 +1,5 @@
 """Integration tests for switch and return_early action compilation"""
 
-import pytest
 from src.core.specql_parser import SpecQLParser
 from src.generators.core_logic_generator import CoreLogicGenerator
 from src.generators.schema.schema_registry import SchemaRegistry

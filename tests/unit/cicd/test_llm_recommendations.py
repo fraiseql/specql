@@ -1,10 +1,9 @@
 """Tests for LLM-powered CI/CD pattern recommendations"""
 
 import pytest
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 from src.cicd.llm_recommendations import LLMRecommendations
-from src.cicd.universal_pipeline_schema import UniversalPipeline, Runtime
-from src.cicd.pattern_repository import PipelinePattern
+from src.cicd.universal_pipeline_schema import UniversalPipeline
 
 
 class TestLLMRecommendations:

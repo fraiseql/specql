@@ -3,10 +3,11 @@ Repository Pattern Implementation
 
 Provides abstract base classes and protocols for data access.
 """
-from abc import ABC, abstractmethod
+
 from typing import TypeVar, Generic, Protocol
 
-T = TypeVar('T')
+T = TypeVar("T")
+
 
 class Repository(Protocol, Generic[T]):
     """

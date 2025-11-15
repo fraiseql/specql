@@ -1,5 +1,3 @@
-import pytest
-from pathlib import Path
 import json
 from src.generators.diagrams.html_viewer_generator import HTMLViewerGenerator
 from src.generators.diagrams.relationship_extractor import RelationshipExtractor

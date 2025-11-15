@@ -97,7 +97,7 @@ class TestRustParsingPerformance:
             iterations = 50
             start = time.time()
             for _ in range(iterations):
-                result = self.parser.parse_file(Path(temp_path))
+                self.parser.parse_file(Path(temp_path))
             elapsed = time.time() - start
 
             avg_time = elapsed / iterations
@@ -150,7 +150,7 @@ pub struct Entity{i} {{
             iterations = 10
             start = time.time()
             for _ in range(iterations):
-                result = self.parser.parse_file(Path(temp_path))
+                self.parser.parse_file(Path(temp_path))
             elapsed = time.time() - start
 
             avg_time = elapsed / iterations
@@ -167,7 +167,7 @@ pub struct Entity{i} {{
 
             # Stretch goal: Verify claimed 785 structs/sec
             if structs_per_sec > 785:
-                print(f"  ✓ Exceeds claimed performance of 785 structs/sec")
+                print("  ✓ Exceeds claimed performance of 785 structs/sec")
 
         finally:
             import os
@@ -248,7 +248,7 @@ pub struct Entity{i} {{
             iterations = 50
             start = time.time()
             for _ in range(iterations):
-                entities = self.service.reverse_engineer_file(Path(temp_path))
+                self.service.reverse_engineer_file(Path(temp_path))
             elapsed = time.time() - start
 
             avg_time = elapsed / iterations
@@ -351,7 +351,7 @@ impl Entity {{
             iterations = 20
             start = time.time()
             for _ in range(iterations):
-                result = self.parser.parse_file(Path(temp_path))
+                self.parser.parse_file(Path(temp_path))
             elapsed = time.time() - start
 
             avg_time = elapsed / iterations

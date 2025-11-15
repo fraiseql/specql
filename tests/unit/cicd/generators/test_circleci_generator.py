@@ -2,7 +2,17 @@
 
 import pytest
 from src.cicd.generators.circleci_generator import CircleCIGenerator
-from src.cicd.universal_pipeline_schema import *
+from src.cicd.universal_pipeline_schema import (
+    UniversalPipeline,
+    Trigger,
+    TriggerType,
+    Stage,
+    Job,
+    Runtime,
+    Step,
+    StepType,
+    Service,
+)
 
 
 class TestCircleCIGenerator:
@@ -18,7 +28,7 @@ class TestCircleCIGenerator:
             name="build_and_test",
             triggers=[
                 Trigger(type=TriggerType.PUSH, branches=["main"]),
-                Trigger(type=TriggerType.PULL_REQUEST)
+                Trigger(type=TriggerType.PULL_REQUEST),
             ],
             stages=[
                 Stage(
@@ -29,13 +39,21 @@ class TestCircleCIGenerator:
                             runtime=Runtime(language="python", version="3.11"),
                             steps=[
                                 Step(name="Checkout", type=StepType.CHECKOUT),
-                                Step(name="Install deps", type=StepType.INSTALL_DEPS, command="pip install -r requirements.txt"),
-                                Step(name="Run tests", type=StepType.RUN_TESTS, command="pytest")
-                            ]
+                                Step(
+                                    name="Install deps",
+                                    type=StepType.INSTALL_DEPS,
+                                    command="pip install -r requirements.txt",
+                                ),
+                                Step(
+                                    name="Run tests",
+                                    type=StepType.RUN_TESTS,
+                                    command="pytest",
+                                ),
+                            ],
                         )
-                    ]
+                    ],
                 )
-            ]
+            ],
         )
 
         # Act
@@ -65,16 +83,25 @@ class TestCircleCIGenerator:
                             name="integration",
                             runtime=Runtime(language="python", version="3.11"),
                             services=[
-                                Service(name="postgres", version="15", environment={"POSTGRES_PASSWORD": "test"}, ports=[5432])
+                                Service(
+                                    name="postgres",
+                                    version="15",
+                                    environment={"POSTGRES_PASSWORD": "test"},
+                                    ports=[5432],
+                                )
                             ],
                             steps=[
                                 Step(name="Checkout", type=StepType.CHECKOUT),
-                                Step(name="Run integration tests", type=StepType.RUN_TESTS, command="pytest tests/integration")
-                            ]
+                                Step(
+                                    name="Run integration tests",
+                                    type=StepType.RUN_TESTS,
+                                    command="pytest tests/integration",
+                                ),
+                            ],
                         )
-                    ]
+                    ],
                 )
-            ]
+            ],
         )
 
         # Act
@@ -100,15 +127,19 @@ class TestCircleCIGenerator:
                             runtime=Runtime(language="python", version="3.11"),
                             matrix={
                                 "python-version": ["3.10", "3.11", "3.12"],
-                                "os": ["ubuntu", "macos"]
+                                "os": ["ubuntu", "macos"],
                             },
                             steps=[
-                                Step(name="Test", type=StepType.RUN, command="echo Testing")
-                            ]
+                                Step(
+                                    name="Test",
+                                    type=StepType.RUN,
+                                    command="echo Testing",
+                                )
+                            ],
                         )
-                    ]
+                    ],
                 )
-            ]
+            ],
         )
 
         # Act
@@ -125,7 +156,9 @@ class TestCircleCIGenerator:
         pipeline = UniversalPipeline(
             name="nightly",
             triggers=[
-                Trigger(type=TriggerType.SCHEDULE, schedule="0 0 * * *", branches=["main"])
+                Trigger(
+                    type=TriggerType.SCHEDULE, schedule="0 0 * * *", branches=["main"]
+                )
             ],
             stages=[
                 Stage(
@@ -135,12 +168,16 @@ class TestCircleCIGenerator:
                             name="test",
                             runtime=Runtime(language="python", version="3.11"),
                             steps=[
-                                Step(name="Run nightly tests", type=StepType.RUN, command="pytest")
-                            ]
+                                Step(
+                                    name="Run nightly tests",
+                                    type=StepType.RUN,
+                                    command="pytest",
+                                )
+                            ],
                         )
-                    ]
+                    ],
                 )
-            ]
+            ],
         )
 
         # Act
@@ -149,7 +186,7 @@ class TestCircleCIGenerator:
         # Assert
         assert "triggers:" in yaml_output
         assert "schedule:" in yaml_output
-        assert "cron: \"0 0 * * *\"" in yaml_output
+        assert 'cron: "0 0 * * *"' in yaml_output
         assert "filters:" in yaml_output
         assert "branches:" in yaml_output
         assert "only: main" in yaml_output

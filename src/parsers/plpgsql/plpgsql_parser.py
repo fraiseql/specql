@@ -338,12 +338,11 @@ class PLpgSQLParser:
         fk_rows = cursor.fetchall()
 
         # Group by constraint (for multi-column FKs, though we handle single column for now)
-        fk_map = {}
         for row in fk_rows:
             col_name = row["column_name"]
-            ref_schema = row["referenced_schema"]
+            row["referenced_schema"]
             ref_table = row["referenced_table"]
-            ref_column = row["referenced_column"]
+            row["referenced_column"]
 
             # Convert table name to entity name (remove tb_ prefix)
             ref_entity_name = ref_table.replace("tb_", "").capitalize()

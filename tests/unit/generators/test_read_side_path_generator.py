@@ -144,13 +144,13 @@ class TestPathIntegration:
         view_name = "tv_contact"
 
         # Parse code
-        components = parser.parse(code)
+        parser.parse(code)
 
         # Generate path
         path = path_gen.generate_path(code, view_name)
 
         # Verify structure
-        assert path.is_absolute() == False  # Relative path
+        assert not path.is_absolute()  # Relative path
         assert str(path).startswith("0_schema/02_query_side/")
         assert "022_crm" in str(path)
         assert "0223_customer" in str(path)

@@ -6,7 +6,7 @@ Parses Diesel models and schema files to extract entity definitions.
 
 import logging
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 
 from src.core.universal_ast import UniversalEntity, UniversalField, FieldType
 from src.core.ast_models import Entity, FieldDefinition

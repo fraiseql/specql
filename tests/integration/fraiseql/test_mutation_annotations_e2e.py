@@ -253,3 +253,4 @@ class TestMutationAnnotationsEndToEnd:
         assert schema_sql.count("COMMENT ON FUNCTION crm.qualify_lead") == 1
         assert schema_sql.count("COMMENT ON FUNCTION crm.create_contact") == 1
         assert schema_sql.count("COMMENT ON FUNCTION crm.update_contact") == 1
+# ruff: noqa: E402

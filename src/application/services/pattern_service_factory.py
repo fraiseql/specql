@@ -6,7 +6,6 @@ Similar to DomainServiceFactory but for pattern library operations.
 """
 
 import logging
-from typing import Optional
 from src.application.services.pattern_service import PatternService
 from src.core.config import get_config
 

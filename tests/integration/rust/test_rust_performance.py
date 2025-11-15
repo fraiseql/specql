@@ -6,7 +6,6 @@ import tempfile
 import os
 from pathlib import Path
 from src.parsers.rust.diesel_parser import DieselParser
-from src.generators.rust.rust_generator_orchestrator import RustGeneratorOrchestrator
 from tests.integration.rust.generate_large_dataset import generate_large_dataset
 
 
@@ -49,7 +48,7 @@ class TestPerformance:
             str(large_project_dir / "models"), str(large_project_dir / "schema.rs")
         )
 
-        temp_dir = tempfile.mkdtemp()
+        tempfile.mkdtemp()
 
         start_time = time.time()
         for entity in entities[:100]:  # Test with first 100 entities
@@ -91,14 +90,13 @@ class TestPerformance:
     def test_memory_usage_stays_under_1gb(self, large_project_dir):
         """Ensure memory usage stays reasonable"""
         import psutil
-        import os
 
         process = psutil.Process(os.getpid())
         initial_memory = process.memory_info().rss / 1024 / 1024  # MB
 
         # Parse large project
         parser = DieselParser()
-        entities = parser.parse_project(
+        parser.parse_project(
             str(large_project_dir / "models"), str(large_project_dir / "schema.rs")
         )
 

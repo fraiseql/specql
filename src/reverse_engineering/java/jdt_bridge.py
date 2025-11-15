@@ -6,7 +6,6 @@ Uses Py4J to communicate with Java process running JDT.
 """
 
 import subprocess
-import os
 from pathlib import Path
 from typing import Optional, Any
 from py4j.java_gateway import JavaGateway, GatewayParameters

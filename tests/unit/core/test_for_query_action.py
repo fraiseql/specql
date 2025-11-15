@@ -1,6 +1,5 @@
 """Tests for for_query loop action"""
 
-import pytest
 from src.core.specql_parser import SpecQLParser
 
 

@@ -1,7 +1,6 @@
 """Tests for pattern import functionality"""
 import pytest
 import yaml
-from pathlib import Path
 from src.cli.pattern_importer import PatternImporter
 from src.application.services.pattern_service import PatternService
 from src.infrastructure.repositories.in_memory_pattern_repository import (

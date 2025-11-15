@@ -2,7 +2,7 @@
 
 import pytest
 from src.cicd.parsers.circleci_parser import CircleCIParser
-from src.cicd.universal_pipeline_schema import UniversalPipeline, TriggerType, StepType
+from src.cicd.universal_pipeline_schema import TriggerType, StepType
 
 
 class TestCircleCIParser:

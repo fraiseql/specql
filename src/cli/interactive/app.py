@@ -6,7 +6,7 @@ auto-completion, and pattern suggestions.
 """
 
 from textual.app import App, ComposeResult
-from textual.containers import Container, Horizontal, Vertical
+from textual.containers import Horizontal, Vertical
 from textual.widgets import Header, Footer, Static, TextArea, Button
 from textual.binding import Binding
 from rich.syntax import Syntax
@@ -190,8 +190,6 @@ actions:
 
     def action_save(self) -> None:
         """Save current YAML to file"""
-        from textual.screen import Screen
-        from textual.widgets import Input
 
         # Show save dialog (simplified)
         # In real implementation, use proper dialog widget

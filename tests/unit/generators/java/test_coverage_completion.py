@@ -330,9 +330,9 @@ class TestLombokHandler:
 
         metadata = handler.extract_lombok_metadata(java_code)
 
-        assert metadata.has_data == True
-        assert metadata.has_getter == True
-        assert metadata.has_setter == True
+        assert metadata.has_data  is True
+        assert metadata.has_getter  is True
+        assert metadata.has_setter  is True
 
     def test_lombok_builder_annotation(self):
         """Test @Builder annotation detection"""
@@ -348,7 +348,7 @@ class TestLombokHandler:
 
         metadata = handler.extract_lombok_metadata(java_code)
 
-        assert metadata.has_builder == True
+        assert metadata.has_builder  is True
 
     def test_lombok_non_null_fields(self):
         """Test @NonNull field detection"""
@@ -427,8 +427,8 @@ class TestLombokHandler:
         try:
             # Test the Lombok handler directly first
             lombok_metadata = parser.lombok_handler.extract_lombok_metadata(java_code)
-            assert lombok_metadata.has_data == True
-            assert lombok_metadata.has_builder == True
+            assert lombok_metadata.has_data  is True
+            assert lombok_metadata.has_builder  is True
             assert lombok_metadata.builder_defaults.get("name") == '"Unknown"', (
                 f"Builder defaults: {lombok_metadata.builder_defaults}"
             )
@@ -454,7 +454,6 @@ class TestSpringBootParserCoverage:
         """Test parser handles file reading exceptions"""
         from src.parsers.java.spring_boot_parser import SpringBootParser
         import tempfile
-        import os
 
         parser = SpringBootParser()
 
@@ -516,4 +515,4 @@ class TestSpringBootParserCoverage:
         converted_field = parser._convert_field(old_field)
 
         assert converted_field.name == "test_field"
-        assert converted_field.required == True
+        assert converted_field.required  is True

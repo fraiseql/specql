@@ -87,7 +87,7 @@ $$ LANGUAGE plpgsql;
         """
         # Create test data
         post_id = uuid4()
-        user_id = uuid4()
+        uuid4()
 
         # Test cascade_entity function
         cursor = test_db.execute("""

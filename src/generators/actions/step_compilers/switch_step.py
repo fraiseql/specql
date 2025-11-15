@@ -1,6 +1,6 @@
 """Compiler for switch steps"""
 
-from src.core.ast_models import ActionStep, EntityDefinition, SwitchCase
+from src.core.ast_models import ActionStep, EntityDefinition
 from src.generators.actions.compilation_context import CompilationContext
 from src.generators.actions.step_compilers.base import StepCompiler
 from src.generators.actions.switch_optimizer import SwitchOptimizer

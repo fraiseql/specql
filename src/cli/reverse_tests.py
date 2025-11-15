@@ -8,7 +8,6 @@ Usage:
 """
 
 import click
-import yaml
 from pathlib import Path
 from typing import List, Tuple, Dict, Any
 from src.reverse_engineering.tests.pgtap_test_parser import PgTAPTestParser
@@ -250,7 +249,7 @@ def _analyze_test_coverage(test_spec) -> Dict[str, Any]:
 
 def _print_summary(results: List[Tuple[str, Any]], analyze_coverage: bool):
     """Print processing summary"""
-    click.echo(f"\n📊 Summary:")
+    click.echo("\n📊 Summary:")
     click.echo(f"  Total files: {len(results)}")
 
     successful_results = [r for _, r in results if r is not None]
@@ -263,7 +262,7 @@ def _print_summary(results: List[Tuple[str, Any]], analyze_coverage: bool):
         click.echo(f"  Total assertions: {total_assertions}")
 
         if analyze_coverage:
-            avg_coverage = sum(r.metadata.get("coverage_analysis", {}).get("coverage_score", 0) for r in successful_results) / len(successful_results)
+            sum(r.metadata.get("coverage_analysis", {}).get("coverage_score", 0) for r in successful_results) / len(successful_results)
             click.echo(".1f")
     else:
         click.echo("  No successful conversions")
@@ -275,7 +274,7 @@ def _print_summary(results: List[Tuple[str, Any]], analyze_coverage: bool):
 
 def _print_coverage_summary(results: List[Tuple[str, Any]]):
     """Print coverage analysis summary"""
-    click.echo(f"\n📈 Coverage Analysis:")
+    click.echo("\n📈 Coverage Analysis:")
 
     successful_results = [r for _, r in results if r is not None]
     if not successful_results:

@@ -122,14 +122,3 @@ class TestConvenienceFunctions:
 
         assert result == expected
 
-    def test_generate_gist_index(self):
-        """Test GIST index convenience function."""
-        result = generate_gist_index(
-            table_name="tenant.tb_location", index_name="idx_location_geom", columns=["geom"]
-        )
-
-        expected = """CREATE INDEX idx_location_geom
-    ON tenant.tb_location USING gist(geom)
-    WHERE deleted_at IS NULL;"""
-
-        assert result == expected

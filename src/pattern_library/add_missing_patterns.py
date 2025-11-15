@@ -3,7 +3,6 @@ Add missing patterns and PostgreSQL implementations to the pattern library.
 """
 
 import sqlite3
-import json
 
 
 def add_missing_patterns():

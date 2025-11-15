@@ -109,7 +109,7 @@ def update_pyproject_toml(version: str) -> None:
             updated_lines.append(line)
 
     pyproject_path.write_text('\n'.join(updated_lines))
-    print(f"✅ Updated pyproject.toml")
+    print("✅ Updated pyproject.toml")
 
 
 def main() -> int:

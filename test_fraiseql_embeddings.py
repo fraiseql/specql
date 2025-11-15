@@ -4,7 +4,6 @@ Test FraiseQL 1.5 embeddings functionality
 """
 
 import sys
-import os
 
 # Add user site-packages to path
 sys.path.insert(0, "/home/lionel/.local/lib/python3.13/site-packages")

@@ -2,12 +2,10 @@
 Tests for Spring Boot to SpecQL Converter
 """
 
-import pytest
-from unittest.mock import Mock
 
 from src.reverse_engineering.java.spring_visitor import SpringComponent, SpringMethod
 from src.reverse_engineering.java.spring_to_specql import SpringToSpecQLConverter
-from src.core.ast_models import Action, ActionStep, ActionImpact, EntityImpact
+from src.core.ast_models import ActionImpact
 
 
 class TestSpringToSpecQLConverter:
