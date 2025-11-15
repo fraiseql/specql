@@ -49,6 +49,7 @@ from src.core.universal_ast import (
     UniversalAction,
     UniversalStep,
 )
+from src.core.validation_limits import ValidationLimits
 from src.patterns import PatternLoader
 
 
@@ -75,10 +76,16 @@ class SpecQLParser:
         - fields: { name: type }
         - actions: [...]
         """
+        # VALIDATION 1: Check YAML file size
+        ValidationLimits.validate_yaml_size(yaml_content)
+
         try:
             data = yaml.safe_load(yaml_content)
         except yaml.YAMLError as e:
             raise ParseError(f"Invalid YAML: {e}")
+
+        # VALIDATION 2: Check YAML nesting depth
+        ValidationLimits.validate_nesting_depth(data)
 
         # Validate required fields
         if not isinstance(data, dict):
@@ -128,6 +135,9 @@ class SpecQLParser:
             field = self._parse_field(field_name, field_spec)
             entity.fields[field_name] = field
 
+        # VALIDATION 3: Check field count
+        ValidationLimits.validate_field_count(entity_name, len(entity.fields))
+
         # Set current entity fields for expression validation
         self.current_entity_fields = entity.fields
 
@@ -136,8 +146,11 @@ class SpecQLParser:
 
         actions_data = data.get("actions", [])
         for action_spec in actions_data:
-            action = self._parse_action(action_spec)
+            action = self._parse_action(action_spec, entity_name)
             entity.actions.append(action)
+
+        # VALIDATION 4: Check action count
+        ValidationLimits.validate_action_count(entity_name, len(entity.actions))
 
         # Parse agents
         agents_data = data.get("agents", [])
@@ -768,7 +781,7 @@ class SpecQLParser:
             fraiseql_type=type_name.capitalize(),  # Text → String in GraphQL
         )
 
-    def _parse_action(self, action_spec: dict) -> ActionDefinition:
+    def _parse_action(self, action_spec: dict, entity_name: str = "") -> ActionDefinition:
         """Parse action definition with full step parsing and pattern support"""
         action = ActionDefinition(
             name=action_spec["name"],
@@ -812,6 +825,9 @@ class SpecQLParser:
             for step_spec in action_spec.get("steps", []):
                 step = self._parse_single_step(step_spec)
                 action.steps.append(step)
+
+        # VALIDATION 5: Check steps count
+        ValidationLimits.validate_steps_count(entity_name, action.name, len(action.steps))
 
         return action
 
