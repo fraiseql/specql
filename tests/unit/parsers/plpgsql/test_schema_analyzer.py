@@ -59,7 +59,7 @@ class TestSchemaAnalyzer:
 
         assert column["name"] == "email"
         assert column["data_type"] == "TEXT"
-        assert not column["nullable"]
+        assert column["nullable"] == "NO"
         assert column["default"] == "'test@example.com'"
 
     def test_parse_complete_table(self, analyzer):

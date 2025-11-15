@@ -263,9 +263,16 @@ class SchemaAnalyzer:
 
         column_name = column["name"]
 
-        # For round-trip testing, include all fields
-        # Note: In normal parsing, Trinity and audit fields are skipped as they are auto-generated
-        # But for round-trip validation, we need to preserve all original fields
+        # Skip Trinity and audit fields as they are auto-generated
+        column_name_lower = column_name.lower()
+        if column_name_lower.startswith("pk_") or column_name_lower in [
+            "id",
+            "identifier",
+            "created_at",
+            "updated_at",
+            "deleted_at",
+        ]:
+            return None
 
         # Map PostgreSQL type to SpecQL type
         type_mapper = TypeMapper()

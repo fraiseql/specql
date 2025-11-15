@@ -190,9 +190,8 @@ pub type PgConnection = diesel::PgConnection;
             print(f"   - Parsed {len(entities)} entities")
             print(f"   - Extracted {len(actions)} actions")
             print(f"   - Generated {len(endpoints)} endpoints")
-            print(
-                f"   - Endpoints: {', '.join([f'{ep['method']} {ep['path']}' for ep in endpoints])}"
-            )
+            endpoint_list = [f"{ep['method']} {ep['path']}" for ep in endpoints]
+            print(f"   - Endpoints: {', '.join(endpoint_list)}")
 
         finally:
             import os

@@ -60,6 +60,9 @@ specql = "src.cli.confiture_extensions:specql"
 [tool.hatch.build.targets.wheel]
 packages = ["src"]
 
+[tool.pytest.ini_options]
+addopts = "--import-mode=importlib"
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
