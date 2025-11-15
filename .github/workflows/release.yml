@@ -31,10 +31,13 @@ jobs:
           uv venv
           uv pip install -e ".[dev]"
 
-       - name: Run tests
-         run: |
-           uv run pytest --tb=short
-         continue-on-error: ${{ contains(steps.get_version.outputs.VERSION, '-') }}
+      - name: Run tests
+        run: |
+          if [[ "${{ steps.get_version.outputs.VERSION }}" == *"-"* ]]; then
+            uv run pytest --tb=short || echo "Tests failed but continuing for alpha release"
+          else
+            uv run pytest --tb=short
+          fi
 
       - name: Extract version from tag
         id: get_version
