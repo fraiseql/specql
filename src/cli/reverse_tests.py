@@ -9,7 +9,7 @@ Usage:
 
 import click
 from pathlib import Path
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any, Optional
 from src.reverse_engineering.tests.pgtap_test_parser import PgTAPTestParser
 from src.reverse_engineering.tests.pytest_test_parser import PytestParser
 from src.testing.spec.test_parser_protocol import TestSourceLanguage
@@ -17,13 +17,28 @@ from src.testing.spec.test_parser_protocol import TestSourceLanguage
 
 @click.command()
 @click.argument("input_files", nargs=-1, type=click.Path(exists=True))
-@click.option("--output-dir", "-o", type=click.Path(), help="Output directory for YAML files")
+@click.option(
+    "--output-dir", "-o", type=click.Path(), help="Output directory for YAML files"
+)
 @click.option("--entity", "-e", help="Entity name (auto-detected if not provided)")
-@click.option("--analyze-coverage", is_flag=True, help="Analyze test coverage and suggest missing tests")
-@click.option("--format", type=click.Choice(["yaml", "json"]), default="yaml", help="Output format")
+@click.option(
+    "--analyze-coverage",
+    is_flag=True,
+    help="Analyze test coverage and suggest missing tests",
+)
+@click.option(
+    "--format",
+    type=click.Choice(["yaml", "json"]),
+    default="yaml",
+    help="Output format",
+)
 @click.option("--preview", is_flag=True, help="Preview mode (no files written)")
-@click.option("--verbose", "-v", is_flag=True, help="Show detailed processing information")
-def reverse_tests(input_files, output_dir, entity, analyze_coverage, format, preview, verbose):
+@click.option(
+    "--verbose", "-v", is_flag=True, help="Show detailed processing information"
+)
+def reverse_tests(
+    input_files, output_dir, entity, analyze_coverage, format, preview, verbose
+) -> int:
     """
     Reverse engineer test files to SpecQL TestSpec YAML
 
@@ -38,7 +53,8 @@ def reverse_tests(input_files, output_dir, entity, analyze_coverage, format, pre
     """
     if not input_files:
         click.echo("❌ No input files specified")
-        return
+        click.echo("\nUsage: specql reverse-tests test.sql")
+        return 1
 
     # Initialize parsers
     parsers = {
@@ -66,18 +82,24 @@ def reverse_tests(input_files, output_dir, entity, analyze_coverage, format, pre
                 continue
 
             # Read and parse test file
-            with open(input_file, 'r', encoding='utf-8') as f:
+            with open(input_file, "r", encoding="utf-8") as f:
                 content = f.read()
 
             parsed_test = parser.parse_test_file(content, str(file_path))
 
             # Convert to TestSpec
-            if hasattr(parser, 'map_to_test_spec'):
-                test_spec = parser.map_to_test_spec(parsed_test, entity or _infer_entity_name(file_path))
+            if hasattr(parser, "map_to_test_spec"):
+                test_spec = parser.map_to_test_spec(
+                    parsed_test, entity or _infer_entity_name(file_path)
+                )
             else:
                 # Use separate mapper for parsers that don't implement it directly
-                from src.reverse_engineering.tests.pgtap_test_parser import PgTAPTestSpecMapper
-                from src.reverse_engineering.tests.pytest_test_parser import PytestTestSpecMapper
+                from src.reverse_engineering.tests.pgtap_test_parser import (
+                    PgTAPTestSpecMapper,
+                )
+                from src.reverse_engineering.tests.pytest_test_parser import (
+                    PytestTestSpecMapper,
+                )
 
                 if isinstance(parser, PgTAPTestParser):
                     mapper = PgTAPTestSpecMapper()
@@ -86,7 +108,9 @@ def reverse_tests(input_files, output_dir, entity, analyze_coverage, format, pre
                 else:
                     raise ValueError(f"No mapper available for parser {type(parser)}")
 
-                test_spec = mapper.map_to_test_spec(parsed_test, entity or _infer_entity_name(file_path))
+                test_spec = mapper.map_to_test_spec(
+                    parsed_test, entity or _infer_entity_name(file_path)
+                )
 
             # Analyze coverage if requested
             if analyze_coverage:
@@ -103,6 +127,7 @@ def reverse_tests(input_files, output_dir, entity, analyze_coverage, format, pre
                     click.echo(test_spec.to_yaml())
                 else:
                     import json
+
                     click.echo(json.dumps(test_spec.__dict__, indent=2, default=str))
                 click.echo("=" * 50)
             elif output_dir:
@@ -112,6 +137,7 @@ def reverse_tests(input_files, output_dir, entity, analyze_coverage, format, pre
             click.echo(f"❌ Failed to process {input_file}: {e}")
             if verbose:
                 import traceback
+
                 traceback.print_exc()
             results.append((input_file, None))
 
@@ -122,34 +148,36 @@ def reverse_tests(input_files, output_dir, entity, analyze_coverage, format, pre
     if analyze_coverage:
         _print_coverage_summary(results)
 
+    return 0
 
-def _detect_test_format(file_path: Path) -> TestSourceLanguage:
+
+def _detect_test_format(file_path: Path) -> Optional[TestSourceLanguage]:
     """Auto-detect test file format based on file extension and content"""
     suffix = file_path.suffix.lower()
 
     # Check file extension
-    if suffix == '.sql':
+    if suffix == ".sql":
         return TestSourceLanguage.PGTAP
-    elif suffix in ['.py', '.pytest']:
+    elif suffix in [".py", ".pytest"]:
         return TestSourceLanguage.PYTEST
 
     # Check content-based detection
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        with open(file_path, "r", encoding="utf-8") as f:
             content = f.read(1000)  # Read first 1000 chars
 
         # pgTAP indicators
-        if 'SELECT plan(' in content or 'SELECT ok(' in content:
+        if "SELECT plan(" in content or "SELECT ok(" in content:
             return TestSourceLanguage.PGTAP
 
         # pytest indicators
-        if 'def test_' in content or 'import pytest' in content:
+        if "def test_" in content or "import pytest" in content:
             return TestSourceLanguage.PYTEST
 
     except Exception:
         pass
 
-    return None
+    raise ValueError(f"Could not detect test format for {file_path}")
 
 
 def _infer_entity_name(file_path: Path) -> str:
@@ -157,16 +185,16 @@ def _infer_entity_name(file_path: Path) -> str:
     stem = file_path.stem.lower()
 
     # Remove common test prefixes/suffixes
-    for prefix in ['test_', 'tests_', 'spec_']:
+    for prefix in ["test_", "tests_", "spec_"]:
         if stem.startswith(prefix):
-            stem = stem[len(prefix):]
+            stem = stem[len(prefix) :]
 
-    for suffix in ['_test', '_tests', '_spec']:
+    for suffix in ["_test", "_tests", "_spec"]:
         if stem.endswith(suffix):
-            stem = stem[:-len(suffix)]
+            stem = stem[: -len(suffix)]
 
     # Convert snake_case to PascalCase
-    return ''.join(word.capitalize() for word in stem.split('_'))
+    return "".join(word.capitalize() for word in stem.split("_"))
 
 
 def _write_test_spec(test_spec, output_dir, input_file, format):
@@ -178,9 +206,10 @@ def _write_test_spec(test_spec, output_dir, input_file, format):
         content = test_spec.to_yaml()
     else:  # json
         import json
+
         content = json.dumps(test_spec.__dict__, indent=2, default=str)
 
-    with open(output_path, "w", encoding='utf-8') as f:
+    with open(output_path, "w", encoding="utf-8") as f:
         f.write(content)
 
     click.echo(f"   💾 Written to {output_path}")
@@ -194,18 +223,22 @@ def _analyze_test_coverage(test_spec) -> Dict[str, Any]:
         "assertion_types": {},
         "crud_operations": {"create": 0, "read": 0, "update": 0, "delete": 0},
         "missing_tests": [],
-        "coverage_score": 0.0
+        "coverage_score": 0.0,
     }
 
     # Count scenario categories
     for scenario in test_spec.scenarios:
         category = scenario.category.value
-        analysis["scenario_categories"][category] = analysis["scenario_categories"].get(category, 0) + 1
+        analysis["scenario_categories"][category] = (
+            analysis["scenario_categories"].get(category, 0) + 1
+        )
 
         # Count assertions
         for assertion in scenario.assertions:
             assertion_type = assertion.assertion_type.value
-            analysis["assertion_types"][assertion_type] = analysis["assertion_types"].get(assertion_type, 0) + 1
+            analysis["assertion_types"][assertion_type] = (
+                analysis["assertion_types"].get(assertion_type, 0) + 1
+            )
 
         # Detect CRUD operations
         scenario_text = (scenario.scenario_name + " " + scenario.description).lower()
@@ -224,7 +257,18 @@ def _analyze_test_coverage(test_spec) -> Dict[str, Any]:
 
     happy_path_count = analysis["scenario_categories"].get("happy_path", 0)
     error_case_count = analysis["scenario_categories"].get("error_case", 0)
-    scenario_balance = min(100, (min(happy_path_count, error_case_count) / max(happy_path_count, error_case_count)) * 100) if max(happy_path_count, error_case_count) > 0 else 0
+    scenario_balance = (
+        min(
+            100,
+            (
+                min(happy_path_count, error_case_count)
+                / max(happy_path_count, error_case_count)
+            )
+            * 100,
+        )
+        if max(happy_path_count, error_case_count) > 0
+        else 0
+    )
 
     analysis["coverage_score"] = (crud_coverage + scenario_balance) / 2
 
@@ -255,14 +299,19 @@ def _print_summary(results: List[Tuple[str, Any]], analyze_coverage: bool):
     successful_results = [r for _, r in results if r is not None]
     if successful_results:
         total_scenarios = sum(len(r.scenarios) for r in successful_results)
-        total_assertions = sum(sum(len(s.assertions) for s in r.scenarios) for r in successful_results)
+        total_assertions = sum(
+            sum(len(s.assertions) for s in r.scenarios) for r in successful_results
+        )
 
         click.echo(f"  Test specs generated: {len(successful_results)}")
         click.echo(f"  Total scenarios: {total_scenarios}")
         click.echo(f"  Total assertions: {total_assertions}")
 
         if analyze_coverage:
-            sum(r.metadata.get("coverage_analysis", {}).get("coverage_score", 0) for r in successful_results) / len(successful_results)
+            sum(
+                r.metadata.get("coverage_analysis", {}).get("coverage_score", 0)
+                for r in successful_results
+            ) / len(successful_results)
             click.echo(".1f")
     else:
         click.echo("  No successful conversions")

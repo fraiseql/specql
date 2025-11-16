@@ -23,14 +23,30 @@ def specql():
 
     Generate PostgreSQL, Java, Rust, and TypeScript from YAML specifications.
 
-    Common commands:
-      init       - Create new project from template
-      generate   - Generate code from entities
-      validate   - Validate entity definitions
-      examples   - Show example entity definitions
+    Code Generation:
+      generate       - Generate code from entities
+      generate-java  - Generate Spring Boot Java code
+
+    Testing:
+      generate-tests - Generate pgTAP and pytest tests
+      reverse-tests  - Import existing tests to TestSpec
+
+    Reverse Engineering:
+      reverse        - Reverse engineer PostgreSQL to entities
+      reverse-python - Reverse engineer Python to entities
+      parse-plpgsql  - Parse PostgreSQL DDL to entities
+
+    Utilities:
+      validate       - Validate entity definitions
+      examples       - Show example entity definitions
+      diagram        - Generate entity relationship diagrams
+      interactive    - Interactive CLI mode
 
     Get help on any command:
       specql <command> --help
+
+    Documentation:
+      https://github.com/fraiseql/specql/blob/main/docs/
     """
     pass
 
@@ -853,6 +869,11 @@ specql.add_command(reverse)
 from src.cli.reverse_python import reverse_python
 
 specql.add_command(reverse_python, name="reverse-python")
+
+# Add test generation command
+from src.cli.generate_tests import generate_tests
+
+specql.add_command(generate_tests, name="generate-tests")
 
 # Add test reverse engineering command
 from src.cli.reverse_tests import reverse_tests

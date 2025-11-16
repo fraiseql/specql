@@ -110,10 +110,116 @@ actions:
 
 **Plus**:
 - ✅ FraiseQL metadata for GraphQL auto-discovery
-- ✅ Test files (pgTAP SQL + pytest)
+- ✅ **70+ automated tests** (pgTAP SQL + pytest integration)
 - ✅ CI/CD workflows (GitHub Actions, GitLab CI)
 
-**Result**: 2000+ lines across 4 languages from 15 lines YAML (133x leverage)
+**Result**: 2000+ lines across 4 languages **+ 70+ tests** from 15 lines YAML (140x leverage)
+
+## Automated Testing
+
+SpecQL automatically generates comprehensive test suites for your entities:
+
+### Generate Tests
+
+```bash
+# Generate both pgTAP and pytest tests
+specql generate-tests entities/contact.yaml
+
+# Generate only pgTAP (PostgreSQL unit tests)
+specql generate-tests entities/*.yaml --type pgtap
+
+# Generate only pytest (Python integration tests)
+specql generate-tests entities/*.yaml --type pytest --output-dir tests/integration/
+```
+
+### What Tests Are Generated?
+
+From a single Contact entity (15 lines of YAML), SpecQL generates **70+ comprehensive tests**:
+
+**pgTAP Tests** (PostgreSQL unit tests):
+- ✅ **Structure validation** (10+ tests): Tables, columns, constraints, indexes
+- ✅ **CRUD operations** (15+ tests): Create, read, update, delete with happy/error paths
+- ✅ **Constraint validation** (8+ tests): NOT NULL, foreign keys, unique constraints
+- ✅ **Business logic** (12+ tests): Action execution, state transitions, validations
+
+**pytest Tests** (Python integration tests):
+- ✅ **Integration tests** (10+ tests): End-to-end CRUD workflows
+- ✅ **Action tests** (8+ tests): Business action execution
+- ✅ **Error handling** (6+ tests): Duplicate detection, validation errors
+- ✅ **Edge cases** (5+ tests): Boundary conditions, state machine paths
+
+### Example: Contact Entity
+
+```yaml
+# contact.yaml (15 lines)
+entity: Contact
+schema: crm
+
+fields:
+  email: email
+  status: enum(lead, qualified, customer)
+
+actions:
+  - name: qualify_lead
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
+```
+
+**Generates**:
+```sql
+-- test_contact_structure.sql (50+ lines)
+SELECT has_table('crm', 'tb_contact', 'Contact table exists');
+SELECT has_column('crm', 'tb_contact', 'email', 'Has email column');
+SELECT col_is_pk('crm', 'tb_contact', 'pk_contact', 'PK constraint');
+-- ... 7 more structure tests
+
+-- test_contact_crud.sql (100+ lines)
+SELECT lives_ok(
+  $$SELECT app.create_contact('test@example.com')$$,
+  'Create contact succeeds'
+);
+-- ... 14 more CRUD tests
+
+-- test_contact_actions.sql (80+ lines)
+SELECT ok(
+  (SELECT app.qualify_lead(contact_id)).status = 'success',
+  'Qualify lead action succeeds'
+);
+-- ... 11 more action tests
+```
+
+```python
+# test_contact_integration.py (150+ lines)
+class TestContactIntegration:
+    def test_create_contact_happy_path(self, clean_db):
+        result = execute("SELECT app.create_contact('test@example.com')")
+        assert result['status'] == 'success'
+
+    def test_qualify_lead_action(self, clean_db):
+        # ... 9 more integration tests
+```
+
+### Reverse Engineer Existing Tests
+
+Import your existing pgTAP or pytest tests into universal TestSpec format:
+
+```bash
+# Parse pgTAP tests
+specql reverse-tests tests/test_contact.sql
+
+# Parse pytest tests with coverage analysis
+specql reverse-tests tests/test_*.py --analyze-coverage
+
+# Convert to universal YAML format
+specql reverse-tests test.sql --entity=Contact --output-dir=specs/ --format=yaml
+```
+
+**Use cases**:
+- 📊 **Coverage analysis** - Find missing test scenarios
+- 🔄 **Framework migration** - Convert between test frameworks
+- 📚 **Documentation** - Generate test documentation from code
+- 🎯 **Gap detection** - Identify untested business logic
 
 ## Installation
 
@@ -245,7 +351,7 @@ Transform existing code back to SpecQL YAML:
 - **Visual Diagrams** - Graphviz/Mermaid schema generation
 - **CI/CD Generation** - GitHub Actions, GitLab CI, CircleCI support
 - **Infrastructure as Code** - Terraform, Kubernetes, Docker Compose
-- **Test Generation** - pgTAP SQL tests, pytest Python tests
+- **Automated Test Generation** - 70+ pgTAP SQL tests + pytest integration tests per entity
 
 ### FraiseQL Integration (Partial 🔄)
 - Automatic GraphQL metadata generation
@@ -254,7 +360,7 @@ Transform existing code back to SpecQL YAML:
 - [FraiseQL Integration Guide](docs/02_guides/FRAISEQL_INTEGRATION.md)
 
 ### Testing & Quality ✅
-- **Automated Tests** - pgTAP SQL tests + pytest Python test generation
+- **Automated Test Generation** - Generate 70+ comprehensive tests per entity (pgTAP + pytest)
 - **96%+ Coverage** - Comprehensive test suite across 389 Python files (2937 tests)
 - **Performance Benchmarks** - 1,461 Java entities/sec, 37,233 TypeScript entities/sec
 - **Security** - SQL injection prevention, comprehensive security audit
