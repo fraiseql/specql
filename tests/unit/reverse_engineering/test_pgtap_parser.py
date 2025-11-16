@@ -1,11 +1,10 @@
 from src.reverse_engineering.tests.pgtap_test_parser import (
     PgTAPTestParser,
-    PgTAPTestSpecMapper
+    PgTAPTestSpecMapper,
 )
 
 
 class TestPgTAPTestParser:
-
     def test_parse_simple_pgtap_test(self):
         """Test parsing simple pgTAP test"""
         pgtap_code = """
@@ -166,3 +165,124 @@ class TestPgTAPTestParser:
         assert any("Contact creation should succeed" in str(ds) for ds in docstrings)
         assert any("Duplicate email should throw" in str(ds) for ds in docstrings)
         assert any("Contact table should exist" in str(ds) for ds in docstrings)
+
+    def test_parse_pgtap_action_tests(self):
+        """Test parsing pgTAP action tests."""
+        pgtap_code = """
+        BEGIN;
+        SELECT plan(2);
+
+        -- Action success test
+        SELECT ok(
+            (SELECT crm.qualify_lead('contact-id', 'user-id')).status = 'success',
+            'Qualify lead should succeed'
+        );
+
+        -- Action with state change
+        DO $$
+        DECLARE
+            v_result app.mutation_result;
+        BEGIN
+            v_result := crm.qualify_lead('contact-id', 'user-id');
+            PERFORM ok(v_result.status = 'success', 'Action should succeed');
+            PERFORM ok(
+                (SELECT status FROM crm.tb_contact WHERE id = 'contact-id') = 'qualified',
+                'Contact status should change to qualified'
+            );
+        END $$;
+
+        SELECT * FROM finish();
+        ROLLBACK;
+        """
+
+        parser = PgTAPTestParser()
+        parsed = parser.parse_test_file(pgtap_code)
+
+        assert len(parsed.test_functions) >= 1
+
+    def test_parse_pgtap_with_setup_teardown(self):
+        """Test parsing pgTAP with setup and teardown SQL."""
+        pgtap_code = """
+        -- Setup: Create test data
+        INSERT INTO crm.tb_contact (id, email) VALUES ('test-id', 'test@example.com');
+
+        BEGIN;
+        SELECT plan(1);
+
+        SELECT ok(
+            (SELECT email FROM crm.tb_contact WHERE id = 'test-id') = 'test@example.com',
+            'Setup data should exist'
+        );
+
+        SELECT * FROM finish();
+        ROLLBACK;
+
+        -- Teardown: Clean up
+        DELETE FROM crm.tb_contact WHERE id = 'test-id';
+        """
+
+        parser = PgTAPTestParser()
+        parsed = parser.parse_test_file(pgtap_code)
+
+        assert len(parsed.test_functions) == 1
+        # Should detect setup/teardown SQL
+        assert len(parsed.fixtures) >= 1
+
+    def test_parse_empty_pgtap_file(self):
+        """Test parsing empty pgTAP file."""
+        parser = PgTAPTestParser()
+        parsed = parser.parse_test_file("")
+
+        assert len(parsed.test_functions) == 0
+        assert len(parsed.fixtures) == 0
+
+    def test_parse_pgtap_with_malformed_sql(self):
+        """Test parsing pgTAP with malformed SQL."""
+        malformed_code = """
+        BEGIN;
+        SELECT plan(1);
+
+        -- Missing closing parenthesis
+        SELECT ok((SELECT 1 = 1, 'Test');
+
+        SELECT * FROM finish();
+        ROLLBACK;
+        """
+
+        parser = PgTAPTestParser()
+        # Should not crash, but may not parse perfectly
+        parsed = parser.parse_test_file(malformed_code)
+
+        # At minimum should not crash
+        assert parsed is not None
+
+    def test_pgtap_test_spec_mapping_comprehensive(self):
+        """Test comprehensive mapping from pgTAP to TestSpec."""
+        pgtap_code = """
+        BEGIN;
+        SELECT plan(2);
+
+        -- Happy path
+        SELECT ok(
+            (SELECT app.create_contact('test@example.com')).status = 'success',
+            'Create contact happy path'
+        );
+
+        -- Error case
+        SELECT throws_ok(
+            $$SELECT app.create_contact('test@example.com')$$,
+            'Duplicate contact error'
+        );
+
+        SELECT * FROM finish();
+        ROLLBACK;
+        """
+
+        parser = PgTAPTestParser()
+        parsed = parser.parse_test_file(pgtap_code)
+
+        mapper = PgTAPTestSpecMapper()
+        test_spec = mapper.map_to_test_spec(parsed, "Contact")
+
+        assert test_spec.entity_name == "Contact"
+        assert len(test_spec.scenarios) >= 1

@@ -1,9 +1,10 @@
 """CLI commands for entity template management"""
+
 import click
 import yaml
 from src.application.services.template_service import TemplateService
 from src.infrastructure.repositories.postgresql_entity_template_repository import (
-    PostgreSQLEntityTemplateRepository
+    PostgreSQLEntityTemplateRepository,
 )
 from src.core.config import get_config
 
@@ -20,11 +21,17 @@ def templates():
 @click.option("--description", required=True, help="Template description")
 @click.option("--domain", required=True, help="Domain number (e.g., 01)")
 @click.option("--base-entity", required=True, help="Base entity name")
-@click.option("--fields-file", required=True, type=click.Path(exists=True),
-              help="YAML file with field definitions")
+@click.option(
+    "--fields-file",
+    required=True,
+    type=click.Path(exists=True),
+    help="YAML file with field definitions",
+)
 @click.option("--patterns", multiple=True, help="Pattern IDs to include")
 @click.option("--public/--private", default=True, help="Is template public?")
-def create(template_id, name, description, domain, base_entity, fields_file, patterns, public):
+def create(
+    template_id, name, description, domain, base_entity, fields_file, patterns, public
+):
     """Create a new entity template"""
     config = get_config()
     repository = PostgreSQLEntityTemplateRepository(config.db_url)
@@ -44,7 +51,7 @@ def create(template_id, name, description, domain, base_entity, fields_file, pat
         base_entity_name=base_entity,
         fields=fields,
         included_patterns=list(patterns) if patterns else [],
-        is_public=public
+        is_public=public,
     )
 
     click.echo(f"✅ Created template: {template.template_id} (v{template.version})")
@@ -108,8 +115,12 @@ def show(template_id):
     if template.changelog:
         click.echo(f"Changelog: {template.changelog}")
 
-    click.echo(f"\nIncluded Patterns: {', '.join(template.included_patterns) if template.included_patterns else 'None'}")
-    click.echo(f"Composed From: {', '.join(template.composed_from) if template.composed_from else 'None'}")
+    click.echo(
+        f"\nIncluded Patterns: {', '.join(template.included_patterns) if template.included_patterns else 'None'}"
+    )
+    click.echo(
+        f"Composed From: {', '.join(template.composed_from) if template.composed_from else 'None'}"
+    )
 
     click.echo("\nFields:")
     for field in template.fields:
@@ -133,13 +144,27 @@ def show(template_id):
 @click.option("--subdomain", required=True, help="Subdomain number (e.g., 012)")
 @click.option("--table-code", required=True, help="Table code (e.g., 012360)")
 @click.option("--output", type=click.Path(), help="Output YAML file path")
-@click.option("--field-overrides", type=click.Path(exists=True),
-              help="YAML file with field overrides")
-@click.option("--additional-fields", type=click.Path(exists=True),
-              help="YAML file with additional fields")
+@click.option(
+    "--field-overrides",
+    type=click.Path(exists=True),
+    help="YAML file with field overrides",
+)
+@click.option(
+    "--additional-fields",
+    type=click.Path(exists=True),
+    help="YAML file with additional fields",
+)
 @click.option("--patterns", multiple=True, help="Override included patterns")
-def instantiate(template_id, entity_name, subdomain, table_code, output,
-                field_overrides, additional_fields, patterns):
+def instantiate(
+    template_id,
+    entity_name,
+    subdomain,
+    table_code,
+    output,
+    field_overrides,
+    additional_fields,
+    patterns,
+):
     """Instantiate a template to create an entity specification"""
     config = get_config()
     repository = PostgreSQLEntityTemplateRepository(config.db_url)
@@ -165,12 +190,12 @@ def instantiate(template_id, entity_name, subdomain, table_code, output,
         table_code=table_code,
         field_overrides=field_overrides_data,
         additional_fields=additional_fields_data,
-        pattern_overrides=list(patterns) if patterns else None
+        pattern_overrides=list(patterns) if patterns else None,
     )
 
     # Output result
     if output:
-        with open(output, 'w') as f:
+        with open(output, "w") as f:
             yaml.dump(entity_spec, f, default_flow_style=False, sort_keys=False)
         click.echo(f"✅ Entity specification written to: {output}")
     else:
@@ -234,7 +259,7 @@ def update(template_id, name, description, public):
             template_id=template_id,
             template_name=name,
             description=description,
-            is_public=public
+            is_public=public,
         )
         click.echo(f"✅ Updated template: {template.template_id}")
     except ValueError as e:
@@ -243,8 +268,11 @@ def update(template_id, name, description, public):
 
 @templates.command()
 @click.argument("template_id")
-@click.option("--additional-fields", type=click.Path(exists=True),
-              help="YAML file with additional fields")
+@click.option(
+    "--additional-fields",
+    type=click.Path(exists=True),
+    help="YAML file with additional fields",
+)
 @click.option("--version", help="New version number")
 @click.option("--changelog", help="Changelog description")
 def version(template_id, additional_fields, version, changelog):
@@ -265,18 +293,26 @@ def version(template_id, additional_fields, version, changelog):
             template_id=template_id,
             additional_fields=additional_fields_data,
             version=version,
-            changelog=changelog
+            changelog=changelog,
         )
-        click.echo(f"✅ Created new version: {new_version.template_id} v{new_version.version}")
+        click.echo(
+            f"✅ Created new version: {new_version.template_id} v{new_version.version}"
+        )
     except ValueError as e:
         click.echo(f"❌ Error: {e}")
 
 
 @templates.command()
 @click.argument("template_id")
-@click.confirmation_option(prompt="Are you sure you want to delete this template?")
 def delete(template_id):
     """Delete a template"""
+    # Ask for confirmation before deletion
+    if not click.confirm(
+        "Are you sure you want to delete this template?", default=False
+    ):
+        click.echo("❌ Deletion cancelled")
+        return 0
+
     config = get_config()
     repository = PostgreSQLEntityTemplateRepository(config.db_url)
     service = TemplateService(repository)

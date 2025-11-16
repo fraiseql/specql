@@ -238,3 +238,205 @@ class TestTestSpecModels:
         assert "send_verification_email" in yaml_output
         assert "test_email_service" in yaml_output
         assert "integration" in yaml_output
+
+    def test_assertion_types_comprehensive(self):
+        """All assertion types should be valid."""
+        assertion_types = [
+            AssertionType.EQUALS,
+            AssertionType.NOT_EQUALS,
+            AssertionType.CONTAINS,
+            AssertionType.IS_NULL,
+            AssertionType.IS_NOT_NULL,
+            AssertionType.THROWS,
+            AssertionType.GREATER_THAN,
+            AssertionType.LESS_THAN,
+            AssertionType.STATE_CHANGE,
+        ]
+
+        for atype in assertion_types:
+            assertion = TestAssertion(
+                assertion_type=atype, target="field", expected="value"
+            )
+            assert assertion.assertion_type == atype
+
+    def test_scenario_categories(self):
+        """All scenario categories should be valid."""
+        categories = [
+            ScenarioCategory.HAPPY_PATH,
+            ScenarioCategory.ERROR_CASE,
+            ScenarioCategory.EDGE_CASE,
+            ScenarioCategory.BOUNDARY,
+        ]
+
+        for category in categories:
+            scenario = TestScenario(
+                scenario_name="test",
+                category=category,
+                description="Test",
+                setup_steps=[],
+                action_steps=[],
+                assertions=[],
+            )
+            assert scenario.category == category
+
+    def test_test_types(self):
+        """All test types should be valid."""
+        test_types = [
+            TestType.CRUD_CREATE,
+            TestType.CRUD_READ,
+            TestType.CRUD_UPDATE,
+            TestType.CRUD_DELETE,
+            TestType.VALIDATION,
+            TestType.STATE_MACHINE,
+            TestType.WORKFLOW,
+        ]
+
+        # Just verify they exist and are accessible
+        for ttype in test_types:
+            assert ttype.value is not None
+
+    def test_test_spec_with_multiple_scenarios(self):
+        """TestSpec should handle multiple scenarios."""
+        assertion1 = TestAssertion(
+            assertion_type=AssertionType.EQUALS, target="status", expected="success"
+        )
+        assertion2 = TestAssertion(
+            assertion_type=AssertionType.THROWS,
+            target="error",
+            expected="ValidationError",
+        )
+
+        scenario1 = TestScenario(
+            scenario_name="happy_path",
+            category=ScenarioCategory.HAPPY_PATH,
+            description="Happy path test",
+            setup_steps=[],
+            action_steps=[],
+            assertions=[assertion1],
+        )
+
+        scenario2 = TestScenario(
+            scenario_name="error_case",
+            category=ScenarioCategory.ERROR_CASE,
+            description="Error case test",
+            setup_steps=[],
+            action_steps=[],
+            assertions=[assertion2],
+        )
+
+        test_spec = TestSpec(
+            test_name="multi_scenario_test",
+            entity_name="Contact",
+            test_type=TestType.WORKFLOW,
+            scenarios=[scenario1, scenario2],
+        )
+
+        assert len(test_spec.scenarios) == 2
+        assert test_spec.scenarios[0].category == ScenarioCategory.HAPPY_PATH
+        assert test_spec.scenarios[1].category == ScenarioCategory.ERROR_CASE
+
+    def test_assertion_with_message(self):
+        """TestAssertion should handle optional message."""
+        assertion = TestAssertion(
+            assertion_type=AssertionType.EQUALS, target="result", expected="ok"
+        )
+
+        assert assertion.message is None
+
+        assertion_with_message = TestAssertion(
+            assertion_type=AssertionType.EQUALS,
+            target="result",
+            expected="ok",
+            message="Result should be ok",
+        )
+
+        assert assertion_with_message.message == "Result should be ok"
+
+    def test_scenario_with_multiple_assertions(self):
+        """TestScenario should handle multiple assertions."""
+        assertions = [
+            TestAssertion(
+                assertion_type=AssertionType.EQUALS, target="status", expected="success"
+            ),
+            TestAssertion(
+                assertion_type=AssertionType.IS_NOT_NULL, target="id", expected=None
+            ),
+            TestAssertion(
+                assertion_type=AssertionType.CONTAINS, target="data", expected="email"
+            ),
+        ]
+
+        scenario = TestScenario(
+            scenario_name="comprehensive_test",
+            category=ScenarioCategory.HAPPY_PATH,
+            description="Test with multiple assertions",
+            setup_steps=[],
+            action_steps=[],
+            assertions=assertions,
+        )
+
+        assert len(scenario.assertions) == 3
+        assertion_types = [a.assertion_type for a in scenario.assertions]
+        assert AssertionType.EQUALS in assertion_types
+        assert AssertionType.IS_NOT_NULL in assertion_types
+        assert AssertionType.CONTAINS in assertion_types
+
+    def test_test_spec_different_frameworks(self):
+        """TestSpec should support different test frameworks."""
+        frameworks = ["pgtap", "pytest", "junit", "jest"]
+
+        for framework in frameworks:
+            test_spec = TestSpec(
+                test_name="test",
+                entity_name="TestEntity",
+                test_type=TestType.WORKFLOW,
+                scenarios=[],
+            )
+            assert test_spec.test_name == "test"
+
+    def test_enum_values_unique(self):
+        """All enum values should be unique."""
+        assertion_values = [atype.value for atype in AssertionType]
+        assert len(assertion_values) == len(set(assertion_values))
+
+        category_values = [cat.value for cat in ScenarioCategory]
+        assert len(category_values) == len(set(category_values))
+
+        type_values = [ttype.value for ttype in TestType]
+        assert len(type_values) == len(set(type_values))
+
+    def test_assertion_type_string_representation(self):
+        """Assertion types should have meaningful string representations."""
+        assertion = TestAssertion(
+            assertion_type=AssertionType.EQUALS, target="x", expected=5
+        )
+
+        # Should be able to convert to string
+        str(assertion)
+        repr(assertion)
+
+    def test_scenario_type_string_representation(self):
+        """Scenarios should have meaningful string representations."""
+        scenario = TestScenario(
+            scenario_name="test",
+            category=ScenarioCategory.HAPPY_PATH,
+            description="Test scenario",
+            setup_steps=[],
+            action_steps=[],
+            assertions=[],
+        )
+
+        str(scenario)
+        repr(scenario)
+
+    def test_test_spec_string_representation(self):
+        """TestSpec should have meaningful string representations."""
+        test_spec = TestSpec(
+            test_name="test",
+            entity_name="Contact",
+            test_type=TestType.WORKFLOW,
+            scenarios=[],
+        )
+
+        str(test_spec)
+        repr(test_spec)

@@ -39,13 +39,39 @@ actions:
         """)
         return entity_file
 
-    def test_generate_tests_help_works(self, runner):
-        """generate-tests --help should work."""
-        result = runner.invoke(specql, ["generate-tests", "--help"])
-        assert result.exit_code == 0
-        assert "Generate test files" in result.output
-        assert "--type" in result.output
-        assert "--output-dir" in result.output
+    def test_generate_tests_function_basic(self):
+        """Test generate_tests core function directly."""
+        from src.cli.generate_tests import _generate_tests_core
+        import tempfile
+        from pathlib import Path
+
+        # Create a temporary entity file
+        with tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False) as f:
+            f.write("""
+entity: TestEntity
+schema: test
+fields:
+  name: text
+  email: email
+""")
+            entity_file = f.name
+
+        try:
+            # Test with preview mode (should not fail)
+            with tempfile.TemporaryDirectory() as output_dir:
+                # This should not raise an exception
+                result = _generate_tests_core(
+                    entity_files=(entity_file,),
+                    test_type="pgtap",
+                    output_dir=output_dir,
+                    preview=True,
+                    verbose=False,
+                    overwrite=False,
+                )
+                # Function should return 0 on success
+                assert result == 0
+        finally:
+            Path(entity_file).unlink(missing_ok=True)
 
     def test_generate_tests_requires_entity_file(self, runner):
         """generate-tests should require entity file."""

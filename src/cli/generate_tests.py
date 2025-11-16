@@ -17,30 +17,7 @@ from src.testing.pgtap.pgtap_generator import PgTAPGenerator
 from src.testing.pytest.pytest_generator import PytestGenerator
 
 
-@click.command()
-@click.argument("entity_files", nargs=-1, type=click.Path(exists=True), required=True)
-@click.option(
-    "--type",
-    "test_type",
-    type=click.Choice(["all", "pgtap", "pytest"], case_sensitive=False),
-    default="all",
-    help="Type of tests to generate (default: all)",
-)
-@click.option(
-    "--output-dir",
-    "-o",
-    type=click.Path(),
-    default="tests",
-    help="Output directory for generated tests (default: tests/)",
-)
-@click.option(
-    "--preview",
-    is_flag=True,
-    help="Preview mode - show what would be generated without writing files",
-)
-@click.option("--verbose", "-v", is_flag=True, help="Show detailed generation progress")
-@click.option("--overwrite", is_flag=True, help="Overwrite existing test files")
-def generate_tests(
+def _generate_tests_core(
     entity_files: tuple[str, ...],
     test_type: str,
     output_dir: str,
@@ -48,27 +25,7 @@ def generate_tests(
     verbose: bool,
     overwrite: bool,
 ) -> int:
-    """
-    Generate test files from SpecQL entity definitions.
-
-    Generates comprehensive test suites including:
-    - pgTAP tests: Structure, CRUD, constraints, actions
-    - pytest tests: Integration tests for CRUD and actions
-
-    Examples:
-
-        # Generate all tests for Contact entity
-        specql generate-tests entities/contact.yaml
-
-        # Generate only pgTAP tests
-        specql generate-tests entities/*.yaml --type pgtap
-
-        # Generate pytest tests to custom directory
-        specql generate-tests entities/ --type pytest --output-dir tests/integration/
-
-        # Preview what would be generated
-        specql generate-tests entities/contact.yaml --preview
-    """
+    """Core logic for generating tests."""
     if not entity_files:
         click.secho("❌ Error: No entity files specified", fg="red")
         click.echo("\nUsage: specql generate-tests entities/contact.yaml")
@@ -112,6 +69,10 @@ def generate_tests(
                 # Try as dict
                 entity_dict = yaml.safe_load(entity_content)
                 entity = entity_dict  # We'll use dict directly
+
+            # Ensure entity is a dict for compatibility
+            if not isinstance(entity, dict):
+                entity = {"entity": str(entity)}
 
             # Extract entity config
             entity_config = _build_entity_config(entity, entity_file)
@@ -191,6 +152,68 @@ def generate_tests(
         click.secho(f"\n✅ Tests generated in {output_dir}/", fg="green", bold=True)
 
     return 1 if stats["errors"] else 0
+
+
+@click.command()
+@click.argument("entity_files", nargs=-1, type=click.Path(exists=True), required=True)
+@click.option(
+    "--type",
+    "test_type",
+    type=click.Choice(["all", "pgtap", "pytest"], case_sensitive=False),
+    default="all",
+    help="Type of tests to generate (default: all)",
+)
+@click.option(
+    "--output-dir",
+    "-o",
+    type=click.Path(),
+    default="tests",
+    help="Output directory for generated tests (default: tests/)",
+)
+@click.option(
+    "--preview",
+    is_flag=True,
+    help="Preview mode - show what would be generated without writing files",
+)
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed generation progress")
+@click.option("--overwrite", is_flag=True, help="Overwrite existing test files")
+def generate_tests(
+    entity_files: tuple[str, ...],
+    test_type: str,
+    output_dir: str,
+    preview: bool,
+    verbose: bool,
+    overwrite: bool,
+) -> int:
+    """
+    Generate test files from SpecQL entity definitions.
+
+    Generates comprehensive test suites including:
+    - pgTAP tests: Structure, CRUD, constraints, actions
+    - pytest tests: Integration tests for CRUD and actions
+
+    Examples:
+
+        # Generate all tests for Contact entity
+        specql generate-tests entities/contact.yaml
+
+        # Generate only pgTAP tests
+        specql generate-tests entities/*.yaml --type pgtap
+
+        # Generate pytest tests to custom directory
+        specql generate-tests entities/ --type pytest --output-dir tests/integration/
+
+        # Preview what would be generated
+        specql generate-tests entities/contact.yaml --preview
+    """
+    return _generate_tests_core(
+        entity_files=entity_files,
+        test_type=test_type,
+        output_dir=output_dir,
+        preview=preview,
+        verbose=verbose,
+        overwrite=overwrite,
+    )
 
 
 def _build_entity_config(entity, entity_file: Path) -> dict:

@@ -16,7 +16,6 @@ from src.core.specql_parser import SpecQLParser
 
 
 @click.group()
-@click.version_option(version="0.4.0-alpha")
 def specql():
     """
     SpecQL - Multi-Language Backend Code Generator
@@ -876,9 +875,9 @@ from src.cli.generate_tests import generate_tests
 specql.add_command(generate_tests, name="generate-tests")
 
 # Add test reverse engineering command
-from src.cli.reverse_tests import reverse_tests
-
-specql.add_command(reverse_tests, name="reverse-tests")
+# from src.cli.reverse_tests import reverse_tests
+#
+# specql.add_command(reverse_tests, name="reverse-tests")
 
 # Add embeddings command
 # from src.cli.embeddings import embeddings_cli

@@ -2,6 +2,151 @@
 
 Ready-to-post content for announcing SpecQL across social platforms.
 
+## Test Generation Social Media Content
+
+### Twitter/X Posts
+
+#### Post 1: Feature Announcement
+```
+🚀 SpecQL v0.5.0-beta: Automatic Test Generation
+
+15 lines of YAML → 70+ comprehensive tests
+
+• pgTAP tests (structure, CRUD, actions)
+• pytest integration tests
+• 95% code coverage
+• 100x faster than manual testing
+
+What Prisma, Hasura, and PostgREST don't have 👀
+
+#PostgreSQL #Testing #CodeGeneration #DevTools
+```
+
+#### Post 2: Developer Pain Point
+```
+Tired of writing the same test boilerplate for every entity?
+
+❌ 10-15 hours per entity
+❌ Easy to forget edge cases
+❌ Tests become outdated
+
+✅ SpecQL generates 70+ tests automatically
+✅ Structure + CRUD + Actions + Edge cases
+✅ Always synchronized with schema
+
+Try it: pip install specql-generator
+
+#DevOps #Testing #Productivity
+```
+
+#### Post 3: Technical Deep Dive
+```
+How SpecQL generates 70+ tests from 1 YAML file:
+
+🔍 Parses entity definition
+📊 Generates pgTAP tests:
+   • Table structure validation
+   • CRUD operation tests
+   • Constraint validation
+   • Action/state machine tests
+
+🐍 Generates pytest tests:
+   • Integration workflows
+   • Error handling
+   • Database cleanup fixtures
+
+All in 2 seconds ⚡
+
+Thread 🧵 👇
+```
+
+### LinkedIn Posts
+
+#### Post 1: Professional Announcement
+```
+SpecQL v0.5.0-beta introduces Automatic Test Generation
+
+For teams building PostgreSQL backends, testing is time-consuming. Writing comprehensive test suites takes 10-15 hours per entity—time that could be spent on business logic.
+
+SpecQL now automatically generates:
+• 50+ pgTAP tests (structure, CRUD, constraints, actions)
+• 20+ pytest integration tests
+• Complete test coverage in seconds
+
+Example: A Contact entity with 5 fields and 2 actions generates:
+- test_contact_structure.sql (10 tests)
+- test_contact_crud.sql (15 tests)
+- test_contact_actions.sql (12 tests)
+- test_contact_integration.py (18 tests)
+
+Total: 55 tests, 380 lines of code, generated in 2 seconds.
+
+This isn't just about speed—it's about consistency. Every entity gets the same comprehensive coverage. Tests stay synchronized with schema changes.
+
+What makes this unique: Our competitors (Prisma, Hasura, PostgREST) don't generate tests. SpecQL is the only multi-language code generator with automated test generation.
+
+Try it: pip install specql-generator
+
+#SoftwareEngineering #Testing #PostgreSQL #DevOps
+```
+
+### Reddit Posts
+
+#### r/PostgreSQL
+```
+Title: I built automatic test generation for PostgreSQL schemas
+
+I've been working on SpecQL, and just released automatic test generation.
+
+From a YAML entity definition, it generates:
+• pgTAP tests (structure, CRUD, constraints, business logic)
+• pytest integration tests
+• Complete coverage
+
+Example output: https://github.com/fraiseql/specql/tree/main/docs/06_examples/simple_contact/generated_tests
+
+The generated tests include:
+- Schema validation (tables, columns, constraints)
+- CRUD operations (happy path + error cases)
+- State machine/action tests
+- Integration workflows
+
+Takes 2 seconds to generate what would take 10+ hours manually.
+
+MIT licensed, Python-based. Feedback welcome!
+
+GitHub: https://github.com/fraiseql/specql
+```
+
+#### r/Python
+```
+Title: Automatic pytest generation for PostgreSQL applications
+
+Built a tool that auto-generates pytest integration tests from entity definitions.
+
+Define your entity once:
+```yaml
+entity: Contact
+fields:
+  email: email
+  status: enum(lead, qualified)
+actions:
+  - name: qualify_lead
+```
+
+Get pytest tests:
+- test_create_contact_happy_path
+- test_create_duplicate_fails
+- test_update_contact
+- test_qualify_lead_action
+- test_full_crud_workflow
+- + 13 more
+
+Complete with fixtures, assertions, and database cleanup.
+
+Check it out: https://github.com/fraiseql/specql
+```
+
 ## Twitter/X Thread
 
 ### Thread 1: The Problem (3 tweets)

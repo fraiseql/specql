@@ -76,6 +76,11 @@ actions:
 - **[Action Overview](02_guides/actions/overview.md)** - Action system architecture
 - **[All Step Types](02_guides/actions/all_step_types.md)** - Complete 25+ step reference
 
+#### Testing & Quality Assurance
+- **[Test Generation Guide](02_guides/TEST_GENERATION.md)** - Generate comprehensive test suites
+- **[Test Reverse Engineering](02_guides/TEST_REVERSE_ENGINEERING.md)** - Analyze existing tests
+- **[CI/CD Integration](02_guides/CI_CD_INTEGRATION.md)** - Automate testing in pipelines
+
 #### Migration Guides
 - **[Java Migration Guide](guides/JAVA_MIGRATION_GUIDE.md)** - Migrating Java projects to SpecQL
 - **[Rust Migration Guide](guides/RUST_MIGRATION_GUIDE.md)** - Migrating Rust projects to SpecQL

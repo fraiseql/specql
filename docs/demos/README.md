@@ -67,8 +67,29 @@ asciinema rec demo_name.cast --title "Demo Title" --idle-time-limit 2 -c ./demo_
 ## Demo Scripts
 
 Demo scripts (`.sh` files) contain the commands executed during recording:
+
+### Test Generation & Analysis Demos
+- `test_generation_script.sh` - Test generation from entity YAML
+- `test_execution_script.sh` - Running generated tests
+- `coverage_analysis_script.sh` - Coverage analysis and gap detection
 - `installation_demo.sh` - Installation walkthrough
-- (Add more as needed)
+
+### Running Interactive Demos
+
+The test-related demo scripts can be run interactively:
+
+```bash
+# Test Generation Demo (~30 seconds)
+./docs/demos/test_generation_script.sh
+
+# Test Execution Demo (~45 seconds)
+./docs/demos/test_execution_script.sh
+
+# Coverage Analysis Demo (~30 seconds)
+./docs/demos/coverage_analysis_script.sh
+```
+
+These demos showcase the complete workflow from entity definition to test execution and coverage analysis.
 
 ## Usage in Documentation
 
