@@ -192,7 +192,9 @@ class IfStepCompiler:
 
         return "\n\n".join(compiled_steps)
 
-    def _replace_fields_with_vars(self, condition: str, entity: EntityDefinition) -> str:
+    def _replace_fields_with_vars(
+        self, condition: str, entity: EntityDefinition
+    ) -> str:
         """
         Replace field names with v_field variables
 
@@ -206,6 +208,8 @@ class IfStepCompiler:
             # Replace whole word matches only
             import re
 
-            condition = re.sub(rf"\b{re.escape(field_name)}\b", f"v_{field_name}", condition)
+            condition = re.sub(
+                rf"\b{re.escape(field_name)}\b", f"v_{field_name}", condition
+            )
 
         return condition

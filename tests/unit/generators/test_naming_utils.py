@@ -1,7 +1,6 @@
 """Tests for naming utility functions"""
 
 
-
 class TestCamelToSnake:
     """Test camel_to_snake conversion utility"""
 
@@ -135,7 +134,9 @@ class TestAcronymSupport:
         assert camel_to_snake("Product2B", preserve_acronyms={"2B"}) == "product_2b"
 
         # Custom business acronym
-        assert camel_to_snake("ACMEProduct", preserve_acronyms={"ACME"}) == "acme_product"
+        assert (
+            camel_to_snake("ACMEProduct", preserve_acronyms={"ACME"}) == "acme_product"
+        )
 
     def test_multiple_acronyms(self):
         """Multiple acronyms in one name"""
@@ -153,7 +154,9 @@ class TestAcronymSupport:
         assert camel_to_snake("B2BProduct") == "b2b_product"
 
         # Without common acronyms
-        assert camel_to_snake("B2BProduct", use_common_acronyms=False) == "b_2_b_product"
+        assert (
+            camel_to_snake("B2BProduct", use_common_acronyms=False) == "b_2_b_product"
+        )
 
     def test_backward_compatibility(self):
         """Regular names still work as before"""

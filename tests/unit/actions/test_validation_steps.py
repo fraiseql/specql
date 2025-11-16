@@ -34,7 +34,9 @@ class TestValidationSteps:
 
     def test_simple_equality_validation(self, compiler, contact_entity):
         """Test: Compile simple equality validation"""
-        step = ActionStep(type="validate", expression="status = 'lead'", error="not_a_lead")
+        step = ActionStep(
+            type="validate", expression="status = 'lead'", error="not_a_lead"
+        )
 
         sql = compiler.compile(step, contact_entity)
 
@@ -46,7 +48,9 @@ class TestValidationSteps:
 
     def test_null_check_validation(self, compiler, contact_entity):
         """Test: Compile NULL validation"""
-        step = ActionStep(type="validate", expression="email IS NOT NULL", error="email_required")
+        step = ActionStep(
+            type="validate", expression="email IS NOT NULL", error="email_required"
+        )
 
         sql = compiler.compile(step, contact_entity)
 
@@ -56,13 +60,18 @@ class TestValidationSteps:
     def test_pattern_match_validation(self, compiler, contact_entity):
         """Test: Compile regex pattern validation"""
         step = ActionStep(
-            type="validate", expression="email MATCHES email_pattern", error="invalid_email"
+            type="validate",
+            expression="email MATCHES email_pattern",
+            error="invalid_email",
         )
 
         sql = compiler.compile(step, contact_entity)
 
         # Expected: PostgreSQL regex operator with full anchored pattern
-        assert "IF NOT (email ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$') THEN" in sql
+        assert (
+            "IF NOT (email ~ '^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$') THEN"
+            in sql
+        )
 
     def test_exists_query_validation(self, compiler, contact_entity):
         """Test: Compile EXISTS subquery validation"""

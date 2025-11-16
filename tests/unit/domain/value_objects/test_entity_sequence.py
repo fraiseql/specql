@@ -1,4 +1,5 @@
 """Tests for EntitySequence value object"""
+
 import pytest
 from src.domain.value_objects import EntitySequence
 

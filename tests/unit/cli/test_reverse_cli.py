@@ -30,7 +30,7 @@ def test_reverse_cli_basic():
         runner = CliRunner()
         runner.invoke(
             None,  # We'll test the function directly
-            ["reverse", str(sql_file), "--output-dir", str(output_dir), "--no-ai"]
+            ["reverse", str(sql_file), "--output-dir", str(output_dir), "--no-ai"],
         )
 
         # For now, just check that the command doesn't crash
@@ -57,7 +57,7 @@ def test_reverse_cli_preview():
         runner = CliRunner()
         runner.invoke(
             None,  # We'll test the function directly
-            ["reverse", str(sql_file), "--preview", "--no-ai"]
+            ["reverse", str(sql_file), "--preview", "--no-ai"],
         )
 
         # Check preview mode doesn't create files
@@ -83,7 +83,7 @@ def test_reverse_cli_min_confidence():
         runner = CliRunner()
         runner.invoke(
             None,  # We'll test the function directly
-            ["reverse", str(sql_file), "--min-confidence", "0.95", "--no-ai"]
+            ["reverse", str(sql_file), "--min-confidence", "0.95", "--no-ai"],
         )
 
         # Test confidence filtering

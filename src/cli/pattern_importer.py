@@ -1,4 +1,5 @@
 """Pattern import functionality"""
+
 import yaml
 import json
 from pathlib import Path
@@ -17,7 +18,7 @@ class PatternImporter:
         self,
         input_path: Path,
         skip_existing: bool = True,
-        generate_embeddings: bool = True
+        generate_embeddings: bool = True,
     ) -> int:
         """
         Import patterns from YAML file
@@ -36,14 +37,14 @@ class PatternImporter:
         return self._import_patterns(
             data["patterns"],
             skip_existing=skip_existing,
-            generate_embeddings=generate_embeddings
+            generate_embeddings=generate_embeddings,
         )
 
     def import_from_json(
         self,
         input_path: Path,
         skip_existing: bool = True,
-        generate_embeddings: bool = True
+        generate_embeddings: bool = True,
     ) -> int:
         """Import patterns from JSON file"""
         with open(input_path) as f:
@@ -52,14 +53,14 @@ class PatternImporter:
         return self._import_patterns(
             data["patterns"],
             skip_existing=skip_existing,
-            generate_embeddings=generate_embeddings
+            generate_embeddings=generate_embeddings,
         )
 
     def _import_patterns(
         self,
         patterns_data: List[Dict[str, Any]],
         skip_existing: bool,
-        generate_embeddings: bool
+        generate_embeddings: bool,
     ) -> int:
         """Import list of patterns"""
         imported_count = 0
@@ -86,7 +87,7 @@ class PatternImporter:
                 implementation=pattern_data.get("implementation", {}),
                 complexity_score=pattern_data.get("complexity_score", 1),
                 source_type="migrated",
-                generate_embedding=generate_embeddings
+                generate_embedding=generate_embeddings,
             )
 
             imported_count += 1

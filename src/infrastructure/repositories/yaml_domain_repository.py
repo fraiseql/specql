@@ -1,4 +1,5 @@
 """YAML-backed Domain Repository (legacy)"""
+
 import yaml
 from pathlib import Path
 from src.domain.entities.domain import Domain, Subdomain
@@ -18,23 +19,25 @@ class YAMLDomainRepository:
         with open(self.yaml_path) as f:
             data = yaml.safe_load(f)
 
-        for domain_num, domain_data in data['domains'].items():
+        for domain_num, domain_data in data["domains"].items():
             domain = Domain(
                 domain_number=DomainNumber(domain_num),
-                domain_name=domain_data['name'],
-                description=domain_data.get('description'),
-                multi_tenant=domain_data.get('multi_tenant', False),
-                aliases=domain_data.get('aliases', [])
+                domain_name=domain_data["name"],
+                description=domain_data.get("description"),
+                multi_tenant=domain_data.get("multi_tenant", False),
+                aliases=domain_data.get("aliases", []),
             )
 
             # Load subdomains
-            for subdomain_num, subdomain_data in domain_data.get('subdomains', {}).items():
+            for subdomain_num, subdomain_data in domain_data.get(
+                "subdomains", {}
+            ).items():
                 subdomain = Subdomain(
                     subdomain_number=subdomain_num,
-                    subdomain_name=subdomain_data['name'],
-                    description=subdomain_data.get('description'),
-                    next_entity_sequence=subdomain_data.get('next_entity_sequence', 1),
-                    entities=subdomain_data.get('entities', {})
+                    subdomain_name=subdomain_data["name"],
+                    description=subdomain_data.get("description"),
+                    next_entity_sequence=subdomain_data.get("next_entity_sequence", 1),
+                    entities=subdomain_data.get("entities", {}),
                 )
                 domain.add_subdomain(subdomain)
 
@@ -67,23 +70,23 @@ class YAMLDomainRepository:
     def _write_to_yaml(self):
         """Write domains back to YAML"""
         # Convert domains to YAML structure
-        data = {'version': '2.0.0', 'domains': {}}
+        data = {"version": "2.0.0", "domains": {}}
         for domain in self._domains.values():
-            data['domains'][domain.domain_number.value] = {
-                'name': domain.domain_name,
-                'description': domain.description,
-                'multi_tenant': domain.multi_tenant,
-                'aliases': domain.aliases,
-                'subdomains': {
+            data["domains"][domain.domain_number.value] = {
+                "name": domain.domain_name,
+                "description": domain.description,
+                "multi_tenant": domain.multi_tenant,
+                "aliases": domain.aliases,
+                "subdomains": {
                     subdomain.subdomain_number: {
-                        'name': subdomain.subdomain_name,
-                        'description': subdomain.description,
-                        'next_entity_sequence': subdomain.next_entity_sequence,
-                        'entities': subdomain.entities
+                        "name": subdomain.subdomain_name,
+                        "description": subdomain.description,
+                        "next_entity_sequence": subdomain.next_entity_sequence,
+                        "entities": subdomain.entities,
                     }
                     for subdomain in domain.subdomains.values()
-                }
+                },
             }
 
-        with open(self.yaml_path, 'w') as f:
+        with open(self.yaml_path, "w") as f:
             yaml.safe_dump(data, f, default_flow_style=False, sort_keys=False)

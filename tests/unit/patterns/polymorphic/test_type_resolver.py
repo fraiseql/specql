@@ -122,7 +122,11 @@ class TestPolymorphicTypeResolver:
             "config": {
                 "variants": [
                     {
-                        "entity": {"schema": "tenant", "table": "tb_test", "pk_field": "id"},
+                        "entity": {
+                            "schema": "tenant",
+                            "table": "tb_test",
+                            "pk_field": "id",
+                        },
                         "key_field": "id",
                         "class_value": "test",
                     }
@@ -130,7 +134,11 @@ class TestPolymorphicTypeResolver:
             },
         }
 
-        entity = {"name": "Test", "schema": "tenant", "query_patterns": [invalid_config]}
+        entity = {
+            "name": "Test",
+            "schema": "tenant",
+            "query_patterns": [invalid_config],
+        }
 
         with pytest.raises(ValueError, match="discriminator_field.*required"):
             pattern = registry.get_pattern("polymorphic/type_resolver")

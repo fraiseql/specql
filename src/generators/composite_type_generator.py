@@ -90,7 +90,9 @@ class CompositeTypeGenerator:
                 if k not in ["created_at", "created_by", "updated_at", "updated_by"]
             }
             # Add id field for update operations
-            base_fields["id"] = FieldDefinition(name="id", type_name="uuid", nullable=False)
+            base_fields["id"] = FieldDefinition(
+                name="id", type_name="uuid", nullable=False
+            )
         elif action.name.startswith("delete"):
             # Delete actions typically don't need input types (just ID)
             return {}
@@ -162,9 +164,13 @@ class CompositeTypeGenerator:
             comments.append(comment)
         return comments
 
-    def _generate_field_description(self, field_name: str, field_def: FieldDefinition) -> str:
+    def _generate_field_description(
+        self, field_name: str, field_def: FieldDefinition
+    ) -> str:
         """Generate human-readable description for field"""
-        base_name = field_name.replace("_id", "") if field_name.endswith("_id") else field_name
+        base_name = (
+            field_name.replace("_id", "") if field_name.endswith("_id") else field_name
+        )
 
         if field_def.type_name == "ref":
             return f"{base_name.title()} reference ({'required' if not field_def.nullable else 'optional'})."

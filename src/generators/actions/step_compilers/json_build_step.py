@@ -10,7 +10,9 @@ from src.generators.actions.step_compilers.base import StepCompiler
 class JsonBuildStepCompiler(StepCompiler):
     """Compiles json_build steps to PL/pgSQL JSON construction"""
 
-    def compile(self, step: ActionStep, entity: EntityDefinition, context: CompilationContext) -> str:
+    def compile(
+        self, step: ActionStep, entity: EntityDefinition, context: CompilationContext
+    ) -> str:
         """
         Generate JSON construction statement
 

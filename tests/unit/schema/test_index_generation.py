@@ -11,7 +11,9 @@ def test_email_field_gets_btree_index(table_generator):
     entity = Entity(
         name="Contact",
         schema="crm",
-        fields={"email": FieldDefinition(name="email", type_name="email", nullable=False)},
+        fields={
+            "email": FieldDefinition(name="email", type_name="email", nullable=False)
+        },
     )
 
     indexes = table_generator.generate_indexes_for_rich_types(entity)
@@ -24,7 +26,9 @@ def test_email_field_gets_btree_index(table_generator):
 def test_url_field_gets_gin_index_for_pattern_search(table_generator):
     """Test: URL fields get GIN indexes for pattern matching"""
     entity = Entity(
-        name="Page", schema="public", fields={"url": FieldDefinition(name="url", type_name="url")}
+        name="Page",
+        schema="public",
+        fields={"url": FieldDefinition(name="url", type_name="url")},
     )
 
     indexes = table_generator.generate_indexes_for_rich_types(entity)
@@ -40,7 +44,9 @@ def test_coordinates_field_gets_gist_index(table_generator):
     entity = Entity(
         name="Location",
         schema="public",
-        fields={"coordinates": FieldDefinition(name="coordinates", type_name="coordinates")},
+        fields={
+            "coordinates": FieldDefinition(name="coordinates", type_name="coordinates")
+        },
     )
 
     indexes = table_generator.generate_indexes_for_rich_types(entity)
@@ -55,7 +61,9 @@ def test_ip_address_field_gets_gist_index(table_generator):
     entity = Entity(
         name="Server",
         schema="public",
-        fields={"ip_address": FieldDefinition(name="ip_address", type_name="ipAddress")},
+        fields={
+            "ip_address": FieldDefinition(name="ip_address", type_name="ipAddress")
+        },
     )
 
     indexes = table_generator.generate_indexes_for_rich_types(entity)

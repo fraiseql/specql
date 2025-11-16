@@ -1,4 +1,5 @@
 """Repository interface for EntityTemplate aggregate"""
+
 from typing import Protocol, Optional, List
 from src.domain.entities.entity_template import EntityTemplate
 

@@ -2,7 +2,6 @@
 Unit tests for projection refresh integration in CoreLogicGenerator
 """
 
-
 from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
 
 
@@ -16,7 +15,9 @@ def test_generate_projection_refresh_call(core_logic_generator):
         },
     )
 
-    call = core_logic_generator._generate_projection_refresh_call(entity, "contract_projection")
+    call = core_logic_generator._generate_projection_refresh_call(
+        entity, "contract_projection"
+    )
 
     expected = """
     -- Refresh projection
@@ -36,7 +37,9 @@ def test_compile_update_with_projection_refresh(core_logic_generator):
         fields={
             "id": FieldDefinition(name="id", type_name="uuid"),
             "tenant_id": FieldDefinition(name="tenant_id", type_name="uuid"),
-            "customer_contract_id": FieldDefinition(name="customer_contract_id", type_name="text"),
+            "customer_contract_id": FieldDefinition(
+                name="customer_contract_id", type_name="text"
+            ),
             "updated_at": FieldDefinition(name="updated_at", type_name="timestamp"),
             "updated_by": FieldDefinition(name="updated_by", type_name="uuid"),
         },
@@ -44,7 +47,10 @@ def test_compile_update_with_projection_refresh(core_logic_generator):
 
     step = ActionStep(
         type="update",
-        fields={"customer_contract_id": "NEW-123", "refresh_projection": "contract_projection"},
+        fields={
+            "customer_contract_id": "NEW-123",
+            "refresh_projection": "contract_projection",
+        },
     )
 
     action = Action(name="update_contract", steps=[step])

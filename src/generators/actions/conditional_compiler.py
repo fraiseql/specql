@@ -33,7 +33,11 @@ class ConditionalCompiler:
         condition_vars = self._replace_fields_with_vars(condition, entity)
 
         then_body = self._compile_steps(step.then_steps or [], entity)
-        else_body = self._compile_steps(step.else_steps or [], entity) if step.else_steps else ""
+        else_body = (
+            self._compile_steps(step.else_steps or [], entity)
+            if step.else_steps
+            else ""
+        )
 
         sql = f"""
     -- If: {condition}
@@ -126,7 +130,9 @@ class ConditionalCompiler:
 
         for field_name in field_names:
             # Replace whole word matches only
-            condition = re.sub(rf"\b{re.escape(field_name)}\b", f"v_{field_name}", condition)
+            condition = re.sub(
+                rf"\b{re.escape(field_name)}\b", f"v_{field_name}", condition
+            )
 
         return condition
 
@@ -142,13 +148,21 @@ class ConditionalCompiler:
                 # Simple update compilation for testing
                 table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
                 pk_column = f"pk_{safe_slug(entity.name)}"
-                fields_sql = ", ".join(f"{k} = '{v}'" for k, v in (step.fields or {}).items())
-                compiled.append(f"UPDATE {table_name} SET {fields_sql} WHERE {pk_column} = v_pk;")
+                fields_sql = ", ".join(
+                    f"{k} = '{v}'" for k, v in (step.fields or {}).items()
+                )
+                compiled.append(
+                    f"UPDATE {table_name} SET {fields_sql} WHERE {pk_column} = v_pk;"
+                )
             elif step.type == "insert":
                 # Simple insert compilation for testing
                 target_entity = step.entity or entity.name
-                table_name = f"{entity.schema}.tb_{safe_slug(target_entity)}_lightweight"
-                fields_sql = ", ".join(f"{k} = '{v}'" for k, v in (step.fields or {}).items())
+                table_name = (
+                    f"{entity.schema}.tb_{safe_slug(target_entity)}_lightweight"
+                )
+                fields_sql = ", ".join(
+                    f"{k} = '{v}'" for k, v in (step.fields or {}).items()
+                )
                 compiled.append(f"INSERT INTO {table_name} ({fields_sql});")
             else:
                 compiled.append(f"-- Unknown step type: {step.type}")

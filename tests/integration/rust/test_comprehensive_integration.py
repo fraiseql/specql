@@ -519,9 +519,14 @@ pub enum ComplexEnum {
             temp_path = f.name
 
         try:
-            structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
-                self.parser.parse_file(Path(temp_path))
-            )
+            (
+                structs,
+                enums,
+                diesel_tables,
+                diesel_derives,
+                impl_blocks,
+                route_handlers,
+            ) = self.parser.parse_file(Path(temp_path))
 
             # Should parse 3 enums
             assert len(structs) == 0  # enums are not structs

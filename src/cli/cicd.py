@@ -23,8 +23,12 @@ def cicd():
 
 @cicd.command()
 @click.argument("pipeline_file", type=click.Path(exists=True))
-@click.option("--platform", type=click.Choice(["github-actions", "gitlab-ci", "circleci", "jenkins", "azure"]), default="github-actions",
-              help="Target CI/CD platform")
+@click.option(
+    "--platform",
+    type=click.Choice(["github-actions", "gitlab-ci", "circleci", "jenkins", "azure"]),
+    default="github-actions",
+    help="Target CI/CD platform",
+)
 @click.option("--output", "-o", type=click.Path(), help="Output file path")
 def generate_cicd(pipeline_file, platform, output):
     """
@@ -45,8 +49,12 @@ def generate_cicd(pipeline_file, platform, output):
 
 @cicd.command()
 @click.argument("config_file", type=click.Path(exists=True))
-@click.option("--platform", type=click.Choice(["github-actions", "gitlab-ci", "circleci", "jenkins", "azure"]), default="auto",
-              help="Source CI/CD platform (auto-detect if not specified)")
+@click.option(
+    "--platform",
+    type=click.Choice(["github-actions", "gitlab-ci", "circleci", "jenkins", "azure"]),
+    default="auto",
+    help="Source CI/CD platform (auto-detect if not specified)",
+)
 @click.option("--output", "-o", type=click.Path(), help="Output universal YAML file")
 def reverse_cicd(config_file, platform, output):
     """
@@ -64,6 +72,7 @@ def reverse_cicd(config_file, platform, output):
 
         # Convert to YAML
         import yaml
+
         yaml_output = yaml.dump(pipeline.__dict__, default_flow_style=False)
 
         if output:
@@ -80,7 +89,10 @@ def reverse_cicd(config_file, platform, output):
 
 @cicd.command()
 @click.argument("universal_file", type=click.Path(exists=True))
-@click.argument("target_platform", type=click.Choice(["github-actions", "gitlab-ci", "circleci", "jenkins", "azure"]))
+@click.argument(
+    "target_platform",
+    type=click.Choice(["github-actions", "gitlab-ci", "circleci", "jenkins", "azure"]),
+)
 @click.option("--output", "-o", type=click.Path(), help="Output file path")
 def convert_cicd(universal_file, target_platform, output):
     """
@@ -96,11 +108,13 @@ def convert_cicd(universal_file, target_platform, output):
     try:
         # Load universal pipeline
         import yaml
-        with open(universal_file, 'r') as f:
+
+        with open(universal_file, "r") as f:
             data = yaml.safe_load(f)
 
         # Create pipeline object (simplified)
         from src.cicd.universal_pipeline_schema import UniversalPipeline
+
         pipeline = UniversalPipeline(**data)
 
         # Generate platform-specific config

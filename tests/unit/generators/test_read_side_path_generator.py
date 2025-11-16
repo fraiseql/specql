@@ -25,7 +25,9 @@ class TestReadSidePathGeneration:
 
         path = path_gen.generate_path(code, view_name)
 
-        expected = Path("0_schema/02_query_side/022_crm/0223_customer/0220310_tv_contact.sql")
+        expected = Path(
+            "0_schema/02_query_side/022_crm/0223_customer/0220310_tv_contact.sql"
+        )
         assert path == expected
 
     def test_generate_path_with_different_domains(self):
@@ -38,7 +40,9 @@ class TestReadSidePathGeneration:
 
         path = path_gen.generate_path(code, view_name)
 
-        expected = Path("0_schema/02_query_side/033_catalog/0332_manufacturer/0230210_tv_product.sql")
+        expected = Path(
+            "0_schema/02_query_side/033_catalog/0332_manufacturer/0230210_tv_product.sql"
+        )
         assert path == expected
 
     def test_generate_path_with_file_sequences(self):
@@ -173,7 +177,7 @@ class TestPathIntegration:
             "02_query_side",
             "022_crm",
             "0223_customer",
-            "0220310_tv_contact.sql"
+            "0220310_tv_contact.sql",
         ]
 
         path_str = str(path)

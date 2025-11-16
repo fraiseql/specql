@@ -17,6 +17,7 @@ from dataclasses import dataclass
 @dataclass
 class MockConversionResult:
     """Mock conversion result"""
+
     confidence: float
     function_name: str
     yaml_content: str
@@ -46,7 +47,7 @@ class MockAlgorithmicParser:
         return MockConversionResult(
             confidence=0.90,
             function_name=function_name,
-            yaml_content=self._generate_mock_yaml(sql, function_name)
+            yaml_content=self._generate_mock_yaml(sql, function_name),
         )
 
     def parse_to_yaml(self, sql: str) -> str:
@@ -117,17 +118,25 @@ class MockPatternLibrary:
                     "first_name": {"type": "text"},
                     "last_name": {"type": "text"},
                     "email": {"type": "text"},
-                    "phone": {"type": "text"}
+                    "phone": {"type": "text"},
                 },
                 "patterns": ["audit_trail"],
                 "actions": [
                     {
                         "name": "create",
                         "steps": [
-                            {"type": "insert", "table": "tb_contact", "data": {"first_name": "p_first_name", "last_name": "p_last_name", "email": "p_email"}}
-                        ]
+                            {
+                                "type": "insert",
+                                "table": "tb_contact",
+                                "data": {
+                                    "first_name": "p_first_name",
+                                    "last_name": "p_last_name",
+                                    "email": "p_email",
+                                },
+                            }
+                        ],
                     }
-                ]
+                ],
             },
             "product": {
                 "entity": "Product",
@@ -135,21 +144,30 @@ class MockPatternLibrary:
                     "id": {"type": "uuid", "primary_key": True},
                     "name": {"type": "text"},
                     "price": {"type": "numeric"},
-                    "sku": {"type": "text"}
+                    "sku": {"type": "text"},
                 },
                 "patterns": ["audit_trail", "soft_delete"],
                 "actions": [
                     {
                         "name": "create",
                         "steps": [
-                            {"type": "insert", "table": "tb_product", "data": {"name": "p_name", "price": "p_price"}}
-                        ]
+                            {
+                                "type": "insert",
+                                "table": "tb_product",
+                                "data": {"name": "p_name", "price": "p_price"},
+                            }
+                        ],
                     }
-                ]
-            }
+                ],
+            },
         }
 
-    def instantiate_entity_template(self, template_name: str, template_namespace: str, customizations: Dict[str, Any]) -> Dict[str, Any]:
+    def instantiate_entity_template(
+        self,
+        template_name: str,
+        template_namespace: str,
+        customizations: Dict[str, Any],
+    ) -> Dict[str, Any]:
         """Mock template instantiation"""
         if template_name not in self.templates:
             raise ValueError(f"Template {template_name} not found")
@@ -160,13 +178,19 @@ class MockPatternLibrary:
         if "additional_fields" in customizations:
             template["fields"].update(customizations["additional_fields"])
 
-        if "enable_lead_scoring" in customizations and customizations["enable_lead_scoring"]:
+        if (
+            "enable_lead_scoring" in customizations
+            and customizations["enable_lead_scoring"]
+        ):
             template["fields"]["lead_score"] = {"type": "integer"}
 
         if "enable_variants" in customizations and customizations["enable_variants"]:
             template["fields"]["variant_id"] = {"type": "uuid"}
 
-        if "enable_inventory_tracking" in customizations and customizations["enable_inventory_tracking"]:
+        if (
+            "enable_inventory_tracking" in customizations
+            and customizations["enable_inventory_tracking"]
+        ):
             template["fields"]["inventory_count"] = {"type": "integer"}
 
         if "additional_patterns" in customizations:
@@ -179,41 +203,46 @@ class MockPatternLibrary:
 
         return template
 
-    def compose_patterns(self, entity_name: str, patterns: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def compose_patterns(
+        self, entity_name: str, patterns: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Mock pattern composition"""
-        composed = {
-            "entity": entity_name,
-            "fields": {},
-            "actions": []
-        }
+        composed = {"entity": entity_name, "fields": {}, "actions": []}
 
         for pattern in patterns:
             pattern_name = pattern["pattern"]
             if pattern_name == "state_machine":
                 composed["fields"]["state"] = {"type": "text"}
-                composed["actions"].append({
-                    "name": "transition_state",
-                    "steps": [{"type": "update", "set": "state = p_new_state"}]
-                })
+                composed["actions"].append(
+                    {
+                        "name": "transition_state",
+                        "steps": [{"type": "update", "set": "state = p_new_state"}],
+                    }
+                )
             elif pattern_name == "audit_trail":
                 composed["fields"]["created_at"] = {"type": "timestamp"}
                 composed["fields"]["created_by"] = {"type": "uuid"}
             elif pattern_name == "soft_delete":
                 composed["fields"]["deleted_at"] = {"type": "timestamp"}
             elif pattern_name == "commenting":
-                composed["actions"].append({
-                    "name": "add_comment",
-                    "steps": [{"type": "insert", "table": "tb_comments"}]
-                })
+                composed["actions"].append(
+                    {
+                        "name": "add_comment",
+                        "steps": [{"type": "insert", "table": "tb_comments"}],
+                    }
+                )
 
         return composed
 
 
-def generate_schema_from_dict(entity_dict: Dict[str, Any], target: str = "postgresql") -> str:
+def generate_schema_from_dict(
+    entity_dict: Dict[str, Any], target: str = "postgresql"
+) -> str:
     """Generate schema from entity dictionary"""
 
     # Convert dict to YAML
     import yaml
+
     yaml_content = yaml.dump(entity_dict, default_flow_style=False)
 
     # Write to temporary file
@@ -223,6 +252,7 @@ def generate_schema_from_dict(entity_dict: Dict[str, Any], target: str = "postgr
     try:
         # Use CLI orchestrator to generate
         from src.cli.orchestrator import CLIOrchestrator
+
         orchestrator = CLIOrchestrator(use_registry=False, verbose=False)
         result = orchestrator.generate_from_files(
             entity_files=[str(temp_yaml)],
@@ -246,6 +276,7 @@ def generate_schema_from_dict(entity_dict: Dict[str, Any], target: str = "postgr
         temp_output = Path("temp_output")
         if temp_output.exists():
             import shutil
+
             shutil.rmtree(temp_output)
 
 
@@ -257,17 +288,20 @@ def test_track_a_b_integration():
     # Add Track A primitive to Track B library
     library.templates["declare"] = {
         "type": "primitive",
-        "abstract_syntax": {"type": "declare", "fields": ["variable_name", "variable_type"]},
+        "abstract_syntax": {
+            "type": "declare",
+            "fields": ["variable_name", "variable_type"],
+        },
         "implementations": {
             "postgresql": {"template": "{{ variable_name }} {{ variable_type }};"},
-            "python_django": {"template": "{{ variable_name }}: {{ variable_type }}"}
-        }
+            "python_django": {"template": "{{ variable_name }}: {{ variable_type }}"},
+        },
     }
 
     # Compile to both languages
     # Mock compilation - in real implementation this would use the pattern library
     pg_code = "total NUMERIC;"  # Mock result
-    py_code = "total: Decimal"   # Mock result
+    py_code = "total: Decimal"  # Mock result
 
     assert pg_code == "total NUMERIC;"
     assert py_code == "total: Decimal"
@@ -286,13 +320,15 @@ def test_track_b_c_integration():
         "implementation": {
             "fields": [
                 {"name": "created_at", "type": "timestamp"},
-                {"name": "created_by", "type": "uuid"}
+                {"name": "created_by", "type": "uuid"},
             ]
-        }
+        },
     }
 
     # Instantiate pattern
-    result = library.compose_patterns("TestEntity", [{"pattern": "audit_trail", "params": {}}])
+    result = library.compose_patterns(
+        "TestEntity", [{"pattern": "audit_trail", "params": {}}]
+    )
 
     assert "created_at" in result["fields"]
     assert "created_by" in result["fields"]
@@ -331,19 +367,24 @@ def test_all_tracks_integration():
     # Generate multi-language
     entity_dict = {
         "entity": "Contact",
-        "fields": {
-            "id": {"type": "uuid"},
-            "state": {"type": "text"}
-        },
+        "fields": {"id": {"type": "uuid"}, "state": {"type": "text"}},
         "actions": [
             {
                 "name": "qualify_lead",
                 "steps": [
-                    {"type": "update", "table": "tb_contact", "set": "state = 'qualified'", "where": "id = p_lead_id"},
-                    {"type": "return", "value": "ROW(TRUE, 'Lead qualified', '{}', '{}')::app.mutation_result"}
-                ]
+                    {
+                        "type": "update",
+                        "table": "tb_contact",
+                        "set": "state = 'qualified'",
+                        "where": "id = p_lead_id",
+                    },
+                    {
+                        "type": "return",
+                        "value": "ROW(TRUE, 'Lead qualified', '{}', '{}')::app.mutation_result",
+                    },
+                ],
             }
-        ]
+        ],
     }
 
     pg_sql = generate_schema_from_dict(entity_dict, target="postgresql")
@@ -364,16 +405,25 @@ def test_primitive_pattern_composition():
 
     # Track A primitives
     primitives = {
-        "declare": {"type": "declare", "variable_name": "counter", "variable_type": "INTEGER"},
+        "declare": {
+            "type": "declare",
+            "variable_name": "counter",
+            "variable_type": "INTEGER",
+        },
         "assign": {"type": "assign", "variable": "counter", "value": "0"},
         "increment": {"type": "assign", "variable": "counter", "value": "counter + 1"},
-        "return": {"type": "return", "value": "counter"}
+        "return": {"type": "return", "value": "counter"},
     }
 
     # Track B: Compose into a counter pattern
     counter_pattern = {
         "name": "counter",
-        "primitives": [primitives["declare"], primitives["assign"], primitives["increment"], primitives["return"]]
+        "primitives": [
+            primitives["declare"],
+            primitives["assign"],
+            primitives["increment"],
+            primitives["return"],
+        ],
     }
 
     # Should generate working code
@@ -387,13 +437,13 @@ def test_domain_pattern_instantiation():
     library = MockPatternLibrary()
 
     # Test audit trail with different configurations
-    audit_basic = library.compose_patterns("TestEntity1", [
-        {"pattern": "audit_trail", "params": {}}
-    ])
+    audit_basic = library.compose_patterns(
+        "TestEntity1", [{"pattern": "audit_trail", "params": {}}]
+    )
 
-    audit_versioned = library.compose_patterns("TestEntity2", [
-        {"pattern": "audit_trail", "params": {"track_versions": True}}
-    ])
+    audit_versioned = library.compose_patterns(
+        "TestEntity2", [{"pattern": "audit_trail", "params": {"track_versions": True}}]
+    )
 
     # Both should have basic audit fields
     assert "created_at" in audit_basic["fields"]
@@ -436,16 +486,20 @@ def test_multi_language_consistency():
             "name": {"type": "text"},
             "count": {"type": "integer"},
             "price": {"type": "numeric"},
-            "active": {"type": "boolean"}
+            "active": {"type": "boolean"},
         },
         "actions": [
             {
                 "name": "create",
                 "steps": [
-                    {"type": "insert", "table": "tb_test_entity", "data": {"name": "p_name"}}
-                ]
+                    {
+                        "type": "insert",
+                        "table": "tb_test_entity",
+                        "data": {"name": "p_name"},
+                    }
+                ],
             }
-        ]
+        ],
     }
 
     # Generate for multiple languages
@@ -473,8 +527,8 @@ class TestEntity(Base):
 
     # All should have same field count
     pg_fields = len([f for f in entity_dict["fields"].keys()])
-    django_fields = django_models.count('models.') + django_models.count('= models.')
-    sqlalchemy_fields = sqlalchemy_models.count('Column(')
+    django_fields = django_models.count("models.") + django_models.count("= models.")
+    sqlalchemy_fields = sqlalchemy_models.count("Column(")
 
     # Allow some flexibility in field counting due to different syntax
     assert pg_fields >= 4  # id, name, count, price, active

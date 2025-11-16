@@ -23,7 +23,9 @@ class TestTableAnnotation:
             fields={},
             actions=[],
             table_views=TableViewConfig(
-                include_relations=[IncludeRelation(entity_name="author", fields=["name", "email"])]
+                include_relations=[
+                    IncludeRelation(entity_name="author", fields=["name", "email"])
+                ]
             ),
         )
 
@@ -63,7 +65,9 @@ class TestInternalColumnAnnotations:
             fields={},
             actions=[],
             table_views=TableViewConfig(
-                include_relations=[IncludeRelation(entity_name="author", fields=["name", "email"])]
+                include_relations=[
+                    IncludeRelation(entity_name="author", fields=["name", "email"])
+                ]
             ),
         )
 
@@ -108,7 +112,9 @@ class TestInternalColumnAnnotations:
             fields={},
             actions=[],
             table_views=TableViewConfig(
-                include_relations=[IncludeRelation(entity_name="User", fields=["name", "email"])]
+                include_relations=[
+                    IncludeRelation(entity_name="User", fields=["name", "email"])
+                ]
             ),
         )
 
@@ -130,7 +136,9 @@ class TestFilterColumnAnnotations:
             fields={},
             actions=[],
             table_views=TableViewConfig(
-                include_relations=[IncludeRelation(entity_name="author", fields=["name", "email"])]
+                include_relations=[
+                    IncludeRelation(entity_name="author", fields=["name", "email"])
+                ]
             ),
         )
 
@@ -183,10 +191,16 @@ class TestFilterColumnAnnotations:
             },
             actions=[],
             table_views=TableViewConfig(
-                include_relations=[IncludeRelation(entity_name="author", fields=["name", "email"])],
+                include_relations=[
+                    IncludeRelation(entity_name="author", fields=["name", "email"])
+                ],
                 extra_filter_columns=[
-                    ExtraFilterColumn(name="rating", type="INTEGER", index_type="btree"),
-                    ExtraFilterColumn(name="created_at", type="TIMESTAMPTZ", index_type="btree"),
+                    ExtraFilterColumn(
+                        name="rating", type="INTEGER", index_type="btree"
+                    ),
+                    ExtraFilterColumn(
+                        name="created_at", type="TIMESTAMPTZ", index_type="btree"
+                    ),
                 ],
             ),
         )
@@ -217,7 +231,9 @@ class TestDataColumnAnnotation:
             fields={},
             actions=[],
             table_views=TableViewConfig(
-                include_relations=[IncludeRelation(entity_name="author", fields=["name", "email"])]
+                include_relations=[
+                    IncludeRelation(entity_name="author", fields=["name", "email"])
+                ]
             ),
         )
 
@@ -247,9 +263,13 @@ class TestSQLTypeMapping:
             table_views=TableViewConfig(
                 include_relations=[],
                 extra_filter_columns=[
-                    ExtraFilterColumn(name="quantity", type="INTEGER", index_type="btree"),
+                    ExtraFilterColumn(
+                        name="quantity", type="INTEGER", index_type="btree"
+                    ),
                     ExtraFilterColumn(name="price", type="NUMERIC", index_type="btree"),
-                    ExtraFilterColumn(name="active", type="BOOLEAN", index_type="btree"),
+                    ExtraFilterColumn(
+                        name="active", type="BOOLEAN", index_type="btree"
+                    ),
                 ],
             ),
         )

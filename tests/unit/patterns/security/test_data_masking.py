@@ -39,7 +39,11 @@ class TestDataMaskingPattern:
                         "field": "email",
                         "mask_type": "partial",
                         "unmasked_roles": ["admin", "hr_manager"],
-                        "partial_config": {"show_first": 2, "show_last": 0, "mask_char": "*"},
+                        "partial_config": {
+                            "show_first": 2,
+                            "show_last": 0,
+                            "mask_char": "*",
+                        },
                     }
                 ],
             },
@@ -194,12 +198,20 @@ class TestDataMaskingPattern:
                     {
                         "field": "email",
                         "mask_type": "partial",
-                        "partial_config": {"show_first": 2, "show_last": 0, "mask_char": "*"},
+                        "partial_config": {
+                            "show_first": 2,
+                            "show_last": 0,
+                            "mask_char": "*",
+                        },
                     },
                     {
                         "field": "phone",
                         "mask_type": "partial",
-                        "partial_config": {"show_first": 0, "show_last": 4, "mask_char": "*"},
+                        "partial_config": {
+                            "show_first": 0,
+                            "show_last": 4,
+                            "mask_char": "*",
+                        },
                     },
                     {"field": "ssn", "mask_type": "hash", "unmasked_roles": ["admin"]},
                 ],

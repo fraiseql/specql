@@ -31,8 +31,6 @@ class TableViewFileGenerator:
         # Returns [TableViewFile for tv_company, TableViewFile for tv_contact]
     """
 
-
-
     def __init__(self, entities: List[EntityDefinition]):
         """
         Initialize with entities to generate tv_ files for.
@@ -50,7 +48,9 @@ class TableViewFileGenerator:
         self.entities = entities
         self.entity_map: Dict[str, EntityDefinition] = {e.name: e for e in entities}
 
-        logger.debug(f"Initialized TableViewFileGenerator with {len(entities)} entities")
+        logger.debug(
+            f"Initialized TableViewFileGenerator with {len(entities)} entities"
+        )
 
     def generate_files(self) -> List[TableViewFile]:
         """
@@ -96,7 +96,9 @@ class TableViewFileGenerator:
         logger.info(f"Generated {len(files)} table view files")
         return files
 
-    def _generate_single_file(self, entity: EntityDefinition) -> Optional[TableViewFile]:
+    def _generate_single_file(
+        self, entity: EntityDefinition
+    ) -> Optional[TableViewFile]:
         """
         Generate a single tv_ file for one entity.
 
@@ -130,7 +132,7 @@ class TableViewFileGenerator:
             code=code,
             name=f"tv_{entity.name.lower()}",
             content=content,
-            dependencies=dependencies
+            dependencies=dependencies,
         )
 
         logger.debug(f"Successfully generated file: {file.name}")
@@ -173,7 +175,9 @@ class TableViewFileGenerator:
             logger.warning(f"Error generating annotations for {entity.name}: {e}")
             return ""
 
-    def _combine_content_parts(self, entity: EntityDefinition, tv_schema: str, annotations: str) -> str:
+    def _combine_content_parts(
+        self, entity: EntityDefinition, tv_schema: str, annotations: str
+    ) -> str:
         """
         Combine all content parts into final file content.
 
@@ -224,7 +228,9 @@ class TableViewFileGenerator:
                 else:
                     subdomain_name = "core"
             except Exception as e:
-                logger.warning(f"Could not infer subdomain for {entity.name}: {e}, using 'core'")
+                logger.warning(
+                    f"Could not infer subdomain for {entity.name}: {e}, using 'core'"
+                )
                 subdomain_name = "core"
 
         # Generate read-side code (simplified - not stored in registry)
@@ -283,7 +289,9 @@ class TableViewFileGenerator:
         logger.debug(f"Dependencies for {entity.name}: {sorted_deps}")
         return sorted_deps
 
-    def write_files_to_disk(self, output_dir: str = "generated", dry_run: bool = False) -> List[str]:
+    def write_files_to_disk(
+        self, output_dir: str = "generated", dry_run: bool = False
+    ) -> List[str]:
         """
         Write generated tv_ files to disk using hierarchical structure.
 
@@ -297,7 +305,10 @@ class TableViewFileGenerator:
         Raises:
             ValueError: If file generation fails
         """
-        from src.generators.schema.hierarchical_file_writer import HierarchicalFileWriter, FileSpec
+        from src.generators.schema.hierarchical_file_writer import (
+            HierarchicalFileWriter,
+            FileSpec,
+        )
         from src.generators.schema.read_side_path_generator import ReadSidePathGenerator
 
         # Generate the files
@@ -310,10 +321,7 @@ class TableViewFileGenerator:
         file_specs = []
         for file in files:
             spec = FileSpec(
-                code=file.code,
-                name=file.name,
-                content=file.content,
-                layer="read_side"
+                code=file.code, name=file.name, content=file.content, layer="read_side"
             )
             file_specs.append(spec)
 
@@ -324,7 +332,9 @@ class TableViewFileGenerator:
         # Write files
         try:
             written_paths = writer.write_files(file_specs)
-            logger.info(f"Successfully wrote {len(written_paths)} files to {output_dir}")
+            logger.info(
+                f"Successfully wrote {len(written_paths)} files to {output_dir}"
+            )
             return [str(path) for path in written_paths]
         except Exception as e:
             logger.error(f"Failed to write files: {e}")

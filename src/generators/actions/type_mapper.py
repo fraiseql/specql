@@ -1,5 +1,6 @@
 """Centralized type mapping for all step compilers"""
 
+
 class TypeMapper:
     """Maps SpecQL types to target language types"""
 

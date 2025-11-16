@@ -12,7 +12,14 @@ class GroupLeaderDetector:
     """Detect field groups that should use group leader pattern"""
 
     # Known field group patterns
-    ADDRESS_FIELDS = {"country_code", "postal_code", "city_code", "country", "postal", "city"}
+    ADDRESS_FIELDS = {
+        "country_code",
+        "postal_code",
+        "city_code",
+        "country",
+        "postal",
+        "city",
+    }
     LOCATION_FIELDS = {"latitude", "longitude", "elevation"}
     PERSON_FIELDS = {"first_name", "last_name", "gender", "birth_date", "age"}
 

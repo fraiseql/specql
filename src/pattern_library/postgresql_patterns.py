@@ -22,20 +22,26 @@ def add_postgresql_patterns(library: PatternLibrary):
     add_pattern_if_not_exists(
         "call_function",
         "primitive",
-        {"type": "call_function", "fields": ["function_name", "arguments", "result_variable"]},
-        "Call a function and store result"
+        {
+            "type": "call_function",
+            "fields": ["function_name", "arguments", "result_variable"],
+        },
+        "Call a function and store result",
     )
     library.add_or_update_implementation(
         pattern_name="call_function",
         language_name="postgresql",
-        template="""SELECT {{ function_name }}({{ arguments|join(', ') }}) INTO {{ result_variable }};"""
+        template="""SELECT {{ function_name }}({{ arguments|join(', ') }}) INTO {{ result_variable }};""",
     )
 
     # call_service
     add_pattern_if_not_exists(
         "call_service",
         "primitive",
-        {"type": "call_service", "fields": ["service_name", "service_function", "parameters"]}
+        {
+            "type": "call_service",
+            "fields": ["service_name", "service_function", "parameters"],
+        },
     )
     library.add_or_update_implementation(
         pattern_name="call_service",
@@ -50,7 +56,7 @@ def add_postgresql_patterns(library: PatternLibrary):
     add_pattern_if_not_exists(
         "foreach",
         "control_flow",
-        {"type": "foreach", "fields": ["iterator_var", "collection", "loop_body"]}
+        {"type": "foreach", "fields": ["iterator_var", "collection", "loop_body"]},
     )
     library.add_or_update_implementation(
         pattern_name="foreach",
@@ -67,7 +73,7 @@ def add_postgresql_patterns(library: PatternLibrary):
         "while",
         "control_flow",
         {"type": "while", "fields": ["condition", "body_steps"]},
-        "While loop with condition"
+        "While loop with condition",
     )
     library.add_or_update_implementation(
         pattern_name="while",
@@ -90,7 +96,7 @@ def add_postgresql_patterns(library: PatternLibrary):
         category="control_flow",
         abstract_syntax={
             "type": "for_query",
-            "fields": ["query", "iterator_var", "body_steps"]
+            "fields": ["query", "iterator_var", "body_steps"],
         },
     )
     library.add_or_update_implementation(
@@ -108,7 +114,7 @@ def add_postgresql_patterns(library: PatternLibrary):
         category="control_flow",
         abstract_syntax={
             "type": "switch",
-            "fields": ["expression", "cases", "default_case"]
+            "fields": ["expression", "cases", "default_case"],
         },
     )
     library.add_or_update_implementation(
@@ -136,7 +142,7 @@ def add_postgresql_patterns(library: PatternLibrary):
         category="query",
         abstract_syntax={
             "type": "cte",
-            "fields": ["cte_name", "cte_query", "main_query"]
+            "fields": ["cte_name", "cte_query", "main_query"],
         },
     )
     library.add_or_update_implementation(
@@ -177,10 +183,7 @@ def add_postgresql_patterns(library: PatternLibrary):
     add_pattern_if_not_exists(
         name="delete",
         category="database_ops",
-        abstract_syntax={
-            "type": "delete",
-            "fields": ["entity", "where_clause"]
-        },
+        abstract_syntax={"type": "delete", "fields": ["entity", "where_clause"]},
     )
     library.add_or_update_implementation(
         pattern_name="delete",
@@ -196,7 +199,7 @@ def add_postgresql_patterns(library: PatternLibrary):
         category="database_ops",
         abstract_syntax={
             "type": "partial_update",
-            "fields": ["entity", "updates", "where_clause"]
+            "fields": ["entity", "updates", "where_clause"],
         },
     )
     library.add_or_update_implementation(
@@ -214,7 +217,7 @@ def add_postgresql_patterns(library: PatternLibrary):
         category="database_ops",
         abstract_syntax={
             "type": "duplicate_check",
-            "fields": ["entity", "check_fields", "error_message"]
+            "fields": ["entity", "check_fields", "error_message"],
         },
     )
     library.add_or_update_implementation(
@@ -235,7 +238,7 @@ def add_postgresql_patterns(library: PatternLibrary):
         category="database_ops",
         abstract_syntax={
             "type": "validate",
-            "fields": ["entity", "conditions", "error_message"]
+            "fields": ["entity", "conditions", "error_message"],
         },
     )
     library.add_or_update_implementation(
@@ -251,10 +254,7 @@ def add_postgresql_patterns(library: PatternLibrary):
     add_pattern_if_not_exists(
         name="refresh_table_view",
         category="database_ops",
-        abstract_syntax={
-            "type": "refresh_table_view",
-            "fields": ["view_name"]
-        },
+        abstract_syntax={"type": "refresh_table_view", "fields": ["view_name"]},
     )
     library.add_or_update_implementation(
         pattern_name="refresh_table_view",
@@ -267,10 +267,7 @@ def add_postgresql_patterns(library: PatternLibrary):
     add_pattern_if_not_exists(
         name="notify",
         category="database_ops",
-        abstract_syntax={
-            "type": "notify",
-            "fields": ["channel", "payload"]
-        },
+        abstract_syntax={"type": "notify", "fields": ["channel", "payload"]},
     )
     library.add_or_update_implementation(
         pattern_name="notify",
@@ -287,7 +284,7 @@ def add_postgresql_patterns(library: PatternLibrary):
         category="data_transform",
         abstract_syntax={
             "type": "aggregate",
-            "fields": ["operation", "field", "result_variable"]
+            "fields": ["operation", "field", "result_variable"],
         },
     )
     library.add_or_update_implementation(
@@ -302,10 +299,7 @@ def add_postgresql_patterns(library: PatternLibrary):
     add_pattern_if_not_exists(
         name="json_build",
         category="data_transform",
-        abstract_syntax={
-            "type": "json_build",
-            "fields": ["fields", "result_variable"]
-        },
+        abstract_syntax={"type": "json_build", "fields": ["fields", "result_variable"]},
     )
     library.add_or_update_implementation(
         pattern_name="json_build",
@@ -321,7 +315,7 @@ def add_postgresql_patterns(library: PatternLibrary):
         category="control_flow",
         abstract_syntax={
             "type": "exception_handling",
-            "fields": ["try_steps", "catch_steps", "exception_var"]
+            "fields": ["try_steps", "catch_steps", "exception_var"],
         },
     )
     library.add_or_update_implementation(
@@ -348,13 +342,16 @@ def add_postgresql_patterns(library: PatternLibrary):
     add_pattern_if_not_exists(
         "declare",
         "primitive",
-        {"type": "declare", "fields": ["variable_name", "variable_type", "default_value"]},
-        "Declare a variable with optional default value"
+        {
+            "type": "declare",
+            "fields": ["variable_name", "variable_type", "default_value"],
+        },
+        "Declare a variable with optional default value",
     )
     library.add_or_update_implementation(
         pattern_name="declare",
         language_name="postgresql",
-        template="""{{ variable_name }} {{ variable_type }}{% if default_value %} := {{ default_value }}{% endif %};"""
+        template="""{{ variable_name }} {{ variable_type }}{% if default_value %} := {{ default_value }}{% endif %};""",
     )
 
     # assign
@@ -362,12 +359,12 @@ def add_postgresql_patterns(library: PatternLibrary):
         "assign",
         "primitive",
         {"type": "assign", "fields": ["variable_name", "expression"]},
-        "Assign value to a variable"
+        "Assign value to a variable",
     )
     library.add_or_update_implementation(
         pattern_name="assign",
         language_name="postgresql",
-        template="""{{ variable_name }} := {{ expression }};"""
+        template="""{{ variable_name }} := {{ expression }};""",
     )
 
     # return
@@ -375,12 +372,12 @@ def add_postgresql_patterns(library: PatternLibrary):
         "return",
         "primitive",
         {"type": "return", "fields": ["expression"]},
-        "Return value from function"
+        "Return value from function",
     )
     library.add_or_update_implementation(
         pattern_name="return",
         language_name="postgresql",
-        template="""RETURN {{ expression }};"""
+        template="""RETURN {{ expression }};""",
     )
 
     # ===== MISSING CONTROL FLOW PATTERNS =====
@@ -390,7 +387,7 @@ def add_postgresql_patterns(library: PatternLibrary):
         "if",
         "control_flow",
         {"type": "if", "fields": ["condition", "then_steps", "else_steps"]},
-        "Conditional branching"
+        "Conditional branching",
     )
     library.add_or_update_implementation(
         pattern_name="if",
@@ -399,7 +396,7 @@ def add_postgresql_patterns(library: PatternLibrary):
     {{ then_steps|join('\n    ') }}
 {% if else_steps %}ELSE
     {{ else_steps|join('\n    ') }}
-{% endif %}END IF;"""
+{% endif %}END IF;""",
     )
 
     # ===== MISSING QUERY PATTERNS =====
@@ -409,12 +406,12 @@ def add_postgresql_patterns(library: PatternLibrary):
         "query",
         "query",
         {"type": "query", "fields": ["sql", "into_variable"]},
-        "Execute query and store result"
+        "Execute query and store result",
     )
     library.add_or_update_implementation(
         pattern_name="query",
         language_name="postgresql",
-        template="""SELECT * FROM ({{ sql }}) INTO {{ into_variable }};"""
+        template="""SELECT * FROM ({{ sql }}) INTO {{ into_variable }};""",
     )
 
     print("✅ Added PostgreSQL implementations for all patterns")

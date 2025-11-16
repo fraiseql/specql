@@ -24,7 +24,7 @@ def add_django_patterns(library: PatternLibrary):
             # Update existing implementation
             library.db.execute(
                 "UPDATE pattern_implementations SET implementation_template = ? WHERE implementation_id = ?",
-                (template, existing["implementation_id"])
+                (template, existing["implementation_id"]),
             )
             library.db.commit()
             print(f"Debug: Updated {pattern_name}")
@@ -38,21 +38,19 @@ def add_django_patterns(library: PatternLibrary):
     add_or_update(
         "declare",
         "python_django",
-        """{{ variable_name }}: {{ variable_type }}{% if default_value %} = {{ default_value }}{% endif %}"""
+        """{{ variable_name }}: {{ variable_type }}{% if default_value %} = {{ default_value }}{% endif %}""",
     )
 
     # assign - Variable assignment
     add_or_update(
-        "assign",
-        "python_django",
-        """{{ variable_name }} = {{ expression }}"""
+        "assign", "python_django", """{{ variable_name }} = {{ expression }}"""
     )
 
     # call_function - Call a Python function
     add_or_update(
         "call_function",
         "python_django",
-        """{{ result_variable }} = {{ function_name }}({{ arguments|join(', ') }})"""
+        """{{ result_variable }} = {{ function_name }}({{ arguments|join(', ') }})""",
     )
 
     # call_service - Call a service method
@@ -60,22 +58,14 @@ def add_django_patterns(library: PatternLibrary):
         "call_service",
         "python_django",
         """# Call service: {{ service_name }}
-{{ result_variable }} = {{ service_class }}.{{ service_method }}({{ parameters|join(', ') }})"""
+{{ result_variable }} = {{ service_class }}.{{ service_method }}({{ parameters|join(', ') }})""",
     )
 
     # return - Return from function
-    add_or_update(
-        "return",
-        "python_django",
-        """return {{ expression }}"""
-    )
+    add_or_update("return", "python_django", """return {{ expression }}""")
 
     # return_early - Early return
-    add_or_update(
-        "return_early",
-        "python_django",
-        """return"""
-    )
+    add_or_update("return_early", "python_django", """return""")
 
     # ===== CONTROL FLOW PATTERNS =====
 
@@ -87,7 +77,7 @@ def add_django_patterns(library: PatternLibrary):
     {{ then_steps|replace('\n', '\n    ') }}
 {% if else_steps %}else:
     {{ else_steps|replace('\n', '\n    ') }}
-{% endif %}"""
+{% endif %}""",
     )
 
     # foreach - Iterate over collection
@@ -95,7 +85,7 @@ def add_django_patterns(library: PatternLibrary):
         "foreach",
         "python_django",
         """for {{ iterator_var }} in {{ collection }}:
-    {{ loop_body }}"""
+    {{ loop_body }}""",
     )
 
     # for_query - Iterate over Django queryset results
@@ -103,7 +93,7 @@ def add_django_patterns(library: PatternLibrary):
         "for_query",
         "python_django",
         """for {{ item_var }} in {{ queryset }}:
-    {{ loop_body }}"""
+    {{ loop_body }}""",
     )
 
     # while - While loop with condition
@@ -111,7 +101,7 @@ def add_django_patterns(library: PatternLibrary):
         "while",
         "python_django",
         """while {{ condition }}:
-    {{ loop_body }}"""
+    {{ loop_body }}""",
     )
 
     # switch - Switch statement using if-elif-else chain
@@ -126,17 +116,15 @@ def add_django_patterns(library: PatternLibrary):
 {% endif %}{% endfor %}
 {% if default_case %}
 else:
-    {{ default_case }}{% endif %}"""
+    {{ default_case }}{% endif %}""",
     )
-
-
 
     # for_query - Iterate over Django queryset results
     add_or_update(
         "for_query",
         "python_django",
         """for {{ item_var }} in {{ queryset }}:
-    {{ loop_body }}"""
+    {{ loop_body }}""",
     )
 
     # while - While loop with condition
@@ -144,7 +132,7 @@ else:
         "while",
         "python_django",
         """while {{ condition }}:
-    {{ loop_body }}"""
+    {{ loop_body }}""",
     )
 
     # switch - Switch statement using if-elif-else chain
@@ -159,10 +147,8 @@ else:
 {% endif %}{% endfor %}
 {% if default_case %}
 else:
-    {{ default_case }}{% endif %}"""
+    {{ default_case }}{% endif %}""",
     )
-
-
 
     # exception_handling - Try-except block
     add_or_update(
@@ -177,7 +163,7 @@ except {{ handler['exception_type'] }}:
 {% endfor -%}
 {% if finally_body -%}
 finally:
-    {{ finally_body|replace('\n', '\n    ') }}{% endif %}"""
+    {{ finally_body|replace('\n', '\n    ') }}{% endif %}""",
     )
 
     # ===== DATABASE OPERATIONS PATTERNS =====
@@ -190,7 +176,7 @@ finally:
 {{ instance_var }} = {{ model_name }}(
 {% for field, value in field_values.items() %}    {{ field }}={{ value }},
 {% endfor %})
-{{ instance_var }}.save()"""
+{{ instance_var }}.save()""",
     )
 
     # update - Update existing model instance
@@ -200,7 +186,7 @@ finally:
         """# Update {{ model_name }}
 {{ instance_var }} = {{ model_name }}.objects.get({{ lookup_field }}={{ lookup_value }})
 {% for field, value in field_values.items() %}{{ instance_var }}.{{ field }} = {{ value }}
-{% endfor %}{{ instance_var }}.save()"""
+{% endfor %}{{ instance_var }}.save()""",
     )
 
     # partial_update - Update specific fields
@@ -210,7 +196,7 @@ finally:
         """# Partial update {{ model_name }}
 {{ instance_var }} = {{ model_name }}.objects.get({{ lookup_field }}={{ lookup_value }})
 {% for field, value in updates.items() %}{{ instance_var }}.{{ field }} = {{ value }}
-{% endfor %}{{ instance_var }}.save(update_fields=[{% for field in updates.keys() %}'{{ field }}'{% if not loop.last %}, {% endif %}{% endfor %}])"""
+{% endfor %}{{ instance_var }}.save(update_fields=[{% for field in updates.keys() %}'{{ field }}'{% if not loop.last %}, {% endif %}{% endfor %}])""",
     )
 
     # delete - Delete model instance
@@ -219,7 +205,7 @@ finally:
         "python_django",
         """# Delete {{ model_name }}
 {{ instance_var }} = {{ model_name }}.objects.get({{ lookup_field }}={{ lookup_value }})
-{{ instance_var }}.delete()"""
+{{ instance_var }}.delete()""",
     )
 
     # duplicate_check - Check for duplicates
@@ -232,7 +218,7 @@ finally:
 {% endfor %}){% if exclude_pk %}.exclude(pk={{ exclude_pk }}){% endif %}.exists()
 
 if {{ exists_var }}:
-    {{ duplicate_body }}"""
+    {{ duplicate_body }}""",
     )
 
     # validate - Validate model data
@@ -242,7 +228,7 @@ if {{ exists_var }}:
         """# Validate {{ model_name }}
 {{ instance_var }}.full_clean()
 {% for validator in custom_validators %}{{ validator }}({{ instance_var }})
-{% endfor %}"""
+{% endfor %}""",
     )
 
     # notify - Send notification (using Django signals or custom logic)
@@ -258,7 +244,7 @@ from django.core.mail import send_mail
     [{% for recipient in email_recipients %}'{{ recipient }}', {% endfor %}],
     fail_silently=False,
 ){% endif %}
-{% if signal_to_send %}{{ signal_to_send }}.send(sender={{ model_name }}, instance={{ instance_var }}){% endif %}"""
+{% if signal_to_send %}{{ signal_to_send }}.send(sender={{ model_name }}, instance={{ instance_var }}){% endif %}""",
     )
 
     # refresh_table_view - Refresh model data from database
@@ -266,7 +252,7 @@ from django.core.mail import send_mail
         "refresh_table_view",
         "python_django",
         """# Refresh {{ model_name }} from database
-{{ instance_var }}.refresh_from_db()"""
+{{ instance_var }}.refresh_from_db()""",
     )
 
     # ===== QUERY PATTERNS =====
@@ -278,7 +264,7 @@ from django.core.mail import send_mail
         """# Query {{ model_name }}
 {{ result_var }} = {{ model_name }}.objects{% if filters %}.filter(
 {% for field, value in filters.items() %}    {{ field }}={{ value }}{% if not loop.last %},{% endif %}
-{% endfor %}){% endif %}{% if select_related %}.select_related({% for related in select_related %}'{{ related }}'{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% if prefetch_related %}.prefetch_related({% for related in prefetch_related %}'{{ related }}'{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% if order_by %}.order_by({% for field in order_by %}'{{ field }}'{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}"""
+{% endfor %}){% endif %}{% if select_related %}.select_related({% for related in select_related %}'{{ related }}'{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% if prefetch_related %}.prefetch_related({% for related in prefetch_related %}'{{ related }}'{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% if order_by %}.order_by({% for field in order_by %}'{{ field }}'{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}""",
     )
 
     # cte - Common Table Expression (using subqueries or raw SQL)
@@ -294,7 +280,7 @@ from django.core.mail import send_mail
 
 {{ result_var }} = {{ model_name }}.objects.filter(
     pk__in=Subquery({{ cte_name }}_subquery.values('pk'))
-)"""
+)""",
     )
 
     # aggregate - Aggregate operations
@@ -306,7 +292,7 @@ from django.core.mail import send_mail
 {% for field, value in filters.items() %}    {{ field }}={{ value }},
 {% endfor %}){% endif %}.aggregate(
 {% for alias, expression in aggregations.items() %}    {{ alias }}={{ expression }}{% if not loop.last %},{% endif %}
-{% endfor %})"""
+{% endfor %})""",
     )
 
     # json_build - Build JSON from fields
@@ -317,7 +303,7 @@ from django.core.mail import send_mail
 {{ result_var }} = {
 {% for key, value in json_structure.items() %}    '{{ key }}': {{ value }}{% if not loop.last %},{% endif %}
 {% endfor %}}
-{% if serialize %}{{ result_var }} = json.dumps({{ result_var }}){% endif %}"""
+{% if serialize %}{{ result_var }} = json.dumps({{ result_var }}){% endif %}""",
     )
 
     # cte - Common Table Expression (using subqueries or raw SQL)
@@ -333,7 +319,7 @@ from django.core.mail import send_mail
 
 {{ result_var }} = {{ model_name }}.objects.filter(
     pk__in=Subquery({{ cte_name }}_subquery.values('pk'))
-)"""
+)""",
     )
 
     # subquery - Subquery operation
@@ -343,7 +329,7 @@ from django.core.mail import send_mail
         """# Subquery
 {{ result_var }} = {{ model_name }}.objects.filter(
 {% for field, subquery in subquery_filters.items() %}    {{ field }}__in=Subquery({{ subquery }}.values('{{ subquery_field }}')),
-{% endfor %})"""
+{% endfor %})""",
     )
 
     # ===== DATA TRANSFORM PATTERNS =====
@@ -357,7 +343,7 @@ from django.core.mail import send_mail
 {% for field, value in filters.items() %}    {{ field }}={{ value }},
 {% endfor %}){% endif %}.aggregate(
 {% for alias, agg_func in aggregations.items() %}    {{ alias }}={{ agg_func }},
-{% endfor %})"""
+{% endfor %})""",
     )
 
     # json_build - Build JSON structures
@@ -369,7 +355,7 @@ import json
 {{ result_var }} = {
 {% for key, value in json_structure.items() %}    "{{ key }}": {{ value }},
 {% endfor %}}
-{% if serialize %}json.dumps({{ result_var }}){% endif %}"""
+{% if serialize %}json.dumps({{ result_var }}){% endif %}""",
     )
 
 
@@ -379,4 +365,6 @@ if __name__ == "__main__":
     library.close()
 
     print("✅ Added Django ORM patterns to library")
-    print(f"Total Django implementations: {len(library.get_all_languages()[1]['implementations'])}")
+    print(
+        f"Total Django implementations: {len(library.get_all_languages()[1]['implementations'])}"
+    )

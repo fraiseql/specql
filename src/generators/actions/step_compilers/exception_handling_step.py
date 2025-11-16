@@ -17,19 +17,27 @@ class ExceptionHandlingStepCompiler(StepCompiler):
             BEGIN ... EXCEPTION WHEN ... END;
         """
         # Optimize exception handlers
-        optimized_handlers = ExceptionOptimizer.optimize_exception_handlers(step.catch_handlers)
+        optimized_handlers = ExceptionOptimizer.optimize_exception_handlers(
+            step.catch_handlers
+        )
 
         # Enter exception context
         context.enter_exception_handler()
 
         try:
             try_body = self._compile_steps(step.try_steps, context)
-            finally_body = self._compile_steps(step.finally_steps, context) if step.finally_steps else ""
+            finally_body = (
+                self._compile_steps(step.finally_steps, context)
+                if step.finally_steps
+                else ""
+            )
 
             # Build exception handlers
             exception_blocks = []
             for handler in optimized_handlers:
-                when_condition = ExceptionOptimizer.map_specql_to_postgres_exceptions(handler.when_condition)
+                when_condition = ExceptionOptimizer.map_specql_to_postgres_exceptions(
+                    handler.when_condition
+                )
                 handler_body = self._compile_steps(handler.then_steps, context)
                 exception_blocks.append(f"""WHEN {when_condition} THEN
     {handler_body}""")
@@ -47,7 +55,9 @@ END;"""
             # Always exit exception context
             context.exit_exception_handler()
 
-    def _compile_steps(self, steps: list[ActionStep], context: CompilationContext) -> str:
+    def _compile_steps(
+        self, steps: list[ActionStep], context: CompilationContext
+    ) -> str:
         """Compile a list of steps into PL/pgSQL"""
         compiled = []
         for step in steps:
@@ -58,9 +68,11 @@ END;"""
 
     def _get_compiler_for_step(self, step_type: str):
         """Get the appropriate compiler for a step type"""
+
         # For now, return a simple mock compiler
         # In real implementation, this would use the full compiler registry
         class MockCompiler:
             def compile(self, step, context):
                 return f"-- {step_type} step"
+
         return MockCompiler()

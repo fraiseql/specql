@@ -4,6 +4,7 @@ import json
 
 from src.generators.diagrams.relationship_extractor import RelationshipExtractor
 
+
 class HTMLViewerGenerator:
     """
     Generate interactive HTML viewer for schema diagrams
@@ -17,7 +18,7 @@ class HTMLViewerGenerator:
     - Export options
     """
 
-    HTML_TEMPLATE = '''
+    HTML_TEMPLATE = """
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -378,7 +379,7 @@ class HTMLViewerGenerator:
     </script>
 </body>
 </html>
-'''
+"""
 
     def __init__(self, extractor: RelationshipExtractor):
         self.extractor = extractor
@@ -387,7 +388,7 @@ class HTMLViewerGenerator:
         self,
         svg_content: str,
         output_path: Optional[str] = None,
-        title: str = "Schema Diagram"
+        title: str = "Schema Diagram",
     ) -> str:
         """
         Generate interactive HTML viewer
@@ -404,7 +405,9 @@ class HTMLViewerGenerator:
             RuntimeError: If HTML generation fails
         """
         if not self.extractor.entities:
-            raise ValueError("No entities found in extractor. Run extract_from_entities() first.")
+            raise ValueError(
+                "No entities found in extractor. Run extract_from_entities() first."
+            )
 
         if not svg_content or not svg_content.strip():
             raise ValueError("SVG content cannot be empty")
@@ -425,9 +428,9 @@ class HTMLViewerGenerator:
             entities_data = {}
             for entity_name, entity_node in self.extractor.entities.items():
                 entities_data[entity_name] = {
-                    'name': entity_name,
-                    'schema': entity_node.schema,
-                    'fields': entity_node.fields,
+                    "name": entity_name,
+                    "schema": entity_node.schema,
+                    "fields": entity_node.fields,
                 }
 
             # Get statistics
@@ -436,12 +439,12 @@ class HTMLViewerGenerator:
             # Generate HTML
             html = self.HTML_TEMPLATE.format(
                 title=title,
-                entity_count=summary['total_entities'],
-                relationship_count=summary['total_relationships'],
-                schema_count=len(summary['schemas']),
-                entity_list_html=''.join(entity_list_html),
+                entity_count=summary["total_entities"],
+                relationship_count=summary["total_relationships"],
+                schema_count=len(summary["schemas"]),
+                entity_list_html="".join(entity_list_html),
                 entities_json=json.dumps(entities_data),
-                svg_content=svg_content.replace('`', '\\`'),  # Escape backticks
+                svg_content=svg_content.replace("`", "\\`"),  # Escape backticks
             )
 
             # Write file if path provided

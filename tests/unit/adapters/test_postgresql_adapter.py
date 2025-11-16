@@ -17,8 +17,12 @@ def test_postgresql_adapter_generates_entity():
         schema="crm",
         fields=[
             UniversalField(name="email", type=FieldType.TEXT, required=True),
-            UniversalField(name="company", type=FieldType.REFERENCE, references="Company"),
-            UniversalField(name="status", type=FieldType.ENUM, enum_values=["lead", "qualified"]),
+            UniversalField(
+                name="company", type=FieldType.REFERENCE, references="Company"
+            ),
+            UniversalField(
+                name="status", type=FieldType.ENUM, enum_values=["lead", "qualified"]
+            ),
         ],
         actions=[],
         is_multi_tenant=True,
@@ -51,7 +55,9 @@ def test_postgresql_adapter_generates_action():
         entity="Contact",
         steps=[
             UniversalStep(type=StepType.VALIDATE, expression="status = 'lead'"),
-            UniversalStep(type=StepType.UPDATE, entity="Contact", fields={"status": "qualified"}),
+            UniversalStep(
+                type=StepType.UPDATE, entity="Contact", fields={"status": "qualified"}
+            ),
         ],
         impacts=["Contact"],
     )
@@ -84,7 +90,7 @@ def test_postgresql_adapter_get_conventions():
     assert conventions.primary_key_name == "pk_{entity}"
     assert conventions.foreign_key_pattern == "fk_{entity}"
     assert conventions.timestamp_fields == ["created_at", "updated_at", "deleted_at"]
-    assert conventions.supports_multi_tenancy  is True
+    assert conventions.supports_multi_tenancy is True
 
 
 def test_postgresql_adapter_get_framework_name():
@@ -98,7 +104,9 @@ def test_postgresql_adapter_generate_relationship():
     adapter = PostgreSQLAdapter()
 
     # Reference field
-    ref_field = UniversalField(name="company", type=FieldType.REFERENCE, references="Company")
+    ref_field = UniversalField(
+        name="company", type=FieldType.REFERENCE, references="Company"
+    )
     entity = UniversalEntity(name="Contact", schema="crm", fields=[], actions=[])
 
     relationship = adapter.generate_relationship(ref_field, entity)

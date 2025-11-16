@@ -61,7 +61,7 @@ def test_upsert_multiple_conflict_targets():
     assert action.steps[0].upsert_conflict_target == "(product_id, warehouse_id)"
     expected_action = {
         "quantity": "Inventory.quantity + EXCLUDED.quantity",
-        "last_updated": "EXCLUDED.last_updated"
+        "last_updated": "EXCLUDED.last_updated",
     }
     assert action.steps[0].upsert_conflict_action == expected_action
 

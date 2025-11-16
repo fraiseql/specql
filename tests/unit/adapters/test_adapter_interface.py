@@ -1,6 +1,10 @@
 # tests/unit/adapters/test_adapter_interface.py
 import pytest
-from src.adapters.base_adapter import FrameworkAdapter, GeneratedCode, FrameworkConventions
+from src.adapters.base_adapter import (
+    FrameworkAdapter,
+    GeneratedCode,
+    FrameworkConventions,
+)
 from src.core.universal_ast import UniversalEntity, UniversalField, FieldType
 
 
@@ -134,7 +138,9 @@ def test_adapter_get_framework_name():
 def test_generated_code_structure():
     """GeneratedCode contains required fields"""
     code = GeneratedCode(
-        file_path="models/contact.py", content="class Contact:\n    pass", language="python"
+        file_path="models/contact.py",
+        content="class Contact:\n    pass",
+        language="python",
     )
 
     assert code.file_path == "models/contact.py"
@@ -156,4 +162,4 @@ def test_framework_conventions_structure():
     assert conventions.primary_key_name == "id"
     assert conventions.foreign_key_pattern == "{entity}Id"
     assert conventions.timestamp_fields == ["createdAt", "updatedAt"]
-    assert conventions.supports_multi_tenancy  is True
+    assert conventions.supports_multi_tenancy is True

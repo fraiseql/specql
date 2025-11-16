@@ -3,6 +3,7 @@ Configuration management for SpecQL
 
 Handles repository backend selection and other configuration options.
 """
+
 import os
 from enum import Enum
 from typing import Optional
@@ -10,6 +11,7 @@ from typing import Optional
 
 class RepositoryBackend(Enum):
     """Repository backend options"""
+
     POSTGRESQL = "postgresql"
     YAML = "yaml"
     IN_MEMORY = "in_memory"
@@ -25,22 +27,22 @@ class SpecQLConfig:
     def __init__(self):
         # Repository backend configuration
         self.repository_backend = self._get_repository_backend()
-        self.database_url = os.getenv('SPECQL_DB_URL')
+        self.database_url = os.getenv("SPECQL_DB_URL")
 
         # Validate configuration
         self._validate_config()
 
     def _get_repository_backend(self) -> RepositoryBackend:
         """Determine which repository backend to use"""
-        backend_env = os.getenv('SPECQL_REPOSITORY_BACKEND', '').upper()
+        backend_env = os.getenv("SPECQL_REPOSITORY_BACKEND", "").upper()
 
-        if backend_env == 'IN_MEMORY':
+        if backend_env == "IN_MEMORY":
             return RepositoryBackend.IN_MEMORY
-        elif backend_env == 'POSTGRESQL':
+        elif backend_env == "POSTGRESQL":
             return RepositoryBackend.POSTGRESQL
         else:
             # Default to PostgreSQL if DB URL is set, otherwise in-memory for testing
-            if os.getenv('SPECQL_DB_URL'):
+            if os.getenv("SPECQL_DB_URL"):
                 return RepositoryBackend.POSTGRESQL
             else:
                 return RepositoryBackend.IN_MEMORY
@@ -48,7 +50,10 @@ class SpecQLConfig:
     def _validate_config(self) -> None:
         """Validate configuration consistency"""
         # PostgreSQL requires database URL
-        if self.repository_backend == RepositoryBackend.POSTGRESQL and not self.database_url:
+        if (
+            self.repository_backend == RepositoryBackend.POSTGRESQL
+            and not self.database_url
+        ):
             raise ValueError(
                 "PostgreSQL repository backend requires SPECQL_DB_URL environment variable"
             )
@@ -66,18 +71,31 @@ class SpecQLConfig:
         try:
             if self.repository_backend == RepositoryBackend.POSTGRESQL:
                 if not self.database_url:
-                    raise ValueError("Database URL is required for PostgreSQL repository")
+                    raise ValueError(
+                        "Database URL is required for PostgreSQL repository"
+                    )
                 if monitoring:
-                    from src.infrastructure.repositories.monitored_postgresql_repository import MonitoredPostgreSQLDomainRepository
+                    from src.infrastructure.repositories.monitored_postgresql_repository import (
+                        MonitoredPostgreSQLDomainRepository,
+                    )
+
                     return MonitoredPostgreSQLDomainRepository(self.database_url)
                 else:
-                    from src.infrastructure.repositories.postgresql_domain_repository import PostgreSQLDomainRepository
+                    from src.infrastructure.repositories.postgresql_domain_repository import (
+                        PostgreSQLDomainRepository,
+                    )
+
                     return PostgreSQLDomainRepository(self.database_url)
             elif self.repository_backend == RepositoryBackend.IN_MEMORY:
-                from src.infrastructure.repositories.in_memory_domain_repository import InMemoryDomainRepository
+                from src.infrastructure.repositories.in_memory_domain_repository import (
+                    InMemoryDomainRepository,
+                )
+
                 return InMemoryDomainRepository()
             else:
-                raise ValueError(f"Unknown repository backend: {self.repository_backend}")
+                raise ValueError(
+                    f"Unknown repository backend: {self.repository_backend}"
+                )
         except ImportError as e:
             raise RuntimeError(f"Failed to import repository implementation: {e}")
 
@@ -86,18 +104,31 @@ class SpecQLConfig:
         try:
             if self.repository_backend == RepositoryBackend.POSTGRESQL:
                 if not self.database_url:
-                    raise ValueError("Database URL is required for PostgreSQL repository")
+                    raise ValueError(
+                        "Database URL is required for PostgreSQL repository"
+                    )
                 if monitoring:
-                    from src.infrastructure.repositories.monitored_postgresql_pattern_repository import MonitoredPostgreSQLPatternRepository
+                    from src.infrastructure.repositories.monitored_postgresql_pattern_repository import (
+                        MonitoredPostgreSQLPatternRepository,
+                    )
+
                     return MonitoredPostgreSQLPatternRepository(self.database_url)
                 else:
-                    from src.infrastructure.repositories.postgresql_pattern_repository import PostgreSQLPatternRepository
+                    from src.infrastructure.repositories.postgresql_pattern_repository import (
+                        PostgreSQLPatternRepository,
+                    )
+
                     return PostgreSQLPatternRepository(self.database_url)
             elif self.repository_backend == RepositoryBackend.IN_MEMORY:
-                from src.infrastructure.repositories.in_memory_pattern_repository import InMemoryPatternRepository
+                from src.infrastructure.repositories.in_memory_pattern_repository import (
+                    InMemoryPatternRepository,
+                )
+
                 return InMemoryPatternRepository()
             else:
-                raise ValueError(f"Unknown repository backend: {self.repository_backend}")
+                raise ValueError(
+                    f"Unknown repository backend: {self.repository_backend}"
+                )
         except ImportError as e:
             raise RuntimeError(f"Failed to import repository implementation: {e}")
 

@@ -1,6 +1,7 @@
 """
 Performance benchmarks for GraphQL API.
 """
+
 import pytest
 # Note: GraphQL client imports commented out until FraiseQL is available
 # from gql import gql, Client

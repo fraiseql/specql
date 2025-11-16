@@ -61,7 +61,9 @@ class ReadSidePathGenerator(PathGenerator):
             → 0_schema/02_query_side/022_crm/0223_customer/0220310_tv_contact.sql
         """
         if file_spec.layer != "read_side":
-            raise ValueError(f"ReadSidePathGenerator can only handle read_side files, got {file_spec.layer}")
+            raise ValueError(
+                f"ReadSidePathGenerator can only handle read_side files, got {file_spec.layer}"
+            )
 
         code = file_spec.code
         view_name = file_spec.name
@@ -78,16 +80,22 @@ class ReadSidePathGenerator(PathGenerator):
 
         # Validate layer
         if components.schema_layer != "02":
-            raise ValueError(f"Invalid schema layer '{components.schema_layer}' for read-side code (expected '02')")
+            raise ValueError(
+                f"Invalid schema layer '{components.schema_layer}' for read-side code (expected '02')"
+            )
 
         # Build path components
         domain_name = self._get_domain_name(components.domain)
         if not domain_name:
             raise ValueError(f"Unknown domain code: {components.domain}")
 
-        subdomain_name = self._get_subdomain_name(components.domain, components.subdomain)
+        subdomain_name = self._get_subdomain_name(
+            components.domain, components.subdomain
+        )
         if not subdomain_name:
-            raise ValueError(f"Unknown subdomain code: {components.subdomain} in domain {components.domain}")
+            raise ValueError(
+                f"Unknown subdomain code: {components.subdomain} in domain {components.domain}"
+            )
 
         # Domain directory: 02{domain}_{domain_name}
         domain_dir = f"02{components.domain}_{domain_name}"
@@ -102,10 +110,13 @@ class ReadSidePathGenerator(PathGenerator):
         elif view_name.startswith("tv_"):
             entity_name = view_name[3:]  # Remove "tv_" prefix
         else:
-            raise ValueError(f"Read-side view name should start with 'v_' or 'tv_', got: {view_name}")
+            raise ValueError(
+                f"Read-side view name should start with 'v_' or 'tv_', got: {view_name}"
+            )
 
         # Convert to snake_case for directory name
         from src.generators.naming_utils import camel_to_snake
+
         entity_snake = camel_to_snake(entity_name)
 
         entity_dir = f"02{components.domain}{components.subdomain}{components.entity}_{entity_snake}"
@@ -114,9 +125,19 @@ class ReadSidePathGenerator(PathGenerator):
         filename = f"{code}_{view_name}.sql"
 
         # Combine path (now includes entity directory)
-        return self.base_dir / self.SCHEMA_LAYER_PREFIX / self.QUERY_SIDE_DIR / domain_dir / subdomain_dir / entity_dir / filename
+        return (
+            self.base_dir
+            / self.SCHEMA_LAYER_PREFIX
+            / self.QUERY_SIDE_DIR
+            / domain_dir
+            / subdomain_dir
+            / entity_dir
+            / filename
+        )
 
-    def format_domain_path(self, domain_code: str, subdomain_code: str, domain_name: str) -> str:
+    def format_domain_path(
+        self, domain_code: str, subdomain_code: str, domain_name: str
+    ) -> str:
         """
         Format domain directory path
 
@@ -130,7 +151,9 @@ class ReadSidePathGenerator(PathGenerator):
         """
         return f"0{domain_code}{domain_code}_{domain_name}"
 
-    def format_subdomain_path(self, domain_code: str, subdomain_code: str, subdomain_name: str) -> str:
+    def format_subdomain_path(
+        self, domain_code: str, subdomain_code: str, subdomain_name: str
+    ) -> str:
         """
         Format subdomain directory path
 
@@ -152,7 +175,7 @@ class ReadSidePathGenerator(PathGenerator):
             "3": "catalog",
             "4": "projects",
             "5": "analytics",
-            "6": "finance"
+            "6": "finance",
         }
         return domain_map.get(domain_code, f"domain_{domain_code}")
 
@@ -178,4 +201,6 @@ class ReadSidePathGenerator(PathGenerator):
             ("4", "6"): "allocation",
         }
 
-        return subdomain_map.get((domain_code, subdomain_code), f"subdomain_{subdomain_code}")
+        return subdomain_map.get(
+            (domain_code, subdomain_code), f"subdomain_{subdomain_code}"
+        )

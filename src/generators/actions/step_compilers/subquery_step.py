@@ -1,6 +1,5 @@
 """Compiler for subquery steps"""
 
-
 from src.core.ast_models import ActionStep, EntityDefinition
 
 from src.generators.actions.step_compilers.base import StepCompiler

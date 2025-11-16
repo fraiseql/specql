@@ -63,7 +63,10 @@ class TestPermissionFilterPattern:
             "config": {
                 "base_entity": entity,
                 "permission_checks": [
-                    {"type": "role_based", "allowed_roles": ["admin", "contract_manager"]}
+                    {
+                        "type": "role_based",
+                        "allowed_roles": ["admin", "contract_manager"],
+                    }
                 ],
             },
         }

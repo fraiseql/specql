@@ -5,7 +5,10 @@ Algorithmic Parser: SQL → SpecQL without AI
 """
 
 from src.reverse_engineering.sql_ast_parser import SQLASTParser
-from src.reverse_engineering.ast_to_specql_mapper import ASTToSpecQLMapper, ConversionResult
+from src.reverse_engineering.ast_to_specql_mapper import (
+    ASTToSpecQLMapper,
+    ConversionResult,
+)
 from src.reverse_engineering.heuristic_enhancer import HeuristicEnhancer
 from src.reverse_engineering.ai_enhancer import AIEnhancer
 from typing import Dict
@@ -22,11 +25,20 @@ class AlgorithmicParser:
     3. AI enhancement (95% confidence)
     """
 
-    def __init__(self, use_heuristics: bool = True, use_ai: bool = False, enable_pattern_discovery: bool = False):
+    def __init__(
+        self,
+        use_heuristics: bool = True,
+        use_ai: bool = False,
+        enable_pattern_discovery: bool = False,
+    ):
         self.sql_parser = SQLASTParser()
         self.mapper = ASTToSpecQLMapper()
         self.heuristic_enhancer = HeuristicEnhancer() if use_heuristics else None
-        self.ai_enhancer = AIEnhancer(enable_pattern_discovery=enable_pattern_discovery) if use_ai else None
+        self.ai_enhancer = (
+            AIEnhancer(enable_pattern_discovery=enable_pattern_discovery)
+            if use_ai
+            else None
+        )
 
     def parse(self, sql: str) -> ConversionResult:
         """
@@ -77,14 +89,14 @@ class AlgorithmicParser:
                     "name": result.function_name,
                     "parameters": result.parameters,
                     "returns": result.return_type,
-                    "steps": [self._step_to_dict(s) for s in result.steps]
+                    "steps": [self._step_to_dict(s) for s in result.steps],
                 }
             ],
             "_metadata": {
                 "confidence": result.confidence,
                 "warnings": result.warnings,
-                "generated_by": "algorithmic_parser"
-            }
+                "generated_by": "algorithmic_parser",
+            },
         }
 
         return yaml.dump(yaml_dict, default_flow_style=False, sort_keys=False)
@@ -98,54 +110,41 @@ class AlgorithmicParser:
                 "declare": {
                     "name": step.variable_name,
                     "type": step.variable_type,
-                    "default": step.default_value
+                    "default": step.default_value,
                 }
             }
 
         elif step.type == "assign":
-            step_dict = {
-                "assign": f"{step.variable_name} = {step.expression}"
-            }
+            step_dict = {"assign": f"{step.variable_name} = {step.expression}"}
 
         elif step.type == "query":
-            step_dict = {
-                "query": step.sql
-            }
+            step_dict = {"query": step.sql}
             if step.store_result:
                 step_dict["into"] = step.store_result
 
         elif step.type == "cte":
-            step_dict = {
-                "cte": {
-                    "name": step.cte_name,
-                    "query": step.cte_query
-                }
-            }
+            step_dict = {"cte": {"name": step.cte_name, "query": step.cte_query}}
 
         elif step.type == "if":
             step_dict = {
                 "if": step.condition,
-                "then": [self._step_to_dict(s) for s in step.then_steps]
+                "then": [self._step_to_dict(s) for s in step.then_steps],
             }
             if step.else_steps:
                 step_dict["else"] = [self._step_to_dict(s) for s in step.else_steps]
 
         elif step.type == "return":
-            step_dict = {
-                "return": step.return_value
-            }
+            step_dict = {"return": step.return_value}
 
         elif step.type == "return_table":
-            step_dict = {
-                "return_table": step.return_table_query
-            }
+            step_dict = {"return_table": step.return_table_query}
 
         elif step.type == "for_query":
             step_dict = {
                 "for_query": {
                     "alias": step.for_query_alias,
                     "query": step.for_query_sql,
-                    "body": [self._step_to_dict(s) for s in step.for_query_body]
+                    "body": [self._step_to_dict(s) for s in step.for_query_body],
                 }
             }
 
@@ -153,7 +152,7 @@ class AlgorithmicParser:
             step_dict = {
                 "while": {
                     "condition": step.while_condition,
-                    "body": [self._step_to_dict(s) for s in step.loop_body]
+                    "body": [self._step_to_dict(s) for s in step.loop_body],
                 }
             }
 

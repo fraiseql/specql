@@ -74,9 +74,7 @@ class TestRichTypeHandler:
 
         sql = handler.build_jsonb_object(assignments, contact_entity)
 
-        expected = (
-            "jsonb_build_object('street', '123 Main St', 'city', 'Springfield', 'zip_code', 12345)"
-        )
+        expected = "jsonb_build_object('street', '123 Main St', 'city', 'Springfield', 'zip_code', 12345)"
         assert sql == expected
 
     def test_invalid_field_path(self, handler, contact_entity):

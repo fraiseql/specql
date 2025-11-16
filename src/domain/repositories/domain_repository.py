@@ -1,6 +1,8 @@
 """Domain Repository Protocol"""
+
 from typing import Protocol
 from src.domain.entities.domain import Domain
+
 
 class DomainRepository(Protocol):
     """Repository for Domain aggregate root"""

@@ -6,7 +6,10 @@ Generates AWS CloudFormation templates from universal infrastructure format.
 
 import json
 from typing import Dict, Any
-from src.infrastructure.universal_infra_schema import UniversalInfrastructure, DatabaseType
+from src.infrastructure.universal_infra_schema import (
+    UniversalInfrastructure,
+    DatabaseType,
+)
 
 
 class CloudFormationGenerator:
@@ -19,12 +22,14 @@ class CloudFormationGenerator:
             "Description": f"CloudFormation template for {infrastructure.name}",
             "Parameters": self._generate_parameters(infrastructure),
             "Resources": self._generate_resources(infrastructure),
-            "Outputs": self._generate_outputs(infrastructure)
+            "Outputs": self._generate_outputs(infrastructure),
         }
 
         return json.dumps(template, indent=2, sort_keys=False)
 
-    def _generate_parameters(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_parameters(
+        self, infrastructure: UniversalInfrastructure
+    ) -> Dict[str, Any]:
         """Generate CloudFormation parameters"""
         parameters = {}
 
@@ -32,12 +37,14 @@ class CloudFormationGenerator:
             parameters["DBPassword"] = {
                 "Type": "String",
                 "Description": "Password for the database",
-                "NoEcho": True
+                "NoEcho": True,
             }
 
         return parameters
 
-    def _generate_resources(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_resources(
+        self, infrastructure: UniversalInfrastructure
+    ) -> Dict[str, Any]:
         """Generate CloudFormation resources"""
         resources = {}
 
@@ -62,7 +69,9 @@ class CloudFormationGenerator:
 
         return resources
 
-    def _generate_network_resources(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_network_resources(
+        self, infrastructure: UniversalInfrastructure
+    ) -> Dict[str, Any]:
         """Generate VPC, subnets, and networking resources"""
         resources = {}
 
@@ -73,20 +82,16 @@ class CloudFormationGenerator:
                 "CidrBlock": infrastructure.network.vpc_cidr,
                 "EnableDnsHostnames": True,
                 "EnableDnsSupport": True,
-                "Tags": [
-                    {"Key": "Name", "Value": f"{infrastructure.name}-vpc"}
-                ]
-            }
+                "Tags": [{"Key": "Name", "Value": f"{infrastructure.name}-vpc"}],
+            },
         }
 
         # Internet Gateway
         resources[f"{infrastructure.name}InternetGateway"] = {
             "Type": "AWS::EC2::InternetGateway",
             "Properties": {
-                "Tags": [
-                    {"Key": "Name", "Value": f"{infrastructure.name}-igw"}
-                ]
-            }
+                "Tags": [{"Key": "Name", "Value": f"{infrastructure.name}-igw"}]
+            },
         }
 
         # Attach IGW to VPC
@@ -94,13 +99,13 @@ class CloudFormationGenerator:
             "Type": "AWS::EC2::VPCGatewayAttachment",
             "Properties": {
                 "VpcId": {"Ref": f"{infrastructure.name}VPC"},
-                "InternetGatewayId": {"Ref": f"{infrastructure.name}InternetGateway"}
-            }
+                "InternetGatewayId": {"Ref": f"{infrastructure.name}InternetGateway"},
+            },
         }
 
         # Public Subnets
         for i, subnet_cidr in enumerate(infrastructure.network.public_subnets):
-            resources[f"{infrastructure.name}PublicSubnet{i+1}"] = {
+            resources[f"{infrastructure.name}PublicSubnet{i + 1}"] = {
                 "Type": "AWS::EC2::Subnet",
                 "Properties": {
                     "VpcId": {"Ref": f"{infrastructure.name}VPC"},
@@ -108,40 +113,46 @@ class CloudFormationGenerator:
                     "AvailabilityZone": {"Fn::Select": [i, {"Fn::GetAZs": ""}]},
                     "MapPublicIpOnLaunch": True,
                     "Tags": [
-                        {"Key": "Name", "Value": f"{infrastructure.name}-public-{i+1}"}
-                    ]
-                }
+                        {
+                            "Key": "Name",
+                            "Value": f"{infrastructure.name}-public-{i + 1}",
+                        }
+                    ],
+                },
             }
 
         # Private Subnets
         for i, subnet_cidr in enumerate(infrastructure.network.private_subnets):
-            resources[f"{infrastructure.name}PrivateSubnet{i+1}"] = {
+            resources[f"{infrastructure.name}PrivateSubnet{i + 1}"] = {
                 "Type": "AWS::EC2::Subnet",
                 "Properties": {
                     "VpcId": {"Ref": f"{infrastructure.name}VPC"},
                     "CidrBlock": subnet_cidr,
                     "AvailabilityZone": {"Fn::Select": [i, {"Fn::GetAZs": ""}]},
                     "Tags": [
-                        {"Key": "Name", "Value": f"{infrastructure.name}-private-{i+1}"}
-                    ]
-                }
+                        {
+                            "Key": "Name",
+                            "Value": f"{infrastructure.name}-private-{i + 1}",
+                        }
+                    ],
+                },
             }
 
         # NAT Gateway (if enabled)
         if infrastructure.network.enable_nat_gateway:
             resources[f"{infrastructure.name}EIP"] = {
                 "Type": "AWS::EC2::EIP",
-                "Properties": {
-                    "Domain": "vpc"
-                }
+                "Properties": {"Domain": "vpc"},
             }
 
             resources[f"{infrastructure.name}NATGateway"] = {
                 "Type": "AWS::EC2::NatGateway",
                 "Properties": {
-                    "AllocationId": {"Fn::GetAtt": [f"{infrastructure.name}EIP", "AllocationId"]},
-                    "SubnetId": {"Ref": f"{infrastructure.name}PublicSubnet1"}
-                }
+                    "AllocationId": {
+                        "Fn::GetAtt": [f"{infrastructure.name}EIP", "AllocationId"]
+                    },
+                    "SubnetId": {"Ref": f"{infrastructure.name}PublicSubnet1"},
+                },
             }
 
         # Route Tables
@@ -149,10 +160,8 @@ class CloudFormationGenerator:
             "Type": "AWS::EC2::RouteTable",
             "Properties": {
                 "VpcId": {"Ref": f"{infrastructure.name}VPC"},
-                "Tags": [
-                    {"Key": "Name", "Value": f"{infrastructure.name}-public-rt"}
-                ]
-            }
+                "Tags": [{"Key": "Name", "Value": f"{infrastructure.name}-public-rt"}],
+            },
         }
 
         resources[f"{infrastructure.name}PublicRoute"] = {
@@ -160,23 +169,27 @@ class CloudFormationGenerator:
             "Properties": {
                 "RouteTableId": {"Ref": f"{infrastructure.name}PublicRouteTable"},
                 "DestinationCidrBlock": "0.0.0.0/0",
-                "GatewayId": {"Ref": f"{infrastructure.name}InternetGateway"}
-            }
+                "GatewayId": {"Ref": f"{infrastructure.name}InternetGateway"},
+            },
         }
 
         # Route Table Associations
         for i in range(len(infrastructure.network.public_subnets)):
-            resources[f"{infrastructure.name}PublicSubnet{i+1}RouteTableAssociation"] = {
+            resources[
+                f"{infrastructure.name}PublicSubnet{i + 1}RouteTableAssociation"
+            ] = {
                 "Type": "AWS::EC2::SubnetRouteTableAssociation",
                 "Properties": {
-                    "SubnetId": {"Ref": f"{infrastructure.name}PublicSubnet{i+1}"},
-                    "RouteTableId": {"Ref": f"{infrastructure.name}PublicRouteTable"}
-                }
+                    "SubnetId": {"Ref": f"{infrastructure.name}PublicSubnet{i + 1}"},
+                    "RouteTableId": {"Ref": f"{infrastructure.name}PublicRouteTable"},
+                },
             }
 
         return resources
 
-    def _generate_security_groups(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_security_groups(
+        self, infrastructure: UniversalInfrastructure
+    ) -> Dict[str, Any]:
         """Generate security groups"""
         resources = {}
 
@@ -192,20 +205,23 @@ class CloudFormationGenerator:
                             "IpProtocol": "tcp",
                             "FromPort": 80,
                             "ToPort": 80,
-                            "CidrIp": "0.0.0.0/0"
+                            "CidrIp": "0.0.0.0/0",
                         }
-                    ] + ([
-                        {
-                            "IpProtocol": "tcp",
-                            "FromPort": 443,
-                            "ToPort": 443,
-                            "CidrIp": "0.0.0.0/0"
-                        }
-                    ] if infrastructure.load_balancer.https else []),
-                    "Tags": [
-                        {"Key": "Name", "Value": f"{infrastructure.name}-lb-sg"}
                     ]
-                }
+                    + (
+                        [
+                            {
+                                "IpProtocol": "tcp",
+                                "FromPort": 443,
+                                "ToPort": 443,
+                                "CidrIp": "0.0.0.0/0",
+                            }
+                        ]
+                        if infrastructure.load_balancer.https
+                        else []
+                    ),
+                    "Tags": [{"Key": "Name", "Value": f"{infrastructure.name}-lb-sg"}],
+                },
             }
 
         # Application Security Group
@@ -217,15 +233,21 @@ class CloudFormationGenerator:
                 "SecurityGroupIngress": [
                     {
                         "IpProtocol": "tcp",
-                        "FromPort": infrastructure.container.port if infrastructure.container else 80,
-                        "ToPort": infrastructure.container.port if infrastructure.container else 80,
-                        "SourceSecurityGroupId": {"Ref": f"{infrastructure.name}LoadBalancerSecurityGroup"} if infrastructure.load_balancer else {"CidrIp": "0.0.0.0/0"}
+                        "FromPort": infrastructure.container.port
+                        if infrastructure.container
+                        else 80,
+                        "ToPort": infrastructure.container.port
+                        if infrastructure.container
+                        else 80,
+                        "SourceSecurityGroupId": {
+                            "Ref": f"{infrastructure.name}LoadBalancerSecurityGroup"
+                        }
+                        if infrastructure.load_balancer
+                        else {"CidrIp": "0.0.0.0/0"},
                     }
                 ],
-                "Tags": [
-                    {"Key": "Name", "Value": f"{infrastructure.name}-app-sg"}
-                ]
-            }
+                "Tags": [{"Key": "Name", "Value": f"{infrastructure.name}-app-sg"}],
+            },
         }
 
         # Database Security Group
@@ -240,18 +262,20 @@ class CloudFormationGenerator:
                             "IpProtocol": "tcp",
                             "FromPort": 5432,
                             "ToPort": 5432,
-                            "SourceSecurityGroupId": {"Ref": f"{infrastructure.name}ApplicationSecurityGroup"}
+                            "SourceSecurityGroupId": {
+                                "Ref": f"{infrastructure.name}ApplicationSecurityGroup"
+                            },
                         }
                     ],
-                    "Tags": [
-                        {"Key": "Name", "Value": f"{infrastructure.name}-db-sg"}
-                    ]
-                }
+                    "Tags": [{"Key": "Name", "Value": f"{infrastructure.name}-db-sg"}],
+                },
             }
 
         return resources
 
-    def _generate_compute_resources(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_compute_resources(
+        self, infrastructure: UniversalInfrastructure
+    ) -> Dict[str, Any]:
         """Generate EC2 Auto Scaling Group"""
         resources = {}
 
@@ -261,19 +285,21 @@ class CloudFormationGenerator:
             "Properties": {
                 "LaunchTemplateName": f"{infrastructure.name}-lt",
                 "LaunchTemplateData": {
-                    "ImageId": {"Fn::FindInMap": ["RegionMap", {"Ref": "AWS::Region"}, "AMI"]},
+                    "ImageId": {
+                        "Fn::FindInMap": ["RegionMap", {"Ref": "AWS::Region"}, "AMI"]
+                    },
                     "InstanceType": self._map_instance_type(infrastructure.compute),
-                    "SecurityGroupIds": [{"Ref": f"{infrastructure.name}ApplicationSecurityGroup"}],
+                    "SecurityGroupIds": [
+                        {"Ref": f"{infrastructure.name}ApplicationSecurityGroup"}
+                    ],
                     "TagSpecifications": [
                         {
                             "ResourceType": "instance",
-                            "Tags": [
-                                {"Key": "Name", "Value": infrastructure.name}
-                            ]
+                            "Tags": [{"Key": "Name", "Value": infrastructure.name}],
                         }
-                    ]
-                }
-            }
+                    ],
+                },
+            },
         }
 
         if infrastructure.container:
@@ -296,27 +322,29 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
                 "AutoScalingGroupName": f"{infrastructure.name}-asg",
                 "LaunchTemplate": {
                     "LaunchTemplateId": {"Ref": f"{infrastructure.name}LaunchTemplate"},
-                    "Version": "$Latest"
+                    "Version": "$Latest",
                 },
                 "MinSize": str(infrastructure.compute.min_instances),
                 "MaxSize": str(infrastructure.compute.max_instances),
                 "DesiredCapacity": str(infrastructure.compute.instances),
                 "VPCZoneIdentifier": [
-                    {"Ref": f"{infrastructure.name}PrivateSubnet{i+1}"}
+                    {"Ref": f"{infrastructure.name}PrivateSubnet{i + 1}"}
                     for i in range(len(infrastructure.network.private_subnets))
                 ],
                 "Tags": [
                     {
                         "Key": "Name",
                         "Value": infrastructure.name,
-                        "PropagateAtLaunch": True
+                        "PropagateAtLaunch": True,
                     }
-                ]
-            }
+                ],
+            },
         }
 
         if infrastructure.load_balancer:
-            asg["Properties"]["TargetGroupARNs"] = [{"Ref": f"{infrastructure.name}TargetGroup"}]
+            asg["Properties"]["TargetGroupARNs"] = [
+                {"Ref": f"{infrastructure.name}TargetGroup"}
+            ]
 
         resources[f"{infrastructure.name}AutoScalingGroup"] = asg
 
@@ -324,20 +352,24 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
         resources[f"{infrastructure.name}ScaleUpPolicy"] = {
             "Type": "AWS::AutoScaling::ScalingPolicy",
             "Properties": {
-                "AutoScalingGroupName": {"Ref": f"{infrastructure.name}AutoScalingGroup"},
+                "AutoScalingGroupName": {
+                    "Ref": f"{infrastructure.name}AutoScalingGroup"
+                },
                 "PolicyType": "TargetTrackingScaling",
                 "TargetTrackingConfiguration": {
                     "PredefinedMetricSpecification": {
                         "PredefinedMetricType": "ASGAverageCPUUtilization"
                     },
-                    "TargetValue": infrastructure.compute.cpu_target
-                }
-            }
+                    "TargetValue": infrastructure.compute.cpu_target,
+                },
+            },
         }
 
         return resources
 
-    def _generate_database_resources(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_database_resources(
+        self, infrastructure: UniversalInfrastructure
+    ) -> Dict[str, Any]:
         """Generate RDS database resources"""
         resources = {}
 
@@ -347,13 +379,13 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
             "Properties": {
                 "DBSubnetGroupDescription": f"Subnet group for {infrastructure.name} database",
                 "SubnetIds": [
-                    {"Ref": f"{infrastructure.name}PrivateSubnet{i+1}"}
+                    {"Ref": f"{infrastructure.name}PrivateSubnet{i + 1}"}
                     for i in range(len(infrastructure.network.private_subnets))
                 ],
                 "Tags": [
                     {"Key": "Name", "Value": f"{infrastructure.name}-db-subnet-group"}
-                ]
-            }
+                ],
+            },
         }
 
         # RDS Instance
@@ -361,31 +393,34 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
             "Type": "AWS::RDS::DBInstance",
             "Properties": {
                 "DBInstanceIdentifier": f"{infrastructure.name}-db",
-                "DBInstanceClass": infrastructure.database.instance_class or "db.t3.medium",
+                "DBInstanceClass": infrastructure.database.instance_class
+                or "db.t3.medium",
                 "Engine": self._map_database_engine(infrastructure.database.type),
                 "EngineVersion": infrastructure.database.version,
-                "AllocatedStorage": infrastructure.database.storage.replace('GB', ''),
+                "AllocatedStorage": infrastructure.database.storage.replace("GB", ""),
                 "StorageType": infrastructure.database.storage_type,
-                "DBName": infrastructure.name.replace('-', '_'),
+                "DBName": infrastructure.name.replace("-", "_"),
                 "MasterUsername": "admin",
                 "MasterUserPassword": {"Ref": "DBPassword"},
                 "MultiAZ": infrastructure.database.multi_az,
                 "BackupRetentionPeriod": infrastructure.database.backup_retention_days,
                 "StorageEncrypted": infrastructure.security.encryption_at_rest,
                 "PubliclyAccessible": infrastructure.database.publicly_accessible,
-                "VPCSecurityGroups": [{"Ref": f"{infrastructure.name}DatabaseSecurityGroup"}],
+                "VPCSecurityGroups": [
+                    {"Ref": f"{infrastructure.name}DatabaseSecurityGroup"}
+                ],
                 "DBSubnetGroupName": {"Ref": f"{infrastructure.name}DBSubnetGroup"},
-                "Tags": [
-                    {"Key": "Name", "Value": f"{infrastructure.name}-database"}
-                ]
-            }
+                "Tags": [{"Key": "Name", "Value": f"{infrastructure.name}-database"}],
+            },
         }
 
         resources[f"{infrastructure.name}DBInstance"] = db_instance
 
         return resources
 
-    def _generate_load_balancer_resources(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_load_balancer_resources(
+        self, infrastructure: UniversalInfrastructure
+    ) -> Dict[str, Any]:
         """Generate Load Balancer resources"""
         resources = {}
 
@@ -396,12 +431,14 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
                 "Name": f"{infrastructure.name}-lb",
                 "Type": infrastructure.load_balancer.type,
                 "Scheme": "internet-facing",
-                "SecurityGroups": [{"Ref": f"{infrastructure.name}LoadBalancerSecurityGroup"}],
+                "SecurityGroups": [
+                    {"Ref": f"{infrastructure.name}LoadBalancerSecurityGroup"}
+                ],
                 "Subnets": [
-                    {"Ref": f"{infrastructure.name}PublicSubnet{i+1}"}
+                    {"Ref": f"{infrastructure.name}PublicSubnet{i + 1}"}
                     for i in range(len(infrastructure.network.public_subnets))
-                ]
-            }
+                ],
+            },
         }
 
         # Target Group
@@ -410,10 +447,12 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
             "Properties": {
                 "Name": f"{infrastructure.name}-tg",
                 "Protocol": "HTTP",
-                "Port": infrastructure.container.port if infrastructure.container else 80,
+                "Port": infrastructure.container.port
+                if infrastructure.container
+                else 80,
                 "VpcId": {"Ref": f"{infrastructure.name}VPC"},
-                "HealthCheckPath": infrastructure.load_balancer.health_check_path
-            }
+                "HealthCheckPath": infrastructure.load_balancer.health_check_path,
+            },
         }
 
         # Listener
@@ -426,38 +465,47 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
                 "DefaultActions": [
                     {
                         "Type": "forward",
-                        "TargetGroupArn": {"Ref": f"{infrastructure.name}TargetGroup"}
+                        "TargetGroupArn": {"Ref": f"{infrastructure.name}TargetGroup"},
                     }
-                ]
-            }
+                ],
+            },
         }
 
         resources[f"{infrastructure.name}Listener"] = listener
 
         return resources
 
-    def _generate_outputs(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_outputs(
+        self, infrastructure: UniversalInfrastructure
+    ) -> Dict[str, Any]:
         """Generate CloudFormation outputs"""
         outputs = {
             "VPCId": {
                 "Description": "VPC ID",
                 "Value": {"Ref": f"{infrastructure.name}VPC"},
-                "Export": {"Name": f"{infrastructure.name}-vpc-id"}
+                "Export": {"Name": f"{infrastructure.name}-vpc-id"},
             }
         }
 
         if infrastructure.load_balancer:
             outputs["LoadBalancerDNS"] = {
                 "Description": "Load Balancer DNS Name",
-                "Value": {"Fn::GetAtt": [f"{infrastructure.name}LoadBalancer", "DNSName"]},
-                "Export": {"Name": f"{infrastructure.name}-lb-dns"}
+                "Value": {
+                    "Fn::GetAtt": [f"{infrastructure.name}LoadBalancer", "DNSName"]
+                },
+                "Export": {"Name": f"{infrastructure.name}-lb-dns"},
             }
 
         if infrastructure.database:
             outputs["DatabaseEndpoint"] = {
                 "Description": "Database Endpoint",
-                "Value": {"Fn::GetAtt": [f"{infrastructure.name}DBInstance", "Endpoint.Address"]},
-                "Export": {"Name": f"{infrastructure.name}-db-endpoint"}
+                "Value": {
+                    "Fn::GetAtt": [
+                        f"{infrastructure.name}DBInstance",
+                        "Endpoint.Address",
+                    ]
+                },
+                "Export": {"Name": f"{infrastructure.name}-db-endpoint"},
             }
 
         return outputs
@@ -468,7 +516,11 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
             return compute_config.instance_type
 
         cpu = compute_config.cpu
-        memory_gb = int(compute_config.memory.replace("GB", "").replace("MB", "")) / 1000 if "MB" in compute_config.memory else int(compute_config.memory.replace("GB", ""))
+        memory_gb = (
+            int(compute_config.memory.replace("GB", "").replace("MB", "")) / 1000
+            if "MB" in compute_config.memory
+            else int(compute_config.memory.replace("GB", ""))
+        )
 
         if cpu <= 1 and memory_gb <= 2:
             return "t3.small"

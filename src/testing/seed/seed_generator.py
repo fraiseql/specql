@@ -31,7 +31,10 @@ class EntitySeedGenerator:
             self.group_leader = None
 
     def generate(
-        self, scenario: int = 0, instance: int = 1, overrides: dict[str, Any] | None = None
+        self,
+        scenario: int = 0,
+        instance: int = 1,
+        overrides: dict[str, Any] | None = None,
     ) -> dict[str, Any]:
         """
         Generate complete entity record
@@ -78,7 +81,9 @@ class EntitySeedGenerator:
 
         return entity_data
 
-    def _generate_field_value(self, mapping: dict[str, Any], context: dict[str, Any]) -> Any:
+    def _generate_field_value(
+        self, mapping: dict[str, Any], context: dict[str, Any]
+    ) -> Any:
         """Generate value for single field"""
 
         gen_type = mapping["generator_type"]

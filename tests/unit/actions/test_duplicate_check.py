@@ -2,7 +2,6 @@
 Unit tests for duplicate check functionality in CoreLogicGenerator
 """
 
-
 from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
 
 
@@ -17,7 +16,9 @@ def test_compile_duplicate_check_step(core_logic_generator):
             "tenant_id": FieldDefinition(name="tenant_id", type_name="uuid"),
             "customer_org": FieldDefinition(name="customer_org", type_name="uuid"),
             "provider_org": FieldDefinition(name="provider_org", type_name="uuid"),
-            "customer_contract_id": FieldDefinition(name="customer_contract_id", type_name="text"),
+            "customer_contract_id": FieldDefinition(
+                name="customer_contract_id", type_name="text"
+            ),
         },
     )
 
@@ -60,7 +61,9 @@ def test_compile_duplicate_check_without_conflict_object(core_logic_generator):
             "tenant_id": FieldDefinition(name="tenant_id", type_name="uuid"),
             "customer_org": FieldDefinition(name="customer_org", type_name="uuid"),
             "provider_org": FieldDefinition(name="provider_org", type_name="uuid"),
-            "customer_contract_id": FieldDefinition(name="customer_contract_id", type_name="text"),
+            "customer_contract_id": FieldDefinition(
+                name="customer_contract_id", type_name="text"
+            ),
         },
     )
 
@@ -81,6 +84,10 @@ def test_compile_duplicate_check_without_conflict_object(core_logic_generator):
     sql = "\n".join(compiled)
     assert "SELECT id INTO v_existing_id" in sql
     assert "IF v_existing_id IS NOT NULL THEN" in sql
-    assert "SELECT data INTO v_existing_object" not in sql  # Should not load conflict object
-    assert "NULL,\n            NULL," in sql  # Should pass NULL for before/after objects
+    assert (
+        "SELECT data INTO v_existing_object" not in sql
+    )  # Should not load conflict object
+    assert (
+        "NULL,\n            NULL," in sql
+    )  # Should pass NULL for before/after objects
     assert "Contract ID already exists" in sql

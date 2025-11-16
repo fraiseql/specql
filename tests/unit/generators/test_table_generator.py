@@ -89,7 +89,9 @@ required: true';"""
 
         assert "ALTER TABLE ONLY crm.tb_contact" in fk_ddl
         assert "ADD CONSTRAINT tb_contact_company_fkey" in fk_ddl
-        assert "FOREIGN KEY (fk_company) REFERENCES crm.tb_company(pk_company)" in fk_ddl
+        assert (
+            "FOREIGN KEY (fk_company) REFERENCES crm.tb_company(pk_company)" in fk_ddl
+        )
 
     def test_generate_indexes_ddl(self, generator):
         """Test index DDL generation"""

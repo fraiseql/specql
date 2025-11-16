@@ -23,9 +23,15 @@ class TestFunctionGenerator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type_name="text", nullable=False),
-                "company": FieldDefinition(name="company", type_name="ref", nullable=True),
-                "status": FieldDefinition(name="status", type_name="enum", nullable=False),
+                "email": FieldDefinition(
+                    name="email", type_name="text", nullable=False
+                ),
+                "company": FieldDefinition(
+                    name="company", type_name="ref", nullable=True
+                ),
+                "status": FieldDefinition(
+                    name="status", type_name="enum", nullable=False
+                ),
             },
             actions=[Action(name="create_contact")],
         )

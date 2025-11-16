@@ -27,8 +27,8 @@ def test_django_declare_pattern(library_with_django):
         context={
             "variable_name": "total",
             "variable_type": "Decimal",
-            "default_value": "Decimal('0')"
-        }
+            "default_value": "Decimal('0')",
+        },
     )
 
     assert result == "total: Decimal = Decimal('0')"
@@ -39,10 +39,7 @@ def test_django_assign_pattern(library_with_django):
     result = library_with_django.compile_pattern(
         pattern_name="assign",
         language_name="python_django",
-        context={
-            "variable_name": "total",
-            "expression": "Decimal('100.50')"
-        }
+        context={"variable_name": "total", "expression": "Decimal('100.50')"},
     )
 
     assert result == "total = Decimal('100.50')"
@@ -56,8 +53,8 @@ def test_django_if_pattern(library_with_django):
         context={
             "condition": "total > 0",
             "then_steps": "return True",
-            "else_steps": "return False"
-        }
+            "else_steps": "return False",
+        },
     )
 
     expected = """if total > 0:
@@ -77,8 +74,8 @@ def test_django_if_pattern_no_else(library_with_django):
         context={
             "condition": "user.is_active",
             "then_steps": "user.last_login = timezone.now()\nuser.save()",
-            "else_steps": None
-        }
+            "else_steps": None,
+        },
     )
 
     expected = """if user.is_active:
@@ -97,8 +94,8 @@ def test_django_foreach_pattern(library_with_django):
         context={
             "iterator_var": "item",
             "collection": "items",
-            "loop_body": "print(item.name)"
-        }
+            "loop_body": "print(item.name)",
+        },
     )
 
     expected = """for item in items:
@@ -115,8 +112,8 @@ def test_django_for_query_pattern(library_with_django):
         context={
             "item_var": "user",
             "queryset": "User.objects.filter(is_active=True)",
-            "loop_body": "send_email(user.email, 'Welcome!')"
-        }
+            "loop_body": "send_email(user.email, 'Welcome!')",
+        },
     )
 
     expected = """for user in User.objects.filter(is_active=True):
@@ -136,9 +133,9 @@ def test_django_insert_pattern(library_with_django):
             "field_values": {
                 "username": "'john_doe'",
                 "email": "'john@example.com'",
-                "is_active": "True"
-            }
-        }
+                "is_active": "True",
+            },
+        },
     )
 
     expected = """# Insert new User
@@ -164,9 +161,9 @@ def test_django_update_pattern(library_with_django):
             "lookup_value": "user_id",
             "field_values": {
                 "email": "'new_email@example.com'",
-                "last_login": "timezone.now()"
-            }
-        }
+                "last_login": "timezone.now()",
+            },
+        },
     )
 
     expected = """# Update User
@@ -188,11 +185,8 @@ def test_django_partial_update_pattern(library_with_django):
             "instance_var": "user",
             "lookup_field": "pk",
             "lookup_value": "user_id",
-            "updates": {
-                "email": "'new_email@example.com'",
-                "is_active": "False"
-            }
-        }
+            "updates": {"email": "'new_email@example.com'", "is_active": "False"},
+        },
     )
 
     expected = """# Partial update User
@@ -213,8 +207,8 @@ def test_django_delete_pattern(library_with_django):
             "model_name": "User",
             "instance_var": "user",
             "lookup_field": "pk",
-            "lookup_value": "user_id"
-        }
+            "lookup_value": "user_id",
+        },
     )
 
     expected = """# Delete User
@@ -232,13 +226,10 @@ def test_django_query_pattern(library_with_django):
         context={
             "model_name": "User",
             "result_var": "users",
-            "filters": {
-                "is_active": "True",
-                "created_at__gte": "start_date"
-            },
+            "filters": {"is_active": "True", "created_at__gte": "start_date"},
             "select_related": ["profile"],
-            "order_by": ["-created_at"]
-        }
+            "order_by": ["-created_at"],
+        },
     )
 
     expected = """# Query User
@@ -258,14 +249,12 @@ def test_django_aggregate_pattern(library_with_django):
         context={
             "model_name": "Order",
             "result_var": "stats",
-            "filters": {
-                "status": "'completed'"
-            },
+            "filters": {"status": "'completed'"},
             "aggregations": {
                 "total_orders": "Count('id')",
-                "total_amount": "Sum('amount')"
-            }
-        }
+                "total_amount": "Sum('amount')",
+            },
+        },
     )
 
     expected = """# Aggregate Order
@@ -287,8 +276,8 @@ def test_django_call_function_pattern(library_with_django):
         context={
             "result_variable": "result",
             "function_name": "calculate_total",
-            "arguments": ["order.items", "tax_rate"]
-        }
+            "arguments": ["order.items", "tax_rate"],
+        },
     )
 
     assert result == "result = calculate_total(order.items, tax_rate)"
@@ -299,9 +288,7 @@ def test_django_return_pattern(library_with_django):
     result = library_with_django.compile_pattern(
         pattern_name="return",
         language_name="python_django",
-        context={
-            "expression": "JsonResponse({'status': 'success'})"
-        }
+        context={"expression": "JsonResponse({'status': 'success'})"},
     )
 
     assert result == "return JsonResponse({'status': 'success'})"
@@ -315,11 +302,17 @@ def test_django_exception_handling_pattern(library_with_django):
         context={
             "try_body": "user = User.objects.get(pk=user_id)\nuser.is_active = True\nuser.save()",
             "exception_handlers": [
-                {"exception_type": "User.DoesNotExist", "handler_body": "raise Http404('User not found')"},
-                {"exception_type": "ValidationError", "handler_body": "return JsonResponse({'error': str(e)}, status=400)"}
+                {
+                    "exception_type": "User.DoesNotExist",
+                    "handler_body": "raise Http404('User not found')",
+                },
+                {
+                    "exception_type": "ValidationError",
+                    "handler_body": "return JsonResponse({'error': str(e)}, status=400)",
+                },
             ],
-            "finally_body": "logger.info(f'Processed user {user_id}')"
-        }
+            "finally_body": "logger.info(f'Processed user {user_id}')",
+        },
     )
 
     expected = """try:

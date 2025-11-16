@@ -111,7 +111,10 @@ class TestExtractionPerformance:
                     "pattern": "extraction/component",
                     "config": {
                         "source_entity": "Location",
-                        "extracted_fields": [{"name": "latitude"}, {"name": "longitude"}],
+                        "extracted_fields": [
+                            {"name": "latitude"},
+                            {"name": "longitude"},
+                        ],
                         "filter_condition": "latitude IS NOT NULL AND longitude IS NOT NULL",
                         "purpose": "Extract locations with coordinates",
                     },

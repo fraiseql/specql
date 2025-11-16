@@ -20,10 +20,16 @@ def test_generate_core_create_function(generator):
         fields={
             "email": FieldDefinition(name="email", type_name="text", nullable=False),
             "company": FieldDefinition(
-                name="company", type_name="ref", reference_entity="Company", nullable=True
+                name="company",
+                type_name="ref",
+                reference_entity="Company",
+                nullable=True,
             ),
             "status": FieldDefinition(
-                name="status", type_name="enum", values=["lead", "qualified"], nullable=False
+                name="status",
+                type_name="enum",
+                values=["lead", "qualified"],
+                nullable=False,
             ),
         },
     )
@@ -52,7 +58,9 @@ def test_generate_custom_action(generator):
         steps=[
             ActionStep(type="validate", expression="status = 'lead'"),
             ActionStep(type="update", entity="Contact", fields={"status": "qualified"}),
-            ActionStep(type="call", expression="app.emit_event('lead_qualified', v_contact_id)"),
+            ActionStep(
+                type="call", expression="app.emit_event('lead_qualified', v_contact_id)"
+            ),
         ],
     )
 
@@ -81,7 +89,9 @@ def test_core_function_uses_trinity_helpers(generator):
         name="Contact",
         schema="crm",
         fields={
-            "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company")
+            "company": FieldDefinition(
+                name="company", type_name="ref", reference_entity="Company"
+            )
         },
     )
 
@@ -98,7 +108,9 @@ def test_core_function_populates_audit_fields(generator):
     entity = Entity(
         name="Contact",
         schema="crm",
-        fields={"email": FieldDefinition(name="email", type_name="text", nullable=False)},
+        fields={
+            "email": FieldDefinition(name="email", type_name="text", nullable=False)
+        },
     )
 
     # When: Generate
@@ -118,7 +130,9 @@ def test_core_function_populates_tenant_id(generator):
     entity = Entity(
         name="Contact",
         schema="crm",
-        fields={"email": FieldDefinition(name="email", type_name="text", nullable=False)},
+        fields={
+            "email": FieldDefinition(name="email", type_name="text", nullable=False)
+        },
     )
 
     # When: Generate
@@ -136,7 +150,9 @@ def test_core_function_uses_trinity_naming(generator):
     entity = Entity(
         name="Contact",
         schema="crm",
-        fields={"email": FieldDefinition(name="email", type_name="text", nullable=False)},
+        fields={
+            "email": FieldDefinition(name="email", type_name="text", nullable=False)
+        },
     )
 
     # When: Generate core create function
@@ -169,7 +185,9 @@ def test_generate_custom_action_basic(generator):
     entity = Entity(
         name="Contact",
         schema="crm",
-        fields={"email": FieldDefinition(name="email", type_name="text", nullable=False)},
+        fields={
+            "email": FieldDefinition(name="email", type_name="text", nullable=False)
+        },
     )
 
     # Mock action (simplified for testing)

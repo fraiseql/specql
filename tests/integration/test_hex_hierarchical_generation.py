@@ -57,7 +57,9 @@ fields:
 
         # Check that we have the expected entity migrations
         entity_migrations = [
-            m for m in result.migrations if m.name in ["manufacturer", "manufacturerrange"]
+            m
+            for m in result.migrations
+            if m.name in ["manufacturer", "manufacturerrange"]
         ]
         assert len(entity_migrations) == 2
 

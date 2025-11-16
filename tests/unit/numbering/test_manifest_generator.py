@@ -49,7 +49,9 @@ def test_execution_order_with_dependencies():
     # Add entities with dependencies (manufacturer depends on organization)
     generator.add_entity("manufacturer", "013211")
     generator.add_entity("organization", "012111")
-    generator.add_dependency("manufacturer", "organization")  # manufacturer depends on organization
+    generator.add_dependency(
+        "manufacturer", "organization"
+    )  # manufacturer depends on organization
 
     manifest = generator.generate_manifest()
 

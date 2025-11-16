@@ -22,7 +22,9 @@ class TestImpactMetadata:
         """Test: Declare impact metadata variable"""
         action = Action(
             name="qualify_lead",
-            impact=ActionImpact(primary=EntityImpact(entity="Contact", operation="UPDATE")),
+            impact=ActionImpact(
+                primary=EntityImpact(entity="Contact", operation="UPDATE")
+            ),
         )
 
         sql = compiler.compile(action)
@@ -52,7 +54,9 @@ class TestImpactMetadata:
         impact = ActionImpact(
             primary=EntityImpact(entity="Contact", operation="UPDATE"),
             side_effects=[
-                EntityImpact(entity="Notification", operation="CREATE", fields=["id", "message"])
+                EntityImpact(
+                    entity="Notification", operation="CREATE", fields=["id", "message"]
+                )
             ],
         )
 
@@ -129,7 +133,9 @@ class TestImpactMetadata:
 
         sql = compiler.compile(action)
         assert "v_meta.primary_entity :=" in sql
-        assert "v_meta.actual_side_effects :=" not in sql  # Should not include side effects
+        assert (
+            "v_meta.actual_side_effects :=" not in sql
+        )  # Should not include side effects
         assert "v_meta.cache_invalidations :=" in sql
 
     def test_impact_without_cache_invalidations(self, compiler):
@@ -146,7 +152,9 @@ class TestImpactMetadata:
         sql = compiler.compile(action)
         assert "v_meta.primary_entity :=" in sql
         assert "v_meta.actual_side_effects :=" in sql
-        assert "v_meta.cache_invalidations :=" not in sql  # Should not include cache invalidations
+        assert (
+            "v_meta.cache_invalidations :=" not in sql
+        )  # Should not include cache invalidations
 
     def test_empty_arrays_in_builder(self):
         """Test: Empty arrays in CompositeTypeBuilder"""
@@ -166,7 +174,9 @@ class TestImpactMetadata:
                 primary=EntityImpact(entity="Contact", operation="CREATE"),
                 side_effects=[
                     EntityImpact(
-                        entity="Notification", operation="CREATE", collection="createdNotifications"
+                        entity="Notification",
+                        operation="CREATE",
+                        collection="createdNotifications",
                     )
                 ],
             ),
@@ -186,10 +196,12 @@ class TestImpactMetadata:
                 primary=EntityImpact(entity="Post", operation="CREATE"),
                 side_effects=[
                     EntityImpact(entity="Notification", operation="CREATE"),
-                    EntityImpact(entity="User", operation="UPDATE", fields=["post_count"])
-                ]
+                    EntityImpact(
+                        entity="User", operation="UPDATE", fields=["post_count"]
+                    ),
+                ],
             ),
-            steps=[]
+            steps=[],
         )
         entity = Entity(name="Post", schema="blog")
 
@@ -213,7 +225,7 @@ class TestImpactMetadata:
             impact=ActionImpact(
                 primary=EntityImpact(entity="Post", operation="CREATE")
             ),
-            steps=[]
+            steps=[],
         )
         entity = Entity(name="Post", schema="blog")
 

@@ -1,10 +1,11 @@
 """Tests for EntityTemplate aggregate"""
+
 import pytest
 from src.domain.entities.entity_template import (
     EntityTemplate,
     TemplateField,
     TemplateComposition,
-    TemplateInstantiation
+    TemplateInstantiation,
 )
 from src.domain.value_objects import DomainNumber, TableCode
 
@@ -25,23 +26,23 @@ class TestEntityTemplate:
                     field_name="email",
                     field_type="text",
                     required=True,
-                    description="Contact email address"
+                    description="Contact email address",
                 ),
                 TemplateField(
                     field_name="phone",
                     field_type="text",
                     required=False,
-                    description="Contact phone number"
+                    description="Contact phone number",
                 ),
                 TemplateField(
                     field_name="address",
                     field_type="composite",
                     composite_type="address_type",
-                    required=False
-                )
+                    required=False,
+                ),
             ],
             included_patterns=["audit_trail", "soft_delete"],
-            version="1.0.0"
+            version="1.0.0",
         )
 
         assert template.template_id == "tpl_contact"
@@ -60,9 +61,9 @@ class TestEntityTemplate:
             base_entity_name="base",
             fields=[
                 TemplateField("created_at", "timestamp", required=True),
-                TemplateField("updated_at", "timestamp", required=True)
+                TemplateField("updated_at", "timestamp", required=True),
             ],
-            version="1.0.0"
+            version="1.0.0",
         )
 
         contact_template = EntityTemplate(
@@ -73,16 +74,15 @@ class TestEntityTemplate:
             base_entity_name="contact",
             fields=[
                 TemplateField("email", "text", required=True),
-                TemplateField("phone", "text", required=False)
+                TemplateField("phone", "text", required=False),
             ],
             composed_from=["tpl_base_entity"],
-            version="1.0.0"
+            version="1.0.0",
         )
 
         # Composition logic
         composition = TemplateComposition(
-            base_templates=[base_template],
-            extending_template=contact_template
+            base_templates=[base_template], extending_template=contact_template
         )
 
         composed = composition.compose()
@@ -103,10 +103,10 @@ class TestEntityTemplate:
             base_entity_name="contact",
             fields=[
                 TemplateField("email", "text", required=True),
-                TemplateField("phone", "text", required=False)
+                TemplateField("phone", "text", required=False),
             ],
             included_patterns=["audit_trail"],
-            version="1.0.0"
+            version="1.0.0",
         )
 
         # Instantiate with customization
@@ -118,9 +118,7 @@ class TestEntityTemplate:
             field_overrides={
                 "phone": {"required": True}  # Make phone required
             },
-            additional_fields=[
-                TemplateField("company", "ref", ref_entity="company")
-            ]
+            additional_fields=[TemplateField("company", "ref", ref_entity="company")],
         )
 
         entity_spec = instantiation.generate_entity_spec()
@@ -139,19 +137,15 @@ class TestEntityTemplate:
             description="Contact entity",
             domain_number=DomainNumber("01"),
             base_entity_name="contact",
-            fields=[
-                TemplateField("email", "text", required=True)
-            ],
-            version="1.0.0"
+            fields=[TemplateField("email", "text", required=True)],
+            version="1.0.0",
         )
 
         # Create new version with additional field
         v2 = v1.create_new_version(
-            additional_fields=[
-                TemplateField("phone", "text", required=False)
-            ],
+            additional_fields=[TemplateField("phone", "text", required=False)],
             version="2.0.0",
-            changelog="Added phone field"
+            changelog="Added phone field",
         )
 
         assert v2.version == "2.0.0"
@@ -171,9 +165,9 @@ class TestEntityTemplate:
                 base_entity_name="invalid",
                 fields=[
                     TemplateField("email", "text"),
-                    TemplateField("email", "text")  # Duplicate
+                    TemplateField("email", "text"),  # Duplicate
                 ],
-                version="1.0.0"
+                version="1.0.0",
             )
 
         # Invalid: empty fields list
@@ -185,5 +179,5 @@ class TestEntityTemplate:
                 domain_number=DomainNumber("01"),
                 base_entity_name="empty",
                 fields=[],
-                version="1.0.0"
+                version="1.0.0",
             )

@@ -34,22 +34,28 @@ class TestIndependentReadEntityAssignment:
 
         # Different subdomains have independent sequences
         crm_code = registry.assign_read_entity_code("crm", "customer", "tv_contact")
-        catalog_code = registry.assign_read_entity_code("catalog", "manufacturer", "tv_product")
+        catalog_code = registry.assign_read_entity_code(
+            "catalog", "manufacturer", "tv_product"
+        )
 
         # Both can be entity 1 in their respective subdomains
-        assert crm_code.endswith("10")    # Entity 1, file 0
-        assert catalog_code.endswith("10") # Entity 1, file 0
+        assert crm_code.endswith("10")  # Entity 1, file 0
+        assert catalog_code.endswith("10")  # Entity 1, file 0
 
     def test_file_sequence_within_entity(self):
         """Should track file sequences within same read entity"""
         registry = DomainRegistry()
 
         # First file for tv_contact entity
-        code1 = registry.assign_read_file_code("crm", "customer", "tv_contact", file_num=0)
+        code1 = registry.assign_read_file_code(
+            "crm", "customer", "tv_contact", file_num=0
+        )
         assert code1 == "0220310"  # Entity 1, file 0
 
         # Additional view file for same logical entity
-        code2 = registry.assign_read_file_code("crm", "customer", "tv_contact", file_num=1)
+        code2 = registry.assign_read_file_code(
+            "crm", "customer", "tv_contact", file_num=1
+        )
         assert code2 == "0220311"  # Entity 1, file 1
 
 
@@ -61,6 +67,7 @@ class TestReadSideRegistryPersistence:
         # Create temporary registry
         temp_registry = tmp_path / "test_registry.yaml"
         import shutil
+
         shutil.copy("registry/domain_registry.yaml", temp_registry)
 
         registry = DomainRegistry(str(temp_registry))
@@ -81,6 +88,7 @@ class TestReadSideRegistryPersistence:
         """Should create proper read-side registry structure"""
         temp_registry = tmp_path / "test_registry.yaml"
         import shutil
+
         shutil.copy("registry/domain_registry.yaml", temp_registry)
 
         registry = DomainRegistry(str(temp_registry))
@@ -113,13 +121,14 @@ class TestReadSideCodeValidation:
 
         # Invalid formats
         assert not registry.validate_read_code_format("0120310")  # Wrong layer
-        assert not registry.validate_read_code_format("022031")   # Too short
-        assert not registry.validate_read_code_format("02203100") # Too long
+        assert not registry.validate_read_code_format("022031")  # Too short
+        assert not registry.validate_read_code_format("02203100")  # Too long
 
     def test_read_code_conflict_detection(self, tmp_path):
         """Should detect conflicting read-side codes"""
         temp_registry = tmp_path / "test_registry.yaml"
         import shutil
+
         shutil.copy("registry/domain_registry.yaml", temp_registry)
 
         registry = DomainRegistry(str(temp_registry))

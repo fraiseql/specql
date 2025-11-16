@@ -35,7 +35,9 @@ END LOOP;"""
             # Always exit loop context
             context.exit_loop()
 
-    def _compile_steps(self, steps: list[ActionStep], context: CompilationContext) -> str:
+    def _compile_steps(
+        self, steps: list[ActionStep], context: CompilationContext
+    ) -> str:
         """Compile a list of steps into PL/pgSQL"""
         compiled = []
         for step in steps:
@@ -46,9 +48,11 @@ END LOOP;"""
 
     def _get_compiler_for_step(self, step_type: str):
         """Get the appropriate compiler for a step type"""
+
         # For now, return a simple mock compiler
         # In real implementation, this would use the full compiler registry
         class MockCompiler:
             def compile(self, step, context):
                 return f"-- {step_type} step"
+
         return MockCompiler()

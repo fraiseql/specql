@@ -37,10 +37,14 @@ def generate_boolean_flags(config: dict[str, Any]) -> str:
 
     # Build entity information
     source_entity = build_entity_info(config["config"]["source_entity"])
-    source_entity["is_multi_tenant"] = is_multi_tenant_entity(config["config"]["source_entity"])
+    source_entity["is_multi_tenant"] = is_multi_tenant_entity(
+        config["config"]["source_entity"]
+    )
 
     # Check if we need allocation join
-    needs_allocation_join = needs_join_for_flags(config["config"]["flags"], "allocation")
+    needs_allocation_join = needs_join_for_flags(
+        config["config"]["flags"], "allocation"
+    )
 
     # Prepare template variables
     template_vars = {

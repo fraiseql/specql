@@ -8,9 +8,14 @@ import yaml
 from typing import Dict, Any, List, Optional
 from src.cicd.universal_pipeline_schema import (
     UniversalPipeline,
-    Trigger, TriggerType,
-    Stage, Job, Step, StepType,
-    Runtime, Service
+    Trigger,
+    TriggerType,
+    Stage,
+    Job,
+    Step,
+    StepType,
+    Runtime,
+    Service,
 )
 
 
@@ -33,7 +38,7 @@ class GitHubActionsParser:
             name=data.get("name", "Unnamed Pipeline"),
             triggers=self._parse_triggers(data.get("on", {})),
             stages=self._parse_jobs(data.get("jobs", {})),
-            global_environment=data.get("env", {})
+            global_environment=data.get("env", {}),
         )
 
     def _parse_triggers(self, on_config: Any) -> List[Trigger]:
@@ -53,12 +58,14 @@ class GitHubActionsParser:
             # Complex case with branches/paths
             for trigger_type, config in on_config.items():
                 if isinstance(config, dict):
-                    triggers.append(Trigger(
-                        type=TriggerType(trigger_type),
-                        branches=config.get("branches"),
-                        tags=config.get("tags"),
-                        paths=config.get("paths")
-                    ))
+                    triggers.append(
+                        Trigger(
+                            type=TriggerType(trigger_type),
+                            branches=config.get("branches"),
+                            tags=config.get("tags"),
+                            paths=config.get("paths"),
+                        )
+                    )
                 else:
                     triggers.append(Trigger(type=TriggerType(trigger_type)))
 
@@ -82,10 +89,14 @@ class GitHubActionsParser:
             steps=self._parse_steps(job_config.get("steps", [])),
             runtime=self._detect_runtime(job_config),
             services=self._parse_services(job_config.get("services", {})),
-            needs=job_config.get("needs", []) if isinstance(job_config.get("needs"), list) else [job_config.get("needs")] if job_config.get("needs") else [],
+            needs=job_config.get("needs", [])
+            if isinstance(job_config.get("needs"), list)
+            else [job_config.get("needs")]
+            if job_config.get("needs")
+            else [],
             if_condition=job_config.get("if"),
             matrix=self._parse_matrix(job_config.get("strategy", {}).get("matrix")),
-            environment=job_config.get("env", {})
+            environment=job_config.get("env", {}),
         )
 
     def _parse_steps(self, steps_config: List[Dict[str, Any]]) -> List[Step]:
@@ -95,15 +106,17 @@ class GitHubActionsParser:
         for step_config in steps_config:
             step_type = self._detect_step_type(step_config)
 
-            steps.append(Step(
-                name=step_config.get("name", "Unnamed step"),
-                type=step_type,
-                command=step_config.get("run"),
-                with_params=step_config.get("with", {}),
-                environment=step_config.get("env", {}),
-                continue_on_error=step_config.get("continue-on-error", False),
-                timeout_minutes=step_config.get("timeout-minutes")
-            ))
+            steps.append(
+                Step(
+                    name=step_config.get("name", "Unnamed step"),
+                    type=step_type,
+                    command=step_config.get("run"),
+                    with_params=step_config.get("with", {}),
+                    environment=step_config.get("env", {}),
+                    continue_on_error=step_config.get("continue-on-error", False),
+                    timeout_minutes=step_config.get("timeout-minutes"),
+                )
+            )
 
         return steps
 
@@ -148,12 +161,16 @@ class GitHubActionsParser:
             image = service_config.get("image", "")
             name, _, version = image.partition(":")
 
-            services.append(Service(
-                name=name or service_name,
-                version=version or "latest",
-                environment=service_config.get("env", {}),
-                ports=[int(p.split(":")[0]) for p in service_config.get("ports", [])]
-            ))
+            services.append(
+                Service(
+                    name=name or service_name,
+                    version=version or "latest",
+                    environment=service_config.get("env", {}),
+                    ports=[
+                        int(p.split(":")[0]) for p in service_config.get("ports", [])
+                    ],
+                )
+            )
 
         return services
 

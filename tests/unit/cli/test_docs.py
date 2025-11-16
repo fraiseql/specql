@@ -21,7 +21,14 @@ class TestDocsCommand:
         output_file = temp_dir / "docs.md"
 
         result = cli_runner.invoke(
-            docs, [str(sample_entity_file), "--format", "markdown", "--output", str(output_file)]
+            docs,
+            [
+                str(sample_entity_file),
+                "--format",
+                "markdown",
+                "--output",
+                str(output_file),
+            ],
         )
 
         assert result.exit_code == 0
@@ -41,7 +48,8 @@ class TestDocsCommand:
         output_dir = temp_dir / "html_docs"
 
         result = cli_runner.invoke(
-            docs, [str(sample_entity_file), "--format", "html", "--output", str(output_dir)]
+            docs,
+            [str(sample_entity_file), "--format", "html", "--output", str(output_dir)],
         )
 
         assert result.exit_code == 0
@@ -82,7 +90,9 @@ class TestDocsCommand:
         """Test docs command with no files specified."""
         from src.cli.docs import docs
 
-        result = cli_runner.invoke(docs, ["--format", "markdown", "--output", "test.md"])
+        result = cli_runner.invoke(
+            docs, ["--format", "markdown", "--output", "test.md"]
+        )
 
         assert result.exit_code == 0
         assert "No entity files specified" in result.output
@@ -91,7 +101,9 @@ class TestDocsCommand:
         """Test docs command with missing output option."""
         from src.cli.docs import docs
 
-        result = cli_runner.invoke(docs, [str(sample_entity_file), "--format", "markdown"])
+        result = cli_runner.invoke(
+            docs, [str(sample_entity_file), "--format", "markdown"]
+        )
 
         assert result.exit_code == 2  # Click error for missing required option
 
@@ -105,7 +117,8 @@ class TestDocsCommand:
         output_file = temp_dir / "invalid.md"
 
         result = cli_runner.invoke(
-            docs, [str(invalid_file), "--format", "markdown", "--output", str(output_file)]
+            docs,
+            [str(invalid_file), "--format", "markdown", "--output", str(output_file)],
         )
 
         assert result.exit_code == 1
@@ -118,33 +131,46 @@ class TestDocsCommand:
         output_file = temp_dir / "nonexistent.md"
 
         result = cli_runner.invoke(
-            docs, ["nonexistent.yaml", "--format", "markdown", "--output", str(output_file)]
+            docs,
+            ["nonexistent.yaml", "--format", "markdown", "--output", str(output_file)],
         )
 
         assert result.exit_code == 2  # Click error for missing file
 
-    def test_docs_output_directory_creation(self, cli_runner, sample_entity_file, temp_dir):
+    def test_docs_output_directory_creation(
+        self, cli_runner, sample_entity_file, temp_dir
+    ):
         """Test docs command creates output directory for HTML."""
         from src.cli.docs import docs
 
         output_dir = temp_dir / "deep" / "nested" / "docs"
 
         result = cli_runner.invoke(
-            docs, [str(sample_entity_file), "--format", "html", "--output", str(output_dir)]
+            docs,
+            [str(sample_entity_file), "--format", "html", "--output", str(output_dir)],
         )
 
         assert result.exit_code == 0
         assert output_dir.exists()
         assert (output_dir / "index.html").exists()
 
-    def test_docs_markdown_content_structure(self, cli_runner, sample_entity_file, temp_dir):
+    def test_docs_markdown_content_structure(
+        self, cli_runner, sample_entity_file, temp_dir
+    ):
         """Test markdown documentation content structure."""
         from src.cli.docs import docs
 
         output_file = temp_dir / "structured.md"
 
         result = cli_runner.invoke(
-            docs, [str(sample_entity_file), "--format", "markdown", "--output", str(output_file)]
+            docs,
+            [
+                str(sample_entity_file),
+                "--format",
+                "markdown",
+                "--output",
+                str(output_file),
+            ],
         )
 
         assert result.exit_code == 0
@@ -158,14 +184,17 @@ class TestDocsCommand:
         assert "email" in content
         assert "first_name" in content
 
-    def test_docs_html_content_structure(self, cli_runner, sample_entity_file, temp_dir):
+    def test_docs_html_content_structure(
+        self, cli_runner, sample_entity_file, temp_dir
+    ):
         """Test HTML documentation content structure."""
         from src.cli.docs import docs
 
         output_dir = temp_dir / "html_structured"
 
         result = cli_runner.invoke(
-            docs, [str(sample_entity_file), "--format", "html", "--output", str(output_dir)]
+            docs,
+            [str(sample_entity_file), "--format", "html", "--output", str(output_dir)],
         )
 
         assert result.exit_code == 0

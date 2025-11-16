@@ -112,7 +112,9 @@ class ExpressionCompiler:
 
         for pattern in self.DANGEROUS_PATTERNS:
             if re.search(pattern, expr_lower, re.IGNORECASE):
-                raise SecurityError(f"Potentially dangerous SQL pattern detected: {pattern}")
+                raise SecurityError(
+                    f"Potentially dangerous SQL pattern detected: {pattern}"
+                )
 
         # Check for suspicious characters
         if any(char in expression for char in ["\\", "\x00", "\n", "\r"]):
@@ -213,7 +215,20 @@ class ExpressionCompiler:
         operators_by_precedence = [
             ("OR",),  # Lowest precedence
             ("AND",),
-            ("=", "!=", "<", ">", "<=", ">=", "LIKE", "ILIKE", "IN", "IS", "IS NOT", "MATCHES"),
+            (
+                "=",
+                "!=",
+                "<",
+                ">",
+                "<=",
+                ">=",
+                "LIKE",
+                "ILIKE",
+                "IN",
+                "IS",
+                "IS NOT",
+                "MATCHES",
+            ),
         ]
 
         for op_group in operators_by_precedence:
@@ -349,7 +364,9 @@ class ExpressionCompiler:
 
         return -1  # No matching paren found
 
-    def _is_top_level_operator(self, expression: str, op_start: int, op_length: int) -> bool:
+    def _is_top_level_operator(
+        self, expression: str, op_start: int, op_length: int
+    ) -> bool:
         """Check if operator at given position is at the top level (not inside parentheses or strings)"""
         paren_depth = 0
         in_string = False
@@ -452,7 +469,9 @@ class ExpressionCompiler:
         elif ast["type"] == "identifier":
             # Check if identifier is a valid field name
             field_name = ast["name"]
-            if field_name not in entity.fields and not self._is_valid_variable(field_name):
+            if field_name not in entity.fields and not self._is_valid_variable(
+                field_name
+            ):
                 raise SecurityError(f"Unknown field or variable: '{field_name}'")
 
         elif ast["type"] == "group":
@@ -469,7 +488,11 @@ class ExpressionCompiler:
         # Allow variables starting with 'v_' (generated variables)
         # Allow auth context variables
         # Allow some built-in variables
-        return name.startswith("v_") or name in ["auth_user_id", "auth_tenant_id", "now()"]
+        return name.startswith("v_") or name in [
+            "auth_user_id",
+            "auth_tenant_id",
+            "now()",
+        ]
 
     def _ast_to_sql(self, ast: dict, entity: EntityDefinition) -> str:
         """Convert AST back to SQL expression"""

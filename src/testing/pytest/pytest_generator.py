@@ -32,7 +32,9 @@ class PytestGenerator:
         # Generate action test methods
         action_test_methods = []
         for action in actions:
-            action_test_methods.append(self._generate_action_test_method(action, entity_config))
+            action_test_methods.append(
+                self._generate_action_test_method(action, entity_config)
+            )
 
         return f'''"""Integration tests for {entity} entity"""
 

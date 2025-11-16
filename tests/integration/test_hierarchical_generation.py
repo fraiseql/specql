@@ -46,7 +46,7 @@ fields:
 
         result = orchestrator.generate_hierarchical(
             entity_files=[str(contact_yaml), str(order_yaml)],
-            output_dir=str(output_dir)
+            output_dir=str(output_dir),
         )
 
         # Verify successful generation
@@ -60,13 +60,17 @@ fields:
 
         # Contact (customer subdomain)
         contact_entity_dir = crm_write / "0123_customer" / "01232_testcontact"
-        assert contact_entity_dir.exists(), f"Contact entity directory not created at {contact_entity_dir}"
+        assert contact_entity_dir.exists(), (
+            f"Contact entity directory not created at {contact_entity_dir}"
+        )
         contact_table = contact_entity_dir / "012321_tb_testcontact.sql"
         assert contact_table.exists(), f"Contact table not generated at {contact_table}"
 
         # Order (core subdomain)
         order_entity_dir = crm_write / "0121_core" / "01212_testorder"
-        assert order_entity_dir.exists(), f"Order entity directory not created at {order_entity_dir}"
+        assert order_entity_dir.exists(), (
+            f"Order entity directory not created at {order_entity_dir}"
+        )
         order_table = order_entity_dir / "012121_tb_testorder.sql"
         assert order_table.exists(), f"Order table not generated at {order_table}"
 
@@ -102,8 +106,7 @@ fields:
         orchestrator = CLIOrchestrator(use_registry=True, output_format="hierarchical")
 
         result = orchestrator.generate_hierarchical(
-            entity_files=entity_files,
-            output_dir=str(output_dir)
+            entity_files=entity_files, output_dir=str(output_dir)
         )
 
         # Verify successful generation
@@ -117,18 +120,28 @@ fields:
         # CRM domain
         crm_write = write_side / "012_crm"
         crm_core = crm_write / "0121_core"
-        assert crm_core.exists(), f"CRM core subdomain directory not created at {crm_core}"
+        assert crm_core.exists(), (
+            f"CRM core subdomain directory not created at {crm_core}"
+        )
         company_entity_dir = crm_core / "01212_testcompany"
-        assert company_entity_dir.exists(), f"Company entity directory not created at {company_entity_dir}"
-        assert (company_entity_dir / "012121_tb_testcompany.sql").exists(), "Company table not created"
+        assert company_entity_dir.exists(), (
+            f"Company entity directory not created at {company_entity_dir}"
+        )
+        assert (company_entity_dir / "012121_tb_testcompany.sql").exists(), (
+            "Company table not created"
+        )
 
         crm_customer = crm_write / "0123_customer"
-        assert crm_customer.exists(), f"CRM customer subdomain directory not created at {crm_customer}"
+        assert crm_customer.exists(), (
+            f"CRM customer subdomain directory not created at {crm_customer}"
+        )
         contact_entity_dir = crm_customer / "01232_testcontact"
-        assert contact_entity_dir.exists(), f"Contact entity directory not created at {contact_entity_dir}"
-        assert (contact_entity_dir / "012321_tb_testcontact.sql").exists(), "Contact table not created"
-
-
+        assert contact_entity_dir.exists(), (
+            f"Contact entity directory not created at {contact_entity_dir}"
+        )
+        assert (contact_entity_dir / "012321_tb_testcontact.sql").exists(), (
+            "Contact table not created"
+        )
 
     def test_flat_mode_backward_compatible(self, tmp_path):
         """
@@ -153,8 +166,7 @@ fields:
         orchestrator = CLIOrchestrator(use_registry=False, output_format="confiture")
 
         result = orchestrator.generate_from_files(
-            entity_files=[str(contact_yaml)],
-            output_dir=str(output_dir)
+            entity_files=[str(contact_yaml)], output_dir=str(output_dir)
         )
 
         # Verify successful generation
@@ -167,7 +179,9 @@ fields:
 
         # Check that hierarchical directories don't exist (confirming we're in flat mode)
         hierarchical_base = output_path / "0_schema"
-        assert not hierarchical_base.exists(), "Hierarchical directories should not exist in flat mode"
+        assert not hierarchical_base.exists(), (
+            "Hierarchical directories should not exist in flat mode"
+        )
 
     def test_dry_run_shows_preview(self, tmp_path):
         """
@@ -211,7 +225,7 @@ fields:
         result = orchestrator.generate_hierarchical(
             entity_files=[str(contact_yaml), str(order_yaml)],
             output_dir=str(output_dir),
-            dry_run=True
+            dry_run=True,
         )
 
         # Verify no errors
@@ -223,8 +237,12 @@ fields:
         assert not schema_base.exists(), "No files should be created in dry run mode"
 
         # Check that result contains migration info (for preview)
-        assert len(result.migrations) > 0, "Dry run should return migration info for preview"
+        assert len(result.migrations) > 0, (
+            "Dry run should return migration info for preview"
+        )
 
         # Verify migration paths are set (even though files don't exist)
         for migration in result.migrations:
-            assert migration.path is not None, "Migration should have path set for preview"
+            assert migration.path is not None, (
+                "Migration should have path set for preview"
+            )

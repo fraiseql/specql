@@ -16,7 +16,11 @@ class TestHierarchicalCount:
                 "grouped_by_entity": "Location",
                 "metrics": [
                     {"name": "total_allocations", "direct": True, "hierarchical": True},
-                    {"name": "active_allocations", "direct": True, "hierarchical": False},
+                    {
+                        "name": "active_allocations",
+                        "direct": True,
+                        "hierarchical": False,
+                    },
                 ],
             },
         }
@@ -50,7 +54,9 @@ class TestHierarchicalCount:
             "config": {
                 "counted_entity": "Contract",
                 "grouped_by_entity": "Organization",
-                "metrics": [{"name": "contract_count", "direct": False, "hierarchical": True}],
+                "metrics": [
+                    {"name": "contract_count", "direct": False, "hierarchical": True}
+                ],
             },
         }
 
@@ -71,7 +77,9 @@ class TestHierarchicalCount:
             "config": {
                 "counted_entity": "User",
                 "grouped_by_entity": "Department",
-                "metrics": [{"name": "user_count", "direct": True, "hierarchical": False}],
+                "metrics": [
+                    {"name": "user_count", "direct": True, "hierarchical": False}
+                ],
             },
         }
 
@@ -95,7 +103,9 @@ class TestHierarchicalCount:
                 "counted_entity": "Project",
                 "grouped_by_entity": "Portfolio",
                 "path_field": "hierarchy_path",  # Custom path field
-                "metrics": [{"name": "project_count", "direct": False, "hierarchical": True}],
+                "metrics": [
+                    {"name": "project_count", "direct": False, "hierarchical": True}
+                ],
             },
         }
 

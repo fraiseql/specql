@@ -91,7 +91,9 @@ class ManifestGenerator:
             ValueError: If circular dependencies are detected
         """
         # First, sort by table code for natural hierarchy
-        sorted_by_code = sorted(self.entries.keys(), key=lambda e: self.entries[e].table_code)
+        sorted_by_code = sorted(
+            self.entries.keys(), key=lambda e: self.entries[e].table_code
+        )
 
         # Then apply dependency ordering
         execution_order = self._dependency_aware_sort(sorted_by_code)

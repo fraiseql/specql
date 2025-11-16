@@ -19,6 +19,7 @@ from enum import Enum
 
 class TestType(Enum):
     """Type of test being performed"""
+
     CRUD_CREATE = "crud_create"
     CRUD_READ = "crud_read"
     CRUD_UPDATE = "crud_update"
@@ -33,6 +34,7 @@ class TestType(Enum):
 
 class ScenarioCategory(Enum):
     """Category of test scenario"""
+
     HAPPY_PATH = "happy_path"
     ERROR_CASE = "error_case"
     EDGE_CASE = "edge_case"
@@ -43,6 +45,7 @@ class ScenarioCategory(Enum):
 
 class AssertionType(Enum):
     """Type of assertion"""
+
     EQUALS = "equals"
     NOT_EQUALS = "not_equals"
     CONTAINS = "contains"
@@ -90,6 +93,7 @@ class TestAssertion:
             message="Contact status should change from lead to qualified"
         )
     """
+
     assertion_type: AssertionType
     target: str  # What's being asserted (field, function call, etc.)
     expected: Any  # Expected value/state
@@ -128,6 +132,7 @@ class TestStep:
             where="id = {{contact.id}}"
         )
     """
+
     step_type: str  # setup, action, teardown
     action: str  # create_entity, update_entity, call_function, etc.
     entity: Optional[str] = None
@@ -161,6 +166,7 @@ class TestFixture:
             teardown_sql=None
         )
     """
+
     fixture_name: str
     fixture_type: str  # entity, database, file, mock, etc.
     entity: Optional[str] = None
@@ -193,6 +199,7 @@ class TestScenario:
             teardown_steps=[]
         )
     """
+
     scenario_name: str
     description: str
     category: ScenarioCategory
@@ -229,6 +236,7 @@ class TestSpec:
             }
         )
     """
+
     test_name: str
     entity_name: str
     test_type: TestType
@@ -251,10 +259,12 @@ class TestSpec:
             "scenarios": [self._scenario_to_dict(s) for s in self.scenarios],
             "fixtures": [self._fixture_to_dict(f) for f in self.fixtures],
             "coverage": self.coverage,
-            "_metadata": self.metadata
+            "_metadata": self.metadata,
         }
 
-        return yaml.dump(spec_dict, default_flow_style=False, sort_keys=False, allow_unicode=True)
+        return yaml.dump(
+            spec_dict, default_flow_style=False, sort_keys=False, allow_unicode=True
+        )
 
     def _scenario_to_dict(self, scenario: TestScenario) -> Dict[str, Any]:
         """Convert scenario to dict"""
@@ -269,9 +279,13 @@ class TestSpec:
         if scenario.action_steps:
             result["action"] = [self._step_to_dict(s) for s in scenario.action_steps]
         if scenario.assertions:
-            result["assertions"] = [self._assertion_to_dict(a) for a in scenario.assertions]
+            result["assertions"] = [
+                self._assertion_to_dict(a) for a in scenario.assertions
+            ]
         if scenario.teardown_steps:
-            result["teardown"] = [self._step_to_dict(s) for s in scenario.teardown_steps]
+            result["teardown"] = [
+                self._step_to_dict(s) for s in scenario.teardown_steps
+            ]
         if scenario.fixtures:
             result["fixtures"] = scenario.fixtures
         if scenario.tags:

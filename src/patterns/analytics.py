@@ -86,8 +86,12 @@ class PatternAnalyticsEngine:
                         {
                             "pattern": pattern_name,
                             "action": action.get("name", "unnamed"),
-                            "config_keys": list(config.keys()) if isinstance(config, dict) else [],
-                            "config_complexity": len(config) if isinstance(config, dict) else 0,
+                            "config_keys": list(config.keys())
+                            if isinstance(config, dict)
+                            else [],
+                            "config_complexity": len(config)
+                            if isinstance(config, dict)
+                            else 0,
                         }
                     )
 
@@ -153,16 +157,22 @@ class PatternAnalyticsEngine:
                 pattern_name=pattern_name,
                 usage_count=len(usages),
                 entities=entities,
-                avg_complexity=sum(complexities) / len(complexities) if complexities else 0,
+                avg_complexity=sum(complexities) / len(complexities)
+                if complexities
+                else 0,
                 common_config_keys=common_keys,
             )
 
         # Calculate adoption rate
-        adoption_rate = len(entities_with_patterns) / total_entities if total_entities > 0 else 0
+        adoption_rate = (
+            len(entities_with_patterns) / total_entities if total_entities > 0 else 0
+        )
 
         # Find most popular patterns
         most_popular = sorted(
-            pattern_breakdown.keys(), key=lambda p: pattern_breakdown[p].usage_count, reverse=True
+            pattern_breakdown.keys(),
+            key=lambda p: pattern_breakdown[p].usage_count,
+            reverse=True,
         )[:5]
 
         # Generate recommendations
@@ -214,7 +224,9 @@ class PatternAnalyticsEngine:
             )
 
         # Pattern complexity insights
-        complex_patterns = [p for p in pattern_breakdown.values() if p.avg_complexity > 5]
+        complex_patterns = [
+            p for p in pattern_breakdown.values() if p.avg_complexity > 5
+        ]
         if complex_patterns:
             recommendations.append(
                 f"🔧 {len(complex_patterns)} patterns have high configuration complexity. Consider simplification."
@@ -233,7 +245,9 @@ class PatternAnalyticsEngine:
         # Summary section
         report.append("## 📈 Summary")
         report.append(f"- **Total Entities**: {analytics.total_entities}")
-        report.append(f"- **Entities with Patterns**: {analytics.entities_with_patterns}")
+        report.append(
+            f"- **Entities with Patterns**: {analytics.entities_with_patterns}"
+        )
         report.append(f"- **Pattern Adoption Rate**: {analytics.adoption_rate:.1%}")
         report.append(f"- **Total Pattern Usage**: {analytics.total_pattern_usage}")
         report.append("")
@@ -241,8 +255,12 @@ class PatternAnalyticsEngine:
         # Pattern breakdown
         if analytics.pattern_breakdown:
             report.append("## 🔍 Pattern Usage Breakdown")
-            report.append("| Pattern | Usage Count | Entities | Avg Complexity | Common Config |")
-            report.append("|---------|-------------|----------|----------------|---------------|")
+            report.append(
+                "| Pattern | Usage Count | Entities | Avg Complexity | Common Config |"
+            )
+            report.append(
+                "|---------|-------------|----------|----------------|---------------|"
+            )
 
             for pattern_name, usage in analytics.pattern_breakdown.items():
                 entities_str = ", ".join(usage.entities[:3])  # Show first 3
@@ -273,7 +291,9 @@ class PatternAnalyticsEngine:
             for entity in analytics.entities_without_patterns[:5]:  # Show first 5
                 report.append(f"- {entity}")
             if len(analytics.entities_without_patterns) > 5:
-                report.append(f"- ... and {len(analytics.entities_without_patterns) - 5} more")
+                report.append(
+                    f"- ... and {len(analytics.entities_without_patterns) - 5} more"
+                )
             report.append("")
 
         # Recommendations

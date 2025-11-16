@@ -38,7 +38,9 @@ class FunctionScaffolding:
 class FunctionScaffoldingGenerator:
     """Generates PL/pgSQL function scaffolding"""
 
-    def generate(self, action: ActionDefinition, entity: EntityDefinition) -> FunctionScaffolding:
+    def generate(
+        self, action: ActionDefinition, entity: EntityDefinition
+    ) -> FunctionScaffolding:
         """
         Generate function scaffolding from action definition
 
@@ -75,7 +77,9 @@ class FunctionScaffoldingGenerator:
 
         # Primary parameter: entity ID (UUID)
         entity_lower = entity.name.lower()
-        parameters = [{"name": f"p_{entity_lower}_id", "type": "UUID", "required": True}]
+        parameters = [
+            {"name": f"p_{entity_lower}_id", "type": "UUID", "required": True}
+        ]
 
         # Caller ID for audit trail (optional)
         parameters.append({"name": "p_caller_id", "type": "UUID", "default": "NULL"})
@@ -90,7 +94,9 @@ class FunctionScaffoldingGenerator:
             returns="mutation_result",
         )
 
-    def _generate_variables(self, action: ActionDefinition, entity: EntityDefinition) -> list[str]:
+    def _generate_variables(
+        self, action: ActionDefinition, entity: EntityDefinition
+    ) -> list[str]:
         """
         Generate DECLARE block variables
 

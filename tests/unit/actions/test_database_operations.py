@@ -46,7 +46,9 @@ class TestDatabaseOperations:
 
     def test_update_operation_with_audit(self, compiler, contact_entity):
         """Test: Generate UPDATE with auto-audit fields"""
-        step = ActionStep(type="update", entity="Contact", fields={"status": "qualified"})
+        step = ActionStep(
+            type="update", entity="Contact", fields={"status": "qualified"}
+        )
 
         sql = compiler.compile_update(step, contact_entity)
 
@@ -75,4 +77,6 @@ class TestDatabaseOperations:
         assert "'email', c.email" in sql
         assert "'company', jsonb_build_object(" in sql
         assert "'__typename', 'Company'" in sql
-        assert "LEFT JOIN management.tb_company co ON co.pk_company = c.fk_company" in sql
+        assert (
+            "LEFT JOIN management.tb_company co ON co.pk_company = c.fk_company" in sql
+        )

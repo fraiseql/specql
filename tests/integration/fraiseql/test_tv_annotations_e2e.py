@@ -34,7 +34,9 @@ class TestTableViewAnnotationsE2E:
                     IncludeRelation(entity_name="Book", fields=["title", "isbn"]),
                 ],
                 extra_filter_columns=[
-                    ExtraFilterColumn(name="rating", type="INTEGER", index_type="btree"),
+                    ExtraFilterColumn(
+                        name="rating", type="INTEGER", index_type="btree"
+                    ),
                 ],
             ),
         )
@@ -112,14 +114,18 @@ class TestTableViewAnnotationsE2E:
                 schema="library",
                 fields={},
                 actions=[],
-                table_views=TableViewConfig(mode=TableViewMode.FORCE, include_relations=[]),
+                table_views=TableViewConfig(
+                    mode=TableViewMode.FORCE, include_relations=[]
+                ),
             ),
             EntityDefinition(
                 name="Book",
                 schema="library",
                 fields={},
                 actions=[],
-                table_views=TableViewConfig(mode=TableViewMode.FORCE, include_relations=[]),
+                table_views=TableViewConfig(
+                    mode=TableViewMode.FORCE, include_relations=[]
+                ),
             ),
         ]
 

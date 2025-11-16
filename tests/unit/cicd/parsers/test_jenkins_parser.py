@@ -82,7 +82,9 @@ pipeline {
 
         # Assert
         assert len(pipeline.triggers) == 2
-        cron_trigger = next(t for t in pipeline.triggers if t.type == TriggerType.SCHEDULE)
+        cron_trigger = next(
+            t for t in pipeline.triggers if t.type == TriggerType.SCHEDULE
+        )
         assert cron_trigger.schedule == "H 2 * * *"
 
     def test_parse_with_parallel_stages(self, parser):
@@ -127,7 +129,9 @@ pipeline {
         assert len(unit_stage.jobs) == 1
         assert unit_stage.jobs[0].steps[0].command == "pytest tests/unit"
 
-        integration_stage = next(s for s in pipeline.stages if s.name == "Integration Tests")
+        integration_stage = next(
+            s for s in pipeline.stages if s.name == "Integration Tests"
+        )
         assert len(integration_stage.jobs) == 1
         assert integration_stage.jobs[0].steps[0].command == "pytest tests/integration"
 

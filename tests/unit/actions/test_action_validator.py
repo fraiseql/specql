@@ -4,7 +4,12 @@ Unit tests for ActionValidator
 
 import pytest
 
-from src.core.ast_models import ActionDefinition, ActionStep, EntityDefinition, FieldDefinition
+from src.core.ast_models import (
+    ActionDefinition,
+    ActionStep,
+    EntityDefinition,
+    FieldDefinition,
+)
 from src.generators.actions.action_validator import ActionValidator, ValidationError
 
 
@@ -40,8 +45,14 @@ class TestActionValidator:
         action = ActionDefinition(
             name="create_contact",
             steps=[
-                ActionStep(type="validate", expression="email IS NOT NULL", error="email_required"),
-                ActionStep(type="insert", entity="Contact", fields={"email": "input.email"}),
+                ActionStep(
+                    type="validate",
+                    expression="email IS NOT NULL",
+                    error="email_required",
+                ),
+                ActionStep(
+                    type="insert", entity="Contact", fields={"email": "input.email"}
+                ),
             ],
         )
 
@@ -70,7 +81,9 @@ class TestActionValidator:
 
     def test_validate_unknown_step_type(self):
         """Test validation of unknown step type"""
-        action = ActionDefinition(name="test_action", steps=[ActionStep(type="unknown_step")])
+        action = ActionDefinition(
+            name="test_action", steps=[ActionStep(type="unknown_step")]
+        )
 
         with pytest.raises(ValidationError, match="Unknown step type"):
             self.validator.validate_action(action, self.contact_entity, [])
@@ -78,7 +91,8 @@ class TestActionValidator:
     def test_validate_invalid_entity_reference(self):
         """Test validation of step referencing unknown entity"""
         action = ActionDefinition(
-            name="test_action", steps=[ActionStep(type="insert", entity="UnknownEntity")]
+            name="test_action",
+            steps=[ActionStep(type="insert", entity="UnknownEntity")],
         )
 
         with pytest.raises(ValidationError, match="unknown entity: UnknownEntity"):
@@ -88,7 +102,11 @@ class TestActionValidator:
         """Test validation of step referencing unknown field"""
         action = ActionDefinition(
             name="test_action",
-            steps=[ActionStep(type="insert", entity="Contact", fields={"unknown_field": "value"})],
+            steps=[
+                ActionStep(
+                    type="insert", entity="Contact", fields={"unknown_field": "value"}
+                )
+            ],
         )
 
         with pytest.raises(ValidationError, match="unknown field 'unknown_field'"):
@@ -97,7 +115,8 @@ class TestActionValidator:
     def test_validate_missing_validation_error(self):
         """Test warning for validate step without custom error"""
         action = ActionDefinition(
-            name="test_action", steps=[ActionStep(type="validate", expression="email IS NOT NULL")]
+            name="test_action",
+            steps=[ActionStep(type="validate", expression="email IS NOT NULL")],
         )
 
         self.validator.validate_action(action, self.contact_entity, [])
@@ -112,7 +131,10 @@ class TestActionValidator:
         action = ActionDefinition(
             name="test_action",
             steps=[
-                ActionStep(type="if", then_steps=[ActionStep(type="validate", expression="true")])
+                ActionStep(
+                    type="if",
+                    then_steps=[ActionStep(type="validate", expression="true")],
+                )
             ],
         )
 
@@ -149,7 +171,8 @@ class TestActionValidator:
 
         # Test missing channel
         action = ActionDefinition(
-            name="test_action", steps=[ActionStep(type="notify", recipient="user@example.com")]
+            name="test_action",
+            steps=[ActionStep(type="notify", recipient="user@example.com")],
         )
 
         with pytest.raises(ValidationError, match="must have a channel"):
@@ -158,7 +181,11 @@ class TestActionValidator:
         # Test invalid channel
         action = ActionDefinition(
             name="test_action",
-            steps=[ActionStep(type="notify", recipient="user@example.com", channel="invalid")],
+            steps=[
+                ActionStep(
+                    type="notify", recipient="user@example.com", channel="invalid"
+                )
+            ],
         )
 
         with pytest.raises(ValidationError, match="Invalid notification channel"):
@@ -171,12 +198,15 @@ class TestActionValidator:
             name="test_action",
             steps=[
                 ActionStep(
-                    type="foreach", then_steps=[ActionStep(type="validate", expression="true")]
+                    type="foreach",
+                    then_steps=[ActionStep(type="validate", expression="true")],
                 )
             ],
         )
 
-        with pytest.raises(ValidationError, match="must have foreach_expr or iterator_var"):
+        with pytest.raises(
+            ValidationError, match="must have foreach_expr or iterator_var"
+        ):
             self.validator.validate_action(action, self.contact_entity, [])
 
         # Test missing then_steps
@@ -193,8 +223,12 @@ class TestActionValidator:
         action = ActionDefinition(
             name="test_action",
             steps=[
-                ActionStep(type="update", entity="Contact", fields={"status": "updated"}),
-                ActionStep(type="update", entity="Contact", fields={"email": "updated"}),
+                ActionStep(
+                    type="update", entity="Contact", fields={"status": "updated"}
+                ),
+                ActionStep(
+                    type="update", entity="Contact", fields={"email": "updated"}
+                ),
             ],
         )
 

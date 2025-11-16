@@ -13,7 +13,9 @@ class TestEntitySeedGenerator:
         """Test generating a basic entity record"""
         # Mock components
         mock_uuid_gen = Mock()
-        mock_uuid_gen.generate.return_value = SpecQLUUID("01232121-0000-0000-0001-000000000001")
+        mock_uuid_gen.generate.return_value = SpecQLUUID(
+            "01232121-0000-0000-0001-000000000001"
+        )
 
         mock_field_gen = Mock()
         mock_field_gen.generate.side_effect = ["John", "Doe", "john@example.com"]
@@ -29,12 +31,22 @@ class TestEntitySeedGenerator:
 
         # Field mappings
         field_mappings = [
-            {"field_name": "first_name", "generator_type": "random", "priority_order": 1},
-            {"field_name": "last_name", "generator_type": "random", "priority_order": 2},
+            {
+                "field_name": "first_name",
+                "generator_type": "random",
+                "priority_order": 1,
+            },
+            {
+                "field_name": "last_name",
+                "generator_type": "random",
+                "priority_order": 2,
+            },
             {"field_name": "email", "generator_type": "random", "priority_order": 3},
         ]
 
-        generator = EntitySeedGenerator(entity_config=entity_config, field_mappings=field_mappings)
+        generator = EntitySeedGenerator(
+            entity_config=entity_config, field_mappings=field_mappings
+        )
 
         # Mock the internal generators
         generator.uuid_gen = mock_uuid_gen
@@ -56,7 +68,9 @@ class TestEntitySeedGenerator:
     def test_generate_tenant_scoped_entity(self):
         """Test generating entity with tenant scoping"""
         mock_uuid_gen = Mock()
-        mock_uuid_gen.generate.return_value = SpecQLUUID("01232121-0000-0000-0001-000000000001")
+        mock_uuid_gen.generate.return_value = SpecQLUUID(
+            "01232121-0000-0000-0001-000000000001"
+        )
 
         mock_field_gen = Mock()
         mock_field_gen.generate.return_value = "test@example.com"
@@ -70,9 +84,13 @@ class TestEntitySeedGenerator:
             "default_tenant_id": "22222222-2222-2222-2222-222222222222",
         }
 
-        field_mappings = [{"field_name": "email", "generator_type": "random", "priority_order": 1}]
+        field_mappings = [
+            {"field_name": "email", "generator_type": "random", "priority_order": 1}
+        ]
 
-        generator = EntitySeedGenerator(entity_config=entity_config, field_mappings=field_mappings)
+        generator = EntitySeedGenerator(
+            entity_config=entity_config, field_mappings=field_mappings
+        )
 
         generator.uuid_gen = mock_uuid_gen
         generator.field_gen = mock_field_gen
@@ -86,7 +104,9 @@ class TestEntitySeedGenerator:
     def test_generate_with_fk_resolution(self):
         """Test generating entity with FK field resolution"""
         mock_uuid_gen = Mock()
-        mock_uuid_gen.generate.return_value = SpecQLUUID("01232121-0000-0000-0001-000000000001")
+        mock_uuid_gen.generate.return_value = SpecQLUUID(
+            "01232121-0000-0000-0001-000000000001"
+        )
 
         mock_field_gen = Mock()
         mock_fk_resolver = Mock()
@@ -130,7 +150,9 @@ class TestEntitySeedGenerator:
     def test_generate_with_group_leader(self):
         """Test generating entity with group leader field"""
         mock_uuid_gen = Mock()
-        mock_uuid_gen.generate.return_value = SpecQLUUID("01232121-0000-0000-0001-000000000001")
+        mock_uuid_gen.generate.return_value = SpecQLUUID(
+            "01232121-0000-0000-0001-000000000001"
+        )
 
         mock_group_leader = Mock()
         mock_group_leader.execute.return_value = {
@@ -153,11 +175,21 @@ class TestEntitySeedGenerator:
                 "field_name": "country_code",
                 "generator_type": "group_leader",
                 "group_dependency_fields": ["country_code", "postal_code", "city_code"],
-                "generator_params": {"leader_query": "SELECT * FROM crm.tb_city WHERE id = 1"},
+                "generator_params": {
+                    "leader_query": "SELECT * FROM crm.tb_city WHERE id = 1"
+                },
                 "priority_order": 2,
             },
-            {"field_name": "postal_code", "generator_type": "group_dependent", "priority_order": 3},
-            {"field_name": "city_code", "generator_type": "group_dependent", "priority_order": 4},
+            {
+                "field_name": "postal_code",
+                "generator_type": "group_dependent",
+                "priority_order": 3,
+            },
+            {
+                "field_name": "city_code",
+                "generator_type": "group_dependent",
+                "priority_order": 4,
+            },
         ]
 
         generator = EntitySeedGenerator(
@@ -180,7 +212,9 @@ class TestEntitySeedGenerator:
     def test_generate_with_overrides(self):
         """Test generating entity with field overrides"""
         mock_uuid_gen = Mock()
-        mock_uuid_gen.generate.return_value = SpecQLUUID("01232121-0000-0000-0001-000000000001")
+        mock_uuid_gen.generate.return_value = SpecQLUUID(
+            "01232121-0000-0000-0001-000000000001"
+        )
 
         mock_field_gen = Mock()
         mock_field_gen.generate.return_value = "generated@example.com"
@@ -195,10 +229,16 @@ class TestEntitySeedGenerator:
 
         field_mappings = [
             {"field_name": "email", "generator_type": "random", "priority_order": 1},
-            {"field_name": "first_name", "generator_type": "random", "priority_order": 2},
+            {
+                "field_name": "first_name",
+                "generator_type": "random",
+                "priority_order": 2,
+            },
         ]
 
-        generator = EntitySeedGenerator(entity_config=entity_config, field_mappings=field_mappings)
+        generator = EntitySeedGenerator(
+            entity_config=entity_config, field_mappings=field_mappings
+        )
 
         generator.uuid_gen = mock_uuid_gen
         generator.field_gen = mock_field_gen
@@ -207,7 +247,9 @@ class TestEntitySeedGenerator:
         result = generator.generate(scenario=0, instance=1, overrides=overrides)
 
         assert result["email"] == "override@example.com"  # Should use override
-        assert result["first_name"] == "generated@example.com"  # Should use generated value
+        assert (
+            result["first_name"] == "generated@example.com"
+        )  # Should use generated value
 
     def test_generate_batch(self):
         """Test generating batch of entity records"""
@@ -233,9 +275,13 @@ class TestEntitySeedGenerator:
             "is_tenant_scoped": False,
         }
 
-        field_mappings = [{"field_name": "email", "generator_type": "random", "priority_order": 1}]
+        field_mappings = [
+            {"field_name": "email", "generator_type": "random", "priority_order": 1}
+        ]
 
-        generator = EntitySeedGenerator(entity_config=entity_config, field_mappings=field_mappings)
+        generator = EntitySeedGenerator(
+            entity_config=entity_config, field_mappings=field_mappings
+        )
 
         generator.uuid_gen = mock_uuid_gen
         generator.field_gen = mock_field_gen
@@ -254,7 +300,9 @@ class TestEntitySeedGenerator:
     def test_generate_with_sequence_context(self):
         """Test that instance_num is passed to field generators for sequences"""
         mock_uuid_gen = Mock()
-        mock_uuid_gen.generate.return_value = SpecQLUUID("01232121-0000-0000-0001-000000000001")
+        mock_uuid_gen.generate.return_value = SpecQLUUID(
+            "01232121-0000-0000-0001-000000000001"
+        )
 
         mock_field_gen = Mock()
         mock_field_gen.generate.return_value = 42
@@ -268,10 +316,16 @@ class TestEntitySeedGenerator:
         }
 
         field_mappings = [
-            {"field_name": "sequence_field", "generator_type": "sequence", "priority_order": 1}
+            {
+                "field_name": "sequence_field",
+                "generator_type": "sequence",
+                "priority_order": 1,
+            }
         ]
 
-        generator = EntitySeedGenerator(entity_config=entity_config, field_mappings=field_mappings)
+        generator = EntitySeedGenerator(
+            entity_config=entity_config, field_mappings=field_mappings
+        )
 
         generator.uuid_gen = mock_uuid_gen
         generator.field_gen = mock_field_gen
@@ -287,7 +341,9 @@ class TestEntitySeedGenerator:
     def test_skip_group_dependent_fields(self):
         """Test that group_dependent fields are skipped (handled by group leader)"""
         mock_uuid_gen = Mock()
-        mock_uuid_gen.generate.return_value = SpecQLUUID("01232121-0000-0000-0001-000000000001")
+        mock_uuid_gen.generate.return_value = SpecQLUUID(
+            "01232121-0000-0000-0001-000000000001"
+        )
 
         mock_field_gen = Mock()
 
@@ -300,13 +356,27 @@ class TestEntitySeedGenerator:
         }
 
         field_mappings = [
-            {"field_name": "country_code", "generator_type": "group_leader", "priority_order": 1},
-            {"field_name": "postal_code", "generator_type": "group_dependent", "priority_order": 2},
-            {"field_name": "city_code", "generator_type": "group_dependent", "priority_order": 3},
+            {
+                "field_name": "country_code",
+                "generator_type": "group_leader",
+                "priority_order": 1,
+            },
+            {
+                "field_name": "postal_code",
+                "generator_type": "group_dependent",
+                "priority_order": 2,
+            },
+            {
+                "field_name": "city_code",
+                "generator_type": "group_dependent",
+                "priority_order": 3,
+            },
         ]
 
         generator = EntitySeedGenerator(
-            entity_config=entity_config, field_mappings=field_mappings, db_connection=Mock()
+            entity_config=entity_config,
+            field_mappings=field_mappings,
+            db_connection=Mock(),
         )
 
         generator.uuid_gen = mock_uuid_gen

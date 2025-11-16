@@ -219,7 +219,6 @@ def _write_yaml_files(
 def _entity_to_yaml(entity) -> str:
     """Convert UniversalEntity to SpecQL YAML"""
 
-
     generator = SpecQLGenerator()
     return generator.generate_yaml(entity)
 

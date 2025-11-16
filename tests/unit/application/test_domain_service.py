@@ -1,8 +1,12 @@
 """Unit tests for DomainService"""
+
 import pytest
 from src.application.services.domain_service import DomainService
 from src.application.exceptions import DomainAlreadyExistsError, DomainNotFoundError
-from src.infrastructure.repositories.in_memory_domain_repository import InMemoryDomainRepository
+from src.infrastructure.repositories.in_memory_domain_repository import (
+    InMemoryDomainRepository,
+)
+
 
 class TestDomainService:
     """Test domain service with in-memory repository"""
@@ -17,9 +21,7 @@ class TestDomainService:
         """Test registering a new domain successfully"""
         # Act
         result = service.register_domain(
-            domain_number="01",
-            domain_name="core",
-            schema_type="framework"
+            domain_number="01", domain_name="core", schema_type="framework"
         )
 
         # Assert

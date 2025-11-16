@@ -1,11 +1,14 @@
 """Domain Aggregate Root"""
+
 from dataclasses import dataclass, field
 from typing import List
 from src.domain.value_objects import DomainNumber, TableCode
 
+
 @dataclass
 class Subdomain:
     """Subdomain entity (part of Domain aggregate)"""
+
     subdomain_number: str
     subdomain_name: str
     description: str | None
@@ -18,18 +21,20 @@ class Subdomain:
         code = TableCode.generate(
             domain_num=self.parent_domain_number,
             subdomain_num=self.subdomain_number,
-            entity_seq=self.next_entity_sequence
+            entity_seq=self.next_entity_sequence,
         )
         self.entities[entity_name] = {
-            'table_code': str(code),
-            'entity_sequence': self.next_entity_sequence
+            "table_code": str(code),
+            "entity_sequence": self.next_entity_sequence,
         }
         self.next_entity_sequence += 1
         return code
 
+
 @dataclass
 class Domain:
     """Domain Aggregate Root"""
+
     domain_number: DomainNumber
     domain_name: str
     description: str | None

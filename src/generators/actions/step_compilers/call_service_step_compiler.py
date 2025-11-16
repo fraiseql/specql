@@ -44,7 +44,12 @@ from src.registry.service_registry import ServiceRegistry
 class CallServiceStepCompiler:
     """Compiles call_service steps to PL/pgSQL job queueing"""
 
-    def __init__(self, step: ActionStep, context: ActionContext, service_registry: ServiceRegistry):
+    def __init__(
+        self,
+        step: ActionStep,
+        context: ActionContext,
+        service_registry: ServiceRegistry,
+    ):
         self.step = step
         self.context = context
         self.service_registry = service_registry
@@ -161,7 +166,9 @@ class CallServiceStepCompiler:
     def _compile_variable_reference(self, var_ref: str) -> str:
         """Compile variable reference like $order.total"""
         if not var_ref.startswith("$"):
-            raise ValueError(f"Expected variable reference starting with $, got {var_ref}")
+            raise ValueError(
+                f"Expected variable reference starting with $, got {var_ref}"
+            )
 
         var_path = var_ref[1:]  # Remove $
         parts = var_path.split(".")

@@ -12,18 +12,24 @@ def add_original_implementations():
     conn.row_factory = sqlite3.Row
 
     implementations = [
-        ("declare", """{{ variable_name }} {{ variable_type }}{% if default_value %} := {{ default_value }}{% endif %};"""),
+        (
+            "declare",
+            """{{ variable_name }} {{ variable_type }}{% if default_value %} := {{ default_value }}{% endif %};""",
+        ),
         ("assign", """{{ variable_name }} := {{ expression }};"""),
-        ("if", """-- If: {{ condition }}
+        (
+            "if",
+            """-- If: {{ condition }}
     SELECT {{ fields_to_fetch|join(', ') }} INTO {{ variables|join(', ') }}
     FROM {{ table_name }}
     WHERE {{ pk_column }} = v_pk;
 
     IF ({{ condition }}) THEN{{ then_steps }}
     ELSE{{ else_steps }}
-    END IF;"""),
+    END IF;""",
+        ),
         ("query", """{{ sql }} INTO {{ into_variable }};"""),
-        ("return", """RETURN {{ expression }};""")
+        ("return", """RETURN {{ expression }};"""),
     ]
 
     for pattern_name, template in implementations:
@@ -31,7 +37,7 @@ def add_original_implementations():
             # Get pattern_id
             pattern_row = conn.execute(
                 "SELECT pattern_id FROM patterns WHERE pattern_name = ?",
-                (pattern_name,)
+                (pattern_name,),
             ).fetchone()
 
             if not pattern_row:
@@ -49,7 +55,7 @@ def add_original_implementations():
 
             conn.execute(
                 "INSERT INTO pattern_implementations (pattern_id, language_id, implementation_template) VALUES (?, ?, ?)",
-                (pattern_row["pattern_id"], lang_row["language_id"], template)
+                (pattern_row["pattern_id"], lang_row["language_id"], template),
             )
             print(f"✅ Added implementation: {pattern_name} -> postgresql")
         except sqlite3.IntegrityError:

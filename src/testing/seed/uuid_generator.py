@@ -62,7 +62,12 @@ class SpecQLUUIDGenerator:
     """
 
     # Test type codes
-    TEST_TYPES = {"general_seed": "21", "mutation_test": "22", "query_test": "23", "staging": "00"}
+    TEST_TYPES = {
+        "general_seed": "21",
+        "mutation_test": "22",
+        "query_test": "23",
+        "staging": "00",
+    }
 
     def __init__(
         self,
@@ -87,7 +92,9 @@ class SpecQLUUIDGenerator:
             test_type=test_type,
         )
 
-    def generate(self, scenario: int = 0, instance: int = 1, test_case: int = 0) -> SpecQLUUID:
+    def generate(
+        self, scenario: int = 0, instance: int = 1, test_case: int = 0
+    ) -> SpecQLUUID:
         """
         Generate encoded UUID
 
@@ -131,7 +138,10 @@ class SpecQLUUIDGenerator:
         self, count: int, scenario: int = 0, start_instance: int = 1
     ) -> list[SpecQLUUID]:
         """Generate batch of UUIDs with sequential instances"""
-        return [self.generate(scenario=scenario, instance=start_instance + i) for i in range(count)]
+        return [
+            self.generate(scenario=scenario, instance=start_instance + i)
+            for i in range(count)
+        ]
 
     @staticmethod
     def decode(uuid: UUID) -> UUIDComponents:

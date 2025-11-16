@@ -29,7 +29,7 @@ class BenchmarkResult:
         return asdict(self)
 
     @classmethod
-    def from_dict(cls, data: Dict[str, Any]) -> 'BenchmarkResult':
+    def from_dict(cls, data: Dict[str, Any]) -> "BenchmarkResult":
         """Create from dictionary"""
         return cls(**data)
 
@@ -38,7 +38,7 @@ class BenchmarkResult:
         return json.dumps(self.to_dict())
 
     @classmethod
-    def from_json(cls, json_str: str) -> 'BenchmarkResult':
+    def from_json(cls, json_str: str) -> "BenchmarkResult":
         """Create from JSON string"""
         return cls.from_dict(json.loads(json_str))
 
@@ -61,7 +61,9 @@ class PerformanceBenchmark:
         self.results_dir = results_dir or Path("benchmark_results")
         self.results_dir.mkdir(exist_ok=True)
 
-    def benchmark_pipeline_execution(self, pipeline: UniversalPipeline) -> BenchmarkResult:
+    def benchmark_pipeline_execution(
+        self, pipeline: UniversalPipeline
+    ) -> BenchmarkResult:
         """
         Benchmark the execution time of a pipeline.
 
@@ -86,8 +88,10 @@ class PerformanceBenchmark:
             total_time=total_time,
             stage_count=len(pipeline.stages),
             job_count=sum(len(stage.jobs) for stage in pipeline.stages),
-            step_count=sum(len(job.steps) for stage in pipeline.stages for job in stage.jobs),
-            timestamp=time.time()
+            step_count=sum(
+                len(job.steps) for stage in pipeline.stages for job in stage.jobs
+            ),
+            timestamp=time.time(),
         )
 
         # Save result
@@ -114,16 +118,16 @@ class PerformanceBenchmark:
 
         return {
             "step_name": step.name,
-            "step_type": step.type.value if hasattr(step.type, 'value') else str(step.type),
+            "step_type": step.type.value
+            if hasattr(step.type, "value")
+            else str(step.type),
             "duration": duration,
             "timestamp": time.time(),
-            "command": step.command
+            "command": step.command,
         }
 
     def compare_pipeline_performance(
-        self,
-        pipeline1: UniversalPipeline,
-        pipeline2: UniversalPipeline
+        self, pipeline1: UniversalPipeline, pipeline2: UniversalPipeline
     ) -> Dict[str, Any]:
         """
         Compare performance between two pipelines.
@@ -138,11 +142,15 @@ class PerformanceBenchmark:
         result1 = self.benchmark_pipeline_execution(pipeline1)
         result2 = self.benchmark_pipeline_execution(pipeline2)
 
-        improvement = ((result1.total_time - result2.total_time) / result1.total_time) * 100
+        improvement = (
+            (result1.total_time - result2.total_time) / result1.total_time
+        ) * 100
 
         recommendations = []
         if improvement > 10:
-            recommendations.append("Pipeline 2 shows significant performance improvement")
+            recommendations.append(
+                "Pipeline 2 shows significant performance improvement"
+            )
         elif improvement < -10:
             recommendations.append("Pipeline 2 is slower - consider optimization")
 
@@ -152,24 +160,24 @@ class PerformanceBenchmark:
                 "total_time": result1.total_time,
                 "stage_count": result1.stage_count,
                 "job_count": result1.job_count,
-                "step_count": result1.step_count
+                "step_count": result1.step_count,
             },
             "pipeline2": {
                 "name": result2.pipeline_name,
                 "total_time": result2.total_time,
                 "stage_count": result2.stage_count,
                 "job_count": result2.job_count,
-                "step_count": result2.step_count
+                "step_count": result2.step_count,
             },
             "improvement_percentage": improvement,
-            "faster_pipeline": result1.pipeline_name if result1.total_time < result2.total_time else result2.pipeline_name,
-            "recommendations": recommendations
+            "faster_pipeline": result1.pipeline_name
+            if result1.total_time < result2.total_time
+            else result2.pipeline_name,
+            "recommendations": recommendations,
         }
 
     def track_performance_trends(
-        self,
-        pipeline_name: str,
-        historical_results: List[BenchmarkResult]
+        self, pipeline_name: str, historical_results: List[BenchmarkResult]
     ) -> Dict[str, Any]:
         """
         Track performance trends over time.
@@ -188,7 +196,7 @@ class PerformanceBenchmark:
                 "average_time": 0,
                 "best_time": 0,
                 "worst_time": 0,
-                "trend": "no_data"
+                "trend": "no_data",
             }
 
         times = [r.total_time for r in historical_results]
@@ -215,10 +223,12 @@ class PerformanceBenchmark:
             "best_time": min(times),
             "worst_time": max(times),
             "trend": trend,
-            "recent_times": times[-5:]  # Last 5 runs
+            "recent_times": times[-5:],  # Last 5 runs
         }
 
-    def generate_performance_report(self, pipeline: UniversalPipeline) -> Dict[str, Any]:
+    def generate_performance_report(
+        self, pipeline: UniversalPipeline
+    ) -> Dict[str, Any]:
         """
         Generate comprehensive performance report for a pipeline.
 
@@ -234,28 +244,36 @@ class PerformanceBenchmark:
         stages_analysis = []
         for stage in pipeline.stages:
             stage_time = self._estimate_stage_time(stage)
-            stages_analysis.append({
-                "name": stage.name,
-                "job_count": len(stage.jobs),
-                "estimated_time": stage_time,
-                "percentage": (stage_time / benchmark_result.total_time) * 100 if benchmark_result.total_time > 0 else 0
-            })
+            stages_analysis.append(
+                {
+                    "name": stage.name,
+                    "job_count": len(stage.jobs),
+                    "estimated_time": stage_time,
+                    "percentage": (stage_time / benchmark_result.total_time) * 100
+                    if benchmark_result.total_time > 0
+                    else 0,
+                }
+            )
 
         # Analyze jobs
         jobs_analysis = []
         for stage in pipeline.stages:
             for job in stage.jobs:
                 job_time = self._estimate_job_time(job)
-                jobs_analysis.append({
-                    "name": job.name,
-                    "stage": stage.name,
-                    "step_count": len(job.steps),
-                    "estimated_time": job_time,
-                    "has_dependencies": bool(job.needs)
-                })
+                jobs_analysis.append(
+                    {
+                        "name": job.name,
+                        "stage": stage.name,
+                        "step_count": len(job.steps),
+                        "estimated_time": job_time,
+                        "has_dependencies": bool(job.needs),
+                    }
+                )
 
         # Generate recommendations
-        recommendations = self._generate_performance_recommendations(pipeline, benchmark_result)
+        recommendations = self._generate_performance_recommendations(
+            pipeline, benchmark_result
+        )
 
         return {
             "pipeline_name": pipeline.name,
@@ -267,9 +285,12 @@ class PerformanceBenchmark:
                 "total_stages": benchmark_result.stage_count,
                 "total_jobs": benchmark_result.job_count,
                 "total_steps": benchmark_result.step_count,
-                "avg_time_per_stage": benchmark_result.total_time / benchmark_result.stage_count if benchmark_result.stage_count > 0 else 0
+                "avg_time_per_stage": benchmark_result.total_time
+                / benchmark_result.stage_count
+                if benchmark_result.stage_count > 0
+                else 0,
             },
-            "recommendations": recommendations
+            "recommendations": recommendations,
         }
 
     def check_performance_thresholds(self, result: BenchmarkResult) -> List[str]:
@@ -289,14 +310,22 @@ class PerformanceBenchmark:
         MAX_TIME_PER_JOB = 300  # 5 minutes
 
         if result.total_time > MAX_TOTAL_TIME:
-            warnings.append(f"Pipeline execution time ({result.total_time:.1f}s) exceeds threshold ({MAX_TOTAL_TIME}s)")
+            warnings.append(
+                f"Pipeline execution time ({result.total_time:.1f}s) exceeds threshold ({MAX_TOTAL_TIME}s)"
+            )
 
-        avg_time_per_job = result.total_time / result.job_count if result.job_count > 0 else 0
+        avg_time_per_job = (
+            result.total_time / result.job_count if result.job_count > 0 else 0
+        )
         if avg_time_per_job > MAX_TIME_PER_JOB:
-            warnings.append(f"Average time per job ({avg_time_per_job:.1f}s) exceeds threshold ({MAX_TIME_PER_JOB}s)")
+            warnings.append(
+                f"Average time per job ({avg_time_per_job:.1f}s) exceeds threshold ({MAX_TIME_PER_JOB}s)"
+            )
 
         if result.step_count > 50:
-            warnings.append(f"High step count ({result.step_count}) - consider consolidating steps")
+            warnings.append(
+                f"High step count ({result.step_count}) - consider consolidating steps"
+            )
 
         return warnings
 
@@ -307,7 +336,9 @@ class PerformanceBenchmark:
         # Add time based on stages, jobs, and steps
         stage_time = len(pipeline.stages) * 5
         job_time = sum(len(stage.jobs) for stage in pipeline.stages) * 2
-        step_time = sum(len(job.steps) for stage in pipeline.stages for job in stage.jobs) * 0.5
+        step_time = (
+            sum(len(job.steps) for stage in pipeline.stages for job in stage.jobs) * 0.5
+        )
 
         # Add language-specific overhead
         language_multiplier = {
@@ -315,7 +346,7 @@ class PerformanceBenchmark:
             "node": 1.2,
             "go": 0.8,
             "rust": 1.5,
-            "java": 2.0
+            "java": 2.0,
         }.get(pipeline.language, 1.0)
 
         return (base_time + stage_time + job_time + step_time) * language_multiplier
@@ -343,9 +374,7 @@ class PerformanceBenchmark:
         return sum(self._simulate_step_execution(step) for step in job.steps)
 
     def _generate_performance_recommendations(
-        self,
-        pipeline: UniversalPipeline,
-        result: BenchmarkResult
+        self, pipeline: UniversalPipeline, result: BenchmarkResult
     ) -> List[str]:
         """Generate performance recommendations."""
         recommendations = []
@@ -353,7 +382,9 @@ class PerformanceBenchmark:
         # Check for parallelization opportunities
         total_jobs = sum(len(stage.jobs) for stage in pipeline.stages)
         if total_jobs > 3:
-            recommendations.append("Consider parallelizing independent jobs to reduce execution time")
+            recommendations.append(
+                "Consider parallelizing independent jobs to reduce execution time"
+            )
 
         # Check for caching opportunities
         has_install_steps = any(
@@ -367,7 +398,9 @@ class PerformanceBenchmark:
 
         # Check for long-running jobs
         if result.total_time > 300:  # 5 minutes
-            recommendations.append("Pipeline execution is slow - consider optimizing long-running steps")
+            recommendations.append(
+                "Pipeline execution is slow - consider optimizing long-running steps"
+            )
 
         return recommendations
 
@@ -376,7 +409,7 @@ class PerformanceBenchmark:
         filename = f"{result.pipeline_name}_{int(result.timestamp)}.json"
         filepath = self.results_dir / filename
 
-        with open(filepath, 'w') as f:
+        with open(filepath, "w") as f:
             json.dump(result.to_dict(), f, indent=2)
 
     def load_historical_results(self, pipeline_name: str) -> List[BenchmarkResult]:
@@ -394,7 +427,7 @@ class PerformanceBenchmark:
 
         for filepath in self.results_dir.glob(pattern):
             try:
-                with open(filepath, 'r') as f:
+                with open(filepath, "r") as f:
                     data = json.load(f)
                     results.append(BenchmarkResult.from_dict(data))
             except Exception:

@@ -1,7 +1,10 @@
 """Integration tests for PostgreSQL Domain Repository migration"""
+
 import pytest
 from pathlib import Path
-from src.infrastructure.repositories.postgresql_domain_repository import PostgreSQLDomainRepository
+from src.infrastructure.repositories.postgresql_domain_repository import (
+    PostgreSQLDomainRepository,
+)
 from src.infrastructure.repositories.yaml_domain_repository import YAMLDomainRepository
 
 
@@ -66,7 +69,7 @@ class TestPostgreSQLDomainRepositoryMigration:
             """)
             result = cur.fetchone()
             assert result is not None, "specql_registry schema should exist"
-            assert result[0] == 'specql_registry'
+            assert result[0] == "specql_registry"
 
     def test_domain_table_exists(self, test_db):
         """Test that tb_domain table exists with correct structure"""
@@ -90,8 +93,17 @@ class TestPostgreSQLDomainRepositoryMigration:
             columns = cur.fetchall()
             column_names = [col[0] for col in columns]
 
-            expected_columns = ['aliases', 'description', 'domain_name', 'domain_number', 'multi_tenant', 'pk_domain']
-            assert set(column_names) == set(expected_columns), f"Expected columns {expected_columns}, got {column_names}"
+            expected_columns = [
+                "aliases",
+                "description",
+                "domain_name",
+                "domain_number",
+                "multi_tenant",
+                "pk_domain",
+            ]
+            assert set(column_names) == set(expected_columns), (
+                f"Expected columns {expected_columns}, got {column_names}"
+            )
 
     def test_subdomain_table_exists(self, test_db):
         """Test that tb_subdomain table exists with correct structure"""
@@ -115,8 +127,17 @@ class TestPostgreSQLDomainRepositoryMigration:
             columns = cur.fetchall()
             column_names = [col[0] for col in columns]
 
-            expected_columns = ['description', 'fk_domain', 'next_entity_sequence', 'pk_subdomain', 'subdomain_name', 'subdomain_number']
-            assert set(column_names) == set(expected_columns), f"Expected columns {expected_columns}, got {column_names}"
+            expected_columns = [
+                "description",
+                "fk_domain",
+                "next_entity_sequence",
+                "pk_subdomain",
+                "subdomain_name",
+                "subdomain_number",
+            ]
+            assert set(column_names) == set(expected_columns), (
+                f"Expected columns {expected_columns}, got {column_names}"
+            )
 
     def test_entity_registration_table_exists(self, test_db):
         """Test that tb_entity_registration table exists with correct structure"""
@@ -140,8 +161,16 @@ class TestPostgreSQLDomainRepositoryMigration:
             columns = cur.fetchall()
             column_names = [col[0] for col in columns]
 
-            expected_columns = ['entity_name', 'entity_sequence', 'fk_subdomain', 'pk_entity_registration', 'table_code']
-            assert set(column_names) == set(expected_columns), f"Expected columns {expected_columns}, got {column_names}"
+            expected_columns = [
+                "entity_name",
+                "entity_sequence",
+                "fk_subdomain",
+                "pk_entity_registration",
+                "table_code",
+            ]
+            assert set(column_names) == set(expected_columns), (
+                f"Expected columns {expected_columns}, got {column_names}"
+            )
 
     def test_migration_populates_data(self, test_db, db_config):
         """Test that migration script populates data from YAML"""
@@ -160,13 +189,15 @@ class TestPostgreSQLDomainRepositoryMigration:
         pg_repo = PostgreSQLDomainRepository(conn_string)
 
         # Compare with YAML repository
-        yaml_repo = YAMLDomainRepository(Path('registry/domain_registry.yaml'))
+        yaml_repo = YAMLDomainRepository(Path("registry/domain_registry.yaml"))
 
         # Get all domains from both repositories
         yaml_domains = yaml_repo.list_all()
         pg_domains = pg_repo.list_all()
 
-        assert len(pg_domains) == len(yaml_domains), f"Expected {len(yaml_domains)} domains, got {len(pg_domains)}"
+        assert len(pg_domains) == len(yaml_domains), (
+            f"Expected {len(yaml_domains)} domains, got {len(pg_domains)}"
+        )
 
         # Check each domain
         for yaml_domain in yaml_domains:
@@ -185,7 +216,10 @@ class TestPostgreSQLDomainRepositoryMigration:
 
                 assert pg_subdomain.subdomain_name == yaml_subdomain.subdomain_name
                 assert pg_subdomain.description == yaml_subdomain.description
-                assert pg_subdomain.next_entity_sequence == yaml_subdomain.next_entity_sequence
+                assert (
+                    pg_subdomain.next_entity_sequence
+                    == yaml_subdomain.next_entity_sequence
+                )
 
                 # Check that essential entity data matches (PostgreSQL stores simplified version)
                 assert len(pg_subdomain.entities) == len(yaml_subdomain.entities)
@@ -196,13 +230,15 @@ class TestPostgreSQLDomainRepositoryMigration:
 
                     # PostgreSQL stores table_code and entity_sequence
                     if isinstance(yaml_entity, dict):
-                        assert pg_entity['table_code'] == yaml_entity.get('table_code')
+                        assert pg_entity["table_code"] == yaml_entity.get("table_code")
                         # entity_sequence might be stored as 'entity_sequence' or 'entity_number'
-                        expected_sequence = yaml_entity.get('entity_sequence', yaml_entity.get('entity_number', 1))
-                        assert pg_entity['entity_sequence'] == expected_sequence
+                        expected_sequence = yaml_entity.get(
+                            "entity_sequence", yaml_entity.get("entity_number", 1)
+                        )
+                        assert pg_entity["entity_sequence"] == expected_sequence
                     else:
                         # Handle legacy format where yaml_entity might be just a table_code string
-                        assert pg_entity['table_code'] == str(yaml_entity)
+                        assert pg_entity["table_code"] == str(yaml_entity)
 
     def test_migration_script_populates_data(self, test_db, db_config):
         """Test that migration script correctly populates data from YAML"""
@@ -220,7 +256,7 @@ class TestPostgreSQLDomainRepositoryMigration:
         conn_string = " ".join(conn_parts)
 
         # Run migration
-        migrate_registry_to_postgres(conn_string, Path('registry/domain_registry.yaml'))
+        migrate_registry_to_postgres(conn_string, Path("registry/domain_registry.yaml"))
 
         # Verify data was migrated
         with test_db.cursor() as cur:
@@ -255,10 +291,10 @@ class TestPostgreSQLDomainRepositoryMigration:
         conn_string = " ".join(conn_parts)
 
         # First migrate data
-        migrate_registry_to_postgres(conn_string, Path('registry/domain_registry.yaml'))
+        migrate_registry_to_postgres(conn_string, Path("registry/domain_registry.yaml"))
 
         pg_repo = PostgreSQLDomainRepository(conn_string)
-        yaml_repo = YAMLDomainRepository(Path('registry/domain_registry.yaml'))
+        yaml_repo = YAMLDomainRepository(Path("registry/domain_registry.yaml"))
 
         # Test get method
         pg_domain = pg_repo.get("2")  # crm domain

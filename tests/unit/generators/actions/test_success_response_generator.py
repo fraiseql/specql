@@ -30,7 +30,9 @@ class TestSuccessResponseGenerator:
             table_views=TableViewConfig(mode=TableViewMode.FORCE),
             fields={
                 "rating": FieldDefinition(name="rating", type_name="integer"),
-                "author": FieldDefinition(name="author", type_name="ref", reference_entity="User"),
+                "author": FieldDefinition(
+                    name="author", type_name="ref", reference_entity="User"
+                ),
             },
         )
 
@@ -68,7 +70,9 @@ class TestSuccessResponseGenerator:
             table_views=TableViewConfig(mode=TableViewMode.DISABLE),
             fields={
                 "rating": FieldDefinition(name="rating", type_name="integer"),
-                "author": FieldDefinition(name="author", type_name="ref", reference_entity="User"),
+                "author": FieldDefinition(
+                    name="author", type_name="ref", reference_entity="User"
+                ),
             },
         )
 

@@ -24,7 +24,11 @@ def test_json_build_simple_object():
 
     assert action.steps[0].type == "json_build"
     assert action.steps[0].json_variable_name == "profile"
-    assert action.steps[0].json_object == {"name": "$name", "email": "$email", "age": "$age"}
+    assert action.steps[0].json_object == {
+        "name": "$name",
+        "email": "$email",
+        "age": "$age",
+    }
 
 
 def test_json_build_nested_object():
@@ -52,12 +56,9 @@ def test_json_build_nested_object():
     assert action.steps[0].type == "json_build"
     expected = {
         "id": "$order_id",
-        "customer": {
-            "name": "$customer_name",
-            "email": "$customer_email"
-        },
+        "customer": {"name": "$customer_name", "email": "$customer_email"},
         "items": "$line_items",
-        "total": "$total_amount"
+        "total": "$total_amount",
     }
     assert action.steps[0].json_object == expected
 
@@ -87,6 +88,6 @@ def test_json_build_with_expressions():
         "period": "$period",
         "total_sales": "SUM(sales.amount)",
         "average_order": "AVG(orders.total)",
-        "status": "completed"
+        "status": "completed",
     }
     assert action.steps[0].json_object == expected

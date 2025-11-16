@@ -20,9 +20,9 @@ class TestPatternComposition:
             implementation={
                 "fields": [
                     {"name": "created_at", "type": "timestamp", "default": "NOW()"},
-                    {"name": "created_by", "type": "uuid"}
+                    {"name": "created_by", "type": "uuid"},
                 ]
-            }
+            },
         )
 
         library.add_domain_pattern(
@@ -32,9 +32,13 @@ class TestPatternComposition:
             parameters={"entity": {"type": "string"}, "states": {"type": "array"}},
             implementation={
                 "fields": [
-                    {"name": "state", "type": "enum", "values": ["draft", "active", "inactive"]}
+                    {
+                        "name": "state",
+                        "type": "enum",
+                        "values": ["draft", "active", "inactive"],
+                    }
                 ]
-            }
+            },
         )
 
         library.add_domain_pattern(
@@ -46,7 +50,7 @@ class TestPatternComposition:
                 "fields": [
                     {"name": "deleted_at", "type": "timestamp", "nullable": True}
                 ]
-            }
+            },
         )
 
         # Compose
@@ -54,9 +58,15 @@ class TestPatternComposition:
             entity_name="Contact",
             patterns=[
                 {"pattern": "audit_trail", "params": {"entity": "Contact"}},
-                {"pattern": "state_machine", "params": {"entity": "Contact", "states": ["lead", "prospect", "customer"]}},
-                {"pattern": "soft_delete", "params": {"entity": "Contact"}}
-            ]
+                {
+                    "pattern": "state_machine",
+                    "params": {
+                        "entity": "Contact",
+                        "states": ["lead", "prospect", "customer"],
+                    },
+                },
+                {"pattern": "soft_delete", "params": {"entity": "Contact"}},
+            ],
         )
 
         assert result is not None
@@ -81,7 +91,7 @@ class TestPatternComposition:
             "actions": [],
             "triggers": [],
             "indexes": [],
-            "tables": []
+            "tables": [],
         }
 
     def test_compose_single_pattern(self):
@@ -95,13 +105,12 @@ class TestPatternComposition:
             parameters={},
             implementation={
                 "fields": [{"name": "test_field", "type": "text"}],
-                "actions": [{"name": "test_action", "steps": []}]
-            }
+                "actions": [{"name": "test_action", "steps": []}],
+            },
         )
 
         result = library.compose_patterns(
-            "TestEntity",
-            [{"pattern": "simple_pattern", "params": {}}]
+            "TestEntity", [{"pattern": "simple_pattern", "params": {}}]
         )
 
         assert result["entity"] == "TestEntity"
@@ -115,7 +124,9 @@ class TestPatternComposition:
         library = PatternLibrary(db_path=":memory:")
 
         with pytest.raises(ValueError, match="Domain pattern not found"):
-            library.compose_patterns("TestEntity", [{"pattern": "nonexistent", "params": {}}])
+            library.compose_patterns(
+                "TestEntity", [{"pattern": "nonexistent", "params": {}}]
+            )
 
     def test_compose_with_invalid_params(self):
         """Test composition with invalid pattern parameters"""
@@ -126,11 +137,13 @@ class TestPatternComposition:
             category="test",
             description="Pattern with required params",
             parameters={"required": {"type": "string", "required": True}},
-            implementation={"fields": []}
+            implementation={"fields": []},
         )
 
         with pytest.raises(ValueError, match="Required parameter missing"):
-            library.compose_patterns("TestEntity", [{"pattern": "strict_pattern", "params": {}}])
+            library.compose_patterns(
+                "TestEntity", [{"pattern": "strict_pattern", "params": {}}]
+            )
 
     def test_pattern_field_conflicts(self):
         """Test handling of conflicting field definitions"""
@@ -142,9 +155,7 @@ class TestPatternComposition:
             category="test",
             description="Pattern 1",
             parameters={},
-            implementation={
-                "fields": [{"name": "conflict_field", "type": "text"}]
-            }
+            implementation={"fields": [{"name": "conflict_field", "type": "text"}]},
         )
 
         library.add_domain_pattern(
@@ -152,9 +163,7 @@ class TestPatternComposition:
             category="test",
             description="Pattern 2",
             parameters={},
-            implementation={
-                "fields": [{"name": "conflict_field", "type": "integer"}]
-            }
+            implementation={"fields": [{"name": "conflict_field", "type": "integer"}]},
         )
 
         # This should either merge intelligently or raise an error
@@ -162,8 +171,8 @@ class TestPatternComposition:
             "TestEntity",
             [
                 {"pattern": "pattern1", "params": {}},
-                {"pattern": "pattern2", "params": {}}
-            ]
+                {"pattern": "pattern2", "params": {}},
+            ],
         )
 
         # For now, expect both fields (conflict resolution TBD in refactor phase)

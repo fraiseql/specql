@@ -1,10 +1,11 @@
 """Tests for pattern import functionality"""
+
 import pytest
 import yaml
 from src.cli.pattern_importer import PatternImporter
 from src.application.services.pattern_service import PatternService
 from src.infrastructure.repositories.in_memory_pattern_repository import (
-    InMemoryPatternRepository
+    InMemoryPatternRepository,
 )
 
 
@@ -22,7 +23,7 @@ def sample_export_file(tmp_path):
         "metadata": {
             "export_date": "2025-11-12T10:00:00",
             "total_patterns": 2,
-            "format_version": "1.0.0"
+            "format_version": "1.0.0",
         },
         "patterns": [
             {
@@ -32,7 +33,7 @@ def sample_export_file(tmp_path):
                 "parameters": {"test": "value"},
                 "implementation": {"sql": "Test implementation"},
                 "complexity_score": 3,
-                "source_type": "migrated"
+                "source_type": "migrated",
             },
             {
                 "name": "test_pattern_2",
@@ -41,9 +42,9 @@ def sample_export_file(tmp_path):
                 "parameters": {},
                 "implementation": {"sql": "Implementation 2"},
                 "complexity_score": 2,
-                "source_type": "migrated"
-            }
-        ]
+                "source_type": "migrated",
+            },
+        ],
     }
 
     export_file = tmp_path / "test_patterns.yaml"
@@ -111,10 +112,7 @@ class TestPatternImport:
         importer = PatternImporter(service)
 
         # Import with embedding generation
-        importer.import_from_yaml(
-            sample_export_file,
-            generate_embeddings=True
-        )
+        importer.import_from_yaml(sample_export_file, generate_embeddings=True)
 
         # Verify embeddings were generated
         pattern = service.get_pattern_by_name("test_pattern_1")

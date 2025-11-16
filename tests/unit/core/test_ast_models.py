@@ -29,7 +29,10 @@ def test_entity_definition():
     )
 
     email_field = FieldDefinition(
-        name="email", type_name="email", tier=FieldTier.SCALAR, scalar_def=SCALAR_TYPES["email"]
+        name="email",
+        type_name="email",
+        tier=FieldTier.SCALAR,
+        scalar_def=SCALAR_TYPES["email"],
     )
 
     entity.fields["email"] = email_field
@@ -85,7 +88,10 @@ def test_entity_definition_with_multiple_fields():
 
     # Scalar field
     price_field = FieldDefinition(
-        name="price", type_name="money", tier=FieldTier.SCALAR, scalar_def=SCALAR_TYPES["money"]
+        name="price",
+        type_name="money",
+        tier=FieldTier.SCALAR,
+        scalar_def=SCALAR_TYPES["money"],
     )
 
     entity.fields["name"] = name_field

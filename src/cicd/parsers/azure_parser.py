@@ -8,9 +8,13 @@ import yaml
 from typing import Dict, Any, List
 from src.cicd.universal_pipeline_schema import (
     UniversalPipeline,
-    Trigger, TriggerType,
-    Stage, Job, Step, StepType,
-    Runtime
+    Trigger,
+    TriggerType,
+    Stage,
+    Job,
+    Step,
+    StepType,
+    Runtime,
 )
 
 
@@ -33,7 +37,7 @@ class AzureParser:
             name="Azure Pipeline",
             triggers=self._parse_triggers(data),
             stages=self._parse_stages(data.get("stages", [])),
-            global_environment=data.get("variables", {})
+            global_environment=data.get("variables", {}),
         )
 
     def _parse_triggers(self, data: Dict[str, Any]) -> List[Trigger]:
@@ -51,10 +55,7 @@ class AzureParser:
                 branches = [trigger_config] if trigger_config else []
 
             if branches:
-                triggers.append(Trigger(
-                    type=TriggerType.PUSH,
-                    branches=branches
-                ))
+                triggers.append(Trigger(type=TriggerType.PUSH, branches=branches))
 
         # Parse schedule triggers
         if "schedules" in data:
@@ -62,11 +63,11 @@ class AzureParser:
                 cron_expr = schedule_config.get("cron")
                 branches = schedule_config.get("branches", {}).get("include", [])
 
-                triggers.append(Trigger(
-                    type=TriggerType.SCHEDULE,
-                    schedule=cron_expr,
-                    branches=branches
-                ))
+                triggers.append(
+                    Trigger(
+                        type=TriggerType.SCHEDULE, schedule=cron_expr, branches=branches
+                    )
+                )
 
         return triggers
 
@@ -89,11 +90,13 @@ class AzureParser:
                     if step:
                         steps.append(step)
 
-                jobs.append(Job(
-                    name=job_name,
-                    steps=steps,
-                    runtime=self._detect_runtime(job_config)
-                ))
+                jobs.append(
+                    Job(
+                        name=job_name,
+                        steps=steps,
+                        runtime=self._detect_runtime(job_config),
+                    )
+                )
 
             stages.append(Stage(name=stage_name, jobs=jobs))
 
@@ -105,9 +108,7 @@ class AzureParser:
             command = step_config["script"]
             step_type = self._detect_step_type(command)
             return Step(
-                name=f"Execute: {command[:30]}...",
-                type=step_type,
-                command=command
+                name=f"Execute: {command[:30]}...", type=step_type, command=command
             )
 
         return None

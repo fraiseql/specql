@@ -6,8 +6,8 @@ from src.generators.diagrams.graphviz_generator import GraphvizGenerator
 from src.generators.diagrams.mermaid_generator import MermaidGenerator
 from src.generators.diagrams.html_viewer_generator import HTMLViewerGenerator
 
-class TestDiagramGenerationE2E:
 
+class TestDiagramGenerationE2E:
     def test_full_diagram_workflow_crm_schema(self):
         """Test complete diagram generation workflow with CRM schema"""
         # Parse test entities
@@ -34,43 +34,35 @@ class TestDiagramGenerationE2E:
         # Test Graphviz generation
         graphviz_gen = GraphvizGenerator(extractor)
         dot_source = graphviz_gen.generate(
-            title="CRM Schema",
-            cluster_by_schema=True,
-            show_fields=True
+            title="CRM Schema", cluster_by_schema=True, show_fields=True
         )
 
-        assert 'digraph schema' in dot_source
-        assert 'Company' in dot_source
-        assert 'Contact' in dot_source
-        assert 'subgraph cluster_crm' in dot_source
+        assert "digraph schema" in dot_source
+        assert "Company" in dot_source
+        assert "Contact" in dot_source
+        assert "subgraph cluster_crm" in dot_source
 
         # Test Mermaid generation
         mermaid_gen = MermaidGenerator(extractor)
-        mermaid_source = mermaid_gen.generate(
-            title="CRM Schema",
-            show_fields=True
-        )
+        mermaid_source = mermaid_gen.generate(title="CRM Schema", show_fields=True)
 
-        assert '```mermaid' in mermaid_source
-        assert 'erDiagram' in mermaid_source
-        assert 'Company' in mermaid_source
-        assert 'Contact' in mermaid_source
+        assert "```mermaid" in mermaid_source
+        assert "erDiagram" in mermaid_source
+        assert "Company" in mermaid_source
+        assert "Contact" in mermaid_source
 
         # Test HTML generation
         # First generate SVG for embedding
-        svg_content = graphviz_gen.generate(format='svg')
+        svg_content = graphviz_gen.generate(format="svg")
 
         html_gen = HTMLViewerGenerator(extractor)
-        html_content = html_gen.generate(
-            svg_content=svg_content,
-            title="CRM Schema"
-        )
+        html_content = html_gen.generate(svg_content=svg_content, title="CRM Schema")
 
-        assert '<!DOCTYPE html>' in html_content
-        assert 'CRM Schema' in html_content
-        assert 'Company' in html_content
-        assert 'Contact' in html_content
-        assert 'const entities =' in html_content
+        assert "<!DOCTYPE html>" in html_content
+        assert "CRM Schema" in html_content
+        assert "Company" in html_content
+        assert "Contact" in html_content
+        assert "const entities =" in html_content
 
     def test_diagram_file_output(self):
         """Test that diagrams can be written to files"""
@@ -97,7 +89,7 @@ fields:
 
             assert dot_file.exists()
             content = dot_file.read_text()
-            assert 'digraph schema' in content
+            assert "digraph schema" in content
 
             # Test Mermaid output
             mermaid_gen = MermaidGenerator(extractor)
@@ -106,20 +98,17 @@ fields:
 
             assert mermaid_file.exists()
             content = mermaid_file.read_text()
-            assert '```mermaid' in content
+            assert "```mermaid" in content
 
             # Test HTML output
-            svg_content = graphviz_gen.generate(format='svg')
+            svg_content = graphviz_gen.generate(format="svg")
             html_gen = HTMLViewerGenerator(extractor)
             html_file = tmp_path / "test.html"
-            html_gen.generate(
-                svg_content=svg_content,
-                output_path=str(html_file)
-            )
+            html_gen.generate(svg_content=svg_content, output_path=str(html_file))
 
             assert html_file.exists()
             content = html_file.read_text()
-            assert '<!DOCTYPE html>' in content
+            assert "<!DOCTYPE html>" in content
 
     def test_relationship_statistics_accuracy(self):
         """Test that relationship statistics are accurate"""
@@ -144,7 +133,7 @@ schema: test
 fields:
   pk_grandchild: uuid
   child_id: ref(Child)
-""")
+"""),
         ]
 
         extractor = RelationshipExtractor()
@@ -152,9 +141,9 @@ fields:
 
         summary = extractor.get_relationship_summary()
 
-        assert summary['total_entities'] == 3
-        assert summary['total_relationships'] == 2
-        assert 'test' in summary['schemas']
+        assert summary["total_entities"] == 3
+        assert summary["total_relationships"] == 2
+        assert "test" in summary["schemas"]
 
     def test_complex_relationship_patterns(self):
         """Test handling of complex relationship patterns"""
@@ -181,7 +170,7 @@ fields:
   pk_comment: uuid
   post_id: ref(Post)
   author_id: ref(User)
-""")
+"""),
         ]
 
         extractor = RelationshipExtractor()
@@ -194,9 +183,9 @@ fields:
         mermaid_gen = MermaidGenerator(extractor)
         mermaid_source = mermaid_gen.generate()
 
-        assert 'Post ||--|| User' in mermaid_source
-        assert 'Comment ||--|| Post' in mermaid_source
-        assert 'Comment ||--|| User' in mermaid_source
+        assert "Post ||--|| User" in mermaid_source
+        assert "Comment ||--|| Post" in mermaid_source
+        assert "Comment ||--|| User" in mermaid_source
 
     def test_schema_clustering_visualization(self):
         """Test that schema clustering works in Graphviz output"""
@@ -221,7 +210,7 @@ fields:
   pk_contact: uuid
   company_id: ref(Company)
   user_id: ref(User)
-""")
+"""),
         ]
 
         extractor = RelationshipExtractor()
@@ -231,8 +220,8 @@ fields:
         dot_source = graphviz_gen.generate(cluster_by_schema=True)
 
         # Should have separate clusters
-        assert 'subgraph cluster_auth' in dot_source
-        assert 'subgraph cluster_crm' in dot_source
+        assert "subgraph cluster_auth" in dot_source
+        assert "subgraph cluster_crm" in dot_source
 
         # Cross-schema relationship should exist
-        assert 'Contact -> User' in dot_source or 'User -> Contact' in dot_source
+        assert "Contact -> User" in dot_source or "User -> Contact" in dot_source

@@ -3,7 +3,6 @@ Integration tests for cascade audit query functions
 """
 
 
-
 class TestCascadeAuditQueries:
     """Integration tests for cascade-aware audit query functions"""
 
@@ -154,7 +153,7 @@ class TestCascadeAuditQueries:
 
         test_db.execute(setup_sql)
 
-        tenant_uuid = 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee'
+        tenant_uuid = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee"
 
         # Test standard audit history (backward compatible)
         standard_result = test_db.execute(f"""
@@ -177,13 +176,25 @@ class TestCascadeAuditQueries:
         """).fetchall()
 
         assert len(cascade_result) == 1
-        audit_id, operation_type, changed_by, changed_at, old_values, new_values, change_reason, cascade_data, cascade_entities, cascade_source, affected_entity_count = cascade_result[0]
+        (
+            audit_id,
+            operation_type,
+            changed_by,
+            changed_at,
+            old_values,
+            new_values,
+            change_reason,
+            cascade_data,
+            cascade_entities,
+            cascade_source,
+            affected_entity_count,
+        ) = cascade_result[0]
 
         assert cascade_data is not None
-        assert 'updated' in cascade_data
-        assert len(cascade_data['updated']) == 2
-        assert cascade_entities == ['Post', 'User']
-        assert cascade_source == 'create_post'
+        assert "updated" in cascade_data
+        assert len(cascade_data["updated"]) == 2
+        assert cascade_entities == ["Post", "User"]
+        assert cascade_source == "create_post"
         assert affected_entity_count == 2
 
         # Test filtering by affected entity
@@ -217,9 +228,11 @@ class TestCascadeAuditQueries:
         """).fetchall()
 
         assert len(user_mutations) == 1
-        audit_id, primary_entity_id, mutation_name, changed_at, cascade_data = user_mutations[0]
-        assert str(primary_entity_id) == '11111111-1111-1111-1111-111111111111'
-        assert mutation_name == 'create_post'
+        audit_id, primary_entity_id, mutation_name, changed_at, cascade_data = (
+            user_mutations[0]
+        )
+        assert str(primary_entity_id) == "11111111-1111-1111-1111-111111111111"
+        assert mutation_name == "create_post"
 
         # Test mutations affecting Comment
         comment_mutations = test_db.execute(f"""
@@ -230,6 +243,8 @@ class TestCascadeAuditQueries:
         """).fetchall()
 
         assert len(comment_mutations) == 1
-        audit_id, primary_entity_id, mutation_name, changed_at, cascade_data = comment_mutations[0]
-        assert str(primary_entity_id) == '44444444-4444-4444-4444-444444444444'
-        assert mutation_name == 'update_post'
+        audit_id, primary_entity_id, mutation_name, changed_at, cascade_data = (
+            comment_mutations[0]
+        )
+        assert str(primary_entity_id) == "44444444-4444-4444-4444-444444444444"
+        assert mutation_name == "update_post"

@@ -28,7 +28,9 @@ from src.generators.schema.naming_conventions import NamingConventions
 class ForeignKeyResolver:
     """Resolves foreign key references for Tier 3 entity relationships using Trinity helpers"""
 
-    def __init__(self, naming_conventions: NamingConventions, tenant_var: str = "auth_tenant_id"):
+    def __init__(
+        self, naming_conventions: NamingConventions, tenant_var: str = "auth_tenant_id"
+    ):
         """
         Initialize with naming conventions and tenant variable name
 
@@ -40,7 +42,10 @@ class ForeignKeyResolver:
         self.tenant_var = tenant_var
 
     def resolve_fk_reference(
-        self, reference_expr: str, entity: EntityDefinition, uuid_var: str = "v_uuid_param"
+        self,
+        reference_expr: str,
+        entity: EntityDefinition,
+        uuid_var: str = "v_uuid_param",
     ) -> str:
         """
         Resolve a foreign key reference expression using Trinity helper
@@ -64,7 +69,9 @@ class ForeignKeyResolver:
             raise ValueError(f"Invalid reference expression: {reference_expr}")
 
         # Generate the FK resolution using Trinity helper
-        return self._generate_trinity_fk_resolution(target_entity, lookup_field, uuid_var)
+        return self._generate_trinity_fk_resolution(
+            target_entity, lookup_field, uuid_var
+        )
 
     def _parse_reference_expr(self, expr: str) -> tuple[str, str]:
         """
@@ -75,7 +82,9 @@ class ForeignKeyResolver:
         """
         # Expected format: ref(EntityName).field
         if not expr.startswith("ref(") or ")." not in expr:
-            raise ValueError(f"Invalid reference format: {expr}. Expected: ref(EntityName).field")
+            raise ValueError(
+                f"Invalid reference format: {expr}. Expected: ref(EntityName).field"
+            )
 
         try:
             # Extract entity name from ref(EntityName)
@@ -151,7 +160,10 @@ class ForeignKeyResolver:
         name_lower = entity_name.lower()
 
         # CRM/Management entities
-        if any(x in name_lower for x in ["contact", "company", "person", "account", "customer"]):
+        if any(
+            x in name_lower
+            for x in ["contact", "company", "person", "account", "customer"]
+        ):
             return "crm"
 
         # Catalog entities

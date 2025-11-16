@@ -29,8 +29,11 @@ def should_split_entity(entity: EntityDefinition) -> bool:
     business_fields = [
         field
         for field in entity.fields.values()
-        if not field.name.startswith(("id", "tenant_id", "created_at", "updated_at", "deleted_at"))
-        and field.name not in ("identifier", "sequence_number", "display_identifier", "path")
+        if not field.name.startswith(
+            ("id", "tenant_id", "created_at", "updated_at", "deleted_at")
+        )
+        and field.name
+        not in ("identifier", "sequence_number", "display_identifier", "path")
     ]
 
     field_count = len(business_fields)

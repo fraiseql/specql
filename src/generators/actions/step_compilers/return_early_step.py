@@ -8,7 +8,9 @@ from src.generators.actions.step_compilers.base import StepCompiler
 class ReturnEarlyStepCompiler(StepCompiler):
     """Compiles return_early steps to PL/pgSQL RETURN statement"""
 
-    def compile(self, step: ActionStep, entity: EntityDefinition, context: CompilationContext) -> str:
+    def compile(
+        self, step: ActionStep, entity: EntityDefinition, context: CompilationContext
+    ) -> str:
         """
         Compile early return to RETURN statement
 
@@ -31,8 +33,8 @@ class ReturnEarlyStepCompiler(StepCompiler):
     def _build_mutation_result(self, value: dict) -> str:
         """Build mutation_result return value"""
         return f"""RETURN ROW(
-    {value.get('success', 'false')}::BOOLEAN,
-    {value.get('message', "''")}::TEXT,
+    {value.get("success", "false")}::BOOLEAN,
+    {value.get("message", "''")}::TEXT,
     '{{}}'::JSONB,
     '{{}}'::JSONB
 )::app.mutation_result;"""

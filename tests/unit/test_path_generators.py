@@ -31,12 +31,20 @@ class TestWriteSidePathGenerator:
             code="012361",
             name="tb_contact",
             content="CREATE TABLE tb_contact (...);",
-            layer="write_side"
+            layer="write_side",
         )
 
         path = generator.generate_path(spec)
 
-        expected = Path("generated") / "0_schema" / "01_write_side" / "012_crm" / "0123_customer" / "01236_contact" / "012361_tb_contact.sql"
+        expected = (
+            Path("generated")
+            / "0_schema"
+            / "01_write_side"
+            / "012_crm"
+            / "0123_customer"
+            / "01236_contact"
+            / "012361_tb_contact.sql"
+        )
         assert path == expected
 
     def test_generate_path_invalid_layer(self):
@@ -47,10 +55,12 @@ class TestWriteSidePathGenerator:
             code="0220310",
             name="tv_contact",
             content="CREATE VIEW tv_contact AS ...;",
-            layer="read_side"
+            layer="read_side",
         )
 
-        with pytest.raises(ValueError, match="WriteSidePathGenerator can only handle write_side files"):
+        with pytest.raises(
+            ValueError, match="WriteSidePathGenerator can only handle write_side files"
+        ):
             generator.generate_path(spec)
 
     def test_generate_path_invalid_code_length(self):
@@ -61,7 +71,7 @@ class TestWriteSidePathGenerator:
             code="012361234",  # 9 digits instead of 6 or 7
             name="tb_contact",
             content="CREATE TABLE tb_contact (...);",
-            layer="write_side"
+            layer="write_side",
         )
 
         with pytest.raises(ValueError, match="Write-side code must be 6 or 7 digits"):
@@ -75,10 +85,12 @@ class TestWriteSidePathGenerator:
             code="022361",  # Schema layer 02 instead of 01
             name="tb_contact",
             content="CREATE TABLE tb_contact (...);",
-            layer="write_side"
+            layer="write_side",
         )
 
-        with pytest.raises(ValueError, match="Invalid schema layer '02' for write-side code"):
+        with pytest.raises(
+            ValueError, match="Invalid schema layer '02' for write-side code"
+        ):
             generator.generate_path(spec)
 
     def test_generate_path_unknown_domain(self):
@@ -89,7 +101,7 @@ class TestWriteSidePathGenerator:
             code="019361",  # Domain 9 doesn't exist
             name="tb_contact",
             content="CREATE TABLE tb_contact (...);",
-            layer="write_side"
+            layer="write_side",
         )
 
         with pytest.raises(ValueError, match="Unknown domain code: 9"):
@@ -103,7 +115,7 @@ class TestWriteSidePathGenerator:
             code="012961",  # Subdomain 9 doesn't exist in crm
             name="tb_contact",
             content="CREATE TABLE tb_contact (...);",
-            layer="write_side"
+            layer="write_side",
         )
 
         with pytest.raises(ValueError, match="Unknown subdomain code: 9 in domain 2"):
@@ -117,10 +129,12 @@ class TestWriteSidePathGenerator:
             code="012361",
             name="contact",  # Missing tb_ prefix
             content="CREATE TABLE tb_contact (...);",
-            layer="write_side"
+            layer="write_side",
         )
 
-        with pytest.raises(ValueError, match="Write-side file name should start with 'tb_'"):
+        with pytest.raises(
+            ValueError, match="Write-side file name should start with 'tb_'"
+        ):
             generator.generate_path(spec)
 
     def test_generate_path_write_side_7_digit(self):
@@ -131,13 +145,21 @@ class TestWriteSidePathGenerator:
             code="0123611",  # 7-digit code
             name="tb_contact",
             content="CREATE TABLE tb_contact (...);",
-            layer="write_side"
+            layer="write_side",
         )
 
         path = generator.generate_path(spec)
 
         # Should use the base 6 digits for path generation
-        expected = Path("generated") / "0_schema" / "01_write_side" / "012_crm" / "0123_customer" / "01236_contact" / "0123611_tb_contact.sql"
+        expected = (
+            Path("generated")
+            / "0_schema"
+            / "01_write_side"
+            / "012_crm"
+            / "0123_customer"
+            / "01236_contact"
+            / "0123611_tb_contact.sql"
+        )
         assert path == expected
 
     def test_generate_path_write_side_7_digit_audit(self):
@@ -148,13 +170,21 @@ class TestWriteSidePathGenerator:
             code="0123612",  # 7-digit code for audit table
             name="tb_contact_audit",
             content="CREATE TABLE tb_contact_audit (...);",
-            layer="write_side"
+            layer="write_side",
         )
 
         path = generator.generate_path(spec)
 
         # Should use the base 6 digits for path generation
-        expected = Path("generated") / "0_schema" / "01_write_side" / "012_crm" / "0123_customer" / "01236_contact" / "0123612_tb_contact_audit.sql"
+        expected = (
+            Path("generated")
+            / "0_schema"
+            / "01_write_side"
+            / "012_crm"
+            / "0123_customer"
+            / "01236_contact"
+            / "0123612_tb_contact_audit.sql"
+        )
         assert path == expected
 
 
@@ -164,42 +194,54 @@ class TestFunctionPathGenerator:
     def test_init(self):
         """Test initialization"""
         from src.generators.actions.function_path_generator import FunctionPathGenerator
+
         generator = FunctionPathGenerator()
         assert generator.base_dir == Path("generated")
 
     def test_init_custom_base_dir(self):
         """Test initialization with custom base directory"""
         from src.generators.actions.function_path_generator import FunctionPathGenerator
+
         generator = FunctionPathGenerator("custom")
         assert generator.base_dir == Path("custom")
 
     def test_generate_path_function(self):
         """Test generating path for function file"""
         from src.generators.actions.function_path_generator import FunctionPathGenerator
+
         generator = FunctionPathGenerator("generated")
 
         spec = FileSpec(
             code="0320311",
             name="fn_contact_create",
             content="CREATE OR REPLACE FUNCTION fn_contact_create(...) ...;",
-            layer="functions"
+            layer="functions",
         )
 
         path = generator.generate_path(spec)
 
-        expected = Path("generated") / "0_schema" / "03_functions" / "032_crm" / "0323_customer" / "03231_contact" / "0320311_fn_contact_create.sql"
+        expected = (
+            Path("generated")
+            / "0_schema"
+            / "03_functions"
+            / "032_crm"
+            / "0323_customer"
+            / "03231_contact"
+            / "0320311_fn_contact_create.sql"
+        )
         assert path == expected
 
     def test_generate_path_function_invalid_code_length(self):
         """Test error when function code is not 7 digits"""
         from src.generators.actions.function_path_generator import FunctionPathGenerator
+
         generator = FunctionPathGenerator()
 
         spec = FileSpec(
             code="032361",  # 6 digits instead of 7
             name="fn_contact_create",
             content="CREATE OR REPLACE FUNCTION fn_contact_create(...) ...;",
-            layer="functions"
+            layer="functions",
         )
 
         with pytest.raises(ValueError, match="Function code must be 7 digits"):
@@ -208,28 +250,32 @@ class TestFunctionPathGenerator:
     def test_generate_path_function_invalid_schema_layer(self):
         """Test error when schema layer is not 03"""
         from src.generators.actions.function_path_generator import FunctionPathGenerator
+
         generator = FunctionPathGenerator()
 
         spec = FileSpec(
             code="0123611",  # Schema layer 01 instead of 03
             name="fn_contact_create",
             content="CREATE OR REPLACE FUNCTION fn_contact_create(...) ...;",
-            layer="functions"
+            layer="functions",
         )
 
-        with pytest.raises(ValueError, match="Invalid schema layer '01' for function code"):
+        with pytest.raises(
+            ValueError, match="Invalid schema layer '01' for function code"
+        ):
             generator.generate_path(spec)
 
     def test_generate_path_function_unknown_domain(self):
         """Test error when domain code is unknown"""
         from src.generators.actions.function_path_generator import FunctionPathGenerator
+
         generator = FunctionPathGenerator()
 
         spec = FileSpec(
             code="0393611",  # Domain 9 doesn't exist
             name="fn_contact_create",
             content="CREATE OR REPLACE FUNCTION fn_contact_create(...) ...;",
-            layer="functions"
+            layer="functions",
         )
 
         with pytest.raises(ValueError, match="Unknown domain code: 9"):
@@ -238,16 +284,19 @@ class TestFunctionPathGenerator:
     def test_generate_path_function_invalid_filename_format(self):
         """Test error when filename doesn't start with fn_"""
         from src.generators.actions.function_path_generator import FunctionPathGenerator
+
         generator = FunctionPathGenerator()
 
         spec = FileSpec(
             code="0320311",  # Valid code
             name="contact_create",  # Missing fn_ prefix
             content="CREATE OR REPLACE FUNCTION fn_contact_create(...) ...;",
-            layer="functions"
+            layer="functions",
         )
 
-        with pytest.raises(ValueError, match="Function file name should start with 'fn_'"):
+        with pytest.raises(
+            ValueError, match="Function file name should start with 'fn_'"
+        ):
             generator.generate_path(spec)
 
 
@@ -272,12 +321,19 @@ class TestReadSidePathGenerator:
             code="0220310",
             name="tv_contact",
             content="CREATE VIEW tv_contact AS SELECT * FROM tb_contact;",
-            layer="read_side"
+            layer="read_side",
         )
 
         path = generator.generate_path(spec)
 
-        expected = Path("generated") / "0_schema" / "02_query_side" / "022_crm" / "0223_customer" / "0220310_tv_contact.sql"
+        expected = (
+            Path("generated")
+            / "0_schema"
+            / "02_query_side"
+            / "022_crm"
+            / "0223_customer"
+            / "0220310_tv_contact.sql"
+        )
         assert path == expected
 
     def test_generate_path_invalid_layer(self):
@@ -288,10 +344,12 @@ class TestReadSidePathGenerator:
             code="012361",
             name="tb_contact",
             content="CREATE TABLE tb_contact (...);",
-            layer="write_side"
+            layer="write_side",
         )
 
-        with pytest.raises(ValueError, match="ReadSidePathGenerator can only handle read_side files"):
+        with pytest.raises(
+            ValueError, match="ReadSidePathGenerator can only handle read_side files"
+        ):
             generator.generate_path(spec)
 
     def test_generate_path_empty_name(self):
@@ -302,7 +360,7 @@ class TestReadSidePathGenerator:
             code="0220310",
             name="",  # Empty name
             content="CREATE VIEW tv_contact AS ...;",
-            layer="read_side"
+            layer="read_side",
         )
 
         with pytest.raises(ValueError, match="view_name cannot be empty"):
@@ -316,7 +374,7 @@ class TestReadSidePathGenerator:
             code="022031",  # 6 digits instead of 7
             name="tv_contact",
             content="CREATE VIEW tv_contact AS ...;",
-            layer="read_side"
+            layer="read_side",
         )
 
         with pytest.raises(ValueError, match="Invalid code length: 6"):

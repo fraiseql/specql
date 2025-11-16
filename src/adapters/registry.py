@@ -26,7 +26,9 @@ class AdapterRegistry:
 
         self._adapters[framework_name] = adapter_class
 
-    def get_adapter(self, framework_name: str, config: Optional[Dict] = None) -> FrameworkAdapter:
+    def get_adapter(
+        self, framework_name: str, config: Optional[Dict] = None
+    ) -> FrameworkAdapter:
         """Get adapter instance by framework name"""
         if framework_name not in self._adapters:
             raise ValueError(f"Unknown framework: {framework_name}")

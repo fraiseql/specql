@@ -4,6 +4,7 @@ import pytest
 from src.generators.schema.vector_generator import VectorGenerator
 from src.core.ast_models import EntityDefinition
 
+
 class TestSearchFunctionConfiguration:
     """Test that search function generation is optional"""
 

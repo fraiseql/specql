@@ -1,4 +1,5 @@
 """Application Service for Domain operations"""
+
 from typing import List, Optional
 from src.domain.repositories.domain_repository import DomainRepository
 from src.domain.entities.domain import Domain, Subdomain
@@ -7,7 +8,7 @@ from src.application.dtos.domain_dto import DomainDTO, SubdomainDTO
 from src.application.exceptions import (
     DomainAlreadyExistsError,
     DomainNotFoundError,
-    SubdomainAlreadyExistsError
+    SubdomainAlreadyExistsError,
 )
 
 
@@ -22,10 +23,7 @@ class DomainService:
         self.repository = repository
 
     def register_domain(
-        self,
-        domain_number: str,
-        domain_name: str,
-        schema_type: str
+        self, domain_number: str, domain_name: str, schema_type: str
     ) -> DomainDTO:
         """
         Register a new domain.
@@ -65,7 +63,7 @@ class DomainService:
             domain_name=domain_name,
             description=None,  # Will be set later if needed
             multi_tenant=multi_tenant,
-            aliases=[]
+            aliases=[],
         )
 
         # Persist
@@ -77,13 +75,10 @@ class DomainService:
             domain_name=domain.domain_name,
             schema_type=schema_type,
             identifier=f"D{domain.domain_number.value}",
-            pk_domain=None  # In-memory doesn't have PKs
+            pk_domain=None,  # In-memory doesn't have PKs
         )
 
-    def list_domains(
-        self,
-        schema_type: Optional[str] = None
-    ) -> List[DomainDTO]:
+    def list_domains(self, schema_type: Optional[str] = None) -> List[DomainDTO]:
         """
         List all domains, optionally filtered by schema_type.
 
@@ -106,15 +101,12 @@ class DomainService:
                 domain_name=d.domain_name,
                 schema_type="multi_tenant" if d.multi_tenant else "framework",
                 identifier=f"D{d.domain_number.value}",
-                pk_domain=None
+                pk_domain=None,
             )
             for d in domains
         ]
 
-    def get_domain(
-        self,
-        domain_number: str
-    ) -> DomainDTO:
+    def get_domain(self, domain_number: str) -> DomainDTO:
         """
         Get domain by number.
 
@@ -140,14 +132,11 @@ class DomainService:
             domain_name=domain.domain_name,
             schema_type="multi_tenant" if domain.multi_tenant else "framework",
             identifier=f"D{domain.domain_number.value}",
-            pk_domain=None
+            pk_domain=None,
         )
 
     def register_subdomain(
-        self,
-        parent_domain_number: str,
-        subdomain_number: str,
-        subdomain_name: str
+        self, parent_domain_number: str, subdomain_number: str, subdomain_name: str
     ) -> SubdomainDTO:
         """
         Register a new subdomain under a parent domain.
@@ -186,13 +175,15 @@ class DomainService:
 
         # Check uniqueness within domain
         if subdomain_number in parent_domain.subdomains:
-            raise SubdomainAlreadyExistsError(parent_domain_number, subdomain_number[-1])
+            raise SubdomainAlreadyExistsError(
+                parent_domain_number, subdomain_number[-1]
+            )
 
         # Create subdomain aggregate
         subdomain = Subdomain(
             subdomain_number=subdomain_number,
             subdomain_name=subdomain_name,
-            description=None  # Will be set later if needed
+            description=None,  # Will be set later if needed
         )
 
         # Add to parent domain
@@ -207,12 +198,11 @@ class DomainService:
             subdomain_name=subdomain_name,
             parent_domain_number=parent_domain_number,
             identifier=f"D{parent_domain_number}S{subdomain_number[-1]}",
-            pk_subdomain=None  # In-memory doesn't have PKs
+            pk_subdomain=None,  # In-memory doesn't have PKs
         )
 
     def list_subdomains(
-        self,
-        parent_domain_number: Optional[str] = None
+        self, parent_domain_number: Optional[str] = None
     ) -> List[SubdomainDTO]:
         """
         List all subdomains, optionally filtered by parent domain.
@@ -250,7 +240,7 @@ class DomainService:
                 subdomain_name=subdomain.subdomain_name,
                 parent_domain_number=parent_num or subdomain.parent_domain_number,
                 identifier=f"D{subdomain.parent_domain_number}S{subdomain.subdomain_number[-1]}",
-                pk_subdomain=None
+                pk_subdomain=None,
             )
             for subdomain in subdomains
         ]
@@ -260,5 +250,5 @@ class DomainService:
             domain_name=domain.domain_name,
             schema_type="multi_tenant" if domain.multi_tenant else "framework",
             identifier=f"D{domain.domain_number.value}",
-            pk_domain=None
+            pk_domain=None,
         )

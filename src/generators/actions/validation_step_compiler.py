@@ -83,7 +83,9 @@ class ExpressionParser:
             if validation:
                 return validation
             else:
-                raise ValueError(f"No validation defined for rich type field: {field_name}")
+                raise ValueError(
+                    f"No validation defined for rich type field: {field_name}"
+                )
         return expr
 
     def _replace_identifiers(self, expr: str, in_exists_where: bool) -> str:

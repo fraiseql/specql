@@ -60,7 +60,7 @@ class OutboxEventCompiler:
                 return f"{entity.name}Deleted"
 
         # Fallback: PascalCase action name
-        return ''.join(word.capitalize() for word in action.name.split('_'))
+        return "".join(word.capitalize() for word in action.name.split("_"))
 
     def _build_event_payload(
         self, action: Action, entity: Entity, cdc: CDCConfig
@@ -81,7 +81,8 @@ class OutboxEventCompiler:
         parts = ["'{}'::jsonb"]
 
         if cdc.include_cascade and action.impact:
-            parts = [f"""jsonb_build_object(
+            parts = [
+                f"""jsonb_build_object(
                 'cascade', v_cascade_data,
                 'mutation', '{action.name}',
                 'affectedEntities', ARRAY(
@@ -89,7 +90,8 @@ class OutboxEventCompiler:
                         v_cascade_data->'updated'
                     )->>'__typename'
                 )
-            )"""]
+            )"""
+            ]
 
         return parts[0]
 

@@ -40,17 +40,17 @@ def test_variable_purpose_inference():
     enhanced_result = enhancer.enhance(result)
 
     # Check variable purposes were inferred
-    assert 'variable_purposes' in enhanced_result.metadata
-    purposes = enhanced_result.metadata['variable_purposes']
+    assert "variable_purposes" in enhanced_result.metadata
+    purposes = enhanced_result.metadata["variable_purposes"]
 
-    assert 'v_total' in purposes
-    assert purposes['v_total'] == 'total'
+    assert "v_total" in purposes
+    assert purposes["v_total"] == "total"
 
-    assert 'v_count' in purposes
-    assert purposes['v_count'] == 'count'
+    assert "v_count" in purposes
+    assert purposes["v_count"] == "count"
 
-    assert 'v_is_valid' in purposes
-    assert purposes['v_is_valid'] == 'flag'
+    assert "v_is_valid" in purposes
+    assert purposes["v_is_valid"] == "flag"
 
     # Confidence should be improved
     assert enhanced_result.confidence > result.confidence
@@ -95,9 +95,9 @@ def test_state_machine_pattern_detection():
     enhanced_result = enhancer.enhance(result)
 
     # Should detect state machine pattern
-    assert 'detected_patterns' in enhanced_result.metadata
-    patterns = enhanced_result.metadata['detected_patterns']
-    assert 'state_machine' in patterns
+    assert "detected_patterns" in enhanced_result.metadata
+    patterns = enhanced_result.metadata["detected_patterns"]
+    assert "state_machine" in patterns
 
 
 def test_audit_trail_pattern_detection():
@@ -130,9 +130,9 @@ def test_audit_trail_pattern_detection():
     enhanced_result = enhancer.enhance(result)
 
     # Should detect audit trail pattern
-    assert 'detected_patterns' in enhanced_result.metadata
-    patterns = enhanced_result.metadata['detected_patterns']
-    assert 'audit_trail' in patterns
+    assert "detected_patterns" in enhanced_result.metadata
+    patterns = enhanced_result.metadata["detected_patterns"]
+    assert "audit_trail" in patterns
 
 
 def test_soft_delete_pattern_detection():
@@ -158,9 +158,9 @@ def test_soft_delete_pattern_detection():
     enhanced_result = enhancer.enhance(result)
 
     # Should detect soft delete pattern
-    assert 'detected_patterns' in enhanced_result.metadata
-    patterns = enhanced_result.metadata['detected_patterns']
-    assert 'soft_delete' in patterns
+    assert "detected_patterns" in enhanced_result.metadata
+    patterns = enhanced_result.metadata["detected_patterns"]
+    assert "soft_delete" in patterns
 
 
 def test_validation_chain_pattern_detection():
@@ -218,9 +218,9 @@ def test_validation_chain_pattern_detection():
     enhanced_result = enhancer.enhance(result)
 
     # Should detect validation chain pattern
-    assert 'detected_patterns' in enhanced_result.metadata
-    patterns = enhanced_result.metadata['detected_patterns']
-    assert 'validation_chain' in patterns
+    assert "detected_patterns" in enhanced_result.metadata
+    patterns = enhanced_result.metadata["detected_patterns"]
+    assert "validation_chain" in patterns
 
 
 def test_naming_improvements():
@@ -253,7 +253,10 @@ def test_naming_improvements():
     assert enhanced_result.confidence >= result.confidence
 
     # Check that patterns were detected
-    assert 'detected_patterns' in enhanced_result.metadata or 'variable_purposes' in enhanced_result.metadata
+    assert (
+        "detected_patterns" in enhanced_result.metadata
+        or "variable_purposes" in enhanced_result.metadata
+    )
 
 
 def test_confidence_improvement():

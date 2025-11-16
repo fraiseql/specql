@@ -20,7 +20,7 @@ class TestPatternDiscovery:
         """Set up test database connection."""
         # This would need actual PostgreSQL test setup
         # For now, we'll mock or skip if no DB
-        conn_string = os.getenv('SPECQL_DB_URL')
+        conn_string = os.getenv("SPECQL_DB_URL")
         if not conn_string:
             pytest.skip("SPECQL_DB_URL not set - skipping database tests")
         return conn_string
@@ -80,9 +80,7 @@ class TestPatternDiscovery:
         from src.reverse_engineering.algorithmic_parser import AlgorithmicParser
 
         parser = AlgorithmicParser(
-            use_heuristics=True,
-            use_ai=True,
-            enable_pattern_discovery=True
+            use_heuristics=True, use_ai=True, enable_pattern_discovery=True
         )
 
         result = parser.parse(sql)
@@ -94,9 +92,9 @@ class TestPatternDiscovery:
 
         # Check if pattern discovery was attempted
         # (This would create suggestions in the database)
-        assert hasattr(result, 'metadata')
-        if 'discovered_patterns' in result.metadata:
-            patterns = result.metadata['discovered_patterns']
+        assert hasattr(result, "metadata")
+        if "discovered_patterns" in result.metadata:
+            patterns = result.metadata["discovered_patterns"]
             assert isinstance(patterns, list)
 
     def test_suggestion_service_operations(self, db_connection):
@@ -113,13 +111,13 @@ class TestPatternDiscovery:
                 description="Multi-step approval workflow with audit logging",
                 parameters={
                     "entity": {"type": "string", "required": True},
-                    "approvals_required": {"type": "integer", "default": 2}
+                    "approvals_required": {"type": "integer", "default": 2},
                 },
                 implementation={
                     "fields": [
                         {"name": "status", "type": "enum(pending,approved,rejected)"},
                         {"name": "approved_at", "type": "timestamp"},
-                        {"name": "approved_by", "type": "ref(User)"}
+                        {"name": "approved_by", "type": "ref(User)"},
                     ],
                     "actions": [
                         {
@@ -127,18 +125,22 @@ class TestPatternDiscovery:
                             "steps": [
                                 {"validate": "status == 'pending'"},
                                 {"update": "increment approval_count"},
-                                {"condition": "approval_count >= approvals_required",
-                                 "then": [
-                                     {"update": "status = 'approved', approved_at = now()"},
-                                     {"log": "Document approved"}
-                                 ]}
-                            ]
+                                {
+                                    "condition": "approval_count >= approvals_required",
+                                    "then": [
+                                        {
+                                            "update": "status = 'approved', approved_at = now()"
+                                        },
+                                        {"log": "Document approved"},
+                                    ],
+                                },
+                            ],
                         }
-                    ]
+                    ],
                 },
                 source_type="test",
                 complexity_score=0.8,
-                confidence_score=0.9
+                confidence_score=0.9,
             )
 
             assert suggestion_id is not None
@@ -146,13 +148,13 @@ class TestPatternDiscovery:
             # Test retrieval
             suggestion = service.get_suggestion(suggestion_id)
             assert suggestion is not None
-            assert suggestion['name'] == "test_approval_workflow"
-            assert suggestion['status'] == 'pending'
+            assert suggestion["name"] == "test_approval_workflow"
+            assert suggestion["status"] == "pending"
 
             # Test listing
             pending = service.list_pending()
             assert len(pending) >= 1
-            found = any(s['id'] == suggestion_id for s in pending)
+            found = any(s["id"] == suggestion_id for s in pending)
             assert found
 
             # Test approval
@@ -161,8 +163,8 @@ class TestPatternDiscovery:
 
             # Verify suggestion was approved
             suggestion = service.get_suggestion(suggestion_id)
-            assert suggestion['status'] == 'approved'
-            assert suggestion['reviewed_by'] == 'test_user'
+            assert suggestion["status"] == "approved"
+            assert suggestion["reviewed_by"] == "test_user"
 
         finally:
             service.close()
@@ -186,7 +188,7 @@ class TestPatternDiscovery:
                     description=f"Test pattern {i} for CLI testing",
                     source_type="test",
                     complexity_score=0.5 + i * 0.1,
-                    confidence_score=0.7 + i * 0.1
+                    confidence_score=0.7 + i * 0.1,
                 )
                 ids.append(suggestion_id)
 
@@ -204,9 +206,9 @@ class TestPatternDiscovery:
 
             # Verify final state
             stats = service.get_stats()
-            assert stats['approved'] >= 1
-            assert stats['rejected'] >= 1
-            assert stats['pending'] >= 1
+            assert stats["approved"] >= 1
+            assert stats["rejected"] >= 1
+            assert stats["pending"] >= 1
 
         finally:
             service.close()
@@ -241,7 +243,7 @@ class TestPatternDiscovery:
 
         # Test simple SQL
         simple_sql = "SELECT * FROM users WHERE id = 1;"
-        result = type('MockResult', (), {'steps': [1, 2, 3]})()  # Mock result
+        result = type("MockResult", (), {"steps": [1, 2, 3]})()  # Mock result
         score = enhancer._calculate_complexity_score(result, simple_sql)
         assert score < 0.5  # Should be low complexity
 

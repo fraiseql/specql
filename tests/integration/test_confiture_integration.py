@@ -59,7 +59,9 @@ class TestConfitureIntegration:
 
         # Now test Confiture build
         result = subprocess.run(
-            ["uv", "run", "confiture", "build", "--env", "local"], capture_output=True, text=True
+            ["uv", "run", "confiture", "build", "--env", "local"],
+            capture_output=True,
+            text=True,
         )
 
         assert result.returncode == 0
@@ -112,7 +114,9 @@ class TestConfitureIntegration:
 
         # Build with Confiture
         result = subprocess.run(
-            ["uv", "run", "confiture", "build", "--env", "local"], capture_output=True, text=True
+            ["uv", "run", "confiture", "build", "--env", "local"],
+            capture_output=True,
+            text=True,
         )
 
         assert result.returncode == 0
@@ -144,7 +148,9 @@ class TestConfitureIntegration:
 
         # Build for local
         result = subprocess.run(
-            ["uv", "run", "confiture", "build", "--env", "local"], capture_output=True, text=True
+            ["uv", "run", "confiture", "build", "--env", "local"],
+            capture_output=True,
+            text=True,
         )
 
         assert result.returncode == 0
@@ -259,7 +265,13 @@ class TestConfitureIntegration:
 
         try:
             result = subprocess.run(
-                ["python", "-m", "src.cli.confiture_extensions", "generate", invalid_file],
+                [
+                    "python",
+                    "-m",
+                    "src.cli.confiture_extensions",
+                    "generate",
+                    invalid_file,
+                ],
                 capture_output=True,
                 text=True,
             )

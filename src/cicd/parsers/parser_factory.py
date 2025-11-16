@@ -44,11 +44,19 @@ class ParserFactory:
         return parser.parse(content)
 
     @staticmethod
-    def _detect_from_content(content: str) -> Union[GitHubActionsParser, GitLabCIParser, CircleCIParser, JenkinsParser, AzureParser]:
+    def _detect_from_content(
+        content: str,
+    ) -> Union[
+        GitHubActionsParser, GitLabCIParser, CircleCIParser, JenkinsParser, AzureParser
+    ]:
         """Detect platform from YAML content"""
         if "jobs:" in content and "runs-on:" in content:
             return GitHubActionsParser()
-        elif "stages:" in content and "script:" in content and ("pool:" in content or "trigger:" in content):
+        elif (
+            "stages:" in content
+            and "script:" in content
+            and ("pool:" in content or "trigger:" in content)
+        ):
             return AzureParser()
         elif "stages:" in content and "script:" in content:
             return GitLabCIParser()

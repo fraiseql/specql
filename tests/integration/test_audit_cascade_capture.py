@@ -127,10 +127,10 @@ class TestAuditCascadeCapture:
         assert audit is not None
         cascade_data, cascade_entities, cascade_source = audit
         assert cascade_data is not None
-        assert 'updated' in cascade_data
-        assert len(cascade_data['updated']) == 2
-        assert cascade_entities == ['Post', 'User']
-        assert cascade_source == 'create_post'
+        assert "updated" in cascade_data
+        assert len(cascade_data["updated"]) == 2
+        assert cascade_entities == ["Post", "User"]
+        assert cascade_source == "create_post"
 
     def test_audit_without_cascade_session_vars(self, test_db):
         """Test audit works normally when cascade session vars are not set"""
@@ -193,5 +193,5 @@ class TestAuditCascadeCapture:
         assert audit is not None
         # audit_id, entity_id, tenant_id, operation_type, new_values
         assert str(audit[1]) == str(comment_id)  # entity_id
-        assert audit[3] == 'INSERT'  # operation_type
+        assert audit[3] == "INSERT"  # operation_type
         # No cascade columns should exist in this table

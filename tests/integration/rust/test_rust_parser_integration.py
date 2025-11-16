@@ -38,9 +38,14 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
-                self.parser.parse_file(Path(temp_path))
-            )
+            (
+                structs,
+                enums,
+                diesel_tables,
+                diesel_derives,
+                impl_blocks,
+                route_handlers,
+            ) = self.parser.parse_file(Path(temp_path))
             assert len(structs) == 1
             assert len(diesel_tables) == 0  # No diesel tables in this test
 
@@ -94,9 +99,14 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
-                self.parser.parse_file(Path(temp_path))
-            )
+            (
+                structs,
+                enums,
+                diesel_tables,
+                diesel_derives,
+                impl_blocks,
+                route_handlers,
+            ) = self.parser.parse_file(Path(temp_path))
 
             # Should have no structs but 2 diesel tables
             assert len(structs) == 0
@@ -184,9 +194,14 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
-                self.parser.parse_file(Path(temp_path))
-            )
+            (
+                structs,
+                enums,
+                diesel_tables,
+                diesel_derives,
+                impl_blocks,
+                route_handlers,
+            ) = self.parser.parse_file(Path(temp_path))
             assert len(structs) == 1
             assert len(diesel_tables) == 0
 
@@ -243,9 +258,14 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
-                self.parser.parse_file(Path(temp_path))
-            )
+            (
+                structs,
+                enums,
+                diesel_tables,
+                diesel_derives,
+                impl_blocks,
+                route_handlers,
+            ) = self.parser.parse_file(Path(temp_path))
             assert len(structs) == 1
             assert len(diesel_tables) == 0
 
@@ -326,9 +346,14 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
-                self.parser.parse_file(Path(temp_path))
-            )
+            (
+                structs,
+                enums,
+                diesel_tables,
+                diesel_derives,
+                impl_blocks,
+                route_handlers,
+            ) = self.parser.parse_file(Path(temp_path))
             assert len(structs) == 0
             assert len(diesel_tables) == 0
         finally:
@@ -452,9 +477,14 @@ class TestRustParserIntegration:
             temp_path = f.name
 
         try:
-            structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
-                self.parser.parse_file(Path(temp_path))
-            )
+            (
+                structs,
+                enums,
+                diesel_tables,
+                diesel_derives,
+                impl_blocks,
+                route_handlers,
+            ) = self.parser.parse_file(Path(temp_path))
             assert len(structs) == 0
             assert len(diesel_tables) == 0
         finally:

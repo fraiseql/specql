@@ -1,4 +1,5 @@
 """EntityTemplate aggregate for reusable entity patterns"""
+
 from dataclasses import dataclass, field
 from typing import List, Dict, Optional, Any
 from datetime import datetime, timezone
@@ -8,6 +9,7 @@ from src.domain.value_objects import DomainNumber, TableCode
 @dataclass
 class TemplateField:
     """A field definition in a template"""
+
     field_name: str
     field_type: str  # text, integer, ref, enum, composite, etc.
     required: bool = False
@@ -21,18 +23,21 @@ class TemplateField:
     def __post_init__(self):
         """Validate field configuration"""
         if self.field_type == "composite" and not self.composite_type:
-            raise ValueError(f"Field {self.field_name}: composite type must specify composite_type")
+            raise ValueError(
+                f"Field {self.field_name}: composite type must specify composite_type"
+            )
         if self.field_type == "ref" and not self.ref_entity:
-            raise ValueError(f"Field {self.field_name}: ref type must specify ref_entity")
+            raise ValueError(
+                f"Field {self.field_name}: ref type must specify ref_entity"
+            )
         if self.field_type == "enum" and not self.enum_values:
-            raise ValueError(f"Field {self.field_name}: enum type must specify enum_values")
+            raise ValueError(
+                f"Field {self.field_name}: enum type must specify enum_values"
+            )
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary for serialization"""
-        result = {
-            "type": self.field_type,
-            "required": self.required
-        }
+        result = {"type": self.field_type, "required": self.required}
         if self.description:
             result["description"] = self.description
         if self.composite_type:
@@ -56,6 +61,7 @@ class EntityTemplate:
     EntityTemplate defines a reusable pattern for creating entities with
     common field structures, patterns, and behaviors.
     """
+
     template_id: str  # Unique identifier (e.g., "tpl_contact")
     template_name: str
     description: str
@@ -81,13 +87,17 @@ class EntityTemplate:
         """Validate template invariants"""
         # Must have at least one field
         if not self.fields:
-            raise ValueError(f"Template {self.template_id} must have at least one field")
+            raise ValueError(
+                f"Template {self.template_id} must have at least one field"
+            )
 
         # No duplicate field names
         field_names = [f.field_name for f in self.fields]
         if len(field_names) != len(set(field_names)):
             duplicates = [name for name in field_names if field_names.count(name) > 1]
-            raise ValueError(f"Duplicate field name in template {self.template_id}: {duplicates[0]}")
+            raise ValueError(
+                f"Duplicate field name in template {self.template_id}: {duplicates[0]}"
+            )
 
         # Validate template_id format
         if not self.template_id.startswith("tpl_"):
@@ -99,7 +109,7 @@ class EntityTemplate:
         removed_fields: Optional[List[str]] = None,
         modified_fields: Optional[Dict[str, TemplateField]] = None,
         version: str = "",
-        changelog: str = ""
+        changelog: str = "",
     ) -> "EntityTemplate":
         """Create a new version of this template"""
         import copy
@@ -136,7 +146,7 @@ class EntityTemplate:
             changelog=changelog,
             times_instantiated=self.times_instantiated,
             is_public=self.is_public,
-            author=self.author
+            author=self.author,
         )
 
     def _increment_version(self) -> str:
@@ -160,13 +170,14 @@ class EntityTemplate:
             "changelog": self.changelog,
             "times_instantiated": self.times_instantiated,
             "is_public": self.is_public,
-            "author": self.author
+            "author": self.author,
         }
 
 
 @dataclass
 class TemplateComposition:
     """Composes multiple templates together"""
+
     base_templates: List[EntityTemplate]
     extending_template: EntityTemplate
 
@@ -202,13 +213,14 @@ class TemplateComposition:
             composed_from=[t.template_id for t in self.base_templates],
             version=self.extending_template.version,
             is_public=self.extending_template.is_public,
-            author=self.extending_template.author
+            author=self.extending_template.author,
         )
 
 
 @dataclass
 class TemplateInstantiation:
     """Instantiates a template to create an entity specification"""
+
     template: EntityTemplate
     entity_name: str
     subdomain_number: str
@@ -253,7 +265,7 @@ class TemplateInstantiation:
             "schema": str(self.template.domain_number.value),
             "table_code": str(self.table_code.value),
             "description": f"Generated from template: {self.template.template_name}",
-            "fields": fields
+            "fields": fields,
         }
 
         if patterns:

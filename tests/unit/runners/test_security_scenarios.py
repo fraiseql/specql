@@ -392,7 +392,7 @@ class TestConfigurationTamperingPrevention:
         # Should validate and reject malicious config
         result = await runner.validate_config(malicious_config)
         # Config is still valid since we only check base_url
-        assert result  is True
+        assert result is True
 
         # But the malicious parts should be ignored during execution
         job = JobRecord(
@@ -427,7 +427,7 @@ class TestConfigurationTamperingPrevention:
             result = await fresh_runner.execute(job, context)
 
             # Should execute safely despite malicious config
-            assert result.success  is True
+            assert result.success is True
             assert result.output_data == {"data": "safe"}
 
     @pytest.mark.asyncio

@@ -57,7 +57,9 @@ class ParameterGenerator:
 
     def _requires_entity_id(self, action: Action) -> bool:
         """Check if action operates on existing entity"""
-        return any(step.type in ("update", "delete", "validate") for step in action.steps)
+        return any(
+            step.type in ("update", "delete", "validate") for step in action.steps
+        )
 
     def _map_specql_type(self, specql_type: str) -> str:
         """Map SpecQL types to PostgreSQL types"""

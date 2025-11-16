@@ -659,7 +659,9 @@ COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
             "street": CompositeFieldDef(
                 "street", "text", nullable=False, description="Street address"
             ),
-            "city": CompositeFieldDef("city", "text", nullable=False, description="City name"),
+            "city": CompositeFieldDef(
+                "city", "text", nullable=False, description="City name"
+            ),
             "state": CompositeFieldDef(
                 "state", "text", nullable=False, description="State or province"
             ),
@@ -680,7 +682,10 @@ COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
                 "amount", "money", nullable=False, description="Monetary amount"
             ),
             "currency": CompositeFieldDef(
-                "currency", "text", nullable=False, description="Currency code (ISO 4217)"
+                "currency",
+                "text",
+                nullable=False,
+                description="Currency code (ISO 4217)",
             ),
         },
     ),
@@ -696,13 +701,19 @@ COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
                 "lastName", "text", nullable=False, description="Last name"
             ),
             "middleName": CompositeFieldDef(
-                "middleName", "text", nullable=True, description="Middle name or initial"
+                "middleName",
+                "text",
+                nullable=True,
+                description="Middle name or initial",
             ),
             "title": CompositeFieldDef(
                 "title", "text", nullable=True, description="Title (Mr, Mrs, Dr, etc.)"
             ),
             "suffix": CompositeFieldDef(
-                "suffix", "text", nullable=True, description="Suffix (Jr, Sr, III, etc.)"
+                "suffix",
+                "text",
+                nullable=True,
+                description="Suffix (Jr, Sr, III, etc.)",
             ),
         },
     ),
@@ -728,10 +739,16 @@ COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
         example='{"latitude": 37.7749, "longitude": -122.4194}',
         fields={
             "latitude": CompositeFieldDef(
-                "latitude", "latitude", nullable=False, description="Latitude (-90 to 90)"
+                "latitude",
+                "latitude",
+                nullable=False,
+                description="Latitude (-90 to 90)",
             ),
             "longitude": CompositeFieldDef(
-                "longitude", "longitude", nullable=False, description="Longitude (-180 to 180)"
+                "longitude",
+                "longitude",
+                nullable=False,
+                description="Longitude (-180 to 180)",
             ),
         },
     ),
@@ -740,8 +757,12 @@ COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
         description="Time range with start and end",
         example='{"start": "09:00:00", "end": "17:00:00"}',
         fields={
-            "start": CompositeFieldDef("start", "time", nullable=False, description="Start time"),
-            "end": CompositeFieldDef("end", "time", nullable=False, description="End time"),
+            "start": CompositeFieldDef(
+                "start", "time", nullable=False, description="Start time"
+            ),
+            "end": CompositeFieldDef(
+                "end", "time", nullable=False, description="End time"
+            ),
         },
     ),
     "DateRange": CompositeTypeDef(
@@ -749,8 +770,12 @@ COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
         description="Date range with start and end",
         example='{"start": "2025-01-01", "end": "2025-12-31"}',
         fields={
-            "start": CompositeFieldDef("start", "date", nullable=False, description="Start date"),
-            "end": CompositeFieldDef("end", "date", nullable=False, description="End date"),
+            "start": CompositeFieldDef(
+                "start", "date", nullable=False, description="Start date"
+            ),
+            "end": CompositeFieldDef(
+                "end", "date", nullable=False, description="End date"
+            ),
         },
     ),
     "PhoneNumber": CompositeTypeDef(
@@ -787,9 +812,15 @@ COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
             "protocol": CompositeFieldDef(
                 "protocol", "text", nullable=False, description="Protocol (http, https)"
             ),
-            "host": CompositeFieldDef("host", "text", nullable=False, description="Host/domain"),
-            "path": CompositeFieldDef("path", "text", nullable=True, description="Path component"),
-            "query": CompositeFieldDef("query", "text", nullable=True, description="Query string"),
+            "host": CompositeFieldDef(
+                "host", "text", nullable=False, description="Host/domain"
+            ),
+            "path": CompositeFieldDef(
+                "path", "text", nullable=True, description="Path component"
+            ),
+            "query": CompositeFieldDef(
+                "query", "text", nullable=True, description="Query string"
+            ),
             "fragment": CompositeFieldDef(
                 "fragment", "text", nullable=True, description="Fragment/hash"
             ),
@@ -804,13 +835,19 @@ COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
                 "red", "integer", nullable=False, description="Red component (0-255)"
             ),
             "green": CompositeFieldDef(
-                "green", "integer", nullable=False, description="Green component (0-255)"
+                "green",
+                "integer",
+                nullable=False,
+                description="Green component (0-255)",
             ),
             "blue": CompositeFieldDef(
                 "blue", "integer", nullable=False, description="Blue component (0-255)"
             ),
             "alpha": CompositeFieldDef(
-                "alpha", "float", nullable=True, description="Alpha/transparency (0.0-1.0)"
+                "alpha",
+                "float",
+                nullable=True,
+                description="Alpha/transparency (0.0-1.0)",
             ),
         },
     ),
@@ -866,12 +903,17 @@ COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
         name="Contact",
         description="Contact information (embedded, no FK to User)",
         fields={
-            "name": CompositeFieldDef("name", "text", nullable=False, description="Full name"),
+            "name": CompositeFieldDef(
+                "name", "text", nullable=False, description="Full name"
+            ),
             "email": CompositeFieldDef(
                 "email", "email", nullable=True, description="Email address"
             ),
             "phone": CompositeFieldDef(
-                "phone", "phoneNumber", nullable=True, description="Primary phone number"
+                "phone",
+                "phoneNumber",
+                nullable=True,
+                description="Primary phone number",
             ),
             "alternate_phone": CompositeFieldDef(
                 "alternate_phone",
@@ -880,7 +922,10 @@ COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
                 description="Secondary phone number",
             ),
             "relationship": CompositeFieldDef(
-                "relationship", "text", nullable=True, description="Relationship to primary contact"
+                "relationship",
+                "text",
+                nullable=True,
+                description="Relationship to primary contact",
             ),
             "company": CompositeFieldDef(
                 "company", "text", nullable=True, description="Company name"
@@ -898,7 +943,9 @@ COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
         name="Company",
         description="Company information with nested address",
         fields={
-            "name": CompositeFieldDef("name", "text", nullable=False, description="Company name"),
+            "name": CompositeFieldDef(
+                "name", "text", nullable=False, description="Company name"
+            ),
             "legal_name": CompositeFieldDef(
                 "legal_name", "text", nullable=True, description="Legal entity name"
             ),
@@ -912,7 +959,10 @@ COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
                 "industry", "text", nullable=True, description="Industry sector"
             ),
             "employee_count": CompositeFieldDef(
-                "employee_count", "integer", nullable=True, description="Number of employees"
+                "employee_count",
+                "integer",
+                nullable=True,
+                description="Number of employees",
             ),
             # NESTED COMPOSITE!
             "address": CompositeFieldDef(
@@ -929,10 +979,16 @@ COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
         description="Rich geographic location with accuracy and timestamp",
         fields={
             "latitude": CompositeFieldDef(
-                "latitude", "latitude", nullable=False, description="Latitude (-90 to 90)"
+                "latitude",
+                "latitude",
+                nullable=False,
+                description="Latitude (-90 to 90)",
             ),
             "longitude": CompositeFieldDef(
-                "longitude", "longitude", nullable=False, description="Longitude (-180 to 180)"
+                "longitude",
+                "longitude",
+                nullable=False,
+                description="Longitude (-180 to 180)",
             ),
             "altitude": CompositeFieldDef(
                 "altitude", "integer", nullable=True, description="Altitude in meters"
@@ -941,11 +997,19 @@ COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
                 "accuracy", "integer", nullable=True, description="Accuracy in meters"
             ),
             "heading": CompositeFieldDef(
-                "heading", "integer", nullable=True, description="Heading in degrees (0-359)"
+                "heading",
+                "integer",
+                nullable=True,
+                description="Heading in degrees (0-359)",
             ),
-            "speed": CompositeFieldDef("speed", "float", nullable=True, description="Speed in m/s"),
+            "speed": CompositeFieldDef(
+                "speed", "float", nullable=True, description="Speed in m/s"
+            ),
             "timestamp": CompositeFieldDef(
-                "timestamp", "datetime", nullable=False, description="Location timestamp"
+                "timestamp",
+                "datetime",
+                nullable=False,
+                description="Location timestamp",
             ),
         },
         example='{"latitude": 37.7749, "longitude": -122.4194, "altitude": 15, "accuracy": 5, "heading": 90, "speed": 2.5, "timestamp": "2025-11-08T14:30:00Z"}',
@@ -955,13 +1019,22 @@ COMPOSITE_TYPES: dict[str, CompositeTypeDef] = {
         description="Currency exchange rate information",
         fields={
             "baseCurrency": CompositeFieldDef(
-                "baseCurrency", "currencyCode", nullable=False, description="Base currency code"
+                "baseCurrency",
+                "currencyCode",
+                nullable=False,
+                description="Base currency code",
             ),
             "quoteCurrency": CompositeFieldDef(
-                "quoteCurrency", "currencyCode", nullable=False, description="Quote currency code"
+                "quoteCurrency",
+                "currencyCode",
+                nullable=False,
+                description="Quote currency code",
             ),
             "rate": CompositeFieldDef(
-                "rate", "exchangeRate", nullable=False, description="Exchange rate (base to quote)"
+                "rate",
+                "exchangeRate",
+                nullable=False,
+                description="Exchange rate (base to quote)",
             ),
             "timestamp": CompositeFieldDef(
                 "timestamp", "datetime", nullable=False, description="Rate timestamp"

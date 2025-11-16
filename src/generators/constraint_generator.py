@@ -10,7 +10,9 @@ from src.utils.safe_slug import safe_slug
 class ConstraintGenerator:
     """Generates CHECK constraints for rich types"""
 
-    def generate_constraint(self, field: FieldDefinition, table_name: str) -> str | None:
+    def generate_constraint(
+        self, field: FieldDefinition, table_name: str
+    ) -> str | None:
         """Generate appropriate constraint for a field"""
 
         if not field.is_rich_type():
@@ -21,8 +23,12 @@ class ConstraintGenerator:
         # Get validation pattern
         pattern = field.get_validation_pattern()
         if pattern:
-            constraint_name = self._generate_constraint_name(table_name, field.name, "pattern")
-            constraints.append(f"CONSTRAINT {constraint_name} CHECK ({field.name} ~* '{pattern}')")
+            constraint_name = self._generate_constraint_name(
+                table_name, field.name, "pattern"
+            )
+            constraints.append(
+                f"CONSTRAINT {constraint_name} CHECK ({field.name} ~* '{pattern}')"
+            )
 
         # Min/max value constraints
         min_max_checks = []
@@ -32,14 +38,18 @@ class ConstraintGenerator:
             min_max_checks.append(f"{field.name} <= {field.max_value}")
 
         if min_max_checks:
-            constraint_name = self._generate_constraint_name(table_name, field.name, "range")
+            constraint_name = self._generate_constraint_name(
+                table_name, field.name, "range"
+            )
             constraints.append(
                 f"CONSTRAINT {constraint_name} CHECK ({' AND '.join(min_max_checks)})"
             )
 
         # Special constraints for specific types
         if field.type_name == "coordinates":
-            constraint_name = self._generate_constraint_name(table_name, field.name, "bounds")
+            constraint_name = self._generate_constraint_name(
+                table_name, field.name, "bounds"
+            )
             constraints.append(
                 f"CONSTRAINT {constraint_name} CHECK ({field.name}[0] BETWEEN -90 AND 90 AND {field.name}[1] BETWEEN -180 AND 180)"
             )
@@ -66,7 +76,9 @@ class ConstraintGenerator:
     # Specific constraint generators for better organization
     def generate_email_constraint(self, field_name: str, table_name: str) -> str:
         """Generate email validation constraint"""
-        constraint_name = self._generate_constraint_name(table_name, field_name, "email")
+        constraint_name = self._generate_constraint_name(
+            table_name, field_name, "email"
+        )
         pattern = r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$"
         return f"CONSTRAINT {constraint_name} CHECK ({field_name} ~* '{pattern}')"
 
@@ -78,13 +90,17 @@ class ConstraintGenerator:
 
     def generate_phone_constraint(self, field_name: str, table_name: str) -> str:
         """Generate phone number validation constraint"""
-        constraint_name = self._generate_constraint_name(table_name, field_name, "phone")
+        constraint_name = self._generate_constraint_name(
+            table_name, field_name, "phone"
+        )
         pattern = r"^\+?[1-9]\d{1,14}$"
         return f"CONSTRAINT {constraint_name} CHECK ({field_name} ~* '{pattern}')"
 
     def generate_color_constraint(self, field_name: str, table_name: str) -> str:
         """Generate color hex validation constraint"""
-        constraint_name = self._generate_constraint_name(table_name, field_name, "color")
+        constraint_name = self._generate_constraint_name(
+            table_name, field_name, "color"
+        )
         pattern = r"^#[0-9A-Fa-f]{6}$"
         return f"CONSTRAINT {constraint_name} CHECK ({field_name} ~* '{pattern}')"
 
@@ -96,5 +112,7 @@ class ConstraintGenerator:
 
     def generate_coordinates_constraint(self, field_name: str, table_name: str) -> str:
         """Generate coordinates bounds constraint"""
-        constraint_name = self._generate_constraint_name(table_name, field_name, "bounds")
+        constraint_name = self._generate_constraint_name(
+            table_name, field_name, "bounds"
+        )
         return f"CONSTRAINT {constraint_name} CHECK ({field_name}[0] BETWEEN -90 AND 90 AND {field_name}[1] BETWEEN -180 AND 180)"

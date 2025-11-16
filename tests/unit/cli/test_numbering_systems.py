@@ -97,7 +97,11 @@ class TestHexadecimalNumberingSystem:
         """Test hexadecimal numbering parser initializes correctly"""
         parser = NumberingParser()
         assert parser is not None
-        assert parser.SCHEMA_LAYERS == {"01": "write_side", "02": "read_side", "03": "analytics"}
+        assert parser.SCHEMA_LAYERS == {
+            "01": "write_side",
+            "02": "read_side",
+            "03": "analytics",
+        }
 
     def test_hex_parse_6_digit_code(self):
         """Test parsing 6-digit hexadecimal table code"""

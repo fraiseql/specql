@@ -1,4 +1,5 @@
 """Pattern export functionality"""
+
 import yaml
 import json
 from pathlib import Path
@@ -19,7 +20,7 @@ class PatternExporter:
         self,
         output_path: Path,
         category: Optional[str] = None,
-        include_embeddings: bool = False
+        include_embeddings: bool = False,
     ) -> None:
         """
         Export patterns to YAML format
@@ -41,7 +42,7 @@ class PatternExporter:
         self,
         output_path: Path,
         category: Optional[str] = None,
-        include_embeddings: bool = False
+        include_embeddings: bool = False,
     ) -> None:
         """
         Export patterns to JSON format
@@ -67,9 +68,7 @@ class PatternExporter:
             return self.service.list_all_patterns()
 
     def _prepare_export_data(
-        self,
-        patterns: List[Pattern],
-        include_embeddings: bool
+        self, patterns: List[Pattern], include_embeddings: bool
     ) -> Dict[str, Any]:
         """
         Prepare export data structure
@@ -85,18 +84,16 @@ class PatternExporter:
                 "export_date": datetime.utcnow().isoformat(),
                 "total_patterns": len(patterns),
                 "format_version": "1.0.0",
-                "source": "SpecQL Pattern Library"
+                "source": "SpecQL Pattern Library",
             },
             "patterns": [
                 self._pattern_to_dict(pattern, include_embeddings)
                 for pattern in patterns
-            ]
+            ],
         }
 
     def _pattern_to_dict(
-        self,
-        pattern: Pattern,
-        include_embeddings: bool
+        self, pattern: Pattern, include_embeddings: bool
     ) -> Dict[str, Any]:
         """Convert pattern to dictionary for export"""
         data = {

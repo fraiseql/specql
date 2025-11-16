@@ -33,7 +33,9 @@ class TestBasicScaffolding:
 
     def test_generate_basic_function_signature(self, compiler, contact_entity):
         """Test: Generate function with correct signature"""
-        action = Action(name="create_contact", steps=[ActionStep(type="insert", entity="Contact")])
+        action = Action(
+            name="create_contact", steps=[ActionStep(type="insert", entity="Contact")]
+        )
 
         sql = compiler.compile_action(action, contact_entity)
 
@@ -64,7 +66,9 @@ class TestBasicScaffolding:
 
     def test_basic_success_response(self, compiler, contact_entity):
         """Test: Generate basic success response structure"""
-        action = Action(name="create_contact", steps=[ActionStep(type="insert", entity="Contact")])
+        action = Action(
+            name="create_contact", steps=[ActionStep(type="insert", entity="Contact")]
+        )
 
         sql = compiler.compile_action(action, contact_entity)
 
@@ -77,7 +81,9 @@ class TestBasicScaffolding:
 
     def test_trinity_resolution_for_update_action(self, compiler, contact_entity):
         """Test: Auto-generate Trinity resolution for actions needing pk"""
-        action = Action(name="update_contact", steps=[ActionStep(type="update", entity="Contact")])
+        action = Action(
+            name="update_contact", steps=[ActionStep(type="update", entity="Contact")]
+        )
 
         sql = compiler.compile_action(action, contact_entity)
 

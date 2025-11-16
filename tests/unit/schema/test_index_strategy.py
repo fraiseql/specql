@@ -14,7 +14,9 @@ class TestGenerateIndex:
     def test_basic_btree_index(self):
         """Test basic B-tree index generation."""
         result = generate_index(
-            table_name="tenant.tb_location", index_name="idx_location_name", columns=["name"]
+            table_name="tenant.tb_location",
+            index_name="idx_location_name",
+            columns=["name"],
         )
 
         expected = """CREATE INDEX idx_location_name
@@ -101,7 +103,9 @@ class TestConvenienceFunctions:
     def test_generate_gin_index(self):
         """Test GIN index convenience function."""
         result = generate_gin_index(
-            table_name="tenant.tb_order", index_name="idx_order_data", columns=["order_data"]
+            table_name="tenant.tb_order",
+            index_name="idx_order_data",
+            columns=["order_data"],
         )
 
         expected = """CREATE INDEX idx_order_data
@@ -113,7 +117,9 @@ class TestConvenienceFunctions:
     def test_generate_gist_index(self):
         """Test GIST index convenience function."""
         result = generate_gist_index(
-            table_name="tenant.tb_location", index_name="idx_location_geom", columns=["geom"]
+            table_name="tenant.tb_location",
+            index_name="idx_location_geom",
+            columns=["geom"],
         )
 
         expected = """CREATE INDEX idx_location_geom
@@ -121,4 +127,3 @@ class TestConvenienceFunctions:
     WHERE deleted_at IS NULL;"""
 
         assert result == expected
-

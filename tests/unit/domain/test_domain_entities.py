@@ -1,7 +1,9 @@
 """Unit tests for domain entities"""
+
 import pytest
 from src.domain.entities.domain import Domain, Subdomain
 from src.domain.value_objects import DomainNumber
+
 
 class TestSubdomain:
     """Test Subdomain entity"""
@@ -12,7 +14,7 @@ class TestSubdomain:
             subdomain_number="01",
             subdomain_name="customer",
             description="Customer management",
-            next_entity_sequence=1
+            next_entity_sequence=1,
         )
 
         # Allocate first code
@@ -25,6 +27,7 @@ class TestSubdomain:
         assert str(code2) == "001020"  # domain 0, subdomain 01, entity 2, file 0
         assert subdomain.next_entity_sequence == 3
 
+
 class TestDomain:
     """Test Domain aggregate root"""
 
@@ -35,7 +38,7 @@ class TestDomain:
             domain_name="crm",
             description="Customer Relationship Management",
             multi_tenant=True,
-            aliases=["management", "sales"]
+            aliases=["management", "sales"],
         )
 
         assert domain.domain_number.value == "2"
@@ -49,13 +52,13 @@ class TestDomain:
             domain_number=DomainNumber("2"),
             domain_name="crm",
             description="CRM",
-            multi_tenant=False
+            multi_tenant=False,
         )
 
         subdomain = Subdomain(
             subdomain_number="01",
             subdomain_name="customer",
-            description="Customer management"
+            description="Customer management",
         )
 
         domain.add_subdomain(subdomain)
@@ -70,14 +73,14 @@ class TestDomain:
             domain_number=DomainNumber("2"),
             domain_name="crm",
             description="CRM",
-            multi_tenant=False
+            multi_tenant=False,
         )
 
         subdomain = Subdomain(
             subdomain_number="01",
             subdomain_name="customer",
             description="Customer management",
-            next_entity_sequence=1
+            next_entity_sequence=1,
         )
 
         domain.add_subdomain(subdomain)
@@ -96,19 +99,19 @@ class TestDomain:
             domain_number=DomainNumber("2"),
             domain_name="crm",
             description="CRM",
-            multi_tenant=False
+            multi_tenant=False,
         )
 
         subdomain1 = Subdomain(
             subdomain_number="01",
             subdomain_name="customer",
-            description="Customer management"
+            description="Customer management",
         )
 
         subdomain2 = Subdomain(
             subdomain_number="01",  # Same number
             subdomain_name="client",
-            description="Client management"
+            description="Client management",
         )
 
         domain.add_subdomain(subdomain1)

@@ -34,7 +34,9 @@ def test_compile_validate_multiple_fields():
     )
 
     step = ActionStep(
-        type="validate", expression="status = 'lead' AND email IS NOT NULL", error="invalid_lead"
+        type="validate",
+        expression="status = 'lead' AND email IS NOT NULL",
+        error="invalid_lead",
     )
 
     compiler = ValidateStepCompiler()

@@ -177,7 +177,9 @@ class SchemaGenerator:
 
                 if composite_def:
                     functions.append(
-                        self.composite_mapper.generate_validation_function(composite_def)
+                        self.composite_mapper.generate_validation_function(
+                            composite_def
+                        )
                     )
 
         return functions
@@ -297,7 +299,9 @@ $$ LANGUAGE SQL STABLE;"""
         fields = []
 
         # Primary key
-        fields.append(f"pk_{entity_lower} INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY")
+        fields.append(
+            f"pk_{entity_lower} INTEGER GENERATED ALWAYS AS IDENTITY PRIMARY KEY"
+        )
 
         # Public ID (UUID)
         fields.append("id UUID NOT NULL DEFAULT gen_random_uuid() UNIQUE")
@@ -318,9 +322,13 @@ $$ LANGUAGE SQL STABLE;"""
         indexes = []
 
         # Composite index on (id, tenant_id) for efficient tenant-scoped lookups
-        indexes.append(f"CREATE INDEX idx_{entity_lower}_id_tenant ON {table_name}(id, tenant_id);")
+        indexes.append(
+            f"CREATE INDEX idx_{entity_lower}_id_tenant ON {table_name}(id, tenant_id);"
+        )
 
         # Index on tenant_id for tenant filtering
-        indexes.append(f"CREATE INDEX idx_{entity_lower}_tenant ON {table_name}(tenant_id);")
+        indexes.append(
+            f"CREATE INDEX idx_{entity_lower}_tenant ON {table_name}(tenant_id);"
+        )
 
         return indexes

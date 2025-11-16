@@ -44,7 +44,9 @@ class ServerlessRunner(JobRunner):
 
         provider = config["provider"].lower()
         if provider not in ["aws", "gcp"]:
-            raise ValueError(f"Unsupported provider '{provider}'. Must be 'aws' or 'gcp'")
+            raise ValueError(
+                f"Unsupported provider '{provider}'. Must be 'aws' or 'gcp'"
+            )
 
         if provider == "aws":
             if "region" not in config:
@@ -52,14 +54,18 @@ class ServerlessRunner(JobRunner):
             # Validate AWS auth types
             auth = config.get("auth", {})
             if auth.get("type") not in ["iam_role", "access_key", "profile"]:
-                raise ValueError("AWS auth type must be 'iam_role', 'access_key', or 'profile'")
+                raise ValueError(
+                    "AWS auth type must be 'iam_role', 'access_key', or 'profile'"
+                )
         elif provider == "gcp":
             if "project" not in config:
                 raise ValueError("GCP provider requires 'project' in config")
             # Validate GCP auth types
             auth = config.get("auth", {})
             if auth.get("type") not in ["service_account", "default_credentials"]:
-                raise ValueError("GCP auth type must be 'service_account' or 'default_credentials'")
+                raise ValueError(
+                    "GCP auth type must be 'service_account' or 'default_credentials'"
+                )
 
         if "auth" not in config:
             raise ValueError("Serverless runner requires 'auth' configuration")
@@ -99,7 +105,8 @@ class ServerlessRunner(JobRunner):
 
             if not function_name:
                 return JobResult(
-                    success=False, error_message="function_name is required in input_data"
+                    success=False,
+                    error_message="function_name is required in input_data",
                 )
 
             if provider == "aws":
@@ -107,10 +114,14 @@ class ServerlessRunner(JobRunner):
             elif provider == "gcp":
                 return await self._invoke_gcp_function(job, context, config)
             else:
-                return JobResult(success=False, error_message=f"Unsupported provider: {provider}")
+                return JobResult(
+                    success=False, error_message=f"Unsupported provider: {provider}"
+                )
 
         except Exception as e:
-            return JobResult(success=False, error_message=f"Serverless execution failed: {str(e)}")
+            return JobResult(
+                success=False, error_message=f"Serverless execution failed: {str(e)}"
+            )
 
     async def _invoke_lambda(
         self, job: JobRecord, context: ExecutionContext, config: dict[str, Any]
@@ -178,7 +189,8 @@ class ServerlessRunner(JobRunner):
             if hasattr(e, "response") and "Error" in e.response:
                 error_msg = e.response["Error"]["Message"]
             return JobResult(
-                success=False, error_message=f"AWS Lambda invocation failed: {error_msg}"
+                success=False,
+                error_message=f"AWS Lambda invocation failed: {error_msg}",
             )
 
             # Parse response
@@ -208,10 +220,13 @@ class ServerlessRunner(JobRunner):
 
         except ClientError as e:
             return JobResult(
-                success=False, error_message=f"AWS Lambda error: {e.response['Error']['Message']}"
+                success=False,
+                error_message=f"AWS Lambda error: {e.response['Error']['Message']}",
             )
         except Exception as e:
-            return JobResult(success=False, error_message=f"Lambda invocation failed: {str(e)}")
+            return JobResult(
+                success=False, error_message=f"Lambda invocation failed: {str(e)}"
+            )
 
     async def _invoke_gcp_function(
         self, job: JobRecord, context: ExecutionContext, config: dict[str, Any]
@@ -259,7 +274,8 @@ class ServerlessRunner(JobRunner):
             # Handle both GoogleAPIError and general exceptions
             error_msg = str(e)
             return JobResult(
-                success=False, error_message=f"GCP function invocation failed: {error_msg}"
+                success=False,
+                error_message=f"GCP function invocation failed: {error_msg}",
             )
 
             response = await client.call_function(request)
@@ -278,7 +294,9 @@ class ServerlessRunner(JobRunner):
             )
 
         except GoogleAPIError as e:
-            return JobResult(success=False, error_message=f"GCP function error: {str(e)}")
+            return JobResult(
+                success=False, error_message=f"GCP function error: {str(e)}"
+            )
         except Exception as e:
             return JobResult(
                 success=False, error_message=f"GCP function invocation failed: {str(e)}"

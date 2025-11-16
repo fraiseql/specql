@@ -15,7 +15,9 @@ class GitHubActionsGenerator:
 
     def __init__(self, template_dir: Optional[Path] = None):
         if template_dir is None:
-            template_dir = Path(__file__).parent.parent.parent.parent / "templates" / "cicd"
+            template_dir = (
+                Path(__file__).parent.parent.parent.parent / "templates" / "cicd"
+            )
 
         self.env = Environment(loader=FileSystemLoader(str(template_dir)))
         self.template = self.env.get_template("github_actions.yml.j2")
@@ -33,10 +35,7 @@ class GitHubActionsGenerator:
         Returns:
             GitHub Actions YAML content
         """
-        return self.template.render(
-            pipeline=pipeline,
-            _render_step=self._render_step
-        )
+        return self.template.render(pipeline=pipeline, _render_step=self._render_step)
 
     def _render_step(self, step: Step) -> str:
         """Convert universal step to GitHub Actions step"""
@@ -53,7 +52,9 @@ class GitHubActionsGenerator:
         if step.type in step_map:
             action = step_map[step.type]
             if step.with_params:
-                params = "\n".join(f"        {k}: {v}" for k, v in step.with_params.items())
+                params = "\n".join(
+                    f"        {k}: {v}" for k, v in step.with_params.items()
+                )
                 return f"{action}\n      with:\n{params}"
             return action
 

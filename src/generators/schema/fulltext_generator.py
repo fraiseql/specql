@@ -11,7 +11,9 @@ class FullTextGenerator:
 
     def __init__(self, template_dir: Optional[Path] = None):
         if template_dir is None:
-            template_dir = Path(__file__).parent.parent.parent.parent / "templates" / "sql"
+            template_dir = (
+                Path(__file__).parent.parent.parent.parent / "templates" / "sql"
+            )
 
         self.env = Environment(loader=FileSystemLoader(str(template_dir)))
         self.template = self.env.get_template("fulltext_features.sql.j2")
@@ -21,21 +23,25 @@ class FullTextGenerator:
         # For now, always generate full-text features (in a real implementation,
         # this would check entity features)
         # Get text fields for indexing
-        text_fields = [field for field in entity.fields.values() if field.type_name == "text"]
+        text_fields = [
+            field for field in entity.fields.values() if field.type_name == "text"
+        ]
 
         if not text_fields:
             return ""
 
         return self.template.render(
-            entity=entity,
-            schema=entity.schema,
-            text_fields=text_fields
+            entity=entity, schema=entity.schema, text_fields=text_fields
         )
 
     def generate_column(self, entity: Entity) -> str:
         """Generate tsvector column"""
-        text_fields = [field for field in entity.fields.values() if field.type_name == "text"]
-        field_concat = " || ' ' || ".join(f"coalesce({field.name}, '')" for field in text_fields)
+        text_fields = [
+            field for field in entity.fields.values() if field.type_name == "text"
+        ]
+        field_concat = " || ' ' || ".join(
+            f"coalesce({field.name}, '')" for field in text_fields
+        )
 
         return f"""ALTER TABLE {entity.schema}.tb_{entity.name.lower()}
 ADD COLUMN search_vector tsvector

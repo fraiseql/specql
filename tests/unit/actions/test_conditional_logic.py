@@ -37,7 +37,9 @@ class TestConditionalLogic:
             type="if",
             condition="status = 'lead'",
             then_steps=[
-                ActionStep(type="update", entity="Contact", fields={"status": "qualified"})
+                ActionStep(
+                    type="update", entity="Contact", fields={"status": "qualified"}
+                )
             ],
         )
 
@@ -68,9 +70,15 @@ class TestConditionalLogic:
             type="switch",
             expression="source_type",
             cases={
-                "Product": [ActionStep(type="insert", entity="Task", fields={"type": "follow_up"})],
+                "Product": [
+                    ActionStep(
+                        type="insert", entity="Task", fields={"type": "follow_up"}
+                    )
+                ],
                 "ContractItem": [
-                    ActionStep(type="insert", entity="Task", fields={"type": "contract_review"})
+                    ActionStep(
+                        type="insert", entity="Task", fields={"type": "contract_review"}
+                    )
                 ],
             },
         )

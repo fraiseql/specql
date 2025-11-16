@@ -3,6 +3,7 @@ Domain Service Factory
 
 Provides configured domain services using the repository configuration system.
 """
+
 from src.application.services.domain_service import DomainService
 from src.core.config import get_config
 

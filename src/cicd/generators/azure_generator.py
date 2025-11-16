@@ -14,7 +14,9 @@ class AzureGenerator:
 
     def __init__(self, template_dir: Path = None):
         if template_dir is None:
-            template_dir = Path(__file__).parent.parent.parent.parent / "templates" / "cicd"
+            template_dir = (
+                Path(__file__).parent.parent.parent.parent / "templates" / "cicd"
+            )
 
         self.env = Environment(loader=FileSystemLoader(str(template_dir)))
         self.template = self.env.get_template("azure-pipelines.yml.j2")
@@ -38,7 +40,7 @@ class AzureGenerator:
             pipeline=pipeline,
             _render_step=self._render_step,
             _render_runtime=self._render_runtime,
-            _render_triggers=self._render_triggers
+            _render_triggers=self._render_triggers,
         )
 
     def _render_step(self, step: Step) -> str:
@@ -50,8 +52,12 @@ class AzureGenerator:
             StepType.SETUP_RUNTIME: self._render_setup_runtime(step),
             StepType.CACHE_RESTORE: self._render_cache_step(step, "Cache"),
             StepType.CACHE_SAVE: self._render_cache_step(step, "Cache"),
-            StepType.UPLOAD_ARTIFACT: self._render_artifact_step(step, "PublishBuildArtifacts"),
-            StepType.DOWNLOAD_ARTIFACT: self._render_artifact_step(step, "DownloadBuildArtifacts"),
+            StepType.UPLOAD_ARTIFACT: self._render_artifact_step(
+                step, "PublishBuildArtifacts"
+            ),
+            StepType.DOWNLOAD_ARTIFACT: self._render_artifact_step(
+                step, "DownloadBuildArtifacts"
+            ),
         }
 
         if step.type in step_map:
@@ -63,7 +69,9 @@ class AzureGenerator:
             if step.name and step.name != f"Execute: {step.command[:30]}...":
                 step_yaml += f"\n        displayName: '{step.name}'"
             if step.environment:
-                env_lines = "\n".join(f"        {k}: {v}" for k, v in step.environment.items())
+                env_lines = "\n".join(
+                    f"        {k}: {v}" for k, v in step.environment.items()
+                )
                 step_yaml += f"\n        env:\n{env_lines}"
             return step_yaml
 
@@ -77,7 +85,11 @@ class AzureGenerator:
 
     def _render_cache_step(self, step: Step, action: str) -> str:
         """Render cache step"""
-        key = step.with_params.get("key", "cache-key") if step.with_params else "cache-key"
+        key = (
+            step.with_params.get("key", "cache-key")
+            if step.with_params
+            else "cache-key"
+        )
         paths = step.with_params.get("paths", []) if step.with_params else []
 
         step_yaml = f"      - task: {action}@2"
@@ -91,8 +103,14 @@ class AzureGenerator:
 
     def _render_artifact_step(self, step: Step, action: str) -> str:
         """Render artifact publish/download step"""
-        artifact_name = step.with_params.get("name", "drop") if step.with_params else "drop"
-        path = step.with_params.get("path", "$(Build.ArtifactStagingDirectory)") if step.with_params else "$(Build.ArtifactStagingDirectory)"
+        artifact_name = (
+            step.with_params.get("name", "drop") if step.with_params else "drop"
+        )
+        path = (
+            step.with_params.get("path", "$(Build.ArtifactStagingDirectory)")
+            if step.with_params
+            else "$(Build.ArtifactStagingDirectory)"
+        )
 
         step_yaml = f"      - task: {action}@1"
         step_yaml += f"\n        inputs:\n          artifactName: '{artifact_name}'"
@@ -110,11 +128,11 @@ class AzureGenerator:
 
         language_images = {
             "python": "ubuntu-latest",  # Python available by default
-            "node": "ubuntu-latest",    # Node available by default
-            "go": "ubuntu-latest",      # Go available by default
-            "rust": "ubuntu-latest",    # Rust available by default
-            "ruby": "ubuntu-latest",    # Ruby available by default
-            "java": "ubuntu-latest",    # Java available by default
+            "node": "ubuntu-latest",  # Node available by default
+            "go": "ubuntu-latest",  # Go available by default
+            "rust": "ubuntu-latest",  # Rust available by default
+            "ruby": "ubuntu-latest",  # Ruby available by default
+            "java": "ubuntu-latest",  # Java available by default
         }
 
         return language_images.get(runtime.language, "ubuntu-latest")
@@ -146,7 +164,7 @@ class AzureGenerator:
         if schedule_triggers:
             trigger_yaml += "schedules:\n"
             for trigger in schedule_triggers:
-                trigger_yaml += "- cron: \"" + trigger.schedule + "\"\n"
+                trigger_yaml += '- cron: "' + trigger.schedule + '"\n'
                 trigger_yaml += "  displayName: Scheduled build\n"
                 if trigger.branches:
                     trigger_yaml += "  branches:\n    include:\n"

@@ -85,7 +85,9 @@ class TestRichTypeGraphQLGeneration:
         lines = ddl.split("\n")
 
         # Count COMMENT ON COLUMN statements (should be many for rich types)
-        comment_lines = [line for line in lines if line.strip().startswith("COMMENT ON COLUMN")]
+        comment_lines = [
+            line for line in lines if line.strip().startswith("COMMENT ON COLUMN")
+        ]
         assert len(comment_lines) >= 15  # Should have comments for all fields
 
         # Verify table comment with FraiseQL type annotation
@@ -108,7 +110,9 @@ class TestFraiseQLIntegrationContract:
         for type_name, type_def in SCALAR_TYPES.items():
             assert hasattr(type_def, "fraiseql_scalar_name")
             assert type_def.fraiseql_scalar_name
-            assert type_def.fraiseql_scalar_name != "String"  # Should be specific scalar
+            assert (
+                type_def.fraiseql_scalar_name != "String"
+            )  # Should be specific scalar
 
         # Verify some key mappings
         assert SCALAR_TYPES["email"].fraiseql_scalar_name == "Email"
@@ -138,9 +142,9 @@ class TestFraiseQLIntegrationContract:
 
         for type_name, type_def in SCALAR_TYPES.items():
             pg_type_base = type_def.postgres_type.value
-            assert (
-                pg_type_base in supported_pg_types
-            ), f"Type {type_name} uses unsupported PostgreSQL type {pg_type_base}"
+            assert pg_type_base in supported_pg_types, (
+                f"Type {type_name} uses unsupported PostgreSQL type {pg_type_base}"
+            )
 
     def test_validation_patterns_produce_meaningful_comments(self):
         """Test that validation patterns result in descriptive comments"""
@@ -149,7 +153,9 @@ class TestFraiseQLIntegrationContract:
         for type_name, type_def in SCALAR_TYPES.items():
             # Types with validation should have meaningful descriptions
             if type_def.validation_pattern:
-                assert len(type_def.description) > 10, f"Type {type_name} needs better description"
+                assert len(type_def.description) > 10, (
+                    f"Type {type_name} needs better description"
+                )
                 # Descriptions should be meaningful and descriptive
                 # (Removed strict requirement for validation keywords to allow cleaner descriptions)
 
@@ -232,7 +238,9 @@ class TestFraiseQLIntegrationContract:
 
         # Verify our schema generation would support this GraphQL output
         # (The actual GraphQL generation is done by FraiseQL, not SpecQL)
-        assert "scalar Email" in expected_graphql_schema  # Would be provided by FraiseQL
+        assert (
+            "scalar Email" in expected_graphql_schema
+        )  # Would be provided by FraiseQL
         assert (
             "emailAddress: Email!" in expected_graphql_schema
         )  # Would be generated from our comments

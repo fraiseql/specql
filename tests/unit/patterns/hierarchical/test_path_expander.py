@@ -53,7 +53,10 @@ class TestHierarchicalPathExpander:
         sql = generate_path_expander(config)
 
         assert "v_location_breadcrumbs" in sql
-        assert "unnest(string_to_array(hierarchy_path::text, '.'))::integer AS ancestor_id" in sql
+        assert (
+            "unnest(string_to_array(hierarchy_path::text, '.'))::integer AS ancestor_id"
+            in sql
+        )
         assert (
             "array_agg(a.display_name ORDER BY nlevel(a.hierarchy_path)) AS breadcrumb_labels"
             in sql
@@ -67,7 +70,11 @@ class TestHierarchicalPathExpander:
             "config": {
                 "source_entity": "OrganizationalUnit",
                 "path_field": "tree_path",
-                "expanded_fields": ["ancestor_names", "ancestor_ids", "breadcrumb_labels"],
+                "expanded_fields": [
+                    "ancestor_names",
+                    "ancestor_ids",
+                    "breadcrumb_labels",
+                ],
             },
         }
 
@@ -75,9 +82,15 @@ class TestHierarchicalPathExpander:
 
         assert "v_org_unit_ancestors" in sql
         assert "FROM tenant.tb_organizational_unit" in sql
-        assert "unnest(string_to_array(tree_path::text, '.'))::integer AS ancestor_id" in sql
+        assert (
+            "unnest(string_to_array(tree_path::text, '.'))::integer AS ancestor_id"
+            in sql
+        )
         assert "array_agg(a.name ORDER BY nlevel(a.tree_path)) AS ancestor_names" in sql
-        assert "array_agg(a.display_name ORDER BY nlevel(a.tree_path)) AS breadcrumb_labels" in sql
+        assert (
+            "array_agg(a.display_name ORDER BY nlevel(a.tree_path)) AS breadcrumb_labels"
+            in sql
+        )
 
     def test_missing_required_fields_raises_error(self):
         """Test that missing required fields raise appropriate errors."""

@@ -34,8 +34,8 @@ def test_execution_type_display_names():
 def test_execution_type_network_requirements():
     """Execution types have correct network requirements"""
     # Network-dependent types
-    assert ExecutionType.HTTP.requires_network  is True
-    assert ExecutionType.SERVERLESS.requires_network  is True
+    assert ExecutionType.HTTP.requires_network is True
+    assert ExecutionType.SERVERLESS.requires_network is True
 
     # Local execution types
     assert not ExecutionType.SHELL.requires_network
@@ -45,8 +45,8 @@ def test_execution_type_network_requirements():
 def test_execution_type_streaming_support():
     """Execution types have correct streaming support"""
     # Streaming-supported types
-    assert ExecutionType.SHELL.supports_streaming  is True
-    assert ExecutionType.DOCKER.supports_streaming  is True
+    assert ExecutionType.SHELL.supports_streaming is True
+    assert ExecutionType.DOCKER.supports_streaming is True
 
     # Non-streaming types
     assert not ExecutionType.HTTP.supports_streaming
@@ -74,7 +74,7 @@ def test_execution_metadata_dataclass():
     )
 
     assert metadata.display_name == "Test Type"
-    assert metadata.requires_network  is True
+    assert metadata.requires_network is True
     assert not metadata.supports_streaming
     assert metadata.default_timeout == 120
 

@@ -97,7 +97,9 @@ def diff(entity_file, migration_file, color, context, use_rust):
                     diff_result = differ.compare(migration_sql, entity_sql)
 
                     if not diff_result:
-                        click.echo(f"✅ No differences between {entity_file} and {migration_file}")
+                        click.echo(
+                            f"✅ No differences between {entity_file} and {migration_file}"
+                        )
                         return
 
                     # Confiture provides high-level schema analysis
@@ -110,7 +112,8 @@ def diff(entity_file, migration_file, color, context, use_rust):
 
                 except ImportError:
                     click.echo(
-                        "⚠️  Confiture not available, falling back to Python difflib", err=True
+                        "⚠️  Confiture not available, falling back to Python difflib",
+                        err=True,
                     )
                     use_rust = False
                 except Exception as e:
@@ -135,7 +138,9 @@ def diff(entity_file, migration_file, color, context, use_rust):
                 diff_output = "".join(diff_lines_list)
 
                 if not diff_output.strip():
-                    click.echo(f"✅ No differences between {entity_file} and {migration_file}")
+                    click.echo(
+                        f"✅ No differences between {entity_file} and {migration_file}"
+                    )
                     return
 
                 if color:

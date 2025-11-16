@@ -10,11 +10,12 @@ from dataclasses import dataclass
 @dataclass
 class ReadSideCodeComponents:
     """Components of a read-side code"""
-    schema_layer: str   # "02" (read-side)
-    domain: str         # "2" (crm), "3" (catalog), etc.
-    subdomain: str      # "3" (customer), "1" (manufacturer), etc. (1 digit)
-    entity: str         # "2", "1", etc.
-    file_num: str       # "0", "1", etc.
+
+    schema_layer: str  # "02" (read-side)
+    domain: str  # "2" (crm), "3" (catalog), etc.
+    subdomain: str  # "3" (customer), "1" (manufacturer), etc. (1 digit)
+    entity: str  # "2", "1", etc.
+    file_num: str  # "0", "1", etc.
 
 
 class ReadSideCodeParser:
@@ -59,7 +60,9 @@ class ReadSideCodeParser:
             raise ValueError(f"Code must be a string, got {type(code)}")
 
         if len(code) != 6:
-            raise ValueError(f"Invalid code length: {len(code)} (expected 6 digits, got '{code}')")
+            raise ValueError(
+                f"Invalid code length: {len(code)} (expected 6 digits, got '{code}')"
+            )
 
         # Basic format validation
         if not code.isdigit():
@@ -71,7 +74,7 @@ class ReadSideCodeParser:
                 domain=code[2],
                 subdomain=code[3],
                 entity=code[4],
-                file_num=code[5]
+                file_num=code[5],
             )
         except IndexError as e:
             raise ValueError(f"Invalid code format: {code}") from e

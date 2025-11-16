@@ -8,8 +8,12 @@ import yaml
 from typing import Dict, Any, List, Optional
 from src.cicd.universal_pipeline_schema import (
     UniversalPipeline,
-    Stage, Job, Step, StepType,
-    Runtime, Service
+    Stage,
+    Job,
+    Step,
+    StepType,
+    Runtime,
+    Service,
 )
 
 
@@ -30,17 +34,21 @@ class GitLabCIParser:
 
         # Extract stages and jobs
         stages_config = data.get("stages", [])
-        jobs_config = {k: v for k, v in data.items() if k not in ["stages", "variables", "include"]}
+        jobs_config = {
+            k: v for k, v in data.items() if k not in ["stages", "variables", "include"]
+        }
 
         stages = self._parse_stages(stages_config, jobs_config)
 
         return UniversalPipeline(
             name="GitLab CI Pipeline",
             stages=stages,
-            global_environment=data.get("variables", {})
+            global_environment=data.get("variables", {}),
         )
 
-    def _parse_stages(self, stages_config: List[str], jobs_config: Dict[str, Any]) -> List[Stage]:
+    def _parse_stages(
+        self, stages_config: List[str], jobs_config: Dict[str, Any]
+    ) -> List[Stage]:
         """Parse stages from GitLab CI"""
         stages = []
 
@@ -56,7 +64,9 @@ class GitLabCIParser:
         if stages_config:
             for stage_name in stages_config:
                 if stage_name in jobs_by_stage:
-                    stages.append(Stage(name=stage_name, jobs=jobs_by_stage[stage_name]))
+                    stages.append(
+                        Stage(name=stage_name, jobs=jobs_by_stage[stage_name])
+                    )
         else:
             # If no explicit stages, create one stage per job
             for stage_name, jobs in jobs_by_stage.items():
@@ -72,7 +82,7 @@ class GitLabCIParser:
             runtime=self._detect_runtime(job_config),
             services=self._parse_services(job_config.get("services", [])),
             environment=job_config.get("variables", {}),
-            if_condition=self._parse_rules(job_config.get("rules"))
+            if_condition=self._parse_rules(job_config.get("rules")),
         )
 
     def _parse_services(self, services_config: List[str]) -> List[Service]:
@@ -99,22 +109,16 @@ class GitLabCIParser:
             if isinstance(before_script, str):
                 before_script = [before_script]
             for script in before_script:
-                steps.append(Step(
-                    name="before_script",
-                    type=StepType.RUN,
-                    command=script
-                ))
+                steps.append(
+                    Step(name="before_script", type=StepType.RUN, command=script)
+                )
 
         # Main script
         script = job_config.get("script", [])
         if isinstance(script, str):
             script = [script]
         for script_cmd in script:
-            steps.append(Step(
-                name="script",
-                type=StepType.RUN,
-                command=script_cmd
-            ))
+            steps.append(Step(name="script", type=StepType.RUN, command=script_cmd))
 
         # After script
         after_script = job_config.get("after_script", [])
@@ -122,11 +126,9 @@ class GitLabCIParser:
             if isinstance(after_script, str):
                 after_script = [after_script]
             for script in after_script:
-                steps.append(Step(
-                    name="after_script",
-                    type=StepType.RUN,
-                    command=script
-                ))
+                steps.append(
+                    Step(name="after_script", type=StepType.RUN, command=script)
+                )
 
         return steps
 

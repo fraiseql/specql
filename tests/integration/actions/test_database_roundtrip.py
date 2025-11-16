@@ -37,7 +37,9 @@ def create_simple_contact_entity():
                 name="create_contact",
                 steps=[
                     ActionStep(
-                        type="validate", expression="email IS NOT NULL", error="missing_email"
+                        type="validate",
+                        expression="email IS NOT NULL",
+                        error="missing_email",
                     ),
                     ActionStep(type="insert", entity="Contact"),
                 ],
@@ -45,11 +47,18 @@ def create_simple_contact_entity():
             Action(
                 name="update_contact",
                 steps=[
-                    ActionStep(type="validate", expression="id IS NOT NULL", error="missing_id"),
-                    ActionStep(type="update", entity="Contact", fields={"status": "qualified"}),
+                    ActionStep(
+                        type="validate", expression="id IS NOT NULL", error="missing_id"
+                    ),
+                    ActionStep(
+                        type="update", entity="Contact", fields={"status": "qualified"}
+                    ),
                 ],
             ),
-            Action(name="delete_contact", steps=[ActionStep(type="delete", entity="Contact")]),
+            Action(
+                name="delete_contact",
+                steps=[ActionStep(type="delete", entity="Contact")],
+            ),
         ],
     )
 
@@ -74,7 +83,9 @@ def create_contact_entity_with_custom_action():
                 name="create_contact",
                 steps=[
                     ActionStep(
-                        type="validate", expression="email IS NOT NULL", error="missing_email"
+                        type="validate",
+                        expression="email IS NOT NULL",
+                        error="missing_email",
                     ),
                     ActionStep(type="insert", entity="Contact"),
                 ],
@@ -83,9 +94,12 @@ def create_contact_entity_with_custom_action():
                 name="qualify_lead",
                 steps=[
                     ActionStep(type="validate", expression="status = 'lead'"),
-                    ActionStep(type="update", entity="Contact", fields={"status": "qualified"}),
                     ActionStep(
-                        type="call", expression="app.emit_event('lead_qualified', v_contact_id)"
+                        type="update", entity="Contact", fields={"status": "qualified"}
+                    ),
+                    ActionStep(
+                        type="call",
+                        expression="app.emit_event('lead_qualified', v_contact_id)",
                     ),
                 ],
             ),
@@ -98,7 +112,11 @@ def test_db():
     """PostgreSQL test database connection"""
     try:
         conn = psycopg.connect(
-            host="localhost", port=5433, dbname="test_specql", user="postgres", password="postgres"
+            host="localhost",
+            port=5433,
+            dbname="test_specql",
+            user="postgres",
+            password="postgres",
         )
         # Clean up any existing test data
         cursor = conn.cursor()
@@ -179,7 +197,9 @@ def test_create_contact_action_database_execution(test_db, function_generator):
 
     # Then: Record in database
     cursor = test_db.cursor()
-    cursor.execute("SELECT * FROM crm.tb_contact WHERE email = %s", ("test@example.com",))
+    cursor.execute(
+        "SELECT * FROM crm.tb_contact WHERE email = %s", ("test@example.com",)
+    )
     contact = cursor.fetchone()
     assert contact is not None
     assert str(contact[2]) == TEST_TENANT_ID  # tenant_id
@@ -315,7 +335,13 @@ def test_update_action_database_execution(test_db, function_generator):
         [
             TEST_TENANT_ID,
             TEST_USER_ID,
-            json.dumps({"id": str(contact_id), "email": "old@example.com", "status": "qualified"}),
+            json.dumps(
+                {
+                    "id": str(contact_id),
+                    "email": "old@example.com",
+                    "status": "qualified",
+                }
+            ),
         ],
     )
     result = cursor.fetchone()
@@ -402,7 +428,9 @@ def test_soft_delete_database_execution(test_db, function_generator):
     # Note: In real implementation, contact would not be visible due to deleted_at IS NULL filter
 
 
-def test_custom_action_database_execution(test_db, function_generator, core_logic_generator):
+def test_custom_action_database_execution(
+    test_db, function_generator, core_logic_generator
+):
     """Custom action executes in PostgreSQL"""
 
     unique_id = str(uuid.uuid4())[:8]
@@ -458,7 +486,9 @@ def test_custom_action_database_execution(test_db, function_generator, core_logi
         (contact_id,),
     )
     contact = cursor.fetchone()
-    print(f"Created contact: id={contact_id}, status={contact[0]}, tenant_id={contact[1]}")
+    print(
+        f"Created contact: id={contact_id}, status={contact[0]}, tenant_id={contact[1]}"
+    )
     assert contact[0] == "lead"
     assert str(contact[1]) == TEST_TENANT_ID
 

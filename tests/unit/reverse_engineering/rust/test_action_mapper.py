@@ -28,8 +28,18 @@ class TestRustActionMapper:
             name="create_user",
             visibility="pub",
             parameters=[
-                {"name": "name", "param_type": "String", "is_mut": False, "is_ref": False},
-                {"name": "email", "param_type": "String", "is_mut": False, "is_ref": False},
+                {
+                    "name": "name",
+                    "param_type": "String",
+                    "is_mut": False,
+                    "is_ref": False,
+                },
+                {
+                    "name": "email",
+                    "param_type": "String",
+                    "is_mut": False,
+                    "is_ref": False,
+                },
             ],
             return_type="Result<User, Error>",
             is_async=True,
@@ -153,7 +163,12 @@ class TestRustActionMapper:
             name="get_user",
             visibility="pub",
             parameters=[
-                {"name": "self", "param_type": "&self", "is_mut": False, "is_ref": True},
+                {
+                    "name": "self",
+                    "param_type": "&self",
+                    "is_mut": False,
+                    "is_ref": True,
+                },
                 {"name": "id", "param_type": "i32", "is_mut": False, "is_ref": False},
             ],
             return_type="Option<User>",

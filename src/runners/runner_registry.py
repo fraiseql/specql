@@ -25,7 +25,9 @@ class RunnerRegistry:
             cls._instance = cls()
         return cls._instance
 
-    def register(self, execution_type: ExecutionType, runner_class: type[JobRunner]) -> None:
+    def register(
+        self, execution_type: ExecutionType, runner_class: type[JobRunner]
+    ) -> None:
         """
         Register a runner for an execution type.
 

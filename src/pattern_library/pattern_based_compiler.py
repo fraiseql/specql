@@ -28,7 +28,7 @@ class PatternBasedCompiler:
         self,
         step_type: str,
         context: Dict[str, Any],
-        entity: Optional[Dict[str, Any]] = None
+        entity: Optional[Dict[str, Any]] = None,
     ) -> str:
         """
         Compile an action step using pattern library
@@ -43,17 +43,13 @@ class PatternBasedCompiler:
         """
         try:
             return self.library.compile_pattern(
-                pattern_name=step_type,
-                language_name="postgresql",
-                context=context
+                pattern_name=step_type, language_name="postgresql", context=context
             )
         except ValueError as e:
             raise ValueError(f"Failed to compile step '{step_type}': {e}")
 
     def compile_action_steps(
-        self,
-        steps: List[Dict[str, Any]],
-        entity: Optional[Dict[str, Any]] = None
+        self, steps: List[Dict[str, Any]], entity: Optional[Dict[str, Any]] = None
     ) -> str:
         """
         Compile multiple action steps
@@ -68,21 +64,23 @@ class PatternBasedCompiler:
         compiled_steps = []
 
         for step in steps:
-            step_type = step.get('type')
+            step_type = step.get("type")
             if not step_type:
                 continue
 
             # Prepare context from step fields
             context = dict(step)
-            context.pop('type', None)  # Remove type from context
+            context.pop("type", None)  # Remove type from context
 
             # Add entity info if available
             if entity:
-                context.update({
-                    'table_name': f"{entity.get('schema', 'public')}.tb_{entity.get('name', '').lower()}",
-                    'pk_column': f"pk_{entity.get('name', '').lower()}",
-                    'entity_name': entity.get('name', '')
-                })
+                context.update(
+                    {
+                        "table_name": f"{entity.get('schema', 'public')}.tb_{entity.get('name', '').lower()}",
+                        "pk_column": f"pk_{entity.get('name', '').lower()}",
+                        "entity_name": entity.get("name", ""),
+                    }
+                )
 
             try:
                 compiled = self.compile_action_step(step_type, context, entity)
@@ -100,32 +98,30 @@ class PatternBasedCompiler:
         self,
         variable_name: str,
         variable_type: str,
-        default_value: Optional[str] = None
+        default_value: Optional[str] = None,
     ) -> str:
         """Compile a declare statement"""
-        return self.compile_action_step("declare", {
-            "variable_name": variable_name,
-            "variable_type": variable_type,
-            "default_value": default_value
-        })
+        return self.compile_action_step(
+            "declare",
+            {
+                "variable_name": variable_name,
+                "variable_type": variable_type,
+                "default_value": default_value,
+            },
+        )
 
-    def compile_assign(
-        self,
-        variable_name: str,
-        expression: str
-    ) -> str:
+    def compile_assign(self, variable_name: str, expression: str) -> str:
         """Compile an assignment"""
-        return self.compile_action_step("assign", {
-            "variable_name": variable_name,
-            "expression": expression
-        })
+        return self.compile_action_step(
+            "assign", {"variable_name": variable_name, "expression": expression}
+        )
 
     def compile_if(
         self,
         condition: str,
         then_steps: List[Dict[str, Any]],
         else_steps: Optional[List[Dict[str, Any]]] = None,
-        entity: Optional[Dict[str, Any]] = None
+        entity: Optional[Dict[str, Any]] = None,
     ) -> str:
         """Compile an if statement"""
         # Compile nested steps
@@ -134,65 +130,68 @@ class PatternBasedCompiler:
         if else_steps:
             else_body = self.compile_action_steps(else_steps, entity)
 
-        return self.compile_action_step("if", {
-            "condition": condition,
-            "then_steps": then_body,
-            "else_steps": else_body,
-            "fields_to_fetch": [],  # Would need to be determined from condition
-            "variables": [],  # Would need to be determined
-            "table_name": entity.get('table_name') if entity else "",
-            "pk_column": entity.get('pk_column') if entity else ""
-        }, entity)
+        return self.compile_action_step(
+            "if",
+            {
+                "condition": condition,
+                "then_steps": then_body,
+                "else_steps": else_body,
+                "fields_to_fetch": [],  # Would need to be determined from condition
+                "variables": [],  # Would need to be determined
+                "table_name": entity.get("table_name") if entity else "",
+                "pk_column": entity.get("pk_column") if entity else "",
+            },
+            entity,
+        )
 
     def compile_insert(
         self,
         entity: Dict[str, Any],
         fields: Dict[str, Any],
-        result_variable: Optional[str] = None
+        result_variable: Optional[str] = None,
     ) -> str:
         """Compile an insert statement"""
-        return self.compile_action_step("insert", {
-            "entity": entity.get('name', ''),
-            "columns": list(fields.keys()),
-            "values": list(fields.values()),
-            "table_name": f"{entity.get('schema', 'public')}.tb_{entity.get('name', '').lower()}",
-            "pk_column": f"pk_{entity.get('name', '').lower()}",
-            "result_variable": result_variable or f"v_{entity.get('name', '').lower()}_id"
-        }, entity)
+        return self.compile_action_step(
+            "insert",
+            {
+                "entity": entity.get("name", ""),
+                "columns": list(fields.keys()),
+                "values": list(fields.values()),
+                "table_name": f"{entity.get('schema', 'public')}.tb_{entity.get('name', '').lower()}",
+                "pk_column": f"pk_{entity.get('name', '').lower()}",
+                "result_variable": result_variable
+                or f"v_{entity.get('name', '').lower()}_id",
+            },
+            entity,
+        )
 
     def compile_update(
         self,
         entity: Dict[str, Any],
         set_clause: str,
-        where_clause: Optional[str] = None
+        where_clause: Optional[str] = None,
     ) -> str:
         """Compile an update statement"""
-        return self.compile_action_step("update", {
-            "entity": entity.get('name', ''),
-            "set_clause": set_clause,
-            "where_clause": where_clause,
-            "table_name": f"{entity.get('schema', 'public')}.tb_{entity.get('name', '').lower()}"
-        }, entity)
+        return self.compile_action_step(
+            "update",
+            {
+                "entity": entity.get("name", ""),
+                "set_clause": set_clause,
+                "where_clause": where_clause,
+                "table_name": f"{entity.get('schema', 'public')}.tb_{entity.get('name', '').lower()}",
+            },
+            entity,
+        )
 
-    def compile_query(
-        self,
-        sql: str,
-        into_variable: str
-    ) -> str:
+    def compile_query(self, sql: str, into_variable: str) -> str:
         """Compile a query statement"""
-        return self.compile_action_step("query", {
-            "sql": sql,
-            "into_variable": into_variable
-        })
+        return self.compile_action_step(
+            "query", {"sql": sql, "into_variable": into_variable}
+        )
 
-    def compile_return(
-        self,
-        expression: str
-    ) -> str:
+    def compile_return(self, expression: str) -> str:
         """Compile a return statement"""
-        return self.compile_action_step("return", {
-            "expression": expression
-        })
+        return self.compile_action_step("return", {"expression": expression})
 
     def close(self):
         """Close pattern library connection"""
@@ -200,6 +199,7 @@ class PatternBasedCompiler:
 
 
 # ===== Example usage and testing =====
+
 
 def test_pattern_based_compiler():
     """Test the pattern-based compiler with sample actions"""
@@ -224,7 +224,9 @@ def test_pattern_based_compiler():
 
     # Test insert
     entity = {"name": "User", "schema": "public"}
-    insert_sql = compiler.compile_insert(entity, {"name": "'John'", "email": "'john@example.com'"})
+    insert_sql = compiler.compile_insert(
+        entity, {"name": "'John'", "email": "'john@example.com'"}
+    )
     print("INSERT:", insert_sql)
 
     # Test update

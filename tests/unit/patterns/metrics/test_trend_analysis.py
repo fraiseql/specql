@@ -28,8 +28,16 @@ class TestTrendAnalysis:
             "config": {
                 "base_metric_view": "v_machine_utilization_metrics",
                 "trend_metrics": [
-                    {"metric": "utilization_rate", "periods": [7, 30, 90], "smoothing": "simple"},
-                    {"metric": "downtime_hours", "periods": [7, 30], "smoothing": "simple"},
+                    {
+                        "metric": "utilization_rate",
+                        "periods": [7, 30, 90],
+                        "smoothing": "simple",
+                    },
+                    {
+                        "metric": "downtime_hours",
+                        "periods": [7, 30],
+                        "smoothing": "simple",
+                    },
                 ],
                 "trend_detection": {"enabled": True, "sensitivity": "medium"},
             },
@@ -72,7 +80,11 @@ class TestTrendAnalysis:
             "config": {
                 "base_metric_view": "v_machine_metrics",
                 "trend_metrics": [
-                    {"metric": "maintenance_cost", "periods": [30, 90], "smoothing": "simple"}
+                    {
+                        "metric": "maintenance_cost",
+                        "periods": [30, 90],
+                        "smoothing": "simple",
+                    }
                 ],
                 "trend_detection": {"enabled": False},
             },

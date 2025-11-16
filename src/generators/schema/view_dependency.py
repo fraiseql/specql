@@ -36,7 +36,9 @@ class ViewDependencyResolver:
         # Perform topological sort using Kahn's algorithm
         return self._topological_sort(graph, in_degree, patterns)
 
-    def _build_graph(self, patterns: List[Dict]) -> tuple[Dict[str, Set[str]], Dict[str, int]]:
+    def _build_graph(
+        self, patterns: List[Dict]
+    ) -> tuple[Dict[str, Set[str]], Dict[str, int]]:
         """
         Build a dependency graph and in-degree count.
 
@@ -63,14 +65,19 @@ class ViewDependencyResolver:
 
             for dep in dependencies:
                 if dep not in pattern_names:
-                    raise ValueError(f"Pattern '{pattern_name}' depends on unknown pattern '{dep}'")
+                    raise ValueError(
+                        f"Pattern '{pattern_name}' depends on unknown pattern '{dep}'"
+                    )
                 graph[dep].add(pattern_name)  # dep -> pattern_name
                 in_degree[pattern_name] += 1
 
         return graph, in_degree
 
     def _topological_sort(
-        self, graph: Dict[str, Set[str]], in_degree: Dict[str, int], patterns: List[Dict]
+        self,
+        graph: Dict[str, Set[str]],
+        in_degree: Dict[str, int],
+        patterns: List[Dict],
     ) -> List[str]:
         """
         Perform topological sort using Kahn's algorithm.

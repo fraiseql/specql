@@ -183,7 +183,9 @@ def configure_logging(
     # Add console handler with formatter
     console_handler = logging.StreamHandler(sys.stderr)
     console_handler.setLevel(level)
-    console_handler.setFormatter(SpecQLFormatter(use_colors=use_colors, verbose=verbose))
+    console_handler.setFormatter(
+        SpecQLFormatter(use_colors=use_colors, verbose=verbose)
+    )
     root_logger.addHandler(console_handler)
 
     _logging_configured = True
@@ -259,6 +261,7 @@ def get_team_logger(
 
 
 # Convenience functions for common logging patterns
+
 
 def log_operation_start(
     logger: logging.LoggerAdapter,

@@ -2,7 +2,11 @@
 
 from typing import Any
 
-from .utils import build_default_values_clause, parse_table_reference, validate_wrapper_config
+from .utils import (
+    build_default_values_clause,
+    parse_table_reference,
+    validate_wrapper_config,
+)
 
 
 def generate_complete_set_wrapper(config: dict[str, Any]) -> str:
@@ -20,7 +24,9 @@ def generate_complete_set_wrapper(config: dict[str, Any]) -> str:
     default_values = config.get("default_values", {})
     ensure_zero_count_entities = config.get("ensure_zero_count_entities", True)
     is_multi_tenant = config.get("is_multi_tenant", False)
-    tenant_filter = config.get("tenant_filter", "CURRENT_SETTING('app.current_tenant_id')::uuid")
+    tenant_filter = config.get(
+        "tenant_filter", "CURRENT_SETTING('app.current_tenant_id')::uuid"
+    )
 
     # Parse table references
     mv_schema, mv_name = parse_table_reference(config["materialized_view"], schema)

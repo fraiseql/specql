@@ -53,7 +53,9 @@ class ForEachStepCompiler:
 
         # Parse the foreach expression: "item in collection"
         if step.foreach_expr:
-            iterator_var, collection_expr = self._parse_foreach_expression(step.foreach_expr)
+            iterator_var, collection_expr = self._parse_foreach_expression(
+                step.foreach_expr
+            )
         elif step.iterator_var and step.collection:
             iterator_var = step.iterator_var
             collection_expr = step.collection
@@ -63,10 +65,14 @@ class ForEachStepCompiler:
             )
 
         # Generate the query to iterate over
-        iteration_query = self._generate_iteration_query(collection_expr, entity, context)
+        iteration_query = self._generate_iteration_query(
+            collection_expr, entity, context
+        )
 
         # Compile the steps to execute for each item
-        loop_body = self._compile_loop_body(step.then_steps, entity, context, iterator_var)
+        loop_body = self._compile_loop_body(
+            step.then_steps, entity, context, iterator_var
+        )
 
         expr_display = step.foreach_expr or f"{iterator_var} in {collection_expr}"
         return f"""
@@ -159,7 +165,11 @@ class ForEachStepCompiler:
             return f"""        SELECT * FROM {entity.schema}.{collection_expr}"""
 
     def _compile_loop_body(
-        self, steps: list[ActionStep], entity: EntityDefinition, context: dict, iterator_var: str
+        self,
+        steps: list[ActionStep],
+        entity: EntityDefinition,
+        context: dict,
+        iterator_var: str,
     ) -> str:
         """
         Compile the steps to execute inside the FOR loop

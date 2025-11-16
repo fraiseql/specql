@@ -17,7 +17,9 @@ def test_universal_entity_has_no_sql_specifics():
         schema="app",
         fields=[
             UniversalField(name="email", type=FieldType.TEXT),
-            UniversalField(name="company", type=FieldType.REFERENCE, references="Company"),
+            UniversalField(
+                name="company", type=FieldType.REFERENCE, references="Company"
+            ),
         ],
         actions=[],
     )
@@ -40,7 +42,9 @@ def test_universal_action_has_no_plpgsql_specifics():
         entity="Contact",
         steps=[
             UniversalStep(type=StepType.VALIDATE, expression="status = 'lead'"),
-            UniversalStep(type=StepType.UPDATE, entity="Contact", fields={"status": "qualified"}),
+            UniversalStep(
+                type=StepType.UPDATE, entity="Contact", fields={"status": "qualified"}
+            ),
         ],
         impacts=["Contact"],
     )
@@ -81,7 +85,9 @@ def test_universal_step_types():
 def test_universal_field_with_enum():
     """Test universal field with enum values"""
     field = UniversalField(
-        name="status", type=FieldType.ENUM, enum_values=["lead", "qualified", "customer"]
+        name="status",
+        type=FieldType.ENUM,
+        enum_values=["lead", "qualified", "customer"],
     )
 
     assert field.type == FieldType.ENUM
@@ -90,7 +96,9 @@ def test_universal_field_with_enum():
 
 def test_universal_field_with_reference():
     """Test universal field with reference"""
-    field = UniversalField(name="company", type=FieldType.REFERENCE, references="Company")
+    field = UniversalField(
+        name="company", type=FieldType.REFERENCE, references="Company"
+    )
 
     assert field.type == FieldType.REFERENCE
     assert field.references == "Company"
@@ -154,7 +162,7 @@ def test_parser_produces_universal_ast():
     email_field = entity.fields[0]
     assert email_field.name == "email"
     assert email_field.type == FieldType.TEXT
-    assert email_field.required  is True
+    assert email_field.required is True
 
     company_field = entity.fields[1]
     assert company_field.name == "company"

@@ -12,6 +12,7 @@ from dataclasses import dataclass
 @dataclass
 class ParsedFunction:
     """Parsed SQL function"""
+
     function_name: str
     schema: str
     parameters: List[Dict[str, str]]
@@ -65,7 +66,7 @@ class SQLASTParser:
                 parameters=parameters,
                 return_type=return_type,
                 body=body,
-                language="plpgsql"
+                language="plpgsql",
             )
 
         except Exception as e:
@@ -84,13 +85,10 @@ class SQLASTParser:
                 param_type = self._type_name_to_string(param.argType)
 
                 # Remove 'p_' prefix if present (common convention)
-                if param_name.startswith('p_'):
+                if param_name.startswith("p_"):
                     param_name = param_name[2:]
 
-                parameters.append({
-                    "name": param_name,
-                    "type": param_type
-                })
+                parameters.append({"name": param_name, "type": param_type})
 
         return parameters
 
@@ -124,7 +122,7 @@ class SQLASTParser:
                 "timestamptz": "timestamp",
                 "timestamp": "timestamp",
                 "jsonb": "json",
-                "json": "json"
+                "json": "json",
             }
 
             return type_map.get(type_name, type_name)
@@ -135,7 +133,7 @@ class SQLASTParser:
         """Extract function body"""
         # Function body is in options
         for option in func_stmt.options:
-            if isinstance(option, pglast.ast.DefElem) and option.defname == 'as':
+            if isinstance(option, pglast.ast.DefElem) and option.defname == "as":
                 # Body is in arg as a tuple of strings
                 if isinstance(option.arg, tuple) and len(option.arg) > 0:
                     body_string = option.arg[0].sval

@@ -14,7 +14,7 @@ class TestAuditGenerator:
         sql = generator.generate_audit_trail(
             entity_name="Post",
             fields=["title", "content"],
-            audit_config={"enabled": True}
+            audit_config={"enabled": True},
         )
 
         # Should include basic audit table
@@ -44,7 +44,7 @@ class TestAuditGenerator:
         sql = generator.generate_audit_trail(
             entity_name="Post",
             fields=["title", "content"],
-            audit_config={"enabled": True, "include_cascade": True}
+            audit_config={"enabled": True, "include_cascade": True},
         )
 
         # Should include cascade_data column
@@ -63,7 +63,7 @@ class TestAuditGenerator:
         sql = generator.generate_audit_trail(
             entity_name="User",
             fields=["name", "email"],
-            audit_config={"enabled": True}  # No include_cascade
+            audit_config={"enabled": True},  # No include_cascade
         )
 
         # Should NOT include cascade columns
@@ -77,7 +77,7 @@ class TestAuditGenerator:
         sql = generator.generate_audit_trail(
             entity_name="Comment",
             fields=["text"],
-            audit_config={"enabled": True, "include_cascade": False}
+            audit_config={"enabled": True, "include_cascade": False},
         )
 
         # Should NOT include cascade columns

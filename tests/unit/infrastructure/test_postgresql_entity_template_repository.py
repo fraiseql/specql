@@ -1,9 +1,10 @@
 """Tests for PostgreSQL EntityTemplate repository"""
+
 import pytest
 from src.domain.entities.entity_template import EntityTemplate, TemplateField
 from src.domain.value_objects import DomainNumber
 from src.infrastructure.repositories.postgresql_entity_template_repository import (
-    PostgreSQLEntityTemplateRepository
+    PostgreSQLEntityTemplateRepository,
 )
 import os
 
@@ -11,7 +12,9 @@ import os
 @pytest.fixture
 def db_url():
     """Get database URL from environment"""
-    return os.getenv("SPECQL_DB_URL", "postgresql://specql_user:specql_dev_password@localhost/specql")
+    return os.getenv(
+        "SPECQL_DB_URL", "postgresql://specql_user:specql_dev_password@localhost/specql"
+    )
 
 
 @pytest.fixture
@@ -31,10 +34,10 @@ def sample_template():
         base_entity_name="contact",
         fields=[
             TemplateField("email", "text", required=True),
-            TemplateField("phone", "text", required=False)
+            TemplateField("phone", "text", required=False),
         ],
         included_patterns=["audit_trail", "soft_delete"],
-        version="1.0.0"
+        version="1.0.0",
     )
 
 
@@ -91,7 +94,7 @@ class TestPostgreSQLEntityTemplateRepository:
             domain_number=DomainNumber("01"),
             base_entity_name="company",
             fields=[TemplateField("name", "text", required=True)],
-            version="1.0.0"
+            version="1.0.0",
         )
         repository.save(template2)
 
@@ -115,7 +118,7 @@ class TestPostgreSQLEntityTemplateRepository:
             base_entity_name="private",
             fields=[TemplateField("secret", "text")],
             is_public=False,
-            version="1.0.0"
+            version="1.0.0",
         )
         repository.save(private_template)
 

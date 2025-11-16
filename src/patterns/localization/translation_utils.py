@@ -1,7 +1,6 @@
 """Utilities for translation views and fallback logic"""
 
 
-
 class TranslationManager:
     """Manage translation views and fallback logic"""
 

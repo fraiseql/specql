@@ -72,7 +72,9 @@ COMMENT ON TABLE {self.schema}.tv_{self.entity_lower} IS
         lines.append(
             f"COMMENT ON COLUMN {self.schema}.tv_{self.entity_lower}.pk_{self.entity_lower} IS"
         )
-        lines.append("  '@fraiseql:field internal=true,description=Internal primary key';")
+        lines.append(
+            "  '@fraiseql:field internal=true,description=Internal primary key';"
+        )
 
         # Foreign key columns (fk_*)
         for field_name, field in self.entity.fields.items():
@@ -90,8 +92,12 @@ COMMENT ON TABLE {self.schema}.tv_{self.entity_lower} IS
 
         # Refresh timestamp
         lines.append("")
-        lines.append(f"COMMENT ON COLUMN {self.schema}.tv_{self.entity_lower}.refreshed_at IS")
-        lines.append("  '@fraiseql:field internal=true,description=Last refresh timestamp';")
+        lines.append(
+            f"COMMENT ON COLUMN {self.schema}.tv_{self.entity_lower}.refreshed_at IS"
+        )
+        lines.append(
+            "  '@fraiseql:field internal=true,description=Last refresh timestamp';"
+        )
 
         return "\n".join(lines)
 
@@ -112,7 +118,9 @@ COMMENT ON TABLE {self.schema}.tv_{self.entity_lower} IS
         lines = ["-- Filter columns (for efficient WHERE clauses)"]
 
         # Tenant ID (always present)
-        lines.append(f"COMMENT ON COLUMN {self.schema}.tv_{self.entity_lower}.tenant_id IS")
+        lines.append(
+            f"COMMENT ON COLUMN {self.schema}.tv_{self.entity_lower}.tenant_id IS"
+        )
         lines.append(
             "  '@fraiseql:filter type=UUID,index=btree,performance=optimized,description=Multi-tenant filter';"
         )
@@ -134,7 +142,9 @@ COMMENT ON TABLE {self.schema}.tv_{self.entity_lower} IS
         # Hierarchical path (if applicable)
         if getattr(self.entity, "hierarchical", False):
             lines.append("")
-            lines.append(f"COMMENT ON COLUMN {self.schema}.tv_{self.entity_lower}.path IS")
+            lines.append(
+                f"COMMENT ON COLUMN {self.schema}.tv_{self.entity_lower}.path IS"
+            )
             lines.append(
                 "  '@fraiseql:filter type=String,index=gist,format=ltree_integer,performance=optimized,description=Hierarchical path (INTEGER-based)';"
             )

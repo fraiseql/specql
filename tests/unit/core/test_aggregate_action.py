@@ -1,6 +1,5 @@
 """Tests for aggregate action type"""
 
-
 from src.core.specql_parser import SpecQLParser
 
 
@@ -34,6 +33,7 @@ def test_aggregate_in_query():
     assert action.steps[0].type == "aggregate"
     assert action.steps[0].aggregate_operation == "sum"
     assert action.steps[0].aggregate_field == "amount"
+
 
 def test_aggregate_with_group_by():
     """Test aggregate with grouping"""

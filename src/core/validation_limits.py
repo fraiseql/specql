@@ -83,7 +83,9 @@ class ValidationLimits:
             )
 
     @classmethod
-    def validate_steps_count(cls, entity_name: str, action_name: str, steps_count: int) -> None:
+    def validate_steps_count(
+        cls, entity_name: str, action_name: str, steps_count: int
+    ) -> None:
         """Validate steps count per action"""
         if steps_count > cls.MAX_STEPS_PER_ACTION:
             from src.core.exceptions import SpecQLValidationError

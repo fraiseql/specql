@@ -33,7 +33,9 @@ def create_contact_entity_with_rich_types():
             "name": FieldDefinition(name="name", type_name="text", nullable=False),
             "email": FieldDefinition(name="email", type_name="email", nullable=False),
             "website": FieldDefinition(name="website", type_name="url", nullable=True),
-            "phone": FieldDefinition(name="phone", type_name="phoneNumber", nullable=True),
+            "phone": FieldDefinition(
+                name="phone", type_name="phoneNumber", nullable=True
+            ),
             "coordinates": FieldDefinition(
                 name="coordinates", type_name="coordinates", nullable=True
             ),
@@ -163,7 +165,9 @@ def test_comments_appear_in_postgresql(test_db, isolated_schema, table_generator
 
     assert "email address" in comments["email"].lower()
     assert "rfc 5322" in comments["email"].lower()
-    assert "url" in comments["website"].lower() or "website" in comments["website"].lower()
+    assert (
+        "url" in comments["website"].lower() or "website" in comments["website"].lower()
+    )
     assert "phone" in comments["phone"].lower()
     assert "coordinates" in comments["coordinates"].lower()
 
@@ -269,11 +273,15 @@ def test_url_pattern_matching_with_gin_index(test_db, isolated_schema, table_gen
     )
     results = cursor.fetchall()
     assert len(results) > 0  # Should find matches
-    assert any("User" in result[0] for result in results)  # Should include bulk inserted data
+    assert any(
+        "User" in result[0] for result in results
+    )  # Should include bulk inserted data
 
 
 @pytest.mark.integration
-def test_coordinates_gist_index_for_spatial_queries(test_db, isolated_schema, table_generator):
+def test_coordinates_gist_index_for_spatial_queries(
+    test_db, isolated_schema, table_generator
+):
     """Integration: Coordinates GiST index enables spatial operations"""
     entity = create_contact_entity_with_rich_types()
     ddl = table_generator.generate_complete_ddl(entity)
@@ -349,7 +357,9 @@ def test_enum_constraints_work(test_db, isolated_schema, table_generator):
         fields={
             "title": FieldDefinition(name="title", type_name="text", nullable=False),
             "status": FieldDefinition(
-                name="status", type_name="enum", values=["pending", "in_progress", "completed"]
+                name="status",
+                type_name="enum",
+                values=["pending", "in_progress", "completed"],
             ),
         },
     )
@@ -400,13 +410,17 @@ def test_foreign_key_constraints_work(test_db, isolated_schema, table_generator)
         schema="crm",
         fields={
             "name": FieldDefinition(name="name", type_name="text", nullable=False),
-            "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company"),
+            "company": FieldDefinition(
+                name="company", type_name="ref", reference_entity="Company"
+            ),
         },
     )
 
     # Create parent table
     parent_ddl = table_generator.generate_complete_ddl(parent_entity)
-    parent_ddl = parent_ddl.replace("CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}")
+    parent_ddl = parent_ddl.replace(
+        "CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}"
+    )
     parent_ddl = parent_ddl.replace("crm.", f"{isolated_schema}.")
 
     cursor = test_db.cursor()
@@ -414,7 +428,9 @@ def test_foreign_key_constraints_work(test_db, isolated_schema, table_generator)
 
     # Create child table
     child_ddl = table_generator.generate_complete_ddl(child_entity)
-    child_ddl = child_ddl.replace("CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}")
+    child_ddl = child_ddl.replace(
+        "CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}"
+    )
     child_ddl = child_ddl.replace("crm.", f"{isolated_schema}.")
     cursor.execute(child_ddl)
     test_db.commit()

@@ -1,8 +1,10 @@
 """Pattern Repository Protocol"""
+
 from typing import Protocol, TYPE_CHECKING, List, Tuple, Optional
 
 if TYPE_CHECKING:
     from src.domain.entities.pattern import Pattern
+
 
 class PatternRepository(Protocol):
     """Repository for Pattern aggregate root"""
@@ -29,7 +31,7 @@ class PatternRepository(Protocol):
         limit: int = 10,
         min_similarity: float = 0.0,
         category: Optional[str] = None,
-        include_deprecated: bool = False
+        include_deprecated: bool = False,
     ) -> List[Tuple["Pattern", float]]:
         """
         Search patterns by semantic similarity
@@ -51,7 +53,7 @@ class PatternRepository(Protocol):
         pattern_id: int,
         limit: int = 10,
         min_similarity: float = 0.5,
-        include_deprecated: bool = False
+        include_deprecated: bool = False,
     ) -> List[Tuple["Pattern", float]]:
         """
         Find patterns similar to a given pattern

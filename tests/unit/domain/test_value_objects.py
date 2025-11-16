@@ -1,6 +1,8 @@
 """Unit tests for domain value objects"""
+
 import pytest
 from src.domain.value_objects import DomainNumber, TableCode
+
 
 class TestDomainNumber:
     """Test DomainNumber value object"""
@@ -23,6 +25,7 @@ class TestDomainNumber:
         domain_num = DomainNumber("5")
         with pytest.raises(AttributeError):
             domain_num.value = "6"
+
 
 class TestTableCode:
     """Test TableCode value object"""

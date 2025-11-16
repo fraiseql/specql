@@ -28,7 +28,9 @@ def test_simple_cte():
 
     assert action.steps[0].type == "cte"
     assert action.steps[0].cte_name == "monthly_totals"
-    assert action.steps[0].cte_query is not None and "SELECT" in action.steps[0].cte_query
+    assert (
+        action.steps[0].cte_query is not None and "SELECT" in action.steps[0].cte_query
+    )
 
 
 def test_multiple_ctes():

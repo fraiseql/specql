@@ -90,7 +90,8 @@ $$ LANGUAGE plpgsql;
         uuid4()
 
         # Test cascade_entity function
-        cursor = test_db.execute("""
+        cursor = test_db.execute(
+            """
             SELECT app.cascade_entity(
                 'Post',
                 %s::uuid,
@@ -98,14 +99,16 @@ $$ LANGUAGE plpgsql;
                 'blog',
                 'tv_post'
             ) as cascade_data
-        """, [str(post_id)])
+        """,
+            [str(post_id)],
+        )
 
         result = cursor.fetchone()
         cascade = result[0]  # First column of the result
-        assert cascade['__typename'] == 'Post'
-        assert cascade['id'] == str(post_id)
-        assert cascade['operation'] == 'CREATED'
-        assert 'entity' in cascade
+        assert cascade["__typename"] == "Post"
+        assert cascade["id"] == str(post_id)
+        assert cascade["operation"] == "CREATED"
+        assert "entity" in cascade
 
     def test_cascade_deleted_structure(self, test_db):
         """
@@ -113,16 +116,19 @@ $$ LANGUAGE plpgsql;
         """
         entity_id = uuid4()
 
-        cursor = test_db.execute("""
+        cursor = test_db.execute(
+            """
             SELECT app.cascade_deleted('Post', %s::uuid) as cascade_data
-        """, [str(entity_id)])
+        """,
+            [str(entity_id)],
+        )
 
         result = cursor.fetchone()
         cascade = result[0]  # First column of the result
-        assert cascade['__typename'] == 'Post'
-        assert cascade['id'] == str(entity_id)
-        assert cascade['operation'] == 'DELETED'
-        assert 'entity' not in cascade  # Deleted entities don't include data
+        assert cascade["__typename"] == "Post"
+        assert cascade["id"] == str(entity_id)
+        assert cascade["operation"] == "DELETED"
+        assert "entity" not in cascade  # Deleted entities don't include data
 
     def test_cascade_jsonb_structure(self, test_db):
         """
@@ -132,7 +138,8 @@ $$ LANGUAGE plpgsql;
         user_id = uuid4()
 
         # Build cascade structure manually
-        cursor = test_db.execute("""
+        cursor = test_db.execute(
+            """
             SELECT jsonb_build_object(
                 'updated', jsonb_build_array(
                     app.cascade_entity('Post', %s::uuid, 'CREATED', 'blog', 'tv_post'),
@@ -147,32 +154,34 @@ $$ LANGUAGE plpgsql;
                     'affectedCount', 3
                 )
             ) as cascade_structure
-        """, [str(post_id), str(user_id), str(uuid4())])
+        """,
+            [str(post_id), str(user_id), str(uuid4())],
+        )
 
         result = cursor.fetchone()
         cascade = result[0]  # First column of the result
 
         # Verify structure
-        assert 'updated' in cascade
-        assert 'deleted' in cascade
-        assert 'invalidations' in cascade
-        assert 'metadata' in cascade
+        assert "updated" in cascade
+        assert "deleted" in cascade
+        assert "invalidations" in cascade
+        assert "metadata" in cascade
 
         # Verify updated entities
-        updated = cascade['updated']
+        updated = cascade["updated"]
         assert len(updated) == 2
-        assert updated[0]['__typename'] == 'Post'
-        assert updated[0]['operation'] == 'CREATED'
-        assert updated[1]['__typename'] == 'User'
-        assert updated[1]['operation'] == 'UPDATED'
+        assert updated[0]["__typename"] == "Post"
+        assert updated[0]["operation"] == "CREATED"
+        assert updated[1]["__typename"] == "User"
+        assert updated[1]["operation"] == "UPDATED"
 
         # Verify deleted entities
-        deleted = cascade['deleted']
+        deleted = cascade["deleted"]
         assert len(deleted) == 1
-        assert deleted[0]['__typename'] == 'Comment'
-        assert deleted[0]['operation'] == 'DELETED'
+        assert deleted[0]["__typename"] == "Comment"
+        assert deleted[0]["operation"] == "DELETED"
 
         # Verify metadata
-        metadata = cascade['metadata']
-        assert 'timestamp' in metadata
-        assert metadata['affectedCount'] == 3
+        metadata = cascade["metadata"]
+        assert "timestamp" in metadata
+        assert metadata["affectedCount"] == 3

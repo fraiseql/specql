@@ -3,13 +3,14 @@ GraphQL error formatting.
 
 Converts application exceptions to GraphQL errors with proper codes.
 """
+
 # Note: GraphQL error handling will be implemented when FraiseQL is available
 from src.application.exceptions import (
     ApplicationError,
     DomainAlreadyExistsError,
     DomainNotFoundError,
     SubdomainAlreadyExistsError,
-    SubdomainNotFoundError
+    SubdomainNotFoundError,
 )
 
 
@@ -21,14 +22,14 @@ def format_application_error(error: Exception) -> Exception:
     For now, just re-raise with additional context.
     """
     error_map = {
-        DomainAlreadyExistsError: 'DOMAIN_ALREADY_EXISTS',
-        DomainNotFoundError: 'DOMAIN_NOT_FOUND',
-        SubdomainAlreadyExistsError: 'SUBDOMAIN_ALREADY_EXISTS',
-        SubdomainNotFoundError: 'SUBDOMAIN_NOT_FOUND',
-        ValueError: 'VALIDATION_ERROR'
+        DomainAlreadyExistsError: "DOMAIN_ALREADY_EXISTS",
+        DomainNotFoundError: "DOMAIN_NOT_FOUND",
+        SubdomainAlreadyExistsError: "SUBDOMAIN_ALREADY_EXISTS",
+        SubdomainNotFoundError: "SUBDOMAIN_NOT_FOUND",
+        ValueError: "VALIDATION_ERROR",
     }
 
-    error_code = error_map.get(type(error), 'INTERNAL_ERROR')
+    error_code = error_map.get(type(error), "INTERNAL_ERROR")
 
     # For now, just re-raise with code in message
     raise Exception(f"[{error_code}] {str(error)}")
@@ -46,5 +47,6 @@ def error_handler_middleware(next, root, info, **args):
     except Exception as e:
         # Log unexpected errors
         import logging
+
         logging.error(f"Unexpected error in GraphQL resolver: {e}", exc_info=True)
         raise Exception("Internal server error")

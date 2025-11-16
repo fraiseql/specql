@@ -2,8 +2,9 @@
 Tests for TypeScript type generation from polymorphic patterns.
 """
 
-
-from src.generators.frontend.polymorphic_types_generator import generate_polymorphic_types
+from src.generators.frontend.polymorphic_types_generator import (
+    generate_polymorphic_types,
+)
 
 
 class TestPolymorphicTypesGenerator:

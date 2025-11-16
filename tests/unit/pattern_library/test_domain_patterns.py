@@ -19,22 +19,36 @@ class TestDomainPatterns:
                 "entity": {"type": "string", "required": True},
                 "states": {"type": "array", "required": True},
                 "transitions": {"type": "object", "required": True},
-                "guards": {"type": "object", "required": False}
+                "guards": {"type": "object", "required": False},
             },
             implementation={
                 "actions": [
                     {
                         "name": "transition_to_{state}",
                         "steps": [
-                            {"type": "query", "sql": "SELECT state FROM tb_{entity} WHERE id = $id"},
-                            {"type": "validate", "condition": "state IN allowed_states"},
+                            {
+                                "type": "query",
+                                "sql": "SELECT state FROM tb_{entity} WHERE id = $id",
+                            },
+                            {
+                                "type": "validate",
+                                "condition": "state IN allowed_states",
+                            },
                             {"type": "validate", "condition": "transition_allowed"},
-                            {"type": "update", "entity": "{entity}", "fields": {"state": "{target_state}"}},
-                            {"type": "insert", "entity": "{entity}_audit", "fields": {"transition": "...", "timestamp": "NOW()"}}
-                        ]
+                            {
+                                "type": "update",
+                                "entity": "{entity}",
+                                "fields": {"state": "{target_state}"},
+                            },
+                            {
+                                "type": "insert",
+                                "entity": "{entity}_audit",
+                                "fields": {"transition": "...", "timestamp": "NOW()"},
+                            },
+                        ],
                     }
                 ]
-            }
+            },
         )
 
         assert pattern_id > 0
@@ -61,19 +75,17 @@ class TestDomainPatterns:
                     {"name": "created_by", "type": "uuid"},
                     {"name": "updated_at", "type": "timestamp", "default": "NOW()"},
                     {"name": "updated_by", "type": "uuid"},
-                    {"name": "version", "type": "integer", "default": 1}
+                    {"name": "version", "type": "integer", "default": 1},
                 ],
-                "triggers": [
-                    {"event": "before_update", "action": "increment_version"}
-                ]
-            }
+                "triggers": [{"event": "before_update", "action": "increment_version"}],
+            },
         )
 
         # Instantiate for Contact entity
         result = library.instantiate_domain_pattern(
             pattern_name="audit_trail",
             entity_name="Contact",
-            parameters={"entity": "Contact"}
+            parameters={"entity": "Contact"},
         )
 
         assert result is not None
@@ -119,11 +131,13 @@ class TestDomainPatterns:
             description="Test pattern",
             parameters={
                 "required_param": {"type": "string", "required": True},
-                "optional_param": {"type": "string", "required": False}
+                "optional_param": {"type": "string", "required": False},
             },
-            implementation={}
+            implementation={},
         )
 
         # Missing required parameter
         with pytest.raises(ValueError, match="Required parameter missing"):
-            library.instantiate_domain_pattern("test_pattern", "TestEntity", {"optional_param": "value"})
+            library.instantiate_domain_pattern(
+                "test_pattern", "TestEntity", {"optional_param": "value"}
+            )

@@ -1,6 +1,10 @@
 """Test separator utility functions."""
 
-from src.core.separators import join_with_composition, split_composition, strip_tenant_prefix
+from src.core.separators import (
+    join_with_composition,
+    split_composition,
+    strip_tenant_prefix,
+)
 
 
 class TestStripTenantPrefix:

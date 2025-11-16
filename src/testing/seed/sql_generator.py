@@ -26,10 +26,15 @@ class SeedSQLGenerator:
         cols_str = ", ".join(columns)
         vals_str = ", ".join(values)
 
-        return f"INSERT INTO {self.schema}.{self.table} ({cols_str}) VALUES ({vals_str});"
+        return (
+            f"INSERT INTO {self.schema}.{self.table} ({cols_str}) VALUES ({vals_str});"
+        )
 
     def generate_file(
-        self, entities: list[dict[str, Any]], scenario: int = 0, description: str | None = None
+        self,
+        entities: list[dict[str, Any]],
+        scenario: int = 0,
+        description: str | None = None,
     ) -> str:
         """Generate complete SQL file with multiple INSERTs"""
         lines = [

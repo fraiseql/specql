@@ -19,7 +19,9 @@ class EnhancedTableViewGenerator:
 
     def __init__(self, template_dir: Optional[Path] = None):
         if template_dir is None:
-            template_dir = Path(__file__).parent.parent.parent.parent / "templates" / "sql"
+            template_dir = (
+                Path(__file__).parent.parent.parent.parent / "templates" / "sql"
+            )
 
         self.env = Environment(loader=FileSystemLoader(str(template_dir)))
         self.template = self.env.get_template("table_view.sql.j2")
@@ -37,7 +39,5 @@ class EnhancedTableViewGenerator:
         table_name = f"tv_{entity.name.lower()}"
 
         return self.template.render(
-            entity=entity,
-            schema=entity.schema,
-            table_name=table_name
+            entity=entity, schema=entity.schema, table_name=table_name
         )

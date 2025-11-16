@@ -9,20 +9,24 @@ class TestValidateIdentifierSequence:
     def test_validate_identifier_sequence_template_exists(self):
         """Should have validate_identifier_sequence template."""
         try:
-            with open("templates/sql/hierarchy/validate_identifier_sequence.sql.jinja2") as f:
+            with open(
+                "templates/sql/hierarchy/validate_identifier_sequence.sql.jinja2"
+            ) as f:
                 template_content = f.read()
         except FileNotFoundError:
             # Template doesn't exist yet - this is expected for RED test
-            assert (
-                False
-            ), "Template templates/sql/hierarchy/validate_identifier_sequence.sql.jinja2 should exist"
+            assert False, (
+                "Template templates/sql/hierarchy/validate_identifier_sequence.sql.jinja2 should exist"
+            )
 
         # Check that it contains the function
         assert "validate_identifier_sequence" in template_content
 
     def test_validate_identifier_sequence_template_structure(self):
         """Should define function with correct signature and logic."""
-        with open("templates/sql/hierarchy/validate_identifier_sequence.sql.jinja2") as f:
+        with open(
+            "templates/sql/hierarchy/validate_identifier_sequence.sql.jinja2"
+        ) as f:
             template = Template(f.read())
 
         result = template.render()

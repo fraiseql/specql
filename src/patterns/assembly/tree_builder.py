@@ -35,7 +35,9 @@ def _build_level_cte(level: dict[str, Any]) -> str:
     for field in level.get("fields", []):
         fields_sql.append(f"      {field['expression']} AS {field['name']}")
 
-    fields_str = ",\n".join(fields_sql) if fields_sql else "      1"  # Dummy if no fields
+    fields_str = (
+        ",\n".join(fields_sql) if fields_sql else "      1"
+    )  # Dummy if no fields
 
     return f"""  -- CTE: {level["level"]}
   {level["level"]} AS (
@@ -65,7 +67,9 @@ def _build_aggregation_cte(level: dict[str, Any], config: dict[str, Any]) -> str
     joins = []
     for child_level in level.get("child_levels", []):
         join_condition = f"{child_level['level']}_aggregated.{child_level['group_by'][0]} = {level['level']}.{level['group_by'][0]}"
-        joins.append(f"    LEFT JOIN {child_level['level']}_aggregated\n      ON {join_condition}")
+        joins.append(
+            f"    LEFT JOIN {child_level['level']}_aggregated\n      ON {join_condition}"
+        )
 
     joins_str = "\n".join(joins)
 

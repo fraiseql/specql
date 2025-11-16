@@ -28,7 +28,10 @@ def mock_contact_entity() -> Entity:
                 nullable=False,
             ),
             "company": FieldDefinition(
-                name="company", type_name="ref", reference_entity="Company", nullable=True
+                name="company",
+                type_name="ref",
+                reference_entity="Company",
+                nullable=True,
             ),
         },
         actions=[
@@ -36,7 +39,9 @@ def mock_contact_entity() -> Entity:
                 name="qualify_lead",
                 steps=[
                     ActionStep(type="validate", expression="status = 'lead'"),
-                    ActionStep(type="update", entity="Contact", fields={"status": "qualified"}),
+                    ActionStep(
+                        type="update", entity="Contact", fields={"status": "qualified"}
+                    ),
                     ActionStep(
                         type="notify",
                         function_name="owner",
@@ -57,7 +62,9 @@ def mock_company_entity() -> Entity:
         organization=Organization(table_code="CMP", domain_name="Companies"),
         fields={
             "name": FieldDefinition(name="name", type_name="text", nullable=False),
-            "industry": FieldDefinition(name="industry", type_name="text", nullable=True),
+            "industry": FieldDefinition(
+                name="industry", type_name="text", nullable=True
+            ),
         },
     )
 

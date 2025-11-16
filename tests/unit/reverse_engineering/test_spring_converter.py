@@ -2,7 +2,6 @@
 Tests for Spring Boot to SpecQL Converter
 """
 
-
 from src.reverse_engineering.java.spring_visitor import SpringComponent, SpringMethod
 from src.reverse_engineering.java.spring_to_specql import SpringToSpecQLConverter
 from src.core.ast_models import ActionImpact

@@ -60,7 +60,9 @@ def validate_flattener_config(config: dict[str, Any]) -> list[str]:
             if not isinstance(field, dict):
                 issues.append(f"extracted_fields[{i}] must be a dict")
             elif "name" not in field or "expression" not in field:
-                issues.append(f"extracted_fields[{i}] must have 'name' and 'expression' keys")
+                issues.append(
+                    f"extracted_fields[{i}] must have 'name' and 'expression' keys"
+                )
 
     frontend_format = config.get("frontend_format", "generic")
     valid_formats = ["rust_tree", "react_tree", "generic"]
@@ -180,7 +182,9 @@ CASE
 END AS node_type"""
 
 
-def build_sibling_enumeration(source_entity: str, path_field: str, pk_field: str) -> str:
+def build_sibling_enumeration(
+    source_entity: str, path_field: str, pk_field: str
+) -> str:
     """Build sibling enumeration for hierarchical queries."""
     table_name = f"tb_{source_entity.lower()}"
     return f"""
@@ -222,6 +226,8 @@ def validate_expander_config(config: dict[str, Any]) -> list[str]:
         valid_fields = ["ancestor_ids", "ancestor_names", "breadcrumb_labels"]
         for field in config["expanded_fields"]:
             if field not in valid_fields:
-                issues.append(f"Invalid expanded field '{field}'. Must be one of: {valid_fields}")
+                issues.append(
+                    f"Invalid expanded field '{field}'. Must be one of: {valid_fields}"
+                )
 
     return issues

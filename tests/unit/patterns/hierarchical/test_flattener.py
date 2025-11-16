@@ -18,7 +18,10 @@ class TestHierarchicalFlattener:
                     {"name": "code", "expression": "data->>'code'"},
                     {"name": "name", "expression": "data->>'name'"},
                     {"name": "type", "expression": "data->>'type'"},
-                    {"name": "is_active", "expression": "(data->>'is_active')::boolean"},
+                    {
+                        "name": "is_active",
+                        "expression": "(data->>'is_active')::boolean",
+                    },
                 ],
                 "frontend_format": "rust_tree",
                 "label_field": "name",
@@ -49,8 +52,12 @@ class TestHierarchicalFlattener:
         assert "REPLACE(data->>'path', '.', '_')::text AS ltree_id" in sql
 
         # Verify indexes
-        assert "CREATE INDEX IF NOT EXISTS idx_v_flat_location_for_rust_tree_parent" in sql
-        assert "CREATE INDEX IF NOT EXISTS idx_v_flat_location_for_rust_tree_ltree" in sql
+        assert (
+            "CREATE INDEX IF NOT EXISTS idx_v_flat_location_for_rust_tree_parent" in sql
+        )
+        assert (
+            "CREATE INDEX IF NOT EXISTS idx_v_flat_location_for_rust_tree_ltree" in sql
+        )
 
         # Verify WHERE clause
         assert "WHERE deleted_at IS NULL" in sql

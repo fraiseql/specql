@@ -105,7 +105,7 @@ impl User {
         assert len(impl_blocks) == 1
         method = impl_blocks[0].methods[0]
         assert method.name == "save"
-        assert method.is_async  is True
+        assert method.is_async is True
         assert method.return_type == "Result<(), String>"
 
     def test_self_parameters(self):
@@ -147,7 +147,7 @@ impl User {
         assert len(by_ref.parameters) == 1
         assert by_ref.parameters[0]["name"] == "self"
         assert by_ref.parameters[0]["param_type"] == "&self"
-        assert by_ref.parameters[0]["is_ref"]  is True
+        assert by_ref.parameters[0]["is_ref"] is True
         assert not by_ref.parameters[0]["is_mut"]
 
         assert len(by_mut_ref.parameters) == 2  # self + new_id
@@ -320,7 +320,7 @@ impl User {
         assert len(set_name.parameters) == 2  # self + name
         assert set_name.parameters[1]["name"] == "name"
         assert set_name.parameters[1]["param_type"] == "&str"
-        assert set_name.parameters[1]["is_ref"]  is True
+        assert set_name.parameters[1]["is_ref"] is True
 
     def test_empty_impl_block(self):
         """Test parsing empty impl block."""

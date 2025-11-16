@@ -19,7 +19,12 @@ class TestAdvancedPatternDocumentation:
         """Test all temporal patterns are documented."""
         temporal_dir = Path("docs/patterns/advanced/temporal")
 
-        required_files = ["snapshot.md", "audit_trail.md", "scd_type2.md", "temporal_range.md"]
+        required_files = [
+            "snapshot.md",
+            "audit_trail.md",
+            "scd_type2.md",
+            "temporal_range.md",
+        ]
 
         for filename in required_files:
             filepath = temporal_dir / filename
@@ -30,9 +35,9 @@ class TestAdvancedPatternDocumentation:
             assert len(content) > 1000, f"{filename} should have substantial content"
 
             # Check required sections
-            assert "# Temporal" in content or "# Audit" in content or "# SCD" in content, (
-                f"{filename} should have proper title"
-            )
+            assert (
+                "# Temporal" in content or "# Audit" in content or "# SCD" in content
+            ), f"{filename} should have proper title"
             assert "## Overview" in content, f"{filename} should have overview section"
             assert "## Parameters" in content, f"{filename} should document parameters"
             assert "## Examples" in content, f"{filename} should have examples"
@@ -45,7 +50,9 @@ class TestAdvancedPatternDocumentation:
 
         for filename in required_files:
             filepath = localization_dir / filename
-            assert filepath.exists(), f"Localization pattern doc {filename} should exist"
+            assert filepath.exists(), (
+                f"Localization pattern doc {filename} should exist"
+            )
 
             content = filepath.read_text()
             assert len(content) > 1000, f"{filename} should have substantial content"

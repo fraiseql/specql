@@ -4,6 +4,7 @@ Integration tests for dual interface (CLI + GraphQL).
 Tests that CLI and GraphQL both work correctly and use the same
 application services.
 """
+
 import pytest
 import subprocess
 # Note: GraphQL client imports commented out until FraiseQL is available
@@ -26,22 +27,32 @@ class TestDualInterface:
         """Test registering domain via CLI, querying via CLI"""
         # 1. Register domain via CLI
         result = subprocess.run(
-            ['specql', 'domain', 'register', '--number', '20', '--name', 'test_cli', '--schema-type', 'shared'],
+            [
+                "specql",
+                "domain",
+                "register",
+                "--number",
+                "20",
+                "--name",
+                "test_cli",
+                "--schema-type",
+                "shared",
+            ],
             capture_output=True,
-            text=True
+            text=True,
         )
         assert result.returncode == 0
-        assert 'Domain registered: D20' in result.stdout
+        assert "Domain registered: D20" in result.stdout
 
         # 2. Query domain via CLI
         result = subprocess.run(
-            ['specql', 'domain', 'show', '--number', '20'],
+            ["specql", "domain", "show", "--number", "20"],
             capture_output=True,
-            text=True
+            text=True,
         )
         assert result.returncode == 0
-        assert 'test_cli' in result.stdout
-        assert 'D20' in result.stdout
+        assert "test_cli" in result.stdout
+        assert "D20" in result.stdout
 
     def test_register_domain_via_graphql_query_via_graphql(self, graphql_client):
         """Test registering domain via GraphQL, querying via GraphQL"""
@@ -87,12 +98,22 @@ class TestDualInterface:
         """Test registering domain via CLI, querying via GraphQL"""
         # 1. Register domain via CLI
         result = subprocess.run(
-            ['specql', 'domain', 'register', '--number', '22', '--name', 'cli_to_graphql', '--schema-type', 'shared'],
+            [
+                "specql",
+                "domain",
+                "register",
+                "--number",
+                "22",
+                "--name",
+                "cli_to_graphql",
+                "--schema-type",
+                "shared",
+            ],
             capture_output=True,
-            text=True
+            text=True,
         )
         assert result.returncode == 0
-        assert 'Domain registered: D22' in result.stdout
+        assert "Domain registered: D22" in result.stdout
 
         # 2. Query domain via GraphQL
         # Note: This would require FraiseQL

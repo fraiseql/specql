@@ -23,14 +23,21 @@ def format_metrics_sql(metrics: list[dict[str, str]]) -> str:
     """Format metrics list into SQL COUNT statements."""
     sql_parts = []
     for metric in metrics:
-        sql_parts.append(f"COUNT(CASE WHEN {metric['condition']} THEN 1 END) AS {metric['name']}")
+        sql_parts.append(
+            f"COUNT(CASE WHEN {metric['condition']} THEN 1 END) AS {metric['name']}"
+        )
     return ",\n".join(sql_parts)
 
 
 def is_multi_tenant_entity(entity_name: str) -> bool:
     """Check if entity is multi-tenant."""
     # This could be expanded with a registry lookup
-    return entity_name in ["Location", "NetworkConfiguration", "Contract", "Organization"]
+    return entity_name in [
+        "Location",
+        "NetworkConfiguration",
+        "Contract",
+        "Organization",
+    ]
 
 
 def build_tenant_filter(alias: str) -> str:

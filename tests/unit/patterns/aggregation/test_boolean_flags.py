@@ -33,7 +33,9 @@ class TestBooleanFlags:
         sql = generate_boolean_flags(config)
 
         # Verify basic structure
-        assert "CREATE OR REPLACE VIEW tenant.v_current_allocations_by_machine AS" in sql
+        assert (
+            "CREATE OR REPLACE VIEW tenant.v_current_allocations_by_machine AS" in sql
+        )
         assert "AS has_active_allocations" in sql
         assert "AS has_pending_allocations" in sql
         assert "AS is_fully_allocated" in sql
@@ -47,7 +49,9 @@ class TestBooleanFlags:
             "pattern": "aggregation/boolean_flags",
             "config": {
                 "source_entity": "Machine",
-                "flags": [{"name": "has_items", "condition": "COUNT(item.pk_item) > 0"}],
+                "flags": [
+                    {"name": "has_items", "condition": "COUNT(item.pk_item) > 0"}
+                ],
             },
         }
 
@@ -83,7 +87,10 @@ class TestBooleanFlags:
         # Verify temporal conditions
         assert "contract.start_date <= CURRENT_DATE" in sql
         assert "contract.end_date IS NULL OR contract.end_date >= CURRENT_DATE" in sql
-        assert "contract.end_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'" in sql
+        assert (
+            "contract.end_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'"
+            in sql
+        )
 
     def test_generate_boolean_flags_complex(self):
         """Test complex boolean flags like the 9-flag Production example."""
@@ -125,7 +132,10 @@ class TestBooleanFlags:
                         "name": "has_open_tickets",
                         "condition": "EXISTS(SELECT 1 FROM tb_ticket t WHERE t.machine_id = machine.pk_machine AND t.status IN ('open', 'in_progress'))",
                     },
-                    {"name": "is_decommissioned", "condition": "machine.status = 'decommissioned'"},
+                    {
+                        "name": "is_decommissioned",
+                        "condition": "machine.status = 'decommissioned'",
+                    },
                 ],
             },
         }

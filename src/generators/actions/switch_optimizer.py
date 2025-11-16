@@ -8,7 +8,9 @@ class SwitchOptimizer:
     """Optimizes switch/case statements for better compilation"""
 
     @staticmethod
-    def detect_simple_switch(cases: List[SwitchCase], switch_expression: str | None) -> bool:
+    def detect_simple_switch(
+        cases: List[SwitchCase], switch_expression: str | None
+    ) -> bool:
         """
         Determine if a switch can use simple CASE WHEN syntax
 

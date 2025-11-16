@@ -312,7 +312,9 @@ ORDER BY failure_count DESC;
         where_part = f"\n    {where_clause}" if where_clause else ""
         return f"-- Index for {name.split('_', 2)[-1].replace('_', ' ')}\nCREATE INDEX {name} ON {on_clause}{where_part};"
 
-    def _create_function(self, name: str, params: List[str], return_type: str, body: str) -> str:
+    def _create_function(
+        self, name: str, params: List[str], return_type: str, body: str
+    ) -> str:
         """Create a formatted CREATE FUNCTION statement"""
         param_str = ", ".join(params)
         return f"-- Function to {name.replace('_', ' ')}\nCREATE OR REPLACE FUNCTION jobs.{name}({param_str}) RETURNS {return_type} AS $$\n{body}$$\n LANGUAGE plpgsql;"

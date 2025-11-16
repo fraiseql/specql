@@ -256,8 +256,12 @@ def test_all_tier_types_in_single_entity():
     # Count fields by tier
     basic_count = sum(1 for f in entity.fields.values() if f.tier.value == "basic")
     scalar_count = sum(1 for f in entity.fields.values() if f.tier.value == "scalar")
-    composite_count = sum(1 for f in entity.fields.values() if f.tier.value == "composite")
-    reference_count = sum(1 for f in entity.fields.values() if f.tier.value == "reference")
+    composite_count = sum(
+        1 for f in entity.fields.values() if f.tier.value == "composite"
+    )
+    reference_count = sum(
+        1 for f in entity.fields.values() if f.tier.value == "reference"
+    )
 
     assert basic_count == 5  # sku, name, description, weight_grams, reviews
     assert scalar_count == 2  # price, color

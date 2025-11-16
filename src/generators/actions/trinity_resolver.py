@@ -9,7 +9,9 @@ All database operations use INTEGER pk_* for efficiency.
 class TrinityResolver:
     """Resolves UUID to INTEGER pk_* using Trinity helper functions"""
 
-    def generate_pk_lookup(self, entity_name: str, schema: str, id_var: str = "p_id") -> str:
+    def generate_pk_lookup(
+        self, entity_name: str, schema: str, id_var: str = "p_id"
+    ) -> str:
         """
         Generate PL/pgSQL code to resolve UUID → INTEGER pk_*
 
@@ -43,7 +45,9 @@ class TrinityResolver:
     END IF;
 """
 
-    def generate_id_lookup(self, entity_name: str, schema: str, pk_var: str = "v_pk") -> str:
+    def generate_id_lookup(
+        self, entity_name: str, schema: str, pk_var: str = "v_pk"
+    ) -> str:
         """
         Generate PL/pgSQL code to resolve INTEGER pk_* → UUID
 

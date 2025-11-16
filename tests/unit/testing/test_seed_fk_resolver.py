@@ -49,7 +49,9 @@ class TestForeignKeyResolver:
 
         context = {}  # Missing company_name
 
-        with pytest.raises(ValueError, match="FK dependency not satisfied: company_name"):
+        with pytest.raises(
+            ValueError, match="FK dependency not satisfied: company_name"
+        ):
             resolver.resolve(field_mapping, context)
 
     def test_resolve_default_query(self):
@@ -95,9 +97,7 @@ class TestForeignKeyResolver:
         result = resolver.resolve(field_mapping, context)
 
         assert result == 456
-        expected_query = (
-            "SELECT id FROM crm.tb_company WHERE deleted_at IS NULL ORDER BY RANDOM() LIMIT 1"
-        )
+        expected_query = "SELECT id FROM crm.tb_company WHERE deleted_at IS NULL ORDER BY RANDOM() LIMIT 1"
         mock_db.execute.assert_called_once_with(expected_query)
 
     def test_resolve_with_filter_conditions(self):
@@ -149,7 +149,11 @@ class TestGroupLeaderExecutor:
 
         result = executor.execute(leader_mapping, context)
 
-        assert result == {"country_code": "FR", "postal_code": "75001", "city_code": "PAR"}
+        assert result == {
+            "country_code": "FR",
+            "postal_code": "75001",
+            "city_code": "PAR",
+        }
         mock_db.execute.assert_called_once_with(
             "SELECT country_code, postal_code, city_code FROM crm.tb_city WHERE id = 1"
         )

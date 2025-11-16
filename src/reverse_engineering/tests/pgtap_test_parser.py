@@ -21,7 +21,7 @@ from pathlib import Path
 from src.testing.spec.test_parser_protocol import (
     ParsedTest,
     ParsedTestFunction,
-    TestSourceLanguage
+    TestSourceLanguage,
 )
 from src.testing.spec.spec_models import (
     TestSpec,
@@ -30,7 +30,7 @@ from src.testing.spec.spec_models import (
     TestAssertion,
     TestFixture,
     ScenarioCategory,
-    AssertionType
+    AssertionType,
 )
 
 
@@ -90,7 +90,7 @@ class PgTAPTestParser:
         test_name = Path(file_path).stem if file_path else "unnamed_test"
 
         # Parse test plan
-        plan_match = re.search(r'SELECT\s+plan\((\d+)\)', source_code, re.IGNORECASE)
+        plan_match = re.search(r"SELECT\s+plan\((\d+)\)", source_code, re.IGNORECASE)
         test_count = int(plan_match.group(1)) if plan_match else 0
 
         # Extract all test assertions
@@ -108,8 +108,8 @@ class PgTAPTestParser:
             metadata={
                 "file_path": file_path,
                 "test_count": test_count,
-                "has_transaction": "BEGIN" in source_code and "ROLLBACK" in source_code
-            }
+                "has_transaction": "BEGIN" in source_code and "ROLLBACK" in source_code,
+            },
         )
 
     def _extract_test_assertions(self, source_code: str) -> List[ParsedTestFunction]:
@@ -119,16 +119,19 @@ class PgTAPTestParser:
         # Patterns for different pgTAP assertions
         patterns = [
             # ok() / is() / isnt() - match entire SELECT statement
-            (r'SELECT\s+(ok|is|isnt)\s*\([^;]*\)(?:\s*;\s*)?', 'assertion'),
-
+            (r"SELECT\s+(ok|is|isnt)\s*\([^;]*\)(?:\s*;\s*)?", "assertion"),
             # throws_ok() / lives_ok()
-            (r'SELECT\s+(throws_ok|lives_ok)\s*\(\s*\$\$([^\$]+)\$\$\s*(?:,\s*\'([^\']+)\')?\s*\)', 'exception'),
-
+            (
+                r"SELECT\s+(throws_ok|lives_ok)\s*\(\s*\$\$([^\$]+)\$\$\s*(?:,\s*\'([^\']+)\')?\s*\)",
+                "exception",
+            ),
             # results_eq() / results_ne()
-            (r'SELECT\s+(results_eq|results_ne)\s*\((.*?)\)', 'query_result'),
-
+            (r"SELECT\s+(results_eq|results_ne)\s*\((.*?)\)", "query_result"),
             # has_table() / has_column() / has_function()
-            (r'SELECT\s+(has_table|has_column|has_function)\s*\((.*?)\)', 'schema_check'),
+            (
+                r"SELECT\s+(has_table|has_column|has_function)\s*\((.*?)\)",
+                "schema_check",
+            ),
         ]
 
         for pattern, assertion_category in patterns:
@@ -141,13 +144,13 @@ class PgTAPTestParser:
                 # Extract comment before assertion (serves as docstring)
                 # Look for -- Test: ... pattern, preferring Test: comments
                 position = match.start()
-                lines_before = source_code[:position].split('\n')
+                lines_before = source_code[:position].split("\n")
                 docstring = None
                 test_comment = None
                 for line in reversed(lines_before):
-                    if line.strip().startswith('--'):
+                    if line.strip().startswith("--"):
                         comment = line.strip()[2:].strip()
-                        if comment.startswith('Test:'):
+                        if comment.startswith("Test:"):
                             test_comment = comment[5:].strip()
                             break  # Found Test: comment, use it
                         elif docstring is None:
@@ -158,30 +161,36 @@ class PgTAPTestParser:
 
                 # For ok/is/isnt, try to extract message if present
                 message = None
-                if assertion_category == 'assertion':
+                if assertion_category == "assertion":
                     # Look for comma followed by quoted string at the end
                     assertion_content = match.group(0)
-                    message_match = re.search(r',\s*\'([^\']*)\'\s*\)\s*;?\s*$', assertion_content)
+                    message_match = re.search(
+                        r",\s*\'([^\']*)\'\s*\)\s*;?\s*$", assertion_content
+                    )
                     if message_match:
                         message = message_match.group(1)
 
-                test_functions.append(ParsedTestFunction(
-                    function_name=function_name,
-                    docstring=final_docstring,
-                    decorators=[],
-                    body_lines=[match.group(0)],
-                    assertions=[{
-                        "type": assertion_type,
-                        "raw_assertion": match.group(0),
-                        "message": message
-                    }],
-                    setup_calls=[],
-                    teardown_calls=[],
-                    metadata={
-                        "assertion_category": assertion_category,
-                        "line_number": source_code[:position].count('\n') + 1
-                    }
-                ))
+                test_functions.append(
+                    ParsedTestFunction(
+                        function_name=function_name,
+                        docstring=final_docstring,
+                        decorators=[],
+                        body_lines=[match.group(0)],
+                        assertions=[
+                            {
+                                "type": assertion_type,
+                                "raw_assertion": match.group(0),
+                                "message": message,
+                            }
+                        ],
+                        setup_calls=[],
+                        teardown_calls=[],
+                        metadata={
+                            "assertion_category": assertion_category,
+                            "line_number": source_code[:position].count("\n") + 1,
+                        },
+                    )
+                )
 
         return test_functions
 
@@ -191,27 +200,35 @@ class PgTAPTestParser:
 
         # Transaction wrapper
         if "BEGIN" in source_code and "ROLLBACK" in source_code:
-            fixtures.append({
-                "name": "transaction_rollback",
-                "type": "database",
-                "setup_sql": "BEGIN;",
-                "teardown_sql": "ROLLBACK;",
-                "scope": "module"
-            })
+            fixtures.append(
+                {
+                    "name": "transaction_rollback",
+                    "type": "database",
+                    "setup_sql": "BEGIN;",
+                    "teardown_sql": "ROLLBACK;",
+                    "scope": "module",
+                }
+            )
 
         # Look for explicit setup/teardown
-        setup_match = re.search(r'-- Setup(.*?)-- Test', source_code, re.DOTALL | re.IGNORECASE)
+        setup_match = re.search(
+            r"-- Setup(.*?)-- Test", source_code, re.DOTALL | re.IGNORECASE
+        )
         if setup_match:
-            fixtures.append({
-                "name": "custom_setup",
-                "type": "database",
-                "setup_sql": setup_match.group(1).strip(),
-                "scope": "module"
-            })
+            fixtures.append(
+                {
+                    "name": "custom_setup",
+                    "type": "database",
+                    "setup_sql": setup_match.group(1).strip(),
+                    "scope": "module",
+                }
+            )
 
         return fixtures
 
-    def extract_assertions(self, test_function: ParsedTestFunction) -> List[Dict[str, Any]]:
+    def extract_assertions(
+        self, test_function: ParsedTestFunction
+    ) -> List[Dict[str, Any]]:
         """Extract assertions from test function"""
         return test_function.assertions
 
@@ -224,7 +241,9 @@ class PgTAPTestParser:
                 assertion_types.append(assertion.get("type", ""))
 
         # Schema tests
-        if any(t in assertion_types for t in ["has_table", "has_column", "has_function"]):
+        if any(
+            t in assertion_types for t in ["has_table", "has_column", "has_function"]
+        ):
             return TestType.INTEGRATION.value
 
         # Exception tests
@@ -242,11 +261,7 @@ class PgTAPTestParser:
 class PgTAPTestSpecMapper:
     """Maps pgTAP ParsedTest to universal TestSpec"""
 
-    def map_to_test_spec(
-        self,
-        parsed_test: ParsedTest,
-        entity_name: str
-    ) -> TestSpec:
+    def map_to_test_spec(self, parsed_test: ParsedTest, entity_name: str) -> TestSpec:
         """
         Convert pgTAP ParsedTest to TestSpec
 
@@ -268,30 +283,36 @@ class PgTAPTestSpecMapper:
             for assertion in func.assertions:
                 assertions.append(self._map_pgtap_assertion(assertion))
 
-            scenarios.append(TestScenario(
-                scenario_name=func.function_name,
-                description=func.docstring or f"pgTAP test: {func.function_name}",
-                category=category,
-                setup_steps=[],
-                action_steps=[],
-                assertions=assertions,
-                teardown_steps=[],
-                metadata={
-                    "source_language": "pgtap",
-                    "original_assertion": func.body_lines[0] if func.body_lines else ""
-                }
-            ))
+            scenarios.append(
+                TestScenario(
+                    scenario_name=func.function_name,
+                    description=func.docstring or f"pgTAP test: {func.function_name}",
+                    category=category,
+                    setup_steps=[],
+                    action_steps=[],
+                    assertions=assertions,
+                    teardown_steps=[],
+                    metadata={
+                        "source_language": "pgtap",
+                        "original_assertion": func.body_lines[0]
+                        if func.body_lines
+                        else "",
+                    },
+                )
+            )
 
         # Map fixtures
         fixtures = []
         for fixture_dict in parsed_test.fixtures:
-            fixtures.append(TestFixture(
-                fixture_name=fixture_dict["name"],
-                fixture_type=fixture_dict["type"],
-                setup_sql=fixture_dict.get("setup_sql"),
-                teardown_sql=fixture_dict.get("teardown_sql"),
-                scope=fixture_dict.get("scope", "function")
-            ))
+            fixtures.append(
+                TestFixture(
+                    fixture_name=fixture_dict["name"],
+                    fixture_type=fixture_dict["type"],
+                    setup_sql=fixture_dict.get("setup_sql"),
+                    teardown_sql=fixture_dict.get("teardown_sql"),
+                    scope=fixture_dict.get("scope", "function"),
+                )
+            )
 
         # Detect test type
         parser = PgTAPTestParser()
@@ -304,14 +325,11 @@ class PgTAPTestSpecMapper:
             test_type=test_type,
             scenarios=scenarios,
             fixtures=fixtures,
-            coverage={
-                "test_count": len(scenarios),
-                "source_language": "pgtap"
-            },
-            metadata=parsed_test.metadata
+            coverage={"test_count": len(scenarios), "source_language": "pgtap"},
+            metadata=parsed_test.metadata,
         )
 
-    def _categorize_pgtap_test(self, func: ParsedTestFunction) -> 'ScenarioCategory':
+    def _categorize_pgtap_test(self, func: ParsedTestFunction) -> "ScenarioCategory":
         """Categorize pgTAP test function"""
         docstring = (func.docstring or "").lower()
         function_name = func.function_name.lower()
@@ -348,6 +366,6 @@ class PgTAPTestSpecMapper:
             message=assertion_dict.get("message"),
             metadata={
                 "pgtap_assertion": pgtap_type,
-                "raw": assertion_dict.get("raw_assertion")
-            }
+                "raw": assertion_dict.get("raw_assertion"),
+            },
         )

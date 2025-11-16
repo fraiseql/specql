@@ -55,7 +55,11 @@ class FrameworkRegistry:
             return "django"
 
         # Rails indicators
-        if (cwd / "Gemfile").exists() and (cwd / "app").exists() and (cwd / "config").exists():
+        if (
+            (cwd / "Gemfile").exists()
+            and (cwd / "app").exists()
+            and (cwd / "config").exists()
+        ):
             gemfile = cwd / "Gemfile"
             try:
                 content = gemfile.read_text().lower()
@@ -69,11 +73,15 @@ class FrameworkRegistry:
             return "prisma"
 
         # FraiseQL indicators (check for GraphQL schema, etc.)
-        if (cwd / "graphql").exists() or any(f.suffix == ".graphql" for f in cwd.glob("*")):
+        if (cwd / "graphql").exists() or any(
+            f.suffix == ".graphql" for f in cwd.glob("*")
+        ):
             return "fraiseql"
 
         # Check for SpecQL-specific indicators
-        if (cwd / "entities").exists() and any(f.suffix == ".yaml" for f in (cwd / "entities").glob("*")):
+        if (cwd / "entities").exists() and any(
+            f.suffix == ".yaml" for f in (cwd / "entities").glob("*")
+        ):
             # SpecQL project - could be any framework, default to fraiseql
             return "fraiseql"
 
@@ -83,7 +91,7 @@ class FrameworkRegistry:
         self,
         explicit_framework: Optional[str] = None,
         dev_mode: bool = False,
-        auto_detect: bool = True
+        auto_detect: bool = True,
     ) -> str:
         """
         Resolve the target framework based on user input and project context.
@@ -119,7 +127,7 @@ class FrameworkRegistry:
         framework: str,
         dev_mode: bool = False,
         no_tv: bool = False,
-        custom_output_dir: Optional[str] = None
+        custom_output_dir: Optional[str] = None,
     ) -> Dict[str, Any]:
         """
         Get effective defaults for a framework, applying user overrides.
@@ -152,9 +160,7 @@ class FrameworkRegistry:
         return defaults
 
     def validate_framework_compatibility(
-        self,
-        framework: str,
-        requested_features: Dict[str, Any]
+        self, framework: str, requested_features: Dict[str, Any]
     ) -> Dict[str, str]:
         """
         Validate that requested features are compatible with the framework.
@@ -193,6 +199,7 @@ class FrameworkRegistry:
 
 # Global registry instance
 _registry = None
+
 
 def get_framework_registry() -> FrameworkRegistry:
     """Get the global framework registry instance"""

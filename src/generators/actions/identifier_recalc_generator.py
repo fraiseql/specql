@@ -102,14 +102,18 @@ Separator: {separator} (default: dot for hierarchy)
 Pattern: {{tenant}}|{{parent}}{separator}{{child}}';
 """.strip()
 
-    def _generate_composite_hierarchical_strategy(self, entity: EntityDefinition) -> str:
+    def _generate_composite_hierarchical_strategy(
+        self, entity: EntityDefinition
+    ) -> str:
         """Generate composite hierarchical identifier (allocation pattern)."""
 
         entity_lower = entity.name.lower()
         schema = entity.schema
 
         # Get separators
-        composition_sep = entity.identifier.composition_separator or Separators.COMPOSITION
+        composition_sep = (
+            entity.identifier.composition_separator or Separators.COMPOSITION
+        )
 
         # Check for tenant prefix
         has_tenant_prefix = self._should_apply_tenant_prefix(entity)

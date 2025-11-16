@@ -2,7 +2,12 @@
 
 import pytest
 from src.generators.schema.table_view_generator import TableViewGenerator
-from src.core.ast_models import EntityDefinition, FieldDefinition, TableViewConfig, TableViewMode
+from src.core.ast_models import (
+    EntityDefinition,
+    FieldDefinition,
+    TableViewConfig,
+    TableViewMode,
+)
 
 
 class TestVectorColumnExposure:
@@ -17,7 +22,9 @@ class TestVectorColumnExposure:
                 "title": FieldDefinition(name="title", type_name="text"),
                 "content": FieldDefinition(name="content", type_name="text"),
             },
-            table_views=TableViewConfig(mode=TableViewMode.FORCE)  # Force table view generation
+            table_views=TableViewConfig(
+                mode=TableViewMode.FORCE
+            ),  # Force table view generation
         )
         # Mark that this entity has vector features enabled
         entity.features = ["semantic_search", "full_text_search"]
@@ -70,6 +77,8 @@ class TestVectorColumnExposure:
 
         # Assert
         # JSONB should NOT include vector columns (they're separate columns)
-        jsonb_section = result[result.find("jsonb_build_object"):result.find("AS data")]
+        jsonb_section = result[
+            result.find("jsonb_build_object") : result.find("AS data")
+        ]
         assert "'embedding'" not in jsonb_section
         assert "'search_vector'" not in jsonb_section

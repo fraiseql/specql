@@ -6,7 +6,10 @@ import pytest
 
 from src.core.ast_models import Entity, FieldDefinition
 from src.generators.actions.expression_compiler import ExpressionCompiler
-from src.generators.actions.validation_step_compiler import ExpressionParser, ValidationStepCompiler
+from src.generators.actions.validation_step_compiler import (
+    ExpressionParser,
+    ValidationStepCompiler,
+)
 
 
 @pytest.fixture
@@ -26,7 +29,9 @@ def contact_entity():
             "mobile_phone": FieldDefinition(
                 name="mobile_phone", type_name="phoneNumber", nullable=True
             ),
-            "job_title": FieldDefinition(name="job_title", type_name="text", nullable=True),
+            "job_title": FieldDefinition(
+                name="job_title", type_name="text", nullable=True
+            ),
             "salary": FieldDefinition(name="salary", type_name="money", nullable=True),
             "commission_rate": FieldDefinition(
                 name="commission_rate", type_name="percentage", nullable=True
@@ -161,7 +166,8 @@ class TestRichTypeExpressionCompiler:
 
         # Test complex expression with rich type validation
         sql = compiler.compile(
-            "email_address MATCHES 'email' AND office_phone MATCHES 'phoneNumber'", contact_entity
+            "email_address MATCHES 'email' AND office_phone MATCHES 'phoneNumber'",
+            contact_entity,
         )
 
         # Should contain both validations
@@ -175,7 +181,9 @@ class TestRichTypeExpressionCompiler:
 
         # Test SQL injection attempt
         with pytest.raises(Exception):  # SecurityError
-            compiler.compile("email_address = 'test'; DROP TABLE users; --'", contact_entity)
+            compiler.compile(
+                "email_address = 'test'; DROP TABLE users; --'", contact_entity
+            )
 
 
 class TestRichTypeIntegration:
@@ -195,7 +203,9 @@ class TestRichTypeIntegration:
                     error="INVALID_EMAIL",
                 ),
                 ActionStep(
-                    type="validate", expression="VALIDATE office_phone", error="INVALID_PHONE"
+                    type="validate",
+                    expression="VALIDATE office_phone",
+                    error="INVALID_PHONE",
                 ),
             ],
         )

@@ -62,7 +62,7 @@ def test_job_result_success():
         resource_usage={"cpu": 0.1, "memory": 50},
     )
 
-    assert result.success  is True
+    assert result.success is True
     assert result.output_data == {"result": "success"}
     assert result.error_message is None
     assert result.duration_seconds == 1.5
@@ -89,7 +89,7 @@ def test_job_result_minimal():
     """JobResult with minimal fields"""
     result = JobResult(success=True)
 
-    assert result.success  is True
+    assert result.success is True
     assert result.output_data is None
     assert result.error_message is None
     assert result.duration_seconds is None
@@ -310,7 +310,7 @@ def test_job_result_different_constructors():
     success_result = JobResult(
         success=True, output_data={"result": "ok"}, duration_seconds=1.0
     )
-    assert success_result.success  is True
+    assert success_result.success is True
     assert success_result.output_data == {"result": "ok"}
     assert success_result.error_message is None
 
@@ -324,7 +324,7 @@ def test_job_result_different_constructors():
 
     # Partial result
     partial_result = JobResult(success=True, resource_usage={"cpu": 0.5})
-    assert partial_result.success  is True
+    assert partial_result.success is True
     assert partial_result.output_data is None
     assert partial_result.error_message is None
     assert partial_result.resource_usage == {"cpu": 0.5}

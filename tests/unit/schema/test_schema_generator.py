@@ -25,7 +25,10 @@ def test_generate_table_with_composite_field():
     ddl = generator.generate_table(entity)
 
     assert "CREATE TABLE crm.tb_order" in ddl
-    assert "shipping_address JSONB CHECK (validate_simple_address(shipping_address))" in ddl
+    assert (
+        "shipping_address JSONB CHECK (validate_simple_address(shipping_address))"
+        in ddl
+    )
     assert "CREATE INDEX idx_tb_order_shipping_address" in ddl
     assert "validate_simple_address" in ddl
 
@@ -100,8 +103,14 @@ def test_generate_table_with_mixed_fields():
     assert "CREATE INDEX idx_order_customer" in ddl
 
     # Check composite fields
-    assert "billing_address JSONB NOT NULL CHECK (validate_simple_address(billing_address))" in ddl
-    assert "shipping_address JSONB CHECK (validate_simple_address(shipping_address))" in ddl
+    assert (
+        "billing_address JSONB NOT NULL CHECK (validate_simple_address(billing_address))"
+        in ddl
+    )
+    assert (
+        "shipping_address JSONB CHECK (validate_simple_address(shipping_address))"
+        in ddl
+    )
     assert "CREATE INDEX idx_tb_order_billing_address" in ddl
     assert "CREATE INDEX idx_tb_order_shipping_address" in ddl
 
@@ -159,7 +168,9 @@ def test_generate_trinity_helper_functions():
         in helpers[0]
     )
     assert "CREATE OR REPLACE FUNCTION crm.contact_id(p_pk INTEGER)" in helpers[1]
-    assert "CREATE OR REPLACE FUNCTION crm.contact_identifier(p_pk INTEGER)" in helpers[2]
+    assert (
+        "CREATE OR REPLACE FUNCTION crm.contact_identifier(p_pk INTEGER)" in helpers[2]
+    )
     assert "SELECT pk_contact" in helpers[0]
     assert "FROM crm.tb_contact" in helpers[0]
     assert "WHERE id = p_id" in helpers[0]
@@ -191,7 +202,10 @@ def test_generate_trinity_indexes():
     indexes = generator._generate_trinity_indexes(entity)
 
     assert len(indexes) == 2
-    assert "CREATE INDEX idx_contact_id_tenant ON crm.tb_contact(id, tenant_id);" in indexes[0]
+    assert (
+        "CREATE INDEX idx_contact_id_tenant ON crm.tb_contact(id, tenant_id);"
+        in indexes[0]
+    )
     assert "CREATE INDEX idx_contact_tenant ON crm.tb_contact(tenant_id);" in indexes[1]
 
 
@@ -200,7 +214,11 @@ def test_generate_table_with_trinity_helpers():
     entity = EntityDefinition(
         name="User",
         schema="auth",
-        fields={"username": FieldDefinition(name="username", type_name="text", nullable=False)},
+        fields={
+            "username": FieldDefinition(
+                name="username", type_name="text", nullable=False
+            )
+        },
     )
 
     generator = SchemaGenerator()

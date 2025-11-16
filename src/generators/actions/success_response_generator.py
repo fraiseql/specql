@@ -115,19 +115,14 @@ class SuccessResponseGenerator:
         # Extra metadata (impact + cascade)
         if context.has_impact_metadata:
             # Use ImpactMetadataCompiler to build extra_metadata with cascade support
-            from src.generators.actions.impact_metadata_compiler import ImpactMetadataCompiler
+            from src.generators.actions.impact_metadata_compiler import (
+                ImpactMetadataCompiler,
+            )
             from src.core.ast_models import Action, Entity
 
             # Create Action and Entity objects for the compiler
-            action = Action(
-                name=context.function_name,
-                impact=context.impact,
-                steps=[]
-            )
-            entity = Entity(
-                name=context.entity_name,
-                schema=context.entity_schema
-            )
+            action = Action(name=context.function_name, impact=context.impact, steps=[])
+            entity = Entity(name=context.entity_name, schema=context.entity_schema)
 
             compiler = ImpactMetadataCompiler()
             meta_sql = compiler.compile(action, entity)
@@ -137,7 +132,10 @@ class SuccessResponseGenerator:
             outbox_sql = ""
             if action.cdc and action.cdc.enabled:
                 try:
-                    from src.generators.actions.outbox_event_compiler import OutboxEventCompiler
+                    from src.generators.actions.outbox_event_compiler import (
+                        OutboxEventCompiler,
+                    )
+
                     outbox_compiler = OutboxEventCompiler()
                     outbox_sql = outbox_compiler.compile(action, entity)
                 except ImportError:

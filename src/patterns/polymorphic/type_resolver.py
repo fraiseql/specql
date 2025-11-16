@@ -30,12 +30,17 @@ def generate_type_resolver(config: dict[str, Any]) -> str:
 
     # Validate required fields
     if "discriminator_field" not in pattern_config:
-        raise ValueError("discriminator_field is required for polymorphic type resolver")
+        raise ValueError(
+            "discriminator_field is required for polymorphic type resolver"
+        )
 
     if "variants" not in pattern_config:
         raise ValueError("variants is required for polymorphic type resolver")
 
-    if not isinstance(pattern_config["variants"], list) or len(pattern_config["variants"]) == 0:
+    if (
+        not isinstance(pattern_config["variants"], list)
+        or len(pattern_config["variants"]) == 0
+    ):
         raise ValueError("variants must be a non-empty list")
 
     # Validate each variant

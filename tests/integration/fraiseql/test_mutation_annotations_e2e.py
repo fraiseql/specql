@@ -7,7 +7,13 @@ import pytest
 
 # Mark all tests as requiring database
 pytestmark = pytest.mark.database
-from src.core.ast_models import Action, ActionImpact, Entity, EntityImpact, FieldDefinition
+from src.core.ast_models import (
+    Action,
+    ActionImpact,
+    Entity,
+    EntityImpact,
+    FieldDefinition,
+)
 from src.generators.schema_orchestrator import SchemaOrchestrator
 
 
@@ -30,7 +36,9 @@ def entity_with_actions():
         steps=[],
         impact=ActionImpact(
             primary=EntityImpact(
-                entity="Contact", operation="create", fields=["first_name", "last_name", "email"]
+                entity="Contact",
+                operation="create",
+                fields=["first_name", "last_name", "email"],
             )
         ),
     )
@@ -44,7 +52,9 @@ def entity_with_actions():
             ),
             side_effects=[
                 EntityImpact(
-                    entity="AuditLog", operation="create", fields=["action", "contact_id"]
+                    entity="AuditLog",
+                    operation="create",
+                    fields=["action", "contact_id"],
                 ),
             ],
         ),
@@ -55,8 +65,12 @@ def entity_with_actions():
         name="Contact",
         schema="crm",
         fields={
-            "first_name": FieldDefinition(name="first_name", type_name="text", nullable=False),
-            "last_name": FieldDefinition(name="last_name", type_name="text", nullable=False),
+            "first_name": FieldDefinition(
+                name="first_name", type_name="text", nullable=False
+            ),
+            "last_name": FieldDefinition(
+                name="last_name", type_name="text", nullable=False
+            ),
             "email": FieldDefinition(name="email", type_name="email", nullable=False),
             "status": FieldDefinition(name="status", type_name="text", nullable=False),
             "qualified_at": FieldDefinition(
@@ -111,17 +125,25 @@ class TestMutationAnnotationsEndToEnd:
         # Core layer doesn't include metadata mapping - that's for app layer
         # assert "metadata_mapping" in schema_sql
 
-    def test_annotations_apply_to_database(self, test_db, isolated_schema, entity_with_actions):
+    def test_annotations_apply_to_database(
+        self, test_db, isolated_schema, entity_with_actions
+    ):
         """Test: Generated annotations can be applied to database"""
         orchestrator = SchemaOrchestrator()
         schema_sql = orchestrator.generate_complete_schema(entity_with_actions)
 
         # Replace schema references with isolated schema
-        schema_sql = schema_sql.replace("CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}")
+        schema_sql = schema_sql.replace(
+            "CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}"
+        )
         schema_sql = schema_sql.replace("crm.", f"{isolated_schema}.")
-        schema_sql = schema_sql.replace("CREATE SCHEMA app", f"CREATE SCHEMA {isolated_schema}app")
+        schema_sql = schema_sql.replace(
+            "CREATE SCHEMA app", f"CREATE SCHEMA {isolated_schema}app"
+        )
         schema_sql = schema_sql.replace("app.", f"{isolated_schema}app.")
-        schema_sql = schema_sql.replace("CREATE SCHEMA test", f"CREATE SCHEMA {isolated_schema}")
+        schema_sql = schema_sql.replace(
+            "CREATE SCHEMA test", f"CREATE SCHEMA {isolated_schema}"
+        )
         schema_sql = schema_sql.replace("test.", f"{isolated_schema}.")
 
         cursor = test_db.cursor()
@@ -159,9 +181,13 @@ class TestMutationAnnotationsEndToEnd:
         schema_sql = orchestrator.generate_complete_schema(entity_with_actions)
 
         # Replace schema references with isolated schema
-        schema_sql = schema_sql.replace("CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}")
+        schema_sql = schema_sql.replace(
+            "CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}"
+        )
         schema_sql = schema_sql.replace("crm.", f"{isolated_schema}.")
-        schema_sql = schema_sql.replace("CREATE SCHEMA app", f"CREATE SCHEMA {isolated_schema}app")
+        schema_sql = schema_sql.replace(
+            "CREATE SCHEMA app", f"CREATE SCHEMA {isolated_schema}app"
+        )
         schema_sql = schema_sql.replace("app.", f"{isolated_schema}app.")
 
         cursor = test_db.cursor()
@@ -196,9 +222,13 @@ class TestMutationAnnotationsEndToEnd:
         schema_sql = orchestrator.generate_complete_schema(entity_with_actions)
 
         # Replace schema references with isolated schema
-        schema_sql = schema_sql.replace("CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}")
+        schema_sql = schema_sql.replace(
+            "CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}"
+        )
         schema_sql = schema_sql.replace("crm.", f"{isolated_schema}.")
-        schema_sql = schema_sql.replace("CREATE SCHEMA app", f"CREATE SCHEMA {isolated_schema}app")
+        schema_sql = schema_sql.replace(
+            "CREATE SCHEMA app", f"CREATE SCHEMA {isolated_schema}app"
+        )
         schema_sql = schema_sql.replace("app.", f"{isolated_schema}app.")
 
         cursor = test_db.cursor()
@@ -230,7 +260,9 @@ class TestMutationAnnotationsEndToEnd:
         """Test: Actions without impact metadata get basic annotations"""
         simple_action = Action(name="simple_update", steps=[], impact=None)
 
-        entity = Entity(name="TestEntity", schema="test", fields={}, actions=[simple_action])
+        entity = Entity(
+            name="TestEntity", schema="test", fields={}, actions=[simple_action]
+        )
 
         orchestrator = SchemaOrchestrator()
         schema_sql = orchestrator.generate_complete_schema(entity)
@@ -253,4 +285,6 @@ class TestMutationAnnotationsEndToEnd:
         assert schema_sql.count("COMMENT ON FUNCTION crm.qualify_lead") == 1
         assert schema_sql.count("COMMENT ON FUNCTION crm.create_contact") == 1
         assert schema_sql.count("COMMENT ON FUNCTION crm.update_contact") == 1
+
+
 # ruff: noqa: E402

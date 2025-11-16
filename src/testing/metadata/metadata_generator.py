@@ -27,7 +27,9 @@ VALUES
 ('{entity_name_escaped}', '{schema_escaped}', '{table_name}', {table_code}, '{entity_code}', '{base_uuid_prefix}', TRUE, TRUE, TRUE, TRUE, TRUE, TRUE);
 """
 
-    def generate_field_mapping(self, entity_config_id: int, field: FieldDefinition) -> str:
+    def generate_field_mapping(
+        self, entity_config_id: int, field: FieldDefinition
+    ) -> str:
         """Generate field generator mapping INSERT statement"""
 
         generator_type = self._infer_generator_type(field)
@@ -53,7 +55,9 @@ VALUES
             fk_target_entity, fk_target_schema, fk_target_table, fk_target_pk_field = (
                 self._parse_fk_target(field)
             )
-            fk_dependencies = ["tenant_id"] if field.type_name.startswith("ref(") else None
+            fk_dependencies = (
+                ["tenant_id"] if field.type_name.startswith("ref(") else None
+            )
 
         return f"""
 INSERT INTO test_metadata.tb_field_generator_mapping
@@ -164,4 +168,6 @@ VALUES
         # Simple check: look for fields that might be unique
         # In a real implementation, this would check the actual schema constraints
         unique_indicators = ["email", "username", "code", "identifier"]
-        return any(field.name.lower() in unique_indicators for field in entity.fields.values())
+        return any(
+            field.name.lower() in unique_indicators for field in entity.fields.values()
+        )

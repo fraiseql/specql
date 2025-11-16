@@ -36,10 +36,14 @@ Examples:
     )
 
     parser.add_argument(
-        "path", type=Path, help="Path to entity YAML file or directory containing entities"
+        "path",
+        type=Path,
+        help="Path to entity YAML file or directory containing entities",
     )
 
-    parser.add_argument("--report", type=Path, help="Generate detailed migration report to file")
+    parser.add_argument(
+        "--report", type=Path, help="Generate detailed migration report to file"
+    )
 
     parser.add_argument(
         "--min-confidence",
@@ -49,7 +53,8 @@ Examples:
     )
 
     parser.add_argument(
-        "--pattern", help="Filter suggestions to specific pattern type (e.g., crud/create)"
+        "--pattern",
+        help="Filter suggestions to specific pattern type (e.g., crud/create)",
     )
 
     parser.add_argument("--quiet", action="store_true", help="Suppress progress output")
@@ -80,10 +85,14 @@ Examples:
         suggestions = analyzer.analyze_directory(args.path)
 
     # Filter suggestions
-    filtered_suggestions = [s for s in suggestions if s.confidence >= args.min_confidence]
+    filtered_suggestions = [
+        s for s in suggestions if s.confidence >= args.min_confidence
+    ]
 
     if args.pattern:
-        filtered_suggestions = [s for s in filtered_suggestions if s.pattern_type == args.pattern]
+        filtered_suggestions = [
+            s for s in filtered_suggestions if s.pattern_type == args.pattern
+        ]
 
     # Display results
     if not args.quiet:

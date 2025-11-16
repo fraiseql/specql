@@ -1,6 +1,8 @@
 """Tests for call_service step compiler."""
 
-from src.generators.actions.step_compilers.call_service_step_compiler import CallServiceStepCompiler
+from src.generators.actions.step_compilers.call_service_step_compiler import (
+    CallServiceStepCompiler,
+)
 from src.core.ast_models import ActionStep
 from src.generators.actions.action_context import ActionContext
 from src.registry.service_registry import ServiceRegistry, Service, ServiceOperation
@@ -32,7 +34,9 @@ def test_compile_call_service_basic():
         name="sendgrid",
         type="email",
         category="communication",
-        operations=[ServiceOperation(name="send_email", input_schema={}, output_schema={})],
+        operations=[
+            ServiceOperation(name="send_email", input_schema={}, output_schema={})
+        ],
         execution_type=ExecutionType.HTTP,
         runner_config={},
         security_policy={},
@@ -74,7 +78,9 @@ def test_compile_service_input_expressions():
         name="stripe",
         type="payment",
         category="financial",
-        operations=[ServiceOperation(name="create_charge", input_schema={}, output_schema={})],
+        operations=[
+            ServiceOperation(name="create_charge", input_schema={}, output_schema={})
+        ],
         execution_type=ExecutionType.HTTP,
         runner_config={},
         security_policy={},
@@ -112,7 +118,9 @@ def test_get_execution_type_http():
         name="stripe",
         type="payment",
         category="financial",
-        operations=[ServiceOperation(name="create_charge", input_schema={}, output_schema={})],
+        operations=[
+            ServiceOperation(name="create_charge", input_schema={}, output_schema={})
+        ],
         execution_type=ExecutionType.HTTP,
         runner_config={},
         security_policy={},
@@ -148,7 +156,9 @@ def test_get_execution_type_shell():
         name="backup_script",
         type="utility",
         category="infrastructure",
-        operations=[ServiceOperation(name="run_backup", input_schema={}, output_schema={})],
+        operations=[
+            ServiceOperation(name="run_backup", input_schema={}, output_schema={})
+        ],
         execution_type=ExecutionType.SHELL,
         runner_config={},
         security_policy={},
@@ -184,7 +194,9 @@ def test_get_execution_type_docker():
         name="ml_model",
         type="ml",
         category="analytics",
-        operations=[ServiceOperation(name="predict", input_schema={}, output_schema={})],
+        operations=[
+            ServiceOperation(name="predict", input_schema={}, output_schema={})
+        ],
         execution_type=ExecutionType.DOCKER,
         runner_config={},
         security_policy={},
@@ -221,7 +233,9 @@ def test_compile_includes_execution_type_columns():
         name="stripe",
         type="payment",
         category="financial",
-        operations=[ServiceOperation(name="create_charge", input_schema={}, output_schema={})],
+        operations=[
+            ServiceOperation(name="create_charge", input_schema={}, output_schema={})
+        ],
         execution_type=ExecutionType.HTTP,
         runner_config={"api_key": "secret", "timeout": 30},
         security_policy={"allow_network": True, "max_retries": 3},

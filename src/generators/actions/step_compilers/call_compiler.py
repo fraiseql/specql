@@ -50,7 +50,9 @@ class CallStepCompiler:
     PERFORM app.{function_name}({arg_sql});
 """
 
-    def _build_arguments(self, args_dict: dict, entity: EntityDefinition, context: dict) -> str:
+    def _build_arguments(
+        self, args_dict: dict, entity: EntityDefinition, context: dict
+    ) -> str:
         """
         Build argument list for PERFORM call
 

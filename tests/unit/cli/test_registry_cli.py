@@ -77,76 +77,119 @@ domains: {}
 """)
 
         # Test adding domain
-        result = runner.invoke(registry, [
-            "add-domain",
-            "--code", "7",
-            "--name", "finance",
-            "--description", "Financial management",
-            "--multi-tenant"
-        ], env={"DOMAIN_REGISTRY_PATH": str(registry_path)})
+        result = runner.invoke(
+            registry,
+            [
+                "add-domain",
+                "--code",
+                "7",
+                "--name",
+                "finance",
+                "--description",
+                "Financial management",
+                "--multi-tenant",
+            ],
+            env={"DOMAIN_REGISTRY_PATH": str(registry_path)},
+        )
 
         assert result.exit_code == 0
         assert "Domain 'finance' (7) added successfully" in result.output
 
     def test_add_domain_duplicate_code(self, runner):
         """Should error when adding domain with existing code"""
-        result = runner.invoke(registry, [
-            "add-domain",
-            "--code", "2",  # Existing CRM domain
-            "--name", "test",
-            "--description", "Test domain"
-        ])
+        result = runner.invoke(
+            registry,
+            [
+                "add-domain",
+                "--code",
+                "2",  # Existing CRM domain
+                "--name",
+                "test",
+                "--description",
+                "Test domain",
+            ],
+        )
 
         assert result.exit_code == 1
         assert "already exists" in result.output
 
     def test_add_domain_invalid_code(self, runner):
         """Should error for invalid domain code"""
-        result = runner.invoke(registry, [
-            "add-domain",
-            "--code", "abc",  # Invalid
-            "--name", "test",
-            "--description", "Test domain"
-        ])
+        result = runner.invoke(
+            registry,
+            [
+                "add-domain",
+                "--code",
+                "abc",  # Invalid
+                "--name",
+                "test",
+                "--description",
+                "Test domain",
+            ],
+        )
 
         assert result.exit_code == 1
         assert "Domain code must be a single digit from 1-9" in result.output
 
     def test_add_subdomain(self, runner):
         """Should add a new subdomain"""
-        result = runner.invoke(registry, [
-            "add-subdomain",
-            "--domain", "crm",
-            "--code", "99",
-            "--name", "test_subdomain",
-            "--description", "Test subdomain for CLI"
-        ])
+        result = runner.invoke(
+            registry,
+            [
+                "add-subdomain",
+                "--domain",
+                "crm",
+                "--code",
+                "99",
+                "--name",
+                "test_subdomain",
+                "--description",
+                "Test subdomain for CLI",
+            ],
+        )
 
         assert result.exit_code == 0
-        assert "Subdomain 'test_subdomain' (99) added to domain 'crm' successfully" in result.output
+        assert (
+            "Subdomain 'test_subdomain' (99) added to domain 'crm' successfully"
+            in result.output
+        )
 
     def test_add_subdomain_invalid_domain(self, runner):
         """Should error for invalid domain"""
-        result = runner.invoke(registry, [
-            "add-subdomain",
-            "--domain", "invalid",
-            "--code", "99",
-            "--name", "test",
-            "--description", "Test"
-        ])
+        result = runner.invoke(
+            registry,
+            [
+                "add-subdomain",
+                "--domain",
+                "invalid",
+                "--code",
+                "99",
+                "--name",
+                "test",
+                "--description",
+                "Test",
+            ],
+        )
 
         assert result.exit_code == 1
         assert "Domain 'invalid' not found" in result.output
 
     def test_add_subdomain_duplicate_code(self, runner):
         """Should error when adding subdomain with existing code"""
-        result = runner.invoke(registry, [
-            "add-subdomain",
-            "--domain", "crm",
-            "--code", "03",  # Existing customer subdomain
-            "--name", "test",
-            "--description", "Test"
-        ])
+        result = runner.invoke(
+            registry,
+            [
+                "add-subdomain",
+                "--domain",
+                "crm",
+                "--code",
+                "03",  # Existing customer subdomain
+                "--name",
+                "test",
+                "--description",
+                "Test",
+            ],
+        )
 
         assert result.exit_code == 1
         assert "already exists" in result.output

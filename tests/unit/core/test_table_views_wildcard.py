@@ -274,7 +274,9 @@ class TestWildcardEdgeCases:
 
         # Empty fields should be invalid
         # This test documents that empty fields raise ValueError
-        with pytest.raises(ValueError, match="include_relations.User must specify fields"):
+        with pytest.raises(
+            ValueError, match="include_relations.User must specify fields"
+        ):
             parser.parse(yaml_content)
 
     def test_wildcard_case_sensitive(self):

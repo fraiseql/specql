@@ -20,7 +20,9 @@ def convert_entity_definition_to_entity(entity_def):
     # Convert ActionDefinition to Action
     actions = []
     for action_def in entity_def.actions:
-        action = Action(name=action_def.name, steps=action_def.steps, impact=action_def.impact)
+        action = Action(
+            name=action_def.name, steps=action_def.steps, impact=action_def.impact
+        )
         actions.append(action)
 
     # Create Entity
@@ -46,7 +48,9 @@ def test_full_create_contact_compilation():
     """
     # Parse SpecQL
     parser = SpecQLParser()
-    entity_def = parser.parse(read_yaml_file("entities/examples/contact_lightweight.yaml"))
+    entity_def = parser.parse(
+        read_yaml_file("entities/examples/contact_lightweight.yaml")
+    )
     entity = convert_entity_definition_to_entity(entity_def)
 
     # Generate complete schema
@@ -76,7 +80,9 @@ def test_full_create_contact_compilation():
 def test_validation_error_structure_in_generated_sql():
     """Test that input types are properly generated for validation"""
     parser = SpecQLParser()
-    entity_def = parser.parse(read_yaml_file("entities/examples/contact_lightweight.yaml"))
+    entity_def = parser.parse(
+        read_yaml_file("entities/examples/contact_lightweight.yaml")
+    )
     entity = convert_entity_definition_to_entity(entity_def)
 
     orchestrator = SchemaOrchestrator()
@@ -90,7 +96,9 @@ def test_validation_error_structure_in_generated_sql():
 def test_trinity_resolution_in_generated_sql():
     """Test FK constraints and helpers are generated for Trinity resolution"""
     parser = SpecQLParser()
-    entity_def = parser.parse(read_yaml_file("entities/examples/contact_lightweight.yaml"))
+    entity_def = parser.parse(
+        read_yaml_file("entities/examples/contact_lightweight.yaml")
+    )
     entity = convert_entity_definition_to_entity(entity_def)
 
     orchestrator = SchemaOrchestrator()
@@ -108,7 +116,9 @@ def test_trinity_resolution_in_generated_sql():
 def test_update_action_compilation_sql():
     """Test that schema supports UPDATE operations"""
     parser = SpecQLParser()
-    entity_def = parser.parse(read_yaml_file("entities/examples/contact_lightweight.yaml"))
+    entity_def = parser.parse(
+        read_yaml_file("entities/examples/contact_lightweight.yaml")
+    )
     entity = convert_entity_definition_to_entity(entity_def)
 
     orchestrator = SchemaOrchestrator()
@@ -125,7 +135,9 @@ def test_update_action_compilation_sql():
 def test_migration_file_generation():
     """Test that migration files can be generated and contain valid SQL"""
     parser = SpecQLParser()
-    entity_def = parser.parse(read_yaml_file("entities/examples/contact_lightweight.yaml"))
+    entity_def = parser.parse(
+        read_yaml_file("entities/examples/contact_lightweight.yaml")
+    )
     entity = convert_entity_definition_to_entity(entity_def)
 
     orchestrator = SchemaOrchestrator()
@@ -149,7 +161,9 @@ def test_multiple_entities_integration():
     parser = SpecQLParser()
 
     # Parse multiple entities
-    contact_def = parser.parse(read_yaml_file("entities/examples/contact_lightweight.yaml"))
+    contact_def = parser.parse(
+        read_yaml_file("entities/examples/contact_lightweight.yaml")
+    )
     task_def = parser.parse(read_yaml_file("entities/examples/task_lightweight.yaml"))
 
     contact = convert_entity_definition_to_entity(contact_def)

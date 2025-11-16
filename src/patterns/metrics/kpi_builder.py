@@ -15,7 +15,9 @@ class KPIBuilder:
         """Parse SQL formula into AST for analysis"""
         return self.formula_parser.parse(formula)
 
-    def detect_required_joins(self, formula: str, base_entity: str) -> List[Dict[str, Any]]:
+    def detect_required_joins(
+        self, formula: str, base_entity: str
+    ) -> List[Dict[str, Any]]:
         """Detect which tables need to be joined based on formula"""
         return self.join_detector.detect_joins(formula, base_entity)
 
@@ -79,7 +81,9 @@ class KPIBuilder:
         if thresholds:
             if "critical" in thresholds and "warning" in thresholds:
                 if thresholds["critical"] <= thresholds["warning"]:
-                    errors.append("Critical threshold must be greater than warning threshold")
+                    errors.append(
+                        "Critical threshold must be greater than warning threshold"
+                    )
 
         return errors
 

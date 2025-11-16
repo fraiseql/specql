@@ -2,7 +2,6 @@
 Unit tests for hard delete functionality in CoreLogicGenerator
 """
 
-
 from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
 
 
@@ -73,7 +72,11 @@ def test_compile_hard_delete_with_dependencies(core_logic_generator):
         fields={
             "supports_hard_delete": True,
             "check_dependencies": [
-                {"entity": "Allocation", "field": "machine_id", "block_hard_delete": True}
+                {
+                    "entity": "Allocation",
+                    "field": "machine_id",
+                    "block_hard_delete": True,
+                }
             ],
         },
     )

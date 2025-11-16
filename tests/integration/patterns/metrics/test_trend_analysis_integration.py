@@ -25,8 +25,16 @@ class TestTrendAnalysisIntegration:
             "config": {
                 "base_metric_view": "v_machine_utilization_metrics",
                 "trend_metrics": [
-                    {"metric": "utilization_rate", "periods": [7, 30, 90], "smoothing": "simple"},
-                    {"metric": "downtime_hours", "periods": [7, 30], "smoothing": "simple"},
+                    {
+                        "metric": "utilization_rate",
+                        "periods": [7, 30, 90],
+                        "smoothing": "simple",
+                    },
+                    {
+                        "metric": "downtime_hours",
+                        "periods": [7, 30],
+                        "smoothing": "simple",
+                    },
                 ],
                 "trend_detection": {"enabled": True, "sensitivity": "medium"},
             },
@@ -76,7 +84,11 @@ class TestTrendAnalysisIntegration:
             "config": {
                 "base_metric_view": "v_machine_metrics",
                 "trend_metrics": [
-                    {"metric": "maintenance_cost", "periods": [30, 90], "smoothing": "simple"}
+                    {
+                        "metric": "maintenance_cost",
+                        "periods": [30, 90],
+                        "smoothing": "simple",
+                    }
                 ],
                 "trend_detection": {"enabled": False},
             },
@@ -113,7 +125,11 @@ class TestTrendAnalysisIntegration:
             "config": {
                 "base_metric_view": "v_machine_metrics",
                 "trend_metrics": [
-                    {"metric": "utilization_rate", "periods": [7, 30], "smoothing": "simple"}
+                    {
+                        "metric": "utilization_rate",
+                        "periods": [7, 30],
+                        "smoothing": "simple",
+                    }
                 ],
                 "trend_detection": {"enabled": True, "sensitivity": "high"},
             },
@@ -130,7 +146,11 @@ class TestTrendAnalysisIntegration:
             "config": {
                 "base_metric_view": "v_machine_metrics",
                 "trend_metrics": [
-                    {"metric": "utilization_rate", "periods": [7, 30], "smoothing": "simple"}
+                    {
+                        "metric": "utilization_rate",
+                        "periods": [7, 30],
+                        "smoothing": "simple",
+                    }
                 ],
                 "trend_detection": {"enabled": True, "sensitivity": "low"},
             },
@@ -159,7 +179,11 @@ class TestTrendAnalysisIntegration:
             "config": {
                 "base_metric_view": "v_machine_metrics",
                 "trend_metrics": [
-                    {"metric": "utilization_rate", "periods": [7, 30], "smoothing": "simple"}
+                    {
+                        "metric": "utilization_rate",
+                        "periods": [7, 30],
+                        "smoothing": "simple",
+                    }
                 ],
                 "trend_detection": {"enabled": True, "sensitivity": "medium"},
             },
@@ -190,7 +214,11 @@ class TestTrendAnalysisIntegration:
             "config": {
                 "base_metric_view": "v_machine_utilization_metrics",
                 "trend_metrics": [
-                    {"metric": "utilization_rate", "periods": [7, 30], "smoothing": "simple"}
+                    {
+                        "metric": "utilization_rate",
+                        "periods": [7, 30],
+                        "smoothing": "simple",
+                    }
                 ],
                 "trend_detection": {"enabled": True, "sensitivity": "medium"},
             },
@@ -200,5 +228,8 @@ class TestTrendAnalysisIntegration:
 
         # Comment validation
         assert "COMMENT ON VIEW tenant.v_machine_trends IS" in sql
-        assert "Trend analysis with moving averages for v_machine_utilization_metrics" in sql
+        assert (
+            "Trend analysis with moving averages for v_machine_utilization_metrics"
+            in sql
+        )
         assert "Trend detection sensitivity: medium" in sql

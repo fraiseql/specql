@@ -33,7 +33,9 @@ def list_domains():
             multi_tenant = " (multi-tenant)" if domain.multi_tenant else ""
             aliases = f" [{', '.join(domain.aliases)}]" if domain.aliases else ""
 
-            click.echo(f"  {domain.domain_number.value} - {domain.domain_name}{multi_tenant}{aliases}")
+            click.echo(
+                f"  {domain.domain_number.value} - {domain.domain_name}{multi_tenant}{aliases}"
+            )
             click.echo(f"      {domain.description or 'No description'}")
             click.echo()
 
@@ -60,11 +62,17 @@ def list_subdomains(domain):
                 click.secho(f"Domain '{domain}' not found", fg="red")
                 raise click.ClickException(f"Domain '{domain}' not found")
 
-        click.secho(f"Subdomains for {domain_obj.domain_name} ({domain_obj.domain_number.value}):", fg="blue", bold=True)
+        click.secho(
+            f"Subdomains for {domain_obj.domain_name} ({domain_obj.domain_number.value}):",
+            fg="blue",
+            bold=True,
+        )
         click.echo()
 
         # Sort subdomains by subdomain number
-        subdomains_sorted = sorted(domain_obj.subdomains.values(), key=lambda s: s.subdomain_number)
+        subdomains_sorted = sorted(
+            domain_obj.subdomains.values(), key=lambda s: s.subdomain_number
+        )
 
         for subdomain in subdomains_sorted:
             click.echo(f"  {subdomain.subdomain_number} - {subdomain.subdomain_name}")
@@ -108,7 +116,9 @@ def show_entity(entity_name):
 
         click.secho(f"Entity: {entity_name}", fg="blue", bold=True)
         click.echo(f"Domain: {found_domain.domain_name if found_domain else 'Unknown'}")
-        click.echo(f"Subdomain: {found_subdomain.subdomain_name if found_subdomain else 'Unknown'}")
+        click.echo(
+            f"Subdomain: {found_subdomain.subdomain_name if found_subdomain else 'Unknown'}"
+        )
         click.echo(f"Table Code: {found_entity['table_code']}")
         click.echo(f"Entity Sequence: {found_entity['entity_sequence']}")
 
@@ -155,7 +165,7 @@ def add_domain(code, name, description, multi_tenant):
             domain_number=code,
             domain_name=name,
             description=description,
-            multi_tenant=multi_tenant
+            multi_tenant=multi_tenant,
         )
 
         click.secho(f"Domain '{name}' ({code}) added successfully", fg="green")
@@ -180,7 +190,9 @@ def add_subdomain(domain, code, name, description):
         # Validate subdomain code
         if not code.isdigit() or len(code) != 2:
             click.secho("Subdomain code must be exactly 2 digits (00-99)", fg="red")
-            raise click.ClickException("Subdomain code must be exactly 2 digits (00-99)")
+            raise click.ClickException(
+                "Subdomain code must be exactly 2 digits (00-99)"
+            )
 
         # Check if domain exists
         domain_obj = service.repository.find_by_name(domain)
@@ -193,23 +205,36 @@ def add_subdomain(domain, code, name, description):
 
         # Check if subdomain already exists
         if code in domain_obj.subdomains:
-            click.secho(f"Subdomain with code '{code}' already exists in domain {domain}", fg="red")
-            raise click.ClickException(f"Subdomain with code '{code}' already exists in domain {domain}")
+            click.secho(
+                f"Subdomain with code '{code}' already exists in domain {domain}",
+                fg="red",
+            )
+            raise click.ClickException(
+                f"Subdomain with code '{code}' already exists in domain {domain}"
+            )
 
         for subdomain in domain_obj.subdomains.values():
             if subdomain.subdomain_name == name:
-                click.secho(f"Subdomain with name '{name}' already exists in domain {domain}", fg="red")
-                raise click.ClickException(f"Subdomain with name '{name}' already exists in domain {domain}")
+                click.secho(
+                    f"Subdomain with name '{name}' already exists in domain {domain}",
+                    fg="red",
+                )
+                raise click.ClickException(
+                    f"Subdomain with name '{name}' already exists in domain {domain}"
+                )
 
         # Add subdomain using service
         service.add_subdomain(
             domain_name=domain_obj.domain_name,
             subdomain_number=code,
             subdomain_name=name,
-            description=description
+            description=description,
         )
 
-        click.secho(f"Subdomain '{name}' ({code}) added to domain '{domain_obj.domain_name}' successfully", fg="green")
+        click.secho(
+            f"Subdomain '{name}' ({code}) added to domain '{domain_obj.domain_name}' successfully",
+            fg="green",
+        )
 
     except click.ClickException:
         raise
@@ -239,7 +264,9 @@ def validate_registry():
                 try:
                     int(domain.domain_number.value)
                 except ValueError:
-                    errors.append(f"Invalid domain number: {domain.domain_number.value}")
+                    errors.append(
+                        f"Invalid domain number: {domain.domain_number.value}"
+                    )
 
                 # Check required fields
                 if not domain.domain_name:
@@ -249,11 +276,18 @@ def validate_registry():
 
                 # Check subdomains
                 for subdomain in domain.subdomains.values():
-                    if not subdomain.subdomain_number.isdigit() or len(subdomain.subdomain_number) != 2:
-                        errors.append(f"Invalid subdomain code: {subdomain.subdomain_number} in domain {domain.domain_name}")
+                    if (
+                        not subdomain.subdomain_number.isdigit()
+                        or len(subdomain.subdomain_number) != 2
+                    ):
+                        errors.append(
+                            f"Invalid subdomain code: {subdomain.subdomain_number} in domain {domain.domain_name}"
+                        )
 
                     if not subdomain.subdomain_name:
-                        errors.append(f"Subdomain {subdomain.subdomain_number} in domain {domain.domain_name} missing name")
+                        errors.append(
+                            f"Subdomain {subdomain.subdomain_number} in domain {domain.domain_name} missing name"
+                        )
 
         # Report results
         if errors:

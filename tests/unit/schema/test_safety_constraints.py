@@ -33,8 +33,12 @@ class TestGenerateSafetyConstraints:
         assert len(result) == 3
         # Check that all three constraint types are present
         assert any("prevent_department_cycle" in constraint for constraint in result)
-        assert any("check_department_sequence_limit" in constraint for constraint in result)
-        assert any("check_department_depth_limit" in constraint for constraint in result)
+        assert any(
+            "check_department_sequence_limit" in constraint for constraint in result
+        )
+        assert any(
+            "check_department_depth_limit" in constraint for constraint in result
+        )
 
     def test_non_hierarchical_entity_gets_no_constraints(self):
         """Test that non-hierarchical entities get no safety constraints."""
@@ -151,7 +155,9 @@ class TestIndividualConstraintFunctions:
 
         result = generate_depth_limit_check(entity, "tenant")
 
-        assert "CREATE OR REPLACE FUNCTION tenant.check_department_depth_limit" in result
+        assert (
+            "CREATE OR REPLACE FUNCTION tenant.check_department_depth_limit" in result
+        )
         assert "CREATE TRIGGER trg_check_department_depth_limit" in result
         assert "v_max_depth INTEGER := 20" in result
         assert "nlevel(NEW.path)" in result

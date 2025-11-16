@@ -1,6 +1,9 @@
 """Tests for materialized view refresh orchestration."""
 
-from src.patterns.wrapper.mv_refresh import generate_refresh_function, generate_refresh_trigger
+from src.patterns.wrapper.mv_refresh import (
+    generate_refresh_function,
+    generate_refresh_trigger,
+)
 
 
 class TestMVRefreshOrchestration:
@@ -17,7 +20,10 @@ class TestMVRefreshOrchestration:
 
         sql = generate_refresh_function(config)
 
-        assert f"CREATE OR REPLACE FUNCTION {config['schema']}.refresh_{config['mv_name']}()" in sql
+        assert (
+            f"CREATE OR REPLACE FUNCTION {config['schema']}.refresh_{config['mv_name']}()"
+            in sql
+        )
         assert "REFRESH MATERIALIZED VIEW CONCURRENTLY" in sql
         assert f"{config['schema']}.{config['mv_name']}" in sql
         assert "INSERT INTO app.mv_refresh_log" in sql
@@ -25,7 +31,11 @@ class TestMVRefreshOrchestration:
 
     def test_generate_refresh_function_non_concurrent(self):
         """Test refresh function without CONCURRENTLY."""
-        config = {"mv_name": "mv_expensive_calculation", "schema": "tenant", "concurrent": False}
+        config = {
+            "mv_name": "mv_expensive_calculation",
+            "schema": "tenant",
+            "concurrent": False,
+        }
 
         sql = generate_refresh_function(config)
 

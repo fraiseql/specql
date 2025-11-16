@@ -10,7 +10,9 @@ from typing import Optional
 from src.testing.performance_benchmark import run_pattern_performance_analysis
 
 
-def run_performance_analysis(entity_name: str, db_connection: Optional[str] = None) -> None:
+def run_performance_analysis(
+    entity_name: str, db_connection: Optional[str] = None
+) -> None:
     """
     Run performance analysis for a specific entity
 
@@ -29,11 +31,15 @@ def run_performance_analysis(entity_name: str, db_connection: Optional[str] = No
 def main():
     """Main CLI entry point"""
     if len(sys.argv) < 2:
-        print("Usage: specql performance <entity_name> [--db-connection=<connection_string>]")
+        print(
+            "Usage: specql performance <entity_name> [--db-connection=<connection_string>]"
+        )
         print("")
         print("Examples:")
         print("  specql performance contact")
-        print("  specql performance contact --db-connection=postgresql://user:pass@localhost/db")
+        print(
+            "  specql performance contact --db-connection=postgresql://user:pass@localhost/db"
+        )
         sys.exit(1)
 
     entity_name = sys.argv[1]

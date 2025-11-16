@@ -27,7 +27,9 @@ class PipelineOptimizer:
         """
         self.llm = llm_recommendations or LLMRecommendations()
 
-    def detect_caching_opportunities(self, pipeline: UniversalPipeline) -> List[Dict[str, Any]]:
+    def detect_caching_opportunities(
+        self, pipeline: UniversalPipeline
+    ) -> List[Dict[str, Any]]:
         """
         Detect opportunities for caching to improve build performance.
 
@@ -48,34 +50,41 @@ class PipelineOptimizer:
         )
 
         if has_python_deps and not self._has_cache_step(pipeline):
-            opportunities.append({
-                "type": "caching",
-                "description": "Add pip cache to speed up dependency installation",
-                "impact": "high",
-                "effort": "low",
-                "category": "performance"
-            })
+            opportunities.append(
+                {
+                    "type": "caching",
+                    "description": "Add pip cache to speed up dependency installation",
+                    "impact": "high",
+                    "effort": "low",
+                    "category": "performance",
+                }
+            )
 
         # Check for Node.js dependencies
         has_nodejs_deps = any(
-            step.type == StepType.INSTALL_DEPS and ("npm" in (step.command or "") or "yarn" in (step.command or ""))
+            step.type == StepType.INSTALL_DEPS
+            and ("npm" in (step.command or "") or "yarn" in (step.command or ""))
             for stage in pipeline.stages
             for job in stage.jobs
             for step in job.steps
         )
 
         if has_nodejs_deps and not self._has_cache_step(pipeline):
-            opportunities.append({
-                "type": "caching",
-                "description": "Add npm/yarn cache to speed up dependency installation",
-                "impact": "high",
-                "effort": "low",
-                "category": "performance"
-            })
+            opportunities.append(
+                {
+                    "type": "caching",
+                    "description": "Add npm/yarn cache to speed up dependency installation",
+                    "impact": "high",
+                    "effort": "low",
+                    "category": "performance",
+                }
+            )
 
         return opportunities
 
-    def detect_parallelization_opportunities(self, pipeline: UniversalPipeline) -> List[Dict[str, Any]]:
+    def detect_parallelization_opportunities(
+        self, pipeline: UniversalPipeline
+    ) -> List[Dict[str, Any]]:
         """
         Detect opportunities for parallel execution to reduce build time.
 
@@ -93,30 +102,36 @@ class PipelineOptimizer:
                 # Check if jobs have dependencies
                 independent_jobs = [job for job in stage.jobs if not job.needs]
                 if len(independent_jobs) > 1:
-                    opportunities.append({
-                        "type": "parallelization",
-                        "description": f"Run {len(independent_jobs)} independent jobs in parallel in '{stage.name}' stage",
-                        "impact": "high",
-                        "effort": "medium",
-                        "category": "performance"
-                    })
+                    opportunities.append(
+                        {
+                            "type": "parallelization",
+                            "description": f"Run {len(independent_jobs)} independent jobs in parallel in '{stage.name}' stage",
+                            "impact": "high",
+                            "effort": "medium",
+                            "category": "performance",
+                        }
+                    )
 
         # Check for matrix builds that could be expanded
         for stage in pipeline.stages:
             for job in stage.jobs:
                 if job.matrix and len(job.matrix) == 1:
                     # Single dimension matrix, could add more dimensions
-                    opportunities.append({
-                        "type": "parallelization",
-                        "description": f"Expand matrix build in '{job.name}' to test multiple combinations",
-                        "impact": "medium",
-                        "effort": "medium",
-                        "category": "coverage"
-                    })
+                    opportunities.append(
+                        {
+                            "type": "parallelization",
+                            "description": f"Expand matrix build in '{job.name}' to test multiple combinations",
+                            "impact": "medium",
+                            "effort": "medium",
+                            "category": "coverage",
+                        }
+                    )
 
         return opportunities
 
-    def detect_security_improvements(self, pipeline: UniversalPipeline) -> List[Dict[str, Any]]:
+    def detect_security_improvements(
+        self, pipeline: UniversalPipeline
+    ) -> List[Dict[str, Any]]:
         """
         Detect security improvements and best practices.
 
@@ -130,45 +145,55 @@ class PipelineOptimizer:
 
         # Check for security scanning
         has_security_scan = any(
-            "security" in (step.command or "").lower() or
-            "scan" in (step.command or "").lower() or
-            "sast" in (step.command or "").lower() or
-            "dast" in (step.command or "").lower()
+            "security" in (step.command or "").lower()
+            or "scan" in (step.command or "").lower()
+            or "sast" in (step.command or "").lower()
+            or "dast" in (step.command or "").lower()
             for stage in pipeline.stages
             for job in stage.jobs
             for step in job.steps
         )
 
         if not has_security_scan:
-            improvements.append({
-                "type": "security",
-                "description": "Add security scanning (SAST/DAST) to identify vulnerabilities",
-                "impact": "high",
-                "effort": "medium",
-                "category": "security"
-            })
+            improvements.append(
+                {
+                    "type": "security",
+                    "description": "Add security scanning (SAST/DAST) to identify vulnerabilities",
+                    "impact": "high",
+                    "effort": "medium",
+                    "category": "security",
+                }
+            )
 
         # Check for dependency vulnerability scanning
         has_dependency_scan = any(
-            "audit" in (step.command or "").lower() or
-            "check" in (step.command or "").lower() and ("vulnerability" in (step.command or "").lower() or "security" in (step.command or "").lower())
+            "audit" in (step.command or "").lower()
+            or "check" in (step.command or "").lower()
+            and (
+                "vulnerability" in (step.command or "").lower()
+                or "security" in (step.command or "").lower()
+            )
             for stage in pipeline.stages
             for job in stage.jobs
             for step in job.steps
         )
 
         if not has_dependency_scan:
-            improvements.append({
-                "type": "security",
-                "description": "Add dependency vulnerability scanning",
-                "impact": "medium",
-                "effort": "low",
-                "category": "security"
-            })
+            improvements.append(
+                {
+                    "type": "security",
+                    "description": "Add dependency vulnerability scanning",
+                    "impact": "medium",
+                    "effort": "low",
+                    "category": "security",
+                }
+            )
 
         return improvements
 
-    def detect_performance_optimizations(self, pipeline: UniversalPipeline) -> List[Dict[str, Any]]:
+    def detect_performance_optimizations(
+        self, pipeline: UniversalPipeline
+    ) -> List[Dict[str, Any]]:
         """
         Detect performance optimization opportunities.
 
@@ -184,30 +209,35 @@ class PipelineOptimizer:
         for stage in pipeline.stages:
             for job in stage.jobs:
                 if job.timeout_minutes > 60:  # Default is 60
-                    optimizations.append({
-                        "type": "performance",
-                        "description": f"Job '{job.name}' has long timeout ({job.timeout_minutes}min), consider optimizing or reducing",
-                        "impact": "medium",
-                        "effort": "high",
-                        "category": "performance"
-                    })
+                    optimizations.append(
+                        {
+                            "type": "performance",
+                            "description": f"Job '{job.name}' has long timeout ({job.timeout_minutes}min), consider optimizing or reducing",
+                            "impact": "medium",
+                            "effort": "high",
+                            "category": "performance",
+                        }
+                    )
 
         # Check for redundant checkouts
         checkout_count = sum(
-            1 for stage in pipeline.stages
+            1
+            for stage in pipeline.stages
             for job in stage.jobs
             for step in job.steps
             if step.type == StepType.CHECKOUT
         )
 
         if checkout_count > len(pipeline.stages):
-            optimizations.append({
-                "type": "performance",
-                "description": "Multiple repository checkouts detected, consider using workspace sharing",
-                "impact": "low",
-                "effort": "medium",
-                "category": "performance"
-            })
+            optimizations.append(
+                {
+                    "type": "performance",
+                    "description": "Multiple repository checkouts detected, consider using workspace sharing",
+                    "impact": "low",
+                    "effort": "medium",
+                    "category": "performance",
+                }
+            )
 
         return optimizations
 
@@ -271,7 +301,7 @@ class PipelineOptimizer:
             "parallelization": self.detect_parallelization_opportunities(pipeline),
             "security": self.detect_security_improvements(pipeline),
             "performance": self.detect_performance_optimizations(pipeline),
-            "score": self.calculate_optimization_score(pipeline)
+            "score": self.calculate_optimization_score(pipeline),
         }
 
     def optimize_with_llm(self, pipeline: UniversalPipeline) -> List[Dict[str, Any]]:

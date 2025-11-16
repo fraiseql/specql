@@ -1,7 +1,10 @@
 import pytest
 
 from src.core.ast_models import FieldDefinition, FieldTier
-from src.generators.schema.foreign_key_generator import ForeignKeyDDL, ForeignKeyGenerator
+from src.generators.schema.foreign_key_generator import (
+    ForeignKeyDDL,
+    ForeignKeyGenerator,
+)
 
 
 def test_map_reference_field():
@@ -48,7 +51,9 @@ def test_map_reference_field_default_schema():
 
 def test_map_non_reference_field_raises_error():
     """Test that mapping non-reference field raises error"""
-    field = FieldDefinition(name="email", type_name="email", nullable=False, tier=FieldTier.SCALAR)
+    field = FieldDefinition(
+        name="email", type_name="email", nullable=False, tier=FieldTier.SCALAR
+    )
 
     generator = ForeignKeyGenerator()
     with pytest.raises(ValueError, match="not a reference type"):
@@ -95,9 +100,7 @@ def test_generate_field_ddl_nullable():
     generator = ForeignKeyGenerator()
     field_ddl = generator.generate_field_ddl(fk_ddl)
 
-    expected = (
-        "fk_manager INTEGER REFERENCES crm.tb_user(pk_user) ON DELETE SET NULL ON UPDATE CASCADE"
-    )
+    expected = "fk_manager INTEGER REFERENCES crm.tb_user(pk_user) ON DELETE SET NULL ON UPDATE CASCADE"
     assert field_ddl == expected
 
 

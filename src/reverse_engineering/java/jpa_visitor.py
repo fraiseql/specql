@@ -16,6 +16,7 @@ from typing import List, Optional, Dict, Any
 @dataclass
 class FieldSpec:
     """Field specification for SpecQL"""
+
     name: str
     type: Any  # Will be FieldType from universal_ast
     nullable: bool = True
@@ -25,6 +26,7 @@ class FieldSpec:
 @dataclass
 class EntitySpec:
     """Entity specification for SpecQL"""
+
     name: str
     schema: str = "public"
     table_name: Optional[str] = None
@@ -34,6 +36,7 @@ class EntitySpec:
 @dataclass
 class JPAField:
     """Represents a field in a JPA entity"""
+
     name: str
     java_type: str
     column_name: Optional[str] = None
@@ -55,6 +58,7 @@ class JPAField:
 @dataclass
 class JPAEntity:
     """Represents a JPA entity class"""
+
     class_name: str
     table_name: Optional[str] = None
     schema: Optional[str] = None
@@ -94,7 +98,11 @@ class JPAAnnotationVisitor:
         for modifier in modifiers:
             if modifier.isAnnotation():
                 annotation_name = modifier.getTypeName().getFullyQualifiedName()
-                if annotation_name in ('Entity', 'jakarta.persistence.Entity', 'javax.persistence.Entity'):
+                if annotation_name in (
+                    "Entity",
+                    "jakarta.persistence.Entity",
+                    "javax.persistence.Entity",
+                ):
                     return True
 
         return False
@@ -111,16 +119,20 @@ class JPAAnnotationVisitor:
             if modifier.isAnnotation():
                 annotation_name = modifier.getTypeName().getFullyQualifiedName()
 
-                if annotation_name in ('Table', 'jakarta.persistence.Table', 'javax.persistence.Table'):
+                if annotation_name in (
+                    "Table",
+                    "jakarta.persistence.Table",
+                    "javax.persistence.Table",
+                ):
                     table_info = self._extract_table_annotation(modifier)
-                    table_name = table_info.get('name')
-                    schema = table_info.get('schema')
+                    table_name = table_info.get("name")
+                    schema = table_info.get("schema")
 
         # Create entity
         entity = JPAEntity(
             class_name=class_name,
             table_name=table_name or self._to_snake_case(class_name),
-            schema=schema
+            schema=schema,
         )
 
         # Extract fields
@@ -145,42 +157,59 @@ class JPAAnnotationVisitor:
         field_type = field_decl.getType().toString()
 
         # Initialize field
-        jpa_field = JPAField(
-            name=field_name,
-            java_type=field_type
-        )
+        jpa_field = JPAField(name=field_name, java_type=field_type)
 
         # Extract annotations
         for modifier in field_decl.modifiers():
             if modifier.isAnnotation():
                 annotation_name = modifier.getTypeName().getFullyQualifiedName()
 
-                if annotation_name in ('Column', 'jakarta.persistence.Column', 'javax.persistence.Column'):
+                if annotation_name in (
+                    "Column",
+                    "jakarta.persistence.Column",
+                    "javax.persistence.Column",
+                ):
                     column_info = self._extract_column_annotation(modifier)
-                    jpa_field.column_name = column_info.get('name')
-                    jpa_field.nullable = column_info.get('nullable', True)
-                    jpa_field.unique = column_info.get('unique', False)
-                    jpa_field.length = column_info.get('length')
+                    jpa_field.column_name = column_info.get("name")
+                    jpa_field.nullable = column_info.get("nullable", True)
+                    jpa_field.unique = column_info.get("unique", False)
+                    jpa_field.length = column_info.get("length")
 
-                elif annotation_name in ('ManyToOne', 'jakarta.persistence.ManyToOne', 'javax.persistence.ManyToOne'):
+                elif annotation_name in (
+                    "ManyToOne",
+                    "jakarta.persistence.ManyToOne",
+                    "javax.persistence.ManyToOne",
+                ):
                     jpa_field.is_relationship = True
-                    jpa_field.relationship_type = 'ManyToOne'
+                    jpa_field.relationship_type = "ManyToOne"
                     jpa_field.target_entity = field_type
 
-                elif annotation_name in ('OneToMany', 'jakarta.persistence.OneToMany', 'javax.persistence.OneToMany'):
+                elif annotation_name in (
+                    "OneToMany",
+                    "jakarta.persistence.OneToMany",
+                    "javax.persistence.OneToMany",
+                ):
                     jpa_field.is_relationship = True
-                    jpa_field.relationship_type = 'OneToMany'
+                    jpa_field.relationship_type = "OneToMany"
                     # Extract target from generic type
                     jpa_field.target_entity = self._extract_generic_type(field_type)
 
-                elif annotation_name in ('JoinColumn', 'jakarta.persistence.JoinColumn', 'javax.persistence.JoinColumn'):
+                elif annotation_name in (
+                    "JoinColumn",
+                    "jakarta.persistence.JoinColumn",
+                    "javax.persistence.JoinColumn",
+                ):
                     join_info = self._extract_join_column_annotation(modifier)
-                    jpa_field.join_column = join_info.get('name')
+                    jpa_field.join_column = join_info.get("name")
 
-                elif annotation_name in ('Enumerated', 'jakarta.persistence.Enumerated', 'javax.persistence.Enumerated'):
+                elif annotation_name in (
+                    "Enumerated",
+                    "jakarta.persistence.Enumerated",
+                    "javax.persistence.Enumerated",
+                ):
                     jpa_field.is_enum = True
                     enum_info = self._extract_enumerated_annotation(modifier)
-                    jpa_field.enum_type = enum_info.get('value', 'ORDINAL')
+                    jpa_field.enum_type = enum_info.get("value", "ORDINAL")
 
         return jpa_field
 
@@ -189,7 +218,11 @@ class JPAAnnotationVisitor:
         for modifier in field_decl.modifiers():
             if modifier.isAnnotation():
                 annotation_name = modifier.getTypeName().getFullyQualifiedName()
-                if annotation_name in ('Id', 'jakarta.persistence.Id', 'javax.persistence.Id'):
+                if annotation_name in (
+                    "Id",
+                    "jakarta.persistence.Id",
+                    "javax.persistence.Id",
+                ):
                     return True
         return False
 
@@ -198,7 +231,7 @@ class JPAAnnotationVisitor:
         values = {}
 
         if annotation.isSingleMemberAnnotation():
-            values['name'] = self._get_annotation_value(annotation.getValue())
+            values["name"] = self._get_annotation_value(annotation.getValue())
         elif annotation.isNormalAnnotation():
             for pair in annotation.values():
                 key = pair.getName().getIdentifier()
@@ -222,7 +255,7 @@ class JPAAnnotationVisitor:
     def _get_annotation_value(self, value_node):
         """Extract value from annotation"""
         # Handle string literals
-        if hasattr(value_node, 'getNodeType'):
+        if hasattr(value_node, "getNodeType"):
             if value_node.getNodeType() == value_node.STRING_LITERAL:
                 return value_node.getLiteralValue()
 
@@ -236,23 +269,24 @@ class JPAAnnotationVisitor:
 
             # Handle qualified names (e.g., EnumType.STRING)
             if value_node.getNodeType() == value_node.QUALIFIED_NAME:
-                return value_node.getFullyQualifiedName().split('.')[-1]
+                return value_node.getFullyQualifiedName().split(".")[-1]
 
         # Fallback for mock implementation
-        if hasattr(value_node, 'literal_value'):
+        if hasattr(value_node, "literal_value"):
             return value_node.literal_value
 
         return None
 
     def _extract_generic_type(self, type_str: str) -> Optional[str]:
         """Extract generic type from List<Entity>"""
-        if '<' in type_str and '>' in type_str:
-            start = type_str.index('<') + 1
-            end = type_str.index('>')
+        if "<" in type_str and ">" in type_str:
+            start = type_str.index("<") + 1
+            end = type_str.index(">")
             return type_str[start:end].strip()
         return None
 
     def _to_snake_case(self, camel_case: str) -> str:
         """Convert CamelCase to snake_case"""
         import re
-        return re.sub(r'(?<!^)(?=[A-Z])', '_', camel_case).lower()
+
+        return re.sub(r"(?<!^)(?=[A-Z])", "_", camel_case).lower()

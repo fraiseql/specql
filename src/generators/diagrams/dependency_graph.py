@@ -1,6 +1,7 @@
 from typing import List, Dict, Set
 import networkx as nx
 
+
 class DependencyGraph:
     """
     Build dependency graph for entities
@@ -86,8 +87,8 @@ class DependencyGraph:
             }
         """
         return {
-            'depends_on': list(self.graph.successors(entity_name)),
-            'depended_by': list(self.graph.predecessors(entity_name)),
+            "depends_on": list(self.graph.successors(entity_name)),
+            "depended_by": list(self.graph.predecessors(entity_name)),
         }
 
     def get_entities_by_schema(self) -> Dict[str, List[str]]:
@@ -95,7 +96,7 @@ class DependencyGraph:
         schemas = {}
 
         for node, data in self.graph.nodes(data=True):
-            schema = data.get('schema', 'public')
+            schema = data.get("schema", "public")
             if schema not in schemas:
                 schemas[schema] = []
             schemas[schema].append(node)
@@ -122,9 +123,9 @@ class DependencyGraph:
 
         for entity in self.graph.nodes():
             metrics[entity] = {
-                'references_count': out_degree[entity],
-                'referenced_by_count': in_degree[entity],
-                'importance': round(betweenness[entity], 3),
+                "references_count": out_degree[entity],
+                "referenced_by_count": in_degree[entity],
+                "importance": round(betweenness[entity], 3),
             }
 
         return metrics

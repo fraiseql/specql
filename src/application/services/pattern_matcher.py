@@ -3,6 +3,7 @@ Pattern matching service - detects applicable patterns for entities
 
 Uses FraiseQL 1.5 for semantic pattern matching via GraphQL API.
 """
+
 from typing import List, Tuple, Dict, Any
 from src.domain.entities.pattern import Pattern
 from src.domain.repositories.pattern_repository import PatternRepository
@@ -20,7 +21,11 @@ class PatternMatcher:
     - Pattern popularity (boost frequently used patterns)
     """
 
-    def __init__(self, repository: PatternRepository, fraiseql_url: str = "http://localhost:4000/graphql"):
+    def __init__(
+        self,
+        repository: PatternRepository,
+        fraiseql_url: str = "http://localhost:4000/graphql",
+    ):
         self.repository = repository
         self.embedding_service = PatternEmbeddingService(fraiseql_url)
 
@@ -30,7 +35,7 @@ class PatternMatcher:
         limit: int = 5,
         min_confidence: float = 0.5,
         exclude_applied: bool = True,
-        use_semantic: bool = True
+        use_semantic: bool = True,
     ) -> List[Tuple[Pattern, float]]:
         """
         Find patterns applicable to an entity
@@ -53,17 +58,14 @@ class PatternMatcher:
         if exclude_applied and "patterns" in entity_spec:
             applied_pattern_names = set(entity_spec.get("patterns", []))
             active_patterns = [
-                p for p in active_patterns
-                if p.name not in applied_pattern_names
+                p for p in active_patterns if p.name not in applied_pattern_names
             ]
 
         # Calculate confidence for each pattern
         scored_patterns = []
         for pattern in active_patterns:
             confidence = self._calculate_confidence(
-                pattern=pattern,
-                entity_spec=entity_spec,
-                use_semantic=use_semantic
+                pattern=pattern, entity_spec=entity_spec, use_semantic=use_semantic
             )
 
             if confidence >= min_confidence:
@@ -75,10 +77,7 @@ class PatternMatcher:
         return scored_patterns[:limit]
 
     def _calculate_confidence(
-        self,
-        pattern: Pattern,
-        entity_spec: Dict[str, Any],
-        use_semantic: bool
+        self, pattern: Pattern, entity_spec: Dict[str, Any], use_semantic: bool
     ) -> float:
         """
         Calculate confidence that pattern applies to entity
@@ -124,9 +123,7 @@ class PatternMatcher:
         return weighted_sum / total_weight
 
     def _field_name_matching(
-        self,
-        pattern: Pattern,
-        entity_spec: Dict[str, Any]
+        self, pattern: Pattern, entity_spec: Dict[str, Any]
     ) -> float:
         """
         Score based on field name matching
@@ -154,9 +151,7 @@ class PatternMatcher:
         return min(matches / len(pattern_keywords), 1.0)
 
     def _field_type_matching(
-        self,
-        pattern: Pattern,
-        entity_spec: Dict[str, Any]
+        self, pattern: Pattern, entity_spec: Dict[str, Any]
     ) -> float:
         """
         Score based on field type matching
@@ -181,9 +176,7 @@ class PatternMatcher:
         return matches / len(expected_types) if expected_types else 0.0
 
     def _semantic_matching(
-        self,
-        pattern: Pattern,
-        entity_spec: Dict[str, Any]
+        self, pattern: Pattern, entity_spec: Dict[str, Any]
     ) -> float:
         """
         Score based on semantic similarity between entity description and pattern
@@ -199,11 +192,11 @@ class PatternMatcher:
 
         # Calculate similarity with pattern embedding
         import numpy as np
+
         pattern_embedding_array = np.array(pattern.embedding)
 
         similarity = self.embedding_service.cosine_similarity(
-            entity_embedding,
-            pattern_embedding_array
+            entity_embedding, pattern_embedding_array
         )
 
         # Map [-1, 1] to [0, 1]

@@ -13,12 +13,16 @@ from src.utils.safe_slug import safe_slug, safe_table_name
 class TrinityHelperGenerator:
     """Generates Trinity helper functions for entity resolution"""
 
-    def __init__(self, schema_registry: SchemaRegistry, templates_dir: str = "templates/sql"):
+    def __init__(
+        self, schema_registry: SchemaRegistry, templates_dir: str = "templates/sql"
+    ):
         """Initialize with Jinja2 templates and schema registry"""
         self.schema_registry = schema_registry
         self.templates_dir = templates_dir
         self.env = Environment(
-            loader=FileSystemLoader(templates_dir), trim_blocks=False, lstrip_blocks=False
+            loader=FileSystemLoader(templates_dir),
+            trim_blocks=False,
+            lstrip_blocks=False,
         )
 
     def generate_entity_pk_function(self, entity: Entity) -> str:

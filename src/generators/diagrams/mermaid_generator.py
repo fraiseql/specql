@@ -1,9 +1,8 @@
 from typing import Optional
 from pathlib import Path
 
-from src.generators.diagrams.relationship_extractor import (
-    RelationshipExtractor
-)
+from src.generators.diagrams.relationship_extractor import RelationshipExtractor
+
 
 class MermaidGenerator:
     """
@@ -52,7 +51,9 @@ class MermaidGenerator:
             RuntimeError: If diagram generation fails
         """
         if not self.extractor.entities:
-            raise ValueError("No entities found in extractor. Run extract_from_entities() first.")
+            raise ValueError(
+                "No entities found in extractor. Run extract_from_entities() first."
+            )
 
         try:
             lines = []
@@ -68,7 +69,9 @@ class MermaidGenerator:
             # Relationships
             for rel in self.extractor.relationships:
                 notation = self._get_mermaid_notation(rel)
-                lines.append(f"    {rel.from_entity} {notation} {rel.to_entity} : \"{rel.from_field}\"")
+                lines.append(
+                    f'    {rel.from_entity} {notation} {rel.to_entity} : "{rel.from_field}"'
+                )
 
             # Entity definitions (if showing fields)
             if show_fields:
@@ -77,24 +80,30 @@ class MermaidGenerator:
                     lines.append(f"    {entity_name} {{")
 
                     for field in entity_node.fields:
-                        field_name = field['name']
+                        field_name = field["name"]
 
                         # Skip Trinity if not showing
-                        if not show_trinity and field_name in ['pk_' + entity_name.lower(), 'id', 'identifier']:
+                        if not show_trinity and field_name in [
+                            "pk_" + entity_name.lower(),
+                            "id",
+                            "identifier",
+                        ]:
                             continue
 
-                        field_type = field['type'].lower()
-                        pk_marker = ' PK' if field.get('is_pk') else ''
-                        fk_marker = ' FK' if field.get('is_fk') else ''
+                        field_type = field["type"].lower()
+                        pk_marker = " PK" if field.get("is_pk") else ""
+                        fk_marker = " FK" if field.get("is_fk") else ""
 
-                        lines.append(f"        {field_type} {field_name}{pk_marker}{fk_marker}")
+                        lines.append(
+                            f"        {field_type} {field_name}{pk_marker}{fk_marker}"
+                        )
 
                     lines.append("    }")
 
             # End Mermaid block
             lines.append("```")
 
-            mermaid_source = '\n'.join(lines)
+            mermaid_source = "\n".join(lines)
 
             # Save if path provided
             if output_path:

@@ -1,4 +1,5 @@
 """PostgreSQL implementation of EntityTemplateRepository"""
+
 import psycopg
 from typing import Optional, List
 import json
@@ -18,22 +19,25 @@ class PostgreSQLEntityTemplateRepository:
         with psycopg.connect(self.db_url) as conn:
             with conn.cursor() as cur:
                 # Convert fields to JSONB
-                fields_json = json.dumps([
-                    {
-                        "field_name": f.field_name,
-                        "field_type": f.field_type,
-                        "required": f.required,
-                        "description": f.description,
-                        "composite_type": f.composite_type,
-                        "ref_entity": f.ref_entity,
-                        "enum_values": f.enum_values,
-                        "default_value": f.default_value,
-                        "validation_rules": f.validation_rules
-                    }
-                    for f in template.fields
-                ])
+                fields_json = json.dumps(
+                    [
+                        {
+                            "field_name": f.field_name,
+                            "field_type": f.field_type,
+                            "required": f.required,
+                            "description": f.description,
+                            "composite_type": f.composite_type,
+                            "ref_entity": f.ref_entity,
+                            "enum_values": f.enum_values,
+                            "default_value": f.default_value,
+                            "validation_rules": f.validation_rules,
+                        }
+                        for f in template.fields
+                    ]
+                )
 
-                cur.execute("""
+                cur.execute(
+                    """
                     INSERT INTO pattern_library.entity_templates (
                         template_id, template_name, description, domain_number,
                         base_entity_name, fields, included_patterns, composed_from,
@@ -57,31 +61,34 @@ class PostgreSQLEntityTemplateRepository:
                         times_instantiated = EXCLUDED.times_instantiated,
                         is_public = EXCLUDED.is_public,
                         author = EXCLUDED.author
-                """, (
-                    template.template_id,
-                    template.template_name,
-                    template.description,
-                    str(template.domain_number.value),
-                    template.base_entity_name,
-                    fields_json,
-                    template.included_patterns,
-                    template.composed_from,
-                    template.version,
-                    template.previous_version,
-                    template.changelog,
-                    template.created_at,
-                    template.updated_at,
-                    template.times_instantiated,
-                    template.is_public,
-                    template.author
-                ))
+                """,
+                    (
+                        template.template_id,
+                        template.template_name,
+                        template.description,
+                        str(template.domain_number.value),
+                        template.base_entity_name,
+                        fields_json,
+                        template.included_patterns,
+                        template.composed_from,
+                        template.version,
+                        template.previous_version,
+                        template.changelog,
+                        template.created_at,
+                        template.updated_at,
+                        template.times_instantiated,
+                        template.is_public,
+                        template.author,
+                    ),
+                )
                 conn.commit()
 
     def find_by_id(self, template_id: str) -> Optional[EntityTemplate]:
         """Find template by ID"""
         with psycopg.connect(self.db_url) as conn:
             with conn.cursor() as cur:
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT
                         template_id, template_name, description, domain_number,
                         base_entity_name, fields, included_patterns, composed_from,
@@ -89,7 +96,9 @@ class PostgreSQLEntityTemplateRepository:
                         times_instantiated, is_public, author
                     FROM pattern_library.entity_templates
                     WHERE template_id = %s
-                """, (template_id,))
+                """,
+                    (template_id,),
+                )
 
                 row = cur.fetchone()
                 if not row:
@@ -101,7 +110,8 @@ class PostgreSQLEntityTemplateRepository:
         """Find template by name"""
         with psycopg.connect(self.db_url) as conn:
             with conn.cursor() as cur:
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT
                         template_id, template_name, description, domain_number,
                         base_entity_name, fields, included_patterns, composed_from,
@@ -109,7 +119,9 @@ class PostgreSQLEntityTemplateRepository:
                         times_instantiated, is_public, author
                     FROM pattern_library.entity_templates
                     WHERE template_name = %s
-                """, (template_name,))
+                """,
+                    (template_name,),
+                )
 
                 row = cur.fetchone()
                 if not row:
@@ -121,7 +133,8 @@ class PostgreSQLEntityTemplateRepository:
         """Find all templates for a domain"""
         with psycopg.connect(self.db_url) as conn:
             with conn.cursor() as cur:
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT
                         template_id, template_name, description, domain_number,
                         base_entity_name, fields, included_patterns, composed_from,
@@ -130,7 +143,9 @@ class PostgreSQLEntityTemplateRepository:
                     FROM pattern_library.entity_templates
                     WHERE domain_number = %s
                     ORDER BY template_name
-                """, (domain_number,))
+                """,
+                    (domain_number,),
+                )
 
                 return [self._row_to_template(row) for row in cur.fetchall()]
 
@@ -155,35 +170,55 @@ class PostgreSQLEntityTemplateRepository:
         """Delete a template"""
         with psycopg.connect(self.db_url) as conn:
             with conn.cursor() as cur:
-                cur.execute("""
+                cur.execute(
+                    """
                     DELETE FROM pattern_library.entity_templates
                     WHERE template_id = %s
-                """, (template_id,))
+                """,
+                    (template_id,),
+                )
                 conn.commit()
 
     def increment_usage(self, template_id: str) -> None:
         """Increment times_instantiated counter"""
         with psycopg.connect(self.db_url) as conn:
             with conn.cursor() as cur:
-                cur.execute("""
+                cur.execute(
+                    """
                     UPDATE pattern_library.entity_templates
                     SET times_instantiated = times_instantiated + 1,
                         updated_at = CURRENT_TIMESTAMP
                     WHERE template_id = %s
-                """, (template_id,))
+                """,
+                    (template_id,),
+                )
                 conn.commit()
 
     def _row_to_template(self, row) -> EntityTemplate:
         """Convert database row to EntityTemplate"""
         (
-            template_id, template_name, description, domain_number,
-            base_entity_name, fields_json, included_patterns, composed_from,
-            version, previous_version, changelog, created_at, updated_at,
-            times_instantiated, is_public, author
+            template_id,
+            template_name,
+            description,
+            domain_number,
+            base_entity_name,
+            fields_json,
+            included_patterns,
+            composed_from,
+            version,
+            previous_version,
+            changelog,
+            created_at,
+            updated_at,
+            times_instantiated,
+            is_public,
+            author,
         ) = row
 
         # Parse fields from JSONB
-        fields_data = json.loads(fields_json) if isinstance(fields_json, str) else fields_json
+        fields_data = (
+            json.loads(fields_json) if isinstance(fields_json, str) else fields_json
+        )
         fields = [
             TemplateField(
                 field_name=f["field_name"],
@@ -194,7 +229,7 @@ class PostgreSQLEntityTemplateRepository:
                 ref_entity=f.get("ref_entity"),
                 enum_values=f.get("enum_values"),
                 default_value=f.get("default_value"),
-                validation_rules=f.get("validation_rules", [])
+                validation_rules=f.get("validation_rules", []),
             )
             for f in fields_data
         ]
@@ -215,5 +250,5 @@ class PostgreSQLEntityTemplateRepository:
             updated_at=updated_at,
             times_instantiated=times_instantiated,
             is_public=is_public,
-            author=author
+            author=author,
         )

@@ -1,10 +1,11 @@
 """Tests for TemplateService"""
+
 import pytest
 from src.application.services.template_service import TemplateService
 from src.domain.entities.entity_template import EntityTemplate, TemplateField
 from src.domain.value_objects import DomainNumber
 from src.infrastructure.repositories.in_memory_entity_template_repository import (
-    InMemoryEntityTemplateRepository
+    InMemoryEntityTemplateRepository,
 )
 
 
@@ -31,10 +32,10 @@ def sample_template():
         base_entity_name="contact",
         fields=[
             TemplateField("email", "text", required=True),
-            TemplateField("phone", "text", required=False)
+            TemplateField("phone", "text", required=False),
         ],
         included_patterns=["audit_trail"],
-        version="1.0.0"
+        version="1.0.0",
     )
 
 
@@ -49,11 +50,9 @@ class TestTemplateService:
             description="Test template",
             domain_number="01",
             base_entity_name="test",
-            fields=[
-                {"field_name": "name", "field_type": "text", "required": True}
-            ],
+            fields=[{"field_name": "name", "field_type": "text", "required": True}],
             included_patterns=["audit_trail"],
-            is_public=True
+            is_public=True,
         )
 
         assert template.template_id == "tpl_test"
@@ -88,7 +87,7 @@ class TestTemplateService:
             field_overrides={"phone": {"required": True}},
             additional_fields=[
                 {"field_name": "company", "field_type": "ref", "ref_entity": "company"}
-            ]
+            ],
         )
 
         assert entity_spec["entity"] == "customer_contact"
@@ -119,8 +118,7 @@ class TestTemplateService:
 
         # Update description
         updated = service.update_template(
-            template_id="tpl_contact",
-            description="Updated contact template"
+            template_id="tpl_contact", description="Updated contact template"
         )
 
         assert updated.description == "Updated contact template"
@@ -133,10 +131,14 @@ class TestTemplateService:
         v2 = service.create_template_version(
             template_id="tpl_contact",
             additional_fields=[
-                {"field_name": "address", "field_type": "composite", "composite_type": "address_type"}
+                {
+                    "field_name": "address",
+                    "field_type": "composite",
+                    "composite_type": "address_type",
+                }
             ],
             version="2.0.0",
-            changelog="Added address field"
+            changelog="Added address field",
         )
 
         assert v2.version == "2.0.0"
@@ -166,7 +168,7 @@ class TestTemplateService:
             base_entity_name="company",
             fields=[TemplateField("name", "text", required=True)],
             times_instantiated=25,
-            version="1.0.0"
+            version="1.0.0",
         )
         service.repository.save(template2)
 

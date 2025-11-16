@@ -45,7 +45,9 @@ class TestGenerationResult:
     def test_generation_result_with_data(self):
         """Test generation result with data."""
         migration = MigrationFile(number=100, name="test", content="SQL")
-        result = GenerationResult(migrations=[migration], errors=["error1"], warnings=["warning1"])
+        result = GenerationResult(
+            migrations=[migration], errors=["error1"], warnings=["warning1"]
+        )
 
         assert len(result.migrations) == 1
         assert result.errors == ["error1"]
@@ -109,7 +111,8 @@ class TestCLIOrchestrator:
         output_dir = temp_dir / "migrations"
 
         result = orchestrator.generate_from_files(
-            entity_files=[str(f) for f in multiple_entity_files], output_dir=str(output_dir)
+            entity_files=[str(f) for f in multiple_entity_files],
+            output_dir=str(output_dir),
         )
 
         # Should have foundation + 2 entity migrations
@@ -124,7 +127,9 @@ class TestCLIOrchestrator:
         output_dir = temp_dir / "migrations"
 
         result = orchestrator.generate_from_files(
-            entity_files=[str(sample_entity_file)], output_dir=str(output_dir), include_tv=True
+            entity_files=[str(sample_entity_file)],
+            output_dir=str(output_dir),
+            include_tv=True,
         )
 
         # Should include tv_ migration if generation succeeds

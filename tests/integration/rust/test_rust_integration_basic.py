@@ -45,7 +45,7 @@ class TestBasicIntegration:
 
         # Verify field types
         name_field = next(f for f in entity.fields if f.name == "name")
-        assert name_field.required  is True
+        assert name_field.required is True
 
         price_field = next(f for f in entity.fields if f.name == "price")
         assert price_field.type.value == "integer"
@@ -60,7 +60,7 @@ class TestBasicIntegration:
         category_field = next(f for f in entity.fields if f.name == "category_id")
         assert category_field.type.value == "reference"
         assert category_field.references == "category"
-        assert category_field.required  is True
+        assert category_field.required is True
 
     def test_generate_from_reversed_model(self, sample_project_dir, temp_output_dir):
         """Test generating Rust code from a reversed model"""

@@ -13,11 +13,15 @@ from src.core.ast_models import ActionDefinition, ActionStep, EntityDefinition
 class ValidationError(Exception):
     """Custom exception for action validation errors"""
 
-    def __init__(self, message: str, step_index: int | None = None, field: str | None = None):
+    def __init__(
+        self, message: str, step_index: int | None = None, field: str | None = None
+    ):
         self.message = message
         self.step_index = step_index
         self.field = field
-        super().__init__(f"{message}" + (f" (step {step_index})" if step_index is not None else ""))
+        super().__init__(
+            f"{message}" + (f" (step {step_index})" if step_index is not None else "")
+        )
 
 
 class ActionValidator:
@@ -76,7 +80,9 @@ class ActionValidator:
             raise ValidationError("Action must have a name")
 
         if not action.name.replace("_", "").isalnum():
-            raise ValidationError(f"Action name '{action.name}' contains invalid characters")
+            raise ValidationError(
+                f"Action name '{action.name}' contains invalid characters"
+            )
 
         if not action.steps:
             raise ValidationError("Action must have at least one step")
@@ -129,7 +135,9 @@ class ActionValidator:
             raise ValidationError("Validate step must have an expression", step_index)
 
         if not step.error:
-            self.warnings.append(f"Validate step at index {step_index} has no custom error message")
+            self.warnings.append(
+                f"Validate step at index {step_index} has no custom error message"
+            )
 
     def _validate_if_step(
         self, step: ActionStep, step_index: int, entity_map: dict[str, EntityDefinition]
@@ -165,7 +173,9 @@ class ActionValidator:
 
         # Check if required fields are provided
         if step.fields:
-            self._validate_field_references(list(step.fields.keys()), entity, step_index, "insert")
+            self._validate_field_references(
+                list(step.fields.keys()), entity, step_index, "insert"
+            )
 
     def _validate_update_step(
         self, step: ActionStep, step_index: int, entity_map: dict[str, EntityDefinition]
@@ -206,7 +216,9 @@ class ActionValidator:
 
         # Basic function name validation
         if not step.function_name.replace("_", "").replace(".", "").isalnum():
-            raise ValidationError(f"Invalid function name: {step.function_name}", step_index)
+            raise ValidationError(
+                f"Invalid function name: {step.function_name}", step_index
+            )
 
     def _validate_notify_step(self, step: ActionStep, step_index: int) -> None:
         """Validate notify step"""
@@ -229,7 +241,8 @@ class ActionValidator:
         """Validate foreach step"""
         if not step.foreach_expr and not (step.iterator_var and step.collection):
             raise ValidationError(
-                "Foreach step must have foreach_expr or iterator_var+collection", step_index
+                "Foreach step must have foreach_expr or iterator_var+collection",
+                step_index,
             )
 
         if not step.then_steps:
@@ -240,7 +253,11 @@ class ActionValidator:
             self._validate_step(nested_step, step_index, entity_map, None)  # type: ignore
 
     def _validate_field_references(
-        self, field_names: list[str], entity: EntityDefinition, step_index: int, operation: str
+        self,
+        field_names: list[str],
+        entity: EntityDefinition,
+        step_index: int,
+        operation: str,
     ) -> None:
         """Validate that referenced fields exist on the entity"""
         entity_fields = set(entity.fields.keys())
@@ -268,19 +285,29 @@ class ActionValidator:
             )
 
         # Check for updates without prior validation
-        update_steps = [i for i, step in enumerate(action.steps) if step.type == "update"]
-        validate_steps = [i for i, step in enumerate(action.steps) if step.type == "validate"]
+        update_steps = [
+            i for i, step in enumerate(action.steps) if step.type == "update"
+        ]
+        validate_steps = [
+            i for i, step in enumerate(action.steps) if step.type == "validate"
+        ]
 
         for update_idx in update_steps:
             # Check if there's validation before this update
-            prior_validations = [v_idx for v_idx in validate_steps if v_idx < update_idx]
+            prior_validations = [
+                v_idx for v_idx in validate_steps if v_idx < update_idx
+            ]
             if not prior_validations:
-                self.warnings.append(f"Update step at index {update_idx} has no prior validation")
+                self.warnings.append(
+                    f"Update step at index {update_idx} has no prior validation"
+                )
 
     def get_validation_report(self) -> dict[str, Any]:
         """Get a complete validation report"""
         return {
             "valid": len(self.errors) == 0,
-            "errors": [{"message": e.message, "step_index": e.step_index} for e in self.errors],
+            "errors": [
+                {"message": e.message, "step_index": e.step_index} for e in self.errors
+            ],
             "warnings": self.warnings,
         }

@@ -1,9 +1,10 @@
 """Tests for pattern deduplication"""
+
 import pytest
 from src.application.services.pattern_deduplicator import PatternDeduplicator
 from src.application.services.pattern_service import PatternService
 from src.infrastructure.repositories.in_memory_pattern_repository import (
-    InMemoryPatternRepository
+    InMemoryPatternRepository,
 )
 from src.domain.entities.pattern import Pattern, PatternCategory, SourceType
 
@@ -24,7 +25,7 @@ def service_with_duplicates():
             implementation={"sql": "REGEXP check"},
             times_instantiated=10,
             source_type=SourceType.MANUAL,
-            complexity_score=3
+            complexity_score=3,
         ),
         Pattern(
             id=None,
@@ -34,7 +35,7 @@ def service_with_duplicates():
             implementation={"sql": "REGEXP validation"},
             times_instantiated=5,
             source_type=SourceType.MIGRATED,
-            complexity_score=3
+            complexity_score=3,
         ),
         Pattern(
             id=None,
@@ -44,7 +45,7 @@ def service_with_duplicates():
             implementation={"sql": "Phone format check"},
             times_instantiated=8,
             source_type=SourceType.MANUAL,
-            complexity_score=2
+            complexity_score=2,
         ),
     ]
 
@@ -102,10 +103,7 @@ class TestPatternDeduplicator:
 
         if duplicates:
             group = duplicates[0]
-            suggestion = deduplicator.suggest_merge(
-                group,
-                strategy="most_used"
-            )
+            suggestion = deduplicator.suggest_merge(group, strategy="most_used")
 
             # Should keep the pattern with most uses
             kept = suggestion["keep"]
@@ -118,10 +116,7 @@ class TestPatternDeduplicator:
 
         if duplicates:
             group = duplicates[0]
-            suggestion = deduplicator.suggest_merge(
-                group,
-                strategy="oldest"
-            )
+            suggestion = deduplicator.suggest_merge(group, strategy="oldest")
 
             # Should prefer manual over migrated
             kept = suggestion["keep"]
@@ -137,8 +132,7 @@ class TestPatternDeduplicator:
 
             # Perform merge
             merged = deduplicator.merge_patterns(
-                keep=suggestion["keep"],
-                merge=suggestion["merge"]
+                keep=suggestion["keep"], merge=suggestion["merge"]
             )
 
             # Verify
@@ -155,9 +149,6 @@ class TestPatternDeduplicator:
         patterns = list(deduplicator.service.repository.list_all())
 
         if len(patterns) >= 2:
-            similarity = deduplicator.calculate_similarity(
-                patterns[0],
-                patterns[1]
-            )
+            similarity = deduplicator.calculate_similarity(patterns[0], patterns[1])
 
             assert 0.0 <= similarity <= 1.0

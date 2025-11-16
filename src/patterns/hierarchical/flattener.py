@@ -57,7 +57,9 @@ def generate_hierarchical_flattener(config: dict[str, Any]) -> str:
 
     # Add ltree field if path_field is specified
     if path_field:
-        select_parts.append(f"    REPLACE(data->>'{path_field}', '.', '_')::text AS ltree_id")
+        select_parts.append(
+            f"    REPLACE(data->>'{path_field}', '.', '_')::text AS ltree_id"
+        )
 
     # Add full data column
     select_parts.append("    data  -- Include full data for reference")

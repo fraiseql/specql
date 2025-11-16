@@ -42,7 +42,9 @@ class PatternParameter:
             if not isinstance(value, list):
                 return False
             element_type = self.type[6:-1]  # Extract inner type
-            return all(isinstance(item, type_map.get(element_type, object)) for item in value)
+            return all(
+                isinstance(item, type_map.get(element_type, object)) for item in value
+            )
 
         # Handle enum syntax
         if self.type.startswith("enum[") and self.type.endswith("]"):

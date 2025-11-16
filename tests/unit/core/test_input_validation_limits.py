@@ -43,7 +43,9 @@ fields:
         large_yaml += "  " + ("x" * padding_size) + "\n"
 
         # Should raise ParseError for file size
-        with pytest.raises(ParseError, match="YAML file size .* exceeds maximum allowed"):
+        with pytest.raises(
+            ParseError, match="YAML file size .* exceeds maximum allowed"
+        ):
             parser.parse(large_yaml)
 
     def test_yaml_file_at_size_limit_boundary(self):
@@ -94,7 +96,9 @@ actions:
         parser = SpecQLParser()
 
         # Create deeply nested structure (e.g., 100 levels of if/then)
-        yaml_content = "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
+        yaml_content = (
+            "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
+        )
         yaml_content += "  - name: deeply_nested\n    steps:\n"
 
         # Build 100 levels of nested if/then
@@ -107,7 +111,9 @@ actions:
         yaml_content += f"{indent * 100}          - validate: email != null\n"
 
         # Should raise ParseError for nesting depth
-        with pytest.raises(ParseError, match="YAML nesting depth .* exceeds maximum allowed"):
+        with pytest.raises(
+            ParseError, match="YAML nesting depth .* exceeds maximum allowed"
+        ):
             parser.parse(yaml_content)
 
     def test_yaml_at_nesting_depth_boundary(self):
@@ -117,7 +123,9 @@ actions:
         # Create structure at exactly the limit (e.g., 50 levels)
         # Account for base YAML structure depth and each if/then adds 2 levels (if dict, then list)
         # We need to stay within 50 levels total
-        yaml_content = "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
+        yaml_content = (
+            "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
+        )
         yaml_content += "  - name: at_limit\n    steps:\n"
 
         # Build 22 levels of nested if/then to stay at depth 50
@@ -165,7 +173,9 @@ fields:
             yaml_content += f"  field_{i}: text\n"
 
         # Should raise SpecQLValidationError for field count
-        with pytest.raises(SpecQLValidationError, match="Field count .* exceeds maximum allowed"):
+        with pytest.raises(
+            SpecQLValidationError, match="Field count .* exceeds maximum allowed"
+        ):
             parser.parse(yaml_content)
 
     def test_entity_at_field_count_boundary(self):
@@ -212,14 +222,18 @@ actions:
         parser = SpecQLParser()
 
         # Create entity with too many actions (e.g., 101 actions)
-        yaml_content = "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
+        yaml_content = (
+            "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
+        )
         for i in range(101):
             yaml_content += f"  - name: action_{i}\n"
             yaml_content += "    steps:\n"
             yaml_content += "      - validate: email != null\n"
 
         # Should raise SpecQLValidationError for action count
-        with pytest.raises(SpecQLValidationError, match="Action count .* exceeds maximum allowed"):
+        with pytest.raises(
+            SpecQLValidationError, match="Action count .* exceeds maximum allowed"
+        ):
             parser.parse(yaml_content)
 
     def test_entity_at_action_count_boundary(self):
@@ -227,7 +241,9 @@ actions:
         parser = SpecQLParser()
 
         # Create entity with exactly 100 actions (assuming limit is 100)
-        yaml_content = "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
+        yaml_content = (
+            "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
+        )
         for i in range(100):
             yaml_content += f"  - name: action_{i}\n"
             yaml_content += "    steps:\n"
@@ -267,13 +283,17 @@ actions:
         parser = SpecQLParser()
 
         # Create action with too many steps (e.g., 501 steps)
-        yaml_content = "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
+        yaml_content = (
+            "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
+        )
         yaml_content += "  - name: many_steps\n    steps:\n"
         for i in range(501):
             yaml_content += "      - validate: email != null\n"
 
         # Should raise SpecQLValidationError for steps count
-        with pytest.raises(SpecQLValidationError, match="Steps count .* exceeds maximum allowed"):
+        with pytest.raises(
+            SpecQLValidationError, match="Steps count .* exceeds maximum allowed"
+        ):
             parser.parse(yaml_content)
 
     def test_action_at_steps_limit_boundary(self):
@@ -281,7 +301,9 @@ actions:
         parser = SpecQLParser()
 
         # Create action with exactly 500 steps (assuming limit is 500)
-        yaml_content = "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
+        yaml_content = (
+            "entity: Contact\nschema: crm\nfields:\n  email: text\nactions:\n"
+        )
         yaml_content += "  - name: at_limit\n    steps:\n"
         for i in range(500):
             yaml_content += "      - validate: email != null\n"

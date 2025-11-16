@@ -21,7 +21,9 @@ class IndexGenerator:
 
         return indexes
 
-    def _generate_index_for_field(self, field: FieldDefinition, entity: Entity) -> list[str]:
+    def _generate_index_for_field(
+        self, field: FieldDefinition, entity: Entity
+    ) -> list[str]:
         """
         Generate appropriate index for a single rich type field
 
@@ -63,9 +65,18 @@ class IndexGenerator:
         index_name = f"idx_tb_{safe_slug(entity.name)}_{safe_slug(field.name)}"
 
         # Different index types based on rich type
-        if field.type_name in ("email", "phoneNumber", "macAddress", "slug", "color", "money"):
+        if field.type_name in (
+            "email",
+            "phoneNumber",
+            "macAddress",
+            "slug",
+            "color",
+            "money",
+        ):
             # B-tree indexes for exact lookups and range queries
-            return [f"CREATE INDEX {index_name} ON {table_name} USING btree ({field.name});"]
+            return [
+                f"CREATE INDEX {index_name} ON {table_name} USING btree ({field.name});"
+            ]
 
         elif field.type_name == "url":
             # GIN index with trigram ops for pattern matching
@@ -75,7 +86,9 @@ class IndexGenerator:
 
         elif field.type_name in ("coordinates", "latitude", "longitude"):
             # GiST indexes for spatial operations
-            return [f"CREATE INDEX {index_name} ON {table_name} USING gist ({field.name});"]
+            return [
+                f"CREATE INDEX {index_name} ON {table_name} USING gist ({field.name});"
+            ]
 
         elif field.type_name == "ipAddress":
             # GiST index with inet ops for network operations
@@ -84,4 +97,6 @@ class IndexGenerator:
             ]
 
         # Default to btree for unknown rich types
-        return [f"CREATE INDEX {index_name} ON {table_name} USING btree ({field.name});"]
+        return [
+            f"CREATE INDEX {index_name} ON {table_name} USING btree ({field.name});"
+        ]

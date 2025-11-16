@@ -45,7 +45,9 @@ class Service:
         for op in self.operations:
             if op.name == operation_name:
                 return op
-        raise ValueError(f"Operation '{operation_name}' not found in service '{self.name}'")
+        raise ValueError(
+            f"Operation '{operation_name}' not found in service '{self.name}'"
+        )
 
     def validate_operations(self) -> None:
         """Validate all operations have proper schemas"""
@@ -108,7 +110,9 @@ class ServiceRegistry:
             operations = []
             for op_data in service_data.get("operations", []):
                 if "name" not in op_data:
-                    raise ValueError(f"Operation missing required field 'name': {op_data}")
+                    raise ValueError(
+                        f"Operation missing required field 'name': {op_data}"
+                    )
 
                 operation = ServiceOperation(
                     name=op_data["name"],
@@ -163,7 +167,9 @@ class ServiceRegistry:
             operations = []
             for op_data in service_data.get("operations", []):
                 if "name" not in op_data:
-                    raise ValueError(f"Operation missing required field 'name': {op_data}")
+                    raise ValueError(
+                        f"Operation missing required field 'name': {op_data}"
+                    )
 
                 operation = ServiceOperation(
                     name=op_data["name"],

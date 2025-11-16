@@ -36,28 +36,24 @@ def add_sqlalchemy_patterns(library: PatternLibrary):
     library.add_or_update_implementation(
         "declare",
         "python_sqlalchemy",
-        """{{ variable_name }}: {{ variable_type }}{% if default_value %} = {{ default_value }}{% endif %}"""
+        """{{ variable_name }}: {{ variable_type }}{% if default_value %} = {{ default_value }}{% endif %}""",
     )
 
     # assign - Variable assignment
     library.add_or_update_implementation(
-        "assign",
-        "python_sqlalchemy",
-        """{{ variable_name }} = {{ expression }}"""
+        "assign", "python_sqlalchemy", """{{ variable_name }} = {{ expression }}"""
     )
 
     # call_function - Call a Python function
     library.add_or_update_implementation(
         "call_function",
         "python_sqlalchemy",
-        """{{ result_variable }} = {{ function_name }}({{ arguments|join(', ') }})"""
+        """{{ result_variable }} = {{ function_name }}({{ arguments|join(', ') }})""",
     )
 
     # return - Return from function
     library.add_or_update_implementation(
-        "return",
-        "python_sqlalchemy",
-        """return {{ expression }}"""
+        "return", "python_sqlalchemy", """return {{ expression }}"""
     )
 
     # ===== CONTROL FLOW PATTERNS =====
@@ -69,7 +65,7 @@ def add_sqlalchemy_patterns(library: PatternLibrary):
         """if {{ condition }}:
     {{ then_steps }}{% if else_steps %}
 else:
-    {{ else_steps }}{% endif %}"""
+    {{ else_steps }}{% endif %}""",
     )
 
     # foreach - Iterate over collection
@@ -77,7 +73,7 @@ else:
         "foreach",
         "python_sqlalchemy",
         """for {{ iterator_var }} in {{ collection }}:
-    {{ loop_body }}"""
+    {{ loop_body }}""",
     )
 
     # ===== DATABASE OPERATIONS PATTERNS =====
@@ -91,7 +87,7 @@ else:
 {% for field, value in field_values.items() %}    {{ field }}={{ value }},
 {% endfor %})
 session.add({{ instance_var }})
-session.commit()"""
+session.commit()""",
     )
 
     # update - Update existing model instance
@@ -102,7 +98,7 @@ session.commit()"""
 {{ instance_var }} = session.query({{ model_name }}).get({{ lookup_value }})
 {% for field, value in field_values.items() %}{{ instance_var }}.{{ field }} = {{ value }}
 {% endfor %}
-session.commit()"""
+session.commit()""",
     )
 
     # delete - Delete model instance
@@ -112,7 +108,7 @@ session.commit()"""
         """# Delete {{ model_name }}
 {{ instance_var }} = session.query({{ model_name }}).get({{ lookup_value }})
 session.delete({{ instance_var }})
-session.commit()"""
+session.commit()""",
     )
 
     # ===== QUERY PATTERNS =====
@@ -122,7 +118,7 @@ session.commit()"""
         "query",
         "python_sqlalchemy",
         """# Query {{ model_name }}
-{{ result_var }} = session.query({{ model_name }}){% if filters %}.filter({% for field, value in filters.items() %}{{ model_name }}.{{ field }} == {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% if order_by %}.order_by({% for field in order_by %}{% if field.startswith('-') %}{{ model_name }}.{{ field[1:] }}.desc(){% else %}{{ model_name }}.{{ field }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}"""
+{{ result_var }} = session.query({{ model_name }}){% if filters %}.filter({% for field, value in filters.items() %}{{ model_name }}.{{ field }} == {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}{% if order_by %}.order_by({% for field in order_by %}{% if field.startswith('-') %}{{ model_name }}.{{ field[1:] }}.desc(){% else %}{{ model_name }}.{{ field }}{% endif %}{% if not loop.last %}, {% endif %}{% endfor %}){% endif %}""",
     )
 
     # ===== DATA TRANSFORM PATTERNS =====
@@ -139,7 +135,7 @@ session.commit()"""
 .filter(
 {% for field, value in filters.items() %}    {{ model_name }}.{{ field }} == {{ value }}{% if not loop.last %},
 {% endif %}{% endfor %}
-){% endif %}).first()"""
+){% endif %}).first()""",
     )
 
     # validate - Validate model data
@@ -148,7 +144,7 @@ session.commit()"""
         "python_sqlalchemy",
         """# Validate {{ model_name }}
 {% for validator in custom_validators %}{{ validator }}({{ instance_var }})
-{% endfor %}"""
+{% endfor %}""",
     )
 
     # duplicate_check - Check for duplicates
@@ -161,7 +157,7 @@ session.commit()"""
 {% endfor %}{% if exclude_pk %}).filter({{ model_name }}.id != {{ exclude_pk }}){% endif %}.first() is not None
 
 if {{ exists_var }}:
-    {{ duplicate_body }}"""
+    {{ duplicate_body }}""",
     )
 
     # exception_handling - Try-except block
@@ -174,7 +170,7 @@ if {{ exists_var }}:
 except {{ exception_type }}:
     {{ handler_body }}{% endfor %}{% if finally_body %}
 finally:
-    {{ finally_body }}{% endif %}"""
+    {{ finally_body }}{% endif %}""",
     )
 
     # json_build - Build JSON structures
@@ -186,7 +182,7 @@ import json
 {{ result_var }} = {
 {% for key, value in json_structure.items() %}    "{{ key }}": {{ value }},
 {% endfor %}}
-{% if serialize %}{{ result_var }} = json.dumps({{ result_var }}){% endif %}"""
+{% if serialize %}{{ result_var }} = json.dumps({{ result_var }}){% endif %}""",
     )
 
 

@@ -8,30 +8,34 @@ from src.generators.diagrams.graphviz_generator import GraphvizGenerator
 from src.generators.diagrams.mermaid_generator import MermaidGenerator
 from src.generators.diagrams.html_viewer_generator import HTMLViewerGenerator
 
+
 @click.command()
-@click.argument('yaml_files', nargs=-1, type=click.Path(exists=True), required=True)
-@click.option('--output', '-o', type=click.Path(), default='docs/schema.svg',
-              help='Output file path')
-@click.option('--format', '-f', type=click.Choice(['svg', 'png', 'pdf', 'dot', 'mermaid', 'html']),
-              default='svg', help='Output format')
-@click.option('--title', '-t', type=str, help='Diagram title')
-@click.option('--cluster/--no-cluster', default=True,
-              help='Cluster entities by schema')
-@click.option('--show-fields/--hide-fields', default=True,
-              help='Show entity fields')
-@click.option('--show-trinity/--hide-trinity', default=True,
-              help='Show Trinity pattern fields (pk_, id, identifier)')
-@click.option('--stats', is_flag=True,
-              help='Show relationship statistics')
+@click.argument("yaml_files", nargs=-1, type=click.Path(exists=True), required=True)
+@click.option(
+    "--output",
+    "-o",
+    type=click.Path(),
+    default="docs/schema.svg",
+    help="Output file path",
+)
+@click.option(
+    "--format",
+    "-f",
+    type=click.Choice(["svg", "png", "pdf", "dot", "mermaid", "html"]),
+    default="svg",
+    help="Output format",
+)
+@click.option("--title", "-t", type=str, help="Diagram title")
+@click.option("--cluster/--no-cluster", default=True, help="Cluster entities by schema")
+@click.option("--show-fields/--hide-fields", default=True, help="Show entity fields")
+@click.option(
+    "--show-trinity/--hide-trinity",
+    default=True,
+    help="Show Trinity pattern fields (pk_, id, identifier)",
+)
+@click.option("--stats", is_flag=True, help="Show relationship statistics")
 def diagram(
-    yaml_files,
-    output,
-    format,
-    title,
-    cluster,
-    show_fields,
-    show_trinity,
-    stats
+    yaml_files, output, format, title, cluster, show_fields, show_trinity, stats
 ):
     """
     Generate visual schema diagram from SpecQL YAML
@@ -99,7 +103,7 @@ def diagram(
         click.echo()
 
     # Generate diagram based on format
-    if format in ['svg', 'png', 'pdf', 'dot']:
+    if format in ["svg", "png", "pdf", "dot"]:
         # Graphviz formats
         generator = GraphvizGenerator(extractor)
         dot_source = generator.generate(
@@ -111,14 +115,14 @@ def diagram(
             show_trinity=show_trinity,
         )
 
-        if format == 'dot':
+        if format == "dot":
             # Just save DOT source
             Path(output).write_text(dot_source)
             click.echo(f"✅ DOT source saved: {output}")
         else:
             click.echo(f"✅ Diagram generated: {output}")
 
-    elif format == 'mermaid':
+    elif format == "mermaid":
         # Mermaid format
         generator = MermaidGenerator(extractor)
         generator.generate(
@@ -129,12 +133,12 @@ def diagram(
         )
         click.echo(f"✅ Mermaid diagram saved: {output}")
 
-    elif format == 'html':
+    elif format == "html":
         # HTML interactive viewer
         # First generate SVG for embedding
         graphviz_gen = GraphvizGenerator(extractor)
         svg_content = graphviz_gen.generate(
-            format='svg',
+            format="svg",
             title=title,
             cluster_by_schema=cluster,
             show_fields=show_fields,
@@ -144,16 +148,17 @@ def diagram(
         # Generate HTML viewer
         html_gen = HTMLViewerGenerator(extractor)
         html_gen.generate(
-            svg_content=svg_content,
-            output_path=output,
-            title=title or "Schema Diagram"
+            svg_content=svg_content, output_path=output, title=title or "Schema Diagram"
         )
         click.echo(f"✅ Interactive HTML viewer saved: {output}")
 
     # Show next steps
     click.echo("\n📋 Next steps:")
     click.echo(f"  1. View diagram: open {output}")
-    click.echo(f"  2. Include in docs: ![Schema]({{{{url_for('static', filename='{output}')}}}})")
+    click.echo(
+        f"  2. Include in docs: ![Schema]({{{{url_for('static', filename='{output}')}}}})"
+    )
+
 
 def _show_statistics(extractor: RelationshipExtractor) -> None:
     """Show relationship statistics"""
@@ -167,7 +172,7 @@ def _show_statistics(extractor: RelationshipExtractor) -> None:
     click.echo()
 
     click.echo("  Relationship Types:")
-    for rel_type, count in summary['relationship_types'].items():
+    for rel_type, count in summary["relationship_types"].items():
         if count > 0:
             click.echo(f"    - {rel_type}: {count}")
 
@@ -184,9 +189,7 @@ def _show_statistics(extractor: RelationshipExtractor) -> None:
     click.echo("\n  Top Referenced Entities:")
     metrics = graph.calculate_entity_metrics()
     sorted_entities = sorted(
-        metrics.items(),
-        key=lambda x: x[1]['referenced_by_count'],
-        reverse=True
+        metrics.items(), key=lambda x: x[1]["referenced_by_count"], reverse=True
     )
 
     for entity, metric in sorted_entities[:5]:

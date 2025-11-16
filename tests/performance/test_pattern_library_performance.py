@@ -15,7 +15,8 @@ class TestPatternLibraryPerformance:
     def db_connection(self):
         """Set up test database connection."""
         import os
-        conn_string = os.getenv('SPECQL_DB_URL')
+
+        conn_string = os.getenv("SPECQL_DB_URL")
         if not conn_string:
             pytest.skip("SPECQL_DB_URL not set - skipping database tests")
         return conn_string
@@ -68,10 +69,13 @@ class TestPatternLibraryPerformance:
 
                 for vec1, vec2 in test_vectors:
                     start_time = time.time()
-                    cur.execute("""
+                    cur.execute(
+                        """
                         SELECT %s::vector <=> %s::vector as cosine_distance,
                                %s::vector <-> %s::vector as l2_distance
-                    """, (vec1, vec2, vec1, vec2))
+                    """,
+                        (vec1, vec2, vec1, vec2),
+                    )
                     result = cur.fetchone()
                     operation_time = time.time() - start_time
 
@@ -96,21 +100,24 @@ class TestPatternLibraryPerformance:
                 suggestion_ids = []
 
                 for i in range(10):
-                    cur.execute("""
+                    cur.execute(
+                        """
                         INSERT INTO pattern_library.pattern_suggestions
                         (suggested_name, suggested_category, description, source_type,
                          complexity_score, confidence_score, status)
                         VALUES (%s, %s, %s, %s, %s, %s, %s)
                         RETURNING id
-                    """, (
-                        f'perf_suggestion_{i}',
-                        'workflow',
-                        f'Performance test suggestion {i} with some description',
-                        'performance_test',
-                        0.5 + (i % 5) * 0.1,
-                        0.7 + (i % 3) * 0.1,
-                        'pending'
-                    ))
+                    """,
+                        (
+                            f"perf_suggestion_{i}",
+                            "workflow",
+                            f"Performance test suggestion {i} with some description",
+                            "performance_test",
+                            0.5 + (i % 5) * 0.1,
+                            0.7 + (i % 3) * 0.1,
+                            "pending",
+                        ),
+                    )
                     result = cur.fetchone()
                     assert result is not None
                     suggestion_ids.append(result[0])
@@ -120,10 +127,13 @@ class TestPatternLibraryPerformance:
 
                 # Test bulk retrieval
                 start_time = time.time()
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT id, suggested_name, status FROM pattern_library.pattern_suggestions
                     WHERE id = ANY(%s)
-                """, (suggestion_ids,))
+                """,
+                    (suggestion_ids,),
+                )
                 results = cur.fetchall()
                 time.time() - start_time
 
@@ -133,17 +143,23 @@ class TestPatternLibraryPerformance:
                 # Test updates
                 start_time = time.time()
                 for suggestion_id in suggestion_ids[:5]:  # Update half
-                    cur.execute("""
+                    cur.execute(
+                        """
                         UPDATE pattern_library.pattern_suggestions
                         SET status = 'approved', reviewed_by = 'perf_test', reviewed_at = now()
                         WHERE id = %s
-                    """, (suggestion_id,))
+                    """,
+                        (suggestion_id,),
+                    )
 
                 time.time() - start_time
                 print(".4f")
 
                 # Clean up
-                cur.execute("DELETE FROM pattern_library.pattern_suggestions WHERE id = ANY(%s)", (suggestion_ids,))
+                cur.execute(
+                    "DELETE FROM pattern_library.pattern_suggestions WHERE id = ANY(%s)",
+                    (suggestion_ids,),
+                )
                 conn.commit()
 
     def test_jsonb_query_performance(self, db_connection):
@@ -154,9 +170,18 @@ class TestPatternLibraryPerformance:
             with conn.cursor() as cur:
                 # Test JSONB queries on existing patterns
                 queries = [
-                    ("Simple key exists", "SELECT COUNT(*) FROM pattern_library.domain_patterns WHERE parameters ? 'entity'"),
-                    ("Nested key exists", "SELECT COUNT(*) FROM pattern_library.domain_patterns WHERE parameters->'approvals_required' IS NOT NULL"),
-                    ("GIN index query", "SELECT COUNT(*) FROM pattern_library.domain_patterns WHERE parameters @@ '$.entity == \"*\"'"),
+                    (
+                        "Simple key exists",
+                        "SELECT COUNT(*) FROM pattern_library.domain_patterns WHERE parameters ? 'entity'",
+                    ),
+                    (
+                        "Nested key exists",
+                        "SELECT COUNT(*) FROM pattern_library.domain_patterns WHERE parameters->'approvals_required' IS NOT NULL",
+                    ),
+                    (
+                        "GIN index query",
+                        "SELECT COUNT(*) FROM pattern_library.domain_patterns WHERE parameters @@ '$.entity == \"*\"'",
+                    ),
                 ]
 
                 for query_name, query in queries:
@@ -179,10 +204,13 @@ class TestPatternLibraryPerformance:
 
                 for term in search_terms:
                     start_time = time.time()
-                    cur.execute("""
+                    cur.execute(
+                        """
                         SELECT COUNT(*) FROM pattern_library.domain_patterns
                         WHERE to_tsvector('english', description) @@ plainto_tsquery('english', %s)
-                    """, (term,))
+                    """,
+                        (term,),
+                    )
                     cur.fetchone()
                     search_time = time.time() - start_time
 
@@ -205,40 +233,51 @@ class TestPatternLibraryPerformance:
                         start_time = time.time()
 
                         # Insert test suggestion
-                        cur.execute("""
+                        cur.execute(
+                            """
                             INSERT INTO pattern_library.pattern_suggestions
                             (suggested_name, suggested_category, description, source_type, status)
                             VALUES (%s, %s, %s, %s, %s)
                             RETURNING id
-                        """, (
-                            f'concurrent_suggestion_{worker_id}',
-                            'workflow',
-                            f'Concurrent test suggestion {worker_id}',
-                            'performance_test',
-                            'pending'
-                        ))
+                        """,
+                            (
+                                f"concurrent_suggestion_{worker_id}",
+                                "workflow",
+                                f"Concurrent test suggestion {worker_id}",
+                                "performance_test",
+                                "pending",
+                            ),
+                        )
 
                         result = cur.fetchone()
                         assert result is not None
                         suggestion_id = result[0]
 
                         # Query it back
-                        cur.execute("""
+                        cur.execute(
+                            """
                             SELECT suggested_name FROM pattern_library.pattern_suggestions
                             WHERE id = %s
-                        """, (suggestion_id,))
+                        """,
+                            (suggestion_id,),
+                        )
                         result = cur.fetchone()
 
                         # Clean up
-                        cur.execute("DELETE FROM pattern_library.pattern_suggestions WHERE id = %s", (suggestion_id,))
+                        cur.execute(
+                            "DELETE FROM pattern_library.pattern_suggestions WHERE id = %s",
+                            (suggestion_id,),
+                        )
                         conn.commit()
 
                         operation_time = time.time() - start_time
-                        results.append({
-                            'worker_id': worker_id,
-                            'operation_time': operation_time,
-                            'success': result is not None
-                        })
+                        results.append(
+                            {
+                                "worker_id": worker_id,
+                                "operation_time": operation_time,
+                                "success": result is not None,
+                            }
+                        )
 
             except Exception as e:
                 errors.append(f"Worker {worker_id}: {str(e)}")
@@ -258,10 +297,12 @@ class TestPatternLibraryPerformance:
 
         total_time = time.time() - start_time
 
-        assert len(results) == num_threads, f"Expected {num_threads} results, got {len(results)}"
+        assert len(results) == num_threads, (
+            f"Expected {num_threads} results, got {len(results)}"
+        )
         assert len(errors) == 0, f"Concurrent operations had errors: {errors}"
 
-        avg_operation_time = sum(r['operation_time'] for r in results) / len(results)
+        avg_operation_time = sum(r["operation_time"] for r in results) / len(results)
         print(".4f")
         print(".3f")
 

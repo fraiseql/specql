@@ -31,7 +31,9 @@ class Pattern:
             context = self._prepare_context(entity, config)
             config_with_context = dict(config)
             config_with_context["config"] = dict(config.get("config", config))
-            config_with_context["config"]["is_multi_tenant"] = context["is_multi_tenant"]
+            config_with_context["config"]["is_multi_tenant"] = context[
+                "is_multi_tenant"
+            ]
             config_with_context["config"]["tenant_filter"] = context["tenant_filter"]
             return self.custom_generate(config_with_context)
 
@@ -41,7 +43,9 @@ class Pattern:
         # Render template with context
         return self.template.render(**context)
 
-    def _prepare_context(self, entity: dict[str, Any], config: dict[str, Any]) -> dict[str, Any]:
+    def _prepare_context(
+        self, entity: dict[str, Any], config: dict[str, Any]
+    ) -> dict[str, Any]:
         """Prepare template context from entity and config."""
         # Handle nested config structure for query patterns
         pattern_config = config.get("config", config)
@@ -110,7 +114,10 @@ class Pattern:
         # Check schema-level multi-tenancy only if no explicit flag
         schema = entity.get("schema", "")
         # Common multi-tenant schemas in SpecQL
-        multi_tenant_schemas = {"crm", "management"}  # Removed "tenant" to avoid false positives
+        multi_tenant_schemas = {
+            "crm",
+            "management",
+        }  # Removed "tenant" to avoid false positives
         return schema in multi_tenant_schemas
 
     def _build_tenant_filter(self) -> str:
@@ -168,7 +175,9 @@ class PatternRegistry:
 
             # Check for custom generate function in src/patterns/
             custom_generate = None
-            src_python_file = Path(__file__).parent / pattern_dir.name / f"{pattern_name}.py"
+            src_python_file = (
+                Path(__file__).parent / pattern_dir.name / f"{pattern_name}.py"
+            )
             if src_python_file.exists():
                 # Import the module and get the generate function
                 module_name = f"src.patterns.{pattern_dir.name}.{pattern_name}"

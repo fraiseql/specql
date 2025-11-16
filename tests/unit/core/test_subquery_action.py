@@ -1,6 +1,5 @@
 """Tests for subquery action type"""
 
-
 from src.core.specql_parser import SpecQLParser
 
 

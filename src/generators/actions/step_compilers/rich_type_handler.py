@@ -48,7 +48,9 @@ class RichTypeHandler:
             path_str = ",".join(json_path)
             return f"v_{base_field}#>>'{{{path_str}}}'"
 
-    def set_jsonb_value(self, field_path: str, value_expr: str, entity: EntityDefinition) -> str:
+    def set_jsonb_value(
+        self, field_path: str, value_expr: str, entity: EntityDefinition
+    ) -> str:
         """
         Generate PL/pgSQL to set a value in JSONB field
 
@@ -76,7 +78,9 @@ class RichTypeHandler:
         # Convert value expression to JSON
         json_value = self._value_to_json(value_expr)
 
-        return f"v_{base_field} := jsonb_set(v_{base_field}, '{path_str}', {json_value});"
+        return (
+            f"v_{base_field} := jsonb_set(v_{base_field}, '{path_str}', {json_value});"
+        )
 
     def build_jsonb_object(
         self, field_assignments: dict[str, str], entity: EntityDefinition
@@ -164,7 +168,9 @@ class RichTypeHandler:
         if value_expr.startswith("'") and value_expr.endswith("'"):
             # It's a string literal, convert to JSON string
             return f'"{value_expr[1:-1]}"'
-        elif value_expr.isdigit() or (value_expr.startswith("-") and value_expr[1:].isdigit()):
+        elif value_expr.isdigit() or (
+            value_expr.startswith("-") and value_expr[1:].isdigit()
+        ):
             # It's a number
             return value_expr
         elif value_expr.lower() in ("true", "false"):

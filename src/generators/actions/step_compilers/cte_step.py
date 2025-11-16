@@ -8,7 +8,9 @@ from src.generators.actions.step_compilers.base import StepCompiler
 class CTEStepCompiler(StepCompiler):
     """Compiles CTE steps to SQL WITH clauses"""
 
-    def compile(self, step: ActionStep, entity: EntityDefinition, context: CompilationContext) -> str:
+    def compile(
+        self, step: ActionStep, entity: EntityDefinition, context: CompilationContext
+    ) -> str:
         """
         Generate CTE definition
 

@@ -9,7 +9,11 @@ def test_db():
     """PostgreSQL test database connection"""
     try:
         conn = psycopg.connect(
-            host="localhost", port=5433, dbname="test_specql", user="postgres", password="postgres"
+            host="localhost",
+            port=5433,
+            dbname="test_specql",
+            user="postgres",
+            password="postgres",
         )
         # Clean up any existing test metadata
         cursor = conn.cursor()
@@ -52,7 +56,9 @@ def test_get_entity_config(test_db):
     )
 
     # Now test the function
-    result = test_db.execute("SELECT test_metadata.get_entity_config('Contact')").fetchone()
+    result = test_db.execute(
+        "SELECT test_metadata.get_entity_config('Contact')"
+    ).fetchone()
 
     assert result is not None
     config = result[0]  # Returns JSONB
@@ -207,7 +213,9 @@ def test_get_scenarios_no_enabled_scenarios(test_db):
     )
 
     # Test the function
-    results = test_db.execute("SELECT * FROM test_metadata.get_scenarios('Contact')").fetchall()
+    results = test_db.execute(
+        "SELECT * FROM test_metadata.get_scenarios('Contact')"
+    ).fetchall()
 
     assert len(results) == 0
 

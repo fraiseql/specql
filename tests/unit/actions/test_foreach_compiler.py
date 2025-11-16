@@ -78,14 +78,18 @@ class TestForEachStepCompiler:
 
     def test_missing_foreach_attributes(self):
         """Test error handling for missing foreach attributes"""
-        step = ActionStep(type="foreach")  # No foreach_expr, iterator_var, or collection
+        step = ActionStep(
+            type="foreach"
+        )  # No foreach_expr, iterator_var, or collection
 
         with pytest.raises(ValueError, match="Foreach step must have either"):
             self.compiler.compile(step, self.mock_entity, {})
 
     def test_generate_iteration_query_related_entities(self):
         """Test query generation for related entities"""
-        query = self.compiler._generate_iteration_query("related_orders", self.mock_entity, {})
+        query = self.compiler._generate_iteration_query(
+            "related_orders", self.mock_entity, {}
+        )
         expected = "        SELECT * FROM crm.tb_order\n        WHERE fk_contact = v_pk"
         assert expected in query
 
@@ -93,11 +97,15 @@ class TestForEachStepCompiler:
         """Test error handling for unsupported collection expressions"""
         # Input field references are not yet supported
         with pytest.raises(NotImplementedError):
-            self.compiler._generate_iteration_query("input.related_items", self.mock_entity, {})
+            self.compiler._generate_iteration_query(
+                "input.related_items", self.mock_entity, {}
+            )
 
     def test_generate_iteration_query_complex_table_reference(self):
         """Test query generation for complex table references like schema.table"""
-        query = self.compiler._generate_iteration_query("complex.expression", self.mock_entity, {})
+        query = self.compiler._generate_iteration_query(
+            "complex.expression", self.mock_entity, {}
+        )
         assert "SELECT * FROM complex.expression" in query
 
     def test_compile_foreach_with_subquery(self):
@@ -132,12 +140,16 @@ class TestForEachStepCompiler:
     def test_generate_iteration_query_select_only(self):
         """Test query generation for SELECT statements without parentheses"""
         select_query = "SELECT * FROM crm.tb_order WHERE status = 'pending'"
-        query = self.compiler._generate_iteration_query(select_query, self.mock_entity, {})
+        query = self.compiler._generate_iteration_query(
+            select_query, self.mock_entity, {}
+        )
         assert select_query in query
 
     def test_generate_iteration_query_table_reference(self):
         """Test query generation for direct table references"""
-        query = self.compiler._generate_iteration_query("crm.tb_orders", self.mock_entity, {})
+        query = self.compiler._generate_iteration_query(
+            "crm.tb_orders", self.mock_entity, {}
+        )
         assert "SELECT * FROM crm.tb_orders" in query
 
     def test_generate_iteration_query_simple_table(self):

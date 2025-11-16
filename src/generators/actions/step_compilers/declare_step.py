@@ -11,7 +11,9 @@ from src.generators.actions.type_mapper import TypeMapper
 class DeclareStepCompiler(StepCompiler):
     """Compiles declare steps to PL/pgSQL DECLARE block"""
 
-    def compile(self, step: ActionStep, entity: EntityDefinition, context: CompilationContext) -> str:
+    def compile(
+        self, step: ActionStep, entity: EntityDefinition, context: CompilationContext
+    ) -> str:
         """
         Generate DECLARE statement(s)
 

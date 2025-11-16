@@ -12,7 +12,13 @@ from typing import Dict, List, Optional, Any, Iterator, Callable
 
 try:
     from rich.console import Console
-    from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn, TimeElapsedColumn
+    from rich.progress import (
+        Progress,
+        SpinnerColumn,
+        BarColumn,
+        TextColumn,
+        TimeElapsedColumn,
+    )
     from rich.table import Table
     from rich.tree import Tree
     from rich.panel import Panel
@@ -67,7 +73,7 @@ class SpecQLProgress:
                     entities_idx = path.parts.index("entities")
                     if entities_idx + 1 < len(path.parts):
                         schema = path.parts[entities_idx + 1]
-                        if not schema.endswith('.yaml'):
+                        if not schema.endswith(".yaml"):
                             schema_stats[schema] += 1
                         else:
                             schema_stats["default"] += 1
@@ -91,7 +97,9 @@ class SpecQLProgress:
 
         return dict(schema_stats)
 
-    def generation_progress(self, entities: List[Any]) -> Iterator[tuple[Any, Callable[[], None]]]:
+    def generation_progress(
+        self, entities: List[Any]
+    ) -> Iterator[tuple[Any, Callable[[], None]]]:
         """Show progress bar during generation and yield entities with progress updater"""
         if not RICH_AVAILABLE:
             print("⚙️  Generating database schema...")
@@ -108,8 +116,7 @@ class SpecQLProgress:
             console=self.console,
         ) as progress:
             task = progress.add_task(
-                "⚙️  Generating database schema...",
-                total=len(entities)
+                "⚙️  Generating database schema...", total=len(entities)
             )
 
             for entity in entities:
@@ -120,7 +127,7 @@ class SpecQLProgress:
         self,
         stats: Dict[str, Any],
         output_dir: str,
-        generated_files: Optional[List[str]] = None
+        generated_files: Optional[List[str]] = None,
     ) -> None:
         """Show final summary with statistics"""
         elapsed = time.time() - self.start_time
@@ -141,13 +148,17 @@ class SpecQLProgress:
             print("📚 Learn more: specql generate --help")
             return
 
-        self.console.print(f"\n✅ [bold green]Generation complete![/bold green] ({elapsed:.1f} seconds)\n")
+        self.console.print(
+            f"\n✅ [bold green]Generation complete![/bold green] ({elapsed:.1f} seconds)\n"
+        )
 
         # Output location with tree structure
         self.console.print(f"📁 [bold]Output:[/bold] {output_dir}")
 
         # Show directory structure if we have generated files
-        if generated_files and len(generated_files) <= 20:  # Only show tree for reasonable number of files
+        if (
+            generated_files and len(generated_files) <= 20
+        ):  # Only show tree for reasonable number of files
             try:
                 tree = Tree(f"[bold]{output_dir}[/bold]")
                 file_tree = self._build_file_tree(generated_files, output_dir)
@@ -165,17 +176,21 @@ class SpecQLProgress:
 
         stats_table.add_row("Total files:", f"{stats.get('total_files', 0)} SQL files")
         stats_table.add_row("Total SQL:", f"~{stats.get('total_lines', 0):,} lines")
-        stats_table.add_row("Tables (tb_*):", str(stats.get('tables', 0)))
-        stats_table.add_row("Table views (tv_*):", str(stats.get('table_views', 0)))
-        stats_table.add_row("CRUD actions:", str(stats.get('crud_actions', 0)))
-        stats_table.add_row("Business actions:", str(stats.get('business_actions', 0)))
+        stats_table.add_row("Tables (tb_*):", str(stats.get("tables", 0)))
+        stats_table.add_row("Table views (tv_*):", str(stats.get("table_views", 0)))
+        stats_table.add_row("CRUD actions:", str(stats.get("crud_actions", 0)))
+        stats_table.add_row("Business actions:", str(stats.get("business_actions", 0)))
 
-        self.console.print(Panel(stats_table, title="📈 Statistics", border_style="blue"))
+        self.console.print(
+            Panel(stats_table, title="📈 Statistics", border_style="blue")
+        )
 
         # Next steps
         self.console.print("\n🎯 [bold]Next Steps:[/bold]")
         self.console.print(f"   1. Review:    tree {output_dir}")
-        self.console.print(f"   2. Apply:     psql -f {output_dir}/000_app_foundation.sql")
+        self.console.print(
+            f"   2. Apply:     psql -f {output_dir}/000_app_foundation.sql"
+        )
         self.console.print("   3. Migrate:   Apply entity files in subdirectories")
         self.console.print("\n📚 Learn more: [dim]specql generate --help[/dim]")
 
@@ -205,7 +220,9 @@ class SpecQLProgress:
                 continue
 
         # Build tree structure
-        def add_to_tree(parent_tree: Tree, current_path: str, groups: Dict[str, List[str]]):
+        def add_to_tree(
+            parent_tree: Tree, current_path: str, groups: Dict[str, List[str]]
+        ):
             if current_path in groups:
                 for file in sorted(groups[current_path]):
                     parent_tree.add(f"[green]{file}[/green]")
@@ -214,7 +231,7 @@ class SpecQLProgress:
             subdirs = {}
             for dir_path in groups.keys():
                 if dir_path.startswith(current_path) and dir_path != current_path:
-                    remaining = dir_path[len(current_path):].lstrip("/")
+                    remaining = dir_path[len(current_path) :].lstrip("/")
                     if "/" in remaining:
                         subdir = remaining.split("/")[0]
                     else:

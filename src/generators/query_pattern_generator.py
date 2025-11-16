@@ -84,7 +84,9 @@ class QueryPatternGenerator:
 
         return [sql_file]
 
-    def _resolve_dependencies(self, patterns: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _resolve_dependencies(
+        self, patterns: List[Dict[str, Any]]
+    ) -> List[Dict[str, Any]]:
         """
         Resolve pattern dependencies and return patterns in topological order.
 

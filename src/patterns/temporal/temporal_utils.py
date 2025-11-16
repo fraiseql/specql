@@ -76,7 +76,9 @@ class TemporalValidator:
         valid_modes = ["point_in_time", "full_history", "current_only"]
         mode = config.get("snapshot_mode", "point_in_time")
         if mode not in valid_modes:
-            errors.append(f"Invalid snapshot_mode: {mode}. Must be one of {valid_modes}")
+            errors.append(
+                f"Invalid snapshot_mode: {mode}. Must be one of {valid_modes}"
+            )
 
         return errors
 

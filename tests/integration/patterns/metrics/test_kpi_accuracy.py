@@ -107,8 +107,13 @@ class TestKPICalculatorAccuracy:
         sql = pattern.generate(entity, config)
 
         # Materialized view validation
-        assert "CREATE MATERIALIZED VIEW tenant.v_machine_metrics_materialized AS" in sql
-        assert "CREATE OR REPLACE FUNCTION tenant.refresh_v_machine_metrics_materialized()" in sql
+        assert (
+            "CREATE MATERIALIZED VIEW tenant.v_machine_metrics_materialized AS" in sql
+        )
+        assert (
+            "CREATE OR REPLACE FUNCTION tenant.refresh_v_machine_metrics_materialized()"
+            in sql
+        )
         assert "REFRESH MATERIALIZED VIEW CONCURRENTLY" in sql
 
     def test_kpi_calculator_complex_formulas(self):

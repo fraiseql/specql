@@ -129,8 +129,12 @@ class TestContactIntegration:
             contact_id = UUID(create_result[1:first_comma])
 
             # Verify contact was created
-            assert "success" in create_result, f"Contact creation failed: {create_result}"
-            assert contact_id != UUID("00000000-0000-0000-0000-000000000000"), "Contact ID is zero"
+            assert "success" in create_result, (
+                f"Contact creation failed: {create_result}"
+            )
+            assert contact_id != UUID("00000000-0000-0000-0000-000000000000"), (
+                "Contact ID is zero"
+            )
 
             # Execute action
             cur.execute(
@@ -143,6 +147,10 @@ class TestContactIntegration:
             assert "success" in action_result, f"Qualify lead failed: {action_result}"
 
             # Verify the contact status was actually updated
-            cur.execute("SELECT status FROM crm.tb_contact WHERE id = %s", (contact_id,))
+            cur.execute(
+                "SELECT status FROM crm.tb_contact WHERE id = %s", (contact_id,)
+            )
             updated_status = cur.fetchone()[0]
-            assert updated_status == "qualified", f"Status not updated: {updated_status}"
+            assert updated_status == "qualified", (
+                f"Status not updated: {updated_status}"
+            )

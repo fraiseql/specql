@@ -13,4 +13,10 @@ _registry.register(ExecutionType.HTTP, HTTPRunner)
 _registry.register(ExecutionType.DOCKER, DockerRunner)
 _registry.register(ExecutionType.SERVERLESS, ServerlessRunner)
 
-__all__ = ["RunnerRegistry", "ExecutionType", "HTTPRunner", "DockerRunner", "ServerlessRunner"]
+__all__ = [
+    "RunnerRegistry",
+    "ExecutionType",
+    "HTTPRunner",
+    "DockerRunner",
+    "ServerlessRunner",
+]

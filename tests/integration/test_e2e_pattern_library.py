@@ -18,7 +18,7 @@ class TestPatternLibraryE2E:
     @pytest.fixture
     def db_connection(self):
         """Set up test database connection."""
-        conn_string = os.getenv('SPECQL_DB_URL')
+        conn_string = os.getenv("SPECQL_DB_URL")
         if not conn_string:
             pytest.skip("SPECQL_DB_URL not set - skipping database tests")
         return conn_string
@@ -32,13 +32,13 @@ class TestPatternLibraryE2E:
             "description": "Multi-step approval workflow with audit logging",
             "parameters": {
                 "entity": {"type": "string", "required": True},
-                "approvals_required": {"type": "integer", "default": 2}
+                "approvals_required": {"type": "integer", "default": 2},
             },
             "implementation": {
                 "fields": [
                     {"name": "status", "type": "enum(pending,approved,rejected)"},
                     {"name": "approved_at", "type": "timestamp"},
-                    {"name": "approved_by", "type": "ref(User)"}
+                    {"name": "approved_by", "type": "ref(User)"},
                 ],
                 "actions": [
                     {
@@ -46,15 +46,19 @@ class TestPatternLibraryE2E:
                         "steps": [
                             {"validate": "status == 'pending'"},
                             {"update": "increment approval_count"},
-                            {"condition": "approval_count >= approvals_required",
-                             "then": [
-                                 {"update": "status = 'approved', approved_at = now()"},
-                                 {"log": "Document approved"}
-                             ]}
-                        ]
+                            {
+                                "condition": "approval_count >= approvals_required",
+                                "then": [
+                                    {
+                                        "update": "status = 'approved', approved_at = now()"
+                                    },
+                                    {"log": "Document approved"},
+                                ],
+                            },
+                        ],
                     }
-                ]
-            }
+                ],
+            },
         }
 
     def test_database_setup_validation(self, db_connection):
@@ -75,8 +79,8 @@ class TestPatternLibraryE2E:
                 table_names = [row[0] for row in tables]
 
                 # Should have the main pattern library tables
-                assert 'domain_patterns' in table_names
-                assert 'pattern_suggestions' in table_names
+                assert "domain_patterns" in table_names
+                assert "pattern_suggestions" in table_names
 
                 # Check if pgvector extension is available
                 cur.execute("SELECT * FROM pg_extension WHERE extname = 'vector'")
@@ -84,7 +88,9 @@ class TestPatternLibraryE2E:
                 assert vector_ext is not None, "pgvector extension should be installed"
 
                 # Test vector operations work
-                cur.execute("SELECT '[1,2,3]'::vector <=> '[4,5,6]'::vector as distance")
+                cur.execute(
+                    "SELECT '[1,2,3]'::vector <=> '[4,5,6]'::vector as distance"
+                )
                 result = cur.fetchone()
                 assert result is not None
                 assert len(result) > 0
@@ -111,9 +117,17 @@ class TestPatternLibraryE2E:
                 patterns = cur.fetchall()
                 pattern_names = [row[0] for row in patterns]
 
-                expected_patterns = {'audit_trail', 'soft_delete', 'state_machine', 'approval_workflow', 'validation_chain'}
+                expected_patterns = {
+                    "audit_trail",
+                    "soft_delete",
+                    "state_machine",
+                    "approval_workflow",
+                    "validation_chain",
+                }
                 found_patterns = set(pattern_names)
-                assert expected_patterns.issubset(found_patterns), f"Missing patterns: {expected_patterns - found_patterns}"
+                assert expected_patterns.issubset(found_patterns), (
+                    f"Missing patterns: {expected_patterns - found_patterns}"
+                )
 
     def test_basic_cli_commands_available(self):
         """Test that pattern library CLI commands are available."""
@@ -126,10 +140,14 @@ class TestPatternLibraryE2E:
                 [sys.executable, "-m", "src.cli.main", "patterns", "--help"],
                 capture_output=True,
                 text=True,
-                timeout=10
+                timeout=10,
             )
             # Should not fail completely
-            assert result.returncode == 0 or "patterns" in result.stdout or "patterns" in result.stderr
+            assert (
+                result.returncode == 0
+                or "patterns" in result.stdout
+                or "patterns" in result.stderr
+            )
         except (subprocess.TimeoutExpired, FileNotFoundError):
             # CLI might not be fully set up, which is OK for this test
             pass
@@ -144,8 +162,8 @@ class TestPatternLibraryE2E:
         # Test that GrokProvider can be instantiated
         provider = GrokProvider()
         assert provider is not None
-        assert hasattr(provider, 'call')
-        assert hasattr(provider, 'call_json')
+        assert hasattr(provider, "call")
+        assert hasattr(provider, "call_json")
 
     def test_ai_enhancer_with_pattern_discovery(self):
         """Test that AI enhancer can be configured with pattern discovery."""
@@ -155,10 +173,7 @@ class TestPatternLibraryE2E:
             pytest.skip("AI enhancer dependencies not available")
 
         # Test that AI enhancer can be created with pattern discovery enabled
-        enhancer = AIEnhancer(
-            use_grok=True,
-            enable_pattern_discovery=True
-        )
+        enhancer = AIEnhancer(use_grok=True, enable_pattern_discovery=True)
         assert enhancer is not None
         assert enhancer.enable_pattern_discovery is True
         assert enhancer.use_grok is True
@@ -168,12 +183,14 @@ class TestPatternLibraryE2E:
         # Test core pattern library imports
         try:
             from src.pattern_library import api
+
             assert api is not None
         except ImportError:
             pytest.skip("Pattern library API not available")
 
         try:
             from src.pattern_library import migrations
+
             assert migrations is not None
         except ImportError:
             pytest.skip("Pattern library migrations not available")
@@ -185,20 +202,23 @@ class TestPatternLibraryE2E:
         with psycopg.connect(db_connection) as conn:
             with conn.cursor() as cur:
                 # Simulate creating a pattern suggestion
-                cur.execute("""
+                cur.execute(
+                    """
                     INSERT INTO pattern_library.pattern_suggestions
                     (suggested_name, suggested_category, description, source_type, complexity_score, confidence_score, status)
                     VALUES (%s, %s, %s, %s, %s, %s, %s)
                     RETURNING id
-                """, (
-                    'test_workflow_simulation',
-                    'workflow',
-                    'Test workflow for simulation',
-                    'test',
-                    0.8,
-                    0.9,
-                    'pending'
-                ))
+                """,
+                    (
+                        "test_workflow_simulation",
+                        "workflow",
+                        "Test workflow for simulation",
+                        "test",
+                        0.8,
+                        0.9,
+                        "pending",
+                    ),
+                )
 
                 suggestion_result = cur.fetchone()
                 assert suggestion_result is not None
@@ -206,22 +226,31 @@ class TestPatternLibraryE2E:
                 assert suggestion_id is not None
 
                 # Simulate approving the suggestion
-                cur.execute("""
+                cur.execute(
+                    """
                     UPDATE pattern_library.pattern_suggestions
                     SET status = 'approved', reviewed_by = %s, reviewed_at = now()
                     WHERE id = %s
-                """, ('test_user', suggestion_id))
+                """,
+                    ("test_user", suggestion_id),
+                )
 
                 # Verify approval
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT status, reviewed_by FROM pattern_library.pattern_suggestions
                     WHERE id = %s
-                """, (suggestion_id,))
+                """,
+                    (suggestion_id,),
+                )
                 approval_result = cur.fetchone()
                 assert approval_result is not None
-                assert approval_result[0] == 'approved'
-                assert approval_result[1] == 'test_user'
+                assert approval_result[0] == "approved"
+                assert approval_result[1] == "test_user"
 
                 # Clean up
-                cur.execute("DELETE FROM pattern_library.pattern_suggestions WHERE id = %s", (suggestion_id,))
+                cur.execute(
+                    "DELETE FROM pattern_library.pattern_suggestions WHERE id = %s",
+                    (suggestion_id,),
+                )
                 conn.commit()

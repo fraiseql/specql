@@ -12,13 +12,34 @@ def test_complete_trinity_generation():
         schema="crm",
         description="Customer contact with full Trinity pattern",
         fields={
-            "email": FieldDefinition(name="email", type_name="text", nullable=False, description="Email address"),
-            "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company", description="Company reference"),
-            "status": FieldDefinition(name="status", type_name="enum", values=["lead", "qualified", "customer"], description="Contact status"),
-            "age": FieldDefinition(name="age", type_name="integer", description="Contact age"),
-            "price": FieldDefinition(name="price", type_name="decimal", description="Contact value"),
-            "phone": FieldDefinition(name="phone", type_name="text", description="Phone number"),
-        }
+            "email": FieldDefinition(
+                name="email",
+                type_name="text",
+                nullable=False,
+                description="Email address",
+            ),
+            "company": FieldDefinition(
+                name="company",
+                type_name="ref",
+                reference_entity="Company",
+                description="Company reference",
+            ),
+            "status": FieldDefinition(
+                name="status",
+                type_name="enum",
+                values=["lead", "qualified", "customer"],
+                description="Contact status",
+            ),
+            "age": FieldDefinition(
+                name="age", type_name="integer", description="Contact age"
+            ),
+            "price": FieldDefinition(
+                name="price", type_name="decimal", description="Contact value"
+            ),
+            "phone": FieldDefinition(
+                name="phone", type_name="text", description="Phone number"
+            ),
+        },
     )
 
     orchestrator = TrinitySchemaOrchestrator()
@@ -46,7 +67,10 @@ def test_complete_trinity_generation():
     assert "phone VARCHAR(50)" in content  # Phone-specific inference
     assert "age SMALLINT" in content  # Age inference
     assert "price NUMERIC(10,2)" in content  # Money inference
-    assert "CONSTRAINT chk_tb_contact_status CHECK (status IN ('lead', 'qualified', 'customer'))" in content
+    assert (
+        "CONSTRAINT chk_tb_contact_status CHECK (status IN ('lead', 'qualified', 'customer'))"
+        in content
+    )
 
     # Check table view generation
     table_view_files = [f for f in files if f.name.startswith("tv_")]
@@ -62,7 +86,11 @@ def test_complete_trinity_generation():
     assert "CREATE TRIGGER trg_refresh_tv_contact" in tv_content
 
     # Check helper functions
-    helper_files = [f for f in files if "helper" in f.name.lower() or "pk(" in f.content or "id(" in f.content]
+    helper_files = [
+        f
+        for f in files
+        if "helper" in f.name.lower() or "pk(" in f.content or "id(" in f.content
+    ]
     assert len(helper_files) >= 1
 
     # Check for Trinity helper functions
@@ -95,9 +123,13 @@ def test_schema_orchestrator_integration():
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type_name="text", nullable=False),
-                "company_id": FieldDefinition(name="company_id", type_name="ref", reference_entity="Company"),
-            }
+                "email": FieldDefinition(
+                    name="email", type_name="text", nullable=False
+                ),
+                "company_id": FieldDefinition(
+                    name="company_id", type_name="ref", reference_entity="Company"
+                ),
+            },
         ),
         Entity(
             name="Company",
@@ -105,8 +137,8 @@ def test_schema_orchestrator_integration():
             fields={
                 "name": FieldDefinition(name="name", type_name="text", nullable=False),
                 "industry": FieldDefinition(name="industry", type_name="text"),
-            }
-        )
+            },
+        ),
     ]
 
     orchestrator = TrinitySchemaOrchestrator()

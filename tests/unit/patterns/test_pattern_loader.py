@@ -16,7 +16,9 @@ class TestPatternLoader:
     def test_init_with_default_path(self):
         """Test initialization with default stdlib path"""
         loader = PatternLoader()
-        expected_path = Path(__file__).parent.parent.parent.parent / "stdlib" / "actions"
+        expected_path = (
+            Path(__file__).parent.parent.parent.parent / "stdlib" / "actions"
+        )
         assert loader.stdlib_path == expected_path
 
     def test_init_with_custom_path(self):
@@ -157,8 +159,12 @@ steps:
         assert result.pattern_name == "test"
         assert result.config == {"param1": "test_value"}
         assert len(result.expanded_steps) == 2
-        assert result.expanded_steps[0]["raw_sql"] == "SELECT 'TestEntity' as entity_name"
-        assert result.expanded_steps[1]["raw_sql"] == "SELECT 'test_value' as param_value"
+        assert (
+            result.expanded_steps[0]["raw_sql"] == "SELECT 'TestEntity' as entity_name"
+        )
+        assert (
+            result.expanded_steps[1]["raw_sql"] == "SELECT 'test_value' as param_value"
+        )
 
     def test_expand_pattern_invalid_config(self):
         """Test pattern expansion with invalid config"""
@@ -190,8 +196,12 @@ steps:
         ]
 
         # Mock relative_to to return pattern paths
-        mock_files[0].relative_to = Mock(return_value=Path("state_machine/transition.yaml"))
-        mock_files[1].relative_to = Mock(return_value=Path("multi_entity/coordinated_update.yaml"))
+        mock_files[0].relative_to = Mock(
+            return_value=Path("state_machine/transition.yaml")
+        )
+        mock_files[1].relative_to = Mock(
+            return_value=Path("multi_entity/coordinated_update.yaml")
+        )
         mock_files[2].relative_to = Mock(return_value=Path("batch/bulk_operation.yaml"))
 
         with (

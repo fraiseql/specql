@@ -13,10 +13,7 @@ class TestAuditCascadeTriggers:
         generator = AuditGenerator()
 
         # Mock entity dict as expected by the method
-        entity = {
-            "name": "Post",
-            "schema": "blog"
-        }
+        entity = {"name": "Post", "schema": "blog"}
 
         sql = generator.generate_audit_trigger(entity, {"include_cascade": True})
 
@@ -24,22 +21,24 @@ class TestAuditCascadeTriggers:
         assert "NULLIF(current_setting('app.cascade_data', true), '')::jsonb" in sql
 
         # Should extract cascade_entities array
-        assert "string_to_array(NULLIF(current_setting('app.cascade_entities', true), ''), ',')" in sql
+        assert (
+            "string_to_array(NULLIF(current_setting('app.cascade_entities', true), ''), ',')"
+            in sql
+        )
 
         # Should store cascade_source (mutation name)
         assert "NULLIF(current_setting('app.cascade_source', true), '')" in sql
 
         # Should include cascade columns in INSERT statement
-        assert "cascade_data, cascade_entities, cascade_timestamp, cascade_source" in sql
+        assert (
+            "cascade_data, cascade_entities, cascade_timestamp, cascade_source" in sql
+        )
 
     def test_audit_trigger_without_cascade_unchanged(self):
         """Audit triggers without cascade should work as before"""
         generator = AuditGenerator()
 
-        entity = {
-            "name": "User",
-            "schema": "app"
-        }
+        entity = {"name": "User", "schema": "app"}
 
         sql = generator.generate_audit_trigger(entity, {"include_cascade": False})
 
@@ -55,10 +54,7 @@ class TestAuditCascadeTriggers:
         """Cascade should be disabled by default"""
         generator = AuditGenerator()
 
-        entity = {
-            "name": "Comment",
-            "schema": "blog"
-        }
+        entity = {"name": "Comment", "schema": "blog"}
 
         sql = generator.generate_audit_trigger(entity, {})  # No include_cascade
 

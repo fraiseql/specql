@@ -74,9 +74,7 @@ class FunctionGenerator:
 
         # Add impact metadata variable if needed
         if context.has_impact_metadata:
-            vars_str += (
-                "\n    v_meta mutation_metadata.mutation_impact_metadata;  -- Impact metadata"
-            )
+            vars_str += "\n    v_meta mutation_metadata.mutation_impact_metadata;  -- Impact metadata"
 
         return f"DECLARE\n    {vars_str}"
 

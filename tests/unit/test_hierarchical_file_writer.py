@@ -35,7 +35,7 @@ class TestFileSpec:
             code="012361",
             name="tb_contact",
             content="CREATE TABLE tb_contact (...);",
-            layer="write_side"
+            layer="write_side",
         )
 
         assert spec.code == "012361"
@@ -49,7 +49,7 @@ class TestFileSpec:
             code="0220310",
             name="tv_contact",
             content="CREATE VIEW tv_contact AS SELECT ...;",
-            layer="read_side"
+            layer="read_side",
         )
 
         assert spec.code == "0220310"
@@ -96,7 +96,7 @@ class TestHierarchicalFileWriter:
                 code="012361",
                 name="tb_contact",
                 content="CREATE TABLE tb_contact (id UUID PRIMARY KEY);",
-                layer="write_side"
+                layer="write_side",
             )
 
             result_path = writer.write_single_file(spec)
@@ -121,7 +121,7 @@ class TestHierarchicalFileWriter:
                 code="0220310",
                 name="tv_contact",
                 content="CREATE VIEW tv_contact AS SELECT * FROM tb_contact;",
-                layer="read_side"
+                layer="read_side",
             )
 
             result_path = writer.write_single_file(spec)
@@ -143,14 +143,14 @@ class TestHierarchicalFileWriter:
                     code="012361",
                     name="tb_contact",
                     content="CREATE TABLE tb_contact (id UUID PRIMARY KEY);",
-                    layer="write_side"
+                    layer="write_side",
                 ),
                 FileSpec(
                     code="0220310",
                     name="tv_contact",
                     content="CREATE VIEW tv_contact AS SELECT * FROM tb_contact;",
-                    layer="read_side"
-                )
+                    layer="read_side",
+                ),
             ]
 
             result_paths = writer.write_files(specs)
@@ -170,7 +170,7 @@ class TestHierarchicalFileWriter:
                 code="012361",
                 name="tb_contact",
                 content="CREATE TABLE tb_contact (id UUID PRIMARY KEY);",
-                layer="write_side"
+                layer="write_side",
             )
 
             result_path = writer.write_single_file(spec)
@@ -196,7 +196,7 @@ class TestHierarchicalFileWriter:
                 code="012361",
                 name="tb_contact",
                 content="CREATE TABLE tb_contact (id UUID PRIMARY KEY);",
-                layer="write_side"
+                layer="write_side",
             )
 
             result_path = writer.write_single_file(spec)
@@ -217,7 +217,7 @@ class TestHierarchicalFileWriter:
                 code="0123611",  # 7-digit code
                 name="tb_contact",
                 content="CREATE TABLE tb_contact (id UUID PRIMARY KEY);",
-                layer="write_side"
+                layer="write_side",
             )
 
             result_path = writer.write_single_file(spec)
@@ -242,7 +242,7 @@ class TestHierarchicalFileWriter:
                 code="0320311",
                 name="fn_contact_create",
                 content="CREATE OR REPLACE FUNCTION fn_contact_create(...) ...;",
-                layer="functions"
+                layer="functions",
             )
 
             result_path = writer.write_single_file(spec)
@@ -253,7 +253,9 @@ class TestHierarchicalFileWriter:
 
             with open(expected_path) as f:
                 content = f.read()
-                assert content == "CREATE OR REPLACE FUNCTION fn_contact_create(...) ...;"
+                assert (
+                    content == "CREATE OR REPLACE FUNCTION fn_contact_create(...) ...;"
+                )
 
 
 class TestValidation:
@@ -268,7 +270,7 @@ class TestValidation:
             code="012361",
             name="tb_contact",
             content="CREATE TABLE tb_contact (...);",
-            layer="write_side"
+            layer="write_side",
         )
 
         # Should not raise
@@ -283,7 +285,7 @@ class TestValidation:
             code="0220310",
             name="tv_contact",
             content="CREATE VIEW tv_contact AS ...;",
-            layer="read_side"
+            layer="read_side",
         )
 
         # Should not raise
@@ -298,7 +300,7 @@ class TestValidation:
             code="",
             name="tb_contact",
             content="CREATE TABLE tb_contact (...);",
-            layer="write_side"
+            layer="write_side",
         )
 
         with pytest.raises(ValueError, match="File spec must have a code"):
@@ -313,7 +315,7 @@ class TestValidation:
             code="012361",
             name="",
             content="CREATE TABLE tb_contact (...);",
-            layer="write_side"
+            layer="write_side",
         )
 
         with pytest.raises(ValueError, match="File spec must have a name"):
@@ -328,7 +330,7 @@ class TestValidation:
             code="012361",
             name="tb_contact",
             content=None,  # type: ignore
-            layer="write_side"
+            layer="write_side",
         )
 
         with pytest.raises(ValueError, match="File spec must have content"):
@@ -343,7 +345,7 @@ class TestValidation:
             code="012361",
             name="tb_contact",
             content="CREATE TABLE tb_contact (...);",
-            layer="invalid_layer"
+            layer="invalid_layer",
         )
 
         with pytest.raises(ValueError, match="Invalid layer 'invalid_layer'"):
@@ -358,7 +360,7 @@ class TestValidation:
             code="01236123",  # 8 digits instead of 6
             name="tb_contact",
             content="CREATE TABLE tb_contact (...);",
-            layer="write_side"
+            layer="write_side",
         )
 
         with pytest.raises(ValueError, match="Write-side code must be 6 or 7 digits"):
@@ -373,7 +375,7 @@ class TestValidation:
             code="022031",  # 6 digits instead of 7
             name="tv_contact",
             content="CREATE VIEW tv_contact AS ...;",
-            layer="read_side"
+            layer="read_side",
         )
 
         with pytest.raises(ValueError, match="Read-side code must be 7 digits"):

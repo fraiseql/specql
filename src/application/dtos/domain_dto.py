@@ -1,4 +1,5 @@
 """Domain Data Transfer Objects"""
+
 from dataclasses import dataclass
 from typing import Optional
 
@@ -6,6 +7,7 @@ from typing import Optional
 @dataclass
 class DomainDTO:
     """Data Transfer Object for Domain aggregate"""
+
     domain_number: str
     domain_name: str
     schema_type: str
@@ -22,13 +24,14 @@ class DomainDTO:
             schema_type=domain.schema_type,
             identifier=domain.identifier,
             pk_domain=domain.pk_domain,
-            description=domain.description
+            description=domain.description,
         )
 
 
 @dataclass
 class SubdomainDTO:
     """Data Transfer Object for Subdomain aggregate"""
+
     subdomain_number: str
     subdomain_name: str
     parent_domain_number: str
@@ -45,5 +48,5 @@ class SubdomainDTO:
             parent_domain_number=subdomain.parent_domain.domain_number.value,
             identifier=subdomain.identifier,
             pk_subdomain=subdomain.pk_subdomain,
-            description=subdomain.description
+            description=subdomain.description,
         )

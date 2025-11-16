@@ -24,16 +24,27 @@ class TestDocumentationCoverage:
 
         # Allow some missing docs during development
         if missing_docs:
-            assert False, f"Missing documentation (development in progress): {missing_docs}"
+            assert False, (
+                f"Missing documentation (development in progress): {missing_docs}"
+            )
 
     def test_pattern_docs_have_required_sections(self):
         """Test that pattern documentation includes all required sections."""
         docs_patterns_dir = Path("docs/patterns")
 
-        required_sections = ["## Overview", "## Parameters", "## Examples", "## When to Use"]
+        required_sections = [
+            "## Overview",
+            "## Parameters",
+            "## Examples",
+            "## When to Use",
+        ]
 
         for doc_file in docs_patterns_dir.rglob("*.md"):
-            if doc_file.name in ["README.md", "getting_started.md", "advanced_features.md"]:
+            if doc_file.name in [
+                "README.md",
+                "getting_started.md",
+                "advanced_features.md",
+            ]:
                 continue
 
             content = doc_file.read_text()
@@ -43,7 +54,9 @@ class TestDocumentationCoverage:
                 if section not in content:
                     missing_sections.append(section)
 
-            assert not missing_sections, f"{doc_file} missing required sections: {missing_sections}"
+            assert not missing_sections, (
+                f"{doc_file} missing required sections: {missing_sections}"
+            )
 
     def test_examples_reference_real_patterns(self):
         """Test that documentation examples reference existing patterns."""
@@ -70,7 +83,9 @@ class TestDocumentationCoverage:
                 if ref not in available_patterns:
                     invalid_refs.append(ref)
 
-            assert not invalid_refs, f"{doc_file} references invalid patterns: {invalid_refs}"
+            assert not invalid_refs, (
+                f"{doc_file} references invalid patterns: {invalid_refs}"
+            )
 
     def test_migration_guide_exists(self):
         """Test that migration guide exists and is comprehensive."""
@@ -93,7 +108,9 @@ class TestDocumentationCoverage:
             if section not in content:
                 missing_sections.append(section)
 
-        assert not missing_sections, f"Migration guide missing sections: {missing_sections}"
+        assert not missing_sections, (
+            f"Migration guide missing sections: {missing_sections}"
+        )
 
     def _get_pattern_categories(self, patterns_dir: Path) -> Set[str]:
         """Get all pattern categories from stdlib/queries."""

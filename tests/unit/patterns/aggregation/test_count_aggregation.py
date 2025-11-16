@@ -16,7 +16,10 @@ class TestCountAggregation:
                 "grouped_by_entity": "NetworkConfiguration",
                 "metrics": [
                     {"name": "total_allocations", "condition": "TRUE"},
-                    {"name": "active_allocations", "condition": "allocation.status = 'active'"},
+                    {
+                        "name": "active_allocations",
+                        "condition": "allocation.status = 'active'",
+                    },
                 ],
             },
         }
@@ -27,7 +30,8 @@ class TestCountAggregation:
         assert "CREATE OR REPLACE VIEW tenant.v_count_allocations_by_network AS" in sql
         assert "COUNT(CASE WHEN TRUE THEN 1 END) AS total_allocations" in sql
         assert (
-            "COUNT(CASE WHEN allocation.status = 'active' THEN 1 END) AS active_allocations" in sql
+            "COUNT(CASE WHEN allocation.status = 'active' THEN 1 END) AS active_allocations"
+            in sql
         )
         assert "FROM tb_networkconfiguration networkconfiguration" in sql
         assert "LEFT JOIN tb_allocation allocation" in sql
@@ -43,7 +47,12 @@ class TestCountAggregation:
                 "counted_entity": "Contract",
                 "grouped_by_entity": "Location",
                 "join_condition": "contract.location_id = location.pk_location",
-                "metrics": [{"name": "contract_count", "condition": "contract.status = 'active'"}],
+                "metrics": [
+                    {
+                        "name": "contract_count",
+                        "condition": "contract.status = 'active'",
+                    }
+                ],
             },
         }
 
@@ -51,7 +60,10 @@ class TestCountAggregation:
 
         # Verify custom join condition is used
         assert "ON contract.location_id = location.pk_location" in sql
-        assert "COUNT(CASE WHEN contract.status = 'active' THEN 1 END) AS contract_count" in sql
+        assert (
+            "COUNT(CASE WHEN contract.status = 'active' THEN 1 END) AS contract_count"
+            in sql
+        )
         assert "FROM tb_location location" in sql
         assert "LEFT JOIN tb_contract contract" in sql
 

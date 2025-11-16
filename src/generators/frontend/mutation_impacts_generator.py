@@ -148,7 +148,11 @@ class MutationImpactsGenerator:
             Dictionary with impact information
         """
         if not impact:
-            return {"hasPrimaryImpact": False, "hasSideEffects": False, "affectedEntities": []}
+            return {
+                "hasPrimaryImpact": False,
+                "hasSideEffects": False,
+                "affectedEntities": [],
+            }
 
         affected_entities = [impact.primary.entity] if impact.primary else []
         affected_entities.extend([side.entity for side in impact.side_effects])
@@ -162,7 +166,9 @@ class MutationImpactsGenerator:
             "primaryFields": impact.primary.fields if impact.primary else [],
         }
 
-    def _build_cache_invalidations(self, impact: ActionImpact | None) -> list[dict[str, Any]]:
+    def _build_cache_invalidations(
+        self, impact: ActionImpact | None
+    ) -> list[dict[str, Any]]:
         """
         Build cache invalidation specifications.
 
@@ -207,7 +213,8 @@ class MutationImpactsGenerator:
                 "entity": primary.entity,
                 "operation": primary.operation,
                 "fields": primary.fields,
-                "requiresRefetch": len(primary.fields) == 0,  # If no fields specified, refetch
+                "requiresRefetch": len(primary.fields)
+                == 0,  # If no fields specified, refetch
             }
 
         return {"enabled": False}

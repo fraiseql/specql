@@ -70,13 +70,20 @@ class SchemaOrchestrator:
         self.perf_monitor = None
         if enable_performance_monitoring:
             from src.utils.performance_monitor import get_performance_monitor
+
             self.perf_monitor = get_performance_monitor()
 
         self.app_gen = AppSchemaGenerator(templates_dir="../specql/templates/sql")
-        self.table_gen = TableGenerator(schema_registry, templates_dir="../specql/templates/sql")
+        self.table_gen = TableGenerator(
+            schema_registry, templates_dir="../specql/templates/sql"
+        )
         self.type_gen = CompositeTypeGenerator(templates_dir="../specql/templates/sql")
-        self.helper_gen = TrinityHelperGenerator(schema_registry, templates_dir="../specql/templates/sql")
-        self.core_gen = CoreLogicGenerator(schema_registry, templates_dir="../specql/templates/sql")
+        self.helper_gen = TrinityHelperGenerator(
+            schema_registry, templates_dir="../specql/templates/sql"
+        )
+        self.core_gen = CoreLogicGenerator(
+            schema_registry, templates_dir="../specql/templates/sql"
+        )
 
     def generate_complete_schema(self, entity: Entity) -> str:
         """
@@ -113,7 +120,9 @@ class SchemaOrchestrator:
         # 4.5. Field comments for FraiseQL metadata
         field_comments = self.table_gen.generate_field_comments(entity)
         if field_comments:
-            parts.append("-- Field Comments for FraiseQL\n" + "\n\n".join(field_comments))
+            parts.append(
+                "-- Field Comments for FraiseQL\n" + "\n\n".join(field_comments)
+            )
 
         # 4. Input types for actions
         for action in entity.actions:
@@ -138,13 +147,21 @@ class SchemaOrchestrator:
             for action in entity.actions:
                 action_pattern = self.core_gen.detect_action_pattern(action.name)
                 if action_pattern == "create":
-                    core_functions.append(self.core_gen.generate_core_create_function(entity))
+                    core_functions.append(
+                        self.core_gen.generate_core_create_function(entity)
+                    )
                 elif action_pattern == "update":
-                    core_functions.append(self.core_gen.generate_core_update_function(entity))
+                    core_functions.append(
+                        self.core_gen.generate_core_update_function(entity)
+                    )
                 elif action_pattern == "delete":
-                    core_functions.append(self.core_gen.generate_core_delete_function(entity))
+                    core_functions.append(
+                        self.core_gen.generate_core_delete_function(entity)
+                    )
                 else:  # custom
-                    core_functions.append(self.core_gen.generate_core_custom_action(entity, action))
+                    core_functions.append(
+                        self.core_gen.generate_core_custom_action(entity, action)
+                    )
 
         if core_functions:
             parts.append("-- Core Logic Functions\n" + "\n\n".join(core_functions))
@@ -159,7 +176,9 @@ class SchemaOrchestrator:
                     mutation_annotations.append(annotation)
 
         if mutation_annotations:
-            parts.append("-- FraiseQL Mutation Annotations\n" + "\n\n".join(mutation_annotations))
+            parts.append(
+                "-- FraiseQL Mutation Annotations\n" + "\n\n".join(mutation_annotations)
+            )
 
         # 9. Trinity helper functions
         helpers = self.helper_gen.generate_all_helpers(entity)
@@ -167,7 +186,9 @@ class SchemaOrchestrator:
 
         return "\n\n".join(parts)
 
-    def generate_split_schema(self, entity: Entity, with_audit_cascade: bool = False) -> SchemaOutput:
+    def generate_split_schema(
+        self, entity: Entity, with_audit_cascade: bool = False
+    ) -> SchemaOutput:
         """
         Generate schema split by component
 
@@ -197,7 +218,9 @@ class SchemaOrchestrator:
 
             # Generate core function based on pattern with performance tracking
             if self.perf_monitor:
-                with self.perf_monitor.track(f"mutation_{action.name}", category="template_rendering"):
+                with self.perf_monitor.track(
+                    f"mutation_{action.name}", category="template_rendering"
+                ):
                     if action_pattern == "create":
                         core_sql = self.core_gen.generate_core_create_function(entity)
                     elif action_pattern == "update":
@@ -205,7 +228,9 @@ class SchemaOrchestrator:
                     elif action_pattern == "delete":
                         core_sql = self.core_gen.generate_core_delete_function(entity)
                     else:  # custom
-                        core_sql = self.core_gen.generate_core_custom_action(entity, action)
+                        core_sql = self.core_gen.generate_core_custom_action(
+                            entity, action
+                        )
             else:
                 if action_pattern == "create":
                     core_sql = self.core_gen.generate_core_create_function(entity)
@@ -239,11 +264,20 @@ class SchemaOrchestrator:
             # Get entity fields for audit generation
             entity_fields = [field.name for field in entity.fields]
             audit_config = {"enabled": True, "include_cascade": True}
-            audit_sql = audit_gen.generate_audit_trail(entity.name, entity_fields, audit_config)
+            audit_sql = audit_gen.generate_audit_trail(
+                entity.name, entity_fields, audit_config
+            )
 
-        return SchemaOutput(table_sql=table_sql, helpers_sql=helpers_sql, mutations=mutations, audit_sql=audit_sql)
+        return SchemaOutput(
+            table_sql=table_sql,
+            helpers_sql=helpers_sql,
+            mutations=mutations,
+            audit_sql=audit_sql,
+        )
 
-    def generate_table_views(self, entities: list[EntityDefinition]) -> list[TableViewFile]:
+    def generate_table_views(
+        self, entities: list[EntityDefinition]
+    ) -> list[TableViewFile]:
         """
         Generate tv_ table files for all entities in dependency order.
 

@@ -29,7 +29,9 @@ def setup_logging(level: str = "INFO", format: str = "json") -> None:
         handler.setFormatter(formatter)
     else:
         # For development: human-readable logs
-        formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+        formatter = logging.Formatter(
+            "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+        )
         handler = logging.StreamHandler(sys.stdout)
         handler.setFormatter(formatter)
 

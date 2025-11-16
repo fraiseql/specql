@@ -16,6 +16,7 @@ from src.reverse_engineering.ast_to_specql_mapper import ConversionResult
 @dataclass
 class VariablePurpose:
     """Inferred purpose of a variable"""
+
     name: str
     purpose: str  # 'total', 'count', 'flag', 'temp', 'accumulator', 'result', 'unknown'
     confidence: float
@@ -25,6 +26,7 @@ class VariablePurpose:
 @dataclass
 class DetectedPattern:
     """Detected domain pattern"""
+
     name: str
     confidence: float
     description: str
@@ -70,10 +72,10 @@ class HeuristicEnhancer:
         result.confidence = max(result.confidence, initial_confidence)
 
         # Add metadata
-        if not hasattr(result, 'metadata'):
+        if not hasattr(result, "metadata"):
             result.metadata = {}
-        result.metadata['detected_patterns'] = [p.name for p in self.detected_patterns]
-        result.metadata['variable_purposes'] = {
+        result.metadata["detected_patterns"] = [p.name for p in self.detected_patterns]
+        result.metadata["variable_purposes"] = {
             name: purpose.purpose for name, purpose in self.variable_purposes.items()
         }
 
@@ -95,14 +97,14 @@ class HeuristicEnhancer:
         variables = set()
 
         for step in result.steps:
-            if step.type == "declare" and hasattr(step, 'variable_name'):
+            if step.type == "declare" and hasattr(step, "variable_name"):
                 variables.add(step.variable_name)
 
             # Check for variable usage in expressions
-            if hasattr(step, 'expression') and step.expression:
+            if hasattr(step, "expression") and step.expression:
                 variables.update(self._extract_vars_from_expression(step.expression))
 
-            if hasattr(step, 'condition') and step.condition:
+            if hasattr(step, "condition") and step.condition:
                 variables.update(self._extract_vars_from_expression(step.condition))
 
         return variables
@@ -113,16 +115,19 @@ class HeuristicEnhancer:
 
         # Simple heuristic: look for v_ prefixed variables
         import re
-        var_matches = re.findall(r'\bv_\w+', expression)
+
+        var_matches = re.findall(r"\bv_\w+", expression)
         variables.update(var_matches)
 
         # Also look for parameter references
-        param_matches = re.findall(r'\bp_\w+', expression)
+        param_matches = re.findall(r"\bp_\w+", expression)
         variables.update(param_matches)
 
         return variables
 
-    def _infer_variable_purpose(self, var_name: str, result: ConversionResult) -> Optional[VariablePurpose]:
+    def _infer_variable_purpose(
+        self, var_name: str, result: ConversionResult
+    ) -> Optional[VariablePurpose]:
         """
         Infer the purpose of a variable based on naming and usage patterns
 
@@ -141,25 +146,37 @@ class HeuristicEnhancer:
         name_lower = var_name.lower()
 
         # Total/accumulator patterns
-        if any(keyword in name_lower for keyword in ['total', 'sum', 'amount', 'balance']):
+        if any(
+            keyword in name_lower for keyword in ["total", "sum", "amount", "balance"]
+        ):
             purpose = "total"
             confidence = 0.8
-            evidence.append(f"Name contains '{[k for k in ['total', 'sum', 'amount', 'balance'] if k in name_lower][0]}'")
+            evidence.append(
+                f"Name contains '{[k for k in ['total', 'sum', 'amount', 'balance'] if k in name_lower][0]}'"
+            )
 
         # Count patterns
-        elif any(keyword in name_lower for keyword in ['count', 'cnt', 'num', 'qty', 'quantity']):
+        elif any(
+            keyword in name_lower
+            for keyword in ["count", "cnt", "num", "qty", "quantity"]
+        ):
             purpose = "count"
             confidence = 0.8
-            evidence.append(f"Name contains '{[k for k in ['count', 'cnt', 'num', 'qty', 'quantity'] if k in name_lower][0]}'")
+            evidence.append(
+                f"Name contains '{[k for k in ['count', 'cnt', 'num', 'qty', 'quantity'] if k in name_lower][0]}'"
+            )
 
         # Flag/boolean patterns
-        elif any(keyword in name_lower for keyword in ['flag', 'is_', 'has_', 'can_', 'should_', 'valid']):
+        elif any(
+            keyword in name_lower
+            for keyword in ["flag", "is_", "has_", "can_", "should_", "valid"]
+        ):
             purpose = "flag"
             confidence = 0.7
             evidence.append(f"Name suggests boolean flag: '{var_name}'")
 
         # Result patterns
-        elif any(keyword in name_lower for keyword in ['result', 'output', 'ret']):
+        elif any(keyword in name_lower for keyword in ["result", "output", "ret"]):
             purpose = "result"
             confidence = 0.6
             evidence.append(f"Name suggests result/output: '{var_name}'")
@@ -190,40 +207,53 @@ class HeuristicEnhancer:
                 name=var_name,
                 purpose=purpose,
                 confidence=min(confidence, 1.0),
-                evidence=evidence
+                evidence=evidence,
             )
 
         return None
 
-    def _analyze_variable_usage(self, var_name: str, result: ConversionResult) -> List[str]:
+    def _analyze_variable_usage(
+        self, var_name: str, result: ConversionResult
+    ) -> List[str]:
         """Analyze how a variable is used throughout the function"""
         evidence = []
 
         for step in result.steps:
-            if step.type == "declare" and getattr(step, 'variable_name', None) == var_name:
+            if (
+                step.type == "declare"
+                and getattr(step, "variable_name", None) == var_name
+            ):
                 # Check initialization
-                if hasattr(step, 'default_value'):
+                if hasattr(step, "default_value"):
                     if step.default_value == "0":
                         evidence.append("initialized to 0")
                     elif str(step.default_value).upper() in ["TRUE", "FALSE"]:
                         evidence.append("initialized to boolean")
 
-            elif step.type == "assign" and hasattr(step, 'variable_name') and step.variable_name == var_name:
+            elif (
+                step.type == "assign"
+                and hasattr(step, "variable_name")
+                and step.variable_name == var_name
+            ):
                 # Check assignment expressions
-                expr = getattr(step, 'expression', '').upper()
-                if 'SUM(' in expr:
+                expr = getattr(step, "expression", "").upper()
+                if "SUM(" in expr:
                     evidence.append("used in SUM()")
-                if 'COUNT(' in expr:
+                if "COUNT(" in expr:
                     evidence.append("used in COUNT()")
-                if 'AVG(' in expr:
+                if "AVG(" in expr:
                     evidence.append("used in AVG()")
 
-            elif step.type == "query" and hasattr(step, 'into_variable') and step.into_variable == var_name:
+            elif (
+                step.type == "query"
+                and hasattr(step, "into_variable")
+                and step.into_variable == var_name
+            ):
                 # Check SELECT INTO
-                query = getattr(step, 'expression', '').upper()
-                if 'SUM(' in query:
+                query = getattr(step, "expression", "").upper()
+                if "SUM(" in query:
                     evidence.append("assigned from SUM() query")
-                if 'COUNT(' in query:
+                if "COUNT(" in query:
                     evidence.append("assigned from COUNT() query")
 
         return evidence
@@ -255,7 +285,9 @@ class HeuristicEnhancer:
         self.detected_patterns = patterns
         return result
 
-    def _detect_state_machine_pattern(self, result: ConversionResult) -> Optional[DetectedPattern]:
+    def _detect_state_machine_pattern(
+        self, result: ConversionResult
+    ) -> Optional[DetectedPattern]:
         """Detect state machine pattern (status transitions)"""
         evidence = []
 
@@ -264,7 +296,10 @@ class HeuristicEnhancer:
         for var_name in self.variable_purposes:
             if self.variable_purposes[var_name].purpose == "flag":
                 var_lower = var_name.lower()
-                if any(state in var_lower for state in ['status', 'state', 'phase', 'stage']):
+                if any(
+                    state in var_lower
+                    for state in ["status", "state", "phase", "stage"]
+                ):
                     status_vars.append(var_name)
                     evidence.append(f"Found status variable: {var_name}")
 
@@ -273,25 +308,31 @@ class HeuristicEnhancer:
         for step in result.steps:
             if step.type == "query":
                 # Check both expression and sql attributes
-                query_text = getattr(step, 'expression', '') or getattr(step, 'sql', '') or ''
+                query_text = (
+                    getattr(step, "expression", "") or getattr(step, "sql", "") or ""
+                )
                 if query_text and isinstance(query_text, str):
                     query_upper = query_text.upper()
-                    if 'UPDATE' in query_upper and 'STATUS' in query_upper:
+                    if "UPDATE" in query_upper and "STATUS" in query_upper:
                         status_transitions += 1
                         evidence.append("Found status update query")
 
         if len(status_vars) >= 1 and status_transitions >= 1:
-            confidence = min(0.8 + (len(status_vars) * 0.1) + (status_transitions * 0.1), 0.95)
+            confidence = min(
+                0.8 + (len(status_vars) * 0.1) + (status_transitions * 0.1), 0.95
+            )
             return DetectedPattern(
                 name="state_machine",
                 confidence=confidence,
                 description="Function implements state/status transitions",
-                evidence=evidence
+                evidence=evidence,
             )
 
         return None
 
-    def _detect_audit_trail_pattern(self, result: ConversionResult) -> Optional[DetectedPattern]:
+    def _detect_audit_trail_pattern(
+        self, result: ConversionResult
+    ) -> Optional[DetectedPattern]:
         """Detect audit trail pattern (logging changes)"""
         evidence = []
 
@@ -299,17 +340,22 @@ class HeuristicEnhancer:
         audit_operations = 0
         for step in result.steps:
             if step.type == "query":
-                query_text = getattr(step, 'expression', '') or getattr(step, 'sql', '') or ''
+                query_text = (
+                    getattr(step, "expression", "") or getattr(step, "sql", "") or ""
+                )
                 if query_text and isinstance(query_text, str):
                     query_upper = query_text.upper()
-                    audit_keywords = ['INSERT INTO', 'AUDIT', 'LOG', 'HISTORY', 'TRAIL']
+                    audit_keywords = ["INSERT INTO", "AUDIT", "LOG", "HISTORY", "TRAIL"]
                     if any(keyword in query_upper for keyword in audit_keywords):
                         audit_operations += 1
                         evidence.append(f"Found audit operation: {query_text[:50]}...")
 
         # Look for timestamp/user tracking
-        timestamp_vars = [v for v in self.variable_purposes
-                         if 'time' in self.variable_purposes[v].purpose or 'user' in v.lower()]
+        timestamp_vars = [
+            v
+            for v in self.variable_purposes
+            if "time" in self.variable_purposes[v].purpose or "user" in v.lower()
+        ]
         if timestamp_vars:
             evidence.append(f"Found timestamp/user variables: {timestamp_vars}")
 
@@ -319,12 +365,14 @@ class HeuristicEnhancer:
                 name="audit_trail",
                 confidence=confidence,
                 description="Function implements audit trail logging",
-                evidence=evidence
+                evidence=evidence,
             )
 
         return None
 
-    def _detect_soft_delete_pattern(self, result: ConversionResult) -> Optional[DetectedPattern]:
+    def _detect_soft_delete_pattern(
+        self, result: ConversionResult
+    ) -> Optional[DetectedPattern]:
         """Detect soft delete pattern (setting deleted flags)"""
         evidence = []
 
@@ -332,10 +380,14 @@ class HeuristicEnhancer:
         soft_delete_ops = 0
         for step in result.steps:
             if step.type == "query":
-                query_text = getattr(step, 'expression', '') or getattr(step, 'sql', '') or ''
+                query_text = (
+                    getattr(step, "expression", "") or getattr(step, "sql", "") or ""
+                )
                 if query_text and isinstance(query_text, str):
                     query_upper = query_text.upper()
-                    if 'UPDATE' in query_upper and ('DELETED' in query_upper or 'DELETED_AT' in query_upper):
+                    if "UPDATE" in query_upper and (
+                        "DELETED" in query_upper or "DELETED_AT" in query_upper
+                    ):
                         soft_delete_ops += 1
                         evidence.append("Found soft delete operation")
 
@@ -344,12 +396,14 @@ class HeuristicEnhancer:
                 name="soft_delete",
                 confidence=0.85,
                 description="Function implements soft delete pattern",
-                evidence=evidence
+                evidence=evidence,
             )
 
         return None
 
-    def _detect_validation_chain_pattern(self, result: ConversionResult) -> Optional[DetectedPattern]:
+    def _detect_validation_chain_pattern(
+        self, result: ConversionResult
+    ) -> Optional[DetectedPattern]:
         """Detect validation chain pattern (multiple checks)"""
         evidence = []
 
@@ -360,11 +414,14 @@ class HeuristicEnhancer:
         for step in result.steps:
             if step.type == "if":
                 if_statements += 1
-                condition = getattr(step, 'condition', '') or ''
+                condition = getattr(step, "condition", "") or ""
                 if condition and isinstance(condition, str):
                     condition_upper = condition.upper()
                     # Look for validation keywords
-                    if any(keyword in condition_upper for keyword in ['NULL', 'EMPTY', 'VALID', 'EXISTS']):
+                    if any(
+                        keyword in condition_upper
+                        for keyword in ["NULL", "EMPTY", "VALID", "EXISTS"]
+                    ):
                         validation_checks += 1
                         evidence.append(f"Found validation check: {condition[:30]}...")
 
@@ -374,7 +431,7 @@ class HeuristicEnhancer:
                 name="validation_chain",
                 confidence=confidence,
                 description="Function implements validation chain pattern",
-                evidence=evidence
+                evidence=evidence,
             )
 
         return None
@@ -387,7 +444,11 @@ class HeuristicEnhancer:
         simplified_steps = []
         for step in result.steps:
             # Detect simple IF-THEN-RETURN patterns that could be simplified
-            if step.type == "if" and len(step.then_steps) == 1 and step.then_steps[0].type == "return":
+            if (
+                step.type == "if"
+                and len(step.then_steps) == 1
+                and step.then_steps[0].type == "return"
+            ):
                 # This is a guard clause - could potentially be simplified
                 # For now, just pass through
                 pass
@@ -401,7 +462,7 @@ class HeuristicEnhancer:
         """Improve variable naming conventions"""
         # Apply naming improvements based on inferred purposes
         for step in result.steps:
-            if step.type == "declare" and hasattr(step, 'variable_name'):
+            if step.type == "declare" and hasattr(step, "variable_name"):
                 improved_name = self._improve_variable_name(step.variable_name)
                 if improved_name != step.variable_name:
                     step.variable_name = improved_name
@@ -411,9 +472,9 @@ class HeuristicEnhancer:
     def _improve_variable_name(self, var_name: str) -> str:
         """Improve a single variable name"""
         # Remove common prefixes
-        if var_name.startswith('v_'):
+        if var_name.startswith("v_"):
             return var_name[2:]  # Remove 'v_' prefix
-        elif var_name.startswith('p_'):
+        elif var_name.startswith("p_"):
             return var_name[2:]  # Remove 'p_' prefix for parameters
 
         return var_name
@@ -424,7 +485,9 @@ class HeuristicEnhancer:
 
         # Boost from variable purpose inference
         if self.variable_purposes:
-            avg_var_confidence = sum(p.confidence for p in self.variable_purposes.values()) / len(self.variable_purposes)
+            avg_var_confidence = sum(
+                p.confidence for p in self.variable_purposes.values()
+            ) / len(self.variable_purposes)
             boost += avg_var_confidence * 0.02  # Small boost per variable
 
         # Boost from pattern detection

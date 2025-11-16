@@ -59,7 +59,11 @@ class TestShellMetacharacters:
         ]
 
         for malicious_input in malicious_inputs:
-            assert "&" in malicious_input or "&&" in malicious_input or "||" in malicious_input
+            assert (
+                "&" in malicious_input
+                or "&&" in malicious_input
+                or "||" in malicious_input
+            )
 
     def test_backtick_injection(self, temp_dir):
         """Block command substitution with backticks"""
@@ -295,7 +299,9 @@ class TestFilenameInjection:
             # Create file with malicious name
             file_path = temp_dir / filename
             try:
-                file_path.write_text("entity: Test\nschema: test\nfields:\n  name: text")
+                file_path.write_text(
+                    "entity: Test\nschema: test\nfields:\n  name: text"
+                )
 
                 # Verify the filename itself contains dangerous characters
                 assert any(

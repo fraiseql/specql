@@ -1,6 +1,5 @@
 """Compiler for aggregate steps"""
 
-
 from src.core.ast_models import ActionStep, EntityDefinition
 
 from src.generators.actions.step_compilers.base import StepCompiler
@@ -51,5 +50,8 @@ class AggregateStepCompiler(StepCompiler):
             return f"{result_var} := ARRAY({query});"
         else:
             # Single value aggregate
-            return f"SELECT {agg_expr} INTO {result_var} FROM {table}" + \
-                   (f" WHERE {where_clause}" if where_clause else "") + ";"
+            return (
+                f"SELECT {agg_expr} INTO {result_var} FROM {table}"
+                + (f" WHERE {where_clause}" if where_clause else "")
+                + ";"
+            )

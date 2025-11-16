@@ -49,7 +49,9 @@ class CompositeTypeMapper:
         if composite_def is None:
             composite_def = get_composite_type(field.type_name)
             if composite_def is None:
-                raise ValueError(f"Composite type {field.type_name} not found in registry")
+                raise ValueError(
+                    f"Composite type {field.type_name} not found in registry"
+                )
 
         # Generate validation function name (convert camelCase to snake_case)
         def camel_to_snake(name):
@@ -181,7 +183,9 @@ $$ LANGUAGE plpgsql IMMUTABLE;
 
         return " ".join(parts)
 
-    def generate_gin_index(self, schema: str, table: str, composite_ddl: CompositeDDL) -> str:
+    def generate_gin_index(
+        self, schema: str, table: str, composite_ddl: CompositeDDL
+    ) -> str:
         """
         Generate GIN index for JSONB queryability with partial index support
 

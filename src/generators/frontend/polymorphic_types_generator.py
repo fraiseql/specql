@@ -38,9 +38,7 @@ export interface {union_type_name}Resolver {{
     union_cases = []
     for variant in variants:
         entity_name = _extract_entity_name(variant["entity"])
-        case = (
-            f"""  | {{ {discriminator_field}: '{variant["class_value"]}'; data: {entity_name} }}"""
-        )
+        case = f"""  | {{ {discriminator_field}: '{variant["class_value"]}'; data: {entity_name} }}"""
         union_cases.append(case)
 
     union_type = f"""
@@ -51,7 +49,9 @@ export type {union_type_name} ={"".join(union_cases)};
     type_guards = []
     for variant in variants:
         class_value = variant["class_value"]
-        function_name = f"is{union_type_name.replace('Type', '')}{_to_pascal_case(class_value)}"
+        function_name = (
+            f"is{union_type_name.replace('Type', '')}{_to_pascal_case(class_value)}"
+        )
         type_guards.append(f"""
 export function {function_name}(item: {union_type_name}): item is Extract<{union_type_name}, {{ {discriminator_field}: '{class_value}' }}> {{
   return item.{discriminator_field} === '{class_value}';

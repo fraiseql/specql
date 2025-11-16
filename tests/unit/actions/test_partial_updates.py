@@ -2,7 +2,6 @@
 Unit tests for partial update functionality in CoreLogicGenerator
 """
 
-
 from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
 
 
@@ -27,7 +26,9 @@ def test_generate_partial_update_assignments(core_logic_generator):
 
     step_fields = {"partial_updates": True}
 
-    assignments = core_logic_generator._generate_partial_update_assignments(entity, step_fields)
+    assignments = core_logic_generator._generate_partial_update_assignments(
+        entity, step_fields
+    )
 
     # Should generate CASE expressions for user fields only
     expected_assignments = [
@@ -96,7 +97,9 @@ def test_compile_partial_update_step(core_logic_generator):
         },
     )
 
-    step = ActionStep(type="update", fields={"partial_updates": True, "track_updated_fields": True})
+    step = ActionStep(
+        type="update", fields={"partial_updates": True, "track_updated_fields": True}
+    )
 
     action = Action(name="update_contact", steps=[step])
 
@@ -147,7 +150,9 @@ def test_compile_regular_update_step(core_logic_generator):
         """Test generation of CASE expressions for partial updates"""
         step_fields = {"partial_updates": True}
 
-        assignments = self.generator._generate_partial_update_assignments(self.entity, step_fields)
+        assignments = self.generator._generate_partial_update_assignments(
+            self.entity, step_fields
+        )
 
         # Should generate CASE expressions for user fields only
         expected_assignments = [
@@ -164,13 +169,17 @@ def test_compile_regular_update_step(core_logic_generator):
         """Test generation of field tracking code"""
         step_fields = {"track_updated_fields": True}
 
-        tracking_code = self.generator._generate_field_tracking(self.entity, step_fields)
+        tracking_code = self.generator._generate_field_tracking(
+            self.entity, step_fields
+        )
 
         # Should initialize array and track each field
         assert tracking_code[0] == "v_updated_fields := ARRAY[]::TEXT[];"
 
         # Should have tracking code for each user field
-        field_tracking = [line for line in tracking_code if "IF input_payload ?" in line]
+        field_tracking = [
+            line for line in tracking_code if "IF input_payload ?" in line
+        ]
         assert len(field_tracking) == 3  # first_name, last_name, email
 
         # Check specific field tracking
@@ -181,13 +190,16 @@ def test_compile_regular_update_step(core_logic_generator):
     def test_compile_partial_update_step(self):
         """Test compilation of partial update step"""
         step = ActionStep(
-            type="update", fields={"partial_updates": True, "track_updated_fields": True}
+            type="update",
+            fields={"partial_updates": True, "track_updated_fields": True},
         )
 
         compiled = self.generator._compile_action_steps(
             type("MockAction", (), {"steps": [step]})(),
             type(
-                "MockEntity", (), {"name": "Contact", "schema": "crm", "fields": self.entity.fields}
+                "MockEntity",
+                (),
+                {"name": "Contact", "schema": "crm", "fields": self.entity.fields},
             )(),
         )
 
@@ -200,12 +212,16 @@ def test_compile_regular_update_step(core_logic_generator):
 
     def test_compile_regular_update_step(self):
         """Test compilation of regular (non-partial) update step"""
-        step = ActionStep(type="update", fields={"first_name": "John", "last_name": "Doe"})
+        step = ActionStep(
+            type="update", fields={"first_name": "John", "last_name": "Doe"}
+        )
 
         compiled = self.generator._compile_action_steps(
             type("MockAction", (), {"steps": [step]})(),
             type(
-                "MockEntity", (), {"name": "Contact", "schema": "crm", "fields": self.entity.fields}
+                "MockEntity",
+                (),
+                {"name": "Contact", "schema": "crm", "fields": self.entity.fields},
             )(),
         )
 

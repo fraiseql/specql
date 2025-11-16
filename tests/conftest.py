@@ -61,7 +61,10 @@ def mock_entity_dict() -> dict[str, Any]:
                 {
                     "name": "create_contact",
                     "steps": [
-                        {"validate": "email MATCHES email_pattern", "error": "invalid_email"},
+                        {
+                            "validate": "email MATCHES email_pattern",
+                            "error": "invalid_email",
+                        },
                         {"insert": "Contact"},
                     ],
                 }

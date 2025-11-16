@@ -242,21 +242,29 @@ class TestDomainRegistryModification:
         )
 
         # Assign first function
-        func1_code = registry.assign_function_code("crm", "customer", "TestContact", "create_contact")
+        func1_code = registry.assign_function_code(
+            "crm", "customer", "TestContact", "create_contact"
+        )
         assert func1_code == "0323611"
 
         # Assign second function
-        func2_code = registry.assign_function_code("crm", "customer", "TestContact", "update_contact")
+        func2_code = registry.assign_function_code(
+            "crm", "customer", "TestContact", "update_contact"
+        )
         assert func2_code == "0323612"
 
         # Assign third function
-        func3_code = registry.assign_function_code("crm", "customer", "TestContact", "delete_contact")
+        func3_code = registry.assign_function_code(
+            "crm", "customer", "TestContact", "delete_contact"
+        )
         assert func3_code == "0323613"
 
     def test_assign_function_code_unregistered_entity(self, registry):
         """Should raise error for unregistered entity"""
         with pytest.raises(ValueError, match="Entity.*not registered"):
-            registry.assign_function_code("crm", "customer", "NonExistentEntity", "create")
+            registry.assign_function_code(
+                "crm", "customer", "NonExistentEntity", "create"
+            )
 
     def test_assign_function_code_invalid_domain(self, registry):
         """Should raise error for invalid domain"""
@@ -270,7 +278,9 @@ class TestDomainRegistryModification:
         )
 
         with pytest.raises(ValueError, match="Domain.*not found"):
-            registry.assign_function_code("invalid", "customer", "TestContact", "create")
+            registry.assign_function_code(
+                "invalid", "customer", "TestContact", "create"
+            )
 
 
 class TestDomainRegistryMappings:
@@ -284,7 +294,10 @@ class TestDomainRegistryMappings:
         assert "2" in mapping
         assert mapping["2"]["name"] == "crm"
         assert mapping["2"]["code"] == "2"
-        assert mapping["2"]["description"] == "Customer relationship management & organizational structure"
+        assert (
+            mapping["2"]["description"]
+            == "Customer relationship management & organizational structure"
+        )
         assert mapping["2"]["multi_tenant"] is True
 
         # Should have mappings by name
@@ -319,7 +332,10 @@ class TestDomainRegistryMappings:
         assert "03" in mapping
         assert mapping["03"]["name"] == "customer"
         assert mapping["03"]["code"] == "03"
-        assert mapping["03"]["description"] == "Customer contact entities (contact, company, account)"
+        assert (
+            mapping["03"]["description"]
+            == "Customer contact entities (contact, company, account)"
+        )
         assert "next_entity_sequence" in mapping["03"]
         assert "next_read_entity" in mapping["03"]
 

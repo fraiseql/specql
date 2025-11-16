@@ -61,11 +61,11 @@ def schema_registry():
 
 def test_is_multi_tenant_true_for_multi_tenant_domains(schema_registry):
     """Test that multi-tenant domains return True"""
-    assert schema_registry.is_multi_tenant("crm")  is True
-    assert schema_registry.is_multi_tenant("management")  is True  # alias
-    assert schema_registry.is_multi_tenant("projects")  is True
-    assert schema_registry.is_multi_tenant("tenant")  is True  # alias
-    assert schema_registry.is_multi_tenant("dim")  is True  # alias
+    assert schema_registry.is_multi_tenant("crm") is True
+    assert schema_registry.is_multi_tenant("management") is True  # alias
+    assert schema_registry.is_multi_tenant("projects") is True
+    assert schema_registry.is_multi_tenant("tenant") is True  # alias
+    assert schema_registry.is_multi_tenant("dim") is True  # alias
 
 
 def test_is_multi_tenant_false_for_shared_domains(schema_registry):
@@ -108,9 +108,9 @@ def test_get_canonical_schema_name_returns_input_for_unknown_schemas(schema_regi
 
 def test_is_framework_schema_true_for_framework_schemas(schema_registry):
     """Test framework schema detection"""
-    assert schema_registry.is_framework_schema("common")  is True
-    assert schema_registry.is_framework_schema("app")  is True
-    assert schema_registry.is_framework_schema("core")  is True
+    assert schema_registry.is_framework_schema("common") is True
+    assert schema_registry.is_framework_schema("app") is True
+    assert schema_registry.is_framework_schema("core") is True
 
 
 def test_is_framework_schema_false_for_user_domains(schema_registry):
@@ -122,13 +122,13 @@ def test_is_framework_schema_false_for_user_domains(schema_registry):
 
 def test_is_shared_reference_schema_true_for_framework_schemas(schema_registry):
     """Test that framework schemas are shared reference schemas"""
-    assert schema_registry.is_shared_reference_schema("common")  is True
-    assert schema_registry.is_shared_reference_schema("app")  is True
+    assert schema_registry.is_shared_reference_schema("common") is True
+    assert schema_registry.is_shared_reference_schema("app") is True
 
 
 def test_is_shared_reference_schema_true_for_non_multi_tenant_domains(schema_registry):
     """Test that non-multi-tenant domains are shared reference schemas"""
-    assert schema_registry.is_shared_reference_schema("catalog")  is True
+    assert schema_registry.is_shared_reference_schema("catalog") is True
 
 
 def test_is_shared_reference_schema_false_for_multi_tenant_domains(schema_registry):
@@ -143,7 +143,9 @@ def test_is_shared_reference_schema_false_for_unknown_schemas(schema_registry):
     assert not schema_registry.is_shared_reference_schema("unknown")
 
 
-def test_get_domain_by_name_or_alias_delegates_to_registry(schema_registry, mock_domain_registry):
+def test_get_domain_by_name_or_alias_delegates_to_registry(
+    schema_registry, mock_domain_registry
+):
     """Test that get_domain_by_name_or_alias delegates to domain registry"""
     result = schema_registry.get_domain_by_name_or_alias("crm")
     assert result is not None

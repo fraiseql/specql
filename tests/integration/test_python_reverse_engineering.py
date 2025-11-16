@@ -3,8 +3,8 @@ from click.testing import CliRunner
 
 from src.cli.confiture_extensions import specql
 
-class TestPythonReverseEngineering:
 
+class TestPythonReverseEngineering:
     def test_reverse_python_dataclass(self, tmp_path):
         """Test reversing Python dataclass"""
         # Create test Python file
@@ -32,11 +32,10 @@ class Contact:
 
         # Run CLI command
         runner = CliRunner()
-        result = runner.invoke(specql, [
-            'reverse-python',
-            str(python_file),
-            '--output-dir', str(output_dir)
-        ])
+        result = runner.invoke(
+            specql,
+            ["reverse-python", str(python_file), "--output-dir", str(output_dir)],
+        )
 
         assert result.exit_code == 0
         assert "✅ Written" in result.output
@@ -49,25 +48,25 @@ class Contact:
         with open(yaml_file) as f:
             data = yaml.safe_load(f)
 
-        assert data['entity'] == 'Contact'
-        assert data['description'] == 'CRM contact'
-        assert len(data['fields']) == 5
-        assert len(data['actions']) == 1
+        assert data["entity"] == "Contact"
+        assert data["description"] == "CRM contact"
+        assert len(data["fields"]) == 5
+        assert len(data["actions"]) == 1
 
         # Check fields
-        email_field = next(f for f in data['fields'] if f['name'] == 'email')
-        assert email_field['type'] == 'text'
-        assert email_field['required'] is True
+        email_field = next(f for f in data["fields"] if f["name"] == "email")
+        assert email_field["type"] == "text"
+        assert email_field["required"] is True
 
         # Check action
-        action = data['actions'][0]
-        assert action['name'] == 'qualify_lead'
-        assert len(action['steps']) > 0
+        action = data["actions"][0]
+        assert action["name"] == "qualify_lead"
+        assert len(action["steps"]) > 0
 
     def test_reverse_django_model(self, tmp_path):
         """Test reversing Django model"""
         python_file = tmp_path / "article.py"
-        python_file.write_text('''
+        python_file.write_text("""
 from django.db import models
 
 class Article(models.Model):
@@ -75,17 +74,21 @@ class Article(models.Model):
     content = models.TextField()
     published_at = models.DateTimeField(null=True)
     author = models.ForeignKey('User', on_delete=models.CASCADE)
-''')
+""")
 
         output_dir = tmp_path / "entities"
 
         runner = CliRunner()
-        result = runner.invoke(specql, [
-            'reverse-python',
-            str(python_file),
-            '--output-dir', str(output_dir),
-            '--discover-patterns'
-        ])
+        result = runner.invoke(
+            specql,
+            [
+                "reverse-python",
+                str(python_file),
+                "--output-dir",
+                str(output_dir),
+                "--discover-patterns",
+            ],
+        )
 
         assert result.exit_code == 0
 
@@ -94,30 +97,34 @@ class Article(models.Model):
         with open(yaml_file) as f:
             data = yaml.safe_load(f)
 
-        assert 'django_model' in data['_metadata']['patterns']
+        assert "django_model" in data["_metadata"]["patterns"]
 
         # Check foreign key was detected
-        author_field = next(f for f in data['fields'] if f['name'] == 'author')
-        assert author_field['type'] == 'ref'
-        assert author_field['ref'] == 'User'
+        author_field = next(f for f in data["fields"] if f["name"] == "author")
+        assert author_field["type"] == "ref"
+        assert author_field["ref"] == "User"
 
     def test_dry_run_mode(self, tmp_path):
         """Test dry run doesn't write files"""
         python_file = tmp_path / "test.py"
-        python_file.write_text('''
+        python_file.write_text("""
 class Test:
     name: str
-''')
+""")
 
         output_dir = tmp_path / "entities"
 
         runner = CliRunner()
-        result = runner.invoke(specql, [
-            'reverse-python',
-            str(python_file),
-            '--output-dir', str(output_dir),
-            '--dry-run'
-        ])
+        result = runner.invoke(
+            specql,
+            [
+                "reverse-python",
+                str(python_file),
+                "--output-dir",
+                str(output_dir),
+                "--dry-run",
+            ],
+        )
 
         assert result.exit_code == 0
         assert "Would write" in result.output
@@ -129,14 +136,14 @@ class Test:
         from src.reverse_engineering.universal_ast_mapper import UniversalASTMapper
 
         # Test Python parsing
-        python_code = '''
+        python_code = """
 from dataclasses import dataclass
 
 @dataclass
 class Contact:
     email: str
     status: str = "lead"
-'''
+"""
 
         parser = PythonASTParser()
         entity = parser.parse_entity(python_code)
@@ -144,7 +151,7 @@ class Contact:
         mapper = UniversalASTMapper()
         specql_dict = mapper.map_entity_to_specql(entity)
 
-        assert specql_dict['entity'] == 'Contact'
-        assert specql_dict['_metadata']['source_language'] == 'python'
-        assert len(specql_dict['fields']) == 2
-        assert len(specql_dict['actions']) == 0  # No methods in this example
+        assert specql_dict["entity"] == "Contact"
+        assert specql_dict["_metadata"]["source_language"] == "python"
+        assert len(specql_dict["fields"]) == 2
+        assert len(specql_dict["actions"]) == 0  # No methods in this example

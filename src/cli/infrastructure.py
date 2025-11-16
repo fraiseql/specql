@@ -14,13 +14,20 @@ from src.infrastructure.parsers.kubernetes_parser import KubernetesParser
 from src.infrastructure.parsers.docker_compose_parser import DockerComposeParser
 from src.infrastructure.generators.terraform_aws_generator import TerraformAWSGenerator
 from src.infrastructure.generators.terraform_gcp_generator import TerraformGCPGenerator
-from src.infrastructure.generators.terraform_azure_generator import TerraformAzureGenerator
-from src.infrastructure.generators.cloudformation_generator import CloudFormationGenerator
+from src.infrastructure.generators.terraform_azure_generator import (
+    TerraformAzureGenerator,
+)
+from src.infrastructure.generators.cloudformation_generator import (
+    CloudFormationGenerator,
+)
 from src.infrastructure.generators.pulumi_generator import PulumiGenerator
 from src.infrastructure.generators.kubernetes_generator import KubernetesGenerator
 from src.infrastructure.generators.ovhcloud_generator import OVHcloudGenerator
 from src.infrastructure.generators.hetzner_generator import HetznerGenerator
-from src.infrastructure.universal_infra_schema import UniversalInfrastructure, CloudProvider
+from src.infrastructure.universal_infra_schema import (
+    UniversalInfrastructure,
+    CloudProvider,
+)
 import yaml
 
 
@@ -33,7 +40,14 @@ def infrastructure():
 @infrastructure.command()
 @click.argument("input_file", type=click.Path(exists=True))
 @click.option("--output", "-o", type=click.Path(), help="Output YAML file")
-@click.option("--format", type=click.Choice(["terraform", "kubernetes", "docker-compose", "ovhcloud", "hetzner"]), default="terraform", help="Input format")
+@click.option(
+    "--format",
+    type=click.Choice(
+        ["terraform", "kubernetes", "docker-compose", "ovhcloud", "hetzner"]
+    ),
+    default="terraform",
+    help="Input format",
+)
 def reverse_infra(input_file, output, format):
     """
     Reverse engineer infrastructure to universal format
@@ -54,9 +68,11 @@ def reverse_infra(input_file, output, format):
         parser = DockerComposeParser()
     elif format == "ovhcloud":
         from src.infrastructure.parsers.ovhcloud_parser import OVHcloudParser
+
         parser = OVHcloudParser()
     elif format == "hetzner":
         from src.infrastructure.parsers.hetzner_parser import HetznerParser
+
         parser = HetznerParser()
     else:
         click.echo(f"❌ Unsupported format: {format}")
@@ -185,10 +201,10 @@ def reverse_infra(input_file, output, format):
         if output:
             output_path = Path(output)
         else:
-            output_path = input_path.with_suffix('.infra.yaml')
+            output_path = input_path.with_suffix(".infra.yaml")
 
         # Write YAML output
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             yaml.dump(infra_dict, f, default_flow_style=False, sort_keys=False)
 
         click.echo(f"✅ Infrastructure reverse engineered to {output_path}")
@@ -200,7 +216,24 @@ def reverse_infra(input_file, output, format):
 
 @infrastructure.command()
 @click.argument("input_file", type=click.Path(exists=True))
-@click.option("--platform", "-p", type=click.Choice(["terraform-aws", "terraform-gcp", "terraform-azure", "cloudformation", "pulumi", "kubernetes", "ovhcloud", "hetzner"]), default="terraform-aws", help="Target platform")
+@click.option(
+    "--platform",
+    "-p",
+    type=click.Choice(
+        [
+            "terraform-aws",
+            "terraform-gcp",
+            "terraform-azure",
+            "cloudformation",
+            "pulumi",
+            "kubernetes",
+            "ovhcloud",
+            "hetzner",
+        ]
+    ),
+    default="terraform-aws",
+    help="Target platform",
+)
 @click.option("--output", "-o", type=click.Path(), help="Output file/directory")
 def generate_infra(input_file, platform, output):
     """
@@ -232,6 +265,7 @@ def generate_infra(input_file, platform, output):
         if "compute" in infra_dict:
             compute_dict = infra_dict["compute"]
             from src.infrastructure.universal_infra_schema import ComputeConfig
+
             infra.compute = ComputeConfig(
                 instances=compute_dict.get("instances", 1),
                 cpu=compute_dict.get("cpu", 1.0),
@@ -248,6 +282,7 @@ def generate_infra(input_file, platform, output):
         if "container" in infra_dict:
             container_dict = infra_dict["container"]
             from src.infrastructure.universal_infra_schema import ContainerConfig
+
             infra.container = ContainerConfig(
                 image=container_dict["image"],
                 tag=container_dict.get("tag", "latest"),
@@ -264,7 +299,11 @@ def generate_infra(input_file, platform, output):
         # Add database config
         if "database" in infra_dict:
             db_dict = infra_dict["database"]
-            from src.infrastructure.universal_infra_schema import DatabaseConfig, DatabaseType
+            from src.infrastructure.universal_infra_schema import (
+                DatabaseConfig,
+                DatabaseType,
+            )
+
             infra.database = DatabaseConfig(
                 type=DatabaseType(db_dict["type"]),
                 version=db_dict.get("version", "15"),
@@ -282,10 +321,15 @@ def generate_infra(input_file, platform, output):
         if "network" in infra_dict:
             network_dict = infra_dict["network"]
             from src.infrastructure.universal_infra_schema import NetworkConfig
+
             infra.network = NetworkConfig(
                 vpc_cidr=network_dict.get("vpc_cidr", "10.0.0.0/16"),
-                public_subnets=network_dict.get("public_subnets", ["10.0.1.0/24", "10.0.2.0/24"]),
-                private_subnets=network_dict.get("private_subnets", ["10.0.10.0/24", "10.0.20.0/24"]),
+                public_subnets=network_dict.get(
+                    "public_subnets", ["10.0.1.0/24", "10.0.2.0/24"]
+                ),
+                private_subnets=network_dict.get(
+                    "private_subnets", ["10.0.10.0/24", "10.0.20.0/24"]
+                ),
                 enable_nat_gateway=network_dict.get("enable_nat_gateway", True),
                 enable_vpn_gateway=network_dict.get("enable_vpn_gateway", False),
             )
@@ -294,6 +338,7 @@ def generate_infra(input_file, platform, output):
         if "load_balancer" in infra_dict:
             lb_dict = infra_dict["load_balancer"]
             from src.infrastructure.universal_infra_schema import LoadBalancerConfig
+
             infra.load_balancer = LoadBalancerConfig(
                 enabled=lb_dict.get("enabled", True),
                 type=lb_dict.get("type", "application"),
@@ -306,6 +351,7 @@ def generate_infra(input_file, platform, output):
         # Add volumes
         if "volumes" in infra_dict:
             from src.infrastructure.universal_infra_schema import Volume
+
             infra.volumes = [
                 Volume(
                     name=vol["name"],
@@ -319,6 +365,7 @@ def generate_infra(input_file, platform, output):
         # Add security config
         if "security" in infra_dict and "secrets" in infra_dict["security"]:
             from src.infrastructure.universal_infra_schema import SecurityConfig
+
             infra.security = SecurityConfig(secrets=infra_dict["security"]["secrets"])
 
         # Add tags
@@ -329,6 +376,7 @@ def generate_infra(input_file, platform, output):
         if "bare_metal" in infra_dict:
             bm_dict = infra_dict["bare_metal"]
             from src.infrastructure.universal_infra_schema import BareMetalConfig
+
             infra.bare_metal = BareMetalConfig(
                 server_model=bm_dict.get("server_model", ""),
                 cpu_cores=bm_dict.get("cpu_cores", 2),
@@ -391,7 +439,7 @@ def generate_infra(input_file, platform, output):
             output_path = input_path.with_suffix(output_ext)
 
         # Write output
-        with open(output_path, 'w') as f:
+        with open(output_path, "w") as f:
             f.write(output_content)
 
         click.echo(f"✅ Infrastructure generated for {platform} at {output_path}")
@@ -403,8 +451,27 @@ def generate_infra(input_file, platform, output):
 
 @infrastructure.command()
 @click.argument("input_file", type=click.Path(exists=True))
-@click.option("--from-platform", "from_platform", type=click.Choice(["terraform", "kubernetes", "docker-compose"]), help="Source platform")
-@click.option("--to-platform", "to_platform", type=click.Choice(["terraform-aws", "terraform-gcp", "terraform-azure", "cloudformation", "pulumi", "kubernetes"]), help="Target platform")
+@click.option(
+    "--from-platform",
+    "from_platform",
+    type=click.Choice(["terraform", "kubernetes", "docker-compose"]),
+    help="Source platform",
+)
+@click.option(
+    "--to-platform",
+    "to_platform",
+    type=click.Choice(
+        [
+            "terraform-aws",
+            "terraform-gcp",
+            "terraform-azure",
+            "cloudformation",
+            "pulumi",
+            "kubernetes",
+        ]
+    ),
+    help="Target platform",
+)
 @click.option("--output", "-o", type=click.Path(), help="Output file")
 def convert(input_file, from_platform, to_platform, output):
     """
@@ -423,7 +490,10 @@ def convert(input_file, from_platform, to_platform, output):
 
     # Create a temporary file for the intermediate YAML
     import tempfile
-    with tempfile.NamedTemporaryFile(mode='w+', suffix='.yaml', delete=False) as temp_file:
+
+    with tempfile.NamedTemporaryFile(
+        mode="w+", suffix=".yaml", delete=False
+    ) as temp_file:
         temp_yaml = temp_file.name
 
     # Step 1: Reverse engineer to universal format
@@ -450,8 +520,18 @@ def convert(input_file, from_platform, to_platform, output):
 
 @infrastructure.command()
 @click.argument("input_file", type=click.Path(exists=True))
-@click.option("--provider", "-p", type=click.Choice(["aws", "gcp", "azure", "ovhcloud", "hetzner"]), help="Cloud provider for cost estimation")
-@click.option("--format", type=click.Choice(["json", "table"]), default="table", help="Output format")
+@click.option(
+    "--provider",
+    "-p",
+    type=click.Choice(["aws", "gcp", "azure", "ovhcloud", "hetzner"]),
+    help="Cloud provider for cost estimation",
+)
+@click.option(
+    "--format",
+    type=click.Choice(["json", "table"]),
+    default="table",
+    help="Output format",
+)
 def estimate_cost(input_file, provider, format):
     """
     Estimate monthly infrastructure costs
@@ -482,6 +562,7 @@ def estimate_cost(input_file, provider, format):
         if "compute" in infra_dict:
             compute_dict = infra_dict["compute"]
             from src.infrastructure.universal_infra_schema import ComputeConfig
+
             infra.compute = ComputeConfig(
                 instances=compute_dict.get("instances", 1),
                 cpu=compute_dict.get("cpu", 1.0),
@@ -497,7 +578,11 @@ def estimate_cost(input_file, provider, format):
         # Add database config
         if "database" in infra_dict:
             db_dict = infra_dict["database"]
-            from src.infrastructure.universal_infra_schema import DatabaseConfig, DatabaseType
+            from src.infrastructure.universal_infra_schema import (
+                DatabaseConfig,
+                DatabaseType,
+            )
+
             infra.database = DatabaseConfig(
                 type=DatabaseType(db_dict["type"]),
                 version=db_dict.get("version", "15"),
@@ -515,6 +600,7 @@ def estimate_cost(input_file, provider, format):
         if "load_balancer" in infra_dict:
             lb_dict = infra_dict["load_balancer"]
             from src.infrastructure.universal_infra_schema import LoadBalancerConfig
+
             infra.load_balancer = LoadBalancerConfig(
                 enabled=lb_dict.get("enabled", True),
                 type=lb_dict.get("type", "application"),
@@ -527,6 +613,7 @@ def estimate_cost(input_file, provider, format):
         # Add volumes
         if "volumes" in infra_dict:
             from src.infrastructure.universal_infra_schema import Volume
+
             infra.volumes = [
                 Volume(
                     name=vol["name"],
@@ -541,6 +628,7 @@ def estimate_cost(input_file, provider, format):
         if "bare_metal" in infra_dict:
             bm_dict = infra_dict["bare_metal"]
             from src.infrastructure.universal_infra_schema import BareMetalConfig
+
             infra.bare_metal = BareMetalConfig(
                 server_model=bm_dict.get("server_model", ""),
                 cpu_cores=bm_dict.get("cpu_cores", 4),
@@ -559,6 +647,7 @@ def estimate_cost(input_file, provider, format):
 
             if format == "json":
                 import json
+
                 click.echo(json.dumps(cost_breakdown.to_dict(), indent=2))
             else:
                 click.echo(f"💰 Cost Estimate for {provider.upper()}")
@@ -566,16 +655,23 @@ def estimate_cost(input_file, provider, format):
                 click.echo(f"Database:       ${cost_breakdown.database_cost:.2f}/month")
                 click.echo(f"Storage:        ${cost_breakdown.storage_cost:.2f}/month")
                 click.echo(f"Network:        ${cost_breakdown.network_cost:.2f}/month")
-                click.echo(f"Load Balancer:  ${cost_breakdown.load_balancer_cost:.2f}/month")
-                click.echo(f"Monitoring:     ${cost_breakdown.monitoring_cost:.2f}/month")
+                click.echo(
+                    f"Load Balancer:  ${cost_breakdown.load_balancer_cost:.2f}/month"
+                )
+                click.echo(
+                    f"Monitoring:     ${cost_breakdown.monitoring_cost:.2f}/month"
+                )
                 click.echo("-" * 50)
-                click.echo(f"Total:          ${cost_breakdown.total_monthly_cost:.2f}/month")
+                click.echo(
+                    f"Total:          ${cost_breakdown.total_monthly_cost:.2f}/month"
+                )
         else:
             # Cost comparison across all providers
             comparisons = infra.get_cost_comparison()
 
             if format == "json":
                 import json
+
                 result = {}
                 for provider_name, breakdown in comparisons.items():
                     result[provider_name] = breakdown.to_dict()
@@ -593,7 +689,9 @@ def estimate_cost(input_file, provider, format):
                     click.echo("<15")
 
                 click.echo("-" * 60)
-                click.echo("Note: Estimates are approximate and based on on-demand pricing.")
+                click.echo(
+                    "Note: Estimates are approximate and based on on-demand pricing."
+                )
 
     except Exception as e:
         click.echo(f"❌ Error estimating costs: {e}")

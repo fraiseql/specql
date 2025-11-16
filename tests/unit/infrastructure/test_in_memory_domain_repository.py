@@ -1,8 +1,12 @@
 """Unit tests for InMemoryDomainRepository"""
+
 import pytest
-from src.infrastructure.repositories.in_memory_domain_repository import InMemoryDomainRepository
+from src.infrastructure.repositories.in_memory_domain_repository import (
+    InMemoryDomainRepository,
+)
 from src.domain.entities.domain import Domain
 from src.domain.value_objects import DomainNumber
+
 
 class TestInMemoryDomainRepository:
     """Test in-memory repository implementation"""
@@ -18,7 +22,7 @@ class TestInMemoryDomainRepository:
             domain_name="crm",
             description="Customer Relationship Management",
             multi_tenant=True,
-            aliases=["sales"]
+            aliases=["sales"],
         )
 
         # Save domain
@@ -37,7 +41,7 @@ class TestInMemoryDomainRepository:
             domain_name="catalog",
             description="Product catalog",
             multi_tenant=False,
-            aliases=["products", "inventory"]
+            aliases=["products", "inventory"],
         )
 
         self.repo.save(domain)
@@ -65,7 +69,7 @@ class TestInMemoryDomainRepository:
                 domain_number=DomainNumber(f"{i:02X}"),
                 domain_name=f"domain{i}",
                 description=f"Domain {i}",
-                multi_tenant=False
+                multi_tenant=False,
             )
             self.repo.save(domain)
             domains.append(domain)
@@ -89,7 +93,7 @@ class TestInMemoryDomainRepository:
             domain_number=DomainNumber("01"),
             domain_name="test",
             description="Test domain",
-            multi_tenant=False
+            multi_tenant=False,
         )
 
         self.repo.save(domain)

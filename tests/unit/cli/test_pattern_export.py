@@ -1,11 +1,12 @@
 """Tests for pattern export functionality"""
+
 import pytest
 import yaml
 import json
 from src.cli.pattern_exporter import PatternExporter
 from src.application.services.pattern_service import PatternService
 from src.infrastructure.repositories.in_memory_pattern_repository import (
-    InMemoryPatternRepository
+    InMemoryPatternRepository,
 )
 from src.domain.entities.pattern import Pattern, PatternCategory, SourceType
 
@@ -27,7 +28,7 @@ def service_with_patterns():
             implementation={"sql": "CHECK email ~* RFC_5322_REGEX"},
             times_instantiated=10,
             source_type=SourceType.MANUAL,
-            complexity_score=3
+            complexity_score=3,
         ),
         Pattern(
             id=None,
@@ -38,7 +39,7 @@ def service_with_patterns():
             implementation={"sql": "created_at, updated_at fields"},
             times_instantiated=25,
             source_type=SourceType.MANUAL,
-            complexity_score=2
+            complexity_score=2,
         ),
     ]
 

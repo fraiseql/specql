@@ -47,7 +47,9 @@ class TestMigrationExamples:
         for i, block in enumerate(yaml_blocks):
             try:
                 parsed = yaml.safe_load(block)
-                assert isinstance(parsed, (dict, list)), f"Block {i} should parse to dict or list"
+                assert isinstance(parsed, (dict, list)), (
+                    f"Block {i} should parse to dict or list"
+                )
             except yaml.YAMLError as e:
                 assert False, f"YAML block {i} is invalid: {e}"
 
@@ -88,8 +90,12 @@ class TestMigrationExamples:
             total = int(total_match.group(1))
             migrated = int(migrated_match.group(2))
 
-            assert migrated <= total, f"Migrated ({migrated}) cannot exceed total ({total})"
-            assert migrated == total, f"All migrations should be complete: {migrated}/{total}"
+            assert migrated <= total, (
+                f"Migrated ({migrated}) cannot exceed total ({total})"
+            )
+            assert migrated == total, (
+                f"All migrations should be complete: {migrated}/{total}"
+            )
 
     def test_pattern_documentation_links_exist(self):
         """Test that pattern documentation links in migration guide exist."""
@@ -108,7 +114,9 @@ class TestMigrationExamples:
         ]
 
         for doc_path in pattern_doc_paths:
-            assert Path(doc_path).exists(), f"Referenced documentation missing: {doc_path}"
+            assert Path(doc_path).exists(), (
+                f"Referenced documentation missing: {doc_path}"
+            )
 
     def test_migration_steps_are_actionable(self):
         """Test that migration steps provide clear, actionable guidance."""

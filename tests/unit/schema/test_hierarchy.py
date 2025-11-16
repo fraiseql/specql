@@ -30,7 +30,10 @@ class TestHierarchyTemplates:
 
         result = template.render(schema="tenant", entity_lower="location")
 
-        assert "CREATE OR REPLACE FUNCTION tenant.recalculate_location_descendant_paths" in result
+        assert (
+            "CREATE OR REPLACE FUNCTION tenant.recalculate_location_descendant_paths"
+            in result
+        )
         assert "RETURNS INTEGER" in result
         assert "RECURSIVE subtree" in result
         assert "calculate_location_path" in result

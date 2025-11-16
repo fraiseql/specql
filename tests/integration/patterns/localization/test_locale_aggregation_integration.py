@@ -34,7 +34,11 @@ class TestLocaleAggregationIntegration:
             "config": {
                 "group_by_field": "category",
                 "aggregations": [
-                    {"metric": "total_products", "function": "COUNT", "field": "pk_product"},
+                    {
+                        "metric": "total_products",
+                        "function": "COUNT",
+                        "field": "pk_product",
+                    },
                     {"metric": "avg_price", "function": "AVG", "field": "price"},
                 ],
                 "fallback_locale": "en_US",

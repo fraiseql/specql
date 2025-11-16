@@ -4,9 +4,17 @@ Tests for tv_ file splitting and content structuring
 Tests splitting monolithic tv_ output into individual entity files.
 """
 
-
-from src.generators.schema.table_view_file_generator import TableViewFileGenerator, TableViewFile
-from src.core.ast_models import EntityDefinition, FieldDefinition, TableViewConfig, TableViewMode, FieldTier
+from src.generators.schema.table_view_file_generator import (
+    TableViewFileGenerator,
+    TableViewFile,
+)
+from src.core.ast_models import (
+    EntityDefinition,
+    FieldDefinition,
+    TableViewConfig,
+    TableViewMode,
+    FieldTier,
+)
 
 
 class TestTableViewFileSplitting:
@@ -97,7 +105,9 @@ class TestTableViewFileSplitting:
 
         with tempfile.TemporaryDirectory() as temp_dir:
             output_dir = Path(temp_dir) / "output"
-            written_paths = generator.write_files_to_disk(str(output_dir), dry_run=False)
+            written_paths = generator.write_files_to_disk(
+                str(output_dir), dry_run=False
+            )
 
             assert len(written_paths) == 1
             assert "tv_contact" in written_paths[0]
@@ -150,7 +160,7 @@ class TestTableViewFileDataclass:
             code="0220110",
             name="tv_company",
             content="CREATE TABLE crm.tv_company (...);",
-            dependencies=[]
+            dependencies=[],
         )
 
         assert file.code == "0220110"
@@ -164,13 +174,14 @@ class TestTableViewFileDataclass:
             code="0220120",
             name="tv_contact",
             content="CREATE TABLE crm.tv_contact (...);",
-            dependencies=["tv_company"]
+            dependencies=["tv_company"],
         )
 
         assert file.dependencies == ["tv_company"]
 
 
 # Helper functions for creating test entities
+
 
 def create_contact_entity() -> EntityDefinition:
     """Create a test Contact entity"""
@@ -182,10 +193,10 @@ def create_contact_entity() -> EntityDefinition:
                 name="company",
                 type_name="reference",
                 tier=FieldTier.REFERENCE,
-                reference_entity="Company"
+                reference_entity="Company",
             )
         },
-        table_views=TableViewConfig(mode=TableViewMode.FORCE)
+        table_views=TableViewConfig(mode=TableViewMode.FORCE),
     )
 
 
@@ -195,5 +206,5 @@ def create_company_entity() -> EntityDefinition:
         name="Company",
         schema="crm",
         fields={},
-        table_views=TableViewConfig(mode=TableViewMode.FORCE)
+        table_views=TableViewConfig(mode=TableViewMode.FORCE),
     )

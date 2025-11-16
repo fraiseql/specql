@@ -28,7 +28,9 @@ def test_table_code_extracted_from_organization():
     entity = convert_entity_definition_to_entity(entity_def)
 
     # Verify table_code was extracted
-    assert entity.table_code == "012321", f"Expected table_code='012321', got '{entity.table_code}'"
+    assert entity.table_code == "012321", (
+        f"Expected table_code='012321', got '{entity.table_code}'"
+    )
     assert entity.organization is not None
     assert entity.organization.table_code == "012321"
 

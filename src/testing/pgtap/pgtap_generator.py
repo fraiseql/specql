@@ -256,7 +256,9 @@ END $$;
             schema = entity_config["schema_name"]
 
             # Find scenarios for this action
-            action_scenarios = [s for s in scenarios if s.get("target_action") == action_name]
+            action_scenarios = [
+                s for s in scenarios if s.get("target_action") == action_name
+            ]
 
             for scenario in action_scenarios:
                 test = f"""-- Action Test: {action_name} - {scenario["scenario_name"]}

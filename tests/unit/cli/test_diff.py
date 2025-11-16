@@ -33,7 +33,10 @@ class TestDiffCommand:
 
         result = cli_runner.invoke(diff, ["--help"])
         assert result.exit_code == 0
-        assert "Show differences between entity definition and existing migration" in result.output
+        assert (
+            "Show differences between entity definition and existing migration"
+            in result.output
+        )
         assert "--compare" in result.output
         assert "--color" in result.output
 
@@ -47,7 +50,9 @@ class TestDiffCommand:
         assert "CREATE TABLE" in result.output.upper()
         assert "Size:" in result.output
 
-    def test_diff_with_compare_no_differences(self, cli_runner, sample_entity_file, temp_dir):
+    def test_diff_with_compare_no_differences(
+        self, cli_runner, sample_entity_file, temp_dir
+    ):
         """Test diff with compare when files are identical."""
 
         # Generate SQL and save as "migration"
@@ -62,7 +67,9 @@ class TestDiffCommand:
         assert result.exit_code == 0
         assert "No differences" in result.output
 
-    def test_diff_with_compare_has_differences(self, cli_runner, sample_entity_file, temp_dir):
+    def test_diff_with_compare_has_differences(
+        self, cli_runner, sample_entity_file, temp_dir
+    ):
         """Test diff with compare when files differ."""
 
         # Create different migration SQL
@@ -104,7 +111,8 @@ class TestDiffCommand:
         migration_file.write_text(migration_sql)
 
         result = cli_runner.invoke(
-            diff, [str(sample_entity_file), "--compare", str(migration_file), "--no-color"]
+            diff,
+            [str(sample_entity_file), "--compare", str(migration_file), "--no-color"],
         )
 
         assert result.exit_code == 0
@@ -120,7 +128,14 @@ class TestDiffCommand:
         migration_file.write_text(migration_sql)
 
         result = cli_runner.invoke(
-            diff, [str(sample_entity_file), "--compare", str(migration_file), "--context", "1"]
+            diff,
+            [
+                str(sample_entity_file),
+                "--compare",
+                str(migration_file),
+                "--context",
+                "1",
+            ],
         )
 
         assert result.exit_code == 0
@@ -141,7 +156,9 @@ class TestDiffCommand:
     def test_diff_nonexistent_compare_file(self, cli_runner, sample_entity_file):
         """Test diff with nonexistent compare file."""
 
-        result = cli_runner.invoke(diff, [str(sample_entity_file), "--compare", "nonexistent.sql"])
+        result = cli_runner.invoke(
+            diff, [str(sample_entity_file), "--compare", "nonexistent.sql"]
+        )
 
         assert result.exit_code == 2  # Click error for missing file
 

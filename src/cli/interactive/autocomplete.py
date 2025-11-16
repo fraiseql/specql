@@ -12,6 +12,7 @@ from enum import Enum
 
 class CompletionType(Enum):
     """Type of completion suggestion"""
+
     KEYWORD = "keyword"
     FIELD_TYPE = "field_type"
     PATTERN = "pattern"
@@ -23,6 +24,7 @@ class CompletionType(Enum):
 @dataclass
 class Completion:
     """Auto-completion suggestion"""
+
     text: str
     type: CompletionType
     description: str
@@ -43,26 +45,42 @@ class AutoCompleter:
 
     def __init__(self):
         self.field_types = [
-            'text', 'integer', 'float', 'boolean',
-            'date', 'timestamp', 'uuid', 'json',
-            'enum', 'ref', 'list'
+            "text",
+            "integer",
+            "float",
+            "boolean",
+            "date",
+            "timestamp",
+            "uuid",
+            "json",
+            "enum",
+            "ref",
+            "list",
         ]
 
         self.step_types = [
-            'validate', 'if', 'update', 'insert',
-            'delete', 'call', 'notify', 'foreach', 'return'
+            "validate",
+            "if",
+            "update",
+            "insert",
+            "delete",
+            "call",
+            "notify",
+            "foreach",
+            "return",
         ]
 
         self.patterns = [
-            'audit_trail', 'soft_delete', 'state_machine',
-            'multi_tenant', 'versioning', 'archival'
+            "audit_trail",
+            "soft_delete",
+            "state_machine",
+            "multi_tenant",
+            "versioning",
+            "archival",
         ]
 
     def get_completions(
-        self,
-        current_line: str,
-        full_text: str,
-        cursor_position: int
+        self, current_line: str, full_text: str, cursor_position: int
     ) -> List[Completion]:
         """
         Get completions for current cursor position
@@ -97,26 +115,26 @@ class AutoCompleter:
         stripped = current_line.strip()
 
         # In fields section?
-        if 'fields:' in full_text:
-            lines_before = full_text[:full_text.rfind(current_line)].split('\n')
+        if "fields:" in full_text:
+            lines_before = full_text[: full_text.rfind(current_line)].split("\n")
             in_fields = False
             for line in reversed(lines_before):
-                if line.strip() == 'fields:':
+                if line.strip() == "fields:":
                     in_fields = True
                     break
-                elif line.strip() in ['actions:', 'views:']:
+                elif line.strip() in ["actions:", "views:"]:
                     break
 
-            if in_fields and ':' in stripped:
+            if in_fields and ":" in stripped:
                 return "field_definition"
 
         # In actions section?
-        if 'actions:' in full_text and 'steps:' in full_text:
-            if stripped.startswith('-'):
+        if "actions:" in full_text and "steps:" in full_text:
+            if stripped.startswith("-"):
                 return "action_step"
 
         # At entity level?
-        if not stripped or stripped.endswith(':'):
+        if not stripped or stripped.endswith(":"):
             return "entity_level"
 
         return "general"
@@ -127,33 +145,39 @@ class AutoCompleter:
 
         # Simple types
         for field_type in self.field_types:
-            if field_type in ['text', 'integer', 'boolean', 'date']:
-                completions.append(Completion(
-                    text=field_type,
-                    type=CompletionType.FIELD_TYPE,
-                    description=f"{field_type.capitalize()} field",
-                    insert_text=field_type,
-                    score=1.0
-                ))
+            if field_type in ["text", "integer", "boolean", "date"]:
+                completions.append(
+                    Completion(
+                        text=field_type,
+                        type=CompletionType.FIELD_TYPE,
+                        description=f"{field_type.capitalize()} field",
+                        insert_text=field_type,
+                        score=1.0,
+                    )
+                )
 
         # Enum with template
-        completions.append(Completion(
-            text="enum",
-            type=CompletionType.SNIPPET,
-            description="Enum field with values",
-            insert_text="""enum
+        completions.append(
+            Completion(
+                text="enum",
+                type=CompletionType.SNIPPET,
+                description="Enum field with values",
+                insert_text="""enum
     values: [value1, value2, value3]""",
-            score=0.9
-        ))
+                score=0.9,
+            )
+        )
 
         # Ref with template
-        completions.append(Completion(
-            text="ref",
-            type=CompletionType.SNIPPET,
-            description="Reference to another entity",
-            insert_text="ref(EntityName)",
-            score=0.9
-        ))
+        completions.append(
+            Completion(
+                text="ref",
+                type=CompletionType.SNIPPET,
+                description="Reference to another entity",
+                insert_text="ref(EntityName)",
+                score=0.9,
+            )
+        )
 
         return completions
 
@@ -162,48 +186,56 @@ class AutoCompleter:
         completions = []
 
         # Validate step
-        completions.append(Completion(
-            text="validate",
-            type=CompletionType.SNIPPET,
-            description="Validation step",
-            insert_text="validate: field = 'value'",
-            score=1.0
-        ))
+        completions.append(
+            Completion(
+                text="validate",
+                type=CompletionType.SNIPPET,
+                description="Validation step",
+                insert_text="validate: field = 'value'",
+                score=1.0,
+            )
+        )
 
         # Update step
-        completions.append(Completion(
-            text="update",
-            type=CompletionType.SNIPPET,
-            description="Update entity field",
-            insert_text="update: EntityName SET field = 'value'",
-            score=1.0
-        ))
+        completions.append(
+            Completion(
+                text="update",
+                type=CompletionType.SNIPPET,
+                description="Update entity field",
+                insert_text="update: EntityName SET field = 'value'",
+                score=1.0,
+            )
+        )
 
         # Insert step
-        completions.append(Completion(
-            text="insert",
-            type=CompletionType.SNIPPET,
-            description="Insert new record",
-            insert_text="""insert:
+        completions.append(
+            Completion(
+                text="insert",
+                type=CompletionType.SNIPPET,
+                description="Insert new record",
+                insert_text="""insert:
           entity: EntityName
           fields:
             field1: value1
             field2: value2""",
-            score=0.9
-        ))
+                score=0.9,
+            )
+        )
 
         # If/then/else
-        completions.append(Completion(
-            text="if",
-            type=CompletionType.SNIPPET,
-            description="Conditional logic",
-            insert_text="""if: condition
+        completions.append(
+            Completion(
+                text="if",
+                type=CompletionType.SNIPPET,
+                description="Conditional logic",
+                insert_text="""if: condition
           then:
             - step1
           else:
             - step2""",
-            score=0.9
-        ))
+                score=0.9,
+            )
+        )
 
         return completions
 
@@ -212,11 +244,12 @@ class AutoCompleter:
         completions = []
 
         # Audit trail pattern
-        completions.append(Completion(
-            text="audit_trail",
-            type=CompletionType.PATTERN,
-            description="Add created_at, updated_at, created_by, updated_by",
-            insert_text="""patterns:
+        completions.append(
+            Completion(
+                text="audit_trail",
+                type=CompletionType.PATTERN,
+                description="Add created_at, updated_at, created_by, updated_by",
+                insert_text="""patterns:
   - audit_trail
 
 # Adds fields:
@@ -224,21 +257,24 @@ class AutoCompleter:
 # updated_at: timestamp
 # created_by: text
 # updated_by: text""",
-            score=1.0
-        ))
+                score=1.0,
+            )
+        )
 
         # Soft delete pattern
-        completions.append(Completion(
-            text="soft_delete",
-            type=CompletionType.PATTERN,
-            description="Add deleted_at field for soft deletion",
-            insert_text="""patterns:
+        completions.append(
+            Completion(
+                text="soft_delete",
+                type=CompletionType.PATTERN,
+                description="Add deleted_at field for soft deletion",
+                insert_text="""patterns:
   - soft_delete
 
 # Adds field:
 # deleted_at: timestamp""",
-            score=1.0
-        ))
+                score=1.0,
+            )
+        )
 
         return completions
 
@@ -250,14 +286,14 @@ class AutoCompleter:
                 type=CompletionType.KEYWORD,
                 description="Entity name",
                 insert_text="entity: EntityName",
-                score=1.0
+                score=1.0,
             ),
             Completion(
                 text="schema",
                 type=CompletionType.KEYWORD,
                 description="Database schema",
                 insert_text="schema: schema_name",
-                score=1.0
+                score=1.0,
             ),
             Completion(
                 text="fields",
@@ -265,7 +301,7 @@ class AutoCompleter:
                 description="Entity fields",
                 insert_text="""fields:
   field_name: text""",
-                score=1.0
+                score=1.0,
             ),
             Completion(
                 text="actions",
@@ -275,7 +311,7 @@ class AutoCompleter:
   - name: action_name
     steps:
       - validate: condition""",
-                score=1.0
+                score=1.0,
             ),
         ]
 

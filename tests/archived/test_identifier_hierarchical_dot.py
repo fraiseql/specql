@@ -108,7 +108,9 @@ class TestHierarchicalDotSeparator:
 
         assert locations[0][1] == "acme-corp|warehouse-a"  # Root
         assert locations[1][1] == "acme-corp|warehouse-a.floor-1"  # Child (DOT!)
-        assert locations[2][1] == "acme-corp|warehouse-a.floor-1.room-101"  # Grandchild (DOT!)
+        assert (
+            locations[2][1] == "acme-corp|warehouse-a.floor-1.room-101"
+        )  # Grandchild (DOT!)
 
     def test_explicit_underscore_override(self, db, location_hierarchy):
         """Should support explicit underscore override for backward compatibility."""

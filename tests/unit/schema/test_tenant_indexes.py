@@ -101,9 +101,7 @@ class TestIndividualIndexFunctions:
 
         result = generate_tenant_id_lookup_index(entity, "tenant")
 
-        expected = (
-            "CREATE UNIQUE INDEX idx_product_tenant_id\n    ON tenant.tb_product(tenant_id, id);"
-        )
+        expected = "CREATE UNIQUE INDEX idx_product_tenant_id\n    ON tenant.tb_product(tenant_id, id);"
 
         assert result == expected
 

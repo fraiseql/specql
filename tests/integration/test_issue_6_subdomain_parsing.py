@@ -76,17 +76,27 @@ class TestIssue6SubdomainParsing:
 
         # Check directory structure
         # Should have: 01_write_side/013_catalog/0131_classification/
-        classification_dir = output_dir / "01_write_side" / "013_catalog" / "0131_classification"
-        assert classification_dir.exists(), "Classification subdomain directory not found"
+        classification_dir = (
+            output_dir / "01_write_side" / "013_catalog" / "0131_classification"
+        )
+        assert classification_dir.exists(), (
+            "Classification subdomain directory not found"
+        )
 
         # All three entity directories should be under classification (snake_case, no _group)
         entity_dirs = list(classification_dir.glob("*"))
-        assert len(entity_dirs) == 3, f"Expected 3 entity dirs, found {len(entity_dirs)}"
+        assert len(entity_dirs) == 3, (
+            f"Expected 3 entity dirs, found {len(entity_dirs)}"
+        )
 
         # Verify snake_case names (no _group)
         dir_names = [d.name for d in entity_dirs]
-        assert any("color_mode" in d for d in dir_names), f"color_mode not found in {dir_names}"
-        assert any("duplex_mode" in d for d in dir_names), f"duplex_mode not found in {dir_names}"
+        assert any("color_mode" in d for d in dir_names), (
+            f"color_mode not found in {dir_names}"
+        )
+        assert any("duplex_mode" in d for d in dir_names), (
+            f"duplex_mode not found in {dir_names}"
+        )
         assert any("machine_function" in d for d in dir_names), (
             f"machine_function not found in {dir_names}"
         )
@@ -95,7 +105,9 @@ class TestIssue6SubdomainParsing:
         assert not any("_group" in d for d in dir_names), f"Found _group in {dir_names}"
 
         # Verify NO lowercase-only (non-snake_case)
-        assert not any(d == "01311_colormode" for d in dir_names), "Found non-snake_case colormode"
+        assert not any(d == "01311_colormode" for d in dir_names), (
+            "Found non-snake_case colormode"
+        )
 
         # Verify NO wrong directories exist
         wrong_dirs = list(output_dir.rglob("*subdomain_11*"))
@@ -132,18 +144,26 @@ class TestIssue6SubdomainParsing:
         assert len(result.errors) == 0, f"Errors: {result.errors}"
 
         # Check manufacturer subdomain directory
-        manufacturer_dir = output_dir / "01_write_side" / "013_catalog" / "0132_manufacturer"
+        manufacturer_dir = (
+            output_dir / "01_write_side" / "013_catalog" / "0132_manufacturer"
+        )
         assert manufacturer_dir.exists(), "Manufacturer subdomain directory not found"
 
         # All three entity directories should be under manufacturer (snake_case, no _group)
         entity_dirs = list(manufacturer_dir.glob("*"))
-        assert len(entity_dirs) == 3, f"Expected 3 entity dirs, found {len(entity_dirs)}"
+        assert len(entity_dirs) == 3, (
+            f"Expected 3 entity dirs, found {len(entity_dirs)}"
+        )
 
         # Verify snake_case names
         dir_names = [d.name for d in entity_dirs]
-        assert any("manufacturer" in d for d in dir_names), f"manufacturer not found in {dir_names}"
+        assert any("manufacturer" in d for d in dir_names), (
+            f"manufacturer not found in {dir_names}"
+        )
         assert any("model" in d for d in dir_names), f"model not found in {dir_names}"
-        assert any("accessory" in d for d in dir_names), f"accessory not found in {dir_names}"
+        assert any("accessory" in d for d in dir_names), (
+            f"accessory not found in {dir_names}"
+        )
 
         # Verify NO _group suffix
         assert not any("_group" in d for d in dir_names), f"Found _group in {dir_names}"
@@ -227,7 +247,9 @@ fields:
         if sql_files:
             # Should use snake_case
             filenames = [f.name for f in sql_files]
-            assert any("color_mode" in f for f in filenames), f"No snake_case in {filenames}"
+            assert any("color_mode" in f for f in filenames), (
+                f"No snake_case in {filenames}"
+            )
             assert not any("colormode.sql" in f for f in filenames), (
                 f"Found non-snake_case in {filenames}"
             )

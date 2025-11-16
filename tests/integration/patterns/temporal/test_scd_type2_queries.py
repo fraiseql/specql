@@ -152,7 +152,9 @@ class TestSCDType2PatternIntegration:
         sql = pattern.generate(entity, config)
 
         # Unique index on current versions
-        assert "CREATE UNIQUE INDEX IF NOT EXISTS idx_v_contract_scd_current_unique" in sql
+        assert (
+            "CREATE UNIQUE INDEX IF NOT EXISTS idx_v_contract_scd_current_unique" in sql
+        )
         assert "ON tenant.v_contract_scd(pk_contract)" in sql
         assert "WHERE is_current = true" in sql
 

@@ -26,7 +26,10 @@ def test_generate_phone():
 def test_generate_enum():
     """Test enum generation"""
     gen = FieldValueGenerator(seed=42)
-    mapping = {"field_type": "enum(lead, qualified, customer)", "generator_type": "random"}
+    mapping = {
+        "field_type": "enum(lead, qualified, customer)",
+        "generator_type": "random",
+    }
 
     status = gen.generate(mapping)
     assert status in ["lead", "qualified", "customer"]

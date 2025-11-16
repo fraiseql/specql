@@ -62,11 +62,15 @@ CREATE INDEX IF NOT EXISTS idx_{audit_table_name}_cascade_entities
 """)
 
         # Create audit trigger function
-        trigger_sql = self.generate_audit_trigger({"name": entity_name, "schema": "{{ entity.schema }}"}, audit_config)
+        trigger_sql = self.generate_audit_trigger(
+            {"name": entity_name, "schema": "{{ entity.schema }}"}, audit_config
+        )
         sql_parts.append(trigger_sql)
 
         # Create audit query functions
-        query_functions_sql = self.generate_audit_query_functions(entity_name, audit_config)
+        query_functions_sql = self.generate_audit_query_functions(
+            entity_name, audit_config
+        )
         sql_parts.append(query_functions_sql)
 
         # Add cascade audit views if cascade is enabled
@@ -88,7 +92,9 @@ CREATE INDEX IF NOT EXISTS idx_{audit_table_name}_cascade_entities
         cascade_columns = ""
         cascade_values = ""
         if include_cascade:
-            cascade_columns = ", cascade_data, cascade_entities, cascade_timestamp, cascade_source"
+            cascade_columns = (
+                ", cascade_data, cascade_entities, cascade_timestamp, cascade_source"
+            )
             cascade_values = """,
         NULLIF(current_setting('app.cascade_data', true), '')::jsonb,
         string_to_array(NULLIF(current_setting('app.cascade_entities', true), ''), ','),
@@ -138,7 +144,9 @@ CREATE TRIGGER {trigger_name}
 
         return "\n".join(sql_parts)
 
-    def generate_audit_query_functions(self, entity_name: str, audit_config: dict) -> str:
+    def generate_audit_query_functions(
+        self, entity_name: str, audit_config: dict
+    ) -> str:
         """Generate audit query functions with optional cascade support"""
         audit_table_name = f"audit_{entity_name.lower()}"
         include_cascade = audit_config.get("include_cascade", False)
@@ -359,18 +367,24 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 
         return "\n".join(sql_parts)
 
-    def generate_enterprise_features(self, entity_name: str, config: Dict[str, Any]) -> str:
+    def generate_enterprise_features(
+        self, entity_name: str, config: Dict[str, Any]
+    ) -> str:
         """Generate complete enterprise feature set"""
         sql_parts = []
 
         # Audit trail
         if config.get("audit", {}).get("enabled", False):
             sql_parts.append(
-                self.generate_audit_trail(entity_name, config.get("fields", []), config["audit"])
+                self.generate_audit_trail(
+                    entity_name, config.get("fields", []), config["audit"]
+                )
             )
 
         # Compliance monitoring
         if config.get("compliance", {}).get("enabled", False):
-            sql_parts.append(self.generate_compliance_monitoring(entity_name, config["compliance"]))
+            sql_parts.append(
+                self.generate_compliance_monitoring(entity_name, config["compliance"])
+            )
 
         return "\n\n".join(sql_parts)

@@ -9,7 +9,9 @@ from src.generators.actions.switch_optimizer import SwitchOptimizer
 class SwitchStepCompiler(StepCompiler):
     """Compiles switch steps to PL/pgSQL CASE WHEN or IF/ELSIF"""
 
-    def compile(self, step: ActionStep, entity: EntityDefinition, context: CompilationContext) -> str:
+    def compile(
+        self, step: ActionStep, entity: EntityDefinition, context: CompilationContext
+    ) -> str:
         """
         Compile switch to CASE WHEN or IF/ELSIF chain
 
@@ -26,7 +28,9 @@ class SwitchStepCompiler(StepCompiler):
             # Use IF/ELSIF for complex conditions
             return self._compile_as_if_chain(step, context)
 
-    def _compile_as_case_expression(self, step: ActionStep, context: CompilationContext) -> str:
+    def _compile_as_case_expression(
+        self, step: ActionStep, context: CompilationContext
+    ) -> str:
         """Compile to CASE WHEN expression"""
         lines = [f"CASE {step.switch_expression}"]
 
@@ -46,7 +50,9 @@ class SwitchStepCompiler(StepCompiler):
         lines.append("END CASE;")
         return "\n".join(lines)
 
-    def _compile_as_if_chain(self, step: ActionStep, context: CompilationContext) -> str:
+    def _compile_as_if_chain(
+        self, step: ActionStep, context: CompilationContext
+    ) -> str:
         """Compile to IF/ELSIF/ELSE chain"""
         lines = []
 
@@ -68,7 +74,9 @@ class SwitchStepCompiler(StepCompiler):
         lines.append("END IF;")
         return "\n".join(lines)
 
-    def _compile_steps(self, steps: list[ActionStep], context: CompilationContext) -> str:
+    def _compile_steps(
+        self, steps: list[ActionStep], context: CompilationContext
+    ) -> str:
         """Compile a list of steps (helper method)"""
         if not steps:
             return ""

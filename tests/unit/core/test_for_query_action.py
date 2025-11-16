@@ -30,7 +30,10 @@ def test_for_query_basic():
     action = entity_def.actions[0]
 
     assert action.steps[1].type == "for_query"
-    assert action.steps[1].for_query_sql == "SELECT id, amount FROM orders WHERE status = 'active'"
+    assert (
+        action.steps[1].for_query_sql
+        == "SELECT id, amount FROM orders WHERE status = 'active'"
+    )
     assert action.steps[1].for_query_alias == "order_record"
     assert len(action.steps[1].for_query_body) == 2
 

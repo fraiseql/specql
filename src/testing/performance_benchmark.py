@@ -103,7 +103,11 @@ class PerformanceBenchmarker:
                     pattern_time = self.execute_query_multiple_times(
                         conn,
                         pattern_query,
-                        [test_data["tenant_id"], test_data["user_id"], test_data["contact_data"]],
+                        [
+                            test_data["tenant_id"],
+                            test_data["user_id"],
+                            test_data["contact_data"],
+                        ],
                         10,  # Fewer iterations for safety
                     )
 
@@ -112,11 +116,17 @@ class PerformanceBenchmarker:
                     manual_time = self.execute_query_multiple_times(
                         conn,
                         manual_query,
-                        [test_data["tenant_id"], test_data["user_id"], test_data["contact_data"]],
+                        [
+                            test_data["tenant_id"],
+                            test_data["user_id"],
+                            test_data["contact_data"],
+                        ],
                         10,
                     )
 
-                    improvement = manual_time / pattern_time if pattern_time > 0 else float("inf")
+                    improvement = (
+                        manual_time / pattern_time if pattern_time > 0 else float("inf")
+                    )
 
                     result = BenchmarkResult(
                         operation=description,
@@ -138,7 +148,9 @@ class PerformanceBenchmarker:
 
         return results
 
-    def benchmark_state_machine_operations(self, entity_name: str) -> List[BenchmarkResult]:
+    def benchmark_state_machine_operations(
+        self, entity_name: str
+    ) -> List[BenchmarkResult]:
         """Benchmark state machine transition operations"""
         results = []
 
@@ -167,7 +179,11 @@ class PerformanceBenchmarker:
                     pattern_time = self.execute_query_multiple_times(
                         conn,
                         pattern_query,
-                        [test_data["tenant_id"], test_data["user_id"], test_data["contact_id"]],
+                        [
+                            test_data["tenant_id"],
+                            test_data["user_id"],
+                            test_data["contact_id"],
+                        ],
                         5,
                     )
 
@@ -176,11 +192,17 @@ class PerformanceBenchmarker:
                     manual_time = self.execute_query_multiple_times(
                         conn,
                         manual_query,
-                        [test_data["tenant_id"], test_data["user_id"], test_data["contact_id"]],
+                        [
+                            test_data["tenant_id"],
+                            test_data["user_id"],
+                            test_data["contact_id"],
+                        ],
                         5,
                     )
 
-                    improvement = manual_time / pattern_time if pattern_time > 0 else float("inf")
+                    improvement = (
+                        manual_time / pattern_time if pattern_time > 0 else float("inf")
+                    )
 
                     result = BenchmarkResult(
                         operation=f"{description} (State Machine)",
@@ -208,7 +230,9 @@ class PerformanceBenchmarker:
         """Generate comprehensive performance report"""
         total_pattern = sum(r.pattern_implementation for r in all_results)
         total_manual = sum(r.manual_implementation for r in all_results)
-        overall_improvement = total_manual / total_pattern if total_pattern > 0 else float("inf")
+        overall_improvement = (
+            total_manual / total_pattern if total_pattern > 0 else float("inf")
+        )
 
         recommendations = []
 
@@ -294,7 +318,9 @@ class PerformanceBenchmarker:
         return results
 
 
-def run_pattern_performance_analysis(entity_name: str, db_connection: Optional[str] = None) -> str:
+def run_pattern_performance_analysis(
+    entity_name: str, db_connection: Optional[str] = None
+) -> str:
     """
     Run comprehensive performance analysis for pattern implementations
 

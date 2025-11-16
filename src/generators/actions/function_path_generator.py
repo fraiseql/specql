@@ -73,7 +73,9 @@ class FunctionPathGenerator(PathGenerator):
 
         subdomain_info = self.naming.registry.get_subdomain(domain_code, subdomain_code)
         if not subdomain_info:
-            raise ValueError(f"Unknown subdomain code: {subdomain_code} in domain {domain_code}")
+            raise ValueError(
+                f"Unknown subdomain code: {subdomain_code} in domain {domain_code}"
+            )
 
         # Build path components
         domain_name = domain_info.domain_name
@@ -91,12 +93,17 @@ class FunctionPathGenerator(PathGenerator):
             name_parts = file_spec.name[3:].split("_")
             entity_name = name_parts[0]  # First part is entity name
         else:
-            raise ValueError(f"Function file name should start with 'fn_', got: {file_spec.name}")
+            raise ValueError(
+                f"Function file name should start with 'fn_', got: {file_spec.name}"
+            )
 
         from src.generators.naming_utils import camel_to_snake
+
         entity_snake = camel_to_snake(entity_name)
 
-        entity_dir_code = f"{schema_layer}{domain_code}{subdomain_code}{entity_sequence}"
+        entity_dir_code = (
+            f"{schema_layer}{domain_code}{subdomain_code}{entity_sequence}"
+        )
         entity_dir = f"{entity_dir_code}_{entity_snake}"
 
         # File name: {code}_{fn_name}.sql

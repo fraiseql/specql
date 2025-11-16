@@ -62,17 +62,23 @@ class RefreshTableViewStepCompiler:
                 fk_vars = context.get("fk_vars", {})
                 for rel_entity_name in step.propagate_entities:
                     # Get FK for this relation - try context first, then derive
-                    fk_var = fk_vars.get(rel_entity_name.lower()) or self._get_fk_var_for_entity(
-                        entity, rel_entity_name, context
-                    )
+                    fk_var = fk_vars.get(
+                        rel_entity_name.lower()
+                    ) or self._get_fk_var_for_entity(entity, rel_entity_name, context)
 
                     if fk_var:
                         # Get the actual entity name that this field references
                         field_def = entity.fields.get(rel_entity_name)
-                        if field_def and field_def.is_reference() and field_def.reference_entity:
+                        if (
+                            field_def
+                            and field_def.is_reference()
+                            and field_def.reference_entity
+                        ):
                             actual_entity_name = field_def.reference_entity
                             if actual_entity_name:  # Additional check for type safety
-                                rel_schema = self._get_entity_schema(actual_entity_name, context)  # type: ignore
+                                rel_schema = self._get_entity_schema(
+                                    actual_entity_name, context
+                                )  # type: ignore
                                 entity_name_lower = actual_entity_name.lower()  # type: ignore
                                 lines.append(
                                     f"PERFORM {rel_schema}.refresh_tv_{entity_name_lower}({fk_var});"
@@ -129,7 +135,10 @@ class RefreshTableViewStepCompiler:
         """
         # Look for fields that reference this entity
         for field_name, field_def in entity.fields.items():
-            if field_def.is_reference() and field_def.reference_entity == ref_entity_name:
+            if (
+                field_def.is_reference()
+                and field_def.reference_entity == ref_entity_name
+            ):
                 return f"v_fk_{field_name.lower()}"
 
         return None
@@ -187,7 +196,10 @@ class RefreshTableViewStepCompiler:
 
             # Check if this entity has FKs to our entity
             for field_name, field_def in other_entity.fields.items():
-                if field_def.is_reference() and field_def.reference_entity == entity.name:
+                if (
+                    field_def.is_reference()
+                    and field_def.reference_entity == entity.name
+                ):
                     dependent_entities.append(other_entity)
                     break
 

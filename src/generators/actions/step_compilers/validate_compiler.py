@@ -50,7 +50,9 @@ class ValidateStepCompiler:
         # Check if this is a scalar type validation
         scalar_validation = self._is_scalar_validation(expression, entity)
         if scalar_validation:
-            return self._compile_scalar_validation(scalar_validation, error_code, entity)
+            return self._compile_scalar_validation(
+                scalar_validation, error_code, entity
+            )
 
         # Parse expression to extract field references
         fields_to_fetch = self._extract_fields(expression, entity)
@@ -114,7 +116,9 @@ class ValidateStepCompiler:
     FROM {table_name}
     WHERE {pk_column} = v_pk;"""
 
-    def _generate_check(self, expression: str, error_code: str, entity: EntityDefinition) -> str:
+    def _generate_check(
+        self, expression: str, error_code: str, entity: EntityDefinition
+    ) -> str:
         """
         Generate IF check for validation
 
@@ -134,7 +138,9 @@ class ValidateStepCompiler:
         RETURN v_result;
     END IF;"""
 
-    def _replace_fields_with_vars(self, expression: str, entity: EntityDefinition) -> str:
+    def _replace_fields_with_vars(
+        self, expression: str, entity: EntityDefinition
+    ) -> str:
         """
         Replace field names with v_field variables
 
@@ -148,7 +154,9 @@ class ValidateStepCompiler:
             # Replace whole word matches only
             import re
 
-            expression = re.sub(rf"\b{re.escape(field_name)}\b", f"v_{field_name}", expression)
+            expression = re.sub(
+                rf"\b{re.escape(field_name)}\b", f"v_{field_name}", expression
+            )
 
         return expression
 
@@ -183,7 +191,10 @@ class ValidateStepCompiler:
         return (field_name, field_def.type_name)
 
     def _compile_scalar_validation(
-        self, scalar_validation: tuple[str, str], error_code: str, entity: EntityDefinition
+        self,
+        scalar_validation: tuple[str, str],
+        error_code: str,
+        entity: EntityDefinition,
     ) -> str:
         """
         Compile scalar type validation

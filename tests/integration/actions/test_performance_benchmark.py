@@ -24,7 +24,9 @@ def convert_entity_definition_to_entity(entity_def):
     # Convert ActionDefinition to Action
     actions = []
     for action_def in entity_def.actions:
-        action = Action(name=action_def.name, steps=action_def.steps, impact=action_def.impact)
+        action = Action(
+            name=action_def.name, steps=action_def.steps, impact=action_def.impact
+        )
         actions.append(action)
 
     # Create Entity
@@ -50,7 +52,9 @@ def test_generated_vs_handwritten_performance():
     """
     # Parse SpecQL and generate schema
     parser = SpecQLParser()
-    entity_def = parser.parse(read_yaml_file("entities/examples/contact_lightweight.yaml"))
+    entity_def = parser.parse(
+        read_yaml_file("entities/examples/contact_lightweight.yaml")
+    )
     entity = convert_entity_definition_to_entity(entity_def)
 
     orchestrator = SchemaOrchestrator()
@@ -81,7 +85,9 @@ def test_compilation_speed_benchmark():
 
     # Parse and compile contact entity
     parser = SpecQLParser()
-    entity_def = parser.parse(read_yaml_file("entities/examples/contact_lightweight.yaml"))
+    entity_def = parser.parse(
+        read_yaml_file("entities/examples/contact_lightweight.yaml")
+    )
     entity = convert_entity_definition_to_entity(entity_def)
 
     orchestrator = SchemaOrchestrator()
@@ -91,7 +97,9 @@ def test_compilation_speed_benchmark():
     compilation_time = end_time - start_time
 
     # Compilation should be fast (< 1 second for this entity)
-    assert compilation_time < 1.0, f"Compilation took {compilation_time:.2f}s, expected < 1.0s"
+    assert compilation_time < 1.0, (
+        f"Compilation took {compilation_time:.2f}s, expected < 1.0s"
+    )
 
     # Verify substantial output was generated
     assert len(migration_sql) > 5000
@@ -107,7 +115,9 @@ def test_action_validation_speed():
 
     # Parse entity with actions
     parser = SpecQLParser()
-    entity_def = parser.parse(read_yaml_file("entities/examples/contact_lightweight.yaml"))
+    entity_def = parser.parse(
+        read_yaml_file("entities/examples/contact_lightweight.yaml")
+    )
 
     start_time = time.time()
 
@@ -124,4 +134,6 @@ def test_action_validation_speed():
     validation_time = end_time - start_time
 
     # Validation should be fast (< 0.2 second even with errors)
-    assert validation_time < 0.2, f"Validation took {validation_time:.3f}s, expected < 0.2s"
+    assert validation_time < 0.2, (
+        f"Validation took {validation_time:.3f}s, expected < 0.2s"
+    )

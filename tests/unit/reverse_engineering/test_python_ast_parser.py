@@ -1,8 +1,8 @@
 from src.reverse_engineering.python_ast_parser import PythonASTParser
 from src.reverse_engineering.protocols import SourceLanguage
 
-class TestPythonASTParser:
 
+class TestPythonASTParser:
     def test_parse_dataclass_entity(self):
         """Test parsing Python dataclass to ParsedEntity"""
         source = '''
@@ -42,14 +42,14 @@ class Contact:
 
     def test_parse_pydantic_model(self):
         """Test parsing Pydantic model"""
-        source = '''
+        source = """
 from pydantic import BaseModel, EmailStr
 
 class User(BaseModel):
     email: EmailStr
     age: int
     is_active: bool = True
-'''
+"""
 
         parser = PythonASTParser()
         entity = parser.parse_entity(source)
@@ -62,7 +62,7 @@ class User(BaseModel):
 
     def test_parse_django_model(self):
         """Test parsing Django model"""
-        source = '''
+        source = """
 from django.db import models
 
 class Article(models.Model):
@@ -70,7 +70,7 @@ class Article(models.Model):
     content = models.TextField()
     published_at = models.DateTimeField(null=True)
     author = models.ForeignKey('User', on_delete=models.CASCADE)
-'''
+"""
 
         parser = PythonASTParser()
         entity = parser.parse_entity(source)
@@ -121,11 +121,11 @@ class Contact:
         create = next(m for m in entity.methods if m.method_name == "create_from_email")
         assert create.is_classmethod is True
         assert len(create.parameters) == 1
-        assert create.parameters[0]['name'] == 'email'
+        assert create.parameters[0]["name"] == "email"
 
     def test_detect_state_machine_pattern(self):
         """Test detecting state machine pattern"""
-        source = '''
+        source = """
 class Order:
     status: str
 
@@ -134,7 +134,7 @@ class Order:
 
     def transition_to_delivered(self):
         self.status = "delivered"
-'''
+"""
 
         parser = PythonASTParser()
         entity = parser.parse_entity(source)

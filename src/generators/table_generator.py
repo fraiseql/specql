@@ -30,7 +30,9 @@ class TableGenerator:
         "decimal": "DECIMAL",
     }
 
-    def __init__(self, schema_registry: SchemaRegistry, templates_dir: str = "templates/sql"):
+    def __init__(
+        self, schema_registry: SchemaRegistry, templates_dir: str = "templates/sql"
+    ):
         """Initialize with Jinja2 templates and schema registry"""
         self.schema_registry = schema_registry
         self.templates_dir = templates_dir
@@ -109,7 +111,9 @@ class TableGenerator:
                 }
 
                 # Generate named constraints for rich types
-                constraint = self.constraint_generator.generate_constraint(field_def, table_name)
+                constraint = self.constraint_generator.generate_constraint(
+                    field_def, table_name
+                )
                 if constraint:
                     table_constraints.append(constraint)
 
@@ -131,7 +135,9 @@ class TableGenerator:
                 "constraints": table_constraints,
                 "multi_tenant": is_tenant_specific,
                 "translations": {
-                    "enabled": entity.translations.enabled if entity.translations else False,
+                    "enabled": entity.translations.enabled
+                    if entity.translations
+                    else False,
                     "table_name": (
                         entity.translations.table_name
                         if entity.translations and entity.translations.table_name

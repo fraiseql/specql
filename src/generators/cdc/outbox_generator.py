@@ -6,7 +6,6 @@ event-driven architecture with Debezium integration.
 """
 
 
-
 class OutboxGenerator:
     """Generates CDC outbox infrastructure"""
 
@@ -205,8 +204,10 @@ ORDER BY created_at DESC;
 
     def generate_all(self) -> str:
         """Generate complete outbox infrastructure"""
-        return "\n\n".join([
-            self.generate_outbox_table(),
-            self.generate_outbox_helper_functions(),
-            self.generate_outbox_views()
-        ])
+        return "\n\n".join(
+            [
+                self.generate_outbox_table(),
+                self.generate_outbox_helper_functions(),
+                self.generate_outbox_views(),
+            ]
+        )

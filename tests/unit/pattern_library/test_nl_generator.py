@@ -17,27 +17,52 @@ class TestNLPatternGenerator:
             "category": "workflow",
             "description": "A test pattern for workflows",
             "parameters": {
-                "entity": {"type": "string", "required": True, "description": "Target entity name"}
+                "entity": {
+                    "type": "string",
+                    "required": True,
+                    "description": "Target entity name",
+                }
             },
             "implementation": {
                 "fields": [
-                    {"name": "pk_test_id", "type": "integer", "description": "Primary key"},
+                    {
+                        "name": "pk_test_id",
+                        "type": "integer",
+                        "description": "Primary key",
+                    },
                     {"name": "id", "type": "uuid", "description": "Unique identifier"},
-                    {"name": "identifier", "type": "text", "description": "Human-readable identifier"},
-                    {"name": "created_at", "type": "timestamp", "description": "Creation timestamp"},
-                    {"name": "updated_at", "type": "timestamp", "description": "Update timestamp"},
-                    {"name": "status", "type": "enum(draft,active)", "default": "draft", "description": "Status field"}
+                    {
+                        "name": "identifier",
+                        "type": "text",
+                        "description": "Human-readable identifier",
+                    },
+                    {
+                        "name": "created_at",
+                        "type": "timestamp",
+                        "description": "Creation timestamp",
+                    },
+                    {
+                        "name": "updated_at",
+                        "type": "timestamp",
+                        "description": "Update timestamp",
+                    },
+                    {
+                        "name": "status",
+                        "type": "enum(draft,active)",
+                        "default": "draft",
+                        "description": "Status field",
+                    },
                 ],
                 "actions": [
                     {
                         "name": "activate",
                         "steps": [
                             {"validate": "status = 'draft'"},
-                            {"update": "SET status = 'active', updated_at = now()"}
-                        ]
+                            {"update": "SET status = 'active', updated_at = now()"},
+                        ],
                     }
-                ]
-            }
+                ],
+            },
         }
         mock_provider.close = Mock()
         return mock_provider
@@ -45,7 +70,10 @@ class TestNLPatternGenerator:
     @pytest.fixture
     def generator(self, mock_grok_provider):
         """Create generator with mocked Grok provider."""
-        with patch('src.pattern_library.nl_generator.GrokProvider', return_value=mock_grok_provider):
+        with patch(
+            "src.pattern_library.nl_generator.GrokProvider",
+            return_value=mock_grok_provider,
+        ):
             gen = NLPatternGenerator(log_to_db=False)
             return gen
 
@@ -88,23 +116,20 @@ class TestNLPatternGenerator:
             "name": "test_pattern",
             "category": "workflow",
             "description": "A test pattern",
-            "parameters": {
-                "entity": {"type": "string", "required": True}
-            },
+            "parameters": {"entity": {"type": "string", "required": True}},
             "implementation": {
                 "fields": [
                     {"name": "id", "type": "uuid", "description": "Primary key"},
-                    {"name": "created_at", "type": "timestamp", "description": "Creation time"}
+                    {
+                        "name": "created_at",
+                        "type": "timestamp",
+                        "description": "Creation time",
+                    },
                 ],
                 "actions": [
-                    {
-                        "name": "create",
-                        "steps": [
-                            {"validate": "id IS NOT NULL"}
-                        ]
-                    }
-                ]
-            }
+                    {"name": "create", "steps": [{"validate": "id IS NOT NULL"}]}
+                ],
+            },
         }
 
         is_valid, message = generator._validate_pattern(valid_pattern)
@@ -131,7 +156,7 @@ class TestNLPatternGenerator:
             "category": "invalid_category",
             "description": "Test",
             "parameters": {"entity": {"type": "string"}},
-            "implementation": {"fields": []}
+            "implementation": {"fields": []},
         }
 
         is_valid, message = generator._validate_pattern(invalid_pattern)
@@ -150,7 +175,7 @@ class TestNLPatternGenerator:
                 "fields": [
                     {"name": "InvalidName", "type": "text"}  # Should be snake_case
                 ]
-            }
+            },
         }
 
         is_valid, message = generator._validate_pattern(invalid_pattern)
@@ -165,7 +190,7 @@ class TestNLPatternGenerator:
             "category": "workflow",
             "description": "Test",
             "parameters": {"entity": {"type": "string"}},
-            "implementation": {}  # Empty implementation
+            "implementation": {},  # Empty implementation
         }
 
         is_valid, message = generator._validate_pattern(invalid_pattern)
@@ -181,7 +206,7 @@ class TestNLPatternGenerator:
             "description": "Two-stage approval workflow",
             "parameters": {
                 "entity": {"type": "string", "required": True},
-                "approver_role": {"type": "string"}
+                "approver_role": {"type": "string"},
             },
             "implementation": {
                 "fields": [
@@ -190,21 +215,26 @@ class TestNLPatternGenerator:
                     {"name": "identifier", "type": "text"},
                     {"name": "created_at", "type": "timestamp"},
                     {"name": "updated_at", "type": "timestamp"},
-                    {"name": "approval_status", "type": "enum(pending,approved,rejected)"}
+                    {
+                        "name": "approval_status",
+                        "type": "enum(pending,approved,rejected)",
+                    },
                 ],
                 "actions": [
                     {
                         "name": "approve",
                         "steps": [
                             {"validate": "approval_status = 'pending'"},
-                            {"update": "SET approval_status = 'approved'"}
-                        ]
+                            {"update": "SET approval_status = 'approved'"},
+                        ],
                     }
-                ]
-            }
+                ],
+            },
         }
 
-        confidence = generator._score_confidence(complete_pattern, "approval workflow pattern")
+        confidence = generator._score_confidence(
+            complete_pattern, "approval workflow pattern"
+        )
 
         assert confidence > 0.8  # Should be high for complete pattern
 
@@ -215,7 +245,7 @@ class TestNLPatternGenerator:
             "category": "workflow",
             "description": "Test",
             "parameters": {},
-            "implementation": {}
+            "implementation": {},
         }
 
         confidence = generator._score_confidence(incomplete_pattern, "some description")
@@ -229,11 +259,13 @@ class TestNLPatternGenerator:
             "category": "workflow",
             "description": "Test pattern",
             "parameters": {"entity": {"type": "string", "required": True}},
-            "implementation": {"fields": [{"name": "id", "type": "uuid", "description": "ID"}]}
+            "implementation": {
+                "fields": [{"name": "id", "type": "uuid", "description": "ID"}]
+            },
         }
 
-        with patch.dict('os.environ', {'SPECQL_DB_URL': 'postgresql://test'}):
-            with patch('psycopg.connect') as mock_connect:
+        with patch.dict("os.environ", {"SPECQL_DB_URL": "postgresql://test"}):
+            with patch("psycopg.connect") as mock_connect:
                 mock_conn = MagicMock()
                 mock_cursor = MagicMock()
                 mock_cursor.fetchone.return_value = (123,)  # Return tuple, not list
@@ -248,10 +280,15 @@ class TestNLPatternGenerator:
 
     def test_save_pattern_no_db_url(self, generator):
         """Test save fails without DB URL."""
-        pattern = {"name": "test", "category": "workflow", "description": "test",
-                  "parameters": {}, "implementation": {}}
+        pattern = {
+            "name": "test",
+            "category": "workflow",
+            "description": "test",
+            "parameters": {},
+            "implementation": {},
+        }
 
-        with patch.dict('os.environ', {}, clear=True):
+        with patch.dict("os.environ", {}, clear=True):
             with pytest.raises(ValueError, match="SPECQL_DB_URL"):
                 generator.save_pattern(pattern, 0.8)
 
@@ -262,23 +299,35 @@ class TestNLPatternGenerator:
         mock_grok_provider.call_json.side_effect = [
             {  # Invalid - missing description, parameters, implementation
                 "name": "invalid",
-                "category": "workflow"
+                "category": "workflow",
             },
             {  # Valid on retry
                 "name": "valid_pattern",
                 "category": "workflow",
                 "description": "Valid pattern for testing",
-                "parameters": {"entity": {"type": "string", "required": True, "description": "Entity"}},
+                "parameters": {
+                    "entity": {
+                        "type": "string",
+                        "required": True,
+                        "description": "Entity",
+                    }
+                },
                 "implementation": {
                     "fields": [
                         {"name": "id", "type": "uuid", "description": "ID"},
-                        {"name": "created_at", "type": "timestamp", "description": "Created"}
+                        {
+                            "name": "created_at",
+                            "type": "timestamp",
+                            "description": "Created",
+                        },
                     ]
-                }
-            }
+                },
+            },
         ]
 
-        pattern, confidence, message = generator.generate("test description", max_retries=2)
+        pattern, confidence, message = generator.generate(
+            "test description", max_retries=2
+        )
 
         assert pattern["name"] == "valid_pattern"
         assert mock_grok_provider.call_json.call_count == 2
@@ -292,6 +341,6 @@ class TestNLPatternGenerator:
 
     def test_template_not_found(self):
         """Test error when template file not found."""
-        with patch('pathlib.Path.exists', return_value=False):
+        with patch("pathlib.Path.exists", return_value=False):
             with pytest.raises(FileNotFoundError):
                 NLPatternGenerator(log_to_db=False)

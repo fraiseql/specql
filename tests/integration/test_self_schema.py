@@ -3,6 +3,7 @@ Integration tests for self-schema generation.
 
 Tests that SpecQL can generate its own registry schema correctly.
 """
+
 import pytest
 from pathlib import Path
 

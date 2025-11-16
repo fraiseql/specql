@@ -20,7 +20,10 @@ class TestCompleteSetWrapper:
 
         sql = generate_complete_set_wrapper(config)
 
-        assert "CREATE OR REPLACE VIEW tenant.v_count_allocations_by_location_optimized AS" in sql
+        assert (
+            "CREATE OR REPLACE VIEW tenant.v_count_allocations_by_location_optimized AS"
+            in sql
+        )
         assert "SELECT * FROM tenant.mv_count_allocations_by_location" in sql
         assert "UNION ALL" in sql
         assert "SELECT" in sql

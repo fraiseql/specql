@@ -75,7 +75,9 @@ def generate_business_audit_update(user_id_field: str = "current_user_id") -> st
     updated_by = {user_id_field}"""
 
 
-def generate_identifier_recalculation_audit(system_user_field: str = "system_user_id") -> str:
+def generate_identifier_recalculation_audit(
+    system_user_field: str = "system_user_id",
+) -> str:
     """Generate SQL snippet for identifier recalculation audit update.
 
     Example usage:

@@ -35,7 +35,10 @@ class TestFrontendGeneratorsE2E:
             description="Contact entity for testing",
             fields={
                 "id": FieldDefinition(
-                    name="id", type_name="uuid", nullable=False, description="Primary key"
+                    name="id",
+                    type_name="uuid",
+                    nullable=False,
+                    description="Primary key",
                 ),
                 "first_name": FieldDefinition(
                     name="first_name",
@@ -170,7 +173,9 @@ class TestFrontendGeneratorsE2E:
         # Check for expected hooks and queries
         assert "export const GET_CONTACT_QUERY" in content
         # The mutation constant naming may vary
-        assert "CREATECONTACT_MUTATION" in content or "CREATE_CONTACT_MUTATION" in content
+        assert (
+            "CREATECONTACT_MUTATION" in content or "CREATE_CONTACT_MUTATION" in content
+        )
         assert "export const GET_CONTACTS_QUERY" in content
         assert "CREATECONTACT_MUTATION" in content
         assert "UPDATECONTACT_MUTATION" in content
@@ -217,7 +222,9 @@ class TestFrontendGeneratorsE2E:
         assert "from" in content
         assert "useCreateContact" in content
 
-    def test_complete_frontend_generation_pipeline(self, sample_entities, temp_output_dir):
+    def test_complete_frontend_generation_pipeline(
+        self, sample_entities, temp_output_dir
+    ):
         """Test the complete frontend generation pipeline"""
         # Generate all frontend code
         MutationImpactsGenerator(temp_output_dir).generate_impacts(sample_entities)

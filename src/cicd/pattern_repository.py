@@ -13,6 +13,7 @@ from src.cicd.universal_pipeline_schema import UniversalPipeline
 @dataclass
 class PipelinePattern:
     """Reusable CI/CD pipeline pattern"""
+
     pattern_id: str
     name: str
     description: str
@@ -50,9 +51,7 @@ class PipelinePatternRepository(Protocol):
         ...
 
     def search_by_similarity(
-        self,
-        query_embedding: List[float],
-        limit: int = 10
+        self, query_embedding: List[float], limit: int = 10
     ) -> List[PipelinePattern]:
         """Semantic search for similar patterns"""
         ...

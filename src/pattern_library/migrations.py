@@ -38,7 +38,7 @@ class MigrationManager:
         # Check if migration already applied
         cursor = self.db.execute(
             "SELECT migration_id FROM schema_migrations WHERE migration_id = ?",
-            (migration_id,)
+            (migration_id,),
         )
         if cursor.fetchone():
             return False  # Already applied
@@ -49,7 +49,7 @@ class MigrationManager:
         # Record migration
         self.db.execute(
             "INSERT INTO schema_migrations (migration_id, description) VALUES (?, ?)",
-            (migration_id, description)
+            (migration_id, description),
         )
         self.db.commit()
 
@@ -60,7 +60,10 @@ class MigrationManager:
         cursor = self.db.execute(
             "SELECT migration_id, description, applied_at FROM schema_migrations ORDER BY applied_at"
         )
-        return [{"migration_id": row[0], "description": row[1], "applied_at": row[2]} for row in cursor.fetchall()]
+        return [
+            {"migration_id": row[0], "description": row[1], "applied_at": row[2]}
+            for row in cursor.fetchall()
+        ]
 
     def close(self):
         """Close database connection"""
@@ -82,7 +85,7 @@ def migrate_add_performance_indexes(db_path: str):
     applied = manager.apply_migration(
         migration_id="add_performance_indexes",
         description="Add performance indexes for faster queries",
-        sql=sql
+        sql=sql,
     )
 
     manager.close()
@@ -103,7 +106,7 @@ def migrate_add_metadata_columns(db_path: str):
     applied = manager.apply_migration(
         migration_id="add_metadata_columns",
         description="Add metadata columns for better organization",
-        sql=sql
+        sql=sql,
     )
 
     manager.close()

@@ -12,10 +12,10 @@ def cdc():
 
 
 @cdc.command()
-@click.option('--database-host', default='localhost', help='PostgreSQL host')
-@click.option('--database-name', required=True, help='PostgreSQL database name')
-@click.option('--kafka-host', default='kafka:9092', help='Kafka bootstrap servers')
-@click.option('--output-dir', default='./cdc', help='Output directory')
+@click.option("--database-host", default="localhost", help="PostgreSQL host")
+@click.option("--database-name", required=True, help="PostgreSQL database name")
+@click.option("--kafka-host", default="kafka:9092", help="Kafka bootstrap servers")
+@click.option("--output-dir", default="./cdc", help="Output directory")
 def generate_config(database_host, database_name, kafka_host, output_dir):
     """Generate Debezium connector configuration"""
 
@@ -38,25 +38,27 @@ def generate_config(database_host, database_name, kafka_host, output_dir):
 
 
 @cdc.command()
-@click.option('--kafka-connect-url', default='http://localhost:8083')
+@click.option("--kafka-connect-url", default="http://localhost:8083")
 def status(kafka_connect_url):
     """Check Debezium connector status"""
     import requests
 
     try:
-        response = requests.get(f"{kafka_connect_url}/connectors/specql-outbox-connector/status")
+        response = requests.get(
+            f"{kafka_connect_url}/connectors/specql-outbox-connector/status"
+        )
         status = response.json()
 
         click.echo(f"Connector: {status['name']}")
         click.echo(f"State: {status['connector']['state']}")
         click.echo(f"Worker: {status['connector']['worker_id']}")
 
-        for task in status.get('tasks', []):
+        for task in status.get("tasks", []):
             click.echo(f"Task {task['id']}: {task['state']}")
 
     except Exception as e:
         click.echo(f"Error: {e}", err=True)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     cdc()

@@ -1,11 +1,12 @@
 """Application service for entity template management"""
+
 from typing import List, Dict, Any, Optional
 from datetime import datetime, timezone
 
 from src.domain.entities.entity_template import (
     EntityTemplate,
     TemplateField,
-    TemplateInstantiation
+    TemplateInstantiation,
 )
 from src.domain.value_objects import DomainNumber, TableCode
 from src.domain.repositories.entity_template_repository import EntityTemplateRepository
@@ -28,7 +29,7 @@ class TemplateService:
         included_patterns: Optional[List[str]] = None,
         composed_from: Optional[List[str]] = None,
         is_public: bool = True,
-        author: str = "system"
+        author: str = "system",
     ) -> EntityTemplate:
         """Create a new entity template"""
         # Convert field dicts to TemplateField objects
@@ -42,7 +43,7 @@ class TemplateService:
                 ref_entity=f.get("ref_entity"),
                 enum_values=f.get("enum_values"),
                 default_value=f.get("default_value"),
-                validation_rules=f.get("validation_rules", [])
+                validation_rules=f.get("validation_rules", []),
             )
             for f in fields
         ]
@@ -59,7 +60,7 @@ class TemplateService:
             composed_from=composed_from or [],
             version="1.0.0",
             is_public=is_public,
-            author=author
+            author=author,
         )
 
         # Save
@@ -87,7 +88,7 @@ class TemplateService:
         table_code: str,
         field_overrides: Optional[Dict[str, Dict[str, Any]]] = None,
         additional_fields: Optional[List[Dict[str, Any]]] = None,
-        pattern_overrides: Optional[List[str]] = None
+        pattern_overrides: Optional[List[str]] = None,
     ) -> Dict[str, Any]:
         """
         Instantiate a template to create an entity specification
@@ -110,7 +111,7 @@ class TemplateService:
                     description=f.get("description", ""),
                     composite_type=f.get("composite_type"),
                     ref_entity=f.get("ref_entity"),
-                    enum_values=f.get("enum_values")
+                    enum_values=f.get("enum_values"),
                 )
                 for f in additional_fields
             ]
@@ -123,7 +124,7 @@ class TemplateService:
             table_code=TableCode(table_code),
             field_overrides=field_overrides or {},
             additional_fields=additional_template_fields,
-            pattern_overrides=pattern_overrides
+            pattern_overrides=pattern_overrides,
         )
 
         # Generate entity spec
@@ -139,7 +140,7 @@ class TemplateService:
         template_id: str,
         template_name: Optional[str] = None,
         description: Optional[str] = None,
-        is_public: Optional[bool] = None
+        is_public: Optional[bool] = None,
     ) -> EntityTemplate:
         """Update template metadata"""
         template = self.repository.find_by_id(template_id)
@@ -168,7 +169,7 @@ class TemplateService:
         removed_fields: Optional[List[str]] = None,
         modified_fields: Optional[Dict[str, Dict[str, Any]]] = None,
         version: str = "",
-        changelog: str = ""
+        changelog: str = "",
     ) -> EntityTemplate:
         """Create a new version of existing template"""
         template = self.repository.find_by_id(template_id)
@@ -186,7 +187,7 @@ class TemplateService:
                     description=f.get("description", ""),
                     composite_type=f.get("composite_type"),
                     ref_entity=f.get("ref_entity"),
-                    enum_values=f.get("enum_values")
+                    enum_values=f.get("enum_values"),
                 )
                 for f in additional_fields
             ]
@@ -198,7 +199,7 @@ class TemplateService:
                     field_name=f["field_name"],
                     field_type=f["field_type"],
                     required=f.get("required", False),
-                    description=f.get("description", "")
+                    description=f.get("description", ""),
                 )
                 for name, f in modified_fields.items()
             }
@@ -209,7 +210,7 @@ class TemplateService:
             removed_fields=removed_fields,
             modified_fields=mod_fields,
             version=version,
-            changelog=changelog
+            changelog=changelog,
         )
 
         # Save
@@ -228,7 +229,8 @@ class TemplateService:
         query_lower = query.lower()
 
         return [
-            t for t in all_public
+            t
+            for t in all_public
             if query_lower in t.template_name.lower()
             or query_lower in t.description.lower()
         ]
@@ -237,8 +239,6 @@ class TemplateService:
         """Get most frequently instantiated templates"""
         all_public = self.repository.find_all_public()
         sorted_templates = sorted(
-            all_public,
-            key=lambda t: t.times_instantiated,
-            reverse=True
+            all_public, key=lambda t: t.times_instantiated, reverse=True
         )
         return sorted_templates[:limit]

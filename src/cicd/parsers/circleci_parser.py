@@ -8,9 +8,14 @@ import yaml
 from typing import Dict, Any, List
 from src.cicd.universal_pipeline_schema import (
     UniversalPipeline,
-    Trigger, TriggerType,
-    Stage, Job, Step, StepType,
-    Runtime, Service
+    Trigger,
+    TriggerType,
+    Stage,
+    Job,
+    Step,
+    StepType,
+    Runtime,
+    Service,
 )
 
 
@@ -46,7 +51,7 @@ class CircleCIParser:
             name=workflow_name,
             triggers=self._parse_triggers(workflow_config),
             stages=self._parse_workflows({workflow_name: workflow_config}, jobs_config),
-            global_environment=data.get("env", {})
+            global_environment=data.get("env", {}),
         )
 
     def _parse_triggers(self, workflow_config: Dict[str, Any]) -> List[Trigger]:
@@ -58,14 +63,16 @@ class CircleCIParser:
         for trigger_config in workflow_triggers:
             if "schedule" in trigger_config:
                 schedule_config = trigger_config["schedule"]
-                branches = schedule_config.get("filters", {}).get("branches", {}).get("only")
+                branches = (
+                    schedule_config.get("filters", {}).get("branches", {}).get("only")
+                )
                 # Ensure branches is a list
                 if isinstance(branches, str):
                     branches = [branches]
                 trigger = Trigger(
                     type=TriggerType.SCHEDULE,
                     schedule=schedule_config.get("cron"),
-                    branches=branches
+                    branches=branches,
                 )
                 triggers.append(trigger)
 
@@ -75,7 +82,9 @@ class CircleCIParser:
 
         return triggers
 
-    def _parse_workflows(self, workflows: Dict[str, Any], jobs_config: Dict[str, Any]) -> List[Stage]:
+    def _parse_workflows(
+        self, workflows: Dict[str, Any], jobs_config: Dict[str, Any]
+    ) -> List[Stage]:
         """Parse workflows to universal stages"""
         stages = []
 
@@ -95,13 +104,17 @@ class CircleCIParser:
                     job_name = list(job_config.keys())[0]
                     job_params = job_config[job_name]
                     job_details = jobs_config.get(job_name, {})
-                    universal_jobs.append(self._parse_job(job_name, job_details, job_params))
+                    universal_jobs.append(
+                        self._parse_job(job_name, job_details, job_params)
+                    )
 
             stages.append(Stage(name=workflow_name, jobs=universal_jobs))
 
         return stages
 
-    def _parse_job(self, job_name: str, job_config: Dict[str, Any], job_params: Dict[str, Any]) -> Job:
+    def _parse_job(
+        self, job_name: str, job_config: Dict[str, Any], job_params: Dict[str, Any]
+    ) -> Job:
         """Parse single job"""
         # Handle matrix builds
         matrix = None
@@ -117,9 +130,13 @@ class CircleCIParser:
             steps=self._parse_steps(job_config.get("steps", [])),
             runtime=self._detect_runtime(job_config),
             services=self._parse_services(job_config),
-            needs=job_params.get("requires", []) if isinstance(job_params.get("requires"), list) else [job_params.get("requires")] if job_params.get("requires") else [],
+            needs=job_params.get("requires", [])
+            if isinstance(job_params.get("requires"), list)
+            else [job_params.get("requires")]
+            if job_params.get("requires")
+            else [],
             matrix=matrix,
-            environment=job_config.get("environment", {})
+            environment=job_config.get("environment", {}),
         )
 
     def _parse_steps(self, steps_config: List[Dict[str, Any]]) -> List[Step]:
@@ -132,14 +149,13 @@ class CircleCIParser:
             # Handle different step formats
             if isinstance(step_config, str):
                 # Simple step like "checkout"
-                step = Step(
-                    name=step_config,
-                    type=step_type,
-                    command=step_config
-                )
+                step = Step(name=step_config, type=step_type, command=step_config)
             else:
                 # Complex step with parameters
-                step_name = step_config.get("name", list(step_config.keys())[0] if step_config else "Unnamed step")
+                step_name = step_config.get(
+                    "name",
+                    list(step_config.keys())[0] if step_config else "Unnamed step",
+                )
                 command = step_config.get("command") or step_config.get("run")
 
                 step = Step(
@@ -148,7 +164,7 @@ class CircleCIParser:
                     command=command,
                     with_params=step_config.get("with", {}),
                     environment=step_config.get("environment", {}),
-                    continue_on_error=step_config.get("continue_on_error", False)
+                    continue_on_error=step_config.get("continue_on_error", False),
                 )
 
             steps.append(step)
@@ -197,7 +213,11 @@ class CircleCIParser:
             return StepType.CACHE_RESTORE
 
         # Check command content for install commands
-        if "pip install" in command or "npm install" in command or "yarn install" in command:
+        if (
+            "pip install" in command
+            or "npm install" in command
+            or "yarn install" in command
+        ):
             return StepType.INSTALL_DEPS
         elif "pytest" in command or "npm test" in command or "yarn test" in command:
             return StepType.RUN_TESTS
@@ -220,19 +240,23 @@ class CircleCIParser:
             for docker_image in docker_config[1:]:  # Skip primary image
                 if isinstance(docker_image, str):
                     name, _, version = docker_image.partition(":")
-                    services.append(Service(
-                        name=name or "docker",
-                        version=version or "latest"
-                    ))
+                    services.append(
+                        Service(name=name or "docker", version=version or "latest")
+                    )
                 elif isinstance(docker_image, dict):
                     image = docker_image.get("image", "")
                     name, _, version = image.partition(":")
-                    services.append(Service(
-                        name=name or "docker",
-                        version=version or "latest",
-                        environment=docker_image.get("environment", {}),
-                        ports=[int(p.split(":")[0]) for p in docker_image.get("ports", [])]
-                    ))
+                    services.append(
+                        Service(
+                            name=name or "docker",
+                            version=version or "latest",
+                            environment=docker_image.get("environment", {}),
+                            ports=[
+                                int(p.split(":")[0])
+                                for p in docker_image.get("ports", [])
+                            ],
+                        )
+                    )
 
         return services
 

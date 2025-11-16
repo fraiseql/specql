@@ -15,7 +15,10 @@ class TableViewFile:
 
     Contains all SQL components for one tv_ entity.
     """
+
     code: str  # 7-digit read-side code (e.g., "0220110")
     name: str  # View name (e.g., "tv_contact")
     content: str  # Complete SQL content for this file
-    dependencies: List[str] = field(default_factory=list)  # List of view names this depends on
+    dependencies: List[str] = field(
+        default_factory=list
+    )  # List of view names this depends on

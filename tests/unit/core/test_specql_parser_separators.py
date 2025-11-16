@@ -19,7 +19,10 @@ fields:
         entity = parser.parse(yaml_content)
 
         # Should use defaults (no explicit config)
-        assert entity.identifier is None or entity.identifier.separator == Separators.HIERARCHY
+        assert (
+            entity.identifier is None
+            or entity.identifier.separator == Separators.HIERARCHY
+        )
 
     def test_parse_explicit_hierarchy_separator(self):
         """Should parse explicit hierarchy separator override."""

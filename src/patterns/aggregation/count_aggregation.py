@@ -5,7 +5,11 @@ from typing import Any
 
 from jinja2 import Template
 
-from .utils import build_default_join_condition, build_entity_info, is_multi_tenant_entity
+from .utils import (
+    build_default_join_condition,
+    build_entity_info,
+    is_multi_tenant_entity,
+)
 
 
 def generate_count_aggregation(config: dict[str, Any]) -> str:

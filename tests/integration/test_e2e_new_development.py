@@ -27,17 +27,25 @@ class MockPatternLibrary:
                     "first_name": "text",
                     "last_name": "text",
                     "email": "text",
-                    "phone": "text"
+                    "phone": "text",
                 },
                 "patterns": ["audit_trail"],
                 "actions": [
                     {
                         "name": "create",
                         "steps": [
-                            {"type": "insert", "table": "tb_contact", "data": {"first_name": "p_first_name", "last_name": "p_last_name", "email": "p_email"}}
-                        ]
+                            {
+                                "type": "insert",
+                                "table": "tb_contact",
+                                "data": {
+                                    "first_name": "p_first_name",
+                                    "last_name": "p_last_name",
+                                    "email": "p_email",
+                                },
+                            }
+                        ],
                     }
-                ]
+                ],
             },
             "product": {
                 "entity": "Product",
@@ -46,21 +54,30 @@ class MockPatternLibrary:
                     "id": "uuid!",
                     "name": "text",
                     "price": "numeric",
-                    "sku": "text"
+                    "sku": "text",
                 },
                 "patterns": ["audit_trail", "soft_delete"],
                 "actions": [
                     {
                         "name": "create",
                         "steps": [
-                            {"type": "insert", "table": "tb_product", "data": {"name": "p_name", "price": "p_price"}}
-                        ]
+                            {
+                                "type": "insert",
+                                "table": "tb_product",
+                                "data": {"name": "p_name", "price": "p_price"},
+                            }
+                        ],
                     }
-                ]
-            }
+                ],
+            },
         }
 
-    def instantiate_entity_template(self, template_name: str, template_namespace: str, customizations: Dict[str, Any]) -> Dict[str, Any]:
+    def instantiate_entity_template(
+        self,
+        template_name: str,
+        template_namespace: str,
+        customizations: Dict[str, Any],
+    ) -> Dict[str, Any]:
         """Mock template instantiation"""
         if template_name not in self.templates:
             raise ValueError(f"Template {template_name} not found")
@@ -77,13 +94,19 @@ class MockPatternLibrary:
                     # Handle "text" format
                     template["fields"][field_name] = field_type
 
-        if "enable_lead_scoring" in customizations and customizations["enable_lead_scoring"]:
+        if (
+            "enable_lead_scoring" in customizations
+            and customizations["enable_lead_scoring"]
+        ):
             template["fields"]["lead_score"] = "integer"
 
         if "enable_variants" in customizations and customizations["enable_variants"]:
             template["fields"]["variant_id"] = "uuid"
 
-        if "enable_inventory_tracking" in customizations and customizations["enable_inventory_tracking"]:
+        if (
+            "enable_inventory_tracking" in customizations
+            and customizations["enable_inventory_tracking"]
+        ):
             template["fields"]["inventory_count"] = "integer"
 
         if "additional_patterns" in customizations:
@@ -104,41 +127,46 @@ class MockPatternLibrary:
 
         return template
 
-    def compose_patterns(self, entity_name: str, patterns: List[Dict[str, Any]]) -> Dict[str, Any]:
+    def compose_patterns(
+        self, entity_name: str, patterns: List[Dict[str, Any]]
+    ) -> Dict[str, Any]:
         """Mock pattern composition"""
-        composed = {
-            "entity": entity_name,
-            "fields": {},
-            "actions": []
-        }
+        composed = {"entity": entity_name, "fields": {}, "actions": []}
 
         for pattern in patterns:
             pattern_name = pattern["pattern"]
             if pattern_name == "state_machine":
                 composed["fields"]["state"] = {"type": "text"}
-                composed["actions"].append({
-                    "name": "transition_state",
-                    "steps": [{"type": "update", "set": "state = p_new_state"}]
-                })
+                composed["actions"].append(
+                    {
+                        "name": "transition_state",
+                        "steps": [{"type": "update", "set": "state = p_new_state"}],
+                    }
+                )
             elif pattern_name == "audit_trail":
                 composed["fields"]["created_at"] = {"type": "timestamp"}
                 composed["fields"]["created_by"] = {"type": "uuid"}
             elif pattern_name == "soft_delete":
                 composed["fields"]["deleted_at"] = {"type": "timestamp"}
             elif pattern_name == "commenting":
-                composed["actions"].append({
-                    "name": "add_comment",
-                    "steps": [{"type": "insert", "table": "tb_comments"}]
-                })
+                composed["actions"].append(
+                    {
+                        "name": "add_comment",
+                        "steps": [{"type": "insert", "table": "tb_comments"}],
+                    }
+                )
 
         return composed
 
 
-def generate_schema_from_dict(entity_dict: Dict[str, Any], target: str = "postgresql") -> str:
+def generate_schema_from_dict(
+    entity_dict: Dict[str, Any], target: str = "postgresql"
+) -> str:
     """Generate schema from entity dictionary"""
 
     # Convert dict to YAML
     import yaml
+
     yaml_content = yaml.dump(entity_dict, default_flow_style=False)
 
     # Write to temporary file
@@ -170,21 +198,22 @@ def generate_schema_from_dict(entity_dict: Dict[str, Any], target: str = "postgr
         temp_output = Path("temp_output")
         if temp_output.exists():
             import shutil
+
             shutil.rmtree(temp_output)
 
 
 def extract_fields_from_sql(sql: str) -> List[str]:
     """Extract field names from generated SQL"""
     fields = []
-    lines = sql.split('\n')
+    lines = sql.split("\n")
     for line in lines:
         line = line.strip()
-        if 'TEXT' in line or 'INTEGER' in line or 'NUMERIC' in line or 'UUID' in line:
+        if "TEXT" in line or "INTEGER" in line or "NUMERIC" in line or "UUID" in line:
             # Extract field name before type
             parts = line.split()
             if len(parts) >= 2:
                 field_name = parts[0].strip('"')
-                if field_name and not field_name.startswith('--'):
+                if field_name and not field_name.startswith("--"):
                     fields.append(field_name)
     return fields
 
@@ -192,11 +221,11 @@ def extract_fields_from_sql(sql: str) -> List[str]:
 def extract_fields_from_django(models_code: str) -> List[str]:
     """Extract field names from Django models code"""
     fields = []
-    lines = models_code.split('\n')
+    lines = models_code.split("\n")
     for line in lines:
         line = line.strip()
-        if 'models.' in line and '=' in line:
-            field_name = line.split('=')[0].strip()
+        if "models." in line and "=" in line:
+            field_name = line.split("=")[0].strip()
             if field_name:
                 fields.append(field_name)
     return fields
@@ -214,10 +243,10 @@ def test_new_development_crm_contact():
         customizations={
             "additional_fields": {
                 "linkedin_url": {"type": "text"},
-                "twitter_handle": {"type": "text"}
+                "twitter_handle": {"type": "text"},
             },
-            "enable_lead_scoring": True
-        }
+            "enable_lead_scoring": True,
+        },
     )
 
     # Verify template applied
@@ -229,6 +258,7 @@ def test_new_development_crm_contact():
 
     # Debug: Print the entity dict and YAML
     import yaml
+
     yaml_content = yaml.dump(entity_dict, default_flow_style=False)
     print(f"DEBUG: Generated YAML:\n{yaml_content}")
 
@@ -257,7 +287,18 @@ class Contact(models.Model):
     # Step 4: Validate consistency
     # Check that Django model has expected fields
     django_fields = extract_fields_from_django(django_models)
-    expected_fields = ["id", "first_name", "last_name", "email", "phone", "linkedin_url", "twitter_handle", "state", "created_at", "lead_score"]
+    expected_fields = [
+        "id",
+        "first_name",
+        "last_name",
+        "email",
+        "phone",
+        "linkedin_url",
+        "twitter_handle",
+        "state",
+        "created_at",
+        "lead_score",
+    ]
     assert set(django_fields) >= set(expected_fields)
 
 
@@ -272,8 +313,8 @@ def test_new_development_ecommerce_product():
         customizations={
             "enable_variants": True,
             "enable_inventory_tracking": True,
-            "additional_patterns": ["soft_delete", "search_optimization"]
-        }
+            "additional_patterns": ["soft_delete", "search_optimization"],
+        },
     )
 
     # Generate multiple targets
@@ -322,11 +363,14 @@ def test_pattern_composition():
     composed = library.compose_patterns(
         entity_name="CustomEntity",
         patterns=[
-            {"pattern": "state_machine", "params": {"states": ["draft", "published", "archived"]}},
+            {
+                "pattern": "state_machine",
+                "params": {"states": ["draft", "published", "archived"]},
+            },
             {"pattern": "audit_trail", "params": {"track_versions": True}},
             {"pattern": "soft_delete", "params": {}},
-            {"pattern": "commenting", "params": {}}
-        ]
+            {"pattern": "commenting", "params": {}},
+        ],
     )
 
     # Should have fields from all patterns

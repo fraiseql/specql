@@ -12,7 +12,7 @@ from typing import Optional, Dict, List, Any
 from src.reverse_engineering.ast_to_specql_mapper import ConversionResult
 from src.application.services.pattern_matcher import PatternMatcher
 from src.infrastructure.repositories.postgresql_pattern_repository import (
-    PostgreSQLPatternRepository
+    PostgreSQLPatternRepository,
 )
 from src.core.config import get_config
 
@@ -26,7 +26,7 @@ class AIEnhancer:
         use_cloud_fallback: bool = False,
         cloud_api_key: Optional[str] = None,
         use_grok: bool = True,
-        enable_pattern_discovery: bool = False
+        enable_pattern_discovery: bool = False,
     ):
         """
         Initialize AI enhancer
@@ -38,7 +38,9 @@ class AIEnhancer:
             use_grok: Use Grok LLM provider instead of local/cloud
             enable_pattern_discovery: Enable automatic pattern discovery
         """
-        self.local_model_path = local_model_path or os.path.expanduser("~/.specql/models/llama-3.1-8b.gguf")
+        self.local_model_path = local_model_path or os.path.expanduser(
+            "~/.specql/models/llama-3.1-8b.gguf"
+        )
         self.use_cloud_fallback = use_cloud_fallback
         self.cloud_api_key = cloud_api_key
         self.use_grok = use_grok
@@ -70,14 +72,18 @@ class AIEnhancer:
                     model_path=self.local_model_path,
                     n_ctx=4096,  # Context window
                     n_gpu_layers=-1,  # Use all GPU layers if available
-                    verbose=False
+                    verbose=False,
                 )
                 print(f"✅ Loaded local LLM: {self.local_model_path}")
             else:
                 print(f"⚠️  Local LLM model not found: {self.local_model_path}")
-                print("   Download Llama 3.1 8B from: https://huggingface.co/microsoft/WizardLM-2-8x22B")
+                print(
+                    "   Download Llama 3.1 8B from: https://huggingface.co/microsoft/WizardLM-2-8x22B"
+                )
         except ImportError:
-            print("⚠️  llama-cpp-python not installed. Install with: pip install llama-cpp-python")
+            print(
+                "⚠️  llama-cpp-python not installed. Install with: pip install llama-cpp-python"
+            )
         except Exception as e:
             print(f"⚠️  Failed to load local LLM: {e}")
 
@@ -85,13 +91,16 @@ class AIEnhancer:
         """Load Grok LLM provider"""
         try:
             from src.reverse_engineering.grok_provider import GrokProvider
+
             self.grok_provider = GrokProvider()
             print("✅ Loaded Grok LLM provider")
         except Exception as e:
             print(f"⚠️  Failed to load Grok provider: {e}")
             self.grok_provider = None
 
-    def enhance(self, result: ConversionResult, sql_source: str = "") -> ConversionResult:
+    def enhance(
+        self, result: ConversionResult, sql_source: str = ""
+    ) -> ConversionResult:
         """
         Enhance conversion result with AI
 
@@ -113,7 +122,7 @@ class AIEnhancer:
 
         try:
             # Initialize metadata if not present
-            if not hasattr(result, 'metadata') or result.metadata is None:
+            if not hasattr(result, "metadata") or result.metadata is None:
                 result.metadata = {}
 
             # Infer function intent
@@ -152,9 +161,7 @@ class AIEnhancer:
         # Suggest applicable patterns (if pattern matcher available)
         if self.pattern_matcher:
             pattern_suggestions = self.pattern_matcher.find_applicable_patterns(
-                entity_spec=entity_spec,
-                limit=5,
-                min_confidence=0.6
+                entity_spec=entity_spec, limit=5, min_confidence=0.6
             )
 
             # Add as metadata
@@ -164,14 +171,16 @@ class AIEnhancer:
                         "name": pattern.name,
                         "description": pattern.description,
                         "confidence": f"{confidence:.1%}",
-                        "popularity": pattern.times_instantiated
+                        "popularity": pattern.times_instantiated,
                     }
                     for pattern, confidence in pattern_suggestions
                 ]
 
         return entity_spec
 
-    def discover_patterns(self, result: ConversionResult, sql_source: str) -> List[Dict]:
+    def discover_patterns(
+        self, result: ConversionResult, sql_source: str
+    ) -> List[Dict]:
         """
         Discover novel patterns from SQL that aren't in the pattern library
 
@@ -192,7 +201,9 @@ class AIEnhancer:
 
             if pattern_data:
                 # Create pattern suggestion in database
-                suggestion = self._create_pattern_suggestion(pattern_data, sql_source, result)
+                suggestion = self._create_pattern_suggestion(
+                    pattern_data, sql_source, result
+                )
                 return [suggestion] if suggestion else []
 
         except Exception as e:
@@ -236,7 +247,7 @@ What is the business purpose of this function? Answer in 1-2 sentences.
         # Extract current variables
         variables = []
         for step in result.steps:
-            if hasattr(step, 'variable_name') and step.variable_name:
+            if hasattr(step, "variable_name") and step.variable_name:
                 variables.append(step.variable_name)
 
         if not variables:
@@ -245,7 +256,7 @@ What is the business purpose of this function? Answer in 1-2 sentences.
         prompt = f"""You are improving variable names in a database function.
 
 Function: {result.function_name}
-Current variables: {', '.join(variables)}
+Current variables: {", ".join(variables)}
 
 Suggest better names for these variables. Focus on clarity and business meaning.
 Respond with JSON format: {{"old_name": "new_name", ...}}
@@ -303,8 +314,11 @@ Respond with comma-separated pattern names, or "none".
 
     def _has_llm(self) -> bool:
         """Check if any LLM provider is available"""
-        return self.local_llm is not None or self.grok_provider is not None or \
-               (self.use_cloud_fallback and self.cloud_api_key is not None)
+        return (
+            self.local_llm is not None
+            or self.grok_provider is not None
+            or (self.use_cloud_fallback and self.cloud_api_key is not None)
+        )
 
     def _query_llm(self, prompt: str, max_tokens: int = 100) -> Optional[str]:
         """
@@ -320,7 +334,9 @@ Respond with comma-separated pattern names, or "none".
         # Try Grok first (if enabled)
         if self.grok_provider:
             try:
-                return self.grok_provider.call(prompt, task_type="pattern_discovery", timeout=30)
+                return self.grok_provider.call(
+                    prompt, task_type="pattern_discovery", timeout=30
+                )
             except Exception as e:
                 print(f"⚠️  Grok query failed: {e}")
 
@@ -331,7 +347,7 @@ Respond with comma-separated pattern names, or "none".
                     prompt,
                     max_tokens=max_tokens,
                     temperature=0.3,
-                    stop=["</s>", "\n\n", "```"]
+                    stop=["</s>", "\n\n", "```"],
                 )
                 return response["choices"][0]["text"].strip()
             except Exception as e:
@@ -353,7 +369,7 @@ Respond with comma-separated pattern names, or "none".
             message = client.messages.create(
                 model="claude-3-haiku-20240307",
                 max_tokens=max_tokens,
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{"role": "user", "content": prompt}],
             )
 
             return message.content[0].text.strip()
@@ -364,7 +380,9 @@ Respond with comma-separated pattern names, or "none".
 
         return None
 
-    def _should_discover_patterns(self, result: ConversionResult, sql_source: str) -> bool:
+    def _should_discover_patterns(
+        self, result: ConversionResult, sql_source: str
+    ) -> bool:
         """
         Determine if this SQL should trigger pattern discovery
 
@@ -382,11 +400,16 @@ Respond with comma-separated pattern names, or "none".
             # Check similarity to existing patterns
             service = PatternEmbeddingService()
             query_embedding = service.embed_function(sql_source)
-            similar_patterns = service.retrieve_similar(query_embedding, top_k=3, threshold=0.5)
+            similar_patterns = service.retrieve_similar(
+                query_embedding, top_k=3, threshold=0.5
+            )
             service.close()
 
             # Discovery triggers
-            low_similarity = len(similar_patterns) == 0 or max(p['similarity'] for p in similar_patterns) < 0.7
+            low_similarity = (
+                len(similar_patterns) == 0
+                or max(p["similarity"] for p in similar_patterns) < 0.7
+            )
             high_complexity = complexity > 0.7  # Arbitrary threshold
 
             return low_similarity and high_complexity
@@ -395,7 +418,9 @@ Respond with comma-separated pattern names, or "none".
             # If pattern checking fails, don't discover
             return False
 
-    def _calculate_complexity_score(self, result: ConversionResult, sql_source: str) -> float:
+    def _calculate_complexity_score(
+        self, result: ConversionResult, sql_source: str
+    ) -> float:
         """Calculate complexity score (0-1) for pattern discovery"""
         score = 0.0
 
@@ -408,13 +433,17 @@ Respond with comma-separated pattern names, or "none".
         score += min(sql_length / 2000.0, 0.3)  # Max 0.3 for length
 
         # Complex constructs
-        complex_keywords = ['CASE', 'JOIN', 'UNION', 'WINDOW', 'RECURSIVE', 'CTE']
-        found_complex = sum(1 for kw in complex_keywords if kw.upper() in sql_source.upper())
+        complex_keywords = ["CASE", "JOIN", "UNION", "WINDOW", "RECURSIVE", "CTE"]
+        found_complex = sum(
+            1 for kw in complex_keywords if kw.upper() in sql_source.upper()
+        )
         score += min(found_complex / 5.0, 0.4)  # Max 0.4 for complexity
 
         return min(score, 1.0)
 
-    def _extract_pattern_from_sql(self, sql_source: str, result: ConversionResult) -> Optional[Dict]:
+    def _extract_pattern_from_sql(
+        self, sql_source: str, result: ConversionResult
+    ) -> Optional[Dict]:
         """
         Use LLM to extract pattern structure from SQL
 
@@ -465,7 +494,8 @@ Respond with valid JSON only:
         except json.JSONDecodeError:
             # Try to extract JSON from response
             import re
-            json_match = re.search(r'\{.*\}', response, re.DOTALL)
+
+            json_match = re.search(r"\{.*\}", response, re.DOTALL)
             if json_match:
                 try:
                     return json.loads(json_match.group())
@@ -474,7 +504,9 @@ Respond with valid JSON only:
 
         return None
 
-    def _create_pattern_suggestion(self, pattern_data: Dict, sql_source: str, result: ConversionResult) -> Optional[Dict]:
+    def _create_pattern_suggestion(
+        self, pattern_data: Dict, sql_source: str, result: ConversionResult
+    ) -> Optional[Dict]:
         """
         Create pattern suggestion in database
 
@@ -482,32 +514,34 @@ Respond with valid JSON only:
             Suggestion data or None if creation fails
         """
         try:
-            from src.pattern_library.suggestion_service_pg import PatternSuggestionService
+            from src.pattern_library.suggestion_service_pg import (
+                PatternSuggestionService,
+            )
 
             service = PatternSuggestionService()
 
             suggestion_id = service.create_suggestion(
-                suggested_name=pattern_data['name'],
-                suggested_category=pattern_data['category'],
-                description=pattern_data['description'],
-                parameters=pattern_data.get('parameters', {}),
-                implementation=pattern_data.get('implementation', {}),
-                source_type='reverse_engineering',
+                suggested_name=pattern_data["name"],
+                suggested_category=pattern_data["category"],
+                description=pattern_data["description"],
+                parameters=pattern_data.get("parameters", {}),
+                implementation=pattern_data.get("implementation", {}),
+                source_type="reverse_engineering",
                 source_sql=sql_source,
                 source_function_id=result.function_name,
                 complexity_score=self._calculate_complexity_score(result, sql_source),
-                confidence_score=0.8  # LLM-extracted patterns get high confidence
+                confidence_score=0.8,  # LLM-extracted patterns get high confidence
             )
 
             service.close()
 
             if suggestion_id:
                 return {
-                    'id': suggestion_id,
-                    'name': pattern_data['name'],
-                    'category': pattern_data['category'],
-                    'description': pattern_data['description'],
-                    'confidence': 0.8
+                    "id": suggestion_id,
+                    "name": pattern_data["name"],
+                    "category": pattern_data["category"],
+                    "description": pattern_data["description"],
+                    "confidence": 0.8,
                 }
 
         except Exception as e:
@@ -515,11 +549,13 @@ Respond with valid JSON only:
 
         return None
 
-    def _apply_name_map(self, result: ConversionResult, name_map: Dict[str, str]) -> ConversionResult:
+    def _apply_name_map(
+        self, result: ConversionResult, name_map: Dict[str, str]
+    ) -> ConversionResult:
         """Apply variable name mapping to result"""
         # Update variable names in steps
         for step in result.steps:
-            if hasattr(step, 'variable_name') and step.variable_name in name_map:
+            if hasattr(step, "variable_name") and step.variable_name in name_map:
                 step.variable_name = name_map[step.variable_name]
 
         return result

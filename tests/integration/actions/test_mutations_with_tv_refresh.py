@@ -82,7 +82,9 @@ def test_refresh_table_view_self_scope_compilation():
                                 (),
                                 {
                                     "type": "refresh_table_view",
-                                    "refresh_scope": type("RefreshScope", (), {"value": "self"})(),
+                                    "refresh_scope": type(
+                                        "RefreshScope", (), {"value": "self"}
+                                    )(),
                                     "propagate_entities": [],
                                 },
                             )(),
@@ -97,7 +99,9 @@ def test_refresh_table_view_self_scope_compilation():
     entity = convert_entity_definition_to_entity(entity_def)
 
     # Create generator (mock schema registry)
-    schema_registry = type("SchemaRegistry", (), {"is_multi_tenant": lambda schema: False})()
+    schema_registry = type(
+        "SchemaRegistry", (), {"is_multi_tenant": lambda schema: False}
+    )()
 
     generator = CoreLogicGenerator(schema_registry)
 
@@ -129,7 +133,9 @@ def test_refresh_table_view_propagate_scope_compilation():
                     {
                         "name": "create_review",
                         "steps": [
-                            type("ActionStep", (), {"type": "insert", "entity": "Review"})(),
+                            type(
+                                "ActionStep", (), {"type": "insert", "entity": "Review"}
+                            )(),
                             type(
                                 "ActionStep",
                                 (),
@@ -152,7 +158,9 @@ def test_refresh_table_view_propagate_scope_compilation():
     entity = convert_entity_definition_to_entity(entity_def)
 
     # Create generator (mock schema registry)
-    schema_registry = type("SchemaRegistry", (), {"is_multi_tenant": lambda schema: False})()
+    schema_registry = type(
+        "SchemaRegistry", (), {"is_multi_tenant": lambda schema: False}
+    )()
 
     generator = CoreLogicGenerator(schema_registry)
 
@@ -200,7 +208,9 @@ def test_refresh_table_view_batch_scope_compilation():
                                 (),
                                 {
                                     "type": "refresh_table_view",
-                                    "refresh_scope": type("RefreshScope", (), {"value": "batch"})(),
+                                    "refresh_scope": type(
+                                        "RefreshScope", (), {"value": "batch"}
+                                    )(),
                                     "propagate_entities": [],
                                 },
                             )(),
@@ -215,7 +225,9 @@ def test_refresh_table_view_batch_scope_compilation():
     entity = convert_entity_definition_to_entity(entity_def)
 
     # Create generator (mock schema registry)
-    schema_registry = type("SchemaRegistry", (), {"is_multi_tenant": lambda schema: False})()
+    schema_registry = type(
+        "SchemaRegistry", (), {"is_multi_tenant": lambda schema: False}
+    )()
 
     generator = CoreLogicGenerator(schema_registry)
 

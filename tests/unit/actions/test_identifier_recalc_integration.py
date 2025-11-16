@@ -2,7 +2,6 @@
 Unit tests for identifier recalculation integration in CoreLogicGenerator
 """
 
-
 from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
 
 
@@ -37,14 +36,17 @@ def test_compile_update_with_identifier_recalc(core_logic_generator):
         fields={
             "id": FieldDefinition(name="id", type_name="uuid"),
             "tenant_id": FieldDefinition(name="tenant_id", type_name="uuid"),
-            "customer_contract_id": FieldDefinition(name="customer_contract_id", type_name="text"),
+            "customer_contract_id": FieldDefinition(
+                name="customer_contract_id", type_name="text"
+            ),
             "updated_at": FieldDefinition(name="updated_at", type_name="timestamp"),
             "updated_by": FieldDefinition(name="updated_by", type_name="uuid"),
         },
     )
 
     step = ActionStep(
-        type="update", fields={"customer_contract_id": "NEW-123", "recalculate_identifier": True}
+        type="update",
+        fields={"customer_contract_id": "NEW-123", "recalculate_identifier": True},
     )
 
     action = Action(name="update_contract", steps=[step])

@@ -21,7 +21,7 @@ class TestFullTextSearch:
                 "pattern_name": FieldDefinition(name="pattern_name", type_name="text"),
                 "description": FieldDefinition(name="description", type_name="text"),
                 "category": FieldDefinition(name="category", type_name="text"),
-            }
+            },
         )
 
     def test_add_search_vector_column(self, generator, entity_with_text_fields):
@@ -53,7 +53,13 @@ class TestFullTextSearch:
         result = generator.generate_search_function(entity_with_text_fields)
 
         # Assert
-        assert "CREATE OR REPLACE FUNCTION specql_registry.search_pattern_by_text" in result
+        assert (
+            "CREATE OR REPLACE FUNCTION specql_registry.search_pattern_by_text"
+            in result
+        )
         assert "p_query TEXT" in result
-        assert "WHERE tb.search_vector @@ websearch_to_tsquery('english', p_query)" in result
+        assert (
+            "WHERE tb.search_vector @@ websearch_to_tsquery('english', p_query)"
+            in result
+        )
         assert "ts_rank(tb.search_vector" in result

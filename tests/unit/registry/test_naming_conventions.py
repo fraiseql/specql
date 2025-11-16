@@ -297,7 +297,9 @@ class TestFilePathGeneration:
         """Should use custom base directory"""
         entity = Entity(name="Contact", schema="crm", fields={})
 
-        path = nc.generate_file_path(entity, "0120311", "table", base_dir="custom/output")
+        path = nc.generate_file_path(
+            entity, "0120311", "table", base_dir="custom/output"
+        )
 
         assert path.startswith("custom/output")
 
@@ -334,7 +336,10 @@ class TestFilePathGeneration:
         for name, table_code in entities:
             entity = Entity(name=name, schema="catalog")
             path = nc.generate_file_path(
-                entity=entity, table_code=table_code, file_type="table", base_dir="generated"
+                entity=entity,
+                table_code=table_code,
+                file_type="table",
+                base_dir="generated",
             )
             paths.append(path)
 
@@ -404,7 +409,9 @@ class TestFilePathGeneration:
 
         # Verify NO old patterns
         assert "machinefunction_group" not in path
-        assert "machinefunction" not in path.split("/")[-2]  # Entity dir should be snake_case
+        assert (
+            "machinefunction" not in path.split("/")[-2]
+        )  # Entity dir should be snake_case
 
     def test_generate_file_path_function_files(self):
         """Function files should also use snake_case"""
@@ -413,7 +420,10 @@ class TestFilePathGeneration:
         entity = Entity(name="ColorMode", schema="catalog")
 
         path = nc.generate_file_path(
-            entity=entity, table_code="0131111", file_type="function", base_dir="generated"
+            entity=entity,
+            table_code="0131111",
+            file_type="function",
+            base_dir="generated",
         )
 
         # Function filename should be snake_case
@@ -657,7 +667,9 @@ class TestExplicitTableCodeHandling:
         """Explicit table codes should skip domain validation for external systems"""
         # Domain mismatch is OK for explicit codes (e.g., Production migration)
         entity = Entity(name="Contact", schema="crm")
-        entity.organization = Organization(table_code="0130211")  # catalog domain in registry
+        entity.organization = Organization(
+            table_code="0130211"
+        )  # catalog domain in registry
 
         # Should succeed - explicit codes are trusted
         code = nc.get_table_code(entity)
@@ -748,7 +760,8 @@ domains:
 
             # Verify registered in correct subdomain
             assert (
-                "ColorMode" in nc.registry.registry["domains"]["3"]["subdomains"]["01"]["entities"]
+                "ColorMode"
+                in nc.registry.registry["domains"]["3"]["subdomains"]["01"]["entities"]
             )
             # Should NOT be in wrong subdomain
             assert "11" not in nc.registry.registry["domains"]["3"]["subdomains"]

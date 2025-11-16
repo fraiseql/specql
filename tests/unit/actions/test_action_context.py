@@ -11,8 +11,12 @@ def test_action_context_from_ast():
     action_ast = ActionDefinition(
         name="qualify_lead",
         steps=[
-            ActionStep(type="validate", expression="status = 'lead'", error="not_a_lead"),
-            ActionStep(type="update", entity="Contact", fields={"status": "'qualified'"}),
+            ActionStep(
+                type="validate", expression="status = 'lead'", error="not_a_lead"
+            ),
+            ActionStep(
+                type="update", entity="Contact", fields={"status": "'qualified'"}
+            ),
         ],
         impact={
             "primary": {

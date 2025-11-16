@@ -12,8 +12,7 @@ class TestAuditQueryCascade:
         """Audit query functions should support cascade data retrieval"""
         generator = AuditGenerator()
         sql = generator.generate_audit_query_functions(
-            entity_name="Post",
-            audit_config={"include_cascade": True}
+            entity_name="Post", audit_config={"include_cascade": True}
         )
 
         # Should include function with cascade
@@ -29,8 +28,7 @@ class TestAuditQueryCascade:
         """Audit query functions without cascade should work as before"""
         generator = AuditGenerator()
         sql = generator.generate_audit_query_functions(
-            entity_name="User",
-            audit_config={"include_cascade": False}
+            entity_name="User", audit_config={"include_cascade": False}
         )
 
         # Should include standard function
@@ -47,7 +45,7 @@ class TestAuditQueryCascade:
         generator = AuditGenerator()
         sql = generator.generate_audit_query_functions(
             entity_name="Comment",
-            audit_config={}  # No include_cascade
+            audit_config={},  # No include_cascade
         )
 
         # Should NOT include cascade function
@@ -58,8 +56,7 @@ class TestAuditQueryCascade:
         """Should include function to find mutations affecting specific entity types"""
         generator = AuditGenerator()
         sql = generator.generate_audit_query_functions(
-            entity_name="Post",
-            audit_config={"include_cascade": True}
+            entity_name="Post", audit_config={"include_cascade": True}
         )
 
         # Should include mutations affecting entity function

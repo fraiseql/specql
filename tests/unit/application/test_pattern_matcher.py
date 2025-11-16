@@ -1,8 +1,9 @@
 """Tests for PatternMatcher - detects applicable patterns for entities"""
+
 import pytest
 from src.application.services.pattern_matcher import PatternMatcher
 from src.infrastructure.repositories.in_memory_pattern_repository import (
-    InMemoryPatternRepository
+    InMemoryPatternRepository,
 )
 from src.domain.entities.pattern import Pattern, PatternCategory, SourceType
 
@@ -23,7 +24,7 @@ def repository():
             implementation={"sql": "CHECK email ~* RFC_5322_REGEX"},
             times_instantiated=15,
             source_type=SourceType.MANUAL,
-            complexity_score=3
+            complexity_score=3,
         ),
         Pattern(
             id=None,
@@ -34,7 +35,7 @@ def repository():
             implementation={"sql": "Automatic timestamp tracking"},
             times_instantiated=45,
             source_type=SourceType.MANUAL,
-            complexity_score=2
+            complexity_score=2,
         ),
         Pattern(
             id=None,
@@ -45,7 +46,7 @@ def repository():
             implementation={"sql": "NULL = active, timestamp = deleted"},
             times_instantiated=32,
             source_type=SourceType.MANUAL,
-            complexity_score=2
+            complexity_score=2,
         ),
     ]
 
@@ -69,10 +70,7 @@ class TestPatternMatcher:
         # Entity with email field
         entity_spec = {
             "entity": "contact",
-            "fields": {
-                "email": {"type": "text"},
-                "name": {"type": "text"}
-            }
+            "fields": {"email": {"type": "text"}, "name": {"type": "text"}},
         }
 
         matches = matcher.find_applicable_patterns(entity_spec)
@@ -85,10 +83,7 @@ class TestPatternMatcher:
         """Test matching by field types"""
         entity_spec = {
             "entity": "user",
-            "fields": {
-                "email_address": {"type": "text"},
-                "username": {"type": "text"}
-            }
+            "fields": {"email_address": {"type": "text"}, "username": {"type": "text"}},
         }
 
         matches = matcher.find_applicable_patterns(entity_spec)
@@ -102,10 +97,7 @@ class TestPatternMatcher:
         # Entity without audit fields
         entity_spec = {
             "entity": "product",
-            "fields": {
-                "name": {"type": "text"},
-                "price": {"type": "money"}
-            }
+            "fields": {"name": {"type": "text"}, "price": {"type": "money"}},
         }
 
         matches = matcher.find_applicable_patterns(entity_spec)
@@ -122,8 +114,8 @@ class TestPatternMatcher:
                 "email": {"type": "text"},
                 "phone": {"type": "text"},
                 "created_at": {"type": "timestamp"},
-                "updated_at": {"type": "timestamp"}
-            }
+                "updated_at": {"type": "timestamp"},
+            },
         }
 
         matches = matcher.find_applicable_patterns(entity_spec)
@@ -140,16 +132,11 @@ class TestPatternMatcher:
         """Test excluding patterns already applied"""
         entity_spec = {
             "entity": "user",
-            "fields": {
-                "email": {"type": "text"}
-            },
-            "patterns": ["audit_trail"]  # Already applied
+            "fields": {"email": {"type": "text"}},
+            "patterns": ["audit_trail"],  # Already applied
         }
 
-        matches = matcher.find_applicable_patterns(
-            entity_spec,
-            exclude_applied=True
-        )
+        matches = matcher.find_applicable_patterns(entity_spec, exclude_applied=True)
 
         # audit_trail should not be in matches
         assert not any(p.name == "audit_trail" for p, _ in matches)
@@ -159,27 +146,17 @@ class TestPatternMatcher:
         entity_spec = {
             "entity": "customer_contact",
             "description": "Customer contact information with email and phone",
-            "fields": {
-                "contact_name": {"type": "text"}
-            }
+            "fields": {"contact_name": {"type": "text"}},
         }
 
-        matches = matcher.find_applicable_patterns(
-            entity_spec,
-            use_semantic=True
-        )
+        matches = matcher.find_applicable_patterns(entity_spec, use_semantic=True)
 
         # Should suggest email-related patterns based on description
         assert len(matches) > 0
 
     def test_popularity_boost(self, matcher):
         """Test that popular patterns are ranked higher"""
-        entity_spec = {
-            "entity": "generic_entity",
-            "fields": {
-                "name": {"type": "text"}
-            }
-        }
+        entity_spec = {"entity": "generic_entity", "fields": {"name": {"type": "text"}}}
 
         matches = matcher.find_applicable_patterns(entity_spec)
 

@@ -2,7 +2,10 @@ import pytest
 
 from src.core.ast_models import FieldDefinition, FieldTier
 from src.core.scalar_types import get_composite_type
-from src.generators.schema.composite_type_mapper import CompositeDDL, CompositeTypeMapper
+from src.generators.schema.composite_type_mapper import (
+    CompositeDDL,
+    CompositeTypeMapper,
+)
 
 
 def test_map_simple_address_field():
@@ -65,7 +68,9 @@ def test_map_field_without_composite_def():
 
 def test_map_non_composite_field_raises_error():
     """Test that mapping non-composite field raises error"""
-    field = FieldDefinition(name="email", type_name="email", nullable=False, tier=FieldTier.SCALAR)
+    field = FieldDefinition(
+        name="email", type_name="email", nullable=False, tier=FieldTier.SCALAR
+    )
 
     mapper = CompositeTypeMapper()
     with pytest.raises(ValueError, match="not a composite type"):
@@ -109,7 +114,10 @@ def test_generate_field_ddl_nullable():
     mapper = CompositeTypeMapper()
     field_ddl = mapper.generate_field_ddl(ddl)
 
-    assert field_ddl == "shipping_address JSONB CHECK (validate_simple_address(shipping_address))"
+    assert (
+        field_ddl
+        == "shipping_address JSONB CHECK (validate_simple_address(shipping_address))"
+    )
 
 
 def test_generate_field_ddl_not_nullable():
@@ -132,7 +140,9 @@ def test_generate_field_ddl_not_nullable():
 
 def test_generate_gin_index():
     """Test GIN index generation for JSONB field"""
-    ddl = CompositeDDL(column_name="shipping_address", postgres_type="JSONB", nullable=True)
+    ddl = CompositeDDL(
+        column_name="shipping_address", postgres_type="JSONB", nullable=True
+    )
 
     mapper = CompositeTypeMapper()
     index_sql = mapper.generate_gin_index("crm", "tb_order", ddl)

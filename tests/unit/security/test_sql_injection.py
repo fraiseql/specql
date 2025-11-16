@@ -251,7 +251,9 @@ class TestQuoteEscaping:
 
         # But injection attempts should still be blocked
         with pytest.raises(SecurityError):
-            compiler.compile("status = 'test' OR '1'='1'; DROP TABLE users--", test_entity)
+            compiler.compile(
+                "status = 'test' OR '1'='1'; DROP TABLE users--", test_entity
+            )
 
     def test_double_quote_injection(self, compiler, test_entity):
         """Test injection attempts using double quotes"""

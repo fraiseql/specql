@@ -360,7 +360,10 @@ def test_isin_validation():
     isin = get_scalar_type("isin")
 
     assert isin.validation_pattern == r"^[A-Z]{2}[A-Z0-9]{9}[0-9]$"
-    assert isin.description == "International Securities Identification Number (12 characters)"
+    assert (
+        isin.description
+        == "International Securities Identification Number (12 characters)"
+    )
     assert isin.example == "US0378331005"
     assert isin.input_type == "text"
     assert isin.placeholder == "US0378331005"
@@ -396,7 +399,10 @@ def test_sedol_validation():
     sedol = get_scalar_type("sedol")
 
     assert sedol.validation_pattern == r"^[0-9A-Z]{6}[0-9]$"
-    assert sedol.description == "Stock Exchange Daily Official List (7 characters, UK-based)"
+    assert (
+        sedol.description
+        == "Stock Exchange Daily Official List (7 characters, UK-based)"
+    )
     assert sedol.example == "B02LC96"
     assert sedol.input_type == "text"
     assert sedol.placeholder == "B02LC96"
@@ -418,7 +424,10 @@ def test_mic_validation():
     mic = get_scalar_type("mic")
 
     assert mic.validation_pattern == r"^[A-Z0-9]{4}$"
-    assert mic.description == "Market Identifier Code (ISO 10383, identifies trading venues)"
+    assert (
+        mic.description
+        == "Market Identifier Code (ISO 10383, identifies trading venues)"
+    )
     assert mic.example == "XNYS"
     assert mic.input_type == "text"
     assert mic.placeholder == "XNYS"
@@ -467,7 +476,10 @@ def test_tracking_number_validation():
     tracking_number = get_scalar_type("trackingNumber")
 
     assert tracking_number.validation_pattern == r"^[A-Z0-9]{8,30}$"
-    assert tracking_number.description == "Shipping tracking number (8-30 alphanumeric characters)"
+    assert (
+        tracking_number.description
+        == "Shipping tracking number (8-30 alphanumeric characters)"
+    )
     assert tracking_number.example == "1Z999AA1234567890"
     assert tracking_number.input_type == "text"
     assert tracking_number.placeholder == "1Z999AA1234567890"
@@ -506,7 +518,10 @@ def test_vin_validation():
     vin = get_scalar_type("vin")
 
     assert vin.validation_pattern == r"^[A-HJ-NPR-Z0-9]{17}$"
-    assert vin.description == "Vehicle Identification Number (17 characters, ISO 3779/3780)"
+    assert (
+        vin.description
+        == "Vehicle Identification Number (17 characters, ISO 3779/3780)"
+    )
     assert vin.example == "1HGCM82633A123456"
     assert vin.input_type == "text"
     assert vin.placeholder == "1HGCM82633A123456"
@@ -615,7 +630,10 @@ def test_api_key_validation():
     api_key = get_scalar_type("apiKey")
 
     assert api_key.validation_pattern == r"^[A-Za-z0-9_\-]{20,128}$"
-    assert api_key.description == "API key or access token (alphanumeric with hyphens/underscores)"
+    assert (
+        api_key.description
+        == "API key or access token (alphanumeric with hyphens/underscores)"
+    )
     assert api_key.example == "sk-1234567890abcdef"
     assert api_key.input_type == "password"
     assert api_key.placeholder == "sk-..."
@@ -627,7 +645,10 @@ def test_hash_sha256_validation():
 
     assert hash_sha256.validation_pattern == r"^[a-f0-9]{64}$"
     assert hash_sha256.description == "SHA256 hash (64 hexadecimal characters)"
-    assert hash_sha256.example == "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
+    assert (
+        hash_sha256.example
+        == "a665a45920422f9d417e4867efdc4fb8a04a1f3fff1fa07e998e86f7f7a27ae3"
+    )
     assert hash_sha256.input_type == "text"
     assert hash_sha256.placeholder == "a665a459..."
 
@@ -648,7 +669,9 @@ def test_swift_code_validation():
     swift_code = get_scalar_type("swiftCode")
 
     assert swift_code.validation_pattern == r"^[A-Z]{6}[A-Z0-9]{2}([A-Z0-9]{3})?$"
-    assert swift_code.description == "SWIFT/BIC bank identifier code (8 or 11 characters)"
+    assert (
+        swift_code.description == "SWIFT/BIC bank identifier code (8 or 11 characters)"
+    )
     assert swift_code.example == "CHASUS33"
     assert swift_code.input_type == "text"
     assert swift_code.placeholder == "CHASUS33"
@@ -661,7 +684,9 @@ def test_exchange_rate_validation():
     assert exchange_rate.postgres_type.value == "NUMERIC"
     assert exchange_rate.postgres_precision == (19, 8)
     assert exchange_rate.min_value == 0.0
-    assert exchange_rate.description == "Currency exchange rate (high precision decimal)"
+    assert (
+        exchange_rate.description == "Currency exchange rate (high precision decimal)"
+    )
     assert exchange_rate.example == "1.23456789"
     assert exchange_rate.input_type == "number"
     assert exchange_rate.placeholder == "1.23456789"

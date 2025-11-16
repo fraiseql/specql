@@ -16,10 +16,13 @@ from rich.prompt import Confirm
 import json
 
 from src.core.config import get_config
-from src.infrastructure.repositories.postgresql_pattern_repository import PostgreSQLPatternRepository
+from src.infrastructure.repositories.postgresql_pattern_repository import (
+    PostgreSQLPatternRepository,
+)
 from src.application.services.pattern_service import PatternService
 
 console = Console()
+
 
 @click.group(name="patterns")
 def patterns_cli():
@@ -45,10 +48,14 @@ def review_suggestions(limit: int):
 
         # Header with stats
         console.print("\n[bold blue]Pattern Suggestions Review Queue[/bold blue]")
-        console.print(f"Total: {stats.get('total', 0)} | Pending: {stats.get('pending', 0)} | Approved: {stats.get('approved', 0)} | Rejected: {stats.get('rejected', 0)}")
+        console.print(
+            f"Total: {stats.get('total', 0)} | Pending: {stats.get('pending', 0)} | Approved: {stats.get('approved', 0)} | Rejected: {stats.get('rejected', 0)}"
+        )
 
         # Table
-        table = Table(title=f"Pending Suggestions (showing {min(len(suggestions), limit)})")
+        table = Table(
+            title=f"Pending Suggestions (showing {min(len(suggestions), limit)})"
+        )
         table.add_column("ID", style="cyan", no_wrap=True)
         table.add_column("Name", style="magenta")
         table.add_column("Category", style="green")
@@ -57,21 +64,16 @@ def review_suggestions(limit: int):
         table.add_column("Description", style="dim")
 
         for s in suggestions:
-            confidence = f"{s['confidence']:.2f}" if s['confidence'] else "N/A"
-            hours = f"{s['hours_pending']:.1f}h" if s['hours_pending'] > 0 else "<1h"
+            confidence = f"{s['confidence']:.2f}" if s["confidence"] else "N/A"
+            hours = f"{s['hours_pending']:.1f}h" if s["hours_pending"] > 0 else "<1h"
 
             # Truncate description
-            desc = s['description']
+            desc = s["description"]
             if len(desc) > 60:
                 desc = desc[:57] + "..."
 
             table.add_row(
-                str(s['id']),
-                s['name'],
-                s['category'],
-                confidence,
-                hours,
-                desc
+                str(s["id"]), s["name"], s["category"], confidence, hours, desc
             )
 
         console.print(table)
@@ -98,13 +100,15 @@ def show_suggestion(suggestion_id: int):
 
         # Header
         status_color = {
-            'pending': 'yellow',
-            'approved': 'green',
-            'rejected': 'red',
-            'merged': 'blue'
-        }.get(suggestion['status'], 'white')
+            "pending": "yellow",
+            "approved": "green",
+            "rejected": "red",
+            "merged": "blue",
+        }.get(suggestion["status"], "white")
 
-        console.print(f"\n[bold {status_color}]Suggestion #{suggestion['id']}: {suggestion['name']}[/bold {status_color}]")
+        console.print(
+            f"\n[bold {status_color}]Suggestion #{suggestion['id']}: {suggestion['name']}[/bold {status_color}]"
+        )
         console.print(f"Status: {suggestion['status'].upper()}")
 
         # Basic info
@@ -113,39 +117,48 @@ def show_suggestion(suggestion_id: int):
         console.print(f"Source: {suggestion['source_type']}")
         console.print(f"Created: {suggestion['created_at']}")
 
-        if suggestion['confidence_score']:
+        if suggestion["confidence_score"]:
             console.print(f"Confidence: {suggestion['confidence_score']:.2f}")
-        if suggestion['complexity_score']:
+        if suggestion["complexity_score"]:
             console.print(f"Complexity: {suggestion['complexity_score']:.2f}")
 
         # Description
         console.print("\n[bold]Description:[/bold]")
-        console.print(Panel(suggestion['description'], border_style="dim"))
+        console.print(Panel(suggestion["description"], border_style="dim"))
 
         # Parameters
-        if suggestion['parameters']:
+        if suggestion["parameters"]:
             console.print("\n[bold]Parameters:[/bold]")
-            console.print(Panel(json.dumps(suggestion['parameters'], indent=2), border_style="blue"))
+            console.print(
+                Panel(
+                    json.dumps(suggestion["parameters"], indent=2), border_style="blue"
+                )
+            )
 
         # Implementation
-        if suggestion['implementation']:
+        if suggestion["implementation"]:
             console.print("\n[bold]Implementation:[/bold]")
-            console.print(Panel(json.dumps(suggestion['implementation'], indent=2), border_style="green"))
+            console.print(
+                Panel(
+                    json.dumps(suggestion["implementation"], indent=2),
+                    border_style="green",
+                )
+            )
 
         # Source info
-        if suggestion['source_sql']:
+        if suggestion["source_sql"]:
             console.print("\n[bold]Source SQL:[/bold]")
             # Truncate very long SQL
-            sql = suggestion['source_sql']
+            sql = suggestion["source_sql"]
             if len(sql) > 500:
                 sql = sql[:497] + "..."
             console.print(Panel(sql, border_style="magenta"))
 
-        if suggestion['source_function_id']:
+        if suggestion["source_function_id"]:
             console.print(f"Source Function: {suggestion['source_function_id']}")
 
         # Actions
-        if suggestion['status'] == 'pending':
+        if suggestion["status"] == "pending":
             console.print("\n[bold]Actions:[/bold]")
             console.print("• Approve: specql patterns approve <id>")
             console.print("• Reject:  specql patterns reject <id> --reason '...'")
@@ -163,7 +176,9 @@ def approve_suggestion(suggestion_id: int, reviewer: str):
         from src.pattern_library.suggestion_service_pg import PatternSuggestionService
 
         # Confirm action
-        if not Confirm.ask(f"Are you sure you want to approve suggestion #{suggestion_id}?"):
+        if not Confirm.ask(
+            f"Are you sure you want to approve suggestion #{suggestion_id}?"
+        ):
             console.print("[yellow]Approval cancelled.[/yellow]")
             return
 
@@ -172,8 +187,12 @@ def approve_suggestion(suggestion_id: int, reviewer: str):
         service.close()
 
         if success:
-            console.print(f"[green]✓ Successfully approved suggestion #{suggestion_id}[/green]")
-            console.print("[dim]The pattern has been added to the domain pattern library.[/dim]")
+            console.print(
+                f"[green]✓ Successfully approved suggestion #{suggestion_id}[/green]"
+            )
+            console.print(
+                "[dim]The pattern has been added to the domain pattern library.[/dim]"
+            )
         else:
             console.print(f"[red]✗ Failed to approve suggestion #{suggestion_id}[/red]")
 
@@ -191,7 +210,9 @@ def reject_suggestion(suggestion_id: int, reason: str, reviewer: str):
         from src.pattern_library.suggestion_service_pg import PatternSuggestionService
 
         # Confirm action
-        if not Confirm.ask(f"Are you sure you want to reject suggestion #{suggestion_id}?"):
+        if not Confirm.ask(
+            f"Are you sure you want to reject suggestion #{suggestion_id}?"
+        ):
             console.print("[yellow]Rejection cancelled.[/yellow]")
             return
 
@@ -200,7 +221,9 @@ def reject_suggestion(suggestion_id: int, reason: str, reviewer: str):
         service.close()
 
         if success:
-            console.print(f"[green]✓ Successfully rejected suggestion #{suggestion_id}[/green]")
+            console.print(
+                f"[green]✓ Successfully rejected suggestion #{suggestion_id}[/green]"
+            )
             console.print(f"[dim]Reason: {reason}[/dim]")
         else:
             console.print(f"[red]✗ Failed to reject suggestion #{suggestion_id}[/red]")
@@ -210,7 +233,9 @@ def reject_suggestion(suggestion_id: int, reason: str, reviewer: str):
 
 
 @patterns_cli.command(name="create-from-description")
-@click.option("--description", required=True, help="Natural language description of the pattern")
+@click.option(
+    "--description", required=True, help="Natural language description of the pattern"
+)
 @click.option("--category", help="Pattern category (workflow, validation, audit, etc.)")
 @click.option("--save", is_flag=True, help="Save the generated pattern to database")
 @click.option("--reviewer", default="cli", help="Reviewer name for saved patterns")
@@ -240,19 +265,28 @@ def create_from_description(description: str, category: str, save: bool, reviewe
         console.print(f"Description: {pattern['description']}")
 
         # Parameters
-        if pattern.get('parameters'):
+        if pattern.get("parameters"):
             console.print("\n[bold]Parameters:[/bold]")
-            console.print(Panel(json.dumps(pattern['parameters'], indent=2), border_style="blue"))
+            console.print(
+                Panel(json.dumps(pattern["parameters"], indent=2), border_style="blue")
+            )
 
         # Implementation
-        if pattern.get('implementation'):
+        if pattern.get("implementation"):
             console.print("\n[bold]Implementation:[/bold]")
-            console.print(Panel(json.dumps(pattern['implementation'], indent=2), border_style="green"))
+            console.print(
+                Panel(
+                    json.dumps(pattern["implementation"], indent=2),
+                    border_style="green",
+                )
+            )
 
         # Save to database if requested
         if save:
             if confidence < 0.7:
-                console.print(f"\n[yellow]⚠️  Low confidence score ({confidence:.2f}). Consider manual review.[/yellow]")
+                console.print(
+                    f"\n[yellow]⚠️  Low confidence score ({confidence:.2f}). Consider manual review.[/yellow]"
+                )
 
             if Confirm.ask("Save this pattern to the database?"):
                 pattern_id = generator.save_pattern(pattern, confidence)
@@ -287,11 +321,15 @@ def show_stats():
 
 @patterns_cli.command(name="list")
 @click.option("--category", help="Filter by category")
-@click.option("--active-only", is_flag=True, help="Show only active (non-deprecated) patterns")
+@click.option(
+    "--active-only", is_flag=True, help="Show only active (non-deprecated) patterns"
+)
 def list_patterns(category: str, active_only: bool):
     """List patterns in the pattern library."""
     try:
-        from src.application.services.pattern_service_factory import get_pattern_service_with_fallback
+        from src.application.services.pattern_service_factory import (
+            get_pattern_service_with_fallback,
+        )
 
         service = get_pattern_service_with_fallback()
 
@@ -308,7 +346,9 @@ def list_patterns(category: str, active_only: bool):
             return
 
         # Header
-        console.print(f"\n[bold blue]Pattern Library ({len(patterns)} patterns)[/bold blue]")
+        console.print(
+            f"\n[bold blue]Pattern Library ({len(patterns)} patterns)[/bold blue]"
+        )
 
         # Table
         table = Table(title="Domain Patterns")
@@ -327,13 +367,7 @@ def list_patterns(category: str, active_only: bool):
             if len(desc) > 50:
                 desc = desc[:47] + "..."
 
-            table.add_row(
-                pattern.name,
-                pattern.category.value,
-                usage,
-                status,
-                desc
-            )
+            table.add_row(pattern.name, pattern.category.value, usage, status, desc)
 
         console.print(table)
 
@@ -346,7 +380,9 @@ def list_patterns(category: str, active_only: bool):
 def get_pattern(pattern_name: str):
     """Get detailed information about a specific pattern."""
     try:
-        from src.application.services.pattern_service_factory import get_pattern_service_with_fallback
+        from src.application.services.pattern_service_factory import (
+            get_pattern_service_with_fallback,
+        )
 
         service = get_pattern_service_with_fallback()
         pattern = service.get_pattern(pattern_name)
@@ -372,16 +408,24 @@ def get_pattern(pattern_name: str):
         # Parameters
         if pattern.parameters:
             console.print("\n[bold]Parameters:[/bold]")
-            console.print(Panel(json.dumps(pattern.parameters, indent=2), border_style="blue"))
+            console.print(
+                Panel(json.dumps(pattern.parameters, indent=2), border_style="blue")
+            )
 
         # Implementation
         if pattern.implementation:
             console.print("\n[bold]Implementation:[/bold]")
-            console.print(Panel(json.dumps(pattern.implementation, indent=2), border_style="green"))
+            console.print(
+                Panel(
+                    json.dumps(pattern.implementation, indent=2), border_style="green"
+                )
+            )
 
         # Embedding info
         if pattern.has_embedding:
-            console.print(f"\n[bold]Vector Embedding:[/bold] {len(pattern.embedding)} dimensions")
+            console.print(
+                f"\n[bold]Vector Embedding:[/bold] {len(pattern.embedding)} dimensions"
+            )
         else:
             console.print("\n[bold]Vector Embedding:[/bold] Not available")
 
@@ -406,8 +450,12 @@ def pattern_performance_report():
 
         # Only show performance report if using monitored repository
         if not config.should_use_postgresql_primary():
-            console.print("[yellow]Performance monitoring only available with PostgreSQL backend.[/yellow]")
-            console.print("Set SPECQL_REPOSITORY_BACKEND=postgresql to enable monitoring.")
+            console.print(
+                "[yellow]Performance monitoring only available with PostgreSQL backend.[/yellow]"
+            )
+            console.print(
+                "Set SPECQL_REPOSITORY_BACKEND=postgresql to enable monitoring."
+            )
             return
 
         service = get_pattern_service(monitoring=True)
@@ -415,29 +463,37 @@ def pattern_performance_report():
         # Access the monitored repository directly for performance stats
         # This is a bit of a hack, but necessary to get performance data
         repository = service.repository
-        if hasattr(repository, 'get_performance_report'):
+        if hasattr(repository, "get_performance_report"):
             report = repository.get_performance_report()
 
-            console.print("\n[bold blue]Pattern Repository Performance Report[/bold blue]")
+            console.print(
+                "\n[bold blue]Pattern Repository Performance Report[/bold blue]"
+            )
             console.print(f"Queries executed: {report['queries_executed']}")
             console.print(f"Average query time: {report['average_query_time']:.3f}s")
             console.print(f"Slow queries (>100ms): {report['slow_query_count']}")
             console.print(f"Success rate: {report['success_rate']:.1f}%")
             console.print(f"Failed queries: {report['failed_queries']}")
 
-            if report['slow_queries']:
+            if report["slow_queries"]:
                 console.print("\n[bold yellow]Recent Slow Queries:[/bold yellow]")
-                for slow_query in report['slow_queries'][-5:]:  # Last 5 slow queries
-                    console.print(f"• {slow_query['operation']}: {slow_query['duration']:.3f}s")
+                for slow_query in report["slow_queries"][-5:]:  # Last 5 slow queries
+                    console.print(
+                        f"• {slow_query['operation']}: {slow_query['duration']:.3f}s"
+                    )
         else:
-            console.print("[yellow]Performance monitoring not available for current repository.[/yellow]")
+            console.print(
+                "[yellow]Performance monitoring not available for current repository.[/yellow]"
+            )
 
     except Exception as e:
         console.print(f"[red]Error getting performance report: {e}[/red]")
 
 
 @patterns_cli.command(name="check-consistency")
-@click.option("--legacy-db", help="Path to legacy pattern database", default="pattern_library.db")
+@click.option(
+    "--legacy-db", help="Path to legacy pattern database", default="pattern_library.db"
+)
 def check_pattern_consistency(legacy_db: str):
     """Check data consistency between PostgreSQL and legacy pattern storage."""
     try:
@@ -455,32 +511,35 @@ def check_pattern_consistency(legacy_db: str):
         console.print("[cyan]Checking pattern data consistency...[/cyan]")
 
         checker = PatternConsistencyChecker(
-            db_url=config.database_url,
-            legacy_patterns_path=Path(legacy_db)
+            db_url=config.database_url, legacy_patterns_path=Path(legacy_db)
         )
 
         results = checker.check_consistency()
 
-        if results['consistent']:
+        if results["consistent"]:
             console.print("[green]✓ Pattern data consistency check passed![/green]")
         else:
             console.print("[red]✗ Pattern data inconsistencies found![/red]")
 
         # Summary
-        summary = results['summary']
+        summary = results["summary"]
         console.print("\n[bold]Summary:[/bold]")
         console.print(f"PostgreSQL patterns: {summary['postgresql_patterns']}")
         console.print(f"Legacy patterns: {summary['legacy_patterns']}")
         console.print(f"Discrepancies found: {summary['discrepancies_found']}")
 
         # Show discrepancies
-        if results['discrepancies']:
+        if results["discrepancies"]:
             console.print("\n[bold yellow]Discrepancies:[/bold yellow]")
-            for i, disc in enumerate(results['discrepancies'][:10], 1):  # Show first 10
-                console.print(f"{i}. [{disc['type']}] {disc.get('pattern', 'N/A')}: {disc['details']}")
+            for i, disc in enumerate(results["discrepancies"][:10], 1):  # Show first 10
+                console.print(
+                    f"{i}. [{disc['type']}] {disc.get('pattern', 'N/A')}: {disc['details']}"
+                )
 
-            if len(results['discrepancies']) > 10:
-                console.print(f"... and {len(results['discrepancies']) - 10} more discrepancies")
+            if len(results["discrepancies"]) > 10:
+                console.print(
+                    f"... and {len(results['discrepancies']) - 10} more discrepancies"
+                )
 
     except Exception as e:
         console.print(f"[red]Error checking pattern consistency: {e}[/red]")
@@ -489,8 +548,12 @@ def check_pattern_consistency(legacy_db: str):
 @patterns_cli.command(name="search")
 @click.argument("query")
 @click.option("--limit", default=10, help="Maximum results to return")
-@click.option("--min-similarity", default=0.5, type=float,
-              help="Minimum similarity threshold (0.0-1.0)")
+@click.option(
+    "--min-similarity",
+    default=0.5,
+    type=float,
+    help="Minimum similarity threshold (0.0-1.0)",
+)
 @click.option("--category", help="Filter by category")
 def search_patterns(query, limit, min_similarity, category):
     """
@@ -502,7 +565,9 @@ def search_patterns(query, limit, min_similarity, category):
         specql patterns search "phone number" --min-similarity 0.7
     """
     try:
-        from src.application.services.pattern_service_factory import get_pattern_service_with_fallback
+        from src.application.services.pattern_service_factory import (
+            get_pattern_service_with_fallback,
+        )
 
         service = get_pattern_service_with_fallback()
 
@@ -514,10 +579,7 @@ def search_patterns(query, limit, min_similarity, category):
 
         # Search
         results = service.search_patterns_semantic(
-            query=query,
-            limit=limit,
-            min_similarity=min_similarity,
-            category=category
+            query=query, limit=limit, min_similarity=min_similarity, category=category
         )
 
         if not results:
@@ -539,7 +601,9 @@ def search_patterns(query, limit, min_similarity, category):
             else:
                 color = "white"
 
-            console.print(f"{i}. {pattern.name} ({sim_pct:.1f}% match)", style=f"bold {color}")
+            console.print(
+                f"{i}. {pattern.name} ({sim_pct:.1f}% match)", style=f"bold {color}"
+            )
 
             console.print(f"   Category: {pattern.category}")
             console.print(f"   Description: {pattern.description[:100]}...")
@@ -556,8 +620,9 @@ def search_patterns(query, limit, min_similarity, category):
 @patterns_cli.command(name="similar")
 @click.argument("pattern_name")
 @click.option("--limit", default=5, help="Maximum results to return")
-@click.option("--min-similarity", default=0.5, type=float,
-              help="Minimum similarity threshold")
+@click.option(
+    "--min-similarity", default=0.5, type=float, help="Minimum similarity threshold"
+)
 def find_similar_patterns(pattern_name, limit, min_similarity):
     """
     Find patterns similar to a given pattern
@@ -567,7 +632,9 @@ def find_similar_patterns(pattern_name, limit, min_similarity):
         specql patterns similar audit_trail --limit 10
     """
     try:
-        from src.application.services.pattern_service_factory import get_pattern_service_with_fallback
+        from src.application.services.pattern_service_factory import (
+            get_pattern_service_with_fallback,
+        )
 
         service = get_pattern_service_with_fallback()
 
@@ -592,9 +659,7 @@ def find_similar_patterns(pattern_name, limit, min_similarity):
             return
 
         results = service.find_similar_patterns(
-            pattern_id=pattern.id,
-            limit=limit,
-            min_similarity=min_similarity
+            pattern_id=pattern.id, limit=limit, min_similarity=min_similarity
         )
 
         if not results:
@@ -613,7 +678,10 @@ def find_similar_patterns(pattern_name, limit, min_similarity):
             else:
                 color = "white"
 
-            console.print(f"{i}. {similar_pattern.name} ({sim_pct:.1f}% similar)", style=f"bold {color}")
+            console.print(
+                f"{i}. {similar_pattern.name} ({sim_pct:.1f}% similar)",
+                style=f"bold {color}",
+            )
 
             console.print(f"   {similar_pattern.description[:100]}...")
             console.print()
@@ -623,10 +691,14 @@ def find_similar_patterns(pattern_name, limit, min_similarity):
 
 
 @patterns_cli.command(name="recommend")
-@click.option("--entity-description", required=True,
-              help="Description of the entity")
-@click.option("--field", "fields", multiple=True, required=True,
-              help="Field names in the entity (can specify multiple)")
+@click.option("--entity-description", required=True, help="Description of the entity")
+@click.option(
+    "--field",
+    "fields",
+    multiple=True,
+    required=True,
+    help="Field names in the entity (can specify multiple)",
+)
 @click.option("--limit", default=5, help="Maximum recommendations")
 def recommend_patterns(entity_description, fields, limit):
     """
@@ -640,7 +712,9 @@ def recommend_patterns(entity_description, fields, limit):
             --field address
     """
     try:
-        from src.application.services.pattern_service_factory import get_pattern_service_with_fallback
+        from src.application.services.pattern_service_factory import (
+            get_pattern_service_with_fallback,
+        )
 
         service = get_pattern_service_with_fallback()
 
@@ -651,9 +725,7 @@ def recommend_patterns(entity_description, fields, limit):
 
         # Get recommendations
         recommendations = service.recommend_patterns_for_entity(
-            entity_description=entity_description,
-            field_names=list(fields),
-            limit=limit
+            entity_description=entity_description, field_names=list(fields), limit=limit
         )
 
         if not recommendations:
@@ -665,7 +737,9 @@ def recommend_patterns(entity_description, fields, limit):
         for i, (pattern, similarity) in enumerate(recommendations, 1):
             sim_pct = similarity * 100
 
-            console.print(f"{i}. {pattern.name} ({sim_pct:.1f}% match)", style="bold cyan")
+            console.print(
+                f"{i}. {pattern.name} ({sim_pct:.1f}% match)", style="bold cyan"
+            )
 
             console.print(f"   {pattern.description}")
 
@@ -679,13 +753,20 @@ def recommend_patterns(entity_description, fields, limit):
 
 
 @patterns_cli.command()
-@click.option("--output", required=True, type=click.Path(),
-              help="Output file path")
-@click.option("--format", "fmt", type=click.Choice(["yaml", "json"]),
-              default="yaml", help="Export format")
+@click.option("--output", required=True, type=click.Path(), help="Output file path")
+@click.option(
+    "--format",
+    "fmt",
+    type=click.Choice(["yaml", "json"]),
+    default="yaml",
+    help="Export format",
+)
 @click.option("--category", help="Export only patterns in this category")
-@click.option("--include-embeddings", is_flag=True,
-              help="Include embeddings in export (large file)")
+@click.option(
+    "--include-embeddings",
+    is_flag=True,
+    help="Include embeddings in export (large file)",
+)
 def export(output, fmt, category, include_embeddings):
     """
     Export patterns to file
@@ -703,8 +784,12 @@ def export(output, fmt, category, include_embeddings):
     # Check if PostgreSQL is configured
     if not config.database_url:
         console.print("[red]❌ PostgreSQL database not configured.[/red]")
-        console.print("Set SPECQL_DB_URL environment variable to enable pattern export/import.")
-        console.print("Example: export SPECQL_DB_URL='postgresql://user:pass@localhost:5432/specql'")
+        console.print(
+            "Set SPECQL_DB_URL environment variable to enable pattern export/import."
+        )
+        console.print(
+            "Example: export SPECQL_DB_URL='postgresql://user:pass@localhost:5432/specql'"
+        )
         raise click.Abort()
 
     repository = PostgreSQLPatternRepository(config.database_url)  # type: ignore
@@ -722,20 +807,18 @@ def export(output, fmt, category, include_embeddings):
     try:
         if fmt == "yaml":
             exporter.export_to_yaml(
-                output_path,
-                category=category,
-                include_embeddings=include_embeddings
+                output_path, category=category, include_embeddings=include_embeddings
             )
         else:
             exporter.export_to_json(
-                output_path,
-                category=category,
-                include_embeddings=include_embeddings
+                output_path, category=category, include_embeddings=include_embeddings
             )
 
         # Get pattern count
         if category:
-            patterns = [p for p in service.repository.list_all() if p.category.value == category]
+            patterns = [
+                p for p in service.repository.list_all() if p.category.value == category
+            ]
         else:
             patterns = service.repository.list_all()
 
@@ -748,10 +831,14 @@ def export(output, fmt, category, include_embeddings):
 
 @patterns_cli.command("import")
 @click.argument("input_file", type=click.Path(exists=True))
-@click.option("--skip-existing/--update-existing", default=True,
-              help="Skip existing patterns or update them")
-@click.option("--no-embeddings", is_flag=True,
-              help="Don't generate embeddings during import")
+@click.option(
+    "--skip-existing/--update-existing",
+    default=True,
+    help="Skip existing patterns or update them",
+)
+@click.option(
+    "--no-embeddings", is_flag=True, help="Don't generate embeddings during import"
+)
 def import_patterns(input_file, skip_existing, no_embeddings):
     """
     Import patterns from file
@@ -769,8 +856,12 @@ def import_patterns(input_file, skip_existing, no_embeddings):
     # Check if PostgreSQL is configured
     if not config.database_url:
         console.print("[red]❌ PostgreSQL database not configured.[/red]")
-        console.print("Set SPECQL_DB_URL environment variable to enable pattern export/import.")
-        console.print("Example: export SPECQL_DB_URL='postgresql://user:pass@localhost:5432/specql'")
+        console.print(
+            "Set SPECQL_DB_URL environment variable to enable pattern export/import."
+        )
+        console.print(
+            "Example: export SPECQL_DB_URL='postgresql://user:pass@localhost:5432/specql'"
+        )
         raise click.Abort()
 
     repository = PostgreSQLPatternRepository(config.database_url)  # type: ignore
@@ -791,13 +882,13 @@ def import_patterns(input_file, skip_existing, no_embeddings):
             imported_count = importer.import_from_yaml(
                 input_path,
                 skip_existing=skip_existing,
-                generate_embeddings=not no_embeddings
+                generate_embeddings=not no_embeddings,
             )
         elif input_path.suffix == ".json":
             imported_count = importer.import_from_json(
                 input_path,
                 skip_existing=skip_existing,
-                generate_embeddings=not no_embeddings
+                generate_embeddings=not no_embeddings,
             )
         else:
             console.print(f"[red]❌ Unsupported file format: {input_path.suffix}[/red]")
@@ -814,13 +905,16 @@ def import_patterns(input_file, skip_existing, no_embeddings):
 
 
 @patterns_cli.command()
-@click.option("--threshold", default=0.9, type=float,
-              help="Similarity threshold (0.0-1.0)")
-@click.option("--auto-merge", is_flag=True,
-              help="Automatically merge duplicates")
-@click.option("--strategy", type=click.Choice(["most_used", "oldest", "newest"]),
-              default="most_used",
-              help="Merge strategy")
+@click.option(
+    "--threshold", default=0.9, type=float, help="Similarity threshold (0.0-1.0)"
+)
+@click.option("--auto-merge", is_flag=True, help="Automatically merge duplicates")
+@click.option(
+    "--strategy",
+    type=click.Choice(["most_used", "oldest", "newest"]),
+    default="most_used",
+    help="Merge strategy",
+)
 def deduplicate(threshold, auto_merge, strategy):
     """
     Find and optionally merge duplicate patterns
@@ -837,8 +931,12 @@ def deduplicate(threshold, auto_merge, strategy):
     # Check if PostgreSQL is configured
     if not config.database_url:
         console.print("[red]❌ PostgreSQL database not configured.[/red]")
-        console.print("Set SPECQL_DB_URL environment variable to enable pattern deduplication.")
-        console.print("Example: export SPECQL_DB_URL='postgresql://user:pass@localhost:5432/specql'")
+        console.print(
+            "Set SPECQL_DB_URL environment variable to enable pattern deduplication."
+        )
+        console.print(
+            "Example: export SPECQL_DB_URL='postgresql://user:pass@localhost:5432/specql'"
+        )
         raise click.Abort()
 
     repository = PostgreSQLPatternRepository(config.database_url)  # type: ignore
@@ -877,8 +975,7 @@ def deduplicate(threshold, auto_merge, strategy):
         if auto_merge:
             # Perform merge
             merged = deduplicator.merge_patterns(
-                keep=suggestion["keep"],
-                merge=suggestion["merge"]
+                keep=suggestion["keep"], merge=suggestion["merge"]
             )
             console.print(f"  [green]✅ Merged into '{merged.name}'[/green]")
         else:
@@ -907,8 +1004,12 @@ def compare(pattern1_name, pattern2_name):
     # Check if PostgreSQL is configured
     if not config.database_url:
         console.print("[red]❌ PostgreSQL database not configured.[/red]")
-        console.print("Set SPECQL_DB_URL environment variable to enable pattern comparison.")
-        console.print("Example: export SPECQL_DB_URL='postgresql://user:pass@localhost:5432/specql'")
+        console.print(
+            "Set SPECQL_DB_URL environment variable to enable pattern comparison."
+        )
+        console.print(
+            "Example: export SPECQL_DB_URL='postgresql://user:pass@localhost:5432/specql'"
+        )
         raise click.Abort()
 
     repository = PostgreSQLPatternRepository(config.database_url)  # type: ignore

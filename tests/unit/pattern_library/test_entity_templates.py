@@ -18,21 +18,21 @@ class TestEntityTemplates:
             category="workflow",
             description="State machine pattern",
             parameters={"states": {"type": "array"}, "transitions": {"type": "object"}},
-            implementation={"fields": [], "actions": []}
+            implementation={"fields": [], "actions": []},
         )
         lib.add_domain_pattern(
             name="audit_trail",
             category="audit",
             description="Audit trail pattern",
             parameters={"track_versions": {"type": "boolean"}},
-            implementation={"fields": [], "triggers": []}
+            implementation={"fields": [], "triggers": []},
         )
         lib.add_domain_pattern(
             name="soft_delete",
             category="data_management",
             description="Soft delete pattern",
             parameters={},
-            implementation={"fields": [], "actions": []}
+            implementation={"fields": [], "actions": []},
         )
 
         # Add contact template manually for testing
@@ -44,23 +44,23 @@ class TestEntityTemplates:
                 "first_name": {"type": "text", "required": True},
                 "last_name": {"type": "text", "required": True},
                 "email": {"type": "email", "required": True, "unique": True},
-                "phone": {"type": "text"}
+                "phone": {"type": "text"},
             },
             default_patterns={
                 "state_machine": {
                     "states": ["lead", "prospect", "customer"],
                     "transitions": {"lead->prospect": {}, "prospect->customer": {}},
-                    "initial_state": "lead"
+                    "initial_state": "lead",
                 },
                 "audit_trail": {"track_versions": True},
-                "soft_delete": {}
+                "soft_delete": {},
             },
             default_actions={
                 "qualify": {
                     "description": "Qualify lead as prospect",
-                    "steps": [{"type": "validate", "condition": "state == 'lead'"}]
+                    "steps": [{"type": "validate", "condition": "state == 'lead'"}],
                 }
-            }
+            },
         )
 
         yield lib
@@ -74,7 +74,7 @@ class TestEntityTemplates:
             description="Test template",
             default_fields={"name": {"type": "text"}},
             default_patterns={},
-            default_actions={}
+            default_actions={},
         )
 
         assert template_id > 0
@@ -95,7 +95,7 @@ class TestEntityTemplates:
             description="Another CRM template",
             default_fields={"field": {"type": "text"}},
             default_patterns={},
-            default_actions={}
+            default_actions={},
         )
 
         crm_templates = library.get_entity_templates_by_namespace("crm")
@@ -123,21 +123,21 @@ class TestEntityTemplates:
 
     def test_instantiate_entity_template_with_custom_fields(self, library):
         """Test instantiation with custom fields"""
-        custom_fields = {
-            "custom_field": {"type": "text", "required": True}
-        }
+        custom_fields = {"custom_field": {"type": "text", "required": True}}
 
         result = library.instantiate_entity_template(
-            "contact",
-            "TestContact",
-            custom_fields=custom_fields
+            "contact", "TestContact", custom_fields=custom_fields
         )
 
         field_names = [f["name"] for f in result["fields"] if isinstance(f, dict)]
         assert "custom_field" in field_names
 
         # Find the custom field
-        custom_field = next(f for f in result["fields"] if isinstance(f, dict) and f["name"] == "custom_field")
+        custom_field = next(
+            f
+            for f in result["fields"]
+            if isinstance(f, dict) and f["name"] == "custom_field"
+        )
         assert custom_field["required"] is True
 
     def test_validate_entity_template(self, library):
@@ -161,7 +161,7 @@ class TestEntityTemplates:
             description="Template with invalid pattern",
             default_fields={},
             default_patterns={"non_existent_pattern": {}},
-            default_actions={}
+            default_actions={},
         )
 
         validation = library.validate_entity_template("invalid_template")
@@ -177,7 +177,7 @@ class TestEntityTemplates:
         # Check that instantiation was recorded
         cursor = library.db.execute(
             "SELECT * FROM pattern_instantiations WHERE entity_name = ? AND entity_template_id IS NOT NULL",
-            ("UsageTestContact",)
+            ("UsageTestContact",),
         )
         record = cursor.fetchone()
 
@@ -205,12 +205,14 @@ class TestEntityTemplates:
             description="Minimal test template",
             default_fields={"name": {"type": "text"}},
             default_patterns={},
-            default_actions={}
+            default_actions={},
         )
 
         # Should be able to retrieve it
         templates = library.get_all_entity_templates()
         assert len(templates) == initial_count + 1
 
-        minimal_template = next(t for t in templates if t["template_name"] == "minimal_test")
+        minimal_template = next(
+            t for t in templates if t["template_name"] == "minimal_test"
+        )
         assert minimal_template["template_namespace"] == "test"

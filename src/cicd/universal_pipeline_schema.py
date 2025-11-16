@@ -14,8 +14,10 @@ from enum import Enum
 # Triggers: When pipelines run
 # ============================================================================
 
+
 class TriggerType(str, Enum):
     """Universal trigger types"""
+
     PUSH = "push"
     PULL_REQUEST = "pull_request"
     SCHEDULE = "schedule"
@@ -27,6 +29,7 @@ class TriggerType(str, Enum):
 @dataclass
 class Trigger:
     """Pipeline trigger configuration"""
+
     type: TriggerType
     branches: Optional[List[str]] = None
     tags: Optional[List[str]] = None
@@ -46,9 +49,11 @@ class Trigger:
 # Environment & Runtime
 # ============================================================================
 
+
 @dataclass
 class Runtime:
     """Runtime environment configuration"""
+
     language: str  # python, node, go, rust, java
     version: str  # 3.11, 18, 1.21
     package_manager: Optional[str] = None  # pip, poetry, uv, npm, yarn
@@ -62,6 +67,7 @@ class Runtime:
 @dataclass
 class Service:
     """External service (database, cache, etc.)"""
+
     name: str  # postgres, redis, mongodb
     version: str
     environment: Dict[str, str] = field(default_factory=dict)
@@ -72,8 +78,10 @@ class Service:
 # Steps: Atomic actions
 # ============================================================================
 
+
 class StepType(str, Enum):
     """Universal step types"""
+
     RUN = "run"  # Run shell command
     CHECKOUT = "checkout"  # Clone repository
     SETUP_RUNTIME = "setup_runtime"  # Setup language runtime
@@ -91,6 +99,7 @@ class StepType(str, Enum):
 @dataclass
 class Step:
     """Pipeline step (atomic action)"""
+
     name: str
     type: StepType
     command: Optional[str] = None
@@ -105,9 +114,11 @@ class Step:
 # Jobs: Collection of steps
 # ============================================================================
 
+
 @dataclass
 class Job:
     """Pipeline job (collection of steps)"""
+
     name: str
     steps: List[Step]
     runtime: Optional[Runtime] = None
@@ -118,16 +129,20 @@ class Job:
     timeout_minutes: int = 60
 
     # Matrix builds
-    matrix: Optional[Dict[str, List[str]]] = None  # {"python": ["3.10", "3.11"], "os": ["ubuntu", "macos"]}
+    matrix: Optional[Dict[str, List[str]]] = (
+        None  # {"python": ["3.10", "3.11"], "os": ["ubuntu", "macos"]}
+    )
 
 
 # ============================================================================
 # Stages: Logical grouping
 # ============================================================================
 
+
 @dataclass
 class Stage:
     """Pipeline stage (logical grouping of jobs)"""
+
     name: str
     jobs: List[Job]
     approval_required: bool = False
@@ -137,6 +152,7 @@ class Stage:
 # ============================================================================
 # Pipeline: Complete definition
 # ============================================================================
+
 
 @dataclass
 class UniversalPipeline:
@@ -150,6 +166,7 @@ class UniversalPipeline:
     - Jenkins
     - Azure DevOps
     """
+
     name: str
     description: str = ""
 
@@ -189,13 +206,13 @@ class UniversalPipeline:
         return ""
 
     @classmethod
-    def from_github_actions(cls, yaml_content: str) -> 'UniversalPipeline':
+    def from_github_actions(cls, yaml_content: str) -> "UniversalPipeline":
         """Reverse engineer from GitHub Actions"""
         # TODO: Implement GitHub Actions parsing
         raise NotImplementedError("GitHub Actions parsing not yet implemented")
 
     @classmethod
-    def from_gitlab_ci(cls, yaml_content: str) -> 'UniversalPipeline':
+    def from_gitlab_ci(cls, yaml_content: str) -> "UniversalPipeline":
         """Reverse engineer from GitLab CI"""
         # TODO: Implement GitLab CI parsing
         raise NotImplementedError("GitLab CI parsing not yet implemented")

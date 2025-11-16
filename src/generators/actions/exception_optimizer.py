@@ -25,7 +25,9 @@ class ExceptionOptimizer:
         return mapping.get(specql_exception.lower(), specql_exception.upper())
 
     @staticmethod
-    def optimize_exception_handlers(handlers: list[ExceptionHandler]) -> list[ExceptionHandler]:
+    def optimize_exception_handlers(
+        handlers: list[ExceptionHandler],
+    ) -> list[ExceptionHandler]:
         """Optimize exception handler ordering and deduplication"""
         # Ensure OTHERS is last if present
         others_handler = None

@@ -1,4 +1,5 @@
 """Integration tests for semantic search CLI"""
+
 import subprocess
 import pytest
 import os
@@ -7,12 +8,13 @@ import os
 @pytest.fixture
 def db_url():
     """Get database URL"""
-    return os.getenv("SPECQL_DB_URL", "postgresql://specql_user:specql_dev_password@localhost/specql")
+    return os.getenv(
+        "SPECQL_DB_URL", "postgresql://specql_user:specql_dev_password@localhost/specql"
+    )
 
 
 @pytest.mark.skipif(
-    not os.getenv("SPECQL_DB_URL"),
-    reason="Requires PostgreSQL database"
+    not os.getenv("SPECQL_DB_URL"), reason="Requires PostgreSQL database"
 )
 class TestSemanticSearchCLI:
     """Test semantic search CLI commands"""
@@ -22,7 +24,7 @@ class TestSemanticSearchCLI:
         result = subprocess.run(
             ["specql", "patterns", "search", "email validation", "--limit", "5"],
             capture_output=True,
-            text=True
+            text=True,
         )
 
         assert result.returncode == 0
@@ -32,12 +34,17 @@ class TestSemanticSearchCLI:
         """Test search with category filter"""
         result = subprocess.run(
             [
-                "specql", "patterns", "search", "validation",
-                "--category", "validation",
-                "--limit", "10"
+                "specql",
+                "patterns",
+                "search",
+                "validation",
+                "--category",
+                "validation",
+                "--limit",
+                "10",
             ],
             capture_output=True,
-            text=True
+            text=True,
         )
 
         assert result.returncode == 0
@@ -50,7 +57,7 @@ class TestSemanticSearchCLI:
         check_result = subprocess.run(
             ["specql", "patterns", "get", "email_validation"],
             capture_output=True,
-            text=True
+            text=True,
         )
 
         if check_result.returncode == 0:
@@ -58,11 +65,14 @@ class TestSemanticSearchCLI:
             result = subprocess.run(
                 ["specql", "patterns", "similar", "email_validation", "--limit", "3"],
                 capture_output=True,
-                text=True
+                text=True,
             )
 
             assert result.returncode == 0
-            assert "similar" in result.stdout.lower() or "No similar patterns found" in result.stdout
+            assert (
+                "similar" in result.stdout.lower()
+                or "No similar patterns found" in result.stdout
+            )
         else:
             # Pattern doesn't exist, skip test
             pytest.skip("email_validation pattern not found in database")
@@ -71,15 +81,24 @@ class TestSemanticSearchCLI:
         """Test pattern recommendations"""
         result = subprocess.run(
             [
-                "specql", "patterns", "recommend",
-                "--entity-description", "Customer contact information",
-                "--field", "email",
-                "--field", "phone",
-                "--limit", "5"
+                "specql",
+                "patterns",
+                "recommend",
+                "--entity-description",
+                "Customer contact information",
+                "--field",
+                "email",
+                "--field",
+                "phone",
+                "--limit",
+                "5",
             ],
             capture_output=True,
-            text=True
+            text=True,
         )
 
         assert result.returncode == 0
-        assert "Recommended" in result.stdout or "No pattern recommendations found" in result.stdout
+        assert (
+            "Recommended" in result.stdout
+            or "No pattern recommendations found" in result.stdout
+        )

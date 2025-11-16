@@ -24,7 +24,7 @@ class TestImpactMetadataCascade:
             impact=ActionImpact(
                 primary=EntityImpact(entity="Post", operation="CREATE")
             ),
-            steps=[]
+            steps=[],
         )
         entity = Entity(name="Post", schema="blog")
 
@@ -43,12 +43,10 @@ class TestImpactMetadataCascade:
             name="create_post",
             impact=ActionImpact(
                 primary=EntityImpact(
-                    entity="Post",
-                    operation="CREATE",
-                    fields=["title", "content"]
+                    entity="Post", operation="CREATE", fields=["title", "content"]
                 )
             ),
-            steps=[]
+            steps=[],
         )
         entity = Entity(name="Post", schema="blog")
 
@@ -68,11 +66,13 @@ class TestImpactMetadataCascade:
             impact=ActionImpact(
                 primary=EntityImpact(entity="Post", operation="CREATE"),
                 side_effects=[
-                    EntityImpact(entity="User", operation="UPDATE", fields=["post_count"]),
-                    EntityImpact(entity="Notification", operation="CREATE")
-                ]
+                    EntityImpact(
+                        entity="User", operation="UPDATE", fields=["post_count"]
+                    ),
+                    EntityImpact(entity="Notification", operation="CREATE"),
+                ],
             ),
-            steps=[]
+            steps=[],
         )
         entity = Entity(name="Post", schema="blog")
 

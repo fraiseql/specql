@@ -15,7 +15,9 @@ class GitLabCIGenerator:
 
     def __init__(self, template_dir: Optional[Path] = None):
         if template_dir is None:
-            template_dir = Path(__file__).parent.parent.parent.parent / "templates" / "cicd"
+            template_dir = (
+                Path(__file__).parent.parent.parent.parent / "templates" / "cicd"
+            )
 
         self.env = Environment(loader=FileSystemLoader(str(template_dir)))
         self.template = self.env.get_template("gitlab_ci.yml.j2")

@@ -49,6 +49,8 @@ class CompositeTypeBuilder:
         if not invalidations:
             return "ARRAY[]::mutation_metadata.cache_invalidation[]"
 
-        rows = [CompositeTypeBuilder.build_cache_invalidation(inv) for inv in invalidations]
+        rows = [
+            CompositeTypeBuilder.build_cache_invalidation(inv) for inv in invalidations
+        ]
         separator = ",\n        "
         return f"ARRAY[\n        {separator.join(rows)}\n    ]"

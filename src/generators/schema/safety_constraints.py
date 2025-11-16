@@ -28,7 +28,11 @@ def generate_safety_constraints(entity: EntityDefinition, schema: str) -> list[s
     constraints = []
 
     # Template variables
-    template_vars = {"schema": schema, "entity": entity.name, "entity_lower": entity_lower}
+    template_vars = {
+        "schema": schema,
+        "entity": entity.name,
+        "entity_lower": entity_lower,
+    }
 
     # 1. Prevent circular references
     with open("templates/sql/constraints/prevent_cycle.sql.jinja2") as f:
@@ -64,7 +68,11 @@ def generate_circular_reference_check(entity: EntityDefinition, schema: str) -> 
         return ""
 
     entity_lower = entity.name.lower()
-    template_vars = {"schema": schema, "entity": entity.name, "entity_lower": entity_lower}
+    template_vars = {
+        "schema": schema,
+        "entity": entity.name,
+        "entity_lower": entity_lower,
+    }
 
     with open("templates/sql/constraints/prevent_cycle.sql.jinja2") as f:
         template = Template(f.read())
@@ -74,7 +82,11 @@ def generate_circular_reference_check(entity: EntityDefinition, schema: str) -> 
 def generate_sequence_limit_check(entity: EntityDefinition, schema: str) -> str:
     """Generate just the identifier sequence limit check trigger."""
     entity_lower = entity.name.lower()
-    template_vars = {"schema": schema, "entity": entity.name, "entity_lower": entity_lower}
+    template_vars = {
+        "schema": schema,
+        "entity": entity.name,
+        "entity_lower": entity_lower,
+    }
 
     with open("templates/sql/constraints/check_sequence_limit.sql.jinja2") as f:
         template = Template(f.read())
@@ -87,7 +99,11 @@ def generate_depth_limit_check(entity: EntityDefinition, schema: str) -> str:
         return ""
 
     entity_lower = entity.name.lower()
-    template_vars = {"schema": schema, "entity": entity.name, "entity_lower": entity_lower}
+    template_vars = {
+        "schema": schema,
+        "entity": entity.name,
+        "entity_lower": entity_lower,
+    }
 
     with open("templates/sql/constraints/check_depth_limit.sql.jinja2") as f:
         template = Template(f.read())

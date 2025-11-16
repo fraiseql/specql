@@ -32,6 +32,3 @@ def test_compile_update_step_simple():
     assert "updated_at = now()" in sql  # Auto-audit
     assert "updated_by = p_caller_id" in sql  # Auto-audit
     assert "WHERE pk_contact = v_pk" in sql
-
-
-

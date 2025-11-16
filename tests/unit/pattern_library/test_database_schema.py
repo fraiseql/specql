@@ -2,6 +2,7 @@ import pytest
 import sqlite3
 from pathlib import Path
 
+
 def test_database_schema_creation():
     """Test that schema creates all required tables"""
     db_path = Path("test_pattern_library.db")
@@ -28,7 +29,7 @@ def test_database_schema_creation():
         "expression_patterns",
         "expression_implementations",
         "language_capabilities",
-        "pattern_dependencies"
+        "pattern_dependencies",
     ]
 
     for table in expected_tables:
@@ -36,6 +37,7 @@ def test_database_schema_creation():
 
     conn.close()
     db_path.unlink()
+
 
 def test_pattern_insert():
     """Test inserting a pattern"""

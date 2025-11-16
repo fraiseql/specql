@@ -19,7 +19,9 @@ class FieldValueGenerator:
             Faker.seed(seed)
             random.seed(seed)
 
-    def generate(self, field_mapping: dict[str, Any], context: dict[str, Any] = None) -> Any:
+    def generate(
+        self, field_mapping: dict[str, Any], context: dict[str, Any] = None
+    ) -> Any:
         """
         Generate value for field based on mapping
 

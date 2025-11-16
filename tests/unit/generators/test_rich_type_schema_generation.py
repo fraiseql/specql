@@ -18,7 +18,9 @@ def test_generate_email_field_with_check_constraint():
 
 def test_generate_percentage_field_with_min_max_constraints():
     """Percentage rich type should generate NUMERIC with min/max CHECK constraints"""
-    field = FieldDefinition(name="discount_rate", type_name="percentage", nullable=False)
+    field = FieldDefinition(
+        name="discount_rate", type_name="percentage", nullable=False
+    )
 
     generator = ConstraintGenerator()
     constraint = generator.generate_constraint(field, "tenant.tb_product")

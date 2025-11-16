@@ -97,7 +97,9 @@ def test_generates_impact_metadata_composite_type():
                 entity="Contact", operation="UPDATE", fields=["status", "updatedAt"]
             ),
             side_effects=[
-                EntityImpact(entity="Notification", operation="CREATE", fields=["id", "message"])
+                EntityImpact(
+                    entity="Notification", operation="CREATE", fields=["id", "message"]
+                )
             ],
         ),
     )
@@ -127,7 +129,9 @@ def test_generates_side_effect_collections():
     action = Action(
         name="qualify_lead",
         impact=ActionImpact(
-            primary=EntityImpact(entity="Contact", operation="UPDATE", fields=["status"]),
+            primary=EntityImpact(
+                entity="Contact", operation="UPDATE", fields=["status"]
+            ),
             side_effects=[
                 EntityImpact(
                     entity="Notification",

@@ -1,6 +1,5 @@
 """Tests for call_function action type"""
 
-
 from src.core.specql_parser import SpecQLParser
 
 

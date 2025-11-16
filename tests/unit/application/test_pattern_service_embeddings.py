@@ -1,9 +1,10 @@
 """Tests for PatternService embedding functionality"""
+
 import pytest
 import numpy as np
 from src.application.services.pattern_service import PatternService
 from src.infrastructure.repositories.in_memory_pattern_repository import (
-    InMemoryPatternRepository
+    InMemoryPatternRepository,
 )
 
 
@@ -24,7 +25,7 @@ class TestPatternServiceEmbeddings:
             category="validation",
             description="Validates email addresses",
             implementation={"type": "regex", "pattern": r"^[^@]+@[^@]+\.[^@]+$"},
-            generate_embedding=True
+            generate_embedding=True,
         )
 
         assert pattern.embedding is not None
@@ -37,7 +38,7 @@ class TestPatternServiceEmbeddings:
             name="test_pattern_no_embedding",
             category="test",
             description="Test pattern",
-            generate_embedding=False
+            generate_embedding=False,
         )
 
         assert pattern.embedding is None
@@ -48,14 +49,14 @@ class TestPatternServiceEmbeddings:
             name="email_validation",
             category="validation",
             description="Validates email addresses using regex",
-            generate_embedding=True
+            generate_embedding=True,
         )
 
         pattern2 = service.create_pattern(
             name="email_check",
             category="validation",
             description="Checks if email address is valid",
-            generate_embedding=True
+            generate_embedding=True,
         )
 
         # Convert to numpy arrays

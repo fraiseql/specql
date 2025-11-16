@@ -11,7 +11,9 @@ class ForeignKeyResolver:
     def __init__(self, db_connection: psycopg.Connection):
         self.db = db_connection
 
-    def resolve(self, field_mapping: dict[str, Any], context: dict[str, Any]) -> int | None:
+    def resolve(
+        self, field_mapping: dict[str, Any], context: dict[str, Any]
+    ) -> int | None:
         """
         Resolve FK value by querying target table
 
@@ -67,7 +69,9 @@ class GroupLeaderExecutor:
     def __init__(self, db_connection: psycopg.Connection):
         self.db = db_connection
 
-    def execute(self, leader_mapping: dict[str, Any], context: dict[str, Any]) -> dict[str, Any]:
+    def execute(
+        self, leader_mapping: dict[str, Any], context: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Execute group leader query, return all dependent field values
 

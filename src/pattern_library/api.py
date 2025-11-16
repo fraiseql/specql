@@ -49,7 +49,11 @@ if TYPE_CHECKING:
 class PatternLibrary:
     """Database-driven pattern library for multi-language code generation"""
 
-    def __init__(self, pattern_service: Optional["PatternService"] = None, db_path: str = "pattern_library.db"):
+    def __init__(
+        self,
+        pattern_service: Optional["PatternService"] = None,
+        db_path: str = "pattern_library.db",
+    ):
         """
         Initialize pattern library
 
@@ -102,7 +106,7 @@ class PatternLibrary:
         category: str,
         abstract_syntax: Dict[str, Any],
         description: str = "",
-        complexity_score: int = 1
+        complexity_score: int = 1,
     ) -> int:
         """Add a pattern to the library"""
         if self.pattern_service:
@@ -113,7 +117,7 @@ class PatternLibrary:
                 description=description,
                 parameters=abstract_syntax,
                 complexity_score=float(complexity_score),
-                source_type="manual"
+                source_type="manual",
             )
             return pattern.id or 0
         else:
@@ -123,7 +127,13 @@ class PatternLibrary:
                 INSERT INTO patterns (pattern_name, pattern_category, abstract_syntax, description, complexity_score)
                 VALUES (?, ?, ?, ?, ?)
                 """,
-                (name, category, json.dumps(abstract_syntax), description, complexity_score)
+                (
+                    name,
+                    category,
+                    json.dumps(abstract_syntax),
+                    description,
+                    complexity_score,
+                ),
             )
             self.db.commit()
             return cursor.lastrowid or 0
@@ -132,8 +142,7 @@ class PatternLibrary:
     def get_pattern(self, name: str) -> Optional[Dict[str, Any]]:
         """Get pattern by name"""
         cursor = self.db.execute(
-            "SELECT * FROM patterns WHERE pattern_name = ?",
-            (name,)
+            "SELECT * FROM patterns WHERE pattern_name = ?", (name,)
         )
         row = cursor.fetchone()
         return dict(row) if row else None
@@ -143,7 +152,7 @@ class PatternLibrary:
         if category:
             cursor = self.db.execute(
                 "SELECT * FROM patterns WHERE pattern_category = ? ORDER BY pattern_name",
-                (category,)
+                (category,),
             )
         else:
             cursor = self.db.execute("SELECT * FROM patterns ORDER BY pattern_name")
@@ -158,7 +167,7 @@ class PatternLibrary:
         ecosystem: str,
         paradigm: str,
         version: str = "",
-        supported: bool = True
+        supported: bool = True,
     ) -> int:
         """Add a target language"""
         cursor = self.db.execute(
@@ -166,7 +175,7 @@ class PatternLibrary:
             INSERT INTO languages (language_name, ecosystem, paradigm, version, supported)
             VALUES (?, ?, ?, ?, ?)
             """,
-            (name, ecosystem, paradigm, version, supported)
+            (name, ecosystem, paradigm, version, supported),
         )
         self.db.commit()
         return cursor.lastrowid or 0
@@ -175,8 +184,7 @@ class PatternLibrary:
     def get_language(self, name: str) -> Optional[Dict[str, Any]]:
         """Get language by name"""
         cursor = self.db.execute(
-            "SELECT * FROM languages WHERE language_name = ?",
-            (name,)
+            "SELECT * FROM languages WHERE language_name = ?", (name,)
         )
         row = cursor.fetchone()
         return dict(row) if row else None
@@ -200,7 +208,7 @@ class PatternLibrary:
         language_name: str,
         template: str,
         supported: bool = True,
-        version: str = "1.0.0"
+        version: str = "1.0.0",
     ) -> int:
         """Add pattern implementation for a language"""
 
@@ -219,7 +227,13 @@ class PatternLibrary:
             (pattern_id, language_id, implementation_template, supported, version)
             VALUES (?, ?, ?, ?, ?)
             """,
-            (pattern["pattern_id"], language["language_id"], template, supported, version)
+            (
+                pattern["pattern_id"],
+                language["language_id"],
+                template,
+                supported,
+                version,
+            ),
         )
         self.db.commit()
         return cursor.lastrowid or 0
@@ -230,7 +244,7 @@ class PatternLibrary:
         language_name: str,
         template: str,
         supported: bool = True,
-        version: str = "1.0.0"
+        version: str = "1.0.0",
     ) -> int:
         """Add or update pattern implementation for a language"""
         existing = self.get_implementation(pattern_name, language_name)
@@ -238,19 +252,19 @@ class PatternLibrary:
             # Update existing implementation
             self.db.execute(
                 "UPDATE pattern_implementations SET implementation_template = ?, supported = ?, version = ? WHERE implementation_id = ?",
-                (template, supported, version, existing["implementation_id"])
+                (template, supported, version, existing["implementation_id"]),
             )
             self.db.commit()
             return existing["implementation_id"]
         else:
             # Add new implementation
-            return self.add_implementation(pattern_name, language_name, template, supported, version)
+            return self.add_implementation(
+                pattern_name, language_name, template, supported, version
+            )
 
     @lru_cache(maxsize=256)
     def get_implementation(
-        self,
-        pattern_name: str,
-        language_name: str
+        self, pattern_name: str, language_name: str
     ) -> Optional[Dict[str, Any]]:
         """Get implementation for pattern + language"""
         cursor = self.db.execute(
@@ -261,7 +275,7 @@ class PatternLibrary:
             JOIN languages l ON pi.language_id = l.language_id
             WHERE p.pattern_name = ? AND l.language_name = ?
             """,
-            (pattern_name, language_name)
+            (pattern_name, language_name),
         )
         row = cursor.fetchone()
         return dict(row) if row else None
@@ -269,10 +283,7 @@ class PatternLibrary:
     # ===== Compilation =====
 
     def compile_pattern(
-        self,
-        pattern_name: str,
-        language_name: str,
-        context: Dict[str, Any]
+        self, pattern_name: str, language_name: str, context: Dict[str, Any]
     ) -> str:
         """
         Compile a pattern to target language code
@@ -305,7 +316,7 @@ class PatternLibrary:
         type_name: str,
         type_category: str,
         description: str = "",
-        json_schema: Optional[Dict] = None
+        json_schema: Optional[Dict] = None,
     ) -> int:
         """Add universal type to library"""
         cursor = self.db.execute(
@@ -313,7 +324,12 @@ class PatternLibrary:
             INSERT INTO universal_types (type_name, type_category, description, json_schema)
             VALUES (?, ?, ?, ?)
             """,
-            (type_name, type_category, description, json.dumps(json_schema) if json_schema else None)
+            (
+                type_name,
+                type_category,
+                description,
+                json.dumps(json_schema) if json_schema else None,
+            ),
         )
         self.db.commit()
         return cursor.lastrowid or 0
@@ -323,14 +339,14 @@ class PatternLibrary:
         universal_type_name: str,
         language_name: str,
         language_type: str,
-        import_statement: Optional[str] = None
+        import_statement: Optional[str] = None,
     ) -> int:
         """Map universal type to language-specific type"""
 
         # Get IDs
         cursor = self.db.execute(
             "SELECT type_id FROM universal_types WHERE type_name = ?",
-            (universal_type_name,)
+            (universal_type_name,),
         )
         type_row = cursor.fetchone()
         if not type_row:
@@ -345,15 +361,18 @@ class PatternLibrary:
             INSERT INTO type_mappings (universal_type_id, language_id, language_type, import_statement)
             VALUES (?, ?, ?, ?)
             """,
-            (type_row["type_id"], language["language_id"], language_type, import_statement)
+            (
+                type_row["type_id"],
+                language["language_id"],
+                language_type,
+                import_statement,
+            ),
         )
         self.db.commit()
         return cursor.lastrowid or 0
 
     def get_type_mapping(
-        self,
-        universal_type_name: str,
-        language_name: str
+        self, universal_type_name: str, language_name: str
     ) -> Optional[Dict[str, Any]]:
         """Get type mapping for universal type in target language"""
         cursor = self.db.execute(
@@ -364,7 +383,7 @@ class PatternLibrary:
             JOIN languages l ON tm.language_id = l.language_id
             WHERE ut.type_name = ? AND l.language_name = ?
             """,
-            (universal_type_name, language_name)
+            (universal_type_name, language_name),
         )
         row = cursor.fetchone()
         return dict(row) if row else None
@@ -380,7 +399,7 @@ class PatternLibrary:
                 category=pattern["category"],
                 abstract_syntax=pattern["abstract_syntax"],
                 description=pattern.get("description", ""),
-                complexity_score=pattern.get("complexity_score", 1)
+                complexity_score=pattern.get("complexity_score", 1),
             )
             ids.append(pattern_id)
         return ids
@@ -394,12 +413,14 @@ class PatternLibrary:
                 ecosystem=language["ecosystem"],
                 paradigm=language["paradigm"],
                 version=language.get("version", ""),
-                supported=language.get("supported", True)
+                supported=language.get("supported", True),
             )
             ids.append(lang_id)
         return ids
 
-    def batch_add_implementations(self, implementations: List[Dict[str, Any]]) -> List[int]:
+    def batch_add_implementations(
+        self, implementations: List[Dict[str, Any]]
+    ) -> List[int]:
         """Batch insert multiple pattern implementations"""
         ids = []
         for impl in implementations:
@@ -408,7 +429,7 @@ class PatternLibrary:
                 language_name=impl["language_name"],
                 template=impl["template"],
                 supported=impl.get("supported", True),
-                version=impl.get("version", "1.0.0")
+                version=impl.get("version", "1.0.0"),
             )
             ids.append(impl_id)
         return ids
@@ -423,7 +444,7 @@ class PatternLibrary:
         parameters: Dict[str, Any],
         implementation: Dict[str, Any],
         tags: str = "",
-        icon: str = ""
+        icon: str = "",
     ) -> int:
         """Add a domain pattern (Tier 2)"""
         cursor = self.db.execute(
@@ -432,7 +453,15 @@ class PatternLibrary:
             (pattern_name, pattern_category, description, parameters, implementation, tags, icon)
             VALUES (?, ?, ?, ?, ?, ?, ?)
             """,
-            (name, category, description, json.dumps(parameters), json.dumps(implementation), tags, icon)
+            (
+                name,
+                category,
+                description,
+                json.dumps(parameters),
+                json.dumps(implementation),
+                tags,
+                icon,
+            ),
         )
         self.db.commit()
         return cursor.lastrowid or 0
@@ -440,8 +469,7 @@ class PatternLibrary:
     def get_domain_pattern(self, name: str) -> Optional[Dict[str, Any]]:
         """Get domain pattern by name"""
         cursor = self.db.execute(
-            "SELECT * FROM domain_patterns WHERE pattern_name = ?",
-            (name,)
+            "SELECT * FROM domain_patterns WHERE pattern_name = ?", (name,)
         )
         row = cursor.fetchone()
         if row:
@@ -451,12 +479,14 @@ class PatternLibrary:
             return result
         return None
 
-    def get_all_domain_patterns(self, category: Optional[str] = None) -> List[Dict[str, Any]]:
+    def get_all_domain_patterns(
+        self, category: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
         """Get all domain patterns, optionally filtered by category"""
         if category:
             cursor = self.db.execute(
                 "SELECT * FROM domain_patterns WHERE pattern_category = ? ORDER BY popularity_score DESC",
-                (category,)
+                (category,),
             )
         else:
             cursor = self.db.execute(
@@ -473,10 +503,7 @@ class PatternLibrary:
         return results
 
     def instantiate_domain_pattern(
-        self,
-        pattern_name: str,
-        entity_name: str,
-        parameters: Dict[str, Any]
+        self, pattern_name: str, entity_name: str, parameters: Dict[str, Any]
     ) -> Dict[str, Any]:
         """
         Instantiate a domain pattern for a specific entity
@@ -493,9 +520,7 @@ class PatternLibrary:
 
         # Instantiate implementation
         instantiated = self._instantiate_implementation(
-            pattern["implementation"],
-            entity_name,
-            parameters
+            pattern["implementation"], entity_name, parameters
         )
 
         # Record instantiation
@@ -504,16 +529,14 @@ class PatternLibrary:
             INSERT INTO pattern_instantiations (entity_name, domain_pattern_id, parameters)
             VALUES (?, ?, ?)
             """,
-            (entity_name, pattern["domain_pattern_id"], json.dumps(parameters))
+            (entity_name, pattern["domain_pattern_id"], json.dumps(parameters)),
         )
         self.db.commit()
 
         return instantiated
 
     def _validate_pattern_parameters(
-        self,
-        param_schema: Dict[str, Any],
-        provided_params: Dict[str, Any]
+        self, param_schema: Dict[str, Any], provided_params: Dict[str, Any]
     ):
         """Validate provided parameters against schema"""
         for param_name, param_def in param_schema.items():
@@ -524,7 +547,7 @@ class PatternLibrary:
         self,
         implementation: Dict[str, Any],
         entity_name: str,
-        parameters: Dict[str, Any]
+        parameters: Dict[str, Any],
     ) -> Dict[str, Any]:
         """
         Instantiate pattern implementation with entity-specific values
@@ -537,10 +560,7 @@ class PatternLibrary:
         impl_json = json.dumps(implementation)
         template = Template(impl_json)
 
-        context = {
-            "entity": entity_name,
-            **parameters
-        }
+        context = {"entity": entity_name, **parameters}
 
         instantiated_json = template.render(**context)
         instantiated = json.loads(instantiated_json)
@@ -548,9 +568,7 @@ class PatternLibrary:
         return instantiated
 
     def compose_patterns(
-        self,
-        entity_name: str,
-        patterns: List[Dict[str, Any]]
+        self, entity_name: str, patterns: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """
         Compose multiple domain patterns into single entity definition
@@ -568,7 +586,7 @@ class PatternLibrary:
             "actions": [],
             "triggers": [],
             "indexes": [],
-            "tables": []
+            "tables": [],
         }
 
         # Track field names to detect conflicts
@@ -618,10 +636,7 @@ class PatternLibrary:
 
         return composed
 
-    def validate_pattern_composition(
-        self,
-        patterns: List[str]
-    ) -> Dict[str, Any]:
+    def validate_pattern_composition(self, patterns: List[str]) -> Dict[str, Any]:
         """
         Validate that a set of patterns can be composed together
 
@@ -635,7 +650,7 @@ class PatternLibrary:
             "valid": True,
             "conflicts": [],
             "warnings": [],
-            "pattern_details": []
+            "pattern_details": [],
         }
 
         pattern_details = []
@@ -643,7 +658,9 @@ class PatternLibrary:
             pattern = self.get_domain_pattern(pattern_name)
             if not pattern:
                 validation_result["valid"] = False
-                validation_result["conflicts"].append(f"Pattern not found: {pattern_name}")
+                validation_result["conflicts"].append(
+                    f"Pattern not found: {pattern_name}"
+                )
                 continue
             pattern_details.append(pattern)
 
@@ -683,10 +700,7 @@ class PatternLibrary:
 
         return validation_result
 
-    def resolve_pattern_dependencies(
-        self,
-        pattern_names: List[str]
-    ) -> List[str]:
+    def resolve_pattern_dependencies(self, pattern_names: List[str]) -> List[str]:
         """
         Resolve pattern dependencies and return ordered list
 
@@ -712,7 +726,7 @@ class PatternLibrary:
         default_actions: Dict[str, Any],
         configuration_options: Optional[Dict[str, Any]] = None,
         icon: str = "",
-        tags: str = ""
+        tags: str = "",
     ) -> int:
         """Add an entity template (Tier 3)"""
         cursor = self.db.execute(
@@ -721,7 +735,17 @@ class PatternLibrary:
             (template_name, template_namespace, description, default_fields, default_patterns, default_actions, configuration_options, icon, tags)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
-            (template_name, template_namespace, description, json.dumps(default_fields), json.dumps(default_patterns), json.dumps(default_actions), json.dumps(configuration_options) if configuration_options else None, icon, tags)
+            (
+                template_name,
+                template_namespace,
+                description,
+                json.dumps(default_fields),
+                json.dumps(default_patterns),
+                json.dumps(default_actions),
+                json.dumps(configuration_options) if configuration_options else None,
+                icon,
+                tags,
+            ),
         )
         self.db.commit()
         return cursor.lastrowid or 0
@@ -729,8 +753,7 @@ class PatternLibrary:
     def get_entity_template(self, template_name: str) -> Optional[Dict[str, Any]]:
         """Get entity template by name"""
         cursor = self.db.execute(
-            "SELECT * FROM entity_templates WHERE template_name = ?",
-            (template_name,)
+            "SELECT * FROM entity_templates WHERE template_name = ?", (template_name,)
         )
         row = cursor.fetchone()
         if row:
@@ -739,7 +762,9 @@ class PatternLibrary:
             result["default_patterns"] = json.loads(result["default_patterns"])
             result["default_actions"] = json.loads(result["default_actions"])
             if result["configuration_options"]:
-                result["configuration_options"] = json.loads(result["configuration_options"])
+                result["configuration_options"] = json.loads(
+                    result["configuration_options"]
+                )
             return result
         return None
 
@@ -747,7 +772,7 @@ class PatternLibrary:
         """Get all entity templates for a specific namespace"""
         cursor = self.db.execute(
             "SELECT * FROM entity_templates WHERE template_namespace = ? ORDER BY template_name",
-            (namespace,)
+            (namespace,),
         )
 
         results = []
@@ -756,7 +781,11 @@ class PatternLibrary:
             result["default_fields"] = json.loads(result["default_fields"])
             result["default_patterns"] = json.loads(result["default_patterns"])
             result["default_actions"] = json.loads(result["default_actions"])
-            result["configuration_options"] = json.loads(result["configuration_options"]) if result["configuration_options"] else {}
+            result["configuration_options"] = (
+                json.loads(result["configuration_options"])
+                if result["configuration_options"]
+                else {}
+            )
             results.append(result)
 
         return results
@@ -773,7 +802,11 @@ class PatternLibrary:
             result["default_fields"] = json.loads(result["default_fields"])
             result["default_patterns"] = json.loads(result["default_patterns"])
             result["default_actions"] = json.loads(result["default_actions"])
-            result["configuration_options"] = json.loads(result["configuration_options"]) if result["configuration_options"] else {}
+            result["configuration_options"] = (
+                json.loads(result["configuration_options"])
+                if result["configuration_options"]
+                else {}
+            )
             results.append(result)
 
         return results
@@ -783,7 +816,7 @@ class PatternLibrary:
         template_name: str,
         entity_name: str,
         custom_fields: Optional[Dict[str, Any]] = None,
-        custom_config: Optional[Dict[str, Any]] = None
+        custom_config: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Instantiate an entity template for a specific entity
@@ -807,7 +840,7 @@ class PatternLibrary:
             "schema": template["template_namespace"],
             "fields": template["default_fields"].copy(),
             "actions": template["default_actions"].copy(),
-            "patterns": template["default_patterns"].copy()
+            "patterns": template["default_patterns"].copy(),
         }
 
         # Apply custom configuration
@@ -847,20 +880,24 @@ class PatternLibrary:
             INSERT INTO pattern_instantiations (entity_name, entity_template_id, parameters)
             VALUES (?, ?, ?)
             """,
-            (entity_name, template["entity_template_id"], json.dumps({
-                "template": template_name,
-                "custom_fields": custom_fields or {},
-                "custom_config": custom_config or {}
-            }))
+            (
+                entity_name,
+                template["entity_template_id"],
+                json.dumps(
+                    {
+                        "template": template_name,
+                        "custom_fields": custom_fields or {},
+                        "custom_config": custom_config or {},
+                    }
+                ),
+            ),
         )
         self.db.commit()
 
         return merged_entity
 
     def _merge_pattern_instances(
-        self,
-        base_entity: Dict[str, Any],
-        pattern_instances: List[Dict[str, Any]]
+        self, base_entity: Dict[str, Any], pattern_instances: List[Dict[str, Any]]
     ) -> Dict[str, Any]:
         """
         Merge multiple pattern instances into a single entity definition
@@ -886,9 +923,14 @@ class PatternLibrary:
         for instance in pattern_instances:
             # Merge fields (avoid duplicates by name)
             if "fields" in instance:
-                existing_field_names = {f.get("name") for f in merged["fields"] if isinstance(f, dict)}
+                existing_field_names = {
+                    f.get("name") for f in merged["fields"] if isinstance(f, dict)
+                }
                 for field in instance["fields"]:
-                    if isinstance(field, dict) and field.get("name") not in existing_field_names:
+                    if (
+                        isinstance(field, dict)
+                        and field.get("name") not in existing_field_names
+                    ):
                         merged["fields"].append(field)
 
             # Merge actions (allow duplicates for now, could add conflict resolution)
@@ -914,10 +956,7 @@ class PatternLibrary:
 
         return merged
 
-    def validate_entity_template(
-        self,
-        template_name: str
-    ) -> Dict[str, Any]:
+    def validate_entity_template(self, template_name: str) -> Dict[str, Any]:
         """
         Validate an entity template for consistency and conflicts
 
@@ -931,7 +970,7 @@ class PatternLibrary:
             "valid": True,
             "warnings": [],
             "errors": [],
-            "pattern_validation": {}
+            "pattern_validation": {},
         }
 
         # Validate that referenced patterns exist
@@ -939,13 +978,15 @@ class PatternLibrary:
             pattern = self.get_domain_pattern(pattern_name)
             if not pattern:
                 validation_result["valid"] = False
-                validation_result["errors"].append(f"Referenced pattern not found: {pattern_name}")
+                validation_result["errors"].append(
+                    f"Referenced pattern not found: {pattern_name}"
+                )
             else:
                 # Validate pattern parameters
-                pattern_validation = self.validate_pattern_composition(
-                    [pattern_name]
+                pattern_validation = self.validate_pattern_composition([pattern_name])
+                validation_result["pattern_validation"][pattern_name] = (
+                    pattern_validation
                 )
-                validation_result["pattern_validation"][pattern_name] = pattern_validation
 
                 if not pattern_validation["valid"]:
                     validation_result["valid"] = False

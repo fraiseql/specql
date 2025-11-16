@@ -37,7 +37,9 @@ pub struct UserUpdate {
 }
 """
         parser = RustParser()
-        structs, enums, tables, derives, impl_blocks, route_handlers = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, route_handlers = (
+            parser.parse_source(rust_code)
+        )
 
         # Should parse 3 structs
         assert len(structs) == 3
@@ -91,7 +93,9 @@ pub struct User {
 }
 """
         parser = RustParser()
-        structs, enums, tables, derives, impl_blocks, route_handlers = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, route_handlers = (
+            parser.parse_source(rust_code)
+        )
 
         assert len(structs) == 3
         assert len(derives) == 3
@@ -123,7 +127,9 @@ pub struct User {
 }
 """
         parser = RustParser()
-        structs, enums, tables, derives, impl_blocks, route_handlers = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, route_handlers = (
+            parser.parse_source(rust_code)
+        )
 
         # Should only extract derives from structs with Diesel derives
         assert len(derives) == 1
@@ -153,7 +159,9 @@ pub struct NewAuditLog<T> {
 }
 """
         parser = RustParser()
-        structs, enums, tables, derives, impl_blocks, route_handlers = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, route_handlers = (
+            parser.parse_source(rust_code)
+        )
 
         assert len(structs) == 2
         assert len(derives) == 2
@@ -203,7 +211,9 @@ pub struct ProductUpdate {
 }
 """
         parser = RustParser()
-        structs, enums, tables, derives, impl_blocks, route_handlers = parser.parse_source(rust_code)
+        structs, enums, tables, derives, impl_blocks, route_handlers = (
+            parser.parse_source(rust_code)
+        )
 
         assert len(structs) == 4  # ApiResponse + 3 Diesel structs
         assert len(derives) == 3  # Only the Diesel ones

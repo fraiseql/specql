@@ -111,7 +111,9 @@ class TestSnapshotPatternIntegration:
         sql = pattern.generate(entity, config)
 
         # Should handle NULL end dates gracefully
-        assert "true AS is_current" in sql  # When no end_date_field, all records are current
+        assert (
+            "true AS is_current" in sql
+        )  # When no end_date_field, all records are current
         # The tsrange should still work with LEAD function for computed end dates
 
     def test_snapshot_pattern_performance_considerations(self):

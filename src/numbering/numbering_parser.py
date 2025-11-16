@@ -96,11 +96,11 @@ class NumberingParser:
             )
 
         return TableCodeComponents(
-            schema_layer=table_code[0:2],   # First 2 digits: SS
-            domain_code=table_code[2],       # 3rd digit: D
-            subdomain_code=table_code[3],    # 4th digit: S (1 digit)
-            entity_sequence=table_code[4],   # 5th digit: E
-            file_sequence=table_code[5],     # 6th digit: X
+            schema_layer=table_code[0:2],  # First 2 digits: SS
+            domain_code=table_code[2],  # 3rd digit: D
+            subdomain_code=table_code[3],  # 4th digit: S (1 digit)
+            entity_sequence=table_code[4],  # 5th digit: E
+            file_sequence=table_code[5],  # 6th digit: X
         )
 
     def generate_directory_path(self, table_code: str, entity_name: str) -> str:
@@ -137,11 +137,13 @@ class NumberingParser:
         schema_dir = f"{components.schema_layer}_{schema_name}"
         domain_dir = f"{components.full_domain}_{domain_name}"
         subdomain_dir = f"{components.full_group}_{entity_snake}"  # SSDS_subdomain
-        entity_dir = f"{components.full_entity}_{entity_snake}"    # SSDSE_entity
+        entity_dir = f"{components.full_entity}_{entity_snake}"  # SSDSE_entity
 
         return f"{schema_dir}/{domain_dir}/{subdomain_dir}/{entity_dir}"
 
-    def generate_file_path(self, table_code: str, entity_name: str, file_type: str) -> str:
+    def generate_file_path(
+        self, table_code: str, entity_name: str, file_type: str
+    ) -> str:
         """
         Generate file path with proper naming convention
 

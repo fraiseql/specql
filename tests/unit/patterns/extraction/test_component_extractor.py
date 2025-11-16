@@ -15,7 +15,9 @@ class TestComponentExtractor:
         # Test that the pattern exists
         pattern = registry.get_pattern("extraction/component")
         assert pattern.name == "extraction/component"
-        assert pattern.description == "Extract non-null components for efficient LEFT JOIN"
+        assert (
+            pattern.description == "Extract non-null components for efficient LEFT JOIN"
+        )
 
         # Test pattern configuration
         entity = {
@@ -50,7 +52,9 @@ class TestComponentExtractor:
         assert "WHERE deleted_at IS NULL" in sql
         assert "AND latitude IS NOT NULL AND longitude IS NOT NULL" in sql
         assert "AND tenant_id = CURRENT_SETTING('app.current_tenant_id')::uuid" in sql
-        assert "CREATE INDEX IF NOT EXISTS idx_v_location_coordinates_pk_location" in sql
+        assert (
+            "CREATE INDEX IF NOT EXISTS idx_v_location_coordinates_pk_location" in sql
+        )
 
     def test_generate_machine_active_allocations_extraction(self):
         """Test generating v_machine_active_allocations view."""
@@ -129,7 +133,12 @@ class TestComponentExtractor:
 
         pattern = registry.get_pattern("extraction/component")
 
-        entity = {"name": "Test", "schema": "tenant", "table": "tb_test", "pk_field": "pk_test"}
+        entity = {
+            "name": "Test",
+            "schema": "tenant",
+            "table": "tb_test",
+            "pk_field": "pk_test",
+        }
 
         config = {
             "name": "test_view",

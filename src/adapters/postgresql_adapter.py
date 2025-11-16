@@ -7,8 +7,17 @@ Converts Universal AST entities into PostgreSQL + PL/pgSQL code.
 
 from typing import List, Dict, Optional
 
-from src.adapters.base_adapter import FrameworkAdapter, GeneratedCode, FrameworkConventions
-from src.core.universal_ast import UniversalEntity, UniversalAction, UniversalField, FieldType
+from src.adapters.base_adapter import (
+    FrameworkAdapter,
+    GeneratedCode,
+    FrameworkConventions,
+)
+from src.core.universal_ast import (
+    UniversalEntity,
+    UniversalAction,
+    UniversalField,
+    FieldType,
+)
 
 
 class PostgreSQLAdapter(FrameworkAdapter):
@@ -43,7 +52,9 @@ class PostgreSQLAdapter(FrameworkAdapter):
             )
         ]
 
-    def generate_relationship(self, field: UniversalField, entity: UniversalEntity) -> str:
+    def generate_relationship(
+        self, field: UniversalField, entity: UniversalEntity
+    ) -> str:
         """Generate PostgreSQL foreign key relationship"""
         if field.type == FieldType.REFERENCE:
             ref_entity = field.references
@@ -105,7 +116,9 @@ class PostgreSQLAdapter(FrameworkAdapter):
 
         # Indexes
         if entity.is_multi_tenant:
-            lines.append(f"CREATE INDEX idx_{table_name}_tenant ON {table_name}(tenant_id);")
+            lines.append(
+                f"CREATE INDEX idx_{table_name}_tenant ON {table_name}(tenant_id);"
+            )
 
         for field in entity.fields:
             if field.type == FieldType.REFERENCE:
@@ -119,7 +132,9 @@ class PostgreSQLAdapter(FrameworkAdapter):
 
         return "\n".join(lines)
 
-    def _generate_basic_plpgsql(self, action: UniversalAction, entity: UniversalEntity) -> str:
+    def _generate_basic_plpgsql(
+        self, action: UniversalAction, entity: UniversalEntity
+    ) -> str:
         """Generate basic PL/pgSQL function for an action"""
         function_name = f"{entity.schema}.{action.name}"
         lines = []
@@ -138,13 +153,19 @@ class PostgreSQLAdapter(FrameworkAdapter):
                 lines.append(f"    -- Validate: {step.expression}")
                 # Basic validation - would need more sophisticated expression parsing
                 lines.append(f"    IF NOT ({step.expression}) THEN")
-                lines.append(f"        RAISE EXCEPTION 'Validation failed: {step.expression}';")
+                lines.append(
+                    f"        RAISE EXCEPTION 'Validation failed: {step.expression}';"
+                )
                 lines.append("    END IF;")
             elif step.type.value == "update":
                 lines.append(f"    -- Update {step.entity}")
                 if step.fields:
-                    set_clause = ", ".join([f"{k} = {repr(v)}" for k, v in step.fields.items()])
-                    lines.append(f"    UPDATE tb_{step.entity.lower()} SET {set_clause};")
+                    set_clause = ", ".join(
+                        [f"{k} = {repr(v)}" for k, v in step.fields.items()]
+                    )
+                    lines.append(
+                        f"    UPDATE tb_{step.entity.lower()} SET {set_clause};"
+                    )
             elif step.type.value == "insert":
                 lines.append(f"    -- Insert into {step.entity}")
                 # Simplified insert logic

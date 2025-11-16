@@ -6,8 +6,9 @@ from src.reverse_engineering.protocols import (
     ParsedEntity,
     ParsedField,
     ParsedMethod,
-    SourceLanguage
+    SourceLanguage,
 )
+
 
 class PythonASTParser:
     """
@@ -77,7 +78,7 @@ class PythonASTParser:
                 metadata={
                     "file_path": file_path,
                     "line_number": class_def.lineno,
-                }
+                },
             )
 
             return entity
@@ -106,7 +107,7 @@ class PythonASTParser:
                 is_async=isinstance(func_def, ast.AsyncFunctionDef),
                 metadata={
                     "line_number": func_def.lineno,
-                }
+                },
             )
 
         except Exception as e:
@@ -149,8 +150,10 @@ class PythonASTParser:
 
         # State machine (has status field + transition methods)
         has_status = any(f.field_name in ["status", "state"] for f in entity.fields)
-        has_transitions = any("transition" in m.method_name or "set_" in m.method_name
-                              for m in entity.methods)
+        has_transitions = any(
+            "transition" in m.method_name or "set_" in m.method_name
+            for m in entity.methods
+        )
         if has_status and has_transitions:
             patterns.append("state_machine")
 
@@ -173,7 +176,9 @@ class PythonASTParser:
                 return node
         return None
 
-    def _find_function_definition(self, tree: ast.Module) -> Optional[ast.FunctionDef | ast.AsyncFunctionDef]:
+    def _find_function_definition(
+        self, tree: ast.Module
+    ) -> Optional[ast.FunctionDef | ast.AsyncFunctionDef]:
         """Find first function definition in AST"""
         for node in ast.walk(tree):
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
@@ -199,7 +204,7 @@ class PythonASTParser:
         fields = []
 
         # From type annotations (dataclass, Pydantic)
-        if hasattr(class_def, 'body'):
+        if hasattr(class_def, "body"):
             for node in class_def.body:
                 if isinstance(node, ast.AnnAssign):
                     field = self._parse_annotated_field(node)
@@ -222,7 +227,7 @@ class PythonASTParser:
         field_name = node.target.id
 
         # Skip private/magic fields
-        if field_name.startswith('_'):
+        if field_name.startswith("_"):
             return None
 
         # Parse type annotation
@@ -251,7 +256,7 @@ class PythonASTParser:
         field_name = node.targets[0].id
 
         # Skip private fields
-        if field_name.startswith('_'):
+        if field_name.startswith("_"):
             return None
 
         # Detect Django/SQLAlchemy field types
@@ -260,12 +265,12 @@ class PythonASTParser:
             if field_info:
                 return ParsedField(
                     field_name=field_name,
-                    field_type=field_info['type'],
-                    original_type=field_info['original_type'],
-                    required=field_info.get('required', True),
-                    default=field_info.get('default'),
-                    is_foreign_key=field_info.get('is_foreign_key', False),
-                    foreign_key_target=field_info.get('foreign_key_target'),
+                    field_type=field_info["type"],
+                    original_type=field_info["original_type"],
+                    required=field_info.get("required", True),
+                    default=field_info.get("default"),
+                    is_foreign_key=field_info.get("is_foreign_key", False),
+                    foreign_key_target=field_info.get("foreign_key_target"),
                 )
 
         return None
@@ -279,68 +284,69 @@ class PythonASTParser:
 
         # Django fields
         django_mapping = {
-            'CharField': 'text',
-            'TextField': 'text',
-            'EmailField': 'email',
-            'IntegerField': 'integer',
-            'BigIntegerField': 'integer',
-            'DecimalField': 'decimal',
-            'FloatField': 'float',
-            'BooleanField': 'boolean',
-            'DateField': 'date',
-            'DateTimeField': 'timestamp',
-            'JSONField': 'json',
-            'ForeignKey': 'ref',
-            'OneToOneField': 'ref',
+            "CharField": "text",
+            "TextField": "text",
+            "EmailField": "email",
+            "IntegerField": "integer",
+            "BigIntegerField": "integer",
+            "DecimalField": "decimal",
+            "FloatField": "float",
+            "BooleanField": "boolean",
+            "DateField": "date",
+            "DateTimeField": "timestamp",
+            "JSONField": "json",
+            "ForeignKey": "ref",
+            "OneToOneField": "ref",
         }
 
         # SQLAlchemy fields
         sqlalchemy_mapping = {
-            'String': 'text',
-            'Text': 'text',
-            'Integer': 'integer',
-            'BigInteger': 'integer',
-            'Numeric': 'decimal',
-            'Float': 'float',
-            'Boolean': 'boolean',
-            'Date': 'date',
-            'DateTime': 'timestamp',
-            'JSON': 'json',
-            'ForeignKey': 'ref',
+            "String": "text",
+            "Text": "text",
+            "Integer": "integer",
+            "BigInteger": "integer",
+            "Numeric": "decimal",
+            "Float": "float",
+            "Boolean": "boolean",
+            "Date": "date",
+            "DateTime": "timestamp",
+            "JSON": "json",
+            "ForeignKey": "ref",
         }
 
-        specql_type = (django_mapping.get(field_class) or
-                       sqlalchemy_mapping.get(field_class))
+        specql_type = django_mapping.get(field_class) or sqlalchemy_mapping.get(
+            field_class
+        )
 
         if not specql_type:
             return None
 
         field_info: Dict[str, Any] = {
-            'type': specql_type,
-            'original_type': field_class,
+            "type": specql_type,
+            "original_type": field_class,
         }
 
         # Extract field constraints from kwargs
         for keyword in call_node.keywords:
-            if keyword.arg == 'null' and isinstance(keyword.value, ast.Constant):
-                field_info['required'] = not keyword.value.value
+            if keyword.arg == "null" and isinstance(keyword.value, ast.Constant):
+                field_info["required"] = not keyword.value.value
 
-            elif keyword.arg == 'default':
-                field_info['default'] = self._extract_default_value(keyword.value)
-                field_info['required'] = False
+            elif keyword.arg == "default":
+                field_info["default"] = self._extract_default_value(keyword.value)
+                field_info["required"] = False
 
-            elif keyword.arg == 'to' and specql_type == 'ref':
+            elif keyword.arg == "to" and specql_type == "ref":
                 # ForeignKey target
                 if isinstance(keyword.value, ast.Constant):
-                    field_info['foreign_key_target'] = keyword.value.value
-                    field_info['is_foreign_key'] = True
+                    field_info["foreign_key_target"] = keyword.value.value
+                    field_info["is_foreign_key"] = True
 
         # Handle positional arguments for ForeignKey
-        if specql_type == 'ref' and call_node.args:
+        if specql_type == "ref" and call_node.args:
             # First argument is usually the target model
             if isinstance(call_node.args[0], ast.Constant):
-                field_info['foreign_key_target'] = call_node.args[0].value
-                field_info['is_foreign_key'] = True
+                field_info["foreign_key_target"] = call_node.args[0].value
+                field_info["is_foreign_key"] = True
 
         return field_info
 
@@ -352,31 +358,31 @@ class PythonASTParser:
         """
         # Remove Optional wrapper
         required = True
-        if type_str.startswith('Optional['):
+        if type_str.startswith("Optional["):
             type_str = type_str[9:-1]
             required = False
 
         # Type mapping
-        normalized = self.type_mapping.get(type_str, 'text')
+        normalized = self.type_mapping.get(type_str, "text")
 
         return normalized, required
 
     def _build_type_mapping(self) -> Dict[str, str]:
         """Build Python → SpecQL type mapping"""
         return {
-            'str': 'text',
-            'int': 'integer',
-            'float': 'float',
-            'bool': 'boolean',
-            'date': 'date',
-            'datetime': 'timestamp',
-            'Decimal': 'decimal',
-            'UUID': 'uuid',
-            'dict': 'json',
-            'Dict': 'json',
-            'list': 'list',
-            'List': 'list',
-            'Any': 'json',
+            "str": "text",
+            "int": "integer",
+            "float": "float",
+            "bool": "boolean",
+            "date": "date",
+            "datetime": "timestamp",
+            "Decimal": "decimal",
+            "UUID": "uuid",
+            "dict": "json",
+            "Dict": "json",
+            "list": "list",
+            "List": "list",
+            "Any": "json",
         }
 
     def _extract_default_value(self, node: ast.expr) -> Any:
@@ -399,7 +405,7 @@ class PythonASTParser:
         for node in class_def.body:
             if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
                 # Skip magic methods and private methods
-                if node.name.startswith('__') or node.name.startswith('_'):
+                if node.name.startswith("__") or node.name.startswith("_"):
                     continue
 
                 method = ParsedMethod(
@@ -410,11 +416,13 @@ class PythonASTParser:
                     decorators=self._parse_function_decorators(node),
                     docstring=ast.get_docstring(node),
                     is_async=isinstance(node, ast.AsyncFunctionDef),
-                    is_classmethod='@classmethod' in [d for d in self._parse_function_decorators(node)],
-                    is_staticmethod='@staticmethod' in [d for d in self._parse_function_decorators(node)],
+                    is_classmethod="@classmethod"
+                    in [d for d in self._parse_function_decorators(node)],
+                    is_staticmethod="@staticmethod"
+                    in [d for d in self._parse_function_decorators(node)],
                     metadata={
                         "line_number": node.lineno,
-                    }
+                    },
                 )
                 methods.append(method)
 
@@ -426,17 +434,19 @@ class PythonASTParser:
 
         for arg in func_def.args.args:
             # Skip 'self' and 'cls'
-            if arg.arg in ['self', 'cls']:
+            if arg.arg in ["self", "cls"]:
                 continue
 
-            param_type = 'Any'
+            param_type = "Any"
             if arg.annotation:
                 param_type = ast.unparse(arg.annotation)
 
-            params.append({
-                'name': arg.arg,
-                'type': param_type,
-            })
+            params.append(
+                {
+                    "name": arg.arg,
+                    "type": param_type,
+                }
+            )
 
         return params
 

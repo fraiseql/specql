@@ -13,7 +13,9 @@ from src.core.ast_models import EntityDefinition, ExtraFilterColumn, IncludeRela
 class TableViewGenerator:
     """Generate tv_ table schema and refresh functions."""
 
-    def __init__(self, entity: EntityDefinition, all_entities: dict[str, EntityDefinition]):
+    def __init__(
+        self, entity: EntityDefinition, all_entities: dict[str, EntityDefinition]
+    ):
         self.entity = entity
         self.all_entities = all_entities  # For resolving references
 
@@ -319,13 +321,17 @@ $$ LANGUAGE plpgsql;
         for field_name, field in self.entity.fields.items():
             if field.is_reference():
                 # Get referenced entity (prefer field.reference_entity, fallback to parsing type_name)
-                ref_entity = field.reference_entity or self._extract_ref_entity(field.type_name)
+                ref_entity = field.reference_entity or self._extract_ref_entity(
+                    field.type_name
+                )
                 ref_lower = ref_entity.lower()
                 field_lower = field_name.lower()
 
                 # Get referenced entity schema (use field.reference_schema for cross-schema refs)
                 # Fallback to _get_entity_schema if reference_schema not set
-                ref_schema = field.reference_schema or self._get_entity_schema(ref_entity)
+                ref_schema = field.reference_schema or self._get_entity_schema(
+                    ref_entity
+                )
 
                 # Join to tv_ table (composition!)
                 join_type = "INNER" if not field.nullable else "LEFT"
@@ -345,7 +351,9 @@ $$ LANGUAGE plpgsql;
         for field_name, field in self.entity.fields.items():
             if field.is_reference():
                 # Get referenced entity (prefer field.reference_entity, fallback to parsing type_name)
-                ref_entity = field.reference_entity or self._extract_ref_entity(field.type_name)
+                ref_entity = field.reference_entity or self._extract_ref_entity(
+                    field.type_name
+                )
                 ref_lower = ref_entity.lower()
                 field_lower = field_name.lower()
 
@@ -403,7 +411,9 @@ $$ LANGUAGE plpgsql;
             for field_name, field in self.entity.fields.items():
                 if field.is_reference():
                     # Get referenced entity (prefer field.reference_entity, fallback to parsing type_name)
-                    ref_entity = field.reference_entity or self._extract_ref_entity(field.type_name)
+                    ref_entity = field.reference_entity or self._extract_ref_entity(
+                        field.type_name
+                    )
                     ref_lower = ref_entity.lower()
 
                     # Include full tv_.data
@@ -428,7 +438,9 @@ $$ LANGUAGE plpgsql;
             if field.is_reference() and fname == rel.entity_name:
                 field_name_for_json = fname
                 # Get referenced entity (prefer field.reference_entity, fallback to parsing type_name)
-                ref_entity = field.reference_entity or self._extract_ref_entity(field.type_name)
+                ref_entity = field.reference_entity or self._extract_ref_entity(
+                    field.type_name
+                )
                 break
 
         # If no exact match, try matching by entity type (e.g., "User" matches "author: ref(User)")
@@ -436,7 +448,9 @@ $$ LANGUAGE plpgsql;
             for fname, field in self.entity.fields.items():
                 if field.is_reference():
                     # Get referenced entity (prefer field.reference_entity, fallback to parsing type_name)
-                    entity_type = field.reference_entity or self._extract_ref_entity(field.type_name)
+                    entity_type = field.reference_entity or self._extract_ref_entity(
+                        field.type_name
+                    )
                     if entity_type == rel.entity_name:
                         field_name_for_json = fname
                         ref_entity = entity_type

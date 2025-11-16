@@ -25,7 +25,9 @@ def test_ai_enhancer_with_mock_llm():
 
     # Mock the LLM
     mock_llm = Mock()
-    mock_llm.return_value = {"choices": [{"text": "This function calculates order totals."}]}
+    mock_llm.return_value = {
+        "choices": [{"text": "This function calculates order totals."}]
+    }
     enhancer.local_llm = mock_llm
 
     # Test with simple function
@@ -45,10 +47,12 @@ def test_ai_enhancer_with_mock_llm():
     enhanced_result = enhancer.enhance(result)
 
     # Check that intent was inferred
-    assert hasattr(enhanced_result, 'metadata')
+    assert hasattr(enhanced_result, "metadata")
     assert enhanced_result.metadata is not None
-    assert 'intent' in enhanced_result.metadata
-    assert enhanced_result.metadata['intent'] == "This function calculates order totals."
+    assert "intent" in enhanced_result.metadata
+    assert (
+        enhanced_result.metadata["intent"] == "This function calculates order totals."
+    )
 
     # Confidence should be improved
     assert enhanced_result.confidence >= result.confidence
@@ -87,7 +91,9 @@ def test_variable_name_improvement():
 
     # Mock LLM response with JSON
     mock_llm = Mock()
-    mock_llm.return_value = {"choices": [{"text": '{"v_total": "total_amount", "v_cnt": "item_count"}'}]}
+    mock_llm.return_value = {
+        "choices": [{"text": '{"v_total": "total_amount", "v_cnt": "item_count"}'}]
+    }
     enhancer.local_llm = mock_llm
 
     sql = """
@@ -126,7 +132,9 @@ def test_pattern_suggestion():
 
     # Mock LLM response
     mock_llm = Mock()
-    mock_llm.return_value = {"choices": [{"text": "aggregation_pipeline, validation_chain"}]}
+    mock_llm.return_value = {
+        "choices": [{"text": "aggregation_pipeline, validation_chain"}]
+    }
     enhancer.local_llm = mock_llm
 
     sql = """
@@ -143,8 +151,8 @@ def test_pattern_suggestion():
     enhanced_result = enhancer.enhance(result)
 
     # Check that patterns were suggested
-    if hasattr(enhanced_result, 'metadata'):
-        assert 'suggested_patterns' in enhanced_result.metadata
-        patterns = enhanced_result.metadata['suggested_patterns']
-        assert 'aggregation_pipeline' in patterns
-        assert 'validation_chain' in patterns
+    if hasattr(enhanced_result, "metadata"):
+        assert "suggested_patterns" in enhanced_result.metadata
+        patterns = enhanced_result.metadata["suggested_patterns"]
+        assert "aggregation_pipeline" in patterns
+        assert "validation_chain" in patterns

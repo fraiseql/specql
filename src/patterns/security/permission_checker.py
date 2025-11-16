@@ -33,7 +33,9 @@ class PermissionChecker:
             "*/",
         ]
 
-    def validate_permission_checks(self, checks: list[dict[str, Any]]) -> ValidationResult:
+    def validate_permission_checks(
+        self, checks: list[dict[str, Any]]
+    ) -> ValidationResult:
         """Ensure permission checks are secure and well-formed."""
         errors = []
         warnings = []
@@ -49,7 +51,12 @@ class PermissionChecker:
                 errors.append(f"Check {i}: Missing 'type' field")
                 continue
 
-            if check_type not in ["ownership", "organizational_hierarchy", "role_based", "custom"]:
+            if check_type not in [
+                "ownership",
+                "organizational_hierarchy",
+                "role_based",
+                "custom",
+            ]:
                 errors.append(f"Check {i}: Invalid check type '{check_type}'")
                 continue
 
@@ -60,18 +67,26 @@ class PermissionChecker:
 
             elif check_type == "organizational_hierarchy":
                 if not check.get("field"):
-                    errors.append(f"Check {i}: 'field' required for organizational_hierarchy check")
+                    errors.append(
+                        f"Check {i}: 'field' required for organizational_hierarchy check"
+                    )
 
             elif check_type == "role_based":
-                if not check.get("allowed_roles") or not isinstance(check["allowed_roles"], list):
-                    errors.append(f"Check {i}: 'allowed_roles' array required for role_based check")
+                if not check.get("allowed_roles") or not isinstance(
+                    check["allowed_roles"], list
+                ):
+                    errors.append(
+                        f"Check {i}: 'allowed_roles' array required for role_based check"
+                    )
                 elif not check["allowed_roles"]:
                     warnings.append(f"Check {i}: Empty allowed_roles list")
 
             elif check_type == "custom":
                 custom_condition = check.get("custom_condition", "")
                 if not custom_condition:
-                    errors.append(f"Check {i}: 'custom_condition' required for custom check")
+                    errors.append(
+                        f"Check {i}: 'custom_condition' required for custom check"
+                    )
                 else:
                     # Check for dangerous patterns
                     for pattern in self.dangerous_patterns:
@@ -95,7 +110,9 @@ class PermissionChecker:
             check_type = check["type"]
 
             if check_type == "ownership":
-                condition = f"{entity['table']}.{check['field']} = {user_context_source}::uuid"
+                condition = (
+                    f"{entity['table']}.{check['field']} = {user_context_source}::uuid"
+                )
                 policy_conditions.append(condition)
 
             elif check_type == "organizational_hierarchy":
@@ -170,7 +187,9 @@ class PermissionChecker:
                 "Consider adding role-based checks for admin/superuser access"
             )
 
-        if coverage["custom"] and not (coverage["ownership"] or coverage["organizational"]):
+        if coverage["custom"] and not (
+            coverage["ownership"] or coverage["organizational"]
+        ):
             coverage["recommendations"].append(
                 "Custom conditions should be combined with ownership checks for security"
             )

@@ -27,7 +27,9 @@ def test_compile_if_then_simple():
     step = ActionStep(
         type="if",
         condition="status = 'lead'",
-        then_steps=[ActionStep(type="update", fields={"raw_set": "status = 'qualified'"})],
+        then_steps=[
+            ActionStep(type="update", fields={"raw_set": "status = 'qualified'"})
+        ],
     )
     entity = create_test_entity()
     context = {}
@@ -54,8 +56,12 @@ def test_compile_if_then_else():
     step = ActionStep(
         type="if",
         condition="lead_score >= 70",
-        then_steps=[ActionStep(type="update", fields={"raw_set": "status = 'qualified'"})],
-        else_steps=[ActionStep(type="update", fields={"raw_set": "status = 'nurture'"})],
+        then_steps=[
+            ActionStep(type="update", fields={"raw_set": "status = 'qualified'"})
+        ],
+        else_steps=[
+            ActionStep(type="update", fields={"raw_set": "status = 'nurture'"})
+        ],
     )
     entity = create_test_entity()
     context = {}
@@ -83,7 +89,9 @@ def test_compile_if_multiple_fields():
     step = ActionStep(
         type="if",
         condition="status = 'lead' AND lead_score >= 50",
-        then_steps=[ActionStep(type="update", fields={"raw_set": "status = 'qualified'"})],
+        then_steps=[
+            ActionStep(type="update", fields={"raw_set": "status = 'qualified'"})
+        ],
     )
     entity = create_test_entity()
     context = {}
@@ -105,7 +113,9 @@ def test_compile_if_no_condition():
     """Test error when if step has no condition"""
     step = ActionStep(
         type="if",
-        then_steps=[ActionStep(type="update", fields={"raw_set": "status = 'qualified'"})],
+        then_steps=[
+            ActionStep(type="update", fields={"raw_set": "status = 'qualified'"})
+        ],
     )
     entity = create_test_entity()
     context = {}

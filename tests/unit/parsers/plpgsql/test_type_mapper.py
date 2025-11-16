@@ -55,8 +55,8 @@ class TestTypeMapper:
 
     def test_detect_foreign_key(self, mapper):
         """Test detecting foreign key columns"""
-        assert mapper._is_foreign_key("fk_company")  is True
-        assert mapper._is_foreign_key("company_id")  is True
+        assert mapper._is_foreign_key("fk_company") is True
+        assert mapper._is_foreign_key("company_id") is True
         assert not mapper._is_foreign_key("id")
         assert not mapper._is_foreign_key("email")
 

@@ -9,6 +9,7 @@ from pathlib import Path
 import psycopg
 import os
 
+
 class GrokProvider:
     """
     Grok Code Fast 1 provider via OpenCode CLI.
@@ -33,10 +34,7 @@ class GrokProvider:
         # Verify opencode is available
         try:
             result = subprocess.run(
-                ["which", "opencode"],
-                capture_output=True,
-                text=True,
-                timeout=5
+                ["which", "opencode"], capture_output=True, text=True, timeout=5
             )
             if result.returncode != 0:
                 raise RuntimeError("opencode not found in PATH")
@@ -45,7 +43,7 @@ class GrokProvider:
 
         # Database connection for logging
         if log_to_db:
-            conn_string = os.getenv('SPECQL_DB_URL')
+            conn_string = os.getenv("SPECQL_DB_URL")
             if conn_string:
                 try:
                     self.db_conn = psycopg.connect(conn_string)
@@ -59,12 +57,7 @@ class GrokProvider:
 
         print(f"✓ Grok provider ready (model: {self.model}, FREE)")
 
-    def call(
-        self,
-        prompt: str,
-        task_type: str = "general",
-        timeout: int = 30
-    ) -> str:
+    def call(self, prompt: str, task_type: str = "general", timeout: int = 30) -> str:
         """
         Call Grok via OpenCode CLI.
 
@@ -82,7 +75,9 @@ class GrokProvider:
 
         try:
             # Write prompt to temp file
-            with tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.txt') as f:
+            with tempfile.NamedTemporaryFile(
+                mode="w", delete=False, suffix=".txt"
+            ) as f:
                 f.write(prompt)
                 prompt_file = f.name
 
@@ -92,7 +87,7 @@ class GrokProvider:
                 stdin=open(prompt_file),
                 capture_output=True,
                 text=True,
-                timeout=timeout
+                timeout=timeout,
             )
 
             # Clean up
@@ -113,7 +108,7 @@ class GrokProvider:
                     response_length=len(response),
                     prompt_hash=prompt_hash,
                     latency_ms=latency_ms,
-                    success=True
+                    success=True,
                 )
 
             return response
@@ -128,7 +123,7 @@ class GrokProvider:
                     prompt_hash=prompt_hash,
                     latency_ms=int((time.time() - start_time) * 1000),
                     success=False,
-                    error_message=f"Timeout after {timeout}s"
+                    error_message=f"Timeout after {timeout}s",
                 )
             raise RuntimeError(f"Grok call timed out after {timeout}s")
 
@@ -142,15 +137,12 @@ class GrokProvider:
                     prompt_hash=prompt_hash,
                     latency_ms=int((time.time() - start_time) * 1000),
                     success=False,
-                    error_message=str(e)
+                    error_message=str(e),
                 )
             raise RuntimeError(f"Grok call failed: {e}")
 
     def call_json(
-        self,
-        prompt: str,
-        task_type: str = "general",
-        max_retries: int = 2
+        self, prompt: str, task_type: str = "general", max_retries: int = 2
     ) -> dict:
         """
         Call Grok and parse JSON response.
@@ -176,7 +168,9 @@ class GrokProvider:
 
                 # If last attempt, raise error
                 if attempt == max_retries - 1:
-                    raise ValueError(f"Failed to parse JSON from Grok response: {response[:200]}")
+                    raise ValueError(
+                        f"Failed to parse JSON from Grok response: {response[:200]}"
+                    )
 
                 # Retry with more explicit instructions
                 prompt = f"{prompt}\n\nIMPORTANT: Output ONLY valid JSON, no markdown, no explanations."
@@ -192,7 +186,7 @@ class GrokProvider:
         prompt_hash: str,
         latency_ms: int,
         success: bool,
-        error_message: str = None
+        error_message: str = None,
     ):
         """Log Grok call to PostgreSQL."""
         try:
@@ -203,8 +197,16 @@ class GrokProvider:
                  prompt_hash, latency_ms, success, error_message, cost_usd)
                 VALUES (%s, %s, %s, %s, %s, %s, %s, %s, 0.0)
                 """,
-                (call_id, task_type, prompt_length, response_length,
-                 prompt_hash, latency_ms, success, error_message)
+                (
+                    call_id,
+                    task_type,
+                    prompt_length,
+                    response_length,
+                    prompt_hash,
+                    latency_ms,
+                    success,
+                    error_message,
+                ),
             )
             self.db_conn.commit()
         except Exception:

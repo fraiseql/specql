@@ -11,7 +11,9 @@ def test_email_field_generates_text_with_constraint(table_generator):
     entity = Entity(
         name="Contact",
         schema="crm",
-        fields={"email": FieldDefinition(name="email", type_name="email", nullable=False)},
+        fields={
+            "email": FieldDefinition(name="email", type_name="email", nullable=False)
+        },
     )
 
     ddl = table_generator.generate_table_ddl(entity)
@@ -28,7 +30,9 @@ def test_url_field_generates_text_with_url_constraint(table_generator):
     entity = Entity(
         name="Page",
         schema="public",
-        fields={"website": FieldDefinition(name="website", type_name="url", nullable=True)},
+        fields={
+            "website": FieldDefinition(name="website", type_name="url", nullable=True)
+        },
     )
 
     ddl = table_generator.generate_table_ddl(entity)
@@ -43,7 +47,9 @@ def test_ip_address_uses_inet_type(table_generator):
     entity = Entity(
         name="Server",
         schema="public",
-        fields={"ip_address": FieldDefinition(name="ip_address", type_name="ipAddress")},
+        fields={
+            "ip_address": FieldDefinition(name="ip_address", type_name="ipAddress")
+        },
     )
 
     ddl = table_generator.generate_table_ddl(entity)
@@ -90,7 +96,9 @@ def test_money_generates_numeric_with_precision(table_generator):
     entity = Entity(
         name="Product",
         schema="public",
-        fields={"price": FieldDefinition(name="price", type_name="money", nullable=False)},
+        fields={
+            "price": FieldDefinition(name="price", type_name="money", nullable=False)
+        },
     )
 
     ddl = table_generator.generate_table_ddl(entity)

@@ -179,7 +179,7 @@ class TestJobExecutionResourceManagementE2E:
 
             result = await http_runner.execute(job, sample_execution_context)
 
-            assert result.success  is True
+            assert result.success is True
             assert result.duration_seconds == 2.5
             assert result.resource_usage["status_code"] == 200
             assert result.resource_usage["response_size_bytes"] == len(large_content)
@@ -280,7 +280,7 @@ class TestJobExecutionSecurityE2E:
 
         # Test valid config
         result = await runner.validate_config({"base_url": "https://api.example.com"})
-        assert result  is True
+        assert result is True
 
 
 class TestMultiRunnerWorkflowE2E:
@@ -324,6 +324,7 @@ class TestMultiRunnerWorkflowE2E:
 
         # Execute HTTP job
         from src.runners.http_runner import HTTPRunner
+
         http_runner = HTTPRunner()  # Directly instantiate HTTP runner
         mock_http_response = MagicMock()
         mock_http_response.status_code = 200
@@ -337,7 +338,7 @@ class TestMultiRunnerWorkflowE2E:
         ) as mock_request:
             mock_request.return_value = mock_http_response
             http_result = await http_runner.execute(http_job, sample_execution_context)
-            assert http_result.success  is True
+            assert http_result.success is True
 
         # Execute Docker job
         from src.runners.docker_runner import DockerRunner
@@ -356,7 +357,7 @@ class TestMultiRunnerWorkflowE2E:
             docker_result = await docker_runner.execute(
                 docker_job, sample_execution_context
             )
-            assert docker_result.success  is True
+            assert docker_result.success is True
 
         # Both jobs succeeded
         assert http_result.success and docker_result.success

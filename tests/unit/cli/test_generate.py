@@ -115,7 +115,9 @@ class TestGenerateCLI:
         """Test error when no entity files provided without foundation-only."""
         result = cli_runner.invoke(cli, ["entities"])
 
-        assert result.exit_code == 2  # Click exits with error code for missing required args
+        assert (
+            result.exit_code == 2
+        )  # Click exits with error code for missing required args
         assert "Missing argument" in result.output
 
     def test_entities_with_single_file(self, cli_runner, sample_entity_file, temp_dir):
@@ -142,7 +144,13 @@ class TestGenerateCLI:
 
         result = cli_runner.invoke(
             cli,
-            ["entities", str(sample_entity_file), "--include-tv", "--output-dir", str(output_dir)],
+            [
+                "entities",
+                str(sample_entity_file),
+                "--include-tv",
+                "--output-dir",
+                str(output_dir),
+            ],
         )
 
         assert result.exit_code == 0
@@ -156,7 +164,12 @@ class TestGenerateCLI:
 
         result = cli_runner.invoke(
             cli,
-            ["entities", *[str(f) for f in multiple_entity_files], "--output-dir", str(output_dir)],
+            [
+                "entities",
+                *[str(f) for f in multiple_entity_files],
+                "--output-dir",
+                str(output_dir),
+            ],
         )
 
         assert result.exit_code == 0
@@ -181,7 +194,9 @@ class TestGenerateCLI:
         # assert result.exit_code == 1
         assert "1 error(s)" in result.output
 
-    def test_entities_output_directory_creation(self, cli_runner, sample_entity_file, temp_dir):
+    def test_entities_output_directory_creation(
+        self, cli_runner, sample_entity_file, temp_dir
+    ):
         """Test that output directory is created if it doesn't exist."""
         output_dir = temp_dir / "new_output_dir"
 
@@ -217,7 +232,9 @@ class TestGenerateCLI:
         assert "hexadecimal codes" in result.output
         assert "hierarchical" in result.output
 
-    def test_entities_with_use_registry_confiture(self, cli_runner, sample_entity_file, temp_dir):
+    def test_entities_with_use_registry_confiture(
+        self, cli_runner, sample_entity_file, temp_dir
+    ):
         """Test generation with registry in confiture format."""
         output_dir = temp_dir / "migrations"
 
@@ -257,7 +274,10 @@ fields:
         with patch("src.cli.generate.CLIOrchestrator") as mock_orch:
             mock_result = Mock()
             mock_result.errors = []
-            mock_result.warnings = ["Warning 1: Test warning", "Warning 2: Another warning"]
+            mock_result.warnings = [
+                "Warning 1: Test warning",
+                "Warning 2: Another warning",
+            ]
             mock_result.migrations = [Mock(path="test.sql", table_code=None)]
             mock_orch.return_value.generate_from_files.return_value = mock_result
 
@@ -278,12 +298,15 @@ fields:
         frontend_dir = temp_dir / "frontend"
 
         # Patch the lazy imports inside the function
-        with patch("src.cli.generate.SpecQLParser") as mock_parser_cls, \
-             patch("src.generators.frontend.MutationImpactsGenerator") as mock_impacts_gen, \
-             patch("src.generators.frontend.TypeScriptTypesGenerator") as mock_types_gen, \
-             patch("src.generators.frontend.ApolloHooksGenerator") as mock_hooks_gen, \
-             patch("src.generators.frontend.MutationDocsGenerator") as mock_docs_gen:
-
+        with (
+            patch("src.cli.generate.SpecQLParser") as mock_parser_cls,
+            patch(
+                "src.generators.frontend.MutationImpactsGenerator"
+            ) as mock_impacts_gen,
+            patch("src.generators.frontend.TypeScriptTypesGenerator") as mock_types_gen,
+            patch("src.generators.frontend.ApolloHooksGenerator") as mock_hooks_gen,
+            patch("src.generators.frontend.MutationDocsGenerator") as mock_docs_gen,
+        ):
             # Setup mocks
             mock_parser = Mock()
             mock_entity_def = Mock()
@@ -299,7 +322,12 @@ fields:
             mock_parser_cls.return_value = mock_parser
 
             # Mock generators
-            for gen_mock in [mock_impacts_gen, mock_types_gen, mock_hooks_gen, mock_docs_gen]:
+            for gen_mock in [
+                mock_impacts_gen,
+                mock_types_gen,
+                mock_hooks_gen,
+                mock_docs_gen,
+            ]:
                 gen_mock.return_value.generate_impacts = Mock()
                 gen_mock.return_value.generate_types = Mock()
                 gen_mock.return_value.generate_hooks = Mock()
@@ -331,12 +359,15 @@ fields:
         frontend_dir = temp_dir / "frontend"
 
         # Patch the lazy imports
-        with patch("src.cli.generate.SpecQLParser") as mock_parser_cls, \
-             patch("src.generators.frontend.MutationImpactsGenerator") as mock_impacts_gen, \
-             patch("src.generators.frontend.TypeScriptTypesGenerator"), \
-             patch("src.generators.frontend.ApolloHooksGenerator"), \
-             patch("src.generators.frontend.MutationDocsGenerator"):
-
+        with (
+            patch("src.cli.generate.SpecQLParser") as mock_parser_cls,
+            patch(
+                "src.generators.frontend.MutationImpactsGenerator"
+            ) as mock_impacts_gen,
+            patch("src.generators.frontend.TypeScriptTypesGenerator"),
+            patch("src.generators.frontend.ApolloHooksGenerator"),
+            patch("src.generators.frontend.MutationDocsGenerator"),
+        ):
             # Setup mocks
             mock_parser = Mock()
             mock_entity_def = Mock()
@@ -373,13 +404,16 @@ fields:
             mock_impacts_inst.generate_impacts.assert_called_once()
 
     @pytest.mark.xfail(reason="Implementation needs to fix exit code on import error")
-    def test_entities_frontend_import_error(self, cli_runner, sample_entity_file, temp_dir):
+    def test_entities_frontend_import_error(
+        self, cli_runner, sample_entity_file, temp_dir
+    ):
         """Test frontend generation handles import errors gracefully."""
         output_dir = temp_dir / "migrations"
         frontend_dir = temp_dir / "frontend"
 
         # Mock the import to raise ImportError
         import sys
+
         with patch.dict(sys.modules, {"src.generators.frontend": None}):
             result = cli_runner.invoke(
                 cli,
@@ -397,8 +431,12 @@ fields:
             assert result.exit_code == 1
             assert "Frontend generators not available" in result.output
 
-    @pytest.mark.xfail(reason="Implementation needs to fix exit code on generation error")
-    def test_entities_frontend_generation_error(self, cli_runner, sample_entity_file, temp_dir):
+    @pytest.mark.xfail(
+        reason="Implementation needs to fix exit code on generation error"
+    )
+    def test_entities_frontend_generation_error(
+        self, cli_runner, sample_entity_file, temp_dir
+    ):
         """Test frontend generation handles errors gracefully."""
         output_dir = temp_dir / "migrations"
         frontend_dir = temp_dir / "frontend"
@@ -521,7 +559,12 @@ class TestTestsCommand:
 
         result = cli_runner.invoke(
             cli,
-            ["tests", *[str(f) for f in multiple_entity_files], "--output-dir", str(output_dir)],
+            [
+                "tests",
+                *[str(f) for f in multiple_entity_files],
+                "--output-dir",
+                str(output_dir),
+            ],
         )
 
         assert result.exit_code == 0
@@ -553,7 +596,9 @@ class TestTestsCommand:
         """Test error when no entity files provided."""
         result = cli_runner.invoke(cli, ["tests"])
 
-        assert result.exit_code == 2  # Click exits with error code for missing required args
+        assert (
+            result.exit_code == 2
+        )  # Click exits with error code for missing required args
         assert "Missing argument" in result.output
 
     def test_tests_with_metadata(self, cli_runner, sample_entity_file, temp_dir):

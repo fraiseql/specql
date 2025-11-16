@@ -120,7 +120,7 @@ def test_benchmark_batch_generation():
     elapsed = time.time() - start
 
     print(f"Batch 100 entities: {elapsed:.3f}s")
-    print(f"Average per entity: {elapsed/100:.3f}s")
+    print(f"Average per entity: {elapsed / 100:.3f}s")
 
     # Should be reasonable (< 10s total, < 100ms per entity)
     assert elapsed < 10.0
@@ -137,7 +137,7 @@ def test_benchmark_pattern_library_query():
     elapsed = time.time() - start
 
     print(f"1000 pattern queries: {elapsed:.3f}s")
-    print(f"Average per query: {elapsed/1000*1000:.3f}ms")
+    print(f"Average per query: {elapsed / 1000 * 1000:.3f}ms")
 
     # Should be very fast (< 10ms per query)
     assert elapsed < 10.0

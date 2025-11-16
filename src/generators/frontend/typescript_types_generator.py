@@ -140,8 +140,16 @@ export interface PaginatedResult<T> {
             # For inputs, most fields are optional except required ones
             ts_type = self._field_to_typescript_type(field_def)
             # Primary keys and auto-generated fields are typically not in input
-            if field_name not in ["id", "created_at", "updated_at", "created_by", "updated_by"]:
-                optional = "?" if field_def.nullable or field_def.default is not None else ""
+            if field_name not in [
+                "id",
+                "created_at",
+                "updated_at",
+                "created_by",
+                "updated_by",
+            ]:
+                optional = (
+                    "?" if field_def.nullable or field_def.default is not None else ""
+                )
                 self.types.append(f"  {field_name}{optional}: {ts_type};")
 
         self.types.append("}")
@@ -204,7 +212,9 @@ export interface PaginatedResult<T> {
                     ]:
                         ts_type = self._field_to_typescript_type(field_def)
                         optional = (
-                            "?" if field_def.nullable or field_def.default is not None else ""
+                            "?"
+                            if field_def.nullable or field_def.default is not None
+                            else ""
                         )
                         self.types.append(f"  {field_name}{optional}: {ts_type};")
 
@@ -345,7 +355,14 @@ export interface PaginatedResult<T> {
 
         if pg_type in ["TEXT", "VARCHAR", "CHAR"]:
             return "string"
-        elif pg_type in ["INTEGER", "BIGINT", "SMALLINT", "NUMERIC", "REAL", "DOUBLE PRECISION"]:
+        elif pg_type in [
+            "INTEGER",
+            "BIGINT",
+            "SMALLINT",
+            "NUMERIC",
+            "REAL",
+            "DOUBLE PRECISION",
+        ]:
             return "number"
         elif pg_type == "BOOLEAN":
             return "boolean"

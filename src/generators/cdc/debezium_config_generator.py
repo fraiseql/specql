@@ -26,7 +26,6 @@ class DebeziumConfigGenerator:
             "config": {
                 # Connector class
                 "connector.class": "io.debezium.connector.postgresql.PostgresConnector",
-
                 # Database connection
                 "database.hostname": database_host,
                 "database.port": "5432",
@@ -34,17 +33,13 @@ class DebeziumConfigGenerator:
                 "database.password": "${DB_PASSWORD}",
                 "database.dbname": database_name,
                 "database.server.name": kafka_topic_prefix,
-
                 # Tables to capture
                 "table.include.list": "app.outbox",
-
                 # Publication (PostgreSQL logical replication)
                 "publication.name": "specql_outbox_publication",
                 "publication.autocreate.mode": "filtered",
-
                 # Slot
                 "slot.name": "specql_outbox_slot",
-
                 # Transforms: Outbox Event Router
                 "transforms": "outbox",
                 "transforms.outbox.type": "io.debezium.transforms.outbox.EventRouter",
@@ -54,29 +49,23 @@ class DebeziumConfigGenerator:
                 "transforms.outbox.table.field.event.payload": "event_payload",
                 "transforms.outbox.route.topic.replacement": "${kafka_topic_prefix}.events.${routedByValue}",
                 "transforms.outbox.route.by.field": "aggregate_type",
-
                 # Topic routing
                 "topic.prefix": kafka_topic_prefix,
-
                 # Performance
                 "max.batch.size": "2048",
                 "poll.interval.ms": "1000",
-
                 # Schema
                 "key.converter": "org.apache.kafka.connect.json.JsonConverter",
                 "value.converter": "org.apache.kafka.connect.json.JsonConverter",
                 "key.converter.schemas.enable": "false",
                 "value.converter.schemas.enable": "false",
-
                 # Cleanup processed events
-                "transforms.outbox.table.op.invalid.behavior": "warn"
-            }
+                "transforms.outbox.table.op.invalid.behavior": "warn",
+            },
         }
 
     def generate_docker_compose(
-        self,
-        database_host: str = "postgres",
-        kafka_host: str = "kafka"
+        self, database_host: str = "postgres", kafka_host: str = "kafka"
     ) -> str:
         """Generate docker-compose.yml for CDC stack"""
 
@@ -165,29 +154,20 @@ curl -s "$KAFKA_CONNECT_URL/connectors/specql-outbox-connector/status" | jq .
 """
 
     def generate_all(
-        self,
-        database_host: str,
-        database_name: str,
-        output_dir: str = "./cdc"
+        self, database_host: str, database_name: str, output_dir: str = "./cdc"
     ) -> Dict[str, str]:
         """Generate all CDC configuration files"""
 
         files = {}
 
         # Connector config
-        connector_config = self.generate_connector_config(
-            database_host, database_name
-        )
-        files['debezium-outbox-connector.json'] = json.dumps(
-            connector_config, indent=2
-        )
+        connector_config = self.generate_connector_config(database_host, database_name)
+        files["debezium-outbox-connector.json"] = json.dumps(connector_config, indent=2)
 
         # Docker Compose
-        files['docker-compose.yml'] = self.generate_docker_compose(
-            database_host
-        )
+        files["docker-compose.yml"] = self.generate_docker_compose(database_host)
 
         # Deployment script
-        files['deploy-connector.sh'] = self.generate_deployment_script()
+        files["deploy-connector.sh"] = self.generate_deployment_script()
 
         return files

@@ -15,7 +15,9 @@ class TestQueryPatternGenerator:
         # Mock pattern registry
         mock_registry = Mock()
         mock_pattern = Mock()
-        mock_pattern.generate.return_value = "CREATE OR REPLACE VIEW tenant.v_test AS SELECT 1;"
+        mock_pattern.generate.return_value = (
+            "CREATE OR REPLACE VIEW tenant.v_test AS SELECT 1;"
+        )
         mock_registry.get_pattern.return_value = mock_pattern
 
         # Create generator
@@ -50,7 +52,9 @@ class TestQueryPatternGenerator:
         assert "CREATE OR REPLACE VIEW" in sql_files[0].content
 
         # Verify pattern was called correctly
-        mock_registry.get_pattern.assert_called_once_with("aggregation/hierarchical_count")
+        mock_registry.get_pattern.assert_called_once_with(
+            "aggregation/hierarchical_count"
+        )
         mock_pattern.generate.assert_called_once()
 
     def test_generate_entity_without_patterns(self):
@@ -108,7 +112,9 @@ class TestQueryPatternGenerator:
         mock_pattern1 = Mock()
         mock_pattern1.generate.return_value = "CREATE VIEW v_base AS SELECT 1;"
         mock_pattern2 = Mock()
-        mock_pattern2.generate.return_value = "CREATE VIEW v_dependent AS SELECT * FROM v_base;"
+        mock_pattern2.generate.return_value = (
+            "CREATE VIEW v_dependent AS SELECT * FROM v_base;"
+        )
 
         def mock_get_pattern(pattern_name):
             if pattern_name == "base":
@@ -146,7 +152,9 @@ class TestQueryPatternGenerator:
         # Verify patterns were called in correct order
         calls = mock_registry.get_pattern.call_args_list
         assert calls[0][0][0] == "base"  # First call should be for base pattern
-        assert calls[1][0][0] == "dependent"  # Second call should be for dependent pattern
+        assert (
+            calls[1][0][0] == "dependent"
+        )  # Second call should be for dependent pattern
 
     def test_multi_tenant_entity_detection(self):
         """Test that multi-tenant entities are detected correctly."""

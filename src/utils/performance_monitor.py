@@ -28,7 +28,9 @@ class PerformanceMetrics:
     categories: Dict[str, Dict[str, float]] = field(default_factory=dict)
     total_time: float = 0.0
 
-    def add_timing(self, operation: str, elapsed: float, category: Optional[str] = None) -> None:
+    def add_timing(
+        self, operation: str, elapsed: float, category: Optional[str] = None
+    ) -> None:
         """
         Add timing for an operation
 
@@ -184,7 +186,11 @@ def get_performance_monitor() -> PerformanceMonitor:
     return _global_monitor
 
 
-def instrument(operation: str, category: Optional[str] = None, monitor: Optional[PerformanceMonitor] = None):
+def instrument(
+    operation: str,
+    category: Optional[str] = None,
+    monitor: Optional[PerformanceMonitor] = None,
+):
     """
     Decorator for instrumenting functions with performance tracking
 
@@ -201,11 +207,14 @@ def instrument(operation: str, category: Optional[str] = None, monitor: Optional
         def parse(yaml_content: str) -> EntityDefinition:
             # ... parsing logic ...
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
             perf_monitor = monitor or get_performance_monitor()
             with perf_monitor.track(operation, category):
                 return func(*args, **kwargs)
+
         return wrapper
+
     return decorator

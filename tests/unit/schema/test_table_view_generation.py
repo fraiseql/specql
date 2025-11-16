@@ -54,7 +54,9 @@ class TestTableViewGeneration:
         sql = generator.generate_schema()
 
         assert "idx_tv_review_tenant" in sql
-        assert "idx_tv_review_author_id" in sql  # Index uses field name, not entity name
+        assert (
+            "idx_tv_review_author_id" in sql
+        )  # Index uses field name, not entity name
         assert "idx_tv_review_rating" in sql
         assert "idx_tv_review_data" in sql
         assert "USING GIN(data)" in sql
@@ -64,7 +66,9 @@ class TestTableViewGeneration:
         entity = EntityDefinition(
             name="Location",
             schema="management",
-            fields={"parent": FieldDefinition(name="parent", type_name="ref(Location)")},
+            fields={
+                "parent": FieldDefinition(name="parent", type_name="ref(Location)")
+            },
         )
 
         generator = TableViewGenerator(entity, {})
@@ -156,7 +160,9 @@ class TestTableViewGeneration:
                 )  # Add FK to trigger generation
             },
             table_views=TableViewConfig(
-                extra_filter_columns=[ExtraFilterColumn(name="title", index_type="gin_trgm")]
+                extra_filter_columns=[
+                    ExtraFilterColumn(name="title", index_type="gin_trgm")
+                ]
             ),
         )
 
@@ -176,7 +182,9 @@ class TestTableViewGeneration:
                 )  # Add FK to trigger generation
             },
             table_views=TableViewConfig(
-                extra_filter_columns=[ExtraFilterColumn(name="location", index_type="gist")]
+                extra_filter_columns=[
+                    ExtraFilterColumn(name="location", index_type="gist")
+                ]
             ),
         )
 
@@ -193,7 +201,9 @@ class TestTableViewGeneration:
             fields={
                 "author": FieldDefinition(name="author", type_name="ref(User)"),
                 "book": FieldDefinition(name="book", type_name="ref(Book)"),
-                "publisher": FieldDefinition(name="publisher", type_name="ref(Publisher)"),
+                "publisher": FieldDefinition(
+                    name="publisher", type_name="ref(Publisher)"
+                ),
             },
         )
 
@@ -276,7 +286,9 @@ class TestTableViewGeneration:
                 "author": FieldDefinition(name="author", type_name="ref(User)"),
             },
             table_views=TableViewConfig(
-                include_relations=[IncludeRelation(entity_name="author", fields=["name", "email"])]
+                include_relations=[
+                    IncludeRelation(entity_name="author", fields=["name", "email"])
+                ]
             ),
         )
 
@@ -298,7 +310,9 @@ class TestTableViewDependencyResolution:
             EntityDefinition(
                 name="Post",
                 schema="blog",
-                fields={"author": FieldDefinition(name="author", type_name="ref(User)")},
+                fields={
+                    "author": FieldDefinition(name="author", type_name="ref(User)")
+                },
             ),
             EntityDefinition(
                 name="Comment",
@@ -312,7 +326,11 @@ class TestTableViewDependencyResolution:
 
         resolver = TableViewDependencyResolver(entities)
 
-        expected_graph = {"User": {"Post", "Comment"}, "Post": {"Comment"}, "Comment": set()}
+        expected_graph = {
+            "User": {"Post", "Comment"},
+            "Post": {"Comment"},
+            "Comment": set(),
+        }
 
         assert resolver.dependency_graph == expected_graph
 
@@ -323,7 +341,9 @@ class TestTableViewDependencyResolution:
             EntityDefinition(
                 name="Post",
                 schema="blog",
-                fields={"author": FieldDefinition(name="author", type_name="ref(User)")},
+                fields={
+                    "author": FieldDefinition(name="author", type_name="ref(User)")
+                },
             ),
         ]
 
@@ -345,7 +365,9 @@ class TestTableViewDependencyResolution:
                 schema="blog",
                 fields={
                     "author": FieldDefinition(name="author", type_name="ref(User)"),
-                    "category": FieldDefinition(name="category", type_name="ref(Category)"),
+                    "category": FieldDefinition(
+                        name="category", type_name="ref(Category)"
+                    ),
                 },
             ),
             EntityDefinition(
@@ -379,7 +401,9 @@ class TestTableViewDependencyResolution:
             EntityDefinition(
                 name="Post",
                 schema="blog",
-                fields={"author": FieldDefinition(name="author", type_name="ref(User)")},
+                fields={
+                    "author": FieldDefinition(name="author", type_name="ref(User)")
+                },
             ),
             EntityDefinition(
                 name="Comment",
@@ -427,7 +451,9 @@ class TestTableViewDependencyResolution:
             EntityDefinition(
                 name="Category",
                 schema="blog",
-                fields={"parent": FieldDefinition(name="parent", type_name="ref(Category)")},
+                fields={
+                    "parent": FieldDefinition(name="parent", type_name="ref(Category)")
+                },
             )
         ]
 

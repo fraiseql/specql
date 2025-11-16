@@ -15,7 +15,9 @@ class TestCoreMutationAnnotation:
             name="qualify_lead",
             steps=[],
             impact=ActionImpact(
-                primary=EntityImpact(entity="Contact", operation="update", fields=["status"])
+                primary=EntityImpact(
+                    entity="Contact", operation="update", fields=["status"]
+                )
             ),
         )
 
@@ -34,7 +36,9 @@ class TestCoreMutationAnnotation:
             name="qualify_lead",
             steps=[],
             impact=ActionImpact(
-                primary=EntityImpact(entity="Contact", operation="update", fields=["status"])
+                primary=EntityImpact(
+                    entity="Contact", operation="update", fields=["status"]
+                )
             ),
         )
 
@@ -75,7 +79,9 @@ class TestCoreMutationAnnotation:
             name="update_profile",
             steps=[],
             impact=ActionImpact(
-                primary=EntityImpact(entity="User", operation="update", fields=["name", "email"])
+                primary=EntityImpact(
+                    entity="User", operation="update", fields=["name", "email"]
+                )
             ),
         )
 
@@ -89,7 +95,9 @@ class TestCoreMutationAnnotation:
 
     def test_handles_complex_action_name(self):
         """Test: Core layer handles complex action names"""
-        action = Action(name="bulk_import_customer_data_from_csv", steps=[], impact=None)
+        action = Action(
+            name="bulk_import_customer_data_from_csv", steps=[], impact=None
+        )
 
         annotator = MutationAnnotator("crm", "Customer")
         sql = annotator.generate_mutation_annotation(action)
@@ -104,7 +112,9 @@ class TestCoreMutationAnnotation:
         action = Action(
             name="delete_item",
             steps=[],
-            impact=ActionImpact(primary=EntityImpact(entity="Item", operation="delete", fields=[])),
+            impact=ActionImpact(
+                primary=EntityImpact(entity="Item", operation="delete", fields=[])
+            ),
         )
 
         annotator = MutationAnnotator("inventory", "Item")
@@ -139,7 +149,9 @@ class TestAppMutationAnnotation:
             name="qualify_lead",
             steps=[],
             impact=ActionImpact(
-                primary=EntityImpact(entity="Contact", operation="update", fields=["status"])
+                primary=EntityImpact(
+                    entity="Contact", operation="update", fields=["status"]
+                )
             ),
         )
 
@@ -157,7 +169,9 @@ class TestAppMutationAnnotation:
             name="qualify_lead",
             steps=[],
             impact=ActionImpact(
-                primary=EntityImpact(entity="Contact", operation="update", fields=["status"])
+                primary=EntityImpact(
+                    entity="Contact", operation="update", fields=["status"]
+                )
             ),
         )
 
@@ -196,7 +210,9 @@ class TestAppMutationAnnotation:
             name="update_profile",
             steps=[],
             impact=ActionImpact(
-                primary=EntityImpact(entity="User", operation="update", fields=["name", "email"])
+                primary=EntityImpact(
+                    entity="User", operation="update", fields=["name", "email"]
+                )
             ),
         )
 
@@ -207,7 +223,9 @@ class TestAppMutationAnnotation:
 
     def test_handles_complex_action_name(self):
         """Test: App layer handles complex action names with multiple underscores"""
-        action = Action(name="bulk_import_customer_data_from_csv", steps=[], impact=None)
+        action = Action(
+            name="bulk_import_customer_data_from_csv", steps=[], impact=None
+        )
 
         annotator = MutationAnnotator("crm", "Customer")
         sql = annotator.generate_app_mutation_annotation(action)
@@ -219,7 +237,9 @@ class TestAppMutationAnnotation:
         action = Action(
             name="delete_item",
             steps=[],
-            impact=ActionImpact(primary=EntityImpact(entity="Item", operation="delete", fields=[])),
+            impact=ActionImpact(
+                primary=EntityImpact(entity="Item", operation="delete", fields=[])
+            ),
         )
 
         annotator = MutationAnnotator("inventory", "Item")
@@ -270,9 +290,13 @@ class TestMetadataMapping:
             name="transfer_ownership",
             steps=[],
             impact=ActionImpact(
-                primary=EntityImpact(entity="Account", operation="update", fields=["owner_id"]),
+                primary=EntityImpact(
+                    entity="Account", operation="update", fields=["owner_id"]
+                ),
                 side_effects=[
-                    EntityImpact(entity="User", operation="update", fields=["account_count"])
+                    EntityImpact(
+                        entity="User", operation="update", fields=["account_count"]
+                    )
                 ],
             ),
         )
@@ -291,7 +315,9 @@ class TestMetadataMapping:
             steps=[],
             impact=ActionImpact(
                 primary=EntityImpact(
-                    entity="Project", operation="create", fields=["name", "description", "owner_id"]
+                    entity="Project",
+                    operation="create",
+                    fields=["name", "description", "owner_id"],
                 )
             ),
         )
@@ -307,7 +333,9 @@ class TestMetadataMapping:
         action = Action(
             name="archive_task",
             steps=[],
-            impact=ActionImpact(primary=EntityImpact(entity="Task", operation="delete", fields=[])),
+            impact=ActionImpact(
+                primary=EntityImpact(entity="Task", operation="delete", fields=[])
+            ),
         )
 
         annotator = MutationAnnotator("pm", "Task")

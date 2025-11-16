@@ -12,7 +12,9 @@ def test_complete_ddl_with_foreign_keys(table_generator):
         name="Contact",
         schema="crm",
         fields={
-            "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company")
+            "company": FieldDefinition(
+                name="company", type_name="ref", reference_entity="Company"
+            )
         },
     )
 
@@ -30,7 +32,9 @@ def test_complete_ddl_with_enum_constraints(table_generator):
         schema="public",
         fields={
             "status": FieldDefinition(
-                name="status", type_name="enum", values=["pending", "in_progress", "completed"]
+                name="status",
+                type_name="enum",
+                values=["pending", "in_progress", "completed"],
             )
         },
     )
@@ -47,7 +51,9 @@ def test_generate_indexes_ddl_with_foreign_keys(table_generator):
         name="Contact",
         schema="crm",
         fields={
-            "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company")
+            "company": FieldDefinition(
+                name="company", type_name="ref", reference_entity="Company"
+            )
         },
     )
 
@@ -86,7 +92,9 @@ def test_generate_complete_ddl_orchestration(table_generator):
         fields={
             "name": FieldDefinition(name="name", type_name="text", nullable=False),
             "email": FieldDefinition(name="email", type_name="email", nullable=False),
-            "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company"),
+            "company": FieldDefinition(
+                name="company", type_name="ref", reference_entity="Company"
+            ),
             "status": FieldDefinition(
                 name="status", type_name="enum", values=["active", "inactive"]
             ),
@@ -159,7 +167,9 @@ def test_rich_types_in_complete_ddl(table_generator):
         fields={
             "email": FieldDefinition(name="email", type_name="email", nullable=False),
             "website": FieldDefinition(name="website", type_name="url", nullable=True),
-            "phone": FieldDefinition(name="phone", type_name="phoneNumber", nullable=True),
+            "phone": FieldDefinition(
+                name="phone", type_name="phoneNumber", nullable=True
+            ),
             "coordinates": FieldDefinition(
                 name="coordinates", type_name="coordinates", nullable=True
             ),
@@ -216,7 +226,9 @@ def test_no_duplicate_comments_in_complete_ddl(table_generator):
 
     # Check for duplicates
     unique_targets = set(targets)
-    assert len(targets) == len(unique_targets), f"Duplicate COMMENT targets found: {targets}"
+    assert len(targets) == len(unique_targets), (
+        f"Duplicate COMMENT targets found: {targets}"
+    )
 
 
 def test_audit_fields_always_present(table_generator):

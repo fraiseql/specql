@@ -91,7 +91,12 @@ def _validate_config(config: dict[str, Any]) -> None:
 
     pattern_config = config["config"]
 
-    required_fields = ["parent_entity", "child_entity", "child_array_field", "child_fields"]
+    required_fields = [
+        "parent_entity",
+        "child_entity",
+        "child_array_field",
+        "child_fields",
+    ]
     for field in required_fields:
         if field not in pattern_config:
             raise ValueError(f"{field} is required for simple aggregation pattern")
@@ -104,7 +109,11 @@ def _validate_config(config: dict[str, Any]) -> None:
 
     # Validate child_fields structure
     for field in pattern_config["child_fields"]:
-        if not isinstance(field, dict) or "name" not in field or "expression" not in field:
+        if (
+            not isinstance(field, dict)
+            or "name" not in field
+            or "expression" not in field
+        ):
             raise ValueError("Each child field must have 'name' and 'expression' keys")
 
 

@@ -44,12 +44,10 @@ __all__ = [
     "Alert",
     "SecurityConfig",
     "UniversalInfrastructure",
-
     # Parsers
     "TerraformParser",
     "KubernetesParser",
     "DockerComposeParser",
-
     # Repositories
     "InfrastructurePatternRepository",
 ]

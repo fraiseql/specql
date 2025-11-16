@@ -73,7 +73,10 @@ class TestJunctionResolver:
         sql = pattern.generate(entity, config)
 
         # Verify basic structure
-        assert "CREATE OR REPLACE VIEW tenant.v_financing_condition_and_model_by_contract AS" in sql
+        assert (
+            "CREATE OR REPLACE VIEW tenant.v_financing_condition_and_model_by_contract AS"
+            in sql
+        )
         assert "SELECT DISTINCT" in sql
         assert "FROM tenant.tb_contract src" in sql
         assert "INNER JOIN tenant.tb_contract_financing_condition j1" in sql

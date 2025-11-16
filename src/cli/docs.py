@@ -107,9 +107,7 @@ def generate_html_docs(entities: list[dict[str, Any]], output_dir: str) -> None:
         <p><strong>Schema:</strong> {entity_def.schema}</p>
 """
         if entity_def.description:
-            index_content += (
-                f"        <p><strong>Description:</strong> {entity_def.description}</p>\n"
-            )
+            index_content += f"        <p><strong>Description:</strong> {entity_def.description}</p>\n"
 
         index_content += """
         <h3>Fields</h3>
@@ -118,7 +116,11 @@ def generate_html_docs(entities: list[dict[str, Any]], output_dir: str) -> None:
 """
 
         for field_name, field in entity_def.fields.items():
-            required = "<span class='field-required'>Yes</span>" if not field.nullable else "No"
+            required = (
+                "<span class='field-required'>Yes</span>"
+                if not field.nullable
+                else "No"
+            )
             index_content += f"            <tr><td>{field_name}</td><td>{field.type_name}</td><td>{required}</td><td>{field.description or ''}</td></tr>\n"
 
         index_content += "        </table>\n"
@@ -128,14 +130,14 @@ def generate_html_docs(entities: list[dict[str, Any]], output_dir: str) -> None:
             for action in entity_def.actions:
                 index_content += f"        <h4>{action.name}</h4>\n"
                 if hasattr(action, "description") and action.description:
-                    index_content += (
-                        f"        <p><strong>Description:</strong> {action.description}</p>\n"
-                    )
+                    index_content += f"        <p><strong>Description:</strong> {action.description}</p>\n"
 
                 if hasattr(action, "steps") and action.steps:
                     index_content += "        <p><strong>Steps:</strong></p><ol>\n"
                     for step in action.steps:
-                        index_content += f"            <li>{step.get('type', 'unknown')}</li>\n"
+                        index_content += (
+                            f"            <li>{step.get('type', 'unknown')}</li>\n"
+                        )
                     index_content += "        </ol>\n"
 
                 if hasattr(action, "impact") and action.impact:
@@ -145,7 +147,9 @@ def generate_html_docs(entities: list[dict[str, Any]], output_dir: str) -> None:
                         primary = impact["primary"]
                         index_content += f"        <p>- <strong>Primary:</strong> {primary.get('entity', '')}.{primary.get('operation', '')}</p>\n"
                     if "sideEffects" in impact:
-                        index_content += "        <p>- <strong>Side Effects:</strong></p><ul>\n"
+                        index_content += (
+                            "        <p>- <strong>Side Effects:</strong></p><ul>\n"
+                        )
                         for side_effect in impact["sideEffects"]:
                             index_content += f"            <li>{side_effect.get('entity', '')}.{side_effect.get('operation', '')}</li>\n"
                         index_content += "        </ul>\n"
@@ -169,7 +173,9 @@ def generate_html_docs(entities: list[dict[str, Any]], output_dir: str) -> None:
     default="markdown",
     help="Output format",
 )
-@click.option("--output", "-o", required=True, help="Output file (markdown) or directory (html)")
+@click.option(
+    "--output", "-o", required=True, help="Output file (markdown) or directory (html)"
+)
 def docs(entity_files, format, output):
     """Generate documentation from SpecQL entity files.
 
@@ -192,7 +198,9 @@ def docs(entity_files, format, output):
             entity_def = parser.parse(content)
             entity = convert_entity_definition_to_entity(entity_def)
 
-            entities.append({"definition": entity_def, "entity": entity, "file": entity_file})
+            entities.append(
+                {"definition": entity_def, "entity": entity, "file": entity_file}
+            )
 
         # Generate documentation based on format
         if format == "markdown":

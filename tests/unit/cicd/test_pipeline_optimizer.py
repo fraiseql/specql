@@ -3,7 +3,14 @@
 import pytest
 from unittest.mock import patch
 from src.cicd.pipeline_optimizer import PipelineOptimizer
-from src.cicd.universal_pipeline_schema import UniversalPipeline, Stage, Job, Step, StepType, Runtime
+from src.cicd.universal_pipeline_schema import (
+    UniversalPipeline,
+    Stage,
+    Job,
+    Step,
+    StepType,
+    Runtime,
+)
 
 
 class TestPipelineOptimizer:
@@ -30,22 +37,38 @@ class TestPipelineOptimizer:
                             runtime=Runtime(language="python", version="3.11"),
                             steps=[
                                 Step(name="Checkout", type=StepType.CHECKOUT),
-                                Step(name="Install deps", type=StepType.INSTALL_DEPS, command="pip install -r requirements.txt"),
-                                Step(name="Lint", type=StepType.LINT, command="flake8 src/")
-                            ]
+                                Step(
+                                    name="Install deps",
+                                    type=StepType.INSTALL_DEPS,
+                                    command="pip install -r requirements.txt",
+                                ),
+                                Step(
+                                    name="Lint",
+                                    type=StepType.LINT,
+                                    command="flake8 src/",
+                                ),
+                            ],
                         ),
                         Job(
                             name="test",
                             runtime=Runtime(language="python", version="3.11"),
                             steps=[
                                 Step(name="Checkout", type=StepType.CHECKOUT),
-                                Step(name="Install deps", type=StepType.INSTALL_DEPS, command="pip install -r requirements.txt"),
-                                Step(name="Run tests", type=StepType.RUN_TESTS, command="pytest")
-                            ]
-                        )
-                    ]
+                                Step(
+                                    name="Install deps",
+                                    type=StepType.INSTALL_DEPS,
+                                    command="pip install -r requirements.txt",
+                                ),
+                                Step(
+                                    name="Run tests",
+                                    type=StepType.RUN_TESTS,
+                                    command="pytest",
+                                ),
+                            ],
+                        ),
+                    ],
                 )
-            ]
+            ],
         )
 
     def test_detect_caching_opportunities(self, optimizer, sample_pipeline):
@@ -108,11 +131,13 @@ class TestPipelineOptimizer:
                 "type": "caching",
                 "description": "Add pip cache to speed up dependency installation",
                 "impact": "high",
-                "effort": "low"
+                "effort": "low",
             }
         ]
 
-        with patch.object(optimizer.llm, 'optimize_pipeline', return_value=mock_response):
+        with patch.object(
+            optimizer.llm, "optimize_pipeline", return_value=mock_response
+        ):
             optimizations = optimizer.optimize_with_llm(sample_pipeline)
 
             assert isinstance(optimizations, list)
@@ -136,10 +161,16 @@ class TestPipelineOptimizer:
             language="python",
             stages=[
                 Stage(name="lint", jobs=[Job(name="lint", steps=[])]),
-                Stage(name="test", jobs=[Job(name="unit", steps=[]), Job(name="integration", steps=[])]),
+                Stage(
+                    name="test",
+                    jobs=[
+                        Job(name="unit", steps=[]),
+                        Job(name="integration", steps=[]),
+                    ],
+                ),
                 Stage(name="build", jobs=[Job(name="build", steps=[])]),
-                Stage(name="deploy", jobs=[Job(name="deploy", steps=[])])
-            ]
+                Stage(name="deploy", jobs=[Job(name="deploy", steps=[])]),
+            ],
         )
 
         opportunities = optimizer.detect_parallelization_opportunities(complex_pipeline)

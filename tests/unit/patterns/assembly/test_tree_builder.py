@@ -31,7 +31,10 @@ class TestTreeBuilder:
                                         "expression": "ci.pk_contract_item",
                                     },
                                     {"name": "quantity", "expression": "ci.quantity"},
-                                    {"name": "unit_price", "expression": "ci.unit_price"},
+                                    {
+                                        "name": "unit_price",
+                                        "expression": "ci.unit_price",
+                                    },
                                 ],
                             },
                             {
@@ -44,7 +47,10 @@ class TestTreeBuilder:
                                         "name": "pk_contract_price",
                                         "expression": "cp.pk_contract_price",
                                     },
-                                    {"name": "price_type", "expression": "cp.price_type"},
+                                    {
+                                        "name": "price_type",
+                                        "expression": "cp.price_type",
+                                    },
                                     {"name": "amount", "expression": "cp.amount"},
                                 ],
                                 "child_levels": [
@@ -120,7 +126,9 @@ class TestTreeBuilder:
                                         "source": "tb_level2",
                                         "group_by": ["pk_level1"],
                                         "array_field": "level2_data",
-                                        "fields": [{"name": "id", "expression": "l2.id"}],
+                                        "fields": [
+                                            {"name": "id", "expression": "l2.id"}
+                                        ],
                                     }
                                 ],
                             }

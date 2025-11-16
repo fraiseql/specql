@@ -2,24 +2,30 @@ from dataclasses import dataclass
 from typing import List, Dict, Optional, Any
 from enum import Enum
 
+
 class RelationshipType(Enum):
     """Type of relationship between entities"""
+
     ONE_TO_ONE = "1:1"
     ONE_TO_MANY = "1:N"
     MANY_TO_ONE = "N:1"
     MANY_TO_MANY = "N:M"
     SELF_REFERENTIAL = "self"
 
+
 class RelationshipCardinality(Enum):
     """Cardinality notation"""
+
     ZERO_OR_ONE = "0..1"
     EXACTLY_ONE = "1"
     ZERO_OR_MANY = "0..*"
     ONE_OR_MANY = "1..*"
 
+
 @dataclass
 class Relationship:
     """Represents a relationship between two entities"""
+
     from_entity: str
     to_entity: str
     from_field: str  # FK field name
@@ -29,9 +35,11 @@ class Relationship:
     nullable: bool = False
     description: Optional[str] = None
 
+
 @dataclass
 class EntityNode:
     """Represents an entity in the diagram"""
+
     name: str
     schema: str
     fields: List[Dict[str, Any]]
@@ -39,6 +47,7 @@ class EntityNode:
     foreign_keys: List[str]
     description: Optional[str] = None
     color: Optional[str] = None  # For visual grouping
+
 
 class RelationshipExtractor:
     """
@@ -74,23 +83,23 @@ class RelationshipExtractor:
     def _build_entity_node(self, entity) -> EntityNode:
         """Build entity node from SpecQL entity"""
         # Pre-compute primary key names for this entity
-        primary_keys = ['pk_' + entity.name.lower(), 'id']
+        primary_keys = ["pk_" + entity.name.lower(), "id"]
 
         fields = []
         foreign_keys = []
 
         for field_name, field_def in entity.fields.items():
             field_info = {
-                'name': field_name,
-                'type': self._get_display_type(field_def),
-                'required': not field_def.nullable,
-                'is_pk': field_name in primary_keys,  # O(1) lookup now
-                'is_fk': self._is_foreign_key(field_def),
+                "name": field_name,
+                "type": self._get_display_type(field_def),
+                "required": not field_def.nullable,
+                "is_pk": field_name in primary_keys,  # O(1) lookup now
+                "is_fk": self._is_foreign_key(field_def),
             }
 
             fields.append(field_info)
 
-            if field_info['is_fk']:
+            if field_info["is_fk"]:
                 foreign_keys.append(field_name)
 
         return EntityNode(
@@ -115,11 +124,11 @@ class RelationshipExtractor:
         field_type = field_def.type_name
 
         # ref() syntax
-        if field_type.startswith('ref('):
+        if field_type.startswith("ref("):
             return True
 
         # _id suffix convention
-        if field_def.name.endswith('_id'):
+        if field_def.name.endswith("_id"):
             return True
 
         return False
@@ -138,10 +147,10 @@ class RelationshipExtractor:
         # Extract target entity
         target_entity = None
 
-        if field_type.startswith('ref('):
+        if field_type.startswith("ref("):
             # ref(Company) → Company
             target_entity = field_type[4:-1]
-        elif field_def.name.endswith('_id'):
+        elif field_def.name.endswith("_id"):
             # company_id → Company
             target_entity = field_def.name[:-3].capitalize()
 
@@ -152,8 +161,11 @@ class RelationshipExtractor:
         nullable = field_def.nullable
 
         # From cardinality (FK side)
-        from_card = (RelationshipCardinality.ZERO_OR_ONE if nullable
-                    else RelationshipCardinality.EXACTLY_ONE)
+        from_card = (
+            RelationshipCardinality.ZERO_OR_ONE
+            if nullable
+            else RelationshipCardinality.EXACTLY_ONE
+        )
 
         # To cardinality (PK side) - default to "one or many"
         to_card = RelationshipCardinality.ONE_OR_MANY
@@ -173,39 +185,40 @@ class RelationshipExtractor:
             from_cardinality=from_card,
             to_cardinality=to_card,
             nullable=nullable,
-            description=f"{entity.name}.{field_def.name} → {target_entity}"
+            description=f"{entity.name}.{field_def.name} → {target_entity}",
         )
 
     def _get_display_type(self, field_def) -> str:
         """Get display-friendly type name"""
-        field_type = field_def.type_name or 'UNKNOWN'
+        field_type = field_def.type_name or "UNKNOWN"
 
         # Map SpecQL types to diagram types
         type_mapping = {
-            'text': 'TEXT',
-            'integer': 'INT',
-            'float': 'FLOAT',
-            'boolean': 'BOOL',
-            'date': 'DATE',
-            'timestamp': 'TIMESTAMP',
-            'uuid': 'UUID',
-            'json': 'JSON',
+            "text": "TEXT",
+            "integer": "INT",
+            "float": "FLOAT",
+            "boolean": "BOOL",
+            "date": "DATE",
+            "timestamp": "TIMESTAMP",
+            "uuid": "UUID",
+            "json": "JSON",
         }
 
-        if field_type.startswith('ref('):
-            return 'FK'
+        if field_type.startswith("ref("):
+            return "FK"
 
         return type_mapping.get(field_type, field_type.upper())
 
     def get_relationship_summary(self) -> Dict[str, Any]:
         """Get summary statistics"""
         return {
-            'total_entities': len(self.entities),
-            'total_relationships': len(self.relationships),
-            'relationship_types': {
-                rel_type.value: sum(1 for r in self.relationships
-                                   if r.relationship_type == rel_type)
+            "total_entities": len(self.entities),
+            "total_relationships": len(self.relationships),
+            "relationship_types": {
+                rel_type.value: sum(
+                    1 for r in self.relationships if r.relationship_type == rel_type
+                )
                 for rel_type in RelationshipType
             },
-            'schemas': list(set(e.schema for e in self.entities.values())),
+            "schemas": list(set(e.schema for e in self.entities.values())),
         }

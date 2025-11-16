@@ -213,7 +213,11 @@ class MutationAnnotator:
         # Add side effects if any
         if impact.side_effects:
             mapping["side_effects"] = [
-                {"entity": side.entity, "operation": side.operation, "fields": side.fields}
+                {
+                    "entity": side.entity,
+                    "operation": side.operation,
+                    "fields": side.fields,
+                }
                 for side in impact.side_effects
             ]
 

@@ -1,7 +1,9 @@
 """Tests for enhanced table view (tv_) generation"""
 
 import pytest
-from src.generators.schema.enhanced_table_view_generator import EnhancedTableViewGenerator
+from src.generators.schema.enhanced_table_view_generator import (
+    EnhancedTableViewGenerator,
+)
 from src.core.ast_models import Entity, FieldDefinition
 
 
@@ -19,8 +21,10 @@ class TestTableViewGeneration:
             schema="crm",
             fields={
                 "email": FieldDefinition(name="email", type_name="text"),
-                "status": FieldDefinition(name="status", type_name="enum", values=["lead", "qualified"]),
-            }
+                "status": FieldDefinition(
+                    name="status", type_name="enum", values=["lead", "qualified"]
+                ),
+            },
         )
 
     def test_table_view_structure(self, generator, sample_entity):

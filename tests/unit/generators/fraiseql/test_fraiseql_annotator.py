@@ -19,9 +19,19 @@ class TestFraiseQLAnnotations:
             schema="crm",
             description="Customer contact information",
             fields={
-                "email": FieldDefinition(name="email", type_name="text", nullable=False, description="Email address"),
-                "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company", description="Company reference"),
-            }
+                "email": FieldDefinition(
+                    name="email",
+                    type_name="text",
+                    nullable=False,
+                    description="Email address",
+                ),
+                "company": FieldDefinition(
+                    name="company",
+                    type_name="ref",
+                    reference_entity="Company",
+                    description="Company reference",
+                ),
+            },
         )
 
     def test_table_annotation(self, annotator, sample_entity):

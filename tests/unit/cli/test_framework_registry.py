@@ -37,7 +37,7 @@ class TestFrameworkRegistry:
         registry = FrameworkRegistry()
         assert registry.resolve_framework(None, auto_detect=False) == "fraiseql"
 
-    @patch('src.cli.framework_registry.Path')
+    @patch("src.cli.framework_registry.Path")
     def test_detect_framework_from_project_django(self, mock_path):
         """Test Django framework detection"""
         mock_cwd = MagicMock()
@@ -52,12 +52,14 @@ class TestFrameworkRegistry:
         result = registry.detect_framework_from_project()
         assert result == "django"
 
-    @patch('src.cli.framework_registry.Path')
+    @patch("src.cli.framework_registry.Path")
     def test_detect_framework_from_project_specql(self, mock_path):
         """Test SpecQL project detection"""
         # Skip this test for now - the detection logic is complex to mock
         # The functionality works in practice as shown by CLI tests
-        pytest.skip("Detection logic is complex to mock, functionality verified via CLI tests")
+        pytest.skip(
+            "Detection logic is complex to mock, functionality verified via CLI tests"
+        )
 
     def test_get_effective_defaults_basic(self):
         """Test getting effective defaults"""
@@ -86,7 +88,9 @@ class TestFrameworkRegistry:
     def test_validate_framework_compatibility_fraiseql_tv(self):
         """Test compatibility validation for FraiseQL with tv disabled"""
         registry = FrameworkRegistry()
-        warnings = registry.validate_framework_compatibility("fraiseql", {"include_tv": False})
+        warnings = registry.validate_framework_compatibility(
+            "fraiseql", {"include_tv": False}
+        )
 
         assert "no_tv" in warnings
         assert "FraiseQL typically requires tv_* views" in warnings["no_tv"]
@@ -94,7 +98,9 @@ class TestFrameworkRegistry:
     def test_validate_framework_compatibility_django_tv(self):
         """Test compatibility validation for Django with tv enabled"""
         registry = FrameworkRegistry()
-        warnings = registry.validate_framework_compatibility("django", {"include_tv": True})
+        warnings = registry.validate_framework_compatibility(
+            "django", {"include_tv": True}
+        )
 
         assert "include_tv" in warnings
         assert "not typically needed for Django" in warnings["include_tv"]

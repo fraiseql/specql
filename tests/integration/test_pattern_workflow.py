@@ -1,4 +1,5 @@
 """End-to-end test for complete pattern workflow"""
+
 import yaml
 
 
@@ -29,7 +30,7 @@ class TestPatternWorkflow:
             ["specql", "patterns", "export", "--output", str(export_file)],
             cwd=project_a,
             capture_output=True,
-            text=True
+            text=True,
         )
         assert result.returncode == 1  # Should fail gracefully
         assert "PostgreSQL database not configured" in result.stdout
@@ -41,7 +42,7 @@ class TestPatternWorkflow:
             ["specql", "patterns", "import", str(export_file)],
             cwd=project_b,
             capture_output=True,
-            text=True
+            text=True,
         )
         assert result.returncode == 2  # Click validation error for missing file
         assert "does not exist" in result.stderr
@@ -56,8 +57,8 @@ class TestPatternWorkflow:
             "fields": {
                 "email": {"type": "text"},
                 "phone": {"type": "text"},
-                "address": {"type": "text"}
-            }
+                "address": {"type": "text"},
+            },
         }
 
         with open(entity_file, "w") as f:
@@ -65,10 +66,11 @@ class TestPatternWorkflow:
 
         # Run reverse engineering with pattern discovery
         import subprocess
+
         result = subprocess.run(
             ["specql", "reverse", str(entity_file), "--discover-patterns"],
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # Should not crash (return code may vary based on DB availability)
@@ -80,10 +82,9 @@ class TestPatternWorkflow:
         # This test would require setting up duplicate patterns first
         # For now, just test that the command doesn't crash
         import subprocess
+
         result = subprocess.run(
-            ["specql", "patterns", "deduplicate"],
-            capture_output=True,
-            text=True
+            ["specql", "patterns", "deduplicate"], capture_output=True, text=True
         )
 
         # Command should run without crashing
@@ -94,10 +95,11 @@ class TestPatternWorkflow:
         # This test would require having at least 2 patterns
         # For now, just test that the command handles missing patterns gracefully
         import subprocess
+
         result = subprocess.run(
             ["specql", "patterns", "compare", "nonexistent1", "nonexistent2"],
             capture_output=True,
-            text=True
+            text=True,
         )
 
         # Should handle missing patterns gracefully

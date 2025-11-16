@@ -22,6 +22,7 @@ from src.core.ast_models import Entity
 @dataclass
 class SQLField:
     """SQL field representation"""
+
     name: str
     sql_type: str
     required: bool
@@ -32,6 +33,7 @@ class SQLField:
 @dataclass
 class ForeignKey:
     """Foreign key constraint"""
+
     column: str
     ref_schema: str
     ref_table: str
@@ -50,6 +52,7 @@ class ForeignKey:
 @dataclass
 class Index:
     """Index definition"""
+
     name: str
     columns: List[str]
     method: Optional[str] = None
@@ -59,6 +62,7 @@ class Index:
 @dataclass
 class Constraint:
     """Check constraint"""
+
     name: str
     definition: str
 
@@ -68,7 +72,9 @@ class BaseTableGenerator:
 
     def __init__(self, template_dir: Optional[Path] = None):
         if template_dir is None:
-            template_dir = Path(__file__).parent.parent.parent.parent / "templates" / "sql"
+            template_dir = (
+                Path(__file__).parent.parent.parent.parent / "templates" / "sql"
+            )
 
         self.env = Environment(loader=FileSystemLoader(str(template_dir)))
         self.template = self.env.get_template("base_table.sql.j2")
@@ -105,7 +111,7 @@ class BaseTableGenerator:
             fields=fields,
             foreign_keys=foreign_keys,
             indexes=indexes,
-            constraints=constraints
+            constraints=constraints,
         )
 
     def _convert_fields(self, entity: Entity) -> List[SQLField]:
@@ -115,13 +121,15 @@ class BaseTableGenerator:
         for field_name, field_def in entity.fields.items():
             sql_type = self._map_field_type(field_def)
 
-            sql_fields.append(SQLField(
-                name=field_name,
-                sql_type=sql_type,
-                required=not field_def.nullable,
-                default=field_def.default,
-                description=field_def.description or ""
-            ))
+            sql_fields.append(
+                SQLField(
+                    name=field_name,
+                    sql_type=sql_type,
+                    required=not field_def.nullable,
+                    default=field_def.default,
+                    description=field_def.description or "",
+                )
+            )
 
         return sql_fields
 
@@ -146,8 +154,8 @@ class BaseTableGenerator:
         """
         # Parse type:subtype format
         type_name = field_def.type_name
-        if ':' in type_name:
-            base_type, subtype = type_name.split(':', 1)
+        if ":" in type_name:
+            base_type, subtype = type_name.split(":", 1)
         else:
             base_type = type_name
             subtype = None
@@ -215,15 +223,15 @@ class BaseTableGenerator:
         field_lower = field_def.name.lower()
 
         # IDs are always BIGINT for scalability
-        if field_lower.endswith('_id') or field_lower == 'id':
+        if field_lower.endswith("_id") or field_lower == "id":
             return "BIGINT"
 
         # Age fields are SMALLINT (0-255 is plenty)
-        if 'age' in field_lower:
+        if "age" in field_lower:
             return "SMALLINT"
 
         # Count, quantity usually fit in INTEGER
-        if any(word in field_lower for word in ['count', 'quantity', 'number']):
+        if any(word in field_lower for word in ["count", "quantity", "number"]):
             return "INTEGER"
 
         # Default to INTEGER for backward compatibility
@@ -234,15 +242,21 @@ class BaseTableGenerator:
         field_lower = field_def.name.lower()
 
         # Money fields: NUMERIC(10,2)
-        if any(word in field_lower for word in ['price', 'amount', 'cost', 'fee', 'salary', 'revenue']):
+        if any(
+            word in field_lower
+            for word in ["price", "amount", "cost", "fee", "salary", "revenue"]
+        ):
             return "NUMERIC(10,2)"
 
         # Geographic coordinates: NUMERIC(9,6)
-        if any(word in field_lower for word in ['lat', 'lon', 'latitude', 'longitude', 'coord']):
+        if any(
+            word in field_lower
+            for word in ["lat", "lon", "latitude", "longitude", "coord"]
+        ):
             return "NUMERIC(9,6)"
 
         # Percentages: NUMERIC(5,4)
-        if any(word in field_lower for word in ['percent', 'rate', 'ratio']):
+        if any(word in field_lower for word in ["percent", "rate", "ratio"]):
             return "NUMERIC(5,4)"
 
         # Default to general NUMERIC
@@ -253,19 +267,22 @@ class BaseTableGenerator:
         field_lower = field_def.name.lower()
 
         # Code/slug fields are tiny
-        if any(word in field_lower for word in ['code', 'slug', 'key', 'token']):
+        if any(word in field_lower for word in ["code", "slug", "key", "token"]):
             return "VARCHAR(10)"
 
         # Phone numbers are shorter
-        if 'phone' in field_lower:
+        if "phone" in field_lower:
             return "VARCHAR(50)"
 
         # Email, URL, username are short
-        if any(word in field_lower for word in ['email', 'url', 'link', 'username']):
+        if any(word in field_lower for word in ["email", "url", "link", "username"]):
             return "VARCHAR(255)"
 
         # Description, content, notes are long
-        if any(word in field_lower for word in ['description', 'content', 'note', 'comment', 'bio']):
+        if any(
+            word in field_lower
+            for word in ["description", "content", "note", "comment", "bio"]
+        ):
             return "TEXT"
 
         # Default to TEXT for flexibility
@@ -279,13 +296,15 @@ class BaseTableGenerator:
             if field_def.type_name == "ref" and field_def.reference_entity:
                 ref_entity_lower = field_def.reference_entity.lower()
 
-                fks.append(ForeignKey(
-                    column=field_name,
-                    ref_schema=field_def.reference_schema or entity.schema,
-                    ref_table=f"tb_{ref_entity_lower}",
-                    ref_column=f"pk_{ref_entity_lower}",
-                    entity_name=entity.name
-                ))
+                fks.append(
+                    ForeignKey(
+                        column=field_name,
+                        ref_schema=field_def.reference_schema or entity.schema,
+                        ref_table=f"tb_{ref_entity_lower}",
+                        ref_column=f"pk_{ref_entity_lower}",
+                        entity_name=entity.name,
+                    )
+                )
 
         return fks
 
@@ -296,11 +315,13 @@ class BaseTableGenerator:
         for field_name, field_def in entity.fields.items():
             # Index enum fields for query performance
             if field_def.type_name == "enum":
-                indexes.append(Index(
-                    name=f"idx_tb_{entity.name.lower()}_{field_name}",
-                    columns=[field_name],
-                    comment=f"Index on enum field {field_name}"
-                ))
+                indexes.append(
+                    Index(
+                        name=f"idx_tb_{entity.name.lower()}_{field_name}",
+                        columns=[field_name],
+                        comment=f"Index on enum field {field_name}",
+                    )
+                )
 
         return indexes
 
@@ -312,9 +333,11 @@ class BaseTableGenerator:
             if field_def.type_name == "enum" and field_def.values:
                 enum_list = ", ".join(f"'{v}'" for v in field_def.values)
 
-                constraints.append(Constraint(
-                    name=f"chk_tb_{entity.name.lower()}_{field_name}",
-                    definition=f"CHECK ({field_name} IN ({enum_list}))"
-                ))
+                constraints.append(
+                    Constraint(
+                        name=f"chk_tb_{entity.name.lower()}_{field_name}",
+                        definition=f"CHECK ({field_name} IN ({enum_list}))",
+                    )
+                )
 
         return constraints

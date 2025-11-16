@@ -30,7 +30,10 @@ class SQLUtils:
 
     @staticmethod
     def format_create_table_statement(
-        schema: str, table_name: str, columns: list[str], constraints: list[str] | None = None
+        schema: str,
+        table_name: str,
+        columns: list[str],
+        constraints: list[str] | None = None,
     ) -> str:
         """
         Format a CREATE TABLE statement
@@ -98,7 +101,9 @@ class SQLUtils:
         qualified_table = f"{schema}.{table_name}"
         # Escape single quotes in comment
         escaped_comment = comment.replace("'", "''")
-        return f"COMMENT ON COLUMN {qualified_table}.{column_name} IS '{escaped_comment}';"
+        return (
+            f"COMMENT ON COLUMN {qualified_table}.{column_name} IS '{escaped_comment}';"
+        )
 
     @staticmethod
     def format_alter_table_add_constraint(
@@ -221,7 +226,9 @@ $$;"""
         title_line = f"-- {title}"
 
         if content:
-            content_lines = [f"-- {line}" for line in content.split("\n") if line.strip()]
+            content_lines = [
+                f"-- {line}" for line in content.split("\n") if line.strip()
+            ]
             return f"-- {border}\n{title_line}\n{content_lines}\n-- {border}"
         else:
             return f"-- {border}\n{title_line}\n-- {border}"

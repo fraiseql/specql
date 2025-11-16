@@ -12,6 +12,7 @@ from src.infrastructure.universal_infra_schema import UniversalInfrastructure
 @dataclass
 class InfrastructurePattern:
     """Reusable infrastructure pattern"""
+
     pattern_id: str
     name: str
     description: str
@@ -48,16 +49,11 @@ class InfrastructurePatternRepository(Protocol):
         ...
 
     def search_by_similarity(
-        self,
-        query_embedding: List[float],
-        limit: int = 10
+        self, query_embedding: List[float], limit: int = 10
     ) -> List[InfrastructurePattern]:
         """Semantic search for similar patterns"""
         ...
 
-    def search_by_cost(
-        self,
-        max_monthly_cost: float
-    ) -> List[InfrastructurePattern]:
+    def search_by_cost(self, max_monthly_cost: float) -> List[InfrastructurePattern]:
         """Find patterns within budget"""
         ...

@@ -145,8 +145,7 @@ actions:
         try:
             # Generate preview
             result = self.preview_generator.generate_preview(
-                self.yaml_content,
-                mode=self.preview_mode
+                self.yaml_content, mode=self.preview_mode
             )
 
             if result.success:
@@ -166,11 +165,9 @@ actions:
             else:
                 # Show errors
                 validation_widget.update(f"❌ {result.error}")
-                preview_widget.update(Panel(
-                    result.error,
-                    title="Validation Error",
-                    border_style="red"
-                ))
+                preview_widget.update(
+                    Panel(result.error, title="Validation Error", border_style="red")
+                )
 
         except Exception as e:
             validation_widget.update(f"❌ Error: {str(e)}")
@@ -201,6 +198,7 @@ actions:
 
         try:
             from src.cli.orchestrator import Orchestrator
+
             orchestrator = Orchestrator()
 
             # Generate from current YAML

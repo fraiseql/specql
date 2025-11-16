@@ -38,7 +38,7 @@ class PatternEmbeddingService:
         query_text: str,
         top_k: int = 5,
         threshold: float = 0.5,
-        category_filter: Optional[str] = None
+        category_filter: Optional[str] = None,
     ) -> List[Dict]:
         """
         Retrieve top-K similar patterns using FraiseQL vector search
@@ -56,8 +56,12 @@ class PatternEmbeddingService:
         """
         # Build GraphQL query with optional category filter
         where_conditions = [
-            {"embedding": {"cosineDistance": {"text": query_text, "threshold": threshold}}},
-            {"deprecated": {"equals": False}}
+            {
+                "embedding": {
+                    "cosineDistance": {"text": query_text, "threshold": threshold}
+                }
+            },
+            {"deprecated": {"equals": False}},
         ]
 
         if category_filter:
@@ -84,12 +88,11 @@ class PatternEmbeddingService:
         variables = {
             "query": query_text,
             "topK": top_k,
-            "where": {"AND": where_conditions}
+            "where": {"AND": where_conditions},
         }
 
         response = self.client.post(
-            self.fraiseql_url,
-            json={"query": query, "variables": variables}
+            self.fraiseql_url, json={"query": query, "variables": variables}
         )
         response.raise_for_status()
 
@@ -107,16 +110,13 @@ class PatternEmbeddingService:
                 "category": p["category"],
                 "description": p["description"],
                 "parameters": p.get("parameters"),
-                "similarity": p.get("similarity", 0.0)
+                "similarity": p.get("similarity", 0.0),
             }
             for p in patterns
         ]
 
     def hybrid_search(
-        self,
-        query_text: str,
-        category_filter: Optional[str] = None,
-        top_k: int = 10
+        self, query_text: str, category_filter: Optional[str] = None, top_k: int = 10
     ) -> List[Dict]:
         """
         Hybrid search: vector similarity + full-text search
@@ -134,11 +134,15 @@ class PatternEmbeddingService:
         where_conditions = [
             {
                 "OR": [
-                    {"embedding": {"cosineDistance": {"text": query_text, "threshold": 0.5}}},
-                    {"searchVector": {"matches": query_text}}
+                    {
+                        "embedding": {
+                            "cosineDistance": {"text": query_text, "threshold": 0.5}
+                        }
+                    },
+                    {"searchVector": {"matches": query_text}},
                 ]
             },
-            {"deprecated": {"equals": False}}
+            {"deprecated": {"equals": False}},
         ]
 
         if category_filter:
@@ -160,14 +164,10 @@ class PatternEmbeddingService:
         }
         """
 
-        variables = {
-            "topK": top_k,
-            "where": {"AND": where_conditions}
-        }
+        variables = {"topK": top_k, "where": {"AND": where_conditions}}
 
         response = self.client.post(
-            self.fraiseql_url,
-            json={"query": query, "variables": variables}
+            self.fraiseql_url, json={"query": query, "variables": variables}
         )
         response.raise_for_status()
 
@@ -183,7 +183,7 @@ class PatternEmbeddingService:
                 "name": p["name"],
                 "category": p["category"],
                 "description": p["description"],
-                "combined_score": p.get("_relevance", 0.0)
+                "combined_score": p.get("_relevance", 0.0),
             }
             for p in patterns
         ]
@@ -199,18 +199,18 @@ class PatternEmbeddingService:
         parts = [
             f"Pattern: {pattern.get('name', '')}",
             f"Category: {pattern.get('category', '')}",
-            f"Description: {pattern.get('description', '')}"
+            f"Description: {pattern.get('description', '')}",
         ]
 
         # Add field names if available
-        impl = pattern.get('implementation', {})
-        if isinstance(impl, dict) and 'fields' in impl:
-            field_names = [f.get('name', '') for f in impl['fields']]
+        impl = pattern.get("implementation", {})
+        if isinstance(impl, dict) and "fields" in impl:
+            field_names = [f.get("name", "") for f in impl["fields"]]
             parts.append(f"Fields: {', '.join(field_names)}")
 
         # Add action names
-        if isinstance(impl, dict) and 'actions' in impl:
-            action_names = [a.get('name', '') for a in impl['actions']]
+        if isinstance(impl, dict) and "actions" in impl:
+            action_names = [a.get("name", "") for a in impl["actions"]]
             parts.append(f"Actions: {', '.join(action_names)}")
 
         return " | ".join(parts)

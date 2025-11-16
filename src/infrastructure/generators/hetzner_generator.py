@@ -15,7 +15,11 @@ class HetznerGenerator:
 
     def __init__(self, template_dir: Optional[Path] = None):
         if template_dir is None:
-            template_dir = Path(__file__).parent.parent.parent.parent / "templates" / "infrastructure"
+            template_dir = (
+                Path(__file__).parent.parent.parent.parent
+                / "templates"
+                / "infrastructure"
+            )
 
         self.env = Environment(loader=FileSystemLoader(str(template_dir)))
         self.template = self.env.get_template("hetzner_provision.sh.j2")
@@ -26,7 +30,7 @@ class HetznerGenerator:
             infrastructure=infrastructure,
             _map_server_type=self._map_server_type,
             _get_image=self._get_image,
-            _get_datacenter=self._get_datacenter
+            _get_datacenter=self._get_datacenter,
         )
 
     def _map_server_type(self, bare_metal_config) -> str:

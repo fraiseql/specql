@@ -39,7 +39,9 @@ class TestSQLUtils:
         columns = ["id INTEGER", "email TEXT"]
         constraints = ["PRIMARY KEY (id)", "UNIQUE (email)"]
 
-        sql = SQLUtils.format_create_table_statement("crm", "contacts", columns, constraints)
+        sql = SQLUtils.format_create_table_statement(
+            "crm", "contacts", columns, constraints
+        )
 
         expected = """CREATE TABLE crm.contacts (
     id INTEGER,
@@ -52,21 +54,27 @@ class TestSQLUtils:
 
     def test_format_comment_on_table(self):
         """Test table comment formatting"""
-        sql = SQLUtils.format_comment_on_table("crm", "contacts", "Customer contact information")
+        sql = SQLUtils.format_comment_on_table(
+            "crm", "contacts", "Customer contact information"
+        )
 
         expected = "COMMENT ON TABLE crm.contacts IS 'Customer contact information';"
         assert sql == expected
 
     def test_format_comment_on_table_with_quotes(self):
         """Test table comment with quotes"""
-        sql = SQLUtils.format_comment_on_table("crm", "contacts", "Table for 'customer' data")
+        sql = SQLUtils.format_comment_on_table(
+            "crm", "contacts", "Table for 'customer' data"
+        )
 
         expected = "COMMENT ON TABLE crm.contacts IS 'Table for ''customer'' data';"
         assert sql == expected
 
     def test_format_comment_on_column(self):
         """Test column comment formatting"""
-        sql = SQLUtils.format_comment_on_column("crm", "contacts", "email", "Contact email address")
+        sql = SQLUtils.format_comment_on_column(
+            "crm", "contacts", "email", "Contact email address"
+        )
 
         expected = "COMMENT ON COLUMN crm.contacts.email IS 'Contact email address';"
         assert sql == expected
@@ -84,7 +92,9 @@ class TestSQLUtils:
 
     def test_format_create_index(self):
         """Test CREATE INDEX formatting"""
-        sql = SQLUtils.format_create_index("idx_contacts_email", "crm", "contacts", ["email"])
+        sql = SQLUtils.format_create_index(
+            "idx_contacts_email", "crm", "contacts", ["email"]
+        )
 
         expected = """CREATE INDEX idx_contacts_email
     ON crm.contacts USING btree (email);"""
@@ -132,7 +142,10 @@ $$;"""
         items = ["apple", "banana", "cherry"]
 
         assert SQLUtils.format_string_list(items) == "apple, banana, cherry"
-        assert SQLUtils.format_string_list(items, "'", "'") == "'apple', 'banana', 'cherry'"
+        assert (
+            SQLUtils.format_string_list(items, "'", "'")
+            == "'apple', 'banana', 'cherry'"
+        )
         assert (
             SQLUtils.format_string_list(items, "prefix_", "_suffix")
             == "prefix_apple_suffix, prefix_banana_suffix, prefix_cherry_suffix"

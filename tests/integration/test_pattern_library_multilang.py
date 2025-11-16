@@ -41,7 +41,7 @@ class MultiLanguageGenerator:
                         "table_name": step.entity or entity_def.name,
                         "columns": list(step.fields.keys()) if step.fields else [],
                         "values": list(step.fields.values()) if step.fields else [],
-                        "result_variable": getattr(step, 'store_result', None)
+                        "result_variable": getattr(step, "store_result", None),
                     }
                     pg_steps.append(compiler.compile_action_step(step_type, context))
 
@@ -50,7 +50,7 @@ class MultiLanguageGenerator:
                         "entity": step.entity or entity_def.name,
                         "table_name": step.entity or entity_def.name,
                         "set_clause": step.fields or {},
-                        "where_clause": step.where_clause
+                        "where_clause": step.where_clause,
                     }
                     pg_steps.append(compiler.compile_action_step(step_type, context))
 
@@ -58,22 +58,24 @@ class MultiLanguageGenerator:
                     context = {
                         "entity": step.entity or entity_def.name,
                         "conditions": step.expression,
-                        "error_message": step.error
+                        "error_message": step.error,
                     }
                     pg_steps.append(compiler.compile_action_step(step_type, context))
 
                 elif step_type == "notify":
                     context = {
                         "channel": step.channel,
-                        "payload": getattr(step, 'payload', None)
+                        "payload": getattr(step, "payload", None),
                     }
                     pg_steps.append(compiler.compile_action_step(step_type, context))
 
                 else:
                     # For other steps, try to compile with basic context
-                    context = {"expression": getattr(step, 'expression', str(step))}
+                    context = {"expression": getattr(step, "expression", str(step))}
                     try:
-                        pg_steps.append(compiler.compile_action_step(step_type, context))
+                        pg_steps.append(
+                            compiler.compile_action_step(step_type, context)
+                        )
                     except ValueError:
                         pg_steps.append(f"-- Unsupported step: {step_type}")
 
@@ -196,7 +198,15 @@ def test_pattern_library_syntax_validation():
         assert impl is not None, f"Missing PostgreSQL implementation for {pattern}"
 
     # Test Django patterns exist
-    django_patterns = ["declare", "assign", "if", "foreach", "insert", "update", "query"]
+    django_patterns = [
+        "declare",
+        "assign",
+        "if",
+        "foreach",
+        "insert",
+        "update",
+        "query",
+    ]
     for pattern in django_patterns:
         impl = library.get_implementation(pattern, "python_django")
         assert impl is not None, f"Missing Django implementation for {pattern}"

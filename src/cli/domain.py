@@ -6,7 +6,9 @@ This demonstrates the Phase 3 cut-over where PostgreSQL is the primary data sour
 """
 
 import click
-from src.application.services.domain_service_factory import get_domain_service_with_fallback
+from src.application.services.domain_service_factory import (
+    get_domain_service_with_fallback,
+)
 
 
 @click.group()
@@ -49,7 +51,11 @@ def get_domain(domain_number):
 
         domain = service.get_domain(domain_number)
 
-        click.secho(f"Domain {domain.domain_number}: {domain.domain_name}", fg="green", bold=True)
+        click.secho(
+            f"Domain {domain.domain_number}: {domain.domain_name}",
+            fg="green",
+            bold=True,
+        )
         click.echo(f"Schema Type: {domain.schema_type}")
         click.echo(f"Identifier: {domain.identifier}")
 
@@ -67,16 +73,19 @@ def get_domain(domain_number):
 @domain.command("register")
 @click.option("--number", required=True, type=int, help="Domain number (1-99)")
 @click.option("--name", required=True, help="Domain name")
-@click.option("--schema-type", type=click.Choice(['framework', 'multi_tenant', 'shared']), default='framework', help="Schema type")
+@click.option(
+    "--schema-type",
+    type=click.Choice(["framework", "multi_tenant", "shared"]),
+    default="framework",
+    help="Schema type",
+)
 def register_domain(number, name, schema_type):
     """Register a new domain"""
     try:
         service = get_domain_service_with_fallback()
 
         result = service.register_domain(
-            domain_number=number,
-            domain_name=name,
-            schema_type=schema_type
+            domain_number=number, domain_name=name, schema_type=schema_type
         )
 
         click.secho("✅ Domain registered successfully!", fg="green")

@@ -11,7 +11,11 @@ class TestSeedSQLGenerator:
 
     def test_generate_insert_basic(self):
         """Test generating basic INSERT statement"""
-        entity_config = {"entity_name": "Contact", "schema_name": "crm", "table_name": "tb_contact"}
+        entity_config = {
+            "entity_name": "Contact",
+            "schema_name": "crm",
+            "table_name": "tb_contact",
+        }
 
         generator = SeedSQLGenerator(entity_config)
 
@@ -40,7 +44,11 @@ class TestSeedSQLGenerator:
 
     def test_generate_insert_with_null_values(self):
         """Test generating INSERT with NULL values"""
-        entity_config = {"entity_name": "Contact", "schema_name": "crm", "table_name": "tb_contact"}
+        entity_config = {
+            "entity_name": "Contact",
+            "schema_name": "crm",
+            "table_name": "tb_contact",
+        }
 
         generator = SeedSQLGenerator(entity_config)
 
@@ -67,7 +75,11 @@ class TestSeedSQLGenerator:
 
     def test_generate_insert_with_special_characters(self):
         """Test generating INSERT with special characters in strings"""
-        entity_config = {"entity_name": "Contact", "schema_name": "crm", "table_name": "tb_contact"}
+        entity_config = {
+            "entity_name": "Contact",
+            "schema_name": "crm",
+            "table_name": "tb_contact",
+        }
 
         generator = SeedSQLGenerator(entity_config)
 
@@ -125,7 +137,11 @@ class TestSeedSQLGenerator:
 
     def test_generate_insert_with_datetime(self):
         """Test generating INSERT with datetime values"""
-        entity_config = {"entity_name": "Contact", "schema_name": "crm", "table_name": "tb_contact"}
+        entity_config = {
+            "entity_name": "Contact",
+            "schema_name": "crm",
+            "table_name": "tb_contact",
+        }
 
         generator = SeedSQLGenerator(entity_config)
 
@@ -151,7 +167,11 @@ class TestSeedSQLGenerator:
 
     def test_generate_file_basic(self):
         """Test generating complete SQL file"""
-        entity_config = {"entity_name": "Contact", "schema_name": "crm", "table_name": "tb_contact"}
+        entity_config = {
+            "entity_name": "Contact",
+            "schema_name": "crm",
+            "table_name": "tb_contact",
+        }
 
         generator = SeedSQLGenerator(entity_config)
 
@@ -168,7 +188,9 @@ class TestSeedSQLGenerator:
             },
         ]
 
-        result = generator.generate_file(entities, scenario=0, description="default seed data")
+        result = generator.generate_file(
+            entities, scenario=0, description="default seed data"
+        )
 
         lines = result.strip().split("\n")
 
@@ -188,7 +210,11 @@ class TestSeedSQLGenerator:
 
     def test_generate_file_empty_list(self):
         """Test generating SQL file with no records"""
-        entity_config = {"entity_name": "Contact", "schema_name": "crm", "table_name": "tb_contact"}
+        entity_config = {
+            "entity_name": "Contact",
+            "schema_name": "crm",
+            "table_name": "tb_contact",
+        }
 
         generator = SeedSQLGenerator(entity_config)
 
@@ -206,7 +232,11 @@ class TestSeedSQLGenerator:
 
     def test_format_value_uuid(self):
         """Test formatting UUID values"""
-        entity_config = {"entity_name": "Test", "schema_name": "test", "table_name": "tb_test"}
+        entity_config = {
+            "entity_name": "Test",
+            "schema_name": "test",
+            "table_name": "tb_test",
+        }
         generator = SeedSQLGenerator(entity_config)
 
         uuid = SpecQLUUID("01232121-0000-0000-0001-000000000001")
@@ -215,7 +245,11 @@ class TestSeedSQLGenerator:
 
     def test_format_value_string(self):
         """Test formatting string values"""
-        entity_config = {"entity_name": "Test", "schema_name": "test", "table_name": "tb_test"}
+        entity_config = {
+            "entity_name": "Test",
+            "schema_name": "test",
+            "table_name": "tb_test",
+        }
         generator = SeedSQLGenerator(entity_config)
 
         result = generator._format_value("hello world")
@@ -223,7 +257,11 @@ class TestSeedSQLGenerator:
 
     def test_format_value_string_with_quotes(self):
         """Test formatting string values with quotes"""
-        entity_config = {"entity_name": "Test", "schema_name": "test", "table_name": "tb_test"}
+        entity_config = {
+            "entity_name": "Test",
+            "schema_name": "test",
+            "table_name": "tb_test",
+        }
         generator = SeedSQLGenerator(entity_config)
 
         result = generator._format_value("It's a 'test' string")
@@ -231,7 +269,11 @@ class TestSeedSQLGenerator:
 
     def test_format_value_integer(self):
         """Test formatting integer values"""
-        entity_config = {"entity_name": "Test", "schema_name": "test", "table_name": "tb_test"}
+        entity_config = {
+            "entity_name": "Test",
+            "schema_name": "test",
+            "table_name": "tb_test",
+        }
         generator = SeedSQLGenerator(entity_config)
 
         result = generator._format_value(42)
@@ -239,7 +281,11 @@ class TestSeedSQLGenerator:
 
     def test_format_value_float(self):
         """Test formatting float values"""
-        entity_config = {"entity_name": "Test", "schema_name": "test", "table_name": "tb_test"}
+        entity_config = {
+            "entity_name": "Test",
+            "schema_name": "test",
+            "table_name": "tb_test",
+        }
         generator = SeedSQLGenerator(entity_config)
 
         result = generator._format_value(99.99)
@@ -247,7 +293,11 @@ class TestSeedSQLGenerator:
 
     def test_format_value_boolean(self):
         """Test formatting boolean values"""
-        entity_config = {"entity_name": "Test", "schema_name": "test", "table_name": "tb_test"}
+        entity_config = {
+            "entity_name": "Test",
+            "schema_name": "test",
+            "table_name": "tb_test",
+        }
         generator = SeedSQLGenerator(entity_config)
 
         assert generator._format_value(True) == "TRUE"
@@ -255,7 +305,11 @@ class TestSeedSQLGenerator:
 
     def test_format_value_none(self):
         """Test formatting NULL values"""
-        entity_config = {"entity_name": "Test", "schema_name": "test", "table_name": "tb_test"}
+        entity_config = {
+            "entity_name": "Test",
+            "schema_name": "test",
+            "table_name": "tb_test",
+        }
         generator = SeedSQLGenerator(entity_config)
 
         result = generator._format_value(None)
@@ -263,7 +317,11 @@ class TestSeedSQLGenerator:
 
     def test_format_value_datetime(self):
         """Test formatting datetime values"""
-        entity_config = {"entity_name": "Test", "schema_name": "test", "table_name": "tb_test"}
+        entity_config = {
+            "entity_name": "Test",
+            "schema_name": "test",
+            "table_name": "tb_test",
+        }
         generator = SeedSQLGenerator(entity_config)
 
         dt = datetime(2025, 11, 8, 14, 30, 0)
@@ -272,7 +330,11 @@ class TestSeedSQLGenerator:
 
     def test_format_value_unknown_type(self):
         """Test formatting unknown types (fallback)"""
-        entity_config = {"entity_name": "Test", "schema_name": "test", "table_name": "tb_test"}
+        entity_config = {
+            "entity_name": "Test",
+            "schema_name": "test",
+            "table_name": "tb_test",
+        }
         generator = SeedSQLGenerator(entity_config)
 
         result = generator._format_value([1, 2, 3])  # List as unknown type

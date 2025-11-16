@@ -273,7 +273,9 @@ def test_parse_reference_fields():
     manager_field = entity.fields["manager"]
     assert manager_field.is_reference()
     assert manager_field.nullable is True
-    assert manager_field.postgres_type == "INTEGER"  # ✅ FIXED: Trinity Pattern uses INTEGER FKs
+    assert (
+        manager_field.postgres_type == "INTEGER"
+    )  # ✅ FIXED: Trinity Pattern uses INTEGER FKs
     assert manager_field.fraiseql_type == "ID"
     assert manager_field.reference_entity == "Employee"
 

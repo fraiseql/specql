@@ -1,6 +1,5 @@
 """Full integration test for Week 1 features"""
 
-
 from src.core.specql_parser import SpecQLParser
 
 
@@ -63,7 +62,10 @@ def test_week1_full_integration():
     # Check query step
     query_step = action.steps[2]
     assert query_step.type == "query"
-    assert query_step.expression and "SELECT line_total FROM line_totals" in query_step.expression
+    assert (
+        query_step.expression
+        and "SELECT line_total FROM line_totals" in query_step.expression
+    )
 
     # Check return step
     return_step = action.steps[3]

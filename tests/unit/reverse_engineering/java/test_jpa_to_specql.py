@@ -43,7 +43,7 @@ class TestJPAToSpecQLConverter:
         name_field = entity.fields["name"]
         assert name_field.name == "name"
         assert name_field.type_name == "text"
-        assert name_field.nullable  is True
+        assert name_field.nullable is True
 
     def test_relationship_conversion(self, converter):
         """Test converting entities with relationships"""

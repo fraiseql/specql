@@ -26,11 +26,9 @@ class CompilationContext:
 
     def add_cte(self, name: str, query: str, materialized: bool = False):
         """Register a CTE"""
-        self.ctes.append({
-            "name": name,
-            "query": query.strip(),
-            "materialized": materialized
-        })
+        self.ctes.append(
+            {"name": name, "query": query.strip(), "materialized": materialized}
+        )
 
     def add_variable(self, name: str, var_type: str):
         """Register a declared variable"""
@@ -54,11 +52,9 @@ class CompilationContext:
 
     def enter_loop(self, loop_type: str, variables: list[str]):
         """Enter a loop context"""
-        self.loop_stack.append({
-            "type": loop_type,
-            "variables": variables,
-            "depth": len(self.loop_stack)
-        })
+        self.loop_stack.append(
+            {"type": loop_type, "variables": variables, "depth": len(self.loop_stack)}
+        )
 
     def exit_loop(self):
         """Exit loop context"""

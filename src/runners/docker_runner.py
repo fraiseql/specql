@@ -70,7 +70,9 @@ class DockerRunner(JobRunner):
             network_mode = job.input_data.get("network_mode")
 
             if not image:
-                return JobResult(success=False, error_message="No image specified in input_data")
+                return JobResult(
+                    success=False, error_message="No image specified in input_data"
+                )
 
             # Security check: Validate image is allowed
             security_context = context.security_context or {}
@@ -87,7 +89,8 @@ class DockerRunner(JobRunner):
                 allowed_mounts = security_context.get("allowed_mounts", [])
                 if not self._validate_volume_mounts(volumes, allowed_mounts):
                     return JobResult(
-                        success=False, error_message="One or more volume mounts are not allowed"
+                        success=False,
+                        error_message="One or more volume mounts are not allowed",
                     )
 
             # Apply resource limits
@@ -119,7 +122,9 @@ class DockerRunner(JobRunner):
 
             # Apply disk limits (storage-opt for overlay driver)
             if "disk_quota" in resource_limits:
-                container_config["storage_opt"] = {"size": resource_limits["disk_quota"]}
+                container_config["storage_opt"] = {
+                    "size": resource_limits["disk_quota"]
+                }
 
             # Execute container
             container = self.client.containers.run(**container_config)
@@ -147,9 +152,13 @@ class DockerRunner(JobRunner):
                 )
 
         except Exception as e:
-            return JobResult(success=False, error_message=f"Docker execution failed: {str(e)}")
+            return JobResult(
+                success=False, error_message=f"Docker execution failed: {str(e)}"
+            )
 
-    def _validate_volume_mounts(self, volumes: dict[str, Any], allowed_mounts: list[str]) -> bool:
+    def _validate_volume_mounts(
+        self, volumes: dict[str, Any], allowed_mounts: list[str]
+    ) -> bool:
         """
         Validate volume mounts against allowed paths.
 
@@ -162,7 +171,9 @@ class DockerRunner(JobRunner):
         """
         for host_path in volumes.keys():
             # Check if host path starts with any allowed mount path
-            allowed = any(host_path.startswith(allowed_path) for allowed_path in allowed_mounts)
+            allowed = any(
+                host_path.startswith(allowed_path) for allowed_path in allowed_mounts
+            )
             if not allowed:
                 return False
         return True

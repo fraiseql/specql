@@ -28,7 +28,7 @@ def benchmark_pattern_compilation(iterations=1000):
     context = {
         "variable_name": "total",
         "variable_type": "NUMERIC",
-        "default_value": "0"
+        "default_value": "0",
     }
 
     # Benchmark pattern compilation
@@ -56,7 +56,7 @@ def benchmark_hardcoded_compilation(iterations=1000):
     context = {
         "variable_name": "total",
         "variable_type": "NUMERIC",
-        "default_value": "0"
+        "default_value": "0",
     }
 
     # Benchmark direct template rendering

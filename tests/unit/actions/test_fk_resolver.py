@@ -45,7 +45,9 @@ class TestForeignKeyResolver:
 
     def test_generate_fk_assignment(self, resolver, task_entity):
         """Test generating FK assignment with Trinity resolution"""
-        sql = resolver.generate_fk_assignment("contact_id", "ref(Contact).uuid", task_entity)
+        sql = resolver.generate_fk_assignment(
+            "contact_id", "ref(Contact).uuid", task_entity
+        )
 
         expected = """    -- Resolve and assign FK: contact_id = ref(Contact).uuid
     -- Resolve FK: ref(Contact).uuid → pk_contact

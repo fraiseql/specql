@@ -24,7 +24,9 @@ class TestScalarValidation:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type_name="email", tier=FieldTier.SCALAR),
+                "email": FieldDefinition(
+                    name="email", type_name="email", tier=FieldTier.SCALAR
+                ),
                 "phone": FieldDefinition(
                     name="phone", type_name="phoneNumber", tier=FieldTier.SCALAR
                 ),
@@ -34,7 +36,9 @@ class TestScalarValidation:
 
     def test_scalar_validation_email(self, compiler, contact_entity):
         """Test scalar validation for email field"""
-        step = ActionStep(type="validate", expression="email is valid", error="invalid_email")
+        step = ActionStep(
+            type="validate", expression="email is valid", error="invalid_email"
+        )
 
         sql = compiler.compile(step, contact_entity, {})
 
@@ -45,7 +49,9 @@ class TestScalarValidation:
 
     def test_scalar_validation_phone(self, compiler, contact_entity):
         """Test scalar validation for phone field"""
-        step = ActionStep(type="validate", expression="phone is valid", error="invalid_phone")
+        step = ActionStep(
+            type="validate", expression="phone is valid", error="invalid_phone"
+        )
 
         sql = compiler.compile(step, contact_entity, {})
 
@@ -77,8 +83,16 @@ class TestScalarValidation:
         )
 
         # Should not detect regular validation
-        assert compiler._is_scalar_validation("first_name IS NOT NULL", contact_entity) is None
-        assert compiler._is_scalar_validation("status = 'active'", contact_entity) is None
+        assert (
+            compiler._is_scalar_validation("first_name IS NOT NULL", contact_entity)
+            is None
+        )
+        assert (
+            compiler._is_scalar_validation("status = 'active'", contact_entity) is None
+        )
 
         # Should not detect for non-scalar fields
-        assert compiler._is_scalar_validation("first_name is valid", contact_entity) is None
+        assert (
+            compiler._is_scalar_validation("first_name is valid", contact_entity)
+            is None
+        )

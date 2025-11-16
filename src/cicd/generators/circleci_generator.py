@@ -14,7 +14,9 @@ class CircleCIGenerator:
 
     def __init__(self, template_dir: Path = None):
         if template_dir is None:
-            template_dir = Path(__file__).parent.parent.parent.parent / "templates" / "cicd"
+            template_dir = (
+                Path(__file__).parent.parent.parent.parent / "templates" / "cicd"
+            )
 
         self.env = Environment(loader=FileSystemLoader(str(template_dir)))
         self.template = self.env.get_template("circleci.yml.j2")
@@ -38,7 +40,7 @@ class CircleCIGenerator:
             pipeline=pipeline,
             _render_step=self._render_step,
             _render_runtime=self._render_runtime,
-            _render_triggers=self._render_triggers
+            _render_triggers=self._render_triggers,
         )
 
     def _render_step(self, step: Step) -> str:
@@ -50,8 +52,12 @@ class CircleCIGenerator:
             StepType.SETUP_RUNTIME: self._render_setup_runtime(step),
             StepType.CACHE_RESTORE: self._render_cache_step(step, "restore_cache"),
             StepType.CACHE_SAVE: self._render_cache_step(step, "save_cache"),
-            StepType.UPLOAD_ARTIFACT: self._render_workspace_step(step, "persist_to_workspace"),
-            StepType.DOWNLOAD_ARTIFACT: self._render_workspace_step(step, "attach_workspace"),
+            StepType.UPLOAD_ARTIFACT: self._render_workspace_step(
+                step, "persist_to_workspace"
+            ),
+            StepType.DOWNLOAD_ARTIFACT: self._render_workspace_step(
+                step, "attach_workspace"
+            ),
         }
 
         if step.type in step_map:
@@ -61,7 +67,9 @@ class CircleCIGenerator:
         if step.command:
             step_yaml = f"      - run:\n          name: {step.name}\n          command: {step.command}"
             if step.environment:
-                env_lines = "\n".join(f"          {k}: {v}" for k, v in step.environment.items())
+                env_lines = "\n".join(
+                    f"          {k}: {v}" for k, v in step.environment.items()
+                )
                 step_yaml += f"\n          environment:\n{env_lines}"
             return step_yaml
 
@@ -75,7 +83,11 @@ class CircleCIGenerator:
 
     def _render_cache_step(self, step: Step, action: str) -> str:
         """Render cache save/restore step"""
-        key = step.with_params.get("key", "cache-key") if step.with_params else "cache-key"
+        key = (
+            step.with_params.get("key", "cache-key")
+            if step.with_params
+            else "cache-key"
+        )
         paths = step.with_params.get("paths", []) if step.with_params else []
 
         step_yaml = f"      - {action}:"
@@ -128,10 +140,12 @@ class CircleCIGenerator:
             if trigger.type == "schedule":
                 trigger_yaml += "      - schedule:\n"
                 if trigger.schedule:
-                    trigger_yaml += f"          cron: \"{trigger.schedule}\"\n"
+                    trigger_yaml += f'          cron: "{trigger.schedule}"\n'
                 if trigger.branches:
                     trigger_yaml += "          filters:\n"
                     trigger_yaml += "            branches:\n"
-                    trigger_yaml += f"              only: {' '.join(trigger.branches)}\n"
+                    trigger_yaml += (
+                        f"              only: {' '.join(trigger.branches)}\n"
+                    )
 
         return trigger_yaml

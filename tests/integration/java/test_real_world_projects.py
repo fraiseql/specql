@@ -70,7 +70,7 @@ class TestRealWorldProjects:
         category_field = next(f for f in product.fields if f.name == "category")
         assert category_field.type.value == "reference"
         assert category_field.references == "Category"
-        assert category_field.required  is True
+        assert category_field.required is True
 
         # Test Order-Customer relationship
         order = entities_by_name["Order"]

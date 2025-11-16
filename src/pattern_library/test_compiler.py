@@ -24,9 +24,7 @@ def test_pattern_compilation():
     if impl:
         template = Template(impl["implementation_template"])
         result = template.render(
-            variable_name="total",
-            variable_type="NUMERIC",
-            default_value="0"
+            variable_name="total", variable_type="NUMERIC", default_value="0"
         )
         print("DECLARE result:", result)
 
@@ -40,10 +38,7 @@ def test_pattern_compilation():
 
     if impl:
         template = Template(impl["implementation_template"])
-        result = template.render(
-            variable_name="total",
-            expression="total + 100"
-        )
+        result = template.render(variable_name="total", expression="total + 100")
         print("ASSIGN result:", result)
 
     # Test insert pattern
@@ -62,7 +57,7 @@ def test_pattern_compilation():
             values=["'John'", "'john@example.com'"],
             table_name="public.tb_user",
             pk_column="pk_user",
-            result_variable="v_user_id"
+            result_variable="v_user_id",
         )
         print("INSERT result:", result)
 

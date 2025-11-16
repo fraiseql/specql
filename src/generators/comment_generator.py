@@ -67,7 +67,10 @@ class CommentGenerator:
         }
 
     def generate_field_comment(
-        self, field: FieldDefinition, entity: Entity, custom_description: str | None = None
+        self,
+        field: FieldDefinition,
+        entity: Entity,
+        custom_description: str | None = None,
     ) -> str:
         """Generate COMMENT ON COLUMN for a field with FraiseQL YAML annotations"""
 

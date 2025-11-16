@@ -8,7 +8,9 @@ class ReturnOptimizer:
     """Optimizes early return statements"""
 
     @staticmethod
-    def detect_unreachable_code_after_return(steps: List[ActionStep], start_index: int) -> List[int]:
+    def detect_unreachable_code_after_return(
+        steps: List[ActionStep], start_index: int
+    ) -> List[int]:
         """
         Detect steps that become unreachable after an early return
 
@@ -44,20 +46,20 @@ class ReturnOptimizer:
             return True
 
         # Check nested steps
-        if hasattr(step, 'then_steps') and step.then_steps:
+        if hasattr(step, "then_steps") and step.then_steps:
             if any(s.type in ("return", "return_early") for s in step.then_steps):
                 return True
 
-        if hasattr(step, 'else_steps') and step.else_steps:
+        if hasattr(step, "else_steps") and step.else_steps:
             if any(s.type in ("return", "return_early") for s in step.else_steps):
                 return True
 
-        if hasattr(step, 'cases') and step.cases:
+        if hasattr(step, "cases") and step.cases:
             for case in step.cases:
                 if any(s.type in ("return", "return_early") for s in case.then_steps):
                     return True
 
-        if hasattr(step, 'default_steps') and step.default_steps:
+        if hasattr(step, "default_steps") and step.default_steps:
             if any(s.type in ("return", "return_early") for s in step.default_steps):
                 return True
 

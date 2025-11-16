@@ -135,7 +135,9 @@ class QueryOptimizer:
             where_clause = where_match.group(1)
             # Split by AND/OR
             conditions = re.split(r"\s+(AND|OR)\s+", where_clause)
-            return [cond.strip() for cond in conditions if cond.upper() not in ["AND", "OR"]]
+            return [
+                cond.strip() for cond in conditions if cond.upper() not in ["AND", "OR"]
+            ]
         return []
 
     def _extract_joins(self, sql: str) -> List[str]:
@@ -144,7 +146,9 @@ class QueryOptimizer:
         matches = re.findall(join_pattern, sql, re.IGNORECASE)
         return matches
 
-    def _calculate_complexity(self, sql: str, where_conditions: List[str], joins: List[str]) -> str:
+    def _calculate_complexity(
+        self, sql: str, where_conditions: List[str], joins: List[str]
+    ) -> str:
         """Calculate query complexity"""
         complexity_score = 0
 
@@ -188,7 +192,9 @@ class QueryOptimizer:
 
         # Check for non-indexable conditions
         for condition in where_conditions:
-            if any(func in condition.upper() for func in ["UPPER(", "LOWER(", "SUBSTR("]):
+            if any(
+                func in condition.upper() for func in ["UPPER(", "LOWER(", "SUBSTR("]
+            ):
                 issues.append(f"Function on indexed column: {condition}")
 
         return issues
@@ -250,7 +256,9 @@ class QueryOptimizer:
             )
 
         # Partitioning suggestions for large tables
-        if any(table in ["audit_log", "event_log", "transaction_log"] for table in tables):
+        if any(
+            table in ["audit_log", "event_log", "transaction_log"] for table in tables
+        ):
             suggestions.append(
                 OptimizationSuggestion(
                     type="structure_change",
@@ -339,8 +347,12 @@ class PatternPerformanceOptimizer:
                         f"  - {priority_emoji} **{suggestion.type}**: {suggestion.description}"
                     )
                     report_lines.append(f"    - Impact: {suggestion.sql_impact}")
-                    report_lines.append(f"    - Improvement: {suggestion.estimated_improvement}")
-                    report_lines.append(f"    - Complexity: {suggestion.implementation_complexity}")
+                    report_lines.append(
+                        f"    - Improvement: {suggestion.estimated_improvement}"
+                    )
+                    report_lines.append(
+                        f"    - Complexity: {suggestion.implementation_complexity}"
+                    )
 
             report_lines.append("")
 

@@ -24,12 +24,9 @@ class TestKubernetesGenerator:
             name="test-app",
             provider=CloudProvider.KUBERNETES,
             container=ContainerConfig(
-                image="nginx",
-                tag="latest",
-                port=80,
-                environment={"ENV": "production"}
+                image="nginx", tag="latest", port=80, environment={"ENV": "production"}
             ),
-            compute=ComputeConfig(instances=2)
+            compute=ComputeConfig(instances=2),
         )
 
         generator = KubernetesGenerator()
@@ -52,13 +49,11 @@ class TestKubernetesGenerator:
             container=ContainerConfig(
                 image="python:3.9",
                 port=8000,
-                environment={"DATABASE_URL": "postgres://db:5432"}
+                environment={"DATABASE_URL": "postgres://db:5432"},
             ),
             database=DatabaseConfig(
-                type=DatabaseType.POSTGRESQL,
-                version="15",
-                storage="50GB"
-            )
+                type=DatabaseType.POSTGRESQL, version="15", storage="50GB"
+            ),
         )
 
         generator = KubernetesGenerator()
@@ -76,15 +71,10 @@ class TestKubernetesGenerator:
         infra = UniversalInfrastructure(
             name="web-app",
             provider=CloudProvider.KUBERNETES,
-            container=ContainerConfig(
-                image="nginx",
-                port=80
-            ),
+            container=ContainerConfig(image="nginx", port=80),
             load_balancer=LoadBalancerConfig(
-                enabled=True,
-                https=True,
-                certificate_domain="example.com"
-            )
+                enabled=True, https=True, certificate_domain="example.com"
+            ),
         )
 
         generator = KubernetesGenerator()
@@ -104,13 +94,9 @@ class TestKubernetesGenerator:
             container=ContainerConfig(
                 image="busybox",
                 port=8080,
-                volumes=[
-                    Volume(name="data", size="10GB", mount_path="/data")
-                ]
+                volumes=[Volume(name="data", size="10GB", mount_path="/data")],
             ),
-            volumes=[
-                Volume(name="data", size="10GB", mount_path="/data")
-            ]
+            volumes=[Volume(name="data", size="10GB", mount_path="/data")],
         )
 
         generator = KubernetesGenerator()

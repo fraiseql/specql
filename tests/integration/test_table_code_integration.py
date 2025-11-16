@@ -48,9 +48,9 @@ fields:
     entity = convert_entity_definition_to_entity(entity_def)
 
     # Verify Entity has extracted table_code
-    assert (
-        entity.table_code == "014021"
-    ), f"Expected entity.table_code='014021', got '{entity.table_code}'"
+    assert entity.table_code == "014021", (
+        f"Expected entity.table_code='014021', got '{entity.table_code}'"
+    )
 
     # Verify organization is preserved
     assert entity.organization is not None

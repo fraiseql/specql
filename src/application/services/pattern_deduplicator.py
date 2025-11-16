@@ -3,6 +3,7 @@ Pattern deduplication service
 
 Uses FraiseQL 1.5 for semantic similarity via GraphQL API.
 """
+
 from typing import List, Dict, Any
 
 from src.application.services.pattern_service import PatternService
@@ -20,15 +21,12 @@ class PatternDeduplicator:
     def __init__(
         self,
         service: PatternService,
-        fraiseql_url: str = "http://localhost:4000/graphql"
+        fraiseql_url: str = "http://localhost:4000/graphql",
     ):
         self.service = service
         self.fraiseql_url = fraiseql_url
 
-    def find_duplicates(
-        self,
-        similarity_threshold: float = 0.9
-    ) -> List[List[Pattern]]:
+    def find_duplicates(self, similarity_threshold: float = 0.9) -> List[List[Pattern]]:
         """
         Find groups of duplicate patterns
 
@@ -60,7 +58,7 @@ class PatternDeduplicator:
             similar_patterns = self.service.find_similar_patterns(
                 pattern_id=pattern1.id,
                 limit=len(active_patterns),  # Get all potential matches
-                min_similarity=similarity_threshold
+                min_similarity=similarity_threshold,
             )
 
             for pattern2, similarity in similar_patterns:
@@ -83,11 +81,7 @@ class PatternDeduplicator:
 
         return duplicate_groups
 
-    def calculate_similarity(
-        self,
-        pattern1: Pattern,
-        pattern2: Pattern
-    ) -> float:
+    def calculate_similarity(self, pattern1: Pattern, pattern2: Pattern) -> float:
         """
         Calculate similarity between two patterns
 
@@ -125,9 +119,7 @@ class PatternDeduplicator:
         return weighted_sum / total_weight
 
     def suggest_merge(
-        self,
-        duplicate_group: List[Pattern],
-        strategy: str = "most_used"
+        self, duplicate_group: List[Pattern], strategy: str = "most_used"
     ) -> Dict[str, Any]:
         """
         Suggest which pattern to keep and which to merge
@@ -149,9 +141,7 @@ class PatternDeduplicator:
         if strategy == "most_used":
             # Keep pattern with most instantiations
             sorted_patterns = sorted(
-                duplicate_group,
-                key=lambda p: p.times_instantiated,
-                reverse=True
+                duplicate_group, key=lambda p: p.times_instantiated, reverse=True
             )
             keep = sorted_patterns[0]
             merge = sorted_patterns[1:]
@@ -173,9 +163,7 @@ class PatternDeduplicator:
         elif strategy == "newest":
             # Keep most recently created (highest ID)
             sorted_patterns = sorted(
-                duplicate_group,
-                key=lambda p: p.id if p.id else 0,
-                reverse=True
+                duplicate_group, key=lambda p: p.id if p.id else 0, reverse=True
             )
             keep = sorted_patterns[0]
             merge = sorted_patterns[1:]
@@ -184,17 +172,9 @@ class PatternDeduplicator:
         else:
             raise ValueError(f"Unknown strategy: {strategy}")
 
-        return {
-            "keep": keep,
-            "merge": merge,
-            "reason": reason
-        }
+        return {"keep": keep, "merge": merge, "reason": reason}
 
-    def merge_patterns(
-        self,
-        keep: Pattern,
-        merge: List[Pattern]
-    ) -> Pattern:
+    def merge_patterns(self, keep: Pattern, merge: List[Pattern]) -> Pattern:
         """
         Merge duplicate patterns
 

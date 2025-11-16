@@ -17,6 +17,7 @@ from src.cli.orchestrator import CLIOrchestrator
 @dataclass
 class MockConversionResult:
     """Mock conversion result"""
+
     confidence: float
     function_name: str
     yaml_content: str
@@ -44,7 +45,7 @@ class MockAlgorithmicParser:
         return MockConversionResult(
             confidence=0.90,
             function_name=function_name,
-            yaml_content=self._generate_mock_yaml(sql, function_name)
+            yaml_content=self._generate_mock_yaml(sql, function_name),
         )
 
     def parse_to_yaml(self, sql: str) -> str:
@@ -106,7 +107,13 @@ actions:
 class MockEquivalenceTester:
     """Mock equivalence tester for testing"""
 
-    def execute_function(self, sql: str, function_name: str, params: Dict[str, Any], test_data: Dict[str, List[Dict]]) -> Any:
+    def execute_function(
+        self,
+        sql: str,
+        function_name: str,
+        params: Dict[str, Any],
+        test_data: Dict[str, List[Dict]],
+    ) -> Any:
         """Mock function execution - returns hardcoded result for testing"""
         if "calculate_total" in function_name:
             return 175.00
@@ -149,6 +156,7 @@ def generate_schema_from_yaml(yaml_content: str, target: str = "postgresql") -> 
         temp_output = Path("temp_output")
         if temp_output.exists():
             import shutil
+
             shutil.rmtree(temp_output)
 
 
@@ -189,29 +197,21 @@ def test_legacy_migration_calculate_total():
 
     # Create test data
     test_data = {
-        "tb_order": [
-            {"pk_order": 1, "id": "uuid1", "identifier": "ORD-001"}
-        ],
+        "tb_order": [{"pk_order": 1, "id": "uuid1", "identifier": "ORD-001"}],
         "tb_order_line": [
             {"order_id": "uuid1", "amount": 100.00},
             {"order_id": "uuid1", "amount": 50.00},
-            {"order_id": "uuid1", "amount": 25.00}
-        ]
+            {"order_id": "uuid1", "amount": 25.00},
+        ],
     }
 
     # Test both functions return same result
     result_original = tester.execute_function(
-        reference_sql,
-        "crm.calculate_total",
-        {"order_id": "uuid1"},
-        test_data
+        reference_sql, "crm.calculate_total", {"order_id": "uuid1"}, test_data
     )
 
     result_generated = tester.execute_function(
-        generated_sql,
-        "crm.calculate_total",
-        {"order_id": "uuid1"},
-        test_data
+        generated_sql, "crm.calculate_total", {"order_id": "uuid1"}, test_data
     )
 
     assert result_original == result_generated == 175.00
@@ -306,7 +306,7 @@ def test_batch_migration_reference_sql():
             DELETE FROM tb_contact WHERE id = p_id;
         END;
         $$ LANGUAGE plpgsql;
-        """
+        """,
     ]
 
     # Write mock SQL files
@@ -352,5 +352,6 @@ def test_batch_migration_reference_sql():
 
     # Cleanup
     import shutil
+
     shutil.rmtree(mock_sql_dir)
     shutil.rmtree(output_dir)

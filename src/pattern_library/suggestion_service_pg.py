@@ -28,7 +28,7 @@ class PatternSuggestionService:
         Args:
             connection_string: PostgreSQL connection string (or uses SPECQL_DB_URL env)
         """
-        self.conn_string = connection_string or os.getenv('SPECQL_DB_URL')
+        self.conn_string = connection_string or os.getenv("SPECQL_DB_URL")
         if not self.conn_string:
             raise ValueError("No connection string provided and SPECQL_DB_URL not set")
 
@@ -44,13 +44,13 @@ class PatternSuggestionService:
         description: str,
         parameters: Optional[Dict] = None,
         implementation: Optional[Dict] = None,
-        source_type: str = 'manual',
+        source_type: str = "manual",
         source_sql: Optional[str] = None,
         source_description: Optional[str] = None,
         source_function_id: Optional[str] = None,
         complexity_score: Optional[float] = None,
         confidence_score: Optional[float] = None,
-        trigger_reason: Optional[str] = None
+        trigger_reason: Optional[str] = None,
     ) -> Optional[int]:
         """
         Create a new pattern suggestion.
@@ -85,11 +85,19 @@ class PatternSuggestionService:
                 RETURNING id
                 """,
                 (
-                    suggested_name, suggested_category, description,
-                    parameters or {}, implementation or {},
-                    source_type, source_sql, source_description, source_function_id,
-                    complexity_score, confidence_score, trigger_reason
-                )
+                    suggested_name,
+                    suggested_category,
+                    description,
+                    parameters or {},
+                    implementation or {},
+                    source_type,
+                    source_sql,
+                    source_description,
+                    source_function_id,
+                    complexity_score,
+                    confidence_score,
+                    trigger_reason,
+                ),
             )
 
             result = cursor.fetchone()
@@ -97,7 +105,9 @@ class PatternSuggestionService:
 
             if result:
                 suggestion_id = result[0]
-                print(f"✓ Created pattern suggestion #{suggestion_id}: {suggested_name}")
+                print(
+                    f"✓ Created pattern suggestion #{suggestion_id}: {suggested_name}"
+                )
                 return suggestion_id
 
         except Exception as e:
@@ -127,22 +137,24 @@ class PatternSuggestionService:
                 ORDER BY confidence_score DESC, created_at ASC
                 LIMIT %s
                 """,
-                (limit,)
+                (limit,),
             )
 
             suggestions = []
             for row in cursor:
-                suggestions.append({
-                    'id': row[0],
-                    'name': row[1],
-                    'category': row[2],
-                    'description': row[3],
-                    'confidence': float(row[4]) if row[4] else None,
-                    'complexity': float(row[5]) if row[5] else None,
-                    'source_type': row[6],
-                    'created_at': row[7],
-                    'hours_pending': float(row[8]) if row[8] else 0
-                })
+                suggestions.append(
+                    {
+                        "id": row[0],
+                        "name": row[1],
+                        "category": row[2],
+                        "description": row[3],
+                        "confidence": float(row[4]) if row[4] else None,
+                        "complexity": float(row[5]) if row[5] else None,
+                        "source_type": row[6],
+                        "created_at": row[7],
+                        "hours_pending": float(row[8]) if row[8] else 0,
+                    }
+                )
 
             return suggestions
 
@@ -172,7 +184,7 @@ class PatternSuggestionService:
                 FROM pattern_library.pattern_suggestions
                 WHERE id = %s
                 """,
-                (suggestion_id,)
+                (suggestion_id,),
             )
 
             row = cursor.fetchone()
@@ -180,28 +192,28 @@ class PatternSuggestionService:
                 return None
 
             return {
-                'id': row[0],
-                'name': row[1],
-                'category': row[2],
-                'description': row[3],
-                'parameters': row[4],
-                'implementation': row[5],
-                'source_type': row[6],
-                'source_sql': row[7],
-                'source_description': row[8],
-                'source_function_id': row[9],
-                'complexity_score': float(row[10]) if row[10] else None,
-                'confidence_score': float(row[11]) if row[11] else None,
-                'trigger_reason': row[12],
-                'status': row[13],
-                'created_at': row[14]
+                "id": row[0],
+                "name": row[1],
+                "category": row[2],
+                "description": row[3],
+                "parameters": row[4],
+                "implementation": row[5],
+                "source_type": row[6],
+                "source_sql": row[7],
+                "source_description": row[8],
+                "source_function_id": row[9],
+                "complexity_score": float(row[10]) if row[10] else None,
+                "confidence_score": float(row[11]) if row[11] else None,
+                "trigger_reason": row[12],
+                "status": row[13],
+                "created_at": row[14],
             }
 
         except Exception as e:
             print(f"❌ Failed to get suggestion {suggestion_id}: {e}")
             return None
 
-    def approve_suggestion(self, suggestion_id: int, reviewer: str = 'system') -> bool:
+    def approve_suggestion(self, suggestion_id: int, reviewer: str = "system") -> bool:
         """
         Approve a pattern suggestion and move it to domain_patterns.
 
@@ -219,8 +231,10 @@ class PatternSuggestionService:
                 print(f"❌ Suggestion {suggestion_id} not found")
                 return False
 
-            if suggestion['status'] != 'pending':
-                print(f"❌ Suggestion {suggestion_id} is not pending (status: {suggestion['status']})")
+            if suggestion["status"] != "pending":
+                print(
+                    f"❌ Suggestion {suggestion_id} is not pending (status: {suggestion['status']})"
+                )
                 return False
 
             # Move to domain_patterns
@@ -234,13 +248,13 @@ class PatternSuggestionService:
                 RETURNING id
                 """,
                 (
-                    suggestion['name'],
-                    suggestion['category'],
-                    suggestion['description'],
-                    suggestion['parameters'],
-                    suggestion['implementation'],
-                    suggestion['complexity_score']
-                )
+                    suggestion["name"],
+                    suggestion["category"],
+                    suggestion["description"],
+                    suggestion["parameters"],
+                    suggestion["implementation"],
+                    suggestion["complexity_score"],
+                ),
             )
 
             result = cursor.fetchone()
@@ -259,12 +273,14 @@ class PatternSuggestionService:
                     merged_into_pattern_id = %s
                 WHERE id = %s
                 """,
-                (reviewer, pattern_id, suggestion_id)
+                (reviewer, pattern_id, suggestion_id),
             )
 
             self.conn.commit()
 
-            print(f"✓ Approved suggestion #{suggestion_id} → pattern #{pattern_id}: {suggestion['name']}")
+            print(
+                f"✓ Approved suggestion #{suggestion_id} → pattern #{pattern_id}: {suggestion['name']}"
+            )
             return True
 
         except Exception as e:
@@ -272,7 +288,9 @@ class PatternSuggestionService:
             self.conn.rollback()
             return False
 
-    def reject_suggestion(self, suggestion_id: int, reason: str, reviewer: str = 'system') -> bool:
+    def reject_suggestion(
+        self, suggestion_id: int, reason: str, reviewer: str = "system"
+    ) -> bool:
         """
         Reject a pattern suggestion.
 
@@ -296,7 +314,7 @@ class PatternSuggestionService:
                 WHERE id = %s
                 RETURNING id
                 """,
-                (reviewer, reason, suggestion_id)
+                (reviewer, reason, suggestion_id),
             )
 
             result = cursor.fetchone()
@@ -329,21 +347,21 @@ class PatternSuggestionService:
                 """
             )
 
-            stats = {'total': 0}
+            stats = {"total": 0}
             for row in cursor:
                 status, count = row
                 stats[status] = count
-                stats['total'] += count
+                stats["total"] += count
 
             # Add pending if not present
-            if 'pending' not in stats:
-                stats['pending'] = 0
+            if "pending" not in stats:
+                stats["pending"] = 0
 
             return stats
 
         except Exception as e:
             print(f"❌ Failed to get suggestion stats: {e}")
-            return {'total': 0, 'pending': 0}
+            return {"total": 0, "pending": 0}
 
     def close(self):
         """Close database connection."""

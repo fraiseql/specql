@@ -61,7 +61,9 @@ def test_subqueries_in_expressions(compiler, test_entity):
     result = compiler.compile(
         "company_id IN (SELECT id FROM crm.tb_company WHERE active = true)", test_entity
     )
-    assert "v_company_id IN (SELECT id FROM crm.tb_company WHERE active = true)" in result
+    assert (
+        "v_company_id IN (SELECT id FROM crm.tb_company WHERE active = true)" in result
+    )
 
     # Test EXISTS subquery (simplified to avoid validation issues)
     # result = compiler.compile("EXISTS (SELECT 1 FROM crm.tb_task WHERE contact_id = id)", test_entity)
@@ -91,13 +93,17 @@ def test_security_validation_complex(compiler, test_entity):
 
     # SQL injection in subqueries should be blocked
     with pytest.raises(SecurityError):
-        compiler.compile("status IN (SELECT * FROM users; DROP TABLE users; --)", test_entity)
+        compiler.compile(
+            "status IN (SELECT * FROM users; DROP TABLE users; --)", test_entity
+        )
 
 
 def test_expression_precedence(compiler, test_entity):
     """Test operator precedence in complex expressions"""
     # AND should have higher precedence than OR
-    result = compiler.compile("status = 'lead' AND score > 50 OR status = 'qualified'", test_entity)
+    result = compiler.compile(
+        "status = 'lead' AND score > 50 OR status = 'qualified'", test_entity
+    )
 
     # The result should properly group the AND operation
     # This is a simplified test - the actual precedence handling depends on the parser

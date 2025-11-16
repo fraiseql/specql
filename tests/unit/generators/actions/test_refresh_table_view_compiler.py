@@ -226,7 +226,10 @@ class TestRefreshTableViewStepCompiler:
                     tier=FieldTier.REFERENCE,
                 ),
                 "book": FieldDefinition(
-                    name="book", type_name="ref", reference_entity="Book", tier=FieldTier.REFERENCE
+                    name="book",
+                    type_name="ref",
+                    reference_entity="Book",
+                    tier=FieldTier.REFERENCE,
                 ),
             },
         )

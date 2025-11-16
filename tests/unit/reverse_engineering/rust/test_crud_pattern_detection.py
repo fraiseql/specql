@@ -214,7 +214,7 @@ class TestCRUDPatternDetection:
         assert action["name"] == "create_user"
         assert action["type"] == "create"
         assert action["return_type"] == "Result"
-        assert action["is_async"]  is True
+        assert action["is_async"] is True
 
         # Check parameters (self should be excluded)
         assert len(action["parameters"]) == 2
@@ -318,7 +318,7 @@ class TestCRUDPatternDetection:
         )
         action = mapper.map_method_to_action(async_method)
         assert action is not None
-        assert action["is_async"]  is True
+        assert action["is_async"] is True
 
         # Test sync method
         sync_method = ImplMethodInfo(

@@ -81,9 +81,7 @@ class ForeignKeyGenerator:
             parts.append("NOT NULL")
 
         # REFERENCES constraint
-        ref_target = (
-            f"{fk_ddl.references_schema}.{fk_ddl.references_table}({fk_ddl.references_column})"
-        )
+        ref_target = f"{fk_ddl.references_schema}.{fk_ddl.references_table}({fk_ddl.references_column})"
         parts.append(f"REFERENCES {ref_target}")
 
         # ON DELETE/UPDATE actions

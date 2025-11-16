@@ -1,4 +1,5 @@
 """PostgreSQL-backed Pattern Repository"""
+
 import psycopg
 import json
 from typing import List, Optional, Tuple
@@ -16,14 +17,17 @@ class PostgreSQLPatternRepository(PatternRepository):
         """Get pattern by name from PostgreSQL"""
         with psycopg.connect(self.db_url) as conn:
             with conn.cursor() as cur:
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT id, name, category, description, parameters, implementation,
                            embedding, times_instantiated, source_type, complexity_score,
                            deprecated, deprecated_reason, replacement_pattern_id,
                            created_at, updated_at
                     FROM pattern_library.domain_patterns
                     WHERE name = %s
-                """, (pattern_name,))
+                """,
+                    (pattern_name,),
+                )
 
                 row = cur.fetchone()
                 if not row:
@@ -35,7 +39,8 @@ class PostgreSQLPatternRepository(PatternRepository):
         """Find patterns by category"""
         with psycopg.connect(self.db_url) as conn:
             with conn.cursor() as cur:
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT id, name, category, description, parameters, implementation,
                            embedding, times_instantiated, source_type, complexity_score,
                            deprecated, deprecated_reason, replacement_pattern_id,
@@ -43,7 +48,9 @@ class PostgreSQLPatternRepository(PatternRepository):
                     FROM pattern_library.domain_patterns
                     WHERE category = %s
                     ORDER BY name
-                """, (category,))
+                """,
+                    (category,),
+                )
 
                 return [self._row_to_pattern(row) for row in cur.fetchall()]
 
@@ -53,7 +60,8 @@ class PostgreSQLPatternRepository(PatternRepository):
             with conn.cursor() as cur:
                 if pattern.id is None:
                     # Insert new pattern (let PostgreSQL generate id)
-                    cur.execute("""
+                    cur.execute(
+                        """
                         INSERT INTO pattern_library.domain_patterns
                         (name, category, description, parameters, implementation,
                          embedding, times_instantiated, source_type, complexity_score,
@@ -73,26 +81,29 @@ class PostgreSQLPatternRepository(PatternRepository):
                             replacement_pattern_id = EXCLUDED.replacement_pattern_id,
                             updated_at = now()
                         RETURNING id
-                    """, (
-                        pattern.name,
-                        pattern.category.value,
-                        pattern.description,
-                        json.dumps(pattern.parameters),
-                        json.dumps(pattern.implementation),
-                        pattern.embedding,
-                        pattern.times_instantiated,
-                        pattern.source_type.value,
-                        pattern.complexity_score,
-                        pattern.deprecated,
-                        pattern.deprecated_reason,
-                        pattern.replacement_pattern_id
-                    ))
+                    """,
+                        (
+                            pattern.name,
+                            pattern.category.value,
+                            pattern.description,
+                            json.dumps(pattern.parameters),
+                            json.dumps(pattern.implementation),
+                            pattern.embedding,
+                            pattern.times_instantiated,
+                            pattern.source_type.value,
+                            pattern.complexity_score,
+                            pattern.deprecated,
+                            pattern.deprecated_reason,
+                            pattern.replacement_pattern_id,
+                        ),
+                    )
                     result = cur.fetchone()
                     if result:
                         pattern.id = result[0]
                 else:
                     # Update existing pattern
-                    cur.execute("""
+                    cur.execute(
+                        """
                         INSERT INTO pattern_library.domain_patterns
                         (id, name, category, description, parameters, implementation,
                          embedding, times_instantiated, source_type, complexity_score,
@@ -112,21 +123,23 @@ class PostgreSQLPatternRepository(PatternRepository):
                             replacement_pattern_id = EXCLUDED.replacement_pattern_id,
                             updated_at = now()
                         RETURNING id
-                    """, (
-                        pattern.id,
-                        pattern.name,
-                        pattern.category.value,
-                        pattern.description,
-                        json.dumps(pattern.parameters),
-                        json.dumps(pattern.implementation),
-                        pattern.embedding,
-                        pattern.times_instantiated,
-                        pattern.source_type.value,
-                        pattern.complexity_score,
-                        pattern.deprecated,
-                        pattern.deprecated_reason,
-                        pattern.replacement_pattern_id
-                    ))
+                    """,
+                        (
+                            pattern.id,
+                            pattern.name,
+                            pattern.category.value,
+                            pattern.description,
+                            json.dumps(pattern.parameters),
+                            json.dumps(pattern.implementation),
+                            pattern.embedding,
+                            pattern.times_instantiated,
+                            pattern.source_type.value,
+                            pattern.complexity_score,
+                            pattern.deprecated,
+                            pattern.deprecated_reason,
+                            pattern.replacement_pattern_id,
+                        ),
+                    )
                     result = cur.fetchone()
                     if result:
                         pattern.id = result[0]
@@ -154,7 +167,7 @@ class PostgreSQLPatternRepository(PatternRepository):
         limit: int = 10,
         min_similarity: float = 0.0,
         category: Optional[str] = None,
-        include_deprecated: bool = False
+        include_deprecated: bool = False,
     ) -> List[Tuple[Pattern, float]]:
         """
         Search patterns by semantic similarity
@@ -173,7 +186,8 @@ class PostgreSQLPatternRepository(PatternRepository):
             with conn.cursor() as cur:
                 # Simplified query for now - include deprecated=false by default
                 # TODO: Add proper filtering support
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT
                         id, name, category, description, parameters, implementation,
                         embedding, times_instantiated, source_type, complexity_score,
@@ -186,7 +200,15 @@ class PostgreSQLPatternRepository(PatternRepository):
                         AND (1 - (embedding <=> %s::vector)) >= %s
                     ORDER BY embedding <=> %s::vector
                     LIMIT %s
-                """, (query_embedding, query_embedding, min_similarity, query_embedding, limit))
+                """,
+                    (
+                        query_embedding,
+                        query_embedding,
+                        min_similarity,
+                        query_embedding,
+                        limit,
+                    ),
+                )
 
                 results = []
                 for row in cur.fetchall():
@@ -202,7 +224,7 @@ class PostgreSQLPatternRepository(PatternRepository):
         pattern_id: int,
         limit: int = 10,
         min_similarity: float = 0.5,
-        include_deprecated: bool = False
+        include_deprecated: bool = False,
     ) -> List[Tuple[Pattern, float]]:
         """
         Find patterns similar to a given pattern
@@ -226,14 +248,11 @@ class PostgreSQLPatternRepository(PatternRepository):
             query_embedding=pattern.embedding,
             limit=limit + 1,  # +1 because we'll filter out the reference pattern
             min_similarity=min_similarity,
-            include_deprecated=include_deprecated
+            include_deprecated=include_deprecated,
         )
 
         # Filter out the reference pattern itself
-        filtered = [
-            (p, sim) for p, sim in results
-            if p.id != pattern_id
-        ]
+        filtered = [(p, sim) for p, sim in results if p.id != pattern_id]
 
         return filtered[:limit]
 
@@ -241,14 +260,17 @@ class PostgreSQLPatternRepository(PatternRepository):
         """Find pattern by ID"""
         with psycopg.connect(self.db_url) as conn:
             with conn.cursor() as cur:
-                cur.execute("""
+                cur.execute(
+                    """
                     SELECT id, name, category, description, parameters, implementation,
                            embedding, times_instantiated, source_type, complexity_score,
                            deprecated, deprecated_reason, replacement_pattern_id,
                            created_at, updated_at
                     FROM pattern_library.domain_patterns
                     WHERE id = %s
-                """, (pattern_id,))
+                """,
+                    (pattern_id,),
+                )
 
                 row = cur.fetchone()
                 if not row:
@@ -267,11 +289,11 @@ class PostgreSQLPatternRepository(PatternRepository):
             implementation=row[5] if row[5] else {},
             embedding=row[6],
             times_instantiated=row[7] or 0,
-            source_type=SourceType(row[8] or 'manual'),
+            source_type=SourceType(row[8] or "manual"),
             complexity_score=row[9],
             deprecated=row[10] or False,
             deprecated_reason=row[11],
             replacement_pattern_id=row[12],
             created_at=row[13],
-            updated_at=row[14]
+            updated_at=row[14],
         )

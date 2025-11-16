@@ -1,4 +1,5 @@
 """Pattern Aggregate Root"""
+
 from dataclasses import dataclass, field
 from datetime import datetime
 from typing import Dict, Any, Optional, List
@@ -7,6 +8,7 @@ from enum import Enum
 
 class PatternCategory(Enum):
     """Valid pattern categories"""
+
     WORKFLOW = "workflow"
     VALIDATION = "validation"
     AUDIT = "audit"
@@ -20,6 +22,7 @@ class PatternCategory(Enum):
 
 class SourceType(Enum):
     """Pattern source types"""
+
     MANUAL = "manual"
     LLM_GENERATED = "llm_generated"
     DISCOVERED = "discovered"
@@ -65,13 +68,17 @@ class Pattern:
         if not self.description or not self.description.strip():
             raise ValueError("Pattern description cannot be empty")
 
-        if self.complexity_score is not None and (self.complexity_score < 0 or self.complexity_score > 10):
+        if self.complexity_score is not None and (
+            self.complexity_score < 0 or self.complexity_score > 10
+        ):
             raise ValueError("Complexity score must be between 0 and 10")
 
         if self.embedding is not None and len(self.embedding) != 384:
             raise ValueError("Embedding must be 384-dimensional vector")
 
-    def mark_deprecated(self, reason: str, replacement_pattern_id: Optional[int] = None) -> None:
+    def mark_deprecated(
+        self, reason: str, replacement_pattern_id: Optional[int] = None
+    ) -> None:
         """Mark pattern as deprecated with reason"""
         if not reason or not reason.strip():
             raise ValueError("Deprecation reason cannot be empty")
@@ -94,7 +101,9 @@ class Pattern:
         self.embedding = embedding
         self.updated_at = datetime.now()
 
-    def is_similar_to(self, other_embedding: List[float], threshold: float = 0.7) -> bool:
+    def is_similar_to(
+        self, other_embedding: List[float], threshold: float = 0.7
+    ) -> bool:
         """Check if this pattern is similar to another based on embeddings"""
         if self.embedding is None or other_embedding is None:
             return False
@@ -104,6 +113,7 @@ class Pattern:
 
         # Cosine similarity
         import math
+
         dot_product = sum(a * b for a, b in zip(self.embedding, other_embedding))
         magnitude_a = math.sqrt(sum(a * a for a in self.embedding))
         magnitude_b = math.sqrt(sum(b * b for b in other_embedding))
@@ -120,7 +130,7 @@ class Pattern:
             return False
 
         # Check if required parameters are available in context
-        required_params = self.parameters.get('required', [])
+        required_params = self.parameters.get("required", [])
         for param in required_params:
             if param not in context:
                 return False

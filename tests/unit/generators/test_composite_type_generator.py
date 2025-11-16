@@ -22,12 +22,20 @@ class TestCompositeTypeGenerator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type_name="text", nullable=False),
+                "email": FieldDefinition(
+                    name="email", type_name="text", nullable=False
+                ),
                 "company": FieldDefinition(
-                    name="company", type_name="ref", reference_entity="Company", nullable=True
+                    name="company",
+                    type_name="ref",
+                    reference_entity="Company",
+                    nullable=True,
                 ),
                 "status": FieldDefinition(
-                    name="status", type_name="enum", values=["lead", "qualified"], nullable=False
+                    name="status",
+                    type_name="enum",
+                    values=["lead", "qualified"],
+                    nullable=False,
                 ),
             },
             actions=[Action(name="create_contact", steps=[])],
@@ -54,12 +62,20 @@ class TestCompositeTypeGenerator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type_name="text", nullable=False),
+                "email": FieldDefinition(
+                    name="email", type_name="text", nullable=False
+                ),
                 "company": FieldDefinition(
-                    name="company", type_name="ref", reference_entity="Company", nullable=True
+                    name="company",
+                    type_name="ref",
+                    reference_entity="Company",
+                    nullable=True,
                 ),
                 "status": FieldDefinition(
-                    name="status", type_name="enum", values=["lead", "qualified"], nullable=False
+                    name="status",
+                    type_name="enum",
+                    values=["lead", "qualified"],
+                    nullable=False,
                 ),
             },
             actions=[Action(name="create_contact", steps=[])],
@@ -82,7 +98,9 @@ class TestCompositeTypeGenerator:
         entity = Entity(
             name="Contact",
             schema="crm",
-            fields={"tags": FieldDefinition(name="tags", type_name="list", item_type="text")},
+            fields={
+                "tags": FieldDefinition(name="tags", type_name="list", item_type="text")
+            },
             actions=[Action(name="create_contact", steps=[])],
         )
 
@@ -98,7 +116,9 @@ class TestCompositeTypeGenerator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type_name="email", nullable=False),
+                "email": FieldDefinition(
+                    name="email", type_name="email", nullable=False
+                ),
             },
         )
         action = Action(name="create_contact", steps=[])
@@ -242,12 +262,20 @@ class TestSchemaOrchestrator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type_name="text", nullable=False),
+                "email": FieldDefinition(
+                    name="email", type_name="text", nullable=False
+                ),
                 "company": FieldDefinition(
-                    name="company", type_name="ref", reference_entity="Company", nullable=True
+                    name="company",
+                    type_name="ref",
+                    reference_entity="Company",
+                    nullable=True,
                 ),
                 "status": FieldDefinition(
-                    name="status", type_name="enum", values=["lead", "qualified"], nullable=False
+                    name="status",
+                    type_name="enum",
+                    values=["lead", "qualified"],
+                    nullable=False,
                 ),
             },
             actions=[Action(name="create_contact", steps=[])],
@@ -260,7 +288,9 @@ class TestSchemaOrchestrator:
         assert "CREATE TABLE crm.tb_contact" in sql
         assert "CREATE TYPE app.type_create_contact_input" in sql
         assert "CREATE TYPE app.mutation_result" in sql
-        assert "CREATE INDEX" in sql or "ADD CONSTRAINT" in sql  # indexes or constraints
+        assert (
+            "CREATE INDEX" in sql or "ADD CONSTRAINT" in sql
+        )  # indexes or constraints
 
     def test_schema_summary(self, orchestrator):
         """Generate schema summary"""
@@ -269,7 +299,9 @@ class TestSchemaOrchestrator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type_name="text", nullable=False),
+                "email": FieldDefinition(
+                    name="email", type_name="text", nullable=False
+                ),
             },
             actions=[Action(name="create_contact", steps=[])],
         )
@@ -290,10 +322,17 @@ class TestSchemaOrchestrator:
             schema="catalog",
             fields={
                 "name": FieldDefinition(name="name", type_name="text", nullable=False),
-                "price": FieldDefinition(name="price", type_name="decimal", nullable=False),
-                "in_stock": FieldDefinition(name="in_stock", type_name="boolean", nullable=False),
+                "price": FieldDefinition(
+                    name="price", type_name="decimal", nullable=False
+                ),
+                "in_stock": FieldDefinition(
+                    name="in_stock", type_name="boolean", nullable=False
+                ),
                 "category": FieldDefinition(
-                    name="category", type_name="ref", reference_entity="Category", nullable=True
+                    name="category",
+                    type_name="ref",
+                    reference_entity="Category",
+                    nullable=True,
                 ),
                 "tags": FieldDefinition(
                     name="tags", type_name="list", item_type="text", nullable=True
@@ -333,15 +372,21 @@ class TestSchemaOrchestrator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type_name="text", nullable=False),
+                "email": FieldDefinition(
+                    name="email", type_name="text", nullable=False
+                ),
                 "created_at": FieldDefinition(
                     name="created_at", type_name="timestamp", nullable=False
                 ),
-                "created_by": FieldDefinition(name="created_by", type_name="uuid", nullable=True),
+                "created_by": FieldDefinition(
+                    name="created_by", type_name="uuid", nullable=True
+                ),
                 "updated_at": FieldDefinition(
                     name="updated_at", type_name="timestamp", nullable=False
                 ),
-                "updated_by": FieldDefinition(name="updated_by", type_name="uuid", nullable=True),
+                "updated_by": FieldDefinition(
+                    name="updated_by", type_name="uuid", nullable=True
+                ),
             },
             actions=[Action(name="update_contact", steps=[])],
         )
@@ -363,7 +408,9 @@ class TestSchemaOrchestrator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type_name="text", nullable=False),
+                "email": FieldDefinition(
+                    name="email", type_name="text", nullable=False
+                ),
             },
             actions=[Action(name="custom_action", steps=[])],
         )
@@ -379,7 +426,10 @@ class TestSchemaOrchestrator:
         """Test that entities with no fields don't generate types"""
         # Given: Entity with no fields
         entity = Entity(
-            name="Empty", schema="test", fields={}, actions=[Action(name="create_empty", steps=[])]
+            name="Empty",
+            schema="test",
+            fields={},
+            actions=[Action(name="create_empty", steps=[])],
         )
 
         # When: Generate
@@ -395,7 +445,9 @@ class TestSchemaOrchestrator:
             name="Contact",
             schema="crm",
             fields={
-                "email": FieldDefinition(name="email", type_name="text", nullable=False),
+                "email": FieldDefinition(
+                    name="email", type_name="text", nullable=False
+                ),
             },
             actions=[
                 Action(name="create_contact", steps=[]),

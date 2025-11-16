@@ -58,17 +58,26 @@ class PatternServiceFactory:
             # Try PostgreSQL first
             return PatternServiceFactory.get_pattern_service(monitoring=monitoring)
         except Exception as e:
-            logger.warning(f"PostgreSQL pattern repository failed, falling back to in-memory: {e}")
+            logger.warning(
+                f"PostgreSQL pattern repository failed, falling back to in-memory: {e}"
+            )
 
             # Fallback to in-memory repository
             try:
-                from src.infrastructure.repositories.in_memory_pattern_repository import InMemoryPatternRepository
+                from src.infrastructure.repositories.in_memory_pattern_repository import (
+                    InMemoryPatternRepository,
+                )
+
                 repository = InMemoryPatternRepository()
                 logger.info("Using in-memory pattern repository as fallback")
                 return PatternService(repository)
             except Exception as fallback_error:
-                logger.error(f"Fallback pattern repository also failed: {fallback_error}")
-                raise RuntimeError(f"Both primary and fallback pattern repositories failed: {e}, {fallback_error}")
+                logger.error(
+                    f"Fallback pattern repository also failed: {fallback_error}"
+                )
+                raise RuntimeError(
+                    f"Both primary and fallback pattern repositories failed: {e}, {fallback_error}"
+                )
 
 
 # Convenience functions for easy access
@@ -79,4 +88,6 @@ def get_pattern_service(monitoring: bool = False) -> PatternService:
 
 def get_pattern_service_with_fallback(monitoring: bool = False) -> PatternService:
     """Get pattern service with fallback (convenience function)"""
-    return PatternServiceFactory.get_pattern_service_with_fallback(monitoring=monitoring)
+    return PatternServiceFactory.get_pattern_service_with_fallback(
+        monitoring=monitoring
+    )

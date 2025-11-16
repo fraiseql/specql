@@ -78,7 +78,9 @@ class MigrationAnalyzer:
             suggestions.append(state_machine_suggestion)
 
         # Check for validation patterns
-        validation_suggestion = self._analyze_validation_pattern(entity_name, action_name, action)
+        validation_suggestion = self._analyze_validation_pattern(
+            entity_name, action_name, action
+        )
         if validation_suggestion:
             suggestions.append(validation_suggestion)
 
@@ -105,7 +107,9 @@ class MigrationAnalyzer:
                     confidence=0.9,
                     description="Convert manual create with duplicate checking to pattern",
                     before_yaml=self._extract_action_yaml(action),
-                    after_yaml=self._generate_crud_create_pattern(action_name, action_config),
+                    after_yaml=self._generate_crud_create_pattern(
+                        action_name, action_config
+                    ),
                     benefits=[
                         "Automatic duplicate detection",
                         "Consistent error handling",
@@ -124,7 +128,9 @@ class MigrationAnalyzer:
                     confidence=0.8,
                     description="Convert manual update to enhanced CRUD pattern",
                     before_yaml=self._extract_action_yaml(action),
-                    after_yaml=self._generate_crud_update_pattern(action_name, action_config),
+                    after_yaml=self._generate_crud_update_pattern(
+                        action_name, action_config
+                    ),
                     benefits=[
                         "Partial updates with CASE expressions",
                         "Field change tracking",
@@ -143,7 +149,9 @@ class MigrationAnalyzer:
                     confidence=0.8,
                     description="Convert manual delete with dependencies to pattern",
                     before_yaml=self._extract_action_yaml(action),
-                    after_yaml=self._generate_crud_delete_pattern(action_name, action_config),
+                    after_yaml=self._generate_crud_delete_pattern(
+                        action_name, action_config
+                    ),
                     benefits=[
                         "Automatic dependency checking",
                         "Hard delete support",
@@ -201,7 +209,9 @@ class MigrationAnalyzer:
                 confidence=0.75,
                 description="Convert manual validation logic to validation chain pattern",
                 before_yaml=self._extract_action_yaml(action),
-                after_yaml=self._generate_validation_pattern(action_name, action_config),
+                after_yaml=self._generate_validation_pattern(
+                    action_name, action_config
+                ),
                 benefits=[
                     "Configurable error handling",
                     "Collect all errors option",
@@ -252,7 +262,9 @@ class MigrationAnalyzer:
 
     def _has_state_transition(self, config: Dict[str, Any]) -> bool:
         """Check if config has state transition logic."""
-        return "from_states" in config or "to_state" in config or "status" in str(config)
+        return (
+            "from_states" in config or "to_state" in config or "status" in str(config)
+        )
 
     def _has_guards(self, config: Dict[str, Any]) -> bool:
         """Check if config has guard conditions."""
@@ -271,7 +283,9 @@ class MigrationAnalyzer:
         """Extract action YAML for before comparison."""
         return yaml.dump(action, default_flow_style=False, indent=2)
 
-    def _generate_crud_create_pattern(self, action_name: str, config: Dict[str, Any]) -> str:
+    def _generate_crud_create_pattern(
+        self, action_name: str, config: Dict[str, Any]
+    ) -> str:
         """Generate CRUD create pattern YAML."""
         pattern_config = {"name": action_name, "pattern": "crud/create", "config": {}}
 
@@ -280,7 +294,9 @@ class MigrationAnalyzer:
 
         return yaml.dump(pattern_config, default_flow_style=False, indent=2)
 
-    def _generate_crud_update_pattern(self, action_name: str, config: Dict[str, Any]) -> str:
+    def _generate_crud_update_pattern(
+        self, action_name: str, config: Dict[str, Any]
+    ) -> str:
         """Generate CRUD update pattern YAML."""
         pattern_config = {
             "name": action_name,
@@ -293,16 +309,22 @@ class MigrationAnalyzer:
 
         return yaml.dump(pattern_config, default_flow_style=False, indent=2)
 
-    def _generate_crud_delete_pattern(self, action_name: str, config: Dict[str, Any]) -> str:
+    def _generate_crud_delete_pattern(
+        self, action_name: str, config: Dict[str, Any]
+    ) -> str:
         """Generate CRUD delete pattern YAML."""
         pattern_config = {
             "name": action_name,
             "pattern": "crud/delete",
-            "config": {"supports_hard_delete": config.get("supports_hard_delete", False)},
+            "config": {
+                "supports_hard_delete": config.get("supports_hard_delete", False)
+            },
         }
 
         if "check_dependencies" in config:
-            pattern_config["config"]["check_dependencies"] = config["check_dependencies"]
+            pattern_config["config"]["check_dependencies"] = config[
+                "check_dependencies"
+            ]
 
         return yaml.dump(pattern_config, default_flow_style=False, indent=2)
 
@@ -327,7 +349,9 @@ class MigrationAnalyzer:
 
         return yaml.dump(pattern_config, default_flow_style=False, indent=2)
 
-    def _generate_validation_pattern(self, action_name: str, config: Dict[str, Any]) -> str:
+    def _generate_validation_pattern(
+        self, action_name: str, config: Dict[str, Any]
+    ) -> str:
         """Generate validation pattern YAML."""
         pattern_config = {
             "name": action_name,
@@ -338,18 +362,32 @@ class MigrationAnalyzer:
         if "validations" in config:
             pattern_config["config"]["validations"] = config["validations"]
         if "stop_on_first_failure" in config:
-            pattern_config["config"]["stop_on_first_failure"] = config["stop_on_first_failure"]
+            pattern_config["config"]["stop_on_first_failure"] = config[
+                "stop_on_first_failure"
+            ]
         if "collect_all_errors" in config:
-            pattern_config["config"]["collect_all_errors"] = config["collect_all_errors"]
+            pattern_config["config"]["collect_all_errors"] = config[
+                "collect_all_errors"
+            ]
 
         return yaml.dump(pattern_config, default_flow_style=False, indent=2)
 
     def _generate_batch_pattern(self, action_name: str, config: Dict[str, Any]) -> str:
         """Generate batch pattern YAML."""
-        pattern_config = {"name": action_name, "pattern": "batch/bulk_operation", "config": {}}
+        pattern_config = {
+            "name": action_name,
+            "pattern": "batch/bulk_operation",
+            "config": {},
+        }
 
         # Copy relevant config keys
-        for key in ["batch_input", "operation", "error_handling", "batch_size", "return_summary"]:
+        for key in [
+            "batch_input",
+            "operation",
+            "error_handling",
+            "batch_size",
+            "return_summary",
+        ]:
             if key in config:
                 pattern_config["config"][key] = config[key]
 
@@ -383,7 +421,9 @@ class MigrationAnalyzer:
 
         # Generate report sections
         for pattern_type, pattern_suggestions in by_pattern.items():
-            report.append(f"## {pattern_type} ({len(pattern_suggestions)} suggestions)\n")
+            report.append(
+                f"## {pattern_type} ({len(pattern_suggestions)} suggestions)\n"
+            )
 
             for suggestion in pattern_suggestions:
                 confidence_pct = int(suggestion.confidence * 100)
@@ -403,7 +443,9 @@ class MigrationAnalyzer:
         # Summary statistics
         total_actions = len(set((s.entity_name, s.action_name) for s in suggestions))
         (
-            sum(s.confidence for s in suggestions) / len(suggestions) if suggestions else 0
+            sum(s.confidence for s in suggestions) / len(suggestions)
+            if suggestions
+            else 0
         )
 
         report.append("## Migration Summary\n")

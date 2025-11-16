@@ -11,24 +11,18 @@ def seed_initial_data(library: PatternLibrary):
 
     # Add languages
     library.add_language(
-        name="postgresql",
-        ecosystem="postgresql",
-        paradigm="declarative",
-        version="14+"
+        name="postgresql", ecosystem="postgresql", paradigm="declarative", version="14+"
     )
 
     library.add_language(
-        name="python_django",
-        ecosystem="python",
-        paradigm="imperative",
-        version="3.11+"
+        name="python_django", ecosystem="python", paradigm="imperative", version="3.11+"
     )
 
     library.add_language(
         name="python_sqlalchemy",
         ecosystem="python",
         paradigm="imperative",
-        version="3.11+"
+        version="3.11+",
     )
 
     # Add universal types
@@ -79,39 +73,190 @@ def seed_initial_data(library: PatternLibrary):
     # Add all core patterns
     patterns_to_add = [
         # Primitive patterns
-        ("declare", "primitive", {"type": "declare", "fields": ["variable_name", "variable_type", "default_value"]}, "Declare a variable with optional default value"),
-        ("assign", "primitive", {"type": "assign", "fields": ["variable_name", "expression"]}, "Assign value to a variable"),
-        ("call_function", "primitive", {"type": "call_function", "fields": ["function_name", "arguments", "result_variable"]}, "Call a function and store result"),
-        ("call_service", "primitive", {"type": "call_service", "fields": ["service_name", "service_function", "parameters"]}, "Call a service function"),
-        ("return", "primitive", {"type": "return", "fields": ["expression"]}, "Return value from function"),
-        ("return_early", "primitive", {"type": "return_early", "fields": []}, "Early return from function"),
-
+        (
+            "declare",
+            "primitive",
+            {
+                "type": "declare",
+                "fields": ["variable_name", "variable_type", "default_value"],
+            },
+            "Declare a variable with optional default value",
+        ),
+        (
+            "assign",
+            "primitive",
+            {"type": "assign", "fields": ["variable_name", "expression"]},
+            "Assign value to a variable",
+        ),
+        (
+            "call_function",
+            "primitive",
+            {
+                "type": "call_function",
+                "fields": ["function_name", "arguments", "result_variable"],
+            },
+            "Call a function and store result",
+        ),
+        (
+            "call_service",
+            "primitive",
+            {
+                "type": "call_service",
+                "fields": ["service_name", "service_function", "parameters"],
+            },
+            "Call a service function",
+        ),
+        (
+            "return",
+            "primitive",
+            {"type": "return", "fields": ["expression"]},
+            "Return value from function",
+        ),
+        (
+            "return_early",
+            "primitive",
+            {"type": "return_early", "fields": []},
+            "Early return from function",
+        ),
         # Control flow patterns
-        ("if", "control_flow", {"type": "if", "fields": ["condition", "then_steps", "else_steps"]}, "Conditional branching"),
-        ("foreach", "control_flow", {"type": "foreach", "fields": ["iterator_var", "collection", "loop_body"]}, "Iterate over a collection"),
-        ("while", "control_flow", {"type": "while", "fields": ["condition", "body_steps"]}, "While loop with condition"),
-        ("for_query", "control_flow", {"type": "for_query", "fields": ["query", "iterator_var", "body_steps"]}, "FOR loop over query results"),
-        ("switch", "control_flow", {"type": "switch", "fields": ["expression", "cases", "default_case"]}, "Switch/case statement"),
-        ("exception_handling", "control_flow", {"type": "exception_handling", "fields": ["try_steps", "catch_steps", "exception_var"]}, "Exception handling with try/catch"),
-
+        (
+            "if",
+            "control_flow",
+            {"type": "if", "fields": ["condition", "then_steps", "else_steps"]},
+            "Conditional branching",
+        ),
+        (
+            "foreach",
+            "control_flow",
+            {"type": "foreach", "fields": ["iterator_var", "collection", "loop_body"]},
+            "Iterate over a collection",
+        ),
+        (
+            "while",
+            "control_flow",
+            {"type": "while", "fields": ["condition", "body_steps"]},
+            "While loop with condition",
+        ),
+        (
+            "for_query",
+            "control_flow",
+            {"type": "for_query", "fields": ["query", "iterator_var", "body_steps"]},
+            "FOR loop over query results",
+        ),
+        (
+            "switch",
+            "control_flow",
+            {"type": "switch", "fields": ["expression", "cases", "default_case"]},
+            "Switch/case statement",
+        ),
+        (
+            "exception_handling",
+            "control_flow",
+            {
+                "type": "exception_handling",
+                "fields": ["try_steps", "catch_steps", "exception_var"],
+            },
+            "Exception handling with try/catch",
+        ),
         # Query patterns
-        ("query", "query", {"type": "query", "fields": ["sql", "into_variable"]}, "Execute query and store result"),
-        ("subquery", "query", {"type": "subquery", "fields": ["subquery", "result_variable"]}, "Execute subquery and store result"),
-        ("cte", "query", {"type": "cte", "fields": ["cte_name", "cte_query", "main_query"]}, "Common Table Expression (WITH clause)"),
-
+        (
+            "query",
+            "query",
+            {"type": "query", "fields": ["sql", "into_variable"]},
+            "Execute query and store result",
+        ),
+        (
+            "subquery",
+            "query",
+            {"type": "subquery", "fields": ["subquery", "result_variable"]},
+            "Execute subquery and store result",
+        ),
+        (
+            "cte",
+            "query",
+            {"type": "cte", "fields": ["cte_name", "cte_query", "main_query"]},
+            "Common Table Expression (WITH clause)",
+        ),
         # Database operation patterns
-        ("insert", "database_ops", {"type": "insert", "fields": ["entity", "table_name", "columns", "values", "result_variable"]}, "INSERT with RETURNING"),
-        ("update", "database_ops", {"type": "update", "fields": ["entity", "table_name", "set_clause", "where_clause"]}, "UPDATE with conditions"),
-        ("delete", "database_ops", {"type": "delete", "fields": ["entity", "table_name", "where_clause"]}, "DELETE from table"),
-        ("partial_update", "database_ops", {"type": "partial_update", "fields": ["entity", "updates", "where_clause"]}, "Partial update of specific fields"),
-        ("duplicate_check", "database_ops", {"type": "duplicate_check", "fields": ["entity", "check_fields", "error_message"]}, "Check for duplicate records"),
-        ("validate", "database_ops", {"type": "validate", "fields": ["entity", "conditions", "error_message"]}, "Validate business rules"),
-        ("refresh_table_view", "database_ops", {"type": "refresh_table_view", "fields": ["view_name"]}, "Refresh materialized view"),
-        ("notify", "database_ops", {"type": "notify", "fields": ["channel", "payload"]}, "Send notification"),
-
+        (
+            "insert",
+            "database_ops",
+            {
+                "type": "insert",
+                "fields": [
+                    "entity",
+                    "table_name",
+                    "columns",
+                    "values",
+                    "result_variable",
+                ],
+            },
+            "INSERT with RETURNING",
+        ),
+        (
+            "update",
+            "database_ops",
+            {
+                "type": "update",
+                "fields": ["entity", "table_name", "set_clause", "where_clause"],
+            },
+            "UPDATE with conditions",
+        ),
+        (
+            "delete",
+            "database_ops",
+            {"type": "delete", "fields": ["entity", "table_name", "where_clause"]},
+            "DELETE from table",
+        ),
+        (
+            "partial_update",
+            "database_ops",
+            {"type": "partial_update", "fields": ["entity", "updates", "where_clause"]},
+            "Partial update of specific fields",
+        ),
+        (
+            "duplicate_check",
+            "database_ops",
+            {
+                "type": "duplicate_check",
+                "fields": ["entity", "check_fields", "error_message"],
+            },
+            "Check for duplicate records",
+        ),
+        (
+            "validate",
+            "database_ops",
+            {"type": "validate", "fields": ["entity", "conditions", "error_message"]},
+            "Validate business rules",
+        ),
+        (
+            "refresh_table_view",
+            "database_ops",
+            {"type": "refresh_table_view", "fields": ["view_name"]},
+            "Refresh materialized view",
+        ),
+        (
+            "notify",
+            "database_ops",
+            {"type": "notify", "fields": ["channel", "payload"]},
+            "Send notification",
+        ),
         # Data transform patterns
-        ("aggregate", "data_transform", {"type": "aggregate", "fields": ["operation", "field", "result_variable", "where_clause"]}, "Aggregate operation (COUNT, SUM, AVG, etc.)"),
-        ("json_build", "data_transform", {"type": "json_build", "fields": ["fields", "result_variable"]}, "Build JSON object from fields"),
+        (
+            "aggregate",
+            "data_transform",
+            {
+                "type": "aggregate",
+                "fields": ["operation", "field", "result_variable", "where_clause"],
+            },
+            "Aggregate operation (COUNT, SUM, AVG, etc.)",
+        ),
+        (
+            "json_build",
+            "data_transform",
+            {"type": "json_build", "fields": ["fields", "result_variable"]},
+            "Build JSON object from fields",
+        ),
     ]
 
     for name, category, abstract_syntax, description in patterns_to_add:
@@ -140,9 +285,15 @@ def seed_initial_data(library: PatternLibrary):
     pg_query = 'SELECT * FROM pattern_implementations WHERE language_id = (SELECT language_id FROM languages WHERE language_name = "postgresql")'
     django_query = 'SELECT * FROM pattern_implementations WHERE language_id = (SELECT language_id FROM languages WHERE language_name = "python_django")'
     sqlalchemy_query = 'SELECT * FROM pattern_implementations WHERE language_id = (SELECT language_id FROM languages WHERE language_name = "python_sqlalchemy")'
-    print(f"  - PostgreSQL implementations: {len(library.db.execute(pg_query).fetchall())}")
-    print(f"  - Django implementations: {len(library.db.execute(django_query).fetchall())}")
-    print(f"  - SQLAlchemy implementations: {len(library.db.execute(sqlalchemy_query).fetchall())}")
+    print(
+        f"  - PostgreSQL implementations: {len(library.db.execute(pg_query).fetchall())}"
+    )
+    print(
+        f"  - Django implementations: {len(library.db.execute(django_query).fetchall())}"
+    )
+    print(
+        f"  - SQLAlchemy implementations: {len(library.db.execute(sqlalchemy_query).fetchall())}"
+    )
 
 
 if __name__ == "__main__":

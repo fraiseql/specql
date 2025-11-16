@@ -32,7 +32,7 @@ async fn get_users() -> Result<HttpResponse> {
         assert route.method == "GET"
         assert route.path == "/users"
         assert route.function_name == "get_users"
-        assert route.is_async  is True
+        assert route.is_async is True
         assert route.return_type == "Result<HttpResponse>"
 
     def test_multiple_routes(self):

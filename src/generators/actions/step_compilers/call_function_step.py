@@ -1,6 +1,5 @@
 """Compiler for call_function steps"""
 
-
 from src.core.ast_models import ActionStep, EntityDefinition
 
 from src.generators.actions.step_compilers.base import StepCompiler
@@ -23,7 +22,7 @@ class CallFunctionStepCompiler(StepCompiler):
         # Build argument list
         arg_list = []
         for arg_name, arg_value in arguments.items():
-            if isinstance(arg_value, str) and arg_value.startswith('$'):
+            if isinstance(arg_value, str) and arg_value.startswith("$"):
                 # Parameter reference
                 arg_list.append(arg_value[1:])  # Remove $ prefix
             else:

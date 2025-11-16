@@ -6,6 +6,7 @@ tv_ table data JSONB object instead of extracting individual fields.
 
 Related to Issue #5: Projection view composition pattern
 """
+
 import pytest
 from src.core.specql_parser import SpecQLParser
 from src.generators.schema.table_view_generator import TableViewGenerator
@@ -42,7 +43,9 @@ class TestWildcardSQLGeneration:
         # Should NOT extract individual fields from tv_user.data for wildcard
         # (field extraction like tv_user.data->'field' is for explicit field selection)
         # Wildcard should use the whole tv_user.data object
-        assert "tv_user.data->" not in sql, "Wildcard should use whole data object, not extract fields"
+        assert "tv_user.data->" not in sql, (
+            "Wildcard should use whole data object, not extract fields"
+        )
 
     def test_explicit_fields_generate_jsonb_build_object(self):
         """Test that explicit fields generate jsonb_build_object()"""

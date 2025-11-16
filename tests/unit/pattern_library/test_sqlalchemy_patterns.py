@@ -21,7 +21,9 @@ class TestSQLAlchemyPatterns:
 
         db_path = Path("pattern_library.db")
         if not db_path.exists():
-            raise FileNotFoundError("pattern_library.db not found. Run seed_data.py first")
+            raise FileNotFoundError(
+                "pattern_library.db not found. Run seed_data.py first"
+            )
 
         # Create library instance without calling __init__
         lib = PatternLibrary.__new__(PatternLibrary)
@@ -39,8 +41,8 @@ class TestSQLAlchemyPatterns:
             context={
                 "variable_name": "total",
                 "variable_type": "Decimal",
-                "default_value": "Decimal('0')"
-            }
+                "default_value": "Decimal('0')",
+            },
         )
 
         assert result == "total: Decimal = Decimal('0')"
@@ -50,10 +52,7 @@ class TestSQLAlchemyPatterns:
         result = library.compile_pattern(
             pattern_name="assign",
             language_name="python_sqlalchemy",
-            context={
-                "variable_name": "total",
-                "expression": "Decimal('100.50')"
-            }
+            context={"variable_name": "total", "expression": "Decimal('100.50')"},
         )
 
         assert result == "total = Decimal('100.50')"
@@ -66,8 +65,8 @@ class TestSQLAlchemyPatterns:
             context={
                 "condition": "total > 0",
                 "then_steps": "    return True",
-                "else_steps": "    return False"
-            }
+                "else_steps": "    return False",
+            },
         )
 
         expected = """if total > 0:
@@ -85,8 +84,8 @@ else:
             context={
                 "iterator_var": "item",
                 "collection": "items",
-                "loop_body": "    print(item.name)"
-            }
+                "loop_body": "    print(item.name)",
+            },
         )
 
         expected = """for item in items:
@@ -102,10 +101,8 @@ else:
             context={
                 "model_name": "User",
                 "result_var": "users",
-                "filters": {
-                    "is_active": "True"
-                }
-            }
+                "filters": {"is_active": "True"},
+            },
         )
 
         # Should contain basic query structure
@@ -123,9 +120,9 @@ else:
                 "instance_var": "user",
                 "field_values": {
                     "username": "'john_doe'",
-                    "email": "'john@example.com'"
-                }
-            }
+                    "email": "'john@example.com'",
+                },
+            },
         )
 
         # Should contain insert structure
@@ -144,10 +141,8 @@ else:
                 "model_name": "User",
                 "instance_var": "user",
                 "lookup_value": "user_id",
-                "field_values": {
-                    "email": "'new_email@example.com'"
-                }
-            }
+                "field_values": {"email": "'new_email@example.com'"},
+            },
         )
 
         # Should contain update structure
@@ -164,8 +159,8 @@ else:
             context={
                 "model_name": "User",
                 "instance_var": "user",
-                "lookup_value": "user_id"
-            }
+                "lookup_value": "user_id",
+            },
         )
 
         # Should contain delete structure
@@ -182,10 +177,8 @@ else:
             context={
                 "model_name": "Order",
                 "result_var": "stats",
-                "aggregations": {
-                    "total": "func.count(Order.id)"
-                }
-            }
+                "aggregations": {"total": "func.count(Order.id)"},
+            },
         )
 
         # Should contain aggregate structure
@@ -201,8 +194,8 @@ else:
             context={
                 "result_variable": "result",
                 "function_name": "calculate_total",
-                "arguments": ["order.items", "tax_rate"]
-            }
+                "arguments": ["order.items", "tax_rate"],
+            },
         )
 
         assert result == "result = calculate_total(order.items, tax_rate)"
@@ -212,9 +205,7 @@ else:
         result = library.compile_pattern(
             pattern_name="return",
             language_name="python_sqlalchemy",
-            context={
-                "expression": "JsonResponse({'status': 'success'})"
-            }
+            context={"expression": "JsonResponse({'status': 'success'})"},
         )
 
         assert result == "return JsonResponse({'status': 'success'})"
@@ -227,8 +218,8 @@ else:
             context={
                 "model_name": "User",
                 "instance_var": "user",
-                "custom_validators": ["validate_email", "validate_age"]
-            }
+                "custom_validators": ["validate_email", "validate_age"],
+            },
         )
 
         # Should contain validation structure
@@ -245,8 +236,8 @@ else:
                 "model_name": "User",
                 "check_fields": {"email": "email_value"},
                 "exists_var": "email_exists",
-                "exclude_pk": "current_user_id"
-            }
+                "exclude_pk": "current_user_id",
+            },
         )
 
         # Should contain duplicate check structure
@@ -262,8 +253,8 @@ else:
             context={
                 "try_body": "    result = risky_operation()",
                 "exception_handlers": [("ValueError", "    handle_value_error()")],
-                "finally_body": "    cleanup()"
-            }
+                "finally_body": "    cleanup()",
+            },
         )
 
         # Should contain try-except structure
@@ -280,8 +271,8 @@ else:
             context={
                 "json_structure": {"name": "user.name", "email": "user.email"},
                 "result_var": "user_data",
-                "serialize": True
-            }
+                "serialize": True,
+            },
         )
 
         # Should contain JSON build structure

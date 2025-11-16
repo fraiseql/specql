@@ -155,7 +155,7 @@ def test_has_unique_constraints():
         },
     )
 
-    assert generator._has_unique_constraints(entity_with_email)  is True
+    assert generator._has_unique_constraints(entity_with_email) is True
     assert not generator._has_unique_constraints(entity_without_unique)
 
 
@@ -205,7 +205,10 @@ def test_generate_field_mapping_with_fk_details():
     generator = TestMetadataGenerator()
 
     fk_field = FieldDefinition(
-        name="fk_company", type_name="ref(Company)", postgres_type="INTEGER", nullable=True
+        name="fk_company",
+        type_name="ref(Company)",
+        postgres_type="INTEGER",
+        nullable=True,
     )
 
     sql = generator.generate_field_mapping(entity_config_id=1, field=fk_field)
@@ -240,7 +243,10 @@ def test_full_contact_entity_conversion():
                 name="last_name", type_name="text", postgres_type="TEXT", nullable=True
             ),
             "phone": FieldDefinition(
-                name="phone", type_name="phoneNumber", postgres_type="TEXT", nullable=True
+                name="phone",
+                type_name="phoneNumber",
+                postgres_type="TEXT",
+                nullable=True,
             ),
             "status": FieldDefinition(
                 name="status",
@@ -249,13 +255,22 @@ def test_full_contact_entity_conversion():
                 nullable=False,
             ),
             "fk_company": FieldDefinition(
-                name="fk_company", type_name="ref(Company)", postgres_type="INTEGER", nullable=True
+                name="fk_company",
+                type_name="ref(Company)",
+                postgres_type="INTEGER",
+                nullable=True,
             ),
             "country_code": FieldDefinition(
-                name="country_code", type_name="text", postgres_type="TEXT", nullable=True
+                name="country_code",
+                type_name="text",
+                postgres_type="TEXT",
+                nullable=True,
             ),
             "postal_code": FieldDefinition(
-                name="postal_code", type_name="text", postgres_type="TEXT", nullable=True
+                name="postal_code",
+                type_name="text",
+                postgres_type="TEXT",
+                nullable=True,
             ),
             "city_code": FieldDefinition(
                 name="city_code", type_name="text", postgres_type="TEXT", nullable=True
@@ -294,7 +309,9 @@ def test_full_contact_entity_conversion():
     assert "20" in fk_sql  # FK priority
 
     # Generate scenarios
-    scenarios_sql = generator.generate_default_scenarios(contact_entity, entity_config_id=1)
+    scenarios_sql = generator.generate_default_scenarios(
+        contact_entity, entity_config_id=1
+    )
     assert "happy_path_create" in scenarios_sql
     assert "duplicate_constraint" in scenarios_sql  # Because entity has email
 

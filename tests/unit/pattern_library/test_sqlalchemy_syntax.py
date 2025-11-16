@@ -31,31 +31,28 @@ def test_sqlalchemy_code_syntax_validation(library):
             "context": {
                 "variable_name": "total",
                 "variable_type": "Decimal",
-                "default_value": "Decimal('0')"
-            }
+                "default_value": "Decimal('0')",
+            },
         },
         {
             "pattern": "assign",
-            "context": {
-                "variable_name": "total",
-                "expression": "Decimal('100.50')"
-            }
+            "context": {"variable_name": "total", "expression": "Decimal('100.50')"},
         },
         {
             "pattern": "if",
             "context": {
                 "condition": "total > 0",
                 "then_steps": "    return True",
-                "else_steps": "    return False"
-            }
+                "else_steps": "    return False",
+            },
         },
         {
             "pattern": "foreach",
             "context": {
                 "iterator_var": "item",
                 "collection": "items",
-                "loop_body": "    process_item(item)"
-            }
+                "loop_body": "    process_item(item)",
+            },
         },
         {
             "pattern": "query",
@@ -63,8 +60,8 @@ def test_sqlalchemy_code_syntax_validation(library):
                 "model_name": "User",
                 "result_var": "users",
                 "filters": {"is_active": "True"},
-                "order_by": ["-created_at"]
-            }
+                "order_by": ["-created_at"],
+            },
         },
         {
             "pattern": "insert",
@@ -74,9 +71,9 @@ def test_sqlalchemy_code_syntax_validation(library):
                 "field_values": {
                     "username": "'john_doe'",
                     "email": "'john@example.com'",
-                    "is_active": "True"
-                }
-            }
+                    "is_active": "True",
+                },
+            },
         },
         {
             "pattern": "update",
@@ -86,17 +83,17 @@ def test_sqlalchemy_code_syntax_validation(library):
                 "lookup_value": "user_id",
                 "field_values": {
                     "email": "'new_email@example.com'",
-                    "last_login": "datetime.now()"
-                }
-            }
+                    "last_login": "datetime.now()",
+                },
+            },
         },
         {
             "pattern": "delete",
             "context": {
                 "model_name": "User",
                 "instance_var": "user",
-                "lookup_value": "user_id"
-            }
+                "lookup_value": "user_id",
+            },
         },
         {
             "pattern": "aggregate",
@@ -104,30 +101,28 @@ def test_sqlalchemy_code_syntax_validation(library):
                 "model_name": "Order",
                 "result_var": "stats",
                 "filters": {"status": "'completed'"},
-                "aggregations": {"total": "func.count(Order.id)"}
-            }
+                "aggregations": {"total": "func.count(Order.id)"},
+            },
         },
         {
             "pattern": "call_function",
             "context": {
                 "result_variable": "result",
                 "function_name": "calculate_total",
-                "arguments": ["order.items", "tax_rate"]
-            }
+                "arguments": ["order.items", "tax_rate"],
+            },
         },
         {
             "pattern": "return",
-            "context": {
-                "expression": "JsonResponse({'status': 'success'})"
-            }
+            "context": {"expression": "JsonResponse({'status': 'success'})"},
         },
         {
             "pattern": "validate",
             "context": {
                 "model_name": "User",
                 "instance_var": "user",
-                "custom_validators": ["validate_email", "validate_age"]
-            }
+                "custom_validators": ["validate_email", "validate_age"],
+            },
         },
         {
             "pattern": "duplicate_check",
@@ -136,25 +131,25 @@ def test_sqlalchemy_code_syntax_validation(library):
                 "check_fields": {"email": "email_value"},
                 "exists_var": "email_exists",
                 "exclude_pk": "current_user_id",
-                "duplicate_body": "    raise ValueError('Duplicate email')"
-            }
+                "duplicate_body": "    raise ValueError('Duplicate email')",
+            },
         },
         {
             "pattern": "exception_handling",
             "context": {
                 "try_body": "    result = risky_operation()",
                 "exception_handlers": [("ValueError", "    handle_value_error()")],
-                "finally_body": "    cleanup()"
-            }
+                "finally_body": "    cleanup()",
+            },
         },
         {
             "pattern": "json_build",
             "context": {
                 "json_structure": {"name": "user.name", "email": "user.email"},
                 "result_var": "user_data",
-                "serialize": True
-            }
-        }
+                "serialize": True,
+            },
+        },
     ]
 
     for test_case in test_cases:
@@ -165,20 +160,24 @@ def test_sqlalchemy_code_syntax_validation(library):
         result = library.compile_pattern(
             pattern_name=pattern_name,
             language_name="python_sqlalchemy",
-            context=context
+            context=context,
         )
 
         # Verify it's a string
         assert isinstance(result, str), f"Pattern {pattern_name} should return string"
 
         # Verify it's not empty
-        assert len(result.strip()) > 0, f"Pattern {pattern_name} should not return empty string"
+        assert len(result.strip()) > 0, (
+            f"Pattern {pattern_name} should not return empty string"
+        )
 
         # Verify it's syntactically valid Python
         try:
             ast.parse(result)
         except SyntaxError as e:
-            pytest.fail(f"Pattern {pattern_name} generated invalid Python syntax: {e}\nGenerated code:\n{result}")
+            pytest.fail(
+                f"Pattern {pattern_name} generated invalid Python syntax: {e}\nGenerated code:\n{result}"
+            )
 
 
 def test_sqlalchemy_patterns_exist(library):
@@ -197,12 +196,28 @@ def test_sqlalchemy_patterns_exist(library):
     implemented_patterns = [row["pattern_name"] for row in cursor.fetchall()]
 
     expected_patterns = [
-        "declare", "assign", "if", "foreach", "query", "insert", "update", "delete",
-        "aggregate", "call_function", "return", "validate", "duplicate_check",
-        "exception_handling", "json_build"
+        "declare",
+        "assign",
+        "if",
+        "foreach",
+        "query",
+        "insert",
+        "update",
+        "delete",
+        "aggregate",
+        "call_function",
+        "return",
+        "validate",
+        "duplicate_check",
+        "exception_handling",
+        "json_build",
     ]
 
     for pattern in expected_patterns:
-        assert pattern in implemented_patterns, f"Pattern {pattern} should be implemented for SQLAlchemy"
+        assert pattern in implemented_patterns, (
+            f"Pattern {pattern} should be implemented for SQLAlchemy"
+        )
 
-    assert len(implemented_patterns) >= len(expected_patterns), f"Expected at least {len(expected_patterns)} patterns, got {len(implemented_patterns)}"
+    assert len(implemented_patterns) >= len(expected_patterns), (
+        f"Expected at least {len(expected_patterns)} patterns, got {len(implemented_patterns)}"
+    )

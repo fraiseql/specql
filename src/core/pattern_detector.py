@@ -11,11 +11,13 @@ class PatternDetector:
         """Detect if action is a simple aggregate query"""
         if len(action.steps) == 2:
             return (
-                action.steps[0].type == "declare" and
-                action.steps[1].type == "query" and
-                bool(action.steps[1].expression) and
-                any(agg in action.steps[1].expression.upper()
-                    for agg in ["SUM", "COUNT", "AVG", "MAX", "MIN"])
+                action.steps[0].type == "declare"
+                and action.steps[1].type == "query"
+                and bool(action.steps[1].expression)
+                and any(
+                    agg in action.steps[1].expression.upper()
+                    for agg in ["SUM", "COUNT", "AVG", "MAX", "MIN"]
+                )
             )
         return False
 

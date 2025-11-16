@@ -44,7 +44,11 @@ def check_table_code_uniqueness(entity_files: List[Path]) -> Dict[str, List[str]
             continue
 
     # Return only codes that have duplicates
-    return {code: entities for code, entities in code_to_entities.items() if len(entities) > 1}
+    return {
+        code: entities
+        for code, entities in code_to_entities.items()
+        if len(entities) > 1
+    }
 
 
 def main():

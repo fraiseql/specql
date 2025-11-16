@@ -34,7 +34,9 @@ class TestGenerateCommand:
         """Test error when no entity files provided."""
         result = cli_runner.invoke(specql, ["generate"])
 
-        assert result.exit_code == 2  # Click exits with error code for missing required args
+        assert (
+            result.exit_code == 2
+        )  # Click exits with error code for missing required args
         assert "Missing argument" in result.output
 
     def test_generate_with_single_file(self, cli_runner, sample_entity_file, temp_dir):
@@ -51,14 +53,18 @@ class TestGenerateCommand:
 
     def test_generate_foundation_only(self, cli_runner, sample_entity_file):
         """Test foundation-only generation."""
-        result = cli_runner.invoke(specql, ["generate", str(sample_entity_file), "--foundation-only"])
+        result = cli_runner.invoke(
+            specql, ["generate", str(sample_entity_file), "--foundation-only"]
+        )
 
         assert result.exit_code == 0
         assert "Generated" in result.output
 
     def test_generate_with_include_tv(self, cli_runner, sample_entity_file):
         """Test generation with table views."""
-        result = cli_runner.invoke(specql, ["generate", str(sample_entity_file), "--include-tv"])
+        result = cli_runner.invoke(
+            specql, ["generate", str(sample_entity_file), "--include-tv"]
+        )
 
         assert result.exit_code == 0
         assert "Generated" in result.output
@@ -93,7 +99,9 @@ class TestGenerateCommand:
         assert "error(s)" in result.output
 
     @patch("src.cli.confiture_extensions.CLIOrchestrator")
-    def test_generate_displays_warnings(self, mock_orch, cli_runner, sample_entity_file):
+    def test_generate_displays_warnings(
+        self, mock_orch, cli_runner, sample_entity_file
+    ):
         """Test that warnings are displayed when present."""
         # Mock the orchestrator to return warnings
         mock_result = Mock()
@@ -126,14 +134,20 @@ class TestGenerateCommand:
         """Test generation when Confiture is not available."""
         # Mock the import to fail
         import sys
+
         with patch.dict(sys.modules, {"confiture.core.builder": None}):
             # Need to trigger the import error
             result = cli_runner.invoke(specql, ["generate", str(sample_entity_file)])
 
             assert result.exit_code == 0
-            assert "Confiture not available" in result.output or "schema file(s)" in result.output
+            assert (
+                "Confiture not available" in result.output
+                or "schema file(s)" in result.output
+            )
 
-    @pytest.mark.xfail(reason="Implementation needs to properly return exit code 1 on build error")
+    @pytest.mark.xfail(
+        reason="Implementation needs to properly return exit code 1 on build error"
+    )
     def test_generate_confiture_build_error(self, cli_runner, sample_entity_file):
         """Test handling of Confiture build errors."""
         # Patch the lazy import
@@ -175,7 +189,9 @@ class TestValidateCommand:
         """Test error when no entity files provided."""
         result = cli_runner.invoke(specql, ["validate"])
 
-        assert result.exit_code == 2  # Click exits with error code for missing required args
+        assert (
+            result.exit_code == 2
+        )  # Click exits with error code for missing required args
         assert "Missing argument" in result.output
 
     def test_validate_with_single_file(self, cli_runner, sample_entity_file):
@@ -232,7 +248,9 @@ class TestValidateCommand:
             call_args = mock_run.call_args[0][0]
             assert "--verbose" in call_args
 
-    def test_validate_returns_subprocess_exit_code(self, cli_runner, sample_entity_file):
+    def test_validate_returns_subprocess_exit_code(
+        self, cli_runner, sample_entity_file
+    ):
         """Test that validate returns the subprocess exit code."""
         # Patch subprocess.run where it's used
         with patch("subprocess.run") as mock_run:

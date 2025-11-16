@@ -7,7 +7,6 @@ These tests verify end-to-end CLI functionality including:
 - Confiture integration
 """
 
-
 import pytest
 from click.testing import CliRunner
 
@@ -94,14 +93,16 @@ actions:
 class TestEndToEndGeneration:
     """Test complete end-to-end generation workflows."""
 
-    def test_generate_single_entity_workflow(self, cli_runner, sample_crm_entity, integration_test_dir):
+    def test_generate_single_entity_workflow(
+        self, cli_runner, sample_crm_entity, integration_test_dir
+    ):
         """Test generating migrations from a single entity."""
         output_dir = integration_test_dir / "migrations"
 
         # Run generation
         result = cli_runner.invoke(
             generate_cli,
-            ["entities", str(sample_crm_entity), "--output-dir", str(output_dir)]
+            ["entities", str(sample_crm_entity), "--output-dir", str(output_dir)],
         )
 
         # Verify success
@@ -145,7 +146,9 @@ class TestEndToEndGeneration:
         sql_files = list(output_dir.glob("*.sql"))
         assert len(sql_files) >= 1
 
-    def test_generate_with_table_views(self, cli_runner, sample_crm_entity, integration_test_dir):
+    def test_generate_with_table_views(
+        self, cli_runner, sample_crm_entity, integration_test_dir
+    ):
         """Test generation with --include-tv flag."""
         output_dir = integration_test_dir / "migrations"
 
@@ -165,7 +168,9 @@ class TestEndToEndGeneration:
         assert result.exit_code == 0
         assert "Generated" in result.output
 
-    def test_generate_with_registry(self, cli_runner, sample_crm_entity, integration_test_dir):
+    def test_generate_with_registry(
+        self, cli_runner, sample_crm_entity, integration_test_dir
+    ):
         """Test generation with registry and hierarchical format."""
         output_dir = integration_test_dir / "migrations"
 
@@ -187,7 +192,9 @@ class TestEndToEndGeneration:
         assert result.exit_code == 0
         assert "hexadecimal codes" in result.output
 
-    def test_generate_with_frontend_code(self, cli_runner, sample_crm_entity, integration_test_dir):
+    def test_generate_with_frontend_code(
+        self, cli_runner, sample_crm_entity, integration_test_dir
+    ):
         """Test generation with frontend code output."""
         migrations_dir = integration_test_dir / "migrations"
         frontend_dir = integration_test_dir / "frontend"
@@ -195,12 +202,13 @@ class TestEndToEndGeneration:
         # Mock frontend generators since they may not be fully available
         from unittest.mock import Mock, patch
 
-        with patch("src.cli.generate.SpecQLParser") as mock_parser_cls, \
-             patch("src.generators.frontend.MutationImpactsGenerator"), \
-             patch("src.generators.frontend.TypeScriptTypesGenerator"), \
-             patch("src.generators.frontend.ApolloHooksGenerator"), \
-             patch("src.generators.frontend.MutationDocsGenerator"):
-
+        with (
+            patch("src.cli.generate.SpecQLParser") as mock_parser_cls,
+            patch("src.generators.frontend.MutationImpactsGenerator"),
+            patch("src.generators.frontend.TypeScriptTypesGenerator"),
+            patch("src.generators.frontend.ApolloHooksGenerator"),
+            patch("src.generators.frontend.MutationDocsGenerator"),
+        ):
             # Setup mock parser
             mock_parser = Mock()
             mock_entity_def = Mock()
@@ -236,7 +244,9 @@ class TestEndToEndGeneration:
 class TestTestGeneration:
     """Test the test generation workflow."""
 
-    def test_generate_pgtap_tests(self, cli_runner, sample_crm_entity, integration_test_dir):
+    def test_generate_pgtap_tests(
+        self, cli_runner, sample_crm_entity, integration_test_dir
+    ):
         """Test generating pgTAP tests."""
         output_dir = integration_test_dir / "tests"
 
@@ -268,7 +278,9 @@ class TestTestGeneration:
         content = test_file.read_text()
         assert "Contact" in content or "contact" in content
 
-    def test_generate_pytest_tests(self, cli_runner, sample_crm_entity, integration_test_dir):
+    def test_generate_pytest_tests(
+        self, cli_runner, sample_crm_entity, integration_test_dir
+    ):
         """Test generating pytest tests."""
         output_dir = integration_test_dir / "tests"
 
@@ -295,7 +307,9 @@ class TestTestGeneration:
         test_files = list(pytest_dir.glob("test_*.py"))
         assert len(test_files) >= 1
 
-    def test_generate_both_test_types(self, cli_runner, sample_crm_entity, integration_test_dir):
+    def test_generate_both_test_types(
+        self, cli_runner, sample_crm_entity, integration_test_dir
+    ):
         """Test generating both pgTAP and pytest tests."""
         output_dir = integration_test_dir / "tests"
 
@@ -328,8 +342,7 @@ class TestConfitureCLIWorkflow:
         """Test Confiture generate command workflow."""
         # Run Confiture generate
         result = cli_runner.invoke(
-            confiture_specql,
-            ["generate", str(sample_crm_entity)]
+            confiture_specql, ["generate", str(sample_crm_entity)]
         )
 
         # Verify command executes (may fail if Confiture not available)
@@ -344,10 +357,7 @@ class TestConfitureCLIWorkflow:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(returncode=0)
 
-            cli_runner.invoke(
-                confiture_specql,
-                ["validate", str(sample_crm_entity)]
-            )
+            cli_runner.invoke(confiture_specql, ["validate", str(sample_crm_entity)])
 
             # Verify subprocess was called
             assert mock_run.called
@@ -365,7 +375,7 @@ class TestErrorHandling:
 
         result = cli_runner.invoke(
             generate_cli,
-            ["entities", str(invalid_file), "--output-dir", str(output_dir)]
+            ["entities", str(invalid_file), "--output-dir", str(output_dir)],
         )
 
         # Should show error
@@ -378,7 +388,7 @@ class TestErrorHandling:
 
         result = cli_runner.invoke(
             generate_cli,
-            ["entities", str(nonexistent_file), "--output-dir", str(output_dir)]
+            ["entities", str(nonexistent_file), "--output-dir", str(output_dir)],
         )
 
         # Click will error on missing file

@@ -27,7 +27,8 @@ class InMemoryPatternRepository(PatternRepository):
     def find_by_category(self, category: str) -> List[Pattern]:
         """Find patterns by category"""
         return [
-            pattern for pattern in self._patterns.values()
+            pattern
+            for pattern in self._patterns.values()
             if pattern.category.value == category
         ]
 
@@ -53,7 +54,7 @@ class InMemoryPatternRepository(PatternRepository):
         limit: int = 10,
         min_similarity: float = 0.0,
         category: Optional[str] = None,
-        include_deprecated: bool = False
+        include_deprecated: bool = False,
     ) -> List[Tuple[Pattern, float]]:
         """
         Search patterns by semantic similarity (in-memory implementation)
@@ -91,7 +92,7 @@ class InMemoryPatternRepository(PatternRepository):
         pattern_id: int,
         limit: int = 10,
         min_similarity: float = 0.5,
-        include_deprecated: bool = False
+        include_deprecated: bool = False,
     ) -> List[Tuple[Pattern, float]]:
         """
         Find patterns similar to a given pattern
@@ -111,14 +112,11 @@ class InMemoryPatternRepository(PatternRepository):
             query_embedding=reference_pattern.embedding,
             limit=limit + 1,  # +1 to account for filtering out self
             min_similarity=min_similarity,
-            include_deprecated=include_deprecated
+            include_deprecated=include_deprecated,
         )
 
         # Filter out the reference pattern itself
-        filtered = [
-            (p, sim) for p, sim in results
-            if p.id != pattern_id
-        ]
+        filtered = [(p, sim) for p, sim in results if p.id != pattern_id]
 
         return filtered[:limit]
 

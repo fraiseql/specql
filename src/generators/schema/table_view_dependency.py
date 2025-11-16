@@ -25,11 +25,17 @@ class TableViewDependencyResolver:
                 if field.is_reference():
                     # Try reference_entity first (new format), then parse type_name (legacy format)
                     ref_entity = field.reference_entity
-                    if not ref_entity and field.type_name.startswith("ref(") and field.type_name.endswith(")"):
+                    if (
+                        not ref_entity
+                        and field.type_name.startswith("ref(")
+                        and field.type_name.endswith(")")
+                    ):
                         # Legacy format: extract from type_name
                         ref_entity = field.type_name[4:-1]
 
-                    if ref_entity and ref_entity != entity.name and ref_entity in graph:  # Not self-reference
+                    if (
+                        ref_entity and ref_entity != entity.name and ref_entity in graph
+                    ):  # Not self-reference
                         # entity depends on ref_entity, so ref_entity has entity as dependent
                         graph[ref_entity].add(entity.name)
 

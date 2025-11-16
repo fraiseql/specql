@@ -115,7 +115,6 @@ Trinity Pattern Helper: Resolves internal pk_{entity_lower} to external UUID.
 entity: {entity.name}
 converts: INTEGER -> UUID';"""
 
-
     def annotate_fulltext_column(self, entity: EntityDefinition) -> str:
         """Generate FraiseQL annotation for full-text search column"""
         entity_lower = entity.name.lower()
@@ -130,7 +129,6 @@ type: String
 description: Full-text search vector (auto-generated from text fields)
 operators: matches, plain_query, phrase_query, websearch_query';
 """
-
 
     def generate_annotations(self, entity: EntityDefinition) -> str:
         """
@@ -164,4 +162,3 @@ operators: matches, plain_query, phrase_query, websearch_query';
         annotations.append(self.annotate_helper_functions(entity))
 
         return "\n\n".join(filter(None, annotations))
-

@@ -32,7 +32,9 @@ def test_return_early_simple():
     entity_def = parser.parse(yaml_content)
     action = entity_def.actions[0]
 
-    early_return_steps = [s for s in action.steps[0].then_steps if s.type == "return_early"]
+    early_return_steps = [
+        s for s in action.steps[0].then_steps if s.type == "return_early"
+    ]
     assert len(early_return_steps) == 1
 
 

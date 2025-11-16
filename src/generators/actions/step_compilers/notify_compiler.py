@@ -78,7 +78,12 @@ class NotifyStepCompiler:
         return recipient, channel, message
 
     def _build_payload(
-        self, recipient: str, channel: str, message: str, entity: EntityDefinition, context: dict
+        self,
+        recipient: str,
+        channel: str,
+        message: str,
+        entity: EntityDefinition,
+        context: dict,
     ) -> str:
         """
         Build JSON payload for the event
@@ -114,6 +119,8 @@ class NotifyStepCompiler:
             payload_parts.extend(["'operation'", f"'{context['operation']}'"])
 
         # Convert to jsonb_build_object call
-        args_str = ", ".join(f"{k}, {v}" for k, v in zip(payload_parts[::2], payload_parts[1::2]))
+        args_str = ", ".join(
+            f"{k}, {v}" for k, v in zip(payload_parts[::2], payload_parts[1::2])
+        )
 
         return f"jsonb_build_object({args_str})"

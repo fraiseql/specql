@@ -6,7 +6,6 @@ from src.cli.interactive.preview_generator import PreviewGenerator
 
 
 class TestPreviewGenerator:
-
     def test_generate_schema_preview(self):
         """Test schema preview generation"""
         yaml_text = """entity: Contact
@@ -40,8 +39,8 @@ fields:
         assert result.success is True
         assert len(result.detected_patterns) >= 1
 
-        pattern_names = {p['name'] for p in result.detected_patterns}
-        assert 'state_machine' in pattern_names
+        pattern_names = {p["name"] for p in result.detected_patterns}
+        assert "state_machine" in pattern_names
 
     def test_error_recovery(self):
         """Test parsing partial/invalid YAML"""

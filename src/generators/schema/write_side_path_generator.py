@@ -57,7 +57,9 @@ class WriteSidePathGenerator(PathGenerator):
             ValueError: If file spec is not for write-side or code format is invalid
         """
         if file_spec.layer != "write_side":
-            raise ValueError(f"WriteSidePathGenerator can only handle write_side files, got {file_spec.layer}")
+            raise ValueError(
+                f"WriteSidePathGenerator can only handle write_side files, got {file_spec.layer}"
+            )
 
         # Accept 6-digit codes only
         if len(file_spec.code) != 6:
@@ -65,6 +67,7 @@ class WriteSidePathGenerator(PathGenerator):
 
         # Parse code using the numbering parser
         from src.numbering.numbering_parser import NumberingParser
+
         parser = NumberingParser()
         components = parser.parse_table_code_detailed(file_spec.code)
 
@@ -75,7 +78,9 @@ class WriteSidePathGenerator(PathGenerator):
 
         # Validate schema layer
         if schema_layer != "01":
-            raise ValueError(f"Invalid schema layer '{schema_layer}' for write-side code (expected '01')")
+            raise ValueError(
+                f"Invalid schema layer '{schema_layer}' for write-side code (expected '01')"
+            )
 
         # Get domain info from registry
         domain_info = self.naming.registry.get_domain(domain_code)
@@ -85,7 +90,9 @@ class WriteSidePathGenerator(PathGenerator):
         # Get subdomain info
         subdomain_info = self.naming.registry.get_subdomain(domain_code, subdomain_code)
         if not subdomain_info:
-            raise ValueError(f"Unknown subdomain code: {subdomain_code} in domain {domain_code}")
+            raise ValueError(
+                f"Unknown subdomain code: {subdomain_code} in domain {domain_code}"
+            )
 
         # Build path components
         domain_name = domain_info.domain_name
@@ -113,10 +120,13 @@ class WriteSidePathGenerator(PathGenerator):
             name_parts = file_spec.name[3:].split("_")  # Split on underscores
             entity_name = name_parts[0]  # First part is entity name
         else:
-            raise ValueError(f"Write-side file name should start with 'tb_' or 'fn_', got: {file_spec.name}")
+            raise ValueError(
+                f"Write-side file name should start with 'tb_' or 'fn_', got: {file_spec.name}"
+            )
 
         # Convert to snake_case for directory name
         from src.generators.naming_utils import camel_to_snake
+
         entity_snake = camel_to_snake(entity_name)
 
         entity_dir_code = f"{subdomain_dir_code}{entity_sequence}"
@@ -126,4 +136,12 @@ class WriteSidePathGenerator(PathGenerator):
         filename = f"{file_spec.code}_{file_spec.name}.sql"
 
         # Combine path
-        return self.base_dir / self.SCHEMA_LAYER_PREFIX / self.WRITE_SIDE_DIR / domain_dir / subdomain_dir / entity_dir / filename
+        return (
+            self.base_dir
+            / self.SCHEMA_LAYER_PREFIX
+            / self.WRITE_SIDE_DIR
+            / domain_dir
+            / subdomain_dir
+            / entity_dir
+            / filename
+        )

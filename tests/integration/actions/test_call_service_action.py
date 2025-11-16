@@ -26,14 +26,18 @@ def test_action_with_call_service_compiles():
         name="stripe",
         type="payment",
         category="financial",
-        operations=[ServiceOperation(name="create_charge", input_schema={}, output_schema={})],
+        operations=[
+            ServiceOperation(name="create_charge", input_schema={}, output_schema={})
+        ],
         execution_type=ExecutionType.HTTP,
         runner_config={},
         security_policy={},
     )
     service_registry = ServiceRegistry(services=[service])
 
-    orchestrator = ActionOrchestrator.from_yaml(yaml_content, service_registry=service_registry)
+    orchestrator = ActionOrchestrator.from_yaml(
+        yaml_content, service_registry=service_registry
+    )
     sql = orchestrator.generate()
 
     # Should include job insertion
@@ -66,14 +70,18 @@ def test_action_with_call_service_retry_config():
         name="stripe",
         type="payment",
         category="financial",
-        operations=[ServiceOperation(name="create_charge", input_schema={}, output_schema={})],
+        operations=[
+            ServiceOperation(name="create_charge", input_schema={}, output_schema={})
+        ],
         execution_type=ExecutionType.HTTP,
         runner_config={},
         security_policy={},
     )
     service_registry = ServiceRegistry(services=[service])
 
-    orchestrator = ActionOrchestrator.from_yaml(yaml_content, service_registry=service_registry)
+    orchestrator = ActionOrchestrator.from_yaml(
+        yaml_content, service_registry=service_registry
+    )
     sql = orchestrator.generate()
 
     # Should include job insertion

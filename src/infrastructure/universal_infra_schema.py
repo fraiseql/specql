@@ -19,6 +19,7 @@ from enum import Enum
 @dataclass
 class CostBreakdown:
     """Detailed cost breakdown by resource type"""
+
     compute_cost: float = 0.0
     database_cost: float = 0.0
     storage_cost: float = 0.0
@@ -35,7 +36,7 @@ class CostBreakdown:
             "network_cost": round(self.network_cost, 2),
             "load_balancer_cost": round(self.load_balancer_cost, 2),
             "monitoring_cost": round(self.monitoring_cost, 2),
-            "total_monthly_cost": round(self.total_monthly_cost, 2)
+            "total_monthly_cost": round(self.total_monthly_cost, 2),
         }
 
 
@@ -43,8 +44,10 @@ class CostBreakdown:
 # Cloud Providers
 # ============================================================================
 
+
 class CloudProvider(str, Enum):
     """Supported cloud providers"""
+
     AWS = "aws"
     GCP = "gcp"
     AZURE = "azure"
@@ -58,9 +61,11 @@ class CloudProvider(str, Enum):
 # Compute Resources
 # ============================================================================
 
+
 @dataclass
 class ComputeConfig:
     """Compute resource configuration"""
+
     instances: int = 1
     cpu: float = 1.0  # CPU cores
     memory: str = "2GB"  # Memory (e.g., "2GB", "4GB")
@@ -82,12 +87,13 @@ class ComputeConfig:
 @dataclass
 class ContainerConfig:
     """Container configuration"""
+
     image: str
     tag: str = "latest"
     port: int = 8000
     environment: Dict[str, str] = field(default_factory=dict)
     secrets: Dict[str, str] = field(default_factory=dict)
-    volumes: List['Volume'] = field(default_factory=list)
+    volumes: List["Volume"] = field(default_factory=list)
 
     # Resource limits
     cpu_limit: Optional[float] = None
@@ -105,8 +111,10 @@ class ContainerConfig:
 # Database Resources
 # ============================================================================
 
+
 class DatabaseType(str, Enum):
     """Supported database types"""
+
     POSTGRESQL = "postgresql"
     MYSQL = "mysql"
     MONGODB = "mongodb"
@@ -117,6 +125,7 @@ class DatabaseType(str, Enum):
 @dataclass
 class DatabaseConfig:
     """Database configuration"""
+
     type: DatabaseType
     version: str  # e.g., "15", "8.0", "7.0"
 
@@ -150,9 +159,11 @@ class DatabaseConfig:
 # Networking
 # ============================================================================
 
+
 @dataclass
 class LoadBalancerConfig:
     """Load balancer configuration"""
+
     enabled: bool = True
     type: Literal["application", "network"] = "application"
 
@@ -176,10 +187,15 @@ class LoadBalancerConfig:
 @dataclass
 class NetworkConfig:
     """Network configuration"""
+
     # VPC/Virtual Network
     vpc_cidr: str = "10.0.0.0/16"
-    public_subnets: List[str] = field(default_factory=lambda: ["10.0.1.0/24", "10.0.2.0/24"])
-    private_subnets: List[str] = field(default_factory=lambda: ["10.0.10.0/24", "10.0.20.0/24"])
+    public_subnets: List[str] = field(
+        default_factory=lambda: ["10.0.1.0/24", "10.0.2.0/24"]
+    )
+    private_subnets: List[str] = field(
+        default_factory=lambda: ["10.0.10.0/24", "10.0.20.0/24"]
+    )
 
     # Internet access
     enable_nat_gateway: bool = True
@@ -193,6 +209,7 @@ class NetworkConfig:
 @dataclass
 class CDNConfig:
     """CDN configuration"""
+
     origin_domain: str
     enabled: bool = False
     price_class: str = "PriceClass_100"  # Geographic distribution
@@ -204,9 +221,11 @@ class CDNConfig:
 # Storage
 # ============================================================================
 
+
 @dataclass
 class Volume:
     """Persistent volume"""
+
     name: str
     size: str  # e.g., "10GB"
     mount_path: str
@@ -216,12 +235,14 @@ class Volume:
 @dataclass
 class ObjectStorageConfig:
     """Object storage (S3, GCS, Azure Blob)"""
-    buckets: List['Bucket'] = field(default_factory=list)
+
+    buckets: List["Bucket"] = field(default_factory=list)
 
 
 @dataclass
 class Bucket:
     """Storage bucket configuration"""
+
     name: str
     versioning: bool = False
     lifecycle_rules: List[Dict[str, Any]] = field(default_factory=list)
@@ -232,6 +253,7 @@ class Bucket:
 # ============================================================================
 # Observability
 # ============================================================================
+
 
 @dataclass
 class ObservabilityConfig:
@@ -252,12 +274,13 @@ class ObservabilityConfig:
     tracing_sample_rate: float = 0.1
 
     # Alerting
-    alerts: List['Alert'] = field(default_factory=list)
+    alerts: List["Alert"] = field(default_factory=list)
 
 
 @dataclass
 class Alert:
     """Alert configuration"""
+
     name: str
     condition: str  # e.g., "cpu > 80%", "error_rate > 1%"
     duration: int = 300  # seconds
@@ -268,12 +291,15 @@ class Alert:
 # Security
 # ============================================================================
 
+
 @dataclass
 class SecurityConfig:
     """Security configuration"""
 
     # Secrets
-    secrets_provider: Literal["aws_secrets", "gcp_secrets", "azure_keyvault", "vault"] = "aws_secrets"
+    secrets_provider: Literal[
+        "aws_secrets", "gcp_secrets", "azure_keyvault", "vault"
+    ] = "aws_secrets"
     secrets: Dict[str, str] = field(default_factory=dict)
 
     # IAM/RBAC
@@ -293,6 +319,7 @@ class SecurityConfig:
 # ============================================================================
 # Bare Metal Support
 # ============================================================================
+
 
 @dataclass
 class BareMetalConfig:
@@ -326,6 +353,7 @@ class BareMetalConfig:
 # Complete Service Definition
 # ============================================================================
 
+
 @dataclass
 class UniversalInfrastructure:
     """
@@ -342,7 +370,9 @@ class UniversalInfrastructure:
     # Service metadata
     name: str
     description: str = ""
-    service_type: Literal["web_app", "api", "worker", "data_pipeline", "ml_service"] = "api"
+    service_type: Literal["web_app", "api", "worker", "data_pipeline", "ml_service"] = (
+        "api"
+    )
 
     # Target platform
     provider: CloudProvider = CloudProvider.AWS
@@ -385,6 +415,7 @@ class UniversalInfrastructure:
         """Convert to Terraform for AWS"""
         try:
             from .generators.terraform_aws_generator import TerraformAWSGenerator
+
             generator = TerraformAWSGenerator()
             return generator.generate(self)
         except ImportError:
@@ -394,6 +425,7 @@ class UniversalInfrastructure:
         """Convert to Terraform for GCP"""
         try:
             from .generators.terraform_gcp_generator import TerraformGCPGenerator
+
             generator = TerraformGCPGenerator()
             return generator.generate(self)
         except ImportError:
@@ -403,6 +435,7 @@ class UniversalInfrastructure:
         """Convert to Terraform for Azure"""
         try:
             from .generators.terraform_azure_generator import TerraformAzureGenerator
+
             generator = TerraformAzureGenerator()
             return generator.generate(self)
         except ImportError:
@@ -412,6 +445,7 @@ class UniversalInfrastructure:
         """Convert to AWS CloudFormation"""
         try:
             from .generators.cloudformation_generator import CloudFormationGenerator
+
             generator = CloudFormationGenerator()
             return generator.generate(self)
         except ImportError:
@@ -421,6 +455,7 @@ class UniversalInfrastructure:
         """Convert to Pulumi Python"""
         try:
             from .generators.pulumi_generator import PulumiGenerator
+
             generator = PulumiGenerator()
             return generator.generate(self)
         except ImportError:
@@ -430,6 +465,7 @@ class UniversalInfrastructure:
         """Convert to Kubernetes manifests"""
         try:
             from .generators.kubernetes_generator import KubernetesGenerator
+
             generator = KubernetesGenerator()
             return generator.generate(self)
         except ImportError:
@@ -439,6 +475,7 @@ class UniversalInfrastructure:
         """Convert to OVHcloud provisioning script"""
         try:
             from .generators.ovhcloud_generator import OVHcloudGenerator
+
             generator = OVHcloudGenerator()
             return generator.generate(self)
         except ImportError:
@@ -448,6 +485,7 @@ class UniversalInfrastructure:
         """Convert to Hetzner provisioning script"""
         try:
             from .generators.hetzner_generator import HetznerGenerator
+
             generator = HetznerGenerator()
             return generator.generate(self)
         except ImportError:
@@ -457,26 +495,28 @@ class UniversalInfrastructure:
         """Convert to Docker Compose"""
         return ""
 
-    def estimate_cost(self) -> 'CostBreakdown':
+    def estimate_cost(self) -> "CostBreakdown":
         """Estimate monthly cost for this infrastructure"""
         from .services.cost_estimation_service import CostEstimationService
+
         service = CostEstimationService()
         return service.estimate_cost(self)
 
-    def get_cost_comparison(self) -> Dict[str, 'CostBreakdown']:
+    def get_cost_comparison(self) -> Dict[str, "CostBreakdown"]:
         """Get cost estimates across all supported providers"""
         from .services.cost_estimation_service import CostEstimationService
+
         service = CostEstimationService()
         return service.get_cost_comparison(self)
 
     @classmethod
-    def from_terraform(cls, tf_content: str) -> 'UniversalInfrastructure':
+    def from_terraform(cls, tf_content: str) -> "UniversalInfrastructure":
         """Reverse engineer from Terraform"""
         # Placeholder implementation
         return cls(name="placeholder")
 
     @classmethod
-    def from_kubernetes(cls, k8s_manifests: str) -> 'UniversalInfrastructure':
+    def from_kubernetes(cls, k8s_manifests: str) -> "UniversalInfrastructure":
         """Reverse engineer from Kubernetes"""
         # Placeholder implementation
         return cls(name="placeholder")

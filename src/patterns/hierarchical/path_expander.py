@@ -2,7 +2,11 @@
 
 from typing import Any
 
-from .utils import build_enriched_cte, build_path_expansion_cte, validate_expander_config
+from .utils import (
+    build_enriched_cte,
+    build_path_expansion_cte,
+    validate_expander_config,
+)
 
 
 def generate_path_expander(config: dict[str, Any]) -> str:
@@ -37,13 +41,17 @@ def generate_path_expander(config: dict[str, Any]) -> str:
 
     # View comment
     sql_parts.append("-- @fraiseql:view")
-    sql_parts.append(f"-- @fraiseql:description Expanded {path_field} paths for {source_entity}")
+    sql_parts.append(
+        f"-- @fraiseql:description Expanded {path_field} paths for {source_entity}"
+    )
     sql_parts.append(f"CREATE OR REPLACE VIEW tenant.{name} AS")
 
     # Add CTEs using utilities
     sql_parts.append(build_path_expansion_cte(source_entity, path_field, pk_field))
     sql_parts.append(
-        build_enriched_cte(expanded_fields, source_entity, path_field, pk_field, max_depth)
+        build_enriched_cte(
+            expanded_fields, source_entity, path_field, pk_field, max_depth
+        )
     )
 
     # Final SELECT

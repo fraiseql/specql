@@ -54,9 +54,7 @@ def test_generate_file_path():
         table_code="013211", entity_name="manufacturer", file_type="table"
     )
 
-    expected = (
-        "01_write_side/013_catalog/0132_manufacturer/01321_manufacturer/013211_tb_manufacturer.sql"
-    )
+    expected = "01_write_side/013_catalog/0132_manufacturer/01321_manufacturer/013211_tb_manufacturer.sql"
     assert path == expected
 
 

@@ -1,7 +1,8 @@
 """Integration test for Week 2 features: aggregate + subquery + call_function"""
 
-
 from src.core.specql_parser import SpecQLParser
+
+
 def test_week2_features_parse_correctly():
     """
     Test that aggregate + subquery + call_function parse correctly
@@ -53,7 +54,9 @@ def test_week2_features_parse_correctly():
     assert len(entity_def.actions) == 1
 
     action = entity_def.actions[0]
-    assert len(action.steps) == 5  # declare + aggregate + subquery + call_function + return
+    assert (
+        len(action.steps) == 5
+    )  # declare + aggregate + subquery + call_function + return
 
     # Check step types
     assert action.steps[0].type == "declare"
@@ -74,7 +77,10 @@ def test_week2_features_parse_correctly():
 
     # Check call_function step
     assert action.steps[3].call_function_name == "ecommerce.calculate_tax"
-    assert action.steps[3].call_function_arguments == {"amount": "$subtotal", "rate": 0.0825}
+    assert action.steps[3].call_function_arguments == {
+        "amount": "$subtotal",
+        "rate": 0.0825,
+    }
     assert action.steps[3].call_function_return_variable == "tax_amount"
 
 
@@ -140,4 +146,7 @@ def test_week2_grouped_aggregate_parsing():
 
     # Check call_function
     assert action.steps[3].type == "call_function"
-    assert action.steps[3].call_function_arguments == {"current_total": "$total_sales", "previous_period": 30}
+    assert action.steps[3].call_function_arguments == {
+        "current_total": "$total_sales",
+        "previous_period": 30,
+    }

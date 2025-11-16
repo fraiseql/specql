@@ -20,6 +20,7 @@ class FileSpec:
 
     Contains all information needed to write a file to the correct location.
     """
+
     code: str  # Table/view code (6-digit for all layers)
     name: str  # File name without extension (e.g., "tb_contact", "tv_contact")
     content: str  # Complete file content
@@ -93,7 +94,9 @@ class HierarchicalFileWriter:
                 written_paths.append(path)
             except Exception as e:
                 logger.error(f"Failed to write file for {file_spec.name}: {e}")
-                raise ValueError(f"File writing failed for {file_spec.name}: {e}") from e
+                raise ValueError(
+                    f"File writing failed for {file_spec.name}: {e}"
+                ) from e
 
         logger.info(f"Successfully processed {len(written_paths)} files")
         return written_paths
@@ -122,14 +125,16 @@ class HierarchicalFileWriter:
 
         # Write file (or simulate in dry-run)
         if self.dry_run:
-            logger.info(f"DRY RUN: Would write {len(file_spec.content)} chars to {path}")
+            logger.info(
+                f"DRY RUN: Would write {len(file_spec.content)} chars to {path}"
+            )
         else:
             try:
                 # Ensure parent directory exists
                 path.parent.mkdir(parents=True, exist_ok=True)
 
                 # Write file
-                with open(path, 'w', encoding='utf-8') as f:
+                with open(path, "w", encoding="utf-8") as f:
                     f.write(file_spec.content)
 
                 logger.debug(f"Written {len(file_spec.content)} chars to {path}")
@@ -159,7 +164,9 @@ class HierarchicalFileWriter:
             raise ValueError("File spec must have content (can be empty string)")
 
         if file_spec.layer not in ["write_side", "read_side", "functions"]:
-            raise ValueError(f"Invalid layer '{file_spec.layer}'. Must be 'write_side', 'read_side', or 'functions'")
+            raise ValueError(
+                f"Invalid layer '{file_spec.layer}'. Must be 'write_side', 'read_side', or 'functions'"
+            )
 
         # Validate code format based on layer (all layers now use 6-digit codes)
         if len(file_spec.code) != 6:

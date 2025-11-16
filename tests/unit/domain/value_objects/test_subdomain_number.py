@@ -1,4 +1,5 @@
 """Tests for SubdomainNumber value object"""
+
 import pytest
 from src.domain.value_objects import SubdomainNumber
 
@@ -68,6 +69,7 @@ class TestSubdomainNumber:
         domain_num = sn.get_parent_domain_number()
 
         from src.domain.value_objects import DomainNumber
+
         assert isinstance(domain_num, DomainNumber)
         assert str(domain_num) == "01"
 

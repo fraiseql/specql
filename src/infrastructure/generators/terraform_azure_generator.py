@@ -7,7 +7,10 @@ Generates Terraform configuration for Microsoft Azure from universal infrastruct
 from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
 from typing import Optional
-from src.infrastructure.universal_infra_schema import UniversalInfrastructure, DatabaseType
+from src.infrastructure.universal_infra_schema import (
+    UniversalInfrastructure,
+    DatabaseType,
+)
 
 
 class TerraformAzureGenerator:
@@ -15,7 +18,11 @@ class TerraformAzureGenerator:
 
     def __init__(self, template_dir: Optional[Path] = None):
         if template_dir is None:
-            template_dir = Path(__file__).parent.parent.parent.parent / "templates" / "infrastructure"
+            template_dir = (
+                Path(__file__).parent.parent.parent.parent
+                / "templates"
+                / "infrastructure"
+            )
 
         self.env = Environment(loader=FileSystemLoader(str(template_dir)))
         self.template = self.env.get_template("terraform_azure.tf.j2")
@@ -31,7 +38,7 @@ class TerraformAzureGenerator:
             infrastructure=infrastructure,
             _map_instance_type=self._map_instance_type,
             _map_database_engine=self._map_database_engine,
-            _map_region=self._map_region
+            _map_region=self._map_region,
         )
 
     def _map_instance_type(self, compute_config) -> str:
@@ -40,7 +47,11 @@ class TerraformAzureGenerator:
             return compute_config.instance_type
 
         cpu = compute_config.cpu
-        memory_gb = int(compute_config.memory.replace("GB", "").replace("MB", "")) / 1000 if "MB" in compute_config.memory else int(compute_config.memory.replace("GB", ""))
+        memory_gb = (
+            int(compute_config.memory.replace("GB", "").replace("MB", "")) / 1000
+            if "MB" in compute_config.memory
+            else int(compute_config.memory.replace("GB", ""))
+        )
 
         if cpu <= 1 and memory_gb <= 2:
             return "Standard_B1s"
