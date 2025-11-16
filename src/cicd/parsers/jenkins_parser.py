@@ -5,7 +5,7 @@ Reverse engineers Jenkinsfile (Groovy DSL) to universal pipeline format.
 """
 
 import re
-from typing import Dict, List
+from typing import Dict, List, Optional
 from src.cicd.universal_pipeline_schema import (
     UniversalPipeline,
     Trigger,
@@ -212,7 +212,7 @@ class JenkinsParser:
 
         return StepType.RUN
 
-    def _detect_runtime(self, content: str) -> Runtime:
+    def _detect_runtime(self, content: str) -> Optional[Runtime]:
         """Detect runtime from stage content"""
         # Look for agent specification
         agent_match = re.search(r"agent\s*\{(.*?)\}", content, re.DOTALL)
@@ -258,7 +258,7 @@ class JenkinsParser:
             conditions = ["always", "success", "failure", "unstable", "changed"]
             for condition in conditions:
                 condition_match = re.search(
-                    f"{condition}\s*{{(.*?)}}", post_content, re.DOTALL
+                    rf"{condition}\s*{{(.*?)}}", post_content, re.DOTALL
                 )
                 if condition_match:
                     condition_content = condition_match.group(1)

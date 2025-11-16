@@ -112,7 +112,7 @@ class SchemaAnalyzer:
         """Merge metadata from multiple sources"""
 
         # Create organization dict
-        organization = {}
+        organization: Dict[str, Any] = {}
 
         # From file path
         if path_meta:

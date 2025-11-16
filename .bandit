@@ -1,0 +1,22 @@
+[bandit]
+# Exclude test files
+exclude_dirs = [
+    "/tests",
+    "/test",
+    "*/test_*.py"
+]
+
+# Skip specific tests that are false positives for code generators
+skips = []
+
+# For code generators, SQL injection warnings are false positives
+[bandit.plugins]
+# Configure B608 (SQL injection) to ignore generator files
+B608.exclude = ["**/generators/**", "**/adapters/**"]
+
+# Treat these as low severity for code generation
+[bandit.B608]
+exclude = [
+    "src/generators/**/*.py",
+    "src/adapters/**/*.py"
+]

@@ -1,7 +1,7 @@
 """Security utilities for permission validation and RLS generation."""
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, List
 
 
 @dataclass
@@ -37,8 +37,8 @@ class PermissionChecker:
         self, checks: list[dict[str, Any]]
     ) -> ValidationResult:
         """Ensure permission checks are secure and well-formed."""
-        errors = []
-        warnings = []
+        errors: List[str] = []
+        warnings: List[str] = []
 
         if not checks:
             errors.append("At least one permission check required")

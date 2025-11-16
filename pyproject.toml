@@ -116,6 +116,10 @@ dev = [
     "black>=23.0.0",
     "numpy>=1.24.0",     # Required by pattern tests
     "graphviz>=0.21",    # Required by diagram tests
+    # Type stubs for MyPy
+    "types-PyYAML>=6.0.12",
+    "types-networkx>=3.0.0",
+    "types-docker>=7.0.0",
 ]
 
 # All optional features

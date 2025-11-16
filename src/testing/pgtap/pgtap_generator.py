@@ -2,7 +2,7 @@
 
 import json
 from datetime import datetime
-from typing import Any
+from typing import Any, Dict
 
 
 class PgTAPGenerator:
@@ -76,7 +76,7 @@ ROLLBACK;
         schema = entity_config["schema_name"]
 
         # Build sample input JSON from field mappings
-        input_fields = {}
+        input_fields: Dict[str, Any] = {}
         for field in field_mappings:
             if field.get("generator_type") in ("random", "fixed"):
                 field_name = field["field_name"]

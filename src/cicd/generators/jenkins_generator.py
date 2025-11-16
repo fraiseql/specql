@@ -4,6 +4,7 @@ Jenkins Generator
 Converts universal pipeline format to Jenkinsfile (Groovy DSL).
 """
 
+from typing import Optional
 from src.cicd.universal_pipeline_schema import UniversalPipeline, Step
 
 
@@ -93,7 +94,7 @@ class JenkinsGenerator:
         lines.append("        }")
         return lines
 
-    def _generate_step(self, step: Step) -> str:
+    def _generate_step(self, step: Step) -> Optional[str]:
         """Generate a single step"""
         if step.command:
             return f"sh '{step.command}'"

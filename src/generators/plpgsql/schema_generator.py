@@ -5,7 +5,7 @@ Generates PostgreSQL DDL from UniversalEntity objects.
 Used for round-trip testing to validate parser accuracy.
 """
 
-from typing import List
+from typing import List, Dict
 from src.core.universal_ast import UniversalEntity, UniversalField, FieldType
 
 
@@ -25,7 +25,7 @@ class SchemaGenerator:
         ddl_parts = []
 
         # Group entities by schema
-        schemas = {}
+        schemas: Dict[str, List[UniversalEntity]] = {}
         for entity in entities:
             if entity.schema not in schemas:
                 schemas[entity.schema] = []

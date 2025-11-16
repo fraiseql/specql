@@ -5,7 +5,7 @@ Reverse engineers CircleCI config.yml to universal pipeline format.
 """
 
 import yaml
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from src.cicd.universal_pipeline_schema import (
     UniversalPipeline,
     Trigger,
@@ -260,7 +260,7 @@ class CircleCIParser:
 
         return services
 
-    def _detect_runtime(self, job_config: Dict[str, Any]) -> Runtime:
+    def _detect_runtime(self, job_config: Dict[str, Any]) -> Optional[Runtime]:
         """Detect runtime from Docker image"""
         docker_config = job_config.get("docker", [])
         if not docker_config:

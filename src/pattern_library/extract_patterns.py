@@ -84,7 +84,7 @@ def categorize_patterns(
     patterns: List[Dict[str, str]],
 ) -> Dict[str, List[Dict[str, str]]]:
     """Categorize patterns by type"""
-    categories = {
+    categories: Dict[str, List[Dict[str, str]]] = {
         "primitive": [],
         "control_flow": [],
         "query": [],

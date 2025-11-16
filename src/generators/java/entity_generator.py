@@ -15,9 +15,7 @@ class JavaEntityGenerator:
     def generate(self, entity: UniversalEntity) -> str:
         """Generate complete Java entity class"""
         self.current_entity = entity  # Store for use in other methods
-        lines = []
-        """Generate complete Java entity class"""
-        lines = []
+        lines: List[str] = []
 
         # Package declaration
         lines.append(f"package {entity.schema};")

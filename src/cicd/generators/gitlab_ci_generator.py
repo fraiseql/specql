@@ -4,7 +4,7 @@ GitLab CI Generator
 Converts universal pipeline format to GitLab CI YAML.
 """
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
 from typing import Optional
 from src.cicd.universal_pipeline_schema import UniversalPipeline
@@ -19,7 +19,10 @@ class GitLabCIGenerator:
                 Path(__file__).parent.parent.parent.parent / "templates" / "cicd"
             )
 
-        self.env = Environment(loader=FileSystemLoader(str(template_dir)))
+        self.env = Environment(
+            loader=FileSystemLoader(str(template_dir)),
+            autoescape=select_autoescape(["html", "xml", "j2", "yml", "yaml"]),
+        )
         self.template = self.env.get_template("gitlab_ci.yml.j2")
 
     def generate(self, pipeline: UniversalPipeline) -> str:

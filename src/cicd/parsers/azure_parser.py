@@ -5,7 +5,7 @@ Reverse engineers Azure DevOps azure-pipelines.yml to universal pipeline format.
 """
 
 import yaml
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from src.cicd.universal_pipeline_schema import (
     UniversalPipeline,
     Trigger,
@@ -130,7 +130,7 @@ class AzureParser:
 
         return StepType.RUN
 
-    def _detect_runtime(self, job_config: Dict[str, Any]) -> Runtime:
+    def _detect_runtime(self, job_config: Dict[str, Any]) -> Optional[Runtime]:
         """Detect runtime from job configuration"""
         pool_config = job_config.get("pool", {})
         vm_image = pool_config.get("vmImage", "")

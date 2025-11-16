@@ -4,7 +4,7 @@ GitHub Actions Generator
 Converts universal pipeline format to GitHub Actions YAML.
 """
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
 from typing import Optional
 from src.cicd.universal_pipeline_schema import UniversalPipeline, Step, StepType
@@ -19,7 +19,10 @@ class GitHubActionsGenerator:
                 Path(__file__).parent.parent.parent.parent / "templates" / "cicd"
             )
 
-        self.env = Environment(loader=FileSystemLoader(str(template_dir)))
+        self.env = Environment(
+            loader=FileSystemLoader(str(template_dir)),
+            autoescape=select_autoescape(["html", "xml", "j2", "yml", "yaml"]),
+        )
         self.template = self.env.get_template("github_actions.yml.j2")
 
         # Add custom filter for step rendering

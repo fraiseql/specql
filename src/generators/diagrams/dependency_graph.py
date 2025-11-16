@@ -93,7 +93,7 @@ class DependencyGraph:
 
     def get_entities_by_schema(self) -> Dict[str, List[str]]:
         """Group entities by schema (for clustering in diagram)"""
-        schemas = {}
+        schemas: Dict[str, List[str]] = {}
 
         for node, data in self.graph.nodes(data=True):
             schema = data.get("schema", "public")

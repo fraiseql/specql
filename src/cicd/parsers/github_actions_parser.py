@@ -174,7 +174,7 @@ class GitHubActionsParser:
 
         return services
 
-    def _detect_runtime(self, job_config: Dict[str, Any]) -> Runtime:
+    def _detect_runtime(self, job_config: Dict[str, Any]) -> Optional[Runtime]:
         """Detect runtime from steps"""
         steps = job_config.get("steps", [])
 
