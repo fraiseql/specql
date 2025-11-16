@@ -6,7 +6,7 @@ Tests DDL → SpecQL entity parsing performance.
 
 import pytest
 import time
-import psycopg2
+import psycopg
 from pathlib import Path
 from typing import List, Tuple
 
@@ -46,7 +46,7 @@ class ParsingPerformanceTest:
             ddl = dataset_path.read_text()
 
             # Apply DDL to database
-            with psycopg2.connect(f"postgresql://localhost/{db_name}") as conn:
+            with psycopg.connect(f"postgresql://localhost/{db_name}") as conn:
                 execute_sql(conn, ddl)
                 conn.commit()
 

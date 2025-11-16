@@ -6,8 +6,7 @@ vs equivalent manual implementations.
 """
 
 import time
-import psycopg2
-import psycopg2.extras
+import psycopg
 from dataclasses import dataclass
 from typing import List, Any, Optional
 
@@ -46,7 +45,7 @@ class PerformanceBenchmarker:
 
     def connect_db(self):
         """Create database connection"""
-        return psycopg2.connect(self.conn_string)
+        return psycopg.connect(self.conn_string)
 
     def execute_query_multiple_times(
         self, conn, query: str, params: List[Any], count: int

@@ -49,29 +49,16 @@ classifiers = [
 ]
 
 dependencies = [
-    "pyyaml>=6.0",
-    "jinja2>=3.1.2",
-    "click>=8.1.0",
-    "rich>=13.0.0",
-    "psycopg2-binary>=2.9.0",
-    "psycopg[binary]>=3.1.0",
-    "fraiseql-confiture>=0.3.0",
-    "networkx>=3.0",
-    "httpx>=0.25.0",
-    "docker>=7.0.0",
-    "pglast>=6.0",
-    "pgvector>=0.2.0",
-    "sentence-transformers>=5.1.2",
-    "numpy>=1.24.0",
-    "textual>=6.6.0",
-    "pygments>=2.19.2",
-    "watchdog>=6.0.0",
-    "graphviz>=0.21",
-    "python-hcl2>=7.3.1",
-    "py4j>=0.10.9",
-    "fraiseql>=0.5.3",
-    "pytest-cov>=7.0.0",
-    "faker>=38.0.0",
+    # Core dependencies (essential for basic code generation)
+    "pyyaml>=6.0",           # YAML parsing
+    "jinja2>=3.1.2",         # Template engine
+    "click>=8.1.0",          # CLI framework
+    "rich>=13.0.0",          # Terminal formatting
+    "psycopg[binary]>=3.1.0", # PostgreSQL driver
+    "fraiseql-confiture>=0.3.0", # Configuration
+    "fraiseql>=0.5.3",       # Core library
+    "httpx>=0.25.0",         # HTTP client (for runners & embeddings)
+    "pglast>=6.0",           # SQL parsing
 ]
 
 [project.urls]
@@ -83,29 +70,57 @@ Changelog = "https://github.com/fraiseql/specql/blob/main/CHANGELOG.md"
 "Getting Started" = "https://github.com/fraiseql/specql/blob/main/docs/00_getting_started/QUICKSTART.md"
 
 [project.optional-dependencies]
-patterns = [
-    "psycopg[binary]>=3.1.0",      # PostgreSQL driver
-    "pgvector>=0.2.0",              # pgvector integration
-    "sentence-transformers>=2.2.0", # Embeddings (CPU-friendly)
-    "numpy>=1.24.0",                # Math operations
-    "rich>=13.0.0",                 # CLI formatting
+# Diagram generation
+diagrams = [
+    "networkx>=3.0",     # Dependency graph analysis
+    "graphviz>=0.21",    # Graphviz DOT rendering
 ]
 
+# Pattern embeddings and vector support
+patterns = [
+    "pgvector>=0.2.0",   # PostgreSQL vector extension
+    "numpy>=1.24.0",     # Math operations for embeddings
+]
+
+# Interactive TUI interface
+interactive = [
+    "textual>=6.6.0",    # TUI framework
+    "pygments>=2.19.2",  # Syntax highlighting
+]
+
+# Infrastructure runners
+runners = [
+    "docker>=7.0.0",     # Docker container execution
+]
+
+# Reverse engineering
+reverse = [
+    "py4j>=0.10.9",      # Java/JDT bridge (requires JDK 11+)
+    "python-hcl2>=7.3.1", # Terraform HCL parsing
+]
+
+# Test data generation
+testing = [
+    "faker>=38.0.0",     # Fake data generation
+]
+
+# Development tools
 dev = [
     "pytest>=7.4.0",
-    "pytest-cov>=4.1.0",
+    "pytest-cov>=7.0.0",
     "pytest-asyncio>=0.23.0",
     "pytest-faker>=2.0.0",
     "pytest-benchmark>=4.0.0",
     "ruff>=0.1.0",
     "mypy>=1.5.0",
     "black>=23.0.0",
+    "numpy>=1.24.0",     # Required by pattern tests
+    "graphviz>=0.21",    # Required by diagram tests
 ]
 
-# Java reverse engineering requires JDK 11+ and Eclipse JDT
-# See docs/JAVA_SETUP.md for installation instructions
-java = [
-    "py4j>=0.10.9",  # Already in main dependencies
+# All optional features
+all = [
+    "specql-generator[diagrams,patterns,interactive,runners,reverse,testing]",
 ]
 
 [project.scripts]
