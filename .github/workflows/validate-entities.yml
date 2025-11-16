@@ -1,0 +1,46 @@
+name: Validate SpecQL Entities
+
+on:
+  push:
+    paths:
+      - 'entities/**/*.yaml'
+      - 'examples/**/*.yaml'
+  pull_request:
+    paths:
+      - 'entities/**/*.yaml'
+      - 'examples/**/*.yaml'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install SpecQL
+        run: |
+          pip install --upgrade pip
+          pip install specql-generator
+
+      - name: Validate entities (if exist)
+        if: hashFiles('entities/**/*.yaml') != ''
+        run: |
+          specql validate entities/**/*.yaml --strict --format json --output validation.json
+
+      - name: Validate examples (if exist)
+        if: hashFiles('examples/**/*.yaml') != ''
+        run: |
+          specql validate examples/**/*.yaml --strict
+
+      - name: Upload validation results
+        if: always()
+        uses: actions/upload-artifact@v3
+        with:
+          name: validation-results
+          path: validation.json

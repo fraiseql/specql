@@ -152,6 +152,44 @@ specql generate entities/examples/contact_lightweight.yaml --dry-run
 
 **Troubleshooting**: See [Installation Guide](docs/00_getting_started/INSTALLATION.md)
 
+## CLI Commands
+
+SpecQL provides a comprehensive CLI for all development workflows:
+
+### `specql init` - Project Scaffolding
+Create new projects from templates:
+```bash
+specql init blog myblog        # Blog platform (Post, Author, Comment)
+specql init minimal myproject  # Single entity example
+```
+
+### `specql generate` - Code Generation
+Generate multi-language code from YAML:
+```bash
+specql generate entities/*.yaml                    # All languages
+specql generate contact.yaml --target postgresql  # PostgreSQL only
+specql generate entities/ --dry-run               # Preview without writing
+```
+
+### `specql validate` - Pre-flight Validation
+Validate entities before generation:
+```bash
+specql validate entities/*.yaml           # Basic validation
+specql validate entities/ --strict        # Fail on warnings
+specql validate entities/ --format json   # JSON output for CI
+```
+
+### `specql examples` - Built-in Examples
+Learn from working examples:
+```bash
+specql examples --list                    # List all examples
+specql examples with-actions             # Show specific example
+specql examples blog-post > post.yaml    # Save to file
+```
+
+### Complete Command Reference
+See [CLI Commands Reference](docs/02_guides/CLI_COMMANDS.md) for all options and examples.
+
 ## Architecture
 
 ![SpecQL Architecture](docs/04_architecture/diagrams/high_level_overview.png)
