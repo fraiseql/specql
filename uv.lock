@@ -2218,6 +2218,7 @@ source = { editable = "." }
 dependencies = [
     { name = "click" },
     { name = "docker" },
+    { name = "faker" },
     { name = "fraiseql", version = "0.5.3", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.13'" },
     { name = "fraiseql", version = "1.5.0", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.13'" },
     { name = "fraiseql-confiture" },
@@ -2265,6 +2266,7 @@ patterns = [
 
 [package.dev-dependencies]
 dev = [
+    { name = "mypy" },
     { name = "psutil" },
     { name = "pytest-benchmark" },
 ]
@@ -2274,6 +2276,7 @@ requires-dist = [
     { name = "black", marker = "extra == 'dev'", specifier = ">=23.0.0" },
     { name = "click", specifier = ">=8.1.0" },
     { name = "docker", specifier = ">=7.0.0" },
+    { name = "faker", specifier = ">=38.0.0" },
     { name = "fraiseql", specifier = ">=0.5.3" },
     { name = "fraiseql-confiture", specifier = ">=0.3.0" },
     { name = "graphviz", specifier = ">=0.21" },
@@ -2312,6 +2315,7 @@ provides-extras = ["patterns", "dev", "java"]
 
 [package.metadata.requires-dev]
 dev = [
+    { name = "mypy", specifier = ">=1.18.2" },
     { name = "psutil", specifier = ">=7.1.3" },
     { name = "pytest-benchmark", specifier = ">=5.2.3" },
 ]

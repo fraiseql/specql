@@ -1,5 +1,0 @@
-entity: Contact
-schema: crm
-fields:
-  name: text
-  email: email

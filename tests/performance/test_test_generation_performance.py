@@ -1,6 +1,5 @@
 """Performance tests for test generation."""
 
-import pytest
 import time
 from pathlib import Path
 import tempfile
@@ -34,7 +33,7 @@ actions:
 
             start = time.time()
 
-            result = subprocess.run(
+            subprocess.run(
                 [
                     "python",
                     "-m",
@@ -74,7 +73,7 @@ fields:
 
             start = time.time()
 
-            result = subprocess.run(
+            subprocess.run(
                 ["python", "-m", "src.cli.confiture_extensions", "generate-tests"]
                 + list(entity_dir.glob("*.yaml"))
                 + ["-o", str(tmp_path / "tests")],

@@ -390,9 +390,6 @@ class TestPytestGenerator:
         assert '"""Integration tests for Contact entity"""' in code
         # Should have proper indentation
         lines = code.split("\n")
-        class_line = next(
-            i for i, line in enumerate(lines) if line.startswith("class ")
-        )
         # Methods should be indented
         method_lines = [
             i for i, line in enumerate(lines) if line.strip().startswith("def test_")

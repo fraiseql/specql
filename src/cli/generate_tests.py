@@ -9,7 +9,7 @@ Usage:
 
 import click
 from pathlib import Path
-from typing import List, Optional
+from typing import List
 import yaml
 
 from src.core.specql_parser import SpecQLParser
@@ -65,14 +65,16 @@ def _generate_tests_core(
             # Parse with SpecQL parser
             try:
                 entity = parser.parse(entity_content)
-            except Exception as parse_error:
+            except Exception:
                 # Try as dict
                 entity_dict = yaml.safe_load(entity_content)
                 entity = entity_dict  # We'll use dict directly
 
             # Ensure entity is a dict for compatibility
             if not isinstance(entity, dict):
-                entity = {"entity": str(entity)}
+                entity_name = getattr(entity, "name", "Unknown")
+                entity_schema = getattr(entity, "schema", "public")
+                entity = {"entity": entity_name, "schema": entity_schema}
 
             # Extract entity config
             entity_config = _build_entity_config(entity, entity_file)
@@ -223,7 +225,25 @@ def _build_entity_config(entity, entity_file: Path) -> dict:
         entity_name = entity.get("entity", entity_file.stem.capitalize())
         schema_name = entity.get("schema", "public")
     else:
-        entity_name = getattr(entity, "name", entity_file.stem.capitalize())
+        # For EntityDefinition and similar objects, try to extract name safely
+        if hasattr(entity, "__dict__") and "name" in entity.__dict__:
+            # Access dataclass field directly to avoid property overrides
+            name_value = entity.__dict__["name"]
+        else:
+            name_value = getattr(entity, "name", entity_file.stem.capitalize())
+
+        # Ensure name_value is a string
+        if isinstance(name_value, str):
+            entity_name = name_value
+        else:
+            # If name_value is not a string, try to extract name from it
+            if hasattr(name_value, "__dict__") and "name" in name_value.__dict__:
+                entity_name = name_value.__dict__["name"]
+            elif hasattr(name_value, "name") and isinstance(name_value.name, str):
+                entity_name = name_value.name
+            else:
+                entity_name = str(name_value)
+
         schema_name = getattr(entity, "schema", "public")
 
     table_name = f"tb_{entity_name.lower()}"
@@ -248,6 +268,14 @@ def _generate_pgtap_tests(
 ) -> List[dict]:
     """Generate pgTAP test files."""
     entity_name = entity_config["entity_name"]
+    # Ensure entity_name is a string (handle case where it might be the entity object)
+    if not isinstance(entity_name, str):
+        if hasattr(entity_name, "name") and isinstance(
+            getattr(entity_name, "name", None), str
+        ):
+            entity_name = entity_name.name
+        else:
+            entity_name = str(entity_name)
     generated = []
 
     # 1. Structure tests
@@ -318,6 +346,14 @@ def _generate_pytest_tests(
 ) -> List[dict]:
     """Generate pytest test files."""
     entity_name = entity_config["entity_name"]
+    # Ensure entity_name is a string (handle case where it might be the entity object)
+    if not isinstance(entity_name, str):
+        if hasattr(entity_name, "name") and isinstance(
+            getattr(entity_name, "name", None), str
+        ):
+            entity_name = entity_name.name
+        else:
+            entity_name = str(entity_name)
     generated = []
 
     # Integration tests

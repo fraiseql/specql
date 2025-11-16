@@ -1,6 +1,5 @@
 """Test --dry-run flag functionality."""
 
-import pytest
 from click.testing import CliRunner
 from src.cli.confiture_extensions import specql
 import tempfile

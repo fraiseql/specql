@@ -1,6 +1,5 @@
 """Comprehensive integration tests for test generation workflows."""
 
-import pytest
 import subprocess
 from pathlib import Path
 import tempfile
