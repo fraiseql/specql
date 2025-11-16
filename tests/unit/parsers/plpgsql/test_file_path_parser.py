@@ -2,7 +2,7 @@
 
 import pytest
 from pathlib import Path
-from src.parsers.plpgsql.file_path_parser import FilePathParser, FilePathMetadata
+from src.parsers.plpgsql.file_path_parser import FilePathParser
 
 
 class TestFilePathParser:

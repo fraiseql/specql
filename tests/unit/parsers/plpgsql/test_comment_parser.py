@@ -1,7 +1,7 @@
 """Unit tests for CommentParser"""
 
 import pytest
-from src.parsers.plpgsql.comment_parser import CommentParser, CommentMetadata
+from src.parsers.plpgsql.comment_parser import CommentParser
 
 
 class TestCommentParser:
