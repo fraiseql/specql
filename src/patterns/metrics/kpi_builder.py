@@ -39,9 +39,10 @@ class KPIBuilder:
 
         conditions.append("ELSE 'OK'")
 
+        conditions_str = "\n            ".join(conditions)
         return f"""
         CASE
-            {"\n            ".join(conditions)}
+            {conditions_str}
         END AS {metric["name"]}_status
         """
 

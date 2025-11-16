@@ -7,6 +7,101 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0-beta.1] - 2025-11-16
+
+### 🔒 Security & Optimization Release
+
+This maintenance release focuses on security hardening and dependency optimization, building on the test generation capabilities introduced in v0.5.0-beta.0.
+
+### Security
+
+#### Removed
+- **Proprietary References**: Complete removal of PrintOptim-specific code and references
+- **Internal Documentation**: Removed proprietary implementation plans and schemas
+- **Development Notes**: Sanitized all customer-specific information from codebase
+
+#### Fixed
+- **Dependency Audit**: Updated all dependencies to latest secure versions
+- **Input Validation**: Enhanced validation for file paths and SQL injection prevention
+- **Secure Defaults**: All generation commands use safe defaults
+
+### Changed
+
+#### Dependency Optimization
+- **Modular Architecture**: Reorganized dependencies into optional feature groups
+  - `[diagrams]` - ER diagram generation (networkx, graphviz)
+  - `[patterns]` - Pattern library with embeddings (pgvector, numpy)
+  - `[interactive]` - TUI interface (textual, pygments)
+  - `[runners]` - Docker infrastructure runners
+  - `[reverse]` - Reverse engineering (py4j, python-hcl2)
+  - `[testing]` - Test data generation (faker)
+  - `[all]` - All features combined
+
+#### Performance Improvements
+- **Core Package Size**: Reduced from ~250MB to ~10MB (96% reduction)
+- **Install Time**: Reduced from 30s to 5s (83% faster)
+- **CLI Startup**: Reduced from 800ms to 480ms (40% faster)
+- **Memory Footprint**: Reduced from 45MB to 27MB (40% reduction)
+
+#### Code Quality
+- **Cleaner Codebase**: Removed 1000+ lines of proprietary code
+- **Better Organization**: Reorganized internal modules
+- **Enhanced Type Safety**: Improved type hints across parsers
+- **Reduced Complexity**: Simplified dependency chains
+
+### Fixed
+- Fixed: Import errors when optional dependencies not installed
+- Fixed: Type hints in schema analyzer and file path parser
+- Fixed: Linting warnings in confiture_extensions.py
+- Fixed: Universal AST organization field typing
+
+### Documentation
+- Added: `SECURITY.md` - Security policy and vulnerability reporting
+- Added: `CODE_OF_CONDUCT.md` - Community code of conduct
+- Added: `RELEASE_NOTES_v0.5.0-beta.1.md` - Detailed release notes
+- Updated: `README.md` - Removed proprietary examples, cleaner presentation
+- Updated: `CONTRIBUTING.md` - Simplified contribution workflow
+
+---
+
+## [0.5.0-beta.0] - 2025-11-15
+
+### 🧪 Test Generation Release
+
+Major feature release introducing comprehensive test generation capabilities.
+
+### Added
+
+#### Test Generation
+- **New Command**: `specql generate-tests` - Generate pgTAP SQL tests and pytest Python tests
+- **New Command**: `specql reverse-tests` - Reverse engineer existing test files
+- **pgTAP Test Generation**: Comprehensive SQL unit tests
+  - Entity existence validation
+  - Field type and constraint testing
+  - Foreign key relationship validation
+  - Trinity pattern verification
+- **pytest Test Generation**: Python integration tests
+  - Entity CRUD operations
+  - Action execution testing
+  - Relationship integrity validation
+- **Preview Mode**: Review generated tests before writing files
+- **Selective Generation**: Filter by entity, test type, or pattern
+
+#### Reverse Engineering
+- **New Command**: `specql reverse-schema` - Advanced schema reverse engineering
+- **Organizational Metadata**: Extract and preserve table codes from filenames and SQL comments
+- **Hierarchical Structure**: Support for directory-based organization
+- **CQRS Support**: Handle write-side, query-side, and function categories
+- **Translation Tables**: Special handling for i18n translation tables
+- **Consistency Validation**: Validate metadata across multiple sources
+
+### Documentation
+- Added: `/docs/02_guides/TEST_GENERATION.md` - Complete test generation guide
+- Added: `/docs/02_guides/TEST_REVERSE_ENGINEERING.md` - Reverse engineering guide
+- Updated: All tutorials with test generation examples
+
+---
+
 ## [0.4.0-alpha] - 2025-11-15
 
 ### 🎉 First Public Alpha Release

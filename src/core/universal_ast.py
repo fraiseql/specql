@@ -84,6 +84,18 @@ class UniversalEntity:
     # Metadata
     description: Optional[str] = None
 
+    # NEW: Organizational metadata (for reverse engineering)
+    organization: Optional[Dict[str, Any]] = None
+    # Structure:
+    # {
+    #   'table_code': '010111',
+    #   'category': 'write_side',
+    #   'domain_path': ['i18n', 'locale', 'language'],
+    #   'domain_hierarchy': ['Write-Side', 'Common', 'Locale', 'Language'],
+    #   'file_path': '01_write_side/010_i18n/.../010111_tb_language.sql',
+    #   'table_type': 'tb'
+    # }
+
 
 @dataclass
 class UniversalStep:

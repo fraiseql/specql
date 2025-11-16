@@ -137,9 +137,12 @@ def seed_initial_data(library: PatternLibrary):
     print(f"  - Languages: {len(library.get_all_languages())}")
     print(f"  - Patterns: {len(library.get_all_patterns())}")
     print("  - Universal types: 8")
-    print(f"  - PostgreSQL implementations: {len([impl for impl in library.db.execute('SELECT * FROM pattern_implementations WHERE language_id = (SELECT language_id FROM languages WHERE language_name = \"postgresql\")').fetchall()])}")
-    print(f"  - Django implementations: {len([impl for impl in library.db.execute('SELECT * FROM pattern_implementations WHERE language_id = (SELECT language_id FROM languages WHERE language_name = \"python_django\")').fetchall()])}")
-    print(f"  - SQLAlchemy implementations: {len([impl for impl in library.db.execute('SELECT * FROM pattern_implementations WHERE language_id = (SELECT language_id FROM languages WHERE language_name = \"python_sqlalchemy\")').fetchall()])}")
+    pg_query = 'SELECT * FROM pattern_implementations WHERE language_id = (SELECT language_id FROM languages WHERE language_name = "postgresql")'
+    django_query = 'SELECT * FROM pattern_implementations WHERE language_id = (SELECT language_id FROM languages WHERE language_name = "python_django")'
+    sqlalchemy_query = 'SELECT * FROM pattern_implementations WHERE language_id = (SELECT language_id FROM languages WHERE language_name = "python_sqlalchemy")'
+    print(f"  - PostgreSQL implementations: {len(library.db.execute(pg_query).fetchall())}")
+    print(f"  - Django implementations: {len(library.db.execute(django_query).fetchall())}")
+    print(f"  - SQLAlchemy implementations: {len(library.db.execute(sqlalchemy_query).fetchall())}")
 
 
 if __name__ == "__main__":

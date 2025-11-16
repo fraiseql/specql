@@ -896,9 +896,11 @@ specql.add_command(templates)
 # Interactive CLI
 from src.cli.interactive import interactive
 from src.cli.commands.examples import examples
+from src.cli.commands.reverse_schema import reverse_schema
 
 specql.add_command(interactive)
 specql.add_command(examples)
+specql.add_command(reverse_schema, name="reverse-schema")
 
 # Diagram generation
 from src.cli.diagram import diagram

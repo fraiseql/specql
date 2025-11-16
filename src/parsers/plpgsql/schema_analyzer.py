@@ -5,12 +5,20 @@ Parse CREATE TABLE DDL to UniversalEntity.
 """
 
 import re
+import warnings
+from pathlib import Path
 from typing import List, Dict, Any, Optional, Tuple
 from src.core.universal_ast import UniversalEntity, UniversalField
+from .file_path_parser import FilePathParser, FilePathMetadata
+from .comment_parser import CommentParser, CommentMetadata
 
 
 class SchemaAnalyzer:
     """Analyze PostgreSQL DDL schemas"""
+
+    def __init__(self):
+        self.file_path_parser = FilePathParser()
+        self.comment_parser = CommentParser()
 
     def extract_create_table_statements(self, ddl: str) -> List[str]:
         """
@@ -61,6 +69,92 @@ class SchemaAnalyzer:
 
         return entity
 
+    def parse_create_table_with_metadata(
+        self,
+        ddl: str,
+        file_path: Optional[Path] = None,
+        root_dir: Optional[Path] = None,
+    ) -> UniversalEntity:
+        """
+        Parse CREATE TABLE with full organizational metadata
+
+        Args:
+            ddl: CREATE TABLE statement
+            file_path: Path to SQL file (optional)
+            root_dir: Root directory for relative path calculation (optional)
+
+        Returns:
+            UniversalEntity with organization metadata
+        """
+
+        # 1. Parse basic table structure (existing logic)
+        entity = self.parse_create_table(ddl)
+
+        # 2. Extract COMMENT metadata
+        comment_meta = self.comment_parser.extract_comment_metadata(ddl)
+
+        # 3. Extract file path metadata
+        path_meta = None
+        if file_path and root_dir:
+            path_meta = self.file_path_parser.parse_path(file_path, root_dir)
+
+        # 4. Merge metadata into entity
+        entity = self._enrich_entity_with_metadata(entity, comment_meta, path_meta)
+
+        return entity
+
+    def _enrich_entity_with_metadata(
+        self,
+        entity: UniversalEntity,
+        comment_meta: Optional[CommentMetadata],
+        path_meta: Optional[FilePathMetadata],
+    ) -> UniversalEntity:
+        """Merge metadata from multiple sources"""
+
+        # Create organization dict
+        organization = {}
+
+        # From file path
+        if path_meta:
+            organization["table_code"] = path_meta.table_code
+            organization["category"] = path_meta.category
+            organization["domain_path"] = path_meta.domain_labels
+            organization["file_path"] = path_meta.relative_path
+            organization["table_type"] = path_meta.table_type
+
+        # From COMMENT (override if present)
+        if comment_meta:
+            if comment_meta.table_code:
+                organization["table_code"] = comment_meta.table_code
+            # Don't override category from COMMENT - file path is authoritative
+            # if comment_meta.category:
+            #     organization["category"] = comment_meta.category
+            if comment_meta.domain_hierarchy:
+                organization["domain_hierarchy"] = comment_meta.domain_hierarchy
+            else:
+                organization["domain_hierarchy"] = []  # Ensure it's always a list
+            if comment_meta.description:
+                entity.description = comment_meta.description
+        else:
+            # No COMMENT metadata
+            organization["domain_hierarchy"] = []
+
+        # Validate consistency
+        if path_meta and comment_meta:
+            if (
+                comment_meta.table_code
+                and path_meta.table_code != comment_meta.table_code
+            ):
+                warnings.warn(
+                    f"Table code mismatch: file={path_meta.table_code}, "
+                    f"comment={comment_meta.table_code}"
+                )
+
+        # Attach to entity
+        entity.organization = organization
+
+        return entity
+
     def _extract_table_name(self, ddl: str) -> Tuple[str, str]:
         """
         Extract schema and table name from CREATE TABLE DDL
@@ -92,11 +186,12 @@ class SchemaAnalyzer:
 
         Examples:
             tb_contact → Contact
+            tl_continent → Continent
             contact → Contact
             tb_order_item → OrderItem
         """
-        # Remove tb_ prefix
-        name = re.sub(r"^tb_", "", table_name, flags=re.IGNORECASE)
+        # Remove tb_ or tl_ prefixes
+        name = re.sub(r"^(tb|tl)_", "", table_name, flags=re.IGNORECASE)
 
         # Convert snake_case to PascalCase
         parts = name.split("_")
