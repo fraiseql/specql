@@ -6,7 +6,6 @@ Validate SpecQL entity definitions with comprehensive checks
 
 import json
 import re
-import sys
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -364,7 +363,7 @@ def validate_action(
         if not action.impact.get("primary"):
             result.add_error(
                 str(entity_path),
-                f"Action missing primary impact declaration",
+                "Action missing primary impact declaration",
                 entity=entity_def.name,
                 action=action.name,
             )

@@ -51,8 +51,12 @@ from src.core.universal_ast import (
 )
 from src.core.validation_limits import ValidationLimits
 from src.patterns import PatternLoader
-from src.core.errors import InvalidFieldTypeError, ErrorContext, InvalidEnumValueError
-from src.utils.suggestions import suggest_correction
+from src.core.errors import (
+    InvalidFieldTypeError,
+    ErrorContext,
+    InvalidEnumValueError,
+    ParseError as EnhancedParseError,
+)
 
 # Valid field types
 VALID_FIELD_TYPES = [
@@ -114,9 +118,6 @@ VALID_FIELD_TYPES = [
     "list",  # These are handled separately but should be valid
 ]
 
-
-# Use the enhanced ParseError from errors module
-from src.core.errors import ParseError as EnhancedParseError
 
 # Backward compatibility alias
 ParseError = EnhancedParseError
@@ -758,12 +759,6 @@ class SpecQLParser:
 
             valid_scalars = list(SCALAR_TYPES.keys())
 
-            # Get suggestions for invalid scalar type
-            suggestions = suggest_correction(type_name, valid_scalars)
-            suggestion_text = (
-                f"Did you mean: {', '.join(suggestions)}?" if suggestions else None
-            )
-
             raise InvalidFieldTypeError(
                 field_type=type_name, valid_types=valid_scalars, context=context
             )
@@ -877,12 +872,6 @@ class SpecQLParser:
                 field_name=field_name,
             )
 
-            # Get suggestions for invalid default value
-            suggestions = suggest_correction(default, values)
-            suggestion_text = (
-                f"Did you mean: {', '.join(suggestions)}?" if suggestions else None
-            )
-
             raise InvalidEnumValueError(
                 value=default, valid_values=values, context=context
             )
@@ -943,12 +932,6 @@ class SpecQLParser:
                 if hasattr(self, "_current_entity")
                 else None,
                 field_name=field_name,
-            )
-
-            # Get suggestions for invalid type
-            suggestions = suggest_correction(type_name, list(type_mapping.keys()))
-            suggestion_text = (
-                f"Did you mean: {', '.join(suggestions)}?" if suggestions else None
             )
 
             raise InvalidFieldTypeError(

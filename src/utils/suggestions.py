@@ -22,10 +22,27 @@ def suggest_correction(
     Returns:
         List of suggestions or None
     """
-    matches = get_close_matches(
-        invalid_value,
-        valid_values,
+    # Case-insensitive matching
+    invalid_lower = invalid_value.lower()
+    valid_lower = [v.lower() for v in valid_values]
+
+    matches_lower = get_close_matches(
+        invalid_lower,
+        valid_lower,
         n=max_suggestions,
         cutoff=cutoff,
     )
-    return matches if matches else None
+
+    if not matches_lower:
+        return None
+
+    # Map back to original case
+    result = []
+    for match_lower in matches_lower:
+        # Find the original case version
+        for original in valid_values:
+            if original.lower() == match_lower:
+                result.append(original)
+                break
+
+    return result

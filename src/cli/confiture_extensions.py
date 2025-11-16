@@ -16,8 +16,22 @@ from src.core.specql_parser import SpecQLParser
 
 
 @click.group()
+@click.version_option(version="0.4.0-alpha")
 def specql():
-    """SpecQL commands for Confiture"""
+    """
+    SpecQL - Multi-Language Backend Code Generator
+
+    Generate PostgreSQL, Java, Rust, and TypeScript from YAML specifications.
+
+    Common commands:
+      init       - Create new project from template
+      generate   - Generate code from entities
+      validate   - Validate entity definitions
+      examples   - Show example entity definitions
+
+    Get help on any command:
+      specql <command> --help
+    """
     pass
 
 
@@ -254,6 +268,13 @@ def generate(
             click.echo("❌ Generation cancelled")
             return 0
 
+    # Dry run notification
+    if dry_run:
+        click.secho(
+            "🔍 DRY RUN MODE - No files will be written", fg="yellow", bold=True
+        )
+        click.echo()
+
     # Generate schema
     try:
         result = orchestrator.generate_from_files(
@@ -276,7 +297,15 @@ def generate(
         return 1
 
     # Success messaging
-    click.secho(f"✅ Generated {len(result.migrations)} schema file(s)", fg="green")
+    if dry_run:
+        click.secho(
+            f"🔍 Would generate {len(result.migrations)} schema file(s)", fg="cyan"
+        )
+        click.echo()
+        click.echo("💡 Run without --dry-run to actually generate files:")
+        click.secho(f"  specql generate {' '.join(entity_files)}", fg="green")
+    else:
+        click.secho(f"✅ Generated {len(result.migrations)} schema file(s)", fg="green")
 
     # Confiture build (only for confiture format)
     if output_format == "confiture" and not foundation_only:
@@ -365,8 +394,41 @@ def validate(
         specql validate entities/*.yaml
         specql validate entities/ --check-references --format json
         specql validate entities/ --strict --output validation.json
-     """
-     import shutil
+    """
+
+
+@specql.command()
+@click.argument(
+    "template",
+    type=click.Choice(["minimal", "blog", "crm", "ecommerce", "saas", "production"]),
+)
+@click.argument("project_name", required=True)
+@click.option(
+    "--output-dir",
+    default=".",
+    help="Parent directory for the new project (default: current directory)",
+)
+@click.option("--force", is_flag=True, help="Overwrite existing directory")
+def init(template, project_name, output_dir, force):
+    """Create a new SpecQL project from a template.
+
+    TEMPLATE: Project template to use
+    PROJECT_NAME: Name of the project directory to create
+
+    Templates:
+      minimal    - Single entity example
+      blog       - Blog system (Post, Author, Comment)
+      crm        - CRM system (Contact, Company, Deal)
+      ecommerce  - E-commerce platform
+      saas       - Multi-tenant SaaS application
+      production - Production-ready template
+
+    Examples:
+        specql init blog myblog
+        specql init minimal myproject --output-dir ~/projects
+        specql init crm mycrm --force
+    """
+    import shutil
     from pathlib import Path
 
     # Template mappings
@@ -498,14 +560,14 @@ project:
                 f.write(content)
             click.echo(f"  📄 {filename}")
 
-    click.secho(f"\n✅ Project initialized successfully!", fg="green", bold=True)
+    click.secho("\n✅ Project initialized successfully!", fg="green", bold=True)
     click.echo(f"📁 Created in: {output_path.absolute()}")
     click.echo(f"📊 {copied_files} entity files copied")
 
-    click.echo(f"\n🚀 Next steps:")
+    click.echo("\n🚀 Next steps:")
     click.echo(f"  cd {output_path.name}")
-    click.echo(f"  specql validate entities/*.yaml")
-    click.echo(f"  specql generate entities/*.yaml")
+    click.echo("  specql validate entities/*.yaml")
+    click.echo("  specql generate entities/*.yaml")
 
     return 0
 
@@ -604,14 +666,14 @@ project:
                 f.write(content)
             click.echo(f"  📄 {filename}")
 
-    click.secho(f"\n✅ Project initialized successfully!", fg="green", bold=True)
+    click.secho("\n✅ Project initialized successfully!", fg="green", bold=True)
     click.echo(f"📁 Created in: {output_path.absolute()}")
     click.echo(f"📊 {copied_files} entity files copied")
 
-    click.echo(f"\n🚀 Next steps:")
+    click.echo("\n🚀 Next steps:")
     click.echo(f"  cd {output_path.name}")
-    click.echo(f"  specql validate entities/*.yaml")
-    click.echo(f"  specql generate entities/*.yaml")
+    click.echo("  specql validate entities/*.yaml")
+    click.echo("  specql generate entities/*.yaml")
 
     return 0
 
