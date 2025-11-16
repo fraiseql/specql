@@ -198,6 +198,7 @@ class CLIOrchestrator:
         with_query_patterns: bool = False,
         with_audit_cascade: bool = False,
         with_outbox: bool = False,
+        dry_run: bool = False,
     ) -> GenerationResult:
         """
         Generate migrations from SpecQL files (registry-aware)
@@ -217,7 +218,9 @@ class CLIOrchestrator:
 
         result = GenerationResult(migrations=[], errors=[], warnings=[])
         output_path = Path(output_dir)
-        output_path.mkdir(parents=True, exist_ok=True)
+        if not dry_run:
+            output_path.mkdir(parents=True, exist_ok=True)
+        generated_files = []
 
         # Foundation only mode
         if foundation_only:
@@ -245,7 +248,6 @@ class CLIOrchestrator:
                 foundation_dir = Path("db/schema/00_foundation")
                 foundation_dir.mkdir(parents=True, exist_ok=True)
                 foundation_path = foundation_dir / "000_app_foundation.sql"
-                foundation_path.write_text(foundation_sql)
                 migration = MigrationFile(
                     number=0,
                     name="app_foundation",
@@ -261,6 +263,9 @@ class CLIOrchestrator:
                     path=output_path / "000_app_foundation.sql",
                 )
             result.migrations.append(migration)
+            # Write the file
+            if not dry_run and migration.path:
+                migration.path.write_text(migration.content)
 
         # Parse all entities
         entity_defs = []
@@ -271,8 +276,6 @@ class CLIOrchestrator:
                 entity_defs.append(entity_def)
             except Exception as e:
                 result.errors.append(f"Failed to parse {entity_file}: {e}")
-
-        # print(f"DEBUG: Parsed {len(entity_defs)} entity definitions")
 
         # Convert entities
         entities = []
@@ -286,8 +289,10 @@ class CLIOrchestrator:
                 result.errors.append(f"Failed to convert {entity_def.name}: {e}")
 
         # Use progress bar for generation
-        generated_files = []
         if not entities:
+            # Phase 3: Summary
+            stats = self._calculate_generation_stats(result, generated_files)
+            self.progress.summary(stats, output_dir, generated_files)
             return result
 
         for entity, progress_update in self.progress.generation_progress(entities):
@@ -321,9 +326,10 @@ class CLIOrchestrator:
                         ).parent
 
                         # Ensure directories exist
-                        Path(table_path).parent.mkdir(parents=True, exist_ok=True)
-                        Path(helpers_path).parent.mkdir(parents=True, exist_ok=True)
-                        functions_dir.mkdir(parents=True, exist_ok=True)
+                        if not dry_run:
+                            Path(table_path).parent.mkdir(parents=True, exist_ok=True)
+                            Path(helpers_path).parent.mkdir(parents=True, exist_ok=True)
+                            functions_dir.mkdir(parents=True, exist_ok=True)
                         schema_base = None  # Not used in hierarchical mode
                     else:
                         # Write to Confiture directory structure
@@ -331,26 +337,31 @@ class CLIOrchestrator:
 
                         # 1. Table definition (db/schema/10_tables/)
                         table_dir = schema_base / "10_tables"
-                        table_dir.mkdir(parents=True, exist_ok=True)
+                        if not dry_run:
+                            table_dir.mkdir(parents=True, exist_ok=True)
                         table_path = table_dir / f"{entity.name.lower()}.sql"
 
                         # 2. Helper functions (db/schema/20_helpers/)
                         helpers_dir = schema_base / "20_helpers"
-                        helpers_dir.mkdir(parents=True, exist_ok=True)
+                        if not dry_run:
+                            helpers_dir.mkdir(parents=True, exist_ok=True)
                         helpers_path = (
                             helpers_dir / f"{entity.name.lower()}_helpers.sql"
                         )
 
                         # 3. Mutations - ONE FILE PER MUTATION (db/schema/30_functions/)
                         functions_dir = schema_base / "30_functions"
-                        functions_dir.mkdir(parents=True, exist_ok=True)
+                        if not dry_run:
+                            functions_dir.mkdir(parents=True, exist_ok=True)
 
                     # Write table SQL
-                    Path(table_path).write_text(schema_output.table_sql)
+                    if not dry_run:
+                        Path(table_path).write_text(schema_output.table_sql)
                     generated_files.append(table_path)
 
                     # Write helpers SQL
-                    Path(helpers_path).write_text(schema_output.helpers_sql)
+                    if not dry_run:
+                        Path(helpers_path).write_text(schema_output.helpers_sql)
                     generated_files.append(helpers_path)
 
                     # Write mutations
@@ -380,7 +391,8 @@ class CLIOrchestrator:
 
 {mutation.fraiseql_comments_sql}
 """
-                        mutation_path.write_text(mutation_content)
+                        if not dry_run:
+                            mutation_path.write_text(mutation_content)
                         generated_files.append(str(mutation_path))
 
                     # Write audit SQL if generated
@@ -392,10 +404,12 @@ class CLIOrchestrator:
                         else:
                             # Confiture: db/schema/40_audit/
                             audit_dir = Path("db/schema") / "40_audit"
-                            audit_dir.mkdir(parents=True, exist_ok=True)
+                            if not dry_run:
+                                audit_dir.mkdir(parents=True, exist_ok=True)
                             audit_path = audit_dir / f"{entity.name.lower()}_audit.sql"
 
-                        Path(audit_path).write_text(schema_output.audit_sql)
+                        if not dry_run:
+                            Path(audit_path).write_text(schema_output.audit_sql)
                         generated_files.append(str(audit_path))
 
                     # Register entity if using registry (only for derived codes)
@@ -426,21 +440,26 @@ class CLIOrchestrator:
 
                     # 1. Table definition (db/schema/10_tables/)
                     table_dir = schema_base / "10_tables"
-                    table_dir.mkdir(parents=True, exist_ok=True)
+                    if not dry_run:
+                        table_dir.mkdir(parents=True, exist_ok=True)
                     table_path = table_dir / f"{entity.name.lower()}.sql"
-                    table_path.write_text(schema_output.table_sql)
+                    if not dry_run:
+                        table_path.write_text(schema_output.table_sql)
                     generated_files.append(str(table_path))
 
                     # 2. Helper functions (db/schema/20_helpers/)
                     helpers_dir = schema_base / "20_helpers"
-                    helpers_dir.mkdir(parents=True, exist_ok=True)
+                    if not dry_run:
+                        helpers_dir.mkdir(parents=True, exist_ok=True)
                     helpers_path = helpers_dir / f"{entity.name.lower()}_helpers.sql"
-                    helpers_path.write_text(schema_output.helpers_sql)
+                    if not dry_run:
+                        helpers_path.write_text(schema_output.helpers_sql)
                     generated_files.append(str(helpers_path))
 
                     # 3. Mutations - ONE FILE PER MUTATION (db/schema/30_functions/)
                     functions_dir = schema_base / "30_functions"
-                    functions_dir.mkdir(parents=True, exist_ok=True)
+                    if not dry_run:
+                        functions_dir.mkdir(parents=True, exist_ok=True)
 
                     for mutation in schema_output.mutations:
                         mutation_path = functions_dir / f"{mutation.action_name}.sql"
@@ -456,15 +475,18 @@ class CLIOrchestrator:
 
 {mutation.fraiseql_comments_sql}
 """
-                        mutation_path.write_text(mutation_content)
+                        if not dry_run:
+                            mutation_path.write_text(mutation_content)
                         generated_files.append(str(mutation_path))
 
                     # Write audit SQL if generated
                     if schema_output.audit_sql:
                         audit_dir = schema_base / "40_audit"
-                        audit_dir.mkdir(parents=True, exist_ok=True)
+                        if not dry_run:
+                            audit_dir.mkdir(parents=True, exist_ok=True)
                         audit_path = audit_dir / f"{entity.name.lower()}_audit.sql"
-                        audit_path.write_text(schema_output.audit_sql)
+                        if not dry_run:
+                            audit_path.write_text(schema_output.audit_sql)
                         generated_files.append(str(audit_path))
 
                     # Use sequential numbering for backward compatibility
@@ -488,91 +510,19 @@ class CLIOrchestrator:
                 progress_update()  # Update progress even on error
 
         # Generate tv_ tables if requested
-        if include_tv and entity_defs:
-            try:
-                tv_files = self.schema_orchestrator.generate_table_views(entity_defs)
-                for tv_file in tv_files:
-                    # Generate hierarchical path for tv_ file
-                    tv_path = self._generate_tv_file_path(tv_file, output_path)
-                    migration = MigrationFile(
-                        number=200,
-                        name=f"tv_{tv_file.name}",
-                        content=tv_file.content,
-                        path=tv_path,
-                    )
-                    result.migrations.append(migration)
-            except Exception as e:
-                result.errors.append(f"Failed to generate tv_ tables: {e}")
-
-        # Generate query patterns if requested
-        if with_query_patterns:
-            try:
-                import yaml
-                from src.generators.query_pattern_generator import QueryPatternGenerator
-                from src.patterns.pattern_registry import PatternRegistry
-
-                registry = PatternRegistry()
-                pattern_generator = QueryPatternGenerator(registry)
-
-                # Collect all query patterns from all entities
-                all_patterns = []
-                entity_pattern_map = {}  # pattern_name -> entity_data
-
-                for entity_file in entity_files:
-                    content = Path(entity_file).read_text()
-                    entity_data = yaml.safe_load(content)
-
-                    if (
-                        "query_patterns" in entity_data
-                        and entity_data["query_patterns"]
-                    ):
-                        for pattern_config in entity_data["query_patterns"]:
-                            all_patterns.append(pattern_config)
-                            entity_pattern_map[pattern_config["name"]] = entity_data
-
-                # Resolve dependencies and sort patterns
-                if all_patterns:
-                    from src.generators.schema.view_dependency import (
-                        ViewDependencyResolver,
-                    )
-
-                    resolver = ViewDependencyResolver()
-                    sorted_pattern_names = resolver.sort(all_patterns)
-
-                    # Generate SQL files in dependency order
-                    for pattern_name in sorted_pattern_names:
-                        # Find the pattern config and entity
-                        pattern_config = next(
-                            p for p in all_patterns if p["name"] == pattern_name
-                        )
-                        entity_data = entity_pattern_map[pattern_name]
-
-                        # Generate SQL for this single pattern
-                        sql_files = pattern_generator.generate_single(
-                            entity_data, pattern_config
-                        )
-
-                        for sql_file in sql_files:
-                            # Write to db/schema/02_query_side/{schema}/ directory
-                            schema = entity_data.get("schema", "tenant")
-                            schema_dir = Path("db/schema/02_query_side") / schema
-                            schema_dir.mkdir(parents=True, exist_ok=True)
-                            file_path = schema_dir / sql_file.name
-
-                            migration = MigrationFile(
-                                number=300,  # After table views
-                                name=f"query_pattern_{sql_file.name}",
-                                content=sql_file.content,
-                                path=file_path,
-                            )
-                            result.migrations.append(migration)
-            except Exception as e:
-                result.errors.append(f"Failed to generate query patterns: {e}")
-
-        # Write migrations to disk
-        for migration in result.migrations:
-            if migration.path:
-                migration.path.write_text(migration.content)
+        if include_tv:
+            # Generate table views
+            tv_result = self.generate_read_side_hierarchical(
+                entity_files, output_dir, dry_run=dry_run
+            )
+            result.migrations.extend(tv_result.migrations)
+            result.errors.extend(tv_result.errors)
+            result.warnings.extend(tv_result.warnings)
+            generated_files.extend(
+                tv_result.generated_files
+                if hasattr(tv_result, "generated_files")
+                else []
+            )
 
         # Phase 3: Summary
         stats = self._calculate_generation_stats(result, generated_files)

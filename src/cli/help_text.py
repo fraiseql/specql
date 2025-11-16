@@ -15,10 +15,22 @@ Usage: specql generate [OPTIONS] ENTITY_FILES...
 
    Generate production-ready PostgreSQL schema from SpecQL YAML entity definitions.
 
-   By default, generates hierarchical directory structure in migrations/ with FraiseQL
-   framework defaults (tv_* views, Trinity pattern, audit fields) for production use.
+    By default, generates hierarchical directory structure in migrations/ with FraiseQL
+    framework defaults (tv_* views, Trinity pattern, audit fields) for production use.
 
-COMMON EXAMPLES:
+ QUICK START:
+
+   # First time? See example specifications
+   specql examples --list
+   specql examples simple-entity
+
+   # Generate your first entity
+   specql generate my-entity.yaml
+
+   # Interactive mode with previews and confirmations
+   specql generate entities/**/*.yaml --interactive
+
+ COMMON EXAMPLES:
 
   # Generate all entities (FraiseQL framework, production-ready)
   specql generate entities/**/*.yaml
@@ -31,16 +43,19 @@ COMMON EXAMPLES:
   # Generate specific entities
   specql generate entities/catalog/*.yaml
 
-  # Custom output directory
-  specql generate entities/**/*.yaml --output migrations/v2/
+   # Custom output directory
+   specql generate entities/**/*.yaml --output migrations/v2/
 
-  # Development mode (flat structure for confiture)
-  specql generate entities/**/*.yaml --dev
+   # Development mode (flat structure for confiture)
+   specql generate entities/**/*.yaml --dev
 
-  # List available frameworks
-  specql list-frameworks
+   # Dry run to see what would be generated
+   specql generate entities/**/*.yaml --dry-run
 
-OUTPUT FORMATS:
+   # List available frameworks
+   specql list-frameworks
+
+ OUTPUT FORMATS:
 
   hierarchical (default)
     Organized directory structure matching domain/subdomain/entity hierarchy.
@@ -86,10 +101,11 @@ OPTIONS:
   --use-registry                              Use registry for table codes (default: enabled)
   --dev                                       Development mode: flat format in db/schema/
   --no-tv                                     Skip table view (tv_*) generation
-  --foundation-only                           Generate only app foundation
-  --verbose, -v                               Show detailed generation progress
-  --dry-run                                   Show what would be generated without writing
-  --help                                      Show this help message
+   --foundation-only                           Generate only app foundation
+   --verbose, -v                               Show detailed generation progress
+   --dry-run                                   Show what would be generated without writing
+   --interactive                               Interactive mode with previews and confirmations
+   --help                                      Show this help message
 
 FRAMEWORK-SPECIFIC DEFAULTS:
 
@@ -150,7 +166,7 @@ def get_framework_help() -> Dict[str, Any]:
                 "Audit fields (created_at, updated_at, etc.)",
                 "FraiseQL GraphQL annotations",
                 "Helper functions for type-safe access",
-            ]
+            ],
         },
         "django": {
             "description": "Django ORM models and admin",
@@ -165,7 +181,7 @@ def get_framework_help() -> Dict[str, Any]:
                 "admin.py for Django admin interface",
                 "Standard Django migrations",
                 "Single primary key (id)",
-            ]
+            ],
         },
         "rails": {
             "description": "Rails ActiveRecord models",
@@ -180,8 +196,8 @@ def get_framework_help() -> Dict[str, Any]:
                 "Rails migration files",
                 "Standard Rails conventions",
                 "Single primary key (id)",
-            ]
-        }
+            ],
+        },
     }
 
 
@@ -211,7 +227,7 @@ Structure:
     ├── 10_tables/manufacturer.sql
     ├── 20_helpers/manufacturer_helpers.sql
     └── 30_functions/create_manufacturer.sql
-"""
+""",
     }
 
 

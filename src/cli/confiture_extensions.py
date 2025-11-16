@@ -57,6 +57,14 @@ def specql():
 )
 @click.option("--dev", is_flag=True, help="Development mode: flat format in db/schema/")
 @click.option("--no-tv", is_flag=True, help="Skip table view (tv_*) generation")
+@click.option(
+    "--dry-run", is_flag=True, help="Show what would be generated without writing files"
+)
+@click.option(
+    "--interactive",
+    is_flag=True,
+    help="Interactive mode with previews and confirmations",
+)
 def generate(
     entity_files,
     foundation_only,
@@ -71,6 +79,8 @@ def generate(
     with_routes,
     dev,
     no_tv,
+    dry_run,
+    interactive,
 ):
     """Generate PostgreSQL schema from SpecQL YAML files"""
 
@@ -205,6 +215,45 @@ def generate(
         framework=resolved_framework,
     )
 
+    # Interactive mode
+    if interactive:
+        click.echo("🔍 Interactive mode: Analyzing entities...")
+        # Parse entities for preview
+        parser = SpecQLParser()
+        entity_defs = []
+        for entity_file in entity_files:
+            try:
+                content = Path(entity_file).read_text()
+                entity_def = parser.parse(content)
+                entity_defs.append(entity_def)
+            except Exception as e:
+                click.secho(f"❌ Failed to parse {entity_file}: {e}", fg="red")
+                return 1
+
+        # Show entity preview
+        click.echo(f"\n📋 Found {len(entity_defs)} entities:")
+        for entity_def in entity_defs[:5]:  # Show first 5
+            click.echo(f"  • {entity_def.name}")
+        if len(entity_defs) > 5:
+            click.echo(f"  ... and {len(entity_defs) - 5} more")
+
+        # Estimate output
+        estimated_files = (
+            len(entity_defs) * 3
+        )  # Rough estimate: table + helpers + mutations
+        estimated_size = estimated_files * 2048  # Rough estimate: 2KB per file
+        click.echo(
+            f"\n📊 Estimated output: ~{estimated_files} files, ~{estimated_size // 1024}KB"
+        )
+
+        # Show output directory
+        click.echo(f"📁 Output directory: {output_dir}")
+
+        # Confirm generation
+        if not click.confirm("\n🚀 Proceed with generation?", default=True):
+            click.echo("❌ Generation cancelled")
+            return 0
+
     # Generate schema
     try:
         result = orchestrator.generate_from_files(
@@ -212,6 +261,7 @@ def generate(
             output_dir=output_dir,
             foundation_only=foundation_only,
             include_tv=include_tv,
+            dry_run=dry_run,
         )
     except Exception:
         import traceback
@@ -277,146 +327,293 @@ def generate(
 @specql.command()
 @click.argument("entity_files", nargs=-1, type=click.Path(exists=True), required=True)
 @click.option("--check-impacts", is_flag=True, help="Validate impact declarations")
-@click.option("--verbose", "-v", is_flag=True)
-def validate(entity_files, check_impacts, verbose):
-    """Validate SpecQL entity files"""
-    # Reuse existing validate.py logic by running it as a subprocess
-    import subprocess
-    import sys
-
-    cmd = [sys.executable, "-m", "src.cli.validate"] + list(entity_files)
-    if check_impacts:
-        cmd.append("--check-impacts")
-    if verbose:
-        cmd.append("--verbose")
-
-    result = subprocess.run(cmd)
-    return result.returncode
-
-
-@specql.command("check-codes")
-@click.argument("entity_files", nargs=-1, required=True)
+@click.option(
+    "--check-references", is_flag=True, help="Validate cross-entity references"
+)
+@click.option("--check-naming", is_flag=True, help="Validate naming conventions")
+@click.option("--strict", is_flag=True, help="Treat warnings as errors")
 @click.option(
     "--format",
-    type=click.Choice(["text", "json", "csv"]),
+    "output_format",
+    type=click.Choice(["text", "json", "junit"]),
     default="text",
     help="Output format",
 )
-@click.option("--export", type=click.Path(), help="Export results to file")
-@click.pass_context
-def check_codes(ctx, entity_files, format, export):
-    """Check uniqueness of table codes across entity files.
+@click.option("--output", "-o", type=click.Path(), help="Output file (default: stdout)")
+@click.option("--verbose", "-v", is_flag=True, help="Show detailed validation")
+def validate(
+    entity_files,
+    check_impacts,
+    check_references,
+    check_naming,
+    strict,
+    output_format,
+    output,
+    verbose,
+):
+    """Validate SpecQL entity files with comprehensive checks
 
-    ENTITY_FILES can be file paths or glob patterns (e.g., entities/*.yaml, entities/**/*.yaml)
+    Performs thorough validation including:
+    - YAML syntax and structure
+    - Entity and field definitions
+    - Type validation and constraints
+    - Cross-entity references
+    - Naming conventions
+    - Action and impact validation
 
     Examples:
-        specql check-codes entities/*.yaml
-        specql check-codes entities/**/*.yaml --format json
-        specql check-codes entities/ --export results.json
-    """
-    import csv
-    import glob
-    import json
+        specql validate entities/*.yaml
+        specql validate entities/ --check-references --format json
+        specql validate entities/ --strict --output validation.json
+     """
+     import shutil
     from pathlib import Path
 
-    from src.cli.commands.check_codes import check_table_code_uniqueness
-
-    # Expand glob patterns and convert to Path objects
-    file_paths = []
-    for pattern in entity_files:
-        if "*" in pattern or "?" in pattern:
-            # It's a glob pattern
-            matches = glob.glob(pattern, recursive=True)
-            file_paths.extend(
-                Path(f) for f in matches if f.endswith(".yaml") or f.endswith(".yml")
-            )
-        else:
-            # It's a direct path
-            path = Path(pattern)
-            if path.is_file() and (path.suffix in [".yaml", ".yml"]):
-                file_paths.append(path)
-            elif path.is_dir():
-                # If it's a directory, find all YAML files in it
-                file_paths.extend(path.glob("**/*.yaml"))
-                file_paths.extend(path.glob("**/*.yml"))
-
-    # Filter to only existing files
-    file_paths = [f for f in file_paths if f.exists()]
-
-    if not file_paths:
-        click.secho("❌ No YAML files found", fg="red")
-        ctx.exit(1)
-
-    duplicates = check_table_code_uniqueness(file_paths)
-
-    # Calculate total unique codes found
-    all_codes = set()
-    for entity_file in file_paths:
-        try:
-            from src.core.specql_parser import SpecQLParser
-
-            parser = SpecQLParser()
-            content = entity_file.read_text()
-            entity_def = parser.parse(content)
-            if entity_def.organization and entity_def.organization.table_code:
-                all_codes.add(entity_def.organization.table_code)
-        except Exception:
-            pass  # Skip files that can't be parsed
-
-    # Prepare results
-    results = {
-        "total_files": len(file_paths),
-        "total_codes": len(all_codes),
-        "duplicates": duplicates,
-        "success": len(duplicates) == 0,
+    # Template mappings
+    template_dirs = {
+        "minimal": "simple-blog",  # Use simple-blog as minimal for now
+        "blog": "simple-blog",
+        "crm": "crm",
+        "ecommerce": "ecommerce",
+        "saas": "saas-multi-tenant",
+        "production": "production-ready",
     }
 
-    # Display results
-    if format == "json":
-        click.echo(json.dumps(results, indent=2))
-    elif format == "csv":
-        writer = csv.writer(click.get_text_stream("stdout"))
-        writer.writerow(["code", "entity"])
-        for code, entities in duplicates.items():
-            for entity in entities:
-                writer.writerow([code, entity])
-    else:  # text format
-        if duplicates:
-            click.secho("❌ Table code uniqueness check FAILED", fg="red", bold=True)
-            click.secho("\n🔴 Duplicate Codes:", fg="red", bold=True)
+    template_dir = template_dirs[template]
+    # Get the specql root directory (where this file is located)
+    specql_root = Path(__file__).parent.parent.parent
+    source_dir = specql_root / "examples" / template_dir
 
-            for code, entities in duplicates.items():
-                click.secho(f"\n  Code: {code}", fg="red")
-                for entity in entities:
-                    click.echo(f"    - {entity}")
+    if not source_dir.exists():
+        click.secho(f"❌ Template '{template}' not found", fg="red")
+        return 1
 
+    # Create output directory
+    output_path = Path(output_dir) / project_name
+
+    # Check if directory exists and is not empty
+    if output_path.exists() and not force:
+        if list(output_path.iterdir()):
             click.secho(
-                "\n❌ Fix duplicates before running 'specql generate'", fg="red"
+                f"❌ Directory {output_path} already exists and is not empty. Use --force to overwrite.",
+                fg="red",
             )
-            ctx.exit(1)
-        else:
-            click.secho("✅ Table code uniqueness check PASSED", fg="green", bold=True)
-            click.secho("\n📊 Summary:", fg="blue")
-            click.echo(f"   Total files scanned: {results['total_files']}")
-            click.echo(f"   Unique codes found: {results['total_codes']}")
-            click.echo(f"   Duplicate codes: {len(duplicates)}")
-            click.secho("\nAll table codes are unique! 🎉", fg="green")
-            ctx.exit(0)
+            return 1
+    else:
+        # Create the directory
+        output_path.mkdir(parents=True, exist_ok=True)
 
-    # Export if requested (only for non-text formats)
-    if export:
-        export_path = Path(export)
-        if format == "json":
-            with open(export_path, "w") as f:
-                json.dump(results, f, indent=2)
-        elif format == "csv":
-            with open(export_path, "w", newline="") as f:
-                writer = csv.writer(f)
-                writer.writerow(["code", "entity"])
-                for code, entities in duplicates.items():
-                    for entity in entities:
-                        writer.writerow([code, entity])
-        click.echo(f"📄 Results exported to: {export_path}")
+    click.secho(
+        f"🚀 Initializing {template} project: {project_name}", fg="blue", bold=True
+    )
+
+    # Copy template files
+    entities_dir = output_path / "entities"
+    entities_dir.mkdir(exist_ok=True)
+
+    copied_files = 0
+    source_entities = source_dir / "entities"
+
+    if source_entities.exists():
+        for yaml_file in source_entities.glob("*.yaml"):
+            dest_file = entities_dir / yaml_file.name
+            shutil.copy2(yaml_file, dest_file)
+            copied_files += 1
+            click.echo(f"  📄 {dest_file.relative_to(output_path)}")
+
+    # Create additional project files
+    project_files = {
+        "README.md": f"""# {project_name}
+
+A SpecQL {template} project.
+
+## Getting Started
+
+1. Review the entities in the `entities/` directory
+2. Generate database schema:
+   ```bash
+   specql generate entities/*.yaml
+   ```
+
+3. Customize entities as needed
+4. Regenerate and apply migrations
+
+## Project Structure
+
+- `entities/` - SpecQL entity definitions
+- `migrations/` - Generated database migrations (after running specql generate)
+
+## Commands
+
+- Generate schema: `specql generate entities/*.yaml`
+- Validate entities: `specql validate entities/*.yaml`
+- Check table codes: `specql check-codes entities/`
+""",
+        ".gitignore": """# SpecQL generated files
+migrations/
+db/generated/
+*.sql
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+""",
+        "specql.yaml": f"""# SpecQL Project Configuration
+project:
+  name: {project_name}
+  template: {template}
+  version: "1.0.0"
+
+# Framework configuration (uncomment and modify as needed)
+# framework: fraiseql
+# database: postgresql
+
+# Custom settings
+# settings:
+#   table_prefix: "app_"
+#   schema: "public"
+""",
+    }
+
+    for filename, content in project_files.items():
+        file_path = output_path / filename
+        if not file_path.exists() or force:
+            with open(file_path, "w") as f:
+                f.write(content)
+            click.echo(f"  📄 {filename}")
+
+    click.secho(f"\n✅ Project initialized successfully!", fg="green", bold=True)
+    click.echo(f"📁 Created in: {output_path.absolute()}")
+    click.echo(f"📊 {copied_files} entity files copied")
+
+    click.echo(f"\n🚀 Next steps:")
+    click.echo(f"  cd {output_path.name}")
+    click.echo(f"  specql validate entities/*.yaml")
+    click.echo(f"  specql generate entities/*.yaml")
+
+    return 0
+
+    click.secho(
+        f"🚀 Initializing {template} project: {project_name}", fg="blue", bold=True
+    )
+
+    # Copy template files
+    entities_dir = output_path / "entities"
+    entities_dir.mkdir(exist_ok=True)
+
+    copied_files = 0
+    source_entities = source_dir / "entities"
+
+    if source_entities.exists():
+        for yaml_file in source_entities.glob("*.yaml"):
+            dest_file = entities_dir / yaml_file.name
+            shutil.copy2(yaml_file, dest_file)
+            copied_files += 1
+            click.echo(f"  📄 {dest_file.relative_to(output_path)}")
+
+    # Create additional project files
+    project_files = {
+        "README.md": f"""# {project_name}
+
+A SpecQL {template} project.
+
+## Getting Started
+
+1. Review the entities in the `entities/` directory
+2. Generate database schema:
+   ```bash
+   specql generate entities/*.yaml
+   ```
+
+3. Customize entities as needed
+4. Regenerate and apply migrations
+
+## Project Structure
+
+- `entities/` - SpecQL entity definitions
+- `migrations/` - Generated database migrations (after running specql generate)
+
+## Commands
+
+- Generate schema: `specql generate entities/*.yaml`
+- Validate entities: `specql validate entities/*.yaml`
+- Check table codes: `specql check-codes entities/`
+""",
+        ".gitignore": """# SpecQL generated files
+migrations/
+db/generated/
+*.sql
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.venv/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+""",
+        "specql.yaml": f"""# SpecQL Project Configuration
+project:
+  name: {project_name}
+  template: {template}
+  version: "1.0.0"
+
+# Framework configuration (uncomment and modify as needed)
+# framework: fraiseql
+# database: postgresql
+
+# Custom settings
+# settings:
+#   table_prefix: "app_"
+#   schema: "public"
+""",
+    }
+
+    for filename, content in project_files.items():
+        file_path = output_path / filename
+        if not file_path.exists() or force:
+            with open(file_path, "w") as f:
+                f.write(content)
+            click.echo(f"  📄 {filename}")
+
+    click.secho(f"\n✅ Project initialized successfully!", fg="green", bold=True)
+    click.echo(f"📁 Created in: {output_path.absolute()}")
+    click.echo(f"📊 {copied_files} entity files copied")
+
+    click.echo(f"\n🚀 Next steps:")
+    click.echo(f"  cd {output_path.name}")
+    click.echo(f"  specql validate entities/*.yaml")
+    click.echo(f"  specql generate entities/*.yaml")
+
+    return 0
 
 
 @specql.command()
@@ -616,8 +813,10 @@ specql.add_command(templates)
 
 # Interactive CLI
 from src.cli.interactive import interactive
+from src.cli.commands.examples import examples
 
 specql.add_command(interactive)
+specql.add_command(examples)
 
 # Diagram generation
 from src.cli.diagram import diagram
@@ -667,7 +866,10 @@ def generate_java(entity_file: str, output_dir: str):
 @specql.command()
 @click.argument("input", nargs=-1)
 @click.option(
-    "--output-dir", "-o", type=click.Path(), help="Output directory for YAML files"
+    "--output-dir",
+    "-o",
+    default=".",
+    help="Output directory (default: current directory)",
 )
 @click.option(
     "--connection-string",

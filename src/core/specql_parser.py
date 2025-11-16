@@ -51,12 +51,75 @@ from src.core.universal_ast import (
 )
 from src.core.validation_limits import ValidationLimits
 from src.patterns import PatternLoader
+from src.core.errors import InvalidFieldTypeError, ErrorContext, InvalidEnumValueError
+from src.utils.suggestions import suggest_correction
+
+# Valid field types
+VALID_FIELD_TYPES = [
+    # Basic types
+    "text",
+    "integer",
+    "bigint",
+    "float",
+    "boolean",
+    "timestamp",
+    "date",
+    "time",
+    "json",
+    "uuid",
+    "inet",
+    "macaddr",
+    "point",
+    # Rich scalar types (subset of SCALAR_TYPES keys)
+    "email",
+    "phoneNumber",
+    "url",
+    "slug",
+    "markdown",
+    "html",
+    "ipAddress",
+    "macAddress",
+    "money",
+    "percentage",
+    "coordinates",
+    "latitude",
+    "longitude",
+    "image",
+    "file",
+    "color",
+    "hex",
+    "languageCode",
+    "localeCode",
+    "timezone",
+    "currencyCode",
+    "countryCode",
+    "mimeType",
+    "semanticVersion",
+    "stockSymbol",
+    "trackingNumber",
+    "licensePlate",
+    "vin",
+    "flightNumber",
+    "portCode",
+    "postalCode",
+    "airportCode",
+    "domainName",
+    "apiKey",
+    "iban",
+    "swiftCode",
+    "json",
+    # Special types
+    "enum",
+    "ref",
+    "list",  # These are handled separately but should be valid
+]
 
 
-class ParseError(Exception):
-    """Exception raised when parsing SpecQL YAML fails"""
+# Use the enhanced ParseError from errors module
+from src.core.errors import ParseError as EnhancedParseError
 
-    pass
+# Backward compatibility alias
+ParseError = EnhancedParseError
 
 
 class SpecQLParser:
@@ -65,6 +128,7 @@ class SpecQLParser:
     def __init__(self):
         self.current_entity_fields = {}  # Track fields for expression validation
         self.pattern_loader = PatternLoader()  # Pattern library support
+        self.entity_references = {}  # Track entity references for circular dependency detection
 
     def parse(self, yaml_content: str) -> EntityDefinition:
         """
@@ -82,17 +146,20 @@ class SpecQLParser:
         try:
             data = yaml.safe_load(yaml_content)
         except yaml.YAMLError as e:
-            raise ParseError(f"Invalid YAML: {e}")
+            context = ErrorContext(file_path=getattr(self, "_file_path", None))
+            raise EnhancedParseError(f"Invalid YAML: {e}", context=context)
 
         # VALIDATION 2: Check YAML nesting depth
         ValidationLimits.validate_nesting_depth(data)
 
         # Validate required fields
         if not isinstance(data, dict):
-            raise ParseError("YAML must be a dictionary")
+            context = ErrorContext(file_path=getattr(self, "_file_path", None))
+            raise EnhancedParseError("YAML must be a dictionary", context=context)
 
         if "entity" not in data:
-            raise ParseError("Missing 'entity' key")
+            context = ErrorContext(file_path=getattr(self, "_file_path", None))
+            raise EnhancedParseError("Missing 'entity' key", context=context)
 
         # Parse entity metadata - supports both formats:
         # Lightweight: entity: EntityName
@@ -186,7 +253,51 @@ class SpecQLParser:
             if "search_functions" in vector_config:
                 entity.search_functions = vector_config["search_functions"]
 
+        # Check for circular dependencies
+        self._check_circular_dependencies(entity_name, entity.fields)
+
         return entity
+
+    def _check_circular_dependencies(
+        self, entity_name: str, fields: dict[str, FieldDefinition]
+    ) -> None:
+        """Check for circular dependencies in entity references."""
+        from src.core.errors import CircularDependencyError
+
+        visited = set()
+        path = []
+
+        def visit(entity: str) -> None:
+            if entity in path:
+                # Found circular dependency
+                cycle_start = path.index(entity)
+                cycle = path[cycle_start:] + [entity]
+
+                context = ErrorContext(entity_name=entity_name)
+                raise CircularDependencyError(entities=cycle, context=context)
+
+            if entity in visited:
+                return
+
+            visited.add(entity)
+            path.append(entity)
+
+            # Check references from this entity
+            if entity in self.entity_references:
+                for ref_entity in self.entity_references[entity]:
+                    visit(ref_entity)
+
+            path.pop()
+
+        # Build reference map from fields
+        for field_name, field_def in fields.items():
+            if field_def.tier == FieldTier.REFERENCE and field_def.reference_entity:
+                if entity_name not in self.entity_references:
+                    self.entity_references[entity_name] = []
+                self.entity_references[entity_name].append(field_def.reference_entity)
+
+        # Check for cycles starting from current entity
+        visit(entity_name)
 
     def parse_universal(self, yaml_content: str) -> UniversalEntity:
         """
@@ -198,14 +309,17 @@ class SpecQLParser:
         try:
             data = yaml.safe_load(yaml_content)
         except yaml.YAMLError as e:
-            raise ParseError(f"Invalid YAML: {e}")
+            context = ErrorContext(file_path=getattr(self, "_file_path", None))
+            raise EnhancedParseError(f"Invalid YAML: {e}", context=context)
 
         # Validate required fields
         if not isinstance(data, dict):
-            raise ParseError("YAML must be a dictionary")
+            context = ErrorContext(file_path=getattr(self, "_file_path", None))
+            raise EnhancedParseError("YAML must be a dictionary", context=context)
 
         if "entity" not in data:
-            raise ParseError("Missing 'entity' key")
+            context = ErrorContext(file_path=getattr(self, "_file_path", None))
+            raise EnhancedParseError("Missing 'entity' key", context=context)
 
         # Parse entity metadata
         if isinstance(data["entity"], dict):
@@ -408,11 +522,15 @@ class SpecQLParser:
     ) -> UniversalAction:
         """Parse action specification to UniversalAction"""
         if not isinstance(action_spec, dict):
-            raise ParseError("Action must be a dictionary")
+            context = ErrorContext(
+                entity_name=entity_name, action_name=action_spec.get("name")
+            )
+            raise EnhancedParseError("Action must be a dictionary", context=context)
 
         action_name = action_spec.get("name")
         if not action_name:
-            raise ParseError("Action must have a 'name' field")
+            context = ErrorContext(entity_name=entity_name)
+            raise EnhancedParseError("Action must have a 'name' field", context=context)
 
         description = action_spec.get("description")
         steps_data = action_spec.get("steps", [])
@@ -436,7 +554,7 @@ class SpecQLParser:
     def _parse_universal_step(self, step_data: dict) -> UniversalStep:
         """Parse step specification to UniversalStep"""
         if not isinstance(step_data, dict):
-            raise ParseError("Step must be a dictionary")
+            raise EnhancedParseError("Step must be a dictionary")
 
         # Extract step type
         step_type_str = None
@@ -455,7 +573,7 @@ class SpecQLParser:
                 break
 
         if not step_type_str:
-            raise ParseError(f"Unknown step type in: {step_data}")
+            raise EnhancedParseError(f"Unknown step type in: {step_data}")
 
         step_type = StepType(step_type_str)
         step_value = step_data[step_type_str]
@@ -483,7 +601,7 @@ class SpecQLParser:
         # Simple parsing - can be enhanced
         parts = step_value.split(" SET ")
         if len(parts) != 2:
-            raise ParseError(f"Invalid update step format: {step_value}")
+            raise EnhancedParseError(f"Invalid update step format: {step_value}")
 
         entity = parts[0].strip()
         field_assignments = parts[1].strip()
@@ -506,7 +624,7 @@ class SpecQLParser:
         """Parse delete step like 'Contact WHERE condition'"""
         parts = step_value.split(" WHERE ")
         if len(parts) != 2:
-            raise ParseError(f"Invalid delete step format: {step_value}")
+            raise EnhancedParseError(f"Invalid delete step format: {step_value}")
 
         entity = parts[0].strip()
         condition = parts[1].strip()
@@ -626,7 +744,29 @@ class SpecQLParser:
     ) -> FieldDefinition:
         """Parse scalar rich type field"""
         scalar_def = get_scalar_type(type_name)
-        assert scalar_def is not None, f"Scalar type '{type_name}' not found"
+        if scalar_def is None:
+            # Create error context
+            context = ErrorContext(
+                entity_name=getattr(self, "_current_entity", None).name
+                if hasattr(self, "_current_entity")
+                else None,
+                field_name=field_name,
+            )
+
+            # Get all valid scalar types
+            from src.core.scalar_types import SCALAR_TYPES
+
+            valid_scalars = list(SCALAR_TYPES.keys())
+
+            # Get suggestions for invalid scalar type
+            suggestions = suggest_correction(type_name, valid_scalars)
+            suggestion_text = (
+                f"Did you mean: {', '.join(suggestions)}?" if suggestions else None
+            )
+
+            raise InvalidFieldTypeError(
+                field_type=type_name, valid_types=valid_scalars, context=context
+            )
 
         return FieldDefinition(
             name=field_name,
@@ -697,6 +837,13 @@ class SpecQLParser:
         # This ensures referential integrity uses efficient INTEGER joins
         postgres_type = "INTEGER"  # All FKs are INTEGER (reference pk_*)
 
+        # Track reference for circular dependency detection
+        current_entity = getattr(self, "_current_entity", None)
+        if current_entity and current_entity.name not in self.entity_references:
+            self.entity_references[current_entity.name] = []
+        if current_entity:
+            self.entity_references[current_entity.name].append(entity)
+
         return FieldDefinition(
             name=field_name,
             type_name="ref",  # Just "ref" for type checking
@@ -720,6 +867,25 @@ class SpecQLParser:
         # Extract values: enum(value1, value2, value3)
         values_str = type_str[5:-1]  # Remove "enum(" and ")"
         values = [v.strip() for v in values_str.split(",")]
+
+        # Validate default value if provided
+        if default and default not in values:
+            context = ErrorContext(
+                entity_name=getattr(self, "_current_entity", None).name
+                if hasattr(self, "_current_entity")
+                else None,
+                field_name=field_name,
+            )
+
+            # Get suggestions for invalid default value
+            suggestions = suggest_correction(default, values)
+            suggestion_text = (
+                f"Did you mean: {', '.join(suggestions)}?" if suggestions else None
+            )
+
+            raise InvalidEnumValueError(
+                value=default, valid_values=values, context=context
+            )
 
         return FieldDefinition(
             name=field_name,
@@ -769,7 +935,29 @@ class SpecQLParser:
             "boolean": "BOOLEAN",
         }
 
-        postgres_type = type_mapping.get(type_name, "TEXT")
+        # Validate type is valid
+        if type_name not in type_mapping:
+            # Create error context
+            context = ErrorContext(
+                entity_name=getattr(self, "_current_entity", None).name
+                if hasattr(self, "_current_entity")
+                else None,
+                field_name=field_name,
+            )
+
+            # Get suggestions for invalid type
+            suggestions = suggest_correction(type_name, list(type_mapping.keys()))
+            suggestion_text = (
+                f"Did you mean: {', '.join(suggestions)}?" if suggestions else None
+            )
+
+            raise InvalidFieldTypeError(
+                field_type=type_name,
+                valid_types=list(type_mapping.keys()),
+                context=context,
+            )
+
+        postgres_type = type_mapping[type_name]
 
         return FieldDefinition(
             name=field_name,
@@ -781,7 +969,9 @@ class SpecQLParser:
             fraiseql_type=type_name.capitalize(),  # Text → String in GraphQL
         )
 
-    def _parse_action(self, action_spec: dict, entity_name: str = "") -> ActionDefinition:
+    def _parse_action(
+        self, action_spec: dict, entity_name: str = ""
+    ) -> ActionDefinition:
         """Parse action definition with full step parsing and pattern support"""
         action = ActionDefinition(
             name=action_spec["name"],
@@ -819,7 +1009,9 @@ class SpecQLParser:
                     step = self._parse_single_step(step_data)
                     action.steps.append(step)
             else:
-                raise ParseError("Cannot expand patterns without entity context")
+                raise EnhancedParseError(
+                    "Cannot expand patterns without entity context"
+                )
         else:
             # Traditional step-based action
             for step_spec in action_spec.get("steps", []):
@@ -827,7 +1019,9 @@ class SpecQLParser:
                 action.steps.append(step)
 
         # VALIDATION 5: Check steps count
-        ValidationLimits.validate_steps_count(entity_name, action.name, len(action.steps))
+        ValidationLimits.validate_steps_count(
+            entity_name, action.name, len(action.steps)
+        )
 
         return action
 
@@ -861,6 +1055,8 @@ class SpecQLParser:
             return self._parse_update_step(step_data)
         elif "delete" in step_data:
             return self._parse_delete_step(step_data)
+        elif "select" in step_data:
+            return self._parse_select_step(step_data)
         elif "find" in step_data:
             return self._parse_find_step(step_data)
         elif "call" in step_data:
@@ -922,7 +1118,7 @@ class SpecQLParser:
         elif "return" in step_data:
             return self._parse_return_step(step_data)
         else:
-            raise ParseError(f"Unknown step type: {step_data}")
+            raise EnhancedParseError(f"Unknown step type: {step_data}")
 
     def _parse_validate_step(self, step_data: dict) -> ActionStep:
         """Parse validate step"""
@@ -984,10 +1180,18 @@ class SpecQLParser:
                 fields=fields,
             )
 
+        # Handle simple format: update: Entity
+        if isinstance(update_spec, str) and " SET " not in update_spec:
+            return ActionStep(
+                type="update",
+                entity=update_spec,
+                fields={},
+            )
+
         # Parse: update: Entity SET field = value WHERE condition
         parts = update_spec.split(" SET ", 1)
         if len(parts) != 2:
-            raise ParseError(f"Invalid update syntax: {update_spec}")
+            raise EnhancedParseError(f"Invalid update syntax: {update_spec}")
 
         entity = parts[0].strip()
         set_and_where = parts[1].split(" WHERE ", 1)
@@ -1024,6 +1228,22 @@ class SpecQLParser:
 
         return ActionStep(type="delete", entity=entity, where_clause=where_clause)
 
+    def _parse_select_step(self, step_data: dict) -> ActionStep:
+        """Parse select step"""
+        select_spec = step_data["select"]
+
+        # Handle simple format: select: Entity
+        if isinstance(select_spec, str):
+            return ActionStep(type="select", entity=select_spec, fields={})
+
+        # Handle dict format for more complex selects
+        if isinstance(select_spec, dict):
+            entity = select_spec.get("entity", self._current_entity.name)
+            fields = select_spec
+            return ActionStep(type="select", entity=entity, fields=fields)
+
+        return ActionStep(type="select", entity=str(select_spec), fields={})
+
     def _parse_find_step(self, step_data: dict) -> ActionStep:
         """Parse find step"""
         find_spec = step_data["find"]
@@ -1046,7 +1266,7 @@ class SpecQLParser:
         # Parse function call: function_name(arg1 = value1, arg2 = value2)
         match = re.match(r"(\w+)\s*\((.*)\)", call_spec)
         if not match:
-            raise ParseError(f"Invalid call syntax: {call_spec}")
+            raise EnhancedParseError(f"Invalid call syntax: {call_spec}")
 
         function_name = match.group(1)
         args_str = match.group(2).strip()
@@ -1076,7 +1296,7 @@ class SpecQLParser:
         # Parse: notify: recipient(channel, "message")
         match = re.match(r"(\w+)\s*\(([^,]+),\s*(.+)\)", notify_spec)
         if not match:
-            raise ParseError(f"Invalid notify syntax: {notify_spec}")
+            raise EnhancedParseError(f"Invalid notify syntax: {notify_spec}")
 
         recipient = match.group(1)
         channel = match.group(2).strip()
@@ -1113,21 +1333,21 @@ class SpecQLParser:
             try:
                 scope = RefreshScope(scope_str)
             except ValueError:
-                raise ParseError(
+                raise EnhancedParseError(
                     f"Invalid refresh scope: {scope_str}. Must be one of: {[s.value for s in RefreshScope]}"
                 )
 
             # Parse propagate entities
             propagate_entities = refresh_config.get("propagate", [])
             if not isinstance(propagate_entities, list):
-                raise ParseError(
+                raise EnhancedParseError(
                     "refresh_table_view.propagate must be a list of entity names"
                 )
 
             # Parse strategy
             strategy = refresh_config.get("strategy", "immediate")
             if strategy not in ["immediate", "deferred"]:
-                raise ParseError(
+                raise EnhancedParseError(
                     f"Invalid refresh strategy: {strategy}. Must be: immediate or deferred"
                 )
 
@@ -1138,7 +1358,7 @@ class SpecQLParser:
                 refresh_strategy=strategy,
             )
         else:
-            raise ParseError(
+            raise EnhancedParseError(
                 "refresh_table_view must be a string (view name) or dict (configuration)"
             )
 
@@ -1167,9 +1387,13 @@ class SpecQLParser:
 
         # Validate required fields
         if "service" not in config:
-            raise ParseError("call_service step missing required field 'service'")
+            raise EnhancedParseError(
+                "call_service step missing required field 'service'"
+            )
         if "operation" not in config:
-            raise ParseError("call_service step missing required field 'operation'")
+            raise EnhancedParseError(
+                "call_service step missing required field 'operation'"
+            )
 
         # Parse callbacks
         on_success = self._parse_callback_steps(config.get("on_success", []))
@@ -1259,7 +1483,7 @@ class SpecQLParser:
 
         for field_name in potential_fields:
             if field_name not in keywords and field_name not in entity_fields:
-                raise ParseError(
+                raise EnhancedParseError(
                     f"Field '{field_name}' referenced in expression not found in entity. "
                     f"Available fields: {', '.join(sorted(entity_fields.keys()))}"
                 )
@@ -1455,7 +1679,7 @@ class SpecQLParser:
             return ActionStep(type="declare", declarations=declarations)
 
         else:
-            raise ParseError("Invalid declare step format")
+            raise EnhancedParseError("Invalid declare step format")
 
     def _parse_cte_step(self, step_data: dict) -> ActionStep:
         """Parse cte step"""

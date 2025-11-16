@@ -72,10 +72,20 @@ class InvalidFieldTypeError(SpecQLError):
     """Raised when field has invalid type."""
 
     def __init__(self, field_type: str, valid_types: List[str], context: ErrorContext):
+        from src.utils.suggestions import suggest_correction
+
+        # Get fuzzy matching suggestions
+        suggestions = suggest_correction(field_type, valid_types)
+        suggestion_text = (
+            f"Did you mean: {', '.join(suggestions)}?"
+            if suggestions
+            else f"Valid types: {', '.join(valid_types[:10])}{'...' if len(valid_types) > 10 else ''}"
+        )
+
         super().__init__(
             message=f"Invalid field type: '{field_type}'",
             context=context,
-            suggestion=f"Valid types: {', '.join(valid_types[:10])}{'...' if len(valid_types) > 10 else ''}",
+            suggestion=suggestion_text,
             docs_link="https://github.com/fraiseql/specql/blob/main/docs/03_reference/FIELD_TYPES.md",
         )
 
@@ -131,27 +141,10 @@ class ParseError(SpecQLError):
 class SpecQLValidationError(SpecQLError):
     """Raised when entity validation fails."""
 
-    def __init__(
-        self,
-        message: str,
-        context: Optional[ErrorContext] = None,
-        entity: Optional[str] = None,
-    ):
-        # Backward compatibility: if entity is provided, add it to context
-        if entity and not context:
-            context = ErrorContext(entity_name=entity)
-        elif entity and context:
-            context.entity_name = entity
-
+    def __init__(self, message: str, context: Optional[ErrorContext] = None):
         super().__init__(
             message=message,
             context=context,
             suggestion="Review the entity definition and fix the validation error",
             docs_link="https://github.com/fraiseql/specql/blob/main/docs/03_reference/VALIDATION.md",
         )
-
-
-# Backward compatibility aliases
-EntityParseError = ParseError
-FieldTypeError = InvalidFieldTypeError
-ActionCompilationError = SpecQLError

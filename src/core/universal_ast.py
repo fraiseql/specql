@@ -36,6 +36,7 @@ class StepType(Enum):
     INSERT = "insert"
     UPDATE = "update"
     DELETE = "delete"
+    SELECT = "select"
     CALL = "call"
     NOTIFY = "notify"
     FOREACH = "foreach"

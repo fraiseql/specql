@@ -1,12 +1,103 @@
 # SpecQL Troubleshooting Guide
 
 ## Table of Contents
+- [Quick Start Issues](#quick-start-issues)
+- [CLI Usage Issues](#cli-usage-issues)
 - [Installation Issues](#installation-issues)
 - [Generation Errors](#generation-errors)
 - [Runtime Errors](#runtime-errors)
 - [Platform-Specific Issues](#platform-specific-issues)
 - [Performance Issues](#performance-issues)
 - [Integration Issues](#integration-issues)
+
+## Quick Start Issues
+
+### "specql: command not found"
+
+**Symptoms**: Command not recognized in terminal
+
+**Solutions**:
+1. **Check if installed**: `pip show specql-generator`
+2. **Find installation location**: `python -m site --user-base`
+3. **Add to PATH**: Add `~/.local/bin` to your PATH
+4. **Reinstall**: `pip install --force-reinstall specql-generator`
+
+**Verify**:
+```bash
+which specql
+specql --version
+```
+
+### First Generation Fails
+
+**Symptoms**: Error on first `specql generate` command
+
+**Solutions**:
+1. **Check entity file exists**: `ls entities/*.yaml`
+2. **Validate YAML syntax**: `python -c "import yaml; yaml.safe_load(open('entities/contact.yaml'))"`
+3. **Use examples**: `specql examples simple-entity`
+4. **Check file permissions**: `ls -la entities/`
+
+### Examples Command Not Working
+
+**Symptoms**: `specql examples` shows no output or errors
+
+**Solutions**:
+1. **List examples**: `specql examples --list`
+2. **Check specific example**: `specql examples simple-entity`
+3. **Update SpecQL**: `pip install --upgrade specql-generator`
+
+## CLI Usage Issues
+
+### "Invalid field type" Error
+
+**Symptoms**:
+```
+❌ Invalid field type: 'string'
+   File: contact.yaml | Entity: Contact | Field: name
+   💡 Suggestion: Valid types: text, integer, decimal, boolean, ...
+```
+
+**Cause**: Using incorrect field type name
+
+**Solution**: Use `text` instead of `string`. Valid types:
+- `text` (instead of string/varchar)
+- `integer` (instead of int)
+- `decimal` (instead of float/double)
+- `boolean` (instead of bool)
+- `timestamp` (instead of datetime)
+- `json` (for JSON data)
+
+### Interactive Mode Issues
+
+**Symptoms**: Interactive mode doesn't show previews or hangs
+
+**Solutions**:
+1. **Check entity files**: Ensure YAML files are valid
+2. **Use non-interactive**: `specql generate entities/*.yaml`
+3. **Check terminal**: Some terminals don't support interactive features
+
+### Dry Run Shows Nothing
+
+**Symptoms**: `--dry-run` produces no output
+
+**Cause**: No entity files found or invalid paths
+
+**Solutions**:
+1. **Check file paths**: `ls entities/**/*.yaml`
+2. **Use correct glob**: `entities/*.yaml` or `entities/**/*.yaml`
+3. **Check permissions**: `ls -la entities/`
+
+### Progress Bars Not Showing
+
+**Symptoms**: No progress indicators during generation
+
+**Cause**: Rich library not available or terminal limitations
+
+**Solutions**:
+1. **Check Rich installation**: `python -c "import rich; print('OK')"`
+2. **Use verbose mode**: `specql generate --verbose entities/*.yaml`
+3. **Check terminal**: Some terminals don't support rich formatting
 
 ## Installation Issues
 
