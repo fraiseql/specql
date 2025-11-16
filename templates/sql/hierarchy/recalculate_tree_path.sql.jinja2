@@ -1,5 +1,5 @@
 -- Generic path recalculation for ANY hierarchical entity
--- Based on printoptim_backend implementation
+-- Based on production reference implementation
 -- NO TRIGGERS - Called explicitly from mutations!
 
 CREATE OR REPLACE FUNCTION core.recalculate_tree_path(
@@ -178,4 +178,4 @@ Example usage in mutations:
       ROW(v_location_pk, NULL, p_caller_id)::core.recalculation_context
   );
 
-Based on printoptim_backend pattern.';
+Based on production reference pattern.';

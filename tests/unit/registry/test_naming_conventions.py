@@ -655,7 +655,7 @@ class TestExplicitTableCodeHandling:
 
     def test_explicit_table_code_skips_domain_validation(self, nc):
         """Explicit table codes should skip domain validation for external systems"""
-        # Domain mismatch is OK for explicit codes (e.g., PrintOptim migration)
+        # Domain mismatch is OK for explicit codes (e.g., Production migration)
         entity = Entity(name="Contact", schema="crm")
         entity.organization = Organization(table_code="0130211")  # catalog domain in registry
 

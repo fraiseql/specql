@@ -271,7 +271,7 @@ If you're writing the same entity in 2+ languages, SpecQL saves you hours. #Spec
 **Tweet 2/2:**
 Real-world example:
 
-I'm using SpecQL to migrate PrintOptim (production SaaS). One domain definition generates:
+I'm using SpecQL to migrate a production SaaS application. One domain definition generates:
 
 - PostgreSQL schema with audit trails
 - Java services with validation

@@ -64,7 +64,7 @@ def test_parse_table_code_subdomain_single_digit():
     """Subdomain should be SINGLE digit (position 3)"""
     parser = NumberingParser()
 
-    # Test case from PrintOptim: ColorMode entity
+    # Test case from Production: ColorMode entity
     components = parser.parse_table_code_detailed("013111")
 
     assert components.schema_layer == "01"

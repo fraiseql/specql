@@ -61,7 +61,7 @@ Use SpecQL if you:
 - ⚠️ APIs may evolve based on feedback
 - ⚠️ Test thoroughly before production deployment
 
-We're using it to migrate PrintOptim (real production SaaS).
+We're using it to migrate Reference Application (real production SaaS).
 
 ### What's the difference between SpecQL and Prisma?
 | Aspect | SpecQL | Prisma |

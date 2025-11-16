@@ -29,7 +29,7 @@ Currently, PL/pgSQL has **scattered integration tests** without systematic cover
 - Rust: 50+ integration tests, 95% coverage, systematic approach
 - **PL/pgSQL**: ~15 scattered tests, no systematic suite
 
-This creates **validation gaps** that could impact production migrations like PrintOptim.
+This creates **validation gaps** that could impact production migrations like Reference Application.
 
 ### Key Objectives
 

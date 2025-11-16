@@ -147,9 +147,9 @@ Deploy with FraiseQL for instant GraphQL API.
 
 ## Real-World Example
 
-I'm using SpecQL to migrate PrintOptim (production SaaS). Here's what one domain looks like:
+I'm using SpecQL to migrate Reference Application (production SaaS). Here's what one domain looks like:
 
-[Share actual PrintOptim example]
+[Share actual Reference Application example]
 
 ## Performance
 
@@ -717,7 +717,7 @@ Migrate legacy systems. Mix languages. Stay in sync.
 
 6/ Real-world example:
 
-I'm using it to migrate PrintOptim (production SaaS).
+I'm using it to migrate Reference Application (production SaaS).
 
 50-entity system. Instead of writing ~10,000 lines across languages, I wrote 500 lines of YAML.
 
@@ -783,7 +783,7 @@ Real Impact:
 - Business logic that compiles to database functions
 - Reverse engineering to import existing code
 
-I built this while migrating PrintOptim, our production SaaS platform. What would have been 10,000+ lines of hand-written code became 500 lines of YAML.
+I built this while migrating Reference Application, our production SaaS platform. What would have been 10,000+ lines of hand-written code became 500 lines of YAML.
 
 The tool is now available:
 pip install specql-generator
@@ -886,7 +886,7 @@ Key features:
 - Reverse engineering (import existing PostgreSQL, Python, Java, Rust, TypeScript)
 - Production-ready (96%+ test coverage)
 
-The codebase is open source (MIT). I'm currently using it to migrate PrintOptim (real production system).
+The codebase is open source (MIT). I'm currently using it to migrate Reference Application (real production system).
 
 Would love feedback on:
 - Generated code quality

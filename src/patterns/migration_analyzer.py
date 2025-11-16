@@ -1,5 +1,5 @@
 """
-Migration Analyzer for PrintOptim to SpecQL Patterns
+Migration Analyzer for existing codebases to SpecQL Patterns
 
 This module provides utilities to analyze existing SpecQL entities and suggest
 pattern-based improvements for migration from manual SQL to declarative patterns.

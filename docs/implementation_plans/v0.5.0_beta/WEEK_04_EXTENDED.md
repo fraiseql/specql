@@ -225,7 +225,7 @@ Comprehensive marketing materials for alpha launch:
 - Add docs/blog/INTRODUCING_SPECQL.md (342 lines, 8.2KB)
   - Complete launch announcement
   - Problem/solution structure
-  - Real-world examples (PrintOptim migration)
+  - Real-world examples (Reference Application migration)
   - Feature highlights and comparison tables
   - Installation and getting started
 

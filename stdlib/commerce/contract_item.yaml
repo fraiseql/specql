@@ -1,10 +1,10 @@
 # SpecQL stdlib Entity: ContractItem
 # Category: commerce
 # Version: 1.1.0
-# Standard: PrintOptim Production Reference
+# Standard: Reference Application Production Reference
 # Description: Contract line items with bulk operations
 #
-# This entity implements PrintOptim's contract item management
+# This entity implements Reference Application's contract item management
 # using batch operation patterns for bulk updates.
 #
 # Usage:

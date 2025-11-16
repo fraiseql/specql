@@ -74,14 +74,14 @@ class TestDocumentationCoverage:
 
     def test_migration_guide_exists(self):
         """Test that migration guide exists and is comprehensive."""
-        migration_guide = Path("docs/migration/printoptim_to_patterns.md")
+        migration_guide = Path("docs/migration/production_to_patterns.md")
 
         assert migration_guide.exists(), "Migration guide not found"
 
         content = migration_guide.read_text()
 
         required_sections = [
-            "# Migrating PrintOptim Views to SpecQL Patterns",
+            "# Migrating Production Views to SpecQL Patterns",
             "## Step 1: Identify Pattern Category",
             "## Step 2: Convert to YAML",
             "## Step 3: Validate Equivalence",

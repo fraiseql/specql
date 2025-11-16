@@ -308,7 +308,7 @@ A: Prisma is excellent for TypeScript-only stacks, but SpecQL generates multiple
 A: Direct SQL execution - no ORM overhead. Benchmarked at ~1.2ms for simple queries vs 3.8ms for Prisma (3x faster).
 
 **Q: Can I use it in production?**
-A: Yes! It's used in production at PrintOptim (SaaS app). Generated code is production-ready with proper error handling, validation, and type safety.
+A: Yes! It's used in production in a production SaaS application. Generated code is production-ready with proper error handling, validation, and type safety.
 
 **Q: What about migrations?**
 A: Generates standard SQL migration files. Works with any migration tool (Flyway, Liquibase, custom scripts).
@@ -353,7 +353,7 @@ If initial response is lukewarm:
 - Share more technical details
 - Post code examples and benchmarks
 - Engage directly with commenters
-- Share real-world use case from PrintOptim
+- Share real-world use case from our reference implementation
 
 If negative feedback:
 - Listen to concerns

@@ -339,11 +339,11 @@ class TestWildcardEdgeCases:
         assert "*" in user_include.fields
 
 
-class TestWildcardPrintOptimPattern:
-    """Test wildcard patterns specific to PrintOptim use case (Issue #5)"""
+class TestWildcardProductionPattern:
+    """Test wildcard patterns specific to Production use case (Issue #5)"""
 
-    def test_printoptim_contract_pattern(self):
-        """Test PrintOptim's exact pattern from Issue #5"""
+    def test_production_contract_pattern(self):
+        """Test Production's exact pattern from Issue #5"""
         yaml_content = """
         entity: Contract
         schema: tenant

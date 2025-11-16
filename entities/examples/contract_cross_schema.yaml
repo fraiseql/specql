@@ -1,7 +1,7 @@
 name: Contract
 schema: tenant
 description: |
-  Multi-tenant contract with cross-schema references (PrintOptim pattern).
+  Multi-tenant contract with cross-schema references (Production pattern).
 
   Demonstrates:
   - Cross-schema composition (management, catalog, tenant)

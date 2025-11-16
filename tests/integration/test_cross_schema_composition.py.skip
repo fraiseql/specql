@@ -319,11 +319,11 @@ class TestCrossSchemaExtraFilterColumns:
         assert "tv_organization.data" in schema_sql
 
 
-class TestPrintOptimUseCaseIntegration:
-    """Integration tests for PrintOptim's specific use case (Issue #5)"""
+class TestProductionUseCaseIntegration:
+    """Integration tests for Production's specific use case (Issue #5)"""
 
-    def test_printoptim_contract_pattern_e2e(self):
-        """Test PrintOptim's exact Contract pattern end-to-end"""
+    def test_production_contract_pattern_e2e(self):
+        """Test Production's exact Contract pattern end-to-end"""
         contract_yaml = """
         entity: Contract
         schema: tenant
@@ -400,7 +400,7 @@ class TestPrintOptimUseCaseIntegration:
         # Verify refresh function
         assert "CREATE OR REPLACE FUNCTION tenant.refresh_tv_contract" in schema_sql
 
-    def test_printoptim_47_entities_pattern(self):
+    def test_production_47_entities_pattern(self):
         """Test that wildcard pattern scales to 47+ entities"""
         # Simulate 5 entities (representing subset of 47)
         entities = []

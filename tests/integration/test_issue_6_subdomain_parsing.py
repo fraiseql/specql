@@ -15,7 +15,7 @@ SOLUTION:
 
 TESTS:
 These tests verify the fix works end-to-end with real entity generation scenarios
-matching the PrintOptim migration use case with 74+ entities.
+matching the Production migration use case with 74+ entities.
 """
 
 from src.cli.orchestrator import CLIOrchestrator
@@ -45,7 +45,7 @@ class TestIssue6SubdomainParsing:
         """
         Test that entities in same subdomain share directory
 
-        Reproduces PrintOptim scenario:
+        Reproduces Production scenario:
         - ColorMode (013111), DuplexMode (013121), MachineFunction (013131)
         - All have subdomain code "1" (classification)
         - Should all be in directory: 0131_classification/

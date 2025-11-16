@@ -12,7 +12,7 @@ class TestHexHierarchicalGeneration:
         Test generating multiple entities with explicit table codes in same run
 
         Reproduces GitHub Issue #1 scenario:
-        - PrintOptim migration with 74 entities
+        - Production migration with 74 entities
         - Each entity has pre-existing 6-digit hex code
         - Hex hierarchical generation should succeed
         """

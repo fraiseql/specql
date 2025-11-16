@@ -1,10 +1,10 @@
 # SpecQL stdlib Entity: Machine
 # Category: tech
 # Version: 1.1.0
-# Standard: PrintOptim Production Reference
+# Standard: Reference Application Production Reference
 # Description: Manufacturing equipment with lifecycle management
 #
-# This entity implements PrintOptim's machine lifecycle management
+# This entity implements Reference Application's machine lifecycle management
 # using the new state machine pattern for declarative business logic.
 #
 # Usage:

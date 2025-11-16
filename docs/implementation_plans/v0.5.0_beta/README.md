@@ -8,10 +8,10 @@
 
 ## Executive Summary
 
-Before diving into PrintOptim migration, spend 6 weeks making SpecQL discoverable, installable, and delightful to use. This ensures any PrintOptim issues are real migration complexity, not tooling problems.
+Before diving into Reference Application migration, spend 6 weeks making SpecQL discoverable, installable, and delightful to use. This ensures any Reference Application issues are real migration complexity, not tooling problems.
 
 **Investment**: 6 weeks now
-**Payoff**: Clean PrintOptim migration + immediate shareable case study + growing community
+**Payoff**: Clean Reference Application migration + immediate shareable case study + growing community
 
 ---
 
@@ -286,7 +286,7 @@ Week 6: Community Launch
 1. Address critical feedback from launch
 2. Release v0.4.1-alpha (bug fixes)
 3. Plan v0.5.0-beta features
-4. Begin PrintOptim migration (if ready)
+4. Begin Reference Application migration (if ready)
 
 ### Month 2-3
 1. Build top community-requested features
@@ -295,7 +295,7 @@ Week 6: Community Launch
 4. Release v0.5.0-beta
 
 ### Month 4-6
-1. PrintOptim migration case study
+1. Reference Application migration case study
 2. Additional language support (Go?)
 3. Release v0.6.0-beta
 4. Plan v1.0.0
@@ -319,7 +319,7 @@ Week 6: Community Launch
 - Bug vs feature request ratio
 
 **Decision**:
-- **Success**: Continue to PrintOptim migration
+- **Success**: Continue to Reference Application migration
 - **Iterate**: Spend 1-2 more weeks on polish
 - **Pivot**: Reassess approach based on feedback
 
@@ -352,11 +352,11 @@ Week 6: Community Launch
 
 **Why spend 6 weeks on this?**
 
-1. **PrintOptim migration will be smoother**: Any issues will be migration complexity, not tooling problems.
+1. **Reference Application migration will be smoother**: Any issues will be migration complexity, not tooling problems.
 
 2. **Immediate shareability**: After successful migration, you can immediately share the case study. PyPI is already live, docs are polished.
 
-3. **Community validation**: Real users finding real bugs before PrintOptim.
+3. **Community validation**: Real users finding real bugs before Reference Application.
 
 4. **Compound effect**: Every week builds on previous. Each deliverable has lasting value.
 

@@ -5,7 +5,7 @@
 # Description: Generic contract management between organizations
 #
 # This entity is part of the SpecQL standard library, extracted from
-# PrintOptim production system and generalized for universal reuse.
+# production reference implementation and generalized for universal reuse.
 #
 # Usage:
 #   # Import as-is:
@@ -23,7 +23,7 @@ schema: tenant
 description: |
   Contract entity representing agreements between customer and provider organizations.
   Defines the commercial terms, duration, and parties involved in a business agreement.
-  Enhanced with PrintOptim production patterns for CRUD operations.
+  Enhanced with Reference Application production patterns for CRUD operations.
 
 fields:
   contract_identifier:

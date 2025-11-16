@@ -1,4 +1,4 @@
-# Remove PrintOptim References - Implementation Plan
+# Remove Reference Application References - Implementation Plan
 
 **Document Version**: 1.0
 **Created**: 2025-11-16
@@ -10,16 +10,16 @@
 
 ## Executive Summary
 
-This plan systematically removes all 349 occurrences of "PrintOptim" across 154 files in the SpecQL codebase before public release. PrintOptim is a proprietary production SaaS application that should not be publicly disclosed.
+This plan systematically removes all 349 occurrences of "Reference Application" across 154 files in the SpecQL codebase before public release. Reference Application is a proprietary production SaaS application that should not be publicly disclosed.
 
 **Current Status**:
-- ❌ 349 PrintOptim references found
+- ❌ 349 Reference Application references found
 - ❌ 154 files containing references
-- ❌ 4 directories with PrintOptim in path
-- ❌ Public marketing materials mention PrintOptim
+- ❌ 4 directories with Reference Application in path
+- ❌ Public marketing materials mention Reference Application
 
 **Expected Outcomes**:
-- 0 PrintOptim references in codebase
+- 0 Reference Application references in codebase
 - All proprietary information removed
 - Generic "production reference" terminology used
 - Safe for public GitHub repository
@@ -53,7 +53,7 @@ This plan systematically removes all 349 occurrences of "PrintOptim" across 154 
 
 ## PHASE 1: Delete Directories (Zero Risk)
 
-**Objective**: Remove empty and backup directories containing PrintOptim references
+**Objective**: Remove empty and backup directories containing Reference Application references
 
 **Estimated Time**: 5 minutes
 
@@ -226,7 +226,7 @@ ls site/migration/printoptim_to_specql 2>&1
 
 **Success Criteria**:
 - [ ] Generated docs removed
-- [ ] Site will regenerate without PrintOptim after source cleanup
+- [ ] Site will regenerate without Reference Application after source cleanup
 
 ---
 
@@ -306,7 +306,7 @@ grep -ri "printoptim" . --exclude-dir=.git --exclude-dir=node_modules \
 
 ## PHASE 2: Global Find/Replace (Low Risk)
 
-**Objective**: Automated replacement of PrintOptim references in comments and metadata
+**Objective**: Automated replacement of Reference Application references in comments and metadata
 
 **Estimated Time**: 10 minutes
 
@@ -314,8 +314,8 @@ grep -ri "printoptim" . --exclude-dir=.git --exclude-dir=node_modules \
 
 **Pattern Found**:
 ```yaml
-# PrintOptim production system and generalized for universal reuse.
-# PrintOptim pattern
+# Reference Application production system and generalized for universal reuse.
+# Reference Application pattern
 ```
 
 **Files Affected**: All stdlib YAML files
@@ -335,24 +335,24 @@ grep -ri "printoptim" . --exclude-dir=.git --exclude-dir=node_modules \
 cd /home/lionel/code/specql
 
 # Show all lines that will change
-grep -r "PrintOptim" stdlib/ --include="*.yaml"
+grep -r "Reference Application" stdlib/ --include="*.yaml"
 ```
 
 **2. Execute replacement**
 ```bash
-# Replace "PrintOptim production system" → "production reference implementation"
+# Replace "Reference Application production system" → "production reference implementation"
 find stdlib/ -name "*.yaml" -type f -exec sed -i \
-  's/PrintOptim production system/production reference implementation/g' {} \;
+  's/Reference Application production system/production reference implementation/g' {} \;
 
-# Replace remaining "PrintOptim" → "Reference Application"
+# Replace remaining "Reference Application" → "Reference Application"
 find stdlib/ -name "*.yaml" -type f -exec sed -i \
-  's/PrintOptim/Reference Application/g' {} \;
+  's/Reference Application/Reference Application/g' {} \;
 ```
 
 **3. Verify changes**
 ```bash
-# Check no PrintOptim references remain in stdlib
-grep -r "PrintOptim" stdlib/ --include="*.yaml"
+# Check no Reference Application references remain in stdlib
+grep -r "Reference Application" stdlib/ --include="*.yaml"
 ```
 
 **Expected**: No output (all references replaced)
@@ -369,7 +369,7 @@ head -20 stdlib/i18n/language.yaml
 
 **Success Criteria**:
 - [ ] 36 stdlib files updated
-- [ ] Zero PrintOptim references in stdlib/
+- [ ] Zero Reference Application references in stdlib/
 - [ ] YAML files still valid (no syntax errors)
 - [ ] Metadata updated to generic terms
 
@@ -423,7 +423,7 @@ cat templates/sql/000_types.sql.jinja2 | head -10
 - [ ] 3 template files updated
 - [ ] Comments now reference "production reference"
 - [ ] Template syntax valid
-- [ ] No PrintOptim references in templates/
+- [ ] No Reference Application references in templates/
 
 ---
 
@@ -431,8 +431,8 @@ cat templates/sql/000_types.sql.jinja2 | head -10
 
 **Pattern Found**:
 ```yaml
-# (PrintOptim pattern)
-# PrintOptim pattern for wildcard evolution
+# (Reference Application pattern)
+# Reference Application pattern for wildcard evolution
 ```
 
 **Files Affected**:
@@ -443,21 +443,21 @@ cat templates/sql/000_types.sql.jinja2 | head -10
 
 **1. Preview changes**
 ```bash
-grep -n "PrintOptim" entities/examples/*.yaml
+grep -n "Reference Application" entities/examples/*.yaml
 ```
 
 **2. Execute replacement**
 ```bash
 find entities/examples/ -name "*.yaml" -type f -exec sed -i \
-  's/PrintOptim pattern/Production pattern/gi' {} \;
+  's/Reference Application pattern/Production pattern/gi' {} \;
 
 find entities/examples/ -name "*.yaml" -type f -exec sed -i \
-  's/PrintOptim/Reference Application/gi' {} \;
+  's/Reference Application/Reference Application/gi' {} \;
 ```
 
 **3. Verify changes**
 ```bash
-grep -n "PrintOptim" entities/examples/ -i
+grep -n "Reference Application" entities/examples/ -i
 ```
 
 **Expected**: No output
@@ -506,7 +506,7 @@ grep -r "printoptim" entities/examples/ -i
 
 ## PHASE 3: Documentation Updates (Medium Risk)
 
-**Objective**: Remove or update PrintOptim references in public-facing documentation
+**Objective**: Remove or update Reference Application references in public-facing documentation
 
 **Estimated Time**: 1-2 hours
 
@@ -517,7 +517,7 @@ grep -r "printoptim" entities/examples/ -i
 #### File: docs/marketing/SOCIAL_MEDIA_CONTENT.md
 
 **References** (3 occurrences):
-- Line 274: LinkedIn post mentions "PrintOptim (production SaaS)"
+- Line 274: LinkedIn post mentions "Reference Application (production SaaS)"
 - Context: Example social media content
 
 **Changes Required**:
@@ -529,7 +529,7 @@ cd /home/lionel/code/specql
 **Edit the file**:
 ```markdown
 # BEFORE (Line 274):
-I'm using SpecQL to migrate PrintOptim (production SaaS)...
+I'm using SpecQL to migrate Reference Application (production SaaS)...
 
 # AFTER:
 I'm using SpecQL to migrate a production SaaS application...
@@ -537,13 +537,13 @@ I'm using SpecQL to migrate a production SaaS application...
 
 **Script**:
 ```bash
-sed -i 's/PrintOptim (production SaaS)/a production SaaS application/g' \
+sed -i 's/Reference Application (production SaaS)/a production SaaS application/g' \
   docs/marketing/SOCIAL_MEDIA_CONTENT.md
 ```
 
 **Verify**:
 ```bash
-grep -n "PrintOptim" docs/marketing/SOCIAL_MEDIA_CONTENT.md -i
+grep -n "Reference Application" docs/marketing/SOCIAL_MEDIA_CONTENT.md -i
 ```
 
 **Expected**: No output
@@ -553,24 +553,24 @@ grep -n "PrintOptim" docs/marketing/SOCIAL_MEDIA_CONTENT.md -i
 #### File: docs/marketing/SHOW_HN_CONTENT.md
 
 **References** (2 occurrences):
-- Line 311: "Yes! It's used in production at PrintOptim (SaaS app)."
-- Line 356: "Share real-world use case from PrintOptim"
+- Line 311: "Yes! It's used in production at Reference Application (SaaS app)."
+- Line 356: "Share real-world use case from Reference Application"
 
 **Changes Required**:
 
 ```bash
 # Line 311
-sed -i 's/at PrintOptim (SaaS app)/in a production SaaS application/g' \
+sed -i 's/at Reference Application (SaaS app)/in a production SaaS application/g' \
   docs/marketing/SHOW_HN_CONTENT.md
 
 # Line 356
-sed -i 's/from PrintOptim/from our reference implementation/g' \
+sed -i 's/from Reference Application/from our reference implementation/g' \
   docs/marketing/SHOW_HN_CONTENT.md
 ```
 
 **Verify**:
 ```bash
-grep -n "PrintOptim" docs/marketing/SHOW_HN_CONTENT.md -i
+grep -n "Reference Application" docs/marketing/SHOW_HN_CONTENT.md -i
 ```
 
 **Expected**: No output
@@ -619,7 +619,7 @@ git add docs/implementation_plans/PRINTOPTIM_SPECQL_MIGRATION_COMPREHENSIVE_PLAN
 
 ```bash
 # Global replace in the file
-sed -i 's/PrintOptim/Reference Application/g' \
+sed -i 's/Reference Application/Reference Application/g' \
   docs/implementation_plans/PRINTOPTIM_SPECQL_MIGRATION_COMPREHENSIVE_PLAN.md
 
 # Rename file
@@ -633,25 +633,25 @@ mv docs/implementation_plans/PRINTOPTIM_SPECQL_MIGRATION_COMPREHENSIVE_PLAN.md \
 
 **Option 1: Global replace**
 ```bash
-# Replace PrintOptim in all implementation plan files
+# Replace Reference Application in all implementation plan files
 find docs/implementation_plans/ -name "*.md" -type f -exec sed -i \
-  's/PrintOptim/Reference Application/g' {} \;
+  's/Reference Application/Reference Application/g' {} \;
 
 # Also update FAQ
-sed -i 's/PrintOptim/Reference Application/g' \
+sed -i 's/Reference Application/Reference Application/g' \
   docs/08_troubleshooting/FAQ.md
 ```
 
 **Option 2: Manual review and edit**
 ```bash
 # List all files with references
-grep -l "PrintOptim" docs/implementation_plans/**/*.md -i
-grep -l "PrintOptim" docs/08_troubleshooting/*.md -i
+grep -l "Reference Application" docs/implementation_plans/**/*.md -i
+grep -l "Reference Application" docs/08_troubleshooting/*.md -i
 
 # Review each one
-for file in $(grep -l "PrintOptim" docs/**/*.md -i); do
+for file in $(grep -l "Reference Application" docs/**/*.md -i); do
     echo "=== $file ==="
-    grep -n "PrintOptim" "$file" -i
+    grep -n "Reference Application" "$file" -i
     echo ""
 done
 ```
@@ -659,8 +659,8 @@ done
 #### Verification
 
 ```bash
-# Check no PrintOptim in docs
-grep -r "PrintOptim" docs/ -i --include="*.md"
+# Check no Reference Application in docs
+grep -r "Reference Application" docs/ -i --include="*.md"
 
 # Expected: No output (or only in files you chose to keep)
 ```
@@ -683,13 +683,13 @@ grep -r "PrintOptim" docs/ -i --include="*.md"
 find docs/ -name "*migration*.md" -o -name "*printoptim*.md"
 
 # Check each one
-grep -l "PrintOptim" docs/**/*.md -i
+grep -l "Reference Application" docs/**/*.md -i
 ```
 
 **Action**: Remove or update any remaining migration documentation
 
 **Success Criteria**:
-- [ ] No migration docs reference PrintOptim
+- [ ] No migration docs reference Reference Application
 - [ ] Source files cleaned (not just generated site/)
 
 ---
@@ -724,7 +724,7 @@ grep -r "printoptim" docs/implementation_plans/ -i
 
 ## PHASE 4: Test File Updates (Low Risk)
 
-**Objective**: Update test files that reference PrintOptim (mostly comments and class names)
+**Objective**: Update test files that reference Reference Application (mostly comments and class names)
 
 **Estimated Time**: 30 minutes
 
@@ -732,11 +732,11 @@ grep -r "printoptim" docs/implementation_plans/ -i
 
 #### File: tests/unit/numbering/test_numbering_parser.py
 
-**Reference**: Line comment "Test case from PrintOptim: ColorMode entity"
+**Reference**: Line comment "Test case from Reference Application: ColorMode entity"
 
 **Fix**:
 ```bash
-sed -i 's/from PrintOptim/from production reference/g' \
+sed -i 's/from Reference Application/from production reference/g' \
   tests/unit/numbering/test_numbering_parser.py
 ```
 
@@ -744,11 +744,11 @@ sed -i 's/from PrintOptim/from production reference/g' \
 
 #### File: tests/unit/schema/test_wildcard_generation.py
 
-**References**: Class name `TestWildcardPrintOptimPattern` (4 occurrences)
+**References**: Class name `TestWildcardReference ApplicationPattern` (4 occurrences)
 
 **Fix**:
 ```bash
-sed -i 's/PrintOptim/Production/g' \
+sed -i 's/Reference Application/Production/g' \
   tests/unit/schema/test_wildcard_generation.py
 ```
 
@@ -758,11 +758,11 @@ sed -i 's/PrintOptim/Production/g' \
 
 #### File: tests/unit/core/test_table_views_wildcard.py
 
-**References**: Class name `TestWildcardPrintOptimPattern` (4 occurrences)
+**References**: Class name `TestWildcardReference ApplicationPattern` (4 occurrences)
 
 **Fix**:
 ```bash
-sed -i 's/PrintOptim/Production/g' \
+sed -i 's/Reference Application/Production/g' \
   tests/unit/core/test_table_views_wildcard.py
 ```
 
@@ -770,11 +770,11 @@ sed -i 's/PrintOptim/Production/g' \
 
 #### File: tests/unit/registry/test_naming_conventions.py
 
-**Reference**: Comment about PrintOptim migration
+**Reference**: Comment about Reference Application migration
 
 **Fix**:
 ```bash
-sed -i 's/PrintOptim/Reference Application/g' \
+sed -i 's/Reference Application/Reference Application/g' \
   tests/unit/registry/test_naming_conventions.py
 ```
 
@@ -782,11 +782,11 @@ sed -i 's/PrintOptim/Reference Application/g' \
 
 #### File: tests/unit/patterns/aggregation/test_boolean_flags.py
 
-**Reference**: Comment "9-flag PrintOptim example"
+**Reference**: Comment "9-flag Reference Application example"
 
 **Fix**:
 ```bash
-sed -i 's/PrintOptim/production/g' \
+sed -i 's/Reference Application/production/g' \
   tests/unit/patterns/aggregation/test_boolean_flags.py
 ```
 
@@ -800,7 +800,7 @@ sed -i 's/PrintOptim/production/g' \
 
 **Fix**:
 ```bash
-sed -i 's/PrintOptim/Reference Application/g' \
+sed -i 's/Reference Application/Reference Application/g' \
   tests/integration/test_hex_hierarchical_generation.py
 ```
 
@@ -812,7 +812,7 @@ sed -i 's/PrintOptim/Reference Application/g' \
 
 **Fix**:
 ```bash
-sed -i 's/PrintOptim/Reference Application/g' \
+sed -i 's/Reference Application/Reference Application/g' \
   tests/integration/test_issue_6_subdomain_parsing.py
 ```
 
@@ -826,7 +826,7 @@ sed -i 's/PrintOptim/Reference Application/g' \
 
 **Fix**:
 ```bash
-sed -i 's/PrintOptim/Production/g' \
+sed -i 's/Reference Application/Production/g' \
   tests/integration/test_cross_schema_composition.py.skip
 ```
 
@@ -858,7 +858,7 @@ sed -i 's/def test_/@pytest.mark.skip("Migration docs removed")\ndef test_/g' \
 
 **Fix**:
 ```bash
-sed -i 's/PrintOptim/Reference Application/g' \
+sed -i 's/Reference Application/Reference Application/g' \
   tests/docs/test_documentation_coverage.py
 ```
 
@@ -871,7 +871,7 @@ sed -i 's/PrintOptim/Reference Application/g' \
 ```bash
 # Replace in all test files
 find tests/ -name "*.py" -type f -exec sed -i \
-  's/PrintOptim/Production/g' {} \;
+  's/Reference Application/Production/g' {} \;
 
 find tests/ -name "*.py" -type f -exec sed -i \
   's/printoptim/production/g' {} \;
@@ -883,7 +883,7 @@ find tests/ -name "*.py" -type f -exec sed -i \
 uv run pytest --collect-only 2>&1 | grep -i "printoptim"
 ```
 
-**Expected**: No output (no PrintOptim in test names or collection)
+**Expected**: No output (no Reference Application in test names or collection)
 
 ---
 
@@ -905,7 +905,7 @@ uv run pytest --tb=short -q
 - [ ] Test classes renamed
 - [ ] Comments updated
 - [ ] Tests still pass (or skipped if docs removed)
-- [ ] No PrintOptim in test collection output
+- [ ] No Reference Application in test collection output
 
 ---
 
@@ -923,7 +923,7 @@ uv run pytest --tb=short -q
 
 ```python
 # BEFORE:
-"""Migration Analyzer for PrintOptim to SpecQL Patterns"""
+"""Migration Analyzer for Reference Application to SpecQL Patterns"""
 
 # AFTER:
 """Migration Analyzer for existing codebases to SpecQL Patterns"""
@@ -931,7 +931,7 @@ uv run pytest --tb=short -q
 
 **Fix**:
 ```bash
-sed -i 's/PrintOptim to SpecQL/existing codebases to SpecQL/g' \
+sed -i 's/Reference Application to SpecQL/existing codebases to SpecQL/g' \
   src/patterns/migration_analyzer.py
 ```
 
@@ -962,7 +962,7 @@ sed -i 's|../printoptim_backend/|../reference_app/|g' \
   scripts/dev/compare_with_original.py
 ```
 
-**Recommended**: Delete (script is dev-only and specific to PrintOptim)
+**Recommended**: Delete (script is dev-only and specific to Reference Application)
 
 ---
 
@@ -979,14 +979,14 @@ grep -r "printoptim" scripts/ -i --include="*.py"
 **Success Criteria**:
 - [ ] migration_analyzer.py updated
 - [ ] compare_with_original.py deleted or updated
-- [ ] No PrintOptim in source code
+- [ ] No Reference Application in source code
 - [ ] Code still runs correctly
 
 ---
 
 ## PHASE 6: Final Verification & Commit
 
-**Objective**: Comprehensive verification that all PrintOptim references are removed
+**Objective**: Comprehensive verification that all Reference Application references are removed
 
 **Estimated Time**: 30 minutes
 
@@ -1094,7 +1094,7 @@ mkdocs build
 # Check for broken links
 mkdocs build --strict
 
-# Expected: No errors, no PrintOptim in generated site
+# Expected: No errors, no Reference Application in generated site
 ```
 
 ---
@@ -1108,7 +1108,7 @@ rm -rf dist/ build/ *.egg-info
 # Build package
 uv build
 
-# Check package contents don't include PrintOptim
+# Check package contents don't include Reference Application
 tar -tzf dist/specql-generator-*.tar.gz | grep -i printoptim
 
 # Expected: No output (no printoptim files in package)
@@ -1126,7 +1126,7 @@ unzip -l dist/specql_generator-*.whl | grep -i printoptim
 **Before committing, verify**:
 
 - [ ] **Search Results**: Zero occurrences of "printoptim" (case-insensitive)
-- [ ] **Directories**: All 5 PrintOptim directories deleted
+- [ ] **Directories**: All 5 Reference Application directories deleted
 - [ ] **Stdlib**: 36 YAML files updated with generic terms
 - [ ] **Templates**: 3 Jinja files updated
 - [ ] **Examples**: 2 YAML files updated
@@ -1135,7 +1135,7 @@ unzip -l dist/specql_generator-*.whl | grep -i printoptim
 - [ ] **Tests**: 8 test files updated, all passing
 - [ ] **Source**: 2 source files updated
 - [ ] **Test Suite**: Runs without errors
-- [ ] **Package Build**: Succeeds without PrintOptim references
+- [ ] **Package Build**: Succeeds without Reference Application references
 - [ ] **Git Status**: Only expected changes
 - [ ] **Private Archives**: Backups saved in ~/private_archives/ (if needed)
 
@@ -1152,18 +1152,18 @@ git status
 git diff --cached --stat
 
 # Create commit
-git commit -m "security: remove all PrintOptim references from codebase
+git commit -m "security: remove all Reference Application references from codebase
 
 CRITICAL: Remove proprietary application references before public release
 
 Changes:
 - Deleted 5 directories (entities/printoptim, printoptim_migration,
   backup_internal, user_journey_test, site/migration/printoptim_to_specql)
-- Updated 41 stdlib YAML files: replace PrintOptim → Reference Application
+- Updated 41 stdlib YAML files: replace Reference Application → Reference Application
 - Updated 3 template files: replace printoptim_backend → production reference
-- Updated 2 example files: replace PrintOptim pattern → Production pattern
+- Updated 2 example files: replace Reference Application pattern → Production pattern
 - Cleaned marketing content (SOCIAL_MEDIA_CONTENT.md, SHOW_HN_CONTENT.md)
-- Removed/sanitized implementation plans referencing PrintOptim
+- Removed/sanitized implementation plans referencing Reference Application
 - Updated 8 test files: renamed classes, updated comments
 - Updated 2 source files: cleaned docstrings
 - Removed migration documentation
@@ -1194,7 +1194,7 @@ git push origin pre-public-cleanup
 **Before making repository public or publishing to PyPI**:
 
 ### Code Security
-- [ ] Zero PrintOptim references in codebase
+- [ ] Zero Reference Application references in codebase
 - [ ] No proprietary application names
 - [ ] No customer/client names
 - [ ] No internal URLs or server names
@@ -1206,17 +1206,17 @@ git push origin pre-public-cleanup
 - [ ] Show HN content safe for public
 - [ ] No migration docs with proprietary details
 - [ ] Examples use generic terminology
-- [ ] README doesn't mention PrintOptim
+- [ ] README doesn't mention Reference Application
 
 ### Git History
-- [ ] Recent commits don't expose PrintOptim details
+- [ ] Recent commits don't expose Reference Application details
 - [ ] Branch names don't include "printoptim"
 - [ ] No sensitive info in commit messages
 
 ### Package/Distribution
-- [ ] Built package doesn't include PrintOptim files
-- [ ] PyPI description doesn't mention PrintOptim
-- [ ] GitHub releases don't reference PrintOptim
+- [ ] Built package doesn't include Reference Application files
+- [ ] PyPI description doesn't mention Reference Application
+- [ ] GitHub releases don't reference Reference Application
 
 ### Final Scan
 - [ ] `grep -ri "printoptim" . --exclude-dir=.git` returns ZERO results

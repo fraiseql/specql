@@ -187,7 +187,7 @@ examples/plpgsql-migration/
    - All SpecQL entities ultimately compile to PostgreSQL
    - Yet has weakest testing/validation infrastructure
 
-2. **PrintOptim Migration Dependency**
+2. **Reference Application Migration Dependency**
    - Week 1-8 of main roadmap depends on PL/pgSQL quality
    - Better reverse engineering = smoother migration
    - Round-trip validation = confidence in generated code
@@ -226,7 +226,7 @@ examples/plpgsql-migration/
 
 ### Current Main Roadmap
 ```
-Phase 1: PrintOptim Migration (Weeks 1-8)
+Phase 1: Reference Application Migration (Weeks 1-8)
 ├── Week 1: Database Inventory & Reverse Engineering
 ├── Week 2: Python Business Logic Reverse Engineering
 ├── ...
@@ -241,11 +241,11 @@ Phase 0: PL/pgSQL Foundation (Weeks -7 to 0) 🆕
 ├── Week -2: Performance Benchmarks
 └── Week -1: Documentation
 
-Phase 1: PrintOptim Migration (Weeks 1-8)
+Phase 1: Reference Application Migration (Weeks 1-8)
 └── (Benefits from improved PL/pgSQL infrastructure)
 ```
 
-### Benefits for PrintOptim
+### Benefits for Reference Application
 
 ✅ **Better Reverse Engineering**
 - Automatic pattern detection (Trinity, audit fields)

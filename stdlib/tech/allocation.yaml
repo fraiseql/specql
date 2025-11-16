@@ -1,10 +1,10 @@
 # SpecQL stdlib Entity: Allocation
 # Category: tech
 # Version: 1.1.0
-# Standard: PrintOptim Production Reference
+# Standard: Reference Application Production Reference
 # Description: Machine allocation to locations with inventory management
 #
-# This entity implements PrintOptim's allocation workflow using
+# This entity implements Reference Application's allocation workflow using
 # multi-entity patterns for coordinated operations.
 #
 # Usage:

@@ -5,7 +5,7 @@
 # Description: Organization type classification (prospect, client, provider)
 #
 # This entity is part of the SpecQL standard library, extracted from
-# PrintOptim production system and generalized for universal reuse.
+# production reference implementation and generalized for universal reuse.
 #
 # Usage:
 #   # Import as-is:

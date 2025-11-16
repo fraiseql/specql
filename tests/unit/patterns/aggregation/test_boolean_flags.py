@@ -86,7 +86,7 @@ class TestBooleanFlags:
         assert "contract.end_date BETWEEN CURRENT_DATE AND CURRENT_DATE + INTERVAL '30 days'" in sql
 
     def test_generate_boolean_flags_complex(self):
-        """Test complex boolean flags like the 9-flag PrintOptim example."""
+        """Test complex boolean flags like the 9-flag Production example."""
         config = {
             "name": "v_machine_allocation_flags",
             "pattern": "aggregation/boolean_flags",

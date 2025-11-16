@@ -7,7 +7,7 @@ description: |
   - Wildcard field inclusion for zero maintenance
   - When wildcards are the right choice vs explicit fields
   - Mixed strategy (wildcards for internal, explicit for external)
-  - PrintOptim pattern: Minimize field list maintenance across 47+ entities
+  - Production pattern: Minimize field list maintenance across 47+ entities
 
   Use Case:
   - Invoice system with multiple entity references
@@ -104,7 +104,7 @@ table_views:
 
     - Organization:
         fields: ["*"]
-        # Benefit: Organization referenced by 47+ entities in PrintOptim
+        # Benefit: Organization referenced by 47+ entities in Reference Application
         # Zero maintenance when Organization.registration_number added
         # All fields safe (no PII in Organization entity)
 
@@ -263,7 +263,7 @@ actions:
 #   }
 # }
 #
-# PrintOptim Pattern Benefits:
+# Production pattern Benefits:
 # =============================
 # Before Wildcards (47 entities × 3 org references × 15 fields):
 #   → 2,115 field declarations to maintain

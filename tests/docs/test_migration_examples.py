@@ -8,7 +8,7 @@ class TestMigrationExamples:
 
     def test_migration_decision_tree_completeness(self):
         """Test that the decision tree covers all pattern categories."""
-        migration_guide = Path("docs/migration/printoptim_to_patterns.md")
+        migration_guide = Path("docs/migration/production_to_patterns.md")
         content = migration_guide.read_text()
 
         # Extract pattern categories from decision tree
@@ -34,7 +34,7 @@ class TestMigrationExamples:
 
     def test_migration_examples_are_valid_yaml(self):
         """Test that YAML examples in migration guide are valid."""
-        migration_guide = Path("docs/migration/printoptim_to_patterns.md")
+        migration_guide = Path("docs/migration/production_to_patterns.md")
         content = migration_guide.read_text()
 
         # Extract YAML code blocks
@@ -53,7 +53,7 @@ class TestMigrationExamples:
 
     def test_migration_sql_examples_are_valid(self):
         """Test that SQL examples in migration guide look reasonable."""
-        migration_guide = Path("docs/migration/printoptim_to_patterns.md")
+        migration_guide = Path("docs/migration/production_to_patterns.md")
         content = migration_guide.read_text()
 
         # Extract SQL code blocks
@@ -75,7 +75,7 @@ class TestMigrationExamples:
 
     def test_migration_tracker_matches_totals(self):
         """Test that migration tracker totals are consistent."""
-        migration_guide = Path("docs/migration/printoptim_to_patterns.md")
+        migration_guide = Path("docs/migration/production_to_patterns.md")
         content = migration_guide.read_text()
 
         # Extract totals from tracker
@@ -93,7 +93,7 @@ class TestMigrationExamples:
 
     def test_pattern_documentation_links_exist(self):
         """Test that pattern documentation links in migration guide exist."""
-        migration_guide = Path("docs/migration/printoptim_to_patterns.md")
+        migration_guide = Path("docs/migration/production_to_patterns.md")
         migration_guide.read_text()
 
         # Check that referenced pattern docs exist
@@ -112,7 +112,7 @@ class TestMigrationExamples:
 
     def test_migration_steps_are_actionable(self):
         """Test that migration steps provide clear, actionable guidance."""
-        migration_guide = Path("docs/migration/printoptim_to_patterns.md")
+        migration_guide = Path("docs/migration/production_to_patterns.md")
         content = migration_guide.read_text()
 
         required_actionable_elements = [

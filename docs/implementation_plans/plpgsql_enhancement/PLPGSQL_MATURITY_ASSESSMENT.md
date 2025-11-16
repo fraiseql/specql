@@ -40,7 +40,7 @@ SpecQL currently has **asymmetric maturity** across its supported languages:
 
 2. **Real-World Production Use**
    - Actively used in production systems
-   - PrintOptim migration planned (Week 1-8 of roadmap)
+   - Reference Application migration planned (Week 1-8 of roadmap)
    - Complex action compilation
    - Multi-tenant support
    - Hierarchical entities
@@ -609,7 +609,7 @@ This enhancement plan complements the current roadmap:
 ### Current Roadmap (REPRIORITIZED_ROADMAP_2025-11-13.md)
 
 ```
-Phase 1: PrintOptim Migration (Weeks 1-8) 🚀 IMMEDIATE
+Phase 1: Reference Application Migration (Weeks 1-8) 🚀 IMMEDIATE
 ├── Week 1: Database Inventory & Reverse Engineering
 ├── Week 2: Python Business Logic Reverse Engineering
 ├── Week 3: Schema Generation & Comparison
@@ -627,11 +627,11 @@ Phase 0: PL/pgSQL Foundation (Weeks -7 to 0) 🆕 PREREQUISITE
 ├── Week -2: Performance Benchmarks
 └── Week -1: Documentation & Video Tutorial
 
-Phase 1: PrintOptim Migration (Weeks 1-8) 🚀 IMMEDIATE
+Phase 1: Reference Application Migration (Weeks 1-8) 🚀 IMMEDIATE
 └── (Benefits from improved PL/pgSQL infrastructure)
 ```
 
-### Benefits for PrintOptim Migration
+### Benefits for Reference Application Migration
 
 1. **Better Reverse Engineering**
    - More accurate PostgreSQL → SpecQL conversion
@@ -659,24 +659,24 @@ Phase 1: PrintOptim Migration (Weeks 1-8) 🚀 IMMEDIATE
 
 ### Option A: Do PL/pgSQL Enhancement First (Recommended)
 
-**Timeline**: 7 weeks of foundation work, then start PrintOptim migration
+**Timeline**: 7 weeks of foundation work, then start Reference Application migration
 
 **Pros**:
-- PrintOptim migration has better tools and validation
+- Reference Application migration has better tools and validation
 - Lower risk of issues during migration
 - More confidence in generated code
 - Better documentation for team
 
 **Cons**:
-- Delays PrintOptim migration by 7 weeks
+- Delays Reference Application migration by 7 weeks
 - More upfront work before seeing results
 
 ### Option B: Do Minimal PL/pgSQL, Then Enhance During Migration
 
-**Timeline**: Start PrintOptim migration now, enhance PL/pgSQL as needed
+**Timeline**: Start Reference Application migration now, enhance PL/pgSQL as needed
 
 **Pros**:
-- Immediate value from PrintOptim migration
+- Immediate value from Reference Application migration
 - Real-world validation drives enhancement priorities
 - Learn what's actually needed
 
@@ -687,7 +687,7 @@ Phase 1: PrintOptim Migration (Weeks 1-8) 🚀 IMMEDIATE
 
 ### Option C: Parallel Development
 
-**Timeline**: PL/pgSQL enhancement + PrintOptim migration in parallel
+**Timeline**: PL/pgSQL enhancement + Reference Application migration in parallel
 
 **Pros**:
 - Fast progress on both fronts
@@ -705,7 +705,7 @@ Phase 1: PrintOptim Migration (Weeks 1-8) 🚀 IMMEDIATE
 
 **Rationale**:
 1. PL/pgSQL is the **primary language** of SpecQL - it deserves first-class treatment
-2. PrintOptim migration is **critical** - we need maximum confidence
+2. Reference Application migration is **critical** - we need maximum confidence
 3. 7 weeks of foundation work will **save time** during 8-week migration
 4. Creates **reusable infrastructure** for all future PostgreSQL projects
 5. Brings PL/pgSQL to **100% parity** with Java/Rust
@@ -715,7 +715,7 @@ Phase 1: PrintOptim Migration (Weeks 1-8) 🚀 IMMEDIATE
 2. Set up test infrastructure
 3. Begin PL/pgSQL parser implementation
 4. Execute 7-week enhancement plan
-5. Begin PrintOptim migration with confidence
+5. Begin Reference Application migration with confidence
 
 ---
 

@@ -10,7 +10,7 @@
 
 ## Executive Summary
 
-This plan addresses critical blockers preventing SpecQL v0.5.0-beta from being published to PyPI and used for the PrintOptim migration project. All issues are straightforward fixes that can be completed in 2-3 hours total.
+This plan addresses critical blockers preventing SpecQL v0.5.0-beta from being published to PyPI and used for the Reference Application migration project. All issues are straightforward fixes that can be completed in 2-3 hours total.
 
 **Current Status**:
 - ✅ Code committed to GitHub (v0.5.0-beta features complete)
@@ -24,7 +24,7 @@ This plan addresses critical blockers preventing SpecQL v0.5.0-beta from being p
 - 100% test passing rate
 - Zero linting errors
 - Clean PyPI package ready for `pip install specql-generator`
-- Ready for immediate use in PrintOptim migration
+- Ready for immediate use in Reference Application migration
 
 ---
 
@@ -572,12 +572,12 @@ uv run python -m src.cli.confiture_extensions generate-tests \
 
 **Expected**: Each mode creates appropriate subset of files
 
-#### Test Case 2: Complex Entity (PrintOptim Locale)
+#### Test Case 2: Complex Entity (Reference Application Locale)
 
 **1. Use existing entity YAML**
 ```bash
-# If PrintOptim migration has Locale entity
-cp /home/lionel/code/printoptim_migration/specql_entities_accurate/catalog/locale.yaml \
+# If Reference Application migration has Locale entity
+cp /home/lionel/code/reference_app_migration/specql_entities_accurate/catalog/locale.yaml \
    /tmp/specql_test/locale.yaml
 
 # Or create complex test entity
@@ -712,7 +712,7 @@ Testing:
 - End-to-end validation complete
 - Manual testing on complex entities
 
-🚀 Ready for production use in PrintOptim migration"
+🚀 Ready for production use in Reference Application migration"
 ```
 
 **4. Push tag to GitHub**
@@ -1077,7 +1077,7 @@ gh release delete v0.5.0-beta
 - ✅ PyPI package available
 - ✅ GitHub release published
 - ✅ Tag created and pushed
-- ✅ Ready for PrintOptim migration
+- ✅ Ready for Reference Application migration
 
 ---
 
@@ -1093,15 +1093,15 @@ After successful release:
 5. Monitor GitHub issues for bug reports
 
 ### Week 1
-1. Begin PrintOptim migration with v0.5.0-beta
+1. Begin Reference Application migration with v0.5.0-beta
 2. Collect user feedback
 3. Fix critical bugs if found (publish v0.5.0-beta.1)
 4. Update documentation based on feedback
 
 ### Week 2-4
-1. Plan v0.6.0 features based on PrintOptim learnings
+1. Plan v0.6.0 features based on Reference Application learnings
 2. Improve test generation based on real-world usage
-3. Enhance documentation with PrintOptim case study
+3. Enhance documentation with Reference Application case study
 4. Consider v0.5.0 stable release (drop beta)
 
 ---

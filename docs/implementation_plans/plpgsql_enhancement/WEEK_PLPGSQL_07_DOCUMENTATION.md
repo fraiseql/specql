@@ -1749,7 +1749,7 @@ All 7 weeks delivered:
 - ✅ Week 6: Performance benchmarks
 - ✅ Week 7: Documentation
 
-**Proceed to**: Main Roadmap Phase 1 - PrintOptim Migration
+**Proceed to**: Main Roadmap Phase 1 - Reference Application Migration
 ```
 
 ---

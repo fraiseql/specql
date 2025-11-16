@@ -397,11 +397,11 @@ class TestWildcardPerformanceOptimizations:
         assert "USING GIN" in sql or "gin" in sql.lower()
 
 
-class TestWildcardPrintOptimPattern:
-    """Test SQL generation for PrintOptim use case (Issue #5)"""
+class TestWildcardProductionPattern:
+    """Test SQL generation for Production use case (Issue #5)"""
 
-    def test_printoptim_contract_sql_generation(self):
-        """Test SQL generation for PrintOptim's Contract pattern"""
+    def test_production_contract_sql_generation(self):
+        """Test SQL generation for Production's Contract pattern"""
         yaml_content = """
         entity: Contract
         schema: tenant

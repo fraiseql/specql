@@ -1,5 +1,5 @@
 -- Context for path recalculation operations
--- Based on printoptim_backend pattern
+-- Based on production reference pattern
 CREATE TYPE core.recalculation_context AS (
     pk UUID,           -- Entity id to recalculate (subtree mode)
     pk_tenant UUID,    -- Tenant scope (tenant mode)
