@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2025-11-17
+
+### Fixed
+- **Frontend Generation** - Resolved `UnboundLocalError` in CLI generate command due to duplicate Path import
+- **Database Integration Tests** - Enhanced test fixture to automatically deploy schema and functions
+- **Test Suite** - Achieved 100% test pass rate (1127 passed, 0 failed)
+
+### Changed
+- **Test Infrastructure** - Improved database fixture to check for function existence, not just schema
+- **Documentation** - Updated TEST_FAILURE_FIX_PLAN.md with comprehensive fix details
+
+### Summary
+This stable release fixes all remaining test failures from v0.5.0b1, achieving production-ready quality with:
+- ✅ 100% test pass rate (1127/1127 tests passing)
+- ✅ All code quality checks passing
+- ✅ Comprehensive security test suite
+- ✅ Production-ready PostgreSQL + GraphQL code generation
+
 ## [0.5.0b1] - 2025-11-17
 
 ### Added
@@ -74,5 +92,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Team-by-team implementation guide
 - Integration proposal with FraiseQL conventions
 
-[unreleased]: https://github.com/fraiseql/specql/compare/v0.1.0...HEAD
+[unreleased]: https://github.com/fraiseql/specql/compare/v0.5.0...HEAD
+[0.5.0]: https://github.com/fraiseql/specql/releases/tag/v0.5.0
+[0.5.0b1]: https://github.com/fraiseql/specql/releases/tag/v0.5.0b1
 [0.1.0]: https://github.com/fraiseql/specql/releases/tag/v0.1.0
