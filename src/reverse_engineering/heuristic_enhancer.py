@@ -13,6 +13,10 @@ from dataclasses import dataclass
 from src.core.ast_models import ActionStep
 from src.reverse_engineering.ast_to_specql_mapper import ConversionResult
 from src.reverse_engineering.cte_parser import CTEParser
+from src.reverse_engineering.universal_pattern_detector import (
+    UniversalPatternDetector,
+    DetectedPattern as UniversalDetectedPattern,
+)
 
 
 @dataclass
@@ -40,19 +44,28 @@ class HeuristicEnhancer:
     Enhance conversion results with heuristics
 
     Improves algorithmic conversion through pattern detection and inference
+    Integrates with UniversalPatternDetector for cross-language pattern detection
     """
 
     def __init__(self):
         self.variable_purposes = {}
         self.detected_patterns = []
         self.cte_parser = CTEParser()
+        self.universal_pattern_detector = UniversalPatternDetector()
 
-    def enhance(self, result: ConversionResult) -> ConversionResult:
+    def enhance(
+        self,
+        result: ConversionResult,
+        source_code: Optional[str] = None,
+        language: str = "sql",
+    ) -> ConversionResult:
         """
         Enhance conversion result with heuristics
 
         Args:
             result: ConversionResult from algorithmic parser
+            source_code: Optional raw source code for universal pattern detection
+            language: Programming language ('sql', 'python', 'java', 'rust')
 
         Returns:
             Enhanced ConversionResult with improved confidence
@@ -61,15 +74,25 @@ class HeuristicEnhancer:
         self.variable_purposes = {}
         self.detected_patterns = []
 
-        # Apply enhancements in order
-        result = self._infer_variable_purposes(result)
-        result = self._detect_patterns(result)
-        result = self._simplify_control_flow(result)
-        result = self._improve_naming(result)
+        # Apply universal pattern detection if source code is provided
+        universal_patterns = []
+        if source_code:
+            universal_patterns = self.universal_pattern_detector.detect(source_code, language)
+
+        # Apply SQL-specific enhancements (if SQL)
+        if language == "sql":
+            result = self._infer_variable_purposes(result)
+            result = self._detect_patterns(result)
+            result = self._simplify_control_flow(result)
+            result = self._improve_naming(result)
+
+        # Merge universal patterns with SQL-specific patterns
+        if universal_patterns:
+            result = self._merge_universal_patterns(result, universal_patterns)
 
         # Update confidence based on enhancements
         initial_confidence = result.confidence
-        confidence_boost = self._calculate_confidence_boost(result)
+        confidence_boost = self._calculate_confidence_boost(result, universal_patterns)
         result.confidence = min(initial_confidence + confidence_boost, 0.90)
         # Don't decrease confidence below initial value
         result.confidence = max(result.confidence, initial_confidence)
@@ -81,6 +104,11 @@ class HeuristicEnhancer:
         result.metadata["variable_purposes"] = {
             name: purpose.purpose for name, purpose in self.variable_purposes.items()
         }
+        if universal_patterns:
+            result.metadata["universal_patterns"] = [
+                {"name": p.name, "confidence": p.confidence, "evidence": p.evidence}
+                for p in universal_patterns
+            ]
 
         return result
 
@@ -630,7 +658,41 @@ class HeuristicEnhancer:
 
         return var_name
 
-    def _calculate_confidence_boost(self, result: ConversionResult) -> float:
+    def _merge_universal_patterns(
+        self, result: ConversionResult, universal_patterns: List[UniversalDetectedPattern]
+    ) -> ConversionResult:
+        """Merge universal patterns with SQL-specific patterns"""
+        # Convert universal patterns to DetectedPattern format
+        for universal_pattern in universal_patterns:
+            # Check if we already have this pattern from SQL-specific detection
+            existing_pattern = next(
+                (p for p in self.detected_patterns if p.name == universal_pattern.name), None
+            )
+
+            if existing_pattern:
+                # Merge evidence and take higher confidence
+                existing_pattern.confidence = max(
+                    existing_pattern.confidence, universal_pattern.confidence
+                )
+                existing_pattern.evidence.extend(
+                    [e for e in universal_pattern.evidence if e not in existing_pattern.evidence]
+                )
+            else:
+                # Add new pattern
+                self.detected_patterns.append(
+                    DetectedPattern(
+                        name=universal_pattern.name,
+                        confidence=universal_pattern.confidence,
+                        description=f"Cross-language pattern: {universal_pattern.name}",
+                        evidence=universal_pattern.evidence,
+                    )
+                )
+
+        return result
+
+    def _calculate_confidence_boost(
+        self, result: ConversionResult, universal_patterns: List[UniversalDetectedPattern] = []
+    ) -> float:
         """Calculate confidence boost from heuristics"""
         boost = 0.0
 
@@ -640,6 +702,12 @@ class HeuristicEnhancer:
                 self.variable_purposes
             )
             boost += avg_var_confidence * 0.02  # Small boost per variable
+
+        # Boost from universal pattern detection
+        for universal_pattern in universal_patterns:
+            # Universal patterns provide strong confidence boost
+            pattern_boost = universal_pattern.confidence * 0.05  # 5% max boost per pattern
+            boost += pattern_boost
 
         # Boost from pattern detection
         for pattern in self.detected_patterns:
