@@ -125,11 +125,7 @@ class RustActionMapper:
                     pos = method_name.lower().find(underscore_pattern)
                     if pos >= 0:
                         remaining = method_name[pos + len(underscore_pattern) :]
-                        if (
-                            not remaining
-                            or remaining[0] == "_"
-                            or remaining[0].isupper()
-                        ):
+                        if not remaining or remaining[0] == "_" or remaining[0].isupper():
                             return action_type
 
         return "custom"
@@ -147,9 +143,7 @@ class RustActionMapper:
                 )
         return mapped_params
 
-    def map_diesel_derive_to_action(
-        self, derive: DieselDeriveInfo
-    ) -> Optional[Dict[str, Any]]:
+    def map_diesel_derive_to_action(self, derive: DieselDeriveInfo) -> Optional[Dict[str, Any]]:
         """Map Diesel derive to SpecQL action."""
         # TODO: Implement mapping logic
         return None
@@ -158,9 +152,7 @@ class RustActionMapper:
 class RouteToActionMapper:
     """Maps route handlers to SpecQL actions and endpoints."""
 
-    def map_route_to_action(
-        self, route_handler: RouteHandlerInfo
-    ) -> Optional[Dict[str, Any]]:
+    def map_route_to_action(self, route_handler: RouteHandlerInfo) -> Optional[Dict[str, Any]]:
         """Map route handler to SpecQL action."""
         # Map HTTP methods to CRUD actions
         method_to_action = {
@@ -185,9 +177,7 @@ class RouteToActionMapper:
             "path": route_handler.path,
         }
 
-    def map_route_to_endpoint(
-        self, route_handler: RouteHandlerInfo
-    ) -> Optional[Dict[str, Any]]:
+    def map_route_to_endpoint(self, route_handler: RouteHandlerInfo) -> Optional[Dict[str, Any]]:
         """Map route handler to SpecQL endpoint."""
         return {
             "method": route_handler.method,
@@ -196,4 +186,5 @@ class RouteToActionMapper:
             "is_async": route_handler.is_async,
             "return_type": route_handler.return_type,
             "parameters": route_handler.parameters,
+            "metadata": route_handler.metadata,
         }
