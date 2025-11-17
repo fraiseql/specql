@@ -37,6 +37,10 @@ class UniversalPatternDetector:
             "multi_tenant": MultiTenantPattern(),  # YOUR PATTERN
             "hierarchical": HierarchicalPattern(),  # YOUR PATTERN
             "versioning": VersioningPattern(),  # YOUR PATTERN
+            "event_sourcing": EventSourcingPattern(),  # Week 8 - Pattern 7
+            "sharding": ShardingPattern(),  # Week 8 - Pattern 8
+            "cache_invalidation": CacheInvalidationPattern(),  # Week 8 - Pattern 9
+            "rate_limiting": RateLimitingPattern(),  # Week 8 - Pattern 10
         }
 
     def detect(self, code: str, language: str) -> List[DetectedPattern]:
@@ -1057,3 +1061,659 @@ class VersioningPattern:
 
     def get_stdlib_pattern(self) -> str:
         return "versioning/optimistic_lock"
+
+
+class EventSourcingPattern:
+    """
+    Detect event sourcing pattern
+
+    Indicators:
+    - Event store table/collection (30 points)
+    - Event append operations (25 points)
+    - Event replay/apply logic (25 points)
+    - Event versioning (15 points)
+    - Aggregate reconstruction (5 points)
+
+    Target Confidence: 85%+
+    """
+
+    def __init__(self):
+        self.confidence = 0.0
+        self.evidence = []
+
+    def matches(self, code: str, language: str) -> bool:
+        """Check if code implements event sourcing"""
+        self.evidence = []
+        self.confidence = 0.0
+
+        if language == "sql":
+            return self._detect_sql_event_sourcing(code)
+        elif language == "python":
+            return self._detect_python_event_sourcing(code)
+        elif language == "java":
+            return self._detect_java_event_sourcing(code)
+        elif language == "rust":
+            return self._detect_rust_event_sourcing(code)
+
+        return False
+
+    def _detect_sql_event_sourcing(self, sql: str) -> bool:
+        """Detect event sourcing in SQL"""
+        # 1. Event store table (30 points)
+        has_event_table = re.search(r"CREATE TABLE.*events?\s*\(", sql, re.IGNORECASE)
+        if has_event_table:
+            self.evidence.append("Has event store table")
+            self.confidence += 0.30
+
+        # 2. Event append operations (25 points)
+        has_insert = re.search(r"INSERT INTO.*events?", sql, re.IGNORECASE)
+        if has_insert:
+            self.evidence.append("Has event append operations")
+            self.confidence += 0.25
+
+        # 3. Event versioning (25 points)
+        has_version = "version" in sql.lower() and "event" in sql.lower()
+        if has_version:
+            self.evidence.append("Has event versioning")
+            self.confidence += 0.25
+
+        # 4. Aggregate ID (15 points)
+        has_aggregate = "aggregate_id" in sql.lower()
+        if has_aggregate:
+            self.evidence.append("Has aggregate reconstruction")
+            self.confidence += 0.15
+
+        # 5. Event ordering (5 points)
+        has_ordering = re.search(r"ORDER BY.*version", sql, re.IGNORECASE)
+        if has_ordering:
+            self.evidence.append("Has event ordering by version")
+            self.confidence += 0.05
+
+        return self.confidence >= 0.85
+
+    def _detect_python_event_sourcing(self, code: str) -> bool:
+        """Detect event sourcing in Python"""
+        # 1. Event class (40 points)
+        has_event_class = re.search(r"class\s+Event", code)
+        if has_event_class:
+            self.evidence.append("Has Event class")
+            self.confidence += 0.40
+
+        # 2. Event append operations (15 points)
+        has_append = re.search(r"append_event|\.append\(.*event", code, re.IGNORECASE)
+        if has_append:
+            self.evidence.append("Has event append operations")
+            self.confidence += 0.15
+
+        # 3. Event replay/apply logic (35 points)
+        has_replay = re.search(r"apply_event|load_from_history|replay", code, re.IGNORECASE)
+        if has_replay:
+            self.evidence.append("Has event replay/apply logic")
+            self.confidence += 0.35
+
+        # 4. Event versioning (10 points)
+        has_version = "version" in code.lower() and "event" in code.lower()
+        if has_version:
+            self.evidence.append("Has event versioning")
+            self.confidence += 0.10
+
+        return round(self.confidence, 2) >= 0.85
+
+    def _detect_java_event_sourcing(self, code: str) -> bool:
+        """Detect event sourcing in Java"""
+        # 1. Event class (30 points)
+        has_event_class = re.search(r"class\s+Event", code)
+        if has_event_class:
+            self.evidence.append("Has Event class")
+            self.confidence += 0.30
+
+        # 2. Event append operations (25 points)
+        has_append = re.search(r"appendEvent|eventRepository\.save", code)
+        if has_append:
+            self.evidence.append("Has event append operations")
+            self.confidence += 0.25
+
+        # 3. Event ordering (25 points)
+        has_ordering = re.search(r"findBy.*OrderBy.*Asc", code)
+        if has_ordering:
+            self.evidence.append("Has event ordering")
+            self.confidence += 0.25
+
+        # 4. Aggregate ID (15 points)
+        has_aggregate = re.search(r"UUID\s+aggregateId", code)
+        if has_aggregate:
+            self.evidence.append("Has aggregate ID")
+            self.confidence += 0.15
+
+        return self.confidence >= 0.80
+
+    def _detect_rust_event_sourcing(self, code: str) -> bool:
+        """Detect event sourcing in Rust"""
+        # 1. Event struct (35 points)
+        has_event_struct = re.search(r"struct\s+Event", code)
+        if has_event_struct:
+            self.evidence.append("Has Event struct")
+            self.confidence += 0.35
+
+        # 2. Event append operations (30 points)
+        has_append = re.search(r"append_event|\.push\(event", code)
+        if has_append:
+            self.evidence.append("Has event append operations")
+            self.confidence += 0.30
+
+        # 3. Event replay (20 points)
+        has_replay = re.search(r"apply_event|replay", code)
+        if has_replay:
+            self.evidence.append("Has event replay logic")
+            self.confidence += 0.20
+
+        # 4. Aggregate ID (15 points)
+        has_aggregate = re.search(r"aggregate_id:\s*Uuid", code)
+        if has_aggregate:
+            self.evidence.append("Has aggregate ID")
+            self.confidence += 0.15
+
+        return round(self.confidence, 2) >= 0.80
+
+    def _get_indicators(self, language: str) -> dict:
+        """Get language-specific indicators"""
+
+        if language == "sql":
+            return {
+                "event_store_patterns": [
+                    r"CREATE TABLE.*events?\s*\(",
+                    r"event_type",
+                    r"event_data",
+                    r"aggregate_id",
+                ],
+                "append_patterns": [r"INSERT INTO.*events?", r"APPEND"],
+                "replay_patterns": [r"ORDER BY.*version"],
+                "aggregate_patterns": [r"aggregate_id"],
+            }
+
+        elif language == "python":
+            return {
+                "event_store_patterns": [
+                    r"class\s+Event",
+                    r"event_type",
+                    r"event_data",
+                ],
+                "append_patterns": [r"append_event", r"\.append\("],
+                "replay_patterns": [
+                    r"apply_event",
+                    r"load_from_history",
+                    r"replay",
+                ],
+                "aggregate_patterns": [r"class.*Aggregate", r"rebuild.*state"],
+            }
+
+        elif language == "java":
+            return {
+                "event_store_patterns": [
+                    r"class\s+Event",
+                    r"String\s+eventType",
+                    r"eventData",
+                ],
+                "append_patterns": [
+                    r"appendEvent",
+                    r"eventRepository\.save",
+                ],
+                "replay_patterns": [r"findBy.*OrderBy.*Asc"],
+                "aggregate_patterns": [r"UUID\s+aggregateId"],
+            }
+
+        elif language == "rust":
+            return {
+                "event_store_patterns": [
+                    r"struct\s+Event",
+                    r"event_type",
+                    r"event_data",
+                ],
+                "append_patterns": [r"append_event", r"\.push\(event"],
+                "replay_patterns": [r"apply_event", r"replay"],
+                "aggregate_patterns": [r"aggregate_id:\s*Uuid"],
+            }
+
+        return {}
+
+    def get_stdlib_pattern(self) -> str:
+        """Return suggested stdlib pattern"""
+        return "stdlib/patterns/event_sourcing.yaml"
+
+
+class ShardingPattern:
+    """Detect sharding pattern (80% confidence target)"""
+
+    def __init__(self):
+        self.confidence = 0.0
+        self.evidence = []
+
+    def matches(self, code: str, language: str) -> bool:
+        self.evidence = []
+        self.confidence = 0.0
+
+        if language == "sql":
+            return self._detect_sql_sharding(code)
+        elif language == "python":
+            return self._detect_python_sharding(code)
+        elif language == "java":
+            return self._detect_java_sharding(code)
+        elif language == "rust":
+            return self._detect_rust_sharding(code)
+
+        return False
+
+    def _detect_sql_sharding(self, sql: str) -> bool:
+        """Detect sharding in SQL"""
+        # 1. Shard key field (30 points)
+        has_shard_key = re.search(r"shard_key\s+INTEGER", sql, re.IGNORECASE)
+        if has_shard_key:
+            self.evidence.append("Has shard key field")
+            self.confidence += 0.30
+
+        # 2. Shard routing function (35 points)
+        has_routing = re.search(r"get_shard|% 16", sql, re.IGNORECASE)
+        if has_routing:
+            self.evidence.append("Has shard routing logic")
+            self.confidence += 0.35
+
+        # 3. Shard index (20 points)
+        has_index = re.search(r"CREATE INDEX.*shard_key", sql, re.IGNORECASE)
+        if has_index:
+            self.evidence.append("Has shard key index")
+            self.confidence += 0.20
+
+        # 4. Multiple shards (15 points)
+        has_multiple = "% 16" in sql or "16" in sql
+        if has_multiple:
+            self.evidence.append("Supports multiple shards")
+            self.confidence += 0.15
+
+        return self.confidence >= 0.80
+
+    def _detect_python_sharding(self, code: str) -> bool:
+        """Detect sharding in Python"""
+        # 1. Shard routing function (35 points)
+        has_routing = re.search(r"def get_shard|hash_value % self\.num_shards", code)
+        if has_routing:
+            self.evidence.append("Has shard routing logic")
+            self.confidence += 0.35
+
+        # 2. Consistent hashing (30 points)
+        has_hashing = re.search(r"hashlib\.md5|int\(.*hexdigest", code)
+        if has_hashing:
+            self.evidence.append("Uses consistent hashing")
+            self.confidence += 0.30
+
+        # 3. Multiple shards (20 points)
+        has_multiple = "num_shards" in code or "% self.num_shards" in code
+        if has_multiple:
+            self.evidence.append("Supports multiple shards")
+            self.confidence += 0.20
+
+        # 4. Shard router class (15 points)
+        has_router = re.search(r"class.*ShardRouter", code)
+        if has_router:
+            self.evidence.append("Has shard router class")
+            self.confidence += 0.15
+
+        return self.confidence >= 0.80
+
+    def _detect_java_sharding(self, code: str) -> bool:
+        """Detect sharding in Java"""
+        # 1. Shard routing method (35 points)
+        has_routing = re.search(r"getShard|Math\.abs\(.*\.hashCode\(\)", code)
+        if has_routing:
+            self.evidence.append("Has shard routing logic")
+            self.confidence += 0.35
+
+        # 2. Shard manager class (30 points)
+        has_manager = re.search(r"class.*ShardManager", code)
+        if has_manager:
+            self.evidence.append("Has shard manager class")
+            self.confidence += 0.30
+
+        # 3. Multiple shards (20 points)
+        has_multiple = "numShards" in code or "% numShards" in code
+        if has_multiple:
+            self.evidence.append("Supports multiple shards")
+            self.confidence += 0.20
+
+        # 4. Hash-based routing (15 points)
+        has_hash = ".hashCode()" in code
+        if has_hash:
+            self.evidence.append("Uses hash-based routing")
+            self.confidence += 0.15
+
+        return self.confidence >= 0.80
+
+    def _detect_rust_sharding(self, code: str) -> bool:
+        """Detect sharding in Rust"""
+        # 1. Shard routing function (35 points)
+        has_routing = re.search(r"fn get_shard|finish\(\) as usize\) % self\.num_shards", code)
+        if has_routing:
+            self.evidence.append("Has shard routing logic")
+            self.confidence += 0.35
+
+        # 2. Consistent hashing (30 points)
+        has_hashing = re.search(r"DefaultHasher|hash\(\s*&mut.*\)", code)
+        if has_hashing:
+            self.evidence.append("Uses consistent hashing")
+            self.confidence += 0.30
+
+        # 3. Multiple shards (20 points)
+        has_multiple = "num_shards" in code or "% self.num_shards" in code
+        if has_multiple:
+            self.evidence.append("Supports multiple shards")
+            self.confidence += 0.20
+
+        # 4. Shard router struct (15 points)
+        has_router = re.search(r"struct.*ShardRouter", code)
+        if has_router:
+            self.evidence.append("Has shard router struct")
+            self.confidence += 0.15
+
+        return self.confidence >= 0.80
+
+    def get_stdlib_pattern(self) -> str:
+        return "stdlib/patterns/sharding.yaml"
+
+
+class CacheInvalidationPattern:
+    """Detect cache invalidation (82% confidence target)"""
+
+    def __init__(self):
+        self.confidence = 0.0
+        self.evidence = []
+
+    def matches(self, code: str, language: str) -> bool:
+        self.evidence = []
+        self.confidence = 0.0
+
+        if language == "sql":
+            return self._detect_sql_cache_invalidation(code)
+        elif language == "python":
+            return self._detect_python_cache_invalidation(code)
+        elif language == "java":
+            return self._detect_java_cache_invalidation(code)
+        elif language == "rust":
+            return self._detect_rust_cache_invalidation(code)
+
+        return False
+
+    def _detect_sql_cache_invalidation(self, sql: str) -> bool:
+        """Detect cache invalidation in SQL"""
+        # 1. Cache table (25 points)
+        has_cache_table = re.search(r"CREATE TABLE.*cache", sql, re.IGNORECASE)
+        if has_cache_table:
+            self.evidence.append("Has cache table")
+            self.confidence += 0.25
+
+        # 2. Cache invalidation (30 points)
+        has_invalidation = re.search(r"DELETE FROM.*cache", sql, re.IGNORECASE)
+        if has_invalidation:
+            self.evidence.append("Has cache invalidation logic")
+            self.confidence += 0.30
+
+        # 3. TTL/expiration (15 points)
+        has_ttl = re.search(r"expires_at|TTL", sql, re.IGNORECASE)
+        if has_ttl:
+            self.evidence.append("Has TTL/expiration handling")
+            self.confidence += 0.15
+
+        # 4. Tag-based invalidation (12 points)
+        has_tags = "tags" in sql.lower() and "GIN" in sql.upper()
+        if has_tags:
+            self.evidence.append("Has tag-based invalidation")
+            self.confidence += 0.12
+
+        return self.confidence >= 0.82
+
+    def _detect_python_cache_invalidation(self, code: str) -> bool:
+        """Detect cache invalidation in Python"""
+        # 1. Cache key generation (25 points)
+        has_cache_key = re.search(r"cache_key\s*=|f.*contact.*\$\{.*\}", code)
+        if has_cache_key:
+            self.evidence.append("Has cache key generation")
+            self.confidence += 0.25
+
+        # 2. Cache invalidation logic (30 points)
+        has_invalidation = re.search(r"\.delete\(|invalidate_contact", code)
+        if has_invalidation:
+            self.evidence.append("Has cache invalidation logic")
+            self.confidence += 0.30
+
+        # 3. Cache class (15 points)
+        has_cache_class = re.search(r"class.*Cache", code)
+        if has_cache_class:
+            self.evidence.append("Has cache class")
+            self.confidence += 0.15
+
+        # 4. Tag-based invalidation (12 points)
+        has_tags = re.search(r"invalidate_by_tag|\.keys\(.*pattern", code)
+        if has_tags:
+            self.evidence.append("Has tag-based invalidation")
+            self.confidence += 0.12
+
+        return self.confidence >= 0.82
+
+    def _detect_java_cache_invalidation(self, code: str) -> bool:
+        """Detect cache invalidation in Java"""
+        # 1. Cache builder/configuration (25 points)
+        has_cache_builder = re.search(r"CacheBuilder|Cache\.newBuilder", code)
+        if has_cache_builder:
+            self.evidence.append("Has cache configuration")
+            self.confidence += 0.25
+
+        # 2. Cache invalidation (30 points)
+        has_invalidation = re.search(r"\.invalidate\(|invalidateAll", code)
+        if has_invalidation:
+            self.evidence.append("Has cache invalidation logic")
+            self.confidence += 0.30
+
+        # 3. TTL/expiration (15 points)
+        has_ttl = re.search(r"expireAfterWrite|maximumSize", code)
+        if has_ttl:
+            self.evidence.append("Has TTL/expiration handling")
+            self.confidence += 0.15
+
+        # 4. Cache service class (12 points)
+        has_service = re.search(r"class.*Cache.*Service", code)
+        if has_service:
+            self.evidence.append("Has cache service class")
+            self.confidence += 0.12
+
+        return self.confidence >= 0.82
+
+    def _detect_rust_cache_invalidation(self, code: str) -> bool:
+        """Detect cache invalidation in Rust"""
+        # 1. Cache entry struct (25 points)
+        has_cache_entry = re.search(r"struct.*CacheEntry", code)
+        if has_cache_entry:
+            self.evidence.append("Has cache entry struct")
+            self.confidence += 0.25
+
+        # 2. Cache invalidation (30 points)
+        has_invalidation = re.search(r"\.remove\(|cleanup_expired", code)
+        if has_invalidation:
+            self.evidence.append("Has cache invalidation logic")
+            self.confidence += 0.30
+
+        # 3. TTL/expiration (15 points)
+        has_ttl = re.search(r"expires_at|Instant::now", code)
+        if has_ttl:
+            self.evidence.append("Has TTL/expiration handling")
+            self.confidence += 0.15
+
+        # 4. Pattern-based invalidation (12 points)
+        has_pattern = re.search(r"retain.*contains", code)
+        if has_pattern:
+            self.evidence.append("Has pattern-based invalidation")
+            self.confidence += 0.12
+
+        return self.confidence >= 0.82
+
+    def get_stdlib_pattern(self) -> str:
+        return "stdlib/patterns/cache_invalidation.yaml"
+
+
+class RateLimitingPattern:
+    """Detect rate limiting (83% confidence target)"""
+
+    def __init__(self):
+        self.confidence = 0.0
+        self.evidence = []
+
+    def matches(self, code: str, language: str) -> bool:
+        self.evidence = []
+        self.confidence = 0.0
+
+        if language == "sql":
+            return self._detect_sql_rate_limiting(code)
+        elif language == "python":
+            return self._detect_python_rate_limiting(code)
+        elif language == "java":
+            return self._detect_java_rate_limiting(code)
+        elif language == "rust":
+            return self._detect_rust_rate_limiting(code)
+
+        return False
+
+    def _detect_sql_rate_limiting(self, sql: str) -> bool:
+        """Detect rate limiting in SQL"""
+        # 1. Rate limits table (30 points)
+        has_rate_table = re.search(r"CREATE TABLE.*rate_limits", sql, re.IGNORECASE)
+        if has_rate_table:
+            self.evidence.append("Has rate limits table")
+            self.confidence += 0.30
+
+        # 2. Token/refill logic (25 points)
+        has_refill = re.search(r"tokens_remaining|refill", sql, re.IGNORECASE)
+        if has_refill:
+            self.evidence.append("Has token/refill logic")
+            self.confidence += 0.25
+
+        # 3. Function for rate limiting (20 points)
+        has_function = re.search(r"CREATE FUNCTION.*check_rate_limit", sql, re.IGNORECASE)
+        if has_function:
+            self.evidence.append("Has rate limiting function")
+            self.confidence += 0.20
+
+        # 4. Time-based logic (15 points)
+        has_time = re.search(r"NOW\(\)|EXTRACT.*EPOCH", sql, re.IGNORECASE)
+        if has_time:
+            self.evidence.append("Has time-based logic")
+            self.confidence += 0.15
+
+        # 5. Rate limit exceeded handling (10 points)
+        has_exceeded = "FALSE" in sql.upper() or "RETURN FALSE" in sql.upper()
+        if has_exceeded:
+            self.evidence.append("Handles rate limit exceeded")
+            self.confidence += 0.10
+
+        return self.confidence >= 0.83
+
+    def _detect_python_rate_limiting(self, code: str) -> bool:
+        """Detect rate limiting in Python"""
+        # 1. Token bucket class (30 points)
+        has_token_bucket = re.search(r"class.*TokenBucket", code)
+        if has_token_bucket:
+            self.evidence.append("Has token bucket class")
+            self.confidence += 0.30
+
+        # 2. Token/refill logic (25 points)
+        has_refill = re.search(r"refill|tokens.*capacity", code)
+        if has_refill:
+            self.evidence.append("Has token/refill logic")
+            self.confidence += 0.25
+
+        # 3. Consume/check method (20 points)
+        has_consume = re.search(r"def consume|def allow", code)
+        if has_consume:
+            self.evidence.append("Has consume/check method")
+            self.confidence += 0.20
+
+        # 4. Time-based logic (15 points)
+        has_time = re.search(r"time\.time|datetime", code)
+        if has_time:
+            self.evidence.append("Has time-based logic")
+            self.confidence += 0.15
+
+        # 5. Rate limit exceeded (10 points)
+        has_exceeded = "return False" in code.lower()
+        if has_exceeded:
+            self.evidence.append("Handles rate limit exceeded")
+            self.confidence += 0.10
+
+        return self.confidence >= 0.83
+
+    def _detect_java_rate_limiting(self, code: str) -> bool:
+        """Detect rate limiting in Java"""
+        # 1. Rate limiter usage (30 points)
+        has_rate_limiter = re.search(r"RateLimiter\.create|@RateLimited", code)
+        if has_rate_limiter:
+            self.evidence.append("Uses rate limiter")
+            self.confidence += 0.30
+
+        # 2. Try acquire logic (25 points)
+        has_try_acquire = re.search(r"tryAcquire\(\)", code)
+        if has_try_acquire:
+            self.evidence.append("Has try acquire logic")
+            self.confidence += 0.25
+
+        # 3. Rate limit exception (20 points)
+        has_exception = re.search(r"RateLimitExceededException", code)
+        if has_exception:
+            self.evidence.append("Has rate limit exception")
+            self.confidence += 0.20
+
+        # 4. Controller annotation (15 points)
+        has_controller = re.search(r"@PostMapping|@RequestMapping", code)
+        if has_controller:
+            self.evidence.append("Has controller with rate limiting")
+            self.confidence += 0.15
+
+        # 5. Rate limit check (10 points)
+        has_check = "if (!" in code and "tryAcquire" in code
+        if has_check:
+            self.evidence.append("Has rate limit check")
+            self.confidence += 0.10
+
+        return self.confidence >= 0.83
+
+    def _detect_rust_rate_limiting(self, code: str) -> bool:
+        """Detect rate limiting in Rust"""
+        # 1. Leaky bucket struct (30 points)
+        has_leaky_bucket = re.search(r"struct.*LeakyBucket", code)
+        if has_leaky_bucket:
+            self.evidence.append("Has leaky bucket struct")
+            self.confidence += 0.30
+
+        # 2. Water level logic (25 points)
+        has_water_level = re.search(r"water_level|leak_rate", code)
+        if has_water_level:
+            self.evidence.append("Has water level logic")
+            self.confidence += 0.25
+
+        # 3. Allow method (20 points)
+        has_allow = re.search(r"fn allow", code)
+        if has_allow:
+            self.evidence.append("Has allow method")
+            self.confidence += 0.20
+
+        # 4. Time-based logic (15 points)
+        has_time = re.search(r"Instant|Duration", code)
+        if has_time:
+            self.evidence.append("Has time-based logic")
+            self.confidence += 0.15
+
+        # 5. Capacity check (10 points)
+        has_capacity = "capacity" in code.lower() and "water_level" in code.lower()
+        if has_capacity:
+            self.evidence.append("Has capacity check")
+            self.confidence += 0.10
+
+        return self.confidence >= 0.83
+
+    def get_stdlib_pattern(self) -> str:
+        return "stdlib/patterns/rate_limiting.yaml"
