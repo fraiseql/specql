@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from dataclasses import dataclass
 
 from src.core.ast_models import Entity, FieldDefinition, FieldTier
+from src.reverse_engineering.seaorm_parser import SeaORMParser, SeaORMEntity, SeaORMQuery
 
 logger = logging.getLogger(__name__)
 
@@ -187,6 +188,8 @@ class RustParser:
         # Initialize type mappings
         self.type_mapping = RustTypeMapper().type_mapping
         self.type_mapper = RustTypeMapper()
+        # Initialize ORM parsers
+        self.seaorm_parser = SeaORMParser()
 
     def parse_file(
         self, file_path: Path
@@ -1249,6 +1252,7 @@ class RustReverseEngineeringService:
     def __init__(self):
         self.parser = RustParser()
         self.mapper = RustToSpecQLMapper()
+        self.seaorm_parser = SeaORMParser()
 
     def reverse_engineer_file(
         self, file_path: Path, include_diesel_tables: bool = True
@@ -1263,24 +1267,109 @@ class RustReverseEngineeringService:
         Returns:
             List of SpecQL entities
         """
-        # Now returns tuple
-        structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
-            self.parser.parse_file(file_path)
-        )
-        entities = []
+        # Read file content
+        with open(file_path, "r", encoding="utf-8") as f:
+            code = f.read()
 
-        # Process structs (existing behavior)
-        for struct in structs:
-            entity = self.mapper.map_struct_to_entity(struct)
-            entities.append(entity)
+        # Detect ORM type
+        orm_type = self._detect_orm_type(code)
 
-        # Process Diesel tables (NEW)
-        if include_diesel_tables:
-            for table in diesel_tables:
-                entity = self.mapper.map_diesel_table_to_entity(table)
+        if orm_type == "seaorm":
+            return self._parse_seaorm(code)
+        elif orm_type == "diesel":
+            # Use existing Diesel parsing
+            structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
+                self.parser.parse_file(file_path)
+            )
+            entities = []
+
+            # Process structs (existing behavior)
+            for struct in structs:
+                entity = self.mapper.map_struct_to_entity(struct)
                 entities.append(entity)
 
-        return entities
+            # Process Diesel tables
+            if include_diesel_tables:
+                for table in diesel_tables:
+                    entity = self.mapper.map_diesel_table_to_entity(table)
+                    entities.append(entity)
+
+            return entities
+        else:
+            # Try both ORMs
+            entities = []
+            try:
+                entities.extend(self._parse_seaorm(code))
+            except:
+                pass
+            try:
+                structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
+                    self.parser.parse_file(file_path)
+                )
+                for struct in structs:
+                    entity = self.mapper.map_struct_to_entity(struct)
+                    entities.append(entity)
+                if include_diesel_tables:
+                    for table in diesel_tables:
+                        entity = self.mapper.map_diesel_table_to_entity(table)
+                        entities.append(entity)
+            except:
+                pass
+            return entities
+
+    def _detect_orm_type(self, code: str) -> str:
+        """Detect which ORM is being used"""
+        if "use sea_orm" in code or "DeriveEntityModel" in code:
+            return "seaorm"
+        elif "use diesel" in code or "diesel::table!" in code:
+            return "diesel"
+        return "unknown"
+
+    def _parse_seaorm(self, code: str) -> List[Entity]:
+        """Parse SeaORM code and convert to SpecQL entities"""
+        entities = self.seaorm_parser.extract_entities(code)
+
+        # Convert to SpecQL entities
+        specql_entities = []
+        for entity in entities:
+            specql_entity = self._seaorm_entity_to_specql(entity)
+            specql_entities.append(specql_entity)
+
+        return specql_entities
+
+    def _seaorm_entity_to_specql(self, entity: SeaORMEntity) -> Entity:
+        """Convert SeaORM entity to SpecQL entity"""
+        fields = {}
+        for field in entity.fields:
+            specql_field = FieldDefinition(
+                name=field.name,
+                type_name=self._map_seaorm_type(field.type_name),
+                nullable=field.is_nullable,
+                description=f"SeaORM field {field.name}",
+            )
+            fields[field.name] = specql_field
+
+        return Entity(
+            name=entity.name,
+            schema="crm",  # Configurable
+            table=entity.table_name,
+            fields=fields,
+            description=f"SeaORM entity {entity.name}",
+        )
+
+    def _map_seaorm_type(self, rust_type: str) -> str:
+        """Map Rust types to SpecQL types"""
+        type_map = {
+            "i32": "integer",
+            "i64": "bigint",
+            "String": "text",
+            "bool": "boolean",
+            "DateTime": "timestamp",
+            "Option<DateTime>": "timestamp",
+        }
+        # Remove Option<>
+        clean_type = rust_type.replace("Option<", "").rstrip(">")
+        return type_map.get(clean_type, "text")
 
     def reverse_engineer_directory(
         self, directory_path: Path, include_diesel_tables: bool = True
