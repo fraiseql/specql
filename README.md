@@ -85,9 +85,14 @@ FraiseQL auto-discovery eliminates schema duplication:
 
 ## Quick Start
 
+### Installation
+
 ```bash
-# Install
-git clone https://github.com/your-org/specql.git
+# Install from PyPI (recommended)
+pip install specql
+
+# Or install from source
+git clone https://github.com/fraiseql/specql.git
 cd specql
 uv venv && source .venv/bin/activate
 uv pip install -e .

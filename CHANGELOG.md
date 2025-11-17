@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [0.5.0] - 2025-11-17
 
+### Changed
+- **BREAKING**: Renamed PyPI package from `specql-generator` to `specql`
+  - Old: `pip install specql-generator`
+  - New: `pip install specql`
+  - Migration: `pip uninstall specql-generator && pip install specql`
+  - The `specql-generator` package is deprecated and will not receive updates
+  - Rationale: Simpler installation, aligns with CLI command name, better branding
+
 ### Fixed
 - **Frontend Generation** - Resolved `UnboundLocalError` in CLI generate command due to duplicate Path import
 - **Database Integration Tests** - Enhanced test fixture to automatically deploy schema and functions
