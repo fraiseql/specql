@@ -41,14 +41,14 @@ except ImportError:
     Text = None  # type: ignore
 
     # Define dummy classes for type hints when rich is not available
-    class Console:  # type: ignore
+    class Console:  # type: ignore  # noqa: F811
         def print(self, *args, **kwargs):
             pass
 
         def status(self, *args, **kwargs):
             return None
 
-    class Progress:  # type: ignore
+    class Progress:  # type: ignore  # noqa: F811
         def __init__(self, *args, **kwargs):
             pass
 
@@ -64,23 +64,23 @@ except ImportError:
         def update(self, *args, **kwargs):
             pass
 
-    class SpinnerColumn:  # type: ignore
+    class SpinnerColumn:  # type: ignore  # noqa: F811
         def __init__(self, *args, **kwargs):
             pass
 
-    class BarColumn:  # type: ignore
+    class BarColumn:  # type: ignore  # noqa: F811
         def __init__(self, *args, **kwargs):
             pass
 
-    class TextColumn:  # type: ignore
+    class TextColumn:  # type: ignore  # noqa: F811
         def __init__(self, *args, **kwargs):
             pass
 
-    class TimeElapsedColumn:  # type: ignore
+    class TimeElapsedColumn:  # type: ignore  # noqa: F811
         def __init__(self, *args, **kwargs):
             pass
 
-    class Table:  # type: ignore
+    class Table:  # type: ignore  # noqa: F811
         def __init__(self, *args, **kwargs):
             pass
 
@@ -90,18 +90,18 @@ except ImportError:
         def add_row(self, *args, **kwargs):
             pass
 
-    class Tree:  # type: ignore
+    class Tree:  # type: ignore  # noqa: F811
         def __init__(self, *args, **kwargs):
             pass
 
         def add(self, *args, **kwargs):
             return None
 
-    class Panel:  # type: ignore
+    class Panel:  # type: ignore  # noqa: F811
         def __init__(self, *args, **kwargs):
             pass
 
-    class Text:  # type: ignore
+    class Text:  # type: ignore  # noqa: F811
         def __init__(self, *args, **kwargs):
             pass
 
