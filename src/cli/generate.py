@@ -242,7 +242,6 @@ def entities(
     # Output performance metrics if enabled
     if performance and orchestrator.perf_monitor:
         from src.utils.performance_monitor import get_performance_monitor
-        from pathlib import Path
 
         perf_monitor = get_performance_monitor()
         metrics = perf_monitor.get_metrics()

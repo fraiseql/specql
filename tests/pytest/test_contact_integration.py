@@ -12,6 +12,12 @@ pytestmark = pytest.mark.database
 class TestContactIntegration:
     """Integration tests for Contact CRUD and actions"""
 
+    @pytest.fixture(autouse=True)
+    def setup_schema(self, deploy_test_schema):
+        """Ensure schema is deployed before running tests"""
+        # This fixture runs automatically and ensures schema is deployed
+        pass
+
     @pytest.fixture
     def clean_db(self, test_db_connection):
         """Clean Contact table before test"""
