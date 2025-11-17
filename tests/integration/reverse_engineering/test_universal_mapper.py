@@ -132,7 +132,7 @@ async def list_contacts():
 
         assert "_metadata" in spec
         assert spec["_metadata"]["source_language"] == "python"
-        assert spec["_metadata"]["extraction_method"] == "action_parser"
+        assert spec["_metadata"]["extraction_method"] == "universal_action_mapper"
         assert spec["_metadata"]["total_actions"] == 1
 
     def test_entity_name_inference(self, mapper, tmp_path):
