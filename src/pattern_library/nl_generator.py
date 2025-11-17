@@ -2,7 +2,7 @@
 
 import json
 import re
-from typing import Dict, Any, Optional, Tuple
+from typing import Dict, Any, Optional, Tuple, cast, List
 from pathlib import Path
 import os
 
@@ -183,14 +183,12 @@ class NLPatternGenerator:
 
         # Validate fields structure
         if has_fields:
-            fields = implementation["fields"]
-            assert isinstance(fields, list), "fields must be a list"
+            fields = cast(List[dict], implementation["fields"])
             for i, field in enumerate(fields):
                 if not isinstance(field, dict):
                     errors.append(f"Field {i} must be a JSON object")
                     continue
 
-                assert isinstance(field, dict), "field must be a dict"
                 required_field_props = ["name", "type"]
                 for prop in required_field_props:
                     if prop not in field:
