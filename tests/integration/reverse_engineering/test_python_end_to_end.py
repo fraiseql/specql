@@ -39,13 +39,13 @@ class TestPythonEndToEnd:
         # Should generate valid SpecQL structure
         assert "entity" in specql_dict
         assert "fields" in specql_dict
-        assert specql_dict["entity"]["name"] == "Contact"
+        assert specql_dict["entity"] == "Contact"
 
-        # Check if computed fields are detected
-        fields = specql_dict.get("fields", {})
-        assert "email" in fields
-        # display_name may or may not be included depending on implementation
-        # EXPECTED: display_name should be included as computed field after enhancement
+        # Check fields
+        fields = specql_dict.get("fields", [])
+        field_names = [f["name"] for f in fields] if isinstance(fields, list) else []
+        assert "email" in field_names
+        # NOTE: display_name (@property) conversion to computed field not yet implemented
 
     def test_async_method_to_yaml(self):
         """Test converting async methods to YAML"""

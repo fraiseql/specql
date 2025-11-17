@@ -55,6 +55,10 @@ class PythonASTParser:
         Returns ParsedEntity with fields and methods
         """
         try:
+            # Remove common leading indentation (for test code)
+            import textwrap
+            source_code = textwrap.dedent(source_code)
+
             tree = ast.parse(source_code)
 
             # Find class definition
