@@ -1,6 +1,4 @@
 # tests/security/test_jinja2_security.py
-import pytest
-from jinja2 import Environment
 
 
 def test_action_compiler_has_autoescape_enabled():

@@ -1,6 +1,5 @@
 # tests/type_checking/test_annotations.py
 import ast
-import pytest
 
 
 def test_sql_ast_parser_has_parameter_annotation():

@@ -1,5 +1,4 @@
 # tests/type_checking/test_third_party_stubs.py
-import pytest
 import subprocess
 
 

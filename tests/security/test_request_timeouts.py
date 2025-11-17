@@ -1,5 +1,4 @@
 # tests/security/test_request_timeouts.py
-import pytest
 from unittest.mock import patch, MagicMock
 
 
@@ -20,7 +19,7 @@ def test_llm_recommendations_has_timeout():
         # Call a method that makes HTTP requests
         try:
             llm._call_llm("test prompt")
-        except:
+        except Exception:
             pass  # We just want to check if timeout was used
 
         # Verify timeout was set

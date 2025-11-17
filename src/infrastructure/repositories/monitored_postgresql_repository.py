@@ -7,7 +7,7 @@ for Phase 3 cut-over monitoring.
 
 import time
 import logging
-from typing import cast, Dict, Any, List
+from typing import cast, Dict, Any
 from src.infrastructure.repositories.postgresql_domain_repository import (
     PostgreSQLDomainRepository,
 )

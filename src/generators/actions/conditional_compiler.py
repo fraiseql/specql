@@ -4,7 +4,7 @@ Conditional Compiler - Transform conditional logic to PL/pgSQL control flow
 
 import re
 from dataclasses import dataclass
-from typing import Any, Union, cast
+from typing import Any, cast
 
 from src.core.ast_models import ActionStep, Entity
 from src.utils.safe_slug import safe_slug, safe_table_name
