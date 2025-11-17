@@ -184,18 +184,18 @@ class NLPatternGenerator:
         # Validate fields structure
         if has_fields:
             fields = cast(List[Dict[str, Any]], implementation["fields"])
-            for i, field in enumerate(fields):
-                if not isinstance(field, dict):
+            for i, field_item in enumerate(fields):
+                if not isinstance(field_item, dict):
                     errors.append(f"Field {i} must be a JSON object")
                     continue
 
                 required_field_props = ["name", "type"]
                 for prop in required_field_props:
-                    if prop not in field:
+                    if prop not in field_item:
                         errors.append(f"Field {i} missing required property: {prop}")
 
                 # Validate field name (snake_case)
-                field_name = field.get("name", "")
+                field_name = field_item.get("name", "")
                 if not re.match(r"^[a-z][a-z0-9_]*$", field_name):
                     errors.append(f"Field name '{field_name}' must be snake_case")
 
