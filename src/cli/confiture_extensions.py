@@ -92,7 +92,7 @@ def validate(entity_files, check_impacts, verbose):
     return result.returncode
 
 
-@specql.command()
+@specql.command(name="reverse")
 @click.argument("sql_files", nargs=-1, type=click.Path(exists=True))
 @click.option("--output-dir", "-o", type=click.Path(), help="Output directory for YAML files")
 @click.option("--min-confidence", type=float, default=0.80, help="Minimum confidence threshold")
@@ -100,7 +100,7 @@ def validate(entity_files, check_impacts, verbose):
 @click.option("--preview", is_flag=True, help="Preview mode (no files written)")
 @click.option("--compare", is_flag=True, help="Generate comparison report")
 @click.option("--use-heuristics/--no-heuristics", default=True, help="Use heuristic enhancements")
-def reverse(sql_files, output_dir, min_confidence, no_ai, preview, compare, use_heuristics):
+def reverse_sql(sql_files, output_dir, min_confidence, no_ai, preview, compare, use_heuristics):
     """
     Reverse engineer SQL functions to SpecQL YAML
 
@@ -125,6 +125,33 @@ def reverse(sql_files, output_dir, min_confidence, no_ai, preview, compare, use_
         preview=preview,
         compare=compare,
         use_heuristics=use_heuristics
+    )
+
+
+@specql.command(name="reverse-python")
+@click.argument("python_files", nargs=-1, type=click.Path(exists=True))
+@click.option("--output-dir", "-o", type=click.Path(), default="entities/", help="Output directory for YAML files")
+@click.option("--discover-patterns", is_flag=True, help="Discover and save patterns to pattern library")
+@click.option("--dry-run", is_flag=True, help="Show what would be generated without writing files")
+def reverse_python_cmd(python_files, output_dir, discover_patterns, dry_run):
+    """
+    Reverse engineer Python code (SQLAlchemy/Django) to SpecQL YAML
+
+    Examples:
+        specql reverse-python src/models/contact.py
+        specql reverse-python src/models/*.py -o entities/
+        specql reverse-python src/models/*.py --discover-patterns
+    """
+    from src.cli.reverse_python import reverse_python
+    from click import Context
+
+    ctx = Context(reverse_python)
+    ctx.invoke(
+        reverse_python,
+        python_files=python_files,
+        output_dir=output_dir,
+        discover_patterns=discover_patterns,
+        dry_run=dry_run
     )
 
 
