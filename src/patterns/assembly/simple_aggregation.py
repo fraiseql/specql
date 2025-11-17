@@ -90,6 +90,7 @@ def _validate_config(config: dict[str, Any]) -> None:
         raise ValueError("Missing 'config' section in simple aggregation pattern")
 
     pattern_config = config["config"]
+    assert isinstance(pattern_config, dict), "config section must be a dict"
 
     required_fields = [
         "parent_entity",
@@ -101,14 +102,15 @@ def _validate_config(config: dict[str, Any]) -> None:
         if field not in pattern_config:
             raise ValueError(f"{field} is required for simple aggregation pattern")
 
-    if not isinstance(pattern_config["child_fields"], list):
+    child_fields = pattern_config["child_fields"]
+    if not isinstance(child_fields, list):
         raise ValueError("child_fields must be a list")
 
-    if len(pattern_config["child_fields"]) == 0:
+    if len(child_fields) == 0:
         raise ValueError("child_fields cannot be empty")
 
     # Validate child_fields structure
-    for field in pattern_config["child_fields"]:
+    for field in child_fields:
         if (
             not isinstance(field, dict)
             or "name" not in field
