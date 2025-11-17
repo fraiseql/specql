@@ -46,11 +46,9 @@ class UniversalActionMapper:
     def _get_java_parser(self) -> object | None:
         """Lazy import to avoid circular dependencies"""
         try:
-            # TODO: Import Java parser when Engineer B completes it
-            # from src.reverse_engineering.java_action_parser import JavaActionParser
-            # return JavaActionParser()
-            logger.warning("Java parser not yet implemented by Engineer B")
-            return None
+            from src.reverse_engineering.java_action_parser import JavaActionParser
+
+            return JavaActionParser()
         except ImportError:
             logger.warning("Java parser not available")
             return None
@@ -61,11 +59,29 @@ class UniversalActionMapper:
         if not parser:
             raise ValueError(f"Unsupported language: {language}")
 
-        # Extract actions using appropriate parser
-        actions = parser.extract_actions(file_path)  # type: ignore
+        # Read file content
+        with open(file_path) as f:
+            code = f.read()
+
+        # Extract actions and/or fields based on file type
+        actions = []
+        fields = []
+
+        if language == "java":
+            # For Java, check if it's an entity or controller/repository
+            if "@Entity" in code:
+                # JPA entity - extract fields
+                if hasattr(parser, "extract_entity_fields_from_code"):
+                    fields = parser.extract_entity_fields_from_code(code)  # type: ignore
+            elif "@RestController" in code or "@Controller" in code or "Repository" in code:
+                # Controller or Repository - extract actions
+                actions = parser.extract_actions_from_code(code)  # type: ignore
+        else:
+            # For other languages, extract actions
+            actions = parser.extract_actions(file_path)  # type: ignore
 
         # Convert to SpecQL YAML
-        return self._generate_yaml(file_path, actions, language)
+        return self._generate_yaml(file_path, actions, fields, language)
 
     def convert_code(self, code: str, language: str, **kwargs: object) -> str:
         """Convert source code string to SpecQL YAML"""
@@ -73,41 +89,75 @@ class UniversalActionMapper:
         if not parser:
             raise ValueError(f"Unsupported language: {language}")
 
-        # Extract actions using appropriate parser
-        if hasattr(parser, "extract_actions_from_code"):
-            actions = parser.extract_actions_from_code(code)  # type: ignore
+        # Extract actions and/or fields based on code content
+        actions = []
+        fields = []
+
+        if language == "java":
+            # For Java, check if it's an entity or controller/repository
+            if "@Entity" in code:
+                # JPA entity - extract fields
+                if hasattr(parser, "extract_entity_fields_from_code"):
+                    fields = parser.extract_entity_fields_from_code(code)  # type: ignore
+            elif "@RestController" in code or "@Controller" in code or "Repository" in code:
+                # Controller or Repository - extract actions
+                actions = parser.extract_actions_from_code(code)  # type: ignore
         else:
-            # Fallback for parsers that don't have extract_actions_from_code
-            raise NotImplementedError(
-                f"Parser for {language} doesn't support code string conversion"
-            )
+            # For other languages, extract actions
+            if hasattr(parser, "extract_actions_from_code"):
+                actions = parser.extract_actions_from_code(code)  # type: ignore
+            else:
+                raise NotImplementedError(
+                    f"Parser for {language} doesn't support code string conversion"
+                )
 
         # Convert to SpecQL YAML
-        return self._generate_yaml_from_code(actions, language)
+        return self._generate_yaml_from_code(actions, fields, language)
 
-    def _generate_yaml(self, file_path: Path, actions: list[dict[str, Any]], language: str) -> str:
-        """Generate SpecQL YAML from actions"""
+    def _generate_yaml(
+        self,
+        file_path: Path,
+        actions: list[dict[str, Any]],
+        fields: list[dict[str, Any]] | None,
+        language: str,
+    ) -> str:
+        """Generate SpecQL YAML from actions and/or fields"""
         # Group actions by entity (inferred from file path and action names)
-        entity_name = self._infer_entity_name(file_path, actions)
+        if actions:
+            entity_name = self._infer_entity_name(file_path, actions)
+        else:
+            entity_name = self._infer_entity_name_from_filename(file_path)
 
         specql_dict = {
             "entity": entity_name,
-            "description": f"Actions extracted from {language} file {file_path.name}",
-            "actions": actions,
-            "_metadata": {
-                "source_file": str(file_path),
-                "source_language": language,
-                "extraction_method": "action_parser",
-                "total_actions": len(actions),
-            },
+            "description": f"Extracted from {language} file {file_path.name}",
+        }
+
+        if actions:
+            specql_dict["actions"] = actions
+        if fields:
+            specql_dict["fields"] = fields
+
+        # Add metadata
+        specql_dict["_metadata"] = {
+            "source_file": str(file_path),
+            "source_language": language,
+            "extraction_method": "universal_action_mapper",
+            "total_actions": len(actions) if actions else 0,
+            "total_fields": len(fields) if fields else 0,
         }
 
         return yaml.dump(specql_dict, default_flow_style=False, sort_keys=False)
 
-    def _generate_yaml_from_code(self, actions: list[dict[str, Any]], language: str) -> str:
-        """Generate SpecQL YAML from actions (when no file path available)"""
-        # Group actions by entity (inferred from action names)
-        entity_name = self._infer_entity_name_from_actions(actions)
+    def _generate_yaml_from_code(
+        self, actions: list[dict[str, Any]], fields: list[dict[str, Any]] | None, language: str
+    ) -> str:
+        """Generate SpecQL YAML from actions and/or fields (when no file path available)"""
+        # Group actions by entity (inferred from action names or use generic name)
+        if actions:
+            entity_name = self._infer_entity_name_from_actions(actions)
+        else:
+            entity_name = "Entity"
 
         specql_dict = {
             "entity": entity_name,
@@ -174,3 +224,16 @@ class UniversalActionMapper:
                 return str(parts[1]).title()
 
         return "Entity"
+
+    def _infer_entity_name_from_filename(self, file_path: Path) -> str:
+        """Infer entity name from filename"""
+        filename = file_path.stem  # Remove extension
+
+        # Remove common suffixes
+        for suffix in ["Controller", "Repository", "Service", "Entity"]:
+            if filename.endswith(suffix):
+                filename = filename[: -len(suffix)]
+                break
+
+        # Convert to title case
+        return filename.title()
