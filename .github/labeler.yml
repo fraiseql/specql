@@ -1,0 +1,71 @@
+# Labeler configuration for automatic PR labeling based on changed files
+
+# Documentation changes
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: ['docs/**/*', '*.md', 'CHANGELOG.md']
+
+# Testing
+testing:
+  - changed-files:
+    - any-glob-to-any-file: ['tests/**/*', 'conftest.py']
+
+# Team A: Parser
+team-a:parser:
+  - changed-files:
+    - any-glob-to-any-file: ['src/core/**/*', 'tests/unit/core/**/*']
+
+# Team B: Schema Generator
+team-b:schema:
+  - changed-files:
+    - any-glob-to-any-file: ['src/generators/schema/**/*', 'src/generators/trinity/**/*', 'tests/unit/schema/**/*', 'tests/unit/generators/**/*']
+
+# Team C: Action Compiler
+team-c:actions:
+  - changed-files:
+    - any-glob-to-any-file: ['src/generators/actions/**/*', 'tests/unit/actions/**/*']
+
+# Team D: FraiseQL Metadata
+team-d:fraiseql:
+  - changed-files:
+    - any-glob-to-any-file: ['src/generators/fraiseql/**/*', 'src/generators/frontend/**/*', 'tests/unit/fraiseql/**/*']
+
+# Team E: CLI
+team-e:cli:
+  - changed-files:
+    - any-glob-to-any-file: ['src/cli/**/*', 'tests/unit/cli/**/*', 'tests/integration/test_confiture_integration.py']
+
+# Registry
+registry:
+  - changed-files:
+    - any-glob-to-any-file: ['src/registry/**/*', 'registry/**/*']
+
+# CI/CD
+ci-cd:
+  - changed-files:
+    - any-glob-to-any-file: ['.github/**/*', '.github/workflows/**/*']
+
+# Dependencies
+dependencies:
+  - changed-files:
+    - any-glob-to-any-file: ['pyproject.toml', 'uv.lock', 'requirements*.txt']
+
+# Configuration
+configuration:
+  - changed-files:
+    - any-glob-to-any-file: ['*.toml', '*.yaml', '*.yml', '*.ini', '*.cfg', 'Makefile']
+
+# Examples
+examples:
+  - changed-files:
+    - any-glob-to-any-file: ['examples/**/*', 'entities/**/*']
+
+# Templates
+templates:
+  - changed-files:
+    - any-glob-to-any-file: ['templates/**/*']
+
+# Database
+database:
+  - changed-files:
+    - any-glob-to-any-file: ['db/**/*', 'migrations/**/*', 'stdlib/**/*']
