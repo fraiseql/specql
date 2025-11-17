@@ -298,8 +298,64 @@ The reverse engineering parser continues to improve with support for:
 - More window function variants
 - Advanced cursor features
 - Complex transaction handling
-- Custom PostgreSQL types and extensions</content>
-</xai:function_call/>
+- Custom PostgreSQL types and extensions
 
-<xai:function_call name="todowrite">
-<parameter name="todos">[{"content":"Document the new parsers in project documentation","status":"completed","priority":"high","id":"document_new_parsers"}]
+---
+
+## Parser Metrics & Monitoring
+
+SpecQL reverse engineering includes built-in metrics tracking for all specialized parsers.
+
+### Viewing Metrics
+
+```python
+from src.reverse_engineering.parser_coordinator import ParserCoordinator
+
+coordinator = ParserCoordinator()
+
+# ... perform parsing operations ...
+
+# Get metrics summary
+print(coordinator.get_metrics_summary())
+
+# Get success rates
+rates = coordinator.get_success_rates()
+print(f"CTE parser success rate: {rates['cte']:.1%}")
+
+# Get raw metrics
+metrics = coordinator.get_metrics()
+print(f"CTE attempts: {metrics['cte']['attempts']}")
+print(f"CTE successes: {metrics['cte']['successes']}")
+```
+
+### Metrics Dashboard
+
+Run the built-in dashboard to see parser performance:
+
+```bash
+python src/reverse_engineering/metrics_dashboard.py
+```
+
+This displays:
+- Success rates for all 7 specialized parsers
+- Attempt/success/failure counts
+- Confidence boost information for each parser
+
+### Parser Capabilities
+
+See the [CAPABILITIES_INVENTORY.md](../reverse_engineering/CAPABILITIES_INVENTORY.md) for:
+- Complete parser capabilities with examples
+- Typical success rates from production usage
+- Feature support matrix
+- Confidence boost values
+- Roadmap for future enhancements
+
+### Available Parsers
+
+1. **CTE Parser** - WITH clauses, recursive CTEs (+10% to +15% confidence)
+2. **Exception Handler Parser** - EXCEPTION blocks (+5% confidence)
+3. **Dynamic SQL Parser** - EXECUTE statements (-10% confidence penalty)
+4. **Control Flow Parser** - FOR/WHILE loops (+8% confidence)
+5. **Window Function Parser** - OVER, PARTITION BY (+8% confidence)
+6. **Aggregate Filter Parser** - FILTER WHERE clauses (+7% confidence)
+7. **Cursor Operations Parser** - Full cursor lifecycle (+8% confidence)

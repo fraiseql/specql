@@ -4,16 +4,13 @@ Map SQL AST to SpecQL primitives
 Algorithmic mapping without AI
 """
 
+import logging
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
 from src.core.ast_models import ActionStep
-from src.reverse_engineering.cte_parser import CTEParser
-from src.reverse_engineering.exception_handler_parser import ExceptionHandlerParser
-from src.reverse_engineering.dynamic_sql_parser import DynamicSQLParser
-from src.reverse_engineering.control_flow_parser import ControlFlowParser
-from src.reverse_engineering.window_function_parser import WindowFunctionParser
-from src.reverse_engineering.aggregate_filter_parser import AggregateFilterParser
-from src.reverse_engineering.cursor_operations_parser import CursorOperationsParser
+from src.reverse_engineering.parser_coordinator import ParserCoordinator, ParserResult
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -37,13 +34,9 @@ class ASTToSpecQLMapper:
         self.confidence = 1.0
         self.warnings = []
         self.variables = {}  # Track declared variables
-        self.cte_parser = CTEParser()
-        self.exception_parser = ExceptionHandlerParser()
-        self.dynamic_sql_parser = DynamicSQLParser()
-        self.control_flow_parser = ControlFlowParser()
-        self.window_function_parser = WindowFunctionParser()
-        self.aggregate_filter_parser = AggregateFilterParser()
-        self.cursor_parser = CursorOperationsParser()
+
+        # REPLACE all individual parsers with coordinator
+        self.parser_coordinator = ParserCoordinator()
 
     def map_function(self, parsed_func) -> ConversionResult:
         """
@@ -111,9 +104,9 @@ class ASTToSpecQLMapper:
         # Skip the DECLARE keyword
         declare_content = declare_text[7:].strip()  # Remove 'DECLARE'
 
-        # First, parse cursor declarations
-        cursor_steps = self.cursor_parser._parse_cursor_declarations(declare_content)
-        steps.extend(cursor_steps)
+        # TODO: Handle cursor declarations in DECLARE block
+        # cursor_steps = self.cursor_parser._parse_cursor_declarations(declare_content)
+        # steps.extend(cursor_steps)
 
         # Then parse regular variable declarations
         # Split by semicolons to get individual declarations
@@ -166,7 +159,7 @@ class ASTToSpecQLMapper:
         return steps
 
     def _parse_begin_block(self, begin_text: str) -> List[ActionStep]:
-        """Parse BEGIN block for executable statements"""
+        """Parse BEGIN block with coordinated specialized parsers"""
         steps = []
 
         # Remove BEGIN and END
@@ -177,65 +170,34 @@ class ASTToSpecQLMapper:
 
         begin_text = begin_text.strip()
 
-        # Strip single-line comments (-- comments) before processing
+        # Strip comments before parsing
         begin_text = self._strip_sql_comments(begin_text)
 
-        # Detect EXCEPTION blocks first
-        if "EXCEPTION" in begin_text.upper():
-            steps.extend(self.exception_parser.parse(begin_text))
-            self.confidence = min(
-                self.confidence * (1.0 + self.exception_parser.confidence_boost), 1.0
-            )
-            return steps
+        # Use ParserCoordinator to get all applicable parser results
+        parser_results = self.parser_coordinator.parse_with_best_parsers(begin_text)
 
-        # Detect EXECUTE statements (dynamic SQL)
-        if "EXECUTE" in begin_text.upper():
-            steps.extend(self.dynamic_sql_parser.parse(begin_text))
-            self.confidence = min(
-                self.confidence * (1.0 + self.dynamic_sql_parser.confidence_boost), 1.0
-            )
-            return steps
+        # Process results
+        for result in parser_results:
+            # Add steps from parser
+            steps.extend(result.steps)
 
-        # Detect FOR loops (complex control flow)
-        if "FOR" in begin_text.upper() and "LOOP" in begin_text.upper():
-            steps.extend(self.control_flow_parser.parse(begin_text))
-            self.confidence = min(
-                self.confidence * (1.0 + self.control_flow_parser.confidence_boost), 1.0
-            )
-            return steps
+            # Apply confidence boost
+            self.confidence = min(1.0, self.confidence + result.confidence_boost)
 
-        # Detect window functions
-        if "OVER" in begin_text.upper() and (
-            "PARTITION" in begin_text.upper() or "ORDER" in begin_text.upper()
-        ):
-            steps.extend(self.window_function_parser.parse(begin_text))
-            self.confidence = min(
-                self.confidence * (1.0 + self.window_function_parser.confidence_boost), 1.0
+            # Log parser usage
+            logger.debug(
+                f"Used {result.parser_used} parser (boost: {result.confidence_boost:+.2f})"
             )
-            return steps
 
-        # Detect aggregate functions with FILTER
-        if "FILTER" in begin_text.upper() and "WHERE" in begin_text.upper():
-            steps.extend(self.aggregate_filter_parser.parse(begin_text))
-            self.confidence = min(
-                self.confidence * (1.0 + self.aggregate_filter_parser.confidence_boost), 1.0
-            )
-            return steps
+        # If no specialized parsers matched, fall back to basic parsing
+        if not parser_results:
+            steps = self._parse_basic_statements(begin_text)
 
-        # Detect cursor operations
-        if any(op in begin_text.upper() for op in ["OPEN", "FETCH", "CLOSE", "CURSOR"]):
-            cursor_steps = self.cursor_parser.parse(begin_text)
-            steps.extend(cursor_steps)
-            self.confidence = min(
-                self.confidence * (1.0 + self.cursor_parser.confidence_boost), 1.0
-            )
-            # Remove parsed cursor statements from text to avoid duplicate processing
-            begin_text = self._remove_cursor_statements(begin_text)
-            # Continue parsing other statements
+        return steps
 
-        # Detect WITH clauses (CTEs) first
-        if "WITH" in begin_text.upper():
-            steps.extend(self.cte_parser.parse(begin_text))
+    def _parse_basic_statements(self, begin_text: str) -> List[ActionStep]:
+        """Parse basic SQL statements when no specialized parsers match"""
+        steps = []
 
         # Split by semicolons to get individual statements
         statements = [s.strip() for s in begin_text.split(";") if s.strip()]
@@ -266,10 +228,14 @@ class ASTToSpecQLMapper:
                         from_part = "FROM" + into_parts[1]
                         full_query = f"{select_part} {from_part}"
                         steps.append(
-                            ActionStep(type="query", sql=full_query, store_result=var_name)
+                            ActionStep(
+                                type="query",
+                                sql=full_query,
+                                variable_name=var_name,
+                            )
                         )
 
-            # PERFORM statements (unknown operations)
+            # PERFORM statements
             elif stmt.upper().startswith("PERFORM"):
                 self.confidence *= 0.9
                 self.warnings.append(f"Unknown operation: {stmt}")
