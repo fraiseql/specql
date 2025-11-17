@@ -203,9 +203,19 @@ class RustParser:
         Returns:
             Tuple of (List of parsed struct information, List of enum information, List of Diesel table information, List of Diesel derive information, List of impl block information, List of route handler information)
         """
-        # For regex-based parsing, we return empty lists for complex features
-        # This maintains backward compatibility with existing code
-        return [], [], [], [], [], []
+        # Read the file content
+        with open(file_path, 'r', encoding='utf-8') as f:
+            source_code = f.read()
+
+        # Extract components using regex
+        structs = []  # Not implemented yet
+        enums = []    # Not implemented yet
+        diesel_tables = []  # Not implemented yet
+        diesel_derives = []  # Not implemented yet
+        impl_blocks = self._extract_impl_blocks(source_code)
+        route_handlers = self._extract_route_handlers(source_code)
+
+        return structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers
 
     def parse_source(
         self, source_code: str
@@ -308,6 +318,133 @@ class RustParser:
                 }
             )
         return associations
+
+    def _extract_route_handlers(self, source_code: str) -> List[RouteHandlerInfo]:
+        """Extract Actix-web route handlers from source code"""
+        route_handlers = []
+
+        # Pattern for Actix-web route macros: #[get("/path")], #[post("/path")], etc.
+        # Capture 'async' keyword if present
+        route_pattern = r'#\[(get|post|put|delete|patch)\("([^"]+)"\)\]\s+pub\s+(async\s+)?fn\s+(\w+)\s*\(([^)]*)\)\s*->\s*([^{]+)'
+
+        matches = re.finditer(route_pattern, source_code, re.MULTILINE)
+
+        for match in matches:
+            method = match.group(1).upper()
+            path = match.group(2)
+            is_async_keyword = match.group(3)  # 'async ' or None
+            function_name = match.group(4)
+            params_str = match.group(5)
+            return_type = match.group(6).strip()
+
+            # Check if async
+            is_async = is_async_keyword is not None
+
+            # Parse parameters
+            parameters = []
+            if params_str.strip():
+                # Simple parameter parsing (name: type)
+                param_pairs = params_str.split(',')
+                for param in param_pairs:
+                    param = param.strip()
+                    if ':' in param:
+                        param_parts = param.split(':', 1)
+                        param_name = param_parts[0].strip()
+                        param_type = param_parts[1].strip()
+                        parameters.append({
+                            "name": param_name,
+                            "param_type": param_type
+                        })
+
+            route_handlers.append(RouteHandlerInfo(
+                method=method,
+                path=path,
+                function_name=function_name,
+                parameters=parameters,
+                return_type=return_type,
+                is_async=is_async
+            ))
+
+        return route_handlers
+
+    def _extract_impl_blocks(self, source_code: str) -> List[ImplBlockInfo]:
+        """Extract impl blocks and their methods from source code"""
+        impl_blocks = []
+
+        # Pattern for impl blocks: impl StructName { ... }
+        # We'll use a simpler approach: find impl keyword, then manually count braces
+        impl_start_pattern = r'impl\s+(\w+)\s*\{'
+
+        impl_start_matches = list(re.finditer(impl_start_pattern, source_code))
+
+        for impl_start in impl_start_matches:
+            struct_name = impl_start.group(1)
+            start_pos = impl_start.end()  # Position after opening brace
+
+            # Find matching closing brace
+            brace_count = 1
+            pos = start_pos
+            while pos < len(source_code) and brace_count > 0:
+                if source_code[pos] == '{':
+                    brace_count += 1
+                elif source_code[pos] == '}':
+                    brace_count -= 1
+                pos += 1
+
+            if brace_count == 0:
+                impl_body = source_code[start_pos:pos-1]
+            else:
+                continue  # Malformed impl block
+
+            # Extract methods from impl block
+            methods = []
+
+            # Pattern for pub methods: pub fn method_name(params) -> return_type { ... }
+            method_pattern = r'(pub(?:\(crate\))?)\s+(?:(async)\s+)?fn\s+(\w+)\s*\(([^)]*)\)(?:\s*->\s*([^{;]+))?'
+
+            method_matches = re.finditer(method_pattern, impl_body, re.MULTILINE)
+
+            for method_match in method_matches:
+                visibility = method_match.group(1).strip()
+                is_async = method_match.group(2) == 'async'
+                method_name = method_match.group(3)
+                params_str = method_match.group(4)
+                return_type = method_match.group(5).strip() if method_match.group(5) else '()'
+
+                # Only extract pub methods (not pub(crate))
+                if visibility != 'pub':
+                    continue
+
+                # Parse parameters
+                parameters = []
+                if params_str.strip():
+                    param_pairs = params_str.split(',')
+                    for param in param_pairs:
+                        param = param.strip()
+                        if ':' in param:
+                            param_parts = param.split(':', 1)
+                            param_name = param_parts[0].strip()
+                            param_type = param_parts[1].strip()
+                            parameters.append({
+                                "name": param_name,
+                                "param_type": param_type
+                            })
+
+                methods.append(ImplMethodInfo(
+                    name=method_name,
+                    visibility=visibility,
+                    parameters=parameters,
+                    return_type=return_type,
+                    is_async=is_async
+                ))
+
+            impl_blocks.append(ImplBlockInfo(
+                type_name=struct_name,
+                methods=methods,
+                trait_impl=None  # We're not parsing trait impls yet
+            ))
+
+        return impl_blocks
 
     def parse_rust_struct(self, rust_code: str) -> Dict[str, Any]:
         """Parse Rust struct with Diesel derives"""
