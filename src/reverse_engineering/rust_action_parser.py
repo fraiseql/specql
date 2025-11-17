@@ -7,6 +7,7 @@ Parses Rust impl blocks, route handlers, and enum types to extract actions.
 import logging
 from pathlib import Path
 from typing import List, Optional, Dict, Any
+from dataclasses import dataclass
 
 # from src.core.ast_models import Action  # Using dict for now
 from src.reverse_engineering.rust_parser import (
@@ -16,17 +17,75 @@ from src.reverse_engineering.rust_parser import (
     ImplMethodInfo,
     RouteHandlerInfo,
 )
+from src.reverse_engineering.tree_sitter_rust_parser import (
+    TreeSitterRustParser,
+    RustFunction,
+    RustStruct,
+)
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class RustParseResult:
+    """Result of parsing Rust code with tree-sitter or regex fallback"""
+
+    functions: List[RustFunction]
+    structs: List[RustStruct]
+    endpoints: List[Dict[str, Any]]
+    parser_used: str  # "tree-sitter" or "regex"
 
 
 class RustActionParser:
     """Extract actions from Rust impl blocks and route handlers."""
 
-    def __init__(self):
+    def __init__(self, use_tree_sitter: bool = True):
+        self.use_tree_sitter = use_tree_sitter
+        self.ts_parser = TreeSitterRustParser() if use_tree_sitter else None
         self.rust_parser = RustParser()
         self.action_mapper = RustActionMapper()
         self.route_mapper = RouteToActionMapper()
+
+    def parse_file(self, file_path: str) -> RustParseResult:
+        """Parse Rust file using tree-sitter (with regex fallback)"""
+        with open(file_path, "r") as f:
+            code = f.read()
+
+        # Try tree-sitter first
+        if self.use_tree_sitter and self.ts_parser:
+            try:
+                ast = self.ts_parser.parse(code)
+                if ast:
+                    return self._parse_with_tree_sitter(code, ast)
+            except Exception as e:
+                logger.warning(f"Tree-sitter failed, falling back to regex: {e}")
+
+        # Fallback to regex parsing
+        return self._parse_with_regex(code)
+
+    def _parse_with_tree_sitter(self, code: str, ast) -> RustParseResult:
+        """Parse using tree-sitter AST"""
+        if not self.ts_parser:
+            raise ValueError("Tree-sitter parser not initialized")
+
+        functions = self.ts_parser.extract_functions(ast)
+        structs = self.ts_parser.extract_structs(ast)
+        endpoints = self._extract_endpoints_from_ast(ast)
+
+        return RustParseResult(
+            functions=functions, structs=structs, endpoints=endpoints, parser_used="tree-sitter"
+        )
+
+    def _parse_with_regex(self, code: str) -> RustParseResult:
+        """Fallback regex parsing (existing implementation)"""
+        # For now, return empty results - this would need to be implemented
+        # based on the existing regex parsing logic
+        return RustParseResult(functions=[], structs=[], endpoints=[], parser_used="regex")
+
+    def _extract_endpoints_from_ast(self, ast) -> List[Dict[str, Any]]:
+        """Extract endpoints from AST (placeholder for now)"""
+        # TODO: Implement endpoint extraction from AST
+        return []
 
     def extract_actions(self, file_path: Path) -> List[Dict[str, Any]]:
         """Extract SpecQL actions from Rust file."""
