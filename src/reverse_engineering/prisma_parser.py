@@ -7,11 +7,30 @@ Supports:
 - Relations (one-to-one, one-to-many, many-to-many)
 - Enums
 - Indexes and constraints
+
+Uses tree-sitter for robust AST-based parsing.
 """
 
 from dataclasses import dataclass
 from typing import List, Optional
 import re
+
+# Import tree-sitter parser
+try:
+    from .tree_sitter_prisma_parser import (
+        TreeSitterPrismaParser,
+        PrismaModel as TSPrismaModel,
+        PrismaField as TSPrismaField,
+        PrismaEnum as TSPrismaEnum,
+    )
+except ImportError:
+    # For testing without package structure
+    from tree_sitter_prisma_parser import (
+        TreeSitterPrismaParser,
+        PrismaModel as TSPrismaModel,
+        PrismaField as TSPrismaField,
+        PrismaEnum as TSPrismaEnum,
+    )
 
 
 @dataclass
@@ -43,141 +62,113 @@ class PrismaEntity:
 
 
 class PrismaSchemaParser:
-    """Parser for Prisma schema files"""
+    """Parser for Prisma schema files using tree-sitter"""
 
     def __init__(self):
-        self.enums = {}  # Store enum definitions
+        self.ts_parser = TreeSitterPrismaParser()
+        self.enums = {}  # Store enum definitions for compatibility
 
     def parse_schema(self, schema: str) -> List[PrismaEntity]:
-        """Parse Prisma schema to entities"""
+        """
+        Parse Prisma schema to entities using tree-sitter AST parsing.
+
+        This replaces the previous regex-based parsing with grammar-validated
+        AST traversal for robust handling of all Prisma syntax.
+        """
         entities = []
 
-        # First, extract enums
-        self._extract_enums(schema)
+        # Parse with tree-sitter
+        ast = self.ts_parser.parse(schema)
+
+        # Extract enums first (for compatibility with existing field mapping)
+        enums = self.ts_parser.extract_enums(ast)
+        self.enums = {enum.name: enum.values for enum in enums}
 
         # Extract models
-        model_pattern = r"model\s+(\w+)\s*\{([^}]+)\}"
+        models = self.ts_parser.extract_models(ast)
 
-        for match in re.finditer(model_pattern, schema, re.DOTALL):
-            model_name = match.group(1)
-            model_body = match.group(2)
-
-            # Extract fields
-            fields = self._extract_fields(model_body)
-
-            # Extract table name from @@map
-            table_name = self._extract_table_name(model_body, model_name)
-
-            # Extract indexes
-            indexes = self._extract_indexes(model_body)
-            unique_constraints = self._extract_unique_constraints(model_body)
-
-            entities.append(
-                PrismaEntity(
-                    name=model_name,
-                    table_name=table_name,
-                    fields=fields,
-                    indexes=indexes,
-                    unique_constraints=unique_constraints,
-                )
-            )
+        for model in models:
+            entity = self._convert_model_to_entity(model)
+            entities.append(entity)
 
         return entities
 
-    def _extract_enums(self, schema: str):
-        """Extract enum definitions"""
-        enum_pattern = r"enum\s+(\w+)\s*\{([^}]+)\}"
+    def _convert_model_to_entity(self, model: TSPrismaModel) -> PrismaEntity:
+        """Convert tree-sitter PrismaModel to legacy PrismaEntity format."""
+        # Convert fields
+        fields = [self._convert_field_to_legacy(field) for field in model.fields]
 
-        for match in re.finditer(enum_pattern, schema, re.DOTALL):
-            enum_name = match.group(1)
-            enum_body = match.group(2)
+        # Convert indexes and unique constraints
+        indexes = [idx["fields"] for idx in model.indexes]
+        unique_constraints = [uc["fields"] for uc in model.unique_constraints]
 
-            # Extract enum values
-            values = [
-                line.strip()
-                for line in enum_body.split("\n")
-                if line.strip() and not line.strip().startswith("//")
-            ]
+        # Extract table name (look for @@map in the future, for now use default)
+        table_name = self._extract_table_name_from_model(model)
 
-            self.enums[enum_name] = values
+        return PrismaEntity(
+            name=model.name,
+            table_name=table_name,
+            fields=fields,
+            indexes=indexes,
+            unique_constraints=unique_constraints,
+        )
 
-    def _extract_fields(self, model_body: str) -> List[PrismaField]:
-        """Extract fields from model body"""
-        fields = []
+    def _convert_field_to_legacy(self, field: TSPrismaField) -> PrismaField:
+        """Convert tree-sitter PrismaField to legacy PrismaField format."""
+        # Map type
+        specql_type = self._map_prisma_type(field.type)
 
-        # Pattern: fieldName Type @attributes
-        field_pattern = r"(\w+)\s+([\w\[\]?]+)\s*(@[^\n]*)?"
+        # Determine if relation
+        is_relation = field.type[0].isupper() and field.type not in [
+            "String",
+            "Int",
+            "BigInt",
+            "Float",
+            "Boolean",
+            "DateTime",
+            "Json",
+            "Bytes",
+        ]
 
-        for line in model_body.split("\n"):
-            line = line.strip()
+        # Get enum values if this is an enum type
+        enum_values = None
+        if field.type in self.enums:
+            enum_values = self.enums[field.type]
+            specql_type = "enum"
 
-            # Skip block-level attributes (@@) and comments
-            if line.startswith("@@") or line.startswith("//") or not line:
-                continue
+        # Extract column name from @map attribute
+        column_name = None
+        for attr in field.attributes:
+            if "@map(" in attr:
+                import re
 
-            match = re.match(field_pattern, line)
-            if not match:
-                continue
+                match = re.search(r'@map\(["\']([^"\']+)["\']', attr)
+                if match:
+                    column_name = match.group(1)
 
-            field_name = match.group(1)
-            field_type_raw = match.group(2)
-            attributes_str = match.group(3) or ""
+        return PrismaField(
+            name=field.name,
+            type=specql_type,
+            is_optional=not field.is_required,
+            is_list=field.is_list,
+            is_relation=is_relation,
+            related_entity=field.type if is_relation else None,
+            unique=field.is_unique,
+            indexed=field.is_id or field.is_unique or field.has_default,  # Approximation
+            default_value=field.default_value,
+            column_name=column_name,
+            enum_values=enum_values,
+        )
 
-            # Parse type
-            is_optional = field_type_raw.endswith("?")
-            is_list = field_type_raw.endswith("[]")
-            base_type = field_type_raw.rstrip("?[]")
+    def _extract_table_name_from_model(self, model: TSPrismaModel) -> str:
+        """Extract table name from model (@@map) or use default."""
+        if model.table_name:
+            return model.table_name
 
-            # Check if relation
-            is_relation = base_type[0].isupper() and base_type not in [
-                "String",
-                "Int",
-                "DateTime",
-                "Boolean",
-            ]
-
-            # Map Prisma type to SpecQL type
-            specql_type = self._map_prisma_type(base_type)
-
-            # Parse attributes
-            unique = "@unique" in attributes_str
-            indexed = "@index" in attributes_str or "@unique" in attributes_str
-
-            # Extract default value
-            default_value = None
-            default_match = re.search(r"@default\(([^)]+)\)", attributes_str)
-            if default_match:
-                default_value = default_match.group(1).strip('"')
-
-            # Extract column name from @map
-            column_name = None
-            map_match = re.search(r'@map\("([^"]+)"\)', attributes_str)
-            if map_match:
-                column_name = map_match.group(1)
-
-            # Check if enum
-            enum_values = None
-            if base_type in self.enums:
-                enum_values = self.enums[base_type]
-                specql_type = "enum"
-
-            fields.append(
-                PrismaField(
-                    name=field_name,
-                    type=specql_type,
-                    is_optional=is_optional,
-                    is_list=is_list,
-                    is_relation=is_relation,
-                    related_entity=base_type if is_relation else None,
-                    unique=unique,
-                    indexed=indexed,
-                    default_value=default_value,
-                    column_name=column_name,
-                    enum_values=enum_values,
-                )
-            )
-
-        return fields
+        # Default: Convert PascalCase to snake_case and pluralize
+        name = model.name
+        snake_case = re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
+        return snake_case + "s"
 
     def _map_prisma_type(self, prisma_type: str) -> str:
         """Map Prisma types to SpecQL types"""
@@ -192,35 +183,3 @@ class PrismaSchemaParser:
             "Bytes": "bytea",
         }
         return type_map.get(prisma_type, "text")
-
-    def _extract_table_name(self, model_body: str, default_name: str) -> str:
-        """Extract table name from @@map or use default"""
-        map_match = re.search(r'@@map\("([^"]+)"\)', model_body)
-        if map_match:
-            return map_match.group(1)
-
-        # Convert PascalCase to snake_case and pluralize
-        snake_case = re.sub(r"(?<!^)(?=[A-Z])", "_", default_name).lower()
-        return snake_case + "s"
-
-    def _extract_indexes(self, model_body: str) -> List[List[str]]:
-        """Extract @@index declarations"""
-        indexes = []
-        index_pattern = r"@@index\(\[([^\]]+)\]\)"
-
-        for match in re.finditer(index_pattern, model_body):
-            fields = [f.strip() for f in match.group(1).split(",")]
-            indexes.append(fields)
-
-        return indexes
-
-    def _extract_unique_constraints(self, model_body: str) -> List[List[str]]:
-        """Extract @@unique declarations"""
-        constraints = []
-        unique_pattern = r"@@unique\(\[([^\]]+)\]\)"
-
-        for match in re.finditer(unique_pattern, model_body):
-            fields = [f.strip() for f in match.group(1).split(",")]
-            constraints.append(fields)
-
-        return constraints
