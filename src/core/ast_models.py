@@ -418,6 +418,21 @@ class ActionStep:
     propagate_entities: list[str] = field(default_factory=list)
     refresh_strategy: str = "immediate"
 
+    # For reverse engineering - PL/pgSQL constructs
+    variable_name: str | None = None  # For declare/assign steps
+    variable_type: str | None = None  # For declare steps
+    default_value: Any | None = None  # For declare steps
+    sql: str | None = None  # For raw SQL steps
+    return_value: str | None = None  # For return steps
+    return_table_query: str | None = None  # For return query steps
+    cte_name: str | None = None  # For CTE steps
+    cte_query: str | None = None  # For CTE steps
+    for_query_alias: str | None = None  # For FOR loops
+    for_query_sql: str | None = None  # For FOR loops
+    for_query_body: list["ActionStep"] = field(default_factory=list)  # For FOR loops
+    while_condition: str | None = None  # For WHILE loops
+    loop_body: list["ActionStep"] = field(default_factory=list)  # For WHILE loops
+
 
 @dataclass
 class EntityImpact:

@@ -92,5 +92,41 @@ def validate(entity_files, check_impacts, verbose):
     return result.returncode
 
 
+@specql.command()
+@click.argument("sql_files", nargs=-1, type=click.Path(exists=True))
+@click.option("--output-dir", "-o", type=click.Path(), help="Output directory for YAML files")
+@click.option("--min-confidence", type=float, default=0.80, help="Minimum confidence threshold")
+@click.option("--no-ai", is_flag=True, help="Skip AI enhancement (faster)")
+@click.option("--preview", is_flag=True, help="Preview mode (no files written)")
+@click.option("--compare", is_flag=True, help="Generate comparison report")
+@click.option("--use-heuristics/--no-heuristics", default=True, help="Use heuristic enhancements")
+def reverse(sql_files, output_dir, min_confidence, no_ai, preview, compare, use_heuristics):
+    """
+    Reverse engineer SQL functions to SpecQL YAML
+
+    Examples:
+        specql reverse function.sql
+        specql reverse reference_sql/**/*.sql -o entities/
+        specql reverse function.sql --no-ai --preview
+        specql reverse function.sql --min-confidence=0.90
+    """
+    # Import here to avoid circular imports
+    from src.cli.reverse import reverse as reverse_cmd
+    from click import Context
+
+    # Create a click context and invoke the command
+    ctx = Context(reverse_cmd)
+    ctx.invoke(
+        reverse_cmd,
+        sql_files=sql_files,
+        output_dir=output_dir,
+        min_confidence=min_confidence,
+        no_ai=no_ai,
+        preview=preview,
+        compare=compare,
+        use_heuristics=use_heuristics
+    )
+
+
 if __name__ == "__main__":
     specql()

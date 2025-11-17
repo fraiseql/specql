@@ -28,6 +28,9 @@ dev = [
     "black>=23.0.0",
     "types-pyyaml>=6.0.0",
 ]
+reverse = [
+    "pglast>=6.0.0",  # PostgreSQL SQL parser for reverse engineering
+]
 
 [project.scripts]
 specql = "src.cli.confiture_extensions:specql"
