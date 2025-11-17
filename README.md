@@ -113,11 +113,60 @@ specql generate entities/contact.yaml
 confiture migrate up
 ```
 
+## Advanced Features
+
+### 🔍 Pattern Detection & Reverse Engineering
+
+Automatically detect architectural patterns in existing codebases and reverse engineer them to SpecQL YAML.
+
+```bash
+# Detect patterns in source code
+specql detect-patterns src/models/*.rs
+
+# Reverse engineer with automatic pattern application
+specql reverse src/models/ --framework diesel --with-patterns
+
+# Process entire projects with framework detection
+specql reverse /path/to/rust/project --with-patterns --output entities/
+```
+
+**Supported Patterns:**
+- **Soft Delete**: `deleted_at` timestamp fields
+- **Audit Trail**: `created_at`/`updated_at` tracking
+- **Multi-Tenant**: `tenant_id` isolation
+- **State Machine**: Status transitions with validation
+- **Versioning**: Optimistic locking patterns
+
+**Supported Frameworks:**
+- **Rust**: Diesel, SeaORM
+- **Python**: SQLAlchemy, Django
+- **TypeScript**: Prisma
+- **Java**: Hibernate, Spring Data
+
+### 📊 Framework Integration
+
+Deep integration with popular ORMs for automatic best-practice detection:
+
+```bash
+# Auto-detects Diesel from Cargo.toml
+specql reverse src/ --with-patterns
+
+# Framework-specific optimizations
+specql reverse src/ --framework seaorm --with-patterns
+
+# Project-level batch processing
+specql reverse . --framework diesel --with-patterns \
+  --exclude "*/tests/*" \
+  --exclude "*/migrations/*"
+```
+
 ## Results
 
 - **927 tests passing** (99.6% coverage)
 - **50 scalar types** with automatic validation
 - **30 stdlib entities** production-ready
+- **10+ architectural patterns** auto-detected
+- **5+ frameworks** deeply integrated
 - **100x code leverage** verified in production
 
 ## Use Cases

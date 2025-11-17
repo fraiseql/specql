@@ -14,6 +14,7 @@ from dataclasses import dataclass
 
 from src.core.ast_models import Entity, FieldDefinition, FieldTier
 from src.reverse_engineering.seaorm_parser import SeaORMParser, SeaORMEntity, SeaORMQuery
+from src.reverse_engineering.tree_sitter_rust_parser import TreeSitterRustParser
 
 logger = logging.getLogger(__name__)
 
@@ -190,6 +191,8 @@ class RustParser:
         self.type_mapper = RustTypeMapper()
         # Initialize ORM parsers
         self.seaorm_parser = SeaORMParser()
+        # Initialize tree-sitter parser
+        self.ts_parser = TreeSitterRustParser()
 
     def parse_file(
         self, file_path: Path
@@ -214,13 +217,28 @@ class RustParser:
         with open(file_path, "r", encoding="utf-8") as f:
             source_code = f.read()
 
-        # Extract components using regex
-        structs = []  # Not implemented yet
-        enums = []  # Not implemented yet
-        diesel_tables = []  # Not implemented yet
-        diesel_derives = []  # Not implemented yet
-        impl_blocks = self._extract_impl_blocks(source_code)
-        route_handlers = self._extract_route_handlers(source_code)
+        # Parse with tree-sitter
+        ast = self.ts_parser.parse(source_code)
+        if ast:
+            # Extract everything via tree-sitter
+            structs = self._convert_ts_structs_to_rust_structs(self.ts_parser.extract_structs(ast))
+            enums = []  # TODO: Implement enum extraction
+            diesel_tables = []  # TODO: Implement diesel table extraction
+            diesel_derives = []  # TODO: Implement diesel derive extraction
+            impl_blocks = self._convert_ts_impl_blocks_to_impl_blocks(
+                self.ts_parser.extract_impl_blocks(ast)
+            )
+            route_handlers = self._convert_ts_routes_to_route_handlers(
+                self.ts_parser.extract_routes(ast)
+            )
+        else:
+            # Fallback to regex (should not happen in normal operation)
+            structs = []
+            enums = []
+            diesel_tables = []
+            diesel_derives = []
+            impl_blocks = self._extract_impl_blocks(source_code)
+            route_handlers = self._extract_route_handlers(source_code)
 
         return structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers
 
@@ -930,6 +948,63 @@ class RustParser:
 
         # Direct mapping
         return self.type_mapper.map_diesel_type(diesel_type)
+
+    def _convert_ts_structs_to_rust_structs(self, ts_structs) -> List[RustStructInfo]:
+        """Convert tree-sitter RustStruct objects to RustStructInfo objects."""
+        structs = []
+        for ts_struct in ts_structs:
+            fields = []
+            for ts_field in ts_struct.fields:
+                field = RustFieldInfo(
+                    name=ts_field.name,
+                    field_type=ts_field.type_name,
+                    attributes=ts_field.attributes,
+                )
+                fields.append(field)
+
+            struct = RustStructInfo(
+                name=ts_struct.name,
+                fields=fields,
+                attributes=ts_struct.derives,  # Use derives as attributes for now
+            )
+            structs.append(struct)
+        return structs
+
+    def _convert_ts_impl_blocks_to_impl_blocks(self, ts_impl_blocks) -> List[ImplBlockInfo]:
+        """Convert tree-sitter RustImplBlock objects to ImplBlockInfo objects."""
+        impl_blocks = []
+        for ts_impl in ts_impl_blocks:
+            methods = []
+            for ts_method in ts_impl.methods:
+                method = ImplMethodInfo(
+                    name=ts_method.name,
+                    is_async=ts_method.is_async,
+                    parameters=[],  # TODO: Convert parameters
+                    return_type=ts_method.return_type or "",
+                )
+                methods.append(method)
+
+            impl_block = ImplBlockInfo(
+                type_name=ts_impl.target_type, methods=methods, trait_impl=ts_impl.trait_name
+            )
+            impl_blocks.append(impl_block)
+        return impl_blocks
+
+    def _convert_ts_routes_to_route_handlers(self, ts_routes) -> List[RouteHandlerInfo]:
+        """Convert tree-sitter RustRoute objects to RouteHandlerInfo objects."""
+        routes = []
+        for ts_route in ts_routes:
+            route = RouteHandlerInfo(
+                method=ts_route.method,
+                path=ts_route.path,
+                function_name=ts_route.handler,
+                is_async=ts_route.is_async,
+                return_type="",  # TODO: Extract return type
+                parameters=[],  # TODO: Extract parameters
+                metadata={"framework": ts_route.framework},
+            )
+            routes.append(route)
+        return routes
 
 
 class RustToSpecQLMapper:

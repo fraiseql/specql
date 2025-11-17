@@ -1,6 +1,8 @@
+import yaml
 from typing import List, Dict, Any
 from src.core.ast_models import Action
 from src.reverse_engineering.protocols import ParsedEntity, ParsedMethod, SourceLanguage
+
 
 class UniversalASTMapper:
     """
@@ -26,19 +28,27 @@ class UniversalASTMapper:
         Works regardless of source language
         """
         return {
-            'entity': entity.entity_name,
-            'schema': entity.namespace,
-            'description': entity.docstring,
-            'fields': [self._map_field(f) for f in entity.fields],
-            'actions': [
-                self._action_to_dict(self.map_method_to_action(m, entity))
-                for m in entity.methods
+            "entity": entity.entity_name,
+            "schema": entity.namespace,
+            "description": entity.docstring,
+            "fields": [self._map_field(f) for f in entity.fields],
+            "actions": [
+                self._action_to_dict(self.map_method_to_action(m, entity)) for m in entity.methods
             ],
-            '_metadata': {
-                'source_language': entity.source_language.value,
-                'patterns': self._detect_patterns(entity),
-            }
+            "_metadata": {
+                "source_language": entity.source_language.value,
+                "patterns": self._detect_patterns(entity),
+            },
         }
+
+    def map_to_specql(self, entity: ParsedEntity) -> str:
+        """
+        Map ParsedEntity to SpecQL YAML string
+
+        This method implements the MapperProtocol interface
+        """
+        specql_dict = self.map_entity_to_specql(entity)
+        return yaml.dump(specql_dict, default_flow_style=False, sort_keys=False)
 
     def map_method_to_action(self, method: ParsedMethod, entity: ParsedEntity) -> Action:
         """
@@ -56,16 +66,16 @@ class UniversalASTMapper:
     def _map_field(self, field) -> dict:
         """Map ParsedField to SpecQL field dict"""
         field_dict = {
-            'name': field.field_name,
-            'type': field.field_type,
-            'required': field.required,
+            "name": field.field_name,
+            "type": field.field_type,
+            "required": field.required,
         }
 
         if field.default is not None:
-            field_dict['default'] = field.default
+            field_dict["default"] = field.default
 
         if field.is_foreign_key:
-            field_dict['ref'] = field.foreign_key_target
+            field_dict["ref"] = field.foreign_key_target
 
         return field_dict
 
@@ -77,59 +87,59 @@ class UniversalASTMapper:
         field_names = {f.field_name for f in entity.fields}
 
         # Audit trail pattern
-        if {'created_at', 'updated_at', 'created_by', 'updated_by'} <= field_names:
-            patterns.append('audit_trail')
+        if {"created_at", "updated_at", "created_by", "updated_by"} <= field_names:
+            patterns.append("audit_trail")
 
         # Soft delete pattern
-        if 'deleted_at' in field_names:
-            patterns.append('soft_delete')
+        if "deleted_at" in field_names:
+            patterns.append("soft_delete")
 
         # Status/state pattern
-        if 'status' in field_names or 'state' in field_names:
-            patterns.append('state_machine')
+        if "status" in field_names or "state" in field_names:
+            patterns.append("state_machine")
 
         # Tenant pattern
-        if 'tenant_id' in field_names:
-            patterns.append('multi_tenant')
+        if "tenant_id" in field_names:
+            patterns.append("multi_tenant")
 
         return patterns
 
     def _action_to_dict(self, action: Action) -> dict:
         """Convert Action to dict for YAML serialization"""
         action_dict = {
-            'name': action.name,
-            'steps': [self._step_to_dict(step) for step in action.steps]
+            "name": action.name,
+            "steps": [self._step_to_dict(step) for step in action.steps],
         }
 
         if action.requires:
-            action_dict['requires'] = action.requires
+            action_dict["requires"] = action.requires
 
         return action_dict
 
     def _step_to_dict(self, step) -> dict:
         """Convert ActionStep to dict for YAML serialization"""
-        step_dict = {'type': step.type}
+        step_dict = {"type": step.type}
 
         # Add relevant fields based on step type
-        if hasattr(step, 'expression') and step.expression:
-            step_dict['expression' if step.type == 'validate' else 'condition'] = step.expression
+        if hasattr(step, "expression") and step.expression:
+            step_dict["expression" if step.type == "validate" else "condition"] = step.expression
 
-        if hasattr(step, 'entity') and step.entity:
-            step_dict['entity'] = step.entity
+        if hasattr(step, "entity") and step.entity:
+            step_dict["entity"] = step.entity
 
-        if hasattr(step, 'fields') and step.fields:
-            step_dict['fields'] = step.fields
+        if hasattr(step, "fields") and step.fields:
+            step_dict["fields"] = step.fields
 
-        if hasattr(step, 'function_name') and step.function_name:
-            step_dict['function'] = step.function_name
+        if hasattr(step, "function_name") and step.function_name:
+            step_dict["function"] = step.function_name
 
-        if hasattr(step, 'arguments') and step.arguments:
-            step_dict['arguments'] = step.arguments
+        if hasattr(step, "arguments") and step.arguments:
+            step_dict["arguments"] = step.arguments
 
-        if hasattr(step, 'then_steps') and step.then_steps:
-            step_dict['then'] = [self._step_to_dict(s) for s in step.then_steps]
+        if hasattr(step, "then_steps") and step.then_steps:
+            step_dict["then"] = [self._step_to_dict(s) for s in step.then_steps]
 
-        if hasattr(step, 'else_steps') and step.else_steps:
-            step_dict['else'] = [self._step_to_dict(s) for s in step.else_steps]
+        if hasattr(step, "else_steps") and step.else_steps:
+            step_dict["else"] = [self._step_to_dict(s) for s in step.else_steps]
 
         return step_dict

@@ -18,6 +18,7 @@ dependencies = [
     "faker>=37.12.0",
     "tree-sitter>=0.20.0",
     "tree-sitter-rust>=0.20.0",
+    "tree-sitter-typescript>=0.20.0",
 ]
 
 [project.optional-dependencies]
@@ -35,7 +36,7 @@ reverse = [
 ]
 
 [project.scripts]
-specql = "src.cli.confiture_extensions:specql"
+specql = "cli.confiture_extensions:specql"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

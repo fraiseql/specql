@@ -29,6 +29,40 @@ class DetectedPattern:
 class UniversalPatternDetector:
     """Detect patterns across all languages"""
 
+    # Language-specific pattern signatures
+    LANGUAGE_PATTERNS = {
+        "rust": {
+            "soft_delete": [
+                r"deleted_at:\s*Option<.*DateTime",
+                r"#\[serde\(skip_serializing_if.*deleted_at",
+                r"\.filter\(.*deleted_at\.is_null\(\)",
+            ],
+            "audit_trail": [
+                r"created_at:\s*DateTime",
+                r"updated_at:\s*DateTime",
+                r"updated_by:\s*(Option<)?.*User",
+            ],
+            "multi_tenant": [
+                r"tenant_id:\s*Uuid",
+                r"#\[serde\(default.*tenant_id",
+                r"filter.*tenant_id\s*=",
+            ],
+        },
+        "typescript": {
+            "soft_delete": [
+                r"deletedAt[?:]?\s*Date",
+                r"where:.*deletedAt.*null",
+                r"softDelete.*true",
+            ],
+            "audit_trail": [
+                r"createdAt[?:]?\s*Date",
+                r"updatedAt[?:]?\s*Date",
+                r"@UpdateDateColumn",
+            ],
+        },
+        # ... other languages
+    }
+
     def __init__(self):
         self.patterns = {
             "state_machine": StateMachinePattern(),  # Engineer A
@@ -60,6 +94,36 @@ class UniversalPatternDetector:
                 )
 
         return detected
+
+    def detect_all_patterns(self, source_code: str, language: str) -> Dict[str, Dict]:
+        """Detect all patterns using regex-based approach"""
+        results = {}
+
+        if language not in self.LANGUAGE_PATTERNS:
+            return results
+
+        for pattern_name, signatures in self.LANGUAGE_PATTERNS[language].items():
+            results[pattern_name] = self.detect_pattern(source_code, pattern_name, language)
+
+        return results
+
+    def detect_pattern(self, source_code: str, pattern_name: str, language: str) -> dict:
+        """Detect a specific pattern in source code"""
+        if language not in self.LANGUAGE_PATTERNS:
+            return {"confidence": 0.0, "evidence": []}
+
+        signatures = self.LANGUAGE_PATTERNS[language].get(pattern_name, [])
+        evidence = []
+
+        for signature in signatures:
+            matches = re.finditer(signature, source_code, re.MULTILINE)
+            for match in matches:
+                line_num = source_code[: match.start()].count("\n") + 1
+                evidence.append(f"Line {line_num}: {match.group()}")
+
+        confidence = min(1.0, len(evidence) / len(signatures)) if signatures else 0.0
+
+        return {"confidence": confidence, "evidence": evidence, "pattern": pattern_name}
 
 
 class StateMachinePattern:
@@ -182,6 +246,28 @@ class StateMachinePattern:
                     "WHERE status !=",
                     "IF",
                     "status",
+                ],
+            },
+            "typescript": {
+                "field_patterns": [
+                    r"status:\s*string",
+                    r"status:\s*\w*Status",
+                    r"state:\s*string",
+                    r"state:\s*\w*State",
+                ],
+                "transition_patterns": [
+                    r"status\s*=\s*['\"']",
+                    r"status\s*=\s*\w+\.",
+                    r"this\.status\s*=\s*",
+                    r"setStatus\(",
+                ],
+                "validation_patterns": [
+                    "if (status",
+                    "if (this.status",
+                    "status === ",
+                    "status !== ",
+                    "status ===",
+                    "status !==",
                 ],
             },
         }

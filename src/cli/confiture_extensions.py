@@ -95,6 +95,8 @@ def validate(entity_files, check_impacts, verbose):
 # Import reverse engineering commands
 from .reverse import reverse as reverse_sql_cmd
 from .reverse_python import reverse_python
+from .cache_commands import cache
+from .detect_patterns import detect_patterns
 # from .reverse_rust import reverse_rust  # TODO: Implement
 # from .reverse_typescript import reverse_typescript  # TODO: Implement
 # from .reverse_java import reverse_java  # TODO: Implement
@@ -105,25 +107,128 @@ from .reverse_python import reverse_python
 @click.option("--framework", type=str, help="Framework to use (auto-detected if not specified)")
 @click.option("--output-dir", "-o", type=click.Path(), help="Output directory for YAML files")
 @click.option("--preview", is_flag=True, help="Preview mode - do not write files")
-def reverse(input_files, framework, output_dir, preview):
+@click.option("--with-patterns", is_flag=True, help="Auto-detect and apply architectural patterns")
+@click.option("--exclude", multiple=True, help="Exclude file patterns (e.g., */tests/*)")
+@click.option("--no-cache", is_flag=True, help="Disable caching")
+@click.option("--clear-cache", is_flag=True, help="Clear cache before processing")
+@click.option(
+    "--incremental", is_flag=True, help="Only process changed files (requires previous run)"
+)
+@click.option("--validate", is_flag=True, help="Validate generated YAML against SpecQL schema")
+@click.option("--keep-invalid", is_flag=True, help="Keep invalid output files")
+@click.option("--fail-fast", is_flag=True, help="Stop processing on first error")
+@click.option("--verbose", "-v", is_flag=True, help="Verbose error output with detailed logging")
+def reverse(
+    input_files,
+    framework,
+    output_dir,
+    preview,
+    with_patterns,
+    exclude,
+    no_cache,
+    clear_cache,
+    incremental,
+    validate,
+    keep_invalid,
+    fail_fast,
+    verbose,
+):
     """
-    Reverse engineer source code to SpecQL YAML
+    Reverse engineer source code to SpecQL YAML format.
 
-    Auto-detects language from file extensions. Use --framework to override.
+    SpecQL reverse engineering converts existing codebases into lightweight
+    business domain YAML definitions. Supports multiple languages and frameworks
+    with automatic pattern detection.
 
+    \b
+    Supported Languages & Frameworks:
+      • Rust: Diesel, SeaORM
+      • TypeScript: Prisma, TypeORM
+      • Python: SQLAlchemy, Django, Pydantic
+      • Java: JPA, Hibernate
+      • SQL: PL/pgSQL functions
+
+    \b
     Examples:
-        specql reverse models.py                    # Auto-detects Python
-        specql reverse schema.sql                   # Auto-detects SQL
-        specql reverse models.rs --framework diesel # Explicit framework
-        specql reverse models.py --preview          # Preview mode
+      # Auto-detect and reverse engineer a single file
+      specql reverse src/models/contact.rs
+
+      # Reverse engineer entire project with pattern detection
+      specql reverse /path/to/rust/project --framework diesel --with-patterns
+
+      # Preview what would be generated
+      specql reverse models.rs --preview
+
+      # Incremental update (only process changed files)
+      specql reverse src/ --incremental --output-dir entities/
+
+      # Validate output and fail on errors
+      specql reverse src/ --validate --fail-fast
+
+    \b
+    Pattern Detection:
+      When --with-patterns is enabled, SpecQL automatically detects and applies:
+        • Soft Delete (deleted_at timestamps)
+        • Audit Trail (created_at, updated_at tracking)
+        • Multi-Tenant (tenant_id isolation)
+        • State Machine (status transitions)
+        • Hierarchical (parent-child relationships)
+        • And 5+ more patterns...
+
+    \b
+    Performance Optimization:
+      • Caching: Results are cached based on file content hash
+      • Incremental: Only process files that have changed
+      • Parallel: Process multiple files concurrently (coming soon)
+
+    \b
+    Output:
+      Generated YAML files follow SpecQL format and can be used directly
+      with 'specql generate' to produce PostgreSQL schema + GraphQL API.
     """
     from click import Context
+    from pathlib import Path
+    from .cache_manager import CacheManager
 
+    if clear_cache:
+        CacheManager().clear_cache()
+        click.echo("✓ Cache cleared")
+        return
+
+    use_cache = not no_cache
+
+    # Check if any input is a directory (project mode)
+    has_directory = any(Path(f).is_dir() for f in input_files)
+
+    if has_directory:
+        # Project mode - use the new project processing logic
+        if len(input_files) != 1:
+            click.echo("❌ Project mode requires exactly one directory input")
+            return
+
+        project_path = input_files[0]
+        from .reverse_common import ReverseEngineeringCLI
+
+        ReverseEngineeringCLI.process_project(
+            project_path,
+            framework=framework,
+            with_patterns=with_patterns,
+            output_dir=str(output_dir) if output_dir else "entities/",
+            exclude=list(exclude) if exclude else None,
+            preview=preview,
+            use_cache=use_cache,
+            incremental=incremental,
+            validate_output=validate,
+            keep_invalid=keep_invalid,
+            fail_fast=fail_fast,
+            verbose=verbose,
+        )
+        return
+
+    # File mode - process individual files
     for file_path in input_files:
         if not framework:
             # Simple extension-based detection
-            from pathlib import Path
-
             ext = Path(file_path).suffix.lower()
             if ext == ".py":
                 detected = "python"
@@ -154,12 +259,29 @@ def reverse(input_files, framework, output_dir, preview):
             sub_ctx.invoke(reverse_sql_cmd, **kwargs)
         elif framework == "python":
             sub_ctx = Context(reverse_python)
-            kwargs = {"python_files": [file_path], "dry_run": preview}
+            kwargs = {
+                "python_files": [file_path],
+                "dry_run": preview,
+                "discover_patterns": with_patterns,
+            }
             if output_dir is not None:
                 kwargs["output_dir"] = output_dir
             sub_ctx.invoke(reverse_python, **kwargs)
         elif framework == "rust":
-            click.echo(f"🦀 Rust reverse engineering for {file_path} (not yet implemented)")
+            # Use the new rust reverse engineering
+            from .reverse_rust import reverse_rust
+
+            sub_ctx = Context(reverse_rust)
+            kwargs = {
+                "input_files": [file_path],
+                "output_dir": output_dir,
+                "framework": framework,
+                "with_patterns": with_patterns,
+                "exclude": list(exclude) if exclude else [],
+                "recursive": True,
+                "preview": preview,
+            }
+            sub_ctx.invoke(reverse_rust, **kwargs)
         elif framework == "typescript":
             click.echo(f"📘 TypeScript reverse engineering for {file_path} (not yet implemented)")
         elif framework == "java":
@@ -243,6 +365,8 @@ def reverse_python_cmd(python_files, output_dir, discover_patterns, dry_run):
 specql.add_command(reverse)
 specql.add_command(reverse_sql)
 specql.add_command(reverse_python_cmd)
+specql.add_command(detect_patterns)
+specql.add_command(cache)
 
 
 if __name__ == "__main__":
