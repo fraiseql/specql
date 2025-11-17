@@ -104,16 +104,16 @@ class ASTToSpecQLMapper:
         # Skip the DECLARE keyword
         declare_content = declare_text[7:].strip()  # Remove 'DECLARE'
 
-        # TODO: Handle cursor declarations in DECLARE block
-        # cursor_steps = self.cursor_parser._parse_cursor_declarations(declare_content)
-        # steps.extend(cursor_steps)
+        # Handle cursor declarations in DECLARE block
+        cursor_steps = self._parse_cursor_declarations_in_declare(declare_content)
+        steps.extend(cursor_steps)
 
         # Then parse regular variable declarations
         # Split by semicolons to get individual declarations
         declarations = [d.strip() for d in declare_content.split(";") if d.strip()]
 
         for decl in declarations:
-            # Skip cursor declarations (already handled)
+            # Skip cursor declarations (already handled above)
             if "CURSOR FOR" in decl.upper():
                 continue
 
@@ -155,6 +155,45 @@ class ASTToSpecQLMapper:
                 # Unknown declaration format
                 self.confidence *= 0.95
                 self.warnings.append(f"Unknown declaration: {decl[:50]}...")
+
+        return steps
+
+    def _parse_cursor_declarations_in_declare(self, declare_content: str) -> List[ActionStep]:
+        """
+        Parse cursor declarations from DECLARE block content
+
+        Args:
+            declare_content: Content after 'DECLARE' keyword (without DECLARE)
+
+        Returns:
+            List of cursor_declare ActionStep objects
+        """
+        steps = []
+
+        # Split by semicolons to get individual declarations
+        declarations = [d.strip() for d in declare_content.split(";") if d.strip()]
+
+        for decl in declarations:
+            # Look for cursor declarations: variable_name CURSOR FOR SELECT ...
+            if "CURSOR FOR" in decl.upper():
+                import re
+
+                # Pattern: variable_name CURSOR FOR query
+                cursor_pattern = r"(\w+)\s+CURSOR\s+FOR\s+(.+)"
+                match = re.match(cursor_pattern, decl.strip(), re.IGNORECASE | re.DOTALL)
+
+                if match:
+                    cursor_name, cursor_query = match.groups()
+                    cursor_query = cursor_query.strip()
+
+                    # Clean up whitespace and newlines
+                    cursor_query = " ".join(cursor_query.split())
+
+                    steps.append(
+                        ActionStep(
+                            type="cursor_declare", variable_name=cursor_name, sql=cursor_query
+                        )
+                    )
 
         return steps
 

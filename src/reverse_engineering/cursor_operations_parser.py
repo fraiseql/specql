@@ -41,17 +41,37 @@ class CursorOperationsParser:
         return steps
 
     def _parse_cursor_declarations(self, sql_text: str) -> List[ActionStep]:
-        """Parse CURSOR variable declarations"""
+        """
+        Parse CURSOR variable declarations from DECLARE blocks
+
+        Handles:
+        - DECLARE ... CURSOR FOR ... patterns
+        - Multi-line DECLARE blocks
+        - Multiple cursor declarations
+        """
         steps = []
 
-        # Pattern: variable_name CURSOR FOR SELECT ...
-        # Case insensitive, multiline support
-        cursor_pattern = r"(\w+)\s+CURSOR\s+FOR\s+(.+?);"
-        matches = re.findall(cursor_pattern, sql_text, re.IGNORECASE | re.DOTALL)
+        # Pattern 1: Extract from DECLARE block if present
+        declare_block_pattern = r"DECLARE\s+(.*?)\s+BEGIN"
+        declare_match = re.search(declare_block_pattern, sql_text, re.IGNORECASE | re.DOTALL)
+
+        if declare_match:
+            search_text = declare_match.group(1)
+        else:
+            # If no DECLARE block, search entire text
+            search_text = sql_text
+
+        # Pattern 2: Find cursor declarations
+        # Match: variable_name CURSOR FOR query;
+        cursor_pattern = r"(\w+)\s+CURSOR\s+FOR\s+([^;]+);"
+        matches = re.findall(cursor_pattern, search_text, re.IGNORECASE | re.DOTALL)
 
         for match in matches:
             cursor_name, cursor_query = match
             cursor_query = cursor_query.strip()
+
+            # Clean up whitespace and newlines
+            cursor_query = " ".join(cursor_query.split())
 
             steps.append(
                 ActionStep(type="cursor_declare", variable_name=cursor_name, sql=cursor_query)
