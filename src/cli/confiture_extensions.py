@@ -92,7 +92,83 @@ def validate(entity_files, check_impacts, verbose):
     return result.returncode
 
 
-@specql.command(name="reverse")
+# Import reverse engineering commands
+from .reverse import reverse as reverse_sql_cmd
+from .reverse_python import reverse_python
+# from .reverse_rust import reverse_rust  # TODO: Implement
+# from .reverse_typescript import reverse_typescript  # TODO: Implement
+# from .reverse_java import reverse_java  # TODO: Implement
+
+
+@click.command()
+@click.argument("input_files", nargs=-1, required=True, type=click.Path(exists=True))
+@click.option("--framework", type=str, help="Framework to use (auto-detected if not specified)")
+@click.option("--output-dir", "-o", type=click.Path(), help="Output directory for YAML files")
+@click.option("--preview", is_flag=True, help="Preview mode - do not write files")
+def reverse(input_files, framework, output_dir, preview):
+    """
+    Reverse engineer source code to SpecQL YAML
+
+    Auto-detects language from file extensions. Use --framework to override.
+
+    Examples:
+        specql reverse models.py                    # Auto-detects Python
+        specql reverse schema.sql                   # Auto-detects SQL
+        specql reverse models.rs --framework diesel # Explicit framework
+        specql reverse models.py --preview          # Preview mode
+    """
+    from click import Context
+
+    for file_path in input_files:
+        if not framework:
+            # Simple extension-based detection
+            from pathlib import Path
+
+            ext = Path(file_path).suffix.lower()
+            if ext == ".py":
+                detected = "python"
+            elif ext == ".sql":
+                detected = "sql"
+            elif ext == ".rs":
+                detected = "rust"
+            elif ext in [".ts", ".tsx"]:
+                detected = "typescript"
+            elif ext == ".java":
+                detected = "java"
+            else:
+                detected = None
+
+            if detected:
+                click.echo(f"🔍 Detected language: {detected}")
+                framework = detected
+            else:
+                click.echo(f"❌ Could not detect language for {file_path}")
+                continue
+
+        # Dispatch to appropriate parser
+        if framework == "sql":
+            sub_ctx = Context(reverse_sql_cmd)
+            kwargs = {"sql_files": [file_path], "preview": preview}
+            if output_dir is not None:
+                kwargs["output_dir"] = output_dir
+            sub_ctx.invoke(reverse_sql_cmd, **kwargs)
+        elif framework == "python":
+            sub_ctx = Context(reverse_python)
+            kwargs = {"python_files": [file_path], "dry_run": preview}
+            if output_dir is not None:
+                kwargs["output_dir"] = output_dir
+            sub_ctx.invoke(reverse_python, **kwargs)
+        elif framework == "rust":
+            click.echo(f"🦀 Rust reverse engineering for {file_path} (not yet implemented)")
+        elif framework == "typescript":
+            click.echo(f"📘 TypeScript reverse engineering for {file_path} (not yet implemented)")
+        elif framework == "java":
+            click.echo(f"☕ Java reverse engineering for {file_path} (not yet implemented)")
+        else:
+            click.echo(f"❌ Unsupported framework: {framework}")
+
+
+@click.command(name="reverse-sql")
 @click.argument("sql_files", nargs=-1, type=click.Path(exists=True))
 @click.option("--output-dir", "-o", type=click.Path(), help="Output directory for YAML files")
 @click.option("--min-confidence", type=float, default=0.80, help="Minimum confidence threshold")
@@ -105,10 +181,10 @@ def reverse_sql(sql_files, output_dir, min_confidence, no_ai, preview, compare, 
     Reverse engineer SQL functions to SpecQL YAML
 
     Examples:
-        specql reverse function.sql
-        specql reverse reference_sql/**/*.sql -o entities/
-        specql reverse function.sql --no-ai --preview
-        specql reverse function.sql --min-confidence=0.90
+        specql reverse-sql function.sql
+        specql reverse-sql reference_sql/**/*.sql -o entities/
+        specql reverse-sql function.sql --no-ai --preview
+        specql reverse-sql function.sql --min-confidence=0.90
     """
     # Import here to avoid circular imports
     from src.cli.reverse import reverse as reverse_cmd
@@ -124,14 +200,22 @@ def reverse_sql(sql_files, output_dir, min_confidence, no_ai, preview, compare, 
         no_ai=no_ai,
         preview=preview,
         compare=compare,
-        use_heuristics=use_heuristics
+        use_heuristics=use_heuristics,
     )
 
 
-@specql.command(name="reverse-python")
+@click.command(name="reverse-python")
 @click.argument("python_files", nargs=-1, type=click.Path(exists=True))
-@click.option("--output-dir", "-o", type=click.Path(), default="entities/", help="Output directory for YAML files")
-@click.option("--discover-patterns", is_flag=True, help="Discover and save patterns to pattern library")
+@click.option(
+    "--output-dir",
+    "-o",
+    type=click.Path(),
+    default="entities/",
+    help="Output directory for YAML files",
+)
+@click.option(
+    "--discover-patterns", is_flag=True, help="Discover and save patterns to pattern library"
+)
 @click.option("--dry-run", is_flag=True, help="Show what would be generated without writing files")
 def reverse_python_cmd(python_files, output_dir, discover_patterns, dry_run):
     """
@@ -151,8 +235,14 @@ def reverse_python_cmd(python_files, output_dir, discover_patterns, dry_run):
         python_files=python_files,
         output_dir=output_dir,
         discover_patterns=discover_patterns,
-        dry_run=dry_run
+        dry_run=dry_run,
     )
+
+
+# Register reverse commands with the main specql group
+specql.add_command(reverse)
+specql.add_command(reverse_sql)
+specql.add_command(reverse_python_cmd)
 
 
 if __name__ == "__main__":
