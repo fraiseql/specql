@@ -1,7 +1,7 @@
 """Simple aggregation pattern for basic parent-child relationships."""
 
 import re
-from typing import Any, cast, List
+from typing import Any, cast, List, Dict
 
 from jinja2 import Template
 
@@ -102,7 +102,7 @@ def _validate_config(config: dict[str, Any]) -> None:
         if field not in pattern_config:
             raise ValueError(f"{field} is required for simple aggregation pattern")
 
-    child_fields = cast(List[dict], pattern_config["child_fields"])
+    child_fields = cast(List[Dict[str, Any]], pattern_config["child_fields"])
     if not isinstance(child_fields, list):
         raise ValueError("child_fields must be a list")
 
@@ -110,11 +110,11 @@ def _validate_config(config: dict[str, Any]) -> None:
         raise ValueError("child_fields cannot be empty")
 
     # Validate child_fields structure
-    for field in child_fields:
+    for child_field in child_fields:
         if (
-            not isinstance(field, dict)
-            or "name" not in field
-            or "expression" not in field
+            not isinstance(child_field, dict)
+            or "name" not in child_field
+            or "expression" not in child_field
         ):
             raise ValueError("Each child field must have 'name' and 'expression' keys")
 

@@ -183,7 +183,7 @@ class NLPatternGenerator:
 
         # Validate fields structure
         if has_fields:
-            fields = cast(List[dict], implementation["fields"])
+            fields = cast(List[Dict[str, Any]], implementation["fields"])
             for i, field in enumerate(fields):
                 if not isinstance(field, dict):
                     errors.append(f"Field {i} must be a JSON object")
