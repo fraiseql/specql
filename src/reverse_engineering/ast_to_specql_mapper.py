@@ -177,6 +177,9 @@ class ASTToSpecQLMapper:
 
         begin_text = begin_text.strip()
 
+        # Strip single-line comments (-- comments) before processing
+        begin_text = self._strip_sql_comments(begin_text)
+
         # Detect EXCEPTION blocks first
         if "EXCEPTION" in begin_text.upper():
             steps.extend(self.exception_parser.parse(begin_text))
@@ -530,3 +533,29 @@ class ASTToSpecQLMapper:
         sql_text = re.sub(r"LOOP.*?END\s+LOOP\s*;", "", sql_text, flags=re.IGNORECASE | re.DOTALL)
 
         return sql_text.strip()
+
+    def _strip_sql_comments(self, sql_text: str) -> str:
+        """
+        Strip single-line SQL comments (-- comments) from SQL text
+
+        Note: Block comments (/* */) are more complex to handle correctly
+        and are typically handled by the SQL parser itself
+        """
+        import re
+
+        # Remove single-line comments: -- comment
+        # Match -- followed by anything until end of line
+        lines = sql_text.split("\n")
+        cleaned_lines = []
+
+        for line in lines:
+            # Find -- comment marker
+            if "--" in line:
+                # Keep everything before the --
+                line = line.split("--")[0]
+
+            # Keep non-empty lines
+            if line.strip():
+                cleaned_lines.append(line)
+
+        return "\n".join(cleaned_lines)
