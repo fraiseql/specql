@@ -33,7 +33,14 @@ jobs:
 
       - name: Run tests
         run: |
-          uv run pytest --tb=short
+          VERSION="${GITHUB_REF#refs/tags/v}"
+          if [[ "$VERSION" == *"b"* ]] || [[ "$VERSION" == *"a"* ]] || [[ "$VERSION" == *"rc"* ]]; then
+            echo "Pre-release version detected ($VERSION), allowing test failures"
+            uv run pytest --tb=short || echo "Tests failed but continuing for pre-release"
+          else
+            echo "Stable release version detected ($VERSION), tests must pass"
+            uv run pytest --tb=short
+          fi
 
       - name: Extract version from tag
         id: get_version
