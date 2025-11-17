@@ -46,7 +46,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION app.create_contact IS
-'Creates a new Contact record.
+'Creates contact.
 Validates input and delegates to core business logic.
 
 @fraiseql:mutation

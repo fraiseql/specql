@@ -317,10 +317,12 @@ class TestSchemaOrchestratorIntegration:
 
         sql = orchestrator.generate_complete_schema(entity)
 
-        # Should generate types for create and update, but not delete
+        # Should generate input types for all actions (including delete for app wrappers)
         assert "CREATE TYPE app.type_create_test_entity_input" in sql
         assert "CREATE TYPE app.type_update_test_entity_input" in sql
-        assert "type_delete_test_entity_input" not in sql  # Delete actions don't need input types
+        assert (
+            "CREATE TYPE app.type_delete_test_entity_input" in sql
+        )  # Delete actions need input types for app wrappers
 
         # Both types should have appropriate fields
         assert "name TEXT" in sql

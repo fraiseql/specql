@@ -47,7 +47,11 @@ class SchemaOutput:
 class SchemaOrchestrator:
     """Orchestrates complete schema generation: tables + types + indexes + constraints"""
 
-    def __init__(self, naming_conventions: NamingConventions | None = None, enable_performance_monitoring: bool = False) -> None:
+    def __init__(
+        self,
+        naming_conventions: NamingConventions | None = None,
+        enable_performance_monitoring: bool = False,
+    ) -> None:
         self.logger = get_team_logger("Team B", __name__)
         self.logger.debug("Initializing SchemaOrchestrator")
 
@@ -59,6 +63,7 @@ class SchemaOrchestrator:
         schema_registry = SchemaRegistry(naming_conventions.registry)
 
         self.app_gen = AppSchemaGenerator()
+        self.app_wrapper_gen = AppWrapperGenerator()
         self.table_gen = TableGenerator(schema_registry)
         self.type_gen = CompositeTypeGenerator()
         self.helper_gen = TrinityHelperGenerator(schema_registry)
@@ -81,12 +86,12 @@ class SchemaOrchestrator:
             Complete SQL schema as string
         """
         context = LogContext(
-            entity_name=entity.name,
-            schema=entity.schema,
-            operation="generate_schema"
+            entity_name=entity.name, schema=entity.schema, operation="generate_schema"
         )
         logger = get_team_logger("Team B", __name__, context)
-        logger.info(f"Generating complete schema for entity '{entity.name}' in schema '{entity.schema}'")
+        logger.info(
+            f"Generating complete schema for entity '{entity.name}' in schema '{entity.schema}'"
+        )
 
         parts = []
 
@@ -162,7 +167,9 @@ class SchemaOrchestrator:
         # 8. FraiseQL mutation annotations (Team D)
         mutation_annotations = []
         if entity.actions:
-            logger.debug(f"Generating FraiseQL mutation annotations for {len(entity.actions)} actions")
+            logger.debug(
+                f"Generating FraiseQL mutation annotations for {len(entity.actions)} actions"
+            )
             for action in entity.actions:
                 annotator = MutationAnnotator(entity.schema, entity.name)
                 annotation = annotator.generate_mutation_annotation(action)
@@ -174,12 +181,26 @@ class SchemaOrchestrator:
                 "-- FraiseQL Mutation Annotations (Team D)\n" + "\n\n".join(mutation_annotations)
             )
 
+        # 8.5. App wrapper functions
+        app_wrappers = []
+        if entity.actions:
+            logger.debug(f"Generating app wrapper functions for {len(entity.actions)} actions")
+            for action in entity.actions:
+                wrapper = self.app_wrapper_gen.generate_app_wrapper(entity, action)
+                if wrapper:
+                    app_wrappers.append(wrapper)
+
+        if app_wrappers:
+            parts.append("-- App Wrapper Functions\n" + "\n\n".join(app_wrappers))
+
         # 9. Trinity helper functions
         logger.debug("Generating Trinity helper functions")
         helpers = self.helper_gen.generate_all_helpers(entity)
         parts.append("-- Trinity Helper Functions\n" + helpers)
 
-        logger.info(f"Successfully generated complete schema for '{entity.name}' ({len(parts)} components)")
+        logger.info(
+            f"Successfully generated complete schema for '{entity.name}' ({len(parts)} components)"
+        )
         return "\n\n".join(parts)
 
     def generate_split_schema(self, entity: Entity) -> SchemaOutput:
@@ -197,9 +218,7 @@ class SchemaOrchestrator:
 
         try:
             context = LogContext(
-                entity_name=entity.name,
-                schema=entity.schema,
-                operation="generate_split_schema"
+                entity_name=entity.name, schema=entity.schema, operation="generate_split_schema"
             )
             logger = get_team_logger("Team B", __name__, context)
             logger.info(f"Generating split schema for entity '{entity.name}'")
@@ -235,7 +254,9 @@ class SchemaOrchestrator:
 
                 # Generate core function based on pattern
                 if self.perf_monitor:
-                    with self.perf_monitor.track(f"mutation_{action.name}", category="template_rendering"):
+                    with self.perf_monitor.track(
+                        f"mutation_{action.name}", category="template_rendering"
+                    ):
                         if action_pattern == "create":
                             core_sql = self.core_gen.generate_core_create_function(entity)
                         elif action_pattern == "update":
@@ -270,7 +291,9 @@ class SchemaOrchestrator:
                     )
                 )
 
-            logger.info(f"Successfully generated split schema for '{entity.name}' ({len(mutations)} mutations)")
+            logger.info(
+                f"Successfully generated split schema for '{entity.name}' ({len(mutations)} mutations)"
+            )
             return SchemaOutput(table_sql=table_sql, helpers_sql=helpers_sql, mutations=mutations)
         finally:
             # Exit performance tracking context

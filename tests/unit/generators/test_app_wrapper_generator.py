@@ -63,6 +63,25 @@ failure_type: CreateContactError';"""
     assert expected_comment in sql
 
 
+def test_generate_action_description_from_steps():
+    """Should generate description from action steps"""
+    from src.core.ast_models import ActionStep
+
+    action = Action(
+        name="qualify_lead",
+        steps=[
+            ActionStep(type="validate", expression="status = 'lead'"),
+            ActionStep(type="update", entity="Contact", fields={"status": "qualified"}),
+        ],
+    )
+
+    generator = AppWrapperGenerator()
+    description = generator._generate_action_description(action)
+
+    # Should describe what action does based on steps
+    assert "Qualifies a lead" in description or "Updates lead status" in description
+
+
 def test_app_wrapper_jwt_context_parameters():
     """App wrapper extracts JWT context"""
     # Given: Entity with action
@@ -123,7 +142,7 @@ def test_app_wrapper_for_update_action():
 
 
 def test_app_wrapper_for_delete_action():
-    """Generate app wrapper for delete action (no composite type)"""
+    """Generate app wrapper for delete action (with composite type for ID)"""
     # Given: Entity with delete action
     entity = Entity(
         name="Contact", schema="crm", fields={}, actions=[Action(name="delete_contact")]
@@ -140,13 +159,14 @@ def test_app_wrapper_for_delete_action():
     assert "input_payload JSONB" in sql
     assert "RETURNS app.mutation_result" in sql
 
-    # Then: No composite type declaration for delete
-    assert "input_data app.type_delete_contact_input" not in sql
+    # Then: Composite type declaration for delete (contains ID field)
+    assert "input_data app.type_delete_contact_input" in sql
+    assert "jsonb_populate_record" in sql
 
-    # Then: Delegation to core layer (different signature for delete)
+    # Then: Delegation to core layer (passes input_data.id for delete)
     assert "RETURN crm.delete_contact(" in sql
     assert "auth_tenant_id," in sql
-    assert "input_payload," in sql
+    assert "input_data.id," in sql
     assert "auth_user_id" in sql
 
 

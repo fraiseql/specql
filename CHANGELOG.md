@@ -7,6 +7,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2025-11-17
+
+### Added
+- **FraiseQL Compatibility**: Complete migration from single-line to YAML comment format
+  - All PostgreSQL comments now use `@fraiseql:` YAML annotations
+  - Composite types: `@fraiseql:composite` with YAML metadata
+  - Functions: `@fraiseql:mutation` with input/output type specifications
+  - Fields: `@fraiseql:field` with GraphQL type mappings
+  - Enables automatic GraphQL schema generation from database metadata
+
+### Changed
+- **Delete Actions**: Now generate input types with `id` field for consistent API
+- **App Wrappers**: All actions use composite types for JSONB → Typed conversion
+- **Schema Generation**: Unified YAML comment format across all generated SQL
+
+### Fixed
+- **Input Type Generation**: Delete actions now properly generate `app.type_*_input` types
+- **App Wrapper Logic**: Correct parameter passing for delete operations
+- **Test Coverage**: Updated unit tests to reflect new delete action behavior
+
 ## [0.5.0] - 2025-11-17
 
 ### Changed
