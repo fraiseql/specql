@@ -7,7 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0b1] - 2025-11-17
+
 ### Added
+- **Security Test Suite** - Comprehensive security testing for SQL injection, SSRF, and template injection
+- **Performance Monitoring** - Performance monitoring in code generation pipeline
+- **Logging Framework** - Comprehensive logging across all modules
+- **CLI Test Coverage** - Increased CLI test coverage to 97%+
+
+### Fixed
+- MyPy type errors with None iteration issues
+- Variable name conflicts in type annotations
+- Pre-commit configuration to use specific type stubs
+
+### Added (from v0.1.0)
 - Initial SemVer and GitHub versioning system
 
 ## [0.1.0] - 2025-11-10
