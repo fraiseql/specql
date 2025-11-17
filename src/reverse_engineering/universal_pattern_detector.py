@@ -31,12 +31,12 @@ class UniversalPatternDetector:
 
     def __init__(self):
         self.patterns = {
-            "state_machine": StateMachinePattern(),  # YOUR PATTERN
-            "soft_delete": SoftDeletePattern(),  # YOUR PATTERN
-            "audit_trail": AuditTrailPattern(),  # YOUR PATTERN
-            "multi_tenant": None,  # Engineer B will implement
-            "hierarchical": None,  # Engineer B will implement
-            "versioning": None,  # Engineer B will implement
+            "state_machine": StateMachinePattern(),  # Engineer A
+            "soft_delete": SoftDeletePattern(),  # Engineer A
+            "audit_trail": AuditTrailPattern(),  # Engineer A
+            "multi_tenant": MultiTenantPattern(),  # YOUR PATTERN
+            "hierarchical": HierarchicalPattern(),  # YOUR PATTERN
+            "versioning": VersioningPattern(),  # YOUR PATTERN
         }
 
     def detect(self, code: str, language: str) -> List[DetectedPattern]:
@@ -176,7 +176,8 @@ class StateMachinePattern:
                     "SELECT status",
                     "WHERE status =",
                     "WHERE status !=",
-                    "IF v_status",
+                    "IF",
+                    "status",
                 ],
             },
         }
@@ -339,3 +340,720 @@ class AuditTrailPattern:
 
     def get_stdlib_pattern(self) -> str:
         return "audit/full_trail"
+
+
+class MultiTenantPattern:
+    """
+    Detect multi-tenant isolation patterns
+
+    Signals:
+    1. tenant_id field (UUID/INT) - 70% confidence
+    2. RLS policies with tenant_id - 90% confidence
+    3. Tenant mixin/base class - 80% confidence
+    4. Foreign key to tenants table - 60% confidence
+    5. @TenantId annotation - 85% confidence
+    """
+
+    def __init__(self):
+        self.tenant_field_patterns = [
+            "tenant_id",
+            "tenant_uuid",
+            "organization_id",
+            "org_id",
+            "company_id",  # Sometimes used for multi-tenancy
+            "account_id",
+        ]
+
+    def matches(self, code: str, language: str) -> bool:
+        """Check if code contains multi-tenant pattern"""
+        self.evidence = []
+        self.confidence = 0.0
+
+        if language == "sql":
+            # Check for tenant_id column
+            if self._has_tenant_column(code):
+                self.confidence += 0.70
+                self.evidence.append("tenant_id column found")
+
+            # Check for RLS policy
+            if self._has_rls_policy(code):
+                self.confidence += 0.90
+                self.evidence.append("RLS policy with tenant_id filter")
+
+            # Check for tenant_id index
+            if self._has_tenant_index(code):
+                self.confidence += 0.20
+                self.evidence.append("Index on tenant_id")
+
+            # Check for FK to tenants table
+            if self._has_tenant_fk(code):
+                self.confidence += 0.30
+                self.evidence.append("Foreign key to tenants table")
+
+        elif language == "python":
+            # Check for tenant_id field
+            if self._has_tenant_field_python(code):
+                self.confidence += 0.70
+                self.evidence.append("tenant_id field in model")
+
+            # Check for TenantMixin
+            if "TenantMixin" in code or "MultiTenantMixin" in code:
+                self.confidence += 0.80
+                self.evidence.append("TenantMixin base class")
+
+            # Check for tenant filtering in queries
+            if self._has_tenant_filter_python(code):
+                self.confidence += 0.40
+                self.evidence.append("tenant_id filtering in queries")
+
+        elif language == "java":
+            # Check for @TenantId annotation
+            if "@TenantId" in code:
+                self.confidence += 0.85
+                self.evidence.append("@TenantId annotation (Hibernate)")
+
+            # Check for tenant_id column
+            if self._has_tenant_field_java(code):
+                self.confidence += 0.70
+                self.evidence.append("tenant_id field in JPA entity")
+
+            # Check for @Filter with tenant condition
+            if "@Filter" in code and "tenant_id" in code.lower():
+                self.confidence += 0.85
+                self.evidence.append("Hibernate @Filter for tenant isolation")
+
+        elif language == "rust":
+            # Check for tenant_id field
+            if self._has_tenant_field_rust(code):
+                self.confidence += 0.70
+                self.evidence.append("tenant_id field in Rust struct")
+
+        # Cap at 1.0
+        self.confidence = min(self.confidence, 1.0)
+
+        # Must have some tenant detection to be considered multi-tenant
+        return self.confidence >= 0.70
+
+    # SQL Detection Methods
+
+    def _detect_sql_multitenancy(self, sql: str) -> bool:
+        """Check if SQL contains multi-tenant patterns"""
+        return (
+            self._has_tenant_column(sql)
+            or self._has_rls_policy(sql)
+            or self._has_tenant_index(sql)
+            or self._has_tenant_fk(sql)
+        )
+
+    def _has_tenant_column(self, sql: str) -> bool:
+        """Check for tenant_id column definition"""
+        for field in self.tenant_field_patterns:
+            # Pattern: tenant_id UUID|INT NOT NULL
+            pattern = rf"{field}\s+(UUID|INT|INTEGER|BIGINT).*NOT NULL"
+            if re.search(pattern, sql, re.IGNORECASE):
+                return True
+        return False
+
+    def _has_rls_policy(self, sql: str) -> bool:
+        """Check for RLS policy with tenant filtering"""
+        # Pattern: CREATE POLICY ... USING (tenant_id = ...)
+        policy_pattern = r"CREATE\s+POLICY.*USING\s*\([^)]*tenant_id[^)]*\)"
+        return bool(re.search(policy_pattern, sql, re.IGNORECASE | re.DOTALL))
+
+    def _has_tenant_index(self, sql: str) -> bool:
+        """Check for index on tenant_id"""
+        # Pattern: CREATE INDEX ... ON table(tenant_id)
+        for field in self.tenant_field_patterns:
+            index_pattern = rf"CREATE\s+INDEX.*ON\s+\w+\s*\(\s*{field}\s*\)"
+            if re.search(index_pattern, sql, re.IGNORECASE):
+                return True
+        return False
+
+    def _has_tenant_fk(self, sql: str) -> bool:
+        """Check for foreign key to tenants table"""
+        # Pattern: FOREIGN KEY (tenant_id) REFERENCES tenants(id)
+        fk_pattern = r"FOREIGN\s+KEY\s*\(\s*tenant_id\s*\)\s*REFERENCES\s+tenants"
+        return bool(re.search(fk_pattern, sql, re.IGNORECASE))
+
+    # Python Detection Methods
+
+    def _detect_python_multitenancy(self, code: str) -> bool:
+        """Check if Python code contains multi-tenant patterns"""
+        return (
+            self._has_tenant_field_python(code)
+            or "TenantMixin" in code
+            or self._has_tenant_filter_python(code)
+        )
+
+    def _has_tenant_field_python(self, code: str) -> bool:
+        """Check for tenant_id field in Python model"""
+        for field in self.tenant_field_patterns:
+            # Pattern: tenant_id: UUID or tenant_id = Column(...)
+            if re.search(rf"{field}\s*[:=]", code):
+                return True
+        return False
+
+    def _has_tenant_filter_python(self, code: str) -> bool:
+        """Check for tenant_id filtering in queries"""
+        # Pattern: .filter(Contact.tenant_id == ...)
+        filter_pattern = r"\.filter\([^)]*tenant_id\s*==?"
+        return bool(re.search(filter_pattern, code))
+
+    # Java Detection Methods
+
+    def _detect_java_multitenancy(self, code: str) -> bool:
+        """Check if Java code contains multi-tenant patterns"""
+        return (
+            self._has_tenant_field_java(code)
+            or "@TenantId" in code
+            or ("@Filter" in code and "tenant_id" in code.lower())
+        )
+
+    def _has_tenant_field_java(self, code: str) -> bool:
+        """Check for tenant_id field in Java entity"""
+        for field in self.tenant_field_patterns:
+            # Pattern: private UUID tenantId;
+            pattern = rf"private\s+(UUID|Long|Integer|String)\s+{field}"
+            if re.search(pattern, code, re.IGNORECASE):
+                return True
+        return False
+
+    # Rust Detection Methods
+
+    def _detect_rust_multitenancy(self, code: str) -> bool:
+        """Check if Rust code contains multi-tenant patterns"""
+        return self._has_tenant_field_rust(code)
+
+    def _has_tenant_field_rust(self, code: str) -> bool:
+        """Check for tenant_id field in Rust struct"""
+        for field in self.tenant_field_patterns:
+            # Pattern: pub tenant_id: Uuid,
+            pattern = rf"pub\s+{field}\s*:\s*(Uuid|i32|i64)"
+            if re.search(pattern, code, re.IGNORECASE):
+                return True
+        return False
+
+    def get_stdlib_pattern(self) -> str:
+        return "stdlib/multi_tenant/enforce_tenant_isolation"
+
+
+class HierarchicalPattern:
+    """
+    Detect self-referencing hierarchical structures (trees)
+
+    Indicators:
+    - parent_id self-reference (30 points)
+    - Recursive CTE (30 points)
+    - Tree traversal methods (20 points)
+    - Depth/level fields (20 points)
+
+    Target Confidence: 85-90%
+    """
+
+    def __init__(self):
+        self.confidence = 0.0
+        self.evidence = []
+
+    def matches(self, code: str, language: str) -> bool:
+        """Check if code has hierarchical structure"""
+        self.evidence = []
+        self.confidence = 0.0
+
+        if language == "sql":
+            return self._detect_sql_hierarchy(code)
+        elif language == "python":
+            return self._detect_python_hierarchy(code)
+        elif language == "java":
+            return self._detect_java_hierarchy(code)
+        elif language == "rust":
+            return self._detect_rust_hierarchy(code)
+        return False
+
+    def _detect_sql_hierarchy(self, sql: str) -> bool:
+        """Check for hierarchical patterns in SQL"""
+        # 1. Check for parent_id self-reference (30 points)
+        parent_patterns = [
+            r"parent_id\s+.*REFERENCES\s+\w+\s*\(\s*id\s*\)",
+            r"parent_id\s+INTEGER",
+            r"parent_id\s+BIGINT",
+        ]
+
+        has_parent_id = any(re.search(pattern, sql, re.IGNORECASE) for pattern in parent_patterns)
+
+        if has_parent_id:
+            self.evidence.append("Has parent_id self-referencing foreign key")
+            self.confidence += 0.30
+
+        # 2. Check for recursive CTE (30 points)
+        recursive_patterns = [
+            r"WITH\s+RECURSIVE",
+            r"RECURSIVE.*AS\s*\(",
+        ]
+
+        has_recursive = any(
+            re.search(pattern, sql, re.IGNORECASE) for pattern in recursive_patterns
+        )
+
+        if has_recursive:
+            self.evidence.append("Uses recursive CTE for tree traversal")
+            self.confidence += 0.30
+
+        # 3. Check for path field (20 points)
+        path_patterns = [
+            r"path\s+VARCHAR",
+            r"path\s+TEXT",
+            r"tree_path\s+VARCHAR",
+        ]
+
+        has_path = any(re.search(pattern, sql, re.IGNORECASE) for pattern in path_patterns)
+
+        if has_path:
+            self.evidence.append("Has path field for materialized tree paths")
+            self.confidence += 0.20
+
+        # 4. Check for nested set model (20 points)
+        nested_set_patterns = [
+            r"lft\s+INT",
+            r"rgt\s+INT",
+            r"left\s+INT",
+            r"right\s+INT",
+        ]
+
+        has_nested_set = any(
+            re.search(pattern, sql, re.IGNORECASE) for pattern in nested_set_patterns
+        )
+
+        if has_nested_set:
+            self.evidence.append("Uses nested set model (lft/rgt boundaries)")
+            self.confidence += 0.20
+
+        # Cap at 1.0
+        self.confidence = min(self.confidence, 1.0)
+
+        # Need at least parent_id or recursive CTE to be hierarchical
+        return (has_parent_id or has_recursive) and self.confidence >= 0.30
+
+    def _detect_python_hierarchy(self, code: str) -> bool:
+        """Check for hierarchical patterns in Python"""
+        # 1. Check for parent_id field (30 points)
+        parent_patterns = [
+            r"parent_id:\s*Optional\[",
+            r"parent_id:\s*int",
+            r"parent_id\s*=\s*Column",
+        ]
+
+        has_parent_id = any(re.search(pattern, code, re.IGNORECASE) for pattern in parent_patterns)
+
+        if has_parent_id:
+            self.evidence.append("Has parent_id field for self-reference")
+            self.confidence += 0.30
+
+        # 2. Check for parent relationship (30 points)
+        parent_rel_patterns = [
+            r"parent.*relationship",
+            r"parent.*backref",
+            r"parent.*ForeignKey",
+        ]
+
+        has_parent_rel = any(
+            re.search(pattern, code, re.IGNORECASE) for pattern in parent_rel_patterns
+        )
+
+        if has_parent_rel:
+            self.evidence.append("Has parent relationship for tree navigation")
+            self.confidence += 0.30
+
+        # 3. Check for children relationship (20 points)
+        children_patterns = [
+            r"children.*relationship",
+            r"children.*backref",
+            r"children.*List\[",
+        ]
+
+        has_children = any(re.search(pattern, code, re.IGNORECASE) for pattern in children_patterns)
+
+        if has_children:
+            self.evidence.append("Has children relationship for tree traversal")
+            self.confidence += 0.20
+
+        # 4. Check for tree methods (20 points)
+        tree_methods = [
+            "get_children",
+            "get_ancestors",
+            "get_descendants",
+            "get_tree",
+            "build_tree",
+        ]
+
+        found_methods = [method for method in tree_methods if method in code]
+
+        if found_methods:
+            self.evidence.append(f"Has tree traversal methods: {', '.join(found_methods[:3])}")
+            self.confidence += 0.20
+
+        # Cap at 1.0
+        self.confidence = min(self.confidence, 1.0)
+
+        # Need parent relationship to be hierarchical
+        return has_parent_id and self.confidence >= 0.30
+
+    def _detect_java_hierarchy(self, code: str) -> bool:
+        """Check for hierarchical patterns in Java"""
+        # 1. Check for parent self-reference (30 points)
+        parent_patterns = [
+            r"@ManyToOne.*\(.*\)",
+            r"private.*parent",
+            r"Parent.*parent",
+        ]
+
+        has_parent = any(re.search(pattern, code, re.IGNORECASE) for pattern in parent_patterns)
+
+        if has_parent:
+            self.evidence.append("Has parent self-reference with @ManyToOne")
+            self.confidence += 0.30
+
+        # 2. Check for children collection (30 points)
+        children_patterns = [
+            r"@OneToMany.*\(.*\)",
+            r"List<.*>.*children",
+            r"Set<.*>.*children",
+        ]
+
+        has_children = any(re.search(pattern, code, re.IGNORECASE) for pattern in children_patterns)
+
+        if has_children:
+            self.evidence.append("Has children collection with @OneToMany")
+            self.confidence += 0.30
+
+        # 3. Check for tree methods (20 points)
+        tree_methods = [
+            "getChildren",
+            "getParent",
+            "getAncestors",
+            "getDescendants",
+            "buildTree",
+        ]
+
+        found_methods = [method for method in tree_methods if method in code]
+
+        if found_methods:
+            self.evidence.append(f"Has tree traversal methods: {', '.join(found_methods[:3])}")
+            self.confidence += 0.20
+
+        # 4. Check for @JoinColumn with parent reference (20 points)
+        join_column_patterns = [
+            r"@JoinColumn.*parent",
+            r"@JoinColumn.*parentId",
+        ]
+
+        has_join_column = any(
+            re.search(pattern, code, re.IGNORECASE) for pattern in join_column_patterns
+        )
+
+        if has_join_column:
+            self.evidence.append("Has @JoinColumn for parent relationship")
+            self.confidence += 0.20
+
+        # Cap at 1.0
+        self.confidence = min(self.confidence, 1.0)
+
+        # Need parent reference to be hierarchical
+        return has_parent and self.confidence >= 0.30
+
+    def _detect_rust_hierarchy(self, code: str) -> bool:
+        """Check for hierarchical patterns in Rust"""
+        # 1. Check for parent_id field (30 points)
+        parent_patterns = [
+            r"parent_id:\s*Option<",
+            r"parent_id:\s*i32",
+            r"parent_id:\s*i64",
+        ]
+
+        has_parent_id = any(re.search(pattern, code, re.IGNORECASE) for pattern in parent_patterns)
+
+        if has_parent_id:
+            self.evidence.append("Has parent_id field for self-reference")
+            self.confidence += 0.30
+
+        # 2. Check for parent relationship (30 points)
+        parent_rel_patterns = [
+            r"parent.*belongs_to",
+            r"parent.*BelongsTo",
+        ]
+
+        has_parent_rel = any(
+            re.search(pattern, code, re.IGNORECASE) for pattern in parent_rel_patterns
+        )
+
+        if has_parent_rel:
+            self.evidence.append("Has parent relationship for tree navigation")
+            self.confidence += 0.30
+
+        # 3. Check for children relationship (20 points)
+        children_patterns = [
+            r"children.*has_many",
+            r"children.*HasMany",
+        ]
+
+        has_children = any(re.search(pattern, code, re.IGNORECASE) for pattern in children_patterns)
+
+        if has_children:
+            self.evidence.append("Has children relationship for tree traversal")
+            self.confidence += 0.20
+
+        # 4. Check for tree methods (20 points)
+        tree_methods = [
+            "get_children",
+            "get_parent",
+            "get_ancestors",
+            "get_descendants",
+            "build_tree",
+        ]
+
+        found_methods = [method for method in tree_methods if method in code]
+
+        if found_methods:
+            self.evidence.append(f"Has tree traversal methods: {', '.join(found_methods[:3])}")
+            self.confidence += 0.20
+
+        # Cap at 1.0
+        self.confidence = min(self.confidence, 1.0)
+
+        # Need parent_id to be hierarchical
+        return has_parent_id and self.confidence >= 0.30
+
+    def get_stdlib_pattern(self) -> str:
+        return "hierarchy/recursive_tree"
+
+
+class VersioningPattern:
+    """
+    Detect temporal/versioned data tracking patterns
+
+    Indicators:
+    - version field (40 points)
+    - Optimistic locking check (40 points)
+    - Version history table (20 points bonus)
+
+    Target Confidence: 85-90%
+    """
+
+    def __init__(self):
+        self.confidence = 0.0
+        self.evidence = []
+
+    def matches(self, code: str, language: str) -> bool:
+        """Check if code has versioning"""
+        self.evidence = []
+        self.confidence = 0.0
+
+        if language == "sql":
+            return self._detect_sql_versioning(code)
+        elif language == "python":
+            return self._detect_python_versioning(code)
+        elif language == "java":
+            return self._detect_java_versioning(code)
+        return False
+
+    def _detect_sql_versioning(self, sql: str) -> bool:
+        """Check for versioning patterns in SQL"""
+        # 1. Check for version column (40 points)
+        version_patterns = [
+            r"version\s+INT",
+            r"version\s+INTEGER",
+            r"version\s+BIGINT",
+            r"revision\s+INT",
+        ]
+
+        has_version_field = any(
+            re.search(pattern, sql, re.IGNORECASE) for pattern in version_patterns
+        )
+
+        if has_version_field:
+            self.evidence.append("Has version column for optimistic locking")
+            self.confidence += 0.40
+
+        # 2. Check for history table (30 points)
+        history_patterns = [
+            r"CREATE\s+TABLE\s+\w+_history",
+            r"_history\s*\(",
+        ]
+
+        has_history = any(re.search(pattern, sql, re.IGNORECASE) for pattern in history_patterns)
+
+        if has_history:
+            self.evidence.append("Has history table for version tracking")
+            self.confidence += 0.30
+
+        # 3. Check for temporal columns (30 points)
+        temporal_patterns = [
+            r"system_time_start\s+TIMESTAMP",
+            r"system_time_end\s+TIMESTAMP",
+            r"valid_from\s+TIMESTAMP",
+            r"valid_to\s+TIMESTAMP",
+        ]
+
+        has_temporal = any(re.search(pattern, sql, re.IGNORECASE) for pattern in temporal_patterns)
+
+        if has_temporal:
+            self.evidence.append("Has temporal columns for time-based versioning")
+            self.confidence += 0.30
+
+        # 4. Check for optimistic locking in WHERE clauses (20 points bonus)
+        locking_patterns = [
+            r"WHERE.*version\s*=",
+            r"AND\s+version\s*=",
+        ]
+
+        has_locking = any(re.search(pattern, sql, re.IGNORECASE) for pattern in locking_patterns)
+
+        if has_locking:
+            self.evidence.append("Uses optimistic locking with version checks")
+            self.confidence += 0.20
+
+        # 5. Check for version increment triggers (bonus)
+        trigger_patterns = [
+            r"CREATE\s+TRIGGER.*version",
+            r"version\s*=.*version\s*\+\s*1",
+        ]
+
+        has_trigger = any(re.search(pattern, sql, re.IGNORECASE) for pattern in trigger_patterns)
+
+        if has_trigger:
+            self.evidence.append("Has automatic version increment triggers")
+            self.confidence = min(0.95, self.confidence + 0.10)
+
+        # Cap at 1.0
+        self.confidence = min(self.confidence, 1.0)
+
+        # Need version field, history table, or temporal columns to be considered versioning
+        # Temporal versioning can have lower confidence threshold since it's a valid pattern
+        if has_temporal and self.confidence >= 0.30:
+            return True
+        return (has_version_field or has_history) and self.confidence >= 0.40
+
+    def _detect_python_versioning(self, code: str) -> bool:
+        """Check for versioning patterns in Python"""
+        # 1. Check for version field (40 points)
+        version_patterns = [
+            r"version:\s*int",
+            r"version\s*=\s*Column\(Integer",
+            r"revision:\s*int",
+        ]
+
+        has_version_field = any(
+            re.search(pattern, code, re.IGNORECASE) for pattern in version_patterns
+        )
+
+        if has_version_field:
+            self.evidence.append("Has version field for optimistic locking")
+            self.confidence += 0.40
+
+        # 2. Check for history mixin (30 points)
+        history_patterns = [
+            r"HistoryMixin",
+            r"VersionedMixin",
+            r"TemporalMixin",
+        ]
+
+        has_history_mixin = any(
+            re.search(pattern, code, re.IGNORECASE) for pattern in history_patterns
+        )
+
+        if has_history_mixin:
+            self.evidence.append("Uses history mixin for version tracking")
+            self.confidence += 0.30
+
+        # 3. Check for version checking in queries (30 points)
+        version_check_patterns = [
+            r"filter.*version\s*==",
+            r"version\.eq\(self\.version\)",
+            r"VersionConflict",
+        ]
+
+        has_version_check = any(
+            re.search(pattern, code, re.IGNORECASE) for pattern in version_check_patterns
+        )
+
+        if has_version_check:
+            self.evidence.append("Checks version for optimistic locking")
+            self.confidence += 0.30
+
+        # 4. Check for version increment logic (20 points bonus)
+        increment_patterns = [
+            r"self\.version\s*\+\s*1",
+            r"version\s*=.*version\s*\+\s*1",
+        ]
+
+        has_increment = any(
+            re.search(pattern, code, re.IGNORECASE) for pattern in increment_patterns
+        )
+
+        if has_increment:
+            self.evidence.append("Increments version on updates")
+            self.confidence += 0.20
+
+        # Cap at 1.0
+        self.confidence = min(self.confidence, 1.0)
+
+        # Need version field to be considered versioning
+        return has_version_field and self.confidence >= 0.40
+
+    def _detect_java_versioning(self, code: str) -> bool:
+        """Check for versioning patterns in Java"""
+        # 1. Check for @Version annotation (50 points)
+        has_version_annotation = "@Version" in code
+
+        if has_version_annotation:
+            self.evidence.append("Uses @Version annotation for optimistic locking")
+            self.confidence += 0.50
+
+        # 2. Check for version field (30 points)
+        version_patterns = [
+            r"private\s+int\s+version",
+            r"private\s+Integer\s+version",
+            r"private\s+Long\s+version",
+        ]
+
+        has_version_field = any(
+            re.search(pattern, code, re.IGNORECASE) for pattern in version_patterns
+        )
+
+        if has_version_field:
+            self.evidence.append("Has version field in entity")
+            self.confidence += 0.30
+
+        # 3. Check for @Temporal annotation with version (20 points bonus)
+        temporal_patterns = [
+            r"@Temporal.*version",
+            r"@Column.*version",
+        ]
+
+        has_temporal = any(re.search(pattern, code, re.IGNORECASE) for pattern in temporal_patterns)
+
+        if has_temporal:
+            self.evidence.append("Uses @Temporal for version field")
+            self.confidence += 0.20
+
+        # 4. Check for version checking in business logic (bonus)
+        version_logic_patterns = [
+            r"VersionConflict",
+            r"OptimisticLockException",
+        ]
+
+        has_version_logic = any(
+            re.search(pattern, code, re.IGNORECASE) for pattern in version_logic_patterns
+        )
+
+        if has_version_logic:
+            self.evidence.append("Handles version conflicts in business logic")
+            self.confidence = min(0.95, self.confidence + 0.10)
+
+        # Cap at 1.0
+        self.confidence = min(self.confidence, 1.0)
+
+        # Need @Version annotation or version field to be considered versioning
+        return (has_version_annotation or has_version_field) and self.confidence >= 0.40
+
+    def get_stdlib_pattern(self) -> str:
+        return "versioning/optimistic_lock"
