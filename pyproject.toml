@@ -19,6 +19,7 @@ dependencies = [
     "tree-sitter>=0.20.0",
     "tree-sitter-rust>=0.20.0",
     "tree-sitter-typescript>=0.20.0",
+    "pglast>=7.10",
 ]
 
 [project.optional-dependencies]
@@ -83,3 +84,11 @@ ignore_missing_imports = true
 [tool.black]
 line-length = 100
 target-version = ['py311']
+
+[tool.uv.workspace]
+members = [
+    "vendor/tree-sitter-prisma",
+]
+
+[tool.uv.sources]
+tree-sitter-prisma = { workspace = true }
