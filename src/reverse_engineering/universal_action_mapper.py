@@ -21,6 +21,7 @@ class UniversalActionMapper:
             "rust": self._get_rust_parser(),
             "python": self._get_python_parser(),
             "java": self._get_java_parser(),
+            "typescript": self._get_typescript_parser(),
         }
 
     def _get_rust_parser(self) -> object | None:
@@ -51,6 +52,16 @@ class UniversalActionMapper:
             return JavaActionParser()
         except ImportError:
             logger.warning("Java parser not available")
+            return None
+
+    def _get_typescript_parser(self) -> object | None:
+        """Lazy import to avoid circular dependencies"""
+        try:
+            from src.reverse_engineering.typescript_parser import TypeScriptParser
+
+            return TypeScriptParser()
+        except ImportError:
+            logger.warning("TypeScript parser not available")
             return None
 
     def convert_file(self, file_path: Path, language: str, **kwargs: object) -> str:
@@ -102,6 +113,9 @@ class UniversalActionMapper:
             elif "@RestController" in code or "@Controller" in code or "Repository" in code:
                 # Controller or Repository - extract actions
                 actions = parser.extract_actions_from_code(code)  # type: ignore
+        elif language == "typescript":
+            # For TypeScript, extract routes and actions
+            actions = self._map_typescript_actions(code)
         else:
             # For other languages, extract actions
             if hasattr(parser, "extract_actions_from_code"):
@@ -237,3 +251,154 @@ class UniversalActionMapper:
 
         # Convert to title case
         return filename.title()
+
+    def _map_typescript_actions(self, code: str) -> list[dict[str, Any]]:
+        """Map TypeScript routes/actions to SpecQL actions"""
+        parser = self.parsers.get("typescript")
+        if not parser:
+            return []
+
+        actions = []
+
+        # Extract Express/Fastify routes
+        routes = parser.extract_routes(code)
+        for route in routes:
+            # Map HTTP method to action type
+            action_type = self._http_method_to_action_type(route.method)
+
+            # Infer entity from path (/contacts -> Contact)
+            entity = self._infer_entity_from_path(route.path)
+
+            actions.append(
+                {
+                    "name": f"{action_type}_{entity.lower()}",
+                    "type": action_type,
+                    "entity": entity,
+                    "description": f"{action_type.title()} {entity} via {route.framework} route",
+                    "steps": self._generate_steps_for_action(action_type, entity),
+                }
+            )
+
+        # Extract Next.js App Router routes (if applicable)
+        # Check if this looks like an App Router file
+        if "export async function" in code and ("NextRequest" in code or "NextResponse" in code):
+            app_routes = parser.extract_nextjs_app_routes(
+                code, "app/api/contacts/route.ts"
+            )  # Use contacts path for better inference
+            for route in app_routes:
+                action_type = self._http_method_to_action_type(route.method)
+                entity = self._infer_entity_from_path(route.path)
+
+                actions.append(
+                    {
+                        "name": f"{action_type}_{entity.lower()}_app",
+                        "type": action_type,
+                        "entity": entity,
+                        "description": f"{action_type.title()} {entity} via Next.js App Router",
+                        "steps": self._generate_steps_for_action(action_type, entity),
+                    }
+                )
+
+        # Extract Server Actions (if applicable)
+        if "'use server'" in code or '"use server"' in code:
+            server_actions = parser.extract_server_actions(code)
+            for action in server_actions:
+                # Infer action type from function name
+                action_type = self._infer_action_type_from_name(action.name)
+                entity = self._infer_entity_from_function_name(action.name)
+
+                actions.append(
+                    {
+                        "name": action.name.lower().replace("contact", "contact"),
+                        "type": action_type,
+                        "entity": entity,
+                        "description": f"{action_type.title()} {entity} via Server Action",
+                        "steps": self._generate_steps_for_action(action_type, entity),
+                    }
+                )
+
+        return actions
+
+    def _http_method_to_action_type(self, method: str) -> str:
+        """Map HTTP method to SpecQL action type"""
+        mapping = {
+            "GET": "read",
+            "POST": "create",
+            "PUT": "update",
+            "PATCH": "update",
+            "DELETE": "delete",
+        }
+        return mapping.get(method, "custom")
+
+    def _infer_entity_from_path(self, path: str) -> str:
+        """Infer entity name from API path"""
+        # Remove leading slash and split by slashes
+        parts = path.strip("/").split("/")
+
+        # Find the main resource (usually the first non-parameter part)
+        for part in parts:
+            if not part.startswith(":") and part != "api":
+                # Convert to title case and singularize
+                return self._singularize(part.title())
+
+        return "Entity"
+
+    def _singularize(self, word: str) -> str:
+        """Simple singularization (basic implementation)"""
+        if word.endswith("ies"):
+            return word[:-3] + "y"
+        elif word.endswith("s") and not word.endswith("ss"):
+            return word[:-1]
+        return word
+
+    def _generate_steps_for_action(self, action_type: str, entity: str) -> list[dict[str, Any]]:
+        """Generate basic steps for an action"""
+        if action_type == "create":
+            return [{"insert": entity}]
+        elif action_type == "read":
+            return [{"select": entity}]
+        elif action_type == "update":
+            return [{"update": entity}]
+        elif action_type == "delete":
+            return [{"delete": entity}]
+        else:
+            return [{"custom": f"{action_type}_{entity}"}]
+
+    def _infer_action_type_from_name(self, function_name: str) -> str:
+        """Infer action type from function name"""
+        name_lower = function_name.lower()
+        if name_lower.startswith("create") or name_lower.startswith("add"):
+            return "create"
+        elif (
+            name_lower.startswith("get")
+            or name_lower.startswith("find")
+            or name_lower.startswith("read")
+        ):
+            return "read"
+        elif (
+            name_lower.startswith("update")
+            or name_lower.startswith("edit")
+            or name_lower.startswith("modify")
+        ):
+            return "update"
+        elif name_lower.startswith("delete") or name_lower.startswith("remove"):
+            return "delete"
+        else:
+            return "custom"
+
+    def _infer_entity_from_function_name(self, function_name: str) -> str:
+        """Infer entity from function name"""
+        # Remove common prefixes
+        name = function_name
+        for prefix in ["create", "get", "update", "delete", "find", "add", "remove", "edit"]:
+            if name.lower().startswith(prefix):
+                name = name[len(prefix) :]
+                break
+
+        # Convert from PascalCase/CamelCase to Title Case
+        if name and name[0].isupper():
+            # Already PascalCase, just ensure it's singular
+            return self._singularize(name)
+        else:
+            # Convert to title case
+            return name.title()
