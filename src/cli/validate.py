@@ -142,7 +142,7 @@ def validate(
             validate_entity(
                 result,
                 entity_def,
-                str(entity_path),
+                entity_path,
                 check_impacts,
                 check_naming,
                 verbose,
@@ -203,9 +203,7 @@ def validate_entity(
     # Field validation
     field_names = set()
     for field_name, field in entity_def.fields.items():
-        validate_field(
-            result, entity_def, str(entity_path), field_name, field, check_naming
-        )
+        validate_field(result, entity_def, entity_path, field_name, field, check_naming)
 
         # Check for duplicate field names
         if field_name in field_names:
@@ -227,7 +225,7 @@ def validate_entity(
     action_names = set()
     for action in entity_def.actions:
         validate_action(
-            result, entity_def, str(entity_path), action, check_impacts, check_naming
+            result, entity_def, entity_path, action, check_impacts, check_naming
         )
 
         # Check for duplicate action names

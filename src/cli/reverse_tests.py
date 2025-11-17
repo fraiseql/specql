@@ -9,10 +9,19 @@ Usage:
 
 import click
 from pathlib import Path
-from typing import List, Tuple, Dict, Any, Optional
-from src.reverse_engineering.tests.pgtap_test_parser import PgTAPTestParser
-from src.reverse_engineering.tests.pytest_test_parser import PytestParser
-from src.testing.spec.test_parser_protocol import TestSourceLanguage
+from typing import List, Tuple, Dict, Any, Optional, cast
+from src.reverse_engineering.tests.pgtap_test_parser import (
+    PgTAPTestParser,
+    PgTAPTestSpecMapper,
+)
+from src.reverse_engineering.tests.pytest_test_parser import (
+    PytestParser,
+    PytestTestSpecMapper,
+)
+from src.testing.spec.test_parser_protocol import TestSourceLanguage, TestParser
+from typing import Union
+
+MapperType = Union[PgTAPTestSpecMapper, PytestTestSpecMapper]
 
 
 @click.command()
@@ -57,7 +66,7 @@ def reverse_tests(
         return 1
 
     # Initialize parsers
-    parsers = {
+    parsers: dict[TestSourceLanguage, TestParser] = {
         TestSourceLanguage.PGTAP: PgTAPTestParser(),
         TestSourceLanguage.PYTEST: PytestParser(),
     }
@@ -88,8 +97,9 @@ def reverse_tests(
             parsed_test = parser.parse_test_file(content, str(file_path))
 
             # Convert to TestSpec
-            if hasattr(parser, "map_to_test_spec"):
-                test_spec = parser.map_to_test_spec(
+            parser_any = cast(Any, parser)
+            if hasattr(parser_any, "map_to_test_spec"):
+                test_spec = parser_any.map_to_test_spec(
                     parsed_test, entity or _infer_entity_name(file_path)
                 )
             else:
@@ -101,6 +111,7 @@ def reverse_tests(
                     PytestTestSpecMapper,
                 )
 
+                mapper: MapperType
                 if isinstance(parser, PgTAPTestParser):
                     mapper = PgTAPTestSpecMapper()
                 elif isinstance(parser, PytestParser):
@@ -226,37 +237,38 @@ def _analyze_test_coverage(test_spec) -> Dict[str, Any]:
         "coverage_score": 0.0,
     }
 
+    scenario_categories = cast(dict[str, int], analysis["scenario_categories"])
+    assertion_types = cast(dict[str, int], analysis["assertion_types"])
+    crud_operations = cast(dict[str, int], analysis["crud_operations"])
+    missing_tests = cast(list[str], analysis["missing_tests"])
+
     # Count scenario categories
     for scenario in test_spec.scenarios:
         category = scenario.category.value
-        analysis["scenario_categories"][category] = (
-            analysis["scenario_categories"].get(category, 0) + 1
-        )
+        scenario_categories[category] = scenario_categories.get(category, 0) + 1
 
         # Count assertions
         for assertion in scenario.assertions:
             assertion_type = assertion.assertion_type.value
-            analysis["assertion_types"][assertion_type] = (
-                analysis["assertion_types"].get(assertion_type, 0) + 1
-            )
+            assertion_types[assertion_type] = assertion_types.get(assertion_type, 0) + 1
 
         # Detect CRUD operations
         scenario_text = (scenario.scenario_name + " " + scenario.description).lower()
         if any(word in scenario_text for word in ["create", "insert", "add"]):
-            analysis["crud_operations"]["create"] += 1
+            crud_operations["create"] += 1
         if any(word in scenario_text for word in ["read", "get", "select", "find"]):
-            analysis["crud_operations"]["read"] += 1
+            crud_operations["read"] += 1
         if any(word in scenario_text for word in ["update", "modify", "change"]):
-            analysis["crud_operations"]["update"] += 1
+            crud_operations["update"] += 1
         if any(word in scenario_text for word in ["delete", "remove", "destroy"]):
-            analysis["crud_operations"]["delete"] += 1
+            crud_operations["delete"] += 1
 
     # Calculate coverage score (0-100)
-    total_crud = sum(analysis["crud_operations"].values())
+    total_crud = sum(crud_operations.values())
     crud_coverage = min(100, (total_crud / 4) * 100) if total_crud > 0 else 0
 
-    happy_path_count = analysis["scenario_categories"].get("happy_path", 0)
-    error_case_count = analysis["scenario_categories"].get("error_case", 0)
+    happy_path_count = scenario_categories.get("happy_path", 0)
+    error_case_count = scenario_categories.get("error_case", 0)
     scenario_balance = (
         min(
             100,
@@ -273,20 +285,20 @@ def _analyze_test_coverage(test_spec) -> Dict[str, Any]:
     analysis["coverage_score"] = (crud_coverage + scenario_balance) / 2
 
     # Suggest missing tests
-    if analysis["crud_operations"]["create"] == 0:
-        analysis["missing_tests"].append("Create operation tests")
-    if analysis["crud_operations"]["read"] == 0:
-        analysis["missing_tests"].append("Read operation tests")
-    if analysis["crud_operations"]["update"] == 0:
-        analysis["missing_tests"].append("Update operation tests")
-    if analysis["crud_operations"]["delete"] == 0:
-        analysis["missing_tests"].append("Delete operation tests")
+    if crud_operations["create"] == 0:
+        missing_tests.append("Create operation tests")
+    if crud_operations["read"] == 0:
+        missing_tests.append("Read operation tests")
+    if crud_operations["update"] == 0:
+        missing_tests.append("Update operation tests")
+    if crud_operations["delete"] == 0:
+        missing_tests.append("Delete operation tests")
 
-    if analysis["scenario_categories"].get("error_case", 0) == 0:
-        analysis["missing_tests"].append("Error case scenarios")
+    if scenario_categories.get("error_case", 0) == 0:
+        missing_tests.append("Error case scenarios")
 
-    if analysis["scenario_categories"].get("edge_case", 0) == 0:
-        analysis["missing_tests"].append("Edge case scenarios")
+    if scenario_categories.get("edge_case", 0) == 0:
+        missing_tests.append("Edge case scenarios")
 
     return analysis
 
@@ -331,7 +343,7 @@ def _print_coverage_summary(results: List[Tuple[str, Any]]):
 
     # Aggregate coverage data
     total_crud = {"create": 0, "read": 0, "update": 0, "delete": 0}
-    total_categories = {}
+    total_categories: dict[str, int] = {}
     missing_tests = set()
 
     for result in successful_results:

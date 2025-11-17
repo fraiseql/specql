@@ -1,14 +1,16 @@
 """Compiler for subquery steps"""
 
 from src.core.ast_models import ActionStep, EntityDefinition
-
+from src.generators.actions.compilation_context import CompilationContext
 from src.generators.actions.step_compilers.base import StepCompiler
 
 
 class SubqueryStepCompiler(StepCompiler):
     """Compiles subquery steps to PL/pgSQL SELECT INTO statements"""
 
-    def compile(self, step: ActionStep, entity: EntityDefinition, context: dict) -> str:
+    def compile(
+        self, step: ActionStep, entity: EntityDefinition, context: CompilationContext
+    ) -> str:
         """
         Generate subquery SELECT INTO statement
 

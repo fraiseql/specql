@@ -9,7 +9,7 @@ Usage:
 
 import click
 from pathlib import Path
-from typing import List
+from typing import List, Any, cast
 import yaml
 
 from src.core.specql_parser import SpecQLParser
@@ -42,7 +42,7 @@ def _generate_tests_core(
         output_path.mkdir(parents=True, exist_ok=True)
 
     # Track statistics
-    stats = {
+    stats: dict[str, Any] = {
         "entities_processed": 0,
         "pgtap_files": 0,
         "pytest_files": 0,
@@ -74,7 +74,7 @@ def _generate_tests_core(
             if not isinstance(entity, dict):
                 entity_name = getattr(entity, "name", "Unknown")
                 entity_schema = getattr(entity, "schema", "public")
-                entity = {"entity": entity_name, "schema": entity_schema}
+                entity = {"entity": entity_name, "schema": entity_schema}  # type: ignore[assignment]
 
             # Extract entity config
             entity_config = _build_entity_config(entity, entity_file)
@@ -97,7 +97,9 @@ def _generate_tests_core(
                     overwrite,
                 )
                 generated_files.extend(pgtap_files)
-                stats["pgtap_files"] += len(pgtap_files)
+                stats["pgtap_files"] = cast(int, stats["pgtap_files"]) + len(
+                    pgtap_files
+                )
 
             if test_type in ["all", "pytest"]:
                 pytest_files = _generate_pytest_tests(
@@ -110,10 +112,14 @@ def _generate_tests_core(
                     overwrite,
                 )
                 generated_files.extend(pytest_files)
-                stats["pytest_files"] += len(pytest_files)
+                stats["pytest_files"] = cast(int, stats["pytest_files"]) + len(
+                    pytest_files
+                )
 
-            stats["entities_processed"] += 1
-            stats["total_files"] += len(generated_files)
+            stats["entities_processed"] = cast(int, stats["entities_processed"]) + 1
+            stats["total_files"] = cast(int, stats["total_files"]) + len(
+                generated_files
+            )
 
             if preview:
                 click.echo(

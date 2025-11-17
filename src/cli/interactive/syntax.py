@@ -28,44 +28,44 @@ class SpecQLLexer(RegexLexer):
     tokens = {
         "root": [
             # Comments
-            (r"#.*$", Comment.Single),
+            (r"#.*$", Comment.Single),  # type: ignore
             # Entity-level keywords
             (
                 r"^(entity|schema|description|identifier_template)(:)",
-                bygroups(Keyword.Namespace, Punctuation),
+                bygroups(Keyword.Namespace, Punctuation),  # type: ignore
             ),
             # Section keywords
             (
                 r"^(fields|actions|views|patterns)(:)",
-                bygroups(Keyword.Declaration, Punctuation),
+                bygroups(Keyword.Declaration, Punctuation),  # type: ignore
             ),
             # Field types
             (
                 r"\b(text|integer|float|boolean|date|timestamp|uuid|json|enum|ref|list)\b",
-                Keyword.Type,
+                Keyword.Type,  # type: ignore
             ),
             # Action step keywords
             (
                 r"\b(validate|if|then|else|update|insert|delete|call|notify|foreach|return)\b",
-                Keyword.Reserved,
+                Keyword.Reserved,  # type: ignore
             ),
             # Pattern names
-            (r"@(audit_trail|soft_delete|state_machine|multi_tenant)", Name.Decorator),
+            (r"@(audit_trail|soft_delete|state_machine|multi_tenant)", Name.Decorator),  # type: ignore
             # Strings
-            (r'"[^"]*"', String.Double),
-            (r"'[^']*'", String.Single),
+            (r'"[^"]*"', String.Double),  # type: ignore
+            (r"'[^']*'", String.Single),  # type: ignore
             # Numbers
-            (r"\b\d+\b", Number.Integer),
+            (r"\b\d+\b", Number.Integer),  # type: ignore
             # Operators
-            (r"[=<>!]+", Operator),
+            (r"[=<>!]+", Operator),  # type: ignore
             # Delimiters
-            (r"[:{}[\],]", Punctuation),
+            (r"[:{}[\],]", Punctuation),  # type: ignore
             # Field names
-            (r"\b[a-z_][a-z0-9_]*\b", Name.Variable),
+            (r"\b[a-z_][a-z0-9_]*\b", Name.Variable),  # type: ignore
             # Entity names (capitalized)
-            (r"\b[A-Z][a-zA-Z0-9]*\b", Name.Class),
+            (r"\b[A-Z][a-zA-Z0-9]*\b", Name.Class),  # type: ignore
             # Whitespace
-            (r"\s+", Text),
+            (r"\s+", Text),  # type: ignore
         ],
     }
 

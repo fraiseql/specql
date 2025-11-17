@@ -10,7 +10,7 @@ class ApplicationError(Exception):
 class DomainAlreadyExistsError(ApplicationError):
     """Raised when domain number already exists"""
 
-    def __init__(self, domain_number: int):
+    def __init__(self, domain_number: str):
         self.domain_number = domain_number
         super().__init__(f"Domain {domain_number} already exists")
 
@@ -18,7 +18,7 @@ class DomainAlreadyExistsError(ApplicationError):
 class DomainNotFoundError(ApplicationError):
     """Raised when domain not found"""
 
-    def __init__(self, domain_number: int):
+    def __init__(self, domain_number: str):
         self.domain_number = domain_number
         super().__init__(f"Domain {domain_number} not found")
 
@@ -26,7 +26,7 @@ class DomainNotFoundError(ApplicationError):
 class SubdomainAlreadyExistsError(ApplicationError):
     """Raised when subdomain already exists in domain"""
 
-    def __init__(self, domain_number: int, subdomain_number: int):
+    def __init__(self, domain_number: str, subdomain_number: str):
         self.domain_number = domain_number
         self.subdomain_number = subdomain_number
         super().__init__(

@@ -262,7 +262,7 @@ class SchemaOrchestrator:
         if with_audit_cascade:
             audit_gen = AuditGenerator()
             # Get entity fields for audit generation
-            entity_fields = [field.name for field in entity.fields]
+            entity_fields = [field.name for field in entity.fields]  # type: ignore
             audit_config = {"enabled": True, "include_cascade": True}
             audit_sql = audit_gen.generate_audit_trail(
                 entity.name, entity_fields, audit_config

@@ -22,13 +22,8 @@ class ReturnEarlyStepCompiler(StepCompiler):
         if return_value is None:
             return "RETURN;"
 
-        # Format return value based on function return type
-        if context.function_return_type == "app.mutation_result":
-            # Return FraiseQL mutation result
-            return self._build_mutation_result(return_value)
-        else:
-            # Simple return
-            return f"RETURN {return_value};"
+        # For actions, always return mutation_result format
+        return self._build_mutation_result(return_value)
 
     def _build_mutation_result(self, value: dict) -> str:
         """Build mutation_result return value"""

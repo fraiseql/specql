@@ -108,7 +108,7 @@ class PatternExporter:
 
         # Optionally include embeddings
         if include_embeddings and pattern.embedding:
-            data["embedding"] = pattern.embedding
+            data["embedding"] = pattern.embedding  # type: ignore[assignment]
 
         # Include deprecation info if deprecated
         if pattern.deprecated:

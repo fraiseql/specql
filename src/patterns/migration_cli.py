@@ -121,7 +121,7 @@ Examples:
 def display_suggestions(suggestions: List[MigrationSuggestion]):
     """Display migration suggestions in a readable format."""
     # Group by entity
-    by_entity = {}
+    by_entity: dict[str, list[MigrationSuggestion]] = {}
     for suggestion in suggestions:
         entity = suggestion.entity_name
         if entity not in by_entity:
@@ -133,7 +133,7 @@ def display_suggestions(suggestions: List[MigrationSuggestion]):
         print(f"\n📋 {entity_name} ({len(entity_suggestions)} suggestions)")
 
         # Group by pattern type
-        by_pattern = {}
+        by_pattern: dict[str, list[MigrationSuggestion]] = {}
         for suggestion in entity_suggestions:
             pattern = suggestion.pattern_type
             if pattern not in by_pattern:

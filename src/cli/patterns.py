@@ -424,7 +424,7 @@ def get_pattern(pattern_name: str):
         # Embedding info
         if pattern.has_embedding:
             console.print(
-                f"\n[bold]Vector Embedding:[/bold] {len(pattern.embedding)} dimensions"
+                f"\n[bold]Vector Embedding:[/bold] {len(pattern.embedding)} dimensions"  # type: ignore[arg-type]
             )
         else:
             console.print("\n[bold]Vector Embedding:[/bold] Not available")

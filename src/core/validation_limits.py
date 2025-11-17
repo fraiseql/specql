@@ -52,7 +52,7 @@ class ValidationLimits:
         if isinstance(data, dict):
             for value in data.values():
                 if isinstance(value, (dict, list)):
-                    cls.validate_nesting_depth(value, current_depth + 1)
+                    cls.validate_nesting_depth(value, current_depth + 1)  # type: ignore
         elif isinstance(data, list):
             for item in data:
                 if isinstance(item, (dict, list)):

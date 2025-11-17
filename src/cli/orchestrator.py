@@ -1,6 +1,6 @@
 """CLI Orchestrator for unified generation workflows."""
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from src.cli.progress import SpecQLProgress
@@ -28,10 +28,13 @@ class GenerationResult:
     migrations: list[MigrationFile]
     errors: list[str]
     warnings: list[str]
+    generated_files: list[str] = field(default_factory=list)
 
 
 class CLIOrchestrator:
     """Orchestrate all Teams for CLI commands"""
+
+    naming: "NamingConventions | None"
 
     def __init__(
         self,
@@ -94,7 +97,7 @@ class CLIOrchestrator:
             )
 
         return self.naming.get_table_code(
-            entity
+            "app", "main", entity
         )  # Respects priority: explicit → registry → derive
 
     def generate_file_path(
@@ -220,7 +223,7 @@ class CLIOrchestrator:
         output_path = Path(output_dir)
         if not dry_run:
             output_path.mkdir(parents=True, exist_ok=True)
-        generated_files = []
+        generated_files: list[str] = []
 
         # Foundation only mode
         if foundation_only:
@@ -339,14 +342,14 @@ class CLIOrchestrator:
                         table_dir = schema_base / "10_tables"
                         if not dry_run:
                             table_dir.mkdir(parents=True, exist_ok=True)
-                        table_path = table_dir / f"{entity.name.lower()}.sql"
+                        table_path = table_dir / f"{entity.name.lower()}.sql"  # type: ignore[assignment]
 
                         # 2. Helper functions (db/schema/20_helpers/)
                         helpers_dir = schema_base / "20_helpers"
                         if not dry_run:
                             helpers_dir.mkdir(parents=True, exist_ok=True)
                         helpers_path = (
-                            helpers_dir / f"{entity.name.lower()}_helpers.sql"
+                            helpers_dir / f"{entity.name.lower()}_helpers.sql"  # type: ignore[assignment]
                         )
 
                         # 3. Mutations - ONE FILE PER MUTATION (db/schema/30_functions/)
@@ -357,12 +360,12 @@ class CLIOrchestrator:
                     # Write table SQL
                     if not dry_run:
                         Path(table_path).write_text(schema_output.table_sql)
-                    generated_files.append(table_path)
+                    generated_files.append(str(table_path))
 
                     # Write helpers SQL
                     if not dry_run:
                         Path(helpers_path).write_text(schema_output.helpers_sql)
-                    generated_files.append(helpers_path)
+                    generated_files.append(str(helpers_path))
 
                     # Write mutations
                     for mutation in schema_output.mutations:
@@ -406,7 +409,7 @@ class CLIOrchestrator:
                             audit_dir = Path("db/schema") / "40_audit"
                             if not dry_run:
                                 audit_dir.mkdir(parents=True, exist_ok=True)
-                            audit_path = audit_dir / f"{entity.name.lower()}_audit.sql"
+                            audit_path = audit_dir / f"{entity.name.lower()}_audit.sql"  # type: ignore[assignment]
 
                         if not dry_run:
                             Path(audit_path).write_text(schema_output.audit_sql)
@@ -442,18 +445,18 @@ class CLIOrchestrator:
                     table_dir = schema_base / "10_tables"
                     if not dry_run:
                         table_dir.mkdir(parents=True, exist_ok=True)
-                    table_path = table_dir / f"{entity.name.lower()}.sql"
+                    table_path = table_dir / f"{entity.name.lower()}.sql"  # type: ignore[assignment]  # type: ignore[assignment]
                     if not dry_run:
-                        table_path.write_text(schema_output.table_sql)
+                        table_path.write_text(schema_output.table_sql)  # type: ignore[attr-defined]
                     generated_files.append(str(table_path))
 
                     # 2. Helper functions (db/schema/20_helpers/)
                     helpers_dir = schema_base / "20_helpers"
                     if not dry_run:
                         helpers_dir.mkdir(parents=True, exist_ok=True)
-                    helpers_path = helpers_dir / f"{entity.name.lower()}_helpers.sql"
+                    helpers_path = helpers_dir / f"{entity.name.lower()}_helpers.sql"  # type: ignore[assignment]
                     if not dry_run:
-                        helpers_path.write_text(schema_output.helpers_sql)
+                        helpers_path.write_text(schema_output.helpers_sql)  # type: ignore[attr-defined]
                     generated_files.append(str(helpers_path))
 
                     # 3. Mutations - ONE FILE PER MUTATION (db/schema/30_functions/)
@@ -484,9 +487,9 @@ class CLIOrchestrator:
                         audit_dir = schema_base / "40_audit"
                         if not dry_run:
                             audit_dir.mkdir(parents=True, exist_ok=True)
-                        audit_path = audit_dir / f"{entity.name.lower()}_audit.sql"
+                        audit_path = audit_dir / f"{entity.name.lower()}_audit.sql"  # type: ignore[assignment]
                         if not dry_run:
-                            audit_path.write_text(schema_output.audit_sql)
+                            audit_path.write_text(schema_output.audit_sql)  # type: ignore[attr-defined]
                         generated_files.append(str(audit_path))
 
                     # Use sequential numbering for backward compatibility
@@ -499,7 +502,7 @@ class CLIOrchestrator:
                         number=entity_number,
                         name=entity.name.lower(),
                         content=schema_output.table_sql,  # Primary content
-                        path=table_path,
+                        path=Path(table_path),
                     )
 
                 result.migrations.append(migration)

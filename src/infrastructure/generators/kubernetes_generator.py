@@ -5,7 +5,7 @@ Generates Kubernetes manifests from universal infrastructure format.
 """
 
 import base64
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
 from typing import Optional
 from src.infrastructure.universal_infra_schema import UniversalInfrastructure
@@ -22,7 +22,12 @@ class KubernetesGenerator:
                 / "infrastructure"
             )
 
-        self.env = Environment(loader=FileSystemLoader(str(template_dir)))
+        self.env = Environment(
+            loader=FileSystemLoader(str(template_dir)),
+            autoescape=select_autoescape(
+                enabled_extensions=("html", "xml", "j2"), default_for_string=True
+            ),
+        )
         # Add base64 filter for secrets
         self.env.filters["b64encode"] = lambda x: base64.b64encode(
             x.encode("utf-8")

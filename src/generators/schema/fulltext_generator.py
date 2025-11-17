@@ -1,7 +1,7 @@
 """Full-text search generator"""
 
 from typing import Optional
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
 from src.core.ast_models import Entity
 
@@ -15,7 +15,12 @@ class FullTextGenerator:
                 Path(__file__).parent.parent.parent.parent / "templates" / "sql"
             )
 
-        self.env = Environment(loader=FileSystemLoader(str(template_dir)))
+        self.env = Environment(
+            loader=FileSystemLoader(str(template_dir)),
+            autoescape=select_autoescape(
+                enabled_extensions=("html", "xml", "j2"), default_for_string=True
+            ),
+        )
         self.template = self.env.get_template("fulltext_features.sql.j2")
 
     def generate(self, entity: Entity) -> str:

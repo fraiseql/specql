@@ -97,7 +97,11 @@ class HeuristicEnhancer:
         variables = set()
 
         for step in result.steps:
-            if step.type == "declare" and hasattr(step, "variable_name"):
+            if (
+                step.type == "declare"
+                and hasattr(step, "variable_name")
+                and step.variable_name is not None
+            ):
                 variables.add(step.variable_name)
 
             # Check for variable usage in expressions
@@ -247,7 +251,7 @@ class HeuristicEnhancer:
             elif (
                 step.type == "query"
                 and hasattr(step, "into_variable")
-                and step.into_variable == var_name
+                and getattr(step, "into_variable", None) == var_name
             ):
                 # Check SELECT INTO
                 query = getattr(step, "expression", "").upper()
@@ -462,7 +466,11 @@ class HeuristicEnhancer:
         """Improve variable naming conventions"""
         # Apply naming improvements based on inferred purposes
         for step in result.steps:
-            if step.type == "declare" and hasattr(step, "variable_name"):
+            if (
+                step.type == "declare"
+                and hasattr(step, "variable_name")
+                and step.variable_name is not None
+            ):
                 improved_name = self._improve_variable_name(step.variable_name)
                 if improved_name != step.variable_name:
                     step.variable_name = improved_name

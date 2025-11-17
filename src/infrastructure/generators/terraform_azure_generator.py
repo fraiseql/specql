@@ -4,7 +4,7 @@ Terraform Azure Generator
 Generates Terraform configuration for Microsoft Azure from universal infrastructure format.
 """
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
 from typing import Optional
 from src.infrastructure.universal_infra_schema import (
@@ -24,7 +24,12 @@ class TerraformAzureGenerator:
                 / "infrastructure"
             )
 
-        self.env = Environment(loader=FileSystemLoader(str(template_dir)))
+        self.env = Environment(
+            loader=FileSystemLoader(str(template_dir)),
+            autoescape=select_autoescape(
+                enabled_extensions=("html", "xml", "j2"), default_for_string=True
+            ),
+        )
         self.template = self.env.get_template("terraform_azure.tf.j2")
 
         # Add custom filters

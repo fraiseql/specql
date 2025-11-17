@@ -234,7 +234,7 @@ class JenkinsParser:
 
     def _parse_environment(self, pipeline_content: str) -> Dict[str, str]:
         """Parse environment variables"""
-        env_vars = {}
+        env_vars: dict[str, str] = {}
 
         # Look for environment block
         env_match = re.search(r"environment\s*\{(.*?)\}", pipeline_content, re.DOTALL)

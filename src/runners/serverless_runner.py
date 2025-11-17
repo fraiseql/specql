@@ -101,7 +101,7 @@ class ServerlessRunner(JobRunner):
             job.input_data.get("invocation_type", "RequestResponse")
 
             # Get runner config (would come from service registry in production)
-            config = {}  # Placeholder
+            config: dict[str, Any] = {}  # Placeholder
 
             if not function_name:
                 return JobResult(

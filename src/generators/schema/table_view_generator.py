@@ -469,8 +469,10 @@ $$ LANGUAGE plpgsql;
         else:
             # Extract specific fields from tv_.data
             field_extractions = []
-            for field in rel.fields:
-                field_extractions.append(f"'{field}', {table_alias}.data->'{field}'")
+            for field_name in rel.fields:
+                field_extractions.append(
+                    f"'{field_name}', {table_alias}.data->'{field_name}'"
+                )
 
             # Handle nested relations
             if rel.include_relations:

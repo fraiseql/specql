@@ -34,7 +34,7 @@ Generated PL/pgSQL:
     ) RETURNING id INTO _job_id_stripe_create_charge;
 """
 
-from typing import Any
+from typing import Any, cast
 
 from src.core.ast_models import ActionStep
 from src.generators.actions.action_context import ActionContext
@@ -56,7 +56,8 @@ class CallServiceStepCompiler:
 
     def get_execution_type(self) -> str:
         """Get execution type for the service from registry"""
-        service = self.service_registry.get_service(self.step.service)
+        service_name = cast(str, self.step.service)
+        service = self.service_registry.get_service(service_name)
         return service.execution_type.name
 
     def compile(self) -> str:
@@ -210,7 +211,8 @@ class CallServiceStepCompiler:
 
     def _compile_runner_config(self) -> str:
         """Compile runner configuration to JSONB"""
-        service = self.service_registry.get_service(self.step.service)
+        service_name = cast(str, self.step.service)
+        service = self.service_registry.get_service(service_name)
         if service.runner_config:
             # Convert dict to JSONB literal
             pairs = []
@@ -230,7 +232,8 @@ class CallServiceStepCompiler:
 
     def _compile_security_context(self) -> str:
         """Compile security context to JSONB"""
-        service = self.service_registry.get_service(self.step.service)
+        service_name = cast(str, self.step.service)
+        service = self.service_registry.get_service(service_name)
         if service.security_policy:
             # Convert dict to JSONB literal
             pairs = []

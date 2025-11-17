@@ -285,18 +285,19 @@ def seed_initial_data(library: PatternLibrary):
     pg_query = 'SELECT * FROM pattern_implementations WHERE language_id = (SELECT language_id FROM languages WHERE language_name = "postgresql")'
     django_query = 'SELECT * FROM pattern_implementations WHERE language_id = (SELECT language_id FROM languages WHERE language_name = "python_django")'
     sqlalchemy_query = 'SELECT * FROM pattern_implementations WHERE language_id = (SELECT language_id FROM languages WHERE language_name = "python_sqlalchemy")'
-    print(
-        f"  - PostgreSQL implementations: {len(library.db.execute(pg_query).fetchall())}"
-    )
-    print(
-        f"  - Django implementations: {len(library.db.execute(django_query).fetchall())}"
-    )
-    print(
-        f"  - SQLAlchemy implementations: {len(library.db.execute(sqlalchemy_query).fetchall())}"
-    )
+    if library.db is not None:
+        print(
+            f"  - PostgreSQL implementations: {len(library.db.execute(pg_query).fetchall())}"
+        )
+        print(
+            f"  - Django implementations: {len(library.db.execute(django_query).fetchall())}"
+        )
+        print(
+            f"  - SQLAlchemy implementations: {len(library.db.execute(sqlalchemy_query).fetchall())}"
+        )
 
 
 if __name__ == "__main__":
-    library = PatternLibrary("pattern_library.db")
+    library = PatternLibrary(db_path="pattern_library.db")
     seed_initial_data(library)
     library.close()

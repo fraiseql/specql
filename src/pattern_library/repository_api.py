@@ -5,7 +5,7 @@ This is the new PatternLibrary that uses the repository pattern for better
 architecture, testability, and storage abstraction.
 """
 
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 from functools import lru_cache
 from jinja2 import Template
 
@@ -159,8 +159,13 @@ class RepositoryPatternLibrary:
         self, pattern_name: str, threshold: float = 0.7
     ) -> List[Dict[str, Any]]:
         """Find patterns similar to the given pattern"""
+        # First get the pattern to find its ID
+        pattern = self.pattern_service.get_pattern_by_name(pattern_name)
+        if not pattern or pattern.id is None:
+            return []
+
         similar_patterns = self.pattern_service.find_similar_patterns(
-            pattern_name, threshold
+            pattern.id, limit=10, min_similarity=threshold
         )
 
         return [
@@ -168,9 +173,9 @@ class RepositoryPatternLibrary:
                 "pattern_name": p.name,
                 "pattern_category": p.category.value,
                 "description": p.description,
-                "similarity": 0.0,  # Would need to calculate this properly
+                "similarity": similarity,
             }
-            for p in similar_patterns
+            for p, similarity in similar_patterns
         ]
 
     def get_pattern_stats(self) -> Dict[str, Any]:
@@ -188,15 +193,20 @@ class RepositoryPatternLibrary:
         for pattern in all_patterns:
             # Count by category
             category = pattern.category.value
-            stats["categories"][category] = stats["categories"].get(category, 0) + 1
+            categories = cast(dict[str, int], stats["categories"])
+            categories[category] = categories.get(category, 0) + 1
 
             # Count active/deprecated
             if pattern.is_active:
-                stats["active_patterns"] += 1
+                stats["active_patterns"] = cast(int, stats["active_patterns"]) + 1
             else:
-                stats["deprecated_patterns"] += 1
+                stats["deprecated_patterns"] = (
+                    cast(int, stats["deprecated_patterns"]) + 1
+                )
 
             # Sum usage
-            stats["total_usage"] += pattern.times_instantiated
+            stats["total_usage"] = (
+                cast(int, stats["total_usage"]) + pattern.times_instantiated
+            )
 
         return stats

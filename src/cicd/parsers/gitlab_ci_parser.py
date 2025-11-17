@@ -53,7 +53,7 @@ class GitLabCIParser:
         stages = []
 
         # Group jobs by stage
-        jobs_by_stage = {}
+        jobs_by_stage: dict[str, list[Job]] = {}
         for job_name, job_config in jobs_config.items():
             stage_name = job_config.get("stage", "test")
             if stage_name not in jobs_by_stage:

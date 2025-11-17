@@ -162,7 +162,7 @@ class PermissionChecker:
         self, entity: dict[str, Any], checks: list[dict[str, Any]]
     ) -> dict[str, Any]:
         """Analyze how well the permission checks cover different access scenarios."""
-        coverage = {
+        coverage: dict[str, Any] = {
             "ownership": False,
             "organizational": False,
             "role_based": False,
@@ -177,20 +177,21 @@ class PermissionChecker:
                 coverage[check_type] = True
 
         # Generate recommendations
+        recommendations = coverage["recommendations"]
         if not coverage["ownership"] and not coverage["organizational"]:
-            coverage["recommendations"].append(
+            recommendations.append(
                 "Consider adding ownership or organizational checks to ensure users can access their own data"
             )
 
         if not coverage["role_based"]:
-            coverage["recommendations"].append(
+            recommendations.append(
                 "Consider adding role-based checks for admin/superuser access"
             )
 
         if coverage["custom"] and not (
             coverage["ownership"] or coverage["organizational"]
         ):
-            coverage["recommendations"].append(
+            recommendations.append(
                 "Custom conditions should be combined with ownership checks for security"
             )
 

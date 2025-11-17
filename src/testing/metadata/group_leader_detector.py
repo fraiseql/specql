@@ -61,7 +61,7 @@ class GroupLeaderDetector:
 
     def _detect_custom_groups(self, entity: Entity) -> dict[str, dict[str, Any]]:
         """Detect custom groups defined in entity metadata"""
-        groups = {}
+        groups: dict[str, dict[str, Any]] = {}
 
         # Check if entity has custom group definitions
         # This would be added to Entity model in future - for now return empty
@@ -73,9 +73,11 @@ class GroupLeaderDetector:
         groups = {}
 
         for group_name, config in self.DEFAULT_GROUPS.items():
-            available_fields = set(entity.fields.keys()) & config["fields"]
+            available_fields = set(entity.fields.keys()) & set(config["fields"])
             if len(available_fields) >= 2:
-                leader = self._pick_leader(available_fields, config["leader_priority"])
+                leader = self._pick_leader(
+                    available_fields, list(config["leader_priority"])
+                )
                 groups[group_name] = {
                     "leader": leader,
                     "dependents": [f for f in available_fields if f != leader],

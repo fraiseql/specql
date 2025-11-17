@@ -5,7 +5,7 @@ Generates DDL for Trinity pattern tables from Entity AST
 
 from typing import Any
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from src.core.ast_models import Entity
 from src.generators.comment_generator import CommentGenerator
@@ -37,7 +37,12 @@ class TableGenerator:
         self.schema_registry = schema_registry
         self.templates_dir = templates_dir
         self.env = Environment(
-            loader=FileSystemLoader(templates_dir), trim_blocks=True, lstrip_blocks=True
+            loader=FileSystemLoader(templates_dir),
+            autoescape=select_autoescape(
+                enabled_extensions=("html", "xml", "j2"), default_for_string=True
+            ),
+            trim_blocks=True,
+            lstrip_blocks=True,
         )
         self.constraint_generator = ConstraintGenerator()
         self.comment_generator = CommentGenerator()

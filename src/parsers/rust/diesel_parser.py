@@ -108,7 +108,7 @@ class DieselParser:
 
         # Update field types based on advanced types
         for field in entity.fields:
-            if field.name in metadata.advanced_types:
+            if metadata.advanced_types and field.name in metadata.advanced_types:
                 diesel_type = metadata.advanced_types[field.name]
                 if diesel_type == "Array":
                     field.type = FieldType.LIST

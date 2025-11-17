@@ -29,7 +29,7 @@ def extract_pattern_info(compiler_file: Path) -> Dict[str, str]:
     class_name = class_match.group(1)
 
     # Extract step type from docstring or comments
-    step_type = None
+    step_type = ""
 
     # Look for step type in docstring examples
     examples = re.findall(r"Example SpecQL:\s*\n\s*-\s*(\w+):", content, re.MULTILINE)

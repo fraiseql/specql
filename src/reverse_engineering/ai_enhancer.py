@@ -65,7 +65,7 @@ class AIEnhancer:
         """Load local LLM model"""
         try:
             # Import llama-cpp-python conditionally
-            import llama_cpp
+            import llama_cpp  # type: ignore[import]
 
             if os.path.exists(self.local_model_path):
                 self.local_llm = llama_cpp.Llama(
@@ -362,7 +362,7 @@ Respond with comma-separated pattern names, or "none".
     def _query_cloud(self, prompt: str, max_tokens: int) -> Optional[str]:
         """Query cloud API (Anthropic)"""
         try:
-            import anthropic
+            import anthropic  # type: ignore[import]
 
             client = anthropic.Anthropic(api_key=self.cloud_api_key)
 
@@ -399,9 +399,8 @@ Respond with comma-separated pattern names, or "none".
 
             # Check similarity to existing patterns
             service = PatternEmbeddingService()
-            query_embedding = service.embed_function(sql_source)
             similar_patterns = service.retrieve_similar(
-                query_embedding, top_k=3, threshold=0.5
+                sql_source, top_k=3, threshold=0.5
             )
             service.close()
 

@@ -58,7 +58,9 @@ class PostgreSQLAdapter(FrameworkAdapter):
         """Generate PostgreSQL foreign key relationship"""
         if field.type == FieldType.REFERENCE:
             ref_entity = field.references
-            return f"REFERENCES tb_{ref_entity.lower()}(pk_{ref_entity.lower()})"
+            if ref_entity is not None:
+                return f"REFERENCES tb_{ref_entity.lower()}(pk_{ref_entity.lower()})"
+            return ""
         return ""
 
     def get_conventions(self) -> FrameworkConventions:
@@ -158,10 +160,15 @@ class PostgreSQLAdapter(FrameworkAdapter):
                 )
                 lines.append("    END IF;")
             elif step.type.value == "update":
+                if step.entity is None:
+                    continue
                 lines.append(f"    -- Update {step.entity}")
                 if step.fields:
                     set_clause = ", ".join(
-                        [f"{k} = {repr(v)}" for k, v in step.fields.items()]
+                        [f"{k} = repr(v)" for k, v in step.fields.items()]
+                    )
+                    lines.append(
+                        f"    UPDATE tb_{step.entity.lower()} SET {set_clause};"
                     )
                     lines.append(
                         f"    UPDATE tb_{step.entity.lower()} SET {set_clause};"

@@ -1,6 +1,7 @@
 """Compiler for call_function steps"""
 
 from src.core.ast_models import ActionStep, EntityDefinition
+from src.generators.actions.compilation_context import CompilationContext
 
 from src.generators.actions.step_compilers.base import StepCompiler
 
@@ -8,7 +9,9 @@ from src.generators.actions.step_compilers.base import StepCompiler
 class CallFunctionStepCompiler(StepCompiler):
     """Compiles call_function steps to PL/pgSQL function calls"""
 
-    def compile(self, step: ActionStep, entity: EntityDefinition, context: dict) -> str:
+    def compile(
+        self, step: ActionStep, entity: EntityDefinition, context: CompilationContext
+    ) -> str:
         """
         Generate function call statement
 

@@ -38,7 +38,7 @@ class SchemaRegistry:
             return domain.multi_tenant
 
         # Framework schemas (hardcoded, safe)
-        framework_multi_tenant = {
+        framework_multi_tenant: dict[str, None] = {
             # None currently - core has mixed behavior
         }
         return schema_name in framework_multi_tenant

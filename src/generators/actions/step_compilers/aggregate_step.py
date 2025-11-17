@@ -1,6 +1,7 @@
 """Compiler for aggregate steps"""
 
 from src.core.ast_models import ActionStep, EntityDefinition
+from src.generators.actions.compilation_context import CompilationContext
 
 from src.generators.actions.step_compilers.base import StepCompiler
 
@@ -8,7 +9,9 @@ from src.generators.actions.step_compilers.base import StepCompiler
 class AggregateStepCompiler(StepCompiler):
     """Compiles aggregate steps to PL/pgSQL SELECT INTO statements"""
 
-    def compile(self, step: ActionStep, entity: EntityDefinition, context: dict) -> str:
+    def compile(
+        self, step: ActionStep, entity: EntityDefinition, context: CompilationContext
+    ) -> str:
         """
         Generate aggregate SELECT INTO statement
 

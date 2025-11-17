@@ -22,7 +22,7 @@ def check_table_code_uniqueness(entity_files: List[Path]) -> Dict[str, List[str]
         Only includes codes that appear more than once
     """
     parser = SpecQLParser()
-    code_to_entities = {}
+    code_to_entities: dict[str, list[str]] = {}
 
     for entity_file in entity_files:
         try:

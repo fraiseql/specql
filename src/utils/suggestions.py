@@ -37,7 +37,7 @@ def suggest_correction(
         return None
 
     # Map back to original case
-    result = []
+    result: list[str] = []
     for match_lower in matches_lower:
         # Find the original case version
         for original in valid_values:

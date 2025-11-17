@@ -33,7 +33,7 @@ class SchemaGenerator:
     def __init__(self, registry_path: str = "registry/domain_registry.yaml"):
         self.composite_mapper = CompositeTypeMapper()
         self.fk_generator = ForeignKeyGenerator()
-        self.naming = NamingConventions(registry_path)
+        self.naming = NamingConventions()
 
     def generate_table(self, entity: EntityDefinition) -> str:
         """

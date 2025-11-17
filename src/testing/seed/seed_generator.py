@@ -1,6 +1,6 @@
 """Entity Seed Generator for SpecQL test data generation"""
 
-from typing import Any
+from typing import Any, Optional
 
 from .field_generators import FieldValueGenerator
 from .fk_resolver import ForeignKeyResolver, GroupLeaderExecutor
@@ -9,6 +9,9 @@ from .uuid_generator import SpecQLUUIDGenerator
 
 class EntitySeedGenerator:
     """Generate complete entity records with all fields"""
+
+    fk_resolver: Optional[ForeignKeyResolver]
+    group_leader: Optional[GroupLeaderExecutor]
 
     def __init__(
         self,
@@ -43,7 +46,7 @@ class EntitySeedGenerator:
             Dict with all field values
         """
         entity_data = {}
-        context = {"instance_num": instance}
+        context: dict[str, Any] = {"instance_num": instance}
 
         # Generate UUID first
         entity_data["id"] = self.uuid_gen.generate(scenario=scenario, instance=instance)

@@ -48,7 +48,7 @@ class PatternAnalyticsEngine:
 
     def _load_available_patterns(self) -> Set[str]:
         """Load all available patterns from stdlib"""
-        patterns = set()
+        patterns: Set[str] = set()
 
         if not self.stdlib_dir.exists():
             return patterns
@@ -76,7 +76,7 @@ class PatternAnalyticsEngine:
             entity_name = entity_data.get("entity", "unknown")
             actions = entity_data.get("actions", [])
 
-            pattern_usage = []
+            pattern_usage: list[dict[str, Any]] = []
             for action in actions:
                 if isinstance(action, dict) and "pattern" in action:
                     pattern_name = action["pattern"]
@@ -117,10 +117,10 @@ class PatternAnalyticsEngine:
         total_entities = len(entity_files)
 
         pattern_usage = defaultdict(list)
-        entities_with_patterns = []
-        entities_without_patterns = []
+        entities_with_patterns: list[str] = []
+        entities_without_patterns: list[str] = []
 
-        all_pattern_details = []
+        all_pattern_details: list[dict[str, Any]] = []
 
         for entity_file in entity_files:
             analysis = self.analyze_entity(entity_file)
@@ -142,13 +142,13 @@ class PatternAnalyticsEngine:
                 entities_without_patterns.append(analysis["entity_name"])
 
         # Build pattern usage statistics
-        pattern_breakdown = {}
+        pattern_breakdown: dict[str, PatternUsage] = {}
         for pattern_name, usages in pattern_usage.items():
             entities = list(set(u["entity"] for u in usages))
             complexities = [u["complexity"] for u in usages]
 
             # Find most common config keys
-            all_config_keys = []
+            all_config_keys: list[str] = []
             for u in usages:
                 all_config_keys.extend(u["config_keys"])
             common_keys = [k for k, _ in Counter(all_config_keys).most_common(3)]
@@ -198,7 +198,7 @@ class PatternAnalyticsEngine:
         adoption_rate: float,
     ) -> List[str]:
         """Generate recommendations based on analytics"""
-        recommendations = []
+        recommendations: list[str] = []
 
         # Adoption rate recommendations
         if adoption_rate < 0.5:
@@ -238,7 +238,7 @@ class PatternAnalyticsEngine:
         """Generate a comprehensive dashboard report"""
         analytics = self.analyze_all_entities()
 
-        report = []
+        report: list[str] = []
         report.append("# 📊 Pattern Analytics Dashboard")
         report.append("")
 

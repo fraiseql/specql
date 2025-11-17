@@ -48,7 +48,7 @@ class PatternDeduplicator:
         processed = set()
 
         for i, pattern1 in enumerate(active_patterns):
-            if pattern1.id in processed:
+            if pattern1.id in processed or pattern1.id is None:
                 continue
 
             # Find similar patterns using FraiseQL
@@ -240,7 +240,7 @@ class PatternDeduplicator:
         if len(s2) == 0:
             return len(s1)
 
-        previous_row = range(len(s2) + 1)
+        previous_row = list(range(len(s2) + 1))
 
         for i, c1 in enumerate(s1):
             current_row = [i + 1]

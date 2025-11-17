@@ -360,7 +360,7 @@ import json
 
 
 if __name__ == "__main__":
-    library = PatternLibrary("pattern_library.db")
+    library = PatternLibrary(db_path="pattern_library.db")
     add_django_patterns(library)
     library.close()
 

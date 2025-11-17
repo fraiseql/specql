@@ -74,7 +74,10 @@ class YAMLSerializer:
 
         # Reference field
         elif field.type == FieldType.REFERENCE:
-            ref_spec = {"type": "reference", "references": field.references}
+            ref_spec: Dict[str, Any] = {
+                "type": "reference",
+                "references": field.references,
+            }
             if field.required:
                 ref_spec["required"] = True
             return ref_spec

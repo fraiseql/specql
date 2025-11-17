@@ -105,13 +105,13 @@ class PythonToSpecQLMapper:
             ]
 
         # Regular if/then/else
-        then_steps = []
+        then_steps: list[ActionStep] = []
         for line in then_body:
             # Recursively parse then body
             # (simplified - real implementation would use analyzer)
             pass
 
-        else_steps = []
+        else_steps: list[ActionStep] = []
         for line in stmt.metadata.get("else_body", []):
             # Recursively parse else body
             pass
@@ -203,7 +203,7 @@ class PythonToSpecQLMapper:
         stmt.metadata["body"]
 
         # Parse body (simplified)
-        body_steps = []
+        body_steps: list[ActionStep] = []
 
         return [
             ActionStep(

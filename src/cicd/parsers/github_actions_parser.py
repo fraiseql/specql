@@ -91,7 +91,7 @@ class GitHubActionsParser:
             services=self._parse_services(job_config.get("services", {})),
             needs=job_config.get("needs", [])
             if isinstance(job_config.get("needs"), list)
-            else [job_config.get("needs")]
+            else [str(job_config.get("needs"))]
             if job_config.get("needs")
             else [],
             if_condition=job_config.get("if"),

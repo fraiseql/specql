@@ -18,7 +18,7 @@ class SubdomainService:
         self.domain_repository = domain_repository
 
     def register_subdomain(
-        self, parent_domain_number: int, subdomain_number: int, subdomain_name: str
+        self, parent_domain_number: str, subdomain_number: str, subdomain_name: str
     ) -> SubdomainDTO:
         """
         Register a new subdomain under a parent domain.
@@ -90,13 +90,13 @@ class SubdomainService:
             try:
                 parent_domain = self.domain_repository.get(parent_domain_number_str)
                 subdomains = list(parent_domain.subdomains.values())
-                parent_num = int(parent_domain.domain_number.value)
+                parent_num = parent_domain.domain_number.value
             except ValueError:
                 return []  # Domain not found, return empty list
 
             return [
                 SubdomainDTO(
-                    subdomain_number=int(s.subdomain_number),
+                    subdomain_number=s.subdomain_number,
                     subdomain_name=s.subdomain_name,
                     parent_domain_number=parent_num,
                     identifier=f"D{parent_num}S{s.subdomain_number}",
@@ -109,11 +109,11 @@ class SubdomainService:
             domains = self.domain_repository.list_all()
             result = []
             for domain in domains:
-                domain_num = int(domain.domain_number.value)
+                domain_num = domain.domain_number.value
                 for subdomain in domain.subdomains.values():
                     result.append(
                         SubdomainDTO(
-                            subdomain_number=int(subdomain.subdomain_number),
+                            subdomain_number=subdomain.subdomain_number,
                             subdomain_name=subdomain.subdomain_name,
                             parent_domain_number=domain_num,
                             identifier=f"D{domain_num}S{subdomain.subdomain_number}",

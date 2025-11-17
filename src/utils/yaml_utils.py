@@ -3,7 +3,7 @@ YAML utilities for SpecQL entities
 """
 
 import yaml
-from typing import List
+from typing import List, Any
 from src.core.universal_ast import UniversalEntity
 
 
@@ -18,7 +18,7 @@ def entities_to_yaml_string(entities: List[UniversalEntity]) -> str:
         YAML string representation
     """
     # Convert entities to dict format
-    entities_dict = []
+    entities_dict: list[dict[str, Any]] = []
     for entity in entities:
         entity_dict = {
             "entity": {
@@ -68,11 +68,11 @@ def yaml_string_to_entities(yaml_str: str) -> List[UniversalEntity]:
     from src.core.universal_ast import UniversalField, UniversalAction, FieldType
 
     data = yaml.safe_load(yaml_str)
-    entities = []
+    entities: list[UniversalEntity] = []
 
     for item in data:
         entity_data = item["entity"]
-        fields = []
+        fields: list[UniversalField] = []
         for field_data in entity_data.get("fields", []):
             field = UniversalField(
                 name=field_data["name"],
@@ -83,7 +83,7 @@ def yaml_string_to_entities(yaml_str: str) -> List[UniversalEntity]:
             )
             fields.append(field)
 
-        actions = []
+        actions: list[UniversalAction] = []
         for action_data in entity_data.get("actions", []):
             # Simplified action creation for round-trip testing
             action = UniversalAction(

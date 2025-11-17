@@ -6,7 +6,7 @@ Uses HCL parser (python-hcl2) to parse Terraform syntax.
 """
 
 import hcl2
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, Literal
 from src.infrastructure.universal_infra_schema import (
     UniversalInfrastructure,
     ComputeConfig,
@@ -277,7 +277,9 @@ class TerraformParser:
 
     def _parse_security(self, resources: Dict[str, Any]) -> SecurityConfig:
         """Parse security resources (IAM, security groups, etc.)"""
-        secrets_provider = "aws_secrets"
+        secrets_provider: Literal[
+            "aws_secrets", "gcp_secrets", "azure_keyvault", "vault"
+        ] = "aws_secrets"
         iam_roles = []
 
         for resource_type, resource_configs in resources.items():

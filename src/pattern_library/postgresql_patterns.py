@@ -418,6 +418,6 @@ def add_postgresql_patterns(library: PatternLibrary):
 
 
 if __name__ == "__main__":
-    library = PatternLibrary("pattern_library.db")
+    library = PatternLibrary(db_path="pattern_library.db")
     add_postgresql_patterns(library)
     library.close()

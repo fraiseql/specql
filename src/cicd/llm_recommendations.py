@@ -14,6 +14,7 @@ import requests
 from typing import Dict, List, Any, Optional
 from dataclasses import asdict
 from src.cicd.universal_pipeline_schema import UniversalPipeline
+from src.utils.http_config import DEFAULT_REQUEST_TIMEOUT
 
 
 class LLMRecommendations:
@@ -153,7 +154,12 @@ class LLMRecommendations:
         }
 
         try:
-            response = requests.post(self.api_base, headers=headers, json=data)
+            response = requests.post(
+                self.api_base,
+                headers=headers,
+                json=data,
+                timeout=DEFAULT_REQUEST_TIMEOUT,
+            )
             response.raise_for_status()
 
             result = response.json()

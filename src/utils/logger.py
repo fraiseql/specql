@@ -31,7 +31,7 @@ import logging
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, MutableMapping
 
 
 @dataclass
@@ -48,7 +48,7 @@ class LogContext:
 
     def to_dict(self) -> dict[str, Any]:
         """Convert context to dictionary for logging"""
-        context = {}
+        context: dict[str, Any] = {}
         if self.entity_name:
             context["entity"] = self.entity_name
         if self.file_path:
@@ -66,7 +66,7 @@ class LogContext:
 
     def format_prefix(self) -> str:
         """Format context as a log prefix"""
-        parts = []
+        parts: list[str] = []
         if self.team:
             parts.append(f"[{self.team}]")
         if self.entity_name:
@@ -85,7 +85,9 @@ class ContextAdapter(logging.LoggerAdapter):
         super().__init__(logger, {})
         self.context = context or LogContext()
 
-    def process(self, msg: str, kwargs: dict) -> tuple[str, dict]:
+    def process(
+        self, msg: str, kwargs: MutableMapping[str, Any]
+    ) -> tuple[str, MutableMapping[str, Any]]:
         """Add context to log message"""
         prefix = self.context.format_prefix()
         if prefix:

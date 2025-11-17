@@ -103,7 +103,9 @@ class RichTypeHandler:
             return "jsonb_build_object()"
 
         # Group by base field
-        base_fields = {}
+        from typing import Any
+
+        base_fields: dict[str, dict[str, Any]] = {}
         for field_path, value in field_assignments.items():
             base_field, json_path = self._parse_field_path(field_path)
             if base_field not in base_fields:

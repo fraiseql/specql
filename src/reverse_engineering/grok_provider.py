@@ -8,6 +8,7 @@ import uuid
 from pathlib import Path
 import psycopg
 import os
+from typing import Optional
 
 
 class GrokProvider:
@@ -20,6 +21,8 @@ class GrokProvider:
     - Good at structured output (JSON)
     - Logs calls to PostgreSQL for metrics
     """
+
+    db_conn: Optional[psycopg.Connection]
 
     def __init__(self, log_to_db: bool = True):
         """
@@ -186,9 +189,11 @@ class GrokProvider:
         prompt_hash: str,
         latency_ms: int,
         success: bool,
-        error_message: str = None,
+        error_message: Optional[str] = None,
     ):
         """Log Grok call to PostgreSQL."""
+        if self.db_conn is None:
+            return
         try:
             self.db_conn.execute(
                 """

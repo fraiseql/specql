@@ -3,13 +3,16 @@
 from abc import ABC, abstractmethod
 
 from src.core.ast_models import ActionStep, EntityDefinition
+from src.generators.actions.compilation_context import CompilationContext
 
 
 class StepCompiler(ABC):
     """Base class for all step compilers"""
 
     @abstractmethod
-    def compile(self, step: ActionStep, entity: EntityDefinition, context: dict) -> str:
+    def compile(
+        self, step: ActionStep, entity: EntityDefinition, context: CompilationContext
+    ) -> str:
         """
         Compile a step to PL/pgSQL
 

@@ -5,7 +5,9 @@ Generates PostgreSQL functions for recalculating entity identifiers based on Spe
 Supports hierarchical and composite identifier strategies.
 """
 
-from src.core.ast_models import EntityDefinition
+from typing import Any
+
+from src.core.ast_models import EntityDefinition, IdentifierComponent
 from src.core.separators import Separators
 
 
@@ -17,7 +19,7 @@ class IdentifierRecalcGenerator:
 
         if entity.identifier and entity.identifier.strategy == "composite_hierarchical":
             return self._generate_composite_hierarchical_strategy(entity)
-        elif entity.hierarchical:
+        elif entity.identifier and "hierarchical" in entity.identifier.strategy:
             return self._generate_hierarchical_strategy(entity)
         else:
             return self._generate_simple_strategy(entity)
@@ -49,7 +51,7 @@ class IdentifierRecalcGenerator:
         component_expr = self._build_component_expression(
             entity.identifier.components
             if entity.identifier
-            else [{"field": "name", "transform": "slugify"}]
+            else [IdentifierComponent(field="name", transform="slugify")]
         )
 
         return f"""
@@ -111,6 +113,7 @@ Pattern: {{tenant}}|{{parent}}{separator}{{child}}';
         schema = entity.schema
 
         # Get separators
+        assert entity.identifier is not None  # Should be set for composite_hierarchical
         composition_sep = (
             entity.identifier.composition_separator or Separators.COMPOSITION
         )
@@ -240,7 +243,7 @@ Components have tenant prefix stripped to avoid duplication.';
             return f"(SELECT identifier FROM management.tb_tenant WHERE id = t.{tenant_field})"
         return "'unknown-tenant'"
 
-    def _build_component_expression(self, components: list) -> str:
+    def _build_component_expression(self, components: list[Any]) -> str:
         """Build SQL expression for identifier components."""
         if not components:
             return "public.safe_slug(t.name)"  # Default fallback

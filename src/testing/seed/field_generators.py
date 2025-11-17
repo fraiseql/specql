@@ -1,7 +1,7 @@
 """Field value generators for SpecQL test data"""
 
 import random
-from typing import Any
+from typing import Any, Optional
 
 from faker import Faker
 
@@ -20,7 +20,7 @@ class FieldValueGenerator:
             random.seed(seed)
 
     def generate(
-        self, field_mapping: dict[str, Any], context: dict[str, Any] = None
+        self, field_mapping: dict[str, Any], context: Optional[dict[str, Any]] = None
     ) -> Any:
         """
         Generate value for field based on mapping

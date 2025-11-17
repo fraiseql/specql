@@ -235,7 +235,7 @@ class PreviewGenerator:
 
     def _detect_patterns(self, entity) -> List[Dict[str, Any]]:
         """Detect patterns in entity"""
-        patterns = []
+        patterns: List[Dict[str, Any]] = []
 
         if not hasattr(entity, "fields") or not entity.fields:
             return patterns

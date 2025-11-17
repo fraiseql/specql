@@ -3,7 +3,7 @@ App Schema Foundation Generator (Team B)
 Generates the app.* schema foundation including shared utility functions
 """
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from src.generators.cdc.outbox_generator import OutboxGenerator
 
 
@@ -13,7 +13,10 @@ class AppSchemaGenerator:
     def __init__(self, templates_dir: str = "templates/sql"):
         self.templates_dir = templates_dir
         self.env = Environment(
-            loader=FileSystemLoader("/home/lionel/code/specql/templates/sql")
+            loader=FileSystemLoader("/home/lionel/code/specql/templates/sql"),
+            autoescape=select_autoescape(
+                enabled_extensions=("html", "xml", "j2"), default_for_string=True
+            ),
         )
         self._generated = False  # Ensure foundation is generated only once
 

@@ -34,7 +34,7 @@ class GraphvizGenerator:
 
     def __init__(self, extractor: RelationshipExtractor):
         self.extractor = extractor
-        self.dot_lines = []
+        self.dot_lines: list[str] = []
 
     def generate(
         self,

@@ -3,7 +3,7 @@ PostgreSQL Function Generator (Team B)
 Generates CRUD and action functions from Entity AST
 """
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from src.core.ast_models import Entity
 from src.generators.app_wrapper_generator import AppWrapperGenerator
@@ -25,7 +25,12 @@ class FunctionGenerator:
         self.schema_registry = schema_registry
 
         self.env = Environment(
-            loader=FileSystemLoader(templates_dir), trim_blocks=True, lstrip_blocks=True
+            loader=FileSystemLoader(templates_dir),
+            autoescape=select_autoescape(
+                enabled_extensions=("html", "xml", "j2"), default_for_string=True
+            ),
+            trim_blocks=True,
+            lstrip_blocks=True,
         )
 
         # Initialize sub-generators with schema_registry

@@ -151,6 +151,23 @@ exclude = [
 [tool.pytest.ini_options]
 addopts = "--import-mode=importlib"
 
+[tool.mypy]
+mypy_path = "stubs"
+ignore_missing_imports = false
+
+# For libraries we can't stub, ignore them
+[[tool.mypy.overrides]]
+module = [
+    "py4j.*",
+    "botocore.*",
+    "google.api_core.*",
+    "pygments.*",  # Syntax highlighting library
+    "pgvector.*",  # PostgreSQL vector extension
+    "graphviz",    # Graph visualization library
+    "confiture.*"  # Configuration library
+]
+ignore_missing_imports = true
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

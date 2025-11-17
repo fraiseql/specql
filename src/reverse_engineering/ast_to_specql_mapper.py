@@ -226,7 +226,7 @@ class ASTToSpecQLMapper:
 
     def _map_statements(self, plpgsql_ast: Any) -> List[ActionStep]:
         """Map PL/pgSQL statements to SpecQL steps"""
-        steps = []
+        steps: list[ActionStep] = []
 
         if not plpgsql_ast:
             return steps

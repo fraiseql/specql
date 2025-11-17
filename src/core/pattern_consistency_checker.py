@@ -116,7 +116,7 @@ class PatternConsistencyChecker:
         """Load patterns from legacy SQLite storage"""
         import sqlite3
 
-        patterns = {}
+        patterns: dict[str, dict[str, Any]] = {}
         try:
             if not self.legacy_patterns_path.exists():
                 logger.info("No legacy pattern database found")

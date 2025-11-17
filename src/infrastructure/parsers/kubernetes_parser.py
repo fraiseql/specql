@@ -76,7 +76,7 @@ class KubernetesParser:
         self, manifests: List[Dict[str, Any]]
     ) -> Dict[str, List[Dict[str, Any]]]:
         """Group manifests by their kind"""
-        grouped = {}
+        grouped: dict[str, list[dict[str, Any]]] = {}
         for manifest in manifests:
             kind = manifest.get("kind", "Unknown")
             if kind not in grouped:

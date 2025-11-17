@@ -44,7 +44,7 @@ def generate_kpi_calculator(config: Dict[str, Any]) -> str:
     from .kpi_builder import JoinDetector
 
     join_detector = JoinDetector()
-    metric_joins = []
+    metric_joins: List[Any] = []
     processed_metrics = []
 
     for metric in metrics:

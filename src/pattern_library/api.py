@@ -38,7 +38,7 @@ Usage:
 import sqlite3
 import json
 from pathlib import Path
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, cast
 from functools import lru_cache
 from jinja2 import Template
 
@@ -48,6 +48,11 @@ if TYPE_CHECKING:
 
 class PatternLibrary:
     """Database-driven pattern library for multi-language code generation"""
+
+    db: sqlite3.Connection | None
+    pattern_service: Optional["PatternService"]
+    db_path: Optional[str]
+    _legacy_mode: bool
 
     def __init__(
         self,
@@ -64,15 +69,17 @@ class PatternLibrary:
         if pattern_service:
             # New repository-based approach
             self.pattern_service = pattern_service
-            self.db_path = None
-            self.db = None
+            self.db_path = None  # type: ignore[union-attr]
+            self.db = None  # type: ignore[union-attr]
             self._legacy_mode = False
         else:
             # Legacy direct database access (deprecated)
             self.pattern_service = None
-            self.db_path = db_path
-            self.db = sqlite3.connect(db_path)
-            self.db.row_factory = sqlite3.Row  # Return rows as dicts
+            self.db_path = db_path  # type: ignore[union-attr]
+            self.db = sqlite3.connect(db_path)  # type: ignore[union-attr]
+            self.db.row_factory = (
+                sqlite3.Row
+            )  # Return rows as dicts  # type: ignore[union-attr]
             self._initialize_schema()
             self._legacy_mode = True
 
@@ -85,18 +92,20 @@ class PatternLibrary:
             return
 
         # Check if tables already exist
-        cursor = self.db.execute("""
+        cursor = self.db.execute(  # type: ignore[union-attr]
+            """
             SELECT name FROM sqlite_master
             WHERE type='table' AND name='patterns'
-        """)
+        """
+        )
         if cursor.fetchone():
             # Schema already exists, skip initialization
             return
 
         with open(schema_path) as f:
-            self.db.executescript(f.read())
+            self.db.executescript(f.read())  # type: ignore[union-attr]
 
-        self.db.commit()
+        self.db.commit()  # type: ignore[union-attr]
 
     # ===== Pattern Management =====
 
@@ -122,7 +131,8 @@ class PatternLibrary:
             return pattern.id or 0
         else:
             # Legacy direct database access
-            cursor = self.db.execute(
+            db = cast(sqlite3.Connection, self.db)  # type: ignore[union-attr]
+            cursor = db.execute(
                 """
                 INSERT INTO patterns (pattern_name, pattern_category, abstract_syntax, description, complexity_score)
                 VALUES (?, ?, ?, ?, ?)
@@ -135,13 +145,13 @@ class PatternLibrary:
                     complexity_score,
                 ),
             )
-            self.db.commit()
+            self.db.commit()  # type: ignore[union-attr]
             return cursor.lastrowid or 0
 
     @lru_cache(maxsize=128)
     def get_pattern(self, name: str) -> Optional[Dict[str, Any]]:
         """Get pattern by name"""
-        cursor = self.db.execute(
+        cursor = self.db.execute(  # type: ignore[union-attr]
             "SELECT * FROM patterns WHERE pattern_name = ?", (name,)
         )
         row = cursor.fetchone()
@@ -150,12 +160,12 @@ class PatternLibrary:
     def get_all_patterns(self, category: Optional[str] = None) -> List[Dict[str, Any]]:
         """Get all patterns, optionally filtered by category"""
         if category:
-            cursor = self.db.execute(
+            cursor = self.db.execute(  # type: ignore[union-attr]
                 "SELECT * FROM patterns WHERE pattern_category = ? ORDER BY pattern_name",
                 (category,),
             )
         else:
-            cursor = self.db.execute("SELECT * FROM patterns ORDER BY pattern_name")
+            cursor = self.db.execute("SELECT * FROM patterns ORDER BY pattern_name")  # type: ignore[union-attr]
 
         return [dict(row) for row in cursor.fetchall()]
 
@@ -170,20 +180,20 @@ class PatternLibrary:
         supported: bool = True,
     ) -> int:
         """Add a target language"""
-        cursor = self.db.execute(
+        cursor = self.db.execute(  # type: ignore[union-attr]
             """
             INSERT INTO languages (language_name, ecosystem, paradigm, version, supported)
             VALUES (?, ?, ?, ?, ?)
             """,
             (name, ecosystem, paradigm, version, supported),
         )
-        self.db.commit()
+        self.db.commit()  # type: ignore[union-attr]
         return cursor.lastrowid or 0
 
     @lru_cache(maxsize=32)
     def get_language(self, name: str) -> Optional[Dict[str, Any]]:
         """Get language by name"""
-        cursor = self.db.execute(
+        cursor = self.db.execute(  # type: ignore[union-attr]
             "SELECT * FROM languages WHERE language_name = ?", (name,)
         )
         row = cursor.fetchone()
@@ -192,11 +202,11 @@ class PatternLibrary:
     def get_all_languages(self, supported_only: bool = True) -> List[Dict[str, Any]]:
         """Get all languages"""
         if supported_only:
-            cursor = self.db.execute(
+            cursor = self.db.execute(  # type: ignore[union-attr]
                 "SELECT * FROM languages WHERE supported = TRUE ORDER BY language_name"
             )
         else:
-            cursor = self.db.execute("SELECT * FROM languages ORDER BY language_name")
+            cursor = self.db.execute("SELECT * FROM languages ORDER BY language_name")  # type: ignore[union-attr]
 
         return [dict(row) for row in cursor.fetchall()]
 
@@ -221,7 +231,7 @@ class PatternLibrary:
         if not language:
             raise ValueError(f"Language not found: {language_name}")
 
-        cursor = self.db.execute(
+        cursor = self.db.execute(  # type: ignore[union-attr]
             """
             INSERT INTO pattern_implementations
             (pattern_id, language_id, implementation_template, supported, version)
@@ -235,7 +245,7 @@ class PatternLibrary:
                 version,
             ),
         )
-        self.db.commit()
+        self.db.commit()  # type: ignore[union-attr]
         return cursor.lastrowid or 0
 
     def add_or_update_implementation(
@@ -250,11 +260,11 @@ class PatternLibrary:
         existing = self.get_implementation(pattern_name, language_name)
         if existing:
             # Update existing implementation
-            self.db.execute(
+            self.db.execute(  # type: ignore[union-attr]
                 "UPDATE pattern_implementations SET implementation_template = ?, supported = ?, version = ? WHERE implementation_id = ?",
                 (template, supported, version, existing["implementation_id"]),
             )
-            self.db.commit()
+            self.db.commit()  # type: ignore[union-attr]
             return existing["implementation_id"]
         else:
             # Add new implementation
@@ -267,7 +277,7 @@ class PatternLibrary:
         self, pattern_name: str, language_name: str
     ) -> Optional[Dict[str, Any]]:
         """Get implementation for pattern + language"""
-        cursor = self.db.execute(
+        cursor = self.db.execute(  # type: ignore[union-attr]
             """
             SELECT pi.*
             FROM pattern_implementations pi
@@ -319,7 +329,7 @@ class PatternLibrary:
         json_schema: Optional[Dict] = None,
     ) -> int:
         """Add universal type to library"""
-        cursor = self.db.execute(
+        cursor = self.db.execute(  # type: ignore[union-attr]
             """
             INSERT INTO universal_types (type_name, type_category, description, json_schema)
             VALUES (?, ?, ?, ?)
@@ -331,7 +341,7 @@ class PatternLibrary:
                 json.dumps(json_schema) if json_schema else None,
             ),
         )
-        self.db.commit()
+        self.db.commit()  # type: ignore[union-attr]
         return cursor.lastrowid or 0
 
     def add_type_mapping(
@@ -344,7 +354,7 @@ class PatternLibrary:
         """Map universal type to language-specific type"""
 
         # Get IDs
-        cursor = self.db.execute(
+        cursor = self.db.execute(  # type: ignore[union-attr]
             "SELECT type_id FROM universal_types WHERE type_name = ?",
             (universal_type_name,),
         )
@@ -356,7 +366,7 @@ class PatternLibrary:
         if not language:
             raise ValueError(f"Language not found: {language_name}")
 
-        cursor = self.db.execute(
+        cursor = self.db.execute(  # type: ignore[union-attr]
             """
             INSERT INTO type_mappings (universal_type_id, language_id, language_type, import_statement)
             VALUES (?, ?, ?, ?)
@@ -368,14 +378,14 @@ class PatternLibrary:
                 import_statement,
             ),
         )
-        self.db.commit()
+        self.db.commit()  # type: ignore[union-attr]
         return cursor.lastrowid or 0
 
     def get_type_mapping(
         self, universal_type_name: str, language_name: str
     ) -> Optional[Dict[str, Any]]:
         """Get type mapping for universal type in target language"""
-        cursor = self.db.execute(
+        cursor = self.db.execute(  # type: ignore[union-attr]
             """
             SELECT tm.*, ut.type_name, l.language_name
             FROM type_mappings tm
@@ -447,7 +457,7 @@ class PatternLibrary:
         icon: str = "",
     ) -> int:
         """Add a domain pattern (Tier 2)"""
-        cursor = self.db.execute(
+        cursor = self.db.execute(  # type: ignore[union-attr]
             """
             INSERT INTO domain_patterns
             (pattern_name, pattern_category, description, parameters, implementation, tags, icon)
@@ -463,12 +473,12 @@ class PatternLibrary:
                 icon,
             ),
         )
-        self.db.commit()
+        self.db.commit()  # type: ignore[union-attr]
         return cursor.lastrowid or 0
 
     def get_domain_pattern(self, name: str) -> Optional[Dict[str, Any]]:
         """Get domain pattern by name"""
-        cursor = self.db.execute(
+        cursor = self.db.execute(  # type: ignore[union-attr]
             "SELECT * FROM domain_patterns WHERE pattern_name = ?", (name,)
         )
         row = cursor.fetchone()
@@ -484,12 +494,12 @@ class PatternLibrary:
     ) -> List[Dict[str, Any]]:
         """Get all domain patterns, optionally filtered by category"""
         if category:
-            cursor = self.db.execute(
+            cursor = self.db.execute(  # type: ignore[union-attr]
                 "SELECT * FROM domain_patterns WHERE pattern_category = ? ORDER BY popularity_score DESC",
                 (category,),
             )
         else:
-            cursor = self.db.execute(
+            cursor = self.db.execute(  # type: ignore[union-attr]
                 "SELECT * FROM domain_patterns ORDER BY popularity_score DESC"
             )
 
@@ -524,14 +534,14 @@ class PatternLibrary:
         )
 
         # Record instantiation
-        self.db.execute(
+        self.db.execute(  # type: ignore[union-attr]
             """
             INSERT INTO pattern_instantiations (entity_name, domain_pattern_id, parameters)
             VALUES (?, ?, ?)
             """,
             (entity_name, pattern["domain_pattern_id"], json.dumps(parameters)),
         )
-        self.db.commit()
+        self.db.commit()  # type: ignore[union-attr]
 
         return instantiated
 
@@ -580,7 +590,7 @@ class PatternLibrary:
         Returns:
             Composed entity definition with merged fields, actions, etc.
         """
-        composed = {
+        composed: Dict[str, Any] = {
             "entity": entity_name,
             "fields": [],
             "actions": [],
@@ -646,7 +656,7 @@ class PatternLibrary:
         Returns:
             Validation result with conflicts and warnings
         """
-        validation_result = {
+        validation_result: Dict[str, Any] = {
             "valid": True,
             "conflicts": [],
             "warnings": [],
@@ -665,7 +675,7 @@ class PatternLibrary:
             pattern_details.append(pattern)
 
         # Check for field conflicts
-        all_fields = {}
+        all_fields: dict[str, str] = {}
         for pattern in pattern_details:
             impl = pattern["implementation"]
             if "fields" in impl:
@@ -680,7 +690,7 @@ class PatternLibrary:
                         all_fields[field_name] = pattern["pattern_name"]
 
         # Check for action conflicts
-        all_actions = {}
+        all_actions: dict[str, str] = {}
         for pattern in pattern_details:
             impl = pattern["implementation"]
             if "actions" in impl:
@@ -729,7 +739,7 @@ class PatternLibrary:
         tags: str = "",
     ) -> int:
         """Add an entity template (Tier 3)"""
-        cursor = self.db.execute(
+        cursor = self.db.execute(  # type: ignore[union-attr]
             """
             INSERT INTO entity_templates
             (template_name, template_namespace, description, default_fields, default_patterns, default_actions, configuration_options, icon, tags)
@@ -747,12 +757,12 @@ class PatternLibrary:
                 tags,
             ),
         )
-        self.db.commit()
+        self.db.commit()  # type: ignore[union-attr]
         return cursor.lastrowid or 0
 
     def get_entity_template(self, template_name: str) -> Optional[Dict[str, Any]]:
         """Get entity template by name"""
-        cursor = self.db.execute(
+        cursor = self.db.execute(  # type: ignore[union-attr]
             "SELECT * FROM entity_templates WHERE template_name = ?", (template_name,)
         )
         row = cursor.fetchone()
@@ -770,7 +780,7 @@ class PatternLibrary:
 
     def get_entity_templates_by_namespace(self, namespace: str) -> List[Dict[str, Any]]:
         """Get all entity templates for a specific namespace"""
-        cursor = self.db.execute(
+        cursor = self.db.execute(  # type: ignore[union-attr]
             "SELECT * FROM entity_templates WHERE template_namespace = ? ORDER BY template_name",
             (namespace,),
         )
@@ -792,7 +802,7 @@ class PatternLibrary:
 
     def get_all_entity_templates(self) -> List[Dict[str, Any]]:
         """Get all entity templates across all namespaces"""
-        cursor = self.db.execute(
+        cursor = self.db.execute(  # type: ignore[union-attr]
             "SELECT * FROM entity_templates ORDER BY template_namespace, template_name"
         )
 
@@ -875,7 +885,7 @@ class PatternLibrary:
         merged_entity = self._merge_pattern_instances(entity_def, pattern_instances)
 
         # Record template instantiation
-        self.db.execute(
+        self.db.execute(  # type: ignore[union-attr]
             """
             INSERT INTO pattern_instantiations (entity_name, entity_template_id, parameters)
             VALUES (?, ?, ?)
@@ -892,7 +902,7 @@ class PatternLibrary:
                 ),
             ),
         )
-        self.db.commit()
+        self.db.commit()  # type: ignore[union-attr]
 
         return merged_entity
 
@@ -966,7 +976,7 @@ class PatternLibrary:
         if not template:
             return {"valid": False, "errors": [f"Template not found: {template_name}"]}
 
-        validation_result = {
+        validation_result: Dict[str, Any] = {
             "valid": True,
             "warnings": [],
             "errors": [],
@@ -998,7 +1008,7 @@ class PatternLibrary:
 
     def close(self):
         """Close database connection"""
-        self.db.close()
+        self.db.close()  # type: ignore[union-attr]
 
     def __enter__(self):
         """Context manager entry"""

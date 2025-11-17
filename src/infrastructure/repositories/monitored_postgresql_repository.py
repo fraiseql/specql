@@ -7,6 +7,7 @@ for Phase 3 cut-over monitoring.
 
 import time
 import logging
+from typing import cast, Dict, Any, List
 from src.infrastructure.repositories.postgresql_domain_repository import (
     PostgreSQLDomainRepository,
 )
@@ -20,6 +21,8 @@ class MonitoredPostgreSQLDomainRepository(PostgreSQLDomainRepository):
 
     Tracks query performance during the cut-over period.
     """
+
+    performance_stats: Dict[str, Any]
 
     def __init__(self, db_url: str):
         super().__init__(db_url)
@@ -76,8 +79,12 @@ class MonitoredPostgreSQLDomainRepository(PostgreSQLDomainRepository):
 
     def _record_query_time(self, operation: str, duration: float):
         """Record query performance metrics"""
-        self.performance_stats["queries_executed"] += 1
-        self.performance_stats["total_query_time"] += duration
+        self.performance_stats["queries_executed"] = (
+            cast(int, self.performance_stats["queries_executed"]) + 1
+        )
+        self.performance_stats["total_query_time"] = (
+            cast(float, self.performance_stats["total_query_time"]) + duration
+        )
 
         # Track slow queries (> 100ms)
         if duration > 0.1:
@@ -89,7 +96,9 @@ class MonitoredPostgreSQLDomainRepository(PostgreSQLDomainRepository):
 
     def _record_query_failure(self, operation: str, error: str):
         """Record query failure"""
-        self.performance_stats["failed_queries"] += 1
+        self.performance_stats["failed_queries"] = (
+            cast(int, self.performance_stats["failed_queries"]) + 1
+        )
         logger.error(f"Query failed - {operation}: {error}")
 
     def get_performance_report(self) -> dict:
@@ -104,9 +113,10 @@ class MonitoredPostgreSQLDomainRepository(PostgreSQLDomainRepository):
             stats["average_query_time"] = 0.0
 
         stats["slow_query_count"] = len(stats["slow_queries"])
+        queries_executed = cast(int, stats["queries_executed"])
+        failed_queries = cast(int, stats["failed_queries"])
         stats["success_rate"] = (
-            (stats["queries_executed"] - stats["failed_queries"])
-            / max(stats["queries_executed"], 1)
+            (queries_executed - failed_queries) / max(queries_executed, 1)
         ) * 100
 
         return stats

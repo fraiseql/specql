@@ -1,6 +1,6 @@
 """Compiler for while steps"""
 
-from src.core.ast_models import ActionStep
+from src.core.ast_models import ActionStep, EntityDefinition
 from src.generators.actions.compilation_context import CompilationContext
 from src.generators.actions.loop_optimizer import LoopOptimizer
 from src.generators.actions.step_compilers.base import StepCompiler
@@ -9,7 +9,9 @@ from src.generators.actions.step_compilers.base import StepCompiler
 class WhileStepCompiler(StepCompiler):
     """Compiles while steps to PL/pgSQL WHILE loops"""
 
-    def compile(self, step: ActionStep, context: CompilationContext) -> str:
+    def compile(
+        self, step: ActionStep, entity: EntityDefinition, context: CompilationContext
+    ) -> str:
         """
         Generate WHILE LOOP statement
 

@@ -188,14 +188,14 @@ class PatternMatcher:
             return 0.0
 
         # Generate embedding for entity description
-        entity_embedding = self.embedding_service.generate_embedding(description)
+        entity_embedding = self.embedding_service.generate_embedding(description)  # type: ignore[attr-defined]
 
         # Calculate similarity with pattern embedding
         import numpy as np
 
         pattern_embedding_array = np.array(pattern.embedding)
 
-        similarity = self.embedding_service.cosine_similarity(
+        similarity = self.embedding_service.cosine_similarity(  # type: ignore[attr-defined]
             entity_embedding, pattern_embedding_array
         )
 

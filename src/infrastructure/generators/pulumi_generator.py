@@ -275,6 +275,7 @@ class PulumiGenerator:
         self, infrastructure: UniversalInfrastructure
     ) -> List[str]:
         """Generate compute resources code"""
+        assert infrastructure.compute is not None
         code = [
             "",
             "# Compute Resources",
@@ -339,9 +340,9 @@ class PulumiGenerator:
 
         asg_code.extend(
             [
-                "    min_size=" + str(infrastructure.compute.min_instances) + ",",
-                "    max_size=" + str(infrastructure.compute.max_instances) + ",",
-                "    desired_capacity=" + str(infrastructure.compute.instances) + ",",
+                "    min_size=" + str(infrastructure.compute.min_instances) + ",",  # type: ignore
+                "    max_size=" + str(infrastructure.compute.max_instances) + ",",  # type: ignore
+                "    desired_capacity=" + str(infrastructure.compute.instances) + ",",  # type: ignore
                 "    launch_template={",
                 '        "id": launch_template.id,',
                 '        "version": "$Latest"',
@@ -378,7 +379,7 @@ class PulumiGenerator:
                 '        "predefined_metric_specification": {',
                 '            "predefined_metric_type": "ASGAverageCPUUtilization"',
                 "        },",
-                f'        "target_value": {infrastructure.compute.cpu_target}',
+                f'        "target_value": {infrastructure.compute.cpu_target}',  # type: ignore
                 "    },",
                 ")",
             ]
@@ -390,6 +391,7 @@ class PulumiGenerator:
         self, infrastructure: UniversalInfrastructure
     ) -> List[str]:
         """Generate database code"""
+        assert infrastructure.database is not None
         code = [
             "",
             "# Database",
@@ -420,17 +422,17 @@ class PulumiGenerator:
         db_code = [
             f'db_instance = aws.rds.Instance("{infrastructure.name}-db",',
             f'    identifier="{infrastructure.name}-db",',
-            f'    engine="{self._map_database_engine(infrastructure.database.type)}",',
-            f'    engine_version="{infrastructure.database.version}",',
-            f'    instance_class="{infrastructure.database.instance_class or "db.t3.medium"}",',
-            f"    allocated_storage={infrastructure.database.storage.replace('GB', '')},",
-            f'    storage_type="{infrastructure.database.storage_type}",',
+            f'    engine="{self._map_database_engine(infrastructure.database.type)}",',  # type: ignore
+            f'    engine_version="{infrastructure.database.version}",',  # type: ignore
+            f'    instance_class="{infrastructure.database.instance_class or "db.t3.medium"}",',  # type: ignore
+            f"    allocated_storage={infrastructure.database.storage.replace('GB', '')},",  # type: ignore
+            f'    storage_type="{infrastructure.database.storage_type}",',  # type: ignore
             f'    db_name="{infrastructure.name.replace("-", "_")}",',
             '    username="admin",',
             '    password=config.require_secret("db_password"),',
-            f"    multi_az={str(infrastructure.database.multi_az).lower()},",
-            f"    backup_retention_period={infrastructure.database.backup_retention_days},",
-            f"    storage_encrypted={str(infrastructure.security.encryption_at_rest).lower()},",
+            f"    multi_az={str(infrastructure.database.multi_az).lower()}",  # type: ignore
+            f"    backup_retention_period={infrastructure.database.backup_retention_days}",  # type: ignore
+            f"    storage_encrypted={str(infrastructure.security.encryption_at_rest).lower()}",  # type: ignore
             f"    publicly_accessible={str(infrastructure.database.publicly_accessible).lower()},",
             "    vpc_security_group_ids=[db_sg.id],",
             "    db_subnet_group_name=db_subnet_group.name,",
@@ -446,6 +448,7 @@ class PulumiGenerator:
         self, infrastructure: UniversalInfrastructure
     ) -> List[str]:
         """Generate load balancer code"""
+        assert infrastructure.load_balancer is not None
         code = [
             "",
             "# Load Balancer",
@@ -460,11 +463,11 @@ class PulumiGenerator:
                 '    protocol="HTTP",',
                 "    vpc_id=vpc.id,",
                 "    health_check={",
-                f'        "path": "{infrastructure.load_balancer.health_check_path}",',
-                f'        "interval": {infrastructure.load_balancer.health_check_interval},',
+                f'        "path": "{infrastructure.load_balancer.health_check_path}",',  # type: ignore
+                f'        "interval": {infrastructure.load_balancer.health_check_interval},',  # type: ignore
                 '        "timeout": 5,',
-                f'        "healthy_threshold": {infrastructure.load_balancer.healthy_threshold},',
-                f'        "unhealthy_threshold": {infrastructure.load_balancer.unhealthy_threshold}',
+                f'        "healthy_threshold": {infrastructure.load_balancer.healthy_threshold},',  # type: ignore
+                f'        "unhealthy_threshold": {infrastructure.load_balancer.unhealthy_threshold}',  # type: ignore
                 "    }},",
                 "    tags={",
                 f'        "Name": "{infrastructure.name}-tg"    }}',
@@ -479,7 +482,7 @@ class PulumiGenerator:
                 f'load_balancer = aws.lb.LoadBalancer("{infrastructure.name}-lb",',
                 '    name=f"{infrastructure.name}-lb",',
                 "    internal=False,",
-                f'    load_balancer_type="{infrastructure.load_balancer.type}",',
+                f'    load_balancer_type="{infrastructure.load_balancer.type}",',  # type: ignore
                 "    security_groups=[lb_sg.id],",
                 "    subnets=[",
             ]

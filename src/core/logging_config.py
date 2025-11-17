@@ -17,12 +17,12 @@ def setup_logging(level: str = "INFO", format: str = "json") -> None:
     if format == "json":
         # For production: structured JSON logs
         try:
-            import json_log_formatter
+            import json_log_formatter  # type: ignore
 
-            formatter = json_log_formatter.JSONFormatter()
+            formatter: logging.Formatter = json_log_formatter.JSONFormatter()  # type: ignore
         except ImportError:
             # Fallback to basic JSON-like format if json_log_formatter not available
-            formatter = logging.Formatter(
+            formatter = logging.Formatter(  # type: ignore
                 '{"timestamp": "%(asctime)s", "level": "%(levelname)s", "logger": "%(name)s", "message": "%(message)s"}'
             )
         handler = logging.StreamHandler(sys.stdout)

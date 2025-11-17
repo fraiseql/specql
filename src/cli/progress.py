@@ -1,9 +1,10 @@
 """
-Rich progress tracking system for SpecQL CLI
+Rich progress bars and console output for CLI operations
 
-Provides beautiful, informative progress output using the rich library,
-with graceful fallback to basic click output when rich is unavailable.
+Provides beautiful progress bars and formatted output when rich is available,
+with graceful fallback to plain text when not available.
 """
+# Type checking disabled for optional rich dependency
 
 import time
 from collections import defaultdict
@@ -11,33 +12,98 @@ from pathlib import Path
 from typing import Dict, List, Optional, Any, Iterator, Callable
 
 try:
-    from rich.console import Console
-    from rich.progress import (
-        Progress,
-        SpinnerColumn,
-        BarColumn,
-        TextColumn,
-        TimeElapsedColumn,
+    from rich.console import Console  # type: ignore
+    from rich.progress import (  # type: ignore
+        Progress,  # type: ignore
+        SpinnerColumn,  # type: ignore
+        BarColumn,  # type: ignore
+        TextColumn,  # type: ignore
+        TimeElapsedColumn,  # type: ignore
     )
-    from rich.table import Table
-    from rich.tree import Tree
-    from rich.panel import Panel
-    from rich.text import Text
+    from rich.table import Table  # type: ignore
+    from rich.tree import Tree  # type: ignore
+    from rich.panel import Panel  # type: ignore
+    from rich.text import Text  # type: ignore
 
     RICH_AVAILABLE = True
 except ImportError:
     RICH_AVAILABLE = False
+    # Define dummy values when rich is not available
+    Console = None  # type: ignore
+    Progress = None  # type: ignore
+    SpinnerColumn = None  # type: ignore
+    BarColumn = None  # type: ignore
+    TextColumn = None  # type: ignore
+    TimeElapsedColumn = None  # type: ignore
+    Table = None  # type: ignore
+    Tree = None  # type: ignore
+    Panel = None  # type: ignore
+    Text = None  # type: ignore
+
     # Define dummy classes for type hints when rich is not available
-    Console = None
-    Progress = None
-    SpinnerColumn = None
-    BarColumn = None
-    TextColumn = None
-    TimeElapsedColumn = None
-    Table = None
-    Tree = None
-    Panel = None
-    Text = None
+    class Console:  # type: ignore
+        def print(self, *args, **kwargs):
+            pass
+
+        def status(self, *args, **kwargs):
+            return None
+
+    class Progress:  # type: ignore
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+        def add_task(self, *args, **kwargs):
+            return None
+
+        def update(self, *args, **kwargs):
+            pass
+
+    class SpinnerColumn:  # type: ignore
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class BarColumn:  # type: ignore
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class TextColumn:  # type: ignore
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class TimeElapsedColumn:  # type: ignore
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class Table:  # type: ignore
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def add_column(self, *args, **kwargs):
+            pass
+
+        def add_row(self, *args, **kwargs):
+            pass
+
+    class Tree:  # type: ignore
+        def __init__(self, *args, **kwargs):
+            pass
+
+        def add(self, *args, **kwargs):
+            return None
+
+    class Panel:  # type: ignore
+        def __init__(self, *args, **kwargs):
+            pass
+
+    class Text:  # type: ignore
+        def __init__(self, *args, **kwargs):
+            pass
 
 
 class SpecQLProgress:
@@ -49,7 +115,7 @@ class SpecQLProgress:
         if RICH_AVAILABLE:
             self.console = Console()
         else:
-            self.console = None
+            self.console = Console()  # Use dummy class instance
 
     def scan_phase(self, entity_files: List[str]) -> Dict[str, int]:
         """Show entity scanning phase and return schema breakdown"""
@@ -62,7 +128,7 @@ class SpecQLProgress:
         self.console.print(f"   Found [bold]{len(entity_files)}[/bold] entity files")
 
         # Group by schema
-        schema_stats = defaultdict(int)
+        schema_stats: Dict[str, int] = defaultdict(int)
         for file_path in entity_files:
             try:
                 # Parse schema from file path or content
@@ -240,11 +306,11 @@ class SpecQLProgress:
                         subdirs[subdir] = dir_path
 
             for subdir, full_path in sorted(subdirs.items()):
-                subtree = parent_tree.add(f"[blue]{subdir}/[/blue]")
-                add_to_tree(subtree, full_path, groups)
+                subtree = parent_tree.add(f"[blue]{subdir}/[/blue]")  # type: ignore
+                add_to_tree(subtree, full_path, groups)  # type: ignore
 
-        add_to_tree(tree, "", dir_groups)
-        return tree if tree.children else None
+        add_to_tree(tree, "", dir_groups)  # type: ignore
+        return tree if tree.children else None  # type: ignore
 
     def show_error(self, message: str) -> None:
         """Show error message"""

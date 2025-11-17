@@ -1,6 +1,6 @@
 """Compiler for exception_handling steps"""
 
-from src.core.ast_models import ActionStep
+from src.core.ast_models import ActionStep, EntityDefinition
 from src.generators.actions.compilation_context import CompilationContext
 from src.generators.actions.exception_optimizer import ExceptionOptimizer
 from src.generators.actions.step_compilers.base import StepCompiler
@@ -9,7 +9,9 @@ from src.generators.actions.step_compilers.base import StepCompiler
 class ExceptionHandlingStepCompiler(StepCompiler):
     """Compiles exception_handling steps to PL/pgSQL BEGIN/EXCEPTION blocks"""
 
-    def compile(self, step: ActionStep, context: CompilationContext) -> str:
+    def compile(
+        self, step: ActionStep, entity: EntityDefinition, context: CompilationContext
+    ) -> str:
         """
         Generate BEGIN ... EXCEPTION WHEN ... END block
 

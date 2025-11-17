@@ -22,7 +22,7 @@ class PatternBasedCompiler:
         Args:
             db_path: Path to pattern library database
         """
-        self.library = PatternLibrary(db_path)
+        self.library = PatternLibrary(None, db_path)
 
     def compile_action_step(
         self,

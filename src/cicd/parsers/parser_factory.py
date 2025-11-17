@@ -9,6 +9,10 @@ from src.cicd.parsers.jenkins_parser import JenkinsParser
 from src.cicd.parsers.azure_parser import AzureParser
 from src.cicd.universal_pipeline_schema import UniversalPipeline
 
+ParserType = Union[
+    GitHubActionsParser, GitLabCIParser, CircleCIParser, JenkinsParser, AzureParser
+]
+
 
 class ParserFactory:
     """Factory for auto-detecting platform and parsing"""
@@ -27,6 +31,7 @@ class ParserFactory:
         content = file_path.read_text()
 
         # Detect platform from file path
+        parser: ParserType
         if ".github/workflows" in str(file_path):
             parser = GitHubActionsParser()
         elif ".gitlab-ci.yml" in file_path.name:

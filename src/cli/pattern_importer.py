@@ -79,7 +79,7 @@ class PatternImporter:
                 existing = None
 
             # Create or update pattern
-            self.service.create_pattern(
+            self.service.create_pattern(  # type: ignore[call-arg]
                 name=pattern_data["name"],
                 category=pattern_data["category"],
                 description=pattern_data["description"],
@@ -87,7 +87,7 @@ class PatternImporter:
                 implementation=pattern_data.get("implementation", {}),
                 complexity_score=pattern_data.get("complexity_score", 1),
                 source_type="migrated",
-                generate_embedding=generate_embeddings,
+                generate_embedding=generate_embeddings,  # type: ignore
             )
 
             imported_count += 1

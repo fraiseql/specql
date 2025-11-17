@@ -16,7 +16,7 @@ class ReturnOptimizer:
 
         Returns list of indices of unreachable steps
         """
-        unreachable = []
+        unreachable: list[int] = []
 
         for i in range(start_index + 1, len(steps)):
             step = steps[i]

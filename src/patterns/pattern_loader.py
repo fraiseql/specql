@@ -8,7 +8,7 @@ validate configurations, and expand patterns into action steps using Jinja2 temp
 import yaml
 from pathlib import Path
 from typing import Dict, Any, List, Optional
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from .pattern_models import PatternDefinition, ExpandedPattern
 
@@ -28,6 +28,9 @@ class PatternLoader:
         self.stdlib_path = stdlib_path
         self.jinja_env = Environment(
             loader=FileSystemLoader(str(stdlib_path)),
+            autoescape=select_autoescape(
+                enabled_extensions=("html", "xml", "j2"), default_for_string=True
+            ),
             trim_blocks=True,
             lstrip_blocks=True,
             keep_trailing_newline=False,

@@ -4,7 +4,7 @@ OVHcloud Generator
 Generates provisioning scripts and configurations for OVHcloud bare metal servers.
 """
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 from pathlib import Path
 from typing import Optional
 from src.infrastructure.universal_infra_schema import UniversalInfrastructure
@@ -21,7 +21,12 @@ class OVHcloudGenerator:
                 / "infrastructure"
             )
 
-        self.env = Environment(loader=FileSystemLoader(str(template_dir)))
+        self.env = Environment(
+            loader=FileSystemLoader(str(template_dir)),
+            autoescape=select_autoescape(
+                enabled_extensions=("html", "xml", "j2"), default_for_string=True
+            ),
+        )
         self.template = self.env.get_template("ovhcloud_provision.sh.j2")
 
     def generate(self, infrastructure: UniversalInfrastructure) -> str:

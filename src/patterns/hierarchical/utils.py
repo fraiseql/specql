@@ -9,7 +9,7 @@ def detect_hierarchical_fields(entity_config: dict[str, Any]) -> dict[str, str]:
 
     Returns dict mapping field types to field names.
     """
-    fields = {}
+    fields: dict[str, str] = {}
 
     if "fields" in entity_config:
         for field_name, field_config in entity_config["fields"].items():

@@ -835,6 +835,7 @@ class NamingConventions:
             domain_repository = config.get_domain_repository()
 
         self.domain_repository = domain_repository
+        self.registry = DomainRegistry()
         self.parser = NumberingParser()
 
     def get_table_code(self, domain: str, subdomain: str, entity: str) -> str:

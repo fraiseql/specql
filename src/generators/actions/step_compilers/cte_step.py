@@ -17,7 +17,8 @@ class CTEStepCompiler(StepCompiler):
         Returns:
             CTE definition (will be collected and added to WITH clause)
         """
-        context.add_cte(step.cte_name, step.cte_query or "", step.cte_materialized)
+        if step.cte_name:
+            context.add_cte(step.cte_name, step.cte_query or "", step.cte_materialized)
 
         # Return empty string (CTEs are added at query level, not inline)
         return ""

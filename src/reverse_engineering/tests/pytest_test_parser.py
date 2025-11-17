@@ -147,7 +147,7 @@ class PytestParser:
                             for keyword in decorator.keywords:
                                 if keyword.arg == "scope":
                                     if isinstance(keyword.value, ast.Constant):
-                                        scope = keyword.value.value
+                                        scope = str(keyword.value.value)
 
                     # Get fixture body
                     fixture_lines = ast.get_source_segment(source_code, node)
@@ -311,6 +311,15 @@ class PytestParser:
     def _parse_pytest_raises(self, with_item: ast.withitem) -> Dict[str, Any]:
         """Parse pytest.raises() context manager"""
         call = with_item.context_expr
+
+        if not isinstance(call, ast.Call):
+            return {
+                "type": "throws",
+                "target": "function_call",
+                "expected": "Exception",
+            }
+
+        call = call  # type: ignore
 
         # Extract exception type
         if call.args:

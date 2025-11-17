@@ -7,7 +7,7 @@ Parses Java files, extracts JPA entities, and converts to SpecQL format.
 
 import os
 from pathlib import Path
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, cast
 from dataclasses import dataclass, field
 
 from src.reverse_engineering.java.jdt_bridge import get_jdt_bridge
@@ -155,9 +155,9 @@ class JavaParser:
         Returns:
             List of Java file paths
         """
-        java_files = []
+        java_files: list[str] = []
 
-        path = Path(directory_path)
+        path: Path = Path(directory_path)
 
         if not path.exists():
             return java_files
@@ -177,11 +177,11 @@ class JavaParser:
                         java_files.append(os.path.join(root, file))
         else:
             # Non-recursive
-            for file in path.iterdir():
-                if file.is_file() and self._matches_include(
-                    file.name, config.include_patterns
+            for file_path in path.iterdir():
+                if file_path.is_file() and self._matches_include(
+                    file_path.name, config.include_patterns
                 ):
-                    java_files.append(str(file))
+                    java_files.append(str(file_path))
 
         return sorted(java_files)
 
@@ -223,8 +223,9 @@ class JavaParser:
             "issues": [],
         }
 
+        issues = cast(list[str], metrics["issues"])
         if result.errors:
-            metrics["issues"].extend(result.errors)
+            issues.extend(result.errors)
             metrics["confidence"] = 0.0
             return metrics
 
@@ -256,9 +257,9 @@ class JavaParser:
         # Check for potential issues
         for entity in result.entities:
             if not entity.fields:
-                metrics["issues"].append(f"Entity {entity.name} has no fields")
+                issues.append(f"Entity {entity.name} has no fields")
 
             if not entity.table:
-                metrics["issues"].append(f"Entity {entity.name} has no table name")
+                issues.append(f"Entity {entity.name} has no table name")
 
         return metrics

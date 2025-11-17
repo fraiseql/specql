@@ -6,7 +6,7 @@ ensuring that SpecQL generates appropriate artifacts for each framework's
 production requirements.
 """
 
-from typing import Dict, Any, Optional
+from typing import Dict, Any, Optional, cast
 
 
 # Framework-specific default configurations
@@ -84,7 +84,10 @@ def get_available_frameworks() -> Dict[str, str]:
     Returns:
         Dictionary mapping framework names to descriptions
     """
-    return {name: config["description"] for name, config in FRAMEWORK_DEFAULTS.items()}
+    return {
+        name: cast(str, config["description"])
+        for name, config in FRAMEWORK_DEFAULTS.items()
+    }
 
 
 def apply_dev_mode_overrides(defaults: Dict[str, Any]) -> Dict[str, Any]:

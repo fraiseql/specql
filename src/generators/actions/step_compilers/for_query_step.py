@@ -1,6 +1,6 @@
 """Compiler for for_query steps"""
 
-from src.core.ast_models import ActionStep
+from src.core.ast_models import ActionStep, EntityDefinition
 from src.generators.actions.compilation_context import CompilationContext
 from src.generators.actions.loop_optimizer import LoopOptimizer
 from src.generators.actions.step_compilers.base import StepCompiler
@@ -9,7 +9,9 @@ from src.generators.actions.step_compilers.base import StepCompiler
 class ForQueryStepCompiler(StepCompiler):
     """Compiles for_query steps to PL/pgSQL FOR loops"""
 
-    def compile(self, step: ActionStep, context: CompilationContext) -> str:
+    def compile(
+        self, step: ActionStep, entity: EntityDefinition, context: CompilationContext
+    ) -> str:
         """
         Generate FOR record IN query LOOP statement
 

@@ -277,10 +277,11 @@ class CloudFormationGenerator:
         self, infrastructure: UniversalInfrastructure
     ) -> Dict[str, Any]:
         """Generate EC2 Auto Scaling Group"""
+        assert infrastructure.compute is not None
         resources = {}
 
         # Launch Template
-        launch_template = {
+        launch_template: Dict[str, Any] = {
             "Type": "AWS::EC2::LaunchTemplate",
             "Properties": {
                 "LaunchTemplateName": f"{infrastructure.name}-lt",
@@ -316,7 +317,7 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
         resources[f"{infrastructure.name}LaunchTemplate"] = launch_template
 
         # Auto Scaling Group
-        asg = {
+        asg: Dict[str, Any] = {
             "Type": "AWS::AutoScaling::AutoScalingGroup",
             "Properties": {
                 "AutoScalingGroupName": f"{infrastructure.name}-asg",
@@ -324,9 +325,9 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
                     "LaunchTemplateId": {"Ref": f"{infrastructure.name}LaunchTemplate"},
                     "Version": "$Latest",
                 },
-                "MinSize": str(infrastructure.compute.min_instances),
-                "MaxSize": str(infrastructure.compute.max_instances),
-                "DesiredCapacity": str(infrastructure.compute.instances),
+                "MinSize": str(infrastructure.compute.min_instances),  # type: ignore
+                "MaxSize": str(infrastructure.compute.max_instances),  # type: ignore
+                "DesiredCapacity": str(infrastructure.compute.instances),  # type: ignore
                 "VPCZoneIdentifier": [
                     {"Ref": f"{infrastructure.name}PrivateSubnet{i + 1}"}
                     for i in range(len(infrastructure.network.private_subnets))
@@ -360,7 +361,7 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
                     "PredefinedMetricSpecification": {
                         "PredefinedMetricType": "ASGAverageCPUUtilization"
                     },
-                    "TargetValue": infrastructure.compute.cpu_target,
+                    "TargetValue": infrastructure.compute.cpu_target,  # type: ignore
                 },
             },
         }
@@ -371,6 +372,7 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
         self, infrastructure: UniversalInfrastructure
     ) -> Dict[str, Any]:
         """Generate RDS database resources"""
+        assert infrastructure.database is not None
         resources = {}
 
         # DB Subnet Group
@@ -393,19 +395,19 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
             "Type": "AWS::RDS::DBInstance",
             "Properties": {
                 "DBInstanceIdentifier": f"{infrastructure.name}-db",
-                "DBInstanceClass": infrastructure.database.instance_class
+                "DBInstanceClass": infrastructure.database.instance_class  # type: ignore
                 or "db.t3.medium",
-                "Engine": self._map_database_engine(infrastructure.database.type),
-                "EngineVersion": infrastructure.database.version,
-                "AllocatedStorage": infrastructure.database.storage.replace("GB", ""),
-                "StorageType": infrastructure.database.storage_type,
+                "Engine": self._map_database_engine(infrastructure.database.type),  # type: ignore
+                "EngineVersion": infrastructure.database.version,  # type: ignore
+                "AllocatedStorage": infrastructure.database.storage.replace("GB", ""),  # type: ignore
+                "StorageType": infrastructure.database.storage_type,  # type: ignore
                 "DBName": infrastructure.name.replace("-", "_"),
                 "MasterUsername": "admin",
                 "MasterUserPassword": {"Ref": "DBPassword"},
-                "MultiAZ": infrastructure.database.multi_az,
-                "BackupRetentionPeriod": infrastructure.database.backup_retention_days,
+                "MultiAZ": infrastructure.database.multi_az,  # type: ignore
+                "BackupRetentionPeriod": infrastructure.database.backup_retention_days,  # type: ignore
                 "StorageEncrypted": infrastructure.security.encryption_at_rest,
-                "PubliclyAccessible": infrastructure.database.publicly_accessible,
+                "PubliclyAccessible": infrastructure.database.publicly_accessible,  # type: ignore
                 "VPCSecurityGroups": [
                     {"Ref": f"{infrastructure.name}DatabaseSecurityGroup"}
                 ],
@@ -422,6 +424,7 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
         self, infrastructure: UniversalInfrastructure
     ) -> Dict[str, Any]:
         """Generate Load Balancer resources"""
+        assert infrastructure.load_balancer is not None
         resources = {}
 
         # Application Load Balancer
@@ -429,7 +432,7 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
             "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
             "Properties": {
                 "Name": f"{infrastructure.name}-lb",
-                "Type": infrastructure.load_balancer.type,
+                "Type": infrastructure.load_balancer.type,  # type: ignore
                 "Scheme": "internet-facing",
                 "SecurityGroups": [
                     {"Ref": f"{infrastructure.name}LoadBalancerSecurityGroup"}
@@ -451,7 +454,7 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
                 if infrastructure.container
                 else 80,
                 "VpcId": {"Ref": f"{infrastructure.name}VPC"},
-                "HealthCheckPath": infrastructure.load_balancer.health_check_path,
+                "HealthCheckPath": infrastructure.load_balancer.health_check_path,  # type: ignore
             },
         }
 

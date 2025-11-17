@@ -74,7 +74,7 @@ class SQLASTParser:
 
     def _parse_parameters(self, params) -> List[Dict[str, str]]:
         """Extract function parameters"""
-        parameters = []
+        parameters: list[dict[str, str]] = []
 
         if not params:
             return parameters

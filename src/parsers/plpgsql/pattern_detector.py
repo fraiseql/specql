@@ -8,7 +8,7 @@ Detect SpecQL patterns in parsed entities:
 - Hierarchical Entities (parent references)
 """
 
-from typing import Dict, Any
+from typing import Dict, Any, cast
 from src.core.universal_ast import UniversalEntity, UniversalField
 
 
@@ -74,7 +74,7 @@ class PatternDetector:
 
         # Calculate overall confidence
         confidence = self._calculate_confidence(patterns)
-        patterns["confidence"] = confidence
+        patterns["confidence"] = cast(Any, confidence)
 
         return patterns
 

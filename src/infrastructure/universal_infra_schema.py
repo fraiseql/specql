@@ -500,14 +500,14 @@ class UniversalInfrastructure:
         from .services.cost_estimation_service import CostEstimationService
 
         service = CostEstimationService()
-        return service.estimate_cost(self)
+        return service.estimate_cost(self)  # type: ignore
 
     def get_cost_comparison(self) -> Dict[str, "CostBreakdown"]:
         """Get cost estimates across all supported providers"""
         from .services.cost_estimation_service import CostEstimationService
 
         service = CostEstimationService()
-        return service.get_cost_comparison(self)
+        return service.get_cost_comparison(self)  # type: ignore
 
     @classmethod
     def from_terraform(cls, tf_content: str) -> "UniversalInfrastructure":

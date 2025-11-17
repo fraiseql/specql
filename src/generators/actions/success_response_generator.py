@@ -121,7 +121,7 @@ class SuccessResponseGenerator:
             from src.core.ast_models import Action, Entity
 
             # Create Action and Entity objects for the compiler
-            action = Action(name=context.function_name, impact=context.impact, steps=[])
+            action = Action(name=context.function_name, impact=None, steps=[])
             entity = Entity(name=context.entity_name, schema=context.entity_schema)
 
             compiler = ImpactMetadataCompiler()

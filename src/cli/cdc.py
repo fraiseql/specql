@@ -3,6 +3,7 @@
 import click
 from pathlib import Path
 from src.generators.cdc.debezium_config_generator import DebeziumConfigGenerator
+from src.utils.http_config import DEFAULT_REQUEST_TIMEOUT
 
 
 @click.group()
@@ -45,7 +46,8 @@ def status(kafka_connect_url):
 
     try:
         response = requests.get(
-            f"{kafka_connect_url}/connectors/specql-outbox-connector/status"
+            f"{kafka_connect_url}/connectors/specql-outbox-connector/status",
+            timeout=DEFAULT_REQUEST_TIMEOUT,
         )
         status = response.json()
 

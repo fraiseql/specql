@@ -180,8 +180,8 @@ class SpecQLParser:
 
         entity = EntityDefinition(
             name=entity_name,
-            schema=entity_schema,
-            description=entity_description,
+            schema=str(entity_schema),
+            description=str(entity_description),
         )
 
         # Parse fields - check both root level and inside entity dict (for complex format)
@@ -266,7 +266,7 @@ class SpecQLParser:
         from src.core.errors import CircularDependencyError
 
         visited = set()
-        path = []
+        path: list[str] = []
 
         def visit(entity: str) -> None:
             if entity in path:
@@ -369,11 +369,11 @@ class SpecQLParser:
 
         return UniversalEntity(
             name=entity_name,
-            schema=entity_schema,
+            schema=str(entity_schema),
             fields=fields,
             actions=actions,
-            is_multi_tenant=is_multi_tenant,
-            description=entity_description,
+            is_multi_tenant=bool(is_multi_tenant),
+            description=str(entity_description),
         )
 
     def _parse_universal_field(
@@ -748,9 +748,9 @@ class SpecQLParser:
         if scalar_def is None:
             # Create error context
             context = ErrorContext(
-                entity_name=getattr(self, "_current_entity", None).name
-                if hasattr(self, "_current_entity")
-                else None,
+                entity_name=getattr(
+                    getattr(self, "_current_entity", None), "name", None
+                ),
                 field_name=field_name,
             )
 
@@ -866,9 +866,9 @@ class SpecQLParser:
         # Validate default value if provided
         if default and default not in values:
             context = ErrorContext(
-                entity_name=getattr(self, "_current_entity", None).name
-                if hasattr(self, "_current_entity")
-                else None,
+                entity_name=getattr(
+                    getattr(self, "_current_entity", None), "name", None
+                ),
                 field_name=field_name,
             )
 
@@ -927,10 +927,14 @@ class SpecQLParser:
         # Validate type is valid
         if type_name not in type_mapping:
             # Create error context
+            current_entity = getattr(self, "_current_entity", None)
+            entity_name = (
+                getattr(current_entity, "name", None)
+                if current_entity is not None
+                else None
+            )
             context = ErrorContext(
-                entity_name=getattr(self, "_current_entity", None).name
-                if hasattr(self, "_current_entity")
-                else None,
+                entity_name=entity_name,
                 field_name=field_name,
             )
 

@@ -309,9 +309,9 @@ class RustParser:
             for enum_data in enums_data:
                 variants = []
                 for variant_data in enum_data["variants"]:
-                    fields = None
+                    variant_fields: Optional[List[RustFieldInfo]] = None
                     if variant_data.get("fields") is not None:
-                        fields = []
+                        variant_fields = []
                         for field_data in variant_data["fields"]:
                             field = RustFieldInfo(
                                 name=field_data["name"],
@@ -319,11 +319,11 @@ class RustParser:
                                 is_optional=field_data["is_optional"],
                                 attributes=field_data["attributes"],
                             )
-                            fields.append(field)
+                            variant_fields.append(field)
 
                     variant = RustEnumVariantInfo(
                         name=variant_data["name"],
-                        fields=fields,
+                        fields=variant_fields,
                         discriminant=variant_data.get("discriminant"),
                     )
                     variants.append(variant)

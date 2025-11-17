@@ -126,7 +126,7 @@ def reverse_python(python_files, output_dir, discover_patterns, dry_run):
 
 def _save_patterns_to_library(entity, patterns: List[str]):
     """Save detected patterns to pattern library"""
-    from src.pattern_library.api import PatternLibraryAPI
+    from src.pattern_library.api import PatternLibraryAPI  # type: ignore[attr-defined]
 
     api = PatternLibraryAPI()
 

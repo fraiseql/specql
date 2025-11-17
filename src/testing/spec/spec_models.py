@@ -13,7 +13,7 @@ Key Features:
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, cast
 from enum import Enum
 
 
@@ -268,46 +268,50 @@ class TestSpec:
 
     def _scenario_to_dict(self, scenario: TestScenario) -> Dict[str, Any]:
         """Convert scenario to dict"""
-        result = {
+        result: Dict[str, Any] = {
             "name": scenario.scenario_name,
             "description": scenario.description,
             "category": scenario.category.value,
         }
 
         if scenario.setup_steps:
-            result["setup"] = [self._step_to_dict(s) for s in scenario.setup_steps]
+            result["setup"] = cast(
+                Any, [self._step_to_dict(s) for s in scenario.setup_steps]
+            )
         if scenario.action_steps:
-            result["action"] = [self._step_to_dict(s) for s in scenario.action_steps]
+            result["action"] = cast(
+                Any, [self._step_to_dict(s) for s in scenario.action_steps]
+            )
         if scenario.assertions:
-            result["assertions"] = [
-                self._assertion_to_dict(a) for a in scenario.assertions
-            ]
+            result["assertions"] = cast(
+                Any, [self._assertion_to_dict(a) for a in scenario.assertions]
+            )
         if scenario.teardown_steps:
-            result["teardown"] = [
-                self._step_to_dict(s) for s in scenario.teardown_steps
-            ]
+            result["teardown"] = cast(
+                Any, [self._step_to_dict(s) for s in scenario.teardown_steps]
+            )
         if scenario.fixtures:
-            result["fixtures"] = scenario.fixtures
+            result["fixtures"] = cast(Any, scenario.fixtures)
         if scenario.tags:
-            result["tags"] = scenario.tags
+            result["tags"] = cast(Any, scenario.tags)
 
         return result
 
     def _step_to_dict(self, step: TestStep) -> Dict[str, Any]:
         """Convert step to dict"""
-        result = {"action": step.action}
+        result: Dict[str, Any] = {"action": step.action}
         if step.entity:
-            result["entity"] = step.entity
+            result["entity"] = cast(Any, step.entity)
         if step.function:
-            result["function"] = step.function
+            result["function"] = cast(Any, step.function)
         if step.parameters:
-            result["parameters"] = step.parameters
+            result["parameters"] = cast(Any, step.parameters)
         if step.data:
-            result["data"] = step.data
+            result["data"] = cast(Any, step.data)
         if step.where:
-            result["where"] = step.where
+            result["where"] = cast(Any, step.where)
         if step.store_result:
-            result["store_as"] = step.store_result
+            result["store_as"] = cast(Any, step.store_result)
         return result
 
     def _assertion_to_dict(self, assertion: TestAssertion) -> Dict[str, Any]:
@@ -325,16 +329,16 @@ class TestSpec:
 
     def _fixture_to_dict(self, fixture: TestFixture) -> Dict[str, Any]:
         """Convert fixture to dict"""
-        result = {
+        result: Dict[str, Any] = {
             "name": fixture.fixture_name,
             "type": fixture.fixture_type,
         }
         if fixture.entity:
-            result["entity"] = fixture.entity
+            result["entity"] = cast(Any, fixture.entity)
         if fixture.data:
-            result["data"] = fixture.data
+            result["data"] = cast(Any, fixture.data)
         if fixture.setup_sql:
-            result["setup_sql"] = fixture.setup_sql
+            result["setup_sql"] = cast(Any, fixture.setup_sql)
         if fixture.scope != "function":
-            result["scope"] = fixture.scope
+            result["scope"] = cast(Any, fixture.scope)
         return result

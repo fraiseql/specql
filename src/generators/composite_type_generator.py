@@ -5,7 +5,7 @@ Generates PostgreSQL composite types for action inputs
 
 from typing import Any
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from src.core.ast_models import Action, Entity, FieldDefinition
 
@@ -250,7 +250,12 @@ class CompositeTypeGenerator:
 
     def __init__(self, templates_dir: str = "templates/sql"):
         self.templates_dir = templates_dir
-        self.env = Environment(loader=FileSystemLoader(templates_dir))
+        self.env = Environment(
+            loader=FileSystemLoader(templates_dir),
+            autoescape=select_autoescape(
+                enabled_extensions=("html", "xml", "j2"), default_for_string=True
+            ),
+        )
         self._mutation_result_generated = False
 
     def generate_mutation_result_type(self) -> str:

@@ -4,7 +4,7 @@ Action Compiler - Transform SpecQL actions to PL/pgSQL functions
 
 from enum import Enum
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from src.core.ast_models import Action, Entity
 
@@ -89,7 +89,12 @@ class ActionCompiler:
         self.templates_dir = templates_dir
 
         self.env = Environment(
-            loader=FileSystemLoader(templates_dir), trim_blocks=True, lstrip_blocks=True
+            loader=FileSystemLoader(templates_dir),
+            autoescape=select_autoescape(
+                enabled_extensions=("html", "xml", "j2"), default_for_string=True
+            ),
+            trim_blocks=True,
+            lstrip_blocks=True,
         )
 
     def generate_base_types(self) -> str:

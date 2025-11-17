@@ -261,8 +261,8 @@ def entities(
                     RustGeneratorOrchestrator,
                 )
 
-                orchestrator = RustGeneratorOrchestrator()
-                orchestrator.generate(
+                rust_orchestrator = RustGeneratorOrchestrator()
+                rust_orchestrator.generate(
                     entity_files=[Path(entity_file)],
                     output_dir=Path(output_dir),
                     with_handlers=True,

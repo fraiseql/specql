@@ -5,7 +5,7 @@ Generates core.* business logic functions
 
 from typing import Any
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from src.core.ast_models import Action, ActionStep, Entity, FieldTier
 from src.generators.actions.compilation_context import CompilationContext
@@ -21,7 +21,12 @@ class CoreLogicGenerator:
     ):
         self.schema_registry = schema_registry
         self.templates_dir = templates_dir
-        self.env = Environment(loader=FileSystemLoader(templates_dir))
+        self.env = Environment(
+            loader=FileSystemLoader(templates_dir),
+            autoescape=select_autoescape(
+                enabled_extensions=("html", "xml", "j2"), default_for_string=True
+            ),
+        )
 
     def generate_core_create_function(self, entity: Entity) -> str:
         """

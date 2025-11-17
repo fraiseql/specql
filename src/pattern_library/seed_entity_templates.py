@@ -4844,6 +4844,6 @@ def seed_all_templates(library: PatternLibrary):
 
 if __name__ == "__main__":
     # For testing
-    library = PatternLibrary(":memory:")
+    library = PatternLibrary(db_path=":memory:")
     seed_all_templates(library)
     library.close()

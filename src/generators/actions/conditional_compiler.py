@@ -4,6 +4,7 @@ Conditional Compiler - Transform conditional logic to PL/pgSQL control flow
 
 import re
 from dataclasses import dataclass
+from typing import Any, Union, cast
 
 from src.core.ast_models import ActionStep, Entity
 from src.utils.safe_slug import safe_slug, safe_table_name
@@ -59,7 +60,7 @@ class ConditionalCompiler:
     def _compile_switch(self, step: ActionStep, entity: Entity) -> str:
         """Compile switch/case"""
         expression = step.expression or ""
-        cases = step.cases or {}
+        cases: dict[str, Any] = cast(dict[str, Any], step.cases) or {}
 
         case_clauses = []
         for value, case_steps in cases.items():

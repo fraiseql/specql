@@ -187,7 +187,7 @@ import json
 
 
 if __name__ == "__main__":
-    library = PatternLibrary("pattern_library.db")
+    library = PatternLibrary(db_path="pattern_library.db")
     add_sqlalchemy_patterns(library)
     library.close()
 

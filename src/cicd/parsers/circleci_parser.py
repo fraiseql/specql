@@ -132,7 +132,7 @@ class CircleCIParser:
             services=self._parse_services(job_config),
             needs=job_params.get("requires", [])
             if isinstance(job_params.get("requires"), list)
-            else [job_params.get("requires")]
+            else [str(job_params.get("requires"))]
             if job_params.get("requires")
             else [],
             matrix=matrix,
@@ -199,17 +199,17 @@ class CircleCIParser:
                 command = step_config.get("command", "") or step_config.get("run", "")
 
         # Map CircleCI steps to universal types
-        if "checkout" in step_name:
+        if step_name and "checkout" in step_name:
             return StepType.CHECKOUT
-        elif "setup_remote_docker" in step_name:
+        elif step_name and "setup_remote_docker" in step_name:
             return StepType.RUN
-        elif "persist_to_workspace" in step_name:
+        elif step_name and "persist_to_workspace" in step_name:
             return StepType.UPLOAD_ARTIFACT
-        elif "attach_workspace" in step_name:
+        elif step_name and "attach_workspace" in step_name:
             return StepType.DOWNLOAD_ARTIFACT
-        elif "save_cache" in step_name:
+        elif step_name and "save_cache" in step_name:
             return StepType.CACHE_SAVE
-        elif "restore_cache" in step_name:
+        elif step_name and "restore_cache" in step_name:
             return StepType.CACHE_RESTORE
 
         # Check command content for install commands

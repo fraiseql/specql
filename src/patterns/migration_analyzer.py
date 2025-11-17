@@ -55,7 +55,7 @@ class MigrationAnalyzer:
         self, entity_name: str, action: Dict[str, Any]
     ) -> List[MigrationSuggestion]:
         """Analyze a single action and suggest pattern migrations."""
-        suggestions = []
+        suggestions: List[MigrationSuggestion] = []
         action_name = action.get("name", "unknown")
 
         # Skip if already using patterns
@@ -287,7 +287,11 @@ class MigrationAnalyzer:
         self, action_name: str, config: Dict[str, Any]
     ) -> str:
         """Generate CRUD create pattern YAML."""
-        pattern_config = {"name": action_name, "pattern": "crud/create", "config": {}}
+        pattern_config: Dict[str, Any] = {
+            "name": action_name,
+            "pattern": "crud/create",
+            "config": {},
+        }
 
         if "duplicate_check" in config:
             pattern_config["config"]["duplicate_check"] = config["duplicate_check"]
@@ -298,7 +302,7 @@ class MigrationAnalyzer:
         self, action_name: str, config: Dict[str, Any]
     ) -> str:
         """Generate CRUD update pattern YAML."""
-        pattern_config = {
+        pattern_config: Dict[str, Any] = {
             "name": action_name,
             "pattern": "crud/update",
             "config": {
@@ -313,7 +317,7 @@ class MigrationAnalyzer:
         self, action_name: str, config: Dict[str, Any]
     ) -> str:
         """Generate CRUD delete pattern YAML."""
-        pattern_config = {
+        pattern_config: Dict[str, Any] = {
             "name": action_name,
             "pattern": "crud/delete",
             "config": {
@@ -332,7 +336,11 @@ class MigrationAnalyzer:
         self, action_name: str, config: Dict[str, Any], pattern_type: str
     ) -> str:
         """Generate state machine pattern YAML."""
-        pattern_config = {"name": action_name, "pattern": pattern_type, "config": {}}
+        pattern_config: Dict[str, Any] = {
+            "name": action_name,
+            "pattern": pattern_type,
+            "config": {},
+        }
 
         # Copy relevant config keys
         for key in [
@@ -353,7 +361,7 @@ class MigrationAnalyzer:
         self, action_name: str, config: Dict[str, Any]
     ) -> str:
         """Generate validation pattern YAML."""
-        pattern_config = {
+        pattern_config: Dict[str, Any] = {
             "name": action_name,
             "pattern": "validation/validation_chain",
             "config": {},
@@ -374,7 +382,7 @@ class MigrationAnalyzer:
 
     def _generate_batch_pattern(self, action_name: str, config: Dict[str, Any]) -> str:
         """Generate batch pattern YAML."""
-        pattern_config = {
+        pattern_config: Dict[str, Any] = {
             "name": action_name,
             "pattern": "batch/bulk_operation",
             "config": {},
@@ -412,7 +420,7 @@ class MigrationAnalyzer:
         report.append(f"Found {len(suggestions)} migration opportunities\n")
 
         # Group by pattern type
-        by_pattern = {}
+        by_pattern: dict[str, list] = {}
         for suggestion in suggestions:
             pattern = suggestion.pattern_type
             if pattern not in by_pattern:

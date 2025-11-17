@@ -17,7 +17,7 @@ class TableViewDependencyResolver:
 
     def _build_dependency_graph(self) -> dict[str, set[str]]:
         """Build dependency graph (entity -> entities that depend on this entity)."""
-        graph = {name: set() for name in self.entities.keys()}
+        graph: dict[str, set[str]] = {name: set() for name in self.entities.keys()}
 
         for entity in self.entities.values():
             # Find ref() fields - these create dependencies
@@ -44,7 +44,9 @@ class TableViewDependencyResolver:
     def get_generation_order(self) -> list[str]:
         """Get entity names in dependency order (topological sort)."""
         # Build reverse dependency graph (entity -> depends on entities)
-        reverse_graph = {name: set() for name in self.entities.keys()}
+        reverse_graph: dict[str, set[str]] = {
+            name: set() for name in self.entities.keys()
+        }
         in_degree = {name: 0 for name in self.entities.keys()}
 
         for entity, dependents in self.dependency_graph.items():

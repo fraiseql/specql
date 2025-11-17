@@ -11,6 +11,7 @@ Generates the outer structure of action functions:
 """
 
 from dataclasses import dataclass
+from typing import Any
 
 from src.core.ast_models import ActionDefinition, EntityDefinition
 
@@ -21,7 +22,7 @@ class FunctionSignature:
 
     function_name: str
     schema: str
-    parameters: list[dict[str, str]]  # [{"name": "p_id", "type": "UUID"}]
+    parameters: list[dict[str, Any]]  # [{"name": "p_id", "type": "UUID"}]
     returns: str = "mutation_result"
 
 

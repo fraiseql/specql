@@ -76,7 +76,7 @@ class AzureParser:
         stages = []
 
         for stage_config in stages_config:
-            stage_name = stage_config.get("stage")
+            stage_name = stage_config.get("stage") or "default"
             jobs_config = stage_config.get("jobs", [])
 
             jobs = []
@@ -102,7 +102,7 @@ class AzureParser:
 
         return stages
 
-    def _parse_step(self, step_config: Dict[str, Any]) -> Step:
+    def _parse_step(self, step_config: Dict[str, Any]) -> Optional[Step]:
         """Parse individual step"""
         if "script" in step_config:
             command = step_config["script"]

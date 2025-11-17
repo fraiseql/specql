@@ -168,7 +168,7 @@ class PatternService:
         # Convert to Pattern entities with similarity scores
         patterns_with_scores = []
         for result in results:
-            pattern = self.repository.get_by_id(result["pattern_id"])
+            pattern = self.repository.get_by_id(result["pattern_id"])  # type: ignore[attr-defined]
             if pattern:
                 patterns_with_scores.append((pattern, result["similarity"]))
 

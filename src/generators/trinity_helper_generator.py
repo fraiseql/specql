@@ -3,7 +3,7 @@ Trinity Helper Function Generator (Team B)
 Generates entity_pk() and entity_id() helper functions for UUID ↔ INTEGER resolution
 """
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, select_autoescape
 
 from src.core.ast_models import Entity
 from src.generators.schema.schema_registry import SchemaRegistry
@@ -21,6 +21,9 @@ class TrinityHelperGenerator:
         self.templates_dir = templates_dir
         self.env = Environment(
             loader=FileSystemLoader(templates_dir),
+            autoescape=select_autoescape(
+                enabled_extensions=("html", "xml", "j2"), default_for_string=True
+            ),
             trim_blocks=False,
             lstrip_blocks=False,
         )
