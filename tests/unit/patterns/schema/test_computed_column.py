@@ -28,16 +28,16 @@ class TestComputedColumn:
 entity: Order
 schema: sales
 fields:
-  quantity: integer
-  unit_price: decimal
-  discount_percent: decimal
+   quantity: integer
+   unit_price: decimal
+   discount_percent: decimal
 patterns:
-  - type: computed_column
-    params:
-      name: total_amount
-      expression: "quantity * unit_price * (1 - discount_percent / 100)"
-      type: decimal
-      nullable: false
+   - type: schema_computed_column
+     params:
+       column_name: total_amount
+       expression: "quantity * unit_price * (1 - discount_percent / 100)"
+       type: decimal
+       nullable: false
 """
 
     def test_computed_column_added_to_table(self, table_generator, order_entity):
@@ -48,7 +48,7 @@ patterns:
         ddl = table_generator.generate_table_ddl(entity)
 
         # Verify computed column is added
-        assert "total_amount DECIMAL GENERATED ALWAYS AS" in ddl
+        assert "total_amount decimal GENERATED ALWAYS AS" in ddl
         assert "quantity * unit_price * (1 - discount_percent / 100)" in ddl
 
     def test_computed_column_stored(self, table_generator, order_entity):
@@ -69,7 +69,7 @@ patterns:
         ddl = table_generator.generate_table_ddl(entity)
 
         # Verify NOT NULL for non-nullable computed column
-        assert "total_amount DECIMAL GENERATED ALWAYS AS" in ddl
+        assert "total_amount decimal GENERATED ALWAYS AS" in ddl
 
     def test_fraiseql_metadata_includes_pattern(self, table_generator, order_entity):
         """Test that FraiseQL comments include pattern info."""
@@ -79,7 +79,7 @@ patterns:
         ddl = table_generator.generate_table_ddl(entity)
 
         # Verify FraiseQL comment
-        assert "@fraiseql:pattern:computed_column" in ddl
+        assert "@fraiseql:pattern:schema_computed_column" in ddl
 
     def test_multiple_computed_columns(self, table_generator):
         """Test multiple computed columns in one entity."""
@@ -91,24 +91,24 @@ fields:
   tax_rate: decimal
   discount_amount: decimal
 patterns:
-  - type: computed_column
-    params:
-      name: tax_amount
-      expression: "subtotal * tax_rate / 100"
-      type: decimal
-      nullable: false
-  - type: computed_column
-    params:
-      name: total_amount
-      expression: "subtotal + tax_amount - discount_amount"
-      type: decimal
-      nullable: false
-  - type: computed_column
-    params:
-      name: discount_percent
-      expression: "discount_amount / subtotal * 100"
-      type: decimal
-      nullable: true
+   - type: schema_computed_column
+     params:
+       column_name: tax_amount
+       expression: "subtotal * tax_rate / 100"
+       type: decimal
+       nullable: false
+   - type: schema_computed_column
+     params:
+       column_name: total_amount
+       expression: "subtotal + tax_amount - discount_amount"
+       type: decimal
+       nullable: false
+   - type: schema_computed_column
+     params:
+       column_name: discount_percent
+       expression: "discount_amount / subtotal * 100"
+       type: decimal
+       nullable: true
 """
 
         parser = SpecQLParser()
@@ -117,13 +117,13 @@ patterns:
         ddl = table_generator.generate_table_ddl(entity)
 
         # Verify all computed columns
-        assert "tax_amount DECIMAL GENERATED ALWAYS AS (subtotal * tax_rate / 100) STORED" in ddl
+        assert "tax_amount decimal GENERATED ALWAYS AS (subtotal * tax_rate / 100) STORED" in ddl
         assert (
-            "total_amount DECIMAL GENERATED ALWAYS AS (subtotal + tax_amount - discount_amount) STORED"
+            "total_amount decimal GENERATED ALWAYS AS (subtotal + tax_amount - discount_amount) STORED"
             in ddl
         )
         assert (
-            "discount_percent DECIMAL GENERATED ALWAYS AS (discount_amount / subtotal * 100) STORED"
+            "discount_percent decimal GENERATED ALWAYS AS (discount_amount / subtotal * 100) STORED"
             in ddl
         )
 
@@ -137,18 +137,18 @@ fields:
   last_name: text
   birth_date: date
 patterns:
-  - type: computed_column
-    params:
-      name: full_name
-      expression: "CONCAT(first_name, ' ', last_name)"
-      type: text
-      nullable: false
-  - type: computed_column
-    params:
-      name: age
-      expression: "EXTRACT(YEAR FROM AGE(birth_date))"
-      type: integer
-      nullable: true
+   - type: schema_computed_column
+     params:
+       column_name: full_name
+       expression: "CONCAT(first_name, ' ', last_name)"
+       type: text
+       nullable: false
+   - type: schema_computed_column
+     params:
+       column_name: age
+       expression: "EXTRACT(YEAR FROM AGE(birth_date))"
+       type: integer
+       nullable: true
 """
 
         parser = SpecQLParser()
@@ -158,9 +158,9 @@ patterns:
 
         # Verify computed columns with functions
         assert (
-            "full_name TEXT GENERATED ALWAYS AS (CONCAT(first_name, ' ', last_name)) STORED" in ddl
+            "full_name text GENERATED ALWAYS AS (CONCAT(first_name, ' ', last_name)) STORED" in ddl
         )
-        assert "age INTEGER GENERATED ALWAYS AS (EXTRACT(YEAR FROM AGE(birth_date))) STORED" in ddl
+        assert "age integer GENERATED ALWAYS AS (EXTRACT(YEAR FROM AGE(birth_date))) STORED" in ddl
 
     def test_computed_column_dependencies(self, table_generator):
         """Test that computed columns can reference other computed columns."""
@@ -171,18 +171,18 @@ fields:
   base_salary: decimal
   bonus_percent: decimal
 patterns:
-  - type: computed_column
-    params:
-      name: bonus_amount
-      expression: "base_salary * bonus_percent / 100"
-      type: decimal
-      nullable: false
-  - type: computed_column
-    params:
-      name: total_compensation
-      expression: "base_salary + bonus_amount"
-      type: decimal
-      nullable: false
+   - type: schema_computed_column
+     params:
+       column_name: bonus_amount
+       expression: "base_salary * bonus_percent / 100"
+       type: decimal
+       nullable: false
+   - type: schema_computed_column
+     params:
+       column_name: total_compensation
+       expression: "base_salary + bonus_amount"
+       type: decimal
+       nullable: false
 """
 
         parser = SpecQLParser()
@@ -192,11 +192,11 @@ patterns:
 
         # Verify computed column referencing another computed column
         assert (
-            "bonus_amount DECIMAL GENERATED ALWAYS AS (base_salary * bonus_percent / 100) STORED"
+            "bonus_amount decimal GENERATED ALWAYS AS (base_salary * bonus_percent / 100) STORED"
             in ddl
         )
         assert (
-            "total_compensation DECIMAL GENERATED ALWAYS AS (base_salary + bonus_amount) STORED"
+            "total_compensation decimal GENERATED ALWAYS AS (base_salary + bonus_amount) STORED"
             in ddl
         )
 
@@ -209,12 +209,12 @@ fields:
   status: text
   amount: decimal
 patterns:
-  - type: computed_column
-    params:
-      name: status_category
-      expression: "CASE WHEN status = 'completed' THEN 'closed' WHEN status = 'pending' THEN 'open' ELSE 'unknown' END"
-      type: text
-      nullable: false
+   - type: schema_computed_column
+     params:
+       column_name: status_category
+       expression: "CASE WHEN status = 'completed' THEN 'closed' WHEN status = 'pending' THEN 'open' ELSE 'unknown' END"
+       type: text
+       nullable: false
 """
 
         parser = SpecQLParser()
@@ -224,7 +224,7 @@ patterns:
 
         # Verify CASE expression in computed column
         assert (
-            "status_category TEXT GENERATED ALWAYS AS (CASE WHEN status = 'completed' THEN 'closed' WHEN status = 'pending' THEN 'open' ELSE 'unknown' END) STORED"
+            "status_category text GENERATED ALWAYS AS (CASE WHEN status = 'completed' THEN 'closed' WHEN status = 'pending' THEN 'open' ELSE 'unknown' END) STORED"
             in ddl
         )
 
@@ -247,12 +247,12 @@ fields:
   price: decimal
   quantity: integer
 patterns:
-  - type: computed_column
-    params:
-      name: total_value
-      expression: "price * quantity"
-      type: decimal
-      nullable: false
+   - type: schema_computed_column
+     params:
+       column_name: total_value
+       expression: "price * quantity"
+       type: decimal
+       nullable: false
 """
 
         parser = SpecQLParser()
@@ -261,7 +261,7 @@ patterns:
         ddl = table_generator.generate_table_ddl(entity)
 
         # Verify correct type is used
-        assert "total_value DECIMAL GENERATED ALWAYS AS (price * quantity) STORED" in ddl
+        assert "total_value decimal GENERATED ALWAYS AS (price * quantity) STORED" in ddl
 
     def test_computed_column_nullable_true(self, table_generator):
         """Test computed column that allows null values."""
@@ -272,12 +272,12 @@ fields:
   salary: decimal
   commission: decimal
 patterns:
-  - type: computed_column
-    params:
-      name: total_earnings
-      expression: "salary + COALESCE(commission, 0)"
-      type: decimal
-      nullable: true
+   - type: schema_computed_column
+     params:
+       column_name: total_earnings
+       expression: "salary + COALESCE(commission, 0)"
+       type: decimal
+       nullable: true
 """
 
         parser = SpecQLParser()
@@ -287,7 +287,7 @@ patterns:
 
         # Verify nullable computed column
         assert (
-            "total_earnings DECIMAL GENERATED ALWAYS AS (salary + COALESCE(commission, 0)) STORED"
+            "total_earnings decimal GENERATED ALWAYS AS (salary + COALESCE(commission, 0)) STORED"
             in ddl
         )
 
@@ -299,12 +299,12 @@ schema: hr
 fields:
   name: text
 patterns:
-  - type: computed_column
-    params:
-      name: employee_count
-      expression: "(SELECT COUNT(*) FROM employees WHERE department_id = departments.id)"
-      type: integer
-      nullable: false
+   - type: schema_computed_column
+     params:
+       column_name: employee_count
+       expression: "(SELECT COUNT(*) FROM employees WHERE department_id = departments.id)"
+       type: integer
+       nullable: false
 """
 
         parser = SpecQLParser()
@@ -314,7 +314,7 @@ patterns:
 
         # Note: Subqueries in computed columns might not be supported in all databases
         # This tests the expression handling
-        assert "employee_count INTEGER GENERATED ALWAYS AS" in ddl
+        assert "employee_count integer GENERATED ALWAYS AS" in ddl
 
     def test_computed_column_ordering(self, table_generator):
         """Test that computed columns appear in correct order in DDL."""
@@ -326,18 +326,18 @@ fields:
   b: integer
   c: integer
 patterns:
-  - type: computed_column
-    params:
-      name: sum_ab
-      expression: "a + b"
-      type: integer
-      nullable: false
-  - type: computed_column
-    params:
-      name: product_all
-      expression: "a * b * c"
-      type: integer
-      nullable: false
+   - type: schema_computed_column
+     params:
+       column_name: sum_ab
+       expression: "a + b"
+       type: integer
+       nullable: false
+   - type: schema_computed_column
+     params:
+       column_name: product_all
+       expression: "a * b * c"
+       type: integer
+       nullable: false
 """
 
         parser = SpecQLParser()
@@ -347,8 +347,8 @@ patterns:
 
         # Verify computed columns appear after regular fields
         assert "c INTEGER," in ddl
-        assert "sum_ab INTEGER GENERATED ALWAYS AS (a + b) STORED," in ddl
-        assert "product_all INTEGER GENERATED ALWAYS AS (a * b * c) STORED," in ddl
+        assert "sum_ab integer GENERATED ALWAYS AS (a + b) STORED," in ddl
+        assert "product_all integer GENERATED ALWAYS AS (a * b * c) STORED," in ddl
 
     def test_computed_column_performance_implications(self, table_generator):
         """Test that computed columns have appropriate performance considerations."""
@@ -359,12 +359,12 @@ fields:
   base_value: decimal
   multiplier: decimal
 patterns:
-  - type: computed_column
-    params:
-      name: computed_result
-      expression: "base_value * multiplier + POWER(base_value, 2)"
-      type: decimal
-      nullable: false
+   - type: schema_computed_column
+     params:
+       column_name: computed_result
+       expression: "base_value * multiplier + POWER(base_value, 2)"
+       type: decimal
+       nullable: false
 """
 
         parser = SpecQLParser()
@@ -374,6 +374,6 @@ patterns:
 
         # Verify complex expression is handled
         assert (
-            "computed_result DECIMAL GENERATED ALWAYS AS (base_value * multiplier + POWER(base_value, 2)) STORED"
+            "computed_result decimal GENERATED ALWAYS AS (base_value * multiplier + POWER(base_value, 2)) STORED"
             in ddl
         )

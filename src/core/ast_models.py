@@ -324,6 +324,10 @@ class EntityDefinition:
     # Patterns
     patterns: list["Pattern"] = field(default_factory=list)
 
+    # Database schema extensions (from patterns)
+    indexes: list["Index"] = field(default_factory=list)
+    computed_columns: list[dict] = field(default_factory=list)
+
     # Organization (numbering system)
     organization: Optional["Organization"] = None
 
@@ -496,6 +500,7 @@ class Entity:
     # Database schema
     foreign_keys: list["ForeignKey"] = field(default_factory=list)
     indexes: list["Index"] = field(default_factory=list)
+    computed_columns: list[dict] = field(default_factory=list)
 
     # Hierarchical entity support
     hierarchical: bool = False  # True if entity has parent/path structure

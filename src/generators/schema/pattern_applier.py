@@ -4,9 +4,9 @@ from typing import Dict, List, Any
 from pathlib import Path
 from dataclasses import dataclass
 import yaml
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, Template
 
-from src.core.ast_models import Entity, FieldDefinition, Index
+from src.core.ast_models import Entity, FieldDefinition, Index, Pattern
 
 
 @dataclass
@@ -23,42 +23,56 @@ class Constraint:
 class PatternApplier:
     """Apply pattern transformations to entities."""
 
-    def __init__(self, pattern_dir: Path = Path("stdlib/schema")):
-        self.pattern_dir = pattern_dir
+    def __init__(self):
+        # Set up Jinja environment for template rendering
+        from pathlib import Path
+
+        self.pattern_dir = Path("stdlib/schema")
         self.jinja_env = Environment(
-            loader=FileSystemLoader(str(pattern_dir)),
+            loader=FileSystemLoader(str(self.pattern_dir)),
             trim_blocks=True,
             lstrip_blocks=True,
         )
 
-    def apply_pattern(
-        self,
-        entity: Entity,
-        pattern_type: str,
-        params: Dict[str, Any],
-    ) -> Entity:
-        """Apply pattern to entity, returning modified entity."""
+    def apply_patterns(self, entity: Entity) -> tuple[Entity, str]:
+        """Apply all patterns defined in entity. Returns (entity, additional_sql)."""
+        if not entity.patterns:
+            return entity, ""
+
+        additional_sql_parts = []
+
+        for pattern in entity.patterns:
+            entity, pattern_sql = self.apply_single_pattern(entity, pattern)
+            if pattern_sql:
+                additional_sql_parts.append(pattern_sql)
+
+        return entity, "\n\n".join(additional_sql_parts)
+
+    def apply_single_pattern(self, entity: Entity, pattern: "Pattern") -> tuple[Entity, str]:
+        """Apply a single pattern to entity. Returns (entity, additional_sql)."""
 
         # Load pattern specification
-        pattern_spec = self._load_pattern_spec(pattern_type)
+        pattern_spec = self._load_pattern_spec(pattern.type)
 
-        # Validate parameters
-        self._validate_params(pattern_spec, params)
+        # Validate parameters and add defaults
+        validated_params = self._validate_params(pattern_spec, pattern.params, entity)
 
         # Apply schema extensions
-        entity = self._apply_schema_extensions(entity, pattern_spec, params)
+        entity = self._apply_schema_extensions(entity, pattern_spec, validated_params)
 
-        # Generate helper functions (handled by action compiler)
-        # Metadata for FraiseQL
-        entity.metadata["patterns"] = entity.metadata.get("patterns", [])
-        entity.metadata["patterns"].append(
-            {
-                "type": pattern_type,
-                "params": params,
-            }
-        )
+        # Generate additional SQL if pattern has schema_template
+        additional_sql = ""
+        if "schema_template" in pattern_spec:
+            additional_sql = self._render_schema_template(pattern_spec, entity, validated_params)
 
-        return entity
+        # Store pattern metadata in notes
+        pattern_info = f"Applied pattern: {pattern.type}"
+        if hasattr(entity, "notes") and entity.notes:
+            entity.notes += f"\n{pattern_info}"
+        else:
+            entity.notes = pattern_info
+
+        return entity, additional_sql
 
     def _load_pattern_spec(self, pattern_type: str) -> Dict[str, Any]:
         """Load pattern YAML specification."""
@@ -81,17 +95,49 @@ class PatternApplier:
         self,
         pattern_spec: Dict[str, Any],
         params: Dict[str, Any],
-    ) -> None:
-        """Validate pattern parameters against specification."""
+        entity: Entity,
+    ) -> Dict[str, Any]:
+        """Validate pattern parameters and add defaults."""
         spec_params = {p["name"]: p for p in pattern_spec.get("parameters", [])}
+        validated_params = params.copy()
 
-        # Check required parameters
+        # Handle aliases (group_by -> group_by_fields, alias -> name)
+        if "group_by" in params and "group_by_fields" not in params:
+            validated_params["group_by_fields"] = params["group_by"]
+        if "aggregates" in params:
+            for agg in validated_params["aggregates"]:
+                if "alias" in agg and "name" not in agg:
+                    agg["name"] = agg["alias"]
+                elif "name" not in agg:
+                    # Generate default name
+                    func = agg.get("function", "").lower()
+                    field = agg.get("field", "")
+                    if func and field:
+                        agg["name"] = f"{func}_{field}"
+                    elif func:
+                        agg["name"] = func
+                    else:
+                        agg["name"] = "aggregate"
+
+        # Check required parameters and add defaults
         for param_name, param_spec in spec_params.items():
-            if param_spec.get("required", False) and param_name not in params:
-                raise ValueError(
-                    f"Required parameter '{param_name}' missing for pattern "
-                    f"'{pattern_spec['pattern']}'"
-                )
+            if param_name not in params and param_name not in validated_params:
+                if param_spec.get("required", False):
+                    # Special case: source_entity defaults to current entity
+                    if param_name == "source_entity":
+                        validated_params[param_name] = {
+                            "schema": entity.schema,
+                            "name": entity.name,
+                        }
+                    else:
+                        raise ValueError(
+                            f"Required parameter '{param_name}' missing for pattern "
+                            f"'{pattern_spec['pattern']}'"
+                        )
+                elif "default" in param_spec:
+                    validated_params[param_name] = param_spec["default"]
+
+        return validated_params
 
         # Check unknown parameters
         for param_name in params:
@@ -159,21 +205,40 @@ class PatternApplier:
                 field = self._render_field(field_template, template_context, entity)
                 entity.fields[field.name] = field
 
-        # Add constraints - Note: Entity doesn't have constraints field, so we'll store in metadata
-        if "constraints" in extensions:
-            for constraint_template in extensions["constraints"]:
-                constraint = self._render_constraint(
-                    constraint_template,
-                    template_context,
-                    entity,
+        # Add computed columns
+        if "computed_columns" in extensions:
+            for computed_template in extensions["computed_columns"]:
+                computed_col = self._render_computed_column(
+                    computed_template, template_context, entity
                 )
-                if "constraints" not in entity.metadata:
-                    entity.metadata["constraints"] = []
-                entity.metadata["constraints"].append(constraint)
+                # Store computed columns in entity for template access
+                if not hasattr(entity, "computed_columns"):
+                    entity.computed_columns = []
+                entity.computed_columns.append(computed_col)
+
+        # Add constraints - Note: Entity doesn't have constraints field, so we'll skip for now
+        # Constraints will be handled by the table generator based on pattern metadata
+        if "constraints" in extensions:
+            # Store constraint info in notes for debugging
+            constraint_info = f"Pattern {pattern_spec['pattern']} adds {len(extensions['constraints'])} constraints"
+            if entity.notes:
+                entity.notes += f"\n{constraint_info}"
+            else:
+                entity.notes = constraint_info
 
         # Add indexes
         if "indexes" in extensions:
             for index_template in extensions["indexes"]:
+                # Check 'when' condition if present
+                when_condition = index_template.get("when")
+                if when_condition is not None:
+                    # Render the condition
+                    when_template = Template(str(when_condition))
+                    when_value = when_template.render(template_context)
+                    # Evaluate as boolean (handle string "true"/"false" or actual boolean)
+                    if when_value.lower() in ("false", "0", "", "none", "null"):
+                        continue  # Skip this index
+
                 index = self._render_index(index_template, template_context, entity)
                 entity.indexes.append(index)
 
@@ -249,6 +314,25 @@ class PatternApplier:
 
         return constraint
 
+    def _render_schema_template(
+        self,
+        pattern_spec: Dict[str, Any],
+        entity: Entity,
+        params: Dict[str, Any],
+    ) -> str:
+        """Render schema template with Jinja2."""
+        template_str = pattern_spec["schema_template"]
+        template = self.jinja_env.from_string(template_str)
+
+        # Prepare context
+        context = {
+            "entity": entity,
+            "params": params,
+            **params,  # Params available directly
+        }
+
+        return template.render(context)
+
     def _render_index(
         self,
         index_template: Dict[str, Any],
@@ -291,3 +375,41 @@ class PatternApplier:
         )
 
         return index
+
+    def _render_computed_column(
+        self,
+        computed_template: Dict[str, Any],
+        context: Dict[str, Any],
+        entity: Entity,
+    ) -> Dict[str, Any]:
+        """Render computed column template."""
+        from jinja2 import Template
+
+        # Render name
+        name_template = Template(computed_template["name"])
+        name = name_template.render(context)
+
+        # Render type
+        type_template = Template(computed_template["type"])
+        col_type = type_template.render(context)
+
+        # Render expression
+        expression_template = Template(computed_template["expression"])
+        expression = expression_template.render(context)
+
+        # Get stored flag
+        stored = computed_template.get("stored", True)
+
+        # Render comment if present
+        comment = computed_template.get("comment", "")
+        if comment:
+            comment_template = Template(comment)
+            comment = comment_template.render(context)
+
+        return {
+            "name": name,
+            "type": col_type,
+            "expression": expression,
+            "stored": stored,
+            "comment": comment,
+        }
