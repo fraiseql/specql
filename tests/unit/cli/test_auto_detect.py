@@ -5,11 +5,13 @@ from pathlib import Path
 from unittest.mock import patch
 
 from src.cli.confiture_extensions import specql
+from src.core.dependencies import TREE_SITTER_RUST, PGLAST
 
 
 class TestAutoDetection:
     """Test auto-detection of source code languages."""
 
+    @pytest.mark.skipif(not TREE_SITTER_RUST.available, reason="Requires tree-sitter-rust")
     def test_auto_detect_rust_file(self, cli_runner, tmp_path):
         """Auto-detect Rust source files"""
         # Create a test Rust file
@@ -75,6 +77,7 @@ class TestAutoDetection:
         assert result.exit_code == 0
         assert "Java" in result.output or "Processed" in result.output
 
+    @pytest.mark.skipif(not PGLAST.available, reason="Requires pglast")
     def test_auto_detect_sql_file(self, cli_runner, tmp_path):
         """Auto-detect SQL files"""
         # Create a test SQL file
@@ -91,6 +94,7 @@ class TestAutoDetection:
         assert result.exit_code == 0
         assert "Detected language: sql" in result.output
 
+    @pytest.mark.skipif(not PGLAST.available, reason="Requires pglast")
     def test_explicit_framework_override(self, cli_runner, tmp_path):
         """Test explicit framework specification overrides auto-detection"""
         # Create a Python file but specify SQL framework

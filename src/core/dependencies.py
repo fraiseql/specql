@@ -47,3 +47,15 @@ TREE_SITTER = OptionalDependency(
     pip_extra="reverse",
     purpose="Multi-language AST parsing",
 )
+
+TREE_SITTER_RUST = OptionalDependency(
+    package_name="tree_sitter_rust",
+    pip_extra="reverse",
+    purpose="Rust AST parsing",
+)
+
+TREE_SITTER_TYPESCRIPT = OptionalDependency(
+    package_name="tree_sitter_typescript",
+    pip_extra="reverse",
+    purpose="TypeScript AST parsing",
+)

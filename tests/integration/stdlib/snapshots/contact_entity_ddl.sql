@@ -1417,13 +1417,13 @@ required: true';
 
 
 -- Indexes
-CREATE INDEX idx_tb_contact_id ON tenant.tb_contact USING btree (id);
-CREATE INDEX idx_tb_contact_customer_org ON tenant.tb_contact USING btree (fk_customer_org);
-CREATE INDEX idx_tb_contact_genre ON tenant.tb_contact USING btree (fk_genre);
-CREATE INDEX idx_tb_contact_email_address ON tenant.tb_contact USING btree (email_address);
-CREATE INDEX idx_tb_contact_office_phone ON tenant.tb_contact USING btree (office_phone);
-CREATE INDEX idx_tb_contact_mobile_phone ON tenant.tb_contact USING btree (mobile_phone);
-CREATE INDEX idx_tb_contact_handles ON tenant.tb_contact USING btree (handles);
+CREATE INDEX tenant_idx_tb_contact_id ON tenant.tb_contact USING btree (id);
+CREATE INDEX tenant_idx_tb_contact_customer_org ON tenant.tb_contact USING btree (fk_customer_org);
+CREATE INDEX tenant_idx_tb_contact_genre ON tenant.tb_contact USING btree (fk_genre);
+CREATE INDEX tenant_idx_tb_contact_email_address ON tenant.tb_contact USING btree (email_address);
+CREATE INDEX tenant_idx_tb_contact_office_phone ON tenant.tb_contact USING btree (office_phone);
+CREATE INDEX tenant_idx_tb_contact_mobile_phone ON tenant.tb_contact USING btree (mobile_phone);
+CREATE INDEX tenant_idx_tb_contact_handles ON tenant.tb_contact USING btree (handles);
 
 -- Foreign Keys
 ALTER TABLE ONLY tenant.tb_contact

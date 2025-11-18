@@ -63,11 +63,11 @@ class TestTeamBIntegration:
         fk_ddl = table_generator.generate_foreign_keys_ddl(entity)
         assert "REFERENCES crm.tb_company(pk_company)" in fk_ddl
 
-        # Verify indexes
+        # Verify indexes (schema-prefixed for test isolation)
         idx_ddl = table_generator.generate_indexes_ddl(entity)
-        assert "CREATE INDEX idx_tb_contact_id" in idx_ddl
-        assert "CREATE INDEX idx_tb_contact_company" in idx_ddl
-        assert "CREATE INDEX idx_tb_contact_status" in idx_ddl
+        assert "CREATE INDEX crm_idx_tb_contact_id" in idx_ddl
+        assert "CREATE INDEX crm_idx_tb_contact_company" in idx_ddl
+        assert "CREATE INDEX crm_idx_tb_contact_status" in idx_ddl
 
         # Generate action functions (app wrapper + core logic pattern)
         action_sql = function_generator.generate_action_functions(entity)
@@ -240,10 +240,10 @@ class TestSchemaOrchestratorIntegration:
         assert "@fraiseql:composite" in sql  # YAML format
         assert "name: MutationResult" in sql
 
-        # Verify indexes
-        assert "CREATE INDEX idx_tb_contact_id" in sql
-        assert "CREATE INDEX idx_tb_contact_company" in sql
-        assert "CREATE INDEX idx_tb_contact_status" in sql
+        # Verify indexes (schema-prefixed for test isolation)
+        assert "CREATE INDEX crm_idx_tb_contact_id" in sql
+        assert "CREATE INDEX crm_idx_tb_contact_company" in sql
+        assert "CREATE INDEX crm_idx_tb_contact_status" in sql
 
         # Verify foreign keys
         assert "FOREIGN KEY (fk_company) REFERENCES crm.tb_company(pk_company)" in sql

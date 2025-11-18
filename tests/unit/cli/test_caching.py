@@ -6,6 +6,7 @@ from pathlib import Path
 from click.testing import CliRunner
 
 from src.cli.confiture_extensions import specql
+from src.core.dependencies import TREE_SITTER_RUST
 
 
 class TestCachingFunctionality:
@@ -58,6 +59,7 @@ pub struct Contact {
 }
 """
 
+    @pytest.mark.skipif(not TREE_SITTER_RUST.available, reason="Requires tree-sitter-rust")
     def test_reverse_uses_cache_on_second_run(self, cli_runner, rust_test_file, temp_dir):
         """Test that reverse engineering uses cache for unchanged files"""
 
@@ -81,6 +83,7 @@ pub struct Contact {
         if "Failed to process" not in result2.output:
             assert "Using cached result" in result2.output
 
+    @pytest.mark.skipif(not TREE_SITTER_RUST.available, reason="Requires tree-sitter-rust")
     def test_cache_invalidation_on_file_change(
         self, cli_runner, rust_test_file, temp_dir, modified_rust_content
     ):
@@ -121,6 +124,7 @@ pub struct Contact {
         # Should show cache is empty initially
         assert "Cache is empty" in result.output or "Cache Statistics" in result.output
 
+    @pytest.mark.skipif(not TREE_SITTER_RUST.available, reason="Requires tree-sitter-rust")
     def test_no_cache_option_disables_caching(self, cli_runner, rust_test_file, temp_dir):
         """Test --no-cache option disables caching"""
 
