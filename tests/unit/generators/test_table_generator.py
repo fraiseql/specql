@@ -4,7 +4,7 @@ Tests for Table Generator (Team B)
 
 import pytest
 
-pytestmark = pytest.mark.skip(reason="Minor assertion format differences - deferred to post-beta")
+# pytestmark = pytest.mark.skip(reason="Minor assertion format differences - deferred to post-beta")
 
 from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.schema_registry import SchemaRegistry
@@ -62,11 +62,13 @@ class TestTableGenerator:
         ddl = generator.generate_table_ddl(entity)
 
         # Check table comment with @fraiseql:type
+        # Note: Template adds trailing newline before closing quote
         expected_table_comment = """COMMENT ON TABLE crm.tb_contact IS
 'CRM contact entity.
 
 @fraiseql:type
-trinity: true';"""
+trinity: true
+';"""
         assert expected_table_comment in ddl
 
         # Check column comment with @fraiseql:field

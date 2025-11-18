@@ -118,13 +118,7 @@ class SchemaOrchestrator:
         table_sql = self.table_gen.generate_table_ddl(entity)
         parts.append("-- Entity Table\n" + table_sql)
 
-        # 4.5. Field comments for FraiseQL metadata
-        field_comments = self.table_gen.generate_field_comments(entity)
-        if field_comments:
-            logger.debug(f"Generated {len(field_comments)} field comments")
-            parts.append("-- Field Comments for FraiseQL\n" + "\n\n".join(field_comments))
-
-        # 4. Input types for actions
+        # 5. Input types for actions
         if entity.actions:
             logger.debug(f"Generating input types for {len(entity.actions)} actions")
         for action in entity.actions:
@@ -132,19 +126,25 @@ class SchemaOrchestrator:
             if input_type:
                 parts.append(f"-- Input Type: {action.name}\n" + input_type)
 
-        # 5. Indexes
+        # 6. Indexes (MUST come before comments for proper DDL order)
         logger.debug("Generating indexes")
         indexes = self.table_gen.generate_indexes_ddl(entity)
         if indexes:
             parts.append("-- Indexes\n" + indexes)
 
-        # 6. Foreign keys
+        # 7. Foreign keys
         logger.debug("Generating foreign keys")
         fks = self.table_gen.generate_foreign_keys_ddl(entity)
         if fks:
             parts.append("-- Foreign Keys\n" + fks)
 
-        # 7. Core logic functions
+        # 8. Field comments for FraiseQL metadata (AFTER indexes and FKs)
+        field_comments = self.table_gen.generate_field_comments(entity)
+        if field_comments:
+            logger.debug(f"Generated {len(field_comments)} field comments")
+            parts.append("-- Field Comments for FraiseQL\n" + "\n\n".join(field_comments))
+
+        # 9. Core logic functions
         core_functions = []
         if entity.actions:
             logger.debug(f"Generating core logic functions for {len(entity.actions)} actions")
@@ -164,7 +164,7 @@ class SchemaOrchestrator:
         if core_functions:
             parts.append("-- Core Logic Functions\n" + "\n\n".join(core_functions))
 
-        # 8. FraiseQL mutation annotations (Team D)
+        # 10. FraiseQL mutation annotations (Team D)
         mutation_annotations = []
         if entity.actions:
             logger.debug(
@@ -181,7 +181,7 @@ class SchemaOrchestrator:
                 "-- FraiseQL Mutation Annotations (Team D)\n" + "\n\n".join(mutation_annotations)
             )
 
-        # 8.5. App wrapper functions
+        # 11. App wrapper functions
         app_wrappers = []
         if entity.actions:
             logger.debug(f"Generating app wrapper functions for {len(entity.actions)} actions")
@@ -193,7 +193,7 @@ class SchemaOrchestrator:
         if app_wrappers:
             parts.append("-- App Wrapper Functions\n" + "\n\n".join(app_wrappers))
 
-        # 9. Trinity helper functions
+        # 12. Trinity helper functions
         logger.debug("Generating Trinity helper functions")
         helpers = self.helper_gen.generate_all_helpers(entity)
         parts.append("-- Trinity Helper Functions\n" + helpers)

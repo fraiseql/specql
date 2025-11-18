@@ -8,7 +8,7 @@ from src.generators.schema_orchestrator import SchemaOrchestrator
 
 
 
-pytestmark = pytest.mark.skip(reason="Stdlib snapshot assertion differences - deferred to post-beta")
+# pytestmark = pytest.mark.skip(reason="Stdlib snapshot assertion differences - deferred to post-beta")
 
 def load_snapshot(snapshot_path: Path) -> str:
     """Load snapshot content from file"""

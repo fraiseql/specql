@@ -11,6 +11,7 @@ from src.core.ast_models import Entity, EntityDefinition
 from src.generators.comment_generator import CommentGenerator
 from src.generators.constraint_generator import ConstraintGenerator
 from src.generators.index_generator import IndexGenerator
+from src.generators.schema.ddl_deduplicator import DDLDeduplicator
 from src.generators.schema.schema_registry import SchemaRegistry
 from src.utils.safe_slug import safe_slug, safe_table_name
 
@@ -225,27 +226,27 @@ class TableGenerator:
         return "\n\n".join(fk_statements)
 
     def generate_indexes_ddl(self, entity: Entity) -> str:
-        """Generate CREATE INDEX statements"""
+        """Generate CREATE INDEX statements with explicit USING clause"""
         indexes = []
 
         table_name = f"{entity.schema}.tb_{entity.name.lower()}"
 
-        # Index on id (UUID primary key)
-        indexes.append(f"CREATE INDEX idx_tb_{entity.name.lower()}_id ON {table_name}(id);")
+        # Index on id (UUID primary key) - explicitly specify USING btree
+        indexes.append(f"CREATE INDEX idx_tb_{entity.name.lower()}_id ON {table_name} USING btree (id);")
 
-        # Indexes on foreign keys
+        # Indexes on foreign keys - explicitly specify USING btree
         for field_name, field_def in entity.fields.items():
             if field_def.type_name == "ref" and field_def.reference_entity:
                 fk_name = f"fk_{field_name}"
                 indexes.append(
-                    f"CREATE INDEX idx_tb_{entity.name.lower()}_{field_name} ON {table_name}({fk_name});"
+                    f"CREATE INDEX idx_tb_{entity.name.lower()}_{field_name} ON {table_name} USING btree ({fk_name});"
                 )
 
-        # Indexes on enum fields
+        # Indexes on enum fields - explicitly specify USING btree
         for field_name, field_def in entity.fields.items():
             if field_def.type_name == "enum" and field_def.values:
                 indexes.append(
-                    f"CREATE INDEX idx_tb_{entity.name.lower()}_{field_name} ON {table_name}({field_name});"
+                    f"CREATE INDEX idx_tb_{entity.name.lower()}_{field_name} ON {table_name} USING btree ({field_name});"
                 )
 
         # Rich type indexes
@@ -291,17 +292,25 @@ class TableGenerator:
                             f"CREATE INDEX {index_def.name} ON {table_name} ({', '.join(index_def.columns)});"
                         )
 
+        # Deduplicate indexes to prevent duplicate statements
+        indexes = DDLDeduplicator.deduplicate_indexes(indexes)
+
         return "\n".join(indexes)
 
     def generate_field_comments(self, entity: Entity) -> list[str]:
-        """Generate COMMENT ON COLUMN statements for all fields"""
+        """Generate COMMENT ON COLUMN statements for all fields with deduplication"""
         # Convert Entity to EntityDefinition if needed
         if isinstance(entity, Entity):
             # Entity is already compatible with CommentGenerator
-            return self.comment_generator.generate_all_field_comments(entity)
+            comments = self.comment_generator.generate_all_field_comments(entity)
         else:
             # Handle EntityDefinition or other types
-            return self.comment_generator.generate_all_field_comments(entity)
+            comments = self.comment_generator.generate_all_field_comments(entity)
+
+        # Deduplicate comments to prevent duplicate statements
+        comments = DDLDeduplicator.deduplicate_comments(comments)
+
+        return comments
 
     def generate_indexes_for_rich_types(self, entity: Entity) -> list[str]:
         """Generate indexes for rich type fields"""

@@ -293,7 +293,8 @@ Includes roles, communication details, and authentication.
 .
 
 @fraiseql:type
-trinity: true';
+trinity: true
+';
 
 -- Trinity Pattern columns
 COMMENT ON COLUMN tenant.tb_contact.pk_contact IS 'Internal INTEGER primary key used in joins and foreign keys.';
@@ -318,121 +319,6 @@ COMMENT ON COLUMN tenant.tb_contact.updated_at IS 'Timestamp when the record was
 COMMENT ON COLUMN tenant.tb_contact.updated_by IS 'User or system who last updated the record.';
 COMMENT ON COLUMN tenant.tb_contact.deleted_at IS 'Timestamp of soft deletion.';
 COMMENT ON COLUMN tenant.tb_contact.deleted_by IS 'User or system who deleted the record.';
-
--- Field Comments for FraiseQL
-COMMENT ON COLUMN tenant.tb_contact.first_name IS
-'Text string
-
-@fraiseql:field
-name: first_name
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.last_name IS
-'Text string
-
-@fraiseql:field
-name: last_name
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.email_address IS
-'Valid email address (RFC 5322 simplified)
-
-@fraiseql:field
-name: email_address
-type: Email!
-required: true';
-
-COMMENT ON COLUMN tenant.tb_contact.office_phone IS
-'International phone number (E.164 format)
-
-@fraiseql:field
-name: office_phone
-type: PhoneNumber
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.mobile_phone IS
-'International phone number (E.164 format)
-
-@fraiseql:field
-name: mobile_phone
-type: PhoneNumber
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.job_title IS
-'Text string
-
-@fraiseql:field
-name: job_title
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.position IS
-'Text string
-
-@fraiseql:field
-name: position
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.lang IS
-'Text string
-
-@fraiseql:field
-name: lang
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.locale IS
-'Text string
-
-@fraiseql:field
-name: locale
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.timezone IS
-'Text string
-
-@fraiseql:field
-name: timezone
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.handles IS
-'JSON object or array
-
-@fraiseql:field
-name: handles
-type: JSON
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.password_hash IS
-'Text string
-
-@fraiseql:field
-name: password_hash
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.fk_customer_org IS
-'Ref value → Organization
-
-@fraiseql:field
-name: fk_customer_org
-type: UUID
-required: false
-references: Organization';
-
-COMMENT ON COLUMN tenant.tb_contact.fk_genre IS
-'Ref value → Genre
-
-@fraiseql:field
-name: fk_genre
-type: UUID
-required: false
-references: Genre';
 
 -- Input Type: create_contact
 
@@ -1531,14 +1417,13 @@ required: true';
 
 
 -- Indexes
-CREATE INDEX idx_tb_contact_id
-    ON tenant.tb_contact USING btree (id);
-
-CREATE INDEX idx_tb_contact_customer_org
-    ON tenant.tb_contact USING btree (fk_customer_org);
-
-CREATE INDEX idx_tb_contact_genre
-    ON tenant.tb_contact USING btree (fk_genre);
+CREATE INDEX idx_tb_contact_id ON tenant.tb_contact USING btree (id);
+CREATE INDEX idx_tb_contact_customer_org ON tenant.tb_contact USING btree (fk_customer_org);
+CREATE INDEX idx_tb_contact_genre ON tenant.tb_contact USING btree (fk_genre);
+CREATE INDEX idx_tb_contact_email_address ON tenant.tb_contact USING btree (email_address);
+CREATE INDEX idx_tb_contact_office_phone ON tenant.tb_contact USING btree (office_phone);
+CREATE INDEX idx_tb_contact_mobile_phone ON tenant.tb_contact USING btree (mobile_phone);
+CREATE INDEX idx_tb_contact_handles ON tenant.tb_contact USING btree (handles);
 
 -- Foreign Keys
 ALTER TABLE ONLY tenant.tb_contact
@@ -1548,6 +1433,121 @@ ALTER TABLE ONLY tenant.tb_contact
 ALTER TABLE ONLY tenant.tb_contact
     ADD CONSTRAINT tb_contact_genre_fkey
     FOREIGN KEY (fk_genre) REFERENCES tenant.tb_genre(pk_genre);
+
+-- Field Comments for FraiseQL
+COMMENT ON COLUMN tenant.tb_contact.first_name IS
+'Text string
+
+@fraiseql:field
+name: first_name
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.last_name IS
+'Text string
+
+@fraiseql:field
+name: last_name
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.email_address IS
+'Valid email address (RFC 5322 simplified)
+
+@fraiseql:field
+name: email_address
+type: Email!
+required: true';
+
+COMMENT ON COLUMN tenant.tb_contact.office_phone IS
+'International phone number (E.164 format)
+
+@fraiseql:field
+name: office_phone
+type: PhoneNumber
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.mobile_phone IS
+'International phone number (E.164 format)
+
+@fraiseql:field
+name: mobile_phone
+type: PhoneNumber
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.job_title IS
+'Text string
+
+@fraiseql:field
+name: job_title
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.position IS
+'Text string
+
+@fraiseql:field
+name: position
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.lang IS
+'Text string
+
+@fraiseql:field
+name: lang
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.locale IS
+'Text string
+
+@fraiseql:field
+name: locale
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.timezone IS
+'Text string
+
+@fraiseql:field
+name: timezone
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.handles IS
+'JSON object or array
+
+@fraiseql:field
+name: handles
+type: JSON
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.password_hash IS
+'Text string
+
+@fraiseql:field
+name: password_hash
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.fk_customer_org IS
+'Ref value → Organization
+
+@fraiseql:field
+name: fk_customer_org
+type: UUID
+required: false
+references: Organization';
+
+COMMENT ON COLUMN tenant.tb_contact.fk_genre IS
+'Ref value → Genre
+
+@fraiseql:field
+name: fk_genre
+type: UUID
+required: false
+references: Genre';
 
 -- Core Logic Functions
 -- ============================================================================
