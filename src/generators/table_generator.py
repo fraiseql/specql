@@ -294,9 +294,14 @@ class TableGenerator:
         return "\n".join(indexes)
 
     def generate_field_comments(self, entity: Entity) -> list[str]:
-        """Generate COMMENT ON COLUMN statements"""
-        # Implementation would go here
-        return []
+        """Generate COMMENT ON COLUMN statements for all fields"""
+        # Convert Entity to EntityDefinition if needed
+        if isinstance(entity, Entity):
+            # Entity is already compatible with CommentGenerator
+            return self.comment_generator.generate_all_field_comments(entity)
+        else:
+            # Handle EntityDefinition or other types
+            return self.comment_generator.generate_all_field_comments(entity)
 
     def generate_indexes_for_rich_types(self, entity: Entity) -> list[str]:
         """Generate indexes for rich type fields"""

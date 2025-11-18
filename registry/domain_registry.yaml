@@ -1,5 +1,5 @@
 version: 1.0.0
-last_updated: '2025-11-18T09:57:30.326567'
+last_updated: '2025-11-18T15:35:18.912975'
 schema_layers:
   '00': common
   '01': write_side
@@ -56,12 +56,12 @@ domains:
       '03':
         name: customer
         description: Customer contact entities (contact, company, account)
-        next_entity_sequence: 216
+        next_entity_sequence: 312
         entities:
           Contact:
-            table_code: '012034'
+            table_code: '012030'
             entity_code: CNT
-            assigned_at: '2025-11-18T09:57:30.326556'
+            assigned_at: '2025-11-18T15:35:18.912957'
       '04':
         name: support
         description: Customer support entities (ticket, case, knowledge_base)
