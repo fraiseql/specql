@@ -178,11 +178,12 @@ $$ LANGUAGE plpgsql IMMUTABLE;
         Generate GIN index for JSONB queryability with partial index support
 
         Example output:
-            CREATE INDEX idx_order_shipping_address
+            CREATE INDEX crm_idx_order_shipping_address
             ON crm.tb_order USING GIN (shipping_address)
             WHERE deleted_at IS NULL;
         """
-        index_name = f"idx_{table}_{composite_ddl.column_name}"
+        # Index names are database-global in PostgreSQL, so include schema prefix
+        index_name = f"{schema}_idx_{table}_{composite_ddl.column_name}"
         table_name = f"{schema}.{table}"
 
         return generate_gin_index(table_name, index_name, [composite_ddl.column_name])

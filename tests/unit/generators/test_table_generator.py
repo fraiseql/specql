@@ -103,16 +103,16 @@ required: true';"""
 
         idx_ddl = generator.generate_indexes_ddl(entity)
 
-        # UUID index
-        assert "CREATE INDEX idx_tb_contact_id" in idx_ddl
+        # UUID index (with schema prefix since index names are database-global)
+        assert "CREATE INDEX crm_idx_tb_contact_id" in idx_ddl
         assert "ON crm.tb_contact USING btree (id)" in idx_ddl
 
         # Foreign key index
-        assert "CREATE INDEX idx_tb_contact_company" in idx_ddl
+        assert "CREATE INDEX crm_idx_tb_contact_company" in idx_ddl
         assert "ON crm.tb_contact USING btree (fk_company)" in idx_ddl
 
         # Enum index
-        assert "CREATE INDEX idx_tb_contact_status" in idx_ddl
+        assert "CREATE INDEX crm_idx_tb_contact_status" in idx_ddl
         assert "ON crm.tb_contact USING btree (status)" in idx_ddl
 
     def test_field_type_mappings(self, generator):

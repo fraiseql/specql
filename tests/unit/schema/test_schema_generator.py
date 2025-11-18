@@ -26,7 +26,7 @@ def test_generate_table_with_composite_field():
 
     assert "CREATE TABLE crm.tb_order" in ddl
     assert "shipping_address JSONB CHECK (validate_simple_address(shipping_address))" in ddl
-    assert "CREATE INDEX idx_tb_order_shipping_address" in ddl
+    assert "CREATE INDEX crm_idx_tb_order_shipping_address" in ddl
     assert "validate_simple_address" in ddl
 
 
@@ -102,8 +102,8 @@ def test_generate_table_with_mixed_fields():
     # Check composite fields
     assert "billing_address JSONB NOT NULL CHECK (validate_simple_address(billing_address))" in ddl
     assert "shipping_address JSONB CHECK (validate_simple_address(shipping_address))" in ddl
-    assert "CREATE INDEX idx_tb_order_billing_address" in ddl
-    assert "CREATE INDEX idx_tb_order_shipping_address" in ddl
+    assert "CREATE INDEX crm_idx_tb_order_billing_address" in ddl
+    assert "CREATE INDEX crm_idx_tb_order_shipping_address" in ddl
 
     # Check validation functions are included
     assert "validate_simple_address" in ddl

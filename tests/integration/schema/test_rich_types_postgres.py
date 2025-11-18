@@ -50,6 +50,7 @@ def test_email_constraint_validates_format(test_db, isolated_schema, table_gener
     # Replace schema references with isolated schema
     ddl = ddl.replace("CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}")
     ddl = ddl.replace("crm.", f"{isolated_schema}.")
+    ddl = ddl.replace("crm_", f"{isolated_schema}_")  # Index name prefixes
 
     cursor = test_db.cursor()
 
@@ -94,6 +95,7 @@ def test_indexes_created_correctly(test_db, isolated_schema, table_generator):
     # Replace schema references with isolated schema
     ddl = ddl.replace("CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}")
     ddl = ddl.replace("crm.", f"{isolated_schema}.")
+    ddl = ddl.replace("crm_", f"{isolated_schema}_")  # Index name prefixes
 
     cursor = test_db.cursor()
     cursor.execute(ddl)
@@ -105,28 +107,28 @@ def test_indexes_created_correctly(test_db, isolated_schema, table_generator):
         FROM pg_indexes
         WHERE tablename = 'tb_contact'
         AND schemaname = '{isolated_schema}'
-        AND indexname LIKE 'idx_tb_contact_%'
+        AND indexname LIKE '{isolated_schema}_idx_tb_contact_%'
     """)
 
     indexes = {row[0]: row[1] for row in cursor.fetchall()}
 
     # Verify email B-tree index
-    assert "idx_tb_contact_email" in indexes
-    assert "btree" in indexes["idx_tb_contact_email"].lower()
-    assert "email" in indexes["idx_tb_contact_email"]
+    assert f"{isolated_schema}_idx_tb_contact_email" in indexes
+    assert "btree" in indexes[f"{isolated_schema}_idx_tb_contact_email"].lower()
+    assert "email" in indexes[f"{isolated_schema}_idx_tb_contact_email"]
 
     # Verify website GIN index
-    assert "idx_tb_contact_website" in indexes
-    assert "gin" in indexes["idx_tb_contact_website"].lower()
-    assert "gin_trgm_ops" in indexes["idx_tb_contact_website"]
+    assert f"{isolated_schema}_idx_tb_contact_website" in indexes
+    assert "gin" in indexes[f"{isolated_schema}_idx_tb_contact_website"].lower()
+    assert "gin_trgm_ops" in indexes[f"{isolated_schema}_idx_tb_contact_website"]
 
     # Verify phone B-tree index
-    assert "idx_tb_contact_phone" in indexes
-    assert "btree" in indexes["idx_tb_contact_phone"].lower()
+    assert f"{isolated_schema}_idx_tb_contact_phone" in indexes
+    assert "btree" in indexes[f"{isolated_schema}_idx_tb_contact_phone"].lower()
 
     # Verify coordinates GiST index
-    assert "idx_tb_contact_coordinates" in indexes
-    assert "gist" in indexes["idx_tb_contact_coordinates"].lower()
+    assert f"{isolated_schema}_idx_tb_contact_coordinates" in indexes
+    assert "gist" in indexes[f"{isolated_schema}_idx_tb_contact_coordinates"].lower()
 
 
 @pytest.mark.integration
@@ -138,6 +140,7 @@ def test_comments_appear_in_postgresql(test_db, isolated_schema, table_generator
     # Replace schema references with isolated schema
     ddl = ddl.replace("CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}")
     ddl = ddl.replace("crm.", f"{isolated_schema}.")
+    ddl = ddl.replace("crm_", f"{isolated_schema}_")  # Index name prefixes
 
     cursor = test_db.cursor()
     cursor.execute(ddl)
@@ -173,6 +176,7 @@ def test_url_pattern_matching_with_gin_index(test_db, isolated_schema, table_gen
     # Replace schema references with isolated schema
     ddl = ddl.replace("CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}")
     ddl = ddl.replace("crm.", f"{isolated_schema}.")
+    ddl = ddl.replace("crm_", f"{isolated_schema}_")  # Index name prefixes
 
     cursor = test_db.cursor()
     cursor.execute(ddl)
@@ -271,6 +275,7 @@ def test_coordinates_gist_index_for_spatial_queries(test_db, isolated_schema, ta
     # Replace schema references with isolated schema
     ddl = ddl.replace("CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}")
     ddl = ddl.replace("crm.", f"{isolated_schema}.")
+    ddl = ddl.replace("crm_", f"{isolated_schema}_")  # Index name prefixes
 
     cursor = test_db.cursor()
     cursor.execute(ddl)
@@ -349,6 +354,7 @@ def test_enum_constraints_work(test_db, isolated_schema, table_generator):
     # Replace schema references with isolated schema
     ddl = ddl.replace("CREATE SCHEMA public", f"CREATE SCHEMA {isolated_schema}")
     ddl = ddl.replace("public.", f"{isolated_schema}.")
+    ddl = ddl.replace("public_", f"{isolated_schema}_")  # Index name prefixes
 
     cursor = test_db.cursor()
     cursor.execute(ddl)
@@ -398,6 +404,7 @@ def test_foreign_key_constraints_work(test_db, isolated_schema, table_generator)
     parent_ddl = table_generator.generate_complete_ddl(parent_entity)
     parent_ddl = parent_ddl.replace("CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}")
     parent_ddl = parent_ddl.replace("crm.", f"{isolated_schema}.")
+    parent_ddl = parent_ddl.replace("crm_", f"{isolated_schema}_")  # Index name prefixes
 
     cursor = test_db.cursor()
     cursor.execute(parent_ddl)
@@ -406,6 +413,7 @@ def test_foreign_key_constraints_work(test_db, isolated_schema, table_generator)
     child_ddl = table_generator.generate_complete_ddl(child_entity)
     child_ddl = child_ddl.replace("CREATE SCHEMA crm", f"CREATE SCHEMA {isolated_schema}")
     child_ddl = child_ddl.replace("crm.", f"{isolated_schema}.")
+    child_ddl = child_ddl.replace("crm_", f"{isolated_schema}_")  # Index name prefixes
     cursor.execute(child_ddl)
     test_db.commit()
 

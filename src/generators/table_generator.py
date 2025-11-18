@@ -230,23 +230,25 @@ class TableGenerator:
         indexes = []
 
         table_name = f"{entity.schema}.tb_{entity.name.lower()}"
+        # Index names are database-global in PostgreSQL, so include schema prefix
+        schema_prefix = f"{entity.schema.lower()}_"
 
         # Index on id (UUID primary key) - explicitly specify USING btree
-        indexes.append(f"CREATE INDEX idx_tb_{entity.name.lower()}_id ON {table_name} USING btree (id);")
+        indexes.append(f"CREATE INDEX {schema_prefix}idx_tb_{entity.name.lower()}_id ON {table_name} USING btree (id);")
 
         # Indexes on foreign keys - explicitly specify USING btree
         for field_name, field_def in entity.fields.items():
             if field_def.type_name == "ref" and field_def.reference_entity:
                 fk_name = f"fk_{field_name}"
                 indexes.append(
-                    f"CREATE INDEX idx_tb_{entity.name.lower()}_{field_name} ON {table_name} USING btree ({fk_name});"
+                    f"CREATE INDEX {schema_prefix}idx_tb_{entity.name.lower()}_{field_name} ON {table_name} USING btree ({fk_name});"
                 )
 
         # Indexes on enum fields - explicitly specify USING btree
         for field_name, field_def in entity.fields.items():
             if field_def.type_name == "enum" and field_def.values:
                 indexes.append(
-                    f"CREATE INDEX idx_tb_{entity.name.lower()}_{field_name} ON {table_name} USING btree ({field_name});"
+                    f"CREATE INDEX {schema_prefix}idx_tb_{entity.name.lower()}_{field_name} ON {table_name} USING btree ({field_name});"
                 )
 
         # Rich type indexes
@@ -324,22 +326,17 @@ class TableGenerator:
         # 1. CREATE TABLE
         ddl_parts.append(self.generate_table_ddl(entity))
 
-        # 2. CREATE INDEX statements (standard indexes)
+        # 2. CREATE INDEX statements (includes both standard and rich type indexes)
         indexes = self.generate_indexes_ddl(entity)
         if indexes:
             ddl_parts.append(indexes)
 
-        # 3. CREATE INDEX statements (rich type indexes)
-        rich_type_indexes = self.generate_indexes_for_rich_types(entity)
-        if rich_type_indexes:
-            ddl_parts.append("\n\n".join(rich_type_indexes))
-
-        # 4. COMMENT ON statements
+        # 3. COMMENT ON statements
         comments = self.comment_generator.generate_all_field_comments(entity)
         if comments:
             ddl_parts.extend(comments)
 
-        # 5. Table comment
+        # 4. Table comment
         table_comment = self.comment_generator.generate_table_comment(entity)
         ddl_parts.append(table_comment)
 
