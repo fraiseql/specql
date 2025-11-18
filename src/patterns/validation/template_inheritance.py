@@ -38,11 +38,17 @@ class TemplateInheritancePattern:
 
         entity.functions.extend(functions)
 
-        # Add trigger as custom DDL
-        trigger_sql = cls._generate_validation_trigger(entity, config)
+        # Add trigger and index as custom DDL
         if not hasattr(entity, "_custom_ddl"):
             entity._custom_ddl = []
+
+        # Add validation trigger
+        trigger_sql = cls._generate_validation_trigger(entity, config)
         entity._custom_ddl.append(trigger_sql)
+
+        # Add template field index (ensures it's in DDL output)
+        index_sql = cls._generate_template_index(entity, config)
+        entity._custom_ddl.append(index_sql)
 
     @classmethod
     def _parse_config(cls, params: dict, entity_name: str = "self") -> TemplateConfig:
@@ -258,4 +264,17 @@ CREATE TRIGGER {trigger_name}
   BEFORE INSERT OR UPDATE ON {entity.schema}.tb_{entity.name.lower()}
   FOR EACH ROW
   EXECUTE FUNCTION {entity.schema}.{trigger_name}_func();
+"""
+
+    @classmethod
+    def _generate_template_index(cls, entity: EntityDefinition, config: TemplateConfig) -> str:
+        """Generate index for template field lookups."""
+        table_name = f"tb_{entity.name.lower()}"
+        idx_name = f"idx_{entity.name.lower()}_{config.template_field}"
+
+        return f"""
+-- Index for template lookups
+CREATE INDEX {idx_name}
+ON {entity.schema}.{table_name}({config.template_field})
+WHERE {config.template_field} IS NOT NULL;
 """

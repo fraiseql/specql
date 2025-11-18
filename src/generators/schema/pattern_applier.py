@@ -107,8 +107,16 @@ class PatternApplier:
         if pattern_class:
             # Apply the pattern
             pattern_class.apply(entity, pattern.params)
-            # No additional SQL for Python patterns (functions are added to entity.functions)
-            return entity, ""
+
+            # Collect custom DDL if pattern added any (triggers, indexes, etc.)
+            additional_sql = ""
+            if hasattr(entity, "_custom_ddl") and entity._custom_ddl:
+                additional_sql = "\n\n".join(entity._custom_ddl)
+                # Clear _custom_ddl to prevent duplication on re-application
+                entity._custom_ddl = []
+
+            # Functions are added to entity.functions and rendered separately via template
+            return entity, additional_sql
 
         # Fallback to dynamic import for unregistered patterns
         # Convert pattern type to Python class name
@@ -139,8 +147,15 @@ class PatternApplier:
         # Apply the pattern
         pattern_class.apply(entity, pattern.params)
 
-        # No additional SQL for Python patterns (functions are added to entity.functions)
-        return entity, ""
+        # Collect custom DDL if pattern added any (triggers, indexes, etc.)
+        additional_sql = ""
+        if hasattr(entity, "_custom_ddl") and entity._custom_ddl:
+            additional_sql = "\n\n".join(entity._custom_ddl)
+            # Clear _custom_ddl to prevent duplication on re-application
+            entity._custom_ddl = []
+
+        # Functions are added to entity.functions and rendered separately via template
+        return entity, additional_sql
 
     def _load_pattern_spec(self, pattern_type: str) -> Dict[str, Any]:
         """Load pattern YAML specification."""
