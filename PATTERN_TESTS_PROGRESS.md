@@ -319,10 +319,26 @@ uv run pytest <test-path> -v --tb=long
 
 ---
 
-**Current Status**: Excellent progress! 67% complete (44/66 tests passing)
+**Current Status**: Nearly there! 91% complete (20/22 validation, 64/66 total)
 
-**Next Focus**: Week 4 - Validation patterns (22 tests remaining)
+**Next Focus**: Debug custom DDL rendering (2 tests remaining)
 
-**Estimated Completion**: 1-2 weeks to 100%
+**Estimated Completion**: 2-4 hours to 100%
 
-🎉 **Great work so far! Keep it up!** 🚀
+🎉 **Almost at the finish line!** 🚀
+
+---
+
+## 🔧 Work In Progress (WIP)
+
+### Implementation Complete (Needs Debugging)
+- ✅ Custom DDL collection logic added to PatternApplier
+- ✅ Index generation method added to TemplateInheritancePattern
+- ✅ Triggers and indexes added to entity._custom_ddl
+- ❌ Custom DDL not appearing in final output (needs investigation)
+
+### Debugging Steps (See WEEK_05_FINAL_2_TESTS_PHASED_PLAN.md)
+1. Verify pattern.apply() is being called
+2. Check entity type (EntityDefinition vs Entity)
+3. Confirm _custom_ddl is being populated
+4. Trace DDL flow from pattern → applier → table generator
