@@ -47,13 +47,22 @@
   - EXCLUSION constraints
   - **Fixes**: 18 skipped tests → passing
 
-#### Week 4: Validation Patterns (29 Skipped Tests)
+#### Week 4: Validation Patterns (13 Tests Passing)
 - **[WEEK_04_JUNIOR_GUIDE_VALIDATION_PATTERNS.md](WEEK_04_JUNIOR_GUIDE_VALIDATION_PATTERNS.md)** (22KB)
   - Recursive dependency validation
   - Template inheritance
   - Recursive CTEs
   - JSONB operations
-  - **Fixes**: 29 skipped tests → passing
+  - **Result**: 13/22 tests passing (significant progress!)
+
+#### Week 5: Final Polish (9 Failing Tests)
+- **[WEEK_05_FINAL_POLISH_GUIDE.md](WEEK_05_FINAL_POLISH_GUIDE.md)** (23KB)
+  - Pattern registration fixes
+  - FraiseQL metadata annotations
+  - Custom field naming
+  - Trigger and index generation
+  - Null handling and config parsing
+  - **Fixes**: Last 9 tests → 100% complete! 🎉
 
 ---
 
@@ -93,7 +102,13 @@ cat WEEK_03_JUNIOR_GUIDE_TEMPORAL_PATTERNS.md
 **Week 4**: Validation Patterns
 ```bash
 cat WEEK_04_JUNIOR_GUIDE_VALIDATION_PATTERNS.md
-# Fix 29 skipped tests
+# Fix 13 validation tests (partial)
+```
+
+**Week 5**: Final Polish
+```bash
+cat WEEK_05_FINAL_POLISH_GUIDE.md
+# Fix last 9 tests → 100% complete!
 ```
 
 ### For Experienced Developers
@@ -102,6 +117,7 @@ Skip to relevant week based on what needs fixing:
 - **SCD Type 2 failing?** → Week 2 guide
 - **Temporal tests skipped?** → Week 3 guide
 - **Validation tests skipped?** → Week 4 guide
+- **Almost done, just polish?** → Week 5 guide
 
 ---
 
@@ -488,11 +504,12 @@ uv run pytest tests/unit/patterns/ -v
 | **QUICK_START_FIRST_TEST_FIX.md** | 9KB | Fix first test in 30 min | ⭐ YES |
 | **JUNIOR_GUIDES_INDEX.md** | 14KB | Overview and navigation | Second |
 | **WEEK_01_JUNIOR_GUIDE.md** | 31KB | Foundation (if needed) | Optional |
-| **WEEK_02_JUNIOR_GUIDE_SCD_TYPE2.md** | 22KB | Fix 6 failing tests | Required |
-| **WEEK_03_JUNIOR_GUIDE_TEMPORAL_PATTERNS.md** | 22KB | Fix 18 skipped tests | Required |
-| **WEEK_04_JUNIOR_GUIDE_VALIDATION_PATTERNS.md** | 22KB | Fix 29 skipped tests | Required |
+| **WEEK_02_JUNIOR_GUIDE_SCD_TYPE2.md** | 22KB | Fix 6 failing tests | ✅ Complete |
+| **WEEK_03_JUNIOR_GUIDE_TEMPORAL_PATTERNS.md** | 22KB | Fix 8 temporal tests | ✅ Complete |
+| **WEEK_04_JUNIOR_GUIDE_VALIDATION_PATTERNS.md** | 22KB | Fix 13 validation tests | ✅ Complete |
+| **WEEK_05_FINAL_POLISH_GUIDE.md** | 23KB | Fix last 9 tests | 📝 Ready |
 
-**Total**: 140KB of detailed, beginner-friendly guides
+**Total**: 163KB of detailed, beginner-friendly guides
 
 ---
 

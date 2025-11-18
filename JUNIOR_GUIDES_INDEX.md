@@ -11,11 +11,12 @@
 | Guide | Tests Fixed | Difficulty | Time | Status |
 |-------|-------------|------------|------|--------|
 | [Week 1: Foundation](#week-1-foundation) | Infrastructure | ⭐ Easy | 7 days | ✅ Complete |
-| [Week 2: SCD Type 2](#week-2-scd-type-2) | 6 failing | ⭐⭐ Medium | 3-4 days | 📝 Ready |
-| [Week 3: Temporal Patterns](#week-3-temporal-patterns) | 18 skipped | ⭐⭐ Medium | 5-6 days | 📝 Ready |
-| [Week 4: Validation Patterns](#week-4-validation-patterns) | 29 skipped | ⭐⭐⭐ Hard | 5-6 days | 📝 Ready |
+| [Week 2: SCD Type 2](#week-2-scd-type-2) | 6 failing | ⭐⭐ Medium | 3-4 days | ✅ Complete |
+| [Week 3: Temporal Patterns](#week-3-temporal-patterns) | 8 skipped | ⭐⭐ Medium | 5-6 days | ✅ Complete |
+| [Week 4: Validation Patterns](#week-4-validation-patterns) | 13 passing | ⭐⭐⭐ Hard | 5-6 days | ✅ Complete |
+| [Week 5: Final Polish](#week-5-final-polish) | 9 failing | ⭐⭐ Medium | 2-3 days | 📝 Ready |
 
-**Total Impact**: 53 tests from failing/skipped → passing
+**Total Impact**: 66 tests from 22% → 100% passing
 
 ---
 
@@ -251,6 +252,78 @@ Laptop Template (adds screen_size, battery_life)
 - [ ] Circular dependency detection
 - [ ] Template inheritance resolution
 - [ ] JSONB merging correct
+
+---
+
+## Week 5: Final Polish
+
+**File**: [`WEEK_05_FINAL_POLISH_GUIDE.md`](WEEK_05_FINAL_POLISH_GUIDE.md)
+
+### What You'll Fix
+- Pattern registration issues (3 tests)
+- FraiseQL metadata annotations (1 test)
+- Custom field naming (1 test)
+- Trigger generation (1 test)
+- Index generation (1 test)
+- Null handling in template resolution (1 test)
+- Configuration parameter parsing (1 test)
+
+### Current Status
+```bash
+uv run pytest tests/unit/patterns/validation/ -v
+
+Results:
+✅ 13 PASSED
+❌ 9 FAILED ← We fix these!
+```
+
+### The 9 Failing Tests (Grouped by Root Cause)
+
+**Issue Group 1: Pattern Registration** (3 tests)
+- Missing pattern class registration in applier
+- Fix: Register `RecursiveDependencyValidator` and `TemplateInheritance`
+
+**Issue Group 2: FraiseQL Metadata** (1 test)
+- Missing `@fraiseql:pattern:*` annotations
+- Fix: Add pattern metadata to comment generator
+
+**Issue Group 3: Field Naming** (1 test)
+- Custom field names not applied
+- Fix: Use `template_field` param from config
+
+**Issue Group 4: Trigger Generation** (1 test)
+- No validation triggers generated
+- Fix: Add trigger generation to pattern
+
+**Issue Group 5: Index Generation** (1 test)
+- Template fields not indexed
+- Fix: Generate indexes for reference fields
+
+**Issue Group 6: Null Handling** (1 test)
+- Null template references crash
+- Fix: Add null checks in SQL functions
+
+**Issue Group 7: Config Parsing** (1 test)
+- `allow_cycles` parameter causes error
+- Fix: Safe null parameter parsing
+
+### Implementation Plan
+- **Day 1**: Pattern registration (3 tests) + FraiseQL metadata (1 test)
+- **Day 2**: Field naming (1 test) + Trigger generation (1 test)
+- **Day 3**: Index generation (1 test) + Null handling (1 test) + Config parsing (1 test)
+
+### Key Code Locations
+- `src/generators/schema/pattern_applier.py` - Register validation patterns
+- `src/generators/comment_generator.py` - Add pattern annotations
+- `src/patterns/validation/template_inheritance.py` - Fix field names, triggers, indexes, null handling
+- `src/patterns/validation/recursive_dependency_validator.py` - Fix config parsing
+
+### Success Criteria
+- [ ] All 9 failing tests fixed
+- [ ] 66/66 pattern tests passing (100%!)
+- [ ] Pattern registration complete
+- [ ] FraiseQL discovery working
+- [ ] All edge cases handled
 
 ---
 
