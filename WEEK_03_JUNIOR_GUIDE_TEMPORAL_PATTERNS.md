@@ -21,23 +21,23 @@ uv run pytest tests/unit/patterns/validation/ -v | grep SKIPPED | wc -l
 
 ## 🎯 What is Non-Overlapping Daterange?
 
-### Real-World Problem: Machine Double-Booking
+### Real-World Problem: Resource Double-Booking
 
-Imagine a factory with machines that can be allocated to different products:
+Imagine any booking system (conference rooms, vehicles, equipment):
 
-**Problem**: Two allocations overlap
+**Problem**: Two bookings overlap
 ```
-Machine 001:
-  Jan 1-10: Product A   ──────────
-  Jan 5-15: Product B       ──────────
-                            ^^^^ OVERLAP! Machine can't do both!
+Room A:
+  Jan 1-10: Meeting 1   ──────────
+  Jan 5-15: Meeting 2       ──────────
+                            ^^^^ OVERLAP! Room can't host both!
 ```
 
 **Solution**: PostgreSQL `EXCLUDE` constraint prevents overlaps
 ```sql
-ALTER TABLE allocations
+ALTER TABLE bookings
 ADD CONSTRAINT no_overlap
-EXCLUDE USING gist (machine WITH =, date_range WITH &&);
+EXCLUDE USING gist (resource_id WITH =, date_range WITH &&);
 -- This blocks the second INSERT automatically!
 ```
 
@@ -84,17 +84,17 @@ USING gist(date_range);
 
 Prevents overlapping data:
 ```sql
-CREATE TABLE allocations (
-    machine_id INTEGER,
+CREATE TABLE bookings (
+    resource_id INTEGER,
     start_date DATE,
     end_date DATE,
     date_range DATERANGE GENERATED ALWAYS AS (daterange(start_date, end_date, '[)')) STORED
 );
 
-ALTER TABLE allocations
+ALTER TABLE bookings
 ADD CONSTRAINT no_overlap
 EXCLUDE USING gist (
-    machine_id WITH =,      -- Same machine
+    resource_id WITH =,     -- Same resource
     date_range WITH &&      -- Overlapping ranges
 );
 -- Blocks INSERTs/UPDATEs that would create overlaps
@@ -124,18 +124,19 @@ head -100 tests/unit/patterns/temporal/test_non_overlapping_daterange.py
 
 **Input YAML**:
 ```yaml
-entity: Allocation
-schema: tenant  # Multi-tenant domain (projects)
+entity: Booking
+schema: tenant  # Multi-tenant domain
 fields:
-  machine: ref(Machine)
-  product: ref(Product)
+  resource: ref(Resource)  # Conference room, vehicle, equipment, etc.
+  user: ref(User)
   start_date: date
   end_date: date
+  status: enum(pending, confirmed, cancelled)
 
 patterns:
   - type: temporal_non_overlapping_daterange
     params:
-      scope_fields: [machine]          # Check overlaps per machine
+      scope_fields: [resource]         # Check overlaps per resource
       start_date_field: start_date
       end_date_field: end_date
       check_mode: strict               # Use EXCLUDE constraint
@@ -144,15 +145,16 @@ patterns:
 
 **Expected Output SQL**:
 ```sql
-CREATE TABLE tenant.tb_allocation (
+CREATE TABLE tenant.tb_booking (
     pk_id SERIAL PRIMARY KEY,
     id UUID DEFAULT uuid_generate_v4(),
     identifier TEXT NOT NULL,
     tenant_id UUID NOT NULL,  -- Added automatically (multi-tenant schema)
-    machine INTEGER REFERENCES tenant.tb_machine(pk_id),
-    product INTEGER REFERENCES catalog.tb_product(pk_id),  -- Catalog is shared
+    resource INTEGER REFERENCES tenant.tb_resource(pk_id),
+    user INTEGER REFERENCES crm.tb_user(pk_id),
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
+    status TEXT NOT NULL CHECK (status IN ('pending', 'confirmed', 'cancelled')),
 
     -- COMPUTED COLUMN (added by pattern)
     start_date_end_date_range DATERANGE
@@ -163,15 +165,15 @@ CREATE TABLE tenant.tb_allocation (
 );
 
 -- GIST INDEX (added by pattern)
-CREATE INDEX idx_tb_allocation_daterange
-ON tenant.tb_allocation
+CREATE INDEX idx_tb_booking_daterange
+ON tenant.tb_booking
 USING gist(start_date_end_date_range);
 
 -- EXCLUSION CONSTRAINT (added by pattern if strict mode)
-ALTER TABLE tenant.tb_allocation
-ADD CONSTRAINT excl_allocation_no_overlap
+ALTER TABLE tenant.tb_booking
+ADD CONSTRAINT excl_booking_no_overlap
 EXCLUDE USING gist (
-    machine WITH =,
+    resource WITH =,
     start_date_end_date_range WITH &&
 );
 ```
@@ -187,37 +189,37 @@ docker run -d --name postgres-test -e POSTGRES_PASSWORD=test -p 5432:5432 postgr
 psql -h localhost -U postgres
 
 # Create test table
-CREATE TABLE test_allocations (
+CREATE TABLE test_bookings (
     id SERIAL PRIMARY KEY,
-    machine INTEGER,
+    resource_id INTEGER,  -- Room, vehicle, equipment
     start_date DATE,
     end_date DATE,
     date_range DATERANGE GENERATED ALWAYS AS (daterange(start_date, end_date, '[)')) STORED
 );
 
 -- Add exclusion constraint
-ALTER TABLE test_allocations
+ALTER TABLE test_bookings
 ADD CONSTRAINT no_overlap
-EXCLUDE USING gist (machine WITH =, date_range WITH &&);
+EXCLUDE USING gist (resource_id WITH =, date_range WITH &&);
 
--- Test: Insert first allocation (should work)
-INSERT INTO test_allocations (machine, start_date, end_date)
+-- Test: Insert first booking (should work)
+INSERT INTO test_bookings (resource_id, start_date, end_date)
 VALUES (1, '2024-01-01', '2024-01-10');
 
--- Test: Insert overlapping allocation (should FAIL)
-INSERT INTO test_allocations (machine, start_date, end_date)
+-- Test: Insert overlapping booking (should FAIL)
+INSERT INTO test_bookings (resource_id, start_date, end_date)
 VALUES (1, '2024-01-05', '2024-01-15');
 -- ERROR: conflicting key value violates exclusion constraint "no_overlap"
 
--- Test: Insert adjacent allocation (should work)
-INSERT INTO test_allocations (machine, start_date, end_date)
+-- Test: Insert adjacent booking (should work)
+INSERT INTO test_bookings (resource_id, start_date, end_date)
 VALUES (1, '2024-01-10', '2024-01-20');
 -- SUCCESS: No overlap (end of first = start of second, '[)' bounds)
 
--- Test: Different machine (should work)
-INSERT INTO test_allocations (machine, start_date, end_date)
+-- Test: Different resource (should work)
+INSERT INTO test_bookings (resource_id, start_date, end_date)
 VALUES (2, '2024-01-05', '2024-01-15');
--- SUCCESS: Different scope (machine = 2)
+-- SUCCESS: Different scope (resource_id = 2)
 ```
 
 **Key Learnings**:
@@ -268,7 +270,7 @@ class NonOverlappingDateRangePattern:
         Args:
             entity: Entity to modify
             params: Pattern parameters
-                - scope_fields: list[str] - Fields defining scope (e.g., ['machine_id'])
+                - scope_fields: list[str] - Fields defining scope (e.g., ['resource_id'])
                 - start_date_field: str - Start date field name
                 - end_date_field: str - End date field name
                 - check_mode: 'strict' | 'warning' (default: strict)
@@ -668,14 +670,14 @@ uv run pytest tests/unit/patterns/temporal/test_non_overlapping_daterange.py -v
 patterns:
   - type: temporal_non_overlapping_daterange
     params:
-      scope_fields: [machine, product]  # Both must match for overlap
+      scope_fields: [resource, user]  # Both must match for overlap
 ```
 
 **Generated constraint**:
 ```sql
 EXCLUDE USING gist (
-    machine WITH =,
-    product WITH =,
+    resource WITH =,
+    user WITH =,
     date_range WITH &&
 );
 ```
@@ -717,25 +719,25 @@ patterns:
 docker run -d --name specql-test -e POSTGRES_PASSWORD=test -p 5433:5432 postgres:16
 
 # Generate and apply schema
-uv run specql generate examples/allocation.yaml --output /tmp/allocation.sql
-psql -h localhost -p 5433 -U postgres < /tmp/allocation.sql
+uv run specql generate examples/booking.yaml --output /tmp/booking.sql
+psql -h localhost -p 5433 -U postgres < /tmp/booking.sql
 ```
 
 #### Test Overlap Prevention
 
 ```sql
--- Insert first allocation
-INSERT INTO tenant.tb_allocation (machine, identifier, start_date, end_date)
-VALUES (123, 'ALLOC-1', '2024-01-01', '2024-01-10');
+-- Insert first booking (Conference Room A)
+INSERT INTO tenant.tb_booking (resource, identifier, start_date, end_date)
+VALUES (123, 'BOOK-001', '2024-01-01', '2024-01-10');
 
--- Try overlapping (should FAIL)
-INSERT INTO tenant.tb_allocation (machine, identifier, start_date, end_date)
-VALUES (123, 'ALLOC-2', '2024-01-05', '2024-01-15');
+-- Try overlapping booking (should FAIL)
+INSERT INTO tenant.tb_booking (resource, identifier, start_date, end_date)
+VALUES (123, 'BOOK-002', '2024-01-05', '2024-01-15');
 -- Expected: ERROR: conflicting key value violates exclusion constraint
 
--- Adjacent allocation (should SUCCEED)
-INSERT INTO tenant.tb_allocation (machine, identifier, start_date, end_date)
-VALUES (123, 'ALLOC-3', '2024-01-10', '2024-01-20');
+-- Adjacent booking (should SUCCEED)
+INSERT INTO tenant.tb_booking (resource, identifier, start_date, end_date)
+VALUES (123, 'BOOK-003', '2024-01-10', '2024-01-20');
 -- Expected: INSERT 1 (no overlap)
 ```
 
