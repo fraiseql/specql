@@ -125,7 +125,7 @@ head -100 tests/unit/patterns/temporal/test_non_overlapping_daterange.py
 **Input YAML**:
 ```yaml
 entity: Allocation
-schema: operations
+schema: tenant  # Multi-tenant domain (projects)
 fields:
   machine: ref(Machine)
   product: ref(Product)
@@ -144,12 +144,13 @@ patterns:
 
 **Expected Output SQL**:
 ```sql
-CREATE TABLE operations.tb_allocation (
+CREATE TABLE tenant.tb_allocation (
     pk_id SERIAL PRIMARY KEY,
     id UUID DEFAULT uuid_generate_v4(),
     identifier TEXT NOT NULL,
-    machine INTEGER REFERENCES operations.tb_machine(pk_id),
-    product INTEGER REFERENCES operations.tb_product(pk_id),
+    tenant_id UUID NOT NULL,  -- Added automatically (multi-tenant schema)
+    machine INTEGER REFERENCES tenant.tb_machine(pk_id),
+    product INTEGER REFERENCES catalog.tb_product(pk_id),  -- Catalog is shared
     start_date DATE NOT NULL,
     end_date DATE NOT NULL,
 
@@ -163,11 +164,11 @@ CREATE TABLE operations.tb_allocation (
 
 -- GIST INDEX (added by pattern)
 CREATE INDEX idx_tb_allocation_daterange
-ON operations.tb_allocation
+ON tenant.tb_allocation
 USING gist(start_date_end_date_range);
 
 -- EXCLUSION CONSTRAINT (added by pattern if strict mode)
-ALTER TABLE operations.tb_allocation
+ALTER TABLE tenant.tb_allocation
 ADD CONSTRAINT excl_allocation_no_overlap
 EXCLUDE USING gist (
     machine WITH =,
@@ -724,16 +725,16 @@ psql -h localhost -p 5433 -U postgres < /tmp/allocation.sql
 
 ```sql
 -- Insert first allocation
-INSERT INTO operations.tb_allocation (machine, identifier, start_date, end_date)
+INSERT INTO tenant.tb_allocation (machine, identifier, start_date, end_date)
 VALUES (123, 'ALLOC-1', '2024-01-01', '2024-01-10');
 
 -- Try overlapping (should FAIL)
-INSERT INTO operations.tb_allocation (machine, identifier, start_date, end_date)
+INSERT INTO tenant.tb_allocation (machine, identifier, start_date, end_date)
 VALUES (123, 'ALLOC-2', '2024-01-05', '2024-01-15');
 -- Expected: ERROR: conflicting key value violates exclusion constraint
 
 -- Adjacent allocation (should SUCCEED)
-INSERT INTO operations.tb_allocation (machine, identifier, start_date, end_date)
+INSERT INTO tenant.tb_allocation (machine, identifier, start_date, end_date)
 VALUES (123, 'ALLOC-3', '2024-01-10', '2024-01-20');
 -- Expected: INSERT 1 (no overlap)
 ```
