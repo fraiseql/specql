@@ -4,14 +4,28 @@ SQL AST Parser using pglast
 Converts PostgreSQL SQL to AST for analysis
 """
 
-import pglast
 from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
+from src.core.dependencies import PGLAST
+
+# Lazy import with availability check
+_pglast = None
+
+
+def _get_pglast():
+    global _pglast
+    if _pglast is None:
+        PGLAST.require()  # Raises helpful error if not installed
+        import pglast
+
+        _pglast = pglast
+    return _pglast
 
 
 @dataclass
 class ParsedFunction:
     """Parsed SQL function"""
+
     function_name: str
     schema: str
     parameters: List[Dict[str, str]]
@@ -22,6 +36,10 @@ class ParsedFunction:
 
 class SQLASTParser:
     """Parse SQL functions using pglast"""
+
+    def __init__(self):
+        # Check dependency on instantiation
+        self.pglast = _get_pglast()
 
     def parse_function(self, sql: str) -> ParsedFunction:
         """
@@ -35,12 +53,12 @@ class SQLASTParser:
         """
         try:
             # Parse SQL to AST
-            ast = pglast.parse_sql(sql)
+            ast = self.pglast.parse_sql(sql)
 
             # Extract function definition
             stmt = ast[0].stmt
 
-            if not isinstance(stmt, pglast.ast.CreateFunctionStmt):
+            if not isinstance(stmt, self.pglast.ast.CreateFunctionStmt):
                 raise ValueError("Not a CREATE FUNCTION statement")
 
             func_stmt = stmt
@@ -65,7 +83,7 @@ class SQLASTParser:
                 parameters=parameters,
                 return_type=return_type,
                 body=body,
-                language="plpgsql"
+                language="plpgsql",
             )
 
         except Exception as e:
@@ -79,24 +97,21 @@ class SQLASTParser:
             return parameters
 
         for param in params:
-            if isinstance(param, pglast.ast.FunctionParameter):
+            if isinstance(param, self.pglast.ast.FunctionParameter):
                 param_name = param.name if param.name else f"arg{len(parameters)}"
                 param_type = self._type_name_to_string(param.argType)
 
                 # Remove 'p_' prefix if present (common convention)
-                if param_name.startswith('p_'):
+                if param_name.startswith("p_"):
                     param_name = param_name[2:]
 
-                parameters.append({
-                    "name": param_name,
-                    "type": param_type
-                })
+                parameters.append({"name": param_name, "type": param_type})
 
         return parameters
 
     def _parse_return_type(self, return_type_node) -> str:
         """Extract return type"""
-        if isinstance(return_type_node, pglast.ast.TypeName):
+        if isinstance(return_type_node, self.pglast.ast.TypeName):
             return self._type_name_to_string(return_type_node)
         return "unknown"
 
@@ -105,7 +120,7 @@ class SQLASTParser:
         if not type_node:
             return "void"
 
-        if isinstance(type_node, pglast.ast.TypeName):
+        if isinstance(type_node, self.pglast.ast.TypeName):
             names = [n.sval for n in type_node.names]
             type_name = names[-1].lower()
 
@@ -124,7 +139,7 @@ class SQLASTParser:
                 "timestamptz": "timestamp",
                 "timestamp": "timestamp",
                 "jsonb": "json",
-                "json": "json"
+                "json": "json",
             }
 
             return type_map.get(type_name, type_name)
@@ -135,7 +150,7 @@ class SQLASTParser:
         """Extract function body"""
         # Function body is in options
         for option in func_stmt.options:
-            if isinstance(option, pglast.ast.DefElem) and option.defname == 'as':
+            if isinstance(option, self.pglast.ast.DefElem) and option.defname == "as":
                 # Body is in arg as a tuple of strings
                 if isinstance(option.arg, tuple) and len(option.arg) > 0:
                     body_string = option.arg[0].sval

@@ -15,22 +15,25 @@ from dataclasses import dataclass
 from typing import List, Optional
 import re
 
-# Import tree-sitter parser
-try:
-    from .tree_sitter_prisma_parser import (
-        TreeSitterPrismaParser,
-        PrismaModel as TSPrismaModel,
-        PrismaField as TSPrismaField,
-        PrismaEnum as TSPrismaEnum,
-    )
-except ImportError:
-    # For testing without package structure
-    from tree_sitter_prisma_parser import (
-        TreeSitterPrismaParser,
-        PrismaModel as TSPrismaModel,
-        PrismaField as TSPrismaField,
-        PrismaEnum as TSPrismaEnum,
-    )
+# Import tree-sitter parser with dependency check
+from src.core.dependencies import TREE_SITTER
+
+if TREE_SITTER.available:
+    try:
+        from .tree_sitter_prisma_parser import (
+            TreeSitterPrismaParser,
+            PrismaModel as TSPrismaModel,
+            PrismaField as TSPrismaField,
+            PrismaEnum as TSPrismaEnum,
+        )
+    except ImportError:
+        # For testing without package structure
+        from tree_sitter_prisma_parser import (
+            TreeSitterPrismaParser,
+            PrismaModel as TSPrismaModel,
+            PrismaField as TSPrismaField,
+            PrismaEnum as TSPrismaEnum,
+        )
 
 
 @dataclass

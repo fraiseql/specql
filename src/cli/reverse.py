@@ -10,7 +10,11 @@ Usage:
 import click
 from pathlib import Path
 from typing import List, Tuple
+from rich.console import Console
 from src.reverse_engineering.algorithmic_parser import AlgorithmicParser
+from src.core.dependencies import PGLAST, TREE_SITTER
+
+console = Console()
 
 
 @click.command()
@@ -45,7 +49,7 @@ def reverse(sql_files, output_dir, min_confidence, no_ai, preview, compare, use_
 
         try:
             # Read SQL
-            with open(sql_file, 'r') as f:
+            with open(sql_file, "r") as f:
                 sql = f.read()
 
             # Parse and enhance
@@ -56,7 +60,9 @@ def reverse(sql_files, output_dir, min_confidence, no_ai, preview, compare, use_
             click.echo(f"   {status} Confidence: {result.confidence:.0%}")
 
             if result.confidence < min_confidence:
-                click.echo(f"   ⚠️  Confidence {result.confidence:.0%} below threshold {min_confidence:.0%}")
+                click.echo(
+                    f"   ⚠️  Confidence {result.confidence:.0%} below threshold {min_confidence:.0%}"
+                )
 
             results.append((sql_file, result))
 
@@ -121,15 +127,35 @@ def _generate_comparison_report(results: List[Tuple[str, any]]):
         click.echo(f"  Schema: {result.schema}")
         click.echo(f"  Confidence: {result.confidence:.0%}")
 
-        if hasattr(result, 'metadata') and result.metadata:
-            if 'intent' in result.metadata:
+        if hasattr(result, "metadata") and result.metadata:
+            if "intent" in result.metadata:
                 click.echo(f"  Intent: {result.metadata['intent'][:60]}...")
-            if 'detected_patterns' in result.metadata:
+            if "detected_patterns" in result.metadata:
                 click.echo(f"  Patterns: {', '.join(result.metadata['detected_patterns'])}")
-            if 'variable_purposes' in result.metadata:
-                purposes = result.metadata['variable_purposes']
+            if "variable_purposes" in result.metadata:
+                purposes = result.metadata["variable_purposes"]
                 if purposes:
                     click.echo(f"  Variables: {len(purposes)} analyzed")
 
         if result.warnings:
             click.echo(f"  Warnings: {len(result.warnings)}")
+
+
+@click.command()
+@click.argument("input_sql", type=click.Path(exists=True))
+def reverse_sql(input_sql: str):
+    """Reverse engineer SQL to SpecQL YAML."""
+
+    # Check dependencies upfront with helpful message
+    if not PGLAST.available:
+        console.print("[red]Error:[/red] SQL reverse engineering requires pglast", style="bold")
+        console.print("Install with: [cyan]pip install specql[reverse][/cyan]")
+        raise click.Abort()
+
+    # Import and proceed
+    from src.reverse_engineering.sql_ast_parser import SQLASTParser
+
+    parser = SQLASTParser()
+    # ... rest of implementation
+    console.print(f"[green]Successfully parsed SQL file:[/green] {input_sql}")
+    console.print("Note: Full implementation pending - this is a placeholder command")

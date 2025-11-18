@@ -15,17 +15,17 @@ from dataclasses import dataclass
 from typing import List, Optional
 import re
 
-# Import tree-sitter parser
-try:
+# Import tree-sitter parser with dependency check
+from src.core.dependencies import TREE_SITTER
+
+TREE_SITTER_AVAILABLE = TREE_SITTER.available
+
+if TREE_SITTER_AVAILABLE:
     from .tree_sitter_typescript_parser import (
         TreeSitterTypeScriptParser,
         TypeScriptRoute as TSRoute,
         TypeScriptAction as TSAction,
     )
-
-    TREE_SITTER_AVAILABLE = True
-except ImportError:
-    TREE_SITTER_AVAILABLE = False
 
 
 @dataclass
