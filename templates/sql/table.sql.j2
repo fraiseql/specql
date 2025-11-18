@@ -40,6 +40,23 @@ CREATE TABLE {{ entity.schema }}.tb_{{ entity.name | lower }} (
 
     {{ field_name }} {{ field_def.type }}{% if not field_def.nullable %} NOT NULL{% endif %},
 {%- endfor %}
+{%- for computed_col in entity.patterns.computed_columns %}
+
+     {{ computed_col.name }} {{ computed_col.type }} GENERATED ALWAYS AS ({{ computed_col.expression }}) STORED,
+{%- endfor %}
+{%- for scd_field in entity.patterns.scd_fields %}
+
+     {{ scd_field.name }} {{ scd_field.type }}{% if not scd_field.nullable %} NOT NULL{% endif %}{% if scd_field.default %} DEFAULT {{ scd_field.default }}{% endif %},
+{%- endfor %}
+{%- for ti_field in entity.patterns.template_inheritance_fields %}
+{%- if ti_field.get('fk') %}
+
+     {{ ti_field.fk.name }} INTEGER{% if not ti_field.fk.nullable %} NOT NULL{% endif %},
+{%- else %}
+
+     {{ ti_field.name }} {{ ti_field.type }}{% if not ti_field.nullable %} NOT NULL{% endif %},
+{%- endif %}
+{%- endfor %}
 
     -- ========================================================================
     -- Foreign Keys (Trinity Pattern: INTEGER references)
@@ -85,12 +102,83 @@ ALTER TABLE ONLY {{ entity.schema }}.tb_{{ entity.name | lower }}
     FOREIGN KEY ({{ fk_name }}) REFERENCES {{ fk_def.references }}({{ fk_def.on }});
 {%- endfor %}
 
+{%- for excl_constraint in entity.patterns.exclusion_constraints %}
+-- ============================================================================
+-- Pattern Exclusion Constraints
+-- ============================================================================
+ALTER TABLE {{ entity.schema }}.tb_{{ entity.name | lower }}
+    ADD CONSTRAINT {{ excl_constraint.name }}
+    EXCLUDE USING {{ excl_constraint.using }} (
+        {% for col in excl_constraint.columns %}
+        {{ col.field }} WITH {{ col.operator }}{% if not loop.last %}, {% endif %}
+        {% endfor %}
+    ){% if excl_constraint.condition %} WHERE {{ excl_constraint.condition }}{% endif %};
+{%- endfor %}
+
 {%- if entity.multi_tenant %}
 -- ============================================================================
 -- Multi-Tenancy Indexes (CRITICAL for performance & RLS)
 -- ============================================================================
 CREATE INDEX idx_tb_{{ entity.name | lower }}_tenant ON {{ entity.schema }}.tb_{{ entity.name | lower }}(tenant_id);
 {%- endif %}
+
+{%- for index in entity.patterns.indexes %}
+-- ============================================================================
+-- Pattern Indexes
+-- ============================================================================
+CREATE INDEX {{ index.name }} ON {{ entity.schema }}.tb_{{ entity.name | lower }}{% if index.using %} USING {{ index.using }}{% endif %} ({% for field in index.fields %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %});
+{%- endfor %}
+
+{%- for agg_view in entity.patterns.aggregate_views %}
+-- ============================================================================
+-- Aggregate View: {{ agg_view.name }}
+-- ============================================================================
+{{ agg_view.ddl }}
+
+{%- if agg_view.trigger_ddl %}
+
+{{ agg_view.trigger_ddl }}
+{%- endif %}
+{%- endfor %}
+
+{%- for idx in entity.patterns.aggregate_view_indexes %}
+{{ idx }}
+{%- endfor %}
+
+{%- for idx in entity.patterns.scd_indexes %}
+-- ============================================================================
+-- SCD Index: {{ idx.name }}
+-- ============================================================================
+CREATE INDEX {{ idx.name }} ON {{ entity.schema }}.tb_{{ entity.name | lower }}{% if idx.using %} USING {{ idx.using }}{% endif %} ({% for field in idx.fields %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %});
+{%- endfor %}
+
+{%- for func in entity.patterns.scd_functions %}
+-- ============================================================================
+-- SCD Function
+-- ============================================================================
+{{ func }}
+{%- endfor %}
+
+{%- for func in entity.patterns.template_inheritance_functions %}
+-- ============================================================================
+-- Template Inheritance Function
+-- ============================================================================
+{{ func }}
+{%- endfor %}
+
+{%- for trigger in entity.patterns.template_inheritance_triggers %}
+-- ============================================================================
+-- Template Inheritance Trigger
+-- ============================================================================
+{{ trigger }}
+{%- endfor %}
+
+{%- for idx in entity.patterns.template_inheritance_indexes %}
+-- ============================================================================
+-- Template Inheritance Index: {{ idx.name }}
+-- ============================================================================
+CREATE INDEX {{ idx.name }} ON {{ entity.schema }}.tb_{{ entity.name | lower }}{% if idx.using %} USING {{ idx.using }}{% endif %} ({% for field in idx.fields %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %});
+{%- endfor %}
 
 -- ============================================================================
 -- Documentation
@@ -99,7 +187,8 @@ COMMENT ON TABLE {{ entity.schema }}.tb_{{ entity.name | lower }} IS
 '{{ entity.description }}.
 
 @fraiseql:type
-trinity: true';
+trinity: true{% for meta in entity.patterns.metadata %}
+{{ meta }}{% endfor %}';
 
 -- Trinity Pattern columns
 COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.pk_{{ entity.name | lower }} IS 'Internal INTEGER primary key used in joins and foreign keys.';

@@ -111,11 +111,7 @@ class SpecQLParser:
             )
 
             # Update logger context with entity information
-            context = LogContext(
-                entity_name=entity_name,
-                schema=entity_schema,
-                operation="parse"
-            )
+            context = LogContext(entity_name=entity_name, schema=entity_schema, operation="parse")
             self.logger = get_team_logger("Team A", __name__, context)
             self.logger.info(f"Parsing entity '{entity_name}' in schema '{entity_schema}'")
 
@@ -138,7 +134,9 @@ class SpecQLParser:
 
                 field = self._parse_field(field_name, field_spec)
                 entity.fields[field_name] = field
-                self.logger.debug(f"Parsed field '{field_name}' (type: {field.type_name}, tier: {field.tier.value})")
+                self.logger.debug(
+                    f"Parsed field '{field_name}' (type: {field.type_name}, tier: {field.tier.value})"
+                )
 
             self.logger.info(f"Parsed {len(entity.fields)} fields successfully")
 
@@ -156,6 +154,14 @@ class SpecQLParser:
 
             if actions_data:
                 self.logger.info(f"Parsed {len(entity.actions)} actions successfully")
+
+            # Parse patterns
+            patterns_data = data.get("patterns", [])
+            if patterns_data:
+                self.logger.debug(f"Parsing {len(patterns_data)} patterns")
+            for pattern_spec in patterns_data:
+                entity.patterns.append(pattern_spec)
+                self.logger.debug(f"Parsed pattern '{pattern_spec.get('type', 'unknown')}'")
 
             # Parse agents
             agents_data = data.get("agents", [])
@@ -179,7 +185,9 @@ class SpecQLParser:
                 self.logger.debug("Parsing table_views configuration")
                 entity.table_views = self._parse_table_views(data["table_views"], entity_name)
 
-            self.logger.info(f"Successfully parsed entity '{entity_name}' with {len(entity.fields)} fields, {len(entity.actions)} actions")
+            self.logger.info(
+                f"Successfully parsed entity '{entity_name}' with {len(entity.fields)} fields, {len(entity.actions)} actions"
+            )
 
             return entity
         finally:
