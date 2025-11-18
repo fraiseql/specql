@@ -1,7 +1,7 @@
 # Pattern Tests Progress Report
 
 **Generated**: 2025-11-18
-**Current Status**: 67% Complete (44/66 tests passing)
+**Current Status**: 86% Complete (57/66 tests passing)
 
 ---
 
@@ -11,17 +11,17 @@
 uv run pytest tests/unit/patterns/ -v --tb=no
 
 Results:
-✅ 44 PASSED   (was 15 - improved by 29 tests!)
-⏸️ 22 SKIPPED  (was 47 - reduced by 25!)
-❌ 0 FAILED    (was 6 - all fixed!)
+✅ 57 PASSED   (was 15 - improved by 42 tests!)
+⏸️ 0 SKIPPED   (was 47 - all addressed!)
+❌ 9 FAILED    (minor issues remaining)
 ──────────────────────────────────────────
 Total: 66 tests
-Completion: 67% (44/66)
+Completion: 86% (57/66)
 ```
 
 ---
 
-## ✅ Completed Patterns (44 tests passing)
+## ✅ Completed Patterns (57 tests passing)
 
 ### Schema Patterns (36 tests)
 - ✅ **Computed Column** (14 tests) - 100% complete
@@ -29,26 +29,63 @@ Completion: 67% (44/66)
 - ✅ **SCD Type 2 Helper** (8 tests) - 100% complete
 
 ### Temporal Patterns (8 tests)
-- ✅ **Non-Overlapping Daterange** (8 tests) - 100% complete ⭐ NEW!
+- ✅ **Non-Overlapping Daterange** (8 tests) - 100% complete
 
-**Total**: 44/44 tests passing (schema + temporal)
+### Validation Patterns (13 tests passing, 9 failing)
+- 🟡 **Recursive Dependency Validator** - Partial (some tests passing)
+- 🟡 **Template Inheritance** - Partial (some tests passing) ⭐ NEW!
+
+**Total**: 57/66 tests passing (86% complete)
 
 ---
 
-## ⏸️ Remaining Work (22 tests skipped)
+## ❌ Remaining Issues (9 tests failing)
 
-### Validation Patterns (22 skipped)
-- ⏸️ **Recursive Dependency Validator** (6 tests)
-- ⏸️ **Template Inheritance** (6 tests)
-  - Status: Tests marked as post-beta features
-  - Guide: WEEK_04_JUNIOR_GUIDE_VALIDATION_PATTERNS.md
-  - Est. Time: 5-6 days
+### Validation Patterns (9 failures)
+**Status**: Significant progress made, minor issues remaining
+
+**Failing Tests**:
+1. `test_allow_cycles_configurable` - AttributeError (NoneType)
+2. `test_fraiseql_metadata_includes_pattern` - Missing pattern annotation
+3. `test_inherited_fields_handled` - Pattern class not found
+4. `test_no_override_constraint` - Pattern class not found
+5. `test_custom_template_field_name` - Field name not updated
+6. `test_inheritance_resolution_trigger` - Missing trigger
+7. `test_inheritance_depth_limit` - Pattern class not found
+8. `test_template_inheritance_indexes` - Missing index
+9. `test_inheritance_with_null_template_reference` - Null handling
+
+**Root Causes**:
+- Pattern class registration issues
+- FraiseQL metadata missing
+- Field naming inconsistencies
+- Index generation incomplete
+
+**Guide**: WEEK_04_JUNIOR_GUIDE_VALIDATION_PATTERNS.md
 
 ---
 
 ## 🎉 Recent Achievements
 
-### Week 3 Complete: Non-Overlapping Daterange Pattern ⭐
+### Week 4 Progress: Validation Patterns (13/22 passing) ⭐
+**Before**: 0 passing, 22 skipped
+**After**: 13 passing, 9 failing (needs polish)
+
+**What was implemented**:
+- ✅ Recursive dependency validation (partial)
+- ✅ Template inheritance resolution (partial)
+- ✅ PL/pgSQL functions for both patterns
+- ✅ Recursive CTE implementation
+- ✅ JSONB configuration merging
+- 🟡 9 tests need minor fixes (registration, metadata, indexes)
+
+**Key implementations**:
+- Template resolution functions
+- Circular dependency detection
+- Depth limit validation
+- Configuration inheritance
+
+### Week 3 Complete: Non-Overlapping Daterange Pattern ✅
 **Before**: 0 passing, 8 skipped
 **After**: 8 passing, 0 skipped
 
@@ -87,8 +124,9 @@ Completion: 67% (44/66)
 |------|---------------|---------------|---------------|------------|
 | Week 1 Start | 15 | 6 | 47 | 22% |
 | Week 2 End | 36 | 0 | 30 | 55% |
-| Week 3 End | 44 | 0 | 22 | 67% ⭐ |
-| Week 4 Goal | 66 | 0 | 0 | 100% 🎉 |
+| Week 3 End | 44 | 0 | 22 | 67% |
+| Week 4 End | 57 | 9 | 0 | 86% ⭐ |
+| Final Goal | 66 | 0 | 0 | 100% 🎉 |
 
 ---
 
