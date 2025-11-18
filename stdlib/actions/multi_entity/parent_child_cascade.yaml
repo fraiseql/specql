@@ -1,0 +1,83 @@
+pattern: multi_entity_parent_child_cascade
+version: 1.0
+description: "Cascade operations from parent to child entities"
+author: SpecQL Team
+
+parameters:
+  - name: parent_entity
+    type: string
+    required: true
+    description: "The parent entity initiating the cascade"
+
+  - name: child_entities
+    type: array<object>
+    required: true
+    description: "Child entities and their cascade operations"
+
+  - name: cascade_type
+    type: enum[soft_delete, hard_delete, update_status, archive]
+    default: soft_delete
+    description: "Type of cascade operation"
+
+  - name: cascade_condition
+    type: string
+    required: false
+    description: "Additional condition for cascade (e.g., 'status = active')"
+
+template: |
+  steps:
+    {% for child in child_entities %}
+    {% if cascade_type == 'soft_delete' %}
+    # Cascade soft delete to {{ child.entity }}
+    - update: "{{ child.entity }} SET deleted_at = NOW(), deleted_by = auth_user_id WHERE {{ child.foreign_key }} = v_{{ parent_entity | lower }}_id{% if cascade_condition %} AND {{ cascade_condition }}{% endif %}"
+
+    {% elif cascade_type == 'hard_delete' %}
+    # Cascade hard delete to {{ child.entity }}
+    - raw_sql: "
+        DELETE FROM {{ child.entity | schema_for }}.tb_{{ child.entity | lower }}
+        WHERE {{ child.foreign_key }} = v_{{ parent_entity | lower }}_id
+          AND tenant_id = auth_tenant_id{% if cascade_condition %}
+          AND {{ cascade_condition }}{% endif %};
+        "
+
+    {% elif cascade_type == 'update_status' %}
+    # Cascade status update to {{ child.entity }}
+    - update: "{{ child.entity }} SET status = '{{ child.new_status }}', updated_at = NOW(), updated_by = auth_user_id WHERE {{ child.foreign_key }} = v_{{ parent_entity | lower }}_id{% if cascade_condition %} AND {{ cascade_condition }}{% endif %}"
+
+    {% elif cascade_type == 'archive' %}
+    # Cascade archive to {{ child.entity }}
+    - update: "{{ child.entity }} SET status = 'archived', archived_at = NOW(), archived_by = auth_user_id WHERE {{ child.foreign_key }} = v_{{ parent_entity | lower }}_id{% if cascade_condition %} AND {{ cascade_condition }}{% endif %}"
+
+    {% endif %}
+    {% endfor %}
+
+    {% if refresh_projections %}
+    # Refresh projections
+    {% for projection in refresh_projections %}
+    - refresh_table_view: {{ projection }}
+    {% endfor %}
+    {% endif %}
+
+examples:
+  - name: delete_department
+    description: "Delete department and cascade to employees"
+    config:
+      parent_entity: Department
+      child_entities:
+        - entity: Employee
+          foreign_key: department_id
+        - entity: DepartmentBudget
+          foreign_key: department_id
+      cascade_type: soft_delete
+      cascade_condition: "status != 'terminated'"
+
+  - name: archive_project
+    description: "Archive project and cascade to tasks"
+    config:
+      parent_entity: Project
+      child_entities:
+        - entity: Task
+          foreign_key: project_id
+          new_status: cancelled
+      cascade_type: update_status
+      cascade_condition: "status IN ('pending', 'in_progress')"

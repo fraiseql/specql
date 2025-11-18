@@ -1,0 +1,18 @@
+
+entity: Order
+fields:
+  id: uuid
+  total: numeric
+actions:
+  - name: calculate_total
+    steps:
+      - type: declare
+        variable_name: v_total
+        variable_type: NUMERIC
+      - type: select
+        into: v_total
+        from: tb_order_line
+        where: "order_id = p_order_id"
+        aggregate: SUM(amount)
+      - type: return
+        value: v_total

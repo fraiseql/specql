@@ -1,0 +1,280 @@
+pattern: composite/workflow_orchestrator
+version: 1.0
+description: "Orchestrate complex workflows by composing multiple patterns with conditional logic and error handling"
+author: SpecQL Team
+
+parameters:
+  - name: workflow_steps
+    type: array<object>
+    required: true
+    description: "Sequence of workflow steps, each using a pattern"
+
+  - name: error_handling
+    type: object
+    required: false
+    description: "Global error handling configuration"
+    properties:
+      - name: rollback_on_error
+        type: boolean
+        default: true
+      - name: continue_on_error
+        type: boolean
+        default: false
+      - name: error_log_entity
+        type: string
+        default: "ErrorLog"
+
+  - name: transaction_scope
+    type: enum[serializable, repeatable_read, read_committed]
+    default: serializable
+    description: "Transaction isolation level for the entire workflow"
+
+  - name: success_criteria
+    type: object
+    required: false
+    description: "Conditions that must be met for workflow success"
+
+template: |
+  steps:
+    # Initialize workflow context
+    - raw_sql: |
+        -- Initialize workflow tracking
+        v_workflow_id := gen_random_uuid();
+        v_workflow_status := 'running';
+        v_step_results := '{}'::jsonb;
+        v_error_count := 0;
+
+    {% for step in workflow_steps %}
+    {% set step_num = loop.index %}
+
+    # Step {{ step_num }}: {{ step.name }}
+    {% if step.get('condition') %}
+    - raw_sql: |
+        -- Check condition for step {{ step_num }}
+        IF {{ step.condition }} THEN
+    {% endif %}
+
+    {% if step.pattern == 'crud/create' %}
+    # Execute CRUD Create pattern
+    - duplicate_check:
+        fields: {{ step.config.get('duplicate_check', {}).get('fields', []) | list }}
+        error_message: "{{ step.config.get('duplicate_check', {}).get('error_message', 'Record already exists') }}"
+        return_conflict_object: {{ step.config.get('duplicate_check', {}).get('return_conflict_object', true) }}
+      on_error: {% if error_handling.continue_on_error %}continue{% else %}fail{% endif %}
+
+    - insert: {{ entity.name }}
+      {% if step.config.get('input_fields') %}
+      fields:
+        {% for field in step.config.input_fields %}
+        {{ field.name }}: {{ field.value }}
+        {% endfor %}
+      {% endif %}
+
+    {% elif step.pattern == 'state_machine/transition' %}
+    # Execute State Machine Transition pattern
+    - raw_sql: |
+        -- Load and validate current state for step {{ step_num }}
+        SELECT status INTO v_current_status_{{ step_num }}
+        FROM {{ entity.schema }}.tb_{{ entity.name | lower }}
+        WHERE id = v_{{ entity.name | lower }}_id
+          AND tenant_id = auth_tenant_id;
+
+        IF v_current_status_{{ step_num }} NOT IN ({% for state in step.config.from_states %}'{{ state }}'{% if not loop.last %}, {% endif %}{% endfor %}) THEN
+            {% if error_handling.continue_on_error %}
+            v_error_count := v_error_count + 1;
+            v_step_results := jsonb_set(v_step_results, '{step_{{ step_num }}}', jsonb_build_object('status', 'skipped', 'reason', 'invalid_state'));
+            {% else %}
+            RETURN app.log_and_return_mutation(
+                auth_tenant_id, auth_user_id,
+                '{{ entity.name | lower }}', v_{{ entity.name | lower }}_id,
+                'NOOP', 'validation:invalid_state_transition',
+                ARRAY[]::TEXT[],
+                format('Step {{ step_num }}: Cannot transition from state %s to {{ step.config.to_state }}', v_current_status_{{ step_num }}),
+                NULL, NULL,
+                jsonb_build_object('step', {{ step_num }}, 'current_state', v_current_status_{{ step_num }})
+            );
+            {% endif %}
+        ELSE
+            -- Execute transition
+            UPDATE {{ entity.schema }}.tb_{{ entity.name | lower }}
+            SET status = '{{ step.config.to_state }}',
+                updated_at = NOW(),
+                updated_by = auth_user_id
+                {% for field in step.config.get('input_fields', []) %}
+                , {{ field.name }} = input_data.{{ field.name }}
+                {% endfor %}
+            WHERE id = v_{{ entity.name | lower }}_id
+              AND tenant_id = auth_tenant_id;
+
+            v_step_results := jsonb_set(v_step_results, '{step_{{ step_num }}}', jsonb_build_object('status', 'completed'));
+        END IF;
+
+    {% elif step.pattern == 'validation/validation_chain' %}
+    # Execute Validation Chain pattern
+    {% for validation in step.config.validations %}
+    - validate: |
+        {{ validation.condition }}
+      error: "{{ validation.error_message }}"
+      on_error: {% if error_handling.continue_on_error %}continue{% else %}fail{% endif %}
+    {% endfor %}
+
+    {% elif step.pattern == 'batch/bulk_operation' %}
+    # Execute Batch Operation pattern
+    - raw_sql: |
+        -- Execute batch operation for step {{ step_num }}
+        {% for item in step.config.batch_input %}
+        -- Process {{ item }}
+        {{ step.config.operation_template | replace('$item', item) }}
+        {% endfor %}
+
+    {% elif step.pattern == 'multi_entity/coordinated_update' %}
+    # Execute Multi-Entity Coordinated Update pattern
+    {% for op in step.config.operations %}
+    {% if op.action == 'insert' %}
+    - insert: {{ op.entity }}
+      fields:
+        {% for field, value in op.values.items() %}
+        {{ field }}: {{ value }}
+        {% endfor %}
+    {% elif op.action == 'update' %}
+    - update: {{ op.entity }}
+      set:
+        {% for field, value in op.values.items() %}
+        {{ field }}: {{ value }}
+        {% endfor %}
+      where: "{{ op.where }}"
+    {% endif %}
+    {% endfor %}
+
+    {% endif %}
+
+    {% if step.get('condition') %}
+        END IF; -- End condition check for step {{ step_num }}
+    {% endif %}
+
+    {% endfor %}
+
+    # Finalize workflow
+    - raw_sql: |
+        -- Check success criteria
+        {% if success_criteria %}
+        IF NOT ({{ success_criteria.condition }}) THEN
+            RETURN app.log_and_return_mutation(
+                auth_tenant_id, auth_user_id,
+                '{{ entity.name | lower }}', v_{{ entity.name | lower }}_id,
+                'NOOP', 'validation:workflow_criteria_not_met',
+                ARRAY[]::TEXT[],
+                '{{ success_criteria.error_message | default('Workflow success criteria not met') }}',
+                NULL, NULL,
+                v_step_results
+            );
+        END IF;
+        {% endif %}
+
+        -- Log workflow completion
+        v_workflow_status := CASE WHEN v_error_count = 0 THEN 'completed' ELSE 'completed_with_errors' END;
+
+        {% if error_handling.error_log_entity %}
+        INSERT INTO {{ error_handling.error_log_entity | schema_for }}.tb_{{ error_handling.error_log_entity | lower }} (
+            workflow_id, entity_type, entity_id, workflow_status, step_results, error_count,
+            created_at, created_by, tenant_id
+        ) VALUES (
+            v_workflow_id, '{{ entity.name }}', v_{{ entity.name | lower }}_id, v_workflow_status,
+            v_step_results, v_error_count, NOW(), auth_user_id, auth_tenant_id
+        );
+        {% endif %}
+
+examples:
+  - name: order_fulfillment_workflow
+    description: "Complete order fulfillment workflow with validation, payment, and shipping"
+    config:
+      workflow_steps:
+        - name: "Validate Order"
+          pattern: "validation/validation_chain"
+          config:
+            validations:
+              - condition: "status = 'confirmed'"
+                error_message: "Order must be confirmed"
+              - condition: "payment_status = 'completed'"
+                error_message: "Payment must be completed"
+
+        - name: "Update Inventory"
+          pattern: "batch/bulk_operation"
+          condition: "inventory_sufficient = true"
+          config:
+            batch_input: "order_items"
+            operation_template: |
+              UPDATE inventory.tb_product
+              SET quantity = quantity - $item.quantity
+              WHERE id = $item.product_id AND tenant_id = auth_tenant_id;
+
+        - name: "Create Shipment"
+          pattern: "crud/create"
+          config:
+            duplicate_check:
+              fields: ["order_id"]
+              error_message: "Shipment already exists for this order"
+
+        - name: "Transition to Fulfilled"
+          pattern: "state_machine/transition"
+          config:
+            from_states: ["confirmed", "processing"]
+            to_state: "fulfilled"
+            input_fields:
+              - name: "fulfilled_at"
+                value: "NOW()"
+
+      error_handling:
+        rollback_on_error: true
+        continue_on_error: false
+        error_log_entity: "WorkflowLog"
+
+      success_criteria:
+        condition: "v_error_count = 0 AND status = 'fulfilled'"
+        error_message: "Order fulfillment failed"
+
+  - name: customer_onboarding_workflow
+    description: "Complete customer onboarding with account creation, verification, and welcome"
+    config:
+      workflow_steps:
+        - name: "Create Customer Profile"
+          pattern: "crud/create"
+          config:
+            duplicate_check:
+              fields: ["email"]
+              error_message: "Customer with this email already exists"
+
+        - name: "Send Verification Email"
+          pattern: "multi_entity/coordinated_update"
+          config:
+            operations:
+              - action: "insert"
+                entity: "EmailVerification"
+                values:
+                  customer_id: "$customer_id"
+                  verification_token: "gen_random_uuid()"
+                  expires_at: "NOW() + INTERVAL '24 hours'"
+
+        - name: "Create Welcome Notification"
+          pattern: "crud/create"
+          condition: "verification_sent = true"
+          config:
+            input_fields:
+              - name: "notification_type"
+                value: "'welcome'"
+              - name: "message"
+                value: "'Welcome to our platform!'"
+
+        - name: "Set Initial Status"
+          pattern: "state_machine/transition"
+          config:
+            from_states: ["new"]
+            to_state: "pending_verification"
+
+      error_handling:
+        continue_on_error: true
+        error_log_entity: "OnboardingLog"
+
+      success_criteria:
+        condition: "status = 'pending_verification'"
+        error_message: "Customer onboarding incomplete"

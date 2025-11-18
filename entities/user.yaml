@@ -1,0 +1,8 @@
+entity: User
+schema: public
+description: null
+fields: []
+actions: []
+_metadata:
+  source_language: python
+  patterns: []

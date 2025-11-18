@@ -87,30 +87,47 @@ FraiseQL auto-discovery eliminates schema duplication:
 
 ### Installation
 
+#### Basic Installation (Most Users)
 ```bash
-# Install from PyPI (recommended)
 pip install specql
+```
 
-# Or install from source
+This installs core SpecQL features:
+- YAML → PostgreSQL schema generation
+- Action compilation
+- CLI tools
+
+#### Optional Features
+
+##### Reverse Engineering
+Convert existing SQL/TypeScript/Rust to SpecQL:
+```bash
+pip install specql[reverse]
+```
+
+##### Test Data Generation
+Generate realistic test data with Faker:
+```bash
+pip install specql[testing]
+```
+
+##### Development
+For contributing to SpecQL:
+```bash
+pip install specql[dev]
+```
+
+##### All Features
+```bash
+pip install specql[all]
+```
+
+#### Install from Source
+```bash
 git clone https://github.com/fraiseql/specql.git
 cd specql
 uv venv && source .venv/bin/activate
-uv pip install -e .
-
-# Create entity
-cat > entities/contact.yaml <<EOF
-entity: Contact
-schema: crm
-fields:
-  email: email!
-  name: text!
-EOF
-
-# Generate everything
-specql generate entities/contact.yaml
-
-# Deploy
-confiture migrate up
+uv pip install -e ".[dev,reverse,testing]"
 ```
 
 ## Advanced Features

@@ -322,7 +322,7 @@ class EntityDefinition:
     agents: list["Agent"] = field(default_factory=list)
 
     # Patterns
-    patterns: list[dict[str, Any]] = field(default_factory=list)
+    patterns: list["Pattern"] = field(default_factory=list)
 
     # Organization (numbering system)
     organization: Optional["Organization"] = None
@@ -491,8 +491,7 @@ class Entity:
     fields: dict[str, FieldDefinition] = field(default_factory=dict)
     actions: list[Action] = field(default_factory=list)
     agents: list["Agent"] = field(default_factory=list)
-    patterns: list[dict[str, Any]] = field(default_factory=list)
-    patterns: list[dict[str, Any]] = field(default_factory=list)
+    patterns: list["Pattern"] = field(default_factory=list)
 
     # Database schema
     foreign_keys: list["ForeignKey"] = field(default_factory=list)
@@ -624,3 +623,11 @@ class ValidationRule:
     name: str
     condition: str
     error: str
+
+
+@dataclass
+class Pattern:
+    """Pattern application definition"""
+
+    type: str
+    params: dict[str, Any] = field(default_factory=dict)

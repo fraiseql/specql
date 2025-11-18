@@ -165,18 +165,27 @@ class TableGenerator:
         }
 
         for pattern in entity.patterns:
-            pattern_type = pattern.get("type")
+            # Handle both old dict format and new Pattern object format
+            if hasattr(pattern, "type"):
+                # New Pattern object format
+                pattern_type = pattern.type
+                pattern_params = pattern.params
+            else:
+                # Old dict format
+                pattern_type = pattern.get("type")
+                pattern_params = pattern.get("params", {})
+
             if pattern_type == "temporal_non_overlapping_daterange":
                 self._process_temporal_daterange_pattern(entity, pattern, extensions)
             elif pattern_type == "recursive_dependency_validator":
                 self._process_recursive_dependency_validator_pattern(entity, pattern, extensions)
             elif pattern_type == "aggregate_view":
                 self._process_aggregate_view_pattern(entity, pattern, extensions)
-            elif pattern_type == "scd_type2_helper":
+            elif pattern_type == "temporal_scd_type2_helper":
                 self._process_scd_type2_helper_pattern(entity, pattern, extensions)
-            elif pattern_type == "template_inheritance":
+            elif pattern_type == "validation_template_inheritance":
                 self._process_template_inheritance_pattern(entity, pattern, extensions)
-            elif pattern_type == "computed_column":
+            elif pattern_type == "schema_computed_column":
                 self._process_computed_column_pattern(entity, pattern, extensions)
 
         return extensions
@@ -618,24 +627,32 @@ CREATE TRIGGER {trigger_name}
         extensions["metadata"].append(f"@fraiseql:pattern:{pattern_type}")
 
     def _process_computed_column_pattern(
-        self, entity: EntityDefinition, pattern: dict[str, Any], extensions: dict[str, Any]
+        self, entity: EntityDefinition, pattern: Any, extensions: dict[str, Any]
     ) -> None:
         """Process computed column pattern"""
-        pattern_type = pattern.get("type")
-        params = pattern.get("params", {})
+        # Handle both Pattern object and dict formats
+        if hasattr(pattern, "type"):
+            pattern_type = pattern.type
+            params = pattern.params
+        else:
+            pattern_type = pattern.get("type")
+            params = pattern.get("params", {})
 
         # Extract pattern parameters
-        name = params.get("name")
+        name = params.get("column_name")
         expression = params.get("expression")
         column_type = params.get("type", "TEXT")
+        stored = params.get("stored", True)
         nullable = params.get("nullable", True)
 
         if name and expression:
             # Create computed column definition
+            storage_type = "STORED" if stored else "VIRTUAL"
             computed_col = {
                 "name": name,
                 "type": column_type.upper(),
                 "expression": expression,
+                "storage": storage_type,
                 "nullable": nullable,
             }
             extensions["computed_columns"].append(computed_col)

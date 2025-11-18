@@ -25,6 +25,7 @@ from src.core.ast_models import (
     IdentifierConfig,
     IncludeRelation,
     Organization,
+    Pattern,
     RefreshScope,
     TableViewConfig,
     TableViewMode,
@@ -160,8 +161,9 @@ class SpecQLParser:
             if patterns_data:
                 self.logger.debug(f"Parsing {len(patterns_data)} patterns")
             for pattern_spec in patterns_data:
-                entity.patterns.append(pattern_spec)
-                self.logger.debug(f"Parsed pattern '{pattern_spec.get('type', 'unknown')}'")
+                pattern = self._parse_pattern(pattern_spec)
+                entity.patterns.append(pattern)
+                self.logger.debug(f"Parsed pattern '{pattern.type}'")
 
             # Parse agents
             agents_data = data.get("agents", [])
@@ -496,6 +498,22 @@ class SpecQLParser:
         return Organization(
             table_code=org_spec["table_code"], domain_name=org_spec.get("domain_name")
         )
+
+    def _parse_pattern(self, pattern_spec: dict | str) -> Pattern:
+        """Parse pattern definition."""
+        if isinstance(pattern_spec, str):
+            # Short form: just pattern type
+            return Pattern(type=pattern_spec, params={})
+
+        elif isinstance(pattern_spec, dict):
+            # Full form: type + params
+            return Pattern(
+                type=pattern_spec["type"],
+                params=pattern_spec.get("params", {}),
+            )
+
+        else:
+            raise ParseError(f"Invalid pattern definition: {pattern_spec}")
 
     def _parse_single_step(self, step_data: dict) -> ActionStep:
         """Parse a single action step"""

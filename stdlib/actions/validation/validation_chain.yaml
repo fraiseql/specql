@@ -1,0 +1,124 @@
+pattern: validation_chain
+version: 1.0
+description: "Chain multiple validation rules with different error handling"
+author: SpecQL Team
+
+parameters:
+  - name: validations
+    type: array<object>
+    required: true
+    description: "List of validation rules to execute"
+
+  - name: stop_on_first_failure
+    type: boolean
+    default: true
+    description: "Stop validation chain on first failure"
+
+  - name: collect_all_errors
+    type: boolean
+    default: false
+    description: "Collect all validation errors before failing"
+
+template: |
+  steps:
+    {% if collect_all_errors %}
+    # Collect all validation errors
+    - raw_sql: "
+        DECLARE
+            v_validation_errors JSONB := '[]'::JSONB;
+            v_has_errors BOOLEAN := FALSE;
+        BEGIN
+        {% for validation in validations %}
+        -- Validation: {{ validation.name }}
+        BEGIN
+            IF NOT ({{ validation.condition }}) THEN
+                v_has_errors := TRUE;
+                v_validation_errors := v_validation_errors || jsonb_build_object(
+                    'field', '{{ validation.field | default(validation.name) }}',
+                    'rule', '{{ validation.name }}',
+                    'message', '{{ validation.message }}',
+                    'severity', '{{ validation.severity | default('error') }}'
+                );
+                {% if stop_on_first_failure %}
+                EXIT;
+                {% endif %}
+            END IF;
+        EXCEPTION WHEN OTHERS THEN
+            v_has_errors := TRUE;
+            v_validation_errors := v_validation_errors || jsonb_build_object(
+                'field', '{{ validation.field | default(validation.name) }}',
+                'rule', '{{ validation.name }}',
+                'message', 'Validation error: ' || SQLERRM,
+                'severity', 'error'
+            );
+            {% if stop_on_first_failure %}
+            EXIT;
+            {% endif %}
+        END;
+        {% endfor %}
+
+        -- Check if any validations failed
+        IF v_has_errors THEN
+            RETURN app.log_and_return_mutation(
+                auth_tenant_id, auth_user_id,
+                '{{ entity.name | lower }}', v_{{ entity.name | lower }}_id,
+                'NOOP', 'validation:validation_chain_failed',
+                ARRAY[]::TEXT[],
+                'Validation failed',
+                NULL, NULL,
+                jsonb_build_object(
+                    'validation_errors', v_validation_errors,
+                    'error_count', jsonb_array_length(v_validation_errors)
+                )
+            );
+        END IF;
+        END;
+        "
+    {% else %}
+    {% for validation in validations %}
+    # Validation: {{ validation.name }}
+    - validate: {{ validation.condition }}
+      error: {{ validation.message }}
+    {% endfor %}
+    {% endif %}
+
+examples:
+  - name: validate_contract_creation
+    description: "Validate all business rules for contract creation"
+    config:
+      validations:
+        - name: customer_exists
+          field: customer_org
+          condition: "EXISTS (SELECT 1 FROM organizations WHERE id = input_data.customer_org AND status = 'active')"
+          message: "Customer organization must exist and be active"
+        - name: provider_exists
+          field: provider_org
+          condition: "EXISTS (SELECT 1 FROM organizations WHERE id = input_data.provider_org AND status = 'active')"
+          message: "Provider organization must exist and be active"
+        - name: currency_supported
+          field: currency
+          condition: "input_data.currency IN (SELECT iso_code FROM supported_currencies)"
+          message: "Currency is not supported"
+        - name: amount_positive
+          field: total_value
+          condition: "input_data.total_value > 0"
+          message: "Contract total value must be positive"
+        - name: amount_within_limits
+          field: total_value
+          condition: "input_data.total_value <= (SELECT max_contract_value FROM user_permissions WHERE user_id = auth_user_id)"
+          message: "Contract value exceeds your approval limit"
+      stop_on_first_failure: false
+      collect_all_errors: true
+
+  - name: quick_validation
+    description: "Fast validation that stops on first error"
+    config:
+      validations:
+        - name: required_fields
+          condition: "input_data.name IS NOT NULL AND input_data.email IS NOT NULL"
+          message: "Name and email are required"
+        - name: email_format
+          condition: "input_data.email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'"
+          message: "Email format is invalid"
+      stop_on_first_failure: true
+      collect_all_errors: false

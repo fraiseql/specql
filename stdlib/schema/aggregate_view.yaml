@@ -1,0 +1,407 @@
+pattern: aggregate_view
+version: 1.0
+description: "Materialized aggregate view pattern with FILTER clauses and refresh orchestration"
+author: SpecQL Team
+type: schema_pattern  # Special type for schema-level patterns
+
+parameters:
+  - name: source_entity
+    type: string
+    required: true
+    description: "Source entity to aggregate from"
+
+  - name: group_by_fields
+    type: array<string>
+    required: true
+    description: "Fields to group by (supports dot notation for joins)"
+
+  - name: aggregates
+    type: array<object>
+    required: true
+    description: "Aggregate calculations"
+    # Each aggregate:
+    #   - name: result column name
+    #   - function: count, sum, avg, min, max, count_distinct
+    #   - field: source field (optional for count)
+    #   - filter: WHERE condition for FILTER clause (optional)
+
+  - name: join_entities
+    type: array<object>
+    required: false
+    description: "Entities to join for group_by or aggregates"
+
+  - name: where_clause
+    type: string
+    required: false
+    description: "Global WHERE filter for the view"
+
+  - name: refresh_mode
+    type: string
+    required: false
+    default: manual
+    description: "Refresh mode: manual, auto (trigger-based), or incremental"
+
+  - name: refresh_dependencies
+    type: array<string>
+    required: false
+    description: "Other views/tables that must refresh first"
+
+  - name: indexes
+    type: array<object>
+    required: false
+    description: "Indexes to create on the materialized view"
+
+schema_template: |
+  -- Materialized view with aggregates
+  CREATE MATERIALIZED VIEW {{ entity.schema }}.mv_{{ entity.name | lower }} AS
+  SELECT
+    {% for field in group_by_fields %}
+    {{ field }} as {{ field.split('.')[-1] }},
+    {% endfor %}
+
+    {% for agg in aggregates %}
+    {% if agg.function == 'count' %}
+    COUNT(*){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
+    {% elif agg.function == 'count_distinct' %}
+    COUNT(DISTINCT {{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
+    {% elif agg.function == 'sum' %}
+    SUM({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
+    {% elif agg.function == 'avg' %}
+    AVG({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
+    {% elif agg.function == 'min' %}
+    MIN({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
+    {% elif agg.function == 'max' %}
+    MAX({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
+    {% elif agg.function == 'jsonb_agg' %}
+    jsonb_agg({{ agg.expression }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
+    {% elif agg.function == 'array_agg' %}
+    array_agg({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
+    {% endif %}{% if not loop.last %},{% endif %}
+    {% endfor %}
+
+  FROM {{ source_entity.schema }}.tb_{{ source_entity.name | lower }}
+  {% for join in join_entities %}
+  LEFT JOIN {{ join.schema }}.tb_{{ join.entity | lower }}
+    ON {{ join.on_condition }}
+  {% endfor %}
+  {% if where_clause %}
+  WHERE {{ where_clause }}
+  {% endif %}
+  GROUP BY
+    {% for field in group_by_fields %}
+    {{ field }}{% if not loop.last %},{% endif %}
+    {% endfor %};
+
+  -- Indexes on materialized view
+  {% for index in indexes %}
+  CREATE INDEX idx_mv_{{ entity.name | lower }}_{{ index.name }}
+    ON {{ entity.schema }}.mv_{{ entity.name | lower }}
+    {% if index.using %}USING {{ index.using }}{% endif %}
+    ({{ index.fields | join(', ') }});
+  {% endfor %}
+
+  -- Refresh function with dependency ordering
+  CREATE OR REPLACE FUNCTION {{ entity.schema }}.refresh_mv_{{ entity.name | lower }}()
+  RETURNS void AS $$
+  BEGIN
+    {% if refresh_dependencies %}
+    -- Refresh dependencies first
+    {% for dep in refresh_dependencies %}
+    PERFORM {{ dep.schema }}.refresh_mv_{{ dep.name | lower }}();
+    {% endfor %}
+    {% endif %}
+
+    -- Refresh this materialized view
+    REFRESH MATERIALIZED VIEW {{ entity.schema }}.mv_{{ entity.name | lower }};
+
+    {% if refresh_mode == 'auto' %}
+    -- Update refresh timestamp
+    UPDATE {{ entity.schema }}.mv_refresh_log
+    SET last_refresh = CURRENT_TIMESTAMP,
+        row_count = (SELECT COUNT(*) FROM {{ entity.schema }}.mv_{{ entity.name | lower }})
+    WHERE mv_name = 'mv_{{ entity.name | lower }}';
+    {% endif %}
+  END;
+  $$ LANGUAGE plpgsql;
+
+  {% if refresh_mode == 'auto' %}
+  -- Trigger-based auto refresh (on source table changes)
+  CREATE OR REPLACE FUNCTION {{ entity.schema }}.trigger_refresh_mv_{{ entity.name | lower }}()
+  RETURNS TRIGGER AS $$
+  BEGIN
+    -- Mark view as stale (actual refresh can be async)
+    INSERT INTO {{ entity.schema }}.mv_refresh_queue (mv_name, triggered_at)
+    VALUES ('mv_{{ entity.name | lower }}', CURRENT_TIMESTAMP)
+    ON CONFLICT (mv_name) DO UPDATE
+    SET triggered_at = CURRENT_TIMESTAMP,
+        refresh_count = mv_refresh_queue.refresh_count + 1;
+
+    RETURN NEW;
+  END;
+  $$ LANGUAGE plpgsql;
+
+  CREATE TRIGGER tr_refresh_mv_{{ entity.name | lower }}
+  AFTER INSERT OR UPDATE OR DELETE ON {{ source_entity.schema }}.tb_{{ source_entity.name | lower }}
+  FOR EACH STATEMENT
+  EXECUTE FUNCTION {{ entity.schema }}.trigger_refresh_mv_{{ entity.name | lower }}();
+  {% endif %}
+
+  {% if refresh_mode == 'incremental' %}
+  -- Incremental refresh function (delta processing)
+  CREATE OR REPLACE FUNCTION {{ entity.schema }}.refresh_mv_{{ entity.name | lower }}_incremental(
+    p_since_timestamp TIMESTAMPTZ DEFAULT NULL
+  )
+  RETURNS void AS $$
+  DECLARE
+    v_last_refresh TIMESTAMPTZ;
+  BEGIN
+    -- Get last refresh timestamp
+    SELECT last_refresh INTO v_last_refresh
+    FROM {{ entity.schema }}.mv_refresh_log
+    WHERE mv_name = 'mv_{{ entity.name | lower }}';
+
+    IF p_since_timestamp IS NOT NULL THEN
+      v_last_refresh := p_since_timestamp;
+    END IF;
+
+    -- Delete stale aggregates
+    DELETE FROM {{ entity.schema }}.mv_{{ entity.name | lower }}
+    WHERE ({% for field in group_by_fields %}{{ field.split('.')[-1] }}{% if not loop.last %}, {% endif %}{% endfor %})
+    IN (
+      SELECT DISTINCT {% for field in group_by_fields %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+      FROM {{ source_entity.schema }}.tb_{{ source_entity.name | lower }}
+      WHERE updated_at > v_last_refresh
+    );
+
+    -- Re-aggregate changed groups
+    INSERT INTO {{ entity.schema }}.mv_{{ entity.name | lower }}
+    SELECT
+      {% for field in group_by_fields %}
+      {{ field }} as {{ field.split('.')[-1] }},
+      {% endfor %}
+      {% for agg in aggregates %}
+      {% if agg.function == 'count' %}
+      COUNT(*){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
+      {% elif agg.function == 'count_distinct' %}
+      COUNT(DISTINCT {{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
+      {% else %}
+      {{ agg.function | upper }}({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
+      {% endif %}{% if not loop.last %},{% endif %}
+      {% endfor %}
+    FROM {{ source_entity.schema }}.tb_{{ source_entity.name | lower }}
+    {% for join in join_entities %}
+    LEFT JOIN {{ join.schema }}.tb_{{ join.entity | lower }}
+      ON {{ join.on_condition }}
+    {% endfor %}
+    WHERE updated_at > v_last_refresh
+    {% if where_clause %}
+      AND {{ where_clause }}
+    {% endif %}
+    GROUP BY
+      {% for field in group_by_fields %}
+      {{ field }}{% if not loop.last %},{% endif %}
+      {% endfor %};
+
+    -- Update refresh log
+    UPDATE {{ entity.schema }}.mv_refresh_log
+    SET last_refresh = CURRENT_TIMESTAMP
+    WHERE mv_name = 'mv_{{ entity.name | lower }}';
+  END;
+  $$ LANGUAGE plpgsql;
+  {% endif %}
+
+  -- FraiseQL annotation for GraphQL discovery
+  COMMENT ON MATERIALIZED VIEW {{ entity.schema }}.mv_{{ entity.name | lower }} IS '@fraiseql:type=aggregate_view @fraiseql:refresh_mode={{ refresh_mode }}';
+
+examples:
+  - name: allocation_stats_by_org_unit
+    description: "Allocation statistics aggregated by organizational unit"
+    entity: AllocationStatsByOrgUnit
+    schema: query
+    config:
+      source_entity:
+        schema: scd
+        name: Allocation
+      group_by_fields:
+        - ou.pk_organizational_unit
+        - ou.identifier
+        - ou.org_path
+      join_entities:
+        - schema: management
+          entity: OrganizationalUnit
+          alias: ou
+          on_condition: "a.fk_organizational_unit = ou.pk_organizational_unit"
+      aggregates:
+        - name: current_allocations
+          function: count
+          filter: "end_date IS NULL OR end_date >= CURRENT_DATE"
+        - name: past_allocations
+          function: count
+          filter: "end_date < CURRENT_DATE"
+        - name: total_machines
+          function: count_distinct
+          field: fk_machine
+        - name: earliest_start
+          function: min
+          field: start_date
+        - name: latest_end
+          function: max
+          field: end_date
+      where_clause: "deleted_at IS NULL"
+      refresh_mode: manual
+      refresh_dependencies:
+        - schema: management
+          name: Organization
+      indexes:
+        - name: org_unit_id
+          fields: [pk_organizational_unit]
+          using: btree
+        - name: org_path
+          fields: [org_path]
+          using: gist
+
+  - name: contract_revenue_by_month
+    description: "Monthly contract revenue aggregation"
+    entity: ContractRevenueByMonth
+    schema: analytics
+    config:
+      source_entity:
+        schema: crm
+        name: Contract
+      group_by_fields:
+        - date_trunc('month', effective_date)
+        - currency_code
+      aggregates:
+        - name: contract_count
+          function: count
+        - name: total_value
+          function: sum
+          field: total_value
+        - name: avg_value
+          function: avg
+          field: total_value
+        - name: active_contracts
+          function: count
+          filter: "status = 'active'"
+        - name: customer_ids
+          function: array_agg
+          field: fk_customer_org
+      refresh_mode: incremental
+      indexes:
+        - name: month_currency
+          fields: [date_trunc, currency_code]
+          using: btree
+
+  - name: machine_allocation_status
+    description: "Machine status with allocation counts"
+    entity: MachineAllocationStatus
+    schema: dim
+    config:
+      source_entity:
+        schema: dim
+        name: Machine
+      group_by_fields:
+        - m.pk_machine
+        - m.id
+        - m.identifier
+        - m.serial_number
+      join_entities:
+        - schema: scd
+          entity: Allocation
+          alias: a
+          on_condition: "a.fk_machine = m.pk_machine AND a.deleted_at IS NULL"
+      aggregates:
+        - name: n_current_allocations
+          function: count
+          filter: "a.end_date IS NULL OR a.end_date >= CURRENT_DATE"
+        - name: n_past_allocations
+          function: count
+          filter: "a.end_date < CURRENT_DATE"
+        - name: is_allocated
+          function: count
+          filter: "a.end_date IS NULL OR a.end_date >= CURRENT_DATE"
+          # Cast to boolean in application
+        - name: current_location
+          function: jsonb_agg
+          expression: |
+            jsonb_build_object(
+              'location_id', l.id,
+              'location_name', l.identifier,
+              'start_date', a.start_date
+            )
+          filter: "a.end_date IS NULL"
+      refresh_mode: auto
+      indexes:
+        - name: machine_id
+          fields: [id]
+          using: btree
+
+usage: |
+  # In entity YAML (aggregate view definition)
+  entity: AllocationStatsByOrgUnit
+  type: aggregate_view  # Special entity type
+  schema: query
+
+  aggregate_from: Allocation  # Source entity
+  pattern: aggregate_view
+
+  group_by:
+    - organizational_unit.id
+    - organizational_unit.name
+    - organizational_unit.path
+
+  aggregates:
+    - name: current_allocations
+      function: count
+      filter: "end_date IS NULL OR end_date >= CURRENT_DATE"
+
+    - name: past_allocations
+      function: count
+      filter: "end_date < CURRENT_DATE"
+
+    - name: total_machines
+      function: count_distinct
+      field: machine_id
+
+  refresh: manual  # or auto, incremental
+
+  indexes:
+    - fields: [organizational_unit_id]
+    - fields: [org_path]
+      using: gist
+
+  # Access from actions
+  actions:
+    - name: refresh_org_stats
+      steps:
+        - raw_sql: "PERFORM query.refresh_mv_allocation_stats_by_org_unit();"
+
+notes: |
+  This pattern generates true PostgreSQL materialized views with:
+
+  1. **FILTER Clause Support**: Conditional aggregates without subqueries
+  2. **Dependency Ordering**: Refresh functions that call dependencies first
+  3. **Multiple Refresh Modes**:
+     - manual: Explicit refresh via function call
+     - auto: Trigger-based refresh on source table changes
+     - incremental: Delta processing for large datasets
+
+  4. **Rich Aggregation Functions**:
+     - count, count_distinct, sum, avg, min, max
+     - jsonb_agg, array_agg for structured data
+     - All support FILTER clauses
+
+  5. **Performance Optimizations**:
+     - Indexes on materialized views
+     - Refresh logging and monitoring
+     - Incremental refresh for large datasets
+
+  6. **FraiseQL Integration**:
+     - Auto-discovery via comments
+     - GraphQL query generation
+     - Metadata for refresh status
+
+  Differences from tv_ (table views):
+  - True MVs use REFRESH MATERIALIZED VIEW (atomic, transactional)
+  - tv_ are regular tables refreshed via custom functions
+  - MVs better for large aggregations, tv_ better for CQRS projections

@@ -23,7 +23,6 @@ dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
     "pytest-asyncio>=0.21.0",
-    "pytest-time-machine>=2.19.0",
     "hypothesis>=6.142.0",
     "ruff>=0.1.0",
     "mypy>=1.5.0",

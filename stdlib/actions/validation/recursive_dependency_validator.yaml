@@ -1,0 +1,438 @@
+pattern: recursive_dependency_validator
+version: 1.0
+description: "Recursive dependency resolution and validation pattern (e.g., product configuration, BOM, permissions)"
+author: SpecQL Team
+
+parameters:
+  - name: dependency_table
+    type: string
+    required: true
+    description: "Table containing dependency relationships (e.g., product_dependencies)"
+
+  - name: parent_field
+    type: string
+    required: true
+    description: "Field referencing the parent item (e.g., fk_product)"
+
+  - name: child_field
+    type: string
+    required: true
+    description: "Field referencing the dependent item (e.g., fk_required_accessory)"
+
+  - name: dependency_type_field
+    type: string
+    required: false
+    default: dependency_type
+    description: "Field containing dependency type (REQUIRES, REQUIRES_ONE_OF, CONFLICTS_WITH)"
+
+  - name: max_depth
+    type: integer
+    required: false
+    default: 8
+    description: "Maximum recursion depth to prevent infinite loops"
+
+  - name: validation_rules
+    type: array<object>
+    required: true
+    description: "Validation rules to apply"
+    # Rules:
+    # - type: transitive_requires (resolve all REQUIRES dependencies)
+    # - type: requires_one_of (at least one from group)
+    # - type: conflicts_with (mutual exclusion)
+    # - type: circular_dependency (detect cycles)
+    # - type: category_limit (max items per category)
+
+  - name: return_details
+    type: boolean
+    required: false
+    default: true
+    description: "Return detailed violation information"
+
+validation_helper: |
+  -- Recursive dependency resolution function
+  CREATE OR REPLACE FUNCTION {{ entity.schema }}.resolve_{{ entity.name | lower }}_dependencies(
+    p_{{ parent_field }} INTEGER,
+    p_selected_items INTEGER[],
+    p_max_depth INTEGER DEFAULT {{ max_depth }}
+  )
+  RETURNS TABLE(
+    is_valid BOOLEAN,
+    violations JSONB,
+    resolved_dependencies JSONB
+  ) AS $$
+  DECLARE
+    v_violations JSONB := '[]'::JSONB;
+    v_resolved JSONB := '{}'::JSONB;
+    v_visited INTEGER[] := ARRAY[]::INTEGER[];
+    v_is_valid BOOLEAN := TRUE;
+  BEGIN
+    -- Initialize tracking structures
+    v_resolved := jsonb_build_object(
+      'required_items', '[]'::JSONB,
+      'optional_items', '[]'::JSONB,
+      'conflicting_items', '[]'::JSONB,
+      'dependency_tree', '[]'::JSONB
+    );
+
+    --------------------------------------------
+    -- Rule 1: Resolve Transitive REQUIRES
+    --------------------------------------------
+    {% if 'transitive_requires' in [rule.type for rule in validation_rules] %}
+    WITH RECURSIVE dependency_chain AS (
+      -- Base case: Direct dependencies of selected items
+      SELECT
+        d.{{ parent_field }} as source_item,
+        d.{{ child_field }} as required_item,
+        d.{{ dependency_type_field }} as dependency_type,
+        1 as depth,
+        ARRAY[d.{{ parent_field }}] as path
+      FROM {{ dependency_table }} d
+      WHERE d.{{ parent_field }} = ANY(p_selected_items)
+        AND d.{{ dependency_type_field }} = 'REQUIRES'
+
+      UNION ALL
+
+      -- Recursive case: Dependencies of dependencies
+      SELECT
+        dc.required_item as source_item,
+        d.{{ child_field }} as required_item,
+        d.{{ dependency_type_field }} as dependency_type,
+        dc.depth + 1 as depth,
+        dc.path || d.{{ parent_field }}
+      FROM dependency_chain dc
+      JOIN {{ dependency_table }} d ON d.{{ parent_field }} = dc.required_item
+      WHERE d.{{ dependency_type_field }} = 'REQUIRES'
+        AND dc.depth < p_max_depth
+        AND NOT (d.{{ child_field }} = ANY(dc.path))  -- Prevent cycles
+    )
+    SELECT
+      jsonb_agg(DISTINCT jsonb_build_object(
+        'required_item_id', required_item,
+        'depth', depth,
+        'path', path
+      ))
+    INTO v_resolved->'required_items'
+    FROM dependency_chain;
+
+    -- Check for missing required items
+    SELECT
+      jsonb_agg(jsonb_build_object(
+        'violation_type', 'missing_required_dependency',
+        'required_item_id', r->>'required_item_id',
+        'depth', (r->>'depth')::INTEGER,
+        'path', r->'path'
+      ))
+    INTO v_violations
+    FROM jsonb_array_elements(v_resolved->'required_items') r
+    WHERE (r->>'required_item_id')::INTEGER != ALL(p_selected_items);
+
+    IF v_violations IS NOT NULL AND jsonb_array_length(v_violations) > 0 THEN
+      v_is_valid := FALSE;
+    END IF;
+    {% endif %}
+
+    --------------------------------------------
+    -- Rule 2: REQUIRES_ONE_OF (OR dependencies)
+    --------------------------------------------
+    {% if 'requires_one_of' in [rule.type for rule in validation_rules] %}
+    WITH one_of_groups AS (
+      SELECT
+        d.{{ parent_field }} as source_item,
+        d.dependency_group,
+        jsonb_agg(d.{{ child_field }}) as group_items
+      FROM {{ dependency_table }} d
+      WHERE d.{{ parent_field }} = ANY(p_selected_items)
+        AND d.{{ dependency_type_field }} = 'REQUIRES_ONE_OF'
+      GROUP BY d.{{ parent_field }}, d.dependency_group
+    )
+    SELECT
+      v_violations || jsonb_agg(jsonb_build_object(
+        'violation_type', 'requires_one_of_not_satisfied',
+        'source_item_id', og.source_item,
+        'group_id', og.dependency_group,
+        'group_items', og.group_items,
+        'selected_count',
+          (SELECT COUNT(*)
+           FROM jsonb_array_elements(og.group_items) item
+           WHERE (item::TEXT)::INTEGER = ANY(p_selected_items))
+      ))
+    INTO v_violations
+    FROM one_of_groups og
+    WHERE NOT EXISTS (
+      SELECT 1
+      FROM jsonb_array_elements(og.group_items) item
+      WHERE (item::TEXT)::INTEGER = ANY(p_selected_items)
+    );
+
+    IF v_violations IS NOT NULL AND jsonb_array_length(v_violations) > 0 THEN
+      v_is_valid := FALSE;
+    END IF;
+    {% endif %}
+
+    --------------------------------------------
+    -- Rule 3: CONFLICTS_WITH (mutual exclusion)
+    --------------------------------------------
+    {% if 'conflicts_with' in [rule.type for rule in validation_rules] %}
+    WITH conflicts AS (
+      SELECT
+        d.{{ parent_field }} as item1,
+        d.{{ child_field }} as item2
+      FROM {{ dependency_table }} d
+      WHERE d.{{ dependency_type_field }} = 'CONFLICTS_WITH'
+        AND d.{{ parent_field }} = ANY(p_selected_items)
+        AND d.{{ child_field }} = ANY(p_selected_items)
+    )
+    SELECT
+      v_violations || jsonb_agg(jsonb_build_object(
+        'violation_type', 'conflicting_items',
+        'item1_id', c.item1,
+        'item2_id', c.item2
+      ))
+    INTO v_violations
+    FROM conflicts c;
+
+    IF v_violations IS NOT NULL AND jsonb_array_length(v_violations) > 0 THEN
+      v_is_valid := FALSE;
+    END IF;
+    {% endif %}
+
+    --------------------------------------------
+    -- Rule 4: Circular Dependency Detection
+    --------------------------------------------
+    {% if 'circular_dependency' in [rule.type for rule in validation_rules] %}
+    WITH RECURSIVE cycle_detector AS (
+      SELECT
+        d.{{ parent_field }} as source,
+        d.{{ child_field }} as target,
+        ARRAY[d.{{ parent_field }}, d.{{ child_field }}] as path,
+        1 as depth
+      FROM {{ dependency_table }} d
+      WHERE d.{{ parent_field }} = ANY(p_selected_items)
+
+      UNION ALL
+
+      SELECT
+        cd.source,
+        d.{{ child_field }},
+        cd.path || d.{{ child_field }},
+        cd.depth + 1
+      FROM cycle_detector cd
+      JOIN {{ dependency_table }} d ON d.{{ parent_field }} = cd.target
+      WHERE cd.depth < p_max_depth
+        AND d.{{ child_field }} != ALL(cd.path)  -- Stop if cycle detected
+    )
+    SELECT
+      v_violations || jsonb_agg(jsonb_build_object(
+        'violation_type', 'circular_dependency',
+        'cycle_path', cd.path,
+        'cycle_depth', cd.depth
+      ))
+    INTO v_violations
+    FROM cycle_detector cd
+    WHERE cd.target = cd.source;  -- Cycle back to source
+
+    IF v_violations IS NOT NULL AND jsonb_array_length(v_violations) > 0 THEN
+      v_is_valid := FALSE;
+    END IF;
+    {% endif %}
+
+    --------------------------------------------
+    -- Rule 5: Category Limits
+    --------------------------------------------
+    {% if 'category_limit' in [rule.type for rule in validation_rules] %}
+    {% set category_limit_rule = [rule for rule in validation_rules if rule.type == 'category_limit'][0] %}
+    WITH category_counts AS (
+      SELECT
+        item.category_id,
+        item.category_name,
+        COUNT(*) as item_count,
+        {{ category_limit_rule.limit_source }} as max_allowed
+      FROM {{ entity.schema }}.tb_{{ entity.name | lower }} item
+      WHERE item.pk_{{ entity.name | lower }} = ANY(p_selected_items)
+      GROUP BY item.category_id, item.category_name, {{ category_limit_rule.limit_source }}
+    )
+    SELECT
+      v_violations || jsonb_agg(jsonb_build_object(
+        'violation_type', 'category_limit_exceeded',
+        'category_id', cc.category_id,
+        'category_name', cc.category_name,
+        'item_count', cc.item_count,
+        'max_allowed', cc.max_allowed
+      ))
+    INTO v_violations
+    FROM category_counts cc
+    WHERE cc.item_count > cc.max_allowed;
+
+    IF v_violations IS NOT NULL AND jsonb_array_length(v_violations) > 0 THEN
+      v_is_valid := FALSE;
+    END IF;
+    {% endif %}
+
+    -- Return results
+    RETURN QUERY SELECT v_is_valid, COALESCE(v_violations, '[]'::JSONB), v_resolved;
+  END;
+  $$ LANGUAGE plpgsql STABLE;
+
+template: |
+  steps:
+    # Recursive dependency validation
+    - raw_sql: "
+        DECLARE
+          v_validation_result RECORD;
+        BEGIN
+          -- Resolve dependencies recursively
+          SELECT * INTO v_validation_result
+          FROM {{ entity.schema }}.resolve_{{ entity.name | lower }}_dependencies(
+            input_data.{{ parent_field }},
+            input_data.selected_items,  -- Array of selected item IDs
+            {{ max_depth }}
+          );
+
+          -- Check validation result
+          IF NOT v_validation_result.is_valid THEN
+            RETURN app.log_and_return_mutation(
+              auth_tenant_id, auth_user_id,
+              '{{ entity.name | lower }}', NULL,
+              'NOOP', 'validation:dependency_validation_failed',
+              ARRAY[]::TEXT[],
+              format('%s dependency violation(s) detected',
+                jsonb_array_length(v_validation_result.violations)),
+              NULL, NULL,
+              jsonb_build_object(
+                'violations', v_validation_result.violations,
+                'violation_count', jsonb_array_length(v_validation_result.violations),
+                {% if return_details %}
+                'resolved_dependencies', v_validation_result.resolved_dependencies,
+                {% endif %}
+                'requested_items', input_data.selected_items
+              )
+            );
+          END IF;
+
+          {% if return_details %}
+          -- Add resolved dependencies to metadata for client
+          v_metadata := v_metadata || jsonb_build_object(
+            'resolved_dependencies', v_validation_result.resolved_dependencies,
+            'validation_passed', true
+          );
+          {% endif %}
+        END;
+        "
+
+examples:
+  - name: product_configuration_validation
+    description: "Validate printer accessory configuration with complex dependencies"
+    entity: ProductConfiguration
+    schema: catalog
+    config:
+      dependency_table: catalog.tb_product_dependency
+      parent_field: fk_product
+      child_field: fk_required_product
+      dependency_type_field: dependency_type
+      max_depth: 8
+      validation_rules:
+        - type: transitive_requires
+        - type: requires_one_of
+        - type: conflicts_with
+        - type: circular_dependency
+        - type: category_limit
+          limit_source: |
+            (SELECT max_accessories
+             FROM catalog.tb_product_category_limit
+             WHERE category_id = item.category_id
+             LIMIT 1)
+      return_details: true
+
+  - name: permission_hierarchy_validation
+    description: "Validate user permissions with role dependencies"
+    entity: UserPermission
+    schema: auth
+    config:
+      dependency_table: auth.tb_permission_dependency
+      parent_field: fk_permission
+      child_field: fk_required_permission
+      dependency_type_field: dependency_type
+      max_depth: 5
+      validation_rules:
+        - type: transitive_requires
+        - type: conflicts_with
+        - type: circular_dependency
+      return_details: true
+
+  - name: bill_of_materials_validation
+    description: "Validate BOM with component dependencies"
+    entity: BillOfMaterials
+    schema: manufacturing
+    config:
+      dependency_table: manufacturing.tb_component_dependency
+      parent_field: fk_component
+      child_field: fk_required_component
+      dependency_type_field: dependency_type
+      max_depth: 10
+      validation_rules:
+        - type: transitive_requires
+        - type: requires_one_of
+        - type: circular_dependency
+      return_details: false
+
+usage: |
+  # In entity YAML
+  entity: ProductConfiguration
+  schema: catalog
+  fields:
+    model: ref(ProductModel)
+    selected_accessories: list(ref(Accessory))
+
+  actions:
+    - name: validate_configuration
+      pattern: recursive_dependency_validator
+      parameters:
+        dependency_table: catalog.tb_product_dependency
+        parent_field: fk_product
+        child_field: fk_required_product
+        validation_rules:
+          - type: transitive_requires
+          - type: requires_one_of
+          - type: conflicts_with
+          - type: circular_dependency
+          - type: category_limit
+            limit_source: "(SELECT max_accessories FROM ...)"
+      steps:
+        # Pattern validates dependencies first
+        - insert: ProductConfiguration  # Only if validation passes
+
+    - name: create_configuration
+      steps:
+        # Call validation action
+        - call: validate_configuration
+          args:
+            selected_items: $input.accessory_ids
+            model: $input.model_id
+
+        # Proceed with creation if valid
+        - insert: ProductConfiguration
+
+notes: |
+  This pattern generates a recursive CTE-based validation function that:
+
+  1. **Transitive REQUIRES**: Resolves all required dependencies up to max_depth
+  2. **REQUIRES_ONE_OF**: Validates OR dependencies (at least one from group)
+  3. **CONFLICTS_WITH**: Detects mutual exclusions
+  4. **Circular Dependencies**: Detects cycles with path tracking
+  5. **Category Limits**: Enforces max items per category
+
+  The function returns:
+  - is_valid: Boolean indicating if configuration is valid
+  - violations: Detailed JSONB array of all violations
+  - resolved_dependencies: Full dependency tree (if return_details = true)
+
+  Performance characteristics:
+  - Uses recursive CTEs for optimal PostgreSQL performance
+  - Cycle detection prevents infinite loops
+  - Max depth limit ensures bounded execution
+  - JSONB aggregations for detailed reporting
+
+  Template inheritance example:
+  - Model-specific limits override generic limits
+  - Parent category limits inherit to children
+  - Unlimited (-1) disables category limits

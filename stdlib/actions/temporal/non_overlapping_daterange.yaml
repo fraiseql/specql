@@ -1,0 +1,257 @@
+pattern: temporal_non_overlapping_daterange
+version: 1.0
+description: "Temporal constraint pattern for non-overlapping date ranges (SCD Type 2)"
+author: SpecQL Team
+
+parameters:
+  - name: scope_fields
+    type: array<string>
+    required: true
+    description: "Fields that define the scope (e.g., machine_id for non-overlapping allocations per machine)"
+
+  - name: start_date_field
+    type: string
+    required: true
+    default: start_date
+    description: "Start date field name"
+
+  - name: end_date_field
+    type: string
+    required: true
+    default: end_date
+    description: "End date field name (nullable for open-ended ranges)"
+
+  - name: check_mode
+    type: string
+    required: false
+    default: strict
+    description: "Validation mode: strict (error on overlap) or warning (return overlap info)"
+
+  - name: allow_adjacent
+    type: boolean
+    required: false
+    default: true
+    description: "Allow adjacent ranges (end_date = start_date of next)"
+
+schema_extensions:
+  # Add generated daterange column to tb_ table
+  computed_columns:
+    - name: "{{ start_date_field }}_{{ end_date_field }}_range"
+      type: daterange
+      expression: "daterange({{ start_date_field }}, {{ end_date_field }}, '[]')"
+      stored: true
+      comment: "Computed daterange for overlap detection"
+
+  # Add GIST index on daterange
+  indexes:
+    - name: "idx_tb_{{ entity.name | lower }}_daterange"
+      fields: ["{{ start_date_field }}_{{ end_date_field }}_range"]
+      using: gist
+      comment: "GIST index for efficient overlap detection"
+
+  # Add exclusion constraint (applied during schema generation)
+  exclusion_constraints:
+    - name: "excl_{{ entity.name | lower }}_no_overlap"
+      using: gist
+      columns:
+        {% for field in scope_fields %}
+        - field: "{{ field }}"
+          operator: "="
+        {% endfor %}
+        - field: "{{ start_date_field }}_{{ end_date_field }}_range"
+          operator: "&&"
+      condition: "deleted_at IS NULL"  # Only check active records
+      comment: "Prevent overlapping date ranges within same scope"
+
+validation_helper: |
+  -- Function to check for overlaps before insert/update
+  CREATE OR REPLACE FUNCTION {{ entity.schema }}.check_{{ entity.name | lower }}_daterange_overlap(
+    {% for field in scope_fields %}
+    p_{{ field }} {{ field_types[field] }},
+    {% endfor %}
+    p_start_date DATE,
+    p_end_date DATE,
+    p_exclude_pk INTEGER DEFAULT NULL
+  )
+  RETURNS TABLE(
+    has_overlap BOOLEAN,
+    overlap_count INTEGER,
+    overlapping_ranges JSONB
+  ) AS $$
+  DECLARE
+    v_overlap_count INTEGER;
+    v_overlapping JSONB;
+  BEGIN
+    -- Build overlap query
+    SELECT
+      COUNT(*) > 0,
+      COUNT(*)::INTEGER,
+      jsonb_agg(jsonb_build_object(
+        'id', id,
+        'identifier', identifier,
+        'start_date', {{ start_date_field }},
+        'end_date', {{ end_date_field }},
+        'overlap_type',
+          CASE
+            WHEN {{ start_date_field }} <= p_start_date AND ({{ end_date_field }} IS NULL OR {{ end_date_field }} >= p_end_date) THEN 'contains'
+            WHEN {{ start_date_field }} >= p_start_date AND (p_end_date IS NULL OR {{ end_date_field }} <= p_end_date) THEN 'contained'
+            WHEN {{ start_date_field }} < p_start_date AND {{ end_date_field }} > p_start_date THEN 'overlaps_start'
+            WHEN {{ start_date_field }} < p_end_date AND ({{ end_date_field }} IS NULL OR {{ end_date_field }} > p_end_date) THEN 'overlaps_end'
+            {% if allow_adjacent %}
+            WHEN {{ end_date_field }} = p_start_date OR {{ start_date_field }} = p_end_date THEN 'adjacent'
+            {% endif %}
+            ELSE 'unknown'
+          END
+      ))
+    INTO has_overlap, overlap_count, overlapping_ranges
+    FROM {{ entity.schema }}.tb_{{ entity.name | lower }}
+    WHERE deleted_at IS NULL
+      {% for field in scope_fields %}
+      AND {{ field }} = p_{{ field }}
+      {% endfor %}
+      {% if allow_adjacent %}
+      AND daterange({{ start_date_field }}, {{ end_date_field }}, '[]') && daterange(p_start_date, p_end_date, '[]')
+      AND NOT ({{ end_date_field }} = p_start_date OR {{ start_date_field }} = p_end_date)  -- Exclude adjacent
+      {% else %}
+      AND daterange({{ start_date_field }}, {{ end_date_field }}, '[]') && daterange(p_start_date, p_end_date, '[]')
+      {% endif %}
+      AND (p_exclude_pk IS NULL OR pk_{{ entity.name | lower }} != p_exclude_pk);
+
+    RETURN QUERY SELECT has_overlap, overlap_count, overlapping_ranges;
+  END;
+  $$ LANGUAGE plpgsql STABLE;
+
+template: |
+  steps:
+    # Validate no overlapping ranges
+    - raw_sql: "
+        DECLARE
+          v_overlap_check RECORD;
+        BEGIN
+          -- Check for overlaps
+          SELECT * INTO v_overlap_check
+          FROM {{ entity.schema }}.check_{{ entity.name | lower }}_daterange_overlap(
+            {% for field in scope_fields %}
+            input_data.{{ field }},
+            {% endfor %}
+            input_data.{{ start_date_field }},
+            input_data.{{ end_date_field }},
+            NULL  -- Exclude PK for updates
+          );
+
+          {% if check_mode == 'strict' %}
+          -- Strict mode: Error on any overlap
+          IF v_overlap_check.has_overlap THEN
+            RETURN app.log_and_return_mutation(
+              auth_tenant_id, auth_user_id,
+              '{{ entity.name | lower }}', NULL,
+              'NOOP', 'validation:daterange_overlap',
+              ARRAY[]::TEXT[],
+              format('Date range overlaps with %s existing record(s)', v_overlap_check.overlap_count),
+              NULL, NULL,
+              jsonb_build_object(
+                'overlap_count', v_overlap_check.overlap_count,
+                'overlapping_ranges', v_overlap_check.overlapping_ranges,
+                'requested_range', jsonb_build_object(
+                  'start_date', input_data.{{ start_date_field }},
+                  'end_date', input_data.{{ end_date_field }}
+                )
+              )
+            );
+          END IF;
+          {% else %}
+          -- Warning mode: Return overlap info in metadata
+          IF v_overlap_check.has_overlap THEN
+            -- Add warning to metadata (continue with insert/update)
+            v_warnings := v_warnings || jsonb_build_object(
+              'type', 'daterange_overlap',
+              'message', format('%s overlapping range(s) detected', v_overlap_check.overlap_count),
+              'details', v_overlap_check.overlapping_ranges
+            );
+          END IF;
+          {% endif %}
+        END;
+        "
+
+examples:
+  - name: allocation_non_overlapping
+    description: "Machine allocations cannot overlap for same machine"
+    entity: Allocation
+    schema: scd
+    config:
+      scope_fields: [fk_machine]
+      start_date_field: start_date
+      end_date_field: end_date
+      check_mode: strict
+      allow_adjacent: true
+
+  - name: contract_period_tracking
+    description: "Contract periods with overlap warnings"
+    entity: Contract
+    schema: crm
+    config:
+      scope_fields: [fk_customer_org, fk_provider_org]
+      start_date_field: effective_date
+      end_date_field: termination_date
+      check_mode: warning
+      allow_adjacent: false
+
+  - name: employee_assignment
+    description: "Employee can only be assigned to one project at a time"
+    entity: ProjectAssignment
+    schema: projects
+    config:
+      scope_fields: [fk_employee]
+      start_date_field: assignment_start
+      end_date_field: assignment_end
+      check_mode: strict
+      allow_adjacent: true
+
+usage: |
+  # In entity YAML
+  entity: Allocation
+  schema: scd
+  fields:
+    machine: ref(Machine)
+    location: ref(Location)
+    start_date: date
+    end_date: date?
+
+  actions:
+    - name: create_allocation
+      pattern: temporal_non_overlapping_daterange
+      parameters:
+        scope_fields: [fk_machine]
+        start_date_field: start_date
+        end_date_field: end_date
+        check_mode: strict
+      steps:
+        - insert: Allocation
+
+    - name: update_allocation_dates
+      pattern: temporal_non_overlapping_daterange
+      parameters:
+        scope_fields: [fk_machine]
+        start_date_field: start_date
+        end_date_field: end_date
+        check_mode: strict
+      steps:
+        - update: Allocation
+          set:
+            start_date: $input.start_date
+            end_date: $input.end_date
+
+notes: |
+  This pattern generates:
+  1. A computed DATERANGE column in the base table
+  2. A GIST index on the daterange for efficient overlap detection
+  3. An EXCLUSION constraint to prevent overlaps at database level
+  4. A validation helper function for pre-insert/update checks
+  5. Detailed overlap reporting with adjacent range handling
+
+  The pattern supports:
+  - Multiple scope fields (e.g., machine + location)
+  - Adjacent range detection (end_date = next start_date)
+  - Soft delete awareness (deleted_at IS NULL)
+  - Strict vs. warning modes
+  - Open-ended ranges (end_date IS NULL)

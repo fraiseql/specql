@@ -1,0 +1,33 @@
+pattern: crud_delete
+version: 1.0
+description: "Delete entity with hard delete support and dependency checking"
+author: SpecQL Team
+
+parameters:
+  - name: supports_hard_delete
+    type: boolean
+    default: false
+    description: "Allow hard delete operations"
+
+  - name: check_dependencies
+    type: array<object>
+    required: false
+    description: "Dependencies to check before hard delete"
+
+template: |
+  steps:
+    # Delete the entity
+    - delete: {{ entity.name }}
+      supports_hard_delete: {{ supports_hard_delete }}
+      check_dependencies: {{ check_dependencies | list }}
+
+examples:
+  - name: delete_machine
+    description: "Delete machine with dependency checking"
+    config:
+      supports_hard_delete: true
+      check_dependencies:
+        - entity: Allocation
+          field: machine_id
+          block_hard_delete: true
+          error_message: "Cannot delete machine with active allocations"
