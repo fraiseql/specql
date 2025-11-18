@@ -9,8 +9,6 @@ from pathlib import Path
 from src.core.specql_parser import SpecQLParser
 from src.generators.schema_orchestrator import SchemaOrchestrator
 
-pytestmark = pytest.mark.skip(reason="Rich type GraphQL comment generation incomplete - deferred to post-beta")
-
 
 class TestRichTypeGraphQLGeneration:
     """Test end-to-end rich type GraphQL generation"""
