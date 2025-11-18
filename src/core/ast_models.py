@@ -235,6 +235,7 @@ class FieldDefinition:
             "boolean": "BOOLEAN",
             "date": "DATE",
             "timestamp": "TIMESTAMPTZ",
+            "timestamptz": "TIMESTAMPTZ",  # Allow both forms
             "uuid": "UUID",
             "json": "JSONB",
             "decimal": "DECIMAL",
@@ -327,6 +328,7 @@ class EntityDefinition:
     # Database schema extensions (from patterns)
     indexes: list["Index"] = field(default_factory=list)
     computed_columns: list[dict] = field(default_factory=list)
+    functions: list[dict] = field(default_factory=list)
 
     # Organization (numbering system)
     organization: Optional["Organization"] = None
@@ -346,6 +348,23 @@ class EntityDefinition:
     # Identifier configuration (NEW)
     identifier: IdentifierConfig | None = None
 
+    # NEW: SCD Type 2 support
+    tracked_fields: Optional[list[str]] = None
+    natural_key_fields: list[str] = field(default_factory=list)
+    version_tracking_enabled: bool = False
+    history_table_name: Optional[str] = None
+
+    def has_scd_type2_pattern(self) -> bool:
+        """Check if entity uses SCD Type 2 pattern."""
+        return any(p.type == "temporal_scd_type2_helper" for p in self.patterns)
+
+    def get_scd_type2_config(self) -> Optional[dict[str, Any]]:
+        """Get SCD Type 2 pattern configuration."""
+        for pattern in self.patterns:
+            if pattern.type == "temporal_scd_type2_helper":
+                return pattern.params
+        return None
+
     @property
     def has_foreign_keys(self) -> bool:
         """Check if entity has any foreign key fields."""
@@ -364,6 +383,9 @@ class EntityDefinition:
             return True
         else:  # AUTO
             return self.has_foreign_keys
+
+    # Metadata
+    notes: str | None = None
 
 
 @dataclass
@@ -501,6 +523,7 @@ class Entity:
     foreign_keys: list["ForeignKey"] = field(default_factory=list)
     indexes: list["Index"] = field(default_factory=list)
     computed_columns: list[dict] = field(default_factory=list)
+    functions: list[str] = field(default_factory=list)
 
     # Hierarchical entity support
     hierarchical: bool = False  # True if entity has parent/path structure
