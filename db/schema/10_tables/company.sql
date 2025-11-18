@@ -66,7 +66,8 @@ COMMENT ON TABLE crm.tb_company IS
 'Company information.
 
 @fraiseql:type
-trinity: true';
+trinity: true
+';
 
 -- Trinity Pattern columns
 COMMENT ON COLUMN crm.tb_company.pk_company IS 'Internal INTEGER primary key used in joins and foreign keys.';

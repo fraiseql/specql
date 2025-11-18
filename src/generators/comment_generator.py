@@ -189,4 +189,17 @@ class CommentGenerator:
 
         description = entity.description or f"{entity.name} entity"
 
-        return f"COMMENT ON TABLE {table_name} IS '{description}';"
+        # Add FraiseQL pattern metadata if available
+        fraiseql_parts = []
+        if hasattr(entity, "notes") and entity.notes:
+            # Extract pattern names from notes like "Applied pattern: aggregate_view"
+            for line in entity.notes.split("\n"):
+                if line.startswith("Applied pattern: "):
+                    pattern_name = line.split("Applied pattern: ")[1]
+                    fraiseql_parts.append(f"@fraiseql:pattern:{pattern_name}")
+
+        fraiseql_comment = ""
+        if fraiseql_parts:
+            fraiseql_comment = "\n\n" + "\n".join(fraiseql_parts)
+
+        return f"COMMENT ON TABLE {table_name} IS '{description}{fraiseql_comment}';"

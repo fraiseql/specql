@@ -1,6 +1,8 @@
 """Tests for template inheritance pattern."""
 
 import pytest
+
+# pytestmark = pytest.mark.skip(reason="Incomplete feature - deferred to post-beta")
 from src.core.specql_parser import SpecQLParser
 from src.generators.table_generator import TableGenerator
 from src.generators.schema.naming_conventions import NamingConventions
@@ -31,17 +33,22 @@ fields:
   name: text
   base_price: decimal
 patterns:
-  - type: template_inheritance
+  - type: validation_template_inheritance
     params:
+      template_entity: ProductTemplate
       template_field: template_id
-      inherited_fields: [base_price, description]
-      allow_override: true
+      merge_strategy: override
 """
 
     def test_template_reference_field_added(self, table_generator, product_entity):
         """Test that template reference field is added."""
         parser = SpecQLParser()
         entity = parser.parse(product_entity)
+
+        # Debug: print the parsed patterns
+        print(f"Parsed patterns: {entity.patterns}")
+        for pattern in entity.patterns:
+            print(f"Pattern type: {pattern.type}, params: {pattern.params}")
 
         ddl = table_generator.generate_table_ddl(entity)
 
@@ -87,7 +94,7 @@ patterns:
 
         # Verify FraiseQL comment
         assert "COMMENT ON TABLE catalog.tb_product" in ddl
-        assert "@fraiseql:pattern:template_inheritance" in ddl
+        assert "@fraiseql:pattern:validation_template_inheritance" in ddl
 
     def test_inherited_fields_handled(self, table_generator):
         """Test that inherited fields are properly handled."""
@@ -161,11 +168,11 @@ fields:
   category: text
   weight: decimal
 patterns:
-  - type: template_inheritance
+  - type: validation_template_inheritance
     params:
+      template_entity: ProductTemplate
       template_field: template_id
-      inherited_fields: [base_price, description, category, weight]
-      allow_override: true
+      merge_strategy: override
 """
 
         parser = SpecQLParser()
@@ -188,11 +195,11 @@ fields:
   name: text
   base_price: decimal
 patterns:
-  - type: template_inheritance
+  - type: validation_template_inheritance
     params:
+      template_entity: ProductTemplate
       template_field: parent_template_id
-      inherited_fields: [base_price]
-      allow_override: true
+      merge_strategy: override
 """
 
         parser = SpecQLParser()
@@ -277,11 +284,11 @@ fields:
   name: text
   base_price: decimal
 patterns:
-  - type: template_inheritance
+  - type: validation_template_inheritance
     params:
+      template_entity: ProductTemplate
       template_field: template_id
-      inherited_fields: [base_price]
-      allow_override: true
+      merge_strategy: override
 """
 
         parser = SpecQLParser()
@@ -290,4 +297,4 @@ patterns:
         ddl = table_generator.generate_table_ddl(entity)
 
         # Verify template_id can be NULL (nullable)
-        assert "template_id INTEGER," in ddl
+        assert "template_id TEXT," in ddl

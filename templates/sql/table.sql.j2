@@ -37,8 +37,13 @@ CREATE TABLE {{ entity.schema }}.tb_{{ entity.name | lower }} (
     -- Business Fields
     -- ========================================================================
 {%- for field_name, field_def in entity.fields.items() %}
+{%- if field_def.is_computed %}
+
+    {{ field_name }} {{ field_def.type_name }} GENERATED ALWAYS AS ({{ field_def.computed_expression }}) STORED{% if not field_def.nullable %} NOT NULL{% endif %},
+{%- else %}
 
     {{ field_name }} {{ field_def.type }}{% if not field_def.nullable %} NOT NULL{% endif %},
+{%- endif %}
 {%- endfor %}
 {%- for computed_col in entity.patterns.computed_columns %}
 
@@ -126,7 +131,7 @@ CREATE INDEX idx_tb_{{ entity.name | lower }}_tenant ON {{ entity.schema }}.tb_{
 -- ============================================================================
 -- Pattern Indexes
 -- ============================================================================
-CREATE INDEX {{ index.name }} ON {{ entity.schema }}.tb_{{ entity.name | lower }}{% if index.using %} USING {{ index.using }}{% endif %} ({% for field in index.fields %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %});
+CREATE INDEX {{ index.name }} ON {{ entity.schema }}.tb_{{ entity.name | lower }}{% if index.type and index.type != 'btree' %} USING {{ index.type }}{% endif %} ({% for field in index.columns %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %});
 {%- endfor %}
 
 {%- for agg_view in entity.patterns.aggregate_views %}
@@ -149,7 +154,7 @@ CREATE INDEX {{ index.name }} ON {{ entity.schema }}.tb_{{ entity.name | lower }
 -- ============================================================================
 -- SCD Index: {{ idx.name }}
 -- ============================================================================
-CREATE INDEX {{ idx.name }} ON {{ entity.schema }}.tb_{{ entity.name | lower }}{% if idx.using %} USING {{ idx.using }}{% endif %} ({% for field in idx.fields %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %});
+CREATE INDEX {{ idx.name }} ON {{ entity.schema }}.tb_{{ entity.name | lower }}{% if idx.type and idx.type != 'btree' %} USING {{ idx.type }}{% endif %} ({% for col in idx.columns %}{{ col }}{% if not loop.last %}, {% endif %}{% endfor %});
 {%- endfor %}
 
 {%- for func in entity.patterns.scd_functions %}
@@ -187,8 +192,9 @@ COMMENT ON TABLE {{ entity.schema }}.tb_{{ entity.name | lower }} IS
 '{{ entity.description }}.
 
 @fraiseql:type
-trinity: true{% for meta in entity.patterns.metadata %}
-{{ meta }}{% endfor %}';
+trinity: true
+{% for meta in entity.patterns.metadata %}{{ meta }}
+{% endfor %}';
 
 -- Trinity Pattern columns
 COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.pk_{{ entity.name | lower }} IS 'Internal INTEGER primary key used in joins and foreign keys.';

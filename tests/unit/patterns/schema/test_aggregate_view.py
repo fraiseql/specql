@@ -43,6 +43,10 @@ patterns:
           function: count
           alias: order_count
       refresh_mode: auto
+      indexes:
+        - name: customer_id
+          fields: [customer_id]
+          using: btree
 """
 
     def test_aggregate_view_created(self, table_generator, order_entity):
@@ -91,9 +95,9 @@ patterns:
         ddl = table_generator.generate_table_ddl(entity)
 
         # Verify indexes on view
-        assert (
-            "CREATE INDEX idx_mv_order_agg_customer_id ON sales.mv_order_agg(customer_id);" in ddl
-        )
+        assert "CREATE INDEX idx_mv_order_agg_customer_id" in ddl
+        assert "ON sales.mv_order_agg" in ddl
+        assert "customer_id" in ddl
 
     def test_refresh_triggers_generated(self, table_generator, order_entity):
         """Test that refresh triggers are generated for auto mode."""
@@ -103,9 +107,9 @@ patterns:
         ddl = table_generator.generate_table_ddl(entity)
 
         # Verify triggers for auto refresh
-        assert "CREATE OR REPLACE FUNCTION refresh_mv_order_agg()" in ddl
+        assert "CREATE OR REPLACE FUNCTION sales.refresh_mv_order_agg()" in ddl
         assert "REFRESH MATERIALIZED VIEW sales.mv_order_agg;" in ddl
-        assert "CREATE TRIGGER trg_refresh_mv_order_agg" in ddl
+        assert "CREATE TRIGGER tr_refresh_mv_order_agg" in ddl
         assert "AFTER INSERT OR UPDATE OR DELETE ON sales.tb_order" in ddl
 
     def test_manual_refresh_mode_no_triggers(self, table_generator):

@@ -53,55 +53,52 @@ parameters:
 
 schema_template: |
   -- Materialized view with aggregates
-  CREATE MATERIALIZED VIEW {{ entity.schema }}.mv_{{ entity.name | lower }} AS
+  CREATE MATERIALIZED VIEW {{ entity.schema }}.mv_{{ entity.name | lower }}_agg AS
   SELECT
-    {% for field in group_by_fields %}
-    {{ field }} as {{ field.split('.')[-1] }},
-    {% endfor %}
+     {% for field in group_by_fields %}
+     {{ field }} AS {{ field.split('.')[-1] }},
+     {% endfor %}
 
-    {% for agg in aggregates %}
-    {% if agg.function == 'count' %}
-    COUNT(*){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
-    {% elif agg.function == 'count_distinct' %}
-    COUNT(DISTINCT {{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
-    {% elif agg.function == 'sum' %}
-    SUM({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
-    {% elif agg.function == 'avg' %}
-    AVG({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
-    {% elif agg.function == 'min' %}
-    MIN({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
-    {% elif agg.function == 'max' %}
-    MAX({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
-    {% elif agg.function == 'jsonb_agg' %}
-    jsonb_agg({{ agg.expression }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
-    {% elif agg.function == 'array_agg' %}
-    array_agg({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
-    {% endif %}{% if not loop.last %},{% endif %}
-    {% endfor %}
+     {% for agg in aggregates %}
+     {% if agg.function | lower == 'count' %}
+     COUNT({% if agg.field %}{{ agg.field }}{% else %}*{% endif %}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} AS {{ agg.name }}
+     {% elif agg.function | lower == 'count_distinct' %}
+     COUNT(DISTINCT {{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} AS {{ agg.name }}
+     {% elif agg.function | lower == 'sum' %}
+     SUM({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} AS {{ agg.name }}
+     {% elif agg.function | lower == 'avg' %}
+     AVG({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} AS {{ agg.name }}
+     {% elif agg.function | lower == 'min' %}
+     MIN({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} AS {{ agg.name }}
+     {% elif agg.function | lower == 'max' %}
+     MAX({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} AS {{ agg.name }}
+     {% elif agg.function | lower == 'jsonb_agg' %}
+     jsonb_agg({{ agg.expression }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} AS {{ agg.name }}
+     {% elif agg.function | lower == 'array_agg' %}
+     array_agg({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} AS {{ agg.name }}
+     {% endif %}{% if not loop.last %},{% endif %}
+     {% endfor %}
 
-  FROM {{ source_entity.schema }}.tb_{{ source_entity.name | lower }}
-  {% for join in join_entities %}
+   FROM {{ source_entity.schema }}.tb_{{ source_entity.name | lower }}
+   {% for join in join_entities %}
   LEFT JOIN {{ join.schema }}.tb_{{ join.entity | lower }}
     ON {{ join.on_condition }}
   {% endfor %}
   {% if where_clause %}
   WHERE {{ where_clause }}
   {% endif %}
-  GROUP BY
-    {% for field in group_by_fields %}
-    {{ field }}{% if not loop.last %},{% endif %}
-    {% endfor %};
+   GROUP BY {% for field in group_by_fields %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %};
 
   -- Indexes on materialized view
   {% for index in indexes %}
-  CREATE INDEX idx_mv_{{ entity.name | lower }}_{{ index.name }}
-    ON {{ entity.schema }}.mv_{{ entity.name | lower }}
+  CREATE INDEX idx_mv_{{ entity.name | lower }}_agg_{{ index.name }}
+    ON {{ entity.schema }}.mv_{{ entity.name | lower }}_agg
     {% if index.using %}USING {{ index.using }}{% endif %}
     ({{ index.fields | join(', ') }});
   {% endfor %}
 
   -- Refresh function with dependency ordering
-  CREATE OR REPLACE FUNCTION {{ entity.schema }}.refresh_mv_{{ entity.name | lower }}()
+  CREATE OR REPLACE FUNCTION {{ entity.schema }}.refresh_mv_{{ entity.name | lower }}_agg()
   RETURNS void AS $$
   BEGIN
     {% if refresh_dependencies %}
@@ -112,26 +109,26 @@ schema_template: |
     {% endif %}
 
     -- Refresh this materialized view
-    REFRESH MATERIALIZED VIEW {{ entity.schema }}.mv_{{ entity.name | lower }};
+    REFRESH MATERIALIZED VIEW {{ entity.schema }}.mv_{{ entity.name | lower }}_agg;
 
     {% if refresh_mode == 'auto' %}
     -- Update refresh timestamp
     UPDATE {{ entity.schema }}.mv_refresh_log
     SET last_refresh = CURRENT_TIMESTAMP,
-        row_count = (SELECT COUNT(*) FROM {{ entity.schema }}.mv_{{ entity.name | lower }})
-    WHERE mv_name = 'mv_{{ entity.name | lower }}';
+        row_count = (SELECT COUNT(*) FROM {{ entity.schema }}.mv_{{ entity.name | lower }}_agg)
+    WHERE mv_name = 'mv_{{ entity.name | lower }}_agg';
     {% endif %}
   END;
   $$ LANGUAGE plpgsql;
 
   {% if refresh_mode == 'auto' %}
   -- Trigger-based auto refresh (on source table changes)
-  CREATE OR REPLACE FUNCTION {{ entity.schema }}.trigger_refresh_mv_{{ entity.name | lower }}()
+  CREATE OR REPLACE FUNCTION {{ entity.schema }}.trigger_refresh_mv_{{ entity.name | lower }}_agg()
   RETURNS TRIGGER AS $$
   BEGIN
     -- Mark view as stale (actual refresh can be async)
     INSERT INTO {{ entity.schema }}.mv_refresh_queue (mv_name, triggered_at)
-    VALUES ('mv_{{ entity.name | lower }}', CURRENT_TIMESTAMP)
+    VALUES ('mv_{{ entity.name | lower }}_agg', CURRENT_TIMESTAMP)
     ON CONFLICT (mv_name) DO UPDATE
     SET triggered_at = CURRENT_TIMESTAMP,
         refresh_count = mv_refresh_queue.refresh_count + 1;
@@ -140,55 +137,56 @@ schema_template: |
   END;
   $$ LANGUAGE plpgsql;
 
-  CREATE TRIGGER tr_refresh_mv_{{ entity.name | lower }}
+  CREATE TRIGGER tr_refresh_mv_{{ entity.name | lower }}_agg
   AFTER INSERT OR UPDATE OR DELETE ON {{ source_entity.schema }}.tb_{{ source_entity.name | lower }}
   FOR EACH STATEMENT
-  EXECUTE FUNCTION {{ entity.schema }}.trigger_refresh_mv_{{ entity.name | lower }}();
+  EXECUTE FUNCTION {{ entity.schema }}.trigger_refresh_mv_{{ entity.name | lower }}_agg();
   {% endif %}
 
   {% if refresh_mode == 'incremental' %}
   -- Incremental refresh function (delta processing)
-  CREATE OR REPLACE FUNCTION {{ entity.schema }}.refresh_mv_{{ entity.name | lower }}_incremental(
+  CREATE OR REPLACE FUNCTION {{ entity.schema }}.refresh_mv_{{ entity.name | lower }}_agg_incremental(
     p_since_timestamp TIMESTAMPTZ DEFAULT NULL
   )
-  RETURNS void AS $$
+  RETURNS INTEGER AS $$
   DECLARE
     v_last_refresh TIMESTAMPTZ;
+    v_rows_affected INTEGER := 0;
   BEGIN
-    -- Get last refresh timestamp
+    -- Get last refresh time
     SELECT last_refresh INTO v_last_refresh
     FROM {{ entity.schema }}.mv_refresh_log
-    WHERE mv_name = 'mv_{{ entity.name | lower }}';
+    WHERE mv_name = 'mv_{{ entity.name | lower }}_agg';
 
     IF p_since_timestamp IS NOT NULL THEN
       v_last_refresh := p_since_timestamp;
     END IF;
 
     -- Delete stale aggregates
-    DELETE FROM {{ entity.schema }}.mv_{{ entity.name | lower }}
+    DELETE FROM {{ entity.schema }}.mv_{{ entity.name | lower }}_agg
     WHERE ({% for field in group_by_fields %}{{ field.split('.')[-1] }}{% if not loop.last %}, {% endif %}{% endfor %})
     IN (
       SELECT DISTINCT {% for field in group_by_fields %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
-      FROM {{ source_entity.schema }}.tb_{{ source_entity.name | lower }}
+  FROM {{ source_entity.schema }}.tb_{{ source_entity.name | lower }}
       WHERE updated_at > v_last_refresh
     );
 
     -- Re-aggregate changed groups
-    INSERT INTO {{ entity.schema }}.mv_{{ entity.name | lower }}
+    INSERT INTO {{ entity.schema }}.mv_{{ entity.name | lower }}_agg
     SELECT
-      {% for field in group_by_fields %}
-      {{ field }} as {{ field.split('.')[-1] }},
-      {% endfor %}
-      {% for agg in aggregates %}
-      {% if agg.function == 'count' %}
-      COUNT(*){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
-      {% elif agg.function == 'count_distinct' %}
-      COUNT(DISTINCT {{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
-      {% else %}
-      {{ agg.function | upper }}({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} as {{ agg.name }}
+       {% for field in group_by_fields %}
+       {{ field }} AS {{ field.split('.')[-1] }},
+       {% endfor %}
+       {% for agg in aggregates %}
+       {% if agg.function == 'count' %}
+       COUNT({% if agg.field %}{{ agg.field }}{% else %}*{% endif %}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} AS {{ agg.name }}
+       {% elif agg.function == 'count_distinct' %}
+       COUNT(DISTINCT {{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} AS {{ agg.name }}
+       {% else %}
+       {{ agg.function | upper }}({{ agg.field }}){% if agg.filter %} FILTER (WHERE {{ agg.filter }}){% endif %} AS {{ agg.name }}
       {% endif %}{% if not loop.last %},{% endif %}
-      {% endfor %}
-    FROM {{ source_entity.schema }}.tb_{{ source_entity.name | lower }}
+       {% endfor %}
+  FROM {{ source_entity.schema }}.tb_{{ source_entity.name | lower }}
     {% for join in join_entities %}
     LEFT JOIN {{ join.schema }}.tb_{{ join.entity | lower }}
       ON {{ join.on_condition }}
@@ -205,13 +203,13 @@ schema_template: |
     -- Update refresh log
     UPDATE {{ entity.schema }}.mv_refresh_log
     SET last_refresh = CURRENT_TIMESTAMP
-    WHERE mv_name = 'mv_{{ entity.name | lower }}';
+    WHERE mv_name = 'mv_{{ entity.name | lower }}_agg';
   END;
   $$ LANGUAGE plpgsql;
   {% endif %}
 
   -- FraiseQL annotation for GraphQL discovery
-  COMMENT ON MATERIALIZED VIEW {{ entity.schema }}.mv_{{ entity.name | lower }} IS '@fraiseql:type=aggregate_view @fraiseql:refresh_mode={{ refresh_mode }}';
+  COMMENT ON MATERIALIZED VIEW {{ entity.schema }}.mv_{{ entity.name | lower }}_agg IS '@fraiseql:type=aggregate_view @fraiseql:refresh_mode={{ refresh_mode }}';
 
 examples:
   - name: allocation_stats_by_org_unit

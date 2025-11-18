@@ -135,6 +135,8 @@ patterns:
   - type: temporal_non_overlapping_daterange
     params:
       scope_fields: [machine]
+      start_date_field: start_date
+      end_date_field: end_date
       check_mode: warning
 """
 
@@ -162,6 +164,8 @@ patterns:
   - type: temporal_non_overlapping_daterange
     params:
       scope_fields: [machine]
+      start_date_field: start_date
+      end_date_field: end_date
       allow_adjacent: false
 """
 

@@ -29,7 +29,7 @@ class TestReverseCommandRegistration:
         """Test reverse command help shows auto-detection info"""
         result = cli_runner.invoke(specql, ["reverse", "--help"])
         assert result.exit_code == 0
-        assert "Auto-detects language" in result.output
+        assert "Auto-detect and reverse engineer" in result.output
         assert "INPUT_FILES" in result.output
 
 

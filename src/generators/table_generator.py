@@ -184,10 +184,11 @@ class TableGenerator:
 
         return {
             "computed_columns": entity.computed_columns,
-            "indexes": entity.indexes,
+            "scd_indexes": entity.indexes,
             "exclusion_constraints": [],
             "aggregate_views": [],
             "constraints": [],
+            "scd_functions": entity.functions,
             "metadata": metadata,
         }
 
@@ -250,6 +251,45 @@ class TableGenerator:
         # Rich type indexes
         rich_indexes = self.index_generator.generate_indexes_for_rich_types(entity)
         indexes.extend(rich_indexes)
+
+        # Custom indexes from patterns
+        if hasattr(entity, "indexes") and entity.indexes:
+            for index_def in entity.indexes:
+                if isinstance(index_def, dict):
+                    # Custom index from pattern
+                    index_name = index_def["name"]
+                    # Render column names if they contain templates
+                    columns = []
+                    for col in index_def["columns"]:
+                        # Simple template rendering for common patterns
+                        if "{{ params.start_date_field }}_{{ params.end_date_field }}_range" in col:
+                            # This is our computed column
+                            col = col.replace(
+                                "{{ params.start_date_field }}_{{ params.end_date_field }}_range",
+                                "start_date_end_date_range",
+                            )
+                        columns.append(col)
+                    columns_str = ", ".join(columns)
+                    index_type = index_def.get("index_type", "btree")
+                    indexes.append(
+                        f"CREATE INDEX {index_name} ON {table_name} USING {index_type} ({columns_str});"
+                    )
+                else:
+                    # Legacy Index object
+                    index_type = getattr(index_def, "type", "btree")
+                    # Special case for daterange indexes - assume GIST
+                    if index_def.name and "daterange" in str(index_def.name):
+                        indexes.append(
+                            f"CREATE INDEX {index_def.name} ON {table_name} USING gist ({', '.join(index_def.columns)});"
+                        )
+                    elif index_type != "btree":
+                        indexes.append(
+                            f"CREATE INDEX {index_def.name} ON {table_name} USING {index_type} ({', '.join(index_def.columns)});"
+                        )
+                    else:
+                        indexes.append(
+                            f"CREATE INDEX {index_def.name} ON {table_name} ({', '.join(index_def.columns)});"
+                        )
 
         return "\n".join(indexes)
 

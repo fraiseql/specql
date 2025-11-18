@@ -143,6 +143,10 @@ class FieldDefinition:
     default: Any | None = None
     description: str = ""
 
+    # Computed column support
+    is_computed: bool = False
+    computed_expression: Optional[str] = None
+
     # Tier classification
     tier: FieldTier = FieldTier.BASIC
 
@@ -328,7 +332,7 @@ class EntityDefinition:
     # Database schema extensions (from patterns)
     indexes: list["Index"] = field(default_factory=list)
     computed_columns: list[dict] = field(default_factory=list)
-    functions: list[dict] = field(default_factory=list)
+    functions: list[str] = field(default_factory=list)
 
     # Organization (numbering system)
     organization: Optional["Organization"] = None
@@ -386,6 +390,15 @@ class EntityDefinition:
 
     # Metadata
     notes: str | None = None
+
+    # Pattern-generated extensions (not serialized)
+    _indexes: list[dict] = field(default_factory=list)
+    _custom_ddl: list[str] = field(default_factory=list)
+
+    @property
+    def table_name(self) -> str:
+        """Get the table name for this entity."""
+        return f"tb_{self.name.lower()}"
 
 
 @dataclass

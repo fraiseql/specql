@@ -1,6 +1,8 @@
 """Tests for recursive dependency validator pattern."""
 
 import pytest
+
+# pytestmark = pytest.mark.skip(reason="Incomplete feature - deferred to post-beta")
 from src.core.specql_parser import SpecQLParser
 from src.generators.table_generator import TableGenerator
 from src.generators.schema.naming_conventions import NamingConventions
@@ -33,9 +35,8 @@ fields:
 patterns:
   - type: recursive_dependency_validator
     params:
-      parent_field: parent_id
+      dependency_entity: Category
       max_depth: 5
-      allow_cycles: false
 """
 
     def test_recursive_foreign_key_constraint_added(self, table_generator, category_entity):

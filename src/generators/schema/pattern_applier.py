@@ -8,6 +8,10 @@ from jinja2 import Environment, FileSystemLoader, Template
 
 from src.core.ast_models import Entity, FieldDefinition, Index, Pattern
 
+# Pattern class imports
+from src.patterns.validation.recursive_dependency_validator import RecursiveDependencyValidator
+from src.patterns.validation.template_inheritance import TemplateInheritancePattern
+
 
 @dataclass
 class Constraint:
@@ -22,6 +26,16 @@ class Constraint:
 
 class PatternApplier:
     """Apply pattern transformations to entities."""
+
+    # Pattern class registry
+    PATTERN_APPLIERS = {
+        # Validation patterns
+        "validation_recursive_dependency_validator": RecursiveDependencyValidator,
+        "validation_template_inheritance": TemplateInheritancePattern,
+        # Aliases for backward compatibility
+        "recursive_dependency_validator": RecursiveDependencyValidator,
+        "template_inheritance": TemplateInheritancePattern,
+    }
 
     def __init__(self):
         # Set up Jinja environment for template rendering
@@ -51,19 +65,31 @@ class PatternApplier:
     def apply_single_pattern(self, entity: Entity, pattern: "Pattern") -> tuple[Entity, str]:
         """Apply a single pattern to entity. Returns (entity, additional_sql)."""
 
-        # Load pattern specification
-        pattern_spec = self._load_pattern_spec(pattern.type)
+        # Try to load pattern specification from YAML
+        pattern_spec = None
+        try:
+            pattern_spec = self._load_pattern_spec(pattern.type)
+        except ValueError:
+            # YAML not found, try Python class
+            pass
 
-        # Validate parameters and add defaults
-        validated_params = self._validate_params(pattern_spec, pattern.params, entity)
+        if pattern_spec:
+            # Use YAML-based pattern
+            # Validate parameters and add defaults
+            validated_params = self._validate_params(pattern_spec, pattern.params, entity)
 
-        # Apply schema extensions
-        entity = self._apply_schema_extensions(entity, pattern_spec, validated_params)
+            # Apply schema extensions
+            entity = self._apply_schema_extensions(entity, pattern_spec, validated_params)
 
-        # Generate additional SQL if pattern has schema_template
-        additional_sql = ""
-        if "schema_template" in pattern_spec:
-            additional_sql = self._render_schema_template(pattern_spec, entity, validated_params)
+            # Generate additional SQL if pattern has schema_template
+            additional_sql = ""
+            if "schema_template" in pattern_spec:
+                additional_sql = self._render_schema_template(
+                    pattern_spec, entity, validated_params
+                )
+        else:
+            # Try Python-based pattern
+            entity, additional_sql = self._apply_python_pattern(entity, pattern)
 
         # Store pattern metadata in notes
         pattern_info = f"Applied pattern: {pattern.type}"
@@ -73,6 +99,48 @@ class PatternApplier:
             entity.notes = pattern_info
 
         return entity, additional_sql
+
+    def _apply_python_pattern(self, entity: Entity, pattern: "Pattern") -> tuple[Entity, str]:
+        """Apply a Python-based pattern to entity. Returns (entity, additional_sql)."""
+        # First try the registered patterns
+        pattern_class = self.PATTERN_APPLIERS.get(pattern.type)
+        if pattern_class:
+            # Apply the pattern
+            pattern_class.apply(entity, pattern.params)
+            # No additional SQL for Python patterns (functions are added to entity.functions)
+            return entity, ""
+
+        # Fallback to dynamic import for unregistered patterns
+        # Convert pattern type to Python class name
+        # e.g., "recursive_dependency_validator" -> "RecursiveDependencyValidator"
+        class_name = "".join(word.capitalize() for word in pattern.type.split("_"))
+
+        # Try different module paths
+        possible_modules = [
+            f"src.patterns.validation.{pattern.type}",
+            f"src.patterns.temporal.{pattern.type}",
+            f"src.patterns.{pattern.type}",
+        ]
+
+        pattern_class = None
+        for module_path in possible_modules:
+            try:
+                module = __import__(module_path, fromlist=[class_name])
+                pattern_class = getattr(module, class_name)
+                break
+            except (ImportError, AttributeError):
+                continue
+
+        if not pattern_class:
+            raise ValueError(
+                f"Python pattern class '{class_name}' not found for pattern '{pattern.type}'"
+            )
+
+        # Apply the pattern
+        pattern_class.apply(entity, pattern.params)
+
+        # No additional SQL for Python patterns (functions are added to entity.functions)
+        return entity, ""
 
     def _load_pattern_spec(self, pattern_type: str) -> Dict[str, Any]:
         """Load pattern YAML specification."""
@@ -242,6 +310,12 @@ class PatternApplier:
                 index = self._render_index(index_template, template_context, entity)
                 entity.indexes.append(index)
 
+        # Add functions from action_helpers
+        if "action_helpers" in pattern_spec:
+            for helper in pattern_spec["action_helpers"]:
+                function = self._render_function(helper, template_context, entity)
+                entity.functions.append(function)
+
         return entity
 
     def _render_field(
@@ -343,18 +417,34 @@ class PatternApplier:
         from jinja2 import Template
 
         # Render fields
-        fields_template = Template(str(index_template["fields"]))
-        fields_str = fields_template.render(context)
+        fields_value = index_template["fields"]
+        if isinstance(fields_value, list):
+            # Render each field in the list
+            fields = []
+            for field in fields_value:
+                if isinstance(field, str):
+                    field_template = Template(field)
+                    rendered_field = field_template.render(context)
+                    fields.append(rendered_field)
+                else:
+                    fields.append(str(field))
+        elif isinstance(fields_value, str):
+            # Render as template
+            fields_template = Template(fields_value)
+            fields_str = fields_template.render(context)
 
-        # Parse fields
-        import ast
+            # Parse fields
+            import ast
 
-        try:
-            fields = ast.literal_eval(fields_str)
-            if not isinstance(fields, list):
-                fields = [fields]
-        except (ValueError, SyntaxError):
-            fields = [fields_str]
+            try:
+                fields = ast.literal_eval(fields_str)
+                if not isinstance(fields, list):
+                    fields = [fields]
+            except (ValueError, SyntaxError):
+                fields = [fields_str]
+        else:
+            # Fallback
+            fields = [str(fields_value)]
 
         # Render name if present
         name = index_template.get("name", "")
@@ -413,3 +503,105 @@ class PatternApplier:
             "stored": stored,
             "comment": comment,
         }
+
+    def _render_function(
+        self,
+        function_template: Dict[str, Any],
+        context: Dict[str, Any],
+        entity: Entity,
+    ) -> str:
+        """Render function template and return complete SQL."""
+        from jinja2 import Template
+
+        # Prepare additional context variables
+        extended_context = dict(context)
+
+        # Add natural_key_where_clause
+        natural_key = context.get("natural_key", [])
+        if natural_key:
+            where_clauses = []
+            for key_field in natural_key:
+                where_clauses.append(
+                    f"{key_field} = (natural_key_values->>'{key_field}')::{entity.fields[key_field].get_postgres_type()}"
+                )
+            extended_context["natural_key_where_clause"] = " AND ".join(where_clauses)
+
+        # Add field_list (all entity fields except computed columns and SCD fields)
+        params = context.get("params", {})
+        scd_fields = [
+            params.get("version_field", "version_number"),
+            params.get("is_current_field", "is_current"),
+            params.get("effective_date_field", "effective_date"),
+            params.get("expiry_date_field", "expiry_date"),
+        ]
+
+        field_names = []
+        for field_name in entity.fields.keys():
+            if (
+                not any(
+                    cc.get("name") == field_name for cc in getattr(entity, "computed_columns", [])
+                )
+                and field_name not in scd_fields
+            ):
+                field_names.append(field_name)
+        extended_context["field_list"] = ", ".join(field_names)
+
+        # Add schema for template use
+        extended_context["schema"] = entity.schema
+
+        # Add field_list_from_jsonb
+        jsonb_extracts = []
+        for field_name in field_names:
+            field_def = entity.fields[field_name]
+            pg_type = field_def.get_postgres_type()
+            jsonb_extracts.append(f"(new_data->>'{field_name}')::{pg_type}")
+        extended_context["field_list_from_jsonb"] = ", ".join(jsonb_extracts)
+
+        # Render function name
+        name_template = Template(function_template["function"])
+        name = name_template.render(extended_context)
+
+        # Render returns type
+        returns_template = Template(function_template["returns"])
+        returns = returns_template.render(extended_context)
+
+        # Render parameters
+        params = []
+        if "params" in function_template:
+            for param in function_template["params"]:
+                param_dict = {
+                    "name": param["name"],
+                    "type": param["type"],
+                    "description": param.get("description", ""),
+                }
+                # Render default if present
+                if "default" in param:
+                    default_template = Template(str(param["default"]))
+                    param_dict["default"] = default_template.render(extended_context)
+                params.append(param_dict)
+
+        # Render logic
+        logic_template = Template(function_template["logic"])
+        logic = logic_template.render(extended_context)
+
+        # Generate complete CREATE FUNCTION SQL
+        sql_parts = [f"CREATE OR REPLACE FUNCTION {name}("]
+
+        # Add parameters
+        param_list = []
+        for param in params:
+            param_sql = f"{param['name']} {param['type']}"
+            if "default" in param:
+                param_sql += f" DEFAULT {param['default']}"
+            param_list.append(param_sql)
+
+        if param_list:
+            sql_parts.append(", ".join(param_list))
+        else:
+            sql_parts.append("")
+
+        sql_parts.append(f")\nRETURNS {returns}\nLANGUAGE plpgsql\nAS $$\n{logic}\n$$;")
+
+        sql = "\n".join(sql_parts)
+
+        return sql
