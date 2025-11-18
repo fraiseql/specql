@@ -7,7 +7,7 @@ import pytest
 from src.core.ast_models import Entity, FieldDefinition
 
 
-pytestmark = pytest.mark.skip(reason="Rich type index generation incomplete - deferred to post-beta")
+# pytestmark = pytest.mark.skip(reason="Rich type index generation incomplete - deferred to post-beta")
 
 
 def test_email_field_gets_btree_index(table_generator):

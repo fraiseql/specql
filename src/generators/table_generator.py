@@ -305,8 +305,7 @@ class TableGenerator:
 
     def generate_indexes_for_rich_types(self, entity: Entity) -> list[str]:
         """Generate indexes for rich type fields"""
-        # Implementation would go here
-        return []
+        return self.index_generator.generate_indexes_for_rich_types(entity)
 
     def generate_complete_ddl(self, entity: Entity) -> str:
         """Generate complete DDL including table, indexes, and comments"""
