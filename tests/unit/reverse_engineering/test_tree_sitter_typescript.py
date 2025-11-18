@@ -2,20 +2,20 @@
 
 import pytest
 
-pytestmark = pytest.mark.skip(reason="Incomplete feature - deferred to post-beta")
-from src.reverse_engineering.tree_sitter_typescript_parser import TreeSitterTypeScriptParser
+
+from src.reverse_engineering.typescript.express_extractor import ExpressRouteExtractor
+from src.reverse_engineering.typescript.fastify_extractor import FastifyRouteExtractor
+from src.reverse_engineering.typescript.nextjs_pages_extractor import NextJSPagesExtractor
+from src.reverse_engineering.typescript.nextjs_app_extractor import NextJSAppExtractor
 
 
 class TestTreeSitterTypeScriptParser:
     """Test tree-sitter based TypeScript parsing"""
 
-    @pytest.fixture
-    def parser(self):
-        """Create parser instance"""
-        return TreeSitterTypeScriptParser()
-
-    def test_parse_express_routes(self, parser):
+    def test_parse_express_routes(self):
         """Test parsing Express.js routes with tree-sitter"""
+        extractor = ExpressRouteExtractor()
+
         code = """
         import express from 'express';
         import { PrismaClient } from '@prisma/client';
@@ -41,22 +41,19 @@ class TestTreeSitterTypeScriptParser:
         });
         """
 
-        ast = parser.parse(code)
-        assert ast is not None
-
-        routes = parser.extract_routes(ast)
+        routes = extractor.extract_routes(code)
 
         assert len(routes) == 2
         assert routes[0].method == "POST"
         assert routes[0].path == "/contacts"
-        assert routes[0].framework == "express"
 
         assert routes[1].method == "GET"
         assert routes[1].path == "/contacts/:id"
-        assert routes[1].framework == "express"
 
-    def test_parse_fastify_routes(self, parser):
+    def test_parse_fastify_routes(self):
         """Test parsing Fastify routes with tree-sitter"""
+        extractor = FastifyRouteExtractor()
+
         code = """
         import Fastify from 'fastify';
 
@@ -78,22 +75,19 @@ class TestTreeSitterTypeScriptParser:
         });
         """
 
-        ast = parser.parse(code)
-        assert ast is not None
-
-        routes = parser.extract_routes(ast)
+        routes = extractor.extract_routes(code)
 
         assert len(routes) == 2
         assert routes[0].method == "POST"
         assert routes[0].path == "/contacts"
-        assert routes[0].framework == "fastify"
 
         assert routes[1].method == "GET"
         assert routes[1].path == "/contacts/:id"
-        assert routes[1].framework == "fastify"
 
-    def test_parse_nextjs_pages_routes(self, parser):
+    def test_parse_nextjs_pages_routes(self):
         """Test parsing Next.js Pages Router routes with tree-sitter"""
+        extractor = NextJSPagesExtractor()
+
         code = """
         import type { NextApiRequest, NextApiResponse } from 'next';
         import { PrismaClient } from '@prisma/client';
@@ -116,22 +110,17 @@ class TestTreeSitterTypeScriptParser:
         }
         """
 
-        ast = parser.parse(code)
-        assert ast is not None
+        route = extractor.extract_route_from_file("pages/api/contacts.ts", code)
 
-        routes = parser.extract_nextjs_pages_routes(ast, "pages/api/contacts.ts")
+        assert route is not None
+        assert route.path == "/api/contacts"
+        assert not route.is_dynamic
+        assert set(route.methods) == {"POST", "GET"}
 
-        assert len(routes) == 2
-        assert routes[0].method == "POST"
-        assert routes[0].path == "/api/contacts"
-        assert routes[0].framework == "nextjs-pages"
-
-        assert routes[1].method == "GET"
-        assert routes[1].path == "/api/contacts"
-        assert routes[1].framework == "nextjs-pages"
-
-    def test_parse_nextjs_app_routes(self, parser):
+    def test_parse_nextjs_app_routes(self):
         """Test parsing Next.js App Router routes with tree-sitter"""
+        extractor = NextJSAppExtractor()
+
         code = """
         import { NextRequest, NextResponse } from 'next/server';
         import { PrismaClient } from '@prisma/client';
@@ -152,19 +141,12 @@ class TestTreeSitterTypeScriptParser:
         }
         """
 
-        ast = parser.parse(code)
-        assert ast is not None
+        route = extractor.extract_route_from_file("app/api/contacts/route.ts", code)
 
-        routes = parser.extract_nextjs_app_routes(ast, "app/api/contacts/route.ts")
-
-        assert len(routes) == 2
-        assert routes[0].method == "GET"
-        assert routes[0].path == "/api/contacts"
-        assert routes[0].framework == "nextjs-app"
-
-        assert routes[1].method == "POST"
-        assert routes[1].path == "/api/contacts"
-        assert routes[1].framework == "nextjs-app"
+        assert route is not None
+        assert route.path == "/api/contacts"
+        assert not route.is_dynamic
+        assert set(route.methods) == {"GET", "POST"}
 
     def test_parse_server_actions(self, parser):
         """Test parsing Next.js Server Actions with tree-sitter"""

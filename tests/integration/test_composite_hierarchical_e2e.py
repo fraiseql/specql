@@ -85,9 +85,9 @@ class TestCompositeHierarchicalE2E:
         cursor.execute("DROP SCHEMA tenant CASCADE; DROP SCHEMA management CASCADE;")
         test_db.commit()
 
-    @pytest.mark.skip(
-        reason="Test requires identifier recalculation function generation - not implemented in fixture"
-    )
+    # @pytest.mark.skip(
+    #     reason="Test requires identifier recalculation function generation - not implemented in fixture"
+    # )
     def test_allocation_composite_identifier(self, test_db, allocation_schema):
         """Should generate allocation identifier with composition separator."""
         # Generate recalculate function (from SpecQL)

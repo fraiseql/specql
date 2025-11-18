@@ -824,6 +824,7 @@ dependencies = [
     { name = "psycopg" },
     { name = "pyyaml" },
     { name = "rich" },
+    { name = "tree-sitter" },
 ]
 
 [package.optional-dependencies]
@@ -882,6 +883,7 @@ requires-dist = [
     { name = "rich", specifier = ">=13.0.0" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.1.0" },
     { name = "specql", extras = ["dev", "reverse", "testing"], marker = "extra == 'all'" },
+    { name = "tree-sitter", specifier = ">=0.25.2" },
     { name = "tree-sitter", marker = "extra == 'reverse'", specifier = ">=0.20.0" },
     { name = "tree-sitter-prisma", marker = "extra == 'reverse'", editable = "vendor/tree-sitter-prisma" },
     { name = "tree-sitter-rust", marker = "extra == 'reverse'", specifier = ">=0.20.0" },

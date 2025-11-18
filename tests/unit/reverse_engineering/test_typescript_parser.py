@@ -2,7 +2,7 @@
 
 import pytest
 
-pytestmark = pytest.mark.skip(reason="Incomplete feature - deferred to post-beta")
+# pytestmark = pytest.mark.skip(reason="Incomplete feature - deferred to post-beta")
 from src.reverse_engineering.typescript_parser import TypeScriptParser
 
 
