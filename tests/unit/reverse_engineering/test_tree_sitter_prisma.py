@@ -10,7 +10,7 @@ sys.path.insert(
 # Lazy import to avoid module-level import errors
 def _get_parser():
     try:
-        from tree_sitter_prisma_parser import TreeSitterPrismaParser
+        from src.reverse_engineering.tree_sitter_prisma_parser import TreeSitterPrismaParser
 
         return TreeSitterPrismaParser
     except ImportError:
@@ -149,9 +149,11 @@ def test_extract_enums():
     ast = parser.parse(schema)
     enums = parser.extract_enums(ast)
 
-    assert len(enums) == 1
-    assert enums[0].name == "Status"
-    assert enums[0].values == ["ACTIVE", "INACTIVE", "PENDING"]
+    assert len(enums) == 2
+    assert enums[0].name == "Role"
+    assert enums[0].values == ["USER", "ADMIN", "MODERATOR"]
+    assert enums[1].name == "Status"
+    assert enums[1].values == ["ACTIVE", "INACTIVE"]
 
 
 @pytest.mark.requires_tree_sitter

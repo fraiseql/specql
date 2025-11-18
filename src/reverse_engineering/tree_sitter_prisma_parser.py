@@ -177,7 +177,9 @@ class TreeSitterPrismaParser:
             elif child.type == "column_type":
                 # Field type (may include ?, [])
                 type_text = self._get_node_text(child)
-                field_type = type_text.rstrip("?[]")
+
+                # Preserve [] for list types, only strip ?
+                field_type = type_text.rstrip("?")
 
                 is_required = "?" not in type_text
                 is_list = "[]" in type_text
