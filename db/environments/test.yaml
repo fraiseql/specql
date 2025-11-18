@@ -1,7 +1,12 @@
-database_url: postgresql://localhost/specql_test
+database_url: postgresql://postgres:postgres@localhost:5433/test_specql
 migrations_dir: db/migrations
 include_dirs:
   - db/schema/00_foundation
   - db/schema/10_tables
   - db/schema/20_helpers
   - db/schema/30_functions
+host: localhost
+port: 5433
+database: test_specql
+user: postgres
+password: postgres

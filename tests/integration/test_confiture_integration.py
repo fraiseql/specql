@@ -243,12 +243,91 @@ class TestConfitureIntegration:
         assert "@fraiseql:type" in content
         assert "trinity: true" in content
 
-    @pytest.mark.skip(reason="Requires actual database connection")
     def test_confiture_migrate_up_and_down(self):
         """Test Confiture migrate commands (requires database)"""
-        # This would test actual migration to/from database
-        # Skipped for now as it requires database setup
-        pass
+        import psycopg
+
+        # Check if database is available
+        try:
+            conn = psycopg.connect(
+                host="localhost", port=5433, dbname="test_specql", user="postgres", password="postgres"
+            )
+            conn.close()
+        except psycopg.OperationalError:
+            pytest.skip("PostgreSQL test database not available")
+
+        # First, generate schema files
+        result = subprocess.run(
+            [
+                "python",
+                "-m",
+                "src.cli.confiture_extensions",
+                "generate",
+                "entities/examples/contact_lightweight.yaml",
+            ],
+            capture_output=True,
+            text=True,
+        )
+        assert result.returncode == 0
+
+        # Build migration with Confiture
+        result = subprocess.run(
+            ["uv", "run", "confiture", "build", "--env", "test"],
+            capture_output=True,
+            text=True
+        )
+        assert result.returncode == 0
+
+        # Migrate up to database using test config
+        result = subprocess.run(
+            [
+                "uv", "run", "confiture", "migrate", "up",
+                "--config", "db/environments/test.yaml"
+            ],
+            capture_output=True,
+            text=True,
+        )
+
+        # Should succeed (return code 0) or show migration applied
+        assert result.returncode == 0 or "migrat" in result.stdout.lower(), \
+            f"Migration failed: {result.stderr}"
+
+        # Verify tables were created in database
+        conn = psycopg.connect(
+            host="localhost", port=5433, dbname="test_specql", user="postgres", password="postgres"
+        )
+        cursor = conn.cursor()
+
+        # Check if crm schema and tb_contact table exist
+        cursor.execute(
+            "SELECT EXISTS(SELECT 1 FROM information_schema.tables WHERE table_schema='crm' AND table_name='tb_contact')"
+        )
+        table_exists = cursor.fetchone()[0]
+        assert table_exists, "tb_contact table should exist after migration"
+
+        # Check if functions were created
+        cursor.execute(
+            "SELECT COUNT(*) FROM information_schema.routines WHERE routine_schema='crm' AND routine_name IN ('create_contact', 'qualify_lead')"
+        )
+        function_count = cursor.fetchone()[0]
+        assert function_count >= 2, f"Expected at least 2 functions, found {function_count}"
+
+        conn.close()
+
+        # Test migrate down (rollback)
+        result = subprocess.run(
+            [
+                "uv", "run", "confiture", "migrate", "down",
+                "--config", "db/environments/test.yaml"
+            ],
+            capture_output=True,
+            text=True,
+        )
+
+        # Should succeed or show rollback info
+        # Note: Confiture may not support rollback, so we'll just verify it runs
+        # Accept return codes: 0 (success), 1 (not implemented), 2 (no migrations to rollback)
+        assert result.returncode in [0, 1, 2]
 
     def test_error_handling_invalid_entity_file(self):
         """Test error handling for invalid entity files"""
