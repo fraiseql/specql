@@ -7,33 +7,47 @@ authors = [
 ]
 license = {text = "MIT"}
 requires-python = ">=3.11"
+# Core dependencies - MINIMAL, always installed
 dependencies = [
     "pyyaml>=6.0",
     "jinja2>=3.1.2",
     "click>=8.1.0",
     "rich>=13.0.0",
-    "psycopg2-binary>=2.9.0",
     "psycopg>=3.2.12",
     "fraiseql-confiture>=0.3.0",
-    "faker>=37.12.0",
-    "tree-sitter>=0.20.0",
-    "tree-sitter-rust>=0.20.0",
-    "tree-sitter-typescript>=0.20.0",
-    "pglast>=7.10",
 ]
 
 [project.optional-dependencies]
+# Development tools
 dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
     "pytest-asyncio>=0.21.0",
+    "pytest-time-machine>=2.19.0",
+    "hypothesis>=6.142.0",
     "ruff>=0.1.0",
     "mypy>=1.5.0",
     "black>=23.0.0",
     "types-pyyaml>=6.0.0",
 ]
+
+# Reverse engineering features
 reverse = [
-    "pglast>=6.0.0",  # PostgreSQL SQL parser for reverse engineering
+    "pglast>=7.10",  # SQL AST parsing
+    "tree-sitter>=0.20.0",
+    "tree-sitter-rust>=0.20.0",
+    "tree-sitter-typescript>=0.20.0",
+    "tree-sitter-prisma>=1.6.0",
+]
+
+# Test data generation
+testing = [
+    "faker>=37.12.0",
+]
+
+# Convenience: all optional features
+all = [
+    "specql[dev,reverse,testing]",
 ]
 
 [project.scripts]
