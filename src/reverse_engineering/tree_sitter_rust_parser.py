@@ -55,6 +55,7 @@ class RustMethod:
     is_async: bool = False
     parameters: List[str] = field(default_factory=list)
     return_type: Optional[str] = None
+    visibility: Optional[str] = None
 
 
 @dataclass
@@ -332,8 +333,9 @@ class TreeSitterRustParser:
         """Parse a method definition."""
         name = self._get_function_name(fn_node)
         is_async = self._is_async_function(fn_node)
+        visibility = self._get_visibility(fn_node)
 
-        return RustMethod(name=name, is_async=is_async)
+        return RustMethod(name=name, is_async=is_async, visibility=visibility)
 
     def _extract_route_from_function(self, fn_node: Node) -> Optional[RustRoute]:
         """Extract route information from a function with attributes."""
@@ -476,9 +478,18 @@ class TreeSitterRustParser:
                 path = self._extract_string_literal(attr_node)
                 if path:
                     framework = self._detect_framework_from_attribute(attr_node, path)
+                    # Normalize Rocket's <param> to standard {param}
+                    if framework == "rocket":
+                        path = self._normalize_rocket_path(path)
                     return (method.upper(), path, framework)
 
         return None
+
+    def _normalize_rocket_path(self, path: str) -> str:
+        """Convert Rocket's <param> syntax to standard {param} syntax."""
+        import re
+        # Replace <param> with {param}
+        return re.sub(r'<(\w+)>', r'{\1}', path)
 
     def _detect_framework_from_attribute(self, attr_node: Node, path: str) -> str:
         """Detect web framework from attribute structure."""
@@ -506,6 +517,20 @@ class TreeSitterRustParser:
             if child.type == "async" or self._get_node_text(child) == "async":
                 return True
         return False
+
+    def _get_visibility(self, node: Node) -> Optional[str]:
+        """Extract visibility modifier from node (pub, pub(crate), etc.)."""
+        for child in node.children:
+            if child.type == "visibility_modifier":
+                text = self._get_node_text(child)
+                # Only return "pub" for unrestricted public visibility
+                # pub(crate), pub(super), etc. are considered restricted
+                if text.strip() == "pub":
+                    return "pub"
+                elif "pub" in text:
+                    return "pub(crate)"  # or other restricted visibility
+                return "private"
+        return None
 
     def _get_attributes(self, fn_node: Node) -> List[Node]:
         """Get all attribute nodes for a function."""
