@@ -238,9 +238,17 @@ class RouteToActionMapper:
 
     def map_route_to_endpoint(self, route_handler: RouteHandlerInfo) -> Optional[Dict[str, Any]]:
         """Map route handler to SpecQL endpoint."""
+        # Normalize path for consistent endpoint format
+        path = route_handler.path
+        if route_handler.metadata and route_handler.metadata.get("framework") == "rocket":
+            # Convert Rocket's <param> syntax to standard {param} syntax
+            import re
+
+            path = re.sub(r"<(\w+)>", r"{\1}", path)
+
         return {
             "method": route_handler.method,
-            "path": route_handler.path,
+            "path": path,
             "handler": route_handler.function_name,
             "is_async": route_handler.is_async,
             "return_type": route_handler.return_type,

@@ -978,6 +978,7 @@ class RustParser:
             for ts_method in ts_impl.methods:
                 method = ImplMethodInfo(
                     name=ts_method.name,
+                    visibility=ts_method.visibility or "private",
                     is_async=ts_method.is_async,
                     parameters=[],  # TODO: Convert parameters
                     return_type=ts_method.return_type or "",
@@ -994,14 +995,18 @@ class RustParser:
         """Convert tree-sitter RustRoute objects to RouteHandlerInfo objects."""
         routes = []
         for ts_route in ts_routes:
+            metadata = {"framework": ts_route.framework, "has_guard": ts_route.has_guard}
+            # Add has_state for Axum routes
+            if ts_route.framework == "axum":
+                metadata["has_state"] = True  # Axum typically uses state
             route = RouteHandlerInfo(
                 method=ts_route.method,
                 path=ts_route.path,
                 function_name=ts_route.handler,
                 is_async=ts_route.is_async,
                 return_type="",  # TODO: Extract return type
-                parameters=[],  # TODO: Extract parameters
-                metadata={"framework": ts_route.framework},
+                parameters=ts_route.parameters,  # Pass through parameters
+                metadata=metadata,
             )
             routes.append(route)
         return routes

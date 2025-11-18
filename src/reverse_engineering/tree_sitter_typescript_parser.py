@@ -142,6 +142,14 @@ class TreeSitterTypeScriptParser:
 
         return actions
 
+        # Extract exported async functions
+        exported_functions = self._find_exported_functions(ast)
+        print(f"DEBUG: exported_functions = {exported_functions}")
+        for func_name in exported_functions:
+            actions.append(TypeScriptAction(name=func_name))
+
+        return actions
+
     def _extract_express_routes(self, ast: Node) -> List[TypeScriptRoute]:
         """Extract Express router.get/post/put/delete() calls"""
         routes = []

@@ -337,6 +337,8 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "unit: Unit tests (fast, isolated)")
     config.addinivalue_line("markers", "integration: Integration tests (slower)")
     config.addinivalue_line("markers", "benchmark: Performance benchmarks")
+    config.addinivalue_line("markers", "requires_pglast: test requires pglast (SQL parsing)")
+    config.addinivalue_line("markers", "requires_faker: test requires faker (test data)")
     config.addinivalue_line(
         "markers", "requires_tree_sitter: test requires tree-sitter (AST parsing)"
     )
@@ -376,10 +378,3 @@ def pytest_collection_modifyitems(config, items):
 
         if "requires_tree_sitter" in item.keywords and not TREE_SITTER.available:
             item.add_marker(skip_tree_sitter)
-
-    # Optional dependency markers
-    config.addinivalue_line("markers", "requires_pglast: test requires pglast (SQL parsing)")
-    config.addinivalue_line("markers", "requires_faker: test requires faker (test data)")
-    config.addinivalue_line(
-        "markers", "requires_tree_sitter: test requires tree-sitter (AST parsing)"
-    )

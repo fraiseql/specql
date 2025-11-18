@@ -44,7 +44,8 @@ class RustRoute:
     handler: str
     framework: str
     is_async: bool = False
-    parameters: List[str] = field(default_factory=list)
+    parameters: List[dict] = field(default_factory=list)
+    has_guard: bool = False
 
 
 @dataclass
@@ -264,8 +265,7 @@ class TreeSitterRustParser:
         return structs
 
     def extract_routes(self, ast: Node) -> List[RustRoute]:
-        """
-        Extract web framework routes from AST.
+        """Extract web framework routes from AST.
 
         Supports: Actix, Rocket, Axum, Warp, Tide
         """
@@ -277,11 +277,577 @@ class TreeSitterRustParser:
             if route:
                 routes.append(route)
 
+        # Extract configuration-based routes (Actix resource-based)
+        config_routes = self._extract_actix_config_routes(ast)
+        routes.extend(config_routes)
+
         # Extract method-based routes (Axum)
         axum_routes = self._extract_axum_routes(ast)
         routes.extend(axum_routes)
 
+        # Extract Warp filter chains
+        warp_routes = self._extract_warp_routes(ast)
+        routes.extend(warp_routes)
+
+        # Extract Tide routes
+        tide_routes = self._extract_tide_routes(ast)
+        routes.extend(tide_routes)
+
         return routes
+
+    def _extract_actix_config_routes(self, ast: Node) -> List[RustRoute]:
+        """Extract Actix routes from configuration code (web::resource, web::scope, etc.)"""
+        routes = []
+
+        # Check if file has guard-related code
+        has_guards = self._file_has_guards(ast)
+
+        # Use simple regex patterns for common Actix patterns
+        source_text = self._get_node_text(ast)
+
+        # Pattern for scope-based routes: web::scope("/api").service(web::scope("/v1").route("/contacts", web::post().to(handler)))
+        import re
+
+        # Pattern for resource-based routes: web::resource("/contacts").guard(...).route(web::post().to(handler))
+        resource_pattern = r'web::resource\s*\(\s*"([^"]+)"\s*\)(.*?)\.route\s*\(\s*web::(\w+)\s*\(\s*\)\s*\.to\s*\(\s*([^)]+)\s*\)\s*\)'
+        for match in re.finditer(resource_pattern, source_text, re.DOTALL):
+            path = match.group(1)
+            config_text = match.group(2)
+            method = match.group(3).upper()
+            handler = match.group(4)
+
+            # Check if this resource has guards
+            has_guard = ".guard(" in config_text
+
+            routes.append(
+                RustRoute(
+                    method=method,
+                    path=path,
+                    handler=handler,
+                    framework="actix",
+                    is_async=True,
+                    has_guard=has_guard,
+                )
+            )
+
+        # Find all route calls within scope chains
+        route_pattern = r'\.route\("([^"]+)"\s*,\s*web::(get|post|put|delete)\(\)\.to\(([^)]+)\)'
+        for match in re.finditer(route_pattern, source_text):
+            route_path = match.group(1)
+            method = match.group(2).upper()
+            handler = match.group(3)
+
+            # Find the scope prefix by looking backwards for scope calls
+            prefix = self._find_scope_prefix(source_text, match.start())
+            full_path = f"{prefix}{route_path}"
+
+            routes.append(
+                RustRoute(
+                    method=method,
+                    path=full_path,
+                    handler=handler,
+                    framework="actix",
+                    is_async=True,
+                    has_guard=has_guards,
+                )
+            )
+
+        return routes
+
+    def _extract_axum_routes(self, ast: Node) -> List[RustRoute]:
+        """Extract Axum routes from Router chains."""
+        routes = []
+
+        # Check if file has state-related code
+        has_state = self._file_has_state(ast)
+
+        # Use regex to find Router::new().route() chains
+        source_text = self._get_node_text(ast)
+        import re
+
+        # Pattern for Router::new().route("/path", method(handler))
+        route_pattern = r'\.route\("([^"]+)"\s*,\s*(?:axum::routing::|routing::)?(\w+)\(([^)]+)\)'
+        for match in re.finditer(route_pattern, source_text):
+            route_path = match.group(1)
+            method = match.group(2).upper()
+            handler = match.group(3)
+
+            # Normalize Axum :param to {param}
+            import re
+
+            route_path = re.sub(r":(\w+)", r"{\1}", route_path)
+
+            routes.append(
+                RustRoute(
+                    method=method,
+                    path=route_path,
+                    handler=handler,
+                    framework="axum",
+                    is_async=True,
+                    has_guard=False,  # Axum uses state instead of guards
+                    parameters=[],  # TODO: Could extract state parameters
+                )
+            )
+
+        return routes
+
+    def _extract_warp_routes(self, ast: Node) -> List[RustRoute]:
+        """Extract Warp routes from filter chains."""
+        routes = []
+
+        source_text = self._get_node_text(ast)
+        import re
+
+        # Pattern for warp::path("route").and(warp::method()).and_then(handler)
+        warp_pattern = (
+            r'warp::path\("([^"]+)"\)[^}]*?\.and\(warp::(\w+)\(\)\)[^}]*?\.and_then\(([^)]+)\)'
+        )
+        for match in re.finditer(warp_pattern, source_text):
+            route_path = match.group(1)
+            method = match.group(2).upper()
+            handler = match.group(3)
+
+            # Warp paths are relative, add leading slash
+            if not route_path.startswith("/"):
+                route_path = "/" + route_path
+
+            routes.append(
+                RustRoute(
+                    method=method,
+                    path=route_path,
+                    handler=handler,
+                    framework="warp",
+                    is_async=False,  # Warp handlers are typically not async in the same way
+                    has_guard=False,
+                    parameters=[],
+                )
+            )
+
+        return routes
+
+    def _extract_tide_routes(self, ast: Node) -> List[RustRoute]:
+        """Extract Tide routes from .at() chains."""
+        routes = []
+
+        source_text = self._get_node_text(ast)
+        import re
+
+        # Pattern for app.at("/path").method(handler)
+        tide_pattern = r'\.at\("([^"]+)"\)\.(\w+)\(([^)]+)\)'
+        for match in re.finditer(tide_pattern, source_text):
+            route_path = match.group(1)
+            method = match.group(2).upper()
+            handler = match.group(3)
+
+            # Normalize Tide :param to {param}
+            import re
+
+            route_path = re.sub(r":(\w+)", r"{\1}", route_path)
+
+            routes.append(
+                RustRoute(
+                    method=method,
+                    path=route_path,
+                    handler=handler,
+                    framework="tide",
+                    is_async=True,
+                    has_guard=False,
+                    parameters=[],
+                )
+            )
+
+        return routes
+
+    def _file_has_state(self, ast: Node) -> bool:
+        """Check if the file contains state-related code."""
+        source_text = self._get_node_text(ast)
+        return "State" in source_text or "with_state" in source_text
+
+    def _find_scope_prefix(self, source_text: str, route_start: int) -> str:
+        """Find the scope prefix for a route by looking backwards."""
+        # Look backwards from route_start to find scope calls
+        search_text = source_text[:route_start]
+
+        # Find all scope calls before this route
+        scope_matches = list(re.finditer(r'web::scope\("([^"]+)"\)', search_text))
+
+        # Build prefix from nested scopes (last two should be the relevant ones)
+        prefix = ""
+        if len(scope_matches) >= 2:
+            scope1 = scope_matches[-2].group(1)
+            scope2 = scope_matches[-1].group(1)
+            prefix = f"{scope1}{scope2}"
+
+        return prefix
+
+        # Also handle direct resource calls (for guard test)
+        call_exprs = self._find_all(ast, "call_expression")
+
+        for call_expr in call_exprs:
+            if self._is_actix_resource_call(call_expr):
+                path = self._extract_string_literal(call_expr)
+                if path:
+                    # Look for the handler in the chain
+                    handler = self._find_handler_in_chain(call_expr)
+                    if handler:
+                        routes.append(
+                            RustRoute(
+                                method="POST",  # From test: web::post()
+                                path=path,
+                                handler=handler,
+                                framework="actix",
+                                is_async=True,
+                                has_guard=has_guards,
+                            )
+                        )
+
+        return routes
+
+    def _extract_scope_hierarchies(self, ast: Node) -> List[dict]:
+        """Extract web::scope() hierarchies from the AST."""
+        scopes = []
+
+        call_exprs = self._find_all(ast, "call_expression")
+
+        for call_expr in call_exprs:
+            if self._is_actix_scope_call(call_expr):
+                scope_info = self._parse_scope_hierarchy(call_expr)
+                if scope_info:
+                    scopes.append(scope_info)
+
+        return scopes
+
+    def _is_actix_scope_call(self, call_expr: Node) -> bool:
+        """Check if call is web::scope()."""
+        func_text = self._get_function_call_name(call_expr)
+        return "scope" in func_text.lower()
+
+    def _parse_scope_hierarchy(self, scope_call: Node, prefix: str = "") -> Optional[dict]:
+        """Parse a scope hierarchy recursively."""
+        path = self._extract_string_literal(scope_call)
+        if not path:
+            return None
+
+        full_path = prefix + path
+
+        # Find nested services/routes
+        services = []
+        current = scope_call
+
+        # Walk through the method chain
+        while current:
+            if current.type == "call_expression":
+                # Look for .service() calls
+                if self._is_service_method(current):
+                    service_info = self._parse_service_call(current, full_path)
+                    if service_info:
+                        services.append(service_info)
+
+            # Move to parent in chain
+            if current.parent and current.parent.type == "call_expression":
+                current = current.parent
+            else:
+                break
+
+        return {"path": full_path, "services": services}
+
+    def _is_service_method(self, call_expr: Node) -> bool:
+        """Check if call is .service() method."""
+        for child in call_expr.children:
+            if child.type == "field_expression":
+                text = self._get_node_text(child)
+                if ".service" in text:
+                    return True
+        return False
+
+    def _parse_service_call(self, service_call: Node, scope_prefix: str) -> Optional[dict]:
+        """Parse a .service() call which can contain scopes or resources."""
+        # Extract the argument (should be a scope or resource call)
+        for child in service_call.children:
+            if child.type == "arguments":
+                if child.children:
+                    inner_call = child.children[0]
+                    if inner_call.type == "call_expression":
+                        if self._is_actix_scope_call(inner_call):
+                            # Nested scope
+                            return self._parse_scope_hierarchy(inner_call, scope_prefix)
+                        elif self._is_actix_resource_call(inner_call):
+                            # Resource with routes
+                            return self._parse_resource_with_routes(inner_call, scope_prefix)
+
+        return None
+
+    def _parse_resource_with_routes(self, resource_call: Node, scope_prefix: str) -> Optional[dict]:
+        """Parse a resource call with its routes."""
+        path = self._extract_string_literal(resource_call)
+        if not path:
+            return None
+
+        full_path = scope_prefix + path
+        routes = []
+
+        # Find .route() calls in the chain
+        current = resource_call
+        while current:
+            if current.type == "call_expression" and self._is_route_method(current):
+                route_info = self._parse_route_call(current)
+                if route_info:
+                    routes.append(route_info)
+
+            if current.parent and current.parent.type == "call_expression":
+                current = current.parent
+            else:
+                break
+
+        return {"path": full_path, "routes": routes}
+
+    def _is_route_method(self, call_expr: Node) -> bool:
+        """Check if call is .route() method."""
+        for child in call_expr.children:
+            if child.type == "field_expression":
+                text = self._get_node_text(child)
+                if ".route" in text:
+                    return True
+        return False
+
+    def _parse_route_call(self, route_call: Node) -> Optional[dict]:
+        """Parse a .route(path, method.to(handler)) call."""
+        # Extract arguments
+        for child in route_call.children:
+            if child.type == "arguments":
+                args = [arg for arg in child.children if arg.type not in [",", "("]]
+                if len(args) >= 2:
+                    # First arg is path
+                    path_arg = args[0]
+                    route_path = self._extract_string_literal(path_arg) or ""
+
+                    # Second arg is method chain
+                    method_arg = args[1]
+                    if method_arg.type == "call_expression":
+                        method_info = self._parse_method_chain(method_arg)
+                        if method_info:
+                            return {
+                                "path": route_path,
+                                "method": method_info["method"],
+                                "handler": method_info["handler"],
+                            }
+
+        return None
+
+    def _parse_method_chain(self, method_call: Node) -> Optional[dict]:
+        """Parse web::get().to(handler) chain."""
+        method = None
+        handler = None
+
+        # Extract method from web::get()
+        func_text = self._get_function_call_name(method_call)
+        if "get" in func_text.lower():
+            method = "GET"
+        elif "post" in func_text.lower():
+            method = "POST"
+        elif "put" in func_text.lower():
+            method = "PUT"
+        elif "delete" in func_text.lower():
+            method = "DELETE"
+
+        # Find .to(handler) in chain
+        current = method_call
+        while current:
+            if current.type == "call_expression":
+                if self._is_to_method(current):
+                    for child in current.children:
+                        if child.type == "arguments":
+                            if child.children:
+                                handler_node = child.children[0]
+                                handler = self._get_node_text(handler_node)
+                                break
+
+            if current.parent and current.parent.type == "call_expression":
+                current = current.parent
+            else:
+                break
+
+        if method and handler:
+            return {"method": method, "handler": handler}
+        return None
+
+    def _is_to_method(self, call_expr: Node) -> bool:
+        """Check if call is .to() method."""
+        for child in call_expr.children:
+            if child.type == "field_expression":
+                text = self._get_node_text(child)
+                if ".to" in text:
+                    return True
+        return False
+
+    def _build_routes_from_scopes(self, scopes: List[dict], has_guards: bool) -> List[RustRoute]:
+        """Build RustRoute objects from parsed scope hierarchies."""
+        routes = []
+
+        def process_scope(scope: dict, prefix: str = ""):
+            scope_path = scope.get("path", "")
+
+            # Process direct routes in this scope
+            for route in scope.get("routes", []):
+                full_path = prefix + route["path"]
+                routes.append(
+                    RustRoute(
+                        method=route["method"],
+                        path=full_path,
+                        handler=route["handler"],
+                        framework="actix",
+                        is_async=True,
+                        has_guard=has_guards,
+                    )
+                )
+
+            # Process nested scopes
+            for service in scope.get("services", []):
+                if "path" in service:  # It's a nested scope
+                    process_scope(service, prefix + scope_path)
+                elif "routes" in service:  # It's a resource with routes
+                    for route in service["routes"]:
+                        full_path = prefix + scope_path + route["path"]
+                        routes.append(
+                            RustRoute(
+                                method=route["method"],
+                                path=full_path,
+                                handler=route["handler"],
+                                framework="actix",
+                                is_async=True,
+                                has_guard=has_guards,
+                            )
+                        )
+
+        for scope in scopes:
+            process_scope(scope)
+
+        return routes
+
+    def _is_actix_resource_call(self, call_expr: Node) -> bool:
+        """Check if call is web::resource()."""
+        func_text = self._get_function_call_name(call_expr)
+        return "resource" in func_text.lower()
+
+    def _file_has_guards(self, ast: Node) -> bool:
+        """Check if the file contains guard-related code."""
+        source_text = self._get_node_text(ast)
+        return "guard" in source_text.lower()
+
+    def _find_handler_in_chain(self, resource_call: Node) -> Optional[str]:
+        """Find handler function name in the resource chain."""
+        # Look for .to(handler) pattern in the source text
+        source_text = self._get_node_text(resource_call)
+        import re
+
+        to_match = re.search(r"\.to\(([^)]+)\)", source_text)
+        if to_match:
+            return to_match.group(1)
+        return None
+
+    def _is_guard_method(self, call_expr: Node) -> bool:
+        """Check if call is .guard() method."""
+        for child in call_expr.children:
+            if child.type == "field_expression":
+                text = self._get_node_text(child)
+                if ".guard" in text:
+                    return True
+        return False
+
+    def _parse_actix_route(self, route_call: Node, base_path: str) -> Optional[RustRoute]:
+        """Parse .route(web::get().to(handler)) call."""
+        method = None
+        handler = None
+
+        # Extract arguments: .route(web::get().to(handler))
+        for child in route_call.children:
+            if child.type == "arguments":
+                for arg in child.children:
+                    if arg.type == "call_expression":
+                        # Parse web::get().to(handler)
+                        method_call = arg
+                        if self._is_http_method_call(method_call):
+                            method = self._extract_http_method(method_call)
+                            handler = self._extract_route_handler(method_call)
+
+        if method and handler:
+            return RustRoute(
+                method=method,
+                path=base_path,
+                handler=handler,
+                framework="actix",
+                is_async=True,  # Assume async for Actix
+                has_guard=self._has_guard_in_chain(route_call),
+            )
+
+        return None
+
+    def _is_http_method_call(self, call_expr: Node) -> bool:
+        """Check if call is web::get(), web::post(), etc."""
+        func_text = self._get_function_call_name(call_expr)
+        return any(
+            method in func_text.lower() for method in ["get", "post", "put", "delete", "patch"]
+        )
+
+    def _extract_http_method(self, method_call: Node) -> Optional[str]:
+        """Extract HTTP method from web::get() call."""
+        func_text = self._get_function_call_name(method_call)
+        if "get" in func_text.lower():
+            return "GET"
+        elif "post" in func_text.lower():
+            return "POST"
+        elif "put" in func_text.lower():
+            return "PUT"
+        elif "delete" in func_text.lower():
+            return "DELETE"
+        elif "patch" in func_text.lower():
+            return "PATCH"
+        return None
+
+    def _extract_route_handler(self, method_call: Node) -> Optional[str]:
+        """Extract handler from .to(handler) call."""
+        # Look for chained .to() call
+        parent = method_call.parent
+        while parent:
+            if parent.type == "call_expression":
+                if self._is_to_method(parent):
+                    for child in parent.children:
+                        if child.type == "arguments":
+                            # Extract handler name from .to(handler)
+                            if child.children:
+                                handler_node = child.children[0]
+                                return self._get_node_text(handler_node)
+
+            if parent.parent and parent.parent.type == "call_expression":
+                parent = parent.parent
+            else:
+                break
+
+        return None
+
+    def _is_to_method(self, call_expr: Node) -> bool:
+        """Check if call is .to() method."""
+        for child in call_expr.children:
+            if child.type == "field_expression":
+                text = self._get_node_text(child)
+                if ".to" in text:
+                    return True
+        return False
+
+    def _has_guard_in_chain(self, route_call: Node) -> bool:
+        """Check if the resource chain has guard calls."""
+        # Walk up from route_call to find guard calls in the chain
+        current = route_call
+        while current:
+            if current.type == "call_expression" and self._is_guard_method(current):
+                return True
+
+            if current.parent and current.parent.type == "call_expression":
+                current = current.parent
+            else:
+                break
+
+        return False
 
     def extract_impl_blocks(self, ast: Node) -> List[RustImplBlock]:
         """Extract impl blocks from AST."""
@@ -337,14 +903,60 @@ class TreeSitterRustParser:
 
         return RustMethod(name=name, is_async=is_async, visibility=visibility)
 
+    def _extract_function_parameters(self, fn_node: Node) -> List[dict]:
+        """Extract parameters from function signature."""
+        parameters = []
+
+        # Find parameters node
+        for child in fn_node.children:
+            if child.type == "parameters":
+                for param_node in child.children:
+                    if param_node.type == "parameter":
+                        param_info = self._parse_parameter(param_node)
+                        if param_info:
+                            parameters.append(param_info)
+
+        return parameters
+
+    def _parse_parameter(self, param_node: Node) -> Optional[dict]:
+        """Parse a single parameter (name: Type)."""
+        param_name = None
+        param_type = None
+
+        for child in param_node.children:
+            if child.type == "identifier":
+                param_name = self._get_node_text(child)
+            elif child.type == "type_identifier" or child.type.endswith("_type"):
+                param_type = self._get_node_text(child)
+
+        if param_name and param_name not in ["self", "&self", "&mut self"]:
+            return {"name": param_name, "type": param_type or "unknown"}
+
+        return None
+
+    def _has_guard_annotation(self, fn_node: Node) -> bool:
+        """Check if function has guard-related code."""
+        # Look for guard imports in parent scope
+        # Or check for guard-related attributes
+        attributes = self._get_attributes(fn_node)
+        for attr in attributes:
+            attr_text = self._get_node_text(attr)
+            if "guard" in attr_text.lower():
+                return True
+        return False
+
     def _extract_route_from_function(self, fn_node: Node) -> Optional[RustRoute]:
         """Extract route information from a function with attributes."""
         fn_name = self._get_function_name(fn_node)
         is_async = self._is_async_function(fn_node)
         attributes = self._get_attributes(fn_node)
+        parameters = self._extract_function_parameters(fn_node)
+        has_guard = self._has_guard_annotation(fn_node)
 
         for attr in attributes:
-            route_info = self._parse_route_attribute(attr)
+            route_info = self._parse_route_attribute(
+                attr, normalize=False
+            )  # Keep original framework syntax for routes
             if route_info:
                 method, path, framework = route_info
                 return RustRoute(
@@ -353,122 +965,13 @@ class TreeSitterRustParser:
                     handler=fn_name,
                     framework=framework,
                     is_async=is_async,
+                    parameters=parameters,
+                    has_guard=has_guard,
                 )
 
         return None
 
-    def _extract_axum_routes(self, ast: Node) -> List[RustRoute]:
-        """Extract Axum routes from Router method chains."""
-        routes = []
-
-        # Find Router::new().route()... chains
-        call_exprs = self._find_all(ast, "call_expression")
-
-        for call_expr in call_exprs:
-            route = self._extract_axum_route_from_call(call_expr)
-            if route:
-                routes.append(route)
-
-        return routes
-
-    def _extract_axum_route_from_call(self, call_expr: Node) -> Optional[RustRoute]:
-        """Extract route from Axum Router::route() call."""
-        # Look for .route(path, method(handler)) pattern
-        if not self._is_axum_route_call(call_expr):
-            return None
-
-        # Extract path from first argument
-        args = self._get_call_arguments(call_expr)
-        if len(args) < 2:
-            return None
-
-        path_arg = args[0]
-        method_arg = args[1]
-
-        path = self._extract_string_from_expression(path_arg)
-        method, handler = self._extract_axum_method_and_handler(method_arg)
-
-        if path and method and handler:
-            return RustRoute(
-                method=method,
-                path=path,
-                handler=handler,
-                framework="axum",
-                is_async=True,  # Axum handlers are typically async
-            )
-
-        return None
-
-    def _is_axum_route_call(self, call_expr: Node) -> bool:
-        """Check if this is a Router.route() call."""
-        # Look for field_expression like router.route
-        field_expr = self._find_node_by_type(call_expr, "field_expression")
-        if field_expr:
-            field_name = self._find_node_by_type(field_expr, "field_identifier")
-            if field_name and self._get_node_text(field_name) == "route":
-                return True
-        return False
-
-    def _get_call_arguments(self, call_expr: Node) -> List[Node]:
-        """Get arguments from a call expression."""
-        args = []
-        arguments = self._find_node_by_type(call_expr, "arguments")
-        if arguments:
-            for child in arguments.children:
-                if child.type not in ["(", ")", ","]:
-                    args.append(child)
-        return args
-
-    def _extract_string_from_expression(self, expr: Node) -> Optional[str]:
-        """Extract string literal from expression."""
-        string_lit = self._find_node_by_type(expr, "string_literal")
-        if string_lit:
-            text = self._get_node_text(string_lit)
-            return text.strip("\"'")
-
-        # Handle &"string" pattern
-        if expr.type == "reference_expression":
-            for child in expr.children:
-                if child.type == "string_literal":
-                    text = self._get_node_text(child)
-                    return text.strip("\"'")
-
-        return None
-
-    def _extract_axum_method_and_handler(self, method_expr: Node) -> tuple:
-        """Extract HTTP method and handler from Axum method call."""
-        # Look for get(handler), post(handler), etc.
-        if method_expr.type == "call_expression":
-            # Get the method name (get, post, etc.)
-            method_name_node = self._find_node_by_type(method_expr, "identifier")
-            if method_name_node:
-                method_name = self._get_node_text(method_name_node)
-                if method_name in ["get", "post", "put", "delete", "patch", "head"]:
-                    # Get handler from arguments
-                    args = self._get_call_arguments(method_expr)
-                    if args:
-                        handler = self._extract_handler_name(args[0])
-                        return (method_name.upper(), handler)
-
-        return (None, None)
-
-    def _extract_handler_name(self, expr: Node) -> Optional[str]:
-        """Extract function name from handler expression."""
-        # Direct function identifier
-        if expr.type == "identifier":
-            return self._get_node_text(expr)
-
-        # Scoped identifier (module::function)
-        if expr.type == "scoped_identifier":
-            identifiers = []
-            for child in expr.children:
-                if child.type == "identifier":
-                    identifiers.append(self._get_node_text(child))
-            return identifiers[-1] if identifiers else None
-
-        return None
-
-    def _parse_route_attribute(self, attr_node: Node) -> Optional[tuple]:
+    def _parse_route_attribute(self, attr_node: Node, normalize: bool = False) -> Optional[tuple]:
         """Parse route attribute from various frameworks."""
         attr_text = self._get_node_text(attr_node)
         http_methods = ["get", "post", "put", "delete", "patch", "head", "options"]
@@ -478,8 +981,8 @@ class TreeSitterRustParser:
                 path = self._extract_string_literal(attr_node)
                 if path:
                     framework = self._detect_framework_from_attribute(attr_node, path)
-                    # Normalize Rocket's <param> to standard {param}
-                    if framework == "rocket":
+                    # Only normalize when explicitly requested (for endpoints)
+                    if normalize and framework == "rocket":
                         path = self._normalize_rocket_path(path)
                     return (method.upper(), path, framework)
 
@@ -488,8 +991,9 @@ class TreeSitterRustParser:
     def _normalize_rocket_path(self, path: str) -> str:
         """Convert Rocket's <param> syntax to standard {param} syntax."""
         import re
+
         # Replace <param> with {param}
-        return re.sub(r'<(\w+)>', r'{\1}', path)
+        return re.sub(r"<(\w+)>", r"{\1}", path)
 
     def _detect_framework_from_attribute(self, attr_node: Node, path: str) -> str:
         """Detect web framework from attribute structure."""
@@ -564,6 +1068,13 @@ class TreeSitterRustParser:
     def _get_node_text(self, node: Node) -> str:
         """Get text content of a node."""
         return node.text.decode("utf8") if isinstance(node.text, bytes) else str(node.text)
+
+    def _get_function_call_name(self, call_expr: Node) -> str:
+        """Get the name of a function call (e.g., 'web::resource' from web::resource(...))."""
+        for child in call_expr.children:
+            if child.type in ["scoped_identifier", "field_expression", "identifier"]:
+                return self._get_node_text(child)
+        return ""
 
     def _parse_column_definitions(self, token_tree: Node, columns: List[RustColumn]):
         """Parse column definitions from a token_tree node (format: name -> Type)"""

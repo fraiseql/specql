@@ -7,10 +7,17 @@ from src.reverse_engineering.typescript.express_extractor import ExpressRouteExt
 from src.reverse_engineering.typescript.fastify_extractor import FastifyRouteExtractor
 from src.reverse_engineering.typescript.nextjs_pages_extractor import NextJSPagesExtractor
 from src.reverse_engineering.typescript.nextjs_app_extractor import NextJSAppExtractor
+from src.reverse_engineering.typescript.tree_sitter_typescript_parser import (
+    TreeSitterTypeScriptParser,
+)
 
 
 class TestTreeSitterTypeScriptParser:
     """Test tree-sitter based TypeScript parsing"""
+
+    @pytest.fixture
+    def parser(self):
+        return TreeSitterTypeScriptParser()
 
     def test_parse_express_routes(self):
         """Test parsing Express.js routes with tree-sitter"""
@@ -180,7 +187,7 @@ class TestTreeSitterTypeScriptParser:
         ast = parser.parse(code)
         assert ast is not None
 
-        actions = parser.extract_server_actions(ast)
+        actions = parser.extract_server_actions(ast, code)
 
         assert len(actions) == 2
         assert actions[0].name == "createContact"
@@ -216,7 +223,7 @@ class TestTreeSitterTypeScriptParser:
         ast = parser.parse(code)
         assert ast is not None
 
-        routes = parser.extract_routes(ast)
+        routes = parser.extract_routes(ast, code)
 
         assert len(routes) == 1
         assert routes[0].method == "POST"
@@ -235,15 +242,15 @@ class TestTreeSitterTypeScriptParser:
         """
 
         ast = parser.parse(invalid_code)
-        # Should return None for invalid syntax
-        assert ast is None
+        # Tree-sitter returns ERROR node for invalid syntax
+        assert ast.type == "ERROR"
 
     def test_empty_code(self, parser):
         """Test parsing empty code"""
         ast = parser.parse("")
         assert ast is not None  # Empty code still produces a valid AST
 
-        routes = parser.extract_routes(ast)
+        routes = parser.extract_routes(ast, "")
         assert len(routes) == 0
 
     def test_no_routes(self, parser):
@@ -261,5 +268,5 @@ class TestTreeSitterTypeScriptParser:
         ast = parser.parse(code)
         assert ast is not None
 
-        routes = parser.extract_routes(ast)
+        routes = parser.extract_routes(ast, code)
         assert len(routes) == 0

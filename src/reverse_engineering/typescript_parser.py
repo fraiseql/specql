@@ -111,17 +111,20 @@ class TypeScriptParser:
             try:
                 ast = self.tree_sitter_parser.parse(code)
                 if ast:
-                    ts_routes = self.tree_sitter_parser.extract_nextjs_pages_routes(ast, file_path)
-                    # Convert to our TypeScriptRoute format
-                    return [
-                        TypeScriptRoute(
-                            method=route.method,
-                            path=route.path,
-                            framework=route.framework,
-                            handler_name=route.handler_name,
-                        )
-                        for route in ts_routes
-                    ]
+                    ts_routes = self.tree_sitter_parser.extract_nextjs_pages_routes(
+                        ast, code, file_path
+                    )
+                    if ts_routes:
+                        # Convert to our TypeScriptRoute format
+                        return [
+                            TypeScriptRoute(
+                                method=route.method,
+                                path=route.path,
+                                framework=route.framework,
+                                handler_name=route.handler_name,
+                            )
+                            for route in ts_routes
+                        ]
             except Exception:
                 # Fall back to regex parsing
                 pass

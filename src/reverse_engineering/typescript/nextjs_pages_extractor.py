@@ -118,14 +118,14 @@ class NextJSPagesExtractor:
         """
         methods = []
 
-        # Find string literals that are HTTP methods
-        strings = self.parser.find_nodes_by_type(ast, "string")
+        # Look for req.method === 'METHOD' patterns
+        import re
 
-        for string in strings:
-            text = self.parser.get_node_text(string, source_code)
-            text = text.strip('"').strip("'")
+        method_pattern = r"req\.method\s*===\s*['\"](\w+)['\"]"
+        matches = re.findall(method_pattern, source_code)
 
-            if text in ["GET", "POST", "PUT", "DELETE", "PATCH"]:
-                methods.append(text)
+        for match in matches:
+            if match in ["GET", "POST", "PUT", "DELETE", "PATCH"]:
+                methods.append(match)
 
         return list(set(methods))  # Deduplicate

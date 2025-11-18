@@ -106,3 +106,8 @@ members = [
 
 [tool.uv.sources]
 tree-sitter-prisma = { workspace = true }
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]
