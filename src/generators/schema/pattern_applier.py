@@ -7,6 +7,7 @@ import yaml
 from jinja2 import Environment, FileSystemLoader, Template
 
 from src.core.ast_models import Entity, FieldDefinition, Index, Pattern
+from src.utils.logger import get_team_logger
 
 # Pattern class imports
 from src.patterns.validation.recursive_dependency_validator import RecursiveDependencyValidator
@@ -42,6 +43,7 @@ class PatternApplier:
         from pathlib import Path
 
         self.pattern_dir = Path("stdlib/schema")
+        self.logger = get_team_logger("Team B", __name__)
         self.jinja_env = Environment(
             loader=FileSystemLoader(str(self.pattern_dir)),
             trim_blocks=True,
@@ -49,10 +51,7 @@ class PatternApplier:
         )
 
     def apply_patterns(self, entity: Entity) -> tuple[Entity, str]:
-        """Apply all patterns defined in entity. Returns (entity, additional_sql)."""
-        if not entity.patterns:
-            return entity, ""
-
+        """Apply all patterns to entity, returning (entity, combined_additional_sql)."""
         additional_sql_parts = []
 
         for pattern in entity.patterns:
@@ -64,17 +63,23 @@ class PatternApplier:
 
     def apply_single_pattern(self, entity: Entity, pattern: "Pattern") -> tuple[Entity, str]:
         """Apply a single pattern to entity. Returns (entity, additional_sql)."""
+        self.logger.debug(f"Applying single pattern: {pattern.type}")
 
         # Try to load pattern specification from YAML
         pattern_spec = None
         try:
             pattern_spec = self._load_pattern_spec(pattern.type)
+            self.logger.debug(f"Found YAML pattern spec for {pattern.type}")
         except ValueError:
             # YAML not found, try Python class
+            self.logger.debug(
+                f"No YAML pattern spec found for {pattern.type}, will try Python class"
+            )
             pass
 
         if pattern_spec:
             # Use YAML-based pattern
+            self.logger.debug(f"Using YAML-based pattern path")
             # Validate parameters and add defaults
             validated_params = self._validate_params(pattern_spec, pattern.params, entity)
 
@@ -89,6 +94,7 @@ class PatternApplier:
                 )
         else:
             # Try Python-based pattern
+            self.logger.debug(f"Using Python-based pattern path")
             entity, additional_sql = self._apply_python_pattern(entity, pattern)
 
         # Store pattern metadata in notes
@@ -107,45 +113,36 @@ class PatternApplier:
         if pattern_class:
             # Apply the pattern
             pattern_class.apply(entity, pattern.params)
+        else:
+            # Fallback to dynamic import for unregistered patterns
+            # Fallback to dynamic import for unregistered patterns
+            # Convert pattern type to Python class name
+            # e.g., "recursive_dependency_validator" -> "RecursiveDependencyValidator"
+            class_name = "".join(word.capitalize() for word in pattern.type.split("_"))
 
-            # Collect custom DDL if pattern added any (triggers, indexes, etc.)
-            additional_sql = ""
-            if hasattr(entity, "_custom_ddl") and entity._custom_ddl:
-                additional_sql = "\n\n".join(entity._custom_ddl)
-                # Clear _custom_ddl to prevent duplication on re-application
-                entity._custom_ddl = []
+            # Try different module paths
+            possible_modules = [
+                f"src.patterns.validation.{pattern.type}",
+                f"src.patterns.temporal.{pattern.type}",
+                f"src.patterns.{pattern.type}",
+            ]
 
-            # Functions are added to entity.functions and rendered separately via template
-            return entity, additional_sql
+            pattern_class = None
+            for module_path in possible_modules:
+                try:
+                    module = __import__(module_path, fromlist=[class_name])
+                    pattern_class = getattr(module, class_name)
+                    break
+                except (ImportError, AttributeError):
+                    continue
 
-        # Fallback to dynamic import for unregistered patterns
-        # Convert pattern type to Python class name
-        # e.g., "recursive_dependency_validator" -> "RecursiveDependencyValidator"
-        class_name = "".join(word.capitalize() for word in pattern.type.split("_"))
+            if not pattern_class:
+                raise ValueError(
+                    f"Python pattern class '{class_name}' not found for pattern '{pattern.type}'"
+                )
 
-        # Try different module paths
-        possible_modules = [
-            f"src.patterns.validation.{pattern.type}",
-            f"src.patterns.temporal.{pattern.type}",
-            f"src.patterns.{pattern.type}",
-        ]
-
-        pattern_class = None
-        for module_path in possible_modules:
-            try:
-                module = __import__(module_path, fromlist=[class_name])
-                pattern_class = getattr(module, class_name)
-                break
-            except (ImportError, AttributeError):
-                continue
-
-        if not pattern_class:
-            raise ValueError(
-                f"Python pattern class '{class_name}' not found for pattern '{pattern.type}'"
-            )
-
-        # Apply the pattern
-        pattern_class.apply(entity, pattern.params)
+            # Apply the pattern
+            pattern_class.apply(entity, pattern.params)
 
         # Collect custom DDL if pattern added any (triggers, indexes, etc.)
         additional_sql = ""
@@ -153,6 +150,8 @@ class PatternApplier:
             additional_sql = "\n\n".join(entity._custom_ddl)
             # Clear _custom_ddl to prevent duplication on re-application
             entity._custom_ddl = []
+        else:
+            self.logger.debug(f"No custom DDL found (hasattr: {hasattr(entity, '_custom_ddl')})")
 
         # Functions are added to entity.functions and rendered separately via template
         return entity, additional_sql

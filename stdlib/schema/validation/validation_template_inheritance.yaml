@@ -165,12 +165,38 @@ action_helpers:
           -- Add to visited
           v_visited := v_visited || v_current_id;
 
-          -- Get next template
-          SELECT {{ template_field }}
-          INTO v_current_id
-          FROM {{ schema }}.tb_{{ template_entity | lower }}
-          WHERE id = v_current_id;
-        END LOOP;
+           -- Get next template
+           SELECT {{ template_field }}
+           INTO v_current_id
+           FROM {{ schema }}.tb_{{ template_entity | lower }}
+           WHERE id = v_current_id;
+         END LOOP;
 
-        RETURN true;
-      END;
+         RETURN true;
+       END;
+
+schema_template: |
+  -- Validation trigger function
+  CREATE OR REPLACE FUNCTION {{ schema }}.trg_validate_template_{{ entity.name | lower }}_func()
+  RETURNS TRIGGER
+  LANGUAGE plpgsql
+  AS $$
+  BEGIN
+    -- Validate template depth on insert/update
+    IF NEW.{{ template_field }} IS NOT NULL THEN
+      PERFORM {{ schema }}.validate_template_depth_{{ entity.name | lower }}(NEW.id);
+    END IF;
+    RETURN NEW;
+  END;
+  $$;
+
+  -- Trigger
+  CREATE TRIGGER trg_validate_template_{{ entity.name | lower }}
+    BEFORE INSERT OR UPDATE ON {{ schema }}.tb_{{ entity.name | lower }}
+    FOR EACH ROW
+    EXECUTE FUNCTION {{ schema }}.trg_validate_template_{{ entity.name | lower }}_func();
+
+  -- Index for template lookups
+  CREATE INDEX idx_{{ entity.name | lower }}_{{ template_field }}
+  ON {{ schema }}.tb_{{ entity.name | lower }}({{ template_field }})
+  WHERE {{ template_field }} IS NOT NULL;
