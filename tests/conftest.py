@@ -8,13 +8,14 @@ from typing import Any
 
 import psycopg
 import pytest
+
 from src.core.dependencies import (
-    PGLAST,
     FAKER,
+    PGLAST,
     TREE_SITTER,
+    TREE_SITTER_PRISMA,
     TREE_SITTER_RUST,
     TREE_SITTER_TYPESCRIPT,
-    TREE_SITTER_PRISMA,
 )
 
 

@@ -2,6 +2,7 @@
 
 import random
 from typing import Any
+
 from src.core.dependencies import FAKER
 
 # Lazy import with availability check

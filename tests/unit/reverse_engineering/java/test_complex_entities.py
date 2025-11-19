@@ -5,7 +5,6 @@ These tests target capabilities that currently have low confidence
 and need enhancement to reach 85%+ confidence.
 """
 
-import pytest
 from src.reverse_engineering.java_action_parser import JavaActionParser
 
 
@@ -159,7 +158,7 @@ class TestComplexJavaEntities:
             code.replace("@Entity\npublic class Contact", "@Entity\npublic class Company")
         )
         contacts_field = next(f for f in company_entity.fields if f["name"] == "contacts")
-        assert contacts_field["relationship_metadata"]["is_bidirectional"] == True
+        assert contacts_field["relationship_metadata"]["is_bidirectional"]
         assert contacts_field["relationship_metadata"]["side"] == "inverse"
         assert contacts_field["relationship_metadata"]["owned_by"] == "company"
 
@@ -168,7 +167,7 @@ class TestComplexJavaEntities:
             code.replace("@Entity\npublic class Company", "@Entity\npublic class Contact")
         )
         company_field = next(f for f in contact_entity.fields if f["name"] == "company")
-        assert company_field["relationship_metadata"]["is_bidirectional"] == True
+        assert company_field["relationship_metadata"]["is_bidirectional"]
         assert company_field["relationship_metadata"]["side"] == "owning"
         assert company_field["relationship_metadata"]["foreign_key"] == "company_id"
 
@@ -229,7 +228,7 @@ class TestComplexJavaEntities:
         email_pk_field = next(
             f for f in entity.fields if f["name"] == "email" and f.get("is_primary_key_component")
         )
-        assert email_pk_field["is_primary_key_component"] == True
+        assert email_pk_field["is_primary_key_component"]
         assert email_pk_field["composite_key"] == "ContactId"
 
         company_id_pk_field = next(
@@ -237,7 +236,7 @@ class TestComplexJavaEntities:
             for f in entity.fields
             if f["name"] == "company_id" and f.get("is_primary_key_component")
         )
-        assert company_id_pk_field["is_primary_key_component"] == True
+        assert company_id_pk_field["is_primary_key_component"]
         assert company_id_pk_field["composite_key"] == "ContactId"
 
         # Test @EmbeddedId

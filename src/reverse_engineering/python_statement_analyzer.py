@@ -1,6 +1,7 @@
 import ast
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass
+from typing import Any
+
 
 @dataclass
 class PythonStatement:
@@ -8,7 +9,7 @@ class PythonStatement:
     statement_type: str  # 'assign', 'if', 'return', 'call', 'for', 'raise'
     raw_code: str
     ast_node: ast.stmt
-    metadata: Dict[str, Any]
+    metadata: dict[str, Any]
 
 class PythonStatementAnalyzer:
     """
@@ -18,7 +19,7 @@ class PythonStatementAnalyzer:
     for mapping to SpecQL steps
     """
 
-    def analyze_method_body(self, method_body: List[str]) -> List[PythonStatement]:
+    def analyze_method_body(self, method_body: list[str]) -> list[PythonStatement]:
         """
         Analyze method body lines
 
@@ -47,7 +48,7 @@ class PythonStatementAnalyzer:
 
         return statements
 
-    def _analyze_statement(self, node: ast.stmt) -> Optional[PythonStatement]:
+    def _analyze_statement(self, node: ast.stmt) -> PythonStatement | None:
         """Analyze single AST statement"""
 
         if isinstance(node, ast.Assign):

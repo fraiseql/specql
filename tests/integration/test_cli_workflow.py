@@ -7,7 +7,6 @@ These tests verify end-to-end CLI functionality including:
 - Confiture integration
 """
 
-from pathlib import Path
 
 import pytest
 from click.testing import CliRunner
@@ -197,10 +196,10 @@ class TestEndToEndGeneration:
         from unittest.mock import Mock, patch
 
         with patch("src.cli.generate.SpecQLParser") as mock_parser_cls, \
-             patch("src.generators.frontend.MutationImpactsGenerator") as mock_impacts, \
-             patch("src.generators.frontend.TypeScriptTypesGenerator") as mock_types, \
-             patch("src.generators.frontend.ApolloHooksGenerator") as mock_hooks, \
-             patch("src.generators.frontend.MutationDocsGenerator") as mock_docs:
+             patch("src.generators.frontend.MutationImpactsGenerator"), \
+             patch("src.generators.frontend.TypeScriptTypesGenerator"), \
+             patch("src.generators.frontend.ApolloHooksGenerator"), \
+             patch("src.generators.frontend.MutationDocsGenerator"):
 
             # Setup mock parser
             mock_parser = Mock()
@@ -345,7 +344,7 @@ class TestConfitureCLIWorkflow:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(returncode=0)
 
-            result = cli_runner.invoke(
+            cli_runner.invoke(
                 confiture_specql,
                 ["validate", str(sample_crm_entity)]
             )

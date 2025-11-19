@@ -6,8 +6,6 @@ Coordinates table + type generation for complete schema
 from dataclasses import dataclass
 
 from src.core.ast_models import Entity, EntityDefinition
-from src.utils.logger import LogContext, get_team_logger
-from src.utils.performance_monitor import get_performance_monitor
 from src.generators.app_schema_generator import AppSchemaGenerator
 from src.generators.app_wrapper_generator import AppWrapperGenerator
 from src.generators.composite_type_generator import CompositeTypeGenerator
@@ -20,6 +18,8 @@ from src.generators.schema.table_view_dependency import TableViewDependencyResol
 from src.generators.schema.table_view_generator import TableViewGenerator
 from src.generators.table_generator import TableGenerator
 from src.generators.trinity_helper_generator import TrinityHelperGenerator
+from src.utils.logger import LogContext, get_team_logger
+from src.utils.performance_monitor import get_performance_monitor
 from src.utils.safe_slug import safe_table_name
 
 

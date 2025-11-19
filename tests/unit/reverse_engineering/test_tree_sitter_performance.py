@@ -4,10 +4,10 @@ Tree-sitter Performance Tests
 Compare tree-sitter vs regex performance for Rust parsing.
 """
 
-import time
-import pytest
-import tempfile
 import os
+import tempfile
+import time
+
 from src.reverse_engineering.rust_action_parser import RustActionParser
 
 

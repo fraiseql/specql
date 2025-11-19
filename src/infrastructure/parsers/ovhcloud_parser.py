@@ -6,14 +6,20 @@ Parses OVHcloud API responses, CLI output, or configuration files.
 """
 
 import json
-from typing import Dict, Any, Optional
-from src.infrastructure.universal_infra_schema import *
+from typing import Any
+
+from src.infrastructure.universal_infra_schema import (
+    BareMetalConfig,
+    CloudProvider,
+    ContainerConfig,
+    UniversalInfrastructure,
+)
 
 
 class OVHcloudParser:
     """Parse OVHcloud configurations to universal format"""
 
-    def parse_dedicated_server(self, server_data: Dict[str, Any]) -> UniversalInfrastructure:
+    def parse_dedicated_server(self, server_data: dict[str, Any]) -> UniversalInfrastructure:
         """
         Parse OVHcloud dedicated server data to UniversalInfrastructure
 
@@ -27,7 +33,7 @@ class OVHcloudParser:
         server_name = server_data.get("name", server_data.get("displayName", "ovh-server"))
         datacenter = server_data.get("datacenter", server_data.get("region", "GRA1"))
         os = self._extract_os(server_data)
-        ip = server_data.get("ip", "")
+        server_data.get("ip", "")
 
         # Map OVHcloud server model to specs
         server_model = server_data.get("commercialRange", "")
@@ -108,7 +114,7 @@ class OVHcloudParser:
 
         return self.parse_dedicated_server(server_data)
 
-    def _extract_os(self, server_data: Dict[str, Any]) -> str:
+    def _extract_os(self, server_data: dict[str, Any]) -> str:
         """Extract OS information from server data"""
         os_info = server_data.get("os", server_data.get("operatingSystem", {}))
 
@@ -137,7 +143,7 @@ class OVHcloudParser:
         else:
             return "ubuntu2204"  # Default
 
-    def _map_server_specs(self, server_model: str, server_data: Dict[str, Any]) -> tuple[int, int, int]:
+    def _map_server_specs(self, server_model: str, server_data: dict[str, Any]) -> tuple[int, int, int]:
         """Map OVHcloud server model to CPU cores, RAM GB, and storage GB"""
         # OVHcloud server model mappings (approximate)
         model_specs = {

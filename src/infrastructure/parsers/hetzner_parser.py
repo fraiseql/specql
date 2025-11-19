@@ -6,14 +6,20 @@ Parses Hetzner API responses, CLI output, or configuration files.
 """
 
 import json
-from typing import Dict, Any, Optional
-from src.infrastructure.universal_infra_schema import *
+from typing import Any
+
+from src.infrastructure.universal_infra_schema import (
+    BareMetalConfig,
+    CloudProvider,
+    ContainerConfig,
+    UniversalInfrastructure,
+)
 
 
 class HetznerParser:
     """Parse Hetzner configurations to universal format"""
 
-    def parse_dedicated_server(self, server_data: Dict[str, Any]) -> UniversalInfrastructure:
+    def parse_dedicated_server(self, server_data: dict[str, Any]) -> UniversalInfrastructure:
         """
         Parse Hetzner dedicated server data to UniversalInfrastructure
 
@@ -113,7 +119,7 @@ class HetznerParser:
 
         return self.parse_dedicated_server(server_data)
 
-    def _extract_os(self, server_data: Dict[str, Any]) -> str:
+    def _extract_os(self, server_data: dict[str, Any]) -> str:
         """Extract OS information from server data"""
         os_info = server_data.get("os", server_data.get("image", {}))
 
@@ -144,7 +150,7 @@ class HetznerParser:
         else:
             return "ubuntu2204"  # Default
 
-    def _map_server_specs(self, server_type: str, server_data: Dict[str, Any]) -> tuple[int, int, int]:
+    def _map_server_specs(self, server_type: str, server_data: dict[str, Any]) -> tuple[int, int, int]:
         """Map Hetzner server type to CPU cores, RAM GB, and storage GB"""
         # Hetzner dedicated server type mappings (approximate)
         type_specs = {

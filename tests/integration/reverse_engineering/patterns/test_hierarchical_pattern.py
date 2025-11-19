@@ -1,9 +1,10 @@
 """Tests for hierarchical data pattern detection"""
 
 import pytest
+
 from src.reverse_engineering.universal_pattern_detector import (
-    UniversalPatternDetector,
     HierarchicalPattern,
+    UniversalPatternDetector,
 )
 
 
@@ -23,7 +24,7 @@ class TestHierarchicalPatternSQL:
         );
         """
 
-        assert self.detector.matches(sql, "sql") == True
+        assert self.detector.matches(sql, "sql")
         assert self.detector.confidence >= 0.30
 
     def test_sql_recursive_cte(self):
@@ -40,7 +41,7 @@ class TestHierarchicalPatternSQL:
         SELECT * FROM category_tree;
         """
 
-        assert self.detector.matches(sql, "sql") == True
+        assert self.detector.matches(sql, "sql")
         assert self.detector.confidence >= 0.30
 
     def test_sql_path_field(self):
@@ -53,7 +54,7 @@ class TestHierarchicalPatternSQL:
         );
         """
 
-        assert self.detector.matches(sql, "sql") == False  # No parent_id or recursive CTE
+        assert not self.detector.matches(sql, "sql")  # No parent_id or recursive CTE
 
     def test_sql_nested_set(self):
         """Detect nested set model with lft/rgt boundaries"""
@@ -66,7 +67,7 @@ class TestHierarchicalPatternSQL:
         );
         """
 
-        assert self.detector.matches(sql, "sql") == False  # No parent_id or recursive CTE
+        assert not self.detector.matches(sql, "sql")  # No parent_id or recursive CTE
 
 
 class TestHierarchicalPatternPython:
@@ -85,7 +86,7 @@ class TestHierarchicalPatternPython:
             parent: Optional['Category'] = relationship('Category', remote_side=[id])
         """
 
-        assert self.detector.matches(code, "python") == True
+        assert self.detector.matches(code, "python")
         assert self.detector.confidence >= 0.30
 
     def test_python_children_relationship(self):
@@ -98,7 +99,7 @@ class TestHierarchicalPatternPython:
             children: List['Category'] = relationship('Category')
         """
 
-        assert self.detector.matches(code, "python") == True
+        assert self.detector.matches(code, "python")
         assert self.detector.confidence >= 0.30
 
 
@@ -127,7 +128,7 @@ class TestHierarchicalPatternJava:
         }
         """
 
-        assert self.detector.matches(code, "java") == True
+        assert self.detector.matches(code, "java")
         assert self.detector.confidence >= 0.60  # parent + children
 
 
@@ -147,7 +148,7 @@ class TestHierarchicalPatternRust:
         }
         """
 
-        assert self.detector.matches(code, "rust") == True
+        assert self.detector.matches(code, "rust")
         assert self.detector.confidence >= 0.30
 
 

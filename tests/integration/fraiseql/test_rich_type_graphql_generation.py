@@ -3,7 +3,6 @@ End-to-end tests for rich type GraphQL scalar generation
 Tests that SpecQL → PostgreSQL → FraiseQL GraphQL works correctly
 """
 
-import pytest
 from pathlib import Path
 
 from src.core.specql_parser import SpecQLParser

@@ -183,7 +183,7 @@ class TestValidateCommand:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(returncode=0)
 
-            result = cli_runner.invoke(specql, ["validate", str(sample_entity_file)])
+            cli_runner.invoke(specql, ["validate", str(sample_entity_file)])
 
             # Should call subprocess
             assert mock_run.called
@@ -195,7 +195,7 @@ class TestValidateCommand:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(returncode=0)
 
-            result = cli_runner.invoke(
+            cli_runner.invoke(
                 specql, ["validate", *[str(f) for f in multiple_entity_files]]
             )
 
@@ -209,7 +209,7 @@ class TestValidateCommand:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(returncode=0)
 
-            result = cli_runner.invoke(
+            cli_runner.invoke(
                 specql, ["validate", str(sample_entity_file), "--check-impacts"]
             )
 
@@ -223,7 +223,7 @@ class TestValidateCommand:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(returncode=0)
 
-            result = cli_runner.invoke(
+            cli_runner.invoke(
                 specql, ["validate", str(sample_entity_file), "--verbose"]
             )
 
@@ -238,7 +238,7 @@ class TestValidateCommand:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(returncode=1)
 
-            result = cli_runner.invoke(specql, ["validate", str(sample_entity_file)])
+            cli_runner.invoke(specql, ["validate", str(sample_entity_file)])
 
             # The validate function calls subprocess.run
             assert mock_run.called

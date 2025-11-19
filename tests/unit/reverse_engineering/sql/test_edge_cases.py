@@ -4,7 +4,6 @@ Tests for SQL function edge cases and error handling
 These tests ensure robust error handling and edge case coverage.
 """
 
-import pytest
 from src.reverse_engineering.algorithmic_parser import AlgorithmicParser
 
 

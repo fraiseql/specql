@@ -5,18 +5,18 @@ Separates parser coordination logic from AST mapping logic.
 Provides centralized metrics and monitoring.
 """
 
-from typing import List, Dict, Any, Optional
-from dataclasses import dataclass, field
 import logging
 import re
+from dataclasses import dataclass, field
+from typing import Any
 
-from src.reverse_engineering.cte_parser import CTEParser
-from src.reverse_engineering.exception_handler_parser import ExceptionHandlerParser
-from src.reverse_engineering.dynamic_sql_parser import DynamicSQLParser
-from src.reverse_engineering.control_flow_parser import ControlFlowParser
-from src.reverse_engineering.window_function_parser import WindowFunctionParser
 from src.reverse_engineering.aggregate_filter_parser import AggregateFilterParser
+from src.reverse_engineering.control_flow_parser import ControlFlowParser
+from src.reverse_engineering.cte_parser import CTEParser
 from src.reverse_engineering.cursor_operations_parser import CursorOperationsParser
+from src.reverse_engineering.dynamic_sql_parser import DynamicSQLParser
+from src.reverse_engineering.exception_handler_parser import ExceptionHandlerParser
+from src.reverse_engineering.window_function_parser import WindowFunctionParser
 
 logger = logging.getLogger(__name__)
 
@@ -25,10 +25,10 @@ logger = logging.getLogger(__name__)
 class ParserResult:
     """Result from a specialized parser"""
 
-    steps: List[Any]  # ActionSteps from parser
+    steps: list[Any]  # ActionSteps from parser
     confidence_boost: float  # How much to boost confidence (0.0 - 1.0)
     parser_used: str  # Which parser produced this ('cte', 'exception', etc.)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
     success: bool = True
 
 
@@ -112,7 +112,7 @@ class ParserCoordinator:
 
     # ==================== Parser Execution Methods ====================
 
-    def parse_with_cte(self, sql: str) -> Optional[ParserResult]:
+    def parse_with_cte(self, sql: str) -> ParserResult | None:
         """Parse SQL with CTE parser"""
         self.metrics["cte"]["attempts"] += 1
 
@@ -151,7 +151,7 @@ class ParserCoordinator:
             logger.warning(f"CTE parser failed: {e}")
             return None
 
-    def parse_with_exception(self, sql: str) -> Optional[ParserResult]:
+    def parse_with_exception(self, sql: str) -> ParserResult | None:
         """Parse SQL with exception handler parser"""
         self.metrics["exception"]["attempts"] += 1
 
@@ -180,7 +180,7 @@ class ParserCoordinator:
             logger.warning(f"Exception parser failed: {e}")
             return None
 
-    def parse_with_dynamic_sql(self, sql: str) -> Optional[ParserResult]:
+    def parse_with_dynamic_sql(self, sql: str) -> ParserResult | None:
         """Parse SQL with dynamic SQL parser"""
         self.metrics["dynamic_sql"]["attempts"] += 1
 
@@ -207,7 +207,7 @@ class ParserCoordinator:
             logger.warning(f"Dynamic SQL parser failed: {e}")
             return None
 
-    def parse_with_control_flow(self, sql: str) -> Optional[ParserResult]:
+    def parse_with_control_flow(self, sql: str) -> ParserResult | None:
         """Parse SQL with control flow parser"""
         self.metrics["control_flow"]["attempts"] += 1
 
@@ -233,7 +233,7 @@ class ParserCoordinator:
             logger.warning(f"Control flow parser failed: {e}")
             return None
 
-    def parse_with_window(self, sql: str) -> Optional[ParserResult]:
+    def parse_with_window(self, sql: str) -> ParserResult | None:
         """Parse SQL with window function parser"""
         self.metrics["window"]["attempts"] += 1
 
@@ -259,7 +259,7 @@ class ParserCoordinator:
             logger.warning(f"Window function parser failed: {e}")
             return None
 
-    def parse_with_aggregate(self, sql: str) -> Optional[ParserResult]:
+    def parse_with_aggregate(self, sql: str) -> ParserResult | None:
         """Parse SQL with aggregate filter parser"""
         self.metrics["aggregate"]["attempts"] += 1
 
@@ -285,7 +285,7 @@ class ParserCoordinator:
             logger.warning(f"Aggregate parser failed: {e}")
             return None
 
-    def parse_with_cursor(self, sql: str) -> Optional[ParserResult]:
+    def parse_with_cursor(self, sql: str) -> ParserResult | None:
         """Parse SQL with cursor operations parser"""
         self.metrics["cursor"]["attempts"] += 1
 
@@ -313,7 +313,7 @@ class ParserCoordinator:
 
     # ==================== Coordination Method ====================
 
-    def parse_with_best_parsers(self, sql: str) -> List[ParserResult]:
+    def parse_with_best_parsers(self, sql: str) -> list[ParserResult]:
         """
         Parse SQL with all applicable parsers.
 
@@ -361,11 +361,11 @@ class ParserCoordinator:
 
     # ==================== Metrics Methods ====================
 
-    def get_metrics(self) -> Dict[str, Dict[str, int]]:
+    def get_metrics(self) -> dict[str, dict[str, int]]:
         """Get raw metrics for all parsers"""
         return self.metrics.copy()
 
-    def get_success_rates(self) -> Dict[str, float]:
+    def get_success_rates(self) -> dict[str, float]:
         """Calculate success rate for each parser"""
         rates = {}
 

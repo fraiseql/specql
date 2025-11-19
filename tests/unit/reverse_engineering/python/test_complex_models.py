@@ -5,7 +5,6 @@ These tests target capabilities that currently have low confidence
 and need enhancement to reach 90%+ confidence.
 """
 
-import pytest
 from src.reverse_engineering.python_ast_parser import PythonASTParser
 
 
@@ -106,7 +105,7 @@ class ContactService:
         result = self.parser.parse_entity(python_code)
 
         fetch_method = next(m for m in result.methods if m.method_name == "fetch_contacts")
-        assert fetch_method.is_async == True
+        assert fetch_method.is_async
         # Async/await is captured in body
         assert any("await" in str(line) for line in fetch_method.body_lines)
         # NOTE: Async context manager detection in metadata not yet implemented
@@ -133,14 +132,14 @@ class Contact:
         result = self.parser.parse_entity(python_code)
 
         from_dict_method = next(m for m in result.methods if m.method_name == "from_dict")
-        assert from_dict_method.is_classmethod == True
+        assert from_dict_method.is_classmethod
 
         validate_method = next(m for m in result.methods if m.method_name == "validate_email")
-        assert validate_method.is_staticmethod == True
+        assert validate_method.is_staticmethod
 
         instance_method = next(m for m in result.methods if m.method_name == "instance_method")
-        assert instance_method.is_classmethod == False
-        assert instance_method.is_staticmethod == False
+        assert not instance_method.is_classmethod
+        assert not instance_method.is_staticmethod
         # EXPECTED: FAIL (classmethod/staticmethod not detected)
 
     def test_dataclass_with_defaults(self):
@@ -163,10 +162,10 @@ class Contact:
 
         # Check field parsing
         email_field = next(f for f in result.fields if f.field_name == "email")
-        assert email_field.required == True
+        assert email_field.required
 
         company_field = next(f for f in result.fields if f.field_name == "company_id")
-        assert company_field.required == False
+        assert not company_field.required
         assert company_field.default is None
 
         tags_field = next(f for f in result.fields if f.field_name == "tags")

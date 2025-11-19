@@ -11,9 +11,8 @@ Platform-agnostic expression of infrastructure that can be converted to:
 """
 
 from dataclasses import dataclass, field
-from typing import List, Dict, Optional, Any, Literal
 from enum import Enum
-
+from typing import Any, Literal
 
 # ============================================================================
 # Cloud Providers
@@ -52,9 +51,9 @@ class ComputeConfig:
     memory_target: int = 80  # Target memory percentage
 
     # Advanced
-    instance_type: Optional[str] = None  # Cloud-specific (t3.medium, n1-standard-1)
+    instance_type: str | None = None  # Cloud-specific (t3.medium, n1-standard-1)
     spot_instances: bool = False  # Use spot/preemptible instances
-    availability_zones: List[str] = field(default_factory=list)
+    availability_zones: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -64,15 +63,15 @@ class ContainerConfig:
     image: str
     tag: str = "latest"
     port: int = 8000
-    environment: Dict[str, str] = field(default_factory=dict)
-    secrets: Dict[str, str] = field(default_factory=dict)
-    volumes: List["Volume"] = field(default_factory=list)
+    environment: dict[str, str] = field(default_factory=dict)
+    secrets: dict[str, str] = field(default_factory=dict)
+    volumes: list["Volume"] = field(default_factory=list)
 
     # Resource limits
-    cpu_limit: Optional[float] = None
-    memory_limit: Optional[str] = None
-    cpu_request: Optional[float] = None
-    memory_request: Optional[str] = None
+    cpu_limit: float | None = None
+    memory_limit: str | None = None
+    cpu_request: float | None = None
+    memory_request: str | None = None
 
     # Health checks
     health_check_path: str = "/health"
@@ -104,7 +103,7 @@ class DatabaseConfig:
 
     # Size
     storage: str = "50GB"
-    instance_class: Optional[str] = None  # db.t3.medium
+    instance_class: str | None = None  # db.t3.medium
 
     # High Availability
     multi_az: bool = False
@@ -124,7 +123,7 @@ class DatabaseConfig:
     publicly_accessible: bool = False
 
     # Performance
-    iops: Optional[int] = None
+    iops: int | None = None
     storage_type: str = "gp3"  # gp2, gp3, io1
 
 
@@ -142,7 +141,7 @@ class LoadBalancerConfig:
 
     # SSL/TLS
     https: bool = True
-    certificate_domain: Optional[str] = None
+    certificate_domain: str | None = None
     ssl_policy: str = "recommended"
 
     # Routing
@@ -163,16 +162,16 @@ class NetworkConfig:
 
     # VPC/Virtual Network
     vpc_cidr: str = "10.0.0.0/16"
-    public_subnets: List[str] = field(default_factory=lambda: ["10.0.1.0/24", "10.0.2.0/24"])
-    private_subnets: List[str] = field(default_factory=lambda: ["10.0.10.0/24", "10.0.20.0/24"])
+    public_subnets: list[str] = field(default_factory=lambda: ["10.0.1.0/24", "10.0.2.0/24"])
+    private_subnets: list[str] = field(default_factory=lambda: ["10.0.10.0/24", "10.0.20.0/24"])
 
     # Internet access
     enable_nat_gateway: bool = True
     enable_vpn_gateway: bool = False
 
     # DNS
-    custom_domain: Optional[str] = None
-    subdomain: Optional[str] = None
+    custom_domain: str | None = None
+    subdomain: str | None = None
 
 
 @dataclass
@@ -205,7 +204,7 @@ class Volume:
 class ObjectStorageConfig:
     """Object storage (S3, GCS, Azure Blob)"""
 
-    buckets: List["Bucket"] = field(default_factory=list)
+    buckets: list["Bucket"] = field(default_factory=list)
 
 
 @dataclass
@@ -214,7 +213,7 @@ class Bucket:
 
     name: str
     versioning: bool = False
-    lifecycle_rules: List[Dict[str, Any]] = field(default_factory=list)
+    lifecycle_rules: list[dict[str, Any]] = field(default_factory=list)
     public_access: bool = False
     encryption: bool = True
 
@@ -243,7 +242,7 @@ class ObservabilityConfig:
     tracing_sample_rate: float = 0.1
 
     # Alerting
-    alerts: List["Alert"] = field(default_factory=list)
+    alerts: list["Alert"] = field(default_factory=list)
 
 
 @dataclass
@@ -253,7 +252,7 @@ class Alert:
     name: str
     condition: str  # e.g., "cpu > 80%", "error_rate > 1%"
     duration: int = 300  # seconds
-    notification_channels: List[str] = field(default_factory=list)
+    notification_channels: list[str] = field(default_factory=list)
 
 
 # ============================================================================
@@ -300,8 +299,8 @@ class FirewallRule:
 
     name: str
     protocol: Literal["tcp", "udp", "icmp", "all"]
-    ports: List[int] = field(default_factory=list)
-    port_ranges: List[str] = field(default_factory=list)  # e.g., "8000-9000"
+    ports: list[int] = field(default_factory=list)
+    port_ranges: list[str] = field(default_factory=list)  # e.g., "8000-9000"
     source: str = "0.0.0.0/0"  # CIDR or tier name
     destination: str = "self"  # CIDR or tier name
     action: Literal["allow", "deny"] = "allow"
@@ -318,7 +317,7 @@ class FirewallRule:
             raise ValueError("Cannot specify both ports and port_ranges")
 
     @property
-    def all_ports(self) -> List[int]:
+    def all_ports(self) -> list[int]:
         """Get all ports covered by this rule"""
         ports = self.ports.copy()
         for port_range in self.port_ranges:
@@ -333,8 +332,8 @@ class NetworkTier:
     """Network tier for multi-tier architectures"""
 
     name: str  # web, api, database, admin
-    cidr_blocks: List[str] = field(default_factory=list)
-    firewall_rules: List[FirewallRule] = field(default_factory=list)
+    cidr_blocks: list[str] = field(default_factory=list)
+    firewall_rules: list[FirewallRule] = field(default_factory=list)
 
     def __post_init__(self):
         """Validate network tier after initialization"""
@@ -356,7 +355,7 @@ class NetworkTier:
         except ValueError:
             return False
 
-    def get_inbound_rules(self) -> List[FirewallRule]:
+    def get_inbound_rules(self) -> list[FirewallRule]:
         """Get all inbound firewall rules for this tier"""
         return [
             rule
@@ -364,7 +363,7 @@ class NetworkTier:
             if rule.destination == self.name or rule.destination == "self"
         ]
 
-    def get_outbound_rules(self) -> List[FirewallRule]:
+    def get_outbound_rules(self) -> list[FirewallRule]:
         """Get all outbound firewall rules for this tier"""
         return [
             rule
@@ -390,11 +389,11 @@ class WAFConfig:
 
     enabled: bool = False
     mode: Literal["detection", "prevention"] = "prevention"
-    rule_sets: List[str] = field(default_factory=lambda: ["OWASP_TOP_10"])
+    rule_sets: list[str] = field(default_factory=lambda: ["OWASP_TOP_10"])
     rate_limiting: bool = True
-    geo_blocking: List[str] = field(default_factory=list)  # ISO country codes
-    ip_blacklist: List[str] = field(default_factory=list)
-    ip_whitelist: List[str] = field(default_factory=list)
+    geo_blocking: list[str] = field(default_factory=list)  # ISO country codes
+    ip_blacklist: list[str] = field(default_factory=list)
+    ip_whitelist: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -404,7 +403,7 @@ class VPNConfig:
     enabled: bool = False
     type: Literal["site-to-site", "client-vpn", "private-link"] = "site-to-site"
     remote_cidr: str = "192.168.0.0/16"
-    bgp_asn: Optional[int] = None
+    bgp_asn: int | None = None
 
 
 @dataclass
@@ -415,14 +414,14 @@ class SecurityConfig:
     secrets_provider: Literal["aws_secrets", "gcp_secrets", "azure_keyvault", "vault"] = (
         "aws_secrets"
     )
-    secrets: Dict[str, str] = field(default_factory=dict)
+    secrets: dict[str, str] = field(default_factory=dict)
 
     # IAM/RBAC
-    service_account: Optional[str] = None
-    iam_roles: List[str] = field(default_factory=list)
+    service_account: str | None = None
+    iam_roles: list[str] = field(default_factory=list)
 
     # Network Security
-    allowed_ip_ranges: List[str] = field(default_factory=lambda: ["0.0.0.0/0"])
+    allowed_ip_ranges: list[str] = field(default_factory=lambda: ["0.0.0.0/0"])
     enable_waf: bool = False
 
     # Compliance
@@ -431,9 +430,9 @@ class SecurityConfig:
     audit_logging: bool = True
 
     # Enhanced security primitives
-    network_tiers: List[NetworkTier] = field(default_factory=list)
-    firewall_rules: List[FirewallRule] = field(default_factory=list)
-    compliance_preset: Optional[CompliancePreset] = None
+    network_tiers: list[NetworkTier] = field(default_factory=list)
+    firewall_rules: list[FirewallRule] = field(default_factory=list)
+    compliance_preset: CompliancePreset | None = None
     waf: WAFConfig = field(default_factory=WAFConfig)
     vpn: VPNConfig = field(default_factory=VPNConfig)
 
@@ -467,18 +466,18 @@ class UniversalInfrastructure:
     environment: Literal["development", "staging", "production"] = "production"
 
     # Resources
-    compute: Optional[ComputeConfig] = None
-    container: Optional[ContainerConfig] = None
-    database: Optional[DatabaseConfig] = None
+    compute: ComputeConfig | None = None
+    container: ContainerConfig | None = None
+    database: DatabaseConfig | None = None
 
     # Networking
     network: NetworkConfig = field(default_factory=NetworkConfig)
-    load_balancer: Optional[LoadBalancerConfig] = None
-    cdn: Optional[CDNConfig] = None
+    load_balancer: LoadBalancerConfig | None = None
+    cdn: CDNConfig | None = None
 
     # Storage
-    volumes: List[Volume] = field(default_factory=list)
-    object_storage: Optional[ObjectStorageConfig] = None
+    volumes: list[Volume] = field(default_factory=list)
+    object_storage: ObjectStorageConfig | None = None
 
     # Observability
     observability: ObservabilityConfig = field(default_factory=ObservabilityConfig)
@@ -487,15 +486,15 @@ class UniversalInfrastructure:
     security: SecurityConfig = field(default_factory=SecurityConfig)
 
     # Tags/Labels
-    tags: Dict[str, str] = field(default_factory=dict)
+    tags: dict[str, str] = field(default_factory=dict)
 
     # Pattern metadata
-    pattern_id: Optional[str] = None
-    category: Optional[str] = None
-    embedding: Optional[List[float]] = None
+    pattern_id: str | None = None
+    category: str | None = None
+    embedding: list[float] | None = None
 
     # Cost estimation
-    estimated_monthly_cost: Optional[float] = None
+    estimated_monthly_cost: float | None = None
 
     def to_terraform_aws(self) -> str:
         """Convert to Terraform for AWS"""

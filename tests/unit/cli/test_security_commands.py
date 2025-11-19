@@ -1,9 +1,9 @@
 """Tests for security CLI commands"""
 
-import pytest
 from pathlib import Path
-from click.testing import CliRunner
 from unittest.mock import patch
+
+from click.testing import CliRunner
 
 
 class TestSecurityCLI:

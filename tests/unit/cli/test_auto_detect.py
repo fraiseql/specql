@@ -1,11 +1,10 @@
 """Tests for auto-detection functionality."""
 
+
 import pytest
-from pathlib import Path
-from unittest.mock import patch
 
 from src.cli.confiture_extensions import specql
-from src.core.dependencies import TREE_SITTER_RUST, PGLAST
+from src.core.dependencies import PGLAST, TREE_SITTER_RUST
 
 
 class TestAutoDetection:

@@ -2,16 +2,16 @@
 Pattern Applicator - Apply detected patterns to AST for enhanced SpecQL output
 """
 
-from typing import Dict, Any, List
 from dataclasses import dataclass
+from typing import Any
 
 
 @dataclass
 class ASTResult:
     """Mock AST result structure - replace with actual AST types"""
 
-    fields: Dict[str, Any] = None  # type: ignore
-    metadata: Dict[str, Any] = None  # type: ignore
+    fields: dict[str, Any] = None  # type: ignore
+    metadata: dict[str, Any] = None  # type: ignore
 
     def __post_init__(self):
         if self.fields is None:
@@ -33,7 +33,7 @@ class ASTResult:
             self.fields[field_name].constraints[constraint_type] = value
 
 
-def apply_patterns_to_ast(ast_result: Any, detected_patterns: Dict[str, Dict]) -> Any:
+def apply_patterns_to_ast(ast_result: Any, detected_patterns: dict[str, dict]) -> Any:
     """Apply detected patterns to AST to enrich SpecQL output
 
     Args:

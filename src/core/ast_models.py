@@ -145,7 +145,7 @@ class FieldDefinition:
 
     # Computed column support
     is_computed: bool = False
-    computed_expression: Optional[str] = None
+    computed_expression: str | None = None
 
     # Tier classification
     tier: FieldTier = FieldTier.BASIC
@@ -353,16 +353,16 @@ class EntityDefinition:
     identifier: IdentifierConfig | None = None
 
     # NEW: SCD Type 2 support
-    tracked_fields: Optional[list[str]] = None
+    tracked_fields: list[str] | None = None
     natural_key_fields: list[str] = field(default_factory=list)
     version_tracking_enabled: bool = False
-    history_table_name: Optional[str] = None
+    history_table_name: str | None = None
 
     def has_scd_type2_pattern(self) -> bool:
         """Check if entity uses SCD Type 2 pattern."""
         return any(p.type == "temporal_scd_type2_helper" for p in self.patterns)
 
-    def get_scd_type2_config(self) -> Optional[dict[str, Any]]:
+    def get_scd_type2_config(self) -> dict[str, Any] | None:
         """Get SCD Type 2 pattern configuration."""
         for pattern in self.patterns:
             if pattern.type == "temporal_scd_type2_helper":

@@ -1,14 +1,14 @@
 """Compliance preset manager for automatic security control application"""
 
 from dataclasses import replace
-from typing import Dict, Any, List
+from typing import Any
+
 from src.infrastructure.universal_infra_schema import (
     CompliancePreset,
-    SecurityConfig,
+    FirewallRule,
+    NetworkTier,
     UniversalInfrastructure,
     WAFConfig,
-    NetworkTier,
-    FirewallRule,
 )
 
 
@@ -149,7 +149,7 @@ class CompliancePresetManager:
             ),
         ]
 
-    def validate_compliance(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def validate_compliance(self, infrastructure: UniversalInfrastructure) -> dict[str, Any]:
         """Validate infrastructure against compliance requirements"""
         if not infrastructure.security.compliance_preset:
             return {"compliant": True, "gaps": []}
@@ -243,7 +243,7 @@ class CompliancePresetManager:
         return gaps
 
     def combine_presets(
-        self, infrastructure: UniversalInfrastructure, presets: List[CompliancePreset]
+        self, infrastructure: UniversalInfrastructure, presets: list[CompliancePreset]
     ) -> UniversalInfrastructure:
         """Apply multiple compliance presets (most restrictive wins)"""
         if not presets:
@@ -264,7 +264,7 @@ class CompliancePresetManager:
 
         return result
 
-    def get_preset_requirements(self, preset: CompliancePreset) -> Dict[str, Any]:
+    def get_preset_requirements(self, preset: CompliancePreset) -> dict[str, Any]:
         """Get detailed requirements for a compliance preset"""
         requirements = {
             CompliancePreset.PCI_DSS: {

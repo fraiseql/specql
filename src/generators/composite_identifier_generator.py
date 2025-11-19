@@ -5,7 +5,6 @@ When a referenced entity's identifier changes, composite identifiers
 that include it must be recalculated.
 """
 
-from src.core.ast_models import Entity
 
 
 class CompositeIdentifierGenerator:

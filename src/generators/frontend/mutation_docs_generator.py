@@ -370,9 +370,9 @@ Common error codes across all mutations:
             action: The action
         """
         action_name = action.name
-        pascal_name = self._to_pascal_case(action_name)
+        self._to_pascal_case(action_name)
         camel_name = self._to_camel_case(action_name)
-        hook_name = f"use{camel_name[0].upper()}{camel_name[1:]}"
+        f"use{camel_name[0].upper()}{camel_name[1:]}"
 
         self.docs.append("#### Usage Example")
         self.docs.append("")

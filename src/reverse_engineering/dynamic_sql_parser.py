@@ -7,7 +7,7 @@ Handles PostgreSQL PL/pgSQL dynamic SQL syntax:
 - EXECUTE IMMEDIATE (future extension)
 """
 
-from typing import List
+
 from src.core.ast_models import ActionStep
 
 
@@ -17,7 +17,7 @@ class DynamicSQLParser:
     def __init__(self):
         self.confidence_boost = 0.12  # Confidence boost for successful dynamic SQL parsing
 
-    def parse(self, sql_text: str) -> List[ActionStep]:
+    def parse(self, sql_text: str) -> list[ActionStep]:
         """
         Parse EXECUTE statement from SQL text
 

@@ -7,12 +7,13 @@ Usage:
     specql reverse function.sql --no-ai --preview
 """
 
-import click
 from pathlib import Path
-from typing import List, Tuple
+
+import click
 from rich.console import Console
+
+from src.core.dependencies import PGLAST
 from src.reverse_engineering.algorithmic_parser import AlgorithmicParser
-from src.core.dependencies import PGLAST, TREE_SITTER
 
 console = Console()
 
@@ -49,7 +50,7 @@ def reverse(sql_files, output_dir, min_confidence, no_ai, preview, compare, use_
 
         try:
             # Read SQL
-            with open(sql_file, "r") as f:
+            with open(sql_file) as f:
                 sql = f.read()
 
             # Parse and enhance
@@ -94,9 +95,9 @@ def _write_yaml_file(result, output_dir, sql_file):
     click.echo(f"   💾 Written to {output_path}")
 
 
-def _print_summary(results: List[Tuple[str, any]], min_confidence: float):
+def _print_summary(results: list[tuple[str, any]], min_confidence: float):
     """Print processing summary"""
-    click.echo(f"\n📊 Summary:")
+    click.echo("\n📊 Summary:")
     click.echo(f"  Total files: {len(results)}")
 
     successful_results = [r for _, r in results if r is not None]
@@ -114,9 +115,9 @@ def _print_summary(results: List[Tuple[str, any]], min_confidence: float):
         click.echo(f"  Failed: {failed_count}")
 
 
-def _generate_comparison_report(results: List[Tuple[str, any]]):
+def _generate_comparison_report(results: list[tuple[str, any]]):
     """Generate comparison report between original SQL and generated YAML"""
-    click.echo(f"\n📋 Comparison Report:")
+    click.echo("\n📋 Comparison Report:")
 
     for sql_file, result in results:
         if result is None:
@@ -155,7 +156,7 @@ def reverse_sql(input_sql: str):
     # Import and proceed
     from src.reverse_engineering.sql_ast_parser import SQLASTParser
 
-    parser = SQLASTParser()
+    SQLASTParser()
     # ... rest of implementation
     console.print(f"[green]Successfully parsed SQL file:[/green] {input_sql}")
     console.print("Note: Full implementation pending - this is a placeholder command")

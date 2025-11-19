@@ -1,7 +1,9 @@
-import click
 from pathlib import Path
-from typing import List
+
+import click
+
 from src.reverse_engineering.universal_pattern_detector import UniversalPatternDetector
+
 from .language_detector import LanguageDetector
 
 

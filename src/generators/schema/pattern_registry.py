@@ -1,8 +1,9 @@
 """Pattern registry for loading and managing schema patterns."""
 
 from pathlib import Path
+from typing import Any
+
 import yaml
-from typing import Dict, Any
 
 from src.utils.logger import get_logger
 
@@ -14,7 +15,7 @@ class PatternRegistry:
 
     def __init__(self, pattern_dir: Path = Path("stdlib/schema")):
         self.pattern_dir = pattern_dir
-        self.patterns: Dict[str, Dict[str, Any]] = {}
+        self.patterns: dict[str, dict[str, Any]] = {}
         self._load_patterns()
 
     def _load_patterns(self) -> None:
@@ -48,7 +49,7 @@ class PatternRegistry:
             # Log but don't fail - allow partial loading
             logger.warning(f"Failed to load pattern {pattern_file}: {e}")
 
-    def get_pattern(self, pattern_type: str) -> Dict[str, Any]:
+    def get_pattern(self, pattern_type: str) -> dict[str, Any]:
         """Get pattern specification by type."""
         if pattern_type not in self.patterns:
             available = list(self.patterns.keys())

@@ -7,7 +7,8 @@ Handles PostgreSQL PL/pgSQL exception handling syntax:
 - WHEN OTHERS clause
 """
 
-from typing import List, Dict, Any
+from typing import Any
+
 from src.core.ast_models import ActionStep
 
 
@@ -17,7 +18,7 @@ class ExceptionHandlerParser:
     def __init__(self):
         self.confidence_boost = 0.15  # Confidence boost for successful exception parsing
 
-    def parse(self, sql_text: str) -> List[ActionStep]:
+    def parse(self, sql_text: str) -> list[ActionStep]:
         """
         Parse EXCEPTION block from SQL text
 
@@ -34,11 +35,11 @@ class ExceptionHandlerParser:
         if len(parts) != 2:
             return steps
 
-        try_block = parts[0].strip()
+        parts[0].strip()
         exception_block = parts[1].strip()
 
         # Parse exception handlers
-        handlers = self._parse_exception_handlers(exception_block)
+        self._parse_exception_handlers(exception_block)
 
         # Create try/except step
         steps.append(
@@ -52,7 +53,7 @@ class ExceptionHandlerParser:
 
         return steps
 
-    def _parse_exception_handlers(self, exception_text: str) -> List[Dict[str, Any]]:
+    def _parse_exception_handlers(self, exception_text: str) -> list[dict[str, Any]]:
         """
         Parse individual WHEN clauses from exception block
 

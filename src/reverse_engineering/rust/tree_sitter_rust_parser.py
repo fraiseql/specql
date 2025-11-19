@@ -4,9 +4,8 @@ Rust AST parser using tree-sitter
 Parses Rust source code into an AST for route extraction
 """
 
-from typing import Optional
 import tree_sitter_rust as ts_rust
-from tree_sitter import Language, Parser, Node
+from tree_sitter import Language, Node, Parser
 
 
 class RustParser:

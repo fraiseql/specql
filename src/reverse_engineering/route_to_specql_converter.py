@@ -5,10 +5,8 @@ Maps HTTP routes to SpecQL actions
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
-import yaml
 
-from src.core.ast_models import Action, ActionStep
+import yaml
 
 
 @dataclass
@@ -16,14 +14,14 @@ class SpecQLAction:
     """Represents a SpecQL action"""
 
     name: str
-    steps: List[dict]
+    steps: list[dict]
 
 
 class RouteToSpecQLConverter:
     """Convert HTTP routes to SpecQL actions"""
 
     def convert_route(
-        self, method: str, path: str, handler_name: Optional[str] = None
+        self, method: str, path: str, handler_name: str | None = None
     ) -> SpecQLAction:
         """
         Convert HTTP route to SpecQL action
@@ -76,7 +74,7 @@ class RouteToSpecQLConverter:
 
         return f"{prefix}_{entity}"
 
-    def _generate_steps(self, method: str, path: str) -> List[dict]:
+    def _generate_steps(self, method: str, path: str) -> list[dict]:
         """
         Generate action steps based on HTTP method
 
@@ -138,7 +136,7 @@ class RouteToSpecQLConverter:
 
         return entity.capitalize()
 
-    def to_yaml(self, actions: List[SpecQLAction]) -> str:
+    def to_yaml(self, actions: list[SpecQLAction]) -> str:
         """Convert actions to YAML format"""
         data = {"actions": [{"name": action.name, "steps": action.steps} for action in actions]}
 

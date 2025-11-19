@@ -4,9 +4,6 @@ Parser Metrics Dashboard
 Display real-time metrics from ParserCoordinator.
 """
 
-import sys
-from typing import Dict, List
-from pathlib import Path
 
 
 def format_percentage(value: float) -> str:
@@ -14,7 +11,7 @@ def format_percentage(value: float) -> str:
     return f"{value * 100:6.1f}%"
 
 
-def print_success_rates_table(rates: Dict[str, float], metrics: Dict[str, Dict[str, int]]):
+def print_success_rates_table(rates: dict[str, float], metrics: dict[str, dict[str, int]]):
     """Print formatted success rates table"""
     print("\n" + "="*70)
     print("PARSER SUCCESS RATES")

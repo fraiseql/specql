@@ -8,7 +8,7 @@ Parses Actix route macros:
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
+
 from tree_sitter import Node
 
 from .tree_sitter_rust_parser import RustParser
@@ -20,7 +20,7 @@ class ActixRoute:
 
     method: str  # GET, POST, PUT, DELETE
     path: str  # /users/{id}
-    handler_name: Optional[str] = None
+    handler_name: str | None = None
 
 
 class ActixRouteExtractor:
@@ -29,7 +29,7 @@ class ActixRouteExtractor:
     def __init__(self):
         self.parser = RustParser()
 
-    def extract_routes(self, source_code: str) -> List[ActixRoute]:
+    def extract_routes(self, source_code: str) -> list[ActixRoute]:
         """
         Extract all Actix routes from source code
 
@@ -63,7 +63,7 @@ class ActixRouteExtractor:
 
         return routes
 
-    def _parse_attribute_route(self, node: Node, source_code: str) -> Optional[ActixRoute]:
+    def _parse_attribute_route(self, node: Node, source_code: str) -> ActixRoute | None:
         """
         Parse route from attribute macro
 

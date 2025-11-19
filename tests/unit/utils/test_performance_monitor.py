@@ -6,13 +6,12 @@ Following TDD: RED phase - these tests should FAIL initially
 
 import json
 import time
-from pathlib import Path
 
 import pytest
 
 from src.utils.performance_monitor import (
-    PerformanceMonitor,
     PerformanceMetrics,
+    PerformanceMonitor,
     get_performance_monitor,
 )
 

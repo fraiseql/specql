@@ -4,8 +4,7 @@ Prisma schema generator for TypeScript/Prisma projects.
 Generates schema.prisma files from UniversalEntity objects.
 """
 
-from typing import List, Dict, Optional
-from src.core.universal_ast import UniversalEntity, UniversalField, FieldType
+from src.core.universal_ast import FieldType, UniversalEntity, UniversalField
 
 
 class PrismaSchemaGenerator:
@@ -20,7 +19,7 @@ class PrismaSchemaGenerator:
             FieldType.RICH: "Json",  # Use Json for rich/complex types
         }
 
-    def generate(self, entities: List[UniversalEntity]) -> str:
+    def generate(self, entities: list[UniversalEntity]) -> str:
         """
         Generate complete Prisma schema from list of entities.
 
@@ -62,7 +61,7 @@ datasource db {
   url      = env("DATABASE_URL")
 }"""
 
-    def _generate_enums(self, entity: UniversalEntity) -> List[str]:
+    def _generate_enums(self, entity: UniversalEntity) -> list[str]:
         """Generate enum declarations for entity."""
         enums = []
 
@@ -160,7 +159,7 @@ datasource db {
 
         return field_line
 
-    def write_schema(self, entities: List[UniversalEntity], output_path: str):
+    def write_schema(self, entities: list[UniversalEntity], output_path: str):
         """
         Generate and write Prisma schema to file.
 

@@ -276,7 +276,7 @@ class TestEntitySeedGenerator:
         generator.uuid_gen = mock_uuid_gen
         generator.field_gen = mock_field_gen
 
-        result = generator.generate(scenario=0, instance=5)
+        generator.generate(scenario=0, instance=5)
 
         # Check that context includes instance_num
         mock_field_gen.generate.assert_called_once()

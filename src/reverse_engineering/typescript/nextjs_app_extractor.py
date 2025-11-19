@@ -7,7 +7,6 @@ Parses Next.js API routes in app/api/*:
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
 from pathlib import Path
 
 from .tree_sitter_parser import TypeScriptParser
@@ -18,7 +17,7 @@ class NextJSAppRoute:
     """Represents a Next.js App Router API route"""
 
     path: str
-    methods: List[str]  # GET, POST, etc.
+    methods: list[str]  # GET, POST, etc.
     is_dynamic: bool = False
 
 
@@ -28,7 +27,7 @@ class NextJSAppExtractor:
     def __init__(self):
         self.parser = TypeScriptParser()
 
-    def extract_route_from_file(self, file_path: str, source_code: str) -> Optional[NextJSAppRoute]:
+    def extract_route_from_file(self, file_path: str, source_code: str) -> NextJSAppRoute | None:
         """
         Extract route from Next.js App Router file
 
@@ -89,7 +88,7 @@ class NextJSAppExtractor:
         url = "/" + "/".join(parts)
         return url
 
-    def _extract_exported_methods(self, ast, source_code: str) -> List[str]:
+    def _extract_exported_methods(self, ast, source_code: str) -> list[str]:
         """
         Extract exported HTTP method functions
 

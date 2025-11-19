@@ -1,7 +1,6 @@
 import json
-from pathlib import Path
-from typing import Dict, Set, List
 from datetime import datetime
+from pathlib import Path
 
 
 class IncrementalTracker:
@@ -12,7 +11,7 @@ class IncrementalTracker:
         self.state_file = self.output_dir / ".specql_state.json"
         self.state = self._load_state()
 
-    def _load_state(self) -> Dict[str, dict]:
+    def _load_state(self) -> dict[str, dict]:
         """Load previous processing state"""
         if not self.state_file.exists():
             return {}
@@ -45,6 +44,6 @@ class IncrementalTracker:
         }
         self._save_state()
 
-    def get_changed_files(self, all_files: List[Path]) -> Set[Path]:
+    def get_changed_files(self, all_files: list[Path]) -> set[Path]:
         """Get list of files that have changed"""
         return {f for f in all_files if self.needs_processing(f)}

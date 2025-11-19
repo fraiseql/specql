@@ -1,5 +1,6 @@
+
 import yaml
-from typing import List, Dict, Any
+
 from src.core.ast_models import Action
 from src.reverse_engineering.protocols import ParsedEntity, ParsedMethod, SourceLanguage
 
@@ -13,8 +14,8 @@ class UniversalASTMapper:
 
     def __init__(self):
         # Language-specific mappers
-        from src.reverse_engineering.python_to_specql_mapper import PythonToSpecQLMapper
         from src.reverse_engineering.ast_to_specql_mapper import ASTToSpecQLMapper
+        from src.reverse_engineering.python_to_specql_mapper import PythonToSpecQLMapper
 
         self.mappers = {
             SourceLanguage.PYTHON: PythonToSpecQLMapper(),
@@ -79,7 +80,7 @@ class UniversalASTMapper:
 
         return field_dict
 
-    def _detect_patterns(self, entity: ParsedEntity) -> List[str]:
+    def _detect_patterns(self, entity: ParsedEntity) -> list[str]:
         """Detect cross-language patterns"""
         patterns = []
 

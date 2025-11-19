@@ -1,8 +1,7 @@
 """Integration tests for project-level reverse engineering."""
 
+
 import pytest
-from pathlib import Path
-import tempfile
 from click.testing import CliRunner
 
 from src.cli.confiture_extensions import specql

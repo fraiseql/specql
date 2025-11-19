@@ -2,6 +2,7 @@
 
 import tempfile
 from pathlib import Path
+
 from click.testing import CliRunner
 
 from src.cli.confiture_extensions import specql

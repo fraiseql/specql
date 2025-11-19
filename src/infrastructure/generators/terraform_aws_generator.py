@@ -4,16 +4,17 @@ Terraform AWS Generator
 Generates Terraform configuration for AWS from universal infrastructure format.
 """
 
-from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
-from typing import Optional
-from src.infrastructure.universal_infra_schema import UniversalInfrastructure, DatabaseType
+
+from jinja2 import Environment, FileSystemLoader
+
+from src.infrastructure.universal_infra_schema import DatabaseType, UniversalInfrastructure
 
 
 class TerraformAWSGenerator:
     """Generate Terraform configuration for AWS from universal format"""
 
-    def __init__(self, template_dir: Optional[Path] = None):
+    def __init__(self, template_dir: Path | None = None):
         if template_dir is None:
             template_dir = Path(__file__).parent.parent.parent.parent / "templates" / "infrastructure"
 

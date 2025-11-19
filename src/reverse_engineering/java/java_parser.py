@@ -6,14 +6,14 @@ Parses Java files, extracts JPA entities, and converts to SpecQL format.
 """
 
 import os
-from pathlib import Path
-from typing import List, Optional, Dict, Any
 from dataclasses import dataclass, field
+from pathlib import Path
+from typing import Any
 
-from src.reverse_engineering.java.jdt_bridge import get_jdt_bridge
-from src.reverse_engineering.java.jpa_visitor import JPAAnnotationVisitor
-from src.reverse_engineering.java.jpa_to_specql import JPAToSpecQLConverter
 from src.core.ast_models import Entity
+from src.reverse_engineering.java.jdt_bridge import get_jdt_bridge
+from src.reverse_engineering.java.jpa_to_specql import JPAToSpecQLConverter
+from src.reverse_engineering.java.jpa_visitor import JPAAnnotationVisitor
 
 
 @dataclass
@@ -21,16 +21,16 @@ class JavaParseResult:
     """Result of parsing a Java file"""
 
     file_path: str
-    entities: List[Entity]
-    errors: List[str] = field(default_factory=list)
+    entities: list[Entity]
+    errors: list[str] = field(default_factory=list)
 
 
 @dataclass
 class JavaParseConfig:
     """Configuration for Java parsing"""
 
-    include_patterns: List[str] = field(default_factory=lambda: ["*.java"])
-    exclude_patterns: List[str] = field(
+    include_patterns: list[str] = field(default_factory=lambda: ["*.java"])
+    exclude_patterns: list[str] = field(
         default_factory=lambda: ["**/test/**", "**/*Test.java"]
     )
     min_confidence: float = 0.8
@@ -58,7 +58,7 @@ class JavaParser:
 
         try:
             # Read Java source
-            with open(file_path, "r", encoding="utf-8") as f:
+            with open(file_path, encoding="utf-8") as f:
                 source_code = f.read()
 
             # Parse with JDT
@@ -92,8 +92,8 @@ class JavaParser:
         return JavaParseResult(file_path=file_path, entities=entities, errors=errors)
 
     def parse_directory(
-        self, directory_path: str, config: Optional[JavaParseConfig] = None
-    ) -> List[JavaParseResult]:
+        self, directory_path: str, config: JavaParseConfig | None = None
+    ) -> list[JavaParseResult]:
         """
         Parse all Java files in a directory
 
@@ -120,8 +120,8 @@ class JavaParser:
         return results
 
     def parse_package(
-        self, package_path: str, config: Optional[JavaParseConfig] = None
-    ) -> Dict[str, List[Entity]]:
+        self, package_path: str, config: JavaParseConfig | None = None
+    ) -> dict[str, list[Entity]]:
         """
         Parse a Java package and return entities grouped by file
 
@@ -144,7 +144,7 @@ class JavaParser:
 
     def _find_java_files(
         self, directory_path: str, config: JavaParseConfig
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Find all Java files in directory matching patterns
 
@@ -185,7 +185,7 @@ class JavaParser:
 
         return sorted(java_files)
 
-    def _matches_include(self, filename: str, patterns: List[str]) -> bool:
+    def _matches_include(self, filename: str, patterns: list[str]) -> bool:
         """Check if filename matches any include pattern"""
         for pattern in patterns:
             if pattern.startswith("*"):
@@ -196,7 +196,7 @@ class JavaParser:
                 return True
         return False
 
-    def _matches_exclude(self, dirname: str, patterns: List[str]) -> bool:
+    def _matches_exclude(self, dirname: str, patterns: list[str]) -> bool:
         """Check if directory matches any exclude pattern"""
         for pattern in patterns:
             if "**/" in pattern:
@@ -205,7 +205,7 @@ class JavaParser:
                     return True
         return False
 
-    def validate_parse_result(self, result: JavaParseResult) -> Dict[str, Any]:
+    def validate_parse_result(self, result: JavaParseResult) -> dict[str, Any]:
         """
         Validate a parse result and return confidence metrics
 

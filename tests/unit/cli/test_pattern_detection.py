@@ -1,6 +1,5 @@
 """Tests for pattern detection CLI commands."""
 
-import pytest
 from src.cli.confiture_extensions import specql
 
 

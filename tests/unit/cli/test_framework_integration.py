@@ -1,6 +1,5 @@
 """Tests for framework-specific integration with pattern detection."""
 
-import pytest
 from src.cli.confiture_extensions import specql
 
 

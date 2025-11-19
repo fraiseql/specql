@@ -8,7 +8,7 @@ Handles PostgreSQL aggregate functions with FILTER syntax:
 - Other aggregates with FILTER clauses
 """
 
-from typing import List
+
 from src.core.ast_models import ActionStep
 
 
@@ -18,7 +18,7 @@ class AggregateFilterParser:
     def __init__(self):
         self.confidence_boost = 0.10  # Confidence boost for successful FILTER parsing
 
-    def parse(self, sql_text: str) -> List[ActionStep]:
+    def parse(self, sql_text: str) -> list[ActionStep]:
         """
         Parse aggregate functions with FILTER clauses from SQL text
 
@@ -35,7 +35,7 @@ class AggregateFilterParser:
 
         return steps
 
-    def _parse_aggregate_filters(self, sql_text: str) -> List[ActionStep]:
+    def _parse_aggregate_filters(self, sql_text: str) -> list[ActionStep]:
         """Parse aggregate functions with FILTER clauses"""
         steps = []
         sql_upper = sql_text.upper()

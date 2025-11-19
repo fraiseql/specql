@@ -3,6 +3,7 @@ Universal Soft Delete Pattern Detection Tests
 """
 
 import pytest
+
 from src.reverse_engineering.universal_pattern_detector import UniversalPatternDetector
 
 

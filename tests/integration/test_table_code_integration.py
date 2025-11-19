@@ -3,10 +3,11 @@
 This test verifies that table_code flows correctly from YAML → EntityDefinition → Entity
 and can be used by downstream generators.
 """
+
 import pytest
-from pathlib import Path
-from src.core.specql_parser import SpecQLParser
+
 from src.cli.generate import convert_entity_definition_to_entity
+from src.core.specql_parser import SpecQLParser
 
 
 def test_table_code_integration_from_yaml():

@@ -8,16 +8,15 @@ Tests for generating GCP security resources (Firewall Rules, Cloud Armor, Cloud 
 - Cross-tier firewall references
 """
 
-import pytest
 from src.infrastructure.generators.gcp_security_generator import GCPSecurityGenerator
 from src.infrastructure.universal_infra_schema import (
-    UniversalInfrastructure,
-    SecurityConfig,
-    NetworkTier,
-    FirewallRule,
-    WAFConfig,
-    VPNConfig,
     CompliancePreset,
+    FirewallRule,
+    NetworkTier,
+    SecurityConfig,
+    UniversalInfrastructure,
+    VPNConfig,
+    WAFConfig,
 )
 
 

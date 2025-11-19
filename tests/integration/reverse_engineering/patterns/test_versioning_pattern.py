@@ -1,6 +1,7 @@
 """Tests for versioning pattern detection"""
 
 import pytest
+
 from src.reverse_engineering.universal_pattern_detector import (
     UniversalPatternDetector,
     VersioningPattern,
@@ -23,7 +24,7 @@ class TestVersioningPatternSQL:
         );
         """
 
-        assert self.detector.matches(sql, "sql") == True
+        assert self.detector.matches(sql, "sql")
         assert self.detector.confidence >= 0.40
 
     def test_sql_history_table(self):
@@ -43,7 +44,7 @@ class TestVersioningPatternSQL:
         );
         """
 
-        assert self.detector.matches(sql, "sql") == True
+        assert self.detector.matches(sql, "sql")
         assert self.detector.confidence >= 0.30
 
     def test_sql_temporal_columns(self):
@@ -57,7 +58,7 @@ class TestVersioningPatternSQL:
         ) WITH SYSTEM VERSIONING;
         """
 
-        assert self.detector.matches(sql, "sql") == True
+        assert self.detector.matches(sql, "sql")
         assert self.detector.confidence >= 0.30
 
 
@@ -76,7 +77,7 @@ class TestVersioningPatternPython:
             version: int = Column(Integer, default=1, nullable=False)
         """
 
-        assert self.detector.matches(code, "python") == True
+        assert self.detector.matches(code, "python")
         assert self.detector.confidence >= 0.40
 
     def test_python_history_mixin(self):
@@ -90,7 +91,7 @@ class TestVersioningPatternPython:
             title: str
         """
 
-        assert self.detector.matches(code, "python") == True  # Has version field in mixin
+        assert self.detector.matches(code, "python")  # Has version field in mixin
 
 
 class TestVersioningPatternJava:
@@ -114,7 +115,7 @@ class TestVersioningPatternJava:
         }
         """
 
-        assert self.detector.matches(code, "java") == True
+        assert self.detector.matches(code, "java")
         assert self.detector.confidence >= 0.50
 
 

@@ -9,15 +9,14 @@ Tests for the security pattern library functionality:
 """
 
 import pytest
-from src.infrastructure.security_pattern_library import SecurityPatternLibrary, SecurityPattern
+
+from src.infrastructure.security_pattern_library import SecurityPattern, SecurityPatternLibrary
 from src.infrastructure.universal_infra_schema import (
-    UniversalInfrastructure,
-    SecurityConfig,
-    NetworkTier,
-    FirewallRule,
-    WAFConfig,
-    VPNConfig,
     CompliancePreset,
+    FirewallRule,
+    NetworkTier,
+    UniversalInfrastructure,
+    WAFConfig,
 )
 
 
@@ -85,7 +84,7 @@ def test_compose_patterns_with_conflicts():
 
     # Should use the last pattern's compliance preset
     assert composed_config.compliance_preset == CompliancePreset.PCI_DSS
-    assert composed_config.waf.enabled == True
+    assert composed_config.waf.enabled
 
 
 def test_compose_nonexistent_pattern():
@@ -129,7 +128,7 @@ def test_apply_pattern_to_infrastructure():
     assert new_infra.region == "us-east-1"
     assert len(new_infra.security.network_tiers) == 1
     assert new_infra.security.network_tiers[0].name == "web"
-    assert new_infra.security.waf.enabled == True
+    assert new_infra.security.waf.enabled
 
 
 def test_pattern_to_security_config():
@@ -159,7 +158,7 @@ def test_pattern_to_security_config():
 
     assert len(config.network_tiers) == 1
     assert config.network_tiers[0].name == "test-tier"
-    assert config.waf.enabled == True
+    assert config.waf.enabled
     assert config.compliance_preset == CompliancePreset.PCI_DSS
 
 
@@ -233,14 +232,14 @@ def test_compliance_patterns():
     assert pci_pattern is not None
     assert pci_pattern.compliance_preset == CompliancePreset.PCI_DSS
     assert pci_pattern.waf_config is not None
-    assert pci_pattern.waf_config.enabled == True
+    assert pci_pattern.waf_config.enabled
 
     assert hipaa_pattern is not None
     assert hipaa_pattern.compliance_preset == CompliancePreset.HIPAA
     assert hipaa_pattern.waf_config is not None
-    assert hipaa_pattern.waf_config.enabled == True
+    assert hipaa_pattern.waf_config.enabled
     assert hipaa_pattern.vpn_config is not None
-    assert hipaa_pattern.vpn_config.enabled == True
+    assert hipaa_pattern.vpn_config.enabled
 
 
 def test_pattern_metadata():

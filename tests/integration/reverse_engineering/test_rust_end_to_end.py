@@ -4,7 +4,6 @@ End-to-end tests for Rust reverse engineering
 These tests verify the complete pipeline from Rust to SpecQL YAML.
 """
 
-import pytest
 from src.reverse_engineering.rust_parser import RustParser
 
 

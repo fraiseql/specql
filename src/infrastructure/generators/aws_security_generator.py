@@ -4,23 +4,22 @@ AWS Security Generator
 Generates AWS security resources (Security Groups, WAF, VPN) from universal security schema.
 """
 
-from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
-from typing import Optional, Dict, List
+
+from jinja2 import Environment, FileSystemLoader
+
 from src.infrastructure.universal_infra_schema import (
-    UniversalInfrastructure,
+    CompliancePreset,
     FirewallRule,
     NetworkTier,
-    WAFConfig,
-    VPNConfig,
-    CompliancePreset,
+    UniversalInfrastructure,
 )
 
 
 class AWSSecurityGenerator:
     """Generate AWS security resources from universal schema"""
 
-    def __init__(self, template_dir: Optional[Path] = None):
+    def __init__(self, template_dir: Path | None = None):
         if template_dir is None:
             template_dir = (
                 Path(__file__).parent.parent.parent.parent / "templates" / "infrastructure"
@@ -87,7 +86,7 @@ class AWSSecurityGenerator:
         """Check if VPN should be enabled for compliance preset"""
         return preset in [CompliancePreset.HIPAA, CompliancePreset.SOC2]
 
-    def _build_security_groups(self, infrastructure: UniversalInfrastructure) -> Dict[str, Dict]:
+    def _build_security_groups(self, infrastructure: UniversalInfrastructure) -> dict[str, dict]:
         """Build security group configurations from network tiers"""
         security_groups = {}
 
@@ -99,7 +98,7 @@ class AWSSecurityGenerator:
 
     def _create_security_group_config(
         self, infrastructure: UniversalInfrastructure, tier: NetworkTier
-    ) -> Dict:
+    ) -> dict:
         """Create a security group configuration for a network tier"""
         sg_config = {
             "name": f"{infrastructure.name}-{tier.name}",
@@ -122,7 +121,7 @@ class AWSSecurityGenerator:
 
     def _create_security_group_tags(
         self, infrastructure: UniversalInfrastructure, tier: NetworkTier
-    ) -> Dict[str, str]:
+    ) -> dict[str, str]:
         """Create tags for a security group"""
         return {
             "Name": f"{infrastructure.name}-{tier.name}-sg",
@@ -131,7 +130,7 @@ class AWSSecurityGenerator:
             "ManagedBy": "SpecQL",
         }
 
-    def _create_default_egress_rule(self) -> Dict:
+    def _create_default_egress_rule(self) -> dict:
         """Create the default egress rule for security groups"""
         return {
             "from_port": 0,
@@ -143,7 +142,7 @@ class AWSSecurityGenerator:
 
     def _convert_firewall_rule_to_ingress_rules(
         self, rule: FirewallRule, infrastructure: UniversalInfrastructure
-    ) -> List[Dict]:
+    ) -> list[dict]:
         """Convert FirewallRule to AWS ingress rule(s) format"""
         base_ingress = {
             "protocol": self._map_protocol(rule.protocol),
@@ -201,7 +200,7 @@ class AWSSecurityGenerator:
         except ValueError as e:
             raise ValueError(f"Invalid port range format '{port_range}': {e}")
 
-    def _format_ports(self, ports: List[int]) -> str:
+    def _format_ports(self, ports: list[int]) -> str:
         """Format port list for template"""
         if not ports:
             return "0"
@@ -209,7 +208,7 @@ class AWSSecurityGenerator:
 
     def _get_security_group_refs(
         self, source_tier: str, infrastructure: UniversalInfrastructure
-    ) -> List[str]:
+    ) -> list[str]:
         """Get security group references for cross-tier rules"""
         refs = []
         for tier in infrastructure.security.network_tiers:

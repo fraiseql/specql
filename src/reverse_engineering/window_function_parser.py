@@ -8,7 +8,7 @@ Handles PostgreSQL window function syntax:
 - LAG(), LEAD(), FIRST_VALUE(), LAST_VALUE(), etc.
 """
 
-from typing import List
+
 from src.core.ast_models import ActionStep
 
 
@@ -18,7 +18,7 @@ class WindowFunctionParser:
     def __init__(self):
         self.confidence_boost = 0.12  # Confidence boost for successful window function parsing
 
-    def parse(self, sql_text: str) -> List[ActionStep]:
+    def parse(self, sql_text: str) -> list[ActionStep]:
         """
         Parse window function constructs from SQL text
 
@@ -35,7 +35,7 @@ class WindowFunctionParser:
 
         return steps
 
-    def _parse_window_functions(self, sql_text: str) -> List[ActionStep]:
+    def _parse_window_functions(self, sql_text: str) -> list[ActionStep]:
         """Parse window function constructs"""
         steps = []
         sql_upper = sql_text.upper()

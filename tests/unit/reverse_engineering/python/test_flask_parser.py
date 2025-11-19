@@ -3,6 +3,7 @@ Unit tests for Python action parser - Flask framework
 """
 
 import pytest
+
 from src.reverse_engineering.python_action_parser import PythonActionParser
 
 

@@ -4,16 +4,17 @@ Hetzner Generator
 Generates provisioning scripts and configurations for Hetzner Cloud bare metal servers.
 """
 
-from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
-from typing import Optional
+
+from jinja2 import Environment, FileSystemLoader
+
 from src.infrastructure.universal_infra_schema import UniversalInfrastructure
 
 
 class HetznerGenerator:
     """Generate Hetzner provisioning scripts from universal format"""
 
-    def __init__(self, template_dir: Optional[Path] = None):
+    def __init__(self, template_dir: Path | None = None):
         if template_dir is None:
             template_dir = Path(__file__).parent.parent.parent.parent / "templates" / "infrastructure"
 
@@ -63,7 +64,7 @@ class HetznerGenerator:
         }
         return image_map.get(os, "ubuntu-22.04")
 
-    def _get_datacenter(self, region: str, datacenter: Optional[str]) -> str:
+    def _get_datacenter(self, region: str, datacenter: str | None) -> str:
         """Get Hetzner datacenter"""
         if datacenter:
             return datacenter

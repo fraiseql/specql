@@ -1,6 +1,7 @@
 """Tests for Kubernetes → Universal Infrastructure parser"""
 
 import pytest
+
 from src.infrastructure.parsers.kubernetes_parser import KubernetesParser
 from src.infrastructure.universal_infra_schema import *
 
@@ -87,7 +88,7 @@ spec:
 
         # Load balancer
         assert infra.load_balancer is not None
-        assert infra.load_balancer.enabled == True
+        assert infra.load_balancer.enabled
         assert infra.load_balancer.type == "network"  # LoadBalancer service
 
     def test_parse_stateful_set_with_pvc(self, parser):
@@ -216,8 +217,8 @@ spec:
 
         # Load balancer with HTTPS
         assert infra.load_balancer is not None
-        assert infra.load_balancer.enabled == True
-        assert infra.load_balancer.https == True
+        assert infra.load_balancer.enabled
+        assert infra.load_balancer.https
         assert infra.load_balancer.certificate_domain == "api.example.com"
 
     def test_parse_configmap_and_secret(self, parser):

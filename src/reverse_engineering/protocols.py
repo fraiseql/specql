@@ -1,6 +1,7 @@
-from typing import Protocol, List, Dict, Any, Optional
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any, Protocol
+
 
 class SourceLanguage(Enum):
     """Supported source languages"""
@@ -14,13 +15,13 @@ class ParsedEntity:
     """Language-agnostic entity representation"""
     entity_name: str
     namespace: str  # schema (SQL) or module (Python)
-    fields: List['ParsedField'] = field(default_factory=list)
-    methods: List['ParsedMethod'] = field(default_factory=list)
-    inheritance: List[str] = field(default_factory=list)
-    decorators: List[str] = field(default_factory=list)
-    docstring: Optional[str] = None
+    fields: list['ParsedField'] = field(default_factory=list)
+    methods: list['ParsedMethod'] = field(default_factory=list)
+    inheritance: list[str] = field(default_factory=list)
+    decorators: list[str] = field(default_factory=list)
+    docstring: str | None = None
     source_language: SourceLanguage = SourceLanguage.PYTHON
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class ParsedField:
@@ -29,26 +30,26 @@ class ParsedField:
     field_type: str  # Normalized to SpecQL types
     original_type: str  # Original language type
     required: bool = True
-    default: Optional[Any] = None
-    constraints: List[str] = field(default_factory=list)
+    default: Any | None = None
+    constraints: list[str] = field(default_factory=list)
     is_primary_key: bool = False
     is_foreign_key: bool = False
-    foreign_key_target: Optional[str] = None
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    foreign_key_target: str | None = None
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 @dataclass
 class ParsedMethod:
     """Language-agnostic method/function representation"""
     method_name: str
-    parameters: List[Dict[str, str]] = field(default_factory=list)
-    return_type: Optional[str] = None
-    body_lines: List[str] = field(default_factory=list)
-    decorators: List[str] = field(default_factory=list)
-    docstring: Optional[str] = None
+    parameters: list[dict[str, str]] = field(default_factory=list)
+    return_type: str | None = None
+    body_lines: list[str] = field(default_factory=list)
+    decorators: list[str] = field(default_factory=list)
+    docstring: str | None = None
     is_async: bool = False
     is_classmethod: bool = False
     is_staticmethod: bool = False
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 class LanguageParser(Protocol):
     """Protocol for language-specific parsers"""
@@ -61,7 +62,7 @@ class LanguageParser(Protocol):
         """Parse method/function to action representation"""
         ...
 
-    def detect_patterns(self, entity: ParsedEntity) -> List[str]:
+    def detect_patterns(self, entity: ParsedEntity) -> list[str]:
         """Detect language-specific patterns"""
         ...
 

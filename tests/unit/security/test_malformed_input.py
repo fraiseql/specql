@@ -423,7 +423,7 @@ actions:
         for yaml_content in invalid_yamls:
             # Parser should either reject these or raise an error
             with pytest.raises((ValueError, KeyError, TypeError, Exception)):
-                result = parser.parse(yaml_content)
+                parser.parse(yaml_content)
 
     def test_circular_references(self, parser):
         """Test handling of circular references"""
@@ -643,7 +643,7 @@ class TestCrashResistance:
         for yaml_content in truncated_yamls:
             # Parser should reject invalid UTF-8
             with pytest.raises((UnicodeDecodeError, UnicodeError, ValueError, Exception)):
-                result = parser.parse(yaml_content)
+                parser.parse(yaml_content)
 
     def test_mixed_line_endings(self, parser):
         """Test mixed line endings"""

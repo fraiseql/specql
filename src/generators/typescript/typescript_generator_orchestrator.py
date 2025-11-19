@@ -5,7 +5,7 @@ Coordinates generation of all TypeScript/Prisma artifacts.
 """
 
 from pathlib import Path
-from typing import List, Dict
+
 from src.core.universal_ast import UniversalEntity
 from src.generators.typescript.prisma_schema_generator import PrismaSchemaGenerator
 from src.generators.typescript.typescript_entity_generator import (
@@ -21,7 +21,7 @@ class TypeScriptGeneratorOrchestrator:
         self.prisma_generator = PrismaSchemaGenerator()
         self.entity_generator = TypeScriptEntityGenerator()
 
-    def generate_all(self, entities: List[UniversalEntity]) -> Dict[str, str]:
+    def generate_all(self, entities: list[UniversalEntity]) -> dict[str, str]:
         """
         Generate all TypeScript/Prisma files for entities.
 
@@ -44,7 +44,7 @@ class TypeScriptGeneratorOrchestrator:
 
         return files
 
-    def write_files(self, files: Dict[str, str]):
+    def write_files(self, files: dict[str, str]):
         """
         Write generated files to disk.
 

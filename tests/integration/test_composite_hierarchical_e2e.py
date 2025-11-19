@@ -2,7 +2,7 @@
 
 import pytest
 
-from tests.utils.db_test import execute_query, execute_sql
+from tests.utils.db_test import execute_query
 
 # Mark all tests as requiring database
 pytestmark = pytest.mark.database

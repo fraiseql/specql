@@ -232,7 +232,7 @@ fields:
             output_path = Path(output_dir)
             if not output_path.is_absolute():
                 # Relative paths with .. should be resolved and validated
-                resolved = output_path.resolve()
+                output_path.resolve()
                 # Check that we're aware this goes outside the working directory
                 assert ".." in output_dir
 

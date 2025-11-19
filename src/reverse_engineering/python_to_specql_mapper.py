@@ -1,10 +1,10 @@
-from typing import List, Dict, Any
 from src.core.ast_models import Action, ActionStep
-from src.reverse_engineering.protocols import ParsedMethod, ParsedEntity
+from src.reverse_engineering.protocols import ParsedEntity, ParsedMethod
 from src.reverse_engineering.python_statement_analyzer import (
+    PythonStatement,
     PythonStatementAnalyzer,
-    PythonStatement
 )
+
 
 class PythonToSpecQLMapper:
     """
@@ -60,7 +60,7 @@ class PythonToSpecQLMapper:
         self,
         stmt: PythonStatement,
         entity: ParsedEntity
-    ) -> List[ActionStep]:
+    ) -> list[ActionStep]:
         """Map single Python statement to SpecQL steps"""
 
         if stmt.statement_type == 'if':
@@ -87,7 +87,7 @@ class PythonToSpecQLMapper:
         self,
         stmt: PythonStatement,
         entity: ParsedEntity
-    ) -> List[ActionStep]:
+    ) -> list[ActionStep]:
         """
         Map if statement
 
@@ -130,7 +130,7 @@ class PythonToSpecQLMapper:
         self,
         stmt: PythonStatement,
         entity: ParsedEntity
-    ) -> List[ActionStep]:
+    ) -> list[ActionStep]:
         """
         Map assignment statement
 
@@ -159,7 +159,7 @@ class PythonToSpecQLMapper:
             arguments={'expression': value},
         )]
 
-    def _map_return_statement(self, stmt: PythonStatement) -> List[ActionStep]:
+    def _map_return_statement(self, stmt: PythonStatement) -> list[ActionStep]:
         """Map return statement"""
         return_value = stmt.metadata['value']
 
@@ -168,7 +168,7 @@ class PythonToSpecQLMapper:
             arguments={'value': return_value} if return_value else {},
         )]
 
-    def _map_call_statement(self, stmt: PythonStatement) -> List[ActionStep]:
+    def _map_call_statement(self, stmt: PythonStatement) -> list[ActionStep]:
         """
         Map function call
 
@@ -188,7 +188,7 @@ class PythonToSpecQLMapper:
         self,
         stmt: PythonStatement,
         entity: ParsedEntity
-    ) -> List[ActionStep]:
+    ) -> list[ActionStep]:
         """
         Map for loop
 
@@ -197,7 +197,7 @@ class PythonToSpecQLMapper:
         """
         target = stmt.metadata['target']
         iter_expr = stmt.metadata['iter']
-        body = stmt.metadata['body']
+        stmt.metadata['body']
 
         # Parse body (simplified)
         body_steps = []
@@ -209,7 +209,7 @@ class PythonToSpecQLMapper:
             then_steps=body_steps,
         )]
 
-    def _map_raise_statement(self, stmt: PythonStatement) -> List[ActionStep]:
+    def _map_raise_statement(self, stmt: PythonStatement) -> list[ActionStep]:
         """
         Map raise statement
 

@@ -1,5 +1,5 @@
-import pytest
 from pathlib import Path
+
 from src.reverse_engineering.rust_parser import RustReverseEngineeringService
 
 
@@ -35,8 +35,8 @@ class TestSeaORMIntegration:
         """
 
         # Create temporary file
-        import tempfile
         import os
+        import tempfile
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".rs", delete=False) as f:
             f.write(code)

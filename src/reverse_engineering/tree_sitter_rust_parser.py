@@ -8,9 +8,9 @@ Replaces regex parsing with robust AST traversal for:
 - Nested structures
 """
 
-from typing import Optional, List, Any, TYPE_CHECKING
 import re
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
 
 from src.utils.logger import get_logger
 
@@ -21,8 +21,8 @@ try:
     from .tree_sitter_compat import (
         HAS_TREE_SITTER,
         Language,
-        Parser,
         Node,
+        Parser,
         get_rust_language,
         get_rust_parser,
     )
@@ -45,7 +45,7 @@ class RustColumn:
 
     name: str
     type_name: str
-    attributes: Optional[List[str]] = None
+    attributes: list[str] | None = None
 
 
 @dataclass
@@ -55,8 +55,8 @@ class RustFunction:
     name: str
     is_public: bool
     is_async: bool
-    parameters: List[str]
-    return_type: Optional[str]
+    parameters: list[str]
+    return_type: str | None
 
 
 @dataclass
@@ -68,7 +68,7 @@ class RustRoute:
     handler: str
     framework: str
     is_async: bool = False
-    parameters: List[dict] = field(default_factory=list)
+    parameters: list[dict] = field(default_factory=list)
     has_guard: bool = False
 
 
@@ -78,9 +78,9 @@ class RustMethod:
 
     name: str
     is_async: bool = False
-    parameters: List[str] = field(default_factory=list)
-    return_type: Optional[str] = None
-    visibility: Optional[str] = None
+    parameters: list[str] = field(default_factory=list)
+    return_type: str | None = None
+    visibility: str | None = None
 
 
 @dataclass
@@ -88,9 +88,9 @@ class RustImplBlock:
     """Represents an impl block."""
 
     target_type: str
-    trait_name: Optional[str] = None
-    methods: List[RustMethod] = field(default_factory=list)
-    generics: Optional[str] = None
+    trait_name: str | None = None
+    methods: list[RustMethod] = field(default_factory=list)
+    generics: str | None = None
 
 
 @dataclass
@@ -99,9 +99,9 @@ class RustStruct:
 
     name: str
     is_public: bool
-    derives: List[str]
+    derives: list[str]
     attributes: dict
-    fields: List[RustColumn]
+    fields: list[RustColumn]
 
 
 class TreeSitterRustParser:
@@ -117,7 +117,7 @@ class TreeSitterRustParser:
         self.language = get_rust_language()
         self.parser = get_rust_parser()
 
-    def parse(self, code: str) -> Optional[Node]:
+    def parse(self, code: str) -> Node | None:
         """Parse Rust code into AST"""
         try:
             tree = self.parser.parse(bytes(code, "utf8"))
@@ -126,7 +126,7 @@ class TreeSitterRustParser:
             logger.error(f"Parse error: {e}", exc_info=True)
             return None
 
-    def extract_table_name(self, ast: Node) -> Optional[str]:
+    def extract_table_name(self, ast: Node) -> str | None:
         """Extract table name from diesel::table! macro"""
         # Find macro invocation node
         macro_node = self._find_node_by_type(ast, "macro_invocation")
@@ -153,7 +153,7 @@ class TreeSitterRustParser:
 
         return None
 
-    def extract_columns(self, ast: Node) -> List[RustColumn]:
+    def extract_columns(self, ast: Node) -> list[RustColumn]:
         """Extract columns from diesel::table! macro"""
         columns = []
         macro_node = self._find_node_by_type(ast, "macro_invocation")
@@ -179,7 +179,7 @@ class TreeSitterRustParser:
 
         return columns
 
-    def extract_functions(self, ast: Node) -> List[RustFunction]:
+    def extract_functions(self, ast: Node) -> list[RustFunction]:
         """Extract all function definitions from AST"""
         functions = []
 
@@ -226,7 +226,7 @@ class TreeSitterRustParser:
 
         return functions
 
-    def extract_structs(self, ast: Node) -> List[RustStruct]:
+    def extract_structs(self, ast: Node) -> list[RustStruct]:
         """Extract struct definitions with derive macros"""
         structs = []
 
@@ -293,7 +293,7 @@ class TreeSitterRustParser:
 
         return structs
 
-    def extract_routes(self, ast: Node) -> List[RustRoute]:
+    def extract_routes(self, ast: Node) -> list[RustRoute]:
         """Extract web framework routes from AST.
 
         Supports: Actix, Rocket, Axum, Warp, Tide
@@ -324,7 +324,7 @@ class TreeSitterRustParser:
 
         return routes
 
-    def _extract_actix_config_routes(self, ast: Node) -> List[RustRoute]:
+    def _extract_actix_config_routes(self, ast: Node) -> list[RustRoute]:
         """Extract Actix routes from configuration code (web::resource, web::scope, etc.)"""
         routes = []
 
@@ -383,12 +383,12 @@ class TreeSitterRustParser:
 
         return routes
 
-    def _extract_axum_routes(self, ast: Node) -> List[RustRoute]:
+    def _extract_axum_routes(self, ast: Node) -> list[RustRoute]:
         """Extract Axum routes from Router chains."""
         routes = []
 
         # Check if file has state-related code
-        has_state = self._file_has_state(ast)
+        self._file_has_state(ast)
 
         # Use regex to find Router::new().route() chains
         source_text = self._get_node_text(ast)
@@ -420,7 +420,7 @@ class TreeSitterRustParser:
 
         return routes
 
-    def _extract_warp_routes(self, ast: Node) -> List[RustRoute]:
+    def _extract_warp_routes(self, ast: Node) -> list[RustRoute]:
         """Extract Warp routes from filter chains."""
         routes = []
 
@@ -454,7 +454,7 @@ class TreeSitterRustParser:
 
         return routes
 
-    def _extract_tide_routes(self, ast: Node) -> List[RustRoute]:
+    def _extract_tide_routes(self, ast: Node) -> list[RustRoute]:
         """Extract Tide routes from .at() chains."""
         routes = []
 
@@ -509,30 +509,7 @@ class TreeSitterRustParser:
 
         return prefix
 
-        # Also handle direct resource calls (for guard test)
-        call_exprs = self._find_all(ast, "call_expression")
-
-        for call_expr in call_exprs:
-            if self._is_actix_resource_call(call_expr):
-                path = self._extract_string_literal(call_expr)
-                if path:
-                    # Look for the handler in the chain
-                    handler = self._find_handler_in_chain(call_expr)
-                    if handler:
-                        routes.append(
-                            RustRoute(
-                                method="POST",  # From test: web::post()
-                                path=path,
-                                handler=handler,
-                                framework="actix",
-                                is_async=True,
-                                has_guard=has_guards,
-                            )
-                        )
-
-        return routes
-
-    def _extract_scope_hierarchies(self, ast: Node) -> List[dict]:
+    def _extract_scope_hierarchies(self, ast: Node) -> list[dict]:
         """Extract web::scope() hierarchies from the AST."""
         scopes = []
 
@@ -551,7 +528,7 @@ class TreeSitterRustParser:
         func_text = self._get_function_call_name(call_expr)
         return "scope" in func_text.lower()
 
-    def _parse_scope_hierarchy(self, scope_call: Node, prefix: str = "") -> Optional[dict]:
+    def _parse_scope_hierarchy(self, scope_call: Node, prefix: str = "") -> dict | None:
         """Parse a scope hierarchy recursively."""
         path = self._extract_string_literal(scope_call)
         if not path:
@@ -589,7 +566,7 @@ class TreeSitterRustParser:
                     return True
         return False
 
-    def _parse_service_call(self, service_call: Node, scope_prefix: str) -> Optional[dict]:
+    def _parse_service_call(self, service_call: Node, scope_prefix: str) -> dict | None:
         """Parse a .service() call which can contain scopes or resources."""
         # Extract the argument (should be a scope or resource call)
         for child in service_call.children:
@@ -606,7 +583,7 @@ class TreeSitterRustParser:
 
         return None
 
-    def _parse_resource_with_routes(self, resource_call: Node, scope_prefix: str) -> Optional[dict]:
+    def _parse_resource_with_routes(self, resource_call: Node, scope_prefix: str) -> dict | None:
         """Parse a resource call with its routes."""
         path = self._extract_string_literal(resource_call)
         if not path:
@@ -639,7 +616,7 @@ class TreeSitterRustParser:
                     return True
         return False
 
-    def _parse_route_call(self, route_call: Node) -> Optional[dict]:
+    def _parse_route_call(self, route_call: Node) -> dict | None:
         """Parse a .route(path, method.to(handler)) call."""
         # Extract arguments
         for child in route_call.children:
@@ -663,7 +640,7 @@ class TreeSitterRustParser:
 
         return None
 
-    def _parse_method_chain(self, method_call: Node) -> Optional[dict]:
+    def _parse_method_chain(self, method_call: Node) -> dict | None:
         """Parse web::get().to(handler) chain."""
         method = None
         handler = None
@@ -709,7 +686,7 @@ class TreeSitterRustParser:
                     return True
         return False
 
-    def _build_routes_from_scopes(self, scopes: List[dict], has_guards: bool) -> List[RustRoute]:
+    def _build_routes_from_scopes(self, scopes: list[dict], has_guards: bool) -> list[RustRoute]:
         """Build RustRoute objects from parsed scope hierarchies."""
         routes = []
 
@@ -763,7 +740,7 @@ class TreeSitterRustParser:
         source_text = self._get_node_text(ast)
         return "guard" in source_text.lower()
 
-    def _find_handler_in_chain(self, resource_call: Node) -> Optional[str]:
+    def _find_handler_in_chain(self, resource_call: Node) -> str | None:
         """Find handler function name in the resource chain."""
         # Look for .to(handler) pattern in the source text
         source_text = self._get_node_text(resource_call)
@@ -783,7 +760,7 @@ class TreeSitterRustParser:
                     return True
         return False
 
-    def _parse_actix_route(self, route_call: Node, base_path: str) -> Optional[RustRoute]:
+    def _parse_actix_route(self, route_call: Node, base_path: str) -> RustRoute | None:
         """Parse .route(web::get().to(handler)) call."""
         method = None
         handler = None
@@ -818,7 +795,7 @@ class TreeSitterRustParser:
             method in func_text.lower() for method in ["get", "post", "put", "delete", "patch"]
         )
 
-    def _extract_http_method(self, method_call: Node) -> Optional[str]:
+    def _extract_http_method(self, method_call: Node) -> str | None:
         """Extract HTTP method from web::get() call."""
         func_text = self._get_function_call_name(method_call)
         if "get" in func_text.lower():
@@ -833,7 +810,7 @@ class TreeSitterRustParser:
             return "PATCH"
         return None
 
-    def _extract_route_handler(self, method_call: Node) -> Optional[str]:
+    def _extract_route_handler(self, method_call: Node) -> str | None:
         """Extract handler from .to(handler) call."""
         # Look for chained .to() call
         parent = method_call.parent
@@ -878,7 +855,7 @@ class TreeSitterRustParser:
 
         return False
 
-    def extract_impl_blocks(self, ast: Node) -> List[RustImplBlock]:
+    def extract_impl_blocks(self, ast: Node) -> list[RustImplBlock]:
         """Extract impl blocks from AST."""
         impl_blocks = []
 
@@ -889,7 +866,7 @@ class TreeSitterRustParser:
 
         return impl_blocks
 
-    def _parse_impl_block(self, impl_node: Node) -> Optional[RustImplBlock]:
+    def _parse_impl_block(self, impl_node: Node) -> RustImplBlock | None:
         """Parse an impl block node."""
         target_type = None
         trait_name = None
@@ -912,7 +889,7 @@ class TreeSitterRustParser:
 
         return None
 
-    def _extract_methods_from_body(self, body_node: Node) -> List[RustMethod]:
+    def _extract_methods_from_body(self, body_node: Node) -> list[RustMethod]:
         """Extract methods from impl block body."""
         methods = []
 
@@ -924,7 +901,7 @@ class TreeSitterRustParser:
 
         return methods
 
-    def _parse_method(self, fn_node: Node) -> Optional[RustMethod]:
+    def _parse_method(self, fn_node: Node) -> RustMethod | None:
         """Parse a method definition."""
         name = self._get_function_name(fn_node)
         is_async = self._is_async_function(fn_node)
@@ -932,7 +909,7 @@ class TreeSitterRustParser:
 
         return RustMethod(name=name, is_async=is_async, visibility=visibility)
 
-    def _extract_function_parameters(self, fn_node: Node) -> List[dict]:
+    def _extract_function_parameters(self, fn_node: Node) -> list[dict]:
         """Extract parameters from function signature."""
         parameters = []
 
@@ -947,7 +924,7 @@ class TreeSitterRustParser:
 
         return parameters
 
-    def _parse_parameter(self, param_node: Node) -> Optional[dict]:
+    def _parse_parameter(self, param_node: Node) -> dict | None:
         """Parse a single parameter (name: Type)."""
         param_name = None
         param_type = None
@@ -974,7 +951,7 @@ class TreeSitterRustParser:
                 return True
         return False
 
-    def _extract_route_from_function(self, fn_node: Node) -> Optional[RustRoute]:
+    def _extract_route_from_function(self, fn_node: Node) -> RustRoute | None:
         """Extract route information from a function with attributes."""
         fn_name = self._get_function_name(fn_node)
         is_async = self._is_async_function(fn_node)
@@ -1000,7 +977,7 @@ class TreeSitterRustParser:
 
         return None
 
-    def _parse_route_attribute(self, attr_node: Node, normalize: bool = False) -> Optional[tuple]:
+    def _parse_route_attribute(self, attr_node: Node, normalize: bool = False) -> tuple | None:
         """Parse route attribute from various frameworks."""
         attr_text = self._get_node_text(attr_node)
         http_methods = ["get", "post", "put", "delete", "patch", "head", "options"]
@@ -1051,7 +1028,7 @@ class TreeSitterRustParser:
                 return True
         return False
 
-    def _get_visibility(self, node: Node) -> Optional[str]:
+    def _get_visibility(self, node: Node) -> str | None:
         """Extract visibility modifier from node (pub, pub(crate), etc.)."""
         for child in node.children:
             if child.type == "visibility_modifier":
@@ -1065,7 +1042,7 @@ class TreeSitterRustParser:
                 return "private"
         return None
 
-    def _get_attributes(self, fn_node: Node) -> List[Node]:
+    def _get_attributes(self, fn_node: Node) -> list[Node]:
         """Get all attribute nodes for a function."""
         attributes = []
         sibling = fn_node.prev_sibling
@@ -1077,7 +1054,7 @@ class TreeSitterRustParser:
 
         return attributes
 
-    def _extract_string_literal(self, node: Node) -> Optional[str]:
+    def _extract_string_literal(self, node: Node) -> str | None:
         """Extract string literal from node tree."""
         if node.type == "string_literal":
             text = self._get_node_text(node)
@@ -1090,7 +1067,7 @@ class TreeSitterRustParser:
 
         return None
 
-    def _find_all(self, node: Node, node_type: str) -> List[Node]:
+    def _find_all(self, node: Node, node_type: str) -> list[Node]:
         """Find all nodes of a specific type (alias for _find_nodes_by_type)."""
         return self._find_nodes_by_type(node, node_type)
 
@@ -1105,7 +1082,7 @@ class TreeSitterRustParser:
                 return self._get_node_text(child)
         return ""
 
-    def _parse_column_definitions(self, token_tree: Node, columns: List[RustColumn]):
+    def _parse_column_definitions(self, token_tree: Node, columns: list[RustColumn]):
         """Parse column definitions from a token_tree node (format: name -> Type)"""
         children = token_tree.children
         i = 0
@@ -1130,7 +1107,7 @@ class TreeSitterRustParser:
             else:
                 i += 1
 
-    def _find_node_by_type(self, node: Node, node_type: str) -> Optional[Node]:
+    def _find_node_by_type(self, node: Node, node_type: str) -> Node | None:
         """Recursively find first node of given type (depth-first search)"""
         if node.type == node_type:
             return node
@@ -1142,7 +1119,7 @@ class TreeSitterRustParser:
 
         return None
 
-    def _find_nodes_by_type(self, node: Node, node_type: str) -> List[Node]:
+    def _find_nodes_by_type(self, node: Node, node_type: str) -> list[Node]:
         """Recursively find all nodes of given type"""
         results = []
         if node.type == node_type:

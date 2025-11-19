@@ -5,7 +5,6 @@ These tests ensure basic functionality continues to work
 while we enhance complex case handling.
 """
 
-import pytest
 from src.reverse_engineering.java_action_parser import JavaActionParser
 
 
@@ -38,7 +37,7 @@ class TestSimpleJavaEntities:
         # Check field types
         name_field = next(f for f in entity.fields if f["name"] == "name")
         assert name_field["type"] == "text"
-        assert name_field["nullable"] == True
+        assert name_field["nullable"]
 
         email_field = next(f for f in entity.fields if f["name"] == "email")
         assert email_field["type"] == "text"
@@ -69,4 +68,4 @@ class TestSimpleJavaEntities:
 
         company_field = next(f for f in entity.fields if f["name"] == "company")
         assert "ref(Company)" in company_field["type"]
-        assert company_field["is_foreign_key"] == True
+        assert company_field["is_foreign_key"]

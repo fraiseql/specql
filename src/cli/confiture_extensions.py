@@ -8,7 +8,11 @@ from pathlib import Path
 
 import click
 
+from src.cli.cache_commands import cache
+from src.cli.detect_patterns import detect_patterns
 from src.cli.orchestrator import CLIOrchestrator
+from src.cli.reverse import reverse as reverse_sql_cmd
+from src.cli.reverse_python import reverse_python
 from src.infrastructure.security_pattern_library import SecurityPatternLibrary
 
 
@@ -91,16 +95,6 @@ def validate(entity_files, check_impacts, verbose):
 
     result = subprocess.run(cmd)
     return result.returncode
-
-
-# Import reverse engineering commands
-from .reverse import reverse as reverse_sql_cmd
-from .reverse_python import reverse_python
-from .cache_commands import cache
-from .detect_patterns import detect_patterns
-# from .reverse_rust import reverse_rust  # TODO: Implement
-# from .reverse_typescript import reverse_typescript  # TODO: Implement
-# from .reverse_java import reverse_java  # TODO: Implement
 
 
 @click.command()
@@ -187,8 +181,10 @@ def reverse(
       Generated YAML files follow SpecQL format and can be used directly
       with 'specql generate' to produce PostgreSQL schema + GraphQL API.
     """
-    from click import Context
     from pathlib import Path
+
+    from click import Context
+
     from .cache_manager import CacheManager
 
     if clear_cache:
@@ -310,8 +306,9 @@ def reverse_sql(sql_files, output_dir, min_confidence, no_ai, preview, compare, 
         specql reverse-sql function.sql --min-confidence=0.90
     """
     # Import here to avoid circular imports
-    from src.cli.reverse import reverse as reverse_cmd
     from click import Context
+
+    from src.cli.reverse import reverse as reverse_cmd
 
     # Create a click context and invoke the command
     ctx = Context(reverse_cmd)
@@ -349,8 +346,9 @@ def reverse_python_cmd(python_files, output_dir, discover_patterns, dry_run):
         specql reverse-python src/models/*.py -o entities/
         specql reverse-python src/models/*.py --discover-patterns
     """
-    from src.cli.reverse_python import reverse_python
     from click import Context
+
+    from src.cli.reverse_python import reverse_python
 
     ctx = Context(reverse_python)
     ctx.invoke(
@@ -490,12 +488,12 @@ def inspect(pattern_name, json):
             )
 
     if pattern.waf_config:
-        click.echo(f"\nWAF Configuration:")
+        click.echo("\nWAF Configuration:")
         click.echo(f"  • Enabled: {pattern.waf_config.enabled}")
         click.echo(f"  • Mode: {pattern.waf_config.mode}")
 
     if pattern.vpn_config:
-        click.echo(f"\nVPN Configuration:")
+        click.echo("\nVPN Configuration:")
         click.echo(f"  • Enabled: {pattern.vpn_config.enabled}")
         click.echo(f"  • Type: {pattern.vpn_config.type}")
 
@@ -509,8 +507,8 @@ def inspect(pattern_name, json):
 )
 def apply(pattern_name, infra_file, output, platform):
     """Apply a security pattern to infrastructure configuration"""
+
     import yaml
-    from pathlib import Path
 
     library = SecurityPatternLibrary()
     pattern = library.get_pattern(pattern_name)
@@ -523,7 +521,7 @@ def apply(pattern_name, infra_file, output, platform):
 
     # Load infrastructure file
     try:
-        with open(infra_file, "r") as f:
+        with open(infra_file) as f:
             infra_data = yaml.safe_load(f)
     except Exception as e:
         click.secho(f"❌ Failed to load infrastructure file: {e}", fg="red")
@@ -778,8 +776,8 @@ def validate_security(yaml_file):
 @click.option("--framework", type=click.Choice(["pci-dss", "hipaa", "soc2", "iso27001"]))
 def check_compliance(yaml_file, framework):
     """Check compliance against security framework"""
-    from src.infrastructure.parsers.security_parser import SecurityPatternParser
     from src.infrastructure.compliance.preset_manager import CompliancePresetManager
+    from src.infrastructure.parsers.security_parser import SecurityPatternParser
     from src.infrastructure.universal_infra_schema import CompliancePreset
 
     content = Path(yaml_file).read_text()
@@ -891,8 +889,8 @@ security:
 @click.argument("file2", type=click.Path(exists=True))
 def diff(file1, file2):
     """Compare two security configuration files"""
+
     from src.infrastructure.parsers.security_parser import SecurityPatternParser
-    import yaml
 
     try:
         parser = SecurityPatternParser()

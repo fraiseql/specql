@@ -10,7 +10,7 @@ Extracts JPA annotations from Java AST to identify:
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Dict, Any
+from typing import Any
 
 
 @dataclass
@@ -27,8 +27,8 @@ class EntitySpec:
     """Entity specification for SpecQL"""
     name: str
     schema: str = "public"
-    table_name: Optional[str] = None
-    fields: List[FieldSpec] = field(default_factory=list)
+    table_name: str | None = None
+    fields: list[FieldSpec] = field(default_factory=list)
 
 
 @dataclass
@@ -36,30 +36,30 @@ class JPAField:
     """Represents a field in a JPA entity"""
     name: str
     java_type: str
-    column_name: Optional[str] = None
+    column_name: str | None = None
     nullable: bool = True
     unique: bool = False
-    length: Optional[int] = None
+    length: int | None = None
 
     # Relationship info
     is_relationship: bool = False
-    relationship_type: Optional[str] = None  # ManyToOne, OneToMany, etc.
-    target_entity: Optional[str] = None
-    join_column: Optional[str] = None
+    relationship_type: str | None = None  # ManyToOne, OneToMany, etc.
+    target_entity: str | None = None
+    join_column: str | None = None
 
     # Enum info
     is_enum: bool = False
-    enum_type: Optional[str] = None  # STRING or ORDINAL
+    enum_type: str | None = None  # STRING or ORDINAL
 
 
 @dataclass
 class JPAEntity:
     """Represents a JPA entity class"""
     class_name: str
-    table_name: Optional[str] = None
-    schema: Optional[str] = None
-    fields: List[JPAField] = field(default_factory=list)
-    id_field: Optional[str] = None
+    table_name: str | None = None
+    schema: str | None = None
+    fields: list[JPAField] = field(default_factory=list)
+    id_field: str | None = None
 
 
 class JPAAnnotationVisitor:
@@ -73,9 +73,9 @@ class JPAAnnotationVisitor:
             compilation_unit: Eclipse JDT CompilationUnit or MockCompilationUnit
         """
         self.cu = compilation_unit
-        self.entities: List[JPAEntity] = []
+        self.entities: list[JPAEntity] = []
 
-    def visit(self) -> List[JPAEntity]:
+    def visit(self) -> list[JPAEntity]:
         """Visit AST and extract JPA entities"""
         # Get all types in compilation unit
         types = self.cu.types()
@@ -193,7 +193,7 @@ class JPAAnnotationVisitor:
                     return True
         return False
 
-    def _extract_table_annotation(self, annotation) -> Dict[str, Any]:
+    def _extract_table_annotation(self, annotation) -> dict[str, Any]:
         """Extract @Table annotation values"""
         values = {}
 
@@ -207,15 +207,15 @@ class JPAAnnotationVisitor:
 
         return values
 
-    def _extract_column_annotation(self, annotation) -> Dict[str, Any]:
+    def _extract_column_annotation(self, annotation) -> dict[str, Any]:
         """Extract @Column annotation values"""
         return self._extract_table_annotation(annotation)  # Same logic
 
-    def _extract_join_column_annotation(self, annotation) -> Dict[str, Any]:
+    def _extract_join_column_annotation(self, annotation) -> dict[str, Any]:
         """Extract @JoinColumn annotation values"""
         return self._extract_table_annotation(annotation)  # Same logic
 
-    def _extract_enumerated_annotation(self, annotation) -> Dict[str, Any]:
+    def _extract_enumerated_annotation(self, annotation) -> dict[str, Any]:
         """Extract @Enumerated annotation values"""
         return self._extract_table_annotation(annotation)  # Same logic
 
@@ -244,7 +244,7 @@ class JPAAnnotationVisitor:
 
         return None
 
-    def _extract_generic_type(self, type_str: str) -> Optional[str]:
+    def _extract_generic_type(self, type_str: str) -> str | None:
         """Extract generic type from List<Entity>"""
         if '<' in type_str and '>' in type_str:
             start = type_str.index('<') + 1

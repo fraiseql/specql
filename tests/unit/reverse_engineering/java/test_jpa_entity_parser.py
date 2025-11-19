@@ -3,6 +3,7 @@ Unit tests for Java entity parser - JPA entities
 """
 
 import pytest
+
 from src.reverse_engineering.java_action_parser import JavaActionParser
 
 
@@ -84,11 +85,11 @@ public class Contact {
         # Both relationships should be detected and parsed
         company_field = next(f for f in fields if f["name"] == "company")
         assert company_field["type"] == "ref(Company)"
-        assert company_field["is_foreign_key"] == True
+        assert company_field["is_foreign_key"]
 
         orders_field = next(f for f in fields if f["name"] == "orders")
         assert orders_field["type"] == "ref(Order)"
-        assert orders_field["is_list"] == True
+        assert orders_field["is_list"]
         assert orders_field["relationship_metadata"]["mapped_by"] == "contact"
 
     def test_column_nullable_detection(self, parser):

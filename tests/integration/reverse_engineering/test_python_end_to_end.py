@@ -4,7 +4,6 @@ End-to-end tests for Python reverse engineering
 These tests verify the complete pipeline from Python to SpecQL YAML.
 """
 
-import pytest
 from src.reverse_engineering.python_ast_parser import PythonASTParser
 from src.reverse_engineering.universal_ast_mapper import UniversalASTMapper
 
@@ -63,6 +62,6 @@ class TestPythonEndToEnd:
         assert "actions" in specql_dict
 
         actions = specql_dict.get("actions", [])
-        fetch_action = next((a for a in actions if a.get("name") == "fetch_contacts"), None)
+        next((a for a in actions if a.get("name") == "fetch_contacts"), None)
         # Currently may not detect async properly
         # EXPECTED: fetch_action should have async metadata after enhancement

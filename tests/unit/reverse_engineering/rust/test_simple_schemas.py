@@ -5,7 +5,6 @@ These tests ensure basic functionality continues to work
 while we enhance complex case handling.
 """
 
-import pytest
 from src.reverse_engineering.rust_parser import RustParser
 
 
@@ -38,11 +37,11 @@ class TestSimpleRustSchemas:
         # Check email field
         email_col = next(c for c in diesel_table.columns if c["name"] == "email")
         assert email_col["type"] == "text"
-        assert email_col["required"] == True
+        assert email_col["required"]
 
         # Check nullable company_id
         company_col = next(c for c in diesel_table.columns if c["name"] == "company_id")
-        assert company_col["required"] == False
+        assert not company_col["required"]
 
     def test_simple_struct_parsing(self):
         """Test simple Rust struct parsing"""
@@ -64,4 +63,4 @@ class TestSimpleRustSchemas:
         # Check company_id is detected as ref
         company_field = next(f for f in entity["fields"] if f["name"] == "company_id")
         assert "ref(Company)" in company_field["type"]
-        assert company_field["required"] == False
+        assert not company_field["required"]

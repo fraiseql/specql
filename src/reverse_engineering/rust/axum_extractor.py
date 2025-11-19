@@ -7,7 +7,7 @@ Parses Axum route builders:
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
+
 from tree_sitter import Node
 
 from .tree_sitter_rust_parser import RustParser
@@ -19,7 +19,7 @@ class AxumRoute:
 
     method: str  # GET, POST, PUT, DELETE
     path: str  # /users/{id}
-    handler_name: Optional[str] = None
+    handler_name: str | None = None
 
 
 class AxumRouteExtractor:
@@ -28,7 +28,7 @@ class AxumRouteExtractor:
     def __init__(self):
         self.parser = RustParser()
 
-    def extract_routes(self, source_code: str) -> List[AxumRoute]:
+    def extract_routes(self, source_code: str) -> list[AxumRoute]:
         """
         Extract all Axum routes from source code
 
@@ -60,7 +60,7 @@ class AxumRouteExtractor:
 
         return routes
 
-    def _parse_route_line(self, line: str, source_code: str) -> Optional[AxumRoute]:
+    def _parse_route_line(self, line: str, source_code: str) -> AxumRoute | None:
         """
         Parse route from Axum .route() line
 
@@ -114,7 +114,7 @@ class AxumRouteExtractor:
 
         return AxumRoute(method=method, path=path)
 
-    def _extract_method_from_call(self, method_call_text: str) -> Optional[str]:
+    def _extract_method_from_call(self, method_call_text: str) -> str | None:
         """
         Extract HTTP method from Axum method call
 
@@ -130,7 +130,7 @@ class AxumRouteExtractor:
 
         return None
 
-    def _get_call_arguments(self, call_expr: Node) -> List[Node]:
+    def _get_call_arguments(self, call_expr: Node) -> list[Node]:
         """Get arguments from a call expression"""
         args = []
         arguments = self._find_node_by_type(call_expr, "arguments")
@@ -140,7 +140,7 @@ class AxumRouteExtractor:
                     args.append(child)
         return args
 
-    def _find_node_by_type(self, node: Node, node_type: str) -> Optional[Node]:
+    def _find_node_by_type(self, node: Node, node_type: str) -> Node | None:
         """Recursively find first node of given type (depth-first search)"""
         if node.type == node_type:
             return node
@@ -152,7 +152,7 @@ class AxumRouteExtractor:
 
         return None
 
-    def _extract_string_literal(self, node: Node, source_code: str) -> Optional[str]:
+    def _extract_string_literal(self, node: Node, source_code: str) -> str | None:
         """Extract string literal content from a node"""
         if node.type == "string_literal":
             text = self.parser.get_node_text(node, source_code)

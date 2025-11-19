@@ -5,9 +5,24 @@ Reverse engineers Terraform configurations to universal infrastructure format.
 Uses HCL parser (python-hcl2) to parse Terraform syntax.
 """
 
+from typing import Any
+
 import hcl2
-from typing import Dict, Any, List
-from src.infrastructure.universal_infra_schema import *
+
+from src.infrastructure.universal_infra_schema import (
+    Bucket,
+    CloudProvider,
+    ComputeConfig,
+    ContainerConfig,
+    DatabaseConfig,
+    DatabaseType,
+    LoadBalancerConfig,
+    NetworkConfig,
+    ObjectStorageConfig,
+    ObservabilityConfig,
+    SecurityConfig,
+    UniversalInfrastructure,
+)
 
 
 class TerraformParser:
@@ -68,7 +83,7 @@ class TerraformParser:
             object_storage=object_storage
         )
 
-    def _parse_compute(self, resources: Dict[str, Any]) -> Optional[ComputeConfig]:
+    def _parse_compute(self, resources: dict[str, Any]) -> ComputeConfig | None:
         """Parse compute resources (EC2, Compute Engine, etc.)"""
         # First pass: look for autoscaling groups (highest priority)
         for resource_type, resource_configs in resources.items():
@@ -107,7 +122,7 @@ class TerraformParser:
 
         return None
 
-    def _parse_database(self, resources: Dict[str, Any]) -> Optional[DatabaseConfig]:
+    def _parse_database(self, resources: dict[str, Any]) -> DatabaseConfig | None:
         """Parse database resources (RDS, Cloud SQL, etc.)"""
         for resource_type, resource_configs in resources.items():
             if "aws_db_instance" in resource_type:
@@ -144,7 +159,7 @@ class TerraformParser:
 
         return None
 
-    def _parse_network(self, resources: Dict[str, Any]) -> NetworkConfig:
+    def _parse_network(self, resources: dict[str, Any]) -> NetworkConfig:
         """Parse network resources (VPC, subnets, etc.)"""
         vpc_cidr = "10.0.0.0/16"  # Default
         public_subnets = ["10.0.1.0/24", "10.0.2.0/24"]
@@ -170,7 +185,7 @@ class TerraformParser:
             private_subnets=private_subnets
         )
 
-    def _parse_load_balancer(self, resources: Dict[str, Any]) -> Optional[LoadBalancerConfig]:
+    def _parse_load_balancer(self, resources: dict[str, Any]) -> LoadBalancerConfig | None:
         """Parse load balancer resources"""
         for resource_type, resource_configs in resources.items():
             if "aws_lb" in resource_type:
@@ -191,7 +206,7 @@ class TerraformParser:
 
         return None
 
-    def _parse_container(self, resources: Dict[str, Any]) -> Optional[ContainerConfig]:
+    def _parse_container(self, resources: dict[str, Any]) -> ContainerConfig | None:
         """Parse container resources (ECS, EKS, etc.)"""
         # This is a simplified implementation
         # In practice, containers might be defined in ECS task definitions,
@@ -217,7 +232,7 @@ class TerraformParser:
 
         return None
 
-    def _parse_observability(self, resources: Dict[str, Any]) -> ObservabilityConfig:
+    def _parse_observability(self, resources: dict[str, Any]) -> ObservabilityConfig:
         """Parse observability resources (CloudWatch, etc.)"""
         logging_enabled = False
         metrics_enabled = False
@@ -237,7 +252,7 @@ class TerraformParser:
             tracing_enabled=tracing_enabled
         )
 
-    def _parse_security(self, resources: Dict[str, Any]) -> SecurityConfig:
+    def _parse_security(self, resources: dict[str, Any]) -> SecurityConfig:
         """Parse security resources (IAM, security groups, etc.)"""
         secrets_provider = "aws_secrets"
         iam_roles = []
@@ -254,7 +269,7 @@ class TerraformParser:
             iam_roles=iam_roles
         )
 
-    def _parse_object_storage(self, resources: Dict[str, Any]) -> Optional[ObjectStorageConfig]:
+    def _parse_object_storage(self, resources: dict[str, Any]) -> ObjectStorageConfig | None:
         """Parse object storage resources (S3, GCS, etc.)"""
         buckets = []
 
@@ -356,7 +371,7 @@ class TerraformParser:
         }
         return memory_map.get(machine_type, "7.5GB")
 
-    def _detect_provider(self, provider_config: Dict[str, Any], resources: Dict[str, Any]) -> tuple[CloudProvider, str]:
+    def _detect_provider(self, provider_config: dict[str, Any], resources: dict[str, Any]) -> tuple[CloudProvider, str]:
         """Detect cloud provider and region"""
         # Check provider block
         if "aws" in provider_config:
@@ -377,7 +392,7 @@ class TerraformParser:
 
         return CloudProvider.AWS, "us-east-1"
 
-    def _extract_name(self, resources: Dict[str, Any]) -> str:
+    def _extract_name(self, resources: dict[str, Any]) -> str:
         """Extract a reasonable name from resources"""
         # Try to find a main resource and extract name from tags
         for resource_type in ["aws_instance", "aws_db_instance", "google_compute_instance", "aws_ecs_service"]:

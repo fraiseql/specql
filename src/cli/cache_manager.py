@@ -1,8 +1,7 @@
 import hashlib
 import json
-from pathlib import Path
-from typing import Optional, Any
 from datetime import datetime
+from pathlib import Path
 
 
 class CacheManager:
@@ -20,7 +19,7 @@ class CacheManager:
         hash_input = f"{content}:{json.dumps(options, sort_keys=True)}"
         return hashlib.sha256(hash_input.encode()).hexdigest()
 
-    def get_cached(self, file_path: str, options: dict) -> Optional[dict]:
+    def get_cached(self, file_path: str, options: dict) -> dict | None:
         """Get cached result if available and valid"""
         cache_key = self._compute_hash(file_path, options)
         cache_file = self.cache_dir / f"{cache_key}.json"

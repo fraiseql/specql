@@ -9,14 +9,14 @@ Fallback order (by priority):
 3. tree-sitter-languages (legacy, unmaintained)
 """
 
-from typing import Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 # Try individual tree-sitter packages first (Priority 1 - most up-to-date grammars)
 try:
-    from tree_sitter import Language, Parser, Node
-    import tree_sitter_rust
     import tree_sitter_prisma
+    import tree_sitter_rust
     import tree_sitter_typescript
+    from tree_sitter import Language, Node, Parser
 
     HAS_TREE_SITTER = True
     _USE_INDIVIDUAL_PACKAGES = True
@@ -52,8 +52,8 @@ except ImportError:
     # Fallback 2: Try tree-sitter-language-pack (actively maintained, 165+ languages)
     _USE_INDIVIDUAL_PACKAGES = False
     try:
+        from tree_sitter import Language, Node, Parser
         from tree_sitter_language_pack import get_language, get_parser
-        from tree_sitter import Language, Parser, Node
 
         HAS_TREE_SITTER = True
         _USE_TREE_SITTER_LANGUAGE_PACK = True
@@ -86,8 +86,8 @@ except ImportError:
         # Fallback 3: Try tree-sitter-languages (legacy, unmaintained)
         _USE_TREE_SITTER_LANGUAGE_PACK = False
         try:
+            from tree_sitter import Language, Node, Parser
             from tree_sitter_languages import get_language, get_parser
-            from tree_sitter import Language, Parser, Node
 
             HAS_TREE_SITTER = True
             _USE_TREE_SITTER_LANGUAGES = True

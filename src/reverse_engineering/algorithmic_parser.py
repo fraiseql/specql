@@ -4,12 +4,13 @@ Algorithmic Parser: SQL → SpecQL without AI
 85% confidence through pure algorithmic conversion
 """
 
-from src.reverse_engineering.sql_ast_parser import SQLASTParser, ParsedFunction
+
+import yaml
+
+from src.reverse_engineering.ai_enhancer import AIEnhancer
 from src.reverse_engineering.ast_to_specql_mapper import ASTToSpecQLMapper, ConversionResult
 from src.reverse_engineering.heuristic_enhancer import HeuristicEnhancer
-from src.reverse_engineering.ai_enhancer import AIEnhancer
-from typing import Dict
-import yaml
+from src.reverse_engineering.sql_ast_parser import ParsedFunction, SQLASTParser
 
 
 class AlgorithmicParser:
@@ -146,7 +147,7 @@ class AlgorithmicParser:
 
         return yaml.dump(yaml_dict, default_flow_style=False, sort_keys=False)
 
-    def _step_to_dict(self, step) -> Dict:
+    def _step_to_dict(self, step) -> dict:
         """Convert ActionStep to dict for YAML"""
         step_dict = {"type": step.type}
 

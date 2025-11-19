@@ -7,7 +7,7 @@ Parses Fastify route definitions:
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
+
 from tree_sitter import Node
 
 from .tree_sitter_parser import TypeScriptParser
@@ -19,7 +19,7 @@ class FastifyRoute:
 
     method: str  # GET, POST, PUT, DELETE
     path: str  # /users/:id
-    handler_name: Optional[str] = None
+    handler_name: str | None = None
     has_schema: bool = False
 
 
@@ -29,7 +29,7 @@ class FastifyRouteExtractor:
     def __init__(self):
         self.parser = TypeScriptParser()
 
-    def extract_routes(self, source_code: str) -> List[FastifyRoute]:
+    def extract_routes(self, source_code: str) -> list[FastifyRoute]:
         """
         Extract all Fastify routes from source code
 
@@ -106,7 +106,7 @@ class FastifyRouteExtractor:
 
         return True
 
-    def _parse_route(self, node: Node, source_code: str) -> Optional[FastifyRoute]:
+    def _parse_route(self, node: Node, source_code: str) -> FastifyRoute | None:
         """
         Parse route definition into FastifyRoute object
 

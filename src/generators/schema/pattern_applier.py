@@ -1,17 +1,18 @@
 """Apply patterns to entity schema."""
 
-from typing import Dict, List, Any
-from pathlib import Path
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
+
 import yaml
 from jinja2 import Environment, FileSystemLoader, Template
 
 from src.core.ast_models import Entity, FieldDefinition, Index, Pattern
-from src.utils.logger import get_team_logger
 
 # Pattern class imports
 from src.patterns.validation.recursive_dependency_validator import RecursiveDependencyValidator
 from src.patterns.validation.template_inheritance import TemplateInheritancePattern
+from src.utils.logger import get_team_logger
 
 
 @dataclass
@@ -20,7 +21,7 @@ class Constraint:
 
     type: str
     name: str | None = None
-    fields: List[str] | None = None
+    fields: list[str] | None = None
     where: str | None = None
     comment: str | None = None
 
@@ -40,7 +41,6 @@ class PatternApplier:
 
     def __init__(self):
         # Set up Jinja environment for template rendering
-        from pathlib import Path
 
         self.pattern_dir = Path("stdlib/schema")
         self.logger = get_team_logger("Team B", __name__)
@@ -79,7 +79,7 @@ class PatternApplier:
 
         if pattern_spec:
             # Use YAML-based pattern
-            self.logger.debug(f"Using YAML-based pattern path")
+            self.logger.debug("Using YAML-based pattern path")
             # Validate parameters and add defaults
             validated_params = self._validate_params(pattern_spec, pattern.params, entity)
 
@@ -94,7 +94,7 @@ class PatternApplier:
                 )
         else:
             # Try Python-based pattern
-            self.logger.debug(f"Using Python-based pattern path")
+            self.logger.debug("Using Python-based pattern path")
             entity, additional_sql = self._apply_python_pattern(entity, pattern)
 
         # Store pattern metadata in notes
@@ -156,7 +156,7 @@ class PatternApplier:
         # Functions are added to entity.functions and rendered separately via template
         return entity, additional_sql
 
-    def _load_pattern_spec(self, pattern_type: str) -> Dict[str, Any]:
+    def _load_pattern_spec(self, pattern_type: str) -> dict[str, Any]:
         """Load pattern YAML specification."""
         pattern_path = self.pattern_dir / f"{pattern_type}.yaml"
 
@@ -175,10 +175,10 @@ class PatternApplier:
 
     def _validate_params(
         self,
-        pattern_spec: Dict[str, Any],
-        params: Dict[str, Any],
+        pattern_spec: dict[str, Any],
+        params: dict[str, Any],
         entity: Entity,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Validate pattern parameters and add defaults."""
         spec_params = {p["name"]: p for p in pattern_spec.get("parameters", [])}
         validated_params = params.copy()
@@ -237,7 +237,7 @@ class PatternApplier:
         self,
         param_name: str,
         param_value: Any,
-        param_spec: Dict[str, Any],
+        param_spec: dict[str, Any],
     ) -> None:
         """Validate parameter type."""
         param_type = param_spec.get("type", "string")
@@ -268,8 +268,8 @@ class PatternApplier:
     def _apply_schema_extensions(
         self,
         entity: Entity,
-        pattern_spec: Dict[str, Any],
-        params: Dict[str, Any],
+        pattern_spec: dict[str, Any],
+        params: dict[str, Any],
     ) -> Entity:
         """Apply schema extensions from pattern."""
         extensions = pattern_spec.get("schema_extensions", {})
@@ -334,8 +334,8 @@ class PatternApplier:
 
     def _render_field(
         self,
-        field_template: Dict[str, Any],
-        context: Dict[str, Any],
+        field_template: dict[str, Any],
+        context: dict[str, Any],
         entity: Entity,
     ) -> FieldDefinition:
         """Render field template with Jinja2."""
@@ -358,8 +358,8 @@ class PatternApplier:
 
     def _render_constraint(
         self,
-        constraint_template: Dict[str, Any],
-        context: Dict[str, Any],
+        constraint_template: dict[str, Any],
+        context: dict[str, Any],
         entity: Entity,
     ) -> Constraint:
         """Render constraint template."""
@@ -404,9 +404,9 @@ class PatternApplier:
 
     def _render_schema_template(
         self,
-        pattern_spec: Dict[str, Any],
+        pattern_spec: dict[str, Any],
         entity: Entity,
-        params: Dict[str, Any],
+        params: dict[str, Any],
     ) -> str:
         """Render schema template with Jinja2."""
         template_str = pattern_spec["schema_template"]
@@ -423,8 +423,8 @@ class PatternApplier:
 
     def _render_index(
         self,
-        index_template: Dict[str, Any],
-        context: Dict[str, Any],
+        index_template: dict[str, Any],
+        context: dict[str, Any],
         entity: Entity,
     ) -> Index:
         """Render index template."""
@@ -482,10 +482,10 @@ class PatternApplier:
 
     def _render_computed_column(
         self,
-        computed_template: Dict[str, Any],
-        context: Dict[str, Any],
+        computed_template: dict[str, Any],
+        context: dict[str, Any],
         entity: Entity,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """Render computed column template."""
         from jinja2 import Template
 
@@ -520,8 +520,8 @@ class PatternApplier:
 
     def _render_function(
         self,
-        function_template: Dict[str, Any],
-        context: Dict[str, Any],
+        function_template: dict[str, Any],
+        context: dict[str, Any],
         entity: Entity,
     ) -> str:
         """Render function template and return complete SQL."""

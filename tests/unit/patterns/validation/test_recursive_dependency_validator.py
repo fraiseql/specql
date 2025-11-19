@@ -4,9 +4,9 @@ import pytest
 
 # pytestmark = pytest.mark.skip(reason="Incomplete feature - deferred to post-beta")
 from src.core.specql_parser import SpecQLParser
-from src.generators.table_generator import TableGenerator
 from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.schema_registry import SchemaRegistry
+from src.generators.table_generator import TableGenerator
 
 
 class TestRecursiveDependencyValidator:
@@ -65,7 +65,7 @@ patterns:
         parser = SpecQLParser()
         entity = parser.parse(category_entity)
 
-        ddl = table_generator.generate_table_ddl(entity)
+        table_generator.generate_table_ddl(entity)
 
         # Verify depth checking constraint
         assert "max_depth" in str(entity.patterns) or True  # Placeholder

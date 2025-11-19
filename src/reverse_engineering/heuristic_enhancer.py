@@ -8,14 +8,15 @@ Improves confidence from 85% → 90% through:
 - Variable naming improvements
 """
 
-from typing import Dict, List, Optional, Set
 from dataclasses import dataclass
-from src.core.ast_models import ActionStep
+
 from src.reverse_engineering.ast_to_specql_mapper import ConversionResult
 from src.reverse_engineering.cte_parser import CTEParser
 from src.reverse_engineering.universal_pattern_detector import (
-    UniversalPatternDetector,
     DetectedPattern as UniversalDetectedPattern,
+)
+from src.reverse_engineering.universal_pattern_detector import (
+    UniversalPatternDetector,
 )
 
 
@@ -26,7 +27,7 @@ class VariablePurpose:
     name: str
     purpose: str  # 'total', 'count', 'flag', 'temp', 'accumulator', 'result', 'unknown'
     confidence: float
-    evidence: List[str]
+    evidence: list[str]
 
 
 @dataclass
@@ -36,7 +37,7 @@ class DetectedPattern:
     name: str
     confidence: float
     description: str
-    evidence: List[str]
+    evidence: list[str]
 
 
 class HeuristicEnhancer:
@@ -56,7 +57,7 @@ class HeuristicEnhancer:
     def enhance(
         self,
         result: ConversionResult,
-        source_code: Optional[str] = None,
+        source_code: str | None = None,
         language: str = "sql",
     ) -> ConversionResult:
         """
@@ -123,7 +124,7 @@ class HeuristicEnhancer:
 
         return result
 
-    def _extract_variables(self, result: ConversionResult) -> Set[str]:
+    def _extract_variables(self, result: ConversionResult) -> set[str]:
         """Extract all variable names from the conversion result"""
         variables = set()
 
@@ -140,7 +141,7 @@ class HeuristicEnhancer:
 
         return variables
 
-    def _extract_vars_from_expression(self, expression: str) -> Set[str]:
+    def _extract_vars_from_expression(self, expression: str) -> set[str]:
         """Extract variable names from SQL expression"""
         variables = set()
 
@@ -158,7 +159,7 @@ class HeuristicEnhancer:
 
     def _infer_variable_purpose(
         self, var_name: str, result: ConversionResult
-    ) -> Optional[VariablePurpose]:
+    ) -> VariablePurpose | None:
         """
         Infer the purpose of a variable based on naming and usage patterns
 
@@ -234,7 +235,7 @@ class HeuristicEnhancer:
 
         return None
 
-    def _analyze_variable_usage(self, var_name: str, result: ConversionResult) -> List[str]:
+    def _analyze_variable_usage(self, var_name: str, result: ConversionResult) -> list[str]:
         """Analyze how a variable is used throughout the function"""
         evidence = []
 
@@ -347,7 +348,7 @@ class HeuristicEnhancer:
         self.detected_patterns = patterns
         return result
 
-    def _detect_state_machine_pattern(self, result: ConversionResult) -> Optional[DetectedPattern]:
+    def _detect_state_machine_pattern(self, result: ConversionResult) -> DetectedPattern | None:
         """Detect state machine pattern (status transitions)"""
         evidence = []
 
@@ -383,7 +384,7 @@ class HeuristicEnhancer:
 
         return None
 
-    def _detect_audit_trail_pattern(self, result: ConversionResult) -> Optional[DetectedPattern]:
+    def _detect_audit_trail_pattern(self, result: ConversionResult) -> DetectedPattern | None:
         """Detect audit trail pattern (logging changes)"""
         evidence = []
 
@@ -419,7 +420,7 @@ class HeuristicEnhancer:
 
         return None
 
-    def _detect_soft_delete_pattern(self, result: ConversionResult) -> Optional[DetectedPattern]:
+    def _detect_soft_delete_pattern(self, result: ConversionResult) -> DetectedPattern | None:
         """Detect soft delete pattern (setting deleted flags)"""
         evidence = []
 
@@ -448,7 +449,7 @@ class HeuristicEnhancer:
 
     def _detect_validation_chain_pattern(
         self, result: ConversionResult
-    ) -> Optional[DetectedPattern]:
+    ) -> DetectedPattern | None:
         """Detect validation chain pattern (multiple checks)"""
         evidence = []
 
@@ -481,7 +482,7 @@ class HeuristicEnhancer:
 
         return None
 
-    def _detect_recursive_pattern(self, result: ConversionResult) -> Optional[DetectedPattern]:
+    def _detect_recursive_pattern(self, result: ConversionResult) -> DetectedPattern | None:
         """Detect recursive CTEs and hierarchy traversal"""
         evidence = []
 
@@ -525,7 +526,7 @@ class HeuristicEnhancer:
 
     def _detect_window_function_pattern(
         self, result: ConversionResult
-    ) -> Optional[DetectedPattern]:
+    ) -> DetectedPattern | None:
         """Detect window functions with complex frames"""
         evidence = []
 
@@ -573,7 +574,7 @@ class HeuristicEnhancer:
 
         return None
 
-    def _detect_aggregate_pattern(self, result: ConversionResult) -> Optional[DetectedPattern]:
+    def _detect_aggregate_pattern(self, result: ConversionResult) -> DetectedPattern | None:
         """Detect aggregate functions with FILTER/OVER clauses"""
         evidence = []
 
@@ -659,7 +660,7 @@ class HeuristicEnhancer:
         return var_name
 
     def _merge_universal_patterns(
-        self, result: ConversionResult, universal_patterns: List[UniversalDetectedPattern]
+        self, result: ConversionResult, universal_patterns: list[UniversalDetectedPattern]
     ) -> ConversionResult:
         """Merge universal patterns with SQL-specific patterns"""
         # Convert universal patterns to DetectedPattern format
@@ -691,7 +692,7 @@ class HeuristicEnhancer:
         return result
 
     def _calculate_confidence_boost(
-        self, result: ConversionResult, universal_patterns: List[UniversalDetectedPattern] = []
+        self, result: ConversionResult, universal_patterns: list[UniversalDetectedPattern] = []
     ) -> float:
         """Calculate confidence boost from heuristics"""
         boost = 0.0
@@ -736,7 +737,7 @@ class HeuristicEnhancer:
 
     def _detect_exception_handler_pattern(
         self, result: ConversionResult
-    ) -> Optional[DetectedPattern]:
+    ) -> DetectedPattern | None:
         """Detect exception handler pattern (try/catch blocks)"""
         evidence = []
 
@@ -767,7 +768,7 @@ class HeuristicEnhancer:
 
         return None
 
-    def _detect_dynamic_sql_pattern(self, result: ConversionResult) -> Optional[DetectedPattern]:
+    def _detect_dynamic_sql_pattern(self, result: ConversionResult) -> DetectedPattern | None:
         """Detect dynamic SQL pattern (EXECUTE statements)"""
         evidence = []
 
@@ -800,7 +801,7 @@ class HeuristicEnhancer:
 
     def _detect_cursor_operations_pattern(
         self, result: ConversionResult
-    ) -> Optional[DetectedPattern]:
+    ) -> DetectedPattern | None:
         """Detect cursor operations pattern (OPEN/FETCH/CLOSE)"""
         evidence = []
 
@@ -843,7 +844,7 @@ class HeuristicEnhancer:
 
         return None
 
-    def _detect_control_flow_pattern(self, result: ConversionResult) -> Optional[DetectedPattern]:
+    def _detect_control_flow_pattern(self, result: ConversionResult) -> DetectedPattern | None:
         """Detect complex control flow pattern (FOR/IF-ELSIF/CONTINUE)"""
         evidence = []
 
@@ -884,7 +885,7 @@ class HeuristicEnhancer:
 
     def _detect_window_function_pattern(
         self, result: ConversionResult
-    ) -> Optional[DetectedPattern]:
+    ) -> DetectedPattern | None:
         """Detect window function pattern (ROW_NUMBER, LAG, etc. with OVER clauses)"""
         evidence = []
 
@@ -930,7 +931,7 @@ class HeuristicEnhancer:
 
     def _detect_aggregate_filter_pattern(
         self, result: ConversionResult
-    ) -> Optional[DetectedPattern]:
+    ) -> DetectedPattern | None:
         """Detect aggregate functions with FILTER clauses pattern"""
         evidence = []
 

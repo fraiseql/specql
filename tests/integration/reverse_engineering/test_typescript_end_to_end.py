@@ -1,9 +1,7 @@
 # tests/integration/reverse_engineering/test_typescript_end_to_end.py
 
-import pytest
-from pathlib import Path
-from src.reverse_engineering.universal_action_mapper import UniversalActionMapper
 from src.reverse_engineering.prisma_parser import PrismaSchemaParser
+from src.reverse_engineering.universal_action_mapper import UniversalActionMapper
 
 
 class TestTypeScriptEndToEnd:
@@ -60,7 +58,7 @@ class TestTypeScriptEndToEnd:
 
         # Check relation
         company_field = next(f for f in contact.fields if f.name == "company")
-        assert company_field.is_relation == True
+        assert company_field.is_relation
         assert company_field.related_entity == "Company"
 
         # Check indexes

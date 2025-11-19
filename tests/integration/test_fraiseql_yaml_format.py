@@ -8,7 +8,6 @@ import pytest
 # Mark all tests as requiring database
 pytestmark = pytest.mark.database
 
-from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
 from src.core.specql_parser import SpecQLParser
 from src.generators.schema_orchestrator import SchemaOrchestrator
 

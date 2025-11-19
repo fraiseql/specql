@@ -7,10 +7,9 @@ Your responsibility: Implement Patterns 1-3
 - Audit Trail
 """
 
-from typing import List, Dict, Any
-from dataclasses import dataclass
-import re
 import logging
+import re
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 
@@ -21,7 +20,7 @@ class DetectedPattern:
 
     name: str
     confidence: float
-    evidence: List[str]
+    evidence: list[str]
     language: str
     suggested_stdlib: str
 
@@ -77,7 +76,7 @@ class UniversalPatternDetector:
             "rate_limiting": RateLimitingPattern(),  # Week 8 - Pattern 10
         }
 
-    def detect(self, code: str, language: str) -> List[DetectedPattern]:
+    def detect(self, code: str, language: str) -> list[DetectedPattern]:
         """Detect all patterns in code"""
         detected = []
 
@@ -95,7 +94,7 @@ class UniversalPatternDetector:
 
         return detected
 
-    def detect_all_patterns(self, source_code: str, language: str) -> Dict[str, Dict]:
+    def detect_all_patterns(self, source_code: str, language: str) -> dict[str, dict]:
         """Detect all patterns using regex-based approach"""
         results = {}
 
@@ -181,7 +180,7 @@ class StateMachinePattern:
         # Must have at least field + transitions to be considered state machine
         return self.confidence >= 0.60
 
-    def _get_indicators(self, language: str) -> Dict[str, List[str]]:
+    def _get_indicators(self, language: str) -> dict[str, list[str]]:
         """Get language-specific indicators"""
         indicators = {
             "rust": {

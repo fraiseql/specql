@@ -4,16 +4,17 @@ OVHcloud Generator
 Generates provisioning scripts and configurations for OVHcloud bare metal servers.
 """
 
-from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
-from typing import Optional
+
+from jinja2 import Environment, FileSystemLoader
+
 from src.infrastructure.universal_infra_schema import UniversalInfrastructure
 
 
 class OVHcloudGenerator:
     """Generate OVHcloud provisioning scripts from universal format"""
 
-    def __init__(self, template_dir: Optional[Path] = None):
+    def __init__(self, template_dir: Path | None = None):
         if template_dir is None:
             template_dir = Path(__file__).parent.parent.parent.parent / "templates" / "infrastructure"
 
@@ -63,7 +64,7 @@ class OVHcloudGenerator:
         }
         return os_map.get(os, "ubuntu2204-server_64")
 
-    def _get_datacenter(self, region: str, datacenter: Optional[str]) -> str:
+    def _get_datacenter(self, region: str, datacenter: str | None) -> str:
         """Get OVHcloud datacenter"""
         if datacenter:
             return datacenter

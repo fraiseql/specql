@@ -1,6 +1,5 @@
 """Utility for checking optional dependencies."""
 
-from typing import Optional
 import importlib.util
 
 
@@ -11,7 +10,7 @@ class OptionalDependency:
         self.package_name = package_name
         self.pip_extra = pip_extra
         self.purpose = purpose
-        self._available: Optional[bool] = None
+        self._available: bool | None = None
 
     @property
     def available(self) -> bool:

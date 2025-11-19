@@ -1,7 +1,7 @@
 """Template inheritance pattern implementation."""
 
 from dataclasses import dataclass
-from typing import Optional
+
 from src.core.ast_models import EntityDefinition, FieldDefinition, Index
 
 

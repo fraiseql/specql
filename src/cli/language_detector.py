@@ -1,7 +1,7 @@
 """Language auto-detection for source code files."""
 
 from pathlib import Path
-from typing import Literal, Optional
+from typing import Literal
 
 LanguageType = Literal["rust", "typescript", "python", "java", "sql", "prisma"]
 
@@ -20,7 +20,7 @@ class LanguageDetector:
     }
 
     @classmethod
-    def detect(cls, file_path: str) -> Optional[LanguageType]:
+    def detect(cls, file_path: str) -> LanguageType | None:
         """Detect language from file path and content."""
         path = Path(file_path)
 

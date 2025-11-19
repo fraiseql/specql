@@ -7,13 +7,13 @@ from typing import Any
 
 from jinja2 import Environment, FileSystemLoader
 
-from src.core.ast_models import Entity, EntityDefinition
+from src.core.ast_models import Entity
 from src.generators.comment_generator import CommentGenerator
 from src.generators.constraint_generator import ConstraintGenerator
 from src.generators.index_generator import IndexGenerator
 from src.generators.schema.ddl_deduplicator import DDLDeduplicator
 from src.generators.schema.schema_registry import SchemaRegistry
-from src.utils.safe_slug import safe_slug, safe_table_name
+from src.utils.safe_slug import safe_table_name
 
 
 class TableGenerator:

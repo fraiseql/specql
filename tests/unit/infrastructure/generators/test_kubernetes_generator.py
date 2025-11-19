@@ -2,17 +2,15 @@
 Tests for Kubernetes Generator
 """
 
-import pytest
 from src.infrastructure.generators.kubernetes_generator import KubernetesGenerator
 from src.infrastructure.universal_infra_schema import (
-    UniversalInfrastructure,
     CloudProvider,
-    ContainerConfig,
     ComputeConfig,
+    ContainerConfig,
     DatabaseConfig,
     DatabaseType,
     LoadBalancerConfig,
-    NetworkConfig,
+    UniversalInfrastructure,
     Volume,
 )
 

@@ -1,14 +1,14 @@
 import ast
-from typing import List, Dict, Any, Optional
 from pathlib import Path
+from typing import Any
 
 from src.reverse_engineering.protocols import (
     ParsedEntity,
     ParsedField,
     ParsedMethod,
     SourceLanguage,
-    LanguageParser
 )
+
 
 class PythonASTParser:
     """
@@ -117,7 +117,7 @@ class PythonASTParser:
         except Exception as e:
             raise ValueError(f"Failed to parse Python method: {e}")
 
-    def detect_patterns(self, entity: ParsedEntity) -> List[str]:
+    def detect_patterns(self, entity: ParsedEntity) -> list[str]:
         """
         Detect Python-specific patterns
 
@@ -171,17 +171,17 @@ class PythonASTParser:
     # Private Helper Methods
     # ========================================================================
 
-    def _find_class_definition(self, tree: ast.Module) -> Optional[ast.ClassDef]:
+    def _find_class_definition(self, tree: ast.Module) -> ast.ClassDef | None:
         """Find first class definition in AST"""
         for node in ast.walk(tree):
             if isinstance(node, ast.ClassDef):
                 return node
         return None
 
-    def _find_function_definition(self, tree: ast.Module) -> Optional[ast.FunctionDef | ast.AsyncFunctionDef]:
+    def _find_function_definition(self, tree: ast.Module) -> ast.FunctionDef | ast.AsyncFunctionDef | None:
         """Find first function definition in AST"""
         for node in ast.walk(tree):
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
                 return node
         return None
 
@@ -199,7 +199,7 @@ class PythonASTParser:
         # Default namespace
         return "public"
 
-    def _parse_fields(self, class_def: ast.ClassDef) -> List[ParsedField]:
+    def _parse_fields(self, class_def: ast.ClassDef) -> list[ParsedField]:
         """Parse class fields from annotations and assignments"""
         fields = []
 
@@ -219,7 +219,7 @@ class PythonASTParser:
 
         return fields
 
-    def _parse_annotated_field(self, node: ast.AnnAssign) -> Optional[ParsedField]:
+    def _parse_annotated_field(self, node: ast.AnnAssign) -> ParsedField | None:
         """Parse annotated field (e.g., email: str)"""
         if not isinstance(node.target, ast.Name):
             return None
@@ -248,7 +248,7 @@ class PythonASTParser:
             default=default,
         )
 
-    def _parse_assigned_field(self, node: ast.Assign) -> Optional[ParsedField]:
+    def _parse_assigned_field(self, node: ast.Assign) -> ParsedField | None:
         """Parse field assignment (Django/SQLAlchemy models)"""
         if not node.targets or not isinstance(node.targets[0], ast.Name):
             return None
@@ -275,7 +275,7 @@ class PythonASTParser:
 
         return None
 
-    def _parse_orm_field(self, call_node: ast.Call) -> Optional[Dict[str, Any]]:
+    def _parse_orm_field(self, call_node: ast.Call) -> dict[str, Any] | None:
         """Parse Django/SQLAlchemy field definition"""
         if not isinstance(call_node.func, ast.Attribute):
             return None
@@ -320,7 +320,7 @@ class PythonASTParser:
         if not specql_type:
             return None
 
-        field_info: Dict[str, Any] = {
+        field_info: dict[str, Any] = {
             'type': specql_type,
             'original_type': field_class,
         }
@@ -366,7 +366,7 @@ class PythonASTParser:
 
         return normalized, required
 
-    def _build_type_mapping(self) -> Dict[str, str]:
+    def _build_type_mapping(self) -> dict[str, str]:
         """Build Python → SpecQL type mapping"""
         return {
             'str': 'text',
@@ -397,12 +397,12 @@ class PythonASTParser:
         else:
             return None
 
-    def _parse_methods(self, class_def: ast.ClassDef) -> List[ParsedMethod]:
+    def _parse_methods(self, class_def: ast.ClassDef) -> list[ParsedMethod]:
         """Parse all methods in class"""
         methods = []
 
         for node in class_def.body:
-            if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            if isinstance(node, ast.FunctionDef | ast.AsyncFunctionDef):
                 # Skip magic methods and private methods
                 if node.name.startswith('__') or node.name.startswith('_'):
                     continue
@@ -425,7 +425,7 @@ class PythonASTParser:
 
         return methods
 
-    def _parse_function_parameters(self, func_def) -> List[Dict[str, str]]:
+    def _parse_function_parameters(self, func_def) -> list[dict[str, str]]:
         """Parse function parameters"""
         params = []
 
@@ -445,13 +445,13 @@ class PythonASTParser:
 
         return params
 
-    def _parse_return_type(self, func_def) -> Optional[str]:
+    def _parse_return_type(self, func_def) -> str | None:
         """Parse return type annotation"""
         if func_def.returns:
             return ast.unparse(func_def.returns)
         return None
 
-    def _extract_body_lines(self, func_def) -> List[str]:
+    def _extract_body_lines(self, func_def) -> list[str]:
         """Extract function body as source lines"""
         body_lines = []
 
@@ -459,12 +459,12 @@ class PythonASTParser:
             try:
                 line = ast.unparse(node)
                 body_lines.append(line)
-            except:
+            except Exception:
                 continue
 
         return body_lines
 
-    def _parse_function_decorators(self, func_def) -> List[str]:
+    def _parse_function_decorators(self, func_def) -> list[str]:
         """Parse function decorators"""
         decorators = []
 
@@ -477,7 +477,7 @@ class PythonASTParser:
 
         return decorators
 
-    def _parse_class_decorators(self, class_def: ast.ClassDef) -> List[str]:
+    def _parse_class_decorators(self, class_def: ast.ClassDef) -> list[str]:
         """Parse class decorators"""
         decorators = []
 
@@ -490,7 +490,7 @@ class PythonASTParser:
 
         return decorators
 
-    def _parse_inheritance(self, class_def: ast.ClassDef) -> List[str]:
+    def _parse_inheritance(self, class_def: ast.ClassDef) -> list[str]:
         """Parse base classes"""
         bases = []
 

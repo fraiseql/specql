@@ -1,11 +1,12 @@
 """CLI command for reverse engineering Rust code to SpecQL YAML."""
 
-import click
 from pathlib import Path
 
-from .reverse_common import ReverseEngineeringCLI
+import click
+
 from ..reverse_engineering.rust_parser import RustParser
 from ..reverse_engineering.universal_ast_mapper import UniversalASTMapper
+from .reverse_common import ReverseEngineeringCLI
 
 
 @click.command("rust")

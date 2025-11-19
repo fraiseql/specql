@@ -31,19 +31,19 @@ import logging
 import sys
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 
 @dataclass
 class LogContext:
     """Context information for structured logging"""
 
-    entity_name: Optional[str] = None
-    file_path: Optional[str] = None
-    operation: Optional[str] = None
-    schema: Optional[str] = None
-    action_name: Optional[str] = None
-    team: Optional[str] = None  # Team A-E identifier
+    entity_name: str | None = None
+    file_path: str | None = None
+    operation: str | None = None
+    schema: str | None = None
+    action_name: str | None = None
+    team: str | None = None  # Team A-E identifier
     extra: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -81,7 +81,7 @@ class LogContext:
 class ContextAdapter(logging.LoggerAdapter):
     """Logger adapter that includes context in log messages"""
 
-    def __init__(self, logger: logging.Logger, context: Optional[LogContext] = None):
+    def __init__(self, logger: logging.Logger, context: LogContext | None = None):
         super().__init__(logger, {})
         self.context = context or LogContext()
 
@@ -191,8 +191,8 @@ def configure_logging(
 
 def get_logger(
     name: str,
-    context: Optional[LogContext] = None,
-    level: Optional[int] = None,
+    context: LogContext | None = None,
+    level: int | None = None,
 ) -> logging.LoggerAdapter:
     """
     Get a context-aware logger
@@ -231,7 +231,7 @@ def get_logger(
 def get_team_logger(
     team: str,
     module_name: str,
-    context: Optional[LogContext] = None,
+    context: LogContext | None = None,
 ) -> logging.LoggerAdapter:
     """
     Get a team-specific logger

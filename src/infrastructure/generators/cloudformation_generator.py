@@ -5,8 +5,9 @@ Generates AWS CloudFormation templates from universal infrastructure format.
 """
 
 import json
-from typing import Dict, Any, List
-from src.infrastructure.universal_infra_schema import UniversalInfrastructure, DatabaseType
+from typing import Any
+
+from src.infrastructure.universal_infra_schema import DatabaseType, UniversalInfrastructure
 
 
 class CloudFormationGenerator:
@@ -24,7 +25,7 @@ class CloudFormationGenerator:
 
         return json.dumps(template, indent=2, sort_keys=False)
 
-    def _generate_parameters(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_parameters(self, infrastructure: UniversalInfrastructure) -> dict[str, Any]:
         """Generate CloudFormation parameters"""
         parameters = {}
 
@@ -37,7 +38,7 @@ class CloudFormationGenerator:
 
         return parameters
 
-    def _generate_resources(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_resources(self, infrastructure: UniversalInfrastructure) -> dict[str, Any]:
         """Generate CloudFormation resources"""
         resources = {}
 
@@ -62,7 +63,7 @@ class CloudFormationGenerator:
 
         return resources
 
-    def _generate_network_resources(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_network_resources(self, infrastructure: UniversalInfrastructure) -> dict[str, Any]:
         """Generate VPC, subnets, and networking resources"""
         resources = {}
 
@@ -176,7 +177,7 @@ class CloudFormationGenerator:
 
         return resources
 
-    def _generate_security_groups(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_security_groups(self, infrastructure: UniversalInfrastructure) -> dict[str, Any]:
         """Generate security groups"""
         resources = {}
 
@@ -251,7 +252,7 @@ class CloudFormationGenerator:
 
         return resources
 
-    def _generate_compute_resources(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_compute_resources(self, infrastructure: UniversalInfrastructure) -> dict[str, Any]:
         """Generate EC2 Auto Scaling Group"""
         resources = {}
 
@@ -337,7 +338,7 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
 
         return resources
 
-    def _generate_database_resources(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_database_resources(self, infrastructure: UniversalInfrastructure) -> dict[str, Any]:
         """Generate RDS database resources"""
         resources = {}
 
@@ -385,7 +386,7 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
 
         return resources
 
-    def _generate_load_balancer_resources(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_load_balancer_resources(self, infrastructure: UniversalInfrastructure) -> dict[str, Any]:
         """Generate Load Balancer resources"""
         resources = {}
 
@@ -436,7 +437,7 @@ docker run -d -p {infrastructure.container.port}:{infrastructure.container.port}
 
         return resources
 
-    def _generate_outputs(self, infrastructure: UniversalInfrastructure) -> Dict[str, Any]:
+    def _generate_outputs(self, infrastructure: UniversalInfrastructure) -> dict[str, Any]:
         """Generate CloudFormation outputs"""
         outputs = {
             "VPCId": {

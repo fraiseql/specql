@@ -9,9 +9,8 @@ Replaces regex parsing with robust AST traversal for:
 - Next.js Server Actions
 """
 
-from typing import Optional, List, Any, TYPE_CHECKING
-import re
 from dataclasses import dataclass, field
+from typing import TYPE_CHECKING, Any
 
 from src.utils.logger import get_logger
 
@@ -20,7 +19,7 @@ logger = get_logger(__name__)
 # Conditional imports for optional dependencies
 try:
     import tree_sitter_typescript as ts_typescript
-    from tree_sitter import Language, Parser, Node
+    from tree_sitter import Language, Node, Parser
 
     HAS_TREE_SITTER_TYPESCRIPT = True
 except ImportError:
@@ -40,8 +39,8 @@ class TypeScriptRoute:
     method: str
     path: str
     framework: str  # express, fastify, nextjs-pages, nextjs-app
-    handler_name: Optional[str] = None
-    parameters: List[str] = field(default_factory=list)
+    handler_name: str | None = None
+    parameters: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -67,7 +66,7 @@ class TreeSitterTypeScriptParser:
         self.language = Language(ts_typescript.language_typescript())
         self.parser = Parser(self.language)
 
-    def parse(self, code: str) -> Optional[Node]:
+    def parse(self, code: str) -> Node | None:
         """Parse TypeScript code into AST"""
         try:
             tree = self.parser.parse(bytes(code, "utf8"))
@@ -76,7 +75,7 @@ class TreeSitterTypeScriptParser:
             logger.error(f"Parse error: {e}", exc_info=True)
             return None
 
-    def extract_routes(self, ast: Node) -> List[TypeScriptRoute]:
+    def extract_routes(self, ast: Node) -> list[TypeScriptRoute]:
         """
         Extract routes from AST supporting multiple frameworks.
 
@@ -94,7 +93,7 @@ class TreeSitterTypeScriptParser:
 
         return routes
 
-    def extract_nextjs_pages_routes(self, ast: Node, file_path: str) -> List[TypeScriptRoute]:
+    def extract_nextjs_pages_routes(self, ast: Node, file_path: str) -> list[TypeScriptRoute]:
         """Extract Next.js Pages Router API routes"""
         routes = []
 
@@ -116,7 +115,7 @@ class TreeSitterTypeScriptParser:
 
         return routes
 
-    def extract_nextjs_app_routes(self, ast: Node, file_path: str) -> List[TypeScriptRoute]:
+    def extract_nextjs_app_routes(self, ast: Node, file_path: str) -> list[TypeScriptRoute]:
         """Extract Next.js App Router route handlers"""
         routes = []
 
@@ -142,7 +141,7 @@ class TreeSitterTypeScriptParser:
 
         return routes
 
-    def extract_server_actions(self, ast: Node) -> List[TypeScriptAction]:
+    def extract_server_actions(self, ast: Node) -> list[TypeScriptAction]:
         """Extract Next.js Server Actions from AST"""
         actions = []
 
@@ -158,7 +157,7 @@ class TreeSitterTypeScriptParser:
 
         return actions
 
-    def _extract_express_routes(self, ast: Node) -> List[TypeScriptRoute]:
+    def _extract_express_routes(self, ast: Node) -> list[TypeScriptRoute]:
         """Extract Express router.get/post/put/delete() calls"""
         routes = []
 
@@ -172,7 +171,7 @@ class TreeSitterTypeScriptParser:
 
         return routes
 
-    def _extract_fastify_routes(self, ast: Node) -> List[TypeScriptRoute]:
+    def _extract_fastify_routes(self, ast: Node) -> list[TypeScriptRoute]:
         """Extract Fastify route definitions"""
         routes = []
 
@@ -186,7 +185,7 @@ class TreeSitterTypeScriptParser:
 
         return routes
 
-    def _parse_express_route_call(self, call_expr: Node) -> Optional[TypeScriptRoute]:
+    def _parse_express_route_call(self, call_expr: Node) -> TypeScriptRoute | None:
         """Parse Express router.method() call"""
         # Look for member expression like router.get, router.post, etc.
         member_expr = self._find_node_by_type(call_expr, "member_expression")
@@ -224,7 +223,7 @@ class TreeSitterTypeScriptParser:
 
         return None
 
-    def _parse_fastify_route_call(self, call_expr: Node) -> Optional[TypeScriptRoute]:
+    def _parse_fastify_route_call(self, call_expr: Node) -> TypeScriptRoute | None:
         """Parse Fastify fastify.method() call"""
         # Look for member expression like fastify.get, fastify.post, etc.
         member_expr = self._find_node_by_type(call_expr, "member_expression")
@@ -276,7 +275,7 @@ class TreeSitterTypeScriptParser:
 
         return False
 
-    def _find_exported_functions(self, ast: Node) -> List[str]:
+    def _find_exported_functions(self, ast: Node) -> list[str]:
         """Find all exported async function declarations"""
         functions = []
 
@@ -303,7 +302,7 @@ class TreeSitterTypeScriptParser:
                 return True
         return False
 
-    def _extract_string_literal(self, node: Node) -> Optional[str]:
+    def _extract_string_literal(self, node: Node) -> str | None:
         """Extract string literal content from a node"""
         if node.type == "string":
             text = self._node_text(node)
@@ -318,7 +317,7 @@ class TreeSitterTypeScriptParser:
 
         return None
 
-    def _get_call_arguments(self, call_expr: Node) -> List[Node]:
+    def _get_call_arguments(self, call_expr: Node) -> list[Node]:
         """Get arguments from a call expression"""
         args = []
         arguments = self._find_node_by_type(call_expr, "arguments")
@@ -328,7 +327,7 @@ class TreeSitterTypeScriptParser:
                     args.append(child)
         return args
 
-    def _find_node_by_type(self, node: Node, node_type: str) -> Optional[Node]:
+    def _find_node_by_type(self, node: Node, node_type: str) -> Node | None:
         """Recursively find first node of given type (depth-first search)"""
         if node.type == node_type:
             return node
@@ -340,7 +339,7 @@ class TreeSitterTypeScriptParser:
 
         return None
 
-    def _find_nodes_by_type(self, node: Node, node_type: str) -> List[Node]:
+    def _find_nodes_by_type(self, node: Node, node_type: str) -> list[Node]:
         """Recursively find all nodes of given type"""
         results = []
         if node.type == node_type:
@@ -355,7 +354,7 @@ class TreeSitterTypeScriptParser:
         """Get text content of a node"""
         return node.text.decode("utf8") if isinstance(node.text, bytes) else str(node.text)
 
-    def _convert_pages_path_to_route(self, file_path: str) -> Optional[str]:
+    def _convert_pages_path_to_route(self, file_path: str) -> str | None:
         """Convert Next.js Pages Router file path to route path"""
         # pages/api/contacts.ts -> /api/contacts
         # pages/api/contacts/[id].ts -> /api/contacts/[id]
@@ -372,7 +371,7 @@ class TreeSitterTypeScriptParser:
 
         return f"/{route_path}" if route_path else "/"
 
-    def _convert_app_path_to_route(self, file_path: str) -> Optional[str]:
+    def _convert_app_path_to_route(self, file_path: str) -> str | None:
         """Convert Next.js App Router file path to route path"""
         # app/api/contacts/route.ts -> /api/contacts
         # app/api/contacts/[id]/route.ts -> /api/contacts/[id]
@@ -389,7 +388,7 @@ class TreeSitterTypeScriptParser:
 
         return f"/{route_path}" if route_path else "/"
 
-    def _detect_pages_router_methods(self, ast: Node) -> List[str]:
+    def _detect_pages_router_methods(self, ast: Node) -> list[str]:
         """Detect HTTP methods used in Next.js Pages Router"""
         methods = []
 
@@ -408,7 +407,7 @@ class TreeSitterTypeScriptParser:
         # Remove duplicates
         return list(set(methods))
 
-    def _find_req_method_checks(self, ast: Node) -> List[str]:
+    def _find_req_method_checks(self, ast: Node) -> list[str]:
         """Find req.method === 'GET' style checks"""
         methods = []
 
@@ -429,7 +428,7 @@ class TreeSitterTypeScriptParser:
 
         return methods
 
-    def _find_exported_pages_handlers(self, ast: Node) -> List[str]:
+    def _find_exported_pages_handlers(self, ast: Node) -> list[str]:
         """Find exported handler functions in Pages Router"""
         methods = []
 

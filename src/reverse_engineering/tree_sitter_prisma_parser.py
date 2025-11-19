@@ -1,15 +1,15 @@
 """Tree-sitter based Prisma schema parser."""
 
 from dataclasses import dataclass, field
-from typing import List, Optional, Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 # Conditional imports for optional dependencies
 try:
     from .tree_sitter_compat import (
         HAS_TREE_SITTER,
         Language,
-        Parser,
         Node,
+        Parser,
         get_prisma_language,
         get_prisma_parser,
     )
@@ -37,9 +37,9 @@ class PrismaField:
     is_id: bool = False
     is_unique: bool = False
     has_default: bool = False
-    default_value: Optional[str] = None
-    relation_name: Optional[str] = None
-    attributes: List[str] = field(default_factory=list)
+    default_value: str | None = None
+    relation_name: str | None = None
+    attributes: list[str] = field(default_factory=list)
 
 
 @dataclass
@@ -47,10 +47,10 @@ class PrismaModel:
     """Represents a Prisma model."""
 
     name: str
-    fields: List[PrismaField] = field(default_factory=list)
-    indexes: List[dict] = field(default_factory=list)
-    unique_constraints: List[dict] = field(default_factory=list)
-    table_name: Optional[str] = None
+    fields: list[PrismaField] = field(default_factory=list)
+    indexes: list[dict] = field(default_factory=list)
+    unique_constraints: list[dict] = field(default_factory=list)
+    table_name: str | None = None
 
 
 @dataclass
@@ -58,7 +58,7 @@ class PrismaEnum:
     """Represents a Prisma enum."""
 
     name: str
-    values: List[str] = field(default_factory=list)
+    values: list[str] = field(default_factory=list)
 
 
 class TreeSitterPrismaParser:
@@ -79,7 +79,7 @@ class TreeSitterPrismaParser:
         tree = self.parser.parse(bytes(schema, "utf8"))
         return tree.root_node
 
-    def extract_models(self, ast: Node) -> List[PrismaModel]:
+    def extract_models(self, ast: Node) -> list[PrismaModel]:
         """Extract all model declarations from AST."""
         models = []
 
@@ -91,7 +91,7 @@ class TreeSitterPrismaParser:
 
         return models
 
-    def _parse_model(self, model_node: Node) -> Optional[PrismaModel]:
+    def _parse_model(self, model_node: Node) -> PrismaModel | None:
         """Parse a model declaration."""
         # Get model name
         name = None
@@ -120,7 +120,7 @@ class TreeSitterPrismaParser:
 
     def _parse_model_body(
         self, body_node: Node
-    ) -> tuple[List[PrismaField], List[dict], List[dict], Optional[str]]:
+    ) -> tuple[list[PrismaField], list[dict], list[dict], str | None]:
         """Parse fields and block attributes from model body."""
         fields = []
         indexes = []
@@ -152,7 +152,7 @@ class TreeSitterPrismaParser:
 
         return fields, indexes, unique_constraints, table_name
 
-    def _extract_table_name(self, attr_node: Node) -> Optional[str]:
+    def _extract_table_name(self, attr_node: Node) -> str | None:
         """Extract table name from @@map(...) attribute."""
         # Look for string in arguments
         for child in attr_node.children:
@@ -164,7 +164,7 @@ class TreeSitterPrismaParser:
                                 return self._get_node_text(arg_child).strip("\"'")
         return None
 
-    def _parse_field(self, field_node: Node) -> Optional[PrismaField]:
+    def _parse_field(self, field_node: Node) -> PrismaField | None:
         """
         Parse a field declaration.
 
@@ -233,7 +233,7 @@ class TreeSitterPrismaParser:
 
         return None
 
-    def _extract_default_value(self, attr_node: Node) -> Optional[str]:
+    def _extract_default_value(self, attr_node: Node) -> str | None:
         """Extract default value from @default(...) attribute."""
         # Look for arguments in the call expression
         for child in attr_node.children:
@@ -254,7 +254,7 @@ class TreeSitterPrismaParser:
 
         return None
 
-    def _extract_relation_name(self, attr_node: Node) -> Optional[str]:
+    def _extract_relation_name(self, attr_node: Node) -> str | None:
         """Extract relation name from @relation(...) attribute."""
         # Look for string node in the arguments
         for child in attr_node.children:
@@ -273,7 +273,7 @@ class TreeSitterPrismaParser:
 
         return None
 
-    def extract_enums(self, ast: Node) -> List[PrismaEnum]:
+    def extract_enums(self, ast: Node) -> list[PrismaEnum]:
         """Extract all enum declarations from AST."""
         enums = []
 
@@ -284,7 +284,7 @@ class TreeSitterPrismaParser:
 
         return enums
 
-    def _parse_enum(self, enum_node: Node) -> Optional[PrismaEnum]:
+    def _parse_enum(self, enum_node: Node) -> PrismaEnum | None:
         """Parse an enum declaration."""
         name = None
         values = []
@@ -302,7 +302,7 @@ class TreeSitterPrismaParser:
 
         return None
 
-    def _parse_enum_body(self, body_node: Node) -> List[str]:
+    def _parse_enum_body(self, body_node: Node) -> list[str]:
         """Parse enum values from enum body."""
         values = []
 
@@ -315,7 +315,7 @@ class TreeSitterPrismaParser:
 
         return values
 
-    def _parse_block_attribute(self, attr_node: Node) -> Optional[dict]:
+    def _parse_block_attribute(self, attr_node: Node) -> dict | None:
         """Parse @@index or @@unique attributes."""
         fields = []
 
@@ -335,7 +335,7 @@ class TreeSitterPrismaParser:
 
         return None
 
-    def _find_all(self, node: Node, node_type: str) -> List[Node]:
+    def _find_all(self, node: Node, node_type: str) -> list[Node]:
         """Find all nodes of given type in tree."""
         results = []
 

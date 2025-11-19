@@ -8,9 +8,8 @@ Supports:
 - CRUD operations (find, insert, update, delete)
 """
 
-from dataclasses import dataclass
-from typing import List, Optional
 import re
+from dataclasses import dataclass
 
 
 @dataclass
@@ -24,8 +23,8 @@ class SeaORMField:
     is_indexed: bool = False
     is_nullable: bool = False
     auto_increment: bool = False
-    default_value: Optional[str] = None
-    column_type: Optional[str] = None
+    default_value: str | None = None
+    column_type: str | None = None
 
 
 @dataclass
@@ -43,9 +42,9 @@ class SeaORMEntity:
 
     name: str
     table_name: str
-    fields: List[SeaORMField]
-    primary_key: Optional[str]
-    relations: List[SeaORMRelation]
+    fields: list[SeaORMField]
+    primary_key: str | None
+    relations: list[SeaORMRelation]
 
     @property
     def has_relations(self) -> bool:
@@ -66,7 +65,7 @@ class SeaORMQuery:
 class SeaORMParser:
     """Parser for SeaORM entities and queries"""
 
-    def extract_entities(self, code: str) -> List[SeaORMEntity]:
+    def extract_entities(self, code: str) -> list[SeaORMEntity]:
         """Extract SeaORM entity models from code"""
         entities = []
 
@@ -101,7 +100,7 @@ class SeaORMParser:
 
         return entities
 
-    def _extract_fields(self, fields_text: str) -> List[SeaORMField]:
+    def _extract_fields(self, fields_text: str) -> list[SeaORMField]:
         """Extract fields with their attributes"""
         fields = []
 
@@ -165,7 +164,7 @@ class SeaORMParser:
 
         return attributes
 
-    def _extract_relations(self, code: str) -> List[SeaORMRelation]:
+    def _extract_relations(self, code: str) -> list[SeaORMRelation]:
         """Extract relations from DeriveRelation enum"""
         relations = []
 
@@ -203,7 +202,7 @@ class SeaORMParser:
             return parts[-2].rstrip("s").capitalize()
         return path
 
-    def extract_queries(self, code: str) -> List[SeaORMQuery]:
+    def extract_queries(self, code: str) -> list[SeaORMQuery]:
         """Extract SeaORM queries from code"""
         queries = []
 
@@ -263,7 +262,7 @@ class SeaORMParser:
 
         return queries
 
-    def _infer_entity_from_context(self, code: str, position: int) -> Optional[str]:
+    def _infer_entity_from_context(self, code: str, position: int) -> str | None:
         """Infer entity name from surrounding code"""
         # Look backwards for entity reference
         context = code[max(0, position - 200) : position]

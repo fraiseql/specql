@@ -3,6 +3,7 @@ Shared fixtures for pattern tests
 """
 
 import pytest
+
 from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.schema_registry import SchemaRegistry
 

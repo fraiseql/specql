@@ -1,4 +1,3 @@
-import pytest
 from src.reverse_engineering.seaorm_parser import SeaORMParser
 
 
@@ -43,7 +42,7 @@ class TestSeaORMParser:
         assert len(entity.fields) == 5
         assert entity.primary_key == "id"
         assert "email" in [f.name for f in entity.fields]
-        assert entity.has_relations == True
+        assert entity.has_relations
 
     def test_detect_seaorm_fields_with_attributes(self):
         """Test extracting field attributes"""
@@ -73,18 +72,18 @@ class TestSeaORMParser:
 
         # Check field attributes
         id_field = next(f for f in fields if f.name == "id")
-        assert id_field.is_primary_key == True
-        assert id_field.auto_increment == True
+        assert id_field.is_primary_key
+        assert id_field.auto_increment
 
         email_field = next(f for f in fields if f.name == "email")
-        assert email_field.is_unique == True
-        assert email_field.is_indexed == True
+        assert email_field.is_unique
+        assert email_field.is_indexed
 
         status_field = next(f for f in fields if f.name == "status")
         assert status_field.default_value == "lead"
 
         deleted_field = next(f for f in fields if f.name == "deleted_at")
-        assert deleted_field.is_nullable == True
+        assert deleted_field.is_nullable
 
 
 class TestSeaORMQueries:
@@ -117,7 +116,7 @@ class TestSeaORMQueries:
         assert queries[0].operation == "find_by_id"
         assert queries[0].entity == "Contact"
         assert queries[1].operation == "find"
-        assert queries[1].has_filter == True
+        assert queries[1].has_filter
 
     def test_detect_insert_queries(self):
         """Test detecting insert operations"""

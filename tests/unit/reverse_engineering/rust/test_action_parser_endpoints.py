@@ -4,12 +4,12 @@ Unit tests for RustActionParser endpoint extraction.
 Tests the extract_endpoints and extract_actions methods.
 """
 
-import pytest
 
 
-import tempfile
 import os
+import tempfile
 from pathlib import Path
+
 from src.reverse_engineering.rust_action_parser import RustActionParser
 
 
@@ -298,7 +298,7 @@ async fn create_contact(contact: web::Json<ContactDTO>) -> HttpResponse {
             assert endpoints[0]["path"] == "/contacts"
             assert endpoints[0]["method"] == "POST"
             assert endpoints[0]["handler"] == "create_contact"
-            assert endpoints[0]["metadata"]["has_guard"] == True
+            assert endpoints[0]["metadata"]["has_guard"]
 
         finally:
             os.unlink(temp_path)
@@ -429,13 +429,13 @@ async fn get_contact(
             assert endpoints[0]["method"] == "POST"
             assert endpoints[0]["path"] == "/contacts"
             assert endpoints[0]["handler"] == "create_contact"
-            assert endpoints[0]["metadata"]["has_state"] == True
+            assert endpoints[0]["metadata"]["has_state"]
             assert endpoints[0]["metadata"]["framework"] == "axum"
 
             assert endpoints[1]["method"] == "GET"
             assert endpoints[1]["path"] == "/contacts/{id}"
             assert endpoints[1]["handler"] == "get_contact"
-            assert endpoints[1]["metadata"]["has_state"] == True
+            assert endpoints[1]["metadata"]["has_state"]
 
         finally:
             os.unlink(temp_path)

@@ -4,7 +4,6 @@ Tests for Python method analysis and action generation
 These tests focus on converting Python methods to SpecQL actions.
 """
 
-import pytest
 from src.reverse_engineering.python_ast_parser import PythonASTParser
 
 

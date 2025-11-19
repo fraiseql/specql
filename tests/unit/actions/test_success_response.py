@@ -83,7 +83,7 @@ def test_generates_object_data_with_relationships():
 
 def test_generates_impact_metadata_composite_type():
     """Generate _meta using type-safe composite type construction"""
-    context = create_test_context_with_impact()
+    create_test_context_with_impact()
 
     # Use the existing ImpactMetadataCompiler
     from src.core.ast_models import Action, ActionImpact, EntityImpact

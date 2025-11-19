@@ -1,8 +1,6 @@
 """Tests for caching functionality in reverse engineering CLI."""
 
-import tempfile
 import pytest
-from pathlib import Path
 from click.testing import CliRunner
 
 from src.cli.confiture_extensions import specql
@@ -67,7 +65,7 @@ pub struct Contact {
         output_dir.mkdir()
 
         # First run
-        result1 = cli_runner.invoke(
+        cli_runner.invoke(
             specql, ["reverse", str(rust_test_file), "--output-dir", str(output_dir)]
         )
 

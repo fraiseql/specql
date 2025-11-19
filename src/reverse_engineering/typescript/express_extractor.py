@@ -8,7 +8,7 @@ Parses Express.js route definitions:
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
+
 from tree_sitter import Node
 
 from .tree_sitter_parser import TypeScriptParser
@@ -20,7 +20,7 @@ class ExpressRoute:
 
     method: str  # GET, POST, PUT, DELETE
     path: str  # /users/:id
-    handler_name: Optional[str] = None
+    handler_name: str | None = None
     has_middleware: bool = False
 
 
@@ -30,7 +30,7 @@ class ExpressRouteExtractor:
     def __init__(self):
         self.parser = TypeScriptParser()
 
-    def extract_routes(self, source_code: str) -> List[ExpressRoute]:
+    def extract_routes(self, source_code: str) -> list[ExpressRoute]:
         """
         Extract all Express routes from source code
 
@@ -107,7 +107,7 @@ class ExpressRouteExtractor:
 
         return True
 
-    def _parse_route(self, node: Node, source_code: str) -> Optional[ExpressRoute]:
+    def _parse_route(self, node: Node, source_code: str) -> ExpressRoute | None:
         """
         Parse route definition into ExpressRoute object
 

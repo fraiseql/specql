@@ -1,8 +1,9 @@
 """Integration tests for cache performance verification."""
 
-import time
 import tempfile
+import time
 from pathlib import Path
+
 from click.testing import CliRunner
 
 from src.cli.confiture_extensions import specql

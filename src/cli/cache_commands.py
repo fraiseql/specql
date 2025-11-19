@@ -1,5 +1,7 @@
-import click
 from datetime import datetime
+
+import click
+
 from .cache_manager import CacheManager
 
 

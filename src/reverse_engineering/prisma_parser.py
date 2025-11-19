@@ -11,9 +11,8 @@ Supports:
 Uses tree-sitter for robust AST-based parsing.
 """
 
-from dataclasses import dataclass
-from typing import List, Optional
 import re
+from dataclasses import dataclass
 
 # Import tree-sitter parser with dependency check
 from src.core.dependencies import TREE_SITTER
@@ -21,18 +20,24 @@ from src.core.dependencies import TREE_SITTER
 if TREE_SITTER.available:
     try:
         from .tree_sitter_prisma_parser import (
-            TreeSitterPrismaParser,
-            PrismaModel as TSPrismaModel,
             PrismaField as TSPrismaField,
-            PrismaEnum as TSPrismaEnum,
+        )
+        from .tree_sitter_prisma_parser import (
+            PrismaModel as TSPrismaModel,
+        )
+        from .tree_sitter_prisma_parser import (
+            TreeSitterPrismaParser,
         )
     except ImportError:
         # For testing without package structure
         from tree_sitter_prisma_parser import (
-            TreeSitterPrismaParser,
-            PrismaModel as TSPrismaModel,
             PrismaField as TSPrismaField,
-            PrismaEnum as TSPrismaEnum,
+        )
+        from tree_sitter_prisma_parser import (
+            PrismaModel as TSPrismaModel,
+        )
+        from tree_sitter_prisma_parser import (
+            TreeSitterPrismaParser,
         )
 
 
@@ -45,12 +50,12 @@ class PrismaField:
     is_optional: bool = False
     is_list: bool = False
     is_relation: bool = False
-    related_entity: Optional[str] = None
+    related_entity: str | None = None
     unique: bool = False
     indexed: bool = False
-    default_value: Optional[str] = None
-    column_name: Optional[str] = None
-    enum_values: Optional[List[str]] = None
+    default_value: str | None = None
+    column_name: str | None = None
+    enum_values: list[str] | None = None
 
 
 @dataclass
@@ -59,9 +64,9 @@ class PrismaEntity:
 
     name: str
     table_name: str
-    fields: List[PrismaField]
-    indexes: List[List[str]]
-    unique_constraints: List[List[str]]
+    fields: list[PrismaField]
+    indexes: list[list[str]]
+    unique_constraints: list[list[str]]
 
 
 class PrismaSchemaParser:
@@ -71,7 +76,7 @@ class PrismaSchemaParser:
         self.ts_parser = TreeSitterPrismaParser()
         self.enums = {}  # Store enum definitions for compatibility
 
-    def parse_schema(self, schema: str) -> List[PrismaEntity]:
+    def parse_schema(self, schema: str) -> list[PrismaEntity]:
         """
         Parse Prisma schema to entities using tree-sitter AST parsing.
 

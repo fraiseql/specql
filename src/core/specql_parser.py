@@ -10,9 +10,6 @@ from typing import Any
 
 import yaml
 
-from src.utils.logger import LogContext, get_team_logger
-from src.utils.performance_monitor import get_performance_monitor
-
 from src.core.ast_models import (
     ActionDefinition,
     ActionStep,
@@ -39,6 +36,8 @@ from src.core.scalar_types import (
     is_scalar_type,
 )
 from src.core.separators import Separators
+from src.utils.logger import LogContext, get_team_logger
+from src.utils.performance_monitor import get_performance_monitor
 
 
 class ParseError(Exception):

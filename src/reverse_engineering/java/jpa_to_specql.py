@@ -4,9 +4,9 @@ JPA to SpecQL Converter
 Converts JPA entities to SpecQL entity specifications.
 """
 
-from src.reverse_engineering.java.jpa_visitor import JPAEntity
-from src.reverse_engineering.java.hibernate_type_mapper import HibernateTypeMapper
 from src.core.ast_models import Entity, FieldDefinition, FieldTier
+from src.reverse_engineering.java.hibernate_type_mapper import HibernateTypeMapper
+from src.reverse_engineering.java.jpa_visitor import JPAEntity
 
 
 class JPAToSpecQLConverter:

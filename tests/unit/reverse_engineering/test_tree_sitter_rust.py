@@ -4,7 +4,6 @@ Tree-sitter Rust AST Parser Tests
 Test tree-sitter based Rust parsing for complex macros and structures.
 """
 
-import pytest
 from src.reverse_engineering.tree_sitter_rust_parser import TreeSitterRustParser
 
 
@@ -51,8 +50,8 @@ class TestTreeSitterRustParser:
 
         assert len(functions) == 1
         assert functions[0].name == "create_contact"
-        assert functions[0].is_public == True
-        assert functions[0].is_async == True
+        assert functions[0].is_public
+        assert functions[0].is_async
         assert len(functions[0].parameters) == 2
 
     def test_extract_derive_macros(self):
@@ -124,13 +123,13 @@ class TestTreeSitterRustParser:
         assert routes[0].path == "/users/<id>"
         assert routes[0].handler == "get_user"
         assert routes[0].framework == "rocket"
-        assert routes[0].is_async == False
+        assert not routes[0].is_async
 
         assert routes[1].method == "POST"
         assert routes[1].path == "/users"
         assert routes[1].handler == "create_user"
         assert routes[1].framework == "rocket"
-        assert routes[1].is_async == False
+        assert not routes[1].is_async
 
     # def test_extract_axum_routes_from_ast(self):
     #     """Extract Axum routes via AST traversal."""
@@ -244,6 +243,7 @@ class TestTreeSitterRustParser:
     def test_rust_parser_performance_comparison(self):
         """Benchmark tree-sitter vs regex performance."""
         import time
+
         from src.reverse_engineering.rust_parser import RustParser
 
         # Create a moderately complex Rust file for testing

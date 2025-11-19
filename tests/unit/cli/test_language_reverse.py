@@ -1,6 +1,5 @@
 """Tests for language-specific reverse engineering commands."""
 
-import pytest
 from src.cli.confiture_extensions import specql
 
 

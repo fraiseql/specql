@@ -5,22 +5,21 @@ Parses Rust impl blocks, route handlers, and enum types to extract actions.
 """
 
 import logging
-from pathlib import Path
-from typing import List, Optional, Dict, Any
 from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 
 # from src.core.ast_models import Action  # Using dict for now
 from src.reverse_engineering.rust_parser import (
-    RustParser,
     DieselDeriveInfo,
-    ImplBlockInfo,
     ImplMethodInfo,
     RouteHandlerInfo,
+    RustParser,
 )
 from src.reverse_engineering.tree_sitter_rust_parser import (
-    TreeSitterRustParser,
     RustFunction,
     RustStruct,
+    TreeSitterRustParser,
 )
 
 logger = logging.getLogger(__name__)
@@ -30,9 +29,9 @@ logger = logging.getLogger(__name__)
 class RustParseResult:
     """Result of parsing Rust code with tree-sitter or regex fallback"""
 
-    functions: List[RustFunction]
-    structs: List[RustStruct]
-    endpoints: List[Dict[str, Any]]
+    functions: list[RustFunction]
+    structs: list[RustStruct]
+    endpoints: list[dict[str, Any]]
     parser_used: str  # "tree-sitter" or "regex"
 
 
@@ -48,7 +47,7 @@ class RustActionParser:
 
     def parse_file(self, file_path: str) -> RustParseResult:
         """Parse Rust file using tree-sitter (with regex fallback)"""
-        with open(file_path, "r") as f:
+        with open(file_path) as f:
             code = f.read()
 
         # Try tree-sitter first
@@ -82,12 +81,12 @@ class RustActionParser:
         # based on the existing regex parsing logic
         return RustParseResult(functions=[], structs=[], endpoints=[], parser_used="regex")
 
-    def _extract_endpoints_from_ast(self, ast) -> List[Dict[str, Any]]:
+    def _extract_endpoints_from_ast(self, ast) -> list[dict[str, Any]]:
         """Extract endpoints from AST (placeholder for now)"""
         # TODO: Implement endpoint extraction from AST
         return []
 
-    def extract_actions(self, file_path: Path) -> List[Dict[str, Any]]:
+    def extract_actions(self, file_path: Path) -> list[dict[str, Any]]:
         """Extract SpecQL actions from Rust file."""
         # Parse file
         structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
@@ -111,7 +110,7 @@ class RustActionParser:
 
         return actions
 
-    def extract_endpoints(self, file_path: Path) -> List[Dict[str, Any]]:
+    def extract_endpoints(self, file_path: Path) -> list[dict[str, Any]]:
         """Extract API endpoints from route handlers."""
         structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
             self.rust_parser.parse_file(file_path)
@@ -129,7 +128,7 @@ class RustActionParser:
 class RustActionMapper:
     """Maps Rust constructs to SpecQL actions."""
 
-    def map_method_to_action(self, method: ImplMethodInfo) -> Optional[Dict[str, Any]]:
+    def map_method_to_action(self, method: ImplMethodInfo) -> dict[str, Any] | None:
         """Map impl method to SpecQL action."""
         # Only map public methods
         if method.visibility != "pub":
@@ -148,7 +147,7 @@ class RustActionMapper:
             }
         return None
 
-    def _detect_crud_pattern(self, method_name: str) -> Optional[str]:
+    def _detect_crud_pattern(self, method_name: str) -> str | None:
         """Detect CRUD pattern from method name."""
         import re
 
@@ -189,7 +188,7 @@ class RustActionMapper:
 
         return "custom"
 
-    def _map_parameters(self, parameters: List[dict]) -> List[dict]:
+    def _map_parameters(self, parameters: list[dict]) -> list[dict]:
         """Map method parameters to action parameters."""
         mapped_params = []
         for param in parameters:
@@ -202,7 +201,7 @@ class RustActionMapper:
                 )
         return mapped_params
 
-    def map_diesel_derive_to_action(self, derive: DieselDeriveInfo) -> Optional[Dict[str, Any]]:
+    def map_diesel_derive_to_action(self, derive: DieselDeriveInfo) -> dict[str, Any] | None:
         """Map Diesel derive to SpecQL action."""
         # TODO: Implement mapping logic
         return None
@@ -211,7 +210,7 @@ class RustActionMapper:
 class RouteToActionMapper:
     """Maps route handlers to SpecQL actions and endpoints."""
 
-    def map_route_to_action(self, route_handler: RouteHandlerInfo) -> Optional[Dict[str, Any]]:
+    def map_route_to_action(self, route_handler: RouteHandlerInfo) -> dict[str, Any] | None:
         """Map route handler to SpecQL action."""
         # Map HTTP methods to CRUD actions
         method_to_action = {
@@ -236,7 +235,7 @@ class RouteToActionMapper:
             "path": route_handler.path,
         }
 
-    def map_route_to_endpoint(self, route_handler: RouteHandlerInfo) -> Optional[Dict[str, Any]]:
+    def map_route_to_endpoint(self, route_handler: RouteHandlerInfo) -> dict[str, Any] | None:
         """Map route handler to SpecQL endpoint."""
         # Normalize path for consistent endpoint format
         path = route_handler.path

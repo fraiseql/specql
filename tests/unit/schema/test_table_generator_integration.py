@@ -3,7 +3,6 @@ Integration Tests for TableGenerator
 Tests complete DDL generation, foreign keys, constraints, and orchestration
 """
 
-import pytest
 from src.core.ast_models import Entity, FieldDefinition
 
 # pytestmark = pytest.mark.skip(reason="Index method specification differences - deferred to post-beta")

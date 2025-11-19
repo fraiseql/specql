@@ -4,16 +4,17 @@ Terraform Azure Generator
 Generates Terraform configuration for Microsoft Azure from universal infrastructure format.
 """
 
-from jinja2 import Environment, FileSystemLoader
 from pathlib import Path
-from typing import Optional
-from src.infrastructure.universal_infra_schema import UniversalInfrastructure, DatabaseType
+
+from jinja2 import Environment, FileSystemLoader
+
+from src.infrastructure.universal_infra_schema import DatabaseType, UniversalInfrastructure
 
 
 class TerraformAzureGenerator:
     """Generate Terraform configuration for Azure from universal format"""
 
-    def __init__(self, template_dir: Optional[Path] = None):
+    def __init__(self, template_dir: Path | None = None):
         if template_dir is None:
             template_dir = Path(__file__).parent.parent.parent.parent / "templates" / "infrastructure"
 

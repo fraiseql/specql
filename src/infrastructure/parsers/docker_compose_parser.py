@@ -4,9 +4,19 @@ Docker Compose Parser
 Reverse engineers Docker Compose YAML files to universal infrastructure format.
 """
 
+from typing import Any
+
 import yaml
-from typing import Dict, Any, List, Optional
-from src.infrastructure.universal_infra_schema import *
+
+from src.infrastructure.universal_infra_schema import (
+    CloudProvider,
+    ContainerConfig,
+    DatabaseConfig,
+    DatabaseType,
+    NetworkConfig,
+    UniversalInfrastructure,
+    Volume,
+)
 
 
 class DockerComposeParser:
@@ -47,7 +57,7 @@ class DockerComposeParser:
         volumes = self._parse_volumes(compose_dict)
 
         # Extract environment and other metadata
-        environment = compose_dict.get("version", "3.8")
+        compose_dict.get("version", "3.8")
 
         return UniversalInfrastructure(
             name=main_service_name,
@@ -59,7 +69,7 @@ class DockerComposeParser:
             volumes=volumes
         )
 
-    def _detect_main_service(self, services: Dict[str, Any]) -> str:
+    def _detect_main_service(self, services: dict[str, Any]) -> str:
         """Detect the main service in the compose file"""
         # Priority: web, frontend, api, app, backend, then first service
         priority_patterns = ["web", "frontend", "api", "app", "backend"]
@@ -72,7 +82,7 @@ class DockerComposeParser:
         # Fallback to first service
         return list(services.keys())[0] if services else "docker-service"
 
-    def _parse_container(self, service_config: Dict[str, Any], secrets_config: Optional[Dict[str, Any]] = None) -> Optional[ContainerConfig]:
+    def _parse_container(self, service_config: dict[str, Any], secrets_config: dict[str, Any] | None = None) -> ContainerConfig | None:
         """Parse container configuration"""
         if not service_config:
             return None
@@ -185,7 +195,7 @@ class DockerComposeParser:
             health_check_path=health_check_path
         )
 
-    def _parse_database(self, services: Dict[str, Any]) -> Optional[DatabaseConfig]:
+    def _parse_database(self, services: dict[str, Any]) -> DatabaseConfig | None:
         """Parse database services"""
         # Priority order: db/database first, then specific types, cache last
         priority_patterns = [
@@ -231,7 +241,7 @@ class DockerComposeParser:
                         if isinstance(volume, str) and "postgres" in volume.lower():
                             # Parse volume mapping like "./postgres-data:/var/lib/postgresql/data"
                             if ":" in volume:
-                                host_path = volume.split(":")[0]
+                                volume.split(":")[0]
                                 # Could parse size from host directory, but for now use default
 
                     return DatabaseConfig(
@@ -242,7 +252,7 @@ class DockerComposeParser:
 
         return None
 
-    def _parse_network(self, compose_dict: Dict[str, Any]) -> NetworkConfig:
+    def _parse_network(self, compose_dict: dict[str, Any]) -> NetworkConfig:
         """Parse network configuration"""
         # Docker Compose networks are usually simple
         networks = compose_dict.get("networks", {})
@@ -250,19 +260,19 @@ class DockerComposeParser:
             # Use first network configuration
             first_network = list(networks.values())[0]
             if isinstance(first_network, dict):
-                driver = first_network.get("driver", "bridge")
+                first_network.get("driver", "bridge")
                 # Could map driver to network config, but keep simple for now
 
         return NetworkConfig()
 
-    def _parse_volumes(self, compose_dict: Dict[str, Any]) -> List[Volume]:
+    def _parse_volumes(self, compose_dict: dict[str, Any]) -> list[Volume]:
         """Parse named volumes"""
         volumes = []
         named_volumes = compose_dict.get("volumes", {})
 
         for volume_name, volume_config in named_volumes.items():
             if isinstance(volume_config, dict):
-                driver = volume_config.get("driver", "local")
+                volume_config.get("driver", "local")
                 # For now, create basic volume config
                 # In practice, would need to map to actual storage requirements
                 volumes.append(Volume(

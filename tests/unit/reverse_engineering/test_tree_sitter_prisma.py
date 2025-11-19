@@ -1,6 +1,7 @@
-import pytest
-import sys
 import os
+import sys
+
+import pytest
 
 sys.path.insert(
     0, os.path.join(os.path.dirname(__file__), "..", "..", "src", "reverse_engineering")
@@ -44,13 +45,13 @@ def test_extract_basic_model():
     id_field = models[0].fields[0]
     assert id_field.name == "id"
     assert id_field.type == "Int"
-    assert id_field.is_id == True
-    assert id_field.has_default == True
+    assert id_field.is_id
+    assert id_field.has_default
 
     email_field = models[0].fields[1]
     assert email_field.name == "email"
     assert email_field.type == "String"
-    assert email_field.is_unique == True
+    assert email_field.is_unique
 
 
 @pytest.mark.requires_tree_sitter

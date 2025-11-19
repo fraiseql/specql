@@ -3,8 +3,8 @@ Framework Registry - Configuration for supported frameworks and their patterns
 """
 
 from dataclasses import dataclass
-from typing import Dict, List, Callable, Any, Optional
 from pathlib import Path
+from typing import Any
 
 
 @dataclass
@@ -13,9 +13,9 @@ class FrameworkConfig:
 
     name: str
     language: str
-    file_extensions: List[str]
+    file_extensions: list[str]
     parser_class: Any  # Type hint for parser class
-    pattern_enhancers: List[str]  # Patterns to automatically apply
+    pattern_enhancers: list[str]  # Patterns to automatically apply
 
 
 class FrameworkRegistry:
@@ -74,12 +74,12 @@ class FrameworkRegistry:
     }
 
     @classmethod
-    def get_framework(cls, name: str) -> Optional[FrameworkConfig]:
+    def get_framework(cls, name: str) -> FrameworkConfig | None:
         """Get framework configuration by name"""
         return cls.FRAMEWORKS.get(name)
 
     @classmethod
-    def detect_framework(cls, file_path: str) -> Optional[str]:
+    def detect_framework(cls, file_path: str) -> str | None:
         """Auto-detect framework from file content"""
         content = Path(file_path).read_text()
 
@@ -101,7 +101,7 @@ class FrameworkRegistry:
         return None
 
     @classmethod
-    def detect_framework_from_project(cls, project_path: str) -> Optional[str]:
+    def detect_framework_from_project(cls, project_path: str) -> str | None:
         """Auto-detect framework from project structure"""
         path = Path(project_path)
 
@@ -131,6 +131,6 @@ class FrameworkRegistry:
         return None
 
     @classmethod
-    def get_supported_frameworks(cls) -> List[str]:
+    def get_supported_frameworks(cls) -> list[str]:
         """Get list of supported framework names"""
         return list(cls.FRAMEWORKS.keys())

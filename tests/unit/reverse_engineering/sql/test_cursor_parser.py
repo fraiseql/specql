@@ -1,6 +1,5 @@
 """Unit tests for CursorOperationsParser"""
 
-import pytest
 from src.reverse_engineering.cursor_operations_parser import CursorOperationsParser
 
 

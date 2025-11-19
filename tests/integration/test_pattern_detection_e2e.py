@@ -1,7 +1,9 @@
 """End-to-end tests for pattern detection CLI."""
 
 import tempfile
+
 import pytest
+
 from src.cli.confiture_extensions import specql
 
 

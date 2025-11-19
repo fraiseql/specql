@@ -8,16 +8,15 @@ Tests for generating Azure security resources (NSGs, Application Gateway WAF, VP
 - Cross-tier NSG references
 """
 
-import pytest
 from src.infrastructure.generators.azure_security_generator import AzureSecurityGenerator
 from src.infrastructure.universal_infra_schema import (
-    UniversalInfrastructure,
-    SecurityConfig,
-    NetworkTier,
-    FirewallRule,
-    WAFConfig,
-    VPNConfig,
     CompliancePreset,
+    FirewallRule,
+    NetworkTier,
+    SecurityConfig,
+    UniversalInfrastructure,
+    VPNConfig,
+    WAFConfig,
 )
 
 

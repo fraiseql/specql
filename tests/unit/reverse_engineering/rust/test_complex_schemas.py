@@ -5,7 +5,6 @@ These tests target capabilities that currently have unknown confidence
 and need enhancement.
 """
 
-import pytest
 from src.reverse_engineering.rust_parser import RustParser
 
 
@@ -58,7 +57,7 @@ class TestComplexRustSchemas:
         # Check Option<HashMap<String, String>> -> json (not required)
         metadata_field = next(f for f in entity["fields"] if f["name"] == "metadata")
         assert metadata_field["type"] == "json"
-        assert metadata_field["required"] == False
+        assert not metadata_field["required"]
 
     def test_embedded_structs(self):
         """Test parsing embedded structs"""

@@ -7,7 +7,7 @@ Parses Rocket route macros:
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
+
 from tree_sitter import Node
 
 from .tree_sitter_rust_parser import RustParser
@@ -19,7 +19,7 @@ class RocketRoute:
 
     method: str  # GET, POST, PUT, DELETE
     path: str  # /users/<id>
-    handler_name: Optional[str] = None
+    handler_name: str | None = None
 
 
 class RocketRouteExtractor:
@@ -28,7 +28,7 @@ class RocketRouteExtractor:
     def __init__(self):
         self.parser = RustParser()
 
-    def extract_routes(self, source_code: str) -> List[RocketRoute]:
+    def extract_routes(self, source_code: str) -> list[RocketRoute]:
         """
         Extract all Rocket routes from source code
 
@@ -62,7 +62,7 @@ class RocketRouteExtractor:
 
         return routes
 
-    def _parse_attribute_route(self, node: Node, source_code: str) -> Optional[RocketRoute]:
+    def _parse_attribute_route(self, node: Node, source_code: str) -> RocketRoute | None:
         """
         Parse route from Rocket attribute macro
 

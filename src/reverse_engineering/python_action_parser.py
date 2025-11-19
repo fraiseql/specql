@@ -74,7 +74,7 @@ class PythonActionParser:
                 actions.extend(class_actions)
                 # Mark all functions in this class as processed
                 for item in node.body:
-                    if isinstance(item, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                    if isinstance(item, ast.FunctionDef | ast.AsyncFunctionDef):
                         processed_functions.add(id(item))
 
         # Second pass: Extract from standalone function definitions (FastAPI, Flask routes)

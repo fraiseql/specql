@@ -1,9 +1,10 @@
 """Tests for multi-tenant pattern detection"""
 
 import pytest
+
 from src.reverse_engineering.universal_pattern_detector import (
-    UniversalPatternDetector,
     MultiTenantPattern,
+    UniversalPatternDetector,
 )
 
 
@@ -23,7 +24,7 @@ class TestMultiTenantPatternSQL:
         );
         """
 
-        assert self.detector.matches(sql, "sql") == True
+        assert self.detector.matches(sql, "sql")
         assert self.detector.confidence >= 0.70
 
     def test_sql_rls_policy(self):
@@ -33,7 +34,7 @@ class TestMultiTenantPatternSQL:
             USING (tenant_id = current_setting('app.tenant_id')::UUID);
         """
 
-        assert self.detector.matches(sql, "sql") == True
+        assert self.detector.matches(sql, "sql")
         assert self.detector.confidence >= 0.90
 
     def test_sql_full_multi_tenant(self):
@@ -51,7 +52,7 @@ class TestMultiTenantPatternSQL:
             USING (tenant_id = current_setting('app.tenant_id')::UUID);
         """
 
-        assert self.detector.matches(sql, "sql") == True
+        assert self.detector.matches(sql, "sql")
         assert self.detector.confidence >= 0.95
         assert "tenant_id column found" in self.detector.evidence
         assert "RLS policy with tenant_id filter" in self.detector.evidence
@@ -71,7 +72,7 @@ class TestMultiTenantPatternPython:
             email: str
         """
 
-        assert self.detector.matches(code, "python") == True
+        assert self.detector.matches(code, "python")
         assert self.detector.confidence >= 0.70
 
     def test_python_tenant_mixin(self):
@@ -84,7 +85,7 @@ class TestMultiTenantPatternPython:
             email = Column(String)
         """
 
-        assert self.detector.matches(code, "python") == True
+        assert self.detector.matches(code, "python")
         assert self.detector.confidence >= 0.80
 
 
@@ -105,7 +106,7 @@ class TestMultiTenantPatternJava:
         }
         """
 
-        assert self.detector.matches(code, "java") == True
+        assert self.detector.matches(code, "java")
         assert self.detector.confidence >= 0.85
 
     def test_java_hibernate_filter(self):
@@ -120,7 +121,7 @@ class TestMultiTenantPatternJava:
         }
         """
 
-        assert self.detector.matches(code, "java") == True
+        assert self.detector.matches(code, "java")
         assert self.detector.confidence >= 0.85  # @Filter detection gives 0.85 confidence
 
 
@@ -140,7 +141,7 @@ class TestMultiTenantPatternRust:
         }
         """
 
-        assert self.detector.matches(code, "rust") == True
+        assert self.detector.matches(code, "rust")
         assert self.detector.confidence >= 0.70
 
 

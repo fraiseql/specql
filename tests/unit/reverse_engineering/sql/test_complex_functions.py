@@ -5,7 +5,6 @@ These tests target capabilities that currently have low confidence (< 20%)
 and need enhancement to reach 80%+ confidence.
 """
 
-import pytest
 from src.reverse_engineering.algorithmic_parser import AlgorithmicParser
 
 

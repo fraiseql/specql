@@ -1,6 +1,7 @@
 """Generate action helper functions from patterns."""
 
-from typing import List, Dict, Any
+from typing import Any
+
 from jinja2 import Template
 
 from src.core.ast_models import Entity, Pattern
@@ -13,8 +14,8 @@ class PatternHelpersGenerator:
         self,
         entity: Entity,
         pattern: Pattern,
-        pattern_spec: Dict[str, Any],
-    ) -> List[str]:
+        pattern_spec: dict[str, Any],
+    ) -> list[str]:
         """Generate helper function SQL for pattern."""
 
         helpers = []
@@ -34,8 +35,8 @@ class PatternHelpersGenerator:
         self,
         entity: Entity,
         pattern: Pattern,
-        helper_spec: Dict[str, Any],
-        pattern_spec: Dict[str, Any],
+        helper_spec: dict[str, Any],
+        pattern_spec: dict[str, Any],
     ) -> str:
         """Generate single helper function."""
 
@@ -90,7 +91,7 @@ COMMENT ON FUNCTION {entity.schema}.{func_name} IS '{helper_spec.get("descriptio
 
         return sql
 
-    def _build_natural_key_where_clause(self, natural_key_fields: List[str]) -> str:
+    def _build_natural_key_where_clause(self, natural_key_fields: list[str]) -> str:
         """Build WHERE clause for natural key matching."""
         if not natural_key_fields:
             return "TRUE"

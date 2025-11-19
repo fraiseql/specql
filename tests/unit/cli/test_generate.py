@@ -1,7 +1,6 @@
 """Tests for CLI generate command."""
 
-from pathlib import Path
-from unittest.mock import MagicMock, Mock, patch
+from unittest.mock import Mock, patch
 
 import pytest
 
@@ -334,9 +333,9 @@ fields:
         # Patch the lazy imports
         with patch("src.cli.generate.SpecQLParser") as mock_parser_cls, \
              patch("src.generators.frontend.MutationImpactsGenerator") as mock_impacts_gen, \
-             patch("src.generators.frontend.TypeScriptTypesGenerator") as mock_types_gen, \
-             patch("src.generators.frontend.ApolloHooksGenerator") as mock_hooks_gen, \
-             patch("src.generators.frontend.MutationDocsGenerator") as mock_docs_gen:
+             patch("src.generators.frontend.TypeScriptTypesGenerator"), \
+             patch("src.generators.frontend.ApolloHooksGenerator"), \
+             patch("src.generators.frontend.MutationDocsGenerator"):
 
             # Setup mocks
             mock_parser = Mock()

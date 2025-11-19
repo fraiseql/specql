@@ -5,12 +5,12 @@ Python bridge to Eclipse JDT for parsing Java code.
 Uses Py4J to communicate with Java process running JDT.
 """
 
-import subprocess
-import os
-from pathlib import Path
-from typing import Optional, Any
-from py4j.java_gateway import JavaGateway, GatewayParameters
 import atexit
+import subprocess
+from pathlib import Path
+from typing import Any
+
+from py4j.java_gateway import GatewayParameters, JavaGateway
 
 from src.utils.logger import get_logger
 
@@ -21,8 +21,8 @@ class JDTBridge:
     """Bridge to Eclipse JDT Java parser"""
 
     def __init__(self):
-        self.gateway: Optional[JavaGateway] = None
-        self.jdt_process: Optional[subprocess.Popen] = None
+        self.gateway: JavaGateway | None = None
+        self.jdt_process: subprocess.Popen | None = None
         self._start_jdt_server()
 
     def _start_jdt_server(self):
@@ -531,7 +531,7 @@ class MockVariableDeclarationFragment:
 
 
 # Singleton instance
-_jdt_bridge: Optional[JDTBridge] = None
+_jdt_bridge: JDTBridge | None = None
 
 
 def get_jdt_bridge() -> JDTBridge:

@@ -1,6 +1,5 @@
 # tests/unit/reverse_engineering/test_typescript_parser.py
 
-import pytest
 
 
 from src.reverse_engineering.typescript_parser import TypeScriptParser

@@ -12,23 +12,24 @@ Output format: Structured JSON for easy analysis
 
 import json
 import time
+from collections.abc import Callable
 from contextlib import contextmanager
 from dataclasses import dataclass, field
 from functools import wraps
 from pathlib import Path
-from typing import Any, Callable, Dict, List, Optional
+from typing import Any
 
 
 @dataclass
 class PerformanceMetrics:
     """Performance metrics data structure"""
 
-    timings: Dict[str, float] = field(default_factory=dict)
-    operation_counts: Dict[str, int] = field(default_factory=dict)
-    categories: Dict[str, Dict[str, float]] = field(default_factory=dict)
+    timings: dict[str, float] = field(default_factory=dict)
+    operation_counts: dict[str, int] = field(default_factory=dict)
+    categories: dict[str, dict[str, float]] = field(default_factory=dict)
     total_time: float = 0.0
 
-    def add_timing(self, operation: str, elapsed: float, category: Optional[str] = None) -> None:
+    def add_timing(self, operation: str, elapsed: float, category: str | None = None) -> None:
         """
         Add timing for an operation
 
@@ -57,7 +58,7 @@ class PerformanceMetrics:
         # Update total time
         self.total_time = sum(self.timings.values())
 
-    def to_dict(self) -> Dict[str, Any]:
+    def to_dict(self) -> dict[str, Any]:
         """
         Convert metrics to dictionary
 
@@ -74,7 +75,7 @@ class PerformanceMetrics:
             },
         }
 
-    def to_json(self, indent: Optional[int] = None) -> str:
+    def to_json(self, indent: int | None = None) -> str:
         """
         Convert metrics to JSON string
 
@@ -95,7 +96,7 @@ class PerformanceMetrics:
         """
         file_path.write_text(self.to_json(indent=2))
 
-    def get_summary(self) -> Dict[str, Any]:
+    def get_summary(self) -> dict[str, Any]:
         """
         Get summary statistics
 
@@ -127,10 +128,10 @@ class PerformanceMonitor:
     def __init__(self):
         """Initialize performance monitor"""
         self.metrics = PerformanceMetrics()
-        self._start_times: Dict[str, float] = {}
+        self._start_times: dict[str, float] = {}
 
     @contextmanager
-    def track(self, operation: str, category: Optional[str] = None):
+    def track(self, operation: str, category: str | None = None):
         """
         Track timing for an operation
 
@@ -168,7 +169,7 @@ class PerformanceMonitor:
 
 
 # Global performance monitor instance
-_global_monitor: Optional[PerformanceMonitor] = None
+_global_monitor: PerformanceMonitor | None = None
 
 
 def get_performance_monitor() -> PerformanceMonitor:
@@ -184,7 +185,7 @@ def get_performance_monitor() -> PerformanceMonitor:
     return _global_monitor
 
 
-def instrument(operation: str, category: Optional[str] = None, monitor: Optional[PerformanceMonitor] = None):
+def instrument(operation: str, category: str | None = None, monitor: PerformanceMonitor | None = None):
     """
     Decorator for instrumenting functions with performance tracking
 

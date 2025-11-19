@@ -5,6 +5,7 @@ Tests detection across all languages: Rust, Python, Java, SQL
 """
 
 import pytest
+
 from src.reverse_engineering.universal_pattern_detector import UniversalPatternDetector
 
 

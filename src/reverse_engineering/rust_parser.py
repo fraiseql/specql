@@ -4,16 +4,14 @@ Rust AST Parser for SpecQL
 Parses Rust structs and Diesel schema macros using subprocess and syn crate.
 """
 
-import json
 import logging
 import re
-import subprocess
-from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from dataclasses import dataclass
+from pathlib import Path
+from typing import TYPE_CHECKING, Any
 
 from src.core.ast_models import Entity, FieldDefinition, FieldTier
-from src.reverse_engineering.seaorm_parser import SeaORMParser, SeaORMEntity, SeaORMQuery
+from src.reverse_engineering.seaorm_parser import SeaORMEntity, SeaORMParser
 
 # Conditional import for tree-sitter-rust
 try:
@@ -36,7 +34,7 @@ class RustFieldInfo:
         name: str,
         field_type: str,
         is_optional: bool = False,
-        attributes: Optional[List[str]] = None,
+        attributes: list[str] | None = None,
     ):
         self.name = name
         self.field_type = field_type
@@ -50,8 +48,8 @@ class RustStructInfo:
     def __init__(
         self,
         name: str,
-        fields: List[RustFieldInfo],
-        attributes: Optional[List[str]] = None,
+        fields: list[RustFieldInfo],
+        attributes: list[str] | None = None,
     ):
         self.name = name
         self.fields = fields
@@ -78,8 +76,8 @@ class DieselTableInfo:
     def __init__(
         self,
         name: str,
-        primary_key: List[str],
-        columns: List[DieselColumnInfo],
+        primary_key: list[str],
+        columns: list[DieselColumnInfo],
     ):
         self.name = name
         self.primary_key = primary_key
@@ -92,8 +90,8 @@ class DieselDeriveInfo:
     def __init__(
         self,
         struct_name: str,
-        derives: List[str],
-        associations: List[str],
+        derives: list[str],
+        associations: list[str],
     ):
         self.struct_name = struct_name
         self.derives = derives
@@ -107,7 +105,7 @@ class ImplMethodInfo:
         self,
         name: str,
         visibility: str,
-        parameters: List[dict],
+        parameters: list[dict],
         return_type: str,
         is_async: bool,
     ):
@@ -124,8 +122,8 @@ class ImplBlockInfo:
     def __init__(
         self,
         type_name: str,
-        methods: List[ImplMethodInfo],
-        trait_impl: Optional[str],
+        methods: list[ImplMethodInfo],
+        trait_impl: str | None,
     ):
         self.type_name = type_name
         self.methods = methods
@@ -138,7 +136,7 @@ class DieselTable:
 
     table_name: str
     primary_key: str
-    columns: List[Dict[str, Any]]
+    columns: list[dict[str, Any]]
 
 
 class RustEnumInfo:
@@ -147,8 +145,8 @@ class RustEnumInfo:
     def __init__(
         self,
         name: str,
-        variants: List["RustEnumVariantInfo"],
-        attributes: Optional[List[str]] = None,
+        variants: list["RustEnumVariantInfo"],
+        attributes: list[str] | None = None,
     ):
         self.name = name
         self.variants = variants
@@ -161,8 +159,8 @@ class RustEnumVariantInfo:
     def __init__(
         self,
         name: str,
-        fields: Optional[List[RustFieldInfo]] = None,
-        discriminant: Optional[str] = None,
+        fields: list[RustFieldInfo] | None = None,
+        discriminant: str | None = None,
     ):
         self.name = name
         self.fields = fields
@@ -179,8 +177,8 @@ class RouteHandlerInfo:
         function_name: str,
         is_async: bool,
         return_type: str,
-        parameters: List[dict],
-        metadata: Optional[Dict[str, Any]] = None,
+        parameters: list[dict],
+        metadata: dict[str, Any] | None = None,
     ):
         self.method = method
         self.path = path
@@ -208,13 +206,13 @@ class RustParser:
 
     def parse_file(
         self, file_path: Path
-    ) -> Tuple[
-        List[RustStructInfo],
-        List["RustEnumInfo"],
-        List[DieselTableInfo],
-        List[DieselDeriveInfo],
-        List[ImplBlockInfo],
-        List[RouteHandlerInfo],
+    ) -> tuple[
+        list[RustStructInfo],
+        list["RustEnumInfo"],
+        list[DieselTableInfo],
+        list[DieselDeriveInfo],
+        list[ImplBlockInfo],
+        list[RouteHandlerInfo],
     ]:
         """
         Parse a Rust source file and extract struct definitions, enums, Diesel tables, Diesel derives, impl blocks, and route handlers.
@@ -226,7 +224,7 @@ class RustParser:
             Tuple of (List of parsed struct information, List of enum information, List of Diesel table information, List of Diesel derive information, List of impl block information, List of route handler information)
         """
         # Read the file content
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             source_code = f.read()
 
         # Parse with tree-sitter
@@ -256,13 +254,13 @@ class RustParser:
 
     def parse_source(
         self, source_code: str
-    ) -> Tuple[
-        List[RustStructInfo],
-        List[RustEnumInfo],
-        List[DieselTableInfo],
-        List[DieselDeriveInfo],
-        List[ImplBlockInfo],
-        List[RouteHandlerInfo],
+    ) -> tuple[
+        list[RustStructInfo],
+        list[RustEnumInfo],
+        list[DieselTableInfo],
+        list[DieselDeriveInfo],
+        list[ImplBlockInfo],
+        list[RouteHandlerInfo],
     ]:
         """
         Parse Rust source code and extract struct definitions, enums, Diesel tables, Diesel derives, impl blocks, and route handlers.
@@ -275,8 +273,8 @@ class RustParser:
         """
         # For now, create a temporary file and parse it
         # TODO: Modify Rust binary to accept source code via stdin
-        import tempfile
         import os
+        import tempfile
 
         with tempfile.NamedTemporaryFile(mode="w", suffix=".rs", delete=False) as f:
             f.write(source_code)
@@ -287,7 +285,7 @@ class RustParser:
         finally:
             os.unlink(temp_path)
 
-    def extract_derive_macros(self, rust_code: str) -> List[str]:
+    def extract_derive_macros(self, rust_code: str) -> list[str]:
         """Extract derive macros from struct definition"""
         derive_pattern = r"#\[derive\(([^)]+)\)\]"
         matches = re.findall(derive_pattern, rust_code)
@@ -296,7 +294,7 @@ class RustParser:
             derives.extend([d.strip() for d in match.split(",")])
         return derives
 
-    def _parse_rust_type_with_generics(self, type_str: str) -> Dict[str, Any]:
+    def _parse_rust_type_with_generics(self, type_str: str) -> dict[str, Any]:
         """Parse Rust types with complex generics"""
         type_str = re.sub(r"&'[a-z]\s+", "&", type_str)
         type_str = type_str.replace("&", "")
@@ -317,7 +315,7 @@ class RustParser:
 
         return {"type": self.type_mapper.map_type(type_str), "required": True}
 
-    def _extract_inner_generic(self, type_str: str, prefix: str) -> Optional[str]:
+    def _extract_inner_generic(self, type_str: str, prefix: str) -> str | None:
         """Extract inner content of generic types"""
         if not type_str.startswith(prefix):
             return None
@@ -341,7 +339,7 @@ class RustParser:
         struct_pattern = rf"pub\s+struct\s+{field_type}\s*\{{"
         return bool(re.search(struct_pattern, rust_code))
 
-    def extract_associations(self, rust_code: str) -> List[Dict[str, Any]]:
+    def extract_associations(self, rust_code: str) -> list[dict[str, Any]]:
         """Extract Diesel association macros"""
         associations = []
         belongs_pattern = r'#\[belongs_to\((\w+)(?:,\s*foreign_key\s*=\s*"(\w+)")?\)\]'
@@ -356,7 +354,7 @@ class RustParser:
             )
         return associations
 
-    def _extract_route_handlers(self, source_code: str) -> List[RouteHandlerInfo]:
+    def _extract_route_handlers(self, source_code: str) -> list[RouteHandlerInfo]:
         """Extract Actix-web route handlers from source code"""
         route_handlers = []
 
@@ -423,7 +421,7 @@ class RustParser:
 
         return route_handlers
 
-    def _extract_tide_routes(self, source_code: str) -> List[RouteHandlerInfo]:
+    def _extract_tide_routes(self, source_code: str) -> list[RouteHandlerInfo]:
         """Extract Tide routes"""
         route_handlers = []
 
@@ -456,7 +454,7 @@ class RustParser:
 
         return route_handlers
 
-    def _extract_warp_routes(self, source_code: str) -> List[RouteHandlerInfo]:
+    def _extract_warp_routes(self, source_code: str) -> list[RouteHandlerInfo]:
         """Extract Warp filter chains"""
         route_handlers = []
 
@@ -497,7 +495,7 @@ class RustParser:
 
         return route_handlers
 
-    def _extract_axum_routes(self, source_code: str) -> List[RouteHandlerInfo]:
+    def _extract_axum_routes(self, source_code: str) -> list[RouteHandlerInfo]:
         """Extract Axum routes"""
         route_handlers = []
 
@@ -520,7 +518,7 @@ class RustParser:
             path = re.sub(r":([^/]+)", r"{\1}", path)
 
             # Check if handler uses State
-            has_state = f"State(db): State<" in source_code or "State(" in source_code
+            has_state = "State(db): State<" in source_code or "State(" in source_code
 
             route_handlers.append(
                 RouteHandlerInfo(
@@ -536,7 +534,7 @@ class RustParser:
 
         return route_handlers
 
-    def _extract_rocket_routes(self, source_code: str) -> List[RouteHandlerInfo]:
+    def _extract_rocket_routes(self, source_code: str) -> list[RouteHandlerInfo]:
         """Extract Rocket macro-based routes"""
         route_handlers = []
 
@@ -572,7 +570,7 @@ class RustParser:
 
         return route_handlers
 
-    def _extract_actix_service_routes(self, source_code: str) -> List[RouteHandlerInfo]:
+    def _extract_actix_service_routes(self, source_code: str) -> list[RouteHandlerInfo]:
         """Extract Actix-web routes from service configuration (web::resource, guards, etc.)"""
         route_handlers = []
 
@@ -586,7 +584,7 @@ class RustParser:
 
         return route_handlers
 
-    def _extract_actix_resources(self, source_code: str) -> List[RouteHandlerInfo]:
+    def _extract_actix_resources(self, source_code: str) -> list[RouteHandlerInfo]:
         """Extract Actix-web resource routes (with guards, etc.)"""
         route_handlers = []
 
@@ -631,7 +629,7 @@ class RustParser:
 
         return route_handlers
 
-    def _extract_actix_scopes(self, source_code: str) -> List[RouteHandlerInfo]:
+    def _extract_actix_scopes(self, source_code: str) -> list[RouteHandlerInfo]:
         """Extract Actix-web scope-based routes with proper nesting"""
         route_handlers = []
 
@@ -666,7 +664,7 @@ class RustParser:
 
         return route_handlers
 
-    def _parse_actix_guard(self, config_text: str) -> Optional[Dict[str, Any]]:
+    def _parse_actix_guard(self, config_text: str) -> dict[str, Any] | None:
         """Parse Actix guard configuration and return metadata."""
         guard_pattern = r"\.guard\s*\(\s*([^)]+)\s*\)"
         guard_match = re.search(guard_pattern, config_text)
@@ -693,7 +691,7 @@ class RustParser:
 
         return guard_metadata
 
-    def _extract_impl_blocks(self, source_code: str) -> List[ImplBlockInfo]:
+    def _extract_impl_blocks(self, source_code: str) -> list[ImplBlockInfo]:
         """Extract impl blocks and their methods from source code"""
         impl_blocks = []
 
@@ -773,7 +771,7 @@ class RustParser:
 
         return impl_blocks
 
-    def parse_rust_struct(self, rust_code: str) -> Dict[str, Any]:
+    def parse_rust_struct(self, rust_code: str) -> dict[str, Any]:
         """Parse Rust struct with Diesel derives"""
         struct_pattern = r"pub\s+struct\s+(\w+)\s*\{([^}]+)\}"
         struct_matches = list(re.finditer(struct_pattern, rust_code, re.DOTALL))
@@ -828,7 +826,7 @@ class RustParser:
 
     def _parse_rust_struct_fields(
         self, fields_block: str, rust_code: str = ""
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """Parse Rust struct fields"""
         fields = []
 
@@ -898,7 +896,7 @@ class RustParser:
 
         return DieselTable(table_name=table_name, primary_key=primary_key, columns=columns)
 
-    def _parse_diesel_columns(self, columns_block: str) -> List[Dict[str, Any]]:
+    def _parse_diesel_columns(self, columns_block: str) -> list[dict[str, Any]]:
         """
         Parse column definitions from Diesel table! macro
 
@@ -961,7 +959,7 @@ class RustParser:
         # Direct mapping
         return self.type_mapper.map_diesel_type(diesel_type)
 
-    def _convert_ts_structs_to_rust_structs(self, ts_structs) -> List[RustStructInfo]:
+    def _convert_ts_structs_to_rust_structs(self, ts_structs) -> list[RustStructInfo]:
         """Convert tree-sitter RustStruct objects to RustStructInfo objects."""
         structs = []
         for ts_struct in ts_structs:
@@ -982,7 +980,7 @@ class RustParser:
             structs.append(struct)
         return structs
 
-    def _convert_ts_impl_blocks_to_impl_blocks(self, ts_impl_blocks) -> List[ImplBlockInfo]:
+    def _convert_ts_impl_blocks_to_impl_blocks(self, ts_impl_blocks) -> list[ImplBlockInfo]:
         """Convert tree-sitter RustImplBlock objects to ImplBlockInfo objects."""
         impl_blocks = []
         for ts_impl in ts_impl_blocks:
@@ -1003,7 +1001,7 @@ class RustParser:
             impl_blocks.append(impl_block)
         return impl_blocks
 
-    def _convert_ts_routes_to_route_handlers(self, ts_routes) -> List[RouteHandlerInfo]:
+    def _convert_ts_routes_to_route_handlers(self, ts_routes) -> list[RouteHandlerInfo]:
         """Convert tree-sitter RustRoute objects to RouteHandlerInfo objects."""
         routes = []
         for ts_route in ts_routes:
@@ -1132,7 +1130,7 @@ class RustToSpecQLMapper:
 
         return field_def
 
-    def _parse_field_attributes(self, field_def: FieldDefinition, attributes: List[str]):
+    def _parse_field_attributes(self, field_def: FieldDefinition, attributes: list[str]):
         """Parse Rust field attributes for SpecQL metadata."""
         for attr in attributes:
             attr = attr.strip()
@@ -1348,7 +1346,7 @@ class RustReverseEngineeringService:
 
     def reverse_engineer_file(
         self, file_path: Path, include_diesel_tables: bool = True
-    ) -> List[Entity]:
+    ) -> list[Entity]:
         """
         Reverse engineer a Rust file to SpecQL entities.
 
@@ -1360,7 +1358,7 @@ class RustReverseEngineeringService:
             List of SpecQL entities
         """
         # Read file content
-        with open(file_path, "r", encoding="utf-8") as f:
+        with open(file_path, encoding="utf-8") as f:
             code = f.read()
 
         # Detect ORM type
@@ -1392,7 +1390,7 @@ class RustReverseEngineeringService:
             entities = []
             try:
                 entities.extend(self._parse_seaorm(code))
-            except:
+            except Exception:
                 pass
             try:
                 structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers = (
@@ -1405,7 +1403,7 @@ class RustReverseEngineeringService:
                     for table in diesel_tables:
                         entity = self.mapper.map_diesel_table_to_entity(table)
                         entities.append(entity)
-            except:
+            except Exception:
                 pass
             return entities
 
@@ -1417,7 +1415,7 @@ class RustReverseEngineeringService:
             return "diesel"
         return "unknown"
 
-    def _parse_seaorm(self, code: str) -> List[Entity]:
+    def _parse_seaorm(self, code: str) -> list[Entity]:
         """Parse SeaORM code and convert to SpecQL entities"""
         entities = self.seaorm_parser.extract_entities(code)
 
@@ -1465,7 +1463,7 @@ class RustReverseEngineeringService:
 
     def reverse_engineer_directory(
         self, directory_path: Path, include_diesel_tables: bool = True
-    ) -> List[Entity]:
+    ) -> list[Entity]:
         """
         Reverse engineer all Rust files in a directory.
 

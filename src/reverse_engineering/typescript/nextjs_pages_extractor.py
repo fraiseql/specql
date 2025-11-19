@@ -7,7 +7,6 @@ Parses Next.js API routes in pages/api/*:
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
 from pathlib import Path
 
 from .tree_sitter_parser import TypeScriptParser
@@ -19,7 +18,7 @@ class NextJSPagesRoute:
 
     path: str  # Derived from file path: pages/api/users.ts -> /api/users
     is_dynamic: bool = False  # [id].ts
-    methods: Optional[List[str]] = None  # Extracted from handler (req.method checks)
+    methods: list[str] | None = None  # Extracted from handler (req.method checks)
 
 
 class NextJSPagesExtractor:
@@ -30,7 +29,7 @@ class NextJSPagesExtractor:
 
     def extract_route_from_file(
         self, file_path: str, source_code: str
-    ) -> Optional[NextJSPagesRoute]:
+    ) -> NextJSPagesRoute | None:
         """
         Extract route from Next.js API file
 
@@ -110,7 +109,7 @@ class NextJSPagesExtractor:
 
         return False
 
-    def _extract_methods(self, ast, source_code: str) -> List[str]:
+    def _extract_methods(self, ast, source_code: str) -> list[str]:
         """
         Extract HTTP methods from handler
 

@@ -5,15 +5,17 @@ Parses user-friendly security YAML into universal security schema.
 Supports tier-based firewall syntax, service name expansion, and compliance presets.
 """
 
+from typing import Any
+
 import yaml
-from typing import Dict, List, Any, Optional
+
 from src.infrastructure.universal_infra_schema import (
-    SecurityConfig,
+    CompliancePreset,
     FirewallRule,
     NetworkTier,
-    CompliancePreset,
-    WAFConfig,
+    SecurityConfig,
     VPNConfig,
+    WAFConfig,
 )
 
 
@@ -103,7 +105,7 @@ class SecurityPatternParser:
             vpn=vpn_config,
         )
 
-    def _parse_compliance_preset(self, security_data: Dict[str, Any]) -> Optional[CompliancePreset]:
+    def _parse_compliance_preset(self, security_data: dict[str, Any]) -> CompliancePreset | None:
         """Parse compliance preset from tier or compliance_preset field"""
         # Check compliance_preset field first (preferred)
         preset = security_data.get("compliance_preset")
@@ -117,8 +119,8 @@ class SecurityPatternParser:
         return None
 
     def _parse_firewall_rules(
-        self, security_data: Dict[str, Any]
-    ) -> tuple[List[NetworkTier], List[FirewallRule]]:
+        self, security_data: dict[str, Any]
+    ) -> tuple[list[NetworkTier], list[FirewallRule]]:
         """Parse firewall rules from tier-based syntax"""
         network_tiers = []
         firewall_rules = []
@@ -162,7 +164,7 @@ class SecurityPatternParser:
                 tier_rules = []
                 for rule_data in rules:
                     if not isinstance(rule_data, dict):
-                        raise ValueError(f"Each firewall rule must be a dictionary")
+                        raise ValueError("Each firewall rule must be a dictionary")
 
                     rule = self._parse_single_rule(rule_data, tier_name)
                     if rule:
@@ -174,8 +176,8 @@ class SecurityPatternParser:
         return network_tiers, firewall_rules
 
     def _parse_single_rule(
-        self, rule_data: Dict[str, Any], destination_tier: str
-    ) -> Optional[FirewallRule]:
+        self, rule_data: dict[str, Any], destination_tier: str
+    ) -> FirewallRule | None:
         """Parse a single firewall rule"""
         if "allow" not in rule_data:
             return None
@@ -202,7 +204,7 @@ class SecurityPatternParser:
             action="allow",
         )
 
-    def _parse_ports_and_ranges(self, allow_value: str) -> tuple[List[int], List[str]]:
+    def _parse_ports_and_ranges(self, allow_value: str) -> tuple[list[int], list[str]]:
         """Parse ports and port ranges from allow value"""
         ports = []
         port_ranges = []
@@ -246,12 +248,12 @@ class SecurityPatternParser:
         except ValueError:
             return False
 
-    def _parse_waf_config(self, security_data: Dict[str, Any]) -> WAFConfig:
+    def _parse_waf_config(self, security_data: dict[str, Any]) -> WAFConfig:
         """Parse WAF configuration"""
         waf_enabled = security_data.get("waf") == "enabled"
         return WAFConfig(enabled=waf_enabled)
 
-    def _parse_vpn_config(self, security_data: Dict[str, Any]) -> VPNConfig:
+    def _parse_vpn_config(self, security_data: dict[str, Any]) -> VPNConfig:
         """Parse VPN configuration"""
         vpn_enabled = security_data.get("vpn") == "enabled"
         return VPNConfig(enabled=vpn_enabled)

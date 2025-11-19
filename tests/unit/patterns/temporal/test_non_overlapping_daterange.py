@@ -1,10 +1,11 @@
 """Tests for temporal non-overlapping daterange pattern."""
 
 import pytest
+
 from src.core.specql_parser import SpecQLParser
-from src.generators.table_generator import TableGenerator
 from src.generators.schema.naming_conventions import NamingConventions
 from src.generators.schema.schema_registry import SchemaRegistry
+from src.generators.table_generator import TableGenerator
 
 
 class TestNonOverlappingDateRange:

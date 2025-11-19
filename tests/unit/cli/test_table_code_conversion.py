@@ -5,8 +5,9 @@ This module tests the conversion function that bridges EntityDefinition
 verifying that organization.table_code is properly extracted to entity.table_code.
 """
 import pytest
-from src.core.ast_models import EntityDefinition, Organization, Entity
+
 from src.cli.generate import convert_entity_definition_to_entity
+from src.core.ast_models import EntityDefinition, Organization
 
 
 def test_table_code_extracted_from_organization():

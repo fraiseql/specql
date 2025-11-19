@@ -6,26 +6,23 @@ Extracts code blocks from documentation and validates they work.
 Run this in CI to ensure docs stay accurate.
 """
 
-import os
 import re
-import subprocess
 import sys
 from pathlib import Path
-from typing import List, Tuple
 
 
-def extract_code_blocks(file_path: Path) -> List[Tuple[str, str, int]]:
+def extract_code_blocks(file_path: Path) -> list[tuple[str, str, int]]:
     """
     Extract code blocks from a markdown file.
 
     Returns: List of (language, code, line_number) tuples
     """
-    with open(file_path, 'r', encoding='utf-8') as f:
+    with open(file_path, encoding='utf-8') as f:
         content = f.read()
 
     # Find code blocks with language specification
     pattern = r'```(\w+)\n(.*?)\n```'
-    matches = re.findall(pattern, content, re.DOTALL)
+    re.findall(pattern, content, re.DOTALL)
 
     blocks = []
     lines = content.split('\n')
@@ -111,7 +108,7 @@ VALIDATORS = {
 }
 
 
-def validate_file(file_path: Path) -> List[str]:
+def validate_file(file_path: Path) -> list[str]:
     """Validate all code blocks in a file"""
     errors = []
     blocks = extract_code_blocks(file_path)
@@ -153,4 +150,4 @@ def main():
 
 
 if __name__ == '__main__':
-    main()</content>
+    main()

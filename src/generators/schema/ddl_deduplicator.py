@@ -4,14 +4,13 @@ DDL deduplication utilities
 Prevents duplicate CREATE INDEX and COMMENT statements
 """
 
-from typing import List
 
 
 class DDLDeduplicator:
     """Remove duplicate DDL statements"""
 
     @staticmethod
-    def deduplicate_indexes(indexes: List[str]) -> List[str]:
+    def deduplicate_indexes(indexes: list[str]) -> list[str]:
         """
         Remove duplicate index statements
 
@@ -35,7 +34,7 @@ class DDLDeduplicator:
         return result
 
     @staticmethod
-    def deduplicate_comments(comments: List[str]) -> List[str]:
+    def deduplicate_comments(comments: list[str]) -> list[str]:
         """
         Remove duplicate comment statements
 
@@ -59,7 +58,7 @@ class DDLDeduplicator:
         return result
 
     @staticmethod
-    def deduplicate_ddl(ddl_statements: List[str]) -> List[str]:
+    def deduplicate_ddl(ddl_statements: list[str]) -> list[str]:
         """
         Remove duplicate DDL statements of any type
 

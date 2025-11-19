@@ -6,8 +6,9 @@ with proper parenthesis matching and error handling.
 """
 
 import re
-from typing import List, Dict, Any, Optional
 from dataclasses import dataclass, field
+from typing import Any
+
 from src.core.ast_models import ActionStep
 
 
@@ -18,7 +19,7 @@ class CTEInfo:
     name: str
     query: str
     is_recursive: bool = False
-    dependencies: List[str] = field(default_factory=list)  # Other CTEs this one references
+    dependencies: list[str] = field(default_factory=list)  # Other CTEs this one references
 
 
 class CTEParser:
@@ -29,7 +30,7 @@ class CTEParser:
         self.depth_tracker = {}
         self.max_nesting_depth = 10  # Prevent infinite recursion
 
-    def parse(self, sql: str) -> List[ActionStep]:
+    def parse(self, sql: str) -> list[ActionStep]:
         """
         Parse CTEs with arbitrary nesting depth
 
@@ -80,7 +81,7 @@ class CTEParser:
                     f"SQL context: {sql[:300]}..."
                 ) from e
 
-    def _find_with_clauses(self, sql: str) -> List[Dict[str, Any]]:
+    def _find_with_clauses(self, sql: str) -> list[dict[str, Any]]:
         """
         Find all WITH clauses in the SQL
 
@@ -104,7 +105,7 @@ class CTEParser:
 
         return clauses
 
-    def _parse_single_cte(self, clause_info: Dict[str, Any], sql: str) -> List[ActionStep]:
+    def _parse_single_cte(self, clause_info: dict[str, Any], sql: str) -> list[ActionStep]:
         """Parse a single CTE clause"""
         ctes = []
         pos = clause_info["content_start"]
@@ -158,7 +159,7 @@ class CTEParser:
 
         return ctes
 
-    def _extract_parenthesized_content(self, sql: str, start_pos: int) -> tuple[Optional[str], int]:
+    def _extract_parenthesized_content(self, sql: str, start_pos: int) -> tuple[str | None, int]:
         """
         Extract content within matching parentheses
 
@@ -184,7 +185,7 @@ class CTEParser:
         # No matching closing paren found
         return None, -1
 
-    def detect_patterns(self, ctes: List[ActionStep]) -> List[str]:
+    def detect_patterns(self, ctes: list[ActionStep]) -> list[str]:
         """
         Detect patterns in parsed CTEs
 

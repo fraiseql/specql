@@ -5,10 +5,11 @@ Algorithmic mapping without AI
 """
 
 import logging
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass, field
+from typing import Any
+
 from src.core.ast_models import ActionStep
-from src.reverse_engineering.parser_coordinator import ParserCoordinator, ParserResult
+from src.reverse_engineering.parser_coordinator import ParserCoordinator
 
 logger = logging.getLogger(__name__)
 
@@ -19,12 +20,12 @@ class ConversionResult:
 
     function_name: str
     schema: str
-    parameters: List[Dict[str, str]]
+    parameters: list[dict[str, str]]
     return_type: str
-    steps: List[ActionStep]
+    steps: list[ActionStep]
     confidence: float
-    warnings: List[str] = field(default_factory=list)
-    metadata: Dict[str, Any] = field(default_factory=dict)
+    warnings: list[str] = field(default_factory=list)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 class ASTToSpecQLMapper:
@@ -70,7 +71,7 @@ class ASTToSpecQLMapper:
             warnings=self.warnings,
         )
 
-    def _parse_body_text(self, body_text: str) -> List[ActionStep]:
+    def _parse_body_text(self, body_text: str) -> list[ActionStep]:
         """Parse function body using simple text analysis (algorithmic approach)"""
         steps = []
 
@@ -97,7 +98,7 @@ class ASTToSpecQLMapper:
 
         return steps
 
-    def _parse_declare_block(self, declare_text: str) -> List[ActionStep]:
+    def _parse_declare_block(self, declare_text: str) -> list[ActionStep]:
         """Parse DECLARE block for variable declarations and cursors"""
         steps = []
 
@@ -158,7 +159,7 @@ class ASTToSpecQLMapper:
 
         return steps
 
-    def _parse_cursor_declarations_in_declare(self, declare_content: str) -> List[ActionStep]:
+    def _parse_cursor_declarations_in_declare(self, declare_content: str) -> list[ActionStep]:
         """
         Parse cursor declarations from DECLARE block content
 
@@ -197,7 +198,7 @@ class ASTToSpecQLMapper:
 
         return steps
 
-    def _parse_begin_block(self, begin_text: str) -> List[ActionStep]:
+    def _parse_begin_block(self, begin_text: str) -> list[ActionStep]:
         """Parse BEGIN block with coordinated specialized parsers"""
         steps = []
 
@@ -234,7 +235,7 @@ class ASTToSpecQLMapper:
 
         return steps
 
-    def _parse_basic_statements(self, begin_text: str) -> List[ActionStep]:
+    def _parse_basic_statements(self, begin_text: str) -> list[ActionStep]:
         """Parse basic SQL statements when no specialized parsers match"""
         steps = []
 
@@ -312,7 +313,7 @@ class ASTToSpecQLMapper:
 
         return steps
 
-    def _map_statements(self, plpgsql_ast: Any) -> List[ActionStep]:
+    def _map_statements(self, plpgsql_ast: Any) -> list[ActionStep]:
         """Map PL/pgSQL statements to SpecQL steps"""
         steps = []
 
@@ -339,7 +340,7 @@ class ASTToSpecQLMapper:
 
         return steps
 
-    def _map_declare(self, decl: Any) -> Optional[ActionStep]:
+    def _map_declare(self, decl: Any) -> ActionStep | None:
         """Map DECLARE statement to declare step"""
         if hasattr(decl, "PLpgSQL_var"):
             var = decl.PLpgSQL_var
@@ -360,7 +361,7 @@ class ASTToSpecQLMapper:
 
         return None
 
-    def _map_statement(self, stmt: Any) -> List[ActionStep]:
+    def _map_statement(self, stmt: Any) -> list[ActionStep]:
         """Map a single PL/pgSQL statement to SpecQL steps"""
         steps = []
 
@@ -546,7 +547,6 @@ class ASTToSpecQLMapper:
         Note: Block comments (/* */) are more complex to handle correctly
         and are typically handled by the SQL parser itself
         """
-        import re
 
         # Remove single-line comments: -- comment
         # Match -- followed by anything until end of line

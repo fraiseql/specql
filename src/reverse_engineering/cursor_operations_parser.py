@@ -10,7 +10,7 @@ Handles PostgreSQL PL/pgSQL cursor syntax:
 """
 
 import re
-from typing import List, Tuple
+
 from src.core.ast_models import ActionStep
 
 
@@ -20,7 +20,7 @@ class CursorOperationsParser:
     def __init__(self):
         self.confidence_boost = 0.20  # Increased confidence boost for proper parsing
 
-    def parse(self, sql_text: str) -> List[ActionStep]:
+    def parse(self, sql_text: str) -> list[ActionStep]:
         """
         Parse cursor operations from SQL text
 
@@ -40,7 +40,7 @@ class CursorOperationsParser:
 
         return steps
 
-    def _parse_cursor_declarations(self, sql_text: str) -> List[ActionStep]:
+    def _parse_cursor_declarations(self, sql_text: str) -> list[ActionStep]:
         """
         Parse CURSOR variable declarations from DECLARE blocks
 
@@ -79,7 +79,7 @@ class CursorOperationsParser:
 
         return steps
 
-    def _parse_cursor_operations(self, sql_text: str) -> List[ActionStep]:
+    def _parse_cursor_operations(self, sql_text: str) -> list[ActionStep]:
         """Parse cursor operations (OPEN, FETCH, CLOSE)"""
         steps = []
 
@@ -118,7 +118,7 @@ class CursorOperationsParser:
 
         return steps
 
-    def _parse_fetch_statement(self, fetch_stmt: str) -> Tuple[str, str] | None:
+    def _parse_fetch_statement(self, fetch_stmt: str) -> tuple[str, str] | None:
         """
         Parse FETCH statement to extract cursor name and INTO variable
 
@@ -138,7 +138,7 @@ class CursorOperationsParser:
 
         return None
 
-    def _parse_fetch_in_loop(self, loop_stmt: str) -> List[ActionStep]:
+    def _parse_fetch_in_loop(self, loop_stmt: str) -> list[ActionStep]:
         """
         Parse FETCH statements that appear inside LOOP blocks
 

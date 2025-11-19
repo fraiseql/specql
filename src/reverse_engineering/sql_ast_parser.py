@@ -4,8 +4,8 @@ SQL AST Parser using pglast
 Converts PostgreSQL SQL to AST for analysis
 """
 
-from typing import Any, Dict, List, Optional
 from dataclasses import dataclass
+
 from src.core.dependencies import PGLAST
 
 # Lazy import with availability check
@@ -28,9 +28,9 @@ class ParsedFunction:
 
     function_name: str
     schema: str
-    parameters: List[Dict[str, str]]
+    parameters: list[dict[str, str]]
     return_type: str
-    body: Optional[str]  # SQL body text
+    body: str | None  # SQL body text
     language: str = "plpgsql"
 
 
@@ -89,7 +89,7 @@ class SQLASTParser:
         except Exception as e:
             raise ValueError(f"Failed to parse SQL: {e}")
 
-    def _parse_parameters(self, params) -> List[Dict[str, str]]:
+    def _parse_parameters(self, params) -> list[dict[str, str]]:
         """Extract function parameters"""
         parameters = []
 
@@ -146,7 +146,7 @@ class SQLASTParser:
 
         return "unknown"
 
-    def _parse_body(self, func_stmt) -> Optional[str]:
+    def _parse_body(self, func_stmt) -> str | None:
         """Extract function body"""
         # Function body is in options
         for option in func_stmt.options:

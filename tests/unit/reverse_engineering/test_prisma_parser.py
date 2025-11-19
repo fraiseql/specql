@@ -1,6 +1,5 @@
 # tests/unit/reverse_engineering/test_prisma_parser.py
 
-import pytest
 from src.reverse_engineering.prisma_parser import PrismaSchemaParser
 
 
@@ -37,14 +36,14 @@ class TestPrismaSchemaParser:
         # Check field types
         email_field = next(f for f in contact.fields if f.name == "email")
         assert email_field.type == "text"
-        assert email_field.unique == True
+        assert email_field.unique
 
         status_field = next(f for f in contact.fields if f.name == "status")
         assert status_field.default_value == "lead"
 
         # Check relation
         company_field = next(f for f in contact.fields if f.name == "company")
-        assert company_field.is_relation == True
+        assert company_field.is_relation
         assert company_field.related_entity == "Company"
 
     def test_parse_prisma_enums(self):

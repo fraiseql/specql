@@ -9,11 +9,11 @@ Supports:
 Uses regex-based parsing (Java is verbose, full AST parsing is complex).
 """
 
-import re
-from typing import List, Dict, Any, Optional
-from pathlib import Path
-from dataclasses import dataclass
 import logging
+import re
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -24,11 +24,11 @@ class JavaAction:
 
     name: str
     type: str  # create, read, update, delete, custom
-    http_method: Optional[str] = None
-    path: Optional[str] = None
-    parameters: Optional[List[str]] = None
+    http_method: str | None = None
+    path: str | None = None
+    parameters: list[str] | None = None
     has_request_body: bool = False
-    query_params: Optional[List[str]] = None
+    query_params: list[str] | None = None
     has_custom_query: bool = False
     framework: str = "spring"
     confidence: float = 0.0
@@ -56,8 +56,8 @@ class ParsedEntity:
     """Represents a parsed JPA entity"""
 
     name: str
-    fields: List[Dict[str, Any]]
-    metadata: Optional[Dict[str, Any]] = None
+    fields: list[dict[str, Any]]
+    metadata: dict[str, Any] | None = None
 
 
 class JavaActionParser:
@@ -73,14 +73,14 @@ class JavaActionParser:
         self.action_mapper = JavaActionMapper()
         self.entity_mapper = JavaEntityMapper()
 
-    def extract_actions(self, file_path: Path) -> List[Dict[str, Any]]:
+    def extract_actions(self, file_path: Path) -> list[dict[str, Any]]:
         """Extract actions from Java file"""
         with open(file_path) as f:
             code = f.read()
 
         return self.extract_actions_from_code(code)
 
-    def extract_actions_from_code(self, code: str) -> List[Dict[str, Any]]:
+    def extract_actions_from_code(self, code: str) -> list[dict[str, Any]]:
         """Extract actions from Java code string"""
         actions = []
 
@@ -94,7 +94,7 @@ class JavaActionParser:
 
         return [self._action_to_dict(a) for a in actions]
 
-    def _extract_from_controller(self, code: str) -> List[JavaAction]:
+    def _extract_from_controller(self, code: str) -> list[JavaAction]:
         """Extract actions from Spring Boot controller"""
         actions = []
 
@@ -170,7 +170,7 @@ class JavaActionParser:
         logger.debug(f"Total actions found: {len(actions)}")
         return actions
 
-    def _extract_from_repository(self, code: str) -> List[JavaAction]:
+    def _extract_from_repository(self, code: str) -> list[JavaAction]:
         """Extract actions from Spring Data repository"""
         actions = []
 
@@ -189,7 +189,7 @@ class JavaActionParser:
         # Find custom query methods
         method_pattern = r"(List<\w+>|\w+)\s+(\w+)\s*\(([^)]*)\)"
         for match in re.finditer(method_pattern, code):
-            return_type = match.group(1)
+            match.group(1)
             method_name = match.group(2)
             params = match.group(3)
 
@@ -227,7 +227,7 @@ class JavaActionParser:
         # Ensure single slash between paths
         return f"{class_path.rstrip('/')}/{method_path.lstrip('/')}"
 
-    def _extract_parameters(self, params_str: str) -> List[str]:
+    def _extract_parameters(self, params_str: str) -> list[str]:
         """Extract parameter names from method signature"""
         if not params_str.strip():
             return []
@@ -244,14 +244,14 @@ class JavaActionParser:
 
         return params
 
-    def _extract_query_params(self, params_str: str) -> List[str]:
+    def _extract_query_params(self, params_str: str) -> list[str]:
         """Extract @RequestParam parameter names"""
         query_params = []
         for match in re.finditer(r"@RequestParam.*?(\w+)\s*$", params_str):
             query_params.append(match.group(1))
         return query_params
 
-    def extract_entity_fields_from_code(self, code: str) -> List[Dict[str, Any]]:
+    def extract_entity_fields_from_code(self, code: str) -> list[dict[str, Any]]:
         """Extract fields from JPA entity"""
         return self.entity_mapper.extract_fields(code)
 
@@ -309,12 +309,12 @@ class JavaActionParser:
 
         return ParsedEntity(name=entity_name, fields=fields, metadata=metadata)
 
-    def extract_repository_actions_from_code(self, code: str) -> List[Dict[str, Any]]:
+    def extract_repository_actions_from_code(self, code: str) -> list[dict[str, Any]]:
         """Extract actions from repository interface"""
         actions = self._extract_from_repository(code)
         return [self._action_to_dict(a) for a in actions]
 
-    def _action_to_dict(self, action: JavaAction) -> Dict[str, Any]:
+    def _action_to_dict(self, action: JavaAction) -> dict[str, Any]:
         """Convert JavaAction to dict"""
         result = {
             "name": action.name,
@@ -342,7 +342,7 @@ class JavaActionParser:
 class JavaActionMapper:
     """Map Java constructs to SpecQL CRUD actions"""
 
-    def detect_crud_from_name(self, name: str) -> Optional[str]:
+    def detect_crud_from_name(self, name: str) -> str | None:
         """Detect CRUD type from method name"""
         name_lower = name.lower()
 
@@ -382,7 +382,7 @@ class JavaActionMapper:
 class JavaEntityMapper:
     """Extract entity fields from JPA entities"""
 
-    def extract_fields(self, code: str) -> List[Dict[str, Any]]:
+    def extract_fields(self, code: str) -> list[dict[str, Any]]:
         """Extract fields from JPA entity class"""
         fields = []
 
@@ -519,7 +519,7 @@ class JavaEntityMapper:
         """Convert camelCase to snake_case"""
         return re.sub(r"(?<!^)(?=[A-Z])", "_", name).lower()
 
-    def _extract_relationship_annotations(self, field_block: str) -> Optional[Dict[str, Any]]:
+    def _extract_relationship_annotations(self, field_block: str) -> dict[str, Any] | None:
         """
         Extract JPA relationship metadata from field annotations
 
@@ -550,7 +550,7 @@ class JavaEntityMapper:
 
         return None
 
-    def _map_inheritance_to_specql(self, inheritance_info: Dict[str, Any]) -> Dict[str, Any]:
+    def _map_inheritance_to_specql(self, inheritance_info: dict[str, Any]) -> dict[str, Any]:
         """
         Map JPA inheritance to SpecQL entity metadata
 
@@ -579,7 +579,7 @@ class JavaEntityMapper:
 
         return specql_additions
 
-    def _extract_embedded_fields(self, code: str) -> List[Dict[str, Any]]:
+    def _extract_embedded_fields(self, code: str) -> list[dict[str, Any]]:
         """
         Extract @Embedded fields and flatten them
 
@@ -622,7 +622,7 @@ class JavaEntityMapper:
 
         return embedded_fields
 
-    def _extract_simple_fields(self, code_block: str) -> List[Dict[str, Any]]:
+    def _extract_simple_fields(self, code_block: str) -> list[dict[str, Any]]:
         """Extract simple (non-relationship) fields from a code block"""
         fields = []
 
@@ -664,7 +664,7 @@ class JavaEntityMapper:
 
         return fields
 
-    def _extract_param(self, params_str: str, param_name: str) -> Optional[str]:
+    def _extract_param(self, params_str: str, param_name: str) -> str | None:
         """Extract parameter value from annotation parameters string"""
         pattern = rf"{param_name}\s*=\s*([^,\s)]+)"
         match = re.search(pattern, params_str)
@@ -676,7 +676,7 @@ class JavaEntityMapper:
             return value
         return None
 
-    def _extract_join_column(self, field_block: str) -> Optional[str]:
+    def _extract_join_column(self, field_block: str) -> str | None:
         """Extract @JoinColumn name"""
         join_column_pattern = r'@JoinColumn\s*\(\s*name\s*=\s*"([^"]+)"'
         match = re.search(join_column_pattern, field_block)
@@ -706,7 +706,7 @@ class JavaEntityMapper:
 
         return "Unknown"
 
-    def _map_relationship_field(self, field_info: Dict[str, Any]) -> Dict[str, Any]:
+    def _map_relationship_field(self, field_info: dict[str, Any]) -> dict[str, Any]:
         """
         Map JPA relationship to SpecQL field
 
@@ -751,8 +751,8 @@ class JavaEntityMapper:
         return specql_field
 
     def _detect_bidirectional_relationship(
-        self, relationship_info: Dict[str, Any]
-    ) -> Dict[str, Any]:
+        self, relationship_info: dict[str, Any]
+    ) -> dict[str, Any]:
         """
         Detect bidirectional relationships via mappedBy
 
@@ -777,7 +777,7 @@ class JavaEntityMapper:
                 "side": "unidirectional",
             }
 
-    def _extract_converter_annotation(self, field_block: str) -> Optional[Dict[str, Any]]:
+    def _extract_converter_annotation(self, field_block: str) -> dict[str, Any] | None:
         """
         Extract @Convert annotation
 
@@ -796,7 +796,7 @@ class JavaEntityMapper:
 
         return None
 
-    def _extract_composite_key(self, code: str) -> Optional[Dict[str, Any]]:
+    def _extract_composite_key(self, code: str) -> dict[str, Any] | None:
         """
         Extract composite primary key
 
@@ -830,7 +830,7 @@ class JavaEntityMapper:
 
         return None
 
-    def _extract_inheritance_metadata(self, class_block: str) -> Optional[Dict[str, Any]]:
+    def _extract_inheritance_metadata(self, class_block: str) -> dict[str, Any] | None:
         """
         Extract JPA inheritance strategy
 

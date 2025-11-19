@@ -6,8 +6,8 @@ Pulumi supports multiple languages (Python, TypeScript, Go, C#, etc.) but we'll 
 """
 
 import textwrap
-from typing import Dict, Any, List
-from src.infrastructure.universal_infra_schema import UniversalInfrastructure, DatabaseType
+
+from src.infrastructure.universal_infra_schema import DatabaseType, UniversalInfrastructure
 
 
 class PulumiGenerator:
@@ -50,7 +50,7 @@ class PulumiGenerator:
 
         return "\n".join(code_lines)
 
-    def _generate_network_code(self, infrastructure: UniversalInfrastructure) -> List[str]:
+    def _generate_network_code(self, infrastructure: UniversalInfrastructure) -> list[str]:
         """Generate VPC and networking code"""
         code = [
             "",
@@ -167,7 +167,7 @@ class PulumiGenerator:
 
         return code
 
-    def _generate_security_groups_code(self, infrastructure: UniversalInfrastructure) -> List[str]:
+    def _generate_security_groups_code(self, infrastructure: UniversalInfrastructure) -> list[str]:
         """Generate security groups code"""
         code = [
             "",
@@ -206,7 +206,7 @@ class PulumiGenerator:
             '    name_prefix=f"{infrastructure.name}-app-",',
             '    vpc_id=vpc.id,',
             '    ingress=[{',
-            f'        "protocol": "tcp",',
+            '        "protocol": "tcp",',
             f'        "from_port": {port},',
             f'        "to_port": {port},',
             '        "security_groups": [lb_sg.id]' if infrastructure.load_balancer else '        "cidr_blocks": ["0.0.0.0/0"]',
@@ -251,7 +251,7 @@ class PulumiGenerator:
 
         return code
 
-    def _generate_compute_code(self, infrastructure: UniversalInfrastructure) -> List[str]:
+    def _generate_compute_code(self, infrastructure: UniversalInfrastructure) -> list[str]:
         """Generate compute resources code"""
         code = [
             "",
@@ -352,7 +352,7 @@ class PulumiGenerator:
 
         return code
 
-    def _generate_database_code(self, infrastructure: UniversalInfrastructure) -> List[str]:
+    def _generate_database_code(self, infrastructure: UniversalInfrastructure) -> list[str]:
         """Generate database code"""
         code = [
             "",
@@ -404,7 +404,7 @@ class PulumiGenerator:
         code.extend(db_code)
         return code
 
-    def _generate_load_balancer_code(self, infrastructure: UniversalInfrastructure) -> List[str]:
+    def _generate_load_balancer_code(self, infrastructure: UniversalInfrastructure) -> list[str]:
         """Generate load balancer code"""
         code = [
             "",
@@ -418,7 +418,7 @@ class PulumiGenerator:
             '    port=' + str(port) + ',',
             '    protocol="HTTP",',
             '    vpc_id=vpc.id,',
-            f'    health_check={{',
+            '    health_check={',
             f'        "path": "{infrastructure.load_balancer.health_check_path}",',
             f'        "interval": {infrastructure.load_balancer.health_check_interval},',
             '        "timeout": 5,',
@@ -470,7 +470,7 @@ class PulumiGenerator:
 
         return code
 
-    def _generate_exports_code(self, infrastructure: UniversalInfrastructure) -> List[str]:
+    def _generate_exports_code(self, infrastructure: UniversalInfrastructure) -> list[str]:
         """Generate exports"""
         code = [
             "",

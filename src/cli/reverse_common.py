@@ -1,10 +1,11 @@
 """Common logic for all reverse engineering commands."""
 
-from pathlib import Path
-from typing import Any, Protocol, List, Optional
-import click
 import fnmatch
-from rich.progress import Progress, SpinnerColumn, BarColumn, TextColumn
+from pathlib import Path
+from typing import Any, Protocol
+
+import click
+from rich.progress import BarColumn, Progress, SpinnerColumn, TextColumn
 
 # Imports are done at function level to avoid circular import issues
 
@@ -30,8 +31,8 @@ class ReverseEngineeringCLI:
 
     @staticmethod
     def discover_source_files(
-        input_path: str, language: str, exclude_patterns: Optional[List[str]] = None
-    ) -> List[Path]:
+        input_path: str, language: str, exclude_patterns: list[str] | None = None
+    ) -> list[Path]:
         """Discover all source files in a directory"""
         path = Path(input_path)
 
@@ -66,10 +67,10 @@ class ReverseEngineeringCLI:
     @staticmethod
     def process_project(
         input_path: str,
-        framework: Optional[str],
+        framework: str | None,
         with_patterns: bool,
         output_dir: str,
-        exclude: Optional[List[str]] = None,
+        exclude: list[str] | None = None,
         preview: bool = False,
         language: str = "auto",
         use_cache: bool = True,
@@ -154,7 +155,7 @@ class ReverseEngineeringCLI:
                     tracker.mark_processed(file_path, result)
 
             except Exception as e:
-                from .error_handler import ParsingError, MappingError, ValidationError
+                from .error_handler import MappingError, ParsingError, ValidationError
 
                 # Convert to appropriate error type
                 if "parsing" in str(e).lower():
@@ -211,13 +212,11 @@ class ReverseEngineeringCLI:
         try:
             # Import here to avoid circular imports
             if framework == "python":
-                from .reverse_python import reverse_python
 
                 # This would need to be adapted to work with the new interface
                 # For now, return a placeholder
                 result = {"file": str(file_path), "status": "processed"}
             elif framework == "sql":
-                from .reverse import reverse
 
                 # Similar adaptation needed
                 result = {"file": str(file_path), "status": "processed"}

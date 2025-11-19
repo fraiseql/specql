@@ -1,7 +1,7 @@
 """Temporal non-overlapping daterange pattern implementation."""
 
 from dataclasses import dataclass
-from typing import Optional
+
 from src.core.ast_models import EntityDefinition, FieldDefinition
 
 

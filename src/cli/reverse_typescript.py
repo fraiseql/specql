@@ -1,11 +1,11 @@
 """CLI command for reverse engineering TypeScript code to SpecQL YAML."""
 
-import click
-from pathlib import Path
 
-from .reverse_common import ReverseEngineeringCLI
+import click
+
 from ..reverse_engineering.typescript_parser import TypeScriptParser
 from ..reverse_engineering.universal_ast_mapper import UniversalASTMapper
+from .reverse_common import ReverseEngineeringCLI
 
 
 @click.command("typescript")

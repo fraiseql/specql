@@ -1,7 +1,7 @@
 """Recursive dependency validator pattern implementation."""
 
 from dataclasses import dataclass
-from typing import Optional
+
 from src.core.ast_models import EntityDefinition
 
 
@@ -9,8 +9,8 @@ from src.core.ast_models import EntityDefinition
 class DependencyConfig:
     """Configuration for recursive dependency validation."""
 
-    dependency_entity: Optional[str] = None  # Entity storing dependencies (for cross-entity deps)
-    parent_field: Optional[str] = None  # Field for self-referencing hierarchies
+    dependency_entity: str | None = None  # Entity storing dependencies (for cross-entity deps)
+    parent_field: str | None = None  # Field for self-referencing hierarchies
     max_depth: int = 10
     check_circular: bool = True
 
@@ -164,7 +164,7 @@ IS 'Find all dependencies recursively up to depth {config.max_depth}';
     ) -> str:
         """Generate function to validate all dependencies are satisfied."""
         func_name = f"validate_dependencies_{entity.name.lower()}"
-        dep_table = (
+        (
             f"tb_{config.dependency_entity.lower()}"
             if config.dependency_entity
             else entity.table_name

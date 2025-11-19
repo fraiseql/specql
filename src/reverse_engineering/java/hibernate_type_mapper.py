@@ -4,8 +4,7 @@ Hibernate Type Mapper
 Maps Hibernate/JPA Java types to SpecQL types.
 """
 
-from typing import Optional
-from src.core.ast_models import FieldDefinition
+
 
 
 class HibernateTypeMapper:
@@ -84,7 +83,7 @@ class HibernateTypeMapper:
         # Map simple types
         return self.TYPE_MAPPING.get(java_type, "text")
 
-    def _extract_generic_type(self, type_str: str) -> Optional[str]:
+    def _extract_generic_type(self, type_str: str) -> str | None:
         """Extract generic type from List<Entity>"""
         if "<" in type_str and ">" in type_str:
             start = type_str.index("<") + 1

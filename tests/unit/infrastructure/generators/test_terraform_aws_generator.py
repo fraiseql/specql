@@ -1,6 +1,7 @@
 """Tests for Universal → Terraform AWS generator"""
 
 import pytest
+
 from src.infrastructure.generators.terraform_aws_generator import TerraformAWSGenerator
 from src.infrastructure.universal_infra_schema import *
 

@@ -6,7 +6,7 @@ Improves confidence from 90% → 95% through AI inference
 """
 
 import os
-from typing import Optional, Tuple, Dict, Any
+
 from src.reverse_engineering.ast_to_specql_mapper import ConversionResult
 from src.utils.logger import get_logger
 
@@ -18,9 +18,9 @@ class AIEnhancer:
 
     def __init__(
         self,
-        local_model_path: Optional[str] = None,
+        local_model_path: str | None = None,
         use_cloud_fallback: bool = False,
-        cloud_api_key: Optional[str] = None
+        cloud_api_key: str | None = None
     ):
         """
         Initialize AI enhancer
@@ -163,7 +163,7 @@ Example: {{"v_total": "total_amount", "v_cnt": "customer_count"}}
             import json
             name_map = json.loads(response) if response else {}
             result = self._apply_name_map(result, name_map)
-        except:
+        except Exception:
             # If LLM response not valid JSON, skip
             pass
 
@@ -206,7 +206,7 @@ Respond with comma-separated pattern names, or "none".
 
         return []
 
-    def _query_llm(self, prompt: str, max_tokens: int = 100) -> Optional[str]:
+    def _query_llm(self, prompt: str, max_tokens: int = 100) -> str | None:
         """
         Query LLM (local or cloud)
 
@@ -236,7 +236,7 @@ Respond with comma-separated pattern names, or "none".
 
         return None
 
-    def _query_cloud(self, prompt: str, max_tokens: int) -> Optional[str]:
+    def _query_cloud(self, prompt: str, max_tokens: int) -> str | None:
         """Query cloud API (Anthropic)"""
         try:
             import anthropic
@@ -257,7 +257,7 @@ Respond with comma-separated pattern names, or "none".
 
         return None
 
-    def _apply_name_map(self, result: ConversionResult, name_map: Dict[str, str]) -> ConversionResult:
+    def _apply_name_map(self, result: ConversionResult, name_map: dict[str, str]) -> ConversionResult:
         """Apply variable name mapping to result"""
         # Update variable names in steps
         for step in result.steps:

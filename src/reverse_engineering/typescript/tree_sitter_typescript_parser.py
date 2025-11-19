@@ -5,7 +5,7 @@ Combines all TypeScript extractors for comprehensive route and action extraction
 """
 
 from dataclasses import dataclass
-from typing import List, Optional
+
 from tree_sitter import Node
 
 from .tree_sitter_parser import TypeScriptParser
@@ -18,7 +18,7 @@ class TypeScriptRoute:
     method: str
     path: str
     framework: str  # express, fastify, nextjs-pages, nextjs-app
-    handler_name: Optional[str] = None
+    handler_name: str | None = None
 
 
 @dataclass
@@ -47,7 +47,7 @@ class TreeSitterTypeScriptParser:
         """
         return self.parser.parse(source_code)
 
-    def extract_routes(self, ast: Node, source_code: str) -> List[TypeScriptRoute]:
+    def extract_routes(self, ast: Node, source_code: str) -> list[TypeScriptRoute]:
         """
         Extract all routes from source code using regex patterns
 
@@ -86,7 +86,7 @@ class TreeSitterTypeScriptParser:
 
     def extract_nextjs_pages_routes(
         self, ast: Node, source_code: str, file_path: str
-    ) -> List[TypeScriptRoute]:
+    ) -> list[TypeScriptRoute]:
         """
         Extract Next.js Pages Router routes
 
@@ -118,7 +118,7 @@ class TreeSitterTypeScriptParser:
 
     def extract_nextjs_app_routes(
         self, ast: Node, source_code: str, file_path: str
-    ) -> List[TypeScriptRoute]:
+    ) -> list[TypeScriptRoute]:
         """
         Extract Next.js App Router routes
 
@@ -158,7 +158,7 @@ class TreeSitterTypeScriptParser:
 
         return routes
 
-    def extract_server_actions(self, ast: Node, source_code: str) -> List[TypeScriptAction]:
+    def extract_server_actions(self, ast: Node, source_code: str) -> list[TypeScriptAction]:
         """
         Extract Next.js Server Actions
 

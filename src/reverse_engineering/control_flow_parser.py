@@ -8,7 +8,7 @@ Handles PostgreSQL PL/pgSQL control flow syntax:
 - WHILE loops
 """
 
-from typing import List
+
 from src.core.ast_models import ActionStep
 
 
@@ -18,7 +18,7 @@ class ControlFlowParser:
     def __init__(self):
         self.confidence_boost = 0.11  # Confidence boost for successful control flow parsing
 
-    def parse(self, sql_text: str) -> List[ActionStep]:
+    def parse(self, sql_text: str) -> list[ActionStep]:
         """
         Parse control flow constructs from SQL text
 
@@ -41,7 +41,7 @@ class ControlFlowParser:
 
         return steps
 
-    def _parse_for_loops(self, sql_text: str) -> List[ActionStep]:
+    def _parse_for_loops(self, sql_text: str) -> list[ActionStep]:
         """Parse FOR loop constructs"""
         steps = []
         sql_upper = sql_text.upper()
@@ -51,7 +51,7 @@ class ControlFlowParser:
 
         return steps
 
-    def _parse_if_elseif(self, sql_text: str) -> List[ActionStep]:
+    def _parse_if_elseif(self, sql_text: str) -> list[ActionStep]:
         """Parse IF-ELSIF-ELSE constructs"""
         steps = []
         sql_upper = sql_text.upper()
@@ -61,7 +61,7 @@ class ControlFlowParser:
 
         return steps
 
-    def _parse_continue(self, sql_text: str) -> List[ActionStep]:
+    def _parse_continue(self, sql_text: str) -> list[ActionStep]:
         """Parse CONTINUE statements"""
         steps = []
         sql_upper = sql_text.upper()

@@ -2,10 +2,11 @@
 Integration tests for Java with universal mapper
 """
 
+
 import pytest
-from pathlib import Path
-from src.reverse_engineering.universal_action_mapper import UniversalActionMapper
 import yaml
+
+from src.reverse_engineering.universal_action_mapper import UniversalActionMapper
 
 
 class TestUniversalMapperJava:

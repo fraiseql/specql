@@ -5,7 +5,6 @@ These tests ensure basic functionality continues to work
 while we enhance complex case handling.
 """
 
-import pytest
 from src.reverse_engineering.algorithmic_parser import AlgorithmicParser
 
 

@@ -4,12 +4,12 @@ TypeScript AST parser using tree-sitter
 Parses TypeScript source code into an AST for analysis
 """
 
-from typing import Optional, Any, TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 # Conditional imports for optional dependencies
 try:
     import tree_sitter_typescript as ts_typescript
-    from tree_sitter import Language, Parser, Node
+    from tree_sitter import Language, Node, Parser
 
     HAS_TREE_SITTER_TYPESCRIPT = True
 except ImportError:

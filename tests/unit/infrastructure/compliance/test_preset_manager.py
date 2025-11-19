@@ -1,13 +1,12 @@
 """Tests for CompliancePresetManager"""
 
-import pytest
 from src.infrastructure.universal_infra_schema import (
     CompliancePreset,
+    DatabaseConfig,
+    DatabaseType,
     SecurityConfig,
     UniversalInfrastructure,
     WAFConfig,
-    DatabaseConfig,
-    DatabaseType,
 )
 
 
@@ -41,7 +40,6 @@ class TestCompliancePresetManager:
     def test_apply_hipaa_preset(self):
         """Should auto-configure HIPAA requirements"""
         from src.infrastructure.compliance.preset_manager import CompliancePresetManager
-        from src.infrastructure.universal_infra_schema import DatabaseConfig, DatabaseType
 
         infrastructure = UniversalInfrastructure(
             name="healthcare-app",
