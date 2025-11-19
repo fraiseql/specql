@@ -42,6 +42,11 @@ reverse = [
     # Simply install any of these and the compatibility layer will use the best available option.
 ]
 
+# Infrastructure deployment features
+infrastructure = [
+    "python-hcl2>=4.3.0",  # Terraform HCL parsing
+]
+
 # Test data generation
 testing = [
     "faker>=37.12.0",
@@ -49,7 +54,7 @@ testing = [
 
 # Convenience: all optional features
 all = [
-    "specql[dev,reverse,testing]",
+    "specql[dev,reverse,infrastructure,testing]",
 ]
 
 [project.scripts]
