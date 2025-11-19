@@ -98,6 +98,114 @@ International address and location management:
 
 **Standards-Based**:
 - ISO 3166 (Country codes)
+- PostGIS spatial queries
+
+[→ Complete Geo Guide](geo-entities.md)
+
+---
+
+### 💰 Commerce Entities (`stdlib/commerce/`)
+
+E-commerce and financial entities:
+
+- **Price** - Multi-currency pricing with time-based rules
+- **Order** - Order management and fulfillment
+- **Contract** - Contract lifecycle management
+
+**Features**:
+- Multi-currency support
+- Time-based pricing
+- Order state machines
+
+[→ Complete Commerce Guide](commerce-entities.md)
+
+---
+
+### 🌐 Internationalization (`stdlib/i18n/`)
+
+Multi-language and localization support:
+
+- **Country** - ISO 3166 country codes
+- **Language** - ISO 639 language codes
+- **Currency** - ISO 4217 currency codes
+- **Locale** - BCP 47 locale identifiers
+
+**Standards-Based**:
+- ISO 3166 (Countries)
+- ISO 639 (Languages)
+- ISO 4217 (Currencies)
+- BCP 47 (Locales)
+
+[→ Complete i18n Guide](i18n-entities.md)
+
+---
+
+### 🏗️ Organization & Time Entities (`stdlib/org/`, `stdlib/time/`, `stdlib/tech/`, `stdlib/common/`)
+
+Enterprise infrastructure entities:
+
+**Organization** (`stdlib/org/`):
+- **OrganizationalUnit** - Hierarchical org structures (departments, divisions)
+- **OrganizationalUnitLevel** - Level definitions
+
+**Time** (`stdlib/time/`):
+- **Calendar** - Date dimension table for temporal analytics
+
+**Technology** (`stdlib/tech/`):
+- **OperatingSystem** - OS lifecycle management
+- **OperatingSystemPlatform** - OS family classification
+
+**Common Reference** (`stdlib/common/`):
+- **Industry** - Hierarchical industry classification
+- **Genre** - General-purpose categorization
+
+**Use Cases**:
+- HR systems (org hierarchies)
+- Analytics dashboards (temporal analysis)
+- IT asset management (OS tracking)
+- Business categorization (industries)
+
+[→ Complete Org/Time/Tech Guide](org-time-tech-entities.md)
+
+---
+
+### ⚡ Action Patterns (`stdlib/actions/`)
+
+Pre-built business logic templates that generate production-ready PostgreSQL functions:
+
+**CRUD Patterns**:
+- `crud/create` - Enhanced entity creation with duplicate detection
+- `crud/update` - Partial updates with field tracking
+- `crud/delete` - Dependency-aware deletion
+
+**State Machine Patterns**:
+- `state_machine/transition` - Simple state transitions
+- `state_machine/guarded_transition` - Complex transitions with business rules
+
+**Validation Patterns**:
+- `validation/validation_chain` - Multi-rule validation
+
+**Batch Patterns**:
+- `batch/bulk_operation` - Bulk processing with error handling
+
+**Multi-Entity Patterns**:
+- `multi_entity/coordinated_update` - Atomic multi-entity operations
+- `multi_entity/saga_orchestrator` - Distributed transaction patterns
+
+**Composite Patterns**:
+- `composite/workflow_orchestrator` - Multi-step business processes
+- `composite/conditional_workflow` - Branching workflows
+
+**Key Benefit**: Transform 200 lines of PL/pgSQL into 20 lines of YAML.
+
+[→ Complete Action Patterns Guide](action-patterns.md)
+
+---
+
+### Standards-Based Design
+
+stdlib entities follow international standards wherever possible:
+- ISO 3166 (Country codes)
 - PostGIS integration for spatial queries
 - Multi-language address support
 
