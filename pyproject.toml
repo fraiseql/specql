@@ -1,6 +1,6 @@
 [project]
 name = "specql"
-version = "0.6.0"  #    Managed by VERSION file
+version = "0.7.0"  #    Managed by VERSION file
 description = "SpecQL - Business-focused YAML to PostgreSQL + GraphQL code generator"
 authors = [
     {name = "Lionel Hamayon", email = "lionel.hamayon@evolution-digitale.fr"}

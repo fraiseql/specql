@@ -1,7 +1,7 @@
 {
-  "version": "0.6.0",
-  "commit": "61591575",
+  "version": "0.7.0",
+  "commit": "b3788b0",
   "branch": "main",
-  "timestamp": "2025-11-19T07:36:41.791342+00:00",
-  "environment": "development"
+  "timestamp": "2025-11-19T20:40:00+00:00",
+  "environment": "production"
 }
