@@ -51,13 +51,14 @@ class SchemaOrchestrator:
         self,
         naming_conventions: NamingConventions | None = None,
         enable_performance_monitoring: bool = False,
+        registry_optional: bool = False,
     ) -> None:
         self.logger = get_team_logger("Team B", __name__)
         self.logger.debug("Initializing SchemaOrchestrator")
 
         # Create naming conventions if not provided
         if naming_conventions is None:
-            naming_conventions = NamingConventions()
+            naming_conventions = NamingConventions(optional=registry_optional)
 
         # Create schema registry
         schema_registry = SchemaRegistry(naming_conventions.registry)

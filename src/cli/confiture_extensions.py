@@ -369,10 +369,10 @@ def security():
     pass
 
 
-@security.command()
+@security.command(name="list")
 @click.option("--tags", multiple=True, help="Filter patterns by tags")
 @click.option("--json", is_flag=True, help="Output in JSON format")
-def list(tags, json):
+def list_patterns(tags, json):
     """List available security patterns"""
     library = SecurityPatternLibrary()
     patterns = library.list_patterns(tags=list(tags) if tags else None)

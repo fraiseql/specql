@@ -37,7 +37,10 @@ class CLIOrchestrator:
         self.perf_monitor = get_performance_monitor() if enable_performance_monitoring else None
 
         self.parser = SpecQLParser(enable_performance_monitoring=enable_performance_monitoring)
-        self.schema_orchestrator = SchemaOrchestrator(enable_performance_monitoring=enable_performance_monitoring)
+        self.schema_orchestrator = SchemaOrchestrator(
+            enable_performance_monitoring=enable_performance_monitoring,
+            registry_optional=not use_registry  # Make registry optional when not explicitly using it
+        )
 
         # NEW: Registry integration
         self.use_registry = use_registry

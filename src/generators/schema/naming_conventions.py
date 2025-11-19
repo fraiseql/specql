@@ -84,15 +84,21 @@ class DomainRegistry:
     - Save registry updates
     """
 
-    def __init__(self, registry_path: str = "registry/domain_registry.yaml"):
+    def __init__(self, registry_path: str = "registry/domain_registry.yaml", optional: bool = False):
         self.registry_path = Path(registry_path)
         self.registry: dict = {}
         self.entities_index: dict[str, EntityRegistryEntry] = {}
+        self.optional = optional
         self.load()
 
     def load(self):
         """Load registry from YAML file"""
         if not self.registry_path.exists():
+            if self.optional:
+                # Registry is optional, initialize with empty data
+                self.registry = {"domains": {}}
+                self.entities_index = {}
+                return
             raise FileNotFoundError(
                 f"Domain registry not found: {self.registry_path}\n"
                 f"Create it by copying registry/domain_registry.yaml.example"
@@ -334,8 +340,8 @@ class NamingConventions:
     - Registry integration
     """
 
-    def __init__(self, registry_path: str = "registry/domain_registry.yaml"):
-        self.registry = DomainRegistry(registry_path)
+    def __init__(self, registry_path: str = "registry/domain_registry.yaml", optional: bool = False):
+        self.registry = DomainRegistry(registry_path, optional=optional)
         self.parser = NumberingParser()
 
     def get_table_code(self, entity: Entity, schema_layer: str = "01") -> str:
