@@ -694,7 +694,7 @@ def generate_infra(pattern_name, provider, output, dry_run):
         click.secho(f"❌ Pattern '{pattern_name}' not found", fg="red")
         available = [p.name for p in library.list_patterns()]
         click.echo(f"Available patterns: {', '.join(available)}")
-        return 1
+        raise SystemExit(1)
 
     # Convert pattern to security config
     security_config = pattern.to_security_config()
@@ -770,7 +770,7 @@ def validate_security(yaml_file):
         return 0
     except Exception as e:
         click.secho(f"❌ Validation failed: {e}", fg="red")
-        return 1
+        raise SystemExit(1)
 
 
 @security.command()
@@ -812,7 +812,7 @@ def check_compliance(yaml_file, framework):
         click.secho("❌ Compliance gaps found:", fg="red")
         for gap in result["gaps"]:
             click.echo(f"   - {gap}")
-        return 1
+        raise SystemExit(1)
 
 
 @security.command()
@@ -946,11 +946,11 @@ def diff(file1, file2):
         for diff in differences:
             click.echo(f"  • {diff}")
 
-        return 1
+        raise SystemExit(1)
 
     except Exception as e:
         click.secho(f"❌ Diff failed: {e}", fg="red")
-        return 1
+        raise SystemExit(1)
 
 
 # Register commands with the main specql group
