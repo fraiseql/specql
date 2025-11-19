@@ -84,7 +84,9 @@ class DomainRegistry:
     - Save registry updates
     """
 
-    def __init__(self, registry_path: str = "registry/domain_registry.yaml", optional: bool = False):
+    def __init__(
+        self, registry_path: str = "registry/domain_registry.yaml", optional: bool = False
+    ):
         self.registry_path = Path(registry_path)
         self.registry: dict = {}
         self.entities_index: dict[str, EntityRegistryEntry] = {}
@@ -340,7 +342,9 @@ class NamingConventions:
     - Registry integration
     """
 
-    def __init__(self, registry_path: str = "registry/domain_registry.yaml", optional: bool = False):
+    def __init__(
+        self, registry_path: str = "registry/domain_registry.yaml", optional: bool = False
+    ):
         self.registry = DomainRegistry(registry_path, optional=optional)
         self.parser = NumberingParser()
 

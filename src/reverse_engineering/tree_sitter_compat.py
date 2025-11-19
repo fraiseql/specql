@@ -60,27 +60,27 @@ except ImportError:
 
         def get_prisma_language() -> Language:
             """Get Prisma tree-sitter language (v13)."""
-            return get_language('prisma')
+            return get_language("prisma")
 
         def get_prisma_parser() -> Parser:
             """Get Prisma tree-sitter parser (v13)."""
-            return get_parser('prisma')
+            return get_parser("prisma")
 
         def get_rust_language() -> Language:
             """Get Rust tree-sitter language."""
-            return get_language('rust')
+            return get_language("rust")
 
         def get_rust_parser() -> Parser:
             """Get Rust tree-sitter parser."""
-            return get_parser('rust')
+            return get_parser("rust")
 
         def get_typescript_language() -> Language:
             """Get TypeScript tree-sitter language."""
-            return get_language('typescript')
+            return get_language("typescript")
 
         def get_typescript_parser() -> Parser:
             """Get TypeScript tree-sitter parser."""
-            return get_parser('typescript')
+            return get_parser("typescript")
 
     except ImportError:
         # Fallback 3: Try tree-sitter-languages (legacy, unmaintained)
@@ -94,27 +94,27 @@ except ImportError:
 
             def get_prisma_language() -> Language:
                 """Get Prisma tree-sitter language."""
-                return get_language('prisma')
+                return get_language("prisma")
 
             def get_prisma_parser() -> Parser:
                 """Get Prisma tree-sitter parser."""
-                return get_parser('prisma')
+                return get_parser("prisma")
 
             def get_rust_language() -> Language:
                 """Get Rust tree-sitter language."""
-                return get_language('rust')
+                return get_language("rust")
 
             def get_rust_parser() -> Parser:
                 """Get Rust tree-sitter parser."""
-                return get_parser('rust')
+                return get_parser("rust")
 
             def get_typescript_language() -> Language:
                 """Get TypeScript tree-sitter language."""
-                return get_language('typescript')
+                return get_language("typescript")
 
             def get_typescript_parser() -> Parser:
                 """Get TypeScript tree-sitter parser."""
-                return get_parser('typescript')
+                return get_parser("typescript")
 
         except ImportError:
             HAS_TREE_SITTER = False
@@ -163,14 +163,14 @@ except ImportError:
 
 
 __all__ = [
-    'HAS_TREE_SITTER',
-    'Language',
-    'Parser',
-    'Node',
-    'get_prisma_language',
-    'get_prisma_parser',
-    'get_rust_language',
-    'get_rust_parser',
-    'get_typescript_language',
-    'get_typescript_parser',
+    "HAS_TREE_SITTER",
+    "Language",
+    "Parser",
+    "Node",
+    "get_prisma_language",
+    "get_prisma_parser",
+    "get_rust_language",
+    "get_rust_parser",
+    "get_typescript_language",
+    "get_typescript_parser",
 ]

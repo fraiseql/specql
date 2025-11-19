@@ -17,14 +17,14 @@ class TestRustEndToEnd:
     def test_diesel_schema_to_yaml(self):
         """Test converting Diesel schema to YAML (basic field extraction)"""
         # Test basic struct parsing (Diesel-style structs)
-        rust_code = '''
+        rust_code = """
 #[derive(Queryable)]
 pub struct User {
     pub id: i32,
     pub name: String,
     pub email: String,
 }
-'''
+"""
         # Use tree-sitter parser for struct extraction
         from src.reverse_engineering.tree_sitter_rust_parser import TreeSitterRustParser
 
@@ -50,7 +50,7 @@ pub struct User {
 
     def test_complex_struct_to_yaml(self):
         """Test converting complex Rust struct with nested types"""
-        rust_code = '''
+        rust_code = """
 #[derive(Serialize, Deserialize)]
 pub struct Contact {
     pub id: i32,
@@ -65,7 +65,7 @@ pub struct Profile {
     pub bio: String,
     pub avatar_url: Option<String>,
 }
-'''
+"""
         from src.reverse_engineering.tree_sitter_rust_parser import TreeSitterRustParser
 
         ts_parser = TreeSitterRustParser()

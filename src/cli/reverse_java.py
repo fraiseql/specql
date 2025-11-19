@@ -1,6 +1,5 @@
 """CLI command for reverse engineering Java code to SpecQL YAML."""
 
-
 import click
 
 # from ..reverse_engineering.java.java_parser import JavaParser

@@ -196,9 +196,10 @@ class TestHeuristicEnhancerIntegration:
         assert "detected_patterns" in enhanced.metadata
 
         # Should NOT have universal_patterns
-        assert "universal_patterns" not in enhanced.metadata or not enhanced.metadata[
-            "universal_patterns"
-        ]
+        assert (
+            "universal_patterns" not in enhanced.metadata
+            or not enhanced.metadata["universal_patterns"]
+        )
 
     def test_confidence_boost_from_universal_patterns(self):
         """Test that universal patterns boost confidence"""

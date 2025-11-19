@@ -3,7 +3,6 @@ Tests for PostgreSQL COMMENT Generation
 Tests COMMENT ON statement generation for FraiseQL autodiscovery
 """
 
-
 from src.core.ast_models import Entity, FieldDefinition
 
 # pytestmark = pytest.mark.skip(reason="Rich type comment generation incomplete - deferred to post-beta")

@@ -5,7 +5,6 @@ Prevents duplicate CREATE INDEX and COMMENT statements
 """
 
 
-
 class DDLDeduplicator:
     """Remove duplicate DDL statements"""
 

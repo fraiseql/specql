@@ -270,20 +270,19 @@ fields:
             assert "Warning 1" in result.output
             assert "Warning 2" in result.output
 
-    def test_entities_with_frontend_generation(
-        self, cli_runner, sample_entity_file, temp_dir
-    ):
+    def test_entities_with_frontend_generation(self, cli_runner, sample_entity_file, temp_dir):
         """Test frontend code generation with --output-frontend."""
         output_dir = temp_dir / "migrations"
         frontend_dir = temp_dir / "frontend"
 
         # Patch the lazy imports inside the function
-        with patch("src.cli.generate.SpecQLParser") as mock_parser_cls, \
-             patch("src.generators.frontend.MutationImpactsGenerator") as mock_impacts_gen, \
-             patch("src.generators.frontend.TypeScriptTypesGenerator") as mock_types_gen, \
-             patch("src.generators.frontend.ApolloHooksGenerator") as mock_hooks_gen, \
-             patch("src.generators.frontend.MutationDocsGenerator") as mock_docs_gen:
-
+        with (
+            patch("src.cli.generate.SpecQLParser") as mock_parser_cls,
+            patch("src.generators.frontend.MutationImpactsGenerator") as mock_impacts_gen,
+            patch("src.generators.frontend.TypeScriptTypesGenerator") as mock_types_gen,
+            patch("src.generators.frontend.ApolloHooksGenerator") as mock_hooks_gen,
+            patch("src.generators.frontend.MutationDocsGenerator") as mock_docs_gen,
+        ):
             # Setup mocks
             mock_parser = Mock()
             mock_entity_def = Mock()
@@ -323,20 +322,19 @@ fields:
             assert "Generated hooks.ts" in result.output
             assert "Generated mutations.md" in result.output
 
-    def test_entities_with_frontend_and_impacts(
-        self, cli_runner, sample_entity_file, temp_dir
-    ):
+    def test_entities_with_frontend_and_impacts(self, cli_runner, sample_entity_file, temp_dir):
         """Test frontend generation with --with-impacts flag."""
         output_dir = temp_dir / "migrations"
         frontend_dir = temp_dir / "frontend"
 
         # Patch the lazy imports
-        with patch("src.cli.generate.SpecQLParser") as mock_parser_cls, \
-             patch("src.generators.frontend.MutationImpactsGenerator") as mock_impacts_gen, \
-             patch("src.generators.frontend.TypeScriptTypesGenerator"), \
-             patch("src.generators.frontend.ApolloHooksGenerator"), \
-             patch("src.generators.frontend.MutationDocsGenerator"):
-
+        with (
+            patch("src.cli.generate.SpecQLParser") as mock_parser_cls,
+            patch("src.generators.frontend.MutationImpactsGenerator") as mock_impacts_gen,
+            patch("src.generators.frontend.TypeScriptTypesGenerator"),
+            patch("src.generators.frontend.ApolloHooksGenerator"),
+            patch("src.generators.frontend.MutationDocsGenerator"),
+        ):
             # Setup mocks
             mock_parser = Mock()
             mock_entity_def = Mock()
@@ -380,6 +378,7 @@ fields:
 
         # Mock the import to raise ImportError
         import sys
+
         with patch.dict(sys.modules, {"src.generators.frontend": None}):
             result = cli_runner.invoke(
                 cli,

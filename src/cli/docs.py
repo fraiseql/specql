@@ -120,9 +120,7 @@ def generate_html_docs(entities: list[dict[str, Any]], output_dir: str) -> None:
 """
 
         for field_name, field in entity_def.fields.items():
-            required = (
-                "<span class='field-required'>Yes</span>" if not field.nullable else "No"
-            )
+            required = "<span class='field-required'>Yes</span>" if not field.nullable else "No"
             index_content += f"            <tr><td>{field_name}</td><td>{field.type_name}</td><td>{required}</td><td>{field.description or ''}</td></tr>\n"
 
         index_content += "        </table>\n"

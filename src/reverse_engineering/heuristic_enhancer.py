@@ -447,9 +447,7 @@ class HeuristicEnhancer:
 
         return None
 
-    def _detect_validation_chain_pattern(
-        self, result: ConversionResult
-    ) -> DetectedPattern | None:
+    def _detect_validation_chain_pattern(self, result: ConversionResult) -> DetectedPattern | None:
         """Detect validation chain pattern (multiple checks)"""
         evidence = []
 
@@ -524,9 +522,7 @@ class HeuristicEnhancer:
 
         return None
 
-    def _detect_window_function_pattern(
-        self, result: ConversionResult
-    ) -> DetectedPattern | None:
+    def _detect_window_function_pattern(self, result: ConversionResult) -> DetectedPattern | None:
         """Detect window functions with complex frames"""
         evidence = []
 
@@ -735,9 +731,7 @@ class HeuristicEnhancer:
         # Cap the total boost - allow reaching 90% from algorithmic 85%
         return min(boost, 0.25)  # Allow higher boost for complex patterns
 
-    def _detect_exception_handler_pattern(
-        self, result: ConversionResult
-    ) -> DetectedPattern | None:
+    def _detect_exception_handler_pattern(self, result: ConversionResult) -> DetectedPattern | None:
         """Detect exception handler pattern (try/catch blocks)"""
         evidence = []
 
@@ -799,9 +793,7 @@ class HeuristicEnhancer:
 
         return None
 
-    def _detect_cursor_operations_pattern(
-        self, result: ConversionResult
-    ) -> DetectedPattern | None:
+    def _detect_cursor_operations_pattern(self, result: ConversionResult) -> DetectedPattern | None:
         """Detect cursor operations pattern (OPEN/FETCH/CLOSE)"""
         evidence = []
 
@@ -883,9 +875,7 @@ class HeuristicEnhancer:
 
         return None
 
-    def _detect_window_function_pattern(
-        self, result: ConversionResult
-    ) -> DetectedPattern | None:
+    def _detect_window_function_pattern(self, result: ConversionResult) -> DetectedPattern | None:
         """Detect window function pattern (ROW_NUMBER, LAG, etc. with OVER clauses)"""
         evidence = []
 
@@ -929,9 +919,7 @@ class HeuristicEnhancer:
 
         return None
 
-    def _detect_aggregate_filter_pattern(
-        self, result: ConversionResult
-    ) -> DetectedPattern | None:
+    def _detect_aggregate_filter_pattern(self, result: ConversionResult) -> DetectedPattern | None:
         """Detect aggregate functions with FILTER clauses pattern"""
         evidence = []
 

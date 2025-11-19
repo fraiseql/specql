@@ -57,18 +57,14 @@ class JDTBridge:
             )
 
             # Connect to gateway
-            self.gateway = JavaGateway(
-                gateway_parameters=GatewayParameters(auto_convert=True)
-            )
+            self.gateway = JavaGateway(gateway_parameters=GatewayParameters(auto_convert=True))
 
             # Register cleanup
             atexit.register(self.shutdown)
 
         except (FileNotFoundError, subprocess.SubprocessError, Exception) as e:
             # Fallback to mock implementation if Java/JDT not available
-            logger.warning(
-                f"JDT bridge initialization failed ({e}), using mock implementation"
-            )
+            logger.warning(f"JDT bridge initialization failed ({e}), using mock implementation")
             self._use_mock_implementation()
 
     def _use_mock_implementation(self):
@@ -95,9 +91,7 @@ class JDTBridge:
             wrapper = self.gateway.entry_point
             return wrapper.parse(source_code)
         except Exception as e:
-            logger.warning(
-                f"JDT parsing failed ({e}), falling back to mock implementation"
-            )
+            logger.warning(f"JDT parsing failed ({e}), falling back to mock implementation")
             self._use_mock_implementation()
             return self._mock_parse_java(source_code)
 
@@ -123,7 +117,9 @@ class JDTBridge:
         import re
 
         # Match @Entity followed by class declaration (allowing newlines and abstract)
-        entity_pattern = r"@Entity[\s\S]*?public\s+(?:abstract\s+)?class\s+(\w+)[\s\S]*?\{([\s\S]*?)\}"
+        entity_pattern = (
+            r"@Entity[\s\S]*?public\s+(?:abstract\s+)?class\s+(\w+)[\s\S]*?\{([\s\S]*?)\}"
+        )
         matches = re.findall(entity_pattern, source_code, re.MULTILINE | re.DOTALL)
 
         for match in matches:
@@ -187,16 +183,16 @@ class MockTypeDeclaration:
             class_body = self._class_body
         else:
             # Find the class body
-            class_pattern = (
-                rf"@Entity\s+public\s+class\s+{self.class_name}\s*\{{(.*?)\}}"
-            )
+            class_pattern = rf"@Entity\s+public\s+class\s+{self.class_name}\s*\{{(.*?)\}}"
             match = re.search(class_pattern, self.source_code, re.DOTALL)
             if not match:
                 return fields
             class_body = match.group(1)
 
         # Extract field declarations (handle generics like List<Contact>)
-        field_pattern = r"(?:@\w+(?:\([^)]*\))?\s+)*private\s+([\w<>\[\]]+)\s+(\w+)(?:\s*=\s*[^;]+)?\s*;"
+        field_pattern = (
+            r"(?:@\w+(?:\([^)]*\))?\s+)*private\s+([\w<>\[\]]+)\s+(\w+)(?:\s*=\s*[^;]+)?\s*;"
+        )
         field_matches = re.findall(field_pattern, class_body)
 
         for java_type, field_name in field_matches:
@@ -268,9 +264,7 @@ class MockTableAnnotation(MockAnnotation):
         # Parse schema
         schema_match = re.search(r'schema\s*=\s*"([^"]+)"', self.params_text)
         if schema_match:
-            values.append(
-                MockAnnotationMemberValuePair("schema", schema_match.group(1))
-            )
+            values.append(MockAnnotationMemberValuePair("schema", schema_match.group(1)))
 
         return values
 
@@ -294,33 +288,23 @@ class MockColumnAnnotation(MockAnnotation):
             values.append(MockAnnotationMemberValuePair("name", name_match.group(1)))
 
         # Parse nullable = false/true
-        nullable_match = re.search(
-            r"nullable\s*=\s*(true|false)", self.params_text, re.IGNORECASE
-        )
+        nullable_match = re.search(r"nullable\s*=\s*(true|false)", self.params_text, re.IGNORECASE)
         if nullable_match:
             values.append(
-                MockAnnotationMemberValuePair(
-                    "nullable", nullable_match.group(1).lower() == "true"
-                )
+                MockAnnotationMemberValuePair("nullable", nullable_match.group(1).lower() == "true")
             )
 
         # Parse unique = false/true
-        unique_match = re.search(
-            r"unique\s*=\s*(true|false)", self.params_text, re.IGNORECASE
-        )
+        unique_match = re.search(r"unique\s*=\s*(true|false)", self.params_text, re.IGNORECASE)
         if unique_match:
             values.append(
-                MockAnnotationMemberValuePair(
-                    "unique", unique_match.group(1).lower() == "true"
-                )
+                MockAnnotationMemberValuePair("unique", unique_match.group(1).lower() == "true")
             )
 
         # Parse length = 100
         length_match = re.search(r"length\s*=\s*(\d+)", self.params_text)
         if length_match:
-            values.append(
-                MockAnnotationMemberValuePair("length", int(length_match.group(1)))
-            )
+            values.append(MockAnnotationMemberValuePair("length", int(length_match.group(1))))
 
         return values
 
@@ -367,9 +351,7 @@ class MockEnumeratedAnnotation(MockAnnotation):
             # Try parsing just EnumType.STRING (implicit value parameter)
             enum_match = re.search(r"([^.]+)\.(\w+)", self.params_text.strip())
             if enum_match:
-                values.append(
-                    MockAnnotationMemberValuePair("value", enum_match.group(2))
-                )
+                values.append(MockAnnotationMemberValuePair("value", enum_match.group(2)))
 
         return values
 
@@ -487,7 +469,9 @@ class MockFieldDeclaration:
         import re
 
         # Find field declaration with annotations
-        field_pattern = rf"((?:@\w+(?:\([^)]*\))?\s+)*)private\s+{self.java_type}\s+{self.field_name}\s*;"
+        field_pattern = (
+            rf"((?:@\w+(?:\([^)]*\))?\s+)*)private\s+{self.java_type}\s+{self.field_name}\s*;"
+        )
         match = re.search(field_pattern, self.class_body)
         if match:
             annotations_text = match.group(1)

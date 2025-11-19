@@ -8,7 +8,6 @@ Handles PostgreSQL window function syntax:
 - LAG(), LEAD(), FIRST_VALUE(), LAST_VALUE(), etc.
 """
 
-
 from src.core.ast_models import ActionStep
 
 

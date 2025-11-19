@@ -30,9 +30,7 @@ class JavaParseConfig:
     """Configuration for Java parsing"""
 
     include_patterns: list[str] = field(default_factory=lambda: ["*.java"])
-    exclude_patterns: list[str] = field(
-        default_factory=lambda: ["**/test/**", "**/*Test.java"]
-    )
+    exclude_patterns: list[str] = field(default_factory=lambda: ["**/test/**", "**/*Test.java"])
     min_confidence: float = 0.8
     recursive: bool = True
 
@@ -75,9 +73,7 @@ class JavaParser:
                     entity = self.converter.convert(jpa_entity)
                     entities.append(entity)
                 except Exception as e:
-                    errors.append(
-                        f"Failed to convert entity {jpa_entity.class_name}: {e}"
-                    )
+                    errors.append(f"Failed to convert entity {jpa_entity.class_name}: {e}")
 
         except FileNotFoundError:
             errors.append(f"File not found: {file_path}")
@@ -142,9 +138,7 @@ class JavaParser:
 
         return entities_by_file
 
-    def _find_java_files(
-        self, directory_path: str, config: JavaParseConfig
-    ) -> list[str]:
+    def _find_java_files(self, directory_path: str, config: JavaParseConfig) -> list[str]:
         """
         Find all Java files in directory matching patterns
 
@@ -166,11 +160,7 @@ class JavaParser:
         if config.recursive:
             for root, dirs, files in os.walk(path):
                 # Skip excluded directories
-                dirs[:] = [
-                    d
-                    for d in dirs
-                    if not self._matches_exclude(d, config.exclude_patterns)
-                ]
+                dirs[:] = [d for d in dirs if not self._matches_exclude(d, config.exclude_patterns)]
 
                 for file in files:
                     if self._matches_include(file, config.include_patterns):
@@ -178,9 +168,7 @@ class JavaParser:
         else:
             # Non-recursive
             for file in path.iterdir():
-                if file.is_file() and self._matches_include(
-                    file.name, config.include_patterns
-                ):
+                if file.is_file() and self._matches_include(file.name, config.include_patterns):
                     java_files.append(str(file))
 
         return sorted(java_files)

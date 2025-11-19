@@ -54,10 +54,12 @@ class ActionOrchestrator:
             entity_name=primary_entity.name,
             schema=primary_entity.schema,
             action_name=action.name,
-            operation="compile_action"
+            operation="compile_action",
         )
         logger = get_team_logger("Team C", __name__, context)
-        logger.info(f"Compiling multi-entity action '{action.name}' for entity '{primary_entity.name}'")
+        logger.info(
+            f"Compiling multi-entity action '{action.name}' for entity '{primary_entity.name}'"
+        )
 
         # Build function signature
         function_name = f"{primary_entity.schema}.{action.name}"

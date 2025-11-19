@@ -49,7 +49,11 @@ class TestSimpleSQLFunctions:
         assert result.confidence >= 0.80
         assert result.function_name == "create_contact"
         # INSERT statements are parsed as "query" type with SQL containing INSERT
-        assert any(step.type == "query" and "INSERT" in step.sql.upper() for step in result.steps if hasattr(step, 'sql') and step.sql)
+        assert any(
+            step.type == "query" and "INSERT" in step.sql.upper()
+            for step in result.steps
+            if hasattr(step, "sql") and step.sql
+        )
 
     def test_basic_update_function(self):
         """Test basic UPDATE function parsing"""
@@ -66,4 +70,8 @@ class TestSimpleSQLFunctions:
         assert result.confidence >= 0.80
         assert result.function_name == "update_contact"
         # UPDATE statements are parsed as "query" type with SQL containing UPDATE
-        assert any(step.type == "query" and "UPDATE" in step.sql.upper() for step in result.steps if hasattr(step, 'sql') and step.sql)
+        assert any(
+            step.type == "query" and "UPDATE" in step.sql.upper()
+            for step in result.steps
+            if hasattr(step, "sql") and step.sql
+        )

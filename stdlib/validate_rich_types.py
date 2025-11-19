@@ -16,15 +16,16 @@ import yaml
 
 RICH_TYPE_RULES = {
     # Field name patterns → expected type
-    'email': 'email',
-    'phone': 'phone',
-    'mobile': 'phone',
-    'website': 'url',
-    'homepage': 'url',
-    'url': 'url',
-    'amount': 'money',
-    'price': 'money',
+    "email": "email",
+    "phone": "phone",
+    "mobile": "phone",
+    "website": "url",
+    "homepage": "url",
+    "url": "url",
+    "amount": "money",
+    "price": "money",
 }
+
 
 def validate_rich_types():
     errors = []
@@ -62,6 +63,7 @@ def validate_rich_types():
                         )
 
     return errors, warnings
+
 
 if __name__ == "__main__":
     errors, warnings = validate_rich_types()

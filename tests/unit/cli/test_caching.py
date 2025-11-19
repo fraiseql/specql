@@ -65,9 +65,7 @@ pub struct Contact {
         output_dir.mkdir()
 
         # First run
-        cli_runner.invoke(
-            specql, ["reverse", str(rust_test_file), "--output-dir", str(output_dir)]
-        )
+        cli_runner.invoke(specql, ["reverse", str(rust_test_file), "--output-dir", str(output_dir)])
 
         # First run may fail due to parser issues, but cache should still be created
         # The cache stores the result regardless of success/failure

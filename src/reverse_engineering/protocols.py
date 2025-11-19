@@ -5,27 +5,32 @@ from typing import Any, Protocol
 
 class SourceLanguage(Enum):
     """Supported source languages"""
+
     SQL = "sql"
     PYTHON = "python"
     TYPESCRIPT = "typescript"  # Future
     JAVA = "java"  # Future
 
+
 @dataclass
 class ParsedEntity:
     """Language-agnostic entity representation"""
+
     entity_name: str
     namespace: str  # schema (SQL) or module (Python)
-    fields: list['ParsedField'] = field(default_factory=list)
-    methods: list['ParsedMethod'] = field(default_factory=list)
+    fields: list["ParsedField"] = field(default_factory=list)
+    methods: list["ParsedMethod"] = field(default_factory=list)
     inheritance: list[str] = field(default_factory=list)
     decorators: list[str] = field(default_factory=list)
     docstring: str | None = None
     source_language: SourceLanguage = SourceLanguage.PYTHON
     metadata: dict[str, Any] = field(default_factory=dict)
 
+
 @dataclass
 class ParsedField:
     """Language-agnostic field representation"""
+
     field_name: str
     field_type: str  # Normalized to SpecQL types
     original_type: str  # Original language type
@@ -37,9 +42,11 @@ class ParsedField:
     foreign_key_target: str | None = None
     metadata: dict[str, Any] = field(default_factory=dict)
 
+
 @dataclass
 class ParsedMethod:
     """Language-agnostic method/function representation"""
+
     method_name: str
     parameters: list[dict[str, str]] = field(default_factory=list)
     return_type: str | None = None
@@ -50,6 +57,7 @@ class ParsedMethod:
     is_classmethod: bool = False
     is_staticmethod: bool = False
     metadata: dict[str, Any] = field(default_factory=dict)
+
 
 class LanguageParser(Protocol):
     """Protocol for language-specific parsers"""

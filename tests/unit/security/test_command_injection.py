@@ -298,9 +298,7 @@ class TestFilenameInjection:
                 file_path.write_text("entity: Test\nschema: test\nfields:\n  name: text")
 
                 # Verify the filename itself contains dangerous characters
-                assert any(
-                    char in filename for char in [";", "`", "$", "|", "&", "<", ">"]
-                )
+                assert any(char in filename for char in [";", "`", "$", "|", "&", "<", ">"])
             except (OSError, ValueError):
                 # Some filesystems might reject these names
                 pass

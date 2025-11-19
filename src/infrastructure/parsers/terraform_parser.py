@@ -80,7 +80,7 @@ class TerraformParser:
             load_balancer=load_balancer,
             observability=observability,
             security=security,
-            object_storage=object_storage
+            object_storage=object_storage,
         )
 
     def _parse_compute(self, resources: dict[str, Any]) -> ComputeConfig | None:
@@ -96,7 +96,7 @@ class TerraformParser:
                         auto_scale=True,
                         min_instances=config.get("min_size", 1),
                         max_instances=config.get("max_size", 10),
-                        cpu_target=70  # Default target
+                        cpu_target=70,  # Default target
                     )
 
         # Second pass: look for individual instances
@@ -106,18 +106,26 @@ class TerraformParser:
                     count = config.get("count", 1)
                     return ComputeConfig(
                         instances=count,
-                        cpu=self._map_instance_type_to_cpu(config.get("instance_type", "t3.medium")),
-                        memory=self._map_instance_type_to_memory(config.get("instance_type", "t3.medium")),
+                        cpu=self._map_instance_type_to_cpu(
+                            config.get("instance_type", "t3.medium")
+                        ),
+                        memory=self._map_instance_type_to_memory(
+                            config.get("instance_type", "t3.medium")
+                        ),
                         instance_type=config.get("instance_type"),
-                        availability_zones=config.get("availability_zone", [])
+                        availability_zones=config.get("availability_zone", []),
                     )
             elif "google_compute_instance" in resource_type:
                 for name, config in resource_configs.items():
                     return ComputeConfig(
                         instances=1,
                         instance_type=config.get("machine_type"),
-                        cpu=self._map_gcp_machine_type_to_cpu(config.get("machine_type", "n1-standard-1")),
-                        memory=self._map_gcp_machine_type_to_memory(config.get("machine_type", "n1-standard-1"))
+                        cpu=self._map_gcp_machine_type_to_cpu(
+                            config.get("machine_type", "n1-standard-1")
+                        ),
+                        memory=self._map_gcp_machine_type_to_memory(
+                            config.get("machine_type", "n1-standard-1")
+                        ),
                     )
 
         return None
@@ -140,12 +148,16 @@ class TerraformParser:
                         backup_window=config.get("backup_window", "03:00-04:00"),
                         maintenance_window=config.get("maintenance_window", "sun:04:00-sun:05:00"),
                         encryption_at_rest=config.get("storage_encrypted", True),
-                        publicly_accessible=config.get("publicly_accessible", False)
+                        publicly_accessible=config.get("publicly_accessible", False),
                     )
             elif "google_sql_database_instance" in resource_type:
                 for name, config in resource_configs.items():
                     settings_list = config.get("settings", [])
-                    settings = settings_list[0] if isinstance(settings_list, list) and settings_list else {}
+                    settings = (
+                        settings_list[0]
+                        if isinstance(settings_list, list) and settings_list
+                        else {}
+                    )
                     db_version = config.get("database_version", "")
 
                     return DatabaseConfig(
@@ -154,7 +166,7 @@ class TerraformParser:
                         storage=f"{settings.get('disk_size', 10)}GB",
                         instance_class=settings.get("tier"),
                         backup_retention_days=7,  # GCP default
-                        encryption_at_rest=True
+                        encryption_at_rest=True,
                     )
 
         return None
@@ -180,9 +192,7 @@ class TerraformParser:
                             private_subnets.append(cidr)
 
         return NetworkConfig(
-            vpc_cidr=vpc_cidr,
-            public_subnets=public_subnets,
-            private_subnets=private_subnets
+            vpc_cidr=vpc_cidr, public_subnets=public_subnets, private_subnets=private_subnets
         )
 
     def _parse_load_balancer(self, resources: dict[str, Any]) -> LoadBalancerConfig | None:
@@ -194,15 +204,11 @@ class TerraformParser:
                         enabled=True,
                         type=config.get("load_balancer_type", "application"),
                         https=config.get("enable_deletion_protection", True),  # Rough approximation
-                        cross_zone=config.get("enable_cross_zone_load_balancing", True)
+                        cross_zone=config.get("enable_cross_zone_load_balancing", True),
                     )
             elif "aws_alb" in resource_type:  # Legacy ALB
                 for name, config in resource_configs.items():
-                    return LoadBalancerConfig(
-                        enabled=True,
-                        type="application",
-                        https=True
-                    )
+                    return LoadBalancerConfig(enabled=True, type="application", https=True)
 
         return None
 
@@ -217,17 +223,24 @@ class TerraformParser:
                     container_definitions = config.get("container_definitions", [])
                     if container_definitions:
                         # Parse first container definition
-                        container_def = container_definitions[0] if isinstance(container_definitions, list) else container_definitions
+                        container_def = (
+                            container_definitions[0]
+                            if isinstance(container_definitions, list)
+                            else container_definitions
+                        )
                         if isinstance(container_def, str):
                             # JSON string - would need to parse
                             continue
 
                         return ContainerConfig(
                             image=container_def.get("image", ""),
-                            port=container_def.get("portMappings", [{}])[0].get("containerPort", 8000),
+                            port=container_def.get("portMappings", [{}])[0].get(
+                                "containerPort", 8000
+                            ),
                             environment={k: v for k, v in container_def.get("environment", [])},
-                            cpu_limit=container_def.get("cpu", 256) / 1024,  # Convert from ECS units
-                            memory_limit=f"{container_def.get('memory', 512)}MB"
+                            cpu_limit=container_def.get("cpu", 256)
+                            / 1024,  # Convert from ECS units
+                            memory_limit=f"{container_def.get('memory', 512)}MB",
                         )
 
         return None
@@ -249,7 +262,7 @@ class TerraformParser:
         return ObservabilityConfig(
             logging_enabled=logging_enabled,
             metrics_enabled=metrics_enabled,
-            tracing_enabled=tracing_enabled
+            tracing_enabled=tracing_enabled,
         )
 
     def _parse_security(self, resources: dict[str, Any]) -> SecurityConfig:
@@ -264,10 +277,7 @@ class TerraformParser:
             elif "aws_secretsmanager_secret" in resource_type:
                 secrets_provider = "aws_secrets"
 
-        return SecurityConfig(
-            secrets_provider=secrets_provider,
-            iam_roles=iam_roles
-        )
+        return SecurityConfig(secrets_provider=secrets_provider, iam_roles=iam_roles)
 
     def _parse_object_storage(self, resources: dict[str, Any]) -> ObjectStorageConfig | None:
         """Parse object storage resources (S3, GCS, etc.)"""
@@ -276,12 +286,18 @@ class TerraformParser:
         for resource_type, resource_configs in resources.items():
             if "aws_s3_bucket" in resource_type:
                 for name, config in resource_configs.items():
-                    buckets.append(Bucket(
-                        name=config.get("bucket", name),
-                        versioning=config.get("versioning", {}).get("enabled", False),
-                        public_access=not config.get("block_public_acls", True),
-                        encryption=config.get("server_side_encryption_configuration", {}).get("rule", {}).get("apply_server_side_encryption_by_default", {}).get("sse_algorithm") is not None
-                    ))
+                    buckets.append(
+                        Bucket(
+                            name=config.get("bucket", name),
+                            versioning=config.get("versioning", {}).get("enabled", False),
+                            public_access=not config.get("block_public_acls", True),
+                            encryption=config.get("server_side_encryption_configuration", {})
+                            .get("rule", {})
+                            .get("apply_server_side_encryption_by_default", {})
+                            .get("sse_algorithm")
+                            is not None,
+                        )
+                    )
 
         if buckets:
             return ObjectStorageConfig(buckets=buckets)
@@ -371,7 +387,9 @@ class TerraformParser:
         }
         return memory_map.get(machine_type, "7.5GB")
 
-    def _detect_provider(self, provider_config: dict[str, Any], resources: dict[str, Any]) -> tuple[CloudProvider, str]:
+    def _detect_provider(
+        self, provider_config: dict[str, Any], resources: dict[str, Any]
+    ) -> tuple[CloudProvider, str]:
         """Detect cloud provider and region"""
         # Check provider block
         if "aws" in provider_config:
@@ -395,7 +413,12 @@ class TerraformParser:
     def _extract_name(self, resources: dict[str, Any]) -> str:
         """Extract a reasonable name from resources"""
         # Try to find a main resource and extract name from tags
-        for resource_type in ["aws_instance", "aws_db_instance", "google_compute_instance", "aws_ecs_service"]:
+        for resource_type in [
+            "aws_instance",
+            "aws_db_instance",
+            "google_compute_instance",
+            "aws_ecs_service",
+        ]:
             if resource_type in resources:
                 resource_configs = resources[resource_type]
                 if resource_configs:

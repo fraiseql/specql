@@ -1,6 +1,5 @@
 """Tests for auto-detection functionality."""
 
-
 import pytest
 
 from src.cli.confiture_extensions import specql

@@ -250,7 +250,11 @@ class TestConfitureIntegration:
         # Check if database is available
         try:
             conn = psycopg.connect(
-                host="localhost", port=5433, dbname="test_specql", user="postgres", password="postgres"
+                host="localhost",
+                port=5433,
+                dbname="test_specql",
+                user="postgres",
+                password="postgres",
             )
             conn.close()
         except psycopg.OperationalError:
@@ -272,25 +276,21 @@ class TestConfitureIntegration:
 
         # Build migration with Confiture
         result = subprocess.run(
-            ["uv", "run", "confiture", "build", "--env", "test"],
-            capture_output=True,
-            text=True
+            ["uv", "run", "confiture", "build", "--env", "test"], capture_output=True, text=True
         )
         assert result.returncode == 0
 
         # Migrate up to database using test config
         result = subprocess.run(
-            [
-                "uv", "run", "confiture", "migrate", "up",
-                "--config", "db/environments/test.yaml"
-            ],
+            ["uv", "run", "confiture", "migrate", "up", "--config", "db/environments/test.yaml"],
             capture_output=True,
             text=True,
         )
 
         # Should succeed (return code 0) or show migration applied
-        assert result.returncode == 0 or "migrat" in result.stdout.lower(), \
+        assert result.returncode == 0 or "migrat" in result.stdout.lower(), (
             f"Migration failed: {result.stderr}"
+        )
 
         # Verify tables were created in database
         conn = psycopg.connect(
@@ -316,10 +316,7 @@ class TestConfitureIntegration:
 
         # Test migrate down (rollback)
         result = subprocess.run(
-            [
-                "uv", "run", "confiture", "migrate", "down",
-                "--config", "db/environments/test.yaml"
-            ],
+            ["uv", "run", "confiture", "migrate", "down", "--config", "db/environments/test.yaml"],
             capture_output=True,
             text=True,
         )

@@ -2,7 +2,6 @@
 Integration tests for universal action mapper
 """
 
-
 import pytest
 import yaml
 

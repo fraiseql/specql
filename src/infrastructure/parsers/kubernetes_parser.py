@@ -71,10 +71,12 @@ class KubernetesParser:
             load_balancer=load_balancer,
             observability=observability,
             security=security,
-            volumes=volumes
+            volumes=volumes,
         )
 
-    def _group_manifests_by_kind(self, manifests: list[dict[str, Any]]) -> dict[str, list[dict[str, Any]]]:
+    def _group_manifests_by_kind(
+        self, manifests: list[dict[str, Any]]
+    ) -> dict[str, list[dict[str, Any]]]:
         """Group manifests by their kind"""
         grouped = {}
         for manifest in manifests:
@@ -94,7 +96,9 @@ class KubernetesParser:
 
         return "kubernetes-service"
 
-    def _parse_compute(self, grouped_manifests: dict[str, list[dict[str, Any]]]) -> ComputeConfig | None:
+    def _parse_compute(
+        self, grouped_manifests: dict[str, list[dict[str, Any]]]
+    ) -> ComputeConfig | None:
         """Parse compute resources from Deployments and StatefulSets"""
         for kind in ["Deployment", "StatefulSet"]:
             if kind in grouped_manifests:
@@ -109,21 +113,21 @@ class KubernetesParser:
                     container = containers[0]
                     resources = container.get("resources", {})
 
-                    cpu_request = self._parse_cpu_resource(resources.get("requests", {}).get("cpu", "100m"))
+                    cpu_request = self._parse_cpu_resource(
+                        resources.get("requests", {}).get("cpu", "100m")
+                    )
                     memory_request = resources.get("requests", {}).get("memory", "128Mi")
 
-                    return ComputeConfig(
-                        instances=replicas,
-                        cpu=cpu_request,
-                        memory=memory_request
-                    )
+                    return ComputeConfig(instances=replicas, cpu=cpu_request, memory=memory_request)
 
                 # Fallback
                 return ComputeConfig(instances=replicas)
 
         return None
 
-    def _parse_container(self, grouped_manifests: dict[str, list[dict[str, Any]]]) -> ContainerConfig | None:
+    def _parse_container(
+        self, grouped_manifests: dict[str, list[dict[str, Any]]]
+    ) -> ContainerConfig | None:
         """Parse container configuration"""
         for kind in ["Deployment", "StatefulSet"]:
             if kind in grouped_manifests:
@@ -149,7 +153,9 @@ class KubernetesParser:
                             if "configMapRef" in env_from:
                                 config_map_name = env_from["configMapRef"].get("name")
                                 # Parse ConfigMap data
-                                config_map_data = self._get_config_map_data(grouped_manifests, config_map_name)
+                                config_map_data = self._get_config_map_data(
+                                    grouped_manifests, config_map_name
+                                )
                                 env_vars.update(config_map_data)
                             elif "secretRef" in env_from:
                                 secret_name = env_from["secretRef"].get("name")
@@ -173,9 +179,13 @@ class KubernetesParser:
 
                     # Resources
                     resources = container.get("resources", {})
-                    cpu_request = self._parse_cpu_resource(resources.get("requests", {}).get("cpu", "100m"))
+                    cpu_request = self._parse_cpu_resource(
+                        resources.get("requests", {}).get("cpu", "100m")
+                    )
                     memory_request = resources.get("requests", {}).get("memory", "128Mi")
-                    cpu_limit = self._parse_cpu_resource(resources.get("limits", {}).get("cpu", "200m"))
+                    cpu_limit = self._parse_cpu_resource(
+                        resources.get("limits", {}).get("cpu", "200m")
+                    )
                     memory_limit = resources.get("limits", {}).get("memory", "256Mi")
 
                     # Health checks
@@ -193,12 +203,14 @@ class KubernetesParser:
                         memory_request=memory_request,
                         cpu_limit=cpu_limit,
                         memory_limit=memory_limit,
-                        health_check_path=health_check_path
+                        health_check_path=health_check_path,
                     )
 
         return None
 
-    def _parse_database(self, grouped_manifests: dict[str, list[dict[str, Any]]]) -> DatabaseConfig | None:
+    def _parse_database(
+        self, grouped_manifests: dict[str, list[dict[str, Any]]]
+    ) -> DatabaseConfig | None:
         """Parse database configuration from StatefulSets"""
         if "StatefulSet" in grouped_manifests:
             manifest = grouped_manifests["StatefulSet"][0]
@@ -222,14 +234,13 @@ class KubernetesParser:
                     db_type = DatabaseType.REDIS
                     version = self._extract_version_from_image(image, "redis")
 
-                return DatabaseConfig(
-                    type=db_type,
-                    version=version
-                )
+                return DatabaseConfig(type=db_type, version=version)
 
         return None
 
-    def _parse_load_balancer(self, grouped_manifests: dict[str, list[dict[str, Any]]]) -> LoadBalancerConfig | None:
+    def _parse_load_balancer(
+        self, grouped_manifests: dict[str, list[dict[str, Any]]]
+    ) -> LoadBalancerConfig | None:
         """Parse load balancer from Services and Ingress"""
         # Check for LoadBalancer type Service
         if "Service" in grouped_manifests:
@@ -240,7 +251,7 @@ class KubernetesParser:
                 if service_type == "LoadBalancer":
                     return LoadBalancerConfig(
                         enabled=True,
-                        type="network"  # LoadBalancer service maps to network LB
+                        type="network",  # LoadBalancer service maps to network LB
                     )
 
         # Check for Ingress
@@ -260,7 +271,7 @@ class KubernetesParser:
                 enabled=True,
                 type="application",  # Ingress maps to application LB
                 https=https,
-                certificate_domain=certificate_domain
+                certificate_domain=certificate_domain,
             )
 
         return None
@@ -271,7 +282,9 @@ class KubernetesParser:
         # We can extract some info from Services
         return NetworkConfig()
 
-    def _parse_observability(self, grouped_manifests: dict[str, list[dict[str, Any]]]) -> ObservabilityConfig:
+    def _parse_observability(
+        self, grouped_manifests: dict[str, list[dict[str, Any]]]
+    ) -> ObservabilityConfig:
         """Parse observability configuration"""
         # Basic observability detection
         return ObservabilityConfig()
@@ -311,15 +324,19 @@ class KubernetesParser:
                 requests = resources.get("requests", {})
                 storage = requests.get("storage", "10Gi")
 
-                volumes.append(Volume(
-                    name=name,
-                    size=storage,  # Keep original format (e.g., "50Gi")
-                    mount_path="/var/lib/postgresql/data"  # More specific for databases
-                ))
+                volumes.append(
+                    Volume(
+                        name=name,
+                        size=storage,  # Keep original format (e.g., "50Gi")
+                        mount_path="/var/lib/postgresql/data",  # More specific for databases
+                    )
+                )
 
         return volumes
 
-    def _get_config_map_data(self, grouped_manifests: dict[str, list[dict[str, Any]]], config_map_name: str) -> dict[str, str]:
+    def _get_config_map_data(
+        self, grouped_manifests: dict[str, list[dict[str, Any]]], config_map_name: str
+    ) -> dict[str, str]:
         """Get data from a ConfigMap"""
         if "ConfigMap" not in grouped_manifests:
             return {}
@@ -332,7 +349,9 @@ class KubernetesParser:
 
         return {}
 
-    def _get_secret_data(self, grouped_manifests: dict[str, list[dict[str, Any]]], secret_name: str) -> dict[str, str]:
+    def _get_secret_data(
+        self, grouped_manifests: dict[str, list[dict[str, Any]]], secret_name: str
+    ) -> dict[str, str]:
         """Get data from a Secret"""
         if "Secret" not in grouped_manifests:
             return {}

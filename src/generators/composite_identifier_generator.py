@@ -6,7 +6,6 @@ that include it must be recalculated.
 """
 
 
-
 class CompositeIdentifierGenerator:
     """Generate recalculation functions for composite identifiers"""
 

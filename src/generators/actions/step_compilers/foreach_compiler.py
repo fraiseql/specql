@@ -21,7 +21,6 @@ Generated PL/pgSQL:
     END LOOP;
 """
 
-
 from src.core.ast_models import ActionStep, EntityDefinition
 
 

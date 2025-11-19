@@ -260,6 +260,7 @@ def get_team_logger(
 
 # Convenience functions for common logging patterns
 
+
 def log_operation_start(
     logger: logging.LoggerAdapter,
     operation: str,

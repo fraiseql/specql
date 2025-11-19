@@ -102,13 +102,13 @@ class OVHcloudParser:
             UniversalInfrastructure object
         """
         # Parse CLI output format (simplified - would need to handle actual CLI formats)
-        lines = cli_output.strip().split('\n')
+        lines = cli_output.strip().split("\n")
         server_data = {}
 
         for line in lines:
-            if ':' in line:
-                key, value = line.split(':', 1)
-                key = key.strip().lower().replace(' ', '_')
+            if ":" in line:
+                key, value = line.split(":", 1)
+                key = key.strip().lower().replace(" ", "_")
                 value = value.strip()
                 server_data[key] = value
 
@@ -143,7 +143,9 @@ class OVHcloudParser:
         else:
             return "ubuntu2204"  # Default
 
-    def _map_server_specs(self, server_model: str, server_data: dict[str, Any]) -> tuple[int, int, int]:
+    def _map_server_specs(
+        self, server_model: str, server_data: dict[str, Any]
+    ) -> tuple[int, int, int]:
         """Map OVHcloud server model to CPU cores, RAM GB, and storage GB"""
         # OVHcloud server model mappings (approximate)
         model_specs = {
@@ -166,7 +168,9 @@ class OVHcloudParser:
 
         # Fallback to extracting from server data
         cpu_cores = server_data.get("cpu", {}).get("cores", 4)
-        ram_gb = server_data.get("memory", {}).get("size", 16) // 1024 // 1024 // 1024  # Convert bytes to GB
+        ram_gb = (
+            server_data.get("memory", {}).get("size", 16) // 1024 // 1024 // 1024
+        )  # Convert bytes to GB
         storage_gb = 0
 
         # Sum up storage
@@ -174,6 +178,8 @@ class OVHcloudParser:
         if isinstance(storages, list):
             for storage in storages:
                 if isinstance(storage, dict):
-                    storage_gb += storage.get("size", 0) // 1024 // 1024 // 1024  # Convert bytes to GB
+                    storage_gb += (
+                        storage.get("size", 0) // 1024 // 1024 // 1024
+                    )  # Convert bytes to GB
 
         return cpu_cores, max(ram_gb, 1), max(storage_gb, 20)

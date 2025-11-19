@@ -29,7 +29,6 @@ Generated PL/pgSQL:
     END IF;
 """
 
-
 from src.core.ast_models import ActionStep, EntityDefinition
 
 

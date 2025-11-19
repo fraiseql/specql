@@ -7,7 +7,6 @@ Handles PostgreSQL PL/pgSQL dynamic SQL syntax:
 - EXECUTE IMMEDIATE (future extension)
 """
 
-
 from src.core.ast_models import ActionStep
 
 

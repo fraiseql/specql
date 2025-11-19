@@ -48,9 +48,7 @@ class JPAToSpecQLConverter:
                 field_def.tier = FieldTier.REFERENCE
             elif jpa_field.is_enum:
                 field_def.tier = FieldTier.BASIC  # Enums are basic for now
-            elif (
-                jpa_field.is_relationship and jpa_field.relationship_type == "OneToMany"
-            ):
+            elif jpa_field.is_relationship and jpa_field.relationship_type == "OneToMany":
                 field_def.item_type = jpa_field.target_entity
                 field_def.tier = FieldTier.COMPOSITE  # Lists are composite
 

@@ -20,7 +20,7 @@ class AIEnhancer:
         self,
         local_model_path: str | None = None,
         use_cloud_fallback: bool = False,
-        cloud_api_key: str | None = None
+        cloud_api_key: str | None = None,
     ):
         """
         Initialize AI enhancer
@@ -30,7 +30,9 @@ class AIEnhancer:
             use_cloud_fallback: Use cloud API if local fails
             cloud_api_key: Anthropic API key for fallback
         """
-        self.local_model_path = local_model_path or os.path.expanduser("~/.specql/models/llama-3.1-8b.gguf")
+        self.local_model_path = local_model_path or os.path.expanduser(
+            "~/.specql/models/llama-3.1-8b.gguf"
+        )
         self.use_cloud_fallback = use_cloud_fallback
         self.cloud_api_key = cloud_api_key
         self.local_llm = None
@@ -49,14 +51,18 @@ class AIEnhancer:
                     model_path=self.local_model_path,
                     n_ctx=4096,  # Context window
                     n_gpu_layers=-1,  # Use all GPU layers if available
-                    verbose=False
+                    verbose=False,
                 )
                 logger.info(f"Loaded local LLM: {self.local_model_path}")
             else:
                 logger.warning(f"Local LLM model not found: {self.local_model_path}")
-                logger.info("Download Llama 3.1 8B from: https://huggingface.co/microsoft/WizardLM-2-8x22B")
+                logger.info(
+                    "Download Llama 3.1 8B from: https://huggingface.co/microsoft/WizardLM-2-8x22B"
+                )
         except ImportError:
-            logger.warning("llama-cpp-python not installed. Install with: pip install llama-cpp-python")
+            logger.warning(
+                "llama-cpp-python not installed. Install with: pip install llama-cpp-python"
+            )
         except Exception as e:
             logger.warning(f"Failed to load local LLM: {e}")
 
@@ -81,7 +87,7 @@ class AIEnhancer:
 
         try:
             # Initialize metadata if not present
-            if not hasattr(result, 'metadata') or result.metadata is None:
+            if not hasattr(result, "metadata") or result.metadata is None:
                 result.metadata = {}
 
             # Infer function intent
@@ -140,7 +146,7 @@ What is the business purpose of this function? Answer in 1-2 sentences.
         # Extract current variables
         variables = []
         for step in result.steps:
-            if hasattr(step, 'variable_name') and step.variable_name:
+            if hasattr(step, "variable_name") and step.variable_name:
                 variables.append(step.variable_name)
 
         if not variables:
@@ -149,7 +155,7 @@ What is the business purpose of this function? Answer in 1-2 sentences.
         prompt = f"""You are improving variable names in a database function.
 
 Function: {result.function_name}
-Current variables: {', '.join(variables)}
+Current variables: {", ".join(variables)}
 
 Suggest better names for these variables. Focus on clarity and business meaning.
 Respond with JSON format: {{"old_name": "new_name", ...}}
@@ -161,6 +167,7 @@ Example: {{"v_total": "total_amount", "v_cnt": "customer_count"}}
 
         try:
             import json
+
             name_map = json.loads(response) if response else {}
             result = self._apply_name_map(result, name_map)
         except Exception:
@@ -221,10 +228,7 @@ Respond with comma-separated pattern names, or "none".
         if self.local_llm:
             try:
                 response = self.local_llm(
-                    prompt,
-                    max_tokens=max_tokens,
-                    temperature=0.3,
-                    stop=["</s>", "\n\n", "```"]
+                    prompt, max_tokens=max_tokens, temperature=0.3, stop=["</s>", "\n\n", "```"]
                 )
                 return response["choices"][0]["text"].strip()
             except Exception as e:
@@ -246,7 +250,7 @@ Respond with comma-separated pattern names, or "none".
             message = client.messages.create(
                 model="claude-3-haiku-20240307",
                 max_tokens=max_tokens,
-                messages=[{"role": "user", "content": prompt}]
+                messages=[{"role": "user", "content": prompt}],
             )
 
             return message.content[0].text.strip()
@@ -257,11 +261,13 @@ Respond with comma-separated pattern names, or "none".
 
         return None
 
-    def _apply_name_map(self, result: ConversionResult, name_map: dict[str, str]) -> ConversionResult:
+    def _apply_name_map(
+        self, result: ConversionResult, name_map: dict[str, str]
+    ) -> ConversionResult:
         """Apply variable name mapping to result"""
         # Update variable names in steps
         for step in result.steps:
-            if hasattr(step, 'variable_name') and step.variable_name in name_map:
+            if hasattr(step, "variable_name") and step.variable_name in name_map:
                 step.variable_name = name_map[step.variable_name]
 
         return result

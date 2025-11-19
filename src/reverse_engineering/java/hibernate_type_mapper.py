@@ -5,8 +5,6 @@ Maps Hibernate/JPA Java types to SpecQL types.
 """
 
 
-
-
 class HibernateTypeMapper:
     """Map Hibernate/JPA types to SpecQL types"""
 

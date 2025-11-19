@@ -1,7 +1,6 @@
 """Test backward compatibility with underscore separator."""
 
 
-
 class TestBackwardCompatibility:
     """Ensure explicit underscore override still works."""
 

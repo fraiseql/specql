@@ -126,11 +126,13 @@ fields:
 
         # Add 1000 actions
         for i in range(1000):
-            yaml_parts.extend([
-                f"  - name: action_{i}",
-                "    steps:",
-                "      - validate: email != ''",
-            ])
+            yaml_parts.extend(
+                [
+                    f"  - name: action_{i}",
+                    "    steps:",
+                    "      - validate: email != ''",
+                ]
+            )
 
         yaml_content = "\n".join(yaml_parts)
 

@@ -4,7 +4,6 @@ Algorithmic Parser: SQL → SpecQL without AI
 85% confidence through pure algorithmic conversion
 """
 
-
 import yaml
 
 from src.reverse_engineering.ai_enhancer import AIEnhancer

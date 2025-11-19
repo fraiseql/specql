@@ -66,7 +66,7 @@ class DockerComposeParser:
             container=container,
             database=database,
             network=network,
-            volumes=volumes
+            volumes=volumes,
         )
 
     def _detect_main_service(self, services: dict[str, Any]) -> str:
@@ -82,7 +82,9 @@ class DockerComposeParser:
         # Fallback to first service
         return list(services.keys())[0] if services else "docker-service"
 
-    def _parse_container(self, service_config: dict[str, Any], secrets_config: dict[str, Any] | None = None) -> ContainerConfig | None:
+    def _parse_container(
+        self, service_config: dict[str, Any], secrets_config: dict[str, Any] | None = None
+    ) -> ContainerConfig | None:
         """Parse container configuration"""
         if not service_config:
             return None
@@ -178,6 +180,7 @@ class DockerComposeParser:
                     for i, part in enumerate(parts):
                         if part.startswith("http"):
                             from urllib.parse import urlparse
+
                             parsed = urlparse(part)
                             if parsed.path:
                                 health_check_path = parsed.path
@@ -192,7 +195,7 @@ class DockerComposeParser:
             memory_limit=memory_limit,
             cpu_request=cpu_request,
             memory_request=memory_request,
-            health_check_path=health_check_path
+            health_check_path=health_check_path,
         )
 
     def _parse_database(self, services: dict[str, Any]) -> DatabaseConfig | None:
@@ -201,7 +204,7 @@ class DockerComposeParser:
         priority_patterns = [
             ["db", "database"],  # Primary databases
             ["postgres", "mysql", "mongodb"],  # Specific database types
-            ["redis"]  # Cache services
+            ["redis"],  # Cache services
         ]
 
         for pattern_group in priority_patterns:
@@ -230,8 +233,12 @@ class DockerComposeParser:
                     environment = service_config.get("environment", {})
 
                     if isinstance(environment, list):
-                        env_dict = {k: v for item in environment
-                                  for k, v in [item.split("=", 1)] if "=" in item}
+                        env_dict = {
+                            k: v
+                            for item in environment
+                            for k, v in [item.split("=", 1)]
+                            if "=" in item
+                        }
                         environment = env_dict
 
                     # Extract storage from volumes if present
@@ -244,11 +251,7 @@ class DockerComposeParser:
                                 volume.split(":")[0]
                                 # Could parse size from host directory, but for now use default
 
-                    return DatabaseConfig(
-                        type=db_type,
-                        version=version,
-                        storage=storage
-                    )
+                    return DatabaseConfig(type=db_type, version=version, storage=storage)
 
         return None
 
@@ -275,20 +278,24 @@ class DockerComposeParser:
                 volume_config.get("driver", "local")
                 # For now, create basic volume config
                 # In practice, would need to map to actual storage requirements
-                volumes.append(Volume(
-                    name=volume_name,
-                    size="10GB",  # Default size
-                    mount_path=f"/data/{volume_name}",
-                    storage_class="standard"
-                ))
+                volumes.append(
+                    Volume(
+                        name=volume_name,
+                        size="10GB",  # Default size
+                        mount_path=f"/data/{volume_name}",
+                        storage_class="standard",
+                    )
+                )
             else:
                 # Volume defined without config (just the name)
-                volumes.append(Volume(
-                    name=volume_name,
-                    size="10GB",  # Default size
-                    mount_path=f"/data/{volume_name}",
-                    storage_class="standard"
-                ))
+                volumes.append(
+                    Volume(
+                        name=volume_name,
+                        size="10GB",  # Default size
+                        mount_path=f"/data/{volume_name}",
+                        storage_class="standard",
+                    )
+                )
 
         return volumes
 
@@ -323,10 +330,5 @@ class DockerComposeParser:
             return version
 
         # Defaults
-        defaults = {
-            "postgres": "15",
-            "mysql": "8.0",
-            "redis": "7.0",
-            "mongo": "7.0"
-        }
+        defaults = {"postgres": "15", "mysql": "8.0", "redis": "7.0", "mongo": "7.0"}
         return defaults.get(db_type, "latest")

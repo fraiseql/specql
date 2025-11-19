@@ -185,7 +185,9 @@ def get_performance_monitor() -> PerformanceMonitor:
     return _global_monitor
 
 
-def instrument(operation: str, category: str | None = None, monitor: PerformanceMonitor | None = None):
+def instrument(
+    operation: str, category: str | None = None, monitor: PerformanceMonitor | None = None
+):
     """
     Decorator for instrumenting functions with performance tracking
 
@@ -202,11 +204,14 @@ def instrument(operation: str, category: str | None = None, monitor: Performance
         def parse(yaml_content: str) -> EntityDefinition:
             # ... parsing logic ...
     """
+
     def decorator(func: Callable) -> Callable:
         @wraps(func)
         def wrapper(*args, **kwargs):
             perf_monitor = monitor or get_performance_monitor()
             with perf_monitor.track(operation, category):
                 return func(*args, **kwargs)
+
         return wrapper
+
     return decorator

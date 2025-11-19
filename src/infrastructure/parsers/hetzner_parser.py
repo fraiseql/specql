@@ -31,7 +31,9 @@ class HetznerParser:
         """
         # Extract server information
         server_name = server_data.get("name", server_data.get("hostname", "hetzner-server"))
-        datacenter = server_data.get("datacenter", server_data.get("location", {}).get("name", "nbg1"))
+        datacenter = server_data.get(
+            "datacenter", server_data.get("location", {}).get("name", "nbg1")
+        )
 
         # Hetzner uses server_type instead of model
         server_type = server_data.get("server_type", server_data.get("type", "cx11"))
@@ -107,13 +109,13 @@ class HetznerParser:
             UniversalInfrastructure object
         """
         # Parse CLI output format (simplified - would need to handle actual CLI formats)
-        lines = cli_output.strip().split('\n')
+        lines = cli_output.strip().split("\n")
         server_data = {}
 
         for line in lines:
-            if ':' in line:
-                key, value = line.split(':', 1)
-                key = key.strip().lower().replace(' ', '_').replace('-', '_')
+            if ":" in line:
+                key, value = line.split(":", 1)
+                key = key.strip().lower().replace(" ", "_").replace("-", "_")
                 value = value.strip()
                 server_data[key] = value
 
@@ -150,14 +152,16 @@ class HetznerParser:
         else:
             return "ubuntu2204"  # Default
 
-    def _map_server_specs(self, server_type: str, server_data: dict[str, Any]) -> tuple[int, int, int]:
+    def _map_server_specs(
+        self, server_type: str, server_data: dict[str, Any]
+    ) -> tuple[int, int, int]:
         """Map Hetzner server type to CPU cores, RAM GB, and storage GB"""
         # Hetzner dedicated server type mappings (approximate)
         type_specs = {
-            "ax41": (4, 16, 80),    # AX41
+            "ax41": (4, 16, 80),  # AX41
             "ax101": (8, 32, 160),  # AX101
-            "ax161": (16, 64, 320), # AX161
-            "px92": (4, 16, 80),    # PX92
+            "ax161": (16, 64, 320),  # AX161
+            "px92": (4, 16, 80),  # PX92
             "px132": (8, 32, 160),  # PX132
             # Cloud servers (for completeness)
             "cx11": (1, 2, 20),
@@ -174,7 +178,9 @@ class HetznerParser:
 
         # Fallback to extracting from server data
         cpu_cores = server_data.get("cpu", {}).get("cores", 4)
-        ram_gb = server_data.get("memory", {}).get("size", 16) // 1024 // 1024 // 1024  # Convert bytes to GB
+        ram_gb = (
+            server_data.get("memory", {}).get("size", 16) // 1024 // 1024 // 1024
+        )  # Convert bytes to GB
         storage_gb = 0
 
         # Sum up storage
@@ -182,6 +188,8 @@ class HetznerParser:
         if isinstance(storages, list):
             for storage in storages:
                 if isinstance(storage, dict):
-                    storage_gb += storage.get("size", 0) // 1024 // 1024 // 1024  # Convert bytes to GB
+                    storage_gb += (
+                        storage.get("size", 0) // 1024 // 1024 // 1024
+                    )  # Convert bytes to GB
 
         return cpu_cores, max(ram_gb, 1), max(storage_gb, 20)

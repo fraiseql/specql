@@ -1,6 +1,5 @@
 """Integration tests for project-level reverse engineering."""
 
-
 import pytest
 from click.testing import CliRunner
 

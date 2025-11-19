@@ -1,6 +1,5 @@
 """CLI command for reverse engineering TypeScript code to SpecQL YAML."""
 
-
 import click
 
 from ..reverse_engineering.typescript_parser import TypeScriptParser

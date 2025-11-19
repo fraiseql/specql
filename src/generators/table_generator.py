@@ -234,7 +234,9 @@ class TableGenerator:
         schema_prefix = f"{entity.schema.lower()}_"
 
         # Index on id (UUID primary key) - explicitly specify USING btree
-        indexes.append(f"CREATE INDEX {schema_prefix}idx_tb_{entity.name.lower()}_id ON {table_name} USING btree (id);")
+        indexes.append(
+            f"CREATE INDEX {schema_prefix}idx_tb_{entity.name.lower()}_id ON {table_name} USING btree (id);"
+        )
 
         # Indexes on foreign keys - explicitly specify USING btree
         for field_name, field_def in entity.fields.items():

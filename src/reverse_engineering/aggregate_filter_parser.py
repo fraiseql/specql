@@ -8,7 +8,6 @@ Handles PostgreSQL aggregate functions with FILTER syntax:
 - Other aggregates with FILTER clauses
 """
 
-
 from src.core.ast_models import ActionStep
 
 

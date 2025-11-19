@@ -40,7 +40,9 @@ class Contact:
         full_name_method = next((m for m in result.methods if m.method_name == "full_name"), None)
         assert full_name_method is not None
         assert full_name_method.return_type == "str"
-        assert "@property" in str(full_name_method.decorators) or len(full_name_method.decorators) > 0
+        assert (
+            "@property" in str(full_name_method.decorators) or len(full_name_method.decorators) > 0
+        )
         # NOTE: Converting @property to computed fields not yet implemented
 
     def test_context_manager_parsing(self):
@@ -64,7 +66,10 @@ class ContactService:
         # Body is parsed correctly
         assert len(create_method.body_lines) > 0
         # Context manager usage is captured in body
-        assert any("with" in str(step).lower() or "transaction" in str(step).lower() for step in create_method.body_lines)
+        assert any(
+            "with" in str(step).lower() or "transaction" in str(step).lower()
+            for step in create_method.body_lines
+        )
         # NOTE: Specific context manager detection in metadata not yet implemented
 
     def test_multiple_inheritance_parsing(self):

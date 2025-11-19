@@ -4,7 +4,6 @@ Provides topological sorting for dependency resolution
 """
 
 
-
 class DependencyResolver:
     """Resolves dependencies using topological sorting"""
 

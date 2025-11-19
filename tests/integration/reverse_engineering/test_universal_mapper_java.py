@@ -2,7 +2,6 @@
 Integration tests for Java with universal mapper
 """
 
-
 import pytest
 import yaml
 

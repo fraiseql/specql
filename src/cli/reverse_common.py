@@ -212,12 +212,10 @@ class ReverseEngineeringCLI:
         try:
             # Import here to avoid circular imports
             if framework == "python":
-
                 # This would need to be adapted to work with the new interface
                 # For now, return a placeholder
                 result = {"file": str(file_path), "status": "processed"}
             elif framework == "sql":
-
                 # Similar adaptation needed
                 result = {"file": str(file_path), "status": "processed"}
             else:

@@ -27,9 +27,7 @@ class NextJSPagesExtractor:
     def __init__(self):
         self.parser = TypeScriptParser()
 
-    def extract_route_from_file(
-        self, file_path: str, source_code: str
-    ) -> NextJSPagesRoute | None:
+    def extract_route_from_file(self, file_path: str, source_code: str) -> NextJSPagesRoute | None:
         """
         Extract route from Next.js API file
 
