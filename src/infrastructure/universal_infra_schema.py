@@ -19,8 +19,10 @@ from enum import Enum
 # Cloud Providers
 # ============================================================================
 
+
 class CloudProvider(str, Enum):
     """Supported cloud providers"""
+
     AWS = "aws"
     GCP = "gcp"
     AZURE = "azure"
@@ -32,9 +34,11 @@ class CloudProvider(str, Enum):
 # Compute Resources
 # ============================================================================
 
+
 @dataclass
 class ComputeConfig:
     """Compute resource configuration"""
+
     instances: int = 1
     cpu: float = 1.0  # CPU cores
     memory: str = "2GB"  # Memory (e.g., "2GB", "4GB")
@@ -56,12 +60,13 @@ class ComputeConfig:
 @dataclass
 class ContainerConfig:
     """Container configuration"""
+
     image: str
     tag: str = "latest"
     port: int = 8000
     environment: Dict[str, str] = field(default_factory=dict)
     secrets: Dict[str, str] = field(default_factory=dict)
-    volumes: List['Volume'] = field(default_factory=list)
+    volumes: List["Volume"] = field(default_factory=list)
 
     # Resource limits
     cpu_limit: Optional[float] = None
@@ -79,8 +84,10 @@ class ContainerConfig:
 # Database Resources
 # ============================================================================
 
+
 class DatabaseType(str, Enum):
     """Supported database types"""
+
     POSTGRESQL = "postgresql"
     MYSQL = "mysql"
     MONGODB = "mongodb"
@@ -91,6 +98,7 @@ class DatabaseType(str, Enum):
 @dataclass
 class DatabaseConfig:
     """Database configuration"""
+
     type: DatabaseType
     version: str  # e.g., "15", "8.0", "7.0"
 
@@ -124,9 +132,11 @@ class DatabaseConfig:
 # Networking
 # ============================================================================
 
+
 @dataclass
 class LoadBalancerConfig:
     """Load balancer configuration"""
+
     enabled: bool = True
     type: Literal["application", "network"] = "application"
 
@@ -150,6 +160,7 @@ class LoadBalancerConfig:
 @dataclass
 class NetworkConfig:
     """Network configuration"""
+
     # VPC/Virtual Network
     vpc_cidr: str = "10.0.0.0/16"
     public_subnets: List[str] = field(default_factory=lambda: ["10.0.1.0/24", "10.0.2.0/24"])
@@ -167,6 +178,7 @@ class NetworkConfig:
 @dataclass
 class CDNConfig:
     """CDN configuration"""
+
     origin_domain: str
     enabled: bool = False
     price_class: str = "PriceClass_100"  # Geographic distribution
@@ -178,9 +190,11 @@ class CDNConfig:
 # Storage
 # ============================================================================
 
+
 @dataclass
 class Volume:
     """Persistent volume"""
+
     name: str
     size: str  # e.g., "10GB"
     mount_path: str
@@ -190,12 +204,14 @@ class Volume:
 @dataclass
 class ObjectStorageConfig:
     """Object storage (S3, GCS, Azure Blob)"""
-    buckets: List['Bucket'] = field(default_factory=list)
+
+    buckets: List["Bucket"] = field(default_factory=list)
 
 
 @dataclass
 class Bucket:
     """Storage bucket configuration"""
+
     name: str
     versioning: bool = False
     lifecycle_rules: List[Dict[str, Any]] = field(default_factory=list)
@@ -206,6 +222,7 @@ class Bucket:
 # ============================================================================
 # Observability
 # ============================================================================
+
 
 @dataclass
 class ObservabilityConfig:
@@ -226,12 +243,13 @@ class ObservabilityConfig:
     tracing_sample_rate: float = 0.1
 
     # Alerting
-    alerts: List['Alert'] = field(default_factory=list)
+    alerts: List["Alert"] = field(default_factory=list)
 
 
 @dataclass
 class Alert:
     """Alert configuration"""
+
     name: str
     condition: str  # e.g., "cpu > 80%", "error_rate > 1%"
     duration: int = 300  # seconds
@@ -242,12 +260,161 @@ class Alert:
 # Security
 # ============================================================================
 
+"""
+Tier-Based Security Model:
+
+The security system follows a tier-based architecture where network segments
+(web, api, database, admin) communicate through controlled firewall rules.
+This enables defense-in-depth security across multi-tier applications.
+
+Key Concepts:
+- NetworkTier: Logical grouping of resources with shared security policies
+- FirewallRule: Cloud-agnostic firewall rules that translate to provider-specific rules
+- CompliancePreset: Pre-configured security standards (PCI-DSS, HIPAA, etc.)
+- WAFConfig: Web Application Firewall settings for HTTP/HTTPS protection
+- VPNConfig: Private connectivity configuration
+
+Example Usage:
+    security:
+      network_tiers:
+        - name: web
+          firewall_rules:
+            - name: allow-http
+              protocol: tcp
+              ports: [80, 443]
+              source: internet
+              action: allow
+        - name: api
+          firewall_rules:
+            - name: allow-from-web
+              protocol: tcp
+              ports: [8080]
+              source: web  # References tier name
+              action: allow
+"""
+
+
+@dataclass
+class FirewallRule:
+    """Universal firewall rule (cloud-agnostic)"""
+
+    name: str
+    protocol: Literal["tcp", "udp", "icmp", "all"]
+    ports: List[int] = field(default_factory=list)
+    port_ranges: List[str] = field(default_factory=list)  # e.g., "8000-9000"
+    source: str = "0.0.0.0/0"  # CIDR or tier name
+    destination: str = "self"  # CIDR or tier name
+    action: Literal["allow", "deny"] = "allow"
+    priority: int = 1000
+    description: str = ""
+
+    def __post_init__(self):
+        """Validate firewall rule after initialization"""
+        if self.protocol not in ["tcp", "udp", "icmp", "all"]:
+            raise ValueError(f"Invalid protocol: {self.protocol}")
+        if self.action not in ["allow", "deny"]:
+            raise ValueError(f"Invalid action: {self.action}")
+        if self.ports and self.port_ranges:
+            raise ValueError("Cannot specify both ports and port_ranges")
+
+    @property
+    def all_ports(self) -> List[int]:
+        """Get all ports covered by this rule"""
+        ports = self.ports.copy()
+        for port_range in self.port_ranges:
+            if "-" in port_range:
+                start, end = map(int, port_range.split("-"))
+                ports.extend(range(start, end + 1))
+        return sorted(list(set(ports)))
+
+
+@dataclass
+class NetworkTier:
+    """Network tier for multi-tier architectures"""
+
+    name: str  # web, api, database, admin
+    cidr_blocks: List[str] = field(default_factory=list)
+    firewall_rules: List[FirewallRule] = field(default_factory=list)
+
+    def __post_init__(self):
+        """Validate network tier after initialization"""
+        if not self.name:
+            raise ValueError("Network tier name cannot be empty")
+        # Basic CIDR validation
+        for cidr in self.cidr_blocks:
+            if not self._is_valid_cidr(cidr):
+                raise ValueError(f"Invalid CIDR block: {cidr}")
+
+    @staticmethod
+    def _is_valid_cidr(cidr: str) -> bool:
+        """Basic CIDR validation"""
+        import ipaddress
+
+        try:
+            ipaddress.ip_network(cidr, strict=False)
+            return True
+        except ValueError:
+            return False
+
+    def get_inbound_rules(self) -> List[FirewallRule]:
+        """Get all inbound firewall rules for this tier"""
+        return [
+            rule
+            for rule in self.firewall_rules
+            if rule.destination == self.name or rule.destination == "self"
+        ]
+
+    def get_outbound_rules(self) -> List[FirewallRule]:
+        """Get all outbound firewall rules for this tier"""
+        return [
+            rule
+            for rule in self.firewall_rules
+            if rule.source == self.name or rule.source == "self"
+        ]
+
+
+class CompliancePreset(str, Enum):
+    """Security compliance presets"""
+
+    STANDARD = "standard"
+    HARDENED = "hardened"
+    PCI_DSS = "pci-compliant"
+    HIPAA = "hipaa"
+    SOC2 = "soc2"
+    ISO27001 = "iso27001"
+
+
+@dataclass
+class WAFConfig:
+    """Web Application Firewall configuration"""
+
+    enabled: bool = False
+    mode: Literal["detection", "prevention"] = "prevention"
+    rule_sets: List[str] = field(default_factory=lambda: ["OWASP_TOP_10"])
+    rate_limiting: bool = True
+    geo_blocking: List[str] = field(default_factory=list)  # ISO country codes
+    ip_blacklist: List[str] = field(default_factory=list)
+    ip_whitelist: List[str] = field(default_factory=list)
+
+
+@dataclass
+class VPNConfig:
+    """VPN/Private connectivity configuration"""
+
+    enabled: bool = False
+    type: Literal["site-to-site", "client-vpn", "private-link"] = "site-to-site"
+    remote_cidr: str = "192.168.0.0/16"
+    bgp_asn: Optional[int] = None
+
+
 @dataclass
 class SecurityConfig:
     """Security configuration"""
 
     # Secrets
-    secrets_provider: Literal["aws_secrets", "gcp_secrets", "azure_keyvault", "vault"] = "aws_secrets"
+    secrets_provider: Literal["aws_secrets", "gcp_secrets", "azure_keyvault", "vault"] = (
+        "aws_secrets"
+    )
     secrets: Dict[str, str] = field(default_factory=dict)
 
     # IAM/RBAC
@@ -263,10 +430,18 @@ class SecurityConfig:
     encryption_in_transit: bool = True
     audit_logging: bool = True
 
+    # Enhanced security primitives
+    network_tiers: List[NetworkTier] = field(default_factory=list)
+    firewall_rules: List[FirewallRule] = field(default_factory=list)
+    compliance_preset: Optional[CompliancePreset] = None
+    waf: WAFConfig = field(default_factory=WAFConfig)
+    vpn: VPNConfig = field(default_factory=VPNConfig)
+
 
 # ============================================================================
 # Complete Service Definition
 # ============================================================================
+
 
 @dataclass
 class UniversalInfrastructure:
@@ -339,13 +514,13 @@ class UniversalInfrastructure:
         return ""
 
     @classmethod
-    def from_terraform(cls, tf_content: str) -> 'UniversalInfrastructure':
+    def from_terraform(cls, tf_content: str) -> "UniversalInfrastructure":
         """Reverse engineer from Terraform"""
         # Placeholder implementation
         return cls(name="placeholder")
 
     @classmethod
-    def from_kubernetes(cls, k8s_manifests: str) -> 'UniversalInfrastructure':
+    def from_kubernetes(cls, k8s_manifests: str) -> "UniversalInfrastructure":
         """Reverse engineer from Kubernetes"""
         # Placeholder implementation
         return cls(name="placeholder")

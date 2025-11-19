@@ -9,6 +9,7 @@ from pathlib import Path
 import click
 
 from src.cli.orchestrator import CLIOrchestrator
+from src.infrastructure.security_pattern_library import SecurityPatternLibrary
 
 
 @click.group()
@@ -361,7 +362,326 @@ def reverse_python_cmd(python_files, output_dir, discover_patterns, dry_run):
     )
 
 
-# Register reverse commands with the main specql group
+# Security pattern commands
+@click.group()
+def security():
+    """Security pattern management commands"""
+    pass
+
+
+@security.command()
+@click.option("--tags", multiple=True, help="Filter patterns by tags")
+@click.option("--json", is_flag=True, help="Output in JSON format")
+def list(tags, json):
+    """List available security patterns"""
+    library = SecurityPatternLibrary()
+    patterns = library.list_patterns(tags=list(tags) if tags else None)
+
+    if json:
+        import json
+
+        pattern_data = [
+            {
+                "name": p.name,
+                "description": p.description,
+                "tags": p.tags,
+                "network_tiers": len(p.network_tiers),
+                "has_waf": p.waf_config is not None,
+                "has_vpn": p.vpn_config is not None,
+                "compliance": p.compliance_preset.value if p.compliance_preset else None,
+            }
+            for p in patterns
+        ]
+        click.echo(json.dumps(pattern_data, indent=2))
+        return
+
+    if not patterns:
+        click.echo("No security patterns found")
+        return
+
+    click.echo("Available Security Patterns:")
+    click.echo("=" * 50)
+
+    for pattern in patterns:
+        click.echo(f"\n🔒 {pattern.name}")
+        click.echo(f"   {pattern.description}")
+        if pattern.tags:
+            click.echo(f"   Tags: {', '.join(pattern.tags)}")
+        click.echo(f"   Network tiers: {len(pattern.network_tiers)}")
+        if pattern.waf_config:
+            click.echo("   WAF: Enabled")
+        if pattern.vpn_config:
+            click.echo("   VPN: Enabled")
+        if pattern.compliance_preset:
+            click.echo(f"   Compliance: {pattern.compliance_preset.value}")
+
+
+@security.command()
+@click.argument("pattern_name")
+@click.option("--json", is_flag=True, help="Output in JSON format")
+def inspect(pattern_name, json):
+    """Inspect a specific security pattern"""
+    library = SecurityPatternLibrary()
+    pattern = library.get_pattern(pattern_name)
+
+    if not pattern:
+        click.secho(f"❌ Pattern '{pattern_name}' not found", fg="red")
+        available = [p.name for p in library.list_patterns()]
+        click.echo(f"Available patterns: {', '.join(available)}")
+        return 1
+
+    if json:
+        import json
+
+        pattern_data = {
+            "name": pattern.name,
+            "description": pattern.description,
+            "tags": pattern.tags,
+            "network_tiers": [
+                {
+                    "name": tier.name,
+                    "firewall_rules": [
+                        {
+                            "name": rule.name,
+                            "protocol": rule.protocol,
+                            "ports": rule.ports,
+                            "source": rule.source,
+                            "action": rule.action,
+                        }
+                        for rule in tier.firewall_rules
+                    ],
+                }
+                for tier in pattern.network_tiers
+            ],
+            "waf_config": {
+                "enabled": pattern.waf_config.enabled,
+                "mode": pattern.waf_config.mode,
+            }
+            if pattern.waf_config
+            else None,
+            "vpn_config": {
+                "enabled": pattern.vpn_config.enabled,
+                "type": pattern.vpn_config.type,
+            }
+            if pattern.vpn_config
+            else None,
+            "compliance_preset": pattern.compliance_preset.value
+            if pattern.compliance_preset
+            else None,
+        }
+        click.echo(json.dumps(pattern_data, indent=2))
+        return
+
+    click.echo(f"🔍 Security Pattern: {pattern.name}")
+    click.echo("=" * (20 + len(pattern.name)))
+    click.echo(f"Description: {pattern.description}")
+    if pattern.tags:
+        click.echo(f"Tags: {', '.join(pattern.tags)}")
+    if pattern.compliance_preset:
+        click.echo(f"Compliance: {pattern.compliance_preset.value}")
+
+    click.echo(f"\nNetwork Tiers ({len(pattern.network_tiers)}):")
+    for tier in pattern.network_tiers:
+        click.echo(f"  • {tier.name}")
+        for rule in tier.firewall_rules:
+            ports_str = ",".join(str(p) for p in rule.ports) if rule.ports else "all"
+            click.echo(
+                f"    - {rule.name}: {rule.protocol}/{ports_str} from {rule.source} ({rule.action})"
+            )
+
+    if pattern.waf_config:
+        click.echo(f"\nWAF Configuration:")
+        click.echo(f"  • Enabled: {pattern.waf_config.enabled}")
+        click.echo(f"  • Mode: {pattern.waf_config.mode}")
+
+    if pattern.vpn_config:
+        click.echo(f"\nVPN Configuration:")
+        click.echo(f"  • Enabled: {pattern.vpn_config.enabled}")
+        click.echo(f"  • Type: {pattern.vpn_config.type}")
+
+
+@security.command()
+@click.argument("pattern_name")
+@click.argument("infra_file", type=click.Path(exists=True))
+@click.option("--output", "-o", type=click.Path(), help="Output file (default: stdout)")
+@click.option(
+    "--platform", type=click.Choice(["aws", "gcp", "azure", "kubernetes"]), help="Target platform"
+)
+def apply(pattern_name, infra_file, output, platform):
+    """Apply a security pattern to infrastructure configuration"""
+    import yaml
+    from pathlib import Path
+
+    library = SecurityPatternLibrary()
+    pattern = library.get_pattern(pattern_name)
+
+    if not pattern:
+        click.secho(f"❌ Pattern '{pattern_name}' not found", fg="red")
+        available = [p.name for p in library.list_patterns()]
+        click.echo(f"Available patterns: {', '.join(available)}")
+        return 1
+
+    # Load infrastructure file
+    try:
+        with open(infra_file, "r") as f:
+            infra_data = yaml.safe_load(f)
+    except Exception as e:
+        click.secho(f"❌ Failed to load infrastructure file: {e}", fg="red")
+        return 1
+
+    # Apply pattern to infrastructure
+    try:
+        from src.infrastructure.universal_infra_schema import UniversalInfrastructure
+
+        # Parse the infrastructure manually from dict
+        # This is a simplified approach - in production you'd want proper validation
+        infra = UniversalInfrastructure(
+            name=infra_data.get("name", "unknown"),
+            description=infra_data.get("description", ""),
+            service_type=infra_data.get("service_type", "api"),
+            provider=infra_data.get("provider", "aws"),
+            region=infra_data.get("region", "us-east-1"),
+            environment=infra_data.get("environment", "production"),
+            compute=infra_data.get("compute"),
+            container=infra_data.get("container"),
+            database=infra_data.get("database"),
+            network=infra_data.get("network", {}),
+            load_balancer=infra_data.get("load_balancer"),
+            cdn=infra_data.get("cdn"),
+            volumes=infra_data.get("volumes", []),
+            object_storage=infra_data.get("object_storage"),
+            observability=infra_data.get("observability", {}),
+            security=infra_data.get("security", {}),
+            tags=infra_data.get("tags", {}),
+        )
+
+        # Apply the security pattern
+        secured_infra = library.apply_pattern_to_infrastructure(infra, pattern_name)
+
+        # Convert back to dict manually
+        result_data = {
+            "name": secured_infra.name,
+            "description": secured_infra.description,
+            "service_type": secured_infra.service_type,
+            "provider": secured_infra.provider,
+            "region": secured_infra.region,
+            "environment": secured_infra.environment,
+            "compute": secured_infra.compute,
+            "container": secured_infra.container,
+            "database": secured_infra.database,
+            "network": secured_infra.network,
+            "load_balancer": secured_infra.load_balancer,
+            "cdn": secured_infra.cdn,
+            "volumes": secured_infra.volumes,
+            "object_storage": secured_infra.object_storage,
+            "observability": secured_infra.observability,
+            "security": secured_infra.security,
+            "tags": secured_infra.tags,
+        }
+
+        # Output the result
+        if output:
+            with open(output, "w") as f:
+                yaml.dump(result_data, f, default_flow_style=False, sort_keys=False)
+            click.secho(f"✅ Security pattern applied and saved to: {output}", fg="green")
+        else:
+            click.echo(yaml.dump(result_data, default_flow_style=False, sort_keys=False))
+
+    except Exception as e:
+        click.secho(f"❌ Failed to apply security pattern: {e}", fg="red")
+        return 1
+
+
+@security.command()
+@click.argument("pattern_names", nargs=-1, required=True)
+@click.option("--output", "-o", type=click.Path(), help="Output composed security config to file")
+@click.option("--validate", is_flag=True, help="Validate pattern compatibility")
+def compose(pattern_names, output, validate):
+    """Compose multiple security patterns into a single configuration"""
+    library = SecurityPatternLibrary()
+
+    if validate:
+        warnings = library.validate_pattern_compatibility(list(pattern_names))
+        if warnings:
+            click.secho("⚠️  Pattern compatibility warnings:", fg="yellow")
+            for warning in warnings:
+                click.echo(f"  • {warning}")
+            if not click.confirm("Continue with composition despite warnings?"):
+                return 1
+
+    try:
+        composed_config = library.compose_patterns(list(pattern_names))
+        config_dict = {
+            "network_tiers": [
+                {
+                    "name": tier.name,
+                    "firewall_rules": [
+                        {
+                            "name": rule.name,
+                            "protocol": rule.protocol,
+                            "ports": rule.ports,
+                            "source": rule.source,
+                            "action": rule.action,
+                        }
+                        for rule in tier.firewall_rules
+                    ],
+                }
+                for tier in composed_config.network_tiers
+            ],
+            "waf": {
+                "enabled": composed_config.waf.enabled,
+                "mode": composed_config.waf.mode,
+            }
+            if composed_config.waf
+            else None,
+            "vpn": {
+                "enabled": composed_config.vpn.enabled,
+                "type": composed_config.vpn.type,
+            }
+            if composed_config.vpn
+            else None,
+            "compliance_preset": composed_config.compliance_preset.value
+            if composed_config.compliance_preset
+            else None,
+        }
+
+        import yaml
+
+        if output:
+            with open(output, "w") as f:
+                yaml.dump(config_dict, f, default_flow_style=False, sort_keys=False)
+            click.secho(f"✅ Composed security config saved to: {output}", fg="green")
+        else:
+            click.echo("Composed Security Configuration:")
+            click.echo("=" * 35)
+            click.echo(yaml.dump(config_dict, default_flow_style=False, sort_keys=False))
+
+    except Exception as e:
+        click.secho(f"❌ Failed to compose patterns: {e}", fg="red")
+        return 1
+
+
+@security.command()
+@click.argument("pattern_names", nargs=-1, required=True)
+def check(pattern_names):
+    """Validate compatibility of security patterns"""
+    library = SecurityPatternLibrary()
+
+    warnings = library.validate_pattern_compatibility(list(pattern_names))
+
+    if not warnings:
+        click.secho("✅ All patterns are compatible", fg="green")
+        return 0
+
+    click.secho("⚠️  Compatibility issues found:", fg="yellow")
+    for warning in warnings:
+        click.echo(f"  • {warning}")
+
+    return 1
+
+
+# Register commands with the main specql group
+specql.add_command(security)
 specql.add_command(reverse)
 specql.add_command(reverse_sql)
 specql.add_command(reverse_python_cmd)

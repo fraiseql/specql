@@ -1,0 +1,156 @@
+# ============================================================================
+# Security Groups (Tiered Architecture)
+# ============================================================================
+
+{% for tier_name, sg_config in security_groups.items() %}
+resource "aws_security_group" "{{ tier_name }}" {
+  name_prefix = "{{ sg_config.name }}-"
+  vpc_id      = {{ sg_config.vpc_id }}
+
+  {% for rule in sg_config.ingress_rules %}
+  ingress {
+    from_port   = {{ rule.from_port }}
+    to_port     = {{ rule.to_port }}
+    protocol    = "{{ rule.protocol }}"
+    {% if rule.cidr_blocks %}
+    cidr_blocks = {{ rule.cidr_blocks|tojson }}
+    {% endif %}
+    {% if rule.security_groups %}
+    security_groups = {{ rule.security_groups|tojson }}
+    {% endif %}
+    description = "{{ rule.description }}"
+  }
+  {% endfor %}
+
+  {% for rule in sg_config.egress_rules %}
+  egress {
+    from_port   = {{ rule.from_port }}
+    to_port     = {{ rule.to_port }}
+    protocol    = "{{ rule.protocol }}"
+    cidr_blocks = {{ rule.cidr_blocks|tojson }}
+    {% if rule.description %}
+    description = "{{ rule.description }}"
+    {% endif %}
+  }
+  {% endfor %}
+
+  tags = {{ sg_config.tags|tojson }}
+}
+
+{% endfor %}
+
+{% if waf_enabled %}
+# ============================================================================
+# Web Application Firewall (WAF)
+# ============================================================================
+
+resource "aws_wafv2_web_acl" "{{ infrastructure.name }}_waf" {
+  name        = "{{ infrastructure.name }}-waf"
+  description = "WAF for {{ infrastructure.name }}"
+  scope       = "REGIONAL"
+
+  default_action {
+    allow {}
+  }
+
+  # OWASP Top 10 rules
+  rule {
+    name     = "AWSManagedRulesCommonRuleSet"
+    priority = 1
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesCommonRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "{{ infrastructure.name }}AWSManagedRulesCommonRuleSet"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  rule {
+    name     = "AWSManagedRulesKnownBadInputsRuleSet"
+    priority = 2
+
+    override_action {
+      none {}
+    }
+
+    statement {
+      managed_rule_group_statement {
+        name        = "AWSManagedRulesKnownBadInputsRuleSet"
+        vendor_name = "AWS"
+      }
+    }
+
+    visibility_config {
+      cloudwatch_metrics_enabled = true
+      metric_name                = "{{ infrastructure.name }}AWSManagedRulesKnownBadInputsRuleSet"
+      sampled_requests_enabled   = true
+    }
+  }
+
+  visibility_config {
+    cloudwatch_metrics_enabled = true
+    metric_name                = "{{ infrastructure.name }}_waf"
+    sampled_requests_enabled   = true
+  }
+}
+
+# Associate WAF with Load Balancer (if exists)
+{% if infrastructure.load_balancer %}
+resource "aws_wafv2_web_acl_association" "{{ infrastructure.name }}_waf_alb" {
+  resource_arn = aws_lb.{{ infrastructure.name }}.arn
+  web_acl_arn  = aws_wafv2_web_acl.{{ infrastructure.name }}_waf.arn
+}
+{% endif %}
+{% endif %}
+
+{% if vpn_enabled %}
+# ============================================================================
+# VPN Gateway
+# ============================================================================
+
+resource "aws_vpn_gateway" "{{ infrastructure.name }}_vpn" {
+  vpc_id = aws_vpc.{{ infrastructure.name }}.id
+
+  tags = {
+    Name = "{{ infrastructure.name }}-vpn-gateway"
+  }
+}
+
+resource "aws_customer_gateway" "{{ infrastructure.name }}_cgw" {
+  bgp_asn    = {{ infrastructure.security.vpn.bgp_asn or 65000 }}
+  ip_address = "{{ infrastructure.security.vpn.remote_cidr.split('/')[0] }}"  # Extract IP from CIDR
+  type       = "ipsec.1"
+
+  tags = {
+    Name = "{{ infrastructure.name }}-customer-gateway"
+  }
+}
+
+resource "aws_vpn_connection" "{{ infrastructure.name }}_vpn" {
+  vpn_gateway_id      = aws_vpn_gateway.{{ infrastructure.name }}_vpn.id
+  customer_gateway_id = aws_customer_gateway.{{ infrastructure.name }}_cgw.id
+  type                = "ipsec.1"
+  static_routes_only  = true
+
+  tags = {
+    Name = "{{ infrastructure.name }}-vpn-connection"
+  }
+}
+
+# VPN static route
+resource "aws_vpn_connection_route" "{{ infrastructure.name }}_vpn_route" {
+  destination_cidr_block = "{{ infrastructure.security.vpn.remote_cidr }}"
+  vpn_connection_id      = aws_vpn_connection.{{ infrastructure.name }}_vpn.id
+}
+{% endif %}

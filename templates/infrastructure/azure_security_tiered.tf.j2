@@ -1,0 +1,200 @@
+# ============================================================================
+# Network Security Groups (NSGs) - Tiered Architecture
+# ============================================================================
+
+{% for tier in infrastructure.security.network_tiers %}
+# Application Security Group for {{ tier.name }} tier
+resource "azurerm_application_security_group" "{{ tier.name }}_asg" {
+  name                = "{{ infrastructure.name }}-{{ tier.name }}-asg"
+  location            = azurerm_resource_group.{{ infrastructure.name }}.location
+  resource_group_name = azurerm_resource_group.{{ infrastructure.name }}.name
+}
+
+# Network Security Group for {{ tier.name }} tier
+resource "azurerm_network_security_group" "{{ infrastructure.name }}_{{ tier.name }}_nsg" {
+  name                = "{{ infrastructure.name }}-{{ tier.name }}-nsg"
+  location            = azurerm_resource_group.{{ infrastructure.name }}.location
+  resource_group_name = azurerm_resource_group.{{ infrastructure.name }}.name
+
+  {% for rule in nsg_rules %}
+  {% if rule.nsg_name == infrastructure.name + '_' + tier.name + '_nsg' %}
+  security_rule {
+    name                                       = "{{ rule.name }}"
+    priority                                   = {{ rule.priority }}
+    direction                                  = "{{ rule.direction }}"
+    access                                     = "{{ rule.access }}"
+    protocol                                   = "{{ rule.protocol }}"
+    source_port_range                          = "*"
+    destination_port_ranges                     = {{ rule.destination_port_ranges|tojson if rule.destination_port_ranges else ['*'] }}
+    source_address_prefix                       = "{{ rule.source_address_prefix }}"
+    destination_address_prefix                  = "{{ rule.destination_address_prefix }}"
+    {% if rule.source_application_security_group_ids %}
+    source_application_security_group_ids       = {{ rule.source_application_security_group_ids|tojson }}
+    {% endif %}
+    {% if rule.destination_application_security_group_ids %}
+    destination_application_security_group_ids  = {{ rule.destination_application_security_group_ids|tojson }}
+    {% endif %}
+  }
+  {% endif %}
+  {% endfor %}
+}
+{% endfor %}
+
+{% if waf_enabled %}
+# ============================================================================
+# Application Gateway (Web Application Firewall)
+# ============================================================================
+
+resource "azurerm_application_gateway" "{{ infrastructure.name }}_app_gateway" {
+  name                = "{{ infrastructure.name }}-app-gateway"
+  location            = azurerm_resource_group.{{ infrastructure.name }}.location
+  resource_group_name = azurerm_resource_group.{{ infrastructure.name }}.name
+
+  sku {
+    name     = "WAF_v2"
+    tier     = "WAF_v2"
+    capacity = 2
+  }
+
+  waf_configuration {
+    enabled          = true
+    firewall_mode    = "Prevention"
+    rule_set_type    = "OWASP"
+    rule_set_version = "3.2"
+
+    # OWASP Core Rule Set
+    disabled_rule_group {
+      rule_group_name = "REQUEST-920-PROTOCOL-ENFORCEMENT"
+    }
+
+    # Rate limiting
+    request_body_check = true
+    max_request_body_size_kb = 128
+  }
+
+  gateway_ip_configuration {
+    name      = "{{ infrastructure.name }}-gateway-ip"
+    subnet_id = azurerm_subnet.{{ infrastructure.name }}_web_subnet.id
+  }
+
+  frontend_port {
+    name = "http"
+    port = 80
+  }
+
+  frontend_port {
+    name = "https"
+    port = 443
+  }
+
+  frontend_ip_configuration {
+    name                 = "{{ infrastructure.name }}-frontend-ip"
+    public_ip_address_id = azurerm_public_ip.{{ infrastructure.name }}_gateway_pip.id
+  }
+
+  backend_address_pool {
+    name = "{{ infrastructure.name }}-backend-pool"
+  }
+
+  backend_http_settings {
+    name                  = "{{ infrastructure.name }}-http-settings"
+    cookie_based_affinity = "Disabled"
+    port                  = 80
+    protocol              = "Http"
+    request_timeout       = 60
+  }
+
+  http_listener {
+    name                           = "{{ infrastructure.name }}-http-listener"
+    frontend_ip_configuration_name = "{{ infrastructure.name }}-frontend-ip"
+    frontend_port_name             = "http"
+    protocol                       = "Http"
+  }
+
+  request_routing_rule {
+    name                       = "{{ infrastructure.name }}-routing-rule"
+    rule_type                  = "Basic"
+    http_listener_name         = "{{ infrastructure.name }}-http-listener"
+    backend_address_pool_name  = "{{ infrastructure.name }}-backend-pool"
+    backend_http_settings_name = "{{ infrastructure.name }}-http-settings"
+    priority                   = 100
+  }
+}
+
+# Public IP for Application Gateway
+resource "azurerm_public_ip" "{{ infrastructure.name }}_gateway_pip" {
+  name                = "{{ infrastructure.name }}-gateway-pip"
+  location            = azurerm_resource_group.{{ infrastructure.name }}.location
+  resource_group_name = azurerm_resource_group.{{ infrastructure.name }}.name
+  allocation_method   = "Static"
+  sku                 = "Standard"
+}
+{% endif %}
+
+{% if vpn_enabled %}
+# ============================================================================
+# VPN Gateway
+# ============================================================================
+
+resource "azurerm_virtual_network_gateway" "{{ infrastructure.name }}_vpn_gateway" {
+  name                = "{{ infrastructure.name }}-vpn-gateway"
+  location            = azurerm_resource_group.{{ infrastructure.name }}.location
+  resource_group_name = azurerm_resource_group.{{ infrastructure.name }}.name
+
+  type     = "Vpn"
+  vpn_type = "RouteBased"
+
+  active_active = false
+  enable_bgp    = true
+  sku           = "VpnGw1"
+
+  ip_configuration {
+    name                          = "{{ infrastructure.name }}-vpngw-config"
+    public_ip_address_id          = azurerm_public_ip.{{ infrastructure.name }}_vpngw_pip.id
+    private_ip_address_allocation = "Dynamic"
+    subnet_id                     = azurerm_subnet.{{ infrastructure.name }}_gateway_subnet.id
+  }
+
+  bgp_settings {
+    asn = {{ infrastructure.security.vpn.bgp_asn or 65515 }}
+  }
+}
+
+# Public IP for VPN Gateway
+resource "azurerm_public_ip" "{{ infrastructure.name }}_vpngw_pip" {
+  name                = "{{ infrastructure.name }}-vpngw-pip"
+  location            = azurerm_resource_group.{{ infrastructure.name }}.location
+  resource_group_name = azurerm_resource_group.{{ infrastructure.name }}.name
+  allocation_method   = "Dynamic"
+}
+
+# Local Network Gateway (on-premises)
+resource "azurerm_local_network_gateway" "{{ infrastructure.name }}_local_gw" {
+  name                = "{{ infrastructure.name }}-local-gw"
+  location            = azurerm_resource_group.{{ infrastructure.name }}.location
+  resource_group_name = azurerm_resource_group.{{ infrastructure.name }}.name
+
+  gateway_address = "{{ infrastructure.security.vpn.remote_cidr.split('/')[0] }}"  # Extract IP from CIDR
+  address_space   = ["{{ infrastructure.security.vpn.remote_cidr }}"]
+
+  bgp_settings {
+    asn                 = 65000  # Typical on-premises ASN
+    bgp_peering_address = "{{ infrastructure.security.vpn.remote_cidr.split('/')[0] }}"
+  }
+}
+
+# VPN Connection
+resource "azurerm_virtual_network_gateway_connection" "{{ infrastructure.name }}_vpn_connection" {
+  name                       = "{{ infrastructure.name }}-vpn-connection"
+  location                   = azurerm_resource_group.{{ infrastructure.name }}.location
+  resource_group_name        = azurerm_resource_group.{{ infrastructure.name }}.name
+
+  type                       = "IPsec"
+  virtual_network_gateway_id = azurerm_virtual_network_gateway.{{ infrastructure.name }}_vpn_gateway.id
+  local_network_gateway_id   = azurerm_local_network_gateway.{{ infrastructure.name }}_local_gw.id
+
+  shared_key = "YourSharedKey123!"  # In production, use a proper secret management
+
+  enable_bgp = true
+}
+{% endif %}

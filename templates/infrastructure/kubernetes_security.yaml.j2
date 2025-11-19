@@ -1,0 +1,178 @@
+# ============================================================================
+# Kubernetes Security Resources
+# ============================================================================
+
+{% if network_policies_enabled %}
+# ============================================================================
+# Network Policies
+# ============================================================================
+
+{% for policy in network_policies %}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ policy.name }}
+  namespace: {{ policy.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ infrastructure.name }}
+    app.kubernetes.io/component: network-policy
+    app.kubernetes.io/tier: {{ policy.tier_labels['app.kubernetes.io/tier'] }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/tier: {{ policy.tier_labels['app.kubernetes.io/tier'] }}
+  policyTypes:
+  - Ingress
+  ingress:
+  {% for rule in policy.ingress_rules %}
+  - from:
+    {% for from_spec in rule.from %}
+    {% if from_spec.podSelector %}
+    - podSelector:
+        matchLabels:
+          app.kubernetes.io/tier: {{ from_spec.podSelector.matchLabels['app.kubernetes.io/tier'] }}
+    {% elif from_spec.ipBlock %}
+    - ipBlock:
+        cidr: {{ from_spec.ipBlock.cidr }}
+    {% endif %}
+    {% endfor %}
+    ports:
+    {% for port_spec in rule.ports %}
+    - protocol: {{ port_spec.protocol }}
+      {% if port_spec.port %}
+      port: {{ port_spec.port }}
+      {% endif %}
+    {% endfor %}
+  {% endfor %}
+{% endfor %}
+{% endif %}
+
+{% if rbac_enabled %}
+# ============================================================================
+# RBAC Resources
+# ============================================================================
+
+{% for sa in service_accounts %}
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ sa.name }}
+  namespace: {{ sa.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ infrastructure.name }}
+    app.kubernetes.io/component: service-account
+    app.kubernetes.io/tier: {{ sa.tier_labels['app.kubernetes.io/tier'] }}
+{% endfor %}
+
+{% for role in roles %}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: {{ role.name }}
+  namespace: {{ role.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ infrastructure.name }}
+    app.kubernetes.io/component: role
+rules:
+{% for rule in role.rules %}
+- apiGroups: {{ rule.apiGroups|tojson }}
+  resources: {{ rule.resources|tojson }}
+  verbs: {{ rule.verbs|tojson }}
+{% endfor %}
+{% endfor %}
+
+{% for binding in role_bindings %}
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ binding.name }}
+  namespace: {{ binding.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ infrastructure.name }}
+    app.kubernetes.io/component: role-binding
+subjects:
+- kind: ServiceAccount
+  name: {{ binding.service_account_name }}
+  namespace: {{ binding.namespace }}
+roleRef:
+  kind: Role
+  name: {{ binding.role_name }}
+  apiGroup: rbac.authorization.k8s.io
+{% endfor %}
+{% endif %}
+
+{% if pod_security_enabled %}
+# ============================================================================
+# Pod Security Standards
+# ============================================================================
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ infrastructure.name }}
+  labels:
+    app.kubernetes.io/name: {{ infrastructure.name }}
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: v1.24
+    pod-security.kubernetes.io/warn: restricted
+    pod-security.kubernetes.io/warn-version: v1.24
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/audit-version: v1.24
+
+# Pod Security Admission Controller Configuration
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pod-security-standards
+  namespace: {{ infrastructure.name }}
+  labels:
+    app.kubernetes.io/name: {{ infrastructure.name }}
+    app.kubernetes.io/component: pod-security-config
+data:
+  restricted-policy.yaml: |
+    apiVersion: policy/v1beta1
+    kind: PodSecurityPolicy
+    metadata:
+      name: restricted
+      annotations:
+        seccomp.security.alpha.kubernetes.io/allowedProfileNames: 'docker/default,runtime/default'
+        apparmor.security.beta.kubernetes.io/allowedProfileNames: 'runtime/default'
+        seccomp.security.alpha.kubernetes.io/defaultProfileName:  'runtime/default'
+        apparmor.security.beta.kubernetes.io/defaultProfileName:  'runtime/default'
+    spec:
+      privileged: false
+      allowPrivilegeEscalation: false
+      requiredDropCapabilities:
+        - ALL
+      volumes:
+        - 'configMap'
+        - 'emptyDir'
+        - 'projected'
+        - 'secret'
+        - 'downwardAPI'
+        - 'persistentVolumeClaim'
+      hostNetwork: false
+      hostIPC: false
+      hostPID: false
+      runAsUser:
+        rule: 'MustRunAsNonRoot'
+      seLinux:
+        rule: 'RunAsAny'
+      supplementalGroups:
+        rule: 'MustRunAs'
+        ranges:
+        - min: 1
+          max: 65535
+      fsGroup:
+        rule: 'MustRunAs'
+        ranges:
+        - min: 1
+          max: 65535
+      readOnlyRootFilesystem: true
+{% endif %}

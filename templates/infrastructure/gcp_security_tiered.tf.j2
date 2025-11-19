@@ -1,0 +1,189 @@
+# ============================================================================
+# Firewall Rules (Tiered Architecture)
+# ============================================================================
+
+{% for rule in firewall_rules %}
+resource "google_compute_firewall" "{{ rule.name }}" {
+  name    = "{{ rule.name }}"
+  network = {{ rule.network }}
+
+  {% if rule.allow %}
+  {% for allow_block in rule.allow %}
+  allow {
+    protocol = "{{ allow_block.protocol }}"
+    {% if allow_block.ports %}
+    ports    = {{ allow_block.ports|tojson }}
+    {% endif %}
+  }
+  {% endfor %}
+  {% endif %}
+
+  {% if rule.target_tags %}
+  target_tags = {{ rule.target_tags|tojson }}
+  {% endif %}
+
+  {% if rule.source_ranges %}
+  source_ranges = {{ rule.source_ranges|tojson }}
+  {% endif %}
+
+  {% if rule.source_tags %}
+  source_tags = {{ rule.source_tags|tojson }}
+  {% endif %}
+}
+
+{% endfor %}
+
+{% if waf_enabled %}
+# ============================================================================
+# Cloud Armor (Web Application Firewall)
+# ============================================================================
+
+resource "google_compute_security_policy" "{{ infrastructure.name }}_cloud_armor" {
+  name = "{{ infrastructure.name }}-cloud-armor"
+
+  # Default rule - allow all
+  rule {
+    action   = "allow"
+    priority = "2147483647"
+    match {
+      versioned_expr = "SRC_IPS_V1"
+      config {
+        src_ip_ranges = ["*"]
+      }
+    }
+    description = "Default rule - allow all"
+  }
+
+  # OWASP Top 10 protection
+  rule {
+    action   = "deny(403)"
+    priority = "1000"
+    match {
+      expr {
+        expression = "evaluatePreconfiguredExpr('xss-stable')"
+      }
+    }
+    description = "XSS attack filtering"
+  }
+
+  rule {
+    action   = "deny(403)"
+    priority = "1001"
+    match {
+      expr {
+        expression = "evaluatePreconfiguredExpr('sqli-stable')"
+      }
+    }
+    description = "SQL injection filtering"
+  }
+
+  rule {
+    action   = "deny(403)"
+    priority = "1002"
+    match {
+      expr {
+        expression = "evaluatePreconfiguredExpr('lfi-stable')"
+      }
+    }
+    description = "Local file inclusion filtering"
+  }
+
+  rule {
+    action   = "deny(403)"
+    priority = "1003"
+    match {
+      expr {
+        expression = "evaluatePreconfiguredExpr('rfi-stable')"
+      }
+    }
+    description = "Remote file inclusion filtering"
+  }
+
+  rule {
+    action   = "deny(403)"
+    priority = "1004"
+    match {
+      expr {
+        expression = "evaluatePreconfiguredExpr('rce-stable')"
+      }
+    }
+    description = "Remote code execution filtering"
+  }
+
+  # Rate limiting
+  rule {
+    action   = "rate_based_ban"
+    priority = "1005"
+    match {
+      expr {
+        expression = "rateLimit(10, 60)"
+      }
+    }
+    rate_limit_options {
+      conform_action = "allow"
+      exceed_action  = "deny(429)"
+      enforce_on_key = "IP"
+      rate_limit_threshold {
+        count        = 10
+        interval_sec = 60
+      }
+    }
+    description = "Rate limiting - 10 requests per minute per IP"
+  }
+}
+
+# Associate Cloud Armor with Backend Service (if exists)
+{% if infrastructure.load_balancer %}
+resource "google_compute_backend_service" "{{ infrastructure.name }}_backend" {
+  name        = "{{ infrastructure.name }}-backend"
+  protocol    = "HTTP"
+  timeout_sec = 30
+
+  backend {
+    group = google_compute_instance_group_manager.{{ infrastructure.name }}.instance_group
+  }
+
+  security_policy = google_compute_security_policy.{{ infrastructure.name }}_cloud_armor.self_link
+}
+{% endif %}
+{% endif %}
+
+{% if vpn_enabled %}
+# ============================================================================
+# Cloud VPN
+# ============================================================================
+
+resource "google_compute_vpn_gateway" "{{ infrastructure.name }}_vpn" {
+  name    = "{{ infrastructure.name }}-vpn-gateway"
+  network = google_compute_network.{{ infrastructure.name }}.name
+  region  = "{{ infrastructure.region }}"
+}
+
+resource "google_compute_vpn_tunnel" "{{ infrastructure.name }}_vpn_tunnel" {
+  name               = "{{ infrastructure.name }}-vpn-tunnel"
+  peer_ip            = "{{ infrastructure.security.vpn.remote_cidr.split('/')[0] }}"  # Extract IP from CIDR
+  shared_secret      = "shared-secret"  # In production, use a proper secret management
+  target_vpn_gateway = google_compute_vpn_gateway.{{ infrastructure.name }}_vpn.self_link
+  router             = google_compute_router.{{ infrastructure.name }}_router.name
+
+  depends_on = [
+    google_compute_router.{{ infrastructure.name }}_router
+  ]
+}
+
+resource "google_compute_router" "{{ infrastructure.name }}_router" {
+  name    = "{{ infrastructure.name }}-router"
+  network = google_compute_network.{{ infrastructure.name }}.name
+  region  = "{{ infrastructure.region }}"
+
+  bgp {
+    asn = {{ infrastructure.security.vpn.bgp_asn or 64514 }}
+  }
+}
+
+# VPN route
+resource "google_compute_vpn_gateway_route" "{{ infrastructure.name }}_vpn_route" {
+  vpn_gateway = google_compute_vpn_gateway.{{ infrastructure.name }}_vpn.name
+  dest_range  = "{{ infrastructure.security.vpn.remote_cidr }}"
+}
+{% endif %}
