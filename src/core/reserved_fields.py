@@ -1,6 +1,5 @@
 """Reserved field names that cannot be used by end users."""
 
-
 # Primary Keys & Foreign Keys
 RESERVED_PK_FK = {
     "id",  # UUID external reference

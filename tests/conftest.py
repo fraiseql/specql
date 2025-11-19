@@ -9,6 +9,15 @@ from typing import Any
 import psycopg
 import pytest
 
+from src.core.dependencies import (
+    FAKER,
+    PGLAST,
+    TREE_SITTER,
+    TREE_SITTER_PRISMA,
+    TREE_SITTER_RUST,
+    TREE_SITTER_TYPESCRIPT,
+)
+
 
 @pytest.fixture
 def fixtures_dir() -> Path:
@@ -336,3 +345,92 @@ def pytest_configure(config):
     config.addinivalue_line("markers", "unit: Unit tests (fast, isolated)")
     config.addinivalue_line("markers", "integration: Integration tests (slower)")
     config.addinivalue_line("markers", "benchmark: Performance benchmarks")
+    config.addinivalue_line("markers", "requires_pglast: test requires pglast (SQL parsing)")
+    config.addinivalue_line("markers", "requires_faker: test requires faker (test data)")
+    config.addinivalue_line(
+        "markers", "requires_tree_sitter: test requires tree-sitter (AST parsing)"
+    )
+    config.addinivalue_line(
+        "markers", "requires_tree_sitter_rust: test requires tree-sitter-rust (Rust parsing)"
+    )
+    config.addinivalue_line(
+        "markers",
+        "requires_tree_sitter_typescript: test requires tree-sitter-typescript (TS parsing)",
+    )
+    config.addinivalue_line(
+        "markers",
+        "requires_tree_sitter_prisma: test requires tree-sitter-prisma (Prisma parsing)",
+    )
+
+
+# Skip hooks and auto-apply markers
+def pytest_collection_modifyitems(config, items):
+    """Skip tests that require unavailable dependencies and auto-apply markers."""
+
+    skip_pglast = pytest.mark.skip(reason="pglast not installed (pip install specql[reverse])")
+    skip_faker = pytest.mark.skip(reason="faker not installed (pip install specql[testing])")
+    skip_tree_sitter = pytest.mark.skip(
+        reason="tree-sitter not installed (pip install specql[reverse])"
+    )
+    skip_tree_sitter_rust = pytest.mark.skip(
+        reason="tree-sitter-rust not installed (pip install specql[reverse])"
+    )
+    skip_tree_sitter_typescript = pytest.mark.skip(
+        reason="tree-sitter-typescript not installed (pip install specql[reverse])"
+    )
+    skip_tree_sitter_prisma = pytest.mark.skip(
+        reason="tree-sitter-prisma not installed (pip install specql[reverse])"
+    )
+
+    for item in items:
+        test_path = str(item.fspath)
+
+        # Auto-apply markers based on test location
+        # Reverse engineering tests need pglast/tree-sitter
+        if "reverse_engineering" in test_path:
+            if "tree_sitter" in test_path or "parser" in test_path:
+                item.add_marker(pytest.mark.requires_tree_sitter)
+            if "sql" in test_path:
+                item.add_marker(pytest.mark.requires_pglast)
+            # Rust-specific tests (includes SeaORM/Diesel which are Rust ORMs)
+            # Also mark tree_sitter_performance since it tests Rust parsing
+            if (
+                "rust" in test_path
+                or "tree_sitter_rust" in test_path
+                or "seaorm" in test_path
+                or "diesel" in test_path
+                or "tree_sitter_performance" in test_path
+            ):
+                item.add_marker(pytest.mark.requires_tree_sitter_rust)
+            # TypeScript-specific tests
+            if "typescript" in test_path or "tree_sitter_typescript" in test_path:
+                item.add_marker(pytest.mark.requires_tree_sitter_typescript)
+            # Prisma-specific tests
+            if "prisma" in test_path or "tree_sitter_prisma" in test_path:
+                item.add_marker(pytest.mark.requires_tree_sitter_prisma)
+
+        # Testing module needs faker
+        if "testing/seed" in test_path or "field_generator" in test_path:
+            item.add_marker(pytest.mark.requires_faker)
+
+        # Check markers and skip if dependency unavailable
+        if "requires_pglast" in item.keywords and not PGLAST.available:
+            item.add_marker(skip_pglast)
+
+        if "requires_faker" in item.keywords and not FAKER.available:
+            item.add_marker(skip_faker)
+
+        if "requires_tree_sitter" in item.keywords and not TREE_SITTER.available:
+            item.add_marker(skip_tree_sitter)
+
+        if "requires_tree_sitter_rust" in item.keywords and not TREE_SITTER_RUST.available:
+            item.add_marker(skip_tree_sitter_rust)
+
+        if (
+            "requires_tree_sitter_typescript" in item.keywords
+            and not TREE_SITTER_TYPESCRIPT.available
+        ):
+            item.add_marker(skip_tree_sitter_typescript)
+
+        if "requires_tree_sitter_prisma" in item.keywords and not TREE_SITTER_PRISMA.available:
+            item.add_marker(skip_tree_sitter_prisma)

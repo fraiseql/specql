@@ -1,0 +1,202 @@
+pattern: validation_template_inheritance
+version: 1.0
+category: validation
+description: |
+  Resolve configuration from template hierarchy (model → parent → generic).
+  Uses recursive CTEs to traverse template chain and merge configurations.
+
+parameters:
+  - name: template_field
+    type: string
+    default: template_id
+    description: "Field linking to template entity"
+
+  - name: template_entity
+    type: string
+    required: true
+    description: "Entity name of template (e.g., ProductTemplate)"
+
+  - name: config_field
+    type: string
+    default: config_data
+    description: "JSONB field containing configuration"
+
+  - name: merge_strategy
+    type: enum
+    values: [override, merge, append]
+    default: override
+    description: |
+      - override: Child completely replaces parent values
+      - merge: Deep merge child into parent
+      - append: Concatenate arrays, merge objects
+
+  - name: max_depth
+    type: integer
+    default: 5
+    description: "Maximum template hierarchy depth to prevent infinite loops"
+
+schema_extensions:
+  fields:
+    - name: "{{ template_field }}"
+      type: "ref({{ template_entity }})"
+      nullable: true
+      comment: "Link to parent template for inheritance"
+      index: true
+
+action_helpers:
+  - function: "resolve_template_{{ entity.name | lower }}"
+    description: "Resolve configuration from full template hierarchy"
+    returns: jsonb
+    params:
+      - name: entity_id
+        type: uuid
+        description: "Entity ID to resolve configuration for"
+
+    logic: |
+      DECLARE
+        v_resolved_config jsonb;
+      BEGIN
+        WITH RECURSIVE template_chain AS (
+          -- Base case: entity's direct template
+          SELECT
+            1 as depth,
+            e.{{ template_field }} as template_id,
+            e.{{ config_field }} as config_data
+          FROM {{ schema }}.tb_{{ entity.name | lower }} e
+          WHERE e.id = entity_id
+
+          UNION ALL
+
+          -- Recursive case: parent templates
+          SELECT
+            tc.depth + 1,
+            t.{{ template_field }},
+            t.{{ config_field }}
+          FROM template_chain tc
+          JOIN {{ schema }}.tb_{{ template_entity | lower }} t
+            ON t.id = tc.template_id
+          WHERE tc.depth < {{ max_depth }}
+            AND tc.template_id IS NOT NULL
+        )
+        SELECT
+          {% if merge_strategy == 'override' %}
+          -- Override: Return most specific (deepest) non-null config
+          coalesce(
+            (SELECT config_data FROM template_chain ORDER BY depth LIMIT 1),
+            '{}'::jsonb
+          )
+          {% elif merge_strategy == 'merge' %}
+          -- Merge: Deep merge from generic to specific
+          jsonb_deep_merge(
+            config_data ORDER BY depth DESC
+          )
+          {% elif merge_strategy == 'append' %}
+          -- Append: Concatenate arrays, merge objects
+          jsonb_append_recursive(
+            config_data ORDER BY depth DESC
+          )
+          {% endif %}
+        INTO v_resolved_config
+        FROM template_chain;
+
+        RETURN v_resolved_config;
+      END;
+
+  - function: "validate_template_depth_{{ entity.name | lower }}"
+    description: "Validate template hierarchy doesn't exceed max depth"
+    returns: boolean
+    params:
+      - name: entity_id
+        type: uuid
+
+    logic: |
+      DECLARE
+        v_depth integer;
+      BEGIN
+        WITH RECURSIVE template_chain AS (
+          SELECT
+            1 as depth,
+            {{ template_field }} as template_id
+          FROM {{ schema }}.tb_{{ entity.name | lower }}
+          WHERE id = entity_id
+
+          UNION ALL
+
+          SELECT
+            tc.depth + 1,
+            t.{{ template_field }}
+          FROM template_chain tc
+          JOIN {{ schema }}.tb_{{ template_entity | lower }} t
+            ON t.id = tc.template_id
+          WHERE tc.depth < {{ max_depth }} + 1
+            AND tc.template_id IS NOT NULL
+        )
+        SELECT MAX(depth) INTO v_depth
+        FROM template_chain;
+
+        IF v_depth > {{ max_depth }} THEN
+          RAISE EXCEPTION 'Template hierarchy exceeds maximum depth of {{ max_depth }}';
+        END IF;
+
+        RETURN true;
+      END;
+
+  - function: "detect_circular_template_{{ entity.name | lower }}"
+    description: "Detect circular template dependencies"
+    returns: boolean
+    params:
+      - name: entity_id
+        type: uuid
+
+    logic: |
+      DECLARE
+        v_visited uuid[];
+        v_current_id uuid;
+      BEGIN
+        v_current_id := entity_id;
+        v_visited := ARRAY[]::uuid[];
+
+        WHILE v_current_id IS NOT NULL LOOP
+          -- Check if we've seen this ID before (circular reference)
+          IF v_current_id = ANY(v_visited) THEN
+            RAISE EXCEPTION 'Circular template dependency detected';
+          END IF;
+
+          -- Add to visited
+          v_visited := v_visited || v_current_id;
+
+           -- Get next template
+           SELECT {{ template_field }}
+           INTO v_current_id
+           FROM {{ schema }}.tb_{{ template_entity | lower }}
+           WHERE id = v_current_id;
+         END LOOP;
+
+         RETURN true;
+       END;
+
+schema_template: |
+  -- Validation trigger function
+  CREATE OR REPLACE FUNCTION {{ schema }}.trg_validate_template_{{ entity.name | lower }}_func()
+  RETURNS TRIGGER
+  LANGUAGE plpgsql
+  AS $$
+  BEGIN
+    -- Validate template depth on insert/update
+    IF NEW.{{ template_field }} IS NOT NULL THEN
+      PERFORM {{ schema }}.validate_template_depth_{{ entity.name | lower }}(NEW.id);
+    END IF;
+    RETURN NEW;
+  END;
+  $$;
+
+  -- Trigger
+  CREATE TRIGGER trg_validate_template_{{ entity.name | lower }}
+    BEFORE INSERT OR UPDATE ON {{ schema }}.tb_{{ entity.name | lower }}
+    FOR EACH ROW
+    EXECUTE FUNCTION {{ schema }}.trg_validate_template_{{ entity.name | lower }}_func();
+
+  -- Index for template lookups
+  CREATE INDEX idx_{{ entity.name | lower }}_{{ template_field }}
+  ON {{ schema }}.tb_{{ entity.name | lower }}({{ template_field }})
+  WHERE {{ template_field }} IS NOT NULL;

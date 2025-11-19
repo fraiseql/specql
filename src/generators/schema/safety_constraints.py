@@ -1,6 +1,5 @@
 """Safety constraint triggers for hierarchical entities."""
 
-
 from jinja2 import Template
 
 from src.core.ast_models import EntityDefinition

@@ -6,7 +6,7 @@ from src.core.ast_models import EntityDefinition
 def generate_deduplication_fields(entity: EntityDefinition) -> str:
     """Generate identifier, sequence_number, display_identifier fields."""
 
-    entity_name = entity.name.lower()
+    entity.name.lower()
 
     return """
     -- Deduplication Fields (3-field pattern)

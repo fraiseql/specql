@@ -1,36 +1,64 @@
 [project]
-name = "specql-generator"
-version = "0.5.0"  #   Managed by VERSION file
-description = "SpecQL schema generator - Business-focused YAML to PostgreSQL + GraphQL"
+name = "specql"
+version = "0.6.0"  #    Managed by VERSION file
+description = "SpecQL - Business-focused YAML to PostgreSQL + GraphQL code generator"
 authors = [
     {name = "Lionel Hamayon", email = "lionel.hamayon@evolution-digitale.fr"}
 ]
 license = {text = "MIT"}
 requires-python = ">=3.11"
+# Core dependencies - MINIMAL, always installed
 dependencies = [
     "pyyaml>=6.0",
     "jinja2>=3.1.2",
     "click>=8.1.0",
     "rich>=13.0.0",
-    "psycopg2-binary>=2.9.0",
     "psycopg>=3.2.12",
     "fraiseql-confiture>=0.3.0",
-    "faker>=37.12.0",
+    "tree-sitter>=0.25.2",
 ]
 
 [project.optional-dependencies]
+# Development tools
 dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
     "pytest-asyncio>=0.21.0",
+    "hypothesis>=6.142.0",
     "ruff>=0.1.0",
     "mypy>=1.5.0",
     "black>=23.0.0",
     "types-pyyaml>=6.0.0",
 ]
 
+# Reverse engineering features
+reverse = [
+    "pglast>=7.10",  # SQL AST parsing
+    "tree-sitter-language-pack>=0.11.0",  # Actively maintained (165+ languages, Python 3.10+, works with 3.13!)
+    # Note: The compatibility layer supports automatic fallback with smart prioritization:
+    #   Priority 1: Individual packages (most up-to-date grammars, e.g., Prisma v15 vs v13 in language-pack)
+    #   Priority 2: tree-sitter-language-pack (actively maintained, 165+ languages, Python 3.13 wheels available)
+    #   Priority 3: tree-sitter-languages (legacy, unmaintained, Python < 3.13 only)
+    # Simply install any of these and the compatibility layer will use the best available option.
+]
+
+# Infrastructure deployment features
+infrastructure = [
+    "python-hcl2>=4.3.0",  # Terraform HCL parsing
+]
+
+# Test data generation
+testing = [
+    "faker>=37.12.0",
+]
+
+# Convenience: all optional features
+all = [
+    "specql[dev,reverse,infrastructure,testing]",
+]
+
 [project.scripts]
-specql = "src.cli.confiture_extensions:specql"
+specql = "cli.confiture_extensions:specql"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
@@ -64,8 +92,20 @@ exclude_lines = [
 [tool.ruff]
 line-length = 100
 target-version = "py311"
+
+[tool.ruff.lint]
 select = ["E", "F", "I", "N", "W", "UP"]
 ignore = ["E501"]  # Line too long (handled by formatter)
+
+[tool.ruff.lint.per-file-ignores]
+# Java bridge: method names intentionally match Java camelCase conventions
+"src/reverse_engineering/java/jdt_bridge.py" = ["N802", "N806"]
+# Metadata generator: GENERATOR_MAP follows SQL naming
+"src/testing/metadata/metadata_generator.py" = ["N806"]
+# Field generators: Faker follows library convention
+"src/testing/seed/field_generators.py" = ["N806"]
+# Test files: allow bare except, star imports, late imports, naming, undefined names (fixtures)
+"tests/**/*.py" = ["E402", "E722", "E741", "F403", "F405", "F811", "F821", "N806"]
 
 [tool.mypy]
 python_version = "3.11"
@@ -77,3 +117,10 @@ ignore_missing_imports = true
 [tool.black]
 line-length = 100
 target-version = ['py311']
+
+# No workspace members - all dependencies from PyPI
+
+[dependency-groups]
+dev = [
+    "pytest>=8.4.2",
+]

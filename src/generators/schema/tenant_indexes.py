@@ -1,6 +1,5 @@
 """Tenant-scoped composite index generation for multi-tenant performance."""
 
-
 from src.core.ast_models import EntityDefinition
 
 

@@ -51,7 +51,9 @@ class TestGenerateCommand:
 
     def test_generate_foundation_only(self, cli_runner, sample_entity_file):
         """Test foundation-only generation."""
-        result = cli_runner.invoke(specql, ["generate", str(sample_entity_file), "--foundation-only"])
+        result = cli_runner.invoke(
+            specql, ["generate", str(sample_entity_file), "--foundation-only"]
+        )
 
         assert result.exit_code == 0
         assert "Generated" in result.output
@@ -74,9 +76,7 @@ class TestGenerateCommand:
 
     def test_generate_multiple_files(self, cli_runner, multiple_entity_files):
         """Test generation with multiple entity files."""
-        result = cli_runner.invoke(
-            specql, ["generate", *[str(f) for f in multiple_entity_files]]
-        )
+        result = cli_runner.invoke(specql, ["generate", *[str(f) for f in multiple_entity_files]])
 
         assert result.exit_code == 0
         assert "Generated" in result.output
@@ -126,6 +126,7 @@ class TestGenerateCommand:
         """Test generation when Confiture is not available."""
         # Mock the import to fail
         import sys
+
         with patch.dict(sys.modules, {"confiture.core.builder": None}):
             # Need to trigger the import error
             result = cli_runner.invoke(specql, ["generate", str(sample_entity_file)])
@@ -147,9 +148,7 @@ class TestGenerateCommand:
             assert result.exit_code == 1
             assert "Confiture build failed" in result.output
 
-    def test_generate_with_foundation_only_skip_confiture(
-        self, cli_runner, sample_entity_file
-    ):
+    def test_generate_with_foundation_only_skip_confiture(self, cli_runner, sample_entity_file):
         """Test that foundation-only mode skips Confiture build."""
         result = cli_runner.invoke(
             specql, ["generate", str(sample_entity_file), "--foundation-only"]
@@ -183,7 +182,7 @@ class TestValidateCommand:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(returncode=0)
 
-            result = cli_runner.invoke(specql, ["validate", str(sample_entity_file)])
+            cli_runner.invoke(specql, ["validate", str(sample_entity_file)])
 
             # Should call subprocess
             assert mock_run.called
@@ -195,9 +194,7 @@ class TestValidateCommand:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(returncode=0)
 
-            result = cli_runner.invoke(
-                specql, ["validate", *[str(f) for f in multiple_entity_files]]
-            )
+            cli_runner.invoke(specql, ["validate", *[str(f) for f in multiple_entity_files]])
 
             # Should call subprocess with all files
             assert mock_run.called
@@ -209,9 +206,7 @@ class TestValidateCommand:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(returncode=0)
 
-            result = cli_runner.invoke(
-                specql, ["validate", str(sample_entity_file), "--check-impacts"]
-            )
+            cli_runner.invoke(specql, ["validate", str(sample_entity_file), "--check-impacts"])
 
             # Should call subprocess with --check-impacts
             assert mock_run.called
@@ -223,9 +218,7 @@ class TestValidateCommand:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(returncode=0)
 
-            result = cli_runner.invoke(
-                specql, ["validate", str(sample_entity_file), "--verbose"]
-            )
+            cli_runner.invoke(specql, ["validate", str(sample_entity_file), "--verbose"])
 
             # Should call subprocess with --verbose
             assert mock_run.called
@@ -238,7 +231,7 @@ class TestValidateCommand:
         with patch("subprocess.run") as mock_run:
             mock_run.return_value = Mock(returncode=1)
 
-            result = cli_runner.invoke(specql, ["validate", str(sample_entity_file)])
+            cli_runner.invoke(specql, ["validate", str(sample_entity_file)])
 
             # The validate function calls subprocess.run
             assert mock_run.called

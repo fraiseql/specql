@@ -26,7 +26,9 @@ class TestDatabaseOperations:
             fields={
                 "email": FieldDefinition(name="email", type_name="text"),
                 "status": FieldDefinition(name="status", type_name="text"),
-                "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company"),
+                "company": FieldDefinition(
+                    name="company", type_name="ref", reference_entity="Company"
+                ),
             },
         )
 

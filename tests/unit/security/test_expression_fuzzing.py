@@ -120,14 +120,13 @@ class TestOperatorFuzzing:
 
     def test_random_operator_stacking(self, compiler, test_entity):
         """Test stacking multiple operators"""
-        operators = ["=", "!=", "<", ">", "AND", "OR"]
 
         for _ in range(30):
             num_ops = random.randint(1, 5)
             parts = []
 
             for i in range(num_ops):
-                parts.append(f"status = 'lead'")
+                parts.append("status = 'lead'")
                 if i < num_ops - 1:
                     parts.append(random.choice(["AND", "OR"]))
 

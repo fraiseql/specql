@@ -25,7 +25,9 @@ class TestBasicScaffolding:
             schema="crm",
             fields={
                 "email": FieldDefinition(name="email", type_name="text"),
-                "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company"),
+                "company": FieldDefinition(
+                    name="company", type_name="ref", reference_entity="Company"
+                ),
             },
         )
 
@@ -47,7 +49,9 @@ class TestBasicScaffolding:
             name="Contact",
             fields={
                 "email": FieldDefinition(name="email", type_name="text"),
-                "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company"),
+                "company": FieldDefinition(
+                    name="company", type_name="ref", reference_entity="Company"
+                ),
             },
         )
 

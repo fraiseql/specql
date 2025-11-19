@@ -1,7 +1,6 @@
 """Tests for CLI validate command."""
 
 
-
 class TestValidateCommand:
     """Test the validate CLI command."""
 

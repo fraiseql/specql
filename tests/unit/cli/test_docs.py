@@ -1,7 +1,6 @@
 """Tests for CLI docs command."""
 
 
-
 class TestDocsCommand:
     """Test the docs CLI command."""
 

@@ -1,6 +1,5 @@
 """Audit field generation with separate recalculation tracking."""
 
-
 from src.core.ast_models import EntityDefinition
 
 

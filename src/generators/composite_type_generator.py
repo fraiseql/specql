@@ -92,8 +92,8 @@ class CompositeTypeGenerator:
             # Add id field for update operations
             base_fields["id"] = FieldDefinition(name="id", type_name="uuid", nullable=False)
         elif action.name.startswith("delete"):
-            # Delete actions typically don't need input types (just ID)
-            return {}
+            # Delete actions need ID field for record identification
+            return {"id": FieldDefinition(name="id", type_name="uuid", nullable=False)}
         else:
             # Custom action - analyze steps to determine required fields
             base_fields = self._analyze_custom_action_fields(action, entity)

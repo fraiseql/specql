@@ -46,7 +46,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION app.qualify_lead IS
-'Performs qualify lead operation on Contact.
+'Qualifys lead.
 Validates input and delegates to core business logic.
 
 @fraiseql:mutation

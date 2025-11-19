@@ -11,8 +11,9 @@ from src.core.ast_models import Entity
 from src.generators.comment_generator import CommentGenerator
 from src.generators.constraint_generator import ConstraintGenerator
 from src.generators.index_generator import IndexGenerator
+from src.generators.schema.ddl_deduplicator import DDLDeduplicator
 from src.generators.schema.schema_registry import SchemaRegistry
-from src.utils.safe_slug import safe_slug, safe_table_name
+from src.utils.safe_slug import safe_table_name
 
 
 class TableGenerator:
@@ -41,7 +42,7 @@ class TableGenerator:
         self.comment_generator = CommentGenerator()
         self.index_generator = IndexGenerator()
 
-    def generate_table_ddl(self, entity: Entity) -> str:
+    def generate_table_ddl(self, entity) -> str:
         """
         Generate complete CREATE TABLE DDL for entity
 
@@ -51,18 +52,41 @@ class TableGenerator:
         Returns:
             Complete PostgreSQL DDL as string
         """
+        # Apply patterns to entity first
+        entity, additional_sql = self._apply_patterns_to_entity(entity)
+
         # Prepare template context
         context = self._prepare_template_context(entity)
 
         # Load and render template
         template = self.env.get_template("table.sql.j2")
-        return template.render(**context)
+        table_sql = template.render(**context)
+
+        # Combine table SQL with pattern-generated SQL
+        if additional_sql:
+            return table_sql + "\n\n" + additional_sql
+        else:
+            return table_sql
+
+    def _apply_patterns_to_entity(self, entity: Entity) -> tuple[Entity, str]:
+        """Apply patterns to entity, returning enhanced entity and additional SQL."""
+        if not entity.patterns:
+            return entity, ""
+
+        try:
+            from src.generators.schema.pattern_applier import PatternApplier
+
+            applier = PatternApplier()
+            return applier.apply_patterns(entity)
+        except ImportError:
+            # If pattern system not available, return entity as-is
+            return entity, ""
 
     def _prepare_template_context(self, entity: Entity) -> dict[str, Any]:
         """Prepare context dictionary for Jinja2 template"""
 
         # Determine multi-tenancy requirements based on schema
-        is_tenant_specific = self._is_tenant_specific_schema(entity.schema)
+        is_tenant_specific = self.schema_registry.is_multi_tenant(entity.schema)
 
         # Convert fields to template format (dict format expected by template)
         business_fields = {}
@@ -115,6 +139,9 @@ class TableGenerator:
 
                 business_fields[field_name] = field_dict
 
+        # Patterns are now processed by PatternApplier in SchemaOrchestrator
+        pattern_extensions = self._process_patterns(entity)
+
         # Build context
         context = {
             "entity": {
@@ -137,18 +164,34 @@ class TableGenerator:
                     ),
                     "fields": entity.translations.fields if entity.translations else [],
                 },
+                "patterns": pattern_extensions,
             }
         }
 
         return context
 
-    def _is_tenant_specific_schema(self, schema: str) -> bool:
-        """
-        Determine if schema is tenant-specific (needs tenant_id) or common (shared)
+    def _process_patterns(self, entity: Entity) -> dict[str, Any]:
+        """Process entity patterns and return extensions for template"""
+        # Patterns are now handled by PatternApplier in SchemaOrchestrator
+        # This method extracts pattern extensions from the entity
 
-        Uses domain registry to check multi_tenant flag
-        """
-        return self.schema_registry.is_multi_tenant(schema)
+        # Extract pattern metadata from entity notes
+        metadata = []
+        if hasattr(entity, "notes") and entity.notes:
+            for line in entity.notes.split("\n"):
+                if line.startswith("Applied pattern: "):
+                    pattern_name = line.split("Applied pattern: ")[1]
+                    metadata.append(f"@fraiseql:pattern:{pattern_name}")
+
+        return {
+            "computed_columns": entity.computed_columns,
+            "scd_indexes": entity.indexes,
+            "exclusion_constraints": [],
+            "aggregate_views": [],
+            "constraints": [],
+            "scd_functions": entity.functions,
+            "metadata": metadata,
+        }
 
     def generate_foreign_keys_ddl(self, entity: Entity) -> str:
         """
@@ -183,42 +226,95 @@ class TableGenerator:
         return "\n\n".join(fk_statements)
 
     def generate_indexes_ddl(self, entity: Entity) -> str:
-        """
-        Generate CREATE INDEX statements
-
-        Args:
-            entity: Parsed Entity AST
-
-        Returns:
-            Index DDL statements
-        """
+        """Generate CREATE INDEX statements with explicit USING clause"""
         indexes = []
 
-        entity_name_slug = safe_slug(entity.name)
+        table_name = f"{entity.schema}.tb_{entity.name.lower()}"
+        # Index names are database-global in PostgreSQL, so include schema prefix
+        schema_prefix = f"{entity.schema.lower()}_"
 
-        # Index on UUID (for external API lookups)
-        # Index naming follows table convention: idx_tb_{entity}_{field}
-        indexes.append(f"""CREATE INDEX idx_tb_{entity_name_slug}_id
-    ON {entity.schema}.{safe_table_name(entity.name)} USING btree (id);""")
+        # Index on id (UUID primary key) - explicitly specify USING btree
+        indexes.append(
+            f"CREATE INDEX {schema_prefix}idx_tb_{entity.name.lower()}_id ON {table_name} USING btree (id);"
+        )
 
-        # Index on foreign keys
+        # Indexes on foreign keys - explicitly specify USING btree
         for field_name, field_def in entity.fields.items():
             if field_def.type_name == "ref" and field_def.reference_entity:
                 fk_name = f"fk_{field_name}"
-                indexes.append(f"""CREATE INDEX idx_tb_{entity_name_slug}_{safe_slug(field_name)}
-    ON {entity.schema}.{safe_table_name(entity.name)} USING btree ({fk_name});""")
+                indexes.append(
+                    f"CREATE INDEX {schema_prefix}idx_tb_{entity.name.lower()}_{field_name} ON {table_name} USING btree ({fk_name});"
+                )
 
-        # Index on enum fields (for filtering)
+        # Indexes on enum fields - explicitly specify USING btree
         for field_name, field_def in entity.fields.items():
             if field_def.type_name == "enum" and field_def.values:
-                indexes.append(f"""CREATE INDEX idx_tb_{entity_name_slug}_{safe_slug(field_name)}
-    ON {entity.schema}.{safe_table_name(entity.name)} USING btree ({field_name});""")
+                indexes.append(
+                    f"CREATE INDEX {schema_prefix}idx_tb_{entity.name.lower()}_{field_name} ON {table_name} USING btree ({field_name});"
+                )
 
-        return "\n\n".join(indexes)
+        # Rich type indexes
+        rich_indexes = self.index_generator.generate_indexes_for_rich_types(entity)
+        indexes.extend(rich_indexes)
+
+        # Custom indexes from patterns
+        if hasattr(entity, "indexes") and entity.indexes:
+            for index_def in entity.indexes:
+                if isinstance(index_def, dict):
+                    # Custom index from pattern
+                    index_name = index_def["name"]
+                    # Render column names if they contain templates
+                    columns = []
+                    for col in index_def["columns"]:
+                        # Simple template rendering for common patterns
+                        if "{{ params.start_date_field }}_{{ params.end_date_field }}_range" in col:
+                            # This is our computed column
+                            col = col.replace(
+                                "{{ params.start_date_field }}_{{ params.end_date_field }}_range",
+                                "start_date_end_date_range",
+                            )
+                        columns.append(col)
+                    columns_str = ", ".join(columns)
+                    index_type = index_def.get("index_type", "btree")
+                    indexes.append(
+                        f"CREATE INDEX {index_name} ON {table_name} USING {index_type} ({columns_str});"
+                    )
+                else:
+                    # Legacy Index object
+                    index_type = getattr(index_def, "type", "btree")
+                    # Special case for daterange indexes - assume GIST
+                    if index_def.name and "daterange" in str(index_def.name):
+                        indexes.append(
+                            f"CREATE INDEX {index_def.name} ON {table_name} USING gist ({', '.join(index_def.columns)});"
+                        )
+                    elif index_type != "btree":
+                        indexes.append(
+                            f"CREATE INDEX {index_def.name} ON {table_name} USING {index_type} ({', '.join(index_def.columns)});"
+                        )
+                    else:
+                        indexes.append(
+                            f"CREATE INDEX {index_def.name} ON {table_name} ({', '.join(index_def.columns)});"
+                        )
+
+        # Deduplicate indexes to prevent duplicate statements
+        indexes = DDLDeduplicator.deduplicate_indexes(indexes)
+
+        return "\n".join(indexes)
 
     def generate_field_comments(self, entity: Entity) -> list[str]:
-        """Generate COMMENT ON COLUMN statements for all fields"""
-        return self.comment_generator.generate_all_field_comments(entity)
+        """Generate COMMENT ON COLUMN statements for all fields with deduplication"""
+        # Convert Entity to EntityDefinition if needed
+        if isinstance(entity, Entity):
+            # Entity is already compatible with CommentGenerator
+            comments = self.comment_generator.generate_all_field_comments(entity)
+        else:
+            # Handle EntityDefinition or other types
+            comments = self.comment_generator.generate_all_field_comments(entity)
+
+        # Deduplicate comments to prevent duplicate statements
+        comments = DDLDeduplicator.deduplicate_comments(comments)
+
+        return comments
 
     def generate_indexes_for_rich_types(self, entity: Entity) -> list[str]:
         """Generate indexes for rich type fields"""
@@ -232,22 +328,17 @@ class TableGenerator:
         # 1. CREATE TABLE
         ddl_parts.append(self.generate_table_ddl(entity))
 
-        # 2. CREATE INDEX statements (standard indexes)
+        # 2. CREATE INDEX statements (includes both standard and rich type indexes)
         indexes = self.generate_indexes_ddl(entity)
         if indexes:
             ddl_parts.append(indexes)
 
-        # 3. CREATE INDEX statements (rich type indexes)
-        rich_type_indexes = self.generate_indexes_for_rich_types(entity)
-        if rich_type_indexes:
-            ddl_parts.append("\n\n".join(rich_type_indexes))
-
-        # 4. COMMENT ON statements
+        # 3. COMMENT ON statements
         comments = self.comment_generator.generate_all_field_comments(entity)
         if comments:
             ddl_parts.extend(comments)
 
-        # 5. Table comment
+        # 4. Table comment
         table_comment = self.comment_generator.generate_table_comment(entity)
         ddl_parts.append(table_comment)
 

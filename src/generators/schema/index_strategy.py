@@ -1,7 +1,6 @@
 """Index generation strategy with partial index support."""
 
 
-
 def generate_index(
     table_name: str,
     index_name: str,

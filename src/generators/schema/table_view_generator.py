@@ -7,7 +7,6 @@ These denormalized tables expose data to FraiseQL for auto-GraphQL generation.
 Key Innovation: JSONB composition from related tv_ tables (not tb_ tables)
 """
 
-
 from src.core.ast_models import EntityDefinition, ExtraFilterColumn, IncludeRelation
 
 
@@ -92,11 +91,13 @@ CREATE TABLE {schema}.tv_{entity_lower} (
         """Generate indexes for tv_ table."""
         entity_lower = self.entity.name.lower()
         schema = self.entity.schema
+        # Index names are database-global in PostgreSQL, so include schema prefix
+        schema_prefix = f"{schema.lower()}_"
         indexes = []
 
         # Tenant index (always)
         indexes.append(
-            f"CREATE INDEX idx_tv_{entity_lower}_tenant ON {schema}.tv_{entity_lower}(tenant_id);"
+            f"CREATE INDEX {schema_prefix}idx_tv_{entity_lower}_tenant ON {schema}.tv_{entity_lower}(tenant_id);"
         )
 
         # UUID foreign key indexes (auto-inferred)
@@ -106,14 +107,14 @@ CREATE TABLE {schema}.tv_{entity_lower} (
                 ref_lower = ref_entity.lower()
 
                 indexes.append(
-                    f"CREATE INDEX idx_tv_{entity_lower}_{ref_lower}_id "
+                    f"CREATE INDEX {schema_prefix}idx_tv_{entity_lower}_{ref_lower}_id "
                     f"ON {schema}.tv_{entity_lower}({ref_lower}_id);"
                 )
 
         # Path index (if hierarchical)
         if self._is_entity_hierarchical():
             indexes.append(
-                f"CREATE INDEX idx_tv_{entity_lower}_path "
+                f"CREATE INDEX {schema_prefix}idx_tv_{entity_lower}_path "
                 f"ON {schema}.tv_{entity_lower} USING GIST(path);"
             )
 
@@ -125,31 +126,31 @@ CREATE TABLE {schema}.tv_{entity_lower} (
                 if index_type == "GIN_TRGM":
                     # Trigram index for partial text matching
                     indexes.append(
-                        f"CREATE INDEX idx_tv_{entity_lower}_{col.name} "
+                        f"CREATE INDEX {schema_prefix}idx_tv_{entity_lower}_{col.name} "
                         f"ON {schema}.tv_{entity_lower} "
                         f"USING GIN({col.name} gin_trgm_ops);"
                     )
                 elif index_type == "GIN":
                     indexes.append(
-                        f"CREATE INDEX idx_tv_{entity_lower}_{col.name} "
+                        f"CREATE INDEX {schema_prefix}idx_tv_{entity_lower}_{col.name} "
                         f"ON {schema}.tv_{entity_lower} "
                         f"USING GIN({col.name});"
                     )
                 elif index_type == "GIST":
                     indexes.append(
-                        f"CREATE INDEX idx_tv_{entity_lower}_{col.name} "
+                        f"CREATE INDEX {schema_prefix}idx_tv_{entity_lower}_{col.name} "
                         f"ON {schema}.tv_{entity_lower} "
                         f"USING GIST({col.name});"
                     )
                 else:  # BTREE (default)
                     indexes.append(
-                        f"CREATE INDEX idx_tv_{entity_lower}_{col.name} "
+                        f"CREATE INDEX {schema_prefix}idx_tv_{entity_lower}_{col.name} "
                         f"ON {schema}.tv_{entity_lower}({col.name});"
                     )
 
         # GIN index for JSONB queries (always)
         indexes.append(
-            f"CREATE INDEX idx_tv_{entity_lower}_data "
+            f"CREATE INDEX {schema_prefix}idx_tv_{entity_lower}_data "
             f"ON {schema}.tv_{entity_lower} USING GIN(data);"
         )
 

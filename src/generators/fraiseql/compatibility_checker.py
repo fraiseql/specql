@@ -11,7 +11,6 @@ FraiseQL v1.3.4+ automatically discovers types from PostgreSQL metadata:
 Result: No manual annotations needed! ✨
 """
 
-
 from src.core.scalar_types import SCALAR_TYPES
 
 

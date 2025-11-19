@@ -156,7 +156,7 @@ class TestCLIOrchestrator:
         orchestrator = CLIOrchestrator()
         output_dir = temp_dir / "deep" / "nested" / "migrations"
 
-        result = orchestrator.generate_from_files(
+        orchestrator.generate_from_files(
             entity_files=[], output_dir=str(output_dir), foundation_only=True
         )
 

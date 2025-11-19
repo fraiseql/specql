@@ -77,3 +77,6 @@ tmp_*/
 # Database files (keep in migrations/)
 /*.db
 /*.sql
+
+# Vendor dependencies (managed as PyPI packages)
+vendor/

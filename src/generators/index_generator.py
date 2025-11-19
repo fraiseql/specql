@@ -3,7 +3,6 @@ Index Generator for Rich Types
 Generates appropriate database indexes for FraiseQL rich types
 """
 
-
 from src.core.ast_models import Entity, FieldDefinition
 from src.utils.safe_slug import safe_slug, safe_table_name
 
@@ -60,8 +59,11 @@ class IndexGenerator:
         Fallback: Unknown rich types default to B-tree for safety.
         """
         table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
-        # Index name follows table naming convention: idx_tb_{entity}_{field}
-        index_name = f"idx_tb_{safe_slug(entity.name)}_{safe_slug(field.name)}"
+        # Index names are database-global in PostgreSQL, so include schema prefix
+        # Format: {schema}_idx_tb_{entity}_{field}
+        index_name = (
+            f"{safe_slug(entity.schema)}_idx_tb_{safe_slug(entity.name)}_{safe_slug(field.name)}"
+        )
 
         # Different index types based on rich type
         if field.type_name in ("email", "phoneNumber", "macAddress", "slug", "color", "money"):

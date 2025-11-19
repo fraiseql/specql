@@ -3,7 +3,20 @@
 import random
 from typing import Any
 
-from faker import Faker
+from src.core.dependencies import FAKER
+
+# Lazy import with availability check
+_faker = None
+
+
+def _get_faker():
+    global _faker
+    if _faker is None:
+        FAKER.require()  # Raises helpful error if not installed
+        from faker import Faker
+
+        _faker = Faker
+    return _faker
 
 
 class FieldValueGenerator:
@@ -14,6 +27,7 @@ class FieldValueGenerator:
         Args:
             seed: Random seed for deterministic generation
         """
+        Faker = _get_faker()
         self.faker = Faker()
         if seed:
             Faker.seed(seed)

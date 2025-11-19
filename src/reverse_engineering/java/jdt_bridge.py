@@ -1,0 +1,526 @@
+"""
+Eclipse JDT Bridge
+
+Python bridge to Eclipse JDT for parsing Java code.
+Uses Py4J to communicate with Java process running JDT.
+"""
+
+import atexit
+import subprocess
+from pathlib import Path
+from typing import Any
+
+from py4j.java_gateway import GatewayParameters, JavaGateway
+
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
+class JDTBridge:
+    """Bridge to Eclipse JDT Java parser"""
+
+    def __init__(self):
+        self.gateway: JavaGateway | None = None
+        self.jdt_process: subprocess.Popen | None = None
+        self._start_jdt_server()
+
+    def _start_jdt_server(self):
+        """Start JDT Java process"""
+        try:
+            # Find lib/jdt directory relative to project root
+            # Assume we're running from project root or a subdirectory
+            jdt_dir = Path("lib/jdt")
+            if not jdt_dir.exists():
+                # Try from current file's location
+                project_root = Path(__file__).parent.parent.parent.parent
+                jdt_dir = project_root / "lib" / "jdt"
+
+            if not jdt_dir.exists():
+                raise FileNotFoundError(f"JDT directory not found: {jdt_dir}")
+
+            # Start Java process with JDT wrapper from lib/jdt directory
+            # Include all Eclipse dependencies for standalone parsing
+            classpath = ":".join(
+                [
+                    "org.eclipse.jdt.core-3.35.0.jar",
+                    "org.eclipse.jdt.compiler.apt-1.5.100.jar",
+                    "org.eclipse.core.resources-3.19.100.jar",
+                    "org.eclipse.equinox.common-3.18.100.jar",
+                    "py4j0.10.9.7.jar",
+                    ".",
+                ]
+            )
+
+            self.jdt_process = subprocess.Popen(
+                ["java", "-cp", classpath, "JDTWrapper"], cwd=str(jdt_dir)
+            )
+
+            # Connect to gateway
+            self.gateway = JavaGateway(gateway_parameters=GatewayParameters(auto_convert=True))
+
+            # Register cleanup
+            atexit.register(self.shutdown)
+
+        except (FileNotFoundError, subprocess.SubprocessError, Exception) as e:
+            # Fallback to mock implementation if Java/JDT not available
+            logger.warning(f"JDT bridge initialization failed ({e}), using mock implementation")
+            self._use_mock_implementation()
+
+    def _use_mock_implementation(self):
+        """Use mock implementation when JDT is not available"""
+        self.mock_mode = True
+
+    def parse_java(self, source_code: str) -> Any:
+        """
+        Parse Java source code to AST
+
+        Args:
+            source_code: Java source code as string
+
+        Returns:
+            CompilationUnit AST (or mock AST in fallback mode)
+        """
+        if hasattr(self, "mock_mode") and self.mock_mode:
+            return self._mock_parse_java(source_code)
+
+        if not self.gateway:
+            raise RuntimeError("JDT gateway not initialized")
+
+        try:
+            wrapper = self.gateway.entry_point
+            return wrapper.parse(source_code)
+        except Exception as e:
+            logger.warning(f"JDT parsing failed ({e}), falling back to mock implementation")
+            self._use_mock_implementation()
+            return self._mock_parse_java(source_code)
+
+    def _mock_parse_java(self, source_code: str) -> Any:
+        """
+        Mock Java parsing for development/testing when JDT is not available
+
+        Returns a simplified AST-like structure that mimics basic JDT structure
+        """
+
+        class MockCompilationUnit:
+            def __init__(self, source):
+                self.source = source
+                self._types = []
+
+            def types(self):
+                return self._types
+
+        # Basic mock - identify class declarations with annotations
+        cu = MockCompilationUnit(source_code)
+
+        # Simple regex-based class extraction with @Entity annotation
+        import re
+
+        # Match @Entity followed by class declaration (allowing newlines and abstract)
+        entity_pattern = (
+            r"@Entity[\s\S]*?public\s+(?:abstract\s+)?class\s+(\w+)[\s\S]*?\{([\s\S]*?)\}"
+        )
+        matches = re.findall(entity_pattern, source_code, re.MULTILINE | re.DOTALL)
+
+        for match in matches:
+            class_name = match[0]
+            class_body = match[1]
+            mock_type = MockTypeDeclaration(class_name, source_code, class_body)
+            cu._types.append(mock_type)
+
+        return cu
+
+    def shutdown(self):
+        """Shutdown JDT server"""
+        if self.gateway:
+            self.gateway.shutdown()
+        if self.jdt_process:
+            self.jdt_process.terminate()
+            self.jdt_process.wait()
+
+
+class MockTypeDeclaration:
+    """Mock type declaration for fallback mode"""
+
+    def __init__(self, class_name, source_code, class_body=None):
+        self.class_name = class_name
+        self.source_code = source_code
+        self._class_body = class_body
+        self._modifiers = self._extract_modifiers()
+        self._body_declarations = self._extract_fields()
+
+    def getName(self):
+        return MockSimpleName(self.class_name)
+
+    def modifiers(self):
+        return self._modifiers
+
+    def bodyDeclarations(self):
+        return self._body_declarations
+
+    def _extract_modifiers(self):
+        """Extract class-level annotations"""
+        modifiers = [MockAnnotation("@Entity")]  # Always add @Entity
+
+        # Extract @Table annotation if present
+        import re
+
+        table_pattern = r"@Table\(([^)]+)\)"
+        table_match = re.search(table_pattern, self.source_code)
+        if table_match:
+            table_params = table_match.group(1)
+            modifiers.append(MockTableAnnotation(table_params))
+
+        return modifiers
+
+    def _extract_fields(self):
+        """Extract field declarations from the class"""
+        fields = []
+        import re
+
+        # Use the stored class body if available, otherwise find it
+        if hasattr(self, "_class_body") and self._class_body:
+            class_body = self._class_body
+        else:
+            # Find the class body
+            class_pattern = rf"@Entity\s+public\s+class\s+{self.class_name}\s*\{{(.*?)\}}"
+            match = re.search(class_pattern, self.source_code, re.DOTALL)
+            if not match:
+                return fields
+            class_body = match.group(1)
+
+        # Extract field declarations (handle generics like List<Contact>)
+        field_pattern = (
+            r"(?:@\w+(?:\([^)]*\))?\s+)*private\s+([\w<>\[\]]+)\s+(\w+)(?:\s*=\s*[^;]+)?\s*;"
+        )
+        field_matches = re.findall(field_pattern, class_body)
+
+        for java_type, field_name in field_matches:
+            field_decl = MockFieldDeclaration(java_type, field_name, class_body)
+            fields.append(field_decl)
+
+        return fields
+
+
+class MockSimpleName:
+    """Mock simple name"""
+
+    def __init__(self, identifier):
+        self.identifier = identifier
+
+    def getIdentifier(self):
+        return self.identifier
+
+
+class MockAnnotation:
+    """Mock annotation"""
+
+    def __init__(self, annotation_text):
+        self.annotation_text = annotation_text
+        # Extract annotation name from @Name format
+        if annotation_text.startswith("@"):
+            self.annotation_name = annotation_text[1:]
+        else:
+            self.annotation_name = annotation_text
+
+    def isAnnotation(self):
+        return True
+
+    def getTypeName(self):
+        return MockQualifiedName(self.annotation_name)
+
+    def isSingleMemberAnnotation(self):
+        return False
+
+    def isNormalAnnotation(self):
+        return True
+
+    def values(self):
+        return []
+
+    def getValue(self):
+        """For single member annotations"""
+        return None
+
+
+class MockTableAnnotation(MockAnnotation):
+    """Mock @Table annotation"""
+
+    def __init__(self, params_text):
+        super().__init__("@Table")
+        self.params_text = params_text
+
+    def values(self):
+        # Parse name = "contacts", schema = "test" from params
+        import re
+
+        values = []
+
+        # Parse name
+        name_match = re.search(r'name\s*=\s*"([^"]+)"', self.params_text)
+        if name_match:
+            values.append(MockAnnotationMemberValuePair("name", name_match.group(1)))
+
+        # Parse schema
+        schema_match = re.search(r'schema\s*=\s*"([^"]+)"', self.params_text)
+        if schema_match:
+            values.append(MockAnnotationMemberValuePair("schema", schema_match.group(1)))
+
+        return values
+
+
+class MockColumnAnnotation(MockAnnotation):
+    """Mock @Column annotation"""
+
+    def __init__(self, params_text):
+        super().__init__("@Column")
+        self.params_text = params_text
+
+    def values(self):
+        # Parse parameters like nullable = false, unique = true, etc.
+        import re
+
+        values = []
+
+        # Parse name = "value"
+        name_match = re.search(r'name\s*=\s*"([^"]+)"', self.params_text)
+        if name_match:
+            values.append(MockAnnotationMemberValuePair("name", name_match.group(1)))
+
+        # Parse nullable = false/true
+        nullable_match = re.search(r"nullable\s*=\s*(true|false)", self.params_text, re.IGNORECASE)
+        if nullable_match:
+            values.append(
+                MockAnnotationMemberValuePair("nullable", nullable_match.group(1).lower() == "true")
+            )
+
+        # Parse unique = false/true
+        unique_match = re.search(r"unique\s*=\s*(true|false)", self.params_text, re.IGNORECASE)
+        if unique_match:
+            values.append(
+                MockAnnotationMemberValuePair("unique", unique_match.group(1).lower() == "true")
+            )
+
+        # Parse length = 100
+        length_match = re.search(r"length\s*=\s*(\d+)", self.params_text)
+        if length_match:
+            values.append(MockAnnotationMemberValuePair("length", int(length_match.group(1))))
+
+        return values
+
+
+class MockJoinColumnAnnotation(MockAnnotation):
+    """Mock @JoinColumn annotation"""
+
+    def __init__(self, params_text):
+        super().__init__("@JoinColumn")
+        self.params_text = params_text
+
+    def values(self):
+        # Parse parameters like name = "company_id"
+        import re
+
+        values = []
+
+        # Parse name = "value"
+        name_match = re.search(r'name\s*=\s*"([^"]+)"', self.params_text)
+        if name_match:
+            values.append(MockAnnotationMemberValuePair("name", name_match.group(1)))
+
+        return values
+
+
+class MockEnumeratedAnnotation(MockAnnotation):
+    """Mock @Enumerated annotation"""
+
+    def __init__(self, params_text):
+        super().__init__("@Enumerated")
+        self.params_text = params_text
+
+    def values(self):
+        # Parse parameters like EnumType.STRING or value = EnumType.STRING
+        import re
+
+        values = []
+
+        # Try parsing value = EnumType.STRING first
+        value_match = re.search(r"value\s*=\s*[^.]+\.(\w+)", self.params_text)
+        if value_match:
+            values.append(MockAnnotationMemberValuePair("value", value_match.group(1)))
+        else:
+            # Try parsing just EnumType.STRING (implicit value parameter)
+            enum_match = re.search(r"([^.]+)\.(\w+)", self.params_text.strip())
+            if enum_match:
+                values.append(MockAnnotationMemberValuePair("value", enum_match.group(2)))
+
+        return values
+
+
+class MockAnnotationMemberValuePair:
+    """Mock annotation member value pair"""
+
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+    def getName(self):
+        return MockSimpleName(self.name)
+
+    def getValue(self):
+        if isinstance(self.value, bool):
+            return MockBooleanLiteral(self.value)
+        elif isinstance(self.value, int):
+            return MockNumberLiteral(self.value)
+        else:
+            return MockStringLiteral(str(self.value))
+
+
+class MockStringLiteral:
+    """Mock string literal"""
+
+    STRING_LITERAL = "STRING_LITERAL"
+    BOOLEAN_LITERAL = "BOOLEAN_LITERAL"
+    NUMBER_LITERAL = "NUMBER_LITERAL"
+    QUALIFIED_NAME = "QUALIFIED_NAME"
+
+    def __init__(self, value):
+        self.value = value
+
+    def getNodeType(self):
+        return "STRING_LITERAL"
+
+    def getLiteralValue(self):
+        return self.value
+
+
+class MockBooleanLiteral:
+    """Mock boolean literal"""
+
+    STRING_LITERAL = "STRING_LITERAL"
+    BOOLEAN_LITERAL = "BOOLEAN_LITERAL"
+    NUMBER_LITERAL = "NUMBER_LITERAL"
+    QUALIFIED_NAME = "QUALIFIED_NAME"
+
+    def __init__(self, value):
+        self.value = value
+
+    def getNodeType(self):
+        return "BOOLEAN_LITERAL"
+
+    def booleanValue(self):
+        return self.value
+
+
+class MockNumberLiteral:
+    """Mock number literal"""
+
+    STRING_LITERAL = "STRING_LITERAL"
+    BOOLEAN_LITERAL = "BOOLEAN_LITERAL"
+    NUMBER_LITERAL = "NUMBER_LITERAL"
+    QUALIFIED_NAME = "QUALIFIED_NAME"
+
+    def __init__(self, value):
+        self.value = value
+
+    def getNodeType(self):
+        return "NUMBER_LITERAL"
+
+    def getToken(self):
+        return str(self.value)
+
+
+class MockQualifiedName:
+    """Mock qualified name"""
+
+    def __init__(self, name):
+        self.name = name
+
+    def getFullyQualifiedName(self):
+        return self.name
+
+
+class MockFieldDeclaration:
+    """Mock field declaration"""
+
+    def __init__(self, java_type, field_name, class_body):
+        self.java_type = java_type
+        self.field_name = field_name
+        self.class_body = class_body
+        self._fragments = [MockVariableDeclarationFragment(field_name)]
+        self._modifiers = self._extract_modifiers()
+
+    def getNodeType(self):
+        return self.FIELD_DECLARATION
+
+    FIELD_DECLARATION = "FIELD_DECLARATION"
+
+    def fragments(self):
+        return self._fragments
+
+    def getType(self):
+        return MockSimpleType(self.java_type)
+
+    def modifiers(self):
+        return self._modifiers
+
+    def _extract_modifiers(self):
+        """Extract annotations and modifiers for this field"""
+        modifiers = []
+        import re
+
+        # Find field declaration with annotations
+        field_pattern = (
+            rf"((?:@\w+(?:\([^)]*\))?\s+)*)private\s+{self.java_type}\s+{self.field_name}\s*;"
+        )
+        match = re.search(field_pattern, self.class_body)
+        if match:
+            annotations_text = match.group(1)
+            # Extract individual annotations with parameters
+            annotation_pattern = r"@(\w+)(?:\(([^)]*)\))?"
+            annotation_matches = re.findall(annotation_pattern, annotations_text)
+
+            for annotation_name, params_text in annotation_matches:
+                if annotation_name == "Column":
+                    modifiers.append(MockColumnAnnotation(params_text))
+                elif annotation_name == "Table":
+                    modifiers.append(MockTableAnnotation(params_text))
+                elif annotation_name == "JoinColumn":
+                    modifiers.append(MockJoinColumnAnnotation(params_text))
+                elif annotation_name == "Enumerated":
+                    modifiers.append(MockEnumeratedAnnotation(params_text))
+                else:
+                    modifiers.append(MockAnnotation(f"@{annotation_name}"))
+
+        return modifiers
+
+
+class MockSimpleType:
+    """Mock simple type"""
+
+    def __init__(self, type_name):
+        self.type_name = type_name
+
+    def toString(self):
+        return self.type_name
+
+
+class MockVariableDeclarationFragment:
+    """Mock variable declaration fragment"""
+
+    def __init__(self, name):
+        self.name = name
+
+    def getName(self):
+        return MockSimpleName(self.name)
+
+
+# Singleton instance
+_jdt_bridge: JDTBridge | None = None
+
+
+def get_jdt_bridge() -> JDTBridge:
+    """Get singleton JDT bridge instance"""
+    global _jdt_bridge
+    if _jdt_bridge is None:
+        _jdt_bridge = JDTBridge()
+    return _jdt_bridge

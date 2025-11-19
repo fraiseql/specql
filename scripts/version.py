@@ -84,39 +84,37 @@ def update_pyproject_toml(version: str) -> None:
 
     # Update version line in [project] section only
     # Match 'version = "..."' in the first few lines (project section)
-    lines = content.split('\n')
+    lines = content.split("\n")
     updated_lines = []
     in_project_section = False
     version_updated = False
 
     for line in lines:
-        if line.strip().startswith('[project]'):
+        if line.strip().startswith("[project]"):
             in_project_section = True
-        elif line.strip().startswith('[') and in_project_section:
+        elif line.strip().startswith("[") and in_project_section:
             in_project_section = False
 
-        if in_project_section and line.strip().startswith('version = ') and not version_updated:
+        if in_project_section and line.strip().startswith("version = ") and not version_updated:
             # Update the version line, preserving the comment if present
-            if '#' in line:
-                indent = line[:len(line) - len(line.lstrip())]
-                comment_part = line.split('#', 1)[1]
+            if "#" in line:
+                indent = line[: len(line) - len(line.lstrip())]
+                comment_part = line.split("#", 1)[1]
                 updated_lines.append(f'{indent}version = "{version}"  # {comment_part}')
             else:
-                indent = line[:len(line) - len(line.lstrip())]
+                indent = line[: len(line) - len(line.lstrip())]
                 updated_lines.append(f'{indent}version = "{version}"')
             version_updated = True
         else:
             updated_lines.append(line)
 
-    pyproject_path.write_text('\n'.join(updated_lines))
-    print(f"✅ Updated pyproject.toml")
+    pyproject_path.write_text("\n".join(updated_lines))
+    print("✅ Updated pyproject.toml")
 
 
 def main() -> int:
     """Main entry point."""
-    parser = argparse.ArgumentParser(
-        description="Manage SpecQL version using Semantic Versioning"
-    )
+    parser = argparse.ArgumentParser(description="Manage SpecQL version using Semantic Versioning")
     subparsers = parser.add_subparsers(dest="command", help="Command to run")
 
     # Show current version (default)
@@ -125,9 +123,7 @@ def main() -> int:
     # Bump version
     bump_parser = subparsers.add_parser("bump", help="Bump version")
     bump_parser.add_argument(
-        "part",
-        choices=["major", "minor", "patch"],
-        help="Version part to bump"
+        "part", choices=["major", "minor", "patch"], help="Version part to bump"
     )
 
     # Set specific version

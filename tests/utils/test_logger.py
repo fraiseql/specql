@@ -5,8 +5,6 @@ Tests for logging framework
 import logging
 from io import StringIO
 
-import pytest
-
 from src.utils.logger import (
     LogContext,
     configure_logging,

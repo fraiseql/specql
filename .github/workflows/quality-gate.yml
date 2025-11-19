@@ -1,0 +1,139 @@
+name: Quality Gate
+
+# Comprehensive quality checks for all PR and main branch protection
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+concurrency:
+  group: quality-gate-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Tests (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ['3.11', '3.12', '3.13']
+      fail-fast: false
+
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python ${{ matrix.python-version }}
+      uses: actions/setup-python@v5
+      with:
+        python-version: ${{ matrix.python-version }}
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+
+    - name: Setup environment and install dependencies
+      run: |
+        # Create virtual environment with uv
+        uv venv
+
+        # Install all dependencies including optional ones for testing
+        uv pip install -e ".[dev,reverse,infrastructure,testing]"
+
+    - name: Verify Environment
+      run: |
+        echo "=== Environment Verification ==="
+        uv run python --version
+        uv --version
+        uv run pytest --version
+
+    - name: Run tests with coverage
+      run: |
+        echo "=== Running Test Suite ==="
+        uv run pytest --tb=short --cov=src --cov-report=xml --cov-report=term-missing -v
+
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v4
+      if: matrix.python-version == '3.13'
+      with:
+        file: ./coverage.xml
+        fail_ci_if_error: false
+
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+
+    - name: Install dependencies
+      run: |
+        uv venv
+        uv pip install ruff
+        # Install project dependencies for import validation
+        uv pip install -e ".[dev,reverse,infrastructure,testing]"
+
+    - name: Run ruff check
+      run: uv run ruff check .
+
+    - name: Run ruff format check
+      run: uv run ruff format --check .
+
+  security:
+    name: Security Scan
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Install uv
+      uses: astral-sh/setup-uv@v7
+
+    - name: Install dependencies
+      run: |
+        uv venv
+        uv pip install bandit[toml]
+
+    - name: Run bandit security scan
+      run: uv run bandit -r src/ -f json || true
+
+  version-check:
+    name: Version Consistency
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.13'
+
+    - name: Check version consistency
+      run: |
+        VERSION_JSON=$(python -c "import json; print(json.load(open('version.json'))['version'])")
+        VERSION_FILE=$(cat VERSION)
+        VERSION_PYPROJECT=$(grep '^version = ' pyproject.toml | head -1 | sed 's/version = "\(.*\)".*/\1/')
+
+        echo "version.json: $VERSION_JSON"
+        echo "VERSION:      $VERSION_FILE"
+        echo "pyproject:    $VERSION_PYPROJECT"
+
+        if [ "$VERSION_JSON" != "$VERSION_FILE" ] || [ "$VERSION_JSON" != "$VERSION_PYPROJECT" ]; then
+          echo "❌ Version mismatch detected!"
+          exit 1
+        fi
+
+        echo "✅ All versions consistent: $VERSION_JSON"

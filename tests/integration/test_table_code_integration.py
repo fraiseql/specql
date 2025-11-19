@@ -3,10 +3,11 @@
 This test verifies that table_code flows correctly from YAML → EntityDefinition → Entity
 and can be used by downstream generators.
 """
+
 import pytest
-from pathlib import Path
-from src.core.specql_parser import SpecQLParser
+
 from src.cli.generate import convert_entity_definition_to_entity
+from src.core.specql_parser import SpecQLParser
 
 
 def test_table_code_integration_from_yaml():
@@ -48,8 +49,9 @@ fields:
     entity = convert_entity_definition_to_entity(entity_def)
 
     # Verify Entity has extracted table_code
-    assert entity.table_code == "014511", \
+    assert entity.table_code == "014511", (
         f"Expected entity.table_code='014511', got '{entity.table_code}'"
+    )
 
     # Verify organization is preserved
     assert entity.organization is not None

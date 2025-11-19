@@ -125,9 +125,9 @@ type: String!
 required: true';"""
         assert expected_field_comment in sql
 
-    def test_skip_composite_type_for_actions_without_input(self, generator):
-        """Some actions (like delete) may not need input types"""
-        # Given: Delete action (only needs ID)
+    def test_delete_action_generates_input_type_with_id(self, generator):
+        """Delete actions generate input types with ID field"""
+        # Given: Delete action (needs ID for record identification)
         entity = Entity(
             name="Contact",
             schema="crm",
@@ -138,8 +138,10 @@ required: true';"""
         # When: Generate
         sql = generator.generate_input_type(entity, entity.actions[0])
 
-        # Then: Returns empty or uses standard deletion input type
-        assert sql == "" or "type_deletion_input" in sql
+        # Then: Generates input type with ID field
+        assert "CREATE TYPE app.type_delete_contact_input AS (" in sql
+        assert "id UUID" in sql
+        assert "COMMENT ON COLUMN app.type_delete_contact_input.id" in sql
 
     def test_generate_mutation_result_type(self, generator):
         """Generate standard mutation_result composite type"""
@@ -409,7 +411,7 @@ class TestSchemaOrchestrator:
         update_sql = generator.generate_input_type(entity, entity.actions[1])
         delete_sql = generator.generate_input_type(entity, entity.actions[2])
 
-        # Then: Create and update generate types, delete doesn't
+        # Then: All actions generate types (delete has ID field)
         assert "type_create_contact_input" in create_sql
         assert "type_update_contact_input" in update_sql
-        assert delete_sql == ""
+        assert "type_delete_contact_input" in delete_sql

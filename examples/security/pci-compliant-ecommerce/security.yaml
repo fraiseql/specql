@@ -1,0 +1,48 @@
+# PCI-DSS Compliant E-commerce Application
+# This configuration automatically applies PCI-DSS requirements
+
+security:
+  compliance_preset: pci-compliant
+
+  # PCI-DSS requires network segmentation
+  network_tiers:
+    - name: web
+      firewall_rules:
+        - name: allow_https_from_internet
+          protocol: tcp
+          ports: [443]
+          source: internet
+        - name: allow_http_redirect
+          protocol: tcp
+          ports: [80]
+          source: internet
+
+    - name: app
+      firewall_rules:
+        - name: allow_from_web
+          protocol: tcp
+          ports: [8443]
+          source: web
+
+    - name: database
+      firewall_rules:
+        - name: allow_postgres_from_app
+          protocol: tcp
+          ports: [5432]
+          source: app
+
+  # PCI-DSS requires WAF
+  waf:
+    enabled: true
+    mode: prevention
+    rule_sets:
+      - OWASP_TOP_10
+      - SQL_INJECTION
+      - XSS
+      - PAYMENT_PROTECTION
+    rate_limiting: true
+
+  # PCI-DSS requires encryption (automatically applied by preset)
+  # encryption_at_rest: true
+  # encryption_in_transit: true
+  # audit_logging: true

@@ -3,8 +3,7 @@ PostgreSQL COMMENT Generator
 Generates descriptive COMMENT ON statements for FraiseQL autodiscovery
 """
 
-
-from src.core.ast_models import Entity, FieldDefinition
+from src.core.ast_models import EntityDefinition, FieldDefinition
 from src.core.scalar_types import get_scalar_type
 from src.utils.safe_slug import safe_table_name
 
@@ -68,7 +67,10 @@ class CommentGenerator:
         }
 
     def generate_field_comment(
-        self, field: FieldDefinition, entity: Entity, custom_description: str | None = None
+        self,
+        field: FieldDefinition,
+        entity: EntityDefinition,
+        custom_description: str | None = None,
     ) -> str:
         """Generate COMMENT ON COLUMN for a field with FraiseQL YAML annotations"""
 
@@ -162,7 +164,7 @@ class CommentGenerator:
             }
             return graphql_mappings.get(pg_type, "String")
 
-    def generate_all_field_comments(self, entity: Entity) -> list[str]:
+    def generate_all_field_comments(self, entity: EntityDefinition) -> list[str]:
         """Generate COMMENT statements for all fields"""
         comments = []
 
@@ -181,10 +183,23 @@ class CommentGenerator:
 
         return comments
 
-    def generate_table_comment(self, entity: Entity) -> str:
+    def generate_table_comment(self, entity: EntityDefinition) -> str:
         """Generate COMMENT ON TABLE"""
         table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
 
         description = entity.description or f"{entity.name} entity"
 
-        return f"COMMENT ON TABLE {table_name} IS '{description}';"
+        # Add FraiseQL pattern metadata if available
+        fraiseql_parts = []
+        if hasattr(entity, "notes") and entity.notes:
+            # Extract pattern names from notes like "Applied pattern: aggregate_view"
+            for line in entity.notes.split("\n"):
+                if line.startswith("Applied pattern: "):
+                    pattern_name = line.split("Applied pattern: ")[1]
+                    fraiseql_parts.append(f"@fraiseql:pattern:{pattern_name}")
+
+        fraiseql_comment = ""
+        if fraiseql_parts:
+            fraiseql_comment = "\n\n" + "\n".join(fraiseql_parts)
+
+        return f"COMMENT ON TABLE {table_name} IS '{description}{fraiseql_comment}';"

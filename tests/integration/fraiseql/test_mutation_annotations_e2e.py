@@ -73,23 +73,24 @@ class TestMutationAnnotationsEndToEnd:
     """Test complete mutation annotation generation pipeline"""
 
     def test_schema_generation_includes_mutation_annotations(self, entity_with_actions):
-        """Test: Full schema generation includes both core and app layer functions"""
+        """Test: Schema generation includes mutation annotations for all actions"""
         orchestrator = SchemaOrchestrator()
         schema_sql = orchestrator.generate_complete_schema(entity_with_actions)
 
-        # Core layer functions should have descriptive comments (no @fraiseql:mutation)
+        # Core layer functions should have descriptive comments
         assert "COMMENT ON FUNCTION crm.qualify_lead" in schema_sql
         assert "COMMENT ON FUNCTION crm.create_contact" in schema_sql
         assert "COMMENT ON FUNCTION crm.update_contact" in schema_sql
         assert "Core business logic" in schema_sql
-        assert "@fraiseql:mutation" not in schema_sql  # Core layer doesn't have this
 
-        # TODO: App layer functions should have @fraiseql:mutation annotations
-        # assert "@fraiseql:mutation" in schema_sql
-        # assert "COMMENT ON FUNCTION app.qualify_lead" in schema_sql
+        # App layer functions should have @fraiseql:mutation annotations
+        assert "COMMENT ON FUNCTION app.qualify_lead" in schema_sql
+        assert "COMMENT ON FUNCTION app.create_contact" in schema_sql
+        assert "COMMENT ON FUNCTION app.update_contact" in schema_sql
+        assert "@fraiseql:mutation" in schema_sql  # App layer has this
 
     def test_qualify_lead_annotation_structure(self, entity_with_actions):
-        """Test: qualify_lead action generates correct core layer comment"""
+        """Test: qualify_lead action generates correct core and app layer comments"""
         orchestrator = SchemaOrchestrator()
         schema_sql = orchestrator.generate_complete_schema(entity_with_actions)
 
@@ -97,16 +98,24 @@ class TestMutationAnnotationsEndToEnd:
         assert "COMMENT ON FUNCTION crm.qualify_lead" in schema_sql
         assert "Core business logic for qualify lead" in schema_sql
         assert "Called by: app.qualify_lead" in schema_sql
-        assert "@fraiseql:mutation" not in schema_sql
+
+        # App layer should have @fraiseql:mutation annotation
+        assert "COMMENT ON FUNCTION app.qualify_lead" in schema_sql
+        assert "@fraiseql:mutation" in schema_sql
+        assert "name: qualifyLead" in schema_sql
 
     def test_create_contact_annotation_structure(self, entity_with_actions):
-        """Test: create_contact action generates correct core layer comment"""
+        """Test: create_contact action generates correct core and app layer comments"""
         orchestrator = SchemaOrchestrator()
         schema_sql = orchestrator.generate_complete_schema(entity_with_actions)
 
         assert "COMMENT ON FUNCTION crm.create_contact" in schema_sql
         assert "Called by: app.create_contact" in schema_sql
-        assert "@fraiseql:mutation" not in schema_sql
+
+        # App layer should have @fraiseql:mutation annotation
+        assert "COMMENT ON FUNCTION app.create_contact" in schema_sql
+        assert "@fraiseql:mutation" in schema_sql
+        assert "name: createContact" in schema_sql
 
         # Core layer doesn't include metadata mapping - that's for app layer
         # assert "metadata_mapping" in schema_sql
@@ -229,21 +238,25 @@ class TestMutationAnnotationsEndToEnd:
         orchestrator = SchemaOrchestrator()
         schema_sql = orchestrator.generate_complete_schema(entity)
 
-        # Core layer functions don't have @fraiseql:mutation annotations
-        assert "@fraiseql:mutation" not in schema_sql
-        # But they should have basic function comments
+        # Core layer functions have descriptive comments
         assert "COMMENT ON FUNCTION test.simple_update" in schema_sql
+        # App layer functions have @fraiseql:mutation annotations
+        assert "COMMENT ON FUNCTION app.simple_update" in schema_sql
+        assert "@fraiseql:mutation" in schema_sql
 
     def test_multiple_actions_generate_separate_annotations(self, entity_with_actions):
-        """Test: Multiple actions generate separate core layer comments"""
+        """Test: Multiple actions generate separate core and app layer comments"""
         orchestrator = SchemaOrchestrator()
         schema_sql = orchestrator.generate_complete_schema(entity_with_actions)
 
-        # Core layer doesn't have @fraiseql:mutation
+        # App layer has @fraiseql:mutation annotations (one per action)
         mutation_count = schema_sql.count("@fraiseql:mutation")
-        assert mutation_count == 0
+        assert mutation_count == 3
 
-        # Each action should have its own comment
+        # Each action should have core and app layer comments
         assert schema_sql.count("COMMENT ON FUNCTION crm.qualify_lead") == 1
         assert schema_sql.count("COMMENT ON FUNCTION crm.create_contact") == 1
         assert schema_sql.count("COMMENT ON FUNCTION crm.update_contact") == 1
+        assert schema_sql.count("COMMENT ON FUNCTION app.qualify_lead") == 1
+        assert schema_sql.count("COMMENT ON FUNCTION app.create_contact") == 1
+        assert schema_sql.count("COMMENT ON FUNCTION app.update_contact") == 1

@@ -6,7 +6,6 @@ hexadecimal (01_, 02_, 03_) numbering systems are correctly implemented
 and can coexist.
 """
 
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -38,7 +37,7 @@ class TestDecimalNumberingSystem:
         orchestrator = CLIOrchestrator()
         output_dir = temp_dir / "migrations"
 
-        result = orchestrator.generate_from_files(
+        orchestrator.generate_from_files(
             entity_files=[str(sample_entity_file)], output_dir=str(output_dir)
         )
 
@@ -52,7 +51,7 @@ class TestDecimalNumberingSystem:
         orchestrator = CLIOrchestrator()
         output_dir = temp_dir / "migrations"
 
-        result = orchestrator.generate_from_files(
+        orchestrator.generate_from_files(
             entity_files=[str(sample_entity_file)], output_dir=str(output_dir)
         )
 
@@ -66,7 +65,7 @@ class TestDecimalNumberingSystem:
         orchestrator = CLIOrchestrator()
         output_dir = temp_dir / "migrations"
 
-        result = orchestrator.generate_from_files(
+        orchestrator.generate_from_files(
             entity_files=[str(sample_entity_file)], output_dir=str(output_dir)
         )
 
@@ -80,7 +79,7 @@ class TestDecimalNumberingSystem:
         orchestrator = CLIOrchestrator()
         output_dir = temp_dir / "migrations"
 
-        result = orchestrator.generate_from_files(
+        orchestrator.generate_from_files(
             entity_files=[str(sample_entity_file)], output_dir=str(output_dir)
         )
 
@@ -126,9 +125,7 @@ class TestHexadecimalNumberingSystem:
             table_code="013211", entity_name="manufacturer", file_type="table"
         )
 
-        expected = (
-            "01_write_side/013_catalog/0132_manufacturer/01321_manufacturer/013211_tb_manufacturer.sql"
-        )
+        expected = "01_write_side/013_catalog/0132_manufacturer/01321_manufacturer/013211_tb_manufacturer.sql"
         assert path == expected
 
     def test_hex_invalid_code_validation(self):
@@ -177,7 +174,7 @@ class TestNumberingSystemsCoexistence:
         orchestrator = CLIOrchestrator()  # Default: use_registry=False
         output_dir = temp_dir / "migrations"
 
-        result = orchestrator.generate_from_files(
+        orchestrator.generate_from_files(
             entity_files=[str(sample_entity_file)], output_dir=str(output_dir)
         )
 

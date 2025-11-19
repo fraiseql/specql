@@ -64,7 +64,8 @@ COMMENT ON TABLE crm.tb_contact IS
 'Contact entity for CRM.
 
 @fraiseql:type
-trinity: true';
+trinity: true
+';
 
 -- Trinity Pattern columns
 COMMENT ON COLUMN crm.tb_contact.pk_contact IS 'Internal INTEGER primary key used in joins and foreign keys.';

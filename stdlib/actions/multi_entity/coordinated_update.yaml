@@ -1,0 +1,137 @@
+pattern: multi_entity/coordinated_update
+version: 1.0
+description: "Coordinate changes across multiple entities in a transaction"
+author: SpecQL Team
+
+parameters:
+  - name: primary_entity
+    type: string
+    required: true
+    description: "The main entity being operated on"
+
+  - name: operations
+    type: array<object>
+    required: true
+    description: "Sequence of operations to perform"
+
+  - name: transaction_scope
+    type: enum[serializable, repeatable_read, read_committed]
+    default: serializable
+    description: "Transaction isolation level"
+
+  - name: rollback_on_error
+    type: boolean
+    default: true
+    description: "Whether to rollback transaction on any error"
+
+  - name: refresh_projections
+    type: array<string>
+    required: false
+    description: "Projections to refresh after operations"
+
+template: |
+  steps:
+    {% for op in operations %}
+    {% if op.action == 'get_or_create' %}
+    # Get or create {{ op.entity }}
+    - raw_sql: "
+        SELECT id INTO v_{{ op.get('store_as', op.entity | lower) }}_id
+        FROM {{ op.entity | schema_for }}.tb_{{ op.entity | lower }}
+        WHERE {{ op['where'] | format_where }}
+          AND tenant_id = auth_tenant_id
+          AND deleted_at IS NULL;
+
+        IF v_{{ op.get('store_as', op.entity | lower) }}_id IS NULL THEN
+            INSERT INTO {{ op.entity | schema_for }}.tb_{{ op.entity | lower }} (
+                {% for field in op['create_if_missing'] %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                created_at, created_by, tenant_id
+            ) VALUES (
+                {% for field in op['create_if_missing'] %}{{ op['create_if_missing'][field] }}{% if not loop.last %}, {% endif %}{% endfor %}
+                NOW(), auth_user_id, auth_tenant_id
+            ) RETURNING id INTO v_{{ op.get('store_as', op.entity | lower) }}_id;
+        END IF;
+        "
+
+    {% elif op.action == 'insert' %}
+    # Insert {{ op.entity }}
+    - insert: {{ op.entity }}
+      fields:
+        {% for field in op['values'] %}
+        {{ field }}: {{ op['values'][field] }}
+        {% endfor %}
+      {% if op.get('store_as') %}
+      store_id_as: v_{{ op.store_as }}
+      {% endif %}
+
+    {% elif op.action == 'update' %}
+    # Update {{ op.entity }}
+    - update: {{ op.entity }}
+      set:
+        {% for field in op['values'] %}
+        {{ field }}: {{ op['values'][field] }}
+        {% endfor %}
+      where: "{{ op['where'] | format_where }}"
+
+    {% elif op.action == 'delete' %}
+    # Delete {{ op.entity }}
+    - delete: {{ op.entity }}
+      where: "{{ op['where'] | format_where }}"
+
+    {% endif %}
+    {% endfor %}
+
+    {% if refresh_projections %}
+    # Refresh projections
+    {% for projection in refresh_projections %}
+    - refresh_table_view: {{ projection }}
+    {% endfor %}
+    {% endif %}
+
+examples:
+  - name: allocate_to_stock
+    description: "Allocate machine to stock location"
+    config:
+      primary_entity: Machine
+      operations:
+        # Get or create stock location
+        - action: get_or_create
+          entity: Location
+          where:
+            code: 'STOCK'
+          create_if_missing:
+            code: STOCK
+            name: Stock
+            location_type: warehouse
+          store_as: stock_location_id
+
+        # Create allocation
+        - action: insert
+          entity: Allocation
+          values:
+            machine_id: $input_data.machine_id
+            location_id: $stock_location_id
+            allocation_type: stock
+            status: active
+            allocated_at: NOW()
+          store_as: allocation_id
+
+        # Update machine status
+        - action: update
+          entity: Machine
+          where:
+            id: $input_data.machine_id
+          values:
+            status: in_stock
+            current_location_id: $stock_location_id
+
+        # Log event
+        - action: insert
+          entity: AllocationEvent
+          values:
+            allocation_id: $allocation_id
+            event_type: allocated_to_stock
+            event_data: $input_payload
+
+      refresh_projections:
+        - machine_projection
+        - allocation_projection

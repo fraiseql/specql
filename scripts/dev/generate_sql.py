@@ -110,35 +110,6 @@ class SpecQLGenerator:
         else:
             return FieldDefinition(name=field_name, type_name=type_annotation, nullable=True)
 
-        # Convert actions
-        actions = []
-        for action_data in entity_data.get("actions", []):
-            steps = []
-            for step_data in action_data.get("steps", []):
-                steps.append(
-                    ActionStep(
-                        type=step_data["type"],
-                        expression=step_data.get("expression"),
-                        entity=step_data.get("entity"),
-                        fields=step_data.get("fields"),
-                    )
-                )
-
-            actions.append(
-                Action(
-                    name=action_data["name"],
-                    steps=steps,
-                )
-            )
-
-        return Entity(
-            name=entity_data["name"],
-            schema=entity_data["schema"],
-            description=entity_data["description"],
-            fields=fields,
-            actions=actions,
-        )
-
     def generate_entity_sql(self, entity: Entity) -> str:
         """Generate complete SQL for an entity using SchemaOrchestrator"""
         orchestrator = SchemaOrchestrator()

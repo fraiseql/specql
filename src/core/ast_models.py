@@ -143,6 +143,10 @@ class FieldDefinition:
     default: Any | None = None
     description: str = ""
 
+    # Computed column support
+    is_computed: bool = False
+    computed_expression: str | None = None
+
     # Tier classification
     tier: FieldTier = FieldTier.BASIC
 
@@ -235,6 +239,7 @@ class FieldDefinition:
             "boolean": "BOOLEAN",
             "date": "DATE",
             "timestamp": "TIMESTAMPTZ",
+            "timestamptz": "TIMESTAMPTZ",  # Allow both forms
             "uuid": "UUID",
             "json": "JSONB",
             "decimal": "DECIMAL",
@@ -321,6 +326,14 @@ class EntityDefinition:
     # AI agents
     agents: list["Agent"] = field(default_factory=list)
 
+    # Patterns
+    patterns: list["Pattern"] = field(default_factory=list)
+
+    # Database schema extensions (from patterns)
+    indexes: list["Index"] = field(default_factory=list)
+    computed_columns: list[dict] = field(default_factory=list)
+    functions: list[str] = field(default_factory=list)
+
     # Organization (numbering system)
     organization: Optional["Organization"] = None
 
@@ -338,6 +351,23 @@ class EntityDefinition:
 
     # Identifier configuration (NEW)
     identifier: IdentifierConfig | None = None
+
+    # NEW: SCD Type 2 support
+    tracked_fields: list[str] | None = None
+    natural_key_fields: list[str] = field(default_factory=list)
+    version_tracking_enabled: bool = False
+    history_table_name: str | None = None
+
+    def has_scd_type2_pattern(self) -> bool:
+        """Check if entity uses SCD Type 2 pattern."""
+        return any(p.type == "temporal_scd_type2_helper" for p in self.patterns)
+
+    def get_scd_type2_config(self) -> dict[str, Any] | None:
+        """Get SCD Type 2 pattern configuration."""
+        for pattern in self.patterns:
+            if pattern.type == "temporal_scd_type2_helper":
+                return pattern.params
+        return None
 
     @property
     def has_foreign_keys(self) -> bool:
@@ -357,6 +387,18 @@ class EntityDefinition:
             return True
         else:  # AUTO
             return self.has_foreign_keys
+
+    # Metadata
+    notes: str | None = None
+
+    # Pattern-generated extensions (not serialized)
+    _indexes: list[dict] = field(default_factory=list)
+    _custom_ddl: list[str] = field(default_factory=list)
+
+    @property
+    def table_name(self) -> str:
+        """Get the table name for this entity."""
+        return f"tb_{self.name.lower()}"
 
 
 @dataclass
@@ -418,6 +460,21 @@ class ActionStep:
     propagate_entities: list[str] = field(default_factory=list)
     refresh_strategy: str = "immediate"
 
+    # For reverse engineering - PL/pgSQL constructs
+    variable_name: str | None = None  # For declare/assign steps
+    variable_type: str | None = None  # For declare steps
+    default_value: Any | None = None  # For declare steps
+    sql: str | None = None  # For raw SQL steps
+    return_value: str | None = None  # For return steps
+    return_table_query: str | None = None  # For return query steps
+    cte_name: str | None = None  # For CTE steps
+    cte_query: str | None = None  # For CTE steps
+    for_query_alias: str | None = None  # For FOR loops
+    for_query_sql: str | None = None  # For FOR loops
+    for_query_body: list["ActionStep"] = field(default_factory=list)  # For FOR loops
+    while_condition: str | None = None  # For WHILE loops
+    loop_body: list["ActionStep"] = field(default_factory=list)  # For WHILE loops
+
 
 @dataclass
 class EntityImpact:
@@ -473,10 +530,13 @@ class Entity:
     fields: dict[str, FieldDefinition] = field(default_factory=dict)
     actions: list[Action] = field(default_factory=list)
     agents: list["Agent"] = field(default_factory=list)
+    patterns: list["Pattern"] = field(default_factory=list)
 
     # Database schema
     foreign_keys: list["ForeignKey"] = field(default_factory=list)
     indexes: list["Index"] = field(default_factory=list)
+    computed_columns: list[dict] = field(default_factory=list)
+    functions: list[str] = field(default_factory=list)
 
     # Hierarchical entity support
     hierarchical: bool = False  # True if entity has parent/path structure
@@ -604,3 +664,11 @@ class ValidationRule:
     name: str
     condition: str
     error: str
+
+
+@dataclass
+class Pattern:
+    """Pattern application definition"""
+
+    type: str
+    params: dict[str, Any] = field(default_factory=dict)

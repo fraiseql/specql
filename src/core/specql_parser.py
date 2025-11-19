@@ -10,9 +10,6 @@ from typing import Any
 
 import yaml
 
-from src.utils.logger import LogContext, get_team_logger
-from src.utils.performance_monitor import get_performance_monitor
-
 from src.core.ast_models import (
     ActionDefinition,
     ActionStep,
@@ -25,6 +22,7 @@ from src.core.ast_models import (
     IdentifierConfig,
     IncludeRelation,
     Organization,
+    Pattern,
     RefreshScope,
     TableViewConfig,
     TableViewMode,
@@ -38,6 +36,8 @@ from src.core.scalar_types import (
     is_scalar_type,
 )
 from src.core.separators import Separators
+from src.utils.logger import LogContext, get_team_logger
+from src.utils.performance_monitor import get_performance_monitor
 
 
 class ParseError(Exception):
@@ -111,11 +111,7 @@ class SpecQLParser:
             )
 
             # Update logger context with entity information
-            context = LogContext(
-                entity_name=entity_name,
-                schema=entity_schema,
-                operation="parse"
-            )
+            context = LogContext(entity_name=entity_name, schema=entity_schema, operation="parse")
             self.logger = get_team_logger("Team A", __name__, context)
             self.logger.info(f"Parsing entity '{entity_name}' in schema '{entity_schema}'")
 
@@ -138,7 +134,9 @@ class SpecQLParser:
 
                 field = self._parse_field(field_name, field_spec)
                 entity.fields[field_name] = field
-                self.logger.debug(f"Parsed field '{field_name}' (type: {field.type_name}, tier: {field.tier.value})")
+                self.logger.debug(
+                    f"Parsed field '{field_name}' (type: {field.type_name}, tier: {field.tier.value})"
+                )
 
             self.logger.info(f"Parsed {len(entity.fields)} fields successfully")
 
@@ -156,6 +154,15 @@ class SpecQLParser:
 
             if actions_data:
                 self.logger.info(f"Parsed {len(entity.actions)} actions successfully")
+
+            # Parse patterns
+            patterns_data = data.get("patterns", [])
+            if patterns_data:
+                self.logger.debug(f"Parsing {len(patterns_data)} patterns")
+            for pattern_spec in patterns_data:
+                pattern = self._parse_pattern(pattern_spec)
+                entity.patterns.append(pattern)
+                self.logger.debug(f"Parsed pattern '{pattern.type}'")
 
             # Parse agents
             agents_data = data.get("agents", [])
@@ -179,7 +186,9 @@ class SpecQLParser:
                 self.logger.debug("Parsing table_views configuration")
                 entity.table_views = self._parse_table_views(data["table_views"], entity_name)
 
-            self.logger.info(f"Successfully parsed entity '{entity_name}' with {len(entity.fields)} fields, {len(entity.actions)} actions")
+            self.logger.info(
+                f"Successfully parsed entity '{entity_name}' with {len(entity.fields)} fields, {len(entity.actions)} actions"
+            )
 
             return entity
         finally:
@@ -488,6 +497,22 @@ class SpecQLParser:
         return Organization(
             table_code=org_spec["table_code"], domain_name=org_spec.get("domain_name")
         )
+
+    def _parse_pattern(self, pattern_spec: dict | str) -> Pattern:
+        """Parse pattern definition."""
+        if isinstance(pattern_spec, str):
+            # Short form: just pattern type
+            return Pattern(type=pattern_spec, params={})
+
+        elif isinstance(pattern_spec, dict):
+            # Full form: type + params
+            return Pattern(
+                type=pattern_spec["type"],
+                params=pattern_spec.get("params", {}),
+            )
+
+        else:
+            raise ParseError(f"Invalid pattern definition: {pattern_spec}")
 
     def _parse_single_step(self, step_data: dict) -> ActionStep:
         """Parse a single action step"""

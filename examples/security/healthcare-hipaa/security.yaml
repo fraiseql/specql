@@ -1,0 +1,56 @@
+# HIPAA Compliant Healthcare Application
+# Demonstrates HIPAA Security Rule compliance for PHI handling
+
+security:
+  compliance_preset: hipaa
+
+  # Healthcare-specific network tiers
+  network_tiers:
+    - name: patient_portal
+      firewall_rules:
+        - name: allow_https_from_internet
+          protocol: tcp
+          ports: [443]
+          source: internet
+        - name: allow_health_checks
+          protocol: tcp
+          ports: [80]
+          source: load_balancer
+
+    - name: ehr_system
+      firewall_rules:
+        - name: allow_from_patient_portal
+          protocol: tcp
+          ports: [8443]
+          source: patient_portal
+        - name: allow_from_admin_vpn
+          protocol: tcp
+          ports: [22, 3389]
+          source: vpn
+
+    - name: phi_database
+      firewall_rules:
+        - name: allow_postgres_from_ehr
+          protocol: tcp
+          ports: [5432]
+          source: ehr_system
+
+  # Enhanced security for PHI
+  waf:
+    enabled: true
+    mode: prevention
+    rule_sets:
+      - OWASP_TOP_10
+      - HIPAA_PROTECTIONS
+    rate_limiting: true
+
+  # HIPAA requires VPN for administrative access
+  vpn:
+    enabled: true
+    type: client-vpn
+
+# Database with HIPAA-required 7-year backup retention
+database:
+  type: postgresql
+  version: "15"
+  backup_retention_days: 2555  # 7 years (automatically set by HIPAA preset)

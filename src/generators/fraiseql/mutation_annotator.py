@@ -20,11 +20,7 @@ class MutationAnnotator:
     def __init__(self, schema: str, entity_name: str):
         self.schema = schema
         self.entity_name = entity_name
-        context = LogContext(
-            entity_name=entity_name,
-            schema=schema,
-            operation="annotate_mutation"
-        )
+        context = LogContext(entity_name=entity_name, schema=schema, operation="annotate_mutation")
         self.logger = get_team_logger("Team D", __name__, context)
 
     def generate_mutation_annotation(self, action: Action) -> str:
@@ -98,6 +94,12 @@ class MutationAnnotator:
         Returns:
             Description string for app layer functions
         """
+        # Try to generate description from action steps first
+        if action.steps:
+            step_description = self._generate_action_description_from_steps(action)
+            return f"{step_description}.\nValidates input and delegates to core business logic."
+
+        # Fallback to basic description
         action_type = self._detect_action_type(action.name)
         entity_name = self.entity_name
 
@@ -230,6 +232,63 @@ class MutationAnnotator:
 
         # Convert to JSON-like string (Python dict representation)
         return str(mapping).replace("'", '"')
+
+    def _generate_action_description_from_steps(self, action: Action) -> str:
+        """
+        Generate description by analyzing action steps
+
+        Args:
+            action: Action with steps to analyze
+
+        Returns:
+            Description based on what the action does
+        """
+        operations = []
+        validations = []
+
+        for step in action.steps:
+            if step.type == "validate":
+                # Parse simple validation expressions
+                if step.expression is not None and "=" in step.expression:
+                    field, value = step.expression.split("=", 1)
+                    field = field.strip()
+                    value = value.strip().strip("'\"")
+                    validations.append(f"{field} must be {value}")
+            elif step.type == "insert":
+                operations.append(f"creates new {step.entity}")
+            elif step.type == "update":
+                if step.fields:
+                    field_names = list(step.fields.keys())
+                    operations.append(f"updates {step.entity} {', '.join(field_names)}")
+                else:
+                    operations.append(f"updates {step.entity}")
+            elif step.type == "delete":
+                operations.append(f"deletes {step.entity}")
+            elif step.type == "notify":
+                operations.append("sends notification")
+
+        # Build description
+        action_name_words = action.name.replace("_", " ").split()
+
+        # Try to generate a smart description based on action name and operations
+        if operations and action_name_words:
+            # Use action name to create a more meaningful description
+            verb = action_name_words[0]
+            noun = " ".join(action_name_words[1:]) if len(action_name_words) > 1 else "record"
+
+            if verb in ["create", "update", "delete", "qualify"]:
+                return f"{verb.capitalize()}s {noun}"
+
+        if operations:
+            main_operation = operations[0].capitalize()
+            if len(operations) > 1:
+                main_operation += f" and {operations[1]}"
+            return main_operation
+        elif validations:
+            return f"Validates and processes {action.name.replace('_', ' ')}"
+
+        # Fallback
+        return f"Performs {action.name.replace('_', ' ')} operation"
 
     def _to_camel_case(self, snake_str: str) -> str:
         """

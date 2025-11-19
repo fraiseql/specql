@@ -6,8 +6,6 @@ Coordinates table + type generation for complete schema
 from dataclasses import dataclass
 
 from src.core.ast_models import Entity, EntityDefinition
-from src.utils.logger import LogContext, get_team_logger
-from src.utils.performance_monitor import get_performance_monitor
 from src.generators.app_schema_generator import AppSchemaGenerator
 from src.generators.app_wrapper_generator import AppWrapperGenerator
 from src.generators.composite_type_generator import CompositeTypeGenerator
@@ -20,6 +18,8 @@ from src.generators.schema.table_view_dependency import TableViewDependencyResol
 from src.generators.schema.table_view_generator import TableViewGenerator
 from src.generators.table_generator import TableGenerator
 from src.generators.trinity_helper_generator import TrinityHelperGenerator
+from src.utils.logger import LogContext, get_team_logger
+from src.utils.performance_monitor import get_performance_monitor
 from src.utils.safe_slug import safe_table_name
 
 
@@ -47,18 +47,24 @@ class SchemaOutput:
 class SchemaOrchestrator:
     """Orchestrates complete schema generation: tables + types + indexes + constraints"""
 
-    def __init__(self, naming_conventions: NamingConventions | None = None, enable_performance_monitoring: bool = False) -> None:
+    def __init__(
+        self,
+        naming_conventions: NamingConventions | None = None,
+        enable_performance_monitoring: bool = False,
+        registry_optional: bool = False,
+    ) -> None:
         self.logger = get_team_logger("Team B", __name__)
         self.logger.debug("Initializing SchemaOrchestrator")
 
         # Create naming conventions if not provided
         if naming_conventions is None:
-            naming_conventions = NamingConventions()
+            naming_conventions = NamingConventions(optional=registry_optional)
 
         # Create schema registry
         schema_registry = SchemaRegistry(naming_conventions.registry)
 
         self.app_gen = AppSchemaGenerator()
+        self.app_wrapper_gen = AppWrapperGenerator()
         self.table_gen = TableGenerator(schema_registry)
         self.type_gen = CompositeTypeGenerator()
         self.helper_gen = TrinityHelperGenerator(schema_registry)
@@ -81,12 +87,12 @@ class SchemaOrchestrator:
             Complete SQL schema as string
         """
         context = LogContext(
-            entity_name=entity.name,
-            schema=entity.schema,
-            operation="generate_schema"
+            entity_name=entity.name, schema=entity.schema, operation="generate_schema"
         )
         logger = get_team_logger("Team B", __name__, context)
-        logger.info(f"Generating complete schema for entity '{entity.name}' in schema '{entity.schema}'")
+        logger.info(
+            f"Generating complete schema for entity '{entity.name}' in schema '{entity.schema}'"
+        )
 
         parts = []
 
@@ -113,13 +119,7 @@ class SchemaOrchestrator:
         table_sql = self.table_gen.generate_table_ddl(entity)
         parts.append("-- Entity Table\n" + table_sql)
 
-        # 4.5. Field comments for FraiseQL metadata
-        field_comments = self.table_gen.generate_field_comments(entity)
-        if field_comments:
-            logger.debug(f"Generated {len(field_comments)} field comments")
-            parts.append("-- Field Comments for FraiseQL\n" + "\n\n".join(field_comments))
-
-        # 4. Input types for actions
+        # 5. Input types for actions
         if entity.actions:
             logger.debug(f"Generating input types for {len(entity.actions)} actions")
         for action in entity.actions:
@@ -127,19 +127,25 @@ class SchemaOrchestrator:
             if input_type:
                 parts.append(f"-- Input Type: {action.name}\n" + input_type)
 
-        # 5. Indexes
+        # 6. Indexes (MUST come before comments for proper DDL order)
         logger.debug("Generating indexes")
         indexes = self.table_gen.generate_indexes_ddl(entity)
         if indexes:
             parts.append("-- Indexes\n" + indexes)
 
-        # 6. Foreign keys
+        # 7. Foreign keys
         logger.debug("Generating foreign keys")
         fks = self.table_gen.generate_foreign_keys_ddl(entity)
         if fks:
             parts.append("-- Foreign Keys\n" + fks)
 
-        # 7. Core logic functions
+        # 8. Field comments for FraiseQL metadata (AFTER indexes and FKs)
+        field_comments = self.table_gen.generate_field_comments(entity)
+        if field_comments:
+            logger.debug(f"Generated {len(field_comments)} field comments")
+            parts.append("-- Field Comments for FraiseQL\n" + "\n\n".join(field_comments))
+
+        # 9. Core logic functions
         core_functions = []
         if entity.actions:
             logger.debug(f"Generating core logic functions for {len(entity.actions)} actions")
@@ -159,10 +165,12 @@ class SchemaOrchestrator:
         if core_functions:
             parts.append("-- Core Logic Functions\n" + "\n\n".join(core_functions))
 
-        # 8. FraiseQL mutation annotations (Team D)
+        # 10. FraiseQL mutation annotations (Team D)
         mutation_annotations = []
         if entity.actions:
-            logger.debug(f"Generating FraiseQL mutation annotations for {len(entity.actions)} actions")
+            logger.debug(
+                f"Generating FraiseQL mutation annotations for {len(entity.actions)} actions"
+            )
             for action in entity.actions:
                 annotator = MutationAnnotator(entity.schema, entity.name)
                 annotation = annotator.generate_mutation_annotation(action)
@@ -174,12 +182,26 @@ class SchemaOrchestrator:
                 "-- FraiseQL Mutation Annotations (Team D)\n" + "\n\n".join(mutation_annotations)
             )
 
-        # 9. Trinity helper functions
+        # 11. App wrapper functions
+        app_wrappers = []
+        if entity.actions:
+            logger.debug(f"Generating app wrapper functions for {len(entity.actions)} actions")
+            for action in entity.actions:
+                wrapper = self.app_wrapper_gen.generate_app_wrapper(entity, action)
+                if wrapper:
+                    app_wrappers.append(wrapper)
+
+        if app_wrappers:
+            parts.append("-- App Wrapper Functions\n" + "\n\n".join(app_wrappers))
+
+        # 12. Trinity helper functions
         logger.debug("Generating Trinity helper functions")
         helpers = self.helper_gen.generate_all_helpers(entity)
         parts.append("-- Trinity Helper Functions\n" + helpers)
 
-        logger.info(f"Successfully generated complete schema for '{entity.name}' ({len(parts)} components)")
+        logger.info(
+            f"Successfully generated complete schema for '{entity.name}' ({len(parts)} components)"
+        )
         return "\n\n".join(parts)
 
     def generate_split_schema(self, entity: Entity) -> SchemaOutput:
@@ -197,9 +219,7 @@ class SchemaOrchestrator:
 
         try:
             context = LogContext(
-                entity_name=entity.name,
-                schema=entity.schema,
-                operation="generate_split_schema"
+                entity_name=entity.name, schema=entity.schema, operation="generate_split_schema"
             )
             logger = get_team_logger("Team B", __name__, context)
             logger.info(f"Generating split schema for entity '{entity.name}'")
@@ -235,7 +255,9 @@ class SchemaOrchestrator:
 
                 # Generate core function based on pattern
                 if self.perf_monitor:
-                    with self.perf_monitor.track(f"mutation_{action.name}", category="template_rendering"):
+                    with self.perf_monitor.track(
+                        f"mutation_{action.name}", category="template_rendering"
+                    ):
                         if action_pattern == "create":
                             core_sql = self.core_gen.generate_core_create_function(entity)
                         elif action_pattern == "update":
@@ -270,7 +292,9 @@ class SchemaOrchestrator:
                     )
                 )
 
-            logger.info(f"Successfully generated split schema for '{entity.name}' ({len(mutations)} mutations)")
+            logger.info(
+                f"Successfully generated split schema for '{entity.name}' ({len(mutations)} mutations)"
+            )
             return SchemaOutput(table_sql=table_sql, helpers_sql=helpers_sql, mutations=mutations)
         finally:
             # Exit performance tracking context

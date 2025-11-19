@@ -5,6 +5,8 @@ Tests appropriate index creation for different rich type fields
 
 from src.core.ast_models import Entity, FieldDefinition
 
+# pytestmark = pytest.mark.skip(reason="Rich type index generation incomplete - deferred to post-beta")
+
 
 def test_email_field_gets_btree_index(table_generator):
     """Test: Email fields get efficient btree indexes for exact lookups"""

@@ -1,0 +1,124 @@
+pattern: state_machine_guarded_transition
+version: 1.0
+description: "State transition with complex guard conditions and side effects"
+author: SpecQL Team
+
+parameters:
+  - name: from_states
+    type: array<string>
+    required: true
+    description: "Valid source states for transition"
+
+  - name: to_state
+    type: string
+    required: true
+    description: "Target state"
+
+  - name: guards
+    type: array<object>
+    required: true
+    description: "Guard conditions that must all pass"
+
+  - name: side_effects
+    type: array<object>
+    required: false
+    description: "Updates to perform on success"
+
+  - name: input_fields
+    type: array<object>
+    required: false
+    description: "Additional input fields to set on transition"
+
+  - name: refresh_projection
+    type: string
+    required: false
+    description: "Projection to refresh after transition"
+
+template: |
+  steps:
+    # Load and validate current state
+    - raw_sql: "
+        SELECT status INTO v_current_status
+        FROM {{ entity.schema }}.tb_{{ entity.name | lower }}
+        WHERE id = v_{{ entity.name | lower }}_id
+          AND tenant_id = auth_tenant_id;
+
+        IF v_current_status NOT IN ({% for state in from_states %}'{{ state }}'{% if not loop.last %}, {% endif %}{% endfor %}) THEN
+            RETURN app.log_and_return_mutation(
+                auth_tenant_id, auth_user_id,
+                '{{ entity.name | lower }}', v_{{ entity.name | lower }}_id,
+                'NOOP', 'validation:invalid_state_transition',
+                ARRAY[]::TEXT[],
+                format('Cannot transition from state %s to {{ to_state }}', v_current_status),
+                NULL, NULL,
+                jsonb_build_object(
+                    'current_state', v_current_status,
+                    'valid_states', ARRAY[{% for state in from_states %}'{{ state }}'{% if not loop.last %}, {% endif %}{% endfor %}],
+                    'target_state', '{{ to_state }}'
+                )
+            );
+        END IF;
+        "
+
+    {% for guard in guards %}
+    # Guard: {{ guard['name'] }}
+    - validate: {{ guard['condition'] }}
+      error: {{ guard['error'] }}
+    {% endfor %}
+
+    # State transition
+    - raw_sql: "
+        UPDATE {{ entity.schema }}.tb_{{ entity.name | lower }}
+        SET status = '{{ to_state }}',
+            {{ to_state }}_at = NOW(){% for field in input_fields %},
+            {{ field['name'] }} = input_data.{{ field['name'] }}{% endfor %}
+        WHERE id = v_{{ entity.name | lower }}_id
+          AND tenant_id = auth_tenant_id;
+        "
+
+    {% for effect in side_effects %}
+    # Side effect: {{ effect['name'] }}
+    {% if effect.get('insert') %}
+    - insert: {{ effect['entity'] }}
+      fields:
+        {% for field, value in effect['insert'].items() %}
+        {{ field }}: {{ value }}
+        {% endfor %}
+    {% elif effect.get('updates') %}
+    - update: "{{ effect['entity'] }} SET {% for field, value in effect['updates'].items() %}{{ field }} = {{ value }}{% if not loop.last %}, {% endif %}{% endfor %} WHERE {{ effect.get('where', '') }}"
+    {% endif %}
+    {% endfor %}
+
+    {% if refresh_projection %}
+    # Refresh projection
+    - refresh_table_view: {{ refresh_projection }}
+    {% endif %}
+
+examples:
+  - name: approve_contract
+    description: "Approve contract with complex business rules"
+    config:
+      from_states: [draft, pending_review]
+      to_state: approved
+      guards:
+        - name: budget_available
+          condition: "input_data.total_value <= (SELECT budget FROM departments WHERE id = (SELECT department_id FROM contracts WHERE id = v_contract_id))"
+          error: "Contract value exceeds department budget"
+        - name: manager_approval
+          condition: "EXISTS (SELECT 1 FROM approvals WHERE contract_id = v_contract_id AND approver_role = 'manager' AND approved = true)"
+          error: "Manager approval required"
+        - name: compliance_check
+          condition: "NOT EXISTS (SELECT 1 FROM compliance_issues WHERE contract_id = v_contract_id AND severity = 'blocking')"
+          error: "Contract has blocking compliance issues"
+      side_effects:
+        - name: update_department_budget
+          entity: Department
+          updates:
+            used_budget: used_budget + input_data.total_value
+          where: "id = (SELECT department_id FROM contracts WHERE id = v_contract_id)"
+      input_fields:
+        - name: approved_by
+          type: uuid
+        - name: approval_date
+          type: date
+      refresh_projection: contract_projection

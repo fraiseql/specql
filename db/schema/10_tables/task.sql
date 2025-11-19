@@ -64,7 +64,8 @@ COMMENT ON TABLE crm.tb_task IS
 'Task entity for CRM.
 
 @fraiseql:type
-trinity: true';
+trinity: true
+';
 
 -- Trinity Pattern columns
 COMMENT ON COLUMN crm.tb_task.pk_task IS 'Internal INTEGER primary key used in joins and foreign keys.';

@@ -32,8 +32,8 @@ class AppWrapperGenerator:
         graphql_name = self._to_camel_case(action.name)
         input_type_name = self._to_pascal_case(action.name) + "Input"
 
-        # For delete actions, we might not need a composite type
-        needs_composite_type = action_type != "delete"
+        # All actions need composite types for consistent JSONB → Typed conversion
+        needs_composite_type = True
 
         context = {
             "app_function_name": action.name,
@@ -83,3 +83,66 @@ class AppWrapperGenerator:
         """Convert snake_case to PascalCase"""
         components = snake_str.split("_")
         return "".join(x.capitalize() for x in components)
+
+    def _generate_action_description(self, action: Action) -> str:
+        """
+        Generate human-readable description from action steps
+
+        Args:
+            action: Action with steps to analyze
+
+        Returns:
+            Description string based on action steps
+        """
+        if not action.steps:
+            # Fallback to basic description
+            action_type = self._detect_action_type(action.name)
+            if action_type == "create":
+                return "Creates a new record"
+            elif action_type == "update":
+                return "Updates an existing record"
+            elif action_type == "delete":
+                return "Deletes an existing record"
+            else:
+                return f"Performs {action.name.replace('_', ' ')} operation"
+
+        # Analyze steps to generate description
+        operations = []
+        validations = []
+
+        for step in action.steps:
+            if step.type == "validate" and step.expression is not None:
+                validations.append(step.expression)
+            elif step.type == "insert":
+                operations.append(f"creates new {step.entity}")
+            elif step.type == "update":
+                operations.append(f"updates {step.entity}")
+            elif step.type == "delete":
+                operations.append(f"deletes {step.entity}")
+            elif step.type == "notify":
+                operations.append("sends notification")
+
+        # Build smart description based on action name and operations
+        action_name_words = action.name.replace("_", " ").split()
+
+        if operations and action_name_words:
+            # Use action name to create a more meaningful description
+            verb = action_name_words[0]
+            noun = " ".join(action_name_words[1:]) if len(action_name_words) > 1 else "record"
+
+            # Handle verb conjugation
+            if verb == "qualify":
+                return f"Qualifies a {noun}"
+            elif verb in ["create", "update", "delete"]:
+                return f"{verb.capitalize()}s a {noun}"
+
+        # Build description from operations
+        description_parts = []
+
+        if operations:
+            description_parts.append(f"{' and '.join(operations)}")
+
+        if validations:
+            description_parts.append("with validation")
+
+        return ". ".join(description_parts).capitalize()

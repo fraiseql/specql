@@ -9,7 +9,10 @@ from jinja2 import Environment, FileSystemLoader
 
 from src.core.ast_models import Action, Entity, FieldTier
 from src.generators.schema.schema_registry import SchemaRegistry
+from src.utils.logger import get_team_logger
 from src.utils.safe_slug import safe_slug, safe_table_name
+
+logger = get_team_logger("Team C", __name__)
 
 
 class CoreLogicGenerator:
@@ -171,7 +174,7 @@ class CoreLogicGenerator:
     def _generate_fk_resolutions(self, entity: Entity) -> list[dict[str, Any]]:
         """Generate UUID → INTEGER FK resolutions using Trinity helpers"""
         resolutions = []
-        is_tenant_specific = self._is_tenant_specific_schema(entity.schema)
+        self._is_tenant_specific_schema(entity.schema)
 
         for field_name, field_def in entity.fields.items():
             if field_def.type_name == "ref" and field_def.reference_entity:
@@ -254,7 +257,7 @@ class CoreLogicGenerator:
         """
         # Compile action steps
         compiled_steps = self._compile_action_steps(action, entity)
-        print(f"DEBUG: compiled_steps for {action.name}: {compiled_steps}")
+        logger.debug(f"Compiled steps for action {action.name}: {compiled_steps}")
 
         # Extract variable declarations
         declarations = self._extract_declarations(action, entity)

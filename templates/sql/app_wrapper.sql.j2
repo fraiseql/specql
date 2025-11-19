@@ -22,14 +22,22 @@ BEGIN
     );
 
     -- Delegate to core business logic
+{%- if action_type == "delete" %}
+    RETURN {{ core_schema }}.{{ core_function_name }}(
+        auth_tenant_id,
+        input_data.id,
+        auth_user_id
+    );
+{%- else %}
     RETURN {{ core_schema }}.{{ core_function_name }}(
         auth_tenant_id,
         input_data,
         input_payload,
         auth_user_id
     );
+{%- endif %}
 {%- else %}
-    -- No composite type needed for {{ action_type }} actions
+    -- Fallback: no composite type (should not happen with current logic)
     -- Delegate to core business logic
     RETURN {{ core_schema }}.{{ core_function_name }}(
         auth_tenant_id,

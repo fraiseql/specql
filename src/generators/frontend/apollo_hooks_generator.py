@@ -164,7 +164,6 @@ export const useGet{entity_name}s = (filter?: {entity_name}Filter, pagination?: 
             entity: The entity containing the action
             action: The action to generate a hook for
         """
-        entity_name = entity.name
         action_name = action.name
         pascal_name = self._to_pascal_case(action_name)
         camel_name = self._to_camel_case(action_name)
@@ -219,7 +218,6 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
 
         # Determine input and output types
         input_type = f"{pascal_name}Input"
-        output_type = f"{pascal_name}Result"
 
         return f"""  mutation {pascal_name}($input: {input_type}!) {{
     {camel_name}(input: $input) {{

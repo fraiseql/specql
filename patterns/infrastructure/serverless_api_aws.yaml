@@ -1,0 +1,52 @@
+pattern_id: "serverless_api_aws_v1"
+name: "Serverless API (AWS Lambda)"
+description: "Cost-effective serverless API with Lambda, API Gateway, and DynamoDB"
+category: serverless_api
+cloud_provider: aws
+estimated_monthly_cost: 50
+
+service: api
+provider: aws
+service_type: serverless
+environment: production
+
+compute:
+  instances: 0  # Serverless - scales to zero
+
+container:
+  image: mycompany/lambda-function
+  port: 0  # Not applicable for serverless
+
+database:
+  type: redis
+  version: "7.0"
+  storage: 10GB
+
+network:
+  custom_domain: api.example.com
+
+load_balancer:
+  enabled: true
+  type: application
+  https: true
+
+observability:
+  logging: true
+  metrics: true
+  tracing:
+    enabled: true
+    provider: xray
+  alerts:
+    - {name: high_duration, condition: "duration > 30s"}
+    - {name: high_errors, condition: "error_rate > 5%"}
+
+best_practices:
+  - "Use provisioned concurrency for predictable performance"
+  - "Implement proper timeout and error handling"
+  - "Use X-Ray for distributed tracing"
+  - "Monitor cold start performance"
+
+cost_optimization:
+  - "Use Lambda Power Tuning for optimal memory allocation"
+  - "Implement request throttling"
+  - "Use reserved concurrency for critical functions"

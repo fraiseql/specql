@@ -1,0 +1,296 @@
+pattern: composite/conditional_workflow
+version: 1.0
+description: "Execute different patterns based on conditional logic and entity state"
+author: SpecQL Team
+
+parameters:
+  - name: conditions
+    type: array<object>
+    required: true
+    description: "Conditional branches with their patterns"
+
+  - name: default_branch
+    type: object
+    required: false
+    description: "Default pattern to execute if no conditions match"
+
+  - name: evaluation_order
+    type: enum[first_match, priority_score, random]
+    default: first_match
+    description: "How to evaluate multiple matching conditions"
+
+  - name: shared_context
+    type: object
+    required: false
+    description: "Context variables shared across all branches"
+
+template: |
+  steps:
+    # Initialize conditional workflow
+    - raw_sql: |
+        -- Initialize conditional workflow context
+        v_condition_matched := false;
+        v_selected_branch := NULL;
+        v_branch_results := '{}'::jsonb;
+
+    {% if shared_context %}
+    # Set up shared context variables
+    {% for var, value in shared_context.items() %}
+    - raw_sql: "v_{{ var }} := {{ value }};"
+    {% endfor %}
+    {% endif %}
+
+    # Evaluate conditions
+    {% for condition in conditions %}
+    {% set branch_id = loop.index %}
+
+    - raw_sql: |
+        -- Evaluate condition {{ branch_id }}: {{ condition.name }}
+        IF NOT v_condition_matched AND ({{ condition.condition }}) THEN
+            v_condition_matched := true;
+            v_selected_branch := {{ branch_id }};
+
+            -- Execute branch {{ branch_id }} patterns
+            {% for step in condition.steps %}
+
+            -- Step: {{ step.name }}
+            {% if step.pattern == 'crud/create' %}
+            -- CRUD Create
+            INSERT INTO {{ entity.schema }}.tb_{{ entity.name | lower }} (
+                {% for field in step.config.get('fields', []) %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                created_at, created_by, tenant_id
+            ) VALUES (
+                {% for field in step.config.get('fields', []) %}input_data.{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                NOW(), auth_user_id, auth_tenant_id
+            ) RETURNING id INTO v_{{ entity.name | lower }}_id;
+
+            {% elif step.pattern == 'state_machine/transition' %}
+            -- State Machine Transition
+            UPDATE {{ entity.schema }}.tb_{{ entity.name | lower }}
+            SET status = '{{ step.config.to_state }}',
+                updated_at = NOW(),
+                updated_by = auth_user_id
+                {% for field in step.config.get('input_fields', []) %}
+                , {{ field.name }} = input_data.{{ field.name }}
+                {% endfor %}
+            WHERE id = v_{{ entity.name | lower }}_id
+              AND tenant_id = auth_tenant_id
+              AND status IN ({% for state in step.config.from_states %}'{{ state }}'{% if not loop.last %}, {% endif %}{% endfor %});
+
+            {% elif step.pattern == 'validation/validation_chain' %}
+            -- Validation Chain
+            {% for validation in step.config.validations %}
+            IF NOT ({{ validation.condition }}) THEN
+                RETURN app.log_and_return_mutation(
+                    auth_tenant_id, auth_user_id,
+                    '{{ entity.name | lower }}', v_{{ entity.name | lower }}_id,
+                    'NOOP', 'validation:conditional_validation_failed',
+                    ARRAY[]::TEXT[],
+                    '{{ validation.error_message }}',
+                    NULL, NULL,
+                    jsonb_build_object('branch', {{ branch_id }}, 'step', '{{ step.name }}')
+                );
+            END IF;
+            {% endfor %}
+
+            {% elif step.pattern == 'multi_entity/coordinated_update' %}
+            -- Multi-Entity Update
+            {% for op in step.config.operations %}
+            {% if op.action == 'insert' %}
+            INSERT INTO {{ op.entity | schema_for }}.tb_{{ op.entity | lower }} (
+                {% for field in op.values.keys() %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                created_at, created_by, tenant_id
+            ) VALUES (
+                {% for field, value in op.values.items() %}{{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
+                NOW(), auth_user_id, auth_tenant_id
+            );
+            {% elif op.action == 'update' %}
+            UPDATE {{ op.entity | schema_for }}.tb_{{ op.entity | lower }}
+            SET {% for field, value in op.values.items() %}{{ field }} = {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
+            WHERE {{ op.where }};
+            {% endif %}
+            {% endfor %}
+
+            {% endif %}
+
+            -- Record step completion
+            v_branch_results := jsonb_set(v_branch_results, '{branch_{{ branch_id }}}', jsonb_build_object(
+                'step', '{{ step.name }}',
+                'status', 'completed',
+                'timestamp', NOW()
+            ));
+
+            {% endfor %}
+
+        END IF;
+
+    {% endfor %}
+
+    {% if default_branch %}
+    # Execute default branch if no conditions matched
+    - raw_sql: |
+        IF NOT v_condition_matched THEN
+            v_selected_branch := 0; -- Default branch
+
+            {% for step in default_branch.steps %}
+            -- Default branch step: {{ step.name }}
+            {% if step.pattern == 'crud/create' %}
+            INSERT INTO {{ entity.schema }}.tb_{{ entity.name | lower }} (
+                {% for field in step.config.get('fields', []) %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                created_at, created_by, tenant_id
+            ) VALUES (
+                {% for field in step.config.get('fields', []) %}input_data.{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                NOW(), auth_user_id, auth_tenant_id
+            ) RETURNING id INTO v_{{ entity.name | lower }}_id;
+            {% endif %}
+
+            v_branch_results := jsonb_set(v_branch_results, '{default_branch}', jsonb_build_object(
+                'step', '{{ step.name }}',
+                'status', 'completed',
+                'timestamp', NOW()
+            ));
+            {% endfor %}
+
+        END IF;
+    {% endif %}
+
+    # Log conditional workflow execution
+    - raw_sql: |
+        INSERT INTO app.tb_workflow_execution_log (
+            entity_type, entity_id, workflow_type, selected_branch,
+            branch_results, conditions_evaluated, created_at, created_by, tenant_id
+        ) VALUES (
+            '{{ entity.name }}', v_{{ entity.name | lower }}_id, 'conditional_workflow',
+            v_selected_branch, v_branch_results, {{ conditions | length }},
+            NOW(), auth_user_id, auth_tenant_id
+        );
+
+examples:
+  - name: payment_processing_conditional
+    description: "Process payments differently based on amount and payment method"
+    config:
+      conditions:
+        - name: "High Value Credit Card"
+          condition: "amount > 1000 AND payment_method = 'credit_card'"
+          steps:
+            - name: "Enhanced Fraud Check"
+              pattern: "validation/validation_chain"
+              config:
+                validations:
+                  - condition: "fraud_score < 30"
+                    error_message: "High-value transaction requires additional fraud verification"
+                  - condition: "user_verified = true"
+                    error_message: "User verification required for high-value transactions"
+
+            - name: "Create Approval Request"
+              pattern: "crud/create"
+              config:
+                fields: ["amount", "payment_method", "approval_required"]
+
+            - name: "Set Pending Approval"
+              pattern: "state_machine/transition"
+              config:
+                from_states: ["initiated"]
+                to_state: "pending_approval"
+
+        - name: "Standard Payment"
+          condition: "amount <= 1000"
+          steps:
+            - name: "Basic Validation"
+              pattern: "validation/validation_chain"
+              config:
+                validations:
+                  - condition: "payment_method IN ('credit_card', 'debit_card', 'bank_transfer')"
+                    error_message: "Unsupported payment method"
+
+            - name: "Process Payment"
+              pattern: "multi_entity/coordinated_update"
+              config:
+                operations:
+                  - action: "update"
+                    entity: "Payment"
+                    values:
+                      status: "'processing'"
+                    where: "id = v_payment_id"
+
+                  - action: "insert"
+                    entity: "PaymentLog"
+                    values:
+                      payment_id: "v_payment_id"
+                      event_type: "'processing_started'"
+                      event_data: "input_payload"
+
+            - name: "Set Processing Status"
+              pattern: "state_machine/transition"
+              config:
+                from_states: ["initiated"]
+                to_state: "processing"
+
+      default_branch:
+        name: "Unknown Payment Type"
+        steps:
+          - name: "Log Unknown Type"
+            pattern: "crud/create"
+            config:
+              fields: ["payment_method", "amount", "error_reason"]
+
+          - name: "Reject Payment"
+            pattern: "state_machine/transition"
+            config:
+              from_states: ["initiated"]
+              to_state: "rejected"
+              input_fields:
+                - name: "failure_reason"
+                  value: "'Unsupported payment configuration'"
+
+  - name: order_routing_conditional
+    description: "Route orders to different fulfillment centers based on product type and location"
+    config:
+      conditions:
+        - name: "Electronics - Local Warehouse"
+          condition: "product_category = 'electronics' AND customer_region = 'local'"
+          steps:
+            - name: "Assign Local Warehouse"
+              pattern: "state_machine/transition"
+              config:
+                from_states: ["received"]
+                to_state: "assigned_local"
+                input_fields:
+                  - name: "warehouse_id"
+                    value: "'LOCAL_ELECTRONICS'"
+
+        - name: "Electronics - Central Distribution"
+          condition: "product_category = 'electronics' AND customer_region != 'local'"
+          steps:
+            - name: "Assign Central Warehouse"
+              pattern: "state_machine/transition"
+              config:
+                from_states: ["received"]
+                to_state: "assigned_central"
+                input_fields:
+                  - name: "warehouse_id"
+                    value: "'CENTRAL_ELECTRONICS'"
+
+        - name: "Books - Regional Hub"
+          condition: "product_category = 'books'"
+          steps:
+            - name: "Assign Regional Hub"
+              pattern: "state_machine/transition"
+              config:
+                from_states: ["received"]
+                to_state: "assigned_regional"
+                input_fields:
+                  - name: "warehouse_id"
+                    value: "'REGIONAL_BOOKS'"
+
+      default_branch:
+        name: "General Fulfillment"
+        steps:
+          - name: "Assign General Warehouse"
+            pattern: "state_machine/transition"
+            config:
+              from_states: ["received"]
+              to_state: "assigned_general"
+              input_fields:
+                - name: "warehouse_id"
+                  value: "'GENERAL_FULFILLMENT'"

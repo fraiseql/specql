@@ -1,0 +1,380 @@
+pattern: multi_entity/event_driven_orchestrator
+version: 1.0
+description: "Orchestrate complex workflows based on events and triggers across multiple entities"
+author: SpecQL Team
+
+parameters:
+  - name: event_triggers
+    type: array<object>
+    required: true
+    description: "Events that can trigger workflow actions"
+
+  - name: event_handlers
+    type: array<object>
+    required: true
+    description: "Handlers for processing events and triggering actions"
+
+  - name: state_machine
+    type: object
+    required: false
+    description: "State machine definition for orchestration state"
+
+  - name: timeout_handling
+    type: object
+    required: false
+    description: "How to handle timeouts and stalled workflows"
+
+  - name: concurrency_control
+    type: object
+    required: false
+    description: "How to handle concurrent events and race conditions"
+
+template: |
+  steps:
+    # Initialize event-driven orchestrator
+    - raw_sql: |
+        -- Initialize orchestration context
+        v_orchestration_id := gen_random_uuid();
+        v_orchestration_status := 'active';
+        v_current_state := '{{ state_machine.initial_state | default(''init'') }}';
+        v_event_log := '[]'::jsonb;
+        v_pending_events := '{}'::jsonb;
+        v_processed_events := 0;
+        v_start_time := NOW();
+
+    # Create orchestration log entry
+    - raw_sql: |
+        INSERT INTO app.tb_event_orchestration_log (
+            orchestration_id, entity_type, entity_id, orchestration_type,
+            initial_state, status, start_time, created_at, created_by, tenant_id
+        ) VALUES (
+            v_orchestration_id, '{{ entity.name }}', v_{{ entity.name | lower }}_id,
+            'event_driven', v_current_state, 'active', v_start_time,
+            NOW(), auth_user_id, auth_tenant_id
+        );
+
+    # Process initial trigger event
+    - raw_sql: |
+        -- Log initial trigger
+        v_event_log := v_event_log || jsonb_build_object(
+            'event_type', 'trigger',
+            'event_name', 'workflow_started',
+            'timestamp', NOW(),
+            'state', v_current_state
+        );
+
+    # Main event processing loop
+    - raw_sql: |
+        -- Event processing loop
+        WHILE v_orchestration_status = 'active' LOOP
+            -- Check for timeout
+            {% if timeout_handling %}
+            IF NOW() > v_start_time + INTERVAL '{{ timeout_handling.max_duration | default(''1 hour'') }}' THEN
+                v_orchestration_status := 'timed_out';
+                EXIT;
+            END IF;
+            {% endif %}
+
+            -- Find applicable event handlers for current state
+            {% for handler in event_handlers %}
+            -- Check handler: {{ handler.name }}
+            IF v_current_state = '{{ handler.from_state }}' THEN
+                -- Check if trigger event occurred
+                {% if handler.trigger_event.condition %}
+                IF {{ handler.trigger_event.condition }} THEN
+                {% endif %}
+
+                    -- Execute handler actions
+                    BEGIN
+                        -- Log event processing start
+                        INSERT INTO app.tb_event_handler_log (
+                            orchestration_id, handler_name, from_state,
+                            event_type, processing_start, created_by, tenant_id
+                        ) VALUES (
+                            v_orchestration_id, '{{ handler.name }}', v_current_state,
+                            '{{ handler.trigger_event.type }}', NOW(),
+                            auth_user_id, auth_tenant_id
+                        );
+
+                        -- Execute handler steps
+                        {% for step in handler.steps %}
+
+                        -- Handler step: {{ step.name }}
+                        {% if step.pattern == 'crud/create' %}
+                        -- Create entity
+                        INSERT INTO {{ step.entity | schema_for }}.tb_{{ step.entity | lower }} (
+                            {% for field in step.config.get('fields', []) %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                            created_at, created_by, tenant_id
+                        ) VALUES (
+                            {% for field in step.config.get('fields', []) %}input_data.{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                            NOW(), auth_user_id, auth_tenant_id
+                        ) RETURNING id INTO v_handler_result_id;
+
+                        {% elif step.pattern == 'crud/update' %}
+                        -- Update entity
+                        UPDATE {{ step.entity | schema_for }}.tb_{{ step.entity | lower }}
+                        SET {% for field, value in step.config.get('values', {}).items() %}{{ field }} = {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
+                        WHERE {{ step.config.get('where', 'id = v_' + entity.name | lower + '_id') }};
+
+                        {% elif step.pattern == 'state_machine/transition' %}
+                        -- State transition
+                        UPDATE {{ step.entity | schema_for }}.tb_{{ step.entity | lower }}
+                        SET status = '{{ step.config.to_state }}',
+                            updated_at = NOW(),
+                            updated_by = auth_user_id
+                        WHERE id = v_{{ step.entity | lower }}_id
+                          AND tenant_id = auth_tenant_id;
+
+                        {% elif step.pattern == 'multi_entity/coordinated_update' %}
+                        -- Multi-entity coordination
+                        {% for op in step.config.operations %}
+                        {% if op.action == 'insert' %}
+                        INSERT INTO {{ op.entity | schema_for }}.tb_{{ op.entity | lower }} (
+                            {% for field in op.values.keys() %}{{ field }}{% if not loop.last %}, {% endif %}{% endfor %}
+                            created_at, created_by, tenant_id
+                        ) VALUES (
+                            {% for field, value in op.values.items() %}{{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
+                            NOW(), auth_user_id, auth_tenant_id
+                        );
+                        {% elif op.action == 'update' %}
+                        UPDATE {{ op.entity | schema_for }}.tb_{{ op.entity | lower }}
+                        SET {% for field, value in op.values.items() %}{{ field }} = {{ value }}{% if not loop.last %}, {% endif %}{% endfor %}
+                        WHERE {{ op.where }};
+                        {% endif %}
+                        {% endfor %}
+
+                        {% endif %}
+
+                        {% endfor %}
+
+                        -- Transition to new state
+                        v_current_state := '{{ handler.to_state }}';
+
+                        -- Log successful handler execution
+                        UPDATE app.tb_event_handler_log
+                        SET processing_end = NOW(),
+                            new_state = '{{ handler.to_state }}',
+                            status = 'completed'
+                        WHERE orchestration_id = v_orchestration_id
+                          AND handler_name = '{{ handler.name }}'
+                          AND processing_end IS NULL;
+
+                        -- Add to event log
+                        v_event_log := v_event_log || jsonb_build_object(
+                            'event_type', 'handler_executed',
+                            'handler_name', '{{ handler.name }}',
+                            'from_state', '{{ handler.from_state }}',
+                            'to_state', '{{ handler.to_state }}',
+                            'timestamp', NOW()
+                        );
+
+                        v_processed_events := v_processed_events + 1;
+
+                        -- Check if orchestration is complete
+                        {% if handler.to_state == state_machine.final_state %}
+                        v_orchestration_status := 'completed';
+                        {% endif %}
+
+                    EXCEPTION WHEN OTHERS THEN
+                        -- Log handler failure
+                        UPDATE app.tb_event_handler_log
+                        SET processing_end = NOW(),
+                            status = 'failed',
+                            error_message = SQLERRM,
+                            error_code = SQLSTATE
+                        WHERE orchestration_id = v_orchestration_id
+                          AND handler_name = '{{ handler.name }}'
+                          AND processing_end IS NULL;
+
+                        -- Check failure handling strategy
+                        {% if handler.on_failure == 'retry' %}
+                        -- Implement retry logic here
+                        NULL;
+                        {% elif handler.on_failure == 'fail_orchestration' %}
+                        v_orchestration_status := 'failed';
+                        {% elif handler.on_failure == 'continue' %}
+                        -- Continue to next handler
+                        NULL;
+                        {% endif %}
+
+                        -- Add error to event log
+                        v_event_log := v_event_log || jsonb_build_object(
+                            'event_type', 'handler_failed',
+                            'handler_name', '{{ handler.name }}',
+                            'error', SQLERRM,
+                            'timestamp', NOW()
+                        );
+
+                    END;
+
+                {% if handler.trigger_event.condition %}
+                END IF; -- End trigger condition check
+                {% endif %}
+
+            END IF; -- End state check
+
+            {% endfor %}
+
+            -- Check for completion or deadlock prevention
+            {% if timeout_handling.max_iterations %}
+            IF v_processed_events >= {{ timeout_handling.max_iterations }} THEN
+                v_orchestration_status := 'max_iterations_reached';
+                EXIT;
+            END IF;
+            {% endif %}
+
+            -- Small delay to prevent tight loop
+            PERFORM pg_sleep(0.1);
+
+        END LOOP; -- End event processing loop
+
+    # Finalize orchestration
+    - raw_sql: |
+        -- Update final orchestration status
+        UPDATE app.tb_event_orchestration_log
+        SET status = v_orchestration_status,
+            final_state = v_current_state,
+            end_time = NOW(),
+            event_log = v_event_log,
+            events_processed = v_processed_events
+        WHERE orchestration_id = v_orchestration_id;
+
+        -- Return appropriate result based on final status
+        IF v_orchestration_status = 'completed' THEN
+            -- Success
+            NULL;
+        ELSIF v_orchestration_status = 'timed_out' THEN
+            RETURN app.log_and_return_mutation(
+                auth_tenant_id, auth_user_id,
+                '{{ entity.name | lower }}', v_{{ entity.name | lower }}_id,
+                'NOOP', 'error:event_orchestration_timeout',
+                ARRAY[]::TEXT[],
+                'Event-driven orchestration timed out',
+                NULL, NULL,
+                jsonb_build_object('orchestration_id', v_orchestration_id, 'events_processed', v_processed_events)
+            );
+        ELSIF v_orchestration_status = 'failed' THEN
+            RETURN app.log_and_return_mutation(
+                auth_tenant_id, auth_user_id,
+                '{{ entity.name | lower }}', v_{{ entity.name | lower }}_id,
+                'NOOP', 'error:event_orchestration_failed',
+                ARRAY[]::TEXT[],
+                'Event-driven orchestration failed',
+                NULL, NULL,
+                jsonb_build_object('orchestration_id', v_orchestration_id, 'events_processed', v_processed_events)
+            );
+        END IF;
+
+examples:
+  - name: order_processing_events
+    description: "Event-driven order processing with payment, inventory, and shipping coordination"
+    config:
+      event_triggers:
+        - type: "payment_completed"
+          condition: "payment.status = 'completed'"
+        - type: "inventory_reserved"
+          condition: "inventory.reserved_quantity >= order.quantity"
+        - type: "shipment_created"
+          condition: "shipment.status = 'created'"
+
+      event_handlers:
+        - name: "Handle Payment Success"
+          from_state: "awaiting_payment"
+          to_state: "payment_received"
+          trigger_event:
+            type: "payment_completed"
+            condition: "payment.status = 'completed' AND payment.order_id = v_order_id"
+          steps:
+            - name: "Update Order Status"
+              pattern: "state_machine/transition"
+              entity: "Order"
+              config:
+                from_states: ["awaiting_payment"]
+                to_state: "payment_received"
+          on_failure: "fail_orchestration"
+
+        - name: "Reserve Inventory"
+          from_state: "payment_received"
+          to_state: "inventory_reserved"
+          trigger_event:
+            type: "payment_completed"
+            condition: "true"  # Always trigger after payment
+          steps:
+            - name: "Reserve Products"
+              pattern: "crud/update"
+              entity: "Inventory"
+              config:
+                values:
+                  reserved_quantity: "reserved_quantity + order.quantity"
+                where: "product_id = order.product_id"
+          on_failure: "retry"
+
+        - name: "Create Shipment"
+          from_state: "inventory_reserved"
+          to_state: "shipped"
+          trigger_event:
+            type: "inventory_reserved"
+            condition: "true"
+          steps:
+            - name: "Create Shipment Record"
+              pattern: "crud/create"
+              entity: "Shipment"
+              config:
+                fields: ["order_id", "tracking_number", "carrier"]
+          on_failure: "continue"
+
+      state_machine:
+        initial_state: "awaiting_payment"
+        final_state: "shipped"
+
+      timeout_handling:
+        max_duration: "2 hours"
+        max_iterations: 10
+
+  - name: user_onboarding_events
+    description: "Event-driven user onboarding with email verification and profile completion"
+    config:
+      event_triggers:
+        - type: "email_verified"
+          condition: "email_verification.status = 'verified'"
+        - type: "profile_completed"
+          condition: "user_profile.completion_percentage = 100"
+        - type: "welcome_email_sent"
+          condition: "notification.type = 'welcome' AND notification.sent = true"
+
+      event_handlers:
+        - name: "Process Email Verification"
+          from_state: "email_pending"
+          to_state: "email_verified"
+          trigger_event:
+            type: "email_verified"
+            condition: "email_verification.user_id = v_user_id"
+          steps:
+            - name: "Update User Status"
+              pattern: "state_machine/transition"
+              entity: "User"
+              config:
+                from_states: ["email_pending"]
+                to_state: "email_verified"
+          on_failure: "fail_orchestration"
+
+        - name: "Send Welcome Email"
+          from_state: "email_verified"
+          to_state: "welcome_sent"
+          trigger_event:
+            type: "email_verified"
+            condition: "true"
+          steps:
+            - name: "Create Welcome Notification"
+              pattern: "crud/create"
+              entity: "Notification"
+              config:
+                fields: ["user_id", "type", "subject", "body"]
+          on_failure: "continue"
+
+      state_machine:
+        initial_state: "email_pending"
+        final_state: "onboarding_complete"
+
+      timeout_handling:
+        max_duration: "24 hours"

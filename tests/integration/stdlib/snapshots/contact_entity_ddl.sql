@@ -293,7 +293,8 @@ Includes roles, communication details, and authentication.
 .
 
 @fraiseql:type
-trinity: true';
+trinity: true
+';
 
 -- Trinity Pattern columns
 COMMENT ON COLUMN tenant.tb_contact.pk_contact IS 'Internal INTEGER primary key used in joins and foreign keys.';
@@ -318,121 +319,6 @@ COMMENT ON COLUMN tenant.tb_contact.updated_at IS 'Timestamp when the record was
 COMMENT ON COLUMN tenant.tb_contact.updated_by IS 'User or system who last updated the record.';
 COMMENT ON COLUMN tenant.tb_contact.deleted_at IS 'Timestamp of soft deletion.';
 COMMENT ON COLUMN tenant.tb_contact.deleted_by IS 'User or system who deleted the record.';
-
--- Field Comments for FraiseQL
-COMMENT ON COLUMN tenant.tb_contact.first_name IS
-'Text string
-
-@fraiseql:field
-name: first_name
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.last_name IS
-'Text string
-
-@fraiseql:field
-name: last_name
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.email_address IS
-'Valid email address (RFC 5322 simplified)
-
-@fraiseql:field
-name: email_address
-type: Email!
-required: true';
-
-COMMENT ON COLUMN tenant.tb_contact.office_phone IS
-'International phone number (E.164 format)
-
-@fraiseql:field
-name: office_phone
-type: PhoneNumber
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.mobile_phone IS
-'International phone number (E.164 format)
-
-@fraiseql:field
-name: mobile_phone
-type: PhoneNumber
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.job_title IS
-'Text string
-
-@fraiseql:field
-name: job_title
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.position IS
-'Text string
-
-@fraiseql:field
-name: position
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.lang IS
-'Text string
-
-@fraiseql:field
-name: lang
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.locale IS
-'Text string
-
-@fraiseql:field
-name: locale
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.timezone IS
-'Text string
-
-@fraiseql:field
-name: timezone
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.handles IS
-'JSON object or array
-
-@fraiseql:field
-name: handles
-type: JSON
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.password_hash IS
-'Text string
-
-@fraiseql:field
-name: password_hash
-type: String
-required: false';
-
-COMMENT ON COLUMN tenant.tb_contact.fk_customer_org IS
-'Ref value → Organization
-
-@fraiseql:field
-name: fk_customer_org
-type: UUID
-required: false
-references: Organization';
-
-COMMENT ON COLUMN tenant.tb_contact.fk_genre IS
-'Ref value → Genre
-
-@fraiseql:field
-name: fk_genre
-type: UUID
-required: false
-references: Genre';
 
 -- Input Type: create_contact
 
@@ -765,6 +651,39 @@ required: false
 references: Genre';
 
 COMMENT ON COLUMN app.type_update_contact_input.id IS
+'Id (required).
+
+@fraiseql:field
+name: id
+type: UUID!
+required: true';
+
+
+
+-- Input Type: delete_contact
+
+-- ============================================================================
+-- INPUT TYPE: type_delete_contact_input
+-- For action: delete_contact
+-- ============================================================================
+CREATE TYPE app.type_delete_contact_input AS (
+
+    id UUID
+
+);
+
+-- FraiseQL metadata
+COMMENT ON TYPE app.type_delete_contact_input IS
+'Input parameters for Delete Contact.
+
+@fraiseql:composite
+name: DeleteContactInput
+tier: 2';
+
+
+-- Field metadata
+
+COMMENT ON COLUMN app.type_delete_contact_input.id IS
 'Id (required).
 
 @fraiseql:field
@@ -1498,14 +1417,13 @@ required: true';
 
 
 -- Indexes
-CREATE INDEX idx_tb_contact_id
-    ON tenant.tb_contact USING btree (id);
-
-CREATE INDEX idx_tb_contact_customer_org
-    ON tenant.tb_contact USING btree (fk_customer_org);
-
-CREATE INDEX idx_tb_contact_genre
-    ON tenant.tb_contact USING btree (fk_genre);
+CREATE INDEX tenant_idx_tb_contact_id ON tenant.tb_contact USING btree (id);
+CREATE INDEX tenant_idx_tb_contact_customer_org ON tenant.tb_contact USING btree (fk_customer_org);
+CREATE INDEX tenant_idx_tb_contact_genre ON tenant.tb_contact USING btree (fk_genre);
+CREATE INDEX tenant_idx_tb_contact_email_address ON tenant.tb_contact USING btree (email_address);
+CREATE INDEX tenant_idx_tb_contact_office_phone ON tenant.tb_contact USING btree (office_phone);
+CREATE INDEX tenant_idx_tb_contact_mobile_phone ON tenant.tb_contact USING btree (mobile_phone);
+CREATE INDEX tenant_idx_tb_contact_handles ON tenant.tb_contact USING btree (handles);
 
 -- Foreign Keys
 ALTER TABLE ONLY tenant.tb_contact
@@ -1515,6 +1433,121 @@ ALTER TABLE ONLY tenant.tb_contact
 ALTER TABLE ONLY tenant.tb_contact
     ADD CONSTRAINT tb_contact_genre_fkey
     FOREIGN KEY (fk_genre) REFERENCES tenant.tb_genre(pk_genre);
+
+-- Field Comments for FraiseQL
+COMMENT ON COLUMN tenant.tb_contact.first_name IS
+'Text string
+
+@fraiseql:field
+name: first_name
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.last_name IS
+'Text string
+
+@fraiseql:field
+name: last_name
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.email_address IS
+'Valid email address (RFC 5322 simplified)
+
+@fraiseql:field
+name: email_address
+type: Email!
+required: true';
+
+COMMENT ON COLUMN tenant.tb_contact.office_phone IS
+'International phone number (E.164 format)
+
+@fraiseql:field
+name: office_phone
+type: PhoneNumber
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.mobile_phone IS
+'International phone number (E.164 format)
+
+@fraiseql:field
+name: mobile_phone
+type: PhoneNumber
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.job_title IS
+'Text string
+
+@fraiseql:field
+name: job_title
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.position IS
+'Text string
+
+@fraiseql:field
+name: position
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.lang IS
+'Text string
+
+@fraiseql:field
+name: lang
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.locale IS
+'Text string
+
+@fraiseql:field
+name: locale
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.timezone IS
+'Text string
+
+@fraiseql:field
+name: timezone
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.handles IS
+'JSON object or array
+
+@fraiseql:field
+name: handles
+type: JSON
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.password_hash IS
+'Text string
+
+@fraiseql:field
+name: password_hash
+type: String
+required: false';
+
+COMMENT ON COLUMN tenant.tb_contact.fk_customer_org IS
+'Ref value → Organization
+
+@fraiseql:field
+name: fk_customer_org
+type: UUID
+required: false
+references: Organization';
+
+COMMENT ON COLUMN tenant.tb_contact.fk_genre IS
+'Ref value → Genre
+
+@fraiseql:field
+name: fk_genre
+type: UUID
+required: false
+references: Genre';
 
 -- Core Logic Functions
 -- ============================================================================
@@ -2636,6 +2669,618 @@ Operations:
 
 Called by: app.update_password (GraphQL mutation)
 Returns: app.mutation_result (success/failure status)';
+
+-- App Wrapper Functions
+-- ============================================================================
+-- APP WRAPPER: create_contact
+-- API Entry Point (GraphQL/REST)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.create_contact(
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
+    input_payload JSONB               -- User input (GraphQL/REST)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_create_contact_input;
+BEGIN
+    -- Convert JSONB → Typed Composite
+    input_data := jsonb_populate_record(
+        NULL::app.type_create_contact_input,
+        input_payload
+    );
+
+    -- Delegate to core business logic
+    RETURN tenant.create_contact(
+        auth_tenant_id,
+        input_data,
+        input_payload,
+        auth_user_id
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle unexpected errors
+        RETURN ROW(
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            ARRAY[]::TEXT[],
+            'failed:unexpected_error',
+            'An unexpected error occurred',
+            NULL::JSONB,
+            jsonb_build_object('error', SQLERRM, 'detail', SQLSTATE)
+        )::app.mutation_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.create_contact IS
+'Creates a new Contact record.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: createContact
+input_type: app.type_create_contact_input
+success_type: CreateContactSuccess
+failure_type: CreateContactError';
+
+-- ============================================================================
+-- APP WRAPPER: update_contact
+-- API Entry Point (GraphQL/REST)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.update_contact(
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
+    input_payload JSONB               -- User input (GraphQL/REST)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_update_contact_input;
+BEGIN
+    -- Convert JSONB → Typed Composite
+    input_data := jsonb_populate_record(
+        NULL::app.type_update_contact_input,
+        input_payload
+    );
+
+    -- Delegate to core business logic
+    RETURN tenant.update_contact(
+        auth_tenant_id,
+        input_data,
+        input_payload,
+        auth_user_id
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle unexpected errors
+        RETURN ROW(
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            ARRAY[]::TEXT[],
+            'failed:unexpected_error',
+            'An unexpected error occurred',
+            NULL::JSONB,
+            jsonb_build_object('error', SQLERRM, 'detail', SQLSTATE)
+        )::app.mutation_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.update_contact IS
+'Updates an existing Contact record.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: updateContact
+input_type: app.type_update_contact_input
+success_type: UpdateContactSuccess
+failure_type: UpdateContactError';
+
+-- ============================================================================
+-- APP WRAPPER: delete_contact
+-- API Entry Point (GraphQL/REST)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.delete_contact(
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
+    input_payload JSONB               -- User input (GraphQL/REST)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_delete_contact_input;
+BEGIN
+    -- Convert JSONB → Typed Composite
+    input_data := jsonb_populate_record(
+        NULL::app.type_delete_contact_input,
+        input_payload
+    );
+
+    -- Delegate to core business logic
+    RETURN tenant.delete_contact(
+        auth_tenant_id,
+        input_data.id,
+        auth_user_id
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle unexpected errors
+        RETURN ROW(
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            ARRAY[]::TEXT[],
+            'failed:unexpected_error',
+            'An unexpected error occurred',
+            NULL::JSONB,
+            jsonb_build_object('error', SQLERRM, 'detail', SQLSTATE)
+        )::app.mutation_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.delete_contact IS
+'Deletes an existing Contact record.
+Validates permissions and delegates to core business logic.
+
+@fraiseql:mutation
+name: deleteContact
+input_type: app.type_delete_contact_input
+success_type: DeleteContactSuccess
+failure_type: DeleteContactError';
+
+-- ============================================================================
+-- APP WRAPPER: activate_contact
+-- API Entry Point (GraphQL/REST)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.activate_contact(
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
+    input_payload JSONB               -- User input (GraphQL/REST)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_activate_contact_input;
+BEGIN
+    -- Convert JSONB → Typed Composite
+    input_data := jsonb_populate_record(
+        NULL::app.type_activate_contact_input,
+        input_payload
+    );
+
+    -- Delegate to core business logic
+    RETURN tenant.activate_contact(
+        auth_tenant_id,
+        input_data,
+        input_payload,
+        auth_user_id
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle unexpected errors
+        RETURN ROW(
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            ARRAY[]::TEXT[],
+            'failed:unexpected_error',
+            'An unexpected error occurred',
+            NULL::JSONB,
+            jsonb_build_object('error', SQLERRM, 'detail', SQLSTATE)
+        )::app.mutation_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.activate_contact IS
+'Performs activate contact operation on Contact.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: activateContact
+input_type: app.type_activate_contact_input
+success_type: ActivateContactSuccess
+failure_type: ActivateContactError';
+
+-- ============================================================================
+-- APP WRAPPER: deactivate_contact
+-- API Entry Point (GraphQL/REST)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.deactivate_contact(
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
+    input_payload JSONB               -- User input (GraphQL/REST)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_deactivate_contact_input;
+BEGIN
+    -- Convert JSONB → Typed Composite
+    input_data := jsonb_populate_record(
+        NULL::app.type_deactivate_contact_input,
+        input_payload
+    );
+
+    -- Delegate to core business logic
+    RETURN tenant.deactivate_contact(
+        auth_tenant_id,
+        input_data,
+        input_payload,
+        auth_user_id
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle unexpected errors
+        RETURN ROW(
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            ARRAY[]::TEXT[],
+            'failed:unexpected_error',
+            'An unexpected error occurred',
+            NULL::JSONB,
+            jsonb_build_object('error', SQLERRM, 'detail', SQLSTATE)
+        )::app.mutation_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.deactivate_contact IS
+'Performs deactivate contact operation on Contact.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: deactivateContact
+input_type: app.type_deactivate_contact_input
+success_type: DeactivateContactSuccess
+failure_type: DeactivateContactError';
+
+-- ============================================================================
+-- APP WRAPPER: change_email_address
+-- API Entry Point (GraphQL/REST)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.change_email_address(
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
+    input_payload JSONB               -- User input (GraphQL/REST)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_change_email_address_input;
+BEGIN
+    -- Convert JSONB → Typed Composite
+    input_data := jsonb_populate_record(
+        NULL::app.type_change_email_address_input,
+        input_payload
+    );
+
+    -- Delegate to core business logic
+    RETURN tenant.change_email_address(
+        auth_tenant_id,
+        input_data,
+        input_payload,
+        auth_user_id
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle unexpected errors
+        RETURN ROW(
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            ARRAY[]::TEXT[],
+            'failed:unexpected_error',
+            'An unexpected error occurred',
+            NULL::JSONB,
+            jsonb_build_object('error', SQLERRM, 'detail', SQLSTATE)
+        )::app.mutation_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.change_email_address IS
+'Performs change email address operation on Contact.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: changeEmailAddress
+input_type: app.type_change_email_address_input
+success_type: ChangeEmailAddressSuccess
+failure_type: ChangeEmailAddressError';
+
+-- ============================================================================
+-- APP WRAPPER: change_office_phone
+-- API Entry Point (GraphQL/REST)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.change_office_phone(
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
+    input_payload JSONB               -- User input (GraphQL/REST)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_change_office_phone_input;
+BEGIN
+    -- Convert JSONB → Typed Composite
+    input_data := jsonb_populate_record(
+        NULL::app.type_change_office_phone_input,
+        input_payload
+    );
+
+    -- Delegate to core business logic
+    RETURN tenant.change_office_phone(
+        auth_tenant_id,
+        input_data,
+        input_payload,
+        auth_user_id
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle unexpected errors
+        RETURN ROW(
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            ARRAY[]::TEXT[],
+            'failed:unexpected_error',
+            'An unexpected error occurred',
+            NULL::JSONB,
+            jsonb_build_object('error', SQLERRM, 'detail', SQLSTATE)
+        )::app.mutation_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.change_office_phone IS
+'Performs change office phone operation on Contact.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: changeOfficePhone
+input_type: app.type_change_office_phone_input
+success_type: ChangeOfficePhoneSuccess
+failure_type: ChangeOfficePhoneError';
+
+-- ============================================================================
+-- APP WRAPPER: change_mobile_phone
+-- API Entry Point (GraphQL/REST)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.change_mobile_phone(
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
+    input_payload JSONB               -- User input (GraphQL/REST)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_change_mobile_phone_input;
+BEGIN
+    -- Convert JSONB → Typed Composite
+    input_data := jsonb_populate_record(
+        NULL::app.type_change_mobile_phone_input,
+        input_payload
+    );
+
+    -- Delegate to core business logic
+    RETURN tenant.change_mobile_phone(
+        auth_tenant_id,
+        input_data,
+        input_payload,
+        auth_user_id
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle unexpected errors
+        RETURN ROW(
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            ARRAY[]::TEXT[],
+            'failed:unexpected_error',
+            'An unexpected error occurred',
+            NULL::JSONB,
+            jsonb_build_object('error', SQLERRM, 'detail', SQLSTATE)
+        )::app.mutation_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.change_mobile_phone IS
+'Performs change mobile phone operation on Contact.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: changeMobilePhone
+input_type: app.type_change_mobile_phone_input
+success_type: ChangeMobilePhoneSuccess
+failure_type: ChangeMobilePhoneError';
+
+-- ============================================================================
+-- APP WRAPPER: update_job_title
+-- API Entry Point (GraphQL/REST)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.update_job_title(
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
+    input_payload JSONB               -- User input (GraphQL/REST)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_update_job_title_input;
+BEGIN
+    -- Convert JSONB → Typed Composite
+    input_data := jsonb_populate_record(
+        NULL::app.type_update_job_title_input,
+        input_payload
+    );
+
+    -- Delegate to core business logic
+    RETURN tenant.update_job_title(
+        auth_tenant_id,
+        input_data,
+        input_payload,
+        auth_user_id
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle unexpected errors
+        RETURN ROW(
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            ARRAY[]::TEXT[],
+            'failed:unexpected_error',
+            'An unexpected error occurred',
+            NULL::JSONB,
+            jsonb_build_object('error', SQLERRM, 'detail', SQLSTATE)
+        )::app.mutation_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.update_job_title IS
+'Updates an existing Contact record.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: updateJobTitle
+input_type: app.type_update_job_title_input
+success_type: UpdateJobTitleSuccess
+failure_type: UpdateJobTitleError';
+
+-- ============================================================================
+-- APP WRAPPER: update_position
+-- API Entry Point (GraphQL/REST)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.update_position(
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
+    input_payload JSONB               -- User input (GraphQL/REST)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_update_position_input;
+BEGIN
+    -- Convert JSONB → Typed Composite
+    input_data := jsonb_populate_record(
+        NULL::app.type_update_position_input,
+        input_payload
+    );
+
+    -- Delegate to core business logic
+    RETURN tenant.update_position(
+        auth_tenant_id,
+        input_data,
+        input_payload,
+        auth_user_id
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle unexpected errors
+        RETURN ROW(
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            ARRAY[]::TEXT[],
+            'failed:unexpected_error',
+            'An unexpected error occurred',
+            NULL::JSONB,
+            jsonb_build_object('error', SQLERRM, 'detail', SQLSTATE)
+        )::app.mutation_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.update_position IS
+'Updates an existing Contact record.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: updatePosition
+input_type: app.type_update_position_input
+success_type: UpdatePositionSuccess
+failure_type: UpdatePositionError';
+
+-- ============================================================================
+-- APP WRAPPER: change_timezone
+-- API Entry Point (GraphQL/REST)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.change_timezone(
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
+    input_payload JSONB               -- User input (GraphQL/REST)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_change_timezone_input;
+BEGIN
+    -- Convert JSONB → Typed Composite
+    input_data := jsonb_populate_record(
+        NULL::app.type_change_timezone_input,
+        input_payload
+    );
+
+    -- Delegate to core business logic
+    RETURN tenant.change_timezone(
+        auth_tenant_id,
+        input_data,
+        input_payload,
+        auth_user_id
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle unexpected errors
+        RETURN ROW(
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            ARRAY[]::TEXT[],
+            'failed:unexpected_error',
+            'An unexpected error occurred',
+            NULL::JSONB,
+            jsonb_build_object('error', SQLERRM, 'detail', SQLSTATE)
+        )::app.mutation_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.change_timezone IS
+'Performs change timezone operation on Contact.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: changeTimezone
+input_type: app.type_change_timezone_input
+success_type: ChangeTimezoneSuccess
+failure_type: ChangeTimezoneError';
+
+-- ============================================================================
+-- APP WRAPPER: update_password
+-- API Entry Point (GraphQL/REST)
+-- ============================================================================
+CREATE OR REPLACE FUNCTION app.update_password(
+    auth_tenant_id UUID,              -- JWT context: tenant_id
+    auth_user_id UUID,                -- JWT context: user_id
+    input_payload JSONB               -- User input (GraphQL/REST)
+) RETURNS app.mutation_result
+LANGUAGE plpgsql
+AS $$
+DECLARE
+    input_data app.type_update_password_input;
+BEGIN
+    -- Convert JSONB → Typed Composite
+    input_data := jsonb_populate_record(
+        NULL::app.type_update_password_input,
+        input_payload
+    );
+
+    -- Delegate to core business logic
+    RETURN tenant.update_password(
+        auth_tenant_id,
+        input_data,
+        input_payload,
+        auth_user_id
+    );
+EXCEPTION
+    WHEN OTHERS THEN
+        -- Handle unexpected errors
+        RETURN ROW(
+            '00000000-0000-0000-0000-000000000000'::UUID,
+            ARRAY[]::TEXT[],
+            'failed:unexpected_error',
+            'An unexpected error occurred',
+            NULL::JSONB,
+            jsonb_build_object('error', SQLERRM, 'detail', SQLSTATE)
+        )::app.mutation_result;
+END;
+$$;
+
+COMMENT ON FUNCTION app.update_password IS
+'Updates an existing Contact record.
+Validates input and delegates to core business logic.
+
+@fraiseql:mutation
+name: updatePassword
+input_type: app.type_update_password_input
+success_type: UpdatePasswordSuccess
+failure_type: UpdatePasswordError';
 
 -- Trinity Helper Functions
 

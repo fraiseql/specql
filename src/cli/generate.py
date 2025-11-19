@@ -59,6 +59,7 @@ def convert_entity_definition_to_entity(entity_def: EntityDefinition) -> Entity:
         fields=entity_def.fields,
         actions=actions,
         agents=entity_def.agents,
+        patterns=entity_def.patterns,
         organization=entity_def.organization,
     )
 
@@ -97,8 +98,14 @@ def cli():
 )  # NEW
 @click.option("--verbose", "-v", is_flag=True, help="Enable verbose logging (DEBUG level)")
 @click.option("--quiet", "-q", is_flag=True, help="Suppress all output except errors")
-@click.option("--performance", is_flag=True, help="Enable performance monitoring and output metrics")
-@click.option("--performance-output", type=click.Path(), help="Write performance metrics to specified JSON file")
+@click.option(
+    "--performance", is_flag=True, help="Enable performance monitoring and output metrics"
+)
+@click.option(
+    "--performance-output",
+    type=click.Path(),
+    help="Write performance metrics to specified JSON file",
+)
 def entities(
     entity_files: tuple,
     output_dir: str,
@@ -117,6 +124,7 @@ def entities(
 
     # Configure logging based on verbosity flags
     import logging
+
     if quiet:
         configure_logging(level=logging.ERROR)
     elif verbose:
@@ -131,7 +139,7 @@ def entities(
     orchestrator = CLIOrchestrator(
         use_registry=use_registry,
         output_format=output_format,
-        enable_performance_monitoring=performance
+        enable_performance_monitoring=performance,
     )
 
     # Generate migrations
@@ -250,7 +258,9 @@ def entities(
             # Write to file
             output_file = Path(performance_output)
             metrics.write_to_file(output_file)
-            click.secho(f"\n📊 Performance metrics written to {performance_output}", fg="blue", bold=True)
+            click.secho(
+                f"\n📊 Performance metrics written to {performance_output}", fg="blue", bold=True
+            )
         else:
             # Print to stdout
             click.secho("\n📊 Performance Metrics:", fg="blue", bold=True)

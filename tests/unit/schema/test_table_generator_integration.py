@@ -5,6 +5,8 @@ Tests complete DDL generation, foreign keys, constraints, and orchestration
 
 from src.core.ast_models import Entity, FieldDefinition
 
+# pytestmark = pytest.mark.skip(reason="Index method specification differences - deferred to post-beta")
+
 
 def test_complete_ddl_with_foreign_keys(table_generator):
     """Test: FK fields generate proper ALTER TABLE statements"""
@@ -106,11 +108,11 @@ def test_generate_complete_ddl_orchestration(table_generator):
     assert "CONSTRAINT chk_tb_contact_email_pattern" in complete_ddl
     assert "CONSTRAINT chk_tb_contact_status_enum" in complete_ddl
 
-    # Should have indexes
-    assert "CREATE INDEX idx_tb_contact_id" in complete_ddl
-    assert "CREATE INDEX idx_tb_contact_company" in complete_ddl
-    assert "CREATE INDEX idx_tb_contact_status" in complete_ddl
-    assert "CREATE INDEX idx_tb_contact_email" in complete_ddl  # Rich type index
+    # Should have indexes (with schema prefix since index names are database-global)
+    assert "CREATE INDEX crm_idx_tb_contact_id" in complete_ddl
+    assert "CREATE INDEX crm_idx_tb_contact_company" in complete_ddl
+    assert "CREATE INDEX crm_idx_tb_contact_status" in complete_ddl
+    assert "CREATE INDEX crm_idx_tb_contact_email" in complete_ddl  # Rich type index
 
     # Should have comments
     assert "COMMENT ON TABLE crm.tb_contact" in complete_ddl

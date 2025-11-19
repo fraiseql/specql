@@ -5,7 +5,6 @@ Resolves dependency order for tv_ generation and refresh operations.
 Uses topological sort to ensure proper ordering of table view creation and updates.
 """
 
-
 from src.core.ast_models import EntityDefinition
 
 

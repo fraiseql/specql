@@ -20,7 +20,6 @@ Generated PL/pgSQL:
     END IF;
 """
 
-
 from src.core.ast_models import ActionStep, EntityDefinition
 from src.core.scalar_types import get_scalar_type
 
