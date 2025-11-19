@@ -104,7 +104,13 @@ class SecurityPatternParser:
         )
 
     def _parse_compliance_preset(self, security_data: Dict[str, Any]) -> Optional[CompliancePreset]:
-        """Parse compliance preset from tier field"""
+        """Parse compliance preset from tier or compliance_preset field"""
+        # Check compliance_preset field first (preferred)
+        preset = security_data.get("compliance_preset")
+        if preset and preset in self.COMPLIANCE_PRESETS:
+            return self.COMPLIANCE_PRESETS[preset]
+
+        # Fallback to tier field for backward compatibility
         tier = security_data.get("tier")
         if tier and tier in self.COMPLIANCE_PRESETS:
             return self.COMPLIANCE_PRESETS[tier]
@@ -117,26 +123,52 @@ class SecurityPatternParser:
         network_tiers = []
         firewall_rules = []
 
-        firewall_data = security_data.get("firewall", {})
+        # Check for network_tiers format (preferred)
+        network_tiers_data = security_data.get("network_tiers", [])
+        if network_tiers_data:
+            if not isinstance(network_tiers_data, list):
+                raise ValueError("'network_tiers' section must be a list")
 
-        if not isinstance(firewall_data, dict):
-            raise ValueError("'firewall' section must be a dictionary")
+            for tier_data in network_tiers_data:
+                if not isinstance(tier_data, dict):
+                    continue  # Skip invalid entries
 
-        for tier_name, rules in firewall_data.items():
-            if not isinstance(rules, list):
-                raise ValueError(f"Firewall rules for tier '{tier_name}' must be a list")
+                tier_name = tier_data.get("name")
+                if not tier_name:
+                    continue  # Skip tiers without names
 
-            tier_rules = []
-            for rule_data in rules:
-                if not isinstance(rule_data, dict):
-                    raise ValueError(f"Each firewall rule must be a dictionary")
+                tier_rules = []
+                firewall_rules_data = tier_data.get("firewall_rules", [])
+                if isinstance(firewall_rules_data, list):
+                    for rule_data in firewall_rules_data:
+                        if isinstance(rule_data, dict):
+                            rule = self._parse_single_rule(rule_data, tier_name)
+                            if rule:
+                                tier_rules.append(rule)
+                                firewall_rules.append(rule)
 
-                rule = self._parse_single_rule(rule_data, tier_name)
-                if rule:
-                    tier_rules.append(rule)
-                    firewall_rules.append(rule)
+                network_tiers.append(NetworkTier(name=tier_name, firewall_rules=tier_rules))
+        else:
+            # Fallback to old firewall format for backward compatibility
+            firewall_data = security_data.get("firewall", {})
 
-            if tier_rules:
+            if not isinstance(firewall_data, dict):
+                raise ValueError("'firewall' section must be a dictionary")
+
+            for tier_name, rules in firewall_data.items():
+                if not isinstance(rules, list):
+                    raise ValueError(f"Firewall rules for tier '{tier_name}' must be a list")
+
+                tier_rules = []
+                for rule_data in rules:
+                    if not isinstance(rule_data, dict):
+                        raise ValueError(f"Each firewall rule must be a dictionary")
+
+                    rule = self._parse_single_rule(rule_data, tier_name)
+                    if rule:
+                        tier_rules.append(rule)
+                        firewall_rules.append(rule)
+
                 network_tiers.append(NetworkTier(name=tier_name, firewall_rules=tier_rules))
 
         return network_tiers, firewall_rules

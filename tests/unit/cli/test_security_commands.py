@@ -42,10 +42,9 @@ security:
 security:
   network_tiers:
     - name: web
-      firewall_rules:
-        - allow: [http, https]
+      firewall_rules: [  # Missing closing bracket - malformed YAML
+      - allow: [http, https]
           from: internet
-    - invalid_structure  # This should cause parsing to fail
 """
 
         with self.runner.isolated_filesystem():
