@@ -1,17 +1,25 @@
-.PHONY: help install test test-unit test-integration lint typecheck format clean version
+.PHONY: help install test test-unit test-integration lint typecheck format clean version db-up db-down db-restart db-logs db-status test-all
 
 help:
 	@echo "SpecQL Generator - Development Commands"
 	@echo ""
 	@echo "  make install          Install dependencies"
-	@echo "  make test            Run all tests"
+	@echo "  make test            Run all tests (unit only, no DB)"
 	@echo "  make test-unit       Run unit tests only"
 	@echo "  make test-integration Run integration tests only"
+	@echo "  make test-all        Run ALL tests including database tests"
 	@echo "  make lint            Run linting (ruff)"
 	@echo "  make typecheck       Run type checking (mypy)"
 	@echo "  make format          Format code (black)"
 	@echo "  make clean           Clean generated files"
 	@echo "  make coverage        Generate coverage report"
+	@echo ""
+	@echo "Database Management:"
+	@echo "  make db-up           Start PostgreSQL test database"
+	@echo "  make db-down         Stop and remove test database"
+	@echo "  make db-restart      Restart test database"
+	@echo "  make db-logs         Show database logs"
+	@echo "  make db-status       Check database status"
 	@echo ""
 	@echo "Version Management:"
 	@echo "  make version         Show current version"
@@ -86,3 +94,36 @@ version-minor:
 
 version-major:
 	@python scripts/version.py bump major
+
+# Database management
+db-up:
+	@echo "Starting PostgreSQL test database..."
+	docker-compose -f docker-compose.test.yml up -d
+	@echo "Waiting for database to be ready..."
+	@sleep 3
+	@docker-compose -f docker-compose.test.yml exec -T postgres pg_isready -U postgres || echo "Database starting..."
+	@echo "✅ Database ready on port 5433"
+
+db-down:
+	@echo "Stopping PostgreSQL test database..."
+	docker-compose -f docker-compose.test.yml down
+
+db-restart:
+	@echo "Restarting PostgreSQL test database..."
+	docker-compose -f docker-compose.test.yml restart
+	@sleep 2
+	@echo "✅ Database restarted"
+
+db-logs:
+	docker-compose -f docker-compose.test.yml logs -f postgres
+
+db-status:
+	@echo "Database Status:"
+	@docker-compose -f docker-compose.test.yml ps
+	@echo ""
+	@docker-compose -f docker-compose.test.yml exec -T postgres pg_isready -U postgres 2>/dev/null && echo "✅ Database is READY" || echo "❌ Database is NOT ready"
+
+# Test with database
+test-all: db-up
+	@echo "Running ALL tests (including database integration tests)..."
+	TEST_DB_HOST=localhost TEST_DB_PORT=5433 TEST_DB_NAME=test_specql TEST_DB_USER=postgres TEST_DB_PASSWORD=postgres uv run pytest tests/ -v

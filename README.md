@@ -115,7 +115,18 @@ pip install specql[testing]
 For contributing to SpecQL:
 ```bash
 pip install specql[dev]
+
+# Start test database for integration tests
+make db-up
+
+# Run all tests (1505 tests including database integration)
+make test-all
+
+# Run unit tests only (1488 tests, no database needed)
+make test
 ```
+
+See [docs/DATABASE_TESTING.md](docs/DATABASE_TESTING.md) for detailed testing documentation.
 
 ##### All Features
 ```bash
