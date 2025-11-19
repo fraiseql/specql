@@ -5,18 +5,25 @@ from typing import List, Optional, Any, TYPE_CHECKING
 
 # Conditional imports for optional dependencies
 try:
-    import tree_sitter_prisma as ts_prisma
-    from tree_sitter import Language, Parser, Node
+    from .tree_sitter_compat import (
+        HAS_TREE_SITTER,
+        Language,
+        Parser,
+        Node,
+        get_prisma_language,
+        get_prisma_parser,
+    )
 
-    HAS_TREE_SITTER_PRISMA = True
+    HAS_TREE_SITTER_PRISMA = HAS_TREE_SITTER
 except ImportError:
     HAS_TREE_SITTER_PRISMA = False
-    ts_prisma = None
     if not TYPE_CHECKING:
         # Create stub types for when the dependency is missing
         Language = Any  # type: ignore
         Parser = Any  # type: ignore
         Node = Any  # type: ignore
+        get_prisma_language = None  # type: ignore
+        get_prisma_parser = None  # type: ignore
 
 
 @dataclass
@@ -61,11 +68,11 @@ class TreeSitterPrismaParser:
         """Initialize tree-sitter parser with Prisma grammar."""
         if not HAS_TREE_SITTER_PRISMA:
             raise ImportError(
-                "tree-sitter-prisma is required for Prisma parsing. "
+                "py-tree-sitter-languages is required for Prisma parsing. "
                 "Install with: pip install specql[reverse]"
             )
-        self.language = Language(ts_prisma.language())
-        self.parser = Parser(self.language)
+        self.language = get_prisma_language()
+        self.parser = get_prisma_parser()
 
     def parse(self, schema: str) -> Node:
         """Parse Prisma schema into AST."""

@@ -18,10 +18,16 @@ logger = get_logger(__name__)
 
 # Conditional imports for optional dependencies
 try:
-    import tree_sitter_rust as ts_rust
-    from tree_sitter import Language, Parser, Node
+    from .tree_sitter_compat import (
+        HAS_TREE_SITTER,
+        Language,
+        Parser,
+        Node,
+        get_rust_language,
+        get_rust_parser,
+    )
 
-    HAS_TREE_SITTER_RUST = True
+    HAS_TREE_SITTER_RUST = HAS_TREE_SITTER
 except ImportError:
     HAS_TREE_SITTER_RUST = False
     if not TYPE_CHECKING:
@@ -29,7 +35,8 @@ except ImportError:
         Language = Any  # type: ignore
         Parser = Any  # type: ignore
         Node = Any  # type: ignore
-        ts_rust = None  # type: ignore
+        get_rust_language = None  # type: ignore
+        get_rust_parser = None  # type: ignore
 
 
 @dataclass
@@ -107,8 +114,8 @@ class TreeSitterRustParser:
                 "tree-sitter-rust is required for Rust parsing. "
                 "Install with: pip install specql[reverse]"
             )
-        self.language = Language(ts_rust.language())
-        self.parser = Parser(self.language)
+        self.language = get_rust_language()
+        self.parser = get_rust_parser()
 
     def parse(self, code: str) -> Optional[Node]:
         """Parse Rust code into AST"""
