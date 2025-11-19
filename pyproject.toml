@@ -34,7 +34,12 @@ dev = [
 # Reverse engineering features
 reverse = [
     "pglast>=7.10",  # SQL AST parsing
-    "tree-sitter-languages>=1.10.2",  # Pre-built tree-sitter grammars (Prisma, Rust, TypeScript, etc.)
+    "tree-sitter-language-pack>=0.11.0",  # Actively maintained (165+ languages, Python 3.10+, works with 3.13!)
+    # Note: The compatibility layer supports automatic fallback with smart prioritization:
+    #   Priority 1: Individual packages (most up-to-date grammars, e.g., Prisma v15 vs v13 in language-pack)
+    #   Priority 2: tree-sitter-language-pack (actively maintained, 165+ languages, Python 3.13 wheels available)
+    #   Priority 3: tree-sitter-languages (legacy, unmaintained, Python < 3.13 only)
+    # Simply install any of these and the compatibility layer will use the best available option.
 ]
 
 # Test data generation

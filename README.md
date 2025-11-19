@@ -105,6 +105,10 @@ Convert existing SQL/TypeScript/Rust to SpecQL:
 pip install specql[reverse]
 ```
 
+**New:** Now uses `tree-sitter-language-pack` - actively maintained with 165+ language grammars and **Python 3.13 support**! The compatibility layer automatically falls back to legacy packages if needed.
+
+See [docs/TREE_SITTER_MIGRATION.md](docs/TREE_SITTER_MIGRATION.md) for migration details.
+
 ##### Test Data Generation
 Generate realistic test data with Faker:
 ```bash
