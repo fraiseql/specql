@@ -40,7 +40,7 @@ jobs:
         uv venv
 
         # Install all dependencies including optional ones for testing
-        uv pip install -e ".[dev,reverse,testing]"
+        uv pip install -e ".[dev,reverse,infrastructure,testing]"
 
     - name: Verify Environment
       run: |
@@ -79,6 +79,8 @@ jobs:
       run: |
         uv venv
         uv pip install ruff
+        # Install project dependencies for import validation
+        uv pip install -e ".[dev,reverse,infrastructure,testing]"
 
     - name: Run ruff check
       run: uv run ruff check .
