@@ -13,6 +13,10 @@ from typing import Optional, List, Any, TYPE_CHECKING
 import re
 from dataclasses import dataclass, field
 
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 # Conditional imports for optional dependencies
 try:
     import tree_sitter_typescript as ts_typescript
@@ -69,7 +73,7 @@ class TreeSitterTypeScriptParser:
             tree = self.parser.parse(bytes(code, "utf8"))
             return tree.root_node
         except Exception as e:
-            print(f"Parse error: {e}")
+            logger.error(f"Parse error: {e}", exc_info=True)
             return None
 
     def extract_routes(self, ast: Node) -> List[TypeScriptRoute]:
@@ -148,14 +152,7 @@ class TreeSitterTypeScriptParser:
 
         # Extract exported async functions
         exported_functions = self._find_exported_functions(ast)
-        for func_name in exported_functions:
-            actions.append(TypeScriptAction(name=func_name))
-
-        return actions
-
-        # Extract exported async functions
-        exported_functions = self._find_exported_functions(ast)
-        print(f"DEBUG: exported_functions = {exported_functions}")
+        logger.debug(f"Found exported functions: {exported_functions}")
         for func_name in exported_functions:
             actions.append(TypeScriptAction(name=func_name))
 

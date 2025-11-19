@@ -4,6 +4,10 @@ from pathlib import Path
 import yaml
 from typing import Dict, Any
 
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class PatternRegistry:
     """Registry for loading and managing schema patterns."""
@@ -42,7 +46,7 @@ class PatternRegistry:
 
         except Exception as e:
             # Log but don't fail - allow partial loading
-            print(f"Warning: Failed to load pattern {pattern_file}: {e}")
+            logger.warning(f"Failed to load pattern {pattern_file}: {e}")
 
     def get_pattern(self, pattern_type: str) -> Dict[str, Any]:
         """Get pattern specification by type."""

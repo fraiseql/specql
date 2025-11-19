@@ -12,6 +12,10 @@ from typing import Optional, List, Any, TYPE_CHECKING
 import re
 from dataclasses import dataclass, field
 
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 # Conditional imports for optional dependencies
 try:
     import tree_sitter_rust as ts_rust
@@ -112,7 +116,7 @@ class TreeSitterRustParser:
             tree = self.parser.parse(bytes(code, "utf8"))
             return tree.root_node
         except Exception as e:
-            print(f"Parse error: {e}")
+            logger.error(f"Parse error: {e}", exc_info=True)
             return None
 
     def extract_table_name(self, ast: Node) -> Optional[str]:

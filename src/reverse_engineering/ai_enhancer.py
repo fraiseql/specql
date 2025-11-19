@@ -8,6 +8,9 @@ Improves confidence from 90% → 95% through AI inference
 import os
 from typing import Optional, Tuple, Dict, Any
 from src.reverse_engineering.ast_to_specql_mapper import ConversionResult
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 
 class AIEnhancer:
@@ -48,14 +51,14 @@ class AIEnhancer:
                     n_gpu_layers=-1,  # Use all GPU layers if available
                     verbose=False
                 )
-                print(f"✅ Loaded local LLM: {self.local_model_path}")
+                logger.info(f"Loaded local LLM: {self.local_model_path}")
             else:
-                print(f"⚠️  Local LLM model not found: {self.local_model_path}")
-                print("   Download Llama 3.1 8B from: https://huggingface.co/microsoft/WizardLM-2-8x22B")
+                logger.warning(f"Local LLM model not found: {self.local_model_path}")
+                logger.info("Download Llama 3.1 8B from: https://huggingface.co/microsoft/WizardLM-2-8x22B")
         except ImportError:
-            print("⚠️  llama-cpp-python not installed. Install with: pip install llama-cpp-python")
+            logger.warning("llama-cpp-python not installed. Install with: pip install llama-cpp-python")
         except Exception as e:
-            print(f"⚠️  Failed to load local LLM: {e}")
+            logger.warning(f"Failed to load local LLM: {e}")
 
     def enhance(self, result: ConversionResult) -> ConversionResult:
         """
@@ -73,7 +76,7 @@ class AIEnhancer:
 
         # Skip if no LLM available
         if not self.local_llm and not (self.use_cloud_fallback and self.cloud_api_key):
-            print("⚠️  No LLM available for AI enhancement")
+            logger.warning("No LLM available for AI enhancement")
             return result
 
         try:
@@ -96,7 +99,7 @@ class AIEnhancer:
             result.confidence = min(result.confidence + 0.05, 0.95)
 
         except Exception as e:
-            print(f"⚠️  AI enhancement failed: {e}")
+            logger.warning(f"AI enhancement failed: {e}")
             # Don't change confidence if AI fails
 
         return result
@@ -225,7 +228,7 @@ Respond with comma-separated pattern names, or "none".
                 )
                 return response["choices"][0]["text"].strip()
             except Exception as e:
-                print(f"⚠️  Local LLM query failed: {e}")
+                logger.warning(f"Local LLM query failed: {e}")
 
         # Cloud fallback
         if self.use_cloud_fallback and self.cloud_api_key:
@@ -248,9 +251,9 @@ Respond with comma-separated pattern names, or "none".
 
             return message.content[0].text.strip()
         except ImportError:
-            print("⚠️  anthropic package not installed for cloud fallback")
+            logger.warning("anthropic package not installed for cloud fallback")
         except Exception as e:
-            print(f"⚠️  Cloud API query failed: {e}")
+            logger.warning(f"Cloud API query failed: {e}")
 
         return None
 

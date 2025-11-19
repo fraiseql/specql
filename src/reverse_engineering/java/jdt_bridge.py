@@ -12,6 +12,10 @@ from typing import Optional, Any
 from py4j.java_gateway import JavaGateway, GatewayParameters
 import atexit
 
+from src.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 
 class JDTBridge:
     """Bridge to Eclipse JDT Java parser"""
@@ -62,8 +66,8 @@ class JDTBridge:
 
         except (FileNotFoundError, subprocess.SubprocessError, Exception) as e:
             # Fallback to mock implementation if Java/JDT not available
-            print(
-                f"Warning: JDT bridge initialization failed ({e}), using mock implementation"
+            logger.warning(
+                f"JDT bridge initialization failed ({e}), using mock implementation"
             )
             self._use_mock_implementation()
 
@@ -91,8 +95,8 @@ class JDTBridge:
             wrapper = self.gateway.entry_point
             return wrapper.parse(source_code)
         except Exception as e:
-            print(
-                f"Warning: JDT parsing failed ({e}), falling back to mock implementation"
+            logger.warning(
+                f"JDT parsing failed ({e}), falling back to mock implementation"
             )
             self._use_mock_implementation()
             return self._mock_parse_java(source_code)
