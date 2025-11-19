@@ -680,6 +680,279 @@ def check(pattern_names):
     return 1
 
 
+@security.command()
+@click.argument("pattern_name")
+@click.option("--provider", type=click.Choice(["aws", "gcp", "azure", "kubernetes"]), required=True)
+@click.option("--output", type=click.Path(), help="Output file path")
+@click.option("--dry-run", is_flag=True, help="Show what would be generated")
+def generate_infra(pattern_name, provider, output, dry_run):
+    """Generate infrastructure code from security pattern"""
+    library = SecurityPatternLibrary()
+    pattern = library.get_pattern(pattern_name)
+
+    if not pattern:
+        click.secho(f"❌ Pattern '{pattern_name}' not found", fg="red")
+        available = [p.name for p in library.list_patterns()]
+        click.echo(f"Available patterns: {', '.join(available)}")
+        return 1
+
+    # Convert pattern to security config
+    security_config = pattern.to_security_config()
+
+    # Generate infrastructure code based on provider
+    try:
+        if provider == "aws":
+            from src.infrastructure.generators.aws_security_generator import AWSSecurityGenerator
+
+            generator = AWSSecurityGenerator()
+            code = generator.generate_security_groups(security_config)
+        elif provider == "gcp":
+            from src.infrastructure.generators.gcp_security_generator import GCPSecurityGenerator
+
+            generator = GCPSecurityGenerator()
+            code = generator.generate_firewall_rules(security_config)
+        elif provider == "azure":
+            from src.infrastructure.generators.azure_security_generator import (
+                AzureSecurityGenerator,
+            )
+
+            generator = AzureSecurityGenerator()
+            code = generator.generate_nsg_rules(security_config)
+        elif provider == "kubernetes":
+            from src.infrastructure.generators.kubernetes_security_generator import (
+                KubernetesSecurityGenerator,
+            )
+
+            generator = KubernetesSecurityGenerator()
+            code = generator.generate_network_policies(security_config)
+        else:
+            click.secho(f"❌ Unsupported provider: {provider}", fg="red")
+            return 1
+
+        if dry_run:
+            click.echo("Generated infrastructure code:")
+            click.echo("-" * 50)
+            click.echo(code)
+        elif output:
+            Path(output).write_text(code)
+            click.secho(f"✅ Generated infrastructure code to {output}", fg="green")
+        else:
+            click.echo(code)
+
+        return 0
+
+    except Exception as e:
+        click.secho(f"❌ Generation failed: {e}", fg="red")
+        return 1
+
+
+@security.command()
+@click.argument("yaml_file", type=click.Path(exists=True))
+def validate_security(yaml_file):
+    """Validate security configuration YAML"""
+    from src.infrastructure.parsers.security_parser import SecurityPatternParser
+
+    try:
+        content = Path(yaml_file).read_text()
+        parser = SecurityPatternParser()
+        config = parser.parse(content)
+
+        click.secho("✅ Valid security configuration", fg="green")
+        click.echo(f"   Network tiers: {len(config.network_tiers)}")
+        click.echo(f"   Firewall rules: {len(config.firewall_rules)}")
+        if config.waf.enabled:
+            click.echo("   WAF: Enabled")
+        if config.vpn.enabled:
+            click.echo("   VPN: Enabled")
+        if config.compliance_preset:
+            click.echo(f"   Compliance preset: {config.compliance_preset.value}")
+
+        return 0
+    except Exception as e:
+        click.secho(f"❌ Validation failed: {e}", fg="red")
+        return 1
+
+
+@security.command()
+@click.argument("yaml_file", type=click.Path(exists=True))
+@click.option("--framework", type=click.Choice(["pci-dss", "hipaa", "soc2", "iso27001"]))
+def check_compliance(yaml_file, framework):
+    """Check compliance against security framework"""
+    from src.infrastructure.parsers.security_parser import SecurityPatternParser
+    from src.infrastructure.compliance.preset_manager import CompliancePresetManager
+    from src.infrastructure.universal_infra_schema import CompliancePreset
+
+    content = Path(yaml_file).read_text()
+    parser = SecurityPatternParser()
+    config = parser.parse(content)
+
+    # Create infrastructure with this config
+    from src.infrastructure.universal_infra_schema import UniversalInfrastructure
+
+    infrastructure = UniversalInfrastructure(name="compliance-check", security=config)
+
+    manager = CompliancePresetManager()
+
+    # If framework specified, temporarily set it
+    if framework:
+        framework_map = {
+            "pci-dss": CompliancePreset.PCI_DSS,
+            "hipaa": CompliancePreset.HIPAA,
+            "soc2": CompliancePreset.SOC2,
+            "iso27001": CompliancePreset.ISO27001,
+        }
+        if framework in framework_map:
+            infrastructure.security.compliance_preset = framework_map[framework]
+
+    result = manager.validate_compliance(infrastructure)
+
+    if result["compliant"]:
+        click.secho(f"✅ Compliant with {result.get('preset', 'requirements')}", fg="green")
+    else:
+        click.secho("❌ Compliance gaps found:", fg="red")
+        for gap in result["gaps"]:
+            click.echo(f"   - {gap}")
+        return 1
+
+
+@security.command()
+@click.option(
+    "--preset", type=click.Choice(["three-tier", "microservices", "api-gateway"]), required=True
+)
+@click.option("--compliance", type=click.Choice(["pci-dss", "hipaa", "soc2", "iso27001"]))
+@click.option("--output", type=click.Path(), default="security.yaml")
+def init(preset, compliance, output):
+    """Initialize a new security configuration from preset"""
+    library = SecurityPatternLibrary()
+
+    # Map preset names to pattern IDs
+    preset_map = {
+        "three-tier": "three-tier-app",
+        "microservices": "microservices",
+        "api-gateway": "api-gateway",
+    }
+
+    pattern = library.get_pattern(preset_map[preset])
+    if not pattern:
+        click.secho(f"❌ Preset '{preset}' not found", fg="red")
+        return 1
+
+    # Generate YAML
+    yaml_content = f"""# Security Configuration
+# Generated from preset: {preset}
+# Generated on: {__import__("datetime").datetime.now().strftime("%Y-%m-%d %H:%M:%S")}
+
+security:
+"""
+
+    if compliance:
+        compliance_map = {
+            "pci-dss": "pci-compliant",
+            "hipaa": "hipaa",
+            "soc2": "soc2",
+            "iso27001": "iso27001",
+        }
+        yaml_content += f"  compliance_preset: {compliance_map[compliance]}\n"
+
+    yaml_content += "\n  network_tiers:\n"
+
+    for tier in pattern.network_tiers:
+        yaml_content += f"\n    - name: {tier.name}\n"
+        yaml_content += "      firewall_rules:\n"
+        for rule in tier.firewall_rules:
+            yaml_content += f"        - name: {rule.name}\n"
+            yaml_content += f"          protocol: {rule.protocol}\n"
+            yaml_content += f"          ports: {rule.ports}\n"
+            yaml_content += f"          source: {rule.source}\n"
+
+    if pattern.waf_config:
+        yaml_content += "\n  waf:\n"
+        yaml_content += "    enabled: true\n"
+        yaml_content += f"    mode: {pattern.waf_config.mode}\n"
+
+    if pattern.vpn_config:
+        yaml_content += "\n  vpn:\n"
+        yaml_content += "    enabled: true\n"
+        yaml_content += f"    type: {pattern.vpn_config.type}\n"
+
+    Path(output).write_text(yaml_content)
+    click.secho(f"✅ Created security configuration: {output}", fg="green")
+    click.echo("Next steps:")
+    click.echo(f"  1. Edit {output} to customize your security settings")
+    click.echo("  2. Validate: specql security validate {output}")
+    click.echo("  3. Check compliance: specql security check-compliance {output}")
+    click.echo(
+        "  4. Generate infrastructure: specql security generate <pattern> --provider <aws|gcp|azure|kubernetes>"
+    )
+
+
+@security.command()
+@click.argument("file1", type=click.Path(exists=True))
+@click.argument("file2", type=click.Path(exists=True))
+def diff(file1, file2):
+    """Compare two security configuration files"""
+    from src.infrastructure.parsers.security_parser import SecurityPatternParser
+    import yaml
+
+    try:
+        parser = SecurityPatternParser()
+
+        # Parse both files
+        content1 = Path(file1).read_text()
+        content2 = Path(file2).read_text()
+
+        config1 = parser.parse(content1)
+        config2 = parser.parse(content2)
+
+        # Compare configurations
+        differences = []
+
+        # Compare network tiers
+        tiers1 = {tier.name: tier for tier in config1.network_tiers}
+        tiers2 = {tier.name: tier for tier in config2.network_tiers}
+
+        all_tier_names = set(tiers1.keys()) | set(tiers2.keys())
+
+        for tier_name in sorted(all_tier_names):
+            if tier_name not in tiers1:
+                differences.append(f"Added network tier: {tier_name}")
+            elif tier_name not in tiers2:
+                differences.append(f"Removed network tier: {tier_name}")
+            else:
+                # Compare tier details
+                tier1 = tiers1[tier_name]
+                tier2 = tiers2[tier_name]
+
+                if len(tier1.firewall_rules) != len(tier2.firewall_rules):
+                    differences.append(
+                        f"Firewall rules changed in {tier_name}: {len(tier1.firewall_rules)} → {len(tier2.firewall_rules)}"
+                    )
+
+        # Compare WAF
+        if config1.waf.enabled != config2.waf.enabled:
+            differences.append(f"WAF enabled: {config1.waf.enabled} → {config2.waf.enabled}")
+
+        # Compare compliance presets
+        preset1 = config1.compliance_preset.value if config1.compliance_preset else None
+        preset2 = config2.compliance_preset.value if config2.compliance_preset else None
+        if preset1 != preset2:
+            differences.append(f"Compliance preset: {preset1} → {preset2}")
+
+        if not differences:
+            click.secho("✅ No differences found", fg="green")
+            return 0
+
+        click.secho("🔍 Differences found:", fg="yellow")
+        for diff in differences:
+            click.echo(f"  • {diff}")
+
+        return 1
+
+    except Exception as e:
+        click.secho(f"❌ Diff failed: {e}", fg="red")
+        return 1
+
+
 # Register commands with the main specql group
 specql.add_command(security)
 specql.add_command(reverse)
