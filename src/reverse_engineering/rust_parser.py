@@ -9,12 +9,21 @@ import logging
 import re
 import subprocess
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING
 from dataclasses import dataclass
 
 from src.core.ast_models import Entity, FieldDefinition, FieldTier
 from src.reverse_engineering.seaorm_parser import SeaORMParser, SeaORMEntity, SeaORMQuery
-from src.reverse_engineering.tree_sitter_rust_parser import TreeSitterRustParser
+
+# Conditional import for tree-sitter-rust
+try:
+    from src.reverse_engineering.tree_sitter_rust_parser import TreeSitterRustParser
+
+    HAS_TREE_SITTER_RUST = True
+except ImportError:
+    HAS_TREE_SITTER_RUST = False
+    if not TYPE_CHECKING:
+        TreeSitterRustParser = None  # type: ignore
 
 logger = logging.getLogger(__name__)
 
@@ -191,8 +200,11 @@ class RustParser:
         self.type_mapper = RustTypeMapper()
         # Initialize ORM parsers
         self.seaorm_parser = SeaORMParser()
-        # Initialize tree-sitter parser
-        self.ts_parser = TreeSitterRustParser()
+        # Initialize tree-sitter parser (if available)
+        if HAS_TREE_SITTER_RUST:
+            self.ts_parser = TreeSitterRustParser()
+        else:
+            self.ts_parser = None
 
     def parse_file(
         self, file_path: Path

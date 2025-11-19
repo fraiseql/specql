@@ -8,11 +8,24 @@ Replaces regex parsing with robust AST traversal for:
 - Nested structures
 """
 
-from typing import Optional, List, Any
+from typing import Optional, List, Any, TYPE_CHECKING
 import re
-import tree_sitter_rust as ts_rust
-from tree_sitter import Language, Parser, Node
 from dataclasses import dataclass, field
+
+# Conditional imports for optional dependencies
+try:
+    import tree_sitter_rust as ts_rust
+    from tree_sitter import Language, Parser, Node
+
+    HAS_TREE_SITTER_RUST = True
+except ImportError:
+    HAS_TREE_SITTER_RUST = False
+    if not TYPE_CHECKING:
+        # Create stub types for when the dependency is missing
+        Language = Any  # type: ignore
+        Parser = Any  # type: ignore
+        Node = Any  # type: ignore
+        ts_rust = None  # type: ignore
 
 
 @dataclass
@@ -85,6 +98,11 @@ class TreeSitterRustParser:
 
     def __init__(self):
         """Initialize tree-sitter parser with Rust grammar"""
+        if not HAS_TREE_SITTER_RUST:
+            raise ImportError(
+                "tree-sitter-rust is required for Rust parsing. "
+                "Install with: pip install specql[reverse]"
+            )
         self.language = Language(ts_rust.language())
         self.parser = Parser(self.language)
 

@@ -59,3 +59,9 @@ TREE_SITTER_TYPESCRIPT = OptionalDependency(
     pip_extra="reverse",
     purpose="TypeScript AST parsing",
 )
+
+TREE_SITTER_PRISMA = OptionalDependency(
+    package_name="tree_sitter_prisma",
+    pip_extra="reverse",
+    purpose="Prisma schema parsing",
+)

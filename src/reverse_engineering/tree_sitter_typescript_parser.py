@@ -9,16 +9,24 @@ Replaces regex parsing with robust AST traversal for:
 - Next.js Server Actions
 """
 
-from typing import Optional, List, Any
+from typing import Optional, List, Any, TYPE_CHECKING
 import re
-from tree_sitter import Language, Parser, Node
 from dataclasses import dataclass, field
 
-# Import tree-sitter TypeScript grammar
+# Conditional imports for optional dependencies
 try:
     import tree_sitter_typescript as ts_typescript
+    from tree_sitter import Language, Parser, Node
+
+    HAS_TREE_SITTER_TYPESCRIPT = True
 except ImportError:
+    HAS_TREE_SITTER_TYPESCRIPT = False
     ts_typescript = None
+    if not TYPE_CHECKING:
+        # Create stub types for when the dependency is missing
+        Language = Any  # type: ignore
+        Parser = Any  # type: ignore
+        Node = Any  # type: ignore
 
 
 @dataclass
@@ -45,8 +53,11 @@ class TreeSitterTypeScriptParser:
 
     def __init__(self):
         """Initialize tree-sitter parser with TypeScript grammar"""
-        if ts_typescript is None:
-            raise ImportError("tree-sitter-typescript package is required")
+        if not HAS_TREE_SITTER_TYPESCRIPT:
+            raise ImportError(
+                "tree-sitter-typescript is required for TypeScript parsing. "
+                "Install with: pip install specql[reverse]"
+            )
 
         # Initialize with TypeScript grammar (handles both .ts and .tsx)
         self.language = Language(ts_typescript.language_typescript())
