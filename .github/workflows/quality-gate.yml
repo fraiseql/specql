@@ -146,6 +146,7 @@ jobs:
 
     - name: Check internal documentation links
       run: |
+        set +e  # Don't exit on arithmetic operations returning 0
         echo "=== Checking User-Facing Documentation Links ==="
 
         # Function to check if a file exists
@@ -205,14 +206,14 @@ jobs:
             while IFS= read -r file; do
               line_num=0
               while IFS= read -r line; do
-                ((line_num++))
+                line_num=$((line_num + 1))  # Safer than ((line_num++)) with set -e
 
                 # Extract markdown links: [text](link)
                 while [[ $line =~ \[([^\]]+)\]\(([^\)]+)\) ]]; do
                   link="${BASH_REMATCH[2]}"
 
                   if ! check_link "$file" "$link" "$line_num"; then
-                    ((broken_links++))
+                    broken_links=$((broken_links + 1))
                   fi
 
                   # Remove matched part to find next link
@@ -236,6 +237,7 @@ jobs:
 
         if [ $broken_links -eq 0 ]; then
           echo "✅ All user-facing documentation links are valid!"
+          exit 0
         else
           echo "❌ Found $broken_links broken link(s) in user-facing documentation"
           exit 1
