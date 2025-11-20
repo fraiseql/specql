@@ -592,7 +592,6 @@ database:
 ## Next Steps
 
 - [Deployment Patterns](patterns/index.md) - Pre-built deployment patterns
-- [Multi-Cloud Guide](multi-cloud.md) - Deploy across clouds
 - [Cost Optimization](cost-optimization.md) - Reduce infrastructure costs
 - [Security Hardening](security.md) - Production security best practices
 
