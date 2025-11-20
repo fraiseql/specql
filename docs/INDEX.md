@@ -60,7 +60,7 @@
 - [Trinity Pattern](01_core-concepts/trinity-pattern.md) - Three identifiers explained
 - [Rich Types](03_core-concepts/rich-types.md) - 49 built-in validations
 - [Actions](03_core-concepts/actions.md) - Declarative business logic
-- [FraiseQL](03_core-concepts/fraiseql.md) - Auto-generated GraphQL
+- [GraphQL Integration](05_guides/graphql-integration.md) - Auto-generated GraphQL
 
 **Read when**: You want to understand *how* SpecQL works
 **Time**: 30-45 minutes total
@@ -90,7 +90,7 @@
 
 - [Infrastructure Overview](04_infrastructure/index.md) - Cloud deployment capabilities
 - [Deployment Patterns](04_infrastructure/patterns/index.md) - Pre-configured setups
-- [Multi-Cloud Deployment](04_infrastructure/multi-cloud.md) - AWS, GCP, Azure, Hetzner
+- [Infrastructure](04_infrastructure/index.md) - AWS, GCP, Azure, Hetzner
 - [Cost Optimization](04_infrastructure/cost-optimization.md) - Reduce infrastructure costs
 
 **Use when**: Deploying to production
@@ -105,7 +105,7 @@
 - [Your First Action](05_guides/your-first-action.md) - Add business logic
 - [Multi-Tenancy](05_guides/multi-tenancy.md) - Tenant isolation patterns
 - [GraphQL Integration](05_guides/graphql-integration.md) - Frontend integration
-- [Extending stdlib](05_guides/extending-stdlib.md) - Customize pre-built entities
+- [Extending stdlib](07_advanced/extending-stdlib.md) - Customize pre-built entities
 - [Error Handling](05_guides/error-handling.md) - Debug and troubleshoot
 
 **Use when**: Implementing specific features
@@ -118,10 +118,9 @@
 
 - [CLI Commands](06_reference/cli-commands.md) - All `specql` commands
 - [YAML Syntax](06_reference/yaml-syntax.md) - Complete grammar
-- [Rich Types Reference](06_reference/rich-types.md) - All 49 types detailed
+- [Rich Types Reference](06_reference/rich-types-reference.md) - All 49 types detailed
 - [Action Steps Reference](06_reference/action-steps.md) - Every step type
-- [PostgreSQL Schema](06_reference/postgres-schema.md) - Generated database structure
-- [GraphQL Schema](06_reference/graphql-schema.md) - Generated API structure
+- [Schema Registry](06_reference/schema-registry.md) - Schema management
 
 **Use when**: Looking up syntax or capabilities
 **Format**: Searchable reference tables
@@ -134,8 +133,8 @@
 - [Custom Patterns](07_advanced/custom-patterns.md) - Extend the generator
 - [Performance Tuning](07_advanced/performance-tuning.md) - Optimize for scale
 - [Security Hardening](07_advanced/security-hardening.md) - Production security
-- [Custom Validators](07_advanced/custom-validators.md) - Domain-specific validation
-- [Plugin System](07_advanced/plugins.md) - Extend SpecQL functionality
+- [Custom Patterns](07_advanced/custom-patterns.md) - Reusable logic templates
+- [Performance Tuning](07_advanced/performance-tuning.md) - Optimize for scale
 
 **Use when**: Pushing SpecQL to its limits
 **Audience**: Experienced users
@@ -145,11 +144,7 @@
 ### 🤝 Contributing
 **For contributors and open-source developers**
 
-- [Architecture Overview](07_contributing/architecture.md) - System design
-- [Development Setup](07_contributing/development-setup.md) - Local environment
-- [Testing Guide](07_contributing/testing-guide.md) - TDD workflow
-- [stdlib Contributions](07_contributing/stdlib-contributions.md) - Add to stdlib
-- [Code of Conduct](07_contributing/code-of-conduct.md)
+- [Contributing Guide](../CONTRIBUTING.md) - How to contribute
 
 **Use when**: Contributing to SpecQL
 **Welcome**: First-time contributors
@@ -229,8 +224,7 @@
 1. [Custom Patterns](07_advanced/custom-patterns.md) - Extend SpecQL
 2. [Performance Tuning](07_advanced/performance-tuning.md) - Optimize
 3. [Security Hardening](07_advanced/security-hardening.md) - Harden
-4. [Architecture](07_contributing/architecture.md) - Deep dive
-5. [Plugin System](07_advanced/plugins.md) - Build extensions
+4. [Custom Patterns](07_advanced/custom-patterns.md) - Build extensions
 
 **Time commitment**: 5-8 hours
 **Goal**: Master SpecQL
@@ -262,7 +256,7 @@
 → [Action Steps](06_reference/action-steps.md) (declarative PL/pgSQL)
 
 **Hasura / Postgraphile**
-→ [FraiseQL](03_core-concepts/fraiseql.md) (similar auto-GraphQL)
+→ [GraphQL Integration](05_guides/graphql-integration.md) (similar auto-GraphQL)
 → [Actions](03_core-concepts/actions.md) (business logic layer)
 
 ---
@@ -293,7 +287,7 @@
 ### DevOps Engineer
 **Goal**: Deploy and maintain
 - [Infrastructure](04_infrastructure/index.md) - Deployment options
-- [Multi-Cloud](04_infrastructure/multi-cloud.md) - Cloud strategies
+- [Infrastructure](04_infrastructure/index.md) - Cloud strategies
 - [Performance](07_advanced/performance-tuning.md) - Optimization
 - [Monitoring](04_infrastructure/index.md#monitoring--alerts) - Observability
 
@@ -338,7 +332,7 @@ For founders and solo developers who need an MVP fast.
 1. [Getting Started](01_getting-started/index.md) (15 min)
 2. [stdlib Overview](04_stdlib/index.md) (30 min)
 3. [Import stdlib entities](04_stdlib/index.md#quick-start-build-a-crm-in-10-lines) (15 min)
-4. [Add custom fields](05_guides/extending-stdlib.md) (30 min)
+4. [Add custom fields](07_advanced/extending-stdlib.md) (30 min)
 5. [Deploy](04_infrastructure/index.md) (60 min)
 
 **Result**: Production MVP deployed

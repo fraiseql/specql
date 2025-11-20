@@ -322,5 +322,4 @@ Contact:
 ## See Also
 
 - [Pattern Detection CLI](CLI_PATTERN_DETECTION.md) - Pattern detection commands
-- [Reverse Engineering Guide](../guides/reverse_engineering.md) - Complete workflow
-- [Framework Registry](../src/cli/framework_registry.py) - Supported frameworks
+- [Reverse Engineering Guide](02_migration/reverse-engineering/sql.md) - Complete workflow

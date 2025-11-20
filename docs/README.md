@@ -4,8 +4,8 @@
 
 - [Getting Started](../GETTING_STARTED.md)
 - [Architecture Overview](architecture/)
-- [Rich Types Guide](guides/rich-types.md)
-- [stdlib Usage](guides/stdlib-usage.md)
+- [Rich Types Guide](03_core-concepts/rich-types.md)
+- [stdlib Usage](04_stdlib/index.md)
 
 ## Documentation Structure
 
@@ -17,8 +17,7 @@
 
 ## For Developers
 
-- [Testing Guide](development/testing.md)
-- [Contributing Guidelines](development/contributing.md)
+- [Contributing Guide](../CONTRIBUTING.md)
 
 ## Archive
 

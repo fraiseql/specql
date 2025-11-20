@@ -200,5 +200,5 @@ class Contact(Base):
 ## See Also
 
 - [Framework Integration](FRAMEWORK_INTEGRATION.md) - Framework-specific features
-- [Reverse Engineering Guide](../guides/reverse_engineering.md) - Complete reverse engineering workflow
-- [Pattern Library](../stdlib/patterns/) - Available pattern implementations
+- [Reverse Engineering Guide](02_migration/reverse-engineering/sql.md) - Complete reverse engineering workflow
+- [Pattern Library](../stdlib/actions/) - Available pattern implementations
