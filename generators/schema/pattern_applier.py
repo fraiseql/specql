@@ -10,6 +10,10 @@ from jinja2 import Environment, FileSystemLoader, Template
 from core.ast_models import Entity, FieldDefinition, Index, Pattern
 
 # Pattern class imports
+from generators.schema.patterns.schema.aggregate_view import AggregateViewPattern
+from generators.schema.patterns.schema.scd_type2_helper import SCDType2HelperPattern
+from patterns.schema.computed_column import ComputedColumnPattern
+from patterns.temporal.non_overlapping_daterange import NonOverlappingDateRangePattern
 from patterns.validation.recursive_dependency_validator import RecursiveDependencyValidator
 from patterns.validation.template_inheritance import TemplateInheritancePattern
 from utils.logger import get_team_logger
@@ -31,12 +35,23 @@ class PatternApplier:
 
     # Pattern class registry
     PATTERN_APPLIERS = {
+        # Schema patterns
+        "schema_computed_column": ComputedColumnPattern,
+        "schema_aggregate_view": AggregateViewPattern,
+        "schema_scd_type2_helper": SCDType2HelperPattern,
+        # Temporal patterns
+        "temporal_non_overlapping_daterange": NonOverlappingDateRangePattern,
+        "temporal_scd_type2_helper": SCDType2HelperPattern,
         # Validation patterns
         "validation_recursive_dependency_validator": RecursiveDependencyValidator,
         "validation_template_inheritance": TemplateInheritancePattern,
         # Aliases for backward compatibility
         "recursive_dependency_validator": RecursiveDependencyValidator,
         "template_inheritance": TemplateInheritancePattern,
+        "computed_column": ComputedColumnPattern,
+        "aggregate_view": AggregateViewPattern,
+        "scd_type2_helper": SCDType2HelperPattern,
+        "non_overlapping_daterange": NonOverlappingDateRangePattern,
     }
 
     def __init__(self):

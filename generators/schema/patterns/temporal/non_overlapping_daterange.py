@@ -7,7 +7,7 @@ from core.ast_models import Entity, Index
 
 @dataclass
 class DateRangeConfig:
-    """Configuration for non-overlapping daterange pattern."""
+    """Configuration for non-overlapping date range."""
 
     start_date_field: str
     end_date_field: str

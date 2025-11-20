@@ -1,0 +1,1 @@
+"""Schema patterns for SpecQL."""

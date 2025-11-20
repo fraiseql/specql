@@ -206,12 +206,13 @@ class TableGenerator:
                     metadata.append(f"@fraiseql:pattern:{pattern_name}")
 
         return {
-            "computed_columns": entity.computed_columns,
-            "scd_indexes": entity.indexes,
+            "computed_columns": getattr(entity, "computed_columns", []),
+            "scd_indexes": entity.indexes if hasattr(entity, "indexes") else [],
             "exclusion_constraints": [],
-            "aggregate_views": [],
+            "aggregate_views": getattr(entity, "aggregate_views", []),
+            "aggregate_view_indexes": getattr(entity, "aggregate_view_indexes", []),
             "constraints": [],
-            "scd_functions": entity.functions,
+            "scd_functions": entity.functions if hasattr(entity, "functions") else [],
             "metadata": metadata,
         }
 
