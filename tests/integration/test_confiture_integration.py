@@ -335,16 +335,40 @@ class TestConfitureIntegration:
         assert table_exists, "tb_contact table should exist after migration"
 
         # Check if functions were created
-        # Note: SpecQL may generate functions in both 'crm' and 'app' schemas
+        # SpecQL generates 2 functions per action: {schema}.{action} and app.{action}
         cursor.execute(
             "SELECT routine_schema, routine_name FROM information_schema.routines WHERE routine_name IN ('create_contact', 'qualify_lead') ORDER BY routine_schema, routine_name"
         )
         functions = cursor.fetchall()
-        function_count = len(functions)
 
-        # Should have at least 1 function (may have 2 if both crm and app wrappers are generated, or 4 if both actions)
-        assert function_count >= 1, (
-            f"Expected at least 1 function (create_contact or qualify_lead), found {function_count}. "
+        # Build a dict to track which schemas each action appears in
+        function_dict = {}
+        for schema, name in functions:
+            if name not in function_dict:
+                function_dict[name] = []
+            function_dict[name].append(schema)
+
+        # Expected: 2 actions (create_contact, qualify_lead)
+        expected_actions = {'create_contact', 'qualify_lead'}
+        assert set(function_dict.keys()) == expected_actions, (
+            f"Expected actions {expected_actions}, got {set(function_dict.keys())}. "
+            f"Functions in database: {functions}"
+        )
+
+        # Expected: Each action should be in both 'crm' and 'app' schemas
+        expected_schemas = {'crm', 'app'}
+        for action in expected_actions:
+            assert set(function_dict[action]) == expected_schemas, (
+                f"Action '{action}' should be in schemas {expected_schemas}, "
+                f"got {set(function_dict[action])}. Functions in database: {functions}"
+            )
+
+        # Total: 2 actions × 2 schemas = 4 functions
+        total_functions = len(functions)
+        expected_total = len(expected_actions) * len(expected_schemas)
+        assert total_functions == expected_total, (
+            f"Expected {expected_total} functions ({len(expected_actions)} actions × "
+            f"{len(expected_schemas)} schemas), got {total_functions}. "
             f"Functions in database: {functions}"
         )
 
