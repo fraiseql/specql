@@ -120,7 +120,12 @@ fields:
 
 **Generated SQL**:
 ```sql
-domain TEXT NOT NULL CHECK (domain ~ '^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$')
+-- Domain name validation (RFC compliant regex)
+domain TEXT NOT NULL CHECK (
+  domain ~ '^(?:subdomain\.)*domain\.tld$'
+)
+-- Actual pattern validates: alphanumeric subdomains (max 63 chars each)
+-- separated by dots, ending with 2+ letter TLD
 ```
 
 ## Financial Types
