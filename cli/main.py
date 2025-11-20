@@ -6,7 +6,6 @@ import click
 
 from cli.cache_commands import cache
 from cli.detect_patterns import detect_patterns
-from cli.orchestrator import CLIOrchestrator
 from cli.reverse import reverse as reverse_sql_cmd
 from cli.reverse_python import reverse_python
 from cli.validate import validate

@@ -179,12 +179,9 @@ def test_complete_workflow(cli_runner):
         all_sql_files = list(sql_dir.rglob("*.sql"))
         assert len(all_sql_files) > 0
 
-        # Should have foundation, tables, and functions
+        # Should have foundation and tables
         foundation_files = [f for f in all_sql_files if "foundation" in str(f)]
         table_files = [f for f in all_sql_files if "table" in str(f) or "tb_" in f.read_text()]
-        function_files = [
-            f for f in all_sql_files if "function" in str(f) or "CREATE.*FUNCTION" in f.read_text()
-        ]
 
         assert len(foundation_files) > 0
         assert len(table_files) > 0

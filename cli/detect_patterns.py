@@ -2,9 +2,9 @@ from pathlib import Path
 
 import click
 
-from reverse_engineering.universal_pattern_detector import UniversalPatternDetector
-from infrastructure.pattern_detector import PatternDetector
 from cli.language_detector import LanguageDetector
+from infrastructure.pattern_detector import PatternDetector
+from reverse_engineering.universal_pattern_detector import UniversalPatternDetector
 
 
 @click.command("detect-patterns")

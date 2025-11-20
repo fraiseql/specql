@@ -1,8 +1,8 @@
 # Aggregate View Transformer
 # Generates aggregate views based on schema_aggregate_view patterns
 
-from typing import Dict, List
 from core.ast_models import Entity, Pattern
+
 from ..pattern_transformer import PatternTransformer
 
 
@@ -126,7 +126,7 @@ BEGIN
   WHERE mv_name = '{view_name}';
 """
 
-        view_ddl += f"""END;
+        view_ddl += """END;
 $$ LANGUAGE plpgsql;
 
 """
@@ -156,9 +156,6 @@ EXECUTE FUNCTION {entity.schema}.trigger_refresh_mv_{entity.name.lower()}_agg();
 """
 
         # Add FraiseQL annotation
-        pattern_type = (
-            "aggregate_view" if pattern.type == "aggregate_view" else "schema_aggregate_view"
-        )
         view_ddl += f"""-- FraiseQL annotation for GraphQL discovery
 COMMENT ON MATERIALIZED VIEW {entity.schema}.{view_name} IS '@fraiseql:type=aggregate_view @fraiseql:refresh_mode={refresh_mode}';"""
 

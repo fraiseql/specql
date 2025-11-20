@@ -8,7 +8,7 @@ from pathlib import Path
 
 import click
 
-from core.specql_parser import SpecQLParser, ParseError
+from core.specql_parser import ParseError, SpecQLParser
 
 
 @click.command()
@@ -61,7 +61,7 @@ def validate(ctx, entity_files, check_impacts, verbose):
                             )
 
             if verbose and not errors:
-                click.echo(f"  OK")
+                click.echo("  OK")
 
         except ParseError as e:
             errors.append(f"{entity_file}: Parse error - {str(e)}")

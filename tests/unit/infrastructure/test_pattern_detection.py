@@ -1,6 +1,7 @@
 """Test pattern detection on Django models"""
 
 import textwrap
+
 from infrastructure.pattern_detector import PatternDetector
 
 

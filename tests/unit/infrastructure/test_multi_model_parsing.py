@@ -1,6 +1,7 @@
 """Test parsing files with multiple Django models"""
 
 import textwrap
+
 from reverse_engineering.python_ast_parser import PythonASTParser
 
 

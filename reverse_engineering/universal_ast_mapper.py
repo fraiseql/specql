@@ -1,6 +1,7 @@
-import yaml
-from datetime import datetime
 import importlib.metadata
+from datetime import datetime
+
+import yaml
 
 from core.ast_models import Action
 from reverse_engineering.protocols import ParsedEntity, ParsedMethod, SourceLanguage

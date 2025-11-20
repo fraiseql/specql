@@ -1,6 +1,7 @@
 """Test extraction of all Django field types"""
 
 import textwrap
+
 from reverse_engineering.python_ast_parser import PythonASTParser
 
 

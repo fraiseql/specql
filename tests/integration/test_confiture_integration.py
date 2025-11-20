@@ -17,7 +17,6 @@ import pytest
 @pytest.fixture(autouse=True)
 def clean_generated_schema():
     """Clean up generated schema files before each test to ensure isolation"""
-    import shutil
 
     # Directories to clean
     dirs_to_clean = [

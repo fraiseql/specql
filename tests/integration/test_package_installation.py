@@ -1,7 +1,6 @@
 """Test that package installs and imports work correctly"""
 
 import subprocess
-import sys
 
 
 def test_cli_import_works():

@@ -1,7 +1,6 @@
 # Computed Column Transformer
 # Adds GENERATED ALWAYS AS columns based on schema_computed_column patterns
 
-from typing import Dict, List
 from core.ast_models import Entity, Pattern
 from generators.schema.pattern_transformer import PatternTransformer
 
@@ -73,7 +72,7 @@ class ComputedColumnTransformer(PatternTransformer):
 
         return f"    {col_name} {col_type} GENERATED ALWAYS AS ({expression}) {stored} {nullable},"
 
-    def _find_computed_column_insertion_point(self, lines: List[str]) -> int:
+    def _find_computed_column_insertion_point(self, lines: list[str]) -> int:
         """Find line index where computed columns should be inserted."""
         # Insert before "-- Foreign Keys" or "-- Audit Fields" or closing );
         for i, line in enumerate(lines):

@@ -467,8 +467,8 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
           }});""")
 
             # Evict the deleted item
-            cache_updates.append(f"""          // Evict the deleted item
-          cache.evict({{ id: `UUID:${{variables.input.id}}` }});
+            cache_updates.append("""          // Evict the deleted item
+          cache.evict({ id: `UUID:${variables.input.id}` });
           cache.gc();""")
 
             return f"""update: (cache, {{ data, variables }}) => {{

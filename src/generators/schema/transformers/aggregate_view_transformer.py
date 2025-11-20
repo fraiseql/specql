@@ -1,7 +1,6 @@
 # Aggregate View Transformer
 # Generates aggregate views based on schema_aggregate_view patterns
 
-from typing import Dict, List
 from core.ast_models import Entity, Pattern
 from generators.schema.pattern_transformer import PatternTransformer
 
@@ -26,7 +25,6 @@ class AggregateViewTransformer(PatternTransformer):
 
         view_ddl_parts = []
         for agg_config in view_config:
-            view_name = agg_config.get("view_name", f"tv_{entity.name.lower()}_summary")
             view_sql = self._generate_aggregate_view(entity, agg_config)
             view_ddl_parts.append(view_sql)
 

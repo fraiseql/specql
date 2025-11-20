@@ -4,6 +4,7 @@ Generates the app.* schema foundation including shared utility functions
 """
 
 import importlib.resources as resources
+
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 

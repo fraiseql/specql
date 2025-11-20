@@ -133,7 +133,6 @@ class SCDType2HelperPattern:
     def _add_scd_indexes(cls, entity: Entity, config: SCDType2Config) -> None:
         """Add indexes for SCD Type 2 queries."""
         # Composite index on natural_key + effective dates for efficient lookups
-        natural_key_str = ", ".join(config.natural_key)
         composite_fields = config.natural_key + [
             config.effective_date_field,
             config.expiry_date_field,

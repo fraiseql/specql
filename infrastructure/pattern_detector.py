@@ -5,7 +5,6 @@ Pattern Detector - Detect common patterns in Django models
 import ast
 import logging
 from dataclasses import dataclass
-from typing import List, Optional
 
 logger = logging.getLogger(__name__)
 
@@ -16,14 +15,14 @@ class Pattern:
 
     name: str
     confidence: float
-    fields: List[str]
+    fields: list[str]
     explanation: str = ""
 
 
 class PatternDetector:
     """Detect patterns in Django model code"""
 
-    def detect(self, source_code: str, min_confidence: float = 0.7) -> List[Pattern]:
+    def detect(self, source_code: str, min_confidence: float = 0.7) -> list[Pattern]:
         """Detect patterns in Django model code"""
         try:
             tree = ast.parse(source_code)
@@ -46,7 +45,7 @@ class PatternDetector:
         # Filter by confidence
         return [p for p in patterns if p.confidence >= min_confidence]
 
-    def _detect_audit_trail(self, fields: List[dict]) -> List[Pattern]:
+    def _detect_audit_trail(self, fields: list[dict]) -> list[Pattern]:
         """Detect audit trail pattern"""
         field_names = [f["name"] for f in fields]
 
@@ -79,7 +78,7 @@ class PatternDetector:
 
         return []
 
-    def _detect_soft_delete(self, fields: List[dict]) -> List[Pattern]:
+    def _detect_soft_delete(self, fields: list[dict]) -> list[Pattern]:
         """Detect soft delete pattern"""
         field_names = [f["name"] for f in fields]
 
@@ -101,7 +100,7 @@ class PatternDetector:
 
         return []
 
-    def _detect_state_machine(self, fields: List[dict]) -> List[Pattern]:
+    def _detect_state_machine(self, fields: list[dict]) -> list[Pattern]:
         """Detect state machine pattern"""
         for field in fields:
             # Look for CharField with choices
@@ -122,7 +121,7 @@ class PatternDetector:
 
         return []
 
-    def _extract_field_info(self, class_node: ast.ClassDef) -> List[dict]:
+    def _extract_field_info(self, class_node: ast.ClassDef) -> list[dict]:
         """Extract field information for pattern detection"""
         fields = []
 
@@ -134,7 +133,7 @@ class PatternDetector:
 
         return fields
 
-    def _parse_field(self, assign_node: ast.Assign) -> Optional[dict]:
+    def _parse_field(self, assign_node: ast.Assign) -> dict | None:
         """Parse field assignment to extract metadata"""
         # Extract field name
         if not assign_node.targets:
@@ -163,7 +162,7 @@ class PatternDetector:
             return call_node.func.id
         return "Unknown"
 
-    def _extract_choices(self, call_node: ast.Call) -> Optional[List]:
+    def _extract_choices(self, call_node: ast.Call) -> list | None:
         """Extract choices from CharField"""
         for keyword in call_node.keywords:
             if keyword.arg == "choices":

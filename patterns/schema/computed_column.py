@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from core.ast_models import Entity, FieldDefinition
+from core.ast_models import Entity
 
 
 @dataclass

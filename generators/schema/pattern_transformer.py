@@ -2,7 +2,7 @@
 # Provides extensible architecture for applying schema transformations based on patterns
 
 from abc import ABC, abstractmethod
-from typing import List
+
 from core.ast_models import Entity, Pattern
 
 
@@ -54,7 +54,7 @@ class PatternTransformerRegistry:
     """Registry for managing pattern transformers."""
 
     def __init__(self):
-        self.transformers: List[PatternTransformer] = []
+        self.transformers: list[PatternTransformer] = []
 
     def register(self, transformer: PatternTransformer) -> None:
         """Register a pattern transformer."""
@@ -62,10 +62,10 @@ class PatternTransformerRegistry:
         # Sort by priority (highest first)
         self.transformers.sort(key=lambda t: t.get_priority(), reverse=True)
 
-    def get_transformers_for_pattern(self, pattern: Pattern) -> List[PatternTransformer]:
+    def get_transformers_for_pattern(self, pattern: Pattern) -> list[PatternTransformer]:
         """Get all transformers that can handle the given pattern."""
         return [t for t in self.transformers if t.applies_to(pattern)]
 
-    def get_all_transformers(self) -> List[PatternTransformer]:
+    def get_all_transformers(self) -> list[PatternTransformer]:
         """Get all registered transformers."""
         return self.transformers.copy()
