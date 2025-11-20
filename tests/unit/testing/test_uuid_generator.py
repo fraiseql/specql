@@ -2,7 +2,7 @@
 
 from uuid import UUID
 
-from src.testing.seed.uuid_generator import SpecQLUUIDGenerator, UUIDComponents
+from testing.seed.uuid_generator import SpecQLUUIDGenerator, UUIDComponents
 
 
 def test_generate_basic_uuid():

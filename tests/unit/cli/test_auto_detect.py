@@ -2,8 +2,8 @@
 
 import pytest
 
-from src.cli.confiture_extensions import specql
-from src.core.dependencies import PGLAST, TREE_SITTER_RUST
+from cli.confiture_extensions import specql
+from core.dependencies import PGLAST, TREE_SITTER_RUST
 
 
 class TestAutoDetection:

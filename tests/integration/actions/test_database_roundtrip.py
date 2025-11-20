@@ -9,8 +9,8 @@ import uuid
 import psycopg
 import pytest
 
-from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
-from src.generators.schema_orchestrator import SchemaOrchestrator
+from core.ast_models import Action, ActionStep, Entity, FieldDefinition
+from generators.schema_orchestrator import SchemaOrchestrator
 
 # Test constants
 TEST_TENANT_ID = "550e8400-e29b-41d4-a716-446655440000"

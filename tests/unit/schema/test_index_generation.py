@@ -3,7 +3,7 @@ Tests for Index Generation for Rich Types
 Tests appropriate index creation for different rich type fields
 """
 
-from src.core.ast_models import Entity, FieldDefinition
+from core.ast_models import Entity, FieldDefinition
 
 # pytestmark = pytest.mark.skip(reason="Rich type index generation incomplete - deferred to post-beta")
 

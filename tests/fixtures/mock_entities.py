@@ -2,7 +2,7 @@
 Mock Entity fixtures for Team B generator testing
 """
 
-from src.core.ast_models import (
+from core.ast_models import (
     Action,
     ActionStep,
     Entity,

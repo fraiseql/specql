@@ -2,9 +2,9 @@ from pathlib import Path
 
 import pytest
 
-from src.cli.generate import convert_entity_definition_to_entity
-from src.core.specql_parser import SpecQLParser
-from src.generators.schema_orchestrator import SchemaOrchestrator
+from cli.generate import convert_entity_definition_to_entity
+from core.specql_parser import SpecQLParser
+from generators.schema_orchestrator import SchemaOrchestrator
 
 # pytestmark = pytest.mark.skip(reason="Stdlib snapshot assertion differences - deferred to post-beta")
 

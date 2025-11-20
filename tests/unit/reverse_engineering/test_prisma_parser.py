@@ -1,6 +1,6 @@
 # tests/unit/reverse_engineering/test_prisma_parser.py
 
-from src.reverse_engineering.prisma_parser import PrismaSchemaParser
+from reverse_engineering.prisma_parser import PrismaSchemaParser
 
 
 class TestPrismaSchemaParser:

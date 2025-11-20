@@ -4,7 +4,7 @@ Tests for Java JPA relationship reverse engineering
 These tests focus on parsing various JPA relationship types.
 """
 
-from src.reverse_engineering.java_action_parser import JavaActionParser
+from reverse_engineering.java_action_parser import JavaActionParser
 
 
 class TestJavaRelationships:

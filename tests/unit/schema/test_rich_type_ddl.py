@@ -3,7 +3,7 @@ Tests for Rich Type DDL Generation (Team B)
 Tests TableGenerator with FraiseQL rich types
 """
 
-from src.core.ast_models import Entity, FieldDefinition
+from core.ast_models import Entity, FieldDefinition
 
 
 def test_email_field_generates_text_with_constraint(table_generator):

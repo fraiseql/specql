@@ -2,8 +2,8 @@
 Test insert step compilation
 """
 
-from src.core.ast_models import ActionStep, EntityDefinition, FieldDefinition
-from src.generators.actions.step_compilers.insert_compiler import InsertStepCompiler
+from core.ast_models import ActionStep, EntityDefinition, FieldDefinition
+from generators.actions.step_compilers.insert_compiler import InsertStepCompiler
 
 
 def create_test_entity():

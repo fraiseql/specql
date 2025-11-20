@@ -1,5 +1,5 @@
-from src.core.ast_models import ActionDefinition, EntityDefinition
-from src.generators.actions.function_scaffolding import (
+from core.ast_models import ActionDefinition, EntityDefinition
+from generators.actions.function_scaffolding import (
     FunctionScaffoldingGenerator,
     FunctionSignature,
 )
@@ -44,7 +44,7 @@ def test_render_complete_function():
         returns="mutation_result",
     )
 
-    from src.generators.actions.function_scaffolding import FunctionScaffolding
+    from generators.actions.function_scaffolding import FunctionScaffolding
 
     scaffolding = FunctionScaffolding(
         signature=sig,

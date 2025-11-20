@@ -1,6 +1,6 @@
 """Tests for audit field generation with recalculation tracking."""
 
-from src.generators.schema.audit_fields import (
+from generators.schema.audit_fields import (
     generate_audit_fields,
     generate_business_audit_update,
     generate_identifier_recalculation_audit,

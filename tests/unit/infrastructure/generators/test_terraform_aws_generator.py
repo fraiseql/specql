@@ -2,8 +2,8 @@
 
 import pytest
 
-from src.infrastructure.generators.terraform_aws_generator import TerraformAWSGenerator
-from src.infrastructure.universal_infra_schema import *
+from infrastructure.generators.terraform_aws_generator import TerraformAWSGenerator
+from infrastructure.universal_infra_schema import *
 
 
 class TestTerraformAWSGenerator:

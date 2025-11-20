@@ -6,7 +6,7 @@ class TestValidateCommand:
 
     def test_validate_command_exists(self, cli_runner):
         """Test that validate command exists and shows help."""
-        from src.cli.validate import validate
+        from cli.validate import validate
 
         result = cli_runner.invoke(validate, ["--help"])
         assert result.exit_code == 0
@@ -14,7 +14,7 @@ class TestValidateCommand:
 
     def test_validate_valid_entity_file(self, cli_runner, sample_entity_file):
         """Test validation of a valid entity file."""
-        from src.cli.validate import validate
+        from cli.validate import validate
 
         result = cli_runner.invoke(validate, [str(sample_entity_file)])
 
@@ -23,7 +23,7 @@ class TestValidateCommand:
 
     def test_validate_multiple_valid_files(self, cli_runner, multiple_entity_files):
         """Test validation of multiple valid entity files."""
-        from src.cli.validate import validate
+        from cli.validate import validate
 
         result = cli_runner.invoke(validate, [str(f) for f in multiple_entity_files])
 
@@ -32,7 +32,7 @@ class TestValidateCommand:
 
     def test_validate_missing_entity_name(self, cli_runner, temp_dir):
         """Test validation fails for entity without name."""
-        from src.cli.validate import validate
+        from cli.validate import validate
 
         invalid_yaml = """
 schema: test
@@ -50,7 +50,7 @@ fields:
 
     def test_validate_missing_field_type(self, cli_runner, temp_dir):
         """Test validation fails for field without type."""
-        from src.cli.validate import validate
+        from cli.validate import validate
 
         invalid_yaml = """
 entity: TestEntity
@@ -68,7 +68,7 @@ fields:
 
     def test_validate_with_warnings(self, cli_runner, temp_dir):
         """Test validation with warnings (no schema specified)."""
-        from src.cli.validate import validate
+        from cli.validate import validate
 
         yaml_with_warnings = """
 entity: TestEntity
@@ -86,7 +86,7 @@ fields:
 
     def test_validate_verbose_output(self, cli_runner, sample_entity_file):
         """Test verbose validation output."""
-        from src.cli.validate import validate
+        from cli.validate import validate
 
         result = cli_runner.invoke(validate, [str(sample_entity_file), "--verbose"])
 
@@ -96,7 +96,7 @@ fields:
 
     def test_validate_check_impacts_flag(self, cli_runner, temp_dir):
         """Test validation with impact checking."""
-        from src.cli.validate import validate
+        from cli.validate import validate
 
         yaml_with_impacts = """
 entity: TestEntity
@@ -119,7 +119,7 @@ actions:
 
     def test_validate_missing_impact_primary(self, cli_runner, temp_dir):
         """Test validation fails for action without primary impact."""
-        from src.cli.validate import validate
+        from cli.validate import validate
 
         invalid_impact_yaml = """
 entity: TestEntity
@@ -142,7 +142,7 @@ actions:
 
     def test_validate_nonexistent_file(self, cli_runner):
         """Test validation of nonexistent file."""
-        from src.cli.validate import validate
+        from cli.validate import validate
 
         result = cli_runner.invoke(validate, ["nonexistent.yaml"])
 
@@ -151,7 +151,7 @@ actions:
 
     def test_validate_no_files_specified(self, cli_runner):
         """Test validation with no files specified."""
-        from src.cli.validate import validate
+        from cli.validate import validate
 
         result = cli_runner.invoke(validate, [])
 
@@ -160,7 +160,7 @@ actions:
 
     def test_validate_parsing_error(self, cli_runner, temp_dir):
         """Test validation of malformed YAML."""
-        from src.cli.validate import validate
+        from cli.validate import validate
 
         invalid_yaml = """
 entity: TestEntity

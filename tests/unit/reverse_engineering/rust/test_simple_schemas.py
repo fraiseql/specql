@@ -5,7 +5,7 @@ These tests ensure basic functionality continues to work
 while we enhance complex case handling.
 """
 
-from src.reverse_engineering.rust_parser import RustParser
+from reverse_engineering.rust_parser import RustParser
 
 
 class TestSimpleRustSchemas:

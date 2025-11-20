@@ -5,9 +5,9 @@ Phase 5: Impact Metadata with Composite Types
 
 import pytest
 
-from src.core.ast_models import Action, ActionImpact, CacheInvalidation, EntityImpact
-from src.generators.actions.composite_type_builder import CompositeTypeBuilder
-from src.generators.actions.impact_metadata_compiler import ImpactMetadataCompiler
+from core.ast_models import Action, ActionImpact, CacheInvalidation, EntityImpact
+from generators.actions.composite_type_builder import CompositeTypeBuilder
+from generators.actions.impact_metadata_compiler import ImpactMetadataCompiler
 
 
 class TestImpactMetadata:

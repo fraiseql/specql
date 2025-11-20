@@ -4,8 +4,8 @@ Tests for Function Generator
 
 import pytest
 
-from src.core.ast_models import Action, Entity, FieldDefinition
-from src.generators.function_generator import FunctionGenerator
+from core.ast_models import Action, Entity, FieldDefinition
+from generators.function_generator import FunctionGenerator
 
 
 class TestFunctionGenerator:

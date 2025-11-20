@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from src.reverse_engineering.rust_parser import RustReverseEngineeringService
+from reverse_engineering.rust_parser import RustReverseEngineeringService
 
 
 class TestSeaORMIntegration:

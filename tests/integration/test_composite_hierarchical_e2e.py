@@ -88,7 +88,7 @@ class TestCompositeHierarchicalE2E:
     def test_allocation_composite_identifier(self, test_db, allocation_schema):
         """Should verify composite hierarchical identifier functionality exists."""
         # Test that the CompositeIdentifierGenerator can be imported and used
-        from src.generators.composite_identifier_generator import CompositeIdentifierGenerator
+        from generators.composite_identifier_generator import CompositeIdentifierGenerator
 
         generator = CompositeIdentifierGenerator()
 

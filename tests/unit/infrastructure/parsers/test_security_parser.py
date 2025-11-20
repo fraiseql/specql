@@ -10,8 +10,8 @@ Tests for parsing user-friendly security YAML into universal schema:
 
 import pytest
 
-from src.infrastructure.parsers.security_parser import SecurityPatternParser
-from src.infrastructure.universal_infra_schema import (
+from infrastructure.parsers.security_parser import SecurityPatternParser
+from infrastructure.universal_infra_schema import (
     CompliancePreset,
 )
 

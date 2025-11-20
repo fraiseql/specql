@@ -6,8 +6,8 @@ and can be used by downstream generators.
 
 import pytest
 
-from src.cli.generate import convert_entity_definition_to_entity
-from src.core.specql_parser import SpecQLParser
+from cli.generate import convert_entity_definition_to_entity
+from core.specql_parser import SpecQLParser
 
 
 def test_table_code_integration_from_yaml():

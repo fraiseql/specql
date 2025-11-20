@@ -7,8 +7,8 @@ import pytest
 
 # Mark all tests as requiring database
 pytestmark = pytest.mark.database
-from src.core.ast_models import Action, ActionImpact, Entity, EntityImpact, FieldDefinition
-from src.generators.schema_orchestrator import SchemaOrchestrator
+from core.ast_models import Action, ActionImpact, Entity, EntityImpact, FieldDefinition
+from generators.schema_orchestrator import SchemaOrchestrator
 
 
 @pytest.fixture

@@ -1,6 +1,6 @@
 """Tests for language-specific reverse engineering commands."""
 
-from src.cli.confiture_extensions import specql
+from cli.confiture_extensions import specql
 
 
 class TestLanguageReverseCommands:

@@ -6,7 +6,7 @@ class TestDocsCommand:
 
     def test_docs_command_help(self, cli_runner):
         """Test docs command help text."""
-        from src.cli.docs import docs
+        from cli.docs import docs
 
         result = cli_runner.invoke(docs, ["--help"])
         assert result.exit_code == 0
@@ -16,7 +16,7 @@ class TestDocsCommand:
 
     def test_docs_markdown_format(self, cli_runner, sample_entity_file, temp_dir):
         """Test docs command with markdown format."""
-        from src.cli.docs import docs
+        from cli.docs import docs
 
         output_file = temp_dir / "docs.md"
 
@@ -36,7 +36,7 @@ class TestDocsCommand:
 
     def test_docs_html_format(self, cli_runner, sample_entity_file, temp_dir):
         """Test docs command with HTML format."""
-        from src.cli.docs import docs
+        from cli.docs import docs
 
         output_dir = temp_dir / "html_docs"
 
@@ -56,7 +56,7 @@ class TestDocsCommand:
 
     def test_docs_multiple_entities(self, cli_runner, multiple_entity_files, temp_dir):
         """Test docs command with multiple entity files."""
-        from src.cli.docs import docs
+        from cli.docs import docs
 
         output_file = temp_dir / "multi_docs.md"
 
@@ -80,7 +80,7 @@ class TestDocsCommand:
 
     def test_docs_no_files_specified(self, cli_runner):
         """Test docs command with no files specified."""
-        from src.cli.docs import docs
+        from cli.docs import docs
 
         result = cli_runner.invoke(docs, ["--format", "markdown", "--output", "test.md"])
 
@@ -89,7 +89,7 @@ class TestDocsCommand:
 
     def test_docs_missing_output_option(self, cli_runner, sample_entity_file):
         """Test docs command with missing output option."""
-        from src.cli.docs import docs
+        from cli.docs import docs
 
         result = cli_runner.invoke(docs, [str(sample_entity_file), "--format", "markdown"])
 
@@ -97,7 +97,7 @@ class TestDocsCommand:
 
     def test_docs_invalid_entity_file(self, cli_runner, temp_dir):
         """Test docs command with invalid entity file."""
-        from src.cli.docs import docs
+        from cli.docs import docs
 
         invalid_file = temp_dir / "invalid.yaml"
         invalid_file.write_text("invalid: yaml: content: [")
@@ -113,7 +113,7 @@ class TestDocsCommand:
 
     def test_docs_nonexistent_file(self, cli_runner, temp_dir):
         """Test docs command with nonexistent file."""
-        from src.cli.docs import docs
+        from cli.docs import docs
 
         output_file = temp_dir / "nonexistent.md"
 
@@ -125,7 +125,7 @@ class TestDocsCommand:
 
     def test_docs_output_directory_creation(self, cli_runner, sample_entity_file, temp_dir):
         """Test docs command creates output directory for HTML."""
-        from src.cli.docs import docs
+        from cli.docs import docs
 
         output_dir = temp_dir / "deep" / "nested" / "docs"
 
@@ -139,7 +139,7 @@ class TestDocsCommand:
 
     def test_docs_markdown_content_structure(self, cli_runner, sample_entity_file, temp_dir):
         """Test markdown documentation content structure."""
-        from src.cli.docs import docs
+        from cli.docs import docs
 
         output_file = temp_dir / "structured.md"
 
@@ -160,7 +160,7 @@ class TestDocsCommand:
 
     def test_docs_html_content_structure(self, cli_runner, sample_entity_file, temp_dir):
         """Test HTML documentation content structure."""
-        from src.cli.docs import docs
+        from cli.docs import docs
 
         output_dir = temp_dir / "html_structured"
 

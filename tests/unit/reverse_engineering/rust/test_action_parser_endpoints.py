@@ -8,7 +8,7 @@ import os
 import tempfile
 from pathlib import Path
 
-from src.reverse_engineering.rust_action_parser import RustActionParser
+from reverse_engineering.rust_action_parser import RustActionParser
 
 
 class TestRustActionParserEndpoints:

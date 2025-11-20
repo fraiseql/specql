@@ -1,7 +1,7 @@
 """Test SpecQL parser separator configuration."""
 
-from src.core.separators import Separators
-from src.core.specql_parser import SpecQLParser
+from core.separators import Separators
+from core.specql_parser import SpecQLParser
 
 
 class TestParseIdentifierSeparators:

@@ -4,7 +4,7 @@ End-to-end tests for SQL reverse engineering
 These tests verify the complete pipeline from SQL to SpecQL YAML.
 """
 
-from src.reverse_engineering.algorithmic_parser import AlgorithmicParser
+from reverse_engineering.algorithmic_parser import AlgorithmicParser
 
 
 class TestSQLEndToEnd:

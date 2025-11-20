@@ -1,6 +1,6 @@
 """Tests for CLI diff command."""
 
-from src.cli.diff import diff, generate_entity_sql, load_migration_sql
+from cli.diff import diff, generate_entity_sql, load_migration_sql
 
 
 class TestDiffUtilities:

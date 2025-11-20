@@ -2,14 +2,14 @@
 Unit tests for tv_ table FraiseQL annotation generator
 """
 
-from src.core.ast_models import (
+from core.ast_models import (
     EntityDefinition,
     ExtraFilterColumn,
     FieldDefinition,
     IncludeRelation,
     TableViewConfig,
 )
-from src.generators.fraiseql.table_view_annotator import TableViewAnnotator
+from generators.fraiseql.table_view_annotator import TableViewAnnotator
 
 
 class TestTableAnnotation:

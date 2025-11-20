@@ -9,7 +9,7 @@ from typing import Any
 import psycopg
 import pytest
 
-from src.core.dependencies import (
+from core.dependencies import (
     FAKER,
     PGLAST,
     TREE_SITTER,
@@ -263,7 +263,7 @@ def naming_conventions():
 
     Use this when tests need access to the naming conventions or domain registry
     """
-    from src.generators.schema.naming_conventions import NamingConventions
+    from generators.schema.naming_conventions import NamingConventions
 
     return NamingConventions()
 
@@ -280,7 +280,7 @@ def schema_registry(naming_conventions):
             generator = TableGenerator(schema_registry)
             # ... rest of test
     """
-    from src.generators.schema.schema_registry import SchemaRegistry
+    from generators.schema.schema_registry import SchemaRegistry
 
     return SchemaRegistry(naming_conventions.registry)
 
@@ -297,7 +297,7 @@ def table_generator(schema_registry):
             result = table_generator.generate(entity)
             assert "CREATE TABLE" in result
     """
-    from src.generators.table_generator import TableGenerator
+    from generators.table_generator import TableGenerator
 
     return TableGenerator(schema_registry)
 
@@ -307,7 +307,7 @@ def trinity_helper_generator(schema_registry):
     """
     Pre-configured TrinityHelperGenerator with SchemaRegistry
     """
-    from src.generators.trinity_helper_generator import TrinityHelperGenerator
+    from generators.trinity_helper_generator import TrinityHelperGenerator
 
     return TrinityHelperGenerator(schema_registry)
 
@@ -317,7 +317,7 @@ def core_logic_generator(schema_registry):
     """
     Pre-configured CoreLogicGenerator with SchemaRegistry
     """
-    from src.generators.core_logic_generator import CoreLogicGenerator
+    from generators.core_logic_generator import CoreLogicGenerator
 
     return CoreLogicGenerator(schema_registry)
 
@@ -334,7 +334,7 @@ def function_generator(schema_registry):
             result = function_generator.generate_action_functions(entity)
             assert "CREATE FUNCTION" in result
     """
-    from src.generators.function_generator import FunctionGenerator
+    from generators.function_generator import FunctionGenerator
 
     return FunctionGenerator(schema_registry)
 

@@ -10,8 +10,8 @@ Tests for the security pattern library functionality:
 
 import pytest
 
-from src.infrastructure.security_pattern_library import SecurityPattern, SecurityPatternLibrary
-from src.infrastructure.universal_infra_schema import (
+from infrastructure.security_pattern_library import SecurityPattern, SecurityPatternLibrary
+from infrastructure.universal_infra_schema import (
     CompliancePreset,
     FirewallRule,
     NetworkTier,

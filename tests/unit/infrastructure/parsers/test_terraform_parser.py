@@ -2,8 +2,8 @@
 
 import pytest
 
-from src.infrastructure.parsers.terraform_parser import TerraformParser
-from src.infrastructure.universal_infra_schema import *
+from infrastructure.parsers.terraform_parser import TerraformParser
+from infrastructure.universal_infra_schema import *
 
 
 class TestTerraformParser:

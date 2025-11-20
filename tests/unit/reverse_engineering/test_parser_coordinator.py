@@ -4,7 +4,7 @@ Tests for ParserCoordinator - specialized parser coordination.
 
 import pytest
 
-from src.reverse_engineering.parser_coordinator import ParserCoordinator, ParserResult
+from reverse_engineering.parser_coordinator import ParserCoordinator, ParserResult
 
 
 class TestParserCoordinator:

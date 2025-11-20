@@ -5,7 +5,7 @@ These tests target capabilities that currently have low confidence
 and need enhancement to reach 90%+ confidence.
 """
 
-from src.reverse_engineering.python_ast_parser import PythonASTParser
+from reverse_engineering.python_ast_parser import PythonASTParser
 
 
 class TestComplexPythonModels:

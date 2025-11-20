@@ -4,7 +4,7 @@ Unit tests for Java entity parser - JPA entities
 
 import pytest
 
-from src.reverse_engineering.java_action_parser import JavaActionParser
+from reverse_engineering.java_action_parser import JavaActionParser
 
 
 class TestJPAEntityParser:

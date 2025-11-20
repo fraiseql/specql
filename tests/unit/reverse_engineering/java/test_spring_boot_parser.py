@@ -6,7 +6,7 @@ Your responsibility: Ensure these tests cover all Spring Boot patterns
 
 import pytest
 
-from src.reverse_engineering.java_action_parser import JavaActionParser
+from reverse_engineering.java_action_parser import JavaActionParser
 
 
 class TestSpringBootParser:

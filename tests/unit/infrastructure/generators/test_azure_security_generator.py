@@ -8,8 +8,8 @@ Tests for generating Azure security resources (NSGs, Application Gateway WAF, VP
 - Cross-tier NSG references
 """
 
-from src.infrastructure.generators.azure_security_generator import AzureSecurityGenerator
-from src.infrastructure.universal_infra_schema import (
+from infrastructure.generators.azure_security_generator import AzureSecurityGenerator
+from infrastructure.universal_infra_schema import (
     CompliancePreset,
     FirewallRule,
     NetworkTier,

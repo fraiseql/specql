@@ -5,8 +5,8 @@ Phase 1: Function Scaffolding & Basic Returns
 
 import pytest
 
-from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
-from src.generators.actions.action_compiler import ActionCompiler
+from core.ast_models import Action, ActionStep, Entity, FieldDefinition
+from generators.actions.action_compiler import ActionCompiler
 
 
 class TestBasicScaffolding:

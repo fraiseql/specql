@@ -2,13 +2,13 @@
 Test function signature generation
 """
 
-from src.generators.actions.action_context import ActionContext
-from src.generators.actions.function_generator import FunctionGenerator
+from generators.actions.action_context import ActionContext
+from generators.actions.function_generator import FunctionGenerator
 
 
 def create_test_context():
     """Create a test ActionContext"""
-    from src.core.ast_models import EntityDefinition
+    from core.ast_models import EntityDefinition
 
     # Create minimal entity
     entity = EntityDefinition(name="Contact", schema="crm", fields={})
@@ -51,7 +51,7 @@ def test_generate_declare_block():
 
 def test_generate_declare_block_with_impact():
     """Generate DECLARE block with impact metadata when needed"""
-    from src.core.ast_models import EntityDefinition
+    from core.ast_models import EntityDefinition
 
     entity = EntityDefinition(name="Contact", schema="crm", fields={})
 

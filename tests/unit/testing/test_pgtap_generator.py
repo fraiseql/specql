@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.testing.pgtap.pgtap_generator import PgTAPGenerator
+from testing.pgtap.pgtap_generator import PgTAPGenerator
 
 
 class TestPgTAPGenerator:

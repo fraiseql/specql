@@ -1,4 +1,4 @@
-from src.reverse_engineering.universal_pattern_detector import UniversalPatternDetector
+from reverse_engineering.universal_pattern_detector import UniversalPatternDetector
 
 
 class TestShardingPattern:

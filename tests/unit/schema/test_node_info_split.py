@@ -1,5 +1,5 @@
-from src.core.ast_models import EntityDefinition, FieldDefinition
-from src.generators.schema.node_info_split import (
+from core.ast_models import EntityDefinition, FieldDefinition
+from generators.schema.node_info_split import (
     generate_info_table_ddl,
     generate_node_info_split_ddl,
     generate_node_table_ddl,

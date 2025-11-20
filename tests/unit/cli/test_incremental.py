@@ -5,7 +5,7 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from src.cli.confiture_extensions import specql
+from cli.confiture_extensions import specql
 
 
 def test_incremental_only_processes_changed_files():

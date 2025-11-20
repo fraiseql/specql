@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.generators.app_schema_generator import AppSchemaGenerator
+from generators.app_schema_generator import AppSchemaGenerator
 
 
 class TestAppSchemaGenerator:

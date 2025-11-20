@@ -9,7 +9,7 @@ import time
 
 import pytest
 
-from src.utils.performance_monitor import (
+from utils.performance_monitor import (
     PerformanceMetrics,
     PerformanceMonitor,
     get_performance_monitor,
@@ -241,7 +241,7 @@ class TestPerformanceInstrumentation:
 
     def test_instrumentation_decorator(self):
         """RED: Should provide decorator for instrumenting functions"""
-        from src.utils.performance_monitor import instrument
+        from utils.performance_monitor import instrument
 
         monitor = PerformanceMonitor()
 
@@ -259,7 +259,7 @@ class TestPerformanceInstrumentation:
 
     def test_instrumentation_with_category(self):
         """RED: Decorator should support categories"""
-        from src.utils.performance_monitor import instrument
+        from utils.performance_monitor import instrument
 
         monitor = PerformanceMonitor()
 

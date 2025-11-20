@@ -5,9 +5,9 @@ Tests for Table Generator (Team B)
 import pytest
 
 # pytestmark = pytest.mark.skip(reason="Minor assertion format differences - deferred to post-beta")
-from src.generators.schema.naming_conventions import NamingConventions
-from src.generators.schema.schema_registry import SchemaRegistry
-from src.generators.table_generator import TableGenerator
+from generators.schema.naming_conventions import NamingConventions
+from generators.schema.schema_registry import SchemaRegistry
+from generators.table_generator import TableGenerator
 from tests.fixtures.mock_entities import (
     mock_contact_entity,
     mock_simple_entity,

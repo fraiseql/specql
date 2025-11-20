@@ -2,8 +2,8 @@
 Test ActionContext and AST integration
 """
 
-from src.core.ast_models import ActionDefinition, ActionStep
-from src.generators.actions.action_context import ActionContext
+from core.ast_models import ActionDefinition, ActionStep
+from generators.actions.action_context import ActionContext
 
 
 def test_action_context_from_ast():

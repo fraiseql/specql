@@ -4,7 +4,7 @@ Universal Audit Trail Pattern Detection Tests
 
 import pytest
 
-from src.reverse_engineering.universal_pattern_detector import UniversalPatternDetector
+from reverse_engineering.universal_pattern_detector import UniversalPatternDetector
 
 
 class TestAuditTrailPattern:

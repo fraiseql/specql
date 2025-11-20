@@ -4,7 +4,7 @@ Unit tests for Spring Data repository parser
 
 import pytest
 
-from src.reverse_engineering.java_action_parser import JavaActionParser
+from reverse_engineering.java_action_parser import JavaActionParser
 
 
 class TestSpringDataParser:

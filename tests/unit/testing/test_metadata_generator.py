@@ -1,6 +1,6 @@
 """Tests for TestMetadataGenerator - AST to SQL conversion"""
 
-from src.core.ast_models import Entity, FieldDefinition
+from core.ast_models import Entity, FieldDefinition
 
 
 def test_generate_entity_config():
@@ -8,7 +8,7 @@ def test_generate_entity_config():
     entity = Entity(name="Contact", schema="crm", fields={})
 
     # This will fail until we implement the generator
-    from src.testing.metadata.metadata_generator import TestMetadataGenerator
+    from testing.metadata.metadata_generator import TestMetadataGenerator
 
     generator = TestMetadataGenerator()
     sql = generator.generate_entity_config(entity, table_code=123210)
@@ -24,7 +24,7 @@ def test_generate_field_mapping_for_email():
     field = FieldDefinition(name="email", type_name="email", nullable=False)
 
     # This will fail until we implement the generator
-    from src.testing.metadata.metadata_generator import TestMetadataGenerator
+    from testing.metadata.metadata_generator import TestMetadataGenerator
 
     generator = TestMetadataGenerator()
     sql = generator.generate_field_mapping(entity_config_id=1, field=field)
@@ -39,7 +39,7 @@ def test_generate_field_mapping_for_fk():
     field = FieldDefinition(name="fk_company", type_name="ref(Company)", nullable=True)
 
     # This will fail until we implement the generator
-    from src.testing.metadata.metadata_generator import TestMetadataGenerator
+    from testing.metadata.metadata_generator import TestMetadataGenerator
 
     generator = TestMetadataGenerator()
     sql = generator.generate_field_mapping(entity_config_id=1, field=field)
@@ -52,7 +52,7 @@ def test_generate_field_mapping_for_fk():
 def test_derive_entity_code():
     """Should derive 3-char entity code from name"""
     # This will fail until we implement the generator
-    from src.testing.metadata.metadata_generator import TestMetadataGenerator
+    from testing.metadata.metadata_generator import TestMetadataGenerator
 
     generator = TestMetadataGenerator()
 
@@ -64,7 +64,7 @@ def test_derive_entity_code():
 def test_infer_generator_type():
     """Should infer generator type from field type"""
     # This will fail until we implement the generator
-    from src.testing.metadata.metadata_generator import TestMetadataGenerator
+    from testing.metadata.metadata_generator import TestMetadataGenerator
 
     generator = TestMetadataGenerator()
 
@@ -80,7 +80,7 @@ def test_infer_generator_type():
 def test_get_generator_function():
     """Should get SQL function name for field types"""
     # This will fail until we implement the generator
-    from src.testing.metadata.metadata_generator import TestMetadataGenerator
+    from testing.metadata.metadata_generator import TestMetadataGenerator
 
     generator = TestMetadataGenerator()
 
@@ -99,7 +99,7 @@ def test_get_generator_function():
 
 def test_parse_fk_target():
     """Should parse FK target information from ref() type"""
-    from src.testing.metadata.metadata_generator import TestMetadataGenerator
+    from testing.metadata.metadata_generator import TestMetadataGenerator
 
     generator = TestMetadataGenerator()
 
@@ -118,7 +118,7 @@ def test_parse_fk_target():
 
 def test_get_priority_order():
     """Should assign correct priority orders"""
-    from src.testing.metadata.metadata_generator import TestMetadataGenerator
+    from testing.metadata.metadata_generator import TestMetadataGenerator
 
     generator = TestMetadataGenerator()
 
@@ -131,7 +131,7 @@ def test_get_priority_order():
 
 def test_has_unique_constraints():
     """Should detect entities with unique constraints"""
-    from src.testing.metadata.metadata_generator import TestMetadataGenerator
+    from testing.metadata.metadata_generator import TestMetadataGenerator
 
     generator = TestMetadataGenerator()
 
@@ -161,7 +161,7 @@ def test_has_unique_constraints():
 
 def test_generate_default_scenarios():
     """Should generate default test scenarios"""
-    from src.testing.metadata.metadata_generator import TestMetadataGenerator
+    from testing.metadata.metadata_generator import TestMetadataGenerator
 
     generator = TestMetadataGenerator()
 
@@ -180,7 +180,7 @@ def test_generate_default_scenarios():
 
 def test_generate_entity_config_with_all_fields():
     """Should generate entity config with all required fields"""
-    from src.testing.metadata.metadata_generator import TestMetadataGenerator
+    from testing.metadata.metadata_generator import TestMetadataGenerator
 
     generator = TestMetadataGenerator()
 
@@ -200,7 +200,7 @@ def test_generate_entity_config_with_all_fields():
 
 def test_generate_field_mapping_with_fk_details():
     """Should generate field mapping with FK details"""
-    from src.testing.metadata.metadata_generator import TestMetadataGenerator
+    from testing.metadata.metadata_generator import TestMetadataGenerator
 
     generator = TestMetadataGenerator()
 
@@ -221,7 +221,7 @@ def test_generate_field_mapping_with_fk_details():
 
 def test_full_contact_entity_conversion():
     """Should generate complete metadata for Contact entity"""
-    from src.testing.metadata.metadata_generator import TestMetadataGenerator
+    from testing.metadata.metadata_generator import TestMetadataGenerator
 
     generator = TestMetadataGenerator()
 

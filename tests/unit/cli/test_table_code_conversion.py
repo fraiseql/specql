@@ -7,8 +7,8 @@ verifying that organization.table_code is properly extracted to entity.table_cod
 
 import pytest
 
-from src.cli.generate import convert_entity_definition_to_entity
-from src.core.ast_models import EntityDefinition, Organization
+from cli.generate import convert_entity_definition_to_entity
+from core.ast_models import EntityDefinition, Organization
 
 
 def test_table_code_extracted_from_organization():

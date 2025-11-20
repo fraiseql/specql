@@ -5,7 +5,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from src.cli.confiture_extensions import specql
+from cli.confiture_extensions import specql
 
 
 class TestSpecQLCLI:

@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch
 
 import pytest
 
-from src.cli.generate import cli, convert_entity_definition_to_entity, main
+from cli.generate import cli, convert_entity_definition_to_entity, main
 
 
 class TestConvertEntityDefinitionToEntity:

@@ -5,7 +5,7 @@ Tests SpecQL YAML parsing into Entity AST
 
 import pytest
 
-from src.core.specql_parser import ParseError, SpecQLParser
+from core.specql_parser import ParseError, SpecQLParser
 
 
 class TestSpecQLParser:
@@ -426,7 +426,7 @@ actions:
 
     def test_parse_refresh_table_view_action(self):
         """Test parsing refresh_table_view action step"""
-        from src.core.ast_models import RefreshScope
+        from core.ast_models import RefreshScope
 
         yaml_content = """
 entity: Review

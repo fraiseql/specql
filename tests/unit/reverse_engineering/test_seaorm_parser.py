@@ -1,4 +1,4 @@
-from src.reverse_engineering.seaorm_parser import SeaORMParser
+from reverse_engineering.seaorm_parser import SeaORMParser
 
 
 class TestSeaORMParser:

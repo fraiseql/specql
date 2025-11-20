@@ -5,8 +5,8 @@ Phase 4: Conditional Logic (if/then/else, switch)
 
 import pytest
 
-from src.core.ast_models import ActionStep, Entity, FieldDefinition
-from src.generators.actions.conditional_compiler import ConditionalCompiler
+from core.ast_models import ActionStep, Entity, FieldDefinition
+from generators.actions.conditional_compiler import ConditionalCompiler
 
 
 class TestConditionalLogic:

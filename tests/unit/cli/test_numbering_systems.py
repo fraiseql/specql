@@ -10,9 +10,9 @@ from pathlib import Path
 
 import pytest
 
-from src.cli.orchestrator import CLIOrchestrator
-from src.core.ast_models import Entity
-from src.numbering.numbering_parser import NumberingParser
+from cli.orchestrator import CLIOrchestrator
+from core.ast_models import Entity
+from numbering.numbering_parser import NumberingParser
 
 
 class TestDecimalNumberingSystem:

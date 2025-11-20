@@ -7,7 +7,7 @@ in generated PL/pgSQL functions.
 
 from pathlib import Path
 
-from src.generators.core_logic_generator import CoreLogicGenerator
+from generators.core_logic_generator import CoreLogicGenerator
 
 
 def read_yaml_file(file_path: str) -> str:

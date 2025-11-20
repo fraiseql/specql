@@ -4,7 +4,7 @@ Tree-sitter Rust AST Parser Tests
 Test tree-sitter based Rust parsing for complex macros and structures.
 """
 
-from src.reverse_engineering.tree_sitter_rust_parser import TreeSitterRustParser
+from reverse_engineering.tree_sitter_rust_parser import TreeSitterRustParser
 
 
 class TestTreeSitterRustParser:
@@ -207,7 +207,7 @@ class TestTreeSitterRustParser:
 
     def test_rust_action_parser_integration(self):
         """Test RustActionParser integration with tree-sitter"""
-        from src.reverse_engineering.rust_action_parser import RustActionParser
+        from reverse_engineering.rust_action_parser import RustActionParser
 
         code = """
         pub async fn create_contact() -> Result<(), Error> {
@@ -244,7 +244,7 @@ class TestTreeSitterRustParser:
         """Benchmark tree-sitter vs regex performance."""
         import time
 
-        from src.reverse_engineering.rust_parser import RustParser
+        from reverse_engineering.rust_parser import RustParser
 
         # Create a moderately complex Rust file for testing
         code = """

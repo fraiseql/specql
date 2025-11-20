@@ -2,8 +2,8 @@
 
 from datetime import datetime
 
-from src.testing.seed.sql_generator import SeedSQLGenerator
-from src.testing.seed.uuid_generator import SpecQLUUID
+from testing.seed.sql_generator import SeedSQLGenerator
+from testing.seed.uuid_generator import SpecQLUUID
 
 
 class TestSeedSQLGenerator:

@@ -2,8 +2,8 @@
 
 from unittest.mock import Mock
 
-from src.testing.seed.seed_generator import EntitySeedGenerator
-from src.testing.seed.uuid_generator import SpecQLUUID
+from testing.seed.seed_generator import EntitySeedGenerator
+from testing.seed.uuid_generator import SpecQLUUID
 
 
 class TestEntitySeedGenerator:

@@ -4,7 +4,7 @@ Test all 6 patterns working together
 
 import pytest
 
-from src.reverse_engineering.universal_pattern_detector import UniversalPatternDetector
+from reverse_engineering.universal_pattern_detector import UniversalPatternDetector
 
 
 class TestAllPatternsCombined:

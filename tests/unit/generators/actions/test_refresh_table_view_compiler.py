@@ -6,14 +6,14 @@ Tests compilation of refresh_table_view steps to PL/pgSQL PERFORM calls.
 
 import pytest
 
-from src.core.ast_models import (
+from core.ast_models import (
     ActionStep,
     EntityDefinition,
     FieldDefinition,
     FieldTier,
     RefreshScope,
 )
-from src.generators.actions.step_compilers.refresh_table_view_compiler import (
+from generators.actions.step_compilers.refresh_table_view_compiler import (
     RefreshTableViewStepCompiler,
 )
 

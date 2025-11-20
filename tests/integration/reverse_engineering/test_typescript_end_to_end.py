@@ -1,7 +1,7 @@
 # tests/integration/reverse_engineering/test_typescript_end_to_end.py
 
-from src.reverse_engineering.prisma_parser import PrismaSchemaParser
-from src.reverse_engineering.universal_action_mapper import UniversalActionMapper
+from reverse_engineering.prisma_parser import PrismaSchemaParser
+from reverse_engineering.universal_action_mapper import UniversalActionMapper
 
 
 class TestTypeScriptEndToEnd:

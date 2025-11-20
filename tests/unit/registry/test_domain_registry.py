@@ -9,7 +9,7 @@ from pathlib import Path
 import pytest
 import yaml
 
-from src.generators.schema.naming_conventions import DomainRegistry
+from generators.schema.naming_conventions import DomainRegistry
 
 
 class TestDomainRegistryLoading:

@@ -4,7 +4,7 @@ import tempfile
 
 import pytest
 
-from src.cli.confiture_extensions import specql
+from cli.confiture_extensions import specql
 
 
 class TestPatternDetectionE2E:

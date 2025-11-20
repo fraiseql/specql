@@ -5,9 +5,9 @@ SpecQL YAML → SQL → Validation
 
 from pathlib import Path
 
-from src.core.ast_models import Action, Entity
-from src.core.specql_parser import SpecQLParser
-from src.generators.schema_orchestrator import SchemaOrchestrator
+from core.ast_models import Action, Entity
+from core.specql_parser import SpecQLParser
+from generators.schema_orchestrator import SchemaOrchestrator
 
 
 def read_yaml_file(file_path: str) -> str:

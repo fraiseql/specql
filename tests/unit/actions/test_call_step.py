@@ -4,8 +4,8 @@ Test call step compilation
 
 import pytest
 
-from src.core.ast_models import ActionStep, EntityDefinition, FieldDefinition
-from src.generators.actions.step_compilers.call_compiler import CallStepCompiler
+from core.ast_models import ActionStep, EntityDefinition, FieldDefinition
+from generators.actions.step_compilers.call_compiler import CallStepCompiler
 
 
 def create_test_entity():

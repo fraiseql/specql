@@ -4,7 +4,7 @@ Tests for NumberingParser
 
 import pytest
 
-from src.numbering.numbering_parser import NumberingParser
+from numbering.numbering_parser import NumberingParser
 
 
 def test_parse_table_code_6_digit():

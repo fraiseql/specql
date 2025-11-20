@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
+from core.ast_models import Action, ActionStep, Entity, FieldDefinition
 
 
 @pytest.fixture

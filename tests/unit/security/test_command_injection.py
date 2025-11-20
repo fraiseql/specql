@@ -115,7 +115,7 @@ class TestEntityNameInjection:
 
     def test_malicious_entity_names(self, temp_dir):
         """Block entity names with shell metacharacters"""
-        from src.core.specql_parser import SpecQLParser
+        from core.specql_parser import SpecQLParser
 
         malicious_yamls = [
             # Entity name with command injection
@@ -159,7 +159,7 @@ class TestSchemaNameInjection:
 
     def test_malicious_schema_names(self, temp_dir):
         """Block schema names with shell metacharacters"""
-        from src.core.specql_parser import SpecQLParser
+        from core.specql_parser import SpecQLParser
 
         malicious_yamls = [
             """
@@ -199,7 +199,7 @@ class TestFieldNameInjection:
 
     def test_malicious_field_names(self, temp_dir):
         """Block field names with shell metacharacters"""
-        from src.core.specql_parser import SpecQLParser
+        from core.specql_parser import SpecQLParser
 
         malicious_yamls = [
             """
@@ -240,7 +240,7 @@ class TestActionNameInjection:
 
     def test_malicious_action_names(self, temp_dir):
         """Block action names with shell metacharacters"""
-        from src.core.specql_parser import SpecQLParser
+        from core.specql_parser import SpecQLParser
 
         malicious_yamls = [
             """
@@ -360,7 +360,7 @@ class TestSafeInputHandling:
 
     def test_safe_entity_names(self, temp_dir):
         """Verify safe entity names work correctly"""
-        from src.core.specql_parser import SpecQLParser
+        from core.specql_parser import SpecQLParser
 
         safe_yamls = [
             """
@@ -392,7 +392,7 @@ fields:
 
     def test_special_characters_in_strings(self, temp_dir):
         """Verify that special characters in string values are handled safely"""
-        from src.core.specql_parser import SpecQLParser
+        from core.specql_parser import SpecQLParser
 
         # Special characters in description or string values should be OK
         yaml_content = """

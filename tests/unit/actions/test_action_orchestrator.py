@@ -4,8 +4,8 @@ Unit tests for ActionOrchestrator
 
 import pytest
 
-from src.core.ast_models import ActionDefinition, ActionStep, EntityDefinition, FieldDefinition
-from src.generators.actions.action_orchestrator import ActionOrchestrator
+from core.ast_models import ActionDefinition, ActionStep, EntityDefinition, FieldDefinition
+from generators.actions.action_orchestrator import ActionOrchestrator
 
 
 class TestActionOrchestrator:

@@ -2,8 +2,8 @@
 Tests for Kubernetes Generator
 """
 
-from src.infrastructure.generators.kubernetes_generator import KubernetesGenerator
-from src.infrastructure.universal_infra_schema import (
+from infrastructure.generators.kubernetes_generator import KubernetesGenerator
+from infrastructure.universal_infra_schema import (
     CloudProvider,
     ComputeConfig,
     ContainerConfig,

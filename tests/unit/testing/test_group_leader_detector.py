@@ -1,6 +1,6 @@
 """Tests for GroupLeaderDetector - field group detection logic"""
 
-from src.core.ast_models import Entity, FieldDefinition
+from core.ast_models import Entity, FieldDefinition
 
 
 def test_detect_address_group_leader():
@@ -16,7 +16,7 @@ def test_detect_address_group_leader():
     )
 
     # This will fail until we implement the detector
-    from src.testing.metadata.group_leader_detector import GroupLeaderDetector
+    from testing.metadata.group_leader_detector import GroupLeaderDetector
 
     detector = GroupLeaderDetector()
     groups = detector.detect_groups(entity)
@@ -39,7 +39,7 @@ def test_detect_location_group_leader():
     )
 
     # This will fail until we implement the detector
-    from src.testing.metadata.group_leader_detector import GroupLeaderDetector
+    from testing.metadata.group_leader_detector import GroupLeaderDetector
 
     detector = GroupLeaderDetector()
     groups = detector.detect_groups(entity)
@@ -61,7 +61,7 @@ def test_no_group_detected_for_single_field():
     )
 
     # This will fail until we implement the detector
-    from src.testing.metadata.group_leader_detector import GroupLeaderDetector
+    from testing.metadata.group_leader_detector import GroupLeaderDetector
 
     detector = GroupLeaderDetector()
     groups = detector.detect_groups(entity)
@@ -88,7 +88,7 @@ def test_multiple_groups_in_same_entity():
     )
 
     # This will fail until we implement the detector
-    from src.testing.metadata.group_leader_detector import GroupLeaderDetector
+    from testing.metadata.group_leader_detector import GroupLeaderDetector
 
     detector = GroupLeaderDetector()
     groups = detector.detect_groups(entity)
@@ -101,7 +101,7 @@ def test_multiple_groups_in_same_entity():
 def test_pick_leader_with_priority():
     """Should pick leader based on priority order"""
     # This will fail until we implement the detector
-    from src.testing.metadata.group_leader_detector import GroupLeaderDetector
+    from testing.metadata.group_leader_detector import GroupLeaderDetector
 
     detector = GroupLeaderDetector()
 
@@ -124,7 +124,7 @@ def test_pick_leader_with_priority():
 def test_get_address_query_template():
     """Should return correct address query template"""
     # This will fail until we implement the detector
-    from src.testing.metadata.group_leader_detector import GroupLeaderDetector
+    from testing.metadata.group_leader_detector import GroupLeaderDetector
 
     detector = GroupLeaderDetector()
     template = detector._get_address_query_template()
@@ -140,7 +140,7 @@ def test_get_address_query_template():
 def test_get_location_query_template():
     """Should return correct location query template"""
     # This will fail until we implement the detector
-    from src.testing.metadata.group_leader_detector import GroupLeaderDetector
+    from testing.metadata.group_leader_detector import GroupLeaderDetector
 
     detector = GroupLeaderDetector()
     template = detector._get_location_query_template()

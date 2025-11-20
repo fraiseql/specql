@@ -5,7 +5,7 @@ These tests target capabilities that currently have low confidence
 and need enhancement to reach 85%+ confidence.
 """
 
-from src.reverse_engineering.java_action_parser import JavaActionParser
+from reverse_engineering.java_action_parser import JavaActionParser
 
 
 class TestComplexJavaEntities:

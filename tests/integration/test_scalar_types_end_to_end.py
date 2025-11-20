@@ -8,7 +8,7 @@ Tests full pipeline:
 - Verify metadata for Team D (FraiseQL)
 """
 
-from src.core.specql_parser import SpecQLParser
+from core.specql_parser import SpecQLParser
 
 
 def test_all_23_scalar_types_parseable():

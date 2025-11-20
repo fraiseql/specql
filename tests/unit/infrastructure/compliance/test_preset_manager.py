@@ -1,6 +1,6 @@
 """Tests for CompliancePresetManager"""
 
-from src.infrastructure.universal_infra_schema import (
+from infrastructure.universal_infra_schema import (
     CompliancePreset,
     DatabaseConfig,
     DatabaseType,
@@ -15,7 +15,7 @@ class TestCompliancePresetManager:
 
     def test_apply_pci_compliance_preset(self):
         """Should auto-configure PCI-DSS requirements"""
-        from src.infrastructure.compliance.preset_manager import CompliancePresetManager
+        from infrastructure.compliance.preset_manager import CompliancePresetManager
 
         infrastructure = UniversalInfrastructure(
             name="payment-app", security=SecurityConfig(compliance_preset=CompliancePreset.PCI_DSS)
@@ -39,7 +39,7 @@ class TestCompliancePresetManager:
 
     def test_apply_hipaa_preset(self):
         """Should auto-configure HIPAA requirements"""
-        from src.infrastructure.compliance.preset_manager import CompliancePresetManager
+        from infrastructure.compliance.preset_manager import CompliancePresetManager
 
         infrastructure = UniversalInfrastructure(
             name="healthcare-app",
@@ -62,7 +62,7 @@ class TestCompliancePresetManager:
 
     def test_no_preset_returns_unchanged(self):
         """Should return infrastructure unchanged when no preset specified"""
-        from src.infrastructure.compliance.preset_manager import CompliancePresetManager
+        from infrastructure.compliance.preset_manager import CompliancePresetManager
 
         infrastructure = UniversalInfrastructure(name="app", security=SecurityConfig())
 
@@ -73,7 +73,7 @@ class TestCompliancePresetManager:
 
     def test_validate_pci_compliance_gaps(self):
         """Should identify PCI-DSS compliance gaps"""
-        from src.infrastructure.compliance.preset_manager import CompliancePresetManager
+        from infrastructure.compliance.preset_manager import CompliancePresetManager
 
         # Infrastructure missing required controls
         infrastructure = UniversalInfrastructure(
@@ -100,7 +100,7 @@ class TestCompliancePresetManager:
 
     def test_validate_compliant_pci_infrastructure(self):
         """Should validate compliant PCI-DSS infrastructure"""
-        from src.infrastructure.compliance.preset_manager import CompliancePresetManager
+        from infrastructure.compliance.preset_manager import CompliancePresetManager
 
         # Properly configured infrastructure
         infrastructure = UniversalInfrastructure(
@@ -127,7 +127,7 @@ class TestCompliancePresetManager:
 
     def test_validate_no_preset(self):
         """Should return compliant when no preset specified"""
-        from src.infrastructure.compliance.preset_manager import CompliancePresetManager
+        from infrastructure.compliance.preset_manager import CompliancePresetManager
 
         infrastructure = UniversalInfrastructure(name="app", security=SecurityConfig())
 
@@ -139,7 +139,7 @@ class TestCompliancePresetManager:
 
     def test_apply_soc2_preset(self):
         """Should auto-configure SOC2 requirements"""
-        from src.infrastructure.compliance.preset_manager import CompliancePresetManager
+        from infrastructure.compliance.preset_manager import CompliancePresetManager
 
         infrastructure = UniversalInfrastructure(
             name="saas-app", security=SecurityConfig(compliance_preset=CompliancePreset.SOC2)
@@ -157,7 +157,7 @@ class TestCompliancePresetManager:
 
     def test_apply_iso27001_preset(self):
         """Should auto-configure ISO27001 requirements"""
-        from src.infrastructure.compliance.preset_manager import CompliancePresetManager
+        from infrastructure.compliance.preset_manager import CompliancePresetManager
 
         infrastructure = UniversalInfrastructure(
             name="enterprise-app",
@@ -176,7 +176,7 @@ class TestCompliancePresetManager:
 
     def test_validate_hipaa_compliance_gaps(self):
         """Should identify HIPAA compliance gaps"""
-        from src.infrastructure.compliance.preset_manager import CompliancePresetManager
+        from infrastructure.compliance.preset_manager import CompliancePresetManager
 
         infrastructure = UniversalInfrastructure(
             name="healthcare-app",
@@ -198,7 +198,7 @@ class TestCompliancePresetManager:
 
     def test_validate_soc2_compliance_gaps(self):
         """Should identify SOC2 compliance gaps"""
-        from src.infrastructure.compliance.preset_manager import CompliancePresetManager
+        from infrastructure.compliance.preset_manager import CompliancePresetManager
 
         infrastructure = UniversalInfrastructure(
             name="saas-app",
@@ -218,7 +218,7 @@ class TestCompliancePresetManager:
 
     def test_validate_iso27001_compliance_gaps(self):
         """Should identify ISO27001 compliance gaps"""
-        from src.infrastructure.compliance.preset_manager import CompliancePresetManager
+        from infrastructure.compliance.preset_manager import CompliancePresetManager
 
         infrastructure = UniversalInfrastructure(
             name="enterprise-app",
@@ -238,7 +238,7 @@ class TestCompliancePresetManager:
 
     def test_preset_combination_not_supported(self):
         """Should handle unsupported preset combinations gracefully"""
-        from src.infrastructure.compliance.preset_manager import CompliancePresetManager
+        from infrastructure.compliance.preset_manager import CompliancePresetManager
 
         infrastructure = UniversalInfrastructure(
             name="app",
@@ -255,7 +255,7 @@ class TestCompliancePresetManager:
 
     def test_network_tier_creation_for_pci(self):
         """Should create default 3-tier network when applying PCI-DSS to infrastructure without tiers"""
-        from src.infrastructure.compliance.preset_manager import CompliancePresetManager
+        from infrastructure.compliance.preset_manager import CompliancePresetManager
 
         infrastructure = UniversalInfrastructure(
             name="web-app",

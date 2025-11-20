@@ -5,7 +5,7 @@ These tests ensure basic functionality continues to work
 while we enhance complex case handling.
 """
 
-from src.reverse_engineering.algorithmic_parser import AlgorithmicParser
+from reverse_engineering.algorithmic_parser import AlgorithmicParser
 
 
 class TestSimpleSQLFunctions:

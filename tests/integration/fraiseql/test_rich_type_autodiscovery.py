@@ -8,8 +8,8 @@ import pytest
 # Mark all tests as requiring database
 pytestmark = pytest.mark.database
 
-from src.core.ast_models import Action, Entity
-from src.core.specql_parser import SpecQLParser
+from core.ast_models import Action, Entity
+from core.specql_parser import SpecQLParser
 
 
 def convert_entity_definition_to_entity(entity_def):
@@ -279,7 +279,7 @@ class TestFraiseQLCompatibility:
 
     def test_compatibility_checker_confirms_all_types_work(self):
         """Test: Compatibility checker confirms all types are FraiseQL compatible"""
-        from src.generators.fraiseql.compatibility_checker import CompatibilityChecker
+        from generators.fraiseql.compatibility_checker import CompatibilityChecker
 
         checker = CompatibilityChecker()
         assert checker.check_all_types_compatible()
@@ -287,7 +287,7 @@ class TestFraiseQLCompatibility:
 
     def test_no_types_need_manual_annotations(self):
         """Test: No rich types require manual @fraiseql:field annotations"""
-        from src.generators.fraiseql.compatibility_checker import CompatibilityChecker
+        from generators.fraiseql.compatibility_checker import CompatibilityChecker
 
         checker = CompatibilityChecker()
         incompatible = checker.get_incompatible_types()

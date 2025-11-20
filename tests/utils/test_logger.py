@@ -5,7 +5,7 @@ Tests for logging framework
 import logging
 from io import StringIO
 
-from src.utils.logger import (
+from utils.logger import (
     LogContext,
     configure_logging,
     get_logger,

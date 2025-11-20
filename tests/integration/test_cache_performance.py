@@ -6,7 +6,7 @@ from pathlib import Path
 
 from click.testing import CliRunner
 
-from src.cli.confiture_extensions import specql
+from cli.confiture_extensions import specql
 
 
 def create_large_test_project(num_files=50):
@@ -71,7 +71,7 @@ def test_caching_performance_improvement():
         assert duration2 <= duration1 * 2  # Allow some variance
 
         # Check that cache files were created
-        from src.cli.cache_manager import CacheManager
+        from cli.cache_manager import CacheManager
 
         cache_manager = CacheManager()
         cache_files = list(cache_manager.cache_dir.glob("*.json"))

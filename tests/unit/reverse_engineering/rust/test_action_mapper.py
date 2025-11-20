@@ -4,11 +4,11 @@ Unit tests for Rust action mapper functionality.
 Tests the CRUD pattern detection and action mapping logic.
 """
 
-from src.reverse_engineering.rust_action_parser import (
+from reverse_engineering.rust_action_parser import (
     RouteToActionMapper,
     RustActionMapper,
 )
-from src.reverse_engineering.rust_parser import (
+from reverse_engineering.rust_parser import (
     DieselDeriveInfo,
     ImplMethodInfo,
     RouteHandlerInfo,

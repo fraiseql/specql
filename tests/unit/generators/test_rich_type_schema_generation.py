@@ -1,5 +1,5 @@
-from src.core.ast_models import FieldDefinition
-from src.generators.constraint_generator import ConstraintGenerator
+from core.ast_models import FieldDefinition
+from generators.constraint_generator import ConstraintGenerator
 
 
 def test_generate_email_field_with_check_constraint():

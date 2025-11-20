@@ -2,8 +2,8 @@
 Unit tests for mutation FraiseQL annotation generator
 """
 
-from src.core.ast_models import Action, ActionImpact, EntityImpact
-from src.generators.fraiseql.mutation_annotator import MutationAnnotator
+from core.ast_models import Action, ActionImpact, EntityImpact
+from generators.fraiseql.mutation_annotator import MutationAnnotator
 
 
 class TestCoreMutationAnnotation:

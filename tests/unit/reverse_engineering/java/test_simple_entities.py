@@ -5,7 +5,7 @@ These tests ensure basic functionality continues to work
 while we enhance complex case handling.
 """
 
-from src.reverse_engineering.java_action_parser import JavaActionParser
+from reverse_engineering.java_action_parser import JavaActionParser
 
 
 class TestSimpleJavaEntities:

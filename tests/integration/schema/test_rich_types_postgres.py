@@ -6,7 +6,7 @@ Tests that generated SQL actually works in PostgreSQL database
 import psycopg
 import pytest
 
-from src.core.ast_models import Entity, FieldDefinition
+from core.ast_models import Entity, FieldDefinition
 
 # Mark all tests as requiring database
 pytestmark = pytest.mark.database

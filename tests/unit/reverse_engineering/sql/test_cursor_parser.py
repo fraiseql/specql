@@ -1,6 +1,6 @@
 """Unit tests for CursorOperationsParser"""
 
-from src.reverse_engineering.cursor_operations_parser import CursorOperationsParser
+from reverse_engineering.cursor_operations_parser import CursorOperationsParser
 
 
 class TestCursorOperationsParser:

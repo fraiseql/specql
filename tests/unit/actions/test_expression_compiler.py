@@ -4,8 +4,8 @@ Tests for Expression Compiler advanced features
 
 import pytest
 
-from src.core.ast_models import EntityDefinition, FieldDefinition
-from src.generators.actions.expression_compiler import ExpressionCompiler, SecurityError
+from core.ast_models import EntityDefinition, FieldDefinition
+from generators.actions.expression_compiler import ExpressionCompiler, SecurityError
 
 
 @pytest.fixture

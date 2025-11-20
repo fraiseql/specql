@@ -13,8 +13,8 @@ from pathlib import Path
 
 import pytest
 
-from src.cli.orchestrator import CLIOrchestrator
-from src.core.specql_parser import SpecQLParser
+from cli.orchestrator import CLIOrchestrator
+from core.specql_parser import SpecQLParser
 
 
 @pytest.fixture

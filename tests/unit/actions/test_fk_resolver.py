@@ -5,8 +5,8 @@ Phase 2: Tier 3 entity reference resolution
 
 import pytest
 
-from src.core.ast_models import Entity, FieldDefinition
-from src.generators.actions.step_compilers.fk_resolver import ForeignKeyResolver
+from core.ast_models import Entity, FieldDefinition
+from generators.actions.step_compilers.fk_resolver import ForeignKeyResolver
 
 
 class TestForeignKeyResolver:

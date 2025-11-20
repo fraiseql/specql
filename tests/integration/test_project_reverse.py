@@ -3,7 +3,7 @@
 import pytest
 from click.testing import CliRunner
 
-from src.cli.confiture_extensions import specql
+from cli.confiture_extensions import specql
 
 
 @pytest.fixture

@@ -9,8 +9,8 @@ Tests for generating AWS security resources (Security Groups, WAF, VPN) from uni
 - Cross-tier security group references
 """
 
-from src.infrastructure.generators.aws_security_generator import AWSSecurityGenerator
-from src.infrastructure.universal_infra_schema import (
+from infrastructure.generators.aws_security_generator import AWSSecurityGenerator
+from infrastructure.universal_infra_schema import (
     CompliancePreset,
     FirewallRule,
     NetworkTier,

@@ -2,8 +2,8 @@
 Test validate step compilation
 """
 
-from src.core.ast_models import ActionStep, EntityDefinition, FieldDefinition
-from src.generators.actions.step_compilers.validate_compiler import ValidateStepCompiler
+from core.ast_models import ActionStep, EntityDefinition, FieldDefinition
+from generators.actions.step_compilers.validate_compiler import ValidateStepCompiler
 
 
 def create_test_entity():

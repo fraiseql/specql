@@ -1,6 +1,6 @@
 """Tests for field value generators component"""
 
-from src.testing.seed.field_generators import FieldValueGenerator
+from testing.seed.field_generators import FieldValueGenerator
 
 
 def test_generate_email():

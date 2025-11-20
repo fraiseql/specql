@@ -2,8 +2,8 @@ from unittest.mock import Mock
 
 import pytest
 
-from src.generators.schema.naming_conventions import DomainInfo
-from src.generators.schema.schema_registry import SchemaRegistry
+from generators.schema.naming_conventions import DomainInfo
+from generators.schema.schema_registry import SchemaRegistry
 
 
 @pytest.fixture

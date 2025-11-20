@@ -8,7 +8,7 @@ import os
 import tempfile
 import time
 
-from src.reverse_engineering.rust_action_parser import RustActionParser
+from reverse_engineering.rust_action_parser import RustActionParser
 
 
 def test_tree_sitter_vs_regex_performance():

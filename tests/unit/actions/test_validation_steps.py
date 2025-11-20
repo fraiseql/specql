@@ -5,8 +5,8 @@ Phase 2: Validation Step Compilation
 
 import pytest
 
-from src.core.ast_models import ActionStep, Entity, FieldDefinition
-from src.generators.actions.validation_step_compiler import ValidationStepCompiler
+from core.ast_models import ActionStep, Entity, FieldDefinition
+from generators.actions.validation_step_compiler import ValidationStepCompiler
 
 
 class TestValidationSteps:

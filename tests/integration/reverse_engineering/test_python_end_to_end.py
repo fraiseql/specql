@@ -4,8 +4,8 @@ End-to-end tests for Python reverse engineering
 These tests verify the complete pipeline from Python to SpecQL YAML.
 """
 
-from src.reverse_engineering.python_ast_parser import PythonASTParser
-from src.reverse_engineering.universal_ast_mapper import UniversalASTMapper
+from reverse_engineering.python_ast_parser import PythonASTParser
+from reverse_engineering.universal_ast_mapper import UniversalASTMapper
 
 
 class TestPythonEndToEnd:

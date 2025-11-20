@@ -5,8 +5,8 @@ Phase 2: Scalar type validation support
 
 import pytest
 
-from src.core.ast_models import ActionStep, Entity, FieldDefinition, FieldTier
-from src.generators.actions.step_compilers.validate_compiler import ValidateStepCompiler
+from core.ast_models import ActionStep, Entity, FieldDefinition, FieldTier
+from generators.actions.step_compilers.validate_compiler import ValidateStepCompiler
 
 
 class TestScalarValidation:

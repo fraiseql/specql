@@ -8,8 +8,8 @@ Tests for generating Kubernetes security resources (NetworkPolicies, RBAC, Pod S
 - Cross-tier NetworkPolicy references
 """
 
-from src.infrastructure.generators.kubernetes_security_generator import KubernetesSecurityGenerator
-from src.infrastructure.universal_infra_schema import (
+from infrastructure.generators.kubernetes_security_generator import KubernetesSecurityGenerator
+from infrastructure.universal_infra_schema import (
     CompliancePreset,
     FirewallRule,
     NetworkTier,

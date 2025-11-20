@@ -8,8 +8,8 @@ import pytest
 # Mark all tests as requiring database
 pytestmark = pytest.mark.database
 
-from src.core.specql_parser import SpecQLParser
-from src.generators.schema_orchestrator import SchemaOrchestrator
+from core.specql_parser import SpecQLParser
+from generators.schema_orchestrator import SchemaOrchestrator
 
 
 @pytest.fixture

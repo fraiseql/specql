@@ -7,8 +7,8 @@ and file path generation.
 
 import pytest
 
-from src.core.ast_models import Entity, Organization
-from src.generators.schema.naming_conventions import NamingConventions
+from core.ast_models import Entity, Organization
+from generators.schema.naming_conventions import NamingConventions
 
 
 class TestEntityCodeDerivation:

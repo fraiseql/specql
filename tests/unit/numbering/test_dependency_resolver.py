@@ -4,7 +4,7 @@ Tests for DependencyResolver
 
 import pytest
 
-from src.numbering.dependency_resolver import DependencyResolver
+from numbering.dependency_resolver import DependencyResolver
 
 
 def test_dependency_resolver_creation():

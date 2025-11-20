@@ -1,6 +1,6 @@
 """Test separator constants and utilities."""
 
-from src.core.separators import Separators
+from core.separators import Separators
 
 
 class TestSeparatorConstants:

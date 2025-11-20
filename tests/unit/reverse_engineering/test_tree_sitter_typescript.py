@@ -2,11 +2,11 @@
 
 import pytest
 
-from src.reverse_engineering.typescript.express_extractor import ExpressRouteExtractor
-from src.reverse_engineering.typescript.fastify_extractor import FastifyRouteExtractor
-from src.reverse_engineering.typescript.nextjs_app_extractor import NextJSAppExtractor
-from src.reverse_engineering.typescript.nextjs_pages_extractor import NextJSPagesExtractor
-from src.reverse_engineering.typescript.tree_sitter_typescript_parser import (
+from reverse_engineering.typescript.express_extractor import ExpressRouteExtractor
+from reverse_engineering.typescript.fastify_extractor import FastifyRouteExtractor
+from reverse_engineering.typescript.nextjs_app_extractor import NextJSAppExtractor
+from reverse_engineering.typescript.nextjs_pages_extractor import NextJSPagesExtractor
+from reverse_engineering.typescript.tree_sitter_typescript_parser import (
     TreeSitterTypeScriptParser,
 )
 

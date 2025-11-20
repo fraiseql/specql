@@ -10,8 +10,8 @@ These tests verify end-to-end CLI functionality including:
 import pytest
 from click.testing import CliRunner
 
-from src.cli.confiture_extensions import specql as confiture_specql
-from src.cli.generate import cli as generate_cli
+from cli.confiture_extensions import specql as confiture_specql
+from cli.generate import cli as generate_cli
 
 
 @pytest.fixture

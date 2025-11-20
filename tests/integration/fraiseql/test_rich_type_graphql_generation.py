@@ -5,8 +5,8 @@ Tests that SpecQL → PostgreSQL → FraiseQL GraphQL works correctly
 
 from pathlib import Path
 
-from src.core.specql_parser import SpecQLParser
-from src.generators.schema_orchestrator import SchemaOrchestrator
+from core.specql_parser import SpecQLParser
+from generators.schema_orchestrator import SchemaOrchestrator
 
 
 class TestRichTypeGraphQLGeneration:
@@ -102,7 +102,7 @@ class TestFraiseQLIntegrationContract:
 
     def test_rich_type_scalar_mappings_complete(self):
         """Test that all rich types have proper GraphQL scalar mappings"""
-        from src.core.scalar_types import SCALAR_TYPES
+        from core.scalar_types import SCALAR_TYPES
 
         # All rich types should have GraphQL scalar names
         for type_name, type_def in SCALAR_TYPES.items():
@@ -118,7 +118,7 @@ class TestFraiseQLIntegrationContract:
 
     def test_postgresql_types_support_fraiseql_autodiscovery(self):
         """Test that PostgreSQL types used are supported by FraiseQL autodiscovery"""
-        from src.core.scalar_types import SCALAR_TYPES
+        from core.scalar_types import SCALAR_TYPES
 
         # These PostgreSQL types are known to be autodiscovered by FraiseQL
         supported_pg_types = {
@@ -144,7 +144,7 @@ class TestFraiseQLIntegrationContract:
 
     def test_validation_patterns_produce_meaningful_comments(self):
         """Test that validation patterns result in descriptive comments"""
-        from src.core.scalar_types import SCALAR_TYPES
+        from core.scalar_types import SCALAR_TYPES
 
         for type_name, type_def in SCALAR_TYPES.items():
             # Types with validation should have meaningful descriptions

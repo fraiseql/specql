@@ -5,8 +5,8 @@ Phase 3: Insert/Update/Delete Operations
 
 import pytest
 
-from src.core.ast_models import ActionStep, Entity, FieldDefinition
-from src.generators.actions.database_operation_compiler import DatabaseOperationCompiler
+from core.ast_models import ActionStep, Entity, FieldDefinition
+from generators.actions.database_operation_compiler import DatabaseOperationCompiler
 
 
 class TestDatabaseOperations:

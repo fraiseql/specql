@@ -1,8 +1,8 @@
 import pytest
 
-from src.core.ast_models import FieldDefinition, FieldTier
-from src.core.scalar_types import get_composite_type
-from src.generators.schema.composite_type_mapper import CompositeDDL, CompositeTypeMapper
+from core.ast_models import FieldDefinition, FieldTier
+from core.scalar_types import get_composite_type
+from generators.schema.composite_type_mapper import CompositeDDL, CompositeTypeMapper
 
 
 def test_map_simple_address_field():

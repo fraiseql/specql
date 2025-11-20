@@ -2,9 +2,9 @@
 
 import pytest
 
-from src.core.ast_models import Action, Entity, FieldDefinition
-from src.generators.composite_type_generator import CompositeTypeGenerator
-from src.generators.schema_orchestrator import SchemaOrchestrator
+from core.ast_models import Action, Entity, FieldDefinition
+from generators.composite_type_generator import CompositeTypeGenerator
+from generators.schema_orchestrator import SchemaOrchestrator
 
 
 class TestCompositeTypeGenerator:
@@ -227,7 +227,7 @@ class TestSchemaOrchestrator:
     @pytest.fixture
     def orchestrator(self):
         """Create schema orchestrator"""
-        from src.generators.schema.naming_conventions import NamingConventions
+        from generators.schema.naming_conventions import NamingConventions
 
         naming_conventions = NamingConventions()
         return SchemaOrchestrator(naming_conventions)

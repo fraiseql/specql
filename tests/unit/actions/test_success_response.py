@@ -2,13 +2,13 @@
 Test success response generation
 """
 
-from src.generators.actions.action_context import ActionContext
-from src.generators.actions.success_response_generator import SuccessResponseGenerator
+from generators.actions.action_context import ActionContext
+from generators.actions.success_response_generator import SuccessResponseGenerator
 
 
 def create_test_context():
     """Create a test ActionContext"""
-    from src.core.ast_models import EntityDefinition
+    from core.ast_models import EntityDefinition
 
     entity = EntityDefinition(name="Contact", schema="crm", fields={})
 
@@ -25,7 +25,7 @@ def create_test_context():
 
 def create_test_context_with_impact():
     """Create a test ActionContext with impact metadata"""
-    from src.core.ast_models import EntityDefinition
+    from core.ast_models import EntityDefinition
 
     entity = EntityDefinition(name="Contact", schema="crm", fields={})
 
@@ -48,7 +48,7 @@ def create_test_context_with_impact():
 
 def test_generates_object_data_with_relationships():
     """Generate object_data with relationships from impact.include_relations"""
-    from src.core.ast_models import EntityDefinition
+    from core.ast_models import EntityDefinition
 
     entity = EntityDefinition(name="Contact", schema="crm", fields={})
 
@@ -86,8 +86,8 @@ def test_generates_impact_metadata_composite_type():
     create_test_context_with_impact()
 
     # Use the existing ImpactMetadataCompiler
-    from src.core.ast_models import Action, ActionImpact, EntityImpact
-    from src.generators.actions.impact_metadata_compiler import ImpactMetadataCompiler
+    from core.ast_models import Action, ActionImpact, EntityImpact
+    from generators.actions.impact_metadata_compiler import ImpactMetadataCompiler
 
     # Create Action object for the compiler
     action = Action(
@@ -121,8 +121,8 @@ def test_generates_impact_metadata_composite_type():
 
 def test_generates_side_effect_collections():
     """Collect created entities in extra_metadata collections"""
-    from src.core.ast_models import Action, ActionImpact, EntityImpact
-    from src.generators.actions.impact_metadata_compiler import ImpactMetadataCompiler
+    from core.ast_models import Action, ActionImpact, EntityImpact
+    from generators.actions.impact_metadata_compiler import ImpactMetadataCompiler
 
     action = Action(
         name="qualify_lead",

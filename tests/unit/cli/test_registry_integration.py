@@ -4,8 +4,8 @@ from pathlib import Path
 
 import pytest
 
-from src.cli.orchestrator import CLIOrchestrator
-from src.core.ast_models import Entity
+from cli.orchestrator import CLIOrchestrator
+from core.ast_models import Entity
 
 
 def test_orchestrator_uses_registry_table_codes():

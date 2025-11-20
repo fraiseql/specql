@@ -3,7 +3,7 @@ E2E integration test for tv_ table FraiseQL annotations
 Tests complete integration: SchemaOrchestrator → TableViewAnnotator
 """
 
-from src.core.ast_models import (
+from core.ast_models import (
     EntityDefinition,
     ExtraFilterColumn,
     FieldDefinition,
@@ -11,7 +11,7 @@ from src.core.ast_models import (
     TableViewConfig,
     TableViewMode,
 )
-from src.generators.schema_orchestrator import SchemaOrchestrator
+from generators.schema_orchestrator import SchemaOrchestrator
 
 
 class TestTableViewAnnotationsE2E:

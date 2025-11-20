@@ -4,14 +4,14 @@ Unit tests for SuccessResponseGenerator
 Tests generation of mutation_result success responses with tv_ data support.
 """
 
-from src.core.ast_models import (
+from core.ast_models import (
     EntityDefinition,
     FieldDefinition,
     TableViewConfig,
     TableViewMode,
 )
-from src.generators.actions.action_context import ActionContext
-from src.generators.actions.success_response_generator import SuccessResponseGenerator
+from generators.actions.action_context import ActionContext
+from generators.actions.success_response_generator import SuccessResponseGenerator
 
 
 class TestSuccessResponseGenerator:

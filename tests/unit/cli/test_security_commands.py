@@ -14,7 +14,7 @@ class TestSecurityCLI:
 
     def test_validate_security_command_valid_yaml(self):
         """Test validate command with valid security YAML"""
-        from src.cli.confiture_extensions import validate_security
+        from cli.confiture_extensions import validate_security
 
         yaml_content = """
 security:
@@ -36,7 +36,7 @@ security:
 
     def test_validate_security_command_invalid_yaml(self):
         """Test validate command with invalid YAML"""
-        from src.cli.confiture_extensions import validate_security
+        from cli.confiture_extensions import validate_security
 
         yaml_content = """
 security:
@@ -58,7 +58,7 @@ security:
 
     def test_check_compliance_command_compliant(self):
         """Test check-compliance command with compliant config"""
-        from src.cli.confiture_extensions import check_compliance
+        from cli.confiture_extensions import check_compliance
 
         yaml_content = """
 security:
@@ -94,7 +94,7 @@ security:
 
     def test_check_compliance_command_non_compliant(self):
         """Test check-compliance command with non-compliant config"""
-        from src.cli.confiture_extensions import check_compliance
+        from cli.confiture_extensions import check_compliance
 
         yaml_content = """
 security:
@@ -118,7 +118,7 @@ security:
 
     def test_init_command_three_tier(self):
         """Test init command with three-tier preset"""
-        from src.cli.confiture_extensions import init
+        from cli.confiture_extensions import init
 
         with self.runner.isolated_filesystem():
             result = self.runner.invoke(
@@ -138,7 +138,7 @@ security:
 
     def test_init_command_with_compliance(self):
         """Test init command with compliance preset"""
-        from src.cli.confiture_extensions import init
+        from cli.confiture_extensions import init
 
         with self.runner.isolated_filesystem():
             result = self.runner.invoke(
@@ -154,7 +154,7 @@ security:
 
     def test_diff_command_identical_files(self):
         """Test diff command with identical files"""
-        from src.cli.confiture_extensions import diff
+        from cli.confiture_extensions import diff
 
         yaml_content = """
 security:
@@ -178,7 +178,7 @@ security:
 
     def test_diff_command_different_files(self):
         """Test diff command with different files"""
-        from src.cli.confiture_extensions import diff
+        from cli.confiture_extensions import diff
 
         yaml1 = """
 security:
@@ -217,7 +217,7 @@ security:
     @patch("src.infrastructure.generators.aws_security_generator.AWSSecurityGenerator")
     def test_generate_infra_command_aws(self, mock_generator_class):
         """Test generate-infra command for AWS"""
-        from src.cli.confiture_extensions import generate_infra
+        from cli.confiture_extensions import generate_infra
 
         # Mock the generator
         mock_generator = mock_generator_class.return_value
@@ -234,7 +234,7 @@ security:
 
     def test_generate_infra_command_unknown_pattern(self):
         """Test generate-infra command with unknown pattern"""
-        from src.cli.confiture_extensions import generate_infra
+        from cli.confiture_extensions import generate_infra
 
         result = self.runner.invoke(generate_infra, ["unknown-pattern", "--provider", "aws"])
 

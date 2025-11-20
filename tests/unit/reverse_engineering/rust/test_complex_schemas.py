@@ -5,7 +5,7 @@ These tests target capabilities that currently have unknown confidence
 and need enhancement.
 """
 
-from src.reverse_engineering.rust_parser import RustParser
+from reverse_engineering.rust_parser import RustParser
 
 
 class TestComplexRustSchemas:

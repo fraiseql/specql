@@ -1,7 +1,7 @@
 import pytest
 
-from src.core.exceptions import SpecQLValidationError
-from src.core.specql_parser import SpecQLParser
+from core.exceptions import SpecQLValidationError
+from core.specql_parser import SpecQLParser
 
 
 class TestReservedFieldNames:

@@ -3,8 +3,8 @@
 import pytest
 from click.testing import CliRunner
 
-from src.cli.confiture_extensions import specql
-from src.core.dependencies import TREE_SITTER_RUST
+from cli.confiture_extensions import specql
+from core.dependencies import TREE_SITTER_RUST
 
 
 class TestCachingFunctionality:

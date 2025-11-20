@@ -2,7 +2,7 @@
 
 import pytest
 
-from src.testing.pytest.pytest_generator import PytestGenerator
+from testing.pytest.pytest_generator import PytestGenerator
 
 
 class TestPytestGenerator:

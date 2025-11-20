@@ -4,9 +4,9 @@ Test if step compilation
 
 import pytest
 
-from src.core.ast_models import ActionStep, EntityDefinition, FieldDefinition
-from src.generators.actions.step_compilers.if_compiler import IfStepCompiler
-from src.generators.actions.step_compilers.update_compiler import UpdateStepCompiler
+from core.ast_models import ActionStep, EntityDefinition, FieldDefinition
+from generators.actions.step_compilers.if_compiler import IfStepCompiler
+from generators.actions.step_compilers.update_compiler import UpdateStepCompiler
 
 
 def create_test_entity():

@@ -1,6 +1,6 @@
 """Tests for framework-specific integration with pattern detection."""
 
-from src.cli.confiture_extensions import specql
+from cli.confiture_extensions import specql
 
 
 class TestFrameworkIntegration:

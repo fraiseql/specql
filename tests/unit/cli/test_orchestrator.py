@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from src.cli.orchestrator import CLIOrchestrator, GenerationResult, MigrationFile
+from cli.orchestrator import CLIOrchestrator, GenerationResult, MigrationFile
 
 
 class TestMigrationFile:

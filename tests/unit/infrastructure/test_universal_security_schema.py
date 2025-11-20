@@ -9,7 +9,7 @@ Tests for the enhanced security primitives in UniversalInfrastructure:
 - VPNConfig dataclass
 """
 
-from src.infrastructure.universal_infra_schema import (
+from infrastructure.universal_infra_schema import (
     CompliancePreset,
     FirewallRule,
     NetworkTier,

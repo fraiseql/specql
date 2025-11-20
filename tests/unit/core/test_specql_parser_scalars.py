@@ -1,5 +1,5 @@
-from src.core.ast_models import FieldTier
-from src.core.specql_parser import SpecQLParser
+from core.ast_models import FieldTier
+from core.specql_parser import SpecQLParser
 
 
 def test_parse_entity_with_scalar_types():
@@ -103,7 +103,7 @@ def test_parse_boolean_field():
     entity = parser.parse(yaml_content)
 
     field = entity.fields["completed"]
-    from src.core.ast_models import FieldTier
+    from core.ast_models import FieldTier
 
     # Boolean is a BASIC type, not a scalar type
     assert field.tier == FieldTier.BASIC
@@ -234,7 +234,7 @@ def test_parse_nested_composite_types():
 
 def test_composite_type_jsonb_schema():
     """Test that composite types generate correct JSONB schema"""
-    from src.core.scalar_types import get_composite_type
+    from core.scalar_types import get_composite_type
 
     address_def = get_composite_type("SimpleAddress")
     assert address_def is not None

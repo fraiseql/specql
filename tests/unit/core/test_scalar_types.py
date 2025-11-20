@@ -1,4 +1,4 @@
-from src.core.scalar_types import SCALAR_TYPES, get_scalar_type, is_scalar_type
+from core.scalar_types import SCALAR_TYPES, get_scalar_type, is_scalar_type
 
 
 def test_scalar_types_registry_complete():

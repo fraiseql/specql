@@ -1,7 +1,7 @@
 """Tests for tenant-scoped composite index generation."""
 
-from src.core.ast_models import EntityDefinition, FieldDefinition, FieldTier
-from src.generators.schema.tenant_indexes import (
+from core.ast_models import EntityDefinition, FieldDefinition, FieldTier
+from generators.schema.tenant_indexes import (
     _is_entity_hierarchical,
     generate_tenant_id_lookup_index,
     generate_tenant_indexes,
@@ -184,7 +184,7 @@ class TestIndexIntegration:
 
     def test_tenant_indexes_in_schema_ddl(self):
         """Test that tenant indexes appear in generated schema DDL."""
-        from src.generators.schema.schema_generator import SchemaGenerator
+        from generators.schema.schema_generator import SchemaGenerator
 
         entity = EntityDefinition(
             name="department",

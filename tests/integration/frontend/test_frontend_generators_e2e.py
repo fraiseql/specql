@@ -13,8 +13,8 @@ from pathlib import Path
 
 import pytest
 
-from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
-from src.generators.frontend import (
+from core.ast_models import Action, ActionStep, Entity, FieldDefinition
+from generators.frontend import (
     ApolloHooksGenerator,
     MutationDocsGenerator,
     MutationImpactsGenerator,

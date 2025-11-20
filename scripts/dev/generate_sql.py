@@ -13,8 +13,8 @@ import yaml
 # Add src to path for imports
 sys.path.insert(0, str(Path(__file__).parent / "src"))
 
-from src.core.ast_models import Action, ActionStep, Entity, FieldDefinition
-from src.generators.schema_orchestrator import SchemaOrchestrator
+from core.ast_models import Action, ActionStep, Entity, FieldDefinition
+from generators.schema_orchestrator import SchemaOrchestrator
 
 
 class SpecQLGenerator:

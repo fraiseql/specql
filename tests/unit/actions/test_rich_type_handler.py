@@ -5,8 +5,8 @@ Phase 2: JSONB composite field manipulation
 
 import pytest
 
-from src.core.ast_models import Entity, FieldDefinition, FieldTier
-from src.generators.actions.step_compilers.rich_type_handler import RichTypeHandler
+from core.ast_models import Entity, FieldDefinition, FieldTier
+from generators.actions.step_compilers.rich_type_handler import RichTypeHandler
 
 
 class TestRichTypeHandler:

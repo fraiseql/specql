@@ -4,8 +4,8 @@ Test notify step compilation
 
 import pytest
 
-from src.core.ast_models import ActionStep, EntityDefinition, FieldDefinition
-from src.generators.actions.step_compilers.notify_compiler import NotifyStepCompiler
+from core.ast_models import ActionStep, EntityDefinition, FieldDefinition
+from generators.actions.step_compilers.notify_compiler import NotifyStepCompiler
 
 
 def create_test_entity():

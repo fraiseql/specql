@@ -2,8 +2,8 @@
 Test update step compilation
 """
 
-from src.core.ast_models import ActionStep, EntityDefinition, FieldDefinition
-from src.generators.actions.step_compilers.update_compiler import UpdateStepCompiler
+from core.ast_models import ActionStep, EntityDefinition, FieldDefinition
+from generators.actions.step_compilers.update_compiler import UpdateStepCompiler
 
 
 def create_test_entity():

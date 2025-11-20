@@ -2,7 +2,7 @@
 Test mutation_result type generation
 """
 
-from src.generators.actions.action_compiler import ActionCompiler
+from generators.actions.action_compiler import ActionCompiler
 
 
 def test_generates_mutation_result_type_schema():

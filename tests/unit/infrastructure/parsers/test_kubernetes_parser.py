@@ -2,8 +2,8 @@
 
 import pytest
 
-from src.infrastructure.parsers.kubernetes_parser import KubernetesParser
-from src.infrastructure.universal_infra_schema import *
+from infrastructure.parsers.kubernetes_parser import KubernetesParser
+from infrastructure.universal_infra_schema import *
 
 
 class TestKubernetesParser:

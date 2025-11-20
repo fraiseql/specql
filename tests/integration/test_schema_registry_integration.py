@@ -10,8 +10,8 @@ Tests that schema_registry properly affects:
 
 import pytest
 
-from src.core.ast_models import Entity, FieldDefinition
-from src.generators.actions.step_compilers.fk_resolver import ForeignKeyResolver
+from core.ast_models import Entity, FieldDefinition
+from generators.actions.step_compilers.fk_resolver import ForeignKeyResolver
 
 
 @pytest.fixture

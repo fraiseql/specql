@@ -4,8 +4,8 @@ Shared fixtures for pattern tests
 
 import pytest
 
-from src.generators.schema.naming_conventions import NamingConventions
-from src.generators.schema.schema_registry import SchemaRegistry
+from generators.schema.naming_conventions import NamingConventions
+from generators.schema.schema_registry import SchemaRegistry
 
 
 @pytest.fixture
@@ -45,7 +45,7 @@ def table_generator(schema_registry):
             result = table_generator.generate(entity)
             assert "CREATE TABLE" in result
     """
-    from src.generators.table_generator import TableGenerator
+    from generators.table_generator import TableGenerator
 
     return TableGenerator(schema_registry)
 
@@ -62,6 +62,6 @@ def function_generator(schema_registry):
             result = function_generator.generate_action_functions(entity)
             assert "CREATE FUNCTION" in result
     """
-    from src.generators.function_generator import FunctionGenerator
+    from generators.function_generator import FunctionGenerator
 
     return FunctionGenerator(schema_registry)

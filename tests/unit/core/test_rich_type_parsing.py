@@ -1,4 +1,4 @@
-from src.core.specql_parser import SpecQLParser
+from core.specql_parser import SpecQLParser
 
 
 def test_parse_contact_entity_with_email_phone_rich_types():

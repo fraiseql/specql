@@ -6,7 +6,7 @@ Your responsibility: Ensure these tests cover all FastAPI patterns
 
 import pytest
 
-from src.reverse_engineering.python_action_parser import PythonActionParser
+from reverse_engineering.python_action_parser import PythonActionParser
 
 
 class TestFastAPIParser:

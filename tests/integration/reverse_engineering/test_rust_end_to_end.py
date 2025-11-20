@@ -4,7 +4,7 @@ End-to-end tests for Rust reverse engineering
 These tests verify the complete pipeline from Rust to SpecQL YAML.
 """
 
-from src.reverse_engineering.rust_parser import RustParser
+from reverse_engineering.rust_parser import RustParser
 
 
 class TestRustEndToEnd:
@@ -26,7 +26,7 @@ pub struct User {
 }
 """
         # Use tree-sitter parser for struct extraction
-        from src.reverse_engineering.tree_sitter_rust_parser import TreeSitterRustParser
+        from reverse_engineering.tree_sitter_rust_parser import TreeSitterRustParser
 
         ts_parser = TreeSitterRustParser()
         ast = ts_parser.parse(rust_code)
@@ -66,7 +66,7 @@ pub struct Profile {
     pub avatar_url: Option<String>,
 }
 """
-        from src.reverse_engineering.tree_sitter_rust_parser import TreeSitterRustParser
+        from reverse_engineering.tree_sitter_rust_parser import TreeSitterRustParser
 
         ts_parser = TreeSitterRustParser()
         ast = ts_parser.parse(rust_code)

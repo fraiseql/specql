@@ -4,7 +4,7 @@ from unittest.mock import Mock
 
 import pytest
 
-from src.testing.seed.fk_resolver import ForeignKeyResolver, GroupLeaderExecutor
+from testing.seed.fk_resolver import ForeignKeyResolver, GroupLeaderExecutor
 
 
 class TestForeignKeyResolver:

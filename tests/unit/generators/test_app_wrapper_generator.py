@@ -1,7 +1,7 @@
 """Tests for App Wrapper Generator (Team C)"""
 
-from src.core.ast_models import Action, Entity
-from src.generators.app_wrapper_generator import AppWrapperGenerator
+from core.ast_models import Action, Entity
+from generators.app_wrapper_generator import AppWrapperGenerator
 
 
 def test_generate_app_wrapper_for_create_action():
@@ -65,7 +65,7 @@ failure_type: CreateContactError';"""
 
 def test_generate_action_description_from_steps():
     """Should generate description from action steps"""
-    from src.core.ast_models import ActionStep
+    from core.ast_models import ActionStep
 
     action = Action(
         name="qualify_lead",

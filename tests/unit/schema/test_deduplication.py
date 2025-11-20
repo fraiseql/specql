@@ -3,8 +3,8 @@ Tests for deduplication pattern generation
 Tests the 3-field deduplication pattern implementation
 """
 
-from src.core.ast_models import EntityDefinition
-from src.generators.schema.deduplication import (
+from core.ast_models import EntityDefinition
+from generators.schema.deduplication import (
     generate_deduplication_fields,
     generate_deduplication_indexes,
 )
@@ -67,7 +67,7 @@ class TestDeduplicationIntegration:
 
     def test_deduplication_in_schema_generator(self):
         """Test that deduplication fields are included in generated schema."""
-        from src.generators.schema.schema_generator import SchemaGenerator
+        from generators.schema.schema_generator import SchemaGenerator
 
         entity = EntityDefinition(name="Manufacturer", schema="inventory", fields={})
 

@@ -11,7 +11,7 @@ sys.path.insert(
 # Lazy import to avoid module-level import errors
 def _get_parser():
     try:
-        from src.reverse_engineering.tree_sitter_prisma_parser import TreeSitterPrismaParser
+        from reverse_engineering.tree_sitter_prisma_parser import TreeSitterPrismaParser
 
         return TreeSitterPrismaParser
     except ImportError:

@@ -4,9 +4,9 @@ Tests for rich type validation in actions
 
 import pytest
 
-from src.core.ast_models import Entity, FieldDefinition
-from src.generators.actions.expression_compiler import ExpressionCompiler
-from src.generators.actions.validation_step_compiler import ExpressionParser, ValidationStepCompiler
+from core.ast_models import Entity, FieldDefinition
+from generators.actions.expression_compiler import ExpressionCompiler
+from generators.actions.validation_step_compiler import ExpressionParser, ValidationStepCompiler
 
 
 @pytest.fixture
@@ -183,7 +183,7 @@ class TestRichTypeIntegration:
 
     def test_rich_type_validation_in_action_context(self, contact_entity):
         """Test that rich type validation works in action compilation context"""
-        from src.core.ast_models import Action, ActionStep
+        from core.ast_models import Action, ActionStep
 
         # Create a mock action with validation steps
         action = Action(

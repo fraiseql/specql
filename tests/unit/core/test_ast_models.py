@@ -1,5 +1,5 @@
-from src.core.ast_models import EntityDefinition, FieldDefinition, FieldTier
-from src.core.scalar_types import SCALAR_TYPES
+from core.ast_models import EntityDefinition, FieldDefinition, FieldTier
+from core.scalar_types import SCALAR_TYPES
 
 
 def test_field_definition_scalar_type():

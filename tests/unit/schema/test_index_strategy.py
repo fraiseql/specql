@@ -1,6 +1,6 @@
 """Tests for index generation strategy with partial index support."""
 
-from src.generators.schema.index_strategy import (
+from generators.schema.index_strategy import (
     generate_btree_index,
     generate_gin_index,
     generate_gist_index,

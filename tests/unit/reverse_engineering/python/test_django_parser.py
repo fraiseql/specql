@@ -4,7 +4,7 @@ Unit tests for Python action parser - Django framework
 
 import pytest
 
-from src.reverse_engineering.python_action_parser import PythonActionParser
+from reverse_engineering.python_action_parser import PythonActionParser
 
 
 class TestDjangoParser:

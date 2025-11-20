@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from src.core.specql_parser import SpecQLParser
+from core.specql_parser import SpecQLParser
 
 
 @pytest.fixture
@@ -148,8 +148,8 @@ class TestDeepNestingSecurity:
 
     def test_deeply_nested_parentheses(self):
         """Test deeply nested parentheses in expressions"""
-        from src.core.ast_models import EntityDefinition, FieldDefinition
-        from src.generators.actions.expression_compiler import ExpressionCompiler
+        from core.ast_models import EntityDefinition, FieldDefinition
+        from generators.actions.expression_compiler import ExpressionCompiler
 
         compiler = ExpressionCompiler()
         entity = EntityDefinition(
@@ -171,8 +171,8 @@ class TestDeepNestingSecurity:
 
     def test_deeply_nested_functions(self):
         """Test deeply nested function calls"""
-        from src.core.ast_models import EntityDefinition, FieldDefinition
-        from src.generators.actions.expression_compiler import ExpressionCompiler
+        from core.ast_models import EntityDefinition, FieldDefinition
+        from generators.actions.expression_compiler import ExpressionCompiler
 
         compiler = ExpressionCompiler()
         entity = EntityDefinition(
@@ -228,8 +228,8 @@ class TestDeepNestingSecurity:
 
     def test_deeply_nested_subqueries(self):
         """Test deeply nested subqueries"""
-        from src.core.ast_models import EntityDefinition, FieldDefinition
-        from src.generators.actions.expression_compiler import ExpressionCompiler
+        from core.ast_models import EntityDefinition, FieldDefinition
+        from generators.actions.expression_compiler import ExpressionCompiler
 
         compiler = ExpressionCompiler()
         entity = EntityDefinition(

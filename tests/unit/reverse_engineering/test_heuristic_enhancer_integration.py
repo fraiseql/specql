@@ -2,9 +2,9 @@
 Test HeuristicEnhancer integration with UniversalPatternDetector
 """
 
-from src.core.ast_models import ActionStep
-from src.reverse_engineering.ast_to_specql_mapper import ConversionResult
-from src.reverse_engineering.heuristic_enhancer import HeuristicEnhancer
+from core.ast_models import ActionStep
+from reverse_engineering.ast_to_specql_mapper import ConversionResult
+from reverse_engineering.heuristic_enhancer import HeuristicEnhancer
 
 
 class TestHeuristicEnhancerIntegration:

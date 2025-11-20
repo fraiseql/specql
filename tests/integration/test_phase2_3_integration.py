@@ -7,7 +7,7 @@ Tests full pipeline:
 - Verify metadata for Teams B & D
 """
 
-from src.core.specql_parser import SpecQLParser
+from core.specql_parser import SpecQLParser
 
 
 def test_complete_entity_with_all_field_types():
@@ -204,7 +204,7 @@ def test_polymorphic_references():
 
 def test_composite_type_examples():
     """Test that composite types provide useful examples"""
-    from src.core.scalar_types import get_composite_type
+    from core.scalar_types import get_composite_type
 
     # Test SimpleAddress
     address_def = get_composite_type("SimpleAddress")

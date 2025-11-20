@@ -5,7 +5,7 @@ Integration tests for Java with universal mapper
 import pytest
 import yaml
 
-from src.reverse_engineering.universal_action_mapper import UniversalActionMapper
+from reverse_engineering.universal_action_mapper import UniversalActionMapper
 
 
 class TestUniversalMapperJava:

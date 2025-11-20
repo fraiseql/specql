@@ -2,7 +2,7 @@
 Tests for SQL Utils
 """
 
-from src.generators.sql_utils import SQLUtils
+from generators.sql_utils import SQLUtils
 
 
 class TestSQLUtils:
