@@ -13,14 +13,12 @@
 - **guides/** - User guides and tutorials
 - **reference/** - API and type reference documentation
 - **development/** - Development, testing, and contribution guides
-- **implementation-plans/** - Active implementation plans
 - **archive/** - Completed planning documents and historical records
 
 ## For Developers
 
 - [Testing Guide](development/testing.md)
 - [Contributing Guidelines](development/contributing.md)
-- [Implementation Plans](implementation-plans/)
 
 ## Archive
 

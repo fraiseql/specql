@@ -741,7 +741,6 @@ class User:
 - **IANA Timezone Database**: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 - **Full Timezone List**: https://en.wikipedia.org/wiki/List_of_tz_database_time_zones
 - **FraiseQL Documentation**: https://github.com/fraiseql/fraiseql
-- **Implementation Plan**: `/home/lionel/code/fraiseql/docs/implementation-plans/I18N_SCALARS_IMPLEMENTATION_PLAN.md`
 
 ---
 

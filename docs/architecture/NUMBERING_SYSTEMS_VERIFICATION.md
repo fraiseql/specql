@@ -324,7 +324,6 @@ The architecture is **intentionally flexible** to support projects of all sizes,
 ### Documentation
 - [ONE_FILE_PER_MUTATION_PATTERN.md](./ONE_FILE_PER_MUTATION_PATTERN.md) - Decimal system
 - [src/numbering/README.md](../../src/numbering/README.md) - Hexadecimal system
-- [REGISTRY_CLI_CONFITURE_INTEGRATION.md](../implementation-plans/REGISTRY_CLI_CONFITURE_INTEGRATION.md) - Integration plan
 
 ### Implementation
 - `src/cli/orchestrator.py` - Both systems

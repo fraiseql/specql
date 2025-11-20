@@ -1,6 +1,6 @@
 # SpecQL: From YAML to Production Backend in Minutes
 
-[![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)](https://github.com/fraiseql/specql/releases)
+[![Version](https://img.shields.io/badge/version-0.8.0-blue.svg)](https://github.com/fraiseql/specql/releases)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 
 > **20 lines of YAML → 2000+ lines of production PostgreSQL + GraphQL code**

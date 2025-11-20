@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0] - 2025-11-20
+
+### Fixed
+- **Critical Issue #1**: Package installation completely broken - FIXED
+  - Resolved import path issues (`from src.cli.*` → `from cli.*`)
+  - Updated pyproject.toml package structure
+  - CLI commands now work after `pip install specql`
+
+- **Critical Issue #2**: Missing fields in reverse engineering - FIXED
+  - All Django field types now extracted (IntegerField, PositiveIntegerField, etc.)
+  - Reserved framework fields properly filtered out (created_at, updated_at, etc.)
+  - Comprehensive field type mapping for Django models
+
+- **Critical Issue #3**: Multiple models not detected - FIXED
+  - AST traversal now processes ALL classes in a file
+  - Multi-model Django files generate separate YAML files
+  - Improved class filtering logic
+
+- **Critical Issue #4**: Pattern detection completely fails - FIXED
+  - Audit trail pattern detection working (created_at/updated_at)
+  - State machine pattern detection functional
+  - Soft delete pattern recognition implemented
+
+- **Critical Issue #5**: Validation errors on generated YAML - FIXED
+  - Generated SpecQL YAML now passes validation
+  - Action step formats corrected
+  - Schema compatibility ensured
+
+- **Critical Issue #6**: Code generation completely broken - FIXED
+  - Template packaging resolved
+  - SQL generation works for valid entities
+  - Foundation and entity schemas generate correctly
+
+- **Critical Issue #7**: Pattern import error - FIXED
+  - Related to package structure fixes
+  - All imports work correctly after installation
+
+### Added
+- **Reserved Field Filtering**: Reverse engineering automatically excludes framework-reserved fields
+- **Rich Metadata**: Generated YAML includes source language, file path, generation timestamp, and pattern detection results
+- **Enhanced CLI Output**: Progress indicators and clear success/error messaging
+
+### Changed
+- **Version**: Bumped to 0.8.0 for production release
+- **Package Structure**: Flattened import paths for better packaging
+
 ## [0.6.0] - 2025-11-17
 
 ### Added

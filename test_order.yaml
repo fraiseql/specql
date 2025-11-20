@@ -1,0 +1,4 @@
+entity: Order
+schema: sales
+fields:
+  status: text
