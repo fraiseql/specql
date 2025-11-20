@@ -1,0 +1,39 @@
+entity: Task
+schema: projects
+description: Task tracking entity
+
+fields:
+  title:
+    type: text
+    required: true
+
+  description:
+    type: text
+    required: false
+
+  status:
+    type: enum(todo, in_progress, done)
+    default: todo
+
+  priority:
+    type: integer
+    required: false
+
+  due_date:
+    type: date
+    required: false
+
+  assignee:
+    type: ref(User)
+    required: false
+
+actions:
+  - name: create_task
+    description: Create a new task
+    steps:
+      - insert: Task
+
+  - name: assign_task
+    description: Assign task to a user
+    steps:
+      - update: Task SET assignee = input.assignee

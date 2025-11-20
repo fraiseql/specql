@@ -4,6 +4,8 @@ End-to-end tests for Python reverse engineering
 These tests verify the complete pipeline from Python to SpecQL YAML.
 """
 
+import pytest
+
 from reverse_engineering.python_ast_parser import PythonASTParser
 from reverse_engineering.universal_ast_mapper import UniversalASTMapper
 
@@ -41,9 +43,17 @@ class TestPythonEndToEnd:
         assert specql_dict["entity"] == "Contact"
 
         # Check fields
-        fields = specql_dict.get("fields", [])
-        field_names = [f["name"] for f in fields] if isinstance(fields, list) else []
-        assert "email" in field_names
+        fields = specql_dict.get("fields", {})
+        # Fields can be either a list of dicts or a dict mapping names to types
+        if isinstance(fields, list):
+            field_names = [f["name"] for f in fields]
+        elif isinstance(fields, dict):
+            field_names = list(fields.keys())
+        else:
+            field_names = []
+
+        assert "email" in field_names, f"Expected 'email' in fields, got: {field_names}"
+        assert "company_id" in field_names
         # NOTE: display_name (@property) conversion to computed field not yet implemented
 
     def test_async_method_to_yaml(self):

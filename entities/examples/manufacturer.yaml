@@ -1,0 +1,20 @@
+entity: manufacturer
+schema: catalog
+description: Product manufacturer
+
+fields:
+  name:
+    type: text
+    required: true
+
+  country:
+    type: text
+    required: false
+
+  certified:
+    type: boolean
+    default: false
+
+  website:
+    type: text
+    required: false

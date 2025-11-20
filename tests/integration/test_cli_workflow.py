@@ -196,11 +196,11 @@ class TestEndToEndGeneration:
         from unittest.mock import Mock, patch
 
         with (
-            patch("src.cli.generate.SpecQLParser") as mock_parser_cls,
-            patch("src.generators.frontend.MutationImpactsGenerator"),
-            patch("src.generators.frontend.TypeScriptTypesGenerator"),
-            patch("src.generators.frontend.ApolloHooksGenerator"),
-            patch("src.generators.frontend.MutationDocsGenerator"),
+            patch("cli.generate.SpecQLParser") as mock_parser_cls,
+            patch("generators.frontend.MutationImpactsGenerator"),
+            patch("generators.frontend.TypeScriptTypesGenerator"),
+            patch("generators.frontend.ApolloHooksGenerator"),
+            patch("generators.frontend.MutationDocsGenerator"),
         ):
             # Setup mock parser
             mock_parser = Mock()

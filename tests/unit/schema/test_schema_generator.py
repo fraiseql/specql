@@ -221,7 +221,7 @@ def test_generate_table_with_trinity_helpers():
     assert "auth.user_identifier(p_pk INTEGER)" in ddl
 
 
-@patch("src.generators.schema.schema_generator.should_split_entity")
+@patch("generators.schema.schema_generator.should_split_entity")
 def test_generate_table_with_node_info_split(mock_should_split):
     """Test that schema generator uses node+info split when should_split_entity returns True"""
     # Mock should_split_entity to return True
