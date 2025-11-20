@@ -3,7 +3,9 @@ App Wrapper Generator (Team C)
 Generates app.* API wrapper functions
 """
 
-from jinja2 import Environment, FileSystemLoader
+import importlib.resources as resources
+
+from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 from core.ast_models import Action, Entity
 from generators.fraiseql.mutation_annotator import MutationAnnotator
@@ -15,6 +17,23 @@ class AppWrapperGenerator:
     def __init__(self, templates_dir: str = "templates/sql"):
         self.templates_dir = templates_dir
         self.env = Environment(loader=FileSystemLoader(templates_dir))
+
+    def _load_template(self, template_name: str):
+        """Load template with fallback to package resources"""
+        try:
+            return self.env.get_template(template_name)
+        except TemplateNotFound:
+            # Try to load from package resources
+            try:
+                template_files = resources.files("templates.sql")
+                template_path = template_files / template_name
+                from jinja2 import Template
+
+                return Template(template_path.read_text())
+            except Exception:
+                raise TemplateNotFound(
+                    f"Template '{template_name}' not found in filesystem or package resources"
+                )
 
     def generate_app_wrapper(self, entity: Entity, action: Action) -> str:
         """
@@ -46,7 +65,7 @@ class AppWrapperGenerator:
             "needs_composite_type": needs_composite_type,
         }
 
-        template = self.env.get_template("app_wrapper.sql.j2")
+        template = self._load_template("app_wrapper.sql.j2")
         function_sql = template.render(**context)
 
         # Add FraiseQL annotation (Team D) - IN SAME FILE as function

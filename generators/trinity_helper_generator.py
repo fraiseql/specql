@@ -3,7 +3,9 @@ Trinity Helper Function Generator (Team B)
 Generates entity_pk() and entity_id() helper functions for UUID ↔ INTEGER resolution
 """
 
-from jinja2 import Environment, FileSystemLoader
+import importlib.resources as resources
+
+from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 from core.ast_models import Entity
 from generators.schema.schema_registry import SchemaRegistry
@@ -20,6 +22,23 @@ class TrinityHelperGenerator:
         self.env = Environment(
             loader=FileSystemLoader(templates_dir), trim_blocks=False, lstrip_blocks=False
         )
+
+    def _load_template(self, template_name: str):
+        """Load template with fallback to package resources"""
+        try:
+            return self.env.get_template(template_name)
+        except TemplateNotFound:
+            # Try to load from package resources
+            try:
+                template_files = resources.files("templates.sql")
+                template_path = template_files / template_name
+                from jinja2 import Template
+
+                return Template(template_path.read_text())
+            except Exception:
+                raise TemplateNotFound(
+                    f"Template '{template_name}' not found in filesystem or package resources"
+                )
 
     def generate_entity_pk_function(self, entity: Entity) -> str:
         """
@@ -40,7 +59,7 @@ class TrinityHelperGenerator:
             "is_tenant_specific": is_tenant_specific,
         }
 
-        template = self.env.get_template("trinity_helpers.sql.j2")
+        template = self._load_template("trinity_helpers.sql.j2")
         return template.render(function_type="pk", **context)
 
     def generate_entity_id_function(self, entity: Entity) -> str:
@@ -58,7 +77,7 @@ class TrinityHelperGenerator:
             }
         }
 
-        template = self.env.get_template("trinity_helpers.sql.j2")
+        template = self._load_template("trinity_helpers.sql.j2")
         return template.render(function_type="id", **context)
 
     def _is_tenant_specific_schema(self, schema: str) -> bool:

@@ -2,9 +2,10 @@
 Action Compiler - Transform SpecQL actions to PL/pgSQL functions
 """
 
+import importlib.resources as resources
 from enum import Enum
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 from core.ast_models import Action, Entity
 
@@ -90,14 +91,31 @@ class ActionCompiler:
             loader=FileSystemLoader(templates_dir), trim_blocks=True, lstrip_blocks=True
         )
 
+    def _load_template(self, template_name: str):
+        """Load template with fallback to package resources"""
+        try:
+            return self.env.get_template(template_name)
+        except TemplateNotFound:
+            # Try to load from package resources
+            try:
+                template_files = resources.files("templates.sql")
+                template_path = template_files / template_name
+                from jinja2 import Template
+
+                return Template(template_path.read_text())
+            except Exception:
+                raise TemplateNotFound(
+                    f"Template '{template_name}' not found in filesystem or package resources"
+                )
+
     def generate_base_types(self) -> str:
         """Generate mutation_result composite type using Jinja2 template"""
-        template = self.env.get_template("mutation_result_type.sql.j2")
+        template = self._load_template("mutation_result_type.sql.j2")
         return template.render()
 
     def generate_metadata_types(self) -> str:
         """Generate FraiseQL impact metadata composite types using Jinja2 template"""
-        template = self.env.get_template("impact_metadata_types.sql.jinja2")
+        template = self._load_template("impact_metadata_types.sql.jinja2")
         return template.render()
 
     def compile_action(self, action: Action, entity: Entity) -> str:

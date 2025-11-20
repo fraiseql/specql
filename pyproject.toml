@@ -120,8 +120,8 @@ target-version = ['py311']
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["cli*", "infrastructure*", "core*", "generators*", "registry*", "reverse_engineering*", "utils*", "testing*", "numbering*", "patterns*", "pattern_library*"]
-exclude = ["tests*", "docs*", "scripts*", "archive*", "database*", "entities*", "examples*", "migrations*", "pgvector*", "rust*", "site*", "templates*", "stdlib*"]
+include = ["cli*", "infrastructure*", "core*", "generators*", "registry*", "reverse_engineering*", "utils*", "testing*", "numbering*", "patterns*", "pattern_library*", "templates*"]
+exclude = ["tests*", "docs*", "scripts*", "archive*", "database*", "entities*", "examples*", "migrations*", "pgvector*", "rust*", "site*", "stdlib*"]
 
 # No workspace members - all dependencies from PyPI
 

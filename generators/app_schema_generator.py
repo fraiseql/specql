@@ -3,7 +3,8 @@ App Schema Foundation Generator (Team B)
 Generates the app.* schema foundation including shared utility functions
 """
 
-from jinja2 import Environment, FileSystemLoader
+import importlib.resources as resources
+from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 
 class AppSchemaGenerator:
@@ -13,6 +14,23 @@ class AppSchemaGenerator:
         self.templates_dir = templates_dir
         self.env = Environment(loader=FileSystemLoader(templates_dir))
         self._generated = False  # Ensure foundation is generated only once
+
+    def _load_template(self, template_name: str):
+        """Load template with fallback to package resources"""
+        try:
+            return self.env.get_template(template_name)
+        except TemplateNotFound:
+            # Try to load from package resources
+            try:
+                template_files = resources.files("templates.sql")
+                template_path = template_files / template_name
+                from jinja2 import Template
+
+                return Template(template_path.read_text())
+            except Exception:
+                raise TemplateNotFound(
+                    f"Template '{template_name}' not found in filesystem or package resources"
+                )
 
     def generate_app_foundation(self) -> str:
         """
@@ -51,7 +69,7 @@ class AppSchemaGenerator:
 
     def _generate_mutation_result_type(self) -> str:
         """Generate the standard mutation_result composite type"""
-        template = self.env.get_template("mutation_result_type.sql.j2")
+        template = self._load_template("mutation_result_type.sql.j2")
         return template.render()
 
     def _generate_audit_log_table(self) -> str:

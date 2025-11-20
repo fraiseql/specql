@@ -3,9 +3,10 @@ PostgreSQL Table Generator (Team B)
 Generates DDL for Trinity pattern tables from Entity AST
 """
 
+import importlib.resources as resources
 from typing import Any
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 from core.ast_models import Entity
 from generators.comment_generator import CommentGenerator
@@ -42,6 +43,23 @@ class TableGenerator:
         self.comment_generator = CommentGenerator()
         self.index_generator = IndexGenerator()
 
+    def _load_template(self, template_name: str):
+        """Load template with fallback to package resources"""
+        try:
+            return self.env.get_template(template_name)
+        except TemplateNotFound:
+            # Try to load from package resources
+            try:
+                template_files = resources.files("templates.sql")
+                template_path = template_files / template_name
+                from jinja2 import Template
+
+                return Template(template_path.read_text())
+            except Exception:
+                raise TemplateNotFound(
+                    f"Template '{template_name}' not found in filesystem or package resources"
+                )
+
     def generate_table_ddl(self, entity) -> str:
         """
         Generate complete CREATE TABLE DDL for entity
@@ -59,7 +77,7 @@ class TableGenerator:
         context = self._prepare_template_context(entity)
 
         # Load and render template
-        template = self.env.get_template("table.sql.j2")
+        template = self._load_template("table.sql.j2")
         table_sql = template.render(**context)
 
         # Combine table SQL with pattern-generated SQL

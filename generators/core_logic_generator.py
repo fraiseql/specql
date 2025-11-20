@@ -3,9 +3,10 @@ Core Logic Generator (Team C)
 Generates core.* business logic functions
 """
 
+import importlib.resources as resources
 from typing import Any
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 from core.ast_models import Action, Entity, FieldTier
 from generators.schema.schema_registry import SchemaRegistry
@@ -22,6 +23,23 @@ class CoreLogicGenerator:
         self.schema_registry = schema_registry
         self.templates_dir = templates_dir
         self.env = Environment(loader=FileSystemLoader(templates_dir))
+
+    def _load_template(self, template_name: str):
+        """Load template with fallback to package resources"""
+        try:
+            return self._load_template(template_name)
+        except TemplateNotFound:
+            # Try to load from package resources
+            try:
+                template_files = resources.files("templates.sql")
+                template_path = template_files / template_name
+                from jinja2 import Template
+
+                return Template(template_path.read_text())
+            except Exception:
+                raise TemplateNotFound(
+                    f"Template '{template_name}' not found in filesystem or package resources"
+                )
 
     def generate_core_create_function(self, entity: Entity) -> str:
         """
@@ -49,7 +67,7 @@ class CoreLogicGenerator:
             "fk_resolutions": fk_resolutions,
         }
 
-        template = self.env.get_template("core_create_function.sql.j2")
+        template = self._load_template("core_create_function.sql.j2")
         return template.render(**context)
 
     def generate_core_update_function(self, entity: Entity) -> str:
@@ -77,7 +95,7 @@ class CoreLogicGenerator:
             "fk_resolutions": fk_resolutions,
         }
 
-        template = self.env.get_template("core_update_function.sql.j2")
+        template = self._load_template("core_update_function.sql.j2")
         return template.render(**context)
 
     def generate_core_delete_function(self, entity: Entity) -> str:
@@ -95,7 +113,7 @@ class CoreLogicGenerator:
             },
         }
 
-        template = self.env.get_template("core_delete_function.sql.j2")
+        template = self._load_template("core_delete_function.sql.j2")
         return template.render(**context)
 
     def _prepare_insert_fields(self, entity: Entity) -> dict[str, list[str]]:
@@ -248,7 +266,7 @@ class CoreLogicGenerator:
             "camel_name": self._to_camel_case(action.name),
         }
 
-        template = self.env.get_template("core_custom_action.sql.j2")
+        template = self._load_template("core_custom_action.sql.j2")
         return template.render(**context)
 
     def generate_custom_action(self, entity: Entity, action: Action) -> str:
@@ -275,7 +293,7 @@ class CoreLogicGenerator:
             "camel_name": self._to_camel_case(action.name),
         }
 
-        template = self.env.get_template("core_custom_action.sql.j2")
+        template = self._load_template("core_custom_action.sql.j2")
         return template.render(**context)
 
     def _compile_action_steps(self, action: Action, entity: Entity) -> list[str]:

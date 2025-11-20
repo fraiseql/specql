@@ -3,9 +3,10 @@ Composite Type Generator (Team B)
 Generates PostgreSQL composite types for action inputs
 """
 
+import importlib.resources as resources
 from typing import Any
 
-from jinja2 import Environment, FileSystemLoader
+from jinja2 import Environment, FileSystemLoader, TemplateNotFound
 
 from core.ast_models import Action, Entity, FieldDefinition
 
@@ -59,7 +60,7 @@ class CompositeTypeGenerator:
             "field_comments": field_comments,
         }
 
-        template = self.env.get_template("composite_type.sql.j2")
+        template = self._load_template("composite_type.sql.j2")
         return template.render(**context)
 
     def _determine_action_fields(
@@ -246,6 +247,23 @@ class CompositeTypeGenerator:
         self.templates_dir = templates_dir
         self.env = Environment(loader=FileSystemLoader(templates_dir))
         self._mutation_result_generated = False
+
+    def _load_template(self, template_name: str):
+        """Load template with fallback to package resources"""
+        try:
+            return self.env.get_template(template_name)
+        except TemplateNotFound:
+            # Try to load from package resources
+            try:
+                template_files = resources.files("templates.sql")
+                template_path = template_files / template_name
+                from jinja2 import Template
+
+                return Template(template_path.read_text())
+            except Exception:
+                raise TemplateNotFound(
+                    f"Template '{template_name}' not found in filesystem or package resources"
+                )
 
     def generate_mutation_result_type(self) -> str:
         """Generate standard mutation_result composite type (once)"""
