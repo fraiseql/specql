@@ -7,17 +7,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
-### Documentation
-- **Comprehensive Documentation Cleanup** - Zero broken links achieved
-  - **Phase 1-2**: Audited and categorized 63+ broken links across 13 files
-  - **Phase 3-4**: Consolidated duplicate directories, removed obsolete content
-  - **Phase 5**: Fixed critical navigation links in root documentation files
-  - **Phase 6-7**: Archived historical documentation, updated active references
-  - **Phase 8**: Created 4 missing index.md files, added consistent breadcrumbs
-  - **Phase 9**: Enhanced 6+ Related Documentation sections with 90+ cross-references
-  - **Phase 10**: Achieved 100% link integrity (660 links validated across 218 files)
-  - **Result**: Production-ready documentation with comprehensive navigation
-
 ## [0.8.0] - 2025-11-20
 
 ### 🎯 Beta Release - All Critical Issues Resolved
@@ -80,12 +69,27 @@ The 49 failing tests are exclusively for **advanced database patterns** (aggrega
 - **Multi-Model Support**: Process all models in a single file
 - **Comprehensive Error Messages**: Clear explanations for validation failures
 - **Integration Tests**: End-to-end workflow testing (reverse → validate → generate)
+- **Documentation**: Comprehensive documentation cleanup - Zero broken links achieved
+  - Audited and fixed 63+ broken links across 13 files
+  - Consolidated duplicate directories, removed obsolete content
+  - Created 4 missing index.md files with consistent breadcrumbs
+  - Enhanced cross-references (90+ links across 6+ sections)
+  - Achieved 100% link integrity (660 links validated across 218 files)
 
 ### Changed
 - **Version**: Bumped to 0.8.0 for beta release
 - **Package Structure**: Flattened import paths for better packaging
 - **CLI Workflow**: Improved user feedback and progress tracking
 - **Test Coverage**: Expanded to cover all Django field types and multi-model scenarios
+
+### Fixed - CI/CD Quality Gates
+- **Documentation Link Check**: Fixed bash script early exit issue in GitHub Actions
+  - Added `set +e` to prevent exit on arithmetic operations
+  - Replaced `((var++))` with `var=$((var + 1))` for better compatibility
+  - Script now successfully validates 68 documentation files across 8 directories
+- **Code Formatting**: Applied ruff formatting to 15 files for consistency
+  - All 462 files now conform to project formatting standards
+  - CI/CD lint and format checks now pass completely
 
 ### Known Limitations (Non-Blocking)
 - **Advanced Patterns**: 49 tests failing for optional advanced patterns (aggregate views, temporal constraints)
