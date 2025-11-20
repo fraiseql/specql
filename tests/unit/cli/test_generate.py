@@ -18,8 +18,9 @@ class TestConvertEntityDefinitionToEntity:
         assert entity.name == "Contact"
         assert entity.schema == "crm"
         assert entity.description == "Contact entity for CRM"
-        assert len(entity.fields) == 4
-        assert len(entity.actions) == 2
+        # Updated to match simple fixture (7 fields, 0 actions)
+        assert len(entity.fields) == 7
+        assert len(entity.actions) == 0
 
     def test_convert_entity_with_actions(self, specql_parser):
         """Test conversion with action definitions."""

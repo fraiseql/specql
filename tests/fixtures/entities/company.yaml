@@ -1,0 +1,7 @@
+entity: Company
+schema: crm
+fields:
+  name: text
+  website: text?
+  industry: enum(tech, finance, healthcare, retail)
+  employees: integer?

@@ -1,0 +1,11 @@
+entity: Contact
+schema: crm
+description: "Contact entity for CRM"
+fields:
+  email: text
+  first_name: text
+  last_name: text
+  phone: text?
+  company: ref(Company)?
+  status: enum(lead, qualified, customer)
+  active: boolean

@@ -32,6 +32,9 @@ CREATE TABLE crm.tb_contact (
     first_name TEXT,
     last_name TEXT,
     phone TEXT,
+    company TEXT,
+    status TEXT,
+    active BOOLEAN,
     -- ========================================================================
     -- Foreign Keys (Trinity Pattern: INTEGER references)
     -- ========================================================================
@@ -49,7 +52,8 @@ CREATE TABLE crm.tb_contact (
     -- ========================================================================
     -- Constraints
     -- ========================================================================
-    CONSTRAINT tb_contact_id_key UNIQUE (id));
+    CONSTRAINT tb_contact_id_key UNIQUE (id)
+    ,CONSTRAINT chk_tb_contact_status_enum CHECK (status IN ('lead', 'qualified', 'customer')));
 
 -- ============================================================================
 -- Foreign Key Constraints (defined after table creation)
