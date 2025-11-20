@@ -2,6 +2,7 @@ import ast
 from pathlib import Path
 from typing import Any
 
+from core.reserved_fields import is_reserved_field_name
 from reverse_engineering.protocols import (
     ParsedEntity,
     ParsedField,
@@ -315,6 +316,10 @@ class PythonASTParser:
         if field_name.startswith("_"):
             return None
 
+        # Skip reserved field names
+        if is_reserved_field_name(field_name):
+            return None
+
         # Parse type annotation
         original_type = ast.unparse(node.annotation)
         field_type, required = self._normalize_type(original_type)
@@ -342,6 +347,10 @@ class PythonASTParser:
 
         # Skip private fields
         if field_name.startswith("_"):
+            return None
+
+        # Skip reserved field names
+        if is_reserved_field_name(field_name):
             return None
 
         # Detect Django/SQLAlchemy field types

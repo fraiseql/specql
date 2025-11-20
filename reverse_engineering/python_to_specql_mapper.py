@@ -62,7 +62,8 @@ class PythonToSpecQLMapper:
             return self._map_assign_statement(stmt, entity)
 
         elif stmt.statement_type == "return":
-            return self._map_return_statement(stmt)
+            # Skip return statements - SpecQL actions don't return values
+            return []
 
         elif stmt.statement_type == "call":
             return self._map_call_statement(stmt)
@@ -144,14 +145,9 @@ class PythonToSpecQLMapper:
                     )
                 ]
 
-        # Variable assignment (not entity field)
-        return [
-            ActionStep(
-                type="assign",
-                function_name=target,
-                arguments={"expression": value},
-            )
-        ]
+        # Variable assignment (not entity field) - skip in SpecQL context
+        # SpecQL actions should only modify entity fields, not local variables
+        return []
 
     def _map_return_statement(self, stmt: PythonStatement) -> list[ActionStep]:
         """Map return statement"""
@@ -173,6 +169,10 @@ class PythonToSpecQLMapper:
         """
         function = stmt.metadata["function"]
         args = stmt.metadata["args"]
+
+        # Skip self.save() calls - SpecQL handles persistence automatically
+        if function == "self.save" and not args:
+            return []
 
         return [
             ActionStep(

@@ -1,4 +1,6 @@
 import yaml
+from datetime import datetime
+import importlib.metadata
 
 from core.ast_models import Action
 from reverse_engineering.protocols import ParsedEntity, ParsedMethod, SourceLanguage
@@ -37,7 +39,12 @@ class UniversalASTMapper:
             ],
             "_metadata": {
                 "source_language": entity.source_language.value,
-                "patterns": self._detect_patterns(entity),
+                "source_file": entity.metadata.get("file_path"),
+                "generated_at": self._get_current_timestamp(),
+                "specql_version": self._get_specql_version(),
+                "patterns_detected": self._detect_patterns(entity),
+                "fields_extracted": len(entity.fields),
+                "actions_extracted": len(entity.methods),
             },
         }
 
@@ -164,3 +171,14 @@ class UniversalASTMapper:
             step_value = str(getattr(step, "expression", ""))
 
         return {step.type: step_value}
+
+    def _get_current_timestamp(self) -> str:
+        """Get current timestamp in ISO format"""
+        return datetime.now().isoformat()
+
+    def _get_specql_version(self) -> str:
+        """Get SpecQL version from package metadata"""
+        try:
+            return importlib.metadata.version("specql")
+        except importlib.metadata.PackageNotFoundError:
+            return "unknown"

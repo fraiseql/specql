@@ -133,6 +133,30 @@ def entities(
         configure_logging(level=logging.INFO)
 
     logger = get_team_logger("Team E", __name__)
+
+    # Show progress if not quiet
+    if not quiet:
+        from rich.console import Console
+        from rich.progress import Progress, SpinnerColumn, TextColumn, BarColumn, TimeElapsedColumn
+
+        console = Console()
+        console.print("🔧 [bold blue]SpecQL Code Generation[/bold blue]")
+        console.print(f"📄 Processing {len(entity_files)} entity file(s)")
+        console.print()
+
+        progress = Progress(
+            SpinnerColumn(),
+            TextColumn("[progress.description]{task.description}"),
+            BarColumn(),
+            TextColumn("[progress.percentage]{task.percentage:>3.0f}%"),
+            TimeElapsedColumn(),
+            console=console,
+            disable=quiet,
+        )
+    else:
+        console = None
+        progress = None
+
     logger.info(f"Starting generation for {len(entity_files)} entity file(s)")
 
     # Create orchestrator with registry support and performance monitoring
@@ -145,12 +169,37 @@ def entities(
     # Generate migrations
     logger.debug(f"Output directory: {output_dir}")
     logger.debug(f"Foundation only: {foundation_only}, Include TV: {include_tv}")
-    result = orchestrator.generate_from_files(
-        entity_files=list(entity_files),
-        output_dir=output_dir,
-        foundation_only=foundation_only,
-        include_tv=include_tv,
-    )
+
+    if progress:
+        with progress:
+            task = progress.add_task("Generating SQL schema...", total=len(entity_files))
+            result = orchestrator.generate_from_files(
+                entity_files=list(entity_files),
+                output_dir=output_dir,
+                foundation_only=foundation_only,
+                include_tv=include_tv,
+            )
+            progress.update(task, completed=len(entity_files))
+    else:
+        result = orchestrator.generate_from_files(
+            entity_files=list(entity_files),
+            output_dir=output_dir,
+            foundation_only=foundation_only,
+            include_tv=include_tv,
+        )
+
+    # Show results
+    if not quiet:
+        from rich.console import Console
+
+        console = Console()
+        if result.errors:
+            console.print(f"\n❌ {len(result.errors)} error(s):")
+            for error in result.errors:
+                console.print(f"  • {error}")
+        else:
+            console.print(f"\n✅ Generated {len(result.migrations)} migration file(s)")
+            console.print(f"📁 Output: {output_dir}")
 
     logger.info(f"Generated {len(result.migrations)} migration file(s)")
 

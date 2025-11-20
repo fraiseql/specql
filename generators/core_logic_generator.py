@@ -4,6 +4,7 @@ Generates core.* business logic functions
 """
 
 import importlib.resources as resources
+from pathlib import Path
 from typing import Any
 
 from jinja2 import Environment, FileSystemLoader, TemplateNotFound
@@ -27,11 +28,16 @@ class CoreLogicGenerator:
     def _load_template(self, template_name: str):
         """Load template with fallback to package resources"""
         try:
-            return self._load_template(template_name)
-        except TemplateNotFound:
+            # Try file system first
+            template_path = Path(self.templates_dir) / template_name
+            with open(template_path) as f:
+                from jinja2 import Template
+
+                return Template(f.read())
+        except (FileNotFoundError, OSError):
             # Try to load from package resources
             try:
-                template_files = resources.files("templates.sql")
+                template_files = resources.files("generators") / "templates" / "sql"
                 template_path = template_files / template_name
                 from jinja2 import Template
 

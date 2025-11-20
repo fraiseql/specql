@@ -123,6 +123,13 @@ class SpecQLParser:
                 # Lightweight format: fields at root level
                 fields_data = data.get("fields", {})
 
+            # VALIDATION: Ensure fields is a dict
+            if not isinstance(fields_data, dict):
+                raise SpecQLValidationError(
+                    entity=entity_name,
+                    message=f"'fields' must be a dictionary, got {type(fields_data).__name__}",
+                )
+
             self.logger.debug(f"Parsing {len(fields_data)} fields")
             for field_name, field_spec in fields_data.items():
                 # VALIDATION: Check if field name is reserved
