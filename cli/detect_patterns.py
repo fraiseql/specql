@@ -3,6 +3,7 @@ from pathlib import Path
 import click
 
 from reverse_engineering.universal_pattern_detector import UniversalPatternDetector
+from infrastructure.pattern_detector import PatternDetector
 
 from .language_detector import LanguageDetector
 
@@ -63,14 +64,33 @@ def detect_patterns(input_files, min_confidence, patterns, format, language):
             continue
 
         # Detect patterns
-        if patterns:
-            # Only detect specified patterns
+        if language == "python":
+            # Use Django-specific pattern detector for Python files
+            django_detector = PatternDetector()
+            detected_patterns = django_detector.detect(
+                source_code, min_confidence=0.0
+            )  # Don't filter here
+
+            # Convert to expected format
             detected_results = {}
-            for pattern in patterns:
-                detected_results[pattern] = detector.detect_pattern(source_code, pattern, language)
+            for pattern in detected_patterns:
+                detected_results[pattern.name] = {
+                    "confidence": pattern.confidence,
+                    "evidence": [pattern.explanation] if pattern.explanation else [],
+                    "language": language,
+                }
         else:
-            # Detect all patterns
-            detected_results = detector.detect_all_patterns(source_code, language)
+            # Use universal detector for other languages
+            if patterns:
+                # Only detect specified patterns
+                detected_results = {}
+                for pattern in patterns:
+                    detected_results[pattern] = detector.detect_pattern(
+                        source_code, pattern, language
+                    )
+            else:
+                # Detect all patterns
+                detected_results = detector.detect_all_patterns(source_code, language)
 
         # Filter by confidence
         filtered_patterns = {}
