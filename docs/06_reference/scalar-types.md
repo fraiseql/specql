@@ -54,9 +54,16 @@ fields:
 ```
 
 ### domainName
-**PostgreSQL**: `TEXT CHECK (domain ~ '^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$')`
+**PostgreSQL**: `TEXT` with regex validation
 **GraphQL**: `DomainName`
 **Validation**: RFC compliant domain name
+
+**Generated SQL**:
+```sql
+-- Domain name validation pattern
+CHECK (domain ~ '^(?:&#91;a-zA-Z0-9&#93;(?:&#91;a-zA-Z0-9-&#93;{0,61}&#91;a-zA-Z0-9&#93;)?\.)+&#91;a-zA-Z&#93;{2,}$')
+```
+
 **Examples**: `example.com`, `sub.domain.co.uk`
 
 ```yaml
@@ -584,7 +591,7 @@ CHECK (phone ~ '^\+[1-9]\d{1,14}$')
 CHECK (url ~ '^https?://[^\s/$.?#].[^\s]*$')
 
 -- Domain
-CHECK (domain ~ `^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
+CHECK (domain ~ '^(?:&#91;a-zA-Z0-9&#93;(?:&#91;a-zA-Z0-9-&#93;{0,61}&#91;a-zA-Z0-9&#93;)?\.)+&#91;a-zA-Z&#93;{2,}$')
 
 -- Slug
 CHECK (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')
