@@ -358,7 +358,7 @@ confiture migrate up
 
 1. **Read the Getting Started**: `GETTING_STARTED.md`
 2. **Explore Examples**: `examples/` directory
-3. **Check Rich Types**: `docs/guides/rich-types-guide.md`
+3. **Check Rich Types**: `docs/03_core-concepts/rich-types.md`
 4. **Join the Community**: GitHub Issues & Discussions
 
 ## The Vision

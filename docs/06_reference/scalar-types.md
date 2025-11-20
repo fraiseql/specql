@@ -54,7 +54,7 @@ fields:
 ```
 
 ### domainName
-**PostgreSQL**: `TEXT CHECK (domain ~ '^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\\.)+[a-zA-Z]{2,}$')`
+**PostgreSQL**: `TEXT CHECK (domain ~ '^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$')`
 **GraphQL**: `DomainName`
 **Validation**: RFC compliant domain name
 **Examples**: `example.com`, `sub.domain.co.uk`
@@ -584,7 +584,7 @@ CHECK (phone ~ '^\+[1-9]\d{1,14}$')
 CHECK (url ~ '^https?://[^\s/$.?#].[^\s]*$')
 
 -- Domain
-CHECK (domain ~ '^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$')
+CHECK (domain ~ `^(?:[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]{2,}$`)
 
 -- Slug
 CHECK (slug ~ '^[a-z0-9]+(?:-[a-z0-9]+)*$')
@@ -762,8 +762,8 @@ CREATE EXTENSION postgis;
 
 ## Next Steps
 
-- **Read YAML Syntax**: Complete DSL reference in `docs/reference/yaml-syntax.md`
-- **Check Rich Types Guide**: Usage examples in `docs/guides/rich-types-guide.md`
+- **Read YAML Syntax**: Complete DSL reference in `yaml-syntax.md`
+- **Check Rich Types Guide**: Usage examples in `../03_core-concepts/rich-types.md`
 - **Browse Examples**: See types in action in `examples/`
 - **Generate Schema**: Run `specql generate` to see generated constraints
 

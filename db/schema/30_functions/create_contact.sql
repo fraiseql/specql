@@ -104,6 +104,7 @@ BEGIN
         fk_company,
         status,
         phone,
+        notes,
         created_at,
         created_by
     ) VALUES (
@@ -115,6 +116,7 @@ BEGIN
         v_fk_company,
         input_data.status,
         input_data.phone,
+        input_data.notes,
         now(),
         auth_user_id
     )

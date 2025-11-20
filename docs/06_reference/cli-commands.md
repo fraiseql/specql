@@ -516,7 +516,7 @@ specql generate entities/*.yaml --metrics > metrics.json
 **Issue**: `Validation failed: unknown field type`
 ```bash
 # Solution: Check rich type spelling
-# See: docs/reference/rich-types.md
+# See: ../03_core-concepts/rich-types.md
 ```
 
 **Issue**: `Circular reference detected`
