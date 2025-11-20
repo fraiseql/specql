@@ -14,6 +14,35 @@ from pathlib import Path
 import pytest
 
 
+@pytest.fixture(autouse=True)
+def clean_generated_schema():
+    """Clean up generated schema files before each test to ensure isolation"""
+    import shutil
+
+    # Directories to clean
+    dirs_to_clean = [
+        Path("db/schema/10_tables"),
+        Path("db/schema/20_helpers"),
+        Path("db/schema/30_functions"),
+    ]
+
+    # Clean up existing generated files (but keep directories)
+    for dir_path in dirs_to_clean:
+        if dir_path.exists():
+            for file in dir_path.glob("*.sql"):
+                file.unlink()
+
+    # Clean up generated input type files in foundation
+    foundation_dir = Path("db/schema/00_foundation")
+    if foundation_dir.exists():
+        for file in foundation_dir.glob("002_*.sql"):
+            file.unlink()
+
+    yield
+
+    # No cleanup after test - leave files for debugging if needed
+
+
 class TestConfitureIntegration:
     """Test Confiture integration end-to-end"""
 
@@ -24,7 +53,7 @@ class TestConfitureIntegration:
             [
                 "python",
                 "-m",
-                "src.cli.confiture_extensions",
+                "cli.confiture_extensions",
                 "generate",
                 "entities/examples/contact_lightweight.yaml",
             ],
@@ -48,7 +77,7 @@ class TestConfitureIntegration:
             [
                 "python",
                 "-m",
-                "src.cli.confiture_extensions",
+                "cli.confiture_extensions",
                 "generate",
                 "entities/examples/contact_lightweight.yaml",
             ],
@@ -82,7 +111,7 @@ class TestConfitureIntegration:
             [
                 "python",
                 "-m",
-                "src.cli.confiture_extensions",
+                "cli.confiture_extensions",
                 "validate",
                 "entities/examples/contact_lightweight.yaml",
             ],
@@ -100,7 +129,7 @@ class TestConfitureIntegration:
             [
                 "python",
                 "-m",
-                "src.cli.confiture_extensions",
+                "cli.confiture_extensions",
                 "generate",
                 "entities/examples/contact_lightweight.yaml",
             ],
@@ -130,7 +159,7 @@ class TestConfitureIntegration:
             [
                 "python",
                 "-m",
-                "src.cli.confiture_extensions",
+                "cli.confiture_extensions",
                 "generate",
                 "--env",
                 "local",
@@ -159,7 +188,7 @@ class TestConfitureIntegration:
             [
                 "python",
                 "-m",
-                "src.cli.confiture_extensions",
+                "cli.confiture_extensions",
                 "generate",
                 "entities/examples/contact_lightweight.yaml",
             ],
@@ -199,7 +228,7 @@ class TestConfitureIntegration:
             [
                 "python",
                 "-m",
-                "src.cli.confiture_extensions",
+                "cli.confiture_extensions",
                 "generate",
                 "entities/examples/contact_lightweight.yaml",
             ],
@@ -224,7 +253,7 @@ class TestConfitureIntegration:
             [
                 "python",
                 "-m",
-                "src.cli.confiture_extensions",
+                "cli.confiture_extensions",
                 "generate",
                 "entities/examples/contact_lightweight.yaml",
             ],
@@ -260,13 +289,14 @@ class TestConfitureIntegration:
         except psycopg.OperationalError:
             pytest.skip("PostgreSQL test database not available")
 
-        # First, generate schema files
+        # First, generate schema files (Company needed because Contact references it)
         result = subprocess.run(
             [
                 "python",
                 "-m",
-                "src.cli.confiture_extensions",
+                "cli.confiture_extensions",
                 "generate",
+                "entities/examples/company_lightweight.yaml",
                 "entities/examples/contact_lightweight.yaml",
             ],
             capture_output=True,
@@ -355,7 +385,7 @@ class TestConfitureIntegration:
             [
                 "python",
                 "-m",
-                "src.cli.confiture_extensions",
+                "cli.confiture_extensions",
                 "generate",
                 "entities/examples/contact_lightweight.yaml",
             ],
@@ -369,7 +399,7 @@ class TestConfitureIntegration:
             [
                 "python",
                 "-m",
-                "src.cli.diff",
+                "cli.diff",
                 "entities/examples/contact_lightweight.yaml",
                 "--compare",
                 "db/schema/10_tables/contact.sql",

@@ -1,0 +1,8 @@
+entity: Company
+schema: crm
+description: Minimal company entity for testing
+
+fields:
+  name:
+    type: text
+    required: true

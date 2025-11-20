@@ -222,7 +222,23 @@ class CLIOrchestrator:
                     helpers_path = helpers_dir / f"{entity.name.lower()}_helpers.sql"
                     helpers_path.write_text(schema_output.helpers_sql)
 
-                    # 3. Mutations - ONE FILE PER MUTATION (db/schema/30_functions/)
+                    # 3. Input types (db/schema/00_foundation/002_{entity}_input_types.sql)
+                    if schema_output.input_types_sql:
+                        foundation_dir = schema_base / "00_foundation"
+                        foundation_dir.mkdir(parents=True, exist_ok=True)
+                        input_types_path = (
+                            foundation_dir / f"002_{entity.name.lower()}_input_types.sql"
+                        )
+                        input_types_content = f"""-- ============================================================================
+-- INPUT TYPES FOR {entity.name.upper()} ENTITY
+-- Auto-generated input type definitions for {entity.name} mutations
+-- ============================================================================
+
+{schema_output.input_types_sql}
+"""
+                        input_types_path.write_text(input_types_content)
+
+                    # 4. Mutations - ONE FILE PER MUTATION (db/schema/30_functions/)
                     functions_dir = schema_base / "30_functions"
                     functions_dir.mkdir(parents=True, exist_ok=True)
 
@@ -277,7 +293,23 @@ class CLIOrchestrator:
                     helpers_path = helpers_dir / f"{entity.name.lower()}_helpers.sql"
                     helpers_path.write_text(schema_output.helpers_sql)
 
-                    # 3. Mutations - ONE FILE PER MUTATION (db/schema/30_functions/)
+                    # 3. Input types (db/schema/00_foundation/002_{entity}_input_types.sql)
+                    if schema_output.input_types_sql:
+                        foundation_dir = schema_base / "00_foundation"
+                        foundation_dir.mkdir(parents=True, exist_ok=True)
+                        input_types_path = (
+                            foundation_dir / f"002_{entity.name.lower()}_input_types.sql"
+                        )
+                        input_types_content = f"""-- ============================================================================
+-- INPUT TYPES FOR {entity.name.upper()} ENTITY
+-- Auto-generated input type definitions for {entity.name} mutations
+-- ============================================================================
+
+{schema_output.input_types_sql}
+"""
+                        input_types_path.write_text(input_types_content)
+
+                    # 4. Mutations - ONE FILE PER MUTATION (db/schema/30_functions/)
                     functions_dir = schema_base / "30_functions"
                     functions_dir.mkdir(parents=True, exist_ok=True)
 

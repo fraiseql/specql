@@ -45,6 +45,7 @@ class SchemaOutput:
     mutations: list[
         MutationFunctionPair
     ]  # → db/schema/30_functions/{action_name}.sql (ONE FILE EACH!)
+    input_types_sql: str | None = None  # → db/schema/00_foundation/002_{entity}_input_types.sql
 
 
 class SchemaOrchestrator:
@@ -251,6 +252,17 @@ class SchemaOrchestrator:
             else:
                 helpers_sql = self.helper_gen.generate_all_helpers(entity)
 
+            # Generate input types for all actions
+            input_types_parts = []
+            if entity.actions:
+                logger.debug(f"Generating input types for {len(entity.actions)} actions")
+                for action in entity.actions:
+                    input_type = self.type_gen.generate_input_type(entity, action)
+                    if input_type:
+                        input_types_parts.append(f"-- Input Type for {action.name}\n{input_type}")
+
+            input_types_sql = "\n\n".join(input_types_parts) if input_types_parts else None
+
             # Team C + Team D: ONE FILE PER MUTATION (app + core + comments)
             mutations = []
             app_wrapper_gen = AppWrapperGenerator()
@@ -305,7 +317,12 @@ class SchemaOrchestrator:
             logger.info(
                 f"Successfully generated split schema for '{entity.name}' ({len(mutations)} mutations)"
             )
-            return SchemaOutput(table_sql=table_sql, helpers_sql=helpers_sql, mutations=mutations)
+            return SchemaOutput(
+                table_sql=table_sql,
+                helpers_sql=helpers_sql,
+                mutations=mutations,
+                input_types_sql=input_types_sql,
+            )
         finally:
             # Exit performance tracking context
             if ctx:

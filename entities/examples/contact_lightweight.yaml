@@ -1,0 +1,40 @@
+entity: Contact
+schema: crm
+description: Contact management entity
+
+fields:
+  email:
+    type: email
+    required: true
+
+  first_name:
+    type: text
+    required: true
+
+  last_name:
+    type: text
+    required: true
+
+  phone:
+    type: text
+    required: false
+
+  company:
+    type: ref(Company)
+    required: false
+
+  status:
+    type: enum(lead, qualified, customer)
+    default: lead
+
+actions:
+  - name: create_contact
+    description: Create a new contact
+    steps:
+      - insert: Contact
+
+  - name: qualify_lead
+    description: Qualify a lead to become a customer
+    steps:
+      - validate: status = 'lead'
+      - update: Contact SET status = 'qualified'
