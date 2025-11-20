@@ -1,0 +1,297 @@
+entity: Project
+schema: projects
+tier: multi_tenant
+description: Project management with status tracking and deliverables
+
+fields:
+  # Basic Information
+  name:
+    type: text
+    required: true
+    description: Project name
+
+  code:
+    type: text
+    required: true
+    unique: true
+    description: Project code (e.g., PROJ-001)
+
+  description:
+    type: text
+    description: Project description
+
+  # Relationships
+  company:
+    type: ref(Company)
+    required: true
+    description: Client company
+
+  lead_contact:
+    type: ref(Contact)
+    description: Primary contact for project
+
+  # Scheduling
+  start_date:
+    type: date
+    description: Project start date
+
+  end_date:
+    type: date
+    description: Project planned end date
+
+  actual_end_date:
+    type: date
+    description: Actual completion date
+
+  # Status
+  status:
+    type: enum(planning, active, on_hold, completed, cancelled)
+    required: true
+    default: planning
+    description: Project lifecycle status
+
+  priority:
+    type: enum(low, medium, high, critical)
+    default: medium
+    description: Project priority level
+
+  # Budget
+  budget:
+    type: money
+    description: Project budget (composite type)
+
+  actual_cost:
+    type: money
+    description: Actual project cost
+
+  # Progress
+  completion_percentage:
+    type: integer
+    default: 0
+    description: Project completion (0-100)
+
+  # Metadata
+  tags:
+    type: list(text)
+    description: Project categorization tags
+
+  deliverables:
+    type: list(text)
+    description: Project deliverable items
+
+  notes:
+    type: text
+    description: Project notes
+
+# Trinity Pattern Auto-Generated:
+# - pk_project (INTEGER PRIMARY KEY)
+# - id (UUID NOT NULL UNIQUE)
+# - identifier (TEXT NOT NULL UNIQUE)
+# - tenant_id (UUID NOT NULL) [multi_tenant schema]
+# - created_at, updated_at, deleted_at (TIMESTAMPTZ)
+
+actions:
+  - name: start_project
+    description: Move project from planning to active status
+    parameters:
+      project_id:
+        type: uuid
+        required: true
+        description: Project UUID to start
+
+      start_date:
+        type: date
+        required: true
+        description: Actual start date
+
+    impacts:
+      - entity: Project
+        operation: update
+        fields: [status, start_date]
+        description: Updates project status and start date
+
+    steps:
+      - validate: |
+          (SELECT status FROM projects.tb_project WHERE id = p_project_id) = 'planning'
+        error_message: Only projects in planning can be started
+
+      - update: |
+          projects.tb_project
+          SET
+            status = 'active',
+            start_date = p_start_date,
+            completion_percentage = 0
+          WHERE id = p_project_id
+        returning: project
+
+  - name: complete_project
+    description: Mark project as completed
+    parameters:
+      project_id:
+        type: uuid
+        required: true
+        description: Project UUID to complete
+
+      completion_date:
+        type: date
+        required: true
+        description: Actual completion date
+
+    impacts:
+      - entity: Project
+        operation: update
+        fields: [status, actual_end_date, completion_percentage]
+        description: Updates project to completed status
+
+    steps:
+      - validate: |
+          (SELECT status FROM projects.tb_project WHERE id = p_project_id) IN ('active', 'on_hold')
+        error_message: Only active or on-hold projects can be completed
+
+      - update: |
+          projects.tb_project
+          SET
+            status = 'completed',
+            actual_end_date = p_completion_date,
+            completion_percentage = 100
+          WHERE id = p_project_id
+        returning: project
+
+  - name: update_progress
+    description: Update project completion percentage
+    parameters:
+      project_id:
+        type: uuid
+        required: true
+        description: Project UUID
+
+      progress:
+        type: integer
+        required: true
+        description: Completion percentage (0-100)
+
+    impacts:
+      - entity: Project
+        operation: update
+        fields: [completion_percentage]
+        description: Updates project progress
+
+    steps:
+      - validate: |
+          p_progress >= 0 AND p_progress <= 100
+        error_message: Progress must be between 0 and 100
+
+      - validate: |
+          (SELECT status FROM projects.tb_project WHERE id = p_project_id) = 'active'
+        error_message: Can only update progress for active projects
+
+      - update: |
+          projects.tb_project
+          SET completion_percentage = p_progress
+          WHERE id = p_project_id
+        returning: project
+
+  - name: put_on_hold
+    description: Pause an active project
+    parameters:
+      project_id:
+        type: uuid
+        required: true
+        description: Project UUID
+
+      reason:
+        type: text
+        required: true
+        description: Reason for putting on hold
+
+    impacts:
+      - entity: Project
+        operation: update
+        fields: [status, notes]
+        description: Updates project status and adds hold reason
+
+    steps:
+      - validate: |
+          (SELECT status FROM projects.tb_project WHERE id = p_project_id) = 'active'
+        error_message: Only active projects can be put on hold
+
+      - update: |
+          projects.tb_project
+          SET
+            status = 'on_hold',
+            notes = COALESCE(notes, '') || E'\n--- ON HOLD ---\n' || p_reason
+          WHERE id = p_project_id
+        returning: project
+
+  - name: resume_project
+    description: Resume a project that was on hold
+    parameters:
+      project_id:
+        type: uuid
+        required: true
+        description: Project UUID to resume
+
+    impacts:
+      - entity: Project
+        operation: update
+        fields: [status]
+        description: Updates project status back to active
+
+    steps:
+      - validate: |
+          (SELECT status FROM projects.tb_project WHERE id = p_project_id) = 'on_hold'
+        error_message: Only projects on hold can be resumed
+
+      - update: |
+          projects.tb_project
+          SET status = 'active'
+          WHERE id = p_project_id
+        returning: project
+
+  - name: add_deliverable
+    description: Add a deliverable item to the project
+    parameters:
+      project_id:
+        type: uuid
+        required: true
+        description: Project UUID
+
+      deliverable:
+        type: text
+        required: true
+        description: Deliverable description
+
+    impacts:
+      - entity: Project
+        operation: update
+        fields: [deliverables]
+        description: Adds to project deliverables list
+
+    steps:
+      - update: |
+          projects.tb_project
+          SET deliverables = array_append(COALESCE(deliverables, ARRAY[]::text[]), p_deliverable)
+          WHERE id = p_project_id
+        returning: project
+
+# Table Views
+views:
+  - name: active_projects
+    description: All active projects
+    base_table: tb_project
+    where: status = 'active' AND deleted_at IS NULL
+
+  - name: completed_projects
+    description: All completed projects
+    base_table: tb_project
+    where: status = 'completed' AND deleted_at IS NULL
+
+  - name: high_priority_projects
+    description: All high/critical priority projects
+    base_table: tb_project
+    where: priority IN ('high', 'critical') AND status = 'active' AND deleted_at IS NULL
+
+  - name: overdue_projects
+    description: Active projects past their end date
+    base_table: tb_project
+    where: status = 'active' AND end_date < CURRENT_DATE AND deleted_at IS NULL

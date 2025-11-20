@@ -1,0 +1,151 @@
+entity: Contact
+schema: crm
+tier: multi_tenant
+description: Customer contact information with lifecycle management
+
+fields:
+  # Basic Information
+  email:
+    type: text
+    required: true
+    unique: true
+    description: Primary email address
+
+  first_name:
+    type: text
+    required: true
+    description: Contact first name
+
+  last_name:
+    type: text
+    required: true
+    description: Contact last name
+
+  phone:
+    type: text
+    description: Primary phone number
+
+  # Relationships
+  company:
+    type: ref(Company)
+    description: Associated company
+
+  # Status Management
+  status:
+    type: enum(lead, qualified, customer, inactive)
+    required: true
+    default: lead
+    description: Contact lifecycle status
+
+  # Metadata
+  source:
+    type: enum(web, referral, import, api)
+    description: How contact was acquired
+
+  tags:
+    type: list(text)
+    description: Categorization tags
+
+  notes:
+    type: text
+    description: Additional notes
+
+# Trinity Pattern Auto-Generated:
+# - pk_contact (INTEGER PRIMARY KEY)
+# - id (UUID NOT NULL UNIQUE)
+# - identifier (TEXT NOT NULL UNIQUE)
+# - tenant_id (UUID NOT NULL) [multi_tenant schema]
+# - created_at, updated_at, deleted_at (TIMESTAMPTZ)
+
+actions:
+  - name: qualify_lead
+    description: Promote a lead to qualified status
+    parameters:
+      contact_id:
+        type: uuid
+        required: true
+        description: Contact UUID to qualify
+
+    impacts:
+      - entity: Contact
+        operation: update
+        fields: [status]
+        description: Updates contact status to qualified
+
+    steps:
+      - validate: |
+          (SELECT status FROM crm.tb_contact WHERE id = p_contact_id) = 'lead'
+        error_message: Contact must be in 'lead' status to qualify
+
+      - update: |
+          crm.tb_contact
+          SET status = 'qualified'
+          WHERE id = p_contact_id
+        returning: contact
+
+  - name: convert_to_customer
+    description: Convert qualified contact to customer
+    parameters:
+      contact_id:
+        type: uuid
+        required: true
+        description: Contact UUID to convert
+
+    impacts:
+      - entity: Contact
+        operation: update
+        fields: [status]
+        description: Updates contact status to customer
+
+    steps:
+      - validate: |
+          (SELECT status FROM crm.tb_contact WHERE id = p_contact_id) = 'qualified'
+        error_message: Contact must be qualified before converting to customer
+
+      - update: |
+          crm.tb_contact
+          SET status = 'customer'
+          WHERE id = p_contact_id
+        returning: contact
+
+  - name: add_contact_note
+    description: Add a note to a contact
+    parameters:
+      contact_id:
+        type: uuid
+        required: true
+        description: Contact UUID
+      note_text:
+        type: text
+        required: true
+        description: Note content to add
+
+    impacts:
+      - entity: Contact
+        operation: update
+        fields: [notes]
+        description: Appends to contact notes
+
+    steps:
+      - update: |
+          crm.tb_contact
+          SET notes = COALESCE(notes, '') || E'\n---\n' || p_note_text
+          WHERE id = p_contact_id
+        returning: contact
+
+# Table Views
+views:
+  - name: active_leads
+    description: All contacts in lead status
+    base_table: tb_contact
+    where: status = 'lead' AND deleted_at IS NULL
+
+  - name: qualified_contacts
+    description: All qualified contacts
+    base_table: tb_contact
+    where: status = 'qualified' AND deleted_at IS NULL
+
+  - name: customers
+    description: All customer contacts
+    base_table: tb_contact
+    where: status = 'customer' AND deleted_at IS NULL
