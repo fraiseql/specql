@@ -374,7 +374,7 @@ actions:
 
 ## Contributing to stdlib
 
-Found a pattern that should be in stdlib? [Contribute it!](../../07_contributing/stdlib-contributions.md)
+Found a pattern that should be in stdlib? Contribute it!
 
 **Criteria for stdlib entities**:
 1. **Universal applicability**: Used across multiple industries
@@ -451,7 +451,7 @@ fields:
 - [Geographic Entities](geo/index.md) - Address, Location
 - [Commerce Entities](commerce/index.md) - Order, Contract, Price
 - [i18n Entities](i18n/index.md) - Country, Currency, Language
-- [Extending stdlib](../05_guides/extending-stdlib.md) - Advanced customization
+- [Extending stdlib](../07_advanced/extending-stdlib.md) - Advanced customization
 
 ---
 

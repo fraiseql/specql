@@ -495,7 +495,7 @@ CREATE INDEX idx_tb_organization_tenant ON crm.tb_organization(tenant_id);
 
 - [Geographic Entities](../geo/index.md) - Add address management
 - [Commerce Entities](../commerce/index.md) - Add orders and contracts
-- [Extending stdlib](../../05_guides/extending-stdlib.md) - Customize for your needs
+- [Extending stdlib](../../07_advanced/extending-stdlib.md) - Customize for your needs
 - [Multi-tenancy Guide](../../05_guides/multi-tenancy.md) - Tenant isolation patterns
 
 ---

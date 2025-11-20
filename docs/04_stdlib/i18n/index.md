@@ -918,8 +918,7 @@ CREATE INDEX idx_tb_currency_code
 
 - [Commerce Entities](../commerce/index.md) - Multi-currency pricing
 - [Geographic Entities](../geo/index.md) - International addresses
-- [Rich Types Reference](../../06_reference/rich-types-reference.md) - money type details
-- [Translation Guide](../../05_guides/translations.md) - Using translation infrastructure
+- [Rich Types Reference](../../03_core-concepts/rich-types.md) - money type details
 
 ---
 
