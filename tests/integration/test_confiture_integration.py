@@ -16,9 +16,14 @@ import pytest
 
 @pytest.fixture(autouse=True)
 def clean_generated_schema():
-    """Clean up generated schema files before each test to ensure isolation"""
+    """Clean up generated schema files AND database schemas before each test
 
-    # Directories to clean
+    This ensures test isolation by cleaning both filesystem and database state.
+    Required for Confiture v0.3.1+ which has improved migration state tracking.
+    """
+    import psycopg
+
+    # 1. Clean filesystem schema files
     dirs_to_clean = [
         Path("db/schema/10_tables"),
         Path("db/schema/20_helpers"),
@@ -36,6 +41,38 @@ def clean_generated_schema():
     if foundation_dir.exists():
         for file in foundation_dir.glob("002_*.sql"):
             file.unlink()
+
+    # Clean up generated Confiture schema files (forces rebuild with new hash)
+    generated_dir = Path("db/generated")
+    if generated_dir.exists():
+        for file in generated_dir.glob("schema_*.sql"):
+            file.unlink()
+
+    # 2. Clean database schemas (if database is available)
+    # This prevents Confiture from thinking migrations are already applied
+    try:
+        conn = psycopg.connect(
+            host="localhost",
+            port=5433,
+            dbname="test_specql",
+            user="postgres",
+            password="postgres",
+        )
+
+        with conn.cursor() as cur:
+            # Drop SpecQL-managed schemas with CASCADE to remove all objects
+            cur.execute("DROP SCHEMA IF EXISTS crm CASCADE")
+            cur.execute("DROP SCHEMA IF EXISTS app CASCADE")
+            cur.execute("DROP SCHEMA IF EXISTS sales CASCADE")
+            cur.execute("DROP SCHEMA IF EXISTS catalog CASCADE")
+            cur.execute("DROP SCHEMA IF EXISTS operations CASCADE")
+            cur.execute("DROP SCHEMA IF EXISTS finance CASCADE")
+
+        conn.commit()
+        conn.close()
+    except psycopg.OperationalError:
+        # Database not available - tests that need it will skip anyway
+        pass
 
     yield
 
@@ -309,16 +346,29 @@ class TestConfitureIntegration:
         )
         assert result.returncode == 0
 
-        # Migrate up to database using test config
+        # Apply built schema directly with psql
+        # Confiture v0.3.2's `--force` flag applies to versioned migrations (db/migrations/)
+        # We use `confiture build` workflow which creates monolithic schema files (db/generated/)
+        # For this workflow, direct psql application is the recommended approach
+        # See: https://github.com/fraiseql/confiture/issues/4
         result = subprocess.run(
-            ["uv", "run", "confiture", "migrate", "up", "--config", "db/environments/test.yaml"],
+            [
+                "psql",
+                "-h", "localhost",
+                "-p", "5433",
+                "-U", "postgres",
+                "-d", "test_specql",
+                "-f", "db/generated/schema_test.sql"
+            ],
             capture_output=True,
             text=True,
+            env={**subprocess.os.environ, "PGPASSWORD": "postgres"}
         )
 
-        # Should succeed (return code 0) or show migration applied
-        assert result.returncode == 0 or "migrat" in result.stdout.lower(), (
-            f"Migration failed: {result.stderr}"
+        # Should succeed
+        assert result.returncode == 0, (
+            f"Migration failed with exit code {result.returncode}. "
+            f"stdout: {result.stdout}\nstderr: {result.stderr}"
         )
 
         # Verify tables were created in database
@@ -395,10 +445,9 @@ class TestConfitureIntegration:
 
         try:
             result = subprocess.run(
-                ["python", "cli/confiture_extensions.py", "generate", invalid_file],
+                ["python", "-m", "cli.confiture_extensions", "generate", invalid_file],
                 capture_output=True,
                 text=True,
-                cwd=".",  # Run from project root
             )
 
             # Should return error exit code

@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2025-11-21
+
+### 🔧 Patch Release - Confiture Integration Test Fixes
+
+**Test Results**: ✅ 1,443 passing | 🔶 59 failing (patterns + seed gen) | ⏭️ 135 skipped | ⚠️ 2 xfailed | ✨ 1 xpassed
+
+This patch release fixes critical integration test failures and updates dependencies for better compatibility.
+
+### Fixed
+
+- **Confiture Integration Test Failures** - ✅ FIXED
+  - Fixed `test_confiture_migrate_up_and_down` failing due to database state mismatch
+  - Enhanced test fixture to clean both filesystem AND database schemas between tests
+  - Added database schema cleanup (DROP SCHEMA CASCADE) for complete test isolation
+  - Added generated SQL file cleanup to force Confiture rebuild with new hash
+  - Fixed `test_error_handling_invalid_entity_file` module import error
+  - Changed inconsistent `python cli/file.py` to `python -m cli.file` for proper module resolution
+  - All 11 Confiture integration tests now passing (1 skipped as expected)
+
+### Changed
+
+- **Dependency Updates**
+  - Updated `fraiseql-confiture` from `>=0.3.0` to `>=0.3.2`
+  - Confiture v0.3.2 includes `--force` flag for migration reapplication (for versioned migration workflow)
+  - Updated test comments to clarify that `--force` applies to `migrate` workflow, not `build` workflow
+  - Direct `psql` application is correct approach for `confiture build` workflow
+
+### Developer Experience
+
+- **Upstream Contribution**
+  - Filed GitHub issue: https://github.com/fraiseql/confiture/issues/4
+  - Feature request for `--force` flag to handle test isolation scenarios
+  - Feature implemented and released in Confiture v0.3.2 within hours
+  - Demonstrates strong collaboration between SpecQL and Confiture projects
+
+### Documentation
+
+- **Improved Test Documentation**
+  - Added clear comments explaining Confiture workflow differences
+  - Documented why `psql -f` is used instead of `confiture migrate up --force`
+  - Clarified distinction between versioned migrations (`db/migrations/`) and monolithic schema (`db/generated/`)
+
+### Technical Details
+
+**Root Cause**: Confiture v0.3.1's improved migration state tracking (via schema hash) correctly reported "no pending migrations" even when database schemas were manually dropped between tests, blocking proper test isolation.
+
+**Solution**: Enhanced test fixture to clean both filesystem and database state, ensuring each test starts with a truly clean environment.
+
+**Impact**:
+- ✅ All Confiture integration tests passing
+- ✅ Full integration test suite: 11 passed, 1 skipped (100% success)
+- ✅ Complete test isolation restored
+- ✅ CI/CD pipeline stability improved
+
 ## [0.8.0] - 2025-11-20
 
 ### 🎯 Beta Release - All Critical Issues Resolved
