@@ -7,7 +7,7 @@
 **New to SpecQL?** Follow this path:
 1. [README](../README.md) - Understand what SpecQL is and why it exists
 2. [Getting Started](01_getting-started/index.md) - 5 minutes to your first backend
-3. [Core Concepts](03_core-concepts/business-yaml.md) - Understand the philosophy
+3. [Core Concepts](03_core-concepts/index.md) - Understand the philosophy
 4. [Your First Entity](05_guides/your-first-entity.md) - Build your first entity
 5. [Your First Action](05_guides/your-first-action.md) - Add business logic
 
@@ -56,11 +56,11 @@
 ### 🎯 Core Concepts
 **Understanding SpecQL's foundations**
 
+- [Core Concepts Overview](03_core-concepts/index.md) - Four fundamental principles
 - [Business YAML](03_core-concepts/business-yaml.md) - Why YAML for business logic
-- [Trinity Pattern](01_core-concepts/trinity-pattern.md) - Three identifiers explained
+- [Trinity Pattern](03_core-concepts/trinity-pattern.md) - Three identifiers explained
 - [Rich Types](03_core-concepts/rich-types.md) - 49 built-in validations
 - [Actions](03_core-concepts/actions.md) - Declarative business logic
-- [GraphQL Integration](05_guides/graphql-integration.md) - Auto-generated GraphQL
 
 **Read when**: You want to understand *how* SpecQL works
 **Time**: 30-45 minutes total
@@ -101,11 +101,11 @@
 ### 📖 Practical Guides
 **Step-by-step how-to guides**
 
+- [Guides Overview](05_guides/index.md) - All practical guides
 - [Your First Entity](05_guides/your-first-entity.md) - Create a Contact entity
 - [Your First Action](05_guides/your-first-action.md) - Add business logic
 - [Multi-Tenancy](05_guides/multi-tenancy.md) - Tenant isolation patterns
 - [GraphQL Integration](05_guides/graphql-integration.md) - Frontend integration
-- [Extending stdlib](07_advanced/extending-stdlib.md) - Customize pre-built entities
 - [Error Handling](05_guides/error-handling.md) - Debug and troubleshoot
 
 **Use when**: Implementing specific features
@@ -116,11 +116,11 @@
 ### 📚 Reference Documentation
 **Complete technical specifications**
 
+- [Reference Overview](06_reference/index.md) - All reference documentation
 - [CLI Commands](06_reference/cli-commands.md) - All `specql` commands
 - [YAML Syntax](06_reference/yaml-syntax.md) - Complete grammar
 - [Rich Types Reference](06_reference/rich-types-reference.md) - All 49 types detailed
 - [Action Steps Reference](06_reference/action-steps.md) - Every step type
-- [Schema Registry](06_reference/schema-registry.md) - Schema management
 
 **Use when**: Looking up syntax or capabilities
 **Format**: Searchable reference tables
@@ -130,11 +130,11 @@
 ### 🚀 Advanced Topics
 **For power users and special cases**
 
+- [Advanced Topics Overview](07_advanced/index.md) - Production & customization
 - [Custom Patterns](07_advanced/custom-patterns.md) - Extend the generator
 - [Performance Tuning](07_advanced/performance-tuning.md) - Optimize for scale
 - [Security Hardening](07_advanced/security-hardening.md) - Production security
-- [Custom Patterns](07_advanced/custom-patterns.md) - Reusable logic templates
-- [Performance Tuning](07_advanced/performance-tuning.md) - Optimize for scale
+- [Extending Stdlib](07_advanced/extending-stdlib.md) - Customize pre-built entities
 
 **Use when**: Pushing SpecQL to its limits
 **Audience**: Experienced users
@@ -171,7 +171,7 @@
 
 #### Understand how SpecQL works
 1. [Business YAML philosophy](03_core-concepts/business-yaml.md)
-2. [Trinity Pattern](01_core-concepts/trinity-pattern.md)
+2. [Trinity Pattern](03_core-concepts/trinity-pattern.md)
 3. [Rich Types](03_core-concepts/rich-types.md)
 4. [Actions engine](03_core-concepts/actions.md)
 

@@ -92,7 +92,7 @@ class TestGenerateCommand:
         # Should show error
         assert "error(s)" in result.output
 
-    @patch("src.cli.confiture_extensions.CLIOrchestrator")
+    @patch("cli.confiture_extensions.CLIOrchestrator")
     def test_generate_displays_warnings(self, mock_orch, cli_runner, sample_entity_file):
         """Test that warnings are displayed when present."""
         # Mock the orchestrator to return warnings

@@ -228,7 +228,7 @@ uv run pytest --tb=short -v
 
 **Files to update**:
 1. `.claude/CLAUDE.md` - Document index naming convention
-2. `docs/architecture/NAMING_CONVENTIONS.md` - Add index naming rules
+2. `docs/archive/architecture/NAMING_CONVENTIONS.md` - Add index naming rules
 3. `GETTING_STARTED.md` - Add example with indexes
 
 **Convention to document**:

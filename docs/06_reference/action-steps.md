@@ -1008,7 +1008,6 @@ SELECT crm.approve_contract(
 
 ### Next Steps
 
-- [Action Patterns Guide](../07_stdlib/action-patterns.md) - Pre-built patterns
 - [YAML Syntax Reference](yaml-syntax.md) - Complete syntax
 - [CLI Commands](cli-commands.md) - CLI usage
 

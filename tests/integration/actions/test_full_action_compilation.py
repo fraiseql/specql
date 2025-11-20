@@ -37,7 +37,7 @@ def convert_entity_definition_to_entity(entity_def):
     return entity
 
 
-def test_full_create_contact_compilation():
+def test_full_create_contact_compilation(contact_lightweight_yaml):
     """
     Full pipeline test:
     1. Parse SpecQL YAML
@@ -46,7 +46,7 @@ def test_full_create_contact_compilation():
     """
     # Parse SpecQL
     parser = SpecQLParser()
-    entity_def = parser.parse(read_yaml_file("entities/examples/contact_lightweight.yaml"))
+    entity_def = parser.parse(contact_lightweight_yaml)
     entity = convert_entity_definition_to_entity(entity_def)
 
     # Generate complete schema
@@ -73,10 +73,10 @@ def test_full_create_contact_compilation():
     assert "CREATE TYPE app.type_qualify_lead_input" in migration_sql
 
 
-def test_validation_error_structure_in_generated_sql():
+def test_validation_error_structure_in_generated_sql(contact_lightweight_yaml):
     """Test that input types are properly generated for validation"""
     parser = SpecQLParser()
-    entity_def = parser.parse(read_yaml_file("entities/examples/contact_lightweight.yaml"))
+    entity_def = parser.parse(contact_lightweight_yaml)
     entity = convert_entity_definition_to_entity(entity_def)
 
     orchestrator = SchemaOrchestrator()
@@ -87,10 +87,10 @@ def test_validation_error_structure_in_generated_sql():
     assert "email TEXT" in migration_sql  # Required field for validation
 
 
-def test_trinity_resolution_in_generated_sql():
+def test_trinity_resolution_in_generated_sql(contact_lightweight_yaml):
     """Test FK constraints and helpers are generated for Trinity resolution"""
     parser = SpecQLParser()
-    entity_def = parser.parse(read_yaml_file("entities/examples/contact_lightweight.yaml"))
+    entity_def = parser.parse(contact_lightweight_yaml)
     entity = convert_entity_definition_to_entity(entity_def)
 
     orchestrator = SchemaOrchestrator()

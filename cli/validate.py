@@ -19,14 +19,24 @@ from core.specql_parser import SpecQLParser, ParseError
 def validate(ctx, entity_files, check_impacts, verbose):
     """Validate SpecQL entity files"""
 
-    parser = SpecQLParser()
+    # Allow test injection of logger
+    logger = ctx.obj.get("logger") if ctx.obj else None
+    parser = SpecQLParser(logger=logger)
     errors = []
     warnings = []
 
     for entity_file in entity_files:
         try:
+            if verbose:
+                click.echo(f"📄 Processing {entity_file}...")
+
             content = Path(entity_file).read_text()
             entity_def = parser.parse(content)
+
+            if verbose:
+                click.echo(
+                    f"  ✓ Parsed entity '{entity_def.name}' with {len(entity_def.fields)} fields, {len(entity_def.actions)} actions"
+                )
 
             # Basic validation
             if not entity_def.name:
@@ -49,6 +59,9 @@ def validate(ctx, entity_files, check_impacts, verbose):
                             errors.append(
                                 f"{entity_file}: Action {action.name} missing primary impact"
                             )
+
+            if verbose and not errors:
+                click.echo(f"  OK")
 
         except ParseError as e:
             errors.append(f"{entity_file}: Parse error - {str(e)}")

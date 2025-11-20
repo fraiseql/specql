@@ -13,7 +13,7 @@ from pathlib import Path
 
 import pytest
 
-from core.ast_models import Action, ActionStep, Entity, FieldDefinition
+from core.ast_models import Action, ActionStep, Entity, FieldDefinition, FieldTier
 from generators.frontend import (
     ApolloHooksGenerator,
     MutationDocsGenerator,
@@ -276,3 +276,86 @@ class TestFrontendGeneratorsE2E:
         # Content should be identical (deterministic generation)
         assert original_content == new_content
         assert original_size == new_size
+
+    def test_circular_reference_entities(self, temp_output_dir):
+        """Test frontend generators handle circular entity references"""
+        # Create entities with circular references
+        user_entity = Entity(
+            name="User",
+            schema="app",
+            description="User entity",
+            fields={
+                "id": FieldDefinition(name="id", type_name="uuid", nullable=False),
+                "username": FieldDefinition(name="username", type_name="text", nullable=False),
+                "profile": FieldDefinition(
+                    name="profile", type_name="ref", nullable=True, reference_entity="UserProfile"
+                ),
+            },
+            actions=[
+                Action(
+                    name="create_user",
+                    requires="user.create",
+                    steps=[ActionStep(type="insert", expression="app.tb_user")],
+                ),
+            ],
+        )
+
+        profile_entity = Entity(
+            name="UserProfile",
+            schema="app",
+            description="User profile entity",
+            fields={
+                "id": FieldDefinition(name="id", type_name="uuid", nullable=False),
+                "user": FieldDefinition(
+                    name="user", type_name="ref", nullable=False, reference_entity="User"
+                ),
+                "bio": FieldDefinition(name="bio", type_name="text", nullable=True),
+            },
+            actions=[
+                Action(
+                    name="create_profile",
+                    requires="profile.create",
+                    steps=[ActionStep(type="insert", expression="app.tb_user_profile")],
+                ),
+            ],
+        )
+
+        circular_entities = [user_entity, profile_entity]
+
+        # Test TypeScript types generation with circular references
+        ts_generator = TypeScriptTypesGenerator(temp_output_dir)
+        ts_generator.generate_types(circular_entities)
+
+        types_content = (temp_output_dir / "types.ts").read_text()
+
+        # Should generate types without infinite recursion
+        assert "export interface User {" in types_content
+        assert "export interface UserProfile {" in types_content
+        assert "profile?: UserProfile;" in types_content  # User references UserProfile
+        assert "user: User;" in types_content  # UserProfile references User
+
+        # Test Apollo hooks generation with circular references
+        hooks_generator = ApolloHooksGenerator(temp_output_dir)
+        hooks_generator.generate_hooks(circular_entities)
+
+        hooks_content = (temp_output_dir / "hooks.ts").read_text()
+
+        # Should generate hooks without issues
+        assert "useCreateUser" in hooks_content
+        assert "useCreateProfile" in hooks_content
+
+        # Test mutation impacts generation
+        impacts_generator = MutationImpactsGenerator(temp_output_dir)
+        impacts_generator.generate_impacts(circular_entities)
+
+        # Should not crash and generate valid JSON
+        impacts_file = temp_output_dir / "mutation-impacts.json"
+        assert impacts_file.exists()
+
+        import json
+
+        with open(impacts_file) as f:
+            impacts_data = json.load(f)
+
+        assert "User" in impacts_data["entities"]
+        assert "UserProfile" in impacts_data["entities"]

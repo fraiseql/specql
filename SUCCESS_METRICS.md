@@ -272,7 +272,7 @@ specql generate entities/printoptim/*.yaml --output-schema=db/schema/printoptim/
 | Document | Status | Target |
 |----------|--------|--------|
 | `CONTRIBUTING.md` | ⚠️ Needs update | v0.6.0 guidelines |
-| `docs/architecture/DEPENDENCY_STRATEGY.md` | ❌ Missing | Complete |
+| `docs/archive/architecture/DEPENDENCY_STRATEGY.md` | ❌ Missing | Complete |
 | `docs/testing/COVERAGE_ANALYSIS.md` | ❌ Missing | Complete |
 | `tests/unit/patterns/README.md` | ❌ Missing | Pattern test guide |
 | Changelog | ⚠️ Needs update | v0.6.0 entries |

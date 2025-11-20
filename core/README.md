@@ -193,7 +193,7 @@ Post in `#team-parser`:
 ## 📚 Resources
 
 - [SpecQL DSL Reference](../../docs/guides/specql-dsl-reference.md) (TODO)
-- [IMPLEMENTATION_PLAN_SPECQL.md](../../docs/architecture/IMPLEMENTATION_PLAN_SPECQL.md)
+- [IMPLEMENTATION_PLAN_SPECQL.md](../../docs/archive/architecture/IMPLEMENTATION_PLAN_SPECQL.md)
 - [Python Type Hints](https://docs.python.org/3/library/typing.html)
 
 ## 🎯 Current Status

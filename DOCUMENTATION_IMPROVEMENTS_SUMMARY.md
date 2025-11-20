@@ -91,8 +91,8 @@ Fix broken documentation links and create comprehensive user-facing documentatio
 
 **Directories excluded** (internal):
 - `docs/implementation-plans/` - Internal planning docs
-- `docs/architecture/` - Architecture docs
-- `docs/post_beta_plan/` - Internal roadmap
+- `docs/archive/architecture/` - Architecture docs (archived)
+- `docs/archive/post-beta/` - Internal roadmap (archived)
 - `docs/07_stdlib/` - Contributor stdlib docs
 - `docs/08_contributing/` - Contributor guides
 - `docs/08_internals/` - Internal architecture

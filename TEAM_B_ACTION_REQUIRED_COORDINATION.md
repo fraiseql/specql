@@ -371,7 +371,7 @@ SELECT app.log_and_return_mutation(
 ## 🔗 Related Documents
 
 1. **Team C Full Plan**: `docs/implementation-plans/TEAM_C_REMAINING_WORK_PLAN.md`
-2. **App/Core Pattern**: `docs/architecture/APP_CORE_FUNCTION_PATTERN.md`
+2. **App/Core Pattern**: `docs/archive/architecture/APP_CORE_FUNCTION_PATTERN.md`
 3. **Team C Implementation Plan**: `docs/implementation-plans/TEAM_C_APP_CORE_FUNCTIONS_PLAN.md`
 
 ---

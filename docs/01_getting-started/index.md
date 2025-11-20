@@ -206,7 +206,7 @@ You now have a production-ready backend with:
 ### Explore Advanced Features
 - [Use stdlib entities](../04_stdlib/index.md)
 - [Reverse engineer existing code](../02_migration/index.md)
-- [Advanced topics](../07_advanced/custom-patterns.md)
+- [Advanced topics](../07_advanced/index.md)
 
 ## Need Help?
 

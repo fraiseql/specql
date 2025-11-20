@@ -197,6 +197,12 @@ def entities(
             console.print(f"\n❌ {len(result.errors)} error(s):")
             for error in result.errors:
                 console.print(f"  • {error}")
+        elif result.warnings:
+            console.print(f"\n⚠️  {len(result.warnings)} warning(s):")
+            for warning in result.warnings:
+                console.print(f"  • {warning}")
+            console.print(f"\n✅ Generated {len(result.migrations)} migration file(s)")
+            console.print(f"📁 Output: {output_dir}")
         else:
             console.print(f"\n✅ Generated {len(result.migrations)} migration file(s)")
             console.print(f"📁 Output: {output_dir}")

@@ -476,7 +476,7 @@ Did I add the attribute in the right place? Should it be inside the dataclass?
 
 ### In-Repository Help
 - `README.md` - Project overview
-- `docs/architecture/` - Design decisions
+- `docs/archive/architecture/` - Design decisions (archived)
 - `tests/unit/patterns/README.md` - Pattern testing guide
 - These guides!
 

@@ -335,13 +335,14 @@ class TestConfitureIntegration:
 
         try:
             result = subprocess.run(
-                ["python", "-m", "src.cli.confiture_extensions", "generate", invalid_file],
+                ["python", "cli/confiture_extensions.py", "generate", invalid_file],
                 capture_output=True,
                 text=True,
+                cwd=".",  # Run from project root
             )
 
-            # Should show error but still return 0 (Click handles errors gracefully)
-            assert result.returncode == 0
+            # Should return error exit code
+            assert result.returncode == 1
             assert "error(s)" in result.stdout
             assert "Invalid YAML" in result.stdout
         finally:

@@ -1,5 +1,7 @@
 # Infrastructure Deployment: From Code to Cloud
 
+🏠 [Home](../INDEX.md) > Infrastructure
+
 > **SpecQL doesn't just generate code—it generates complete infrastructure deployments**
 
 ## Overview

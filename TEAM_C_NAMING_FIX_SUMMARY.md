@@ -78,7 +78,7 @@ tests/unit/generators/test_core_logic_generator.py
 ```bash
 docs/implementation-plans/TEAM_C_APP_CORE_FUNCTIONS_PLAN.md
 docs/teams/TEAM_C_DETAILED_PLAN.md
-docs/architecture/APP_CORE_FUNCTION_PATTERN.md
+docs/archive/architecture/APP_CORE_FUNCTION_PATTERN.md
 ```
 
 **Update**: Examples to show correct Trinity pattern

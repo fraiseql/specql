@@ -1,5 +1,7 @@
 # SpecQL Standard Library: 30+ Battle-Tested Entities
 
+🏠 [Home](../INDEX.md) > Standard Library
+
 > **Production-proven business entities ready to import and use**
 
 ## Overview

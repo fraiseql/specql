@@ -2,7 +2,9 @@
 Pytest configuration and shared fixtures
 """
 
+import logging
 import uuid
+from io import StringIO
 from pathlib import Path
 from typing import Any
 
@@ -85,6 +87,40 @@ def temp_output_dir(tmp_path: Path) -> Path:
     output_dir = tmp_path / "generated"
     output_dir.mkdir(exist_ok=True)
     return output_dir
+
+
+@pytest.fixture
+def isolated_logger():
+    """Create logger that works with Click CliRunner."""
+    logger = logging.getLogger("specql_test")
+    logger.handlers.clear()
+
+    # Use StringIO instead of stdout
+    handler = logging.StreamHandler(StringIO())
+    handler.setFormatter(logging.Formatter("%(message)s"))
+    logger.addHandler(handler)
+    logger.setLevel(logging.INFO)
+
+    return logger
+
+
+@pytest.fixture
+def contact_lightweight_yaml():
+    """YAML content for lightweight contact entity used in integration tests."""
+    return """
+entity: Contact
+schema: crm
+description: Lightweight contact for testing
+fields:
+  email: email
+  name: text
+  company_id: uuid
+actions:
+  - name: create_contact
+    steps:
+      - validate: email IS NOT NULL
+      - insert: Contact (email, name) VALUES ($email, $name)
+"""
 
 
 def get_db_config():

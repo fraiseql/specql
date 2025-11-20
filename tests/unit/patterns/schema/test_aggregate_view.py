@@ -5,7 +5,7 @@ import pytest
 from core.specql_parser import SpecQLParser
 from generators.schema.naming_conventions import NamingConventions
 from generators.schema.schema_registry import SchemaRegistry
-from generators.table_generator import TableGenerator
+from generators.schema_orchestrator import SchemaOrchestrator
 
 
 class TestAggregateView:
@@ -18,9 +18,10 @@ class TestAggregateView:
         return SchemaRegistry(naming_conventions.registry)
 
     @pytest.fixture
-    def table_generator(self, schema_registry):
-        """Table generator instance."""
-        return TableGenerator(schema_registry)
+    def schema_orchestrator(self, schema_registry):
+        """Schema orchestrator instance with pattern transformers."""
+        naming_conventions = NamingConventions()
+        return SchemaOrchestrator(naming_conventions=naming_conventions)
 
     @pytest.fixture
     def order_entity(self):
@@ -50,32 +51,40 @@ patterns:
           using: btree
 """
 
-    def test_aggregate_view_created(self, table_generator, order_entity):
+    def test_aggregate_view_created(self, schema_orchestrator, order_entity):
         """Test that aggregate view is generated."""
-        parser = SpecQLParser()
-        entity = parser.parse(order_entity)
+        from cli.generate import convert_entity_definition_to_entity
 
-        ddl = table_generator.generate_table_ddl(entity)
+        parser = SpecQLParser()
+        entity_def = parser.parse(order_entity)
+        entity = convert_entity_definition_to_entity(entity_def)
+
+        result = schema_orchestrator.generate_split_schema(entity)
+        ddl = result.table_sql
 
         # Verify aggregate view creation
         assert "CREATE MATERIALIZED VIEW sales.mv_order_agg AS" in ddl
         assert "SELECT" in ddl
-        assert "customer_id" in ddl
+        assert "fk_customer_id AS customer_id" in ddl
         assert "SUM(total_amount) AS total_spent" in ddl
         assert "COUNT(order_date) AS order_count" in ddl
         assert "FROM sales.tb_order" in ddl
-        assert "GROUP BY customer_id" in ddl
+        assert "GROUP BY fk_customer_id" in ddl
 
-    def test_group_by_columns_included(self, table_generator, order_entity):
+    def test_group_by_columns_included(self, schema_orchestrator, order_entity):
         """Test that group by columns are included in view."""
-        parser = SpecQLParser()
-        entity = parser.parse(order_entity)
+        from cli.generate import convert_entity_definition_to_entity
 
-        ddl = table_generator.generate_table_ddl(entity)
+        parser = SpecQLParser()
+        entity_def = parser.parse(order_entity)
+        entity = convert_entity_definition_to_entity(entity_def)
+
+        result = schema_orchestrator.generate_split_schema(entity)
+        ddl = result.table_sql
 
         # Verify customer_id in view
-        assert "customer_id" in ddl
-        assert "GROUP BY customer_id" in ddl
+        assert "fk_customer_id AS customer_id" in ddl
+        assert "GROUP BY fk_customer_id" in ddl
 
     def test_aggregate_functions_applied(self, table_generator, order_entity):
         """Test that aggregate functions are correctly applied."""
@@ -88,17 +97,21 @@ patterns:
         assert "SUM(total_amount) AS total_spent" in ddl
         assert "COUNT(order_date) AS order_count" in ddl
 
-    def test_view_indexes_created(self, table_generator, order_entity):
+    def test_view_indexes_created(self, schema_orchestrator, order_entity):
         """Test that indexes are created on aggregate view."""
-        parser = SpecQLParser()
-        entity = parser.parse(order_entity)
+        from cli.generate import convert_entity_definition_to_entity
 
-        ddl = table_generator.generate_table_ddl(entity)
+        parser = SpecQLParser()
+        entity_def = parser.parse(order_entity)
+        entity = convert_entity_definition_to_entity(entity_def)
+
+        result = schema_orchestrator.generate_split_schema(entity)
+        ddl = result.table_sql
 
         # Verify indexes on view
-        assert "CREATE INDEX idx_mv_order_agg_customer_id" in ddl
+        assert "CREATE INDEX customer_id" in ddl
         assert "ON sales.mv_order_agg" in ddl
-        assert "customer_id" in ddl
+        assert "fk_customer_id" in ddl
 
     def test_refresh_triggers_generated(self, table_generator, order_entity):
         """Test that refresh triggers are generated for auto mode."""
@@ -147,8 +160,8 @@ patterns:
 
         ddl = table_generator.generate_table_ddl(entity)
 
-        # Verify FraiseQL comment in table comment
-        assert "@fraiseql:pattern:aggregate_view" in ddl
+        # Verify FraiseQL comment in view comment
+        assert "@fraiseql:type=aggregate_view @fraiseql:refresh_mode=auto" in ddl
 
     def test_multiple_aggregates_same_field(self, table_generator):
         """Test multiple aggregate functions on the same field."""

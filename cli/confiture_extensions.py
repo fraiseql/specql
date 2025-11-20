@@ -27,7 +27,8 @@ def specql():
 @click.option("--foundation-only", is_flag=True, help="Generate only app foundation")
 @click.option("--include-tv", is_flag=True, help="Generate table views")
 @click.option("--env", default="local", help="Confiture environment to use")
-def generate(entity_files, foundation_only, include_tv, env):
+@click.pass_context
+def generate(ctx, entity_files, foundation_only, include_tv, env):
     """Generate PostgreSQL schema from SpecQL YAML files"""
 
     # Create orchestrator (always use Confiture-compatible output now)
@@ -45,7 +46,7 @@ def generate(entity_files, foundation_only, include_tv, env):
         click.secho(f"❌ {len(result.errors)} error(s):", fg="red")
         for error in result.errors:
             click.echo(f"  {error}")
-        return 1
+        ctx.exit(1)
 
     # Success - now build with Confiture
     click.secho(f"✅ Generated {len(result.migrations)} schema file(s)", fg="green")
@@ -72,9 +73,9 @@ def generate(entity_files, foundation_only, include_tv, env):
             click.echo("Install confiture: uv add fraiseql-confiture")
         except Exception as e:
             click.secho(f"❌ Confiture build failed: {e}", fg="red")
-            return 1
+            ctx.exit(1)
 
-    return 0
+    ctx.exit(0)
 
 
 @specql.command()

@@ -13,9 +13,12 @@ from generators.core_logic_generator import CoreLogicGenerator
 from generators.fraiseql.mutation_annotator import MutationAnnotator
 from generators.fraiseql.table_view_annotator import TableViewAnnotator
 from generators.schema.naming_conventions import NamingConventions
+from generators.schema.pattern_transformer import PatternTransformerRegistry
 from generators.schema.schema_registry import SchemaRegistry
 from generators.schema.table_view_dependency import TableViewDependencyResolver
 from generators.schema.table_view_generator import TableViewGenerator
+from generators.schema.transformers.aggregate_view_transformer import AggregateViewTransformer
+from generators.schema.transformers.computed_column_transformer import ComputedColumnTransformer
 from generators.table_generator import TableGenerator
 from generators.trinity_helper_generator import TrinityHelperGenerator
 from utils.logger import LogContext, get_team_logger
@@ -69,6 +72,11 @@ class SchemaOrchestrator:
         self.type_gen = CompositeTypeGenerator()
         self.helper_gen = TrinityHelperGenerator(schema_registry)
         self.core_gen = CoreLogicGenerator(schema_registry)
+
+        # Pattern transformers
+        self.pattern_transformers = PatternTransformerRegistry()
+        self.pattern_transformers.register(ComputedColumnTransformer())
+        self.pattern_transformers.register(AggregateViewTransformer())
 
         # Performance monitoring
         self.enable_performance_monitoring = enable_performance_monitoring
@@ -228,10 +236,12 @@ class SchemaOrchestrator:
             logger.debug("Generating table DDL")
             if self.perf_monitor:
                 with self.perf_monitor.track("table_ddl", category="template_rendering"):
-                    table_ddl = self.table_gen.generate_table_ddl(entity)
+                    table_ddl = self.table_gen.generate_table_ddl(entity, apply_patterns=False)
             else:
-                table_ddl = self.table_gen.generate_table_ddl(entity)
-            table_sql = table_ddl  # For now, no table comments
+                table_ddl = self.table_gen.generate_table_ddl(entity, apply_patterns=False)
+
+            # Apply pattern transformations
+            table_sql = self._apply_pattern_transformations(entity, table_ddl)
 
             # Team B: Helper functions (Trinity pattern utilities)
             logger.debug("Generating helper functions")
@@ -300,6 +310,24 @@ class SchemaOrchestrator:
             # Exit performance tracking context
             if ctx:
                 ctx.__exit__(None, None, None)
+
+    def _apply_pattern_transformations(self, entity: Entity, table_ddl: str) -> str:
+        """Apply pattern-based transformations to table DDL."""
+        if not entity.patterns:
+            return table_ddl
+
+        logger = get_team_logger("Team B", __name__)
+        logger.info(f"Applying {len(entity.patterns)} pattern(s) to {entity.name}")
+
+        transformed_ddl = table_ddl
+
+        for pattern in entity.patterns:
+            transformers = self.pattern_transformers.get_transformers_for_pattern(pattern)
+            for transformer in transformers:
+                logger.debug(f"  Applying {pattern.type} via {transformer.__class__.__name__}")
+                transformed_ddl = transformer.transform_ddl(entity, transformed_ddl, pattern)
+
+        return transformed_ddl
 
     def generate_table_views(self, entities: list[EntityDefinition]) -> str:
         """

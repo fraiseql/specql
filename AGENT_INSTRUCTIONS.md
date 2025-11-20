@@ -264,8 +264,8 @@ You're done when:
 ## 📚 Resources
 
 - **Detailed Plan**: `docs/implementation-plans/SCHEMA_REGISTRY_TEST_FIX_PLAN.md` ← START HERE
-- **QA Report**: `docs/architecture/SCHEMA_REFACTORING_IMPACT.md`
-- **Strategy Doc**: `docs/architecture/SCHEMA_ORGANIZATION_STRATEGY.md`
+- **QA Report**: `docs/archive/architecture/SCHEMA_REFACTORING_IMPACT.md`
+- **Strategy Doc**: `docs/archive/architecture/SCHEMA_ORGANIZATION_STRATEGY.md`
 
 ---
 

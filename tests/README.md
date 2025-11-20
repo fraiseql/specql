@@ -174,4 +174,4 @@ uv run pytest tests/unit/core/test_parser.py --tb=long
 
 ---
 
-For detailed testing guide, see planning documents in `docs/post_beta_plan/`
+For detailed testing guide, see planning documents in `docs/archive/post-beta/`

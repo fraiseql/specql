@@ -1,5 +1,7 @@
 # Migration to SpecQL: From Legacy Code to Modern Infrastructure
 
+🏠 [Home](../INDEX.md) > Migration
+
 > **Migrate existing systems to SpecQL without rewriting everything from scratch**
 
 ## Overview

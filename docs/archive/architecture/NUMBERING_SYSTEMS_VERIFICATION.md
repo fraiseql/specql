@@ -323,7 +323,7 @@ The architecture is **intentionally flexible** to support projects of all sizes,
 
 ### Documentation
 - [ONE_FILE_PER_MUTATION_PATTERN.md](./ONE_FILE_PER_MUTATION_PATTERN.md) - Decimal system
-- [src/numbering/README.md](../../src/numbering/README.md) - Hexadecimal system
+- [numbering/README.md](../../../numbering/README.md) - Hexadecimal system
 
 ### Implementation
 - `src/cli/orchestrator.py` - Both systems

@@ -60,18 +60,22 @@ class TableGenerator:
                     f"Template '{template_name}' not found in filesystem or package resources"
                 )
 
-    def generate_table_ddl(self, entity) -> str:
+    def generate_table_ddl(self, entity, apply_patterns: bool = True) -> str:
         """
         Generate complete CREATE TABLE DDL for entity
 
         Args:
             entity: Parsed Entity AST from Team A parser
+            apply_patterns: Whether to apply patterns (default True)
 
         Returns:
             Complete PostgreSQL DDL as string
         """
         # Apply patterns to entity first
-        entity, additional_sql = self._apply_patterns_to_entity(entity)
+        if apply_patterns:
+            entity, additional_sql = self._apply_patterns_to_entity(entity)
+        else:
+            additional_sql = ""
 
         # Prepare template context
         context = self._prepare_template_context(entity)

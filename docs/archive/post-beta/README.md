@@ -23,10 +23,8 @@ This plan is designed for **junior engineers** to complete all 104 skipped tests
 2. [Week 2: Rich Type Comments](./week2_rich_type_comments.md) - **13 tests** (HIGH PRIORITY)
 3. [Week 3: Rich Type Indexes](./week3_rich_type_indexes.md) - **12 tests** (HIGH PRIORITY)
 4. [Week 4: Schema Polish](./week4_schema_polish.md) - **19 tests** (MEDIUM PRIORITY)
-5. [Week 5: FraiseQL GraphQL](./week5_fraiseql_graphql.md) - **7 tests** (MEDIUM PRIORITY)
-6. [Week 6: Template Validation](./week6_template_validation.md) - **16 tests** (MEDIUM PRIORITY)
-7. [Week 7: Dependency Validation](./week7_dependency_validation.md) - **6 tests** (LOW PRIORITY)
-8. [Week 8: Reverse Engineering](./week8_reverse_engineering.md) - **30 tests** (LOW PRIORITY)
+5. [Week 5: FraiseQL GraphQL](./week5_fraiseql_graphql.md) - **7 tests** (COMPLETED)
+6. [Week 8: Reverse Engineering](./week8_reverse_engineering.md) - **30 tests** (COMPLETED)
 
 ---
 

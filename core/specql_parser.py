@@ -49,10 +49,10 @@ class ParseError(Exception):
 class SpecQLParser:
     """Parser for SpecQL YAML to AST"""
 
-    def __init__(self, enable_performance_monitoring: bool = False):
+    def __init__(self, logger=None, enable_performance_monitoring: bool = False):
         # Will be extended in Phase 2 with composite types
         self.current_entity_fields = {}  # Track fields for expression validation
-        self.logger = get_team_logger("Team A", __name__)
+        self.logger = logger if logger is not None else get_team_logger("Team A", __name__)
         self.enable_performance_monitoring = enable_performance_monitoring
         self.perf_monitor = get_performance_monitor() if enable_performance_monitoring else None
 

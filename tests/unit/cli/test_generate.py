@@ -254,7 +254,7 @@ fields:
         )
 
         # Mock the orchestrator to return warnings
-        with patch("src.cli.generate.CLIOrchestrator") as mock_orch:
+        with patch("cli.generate.CLIOrchestrator") as mock_orch:
             mock_result = Mock()
             mock_result.errors = []
             mock_result.warnings = ["Warning 1: Test warning", "Warning 2: Another warning"]
@@ -277,11 +277,19 @@ fields:
 
         # Patch the lazy imports inside the function
         with (
-            patch("src.cli.generate.SpecQLParser") as mock_parser_cls,
-            patch("src.generators.frontend.MutationImpactsGenerator") as mock_impacts_gen,
-            patch("src.generators.frontend.TypeScriptTypesGenerator") as mock_types_gen,
-            patch("src.generators.frontend.ApolloHooksGenerator") as mock_hooks_gen,
-            patch("src.generators.frontend.MutationDocsGenerator") as mock_docs_gen,
+            patch("core.specql_parser.SpecQLParser") as mock_parser_cls,
+            patch(
+                "generators.frontend.mutation_impacts_generator.MutationImpactsGenerator"
+            ) as mock_impacts_gen,
+            patch(
+                "generators.frontend.typescript_types_generator.TypeScriptTypesGenerator"
+            ) as mock_types_gen,
+            patch(
+                "generators.frontend.apollo_hooks_generator.ApolloHooksGenerator"
+            ) as mock_hooks_gen,
+            patch(
+                "generators.frontend.mutation_docs_generator.MutationDocsGenerator"
+            ) as mock_docs_gen,
         ):
             # Setup mocks
             mock_parser = Mock()
@@ -329,11 +337,13 @@ fields:
 
         # Patch the lazy imports
         with (
-            patch("src.cli.generate.SpecQLParser") as mock_parser_cls,
-            patch("src.generators.frontend.MutationImpactsGenerator") as mock_impacts_gen,
-            patch("src.generators.frontend.TypeScriptTypesGenerator"),
-            patch("src.generators.frontend.ApolloHooksGenerator"),
-            patch("src.generators.frontend.MutationDocsGenerator"),
+            patch("core.specql_parser.SpecQLParser") as mock_parser_cls,
+            patch(
+                "generators.frontend.mutation_impacts_generator.MutationImpactsGenerator"
+            ) as mock_impacts_gen,
+            patch("generators.frontend.typescript_types_generator.TypeScriptTypesGenerator"),
+            patch("generators.frontend.apollo_hooks_generator.ApolloHooksGenerator"),
+            patch("generators.frontend.mutation_docs_generator.MutationDocsGenerator"),
         ):
             # Setup mocks
             mock_parser = Mock()
@@ -403,7 +413,7 @@ fields:
         frontend_dir = temp_dir / "frontend"
 
         # Patch to make parsing fail
-        with patch("src.cli.generate.SpecQLParser") as mock_parser_cls:
+        with patch("core.specql_parser.SpecQLParser") as mock_parser_cls:
             mock_parser = Mock()
             mock_parser.parse.side_effect = Exception("Parse error")
             mock_parser_cls.return_value = mock_parser
@@ -577,7 +587,7 @@ class TestTestsCommand:
 class TestMainFunction:
     """Test the main entry point."""
 
-    @patch("src.cli.generate.cli")
+    @patch("cli.generate.cli")
     def test_main_calls_cli(self, mock_cli):
         """Test that main() calls the CLI function."""
         main()

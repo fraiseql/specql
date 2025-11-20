@@ -333,7 +333,7 @@ The **ParserCoordinator** manages all specialized parsers:
 
 ## 📚 Documentation
 
-- [Reverse Engineering Guide](../guides/reverse-engineering-guide.md) - User-facing guide
+- [Migration Guide](../02_migration/index.md) - User-facing migration guide
 - [Parser Coordinator Design](PARSER_COORDINATOR_DESIGN.md) - Architecture docs
 
 ---

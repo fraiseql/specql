@@ -3,7 +3,6 @@
 ## Quick Links
 
 - [Getting Started](../GETTING_STARTED.md)
-- [Architecture Overview](architecture/)
 - [Rich Types Guide](03_core-concepts/rich-types.md)
 - [stdlib Usage](04_stdlib/index.md)
 
@@ -22,5 +21,4 @@
 ## Archive
 
 Historical planning documents and completed team work:
-- [Team Planning Archive](archive/teams/)
 - [Completed Plans](archive/plans/)

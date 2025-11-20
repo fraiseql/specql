@@ -290,8 +290,11 @@ export interface PaginatedResult<T> {
 
         # Handle references
         if field.tier == FieldTier.REFERENCE:
-            # References are typically UUIDs pointing to other entities
-            return "UUID"
+            # References point to other entities
+            if field.reference_entity:
+                return field.reference_entity
+            else:
+                return "UUID"  # Fallback for references without entity info
 
         # Handle basic PostgreSQL types
         type_mapping = {

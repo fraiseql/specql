@@ -289,9 +289,9 @@ See: `docs/teams/TEAM_E_CLI_PLAN.md` (to be created)
 ## 📁 Key Documentation
 
 ### Architecture:
-- `docs/architecture/SPECQL_BUSINESS_LOGIC_REFINED.md` - SpecQL language spec
-- `docs/architecture/INTEGRATION_PROPOSAL.md` - Team integration patterns
-- `docs/architecture/UPDATED_TEAM_PLANS_POST_FRAISEQL_RESPONSE.md` - Updated plans
+- `docs/archive/architecture/SPECQL_BUSINESS_LOGIC_REFINED.md` - SpecQL language spec
+- `docs/archive/architecture/INTEGRATION_PROPOSAL.md` - Team integration patterns
+- `docs/archive/architecture/UPDATED_TEAM_PLANS_POST_FRAISEQL_RESPONSE.md` - Updated plans
 
 ### Team Plans:
 - `docs/teams/TEAM_A_DETAILED_PLAN.md` - Team A implementation plan ✅
