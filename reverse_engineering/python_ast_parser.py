@@ -29,6 +29,87 @@ class PythonASTParser:
     def supported_language(self) -> SourceLanguage:
         return SourceLanguage.PYTHON
 
+    def parse(self, source_code: str, file_path: str = "") -> list[ParsedEntity]:
+        """
+        Parse Python file to list of ParsedEntity objects
+
+        Supports multiple classes in one file
+        """
+        tree = ast.parse(source_code)
+        entities = []
+
+        # Find all class definitions
+        for node in ast.walk(tree):
+            if isinstance(node, ast.ClassDef):
+                # Check if it's a model class we should parse
+                if self._should_parse_class(node):
+                    entity = self._parse_class_to_entity(node, file_path, tree)
+                    if entity:
+                        entities.append(entity)
+
+        return entities
+
+    def _should_parse_class(self, class_def: ast.ClassDef) -> bool:
+        """Determine if a class should be parsed as an entity"""
+        # Check inheritance for model patterns
+        inheritance = self._parse_inheritance(class_def)
+
+        # Django models
+        if "models.Model" in inheritance or "Model" in inheritance:
+            return True
+
+        # Pydantic models
+        if "BaseModel" in inheritance:
+            return True
+
+        # SQLAlchemy models
+        if "Base" in inheritance or "DeclarativeBase" in inheritance:
+            return True
+
+        # Dataclasses (if they have ORM-like fields)
+        if "dataclass" in [d.split("(")[0] for d in self._parse_class_decorators(class_def)]:
+            return True
+
+        return False
+
+    def _parse_class_to_entity(
+        self, class_def: ast.ClassDef, file_path: str, tree: ast.Module
+    ) -> ParsedEntity | None:
+        """Parse a single class definition to ParsedEntity"""
+        try:
+            # Extract namespace from file path or imports
+            namespace = self._extract_namespace(file_path, tree)
+
+            # Parse class components
+            return ParsedEntity(
+                entity_name=class_def.name,
+                namespace=namespace,
+                fields=self._parse_fields(class_def),
+                methods=self._parse_methods(class_def),
+                inheritance=self._parse_inheritance(class_def),
+                decorators=self._parse_class_decorators(class_def),
+                docstring=ast.get_docstring(class_def),
+                source_language=SourceLanguage.PYTHON,
+                metadata={"patterns": self._detect_patterns_for_class(class_def)},
+            )
+        except Exception:
+            # Skip classes that can't be parsed
+            return None
+
+    def _detect_patterns_for_class(self, class_def: ast.ClassDef) -> list[str]:
+        """Detect patterns for a single class (simplified version)"""
+        patterns = []
+        inheritance = self._parse_inheritance(class_def)
+
+        if "models.Model" in inheritance or "Model" in inheritance:
+            patterns.append("django_model")
+        elif "BaseModel" in inheritance:
+            patterns.append("pydantic_model")
+        elif "Base" in inheritance or "DeclarativeBase" in inheritance:
+            patterns.append("sqlalchemy_model")
+
+        return patterns
+
     def parse_entity(self, source_code: str, file_path: str = "") -> ParsedEntity:
         """
         Parse Python class to ParsedEntity

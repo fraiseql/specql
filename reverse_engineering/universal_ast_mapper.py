@@ -31,7 +31,7 @@ class UniversalASTMapper:
             "entity": entity.entity_name,
             "schema": entity.namespace,
             "description": entity.docstring,
-            "fields": [self._map_field(f) for f in entity.fields],
+            "fields": self._map_fields_to_dict(entity.fields),
             "actions": [
                 self._action_to_dict(self.map_method_to_action(m, entity)) for m in entity.methods
             ],
@@ -62,6 +62,24 @@ class UniversalASTMapper:
             raise ValueError(f"No mapper for language: {entity.source_language}")
 
         return mapper.map_method_to_action(method, entity)
+
+    def _map_fields_to_dict(self, fields) -> dict:
+        """Map list of ParsedField to SpecQL fields dict"""
+        fields_dict = {}
+
+        for field in fields:
+            # Build type string: type[!] for required fields
+            type_str = field.field_type
+            if field.required:
+                type_str += "!"
+
+            # Handle foreign keys
+            if field.is_foreign_key:
+                type_str = f"ref({field.foreign_key_target})"
+
+            fields_dict[field.field_name] = type_str
+
+        return fields_dict
 
     def _map_field(self, field) -> dict:
         """Map ParsedField to SpecQL field dict"""
