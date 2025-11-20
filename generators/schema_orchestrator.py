@@ -57,7 +57,7 @@ class SchemaOrchestrator:
         enable_performance_monitoring: bool = False,
         registry_optional: bool = False,
     ) -> None:
-        self.logger = get_team_logger("Team B", __name__)
+        self.logger = get_team_logger("Schema", __name__)
         self.logger.debug("Initializing SchemaOrchestrator")
 
         # Create naming conventions if not provided
@@ -98,7 +98,7 @@ class SchemaOrchestrator:
         context = LogContext(
             entity_name=entity.name, schema=entity.schema, operation="generate_schema"
         )
-        logger = get_team_logger("Team B", __name__, context)
+        logger = get_team_logger("Schema", __name__, context)
         logger.info(
             f"Generating complete schema for entity '{entity.name}' in schema '{entity.schema}'"
         )
@@ -230,7 +230,7 @@ class SchemaOrchestrator:
             context = LogContext(
                 entity_name=entity.name, schema=entity.schema, operation="generate_split_schema"
             )
-            logger = get_team_logger("Team B", __name__, context)
+            logger = get_team_logger("Schema", __name__, context)
             logger.info(f"Generating split schema for entity '{entity.name}'")
 
             # Team B: Table definition
@@ -333,7 +333,7 @@ class SchemaOrchestrator:
         if not entity.patterns:
             return table_ddl
 
-        logger = get_team_logger("Team B", __name__)
+        logger = get_team_logger("Schema", __name__)
         logger.info(f"Applying {len(entity.patterns)} pattern(s) to {entity.name}")
 
         transformed_ddl = table_ddl

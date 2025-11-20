@@ -1,5 +1,5 @@
 """
-App Wrapper Generator (Team C)
+App Wrapper Generator (Action Compilation)
 Generates app.* API wrapper functions
 """
 

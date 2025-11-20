@@ -29,7 +29,7 @@ class TestLogContext:
             operation="parse",
             schema="crm",
             action_name="create_contact",
-            team="Team A",
+            team="Parser",
             extra={"custom": "value"},
         )
 
@@ -40,7 +40,7 @@ class TestLogContext:
         assert result["operation"] == "parse"
         assert result["schema"] == "crm"
         assert result["action"] == "create_contact"
-        assert result["team"] == "Team A"
+        assert result["team"] == "Parser"
         assert result["custom"] == "value"
 
     def test_to_dict_partial_fields(self):
@@ -60,12 +60,12 @@ class TestLogContext:
             entity_name="Contact",
             file_path="entities/contact.yaml",
             operation="parse",
-            team="Team A",
+            team="Parser",
         )
 
         prefix = context.format_prefix()
 
-        assert "[Team A]" in prefix
+        assert "[Parser]" in prefix
         assert "[Contact]" in prefix
         assert "[parse]" in prefix
         assert "(contact.yaml)" in prefix
@@ -145,17 +145,17 @@ class TestGetTeamLogger:
 
     def test_get_team_logger_basic(self):
         """Test basic team logger creation"""
-        logger = get_team_logger("Team A", __name__)
+        logger = get_team_logger("Parser", __name__)
 
         assert logger is not None
-        assert logger.context.team == "Team A"
+        assert logger.context.team == "Parser"
 
     def test_get_team_logger_with_context(self):
         """Test team logger with additional context"""
         context = LogContext(entity_name="Contact", operation="parse")
-        logger = get_team_logger("Team B", __name__, context)
+        logger = get_team_logger("Schema", __name__, context)
 
-        assert logger.context.team == "Team B"
+        assert logger.context.team == "Schema"
         assert logger.context.entity_name == "Contact"
         assert logger.context.operation == "parse"
 
@@ -202,8 +202,8 @@ class TestLoggingIntegration:
     def test_logging_with_context_adapter(self):
         """Test that context is properly included in log messages"""
         # Create logger with context
-        context = LogContext(entity_name="Contact", operation="parse", team="Team A")
-        test_logger = get_team_logger("Team A", __name__, context)
+        context = LogContext(entity_name="Contact", operation="parse", team="Parser")
+        test_logger = get_team_logger("Parser", __name__, context)
 
         # Set up a string handler to capture log output
         stream = StringIO()
@@ -222,7 +222,7 @@ class TestLoggingIntegration:
         output = stream.getvalue()
 
         # Verify context is in the message
-        assert "Team A" in output
+        assert "Parser" in output
         assert "Contact" in output
         assert "parse" in output
         assert "Test message" in output

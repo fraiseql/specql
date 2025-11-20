@@ -52,7 +52,7 @@ class SpecQLParser:
     def __init__(self, logger=None, enable_performance_monitoring: bool = False):
         # Will be extended in Phase 2 with composite types
         self.current_entity_fields = {}  # Track fields for expression validation
-        self.logger = logger if logger is not None else get_team_logger("Team A", __name__)
+        self.logger = logger if logger is not None else get_team_logger("Parser", __name__)
         self.enable_performance_monitoring = enable_performance_monitoring
         self.perf_monitor = get_performance_monitor() if enable_performance_monitoring else None
 
@@ -112,7 +112,7 @@ class SpecQLParser:
 
             # Update logger context with entity information
             context = LogContext(entity_name=entity_name, schema=entity_schema, operation="parse")
-            self.logger = get_team_logger("Team A", __name__, context)
+            self.logger = get_team_logger("Parser", __name__, context)
             self.logger.info(f"Parsing entity '{entity_name}' in schema '{entity_schema}'")
 
             # Parse fields - check both root level and inside entity dict (for complex format)
@@ -323,13 +323,13 @@ class SpecQLParser:
             nullable=nullable,
             tier=FieldTier.SCALAR,
             scalar_def=scalar_def,
-            # PostgreSQL metadata (for Team B)
+            # PostgreSQL metadata (for schema generation)
             postgres_type=scalar_def.get_postgres_type_with_precision(),
             postgres_precision=scalar_def.postgres_precision,
             validation_pattern=scalar_def.validation_pattern,
             min_value=scalar_def.min_value,
             max_value=scalar_def.max_value,
-            # FraiseQL metadata (for Team D)
+            # FraiseQL metadata (for GraphQL API)
             fraiseql_type=scalar_def.fraiseql_scalar_name,
             # Display metadata
             description=scalar_def.description,
@@ -352,9 +352,9 @@ class SpecQLParser:
             nullable=nullable,
             tier=FieldTier.COMPOSITE,
             composite_def=composite_def,
-            # PostgreSQL metadata (for Team B)
+            # PostgreSQL metadata (for schema generation)
             postgres_type="JSONB",
-            # FraiseQL metadata (for Team D)
+            # FraiseQL metadata (for GraphQL API)
             fraiseql_type=composite_def.fraiseql_type_name,
             fraiseql_schema=composite_def.get_jsonb_schema(),
             # Display metadata
@@ -397,9 +397,9 @@ class SpecQLParser:
             type_name="ref",  # Just "ref" for type checking
             nullable=nullable,
             tier=FieldTier.REFERENCE,
-            # PostgreSQL metadata (for Team B)
+            # PostgreSQL metadata (for schema generation)
             postgres_type=postgres_type,  # INTEGER for catalog, UUID for others
-            # FraiseQL metadata (for Team D)
+            # FraiseQL metadata (for GraphQL API)
             fraiseql_type="ID",  # GraphQL ID type for references
             fraiseql_relation="many-to-one",  # Default relation type
             # Reference metadata

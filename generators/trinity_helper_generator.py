@@ -1,5 +1,5 @@
 """
-Trinity Helper Function Generator (Team B)
+Trinity Helper Function Generator (Schema Generation)
 Generates entity_pk() and entity_id() helper functions for UUID ↔ INTEGER resolution
 """
 

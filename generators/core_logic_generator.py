@@ -14,7 +14,7 @@ from generators.schema.schema_registry import SchemaRegistry
 from utils.logger import get_team_logger
 from utils.safe_slug import safe_slug, safe_table_name
 
-logger = get_team_logger("Team C", __name__)
+logger = get_team_logger("Actions", __name__)
 
 
 class CoreLogicGenerator:

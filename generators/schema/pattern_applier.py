@@ -58,7 +58,7 @@ class PatternApplier:
         # Set up Jinja environment for template rendering
 
         self.pattern_dir = Path("stdlib/schema")
-        self.logger = get_team_logger("Team B", __name__)
+        self.logger = get_team_logger("Schema", __name__)
         self.jinja_env = Environment(
             loader=FileSystemLoader(str(self.pattern_dir)),
             trim_blocks=True,

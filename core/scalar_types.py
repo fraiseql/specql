@@ -41,7 +41,7 @@ class ScalarTypeDef:
     postgres_type: PostgreSQLType  # PostgreSQL type
     fraiseql_scalar_name: str  # GraphQL scalar name
 
-    # PostgreSQL validation (for Team B)
+    # PostgreSQL validation (for schema generation)
     validation_pattern: str | None = None  # Regex for CHECK constraint
     min_value: float | None = None
     max_value: float | None = None
@@ -88,7 +88,7 @@ class CompositeTypeDef:
         return self.name
 
     def get_jsonb_schema(self) -> dict[str, Any]:
-        """Get JSON schema for validation (for Team B)"""
+        """Get JSON schema for validation (for schema generation)"""
         properties = {}
         required = []
 

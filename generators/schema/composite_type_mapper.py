@@ -1,7 +1,7 @@
 """
 Composite Type Mapper
 
-Maps Team A's composite type definitions to:
+Maps composite type definitions to:
 - JSONB columns
 - PL/pgSQL validation functions
 - GIN indexes

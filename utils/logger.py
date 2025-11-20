@@ -43,7 +43,7 @@ class LogContext:
     operation: str | None = None
     schema: str | None = None
     action_name: str | None = None
-    team: str | None = None  # Team A-E identifier
+    team: str | None = None  # Component identifier (Parser, Schema, Actions, FraiseQL, CLI)
     extra: dict[str, Any] = field(default_factory=dict)
 
     def to_dict(self) -> dict[str, Any]:
@@ -234,22 +234,22 @@ def get_team_logger(
     context: LogContext | None = None,
 ) -> logging.LoggerAdapter:
     """
-    Get a team-specific logger
+    Get a component-specific logger
 
     Args:
-        team: Team identifier (e.g., "Team A", "Parser", "Schema Gen")
+        team: Component identifier (e.g., "Parser", "Schema", "Actions", "FraiseQL", "CLI")
         module_name: Module name (typically __name__)
         context: Optional context information
 
     Returns:
-        Logger adapter with team context
+        Logger adapter with component context
 
     Examples:
-        >>> logger = get_team_logger("Team A", __name__)
+        >>> logger = get_team_logger("Parser", __name__)
         >>> logger.info("Parsing entity")
 
         >>> context = LogContext(entity_name="Contact")
-        >>> logger = get_team_logger("Team B", __name__, context)
+        >>> logger = get_team_logger("Schema", __name__, context)
         >>> logger.debug("Generating schema")
     """
     if context is None:

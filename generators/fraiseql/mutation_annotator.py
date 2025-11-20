@@ -21,7 +21,7 @@ class MutationAnnotator:
         self.schema = schema
         self.entity_name = entity_name
         context = LogContext(entity_name=entity_name, schema=schema, operation="annotate_mutation")
-        self.logger = get_team_logger("Team D", __name__, context)
+        self.logger = get_team_logger("FraiseQL", __name__, context)
 
     def generate_mutation_annotation(self, action: Action) -> str:
         """

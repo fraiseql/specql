@@ -22,7 +22,7 @@ class ActionOrchestrator:
         Args:
             step_compiler_registry: Dict mapping step types to compilers
         """
-        self.logger = get_team_logger("Team C", __name__)
+        self.logger = get_team_logger("Actions", __name__)
         self.step_compiler_registry = step_compiler_registry or {}
         self.logger.debug("ActionOrchestrator initialized")
 
@@ -56,7 +56,7 @@ class ActionOrchestrator:
             action_name=action.name,
             operation="compile_action",
         )
-        logger = get_team_logger("Team C", __name__, context)
+        logger = get_team_logger("Actions", __name__, context)
         logger.info(
             f"Compiling multi-entity action '{action.name}' for entity '{primary_entity.name}'"
         )

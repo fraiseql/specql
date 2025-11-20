@@ -1,7 +1,7 @@
 """
 Schema Generator
 
-Generates complete PostgreSQL DDL from Team A's AST:
+Generates complete PostgreSQL DDL from parsed AST:
 - Trinity Pattern fields
 - Business fields (scalars, composites, references)
 - Audit fields

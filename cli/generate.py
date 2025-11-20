@@ -132,7 +132,7 @@ def entities(
     else:
         configure_logging(level=logging.INFO)
 
-    logger = get_team_logger("Team E", __name__)
+    logger = get_team_logger("CLI", __name__)
 
     # Show progress if not quiet
     if not quiet:
