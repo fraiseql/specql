@@ -382,15 +382,10 @@ You built a complete order processing system with:
 - [Implement order status tracking](order-workflow.md)
 - [Add shipping calculations](shipping-logic.md)
 
-### Advanced Patterns
-- [Complex validation rules](advanced-validation.md)
-- [Event-driven actions](event-processing.md)
-- [Batch operations](bulk-processing.md)
-
 ### Production Considerations
 - [Add authentication](authentication.md)
-- [Implement rate limiting](rate-limiting.md)
-- [Add audit logging](audit-trails.md)
+- [Testing Guide](../07_advanced/testing.md)
+- [Security Hardening](../07_advanced/security-hardening.md)
 
 ## Troubleshooting
 

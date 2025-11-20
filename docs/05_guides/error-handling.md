@@ -750,9 +750,9 @@ actions:
 ## Next Steps
 
 - **Tutorial**: [Your First Action](your-first-action.md) - Implement error handling
-- **Reference**: [Action Steps](../06_reference/action-steps.md) - Validation step syntax
+- **Reference**: [Action Steps](../06_reference/action-steps-reference.md) - Validation step syntax
 - **Guide**: [Actions](actions.md) - Complete actions guide
-- **Advanced**: [Custom Validators](../07_advanced/custom-validators.md) - Custom validation logic
+- **Advanced**: [Testing Guide](../07_advanced/testing.md) - Testing error handling
 
 ---
 

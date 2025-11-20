@@ -345,7 +345,7 @@ You now have a complete Product entity with:
 ### Go Production
 - [Multi-tenancy setup](multi-tenancy.md)
 - [Deploy to production](production-deploy.md)
-- [Add authentication](security.md)
+- [Add authentication](../07_advanced/security-hardening.md)
 
 ## Troubleshooting
 
