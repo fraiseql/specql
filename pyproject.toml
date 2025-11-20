@@ -99,10 +99,13 @@ ignore = ["E501"]  # Line too long (handled by formatter)
 
 [tool.ruff.lint.per-file-ignores]
 # Java bridge: method names intentionally match Java camelCase conventions
+"reverse_engineering/java/jdt_bridge.py" = ["N802", "N806"]
 "src/reverse_engineering/java/jdt_bridge.py" = ["N802", "N806"]
 # Metadata generator: GENERATOR_MAP follows SQL naming
+"testing/metadata/metadata_generator.py" = ["N806"]
 "src/testing/metadata/metadata_generator.py" = ["N806"]
 # Field generators: Faker follows library convention
+"testing/seed/field_generators.py" = ["N806"]
 "src/testing/seed/field_generators.py" = ["N806"]
 # Test files: allow bare except, star imports, late imports, naming, undefined names (fixtures)
 "tests/**/*.py" = ["E402", "E722", "E741", "F403", "F405", "F811", "F821", "N806"]
