@@ -68,9 +68,7 @@ class TestGenerateCommand:
     def test_generate_with_custom_env(self, cli_runner, sample_entity_file):
         """Test generation with custom environment."""
         # Use test environment which exists in db/environments/test.yaml
-        result = cli_runner.invoke(
-            specql, ["generate", str(sample_entity_file), "--env", "test"]
-        )
+        result = cli_runner.invoke(specql, ["generate", str(sample_entity_file), "--env", "test"])
 
         assert result.exit_code == 0
         assert "Generated" in result.output

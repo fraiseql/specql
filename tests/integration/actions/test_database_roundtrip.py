@@ -615,7 +615,7 @@ def test_complex_action_edge_case_database_execution(test_db, function_generator
         fields={
             "name": FieldDefinition(name="name", type_name="text", nullable=False),
         },
-        actions=[]
+        actions=[],
     )
 
     # Given: Entity with complex lead processing action

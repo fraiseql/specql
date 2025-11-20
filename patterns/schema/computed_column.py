@@ -44,7 +44,7 @@ class ComputedColumnPattern:
         computed_field = cls._create_computed_field(config)
 
         # Add to entity.computed_columns (accessed by table generator)
-        if not hasattr(entity, 'computed_columns'):
+        if not hasattr(entity, "computed_columns"):
             entity.computed_columns = []
         entity.computed_columns.append(computed_field)
 
@@ -77,10 +77,10 @@ class ComputedColumnPattern:
     def _create_computed_field(cls, config: ComputedColumnConfig) -> dict:
         """Create a computed field definition."""
         return {
-            'name': config.column_name,
-            'type': config.type,
-            'nullable': config.nullable,
-            'computed': True,
-            'expression': config.expression,
-            'stored': config.stored,
+            "name": config.column_name,
+            "type": config.type,
+            "nullable": config.nullable,
+            "computed": True,
+            "expression": config.expression,
+            "stored": config.stored,
         }

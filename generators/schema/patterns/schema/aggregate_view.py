@@ -191,9 +191,7 @@ COMMENT ON MATERIALIZED VIEW {full_view_name} IS '@fraiseql:type=aggregate_view 
                     field_list.append(field)
 
             fields_str = ", ".join(field_list)
-            index_sql = (
-                f"CREATE INDEX {idx_name} ON {full_view_name} USING {using} ({fields_str});"
-            )
+            index_sql = f"CREATE INDEX {idx_name} ON {full_view_name} USING {using} ({fields_str});"
             index_statements.append(index_sql)
 
         return index_statements
