@@ -531,8 +531,8 @@ specql validate entities/*.yaml --verbose
 ## Next Steps
 
 - [YAML Syntax Reference](yaml-syntax.md) - Complete syntax guide
-- [Rich Types Reference](rich-types.md) - All 49 types
-- [Action Steps Reference](action-steps.md) - All action step types
+- [Rich Types Reference](../03_core-concepts/rich-types.md) - All 49 types
+- [Action Steps Reference](action-steps-reference.md) - All action step types
 - [Migration Guide](../02_migration/index.md) - Migration workflows
 
 ---
