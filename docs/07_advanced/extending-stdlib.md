@@ -581,7 +581,6 @@ specql pattern install @specql-patterns/order-workflow
 
 - **[Custom Patterns](custom-patterns.md)** - Pattern creation guide
 - **[Testing Guide](testing.md)** - Test your contributions
-- **[Architecture Docs](../08_internals/)** - Internal architecture
 
 ### Contribute
 

@@ -905,12 +905,6 @@ functions:
 3. **Create scoring pattern** - Lead/content scoring
 4. **Combine patterns** - Build composite pattern
 
-### Advanced Topics
-
-- **[Pattern Composition](../08_internals/pattern-composition.md)** - How patterns merge
-- **[Pattern Performance](../08_internals/pattern-performance.md)** - Optimize patterns
-- **[Pattern Testing](../08_internals/pattern-testing.md)** - Comprehensive testing
-
 ---
 
 ## Summary

@@ -720,8 +720,6 @@ You've learned:
 
 **Key Takeaway**: Safe migrations require Expand-Contract pattern—add before removing, deploy code between steps.
 
-**Next**: Return to [Advanced Topics](../07_advanced/) for more guides →
-
 ---
 
 **Migrate safely—schema changes should never cause downtime.**
