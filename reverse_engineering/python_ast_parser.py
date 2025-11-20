@@ -288,17 +288,36 @@ class PythonASTParser:
 
         # Django fields
         django_mapping = {
+            # Text
             "CharField": "text",
             "TextField": "text",
+            "SlugField": "text",
             "EmailField": "email",
+            "URLField": "text",
+            # Numeric
             "IntegerField": "integer",
+            "PositiveIntegerField": "integer",
+            "PositiveSmallIntegerField": "integer",
+            "SmallIntegerField": "integer",
             "BigIntegerField": "integer",
+            "AutoField": "integer",
+            "BigAutoField": "integer",
+            "SmallAutoField": "integer",
             "DecimalField": "decimal",
-            "FloatField": "float",
-            "BooleanField": "boolean",
-            "DateField": "date",
+            "FloatField": "decimal",
+            # DateTime
             "DateTimeField": "timestamp",
+            "DateField": "date",
+            "TimeField": "time",
+            # Boolean
+            "BooleanField": "boolean",
+            "NullBooleanField": "boolean",
+            # Other
             "JSONField": "json",
+            "UUIDField": "uuid",
+            "BinaryField": "binary",
+            "FileField": "text",
+            "ImageField": "text",
             "ForeignKey": "ref",
             "OneToOneField": "ref",
         }
