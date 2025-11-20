@@ -54,46 +54,61 @@ def reverse_python(python_files, output_dir, discover_patterns, dry_run):
             # Read Python file
             source_code = Path(file_path).read_text()
 
-            # Parse to ParsedEntity
-            entity = parser.parse_entity(source_code, file_path)
+            # Parse to list of ParsedEntity objects
+            entities = parser.parse(source_code, file_path)
 
-            # Map to SpecQL
-            specql_dict = mapper.map_entity_to_specql(entity)
+            if not entities:
+                click.echo(f"  ⚠️ No entities found in {file_path}")
+                results.append(
+                    {
+                        "file": file_path,
+                        "entity": None,
+                        "output": None,
+                        "success": False,
+                        "error": "No entities found",
+                    }
+                )
+                continue
 
-            # Generate output file name
-            output_file = output_path / f"{entity.entity_name.lower()}.yaml"
+            # Process each entity
+            for entity in entities:
+                # Map to SpecQL
+                specql_dict = mapper.map_entity_to_specql(entity)
 
-            if dry_run:
-                click.echo(f"  Would write: {output_file}")
-                click.echo(f"  Entity: {entity.entity_name}")
-                click.echo(f"  Fields: {len(entity.fields)}")
-                click.echo(f"  Actions: {len(entity.methods)}")
+                # Generate output file name
+                output_file = output_path / f"{entity.entity_name.lower()}.yaml"
 
-                if discover_patterns:
-                    patterns = parser.detect_patterns(entity)
-                    click.echo(f"  Patterns: {', '.join(patterns)}")
-            else:
-                # Write YAML file
-                with open(output_file, "w") as f:
-                    yaml.dump(specql_dict, f, default_flow_style=False, sort_keys=False)
+                if dry_run:
+                    click.echo(f"  Would write: {output_file}")
+                    click.echo(f"  Entity: {entity.entity_name}")
+                    click.echo(f"  Fields: {len(entity.fields)}")
+                    click.echo(f"  Actions: {len(entity.methods)}")
 
-                click.echo(f"  ✅ Written: {output_file}")
+                    if discover_patterns:
+                        patterns = parser.detect_patterns(entity)
+                        click.echo(f"  Patterns: {', '.join(patterns)}")
+                else:
+                    # Write YAML file
+                    with open(output_file, "w") as f:
+                        yaml.dump(specql_dict, f, default_flow_style=False, sort_keys=False)
 
-                # Pattern discovery
-                if discover_patterns:
-                    patterns = parser.detect_patterns(entity)
-                    if patterns:
-                        click.echo(f"  🔍 Patterns detected: {', '.join(patterns)}")
-                        # _save_patterns_to_library(entity, patterns)  # TODO: Implement pattern library
+                    click.echo(f"  ✅ Written: {output_file}")
 
-            results.append(
-                {
-                    "file": file_path,
-                    "entity": entity.entity_name,
-                    "output": str(output_file),
-                    "success": True,
-                }
-            )
+                    # Pattern discovery
+                    if discover_patterns:
+                        patterns = parser.detect_patterns(entity)
+                        if patterns:
+                            click.echo(f"  🔍 Patterns detected: {', '.join(patterns)}")
+                            # _save_patterns_to_library(entity, patterns)  # TODO: Implement pattern library
+
+                results.append(
+                    {
+                        "file": file_path,
+                        "entity": entity.entity_name,
+                        "output": str(output_file),
+                        "success": True,
+                    }
+                )
 
         except Exception as e:
             click.echo(f"  ❌ Error: {e}", err=True)

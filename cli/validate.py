@@ -8,7 +8,7 @@ from pathlib import Path
 
 import click
 
-from core.specql_parser import SpecQLParser
+from core.specql_parser import SpecQLParser, ParseError
 
 
 @click.command()
@@ -50,11 +50,10 @@ def validate(ctx, entity_files, check_impacts, verbose):
                                 f"{entity_file}: Action {action.name} missing primary impact"
                             )
 
-            if verbose and not errors:
-                click.secho(f"✓ {entity_file}: OK", fg="green")
-
+        except ParseError as e:
+            errors.append(f"{entity_file}: Parse error - {str(e)}")
         except Exception as e:
-            errors.append(f"{entity_file}: {str(e)}")
+            errors.append(f"{entity_file}: Unexpected error - {str(e)}")
 
     # Report results
     if errors:

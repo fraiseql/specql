@@ -1,9 +1,9 @@
-entity: User
+entity: Post
 schema: public
 description: null
 fields:
-  username: text!
-  email: email!
+  title: text!
+  content: text!
 actions: []
 _metadata:
   source_language: python

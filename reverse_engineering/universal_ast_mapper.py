@@ -136,28 +136,31 @@ class UniversalASTMapper:
 
     def _step_to_dict(self, step) -> dict:
         """Convert ActionStep to dict for YAML serialization"""
-        step_dict = {"type": step.type}
+        # Generate step as string in the format expected by the parser
+        if step.type == "update":
+            # Format: "Entity SET field1 = value1, field2 = value2"
+            entity = getattr(step, "entity", "")
+            fields = getattr(step, "fields", {})
+            if isinstance(fields, dict):
+                set_parts = [f"{k} = {repr(v)}" for k, v in fields.items()]
+                set_clause = ", ".join(set_parts)
+                step_value = f"{entity} SET {set_clause}"
+            else:
+                step_value = str(fields)
+        elif step.type == "call":
+            # Format: function_name() or function_name(arg1 = value1, ...)
+            function_name = getattr(step, "function_name", "")
+            arguments = getattr(step, "arguments", {})
+            if arguments:
+                args_str = ", ".join(f"{k} = {repr(v)}" for k, v in arguments.items())
+                step_value = f"{function_name}({args_str})"
+            else:
+                step_value = f"{function_name}()"
+        elif step.type == "validate":
+            # Format: expression
+            step_value = getattr(step, "expression", "")
+        else:
+            # For other types, use a simple string representation
+            step_value = str(getattr(step, "expression", ""))
 
-        # Add relevant fields based on step type
-        if hasattr(step, "expression") and step.expression:
-            step_dict["expression" if step.type == "validate" else "condition"] = step.expression
-
-        if hasattr(step, "entity") and step.entity:
-            step_dict["entity"] = step.entity
-
-        if hasattr(step, "fields") and step.fields:
-            step_dict["fields"] = step.fields
-
-        if hasattr(step, "function_name") and step.function_name:
-            step_dict["function"] = step.function_name
-
-        if hasattr(step, "arguments") and step.arguments:
-            step_dict["arguments"] = step.arguments
-
-        if hasattr(step, "then_steps") and step.then_steps:
-            step_dict["then"] = [self._step_to_dict(s) for s in step.then_steps]
-
-        if hasattr(step, "else_steps") and step.else_steps:
-            step_dict["else"] = [self._step_to_dict(s) for s in step.else_steps]
-
-        return step_dict
+        return {step.type: step_value}

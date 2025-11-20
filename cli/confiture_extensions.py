@@ -87,7 +87,7 @@ def validate(entity_files, check_impacts, verbose):
     import subprocess
     import sys
 
-    cmd = [sys.executable, "-m", "src.cli.validate"] + list(entity_files)
+    cmd = [sys.executable, "-m", "cli.validate"] + list(entity_files)
     if check_impacts:
         cmd.append("--check-impacts")
     if verbose:

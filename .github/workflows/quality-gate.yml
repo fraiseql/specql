@@ -137,3 +137,80 @@ jobs:
         fi
 
         echo "✅ All versions consistent: $VERSION_JSON"
+
+  doc-links:
+    name: Documentation Link Check
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Check internal documentation links
+      run: |
+        echo "=== Checking Documentation Links ==="
+
+        # Function to check if a file exists
+        check_link() {
+          local file=$1
+          local link=$2
+          local link_line=$3
+
+          # Skip external links (http://, https://, mailto:, etc.)
+          if [[ $link =~ ^https?:// ]] || [[ $link =~ ^mailto: ]] || [[ $link =~ ^ftp:// ]]; then
+            return 0
+          fi
+
+          # Skip anchors on current page (#section)
+          if [[ $link =~ ^# ]]; then
+            return 0
+          fi
+
+          # Remove anchor from link (file.md#section -> file.md)
+          local link_file="${link%%#*}"
+
+          # Resolve relative path
+          local dir=$(dirname "$file")
+          local target_file="$dir/$link_file"
+
+          # Normalize path (resolve .. and .)
+          target_file=$(realpath -m "$target_file" 2>/dev/null || echo "$target_file")
+
+          # Check if file exists
+          if [[ ! -f "$target_file" ]]; then
+            echo "❌ BROKEN LINK in $file:$link_line"
+            echo "   Link: $link"
+            echo "   Target: $target_file (not found)"
+            return 1
+          fi
+
+          return 0
+        }
+
+        broken_links=0
+
+        # Find all markdown files in docs/
+        while IFS= read -r file; do
+          line_num=0
+          while IFS= read -r line; do
+            ((line_num++))
+
+            # Extract markdown links: [text](link)
+            while [[ $line =~ \[([^\]]+)\]\(([^\)]+)\) ]]; do
+              link="${BASH_REMATCH[2]}"
+
+              if ! check_link "$file" "$link" "$line_num"; then
+                ((broken_links++))
+              fi
+
+              # Remove matched part to find next link
+              line="${line#*\[*\]\(*\)}"
+            done
+          done < "$file"
+        done < <(find docs -name "*.md" -type f)
+
+        echo ""
+        if [ $broken_links -eq 0 ]; then
+          echo "✅ All documentation links are valid!"
+        else
+          echo "❌ Found $broken_links broken link(s)"
+          exit 1
+        fi
