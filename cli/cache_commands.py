@@ -2,7 +2,7 @@ from datetime import datetime
 
 import click
 
-from .cache_manager import CacheManager
+from cli.cache_manager import CacheManager
 
 
 @click.group()

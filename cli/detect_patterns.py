@@ -4,8 +4,7 @@ import click
 
 from reverse_engineering.universal_pattern_detector import UniversalPatternDetector
 from infrastructure.pattern_detector import PatternDetector
-
-from .language_detector import LanguageDetector
+from cli.language_detector import LanguageDetector
 
 
 @click.command("detect-patterns")

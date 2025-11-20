@@ -77,3 +77,20 @@ class TestValidationSteps:
         # Expected: Subquery in validation
         assert "IF NOT (NOT EXISTS (SELECT 1 FROM crm.tb_contact" in sql
         assert "WHERE email = p_email" in sql
+
+    def test_complex_validation_edge_case(self, compiler, contact_entity):
+        """Test: Compile complex validation with multiple conditions (edge case)"""
+        step = ActionStep(
+            type="validate",
+            expression="(status = 'lead' AND email IS NOT NULL) OR (status = 'qualified' AND company IS NOT NULL)",
+            error="complex_validation_failed",
+        )
+
+        sql = compiler.compile(step, contact_entity)
+
+        # Expected: Complex boolean logic preserved
+        assert (
+            "IF NOT ((p_status = 'lead' AND p_email IS NOT NULL) OR (p_status = 'qualified' AND p_company IS NOT NULL)) THEN"
+            in sql
+        )
+        assert "'complex_validation_failed'" in sql

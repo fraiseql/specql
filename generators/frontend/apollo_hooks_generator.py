@@ -9,7 +9,7 @@ Output: hooks.ts
 
 from pathlib import Path
 
-from core.ast_models import Action, Entity
+from core.ast_models import Action, Entity, FieldTier
 
 
 class ApolloHooksGenerator:
@@ -47,7 +47,7 @@ class ApolloHooksGenerator:
 
         # Generate hooks for each entity
         for entity in entities:
-            self._generate_entity_hooks(entity)
+            self._generate_entity_hooks(entity, entities)
 
         # Write to file
         output_file = self.output_dir / "hooks.ts"
@@ -82,7 +82,7 @@ export type {
 """
         self.hooks.append(header)
 
-    def _generate_entity_hooks(self, entity: Entity) -> None:
+    def _generate_entity_hooks(self, entity: Entity, all_entities: list[Entity]) -> None:
         """
         Generate hooks for a single entity.
 
@@ -99,7 +99,7 @@ export type {
 
         # Generate mutation hooks
         for action in entity.actions:
-            self._generate_mutation_hook(entity, action)
+            self._generate_mutation_hook(entity, action, all_entities)
 
         self.hooks.append("")
 
@@ -156,7 +156,9 @@ export const useGet{entity_name}s = (filter?: {entity_name}Filter, pagination?: 
         self.hooks.append(get_one_query)
         self.hooks.append(list_query)
 
-    def _generate_mutation_hook(self, entity: Entity, action: Action) -> None:
+    def _generate_mutation_hook(
+        self, entity: Entity, action: Action, all_entities: list[Entity]
+    ) -> None:
         """
         Generate a mutation hook for a specific action.
 
@@ -172,7 +174,7 @@ export const useGet{entity_name}s = (filter?: {entity_name}Filter, pagination?: 
         mutation_gql = self._build_mutation_gql(entity, action)
 
         # Build cache update logic
-        cache_update = self._build_cache_update_logic(entity, action)
+        cache_update = self._build_cache_update_logic(entity, action, all_entities)
 
         # Build optimistic response
         optimistic_response = self._build_optimistic_response(entity, action)
@@ -270,7 +272,7 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
 
     def _build_entity_fields_fragment(self, entity: Entity, indent: int = 6) -> str:
         """
-        Build a GraphQL fragment for entity fields.
+        Build a GraphQL fragment for entity fields with basic reference handling.
 
         Args:
             entity: The entity
@@ -282,18 +284,40 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
         indent_str = " " * indent
         fields = []
 
-        for field_name in entity.fields.keys():
-            fields.append(f"{indent_str}{field_name}")
+        for field_name, field_def in entity.fields.items():
+            if field_def.tier == FieldTier.REFERENCE and field_def.reference_entity:
+                # For reference fields, include basic nested selection
+                # To prevent deep nesting, only include id and one identifying field
+                fields.append(f"{indent_str}{field_name} {{")
+                fields.append(f"{indent_str}  id")
+
+                # Add one identifying field if available
+                identifying_fields = ["username", "name", "title", "email"]
+                for id_field in identifying_fields:
+                    if any(
+                        f.name == id_field
+                        for f in entity.fields.values()
+                        if f.tier != FieldTier.REFERENCE
+                    ):
+                        fields.append(f"{indent_str}  {id_field}")
+                        break
+
+                fields.append(f"{indent_str}}}")
+            else:
+                fields.append(f"{indent_str}{field_name}")
 
         return "\n".join(fields)
 
-    def _build_cache_update_logic(self, entity: Entity, action: Action) -> str:
+    def _build_cache_update_logic(
+        self, entity: Entity, action: Action, all_entities: list[Entity] | None = None
+    ) -> str:
         """
-        Build cache update logic for Apollo Client.
+        Build cache update logic for Apollo Client with support for related entities.
 
         Args:
             entity: The entity
             action: The action
+            all_entities: All entities in the system for relationship resolution
 
         Returns:
             Cache update configuration string
@@ -302,43 +326,154 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
         action_name = action.name
 
         if action_name.startswith("create_"):
-            # Add to list cache
-            return f"""update: (cache, {{ data }}) => {{
-        if (data?.{self._to_camel_case(action_name)}?.success && data.{self._to_camel_case(action_name)}.data?.{entity_name.lower()}) {{
-          const newItem = data.{self._to_camel_case(action_name)}.data.{entity_name.lower()};
+            # Add to list cache and update related entities
+            cache_updates = []
 
-          // Update list queries
+            # Update list queries for this entity
+            cache_updates.append(f"""          // Update list queries for {entity_name}
           cache.modify({{
             fields: {{
               {entity_name.lower()}s(existing = [], {{ readField }}) {{
                 return [newItem, ...existing];
               }},
             }},
-          }});
+          }});""")
+
+            # Update entities that reference this entity (reverse relationships)
+            if all_entities:
+                for other_entity in all_entities:
+                    if other_entity.name != entity_name:
+                        for field_name, field_def in other_entity.fields.items():
+                            if (
+                                field_def.tier == FieldTier.REFERENCE
+                                and field_def.reference_entity == entity_name
+                            ):
+                                # This entity references our entity
+                                ref_entity_lower = other_entity.name.lower()
+                                cache_updates.append(f"""
+          // Update {other_entity.name} entities that reference this {entity_name}
+          // Note: This is a simplified approach - in practice, you'd need the referencing entity's ID
+          cache.modify({{
+            fields: {{
+              {ref_entity_lower}s(existing = [], {{ readField }}) {{
+                // Update any {other_entity.name} that references the new {entity_name}
+                return existing.map(item => {{
+                  if (readField('{field_name}', item)?.id === newItem.id) {{
+                    return {{
+                      ...item,
+                      {field_name}: newItem,
+                    }};
+                  }}
+                  return item;
+                }});
+              }},
+            }},
+          }});""")
+
+            return f"""update: (cache, {{ data }}) => {{
+        if (data?.{self._to_camel_case(action_name)}?.success && data.{self._to_camel_case(action_name)}.data?.{entity_name.lower()}) {{
+          const newItem = data.{self._to_camel_case(action_name)}.data.{entity_name.lower()};
+{"".join(cache_updates)}
         }}
       }},"""
         elif action_name.startswith("update_"):
-            # Update existing item in cache
+            # Update existing item in cache and handle relationships
+            cache_updates = []
+
+            # Update the specific item
+            cache_updates.append("""          // Update the specific item
+          cache.modify({
+            id: cache.identify(updatedItem),
+            fields: (existing) => ({
+              ...existing,
+              ...updatedItem,
+            }),
+          });""")
+
+            # Update entities that reference this entity
+            if all_entities:
+                for other_entity in all_entities:
+                    if other_entity.name != entity_name:
+                        for field_name, field_def in other_entity.fields.items():
+                            if (
+                                field_def.tier == FieldTier.REFERENCE
+                                and field_def.reference_entity == entity_name
+                            ):
+                                ref_entity_lower = other_entity.name.lower()
+                                cache_updates.append(f"""
+          // Update {other_entity.name} entities that reference this updated {entity_name}
+          cache.modify({{
+            fields: {{
+              {ref_entity_lower}s(existing = [], {{ readField }}) {{
+                return existing.map(item => {{
+                  if (readField('{field_name}', item)?.id === updatedItem.id) {{
+                    return {{
+                      ...item,
+                      {field_name}: updatedItem,
+                    }};
+                  }}
+                  return item;
+                }});
+              }},
+            }},
+          }});""")
+
             return f"""update: (cache, {{ data }}) => {{
         if (data?.{self._to_camel_case(action_name)}?.success && data.{self._to_camel_case(action_name)}.data?.{entity_name.lower()}) {{
           const updatedItem = data.{self._to_camel_case(action_name)}.data.{entity_name.lower()};
-
-          // Update the specific item
-          cache.modify({{
-            id: cache.identify(updatedItem),
-            fields: (existing) => ({{
-              ...existing,
-              ...updatedItem,
-            }}),
-          }});
+{"".join(cache_updates)}
         }}
       }},"""
         elif action_name.startswith("delete_"):
-            # Remove from cache
+            # Remove from cache and update related entities
+            cache_updates = []
+
+            # Remove from list queries
+            cache_updates.append(f"""          // Remove from list queries
+          cache.modify({{
+            fields: {{
+              {entity_name.lower()}s(existing = [], {{ readField }}) {{
+                return existing.filter(item => readField('id', item) !== variables?.input?.id);
+              }},
+            }},
+          }});""")
+
+            # Update entities that reference this entity (set references to null)
+            if all_entities:
+                for other_entity in all_entities:
+                    if other_entity.name != entity_name:
+                        for field_name, field_def in other_entity.fields.items():
+                            if (
+                                field_def.tier == FieldTier.REFERENCE
+                                and field_def.reference_entity == entity_name
+                            ):
+                                ref_entity_lower = other_entity.name.lower()
+                                cache_updates.append(f"""
+          // Update {other_entity.name} entities that referenced the deleted {entity_name}
+          cache.modify({{
+            fields: {{
+              {ref_entity_lower}s(existing = [], {{ readField }}) {{
+                return existing.map(item => {{
+                  if (readField('{field_name}', item)?.id === variables.input.id) {{
+                    return {{
+                      ...item,
+                      {field_name}: null,
+                    }};
+                  }}
+                  return item;
+                }});
+              }},
+            }},
+          }});""")
+
+            # Evict the deleted item
+            cache_updates.append(f"""          // Evict the deleted item
+          cache.evict({{ id: `UUID:${{variables.input.id}}` }});
+          cache.gc();""")
+
             return f"""update: (cache, {{ data, variables }}) => {{
         if (data?.{self._to_camel_case(action_name)}?.success && variables?.input?.id) {{
-          cache.evict({{ id: `UUID:${{variables.input.id}}` }});
-          cache.gc();
+{"".join(cache_updates)}
         }}
       }},"""
         else:

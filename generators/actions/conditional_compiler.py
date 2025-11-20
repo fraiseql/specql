@@ -13,6 +13,12 @@ from utils.safe_slug import safe_slug, safe_table_name
 class ConditionalCompiler:
     """Compiles conditional logic (if/then/else, switch) to PL/pgSQL"""
 
+    step_compiler_registry: dict | None = None
+
+    def __post_init__(self):
+        if self.step_compiler_registry is None:
+            self.step_compiler_registry = {}
+
     def compile(self, step: ActionStep, entity: Entity) -> str:
         """Compile conditional step"""
         if step.type == "if":
@@ -130,13 +136,17 @@ class ConditionalCompiler:
 
     def _compile_steps(self, steps: list[ActionStep], entity: Entity) -> str:
         """Compile list of steps (recursive)"""
-        # For now, return a simple placeholder - will be enhanced when integrated
         if not steps:
             return "-- No steps"
 
         compiled = []
         for step in steps:
-            if step.type == "update":
+            if self.step_compiler_registry and step.type in self.step_compiler_registry:
+                # Use registered compiler for this step type
+                compiler = self.step_compiler_registry[step.type]
+                compiled_sql = compiler.compile(step, entity)
+                compiled.append(compiled_sql)
+            elif step.type == "update":
                 # Simple update compilation for testing
                 table_name = f"{entity.schema}.{safe_table_name(entity.name)}"
                 pk_column = f"pk_{safe_slug(entity.name)}"

@@ -93,6 +93,102 @@ def create_contact_entity_with_custom_action():
     )
 
 
+def create_complex_action_entity():
+    """Create an entity with complex action logic (edge case)"""
+    return Entity(
+        name="Contact",
+        schema="crm",
+        description="Test contact entity with complex action",
+        fields={
+            "email": FieldDefinition(name="email", type_name="text", nullable=False),
+            "status": FieldDefinition(
+                name="status",
+                type_name="enum",
+                values=["lead", "qualified", "customer"],
+                nullable=False,
+            ),
+            "lead_score": FieldDefinition(name="lead_score", type_name="integer"),
+            "company": FieldDefinition(name="company", type_name="ref", reference_entity="Company"),
+        },
+        actions=[
+            Action(
+                name="complex_lead_processing",
+                steps=[
+                    # Complex validation with multiple conditions
+                    ActionStep(
+                        type="validate",
+                        expression="(status = 'lead' AND email IS NOT NULL) OR status = 'qualified'",
+                        error="invalid_lead_status",
+                    ),
+                    # Nested conditional logic
+                    ActionStep(
+                        type="if",
+                        condition="lead_score >= 80",
+                        then_steps=[
+                            ActionStep(
+                                type="update", entity="Contact", fields={"status": "hot_lead"}
+                            ),
+                            ActionStep(
+                                type="call",
+                                expression="app.emit_event('hot_lead_identified', v_contact_id)",
+                            ),
+                            # Nested conditional within success path
+                            ActionStep(
+                                type="if",
+                                condition="company IS NOT NULL",
+                                then_steps=[
+                                    ActionStep(
+                                        type="call",
+                                        expression="app.schedule_follow_up(v_contact_id, 'premium')",
+                                    )
+                                ],
+                                else_steps=[
+                                    ActionStep(
+                                        type="call",
+                                        expression="app.schedule_follow_up(v_contact_id, 'standard')",
+                                    )
+                                ],
+                            ),
+                        ],
+                        else_steps=[
+                            ActionStep(
+                                type="if",
+                                condition="lead_score >= 50",
+                                then_steps=[
+                                    ActionStep(
+                                        type="update",
+                                        entity="Contact",
+                                        fields={"status": "warm_lead"},
+                                    ),
+                                    ActionStep(
+                                        type="call",
+                                        expression="app.emit_event('warm_lead_identified', v_contact_id)",
+                                    ),
+                                ],
+                                else_steps=[
+                                    ActionStep(
+                                        type="update",
+                                        entity="Contact",
+                                        fields={"status": "cold_lead"},
+                                    ),
+                                    ActionStep(
+                                        type="call",
+                                        expression="app.emit_event('cold_lead_identified', v_contact_id)",
+                                    ),
+                                ],
+                            )
+                        ],
+                    ),
+                    # Final side effect
+                    ActionStep(
+                        type="call", expression="app.log_lead_processing_complete(v_contact_id)"
+                    ),
+                ],
+            ),
+        ],
+    )
+
+
 @pytest.fixture
 def test_db():
     """PostgreSQL test database connection"""
@@ -494,3 +590,71 @@ def test_custom_action_database_execution(test_db, function_generator, core_logi
     )
     contact = cursor.fetchone()
     assert contact[0] == "qualified"
+
+
+def test_complex_action_edge_case_database_execution(test_db, function_generator):
+    """Test complex action with nested conditionals and multiple side effects (edge case)"""
+
+    unique_id = str(uuid.uuid4())[:8]
+    email = f"complex_{unique_id}@example.com"
+
+    # Given: Entity with complex lead processing action
+    entity = create_complex_action_entity()
+
+    # When: Generate and apply schema/functions
+    orchestrator = SchemaOrchestrator()
+    schema_sql = orchestrator.generate_complete_schema(entity)
+
+    function_sql = function_generator.generate_action_functions(entity)
+
+    cursor = test_db.cursor()
+    try:
+        # Create the crm schema first
+        cursor.execute("CREATE SCHEMA IF NOT EXISTS crm;")
+        # Clean any existing test data
+        cursor.execute("DROP TABLE IF EXISTS crm.tb_contact CASCADE;")
+        test_db.commit()
+
+        # Execute schema SQL
+        cursor.execute(schema_sql)
+        test_db.commit()
+
+        # Execute function SQL
+        cursor.execute(function_sql)
+        test_db.commit()
+    except Exception as e:
+        test_db.rollback()
+        raise Exception(f"SQL execution failed: {e}")
+
+    # When: Create contact first
+    cursor = test_db.cursor()
+    cursor.execute(
+        "SELECT * FROM app.create_contact(%s, %s, %s)",
+        [
+            TEST_TENANT_ID,
+            TEST_USER_ID,
+            json.dumps({"email": email, "status": "lead", "lead_score": 85}),
+        ],
+    )
+    result = cursor.fetchone()
+    contact_id = result[0]
+
+    # When: Execute complex lead processing action
+    cursor = test_db.cursor()
+    cursor.execute(
+        "SELECT * FROM crm.complex_lead_processing(%s, %s, %s, %s)",
+        [contact_id, TEST_TENANT_ID, TEST_USER_ID, json.dumps({})],
+    )
+    result = cursor.fetchone()
+
+    # Then: Complex action successful
+    assert result[2] == "success"  # status
+
+    # Then: Contact status updated based on lead score (>= 80 → hot_lead)
+    cursor = test_db.cursor()
+    cursor.execute(
+        "SELECT status FROM crm.tb_contact WHERE id = %s",
+        (contact_id,),
+    )
+    contact = cursor.fetchone()
+    assert contact[0] == "hot_lead"

@@ -4,9 +4,9 @@ from pathlib import Path
 
 import click
 
-from ..reverse_engineering.rust_parser import RustParser
-from ..reverse_engineering.universal_ast_mapper import UniversalASTMapper
-from .reverse_common import ReverseEngineeringCLI
+from reverse_engineering.rust_parser import RustParser
+from reverse_engineering.universal_ast_mapper import UniversalASTMapper
+from cli.reverse_common import ReverseEngineeringCLI
 
 
 @click.command("rust")

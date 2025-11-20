@@ -39,12 +39,33 @@ fields:
 
 actions:
   - name: create
-    type: create
     description: "Create a new contact"
+    parameters:
+      email:
+        type: text
+        required: true
+      first_name:
+        type: text
+        required: true
+      last_name:
+        type: text
+    steps:
+      - insert: |
+          crm.tb_contact
+          SET email = p_email, first_name = p_first_name, last_name = p_last_name
+        returning: contact
 
   - name: update
-    type: update
     description: "Update contact information"
+    parameters:
+      contact_id:
+        type: uuid
+        required: true
+      phone:
+        type: text
+    steps:
+      - update: crm.tb_contact SET phone = p_phone WHERE id = p_contact_id
+        returning: contact
 """
 
 

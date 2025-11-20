@@ -15,7 +15,11 @@ class TestConditionalLogic:
     @pytest.fixture
     def compiler(self):
         """Create conditional compiler instance"""
-        return ConditionalCompiler()
+        compiler = ConditionalCompiler()
+        compiler.step_compiler_registry = {
+            "if": compiler
+        }  # Self-reference for recursive compilation
+        return compiler
 
     @pytest.fixture
     def contact_entity(self):
@@ -81,3 +85,44 @@ class TestConditionalLogic:
         assert "WHEN 'Product' THEN" in sql
         assert "WHEN 'ContractItem' THEN" in sql
         assert "END CASE;" in sql
+
+    def test_nested_conditionals_edge_case(self, compiler, contact_entity):
+        """Test: Compile deeply nested conditionals (edge case)"""
+        # Create a deeply nested conditional structure
+        step = ActionStep(
+            type="if",
+            condition="status = 'lead'",
+            then_steps=[
+                ActionStep(
+                    type="if",
+                    condition="lead_score >= 80",
+                    then_steps=[
+                        ActionStep(
+                            type="if",
+                            condition="source_type = 'premium'",
+                            then_steps=[ActionStep(type="update", fields={"status": "hot_lead"})],
+                            else_steps=[ActionStep(type="update", fields={"status": "qualified"})],
+                        )
+                    ],
+                    else_steps=[
+                        ActionStep(
+                            type="if",
+                            condition="lead_score >= 50",
+                            then_steps=[ActionStep(type="update", fields={"status": "warm_lead"})],
+                            else_steps=[ActionStep(type="update", fields={"status": "cold_lead"})],
+                        )
+                    ],
+                )
+            ],
+            else_steps=[ActionStep(type="update", fields={"status": "inactive"})],
+        )
+
+        sql = compiler.compile(step, contact_entity)
+
+        # Verify the nested structure is compiled correctly
+        assert "IF (v_status = 'lead') THEN" in sql
+        assert "IF (v_lead_score >= 80) THEN" in sql
+        assert "IF (v_source_type = 'premium') THEN" in sql
+        assert "IF (v_lead_score >= 50) THEN" in sql  # Separate IF in else branch
+        assert "ELSE" in sql  # For the outer else
+        assert sql.count("END IF;") == 4  # Four nested IF statements

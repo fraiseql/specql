@@ -1,6 +1,6 @@
 -- ============================================================================
 -- Mutation: create
--- Entity: Contact
+-- Entity: Task
 -- Pattern: App Wrapper + Core Logic + FraiseQL Metadata
 -- ============================================================================
 
@@ -46,7 +46,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION app.create IS
-'Performs create operation on Contact.
+'Performs create operation on Task.
 Validates input and delegates to core business logic.
 
 @fraiseql:mutation
@@ -56,58 +56,56 @@ success_type: CreateSuccess
 failure_type: CreateError';
 
 -- ============================================================================
--- CORE LOGIC: crm.create_contact
+-- CORE LOGIC: crm.create_task
 -- Business Rules & Data Manipulation
 -- ============================================================================
-CREATE OR REPLACE FUNCTION crm.create_contact(
+CREATE OR REPLACE FUNCTION crm.create_task(
     auth_tenant_id UUID,
-    input_data app.type_create_contact_input,
+    input_data app.type_create_task_input,
     input_payload JSONB,
     auth_user_id UUID
 ) RETURNS app.mutation_result
 LANGUAGE plpgsql
 AS $$
 DECLARE
-    v_contact_id UUID := gen_random_uuid();
-    v_contact_pk INTEGER;
+    v_task_id UUID := gen_random_uuid();
+    v_task_pk INTEGER;
 BEGIN
     -- === VALIDATION ===
 
     -- === UUID → INTEGER RESOLUTION (Trinity Helpers) ===
 
     -- === BUSINESS LOGIC: INSERT ===
-    INSERT INTO crm.tb_contact (
+    INSERT INTO crm.tb_task (
         id,
         tenant_id,
-        email,
-        first_name,
-        last_name,
-        phone,
+        title,
+        description,
+        priority,
         created_at,
         created_by
     ) VALUES (
-        v_contact_id,
+        v_task_id,
         auth_tenant_id,
-        input_data.email,
-        input_data.first_name,
-        input_data.last_name,
-        input_data.phone,
+        input_data.title,
+        input_data.description,
+        input_data.priority,
         now(),
         auth_user_id
     )
-    RETURNING pk_contact INTO v_contact_pk;
+    RETURNING pk_task INTO v_task_pk;
 
     -- === AUDIT & RETURN ===
     RETURN app.log_and_return_mutation(
         auth_tenant_id,
         auth_user_id,
-        'contact',
-        v_contact_id,
+        'task',
+        v_task_id,
         'INSERT',
         'success',
         ARRAY(SELECT jsonb_object_keys(input_payload)),
-        'Contact created successfully',
-        (SELECT row_to_json(t.*) FROM crm.tb_contact t WHERE t.id = v_contact_id)::JSONB,
+        'Task created successfully',
+        (SELECT row_to_json(t.*) FROM crm.tb_task t WHERE t.id = v_task_id)::JSONB,
         NULL
     );
 END;
@@ -122,7 +120,7 @@ Validation:
 
 Operations:
 - Trinity FK resolution (UUID → INTEGER)
-- OPERATION operation on crm.tb_contact
+- OPERATION operation on crm.tb_task
 - Audit logging via app.log_and_return_mutation
 
 Called by: app.create (GraphQL mutation)

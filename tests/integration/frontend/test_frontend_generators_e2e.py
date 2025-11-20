@@ -288,7 +288,11 @@ class TestFrontendGeneratorsE2E:
                 "id": FieldDefinition(name="id", type_name="uuid", nullable=False),
                 "username": FieldDefinition(name="username", type_name="text", nullable=False),
                 "profile": FieldDefinition(
-                    name="profile", type_name="ref", nullable=True, reference_entity="UserProfile"
+                    name="profile",
+                    type_name="ref",
+                    nullable=True,
+                    reference_entity="UserProfile",
+                    tier=FieldTier.REFERENCE,
                 ),
             },
             actions=[
@@ -307,7 +311,11 @@ class TestFrontendGeneratorsE2E:
             fields={
                 "id": FieldDefinition(name="id", type_name="uuid", nullable=False),
                 "user": FieldDefinition(
-                    name="user", type_name="ref", nullable=False, reference_entity="User"
+                    name="user",
+                    type_name="ref",
+                    nullable=False,
+                    reference_entity="User",
+                    tier=FieldTier.REFERENCE,
                 ),
                 "bio": FieldDefinition(name="bio", type_name="text", nullable=True),
             },

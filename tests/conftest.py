@@ -114,7 +114,7 @@ description: Lightweight contact for testing
 fields:
   email: email
   name: text
-  company_id: uuid
+  company: ref(Company)
 actions:
   - name: create_contact
     steps:

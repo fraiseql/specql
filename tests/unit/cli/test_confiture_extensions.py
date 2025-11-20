@@ -187,7 +187,7 @@ class TestValidateCommand:
             # Should call subprocess
             assert mock_run.called
             call_args = mock_run.call_args[0][0]
-            assert "src.cli.validate" in call_args
+            assert "cli.validate" in call_args
 
     def test_validate_multiple_files(self, cli_runner, multiple_entity_files):
         """Test validation with multiple entity files."""
