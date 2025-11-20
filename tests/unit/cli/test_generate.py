@@ -90,9 +90,13 @@ class TestGenerateCLI:
         assert "--foundation-only" in result.output
         assert "--include-tv" in result.output
 
-    def test_entities_foundation_only(self, cli_runner, temp_dir):
+    def test_entities_foundation_only(self, cli_runner, temp_dir, sample_entity_yaml):
         """Test foundation-only generation."""
         output_dir = temp_dir / "migrations"
+
+        # Create a lightweight entity file
+        entity_file = temp_dir / "contact.yaml"
+        entity_file.write_text(sample_entity_yaml)
 
         # CLI now requires entity files even for foundation-only
         result = cli_runner.invoke(
@@ -102,7 +106,7 @@ class TestGenerateCLI:
                 "--foundation-only",
                 "--output-dir",
                 str(output_dir),
-                "entities/examples/contact_lightweight.yaml",
+                str(entity_file),
             ],
         )
 
@@ -335,15 +339,13 @@ fields:
         output_dir = temp_dir / "migrations"
         frontend_dir = temp_dir / "frontend"
 
-        # Patch the lazy imports
+        # Patch the frontend module imports before they're loaded
         with (
             patch("core.specql_parser.SpecQLParser") as mock_parser_cls,
-            patch(
-                "generators.frontend.mutation_impacts_generator.MutationImpactsGenerator"
-            ) as mock_impacts_gen,
-            patch("generators.frontend.typescript_types_generator.TypeScriptTypesGenerator"),
-            patch("generators.frontend.apollo_hooks_generator.ApolloHooksGenerator"),
-            patch("generators.frontend.mutation_docs_generator.MutationDocsGenerator"),
+            patch("generators.frontend.MutationImpactsGenerator") as mock_impacts_gen,
+            patch("generators.frontend.TypeScriptTypesGenerator"),
+            patch("generators.frontend.ApolloHooksGenerator"),
+            patch("generators.frontend.MutationDocsGenerator"),
         ):
             # Setup mocks
             mock_parser = Mock()

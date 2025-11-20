@@ -22,7 +22,7 @@ class GCPSecurityGenerator:
     def __init__(self, template_dir: Path | None = None):
         if template_dir is None:
             template_dir = (
-                Path(__file__).parent.parent.parent.parent / "templates" / "infrastructure"
+                Path(__file__).parent.parent.parent / "templates" / "infrastructure"
             )
 
         self.env = Environment(loader=FileSystemLoader(str(template_dir)))

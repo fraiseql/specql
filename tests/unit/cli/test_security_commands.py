@@ -214,7 +214,7 @@ security:
             assert "Differences found" in result.output
             assert "Added network tier: api" in result.output
 
-    @patch("src.infrastructure.generators.aws_security_generator.AWSSecurityGenerator")
+    @patch("infrastructure.generators.aws_security_generator.AWSSecurityGenerator")
     def test_generate_infra_command_aws(self, mock_generator_class):
         """Test generate-infra command for AWS"""
         from cli.confiture_extensions import generate_infra
