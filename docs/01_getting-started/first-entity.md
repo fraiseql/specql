@@ -380,8 +380,8 @@ specql generate entities/*.yaml --output generated/
 
 ### Guides
 
-- **[Relationships](relationships.md)** - Foreign keys and joins
-- **[Multi-Tenancy](multi-tenancy.md)** - SaaS applications
+- **[Relationships](../05_guides/relationships.md)** - Foreign keys and joins
+- **[Multi-Tenancy](../05_guides/multi-tenancy.md)** - SaaS applications
 - **[Validation](validation.md)** - Business rules
 
 ### Reference

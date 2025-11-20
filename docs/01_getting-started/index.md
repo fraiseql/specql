@@ -195,18 +195,18 @@ You now have a production-ready backend with:
 ## Next Steps
 
 ### Add More Entities
-- [Create an Organization entity](your-first-entity.md)
-- [Link entities with relationships](relationships.md)
+- [Create an Organization entity](first-entity.md)
+- [Link entities with relationships](../05_guides/relationships.md)
 
 ### Go Production
 - [Deploy to production](production-deploy.md)
-- [Add multi-tenancy](multi-tenancy.md)
-- [Set up authentication](security.md)
+- [Add multi-tenancy](../05_guides/multi-tenancy.md)
+- [Set up authentication](../07_advanced/security-hardening.md)
 
 ### Explore Advanced Features
-- [Use stdlib entities](02_stdlib/)
-- [Reverse engineer existing code](02_migration/)
-- [Customize with patterns](07_advanced/)
+- [Use stdlib entities](../04_stdlib/index.md)
+- [Reverse engineer existing code](../02_migration/index.md)
+- [Advanced topics](../07_advanced/custom-patterns.md)
 
 ## Need Help?
 
