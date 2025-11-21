@@ -179,15 +179,6 @@ class TableGenerator:
                 "foreign_keys": foreign_keys,
                 "constraints": table_constraints,
                 "multi_tenant": is_tenant_specific,
-                "translations": {
-                    "enabled": entity.translations.enabled if entity.translations else False,
-                    "table_name": (
-                        entity.translations.table_name
-                        if entity.translations and entity.translations.table_name
-                        else f"tl_{entity.name.lower()}"  # Default to tl_ prefix
-                    ),
-                    "fields": entity.translations.fields if entity.translations else [],
-                },
                 "patterns": pattern_extensions,
             }
         }

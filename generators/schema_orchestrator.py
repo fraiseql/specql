@@ -20,6 +20,8 @@ from generators.schema.table_view_generator import TableViewGenerator
 from generators.schema.transformers.aggregate_view_transformer import AggregateViewTransformer
 from generators.schema.transformers.computed_column_transformer import ComputedColumnTransformer
 from generators.schema.transformers.scd_type2_transformer import SCDType2Transformer
+from generators.schema.translation_helper_generator import TranslationHelperGenerator
+from generators.schema.translation_table_generator import TranslationTableGenerator
 from generators.table_generator import TableGenerator
 from generators.trinity_helper_generator import TrinityHelperGenerator
 from utils.logger import LogContext, get_team_logger
@@ -75,6 +77,10 @@ class SchemaOrchestrator:
         self.helper_gen = TrinityHelperGenerator(schema_registry)
         self.core_gen = CoreLogicGenerator(schema_registry)
 
+        # Translation generators
+        self.translation_table_gen = TranslationTableGenerator(naming_conventions)
+        self.translation_helper_gen = TranslationHelperGenerator()
+
         # Pattern transformers
         self.pattern_transformers = PatternTransformerRegistry()
         self.pattern_transformers.register(ComputedColumnTransformer())
@@ -129,6 +135,10 @@ class SchemaOrchestrator:
         logger.debug("Generating entity table DDL")
         table_sql = self.table_gen.generate_table_ddl(entity)
         parts.append("-- Entity Table\n" + table_sql)
+
+        # 4.5. Translation components (table + helpers)
+        translation_components = self._generate_translation_components(entity)
+        parts.extend(translation_components)
 
         # 5. Input types for actions
         if entity.actions:
@@ -210,10 +220,77 @@ class SchemaOrchestrator:
         helpers = self.helper_gen.generate_all_helpers(entity)
         parts.append("-- Trinity Helper Functions\n" + helpers)
 
+        # 13. Translation helper functions are now included in _generate_translation_components()
+
         logger.info(
             f"Successfully generated complete schema for '{entity.name}' ({len(parts)} components)"
         )
         return "\n\n".join(parts)
+
+    def _generate_translation_components(self, entity: Entity) -> list[str]:
+        """
+        Generate translation-related DDL components.
+
+        Returns a list of DDL strings for translation table and helper functions.
+        Returns empty list if translations are not enabled.
+
+        Args:
+            entity: Entity to generate translation components for
+
+        Returns:
+            List of DDL component strings (may be empty)
+        """
+        context = LogContext(
+            entity_name=entity.name, schema=entity.schema, operation="generate_translations"
+        )
+        logger = get_team_logger("Schema", __name__, context)
+
+        components = []
+
+        # Check if translations are enabled
+        if (
+            not hasattr(entity, "translations")
+            or not entity.translations
+            or not entity.translations.enabled
+        ):
+            logger.debug(
+                f"Translations not enabled: hasattr={hasattr(entity, 'translations')}, "
+                f"translations={getattr(entity, 'translations', None)}"
+            )
+            return components
+
+        logger.info(
+            f"Generating translation components for {len(entity.translations.fields)} translatable fields"
+        )
+
+        # Generate translation table
+        try:
+            logger.debug("Generating translation table DDL")
+            translation_table_sql = self.translation_table_gen.generate(entity)
+            if translation_table_sql:
+                components.append("-- Translation Table\n" + translation_table_sql)
+                logger.debug("Translation table DDL generated successfully")
+            else:
+                logger.warning("Translation table generator returned empty string")
+        except Exception as e:
+            logger.error(f"Failed to generate translation table: {e}")
+            raise
+
+        # Generate translation helper functions
+        try:
+            logger.debug("Generating translation helper functions")
+            translation_helpers = self.translation_helper_gen.generate(entity)
+            if translation_helpers:
+                components.append("-- Translation Helper Functions\n" + translation_helpers)
+                logger.debug("Translation helper functions generated successfully")
+            else:
+                logger.warning("Translation helper generator returned empty string")
+        except Exception as e:
+            logger.error(f"Failed to generate translation helpers: {e}")
+            raise
+
+        logger.info(f"Generated {len(components)} translation components")
+        return components
 
     def generate_split_schema(self, entity: Entity) -> SchemaOutput:
         """

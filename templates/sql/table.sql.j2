@@ -224,27 +224,4 @@ COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.updated_by IS
 COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.deleted_at IS 'Timestamp of soft deletion.';
 COMMENT ON COLUMN {{ entity.schema }}.tb_{{ entity.name | lower }}.deleted_by IS 'User or system who deleted the record.';
 
-{%- if entity.translations.enabled %}
-
--- ============================================================================
--- Translation Table: {{ entity.schema }}.{{ entity.translations.table_name }}
--- ============================================================================
-CREATE TABLE {{ entity.schema }}.{{ entity.translations.table_name }} (
-    fk_{{ entity.name | lower }} INTEGER NOT NULL
-        REFERENCES {{ entity.schema }}.tb_{{ entity.name | lower }}(pk_{{ entity.name | lower }}) ON DELETE CASCADE,
-    locale TEXT NOT NULL
-        REFERENCES tb_locale(code) ON DELETE CASCADE,
-{%- for field in entity.translations.fields %}
-    {{ field }} TEXT,
-{%- endfor %}
-    PRIMARY KEY (fk_{{ entity.name }}, locale)
-);
-
--- Documentation
-COMMENT ON TABLE {{ entity.schema }}.{{ entity.translations.table_name }} IS 'Provides localized translations for {{ entity.name }}.';
-COMMENT ON COLUMN {{ entity.schema }}.{{ entity.translations.table_name }}.fk_{{ entity.name | lower }} IS 'Reference to the {{ entity.name }}.';
-COMMENT ON COLUMN {{ entity.schema }}.{{ entity.translations.table_name }}.locale IS 'Locale code (e.g., "fr-FR", "en-US").';
-{%- for field in entity.translations.fields %}
-COMMENT ON COLUMN {{ entity.schema }}.{{ entity.translations.table_name }}.{{ field }} IS 'Localized {{ field }} for the {{ entity.name }}.';
-{%- endfor %}
-{%- endif %}
+{# Translation tables are now generated separately by TranslationTableGenerator #}

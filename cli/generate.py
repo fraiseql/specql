@@ -61,6 +61,7 @@ def convert_entity_definition_to_entity(entity_def: EntityDefinition) -> Entity:
         agents=entity_def.agents,
         patterns=entity_def.patterns,
         organization=entity_def.organization,
+        translations=entity_def.translations,
     )
 
     return entity

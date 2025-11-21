@@ -5,6 +5,7 @@ Tests SpecQL YAML parsing into Entity AST
 
 import pytest
 
+from core.exceptions import SpecQLValidationError
 from core.specql_parser import ParseError, SpecQLParser
 
 
@@ -461,3 +462,124 @@ actions:
         assert refresh_step.refresh_scope == RefreshScope.SELF
         assert refresh_step.propagate_entities == ["author"]
         assert refresh_step.refresh_strategy == "immediate"
+
+    def test_parse_translations_basic(self):
+        """Test parsing basic translations configuration"""
+        yaml_content = """
+entity: Product
+fields:
+  name: text
+  description: text
+translations:
+  enabled: true
+  fields: [name, description]
+"""
+
+        entity = self.parser.parse(yaml_content)
+
+        assert entity.translations is not None
+        assert entity.translations.enabled == True
+        assert entity.translations.table_name is None  # default
+        assert entity.translations.fields == ["name", "description"]
+
+    def test_parse_translations_custom_table_name(self):
+        """Test parsing translations with custom table name"""
+        yaml_content = """
+entity: Product
+fields:
+  name: text
+translations:
+  enabled: true
+  table_name: custom_translations
+  fields: [name]
+"""
+
+        entity = self.parser.parse(yaml_content)
+
+        assert entity.translations is not None
+        assert entity.translations.enabled == True
+        assert entity.translations.table_name == "custom_translations"
+        assert entity.translations.fields == ["name"]
+
+    def test_parse_translations_validation_errors(self):
+        """Test validation errors for translations configuration"""
+        # Empty fields with enabled=true
+        yaml_content = """
+entity: Product
+fields:
+  name: text
+translations:
+  enabled: true
+  fields: []
+"""
+
+        from core.exceptions import SpecQLValidationError
+
+        with pytest.raises(SpecQLValidationError, match="translations.fields cannot be empty"):
+            self.parser.parse(yaml_content)
+
+        # Duplicate fields
+        yaml_content = """
+entity: Product
+fields:
+  name: text
+translations:
+  enabled: true
+  fields: [name, name]
+"""
+
+        with pytest.raises(SpecQLValidationError, match="duplicate field names"):
+            self.parser.parse(yaml_content)
+
+        # Invalid enabled type
+        yaml_content = """
+entity: Product
+fields:
+  name: text
+translations:
+  enabled: "yes"
+  fields: [name]
+"""
+
+        with pytest.raises(SpecQLValidationError, match="must be a boolean"):
+            self.parser.parse(yaml_content)
+
+        # Invalid table_name type
+        yaml_content = """
+entity: Product
+fields:
+  name: text
+translations:
+  enabled: true
+  table_name: 123
+  fields: [name]
+"""
+
+        with pytest.raises(SpecQLValidationError, match="must be a string"):
+            self.parser.parse(yaml_content)
+
+        # Invalid fields type
+        yaml_content = """
+entity: Product
+fields:
+  name: text
+translations:
+  enabled: true
+  fields: "name"
+"""
+
+        with pytest.raises(SpecQLValidationError, match="must be a list"):
+            self.parser.parse(yaml_content)
+
+        # Invalid field type in list
+        yaml_content = """
+entity: Product
+fields:
+  name: text
+translations:
+  enabled: true
+  fields: [name, 123]
+"""
+
+        with pytest.raises(SpecQLValidationError, match="must contain only strings"):
+            self.parser.parse(yaml_content)

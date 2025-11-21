@@ -320,6 +320,8 @@ COMMENT ON COLUMN tenant.tb_contact.updated_by IS 'User or system who last updat
 COMMENT ON COLUMN tenant.tb_contact.deleted_at IS 'Timestamp of soft deletion.';
 COMMENT ON COLUMN tenant.tb_contact.deleted_by IS 'User or system who deleted the record.';
 
+
+
 -- Input Type: create_contact
 
 -- ============================================================================

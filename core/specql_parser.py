@@ -26,6 +26,7 @@ from core.ast_models import (
     RefreshScope,
     TableViewConfig,
     TableViewMode,
+    TranslationConfig,
 )
 from core.exceptions import SpecQLValidationError
 from core.reserved_fields import get_reserved_field_error_message, is_reserved_field_name
@@ -192,6 +193,11 @@ class SpecQLParser:
             if "table_views" in data:
                 self.logger.debug("Parsing table_views configuration")
                 entity.table_views = self._parse_table_views(data["table_views"], entity_name)
+
+            # Parse translations configuration (i18n)
+            if "translations" in data:
+                self.logger.debug("Parsing translations configuration")
+                entity.translations = self._parse_translations(data["translations"], entity_name)
 
             self.logger.info(
                 f"Successfully parsed entity '{entity_name}' with {len(entity.fields)} fields, {len(entity.actions)} actions"
@@ -905,3 +911,59 @@ class SpecQLParser:
             raise SpecQLValidationError(
                 entity=entity_name, message="extra_filter_columns must be string or dict"
             )
+
+    def _parse_translations(self, config: dict, entity_name: str) -> TranslationConfig:
+        """Parse translations configuration block."""
+
+        # Parse enabled flag
+        enabled = config.get("enabled", False)
+        if not isinstance(enabled, bool):
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message=f"translations.enabled must be a boolean, got {type(enabled).__name__}",
+            )
+
+        # Parse table_name (optional)
+        table_name = config.get("table_name")
+        if table_name is not None and not isinstance(table_name, str):
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message=f"translations.table_name must be a string, got {type(table_name).__name__}",
+            )
+
+        # Parse fields list
+        fields = config.get("fields", [])
+        if not isinstance(fields, list):
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message=f"translations.fields must be a list, got {type(fields).__name__}",
+            )
+
+        # Validate that all fields are strings
+        for field in fields:
+            if not isinstance(field, str):
+                raise SpecQLValidationError(
+                    entity=entity_name,
+                    message=f"translations.fields must contain only strings, got {type(field).__name__} for field '{field}'",
+                )
+
+        # Validate no duplicate fields
+        if len(fields) != len(set(fields)):
+            duplicates = [field for field in fields if fields.count(field) > 1]
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message=f"translations.fields contains duplicate field names: {list(set(duplicates))}",
+            )
+
+        # Validate not empty when enabled
+        if enabled and not fields:
+            raise SpecQLValidationError(
+                entity=entity_name,
+                message="translations.fields cannot be empty when translations are enabled",
+            )
+
+        return TranslationConfig(
+            enabled=enabled,
+            table_name=table_name,
+            fields=fields,
+        )

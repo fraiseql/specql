@@ -90,3 +90,4 @@ COMMENT ON COLUMN crm.tb_task.updated_at IS 'Timestamp when the record was last 
 COMMENT ON COLUMN crm.tb_task.updated_by IS 'User or system who last updated the record.';
 COMMENT ON COLUMN crm.tb_task.deleted_at IS 'Timestamp of soft deletion.';
 COMMENT ON COLUMN crm.tb_task.deleted_by IS 'User or system who deleted the record.';
+
