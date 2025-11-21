@@ -8,6 +8,7 @@ from cli.cache_commands import cache
 from cli.detect_patterns import detect_patterns
 from cli.reverse import reverse as reverse_sql_cmd
 from cli.reverse_python import reverse_python
+from cli.reverse_schema import reverse_schema
 from cli.validate import validate
 
 
@@ -20,6 +21,7 @@ def app():
 # Add commands
 app.add_command(reverse_python)
 app.add_command(reverse_sql_cmd)
+app.add_command(reverse_schema)
 app.add_command(validate)
 app.add_command(detect_patterns)
 app.add_command(cache)
