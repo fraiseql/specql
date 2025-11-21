@@ -79,6 +79,11 @@ def register_commands():
 
     app.add_command(validate)
 
+    # Phase 7: Docs command
+    from cli.commands.docs import docs
+
+    app.add_command(docs)
+
 
 # Register commands on import
 register_commands()
