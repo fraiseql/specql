@@ -12,19 +12,19 @@ fields:
   organization: ref(Organization)
 
 actions:
-  - name: create_opportunity
-    description: "Create a new sales opportunity"
-    steps:
-      - validate: title IS NOT NULL
-      - insert: Opportunity
+- name: create_opportunity
+  description: "Create a new sales opportunity"
+  steps:
+  - validate: title IS NOT NULL
+  - insert: Opportunity
 
-  - name: update_stage
-    description: "Update opportunity stage"
-    steps:
-      - update: Opportunity SET stage = ?
+- name: update_stage
+  description: "Update opportunity stage"
+  steps:
+  - update: Opportunity SET stage = ?
 
-  - name: close_opportunity
-    description: "Close opportunity as won or lost"
-    steps:
-      - validate: stage IN ('negotiation', 'proposal')
-      - update: Opportunity SET stage = ?
+- name: close_opportunity
+  description: "Close opportunity as won or lost"
+  steps:
+  - validate: stage IN ('negotiation', 'proposal')
+  - update: Opportunity SET stage = ?

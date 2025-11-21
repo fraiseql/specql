@@ -15,13 +15,13 @@ fields:
   shipping_country: text
 
 actions:
-  - name: create_customer
-    description: "Create customer account"
-    steps:
-      - validate: email IS NOT NULL
-      - insert: Customer
+- name: create_customer
+  description: "Create customer account"
+  steps:
+  - validate: email IS NOT NULL
+  - insert: Customer
 
-  - name: update_customer
-    description: "Update customer information"
-    steps:
-      - update: Customer
+- name: update_customer
+  description: "Update customer information"
+  steps:
+  - update: Customer

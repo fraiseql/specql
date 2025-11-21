@@ -47,7 +47,7 @@ class SCDType2Transformer(PatternTransformer):
         scd_fields = [
             f"    {effective_from_field} TIMESTAMPTZ DEFAULT now() NOT NULL,",
             f"    {effective_to_field} TIMESTAMPTZ,",
-            f"    {is_current_field} BOOLEAN DEFAULT true NOT NULL,"
+            f"    {is_current_field} BOOLEAN DEFAULT true NOT NULL,",
         ]
 
         lines[insert_index:insert_index] = scd_fields
@@ -82,8 +82,6 @@ class SCDType2Transformer(PatternTransformer):
             else:
                 update_fields.append(f"{field} = new_data->>'{field}'")
 
-        update_set = ", ".join(update_fields)
-
         function_sql = f"""-- SCD Type 2 management function
 CREATE OR REPLACE FUNCTION {entity.schema}.{function_name}(
     natural_key_values jsonb,
@@ -110,15 +108,15 @@ BEGIN
     -- Insert new version
     INSERT INTO {table_name} (
         id,
-        {', '.join(natural_key)},
-        {', '.join(tracked_fields)},
+        {", ".join(natural_key)},
+        {", ".join(tracked_fields)},
         {effective_from_field},
         {effective_to_field},
         {is_current_field}
     ) VALUES (
         gen_random_uuid(),
-        {', '.join([f"natural_key_values->>'{k}'" for k in natural_key])},
-        {', '.join([f"new_data->>'{f}'" for f in tracked_fields])},
+        {", ".join([f"natural_key_values->>'{k}'" for k in natural_key])},
+        {", ".join([f"new_data->>'{f}'" for f in tracked_fields])},
         now(),
         NULL,
         true
@@ -146,13 +144,13 @@ $$ LANGUAGE plpgsql;"""
                 physical_natural_key.append(key)
 
         indexes = [
-            f"-- SCD performance indexes",
+            "-- SCD performance indexes",
             f"CREATE INDEX idx_{entity.name.lower()}_scd_current",
             f"  ON {table_name} ({', '.join(physical_natural_key)}, {is_current_field})",
             f"  WHERE {is_current_field} = true;",
-            f"",
+            "",
             f"CREATE INDEX idx_{entity.name.lower()}_scd_temporal",
-            f"  ON {table_name} ({', '.join(physical_natural_key)}, {effective_from_field}, {effective_to_field});"
+            f"  ON {table_name} ({', '.join(physical_natural_key)}, {effective_from_field}, {effective_to_field});",
         ]
 
         return "\n".join(indexes)

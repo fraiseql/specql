@@ -70,137 +70,137 @@ fields:
 # - created_at, updated_at, deleted_at (TIMESTAMPTZ)
 
 actions:
-  - name: activate_company
-    description: Activate a prospect company
-    parameters:
-      company_id:
-        type: uuid
-        required: true
-        description: Company UUID to activate
+- name: activate_company
+  description: Activate a prospect company
+  parameters:
+    company_id:
+      type: uuid
+      required: true
+      description: Company UUID to activate
 
-    impacts:
-      - entity: Company
-        operation: update
-        fields: [status]
-        description: Updates company status to active
+  impacts:
+  - entity: Company
+    operation: update
+    fields: [status]
+    description: Updates company status to active
 
-    steps:
-      - validate: |
-          (SELECT status FROM crm.tb_company WHERE id = p_company_id) = 'prospect'
-        error_message: Company must be a prospect to activate
+  steps:
+  - validate: |
+      (SELECT status FROM crm.tb_company WHERE id = p_company_id) = 'prospect'
+    error_message: Company must be a prospect to activate
 
-      - update: |
-          crm.tb_company
-          SET status = 'active'
-          WHERE id = p_company_id
-        returning: company
+  - update: |
+      crm.tb_company
+      SET status = 'active'
+      WHERE id = p_company_id
+    returning: company
 
-  - name: mark_as_churned
-    description: Mark an active company as churned
-    parameters:
-      company_id:
-        type: uuid
-        required: true
-        description: Company UUID
-      churn_reason:
-        type: text
-        required: true
-        description: Reason for churn
+- name: mark_as_churned
+  description: Mark an active company as churned
+  parameters:
+    company_id:
+      type: uuid
+      required: true
+      description: Company UUID
+    churn_reason:
+      type: text
+      required: true
+      description: Reason for churn
 
-    impacts:
-      - entity: Company
-        operation: update
-        fields: [status, notes]
-        description: Updates company status and adds churn reason
+  impacts:
+  - entity: Company
+    operation: update
+    fields: [status, notes]
+    description: Updates company status and adds churn reason
 
-    steps:
-      - validate: |
-          (SELECT status FROM crm.tb_company WHERE id = p_company_id) = 'active'
-        error_message: Only active companies can be marked as churned
+  steps:
+  - validate: |
+      (SELECT status FROM crm.tb_company WHERE id = p_company_id) = 'active'
+    error_message: Only active companies can be marked as churned
 
-      - update: |
-          crm.tb_company
-          SET
-            status = 'churned',
-            notes = COALESCE(notes, '') || E'\n--- CHURNED ---\n' || p_churn_reason
-          WHERE id = p_company_id
-        returning: company
+  - update: |
+      crm.tb_company
+      SET
+        status = 'churned',
+        notes = COALESCE(notes, '') || E'\n--- CHURNED ---\n' || p_churn_reason
+      WHERE id = p_company_id
+    returning: company
 
-  - name: update_revenue
-    description: Update company annual revenue
-    parameters:
-      company_id:
-        type: uuid
-        required: true
-        description: Company UUID
-      revenue_amount:
-        type: numeric
-        required: true
-        description: Revenue amount
-      currency:
-        type: text
-        default: USD
-        description: Currency code
+- name: update_revenue
+  description: Update company annual revenue
+  parameters:
+    company_id:
+      type: uuid
+      required: true
+      description: Company UUID
+    revenue_amount:
+      type: numeric
+      required: true
+      description: Revenue amount
+    currency:
+      type: text
+      default: USD
+      description: Currency code
 
-    impacts:
-      - entity: Company
-        operation: update
-        fields: [annual_revenue]
-        description: Updates company revenue information
+  impacts:
+  - entity: Company
+    operation: update
+    fields: [annual_revenue]
+    description: Updates company revenue information
 
-    steps:
-      - validate: |
-          p_revenue_amount >= 0
-        error_message: Revenue must be non-negative
+  steps:
+  - validate: |
+      p_revenue_amount >= 0
+    error_message: Revenue must be non-negative
 
-      - update: |
-          crm.tb_company
-          SET annual_revenue = ROW(p_revenue_amount, p_currency)::app.money
-          WHERE id = p_company_id
-        returning: company
+  - update: |
+      crm.tb_company
+      SET annual_revenue = ROW(p_revenue_amount, p_currency)::app.money
+      WHERE id = p_company_id
+    returning: company
 
-  - name: assign_industry
-    description: Categorize company by industry
-    parameters:
-      company_id:
-        type: uuid
-        required: true
-        description: Company UUID
-      industry_type:
-        type: text
-        required: true
-        description: Industry classification
+- name: assign_industry
+  description: Categorize company by industry
+  parameters:
+    company_id:
+      type: uuid
+      required: true
+      description: Company UUID
+    industry_type:
+      type: text
+      required: true
+      description: Industry classification
 
-    impacts:
-      - entity: Company
-        operation: update
-        fields: [industry]
-        description: Updates company industry classification
+  impacts:
+  - entity: Company
+    operation: update
+    fields: [industry]
+    description: Updates company industry classification
 
-    steps:
-      - validate: |
-          p_industry_type IN ('technology', 'finance', 'healthcare', 'retail', 'manufacturing', 'services', 'other')
-        error_message: Invalid industry type
+  steps:
+  - validate: |
+      p_industry_type IN ('technology', 'finance', 'healthcare', 'retail', 'manufacturing', 'services', 'other')
+    error_message: Invalid industry type
 
-      - update: |
-          crm.tb_company
-          SET industry = p_industry_type
-          WHERE id = p_company_id
-        returning: company
+  - update: |
+      crm.tb_company
+      SET industry = p_industry_type
+      WHERE id = p_company_id
+    returning: company
 
 # Table Views
 views:
-  - name: active_companies
-    description: All active companies
-    base_table: tb_company
-    where: status = 'active' AND deleted_at IS NULL
+- name: active_companies
+  description: All active companies
+  base_table: tb_company
+  where: status = 'active' AND deleted_at IS NULL
 
-  - name: prospect_companies
-    description: All prospect companies
-    base_table: tb_company
-    where: status = 'prospect' AND deleted_at IS NULL
+- name: prospect_companies
+  description: All prospect companies
+  base_table: tb_company
+  where: status = 'prospect' AND deleted_at IS NULL
 
-  - name: tech_companies
-    description: All technology companies
-    base_table: tb_company
-    where: industry = 'technology' AND deleted_at IS NULL
+- name: tech_companies
+  description: All technology companies
+  base_table: tb_company
+  where: industry = 'technology' AND deleted_at IS NULL

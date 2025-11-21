@@ -14,13 +14,15 @@ class TestAutoDetection:
         """Auto-detect Rust source files"""
         # Create a test Rust file
         rust_file = tmp_path / "test.rs"
-        rust_file.write_text("""
+        rust_file.write_text(
+            """
         #[derive(Debug)]
         struct User {
             id: i32,
             name: String,
         }
-        """)
+        """
+        )
 
         result = cli_runner.invoke(specql, ["reverse", str(rust_file)])
         # Should auto-detect and process as Rust
@@ -31,12 +33,14 @@ class TestAutoDetection:
         """Auto-detect TypeScript files"""
         # Create a test TypeScript file
         ts_file = tmp_path / "test.ts"
-        ts_file.write_text("""
+        ts_file.write_text(
+            """
         interface User {
             id: number;
             name: string;
         }
-        """)
+        """
+        )
 
         result = cli_runner.invoke(specql, ["reverse", str(ts_file)])
         # Should auto-detect and process as TypeScript
@@ -47,12 +51,14 @@ class TestAutoDetection:
         """Auto-detect Python files"""
         # Create a test Python file
         py_file = tmp_path / "test.py"
-        py_file.write_text("""
+        py_file.write_text(
+            """
         class User:
             def __init__(self, id: int, name: str):
                 self.id = id
                 self.name = name
-        """)
+        """
+        )
 
         result = cli_runner.invoke(specql, ["reverse", str(py_file)])
         # Should auto-detect and process as Python
@@ -63,12 +69,14 @@ class TestAutoDetection:
         """Auto-detect Java files"""
         # Create a test Java file
         java_file = tmp_path / "test.java"
-        java_file.write_text("""
+        java_file.write_text(
+            """
         public class User {
             private int id;
             private String name;
         }
-        """)
+        """
+        )
 
         result = cli_runner.invoke(specql, ["reverse", str(java_file)])
         # Should auto-detect and process as Java
@@ -80,12 +88,14 @@ class TestAutoDetection:
         """Auto-detect SQL files"""
         # Create a test SQL file
         sql_file = tmp_path / "test.sql"
-        sql_file.write_text("""
+        sql_file.write_text(
+            """
         CREATE FUNCTION get_user(user_id INT)
         RETURNS TABLE(id INT, name TEXT) AS $$
         SELECT id, name FROM users WHERE id = user_id;
         $$ LANGUAGE SQL;
-        """)
+        """
+        )
 
         result = cli_runner.invoke(specql, ["reverse", "--preview", str(sql_file)])
         # Should auto-detect and process as SQL
@@ -97,12 +107,14 @@ class TestAutoDetection:
         """Test explicit framework specification overrides auto-detection"""
         # Create a Python file but specify SQL framework
         py_file = tmp_path / "test.py"
-        py_file.write_text("""
+        py_file.write_text(
+            """
         class User:
             def __init__(self, id: int, name: str):
                 self.id = id
                 self.name = name
-        """)
+        """
+        )
 
         result = cli_runner.invoke(
             specql, ["reverse", "--framework", "sql", "--preview", str(py_file)]

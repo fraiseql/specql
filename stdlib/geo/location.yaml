@@ -97,16 +97,16 @@ fields:
     description: "Self-referencing foreign key for nested hierarchy of locations."
 
 actions:
-  - name: create_location
-  - name: update_location
-  - name: delete_location
+- name: create_location
+- name: update_location
+- name: delete_location
 
   # Business actions
-  - name: update_accessibility
-  - name: change_elevator_access
-  - name: change_stair_access
-  - name: update_dimensions
-  - name: update_coordinates
-  - name: change_address
-  - name: change_location_type
-  - name: move_to_parent
+- name: update_accessibility
+- name: change_elevator_access
+- name: change_stair_access
+- name: update_dimensions
+- name: update_coordinates
+- name: change_address
+- name: change_location_type
+- name: move_to_parent

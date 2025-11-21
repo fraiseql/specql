@@ -30,11 +30,11 @@ fields:
   locale: ref(Locale)
 
 actions:
-  - name: create_country_locale
-  - name: update_country_locale
-  - name: delete_country_locale
+- name: create_country_locale
+- name: update_country_locale
+- name: delete_country_locale
 
   # Business actions
-  - name: set_as_default
-  - name: activate_locale
-  - name: deactivate_locale
+- name: set_as_default
+- name: activate_locale
+- name: deactivate_locale

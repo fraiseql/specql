@@ -33,11 +33,11 @@ translations:
   fields: [name, abbreviation]
 
 actions:
-  - name: create_street_type
-  - name: update_street_type
-  - name: delete_street_type
+- name: create_street_type
+- name: update_street_type
+- name: delete_street_type
 
   # Business actions
-  - name: activate_type
-  - name: deactivate_type
-  - name: update_abbreviation
+- name: activate_type
+- name: deactivate_type
+- name: update_abbreviation

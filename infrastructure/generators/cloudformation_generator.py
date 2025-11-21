@@ -204,15 +204,15 @@ class CloudFormationGenerator:
                 "SecurityGroupIngress": [
                     {
                         "IpProtocol": "tcp",
-                        "FromPort": infrastructure.container.port
-                        if infrastructure.container
-                        else 80,
+                        "FromPort": (
+                            infrastructure.container.port if infrastructure.container else 80
+                        ),
                         "ToPort": infrastructure.container.port if infrastructure.container else 80,
-                        "SourceSecurityGroupId": {
-                            "Ref": f"{infrastructure.name}LoadBalancerSecurityGroup"
-                        }
-                        if infrastructure.load_balancer
-                        else {"CidrIp": "0.0.0.0/0"},
+                        "SourceSecurityGroupId": (
+                            {"Ref": f"{infrastructure.name}LoadBalancerSecurityGroup"}
+                            if infrastructure.load_balancer
+                            else {"CidrIp": "0.0.0.0/0"}
+                        ),
                     }
                 ],
                 "Tags": [{"Key": "Name", "Value": f"{infrastructure.name}-app-sg"}],

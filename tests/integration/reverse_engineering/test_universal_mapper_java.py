@@ -18,7 +18,8 @@ class TestUniversalMapperJava:
     def test_java_controller_to_specql(self, mapper, tmp_path):
         """Test converting Spring Boot controller to SpecQL"""
         java_file = tmp_path / "ContactController.java"
-        java_file.write_text("""
+        java_file.write_text(
+            """
 package com.example.api;
 
 import org.springframework.web.bind.annotation.*;
@@ -33,7 +34,8 @@ public class ContactController {
     @GetMapping("/{id}")
     public Contact get(@PathVariable Long id) { }
 }
-        """)
+        """
+        )
 
         yaml_output = mapper.convert_file(java_file, language="java")
 
@@ -48,7 +50,8 @@ public class ContactController {
     def test_jpa_entity_to_specql(self, mapper, tmp_path):
         """Test converting JPA entity to SpecQL fields"""
         java_file = tmp_path / "Contact.java"
-        java_file.write_text("""
+        java_file.write_text(
+            """
 package com.example.model;
 
 import javax.persistence.*;
@@ -69,7 +72,8 @@ public class Contact {
 
     private Integer age;
 }
-        """)
+        """
+        )
 
         yaml_output = mapper.convert_file(java_file, language="java")
 
@@ -81,7 +85,8 @@ public class Contact {
     def test_java_repository_to_specql(self, mapper, tmp_path):
         """Test converting Spring Data repository to SpecQL"""
         java_file = tmp_path / "ContactRepository.java"
-        java_file.write_text("""
+        java_file.write_text(
+            """
 package com.example.repository;
 
 import org.springframework.data.repository.CrudRepository;
@@ -89,7 +94,8 @@ import org.springframework.data.repository.CrudRepository;
 public interface ContactRepository extends CrudRepository<Contact, Long> {
     // Standard CRUD methods inherited
 }
-        """)
+        """
+        )
 
         yaml_output = mapper.convert_file(java_file, language="java")
 

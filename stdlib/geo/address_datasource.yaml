@@ -34,12 +34,12 @@ fields:
   country: ref(Country)
 
 actions:
-  - name: create_address_datasource
-  - name: update_address_datasource
-  - name: delete_address_datasource
+- name: create_address_datasource
+- name: update_address_datasource
+- name: delete_address_datasource
 
   # Business actions
-  - name: activate_datasource
-  - name: deactivate_datasource
-  - name: test_connectivity
-  - name: update_website
+- name: activate_datasource
+- name: deactivate_datasource
+- name: test_connectivity
+- name: update_website

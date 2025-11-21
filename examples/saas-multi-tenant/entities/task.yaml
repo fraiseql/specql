@@ -11,24 +11,24 @@ fields:
   due_date: date
 
 actions:
-  - name: create_task
-    description: "Create a new task"
-    steps:
-      - validate: title IS NOT NULL
-      - validate: project IS NOT NULL
-      - insert: Task
+- name: create_task
+  description: "Create a new task"
+  steps:
+  - validate: title IS NOT NULL
+  - validate: project IS NOT NULL
+  - insert: Task
 
-  - name: update_task
-    description: "Update task information"
-    steps:
-      - update: Task
+- name: update_task
+  description: "Update task information"
+  steps:
+  - update: Task
 
-  - name: assign_task
-    description: "Assign task to a user"
-    steps:
-      - update: Task SET assignee = ?
+- name: assign_task
+  description: "Assign task to a user"
+  steps:
+  - update: Task SET assignee = ?
 
-  - name: complete_task
-    description: "Mark task as completed"
-    steps:
-      - update: Task SET status = 'done'
+- name: complete_task
+  description: "Mark task as completed"
+  steps:
+  - update: Task SET status = 'done'

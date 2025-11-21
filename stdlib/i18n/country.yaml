@@ -40,12 +40,12 @@ translations:
   fields: [name, abbreviation, short_name, official_name]
 
 actions:
-  - name: create_country
-  - name: update_country
-  - name: delete_country
+- name: create_country
+- name: update_country
+- name: delete_country
 
   # Business actions
-  - name: activate_country
-  - name: deactivate_country
-  - name: update_iso_code
-  - name: change_continent
+- name: activate_country
+- name: deactivate_country
+- name: update_iso_code
+- name: change_continent

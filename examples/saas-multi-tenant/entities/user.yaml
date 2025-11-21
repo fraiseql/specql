@@ -10,13 +10,13 @@ fields:
   avatar_url: image
 
 actions:
-  - name: create_user
-    description: "Create a new user in the tenant"
-    steps:
-      - validate: email IS NOT NULL
-      - insert: User
+- name: create_user
+  description: "Create a new user in the tenant"
+  steps:
+  - validate: email IS NOT NULL
+  - insert: User
 
-  - name: update_user
-    description: "Update user information"
-    steps:
-      - update: User
+- name: update_user
+  description: "Update user information"
+  steps:
+  - update: User

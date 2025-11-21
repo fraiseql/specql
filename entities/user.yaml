@@ -1,6 +1,6 @@
 entity: User
 schema: public
-description: null
+description:
 fields:
   username: text!
   email: email!

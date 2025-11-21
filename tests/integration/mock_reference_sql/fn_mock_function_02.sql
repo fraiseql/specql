@@ -5,4 +5,3 @@
             UPDATE tb_contact SET state = p_state WHERE id = p_id;
         END;
         $$ LANGUAGE plpgsql;
-        

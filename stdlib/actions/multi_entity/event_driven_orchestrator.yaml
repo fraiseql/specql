@@ -4,30 +4,30 @@ description: "Orchestrate complex workflows based on events and triggers across 
 author: SpecQL Team
 
 parameters:
-  - name: event_triggers
-    type: array<object>
-    required: true
-    description: "Events that can trigger workflow actions"
+- name: event_triggers
+  type: array<object>
+  required: true
+  description: "Events that can trigger workflow actions"
 
-  - name: event_handlers
-    type: array<object>
-    required: true
-    description: "Handlers for processing events and triggering actions"
+- name: event_handlers
+  type: array<object>
+  required: true
+  description: "Handlers for processing events and triggering actions"
 
-  - name: state_machine
-    type: object
-    required: false
-    description: "State machine definition for orchestration state"
+- name: state_machine
+  type: object
+  required: false
+  description: "State machine definition for orchestration state"
 
-  - name: timeout_handling
-    type: object
-    required: false
-    description: "How to handle timeouts and stalled workflows"
+- name: timeout_handling
+  type: object
+  required: false
+  description: "How to handle timeouts and stalled workflows"
 
-  - name: concurrency_control
-    type: object
-    required: false
-    description: "How to handle concurrent events and race conditions"
+- name: concurrency_control
+  type: object
+  required: false
+  description: "How to handle concurrent events and race conditions"
 
 template: |
   steps:
@@ -266,115 +266,115 @@ template: |
         END IF;
 
 examples:
-  - name: order_processing_events
-    description: "Event-driven order processing with payment, inventory, and shipping coordination"
-    config:
-      event_triggers:
-        - type: "payment_completed"
-          condition: "payment.status = 'completed'"
-        - type: "inventory_reserved"
-          condition: "inventory.reserved_quantity >= order.quantity"
-        - type: "shipment_created"
-          condition: "shipment.status = 'created'"
+- name: order_processing_events
+  description: "Event-driven order processing with payment, inventory, and shipping coordination"
+  config:
+    event_triggers:
+    - type: "payment_completed"
+      condition: "payment.status = 'completed'"
+    - type: "inventory_reserved"
+      condition: "inventory.reserved_quantity >= order.quantity"
+    - type: "shipment_created"
+      condition: "shipment.status = 'created'"
 
-      event_handlers:
-        - name: "Handle Payment Success"
-          from_state: "awaiting_payment"
+    event_handlers:
+    - name: "Handle Payment Success"
+      from_state: "awaiting_payment"
+      to_state: "payment_received"
+      trigger_event:
+        type: "payment_completed"
+        condition: "payment.status = 'completed' AND payment.order_id = v_order_id"
+      steps:
+      - name: "Update Order Status"
+        pattern: "state_machine/transition"
+        entity: "Order"
+        config:
+          from_states: ["awaiting_payment"]
           to_state: "payment_received"
-          trigger_event:
-            type: "payment_completed"
-            condition: "payment.status = 'completed' AND payment.order_id = v_order_id"
-          steps:
-            - name: "Update Order Status"
-              pattern: "state_machine/transition"
-              entity: "Order"
-              config:
-                from_states: ["awaiting_payment"]
-                to_state: "payment_received"
-          on_failure: "fail_orchestration"
+      on_failure: "fail_orchestration"
 
-        - name: "Reserve Inventory"
-          from_state: "payment_received"
-          to_state: "inventory_reserved"
-          trigger_event:
-            type: "payment_completed"
-            condition: "true"  # Always trigger after payment
-          steps:
-            - name: "Reserve Products"
-              pattern: "crud/update"
-              entity: "Inventory"
-              config:
-                values:
-                  reserved_quantity: "reserved_quantity + order.quantity"
-                where: "product_id = order.product_id"
-          on_failure: "retry"
+    - name: "Reserve Inventory"
+      from_state: "payment_received"
+      to_state: "inventory_reserved"
+      trigger_event:
+        type: "payment_completed"
+        condition: "true"      # Always trigger after payment
+      steps:
+      - name: "Reserve Products"
+        pattern: "crud/update"
+        entity: "Inventory"
+        config:
+          values:
+            reserved_quantity: "reserved_quantity + order.quantity"
+          where: "product_id = order.product_id"
+      on_failure: "retry"
 
-        - name: "Create Shipment"
-          from_state: "inventory_reserved"
-          to_state: "shipped"
-          trigger_event:
-            type: "inventory_reserved"
-            condition: "true"
-          steps:
-            - name: "Create Shipment Record"
-              pattern: "crud/create"
-              entity: "Shipment"
-              config:
-                fields: ["order_id", "tracking_number", "carrier"]
-          on_failure: "continue"
+    - name: "Create Shipment"
+      from_state: "inventory_reserved"
+      to_state: "shipped"
+      trigger_event:
+        type: "inventory_reserved"
+        condition: "true"
+      steps:
+      - name: "Create Shipment Record"
+        pattern: "crud/create"
+        entity: "Shipment"
+        config:
+          fields: ["order_id", "tracking_number", "carrier"]
+      on_failure: "continue"
 
-      state_machine:
-        initial_state: "awaiting_payment"
-        final_state: "shipped"
+    state_machine:
+      initial_state: "awaiting_payment"
+      final_state: "shipped"
 
-      timeout_handling:
-        max_duration: "2 hours"
-        max_iterations: 10
+    timeout_handling:
+      max_duration: "2 hours"
+      max_iterations: 10
 
-  - name: user_onboarding_events
-    description: "Event-driven user onboarding with email verification and profile completion"
-    config:
-      event_triggers:
-        - type: "email_verified"
-          condition: "email_verification.status = 'verified'"
-        - type: "profile_completed"
-          condition: "user_profile.completion_percentage = 100"
-        - type: "welcome_email_sent"
-          condition: "notification.type = 'welcome' AND notification.sent = true"
+- name: user_onboarding_events
+  description: "Event-driven user onboarding with email verification and profile completion"
+  config:
+    event_triggers:
+    - type: "email_verified"
+      condition: "email_verification.status = 'verified'"
+    - type: "profile_completed"
+      condition: "user_profile.completion_percentage = 100"
+    - type: "welcome_email_sent"
+      condition: "notification.type = 'welcome' AND notification.sent = true"
 
-      event_handlers:
-        - name: "Process Email Verification"
-          from_state: "email_pending"
+    event_handlers:
+    - name: "Process Email Verification"
+      from_state: "email_pending"
+      to_state: "email_verified"
+      trigger_event:
+        type: "email_verified"
+        condition: "email_verification.user_id = v_user_id"
+      steps:
+      - name: "Update User Status"
+        pattern: "state_machine/transition"
+        entity: "User"
+        config:
+          from_states: ["email_pending"]
           to_state: "email_verified"
-          trigger_event:
-            type: "email_verified"
-            condition: "email_verification.user_id = v_user_id"
-          steps:
-            - name: "Update User Status"
-              pattern: "state_machine/transition"
-              entity: "User"
-              config:
-                from_states: ["email_pending"]
-                to_state: "email_verified"
-          on_failure: "fail_orchestration"
+      on_failure: "fail_orchestration"
 
-        - name: "Send Welcome Email"
-          from_state: "email_verified"
-          to_state: "welcome_sent"
-          trigger_event:
-            type: "email_verified"
-            condition: "true"
-          steps:
-            - name: "Create Welcome Notification"
-              pattern: "crud/create"
-              entity: "Notification"
-              config:
-                fields: ["user_id", "type", "subject", "body"]
-          on_failure: "continue"
+    - name: "Send Welcome Email"
+      from_state: "email_verified"
+      to_state: "welcome_sent"
+      trigger_event:
+        type: "email_verified"
+        condition: "true"
+      steps:
+      - name: "Create Welcome Notification"
+        pattern: "crud/create"
+        entity: "Notification"
+        config:
+          fields: ["user_id", "type", "subject", "body"]
+      on_failure: "continue"
 
-      state_machine:
-        initial_state: "email_pending"
-        final_state: "onboarding_complete"
+    state_machine:
+      initial_state: "email_pending"
+      final_state: "onboarding_complete"
 
-      timeout_handling:
-        max_duration: "24 hours"
+    timeout_handling:
+      max_duration: "24 hours"

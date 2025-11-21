@@ -19,14 +19,16 @@ def cli_runner():
 def test_generated_yaml_passes_validation(cli_runner):
     """Test reverse → validate workflow"""
     # Create test Django model
-    source_code = textwrap.dedent("""
+    source_code = textwrap.dedent(
+        """
         from django.db import models
 
         class Product(models.Model):
             name = models.CharField(max_length=255)
             price = models.DecimalField(max_digits=10, decimal_places=2)
             in_stock = models.BooleanField(default=True)
-    """)
+    """
+    )
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # Write source file
@@ -51,12 +53,14 @@ def test_generated_yaml_passes_validation(cli_runner):
 
 def test_generated_yaml_with_simple_actions(cli_runner):
     """Test validation of YAML with simple actions (no method calls)"""
-    source_code = textwrap.dedent("""
+    source_code = textwrap.dedent(
+        """
         from django.db import models
 
         class Order(models.Model):
             status = models.CharField(max_length=50, default='pending')
-    """)
+    """
+    )
 
     with tempfile.TemporaryDirectory() as tmpdir:
         source_file = Path(tmpdir) / "models.py"

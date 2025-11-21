@@ -19,25 +19,25 @@ fields:
   delivered_at: datetime
 
 actions:
-  - name: create_order
-    description: "Create a new order"
-    steps:
-      - validate: customer IS NOT NULL
-      - insert: Order
+- name: create_order
+  description: "Create a new order"
+  steps:
+  - validate: customer IS NOT NULL
+  - insert: Order
 
-  - name: update_status
-    description: "Update order status"
-    steps:
-      - update: Order SET status = ?
+- name: update_status
+  description: "Update order status"
+  steps:
+  - update: Order SET status = ?
 
-  - name: ship_order
-    description: "Mark order as shipped"
-    steps:
-      - validate: status = 'paid'
-      - update: Order SET status = 'shipped', shipped_at = now()
+- name: ship_order
+  description: "Mark order as shipped"
+  steps:
+  - validate: status = 'paid'
+  - update: Order SET status = 'shipped', shipped_at = now()
 
-  - name: cancel_order
-    description: "Cancel an order"
-    steps:
-      - validate: status IN ('pending', 'paid')
-      - update: Order SET status = 'cancelled'
+- name: cancel_order
+  description: "Cancel an order"
+  steps:
+  - validate: status IN ('pending', 'paid')
+  - update: Order SET status = 'cancelled'

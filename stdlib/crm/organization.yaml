@@ -40,16 +40,16 @@ fields:
   parent: ref(Organization)
 
 actions:
-  - name: create_organization
-  - name: update_organization
-  - name: delete_organization
+- name: create_organization
+- name: update_organization
+- name: delete_organization
 
   # Business actions
-  - name: activate_organization
-  - name: deactivate_organization
-  - name: change_domain
-  - name: update_legal_info
-  - name: change_industry
-  - name: update_vat_identifier
-  - name: add_stock_location
-  - name: remove_stock_location
+- name: activate_organization
+- name: deactivate_organization
+- name: change_domain
+- name: update_legal_info
+- name: change_industry
+- name: update_vat_identifier
+- name: add_stock_location
+- name: remove_stock_location

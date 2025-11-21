@@ -4,46 +4,46 @@ description: "Execute patterns with retry logic, error recovery, and fallback st
 author: SpecQL Team
 
 parameters:
-  - name: primary_action
-    type: object
-    required: true
-    description: "The main pattern to execute with retry logic"
+- name: primary_action
+  type: object
+  required: true
+  description: "The main pattern to execute with retry logic"
 
-  - name: retry_policy
-    type: object
-    required: false
-    description: "Retry configuration"
-    properties:
-      - name: max_attempts
-        type: integer
-        default: 3
-      - name: backoff_strategy
-        type: enum[fixed, exponential, linear]
-        default: exponential
-      - name: base_delay_seconds
-        type: number
-        default: 1.0
-      - name: max_delay_seconds
-        type: number
-        default: 60.0
-      - name: retry_on_errors
-        type: array<string>
-        default: ["transient_error", "timeout", "connection_error"]
+- name: retry_policy
+  type: object
+  required: false
+  description: "Retry configuration"
+  properties:
+  - name: max_attempts
+    type: integer
+    default: 3
+  - name: backoff_strategy
+    type: enum[fixed, exponential, linear]
+    default: exponential
+  - name: base_delay_seconds
+    type: number
+    default: 1.0
+  - name: max_delay_seconds
+    type: number
+    default: 60.0
+  - name: retry_on_errors
+    type: array<string>
+    default: ["transient_error", "timeout", "connection_error"]
 
-  - name: fallback_actions
-    type: array<object>
-    required: false
-    description: "Fallback patterns to execute if primary action fails"
+- name: fallback_actions
+  type: array<object>
+  required: false
+  description: "Fallback patterns to execute if primary action fails"
 
-  - name: recovery_actions
-    type: array<object>
-    required: false
-    description: "Recovery patterns to execute after successful retry"
+- name: recovery_actions
+  type: array<object>
+  required: false
+  description: "Recovery patterns to execute after successful retry"
 
-  - name: monitoring
-    type: object
-    required: false
-    description: "Monitoring and logging configuration"
+- name: monitoring
+  type: object
+  required: false
+  description: "Monitoring and logging configuration"
 
 template: |
   steps:
@@ -269,69 +269,69 @@ template: |
         END IF;
 
 examples:
-  - name: payment_processing_with_retry
-    description: "Process payment with retry logic for transient failures"
-    config:
-      primary_action:
-        name: "Process Payment"
-        pattern: "multi_entity/coordinated_update"
-        config:
-          operations:
-            - action: "update"
-              entity: "Payment"
-              values:
-                status: "'processing'"
-              where: "id = v_payment_id"
-            - action: "insert"
-              entity: "PaymentProviderCall"
-              values:
-                payment_id: "v_payment_id"
-                provider_response: "call_payment_provider(input_data)"
+- name: payment_processing_with_retry
+  description: "Process payment with retry logic for transient failures"
+  config:
+    primary_action:
+      name: "Process Payment"
+      pattern: "multi_entity/coordinated_update"
+      config:
+        operations:
+        - action: "update"
+          entity: "Payment"
+          values:
+            status: "'processing'"
+          where: "id = v_payment_id"
+        - action: "insert"
+          entity: "PaymentProviderCall"
+          values:
+            payment_id: "v_payment_id"
+            provider_response: "call_payment_provider(input_data)"
 
-      retry_policy:
-        max_attempts: 3
-        backoff_strategy: "exponential"
-        base_delay_seconds: 1.0
-        retry_on_errors: ["timeout", "connection_error", "provider_unavailable"]
+    retry_policy:
+      max_attempts: 3
+      backoff_strategy: "exponential"
+      base_delay_seconds: 1.0
+      retry_on_errors: ["timeout", "connection_error", "provider_unavailable"]
 
-      fallback_actions:
-        - name: "Offline Payment Queue"
-          pattern: "crud/create"
-          config:
-            fields: ["payment_id", "queue_status", "retry_after"]
+    fallback_actions:
+    - name: "Offline Payment Queue"
+      pattern: "crud/create"
+      config:
+        fields: ["payment_id", "queue_status", "retry_after"]
 
-      recovery_actions:
-        - name: "Payment Success Notification"
-          pattern: "crud/create"
-          config:
-            fields: ["payment_id", "notification_type", "recipient"]
+    recovery_actions:
+    - name: "Payment Success Notification"
+      pattern: "crud/create"
+      config:
+        fields: ["payment_id", "notification_type", "recipient"]
 
-  - name: email_delivery_with_retry
-    description: "Send email with retry logic and fallback to queue"
-    config:
-      primary_action:
-        name: "Send Email"
-        pattern: "crud/create"
-        config:
-          fields: ["recipient", "subject", "body", "send_status"]
+- name: email_delivery_with_retry
+  description: "Send email with retry logic and fallback to queue"
+  config:
+    primary_action:
+      name: "Send Email"
+      pattern: "crud/create"
+      config:
+        fields: ["recipient", "subject", "body", "send_status"]
 
-      retry_policy:
-        max_attempts: 5
-        backoff_strategy: "linear"
-        base_delay_seconds: 5.0
-        retry_on_errors: ["smtp_error", "timeout"]
+    retry_policy:
+      max_attempts: 5
+      backoff_strategy: "linear"
+      base_delay_seconds: 5.0
+      retry_on_errors: ["smtp_error", "timeout"]
 
-      fallback_actions:
-        - name: "Queue for Later Delivery"
-          pattern: "state_machine/transition"
-          config:
-            from_states: ["sending"]
-            to_state: "queued"
-            input_fields:
-              - name: "queue_reason"
-                value: "'SMTP temporarily unavailable'"
+    fallback_actions:
+    - name: "Queue for Later Delivery"
+      pattern: "state_machine/transition"
+      config:
+        from_states: ["sending"]
+        to_state: "queued"
+        input_fields:
+        - name: "queue_reason"
+          value: "'SMTP temporarily unavailable'"
 
-      monitoring:
-        log_success: true
-        log_failures: true
-        alert_on_failure: true
+    monitoring:
+      log_success: true
+      log_failures: true
+      alert_on_failure: true

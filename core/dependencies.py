@@ -47,6 +47,7 @@ TREE_SITTER = OptionalDependency(
     purpose="Multi-language AST parsing",
 )
 
+
 class TreeSitterLanguagePackRust(OptionalDependency):
     """Check for Rust support via tree-sitter-language-pack."""
 
@@ -54,7 +55,7 @@ class TreeSitterLanguagePackRust(OptionalDependency):
         super().__init__(
             package_name="tree_sitter_language_pack",
             pip_extra="reverse",
-            purpose="Rust AST parsing"
+            purpose="Rust AST parsing",
         )
 
     @property
@@ -63,6 +64,7 @@ class TreeSitterLanguagePackRust(OptionalDependency):
         if self._available is None:
             try:
                 from tree_sitter_language_pack import get_language
+
                 # Verify Rust is available
                 get_language("rust")
                 self._available = True
@@ -70,7 +72,9 @@ class TreeSitterLanguagePackRust(OptionalDependency):
                 self._available = False
         return self._available
 
+
 TREE_SITTER_RUST = TreeSitterLanguagePackRust()
+
 
 class TreeSitterLanguagePackTypeScript(OptionalDependency):
     """Check for TypeScript support via tree-sitter-language-pack."""
@@ -79,7 +83,7 @@ class TreeSitterLanguagePackTypeScript(OptionalDependency):
         super().__init__(
             package_name="tree_sitter_language_pack",
             pip_extra="reverse",
-            purpose="TypeScript AST parsing"
+            purpose="TypeScript AST parsing",
         )
 
     @property
@@ -88,12 +92,14 @@ class TreeSitterLanguagePackTypeScript(OptionalDependency):
         if self._available is None:
             try:
                 from tree_sitter_language_pack import get_language
+
                 # Verify TypeScript is available
                 get_language("typescript")
                 self._available = True
             except (ImportError, Exception):
                 self._available = False
         return self._available
+
 
 TREE_SITTER_TYPESCRIPT = TreeSitterLanguagePackTypeScript()
 
@@ -105,7 +111,7 @@ class TreeSitterLanguagePackPrisma(OptionalDependency):
         super().__init__(
             package_name="tree_sitter_language_pack",
             pip_extra="reverse",
-            purpose="Prisma schema parsing"
+            purpose="Prisma schema parsing",
         )
 
     @property
@@ -114,11 +120,13 @@ class TreeSitterLanguagePackPrisma(OptionalDependency):
         if self._available is None:
             try:
                 from tree_sitter_language_pack import get_language
+
                 # Verify Prisma is available
                 get_language("prisma")
                 self._available = True
             except (ImportError, Exception):
                 self._available = False
         return self._available
+
 
 TREE_SITTER_PRISMA = TreeSitterLanguagePackPrisma()

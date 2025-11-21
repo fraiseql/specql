@@ -36,12 +36,12 @@ translations:
   fields: [name]
 
 actions:
-  - name: create_industry
-  - name: update_industry
-  - name: delete_industry
+- name: create_industry
+- name: update_industry
+- name: delete_industry
 
   # Business actions
-  - name: activate_industry
-  - name: deactivate_industry
-  - name: change_parent
-  - name: update_nomenclature
+- name: activate_industry
+- name: deactivate_industry
+- name: change_parent
+- name: update_nomenclature

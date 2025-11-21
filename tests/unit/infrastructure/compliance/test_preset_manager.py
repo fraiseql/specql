@@ -242,9 +242,7 @@ class TestCompliancePresetManager:
 
         infrastructure = UniversalInfrastructure(
             name="app",
-            security=SecurityConfig(
-                compliance_preset=CompliancePreset.STANDARD  # Not implemented
-            ),
+            security=SecurityConfig(compliance_preset=CompliancePreset.STANDARD),  # Not implemented
         )
 
         preset_manager = CompliancePresetManager()

@@ -29,11 +29,11 @@ fields:
   country: ref(Country)
 
 actions:
-  - name: create_postal_code
-  - name: update_postal_code
-  - name: delete_postal_code
+- name: create_postal_code
+- name: update_postal_code
+- name: delete_postal_code
 
   # Business actions
-  - name: validate_postal_code
-  - name: get_city_info
-  - name: check_format
+- name: validate_postal_code
+- name: get_city_info
+- name: check_format

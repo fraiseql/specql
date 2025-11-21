@@ -70,7 +70,7 @@ As of v1.2.2, the Prisma parser uses tree-sitter for grammar-validated parsing.
 ---
 
 *Migration completed: Week 15, v1.2.2*</content>
-</xai:function_call"> 
+</xai:function_call">
 
 <xai:function_call name="bash">
 <parameter name="command">cd /home/lionel/code/specql && uv run python -c "

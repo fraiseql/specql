@@ -141,9 +141,11 @@ class PythonActionParser:
                             http_method=item.name.upper(),
                             parameters=self._extract_parameters(item),
                             is_async=False,
-                            framework="django"
-                            if "View" in [b.id for b in cls.bases if isinstance(b, ast.Name)]
-                            else "flask",
+                            framework=(
+                                "django"
+                                if "View" in [b.id for b in cls.bases if isinstance(b, ast.Name)]
+                                else "flask"
+                            ),
                             confidence=0.90,
                         )
                         actions.append(action)

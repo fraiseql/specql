@@ -113,34 +113,42 @@ class CompositeTypeMapper:
 
         if required_fields:
             fields_check = " AND ".join([f"data ? {f}" for f in required_fields])
-            validations.append(f"""
+            validations.append(
+                f"""
     -- Check required fields
     IF NOT ({fields_check}) THEN
         RETURN FALSE;
-    END IF;""")
+    END IF;"""
+            )
 
         # Field-level validations (basic type checking for now)
         for field_name, field_def in composite_def.fields.items():
             # Add basic validations based on type_name
             if field_def.type_name == "text":
                 # For text fields, ensure they are strings if present
-                validations.append(f"""
+                validations.append(
+                    f"""
     -- Validate {field_name} is text
     IF data ? '{field_name}' AND jsonb_typeof(data->'{field_name}') != 'string' THEN
         RETURN FALSE;
-    END IF;""")
+    END IF;"""
+                )
             elif field_def.type_name in ["integer", "bigint"]:
-                validations.append(f"""
+                validations.append(
+                    f"""
     -- Validate {field_name} is number
     IF data ? '{field_name}' AND jsonb_typeof(data->'{field_name}') != 'number' THEN
         RETURN FALSE;
-    END IF;""")
+    END IF;"""
+                )
             elif field_def.type_name == "boolean":
-                validations.append(f"""
+                validations.append(
+                    f"""
     -- Validate {field_name} is boolean
     IF data ? '{field_name}' AND jsonb_typeof(data->'{field_name}') != 'boolean' THEN
         RETURN FALSE;
-    END IF;""")
+    END IF;"""
+                )
 
         return f"""
 CREATE OR REPLACE FUNCTION {func_name}(data JSONB)

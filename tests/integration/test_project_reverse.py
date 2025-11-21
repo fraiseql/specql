@@ -26,7 +26,8 @@ class TestProjectLevelReverseEngineering:
 
         # Create test Rust files
         contact_rs = project_dir / "src" / "models" / "contact.rs"
-        contact_rs.write_text("""
+        contact_rs.write_text(
+            """
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 
@@ -39,10 +40,12 @@ pub struct Contact {
     pub created_at: DateTime<Utc>,
     pub updated_at: DateTime<Utc>,
 }
-""")
+"""
+        )
 
         company_rs = project_dir / "src" / "models" / "company.rs"
-        company_rs.write_text("""
+        company_rs.write_text(
+            """
 use chrono::{DateTime, Utc};
 use diesel::prelude::*;
 
@@ -53,7 +56,8 @@ pub struct Company {
     pub name: String,
     pub tenant_id: Uuid,
 }
-""")
+"""
+        )
 
         result = cli_runner.invoke(
             specql,
@@ -85,21 +89,25 @@ pub struct Company {
 
         # Create model file
         model_file = project_dir / "src" / "models" / "user.rs"
-        model_file.write_text("""
+        model_file.write_text(
+            """
 pub struct User {
     pub id: Uuid,
     pub email: String,
 }
-""")
+"""
+        )
 
         # Create test file that should be excluded
         test_file = project_dir / "tests" / "user_test.rs"
-        test_file.write_text("""
+        test_file.write_text(
+            """
 #[test]
 fn test_user() {
     // test code
 }
-""")
+"""
+        )
 
         result = cli_runner.invoke(
             specql,

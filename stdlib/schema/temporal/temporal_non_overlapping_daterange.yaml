@@ -10,54 +10,54 @@ created: 2025-11-25
 tags: [temporal, constraints, daterange, overlap]
 
 parameters:
-  - name: scope_fields
-    type: array<string>
-    required: true
-    description: "Fields that define the scope for overlap checking (e.g., ['machine_id'])"
-    example: ["machine"]
+- name: scope_fields
+  type: array<string>
+  required: true
+  description: "Fields that define the scope for overlap checking (e.g., ['machine_id'])"
+  example: ["machine"]
 
-  - name: start_date_field
-    type: string
-    required: true
-    description: "Field name containing the start date"
-    example: "start_date"
+- name: start_date_field
+  type: string
+  required: true
+  description: "Field name containing the start date"
+  example: "start_date"
 
-  - name: end_date_field
-    type: string
-    required: true
-    description: "Field name containing the end date"
-    example: "end_date"
+- name: end_date_field
+  type: string
+  required: true
+  description: "Field name containing the end date"
+  example: "end_date"
 
-  - name: check_mode
-    type: string
-    default: strict
-    description: "'strict' (block overlaps) or 'warning' (log warnings only)"
-    validation: "^(strict|warning)$"
+- name: check_mode
+  type: string
+  default: strict
+  description: "'strict' (block overlaps) or 'warning' (log warnings only)"
+  validation: "^(strict|warning)$"
 
-  - name: inclusive_bounds
-    type: string
-    default: "[]"
-    description: "Daterange bounds: '[)' (include start, exclude end) or '[]' (include both)"
-    validation: "^(\\[\\)|\\[\\]|\\(\\[|\\(\\))$"
+- name: inclusive_bounds
+  type: string
+  default: "[]"
+  description: "Daterange bounds: '[)' (include start, exclude end) or '[]' (include both)"
+  validation: "^(\\[\\)|\\[\\]|\\(\\[|\\(\\))$"
 
-  - name: allow_adjacent
-    type: boolean
-    default: true
-    description: "Whether adjacent ranges (end=start of next) are allowed"
+- name: allow_adjacent
+  type: boolean
+  default: true
+  description: "Whether adjacent ranges (end=start of next) are allowed"
 
 schema_extensions:
   computed_columns:
-    - name: "{{ params.start_date_field }}_{{ params.end_date_field }}_range"
-      type: DATERANGE
-      expression: "daterange({{ params.start_date_field }}, {{ params.end_date_field }}, '{{ params.inclusive_bounds }}')"
-      stored: true
-      comment: "Computed date range for overlap detection ({{ params.start_date_field }} to {{ params.end_date_field }})"
+  - name: "{{ params.start_date_field }}_{{ params.end_date_field }}_range"
+    type: DATERANGE
+    expression: "daterange({{ params.start_date_field }}, {{ params.end_date_field }}, '{{ params.inclusive_bounds }}')"
+    stored: true
+    comment: "Computed date range for overlap detection ({{ params.start_date_field }} to {{ params.end_date_field }})"
 
   indexes:
-    - name: "idx_{{ entity.table_name }}_daterange"
-      fields: ["{{ params.start_date_field }}_{{ params.end_date_field }}_range"]
-      using: gist
-      comment: "GIST index for efficient date range overlap detection"
+  - name: "idx_{{ entity.table_name }}_daterange"
+    fields: ["{{ params.start_date_field }}_{{ params.end_date_field }}_range"]
+    using: gist
+    comment: "GIST index for efficient date range overlap detection"
 
 schema_template: |
   -- Exclusion constraint for strict mode
@@ -107,83 +107,83 @@ schema_template: |
   {% endif %}
 
 validation:
-  - rule: scope_fields_exist
-    check: "all(field in entity.fields for field in params.scope_fields)"
-    message: "All scope_fields must exist in entity"
+- rule: scope_fields_exist
+  check: "all(field in entity.fields for field in params.scope_fields)"
+  message: "All scope_fields must exist in entity"
 
-  - rule: date_fields_exist
-    check: "params.start_date_field in entity.fields and params.end_date_field in entity.fields"
-    message: "start_date_field and end_date_field must exist in entity"
+- rule: date_fields_exist
+  check: "params.start_date_field in entity.fields and params.end_date_field in entity.fields"
+  message: "start_date_field and end_date_field must exist in entity"
 
-  - rule: date_fields_are_dates
-    check: "entity.fields[params.start_date_field].type_name == 'date' and entity.fields[params.end_date_field].type_name == 'date'"
-    message: "start_date_field and end_date_field must be date type"
+- rule: date_fields_are_dates
+  check: "entity.fields[params.start_date_field].type_name == 'date' and entity.fields[params.end_date_field].type_name == 'date'"
+  message: "start_date_field and end_date_field must be date type"
 
 examples:
-  - name: Machine Allocations
-    yaml: |
-      entity: Allocation
-      schema: operations
-      fields:
-        machine: ref(Machine)
-        product: ref(Product)
-        start_date: date
-        end_date: date
-      patterns:
-        - type: temporal_non_overlapping_daterange
-          params:
-            scope_fields: [machine]
-            start_date_field: start_date
-            end_date_field: end_date
-            check_mode: strict
+- name: Machine Allocations
+  yaml: |
+    entity: Allocation
+    schema: operations
+    fields:
+      machine: ref(Machine)
+      product: ref(Product)
+      start_date: date
+      end_date: date
+    patterns:
+      - type: temporal_non_overlapping_daterange
+        params:
+          scope_fields: [machine]
+          start_date_field: start_date
+          end_date_field: end_date
+          check_mode: strict
 
-    generated_sql: |
-      -- Table with computed column
-      CREATE TABLE operations.tb_allocation (
-          -- ... other fields ...
-          start_date_end_date_range DATERANGE
-              GENERATED ALWAYS AS (daterange(start_date, end_date, '[)')) STORED
-      );
+  generated_sql: |
+    -- Table with computed column
+    CREATE TABLE operations.tb_allocation (
+        -- ... other fields ...
+        start_date_end_date_range DATERANGE
+            GENERATED ALWAYS AS (daterange(start_date, end_date, '[)')) STORED
+    );
 
-      -- GIST index
-      CREATE INDEX idx_tb_allocation_daterange
-      ON operations.tb_allocation
-      USING gist(start_date_end_date_range);
+    -- GIST index
+    CREATE INDEX idx_tb_allocation_daterange
+    ON operations.tb_allocation
+    USING gist(start_date_end_date_range);
 
-      -- Exclusion constraint
-      ALTER TABLE operations.tb_allocation
-      ADD CONSTRAINT excl_allocation_no_overlap
-      EXCLUDE USING gist (
-          machine WITH =,
-          start_date_end_date_range WITH &&
-      );
+    -- Exclusion constraint
+    ALTER TABLE operations.tb_allocation
+    ADD CONSTRAINT excl_allocation_no_overlap
+    EXCLUDE USING gist (
+        machine WITH =,
+        start_date_end_date_range WITH &&
+    );
 
-    usage: |
-      -- This works (no overlap)
-      INSERT INTO operations.tb_allocation (machine, start_date, end_date)
-      VALUES (1, '2024-01-01', '2024-01-10');
+  usage: |
+    -- This works (no overlap)
+    INSERT INTO operations.tb_allocation (machine, start_date, end_date)
+    VALUES (1, '2024-01-01', '2024-01-10');
 
-      -- This fails (overlap detected)
-      INSERT INTO operations.tb_allocation (machine, start_date, end_date)
-      VALUES (1, '2024-01-05', '2024-01-15');
-      -- ERROR: conflicting key value violates exclusion constraint
+    -- This fails (overlap detected)
+    INSERT INTO operations.tb_allocation (machine, start_date, end_date)
+    VALUES (1, '2024-01-05', '2024-01-15');
+    -- ERROR: conflicting key value violates exclusion constraint
 
 performance:
-  - operation: overlap_check
-    complexity: O(log n)
-    notes: "GIST index makes overlap queries very fast"
+- operation: overlap_check
+  complexity: O(log n)
+  notes: "GIST index makes overlap queries very fast"
 
-  - operation: insert_update
-    complexity: O(log n)
-    notes: "Exclusion constraint validation is fast with GIST index"
+- operation: insert_update
+  complexity: O(log n)
+  notes: "Exclusion constraint validation is fast with GIST index"
 
 limitations:
-  - "Requires PostgreSQL (uses DATERANGE and EXCLUDE)"
-  - "GIST indexes are larger than B-tree indexes"
-  - "Exclusion constraints are strict (no bypass)"
+- "Requires PostgreSQL (uses DATERANGE and EXCLUDE)"
+- "GIST indexes are larger than B-tree indexes"
+- "Exclusion constraints are strict (no bypass)"
 
 best_practices:
-  - "Use '[)' bounds for most cases (include start, exclude end)"
-  - "Choose scope_fields carefully (too many = too restrictive)"
-  - "Consider warning mode for existing data migration"
-  - "Test with real data before deploying exclusion constraints"
+- "Use '[)' bounds for most cases (include start, exclude end)"
+- "Choose scope_fields carefully (too many = too restrictive)"
+- "Consider warning mode for existing data migration"
+- "Test with real data before deploying exclusion constraints"

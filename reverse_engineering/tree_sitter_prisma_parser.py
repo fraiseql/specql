@@ -137,7 +137,6 @@ class TreeSitterPrismaParser:
 
         return None
 
-
     def _extract_table_name(self, attr_node: Node) -> str | None:
         """Extract table name from @@map(...) attribute."""
         # Look for string in arguments
@@ -253,7 +252,7 @@ class TreeSitterPrismaParser:
 
         # Also check nested structure for complex cases
         for child in attr_node.children:
-            for grandchild in child.children if hasattr(child, 'children') else []:
+            for grandchild in child.children if hasattr(child, "children") else []:
                 if grandchild.type == "string":
                     string_content = self._get_node_text(grandchild)
                     return string_content.strip("\"'")

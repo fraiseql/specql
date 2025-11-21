@@ -38,14 +38,14 @@ observability:
   logging: true
   metrics: true
   alerts:
-    - {name: high_cpu, condition: "cpu > 80%"}
+  - {name: high_cpu, condition: "cpu > 80%"}
 
 best_practices:
-  - "Multi-AZ for high availability"
-  - "Auto-scaling for cost optimization"
-  - "Automated backups"
+- "Multi-AZ for high availability"
+- "Auto-scaling for cost optimization"
+- "Automated backups"
 
 cost_optimization:
-  - "Use Reserved Instances for predictable workloads"
-  - "Consider Spot Instances for dev/staging"
-  - "Right-size instances based on actual usage"
+- "Use Reserved Instances for predictable workloads"
+- "Consider Spot Instances for dev/staging"
+- "Right-size instances based on actual usage"

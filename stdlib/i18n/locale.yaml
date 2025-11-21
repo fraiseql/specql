@@ -44,13 +44,13 @@ fields:
   language: ref(Language)
 
 actions:
-  - name: create_locale
-  - name: update_locale
-  - name: delete_locale
+- name: create_locale
+- name: update_locale
+- name: delete_locale
 
   # Business actions
-  - name: activate_locale
-  - name: deactivate_locale
-  - name: update_formatting
-  - name: change_language
-  - name: set_as_default
+- name: activate_locale
+- name: deactivate_locale
+- name: update_formatting
+- name: change_language
+- name: set_as_default

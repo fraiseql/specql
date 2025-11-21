@@ -169,9 +169,11 @@ class TableGenerator:
             "entity": {
                 "name": entity.name,
                 "schema": entity.schema,
-                "table_code": entity.organization.table_code
-                if entity.organization
-                else entity.name[:3].upper(),
+                "table_code": (
+                    entity.organization.table_code
+                    if entity.organization
+                    else entity.name[:3].upper()
+                ),
                 "description": entity.description or f"{entity.name} entity",
                 "fields": business_fields,
                 "foreign_keys": foreign_keys,

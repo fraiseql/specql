@@ -52,38 +52,32 @@ except ImportError:
 
         def get_prisma_language() -> Any:  # type: ignore
             raise ImportError(
-                "tree-sitter-language-pack is required. "
-                "Install with: pip install specql[reverse]"
+                "tree-sitter-language-pack is required. Install with: pip install specql[reverse]"
             )
 
         def get_prisma_parser() -> Any:  # type: ignore
             raise ImportError(
-                "tree-sitter-language-pack is required. "
-                "Install with: pip install specql[reverse]"
+                "tree-sitter-language-pack is required. Install with: pip install specql[reverse]"
             )
 
         def get_rust_language() -> Any:  # type: ignore
             raise ImportError(
-                "tree-sitter-language-pack is required. "
-                "Install with: pip install specql[reverse]"
+                "tree-sitter-language-pack is required. Install with: pip install specql[reverse]"
             )
 
         def get_rust_parser() -> Any:  # type: ignore
             raise ImportError(
-                "tree-sitter-language-pack is required. "
-                "Install with: pip install specql[reverse]"
+                "tree-sitter-language-pack is required. Install with: pip install specql[reverse]"
             )
 
         def get_typescript_language() -> Any:  # type: ignore
             raise ImportError(
-                "tree-sitter-language-pack is required. "
-                "Install with: pip install specql[reverse]"
+                "tree-sitter-language-pack is required. Install with: pip install specql[reverse]"
             )
 
         def get_typescript_parser() -> Any:  # type: ignore
             raise ImportError(
-                "tree-sitter-language-pack is required. "
-                "Install with: pip install specql[reverse]"
+                "tree-sitter-language-pack is required. Install with: pip install specql[reverse]"
             )
 
 

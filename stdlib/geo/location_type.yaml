@@ -31,11 +31,11 @@ translations:
   fields: [name]
 
 actions:
-  - name: create_location_type
-  - name: update_location_type
-  - name: delete_location_type
+- name: create_location_type
+- name: update_location_type
+- name: delete_location_type
 
   # Business actions
-  - name: activate_type
-  - name: deactivate_type
-  - name: update_name
+- name: activate_type
+- name: deactivate_type
+- name: update_name

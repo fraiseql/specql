@@ -42,12 +42,12 @@ translations:
   fields: [name]  # e.g., "Euro", "US Dollar"
 
 actions:
-  - name: create_currency
-  - name: update_currency
-  - name: delete_currency
+- name: create_currency
+- name: update_currency
+- name: delete_currency
 
   # Business actions
-  - name: activate_currency
-  - name: deactivate_currency
-  - name: update_symbol
-  - name: get_exchange_rate
+- name: activate_currency
+- name: deactivate_currency
+- name: update_symbol
+- name: get_exchange_rate

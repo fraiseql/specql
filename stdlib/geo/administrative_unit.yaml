@@ -37,12 +37,12 @@ translations:
   fields: [name]
 
 actions:
-  - name: create_administrative_unit
-  - name: update_administrative_unit
-  - name: delete_administrative_unit
+- name: create_administrative_unit
+- name: update_administrative_unit
+- name: delete_administrative_unit
 
   # Business actions
-  - name: activate_unit
-  - name: deactivate_unit
-  - name: change_parent
-  - name: update_administrative_code
+- name: activate_unit
+- name: deactivate_unit
+- name: change_parent
+- name: update_administrative_code

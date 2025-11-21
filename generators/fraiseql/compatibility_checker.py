@@ -52,9 +52,11 @@ class CompatibilityChecker:
             "total_types": len(all_types),
             "compatible_types": len(all_types) - len(self._incompatible_types),
             "incompatible_types": list(self._incompatible_types),
-            "compatibility_rate": 1.0
-            if len(all_types) == 0
-            else (len(all_types) - len(self._incompatible_types)) / len(all_types),
+            "compatibility_rate": (
+                1.0
+                if len(all_types) == 0
+                else (len(all_types) - len(self._incompatible_types)) / len(all_types)
+            ),
             "autodiscovery_enabled": True,
             "fraiseql_version_required": "1.3.4+",
             "notes": [

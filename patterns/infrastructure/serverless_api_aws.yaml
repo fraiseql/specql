@@ -37,16 +37,16 @@ observability:
     enabled: true
     provider: xray
   alerts:
-    - {name: high_duration, condition: "duration > 30s"}
-    - {name: high_errors, condition: "error_rate > 5%"}
+  - {name: high_duration, condition: "duration > 30s"}
+  - {name: high_errors, condition: "error_rate > 5%"}
 
 best_practices:
-  - "Use provisioned concurrency for predictable performance"
-  - "Implement proper timeout and error handling"
-  - "Use X-Ray for distributed tracing"
-  - "Monitor cold start performance"
+- "Use provisioned concurrency for predictable performance"
+- "Implement proper timeout and error handling"
+- "Use X-Ray for distributed tracing"
+- "Monitor cold start performance"
 
 cost_optimization:
-  - "Use Lambda Power Tuning for optimal memory allocation"
-  - "Implement request throttling"
-  - "Use reserved concurrency for critical functions"
+- "Use Lambda Power Tuning for optimal memory allocation"
+- "Implement request throttling"
+- "Use reserved concurrency for critical functions"

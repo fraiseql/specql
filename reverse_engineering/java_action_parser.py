@@ -566,9 +566,11 @@ class JavaEntityMapper:
             specql_additions["discriminator_field"] = {
                 "name": inheritance_info["discriminator_column"],
                 "type": "enum",
-                "values": [inheritance_info["discriminator_value"]]
-                if inheritance_info.get("discriminator_value")
-                else [],
+                "values": (
+                    [inheritance_info["discriminator_value"]]
+                    if inheritance_info.get("discriminator_value")
+                    else []
+                ),
                 "description": f"Discriminator for {inheritance_info['strategy']} inheritance",
             }
 
@@ -864,9 +866,11 @@ class JavaEntityMapper:
             return {
                 "strategy": strategy,
                 "discriminator_column": disc_col_match.group(1) if disc_col_match else None,
-                "discriminator_type": disc_col_match.group(2)
-                if disc_col_match and disc_col_match.group(2)
-                else "STRING",
+                "discriminator_type": (
+                    disc_col_match.group(2)
+                    if disc_col_match and disc_col_match.group(2)
+                    else "STRING"
+                ),
                 "discriminator_value": disc_val_match.group(1) if disc_val_match else None,
                 "parent_entity": parent_match.group(1) if parent_match else None,
             }

@@ -7,7 +7,8 @@ from reverse_engineering.python_ast_parser import PythonASTParser
 
 def test_positive_integer_field_extraction():
     """Test PositiveIntegerField is extracted"""
-    source_code = textwrap.dedent("""
+    source_code = textwrap.dedent(
+        """
         from django.db import models
         from django.core.validators import MinValueValidator
 
@@ -15,7 +16,8 @@ def test_positive_integer_field_extraction():
             group_size = models.PositiveIntegerField(
                 validators=[MinValueValidator(1)]
             )
-    """)
+    """
+    )
 
     parser = PythonASTParser()
     entity = parser.parse_entity(source_code)
@@ -31,7 +33,8 @@ def test_positive_integer_field_extraction():
 
 def test_all_django_numeric_fields():
     """Test all numeric field types are extracted"""
-    source_code = textwrap.dedent("""
+    source_code = textwrap.dedent(
+        """
         from django.db import models
 
         class TestModel(models.Model):
@@ -41,7 +44,8 @@ def test_all_django_numeric_fields():
             big_int = models.BigIntegerField()
             decimal_field = models.DecimalField(max_digits=10, decimal_places=2)
             float_field = models.FloatField()
-    """)
+    """
+    )
 
     parser = PythonASTParser()
     entity = parser.parse_entity(source_code)
@@ -58,7 +62,8 @@ def test_all_django_numeric_fields():
 
 def test_field_with_validators():
     """Test fields with validators are extracted"""
-    source_code = textwrap.dedent("""
+    source_code = textwrap.dedent(
+        """
         from django.db import models
         from django.core.validators import MinValueValidator, MaxValueValidator
 
@@ -69,7 +74,8 @@ def test_field_with_validators():
                     MaxValueValidator(150)
                 ]
             )
-    """)
+    """
+    )
 
     parser = PythonASTParser()
     entity = parser.parse_entity(source_code)

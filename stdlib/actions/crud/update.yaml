@@ -4,15 +4,15 @@ description: "Update entity with partial updates and identifier recalculation"
 author: SpecQL Team
 
 parameters:
-  - name: partial_updates
-    type: boolean
-    default: true
-    description: "Enable partial updates (CASE expressions)"
+- name: partial_updates
+  type: boolean
+  default: true
+  description: "Enable partial updates (CASE expressions)"
 
-  - name: track_updated_fields
-    type: boolean
-    default: false
-    description: "Track which fields were updated"
+- name: track_updated_fields
+  type: boolean
+  default: false
+  description: "Track which fields were updated"
 
 template: |
   steps:
@@ -34,8 +34,8 @@ template: |
     {% endif %}
 
 examples:
-  - name: update_contract
-    description: "Update contract with partial updates"
-    config:
-      partial_updates: true
-      track_updated_fields: true
+- name: update_contract
+  description: "Update contract with partial updates"
+  config:
+    partial_updates: true
+    track_updated_fields: true

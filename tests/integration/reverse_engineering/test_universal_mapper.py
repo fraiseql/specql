@@ -18,7 +18,8 @@ class TestUniversalMapperPython:
     def test_python_to_specql(self, mapper, tmp_path):
         """Test converting Python FastAPI to SpecQL"""
         py_file = tmp_path / "contacts.py"
-        py_file.write_text("""
+        py_file.write_text(
+            """
 from fastapi import APIRouter
 
 router = APIRouter()
@@ -30,7 +31,8 @@ async def create_contact(email: str):
 @router.get("/contacts/{id}")
 async def get_contact(id: int):
     pass
-        """)
+        """
+        )
 
         yaml_output = mapper.convert_file(py_file, language="python")
 
@@ -43,7 +45,8 @@ async def get_contact(id: int):
     def test_flask_to_specql(self, mapper, tmp_path):
         """Test Flask conversion"""
         py_file = tmp_path / "views.py"
-        py_file.write_text("""
+        py_file.write_text(
+            """
 from flask import Blueprint
 
 bp = Blueprint('contacts', __name__)
@@ -51,7 +54,8 @@ bp = Blueprint('contacts', __name__)
 @bp.route("/contacts", methods=["POST"])
 def create_contact():
     pass
-        """)
+        """
+        )
 
         yaml_output = mapper.convert_file(py_file, language="python")
         spec = yaml.safe_load(yaml_output)
@@ -61,7 +65,8 @@ def create_contact():
     def test_django_to_specql(self, mapper, tmp_path):
         """Test Django conversion"""
         py_file = tmp_path / "views.py"
-        py_file.write_text("""
+        py_file.write_text(
+            """
 from django.views import View
 
 class ContactView(View):
@@ -70,7 +75,8 @@ class ContactView(View):
 
     def post(self, request):
         return {"created": True}
-        """)
+        """
+        )
 
         yaml_output = mapper.convert_file(py_file, language="python")
         spec = yaml.safe_load(yaml_output)
@@ -117,7 +123,8 @@ class TestUniversalMapperIntegration:
     def test_metadata_included(self, mapper, tmp_path):
         """Test that metadata is properly included in output"""
         py_file = tmp_path / "contacts.py"
-        py_file.write_text("""
+        py_file.write_text(
+            """
 from fastapi import APIRouter
 
 router = APIRouter()
@@ -125,7 +132,8 @@ router = APIRouter()
 @router.get("/contacts")
 async def list_contacts():
     pass
-        """)
+        """
+        )
 
         yaml_output = mapper.convert_file(py_file, language="python")
         spec = yaml.safe_load(yaml_output)
@@ -139,11 +147,13 @@ async def list_contacts():
         """Test entity name inference from file and actions"""
         # Test file-based inference
         py_file = tmp_path / "contact_controller.py"
-        py_file.write_text("""
+        py_file.write_text(
+            """
 @router.get("/contacts")
 def get_contacts():
     pass
-        """)
+        """
+        )
 
         yaml_output = mapper.convert_file(py_file, language="python")
         spec = yaml.safe_load(yaml_output)

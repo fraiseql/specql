@@ -28,13 +28,13 @@ fields:
     default: lead
 
 actions:
-  - name: create_contact
-    description: Create a new contact
-    steps:
-      - insert: Contact
+- name: create_contact
+  description: Create a new contact
+  steps:
+  - insert: Contact
 
-  - name: qualify_lead
-    description: Qualify a lead to become a customer
-    steps:
-      - validate: status = 'lead'
-      - update: Contact SET status = 'qualified'
+- name: qualify_lead
+  description: Qualify a lead to become a customer
+  steps:
+  - validate: status = 'lead'
+  - update: Contact SET status = 'qualified'

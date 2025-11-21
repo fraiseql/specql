@@ -32,11 +32,11 @@ translations:
   fields: [name]
 
 actions:
-  - name: create_continent
-  - name: update_continent
-  - name: delete_continent
+- name: create_continent
+- name: update_continent
+- name: delete_continent
 
   # Business actions
-  - name: activate_continent
-  - name: deactivate_continent
-  - name: update_iso_code
+- name: activate_continent
+- name: deactivate_continent
+- name: update_iso_code

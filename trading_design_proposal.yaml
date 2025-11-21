@@ -1,3 +1,4 @@
+---
 # Proposed Trading Data Model
 # More normalized approach using reference entities
 
@@ -13,13 +14,12 @@ fields:
   decimals: integer  # For display formatting
 
 actions:
-  - name: create_unit
-    steps:
-      - validate: code IS UNIQUE
-      - insert: FinancialUnit
+- name: create_unit
+  steps:
+  - validate: code IS UNIQUE
+  - insert: FinancialUnit
 
 ---
-
 entity: TradingPair
 schema: trading
 description: "Trading pairs composed of financial units"
@@ -32,15 +32,14 @@ fields:
   is_active: boolean = true
 
 actions:
-  - name: create_pair
-    steps:
-      - validate: base_unit != quote_unit
-      - validate: symbol IS UNIQUE
-      - update: TradingPair SET symbol = CONCAT(base_unit.code, '/', quote_unit.code)
-      - insert: TradingPair
+- name: create_pair
+  steps:
+  - validate: base_unit != quote_unit
+  - validate: symbol IS UNIQUE
+  - update: TradingPair SET symbol = CONCAT(base_unit.code, '/', quote_unit.code)
+  - insert: TradingPair
 
 ---
-
 entity: TradingInstrument
 schema: trading
 description: "Trading instruments using normalized references"

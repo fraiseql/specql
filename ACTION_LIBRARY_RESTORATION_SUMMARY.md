@@ -19,12 +19,12 @@ Successfully restored the complete SpecQL Action Library system that was acciden
 - `RustActionParser` - Extracts actions from Rust files
   - `extract_actions()` - Parse impl blocks and route handlers
   - `extract_endpoints()` - Extract API endpoints from Actix-web routes
-  
+
 - `RustActionMapper` - Maps Rust constructs to SpecQL actions
   - CRUD pattern detection (create, read, update, delete)
   - Method name analysis (camelCase and snake_case)
   - Parameter mapping
-  
+
 - `RouteToActionMapper` - Maps HTTP routes to actions
   - Actix-web route handler support
   - HTTP method → CRUD mapping (GET→read, POST→create, etc.)

@@ -29,11 +29,11 @@ fields:
   administrative_unit: ref(AdministrativeUnit)
 
 actions:
-  - name: create_postal_code_city
-  - name: update_postal_code_city
-  - name: delete_postal_code_city
+- name: create_postal_code_city
+- name: update_postal_code_city
+- name: delete_postal_code_city
 
   # Business actions
-  - name: validate_city
-  - name: get_postal_codes
-  - name: check_administrative_unit
+- name: validate_city
+- name: get_postal_codes
+- name: check_administrative_unit

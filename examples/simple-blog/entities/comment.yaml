@@ -15,21 +15,21 @@ fields:
   post: ref(Post)!
 
 actions:
-  - name: create_comment
-    description: "Add a comment to a post"
-    steps:
-      - validate: author_name IS NOT NULL
-      - validate: content IS NOT NULL
-      - validate: post IS NOT NULL
-      - insert: Comment
+- name: create_comment
+  description: "Add a comment to a post"
+  steps:
+  - validate: author_name IS NOT NULL
+  - validate: content IS NOT NULL
+  - validate: post IS NOT NULL
+  - insert: Comment
 
-  - name: approve_comment
-    description: "Approve a comment for publication"
-    steps:
-      - validate: approved = false
-      - update: Comment SET approved = true
+- name: approve_comment
+  description: "Approve a comment for publication"
+  steps:
+  - validate: approved = false
+  - update: Comment SET approved = true
 
-  - name: reject_comment
-    description: "Reject a comment"
-    steps:
-      - delete: Comment
+- name: reject_comment
+  description: "Reject a comment"
+  steps:
+  - delete: Comment

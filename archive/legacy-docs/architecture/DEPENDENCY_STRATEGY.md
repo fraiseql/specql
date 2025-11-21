@@ -50,16 +50,16 @@ pip install specql[all]
 2. **Smaller footprint**: No unnecessary packages
 3. **Clear feature boundaries**: Users know what they're getting
 4. **Better error messages**: Can guide users to install [reverse] if needed</content>
-</xai:function_call">Now I need to update the pyproject.toml to reorganize the dependencies according to the strategy. Let me mark the documentation task as complete and move to updating pyproject.toml. 
+</xai:function_call">Now I need to update the pyproject.toml to reorganize the dependencies according to the strategy. Let me mark the documentation task as complete and move to updating pyproject.toml.
 
 I'll need to:
 1. Move faker to testing optional dependencies
-2. Move pglast, tree-sitter packages to reverse optional dependencies  
+2. Move pglast, tree-sitter packages to reverse optional dependencies
 3. Add tree-sitter-prisma as a local dependency
 4. Update the all group to include all optional dependencies
-5. Fix the version conflicts (there were two pglast entries with different versions) 
+5. Fix the version conflicts (there were two pglast entries with different versions)
 
-Let me update the pyproject.toml: 
+Let me update the pyproject.toml:
 
 <xai:function_call name="todowrite">
 <parameter name="todos">[{"content":"Day 1 Morning: Document dependency rationale in DEPENDENCY_STRATEGY.md","status":"completed","priority":"high","id":"day1_morning_dependency_documentation"},{"content":"Day 1 Morning: Update pyproject.toml with organized optional dependencies","status":"in_progress","priority":"high","id":"day1_morning_update_pyproject"}]

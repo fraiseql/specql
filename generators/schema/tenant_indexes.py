@@ -24,24 +24,32 @@ def generate_tenant_indexes(entity: EntityDefinition, schema: str) -> list[str]:
     indexes = []
 
     # 1. Tenant isolation index (most important for RLS and tenant queries)
-    indexes.append(f"""CREATE INDEX idx_{entity_name}_tenant
+    indexes.append(
+        f"""CREATE INDEX idx_{entity_name}_tenant
     ON {table_name}(tenant_id)
-    WHERE deleted_at IS NULL;""")
+    WHERE deleted_at IS NULL;"""
+    )
 
     # 2. Tenant + ID (for efficient lookups by tenant + UUID)
-    indexes.append(f"""CREATE UNIQUE INDEX idx_{entity_name}_tenant_id
-    ON {table_name}(tenant_id, id);""")
+    indexes.append(
+        f"""CREATE UNIQUE INDEX idx_{entity_name}_tenant_id
+    ON {table_name}(tenant_id, id);"""
+    )
 
     # 3. For hierarchical entities: Tenant + Path
     if _is_entity_hierarchical(entity):
-        indexes.append(f"""CREATE INDEX idx_{entity_name}_tenant_path
+        indexes.append(
+            f"""CREATE INDEX idx_{entity_name}_tenant_path
     ON {table_name}(tenant_id, path)
-    WHERE deleted_at IS NULL;""")
+    WHERE deleted_at IS NULL;"""
+        )
 
         # 4. For hierarchical entities: Tenant + Parent
-        indexes.append(f"""CREATE INDEX idx_{entity_name}_tenant_parent
+        indexes.append(
+            f"""CREATE INDEX idx_{entity_name}_tenant_parent
     ON {table_name}(tenant_id, fk_parent_{entity_name})
-    WHERE deleted_at IS NULL;""")
+    WHERE deleted_at IS NULL;"""
+        )
 
     return indexes
 

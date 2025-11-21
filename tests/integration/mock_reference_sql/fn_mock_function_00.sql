@@ -7,4 +7,3 @@
             RETURN v_total;
         END;
         $$ LANGUAGE plpgsql;
-        

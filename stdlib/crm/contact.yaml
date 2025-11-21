@@ -84,17 +84,17 @@ fields:
   genre: ref(Genre)
 
 actions:
-  - name: create_contact
-  - name: update_contact
-  - name: delete_contact
+- name: create_contact
+- name: update_contact
+- name: delete_contact
 
   # Business actions
-  - name: activate_contact
-  - name: deactivate_contact
-  - name: change_email_address
-  - name: change_office_phone
-  - name: change_mobile_phone
-  - name: update_job_title
-  - name: update_position
-  - name: change_timezone
-  - name: update_password
+- name: activate_contact
+- name: deactivate_contact
+- name: change_email_address
+- name: change_office_phone
+- name: change_mobile_phone
+- name: update_job_title
+- name: update_position
+- name: change_timezone
+- name: update_password

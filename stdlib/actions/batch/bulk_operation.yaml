@@ -4,35 +4,35 @@ description: "Process multiple records in a single transaction with error handli
 author: SpecQL Team
 
 parameters:
-  - name: batch_input
-    type: string
-    required: true
-    description: "Field name containing array of items to process"
+- name: batch_input
+  type: string
+  required: true
+  description: "Field name containing array of items to process"
 
-  - name: operation
-    type: object
-    required: true
-    description: "The operation to perform on each item"
+- name: operation
+  type: object
+  required: true
+  description: "The operation to perform on each item"
 
-  - name: error_handling
-    type: enum[stop_on_error, continue_on_error, rollback_on_any_error]
-    default: continue_on_error
-    description: "How to handle errors during batch processing"
+- name: error_handling
+  type: enum[stop_on_error, continue_on_error, rollback_on_any_error]
+  default: continue_on_error
+  description: "How to handle errors during batch processing"
 
-  - name: batch_size
-    type: integer
-    default: 100
-    description: "Maximum number of items to process"
+- name: batch_size
+  type: integer
+  default: 100
+  description: "Maximum number of items to process"
 
-  - name: refresh_projections
-    type: array<string>
-    required: false
-    description: "Projections to refresh after batch processing"
+- name: refresh_projections
+  type: array<string>
+  required: false
+  description: "Projections to refresh after batch processing"
 
-  - name: return_summary
-    type: object
-    required: true
-    description: "Summary fields to return"
+- name: return_summary
+  type: object
+  required: true
+  description: "Summary fields to return"
 
 template: |
   steps:
@@ -146,39 +146,39 @@ template: |
         END;
 
 examples:
-  - name: bulk_update_prices
-    description: "Update prices for multiple contract items"
-    config:
-      batch_input: price_updates
-      operation:
-        action: update
-        entity: ContractItem
-        set:
-          unit_price: $item.unit_price
-        where:
-          id: $item.id
-          tenant_id: $auth_tenant_id
-      error_handling: continue_on_error
-      refresh_projections:
-        - contract_projection
-      return_summary:
-        processed_count: v_processed_count
-        failed_count: v_failed_count
-        failed_items: v_failed_items
+- name: bulk_update_prices
+  description: "Update prices for multiple contract items"
+  config:
+    batch_input: price_updates
+    operation:
+      action: update
+      entity: ContractItem
+      set:
+        unit_price: $item.unit_price
+      where:
+        id: $item.id
+        tenant_id: $auth_tenant_id
+    error_handling: continue_on_error
+    refresh_projections:
+    - contract_projection
+    return_summary:
+      processed_count: v_processed_count
+      failed_count: v_failed_count
+      failed_items: v_failed_items
 
-  - name: bulk_create_contacts
-    description: "Create multiple contacts from CSV import"
-    config:
-      batch_input: contacts
-      operation:
-        action: insert
-        entity: Contact
-        values:
-          first_name: $item.first_name
-          last_name: $item.last_name
-          email: $item.email
-      error_handling: continue_on_error
-      return_summary:
-        created_count: v_processed_count
-        failed_count: v_failed_count
-        errors: v_failed_items
+- name: bulk_create_contacts
+  description: "Create multiple contacts from CSV import"
+  config:
+    batch_input: contacts
+    operation:
+      action: insert
+      entity: Contact
+      values:
+        first_name: $item.first_name
+        last_name: $item.last_name
+        email: $item.email
+    error_handling: continue_on_error
+    return_summary:
+      created_count: v_processed_count
+      failed_count: v_failed_count
+      errors: v_failed_items

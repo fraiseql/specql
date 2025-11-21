@@ -219,9 +219,11 @@ class PulumiGenerator:
                 '        "protocol": "tcp",',
                 f'        "from_port": {port},',
                 f'        "to_port": {port},',
-                '        "security_groups": [lb_sg.id]'
-                if infrastructure.load_balancer
-                else '        "cidr_blocks": ["0.0.0.0/0"]',
+                (
+                    '        "security_groups": [lb_sg.id]'
+                    if infrastructure.load_balancer
+                    else '        "cidr_blocks": ["0.0.0.0/0"]'
+                ),
                 "    }],",
                 "    egress=[{",
                 '        "protocol": "-1",',
@@ -287,14 +289,16 @@ class PulumiGenerator:
         ]
 
         if infrastructure.container:
-            user_data = textwrap.dedent(f"""
+            user_data = textwrap.dedent(
+                f"""
                 #!/bin/bash
                 apt-get update
                 apt-get install -y docker.io
                 docker run -d \\
                   -p {infrastructure.container.port}:{infrastructure.container.port} \\
                   {infrastructure.container.image}:{infrastructure.container.tag}
-            """).strip()
+            """
+            ).strip()
 
             launch_template_code.extend(
                 ['    user_data=pulumi.Output.all().apply(lambda _: """' + user_data + '"""),']

@@ -35,12 +35,12 @@ translations:
   fields: [name]
 
 actions:
-  - name: create_location_level
-  - name: update_location_level
-  - name: delete_location_level
+- name: create_location_level
+- name: update_location_level
+- name: delete_location_level
 
   # Business actions
-  - name: activate_level
-  - name: deactivate_level
-  - name: change_parent
-  - name: update_name
+- name: activate_level
+- name: deactivate_level
+- name: change_parent
+- name: update_name

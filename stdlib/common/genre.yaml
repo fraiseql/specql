@@ -34,11 +34,11 @@ fields:
     description: "Display label (e.g., Male, Female, Non-binary)"
 
 actions:
-  - name: create_genre
-  - name: update_genre
-  - name: delete_genre
+- name: create_genre
+- name: update_genre
+- name: delete_genre
 
   # Business actions
-  - name: activate_genre
-  - name: deactivate_genre
-  - name: update_label
+- name: activate_genre
+- name: deactivate_genre
+- name: update_label
