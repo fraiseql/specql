@@ -171,7 +171,7 @@ specql (v2.0)
 ├── init project|entity|registry  # Scaffolding (Beta)
 ├── workflow migrate|sync         # Multi-step automation (Beta)
 ├── diff                          # Schema diffing (Stable - 7 tests)
-└── docs                          # Documentation (Planned)
+└── docs                          # Documentation generation (Stable - 17 tests)
 ```
 
 **Usage Examples**:
@@ -324,9 +324,10 @@ actions:
 
 ## 🤖 AI Quick Reference
 
-**Current Status**: ~98% Complete - CLI and multi-language reverse engineering fully functional
+**Current Status**: ~100% Complete - All CLI commands implemented and tested
 
 **Recent Changes** (2025-11-21):
+- ✅ `docs` command implemented with multi-format support (17 tests)
 - ✅ `reverse java` command integrated with JPA/Hibernate parser (17 tests)
 - ✅ `reverse sql` command integrated with pglast (17 tests)
 - ✅ `reverse python` command integrated with PythonASTParser (19 tests)
@@ -334,7 +335,8 @@ actions:
 - ✅ `reverse rust` command integrated with Diesel/SeaORM parsers (16 tests)
 - ✅ `validate` command implemented (16 tests)
 - ✅ `generate` command connected to CLIOrchestrator
-- ✅ 142 CLI tests passing
+- ✅ `diff` command implemented (7 tests)
+- ✅ 159 CLI tests passing
 
 **Test Command**: `make test` or `uv run pytest tests/unit/cli/ -v`
 
@@ -356,5 +358,5 @@ actions:
 ---
 
 **Last Updated**: 2025-11-21
-**Project Phase**: Multi-Language Reverse Engineering Complete (~99%)
-**Next Milestone**: Implement docs command / Standardize option naming
+**Project Phase**: CLI Implementation Complete (~100%)
+**Next Milestone**: Stabilize Beta commands (patterns, init, workflow) / Production hardening
