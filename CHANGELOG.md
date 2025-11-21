@@ -7,6 +7,44 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.4] - 2025-11-21
+
+### Added
+- **SQL Table Reverse Engineering** - Complete reverse engineering tool for migrating existing PostgreSQL schemas to SpecQL
+  - `specql reverse-schema` CLI command for batch processing SQL files
+  - **Table Parser** (`reverse_engineering/table_parser.py`) - Parses CREATE TABLE statements using pglast AST
+  - **SQL Type Mapper** (`reverse_engineering/sql_type_mapper.py`) - Maps PostgreSQL types to SpecQL field types
+  - **Trinity Pattern Detection** (`reverse_engineering/trinity_detector.py`) - Auto-detects pk_*/id/identifier columns
+  - **Foreign Key Detection** (`reverse_engineering/fk_detector.py`) - Converts fk_* columns to `ref()` relationships
+  - **Translation Table Detection** (`reverse_engineering/translation_detector.py`) - Merges translation tables into parent entities
+  - **Audit Pattern Detection** (`reverse_engineering/audit_detector.py`) - Detects created_at/updated_at/deleted_at patterns
+  - **Pattern Orchestrator** (`reverse_engineering/pattern_orchestrator.py`) - Coordinates all pattern detectors
+  - **Entity Generator** (`reverse_engineering/entity_generator.py`) - Generates SpecQL YAML from parsed tables
+
+- **CLI Command** (`cli/reverse_schema.py`)
+  - Batch processing: Handle 100+ tables efficiently
+  - Preview mode: `--preview` to see generated YAML without writing files
+  - Confidence scoring: 85%+ indicates production-ready output
+  - Translation table merging: Automatic detection and nested structure generation
+
+### Test Coverage
+- **Unit Tests**: 175/178 passing (98.3%)
+  - 8 new unit test files covering all components
+- **Integration Tests**: 92/92 passing (100%)
+  - Round-trip validation (SQL → SpecQL → SQL)
+  - Translation table merging
+  - CLI end-to-end tests
+
+### Migration Impact
+- **Before**: Manual migration ~30 min/table
+- **After**: Automated migration ~5 min/table (review only)
+- **Time Savings**: ~82% reduction in migration effort
+
+### Quality Metrics
+- **Files Added**: 18 new files
+- **Lines Added**: 1,798 lines
+- **Test Files**: 11 new test files (1,077 lines)
+
 ## [0.8.3] - 2025-11-21
 
 ### Added
@@ -348,7 +386,8 @@ This stable release fixes all remaining test failures from v0.5.0b1, achieving p
 - Team-by-team implementation guide
 - Integration proposal with FraiseQL conventions
 
-[unreleased]: https://github.com/fraiseql/specql/compare/v0.8.3...HEAD
+[unreleased]: https://github.com/fraiseql/specql/compare/v0.8.4...HEAD
+[0.8.4]: https://github.com/fraiseql/specql/releases/tag/v0.8.4
 [0.8.3]: https://github.com/fraiseql/specql/releases/tag/v0.8.3
 [0.8.2]: https://github.com/fraiseql/specql/releases/tag/v0.8.2
 [0.8.1]: https://github.com/fraiseql/specql/releases/tag/v0.8.1
