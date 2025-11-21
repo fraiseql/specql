@@ -204,7 +204,9 @@ class RustParser:
         else:
             self.ts_parser = None
 
-    def parse_file(self, file_path: Path) -> tuple[
+    def parse_file(
+        self, file_path: Path
+    ) -> tuple[
         list[RustStructInfo],
         list["RustEnumInfo"],
         list[DieselTableInfo],
@@ -250,7 +252,9 @@ class RustParser:
 
         return structs, enums, diesel_tables, diesel_derives, impl_blocks, route_handlers
 
-    def parse_source(self, source_code: str) -> tuple[
+    def parse_source(
+        self, source_code: str
+    ) -> tuple[
         list[RustStructInfo],
         list[RustEnumInfo],
         list[DieselTableInfo],

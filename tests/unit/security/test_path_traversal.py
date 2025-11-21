@@ -57,9 +57,9 @@ class TestFilePathTraversal:
             # This would depend on how the orchestrator handles paths
             # For now, we'll test that Path operations don't escape the temp_dir
             resolved = (temp_dir / path).resolve()
-            assert (
-                not str(resolved).startswith(str(temp_dir.resolve())) or ".." not in path
-            ), f"Path traversal not blocked: {path}"
+            assert not str(resolved).startswith(str(temp_dir.resolve())) or ".." not in path, (
+                f"Path traversal not blocked: {path}"
+            )
 
     def test_absolute_path_handling(self, temp_dir):
         """Test handling of absolute paths"""
