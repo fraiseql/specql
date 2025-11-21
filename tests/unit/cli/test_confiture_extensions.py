@@ -133,7 +133,6 @@ class TestGenerateCommand:
             assert result.exit_code == 0
             assert "Confiture not available" in result.output or "schema file(s)" in result.output
 
-    @pytest.mark.xfail(reason="Implementation needs to properly return exit code 1 on build error")
     def test_generate_confiture_build_error(self, cli_runner, sample_entity_file):
         """Test handling of Confiture build errors."""
         # Patch the lazy import

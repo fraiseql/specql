@@ -40,9 +40,32 @@ def test_orchestrator_generates_hierarchical_paths():
     assert any("012_crm" in p for p in parts)
 
 
-def test_orchestrator_creates_directories():
+def test_orchestrator_creates_directories(sample_entity_file):
     """Orchestrator should create all required directories"""
-    # This test is currently not working as expected
-    # The hierarchical directory creation may not be implemented
-    # or may work differently than expected
-    pytest.skip("Hierarchical directory creation test needs review")
+    orchestrator = CLIOrchestrator(use_registry=False, output_format="confiture")
+
+    # Generate from entity file - should create directory structure
+    # Note: This creates db/schema/ in the current working directory
+    result = orchestrator.generate_from_files(
+        entity_files=[str(sample_entity_file)],
+        output_dir="migrations"
+    )
+
+    # Verify no errors
+    assert result.errors == [], f"Generation errors: {result.errors}"
+
+    # Verify Confiture directory structure was created in current directory
+    db_schema = Path("db/schema")
+
+    # Check that all required directories exist
+    assert (db_schema / "00_foundation").exists(), "00_foundation directory not created"
+    assert (db_schema / "10_tables").exists(), "10_tables directory not created"
+    assert (db_schema / "20_helpers").exists(), "20_helpers directory not created"
+    assert (db_schema / "30_functions").exists(), "30_functions directory not created"
+
+    # Verify files were created in the correct directories
+    assert (db_schema / "00_foundation" / "000_app_foundation.sql").exists()
+
+    # Check for entity-specific files
+    contact_files = list((db_schema / "10_tables").glob("contact.sql"))
+    assert len(contact_files) > 0, "Contact table file not created"
