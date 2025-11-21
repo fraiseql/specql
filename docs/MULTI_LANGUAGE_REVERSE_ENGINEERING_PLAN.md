@@ -1040,11 +1040,11 @@ uv run specql reverse typescript /path/to/schema.prisma -o /tmp/out/ --preview
 - [x] Status updated to Stable
 
 ### Phase 3: Rust (Task 3)
-- [ ] `specql reverse rust` parses Diesel models
-- [ ] `specql reverse rust` parses SeaORM entities
-- [ ] `specql reverse rust` parses Actix-web routes
-- [ ] 10+ tests passing
-- [ ] Status updated to Stable
+- [x] `specql reverse rust` parses Diesel models
+- [x] `specql reverse rust` parses SeaORM entities
+- [x] `specql reverse rust` parses Actix-web routes
+- [x] 10+ tests passing (16 tests)
+- [x] Status updated to Stable
 
 ### Phase 4: Java (Task 4)
 - [ ] `specql reverse java` command exists
