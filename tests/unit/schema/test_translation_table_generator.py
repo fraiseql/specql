@@ -1,4 +1,5 @@
 import pytest
+
 from core.ast_models import EntityDefinition, FieldDefinition, TranslationConfig
 from generators.schema.translation_table_generator import TranslationTableGenerator
 

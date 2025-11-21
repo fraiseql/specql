@@ -7,6 +7,37 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.3] - 2025-11-21
+
+### Added
+- **Translation Table Generator** - Hybrid Trinity pattern for i18n support
+  - Automatic translation table creation for entities marked with `translation_helper` pattern
+  - Supports both reference-based (FK to entity) and embedded (JSONB) translations
+  - Language-specific columns with fallback support
+  - Efficient querying with GIN indexes on JSONB fields
+  - File: `generators/schema/transformers/translation_table_generator.py`
+
+### Removed
+- **PrintOptim Migration Documentation** - Removed project-specific migration files
+  - Cleaned up `docs/migration/PRINTOPTIM_MIGRATION_ASSESSMENT.md`
+  - Cleaned up `docs/migration/PRINTOPTIM_MIGRATION_REVISED.md`
+  - Cleaned up `docs/migration/PRINTOPTIM_MIGRATION_READINESS.md`
+  - Keeps repository focused on general-purpose migration patterns
+
+### Documentation
+- Updated README version badge from 0.8.0 to 0.8.3
+- Cleaned up migration documentation directory
+
+### Quality Metrics
+- **Version Management**: Proper semantic versioning (0.8.2 → 0.8.3)
+- **Repository Cleanup**: Removed 1,578+ lines of project-specific content
+
+### Notes
+- No breaking changes
+- No API changes
+- Translation table generator enhances i18n capabilities
+- Clean repository state ready for production use
+
 ## [0.8.2] - 2025-11-21
 
 ### Fixed
@@ -317,7 +348,11 @@ This stable release fixes all remaining test failures from v0.5.0b1, achieving p
 - Team-by-team implementation guide
 - Integration proposal with FraiseQL conventions
 
-[unreleased]: https://github.com/fraiseql/specql/compare/v0.5.0...HEAD
+[unreleased]: https://github.com/fraiseql/specql/compare/v0.8.3...HEAD
+[0.8.3]: https://github.com/fraiseql/specql/releases/tag/v0.8.3
+[0.8.2]: https://github.com/fraiseql/specql/releases/tag/v0.8.2
+[0.8.1]: https://github.com/fraiseql/specql/releases/tag/v0.8.1
+[0.8.0]: https://github.com/fraiseql/specql/releases/tag/v0.8.0
 [0.5.0]: https://github.com/fraiseql/specql/releases/tag/v0.5.0
 [0.5.0b1]: https://github.com/fraiseql/specql/releases/tag/v0.5.0b1
 [0.1.0]: https://github.com/fraiseql/specql/releases/tag/v0.1.0

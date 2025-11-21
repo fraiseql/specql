@@ -5,7 +5,6 @@ Tests SpecQL YAML parsing into Entity AST
 
 import pytest
 
-from core.exceptions import SpecQLValidationError
 from core.specql_parser import ParseError, SpecQLParser
 
 
@@ -478,7 +477,7 @@ translations:
         entity = self.parser.parse(yaml_content)
 
         assert entity.translations is not None
-        assert entity.translations.enabled == True
+        assert entity.translations.enabled
         assert entity.translations.table_name is None  # default
         assert entity.translations.fields == ["name", "description"]
 
@@ -497,7 +496,7 @@ translations:
         entity = self.parser.parse(yaml_content)
 
         assert entity.translations is not None
-        assert entity.translations.enabled == True
+        assert entity.translations.enabled
         assert entity.translations.table_name == "custom_translations"
         assert entity.translations.fields == ["name"]
 
