@@ -83,8 +83,8 @@ class TreeSitterPrismaParser:
         """Extract all model declarations from AST."""
         models = []
 
-        # Find all model_declaration nodes
-        for model_node in self._find_all(ast, "model_declaration"):
+        # Find all model_block nodes (Prisma grammar v13 uses model_block, not model_declaration)
+        for model_node in self._find_all(ast, "model_block"):
             model = self._parse_model(model_node)
             if model:
                 models.append(model)
@@ -104,9 +104,28 @@ class TreeSitterPrismaParser:
             if child.type == "identifier" and name is None:
                 name = self._get_node_text(child)
 
-            elif child.type == "statement_block":
-                # Extract fields and block attributes from model body
-                fields, indexes, unique_constraints, table_name = self._parse_model_body(child)
+            elif child.type in ("{", "}", "model"):
+                # Skip structural tokens
+                continue
+            else:
+                # Process model fields and attributes directly (no statement_block in v13)
+                if child.type == "model_field":
+                    field = self._parse_field(child)
+                    if field:
+                        fields.append(field)
+                elif child.type == "model_multi_attribute":
+                    # v13 uses model_multi_attribute for @@index, @@unique, @@map, etc.
+                    attr_text = self._get_node_text(child)
+                    if "@@index" in attr_text:
+                        index = self._parse_block_attribute(child)
+                        if index:
+                            indexes.append(index)
+                    elif "@@unique" in attr_text:
+                        unique = self._parse_block_attribute(child)
+                        if unique:
+                            unique_constraints.append(unique)
+                    elif "@@map" in attr_text:
+                        table_name = self._extract_table_name(child)
 
         if name:
             model = PrismaModel(
@@ -118,39 +137,6 @@ class TreeSitterPrismaParser:
 
         return None
 
-    def _parse_model_body(
-        self, body_node: Node
-    ) -> tuple[list[PrismaField], list[dict], list[dict], str | None]:
-        """Parse fields and block attributes from model body."""
-        fields = []
-        indexes = []
-        unique_constraints = []
-        table_name = None
-
-        for child in body_node.children:
-            if child.type == "column_declaration":
-                field = self._parse_field(child)
-                if field:
-                    fields.append(field)
-
-            elif child.type == "block_attribute_declaration":
-                # Parse @@index, @@unique, @@map, etc.
-                attr_text = self._get_node_text(child)
-
-                if "@@index" in attr_text:
-                    index = self._parse_block_attribute(child)
-                    if index:
-                        indexes.append(index)
-
-                elif "@@unique" in attr_text:
-                    unique = self._parse_block_attribute(child)
-                    if unique:
-                        unique_constraints.append(unique)
-
-                elif "@@map" in attr_text:
-                    table_name = self._extract_table_name(child)
-
-        return fields, indexes, unique_constraints, table_name
 
     def _extract_table_name(self, attr_node: Node) -> str | None:
         """Extract table name from @@map(...) attribute."""
@@ -190,18 +176,22 @@ class TreeSitterPrismaParser:
                 # First identifier is field name
                 name = self._get_node_text(child)
 
-            elif child.type == "column_type":
-                # Field type (may include ?, [])
+            elif child.type == "field_type":
+                # Field type (v13 uses field_type, which contains nullable_type or non_null_type)
                 type_text = self._get_node_text(child)
 
-                # Preserve [] for list types, only strip ?
-                field_type = type_text.rstrip("?")
-
-                is_required = "?" not in type_text
+                # Check for list and nullable
                 is_list = "[]" in type_text
+                is_required = "?" not in type_text
 
-            elif child.type == "attribute":
-                # Parse attributes like @id, @unique, @default(...)
+                # Extract the base type - strip ? but keep [] if it's a list
+                if is_list:
+                    field_type = type_text.replace("?", "")  # Keep []
+                else:
+                    field_type = type_text.rstrip("?")  # Remove optional marker
+
+            elif child.type == "model_single_attribute":
+                # Parse attributes like @id, @unique, @default(...) (v13 uses model_single_attribute)
                 attr_text = self._get_node_text(child)
                 attributes.append(attr_text)
 
@@ -235,41 +225,38 @@ class TreeSitterPrismaParser:
 
     def _extract_default_value(self, attr_node: Node) -> str | None:
         """Extract default value from @default(...) attribute."""
-        # Look for arguments in the call expression
+        # Look for apply_function (v13 uses apply_function for function calls)
         for child in attr_node.children:
-            if child.type == "call_expression":
-                for grandchild in child.children:
-                    if grandchild.type == "arguments":
-                        for arg_child in grandchild.children:
-                            if arg_child.type == "string":
-                                # String literal like "lead"
-                                return self._get_node_text(arg_child).strip("\"'")
-                            elif arg_child.type == "function_call":
-                                # Function call like now()
-                                func_name = self._get_node_text(arg_child)
-                                # Extract just the function name
-                                if "(" in func_name:
-                                    return func_name.split("(")[0]
-                                return func_name
+            if child.type == "apply_function":
+                # Get function name (e.g., autoincrement, now, uuid)
+                func_text = self._get_node_text(child)
+                if "(" in func_text:
+                    return func_text.split("(")[0]
+                return func_text
+            elif child.type == "string":
+                # String literal like "lead"
+                return self._get_node_text(child).strip("\"'")
 
         return None
 
     def _extract_relation_name(self, attr_node: Node) -> str | None:
         """Extract relation name from @relation(...) attribute."""
-        # Look for string node in the arguments
+        # In v13, look for string literals directly (they might not be nested in call_expression)
         for child in attr_node.children:
-            if child.type == "call_expression":
-                for grandchild in child.children:
-                    if grandchild.type == "arguments":
-                        for arg_child in grandchild.children:
-                            if arg_child.type == "string":
-                                # Remove quotes
-                                string_content = self._get_node_text(arg_child)
-                                return string_content.strip("\"'")
-                            elif arg_child.type == "type_expression":
-                                # For named parameters, we might not have a simple relation name
-                                # For now, skip complex relations
-                                pass
+            if child.type == "(":
+                # After opening paren, look for string
+                continue
+            elif child.type == "string":
+                # Direct string child
+                string_content = self._get_node_text(child)
+                return string_content.strip("\"'")
+
+        # Also check nested structure for complex cases
+        for child in attr_node.children:
+            for grandchild in child.children if hasattr(child, 'children') else []:
+                if grandchild.type == "string":
+                    string_content = self._get_node_text(grandchild)
+                    return string_content.strip("\"'")
 
         return None
 
@@ -277,7 +264,8 @@ class TreeSitterPrismaParser:
         """Extract all enum declarations from AST."""
         enums = []
 
-        for enum_node in self._find_all(ast, "enum_declaration"):
+        # v13 uses enum_block, not enum_declaration
+        for enum_node in self._find_all(ast, "enum_block"):
             enum = self._parse_enum(enum_node)
             if enum:
                 enums.append(enum)
@@ -291,44 +279,32 @@ class TreeSitterPrismaParser:
 
         for child in enum_node.children:
             if child.type == "identifier":
-                name = self._get_node_text(child)
-
-            elif child.type == "enum_block":
-                # Extract enum values
-                values = self._parse_enum_body(child)
+                # In v13, enum identifiers are direct children (both name and values)
+                if name is None:
+                    # First identifier is the enum name
+                    name = self._get_node_text(child)
+                else:
+                    # Subsequent identifiers are enum values
+                    values.append(self._get_node_text(child))
 
         if name:
             return PrismaEnum(name=name, values=values)
 
         return None
 
-    def _parse_enum_body(self, body_node: Node) -> list[str]:
-        """Parse enum values from enum body."""
-        values = []
-
-        for child in body_node.children:
-            if child.type == "enumeral":
-                # Extract identifier from enumeral
-                for grandchild in child.children:
-                    if grandchild.type == "identifier":
-                        values.append(self._get_node_text(grandchild))
-
-        return values
-
     def _parse_block_attribute(self, attr_node: Node) -> dict | None:
         """Parse @@index or @@unique attributes."""
         fields = []
 
-        # Find the arguments node and extract identifiers from array
+        # In v13, identifiers are direct children between [ and ]
+        in_array = False
         for child in attr_node.children:
-            if child.type == "call_expression":
-                for grandchild in child.children:
-                    if grandchild.type == "arguments":
-                        for arg_child in grandchild.children:
-                            if arg_child.type == "array":
-                                for array_child in arg_child.children:
-                                    if array_child.type == "identifier":
-                                        fields.append(self._get_node_text(array_child))
+            if child.type == "[":
+                in_array = True
+            elif child.type == "]":
+                in_array = False
+            elif in_array and child.type == "identifier":
+                fields.append(self._get_node_text(child))
 
         if fields:
             return {"fields": fields}

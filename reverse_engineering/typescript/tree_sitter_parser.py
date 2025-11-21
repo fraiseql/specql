@@ -8,18 +8,25 @@ from typing import TYPE_CHECKING, Any
 
 # Conditional imports for optional dependencies
 try:
-    import tree_sitter_typescript as ts_typescript
-    from tree_sitter import Language, Node, Parser
+    from ..tree_sitter_compat import (
+        HAS_TREE_SITTER,
+        Language,
+        Node,
+        Parser,
+        get_typescript_language,
+        get_typescript_parser,
+    )
 
-    HAS_TREE_SITTER_TYPESCRIPT = True
+    HAS_TREE_SITTER_TYPESCRIPT = HAS_TREE_SITTER
 except ImportError:
     HAS_TREE_SITTER_TYPESCRIPT = False
-    ts_typescript = None
     if not TYPE_CHECKING:
         # Create stub types for when the dependency is missing
         Language = Any  # type: ignore
         Parser = Any  # type: ignore
         Node = Any  # type: ignore
+        get_typescript_language = None  # type: ignore
+        get_typescript_parser = None  # type: ignore
 
 
 class TypeScriptParser:
@@ -29,12 +36,12 @@ class TypeScriptParser:
         """Initialize parser with TypeScript language"""
         if not HAS_TREE_SITTER_TYPESCRIPT:
             raise ImportError(
-                "tree-sitter-typescript is required for TypeScript parsing. "
+                "tree-sitter-language-pack is required for TypeScript parsing. "
                 "Install with: pip install specql[reverse]"
             )
-        # Load TypeScript grammar
-        self.language = Language(ts_typescript.language_typescript())
-        self.parser = Parser(self.language)
+        # Load TypeScript grammar from language pack
+        self.language = get_typescript_language()
+        self.parser = get_typescript_parser()
 
     def parse(self, source_code: str) -> Node:
         """

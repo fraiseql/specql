@@ -47,20 +47,78 @@ TREE_SITTER = OptionalDependency(
     purpose="Multi-language AST parsing",
 )
 
-TREE_SITTER_RUST = OptionalDependency(
-    package_name="tree_sitter_rust",
-    pip_extra="reverse",
-    purpose="Rust AST parsing",
-)
+class TreeSitterLanguagePackRust(OptionalDependency):
+    """Check for Rust support via tree-sitter-language-pack."""
 
-TREE_SITTER_TYPESCRIPT = OptionalDependency(
-    package_name="tree_sitter_typescript",
-    pip_extra="reverse",
-    purpose="TypeScript AST parsing",
-)
+    def __init__(self):
+        super().__init__(
+            package_name="tree_sitter_language_pack",
+            pip_extra="reverse",
+            purpose="Rust AST parsing"
+        )
 
-TREE_SITTER_PRISMA = OptionalDependency(
-    package_name="tree_sitter_prisma",
-    pip_extra="reverse",
-    purpose="Prisma schema parsing",
-)
+    @property
+    def available(self) -> bool:
+        """Check if Rust is available via language-pack."""
+        if self._available is None:
+            try:
+                from tree_sitter_language_pack import get_language
+                # Verify Rust is available
+                get_language("rust")
+                self._available = True
+            except (ImportError, Exception):
+                self._available = False
+        return self._available
+
+TREE_SITTER_RUST = TreeSitterLanguagePackRust()
+
+class TreeSitterLanguagePackTypeScript(OptionalDependency):
+    """Check for TypeScript support via tree-sitter-language-pack."""
+
+    def __init__(self):
+        super().__init__(
+            package_name="tree_sitter_language_pack",
+            pip_extra="reverse",
+            purpose="TypeScript AST parsing"
+        )
+
+    @property
+    def available(self) -> bool:
+        """Check if TypeScript is available via language-pack."""
+        if self._available is None:
+            try:
+                from tree_sitter_language_pack import get_language
+                # Verify TypeScript is available
+                get_language("typescript")
+                self._available = True
+            except (ImportError, Exception):
+                self._available = False
+        return self._available
+
+TREE_SITTER_TYPESCRIPT = TreeSitterLanguagePackTypeScript()
+
+
+class TreeSitterLanguagePackPrisma(OptionalDependency):
+    """Check for Prisma support via tree-sitter-language-pack."""
+
+    def __init__(self):
+        super().__init__(
+            package_name="tree_sitter_language_pack",
+            pip_extra="reverse",
+            purpose="Prisma schema parsing"
+        )
+
+    @property
+    def available(self) -> bool:
+        """Check if Prisma is available via language-pack."""
+        if self._available is None:
+            try:
+                from tree_sitter_language_pack import get_language
+                # Verify Prisma is available
+                get_language("prisma")
+                self._available = True
+            except (ImportError, Exception):
+                self._available = False
+        return self._available
+
+TREE_SITTER_PRISMA = TreeSitterLanguagePackPrisma()
