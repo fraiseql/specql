@@ -67,6 +67,7 @@ python_files = "test_*.py"
 python_classes = "Test*"
 python_functions = "test_*"
 addopts = "-v --tb=short --strict-markers"
+pythonpath = ["src"]
 # Exclude archived/deprecated tests
 norecursedirs = ["archived", ".git", "__pycache__"]
 markers = [
@@ -123,9 +124,8 @@ line-length = 100
 target-version = ['py311']
 
 [tool.setuptools.packages.find]
-where = ["."]
-include = ["cli*", "infrastructure*", "core*", "generators*", "registry*", "reverse_engineering*", "utils*", "testing*", "numbering*", "patterns*", "pattern_library*", "templates*"]
-exclude = ["tests*", "docs*", "scripts*", "archive*", "database*", "entities*", "examples*", "migrations*", "pgvector*", "rust*", "site*", "stdlib*"]
+where = ["src"]
+include = ["cli*"]
 
 # No workspace members - all dependencies from PyPI
 
