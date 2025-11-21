@@ -4,25 +4,25 @@ description: "Implement saga pattern for distributed transactions across multipl
 author: SpecQL Team
 
 parameters:
-  - name: saga_steps
-    type: array<object>
-    required: true
-    description: "Sequence of saga steps with compensation actions"
+- name: saga_steps
+  type: array<object>
+  required: true
+  description: "Sequence of saga steps with compensation actions"
 
-  - name: compensation_strategy
-    type: enum[rollback_all, compensate_from_failure, partial_success]
-    default: rollback_all
-    description: "How to handle failures and rollbacks"
+- name: compensation_strategy
+  type: enum[rollback_all, compensate_from_failure, partial_success]
+  default: rollback_all
+  description: "How to handle failures and rollbacks"
 
-  - name: timeout_seconds
-    type: number
-    default: 300
-    description: "Maximum time allowed for saga completion"
+- name: timeout_seconds
+  type: number
+  default: 300
+  description: "Maximum time allowed for saga completion"
 
-  - name: monitoring
-    type: object
-    required: false
-    description: "Saga monitoring and logging configuration"
+- name: monitoring
+  type: object
+  required: false
+  description: "Saga monitoring and logging configuration"
 
 template: |
   steps:
@@ -225,93 +225,93 @@ template: |
         WHERE saga_id = v_saga_id;
 
 examples:
-  - name: order_fulfillment_saga
-    description: "Distributed saga for order fulfillment across inventory, payment, and shipping"
-    config:
-      saga_steps:
-        - name: "Reserve Inventory"
-          forward_action:
-            pattern: "crud/update"
-            entity: "Inventory"
-            config:
-              values:
-                reserved_quantity: "reserved_quantity + input_data.quantity"
-                updated_at: "NOW()"
-              where: "product_id = input_data.product_id"
-          compensation_action:
-            pattern: "crud/update"
-            entity: "Inventory"
-            config:
-              values:
-                reserved_quantity: "GREATEST(reserved_quantity - input_data.quantity, 0)"
-                updated_at: "NOW()"
+- name: order_fulfillment_saga
+  description: "Distributed saga for order fulfillment across inventory, payment, and shipping"
+  config:
+    saga_steps:
+    - name: "Reserve Inventory"
+      forward_action:
+        pattern: "crud/update"
+        entity: "Inventory"
+        config:
+          values:
+            reserved_quantity: "reserved_quantity + input_data.quantity"
+            updated_at: "NOW()"
+          where: "product_id = input_data.product_id"
+      compensation_action:
+        pattern: "crud/update"
+        entity: "Inventory"
+        config:
+          values:
+            reserved_quantity: "GREATEST(reserved_quantity - input_data.quantity, 0)"
+            updated_at: "NOW()"
 
-        - name: "Authorize Payment"
-          forward_action:
-            pattern: "state_machine/transition"
-            entity: "Payment"
-            config:
-              from_states: ["pending"]
-              to_state: "authorized"
-              input_fields:
-                - name: "authorization_code"
-                  value: "gen_random_uuid()::text"
-          compensation_action:
-            pattern: "state_machine/transition"
-            entity: "Payment"
-            config:
-              from_states: ["authorized"]
-              to_state: "cancelled"
+    - name: "Authorize Payment"
+      forward_action:
+        pattern: "state_machine/transition"
+        entity: "Payment"
+        config:
+          from_states: ["pending"]
+          to_state: "authorized"
+          input_fields:
+          - name: "authorization_code"
+            value: "gen_random_uuid()::text"
+      compensation_action:
+        pattern: "state_machine/transition"
+        entity: "Payment"
+        config:
+          from_states: ["authorized"]
+          to_state: "cancelled"
 
-        - name: "Create Shipment"
-          forward_action:
-            pattern: "crud/create"
-            entity: "Shipment"
-            config:
-              fields: ["order_id", "items", "shipping_address", "carrier"]
-          compensation_action:
-            pattern: "crud/delete"
-            entity: "Shipment"
+    - name: "Create Shipment"
+      forward_action:
+        pattern: "crud/create"
+        entity: "Shipment"
+        config:
+          fields: ["order_id", "items", "shipping_address", "carrier"]
+      compensation_action:
+        pattern: "crud/delete"
+        entity: "Shipment"
 
-      compensation_strategy: "rollback_all"
-      timeout_seconds: 600
+    compensation_strategy: "rollback_all"
+    timeout_seconds: 600
 
-  - name: user_registration_saga
-    description: "Saga for user registration with profile creation and email verification"
-    config:
-      saga_steps:
-        - name: "Create User Account"
-          forward_action:
-            pattern: "crud/create"
-            entity: "User"
-            config:
-              fields: ["email", "password_hash", "registration_source"]
-          compensation_action:
-            pattern: "crud/delete"
-            entity: "User"
+- name: user_registration_saga
+  description: "Saga for user registration with profile creation and email verification"
+  config:
+    saga_steps:
+    - name: "Create User Account"
+      forward_action:
+        pattern: "crud/create"
+        entity: "User"
+        config:
+          fields: ["email", "password_hash", "registration_source"]
+      compensation_action:
+        pattern: "crud/delete"
+        entity: "User"
 
-        - name: "Create User Profile"
-          forward_action:
-            pattern: "crud/create"
-            entity: "UserProfile"
-            config:
-              fields: ["user_id", "first_name", "last_name", "preferences"]
-          compensation_action:
-            pattern: "crud/delete"
-            entity: "UserProfile"
+    - name: "Create User Profile"
+      forward_action:
+        pattern: "crud/create"
+        entity: "UserProfile"
+        config:
+          fields: ["user_id", "first_name", "last_name", "preferences"]
+      compensation_action:
+        pattern: "crud/delete"
+        entity: "UserProfile"
 
-        - name: "Send Verification Email"
-          forward_action:
-            pattern: "crud/create"
-            entity: "EmailVerification"
-            config:
-              fields: ["user_id", "verification_token", "expires_at"]
-          compensation_action:
-            pattern: "crud/update"
-            entity: "EmailVerification"
-            config:
-              values:
-                status: "'cancelled'"
+    - name: "Send Verification Email"
+      forward_action:
+        pattern: "crud/create"
+        entity: "EmailVerification"
+        config:
+          fields: ["user_id", "verification_token", "expires_at"]
+      compensation_action:
+        pattern: "crud/update"
+        entity: "EmailVerification"
+        config:
+          values:
+            status: "'cancelled'"
 
-      compensation_strategy: "compensate_from_failure"
-      timeout_seconds: 300
+    compensation_strategy: "compensate_from_failure"
+    timeout_seconds: 300

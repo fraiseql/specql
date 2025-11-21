@@ -18,20 +18,20 @@ fields:
   linkedin_profile: url
 
 actions:
-  - name: create_author
-    description: "Create a new blog author"
-    steps:
-      - validate: email IS NOT NULL
-      - validate: first_name IS NOT NULL
-      - validate: last_name IS NOT NULL
-      - insert: Author
+- name: create_author
+  description: "Create a new blog author"
+  steps:
+  - validate: email IS NOT NULL
+  - validate: first_name IS NOT NULL
+  - validate: last_name IS NOT NULL
+  - insert: Author
 
-  - name: update_author
-    description: "Update author profile"
-    steps:
-      - update: Author
+- name: update_author
+  description: "Update author profile"
+  steps:
+  - update: Author
 
-  - name: get_author
-    description: "Get author by ID"
-    steps:
-      - select: Author
+- name: get_author
+  description: "Get author by ID"
+  steps:
+  - select: Author
