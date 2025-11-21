@@ -325,7 +325,6 @@ actions:
 **Recent Changes**:
 - ✅ CLI redesigned with unified command structure (Phases 1-6)
 - ✅ 33 new CLI tests passing
-- ✅ Old CLI moved to `cli_old/` for reference
 
 **Test Command**: `make test` or `uv run pytest tests/unit/cli/ -v`
 
