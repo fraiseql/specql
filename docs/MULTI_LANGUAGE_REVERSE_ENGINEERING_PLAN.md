@@ -1033,11 +1033,11 @@ uv run specql reverse typescript /path/to/schema.prisma -o /tmp/out/ --preview
 - [x] Status updated to Stable
 
 ### Phase 2: TypeScript (Task 2)
-- [ ] `specql reverse typescript` parses Prisma schemas
-- [ ] `specql reverse typescript` parses Express routes
-- [ ] `specql reverse typescript` parses Next.js routes
-- [ ] 10+ tests passing
-- [ ] Status updated to Stable
+- [x] `specql reverse typescript` parses Prisma schemas
+- [x] `specql reverse typescript` parses Express routes
+- [x] `specql reverse typescript` parses Next.js routes
+- [x] 10+ tests passing (17 tests)
+- [x] Status updated to Stable
 
 ### Phase 3: Rust (Task 3)
 - [ ] `specql reverse rust` parses Diesel models
