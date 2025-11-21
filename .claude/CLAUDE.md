@@ -170,7 +170,7 @@ specql (v2.0)
 ├── patterns detect|apply         # Pattern operations (Beta)
 ├── init project|entity|registry  # Scaffolding (Beta)
 ├── workflow migrate|sync         # Multi-step automation (Beta)
-├── diff                          # Schema diffing (Planned)
+├── diff                          # Schema diffing (Stable - 7 tests)
 └── docs                          # Documentation (Planned)
 ```
 
@@ -356,5 +356,5 @@ actions:
 ---
 
 **Last Updated**: 2025-11-21
-**Project Phase**: Multi-Language Reverse Engineering Complete (~98%)
-**Next Milestone**: Standardize option naming / Implement diff command
+**Project Phase**: Multi-Language Reverse Engineering Complete (~99%)
+**Next Milestone**: Implement docs command / Standardize option naming
