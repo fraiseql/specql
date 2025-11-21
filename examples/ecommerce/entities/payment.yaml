@@ -15,15 +15,15 @@ fields:
   order: ref(Order)!
 
 actions:
-  - name: process_payment
-    description: "Process payment for order"
-    steps:
-      - validate: amount > 0
-      - validate: order IS NOT NULL
-      - insert: Payment
+- name: process_payment
+  description: "Process payment for order"
+  steps:
+  - validate: amount > 0
+  - validate: order IS NOT NULL
+  - insert: Payment
 
-  - name: refund_payment
-    description: "Refund a payment"
-    steps:
-      - validate: status = 'succeeded'
-      - update: Payment SET status = 'refunded'
+- name: refund_payment
+  description: "Refund a payment"
+  steps:
+  - validate: status = 'succeeded'
+  - update: Payment SET status = 'refunded'

@@ -35,11 +35,11 @@ fields:
       Pattern: ^[a-z]{2}$
 
 actions:
-  - name: create_language
-  - name: update_language
-  - name: delete_language
+- name: create_language
+- name: update_language
+- name: delete_language
 
   # Business actions
-  - name: activate_language
-  - name: deactivate_language
-  - name: update_iso_code
+- name: activate_language
+- name: deactivate_language
+- name: update_iso_code
