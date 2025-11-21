@@ -19,6 +19,7 @@ from generators.schema.table_view_dependency import TableViewDependencyResolver
 from generators.schema.table_view_generator import TableViewGenerator
 from generators.schema.transformers.aggregate_view_transformer import AggregateViewTransformer
 from generators.schema.transformers.computed_column_transformer import ComputedColumnTransformer
+from generators.schema.transformers.scd_type2_transformer import SCDType2Transformer
 from generators.table_generator import TableGenerator
 from generators.trinity_helper_generator import TrinityHelperGenerator
 from utils.logger import LogContext, get_team_logger
@@ -77,6 +78,7 @@ class SchemaOrchestrator:
         # Pattern transformers
         self.pattern_transformers = PatternTransformerRegistry()
         self.pattern_transformers.register(ComputedColumnTransformer())
+        self.pattern_transformers.register(SCDType2Transformer())
         self.pattern_transformers.register(AggregateViewTransformer())
 
         # Performance monitoring

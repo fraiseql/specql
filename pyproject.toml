@@ -1,6 +1,6 @@
 [project]
 name = "specql"
-version = "0.8.1"  #    Managed by VERSION file
+version = "0.9.0"  #    Managed by VERSION file
 description = "SpecQL - Business-focused YAML to PostgreSQL + GraphQL code generator"
 authors = [
     {name = "Lionel Hamayon", email = "lionel.hamayon@evolution-digitale.fr"}
@@ -16,6 +16,7 @@ dependencies = [
     "psycopg>=3.2.12",
     "fraiseql-confiture>=0.3.2",
     "tree-sitter>=0.25.2",
+    "python-hcl2>=7.3.1",
 ]
 
 [project.optional-dependencies]
