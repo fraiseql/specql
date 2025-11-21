@@ -1,8 +1,7 @@
 """Integration test with actual PrintOptim manufacturer table."""
 
-import pytest
-from pathlib import Path
 from click.testing import CliRunner
+
 from cli.reverse_schema import reverse_schema
 
 

@@ -5,7 +5,6 @@ Detects translation tables and identifies their relationship to parent tables.
 """
 
 from dataclasses import dataclass
-from typing import List
 
 from .table_parser import ParsedTable
 
@@ -18,7 +17,7 @@ class TranslationDetectionResult:
     parent_table: str | None
     fk_column: str | None
     locale_column: str | None
-    translatable_fields: List[str]
+    translatable_fields: list[str]
 
 
 class TranslationTableDetector:
@@ -83,7 +82,7 @@ class TranslationTableDetector:
 
     def _find_translatable_fields(
         self, table: ParsedTable, fk_column: str | None, locale_column: str | None
-    ) -> List[str]:
+    ) -> list[str]:
         """Find fields that are translatable (not FK or locale)."""
         exclude_columns = set()
         if fk_column:

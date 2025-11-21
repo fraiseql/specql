@@ -4,15 +4,16 @@ Reverse Schema CLI Command
 Converts PostgreSQL CREATE TABLE statements to SpecQL entity YAML files.
 """
 
-import click
 from pathlib import Path
+
+import click
 from rich.console import Console
 
-from reverse_engineering.table_parser import SQLTableParser
-from reverse_engineering.pattern_orchestrator import PatternDetectionOrchestrator
 from reverse_engineering.entity_generator import EntityYAMLGenerator
 from reverse_engineering.fk_detector import ForeignKeyDetector
-from reverse_engineering.translation_detector import TranslationTableDetector, TranslationMerger
+from reverse_engineering.pattern_orchestrator import PatternDetectionOrchestrator
+from reverse_engineering.table_parser import SQLTableParser
+from reverse_engineering.translation_detector import TranslationMerger, TranslationTableDetector
 
 console = Console()
 

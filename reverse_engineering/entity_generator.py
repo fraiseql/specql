@@ -4,13 +4,13 @@ Entity YAML Generator
 Converts parsed tables and detected patterns into SpecQL entity YAML.
 """
 
-import yaml
-from datetime import datetime, timezone
-from typing import List
+from datetime import UTC, datetime
 
-from .table_parser import ParsedTable
-from .pattern_orchestrator import PatternDetectionResult
+import yaml
+
 from .fk_detector import ForeignKeyInfo
+from .pattern_orchestrator import PatternDetectionResult
+from .table_parser import ParsedTable
 
 
 class EntityYAMLGenerator:
@@ -20,7 +20,7 @@ class EntityYAMLGenerator:
         self,
         table: ParsedTable,
         patterns: PatternDetectionResult,
-        foreign_keys: List[ForeignKeyInfo] = None,
+        foreign_keys: list[ForeignKeyInfo] = None,
     ) -> str:
         """Generate SpecQL YAML for an entity."""
         # Convert table name to entity name (tb_manufacturer → Manufacturer)
@@ -38,7 +38,7 @@ class EntityYAMLGenerator:
                 "confidence": patterns.confidence,
                 "detected_patterns": patterns.patterns,
                 "generated_by": "specql-reverse-schema",
-                "generated_at": datetime.now(timezone.utc).isoformat(),
+                "generated_at": datetime.now(UTC).isoformat(),
             },
         }
 
@@ -52,7 +52,7 @@ class EntityYAMLGenerator:
         # Convert snake_case to PascalCase
         return "".join(word.capitalize() for word in name.split("_"))
 
-    def _build_fields(self, table: ParsedTable, foreign_keys: List[ForeignKeyInfo]) -> dict:
+    def _build_fields(self, table: ParsedTable, foreign_keys: list[ForeignKeyInfo]) -> dict:
         """Build the fields dict for the entity."""
         fields = {}
         fk_map = {fk.column: fk for fk in foreign_keys}
@@ -101,7 +101,7 @@ class EntityYAMLGenerator:
 
     def _get_timestamp(self):
         """Get current timestamp for metadata."""
-        return datetime.now(timezone.utc).isoformat()
+        return datetime.now(UTC).isoformat()
 
     def _generate_yaml(self, entity_dict):
         """Generate YAML from entity dict."""

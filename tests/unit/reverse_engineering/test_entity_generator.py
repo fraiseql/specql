@@ -1,11 +1,11 @@
 """Tests for entity YAML generation functionality."""
 
-import pytest
 import yaml
-from reverse_engineering.table_parser import SQLTableParser
-from reverse_engineering.pattern_orchestrator import PatternDetectionOrchestrator
+
 from reverse_engineering.entity_generator import EntityYAMLGenerator
 from reverse_engineering.fk_detector import ForeignKeyDetector
+from reverse_engineering.pattern_orchestrator import PatternDetectionOrchestrator
+from reverse_engineering.table_parser import SQLTableParser
 from reverse_engineering.translation_detector import TranslationMerger
 
 

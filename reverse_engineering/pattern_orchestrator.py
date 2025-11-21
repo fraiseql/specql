@@ -5,19 +5,18 @@ Coordinates all pattern detectors to provide comprehensive pattern analysis.
 """
 
 from dataclasses import dataclass
-from typing import List
 
-from .table_parser import ParsedTable
-from .trinity_detector import TrinityPatternDetector
 from .audit_detector import AuditTrailDetector
+from .table_parser import ParsedTable
 from .translation_detector import TranslationTableDetector
+from .trinity_detector import TrinityPatternDetector
 
 
 @dataclass
 class PatternDetectionResult:
     """Result of comprehensive pattern detection."""
 
-    patterns: List[str]
+    patterns: list[str]
     confidence: float
 
 

@@ -1,9 +1,8 @@
 """Tests for audit trail detection functionality."""
 
-import pytest
-from reverse_engineering.table_parser import SQLTableParser
 from reverse_engineering.audit_detector import AuditTrailDetector
 from reverse_engineering.pattern_orchestrator import PatternDetectionOrchestrator
+from reverse_engineering.table_parser import SQLTableParser
 
 
 class TestAuditTrailDetector:

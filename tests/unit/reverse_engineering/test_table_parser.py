@@ -1,7 +1,6 @@
 """Tests for SQL table parsing functionality."""
 
-import pytest
-from reverse_engineering.table_parser import SQLTableParser, ParsedTable, ColumnInfo
+from reverse_engineering.table_parser import SQLTableParser
 
 
 class TestSQLTableParser:

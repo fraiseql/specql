@@ -6,7 +6,6 @@ business fields vs. technical fields.
 """
 
 from dataclasses import dataclass
-from typing import List
 
 from .table_parser import ParsedTable
 
@@ -19,8 +18,8 @@ class TrinityDetectionResult:
     id_field: str | None  # INTEGER IDENTITY field
     pk_field: str | None  # UUID pk_* field
     identifier_field: str | None  # TEXT identifier field
-    audit_fields: List[str]  # created_at, updated_at, etc.
-    business_fields: List[str]  # Everything else
+    audit_fields: list[str]  # created_at, updated_at, etc.
+    business_fields: list[str]  # Everything else
 
 
 class TrinityPatternDetector:
@@ -88,7 +87,7 @@ class TrinityPatternDetector:
                 return column.name
         return None
 
-    def _detect_audit_fields(self, table: ParsedTable) -> List[str]:
+    def _detect_audit_fields(self, table: ParsedTable) -> list[str]:
         """Detect audit trail fields."""
         audit_fields = []
         for column in table.columns:
@@ -102,8 +101,8 @@ class TrinityPatternDetector:
         id_field: str | None,
         pk_field: str | None,
         identifier_field: str | None,
-        audit_fields: List[str],
-    ) -> List[str]:
+        audit_fields: list[str],
+    ) -> list[str]:
         """Get business domain fields (excluding Trinity and audit fields)."""
         exclude_fields = set()
         if id_field:

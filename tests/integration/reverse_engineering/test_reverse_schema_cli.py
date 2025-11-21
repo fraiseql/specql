@@ -1,8 +1,7 @@
 """Integration tests for reverse-schema CLI command."""
 
-import pytest
 from click.testing import CliRunner
-from pathlib import Path
+
 from cli.reverse_schema import reverse_schema
 
 

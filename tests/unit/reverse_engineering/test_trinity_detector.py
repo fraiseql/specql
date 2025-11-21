@@ -1,9 +1,8 @@
 """Tests for Trinity pattern detection functionality."""
 
-import pytest
+from reverse_engineering.fk_detector import ForeignKeyDetector
 from reverse_engineering.table_parser import SQLTableParser
 from reverse_engineering.trinity_detector import TrinityPatternDetector
-from reverse_engineering.fk_detector import ForeignKeyDetector
 
 
 class TestTrinityPatternDetector:

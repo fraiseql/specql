@@ -5,7 +5,6 @@ Detects audit trail patterns (created_at/updated_at/deleted_at) and soft delete 
 """
 
 from dataclasses import dataclass
-from typing import List
 
 from .table_parser import ParsedTable
 
@@ -16,7 +15,7 @@ class AuditTrailResult:
 
     has_audit_trail: bool
     has_soft_delete: bool
-    audit_fields: List[str]
+    audit_fields: list[str]
     confidence: float
 
 

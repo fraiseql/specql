@@ -5,9 +5,8 @@ Detects foreign key relationships from ALTER TABLE statements and converts
 fk_* columns to ref() relationships.
 """
 
-from dataclasses import dataclass
-from typing import List
 import re
+from dataclasses import dataclass
 
 from .table_parser import ParsedTable
 
@@ -27,8 +26,8 @@ class ForeignKeyDetector:
     """Detects foreign key relationships in SQL."""
 
     def detect(
-        self, parsed_table: ParsedTable, alter_statements: List[str]
-    ) -> List[ForeignKeyInfo]:
+        self, parsed_table: ParsedTable, alter_statements: list[str]
+    ) -> list[ForeignKeyInfo]:
         """Detect foreign keys from ALTER TABLE statements."""
         foreign_keys = []
 
@@ -38,7 +37,7 @@ class ForeignKeyDetector:
 
         return foreign_keys
 
-    def _parse_alter_table_fk(self, alter_sql: str) -> List[ForeignKeyInfo]:
+    def _parse_alter_table_fk(self, alter_sql: str) -> list[ForeignKeyInfo]:
         """Parse ALTER TABLE ... ADD CONSTRAINT ... FOREIGN KEY."""
         foreign_keys = []
 

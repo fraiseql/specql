@@ -5,9 +5,9 @@ Converts PostgreSQL CREATE TABLE statements to structured data
 """
 
 from dataclasses import dataclass
-from typing import List
 
 from core.dependencies import PGLAST
+
 from .sql_type_mapper import SQLTypeMapper
 
 # Lazy import with availability check
@@ -41,10 +41,10 @@ class ParsedTable:
 
     schema: str
     table_name: str
-    columns: List[ColumnInfo]
-    primary_key: List[str] | None = None
-    unique_constraints: List[List[str]] | None = None
-    check_constraints: List[str] | None = None
+    columns: list[ColumnInfo]
+    primary_key: list[str] | None = None
+    unique_constraints: list[list[str]] | None = None
+    check_constraints: list[str] | None = None
 
 
 class SQLTableParser:

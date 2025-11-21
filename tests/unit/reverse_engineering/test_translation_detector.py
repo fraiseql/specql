@@ -1,8 +1,7 @@
 """Tests for translation table detection functionality."""
 
-import pytest
 from reverse_engineering.table_parser import SQLTableParser
-from reverse_engineering.translation_detector import TranslationTableDetector, TranslationMerger
+from reverse_engineering.translation_detector import TranslationMerger, TranslationTableDetector
 
 
 class TestTranslationTableDetector:
