@@ -143,22 +143,3 @@ class TranslationMerger:
         for col in table.columns:
             fields[col.name] = col.specql_type
         return fields
-
-        # Get translatable fields from translation table
-        translatable_fields = {}
-        for field in translation_info.translatable_fields:
-            # Find the field in translation table
-            for col in translation_table.columns:
-                if col.name == field:
-                    translatable_fields[field] = col.specql_type
-                    break
-
-        # Create translations nested structure
-        translations_structure = {
-            "locale": "ref(Locale)",  # Assume Locale entity exists
-            **translatable_fields,
-        }
-
-        # Add translations to fields (we'll need to extend ParsedTable for this)
-        # For now, return the merged table - the entity generator will handle the YAML structure
-        return merged_table

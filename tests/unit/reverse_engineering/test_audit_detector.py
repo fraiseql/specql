@@ -29,8 +29,8 @@ class TestAuditTrailDetector:
         detector = AuditTrailDetector()
         result = detector.detect(parsed_table)
 
-        assert result.has_audit_trail == True
-        assert result.has_soft_delete == True
+        assert result.has_audit_trail is True
+        assert result.has_soft_delete is True
         assert result.audit_fields == [
             "created_at",
             "created_by",

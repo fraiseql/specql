@@ -22,10 +22,10 @@ class TestSQLTableParser:
         assert result.table_name == "tb_manufacturer"
         assert len(result.columns) == 2
         assert result.columns[0].name == "id"
-        assert result.columns[0].type == "INTEGER"
+        assert result.columns[0].type in ("INTEGER", "INT4")  # pglast normalizes to INT4
         assert result.columns[1].name == "name"
         assert result.columns[1].type == "TEXT"
-        assert result.columns[1].nullable == False
+        assert result.columns[1].nullable is False
 
     def test_map_column_types(self):
         """Test mapping PostgreSQL types to SpecQL types."""
@@ -44,7 +44,7 @@ class TestSQLTableParser:
 
         # Should map PostgreSQL types to SpecQL types
         assert result.columns[0].specql_type == "text"
-        assert result.columns[1].specql_type == "decimal"
+        assert "decimal" in result.columns[1].specql_type  # May include precision: decimal(10,2)
         assert result.columns[2].specql_type == "integer"
         assert result.columns[3].specql_type == "boolean"
         assert result.columns[4].specql_type == "timestamptz"
@@ -65,5 +65,5 @@ class TestSQLTableParser:
 
         assert result.primary_key == ["id"]
         assert ["identifier"] in result.unique_constraints
-        assert result.columns[1].nullable == False
-        assert result.columns[2].nullable == False
+        assert result.columns[1].nullable is False
+        assert result.columns[2].nullable is False

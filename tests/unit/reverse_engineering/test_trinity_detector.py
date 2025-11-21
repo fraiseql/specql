@@ -26,7 +26,7 @@ class TestTrinityPatternDetector:
         detector = TrinityPatternDetector()
         result = detector.detect(parsed_table)
 
-        assert result.has_trinity_pattern == True
+        assert result.has_trinity_pattern is True
         assert result.id_field == "id"
         assert result.pk_field == "pk_manufacturer"
         assert result.identifier_field == "identifier"

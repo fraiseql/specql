@@ -14,11 +14,18 @@ class SQLTypeMapper:
         "CHAR": "text",
         "BPCHAR": "text",  # PostgreSQL's internal CHAR type
         "INTEGER": "integer",
+        "INT": "integer",
+        "INT4": "integer",  # PostgreSQL's internal INTEGER type
         "BIGINT": "bigint",
+        "INT8": "bigint",  # PostgreSQL's internal BIGINT type
         "SMALLINT": "smallint",
+        "INT2": "smallint",  # PostgreSQL's internal SMALLINT type
+        "SERIAL": "integer",
+        "BIGSERIAL": "bigint",
         "NUMERIC": "decimal",
         "DECIMAL": "decimal",
         "BOOLEAN": "boolean",
+        "BOOL": "boolean",  # PostgreSQL's internal BOOLEAN type
         "TIMESTAMPTZ": "timestamptz",
         "TIMESTAMP": "timestamp",
         "DATE": "date",
@@ -28,7 +35,9 @@ class SQLTypeMapper:
         "JSON": "json",
         "JSONB": "jsonb",
         "REAL": "real",
+        "FLOAT4": "real",  # PostgreSQL's internal REAL type
         "DOUBLE PRECISION": "double",
+        "FLOAT8": "double",  # PostgreSQL's internal DOUBLE PRECISION type
     }
 
     def map_type(self, pg_type: str) -> str:

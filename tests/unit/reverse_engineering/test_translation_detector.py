@@ -31,13 +31,13 @@ class TestTranslationTableDetector:
 
         parser = SQLTableParser()
 
-        main_table = parser.parse_table(main_sql)
+        parser.parse_table(main_sql)  # Parse main table (used for context)
         translation_table = parser.parse_table(translation_sql)
 
         detector = TranslationTableDetector()
         result = detector.detect(translation_table)
 
-        assert result.is_translation_table == True
+        assert result.is_translation_table is True
         assert result.parent_table == "tb_manufacturer"
         assert result.fk_column == "fk_manufacturer"
         assert result.locale_column == "locale"

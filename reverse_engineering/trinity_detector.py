@@ -69,7 +69,9 @@ class TrinityPatternDetector:
     def _detect_id_field(self, table: ParsedTable) -> str | None:
         """Detect INTEGER IDENTITY PRIMARY KEY field."""
         for column in table.columns:
-            if column.type == "INTEGER" and table.primary_key and column.name in table.primary_key:
+            # Check for integer types (INTEGER, INT4, SERIAL, etc.)
+            int_types = {"INTEGER", "INT4", "INT", "SERIAL", "BIGINT", "INT8", "BIGSERIAL"}
+            if column.type in int_types and table.primary_key and column.name in table.primary_key:
                 return column.name
         return None
 

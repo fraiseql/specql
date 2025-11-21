@@ -31,25 +31,6 @@ class TestEntityYAMLGenerator:
         generator = EntityYAMLGenerator()
         yaml_output = generator.generate(parsed_table, patterns)
 
-        expected = """entity: Manufacturer
-schema: catalog
-description: Auto-generated from catalog.tb_manufacturer
-
-fields:
-  identifier: text!
-  name: text
-  abbreviation: char(2)!
-
-patterns:
-- trinity
-
-_metadata:
-  source_table: catalog.tb_manufacturer
-  confidence: 0.0
-  detected_patterns: [trinity]
-  generated_by: specql-reverse-schema
-  generated_at: """
-
         # Check that the YAML contains the expected structure
         assert "entity: Manufacturer" in yaml_output
         assert "schema: catalog" in yaml_output
@@ -118,7 +99,7 @@ _metadata:
         translation_table = parser.parse_table(translation_sql)
 
         pattern_detector = PatternDetectionOrchestrator()
-        patterns = pattern_detector.detect_all(main_table)
+        pattern_detector.detect_all(main_table)  # Run detection (results used internally)
 
         merger = TranslationMerger()
         merged_fields = merger.merge(main_table, translation_table)

@@ -10,7 +10,6 @@ import click
 from rich.console import Console
 
 from reverse_engineering.entity_generator import EntityYAMLGenerator
-from reverse_engineering.fk_detector import ForeignKeyDetector
 from reverse_engineering.pattern_orchestrator import PatternDetectionOrchestrator
 from reverse_engineering.table_parser import SQLTableParser
 from reverse_engineering.translation_detector import TranslationMerger, TranslationTableDetector
@@ -58,7 +57,6 @@ def reverse_schema(sql_files, output_dir, min_confidence, preview, merge_transla
     parser = SQLTableParser()
     pattern_detector = PatternDetectionOrchestrator()
     entity_generator = EntityYAMLGenerator()
-    fk_detector = ForeignKeyDetector()
     translation_detector = TranslationTableDetector()
     translation_merger = TranslationMerger()
 
