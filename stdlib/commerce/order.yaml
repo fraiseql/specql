@@ -69,17 +69,17 @@ fields:
     description: "Contract under which this order is placed."
 
 actions:
-  - name: create_order
-  - name: update_order
-  - name: delete_order
+- name: create_order
+- name: update_order
+- name: delete_order
 
   # Business actions
-  - name: submit_order
-  - name: approve_order
-  - name: reject_order
-  - name: ship_order
-  - name: deliver_order
-  - name: cancel_order
-  - name: add_order_line
-  - name: remove_order_line
-  - name: update_quantity
+- name: submit_order
+- name: approve_order
+- name: reject_order
+- name: ship_order
+- name: deliver_order
+- name: cancel_order
+- name: add_order_line
+- name: remove_order_line
+- name: update_quantity

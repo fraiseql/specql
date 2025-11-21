@@ -4,25 +4,25 @@ description: "Execute different patterns based on conditional logic and entity s
 author: SpecQL Team
 
 parameters:
-  - name: conditions
-    type: array<object>
-    required: true
-    description: "Conditional branches with their patterns"
+- name: conditions
+  type: array<object>
+  required: true
+  description: "Conditional branches with their patterns"
 
-  - name: default_branch
-    type: object
-    required: false
-    description: "Default pattern to execute if no conditions match"
+- name: default_branch
+  type: object
+  required: false
+  description: "Default pattern to execute if no conditions match"
 
-  - name: evaluation_order
-    type: enum[first_match, priority_score, random]
-    default: first_match
-    description: "How to evaluate multiple matching conditions"
+- name: evaluation_order
+  type: enum[first_match, priority_score, random]
+  default: first_match
+  description: "How to evaluate multiple matching conditions"
 
-  - name: shared_context
-    type: object
-    required: false
-    description: "Context variables shared across all branches"
+- name: shared_context
+  type: object
+  required: false
+  description: "Context variables shared across all branches"
 
 template: |
   steps:
@@ -166,131 +166,131 @@ template: |
         );
 
 examples:
-  - name: payment_processing_conditional
-    description: "Process payments differently based on amount and payment method"
-    config:
-      conditions:
-        - name: "High Value Credit Card"
-          condition: "amount > 1000 AND payment_method = 'credit_card'"
-          steps:
-            - name: "Enhanced Fraud Check"
-              pattern: "validation/validation_chain"
-              config:
-                validations:
-                  - condition: "fraud_score < 30"
-                    error_message: "High-value transaction requires additional fraud verification"
-                  - condition: "user_verified = true"
-                    error_message: "User verification required for high-value transactions"
+- name: payment_processing_conditional
+  description: "Process payments differently based on amount and payment method"
+  config:
+    conditions:
+    - name: "High Value Credit Card"
+      condition: "amount > 1000 AND payment_method = 'credit_card'"
+      steps:
+      - name: "Enhanced Fraud Check"
+        pattern: "validation/validation_chain"
+        config:
+          validations:
+          - condition: "fraud_score < 30"
+            error_message: "High-value transaction requires additional fraud verification"
+          - condition: "user_verified = true"
+            error_message: "User verification required for high-value transactions"
 
-            - name: "Create Approval Request"
-              pattern: "crud/create"
-              config:
-                fields: ["amount", "payment_method", "approval_required"]
+      - name: "Create Approval Request"
+        pattern: "crud/create"
+        config:
+          fields: ["amount", "payment_method", "approval_required"]
 
-            - name: "Set Pending Approval"
-              pattern: "state_machine/transition"
-              config:
-                from_states: ["initiated"]
-                to_state: "pending_approval"
+      - name: "Set Pending Approval"
+        pattern: "state_machine/transition"
+        config:
+          from_states: ["initiated"]
+          to_state: "pending_approval"
 
-        - name: "Standard Payment"
-          condition: "amount <= 1000"
-          steps:
-            - name: "Basic Validation"
-              pattern: "validation/validation_chain"
-              config:
-                validations:
-                  - condition: "payment_method IN ('credit_card', 'debit_card', 'bank_transfer')"
-                    error_message: "Unsupported payment method"
+    - name: "Standard Payment"
+      condition: "amount <= 1000"
+      steps:
+      - name: "Basic Validation"
+        pattern: "validation/validation_chain"
+        config:
+          validations:
+          - condition: "payment_method IN ('credit_card', 'debit_card', 'bank_transfer')"
+            error_message: "Unsupported payment method"
 
-            - name: "Process Payment"
-              pattern: "multi_entity/coordinated_update"
-              config:
-                operations:
-                  - action: "update"
-                    entity: "Payment"
-                    values:
-                      status: "'processing'"
-                    where: "id = v_payment_id"
+      - name: "Process Payment"
+        pattern: "multi_entity/coordinated_update"
+        config:
+          operations:
+          - action: "update"
+            entity: "Payment"
+            values:
+              status: "'processing'"
+            where: "id = v_payment_id"
 
-                  - action: "insert"
-                    entity: "PaymentLog"
-                    values:
-                      payment_id: "v_payment_id"
-                      event_type: "'processing_started'"
-                      event_data: "input_payload"
+          - action: "insert"
+            entity: "PaymentLog"
+            values:
+              payment_id: "v_payment_id"
+              event_type: "'processing_started'"
+              event_data: "input_payload"
 
-            - name: "Set Processing Status"
-              pattern: "state_machine/transition"
-              config:
-                from_states: ["initiated"]
-                to_state: "processing"
+      - name: "Set Processing Status"
+        pattern: "state_machine/transition"
+        config:
+          from_states: ["initiated"]
+          to_state: "processing"
 
-      default_branch:
-        name: "Unknown Payment Type"
-        steps:
-          - name: "Log Unknown Type"
-            pattern: "crud/create"
-            config:
-              fields: ["payment_method", "amount", "error_reason"]
+    default_branch:
+      name: "Unknown Payment Type"
+      steps:
+      - name: "Log Unknown Type"
+        pattern: "crud/create"
+        config:
+          fields: ["payment_method", "amount", "error_reason"]
 
-          - name: "Reject Payment"
-            pattern: "state_machine/transition"
-            config:
-              from_states: ["initiated"]
-              to_state: "rejected"
-              input_fields:
-                - name: "failure_reason"
-                  value: "'Unsupported payment configuration'"
+      - name: "Reject Payment"
+        pattern: "state_machine/transition"
+        config:
+          from_states: ["initiated"]
+          to_state: "rejected"
+          input_fields:
+          - name: "failure_reason"
+            value: "'Unsupported payment configuration'"
 
-  - name: order_routing_conditional
-    description: "Route orders to different fulfillment centers based on product type and location"
-    config:
-      conditions:
-        - name: "Electronics - Local Warehouse"
-          condition: "product_category = 'electronics' AND customer_region = 'local'"
-          steps:
-            - name: "Assign Local Warehouse"
-              pattern: "state_machine/transition"
-              config:
-                from_states: ["received"]
-                to_state: "assigned_local"
-                input_fields:
-                  - name: "warehouse_id"
-                    value: "'LOCAL_ELECTRONICS'"
+- name: order_routing_conditional
+  description: "Route orders to different fulfillment centers based on product type and location"
+  config:
+    conditions:
+    - name: "Electronics - Local Warehouse"
+      condition: "product_category = 'electronics' AND customer_region = 'local'"
+      steps:
+      - name: "Assign Local Warehouse"
+        pattern: "state_machine/transition"
+        config:
+          from_states: ["received"]
+          to_state: "assigned_local"
+          input_fields:
+          - name: "warehouse_id"
+            value: "'LOCAL_ELECTRONICS'"
 
-        - name: "Electronics - Central Distribution"
-          condition: "product_category = 'electronics' AND customer_region != 'local'"
-          steps:
-            - name: "Assign Central Warehouse"
-              pattern: "state_machine/transition"
-              config:
-                from_states: ["received"]
-                to_state: "assigned_central"
-                input_fields:
-                  - name: "warehouse_id"
-                    value: "'CENTRAL_ELECTRONICS'"
+    - name: "Electronics - Central Distribution"
+      condition: "product_category = 'electronics' AND customer_region != 'local'"
+      steps:
+      - name: "Assign Central Warehouse"
+        pattern: "state_machine/transition"
+        config:
+          from_states: ["received"]
+          to_state: "assigned_central"
+          input_fields:
+          - name: "warehouse_id"
+            value: "'CENTRAL_ELECTRONICS'"
 
-        - name: "Books - Regional Hub"
-          condition: "product_category = 'books'"
-          steps:
-            - name: "Assign Regional Hub"
-              pattern: "state_machine/transition"
-              config:
-                from_states: ["received"]
-                to_state: "assigned_regional"
-                input_fields:
-                  - name: "warehouse_id"
-                    value: "'REGIONAL_BOOKS'"
+    - name: "Books - Regional Hub"
+      condition: "product_category = 'books'"
+      steps:
+      - name: "Assign Regional Hub"
+        pattern: "state_machine/transition"
+        config:
+          from_states: ["received"]
+          to_state: "assigned_regional"
+          input_fields:
+          - name: "warehouse_id"
+            value: "'REGIONAL_BOOKS'"
 
-      default_branch:
-        name: "General Fulfillment"
-        steps:
-          - name: "Assign General Warehouse"
-            pattern: "state_machine/transition"
-            config:
-              from_states: ["received"]
-              to_state: "assigned_general"
-              input_fields:
-                - name: "warehouse_id"
-                  value: "'GENERAL_FULFILLMENT'"
+    default_branch:
+      name: "General Fulfillment"
+      steps:
+      - name: "Assign General Warehouse"
+        pattern: "state_machine/transition"
+        config:
+          from_states: ["received"]
+          to_state: "assigned_general"
+          input_fields:
+          - name: "warehouse_id"
+            value: "'GENERAL_FULFILLMENT'"

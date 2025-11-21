@@ -4,35 +4,35 @@ description: "Orchestrate complex workflows by composing multiple patterns with 
 author: SpecQL Team
 
 parameters:
-  - name: workflow_steps
-    type: array<object>
-    required: true
-    description: "Sequence of workflow steps, each using a pattern"
+- name: workflow_steps
+  type: array<object>
+  required: true
+  description: "Sequence of workflow steps, each using a pattern"
 
-  - name: error_handling
-    type: object
-    required: false
-    description: "Global error handling configuration"
-    properties:
-      - name: rollback_on_error
-        type: boolean
-        default: true
-      - name: continue_on_error
-        type: boolean
-        default: false
-      - name: error_log_entity
-        type: string
-        default: "ErrorLog"
+- name: error_handling
+  type: object
+  required: false
+  description: "Global error handling configuration"
+  properties:
+  - name: rollback_on_error
+    type: boolean
+    default: true
+  - name: continue_on_error
+    type: boolean
+    default: false
+  - name: error_log_entity
+    type: string
+    default: "ErrorLog"
 
-  - name: transaction_scope
-    type: enum[serializable, repeatable_read, read_committed]
-    default: serializable
-    description: "Transaction isolation level for the entire workflow"
+- name: transaction_scope
+  type: enum[serializable, repeatable_read, read_committed]
+  default: serializable
+  description: "Transaction isolation level for the entire workflow"
 
-  - name: success_criteria
-    type: object
-    required: false
-    description: "Conditions that must be met for workflow success"
+- name: success_criteria
+  type: object
+  required: false
+  description: "Conditions that must be met for workflow success"
 
 template: |
   steps:
@@ -185,96 +185,96 @@ template: |
         {% endif %}
 
 examples:
-  - name: order_fulfillment_workflow
-    description: "Complete order fulfillment workflow with validation, payment, and shipping"
-    config:
-      workflow_steps:
-        - name: "Validate Order"
-          pattern: "validation/validation_chain"
-          config:
-            validations:
-              - condition: "status = 'confirmed'"
-                error_message: "Order must be confirmed"
-              - condition: "payment_status = 'completed'"
-                error_message: "Payment must be completed"
+- name: order_fulfillment_workflow
+  description: "Complete order fulfillment workflow with validation, payment, and shipping"
+  config:
+    workflow_steps:
+    - name: "Validate Order"
+      pattern: "validation/validation_chain"
+      config:
+        validations:
+        - condition: "status = 'confirmed'"
+          error_message: "Order must be confirmed"
+        - condition: "payment_status = 'completed'"
+          error_message: "Payment must be completed"
 
-        - name: "Update Inventory"
-          pattern: "batch/bulk_operation"
-          condition: "inventory_sufficient = true"
-          config:
-            batch_input: "order_items"
-            operation_template: |
-              UPDATE inventory.tb_product
-              SET quantity = quantity - $item.quantity
-              WHERE id = $item.product_id AND tenant_id = auth_tenant_id;
+    - name: "Update Inventory"
+      pattern: "batch/bulk_operation"
+      condition: "inventory_sufficient = true"
+      config:
+        batch_input: "order_items"
+        operation_template: |
+          UPDATE inventory.tb_product
+          SET quantity = quantity - $item.quantity
+          WHERE id = $item.product_id AND tenant_id = auth_tenant_id;
 
-        - name: "Create Shipment"
-          pattern: "crud/create"
-          config:
-            duplicate_check:
-              fields: ["order_id"]
-              error_message: "Shipment already exists for this order"
+    - name: "Create Shipment"
+      pattern: "crud/create"
+      config:
+        duplicate_check:
+          fields: ["order_id"]
+          error_message: "Shipment already exists for this order"
 
-        - name: "Transition to Fulfilled"
-          pattern: "state_machine/transition"
-          config:
-            from_states: ["confirmed", "processing"]
-            to_state: "fulfilled"
-            input_fields:
-              - name: "fulfilled_at"
-                value: "NOW()"
+    - name: "Transition to Fulfilled"
+      pattern: "state_machine/transition"
+      config:
+        from_states: ["confirmed", "processing"]
+        to_state: "fulfilled"
+        input_fields:
+        - name: "fulfilled_at"
+          value: "NOW()"
 
-      error_handling:
-        rollback_on_error: true
-        continue_on_error: false
-        error_log_entity: "WorkflowLog"
+    error_handling:
+      rollback_on_error: true
+      continue_on_error: false
+      error_log_entity: "WorkflowLog"
 
-      success_criteria:
-        condition: "v_error_count = 0 AND status = 'fulfilled'"
-        error_message: "Order fulfillment failed"
+    success_criteria:
+      condition: "v_error_count = 0 AND status = 'fulfilled'"
+      error_message: "Order fulfillment failed"
 
-  - name: customer_onboarding_workflow
-    description: "Complete customer onboarding with account creation, verification, and welcome"
-    config:
-      workflow_steps:
-        - name: "Create Customer Profile"
-          pattern: "crud/create"
-          config:
-            duplicate_check:
-              fields: ["email"]
-              error_message: "Customer with this email already exists"
+- name: customer_onboarding_workflow
+  description: "Complete customer onboarding with account creation, verification, and welcome"
+  config:
+    workflow_steps:
+    - name: "Create Customer Profile"
+      pattern: "crud/create"
+      config:
+        duplicate_check:
+          fields: ["email"]
+          error_message: "Customer with this email already exists"
 
-        - name: "Send Verification Email"
-          pattern: "multi_entity/coordinated_update"
-          config:
-            operations:
-              - action: "insert"
-                entity: "EmailVerification"
-                values:
-                  customer_id: "$customer_id"
-                  verification_token: "gen_random_uuid()"
-                  expires_at: "NOW() + INTERVAL '24 hours'"
+    - name: "Send Verification Email"
+      pattern: "multi_entity/coordinated_update"
+      config:
+        operations:
+        - action: "insert"
+          entity: "EmailVerification"
+          values:
+            customer_id: "$customer_id"
+            verification_token: "gen_random_uuid()"
+            expires_at: "NOW() + INTERVAL '24 hours'"
 
-        - name: "Create Welcome Notification"
-          pattern: "crud/create"
-          condition: "verification_sent = true"
-          config:
-            input_fields:
-              - name: "notification_type"
-                value: "'welcome'"
-              - name: "message"
-                value: "'Welcome to our platform!'"
+    - name: "Create Welcome Notification"
+      pattern: "crud/create"
+      condition: "verification_sent = true"
+      config:
+        input_fields:
+        - name: "notification_type"
+          value: "'welcome'"
+        - name: "message"
+          value: "'Welcome to our platform!'"
 
-        - name: "Set Initial Status"
-          pattern: "state_machine/transition"
-          config:
-            from_states: ["new"]
-            to_state: "pending_verification"
+    - name: "Set Initial Status"
+      pattern: "state_machine/transition"
+      config:
+        from_states: ["new"]
+        to_state: "pending_verification"
 
-      error_handling:
-        continue_on_error: true
-        error_log_entity: "OnboardingLog"
+    error_handling:
+      continue_on_error: true
+      error_log_entity: "OnboardingLog"
 
-      success_criteria:
-        condition: "status = 'pending_verification'"
-        error_message: "Customer onboarding incomplete"
+    success_criteria:
+      condition: "status = 'pending_verification'"
+      error_message: "Customer onboarding incomplete"
