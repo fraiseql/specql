@@ -7,6 +7,38 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.0b2] - 2025-11-21
+
+### Added
+- **SCD Type 2 Transformer** - Complete implementation of Slowly Changing Dimension Type 2 pattern
+  - Automatic temporal tracking fields (effective_from, effective_to, is_current)
+  - SCD management functions for versioning
+  - Performance indexes for temporal queries
+  - Applies to entities with `temporal_scd_type2_helper` pattern
+  - File: `generators/schema/transformers/scd_type2_transformer.py` (161 lines)
+
+### Fixed
+- **Test Quality Improvements**
+  - Fixed skipped directory creation test in `test_registry_integration.py`
+    - Now properly validates Confiture directory structure creation
+    - Verifies files are written to correct locations (00_foundation, 10_tables, 20_helpers, 30_functions)
+  - Removed xfail marker from `test_generate_confiture_build_error`
+    - Implementation now correctly handles Confiture build errors
+    - Returns proper exit code (1) and error message
+    - Converted unexpected pass (xpass) to normal passing test
+
+### Quality Metrics
+- **Test Results:** 1637 passed, 1 skipped, 2 xfailed (99.8% pass rate)
+- **Test Suite Status:** All tests in correct states (no unexpected failures/passes)
+- **Lines Added:** 189 lines (161 feature + 28 test improvements)
+- **Lines Removed:** 7 lines (test quality cleanup)
+
+### Notes
+- No breaking changes
+- No API changes
+- Test suite health improved significantly
+- SCD Type 2 transformer restores functionality mentioned in previous CHANGELOG
+
 ## [0.9.0] - 2025-11-21
 
 ### 🚀 Major Release - 100% Test Coverage Achievement

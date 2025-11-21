@@ -1,7 +1,7 @@
 {
-  "version": "0.8.0",
-  "commit": "b3788b0",
-  "branch": "main",
-  "timestamp": "2025-11-20T08:30:00+00:00",
+  "version": "0.8.0b2",
+  "commit": "3603c2f",
+  "branch": "release/v0.8.0-beta",
+  "timestamp": "2025-11-21T00:00:00+00:00",
   "environment": "production"
 }
