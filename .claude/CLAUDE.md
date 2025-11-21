@@ -161,9 +161,10 @@ specql (v2.0)
 │
 ├── reverse <subcommand>          # Reverse engineering group
 │   ├── sql <files>              # SQL → YAML (Stable - full pglast)
-│   ├── python <files>           # Django/FastAPI → YAML (Beta)
-│   ├── typescript <files>       # Prisma/TypeORM → YAML (Beta)
-│   ├── rust <files>             # Diesel/SeaORM → YAML (Beta)
+│   ├── python <files>           # Django/FastAPI → YAML (Stable)
+│   ├── typescript <files>       # Prisma/TypeORM → YAML (Stable)
+│   ├── rust <files>             # Diesel/SeaORM → YAML (Stable)
+│   ├── java <files>             # JPA/Hibernate → YAML (Stable)
 │   └── project <dir>            # Auto-detect & process (Beta)
 │
 ├── patterns detect|apply         # Pattern operations (Beta)
@@ -323,15 +324,17 @@ actions:
 
 ## 🤖 AI Quick Reference
 
-**Current Status**: ~97% Complete - CLI and reverse engineering fully functional
+**Current Status**: ~98% Complete - CLI and multi-language reverse engineering fully functional
 
 **Recent Changes** (2025-11-21):
+- ✅ `reverse java` command integrated with JPA/Hibernate parser (17 tests)
 - ✅ `reverse sql` command integrated with pglast (17 tests)
-- ✅ Trinity pattern detection working
-- ✅ Foreign key handling implemented
+- ✅ `reverse python` command integrated with PythonASTParser (19 tests)
+- ✅ `reverse typescript` command integrated with Prisma parser (17 tests)
+- ✅ `reverse rust` command integrated with Diesel/SeaORM parsers (16 tests)
 - ✅ `validate` command implemented (16 tests)
 - ✅ `generate` command connected to CLIOrchestrator
-- ✅ 60 CLI tests passing
+- ✅ 142 CLI tests passing
 
 **Test Command**: `make test` or `uv run pytest tests/unit/cli/ -v`
 
@@ -353,5 +356,5 @@ actions:
 ---
 
 **Last Updated**: 2025-11-21
-**Project Phase**: Reverse SQL Integration Complete (~97%)
+**Project Phase**: Multi-Language Reverse Engineering Complete (~98%)
 **Next Milestone**: Standardize option naming / Implement diff command

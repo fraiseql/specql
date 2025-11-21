@@ -1047,10 +1047,10 @@ uv run specql reverse typescript /path/to/schema.prisma -o /tmp/out/ --preview
 - [x] Status updated to Stable
 
 ### Phase 4: Java (Task 4)
-- [ ] `specql reverse java` command exists
-- [ ] Parses JPA/Hibernate entities
-- [ ] 8+ tests passing
-- [ ] Status updated to Stable
+- [x] `specql reverse java` command exists
+- [x] Parses JPA/Hibernate entities
+- [x] 17 tests passing
+- [x] Status updated to Stable
 
 ---
 

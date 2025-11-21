@@ -26,6 +26,7 @@ def reverse(verbose, quiet, **kwargs):
 # Import and register subcommands
 def register_subcommands():
     """Register all reverse subcommands."""
+    from cli.commands.reverse.java import java
     from cli.commands.reverse.project import project
     from cli.commands.reverse.python import python
     from cli.commands.reverse.rust import rust
@@ -36,6 +37,7 @@ def register_subcommands():
     reverse.add_command(python)
     reverse.add_command(typescript)
     reverse.add_command(rust)
+    reverse.add_command(java)
     reverse.add_command(project)
 
 
