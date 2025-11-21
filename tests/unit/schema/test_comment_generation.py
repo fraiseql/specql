@@ -162,9 +162,9 @@ def test_ref_field_comment_uses_correct_column_name(table_generator):
     comments = table_generator.generate_field_comments(entity)
 
     # Should use fk_company (actual column), NOT company (business field)
-    assert any(
-        "fk_company" in c for c in comments
-    ), "COMMENT should use 'fk_company' (actual database column)"
-    assert not any(
-        "tb_contact.company IS" in c for c in comments
-    ), "COMMENT should NOT use 'company' (business field name, column doesn't exist)"
+    assert any("fk_company" in c for c in comments), (
+        "COMMENT should use 'fk_company' (actual database column)"
+    )
+    assert not any("tb_contact.company IS" in c for c in comments), (
+        "COMMENT should NOT use 'company' (business field name, column doesn't exist)"
+    )
