@@ -2,8 +2,6 @@
 
 from pathlib import Path
 
-import pytest
-
 from cli.orchestrator import CLIOrchestrator
 from core.ast_models import Entity
 

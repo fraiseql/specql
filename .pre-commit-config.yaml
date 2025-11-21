@@ -1,0 +1,84 @@
+# Pre-commit hooks for SpecQL
+# See https://pre-commit.com for more information
+# Install: pre-commit install
+# Run manually: pre-commit run --all-files
+
+repos:
+  # Ruff - Fast Python linter (replaces flake8, isort, and more)
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.14.5
+    hooks:
+      # Run the linter
+      - id: ruff
+        args: [--fix]
+      # Run the formatter (replaces black)
+      - id: ruff-format
+
+  # Black - Code formatter (backup, can remove if ruff-format is sufficient)
+  - repo: https://github.com/psf/black
+    rev: 25.11.0
+    hooks:
+      - id: black
+        language_version: python3.11
+
+  # MyPy - Static type checker
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.18.2
+    hooks:
+      - id: mypy
+        additional_dependencies: [types-pyyaml>=6.0.0]
+        args: [--ignore-missing-imports, --scripts-are-modules]
+
+  # Standard pre-commit hooks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        args: [--unsafe]  # Allow custom YAML tags
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+        args: [--maxkb=1000]
+      - id: check-merge-conflict
+      - id: debug-statements
+      - id: mixed-line-ending
+        args: [--fix=lf]
+
+  # YAML formatting
+  - repo: https://github.com/macisamuele/language-formatters-pre-commit-hooks
+    rev: v2.15.0
+    hooks:
+      - id: pretty-format-yaml
+        args: [--autofix, --indent, '2', --preserve-quotes]
+        exclude: ^(vendor/|\.github/workflows/)  # Exclude vendor and workflows
+
+# Exclude patterns for all hooks
+exclude: |
+  (?x)^(
+      vendor/.*|
+      \.git/.*|
+      \.venv/.*|
+      __pycache__/.*|
+      \.pytest_cache/.*|
+      \.mypy_cache/.*|
+      \.ruff_cache/.*|
+      archived/.*
+  )$
+
+# Global configuration
+default_language_version:
+  python: python3.11
+
+ci:
+  autofix_commit_msg: |
+    [pre-commit.ci] auto fixes from pre-commit.com hooks
+
+    for more information, see https://pre-commit.ci
+  autofix_prs: true
+  autoupdate_branch: ''
+  autoupdate_commit_msg: '[pre-commit.ci] pre-commit autoupdate'
+  autoupdate_schedule: weekly
+  skip: []
+  submodules: false
