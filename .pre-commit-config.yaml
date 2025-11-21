@@ -4,22 +4,15 @@
 # Run manually: pre-commit run --all-files
 
 repos:
-  # Ruff - Fast Python linter (replaces flake8, isort, and more)
+  # Ruff - Fast Python linter and formatter (replaces flake8, isort, black)
 - repo: https://github.com/astral-sh/ruff-pre-commit
   rev: v0.14.5
   hooks:
       # Run the linter
   - id: ruff
     args: [--fix]
-      # Run the formatter (replaces black)
+      # Run the formatter
   - id: ruff-format
-
-  # Black - Code formatter (backup, can remove if ruff-format is sufficient)
-- repo: https://github.com/psf/black
-  rev: 25.11.0
-  hooks:
-  - id: black
-    language_version: python3.11
 
   # MyPy - Static type checker
 - repo: https://github.com/pre-commit/mirrors-mypy
