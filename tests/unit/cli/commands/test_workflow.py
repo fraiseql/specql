@@ -20,23 +20,23 @@ class TestWorkflowCommands:
         # Create test YAML files
         self.user_yaml = self.test_dir / "user.yaml"
         self.user_yaml.write_text("""
-name: user
-table: users
+entity: User
+schema: test
 fields:
-  id: integer primary_key
-  email: string unique
-  name: string
+  user_id: serial
+  email: text
+  name: text
 """)
 
         self.post_yaml = self.test_dir / "post.yaml"
         self.post_yaml.write_text("""
-name: post
-table: posts
+entity: Post
+schema: test
 fields:
-  id: integer primary_key
-  title: string
+  post_id: serial
+  title: text
   content: text
-  user_id: integer foreign_key:users.id
+  author_id: integer
 """)
 
     def teardown_method(self):

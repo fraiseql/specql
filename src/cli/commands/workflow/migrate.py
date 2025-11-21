@@ -8,6 +8,7 @@ import click
 
 from cli.utils.error_handler import handle_cli_error
 from cli.utils.output import output
+from cli.utils.pipeline import PipelineOrchestrator
 
 
 @click.command()
@@ -61,62 +62,31 @@ def migrate(
             _show_migration_plan(files, reverse_from, validate_only, generate_only, output_dir)
             return
 
-        # Set defaults
-        if output_dir is None:
-            output_dir = "generated"
+        # Use the pipeline orchestrator
+        orchestrator = PipelineOrchestrator()
 
-        output_dir = Path(output_dir)
-        output_dir.mkdir(parents=True, exist_ok=True)
-
-        # Phase 1: Reverse engineering
-        if not generate_only:
-            output.info("🔄 Phase 1: Reverse engineering")
+        def progress_callback(message: str):
             if progress:
-                output.info("  📊 Reversing existing code to SpecQL YAML...")
-
-            if reverse_from:
-                output.info(f"  🔍 Reversing from: {reverse_from}")
-                # Simulate reverse operation
-                reversed_files = _simulate_reverse(files, reverse_from, output_dir)
-                yaml_files = reversed_files
+                output.info(f"  📊 {message}")
             else:
-                # Assume files are already YAML
-                yaml_files = [Path(f) for f in files]
-                output.info(f"  ✅ Using existing YAML files: {len(yaml_files)}")
+                output.info(message)
 
-        else:
-            yaml_files = [Path(f) for f in files]
-            output.info("⏭️  Skipping reverse phase (--generate-only)")
+        result = orchestrator.run_pipeline(
+            files=[Path(f) for f in files],
+            reverse_from=reverse_from,
+            output_dir=Path(output_dir) if output_dir else None,
+            validate_only=validate_only,
+            generate_only=generate_only,
+            continue_on_error=continue_on_error,
+            strict_validation=False,  # Could be made configurable later
+            progress_callback=progress_callback,
+        )
 
-        if validate_only:
-            output.info("🛑 Stopping after validation (--validate-only)")
-            return
-
-        # Phase 2: Validation
-        output.info("✅ Phase 2: Validation")
-        if progress:
-            output.info("  🔍 Validating SpecQL YAML schemas...")
-
-        validation_errors = _simulate_validate(yaml_files)
-        if validation_errors and not continue_on_error:
-            output.error(f"❌ Validation failed with {len(validation_errors)} error(s)")
-            for error in validation_errors:
-                output.error(f"  • {error}")
-            raise click.ClickException("Validation failed")
-
-        if validation_errors:
-            output.warning(f"⚠️  Validation completed with {len(validation_errors)} warning(s)")
-        else:
-            output.success("✅ Validation passed")
-
-        # Phase 3: Generation
-        output.info("🔧 Phase 3: Code generation")
-        if progress:
-            output.info("  📝 Generating PostgreSQL schema and GraphQL...")
-
-        generated_files = _simulate_generate(yaml_files, output_dir)
-        output.success("✅ Migration pipeline completed successfully")
-        output.info(f"📁 Generated {len(generated_files)} file(s) to {output_dir}")
+        if not result["success"]:
+            if result["errors"]:
+                for error in result["errors"]:
+                    output.error(f"  • {error}")
+            raise click.ClickException("Migration pipeline failed")
 
 
 def _show_migration_plan(files, reverse_from, validate_only, generate_only, output_dir):
@@ -141,41 +111,3 @@ def _show_migration_plan(files, reverse_from, validate_only, generate_only, outp
     output.info(f"    • Output directory: {output_dir or 'generated'}")
 
     output.info("  🎯 Pipeline complete")
-
-
-def _simulate_reverse(files, reverse_from, output_dir):
-    """Simulate reverse engineering operation."""
-    reversed_files = []
-    for file_path in files:
-        path = Path(file_path)
-        yaml_path = output_dir / f"{path.stem}.yaml"
-        output.info(f"  📄 {path.name} → {yaml_path.name}")
-        reversed_files.append(yaml_path)
-    return reversed_files
-
-
-def _simulate_validate(yaml_files):
-    """Simulate validation operation."""
-    # Simulate some validation warnings for demo
-    errors = []
-    for i, file_path in enumerate(yaml_files):
-        if i % 3 == 0:  # Simulate validation issues on every 3rd file
-            errors.append(f"Missing required field in {file_path.name}")
-    return errors
-
-
-def _simulate_generate(yaml_files, output_dir):
-    """Simulate code generation operation."""
-    generated_files = []
-    for yaml_file in yaml_files:
-        # Generate SQL schema
-        sql_file = output_dir / "schema" / f"{yaml_file.stem}.sql"
-        output.info(f"  📝 {yaml_file.name} → {sql_file.name}")
-        generated_files.append(sql_file)
-
-        # Generate GraphQL types
-        gql_file = output_dir / "graphql" / f"{yaml_file.stem}.graphql"
-        output.info(f"  📝 {yaml_file.name} → {gql_file.name}")
-        generated_files.append(gql_file)
-
-    return generated_files
