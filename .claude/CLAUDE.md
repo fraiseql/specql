@@ -1,7 +1,7 @@
 # Claude Code Instructions - SpecQL Code Generator
 
 **Project**: Business YAML → Production PostgreSQL + GraphQL API
-**Status**: ✅ **~90% Complete** - Most features implemented
+**Status**: ✅ **~97% Complete** - CLI and reverse engineering fully functional
 **Goal**: 20 lines YAML → 2000+ lines production code (100x leverage)
 
 ---
@@ -144,30 +144,33 @@ Generates:
 ### ✅ Team E: CLI & Orchestration (`src/cli/`)
 
 **Status**: ✅ Complete (Redesigned with unified command structure)
-**Tests**: `tests/unit/cli/` - 33 passing tests
+**Tests**: `tests/unit/cli/` - 60 passing tests
 
 **CLI Structure**:
 ```
 specql (v2.0)
-├── generate <files>              # Primary: YAML → SQL/Frontend
-│   ├── --schema-only            # Only DDL
+├── generate <files>              # Primary: YAML → SQL/Frontend (Stable)
+│   ├── --foundation-only        # Only app foundation
 │   ├── --actions-only           # Only PL/pgSQL functions
 │   ├── --frontend=<dir>         # TypeScript + Apollo
+│   ├── --with-impacts           # Generate mutation impacts
 │   └── --dry-run                # Preview mode
 │
-├── reverse <subcommand>          # Reverse engineering group
-│   ├── sql <files>              # SQL → YAML
-│   ├── python <files>           # Django/FastAPI → YAML
-│   ├── typescript <files>       # Prisma/TypeORM → YAML
-│   ├── rust <files>             # Diesel/SeaORM → YAML
-│   └── project <dir>            # Auto-detect & process
+├── validate <files>              # Validate YAML (Stable)
+│   └── --strict                 # Treat warnings as errors
 │
-├── validate <files>              # Validate YAML
-├── patterns detect|apply         # Pattern operations
-├── init project|entity|registry  # Scaffolding
-├── workflow migrate|sync         # Multi-step automation
-├── diff <yaml> --compare <sql>   # Schema diffing
-└── docs <files> -o <output>      # Documentation
+├── reverse <subcommand>          # Reverse engineering group
+│   ├── sql <files>              # SQL → YAML (Stable - full pglast)
+│   ├── python <files>           # Django/FastAPI → YAML (Beta)
+│   ├── typescript <files>       # Prisma/TypeORM → YAML (Beta)
+│   ├── rust <files>             # Diesel/SeaORM → YAML (Beta)
+│   └── project <dir>            # Auto-detect & process (Beta)
+│
+├── patterns detect|apply         # Pattern operations (Beta)
+├── init project|entity|registry  # Scaffolding (Beta)
+├── workflow migrate|sync         # Multi-step automation (Beta)
+├── diff                          # Schema diffing (Planned)
+└── docs                          # Documentation (Planned)
 ```
 
 **Usage Examples**:
@@ -244,7 +247,7 @@ src/
 
 tests/
 ├── unit/              # All passing
-│   └── cli/           # 33 CLI tests
+│   └── cli/           # 60 CLI tests
 └── integration/       # E2E tests
 ```
 
@@ -320,11 +323,15 @@ actions:
 
 ## 🤖 AI Quick Reference
 
-**Current Status**: ~95% Complete - CLI Redesign complete
+**Current Status**: ~97% Complete - CLI and reverse engineering fully functional
 
-**Recent Changes**:
-- ✅ CLI redesigned with unified command structure (Phases 1-6)
-- ✅ 33 new CLI tests passing
+**Recent Changes** (2025-11-21):
+- ✅ `reverse sql` command integrated with pglast (17 tests)
+- ✅ Trinity pattern detection working
+- ✅ Foreign key handling implemented
+- ✅ `validate` command implemented (16 tests)
+- ✅ `generate` command connected to CLIOrchestrator
+- ✅ 60 CLI tests passing
 
 **Test Command**: `make test` or `uv run pytest tests/unit/cli/ -v`
 
@@ -339,11 +346,12 @@ actions:
 - `docs/architecture/SPECQL_BUSINESS_LOGIC_REFINED.md` - Full DSL spec
 - `docs/architecture/INTEGRATION_PROPOSAL.md` - Framework conventions
 - `docs/architecture/ONE_FILE_PER_MUTATION_PATTERN.md` - File organization
-- `docs/CLI_REDESIGN_PLAN.md` - CLI redesign implementation plan
+- `docs/06_reference/cli-commands.md` - CLI command reference (aligned)
+- `docs/06_reference/cli-status.md` - CLI implementation status
 - `GETTING_STARTED.md` - Quick start guide
 
 ---
 
 **Last Updated**: 2025-11-21
-**Project Phase**: CLI Redesign Complete (~95%)
-**Next Milestone**: Integration testing & production deployment
+**Project Phase**: Reverse SQL Integration Complete (~97%)
+**Next Milestone**: Standardize option naming / Implement diff command

@@ -33,9 +33,9 @@ def app():
 
     Quick start:
 
-        specql generate entities/*.yaml
-        specql reverse sql db/tables/*.sql
         specql validate entities/*.yaml
+        specql generate entities/*.yaml
+        specql reverse sql db/*.sql -o entities/
 
     Run 'specql COMMAND --help' for command-specific help.
     """
@@ -69,8 +69,10 @@ def register_commands():
 
     app.add_command(workflow)
 
-    # etc.
-    pass
+    # Phase 6: Validate command
+    from cli.commands.validate import validate
+
+    app.add_command(validate)
 
 
 # Register commands on import

@@ -71,8 +71,7 @@ def generate(
             output_dir = "migrations"
 
         if dry_run:
-            output.info(f"🔍 Dry-run mode: Would process {len(files)} file(s)")
-            # Show what would be generated without actually doing it
+            output.info(f"Dry-run mode: Would process {len(files)} file(s)")
             output.info(f"Would generate to: {output_dir}")
             if foundation_only:
                 output.info("Would generate: app foundation only")
@@ -91,27 +90,49 @@ def generate(
             return
 
         # Show progress
-        output.info(f"🔧 Generating from {len(files)} file(s)")
+        output.info(f"Generating from {len(files)} file(s)...")
 
-        # Phase 2: Command structure implemented, full integration pending
-        # Demonstrate that all options are accepted and processed
-        output.info(f"Output directory: {output_dir}")
-        if foundation_only:
-            output.info("Mode: app foundation only")
-        if actions_only:
-            output.info("Mode: actions only")
-        if include_tv:
-            output.info("Include: table views")
-        if frontend:
-            output.info(f"Frontend: {frontend}")
-        if tests:
-            output.info("Generate: test suites")
-        if with_impacts:
-            output.info("Generate: mutation impacts")
-        if use_registry:
-            output.info("Using: registry-based table codes")
-        if dry_run:
-            output.info("Mode: dry-run (no files written)")
+        # Initialize the orchestrator
+        from cli.orchestrator import CLIOrchestrator
 
-        output.success(f"Phase 2 generate command executed successfully for {len(files)} file(s)")
-        output.warning("Full CLIOrchestrator integration pending package restructuring in Phase 3+")
+        orchestrator = CLIOrchestrator(
+            use_registry=use_registry,
+            output_format=output_format,
+            enable_performance_monitoring=performance,
+        )
+
+        # Generate migrations
+        result = orchestrator.generate_from_files(
+            entity_files=list(files),
+            output_dir=output_dir,
+            with_impacts=with_impacts,
+            include_tv=include_tv,
+            foundation_only=foundation_only,
+        )
+
+        # Report results
+        if result.errors:
+            for error in result.errors:
+                output.error(f"  {error}")
+            output.error(f"Generation failed with {len(result.errors)} error(s)")
+            raise SystemExit(1)
+
+        if result.warnings:
+            for warning in result.warnings:
+                output.warning(f"  {warning}")
+
+        # Success summary
+        output.success(f"Generated {len(result.migrations)} migration file(s)")
+        for migration in result.migrations:
+            if migration.path:
+                output.info(f"  {migration.path}")
+
+        # Write performance metrics if requested
+        if performance and performance_output:
+            from utils.performance_monitor import get_performance_monitor
+            from pathlib import Path
+            import json
+
+            perf_monitor = get_performance_monitor()
+            metrics = perf_monitor.get_metrics()
+            Path(performance_output).write_text(json.dumps(metrics, indent=2))

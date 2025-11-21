@@ -3,10 +3,33 @@
 from dataclasses import dataclass
 from pathlib import Path
 
+from core.ast_models import Action, Entity
 from core.specql_parser import SpecQLParser
 from generators.schema.naming_conventions import NamingConventions  # NEW
 from generators.schema_orchestrator import SchemaOrchestrator
 from utils.performance_monitor import get_performance_monitor
+
+
+def convert_entity_definition_to_entity(entity_def):
+    """Convert EntityDefinition (parser output) to Entity (generator input)."""
+    # Convert ActionDefinition to Action
+    actions = []
+    for action_def in entity_def.actions:
+        action = Action(name=action_def.name, steps=action_def.steps, impact=action_def.impact)
+        actions.append(action)
+
+    # Create Entity
+    entity = Entity(
+        name=entity_def.name,
+        schema=entity_def.schema,
+        description=entity_def.description,
+        fields=entity_def.fields,
+        actions=actions,
+        agents=entity_def.agents,
+        organization=getattr(entity_def, "organization", None),
+    )
+
+    return entity
 
 
 @dataclass
@@ -196,8 +219,6 @@ class CLIOrchestrator:
         # Generate entity migrations
         for entity_def in entity_defs:
             try:
-                from cli.generate import convert_entity_definition_to_entity
-
                 entity = convert_entity_definition_to_entity(entity_def)
 
                 if self.use_registry:
