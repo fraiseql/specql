@@ -35,12 +35,12 @@ translations:
   fields: [name]
 
 actions:
-  - name: create_organizational_unit_level
-  - name: update_organizational_unit_level
-  - name: delete_organizational_unit_level
+- name: create_organizational_unit_level
+- name: update_organizational_unit_level
+- name: delete_organizational_unit_level
 
   # Business actions
-  - name: activate_level
-  - name: deactivate_level
-  - name: change_parent
-  - name: update_name
+- name: activate_level
+- name: deactivate_level
+- name: change_parent
+- name: update_name

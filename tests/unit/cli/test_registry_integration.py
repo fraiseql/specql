@@ -45,8 +45,7 @@ def test_orchestrator_creates_directories(sample_entity_file):
     # Generate from entity file - should create directory structure
     # Note: This creates db/schema/ in the current working directory
     result = orchestrator.generate_from_files(
-        entity_files=[str(sample_entity_file)],
-        output_dir="migrations"
+        entity_files=[str(sample_entity_file)], output_dir="migrations"
     )
 
     # Verify no errors

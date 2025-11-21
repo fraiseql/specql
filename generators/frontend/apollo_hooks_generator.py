@@ -330,14 +330,16 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
             cache_updates = []
 
             # Update list queries for this entity
-            cache_updates.append(f"""          // Update list queries for {entity_name}
+            cache_updates.append(
+                f"""          // Update list queries for {entity_name}
           cache.modify({{
             fields: {{
               {entity_name.lower()}s(existing = [], {{ readField }}) {{
                 return [newItem, ...existing];
               }},
             }},
-          }});""")
+          }});"""
+            )
 
             # Update entities that reference this entity (reverse relationships)
             if all_entities:
@@ -350,7 +352,8 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
                             ):
                                 # This entity references our entity
                                 ref_entity_lower = other_entity.name.lower()
-                                cache_updates.append(f"""
+                                cache_updates.append(
+                                    f"""
           // Update {other_entity.name} entities that reference this {entity_name}
           // Note: This is a simplified approach - in practice, you'd need the referencing entity's ID
           cache.modify({{
@@ -368,7 +371,8 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
                 }});
               }},
             }},
-          }});""")
+          }});"""
+                                )
 
             return f"""update: (cache, {{ data }}) => {{
         if (data?.{self._to_camel_case(action_name)}?.success && data.{self._to_camel_case(action_name)}.data?.{entity_name.lower()}) {{
@@ -381,14 +385,16 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
             cache_updates = []
 
             # Update the specific item
-            cache_updates.append("""          // Update the specific item
+            cache_updates.append(
+                """          // Update the specific item
           cache.modify({
             id: cache.identify(updatedItem),
             fields: (existing) => ({
               ...existing,
               ...updatedItem,
             }),
-          });""")
+          });"""
+            )
 
             # Update entities that reference this entity
             if all_entities:
@@ -400,7 +406,8 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
                                 and field_def.reference_entity == entity_name
                             ):
                                 ref_entity_lower = other_entity.name.lower()
-                                cache_updates.append(f"""
+                                cache_updates.append(
+                                    f"""
           // Update {other_entity.name} entities that reference this updated {entity_name}
           cache.modify({{
             fields: {{
@@ -416,7 +423,8 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
                 }});
               }},
             }},
-          }});""")
+          }});"""
+                                )
 
             return f"""update: (cache, {{ data }}) => {{
         if (data?.{self._to_camel_case(action_name)}?.success && data.{self._to_camel_case(action_name)}.data?.{entity_name.lower()}) {{
@@ -429,14 +437,16 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
             cache_updates = []
 
             # Remove from list queries
-            cache_updates.append(f"""          // Remove from list queries
+            cache_updates.append(
+                f"""          // Remove from list queries
           cache.modify({{
             fields: {{
               {entity_name.lower()}s(existing = [], {{ readField }}) {{
                 return existing.filter(item => readField('id', item) !== variables?.input?.id);
               }},
             }},
-          }});""")
+          }});"""
+            )
 
             # Update entities that reference this entity (set references to null)
             if all_entities:
@@ -448,7 +458,8 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
                                 and field_def.reference_entity == entity_name
                             ):
                                 ref_entity_lower = other_entity.name.lower()
-                                cache_updates.append(f"""
+                                cache_updates.append(
+                                    f"""
           // Update {other_entity.name} entities that referenced the deleted {entity_name}
           cache.modify({{
             fields: {{
@@ -464,12 +475,15 @@ export const use{camel_name[0].upper() + camel_name[1:]} = () => {{
                 }});
               }},
             }},
-          }});""")
+          }});"""
+                                )
 
             # Evict the deleted item
-            cache_updates.append("""          // Evict the deleted item
+            cache_updates.append(
+                """          // Evict the deleted item
           cache.evict({ id: `UUID:${variables.input.id}` });
-          cache.gc();""")
+          cache.gc();"""
+            )
 
             return f"""update: (cache, {{ data, variables }}) => {{
         if (data?.{self._to_camel_case(action_name)}?.success && variables?.input?.id) {{

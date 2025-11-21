@@ -28,11 +28,11 @@ fields:
   name: text
 
 actions:
-  - name: create_operating_system_platform
-  - name: update_operating_system_platform
-  - name: delete_operating_system_platform
+- name: create_operating_system_platform
+- name: update_operating_system_platform
+- name: delete_operating_system_platform
 
   # Business actions
-  - name: activate_platform
-  - name: deactivate_platform
-  - name: update_name
+- name: activate_platform
+- name: deactivate_platform
+- name: update_name

@@ -58,94 +58,94 @@ fields:
 # - created_at, updated_at, deleted_at (TIMESTAMPTZ)
 
 actions:
-  - name: qualify_lead
-    description: Promote a lead to qualified status
-    parameters:
-      contact_id:
-        type: uuid
-        required: true
-        description: Contact UUID to qualify
+- name: qualify_lead
+  description: Promote a lead to qualified status
+  parameters:
+    contact_id:
+      type: uuid
+      required: true
+      description: Contact UUID to qualify
 
-    impacts:
-      - entity: Contact
-        operation: update
-        fields: [status]
-        description: Updates contact status to qualified
+  impacts:
+  - entity: Contact
+    operation: update
+    fields: [status]
+    description: Updates contact status to qualified
 
-    steps:
-      - validate: |
-          (SELECT status FROM crm.tb_contact WHERE id = p_contact_id) = 'lead'
-        error_message: Contact must be in 'lead' status to qualify
+  steps:
+  - validate: |
+      (SELECT status FROM crm.tb_contact WHERE id = p_contact_id) = 'lead'
+    error_message: Contact must be in 'lead' status to qualify
 
-      - update: |
-          crm.tb_contact
-          SET status = 'qualified'
-          WHERE id = p_contact_id
-        returning: contact
+  - update: |
+      crm.tb_contact
+      SET status = 'qualified'
+      WHERE id = p_contact_id
+    returning: contact
 
-  - name: convert_to_customer
-    description: Convert qualified contact to customer
-    parameters:
-      contact_id:
-        type: uuid
-        required: true
-        description: Contact UUID to convert
+- name: convert_to_customer
+  description: Convert qualified contact to customer
+  parameters:
+    contact_id:
+      type: uuid
+      required: true
+      description: Contact UUID to convert
 
-    impacts:
-      - entity: Contact
-        operation: update
-        fields: [status]
-        description: Updates contact status to customer
+  impacts:
+  - entity: Contact
+    operation: update
+    fields: [status]
+    description: Updates contact status to customer
 
-    steps:
-      - validate: |
-          (SELECT status FROM crm.tb_contact WHERE id = p_contact_id) = 'qualified'
-        error_message: Contact must be qualified before converting to customer
+  steps:
+  - validate: |
+      (SELECT status FROM crm.tb_contact WHERE id = p_contact_id) = 'qualified'
+    error_message: Contact must be qualified before converting to customer
 
-      - update: |
-          crm.tb_contact
-          SET status = 'customer'
-          WHERE id = p_contact_id
-        returning: contact
+  - update: |
+      crm.tb_contact
+      SET status = 'customer'
+      WHERE id = p_contact_id
+    returning: contact
 
-  - name: add_contact_note
-    description: Add a note to a contact
-    parameters:
-      contact_id:
-        type: uuid
-        required: true
-        description: Contact UUID
-      note_text:
-        type: text
-        required: true
-        description: Note content to add
+- name: add_contact_note
+  description: Add a note to a contact
+  parameters:
+    contact_id:
+      type: uuid
+      required: true
+      description: Contact UUID
+    note_text:
+      type: text
+      required: true
+      description: Note content to add
 
-    impacts:
-      - entity: Contact
-        operation: update
-        fields: [notes]
-        description: Appends to contact notes
+  impacts:
+  - entity: Contact
+    operation: update
+    fields: [notes]
+    description: Appends to contact notes
 
-    steps:
-      - update: |
-          crm.tb_contact
-          SET notes = COALESCE(notes, '') || E'\n---\n' || p_note_text
-          WHERE id = p_contact_id
-        returning: contact
+  steps:
+  - update: |
+      crm.tb_contact
+      SET notes = COALESCE(notes, '') || E'\n---\n' || p_note_text
+      WHERE id = p_contact_id
+    returning: contact
 
 # Table Views
 views:
-  - name: active_leads
-    description: All contacts in lead status
-    base_table: tb_contact
-    where: status = 'lead' AND deleted_at IS NULL
+- name: active_leads
+  description: All contacts in lead status
+  base_table: tb_contact
+  where: status = 'lead' AND deleted_at IS NULL
 
-  - name: qualified_contacts
-    description: All qualified contacts
-    base_table: tb_contact
-    where: status = 'qualified' AND deleted_at IS NULL
+- name: qualified_contacts
+  description: All qualified contacts
+  base_table: tb_contact
+  where: status = 'qualified' AND deleted_at IS NULL
 
-  - name: customers
-    description: All customer contacts
-    base_table: tb_contact
-    where: status = 'customer' AND deleted_at IS NULL
+- name: customers
+  description: All customer contacts
+  base_table: tb_contact
+  where: status = 'customer' AND deleted_at IS NULL

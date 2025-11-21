@@ -32,12 +32,12 @@ fields:
   operating_system_platform: ref(OperatingSystemPlatform)
 
 actions:
-  - name: create_operating_system
-  - name: update_operating_system
-  - name: delete_operating_system
+- name: create_operating_system
+- name: update_operating_system
+- name: delete_operating_system
 
   # Business actions
-  - name: activate_os
-  - name: deactivate_os
-  - name: mark_end_of_life
-  - name: update_release_date
+- name: activate_os
+- name: deactivate_os
+- name: mark_end_of_life
+- name: update_release_date

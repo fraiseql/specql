@@ -4,20 +4,20 @@ description: "Chain multiple validation rules with different error handling"
 author: SpecQL Team
 
 parameters:
-  - name: validations
-    type: array<object>
-    required: true
-    description: "List of validation rules to execute"
+- name: validations
+  type: array<object>
+  required: true
+  description: "List of validation rules to execute"
 
-  - name: stop_on_first_failure
-    type: boolean
-    default: true
-    description: "Stop validation chain on first failure"
+- name: stop_on_first_failure
+  type: boolean
+  default: true
+  description: "Stop validation chain on first failure"
 
-  - name: collect_all_errors
-    type: boolean
-    default: false
-    description: "Collect all validation errors before failing"
+- name: collect_all_errors
+  type: boolean
+  default: false
+  description: "Collect all validation errors before failing"
 
 template: |
   steps:
@@ -83,42 +83,42 @@ template: |
     {% endif %}
 
 examples:
-  - name: validate_contract_creation
-    description: "Validate all business rules for contract creation"
-    config:
-      validations:
-        - name: customer_exists
-          field: customer_org
-          condition: "EXISTS (SELECT 1 FROM organizations WHERE id = input_data.customer_org AND status = 'active')"
-          message: "Customer organization must exist and be active"
-        - name: provider_exists
-          field: provider_org
-          condition: "EXISTS (SELECT 1 FROM organizations WHERE id = input_data.provider_org AND status = 'active')"
-          message: "Provider organization must exist and be active"
-        - name: currency_supported
-          field: currency
-          condition: "input_data.currency IN (SELECT iso_code FROM supported_currencies)"
-          message: "Currency is not supported"
-        - name: amount_positive
-          field: total_value
-          condition: "input_data.total_value > 0"
-          message: "Contract total value must be positive"
-        - name: amount_within_limits
-          field: total_value
-          condition: "input_data.total_value <= (SELECT max_contract_value FROM user_permissions WHERE user_id = auth_user_id)"
-          message: "Contract value exceeds your approval limit"
-      stop_on_first_failure: false
-      collect_all_errors: true
+- name: validate_contract_creation
+  description: "Validate all business rules for contract creation"
+  config:
+    validations:
+    - name: customer_exists
+      field: customer_org
+      condition: "EXISTS (SELECT 1 FROM organizations WHERE id = input_data.customer_org AND status = 'active')"
+      message: "Customer organization must exist and be active"
+    - name: provider_exists
+      field: provider_org
+      condition: "EXISTS (SELECT 1 FROM organizations WHERE id = input_data.provider_org AND status = 'active')"
+      message: "Provider organization must exist and be active"
+    - name: currency_supported
+      field: currency
+      condition: "input_data.currency IN (SELECT iso_code FROM supported_currencies)"
+      message: "Currency is not supported"
+    - name: amount_positive
+      field: total_value
+      condition: "input_data.total_value > 0"
+      message: "Contract total value must be positive"
+    - name: amount_within_limits
+      field: total_value
+      condition: "input_data.total_value <= (SELECT max_contract_value FROM user_permissions WHERE user_id = auth_user_id)"
+      message: "Contract value exceeds your approval limit"
+    stop_on_first_failure: false
+    collect_all_errors: true
 
-  - name: quick_validation
-    description: "Fast validation that stops on first error"
-    config:
-      validations:
-        - name: required_fields
-          condition: "input_data.name IS NOT NULL AND input_data.email IS NOT NULL"
-          message: "Name and email are required"
-        - name: email_format
-          condition: "input_data.email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'"
-          message: "Email format is invalid"
-      stop_on_first_failure: true
-      collect_all_errors: false
+- name: quick_validation
+  description: "Fast validation that stops on first error"
+  config:
+    validations:
+    - name: required_fields
+      condition: "input_data.name IS NOT NULL AND input_data.email IS NOT NULL"
+      message: "Name and email are required"
+    - name: email_format
+      condition: "input_data.email ~ '^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$'"
+      message: "Email format is invalid"
+    stop_on_first_failure: true
+    collect_all_errors: false

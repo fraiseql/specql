@@ -881,4 +881,3 @@ table_views:
 **Priority**: MEDIUM (enables CQRS)
 **Effort**: 4 days
 **Start**: Week 2-3
-

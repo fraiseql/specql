@@ -13,9 +13,9 @@ class TestRecalculateIdentifier:
                 template_content = f.read()
         except FileNotFoundError:
             # Template doesn't exist yet - this is expected for RED test
-            assert False, (
-                "Template templates/sql/hierarchy/recalculate_identifier.sql.jinja2 should exist"
-            )
+            assert (
+                False
+            ), "Template templates/sql/hierarchy/recalculate_identifier.sql.jinja2 should exist"
 
         # Check that it contains the function
         assert "recalculate_identifier" in template_content

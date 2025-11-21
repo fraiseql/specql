@@ -6,7 +6,7 @@
 # Bump patch version (0.6.0 → 0.6.1)
 python scripts/version_manager.py patch
 
-# Bump minor version (0.6.0 → 0.7.0)  
+# Bump minor version (0.6.0 → 0.7.0)
 python scripts/version_manager.py minor
 
 # Bump major version (0.6.0 → 1.0.0)

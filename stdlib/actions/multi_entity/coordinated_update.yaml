@@ -4,30 +4,30 @@ description: "Coordinate changes across multiple entities in a transaction"
 author: SpecQL Team
 
 parameters:
-  - name: primary_entity
-    type: string
-    required: true
-    description: "The main entity being operated on"
+- name: primary_entity
+  type: string
+  required: true
+  description: "The main entity being operated on"
 
-  - name: operations
-    type: array<object>
-    required: true
-    description: "Sequence of operations to perform"
+- name: operations
+  type: array<object>
+  required: true
+  description: "Sequence of operations to perform"
 
-  - name: transaction_scope
-    type: enum[serializable, repeatable_read, read_committed]
-    default: serializable
-    description: "Transaction isolation level"
+- name: transaction_scope
+  type: enum[serializable, repeatable_read, read_committed]
+  default: serializable
+  description: "Transaction isolation level"
 
-  - name: rollback_on_error
-    type: boolean
-    default: true
-    description: "Whether to rollback transaction on any error"
+- name: rollback_on_error
+  type: boolean
+  default: true
+  description: "Whether to rollback transaction on any error"
 
-  - name: refresh_projections
-    type: array<string>
-    required: false
-    description: "Projections to refresh after operations"
+- name: refresh_projections
+  type: array<string>
+  required: false
+  description: "Projections to refresh after operations"
 
 template: |
   steps:
@@ -88,50 +88,50 @@ template: |
     {% endif %}
 
 examples:
-  - name: allocate_to_stock
-    description: "Allocate machine to stock location"
-    config:
-      primary_entity: Machine
-      operations:
+- name: allocate_to_stock
+  description: "Allocate machine to stock location"
+  config:
+    primary_entity: Machine
+    operations:
         # Get or create stock location
-        - action: get_or_create
-          entity: Location
-          where:
-            code: 'STOCK'
-          create_if_missing:
-            code: STOCK
-            name: Stock
-            location_type: warehouse
-          store_as: stock_location_id
+    - action: get_or_create
+      entity: Location
+      where:
+        code: 'STOCK'
+      create_if_missing:
+        code: STOCK
+        name: Stock
+        location_type: warehouse
+      store_as: stock_location_id
 
         # Create allocation
-        - action: insert
-          entity: Allocation
-          values:
-            machine_id: $input_data.machine_id
-            location_id: $stock_location_id
-            allocation_type: stock
-            status: active
-            allocated_at: NOW()
-          store_as: allocation_id
+    - action: insert
+      entity: Allocation
+      values:
+        machine_id: $input_data.machine_id
+        location_id: $stock_location_id
+        allocation_type: stock
+        status: active
+        allocated_at: NOW()
+      store_as: allocation_id
 
         # Update machine status
-        - action: update
-          entity: Machine
-          where:
-            id: $input_data.machine_id
-          values:
-            status: in_stock
-            current_location_id: $stock_location_id
+    - action: update
+      entity: Machine
+      where:
+        id: $input_data.machine_id
+      values:
+        status: in_stock
+        current_location_id: $stock_location_id
 
         # Log event
-        - action: insert
-          entity: AllocationEvent
-          values:
-            allocation_id: $allocation_id
-            event_type: allocated_to_stock
-            event_data: $input_payload
+    - action: insert
+      entity: AllocationEvent
+      values:
+        allocation_id: $allocation_id
+        event_type: allocated_to_stock
+        event_data: $input_payload
 
-      refresh_projections:
-        - machine_projection
-        - allocation_projection
+    refresh_projections:
+    - machine_projection
+    - allocation_projection

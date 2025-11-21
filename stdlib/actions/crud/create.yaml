@@ -4,10 +4,10 @@ description: "Create entity with duplicate detection"
 author: SpecQL Team
 
 parameters:
-  - name: duplicate_check
-    type: object
-    required: false
-    description: "Duplicate detection configuration"
+- name: duplicate_check
+  type: object
+  required: false
+  description: "Duplicate detection configuration"
 
 template: |
   steps:
@@ -35,10 +35,10 @@ template: |
     {% endif %}
 
 examples:
-  - name: create_contract
-    description: "Create contract with duplicate detection"
-    config:
-      duplicate_check:
-        fields: [customer_org, provider_org, customer_contract_id]
-        error_message: "Contract already exists for this customer/provider/contract_id"
-        return_conflict_object: true
+- name: create_contract
+  description: "Create contract with duplicate detection"
+  config:
+    duplicate_check:
+      fields: [customer_org, provider_org, customer_contract_id]
+      error_message: "Contract already exists for this customer/provider/contract_id"
+      return_conflict_object: true

@@ -73,12 +73,12 @@ fields:
   array_interval_dates: json  # Note: SQL uses DATE[] but SpecQL uses json for arrays
 
 actions:
-  - name: create_calendar
-  - name: update_calendar
-  - name: delete_calendar
+- name: create_calendar
+- name: update_calendar
+- name: delete_calendar
 
   # Business actions
-  - name: calculate_date_ranges
-  - name: get_business_days
-  - name: check_holiday
-  - name: get_fiscal_period
+- name: calculate_date_ranges
+- name: get_business_days
+- name: check_holiday
+- name: get_fiscal_period

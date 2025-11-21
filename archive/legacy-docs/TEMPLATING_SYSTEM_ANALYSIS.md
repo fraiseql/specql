@@ -1,7 +1,7 @@
 # SQL Templating System Analysis - Detailed Findings
 
-**Analysis Date**: November 8, 2025  
-**Project**: printoptim_backend_poc  
+**Analysis Date**: November 8, 2025
+**Project**: printoptim_backend_poc
 **Status**: POC Complete - Ready for Integration
 
 ---
@@ -94,12 +94,12 @@ entity:
       nullable: false
       unique: true
       description: "Internal stable identifier"
-    
+
     name:
       type: TEXT
       nullable: true
       description: "Optional display name"
-    
+
     abbreviation:
       type: CHAR(2)
       nullable: false
@@ -176,8 +176,8 @@ entity:
 
 ### Template 1: Table Definition (table.sql.j2)
 
-**Location**: `/home/lionel/code/printoptim_backend_poc/templates/table.sql.j2`  
-**Lines**: 123  
+**Location**: `/home/lionel/code/printoptim_backend_poc/templates/table.sql.j2`
+**Lines**: 123
 **Purpose**: Generates PostgreSQL CREATE TABLE statements
 
 #### Key Template Sections
@@ -258,8 +258,8 @@ CREATE TABLE {{ entity.schema }}.{{ entity.translations.table_name }} (
 
 ### Template 2: Trinity Helper Functions (trinity_helpers.sql.j2)
 
-**Location**: `/home/lionel/code/printoptim_backend_poc/templates/trinity_helpers.sql.j2`  
-**Lines**: 148  
+**Location**: `/home/lionel/code/printoptim_backend_poc/templates/trinity_helpers.sql.j2`
+**Lines**: 148
 **Purpose**: Generates helper functions for Trinity Pattern lookups
 
 #### Trinity Pattern Concept
@@ -337,16 +337,16 @@ Each entity generates 4 helpers (customizable):
 ## Generation Process (scripts/dev/generate_sql.py)
 
 ### Script Overview
-**Location**: `/home/lionel/code/printoptim_backend_poc/scripts/dev/generate_sql.py`  
-**Lines**: 140  
+**Location**: `/home/lionel/code/printoptim_backend_poc/scripts/dev/generate_sql.py`
+**Lines**: 140
 **Class**: `SQLGenerator`
 
 ### Generation Workflow
 
 ```python
 class SQLGenerator:
-    def __init__(self, templates_dir='templates', 
-                 entities_dir='entities', 
+    def __init__(self, templates_dir='templates',
+                 entities_dir='entities',
                  output_dir='generated'):
         # Set up Jinja2 environment
         self.env = Environment(
@@ -354,44 +354,44 @@ class SQLGenerator:
             trim_blocks=True,
             lstrip_blocks=True
         )
-        
+
         # Create output directories
         (self.output_dir / 'tables').mkdir(parents=True, exist_ok=True)
         (self.output_dir / 'functions').mkdir(parents=True, exist_ok=True)
-    
+
     def load_entity(self, entity_file):
         """Load YAML file into Python dict"""
         with open(entity_file, 'r') as f:
             data = yaml.safe_load(f)
         return data['entity']
-    
+
     def generate_table(self, entity):
         """Render table.sql.j2 template with entity data"""
         template = self.env.get_template('table.sql.j2')
         return template.render(entity=entity)
-    
+
     def generate_trinity_helpers(self, entity):
         """Render trinity_helpers.sql.j2 template"""
         if not entity.get('trinity_helpers', {}).get('generate'):
             return None
         template = self.env.get_template('trinity_helpers.sql.j2')
         return template.render(entity=entity)
-    
+
     def generate_entity(self, entity_file):
         """Generate all SQL for one entity"""
         entity = self.load_entity(entity_file)
-        
+
         # Generate table SQL
         table_sql = self.generate_table(entity)
         table_file = self.output_dir / 'tables' / f'tb_{entity["name"]}.sql'
         table_file.write_text(table_sql)
-        
+
         # Generate trinity helpers if enabled
         if entity.get('trinity_helpers', {}).get('generate'):
             trinity_sql = self.generate_trinity_helpers(entity)
             trinity_file = self.output_dir / 'functions' / f'{entity["name"]}_trinity_helpers.sql'
             trinity_file.write_text(trinity_sql)
-    
+
     def generate_all(self):
         """Process all .yaml files in entities/ directory"""
         entity_files = sorted(self.entities_dir.glob('*.yaml'))
@@ -641,7 +641,7 @@ entity:
     table: "013211"
     entity: "0132"
     domain: "013"
-  
+
   # Within numbering:
   # - 0: Module (0 = catalog)
   # - 1: Entity group (1 = physical entities)
@@ -798,4 +798,3 @@ The best place to integrate numbering system would be:
 - ✅ 99% faster than manual modification (2 min vs 2 hours)
 - ✅ 100% accuracy on generated code
 - ✅ All 40+ entities can be generated from same template
-

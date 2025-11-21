@@ -452,21 +452,25 @@ def inspect(pattern_name, json):
                 }
                 for tier in pattern.network_tiers
             ],
-            "waf_config": {
-                "enabled": pattern.waf_config.enabled,
-                "mode": pattern.waf_config.mode,
-            }
-            if pattern.waf_config
-            else None,
-            "vpn_config": {
-                "enabled": pattern.vpn_config.enabled,
-                "type": pattern.vpn_config.type,
-            }
-            if pattern.vpn_config
-            else None,
-            "compliance_preset": pattern.compliance_preset.value
-            if pattern.compliance_preset
-            else None,
+            "waf_config": (
+                {
+                    "enabled": pattern.waf_config.enabled,
+                    "mode": pattern.waf_config.mode,
+                }
+                if pattern.waf_config
+                else None
+            ),
+            "vpn_config": (
+                {
+                    "enabled": pattern.vpn_config.enabled,
+                    "type": pattern.vpn_config.type,
+                }
+                if pattern.vpn_config
+                else None
+            ),
+            "compliance_preset": (
+                pattern.compliance_preset.value if pattern.compliance_preset else None
+            ),
         }
         click.echo(json.dumps(pattern_data, indent=2))
         return
@@ -627,21 +631,27 @@ def compose(pattern_names, output, validate):
                 }
                 for tier in composed_config.network_tiers
             ],
-            "waf": {
-                "enabled": composed_config.waf.enabled,
-                "mode": composed_config.waf.mode,
-            }
-            if composed_config.waf
-            else None,
-            "vpn": {
-                "enabled": composed_config.vpn.enabled,
-                "type": composed_config.vpn.type,
-            }
-            if composed_config.vpn
-            else None,
-            "compliance_preset": composed_config.compliance_preset.value
-            if composed_config.compliance_preset
-            else None,
+            "waf": (
+                {
+                    "enabled": composed_config.waf.enabled,
+                    "mode": composed_config.waf.mode,
+                }
+                if composed_config.waf
+                else None
+            ),
+            "vpn": (
+                {
+                    "enabled": composed_config.vpn.enabled,
+                    "type": composed_config.vpn.type,
+                }
+                if composed_config.vpn
+                else None
+            ),
+            "compliance_preset": (
+                composed_config.compliance_preset.value
+                if composed_config.compliance_preset
+                else None
+            ),
         }
 
         import yaml

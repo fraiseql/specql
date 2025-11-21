@@ -408,7 +408,8 @@ def tests(
                 structure_sql = pgtap_gen.generate_structure_tests(entity_config)
                 pgtap_file = output_path / "pgtap" / f"{entity.name.lower()}_test.sql"
                 pgtap_file.parent.mkdir(parents=True, exist_ok=True)
-                pgtap_file.write_text(f"""-- Auto-generated pgTAP tests for {entity.name} entity
+                pgtap_file.write_text(
+                    f"""-- Auto-generated pgTAP tests for {entity.name} entity
 -- Generated from {Path(entity_files[0]).name}
 
 {structure_sql}
@@ -421,7 +422,8 @@ def tests(
 
 -- Constraint Tests
 {pgtap_gen.generate_constraint_tests(entity_config, [])}
-""")
+"""
+                )
                 generated_files.append(str(pgtap_file))
 
             # Generate Pytest tests

@@ -8,14 +8,14 @@ fields:
   status: enum(active, suspended, cancelled) = 'active'
 
 actions:
-  - name: create_tenant
-    description: "Create a new tenant"
-    steps:
-      - validate: name IS NOT NULL
-      - validate: subdomain IS NOT NULL
-      - insert: Tenant
+- name: create_tenant
+  description: "Create a new tenant"
+  steps:
+  - validate: name IS NOT NULL
+  - validate: subdomain IS NOT NULL
+  - insert: Tenant
 
-  - name: update_tenant
-    description: "Update tenant information"
-    steps:
-      - update: Tenant
+- name: update_tenant
+  description: "Update tenant information"
+  steps:
+  - update: Tenant

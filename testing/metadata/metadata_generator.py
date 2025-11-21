@@ -67,21 +67,25 @@ VALUES
         scenarios = []
 
         # Happy path create scenario
-        scenarios.append(f"""
+        scenarios.append(
+            f"""
 INSERT INTO test_metadata.tb_test_scenarios
 (fk_entity_test_config, scenario_code, scenario_name, scenario_type, expected_result, description, test_category, enabled)
 VALUES
 ({entity_config_id}, 0, 'happy_path_create', 'happy_path', 'success', 'Standard {entity.name} creation', 'crud', TRUE);
-""")
+"""
+        )
 
         # Constraint violation scenario (if entity has unique constraints)
         if self._has_unique_constraints(entity):
-            scenarios.append(f"""
+            scenarios.append(
+                f"""
 INSERT INTO test_metadata.tb_test_scenarios
 (fk_entity_test_config, scenario_code, scenario_name, scenario_type, expected_result, expected_error_code, description, test_category, enabled, seed_count)
 VALUES
 ({entity_config_id}, 1000, 'duplicate_constraint', 'constraint_violation', 'error', 'duplicate_key_violation', 'Duplicate constraint violation test', 'constraint', TRUE, 2);
-""")
+"""
+            )
 
         return "\n".join(scenarios)
 

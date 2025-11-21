@@ -354,15 +354,20 @@ class TestConfitureIntegration:
         result = subprocess.run(
             [
                 "psql",
-                "-h", "localhost",
-                "-p", "5433",
-                "-U", "postgres",
-                "-d", "test_specql",
-                "-f", "db/generated/schema_test.sql"
+                "-h",
+                "localhost",
+                "-p",
+                "5433",
+                "-U",
+                "postgres",
+                "-d",
+                "test_specql",
+                "-f",
+                "db/generated/schema_test.sql",
             ],
             capture_output=True,
             text=True,
-            env={**subprocess.os.environ, "PGPASSWORD": "postgres"}
+            env={**subprocess.os.environ, "PGPASSWORD": "postgres"},
         )
 
         # Should succeed
@@ -399,14 +404,14 @@ class TestConfitureIntegration:
             function_dict[name].append(schema)
 
         # Expected: 2 actions (create_contact, qualify_lead)
-        expected_actions = {'create_contact', 'qualify_lead'}
+        expected_actions = {"create_contact", "qualify_lead"}
         assert set(function_dict.keys()) == expected_actions, (
             f"Expected actions {expected_actions}, got {set(function_dict.keys())}. "
             f"Functions in database: {functions}"
         )
 
         # Expected: Each action should be in both 'crm' and 'app' schemas
-        expected_schemas = {'crm', 'app'}
+        expected_schemas = {"crm", "app"}
         for action in expected_actions:
             assert set(function_dict[action]) == expected_schemas, (
                 f"Action '{action}' should be in schemas {expected_schemas}, "

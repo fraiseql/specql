@@ -7,7 +7,8 @@ from reverse_engineering.python_ast_parser import PythonASTParser
 
 def test_multiple_models_in_one_file():
     """Test all models in file are detected"""
-    source_code = textwrap.dedent("""
+    source_code = textwrap.dedent(
+        """
         from django.db import models
 
         class Booker(models.Model):
@@ -18,7 +19,8 @@ def test_multiple_models_in_one_file():
 
         class Booking(models.Model):
             status = models.CharField(max_length=50)
-    """)
+    """
+    )
 
     parser = PythonASTParser()
     entities = parser.parse(source_code, "test_models.py")
@@ -34,7 +36,8 @@ def test_multiple_models_in_one_file():
 
 def test_models_with_intermediate_classes():
     """Test models are detected even with non-model classes"""
-    source_code = textwrap.dedent("""
+    source_code = textwrap.dedent(
+        """
         from django.db import models
 
         class HelperClass:
@@ -48,7 +51,8 @@ def test_models_with_intermediate_classes():
 
         class ModelB(models.Model):
             field2 = models.CharField(max_length=255)
-    """)
+    """
+    )
 
     parser = PythonASTParser()
     entities = parser.parse(source_code, "test_models.py")

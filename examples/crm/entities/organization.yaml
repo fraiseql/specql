@@ -10,13 +10,13 @@ fields:
   employee_count: integer
 
 actions:
-  - name: create_organization
-    description: "Create a new organization"
-    steps:
-      - validate: name IS NOT NULL
-      - insert: Organization
+- name: create_organization
+  description: "Create a new organization"
+  steps:
+  - validate: name IS NOT NULL
+  - insert: Organization
 
-  - name: update_organization
-    description: "Update organization information"
-    steps:
-      - update: Organization
+- name: update_organization
+  description: "Update organization information"
+  steps:
+  - update: Organization

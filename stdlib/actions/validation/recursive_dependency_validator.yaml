@@ -4,37 +4,37 @@ description: "Recursive dependency resolution and validation pattern (e.g., prod
 author: SpecQL Team
 
 parameters:
-  - name: dependency_table
-    type: string
-    required: true
-    description: "Table containing dependency relationships (e.g., product_dependencies)"
+- name: dependency_table
+  type: string
+  required: true
+  description: "Table containing dependency relationships (e.g., product_dependencies)"
 
-  - name: parent_field
-    type: string
-    required: true
-    description: "Field referencing the parent item (e.g., fk_product)"
+- name: parent_field
+  type: string
+  required: true
+  description: "Field referencing the parent item (e.g., fk_product)"
 
-  - name: child_field
-    type: string
-    required: true
-    description: "Field referencing the dependent item (e.g., fk_required_accessory)"
+- name: child_field
+  type: string
+  required: true
+  description: "Field referencing the dependent item (e.g., fk_required_accessory)"
 
-  - name: dependency_type_field
-    type: string
-    required: false
-    default: dependency_type
-    description: "Field containing dependency type (REQUIRES, REQUIRES_ONE_OF, CONFLICTS_WITH)"
+- name: dependency_type_field
+  type: string
+  required: false
+  default: dependency_type
+  description: "Field containing dependency type (REQUIRES, REQUIRES_ONE_OF, CONFLICTS_WITH)"
 
-  - name: max_depth
-    type: integer
-    required: false
-    default: 8
-    description: "Maximum recursion depth to prevent infinite loops"
+- name: max_depth
+  type: integer
+  required: false
+  default: 8
+  description: "Maximum recursion depth to prevent infinite loops"
 
-  - name: validation_rules
-    type: array<object>
-    required: true
-    description: "Validation rules to apply"
+- name: validation_rules
+  type: array<object>
+  required: true
+  description: "Validation rules to apply"
     # Rules:
     # - type: transitive_requires (resolve all REQUIRES dependencies)
     # - type: requires_one_of (at least one from group)
@@ -42,11 +42,11 @@ parameters:
     # - type: circular_dependency (detect cycles)
     # - type: category_limit (max items per category)
 
-  - name: return_details
-    type: boolean
-    required: false
-    default: true
-    description: "Return detailed violation information"
+- name: return_details
+  type: boolean
+  required: false
+  default: true
+  description: "Return detailed violation information"
 
 validation_helper: |
   -- Recursive dependency resolution function
@@ -320,60 +320,60 @@ template: |
         "
 
 examples:
-  - name: product_configuration_validation
-    description: "Validate printer accessory configuration with complex dependencies"
-    entity: ProductConfiguration
-    schema: catalog
-    config:
-      dependency_table: catalog.tb_product_dependency
-      parent_field: fk_product
-      child_field: fk_required_product
-      dependency_type_field: dependency_type
-      max_depth: 8
-      validation_rules:
-        - type: transitive_requires
-        - type: requires_one_of
-        - type: conflicts_with
-        - type: circular_dependency
-        - type: category_limit
-          limit_source: |
-            (SELECT max_accessories
-             FROM catalog.tb_product_category_limit
-             WHERE category_id = item.category_id
-             LIMIT 1)
-      return_details: true
+- name: product_configuration_validation
+  description: "Validate printer accessory configuration with complex dependencies"
+  entity: ProductConfiguration
+  schema: catalog
+  config:
+    dependency_table: catalog.tb_product_dependency
+    parent_field: fk_product
+    child_field: fk_required_product
+    dependency_type_field: dependency_type
+    max_depth: 8
+    validation_rules:
+    - type: transitive_requires
+    - type: requires_one_of
+    - type: conflicts_with
+    - type: circular_dependency
+    - type: category_limit
+      limit_source: |
+        (SELECT max_accessories
+         FROM catalog.tb_product_category_limit
+         WHERE category_id = item.category_id
+         LIMIT 1)
+    return_details: true
 
-  - name: permission_hierarchy_validation
-    description: "Validate user permissions with role dependencies"
-    entity: UserPermission
-    schema: auth
-    config:
-      dependency_table: auth.tb_permission_dependency
-      parent_field: fk_permission
-      child_field: fk_required_permission
-      dependency_type_field: dependency_type
-      max_depth: 5
-      validation_rules:
-        - type: transitive_requires
-        - type: conflicts_with
-        - type: circular_dependency
-      return_details: true
+- name: permission_hierarchy_validation
+  description: "Validate user permissions with role dependencies"
+  entity: UserPermission
+  schema: auth
+  config:
+    dependency_table: auth.tb_permission_dependency
+    parent_field: fk_permission
+    child_field: fk_required_permission
+    dependency_type_field: dependency_type
+    max_depth: 5
+    validation_rules:
+    - type: transitive_requires
+    - type: conflicts_with
+    - type: circular_dependency
+    return_details: true
 
-  - name: bill_of_materials_validation
-    description: "Validate BOM with component dependencies"
-    entity: BillOfMaterials
-    schema: manufacturing
-    config:
-      dependency_table: manufacturing.tb_component_dependency
-      parent_field: fk_component
-      child_field: fk_required_component
-      dependency_type_field: dependency_type
-      max_depth: 10
-      validation_rules:
-        - type: transitive_requires
-        - type: requires_one_of
-        - type: circular_dependency
-      return_details: false
+- name: bill_of_materials_validation
+  description: "Validate BOM with component dependencies"
+  entity: BillOfMaterials
+  schema: manufacturing
+  config:
+    dependency_table: manufacturing.tb_component_dependency
+    parent_field: fk_component
+    child_field: fk_required_component
+    dependency_type_field: dependency_type
+    max_depth: 10
+    validation_rules:
+    - type: transitive_requires
+    - type: requires_one_of
+    - type: circular_dependency
+    return_details: false
 
 usage: |
   # In entity YAML

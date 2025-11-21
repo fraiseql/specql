@@ -7,61 +7,61 @@ security:
   # Network tier-based security model
   network_tiers:
     # Tier 1: Public-facing web/load balancer
-    - name: web
-      description: "Public-facing load balancer tier"
-      cidr_blocks: ["10.0.1.0/24", "10.0.2.0/24"]
-      firewall_rules:
+  - name: web
+    description: "Public-facing load balancer tier"
+    cidr_blocks: ["10.0.1.0/24", "10.0.2.0/24"]
+    firewall_rules:
         # Allow HTTP/HTTPS from internet
-        - name: allow-public-http-https
-          allow: [http, https]
-          from: internet
-          description: "Public web access"
+    - name: allow-public-http-https
+      allow: [http, https]
+      from: internet
+      description: "Public web access"
 
         # Allow health checks from load balancer
-        - name: allow-health-checks
-          protocol: tcp
-          ports: [80]
-          source: load_balancer
-          description: "Load balancer health checks"
+    - name: allow-health-checks
+      protocol: tcp
+      ports: [80]
+      source: load_balancer
+      description: "Load balancer health checks"
 
     # Tier 2: Application servers (private)
-    - name: api
-      description: "Application server tier"
-      cidr_blocks: ["10.0.10.0/24", "10.0.11.0/24"]
-      firewall_rules:
+  - name: api
+    description: "Application server tier"
+    cidr_blocks: ["10.0.10.0/24", "10.0.11.0/24"]
+    firewall_rules:
         # Allow traffic from web tier only
-        - name: allow-from-web
-          protocol: tcp
-          ports: [8080, 8443]
-          source: web
-          description: "Application API endpoints"
+    - name: allow-from-web
+      protocol: tcp
+      ports: [8080, 8443]
+      source: web
+      description: "Application API endpoints"
 
         # Allow health checks from monitoring
-        - name: allow-monitoring
-          protocol: tcp
-          ports: [8080]
-          source: monitoring
-          description: "Health check endpoint"
+    - name: allow-monitoring
+      protocol: tcp
+      ports: [8080]
+      source: monitoring
+      description: "Health check endpoint"
 
     # Tier 3: Database (most restricted)
-    - name: database
-      description: "Database tier"
-      cidr_blocks: ["10.0.20.0/24", "10.0.21.0/24"]
-      firewall_rules:
+  - name: database
+    description: "Database tier"
+    cidr_blocks: ["10.0.20.0/24", "10.0.21.0/24"]
+    firewall_rules:
         # PostgreSQL access from API tier only
-        - name: allow-postgres-from-api
-          allow: postgresql
-          from: api
-          description: "Application database access"
+    - name: allow-postgres-from-api
+      allow: postgresql
+      from: api
+      description: "Application database access"
 
   # Web Application Firewall
   waf:
     enabled: true
     mode: prevention
     rule_sets:
-      - OWASP_TOP_10
-      - SQL_INJECTION
-      - XSS
+    - OWASP_TOP_10
+    - SQL_INJECTION
+    - XSS
     rate_limiting: true
 
   # Security controls

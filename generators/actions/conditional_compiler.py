@@ -66,10 +66,12 @@ class ConditionalCompiler:
         case_clauses = []
         for value, case_steps in cases.items():
             body = self._compile_steps(case_steps, entity)
-            case_clauses.append(f"""
+            case_clauses.append(
+                f"""
         WHEN '{value}' THEN
             {body}
-""")
+"""
+            )
 
         return f"""
     CASE {expression}

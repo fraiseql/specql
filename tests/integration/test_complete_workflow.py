@@ -20,7 +20,8 @@ def cli_runner():
 def test_django_to_postgresql_workflow(cli_runner):
     """Test: Django model → SpecQL YAML → PostgreSQL SQL"""
     # 1. Create Django model
-    django_model_code = textwrap.dedent("""
+    django_model_code = textwrap.dedent(
+        """
         from django.db import models
 
         class Booker(models.Model):
@@ -53,7 +54,8 @@ def test_django_to_postgresql_workflow(cli_runner):
             )
             check_in = models.DateField()
             check_out = models.DateField()
-    """)
+    """
+    )
 
     with tempfile.TemporaryDirectory() as tmpdir:
         # Write Django model file
@@ -96,10 +98,12 @@ def test_django_to_postgresql_workflow(cli_runner):
 def test_error_handling(cli_runner):
     """Test clear errors for common mistakes"""
     # Test invalid YAML
-    invalid_yaml = textwrap.dedent("""
+    invalid_yaml = textwrap.dedent(
+        """
         entity: Test
         fields: not_a_list
-    """)
+    """
+    )
 
     with tempfile.TemporaryDirectory() as tmpdir:
         yaml_file = Path(tmpdir) / "invalid.yaml"
@@ -114,14 +118,16 @@ def test_error_handling(cli_runner):
 
 def test_metadata_included(cli_runner):
     """Test that rich metadata is included in generated YAML"""
-    django_model_code = textwrap.dedent("""
+    django_model_code = textwrap.dedent(
+        """
         from django.db import models
 
         class TestModel(models.Model):
             name = models.CharField(max_length=255)
             created_at = models.DateTimeField(auto_now_add=True)
             updated_at = models.DateTimeField(auto_now=True)
-    """)
+    """
+    )
 
     with tempfile.TemporaryDirectory() as tmpdir:
         django_file = Path(tmpdir) / "models.py"

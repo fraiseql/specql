@@ -1356,4 +1356,3 @@ CREATE INDEX idx_audit_user ON app.tb_mutation_audit_log(user_id, created_at DES
 CREATE INDEX idx_audit_status ON app.tb_mutation_audit_log(status, created_at DESC);
 CREATE INDEX idx_audit_operation ON app.tb_mutation_audit_log(operation, created_at DESC);
 ```
-

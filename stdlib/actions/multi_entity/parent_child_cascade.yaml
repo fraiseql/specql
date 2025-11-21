@@ -4,25 +4,25 @@ description: "Cascade operations from parent to child entities"
 author: SpecQL Team
 
 parameters:
-  - name: parent_entity
-    type: string
-    required: true
-    description: "The parent entity initiating the cascade"
+- name: parent_entity
+  type: string
+  required: true
+  description: "The parent entity initiating the cascade"
 
-  - name: child_entities
-    type: array<object>
-    required: true
-    description: "Child entities and their cascade operations"
+- name: child_entities
+  type: array<object>
+  required: true
+  description: "Child entities and their cascade operations"
 
-  - name: cascade_type
-    type: enum[soft_delete, hard_delete, update_status, archive]
-    default: soft_delete
-    description: "Type of cascade operation"
+- name: cascade_type
+  type: enum[soft_delete, hard_delete, update_status, archive]
+  default: soft_delete
+  description: "Type of cascade operation"
 
-  - name: cascade_condition
-    type: string
-    required: false
-    description: "Additional condition for cascade (e.g., 'status = active')"
+- name: cascade_condition
+  type: string
+  required: false
+  description: "Additional condition for cascade (e.g., 'status = active')"
 
 template: |
   steps:
@@ -59,25 +59,25 @@ template: |
     {% endif %}
 
 examples:
-  - name: delete_department
-    description: "Delete department and cascade to employees"
-    config:
-      parent_entity: Department
-      child_entities:
-        - entity: Employee
-          foreign_key: department_id
-        - entity: DepartmentBudget
-          foreign_key: department_id
-      cascade_type: soft_delete
-      cascade_condition: "status != 'terminated'"
+- name: delete_department
+  description: "Delete department and cascade to employees"
+  config:
+    parent_entity: Department
+    child_entities:
+    - entity: Employee
+      foreign_key: department_id
+    - entity: DepartmentBudget
+      foreign_key: department_id
+    cascade_type: soft_delete
+    cascade_condition: "status != 'terminated'"
 
-  - name: archive_project
-    description: "Archive project and cascade to tasks"
-    config:
-      parent_entity: Project
-      child_entities:
-        - entity: Task
-          foreign_key: project_id
-          new_status: cancelled
-      cascade_type: update_status
-      cascade_condition: "status IN ('pending', 'in_progress')"
+- name: archive_project
+  description: "Archive project and cascade to tasks"
+  config:
+    parent_entity: Project
+    child_entities:
+    - entity: Task
+      foreign_key: project_id
+      new_status: cancelled
+    cascade_type: update_status
+    cascade_condition: "status IN ('pending', 'in_progress')"

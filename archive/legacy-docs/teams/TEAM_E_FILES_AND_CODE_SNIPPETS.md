@@ -96,7 +96,7 @@ class SchemaOrchestrator:
     def generate_complete_schema(self, entity: Entity) -> str:
         """
         Generate complete schema for entity: tables + types + indexes + functions
-        
+
         Returns:
             Complete SQL schema as string
         """
@@ -114,10 +114,10 @@ class SchemaOrchestrator:
 
     def generate_table_views(self, entities: List[EntityDefinition]) -> str:
         """Generate tv_ tables for all entities in dependency order"""
-        
+
         resolver = TableViewDependencyResolver(entities)
         generation_order = resolver.get_generation_order()
-        
+
         # Generates in order with FraiseQL annotations
 
     def generate_app_foundation_only(self) -> str:
@@ -171,8 +171,8 @@ def convert_entity_definition_to_entity(entity_def: EntityDefinition) -> Entity:
     actions = []
     for action_def in entity_def.actions:
         action = Action(
-            name=action_def.name, 
-            steps=action_def.steps, 
+            name=action_def.name,
+            steps=action_def.steps,
             impact=None  # TODO: Convert impact dict to ActionImpact
         )
         actions.append(action)
@@ -351,11 +351,11 @@ def test_generate_complete_schema(parser, orchestrator):
       email: text
       company: ref(Company)
     """
-    
+
     entity_def = parser.parse(yaml_content)
     # Convert to Entity...
     sql = orchestrator.generate_complete_schema(entity)
-    
+
     assert "CREATE TABLE crm.tb_contact" in sql
     assert "pk_contact" in sql
     assert "id UUID" in sql
@@ -373,15 +373,15 @@ from src.generators.schema_orchestrator import SchemaOrchestrator
 def test_schema_orchestrator_end_to_end():
     parser = SpecQLParser()
     orchestrator = SchemaOrchestrator()
-    
+
     # Test with actual file
     yaml_file = Path("entities/examples/contact_lightweight.yaml")
     yaml_content = yaml_file.read_text()
-    
+
     entity_def = parser.parse(yaml_content)
     # Convert to Entity...
     sql = orchestrator.generate_complete_schema(entity)
-    
+
     # Verify all components are present
     assert "CREATE TABLE" in sql
     assert "CREATE INDEX" in sql
@@ -416,7 +416,7 @@ def test_generate_entities_command(cli_runner, temp_migrations_dir):
         'entities/examples/contact_lightweight.yaml',
         '--output-dir', str(temp_migrations_dir)
     ])
-    
+
     assert result.exit_code == 0
     assert (temp_migrations_dir / "000_app_foundation.sql").exists()
     assert (temp_migrations_dir / "100_contact.sql").exists()
@@ -429,7 +429,7 @@ def test_generate_with_table_views(cli_runner, temp_migrations_dir):
         '--output-dir', str(temp_migrations_dir),
         '--include-tv'
     ])
-    
+
     assert result.exit_code == 0
     assert (temp_migrations_dir / "200_table_views.sql").exists()
 
@@ -440,7 +440,7 @@ def test_generate_foundation_only(cli_runner, temp_migrations_dir):
         '--foundation-only',
         '--output-dir', str(temp_migrations_dir)
     ])
-    
+
     assert result.exit_code == 0
     assert (temp_migrations_dir / "000_app_foundation.sql").exists()
 ```

@@ -1,6 +1,6 @@
 entity: Post
 schema: public
-description: null
+description:
 fields:
   title: text!
   content: text!

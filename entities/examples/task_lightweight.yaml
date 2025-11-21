@@ -28,12 +28,12 @@ fields:
     required: false
 
 actions:
-  - name: create_task
-    description: Create a new task
-    steps:
-      - insert: Task
+- name: create_task
+  description: Create a new task
+  steps:
+  - insert: Task
 
-  - name: assign_task
-    description: Assign task to a user
-    steps:
-      - update: Task SET assignee = input.assignee
+- name: assign_task
+  description: Assign task to a user
+  steps:
+  - update: Task SET assignee = input.assignee

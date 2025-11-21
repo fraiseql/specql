@@ -4,35 +4,35 @@ description: "State transition with complex guard conditions and side effects"
 author: SpecQL Team
 
 parameters:
-  - name: from_states
-    type: array<string>
-    required: true
-    description: "Valid source states for transition"
+- name: from_states
+  type: array<string>
+  required: true
+  description: "Valid source states for transition"
 
-  - name: to_state
-    type: string
-    required: true
-    description: "Target state"
+- name: to_state
+  type: string
+  required: true
+  description: "Target state"
 
-  - name: guards
-    type: array<object>
-    required: true
-    description: "Guard conditions that must all pass"
+- name: guards
+  type: array<object>
+  required: true
+  description: "Guard conditions that must all pass"
 
-  - name: side_effects
-    type: array<object>
-    required: false
-    description: "Updates to perform on success"
+- name: side_effects
+  type: array<object>
+  required: false
+  description: "Updates to perform on success"
 
-  - name: input_fields
-    type: array<object>
-    required: false
-    description: "Additional input fields to set on transition"
+- name: input_fields
+  type: array<object>
+  required: false
+  description: "Additional input fields to set on transition"
 
-  - name: refresh_projection
-    type: string
-    required: false
-    description: "Projection to refresh after transition"
+- name: refresh_projection
+  type: string
+  required: false
+  description: "Projection to refresh after transition"
 
 template: |
   steps:
@@ -95,30 +95,30 @@ template: |
     {% endif %}
 
 examples:
-  - name: approve_contract
-    description: "Approve contract with complex business rules"
-    config:
-      from_states: [draft, pending_review]
-      to_state: approved
-      guards:
-        - name: budget_available
-          condition: "input_data.total_value <= (SELECT budget FROM departments WHERE id = (SELECT department_id FROM contracts WHERE id = v_contract_id))"
-          error: "Contract value exceeds department budget"
-        - name: manager_approval
-          condition: "EXISTS (SELECT 1 FROM approvals WHERE contract_id = v_contract_id AND approver_role = 'manager' AND approved = true)"
-          error: "Manager approval required"
-        - name: compliance_check
-          condition: "NOT EXISTS (SELECT 1 FROM compliance_issues WHERE contract_id = v_contract_id AND severity = 'blocking')"
-          error: "Contract has blocking compliance issues"
-      side_effects:
-        - name: update_department_budget
-          entity: Department
-          updates:
-            used_budget: used_budget + input_data.total_value
-          where: "id = (SELECT department_id FROM contracts WHERE id = v_contract_id)"
-      input_fields:
-        - name: approved_by
-          type: uuid
-        - name: approval_date
-          type: date
-      refresh_projection: contract_projection
+- name: approve_contract
+  description: "Approve contract with complex business rules"
+  config:
+    from_states: [draft, pending_review]
+    to_state: approved
+    guards:
+    - name: budget_available
+      condition: "input_data.total_value <= (SELECT budget FROM departments WHERE id = (SELECT department_id FROM contracts WHERE id = v_contract_id))"
+      error: "Contract value exceeds department budget"
+    - name: manager_approval
+      condition: "EXISTS (SELECT 1 FROM approvals WHERE contract_id = v_contract_id AND approver_role = 'manager' AND approved = true)"
+      error: "Manager approval required"
+    - name: compliance_check
+      condition: "NOT EXISTS (SELECT 1 FROM compliance_issues WHERE contract_id = v_contract_id AND severity = 'blocking')"
+      error: "Contract has blocking compliance issues"
+    side_effects:
+    - name: update_department_budget
+      entity: Department
+      updates:
+        used_budget: used_budget + input_data.total_value
+      where: "id = (SELECT department_id FROM contracts WHERE id = v_contract_id)"
+    input_fields:
+    - name: approved_by
+      type: uuid
+    - name: approval_date
+      type: date
+    refresh_projection: contract_projection

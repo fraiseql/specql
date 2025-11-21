@@ -43,12 +43,12 @@ fields:
   address_datasource: ref(AddressDatasource)
 
 actions:
-  - name: create_public_address
-  - name: update_public_address
-  - name: delete_public_address
+- name: create_public_address
+- name: update_public_address
+- name: delete_public_address
 
   # Business actions
-  - name: validate_address
-  - name: geocode_address
-  - name: format_address
-  - name: check_address_completeness
+- name: validate_address
+- name: geocode_address
+- name: format_address
+- name: check_address_completeness

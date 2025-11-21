@@ -20,13 +20,15 @@ def cli_runner():
 
 def test_foundation_generation(cli_runner):
     """Test foundation SQL generation"""
-    spec = textwrap.dedent("""
+    spec = textwrap.dedent(
+        """
         entity: Product
         schema: catalog
         fields:
           name: text
           price: decimal
-    """)
+    """
+    )
 
     with tempfile.TemporaryDirectory() as tmpdir:
         spec_file = Path(tmpdir) / "product.yaml"
@@ -47,12 +49,14 @@ def test_foundation_generation(cli_runner):
 
 def test_entity_generation(cli_runner):
     """Test basic entity SQL generation"""
-    spec = textwrap.dedent("""
+    spec = textwrap.dedent(
+        """
         entity: Order
         schema: sales
         fields:
           status: text
-    """)
+    """
+    )
 
     with tempfile.TemporaryDirectory() as tmpdir:
         spec_file = Path(tmpdir) / "order.yaml"
@@ -90,7 +94,8 @@ def test_entity_generation(cli_runner):
 def test_complete_workflow(cli_runner):
     """Test complete SpecQL workflow: Django model → YAML → validation → SQL generation"""
     # Create a comprehensive Django model
-    django_model = textwrap.dedent("""
+    django_model = textwrap.dedent(
+        """
         from django.db import models
 
         class Booker(models.Model):
@@ -128,7 +133,8 @@ def test_complete_workflow(cli_runner):
             )
             total_price = models.DecimalField(max_digits=10, decimal_places=2)
             booked_at = models.DateTimeField(auto_now_add=True)
-    """)
+    """
+    )
 
     with tempfile.TemporaryDirectory() as tmpdir:
         tmpdir_path = Path(tmpdir)

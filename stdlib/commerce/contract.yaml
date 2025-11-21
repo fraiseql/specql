@@ -77,17 +77,17 @@ fields:
     description: "Currency used for pricing in this contract"
 
 actions:
-  - name: create_contract
-  - name: update_contract
-  - name: delete_contract
+- name: create_contract
+- name: update_contract
+- name: delete_contract
 
   # Business actions
-  - name: activate_contract
-  - name: suspend_contract
-  - name: terminate_contract
-  - name: renew_contract
-  - name: amend_contract
-  - name: change_currency
-  - name: update_terms
-  - name: add_financing_condition
-  - name: remove_financing_condition
+- name: activate_contract
+- name: suspend_contract
+- name: terminate_contract
+- name: renew_contract
+- name: amend_contract
+- name: change_currency
+- name: update_terms
+- name: add_financing_condition
+- name: remove_financing_condition

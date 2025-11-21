@@ -36,12 +36,12 @@ translations:
   fields: [name]
 
 actions:
-  - name: create_administrative_level
-  - name: update_administrative_level
-  - name: delete_administrative_level
+- name: create_administrative_level
+- name: update_administrative_level
+- name: delete_administrative_level
 
   # Business actions
-  - name: activate_level
-  - name: deactivate_level
-  - name: change_parent
-  - name: update_country
+- name: activate_level
+- name: deactivate_level
+- name: change_parent
+- name: update_country

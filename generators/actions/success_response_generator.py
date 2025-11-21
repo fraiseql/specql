@@ -89,11 +89,13 @@ class SuccessResponseGenerator:
         parts = []
 
         # Status and message
-        parts.append("""
+        parts.append(
+            """
     -- Set success status
     v_result.status := 'success';
     v_result.message := 'Operation completed successfully';
-""")
+"""
+        )
 
         # Object data
         parts.append(self.generate_object_data(context))
@@ -103,23 +105,29 @@ class SuccessResponseGenerator:
             primary = context.impact["primary"]
             if "fields" in primary:
                 fields_array = ", ".join(f"'{field}'" for field in primary["fields"])
-                parts.append(f"""
+                parts.append(
+                    f"""
     -- Set updated fields
     v_result.updated_fields := ARRAY[{fields_array}];
-""")
+"""
+                )
 
         # Extra metadata (impact + side effects)
         if context.has_impact_metadata:
-            parts.append("""
+            parts.append(
+                """
     -- Build extra metadata with impact information
     v_result.extra_metadata := jsonb_build_object(
         '_meta', to_jsonb(v_meta)
     );
-""")
+"""
+            )
         else:
-            parts.append("""
+            parts.append(
+                """
     -- No extra metadata
     v_result.extra_metadata := '{}'::jsonb;
-""")
+"""
+            )
 
         return "\n".join(parts)

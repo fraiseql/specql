@@ -254,33 +254,39 @@ class SchemaGenerator:
         functions = []
 
         # Helper function: UUID -> INTEGER (pk) with tenant scoping
-        functions.append(f"""
+        functions.append(
+            f"""
 CREATE OR REPLACE FUNCTION {entity.schema}.{entity_lower}_pk(p_id UUID, p_tenant_id UUID DEFAULT NULL)
 RETURNS INTEGER AS $$
     SELECT pk_{entity_lower}
     FROM {table_name}
     WHERE id = p_id
     AND (p_tenant_id IS NULL OR tenant_id = p_tenant_id);
-$$ LANGUAGE SQL STABLE;""")
+$$ LANGUAGE SQL STABLE;"""
+        )
 
         # Helper function: INTEGER (pk) -> UUID (id)
-        functions.append(f"""
+        functions.append(
+            f"""
 CREATE OR REPLACE FUNCTION {entity.schema}.{entity_lower}_id(p_pk INTEGER)
 RETURNS UUID AS $$
     SELECT id
     FROM {table_name}
     WHERE pk_{entity_lower} = p_pk;
-$$ LANGUAGE SQL STABLE;""")
+$$ LANGUAGE SQL STABLE;"""
+        )
 
         # Helper function: INTEGER (pk) -> TEXT (identifier)
         # All Trinity Pattern entities have an identifier field
-        functions.append(f"""
+        functions.append(
+            f"""
 CREATE OR REPLACE FUNCTION {entity.schema}.{entity_lower}_identifier(p_pk INTEGER)
 RETURNS TEXT AS $$
     SELECT identifier
     FROM {table_name}
     WHERE pk_{entity_lower} = p_pk;
-$$ LANGUAGE SQL STABLE;""")
+$$ LANGUAGE SQL STABLE;"""
+        )
 
         return functions
 

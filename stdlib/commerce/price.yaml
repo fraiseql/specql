@@ -61,14 +61,14 @@ fields:
     description: "Currency in which the price amount is expressed."
 
 actions:
-  - name: create_price
-  - name: update_price
-  - name: delete_price
+- name: create_price
+- name: update_price
+- name: delete_price
 
   # Business actions
-  - name: activate_price
-  - name: deactivate_price
-  - name: change_amount
-  - name: extend_validity
-  - name: create_price_revision
-  - name: apply_bulk_price_change
+- name: activate_price
+- name: deactivate_price
+- name: change_amount
+- name: extend_validity
+- name: create_price_revision
+- name: apply_bulk_price_change

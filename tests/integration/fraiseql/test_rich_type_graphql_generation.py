@@ -138,9 +138,9 @@ class TestFraiseQLIntegrationContract:
 
         for type_name, type_def in SCALAR_TYPES.items():
             pg_type_base = type_def.postgres_type.value
-            assert pg_type_base in supported_pg_types, (
-                f"Type {type_name} uses unsupported PostgreSQL type {pg_type_base}"
-            )
+            assert (
+                pg_type_base in supported_pg_types
+            ), f"Type {type_name} uses unsupported PostgreSQL type {pg_type_base}"
 
     def test_validation_patterns_produce_meaningful_comments(self):
         """Test that validation patterns result in descriptive comments"""

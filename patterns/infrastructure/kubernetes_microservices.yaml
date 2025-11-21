@@ -44,16 +44,16 @@ observability:
     enabled: true
     provider: jaeger
   alerts:
-    - {name: high_cpu, condition: "cpu > 80%"}
-    - {name: high_error_rate, condition: "error_rate > 1%"}
+  - {name: high_cpu, condition: "cpu > 80%"}
+  - {name: high_error_rate, condition: "error_rate > 1%"}
 
 best_practices:
-  - "Service mesh for inter-service communication"
-  - "Horizontal Pod Autoscaling"
-  - "Distributed tracing for debugging"
-  - "Circuit breakers for resilience"
+- "Service mesh for inter-service communication"
+- "Horizontal Pod Autoscaling"
+- "Distributed tracing for debugging"
+- "Circuit breakers for resilience"
 
 cost_optimization:
-  - "Use cluster autoscaling"
-  - "Implement pod resource limits"
-  - "Use spot instances for worker nodes"
+- "Use cluster autoscaling"
+- "Implement pod resource limits"
+- "Use spot instances for worker nodes"

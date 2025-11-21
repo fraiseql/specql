@@ -252,9 +252,9 @@ def test_sql_syntax_basic_validation():
     # Check for balanced parentheses
     open_parens = content.count("(")
     close_parens = content.count(")")
-    assert open_parens == close_parens, (
-        f"Unbalanced parentheses: {open_parens} open, {close_parens} close"
-    )
+    assert (
+        open_parens == close_parens
+    ), f"Unbalanced parentheses: {open_parens} open, {close_parens} close"
 
     # Check for balanced quotes (basic check)
     single_quotes = content.count("'") - content.count("''")  # Account for escaped quotes
@@ -299,9 +299,9 @@ def test_schema_file_structure():
             table_order.append(table_name)
 
     expected_order = ["tb_entity_test_config", "tb_field_generator_mapping", "tb_test_scenarios"]
-    assert table_order == expected_order, (
-        f"Tables not in expected order. Got: {table_order}, Expected: {expected_order}"
-    )
+    assert (
+        table_order == expected_order
+    ), f"Tables not in expected order. Got: {table_order}, Expected: {expected_order}"
 
     # Should end with comments
     assert any("COMMENT ON SCHEMA" in line for line in lines)

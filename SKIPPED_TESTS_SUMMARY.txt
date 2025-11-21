@@ -139,7 +139,7 @@ Rich Type Polish (25 tests)
   • tests/unit/schema/test_comment_generation.py - 13 tests
     Core feature: Comments work
     Enhancement: Detailed rich type descriptions
-  
+
   • tests/unit/schema/test_index_generation.py - 12 tests
     Core feature: Standard indexes (B-tree, GIN) work
     Enhancement: Specialized indexes (GIST for geo, IP)
@@ -148,7 +148,7 @@ Advanced Validation (22 tests)
   • tests/unit/patterns/validation/test_template_inheritance.py - 16 tests
     Core feature: Field validation works
     Enhancement: Advanced template inheritance patterns
-  
+
   • tests/unit/patterns/validation/test_recursive_dependency_validator.py - 6 tests
     Core feature: Basic dependency validation works
     Enhancement: Recursive cycle detection
@@ -179,7 +179,7 @@ These tests require PostgreSQL and pass when DB is available:
   • tests/integration/actions/test_database_roundtrip.py - 6 tests
     Status: Pass with PostgreSQL (proven in dev)
     Tests: CREATE, UPDATE, validation, Trinity resolution
-  
+
   • tests/integration/test_confiture_integration.py - 2 tests
     Status: Pass with PostgreSQL (proven in dev)
     Tests: Confiture migrate up/down, fallback handling
@@ -191,7 +191,7 @@ Features not yet started (planned roadmap):
   • tests/integration/reverse_engineering/test_rust_end_to_end.py - 2 tests
     Status: Requires Rust parser binary (not built yet)
     Feature: Rust Diesel schema → SpecQL YAML
-  
+
   • tests/integration/test_composite_hierarchical_e2e.py - 1 test
     Status: Requires identifier recalculation function
     Feature: Advanced composite identifier patterns

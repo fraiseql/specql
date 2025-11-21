@@ -7,4 +7,3 @@
             RETURN v_id;
         END;
         $$ LANGUAGE plpgsql;
-        

@@ -10,274 +10,274 @@ created: 2025-11-25
 tags: [temporal, versioning, scd, history]
 
 parameters:
-  - name: natural_key
-    type: array<string>
-    required: true
-    description: "Fields that uniquely identify the business entity (e.g., [product_code, company])"
-    example: ["product_code"]
+- name: natural_key
+  type: array<string>
+  required: true
+  description: "Fields that uniquely identify the business entity (e.g., [product_code, company])"
+  example: ["product_code"]
 
-  - name: version_field
-    type: string
-    default: version_number
-    description: "Field name for version counter"
-    validation: "^[a-z][a-z0-9_]*$"
+- name: version_field
+  type: string
+  default: version_number
+  description: "Field name for version counter"
+  validation: "^[a-z][a-z0-9_]*$"
 
-  - name: is_current_field
-    type: string
-    default: is_current
-    description: "Boolean field indicating current version"
-    validation: "^[a-z][a-z0-9_]*$"
+- name: is_current_field
+  type: string
+  default: is_current
+  description: "Boolean field indicating current version"
+  validation: "^[a-z][a-z0-9_]*$"
 
-  - name: effective_date_field
-    type: string
-    default: effective_date
-    description: "When this version became effective"
-    validation: "^[a-z][a-z0-9_]*$"
+- name: effective_date_field
+  type: string
+  default: effective_date
+  description: "When this version became effective"
+  validation: "^[a-z][a-z0-9_]*$"
 
-  - name: expiry_date_field
-    type: string
-    default: expiry_date
-    description: "When this version was superseded (NULL for current)"
-    validation: "^[a-z][a-z0-9_]*$"
+- name: expiry_date_field
+  type: string
+  default: expiry_date
+  description: "When this version was superseded (NULL for current)"
+  validation: "^[a-z][a-z0-9_]*$"
 
-  - name: auto_version
-    type: boolean
-    default: true
-    description: "Automatically manage versions on updates"
+- name: auto_version
+  type: boolean
+  default: true
+  description: "Automatically manage versions on updates"
 
 schema_extensions:
   fields:
-    - name: "{{ version_field }}"
-      type: integer
-      default: 1
-      nullable: false
-      comment: "Version number (increments on each change)"
+  - name: "{{ version_field }}"
+    type: integer
+    default: 1
+    nullable: false
+    comment: "Version number (increments on each change)"
 
-    - name: "{{ is_current_field }}"
-      type: boolean
-      default: true
-      nullable: false
-      comment: "True for the current version, false for historical"
-      index: true
+  - name: "{{ is_current_field }}"
+    type: boolean
+    default: true
+    nullable: false
+    comment: "True for the current version, false for historical"
+    index: true
 
-    - name: "{{ effective_date_field }}"
-      type: timestamptz
-      default: now()
-      nullable: false
-      comment: "When this version became effective"
+  - name: "{{ effective_date_field }}"
+    type: timestamptz
+    default: now()
+    nullable: false
+    comment: "When this version became effective"
 
-    - name: "{{ expiry_date_field }}"
-      type: timestamptz
-      nullable: true
-      default: null
-      comment: "When this version was superseded (NULL for current version)"
+  - name: "{{ expiry_date_field }}"
+    type: timestamptz
+    nullable: true
+    default:
+    comment: "When this version was superseded (NULL for current version)"
 
   constraints:
     # Only one current version per natural key
-    - type: unique
-      name: "uniq_{{ entity.name | lower }}_current_version"
-      fields: "{{ natural_key + [is_current_field] }}"
-      where: "{{ is_current_field }} = true"
-      comment: "Ensure only one current version per business entity"
+  - type: unique
+    name: "uniq_{{ entity.name | lower }}_current_version"
+    fields: "{{ natural_key + [is_current_field] }}"
+    where: "{{ is_current_field }} = true"
+    comment: "Ensure only one current version per business entity"
 
   indexes:
     # Fast current version lookups
-    - name: "idx_{{ entity.name | lower }}_current_nk"
-      fields: "{{ natural_key + [is_current_field] }}"
-      where: "{{ is_current_field }} = true"
-      comment: "Optimized index for current version queries"
+  - name: "idx_{{ entity.name | lower }}_current_nk"
+    fields: "{{ natural_key + [is_current_field] }}"
+    where: "{{ is_current_field }} = true"
+    comment: "Optimized index for current version queries"
 
     # Fast temporal queries
-    - name: "idx_{{ entity.name | lower }}_temporal"
-      fields: "{{ natural_key + [effective_date_field, expiry_date_field] }}"
-      comment: "Index for point-in-time and range queries"
+  - name: "idx_{{ entity.name | lower }}_temporal"
+    fields: "{{ natural_key + [effective_date_field, expiry_date_field] }}"
+    comment: "Index for point-in-time and range queries"
 
     # Version history ordering
-    - name: "idx_{{ entity.name | lower }}_version_order"
-      fields: "{{ natural_key + [version_field] }}"
-      comment: "Index for version history queries"
+  - name: "idx_{{ entity.name | lower }}_version_order"
+    fields: "{{ natural_key + [version_field] }}"
+    comment: "Index for version history queries"
 
 action_helpers:
-  - function: "create_new_version_{{ entity.name | lower }}"
-    description: "Create new version and expire previous"
-    returns: uuid
-    params:
-      - name: natural_key_values
-        type: jsonb
-        description: "JSON object with natural key field values"
-      - name: new_data
-        type: jsonb
-        description: "JSON object with new field values"
-      - name: effective_at
-        type: timestamptz
-        default: now()
-        description: "When new version becomes effective"
+- function: "create_new_version_{{ entity.name | lower }}"
+  description: "Create new version and expire previous"
+  returns: uuid
+  params:
+  - name: natural_key_values
+    type: jsonb
+    description: "JSON object with natural key field values"
+  - name: new_data
+    type: jsonb
+    description: "JSON object with new field values"
+  - name: effective_at
+    type: timestamptz
+    default: now()
+    description: "When new version becomes effective"
 
-    logic: |
-      DECLARE
-        v_old_id uuid;
-        v_new_id uuid;
-        v_next_version integer;
-      BEGIN
-        -- Get current version ID and next version number
-        SELECT id, {{ version_field }} + 1
-        INTO v_old_id, v_next_version
-        FROM {{ schema }}.tb_{{ entity.name | lower }}
-        WHERE {{ natural_key_where_clause }}
-          AND {{ is_current_field }} = true;
-
-        IF v_old_id IS NULL THEN
-          RAISE EXCEPTION 'No current version found for given natural key';
-        END IF;
-
-        -- Expire current version
-        UPDATE {{ schema }}.tb_{{ entity.name | lower }}
-        SET
-          {{ is_current_field }} = false,
-          {{ expiry_date_field }} = effective_at,
-          updated_at = now(),
-          updated_by = current_setting('app.current_user_id', true)::uuid
-        WHERE id = v_old_id;
-
-        -- Insert new version
-        INSERT INTO {{ schema }}.tb_{{ entity.name | lower }} (
-          {{ field_list }},
-          {{ version_field }},
-          {{ is_current_field }},
-          {{ effective_date_field }},
-          {{ expiry_date_field }}
-        )
-        SELECT
-          {{ field_list_from_jsonb }},
-          v_next_version,
-          true,
-          effective_at,
-          NULL
-        FROM jsonb_populate_record(NULL::{{ schema }}.tb_{{ entity.name | lower }}, new_data)
-        RETURNING id INTO v_new_id;
-
-        RETURN v_new_id;
-      END;
-
-  - function: "get_current_version_{{ entity.name | lower }}"
-    description: "Get current version ID by natural key"
-    returns: uuid
-    params:
-      - name: natural_key_values
-        type: jsonb
-
-    logic: |
-      SELECT id
+  logic: |
+    DECLARE
+      v_old_id uuid;
+      v_new_id uuid;
+      v_next_version integer;
+    BEGIN
+      -- Get current version ID and next version number
+      SELECT id, {{ version_field }} + 1
+      INTO v_old_id, v_next_version
       FROM {{ schema }}.tb_{{ entity.name | lower }}
       WHERE {{ natural_key_where_clause }}
         AND {{ is_current_field }} = true;
 
-  - function: "get_version_at_time_{{ entity.name | lower }}"
-    description: "Get version valid at specific point in time"
-    returns: uuid
-    params:
-      - name: natural_key_values
-        type: jsonb
-      - name: as_of_time
-        type: timestamptz
+      IF v_old_id IS NULL THEN
+        RAISE EXCEPTION 'No current version found for given natural key';
+      END IF;
 
-    logic: |
-      SELECT id
-      FROM {{ schema }}.tb_{{ entity.name | lower }}
-      WHERE {{ natural_key_where_clause }}
-        AND {{ effective_date_field }} <= as_of_time
-        AND ({{ expiry_date_field }} IS NULL OR {{ expiry_date_field }} > as_of_time)
-      LIMIT 1;
+      -- Expire current version
+      UPDATE {{ schema }}.tb_{{ entity.name | lower }}
+      SET
+        {{ is_current_field }} = false,
+        {{ expiry_date_field }} = effective_at,
+        updated_at = now(),
+        updated_by = current_setting('app.current_user_id', true)::uuid
+      WHERE id = v_old_id;
 
-  - function: "get_version_history_{{ entity.name | lower }}"
-    description: "Get all versions ordered by effective date"
-    returns: "SETOF {{ schema }}.tb_{{ entity.name | lower }}"
-    params:
-      - name: natural_key_values
-        type: jsonb
+      -- Insert new version
+      INSERT INTO {{ schema }}.tb_{{ entity.name | lower }} (
+        {{ field_list }},
+        {{ version_field }},
+        {{ is_current_field }},
+        {{ effective_date_field }},
+        {{ expiry_date_field }}
+      )
+      SELECT
+        {{ field_list_from_jsonb }},
+        v_next_version,
+        true,
+        effective_at,
+        NULL
+      FROM jsonb_populate_record(NULL::{{ schema }}.tb_{{ entity.name | lower }}, new_data)
+      RETURNING id INTO v_new_id;
 
-    logic: |
-      SELECT *
-      FROM {{ schema }}.tb_{{ entity.name | lower }}
-      WHERE {{ natural_key_where_clause }}
-      ORDER BY {{ effective_date_field }} DESC;
+      RETURN v_new_id;
+    END;
+
+- function: "get_current_version_{{ entity.name | lower }}"
+  description: "Get current version ID by natural key"
+  returns: uuid
+  params:
+  - name: natural_key_values
+    type: jsonb
+
+  logic: |
+    SELECT id
+    FROM {{ schema }}.tb_{{ entity.name | lower }}
+    WHERE {{ natural_key_where_clause }}
+      AND {{ is_current_field }} = true;
+
+- function: "get_version_at_time_{{ entity.name | lower }}"
+  description: "Get version valid at specific point in time"
+  returns: uuid
+  params:
+  - name: natural_key_values
+    type: jsonb
+  - name: as_of_time
+    type: timestamptz
+
+  logic: |
+    SELECT id
+    FROM {{ schema }}.tb_{{ entity.name | lower }}
+    WHERE {{ natural_key_where_clause }}
+      AND {{ effective_date_field }} <= as_of_time
+      AND ({{ expiry_date_field }} IS NULL OR {{ expiry_date_field }} > as_of_time)
+    LIMIT 1;
+
+- function: "get_version_history_{{ entity.name | lower }}"
+  description: "Get all versions ordered by effective date"
+  returns: "SETOF {{ schema }}.tb_{{ entity.name | lower }}"
+  params:
+  - name: natural_key_values
+    type: jsonb
+
+  logic: |
+    SELECT *
+    FROM {{ schema }}.tb_{{ entity.name | lower }}
+    WHERE {{ natural_key_where_clause }}
+    ORDER BY {{ effective_date_field }} DESC;
 
 validation:
-  - rule: natural_key_not_empty
-    check: "LENGTH(natural_key) > 0"
-    message: "natural_key must contain at least one field"
+- rule: natural_key_not_empty
+  check: "LENGTH(natural_key) > 0"
+  message: "natural_key must contain at least one field"
 
-  - rule: version_field_unique
-    check: "version_field NOT IN entity.fields"
-    message: "version_field must not conflict with existing entity fields"
+- rule: version_field_unique
+  check: "version_field NOT IN entity.fields"
+  message: "version_field must not conflict with existing entity fields"
 
-  - rule: effective_before_expiry
-    check: "effective_date_field < expiry_date_field (if both set)"
-    message: "effective_date must be before expiry_date"
+- rule: effective_before_expiry
+  check: "effective_date_field < expiry_date_field (if both set)"
+  message: "effective_date must be before expiry_date"
 
 examples:
-  - name: Product with SCD Type 2
-    yaml: |
-      entity: Product
-      schema: catalog
-      fields:
-        product_code: text
-        name: text
-        price: decimal
-        category: ref(Category)
-      patterns:
-        - type: temporal_scd_type2_helper
-          params:
-            natural_key: [product_code]
+- name: Product with SCD Type 2
+  yaml: |
+    entity: Product
+    schema: catalog
+    fields:
+      product_code: text
+      name: text
+      price: decimal
+      category: ref(Category)
+    patterns:
+      - type: temporal_scd_type2_helper
+        params:
+          natural_key: [product_code]
 
-    generated_fields:
-      - version_number: integer (default 1)
-      - is_current: boolean (default true)
-      - effective_date: timestamptz (default now())
-      - expiry_date: timestamptz (nullable)
+  generated_fields:
+  - version_number: integer (default 1)
+  - is_current: boolean (default true)
+  - effective_date: timestamptz (default now())
+  - expiry_date: timestamptz (nullable)
 
-    usage: |
-      -- Create new version when price changes
-      SELECT create_new_version_product(
-        '{"product_code": "WIDGET-001"}'::jsonb,
-        '{"price": 29.99}'::jsonb
-      );
+  usage: |
+    -- Create new version when price changes
+    SELECT create_new_version_product(
+      '{"product_code": "WIDGET-001"}'::jsonb,
+      '{"price": 29.99}'::jsonb
+    );
 
-      -- Get current version
-      SELECT * FROM catalog.tb_product
-      WHERE product_code = 'WIDGET-001' AND is_current = true;
+    -- Get current version
+    SELECT * FROM catalog.tb_product
+    WHERE product_code = 'WIDGET-001' AND is_current = true;
 
-      -- Get version history
-      SELECT * FROM get_version_history_product(
-        '{"product_code": "WIDGET-001"}'::jsonb
-      );
+    -- Get version history
+    SELECT * FROM get_version_history_product(
+      '{"product_code": "WIDGET-001"}'::jsonb
+    );
 
-      -- Point-in-time query
-      SELECT * FROM catalog.tb_product
-      WHERE product_code = 'WIDGET-001'
-        AND effective_date <= '2024-01-01'::timestamptz
-        AND (expiry_date IS NULL OR expiry_date > '2024-01-01'::timestamptz);
+    -- Point-in-time query
+    SELECT * FROM catalog.tb_product
+    WHERE product_code = 'WIDGET-001'
+      AND effective_date <= '2024-01-01'::timestamptz
+      AND (expiry_date IS NULL OR expiry_date > '2024-01-01'::timestamptz);
 
 performance:
-  - operation: get_current_version
-    complexity: O(1)
-    notes: "Partial index on is_current=true makes this extremely fast"
+- operation: get_current_version
+  complexity: O(1)
+  notes: "Partial index on is_current=true makes this extremely fast"
 
-  - operation: get_version_at_time
-    complexity: O(log n)
-    notes: "Index on (natural_key, effective_date, expiry_date)"
+- operation: get_version_at_time
+  complexity: O(log n)
+  notes: "Index on (natural_key, effective_date, expiry_date)"
 
-  - operation: get_version_history
-    complexity: O(k log n)
-    notes: "Where k = number of versions for entity"
+- operation: get_version_history
+  complexity: O(k log n)
+  notes: "Where k = number of versions for entity"
 
 limitations:
-  - "Natural key cannot change (would create new entity, not new version)"
-  - "Large version histories (>1000) may need partitioning"
-  - "Concurrent version creation requires transaction isolation"
+- "Natural key cannot change (would create new entity, not new version)"
+- "Large version histories (>1000) may need partitioning"
+- "Concurrent version creation requires transaction isolation"
 
 best_practices:
-  - "Use meaningful natural keys (business identifiers, not UUIDs)"
-  - "Set effective_date explicitly for backdated changes"
-  - "Archive old versions periodically if history is very large"
-  - "Use table partitioning for tables with millions of versions"
+- "Use meaningful natural keys (business identifiers, not UUIDs)"
+- "Set effective_date explicitly for backdated changes"
+- "Archive old versions periodically if history is very large"
+- "Use table partitioning for tables with millions of versions"

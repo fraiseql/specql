@@ -39,12 +39,12 @@ fields:
   admin_level_3: ref(AdministrativeLevel)
 
 actions:
-  - name: create_address_format
-  - name: update_address_format
-  - name: delete_address_format
+- name: create_address_format
+- name: update_address_format
+- name: delete_address_format
 
   # Business actions
-  - name: activate_format
-  - name: deactivate_format
-  - name: test_formatting
-  - name: update_locale_support
+- name: activate_format
+- name: deactivate_format
+- name: test_formatting
+- name: update_locale_support

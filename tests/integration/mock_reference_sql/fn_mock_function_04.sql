@@ -5,4 +5,3 @@
             DELETE FROM tb_contact WHERE id = p_id;
         END;
         $$ LANGUAGE plpgsql;
-        
