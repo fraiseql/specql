@@ -14,8 +14,9 @@ from typing import TYPE_CHECKING
 
 import click
 
+from cli.base import common_options
 from cli.utils.error_handler import handle_cli_error
-from cli.utils.output import output
+from cli.utils.output import output as cli_output
 
 if TYPE_CHECKING:
     from reverse_engineering.table_parser import ParsedTable
@@ -59,26 +60,30 @@ def _parse_table_safe(parser, sql: str) -> "ParsedTable | None":
     try:
         return parser.parse_table(sql)
     except Exception as e:
-        output.warning(f"    Failed to parse table: {e}")
+        cli_output.warning(f"    Failed to parse table: {e}")
         return None
 
 
 @click.command()
 @click.argument("files", nargs=-1, required=True, type=click.Path(exists=True))
-@click.option("-o", "--output-dir", required=True, type=click.Path(), help="Output directory")
+@click.option("-o", "--output", required=True, type=click.Path(), help="Output directory")
 @click.option("--min-confidence", default=0.80, type=float, help="Minimum confidence threshold")
 @click.option("--no-ai", is_flag=True, help="Skip AI enhancement")
 @click.option("--merge-translations/--no-merge-translations", default=True)
 @click.option("--preview", is_flag=True, help="Preview without writing")
 @click.option("--with-patterns", is_flag=True, help="Auto-detect and apply patterns")
+@click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
+@click.option("--quiet", "-q", is_flag=True, help="Suppress non-error output")
 def sql(
     files,
-    output_dir,
+    output,
     min_confidence,
     no_ai,
     merge_translations,
     preview,
     with_patterns,
+    verbose,
+    quiet,
     **kwargs,
 ):
     """Reverse engineer SQL files to SpecQL YAML.
@@ -95,7 +100,12 @@ def sql(
         specql reverse sql db/ -o entities/ --with-patterns
     """
     with handle_cli_error():
-        output.info(f"Reversing {len(files)} SQL file(s)")
+        # Configure output settings
+        from cli.utils.output import set_output_config
+
+        set_output_config(verbose=verbose, quiet=quiet)
+
+        cli_output.info(f"Reversing {len(files)} SQL file(s)")
 
         # Import parsers (lazy to handle optional dependencies)
         try:
@@ -104,16 +114,16 @@ def sql(
             from reverse_engineering.fk_detector import ForeignKeyDetector
             from reverse_engineering.entity_generator import EntityYAMLGenerator
         except ImportError as e:
-            output.error(f"Missing reverse engineering dependency: {e}")
-            output.info("Install with: pip install specql[reverse]")
+            cli_output.error(f"Missing reverse engineering dependency: {e}")
+            cli_output.info("Install with: pip install specql[reverse]")
             raise click.Abort() from e
 
         # Initialize parsers
         try:
             table_parser = SQLTableParser()
         except ImportError as e:
-            output.error(f"pglast not available: {e}")
-            output.info("Install with: pip install specql[reverse]")
+            cli_output.error(f"pglast not available: {e}")
+            cli_output.info("Install with: pip install specql[reverse]")
             raise click.Abort() from e
 
         pattern_detector = PatternDetectionOrchestrator()
@@ -128,11 +138,11 @@ def sql(
 
                 func_parser = AlgorithmicParser(use_heuristics=True, use_ai=False)
             except ImportError:
-                output.warning("Function parser not available, skipping function parsing")
+                cli_output.warning("Function parser not available, skipping function parsing")
 
         # Prepare output directory
-        output_path = Path(output_dir)
-        output_path.mkdir(parents=True, exist_ok=True)
+        cli_output_dir = Path(output)
+        cli_output_dir.mkdir(parents=True, exist_ok=True)
 
         # Collect all statements from all files
         all_tables: list[tuple[str, "ParsedTable"]] = []  # (source_file, parsed_table)
@@ -142,7 +152,7 @@ def sql(
 
         for file_path in files:
             path = Path(file_path)
-            output.info(f"  Parsing: {path.name}")
+            cli_output.info(f"  Parsing: {path.name}")
             content = path.read_text()
 
             create_tables, create_functions, alter_tables = _extract_statements(content)
@@ -177,21 +187,21 @@ def sql(
                 fk_map[table_name].extend(fks)
 
         # Summary
-        output.info(f"  Found {len(all_tables)} table(s), {len(all_functions)} function(s)")
+        cli_output.info(f"  Found {len(all_tables)} table(s), {len(all_functions)} function(s)")
         if skipped_count > 0:
-            output.warning(f"  Skipped {skipped_count} unparseable statement(s)")
+            cli_output.warning(f"  Skipped {skipped_count} unparseable statement(s)")
 
         if preview:
-            output.info("Preview mode - showing what would be generated:")
+            cli_output.info("Preview mode - showing what would be generated:")
             for source_file, table in all_tables:
                 entity_name = yaml_generator._table_to_entity_name(table.table_name)
-                output.info(f"    {entity_name}.yaml (from {source_file})")
+                cli_output.info(f"    {entity_name}.yaml (from {source_file})")
             for source_file, func_sql in all_functions:
                 import re
 
                 func_match = re.search(r"FUNCTION\s+([\w.]+)", func_sql, re.IGNORECASE)
                 if func_match:
-                    output.info(f"    {func_match.group(1)}.yaml (from {source_file})")
+                    cli_output.info(f"    {func_match.group(1)}.yaml (from {source_file})")
             return
 
         # Generate YAML for tables
@@ -216,10 +226,10 @@ def sql(
 
             # Write file
             entity_name = yaml_generator._table_to_entity_name(table.table_name)
-            yaml_path = output_path / f"{entity_name.lower()}.yaml"
+            yaml_path = cli_output_dir / f"{entity_name.lower()}.yaml"
             yaml_path.write_text(yaml_content)
             generated_files.append(yaml_path.name)
-            output.success(f"    Created: {yaml_path.name}")
+            cli_output.success(f"    Created: {yaml_path.name}")
 
         # Generate YAML for functions (if parser available)
         if func_parser and all_functions:
@@ -232,19 +242,19 @@ def sql(
                     func_match = re.search(r"FUNCTION\s+([\w.]+)", func_sql, re.IGNORECASE)
                     if func_match:
                         func_name = func_match.group(1).split(".")[-1]
-                        yaml_path = output_path / f"{func_name}_action.yaml"
+                        yaml_path = cli_output_dir / f"{func_name}_action.yaml"
                         yaml_path.write_text(yaml_content)
                         generated_files.append(yaml_path.name)
-                        output.success(f"    Created: {yaml_path.name} (action)")
+                        cli_output.success(f"    Created: {yaml_path.name} (action)")
                 except Exception as e:
-                    output.warning(f"    Failed to parse function: {e}")
+                    cli_output.warning(f"    Failed to parse function: {e}")
 
         # Summary
-        output.success(f"Generated {len(generated_files)} file(s)")
+        cli_output.success(f"Generated {len(generated_files)} file(s)")
 
         if low_confidence_files:
-            output.warning(
+            cli_output.warning(
                 f"  {len(low_confidence_files)} file(s) below confidence threshold ({min_confidence:.0%}):"
             )
             for table_name, confidence, patterns in low_confidence_files:
-                output.warning(f"    {table_name}: {confidence:.0%} (patterns: {patterns})")
+                cli_output.warning(f"    {table_name}: {confidence:.0%} (patterns: {patterns})")

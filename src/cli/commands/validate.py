@@ -8,7 +8,23 @@ import click
 
 from cli.base import common_options, validate_common_options
 from cli.utils.error_handler import handle_cli_error
-from cli.utils.output import output
+from cli.utils.output import output as cli_output
+
+
+def validate_entity_fields(entity_def):
+    """Validate entity fields and return list of warnings."""
+    warnings = []
+
+    # Check for public schema usage
+    if entity_def.schema == "public":
+        warnings.append("Entity uses 'public' schema - consider using a dedicated schema")
+
+    # Check for camelCase field names
+    for field_name in entity_def.fields.keys():
+        if any(c.isupper() for c in field_name):
+            warnings.append(f"Field '{field_name}' uses camelCase - consider snake_case")
+
+    return warnings
 
 
 @click.command()
@@ -21,7 +37,7 @@ from cli.utils.output import output
     help="Schema registry for cross-entity validation",
 )
 @click.pass_context
-def validate(ctx, files, output_dir, verbose, quiet, strict, schema_registry, **kwargs):
+def validate(ctx, files, output, verbose, quiet, strict, schema_registry, **kwargs):
     """Validate SpecQL YAML syntax and business logic.
 
     Checks performed:
@@ -43,8 +59,8 @@ def validate(ctx, files, output_dir, verbose, quiet, strict, schema_registry, **
         validate_common_options(verbose=verbose, quiet=quiet)
 
         # Configure output
-        output.verbose = verbose
-        output.quiet = quiet
+        cli_output.verbose = verbose
+        cli_output.quiet = quiet
 
         # Import parser
         from core.specql_parser import ParseError, SpecQLParser
@@ -54,7 +70,7 @@ def validate(ctx, files, output_dir, verbose, quiet, strict, schema_registry, **
         warnings = []
         validated_count = 0
 
-        output.info(f"Validating {len(files)} file(s)...")
+        cli_output.info(f"Validating {len(files)} file(s)...")
 
         for file_path in files:
             path = Path(file_path)
@@ -67,41 +83,40 @@ def validate(ctx, files, output_dir, verbose, quiet, strict, schema_registry, **
                 validated_count += 1
 
                 if verbose:
-                    output.success(f"  {path.name}: {entity_def.name} (valid)")
+                    cli_output.success(f"  {path.name}: {entity_def.name} (valid)")
                 else:
-                    output.success(f"  {path.name}")
+                    cli_output.success(f"  {path.name}")
 
                 # Additional validations
-                file_warnings = _validate_entity(entity_def, path, schema_registry)
-                warnings.extend(file_warnings)
+                validation_warnings = validate_entity_fields(entity_def)
+                if validation_warnings:
+                    warnings.extend(validation_warnings)
 
             except ParseError as e:
-                errors.append((path, f"Parse error: {e}"))
-                output.error(f"  {path.name}: {e}")
-
+                errors.append(f"Parse error in {path.name}: {e}")
+                cli_output.error(f"  {path.name}: {e}")
             except Exception as e:
-                errors.append((path, f"Validation error: {e}"))
-                output.error(f"  {path.name}: {e}")
+                errors.append(f"Unexpected error in {path.name}: {e}")
+                cli_output.error(f"  {path.name}: {e}")
 
         # Summary
-        output.info("")  # Empty line
+        cli_output.info("")  # Empty line
 
         if errors:
-            output.error(f"{len(errors)} file(s) failed validation")
-            if strict or not warnings:
-                raise SystemExit(2)
+            cli_output.error(f"{len(errors)} file(s) failed validation")
+            for error in errors:
+                cli_output.error(f"  - {error}")
+            raise SystemExit(1)
 
         if warnings:
-            output.warning(f"{len(warnings)} warning(s)")
+            cli_output.warning(f"{len(warnings)} warning(s)")
             for warning in warnings:
-                output.warning(f"  - {warning}")
-
+                cli_output.warning(f"  - {warning}")
             if strict:
-                output.error("Failing due to --strict mode")
-                raise SystemExit(2)
+                cli_output.error("Failing due to --strict mode")
+                raise SystemExit(1)
 
-        if not errors:
-            output.success(f"All {validated_count} file(s) valid")
+        cli_output.success(f"All {validated_count} file(s) valid")
 
 
 def _validate_entity(entity_def, file_path: Path, schema_registry: str | None) -> list[str]:
@@ -118,12 +133,16 @@ def _validate_entity(entity_def, file_path: Path, schema_registry: str | None) -
 
     # Check for missing schema (uses default 'public')
     if entity_def.schema == "public":
-        warnings.append(f"{file_path.name}: Using default schema 'public' - consider specifying schema")
+        warnings.append(
+            f"{file_path.name}: Using default schema 'public' - consider specifying schema"
+        )
 
     # Check field naming conventions - fields is a dict, iterate over keys (field names)
     for field_name in entity_def.fields:
         if field_name.startswith("_"):
-            warnings.append(f"{file_path.name}: Field '{field_name}' starts with underscore (unconventional)")
+            warnings.append(
+                f"{file_path.name}: Field '{field_name}' starts with underscore (unconventional)"
+            )
 
         # Check for camelCase (should be snake_case)
         if any(c.isupper() for c in field_name):

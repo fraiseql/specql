@@ -18,7 +18,7 @@
 |---------|------------|--------|-------|-------|
 | **generate** | - | Stable | 6 | Full orchestrator integration |
 | **validate** | - | Stable | 16 | YAML syntax + semantic checks |
-| **reverse** | sql | Stable | 17 | Full pglast integration |
+| **reverse** | sql | Stable | 23 | Full pglast integration |
 | | python | Beta | 2 | Django/SQLAlchemy |
 | | typescript | Beta | 2 | Prisma/TypeORM |
 | | rust | Beta | 2 | Diesel/SeaORM |
@@ -30,7 +30,7 @@
 | | registry | Beta | 2 | Registry templates |
 | **workflow** | migrate | Beta | 12 | Full pipeline |
 | | sync | Beta | 5 | Incremental sync |
-| **diff** | - | Planned | 0 | Schema comparison |
+| **diff** | - | Stable | 6 | Schema comparison |
 | **docs** | - | Planned | 0 | Documentation generation |
 | **analyze** | - | Planned | 0 | Migration analysis |
 | **test** | - | Planned | 0 | Testing framework |
@@ -62,6 +62,17 @@
 - Schema presence warnings
 
 **Test count**: 16 unit tests
+
+### `specql diff`
+
+**Status**: Stable
+
+- Compares SpecQL YAML with existing SQL schema
+- Supports text and JSON output formats
+- Can ignore comment differences
+- Uses unified diff format for clear comparison
+
+**Test count**: 6 unit tests
 
 ---
 
@@ -110,13 +121,6 @@ Multi-step automation works but relies on other commands' integration levels.
 
 ## Planned Commands
 
-### `specql diff`
-
-Compare SpecQL-generated schema with existing database schema. Useful for:
-- Detecting schema drift
-- Migration verification
-- CI/CD integration
-
 ### `specql docs`
 
 Generate documentation from SpecQL entities. Will support:
@@ -158,7 +162,7 @@ uv run pytest tests/unit/cli/commands/test_validate.py -v
 uv run pytest tests/unit/cli/commands/test_reverse.py -v
 ```
 
-**Total CLI tests**: 60 passing
+**Total CLI tests**: 72 passing
 
 ---
 
@@ -171,6 +175,12 @@ uv run pytest tests/unit/cli/commands/test_reverse.py -v
 - Foreign key relationship handling
 - 17 tests for reverse sql command
 - Updated status from Beta to Stable
+- Implemented `specql diff` command for schema comparison
+- 6 tests for diff command
+- Updated diff status from Planned to Stable
+- Updated reverse sql to use standardized --output option
+- Added 6 integration tests for reverse sql real parsing
+- Total reverse sql tests: 23
 
 ### 2025-11-21 (Phase 1)
 

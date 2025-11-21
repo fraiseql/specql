@@ -53,7 +53,9 @@ def test_generate_dry_run():
     runner = CliRunner()
     with runner.isolated_filesystem():
         Path("entity.yaml").write_text("entity: Test\nfields:\n  name: text")
-        result = runner.invoke(app, ["generate", "entity.yaml", "--dry-run"])
+        result = runner.invoke(
+            app, ["generate", "entity.yaml", "--dry-run", "--output", "migrations"]
+        )
 
         assert result.exit_code == 0
         assert "Dry-run mode" in result.output
@@ -77,6 +79,8 @@ def test_generate_with_options():
                 "generate",
                 "entity.yaml",
                 "--dry-run",
+                "--output",
+                "migrations",
                 "--use-registry",
                 "--with-impacts",
                 "--include-tv",

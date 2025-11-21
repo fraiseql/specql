@@ -52,6 +52,11 @@ def register_commands():
 
     app.add_command(generate)
 
+    # Phase 2.5: Diff command
+    from cli.commands.diff import diff
+
+    app.add_command(diff)
+
     # Phase 3: Reverse command group
     from cli.commands.reverse import reverse
 

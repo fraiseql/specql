@@ -12,10 +12,12 @@ import click
 def common_options(f: Callable) -> Callable:
     """Decorator to add common options to a Click command.
 
-    Adds --verbose/-v, --quiet/-q, and --output-dir/-o options.
+    Adds --verbose/-v, --quiet/-q, and --output/-o options.
     """
     # Add options in reverse order (Click applies them bottom-up)
-    f = click.option("--output-dir", "-o", type=click.Path(), help="Output directory")(f)
+    f = click.option("--output", "-o", type=click.Path(), required=False, help="Output directory")(
+        f
+    )
     f = click.option("--quiet", "-q", is_flag=True, help="Suppress non-error output")(f)
     f = click.option("--verbose", "-v", is_flag=True, help="Enable debug logging")(f)
     return f

@@ -89,7 +89,7 @@ class TestValidateCommand:
 
             result = cli_runner.invoke(app, ["validate", "bad.yaml"])
 
-            assert result.exit_code == 2
+            assert result.exit_code == 1
             assert "failed" in result.output.lower() or "error" in result.output.lower()
 
     def test_validate_missing_entity_key(self, cli_runner, missing_entity_yaml):
@@ -99,16 +99,14 @@ class TestValidateCommand:
 
             result = cli_runner.invoke(app, ["validate", "no_entity.yaml"])
 
-            assert result.exit_code == 2
+            assert result.exit_code == 1
             assert "entity" in result.output.lower()
 
     def test_validate_multiple_files(self, cli_runner, valid_entity_yaml):
         """Validate should handle multiple files."""
         with cli_runner.isolated_filesystem():
             Path("entity1.yaml").write_text(valid_entity_yaml)
-            Path("entity2.yaml").write_text(
-                valid_entity_yaml.replace("Contact", "Organization")
-            )
+            Path("entity2.yaml").write_text(valid_entity_yaml.replace("Contact", "Organization"))
 
             result = cli_runner.invoke(app, ["validate", "entity1.yaml", "entity2.yaml"])
 
@@ -123,7 +121,7 @@ class TestValidateCommand:
 
             result = cli_runner.invoke(app, ["validate", "good.yaml", "bad.yaml"])
 
-            assert result.exit_code == 2
+            assert result.exit_code == 1
             assert "1 file(s) failed" in result.output
 
     def test_validate_verbose(self, cli_runner, valid_entity_yaml):
@@ -152,7 +150,7 @@ fields:
 
             # With --strict, should fail
             result = cli_runner.invoke(app, ["validate", "entity.yaml", "--strict"])
-            assert result.exit_code == 2
+            assert result.exit_code == 1
 
     def test_validate_warns_on_camel_case_fields(self, cli_runner):
         """Validate should warn about camelCase field names."""
@@ -208,7 +206,7 @@ class TestValidateEdgeCases:
 
             result = cli_runner.invoke(app, ["validate", "empty.yaml"])
 
-            assert result.exit_code == 2
+            assert result.exit_code == 1
 
     def test_validate_non_dict_yaml(self, cli_runner):
         """Validate should fail for non-dictionary YAML."""
@@ -217,7 +215,7 @@ class TestValidateEdgeCases:
 
             result = cli_runner.invoke(app, ["validate", "list.yaml"])
 
-            assert result.exit_code == 2
+            assert result.exit_code == 1
 
     def test_validate_complex_entity_format(self, cli_runner):
         """Validate should handle complex entity format."""

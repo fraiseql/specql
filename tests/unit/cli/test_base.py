@@ -18,7 +18,7 @@ def test_common_options_adds_verbose():
 
     @click.command()
     @common_options
-    def sample_cmd(verbose, quiet, output_dir):
+    def sample_cmd(verbose, quiet, output):
         pass
 
     # Should have --verbose option
@@ -32,7 +32,7 @@ def test_common_options_adds_quiet():
 
     @click.command()
     @common_options
-    def sample_cmd(verbose, quiet, output_dir):
+    def sample_cmd(verbose, quiet, output):
         pass
 
     # Should have --quiet option
@@ -46,7 +46,7 @@ def test_verbose_and_quiet_mutually_exclusive():
 
     @click.command()
     @common_options
-    def sample_cmd(verbose, quiet, output_dir):
+    def sample_cmd(verbose, quiet, output):
         validate_common_options(verbose=verbose, quiet=quiet)
 
     runner = CliRunner()

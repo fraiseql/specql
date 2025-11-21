@@ -2,7 +2,6 @@
 Generate command - Transform SpecQL YAML to PostgreSQL + GraphQL.
 """
 
-
 import click
 
 from cli.base import common_options, validate_common_options
@@ -33,20 +32,20 @@ from cli.utils.output import output
 def generate(
     ctx,
     files,
-    output_dir,
-    verbose,
-    quiet,
-    foundation_only,
-    actions_only,
-    include_tv,
-    frontend,
-    tests,
-    dry_run,
-    use_registry,
-    output_format,
-    with_impacts,
-    performance,
-    performance_output,
+    output_path=None,
+    verbose=False,
+    quiet=False,
+    foundation_only=False,
+    actions_only=False,
+    include_tv=False,
+    frontend=None,
+    tests=False,
+    dry_run=False,
+    use_registry=False,
+    output_format="hierarchical",
+    with_impacts=False,
+    performance=False,
+    performance_output=None,
     **kwargs,
 ):
     """Generate PostgreSQL schema and functions from SpecQL YAML.
@@ -67,12 +66,12 @@ def generate(
         output.quiet = quiet
 
         # Set default output directory
-        if output_dir is None:
-            output_dir = "migrations"
+        if output_path is None:
+            output_path = "migrations"
 
         if dry_run:
             output.info(f"Dry-run mode: Would process {len(files)} file(s)")
-            output.info(f"Would generate to: {output_dir}")
+            output.info(f"Would generate to: {output_path}")
             if foundation_only:
                 output.info("Would generate: app foundation only")
             if actions_only:
@@ -104,7 +103,7 @@ def generate(
         # Generate migrations
         result = orchestrator.generate_from_files(
             entity_files=list(files),
-            output_dir=output_dir,
+            output_dir=output_path,
             with_impacts=with_impacts,
             include_tv=include_tv,
             foundation_only=foundation_only,

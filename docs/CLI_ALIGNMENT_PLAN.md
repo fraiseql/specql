@@ -415,15 +415,15 @@ uv run specql generate entities/user.yaml --dry-run
 - [x] Documentation matches implementation
 - [x] 49 CLI tests passing
 
-### Phase 2 (Remaining)
-- [ ] `specql reverse sql` produces YAML from DDL
-- [ ] Option naming standardized
-- [ ] 55+ CLI tests passing
+### Phase 2 (Completed)
+- [x] `specql reverse sql` produces YAML from DDL
+- [x] Option naming standardized
+- [x] 73 CLI tests passing
 
-### Phase 3 (Optional)
-- [ ] `specql diff` implemented
-- [ ] `specql reverse python` integrated
-- [ ] 65+ CLI tests passing
+### Phase 3 (Completed)
+- [x] `specql diff` implemented
+- [x] `specql reverse python` integrated
+- [x] 73 CLI tests passing
 
 ---
 
