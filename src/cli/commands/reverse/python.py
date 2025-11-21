@@ -12,7 +12,7 @@ import click
 import yaml
 
 from cli.utils.error_handler import handle_cli_error
-from cli.utils.output import output
+from cli.utils.output import output as cli_output
 
 
 def _detect_framework(source_code: str) -> str:
@@ -56,14 +56,16 @@ def _generate_yaml_from_entity(entity, detected_patterns: list[str]) -> str:
 
 @click.command()
 @click.argument("files", nargs=-1, required=True, type=click.Path(exists=True))
-@click.option("-o", "--output-dir", required=True, type=click.Path(), help="Output directory")
+@click.option("-o", "--output", required=True, type=click.Path(), help="Output directory")
 @click.option(
     "--framework",
     type=click.Choice(["django", "fastapi", "flask", "sqlalchemy", "pydantic", "dataclass"]),
     help="Framework override (auto-detected if not specified)",
 )
 @click.option("--preview", is_flag=True, help="Preview without writing")
-def python(files, output_dir, framework, preview, **kwargs):
+@click.option("--verbose", "-v", is_flag=True, help="Enable verbose output")
+@click.option("--quiet", "-q", is_flag=True, help="Suppress non-error output")
+def python(files, output, framework, preview, verbose, quiet, **kwargs):
     """Reverse engineer Python models to SpecQL YAML.
 
     Supports Django, FastAPI, Flask-SQLAlchemy, SQLAlchemy, Pydantic, and dataclasses.
@@ -77,7 +79,12 @@ def python(files, output_dir, framework, preview, **kwargs):
         specql reverse python schemas/*.py -o entities/ --preview
     """
     with handle_cli_error():
-        output.info(f"Reversing {len(files)} Python file(s)")
+        # Configure output settings
+        from cli.utils.output import set_output_config
+
+        set_output_config(verbose=verbose, quiet=quiet)
+
+        cli_output.info(f"Reversing {len(files)} Python file(s)")
 
         # Import parser - add project root to path if needed
         import sys
@@ -94,30 +101,31 @@ def python(files, output_dir, framework, preview, **kwargs):
         try:
             from reverse_engineering.python_ast_parser import PythonASTParser
         except ImportError as e:
-            output.error(f"Python parser not available: {e}")
+            cli_output.error(f"Python parser not available: {e}")
+            cli_output.info("Install with: pip install specql[reverse]")
             raise click.Abort() from e
 
         parser = PythonASTParser()
 
         # Prepare output directory
-        output_path = Path(output_dir)
+        output_path = Path(output)
         output_path.mkdir(parents=True, exist_ok=True)
 
         all_entities = []
 
         for file_path in files:
             path = Path(file_path)
-            output.info(f"  Parsing: {path.name}")
+            cli_output.info(f"  Parsing: {path.name}")
 
             try:
                 source_code = path.read_text()
             except Exception as e:
-                output.warning(f"    Failed to read file: {e}")
+                cli_output.warning(f"    Failed to read file: {e}")
                 continue
 
             # Detect or use specified framework
             detected_framework = framework or _detect_framework(source_code)
-            output.info(f"    Framework: {detected_framework}")
+            cli_output.info(f"    Framework: {detected_framework}")
 
             # Parse entities
             try:
@@ -129,18 +137,18 @@ def python(files, output_dir, framework, preview, **kwargs):
                     all_entities.append((entity, patterns, path.name))
 
             except SyntaxError as e:
-                output.warning(f"    Syntax error: {e}")
+                cli_output.warning(f"    Syntax error: {e}")
                 continue
             except Exception as e:
-                output.warning(f"    Failed to parse: {e}")
+                cli_output.warning(f"    Failed to parse: {e}")
                 continue
 
-        output.info(f"Found {len(all_entities)} entity/entities")
+        cli_output.info(f"Found {len(all_entities)} entity/entities")
 
         if preview:
-            output.info("Preview mode - showing what would be generated:")
+            cli_output.info("Preview mode - showing what would be generated:")
             for entity, patterns, source_file in all_entities:
-                output.info(f"    {entity.entity_name}.yaml (from {source_file})")
+                cli_output.info(f"    {entity.entity_name}.yaml (from {source_file})")
             return
 
         # Generate YAML files
@@ -151,6 +159,6 @@ def python(files, output_dir, framework, preview, **kwargs):
             yaml_path = output_path / f"{entity.entity_name.lower()}.yaml"
             yaml_path.write_text(yaml_content)
             generated_files.append(yaml_path.name)
-            output.success(f"    Created: {yaml_path.name}")
+            cli_output.success(f"    Created: {yaml_path.name}")
 
-        output.success(f"Generated {len(generated_files)} file(s)")
+        cli_output.success(f"Generated {len(generated_files)} file(s)")

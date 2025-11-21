@@ -19,7 +19,7 @@
 | **generate** | - | Stable | 6 | Full orchestrator integration |
 | **validate** | - | Stable | 16 | YAML syntax + semantic checks |
 | **reverse** | sql | Stable | 23 | Full pglast integration |
-| | python | Beta | 2 | Django/SQLAlchemy |
+| | python | Stable | 19 | Django/Pydantic/SQLAlchemy/Dataclass |
 | | typescript | Beta | 2 | Prisma/TypeORM |
 | | rust | Beta | 2 | Diesel/SeaORM |
 | | project | Beta | 2 | Auto-detection |
@@ -93,7 +93,23 @@ Full integration with pglast-based SQL parser:
 
 **Test count**: 17 unit tests
 
-### `specql reverse python|typescript|rust|project`
+### `specql reverse python`
+
+**Status**: Stable
+
+Full integration with PythonASTParser:
+- Parses Django models (CharField, ForeignKey, etc.)
+- Parses Pydantic models (BaseModel)
+- Parses SQLAlchemy models (declarative_base)
+- Parses dataclasses (@dataclass)
+- Auto-detects framework from imports
+- Framework override with `--framework`
+- Preview mode with `--preview`
+- Generates SpecQL YAML with metadata
+
+**Test count**: 19 unit tests
+
+### `specql reverse typescript|rust|project`
 
 **Status**: Beta
 
@@ -162,11 +178,19 @@ uv run pytest tests/unit/cli/commands/test_validate.py -v
 uv run pytest tests/unit/cli/commands/test_reverse.py -v
 ```
 
-**Total CLI tests**: 72 passing
+**Total CLI tests**: 92 passing
 
 ---
 
 ## Recent Changes
+
+### 2025-11-21 (Phase 3 - Python Reverse Engineering)
+
+- Integrated `specql reverse python` with PythonASTParser
+- Full support for Django, Pydantic, SQLAlchemy, and dataclass models
+- Auto-detection of framework from imports
+- 19 unit tests added
+- Updated Python reverse status from Beta to Stable
 
 ### 2025-11-21 (Phase 2)
 

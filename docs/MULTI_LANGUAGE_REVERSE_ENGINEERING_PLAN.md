@@ -1026,11 +1026,11 @@ uv run specql reverse typescript /path/to/schema.prisma -o /tmp/out/ --preview
 ## Success Criteria
 
 ### Phase 1: Python (Task 1)
-- [ ] `specql reverse python` parses Django models
-- [ ] `specql reverse python` parses Pydantic models
-- [ ] `specql reverse python` parses SQLAlchemy models
-- [ ] 10+ tests passing
-- [ ] Status updated to Stable
+- [x] `specql reverse python` parses Django models
+- [x] `specql reverse python` parses Pydantic models
+- [x] `specql reverse python` parses SQLAlchemy models
+- [x] 10+ tests passing (19 tests)
+- [x] Status updated to Stable
 
 ### Phase 2: TypeScript (Task 2)
 - [ ] `specql reverse typescript` parses Prisma schemas
