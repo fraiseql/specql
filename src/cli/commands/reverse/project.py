@@ -5,7 +5,9 @@ Reverse project subcommand - Auto-detect and process entire projects.
 from pathlib import Path
 
 import click
+from click.testing import CliRunner
 
+from cli.main import app
 from cli.utils.error_handler import handle_cli_error
 from cli.utils.output import output
 
@@ -33,6 +35,124 @@ def detect_project_type(directory: Path) -> str:
     return "unknown"
 
 
+# Files and directories to exclude from processing
+EXCLUDE_PATTERNS = {
+    "__pycache__",
+    "node_modules",
+    ".git",
+    ".venv",
+    "venv",
+    "env",
+    "target",  # Rust build directory
+    "dist",
+    "build",
+    ".next",
+    ".nuxt",
+    "migrations",  # Django migrations
+    "alembic",  # Alembic migrations
+}
+
+FRAMEWORK_HANDLERS = {
+    "django": {
+        "pattern": "**/models.py",
+        "handler": "python",
+    },
+    "python": {
+        "pattern": "**/*.py",
+        "handler": "python",
+    },
+    "rust": {
+        "pattern": "**/schema.rs",
+        "handler": "rust",
+    },
+    "prisma": {
+        "pattern": "**/*.prisma",
+        "handler": "typescript",
+    },
+    "typescript": {
+        "pattern": "**/*.ts",
+        "handler": "typescript",
+    },
+}
+
+
+def _should_exclude_path(path: Path, directory: Path) -> bool:
+    """Check if a path should be excluded from processing."""
+    # Check if any parent directory is in exclude patterns
+    for part in path.relative_to(directory).parts:
+        if part in EXCLUDE_PATTERNS:
+            return True
+    return False
+
+
+def process_project(
+    directory: Path, framework: str, output_dir: Path, preview: bool = False
+) -> list[Path]:
+    """Process all relevant files in a project."""
+    handler_config = FRAMEWORK_HANDLERS.get(framework)
+    if not handler_config:
+        raise ValueError(f"Unknown framework: {framework}")
+
+    # Find all matching files, excluding unwanted directories
+    all_files = list(directory.glob(handler_config["pattern"]))
+    files = [f for f in all_files if not _should_exclude_path(f, directory)]
+
+    if len(all_files) != len(files):
+        excluded_count = len(all_files) - len(files)
+        output.info(f"Excluded {excluded_count} files in ignored directories")
+
+    if preview:
+        output.info(f"Would process {len(files)} files:")
+        for f in files:
+            output.info(f"  - {f.relative_to(directory)}")
+        return []
+
+    # Process each file with progress reporting
+    generated = []
+    runner = CliRunner()
+    processed_count = 0
+
+    for file in files:
+        try:
+            processed_count += 1
+            if len(files) > 5:  # Show progress for larger projects
+                output.info(f"Processing {processed_count}/{len(files)}: {file.name}")
+
+            result = runner.invoke(
+                app, ["reverse", handler_config["handler"], str(file), "-o", str(output_dir)]
+            )
+
+            if result.exit_code == 0:
+                # Find generated YAML files
+                yaml_files = list(output_dir.glob("*.yaml"))
+                generated.extend(yaml_files)
+                for yaml_file in yaml_files:
+                    output.info(f"  📄 {file.name} → {yaml_file.name}")
+            else:
+                output.warning(f"Warning: Failed to process {file}: {result.output}")
+
+        except Exception as e:
+            output.warning(f"Warning: Failed to process {file}: {str(e)}")
+
+    # Deduplicate entities if same entity found in multiple files
+    if len(generated) > len(set(generated)):
+        output.info("Deduping entities found in multiple files...")
+        seen_entities = set()
+        deduped = []
+
+        for yaml_file in generated:
+            entity_name = yaml_file.stem  # filename without .yaml
+            if entity_name not in seen_entities:
+                seen_entities.add(entity_name)
+                deduped.append(yaml_file)
+            else:
+                output.info(f"  Skipping duplicate entity: {entity_name}")
+
+        generated = deduped
+
+    return generated
+
+
 @click.command()
 @click.argument("directory", type=click.Path(exists=True, file_okay=False))
 @click.option("-o", "--output-dir", required=True, type=click.Path(), help="Output directory")
@@ -57,42 +177,22 @@ def project(directory, output_dir, framework, preview, **kwargs):
         project_type = framework or detect_project_type(project_path)
         output.info(f"📋 Detected project type: {project_type}")
 
-        if preview:
-            output.info("🔍 Preview mode: no files will be written")
-            return
+        if project_type == "unknown":
+            output.warning("Could not detect project type. Use --framework to specify explicitly.")
+            output.info("Supported frameworks: django, python, rust, prisma, typescript")
+            raise click.ClickException("Unknown project type")
 
-        # TODO: Integrate with existing project reverse engineering
         output_path = Path(output_dir)
         output_path.mkdir(parents=True, exist_ok=True)
 
-        # Simulate processing based on project type
-        if project_type == "django":
-            output.info("🐍 Processing Django models...")
-            # Look for models.py files
-            models_files = list(project_path.rglob("models.py"))
-            output.info(f"  📄 Found {len(models_files)} models.py files")
+        if preview:
+            output.info("🔍 Preview mode: no files will be written")
 
-        elif project_type == "rust":
-            output.info("🦀 Processing Rust schemas...")
-            # Look for schema.rs files
-            schema_files = list(project_path.rglob("schema.rs"))
-            output.info(f"  📄 Found {len(schema_files)} schema.rs files")
+        # Process the project (preview mode will just list files)
+        generated_files = process_project(project_path, project_type, output_path, preview)
 
-        elif project_type in ["prisma", "typescript"]:
-            output.info("📘 Processing TypeScript schemas...")
-            # Look for schema files
-            schema_files = list(project_path.rglob("*.prisma")) + list(project_path.rglob("*.ts"))
-            output.info(f"  📄 Found {len(schema_files)} schema files")
-
+        if not preview:
+            output.success(f"Successfully processed {project_type} project")
+            output.info(f"Generated {len(generated_files)} YAML file(s) to {output_path}")
         else:
-            output.info("🔍 Processing generic project...")
-            # Generic file discovery
-            code_files = (
-                list(project_path.rglob("*.py"))
-                + list(project_path.rglob("*.rs"))
-                + list(project_path.rglob("*.ts"))
-            )
-            output.info(f"  📄 Found {len(code_files)} potential code files")
-
-        output.success(f"Phase 3 reverse project command analyzed {project_type} project")
-        output.warning("Full project reverse engineering integration pending in Phase 4")
+            output.info("Preview complete")

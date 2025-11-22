@@ -362,6 +362,8 @@ def test_reverse_project_accepts_directory():
     runner = CliRunner()
     with runner.isolated_filesystem():
         Path("test_dir").mkdir()
+        # Create a manage.py to make it detectable as Django
+        Path("test_dir/manage.py").touch()
         result = runner.invoke(app, ["reverse", "project", "test_dir", "-o", "output"])
 
         assert result.exit_code == 0
