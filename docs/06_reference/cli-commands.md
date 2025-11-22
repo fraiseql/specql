@@ -20,10 +20,10 @@ uv pip install specql
 | `patterns` | Stable | Pattern detection and application |
 | `init` | Stable | Scaffolding for new projects |
 | `workflow` | Stable | Multi-step automation |
+| `test` | Stable | Testing tools: seed data, test generation, reverse engineering |
 | `diff` | Planned | Schema diffing |
 | `docs` | Planned | Documentation generation |
 | `analyze` | Planned | Migration analysis |
-| `test` | Planned | Testing framework |
 
 ---
 
@@ -360,6 +360,106 @@ specql workflow sync [options]
 
 ---
 
+### `specql test`
+
+Testing tools: seed data, test generation, and reverse engineering.
+
+#### `specql test seed`
+
+Generate seed data SQL for testing.
+
+```bash
+specql test seed <entities...> [options]
+```
+
+**Arguments**:
+- `<entities...>` - One or more SpecQL YAML entity files
+
+**Options**:
+- `-o, --output DIR` - Output directory (default: `seeds/`)
+- `-n, --count N` - Records per entity (default: 10)
+- `-s, --scenario N` - Test scenario number (affects UUIDs, default: 0)
+- `--deterministic` - Use fixed seed for reproducible output
+- `--format FORMAT` - Output format: sql, json, csv (default: sql)
+- `--dry-run` - Preview without writing files
+
+**Examples**:
+
+```bash
+# Generate 10 records per entity
+specql test seed entities/*.yaml -o seeds/
+
+# Generate 100 records with fixed seed
+specql test seed contact.yaml -n 100 --deterministic
+
+# JSON format for API testing
+specql test seed order.yaml --format json
+```
+
+#### `specql test generate`
+
+Auto-generate test files from SpecQL entities.
+
+```bash
+specql test generate <entities...> [options]
+```
+
+**Arguments**:
+- `<entities...>` - One or more SpecQL YAML entity files
+
+**Options**:
+- `-o, --output DIR` - Output directory (default: `tests/`)
+- `--type TYPE` - Test type: pgtap, pytest, both (default: both)
+- `--include-crud/--no-crud` - Include CRUD tests (default: true)
+- `--include-actions/--no-actions` - Include action tests (default: true)
+- `--include-constraints/--no-constraints` - Include constraint tests (default: true)
+- `--with-seed` - Generate seed data alongside tests
+- `--dry-run` - Preview without writing files
+
+**Examples**:
+
+```bash
+# Generate both pgTAP and pytest tests
+specql test generate entities/*.yaml -o tests/
+
+# Only pgTAP tests
+specql test generate contact.yaml --type pgtap
+
+# Tests with seed data
+specql test generate entities/*.yaml --with-seed
+```
+
+#### `specql test reverse`
+
+Reverse engineer existing tests to SpecQL test specs.
+
+```bash
+specql test reverse <test-files...> [options]
+```
+
+**Arguments**:
+- `<test-files...>` - One or more existing test files
+
+**Options**:
+- `-o, --output DIR` - Output directory (default: `test-specs/`)
+- `--type TYPE` - Source type: pgtap, pytest, jest, auto (default: auto)
+- `--preview` - Preview without writing files
+
+**Examples**:
+
+```bash
+# Auto-detect and reverse engineer
+specql test reverse tests/*.sql -o specs/
+
+# Specify test type
+specql test reverse tests/*.py --type pytest
+
+# Preview without writing
+specql test reverse tests/ --preview
+```
+
+---
+
 ## Planned Commands
 
 The following commands are planned but not yet implemented:
@@ -375,10 +475,6 @@ Generate documentation from SpecQL entities.
 ### `specql analyze` (Planned)
 
 Analyze codebase and generate migration report.
-
-### `specql test` (Planned)
-
-Test generated code against fixtures.
 
 ---
 
@@ -452,4 +548,4 @@ echo "Generation successful"
 
 ---
 
-**Last Updated**: 2025-11-21
+**Last Updated**: 2025-11-22

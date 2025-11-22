@@ -7,6 +7,112 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.6] - 2025-11-22
+
+### Added
+- **Reverse Engineering Improvements** - Major enhancements to SQL → YAML reverse engineering
+  - **YAML Filename Snake_Casing** - Output files now use proper snake_case naming
+    - `tb_machine_contract_relationship` → `machine_contract_relationship.yaml` (not `machinecontractrelationship.yaml`)
+    - Preserves original table naming conventions from source SQL
+  - **SQL Comment Preservation** - `COMMENT ON TABLE/COLUMN` statements are now extracted and included in YAML
+    - Table comments become entity `description` field
+    - Column comments become field `description` properties
+    - Handles escaped quotes and multiline comments
+  - **Project.yaml Generation** - Automatic project configuration file generation
+    - Captures PostgreSQL schemas discovered during reverse engineering
+    - Auto-detects required extensions (uuid-ossp, pgcrypto, etc.)
+    - Generates foundation SQL with CREATE SCHEMA and CREATE EXTENSION
+    - Includes domain registry scaffolding
+  - **Hierarchical Numbering** - Preserves source file structure during reverse engineering
+    - Files like `010111_tb_language.sql` output to `010_i18n/0101_locale/01011_language/010111_language.yaml`
+    - `--preserve-structure` option respects source directory hierarchy
+    - Maintains entity numbering for consistent file organization
+  - **Function Numbering Preservation** - Numbered function files retain their prefixes
+
+### New Files
+- `core/project_config.py` - ProjectConfig dataclass for project-level configuration
+- `generators/foundation_generator.py` - Foundation SQL generator for extensions and schemas
+
+### Bug Fixes
+- Fixed FK field renaming in entity generator (`fk_company` → `company: ref(Organization)`)
+- Fixed workflow migrate to exclude project.yaml and registry from validation
+- Fixed project reverse command to search recursively for generated YAML files
+- Fixed database integration test fixtures to use environment variables for configuration
+  - Tests now use `TEST_DB_HOST`, `TEST_DB_PORT`, `TEST_DB_NAME`, `TEST_DB_USER`, `TEST_DB_PASSWORD`
+  - Removed hardcoded connection parameters (port 5433, database test_specql)
+- Fixed test schema deployment fixture to always refresh schema for consistency
+  - Prevents schema drift issues when running full test suite
+
+### Test Coverage
+- **Total Tests**: 1624 tests passing
+- **Database Tests**: 18 database integration tests now run with proper configuration
+- **All tests passing**: No regressions
+
+### Documentation Cleanup
+- **Root Directory**: Removed 51 obsolete development artifacts (56 → 5 files)
+  - Deleted team status files (TEAM_A_*, TEAM_B_*, TEAM_C_*)
+  - Deleted agent/fix instruction files (AGENT_*, *_FIX_*)
+  - Deleted sprint planning files (WEEK_*)
+  - Deleted skipped tests guides (all tests now pass)
+  - Deleted quality/planning indices (consolidated)
+- **docs/ Directory**: Removed 21 obsolete planning documents (35 → 14 files)
+  - Deleted test fix docs, CLI redesign plans, tree-sitter migration docs
+  - Kept essential architecture and reference documentation
+- **.claude/prompts/**: Removed 7 obsolete team prompt files
+- **Total Reduction**: 461 → 378 markdown files (-18%)
+
+### Quality Metrics
+- **Files Modified**: 8 files
+- **Lines Added**: ~500 lines (implementation + tests)
+- **Documentation Reduced**: 83 obsolete markdown files removed
+- **Backward Compatible**: All existing workflows continue to work
+
+## [0.8.5] - 2025-11-22
+
+### Added
+- **Test CLI Command Group** - Complete testing tools integration for SpecQL entities
+  - `specql test seed` - Generate seed data SQL for testing
+    - Type-aware seed data generation based on entity field types
+    - Deterministic mode for reproducible test fixtures (`--deterministic`)
+    - Multiple output formats: SQL, JSON, CSV (`--format`)
+    - Scenario parameter for test UUID generation (`--scenario`)
+    - FK dependency ordering for multi-entity seeding
+    - Preview mode with `--dry-run`
+  - `specql test generate` - Auto-generate test files from entities
+    - pgTAP (PostgreSQL) test generation
+    - pytest (Python) test generation
+    - Both test types simultaneously (`--type both`)
+    - CRUD test generation (`--include-crud`)
+    - Action test generation (`--include-actions`)
+    - Constraint violation tests (`--include-constraints`)
+    - Seed data generation alongside tests (`--with-seed`)
+  - `specql test reverse` - Reverse engineer existing tests to SpecQL test specs
+    - pgTAP test parsing
+    - pytest test parsing
+    - Jest/Vitest test parsing
+    - Auto-detection of test type (`--type auto`)
+    - Preview mode with `--preview`
+    - Outputs SpecQL test-spec.yaml format
+
+### Test Coverage
+- **Unit Tests**: 19 tests for test CLI commands
+  - `test_test_seed.py`: 6 tests
+  - `test_test_generate.py`: 6 tests
+  - `test_test_reverse.py`: 7 tests
+
+### Integration
+- Leverages existing `testing/` module infrastructure:
+  - `EntitySeedGenerator` - Type-aware seed generation
+  - `SpecQLUUIDGenerator` - Deterministic UUID generation
+  - `PgTAPGenerator` - PostgreSQL pgTAP test generation
+  - `PytestGenerator` - Python integration test generation
+  - `SeedSQLGenerator` - SQL INSERT statement generation
+
+### Quality Metrics
+- **Files Added**: 4 command files, 3 test files
+- **Lines Added**: ~800 lines (implementation + tests)
+- **All existing tests passing**: No regressions
+
 ## [0.8.4] - 2025-11-21
 
 ### Added
@@ -386,7 +492,9 @@ This stable release fixes all remaining test failures from v0.5.0b1, achieving p
 - Team-by-team implementation guide
 - Integration proposal with FraiseQL conventions
 
-[unreleased]: https://github.com/fraiseql/specql/compare/v0.8.4...HEAD
+[unreleased]: https://github.com/fraiseql/specql/compare/v0.8.6...HEAD
+[0.8.6]: https://github.com/fraiseql/specql/releases/tag/v0.8.6
+[0.8.5]: https://github.com/fraiseql/specql/releases/tag/v0.8.5
 [0.8.4]: https://github.com/fraiseql/specql/releases/tag/v0.8.4
 [0.8.3]: https://github.com/fraiseql/specql/releases/tag/v0.8.3
 [0.8.2]: https://github.com/fraiseql/specql/releases/tag/v0.8.2

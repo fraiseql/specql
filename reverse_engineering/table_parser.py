@@ -45,6 +45,8 @@ class ParsedTable:
     primary_key: list[str] | None = None
     unique_constraints: list[list[str]] | None = None
     check_constraints: list[str] | None = None
+    table_comment: str | None = None
+    column_comments: dict[str, str] | None = None
 
 
 class SQLTableParser:
@@ -123,15 +125,6 @@ class SQLTableParser:
             # If no table-level PRIMARY KEY but we have inline ones, use those
             if not primary_key and inline_primary_keys:
                 primary_key = inline_primary_keys
-
-            return ParsedTable(
-                schema=schema,
-                table_name=table_name,
-                columns=columns,
-                primary_key=primary_key,
-                unique_constraints=unique_constraints,
-                check_constraints=check_constraints,
-            )
 
             return ParsedTable(
                 schema=schema,

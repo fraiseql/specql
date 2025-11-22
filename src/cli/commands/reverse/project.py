@@ -142,8 +142,8 @@ def process_project(
             )
 
             if result.exit_code == 0:
-                # Find generated YAML files
-                yaml_files = list(output_dir.glob("*.yaml"))
+                # Find generated YAML files (search recursively for hierarchical output)
+                yaml_files = list(output_dir.glob("**/*.yaml"))
                 generated.extend(yaml_files)
                 for yaml_file in yaml_files:
                     output.info(f"  📄 {file.name} → {yaml_file.name}")

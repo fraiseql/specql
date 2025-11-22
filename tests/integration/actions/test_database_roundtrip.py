@@ -200,11 +200,29 @@ def create_complex_action_entity():
 
 @pytest.fixture
 def test_db():
-    """PostgreSQL test database connection"""
+    """PostgreSQL test database connection - uses environment variables for configuration.
+
+    Environment variables:
+    - TEST_DB_HOST: Database host (default: localhost)
+    - TEST_DB_PORT: Database port (default: 5432)
+    - TEST_DB_NAME: Database name (default: specql_test)
+    - TEST_DB_USER: Database user (default: postgres)
+    - TEST_DB_PASSWORD: Database password (default: empty)
+    """
+    import os
+
+    host = os.getenv("TEST_DB_HOST", "localhost")
+    port = int(os.getenv("TEST_DB_PORT", "5432"))
+    dbname = os.getenv("TEST_DB_NAME", "specql_test")
+    user = os.getenv("TEST_DB_USER", "postgres")
+    password = os.getenv("TEST_DB_PASSWORD", "")
+
     try:
-        conn = psycopg.connect(
-            host="localhost", port=5433, dbname="test_specql", user="postgres", password="postgres"
-        )
+        conn_params = f"host={host} port={port} dbname={dbname} user={user}"
+        if password:
+            conn_params += f" password={password}"
+
+        conn = psycopg.connect(conn_params)
         # Clean up any existing test data
         cursor = conn.cursor()
         try:
@@ -225,8 +243,8 @@ def test_db():
 
         yield conn
         conn.close()
-    except psycopg.OperationalError:
-        pytest.skip("PostgreSQL test database not available")
+    except psycopg.OperationalError as e:
+        pytest.skip(f"PostgreSQL test database not available: {e}")
 
 
 def test_create_contact_action_database_execution(test_db, function_generator):
