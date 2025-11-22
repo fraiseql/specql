@@ -20,7 +20,11 @@ def _detect_rust_orm(source_code: str) -> str:
     """Auto-detect Rust ORM from imports and patterns."""
     if "use sea_orm" in source_code or "DeriveEntityModel" in source_code:
         return "seaorm"
-    if "use diesel" in source_code or "diesel::table!" in source_code or "#[table_name" in source_code:
+    if (
+        "use diesel" in source_code
+        or "diesel::table!" in source_code
+        or "#[table_name" in source_code
+    ):
         return "diesel"
     if "use sqlx" in source_code:
         return "sqlx"

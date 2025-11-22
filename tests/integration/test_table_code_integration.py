@@ -5,8 +5,8 @@ and can be used by downstream generators.
 """
 
 import pytest
-
 from cli.generate import convert_entity_definition_to_entity
+
 from core.specql_parser import SpecQLParser
 
 

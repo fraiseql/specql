@@ -110,9 +110,7 @@ class FileNotFoundError(CLIError):
 
     def __init__(self, file_path: str, hint: str | None = None):
         message = f"File not found: {file_path}"
-        super().__init__(
-            message, hint=hint or "Check that the file exists and the path is correct"
-        )
+        super().__init__(message, hint=hint or "Check that the file exists and the path is correct")
 
 
 @contextmanager

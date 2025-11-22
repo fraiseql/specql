@@ -58,7 +58,17 @@ def _map_prisma_type_to_specql(prisma_type: str) -> str:
     }
 
     # Already-mapped SpecQL types (pass through)
-    specql_types = {"text", "integer", "bigint", "decimal", "boolean", "timestamp", "jsonb", "bytea", "enum"}
+    specql_types = {
+        "text",
+        "integer",
+        "bigint",
+        "decimal",
+        "boolean",
+        "timestamp",
+        "jsonb",
+        "bytea",
+        "enum",
+    }
 
     if base_type in specql_types:
         return base_type
@@ -139,8 +149,7 @@ def _generate_yaml_from_routes(routes: list, source_file: str) -> str | None:
         "_routes": {
             "source_file": source_file,
             "endpoints": [
-                {"method": r.method, "path": r.path, "framework": r.framework}
-                for r in routes
+                {"method": r.method, "path": r.path, "framework": r.framework} for r in routes
             ],
         },
         "_metadata": {
@@ -293,7 +302,11 @@ def _parse_typescript_file(path: Path, all_routes: list, framework: str | None):
             routes.extend(parser.extract_routes(source_code))
 
         # Next.js App Router
-        if detected_framework == "nextjs-app" or "route.ts" in file_path_str or "route.js" in file_path_str:
+        if (
+            detected_framework == "nextjs-app"
+            or "route.ts" in file_path_str
+            or "route.js" in file_path_str
+        ):
             routes.extend(parser.extract_nextjs_app_routes(source_code, file_path_str))
 
         # Next.js Pages Router

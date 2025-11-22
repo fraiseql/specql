@@ -1,7 +1,8 @@
 """Tests for reverse rust CLI command."""
 
-import pytest
 from pathlib import Path
+
+import pytest
 from click.testing import CliRunner
 
 
@@ -12,7 +13,7 @@ def cli_runner():
 
 @pytest.fixture
 def sample_diesel_model():
-    return '''
+    return """
 use diesel::prelude::*;
 
 #[derive(Queryable, Insertable)]
@@ -24,12 +25,12 @@ pub struct Contact {
     pub status: String,
     pub created_at: NaiveDateTime,
 }
-'''
+"""
 
 
 @pytest.fixture
 def sample_seaorm_model():
-    return '''
+    return """
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
@@ -41,12 +42,12 @@ pub struct Model {
     pub company_id: Option<i32>,
     pub status: String,
 }
-'''
+"""
 
 
 @pytest.fixture
 def sample_actix_routes():
-    return '''
+    return """
 use actix_web::{get, post, web, HttpResponse};
 
 #[get("/contacts")]
@@ -63,12 +64,12 @@ pub async fn create_contact(body: web::Json<ContactInput>) -> HttpResponse {
 pub async fn get_contact(path: web::Path<i32>) -> HttpResponse {
     HttpResponse::Ok().json(Contact::default())
 }
-'''
+"""
 
 
 @pytest.fixture
 def sample_axum_routes():
-    return '''
+    return """
 use axum::{routing::get, Router, extract::State, Json};
 
 pub fn router() -> Router {
@@ -77,12 +78,12 @@ pub fn router() -> Router {
         .route("/contacts/:id", axum::routing::get(get_contact))
         .route("/contacts", axum::routing::post(create_contact))
 }
-'''
+"""
 
 
 @pytest.fixture
 def sample_diesel_table_macro():
-    return '''
+    return """
 diesel::table! {
     contacts (id) {
         id -> Int4,
@@ -92,7 +93,7 @@ diesel::table! {
         created_at -> Timestamp,
     }
 }
-'''
+"""
 
 
 class TestReverseRustCommand:
@@ -125,9 +126,7 @@ class TestReverseRustCommand:
             Path("models.rs").write_text(sample_diesel_model)
             Path("out").mkdir()
 
-            result = cli_runner.invoke(
-                app, ["reverse", "rust", "models.rs", "-o", "out/"]
-            )
+            result = cli_runner.invoke(app, ["reverse", "rust", "models.rs", "-o", "out/"])
 
             assert result.exit_code == 0
 
@@ -139,9 +138,7 @@ class TestReverseRustCommand:
             Path("entity.rs").write_text(sample_seaorm_model)
             Path("out").mkdir()
 
-            result = cli_runner.invoke(
-                app, ["reverse", "rust", "entity.rs", "-o", "out/"]
-            )
+            result = cli_runner.invoke(app, ["reverse", "rust", "entity.rs", "-o", "out/"])
 
             assert result.exit_code == 0
             # Should generate YAML file
@@ -156,9 +153,7 @@ class TestReverseRustCommand:
             Path("routes.rs").write_text(sample_actix_routes)
             Path("out").mkdir()
 
-            result = cli_runner.invoke(
-                app, ["reverse", "rust", "routes.rs", "-o", "out/"]
-            )
+            result = cli_runner.invoke(app, ["reverse", "rust", "routes.rs", "-o", "out/"])
 
             assert result.exit_code == 0
 
@@ -186,9 +181,7 @@ class TestReverseRustCommand:
             Path("models.rs").write_text(sample_diesel_model)
             Path("out").mkdir()
 
-            result = cli_runner.invoke(
-                app, ["reverse", "rust", "models.rs", "-o", "out/"]
-            )
+            result = cli_runner.invoke(app, ["reverse", "rust", "models.rs", "-o", "out/"])
 
             assert result.exit_code == 0
             # Check that Diesel was detected (case-insensitive)
@@ -202,9 +195,7 @@ class TestReverseRustCommand:
             Path("entity.rs").write_text(sample_seaorm_model)
             Path("out").mkdir()
 
-            result = cli_runner.invoke(
-                app, ["reverse", "rust", "entity.rs", "-o", "out/"]
-            )
+            result = cli_runner.invoke(app, ["reverse", "rust", "entity.rs", "-o", "out/"])
 
             assert result.exit_code == 0
             assert "seaorm" in result.output.lower() or "sea" in result.output.lower()
@@ -223,7 +214,9 @@ class TestReverseRustCommand:
 
             assert result.exit_code == 0
 
-    def test_reverse_rust_multiple_files(self, cli_runner, sample_diesel_model, sample_seaorm_model):
+    def test_reverse_rust_multiple_files(
+        self, cli_runner, sample_diesel_model, sample_seaorm_model
+    ):
         """reverse rust should handle multiple files."""
         from cli.main import app
 
@@ -246,9 +239,7 @@ class TestReverseRustCommand:
             Path("entity.rs").write_text(sample_seaorm_model)
             # Don't create output directory
 
-            result = cli_runner.invoke(
-                app, ["reverse", "rust", "entity.rs", "-o", "new_output/"]
-            )
+            result = cli_runner.invoke(app, ["reverse", "rust", "entity.rs", "-o", "new_output/"])
 
             assert result.exit_code == 0
             assert Path("new_output/").exists()
@@ -260,9 +251,10 @@ class TestReverseRustSeaORMIntegration:
     def test_seaorm_model_fields_mapped_correctly(self, cli_runner):
         """SeaORM model fields should be mapped to SpecQL types."""
         import yaml as yaml_lib
+
         from cli.main import app
 
-        seaorm_model = '''
+        seaorm_model = """
 use sea_orm::entity::prelude::*;
 
 #[derive(Clone, Debug, PartialEq, DeriveEntityModel)]
@@ -275,14 +267,12 @@ pub struct Model {
     pub is_active: bool,
     pub created_at: DateTime,
 }
-'''
+"""
         with cli_runner.isolated_filesystem():
             Path("entity.rs").write_text(seaorm_model)
             Path("out").mkdir()
 
-            result = cli_runner.invoke(
-                app, ["reverse", "rust", "entity.rs", "-o", "out/"]
-            )
+            result = cli_runner.invoke(app, ["reverse", "rust", "entity.rs", "-o", "out/"])
 
             assert result.exit_code == 0
             yaml_files = list(Path("out/").glob("*.yaml"))
@@ -298,15 +288,14 @@ pub struct Model {
     def test_seaorm_generates_valid_yaml(self, cli_runner, sample_seaorm_model):
         """reverse rust should generate valid YAML files."""
         import yaml as yaml_lib
+
         from cli.main import app
 
         with cli_runner.isolated_filesystem():
             Path("entity.rs").write_text(sample_seaorm_model)
             Path("out").mkdir()
 
-            result = cli_runner.invoke(
-                app, ["reverse", "rust", "entity.rs", "-o", "out/"]
-            )
+            result = cli_runner.invoke(app, ["reverse", "rust", "entity.rs", "-o", "out/"])
 
             assert result.exit_code == 0
             yaml_files = list(Path("out/").glob("*.yaml"))
@@ -329,9 +318,7 @@ class TestReverseRustDieselIntegration:
             Path("schema.rs").write_text(sample_diesel_table_macro)
             Path("out").mkdir()
 
-            result = cli_runner.invoke(
-                app, ["reverse", "rust", "schema.rs", "-o", "out/"]
-            )
+            result = cli_runner.invoke(app, ["reverse", "rust", "schema.rs", "-o", "out/"])
 
             assert result.exit_code == 0
 
@@ -347,9 +334,7 @@ class TestReverseRustRouteExtraction:
             Path("routes.rs").write_text(sample_actix_routes)
             Path("out").mkdir()
 
-            result = cli_runner.invoke(
-                app, ["reverse", "rust", "routes.rs", "-o", "out/"]
-            )
+            result = cli_runner.invoke(app, ["reverse", "rust", "routes.rs", "-o", "out/"])
 
             assert result.exit_code == 0
             # Routes should be mentioned in output
@@ -363,8 +348,6 @@ class TestReverseRustRouteExtraction:
             Path("routes.rs").write_text(sample_axum_routes)
             Path("out").mkdir()
 
-            result = cli_runner.invoke(
-                app, ["reverse", "rust", "routes.rs", "-o", "out/"]
-            )
+            result = cli_runner.invoke(app, ["reverse", "rust", "routes.rs", "-o", "out/"])
 
             assert result.exit_code == 0

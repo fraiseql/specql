@@ -20,7 +20,7 @@ def cli_runner():
 
 @pytest.fixture
 def sample_jpa_entity():
-    return '''
+    return """
 package com.example.model;
 
 import javax.persistence.*;
@@ -48,12 +48,12 @@ public class Contact {
 
     // Getters and setters omitted
 }
-'''
+"""
 
 
 @pytest.fixture
 def sample_hibernate_entity():
-    return '''
+    return """
 package com.example.model;
 
 import jakarta.persistence.*;
@@ -87,12 +87,12 @@ public class Task {
     @OneToMany(mappedBy = "task")
     private List<Comment> comments;
 }
-'''
+"""
 
 
 @pytest.fixture
 def sample_spring_data_entity():
-    return '''
+    return """
 package com.example.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -122,7 +122,7 @@ public class Order {
     @Column(name = "created_at")
     private LocalDateTime createdAt;
 }
-'''
+"""
 
 
 # ============================================================================
@@ -158,9 +158,7 @@ def test_reverse_java_file_not_found(cli_runner):
 
     with cli_runner.isolated_filesystem():
         Path("out").mkdir()
-        result = cli_runner.invoke(
-            app, ["reverse", "java", "nonexistent.java", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "java", "nonexistent.java", "-o", "out/"])
 
         assert result.exit_code != 0
 
@@ -178,9 +176,7 @@ def test_reverse_java_parses_jpa_entity(cli_runner, sample_jpa_entity):
         Path("Contact.java").write_text(sample_jpa_entity)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "java", "Contact.java", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "java", "Contact.java", "-o", "out/"])
 
         assert result.exit_code == 0
         yaml_files = list(Path("out/").glob("*.yaml"))
@@ -199,9 +195,7 @@ def test_reverse_java_extracts_jpa_fields(cli_runner, sample_jpa_entity):
         Path("Contact.java").write_text(sample_jpa_entity)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "java", "Contact.java", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "java", "Contact.java", "-o", "out/"])
 
         assert result.exit_code == 0
         yaml_files = list(Path("out/").glob("*.yaml"))
@@ -219,9 +213,7 @@ def test_reverse_java_parses_hibernate_entity(cli_runner, sample_hibernate_entit
         Path("Task.java").write_text(sample_hibernate_entity)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "java", "Task.java", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "java", "Task.java", "-o", "out/"])
 
         assert result.exit_code == 0
 
@@ -234,9 +226,7 @@ def test_reverse_java_detects_relationships(cli_runner, sample_jpa_entity):
         Path("Contact.java").write_text(sample_jpa_entity)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "java", "Contact.java", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "java", "Contact.java", "-o", "out/"])
 
         assert result.exit_code == 0
         yaml_files = list(Path("out/").glob("*.yaml"))
@@ -323,9 +313,7 @@ def test_reverse_java_handles_empty_file(cli_runner):
         Path("Empty.java").write_text("")
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "java", "Empty.java", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "java", "Empty.java", "-o", "out/"])
 
         # Should not crash
         assert result.exit_code == 0
@@ -335,7 +323,7 @@ def test_reverse_java_handles_non_entity_class(cli_runner):
     """reverse java should handle files with no JPA entities."""
     from cli.main import app
 
-    non_entity_code = '''
+    non_entity_code = """
 package com.example.util;
 
 public class StringUtils {
@@ -343,15 +331,13 @@ public class StringUtils {
         return s != null ? s.trim() : null;
     }
 }
-'''
+"""
 
     with cli_runner.isolated_filesystem():
         Path("StringUtils.java").write_text(non_entity_code)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "java", "StringUtils.java", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "java", "StringUtils.java", "-o", "out/"])
 
         # Should not crash, just find 0 entities
         assert result.exit_code == 0
@@ -361,7 +347,7 @@ def test_reverse_java_handles_interface(cli_runner):
     """reverse java should handle interface files (e.g., Spring Data repositories)."""
     from cli.main import app
 
-    repository_code = '''
+    repository_code = """
 package com.example.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -369,15 +355,13 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface ContactRepository extends JpaRepository<Contact, Long> {
     Contact findByEmail(String email);
 }
-'''
+"""
 
     with cli_runner.isolated_filesystem():
         Path("ContactRepository.java").write_text(repository_code)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "java", "ContactRepository.java", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "java", "ContactRepository.java", "-o", "out/"])
 
         # Should not crash
         assert result.exit_code == 0
@@ -396,9 +380,7 @@ def test_reverse_java_yaml_has_metadata(cli_runner, sample_jpa_entity):
         Path("Contact.java").write_text(sample_jpa_entity)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "java", "Contact.java", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "java", "Contact.java", "-o", "out/"])
 
         assert result.exit_code == 0
         yaml_files = list(Path("out/").glob("*.yaml"))
@@ -417,9 +399,7 @@ def test_reverse_java_yaml_has_entity_name(cli_runner, sample_jpa_entity):
         Path("Contact.java").write_text(sample_jpa_entity)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "java", "Contact.java", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "java", "Contact.java", "-o", "out/"])
 
         assert result.exit_code == 0
         yaml_files = list(Path("out/").glob("*.yaml"))
@@ -437,9 +417,7 @@ def test_reverse_java_yaml_has_schema(cli_runner, sample_hibernate_entity):
         Path("Task.java").write_text(sample_hibernate_entity)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "java", "Task.java", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "java", "Task.java", "-o", "out/"])
 
         assert result.exit_code == 0
         yaml_files = list(Path("out/").glob("*.yaml"))

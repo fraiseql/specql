@@ -20,7 +20,7 @@ def cli_runner():
 
 @pytest.fixture
 def sample_django_model():
-    return '''
+    return """
 from django.db import models
 
 class Contact(models.Model):
@@ -30,12 +30,12 @@ class Contact(models.Model):
 
     class Meta:
         db_table = "contacts"
-'''
+"""
 
 
 @pytest.fixture
 def sample_pydantic_model():
-    return '''
+    return """
 from pydantic import BaseModel
 from typing import Optional
 
@@ -43,12 +43,12 @@ class Contact(BaseModel):
     email: str
     company_id: Optional[int] = None
     status: str = "lead"
-'''
+"""
 
 
 @pytest.fixture
 def sample_sqlalchemy_model():
-    return '''
+    return """
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 
@@ -60,7 +60,7 @@ class Contact(Base):
     id = Column(Integer, primary_key=True)
     email = Column(String(255), nullable=False)
     company_id = Column(Integer, ForeignKey("companies.id"))
-'''
+"""
 
 
 @pytest.fixture
@@ -111,9 +111,7 @@ def test_reverse_python_file_not_found(cli_runner):
 
     with cli_runner.isolated_filesystem():
         Path("out").mkdir()
-        result = cli_runner.invoke(
-            app, ["reverse", "python", "nonexistent.py", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "python", "nonexistent.py", "-o", "out/"])
 
         assert result.exit_code != 0
 
@@ -131,9 +129,7 @@ def test_reverse_python_parses_django_model(cli_runner, sample_django_model):
         Path("models.py").write_text(sample_django_model)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "python", "models.py", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "python", "models.py", "-o", "out/"])
 
         assert result.exit_code == 0
         yaml_files = list(Path("out/").glob("*.yaml"))
@@ -152,9 +148,7 @@ def test_reverse_python_detects_django_framework(cli_runner, sample_django_model
         Path("models.py").write_text(sample_django_model)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "python", "models.py", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "python", "models.py", "-o", "out/"])
 
         assert result.exit_code == 0
         # Check output mentions Django
@@ -169,9 +163,7 @@ def test_reverse_python_extracts_django_fields(cli_runner, sample_django_model):
         Path("models.py").write_text(sample_django_model)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "python", "models.py", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "python", "models.py", "-o", "out/"])
 
         assert result.exit_code == 0
         yaml_files = list(Path("out/").glob("*.yaml"))
@@ -194,9 +186,7 @@ def test_reverse_python_parses_pydantic_model(cli_runner, sample_pydantic_model)
         Path("schemas.py").write_text(sample_pydantic_model)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "python", "schemas.py", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "python", "schemas.py", "-o", "out/"])
 
         assert result.exit_code == 0
         yaml_files = list(Path("out/").glob("*.yaml"))
@@ -211,9 +201,7 @@ def test_reverse_python_detects_pydantic_framework(cli_runner, sample_pydantic_m
         Path("schemas.py").write_text(sample_pydantic_model)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "python", "schemas.py", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "python", "schemas.py", "-o", "out/"])
 
         assert result.exit_code == 0
         assert "pydantic" in result.output.lower()
@@ -232,9 +220,7 @@ def test_reverse_python_parses_sqlalchemy_model(cli_runner, sample_sqlalchemy_mo
         Path("models.py").write_text(sample_sqlalchemy_model)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "python", "models.py", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "python", "models.py", "-o", "out/"])
 
         assert result.exit_code == 0
 
@@ -252,9 +238,7 @@ def test_reverse_python_parses_dataclass(cli_runner, sample_dataclass_model):
         Path("models.py").write_text(sample_dataclass_model)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "python", "models.py", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "python", "models.py", "-o", "out/"])
 
         assert result.exit_code == 0
 
@@ -358,9 +342,7 @@ def test_reverse_python_handles_empty_file(cli_runner):
         Path("empty.py").write_text("")
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "python", "empty.py", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "python", "empty.py", "-o", "out/"])
 
         # Should not crash
         assert result.exit_code == 0
@@ -384,9 +366,7 @@ class NotAModel:
         Path("utils.py").write_text(non_model_code)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "python", "utils.py", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "python", "utils.py", "-o", "out/"])
 
         # Should not crash, just find 0 entities
         assert result.exit_code == 0
@@ -396,18 +376,16 @@ def test_reverse_python_handles_syntax_error(cli_runner):
     """reverse python should handle Python syntax errors gracefully."""
     from cli.main import app
 
-    invalid_python = '''
+    invalid_python = """
 class Contact(models.Model:  # Missing closing paren
     email = models.CharField(max_length=255
-'''
+"""
 
     with cli_runner.isolated_filesystem():
         Path("invalid.py").write_text(invalid_python)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "python", "invalid.py", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "python", "invalid.py", "-o", "out/"])
 
         # Should handle error gracefully
         # Accept either success (skipped file) or controlled failure
@@ -427,9 +405,7 @@ def test_reverse_python_yaml_has_metadata(cli_runner, sample_django_model):
         Path("models.py").write_text(sample_django_model)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "python", "models.py", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "python", "models.py", "-o", "out/"])
 
         assert result.exit_code == 0
         yaml_files = list(Path("out/").glob("*.yaml"))
@@ -448,9 +424,7 @@ def test_reverse_python_yaml_has_entity_name(cli_runner, sample_django_model):
         Path("models.py").write_text(sample_django_model)
         Path("out").mkdir()
 
-        result = cli_runner.invoke(
-            app, ["reverse", "python", "models.py", "-o", "out/"]
-        )
+        result = cli_runner.invoke(app, ["reverse", "python", "models.py", "-o", "out/"])
 
         assert result.exit_code == 0
         yaml_files = list(Path("out/").glob("*.yaml"))

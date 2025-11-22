@@ -7,14 +7,14 @@ project_root = Path(__file__).parent.parent.parent.parent  # /home/lionel/code/s
 src_path = project_root / "src"
 sys.path.insert(0, str(src_path))
 
-import pytest
 from click.testing import CliRunner
 
 
 def test_common_options_adds_verbose():
     """Common options decorator should add --verbose flag."""
-    from cli.base import common_options
     import click
+
+    from cli.base import common_options
 
     @click.command()
     @common_options
@@ -27,8 +27,9 @@ def test_common_options_adds_verbose():
 
 def test_common_options_adds_quiet():
     """Common options decorator should add --quiet flag."""
-    from cli.base import common_options
     import click
+
+    from cli.base import common_options
 
     @click.command()
     @common_options
@@ -41,8 +42,9 @@ def test_common_options_adds_quiet():
 
 def test_verbose_and_quiet_mutually_exclusive():
     """--verbose and --quiet should be mutually exclusive."""
-    from cli.base import common_options, validate_common_options
     import click
+
+    from cli.base import common_options, validate_common_options
 
     @click.command()
     @common_options

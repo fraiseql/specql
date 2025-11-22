@@ -1,7 +1,8 @@
 """Tests for reverse typescript CLI command."""
 
-import pytest
 from pathlib import Path
+
+import pytest
 from click.testing import CliRunner
 
 
@@ -12,7 +13,7 @@ def cli_runner():
 
 @pytest.fixture
 def sample_prisma_schema():
-    return '''
+    return """
 model Contact {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -33,12 +34,12 @@ enum Status {
   QUALIFIED
   CUSTOMER
 }
-'''
+"""
 
 
 @pytest.fixture
 def sample_express_routes():
-    return '''
+    return """
 import express from 'express';
 const router = express.Router();
 
@@ -49,12 +50,12 @@ router.put('/contacts/:id', updateContact);
 router.delete('/contacts/:id', deleteContact);
 
 export default router;
-'''
+"""
 
 
 @pytest.fixture
 def sample_nextjs_app_route():
-    return '''
+    return """
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
@@ -67,12 +68,12 @@ export async function POST(request: Request) {
   const contact = await createContact(body);
   return NextResponse.json(contact);
 }
-'''
+"""
 
 
 @pytest.fixture
 def sample_server_action():
-    return '''
+    return """
 'use server';
 
 export async function createContact(formData: FormData) {
@@ -83,7 +84,7 @@ export async function createContact(formData: FormData) {
 export async function updateContact(id: string, formData: FormData) {
   // ... update contact
 }
-'''
+"""
 
 
 class TestReverseTypescriptCommand:
@@ -126,7 +127,9 @@ class TestReverseTypescriptCommand:
 
             # Check YAML content includes model name
             yaml_content = yaml_files[0].read_text()
-            assert "Contact" in yaml_content or "contact" in yaml_content or "Company" in yaml_content
+            assert (
+                "Contact" in yaml_content or "contact" in yaml_content or "Company" in yaml_content
+            )
 
     def test_reverse_typescript_parses_express_routes(self, cli_runner, sample_express_routes):
         """reverse typescript should parse Express routes."""
@@ -136,9 +139,7 @@ class TestReverseTypescriptCommand:
             Path("routes.ts").write_text(sample_express_routes)
             Path("out").mkdir()
 
-            result = cli_runner.invoke(
-                app, ["reverse", "typescript", "routes.ts", "-o", "out/"]
-            )
+            result = cli_runner.invoke(app, ["reverse", "typescript", "routes.ts", "-o", "out/"])
 
             # Should succeed even if no YAML files generated (routes don't become entities)
             assert result.exit_code == 0
@@ -200,7 +201,8 @@ class TestReverseTypescriptCommand:
             Path("out").mkdir()
 
             result = cli_runner.invoke(
-                app, ["reverse", "typescript", "schema.prisma", "-o", "out/", "--framework", "prisma"]
+                app,
+                ["reverse", "typescript", "schema.prisma", "-o", "out/", "--framework", "prisma"],
             )
 
             assert result.exit_code == 0
@@ -233,9 +235,7 @@ model Task {
             Path("actions.ts").write_text(sample_server_action)
             Path("out").mkdir()
 
-            result = cli_runner.invoke(
-                app, ["reverse", "typescript", "actions.ts", "-o", "out/"]
-            )
+            result = cli_runner.invoke(app, ["reverse", "typescript", "actions.ts", "-o", "out/"])
 
             assert result.exit_code == 0
 
@@ -257,6 +257,7 @@ model Task {
     def test_reverse_typescript_generates_valid_yaml(self, cli_runner, sample_prisma_schema):
         """reverse typescript should generate valid YAML files."""
         import yaml as yaml_lib
+
         from cli.main import app
 
         with cli_runner.isolated_filesystem():
@@ -285,9 +286,10 @@ class TestReverseTypescriptPrismaIntegration:
     def test_prisma_model_fields_mapped_correctly(self, cli_runner):
         """Prisma model fields should be mapped to SpecQL types."""
         import yaml as yaml_lib
+
         from cli.main import app
 
-        prisma_schema = '''
+        prisma_schema = """
 model User {
   id        Int      @id @default(autoincrement())
   email     String   @unique
@@ -297,7 +299,7 @@ model User {
   metadata  Json?
   createdAt DateTime @default(now())
 }
-'''
+"""
         with cli_runner.isolated_filesystem():
             Path("schema.prisma").write_text(prisma_schema)
             Path("out").mkdir()
@@ -319,10 +321,9 @@ model User {
 
     def test_prisma_relations_mapped_as_refs(self, cli_runner):
         """Prisma relations should be mapped to ref() types."""
-        import yaml as yaml_lib
         from cli.main import app
 
-        prisma_schema = '''
+        prisma_schema = """
 model Post {
   id       Int    @id @default(autoincrement())
   title    String
@@ -334,7 +335,7 @@ model User {
   id    Int    @id @default(autoincrement())
   posts Post[]
 }
-'''
+"""
         with cli_runner.isolated_filesystem():
             Path("schema.prisma").write_text(prisma_schema)
             Path("out").mkdir()
@@ -347,10 +348,9 @@ model User {
 
     def test_prisma_enums_detected(self, cli_runner):
         """Prisma enums should be detected and mapped."""
-        import yaml as yaml_lib
         from cli.main import app
 
-        prisma_schema = '''
+        prisma_schema = """
 enum Role {
   ADMIN
   USER
@@ -361,7 +361,7 @@ model User {
   id   Int  @id @default(autoincrement())
   role Role @default(USER)
 }
-'''
+"""
         with cli_runner.isolated_filesystem():
             Path("schema.prisma").write_text(prisma_schema)
             Path("out").mkdir()
@@ -384,9 +384,7 @@ class TestReverseTypescriptRouteExtraction:
             Path("routes.ts").write_text(sample_express_routes)
             Path("out").mkdir()
 
-            result = cli_runner.invoke(
-                app, ["reverse", "typescript", "routes.ts", "-o", "out/"]
-            )
+            result = cli_runner.invoke(app, ["reverse", "typescript", "routes.ts", "-o", "out/"])
 
             assert result.exit_code == 0
             # Routes should be mentioned in output
@@ -396,19 +394,17 @@ class TestReverseTypescriptRouteExtraction:
         """Should extract routes from Fastify router."""
         from cli.main import app
 
-        fastify_routes = '''
+        fastify_routes = """
 import fastify from 'fastify';
 const app = fastify();
 
 fastify.get('/users', getUsers);
 fastify.post('/users', createUser);
-'''
+"""
         with cli_runner.isolated_filesystem():
             Path("routes.ts").write_text(fastify_routes)
             Path("out").mkdir()
 
-            result = cli_runner.invoke(
-                app, ["reverse", "typescript", "routes.ts", "-o", "out/"]
-            )
+            result = cli_runner.invoke(app, ["reverse", "typescript", "routes.ts", "-o", "out/"])
 
             assert result.exit_code == 0

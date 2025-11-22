@@ -7,14 +7,14 @@ project_root = Path(__file__).parent.parent.parent.parent  # /home/lionel/code/s
 src_path = project_root / "src"
 sys.path.insert(0, str(src_path))
 
-import pytest
 from click.testing import CliRunner
 
 
 def test_cli_error_shows_message():
     """CLI errors should display user-friendly message."""
-    from cli.utils.error_handler import CLIError, handle_cli_error
     import click
+
+    from cli.utils.error_handler import CLIError, handle_cli_error
 
     @click.command()
     def test_cmd():
@@ -30,8 +30,9 @@ def test_cli_error_shows_message():
 
 def test_validation_error_shows_file_location():
     """Validation errors should show file and line number."""
-    from cli.utils.error_handler import ValidationError
     import click
+
+    from cli.utils.error_handler import ValidationError
 
     @click.command()
     def test_cmd():

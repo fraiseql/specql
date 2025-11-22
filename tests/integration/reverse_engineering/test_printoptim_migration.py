@@ -1,6 +1,5 @@
 """Integration test with actual PrintOptim manufacturer table."""
 
-import yaml
 from click.testing import CliRunner
 
 from cli.main import app
