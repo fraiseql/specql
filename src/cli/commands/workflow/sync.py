@@ -2,12 +2,50 @@
 Sync subcommand - Incremental regeneration and synchronization.
 """
 
+import hashlib
+import json
+import logging
 from pathlib import Path
 
 import click
 
 from cli.utils.error_handler import handle_cli_error
 from cli.utils.output import output
+
+# State file to track file hashes
+STATE_FILE = ".specql-sync-state.json"
+
+# Null logger for tests to avoid output interference
+null_logger = logging.getLogger("null")
+null_logger.addHandler(logging.NullHandler())
+null_logger.setLevel(logging.CRITICAL)
+
+
+def get_file_hash(file_path: Path) -> str:
+    """Calculate SHA256 hash of file contents."""
+    return hashlib.sha256(file_path.read_bytes()).hexdigest()
+
+
+def load_sync_state(directory: Path) -> dict:
+    """Load previous sync state."""
+    state_path = directory / STATE_FILE
+    if state_path.exists():
+        try:
+            return json.loads(state_path.read_text())
+        except (json.JSONDecodeError, IOError):
+            # If state file is corrupted, start fresh
+            return {}
+    return {}
+
+
+def save_sync_state(directory: Path, state: dict):
+    """Save current sync state."""
+    state_path = directory / STATE_FILE
+    try:
+        state_path.write_text(json.dumps(state, indent=2))
+    except IOError:
+        # If we can't save state, continue but warn
+        output.warning(f"Could not save sync state to {state_path}")
 
 
 @click.command()
@@ -81,37 +119,53 @@ def sync(
             return
 
         output.info(f"📋 Found {len(changed_files)} changed file(s)")
+        for file_path in changed_files:
+            output.info(f"  📄 {file_path.name}")
 
         if progress:
             output.info("🔄 Processing changes...")
 
-        # Process files (simulate parallel processing)
+        # Process files (real generation)
         processed = _process_changed_files(
             changed_files, output_dir, include_patterns, parallel, progress
         )
+
+        # Save sync state for incremental detection
+        if processed > 0:
+            new_state = load_sync_state(source_path)
+            for file_path in changed_files:
+                if file_path.exists():  # File might have been deleted
+                    new_state[str(file_path)] = get_file_hash(file_path)
+            save_sync_state(source_path, new_state)
 
         output.success(f"✅ Sync completed: {processed} file(s) processed")
 
         if include_patterns:
             applied_patterns = _apply_patterns_incremental(changed_files, output_dir)
             if applied_patterns:
-                output.info(f"🎨 Applied {applied_patterns} pattern(s)")
+                output.info(f"🎨 Detected patterns in {applied_patterns} file(s)")
 
 
 def _show_sync_plan(source_path, output_dir, force, include_patterns, exclude):
     """Show the sync plan without executing."""
     output.info("📋 Sync Plan:")
 
-    # Simulate finding files
-    yaml_files = list(source_path.glob("*.yaml"))
-    output.info(f"  📄 Source files: {len(yaml_files)} YAML file(s)")
+    # Actually detect changed files for dry-run
+    changed_files = _find_changed_files(source_path, output_dir, force, exclude)
+
+    output.info(f"  📄 Source files: {len(list(source_path.glob('**/*.yaml')))} YAML file(s)")
     output.info(f"  📁 Source directory: {source_path}")
     output.info(f"  📝 Output directory: {output_dir}")
 
     if force:
         output.info("  🔄 Mode: Force regeneration (all files)")
+        output.info(f"  📋 Will process: {len(changed_files)} file(s)")
     else:
         output.info("  🔄 Mode: Incremental (changed files only)")
+        output.info(f"  📋 Found {len(changed_files)} changed file(s)")
+
+    for file_path in changed_files:
+        output.info(f"    📄 {file_path.name}")
 
     if include_patterns:
         output.info("  🎨 Include: Pattern application")
@@ -124,7 +178,7 @@ def _show_sync_plan(source_path, output_dir, force, include_patterns, exclude):
 
 def _find_changed_files(source_path, output_dir, force, exclude):
     """Find files that need to be processed."""
-    yaml_files = list(source_path.glob("*.yaml"))
+    yaml_files = list(source_path.glob("**/*.yaml"))
 
     # Apply exclusions
     if exclude:
@@ -142,25 +196,47 @@ def _find_changed_files(source_path, output_dir, force, exclude):
     if force:
         return yaml_files
 
-    # Simulate change detection (in real implementation, would check timestamps/hashes)
-    # For demo, return every other file as "changed"
-    changed_files = yaml_files[::2]
+    # Real change detection using file hashing
+    state = load_sync_state(source_path)
+    changed_files = []
+
+    for yaml_file in yaml_files:
+        current_hash = get_file_hash(yaml_file)
+        previous_hash = state.get(str(yaml_file))
+
+        if current_hash != previous_hash:
+            changed_files.append(yaml_file)
+
     return changed_files
 
 
 def _process_changed_files(changed_files, output_dir, include_patterns, parallel, progress):
     """Process the changed files."""
+    from cli.orchestrator import CLIOrchestrator
+
     output_dir.mkdir(parents=True, exist_ok=True)
+    # Use CLIOrchestrator for real generation
+    orchestrator = CLIOrchestrator(enable_performance_monitoring=False)
 
     processed = 0
     for file_path in changed_files:
         if progress:
             output.info(f"  📄 Processing: {file_path.name}")
 
-        # Simulate processing
-        _generate_from_file(file_path, output_dir)
+        try:
+            # Real generation using CLIOrchestrator
+            result = orchestrator.generate_from_files(
+                entity_files=[str(file_path)], output_dir=str(output_dir)
+            )
 
-        processed += 1
+            if result.errors:
+                for error in result.errors:
+                    output.error(f"  ❌ {error}")
+            else:
+                processed += 1
+
+        except Exception as e:
+            output.error(f"  ❌ Failed to process {file_path.name}: {e}")
 
         # Simulate parallel processing delay
         if parallel > 1 and processed % parallel == 0:
@@ -169,25 +245,23 @@ def _process_changed_files(changed_files, output_dir, include_patterns, parallel
     return processed
 
 
-def _generate_from_file(yaml_file, output_dir):
-    """Generate output files from a single YAML file."""
-    # Create subdirectories
-    schema_dir = output_dir / "schema"
-    graphql_dir = output_dir / "graphql"
-    schema_dir.mkdir(parents=True, exist_ok=True)
-    graphql_dir.mkdir(parents=True, exist_ok=True)
-
-    # Generate SQL schema
-    # In real implementation, would write actual SQL
-
-    # Generate GraphQL types
-    # In real implementation, would write actual GraphQL
-
-
 def _apply_patterns_incremental(changed_files, output_dir):
     """Apply patterns to changed files."""
-    # Simulate pattern application
-    applied = len(changed_files) // 3  # Apply to 1/3 of files
+    from cli.commands.patterns.detect import detect_patterns_from_yaml
+
+    applied = 0
+    for file_path in changed_files:
+        try:
+            patterns = detect_patterns_from_yaml(file_path)
+            if patterns:
+                applied += 1
+                output.info(f"  🎨 Detected {len(patterns)} pattern(s) in {file_path.name}")
+                for pattern in patterns:
+                    confidence_pct = int(pattern["confidence"] * 100)
+                    output.info(f"    • {pattern['name']} ({confidence_pct}% confidence)")
+        except Exception as e:
+            output.warning(f"  ⚠️  Failed to detect patterns in {file_path.name}: {e}")
+
     return applied
 
 
