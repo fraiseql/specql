@@ -5,10 +5,9 @@ import textwrap
 from pathlib import Path
 
 import pytest
-from click.testing import CliRunner
-
 from cli.confiture_extensions import specql
 from cli.generate import cli as generate_cli
+from click.testing import CliRunner
 
 
 @pytest.fixture

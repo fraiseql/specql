@@ -5,11 +5,10 @@ import textwrap
 from pathlib import Path
 
 import pytest
-from click.testing import CliRunner
-
 from cli.generate import cli as generate_cli
 from cli.reverse_python import reverse_python
 from cli.validate import validate as validate_cli
+from click.testing import CliRunner
 
 
 @pytest.fixture

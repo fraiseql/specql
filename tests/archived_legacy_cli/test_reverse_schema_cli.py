@@ -1,8 +1,7 @@
 """Integration tests for reverse-schema CLI command."""
 
-from click.testing import CliRunner
-
 from cli.reverse_schema import reverse_schema
+from click.testing import CliRunner
 
 
 class TestReverseSchemaCLI:

@@ -1,6 +1,7 @@
 """End-to-end tests for translation table generation"""
 
 from cli.generate import convert_entity_definition_to_entity
+
 from core.specql_parser import SpecQLParser
 from generators.schema_orchestrator import SchemaOrchestrator
 
