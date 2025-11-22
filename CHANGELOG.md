@@ -7,6 +7,39 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.7] - 2025-11-22
+
+### Added
+- **Info/Instance Pattern Detection** - New detector for dual-table hierarchical patterns
+  - `InfoInstanceDetector` class for detecting `*_info` tables (vocabulary/reference data)
+  - Detects instance tables via `fk_*_info` foreign key columns
+  - Identifies self-referential parent FK columns (`fk_parent_*`) for hierarchy
+  - Pair matching algorithm to associate info tables with their instance counterparts
+  - New file: `reverse_engineering/info_instance_detector.py`
+  - New tests: `tests/unit/reverse_engineering/test_info_instance_detector.py`
+
+- **Enhanced Translation Table Detection** - Extended `tl_*` prefix support
+  - `TranslationTableDetector` now recognizes `tl_*` prefix (PrintOptim style) in addition to `*_translation` suffix
+  - Parent name extraction from `tl_*` tables (e.g., `tl_currency` → `currency`)
+  - Handles compound names like `tl_administrative_unit_info`
+
+- **CLI Integration** - Detectors integrated into `specql reverse sql` command
+  - Translation tables automatically separated from regular tables
+  - Info/instance pairs detected and reported in CLI output
+  - Standalone tables categorized separately for generation
+
+### Test Coverage
+- **New Tests**: 12 tests for translation and info/instance detectors
+  - 6 tests for `TranslationTableDetector` (including new `tl_*` prefix tests)
+  - 6 tests for `InfoInstanceDetector` (info, instance, and pair detection)
+- **Total Tests**: 1636 tests passing
+
+### Quality Metrics
+- **Files Added**: 2 files (detector + tests)
+- **Lines Added**: ~280 lines (implementation + tests)
+- **Linting**: All checks passing (14 auto-fixed issues)
+- **Backward Compatible**: All existing workflows continue to work
+
 ## [0.8.6] - 2025-11-22
 
 ### Added
@@ -492,7 +525,8 @@ This stable release fixes all remaining test failures from v0.5.0b1, achieving p
 - Team-by-team implementation guide
 - Integration proposal with FraiseQL conventions
 
-[unreleased]: https://github.com/fraiseql/specql/compare/v0.8.6...HEAD
+[unreleased]: https://github.com/fraiseql/specql/compare/v0.8.7...HEAD
+[0.8.7]: https://github.com/fraiseql/specql/releases/tag/v0.8.7
 [0.8.6]: https://github.com/fraiseql/specql/releases/tag/v0.8.6
 [0.8.5]: https://github.com/fraiseql/specql/releases/tag/v0.8.5
 [0.8.4]: https://github.com/fraiseql/specql/releases/tag/v0.8.4

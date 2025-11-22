@@ -1,8 +1,9 @@
 """Integration tests for project-level reverse engineering."""
 
 import pytest
-from cli.confiture_extensions import specql
 from click.testing import CliRunner
+
+from cli.confiture_extensions import specql
 
 
 @pytest.fixture

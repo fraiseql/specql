@@ -79,3 +79,40 @@ class TestTranslationTableDetector:
         # Should remove base table duplicate fields
         assert "name" not in result
         assert "color_name" not in result
+
+    def test_detect_tl_prefix_as_translation_table(self):
+        """Tables with tl_ prefix should be detected as translation tables."""
+        # Given a table with tl_ prefix
+        table_name = "tl_currency"
+
+        # When we check if it's a translation table
+        detector = TranslationTableDetector()
+        result = detector._is_translation_table_name(table_name)
+
+        # Then it should be detected as a translation table
+        assert result is True
+
+    def test_detect_tl_info_prefix_as_translation_table(self):
+        """Tables with tl_*_info prefix should be detected as translation tables."""
+        table_name = "tl_administrative_unit_info"
+
+        detector = TranslationTableDetector()
+        result = detector._is_translation_table_name(table_name)
+
+        assert result is True
+
+    def test_extract_parent_from_tl_prefix(self):
+        """tl_currency should extract 'currency' as parent table."""
+        detector = TranslationTableDetector()
+
+        parent = detector._extract_parent_table_name("tl_currency")
+
+        assert parent == "currency"
+
+    def test_extract_parent_from_tl_info(self):
+        """tl_administrative_unit_info should extract 'administrative_unit_info' as parent."""
+        detector = TranslationTableDetector()
+
+        parent = detector._extract_parent_table_name("tl_administrative_unit_info")
+
+        assert parent == "administrative_unit_info"

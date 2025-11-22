@@ -4,8 +4,9 @@ import tempfile
 import time
 from pathlib import Path
 
-from cli.confiture_extensions import specql
 from click.testing import CliRunner
+
+from cli.confiture_extensions import specql
 
 
 def create_large_test_project(num_files=50):

@@ -79,9 +79,34 @@ class SQLTableParser:
         self.pglast = _get_pglast()
         self.type_mapper = SQLTypeMapper()
 
+    def _extract_original_table_name(self, sql: str) -> str | None:
+        """Extract original table name from SQL preserving case.
+
+        pglast normalizes unquoted identifiers to lowercase, but we want to
+        preserve the original case for better YAML filenames. This extracts
+        the table name directly from the SQL text.
+        """
+        import re
+
+        # Match CREATE TABLE [IF NOT EXISTS] [schema.]table_name
+        # The table name can be quoted ("TableName") or unquoted (TableName)
+        pattern = r"""
+            CREATE\s+TABLE\s+
+            (?:IF\s+NOT\s+EXISTS\s+)?
+            (?:[\w"]+\.)?              # Optional schema
+            ("?)([\w]+)\1              # Table name (with optional quotes)
+        """
+        match = re.search(pattern, sql, re.IGNORECASE | re.VERBOSE)
+        if match:
+            return match.group(2)  # Return just the name without quotes
+        return None
+
     def parse_table(self, sql: str) -> ParsedTable:
         """Parse CREATE TABLE statement"""
         try:
+            # Extract original table name before pglast normalizes it
+            original_table_name = self._extract_original_table_name(sql)
+
             # Parse SQL to AST
             ast = self.pglast.parse_sql(sql)
 
@@ -98,7 +123,9 @@ class SQLTableParser:
                 schema = table_stmt.relation.schemaname
             else:
                 schema = "public"
-            table_name = table_stmt.relation.relname
+
+            # Use original table name if we could extract it, otherwise fall back to pglast
+            table_name = original_table_name or table_stmt.relation.relname
 
             # Extract columns and constraints
             columns = []

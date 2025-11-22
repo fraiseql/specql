@@ -3,6 +3,7 @@
 import tempfile
 
 import pytest
+
 from cli.confiture_extensions import specql
 
 

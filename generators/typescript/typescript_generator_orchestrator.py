@@ -7,7 +7,6 @@ Coordinates generation of all TypeScript/Prisma artifacts.
 from pathlib import Path
 
 from core.universal_ast import UniversalEntity
-
 from generators.typescript.prisma_schema_generator import PrismaSchemaGenerator
 from generators.typescript.typescript_entity_generator import (
     TypeScriptEntityGenerator,
